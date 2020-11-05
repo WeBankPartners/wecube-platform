@@ -43,7 +43,7 @@ import com.webank.wecube.platform.core.repository.workflow.ProcDefInfoMapper;
 import com.webank.wecube.platform.core.repository.workflow.ProcExecBindingTmpMapper;
 import com.webank.wecube.platform.core.repository.workflow.TaskNodeDefInfoMapper;
 import com.webank.wecube.platform.core.repository.workflow.TaskNodeExecParamRepository;
-import com.webank.wecube.platform.core.repository.workflow.TaskNodeExecRequestRepository;
+import com.webank.wecube.platform.core.repository.workflow.TaskNodeExecRequestMapper;
 import com.webank.wecube.platform.core.repository.workflow.TaskNodeInstInfoMapper;
 import com.webank.wecube.platform.core.service.dme.EntityOperationRootCondition;
 import com.webank.wecube.platform.core.service.dme.EntityTreeNodesOverview;
@@ -74,7 +74,7 @@ public class WorkflowDataService{
     protected TaskNodeExecParamRepository taskNodeExecParamRepository;
 
     @Autowired
-    protected TaskNodeExecRequestRepository taskNodeExecRequestRepository;
+    protected TaskNodeExecRequestMapper taskNodeExecRequestRepository;
 
     @Autowired
     protected ProcExecBindingTmpMapper procExecBindingTmpRepository;
@@ -330,14 +330,14 @@ public class WorkflowDataService{
 
         TaskNodeExecRequestEntity requestEntity = requestEntities.get(0);
 
-        result.setRequestId(requestEntity.getRequestId());
-        result.setErrorCode(requestEntity.getErrorCode());
+        result.setRequestId(requestEntity.getReqId());
+        result.setErrorCode(requestEntity.getErrCode());
 
         List<TaskNodeExecParamEntity> requestParamEntities = taskNodeExecParamRepository.findAllByRequestIdAndParamType(
-                requestEntity.getRequestId(), TaskNodeExecParamEntity.PARAM_TYPE_REQUEST);
+                requestEntity.getReqId(), TaskNodeExecParamEntity.PARAM_TYPE_REQUEST);
 
         List<TaskNodeExecParamEntity> responseParamEntities = taskNodeExecParamRepository
-                .findAllByRequestIdAndParamType(requestEntity.getRequestId(),
+                .findAllByRequestIdAndParamType(requestEntity.getReqId(),
                         TaskNodeExecParamEntity.PARAM_TYPE_RESPONSE);
 
         List<RequestObjectDto> requestObjects = calculateRequestObjectDtos(requestParamEntities, responseParamEntities);
