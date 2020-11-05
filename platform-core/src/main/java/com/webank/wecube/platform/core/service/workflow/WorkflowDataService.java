@@ -40,7 +40,7 @@ import com.webank.wecube.platform.core.entity.workflow.TaskNodeExecRequestEntity
 import com.webank.wecube.platform.core.entity.workflow.TaskNodeInstInfoEntity;
 import com.webank.wecube.platform.core.repository.workflow.GraphNodeRepository;
 import com.webank.wecube.platform.core.repository.workflow.ProcDefInfoMapper;
-import com.webank.wecube.platform.core.repository.workflow.ProcExecBindingTmpRepository;
+import com.webank.wecube.platform.core.repository.workflow.ProcExecBindingTmpMapper;
 import com.webank.wecube.platform.core.repository.workflow.TaskNodeDefInfoMapper;
 import com.webank.wecube.platform.core.repository.workflow.TaskNodeExecParamRepository;
 import com.webank.wecube.platform.core.repository.workflow.TaskNodeExecRequestRepository;
@@ -77,7 +77,7 @@ public class WorkflowDataService{
     protected TaskNodeExecRequestRepository taskNodeExecRequestRepository;
 
     @Autowired
-    protected ProcExecBindingTmpRepository procExecBindingTmpRepository;
+    protected ProcExecBindingTmpMapper procExecBindingTmpRepository;
 
     @Autowired
     protected ProcDefInfoMapper procDefInfoRepository;
@@ -223,11 +223,11 @@ public class WorkflowDataService{
                 if (existEntity != null) {
                     bindingsSelected.add(existEntity);
 
-                    existEntity.setBound(ProcExecBindingTmpEntity.BOUND);
+                    existEntity.setIsBound(ProcExecBindingTmpEntity.BOUND);
                     existEntity.setUpdatedBy(AuthenticationContextHolder.getCurrentUsername());
                     existEntity.setUpdatedTime(new Date());
 
-                    procExecBindingTmpRepository.saveAndFlush(existEntity);
+                    procExecBindingTmpRepository.updateByPrimaryKeySelective(existEntity);
                     continue;
                 }
 
@@ -239,11 +239,11 @@ public class WorkflowDataService{
                 continue;
             }
 
-            entity.setBound(ProcExecBindingTmpEntity.UNBOUND);
+            entity.setIsBound(ProcExecBindingTmpEntity.UNBOUND);
             entity.setUpdatedBy(AuthenticationContextHolder.getCurrentUsername());
             entity.setUpdatedTime(new Date());
 
-            procExecBindingTmpRepository.saveAndFlush(entity);
+            procExecBindingTmpRepository.updateByPrimaryKeySelective(entity);
         }
     }
 
@@ -270,7 +270,7 @@ public class WorkflowDataService{
 
         bindingEntities.forEach(entity -> {
             TaskNodeDefObjectBindInfoDto dto = new TaskNodeDefObjectBindInfoDto();
-            dto.setBound(entity.getBound());
+            dto.setBound(entity.getIsBound());
             dto.setEntityDataId(entity.getEntityDataId());
             dto.setEntityTypeId(entity.getEntityTypeId());
             dto.setNodeDefId(entity.getNodeDefId());
@@ -294,7 +294,7 @@ public class WorkflowDataService{
 
         bindingEntities.forEach(entity -> {
             TaskNodeDefObjectBindInfoDto dto = new TaskNodeDefObjectBindInfoDto();
-            dto.setBound(entity.getBound());
+            dto.setBound(entity.getIsBound());
             dto.setEntityDataId(entity.getEntityDataId());
             dto.setEntityTypeId(entity.getEntityTypeId());
             dto.setNodeDefId(entity.getNodeDefId());
@@ -479,7 +479,7 @@ public class WorkflowDataService{
             String processSessionId) {
         ProcExecBindingTmpEntity procInstBindingTmpEntity = new ProcExecBindingTmpEntity();
         procInstBindingTmpEntity.setBindType(ProcExecBindingTmpEntity.BIND_TYPE_PROC_INSTANCE);
-        procInstBindingTmpEntity.setBound(ProcExecBindingTmpEntity.BOUND);
+        procInstBindingTmpEntity.setIsBound(ProcExecBindingTmpEntity.BOUND);
         procInstBindingTmpEntity.setProcSessionId(processSessionId);
         procInstBindingTmpEntity.setProcDefId(outline.getProcDefId());
         procInstBindingTmpEntity.setEntityDataId(dataId);
@@ -487,7 +487,7 @@ public class WorkflowDataService{
         procInstBindingTmpEntity.setEntityDataName(dataName);
         procInstBindingTmpEntity.setCreatedBy(AuthenticationContextHolder.getCurrentUsername());
 
-        procExecBindingTmpRepository.saveAndFlush(procInstBindingTmpEntity);
+        procExecBindingTmpRepository.insert(procInstBindingTmpEntity);
     }
 
     protected ProcessDataPreviewDto doFetchProcessPreviewData(ProcDefOutlineDto outline, String dataId,
@@ -624,7 +624,7 @@ public class WorkflowDataService{
 
             ProcExecBindingTmpEntity taskNodeBinding = new ProcExecBindingTmpEntity();
             taskNodeBinding.setBindType(ProcExecBindingTmpEntity.BIND_TYPE_TASK_NODE_INSTANCE);
-            taskNodeBinding.setBound(ProcExecBindingTmpEntity.BOUND);
+            taskNodeBinding.setIsBound(ProcExecBindingTmpEntity.BOUND);
             taskNodeBinding.setProcSessionId(processSessionId);
             taskNodeBinding.setProcDefId(f.getProcDefId());
             taskNodeBinding.setEntityDataId(String.valueOf(tn.getRootId()));
@@ -633,7 +633,7 @@ public class WorkflowDataService{
             taskNodeBinding.setOrderedNo(f.getOrderedNo());
             taskNodeBinding.setCreatedBy(AuthenticationContextHolder.getCurrentUsername());
 
-            procExecBindingTmpRepository.saveAndFlush(taskNodeBinding);
+            procExecBindingTmpRepository.insert(taskNodeBinding);
             savedTreeNodes.add(tn);
         }
 
