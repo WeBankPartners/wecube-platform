@@ -22,8 +22,19 @@ public interface TaskNodeInstInfoMapper{
 
     int updateByPrimaryKey(TaskNodeInstInfoEntity record);
     
+    /**
+     * 
+     * @param procInstId
+     * @return
+     */
     List<TaskNodeInstInfoEntity> findAllByProcInstId(@Param("procInstId")Integer procInstId);
     
+    /**
+     * 
+     * @param procInstId
+     * @param nodeId
+     * @return
+     */
     TaskNodeInstInfoEntity findOneByProcInstIdAndNodeId(@Param("procInstId")Integer procInstId, @Param("nodeId")String nodeId);
     
 }

@@ -33,8 +33,8 @@ import com.webank.wecube.platform.core.entity.workflow.TaskNodeDefInfoEntity;
 import com.webank.wecube.platform.core.entity.workflow.TaskNodeInstInfoEntity;
 import com.webank.wecube.platform.core.repository.workflow.GraphNodeRepository;
 import com.webank.wecube.platform.core.repository.workflow.ProcDefInfoMapper;
-import com.webank.wecube.platform.core.repository.workflow.ProcExecBindingRepository;
-import com.webank.wecube.platform.core.repository.workflow.ProcExecBindingTmpRepository;
+import com.webank.wecube.platform.core.repository.workflow.ProcExecBindingMapper;
+import com.webank.wecube.platform.core.repository.workflow.ProcExecBindingTmpMapper;
 import com.webank.wecube.platform.core.repository.workflow.ProcInstInfoMapper;
 import com.webank.wecube.platform.core.repository.workflow.ProcRoleBindingRepository;
 import com.webank.wecube.platform.core.repository.workflow.TaskNodeDefInfoMapper;
@@ -63,7 +63,7 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
     private TaskNodeInstInfoMapper taskNodeInstInfoRepository;
 
     @Autowired
-    private ProcExecBindingRepository procExecBindingRepository;
+    private ProcExecBindingMapper procExecBindingRepository;
 
     @Autowired
     private WorkflowEngineService workflowEngineService;
@@ -81,7 +81,7 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
     private ProcRoleBindingRepository procRoleBindingRepository;
 
     @Autowired
-    private ProcExecBindingTmpRepository procExecBindingTmpRepository;
+    private ProcExecBindingTmpMapper procExecBindingTmpRepository;
 
     @Autowired
     protected GraphNodeRepository graphNodeRepository;
@@ -456,7 +456,7 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
         procInstBindEntity.setEntityDataName(rootEntityDataName);
         procInstBindEntity.setProcDefId(procDefId);
         procInstBindEntity.setProcInstId(procInstInfoEntity.getId());
-        procExecBindingRepository.saveAndFlush(procInstBindEntity);
+        procExecBindingRepository.insert(procInstBindEntity);
 
         List<TaskNodeDefInfoEntity> taskNodeDefInfoEntities = taskNodeDefInfoRepository.findAllByProcDefId(procDefId);
 
@@ -496,7 +496,7 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
             nodeBindEntity.setEntityDataId(bindInfoDto.getEntityDataId());
             nodeBindEntity.setEntityDataName(bindInfoDto.getEntityDisplayName());
 
-            procExecBindingRepository.saveAndFlush(nodeBindEntity);
+            procExecBindingRepository.insert(nodeBindEntity);
 
             savedBindInfoDtos.add(bindInfoDto);
         }
@@ -685,9 +685,9 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
         }
 
         for (ProcExecBindingTmpEntity entity : sessionBindings) {
-            if (ProcExecBindingTmpEntity.BOUND.equalsIgnoreCase(entity.getBound())) {
+            if (ProcExecBindingTmpEntity.BOUND.equalsIgnoreCase(entity.getIsBound())) {
                 TaskNodeDefObjectBindInfoDto dto = new TaskNodeDefObjectBindInfoDto();
-                dto.setBound(entity.getBound());
+                dto.setBound(entity.getIsBound());
                 dto.setEntityDataId(entity.getEntityDataId());
                 dto.setEntityTypeId(entity.getEntityTypeId());
                 dto.setNodeDefId(entity.getNodeDefId());

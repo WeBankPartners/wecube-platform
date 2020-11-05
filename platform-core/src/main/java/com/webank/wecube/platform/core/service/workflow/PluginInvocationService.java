@@ -12,7 +12,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
@@ -39,7 +38,7 @@ import com.webank.wecube.platform.core.model.workflow.InputParamObject;
 import com.webank.wecube.platform.core.model.workflow.PluginInvocationCommand;
 import com.webank.wecube.platform.core.model.workflow.PluginInvocationResult;
 import com.webank.wecube.platform.core.model.workflow.WorkflowNotifyEvent;
-import com.webank.wecube.platform.core.repository.workflow.ProcExecBindingRepository;
+import com.webank.wecube.platform.core.repository.workflow.ProcExecBindingMapper;
 import com.webank.wecube.platform.core.repository.workflow.ProcInstInfoMapper;
 import com.webank.wecube.platform.core.repository.workflow.TaskNodeExecRequestRepository;
 import com.webank.wecube.platform.core.repository.workflow.TaskNodeParamMapper;
@@ -72,7 +71,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
     protected PluginInstanceService pluginInstanceService;
 
     @Autowired
-    private ProcExecBindingRepository procExecBindingRepository;
+    private ProcExecBindingMapper procExecBindingRepository;
 
     @Autowired
     private SystemVariableService systemVariableService;
