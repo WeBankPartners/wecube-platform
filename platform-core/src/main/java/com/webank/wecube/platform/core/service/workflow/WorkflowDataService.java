@@ -42,7 +42,7 @@ import com.webank.wecube.platform.core.repository.workflow.GraphNodeRepository;
 import com.webank.wecube.platform.core.repository.workflow.ProcDefInfoMapper;
 import com.webank.wecube.platform.core.repository.workflow.ProcExecBindingTmpMapper;
 import com.webank.wecube.platform.core.repository.workflow.TaskNodeDefInfoMapper;
-import com.webank.wecube.platform.core.repository.workflow.TaskNodeExecParamRepository;
+import com.webank.wecube.platform.core.repository.workflow.TaskNodeExecParamMapper;
 import com.webank.wecube.platform.core.repository.workflow.TaskNodeExecRequestMapper;
 import com.webank.wecube.platform.core.repository.workflow.TaskNodeInstInfoMapper;
 import com.webank.wecube.platform.core.service.dme.EntityOperationRootCondition;
@@ -71,7 +71,7 @@ public class WorkflowDataService{
     private PluginConfigService pluginConfigService;
 
     @Autowired
-    protected TaskNodeExecParamRepository taskNodeExecParamRepository;
+    protected TaskNodeExecParamMapper taskNodeExecParamRepository;
 
     @Autowired
     protected TaskNodeExecRequestMapper taskNodeExecRequestRepository;
@@ -706,11 +706,11 @@ public class WorkflowDataService{
             return false;
         }
 
-        if (respParamEntity.getSensitive() == null) {
+        if (respParamEntity.getIsSensitive() == null) {
             return false;
         }
 
-        if (Boolean.TRUE.equals(respParamEntity.getSensitive())) {
+        if (Boolean.TRUE.equals(respParamEntity.getIsSensitive())) {
             return true;
 
         }
@@ -724,10 +724,10 @@ public class WorkflowDataService{
         Map<String, Map<String, String>> respParamsByObjectId = new HashMap<String, Map<String, String>>();
         if (responseParamEntities != null) {
             for (TaskNodeExecParamEntity respParamEntity : responseParamEntities) {
-                Map<String, String> respParamsMap = respParamsByObjectId.get(respParamEntity.getObjectId());
+                Map<String, String> respParamsMap = respParamsByObjectId.get(respParamEntity.getObjId());
                 if (respParamsMap == null) {
                     respParamsMap = new HashMap<String, String>();
-                    respParamsByObjectId.put(respParamEntity.getObjectId(), respParamsMap);
+                    respParamsByObjectId.put(respParamEntity.getObjId(), respParamsMap);
                 }
                 if (isSensitiveData(respParamEntity)) {
                     respParamsMap.put(respParamEntity.getParamName(), "***MASK***");
@@ -745,10 +745,10 @@ public class WorkflowDataService{
             List<TaskNodeExecParamEntity> responseParamEntities) {
         Map<String, RequestObjectDto> objs = new HashMap<>();
         for (TaskNodeExecParamEntity rp : requestParamEntities) {
-            RequestObjectDto ro = objs.get(rp.getObjectId());
+            RequestObjectDto ro = objs.get(rp.getObjId());
             if (ro == null) {
                 ro = new RequestObjectDto();
-                objs.put(rp.getObjectId(), ro);
+                objs.put(rp.getObjId(), ro);
             }
 
             if (isSensitiveData(rp)) {
