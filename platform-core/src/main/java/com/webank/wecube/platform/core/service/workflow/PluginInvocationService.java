@@ -40,7 +40,7 @@ import com.webank.wecube.platform.core.model.workflow.PluginInvocationResult;
 import com.webank.wecube.platform.core.model.workflow.WorkflowNotifyEvent;
 import com.webank.wecube.platform.core.repository.workflow.ProcExecBindingMapper;
 import com.webank.wecube.platform.core.repository.workflow.ProcInstInfoMapper;
-import com.webank.wecube.platform.core.repository.workflow.TaskNodeExecRequestRepository;
+import com.webank.wecube.platform.core.repository.workflow.TaskNodeExecRequestMapper;
 import com.webank.wecube.platform.core.repository.workflow.TaskNodeParamMapper;
 import com.webank.wecube.platform.core.service.SystemVariableService;
 import com.webank.wecube.platform.core.service.dme.EntityOperationRootCondition;
@@ -80,7 +80,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
     private TaskNodeParamMapper taskNodeParamRepository;
 
     @Autowired
-    private TaskNodeExecRequestRepository taskNodeExecRequestRepository;
+    private TaskNodeExecRequestMapper taskNodeExecRequestRepository;
 
     @Autowired
     private WorkflowProcInstEndEventNotifier workflowProcInstEndEventNotifier;
@@ -323,9 +323,9 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 
         if (formerRequestEntities != null) {
             for (TaskNodeExecRequestEntity formerRequestEntity : formerRequestEntities) {
-                formerRequestEntity.setCurrent(false);
+                formerRequestEntity.setIsCurrent(false);
                 formerRequestEntity.setUpdatedTime(new Date());
-                taskNodeExecRequestRepository.saveAndFlush(formerRequestEntity);
+                taskNodeExecRequestRepository.updateByPrimaryKeySelective(formerRequestEntity);
             }
         }
 
@@ -336,19 +336,19 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
         PluginInvocationCommand cmd = ctx.getPluginInvocationCommand();
         TaskNodeExecRequestEntity requestEntity = new TaskNodeExecRequestEntity();
         requestEntity.setNodeInstId(taskNodeInstEntity.getId());
-        requestEntity.setRequestId(requestId);
-        requestEntity.setRequestUrl(ctx.getInstanceHost() + ctx.getInterfacePath());
+        requestEntity.setReqId(requestId);
+        requestEntity.setReqUrl(ctx.getInstanceHost() + ctx.getInterfacePath());
 
         requestEntity.setExecutionId(cmd.getExecutionId());
         requestEntity.setNodeId(cmd.getNodeId());
         requestEntity.setNodeName(cmd.getNodeName());
         requestEntity.setProcDefKernelId(cmd.getProcDefId());
         requestEntity.setProcDefKernelKey(cmd.getProcDefKey());
-        requestEntity.setProcDefVersion(cmd.getProcDefVersion());
+        requestEntity.setProcDefVer(cmd.getProcDefVersion());
         requestEntity.setProcInstKernelId(cmd.getProcInstId());
         requestEntity.setProcInstKernelKey(cmd.getProcInstKey());
 
-        requestEntity = taskNodeExecRequestRepository.saveAndFlush(requestEntity);
+        taskNodeExecRequestRepository.insert(requestEntity);
 
         ctx.withTaskNodeExecRequestEntity(requestEntity);
         ctx.setRequestId(requestId);
@@ -579,7 +579,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
         TaskNodeExecRequestEntity requestEntity = requestEntities.get(0);
 
         List<TaskNodeExecParamEntity> execParamEntities = taskNodeExecParamRepository
-                .findAllByRequestIdAndParamNameAndParamType(requestEntity.getRequestId(), bindParamName, bindParamType);
+                .findAllByRequestIdAndParamNameAndParamType(requestEntity.getReqId(), bindParamName, bindParamType);
 
         if (execParamEntities == null || execParamEntities.isEmpty()) {
             if (FIELD_REQUIRED.equals(param.getRequired())) {
@@ -758,9 +758,9 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 
         if (formerRequestEntities != null) {
             for (TaskNodeExecRequestEntity formerRequestEntity : formerRequestEntities) {
-                formerRequestEntity.setCurrent(false);
+                formerRequestEntity.setIsCurrent(false);
                 formerRequestEntity.setUpdatedTime(currTime);
-                taskNodeExecRequestRepository.saveAndFlush(formerRequestEntity);
+                taskNodeExecRequestRepository.updateByPrimaryKeySelective(formerRequestEntity);
             }
         }
 
@@ -1047,7 +1047,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
         String entityTypeId = null;
         String entityDataId = null;
 
-        String requestId = ctx.getTaskNodeExecRequestEntity().getRequestId();
+        String requestId = ctx.getTaskNodeExecRequestEntity().getReqId();
 
         String callbackParameter = (String) outputParameterMap.get(CALLBACK_PARAMETER_KEY);
 
@@ -1167,9 +1167,9 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
         TaskNodeExecRequestEntity requestEntity = ctx.getTaskNodeExecRequestEntity();
 
         requestEntity.setUpdatedTime(now);
-        requestEntity.setCompleted(true);
+        requestEntity.setIsCompleted(true);
 
-        taskNodeExecRequestRepository.saveAndFlush(requestEntity);
+        taskNodeExecRequestRepository.updateByPrimaryKeySelective(requestEntity);
 
         TaskNodeInstInfoEntity nodeInstEntity = ctx.getTaskNodeInstEntity();
 
@@ -1187,11 +1187,11 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
         TaskNodeExecRequestEntity requestEntity = ctx.getTaskNodeExecRequestEntity();
 
         requestEntity.setUpdatedTime(now);
-        requestEntity.setErrorCode(errorCode);
-        requestEntity.setErrorMessage(errorMsg);
-        requestEntity.setCompleted(true);
+        requestEntity.setErrCode(errorCode);
+        requestEntity.setErrMsg(errorMsg);
+        requestEntity.setIsCompleted(true);
 
-        taskNodeExecRequestRepository.saveAndFlush(requestEntity);
+        taskNodeExecRequestRepository.updateByPrimaryKeySelective(requestEntity);
 
         TaskNodeInstInfoEntity nodeInstEntity = ctx.getTaskNodeInstEntity();
 
