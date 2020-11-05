@@ -3,7 +3,6 @@ package com.webank.wecube.platform.core.service.workflow;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
@@ -49,14 +48,13 @@ public class AsyncPluginInvocationService extends AbstractPluginInvocationServic
 
         Integer nodeInstId = reqEntity.getNodeInstId();
 
-        Optional<TaskNodeInstInfoEntity> taskNodeInstEntityOpt = taskNodeInstInfoRepository.findById(nodeInstId);
+        TaskNodeInstInfoEntity taskNodeInstEntity = taskNodeInstInfoRepository.selectByPrimaryKey(nodeInstId);
 
-        if (!taskNodeInstEntityOpt.isPresent()) {
+        if (taskNodeInstEntity ==  null) {
             log.error("task node instance does not exist for {} {}", nodeInstId, requestId);
             throw new WecubeCoreException("3155", "Task node instance does not exist.");
         }
 
-        TaskNodeInstInfoEntity taskNodeInstEntity = taskNodeInstEntityOpt.get();
         if (!TaskNodeInstInfoEntity.IN_PROGRESS_STATUS.equals(taskNodeInstEntity.getStatus())) {
             log.error("task node instance status is not valid, expected {} but {}",
                     TaskNodeInstInfoEntity.IN_PROGRESS_STATUS, taskNodeInstEntity.getStatus());
@@ -196,7 +194,7 @@ public class AsyncPluginInvocationService extends AbstractPluginInvocationServic
         nodeInstEntity.setUpdatedTime(now);
         nodeInstEntity.setStatus(TaskNodeInstInfoEntity.FAULTED_STATUS);
 
-        taskNodeInstInfoRepository.saveAndFlush(nodeInstEntity);
+        taskNodeInstInfoRepository.updateByPrimaryKeySelective(nodeInstEntity);
 
     }
 
@@ -211,9 +209,9 @@ public class AsyncPluginInvocationService extends AbstractPluginInvocationServic
         TaskNodeInstInfoEntity nodeInstEntity = ctx.getTaskNodeInstEntity();
         nodeInstEntity.setUpdatedTime(now);
         nodeInstEntity.setStatus(TaskNodeInstInfoEntity.COMPLETED_STATUS);
-        nodeInstEntity.setErrorMessage(EMPTY_ERROR_MSG);
+        nodeInstEntity.setErrMsg(EMPTY_ERROR_MSG);
 
-        taskNodeInstInfoRepository.saveAndFlush(nodeInstEntity);
+        taskNodeInstInfoRepository.updateByPrimaryKeySelective(nodeInstEntity);
     }
 
     private void handleResultData(PluginInterfaceInvocationContext ctx, List<Object> resultData) {
@@ -396,9 +394,9 @@ public class AsyncPluginInvocationService extends AbstractPluginInvocationServic
         TaskNodeInstInfoEntity nodeInstEntity = ctx.getTaskNodeInstEntity();
         nodeInstEntity.setUpdatedTime(now);
         nodeInstEntity.setStatus(TaskNodeInstInfoEntity.FAULTED_STATUS);
-        nodeInstEntity.setErrorMessage(errorMsg);
+        nodeInstEntity.setErrMsg(errorMsg);
 
-        taskNodeInstInfoRepository.saveAndFlush(nodeInstEntity);
+        taskNodeInstInfoRepository.updateByPrimaryKeySelective(nodeInstEntity);
 
     }
 
