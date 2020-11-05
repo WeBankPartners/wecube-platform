@@ -118,6 +118,14 @@
                     >{{ $t('remove') }}</Button
                   >
                 </Tooltip>
+                <Button
+                  style="float:right;margin-top:8px"
+                  size="small"
+                  type="primary"
+                  ghost
+                  icon="ios-expand"
+                  @click.stop.prevent="showParamsModal(inter, index)"
+                ></Button>
                 <div slot="content">
                   <Row style="border-bottom: 1px solid gray;margin-bottom:5px">
                     <Col span="3" offset="0">
@@ -326,6 +334,188 @@
       </Col>
     </Row>
     <Modal
+      v-model="paramsModalVisible"
+      width="100"
+      :title="currentServiceName"
+      :mask-closable="false"
+      @on-ok="confirmParamsHandler"
+      @on-cancel="closeParamsModal"
+    >
+      <div class="modal-paramsContainer">
+        <Row style="border-bottom: 1px solid #e5dfdf;margin-bottom:5px">
+          <Col span="2" offset="0">
+            <strong style="font-size:15px;">{{ $t('params_type') }}</strong>
+          </Col>
+          <Col span="1" offset="0">
+            <strong style="font-size:15px;">{{ $t('params_name') }}</strong>
+          </Col>
+          <Col span="3" offset="0" style="text-align: center;margin-left: 30px">
+            <strong style="font-size:15px;">{{ $t('data_type') }}</strong>
+          </Col>
+          <Col span="1" offset="0">
+            <strong style="font-size:15px;">{{ $t('sensitive') }}</strong>
+          </Col>
+          <Col span="13" offset="0">
+            <strong style="font-size:15px;">{{ $t('attribute') }}</strong>
+          </Col>
+          <Col span="2" offset="1">
+            <strong style="font-size:15px;">
+              {{ $t('attribute_type') }}
+            </strong>
+          </Col>
+        </Row>
+        <div class="modal-interfaceContainers">
+          <Form>
+            <Row>
+              <Col span="2">
+                <FormItem :label-width="0">
+                  <span>{{ $t('input_params') }}</span>
+                </FormItem>
+              </Col>
+              <Col span="21" offset="0">
+                <Row v-for="(param, index) in currentInter['inputParameters']" :key="index">
+                  <Col span="3">
+                    <FormItem :label-width="0">
+                      <span v-if="param.required === 'Y'" style="color:red">*</span>
+                      <span
+                        style="display: inline-block;white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 90%;"
+                        >{{ param.name }}</span
+                      >
+                    </FormItem>
+                  </Col>
+                  <Col span="2" offset="0">
+                    <FormItem :label-width="0">
+                      <span>{{ param.dataType }}</span>
+                    </FormItem>
+                  </Col>
+                  <Col span="1" offset="0">
+                    <FormItem :label-width="0">
+                      <Select
+                        v-model="param.sensitiveData"
+                        filterable
+                        style="width:50px"
+                        :disabled="currentPluginObj.status === 'ENABLED'"
+                      >
+                        <Option v-for="item in sensitiveData" :value="item.value" :key="item.value">{{
+                          item.label
+                        }}</Option>
+                      </Select>
+                    </FormItem>
+                  </Col>
+                  <Col span="15" style="margin-left:0px" offset="0">
+                    <FormItem :label-width="0">
+                      <FilterRules
+                        v-if="param.mappingType === 'entity'"
+                        v-model="param.mappingEntityExpression"
+                        :disabled="currentPluginObj.status === 'ENABLED'"
+                        :allDataModelsWithAttrs="allEntityType"
+                        :rootEntity="clearedEntityType"
+                        :needNativeAttr="true"
+                        :needAttr="true"
+                      ></FilterRules>
+                      <Select
+                        filterable
+                        v-if="param.mappingType === 'system_variable'"
+                        v-model="param.mappingSystemVariableName"
+                        :disabled="currentPluginObj.status === 'ENABLED'"
+                        @on-open-change="retrieveSystemVariables"
+                      >
+                        <Option
+                          v-for="(item, index) in allSystemVariables"
+                          v-if="item.status === 'active'"
+                          :value="item.name"
+                          :key="index"
+                          >{{ item.name }}</Option
+                        >
+                      </Select>
+                      <span v-if="param.mappingType === 'context' || param.mappingType === 'constant'">N/A</span>
+                    </FormItem>
+                  </Col>
+                  <Col span="2" offset="1">
+                    <FormItem :label-width="0">
+                      <Select
+                        filterable
+                        :disabled="currentPluginObj.status === 'ENABLED'"
+                        v-model="param.mappingType"
+                        @on-change="mappingTypeChange($event, param)"
+                      >
+                        <Option value="context" key="context">context</Option>
+                        <Option value="system_variable" key="system_variable">system_variable</Option>
+                        <Option value="entity" key="entity">entity</Option>
+                        <Option value="constant" key="constant">constant</Option>
+                      </Select>
+                    </FormItem>
+                  </Col>
+                </Row>
+              </Col>
+            </Row>
+            <hr />
+            <Row>
+              <Col span="2">
+                <FormItem :label-width="0">
+                  <span>{{ $t('output_params') }}</span>
+                </FormItem>
+              </Col>
+              <Col span="21" offset="0">
+                <Row v-for="(outPut, index) in currentInter['outputParameters']" :key="index">
+                  <Col span="3">
+                    <FormItem :label-width="0">
+                      <span v-if="outPut.required === 'Y'" style="color:red">*</span>
+                      <span
+                        style="display: inline-block;white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 90%;"
+                        >{{ outPut.name }}</span
+                      >
+                    </FormItem>
+                  </Col>
+                  <Col span="2" offset="0">
+                    <FormItem :label-width="0">
+                      <span>{{ outPut.dataType }}</span>
+                    </FormItem>
+                  </Col>
+                  <Col span="1" offset="0">
+                    <FormItem :label-width="0">
+                      <Select
+                        filterable
+                        v-model="outPut.sensitiveData"
+                        style="width:50px"
+                        :disabled="currentPluginObj.status === 'ENABLED'"
+                      >
+                        <Option v-for="item in sensitiveData" :value="item.value" :key="item.value">{{
+                          item.label
+                        }}</Option>
+                      </Select>
+                    </FormItem>
+                  </Col>
+                  <Col span="15" style="margin-left:0px" offset="0">
+                    <FormItem :label-width="0">
+                      <FilterRules
+                        v-if="outPut.mappingType === 'entity'"
+                        v-model="outPut.mappingEntityExpression"
+                        :disabled="currentPluginObj.status === 'ENABLED'"
+                        :allDataModelsWithAttrs="allEntityType"
+                        :rootEntity="clearedEntityType"
+                        :needNativeAttr="true"
+                        :needAttr="true"
+                      ></FilterRules>
+                      <span v-if="outPut.mappingType === 'context'">N/A</span>
+                    </FormItem>
+                  </Col>
+                  <Col span="2" offset="1">
+                    <FormItem :label-width="0">
+                      <Select :disabled="currentPluginObj.status === 'ENABLED'" v-model="outPut.mappingType">
+                        <Option value="context" key="context">context</Option>
+                        <Option value="entity" key="entity">entity</Option>
+                      </Select>
+                    </FormItem>
+                  </Col>
+                </Row>
+              </Col>
+            </Row>
+          </Form>
+        </div>
+      </div>
+    </Modal>
+    <Modal
       v-model="configTreeManageModal"
       width="700"
       :title="$t('batch_regist')"
@@ -398,6 +588,10 @@ import {
 export default {
   data () {
     return {
+      currentServiceName: '',
+      currentInter: {},
+      currentInterIndex: 0,
+      paramsModalVisible: false,
       configTreeManageModal: false,
       configTree: [],
       newPluginConfig: '', // 缓存新增及复制时数据
@@ -478,6 +672,22 @@ export default {
     }
   },
   methods: {
+    showParamsModal (val, index) {
+      this.currentInter = val
+      this.currentInterIndex = index
+      this.currentServiceName = val.serviceName
+      this.paramsModalVisible = true
+    },
+    closeParamsModal () {
+      this.paramsModalVisible = false
+    },
+    confirmParamsHandler () {
+      if (this.currentPluginObj.status !== 'ENABLED') {
+        this.currentPluginObj.interfaces.splice(this.currentInterIndex, 1, this.currentInter)
+        // this.pluginSave()
+      }
+      this.paramsModalVisible = false
+    },
     async setConfigTreeHandler () {
       const payload = this.$refs.configTree.data.map(_ => {
         return {
@@ -888,6 +1098,16 @@ export default {
 }
 </script>
 <style lang="scss">
+.modal-paramsContainer {
+  height: calc(100vh - 300px);
+  .modal-interfaceContainers {
+    overflow: auto;
+    height: calc(100vh - 320px);
+  }
+  .ivu-form-item {
+    margin-bottom: 2px;
+  }
+}
 .plugin-register-page {
   .interfaceContainers {
     overflow: auto;
