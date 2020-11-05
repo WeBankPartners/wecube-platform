@@ -1,47 +1,38 @@
 package com.webank.wecube.platform.core.entity.workflow;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
-import javax.persistence.Table;
+import java.util.Date;
 
-import com.webank.wecube.platform.core.entity.BaseTraceableEntity;
-
-@Entity
-@Table(name = "CORE_RU_PROC_EXEC_BINDING")
-public class ProcExecBindingEntity extends BaseTraceableEntity {
+public class ProcExecBindingEntity {
 
     public static final String BIND_TYPE_PROC_INSTANCE = "process";
     public static final String BIND_TYPE_TASK_NODE_INSTANCE = "taskNode";
 
-    @Id
-    @Column(name = "ID")
-    @GeneratedValue
     private Integer id;
 
-    @Column(name = "PROC_DEF_ID")
-    private String procDefId;
+    private String createdBy;
 
-    @Column(name = "NODE_DEF_ID")
-    private String nodeDefId;
+    private Date createdTime;
 
-    @Column(name = "PROC_INST_ID")
-    private Integer procInstId;
+    private String updatedBy;
 
-    @Column(name = "TASK_NODE_INST_ID")
-    private Integer taskNodeInstId;
+    private Date updatedTime;
 
-    @Column(name = "BIND_TYPE")
     private String bindType;
 
-    @Column(name = "ENTITY_TYPE_ID")
+    private String entityId;
+
+    private String nodeDefId;
+
+    private String procDefId;
+
+    private Integer procInstId;
+
+    private Integer taskNodeInstId;
+
+    private String entityDataId;
+
     private String entityTypeId;
 
-    @Column(name = "ENTITY_DATA_ID")
-    private String entityDataId;
-    
-    @Column(name = "ENTITY_DATA_NAME")
     private String entityDataName;
 
     public Integer getId() {
@@ -50,6 +41,70 @@ public class ProcExecBindingEntity extends BaseTraceableEntity {
 
     public void setId(Integer id) {
         this.id = id;
+    }
+
+    public String getCreatedBy() {
+        return createdBy;
+    }
+
+    public void setCreatedBy(String createdBy) {
+        this.createdBy = createdBy;
+    }
+
+    public Date getCreatedTime() {
+        return createdTime;
+    }
+
+    public void setCreatedTime(Date createdTime) {
+        this.createdTime = createdTime;
+    }
+
+    public String getUpdatedBy() {
+        return updatedBy;
+    }
+
+    public void setUpdatedBy(String updatedBy) {
+        this.updatedBy = updatedBy;
+    }
+
+    public Date getUpdatedTime() {
+        return updatedTime;
+    }
+
+    public void setUpdatedTime(Date updatedTime) {
+        this.updatedTime = updatedTime;
+    }
+
+    public String getBindType() {
+        return bindType;
+    }
+
+    public void setBindType(String bindType) {
+        this.bindType = bindType;
+    }
+
+    public String getEntityId() {
+        return entityId;
+    }
+
+    public void setEntityId(String entityId) {
+        this.entityId = entityId;
+    }
+
+    public String getNodeDefId() {
+        return nodeDefId;
+    }
+
+    public void setNodeDefId(String nodeDefId) {
+        this.nodeDefId = nodeDefId;
+    }
+
+    public String getProcDefId() {
+        return procDefId;
+    }
+
+    public void setProcDefId(String procDefId) {
+        this.procDefId = procDefId;
     }
 
     public Integer getProcInstId() {
@@ -68,12 +123,12 @@ public class ProcExecBindingEntity extends BaseTraceableEntity {
         this.taskNodeInstId = taskNodeInstId;
     }
 
-    public String getBindType() {
-        return bindType;
+    public String getEntityDataId() {
+        return entityDataId;
     }
 
-    public void setBindType(String bindType) {
-        this.bindType = bindType;
+    public void setEntityDataId(String entityDataId) {
+        this.entityDataId = entityDataId;
     }
 
     public String getEntityTypeId() {
@@ -84,35 +139,12 @@ public class ProcExecBindingEntity extends BaseTraceableEntity {
         this.entityTypeId = entityTypeId;
     }
 
-    public String getEntityDataId() {
-        return entityDataId;
+    public String getEntityDataName() {
+        return entityDataName;
     }
 
-    public void setEntityDataId(String entityDataId) {
-        this.entityDataId = entityDataId;
+    public void setEntityDataName(String entityDataName) {
+        this.entityDataName = entityDataName;
     }
 
-    public String getProcDefId() {
-        return procDefId;
-    }
-
-    public void setProcDefId(String procDefId) {
-        this.procDefId = procDefId;
-    }
-
-    public String getNodeDefId() {
-        return nodeDefId;
-    }
-
-    public void setNodeDefId(String nodeDefId) {
-        this.nodeDefId = nodeDefId;
-    }
-
-	public String getEntityDataName() {
-		return entityDataName;
-	}
-
-	public void setEntityDataName(String entityDataName) {
-		this.entityDataName = entityDataName;
-	}
 }
