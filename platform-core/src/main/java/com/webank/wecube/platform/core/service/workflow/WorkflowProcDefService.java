@@ -67,7 +67,7 @@ public class WorkflowProcDefService extends AbstractWorkflowProcDefService {
             return;
         }
 
-        this.processRoleService.checkPermission(procDef.getId(), ProcRoleBindingEntity.permissionEnum.MGMT);
+        this.processRoleService.checkPermission(procDef.getId(), ProcRoleBindingEntity.MGMT);
 
         if (!ProcDefInfoEntity.DRAFT_STATUS.equals(procDef.getStatus())) {
             // set NOT DRAFT_STATUS process to DELETED_STATUS, without deleting

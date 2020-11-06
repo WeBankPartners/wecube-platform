@@ -19,8 +19,9 @@ import com.webank.wecube.platform.core.dto.workflow.ProcRoleDto;
 import com.webank.wecube.platform.core.dto.workflow.ProcRoleOverviewDto;
 import com.webank.wecube.platform.core.dto.workflow.ProcRoleRequestDto;
 import com.webank.wecube.platform.core.entity.workflow.ProcRoleBindingEntity;
-import com.webank.wecube.platform.core.repository.workflow.ProcRoleBindingRepository;
+import com.webank.wecube.platform.core.repository.workflow.ProcRoleBindingMapper;
 import com.webank.wecube.platform.core.service.user.UserManagementServiceImpl;
+import com.webank.wecube.platform.workflow.commons.LocalIdGenerator;
 
 /**
  * @author howechen
@@ -30,43 +31,31 @@ import com.webank.wecube.platform.core.service.user.UserManagementServiceImpl;
 public class ProcessRoleServiceImpl implements ProcessRoleService {
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
     private UserManagementServiceImpl userManagementService;
-    private ProcRoleBindingRepository procRoleBindingRepository;
+    private ProcRoleBindingMapper procRoleBindingRepository;
 
     @Autowired
     public ProcessRoleServiceImpl(UserManagementServiceImpl userManagementService,
-            ProcRoleBindingRepository procRoleBindingRepository) {
+            ProcRoleBindingMapper procRoleBindingRepository) {
         this.userManagementService = userManagementService;
         this.procRoleBindingRepository = procRoleBindingRepository;
     }
 
-    public static ProcRoleBindingEntity.permissionEnum transferPermissionStrToEnum(String permissionStr)
-            throws WecubeCoreException {
-        ProcRoleBindingEntity.permissionEnum permissionEnum;
-        try {
-            permissionEnum = ProcRoleBindingEntity.permissionEnum.valueOf(ProcRoleBindingEntity.permissionEnum.class,
-                    Objects.requireNonNull(permissionStr, "Permission string cannot be NULL").toUpperCase());
-        } catch (IllegalArgumentException ex) {
-            String msg = String.format("The given permission string [%s] doesn't match platform-core's match cases.",
-                    permissionStr);
-            throw new WecubeCoreException("3183",msg, permissionStr);
-        }
-        return permissionEnum;
-    }
+    
 
     @Override
     public ProcRoleOverviewDto retrieveRoleIdByProcId(String procId) throws WecubeCoreException {
         // check if the current user has the role to manage such process
-        checkPermission(procId, ProcRoleBindingEntity.permissionEnum.MGMT);
+        checkPermission(procId, ProcRoleBindingEntity.MGMT);
 
         ProcRoleOverviewDto result = new ProcRoleOverviewDto();
         result.setProcessId(procId);
         List<ProcRoleBindingEntity> allByProcId = this.procRoleBindingRepository.findAllByProcId(procId);
         allByProcId.forEach(procRoleBindingEntity -> {
             switch (procRoleBindingEntity.getPermission()) {
-            case USE:
+            case ProcRoleBindingEntity.USE:
                 result.getUseRoleIdList().add(procRoleBindingEntity.getRoleId());
                 break;
-            case MGMT:
+            case ProcRoleBindingEntity.MGMT:
                 result.getMgmtRoleIdList().add(procRoleBindingEntity.getRoleId());
                 break;
             default:
@@ -91,13 +80,12 @@ public class ProcessRoleServiceImpl implements ProcessRoleService {
     }
 
     @Override
-    public List<ProcRoleDto> retrieveProcessByRoleIdListAndPermission(List<String> roleNameList, String permissionStr) {
-        ProcRoleBindingEntity.permissionEnum permissionEnum = transferPermissionStrToEnum(permissionStr);
+    public List<ProcRoleDto> retrieveProcessByRoleIdListAndPermission(List<String> roleNameList, String permissionEnum) {
         List<ProcRoleDto> result = new ArrayList<>();
         for (String roleName : roleNameList) {
             logger.info(String.format(
                     "Finding process to role binding information from roleName: [%s] and permission: [%s]", roleName,
-                    permissionEnum.toString()));
+                    permissionEnum));
             List<ProcRoleBindingEntity> allByRoleIdAndPermission = this.procRoleBindingRepository
                     .findAllByRoleNameAndPermission(roleName, permissionEnum);
             for (ProcRoleBindingEntity procRoleBindingEntity : allByRoleIdAndPermission) {
@@ -107,38 +95,34 @@ public class ProcessRoleServiceImpl implements ProcessRoleService {
         return result;
     }
 
-    @SuppressWarnings("unused")
     @Override
     public void createProcRoleBinding(String procId, ProcRoleRequestDto procRoleRequestDto) throws WecubeCoreException {
-        String permissionStr = procRoleRequestDto.getPermission();
+        String permissionEnum = procRoleRequestDto.getPermission();
         List<String> roleIdList = procRoleRequestDto.getRoleIdList();
-        ProcRoleBindingEntity.permissionEnum permissionEnum = transferPermissionStrToEnum(permissionStr);
 
-        batchSaveData(procId, roleIdList, permissionStr);
+        batchSaveData(procId, roleIdList, permissionEnum);
     }
 
-    @SuppressWarnings("unused")
     @Override
     public void updateProcRoleBinding(String procId, ProcRoleRequestDto procRoleRequestDto) throws WecubeCoreException {
-        String permissionStr = procRoleRequestDto.getPermission();
+        String permissionEnum = procRoleRequestDto.getPermission();
         List<String> roleIdList = procRoleRequestDto.getRoleIdList();
-        ProcRoleBindingEntity.permissionEnum permissionEnum = transferPermissionStrToEnum(permissionStr);
 
         // check if user's roles has permission to manage this process
-        checkPermission(procId, ProcRoleBindingEntity.permissionEnum.MGMT);
-        batchSaveData(procId, roleIdList, permissionStr);
+        checkPermission(procId, ProcRoleBindingEntity.MGMT);
+        batchSaveData(procId, roleIdList, permissionEnum);
     }
 
     @Override
     public void deleteProcRoleBinding(String procId, ProcRoleRequestDto procRoleRequestDto) throws WecubeCoreException {
-        ProcRoleBindingEntity.permissionEnum permissionEnum = transferPermissionStrToEnum(
-                procRoleRequestDto.getPermission());
+        String permissionEnum = 
+                procRoleRequestDto.getPermission();
 
         // check if the current user has the role to manage such process
-        checkPermission(procId, ProcRoleBindingEntity.permissionEnum.MGMT);
+        checkPermission(procId, ProcRoleBindingEntity.MGMT);
 
         // assure corresponding data has at least one row of MGMT permission
-        if (ProcRoleBindingEntity.permissionEnum.MGMT.equals(permissionEnum)) {
+        if (ProcRoleBindingEntity.MGMT.equals(permissionEnum)) {
             Optional<List<ProcRoleBindingEntity>> foundMgmtData = this.procRoleBindingRepository
                     .findAllByProcIdAndPermission(procId, permissionEnum);
             foundMgmtData.ifPresent(procRoleBindingEntities -> {
@@ -146,7 +130,7 @@ public class ProcessRoleServiceImpl implements ProcessRoleService {
                     String msg = "The process's management permission should have at least one role.";
                     logger.info(String.format(
                             "The DELETE management roles operation was blocked, the process id is [%s].", procId));
-                    throw new WecubeCoreException("3184",msg);
+                    throw new WecubeCoreException("3184", msg);
                 }
             });
         }
@@ -156,20 +140,20 @@ public class ProcessRoleServiceImpl implements ProcessRoleService {
         }
     }
 
-    public void checkPermission(String procId, ProcRoleBindingEntity.permissionEnum permissionEnum)
+    public void checkPermission(String procId, String permissionEnum)
             throws WecubeCoreException {
         List<String> currentUserRoleNameList = new ArrayList<>(
                 Objects.requireNonNull(AuthenticationContextHolder.getCurrentUserRoles()));
         boolean ifUserHasSuchPermission = false;
         Optional<List<ProcRoleBindingEntity>> foundProcRoleBinding = Optional.empty();
         switch (permissionEnum) {
-        case MGMT:
+        case ProcRoleBindingEntity.MGMT:
             foundProcRoleBinding = this.procRoleBindingRepository.findAllByProcIdAndPermission(procId,
-                    ProcRoleBindingEntity.permissionEnum.MGMT);
+                    ProcRoleBindingEntity.MGMT);
             break;
-        case USE:
+        case ProcRoleBindingEntity.USE:
             foundProcRoleBinding = this.procRoleBindingRepository.findAllByProcIdAndPermission(procId,
-                    ProcRoleBindingEntity.permissionEnum.USE);
+                    ProcRoleBindingEntity.USE);
             break;
         default:
             break;
@@ -190,14 +174,12 @@ public class ProcessRoleServiceImpl implements ProcessRoleService {
         if (!ifUserHasSuchPermission) {
             String msg = String.format("The user doesn't have process: [%s]'s [%s] permission", procId,
                     permissionEnum.toString());
-            throw new WecubeCoreException("3185",msg, procId,
-                    permissionEnum.toString());
+            throw new WecubeCoreException("3185", msg, procId, permissionEnum.toString());
         }
 
     }
 
-    public void batchSaveData(String procId, List<String> roleIdList, String permissionStr) {
-        ProcRoleBindingEntity.permissionEnum permissionEnum = transferPermissionStrToEnum(permissionStr);
+    public void batchSaveData(String procId, List<String> roleIdList, String permissionEnum) {
         for (String roleId : roleIdList) {
 
             RoleDto roleDto = userManagementService.retrieveRoleById(roleId);
@@ -214,8 +196,9 @@ public class ProcessRoleServiceImpl implements ProcessRoleService {
             }
             // if no stored data found, then save new data in to the database
             // get roleDto from auth server
-            this.procRoleBindingRepository
-                    .save(ProcRoleDto.toDomain(procId, roleId, permissionEnum, roleDto.getName()));
+            ProcRoleBindingEntity newEntity = ProcRoleDto.toDomain(procId, roleId, permissionEnum, roleDto.getName());
+            newEntity.setId(LocalIdGenerator.generateId());
+            this.procRoleBindingRepository.insert(newEntity);
         }
     }
 }
