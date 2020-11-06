@@ -30,44 +30,55 @@
         <result column="err_msg" jdbcType="VARCHAR" property="errMsg" />
     </resultMap>
     <sql id="Base_Column_List">
-        id, created_by, created_time, updated_by, updated_time, oper, oper_grp,
+        id, created_by, created_time, updated_by, updated_time,
+        oper, oper_grp,
         rev, status,
-        node_def_id, node_id, node_name, node_type, ordered_no, proc_def_id, proc_def_key,
-        proc_inst_id, proc_inst_key, err_msg
+        node_def_id, node_id, node_name,
+        node_type, ordered_no, proc_def_id, proc_def_key,
+        proc_inst_id,
+        proc_inst_key, err_msg
     </sql>
     <select id="selectByPrimaryKey" parameterType="java.lang.Integer"
         resultMap="BaseResultMap">
         select
         <include refid="Base_Column_List" />
         from core_ru_task_node_inst_info
-        where id = #{id,jdbcType=INTEGER}
+        where id =
+        #{id,jdbcType=INTEGER}
     </select>
     <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer">
-        delete from core_ru_task_node_inst_info
+        delete from
+        core_ru_task_node_inst_info
         where id = #{id,jdbcType=INTEGER}
     </delete>
-    <insert id="insert"
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id"
         parameterType="com.webank.wecube.platform.core.entity.workflow.TaskNodeInstInfoEntity">
-        insert into core_ru_task_node_inst_info (id, created_by, created_time,
+        insert into core_ru_task_node_inst_info (id,
+        created_by, created_time,
         updated_by, updated_time, oper,
         oper_grp, rev, status,
         node_def_id, node_id, node_name,
         node_type, ordered_no, proc_def_id,
-        proc_def_key, proc_inst_id, proc_inst_key,
+        proc_def_key, proc_inst_id,
+        proc_inst_key,
         err_msg)
-        values (#{id,jdbcType=INTEGER}, #{createdBy,jdbcType=VARCHAR},
+        values (#{id,jdbcType=INTEGER},
+        #{createdBy,jdbcType=VARCHAR},
         #{createdTime,jdbcType=TIMESTAMP},
         #{updatedBy,jdbcType=VARCHAR},
         #{updatedTime,jdbcType=TIMESTAMP}, #{oper,jdbcType=VARCHAR},
         #{operGrp,jdbcType=VARCHAR}, #{rev,jdbcType=INTEGER},
         #{status,jdbcType=VARCHAR},
-        #{nodeDefId,jdbcType=VARCHAR}, #{nodeId,jdbcType=VARCHAR}, #{nodeName,jdbcType=VARCHAR},
+        #{nodeDefId,jdbcType=VARCHAR},
+        #{nodeId,jdbcType=VARCHAR}, #{nodeName,jdbcType=VARCHAR},
         #{nodeType,jdbcType=VARCHAR}, #{orderedNo,jdbcType=VARCHAR},
         #{procDefId,jdbcType=VARCHAR},
-        #{procDefKey,jdbcType=VARCHAR}, #{procInstId,jdbcType=INTEGER}, #{procInstKey,jdbcType=VARCHAR},
+        #{procDefKey,jdbcType=VARCHAR},
+        #{procInstId,jdbcType=INTEGER}, #{procInstKey,jdbcType=VARCHAR},
         #{errMsg,jdbcType=VARCHAR})
     </insert>
-    <insert id="insertSelective"
+    <insert id="insertSelective" useGeneratedKeys="true"
+        keyProperty="id"
         parameterType="com.webank.wecube.platform.core.entity.workflow.TaskNodeInstInfoEntity">
         insert into core_ru_task_node_inst_info
         <trim prefix="(" suffix=")" suffixOverrides=",">
@@ -197,13 +208,15 @@
                 created_by = #{createdBy,jdbcType=VARCHAR},
             </if>
             <if test="createdTime != null">
-                created_time = #{createdTime,jdbcType=TIMESTAMP},
+                created_time =
+                #{createdTime,jdbcType=TIMESTAMP},
             </if>
             <if test="updatedBy != null">
                 updated_by = #{updatedBy,jdbcType=VARCHAR},
             </if>
             <if test="updatedTime != null">
-                updated_time = #{updatedTime,jdbcType=TIMESTAMP},
+                updated_time =
+                #{updatedTime,jdbcType=TIMESTAMP},
             </if>
             <if test="oper != null">
                 oper = #{oper,jdbcType=VARCHAR},
@@ -253,41 +266,58 @@
     <update id="updateByPrimaryKey"
         parameterType="com.webank.wecube.platform.core.entity.workflow.TaskNodeInstInfoEntity">
         update core_ru_task_node_inst_info
-        set created_by = #{createdBy,jdbcType=VARCHAR},
-        created_time = #{createdTime,jdbcType=TIMESTAMP},
-        updated_by = #{updatedBy,jdbcType=VARCHAR},
-        updated_time = #{updatedTime,jdbcType=TIMESTAMP},
-        oper = #{oper,jdbcType=VARCHAR},
+        set created_by =
+        #{createdBy,jdbcType=VARCHAR},
+        created_time =
+        #{createdTime,jdbcType=TIMESTAMP},
+        updated_by =
+        #{updatedBy,jdbcType=VARCHAR},
+        updated_time =
+        #{updatedTime,jdbcType=TIMESTAMP},
+        oper =
+        #{oper,jdbcType=VARCHAR},
         oper_grp = #{operGrp,jdbcType=VARCHAR},
         rev = #{rev,jdbcType=INTEGER},
-        status = #{status,jdbcType=VARCHAR},
-        node_def_id = #{nodeDefId,jdbcType=VARCHAR},
-        node_id = #{nodeId,jdbcType=VARCHAR},
-        node_name = #{nodeName,jdbcType=VARCHAR},
-        node_type = #{nodeType,jdbcType=VARCHAR},
-        ordered_no = #{orderedNo,jdbcType=VARCHAR},
-        proc_def_id = #{procDefId,jdbcType=VARCHAR},
-        proc_def_key = #{procDefKey,jdbcType=VARCHAR},
-        proc_inst_id = #{procInstId,jdbcType=INTEGER},
-        proc_inst_key = #{procInstKey,jdbcType=VARCHAR},
-        err_msg = #{errMsg,jdbcType=VARCHAR}
+        status =
+        #{status,jdbcType=VARCHAR},
+        node_def_id =
+        #{nodeDefId,jdbcType=VARCHAR},
+        node_id =
+        #{nodeId,jdbcType=VARCHAR},
+        node_name =
+        #{nodeName,jdbcType=VARCHAR},
+        node_type =
+        #{nodeType,jdbcType=VARCHAR},
+        ordered_no =
+        #{orderedNo,jdbcType=VARCHAR},
+        proc_def_id =
+        #{procDefId,jdbcType=VARCHAR},
+        proc_def_key =
+        #{procDefKey,jdbcType=VARCHAR},
+        proc_inst_id =
+        #{procInstId,jdbcType=INTEGER},
+        proc_inst_key =
+        #{procInstKey,jdbcType=VARCHAR},
+        err_msg =
+        #{errMsg,jdbcType=VARCHAR}
         where id = #{id,jdbcType=INTEGER}
     </update>
-    
-    <select id="findAllByProcInstId"
-        resultMap="BaseResultMap">
+
+    <select id="findAllByProcInstId" resultMap="BaseResultMap">
         select
         <include refid="Base_Column_List" />
         from core_ru_task_node_inst_info
-        where proc_inst_id = #{procInstId,jdbcType=INTEGER}
+        where proc_inst_id =
+        #{procInstId,jdbcType=INTEGER}
     </select>
-    
-    <select id="findOneByProcInstIdAndNodeId" 
-        resultMap="BaseResultMap">
+
+    <select id="findOneByProcInstIdAndNodeId" resultMap="BaseResultMap">
         select
         <include refid="Base_Column_List" />
         from core_ru_task_node_inst_info
-        where proc_inst_id = #{procInstId,jdbcType=INTEGER}
-        and node_id = #{nodeId,jdbcType=VARCHAR}
+        where proc_inst_id =
+        #{procInstId,jdbcType=INTEGER}
+        and node_id =
+        #{nodeId,jdbcType=VARCHAR}
     </select>
 </mapper>
