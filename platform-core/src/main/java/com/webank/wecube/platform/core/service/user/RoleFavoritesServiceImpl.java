@@ -1,5 +1,21 @@
 package com.webank.wecube.platform.core.service.user;
 
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import com.webank.wecube.platform.core.commons.AuthenticationContextHolder;
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
 import com.webank.wecube.platform.core.dto.FavoritesDto;
@@ -12,16 +28,6 @@ import com.webank.wecube.platform.core.entity.workflow.ProcRoleBindingEntity;
 import com.webank.wecube.platform.core.jpa.FavoritesInfoRepository;
 import com.webank.wecube.platform.core.jpa.user.RoleFavoritesRepository;
 import com.webank.wecube.platform.workflow.commons.LocalIdGenerator;
-import org.apache.commons.lang3.EnumUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
-import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * @author sizhe
@@ -159,12 +165,7 @@ public class RoleFavoritesServiceImpl implements RoleFavoritesService {
                 throw new WecubeCoreException("3260",errorMsg);
             }
 
-            // check key is valid permission enum
-            if (!EnumUtils.isValidEnum(ProcRoleBindingEntity.permissionEnum.class, permissionStr)) {
-                errorMsg = "The request's key is not valid as a permission.";
-                log.error(errorMsg);
-                throw new WecubeCoreException("3261",errorMsg);
-            }
+            
 
             List<String> roleIdList = permissionToRoleListEntry.getValue();
 
@@ -176,7 +177,7 @@ public class RoleFavoritesServiceImpl implements RoleFavoritesService {
             }
             // when permission is MGMT and roleIdList is empty, then it is
             // invalid
-            if (ProcRoleBindingEntity.permissionEnum.MGMT.toString().equals(permissionStr) && roleIdList.isEmpty()) {
+            if (ProcRoleBindingEntity.MGMT.equals(permissionStr) && roleIdList.isEmpty()) {
                 errorMsg = "At least one role with MGMT role should be declared.";
                 log.error(errorMsg);
                 throw new WecubeCoreException("3263",errorMsg);
