@@ -26,9 +26,11 @@
             property="entityDataName" />
     </resultMap>
     <sql id="Base_Column_List">
-        id, created_by, created_time, updated_by, updated_time, bind_type,
+        id, created_by, created_time, updated_by, updated_time,
+        bind_type,
         is_bound, entity_data_id,
-        entity_type_id, node_def_id, ordered_no, proc_def_id, proc_session_id,
+        entity_type_id, node_def_id,
+        ordered_no, proc_def_id, proc_session_id,
         entity_data_name
     </sql>
     <select id="selectByPrimaryKey" parameterType="java.lang.Integer"
@@ -36,18 +38,22 @@
         select
         <include refid="Base_Column_List" />
         from core_ru_proc_exec_binding_tmp
-        where id = #{id,jdbcType=INTEGER}
+        where id =
+        #{id,jdbcType=INTEGER}
     </select>
     <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer">
-        delete from core_ru_proc_exec_binding_tmp
+        delete from
+        core_ru_proc_exec_binding_tmp
         where id = #{id,jdbcType=INTEGER}
     </delete>
-    <insert id="insert"
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id"
         parameterType="com.webank.wecube.platform.core.entity.workflow.ProcExecBindingTmpEntity">
-        insert into core_ru_proc_exec_binding_tmp (id, created_by, created_time,
+        insert into core_ru_proc_exec_binding_tmp (id,
+        created_by, created_time,
         updated_by, updated_time, bind_type,
         is_bound, entity_data_id, entity_type_id,
-        node_def_id, ordered_no, proc_def_id,
+        node_def_id,
+        ordered_no, proc_def_id,
         proc_session_id, entity_data_name)
         values (#{id,jdbcType=INTEGER}, #{createdBy,jdbcType=VARCHAR},
         #{createdTime,jdbcType=TIMESTAMP},
@@ -55,11 +61,13 @@
         #{updatedTime,jdbcType=TIMESTAMP}, #{bindType,jdbcType=VARCHAR},
         #{isBound,jdbcType=VARCHAR}, #{entityDataId,jdbcType=VARCHAR},
         #{entityTypeId,jdbcType=VARCHAR},
-        #{nodeDefId,jdbcType=VARCHAR}, #{orderedNo,jdbcType=VARCHAR}, #{procDefId,jdbcType=VARCHAR},
+        #{nodeDefId,jdbcType=VARCHAR},
+        #{orderedNo,jdbcType=VARCHAR}, #{procDefId,jdbcType=VARCHAR},
         #{procSessionId,jdbcType=VARCHAR},
         #{entityDataName,jdbcType=VARCHAR})
     </insert>
-    <insert id="insertSelective"
+    <insert id="insertSelective" useGeneratedKeys="true"
+        keyProperty="id"
         parameterType="com.webank.wecube.platform.core.entity.workflow.ProcExecBindingTmpEntity">
         insert into core_ru_proc_exec_binding_tmp
         <trim prefix="(" suffix=")" suffixOverrides=",">
@@ -159,13 +167,15 @@
                 created_by = #{createdBy,jdbcType=VARCHAR},
             </if>
             <if test="createdTime != null">
-                created_time = #{createdTime,jdbcType=TIMESTAMP},
+                created_time =
+                #{createdTime,jdbcType=TIMESTAMP},
             </if>
             <if test="updatedBy != null">
                 updated_by = #{updatedBy,jdbcType=VARCHAR},
             </if>
             <if test="updatedTime != null">
-                updated_time = #{updatedTime,jdbcType=TIMESTAMP},
+                updated_time =
+                #{updatedTime,jdbcType=TIMESTAMP},
             </if>
             <if test="bindType != null">
                 bind_type = #{bindType,jdbcType=VARCHAR},
@@ -174,10 +184,12 @@
                 is_bound = #{isBound,jdbcType=VARCHAR},
             </if>
             <if test="entityDataId != null">
-                entity_data_id = #{entityDataId,jdbcType=VARCHAR},
+                entity_data_id =
+                #{entityDataId,jdbcType=VARCHAR},
             </if>
             <if test="entityTypeId != null">
-                entity_type_id = #{entityTypeId,jdbcType=VARCHAR},
+                entity_type_id =
+                #{entityTypeId,jdbcType=VARCHAR},
             </if>
             <if test="nodeDefId != null">
                 node_def_id = #{nodeDefId,jdbcType=VARCHAR},
@@ -189,10 +201,12 @@
                 proc_def_id = #{procDefId,jdbcType=VARCHAR},
             </if>
             <if test="procSessionId != null">
-                proc_session_id = #{procSessionId,jdbcType=VARCHAR},
+                proc_session_id =
+                #{procSessionId,jdbcType=VARCHAR},
             </if>
             <if test="entityDataName != null">
-                entity_data_name = #{entityDataName,jdbcType=VARCHAR},
+                entity_data_name =
+                #{entityDataName,jdbcType=VARCHAR},
             </if>
         </set>
         where id = #{id,jdbcType=INTEGER}
@@ -200,47 +214,63 @@
     <update id="updateByPrimaryKey"
         parameterType="com.webank.wecube.platform.core.entity.workflow.ProcExecBindingTmpEntity">
         update core_ru_proc_exec_binding_tmp
-        set created_by = #{createdBy,jdbcType=VARCHAR},
-        created_time = #{createdTime,jdbcType=TIMESTAMP},
-        updated_by = #{updatedBy,jdbcType=VARCHAR},
-        updated_time = #{updatedTime,jdbcType=TIMESTAMP},
-        bind_type = #{bindType,jdbcType=VARCHAR},
-        is_bound = #{isBound,jdbcType=VARCHAR},
-        entity_data_id = #{entityDataId,jdbcType=VARCHAR},
-        entity_type_id = #{entityTypeId,jdbcType=VARCHAR},
-        node_def_id = #{nodeDefId,jdbcType=VARCHAR},
-        ordered_no = #{orderedNo,jdbcType=VARCHAR},
-        proc_def_id = #{procDefId,jdbcType=VARCHAR},
-        proc_session_id = #{procSessionId,jdbcType=VARCHAR},
-        entity_data_name = #{entityDataName,jdbcType=VARCHAR}
-        where id = #{id,jdbcType=INTEGER}
+        set created_by
+        = #{createdBy,jdbcType=VARCHAR},
+        created_time =
+        #{createdTime,jdbcType=TIMESTAMP},
+        updated_by =
+        #{updatedBy,jdbcType=VARCHAR},
+        updated_time =
+        #{updatedTime,jdbcType=TIMESTAMP},
+        bind_type =
+        #{bindType,jdbcType=VARCHAR},
+        is_bound =
+        #{isBound,jdbcType=VARCHAR},
+        entity_data_id =
+        #{entityDataId,jdbcType=VARCHAR},
+        entity_type_id =
+        #{entityTypeId,jdbcType=VARCHAR},
+        node_def_id =
+        #{nodeDefId,jdbcType=VARCHAR},
+        ordered_no =
+        #{orderedNo,jdbcType=VARCHAR},
+        proc_def_id =
+        #{procDefId,jdbcType=VARCHAR},
+        proc_session_id =
+        #{procSessionId,jdbcType=VARCHAR},
+        entity_data_name =
+        #{entityDataName,jdbcType=VARCHAR}
+        where id =
+        #{id,jdbcType=INTEGER}
     </update>
-    
-    <select id="findAllNodeBindingsByNodeAndSession"
-        resultMap="BaseResultMap">
+
+    <select id="findAllNodeBindingsByNodeAndSession" resultMap="BaseResultMap">
         select
         <include refid="Base_Column_List" />
         from core_ru_proc_exec_binding_tmp
-        where node_def_id = #{nodeDefId,jdbcType=VARCHAR}
-        and proc_session_id = #{processSessionId,jdbcType=VARCHAR}
+        where node_def_id =
+        #{nodeDefId,jdbcType=VARCHAR}
+        and proc_session_id =
+        #{processSessionId,jdbcType=VARCHAR}
         and bind_type = 'taskNode'
     </select>
-    
-    <select id="findAllNodeBindingsBySession"
-        resultMap="BaseResultMap">
+
+    <select id="findAllNodeBindingsBySession" resultMap="BaseResultMap">
         select
         <include refid="Base_Column_List" />
         from core_ru_proc_exec_binding_tmp
-        where proc_session_id = #{processSessionId,jdbcType=VARCHAR}
+        where proc_session_id =
+        #{processSessionId,jdbcType=VARCHAR}
         and bind_type = 'taskNode'
     </select>
-    
-    <select id="findAllRootBindingsBySession" parameterType="java.lang.Integer"
+
+    <select id="findAllRootBindingsBySession" parameterType="java.lang.String"
         resultMap="BaseResultMap">
         select
         <include refid="Base_Column_List" />
         from core_ru_proc_exec_binding_tmp
-        where proc_session_id = #{processSessionId,jdbcType=VARCHAR}
+        where proc_session_id =
+        #{processSessionId,jdbcType=VARCHAR}
         and bind_type = 'process'
     </select>
 </mapper>
