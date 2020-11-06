@@ -28,43 +28,54 @@
         <result column="is_sensitive" jdbcType="BIT" property="isSensitive" />
     </resultMap>
     <sql id="Base_Column_List">
-        id, created_by, created_time, updated_by, updated_time, obj_id,
+        id, created_by, created_time, updated_by, updated_time,
+        obj_id,
         param_data_type,
-        param_data_value, param_name, param_type, req_id, root_entity_id, entity_data_id,
-        entity_type_id, is_sensitive
+        param_data_value, param_name, param_type,
+        req_id, root_entity_id, entity_data_id,
+        entity_type_id,
+        is_sensitive
     </sql>
     <select id="selectByPrimaryKey" parameterType="java.lang.Integer"
         resultMap="BaseResultMap">
         select
         <include refid="Base_Column_List" />
         from core_ru_task_node_exec_param
-        where id = #{id,jdbcType=INTEGER}
+        where id =
+        #{id,jdbcType=INTEGER}
     </select>
     <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer">
-        delete from core_ru_task_node_exec_param
+        delete from
+        core_ru_task_node_exec_param
         where id = #{id,jdbcType=INTEGER}
     </delete>
-    <insert id="insert"
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id"
         parameterType="com.webank.wecube.platform.core.entity.workflow.TaskNodeExecParamEntity">
-        insert into core_ru_task_node_exec_param (id, created_by, created_time,
+        insert into core_ru_task_node_exec_param (id,
+        created_by, created_time,
         updated_by, updated_time, obj_id,
         param_data_type, param_data_value, param_name,
-        param_type, req_id, root_entity_id,
-        entity_data_id, entity_type_id, is_sensitive
+        param_type,
+        req_id, root_entity_id,
+        entity_data_id, entity_type_id,
+        is_sensitive
         )
-        values (#{id,jdbcType=INTEGER}, #{createdBy,jdbcType=VARCHAR},
+        values (#{id,jdbcType=INTEGER},
+        #{createdBy,jdbcType=VARCHAR},
         #{createdTime,jdbcType=TIMESTAMP},
         #{updatedBy,jdbcType=VARCHAR},
         #{updatedTime,jdbcType=TIMESTAMP}, #{objId,jdbcType=VARCHAR},
         #{paramDataType,jdbcType=VARCHAR},
         #{paramDataValue,jdbcType=VARCHAR},
         #{paramName,jdbcType=VARCHAR},
-        #{paramType,jdbcType=VARCHAR}, #{reqId,jdbcType=VARCHAR}, #{rootEntityId,jdbcType=VARCHAR},
+        #{paramType,jdbcType=VARCHAR},
+        #{reqId,jdbcType=VARCHAR}, #{rootEntityId,jdbcType=VARCHAR},
         #{entityDataId,jdbcType=VARCHAR},
         #{entityTypeId,jdbcType=VARCHAR}, #{isSensitive,jdbcType=BIT}
         )
     </insert>
-    <insert id="insertSelective"
+    <insert id="insertSelective" useGeneratedKeys="true"
+        keyProperty="id"
         parameterType="com.webank.wecube.platform.core.entity.workflow.TaskNodeExecParamEntity">
         insert into core_ru_task_node_exec_param
         <trim prefix="(" suffix=")" suffixOverrides=",">
@@ -170,22 +181,26 @@
                 created_by = #{createdBy,jdbcType=VARCHAR},
             </if>
             <if test="createdTime != null">
-                created_time = #{createdTime,jdbcType=TIMESTAMP},
+                created_time =
+                #{createdTime,jdbcType=TIMESTAMP},
             </if>
             <if test="updatedBy != null">
                 updated_by = #{updatedBy,jdbcType=VARCHAR},
             </if>
             <if test="updatedTime != null">
-                updated_time = #{updatedTime,jdbcType=TIMESTAMP},
+                updated_time =
+                #{updatedTime,jdbcType=TIMESTAMP},
             </if>
             <if test="objId != null">
                 obj_id = #{objId,jdbcType=VARCHAR},
             </if>
             <if test="paramDataType != null">
-                param_data_type = #{paramDataType,jdbcType=VARCHAR},
+                param_data_type =
+                #{paramDataType,jdbcType=VARCHAR},
             </if>
             <if test="paramDataValue != null">
-                param_data_value = #{paramDataValue,jdbcType=VARCHAR},
+                param_data_value =
+                #{paramDataValue,jdbcType=VARCHAR},
             </if>
             <if test="paramName != null">
                 param_name = #{paramName,jdbcType=VARCHAR},
@@ -197,13 +212,16 @@
                 req_id = #{reqId,jdbcType=VARCHAR},
             </if>
             <if test="rootEntityId != null">
-                root_entity_id = #{rootEntityId,jdbcType=VARCHAR},
+                root_entity_id =
+                #{rootEntityId,jdbcType=VARCHAR},
             </if>
             <if test="entityDataId != null">
-                entity_data_id = #{entityDataId,jdbcType=VARCHAR},
+                entity_data_id =
+                #{entityDataId,jdbcType=VARCHAR},
             </if>
             <if test="entityTypeId != null">
-                entity_type_id = #{entityTypeId,jdbcType=VARCHAR},
+                entity_type_id =
+                #{entityTypeId,jdbcType=VARCHAR},
             </if>
             <if test="isSensitive != null">
                 is_sensitive = #{isSensitive,jdbcType=BIT},
@@ -214,50 +232,72 @@
     <update id="updateByPrimaryKey"
         parameterType="com.webank.wecube.platform.core.entity.workflow.TaskNodeExecParamEntity">
         update core_ru_task_node_exec_param
-        set created_by = #{createdBy,jdbcType=VARCHAR},
-        created_time = #{createdTime,jdbcType=TIMESTAMP},
-        updated_by = #{updatedBy,jdbcType=VARCHAR},
-        updated_time = #{updatedTime,jdbcType=TIMESTAMP},
-        obj_id = #{objId,jdbcType=VARCHAR},
-        param_data_type = #{paramDataType,jdbcType=VARCHAR},
-        param_data_value = #{paramDataValue,jdbcType=VARCHAR},
-        param_name = #{paramName,jdbcType=VARCHAR},
-        param_type = #{paramType,jdbcType=VARCHAR},
-        req_id = #{reqId,jdbcType=VARCHAR},
-        root_entity_id = #{rootEntityId,jdbcType=VARCHAR},
-        entity_data_id = #{entityDataId,jdbcType=VARCHAR},
-        entity_type_id = #{entityTypeId,jdbcType=VARCHAR},
-        is_sensitive = #{isSensitive,jdbcType=BIT}
+        set created_by
+        = #{createdBy,jdbcType=VARCHAR},
+        created_time =
+        #{createdTime,jdbcType=TIMESTAMP},
+        updated_by =
+        #{updatedBy,jdbcType=VARCHAR},
+        updated_time =
+        #{updatedTime,jdbcType=TIMESTAMP},
+        obj_id =
+        #{objId,jdbcType=VARCHAR},
+        param_data_type =
+        #{paramDataType,jdbcType=VARCHAR},
+        param_data_value =
+        #{paramDataValue,jdbcType=VARCHAR},
+        param_name =
+        #{paramName,jdbcType=VARCHAR},
+        param_type =
+        #{paramType,jdbcType=VARCHAR},
+        req_id =
+        #{reqId,jdbcType=VARCHAR},
+        root_entity_id =
+        #{rootEntityId,jdbcType=VARCHAR},
+        entity_data_id =
+        #{entityDataId,jdbcType=VARCHAR},
+        entity_type_id =
+        #{entityTypeId,jdbcType=VARCHAR},
+        is_sensitive =
+        #{isSensitive,jdbcType=BIT}
         where id = #{id,jdbcType=INTEGER}
     </update>
-    
+
     <select id="findAllByRequestIdAndParamNameAndParamType"
         resultMap="BaseResultMap">
         select
         <include refid="Base_Column_List" />
         from core_ru_task_node_exec_param
-        where req_id = #{requestId,jdbcType=VARCHAR}
-        and param_name = #{paramName,jdbcType=VARCHAR}
-        and param_type = #{paramType,jdbcType=VARCHAR}
+        where req_id =
+        #{requestId,jdbcType=VARCHAR}
+        and param_name =
+        #{paramName,jdbcType=VARCHAR}
+        and param_type =
+        #{paramType,jdbcType=VARCHAR}
     </select>
-    
-    <select id="findAllByRequestIdAndParamType"
-        resultMap="BaseResultMap">
+
+    <select id="findAllByRequestIdAndParamType" resultMap="BaseResultMap">
         select
         <include refid="Base_Column_List" />
         from core_ru_task_node_exec_param
-        where req_id = #{requestId,jdbcType=VARCHAR}
-        and param_type = #{paramType,jdbcType=VARCHAR}
+        where req_id =
+        #{requestId,jdbcType=VARCHAR}
+        and param_type =
+        #{paramType,jdbcType=VARCHAR}
     </select>
-    
+
     <select id="findOneByRequestIdAndParamTypeAndParamNameAndValue"
         resultMap="BaseResultMap">
         select
         <include refid="Base_Column_List" />
         from core_ru_task_node_exec_param
-        where req_id = #{requestId,jdbcType=VARCHAR}
-        and param_type = #{paramType,jdbcType=VARCHAR}
-        and param_name = #{paramName,jdbcType=VARCHAR}
-        and param_data_value = #{paramDataValue,jdbcType=VARCHAR}
+        where req_id =
+        #{requestId,jdbcType=VARCHAR}
+        and param_type =
+        #{paramType,jdbcType=VARCHAR}
+        and param_name =
+        #{paramName,jdbcType=VARCHAR}
+        and param_data_value =
+        #{paramDataValue,jdbcType=VARCHAR}
     </select>
 </mapper>
