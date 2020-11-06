@@ -2,13 +2,8 @@ package com.webank.wecube.platform.core.entity.workflow;
 
 import java.util.Date;
 
-import javax.persistence.Entity;
-import javax.persistence.Table;
-
 import com.webank.wecube.platform.core.entity.BaseTraceableEntity;
 
-@Entity
-@Table(name = "CORE_RU_TASK_NODE_EXEC_PARAM")
 public class TaskNodeExecParamEntity extends BaseTraceableEntity {
     public static final String PARAM_TYPE_REQUEST = "INPUT";
     public static final String PARAM_TYPE_RESPONSE = "OUTPUT";

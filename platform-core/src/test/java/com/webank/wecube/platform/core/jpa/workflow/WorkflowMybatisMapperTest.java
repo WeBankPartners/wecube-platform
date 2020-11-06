@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,6 +21,7 @@ import com.webank.wecube.platform.workflow.commons.LocalIdGenerator;
 import com.webank.wecube.platform.workflow.entity.ServiceNodeStatusEntity;
 import com.webank.wecube.platform.workflow.repository.ServiceNodeStatusMapper;
 
+@Ignore
 @RunWith(SpringRunner.class)
 @SpringBootTest
 public class WorkflowMybatisMapperTest {
