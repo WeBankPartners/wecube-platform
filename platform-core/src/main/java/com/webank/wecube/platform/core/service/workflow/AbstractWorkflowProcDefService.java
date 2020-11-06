@@ -99,12 +99,7 @@ public class AbstractWorkflowProcDefService extends AbstractWorkflowService{
                 throw new WecubeCoreException("3165",errorMsg);
             }
 
-            // check key is valid permission enum
-            if (!EnumUtils.isValidEnum(ProcRoleBindingEntity.permissionEnum.class, permissionStr)) {
-                errorMsg = "The request's key is not valid as a permission.";
-                log.error(errorMsg);
-                throw new WecubeCoreException("3166",errorMsg);
-            }
+           
 
             List<String> roleIdList = permissionToRoleListEntry.getValue();
 
@@ -117,7 +112,7 @@ public class AbstractWorkflowProcDefService extends AbstractWorkflowService{
 
             // when permission is MGMT and roleIdList is empty, then it is
             // invalid
-            if (ProcRoleBindingEntity.permissionEnum.MGMT.toString().equals(permissionStr) && roleIdList.isEmpty()) {
+            if (ProcRoleBindingEntity.MGMT.equals(permissionStr) && roleIdList.isEmpty()) {
                 errorMsg = "At least one role with MGMT role should be declared.";
                 log.error(errorMsg);
                 throw new WecubeCoreException("3168",errorMsg);
