@@ -22,12 +22,33 @@ public interface TaskNodeExecParamMapper {
 
     int updateByPrimaryKey(TaskNodeExecParamEntity record);
 
+    /**
+     * 
+     * @param requestId
+     * @param paramName
+     * @param paramType
+     * @return
+     */
     List<TaskNodeExecParamEntity> findAllByRequestIdAndParamNameAndParamType(@Param("requestId") String requestId,
             @Param("paramName") String paramName, @Param("paramType") String paramType);
 
+    /**
+     * 
+     * @param requestId
+     * @param paramType
+     * @return
+     */
     List<TaskNodeExecParamEntity> findAllByRequestIdAndParamType(@Param("requestId") String requestId,
             @Param("paramType") String paramType);
 
+    /**
+     * 
+     * @param requestId
+     * @param paramType
+     * @param paramName
+     * @param paramDataValue
+     * @return
+     */
     List<TaskNodeExecParamEntity> findOneByRequestIdAndParamTypeAndParamNameAndValue(@Param("requestId") String requestId,
             @Param("paramType") String paramType, @Param("paramName") String paramName,
             @Param("paramDataValue") String paramDataValue);

@@ -16,10 +16,25 @@ public interface ProcInstInfoMapper{
     int updateByPrimaryKeySelective(ProcInstInfoEntity record);
     int updateByPrimaryKey(ProcInstInfoEntity record);
     
+    /**
+     * 
+     * @param procInstKernelId
+     * @return
+     */
     ProcInstInfoEntity findOneByProcInstKernelId(@Param("procInstKernelId") String procInstKernelId);
 
+    /**
+     * 
+     * @param procDefIds
+     * @return
+     */
     List<ProcInstInfoEntity> findByProcDefIdIn(@Param("procDefIds") List<String> procDefIds);
     
+    /**
+     * 
+     * @param procDefId
+     * @return
+     */
     List<ProcInstInfoEntity> findAllByProcDefId(@Param("procDefId") String procDefId);
     
 }

@@ -31,12 +31,12 @@ import com.webank.wecube.platform.core.entity.workflow.ProcInstInfoEntity;
 import com.webank.wecube.platform.core.entity.workflow.ProcInstInfoQueryEntity;
 import com.webank.wecube.platform.core.entity.workflow.TaskNodeDefInfoEntity;
 import com.webank.wecube.platform.core.entity.workflow.TaskNodeInstInfoEntity;
-import com.webank.wecube.platform.core.repository.workflow.GraphNodeRepository;
+import com.webank.wecube.platform.core.repository.workflow.GraphNodeMapper;
 import com.webank.wecube.platform.core.repository.workflow.ProcDefInfoMapper;
 import com.webank.wecube.platform.core.repository.workflow.ProcExecBindingMapper;
 import com.webank.wecube.platform.core.repository.workflow.ProcExecBindingTmpMapper;
 import com.webank.wecube.platform.core.repository.workflow.ProcInstInfoMapper;
-import com.webank.wecube.platform.core.repository.workflow.ProcRoleBindingRepository;
+import com.webank.wecube.platform.core.repository.workflow.ProcRoleBindingMapper;
 import com.webank.wecube.platform.core.repository.workflow.TaskNodeDefInfoMapper;
 import com.webank.wecube.platform.core.repository.workflow.TaskNodeExecParamMapper;
 import com.webank.wecube.platform.core.repository.workflow.TaskNodeExecRequestMapper;
@@ -78,13 +78,13 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
     private UserManagementServiceImpl userManagementService;
 
     @Autowired
-    private ProcRoleBindingRepository procRoleBindingRepository;
+    private ProcRoleBindingMapper procRoleBindingRepository;
 
     @Autowired
     private ProcExecBindingTmpMapper procExecBindingTmpRepository;
 
     @Autowired
-    protected GraphNodeRepository graphNodeRepository;
+    protected GraphNodeMapper graphNodeRepository;
 
     @Autowired
     private EntityManager entityManager;
@@ -561,7 +561,7 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
             gNode.setUpdatedTime(new Date());
             gNode.setProcInstId(result.getId());
 
-            graphNodeRepository.saveAndFlush(gNode);
+            graphNodeRepository.updateByPrimaryKeySelective(gNode);
         }
     }
 

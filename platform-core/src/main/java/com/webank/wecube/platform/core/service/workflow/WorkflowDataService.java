@@ -38,7 +38,7 @@ import com.webank.wecube.platform.core.entity.workflow.TaskNodeDefInfoEntity;
 import com.webank.wecube.platform.core.entity.workflow.TaskNodeExecParamEntity;
 import com.webank.wecube.platform.core.entity.workflow.TaskNodeExecRequestEntity;
 import com.webank.wecube.platform.core.entity.workflow.TaskNodeInstInfoEntity;
-import com.webank.wecube.platform.core.repository.workflow.GraphNodeRepository;
+import com.webank.wecube.platform.core.repository.workflow.GraphNodeMapper;
 import com.webank.wecube.platform.core.repository.workflow.ProcDefInfoMapper;
 import com.webank.wecube.platform.core.repository.workflow.ProcExecBindingTmpMapper;
 import com.webank.wecube.platform.core.repository.workflow.TaskNodeDefInfoMapper;
@@ -52,7 +52,7 @@ import com.webank.wecube.platform.core.service.dme.TreeNode;
 import com.webank.wecube.platform.core.service.plugin.PluginConfigService;
 
 @Service
-public class WorkflowDataService{
+public class WorkflowDataService {
     private static final Logger log = LoggerFactory.getLogger(WorkflowDataService.class);
 
     @Autowired
@@ -83,7 +83,7 @@ public class WorkflowDataService{
     protected ProcDefInfoMapper procDefInfoRepository;
 
     @Autowired
-    protected GraphNodeRepository graphNodeRepository;
+    protected GraphNodeMapper graphNodeRepository;
 
     @Autowired
     @Qualifier("userJwtSsoTokenRestTemplate")
@@ -96,7 +96,7 @@ public class WorkflowDataService{
             return result;
         }
 
-        result.setProcessSessionId(gNodeEntities.get(0).getProcessSessionId());
+        result.setProcessSessionId(gNodeEntities.get(0).getProcSessId());
 
         List<GraphNodeDto> gNodes = new ArrayList<>();
         for (GraphNodeEntity entity : gNodeEntities) {
@@ -105,9 +105,9 @@ public class WorkflowDataService{
             gNode.setDisplayName(entity.getDisplayName());
             gNode.setEntityName(entity.getEntityName());
             gNode.setId(entity.getGraphNodeId());
-            gNode.setPackageName(entity.getPackageName());
-            gNode.setPreviousIds(GraphNodeEntity.convertIdsStringToList(entity.getPreviousIds()));
-            gNode.setSucceedingIds(GraphNodeEntity.convertIdsStringToList(entity.getSucceedingIds()));
+            gNode.setPackageName(entity.getPkgName());
+            gNode.setPreviousIds(GraphNodeEntity.convertIdsStringToList(entity.getPrevIds()));
+            gNode.setSucceedingIds(GraphNodeEntity.convertIdsStringToList(entity.getSuccIds()));
 
             gNodes.add(gNode);
         }
@@ -116,20 +116,20 @@ public class WorkflowDataService{
 
         return result;
     }
-    
+
     public List<Map<String, Object>> getProcessDefinitionRootEntitiesByProcDefKey(String procDefKey) {
         if (StringUtils.isBlank(procDefKey)) {
-            throw new WecubeCoreException("3186","Process definition ID cannot be blank.");
+            throw new WecubeCoreException("3186", "Process definition ID cannot be blank.");
         }
-        
-        List<ProcDefInfoEntity> procDefEntities = procDefInfoRepository
-                .findAllDeployedProcDefsByProcDefKey(procDefKey, ProcDefInfoEntity.DEPLOYED_STATUS);
+
+        List<ProcDefInfoEntity> procDefEntities = procDefInfoRepository.findAllDeployedProcDefsByProcDefKey(procDefKey,
+                ProcDefInfoEntity.DEPLOYED_STATUS);
 
         List<Map<String, Object>> result = new ArrayList<>();
         if (procDefEntities == null || procDefEntities.isEmpty()) {
             return result;
         }
-        
+
         Collections.sort(procDefEntities, new Comparator<ProcDefInfoEntity>() {
 
             @Override
@@ -154,14 +154,13 @@ public class WorkflowDataService{
             }
 
         });
-        
+
         ProcDefInfoEntity procDef = procDefEntities.get(0);
 
         String rootEntityExpr = procDef.getRootEntity();
         if (StringUtils.isBlank(rootEntityExpr)) {
             return result;
         }
-
 
         List<Map<String, Object>> retRecords = standardEntityOperationService.queryAttributeValuesOfLeafNode(
                 new EntityOperationRootCondition(rootEntityExpr, null), userJwtSsoTokenRestTemplate);
@@ -177,11 +176,12 @@ public class WorkflowDataService{
 
     public List<Map<String, Object>> getProcessDefinitionRootEntities(String procDefId) {
         if (StringUtils.isBlank(procDefId)) {
-            throw new WecubeCoreException("3186","Process definition ID cannot be blank.");
+            throw new WecubeCoreException("3186", "Process definition ID cannot be blank.");
         }
         ProcDefInfoEntity procDef = procDefInfoRepository.selectByPrimaryKey(procDefId);
         if (procDef == null) {
-            throw new WecubeCoreException("3187",String.format("Cannot find such process definition with ID [%s]" , procDefId), procDefId);
+            throw new WecubeCoreException("3187",
+                    String.format("Cannot find such process definition with ID [%s]", procDefId), procDefId);
         }
 
         List<Map<String, Object>> result = new ArrayList<>();
@@ -190,7 +190,6 @@ public class WorkflowDataService{
         if (StringUtils.isBlank(rootEntityExpr)) {
             return result;
         }
-
 
         List<Map<String, Object>> retRecords = standardEntityOperationService.queryAttributeValuesOfLeafNode(
                 new EntityOperationRootCondition(rootEntityExpr, null), userJwtSsoTokenRestTemplate);
@@ -310,7 +309,8 @@ public class WorkflowDataService{
     public TaskNodeExecContextDto getTaskNodeContextInfo(Integer procInstId, Integer nodeInstId) {
         TaskNodeInstInfoEntity nodeEntity = taskNodeInstInfoRepository.selectByPrimaryKey(nodeInstId);
         if (nodeEntity == null) {
-            throw new WecubeCoreException("3188",String.format("Invalid node instance id: %s" , nodeInstId), nodeInstId);
+            throw new WecubeCoreException("3188", String.format("Invalid node instance id: %s", nodeInstId),
+                    nodeInstId);
         }
 
         TaskNodeExecContextDto result = new TaskNodeExecContextDto();
@@ -333,12 +333,11 @@ public class WorkflowDataService{
         result.setRequestId(requestEntity.getReqId());
         result.setErrorCode(requestEntity.getErrCode());
 
-        List<TaskNodeExecParamEntity> requestParamEntities = taskNodeExecParamRepository.findAllByRequestIdAndParamType(
-                requestEntity.getReqId(), TaskNodeExecParamEntity.PARAM_TYPE_REQUEST);
+        List<TaskNodeExecParamEntity> requestParamEntities = taskNodeExecParamRepository
+                .findAllByRequestIdAndParamType(requestEntity.getReqId(), TaskNodeExecParamEntity.PARAM_TYPE_REQUEST);
 
         List<TaskNodeExecParamEntity> responseParamEntities = taskNodeExecParamRepository
-                .findAllByRequestIdAndParamType(requestEntity.getReqId(),
-                        TaskNodeExecParamEntity.PARAM_TYPE_RESPONSE);
+                .findAllByRequestIdAndParamType(requestEntity.getReqId(), TaskNodeExecParamEntity.PARAM_TYPE_RESPONSE);
 
         List<RequestObjectDto> requestObjects = calculateRequestObjectDtos(requestParamEntities, responseParamEntities);
 
@@ -354,15 +353,15 @@ public class WorkflowDataService{
             return result;
         }
 
-        //#1993
+        // #1993
         String nodeType = e.getNodeType();
-        
-        if(TaskNodeDefInfoEntity.NODE_TYPE_START_EVENT.equalsIgnoreCase(nodeType)){
+
+        if (TaskNodeDefInfoEntity.NODE_TYPE_START_EVENT.equalsIgnoreCase(nodeType)) {
             List<InterfaceParameterDto> startEventParams = prepareNodeParameters();
             result.addAll(startEventParams);
             return result;
         }
-        
+
         String serviceId = e.getServiceId();
 
         if (StringUtils.isBlank(serviceId)) {
@@ -388,14 +387,15 @@ public class WorkflowDataService{
     @Transactional
     public ProcessDataPreviewDto generateProcessDataPreview(String procDefId, String dataId) {
         if (StringUtils.isBlank(procDefId) || StringUtils.isBlank(dataId)) {
-            throw new WecubeCoreException("3189","Process definition ID or entity ID is not provided.");
+            throw new WecubeCoreException("3189", "Process definition ID or entity ID is not provided.");
         }
 
         ProcDefOutlineDto procDefOutline = workflowProcDefService.getProcessDefinitionOutline(procDefId);
 
         if (procDefOutline == null) {
             log.debug("process definition with id {} does not exist.", procDefId);
-            throw new WecubeCoreException("3190",String.format("Such process definition {%s} does not exist.", procDefId), procDefId);
+            throw new WecubeCoreException("3190",
+                    String.format("Such process definition {%s} does not exist.", procDefId), procDefId);
         }
 
         ProcessDataPreviewDto previewDto = doFetchProcessPreviewData(procDefOutline, dataId, true);
@@ -404,58 +404,58 @@ public class WorkflowDataService{
         return previewDto;
 
     }
-    
-    private List<InterfaceParameterDto> prepareNodeParameters(){
+
+    private List<InterfaceParameterDto> prepareNodeParameters() {
         List<InterfaceParameterDto> predefinedParams = new ArrayList<>();
-        
-        //1
+
+        // 1
         InterfaceParameterDto procDefName = new InterfaceParameterDto();
         procDefName.setDataType(LocalWorkflowConstants.PLUGIN_DATA_TYPE_STRING);
         procDefName.setName(LocalWorkflowConstants.CONTEXT_NAME_PROC_DEF_NAME);
         procDefName.setType(LocalWorkflowConstants.PLUGIN_PARAM_TYPE_INPUT);
-        
+
         predefinedParams.add(procDefName);
-        
-        //2
+
+        // 2
         InterfaceParameterDto procDefKey = new InterfaceParameterDto();
         procDefKey.setDataType(LocalWorkflowConstants.PLUGIN_DATA_TYPE_STRING);
         procDefKey.setName(LocalWorkflowConstants.CONTEXT_NAME_PROC_DEF_KEY);
         procDefKey.setType(LocalWorkflowConstants.PLUGIN_PARAM_TYPE_INPUT);
-        
+
         predefinedParams.add(procDefKey);
-        
-        //3
+
+        // 3
         InterfaceParameterDto procInstId = new InterfaceParameterDto();
         procInstId.setDataType(LocalWorkflowConstants.PLUGIN_DATA_TYPE_STRING);
         procInstId.setName(LocalWorkflowConstants.CONTEXT_NAME_PROC_INST_ID);
         procInstId.setType(LocalWorkflowConstants.PLUGIN_PARAM_TYPE_INPUT);
-        
+
         predefinedParams.add(procInstId);
-        
-        //4
+
+        // 4
         InterfaceParameterDto procInstKey = new InterfaceParameterDto();
         procInstKey.setDataType(LocalWorkflowConstants.PLUGIN_DATA_TYPE_STRING);
         procInstKey.setName(LocalWorkflowConstants.CONTEXT_NAME_PROC_INST_KEY);
         procInstKey.setType(LocalWorkflowConstants.PLUGIN_PARAM_TYPE_INPUT);
-        
+
         predefinedParams.add(procInstKey);
-        
-        //5
+
+        // 5
         InterfaceParameterDto procInstName = new InterfaceParameterDto();
         procInstName.setDataType(LocalWorkflowConstants.PLUGIN_DATA_TYPE_STRING);
         procInstName.setName(LocalWorkflowConstants.CONTEXT_NAME_PROC_INST_NAME);
         procInstName.setType(LocalWorkflowConstants.PLUGIN_PARAM_TYPE_INPUT);
-        
+
         predefinedParams.add(procInstName);
-        
-        //6
+
+        // 6
         InterfaceParameterDto rootEntityName = new InterfaceParameterDto();
         rootEntityName.setDataType(LocalWorkflowConstants.PLUGIN_DATA_TYPE_STRING);
         rootEntityName.setName(LocalWorkflowConstants.CONTEXT_NAME_ROOT_ENTITY_NAME);
         rootEntityName.setType(LocalWorkflowConstants.PLUGIN_PARAM_TYPE_INPUT);
-        
+
         predefinedParams.add(rootEntityName);
-       
+
         return predefinedParams;
     }
 
@@ -466,12 +466,12 @@ public class WorkflowDataService{
             entity.setDisplayName(gNode.getDisplayName());
             entity.setEntityName(gNode.getEntityName());
             entity.setGraphNodeId(gNode.getId());
-            entity.setPackageName(gNode.getPackageName());
-            entity.setPreviousIds(GraphNodeEntity.convertIdsListToString(gNode.getPreviousIds()));
-            entity.setSucceedingIds(GraphNodeEntity.convertIdsListToString(gNode.getSucceedingIds()));
-            entity.setProcessSessionId(previewDto.getProcessSessionId());
+            entity.setPkgName(gNode.getPackageName());
+            entity.setPrevIds(GraphNodeEntity.convertIdsListToString(gNode.getPreviousIds()));
+            entity.setSuccIds(GraphNodeEntity.convertIdsListToString(gNode.getSucceedingIds()));
+            entity.setProcSessId(previewDto.getProcessSessionId());
 
-            graphNodeRepository.saveAndFlush(entity);
+            graphNodeRepository.insert(entity);
         }
     }
 
@@ -551,7 +551,8 @@ public class WorkflowDataService{
         EntityOperationRootCondition condition = new EntityOperationRootCondition(routineExpr, dataId);
         List<TreeNode> nodes = null;
         try {
-            EntityTreeNodesOverview overview = standardEntityOperationService.generateEntityLinkOverview(condition, this.userJwtSsoTokenRestTemplate);
+            EntityTreeNodesOverview overview = standardEntityOperationService.generateEntityLinkOverview(condition,
+                    this.userJwtSsoTokenRestTemplate);
             nodes = overview.getHierarchicalEntityNodes();
 
             if (needSaveTmp) {
@@ -561,7 +562,7 @@ public class WorkflowDataService{
             String errMsg = String.format("Errors while fetching data for node %s %s with expr %s and data id %s",
                     f.getNodeDefId(), f.getNodeName(), routineExpr, dataId);
             log.error(errMsg, e);
-            throw new WecubeCoreException("3191",errMsg, f.getNodeDefId(), f.getNodeName(), routineExpr, dataId);
+            throw new WecubeCoreException("3191", errMsg, f.getNodeDefId(), f.getNodeName(), routineExpr, dataId);
         }
 
         if (nodes == null || nodes.isEmpty()) {
