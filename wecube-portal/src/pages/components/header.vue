@@ -344,6 +344,9 @@ export default {
   vertical-align: middle;
   cursor: pointer;
 }
+.ivu-layout-header {
+  padding: 0 30px;
+}
 .header {
   display: flex;
   .ivu-layout-header {
