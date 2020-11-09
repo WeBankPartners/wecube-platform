@@ -14,7 +14,7 @@ import java.io.IOException;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
 
-public class PluginPackageDataModelDtoValidatorTest {
+public class PluginPackageDataModelValidatorTest {
 
     @Test
     public void givenPluginPackageWithoutDataModelWhenValidateThenShouldSucceed() {
@@ -22,7 +22,7 @@ public class PluginPackageDataModelDtoValidatorTest {
             InputSource inputSource = new InputSource(Resources.getResource("plugin/sample-plugin-config-without-data-model-entity.xml").openStream());
             PluginPackageDto pluginPackageDto = PluginPackageXmlParser.newInstance(inputSource).parsePluginPackage();
 
-            new PluginPackageDataModelDtoValidator().validate(pluginPackageDto.getPluginPackageDataModelDto());
+            new PluginPackageDataModelValidator().validate(pluginPackageDto.getPluginPackageDataModelDto());
         } catch (Exception e) {
             fail("Validator should succeed here but got error message: " + e.getMessage());
         }
@@ -34,7 +34,7 @@ public class PluginPackageDataModelDtoValidatorTest {
             InputSource inputSource = new InputSource(Resources.getResource("plugin/sample-plugin-config-output-parameter-with-mappingtype.xml").openStream());
             PluginPackageDto pluginPackageDto = PluginPackageXmlParser.newInstance(inputSource).parsePluginPackage();
 
-            new PluginPackageDataModelDtoValidator().validate(pluginPackageDto.getPluginPackageDataModelDto());
+            new PluginPackageDataModelValidator().validate(pluginPackageDto.getPluginPackageDataModelDto());
         } catch (Exception e) {
             fail("Validator should succeed here but got error message: " + e.getMessage());
         }
@@ -46,7 +46,7 @@ public class PluginPackageDataModelDtoValidatorTest {
             InputSource inputSource = new InputSource(Resources.getResource("plugin/sample-plugin-config-with-data-model-entity-attribute-without-datatype.xml").openStream());
             PluginPackageDto pluginPackageDto = PluginPackageXmlParser.newInstance(inputSource).parsePluginPackage();
 
-            new PluginPackageDataModelDtoValidator().validate(pluginPackageDto.getPluginPackageDataModelDto());
+            new PluginPackageDataModelValidator().validate(pluginPackageDto.getPluginPackageDataModelDto());
             fail("Validator should throw exception but succeed");
         } catch (WecubeCoreException e) {
             assertThat(e.getMessage().contains("The DataType should not be empty or null")).isTrue();
@@ -61,7 +61,7 @@ public class PluginPackageDataModelDtoValidatorTest {
             InputSource inputSource = new InputSource(Resources.getResource("plugin/sample-plugin-config-with-data-model-entity-attribute-without-description.xml").openStream());
             PluginPackageDto pluginPackageDto = PluginPackageXmlParser.newInstance(inputSource).parsePluginPackage();
 
-            new PluginPackageDataModelDtoValidator().validate(pluginPackageDto.getPluginPackageDataModelDto());
+            new PluginPackageDataModelValidator().validate(pluginPackageDto.getPluginPackageDataModelDto());
         } catch (Exception e) {
             fail("Xml should be correct without exception");
         }
@@ -73,7 +73,7 @@ public class PluginPackageDataModelDtoValidatorTest {
             InputSource inputSource = new InputSource(Resources.getResource("plugin/sample-plugin-config-with-data-model-entity-but-ref-attribute-name-missing.xml").openStream());
             PluginPackageDto pluginPackageDto = PluginPackageXmlParser.newInstance(inputSource).parsePluginPackage();
 
-            new PluginPackageDataModelDtoValidator().validate(pluginPackageDto.getPluginPackageDataModelDto());
+            new PluginPackageDataModelValidator().validate(pluginPackageDto.getPluginPackageDataModelDto());
             fail("Validator should throw exception but succeed");
         } catch (WecubeCoreException e) {
             assertThat(e.getMessage().contains("Field [ref] should be specified when [dataType] is set to [\"ref\"]")).isTrue();
@@ -88,7 +88,7 @@ public class PluginPackageDataModelDtoValidatorTest {
             InputSource inputSource = new InputSource(Resources.getResource("plugin/sample-plugin-config-with-data-model-entity.xml").openStream());
             PluginPackageDto pluginPackageDto = PluginPackageXmlParser.newInstance(inputSource).parsePluginPackage();
 
-            new PluginPackageDataModelDtoValidator().validate(pluginPackageDto.getPluginPackageDataModelDto());
+            new PluginPackageDataModelValidator().validate(pluginPackageDto.getPluginPackageDataModelDto());
         } catch (Exception e) {
             fail("Validator should succeed here but got error message: " + e.getMessage());
         }
