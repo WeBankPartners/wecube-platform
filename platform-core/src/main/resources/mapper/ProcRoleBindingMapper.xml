@@ -140,7 +140,7 @@
         <include refid="Base_Column_List" />
         from core_ru_proc_role_binding
         where proc_id =
-        #{id,jdbcType=VARCHAR}
+        #{procId,jdbcType=VARCHAR}
         and role_name =
         #{roleName,jdbcType=VARCHAR}
         and permission =
@@ -154,7 +154,7 @@
         <include refid="Base_Column_List" />
         from core_ru_proc_role_binding
         where proc_id =
-        #{id,jdbcType=VARCHAR}
+        #{procId,jdbcType=VARCHAR}
         and permission =
         #{permission,jdbcType=VARCHAR}
     </select>
@@ -168,9 +168,9 @@
         where permission = 'USE'
         and
         role_id in
-        <foreach item="item" collection="list" separator=","
+        <foreach item="roleId" collection="roleIds" separator=","
             open="(" close=")" index="">
-            #{item, jdbcType=VARCHAR}
+            #{roleId, jdbcType=VARCHAR}
         </foreach>
     </select>
 

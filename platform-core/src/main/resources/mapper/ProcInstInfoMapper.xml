@@ -232,8 +232,8 @@
         from core_ru_proc_inst_info
         <where>
             proc_def_id in
-            <foreach item="item" collection="list" separator="," open="(" close=")" index="">    
-                #{item, jdbcType=VARCHAR}    
+            <foreach item="procDefId" collection="procDefIds" separator="," open="(" close=")" index="">    
+                #{procDefId, jdbcType=VARCHAR}    
             </foreach>
         </where>
     </select>
