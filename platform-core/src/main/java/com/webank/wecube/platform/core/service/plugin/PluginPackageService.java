@@ -86,7 +86,7 @@ import com.webank.wecube.platform.core.jpa.SystemVariableRepository;
 import com.webank.wecube.platform.core.lazyDomain.plugin.LazyPluginPackage;
 import com.webank.wecube.platform.core.lazyJpa.LazyPluginPackageRepository;
 import com.webank.wecube.platform.core.parser.PluginConfigXmlValidator;
-import com.webank.wecube.platform.core.parser.PluginPackageDataModelDtoValidator;
+import com.webank.wecube.platform.core.parser.PluginPackageDataModelValidator;
 import com.webank.wecube.platform.core.parser.PluginPackageValidator;
 import com.webank.wecube.platform.core.parser.PluginPackageXmlParser;
 import com.webank.wecube.platform.core.service.CommandService;
@@ -142,7 +142,7 @@ public class PluginPackageService {
     private PluginPackageValidator pluginPackageValidator;
 
     @Autowired
-    private PluginPackageDataModelDtoValidator dataModelValidator;
+    private PluginPackageDataModelValidator dataModelValidator;
 
     @Autowired
     private PluginProperties pluginProperties;
