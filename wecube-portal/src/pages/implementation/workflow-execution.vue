@@ -1,10 +1,14 @@
 <template>
   <div>
     <Card dis-hover>
+      <Tabs @on-click="tabChanged" value="create_new_workflow_job">
+        <TabPane :label="$t('create_new_workflow_job')" name="create_new_workflow_job"></TabPane>
+        <TabPane :label="$t('enquery_new_workflow_job')" name="enquery_new_workflow_job"></TabPane>
+      </Tabs>
       <Row>
-        <Col span="20">
-          <Form v-if="isEnqueryPage" label-position="left">
-            <FormItem :label-width="150" :label="$t('orchs')">
+        <Col span="24">
+          <Form label-position="right">
+            <FormItem v-if="isEnqueryPage" :label-width="150" :label="$t('orchs')">
               <Select
                 v-model="selectedFlowInstance"
                 style="width:60%"
@@ -38,19 +42,61 @@
               </Select>
               <Button type="info" @click="queryHandler">{{ $t('query_orch') }}</Button>
             </FormItem>
+            <Col v-if="!isEnqueryPage" span="7">
+              <FormItem :label-width="150" :label="$t('select_orch')">
+                <Select
+                  label
+                  v-model="selectedFlow"
+                  :disabled="isEnqueryPage"
+                  @on-change="orchestrationSelectHandler"
+                  @on-open-change="getAllFlow"
+                  filterable
+                  clearable
+                  @on-clear="clearFlow"
+                >
+                  <Option v-for="item in allFlows" :value="item.procDefId" :key="item.procDefId">{{
+                    item.procDefName + ' ' + item.createdTime
+                  }}</Option>
+                </Select>
+              </FormItem>
+            </Col>
+            <Col v-if="!isEnqueryPage" span="8" offset="0">
+              <FormItem :label-width="150" :label="$t('target_object')">
+                <Select
+                  style="width:80%"
+                  label
+                  v-model="selectedTarget"
+                  :disabled="isEnqueryPage"
+                  @on-change="onTargetSelectHandler"
+                  @on-open-change="getTargetOptions"
+                  filterable
+                  clearable
+                  @on-clear="clearTarget"
+                >
+                  <Option v-for="item in allTarget" :value="item.id" :key="item.id">{{ item.key_name }}</Option>
+                </Select>
+                <Button
+                  :disabled="isExecuteActive || !showExcution"
+                  :loading="btnLoading"
+                  type="info"
+                  @click="excutionFlow"
+                  >{{ $t('execute') }}</Button
+                >
+              </FormItem>
+            </Col>
           </Form>
         </Col>
-        <Col span="4" style="text-align: right;margin-bottom:8px;padding-right:40px;float:right;">
+        <!-- <Col span="4" style="text-align: right;margin-bottom:8px;padding-right:40px;float:right;">
           <Button type="info" v-if="!isEnqueryPage" @click="queryHistory">{{ $t('enquery_new_workflow_job') }}</Button>
           <Button type="success" v-if="isEnqueryPage" @click="createHandler">
             {{ $t('create_new_workflow_job') }}
           </Button>
-        </Col>
+        </Col> -->
       </Row>
       <Row>
         <Row id="graphcontain">
-          <Col span="6" style="border-right:1px solid #d3cece; text-align: center;height:100%;position: relative;">
-            <div class="excution-serach">
+          <Col span="7" style="border-right:1px solid #d3cece; text-align: center;height:100%;position: relative;">
+            <!-- <div class="excution-serach">
               <Form>
                 <FormItem :label-width="100" :label="$t('select_orch')">
                   <Select
@@ -69,12 +115,12 @@
                   </Select>
                 </FormItem>
               </Form>
-            </div>
+            </div> -->
             <div class="graph-container" id="flow" style="height:90%"></div>
             <Button class="reset-button" size="small" @click="ResetFlow">ResetZoom</Button>
           </Col>
-          <Col span="18" style="text-align: center;margin-top: 5px;text-align: center;height:100%; position: relative;">
-            <div>
+          <Col span="17" style="text-align: center;text-align: center;height:100%; position: relative;">
+            <!-- <div>
               <Form>
                 <FormItem :label-width="100" :label="$t('target_object')">
                   <Select
@@ -92,7 +138,7 @@
                   </Select>
                 </FormItem>
               </Form>
-            </div>
+            </div> -->
             <div class="graph-container" id="graph" style="height:90%"></div>
             <Button class="reset-button" size="small" @click="ResetModel">ResetZoom</Button>
             <Spin size="large" fix v-show="isLoading">
@@ -102,7 +148,7 @@
           </Col>
         </Row>
       </Row>
-      <div style="text-align: right;margin-top: 6px;">
+      <!-- <div v-if="showExcution" style="text-align: right;margin-top: 6px;">
         <Button
           v-if="showExcution"
           :disabled="isExecuteActive"
@@ -112,7 +158,7 @@
           @click="excutionFlow"
           >{{ $t('execute') }}</Button
         >
-      </div>
+      </div> -->
     </Card>
     <Modal
       :title="$t('select_an_operation')"
@@ -368,6 +414,14 @@ export default {
     clearInterval(this.timer)
   },
   methods: {
+    tabChanged (v) {
+      // create_new_workflow_job   enquery_new_workflow_job
+      if (v === 'create_new_workflow_job') {
+        this.createHandler()
+      } else {
+        this.queryHistory()
+      }
+    },
     async getDetail (row) {
       if (!row.entityName || !row.dataId) return
       const { status, data } = await getModelNodeDetail(row.entityName, row.dataId)
@@ -1169,7 +1223,7 @@ body {
   border: 1px solid #d3cece;
   border-radius: 3px;
   padding: 5px;
-  height: calc(100vh - 210px);
+  height: calc(100vh - 220px);
 }
 .model_target .ivu-modal-content-drag {
   right: 40px;
@@ -1211,6 +1265,7 @@ body {
 .reset-button {
   position: absolute;
   right: 20px;
-  bottom: 20px;
+  bottom: 5px;
+  font-size: 12px;
 }
 </style>
