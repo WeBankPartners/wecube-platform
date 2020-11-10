@@ -455,7 +455,15 @@ public class WorkflowDataService {
         rootEntityName.setType(LocalWorkflowConstants.PLUGIN_PARAM_TYPE_INPUT);
 
         predefinedParams.add(rootEntityName);
-
+        
+        //7
+        InterfaceParameterDto rootEntityId = new InterfaceParameterDto();
+        rootEntityId.setDataType(LocalWorkflowConstants.PLUGIN_DATA_TYPE_STRING);
+        rootEntityId.setName(LocalWorkflowConstants.CONTEXT_NAME_ROOT_ENTITY_ID);
+        rootEntityId.setType(LocalWorkflowConstants.PLUGIN_PARAM_TYPE_INPUT);
+        
+        predefinedParams.add(rootEntityId);
+       
         return predefinedParams;
     }
 
