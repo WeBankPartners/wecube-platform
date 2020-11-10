@@ -3,7 +3,7 @@
     <Header>
       <div class="menus">
         <Menu mode="horizontal" theme="dark">
-          <div>
+          <div style="margin-right:20px;">
             <img src="../../assets/logo_WeCube.png" alt="LOGO" @click="goHome" class="img-logo" />
           </div>
 
@@ -343,6 +343,9 @@ export default {
   margin: 0 4px 6px 0;
   vertical-align: middle;
   cursor: pointer;
+}
+.ivu-layout-header {
+  padding: 0 30px;
 }
 .header {
   display: flex;
