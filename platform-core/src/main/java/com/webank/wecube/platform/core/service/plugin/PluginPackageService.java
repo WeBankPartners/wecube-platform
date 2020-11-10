@@ -175,8 +175,7 @@ public class PluginPackageService {
     @Autowired
     private PluginArtifactPullRequestRepository pluginArtifactPullRequestRepository;
 
-    @Autowired
-    private PluginArtifactOperationExecutor pluginArtifactOperationExecutor;
+    
 
     @Autowired
     private RestTemplate restTemplate;
@@ -377,45 +376,45 @@ public class PluginPackageService {
 //        }
 //    }
 
-    public S3PluginActifactPullRequestDto createS3PluginActifactPullRequest(S3PluginActifactDto pullRequestDto) {
-        if (pullRequestDto == null) {
-            throw new WecubeCoreException("3095", "Illegal argument.");
-        }
-
-        if (org.apache.commons.lang3.StringUtils.isBlank(pullRequestDto.getKeyName())) {
-            throw new WecubeCoreException("3096", "Key name cannot be blank.");
-        }
-
-        // get system variables
-        String releaseFileUrl = getGlobalSystemVariableByName(SYS_VAR_PUBLIC_PLUGIN_ARTIFACTS_RELEASE_URL);
-
-        if (org.apache.commons.lang3.StringUtils.isBlank(releaseFileUrl)) {
-            throw new WecubeCoreException("3097", "The remote plugin artifacts release file is not properly provided.");
-        }
-
-        PluginArtifactPullRequestEntity entity = new PluginArtifactPullRequestEntity();
-        entity.setBucketName(null);
-        entity.setKeyName(pullRequestDto.getKeyName());
-        entity.setRev(0);
-        entity.setState(PluginArtifactPullRequestEntity.STATE_IN_PROGRESS);
-        entity.setCreatedTime(new Date());
-        entity.setCreatedBy(AuthenticationContextHolder.getCurrentUsername());
-
-        PluginArtifactPullRequestEntity savedEntity = pluginArtifactPullRequestRepository.saveAndFlush(entity);
-
-        PluginArtifactPullContext ctx = new PluginArtifactPullContext();
-        ctx.setAccessKey(null);
-        ctx.setBucketName(null);
-        ctx.setKeyName(pullRequestDto.getKeyName());
-        ctx.setRemoteEndpoint(releaseFileUrl);
-        ctx.setSecretKey(null);
-        ctx.setRequestId(savedEntity.getId());
-        ctx.setEntity(savedEntity);
-
-        pluginArtifactOperationExecutor.pullPluginArtifact(ctx);
-
-        return buildS3PluginActifactPullRequestDto(savedEntity);
-    }
+//    public S3PluginActifactPullRequestDto createS3PluginActifactPullRequest(S3PluginActifactDto pullRequestDto) {
+//        if (pullRequestDto == null) {
+//            throw new WecubeCoreException("3095", "Illegal argument.");
+//        }
+//
+//        if (org.apache.commons.lang3.StringUtils.isBlank(pullRequestDto.getKeyName())) {
+//            throw new WecubeCoreException("3096", "Key name cannot be blank.");
+//        }
+//
+//        // get system variables
+//        String releaseFileUrl = getGlobalSystemVariableByName(SYS_VAR_PUBLIC_PLUGIN_ARTIFACTS_RELEASE_URL);
+//
+//        if (org.apache.commons.lang3.StringUtils.isBlank(releaseFileUrl)) {
+//            throw new WecubeCoreException("3097", "The remote plugin artifacts release file is not properly provided.");
+//        }
+//
+//        PluginArtifactPullRequestEntity entity = new PluginArtifactPullRequestEntity();
+//        entity.setBucketName(null);
+//        entity.setKeyName(pullRequestDto.getKeyName());
+//        entity.setRev(0);
+//        entity.setState(PluginArtifactPullRequestEntity.STATE_IN_PROGRESS);
+//        entity.setCreatedTime(new Date());
+//        entity.setCreatedBy(AuthenticationContextHolder.getCurrentUsername());
+//
+//        PluginArtifactPullRequestEntity savedEntity = pluginArtifactPullRequestRepository.saveAndFlush(entity);
+//
+//        PluginArtifactPullContext ctx = new PluginArtifactPullContext();
+//        ctx.setAccessKey(null);
+//        ctx.setBucketName(null);
+//        ctx.setKeyName(pullRequestDto.getKeyName());
+//        ctx.setRemoteEndpoint(releaseFileUrl);
+//        ctx.setSecretKey(null);
+//        ctx.setRequestId(savedEntity.getId());
+//        ctx.setEntity(savedEntity);
+//
+//        pluginArtifactOperationExecutor.pullPluginArtifact(ctx);
+//
+//        return buildS3PluginActifactPullRequestDto(savedEntity);
+//    }
 
     public void handlePullPluginArtifactFailure(PluginArtifactPullContext ctx, Exception e) {
         Optional<PluginArtifactPullRequestEntity> reqOpt = pluginArtifactPullRequestRepository
@@ -439,49 +438,49 @@ public class PluginPackageService {
         pluginArtifactPullRequestRepository.saveAndFlush(reqEntity);
     }
 
-    public void pullPluginArtifact(PluginArtifactPullContext ctx) throws Exception {
-
-        PluginArtifactPullRequestEntity reqEntity = getPluginArtifactPullRequestEntity(ctx);
-
-        if (PluginArtifactPullRequestEntity.STATE_COMPLETED.equals(reqEntity.getState())) {
-            return;
-        }
-
-        String pluginPackageFileName = calculatePluginPackageFileName(ctx);
-
-        // 1. save package file to local
-        String tmpFileName = new SimpleDateFormat("yyyyMMddHHmmssSSS").format(new Date());
-        File localFilePath = new File(SystemUtils.getTempFolderPath() + tmpFileName + "/");
-        log.info("tmpFilePath= {}", localFilePath.getName());
-
-        checkLocalFilePath(localFilePath);
-
-        File dest = new File(localFilePath + "/" + pluginPackageFileName);
-        log.info("new file location: {}, filename: {}, canonicalpath: {}, canonicalfilename: {}",
-                dest.getAbsoluteFile(), dest.getName(), dest.getCanonicalPath(), dest.getCanonicalFile().getName());
-
-        String releaseFileUrl = getGlobalSystemVariableByName(SYS_VAR_PUBLIC_PLUGIN_ARTIFACTS_RELEASE_URL);
-        String artifactFileUrl = buildArtifactUrl(releaseFileUrl, ctx.getKeyName());
-
-        log.info("start to download {}", artifactFileUrl);
-        File downloadedFile = restTemplate.execute(artifactFileUrl, HttpMethod.GET, null, clientHttpResponse -> {
-            log.info("");
-            File ret = dest;
-            StreamUtils.copy(clientHttpResponse.getBody(), new FileOutputStream(ret));
-            return ret;
-        });
-        log.info("downloaded file:{}, size:{}", downloadedFile.getAbsoluteFile(), downloadedFile.length());
-
-        PluginPackage savedPluginPackage = parsePackageFile(dest, localFilePath);
-
-        reqEntity.setUpdatedBy(DEFAULT_USER);
-        reqEntity.setUpdatedTime(new Date());
-        reqEntity.setTotalSize(downloadedFile.length());
-        reqEntity.setPackageId(savedPluginPackage.getId());
-        reqEntity.setState(PluginArtifactPullRequestEntity.STATE_COMPLETED);
-
-        pluginArtifactPullRequestRepository.saveAndFlush(reqEntity);
-    }
+//    public void pullPluginArtifact(PluginArtifactPullContext ctx) throws Exception {
+//
+//        PluginArtifactPullRequestEntity reqEntity = getPluginArtifactPullRequestEntity(ctx);
+//
+//        if (PluginArtifactPullRequestEntity.STATE_COMPLETED.equals(reqEntity.getState())) {
+//            return;
+//        }
+//
+//        String pluginPackageFileName = calculatePluginPackageFileName(ctx);
+//
+//        // 1. save package file to local
+//        String tmpFileName = new SimpleDateFormat("yyyyMMddHHmmssSSS").format(new Date());
+//        File localFilePath = new File(SystemUtils.getTempFolderPath() + tmpFileName + "/");
+//        log.info("tmpFilePath= {}", localFilePath.getName());
+//
+//        checkLocalFilePath(localFilePath);
+//
+//        File dest = new File(localFilePath + "/" + pluginPackageFileName);
+//        log.info("new file location: {}, filename: {}, canonicalpath: {}, canonicalfilename: {}",
+//                dest.getAbsoluteFile(), dest.getName(), dest.getCanonicalPath(), dest.getCanonicalFile().getName());
+//
+//        String releaseFileUrl = getGlobalSystemVariableByName(SYS_VAR_PUBLIC_PLUGIN_ARTIFACTS_RELEASE_URL);
+//        String artifactFileUrl = buildArtifactUrl(releaseFileUrl, ctx.getKeyName());
+//
+//        log.info("start to download {}", artifactFileUrl);
+//        File downloadedFile = restTemplate.execute(artifactFileUrl, HttpMethod.GET, null, clientHttpResponse -> {
+//            log.info("");
+//            File ret = dest;
+//            StreamUtils.copy(clientHttpResponse.getBody(), new FileOutputStream(ret));
+//            return ret;
+//        });
+//        log.info("downloaded file:{}, size:{}", downloadedFile.getAbsoluteFile(), downloadedFile.length());
+//
+//        PluginPackage savedPluginPackage = parsePackageFile(dest, localFilePath);
+//
+//        reqEntity.setUpdatedBy(DEFAULT_USER);
+//        reqEntity.setUpdatedTime(new Date());
+//        reqEntity.setTotalSize(downloadedFile.length());
+//        reqEntity.setPackageId(savedPluginPackage.getId());
+//        reqEntity.setState(PluginArtifactPullRequestEntity.STATE_COMPLETED);
+//
+//        pluginArtifactPullRequestRepository.saveAndFlush(reqEntity);
+//    }
 
     public S3PluginActifactPullRequestDto queryS3PluginActifactPullRequest(String requestId) {
         if (org.apache.commons.lang3.StringUtils.isBlank(requestId)) {
@@ -835,36 +834,9 @@ public class PluginPackageService {
         return returnMenuDto;
     }
 
-    private PluginArtifactPullRequestEntity getPluginArtifactPullRequestEntity(PluginArtifactPullContext ctx) {
-        Optional<PluginArtifactPullRequestEntity> reqOpt = pluginArtifactPullRequestRepository
-                .findById(ctx.getRequestId());
+    
 
-        PluginArtifactPullRequestEntity reqEntity = null;
-        if (reqOpt.isPresent()) {
-            reqEntity = reqOpt.get();
-        }
-
-        if (reqEntity == null) {
-            reqEntity = ctx.getEntity();
-        }
-        if (reqEntity == null) {
-            throw new WecubeCoreException("3102", String.format("Request entity %s does not exist", ctx.getRequestId()),
-                    ctx.getRequestId());
-        }
-
-        return reqEntity;
-    }
-
-    private void checkLocalFilePath(File localFilePath) {
-        if (!localFilePath.exists()) {
-            if (localFilePath.mkdirs()) {
-                log.info("Create directory [{}] successful", localFilePath.getAbsolutePath());
-            } else {
-                String msg = String.format("Create directory [%s] failed", localFilePath.getAbsolutePath());
-                throw new WecubeCoreException("3103", msg, localFilePath.getAbsolutePath());
-            }
-        }
-    }
+    
 
     private void updateSystemVariableStatus(PluginPackage pluginPackage) {
         List<String> packageIdList = new ArrayList<String>();
@@ -1213,15 +1185,7 @@ public class PluginPackageService {
         return results;
     }
 
-    private String calculatePluginPackageFileName(PluginArtifactPullContext ctx) {
-        String keyName = ctx.getKeyName();
-        int index = keyName.lastIndexOf("/");
-        if (index >= 0) {
-            return keyName.substring(index);
-        } else {
-            return keyName;
-        }
-    }
+    
 
     private String buildArtifactUrl(String releaseFileUrl, String keyName) {
         int index = releaseFileUrl.lastIndexOf("/");
@@ -1415,17 +1379,7 @@ public class PluginPackageService {
         return pluginPackageRepository.countByNameAndVersion(name, version) > 0;
     }
 
-    private S3PluginActifactPullRequestDto buildS3PluginActifactPullRequestDto(PluginArtifactPullRequestEntity req) {
-        S3PluginActifactPullRequestDto dto = new S3PluginActifactPullRequestDto();
-        dto.setBucketName(req.getBucketName());
-        dto.setKeyName(req.getKeyName());
-        dto.setState(req.getState());
-        dto.setRequestId(req.getId());
-        dto.setTotalSize(req.getTotalSize());
-        dto.setErrorMessage(req.getErrorMsg());
-        dto.setPackageId(req.getPackageId());
-        return dto;
-    }
+   
 
     private String stripString(String s) {
         if (s == null) {
