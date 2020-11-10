@@ -298,7 +298,7 @@
   "service_regist": "Regist",
   "confirm_to_regist_plugin": "Confirm Regist Plugin Package",
   "is_show_decomissioned_pkg": "Show Decommissioned",
-  "orchs": "Orchestrations Jobs",
+  "orchs": "Orchestrations",
   "query_orch": "Enquery",
   "create_orch": "Create",
   "select_orch": "Orchestrations",
