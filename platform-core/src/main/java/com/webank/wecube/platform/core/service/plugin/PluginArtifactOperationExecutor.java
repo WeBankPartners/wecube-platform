@@ -9,7 +9,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.webank.wecube.platform.core.domain.plugin.PluginArtifactPullRequestEntity;
+import com.webank.wecube.platform.core.entity.plugin.PluginArtifactPullReq;
 
 @Service
 public class PluginArtifactOperationExecutor {
@@ -60,7 +60,7 @@ public class PluginArtifactOperationExecutor {
 
         private String keyName;
         private String requestId;
-        private PluginArtifactPullRequestEntity entity;
+        private PluginArtifactPullReq entity;
 
         public String getRemoteEndpoint() {
             return remoteEndpoint;
@@ -110,11 +110,11 @@ public class PluginArtifactOperationExecutor {
             this.requestId = requestId;
         }
 
-        public PluginArtifactPullRequestEntity getEntity() {
+        public PluginArtifactPullReq getEntity() {
             return entity;
         }
 
-        public void setEntity(PluginArtifactPullRequestEntity entity) {
+        public void setEntity(PluginArtifactPullReq entity) {
             this.entity = entity;
         }
 
