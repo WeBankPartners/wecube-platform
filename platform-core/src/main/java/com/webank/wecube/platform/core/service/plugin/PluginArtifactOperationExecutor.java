@@ -17,7 +17,7 @@ public class PluginArtifactOperationExecutor {
     private ExecutorService executorService = Executors.newCachedThreadPool();
 
     @Autowired
-    private PluginPackageService pluginPackageService;
+    private PluginArtifactsMgmtService pluginPackageService;
 
     public void pullPluginArtifact(PluginArtifactPullContext ctx) {
         PluginArtifactOperationWorker worker = new PluginArtifactOperationWorker();
@@ -28,7 +28,7 @@ public class PluginArtifactOperationExecutor {
 
     public static class PluginArtifactOperationWorker implements Callable<Void> {
         private PluginArtifactPullContext pluginArtifactPullContext;
-        private PluginPackageService pluginPackageService;
+        private PluginArtifactsMgmtService pluginPackageService;
 
         @Override
         public Void call() throws Exception {
@@ -46,7 +46,7 @@ public class PluginArtifactOperationExecutor {
             this.pluginArtifactPullContext = pluginArtifactPullContext;
         }
 
-        public void setPluginPackageService(PluginPackageService pluginPackageService) {
+        public void setPluginPackageService(PluginArtifactsMgmtService pluginPackageService) {
             this.pluginPackageService = pluginPackageService;
         }
 
