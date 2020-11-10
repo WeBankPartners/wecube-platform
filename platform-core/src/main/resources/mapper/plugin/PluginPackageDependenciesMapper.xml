@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.webank.wecube.platform.core.repository.plugin.PluginPackageDependenciesMapper" >
+  <resultMap id="BaseResultMap" type="com.webank.wecube.platform.core.entity.plugin.PluginPackageDependencies" >
+    <id column="id" property="id" jdbcType="VARCHAR" />
+    <result column="plugin_package_id" property="pluginPackageId" jdbcType="VARCHAR" />
+    <result column="dependency_package_name" property="dependencyPackageName" jdbcType="VARCHAR" />
+    <result column="dependency_package_version" property="dependencyPackageVersion" jdbcType="VARCHAR" />
+  </resultMap>
+  <sql id="Base_Column_List" >
+    id, plugin_package_id, dependency_package_name, dependency_package_version
+  </sql>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.String" >
+    select 
+    <include refid="Base_Column_List" />
+    from plugin_package_dependencies
+    where id = #{id,jdbcType=VARCHAR}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.String" >
+    delete from plugin_package_dependencies
+    where id = #{id,jdbcType=VARCHAR}
+  </delete>
+  <insert id="insert" parameterType="com.webank.wecube.platform.core.entity.plugin.PluginPackageDependencies" >
+    insert into plugin_package_dependencies (id, plugin_package_id, dependency_package_name, 
+      dependency_package_version)
+    values (#{id,jdbcType=VARCHAR}, #{pluginPackageId,jdbcType=VARCHAR}, #{dependencyPackageName,jdbcType=VARCHAR}, 
+      #{dependencyPackageVersion,jdbcType=VARCHAR})
+  </insert>
+  <insert id="insertSelective" parameterType="com.webank.wecube.platform.core.entity.plugin.PluginPackageDependencies" >
+    insert into plugin_package_dependencies
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        id,
+      </if>
+      <if test="pluginPackageId != null" >
+        plugin_package_id,
+      </if>
+      <if test="dependencyPackageName != null" >
+        dependency_package_name,
+      </if>
+      <if test="dependencyPackageVersion != null" >
+        dependency_package_version,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        #{id,jdbcType=VARCHAR},
+      </if>
+      <if test="pluginPackageId != null" >
+        #{pluginPackageId,jdbcType=VARCHAR},
+      </if>
+      <if test="dependencyPackageName != null" >
+        #{dependencyPackageName,jdbcType=VARCHAR},
+      </if>
+      <if test="dependencyPackageVersion != null" >
+        #{dependencyPackageVersion,jdbcType=VARCHAR},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="com.webank.wecube.platform.core.entity.plugin.PluginPackageDependencies" >
+    update plugin_package_dependencies
+    <set >
+      <if test="pluginPackageId != null" >
+        plugin_package_id = #{pluginPackageId,jdbcType=VARCHAR},
+      </if>
+      <if test="dependencyPackageName != null" >
+        dependency_package_name = #{dependencyPackageName,jdbcType=VARCHAR},
+      </if>
+      <if test="dependencyPackageVersion != null" >
+        dependency_package_version = #{dependencyPackageVersion,jdbcType=VARCHAR},
+      </if>
+    </set>
+    where id = #{id,jdbcType=VARCHAR}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.webank.wecube.platform.core.entity.plugin.PluginPackageDependencies" >
+    update plugin_package_dependencies
+    set plugin_package_id = #{pluginPackageId,jdbcType=VARCHAR},
+      dependency_package_name = #{dependencyPackageName,jdbcType=VARCHAR},
+      dependency_package_version = #{dependencyPackageVersion,jdbcType=VARCHAR}
+    where id = #{id,jdbcType=VARCHAR}
+  </update>
+</mapper>
