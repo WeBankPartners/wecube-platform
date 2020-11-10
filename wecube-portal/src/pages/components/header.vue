@@ -3,7 +3,7 @@
     <Header>
       <div class="menus">
         <Menu mode="horizontal" theme="dark">
-          <div>
+          <div style="margin-right:20px;">
             <img src="../../assets/logo_WeCube.png" alt="LOGO" @click="goHome" class="img-logo" />
           </div>
 
