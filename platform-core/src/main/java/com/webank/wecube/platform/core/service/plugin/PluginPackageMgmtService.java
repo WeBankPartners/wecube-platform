@@ -68,8 +68,8 @@ import com.webank.wecube.platform.core.utils.JaxbUtils;
 import com.webank.wecube.platform.core.utils.SystemUtils;
 import com.webank.wecube.platform.workflow.commons.LocalIdGenerator;
 
-public class PluginPackageRegistryService {
-    private static final Logger log = LoggerFactory.getLogger(PluginPackageRegistryService.class);
+public class PluginPackageMgmtService {
+    private static final Logger log = LoggerFactory.getLogger(PluginPackageMgmtService.class);
 
     public static final Set<String> ACCEPTED_FILES = Sets.newHashSet("register.xml", "image.tar", "ui.zip", "init.sql",
             "upgrade.sql");

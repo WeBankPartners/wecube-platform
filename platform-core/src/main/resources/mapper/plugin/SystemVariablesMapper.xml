@@ -125,4 +125,22 @@
       status = #{status,jdbcType=VARCHAR}
     where id = #{id,jdbcType=VARCHAR}
   </update>
+  
+  <select id="findByNameAndScopeAndStatus" resultMap="BaseResultMap" parameterType="java.lang.String" >
+    select 
+    <include refid="Base_Column_List" />
+    from system_variables
+    where name = #{name,jdbcType=VARCHAR}
+    and scope = #{scope,jdbcType=VARCHAR}
+    and status = #{status,jdbcType=VARCHAR}
+  </select>
+  
+  <select id="findByNameAndScopeAndSource" resultMap="BaseResultMap" parameterType="java.lang.String" >
+    select 
+    <include refid="Base_Column_List" />
+    from system_variables
+    where name = #{name,jdbcType=VARCHAR}
+    and scope = #{scope,jdbcType=VARCHAR}
+    and source = #{source,jdbcType=VARCHAR}
+  </select>
 </mapper>

@@ -26,6 +26,9 @@ import com.webank.wecube.platform.core.dto.PluginDeclarationDto;
 import com.webank.wecube.platform.core.dto.PluginPackageDependencyDto;
 import com.webank.wecube.platform.core.dto.PluginPackageRuntimeResouceDto;
 import com.webank.wecube.platform.core.dto.S3PluginActifactDto;
+import com.webank.wecube.platform.core.dto.plugin.UploadPackageResultDto;
+import com.webank.wecube.platform.core.service.plugin.PluginArtifactsMgmtService;
+import com.webank.wecube.platform.core.service.plugin.PluginPackageMgmtService;
 import com.webank.wecube.platform.core.service.plugin.PluginPackageService;
 
 @RestController
@@ -34,15 +37,21 @@ public class PluginPackageController {
 
     @Autowired
     private PluginPackageService pluginPackageService;
+    
+    @Autowired
+    private PluginPackageMgmtService pluginPackageMgmtService;
+    
+    @Autowired
+    private PluginArtifactsMgmtService pluginArtifactsMgmtService;
 
     @GetMapping("/plugin-artifacts")
     public CommonResponseDto listS3PluginActifacts() {
-        return okayWithData(pluginPackageService.listS3PluginActifacts());
+        return okayWithData(pluginArtifactsMgmtService.listS3PluginActifacts());
     }
 
     @PostMapping("/plugin-artifacts/pull-requests")
     public CommonResponseDto createS3PluginActifactPullRequest(@RequestBody S3PluginActifactDto pullRequestDto) {
-        return okayWithData(pluginPackageService.createS3PluginActifactPullRequest(pullRequestDto));
+        return okayWithData(pluginArtifactsMgmtService.createS3PluginActifactPullRequest(pullRequestDto));
     }
 
     @GetMapping("/plugin-artifacts/pull-requests/{request-id}")
@@ -56,8 +65,8 @@ public class PluginPackageController {
         if (file == null || file.isEmpty())
             throw new IllegalArgumentException("zip-file required.");
 
-        PluginPackage pluginPackage = pluginPackageService.uploadPackage(file);
-        return okayWithData(pluginPackage);
+        UploadPackageResultDto result = pluginPackageMgmtService.uploadPackage(file);
+        return okayWithData(result);
     }
 
     @GetMapping("/packages")

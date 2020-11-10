@@ -361,21 +361,21 @@ public class PluginPackageService {
         return false;
     }
 
-    public List<S3PluginActifactDto> listS3PluginActifacts() {
-        String releaseFileUrl = getGlobalSystemVariableByName(SYS_VAR_PUBLIC_PLUGIN_ARTIFACTS_RELEASE_URL);
-
-        if (org.apache.commons.lang3.StringUtils.isBlank(releaseFileUrl)) {
-            throw new WecubeCoreException("3093", "The remote plugin artifacts release file is not properly provided.");
-        }
-
-        try {
-            List<S3PluginActifactDto> results = parseReleaseFile(releaseFileUrl);
-            return results;
-        } catch (Exception e) {
-            throw new WecubeCoreException("3094",
-                    String.format("Cannot parse release file properly.Caused by " + e.getMessage()));
-        }
-    }
+//    public List<S3PluginActifactDto> listS3PluginActifacts() {
+//        String releaseFileUrl = getGlobalSystemVariableByName(SYS_VAR_PUBLIC_PLUGIN_ARTIFACTS_RELEASE_URL);
+//
+//        if (org.apache.commons.lang3.StringUtils.isBlank(releaseFileUrl)) {
+//            throw new WecubeCoreException("3093", "The remote plugin artifacts release file is not properly provided.");
+//        }
+//
+//        try {
+//            List<S3PluginActifactDto> results = parseReleaseFile(releaseFileUrl);
+//            return results;
+//        } catch (Exception e) {
+//            throw new WecubeCoreException("3094",
+//                    String.format("Cannot parse release file properly.Caused by " + e.getMessage()));
+//        }
+//    }
 
     public S3PluginActifactPullRequestDto createS3PluginActifactPullRequest(S3PluginActifactDto pullRequestDto) {
         if (pullRequestDto == null) {
