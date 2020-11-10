@@ -556,6 +556,22 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 
             return;
         }
+        
+        //7
+        if (LocalWorkflowConstants.CONTEXT_NAME_ROOT_ENTITY_ID.equals(bindParamName)) {
+            //
+
+            ProcExecBindingEntity procExecBindingEntity = procExecBindingRepository
+                    .findProcInstBindings(procInstEntity.getId());
+            String rootEntityId = null;
+            if (procExecBindingEntity != null) {
+                rootEntityId = procExecBindingEntity.getEntityDataId();
+            }
+
+            objectVals.add(rootEntityId);
+
+            return;
+        }
     }
 
     private void handleContextMappingForTaskNode(String mappingType, TaskNodeDefInfoEntity taskNodeDefEntity,

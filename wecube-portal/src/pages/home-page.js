@@ -1,4 +1,5 @@
 import defaultComp from './home.vue'
+import './home-page.scss'
 export default {
   name: 'homepage',
   data () {
@@ -16,21 +17,21 @@ export default {
     // const comps = window.homepageComponent || []
     const len = this.comps.length
     return (
-      <div>
+      <div class="platform-homepage">
         {len === 0 && <defaultComp />}
         {len > 0 && (
-          <Collapse>
+          <Tabs>
             {this.comps.map(c => {
               return (
-                <Panel key={c.name()}>
-                  <span>{c.name()}</span>
-                  <div style={{ 'padding-bottom': '40px' }} slot="content">
-                    <c.component />
-                  </div>
-                </Panel>
+                <TabPane label={c.name()}>
+                  {/* <span>{c.name()}</span> */}
+                  <c.component />
+                  {/* <div style={{ 'padding-bottom': '40px' }} slot="content">
+                  </div> */}
+                </TabPane>
               )
             })}
-          </Collapse>
+          </Tabs>
         )}
       </div>
     )
