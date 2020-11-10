@@ -1,14 +1,14 @@
 <template>
   <div>
     <Card dis-hover>
-      <Tabs @on-click="tabChanged" value="create_new_workflow_job">
+      <Tabs @on-click="tabChanged" :value="currentTab">
         <TabPane :label="$t('create_new_workflow_job')" name="create_new_workflow_job"></TabPane>
         <TabPane :label="$t('enquery_new_workflow_job')" name="enquery_new_workflow_job"></TabPane>
       </Tabs>
       <Row>
         <Col span="24">
-          <Form label-position="right">
-            <FormItem v-if="isEnqueryPage" :label-width="150" :label="$t('orchs')">
+          <Form label-position="left">
+            <FormItem v-if="isEnqueryPage" :label-width="100" :label="$t('orchs')">
               <Select
                 v-model="selectedFlowInstance"
                 style="width:60%"
@@ -43,7 +43,7 @@
               <Button type="info" @click="queryHandler">{{ $t('query_orch') }}</Button>
             </FormItem>
             <Col v-if="!isEnqueryPage" span="7">
-              <FormItem :label-width="150" :label="$t('select_orch')">
+              <FormItem :label-width="100" :label="$t('select_orch')">
                 <Select
                   label
                   v-model="selectedFlow"
@@ -61,7 +61,7 @@
               </FormItem>
             </Col>
             <Col v-if="!isEnqueryPage" span="8" offset="0">
-              <FormItem :label-width="150" :label="$t('target_object')">
+              <FormItem :label-width="100" :label="$t('target_object')">
                 <Select
                   style="width:80%"
                   label
@@ -76,7 +76,7 @@
                   <Option v-for="item in allTarget" :value="item.id" :key="item.id">{{ item.key_name }}</Option>
                 </Select>
                 <Button
-                  :disabled="isExecuteActive || !showExcution"
+                  :disabled="isExecuteActive || !showExcution || !this.selectedTarget || !this.selectedFlow"
                   :loading="btnLoading"
                   type="info"
                   @click="excutionFlow"
@@ -269,6 +269,7 @@ import { addEvent, removeEvent } from '../util/event.js'
 export default {
   data () {
     return {
+      currentTab: 'create_new_workflow_job',
       btnLoading: false,
       currentModelNodeRefs: [],
       showNodeDetail: false,
@@ -416,6 +417,7 @@ export default {
   methods: {
     tabChanged (v) {
       // create_new_workflow_job   enquery_new_workflow_job
+      this.currentTab = v
       if (v === 'create_new_workflow_job') {
         this.createHandler()
       } else {
@@ -935,6 +937,7 @@ export default {
           this.isExecuteActive = false
           this.showExcution = false
           this.isEnqueryPage = true
+          this.currentTab = 'enquery_new_workflow_job'
         }
       }
     },
@@ -1233,6 +1236,7 @@ body {
 }
 .ivu-form-item {
   margin-bottom: 0 !important;
+  padding-left: 15px;
 }
 .excution-serach {
   margin: 5px 6px 0 0;
