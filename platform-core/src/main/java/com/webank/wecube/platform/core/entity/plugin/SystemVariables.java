@@ -1,6 +1,13 @@
 package com.webank.wecube.platform.core.entity.plugin;
 
 public class SystemVariables {
+    
+    public static final String ACTIVE = "active";
+    public static final String INACTIVE = "inactive";
+
+    public static final String SCOPE_GLOBAL = "global";
+    public static final String SOURCE_SYSTEM = "system";
+    
     private String id;
 
     private String packageName;

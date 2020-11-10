@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.webank.wecube.platform.core.repository.plugin.PluginPackageRuntimeResourcesS3Mapper" >
+  <resultMap id="BaseResultMap" type="com.webank.wecube.platform.core.entity.plugin.PluginPackageRuntimeResourcesS3" >
+    <id column="id" property="id" jdbcType="VARCHAR" />
+    <result column="plugin_package_id" property="pluginPackageId" jdbcType="VARCHAR" />
+    <result column="bucket_name" property="bucketName" jdbcType="VARCHAR" />
+  </resultMap>
+  <sql id="Base_Column_List" >
+    id, plugin_package_id, bucket_name
+  </sql>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.String" >
+    select 
+    <include refid="Base_Column_List" />
+    from plugin_package_runtime_resources_s3
+    where id = #{id,jdbcType=VARCHAR}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.String" >
+    delete from plugin_package_runtime_resources_s3
+    where id = #{id,jdbcType=VARCHAR}
+  </delete>
+  <insert id="insert" parameterType="com.webank.wecube.platform.core.entity.plugin.PluginPackageRuntimeResourcesS3" >
+    insert into plugin_package_runtime_resources_s3 (id, plugin_package_id, bucket_name
+      )
+    values (#{id,jdbcType=VARCHAR}, #{pluginPackageId,jdbcType=VARCHAR}, #{bucketName,jdbcType=VARCHAR}
+      )
+  </insert>
+  <insert id="insertSelective" parameterType="com.webank.wecube.platform.core.entity.plugin.PluginPackageRuntimeResourcesS3" >
+    insert into plugin_package_runtime_resources_s3
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        id,
+      </if>
+      <if test="pluginPackageId != null" >
+        plugin_package_id,
+      </if>
+      <if test="bucketName != null" >
+        bucket_name,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        #{id,jdbcType=VARCHAR},
+      </if>
+      <if test="pluginPackageId != null" >
+        #{pluginPackageId,jdbcType=VARCHAR},
+      </if>
+      <if test="bucketName != null" >
+        #{bucketName,jdbcType=VARCHAR},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="com.webank.wecube.platform.core.entity.plugin.PluginPackageRuntimeResourcesS3" >
+    update plugin_package_runtime_resources_s3
+    <set >
+      <if test="pluginPackageId != null" >
+        plugin_package_id = #{pluginPackageId,jdbcType=VARCHAR},
+      </if>
+      <if test="bucketName != null" >
+        bucket_name = #{bucketName,jdbcType=VARCHAR},
+      </if>
+    </set>
+    where id = #{id,jdbcType=VARCHAR}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.webank.wecube.platform.core.entity.plugin.PluginPackageRuntimeResourcesS3" >
+    update plugin_package_runtime_resources_s3
+    set plugin_package_id = #{pluginPackageId,jdbcType=VARCHAR},
+      bucket_name = #{bucketName,jdbcType=VARCHAR}
+    where id = #{id,jdbcType=VARCHAR}
+  </update>
+</mapper>
