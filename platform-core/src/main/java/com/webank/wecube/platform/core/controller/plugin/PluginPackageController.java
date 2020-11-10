@@ -56,7 +56,7 @@ public class PluginPackageController {
 
     @GetMapping("/plugin-artifacts/pull-requests/{request-id}")
     public CommonResponseDto queryS3PluginActifactPullRequest(@PathVariable(value = "request-id") String requestId) {
-        return okayWithData(pluginPackageService.queryS3PluginActifactPullRequest(requestId));
+        return okayWithData(pluginArtifactsMgmtService.queryS3PluginActifactPullRequest(requestId));
     }
 
     @PostMapping("/packages")
