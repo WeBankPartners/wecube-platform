@@ -444,7 +444,7 @@
   "online": "Online",
   "offline": "Offline",
   "wecube_doc_url_online": "https://webankpartners.github.io/wecube-docs/",
-  "wecube_doc_url_offline": "/docs/index.html",
+  "wecube_doc_url_offline": "/manual/index.html",
   "origin_plugins": "Install From Market",
   "best_practices": "Best Practices",
   "config_permission": "Permission",
