@@ -1,0 +1,153 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.webank.wecube.platform.core.repository.plugin.PluginConfigInterfaceParametersMapper" >
+  <resultMap id="BaseResultMap" type="com.webank.wecube.platform.core.entity.plugin.PluginConfigInterfaceParameters" >
+    <id column="id" property="id" jdbcType="VARCHAR" />
+    <result column="plugin_config_interface_id" property="pluginConfigInterfaceId" jdbcType="VARCHAR" />
+    <result column="type" property="type" jdbcType="VARCHAR" />
+    <result column="name" property="name" jdbcType="VARCHAR" />
+    <result column="data_type" property="dataType" jdbcType="VARCHAR" />
+    <result column="mapping_type" property="mappingType" jdbcType="VARCHAR" />
+    <result column="mapping_entity_expression" property="mappingEntityExpression" jdbcType="VARCHAR" />
+    <result column="mapping_system_variable_name" property="mappingSystemVariableName" jdbcType="VARCHAR" />
+    <result column="required" property="required" jdbcType="VARCHAR" />
+    <result column="sensitive_data" property="sensitiveData" jdbcType="VARCHAR" />
+  </resultMap>
+  <sql id="Base_Column_List" >
+    id, plugin_config_interface_id, type, name, data_type, mapping_type, mapping_entity_expression, 
+    mapping_system_variable_name, required, sensitive_data
+  </sql>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.String" >
+    select 
+    <include refid="Base_Column_List" />
+    from plugin_config_interface_parameters
+    where id = #{id,jdbcType=VARCHAR}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.String" >
+    delete from plugin_config_interface_parameters
+    where id = #{id,jdbcType=VARCHAR}
+  </delete>
+  <insert id="insert" parameterType="com.webank.wecube.platform.core.entity.plugin.PluginConfigInterfaceParameters" >
+    insert into plugin_config_interface_parameters (id, plugin_config_interface_id, type, 
+      name, data_type, mapping_type, 
+      mapping_entity_expression, mapping_system_variable_name, 
+      required, sensitive_data)
+    values (#{id,jdbcType=VARCHAR}, #{pluginConfigInterfaceId,jdbcType=VARCHAR}, #{type,jdbcType=VARCHAR}, 
+      #{name,jdbcType=VARCHAR}, #{dataType,jdbcType=VARCHAR}, #{mappingType,jdbcType=VARCHAR}, 
+      #{mappingEntityExpression,jdbcType=VARCHAR}, #{mappingSystemVariableName,jdbcType=VARCHAR}, 
+      #{required,jdbcType=VARCHAR}, #{sensitiveData,jdbcType=VARCHAR})
+  </insert>
+  <insert id="insertSelective" parameterType="com.webank.wecube.platform.core.entity.plugin.PluginConfigInterfaceParameters" >
+    insert into plugin_config_interface_parameters
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        id,
+      </if>
+      <if test="pluginConfigInterfaceId != null" >
+        plugin_config_interface_id,
+      </if>
+      <if test="type != null" >
+        type,
+      </if>
+      <if test="name != null" >
+        name,
+      </if>
+      <if test="dataType != null" >
+        data_type,
+      </if>
+      <if test="mappingType != null" >
+        mapping_type,
+      </if>
+      <if test="mappingEntityExpression != null" >
+        mapping_entity_expression,
+      </if>
+      <if test="mappingSystemVariableName != null" >
+        mapping_system_variable_name,
+      </if>
+      <if test="required != null" >
+        required,
+      </if>
+      <if test="sensitiveData != null" >
+        sensitive_data,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        #{id,jdbcType=VARCHAR},
+      </if>
+      <if test="pluginConfigInterfaceId != null" >
+        #{pluginConfigInterfaceId,jdbcType=VARCHAR},
+      </if>
+      <if test="type != null" >
+        #{type,jdbcType=VARCHAR},
+      </if>
+      <if test="name != null" >
+        #{name,jdbcType=VARCHAR},
+      </if>
+      <if test="dataType != null" >
+        #{dataType,jdbcType=VARCHAR},
+      </if>
+      <if test="mappingType != null" >
+        #{mappingType,jdbcType=VARCHAR},
+      </if>
+      <if test="mappingEntityExpression != null" >
+        #{mappingEntityExpression,jdbcType=VARCHAR},
+      </if>
+      <if test="mappingSystemVariableName != null" >
+        #{mappingSystemVariableName,jdbcType=VARCHAR},
+      </if>
+      <if test="required != null" >
+        #{required,jdbcType=VARCHAR},
+      </if>
+      <if test="sensitiveData != null" >
+        #{sensitiveData,jdbcType=VARCHAR},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="com.webank.wecube.platform.core.entity.plugin.PluginConfigInterfaceParameters" >
+    update plugin_config_interface_parameters
+    <set >
+      <if test="pluginConfigInterfaceId != null" >
+        plugin_config_interface_id = #{pluginConfigInterfaceId,jdbcType=VARCHAR},
+      </if>
+      <if test="type != null" >
+        type = #{type,jdbcType=VARCHAR},
+      </if>
+      <if test="name != null" >
+        name = #{name,jdbcType=VARCHAR},
+      </if>
+      <if test="dataType != null" >
+        data_type = #{dataType,jdbcType=VARCHAR},
+      </if>
+      <if test="mappingType != null" >
+        mapping_type = #{mappingType,jdbcType=VARCHAR},
+      </if>
+      <if test="mappingEntityExpression != null" >
+        mapping_entity_expression = #{mappingEntityExpression,jdbcType=VARCHAR},
+      </if>
+      <if test="mappingSystemVariableName != null" >
+        mapping_system_variable_name = #{mappingSystemVariableName,jdbcType=VARCHAR},
+      </if>
+      <if test="required != null" >
+        required = #{required,jdbcType=VARCHAR},
+      </if>
+      <if test="sensitiveData != null" >
+        sensitive_data = #{sensitiveData,jdbcType=VARCHAR},
+      </if>
+    </set>
+    where id = #{id,jdbcType=VARCHAR}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.webank.wecube.platform.core.entity.plugin.PluginConfigInterfaceParameters" >
+    update plugin_config_interface_parameters
+    set plugin_config_interface_id = #{pluginConfigInterfaceId,jdbcType=VARCHAR},
+      type = #{type,jdbcType=VARCHAR},
+      name = #{name,jdbcType=VARCHAR},
+      data_type = #{dataType,jdbcType=VARCHAR},
+      mapping_type = #{mappingType,jdbcType=VARCHAR},
+      mapping_entity_expression = #{mappingEntityExpression,jdbcType=VARCHAR},
+      mapping_system_variable_name = #{mappingSystemVariableName,jdbcType=VARCHAR},
+      required = #{required,jdbcType=VARCHAR},
+      sensitive_data = #{sensitiveData,jdbcType=VARCHAR}
+    where id = #{id,jdbcType=VARCHAR}
+  </update>
+</mapper>

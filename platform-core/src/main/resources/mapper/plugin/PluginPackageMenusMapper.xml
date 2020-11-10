@@ -1,0 +1,153 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.webank.wecube.platform.core.repository.plugin.PluginPackageMenusMapper" >
+  <resultMap id="BaseResultMap" type="com.webank.wecube.platform.core.entity.plugin.PluginPackageMenus" >
+    <id column="id" property="id" jdbcType="VARCHAR" />
+    <result column="plugin_package_id" property="pluginPackageId" jdbcType="VARCHAR" />
+    <result column="code" property="code" jdbcType="VARCHAR" />
+    <result column="category" property="category" jdbcType="VARCHAR" />
+    <result column="source" property="source" jdbcType="VARCHAR" />
+    <result column="display_name" property="displayName" jdbcType="VARCHAR" />
+    <result column="local_display_name" property="localDisplayName" jdbcType="VARCHAR" />
+    <result column="menu_order" property="menuOrder" jdbcType="INTEGER" />
+    <result column="path" property="path" jdbcType="VARCHAR" />
+    <result column="active" property="active" jdbcType="BIT" />
+  </resultMap>
+  <sql id="Base_Column_List" >
+    id, plugin_package_id, code, category, source, display_name, local_display_name, 
+    menu_order, path, active
+  </sql>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.String" >
+    select 
+    <include refid="Base_Column_List" />
+    from plugin_package_menus
+    where id = #{id,jdbcType=VARCHAR}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.String" >
+    delete from plugin_package_menus
+    where id = #{id,jdbcType=VARCHAR}
+  </delete>
+  <insert id="insert" parameterType="com.webank.wecube.platform.core.entity.plugin.PluginPackageMenus" >
+    insert into plugin_package_menus (id, plugin_package_id, code, 
+      category, source, display_name, 
+      local_display_name, menu_order, path, 
+      active)
+    values (#{id,jdbcType=VARCHAR}, #{pluginPackageId,jdbcType=VARCHAR}, #{code,jdbcType=VARCHAR}, 
+      #{category,jdbcType=VARCHAR}, #{source,jdbcType=VARCHAR}, #{displayName,jdbcType=VARCHAR}, 
+      #{localDisplayName,jdbcType=VARCHAR}, #{menuOrder,jdbcType=INTEGER}, #{path,jdbcType=VARCHAR}, 
+      #{active,jdbcType=BIT})
+  </insert>
+  <insert id="insertSelective" parameterType="com.webank.wecube.platform.core.entity.plugin.PluginPackageMenus" >
+    insert into plugin_package_menus
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        id,
+      </if>
+      <if test="pluginPackageId != null" >
+        plugin_package_id,
+      </if>
+      <if test="code != null" >
+        code,
+      </if>
+      <if test="category != null" >
+        category,
+      </if>
+      <if test="source != null" >
+        source,
+      </if>
+      <if test="displayName != null" >
+        display_name,
+      </if>
+      <if test="localDisplayName != null" >
+        local_display_name,
+      </if>
+      <if test="menuOrder != null" >
+        menu_order,
+      </if>
+      <if test="path != null" >
+        path,
+      </if>
+      <if test="active != null" >
+        active,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        #{id,jdbcType=VARCHAR},
+      </if>
+      <if test="pluginPackageId != null" >
+        #{pluginPackageId,jdbcType=VARCHAR},
+      </if>
+      <if test="code != null" >
+        #{code,jdbcType=VARCHAR},
+      </if>
+      <if test="category != null" >
+        #{category,jdbcType=VARCHAR},
+      </if>
+      <if test="source != null" >
+        #{source,jdbcType=VARCHAR},
+      </if>
+      <if test="displayName != null" >
+        #{displayName,jdbcType=VARCHAR},
+      </if>
+      <if test="localDisplayName != null" >
+        #{localDisplayName,jdbcType=VARCHAR},
+      </if>
+      <if test="menuOrder != null" >
+        #{menuOrder,jdbcType=INTEGER},
+      </if>
+      <if test="path != null" >
+        #{path,jdbcType=VARCHAR},
+      </if>
+      <if test="active != null" >
+        #{active,jdbcType=BIT},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="com.webank.wecube.platform.core.entity.plugin.PluginPackageMenus" >
+    update plugin_package_menus
+    <set >
+      <if test="pluginPackageId != null" >
+        plugin_package_id = #{pluginPackageId,jdbcType=VARCHAR},
+      </if>
+      <if test="code != null" >
+        code = #{code,jdbcType=VARCHAR},
+      </if>
+      <if test="category != null" >
+        category = #{category,jdbcType=VARCHAR},
+      </if>
+      <if test="source != null" >
+        source = #{source,jdbcType=VARCHAR},
+      </if>
+      <if test="displayName != null" >
+        display_name = #{displayName,jdbcType=VARCHAR},
+      </if>
+      <if test="localDisplayName != null" >
+        local_display_name = #{localDisplayName,jdbcType=VARCHAR},
+      </if>
+      <if test="menuOrder != null" >
+        menu_order = #{menuOrder,jdbcType=INTEGER},
+      </if>
+      <if test="path != null" >
+        path = #{path,jdbcType=VARCHAR},
+      </if>
+      <if test="active != null" >
+        active = #{active,jdbcType=BIT},
+      </if>
+    </set>
+    where id = #{id,jdbcType=VARCHAR}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.webank.wecube.platform.core.entity.plugin.PluginPackageMenus" >
+    update plugin_package_menus
+    set plugin_package_id = #{pluginPackageId,jdbcType=VARCHAR},
+      code = #{code,jdbcType=VARCHAR},
+      category = #{category,jdbcType=VARCHAR},
+      source = #{source,jdbcType=VARCHAR},
+      display_name = #{displayName,jdbcType=VARCHAR},
+      local_display_name = #{localDisplayName,jdbcType=VARCHAR},
+      menu_order = #{menuOrder,jdbcType=INTEGER},
+      path = #{path,jdbcType=VARCHAR},
+      active = #{active,jdbcType=BIT}
+    where id = #{id,jdbcType=VARCHAR}
+  </update>
+</mapper>

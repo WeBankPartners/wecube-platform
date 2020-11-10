@@ -1,6 +1,8 @@
 package com.webank.wecube.platform.core.entity.plugin;
 
 public class PluginPackageDataModel {
+    public static final String PLUGIN_PACKAGE = "PLUGIN_PACKAGE";
+    public static final String DATA_MODEL_ENDPOINT = "DATA_MODEL_ENDPOINT";
     private String id;
 
     private Integer version;

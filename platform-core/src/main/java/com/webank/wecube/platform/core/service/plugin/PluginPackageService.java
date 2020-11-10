@@ -1245,8 +1245,8 @@ public class PluginPackageService {
                 .parsePluginPackage();
         PluginPackage pluginPackage = pluginPackageDto.getPluginPackage();
 
-        pluginPackageValidator.validate(pluginPackage);
-        dataModelValidator.validate(pluginPackageDto.getPluginPackageDataModelDto());
+//        pluginPackageValidator.validate(pluginPackage);
+//        dataModelValidator.validate(pluginPackageDto.getPluginPackageDataModelDto());
 
         if (isPluginPackageExists(pluginPackage.getName(), pluginPackage.getVersion())) {
             throw new WecubeCoreException("3115", String.format("Plugin package [name=%s, version=%s] exists.",

@@ -3,6 +3,12 @@ package com.webank.wecube.platform.core.entity.plugin;
 import java.util.Date;
 
 public class PluginPackages {
+    public static final String UNREGISTERED = "UNREGISTERED";
+    public static final String REGISTERED = "REGISTERED";
+    public static final String RUNNING = "RUNNING";
+    public static final String STOPPED = "STOPPED";
+    public static final String DECOMMISSIONED = "DECOMMISSIONED";
+    
     private String id;
 
     private String name;

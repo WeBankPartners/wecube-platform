@@ -1,6 +1,8 @@
 package com.webank.wecube.platform.core.entity.plugin;
 
 public class PluginConfigs {
+    public static final String DISABLED = "DISABLED";
+    public static final String ENABLED = "ENABLED";
     private String id;
 
     private String pluginPackageId;
