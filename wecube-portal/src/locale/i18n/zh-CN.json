@@ -443,7 +443,7 @@
   "online": "在线",
   "offline": "离线",
   "wecube_doc_url_online": "http://webankpartners.gitee.io/wecube-docs",
-  "wecube_doc_url_offline": "/docs/index.html",
+  "wecube_doc_url_offline": "/manual/index.html",
   "origin_plugins": "选择在线插件",
   "best_practices": "选择最佳实践",
   "config_permission": "权限",
