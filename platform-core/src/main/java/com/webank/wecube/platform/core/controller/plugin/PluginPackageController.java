@@ -65,7 +65,7 @@ public class PluginPackageController {
         if (file == null || file.isEmpty())
             throw new IllegalArgumentException("zip-file required.");
 
-        UploadPackageResultDto result = pluginPackageMgmtService.uploadPackage(file);
+        UploadPackageResultDto result = pluginArtifactsMgmtService.uploadPackage(file);
         return okayWithData(result);
     }
 
