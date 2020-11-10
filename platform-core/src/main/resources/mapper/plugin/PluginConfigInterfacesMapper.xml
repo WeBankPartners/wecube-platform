@@ -1,0 +1,153 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.webank.wecube.platform.core.repository.plugin.PluginConfigInterfacesMapper" >
+  <resultMap id="BaseResultMap" type="com.webank.wecube.platform.core.entity.plugin.PluginConfigInterfaces" >
+    <id column="id" property="id" jdbcType="VARCHAR" />
+    <result column="plugin_config_id" property="pluginConfigId" jdbcType="VARCHAR" />
+    <result column="action" property="action" jdbcType="VARCHAR" />
+    <result column="service_name" property="serviceName" jdbcType="VARCHAR" />
+    <result column="service_display_name" property="serviceDisplayName" jdbcType="VARCHAR" />
+    <result column="path" property="path" jdbcType="VARCHAR" />
+    <result column="http_method" property="httpMethod" jdbcType="VARCHAR" />
+    <result column="is_async_processing" property="isAsyncProcessing" jdbcType="VARCHAR" />
+    <result column="type" property="type" jdbcType="VARCHAR" />
+    <result column="filter_rule" property="filterRule" jdbcType="VARCHAR" />
+  </resultMap>
+  <sql id="Base_Column_List" >
+    id, plugin_config_id, action, service_name, service_display_name, path, http_method, 
+    is_async_processing, type, filter_rule
+  </sql>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.String" >
+    select 
+    <include refid="Base_Column_List" />
+    from plugin_config_interfaces
+    where id = #{id,jdbcType=VARCHAR}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.String" >
+    delete from plugin_config_interfaces
+    where id = #{id,jdbcType=VARCHAR}
+  </delete>
+  <insert id="insert" parameterType="com.webank.wecube.platform.core.entity.plugin.PluginConfigInterfaces" >
+    insert into plugin_config_interfaces (id, plugin_config_id, action, 
+      service_name, service_display_name, path, 
+      http_method, is_async_processing, type, 
+      filter_rule)
+    values (#{id,jdbcType=VARCHAR}, #{pluginConfigId,jdbcType=VARCHAR}, #{action,jdbcType=VARCHAR}, 
+      #{serviceName,jdbcType=VARCHAR}, #{serviceDisplayName,jdbcType=VARCHAR}, #{path,jdbcType=VARCHAR}, 
+      #{httpMethod,jdbcType=VARCHAR}, #{isAsyncProcessing,jdbcType=VARCHAR}, #{type,jdbcType=VARCHAR}, 
+      #{filterRule,jdbcType=VARCHAR})
+  </insert>
+  <insert id="insertSelective" parameterType="com.webank.wecube.platform.core.entity.plugin.PluginConfigInterfaces" >
+    insert into plugin_config_interfaces
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        id,
+      </if>
+      <if test="pluginConfigId != null" >
+        plugin_config_id,
+      </if>
+      <if test="action != null" >
+        action,
+      </if>
+      <if test="serviceName != null" >
+        service_name,
+      </if>
+      <if test="serviceDisplayName != null" >
+        service_display_name,
+      </if>
+      <if test="path != null" >
+        path,
+      </if>
+      <if test="httpMethod != null" >
+        http_method,
+      </if>
+      <if test="isAsyncProcessing != null" >
+        is_async_processing,
+      </if>
+      <if test="type != null" >
+        type,
+      </if>
+      <if test="filterRule != null" >
+        filter_rule,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        #{id,jdbcType=VARCHAR},
+      </if>
+      <if test="pluginConfigId != null" >
+        #{pluginConfigId,jdbcType=VARCHAR},
+      </if>
+      <if test="action != null" >
+        #{action,jdbcType=VARCHAR},
+      </if>
+      <if test="serviceName != null" >
+        #{serviceName,jdbcType=VARCHAR},
+      </if>
+      <if test="serviceDisplayName != null" >
+        #{serviceDisplayName,jdbcType=VARCHAR},
+      </if>
+      <if test="path != null" >
+        #{path,jdbcType=VARCHAR},
+      </if>
+      <if test="httpMethod != null" >
+        #{httpMethod,jdbcType=VARCHAR},
+      </if>
+      <if test="isAsyncProcessing != null" >
+        #{isAsyncProcessing,jdbcType=VARCHAR},
+      </if>
+      <if test="type != null" >
+        #{type,jdbcType=VARCHAR},
+      </if>
+      <if test="filterRule != null" >
+        #{filterRule,jdbcType=VARCHAR},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="com.webank.wecube.platform.core.entity.plugin.PluginConfigInterfaces" >
+    update plugin_config_interfaces
+    <set >
+      <if test="pluginConfigId != null" >
+        plugin_config_id = #{pluginConfigId,jdbcType=VARCHAR},
+      </if>
+      <if test="action != null" >
+        action = #{action,jdbcType=VARCHAR},
+      </if>
+      <if test="serviceName != null" >
+        service_name = #{serviceName,jdbcType=VARCHAR},
+      </if>
+      <if test="serviceDisplayName != null" >
+        service_display_name = #{serviceDisplayName,jdbcType=VARCHAR},
+      </if>
+      <if test="path != null" >
+        path = #{path,jdbcType=VARCHAR},
+      </if>
+      <if test="httpMethod != null" >
+        http_method = #{httpMethod,jdbcType=VARCHAR},
+      </if>
+      <if test="isAsyncProcessing != null" >
+        is_async_processing = #{isAsyncProcessing,jdbcType=VARCHAR},
+      </if>
+      <if test="type != null" >
+        type = #{type,jdbcType=VARCHAR},
+      </if>
+      <if test="filterRule != null" >
+        filter_rule = #{filterRule,jdbcType=VARCHAR},
+      </if>
+    </set>
+    where id = #{id,jdbcType=VARCHAR}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.webank.wecube.platform.core.entity.plugin.PluginConfigInterfaces" >
+    update plugin_config_interfaces
+    set plugin_config_id = #{pluginConfigId,jdbcType=VARCHAR},
+      action = #{action,jdbcType=VARCHAR},
+      service_name = #{serviceName,jdbcType=VARCHAR},
+      service_display_name = #{serviceDisplayName,jdbcType=VARCHAR},
+      path = #{path,jdbcType=VARCHAR},
+      http_method = #{httpMethod,jdbcType=VARCHAR},
+      is_async_processing = #{isAsyncProcessing,jdbcType=VARCHAR},
+      type = #{type,jdbcType=VARCHAR},
+      filter_rule = #{filterRule,jdbcType=VARCHAR}
+    where id = #{id,jdbcType=VARCHAR}
+  </update>
+</mapper>
