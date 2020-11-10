@@ -59,6 +59,11 @@ let router = new Router({
           path: '/implementation/batch-execution',
           name: 'batchExecution',
           component: () => import('@/pages/implementation/batch-execution')
+        },
+        {
+          path: '/admin/system-data-model',
+          name: 'systemDataModel',
+          component: () => import('@/pages/admin/system-data-model')
         }
       ]
     },
