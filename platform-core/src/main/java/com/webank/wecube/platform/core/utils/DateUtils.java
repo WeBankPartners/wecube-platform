@@ -1,12 +1,28 @@
 package com.webank.wecube.platform.core.utils;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.TimeZone;
 
 import com.google.common.base.Strings;
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
 
-public class DateUtils {
+public final class DateUtils {
+    
+    public static final String DEF_DATE_TIME_PATTERN = "yyyy-MM-dd HH:mm:ss";
+    public static final String DEF_DATE_PATTERN = "yyyy-MM-dd";
+    
+    public static String dateToString(Date date){
+        return dateToString(date, DEF_DATE_TIME_PATTERN);
+    }
+    
+    public static String dateToString(Date date, String pattern){
+        if(date == null){
+            return null;
+        }
+        SimpleDateFormat sdf = new SimpleDateFormat(pattern);
+        return sdf.format(date);
+    }
 
     public static java.util.Date convertToTimestamp(String value) {
         if(Strings.isNullOrEmpty(value))
