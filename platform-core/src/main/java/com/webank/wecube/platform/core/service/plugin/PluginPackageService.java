@@ -9,7 +9,6 @@ import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -37,7 +36,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
-import org.springframework.web.multipart.MultipartFile;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -62,7 +60,6 @@ import com.webank.wecube.platform.core.dto.MenuItemDto;
 import com.webank.wecube.platform.core.dto.PluginConfigDto;
 import com.webank.wecube.platform.core.dto.PluginConfigGroupByNameDto;
 import com.webank.wecube.platform.core.dto.PluginDeclarationDto;
-import com.webank.wecube.platform.core.dto.PluginPackageDataModelDto;
 import com.webank.wecube.platform.core.dto.PluginPackageDependencyDto;
 import com.webank.wecube.platform.core.dto.PluginPackageDto;
 import com.webank.wecube.platform.core.dto.PluginPackageInfoDto;
@@ -80,10 +77,8 @@ import com.webank.wecube.platform.core.jpa.PluginPackageResourceFileRepository;
 import com.webank.wecube.platform.core.jpa.SystemVariableRepository;
 import com.webank.wecube.platform.core.lazyDomain.plugin.LazyPluginPackage;
 import com.webank.wecube.platform.core.lazyJpa.LazyPluginPackageRepository;
-import com.webank.wecube.platform.core.parser.PluginConfigXmlValidator;
 import com.webank.wecube.platform.core.parser.PluginPackageDataModelValidator;
 import com.webank.wecube.platform.core.parser.PluginPackageValidator;
-import com.webank.wecube.platform.core.parser.PluginPackageXmlParser;
 import com.webank.wecube.platform.core.service.CommandService;
 import com.webank.wecube.platform.core.service.PluginPackageDataModelService;
 import com.webank.wecube.platform.core.service.ScpService;
@@ -347,49 +342,9 @@ public class PluginPackageService {
         return false;
     }
 
-//    @Transactional
-//    public PluginPackage uploadPackage(MultipartFile pluginPackageFile) throws Exception {
-//        String pluginPackageFileName = pluginPackageFile.getName();
-//
-//        // 1. save package file to local
-//        String tmpFileName = new SimpleDateFormat("yyyyMMddHHmmssSSS").format(new Date());
-//        File localFilePath = new File(SystemUtils.getTempFolderPath() + tmpFileName + "/");
-//        log.info("tmpFilePath= {}", localFilePath.getName());
-//        if (!localFilePath.exists()) {
-//            if (localFilePath.mkdirs()) {
-//                log.info("Create directory [{}] successful", localFilePath.getAbsolutePath());
-//            } else {
-//                throw new WecubeCoreException("3099",
-//                        String.format("Create directory [%s] failed.", localFilePath.getAbsolutePath()),
-//                        localFilePath.getAbsolutePath());
-//            }
-//        }
-//        File dest = new File(localFilePath + "/" + pluginPackageFileName);
-//        log.info("new file location: {}, filename: {}, canonicalpath: {}, canonicalfilename: {}",
-//                dest.getAbsoluteFile(), dest.getName(), dest.getCanonicalPath(), dest.getCanonicalFile().getName());
-//        pluginPackageFile.transferTo(dest);
-//
-//        PluginPackage savedPluginPackage = parsePackageFile(dest, localFilePath);
-//
-//        return savedPluginPackage;
-//    }
+    
 
-    public List<PluginPackageInfoDto> getPluginPackages() {
-        List<PluginPackageInfoDto> pluginPackageInfoDtos = null;
-        List<LazyPluginPackage> pluginPackages = lazyPluginPackageRepository.findAll();
-        if (pluginPackages != null && pluginPackages.size() > 0) {
-            pluginPackageInfoDtos = pluginPackages.stream().map(PluginPackageInfoDto::fromDomain)
-                    .collect(Collectors.toList());
-        } else {
-            pluginPackageInfoDtos = Lists.newArrayList();
-        }
-        return pluginPackageInfoDtos;
-    }
-
-    public List<String> getAllDistinctPluginPackageNameList() {
-        Optional<List<String>> allDistinctPackageNameListOpt = pluginPackageRepository.findAllDistinctPackage();
-        return allDistinctPackageNameListOpt.orElseGet(ArrayList::new);
-    }
+    
 
     @Transactional
     public PluginPackage registerPluginPackage(String pluginPackageId) {
