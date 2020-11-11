@@ -1,5 +1,6 @@
 package com.webank.wecube.platform.core.repository.plugin;
 
+import org.apache.ibatis.annotations.Param;
 import org.springframework.stereotype.Repository;
 
 import com.webank.wecube.platform.core.entity.plugin.MenuItems;
@@ -17,4 +18,6 @@ public interface MenuItemsMapper {
     int updateByPrimaryKeySelective(MenuItems record);
 
     int updateByPrimaryKey(MenuItems record);
+    
+    MenuItems selectByMenuCode(@Param("code")String code);
 }
