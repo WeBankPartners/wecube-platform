@@ -1,5 +1,7 @@
 package com.webank.wecube.platform.core.repository.plugin;
 
+import java.util.List;
+
 import org.apache.ibatis.annotations.Param;
 import org.springframework.stereotype.Repository;
 
@@ -20,4 +22,8 @@ public interface PluginPackagesMapper {
     int updateByPrimaryKey(PluginPackages record);
     
     int countByNameAndVersion(@Param("name")String name, @Param("version")String version);
+    
+    List<PluginPackages> selectAll();
+    
+    List<PluginPackages> selectAllDistinctPackages();
 }
