@@ -44,21 +44,41 @@ public class PluginPackageController {
     @Autowired
     private PluginArtifactsMgmtService pluginArtifactsMgmtService;
 
+    /**
+     * 
+     * @return
+     */
     @GetMapping("/plugin-artifacts")
     public CommonResponseDto listS3PluginActifacts() {
         return okayWithData(pluginArtifactsMgmtService.listS3PluginActifacts());
     }
 
+    /**
+     * 
+     * @param pullRequestDto
+     * @return
+     */
     @PostMapping("/plugin-artifacts/pull-requests")
     public CommonResponseDto createS3PluginActifactPullRequest(@RequestBody S3PluginActifactDto pullRequestDto) {
         return okayWithData(pluginArtifactsMgmtService.createS3PluginActifactPullRequest(pullRequestDto));
     }
 
+    /**
+     * 
+     * @param requestId
+     * @return
+     */
     @GetMapping("/plugin-artifacts/pull-requests/{request-id}")
     public CommonResponseDto queryS3PluginActifactPullRequest(@PathVariable(value = "request-id") String requestId) {
         return okayWithData(pluginArtifactsMgmtService.queryS3PluginActifactPullRequest(requestId));
     }
 
+    /**
+     * 
+     * @param file
+     * @return
+     * @throws Exception
+     */
     @PostMapping("/packages")
     public CommonResponseDto uploadPluginPackage(@RequestParam(value = "zip-file") MultipartFile file)
             throws Exception {
@@ -69,6 +89,11 @@ public class PluginPackageController {
         return okayWithData(result);
     }
 
+    /**
+     * 
+     * @param ifDistinct
+     * @return
+     */
     @GetMapping("/packages")
     public CommonResponseDto getAllPluginPackages(
             @RequestParam(value = "distinct", required = false, defaultValue = "false") boolean ifDistinct) {
@@ -104,42 +129,42 @@ public class PluginPackageController {
     }
 
     @GetMapping("/packages/{id}/dependencies")
-    public CommonResponseDto getDependenciesById(@PathVariable(value = "id") String packageId) {
+    public CommonResponseDto getDependenciesByPackageId(@PathVariable(value = "id") String packageId) {
         PluginPackageDependencyDto dependencySetFoundById;
         dependencySetFoundById = pluginPackageService.getDependenciesById(packageId);
         return okayWithData(dependencySetFoundById);
     }
 
     @GetMapping("/packages/{id}/menus")
-    public CommonResponseDto getMenusById(@PathVariable(value = "id") String packageId) {
+    public CommonResponseDto getMenusByPackageId(@PathVariable(value = "id") String packageId) {
         List<MenuItemDto> menuList;
         menuList = pluginPackageService.getMenusById(packageId);
         return okayWithData(menuList);
     }
 
     @GetMapping("/packages/{id}/system-parameters")
-    public CommonResponseDto getSystemParamsById(@PathVariable(value = "id") String packageId) {
+    public CommonResponseDto getSystemParamsByPackageId(@PathVariable(value = "id") String packageId) {
         List<SystemVariable> systemVariableSet;
         systemVariableSet = pluginPackageService.getSystemVarsById(packageId);
         return okayWithData(systemVariableSet);
     }
 
     @GetMapping("/packages/{id}/authorities")
-    public CommonResponseDto getAuthorityById(@PathVariable(value = "id") String packageId) {
+    public CommonResponseDto getAuthorityByPackageId(@PathVariable(value = "id") String packageId) {
         Set<PluginPackageAuthority> authoritySet;
         authoritySet = pluginPackageService.getAuthoritiesById(packageId);
         return okayWithData(authoritySet);
     }
 
     @GetMapping("/packages/{id}/runtime-resources")
-    public CommonResponseDto getResourceById(@PathVariable(value = "id") String packageId) {
+    public CommonResponseDto getResourceByPackageId(@PathVariable(value = "id") String packageId) {
         PluginPackageRuntimeResouceDto resouceFoundById;
         resouceFoundById = pluginPackageService.getResourcesById(packageId);
         return okayWithData(resouceFoundById);
     }
 
     @GetMapping("/packages/{id}/plugins")
-    public CommonResponseDto getPluginsById(@PathVariable(value = "id") String packageId) {
+    public CommonResponseDto getPluginsByPackageId(@PathVariable(value = "id") String packageId) {
         return okayWithData(pluginPackageService.getPluginConfigsByPackageId(packageId, true));
     }
 

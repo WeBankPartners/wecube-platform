@@ -26,4 +26,8 @@ public interface PluginPackagesMapper {
     List<PluginPackages> selectAll();
     
     List<PluginPackages> selectAllDistinctPackages();
+    
+    List<PluginPackages> selectAllByName(@Param("name")String name);
+    
+    List<PluginPackages> selectAllByNameAndStatuses(@Param("name")String name, @Param("statuses")List<String> statuses);
 }

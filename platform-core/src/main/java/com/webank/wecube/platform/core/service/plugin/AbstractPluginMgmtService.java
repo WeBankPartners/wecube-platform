@@ -8,13 +8,24 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import com.google.common.collect.Lists;
+import com.webank.wecube.platform.core.boot.ApplicationVersionInfo;
 import com.webank.wecube.platform.core.commons.ApplicationProperties.PluginProperties;
+import com.webank.wecube.platform.core.entity.plugin.PluginPackages;
 import com.webank.wecube.platform.core.entity.plugin.SystemVariables;
 import com.webank.wecube.platform.core.repository.plugin.SystemVariablesMapper;
+import com.webank.wecube.platform.core.service.CommandService;
+import com.webank.wecube.platform.core.service.ScpService;
+import com.webank.wecube.platform.core.service.user.UserManagementService;
 import com.webank.wecube.platform.core.support.S3Client;
 
 public abstract class AbstractPluginMgmtService {
     private static final Logger log = LoggerFactory.getLogger(AbstractPluginMgmtService.class);
+    
+    
+    
+    @Autowired
+    protected ApplicationVersionInfo applicationVersionInfo;
     
     @Autowired
     protected SystemVariablesMapper systemVariablesMapper;
@@ -24,6 +35,15 @@ public abstract class AbstractPluginMgmtService {
     
     @Autowired
     protected S3Client s3Client;
+    
+    @Autowired
+    protected ScpService scpService;
+    @Autowired
+    protected CommandService commandService;
+    
+    @Autowired
+    protected UserManagementService userManagementService;
+
     
     protected String getGlobalSystemVariableByName(String varName) {
         List<SystemVariables> vars = systemVariablesMapper.findByNameAndScopeAndStatus(varName,

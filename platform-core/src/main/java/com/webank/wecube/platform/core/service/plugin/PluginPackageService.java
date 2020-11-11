@@ -301,26 +301,26 @@ public class PluginPackageService {
         return hasAuthority;
     }
 
-    private List<PluginConfig> filterWithPermissionValidation(List<PluginConfig> pluginConfigs, String permission) {
-        if (pluginConfigs == null || pluginConfigs.isEmpty()) {
-            log.warn("Plugin config is empty.");
-            return pluginConfigs;
-        }
-        Set<String> currUserRoles = AuthenticationContextHolder.getCurrentUserRoles();
-        if (currUserRoles == null || currUserRoles.isEmpty()) {
-            log.warn("roles of current user is empty.");
-            throw new WecubeCoreException("3091", "Lack of permission to perform such operation.");
-        }
-
-        List<PluginConfig> privilegedPluginConfigs = new ArrayList<>();
-        for (PluginConfig pluginConfig : pluginConfigs) {
-            if (verifyPluginConfigPrivilege(pluginConfig, permission, currUserRoles)) {
-                privilegedPluginConfigs.add(pluginConfig);
-            }
-        }
-
-        return privilegedPluginConfigs;
-    }
+//    private List<PluginConfig> filterWithPermissionValidation(List<PluginConfig> pluginConfigs, String permission) {
+//        if (pluginConfigs == null || pluginConfigs.isEmpty()) {
+//            log.warn("Plugin config is empty.");
+//            return pluginConfigs;
+//        }
+//        Set<String> currUserRoles = AuthenticationContextHolder.getCurrentUserRoles();
+//        if (currUserRoles == null || currUserRoles.isEmpty()) {
+//            log.warn("roles of current user is empty.");
+//            throw new WecubeCoreException("3091", "Lack of permission to perform such operation.");
+//        }
+//
+//        List<PluginConfig> privilegedPluginConfigs = new ArrayList<>();
+//        for (PluginConfig pluginConfig : pluginConfigs) {
+//            if (verifyPluginConfigPrivilege(pluginConfig, permission, currUserRoles)) {
+//                privilegedPluginConfigs.add(pluginConfig);
+//            }
+//        }
+//
+//        return privilegedPluginConfigs;
+//    }
 
     private boolean verifyPluginConfigPrivilege(PluginConfig pluginConfig, String permission,
             Set<String> currUserRoles) {
@@ -346,30 +346,7 @@ public class PluginPackageService {
 
     
 
-    @Transactional
-    public PluginPackage registerPluginPackage(String pluginPackageId) {
-        ensurePluginPackageExists(pluginPackageId);
-
-        PluginPackage pluginPackage = pluginPackageRepository.findById(pluginPackageId).get();
-
-        validatePackageDependencies(pluginPackage);
-
-        ensurePluginPackageIsAllowedToRegister(pluginPackage);
-
-        ensureNoMoreThanTwoActivePackages(pluginPackage);
-
-        createRolesIfNotExistInSystem(pluginPackage);
-
-        bindRoleToMenuWithAuthority(pluginPackage);
-
-        updateSystemVariableStatus(pluginPackage);
-
-        deployPluginUiResourcesIfRequired(pluginPackage);
-
-        pluginPackage.setStatus(REGISTERED);
-
-        return pluginPackageRepository.save(pluginPackage);
-    }
+    
 
     private void validatePackageDependencies(PluginPackage pluginPackage) {
         Set<PluginPackageDependency> pluginPackageDependencies = pluginPackage.getPluginPackageDependencies();
@@ -460,7 +437,7 @@ public class PluginPackageService {
     }
 
     public void decommissionPluginPackage(String pluginPackageId) {
-        ensurePluginPackageExists(pluginPackageId);
+//        ensurePluginPackageExists(pluginPackageId);
 
         ensureNoPluginInstanceIsRunningForPluginPackage(pluginPackageId);
 
@@ -785,12 +762,7 @@ public class PluginPackageService {
         }
     }
 
-    private void ensurePluginPackageExists(String pluginPackageId) {
-        if (!pluginPackageRepository.existsById(pluginPackageId)) {
-            throw new WecubeCoreException("3109",
-                    String.format("Plugin package id not found for id [%s] ", pluginPackageId), pluginPackageId);
-        }
-    }
+    
 
     @SuppressWarnings("rawtypes")
     private void unzipLocalFile(String sourceZipFile, String destFilePath) throws Exception {

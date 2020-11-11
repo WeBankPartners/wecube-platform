@@ -1,5 +1,9 @@
 package com.webank.wecube.platform.core.repository.plugin;
 
+import java.util.List;
+
+import org.apache.ibatis.annotations.Param;
+
 import com.webank.wecube.platform.core.entity.plugin.RoleMenu;
 
 public interface RoleMenuMapper {
@@ -14,4 +18,11 @@ public interface RoleMenuMapper {
     int updateByPrimaryKeySelective(RoleMenu record);
 
     int updateByPrimaryKey(RoleMenu record);
+    
+    /**
+     * 
+     * @param roleName
+     * @return
+     */
+    List<RoleMenu> selectAllByRoleName(@Param("roleName") String roleName);
 }
