@@ -149,4 +149,22 @@
         LIMIT 1
         )
     </select>
+    
+    <select id="selectAllByName" resultMap="BaseResultMap" parameterType="java.lang.String">
+        select
+        <include refid="Base_Column_List" />
+        from plugin_packages
+        where name = #{name,jdbcType=VARCHAR}
+    </select>
+    
+    <select id="selectAllByNameAndStatuses" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List" />
+        from plugin_packages
+        where name = #{name,jdbcType=VARCHAR}
+        and status in
+        <foreach item="status" collection="statuses" separator="," open="(" close=")" index="">    
+            #{status, jdbcType=VARCHAR}    
+        </foreach>
+    </select>
 </mapper>

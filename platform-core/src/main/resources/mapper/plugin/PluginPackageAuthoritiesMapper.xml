@@ -1,82 +1,100 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
-<mapper namespace="com.webank.wecube.platform.core.repository.plugin.PluginPackageAuthoritiesMapper" >
-  <resultMap id="BaseResultMap" type="com.webank.wecube.platform.core.entity.plugin.PluginPackageAuthorities" >
-    <id column="id" property="id" jdbcType="VARCHAR" />
-    <result column="plugin_package_id" property="pluginPackageId" jdbcType="VARCHAR" />
-    <result column="role_name" property="roleName" jdbcType="VARCHAR" />
-    <result column="menu_code" property="menuCode" jdbcType="VARCHAR" />
-  </resultMap>
-  <sql id="Base_Column_List" >
-    id, plugin_package_id, role_name, menu_code
-  </sql>
-  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.String" >
-    select 
-    <include refid="Base_Column_List" />
-    from plugin_package_authorities
-    where id = #{id,jdbcType=VARCHAR}
-  </select>
-  <delete id="deleteByPrimaryKey" parameterType="java.lang.String" >
-    delete from plugin_package_authorities
-    where id = #{id,jdbcType=VARCHAR}
-  </delete>
-  <insert id="insert" parameterType="com.webank.wecube.platform.core.entity.plugin.PluginPackageAuthorities" >
-    insert into plugin_package_authorities (id, plugin_package_id, role_name, 
-      menu_code)
-    values (#{id,jdbcType=VARCHAR}, #{pluginPackageId,jdbcType=VARCHAR}, #{roleName,jdbcType=VARCHAR}, 
-      #{menuCode,jdbcType=VARCHAR})
-  </insert>
-  <insert id="insertSelective" parameterType="com.webank.wecube.platform.core.entity.plugin.PluginPackageAuthorities" >
-    insert into plugin_package_authorities
-    <trim prefix="(" suffix=")" suffixOverrides="," >
-      <if test="id != null" >
-        id,
-      </if>
-      <if test="pluginPackageId != null" >
-        plugin_package_id,
-      </if>
-      <if test="roleName != null" >
+<mapper
+    namespace="com.webank.wecube.platform.core.repository.plugin.PluginPackageAuthoritiesMapper">
+    <resultMap id="BaseResultMap"
+        type="com.webank.wecube.platform.core.entity.plugin.PluginPackageAuthorities">
+        <id column="id" property="id" jdbcType="VARCHAR" />
+        <result column="plugin_package_id" property="pluginPackageId"
+            jdbcType="VARCHAR" />
+        <result column="role_name" property="roleName" jdbcType="VARCHAR" />
+        <result column="menu_code" property="menuCode" jdbcType="VARCHAR" />
+    </resultMap>
+    <sql id="Base_Column_List">
+        id, plugin_package_id, role_name, menu_code
+    </sql>
+    <select id="selectByPrimaryKey" resultMap="BaseResultMap"
+        parameterType="java.lang.String">
+        select
+        <include refid="Base_Column_List" />
+        from plugin_package_authorities
+        where id = #{id,jdbcType=VARCHAR}
+    </select>
+    <delete id="deleteByPrimaryKey" parameterType="java.lang.String">
+        delete from plugin_package_authorities
+        where id = #{id,jdbcType=VARCHAR}
+    </delete>
+    <insert id="insert"
+        parameterType="com.webank.wecube.platform.core.entity.plugin.PluginPackageAuthorities">
+        insert into plugin_package_authorities (id, plugin_package_id,
         role_name,
-      </if>
-      <if test="menuCode != null" >
-        menu_code,
-      </if>
-    </trim>
-    <trim prefix="values (" suffix=")" suffixOverrides="," >
-      <if test="id != null" >
-        #{id,jdbcType=VARCHAR},
-      </if>
-      <if test="pluginPackageId != null" >
-        #{pluginPackageId,jdbcType=VARCHAR},
-      </if>
-      <if test="roleName != null" >
+        menu_code)
+        values (#{id,jdbcType=VARCHAR}, #{pluginPackageId,jdbcType=VARCHAR},
         #{roleName,jdbcType=VARCHAR},
-      </if>
-      <if test="menuCode != null" >
-        #{menuCode,jdbcType=VARCHAR},
-      </if>
-    </trim>
-  </insert>
-  <update id="updateByPrimaryKeySelective" parameterType="com.webank.wecube.platform.core.entity.plugin.PluginPackageAuthorities" >
-    update plugin_package_authorities
-    <set >
-      <if test="pluginPackageId != null" >
-        plugin_package_id = #{pluginPackageId,jdbcType=VARCHAR},
-      </if>
-      <if test="roleName != null" >
+        #{menuCode,jdbcType=VARCHAR})
+    </insert>
+    <insert id="insertSelective"
+        parameterType="com.webank.wecube.platform.core.entity.plugin.PluginPackageAuthorities">
+        insert into plugin_package_authorities
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="id != null">
+                id,
+            </if>
+            <if test="pluginPackageId != null">
+                plugin_package_id,
+            </if>
+            <if test="roleName != null">
+                role_name,
+            </if>
+            <if test="menuCode != null">
+                menu_code,
+            </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="id != null">
+                #{id,jdbcType=VARCHAR},
+            </if>
+            <if test="pluginPackageId != null">
+                #{pluginPackageId,jdbcType=VARCHAR},
+            </if>
+            <if test="roleName != null">
+                #{roleName,jdbcType=VARCHAR},
+            </if>
+            <if test="menuCode != null">
+                #{menuCode,jdbcType=VARCHAR},
+            </if>
+        </trim>
+    </insert>
+    <update id="updateByPrimaryKeySelective"
+        parameterType="com.webank.wecube.platform.core.entity.plugin.PluginPackageAuthorities">
+        update plugin_package_authorities
+        <set>
+            <if test="pluginPackageId != null">
+                plugin_package_id = #{pluginPackageId,jdbcType=VARCHAR},
+            </if>
+            <if test="roleName != null">
+                role_name = #{roleName,jdbcType=VARCHAR},
+            </if>
+            <if test="menuCode != null">
+                menu_code = #{menuCode,jdbcType=VARCHAR},
+            </if>
+        </set>
+        where id = #{id,jdbcType=VARCHAR}
+    </update>
+    <update id="updateByPrimaryKey"
+        parameterType="com.webank.wecube.platform.core.entity.plugin.PluginPackageAuthorities">
+        update plugin_package_authorities
+        set plugin_package_id = #{pluginPackageId,jdbcType=VARCHAR},
         role_name = #{roleName,jdbcType=VARCHAR},
-      </if>
-      <if test="menuCode != null" >
-        menu_code = #{menuCode,jdbcType=VARCHAR},
-      </if>
-    </set>
-    where id = #{id,jdbcType=VARCHAR}
-  </update>
-  <update id="updateByPrimaryKey" parameterType="com.webank.wecube.platform.core.entity.plugin.PluginPackageAuthorities" >
-    update plugin_package_authorities
-    set plugin_package_id = #{pluginPackageId,jdbcType=VARCHAR},
-      role_name = #{roleName,jdbcType=VARCHAR},
-      menu_code = #{menuCode,jdbcType=VARCHAR}
-    where id = #{id,jdbcType=VARCHAR}
-  </update>
+        menu_code = #{menuCode,jdbcType=VARCHAR}
+        where id = #{id,jdbcType=VARCHAR}
+    </update>
+    
+    <select id="selectAllByPackage" resultMap="BaseResultMap"
+        parameterType="java.lang.String">
+        select
+        <include refid="Base_Column_List" />
+        from plugin_package_authorities
+        where plugin_package_id = #{pluginPackageId,jdbcType=VARCHAR}
+    </select>
 </mapper>
