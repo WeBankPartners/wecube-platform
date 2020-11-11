@@ -1,117 +1,142 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
-<mapper namespace="com.webank.wecube.platform.core.repository.plugin.MenuItemsMapper" >
-  <resultMap id="BaseResultMap" type="com.webank.wecube.platform.core.entity.plugin.MenuItems" >
-    <id column="id" property="id" jdbcType="VARCHAR" />
-    <result column="parent_code" property="parentCode" jdbcType="VARCHAR" />
-    <result column="code" property="code" jdbcType="VARCHAR" />
-    <result column="source" property="source" jdbcType="VARCHAR" />
-    <result column="description" property="description" jdbcType="VARCHAR" />
-    <result column="local_display_name" property="localDisplayName" jdbcType="VARCHAR" />
-    <result column="menu_order" property="menuOrder" jdbcType="INTEGER" />
-  </resultMap>
-  <sql id="Base_Column_List" >
-    id, parent_code, code, source, description, local_display_name, menu_order
-  </sql>
-  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.String" >
-    select 
-    <include refid="Base_Column_List" />
-    from menu_items
-    where id = #{id,jdbcType=VARCHAR}
-  </select>
-  <delete id="deleteByPrimaryKey" parameterType="java.lang.String" >
-    delete from menu_items
-    where id = #{id,jdbcType=VARCHAR}
-  </delete>
-  <insert id="insert" parameterType="com.webank.wecube.platform.core.entity.plugin.MenuItems" >
-    insert into menu_items (id, parent_code, code, 
-      source, description, local_display_name, 
-      menu_order)
-    values (#{id,jdbcType=VARCHAR}, #{parentCode,jdbcType=VARCHAR}, #{code,jdbcType=VARCHAR}, 
-      #{source,jdbcType=VARCHAR}, #{description,jdbcType=VARCHAR}, #{localDisplayName,jdbcType=VARCHAR}, 
-      #{menuOrder,jdbcType=INTEGER})
-  </insert>
-  <insert id="insertSelective" parameterType="com.webank.wecube.platform.core.entity.plugin.MenuItems" >
-    insert into menu_items
-    <trim prefix="(" suffix=")" suffixOverrides="," >
-      <if test="id != null" >
-        id,
-      </if>
-      <if test="parentCode != null" >
-        parent_code,
-      </if>
-      <if test="code != null" >
-        code,
-      </if>
-      <if test="source != null" >
-        source,
-      </if>
-      <if test="description != null" >
-        description,
-      </if>
-      <if test="localDisplayName != null" >
-        local_display_name,
-      </if>
-      <if test="menuOrder != null" >
-        menu_order,
-      </if>
-    </trim>
-    <trim prefix="values (" suffix=")" suffixOverrides="," >
-      <if test="id != null" >
-        #{id,jdbcType=VARCHAR},
-      </if>
-      <if test="parentCode != null" >
-        #{parentCode,jdbcType=VARCHAR},
-      </if>
-      <if test="code != null" >
+<mapper
+    namespace="com.webank.wecube.platform.core.repository.plugin.MenuItemsMapper">
+    <resultMap id="BaseResultMap"
+        type="com.webank.wecube.platform.core.entity.plugin.MenuItems">
+        <id column="id" property="id" jdbcType="VARCHAR" />
+        <result column="parent_code" property="parentCode"
+            jdbcType="VARCHAR" />
+        <result column="code" property="code" jdbcType="VARCHAR" />
+        <result column="source" property="source"
+            jdbcType="VARCHAR" />
+        <result column="description" property="description"
+            jdbcType="VARCHAR" />
+        <result column="local_display_name"
+            property="localDisplayName" jdbcType="VARCHAR" />
+        <result column="menu_order" property="menuOrder"
+            jdbcType="INTEGER" />
+    </resultMap>
+    <sql id="Base_Column_List">
+        id, parent_code, code, source, description, local_display_name,
+        menu_order
+    </sql>
+    <select id="selectByPrimaryKey" resultMap="BaseResultMap"
+        parameterType="java.lang.String">
+        select
+        <include refid="Base_Column_List" />
+        from menu_items
+        where id = #{id,jdbcType=VARCHAR}
+    </select>
+    <delete id="deleteByPrimaryKey"
+        parameterType="java.lang.String">
+        delete from menu_items
+        where id = #{id,jdbcType=VARCHAR}
+    </delete>
+    <insert id="insert"
+        parameterType="com.webank.wecube.platform.core.entity.plugin.MenuItems">
+        insert into menu_items (id, parent_code, code,
+        source, description, local_display_name,
+        menu_order)
+        values (#{id,jdbcType=VARCHAR}, #{parentCode,jdbcType=VARCHAR},
         #{code,jdbcType=VARCHAR},
-      </if>
-      <if test="source != null" >
-        #{source,jdbcType=VARCHAR},
-      </if>
-      <if test="description != null" >
-        #{description,jdbcType=VARCHAR},
-      </if>
-      <if test="localDisplayName != null" >
+        #{source,jdbcType=VARCHAR}, #{description,jdbcType=VARCHAR},
         #{localDisplayName,jdbcType=VARCHAR},
-      </if>
-      <if test="menuOrder != null" >
-        #{menuOrder,jdbcType=INTEGER},
-      </if>
-    </trim>
-  </insert>
-  <update id="updateByPrimaryKeySelective" parameterType="com.webank.wecube.platform.core.entity.plugin.MenuItems" >
-    update menu_items
-    <set >
-      <if test="parentCode != null" >
-        parent_code = #{parentCode,jdbcType=VARCHAR},
-      </if>
-      <if test="code != null" >
+        #{menuOrder,jdbcType=INTEGER})
+    </insert>
+    <insert id="insertSelective"
+        parameterType="com.webank.wecube.platform.core.entity.plugin.MenuItems">
+        insert into menu_items
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="id != null">
+                id,
+            </if>
+            <if test="parentCode != null">
+                parent_code,
+            </if>
+            <if test="code != null">
+                code,
+            </if>
+            <if test="source != null">
+                source,
+            </if>
+            <if test="description != null">
+                description,
+            </if>
+            <if test="localDisplayName != null">
+                local_display_name,
+            </if>
+            <if test="menuOrder != null">
+                menu_order,
+            </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="id != null">
+                #{id,jdbcType=VARCHAR},
+            </if>
+            <if test="parentCode != null">
+                #{parentCode,jdbcType=VARCHAR},
+            </if>
+            <if test="code != null">
+                #{code,jdbcType=VARCHAR},
+            </if>
+            <if test="source != null">
+                #{source,jdbcType=VARCHAR},
+            </if>
+            <if test="description != null">
+                #{description,jdbcType=VARCHAR},
+            </if>
+            <if test="localDisplayName != null">
+                #{localDisplayName,jdbcType=VARCHAR},
+            </if>
+            <if test="menuOrder != null">
+                #{menuOrder,jdbcType=INTEGER},
+            </if>
+        </trim>
+    </insert>
+    <update id="updateByPrimaryKeySelective"
+        parameterType="com.webank.wecube.platform.core.entity.plugin.MenuItems">
+        update menu_items
+        <set>
+            <if test="parentCode != null">
+                parent_code = #{parentCode,jdbcType=VARCHAR},
+            </if>
+            <if test="code != null">
+                code = #{code,jdbcType=VARCHAR},
+            </if>
+            <if test="source != null">
+                source = #{source,jdbcType=VARCHAR},
+            </if>
+            <if test="description != null">
+                description = #{description,jdbcType=VARCHAR},
+            </if>
+            <if test="localDisplayName != null">
+                local_display_name = #{localDisplayName,jdbcType=VARCHAR},
+            </if>
+            <if test="menuOrder != null">
+                menu_order = #{menuOrder,jdbcType=INTEGER},
+            </if>
+        </set>
+        where id = #{id,jdbcType=VARCHAR}
+    </update>
+    <update id="updateByPrimaryKey"
+        parameterType="com.webank.wecube.platform.core.entity.plugin.MenuItems">
+        update menu_items
+        set parent_code = #{parentCode,jdbcType=VARCHAR},
         code = #{code,jdbcType=VARCHAR},
-      </if>
-      <if test="source != null" >
         source = #{source,jdbcType=VARCHAR},
-      </if>
-      <if test="description != null" >
         description = #{description,jdbcType=VARCHAR},
-      </if>
-      <if test="localDisplayName != null" >
         local_display_name = #{localDisplayName,jdbcType=VARCHAR},
-      </if>
-      <if test="menuOrder != null" >
-        menu_order = #{menuOrder,jdbcType=INTEGER},
-      </if>
-    </set>
-    where id = #{id,jdbcType=VARCHAR}
-  </update>
-  <update id="updateByPrimaryKey" parameterType="com.webank.wecube.platform.core.entity.plugin.MenuItems" >
-    update menu_items
-    set parent_code = #{parentCode,jdbcType=VARCHAR},
-      code = #{code,jdbcType=VARCHAR},
-      source = #{source,jdbcType=VARCHAR},
-      description = #{description,jdbcType=VARCHAR},
-      local_display_name = #{localDisplayName,jdbcType=VARCHAR},
-      menu_order = #{menuOrder,jdbcType=INTEGER}
-    where id = #{id,jdbcType=VARCHAR}
-  </update>
+        menu_order = #{menuOrder,jdbcType=INTEGER}
+        where id = #{id,jdbcType=VARCHAR}
+    </update>
+    
+    <select id="selectByMenuCode" resultMap="BaseResultMap"
+        parameterType="java.lang.String">
+        select
+        <include refid="Base_Column_List" />
+        from menu_items
+        where code = #{code,jdbcType=VARCHAR}
+    </select>
+    
 </mapper>
