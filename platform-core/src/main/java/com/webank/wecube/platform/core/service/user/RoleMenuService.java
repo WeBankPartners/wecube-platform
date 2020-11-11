@@ -18,8 +18,9 @@ import com.webank.wecube.platform.core.dto.MenuItemDto;
 import com.webank.wecube.platform.core.dto.user.RoleDto;
 import com.webank.wecube.platform.core.dto.user.RoleMenuDto;
 import com.webank.wecube.platform.core.entity.plugin.MenuItems;
+import com.webank.wecube.platform.core.entity.plugin.PluginPackageMenus;
+import com.webank.wecube.platform.core.entity.plugin.PluginPackages;
 import com.webank.wecube.platform.core.entity.plugin.RoleMenu;
-import com.webank.wecube.platform.core.jpa.PluginPackageMenuRepository;
 import com.webank.wecube.platform.core.lazyDomain.plugin.LazyPluginPackageMenu;
 import com.webank.wecube.platform.core.repository.plugin.MenuItemsMapper;
 import com.webank.wecube.platform.core.repository.plugin.PluginPackageMenusMapper;
@@ -40,7 +41,7 @@ public class RoleMenuService {
     private MenuItemsMapper menuItemsMapper;
     @Autowired
     private PluginPackageMenusMapper pluginPackageMenusMapper;
-    
+
     @Autowired
     private UserManagementService userManagementService;
 
@@ -63,13 +64,13 @@ public class RoleMenuService {
         RoleMenuDto result = new RoleMenuDto();
         result.setRoleId(roleId);
         result.setRoleName(roleName);
-        
-        if(roleMenuEntities == null || roleMenuEntities.isEmpty()){
+
+        if (roleMenuEntities == null || roleMenuEntities.isEmpty()) {
             return result;
         }
         List<MenuItemDto> menuItemDtos = new ArrayList<>();
-        
-        for(RoleMenu roleMenuEntity : roleMenuEntities){
+
+        for (RoleMenu roleMenuEntity : roleMenuEntities) {
             String menuCode = roleMenuEntity.getMenuCode();
             MenuItems menuItemsEntity = menuItemsMapper.selectByMenuCode(menuCode);
             if (menuItemsEntity != null) {
@@ -77,39 +78,25 @@ public class RoleMenuService {
                 MenuItemDto menuItemDto = buildMenuItemDto(menuItemsEntity);
                 menuItemDtos.add(menuItemDto);
             } else {
-                // package menu
-                Optional<List<PluginPackageMenu>> allActivatePackageMenuByCode = pluginPackageMenusMapper
-                        .findAllActiveMenuByCode(menuCode);
-                allActivatePackageMenuByCode.ifPresent(pluginPackageMenus -> {
-                    logger.info(String.format("Plugin package menu was found. The menu code is: [%s]", menuCode));
-                    pluginPackageMenus.forEach(pluginPackageMenu -> menuList
-                            .add(this.transferPackageMenuToMenuItemDto(pluginPackageMenu)));
-                });
+                List<String> pluginPackageActiveStatues = new ArrayList<String>();
+                pluginPackageActiveStatues.addAll(PluginPackages.PLUGIN_PACKAGE_ACTIVE_STATUSES);
+                List<PluginPackageMenus> pluginPackageMenusEntities = pluginPackageMenusMapper
+                        .findAllActiveMenuByCode(menuCode, pluginPackageActiveStatues);
+
+                if (pluginPackageMenusEntities != null) {
+                    for (PluginPackageMenus pluginPackageMenusEntity : pluginPackageMenusEntities) {
+                        logger.info(String.format("Plugin package menu was found. The menu code is: [%s]", menuCode));
+                        MenuItemDto pluginPackageMenuItemDto = transferPackageMenuToMenuItemDto(
+                                pluginPackageMenusEntity);
+                        menuItemDtos.add(pluginPackageMenuItemDto);
+                    }
+                }
             }
         }
-        
-        roleMenuList.forEach(roleMenu -> {
-            String menuCode = roleMenu.getMenuCode();
-            // sys menu
-            MenuItem sysMenu = this.menuItemRepository.findByCode(menuCode);
-            // use {if sysMenu is null} to judge if this is a sys menu or
-            // package menu
-            if (null != sysMenu) {
-                logger.info(String.format("System menu was found. The menu code is: [%s]", menuCode));
-                menuList.add(MenuItemDto.fromSystemMenuItem(sysMenu));
-            } else {
-                // package 
-                Optional<List<PluginPackageMenu>> allActivatePackageMenuByCode = this.pluginPackageMenuRepository
-                        .findAllActiveMenuByCode(menuCode);
-                allActivatePackageMenuByCode.ifPresent(pluginPackageMenus -> {
-                    logger.info(String.format("Plugin package menu was found. The menu code is: [%s]", menuCode));
-                    pluginPackageMenus.forEach(pluginPackageMenu -> menuList
-                            .add(this.transferPackageMenuToMenuItemDto(pluginPackageMenu)));
-                });
-            }
 
-        });
-        return new RoleMenuDto(roleId, menuList);
+        result.setMenuList(menuItemDtos);
+
+        return result;
     }
 
     /**
@@ -180,7 +167,7 @@ public class RoleMenuService {
             authServerRestClient.configureRoleAuthorities(roleId, authoritiesToGrant);
         }
     }
-    
+
     private MenuItemDto buildMenuItemDto(MenuItems entity) {
         MenuItemDto dto = new MenuItemDto();
         dto.setId(entity.getId());
@@ -233,26 +220,29 @@ public class RoleMenuService {
         return result;
     }
 
-    public MenuItemDto transferPackageMenuToMenuItemDto(PluginPackageMenu packageMenu) throws WecubeCoreException {
-        MenuItem menuItem = menuItemRepository.findByCode(packageMenu.getCategory());
-        if (null == menuItem) {
+    public MenuItemDto transferPackageMenuToMenuItemDto(PluginPackageMenus packageMenu) {
+        MenuItems menuItemsEntity = menuItemsMapper.selectByMenuCode(packageMenu.getCategory());
+        if (menuItemsEntity == null) {
             String msg = String.format("Cannot find system menu item by package menu's category: [%s]",
                     packageMenu.getCategory());
             logger.error(msg);
             throw new WecubeCoreException("3267", msg, packageMenu.getCategory());
         }
-        return MenuItemDto.fromPackageMenuItem(packageMenu, menuItem);
+        return buildMenuItemDtoFromPackageMenuItem(packageMenu, menuItemsEntity);
     }
 
-    public MenuItemDto transferPackageMenuToMenuItemDto(LazyPluginPackageMenu packageMenu) throws WecubeCoreException {
-        MenuItem menuItem = menuItemRepository.findByCode(packageMenu.getCategory());
-        if (null == menuItem) {
-            String msg = String.format("Cannot find system menu item by package menu's category: [%s]",
-                    packageMenu.getCategory());
-            logger.error(msg);
-            throw new WecubeCoreException("3268", msg, packageMenu.getCategory());
-        }
-        return MenuItemDto.fromPackageMenuItem(packageMenu, menuItem);
+    private MenuItemDto buildMenuItemDtoFromPackageMenuItem(PluginPackageMenus packageMenu, MenuItems menuItem) {
+        MenuItemDto pluginPackageMenuDto = new MenuItemDto();
+        pluginPackageMenuDto.setId(packageMenu.getId());
+        pluginPackageMenuDto.setCategory(packageMenu.getCategory());
+        pluginPackageMenuDto.setCode(packageMenu.getCode());
+        pluginPackageMenuDto.setSource(packageMenu.getSource());
+        pluginPackageMenuDto.setMenuOrder(menuItem.getMenuOrder() * 10000 + packageMenu.getMenuOrder());
+        pluginPackageMenuDto.setDisplayName(packageMenu.getDisplayName());
+        pluginPackageMenuDto.setLocalDisplayName(packageMenu.getLocalDisplayName());
+        pluginPackageMenuDto.setPath(packageMenu.getPath());
+        pluginPackageMenuDto.setActive(packageMenu.getActive());
+        return pluginPackageMenuDto;
     }
 
 }

@@ -1,14 +1,19 @@
 package com.webank.wecube.platform.core.entity.plugin;
 
+import java.util.Arrays;
 import java.util.Date;
+import java.util.List;
 
 public class PluginPackages {
+    
     public static final String UNREGISTERED = "UNREGISTERED";
     public static final String REGISTERED = "REGISTERED";
     public static final String RUNNING = "RUNNING";
     public static final String STOPPED = "STOPPED";
     public static final String DECOMMISSIONED = "DECOMMISSIONED";
     
+    public static final List<String> PLUGIN_PACKAGE_ACTIVE_STATUSES = Arrays.asList(REGISTERED, RUNNING, STOPPED);
+
     private String id;
 
     private String name;
