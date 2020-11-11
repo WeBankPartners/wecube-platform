@@ -17,11 +17,12 @@ import com.webank.wecube.platform.core.domain.plugin.PluginPackageMenu;
 import com.webank.wecube.platform.core.dto.MenuItemDto;
 import com.webank.wecube.platform.core.dto.user.RoleDto;
 import com.webank.wecube.platform.core.dto.user.RoleMenuDto;
+import com.webank.wecube.platform.core.entity.plugin.MenuItems;
 import com.webank.wecube.platform.core.entity.plugin.RoleMenu;
-import com.webank.wecube.platform.core.jpa.MenuItemRepository;
 import com.webank.wecube.platform.core.jpa.PluginPackageMenuRepository;
 import com.webank.wecube.platform.core.lazyDomain.plugin.LazyPluginPackageMenu;
 import com.webank.wecube.platform.core.repository.plugin.MenuItemsMapper;
+import com.webank.wecube.platform.core.repository.plugin.PluginPackageMenusMapper;
 import com.webank.wecube.platform.core.repository.plugin.RoleMenuMapper;
 import com.webank.wecube.platform.core.support.authserver.AsAuthorityDto;
 import com.webank.wecube.platform.core.support.authserver.AuthServerRestClient;
@@ -37,10 +38,9 @@ public class RoleMenuService {
     private RoleMenuMapper roleMenuMapper;
     @Autowired
     private MenuItemsMapper menuItemsMapper;
-    
     @Autowired
-    private PluginPackageMenuRepository pluginPackageMenuRepository;
-
+    private PluginPackageMenusMapper pluginPackageMenusMapper;
+    
     @Autowired
     private UserManagementService userManagementService;
 
@@ -71,15 +71,14 @@ public class RoleMenuService {
         
         for(RoleMenu roleMenuEntity : roleMenuEntities){
             String menuCode = roleMenuEntity.getMenuCode();
-            MenuItem sysMenu = this.menuItemRepository.findByCode(menuCode);
-            // use {if sysMenu is null} to judge if this is a sys menu or
-            // package menu
-            if (null != sysMenu) {
+            MenuItems menuItemsEntity = menuItemsMapper.selectByMenuCode(menuCode);
+            if (menuItemsEntity != null) {
                 logger.info(String.format("System menu was found. The menu code is: [%s]", menuCode));
-                menuList.add(MenuItemDto.fromSystemMenuItem(sysMenu));
+                MenuItemDto menuItemDto = buildMenuItemDto(menuItemsEntity);
+                menuItemDtos.add(menuItemDto);
             } else {
                 // package menu
-                Optional<List<PluginPackageMenu>> allActivatePackageMenuByCode = this.pluginPackageMenuRepository
+                Optional<List<PluginPackageMenu>> allActivatePackageMenuByCode = pluginPackageMenusMapper
                         .findAllActiveMenuByCode(menuCode);
                 allActivatePackageMenuByCode.ifPresent(pluginPackageMenus -> {
                     logger.info(String.format("Plugin package menu was found. The menu code is: [%s]", menuCode));
@@ -99,7 +98,7 @@ public class RoleMenuService {
                 logger.info(String.format("System menu was found. The menu code is: [%s]", menuCode));
                 menuList.add(MenuItemDto.fromSystemMenuItem(sysMenu));
             } else {
-                // package menu
+                // package 
                 Optional<List<PluginPackageMenu>> allActivatePackageMenuByCode = this.pluginPackageMenuRepository
                         .findAllActiveMenuByCode(menuCode);
                 allActivatePackageMenuByCode.ifPresent(pluginPackageMenus -> {
@@ -180,6 +179,23 @@ public class RoleMenuService {
 
             authServerRestClient.configureRoleAuthorities(roleId, authoritiesToGrant);
         }
+    }
+    
+    private MenuItemDto buildMenuItemDto(MenuItems entity) {
+        MenuItemDto dto = new MenuItemDto();
+        dto.setId(entity.getId());
+        String category = entity.getParentCode();
+        if (category != null) {
+            dto.setCategory(category);
+        }
+        dto.setCode(entity.getCode());
+        dto.setSource(entity.getSource());
+        dto.setMenuOrder(entity.getMenuOrder());
+        dto.setDisplayName(entity.getDescription());
+        dto.setLocalDisplayName(entity.getLocalDisplayName());
+        dto.setPath(null);
+        dto.setActive(true);
+        return dto;
     }
 
     private String validateAndFetchRoleName(String roleId) {

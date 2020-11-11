@@ -1,5 +1,7 @@
 package com.webank.wecube.platform.core.repository.plugin;
 
+import java.util.List;
+
 import com.webank.wecube.platform.core.entity.plugin.PluginPackageMenus;
 
 public interface PluginPackageMenusMapper {
@@ -14,4 +16,6 @@ public interface PluginPackageMenusMapper {
     int updateByPrimaryKeySelective(PluginPackageMenus record);
 
     int updateByPrimaryKey(PluginPackageMenus record);
+    
+    List<PluginPackageMenus> findAllActiveMenuByCode(String code, List<String> activePackageStatuses);
 }
