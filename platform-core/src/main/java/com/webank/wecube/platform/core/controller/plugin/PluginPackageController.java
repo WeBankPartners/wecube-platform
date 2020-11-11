@@ -73,9 +73,9 @@ public class PluginPackageController {
     public CommonResponseDto getAllPluginPackages(
             @RequestParam(value = "distinct", required = false, defaultValue = "false") boolean ifDistinct) {
         if (ifDistinct) {
-            return okayWithData(pluginPackageService.getAllDistinctPluginPackageNameList());
+            return okayWithData(pluginPackageMgmtService.getDistinctPluginPackages());
         } else {
-            return okayWithData(pluginPackageService.getPluginPackages());
+            return okayWithData(pluginPackageMgmtService.getPluginPackages());
         }
 
     }
