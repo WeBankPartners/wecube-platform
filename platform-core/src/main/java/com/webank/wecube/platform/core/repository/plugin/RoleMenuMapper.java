@@ -25,4 +25,12 @@ public interface RoleMenuMapper {
      * @return
      */
     List<RoleMenu> selectAllByRoleName(@Param("roleName") String roleName);
+    
+    /**
+     * 
+     * @param roleName
+     * @param menuCode
+     * @return
+     */
+    List<RoleMenu> selectAllByRoleNameAndMenuCode(@Param("roleName")String roleName, @Param("menuCode")String menuCode);
 }

@@ -84,4 +84,14 @@
         from role_menu
         where role_name = #{roleName,jdbcType=VARCHAR}
     </select>
+    
+    <select id="selectAllByRoleNameAndMenuCode" resultMap="BaseResultMap"
+        parameterType="java.lang.String">
+        select
+        <include refid="Base_Column_List" />
+        from role_menu
+        where role_name = #{roleName,jdbcType=VARCHAR}
+        and
+        menu_code = #{menuCode,jdbcType=VARCHAR}
+    </select>
 </mapper>
