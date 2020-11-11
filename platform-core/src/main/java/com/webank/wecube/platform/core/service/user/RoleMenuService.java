@@ -2,7 +2,6 @@ package com.webank.wecube.platform.core.service.user;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
@@ -12,8 +11,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
-import com.webank.wecube.platform.core.domain.MenuItem;
-import com.webank.wecube.platform.core.domain.plugin.PluginPackageMenu;
 import com.webank.wecube.platform.core.dto.MenuItemDto;
 import com.webank.wecube.platform.core.dto.user.RoleDto;
 import com.webank.wecube.platform.core.dto.user.RoleMenuDto;
@@ -21,12 +18,12 @@ import com.webank.wecube.platform.core.entity.plugin.MenuItems;
 import com.webank.wecube.platform.core.entity.plugin.PluginPackageMenus;
 import com.webank.wecube.platform.core.entity.plugin.PluginPackages;
 import com.webank.wecube.platform.core.entity.plugin.RoleMenu;
-import com.webank.wecube.platform.core.lazyDomain.plugin.LazyPluginPackageMenu;
 import com.webank.wecube.platform.core.repository.plugin.MenuItemsMapper;
 import com.webank.wecube.platform.core.repository.plugin.PluginPackageMenusMapper;
 import com.webank.wecube.platform.core.repository.plugin.RoleMenuMapper;
 import com.webank.wecube.platform.core.support.authserver.AsAuthorityDto;
 import com.webank.wecube.platform.core.support.authserver.AuthServerRestClient;
+import com.webank.wecube.platform.workflow.commons.LocalIdGenerator;
 
 /**
  * @author howechen
@@ -107,25 +104,22 @@ public class RoleMenuService {
      * @param menuCodeList
      *            given total amount of the menuCode list
      */
-    public void updateRoleToMenusByRoleId(String roleId, List<String> menuCodeList) throws WecubeCoreException {
+    public void updateRoleToMenusByRoleId(String roleId, List<String> menuCodeList) {
 
         String roleName = validateAndFetchRoleName(roleId);
 
-        List<RoleMenu> roleMenuList = new ArrayList<>();
-        final Optional<List<RoleMenu>> roleMenuListOpt = this.roleMenuRepository.findAllByRoleName(roleName);
-        if (roleMenuListOpt.isPresent()) {
-            roleMenuList = roleMenuListOpt.get();
-        }
+        List<RoleMenu> roleMenuList = roleMenuMapper.selectAllByRoleName(roleName);
 
         // current menuCodeList - new menuCodeList = needToDeleteList
         List<RoleMenu> needToDeleteList = roleMenuList.stream().filter(roleMenu -> {
             String code = roleMenu.getMenuCode();
             return !menuCodeList.contains(code);
         }).collect(Collectors.toList());
+        
         if (!needToDeleteList.isEmpty()) {
             logger.info(String.format("Deleting menus: [%s]", needToDeleteList));
             for (RoleMenu roleMenu : needToDeleteList) {
-                this.roleMenuRepository.deleteById(roleMenu.getId());
+                roleMenuMapper.deleteByPrimaryKey(roleMenu.getId());
 
             }
         }
@@ -148,19 +142,17 @@ public class RoleMenuService {
 
         if (!needToCreateList.isEmpty()) {
             logger.info(String.format("Creating menus: [%s]", needToCreateList));
-            List<RoleMenu> batchUpdateList = new ArrayList<>();
-            needToCreateList.forEach(menuCode -> batchUpdateList.add(new RoleMenu(roleName, menuCode)));
-            try {
-                this.roleMenuRepository.saveAll(batchUpdateList);
-            } catch (Exception ex) {
-                logger.error(ex.getMessage());
-                throw new WecubeCoreException(ex.getMessage());
-            }
-
             List<AsAuthorityDto> authoritiesToGrant = new ArrayList<>();
-            for (RoleMenu rm : batchUpdateList) {
+            for(String menuCode : needToCreateList){
+                RoleMenu newRoleMenuEntity = new RoleMenu();
+                newRoleMenuEntity.setId(LocalIdGenerator.generateId());
+                newRoleMenuEntity.setMenuCode(menuCode);
+                newRoleMenuEntity.setRoleName(roleName);
+                
+                roleMenuMapper.insert(newRoleMenuEntity);
+                
                 AsAuthorityDto authorityToGrant = new AsAuthorityDto();
-                authorityToGrant.setCode(rm.getMenuCode());
+                authorityToGrant.setCode(menuCode);
                 authoritiesToGrant.add(authorityToGrant);
             }
 
@@ -197,12 +189,19 @@ public class RoleMenuService {
     }
 
     public void createRoleMenuBinding(String roleName, String menuCode) {
-        final Boolean isRoleMenuBindingExists = this.roleMenuRepository.existsRoleMenuByRoleNameAndMenuCode(roleName,
-                menuCode);
-        if (!isRoleMenuBindingExists) {
-            logger.info("Saving roleMenuBinding, role name: [{}], menu code: [{}]", roleName, menuCode);
-            this.roleMenuRepository.save(new RoleMenu(roleName, menuCode));
+        List<RoleMenu> existRoleMenuEntities = roleMenuMapper.selectAllByRoleNameAndMenuCode(roleName, menuCode);
+        if(existRoleMenuEntities != null && !existRoleMenuEntities.isEmpty()){
+            return;
         }
+        
+        RoleMenu newRoleMenuEntity = new RoleMenu();
+        newRoleMenuEntity.setId(LocalIdGenerator.generateId());
+        newRoleMenuEntity.setMenuCode(menuCode);
+        newRoleMenuEntity.setRoleName(roleName);
+        
+        roleMenuMapper.insert(newRoleMenuEntity);
+        logger.info("Saving roleMenuBinding, role name: [{}], menu code: [{}]", roleName, menuCode);
+        
     }
 
     public List<RoleMenuDto> getMenusByUsername(String username) {
@@ -212,11 +211,12 @@ public class RoleMenuService {
     }
 
     public List<String> getMenuCodeListByRoleName(String roleName) {
-        Optional<List<RoleMenu>> allByRoleName = this.roleMenuRepository.findAllByRoleName(roleName);
+        List<RoleMenu> roleMenuEntities = roleMenuMapper.selectAllByRoleName(roleName);
         List<String> result = new ArrayList<>();
-        if (allByRoleName.isPresent()) {
-            result = allByRoleName.get().stream().map(RoleMenu::getMenuCode).collect(Collectors.toList());
+        if(roleMenuEntities == null || roleMenuEntities.isEmpty()){
+            return result;
         }
+        result = roleMenuEntities.stream().map(RoleMenu::getMenuCode).collect(Collectors.toList());
         return result;
     }
 
