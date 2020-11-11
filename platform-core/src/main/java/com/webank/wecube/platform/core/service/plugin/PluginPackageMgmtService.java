@@ -37,8 +37,7 @@ public class PluginPackageMgmtService extends AbstractPluginMgmtService {
 
     public static final String PLATFORM_NAME = "platform";
 
-    public static final List<String> PLUGIN_PACKAGE_ACTIVE_STATUS = Lists.newArrayList(PluginPackages.REGISTERED,
-            PluginPackages.RUNNING, PluginPackages.STOPPED);
+    
 
     @Autowired
     private PluginPackagesMapper pluginPackagesMapper;
@@ -266,7 +265,7 @@ public class PluginPackageMgmtService extends AbstractPluginMgmtService {
         if (StringUtils.isBlank(status)) {
             return false;
         }
-        for (String activeStatus : PLUGIN_PACKAGE_ACTIVE_STATUS) {
+        for (String activeStatus : PluginPackages.PLUGIN_PACKAGE_ACTIVE_STATUSES) {
             if (activeStatus.equalsIgnoreCase(status)) {
                 return true;
             }
