@@ -7,12 +7,9 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
-import com.webank.wecube.platform.core.lazyDomain.plugin.LazyPluginPackageMenu;
-import com.webank.wecube.platform.core.lazyJpa.LazyPluginPackageMenuRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
@@ -25,11 +22,12 @@ import com.webank.wecube.platform.core.domain.plugin.PluginPackageMenu;
 import com.webank.wecube.platform.core.dto.MenuItemDto;
 import com.webank.wecube.platform.core.jpa.MenuItemRepository;
 import com.webank.wecube.platform.core.jpa.PluginPackageMenuRepository;
+import com.webank.wecube.platform.core.lazyDomain.plugin.LazyPluginPackageMenu;
+import com.webank.wecube.platform.core.lazyJpa.LazyPluginPackageMenuRepository;
 import com.webank.wecube.platform.core.service.plugin.PluginPackageService;
-import com.webank.wecube.platform.core.service.user.RoleMenuServiceImpl;
+import com.webank.wecube.platform.core.service.user.RoleMenuService;
 
 @Service
-@Transactional
 public class MenuService {
     private static final Logger log = LoggerFactory.getLogger(MenuService.class);
 
@@ -46,7 +44,7 @@ public class MenuService {
     private LazyPluginPackageMenuRepository lazyPluginPackageMenuRepository;
 
     @Autowired
-    private RoleMenuServiceImpl roleMenuService;
+    private RoleMenuService roleMenuService;
 
     public List<MenuItem> getAllSysMenuItems() {
         return Lists.newArrayList(menuItemRepository.findAll());
