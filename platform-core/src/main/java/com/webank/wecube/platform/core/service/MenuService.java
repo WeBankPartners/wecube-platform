@@ -7,28 +7,19 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
-import java.util.TreeSet;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.util.CollectionUtils;
 
 import com.webank.wecube.platform.core.commons.AuthenticationContextHolder;
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
-import com.webank.wecube.platform.core.domain.MenuItem;
-import com.webank.wecube.platform.core.domain.plugin.PluginPackageMenu;
 import com.webank.wecube.platform.core.dto.MenuItemDto;
 import com.webank.wecube.platform.core.entity.plugin.MenuItems;
 import com.webank.wecube.platform.core.entity.plugin.PluginPackageMenus;
 import com.webank.wecube.platform.core.entity.plugin.PluginPackages;
-import com.webank.wecube.platform.core.jpa.PluginPackageMenuRepository;
-import com.webank.wecube.platform.core.jpa.PluginPackageMenuRepository.PluginPackageMenuComparator;
-import com.webank.wecube.platform.core.lazyDomain.plugin.LazyPluginPackageMenu;
-import com.webank.wecube.platform.core.lazyJpa.LazyPluginPackageMenuRepository;
 import com.webank.wecube.platform.core.repository.plugin.MenuItemsMapper;
 import com.webank.wecube.platform.core.repository.plugin.PluginPackageMenusMapper;
 import com.webank.wecube.platform.core.service.plugin.PluginPackageService;
@@ -46,12 +37,6 @@ public class MenuService {
 
     @Autowired
     PluginPackageService pluginPackageService;
-
-    @Autowired
-    private PluginPackageMenuRepository pluginPackageMenuRepository;
-
-    @Autowired
-    private LazyPluginPackageMenuRepository lazyPluginPackageMenuRepository;
 
     @Autowired
     private RoleMenuService roleMenuService;
@@ -159,8 +144,8 @@ public class MenuService {
         Collections.sort(resultMenuItemDtos);
         return resultMenuItemDtos;
     }
-    
-    private Set<String> calAssignedMenuCodesByCurrentUser(){
+
+    private Set<String> calAssignedMenuCodesByCurrentUser() {
         Set<String> currentUserRoles = AuthenticationContextHolder.getCurrentUserRoles();
         Set<String> assignedMenuCodesOfCurrRoles = new HashSet<>();
 
@@ -176,16 +161,9 @@ public class MenuService {
                 assignedMenuCodesOfCurrRoles.add(menuCode);
             }
         }
-        
+
         return assignedMenuCodesOfCurrRoles;
     }
-
-    // public List<PluginPackageMenu>
-    // sortPluginPackageMenusById(Set<PluginPackageMenu> packageMenus) {
-    // List<PluginPackageMenu> packageMenusList = new ArrayList<>(packageMenus);
-    // Collections.sort(packageMenusList);
-    // return packageMenusList;
-    // }
 
     private MenuItemDto buildPackageMenuItemDto(PluginPackageMenus pluginPackageMenus) {
         MenuItems menuItemEntity = menuItemsMapper.selectByMenuCode(pluginPackageMenus.getCategory());

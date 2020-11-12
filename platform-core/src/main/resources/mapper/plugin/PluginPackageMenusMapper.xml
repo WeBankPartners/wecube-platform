@@ -233,4 +233,12 @@
             #{status, jdbcType=VARCHAR}
         </foreach>
     </select>
+    
+    <select id="selectAllMenusByPackage" resultMap="BaseResultMap"
+        parameterType="java.lang.String">
+        select
+        <include refid="Base_Column_List" />
+        from plugin_package_menus
+        where plugin_package_id = #{pluginPackageId,jdbcType=VARCHAR}
+    </select>
 </mapper>
