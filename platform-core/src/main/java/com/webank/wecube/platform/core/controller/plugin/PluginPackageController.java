@@ -105,6 +105,11 @@ public class PluginPackageController {
 
     }
 
+    /**
+     * 
+     * @param packageId
+     * @return
+     */
     @PostMapping("/packages/register/{package-id:.+}")
     public CommonResponseDto registerPluginPackage(@PathVariable(value = "package-id") String packageId) {
         try {
