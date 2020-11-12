@@ -25,9 +25,6 @@ import com.webank.wecube.platform.core.support.authserver.AsAuthorityDto;
 import com.webank.wecube.platform.core.support.authserver.AuthServerRestClient;
 import com.webank.wecube.platform.workflow.commons.LocalIdGenerator;
 
-/**
- * @author howechen
- */
 @Service
 public class RoleMenuService {
 
@@ -78,7 +75,7 @@ public class RoleMenuService {
                 List<String> pluginPackageActiveStatues = new ArrayList<String>();
                 pluginPackageActiveStatues.addAll(PluginPackages.PLUGIN_PACKAGE_ACTIVE_STATUSES);
                 List<PluginPackageMenus> pluginPackageMenusEntities = pluginPackageMenusMapper
-                        .findAllActiveMenuByCode(menuCode, pluginPackageActiveStatues);
+                        .selectAllMenusByCodeAndPackageStatuses(menuCode, pluginPackageActiveStatues);
 
                 if (pluginPackageMenusEntities != null) {
                     for (PluginPackageMenus pluginPackageMenusEntity : pluginPackageMenusEntities) {
@@ -115,7 +112,7 @@ public class RoleMenuService {
             String code = roleMenu.getMenuCode();
             return !menuCodeList.contains(code);
         }).collect(Collectors.toList());
-        
+
         if (!needToDeleteList.isEmpty()) {
             logger.info(String.format("Deleting menus: [%s]", needToDeleteList));
             for (RoleMenu roleMenu : needToDeleteList) {
@@ -143,14 +140,14 @@ public class RoleMenuService {
         if (!needToCreateList.isEmpty()) {
             logger.info(String.format("Creating menus: [%s]", needToCreateList));
             List<AsAuthorityDto> authoritiesToGrant = new ArrayList<>();
-            for(String menuCode : needToCreateList){
+            for (String menuCode : needToCreateList) {
                 RoleMenu newRoleMenuEntity = new RoleMenu();
                 newRoleMenuEntity.setId(LocalIdGenerator.generateId());
                 newRoleMenuEntity.setMenuCode(menuCode);
                 newRoleMenuEntity.setRoleName(roleName);
-                
+
                 roleMenuMapper.insert(newRoleMenuEntity);
-                
+
                 AsAuthorityDto authorityToGrant = new AsAuthorityDto();
                 authorityToGrant.setCode(menuCode);
                 authoritiesToGrant.add(authorityToGrant);
@@ -190,18 +187,18 @@ public class RoleMenuService {
 
     public void createRoleMenuBinding(String roleName, String menuCode) {
         List<RoleMenu> existRoleMenuEntities = roleMenuMapper.selectAllByRoleNameAndMenuCode(roleName, menuCode);
-        if(existRoleMenuEntities != null && !existRoleMenuEntities.isEmpty()){
+        if (existRoleMenuEntities != null && !existRoleMenuEntities.isEmpty()) {
             return;
         }
-        
+
         RoleMenu newRoleMenuEntity = new RoleMenu();
         newRoleMenuEntity.setId(LocalIdGenerator.generateId());
         newRoleMenuEntity.setMenuCode(menuCode);
         newRoleMenuEntity.setRoleName(roleName);
-        
+
         roleMenuMapper.insert(newRoleMenuEntity);
         logger.info("Saving roleMenuBinding, role name: [{}], menu code: [{}]", roleName, menuCode);
-        
+
     }
 
     public List<RoleMenuDto> getMenusByUsername(String username) {
@@ -213,7 +210,7 @@ public class RoleMenuService {
     public List<String> getMenuCodeListByRoleName(String roleName) {
         List<RoleMenu> roleMenuEntities = roleMenuMapper.selectAllByRoleName(roleName);
         List<String> result = new ArrayList<>();
-        if(roleMenuEntities == null || roleMenuEntities.isEmpty()){
+        if (roleMenuEntities == null || roleMenuEntities.isEmpty()) {
             return result;
         }
         result = roleMenuEntities.stream().map(RoleMenu::getMenuCode).collect(Collectors.toList());
