@@ -28,7 +28,7 @@ public interface SystemVariablesMapper {
      * @param status
      * @return
      */
-    List<SystemVariables> findByNameAndScopeAndStatus(@Param("name") String name, @Param("scope") String scope,
+    List<SystemVariables> selectAllByNameAndScopeAndStatus(@Param("name") String name, @Param("scope") String scope,
             @Param("status") String status);
 
     /**
@@ -38,6 +38,14 @@ public interface SystemVariablesMapper {
      * @param source
      * @return
      */
-    List<SystemVariables> findByNameAndScopeAndSource(@Param("name") String name, @Param("scope") String scope,
+    List<SystemVariables> selectAllByNameAndScopeAndSource(@Param("name") String name, @Param("scope") String scope,
             @Param("source") String source);
+    
+    
+    /**
+     * 
+     * @param packageName
+     * @return
+     */
+    List<SystemVariables> selectAllByPluginPackages(@Param("pluginPackageIds") List<String> pluginPackageIds);
 }
