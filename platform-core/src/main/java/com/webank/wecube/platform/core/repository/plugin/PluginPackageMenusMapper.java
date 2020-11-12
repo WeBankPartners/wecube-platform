@@ -27,5 +27,12 @@ public interface PluginPackageMenusMapper {
      * @param activePackageStatuses
      * @return
      */
-    List<PluginPackageMenus> findAllActiveMenuByCode(@Param("code")String code, @Param("statuses")List<String> statuses);
+    List<PluginPackageMenus> selectAllMenusByCodeAndPackageStatuses(@Param("code")String code, @Param("statuses")List<String> statuses);
+    
+    /**
+     * 
+     * @param statuses
+     * @return
+     */
+    List<PluginPackageMenus> selectAllMenusByPackageStatuses( @Param("statuses")List<String> statuses);
 }
