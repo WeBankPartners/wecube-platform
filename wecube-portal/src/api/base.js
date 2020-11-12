@@ -44,7 +44,7 @@ req.interceptors.response.use(
         Vue.prototype.$Notice.warning({
           title: 'Error',
           desc: errorMes,
-          duration: 0
+          duration: 10
         })
       }
       if (
