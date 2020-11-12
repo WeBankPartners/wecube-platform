@@ -23,8 +23,7 @@ public class ApplicationHomeController {
 
     @GetMapping("/my-menus")
     public CommonResponseDto getMyMenuItems() {
-        List<MenuItemDto> currentUserAllMenus;
-        currentUserAllMenus = menuService.getCurrentUserAllMenus();
+        List<MenuItemDto> currentUserAllMenus = menuService.getCurrentUserAllMenus();
         return okayWithData(currentUserAllMenus);
     }
 
