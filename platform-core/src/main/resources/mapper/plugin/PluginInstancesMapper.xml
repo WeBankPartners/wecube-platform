@@ -1,155 +1,184 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
-<mapper namespace="com.webank.wecube.platform.core.repository.plugin.PluginInstancesMapper" >
-  <resultMap id="BaseResultMap" type="com.webank.wecube.platform.core.entity.plugin.PluginInstances" >
-    <id column="id" property="id" jdbcType="VARCHAR" />
-    <result column="host" property="host" jdbcType="VARCHAR" />
-    <result column="container_name" property="containerName" jdbcType="VARCHAR" />
-    <result column="port" property="port" jdbcType="INTEGER" />
-    <result column="container_status" property="containerStatus" jdbcType="VARCHAR" />
-    <result column="package_id" property="packageId" jdbcType="VARCHAR" />
-    <result column="docker_instance_resource_id" property="dockerInstanceResourceId" jdbcType="VARCHAR" />
-    <result column="instance_name" property="instanceName" jdbcType="VARCHAR" />
-    <result column="plugin_mysql_instance_resource_id" property="pluginMysqlInstanceResourceId" jdbcType="VARCHAR" />
-    <result column="s3bucket_resource_id" property="s3bucketResourceId" jdbcType="VARCHAR" />
-  </resultMap>
-  <sql id="Base_Column_List" >
-    id, host, container_name, port, container_status, package_id, docker_instance_resource_id, 
-    instance_name, plugin_mysql_instance_resource_id, s3bucket_resource_id
-  </sql>
-  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.String" >
-    select 
-    <include refid="Base_Column_List" />
-    from plugin_instances
-    where id = #{id,jdbcType=VARCHAR}
-  </select>
-  <delete id="deleteByPrimaryKey" parameterType="java.lang.String" >
-    delete from plugin_instances
-    where id = #{id,jdbcType=VARCHAR}
-  </delete>
-  <insert id="insert" parameterType="com.webank.wecube.platform.core.entity.plugin.PluginInstances" >
-    insert into plugin_instances (id, host, container_name, 
-      port, container_status, package_id, 
-      docker_instance_resource_id, instance_name, 
-      plugin_mysql_instance_resource_id, s3bucket_resource_id
-      )
-    values (#{id,jdbcType=VARCHAR}, #{host,jdbcType=VARCHAR}, #{containerName,jdbcType=VARCHAR}, 
-      #{port,jdbcType=INTEGER}, #{containerStatus,jdbcType=VARCHAR}, #{packageId,jdbcType=VARCHAR}, 
-      #{dockerInstanceResourceId,jdbcType=VARCHAR}, #{instanceName,jdbcType=VARCHAR}, 
-      #{pluginMysqlInstanceResourceId,jdbcType=VARCHAR}, #{s3bucketResourceId,jdbcType=VARCHAR}
-      )
-  </insert>
-  <insert id="insertSelective" parameterType="com.webank.wecube.platform.core.entity.plugin.PluginInstances" >
-    insert into plugin_instances
-    <trim prefix="(" suffix=")" suffixOverrides="," >
-      <if test="id != null" >
-        id,
-      </if>
-      <if test="host != null" >
-        host,
-      </if>
-      <if test="containerName != null" >
-        container_name,
-      </if>
-      <if test="port != null" >
-        port,
-      </if>
-      <if test="containerStatus != null" >
-        container_status,
-      </if>
-      <if test="packageId != null" >
-        package_id,
-      </if>
-      <if test="dockerInstanceResourceId != null" >
+<mapper
+    namespace="com.webank.wecube.platform.core.repository.plugin.PluginInstancesMapper">
+    <resultMap id="BaseResultMap"
+        type="com.webank.wecube.platform.core.entity.plugin.PluginInstances">
+        <id column="id" property="id" jdbcType="VARCHAR" />
+        <result column="host" property="host" jdbcType="VARCHAR" />
+        <result column="container_name" property="containerName"
+            jdbcType="VARCHAR" />
+        <result column="port" property="port" jdbcType="INTEGER" />
+        <result column="container_status" property="containerStatus"
+            jdbcType="VARCHAR" />
+        <result column="package_id" property="packageId"
+            jdbcType="VARCHAR" />
+        <result column="docker_instance_resource_id" property="dockerInstanceResourceId"
+            jdbcType="VARCHAR" />
+        <result column="instance_name" property="instanceName"
+            jdbcType="VARCHAR" />
+        <result column="plugin_mysql_instance_resource_id"
+            property="pluginMysqlInstanceResourceId" jdbcType="VARCHAR" />
+        <result column="s3bucket_resource_id" property="s3bucketResourceId"
+            jdbcType="VARCHAR" />
+    </resultMap>
+    <sql id="Base_Column_List">
+        id, host, container_name, port, container_status, package_id,
         docker_instance_resource_id,
-      </if>
-      <if test="instanceName != null" >
-        instance_name,
-      </if>
-      <if test="pluginMysqlInstanceResourceId != null" >
-        plugin_mysql_instance_resource_id,
-      </if>
-      <if test="s3bucketResourceId != null" >
-        s3bucket_resource_id,
-      </if>
-    </trim>
-    <trim prefix="values (" suffix=")" suffixOverrides="," >
-      <if test="id != null" >
-        #{id,jdbcType=VARCHAR},
-      </if>
-      <if test="host != null" >
-        #{host,jdbcType=VARCHAR},
-      </if>
-      <if test="containerName != null" >
+        instance_name, plugin_mysql_instance_resource_id, s3bucket_resource_id
+    </sql>
+    <select id="selectByPrimaryKey" resultMap="BaseResultMap"
+        parameterType="java.lang.String">
+        select
+        <include refid="Base_Column_List" />
+        from plugin_instances
+        where id = #{id,jdbcType=VARCHAR}
+    </select>
+    <delete id="deleteByPrimaryKey" parameterType="java.lang.String">
+        delete from plugin_instances
+        where id = #{id,jdbcType=VARCHAR}
+    </delete>
+    <insert id="insert"
+        parameterType="com.webank.wecube.platform.core.entity.plugin.PluginInstances">
+        insert into plugin_instances (id, host, container_name,
+        port, container_status, package_id,
+        docker_instance_resource_id, instance_name,
+        plugin_mysql_instance_resource_id, s3bucket_resource_id
+        )
+        values (#{id,jdbcType=VARCHAR}, #{host,jdbcType=VARCHAR},
         #{containerName,jdbcType=VARCHAR},
-      </if>
-      <if test="port != null" >
-        #{port,jdbcType=INTEGER},
-      </if>
-      <if test="containerStatus != null" >
-        #{containerStatus,jdbcType=VARCHAR},
-      </if>
-      <if test="packageId != null" >
-        #{packageId,jdbcType=VARCHAR},
-      </if>
-      <if test="dockerInstanceResourceId != null" >
+        #{port,jdbcType=INTEGER}, #{containerStatus,jdbcType=VARCHAR}, #{packageId,jdbcType=VARCHAR},
         #{dockerInstanceResourceId,jdbcType=VARCHAR},
-      </if>
-      <if test="instanceName != null" >
         #{instanceName,jdbcType=VARCHAR},
-      </if>
-      <if test="pluginMysqlInstanceResourceId != null" >
         #{pluginMysqlInstanceResourceId,jdbcType=VARCHAR},
-      </if>
-      <if test="s3bucketResourceId != null" >
-        #{s3bucketResourceId,jdbcType=VARCHAR},
-      </if>
-    </trim>
-  </insert>
-  <update id="updateByPrimaryKeySelective" parameterType="com.webank.wecube.platform.core.entity.plugin.PluginInstances" >
-    update plugin_instances
-    <set >
-      <if test="host != null" >
-        host = #{host,jdbcType=VARCHAR},
-      </if>
-      <if test="containerName != null" >
+        #{s3bucketResourceId,jdbcType=VARCHAR}
+        )
+    </insert>
+    <insert id="insertSelective"
+        parameterType="com.webank.wecube.platform.core.entity.plugin.PluginInstances">
+        insert into plugin_instances
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="id != null">
+                id,
+            </if>
+            <if test="host != null">
+                host,
+            </if>
+            <if test="containerName != null">
+                container_name,
+            </if>
+            <if test="port != null">
+                port,
+            </if>
+            <if test="containerStatus != null">
+                container_status,
+            </if>
+            <if test="packageId != null">
+                package_id,
+            </if>
+            <if test="dockerInstanceResourceId != null">
+                docker_instance_resource_id,
+            </if>
+            <if test="instanceName != null">
+                instance_name,
+            </if>
+            <if test="pluginMysqlInstanceResourceId != null">
+                plugin_mysql_instance_resource_id,
+            </if>
+            <if test="s3bucketResourceId != null">
+                s3bucket_resource_id,
+            </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="id != null">
+                #{id,jdbcType=VARCHAR},
+            </if>
+            <if test="host != null">
+                #{host,jdbcType=VARCHAR},
+            </if>
+            <if test="containerName != null">
+                #{containerName,jdbcType=VARCHAR},
+            </if>
+            <if test="port != null">
+                #{port,jdbcType=INTEGER},
+            </if>
+            <if test="containerStatus != null">
+                #{containerStatus,jdbcType=VARCHAR},
+            </if>
+            <if test="packageId != null">
+                #{packageId,jdbcType=VARCHAR},
+            </if>
+            <if test="dockerInstanceResourceId != null">
+                #{dockerInstanceResourceId,jdbcType=VARCHAR},
+            </if>
+            <if test="instanceName != null">
+                #{instanceName,jdbcType=VARCHAR},
+            </if>
+            <if test="pluginMysqlInstanceResourceId != null">
+                #{pluginMysqlInstanceResourceId,jdbcType=VARCHAR},
+            </if>
+            <if test="s3bucketResourceId != null">
+                #{s3bucketResourceId,jdbcType=VARCHAR},
+            </if>
+        </trim>
+    </insert>
+    <update id="updateByPrimaryKeySelective"
+        parameterType="com.webank.wecube.platform.core.entity.plugin.PluginInstances">
+        update plugin_instances
+        <set>
+            <if test="host != null">
+                host = #{host,jdbcType=VARCHAR},
+            </if>
+            <if test="containerName != null">
+                container_name = #{containerName,jdbcType=VARCHAR},
+            </if>
+            <if test="port != null">
+                port = #{port,jdbcType=INTEGER},
+            </if>
+            <if test="containerStatus != null">
+                container_status = #{containerStatus,jdbcType=VARCHAR},
+            </if>
+            <if test="packageId != null">
+                package_id = #{packageId,jdbcType=VARCHAR},
+            </if>
+            <if test="dockerInstanceResourceId != null">
+                docker_instance_resource_id =
+                #{dockerInstanceResourceId,jdbcType=VARCHAR},
+            </if>
+            <if test="instanceName != null">
+                instance_name = #{instanceName,jdbcType=VARCHAR},
+            </if>
+            <if test="pluginMysqlInstanceResourceId != null">
+                plugin_mysql_instance_resource_id =
+                #{pluginMysqlInstanceResourceId,jdbcType=VARCHAR},
+            </if>
+            <if test="s3bucketResourceId != null">
+                s3bucket_resource_id =
+                #{s3bucketResourceId,jdbcType=VARCHAR},
+            </if>
+        </set>
+        where id = #{id,jdbcType=VARCHAR}
+    </update>
+    <update id="updateByPrimaryKey"
+        parameterType="com.webank.wecube.platform.core.entity.plugin.PluginInstances">
+        update plugin_instances
+        set host = #{host,jdbcType=VARCHAR},
         container_name = #{containerName,jdbcType=VARCHAR},
-      </if>
-      <if test="port != null" >
         port = #{port,jdbcType=INTEGER},
-      </if>
-      <if test="containerStatus != null" >
         container_status = #{containerStatus,jdbcType=VARCHAR},
-      </if>
-      <if test="packageId != null" >
         package_id = #{packageId,jdbcType=VARCHAR},
-      </if>
-      <if test="dockerInstanceResourceId != null" >
         docker_instance_resource_id = #{dockerInstanceResourceId,jdbcType=VARCHAR},
-      </if>
-      <if test="instanceName != null" >
         instance_name = #{instanceName,jdbcType=VARCHAR},
-      </if>
-      <if test="pluginMysqlInstanceResourceId != null" >
         plugin_mysql_instance_resource_id = #{pluginMysqlInstanceResourceId,jdbcType=VARCHAR},
-      </if>
-      <if test="s3bucketResourceId != null" >
-        s3bucket_resource_id = #{s3bucketResourceId,jdbcType=VARCHAR},
-      </if>
-    </set>
-    where id = #{id,jdbcType=VARCHAR}
-  </update>
-  <update id="updateByPrimaryKey" parameterType="com.webank.wecube.platform.core.entity.plugin.PluginInstances" >
-    update plugin_instances
-    set host = #{host,jdbcType=VARCHAR},
-      container_name = #{containerName,jdbcType=VARCHAR},
-      port = #{port,jdbcType=INTEGER},
-      container_status = #{containerStatus,jdbcType=VARCHAR},
-      package_id = #{packageId,jdbcType=VARCHAR},
-      docker_instance_resource_id = #{dockerInstanceResourceId,jdbcType=VARCHAR},
-      instance_name = #{instanceName,jdbcType=VARCHAR},
-      plugin_mysql_instance_resource_id = #{pluginMysqlInstanceResourceId,jdbcType=VARCHAR},
-      s3bucket_resource_id = #{s3bucketResourceId,jdbcType=VARCHAR}
-    where id = #{id,jdbcType=VARCHAR}
-  </update>
+        s3bucket_resource_id = #{s3bucketResourceId,jdbcType=VARCHAR}
+        where id = #{id,jdbcType=VARCHAR}
+    </update>
+    
+    <select id="selectAllByPluginPackage" resultMap="BaseResultMap"
+        parameterType="java.lang.String">
+        select
+        <include refid="Base_Column_List" />
+        from plugin_instances
+        where package_id = #{pluginPackageId,jdbcType=VARCHAR}
+    </select>
 </mapper>
