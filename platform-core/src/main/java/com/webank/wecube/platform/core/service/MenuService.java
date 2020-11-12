@@ -2,28 +2,35 @@ package com.webank.wecube.platform.core.service;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.TreeSet;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
-import com.google.common.collect.Lists;
 import com.webank.wecube.platform.core.commons.AuthenticationContextHolder;
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
 import com.webank.wecube.platform.core.domain.MenuItem;
 import com.webank.wecube.platform.core.domain.plugin.PluginPackageMenu;
 import com.webank.wecube.platform.core.dto.MenuItemDto;
-import com.webank.wecube.platform.core.jpa.MenuItemRepository;
+import com.webank.wecube.platform.core.entity.plugin.MenuItems;
+import com.webank.wecube.platform.core.entity.plugin.PluginPackageMenus;
+import com.webank.wecube.platform.core.entity.plugin.PluginPackages;
 import com.webank.wecube.platform.core.jpa.PluginPackageMenuRepository;
+import com.webank.wecube.platform.core.jpa.PluginPackageMenuRepository.PluginPackageMenuComparator;
 import com.webank.wecube.platform.core.lazyDomain.plugin.LazyPluginPackageMenu;
 import com.webank.wecube.platform.core.lazyJpa.LazyPluginPackageMenuRepository;
+import com.webank.wecube.platform.core.repository.plugin.MenuItemsMapper;
+import com.webank.wecube.platform.core.repository.plugin.PluginPackageMenusMapper;
 import com.webank.wecube.platform.core.service.plugin.PluginPackageService;
 import com.webank.wecube.platform.core.service.user.RoleMenuService;
 
@@ -32,7 +39,10 @@ public class MenuService {
     private static final Logger log = LoggerFactory.getLogger(MenuService.class);
 
     @Autowired
-    MenuItemRepository menuItemRepository;
+    private MenuItemsMapper menuItemsMapper;
+
+    @Autowired
+    private PluginPackageMenusMapper pluginPackageMenusMapper;
 
     @Autowired
     PluginPackageService pluginPackageService;
@@ -46,77 +56,115 @@ public class MenuService {
     @Autowired
     private RoleMenuService roleMenuService;
 
-    public List<MenuItem> getAllSysMenuItems() {
-        return Lists.newArrayList(menuItemRepository.findAll());
-    }
+    private PluginPackageMenuOrderComparator pluginPackageMenuOrderComparator = new PluginPackageMenuOrderComparator();
 
+    /**
+     * 
+     * 
+     * @return
+     */
     public List<MenuItemDto> getAllSysMenus() {
-        List<MenuItemDto> returnMenuDto = new ArrayList<>();
-        Iterable<MenuItem> systemMenus = menuItemRepository.findAll();
-        for (MenuItem systemMenu : systemMenus) {
-            MenuItemDto systemMenuDto = MenuItemDto.fromSystemMenuItem(systemMenu);
-            returnMenuDto.add(systemMenuDto);
+        List<MenuItemDto> menuItemDtos = new ArrayList<>();
+        List<MenuItems> menuItemsEntities = menuItemsMapper.selectAll();
+        if (menuItemsEntities == null || menuItemsEntities.isEmpty()) {
+            return menuItemDtos;
         }
-        return returnMenuDto;
+
+        for (MenuItems menuItemsEntity : menuItemsEntities) {
+            MenuItemDto menuItemDto = buildSystemMenuItemDto(menuItemsEntity);
+            menuItemDtos.add(menuItemDto);
+        }
+
+        return menuItemDtos;
     }
 
+    /**
+     * 
+     * @return
+     */
     public List<MenuItemDto> getAllSysRootMenus() {
-        List<MenuItemDto> returnMenuDto = new ArrayList<>();
-        Iterable<MenuItem> systemMenus = menuItemRepository.findRootMenuItems();
-        for (MenuItem systemMenu : systemMenus) {
-            MenuItemDto systemMenuDto = MenuItemDto.fromSystemMenuItem(systemMenu);
-            returnMenuDto.add(systemMenuDto);
+        List<MenuItemDto> menuItemDtos = new ArrayList<>();
+        List<MenuItems> menuItemsEntities = menuItemsMapper.selectAllRootMenuItems();
+
+        if (menuItemsEntities == null || menuItemsEntities.isEmpty()) {
+            return menuItemDtos;
         }
-        return returnMenuDto;
+
+        for (MenuItems menuItemsEntity : menuItemsEntities) {
+            MenuItemDto menuItemDto = buildSystemMenuItemDto(menuItemsEntity);
+            menuItemDtos.add(menuItemDto);
+        }
+
+        return menuItemDtos;
     }
 
-
+    /**
+     * 
+     * @return
+     */
     public List<MenuItemDto> getAllMenus() {
-        List<MenuItemDto> returnMenuDto;
 
-        List<MenuItemDto> allSysMenus = getAllSysMenus();
-        returnMenuDto = new ArrayList<>(allSysMenus);
+        List<MenuItemDto> resultMenuItemDtos = new ArrayList<>();
+        List<MenuItemDto> allSysMenusDtos = getAllSysMenus();
 
-        Optional<List<PluginPackageMenu>> optionalPluginPackageMenus = pluginPackageMenuRepository.findAndMergePluginMenus();
-        optionalPluginPackageMenus.ifPresent(pluginPackageMenus -> returnMenuDto.addAll(packageMenuToMenuItemDto(pluginPackageMenus)));
-        Collections.sort(returnMenuDto);
-        return returnMenuDto;
+        resultMenuItemDtos.addAll(allSysMenusDtos);
+
+        List<PluginPackageMenus> pluginPackageMenusEntities = findAndMergePluginMenus();
+        for (PluginPackageMenus pluginPackageMenuEntity : pluginPackageMenusEntities) {
+            MenuItemDto pluginPackageMenuItemDto = buildPackageMenuItemDto(pluginPackageMenuEntity);
+            resultMenuItemDtos.add(pluginPackageMenuItemDto);
+        }
+        Collections.sort(resultMenuItemDtos);
+        return resultMenuItemDtos;
     }
 
     public List<MenuItemDto> getCurrentUserAllMenus() throws WecubeCoreException {
-        List<MenuItemDto> result = new ArrayList<>(getAllSysRootMenus());
-        log.info(String.format("Found all system menu codes: [%s]", result.toString()));
-        // find all distinct current user's own menu codes
+        List<MenuItemDto> resultMenuItemDtos = new ArrayList<>();
+
+        List<MenuItemDto> rootSysMenuItemDtos = getAllSysRootMenus();
+        resultMenuItemDtos.addAll(rootSysMenuItemDtos);
+
         Set<String> currentUserRoles = AuthenticationContextHolder.getCurrentUserRoles();
-        if (!CollectionUtils.isEmpty(currentUserRoles)) {
-            List<String> currentUserMenuCodeList;
-            Set<String> currentUserMenuCodeSet = new HashSet<>();
-            for (String userRole : currentUserRoles) {
-                currentUserMenuCodeSet.addAll(roleMenuService.getMenuCodeListByRoleName(userRole));
+
+        if (currentUserRoles == null || currentUserRoles.isEmpty()) {
+            Collections.sort(resultMenuItemDtos);
+            return resultMenuItemDtos;
+        }
+
+        Set<String> assignedMenuCodesOfCurrRoles = new HashSet<>();
+        for (String userRole : currentUserRoles) {
+            List<String> assignedMenuCodesOfRole = roleMenuService.getMenuCodeListByRoleName(userRole);
+            if (assignedMenuCodesOfRole == null) {
+                continue;
             }
-            currentUserMenuCodeList = new ArrayList<>(currentUserMenuCodeSet);
-            log.info(String.format("Current user's all menuCode list is: [%s]", currentUserMenuCodeList));
-            // filter all packageMenu which has menuCode in current user's own menu code
-            List<MenuItemDto> foundMenusByMenuCode = new ArrayList<>();
-            for (String menuCode : currentUserMenuCodeList) {
-                MenuItem sysMenu = this.menuItemRepository.findByCode(menuCode);
-                log.info(String.format("Core try toFind menu code: [%s]", menuCode));
-                if (sysMenu != null) {
-                    // given menu code belongs to a system menu
-                    MenuItemDto menuItemDto = MenuItemDto.fromSystemMenuItem(sysMenu);
-                    foundMenusByMenuCode.add(menuItemDto);
-                } else {
-                    // given menu code belongs to a package menu
-                    Optional<LazyPluginPackageMenu> foundPackageMenuByCode = this.lazyPluginPackageMenuRepository.findAndMergePluginMenus(menuCode);
-                    foundPackageMenuByCode.ifPresent(pluginPackageMenus -> foundMenusByMenuCode.add(roleMenuService.transferPackageMenuToMenuItemDto(pluginPackageMenus)));
+            for (String menuCode : assignedMenuCodesOfRole) {
+                assignedMenuCodesOfCurrRoles.add(menuCode);
+            }
+        }
+
+        List<MenuItemDto> menuItemsByMenuCode = new ArrayList<>();
+        for (String menuCode : assignedMenuCodesOfCurrRoles) {
+            MenuItems sysMenuItemEntity = menuItemsMapper.selectByMenuCode(menuCode);
+            if (sysMenuItemEntity != null) {
+                MenuItemDto menuItemDto = buildSystemMenuItemDto(sysMenuItemEntity);
+                menuItemsByMenuCode.add(menuItemDto);
+            } else {
+                List<PluginPackageMenus> suitablePluginPackageMenusEntities = findAndMergePluginMenusByMenuCode(
+                        menuCode);
+                if (suitablePluginPackageMenusEntities == null) {
+                    continue;
+                }
+
+                for (PluginPackageMenus pluginPackageMenusEntity : suitablePluginPackageMenusEntities) {
+                    MenuItemDto pluginPackageMenusDto = buildPackageMenuItemDto(pluginPackageMenusEntity);
+                    menuItemsByMenuCode.add(pluginPackageMenusDto);
                 }
             }
-
-            // append packageMenu and sysMenu
-            result.addAll(foundMenusByMenuCode);
         }
-        Collections.sort(result);
-        return result;
+
+        resultMenuItemDtos.addAll(menuItemsByMenuCode);
+        Collections.sort(resultMenuItemDtos);
+        return resultMenuItemDtos;
     }
 
     public List<PluginPackageMenu> sortPluginPackageMenusById(Set<PluginPackageMenu> packageMenus) {
@@ -125,22 +173,162 @@ public class MenuService {
         return packageMenusList;
     }
 
+    private MenuItemDto buildPackageMenuItemDto(PluginPackageMenus pluginPackageMenus) {
+        MenuItems menuItemEntity = menuItemsMapper.selectByMenuCode(pluginPackageMenus.getCategory());
+        if (menuItemEntity == null) {
+            String msg = String.format("Cannot find system menu item by package menu's category: [%s]",
+                    pluginPackageMenus.getCategory());
+            log.error(msg);
+            throw new WecubeCoreException("3000", msg, pluginPackageMenus.getCategory());
+        }
+        MenuItemDto packageMenuItemDto = buildPackageMenuItemDto(pluginPackageMenus, menuItemEntity);
 
-    private List<MenuItemDto> packageMenuToMenuItemDto(List<PluginPackageMenu> pluginPackageMenus) {
-        List<MenuItemDto> result = new ArrayList<>();
-        pluginPackageMenus.forEach(packageMenu -> {
-            MenuItem menuItem = menuItemRepository.findByCode(packageMenu.getCategory());
-            if (null == menuItem) {
-                String msg = String.format("Cannot find system menu item by package menu's category: [%s]",
-                        packageMenu.getCategory());
-                log.error(msg);
-                throw new WecubeCoreException("3000",msg,packageMenu.getCategory());
+        return packageMenuItemDto;
+    }
+
+    private MenuItemDto buildPackageMenuItemDto(PluginPackageMenus packageMenu, MenuItems menuItem) {
+        MenuItemDto pluginPackageMenuDto = new MenuItemDto();
+        pluginPackageMenuDto.setId(packageMenu.getId());
+        pluginPackageMenuDto.setCategory(packageMenu.getCategory());
+        pluginPackageMenuDto.setCode(packageMenu.getCode());
+        pluginPackageMenuDto.setSource(packageMenu.getSource());
+        pluginPackageMenuDto.setMenuOrder(menuItem.getMenuOrder() * 10000 + packageMenu.getMenuOrder());
+        pluginPackageMenuDto.setDisplayName(packageMenu.getDisplayName());
+        pluginPackageMenuDto.setLocalDisplayName(packageMenu.getLocalDisplayName());
+        pluginPackageMenuDto.setPath(packageMenu.getPath());
+        pluginPackageMenuDto.setActive(packageMenu.getActive());
+        return pluginPackageMenuDto;
+    }
+
+    private MenuItemDto buildSystemMenuItemDto(MenuItems systemMenu) {
+        MenuItemDto pluginPackageMenuDto = new MenuItemDto();
+        pluginPackageMenuDto.setId(systemMenu.getId());
+        String category = systemMenu.getParentCode();
+        if (category != null) {
+            pluginPackageMenuDto.setCategory(category);
+        }
+        pluginPackageMenuDto.setCode(systemMenu.getCode());
+        pluginPackageMenuDto.setSource(systemMenu.getSource());
+        pluginPackageMenuDto.setMenuOrder(systemMenu.getMenuOrder());
+        pluginPackageMenuDto.setDisplayName(systemMenu.getDescription());
+        pluginPackageMenuDto.setLocalDisplayName(systemMenu.getLocalDisplayName());
+        pluginPackageMenuDto.setPath(null);
+        pluginPackageMenuDto.setActive(true);
+        return pluginPackageMenuDto;
+    }
+
+    private List<PluginPackageMenus> findAndMergePluginMenusByMenuCode(String menuCodeToFind) {
+        List<PluginPackageMenus> resultPluginPackageMenus = new ArrayList<>();
+        List<String> pluginPackageActiveStatues = new ArrayList<String>();
+        pluginPackageActiveStatues.addAll(PluginPackages.PLUGIN_PACKAGE_ACTIVE_STATUSES);
+        List<PluginPackageMenus> allPackageMenusForActivePackages = pluginPackageMenusMapper
+                .selectAllMenusByCodeAndPackageStatuses(menuCodeToFind, pluginPackageActiveStatues);
+
+        if (allPackageMenusForActivePackages == null || allPackageMenusForActivePackages.isEmpty()) {
+            return resultPluginPackageMenus;
+        }
+
+        Map<String, PluginPackageMenus> codeAndMenus = new HashMap<String, PluginPackageMenus>();
+
+        for (PluginPackageMenus menuEntityToCheck : allPackageMenusForActivePackages) {
+            String menuCode = menuEntityToCheck.getCode();
+            PluginPackageMenus existMenuEntity = codeAndMenus.get(menuCode);
+            if (existMenuEntity == null) {
+                codeAndMenus.put(menuCode, existMenuEntity);
+            } else {
+                if (isBetterThanExistOne(menuEntityToCheck, existMenuEntity)) {
+                    codeAndMenus.put(menuCode, menuEntityToCheck);
+                }
             }
-            MenuItemDto packageMenuDto = MenuItemDto.fromPackageMenuItem(packageMenu, menuItem);
+        }
 
-            result.add(packageMenuDto);
-        });
-        return result;
+        resultPluginPackageMenus.addAll(codeAndMenus.values());
+        return resultPluginPackageMenus;
+    }
+
+    private List<PluginPackageMenus> findAndMergePluginMenus() {
+        List<PluginPackageMenus> resultPluginPackageMenus = new ArrayList<>();
+        List<String> pluginPackageActiveStatues = new ArrayList<String>();
+        pluginPackageActiveStatues.addAll(PluginPackages.PLUGIN_PACKAGE_ACTIVE_STATUSES);
+        List<PluginPackageMenus> allPackageMenusForActivePackages = pluginPackageMenusMapper
+                .selectAllMenusByPackageStatuses(pluginPackageActiveStatues);
+
+        if (allPackageMenusForActivePackages == null || allPackageMenusForActivePackages.isEmpty()) {
+            return resultPluginPackageMenus;
+        }
+
+        Map<String, PluginPackageMenus> codeAndMenus = new HashMap<String, PluginPackageMenus>();
+
+        for (PluginPackageMenus menuEntityToCheck : allPackageMenusForActivePackages) {
+            String menuCode = menuEntityToCheck.getCode();
+            PluginPackageMenus existMenuEntity = codeAndMenus.get(menuCode);
+            if (existMenuEntity == null) {
+                codeAndMenus.put(menuCode, existMenuEntity);
+            } else {
+                if (isBetterThanExistOne(menuEntityToCheck, existMenuEntity)) {
+                    codeAndMenus.put(menuCode, menuEntityToCheck);
+                }
+            }
+        }
+
+        resultPluginPackageMenus.addAll(codeAndMenus.values());
+        return resultPluginPackageMenus;
+    }
+
+    private boolean isBetterThanExistOne(PluginPackageMenus menuEntityToCheck, PluginPackageMenus existMenuEntity) {
+        if (existMenuEntity.getActive() == null) {
+            if (menuEntityToCheck.getActive() == null) {
+                return false;
+            } else {
+                return true;
+            }
+        }
+
+        if (existMenuEntity.getActive() == true) {
+            if (menuEntityToCheck.getActive() == false) {
+                return false;
+            }
+
+            int compareResult = pluginPackageMenuOrderComparator.compare(menuEntityToCheck, existMenuEntity);
+            if (compareResult > 0) {
+                return true;
+            } else {
+                return false;
+            }
+        } else {
+            if (menuEntityToCheck.getActive() == true) {
+                return true;
+            }
+
+            int compareResult = pluginPackageMenuOrderComparator.compare(menuEntityToCheck, existMenuEntity);
+            if (compareResult > 0) {
+                return true;
+            } else {
+                return false;
+            }
+        }
+
+    }
+
+    private static class PluginPackageMenuOrderComparator implements Comparator<PluginPackageMenus> {
+
+        @Override
+        public int compare(PluginPackageMenus o1, PluginPackageMenus o2) {
+            if (o1.getMenuOrder() == null) {
+                if (o2.getMenuOrder() == null) {
+                    return 0;
+                } else {
+                    return -1;
+                }
+            }
+
+            if (o2.getMenuOrder() == null) {
+                return 1;
+            }
+
+            return (o1.getMenuOrder() - o2.getMenuOrder());
+        }
+
     }
 
 }

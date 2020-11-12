@@ -179,7 +179,7 @@
         where id = #{id,jdbcType=VARCHAR}
     </update>
 
-    <select id="findAllActiveMenuByCode" resultMap="BaseResultMap">
+    <select id="selectAllMenusByCodeAndPackageStatuses" resultMap="BaseResultMap">
         SELECT
         t1.id, 
         t1.plugin_package_id, 
@@ -198,6 +198,32 @@
         t1.code =
         #{code,jdbcType=VARCHAR}
         AND
+        t1.plugin_package_id =
+        t2.id
+        AND t2.status IN
+        and status in
+        <foreach item="status" collection="statuses" separator=","
+            open="(" close=")" index="">
+            #{status, jdbcType=VARCHAR}
+        </foreach>
+    </select>
+    
+    <select id="selectAllMenusByPackageStatuses" resultMap="BaseResultMap">
+        SELECT
+        t1.id, 
+        t1.plugin_package_id, 
+        t1.code, 
+        t1.category,
+        t1.source,
+        t1.display_name,
+        t1.local_display_name,
+        t1.menu_order,
+        t1.path, 
+        t1.active
+        FROM
+        plugin_package_menus t1,
+        plugin_packages t2
+        WHERE
         t1.plugin_package_id =
         t2.id
         AND t2.status IN
