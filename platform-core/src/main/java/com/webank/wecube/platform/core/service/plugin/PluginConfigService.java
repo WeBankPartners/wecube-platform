@@ -739,15 +739,15 @@ public class PluginConfigService {
         return dto;
     }
 
-    public void disableAllPluginsForPluginPackage(String pluginPackageId) {
-        Optional<List<PluginConfig>> pluginConfigsOptional = pluginConfigRepository
-                .findByPluginPackage_idOrderByName(pluginPackageId);
-        if (pluginConfigsOptional.isPresent()) {
-            List<PluginConfig> pluginConfigs = pluginConfigsOptional.get();
-            pluginConfigs.forEach(pluginConfig -> pluginConfig.setStatus(DISABLED));
-            pluginConfigRepository.saveAll(pluginConfigs);
-        }
-    }
+//    public void disableAllPluginsForPluginPackage(String pluginPackageId) {
+//        Optional<List<PluginConfig>> pluginConfigsOptional = pluginConfigRepository
+//                .findByPluginPackage_idOrderByName(pluginPackageId);
+//        if (pluginConfigsOptional.isPresent()) {
+//            List<PluginConfig> pluginConfigs = pluginConfigsOptional.get();
+//            pluginConfigs.forEach(pluginConfig -> pluginConfig.setStatus(DISABLED));
+//            pluginConfigRepository.saveAll(pluginConfigs);
+//        }
+//    }
 
     public List<PluginConfigInterfaceDto> queryPluginConfigInterfaceByConfigId(String configId) {
         Optional<List<PluginConfigInterface>> pluginConfigsOptional = pluginConfigInterfaceRepository
