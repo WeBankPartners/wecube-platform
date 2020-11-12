@@ -109,7 +109,7 @@ public class MenuService {
 
         resultMenuItemDtos.addAll(allSysMenusDtos);
 
-        List<PluginPackageMenus> pluginPackageMenusEntities = findAndMergePluginMenus();
+        List<PluginPackageMenus> pluginPackageMenusEntities = calAvailablePluginPackgeMenus();
         for (PluginPackageMenus pluginPackageMenuEntity : pluginPackageMenusEntities) {
             MenuItemDto pluginPackageMenuItemDto = buildPackageMenuItemDto(pluginPackageMenuEntity);
             resultMenuItemDtos.add(pluginPackageMenuItemDto);
@@ -118,20 +118,55 @@ public class MenuService {
         return resultMenuItemDtos;
     }
 
-    public List<MenuItemDto> getCurrentUserAllMenus() throws WecubeCoreException {
+    /**
+     * 
+     * @return
+     */
+    public List<MenuItemDto> getCurrentUserAllMenus() {
         List<MenuItemDto> resultMenuItemDtos = new ArrayList<>();
 
         List<MenuItemDto> rootSysMenuItemDtos = getAllSysRootMenus();
         resultMenuItemDtos.addAll(rootSysMenuItemDtos);
 
-        Set<String> currentUserRoles = AuthenticationContextHolder.getCurrentUserRoles();
+        Set<String> assignedMenuCodesOfCurrRoles = calAssignedMenuCodesByCurrentUser();
 
-        if (currentUserRoles == null || currentUserRoles.isEmpty()) {
+        if (assignedMenuCodesOfCurrRoles == null || assignedMenuCodesOfCurrRoles.isEmpty()) {
             Collections.sort(resultMenuItemDtos);
             return resultMenuItemDtos;
         }
 
+        List<MenuItemDto> menuItemsByAllMenuCodes = new ArrayList<>();
+        for (String menuCode : assignedMenuCodesOfCurrRoles) {
+            MenuItems sysMenuItemEntity = menuItemsMapper.selectByMenuCode(menuCode);
+            if (sysMenuItemEntity != null) {
+                MenuItemDto menuItemDto = buildSystemMenuItemDto(sysMenuItemEntity);
+                menuItemsByAllMenuCodes.add(menuItemDto);
+            } else {
+                List<PluginPackageMenus> assignedPluginPackageMenusEntities = calAssignedPluginPackageMenusByMenuCode(
+                        menuCode);
+                if (assignedPluginPackageMenusEntities == null) {
+                    continue;
+                }
+
+                for (PluginPackageMenus pluginPackageMenusEntity : assignedPluginPackageMenusEntities) {
+                    MenuItemDto pluginPackageMenusDto = buildPackageMenuItemDto(pluginPackageMenusEntity);
+                    menuItemsByAllMenuCodes.add(pluginPackageMenusDto);
+                }
+            }
+        }
+
+        resultMenuItemDtos.addAll(menuItemsByAllMenuCodes);
+        Collections.sort(resultMenuItemDtos);
+        return resultMenuItemDtos;
+    }
+    
+    private Set<String> calAssignedMenuCodesByCurrentUser(){
+        Set<String> currentUserRoles = AuthenticationContextHolder.getCurrentUserRoles();
         Set<String> assignedMenuCodesOfCurrRoles = new HashSet<>();
+
+        if (currentUserRoles == null || currentUserRoles.isEmpty()) {
+            return assignedMenuCodesOfCurrRoles;
+        }
         for (String userRole : currentUserRoles) {
             List<String> assignedMenuCodesOfRole = roleMenuService.getMenuCodeListByRoleName(userRole);
             if (assignedMenuCodesOfRole == null) {
@@ -141,37 +176,16 @@ public class MenuService {
                 assignedMenuCodesOfCurrRoles.add(menuCode);
             }
         }
-
-        List<MenuItemDto> menuItemsByMenuCode = new ArrayList<>();
-        for (String menuCode : assignedMenuCodesOfCurrRoles) {
-            MenuItems sysMenuItemEntity = menuItemsMapper.selectByMenuCode(menuCode);
-            if (sysMenuItemEntity != null) {
-                MenuItemDto menuItemDto = buildSystemMenuItemDto(sysMenuItemEntity);
-                menuItemsByMenuCode.add(menuItemDto);
-            } else {
-                List<PluginPackageMenus> suitablePluginPackageMenusEntities = findAndMergePluginMenusByMenuCode(
-                        menuCode);
-                if (suitablePluginPackageMenusEntities == null) {
-                    continue;
-                }
-
-                for (PluginPackageMenus pluginPackageMenusEntity : suitablePluginPackageMenusEntities) {
-                    MenuItemDto pluginPackageMenusDto = buildPackageMenuItemDto(pluginPackageMenusEntity);
-                    menuItemsByMenuCode.add(pluginPackageMenusDto);
-                }
-            }
-        }
-
-        resultMenuItemDtos.addAll(menuItemsByMenuCode);
-        Collections.sort(resultMenuItemDtos);
-        return resultMenuItemDtos;
+        
+        return assignedMenuCodesOfCurrRoles;
     }
 
-    public List<PluginPackageMenu> sortPluginPackageMenusById(Set<PluginPackageMenu> packageMenus) {
-        List<PluginPackageMenu> packageMenusList = new ArrayList<>(packageMenus);
-        Collections.sort(packageMenusList);
-        return packageMenusList;
-    }
+    // public List<PluginPackageMenu>
+    // sortPluginPackageMenusById(Set<PluginPackageMenu> packageMenus) {
+    // List<PluginPackageMenu> packageMenusList = new ArrayList<>(packageMenus);
+    // Collections.sort(packageMenusList);
+    // return packageMenusList;
+    // }
 
     private MenuItemDto buildPackageMenuItemDto(PluginPackageMenus pluginPackageMenus) {
         MenuItems menuItemEntity = menuItemsMapper.selectByMenuCode(pluginPackageMenus.getCategory());
@@ -217,7 +231,7 @@ public class MenuService {
         return pluginPackageMenuDto;
     }
 
-    private List<PluginPackageMenus> findAndMergePluginMenusByMenuCode(String menuCodeToFind) {
+    private List<PluginPackageMenus> calAssignedPluginPackageMenusByMenuCode(String menuCodeToFind) {
         List<PluginPackageMenus> resultPluginPackageMenus = new ArrayList<>();
         List<String> pluginPackageActiveStatues = new ArrayList<String>();
         pluginPackageActiveStatues.addAll(PluginPackages.PLUGIN_PACKAGE_ACTIVE_STATUSES);
@@ -246,7 +260,7 @@ public class MenuService {
         return resultPluginPackageMenus;
     }
 
-    private List<PluginPackageMenus> findAndMergePluginMenus() {
+    private List<PluginPackageMenus> calAvailablePluginPackgeMenus() {
         List<PluginPackageMenus> resultPluginPackageMenus = new ArrayList<>();
         List<String> pluginPackageActiveStatues = new ArrayList<String>();
         pluginPackageActiveStatues.addAll(PluginPackages.PLUGIN_PACKAGE_ACTIVE_STATUSES);

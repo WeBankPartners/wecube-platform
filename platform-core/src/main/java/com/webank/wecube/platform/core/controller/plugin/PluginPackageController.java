@@ -18,12 +18,12 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
 import com.webank.wecube.platform.core.domain.SystemVariable;
-import com.webank.wecube.platform.core.domain.plugin.PluginPackage;
 import com.webank.wecube.platform.core.domain.plugin.PluginPackageAuthority;
 import com.webank.wecube.platform.core.dto.CommonResponseDto;
 import com.webank.wecube.platform.core.dto.MenuItemDto;
 import com.webank.wecube.platform.core.dto.PluginDeclarationDto;
 import com.webank.wecube.platform.core.dto.PluginPackageDependencyDto;
+import com.webank.wecube.platform.core.dto.PluginPackageInfoDto;
 import com.webank.wecube.platform.core.dto.PluginPackageRuntimeResouceDto;
 import com.webank.wecube.platform.core.dto.S3PluginActifactDto;
 import com.webank.wecube.platform.core.dto.plugin.UploadPackageResultDto;
@@ -107,14 +107,13 @@ public class PluginPackageController {
 
     @PostMapping("/packages/register/{package-id:.+}")
     public CommonResponseDto registerPluginPackage(@PathVariable(value = "package-id") String packageId) {
-        PluginPackage pluginPackage = null;
         try {
-            pluginPackage = pluginPackageService.registerPluginPackage(packageId);
+            PluginPackageInfoDto pluginPackage = pluginPackageMgmtService.registerPluginPackage(packageId);
+            return okayWithData(pluginPackage);
         } catch (Exception e) {
             String msg = String.format("Failed to register plugin package with error message [%s]", e.getMessage());
             throw new WecubeCoreException("3307", msg, e.getMessage());
         }
-        return okayWithData(pluginPackage);
     }
 
     @PostMapping("/packages/decommission/{package-id:.+}")
