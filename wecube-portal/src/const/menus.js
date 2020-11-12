@@ -81,5 +81,11 @@ export const MENUS = [
     cnName: '权限管理',
     enName: 'Permissions',
     link: '/admin/user-role-management'
+  },
+  {
+    code: 'ADMIN_SYSTEM_DATA_MODEL',
+    cnName: '系统数据模型',
+    enName: 'Data Model',
+    link: '/admin/system-data-model'
   }
 ]
