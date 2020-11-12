@@ -85,7 +85,7 @@ public class PluginPackageMgmtService extends AbstractPluginMgmtService {
 
     }
 
-    public PluginPackage registerPluginPackage(String pluginPackageId) {
+    public PluginPackageInfoDto registerPluginPackage(String pluginPackageId) {
 
         PluginPackages pluginPackageEntity = pluginPackagesMapper.selectByPrimaryKey(pluginPackageId);
         if (pluginPackageEntity == null) {
