@@ -1,6 +1,8 @@
 package com.webank.wecube.platform.core.entity.plugin;
 
 public class PluginInstances {
+    public static final String CONTAINER_STATUS_RUNNING = "RUNNING";
+    public static final String CONTAINER_STATUS_REMOVED = "REMOVED";
     private String id;
 
     private String host;
