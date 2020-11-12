@@ -1,146 +1,171 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
-<mapper namespace="com.webank.wecube.platform.core.repository.plugin.SystemVariablesMapper" >
-  <resultMap id="BaseResultMap" type="com.webank.wecube.platform.core.entity.plugin.SystemVariables" >
-    <id column="id" property="id" jdbcType="VARCHAR" />
-    <result column="package_name" property="packageName" jdbcType="VARCHAR" />
-    <result column="name" property="name" jdbcType="VARCHAR" />
-    <result column="value" property="value" jdbcType="VARCHAR" />
-    <result column="default_value" property="defaultValue" jdbcType="VARCHAR" />
-    <result column="scope" property="scope" jdbcType="VARCHAR" />
-    <result column="source" property="source" jdbcType="VARCHAR" />
-    <result column="status" property="status" jdbcType="VARCHAR" />
-  </resultMap>
-  <sql id="Base_Column_List" >
-    id, package_name, name, value, default_value, scope, source, status
-  </sql>
-  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.String" >
-    select 
-    <include refid="Base_Column_List" />
-    from system_variables
-    where id = #{id,jdbcType=VARCHAR}
-  </select>
-  <delete id="deleteByPrimaryKey" parameterType="java.lang.String" >
-    delete from system_variables
-    where id = #{id,jdbcType=VARCHAR}
-  </delete>
-  <insert id="insert" parameterType="com.webank.wecube.platform.core.entity.plugin.SystemVariables" >
-    insert into system_variables (id, package_name, name, 
-      value, default_value, scope, 
-      source, status)
-    values (#{id,jdbcType=VARCHAR}, #{packageName,jdbcType=VARCHAR}, #{name,jdbcType=VARCHAR}, 
-      #{value,jdbcType=VARCHAR}, #{defaultValue,jdbcType=VARCHAR}, #{scope,jdbcType=VARCHAR}, 
-      #{source,jdbcType=VARCHAR}, #{status,jdbcType=VARCHAR})
-  </insert>
-  <insert id="insertSelective" parameterType="com.webank.wecube.platform.core.entity.plugin.SystemVariables" >
-    insert into system_variables
-    <trim prefix="(" suffix=")" suffixOverrides="," >
-      <if test="id != null" >
-        id,
-      </if>
-      <if test="packageName != null" >
-        package_name,
-      </if>
-      <if test="name != null" >
-        name,
-      </if>
-      <if test="value != null" >
-        value,
-      </if>
-      <if test="defaultValue != null" >
-        default_value,
-      </if>
-      <if test="scope != null" >
-        scope,
-      </if>
-      <if test="source != null" >
-        source,
-      </if>
-      <if test="status != null" >
-        status,
-      </if>
-    </trim>
-    <trim prefix="values (" suffix=")" suffixOverrides="," >
-      <if test="id != null" >
-        #{id,jdbcType=VARCHAR},
-      </if>
-      <if test="packageName != null" >
-        #{packageName,jdbcType=VARCHAR},
-      </if>
-      <if test="name != null" >
+<mapper
+    namespace="com.webank.wecube.platform.core.repository.plugin.SystemVariablesMapper">
+    <resultMap id="BaseResultMap"
+        type="com.webank.wecube.platform.core.entity.plugin.SystemVariables">
+        <id column="id" property="id" jdbcType="VARCHAR" />
+        <result column="package_name" property="packageName"
+            jdbcType="VARCHAR" />
+        <result column="name" property="name" jdbcType="VARCHAR" />
+        <result column="value" property="value" jdbcType="VARCHAR" />
+        <result column="default_value" property="defaultValue"
+            jdbcType="VARCHAR" />
+        <result column="scope" property="scope" jdbcType="VARCHAR" />
+        <result column="source" property="source" jdbcType="VARCHAR" />
+        <result column="status" property="status" jdbcType="VARCHAR" />
+    </resultMap>
+    <sql id="Base_Column_List">
+        id, package_name, name, value, default_value, scope, source, status
+    </sql>
+    <select id="selectByPrimaryKey" resultMap="BaseResultMap"
+        parameterType="java.lang.String">
+        select
+        <include refid="Base_Column_List" />
+        from system_variables
+        where id = #{id,jdbcType=VARCHAR}
+    </select>
+    <delete id="deleteByPrimaryKey" parameterType="java.lang.String">
+        delete from system_variables
+        where id = #{id,jdbcType=VARCHAR}
+    </delete>
+    <insert id="insert"
+        parameterType="com.webank.wecube.platform.core.entity.plugin.SystemVariables">
+        insert into system_variables (id, package_name, name,
+        value, default_value, scope,
+        source, status)
+        values (#{id,jdbcType=VARCHAR}, #{packageName,jdbcType=VARCHAR},
         #{name,jdbcType=VARCHAR},
-      </if>
-      <if test="value != null" >
-        #{value,jdbcType=VARCHAR},
-      </if>
-      <if test="defaultValue != null" >
-        #{defaultValue,jdbcType=VARCHAR},
-      </if>
-      <if test="scope != null" >
-        #{scope,jdbcType=VARCHAR},
-      </if>
-      <if test="source != null" >
-        #{source,jdbcType=VARCHAR},
-      </if>
-      <if test="status != null" >
-        #{status,jdbcType=VARCHAR},
-      </if>
-    </trim>
-  </insert>
-  <update id="updateByPrimaryKeySelective" parameterType="com.webank.wecube.platform.core.entity.plugin.SystemVariables" >
-    update system_variables
-    <set >
-      <if test="packageName != null" >
-        package_name = #{packageName,jdbcType=VARCHAR},
-      </if>
-      <if test="name != null" >
+        #{value,jdbcType=VARCHAR}, #{defaultValue,jdbcType=VARCHAR}, #{scope,jdbcType=VARCHAR},
+        #{source,jdbcType=VARCHAR}, #{status,jdbcType=VARCHAR})
+    </insert>
+    <insert id="insertSelective"
+        parameterType="com.webank.wecube.platform.core.entity.plugin.SystemVariables">
+        insert into system_variables
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="id != null">
+                id,
+            </if>
+            <if test="packageName != null">
+                package_name,
+            </if>
+            <if test="name != null">
+                name,
+            </if>
+            <if test="value != null">
+                value,
+            </if>
+            <if test="defaultValue != null">
+                default_value,
+            </if>
+            <if test="scope != null">
+                scope,
+            </if>
+            <if test="source != null">
+                source,
+            </if>
+            <if test="status != null">
+                status,
+            </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="id != null">
+                #{id,jdbcType=VARCHAR},
+            </if>
+            <if test="packageName != null">
+                #{packageName,jdbcType=VARCHAR},
+            </if>
+            <if test="name != null">
+                #{name,jdbcType=VARCHAR},
+            </if>
+            <if test="value != null">
+                #{value,jdbcType=VARCHAR},
+            </if>
+            <if test="defaultValue != null">
+                #{defaultValue,jdbcType=VARCHAR},
+            </if>
+            <if test="scope != null">
+                #{scope,jdbcType=VARCHAR},
+            </if>
+            <if test="source != null">
+                #{source,jdbcType=VARCHAR},
+            </if>
+            <if test="status != null">
+                #{status,jdbcType=VARCHAR},
+            </if>
+        </trim>
+    </insert>
+    <update id="updateByPrimaryKeySelective"
+        parameterType="com.webank.wecube.platform.core.entity.plugin.SystemVariables">
+        update system_variables
+        <set>
+            <if test="packageName != null">
+                package_name = #{packageName,jdbcType=VARCHAR},
+            </if>
+            <if test="name != null">
+                name = #{name,jdbcType=VARCHAR},
+            </if>
+            <if test="value != null">
+                value = #{value,jdbcType=VARCHAR},
+            </if>
+            <if test="defaultValue != null">
+                default_value = #{defaultValue,jdbcType=VARCHAR},
+            </if>
+            <if test="scope != null">
+                scope = #{scope,jdbcType=VARCHAR},
+            </if>
+            <if test="source != null">
+                source = #{source,jdbcType=VARCHAR},
+            </if>
+            <if test="status != null">
+                status = #{status,jdbcType=VARCHAR},
+            </if>
+        </set>
+        where id = #{id,jdbcType=VARCHAR}
+    </update>
+    <update id="updateByPrimaryKey"
+        parameterType="com.webank.wecube.platform.core.entity.plugin.SystemVariables">
+        update system_variables
+        set package_name = #{packageName,jdbcType=VARCHAR},
         name = #{name,jdbcType=VARCHAR},
-      </if>
-      <if test="value != null" >
         value = #{value,jdbcType=VARCHAR},
-      </if>
-      <if test="defaultValue != null" >
         default_value = #{defaultValue,jdbcType=VARCHAR},
-      </if>
-      <if test="scope != null" >
         scope = #{scope,jdbcType=VARCHAR},
-      </if>
-      <if test="source != null" >
         source = #{source,jdbcType=VARCHAR},
-      </if>
-      <if test="status != null" >
-        status = #{status,jdbcType=VARCHAR},
-      </if>
-    </set>
-    where id = #{id,jdbcType=VARCHAR}
-  </update>
-  <update id="updateByPrimaryKey" parameterType="com.webank.wecube.platform.core.entity.plugin.SystemVariables" >
-    update system_variables
-    set package_name = #{packageName,jdbcType=VARCHAR},
-      name = #{name,jdbcType=VARCHAR},
-      value = #{value,jdbcType=VARCHAR},
-      default_value = #{defaultValue,jdbcType=VARCHAR},
-      scope = #{scope,jdbcType=VARCHAR},
-      source = #{source,jdbcType=VARCHAR},
-      status = #{status,jdbcType=VARCHAR}
-    where id = #{id,jdbcType=VARCHAR}
-  </update>
-  
-  <select id="findByNameAndScopeAndStatus" resultMap="BaseResultMap" parameterType="java.lang.String" >
-    select 
-    <include refid="Base_Column_List" />
-    from system_variables
-    where name = #{name,jdbcType=VARCHAR}
-    and scope = #{scope,jdbcType=VARCHAR}
-    and status = #{status,jdbcType=VARCHAR}
-  </select>
-  
-  <select id="findByNameAndScopeAndSource" resultMap="BaseResultMap" parameterType="java.lang.String" >
-    select 
-    <include refid="Base_Column_List" />
-    from system_variables
-    where name = #{name,jdbcType=VARCHAR}
-    and scope = #{scope,jdbcType=VARCHAR}
-    and source = #{source,jdbcType=VARCHAR}
-  </select>
+        status = #{status,jdbcType=VARCHAR}
+        where id = #{id,jdbcType=VARCHAR}
+    </update>
+
+    <select id="selectAllByNameAndScopeAndStatus" resultMap="BaseResultMap"
+        parameterType="java.lang.String">
+        select
+        <include refid="Base_Column_List" />
+        from system_variables
+        where name = #{name,jdbcType=VARCHAR}
+        and scope = #{scope,jdbcType=VARCHAR}
+        and status = #{status,jdbcType=VARCHAR}
+    </select>
+
+    <select id="selectAllByNameAndScopeAndSource" resultMap="BaseResultMap"
+        parameterType="java.lang.String">
+        select
+        <include refid="Base_Column_List" />
+        from system_variables
+        where name = #{name,jdbcType=VARCHAR}
+        and scope = #{scope,jdbcType=VARCHAR}
+        and source = #{source,jdbcType=VARCHAR}
+    </select>
+    
+    <select id="selectAllByPluginPackages" resultMap="BaseResultMap"
+        parameterType="list">
+        select
+        <include refid="Base_Column_List" />
+        from system_variables
+        <where>
+            source in
+            <foreach item="pluginPackageId" collection="pluginPackageIds" separator="," open="(" close=")" index="">    
+                #{pluginPackageId, jdbcType=VARCHAR}    
+            </foreach>
+        </where>
+    </select>
 </mapper>
