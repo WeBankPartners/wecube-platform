@@ -26,37 +26,37 @@ public interface PluginPackageMenuRepository extends CrudRepository<PluginPackag
         return findAllByPluginPackage_StatusIn(PluginPackage.ACTIVE_STATUS);
     }
 
-    default Optional<List<PluginPackageMenu>> findAndMergePluginMenus() {
-        Optional<List<PluginPackageMenu>> allForAllActivePackages = findAllPluginPackageMenusForAllActivePackages();
-        if (allForAllActivePackages.isPresent()) {
-            Map<String, TreeSet<PluginPackageMenu>> menuSetByMenuOrderMap = new HashMap<>();
-            List<PluginPackageMenu> pluginPackageMenus = allForAllActivePackages.get();
-            pluginPackageMenus.forEach(menu -> {
-                        if (!menuSetByMenuOrderMap.containsKey(menu.getCode())) {
-                            TreeSet<PluginPackageMenu> menus = new TreeSet<>(new PluginPackageMenuComparator());
-                            menus.add(menu);
-                            menuSetByMenuOrderMap.put(menu.getCode(), menus);
-                        } else {
-                            menuSetByMenuOrderMap.get(menu.getCode()).add(menu);
-                        }
-                    }
-            );
-
-            List<PluginPackageMenu> result = new ArrayList<>();
-            for (TreeSet<PluginPackageMenu> menuCodeTreeSet : menuSetByMenuOrderMap.values()) {
-                Optional<PluginPackageMenu> activeMenuOptional = menuCodeTreeSet.stream().filter(PluginPackageMenu::isActive).max(PluginPackageMenu.COMPARE_BY_MENU_ORDER);
-                if (activeMenuOptional.isPresent()) {
-                    result.add(activeMenuOptional.get());
-                } else {
-                    Optional<PluginPackageMenu> maxMenuOrderInactiveMenuOptional = menuCodeTreeSet.stream().max(PluginPackageMenu.COMPARE_BY_MENU_ORDER);
-                    maxMenuOrderInactiveMenuOptional.ifPresent(menu -> result.add(maxMenuOrderInactiveMenuOptional.get()));
-                }
-            }
-            return Optional.of(result);
-        }
-
-        return Optional.empty();
-    }
+//    default Optional<List<PluginPackageMenu>> findAndMergePluginMenus() {
+//        Optional<List<PluginPackageMenu>> allForAllActivePackages = findAllPluginPackageMenusForAllActivePackages();
+//        if (allForAllActivePackages.isPresent()) {
+//            Map<String, TreeSet<PluginPackageMenu>> menuSetByMenuOrderMap = new HashMap<>();
+//            List<PluginPackageMenu> pluginPackageMenus = allForAllActivePackages.get();
+//            pluginPackageMenus.forEach(menu -> {
+//                        if (!menuSetByMenuOrderMap.containsKey(menu.getCode())) {
+//                            TreeSet<PluginPackageMenu> menus = new TreeSet<>(new PluginPackageMenuComparator());
+//                            menus.add(menu);
+//                            menuSetByMenuOrderMap.put(menu.getCode(), menus);
+//                        } else {
+//                            menuSetByMenuOrderMap.get(menu.getCode()).add(menu);
+//                        }
+//                    }
+//            );
+//
+//            List<PluginPackageMenu> result = new ArrayList<>();
+//            for (TreeSet<PluginPackageMenu> menuCodeTreeSet : menuSetByMenuOrderMap.values()) {
+//                Optional<PluginPackageMenu> activeMenuOptional = menuCodeTreeSet.stream().filter(PluginPackageMenu::isActive).max(PluginPackageMenu.COMPARE_BY_MENU_ORDER);
+//                if (activeMenuOptional.isPresent()) {
+//                    result.add(activeMenuOptional.get());
+//                } else {
+//                    Optional<PluginPackageMenu> maxMenuOrderInactiveMenuOptional = menuCodeTreeSet.stream().max(PluginPackageMenu.COMPARE_BY_MENU_ORDER);
+//                    maxMenuOrderInactiveMenuOptional.ifPresent(menu -> result.add(maxMenuOrderInactiveMenuOptional.get()));
+//                }
+//            }
+//            return Optional.of(result);
+//        }
+//
+//        return Optional.empty();
+//    }
 
     /**
      * Find menu by menuCode and return one with largest menu order
