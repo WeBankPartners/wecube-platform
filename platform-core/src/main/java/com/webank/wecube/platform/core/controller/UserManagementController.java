@@ -19,7 +19,7 @@ import com.webank.wecube.platform.core.dto.user.RoleMenuDto;
 import com.webank.wecube.platform.core.dto.user.UserDto;
 import com.webank.wecube.platform.core.dto.user.UserPasswordDto;
 import com.webank.wecube.platform.core.dto.user.UserPasswordResetDto;
-import com.webank.wecube.platform.core.service.user.RoleMenuServiceImpl;
+import com.webank.wecube.platform.core.service.user.RoleMenuService;
 import com.webank.wecube.platform.core.service.user.UserManagementService;
 
 @RestController
@@ -28,7 +28,7 @@ public class UserManagementController {
     @Autowired
     private UserManagementService userManagementService;
     @Autowired
-    private RoleMenuServiceImpl roleMenuService;
+    private RoleMenuService roleMenuService;
 
     @PostMapping("/users/create")
     @PreAuthorize("hasAnyAuthority('SUPER_ADMIN')")
