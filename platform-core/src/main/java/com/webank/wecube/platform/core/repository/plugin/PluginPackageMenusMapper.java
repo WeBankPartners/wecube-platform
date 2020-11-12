@@ -35,4 +35,11 @@ public interface PluginPackageMenusMapper {
      * @return
      */
     List<PluginPackageMenus> selectAllMenusByPackageStatuses( @Param("statuses")List<String> statuses);
+    
+    /**
+     * 
+     * @param pluginPackageId
+     * @return
+     */
+    List<PluginPackageMenus> selectAllMenusByPackage(@Param("pluginPackageId")String pluginPackageId);
 }
