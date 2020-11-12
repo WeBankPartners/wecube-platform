@@ -186,7 +186,7 @@
               <Col span="6" class="excute-result excute-result-search">
                 <Input v-model="businessKey" placeholder="Filter instance" />
                 <p class="excute-result-search-title">{{ activeExecuteHistory.plugin.pluginName }}</p>
-                <ul v-if="activeExecuteHistory.filterBusinessKeySet.length">
+                <ul v-if="activeExecuteHistory.filterBusinessKeySet.length" class="dispaly-instance-result">
                   <li
                     @click="changeActiveResultKey(key)"
                     :class="[
@@ -1596,8 +1596,12 @@ pre {
   white-space: nowrap;
   width: 260px;
 }
+.dispaly-instance-result {
+  height: calc(100vh - 320px);
+  overflow-y: auto;
+}
 .dispaly-result {
-  height: calc(100vh - 250px);
+  height: calc(100vh - 300px);
   overflow-y: auto;
 }
 </style>
