@@ -11,7 +11,8 @@ public class PluginPackageDependencyDto {
     private String version;
     private Set<PluginPackageDependencyDto> dependencies = new HashSet<>();
 
-    public PluginPackageDependencyDto(String packageName, String version, Set<PluginPackageDependencyDto> dependencies) {
+    public PluginPackageDependencyDto(String packageName, String version,
+            Set<PluginPackageDependencyDto> dependencies) {
         this.packageName = packageName;
         this.version = version;
         this.dependencies = dependencies;
@@ -19,7 +20,6 @@ public class PluginPackageDependencyDto {
 
     public PluginPackageDependencyDto() {
     }
-
 
     public String getPackageName() {
         return packageName;
@@ -45,30 +45,34 @@ public class PluginPackageDependencyDto {
         this.dependencies = dependencies;
     }
 
+    public void addDependency(PluginPackageDependencyDto dependency) {
+        if (dependency == null) {
+            return;
+        }
+        if (dependencies == null) {
+            dependencies = new HashSet<>();
+        }
 
+        dependencies.add(dependency);
+    }
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
+        if (this == o)
+            return true;
 
-        if (o == null || getClass() != o.getClass()) return false;
+        if (o == null || getClass() != o.getClass())
+            return false;
 
         PluginPackageDependencyDto that = (PluginPackageDependencyDto) o;
 
-        return new EqualsBuilder()
-                .append(getPackageName(), that.getPackageName())
-                .append(getVersion(), that.getVersion())
-                .append(getDependencies(), that.getDependencies())
-                .isEquals();
+        return new EqualsBuilder().append(getPackageName(), that.getPackageName())
+                .append(getVersion(), that.getVersion()).isEquals();
     }
 
     @Override
     public int hashCode() {
-        return new HashCodeBuilder(17, 37)
-                .append(getPackageName())
-                .append(getVersion())
-                .append(getDependencies())
-                .toHashCode();
+        return new HashCodeBuilder(17, 37).append(getPackageName()).append(getVersion()).toHashCode();
     }
 
 }
