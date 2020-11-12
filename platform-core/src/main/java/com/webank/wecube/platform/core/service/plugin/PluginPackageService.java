@@ -436,23 +436,23 @@ public class PluginPackageService {
         return false;
     }
 
-    public void decommissionPluginPackage(String pluginPackageId) {
-//        ensurePluginPackageExists(pluginPackageId);
-
-        ensureNoPluginInstanceIsRunningForPluginPackage(pluginPackageId);
-
-        PluginPackage pluginPackage = pluginPackageRepository.findById(pluginPackageId).get();
-
-        pluginConfigService.disableAllPluginsForPluginPackage(pluginPackageId);
-
-        deactivateSystemVariables(pluginPackage);
-
-        decommissionPluginPackageAndDisableAllItsPlugins(pluginPackage);
-
-        removeLocalDockerImageFiles(pluginPackage);
-
-        removePluginUiResourcesIfRequired(pluginPackage);
-    }
+//    public void decommissionPluginPackage(String pluginPackageId) {
+////        ensurePluginPackageExists(pluginPackageId);
+//
+//        ensureNoPluginInstanceIsRunningForPluginPackage(pluginPackageId);
+//
+//        PluginPackage pluginPackage = pluginPackageRepository.findById(pluginPackageId).get();
+//
+////        pluginConfigService.disableAllPluginsForPluginPackage(pluginPackageId);
+//
+//        deactivateSystemVariables(pluginPackage);
+//
+//        decommissionPluginPackageAndDisableAllItsPlugins(pluginPackage);
+//
+//        removeLocalDockerImageFiles(pluginPackage);
+//
+//        removePluginUiResourcesIfRequired(pluginPackage);
+//    }
 
     public void setS3Client(S3Client s3Client) {
         this.s3Client = s3Client;
@@ -468,18 +468,18 @@ public class PluginPackageService {
         return packageFoundById.get();
     }
 
-    public PluginPackageDependencyDto getDependenciesById(String packageId) {
-        PluginPackage packageFoundById = getPackageById(packageId);
-        Set<PluginPackageDependency> dependencySet = packageFoundById.getPluginPackageDependencies();
-
-        PluginPackageDependencyDto dependencyDto = new PluginPackageDependencyDto();
-        dependencyDto.setPackageName(packageFoundById.getName());
-        dependencyDto.setVersion(packageFoundById.getVersion());
-        for (PluginPackageDependency pluginPackageDependency : dependencySet) {
-            updateDependencyDto(pluginPackageDependency, dependencyDto);
-        }
-        return dependencyDto;
-    }
+//    public PluginPackageDependencyDto getDependenciesByPackage(String packageId) {
+//        PluginPackage packageFoundById = getPackageById(packageId);
+//        Set<PluginPackageDependency> dependencySet = packageFoundById.getPluginPackageDependencies();
+//
+//        PluginPackageDependencyDto dependencyDto = new PluginPackageDependencyDto();
+//        dependencyDto.setPackageName(packageFoundById.getName());
+//        dependencyDto.setVersion(packageFoundById.getVersion());
+//        for (PluginPackageDependency pluginPackageDependency : dependencySet) {
+//            updateDependencyDto(pluginPackageDependency, dependencyDto);
+//        }
+//        return dependencyDto;
+//    }
 
     public List<MenuItemDto> getMenusById(String packageId) throws WecubeCoreException {
         List<MenuItemDto> returnMenuDto;
