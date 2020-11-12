@@ -121,10 +121,15 @@ public class PluginPackageController {
         }
     }
 
+    /**
+     * 
+     * @param packageId
+     * @return
+     */
     @PostMapping("/packages/decommission/{package-id:.+}")
     public CommonResponseDto decommissionPluginPackage(@PathVariable(value = "package-id") String packageId) {
         try {
-            pluginPackageService.decommissionPluginPackage(packageId);
+            pluginPackageMgmtService.decommissionPluginPackage(packageId);
         } catch (Exception e) {
             String msg = String.format("Failed to decommission plugin package with error message [%s]", e.getMessage());
             throw new WecubeCoreException("3308", msg, e.getMessage());
@@ -132,11 +137,10 @@ public class PluginPackageController {
         return okay();
     }
 
-    @GetMapping("/packages/{id}/dependencies")
-    public CommonResponseDto getDependenciesByPackageId(@PathVariable(value = "id") String packageId) {
-        PluginPackageDependencyDto dependencySetFoundById;
-        dependencySetFoundById = pluginPackageService.getDependenciesById(packageId);
-        return okayWithData(dependencySetFoundById);
+    @GetMapping("/packages/{package-id}/dependencies")
+    public CommonResponseDto getDependenciesByPackageId(@PathVariable(value = "package-id") String packageId) {
+        PluginPackageDependencyDto dependencyDto  = pluginPackageMgmtService.getDependenciesByPackage(packageId);
+        return okayWithData(dependencyDto);
     }
 
     @GetMapping("/packages/{id}/menus")

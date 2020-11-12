@@ -1,17 +1,20 @@
 package com.webank.wecube.platform.core.service.plugin;
 
 import java.io.File;
+import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 import javax.transaction.Transactional;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,13 +22,20 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import com.google.common.collect.Sets;
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
+import com.webank.wecube.platform.core.domain.plugin.PluginPackage;
+import com.webank.wecube.platform.core.domain.plugin.PluginPackageDependency;
+import com.webank.wecube.platform.core.dto.PluginPackageDependencyDto;
 import com.webank.wecube.platform.core.dto.PluginPackageInfoDto;
 import com.webank.wecube.platform.core.dto.user.RoleDto;
+import com.webank.wecube.platform.core.entity.plugin.PluginConfigs;
+import com.webank.wecube.platform.core.entity.plugin.PluginInstances;
 import com.webank.wecube.platform.core.entity.plugin.PluginPackageAuthorities;
 import com.webank.wecube.platform.core.entity.plugin.PluginPackageDependencies;
 import com.webank.wecube.platform.core.entity.plugin.PluginPackageMenus;
 import com.webank.wecube.platform.core.entity.plugin.PluginPackages;
 import com.webank.wecube.platform.core.entity.plugin.SystemVariables;
+import com.webank.wecube.platform.core.repository.plugin.PluginConfigsMapper;
+import com.webank.wecube.platform.core.repository.plugin.PluginInstancesMapper;
 import com.webank.wecube.platform.core.repository.plugin.PluginPackageAuthoritiesMapper;
 import com.webank.wecube.platform.core.repository.plugin.PluginPackageDependenciesMapper;
 import com.webank.wecube.platform.core.repository.plugin.PluginPackageMenusMapper;
@@ -44,6 +54,12 @@ public class PluginPackageMgmtService extends AbstractPluginMgmtService {
 
     @Autowired
     private PluginPackagesMapper pluginPackagesMapper;
+
+    @Autowired
+    private PluginInstancesMapper pluginInstancesMapper;
+
+    @Autowired
+    private PluginConfigsMapper pluginConfigsMapper;
 
     @Autowired
     private PluginPackageDependenciesMapper pluginPackageDependenciesMapper;
@@ -124,7 +140,165 @@ public class PluginPackageMgmtService extends AbstractPluginMgmtService {
 
         return result;
     }
+
+    public void decommissionPluginPackage(String pluginPackageId) {
+        PluginPackages pluginPackageEntity = pluginPackagesMapper.selectByPrimaryKey(pluginPackageId);
+        if (pluginPackageEntity == null) {
+            throw new WecubeCoreException("3109",
+                    String.format("Plugin package id not found for id [%s] ", pluginPackageId), pluginPackageId);
+        }
+
+        ensureNoPluginInstanceIsRunning(pluginPackageId);
+
+        disableAllPluginConfigs(pluginPackageEntity);
+
+        deactivateSystemVariables(pluginPackageEntity);
+
+        removeLocalDockerImageFiles(pluginPackageEntity);
+
+        removePluginUiResourcesIfRequired(pluginPackageEntity);
+
+        pluginPackageEntity.setStatus(PluginPackages.DECOMMISSIONED);
+        pluginPackagesMapper.updateByPrimaryKeySelective(pluginPackageEntity);
+    }
+
+    public PluginPackageDependencyDto getDependenciesByPackage(String pluginPackageId) {
+        PluginPackages pluginPackageEntity = pluginPackagesMapper.selectByPrimaryKey(pluginPackageId);
+        if (pluginPackageEntity == null) {
+            throw new WecubeCoreException("3109",
+                    String.format("Plugin package id not found for id [%s] ", pluginPackageId), pluginPackageId);
+        }
+        
+        PluginPackageDependencyDto dependencyDto = new PluginPackageDependencyDto();
+        dependencyDto.setPackageName(pluginPackageEntity.getName());
+        dependencyDto.setVersion(pluginPackageEntity.getVersion());
+
+        List<PluginPackageDependencies> dependencyEntities = pluginPackageDependenciesMapper
+                .selectAllByPackage(pluginPackageId);
+        
+        if(dependencyEntities == null || dependencyEntities.isEmpty()){
+            return dependencyDto;
+        }
+        
+        
+
+        //--------------------
+        Set<PluginPackageDependency> dependencySet = packageFoundById.getPluginPackageDependencies();
+
+        
+        for (PluginPackageDependency pluginPackageDependency : dependencySet) {
+            updateDependencyDto(pluginPackageDependency, dependencyDto);
+        }
+        return dependencyDto;
+    }
     
+    private void updateDependencyDto(PluginPackageDependency pluginPackageDependency,
+            PluginPackageDependencyDto pluginPackageDependencyDto) {
+        // create new dependencyDto according to input dependency
+        String dependencyName = pluginPackageDependency.getDependencyPackageName();
+        String dependencyVersion = pluginPackageDependency.getDependencyPackageVersion();
+        PluginPackageDependencyDto dependencyDto = new PluginPackageDependencyDto();
+        dependencyDto.setPackageName(dependencyName);
+        dependencyDto.setVersion(dependencyVersion);
+
+        // update the current dto recursively
+        pluginPackageDependencyDto.getDependencies().add(dependencyDto);
+        Optional<List<PluginPackageDependency>> dependencySetFoundByNameAndVersion = pluginPackageDependencyRepository
+                .findAllByPluginPackageNameAndPluginPackageVersion(dependencyName, dependencyVersion);
+        dependencySetFoundByNameAndVersion.ifPresent(pluginPackageDependencies -> {
+            for (PluginPackageDependency dependency : pluginPackageDependencies) {
+                updateDependencyDto(dependency, dependencyDto);
+            }
+        });
+    }
+
+
+    private void removePluginUiResourcesIfRequired(PluginPackages pluginPackage) {
+        if (!pluginPackage.getUiPackageIncluded()) {
+            return;
+        }
+
+        String remotePath = pluginProperties.getStaticResourceServerPath() + File.separator + pluginPackage.getName()
+                + File.separator + pluginPackage.getVersion() + File.separator;
+
+        if (!remotePath.equals("/") && !remotePath.equals(".")) {
+            String mkdirCmd = String.format("rm -rf %s", remotePath);
+            try {
+                List<String> staticResourceIps = StringUtilsEx
+                        .splitByComma(pluginProperties.getStaticResourceServerIp());
+                for (String staticResourceIp : staticResourceIps) {
+                    commandService.runAtRemote(staticResourceIp, pluginProperties.getStaticResourceServerUser(),
+                            pluginProperties.getStaticResourceServerPassword(),
+                            pluginProperties.getStaticResourceServerPort(), mkdirCmd);
+                }
+            } catch (Exception e) {
+                log.error("Run command [rm] meet error: ", e.getMessage());
+                throw new WecubeCoreException("3113", String.format("Run command [rm] meet error: %s", e.getMessage()),
+                        e.getMessage());
+            }
+        }
+    }
+
+    private void removeLocalDockerImageFiles(PluginPackages pluginPackage) {
+        // Remove related docker image file
+        String versionPath = SystemUtils.getTempFolderPath() + pluginPackage.getName() + "-"
+                + pluginPackage.getVersion() + "/";
+        File versionDirectory = new File(versionPath);
+        try {
+            log.info("Delete directory: {}", versionPath);
+            FileUtils.deleteDirectory(versionDirectory);
+        } catch (IOException e) {
+            log.error("Remove plugin package file failed: {}", e);
+            throw new WecubeCoreException("3107", "Remove plugin package file failed.");
+        }
+    }
+
+    private void deactivateSystemVariables(PluginPackages pluginPackage) {
+        List<SystemVariables> systemVariablesEntities = systemVariablesMapper
+                .selectAllByPluginPackage(pluginPackage.getId());
+        if (systemVariablesEntities == null || systemVariablesEntities.isEmpty()) {
+            return;
+        }
+
+        for (SystemVariables systemVariablesEntity : systemVariablesEntities) {
+            if (SystemVariables.ACTIVE.equalsIgnoreCase(systemVariablesEntity.getStatus())
+                    && pluginPackage.getName().equals(systemVariablesEntity.getScope())) {
+                systemVariablesEntity.setStatus(SystemVariables.INACTIVE);
+                systemVariablesMapper.updateByPrimaryKeySelective(systemVariablesEntity);
+            }
+        }
+    }
+
+    private void disableAllPluginConfigs(PluginPackages pluginPackageEntity) {
+        List<PluginConfigs> pluginConfigsEntities = pluginConfigsMapper
+                .selectAllByPackageAndOrderByConfigName(pluginPackageEntity.getId());
+
+        if (pluginConfigsEntities == null || pluginConfigsEntities.isEmpty()) {
+            return;
+        }
+
+        for (PluginConfigs pluginConfigsEntity : pluginConfigsEntities) {
+            pluginConfigsEntity.setStatus(PluginConfigs.DISABLED);
+            pluginConfigsMapper.updateByPrimaryKeySelective(pluginConfigsEntity);
+        }
+    }
+
+    private void ensureNoPluginInstanceIsRunning(String pluginPackageId) {
+        List<PluginInstances> pluginInstanceEntities = pluginInstancesMapper.selectAllByPluginPackage(pluginPackageId);
+        if (pluginInstanceEntities == null || pluginInstanceEntities.isEmpty()) {
+            return;
+        }
+
+        for (PluginInstances pluginInstanceEntity : pluginInstanceEntities) {
+            if (PluginInstances.CONTAINER_STATUS_RUNNING.equalsIgnoreCase(pluginInstanceEntity.getContainerStatus())) {
+                throw new WecubeCoreException("3108",
+                        String.format(
+                                "Decommission plugin package [%s] failure. There are still plugin instances are running",
+                                pluginPackageId));
+            }
+        }
+    }
+
     private void deployPluginUiResourcesIfRequired(PluginPackages pluginPackage) {
         if (!pluginPackage.getUiPackageIncluded()) {
             return;
@@ -195,20 +369,20 @@ public class PluginPackageMgmtService extends AbstractPluginMgmtService {
         List<PluginPackages> pluginPackagesEntities = pluginPackagesMapper.selectAllByName(pluginPackage.getName());
 
         List<String> pluginPackageIds = new ArrayList<String>();
-        
-        for(PluginPackages p : pluginPackagesEntities){
+
+        for (PluginPackages p : pluginPackagesEntities) {
             pluginPackageIds.add(p.getId());
         }
-        
 
-        List<SystemVariables> systemVariablesEntities = systemVariablesMapper.selectAllByPluginPackages(pluginPackageIds);
-        for(SystemVariables systemVariableEntity : systemVariablesEntities){
+        List<SystemVariables> systemVariablesEntities = systemVariablesMapper
+                .selectAllByPluginPackages(pluginPackageIds);
+        for (SystemVariables systemVariableEntity : systemVariablesEntities) {
             if (SystemVariables.ACTIVE.equals(systemVariableEntity.getStatus())
                     && !pluginPackage.getId().equals(systemVariableEntity.getSource())) {
                 systemVariableEntity.setStatus(SystemVariables.INACTIVE);
                 systemVariablesMapper.updateByPrimaryKeySelective(systemVariableEntity);
             }
-            
+
             if (SystemVariables.INACTIVE.equals(systemVariableEntity.getStatus())
                     && pluginPackage.getId().equals(systemVariableEntity.getSource())) {
                 systemVariableEntity.setStatus(SystemVariables.ACTIVE);
