@@ -1,7 +1,7 @@
 package com.webank.wecube.platform.core.controller;
 
 import static com.google.common.collect.Sets.newHashSet;
-import static com.webank.wecube.platform.core.dto.PluginConfigInterfaceParameterDto.MappingType.system_variable;
+import static com.webank.wecube.platform.core.dto.plugin.PluginConfigInterfaceParameterDto.MappingType.system_variable;
 import static com.webank.wecube.platform.core.utils.JsonUtils.toJsonString;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.CoreMatchers.is;
@@ -40,7 +40,7 @@ import com.webank.wecube.platform.core.domain.plugin.PluginConfig;
 import com.webank.wecube.platform.core.domain.plugin.PluginConfigInterface;
 import com.webank.wecube.platform.core.domain.plugin.PluginConfigInterfaceParameter;
 import com.webank.wecube.platform.core.domain.plugin.PluginPackage;
-import com.webank.wecube.platform.core.dto.PluginConfigDto;
+import com.webank.wecube.platform.core.dto.plugin.PluginConfigDto;
 import com.webank.wecube.platform.core.handler.GlobalExceptionHandler;
 import com.webank.wecube.platform.core.jpa.PluginConfigRepository;
 import com.webank.wecube.platform.core.jpa.PluginPackageRepository;
