@@ -1,6 +1,4 @@
-package com.webank.wecube.platform.core.dto;
-
-import com.webank.wecube.platform.core.dto.workflow.PluginConfigOutlineDto;
+package com.webank.wecube.platform.core.dto.plugin;
 
 import java.util.ArrayList;
 import java.util.List;
