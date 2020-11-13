@@ -1,6 +1,12 @@
 package com.webank.wecube.platform.core.entity.plugin;
 
 public class PluginConfigInterfaceParameters {
+    public static final String TYPE_INPUT = "INPUT";
+    public static final String TYPE_OUTPUT = "OUTPUT";
+
+    public static final String MAPPING_TYPE_NOT_AVAILABLE = "N/A";
+    public static final String MAPPING_TYPE_CMDB_CI_TYPE = "CMDB_CI_TYPE";
+    
     private String id;
 
     private String pluginConfigInterfaceId;
