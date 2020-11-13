@@ -55,4 +55,11 @@ public interface SystemVariablesMapper {
      * @return
      */
     List<SystemVariables> selectAllByPluginPackage(@Param("pluginPackageId") String pluginPackageId);
+    
+    /**
+     * 
+     * @param source
+     * @return
+     */
+    List<SystemVariables> selectAllBySource(@Param("source") String source);
 }

@@ -481,40 +481,40 @@ public class PluginPackageService {
 //        return dependencyDto;
 //    }
 
-    public List<MenuItemDto> getMenusById(String packageId) throws WecubeCoreException {
-        List<MenuItemDto> returnMenuDto;
+//    public List<MenuItemDto> getMenusById(String packageId) throws WecubeCoreException {
+//        List<MenuItemDto> returnMenuDto;
+//
+//        // handling core's menus
+//        List<MenuItemDto> allSysMenus = getAllSysMenus();
+//        returnMenuDto = new ArrayList<>(allSysMenus);
+//
+//        // handling package's menus
+//        PluginPackage packageFoundById = getPackageById(packageId);
+//        Set<PluginPackageMenu> packageMenus = packageFoundById.getPluginPackageMenus();
+//
+//        for (PluginPackageMenu packageMenu : packageMenus) {
+//            MenuItem menuItem = menuItemRepository.findByCode(packageMenu.getCategory());
+//            if (null == menuItem) {
+//                String msg = String.format("Cannot find system menu item by package menu's category: [%s]",
+//                        packageMenu.getCategory());
+//                log.error(msg);
+//                throw new WecubeCoreException("3101", msg, packageMenu.getCategory());
+//            }
+//            MenuItemDto packageMenuDto = MenuItemDto.fromPackageMenuItem(packageMenu, menuItem);
+//            returnMenuDto.add(packageMenuDto);
+//        }
+//        Collections.sort(returnMenuDto);
+//        return returnMenuDto;
+//    }
 
-        // handling core's menus
-        List<MenuItemDto> allSysMenus = getAllSysMenus();
-        returnMenuDto = new ArrayList<>(allSysMenus);
-
-        // handling package's menus
-        PluginPackage packageFoundById = getPackageById(packageId);
-        Set<PluginPackageMenu> packageMenus = packageFoundById.getPluginPackageMenus();
-
-        for (PluginPackageMenu packageMenu : packageMenus) {
-            MenuItem menuItem = menuItemRepository.findByCode(packageMenu.getCategory());
-            if (null == menuItem) {
-                String msg = String.format("Cannot find system menu item by package menu's category: [%s]",
-                        packageMenu.getCategory());
-                log.error(msg);
-                throw new WecubeCoreException("3101", msg, packageMenu.getCategory());
-            }
-            MenuItemDto packageMenuDto = MenuItemDto.fromPackageMenuItem(packageMenu, menuItem);
-            returnMenuDto.add(packageMenuDto);
-        }
-        Collections.sort(returnMenuDto);
-        return returnMenuDto;
-    }
-
-    @SuppressWarnings("unchecked")
-    public List<SystemVariable> getSystemVarsById(String packageId) {
-        List<SystemVariable> optionalSystemVariables = systemVariableRepository.findBySource(packageId);
-        if (optionalSystemVariables != null) {
-            return optionalSystemVariables;
-        }
-        return Collections.EMPTY_LIST;
-    }
+//    @SuppressWarnings("unchecked")
+//    public List<SystemVariable> getSystemVarsByPackageId(String packageId) {
+//        List<SystemVariable> optionalSystemVariables = systemVariableRepository.findBySource(packageId);
+//        if (optionalSystemVariables != null) {
+//            return optionalSystemVariables;
+//        }
+//        return Collections.EMPTY_LIST;
+//    }
 
     public Set<PluginPackageAuthority> getAuthoritiesById(String packageId) {
         PluginPackage packageFoundById = getPackageById(packageId);
@@ -603,18 +603,18 @@ public class PluginPackageService {
         return permissionToRoles;
     }
 
-    public List<MenuItemDto> getAllSysMenus() {
-        List<MenuItemDto> returnMenuDto = new ArrayList<>();
-
-        // handling core's menus
-        Iterable<MenuItem> systemMenus = menuItemRepository.findAll();
-
-        for (MenuItem systemMenu : systemMenus) {
-            MenuItemDto systemMenuDto = MenuItemDto.fromSystemMenuItem(systemMenu);
-            returnMenuDto.add(systemMenuDto);
-        }
-        return returnMenuDto;
-    }
+//    public List<MenuItemDto> getAllSysMenus() {
+//        List<MenuItemDto> returnMenuDto = new ArrayList<>();
+//
+//        // handling core's menus
+//        Iterable<MenuItem> systemMenus = menuItemRepository.findAll();
+//
+//        for (MenuItem systemMenu : systemMenus) {
+//            MenuItemDto systemMenuDto = MenuItemDto.fromSystemMenuItem(systemMenu);
+//            returnMenuDto.add(systemMenuDto);
+//        }
+//        return returnMenuDto;
+//    }
 
     private void updateSystemVariableStatus(PluginPackage pluginPackage) {
         List<String> packageIdList = new ArrayList<String>();

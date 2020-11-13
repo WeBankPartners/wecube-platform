@@ -137,23 +137,36 @@ public class PluginPackageController {
         return okay();
     }
 
+    /**
+     * 
+     * @param packageId
+     * @return
+     */
     @GetMapping("/packages/{package-id}/dependencies")
     public CommonResponseDto getDependenciesByPackageId(@PathVariable(value = "package-id") String packageId) {
         PluginPackageDependencyDto dependencyDto  = pluginPackageMgmtService.getDependenciesByPackage(packageId);
         return okayWithData(dependencyDto);
     }
 
-    @GetMapping("/packages/{id}/menus")
-    public CommonResponseDto getMenusByPackageId(@PathVariable(value = "id") String packageId) {
-        List<MenuItemDto> menuList;
-        menuList = pluginPackageService.getMenusById(packageId);
+    /**
+     * 
+     * @param packageId
+     * @return
+     */
+    @GetMapping("/packages/{package-id}/menus")
+    public CommonResponseDto getMenusByPackageId(@PathVariable(value = "package-id") String packageId) {
+        List<MenuItemDto> menuList = pluginPackageMgmtService.getMenusByPackageId(packageId);
         return okayWithData(menuList);
     }
 
-    @GetMapping("/packages/{id}/system-parameters")
-    public CommonResponseDto getSystemParamsByPackageId(@PathVariable(value = "id") String packageId) {
-        List<SystemVariable> systemVariableSet;
-        systemVariableSet = pluginPackageService.getSystemVarsById(packageId);
+    /**
+     * 
+     * @param packageId
+     * @return
+     */
+    @GetMapping("/packages/{package-id}/system-parameters")
+    public CommonResponseDto getSystemParamsByPackageId(@PathVariable(value = "package-id") String packageId) {
+        List<SystemVariable> systemVariableSet = pluginPackageMgmtService.getSystemVarsByPackageId(packageId);
         return okayWithData(systemVariableSet);
     }
 

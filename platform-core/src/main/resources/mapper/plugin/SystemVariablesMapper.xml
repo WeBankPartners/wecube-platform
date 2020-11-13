@@ -176,4 +176,12 @@
         from system_variables
         where source = #{pluginPackageId, jdbcType=VARCHAR}
     </select>
+    
+    <select id="selectAllBySource" resultMap="BaseResultMap"
+        parameterType="java.lang.String">
+        select
+        <include refid="Base_Column_List" />
+        from system_variables
+        where source = #{source, jdbcType=VARCHAR}
+    </select>
 </mapper>
