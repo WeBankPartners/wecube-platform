@@ -167,4 +167,12 @@
             #{status, jdbcType=VARCHAR}    
         </foreach>
     </select>
+    
+    <select id="selectAllByNameAndVersion" resultMap="BaseResultMap" parameterType="java.lang.String">
+        select
+        <include refid="Base_Column_List" />
+        from plugin_packages
+        where name = #{name,jdbcType=VARCHAR}
+        and version = #{version,jdbcType=VARCHAR}
+    </select>
 </mapper>
