@@ -21,13 +21,46 @@ public interface PluginPackagesMapper {
 
     int updateByPrimaryKey(PluginPackages record);
     
+    /**
+     * 
+     * @param name
+     * @param version
+     * @return
+     */
     int countByNameAndVersion(@Param("name")String name, @Param("version")String version);
     
+    /**
+     * 
+     * @return
+     */
     List<PluginPackages> selectAll();
     
+    /**
+     * 
+     * @return
+     */
     List<PluginPackages> selectAllDistinctPackages();
     
+    /**
+     * 
+     * @param name
+     * @return
+     */
     List<PluginPackages> selectAllByName(@Param("name")String name);
     
+    /**
+     * 
+     * @param name
+     * @param statuses
+     * @return
+     */
     List<PluginPackages> selectAllByNameAndStatuses(@Param("name")String name, @Param("statuses")List<String> statuses);
+    
+    /**
+     * 
+     * @param name
+     * @param version
+     * @return
+     */
+    List<PluginPackages> selectAllByNameAndVersion(@Param("name")String name, @Param("version")String version);
 }
