@@ -5,8 +5,8 @@ import static com.webank.wecube.platform.core.domain.plugin.PluginConfig.Status.
 import static com.webank.wecube.platform.core.domain.plugin.PluginConfig.Status.ENABLED;
 import static com.webank.wecube.platform.core.domain.plugin.PluginPackage.Status.DECOMMISSIONED;
 import static com.webank.wecube.platform.core.domain.plugin.PluginPackage.Status.UNREGISTERED;
-import static com.webank.wecube.platform.core.dto.PluginConfigInterfaceParameterDto.MappingType.entity;
-import static com.webank.wecube.platform.core.dto.PluginConfigInterfaceParameterDto.MappingType.system_variable;
+import static com.webank.wecube.platform.core.dto.plugin.PluginConfigInterfaceParameterDto.MappingType.entity;
+import static com.webank.wecube.platform.core.dto.plugin.PluginConfigInterfaceParameterDto.MappingType.system_variable;
 
 import java.sql.Timestamp;
 import java.util.ArrayList;
@@ -36,10 +36,10 @@ import com.webank.wecube.platform.core.domain.plugin.PluginConfigInterfaceParame
 import com.webank.wecube.platform.core.domain.plugin.PluginPackage;
 import com.webank.wecube.platform.core.domain.plugin.PluginPackageDataModel;
 import com.webank.wecube.platform.core.domain.plugin.PluginPackageEntity;
-import com.webank.wecube.platform.core.dto.PluginConfigDto;
-import com.webank.wecube.platform.core.dto.PluginConfigInterfaceDto;
 import com.webank.wecube.platform.core.dto.PluginConfigRoleRequestDto;
 import com.webank.wecube.platform.core.dto.TargetEntityFilterRuleDto;
+import com.webank.wecube.platform.core.dto.plugin.PluginConfigDto;
+import com.webank.wecube.platform.core.dto.plugin.PluginConfigInterfaceDto;
 import com.webank.wecube.platform.core.dto.user.RoleDto;
 import com.webank.wecube.platform.core.entity.PluginAuthEntity;
 import com.webank.wecube.platform.core.jpa.PluginAuthRepository;

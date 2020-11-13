@@ -1,4 +1,4 @@
-package com.webank.wecube.platform.core.dto;
+package com.webank.wecube.platform.core.dto.plugin;
 
 import com.webank.wecube.platform.core.domain.plugin.PluginConfigInterface;
 import com.webank.wecube.platform.core.domain.plugin.PluginConfigInterfaceParameter;
@@ -131,19 +131,19 @@ public class PluginConfigInterfaceParameterDto {
         return parameter;
     }
 
-    public static PluginConfigInterfaceParameterDto fromDomain(PluginConfigInterfaceParameter pluginConfigInterfaceParameter) {
-        PluginConfigInterfaceParameterDto pluginConfigInterfaceParameterDto = new PluginConfigInterfaceParameterDto();
-        pluginConfigInterfaceParameterDto.setId(pluginConfigInterfaceParameter.getId());
-        pluginConfigInterfaceParameterDto.setPluginConfigInterfaceId(pluginConfigInterfaceParameter.getPluginConfigInterface().getId());
-        pluginConfigInterfaceParameterDto.setType(pluginConfigInterfaceParameter.getType());
-        pluginConfigInterfaceParameterDto.setName(pluginConfigInterfaceParameter.getName());
-        pluginConfigInterfaceParameterDto.setDataType(pluginConfigInterfaceParameter.getDataType());
-        pluginConfigInterfaceParameterDto.setMappingType(pluginConfigInterfaceParameter.getMappingType());
-        pluginConfigInterfaceParameterDto.setMappingEntityExpression(pluginConfigInterfaceParameter.getMappingEntityExpression());
-        pluginConfigInterfaceParameterDto.setMappingSystemVariableName(pluginConfigInterfaceParameter.getMappingSystemVariableName());
-        pluginConfigInterfaceParameterDto.setRequired(pluginConfigInterfaceParameter.getRequired());
-        pluginConfigInterfaceParameterDto.setSensitiveData(pluginConfigInterfaceParameter.getSensitiveData());
-        return pluginConfigInterfaceParameterDto;
+    public static PluginConfigInterfaceParameterDto fromDomain(PluginConfigInterfaceParameter entity) {
+        PluginConfigInterfaceParameterDto dto = new PluginConfigInterfaceParameterDto();
+        dto.setId(entity.getId());
+        dto.setPluginConfigInterfaceId(entity.getPluginConfigInterface().getId());
+        dto.setType(entity.getType());
+        dto.setName(entity.getName());
+        dto.setDataType(entity.getDataType());
+        dto.setMappingType(entity.getMappingType());
+        dto.setMappingEntityExpression(entity.getMappingEntityExpression());
+        dto.setMappingSystemVariableName(entity.getMappingSystemVariableName());
+        dto.setRequired(entity.getRequired());
+        dto.setSensitiveData(entity.getSensitiveData());
+        return dto;
     }
 
     public String getSensitiveData() {

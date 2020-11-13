@@ -6,8 +6,10 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -18,28 +20,50 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 import com.google.common.collect.Sets;
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
 import com.webank.wecube.platform.core.dto.MenuItemDto;
 import com.webank.wecube.platform.core.dto.PluginPackageDependencyDto;
 import com.webank.wecube.platform.core.dto.PluginPackageInfoDto;
+import com.webank.wecube.platform.core.dto.plugin.PluginConfigDto;
+import com.webank.wecube.platform.core.dto.plugin.PluginConfigGroupByNameDto;
+import com.webank.wecube.platform.core.dto.plugin.PluginConfigInterfaceDto;
+import com.webank.wecube.platform.core.dto.plugin.PluginConfigInterfaceParameterDto;
+import com.webank.wecube.platform.core.dto.plugin.PluginPackageAuthoritiesDto;
+import com.webank.wecube.platform.core.dto.plugin.PluginPackageRuntimeResouceDto;
+import com.webank.wecube.platform.core.dto.plugin.PluginPackageRuntimeResourcesDockerDto;
+import com.webank.wecube.platform.core.dto.plugin.PluginPackageRuntimeResourcesMysqlDto;
+import com.webank.wecube.platform.core.dto.plugin.PluginPackageRuntimeResourcesS3Dto;
 import com.webank.wecube.platform.core.dto.plugin.SystemVariableDto;
 import com.webank.wecube.platform.core.dto.user.RoleDto;
 import com.webank.wecube.platform.core.entity.plugin.MenuItems;
+import com.webank.wecube.platform.core.entity.plugin.PluginConfigInterfaceParameters;
+import com.webank.wecube.platform.core.entity.plugin.PluginConfigInterfaces;
+import com.webank.wecube.platform.core.entity.plugin.PluginConfigRoles;
 import com.webank.wecube.platform.core.entity.plugin.PluginConfigs;
 import com.webank.wecube.platform.core.entity.plugin.PluginInstances;
 import com.webank.wecube.platform.core.entity.plugin.PluginPackageAuthorities;
 import com.webank.wecube.platform.core.entity.plugin.PluginPackageDependencies;
 import com.webank.wecube.platform.core.entity.plugin.PluginPackageMenus;
+import com.webank.wecube.platform.core.entity.plugin.PluginPackageRuntimeResourcesDocker;
+import com.webank.wecube.platform.core.entity.plugin.PluginPackageRuntimeResourcesMysql;
+import com.webank.wecube.platform.core.entity.plugin.PluginPackageRuntimeResourcesS3;
 import com.webank.wecube.platform.core.entity.plugin.PluginPackages;
 import com.webank.wecube.platform.core.entity.plugin.SystemVariables;
 import com.webank.wecube.platform.core.repository.plugin.MenuItemsMapper;
+import com.webank.wecube.platform.core.repository.plugin.PluginConfigInterfaceParametersMapper;
+import com.webank.wecube.platform.core.repository.plugin.PluginConfigInterfacesMapper;
+import com.webank.wecube.platform.core.repository.plugin.PluginConfigRolesMapper;
 import com.webank.wecube.platform.core.repository.plugin.PluginConfigsMapper;
 import com.webank.wecube.platform.core.repository.plugin.PluginInstancesMapper;
 import com.webank.wecube.platform.core.repository.plugin.PluginPackageAuthoritiesMapper;
 import com.webank.wecube.platform.core.repository.plugin.PluginPackageDependenciesMapper;
 import com.webank.wecube.platform.core.repository.plugin.PluginPackageMenusMapper;
+import com.webank.wecube.platform.core.repository.plugin.PluginPackageRuntimeResourcesDockerMapper;
+import com.webank.wecube.platform.core.repository.plugin.PluginPackageRuntimeResourcesMysqlMapper;
+import com.webank.wecube.platform.core.repository.plugin.PluginPackageRuntimeResourcesS3Mapper;
 import com.webank.wecube.platform.core.repository.plugin.PluginPackagesMapper;
 import com.webank.wecube.platform.core.service.user.RoleMenuService;
 import com.webank.wecube.platform.core.support.authserver.AsAuthorityDto;
@@ -48,6 +72,7 @@ import com.webank.wecube.platform.core.utils.DateUtils;
 import com.webank.wecube.platform.core.utils.StringUtilsEx;
 import com.webank.wecube.platform.core.utils.SystemUtils;
 
+@Service
 public class PluginPackageMgmtService extends AbstractPluginMgmtService {
     private static final Logger log = LoggerFactory.getLogger(PluginPackageMgmtService.class);
 
@@ -73,6 +98,24 @@ public class PluginPackageMgmtService extends AbstractPluginMgmtService {
 
     @Autowired
     private PluginPackageMenusMapper pluginPackageMenusMapper;
+
+    @Autowired
+    private PluginPackageRuntimeResourcesDockerMapper pluginPackageRuntimeResourcesDockerMapper;
+
+    @Autowired
+    private PluginPackageRuntimeResourcesMysqlMapper pluginPackageRuntimeResourcesMysqlMapper;
+
+    @Autowired
+    private PluginPackageRuntimeResourcesS3Mapper pluginPackageRuntimeResourcesS3Mapper;
+
+    @Autowired
+    private PluginConfigInterfacesMapper pluginConfigInterfacesMapper;
+
+    @Autowired
+    private PluginConfigInterfaceParametersMapper pluginConfigInterfaceParametersMapper;
+    
+    @Autowired
+    private PluginConfigRolesMapper pluginConfigRolesMapper;
 
     @Autowired
     private RoleMenuService roleMenuService;
@@ -250,7 +293,8 @@ public class PluginPackageMgmtService extends AbstractPluginMgmtService {
                 throw new WecubeCoreException("3101", msg, pluginPackageMenusEntity.getCategory());
             }
 
-            MenuItemDto pluginPackageMenuItemDto = buildPackageMenuItemDto(pluginPackageMenusEntity, sysMenusItemEntity);
+            MenuItemDto pluginPackageMenuItemDto = buildPackageMenuItemDto(pluginPackageMenusEntity,
+                    sysMenusItemEntity);
             resultMenuItemDtos.add(pluginPackageMenuItemDto);
         }
 
@@ -264,25 +308,323 @@ public class PluginPackageMgmtService extends AbstractPluginMgmtService {
      * @return
      */
     public List<SystemVariableDto> getSystemVarsByPackageId(String packageId) {
-        List<SystemVariableDto> resultDtos = new ArrayList<>(); 
-        
-        
+        List<SystemVariableDto> resultDtos = new ArrayList<>();
+
         List<SystemVariables> systemVariablesEntities = systemVariablesMapper.selectAllBySource(packageId);
-        
-        if(systemVariablesEntities == null || systemVariablesEntities.isEmpty()){
+
+        if (systemVariablesEntities == null || systemVariablesEntities.isEmpty()) {
             return resultDtos;
         }
-        
-        
-        for(SystemVariables systemVarEntity : systemVariablesEntities){
+
+        for (SystemVariables systemVarEntity : systemVariablesEntities) {
             SystemVariableDto dto = buildSystemVariableDto(systemVarEntity);
             resultDtos.add(dto);
         }
+
+        return resultDtos;
+    }
+
+    /**
+     * 
+     * @param packageId
+     * @return
+     */
+    public List<PluginPackageAuthoritiesDto> getAuthoritiesByPackageId(String pluginPackageId) {
+        List<PluginPackageAuthoritiesDto> resultDtos = new ArrayList<>();
+
+        List<PluginPackageAuthorities> authoritiesEntities = pluginPackageAuthoritiesMapper
+                .selectAllByPackage(pluginPackageId);
+
+        if (authoritiesEntities == null || authoritiesEntities.isEmpty()) {
+            return resultDtos;
+        }
+
+        for (PluginPackageAuthorities entity : authoritiesEntities) {
+            PluginPackageAuthoritiesDto dto = new PluginPackageAuthoritiesDto();
+            dto.setId(entity.getId());
+            dto.setMenuCode(entity.getMenuCode());
+            dto.setPluginPackageId(entity.getPluginPackageId());
+            dto.setRoleName(entity.getRoleName());
+
+            resultDtos.add(dto);
+        }
+
+        return resultDtos;
+
+    }
+
+    /**
+     * 
+     * @param pluginPackageId
+     * @return
+     */
+    public PluginPackageRuntimeResouceDto getResourcesByPackageId(String pluginPackageId) {
+
+        PluginPackageRuntimeResouceDto resultDto = new PluginPackageRuntimeResouceDto();
+        List<PluginPackageRuntimeResourcesDocker> dockerEntities = pluginPackageRuntimeResourcesDockerMapper
+                .selectAllByPackage(pluginPackageId);
+
+        List<PluginPackageRuntimeResourcesDockerDto> dockerDtos = new ArrayList<>();
+        if (dockerEntities != null) {
+            for (PluginPackageRuntimeResourcesDocker entity : dockerEntities) {
+                PluginPackageRuntimeResourcesDockerDto dto = new PluginPackageRuntimeResourcesDockerDto();
+                dto.setContainerName(entity.getContainerName());
+                dto.setEnvVariables(entity.getEnvVariables());
+                dto.setId(entity.getId());
+                dto.setImageName(entity.getImageName());
+                dto.setPluginPackageId(entity.getPluginPackageId());
+                dto.setPortBindings(entity.getPortBindings());
+                dto.setVolumeBindings(entity.getVolumeBindings());
+
+                dockerDtos.add(dto);
+            }
+        }
+
+        resultDto.setDockerSet(dockerDtos);
+
+        List<PluginPackageRuntimeResourcesMysqlDto> mysqlDtos = new ArrayList<>();
+        List<PluginPackageRuntimeResourcesMysql> mysqlEntities = pluginPackageRuntimeResourcesMysqlMapper
+                .selectAllByPackage(pluginPackageId);
+        if (mysqlEntities != null) {
+            for (PluginPackageRuntimeResourcesMysql entity : mysqlEntities) {
+                PluginPackageRuntimeResourcesMysqlDto dto = new PluginPackageRuntimeResourcesMysqlDto();
+                dto.setId(entity.getId());
+                dto.setInitFileName(entity.getInitFileName());
+                dto.setPluginPackageId(entity.getPluginPackageId());
+                dto.setSchemaName(entity.getSchemaName());
+                dto.setUpgradeFileName(dto.getUpgradeFileName());
+
+                mysqlDtos.add(dto);
+            }
+        }
+
+        resultDto.setMysqlSet(mysqlDtos);
+
+        List<PluginPackageRuntimeResourcesS3Dto> s3Dtos = new ArrayList<>();
+
+        List<PluginPackageRuntimeResourcesS3> s3Entities = pluginPackageRuntimeResourcesS3Mapper
+                .selectAllByPackage(pluginPackageId);
+
+        if (s3Entities != null) {
+            for (PluginPackageRuntimeResourcesS3 entity : s3Entities) {
+                PluginPackageRuntimeResourcesS3Dto dto = new PluginPackageRuntimeResourcesS3Dto();
+                dto.setBucketName(entity.getBucketName());
+                dto.setId(entity.getId());
+                dto.setPluginPackageId(entity.getPluginPackageId());
+
+                s3Dtos.add(dto);
+            }
+        }
+
+        resultDto.setS3Set(s3Dtos);
+
+        return resultDto;
+    }
+
+    /**
+     * 
+     * @param packageId
+     * @return
+     */
+    public List<PluginConfigGroupByNameDto> getRichPluginConfigsByPackageId(String pluginPackageId) {
+        List<PluginConfigGroupByNameDto> resultDtos = new ArrayList<>();
         
+        PluginPackages pluginPackageEntity = pluginPackagesMapper.selectByPrimaryKey(pluginPackageId);
+        if (pluginPackageEntity == null) {
+            return resultDtos;
+        }
+        
+        List<PluginConfigs> pluginConfigsEntities = pluginConfigsMapper.selectAllByPackageAndOrderByConfigName(pluginPackageId);
+        if(pluginConfigsEntities == null || pluginConfigsEntities.isEmpty()){
+            return resultDtos;
+        }
+        
+        Map<String, PluginConfigGroupByNameDto> nameAndConfigMap = new HashMap<String, PluginConfigGroupByNameDto>();
+        for(PluginConfigs pluginConfigsEntity : pluginConfigsEntities){
+            PluginConfigDto pluginConfigDto = buildRichPluginConfigDto(pluginConfigsEntity, pluginPackageEntity);
+            Map<String, List<String>> permToRoles = fetchPermissionToRoles(pluginConfigsEntity);
+            pluginConfigDto.addAllPermissionToRole(permToRoles);
+            
+            String name = pluginConfigDto.getName();
+            PluginConfigGroupByNameDto groupedDto = nameAndConfigMap.get(name);
+            if(groupedDto == null){
+                groupedDto = new PluginConfigGroupByNameDto();
+                groupedDto.setPluginConfigName(name);
+                
+                nameAndConfigMap.put(name, groupedDto);
+            }
+            
+            groupedDto.addPluginConfigDto(pluginConfigDto);
+        }
+        
+        resultDtos.addAll(nameAndConfigMap.values());
         return resultDtos;
     }
     
-    private SystemVariableDto buildSystemVariableDto(SystemVariables entity){
+    /**
+     * 
+     * @param packageId
+     * @return
+     */
+    public List<PluginConfigGroupByNameDto> getPluginConfigsByPackageId(String pluginPackageId) {
+        //needInterfaceInfo == false
+        List<PluginConfigGroupByNameDto> resultDtos = new ArrayList<>();
+        
+        PluginPackages pluginPackageEntity = pluginPackagesMapper.selectByPrimaryKey(pluginPackageId);
+        if (pluginPackageEntity == null) {
+            return resultDtos;
+        }
+        
+        List<PluginConfigs> pluginConfigsEntities = pluginConfigsMapper.selectAllByPackageAndOrderByConfigName(pluginPackageId);
+        if(pluginConfigsEntities == null || pluginConfigsEntities.isEmpty()){
+            return resultDtos;
+        }
+        
+        Map<String, PluginConfigGroupByNameDto> nameAndConfigMap = new HashMap<String, PluginConfigGroupByNameDto>();
+        for(PluginConfigs pluginConfigsEntity : pluginConfigsEntities){
+            PluginConfigDto pluginConfigDto = buildPluginConfigDto(pluginConfigsEntity, pluginPackageEntity);
+            Map<String, List<String>> permToRoles = fetchPermissionToRoles(pluginConfigsEntity);
+            pluginConfigDto.addAllPermissionToRole(permToRoles);
+            
+            String name = pluginConfigDto.getName();
+            PluginConfigGroupByNameDto groupedDto = nameAndConfigMap.get(name);
+            if(groupedDto == null){
+                groupedDto = new PluginConfigGroupByNameDto();
+                groupedDto.setPluginConfigName(name);
+                
+                nameAndConfigMap.put(name, groupedDto);
+            }
+            
+            groupedDto.addPluginConfigDto(pluginConfigDto);
+        }
+        
+        resultDtos.addAll(nameAndConfigMap.values());
+        return resultDtos;
+    }
+    
+    private  PluginConfigDto buildPluginConfigDto(PluginConfigs configEntity, PluginPackages pluginPackageEntity) {
+        PluginConfigDto resultDto = new PluginConfigDto();
+        resultDto.setId(configEntity.getId());
+        resultDto.setName(configEntity.getName());
+        resultDto.setTargetEntityWithFilterRule(configEntity.getTargetEntityWithFilterRule());
+        resultDto.setRegisterName(configEntity.getRegisterName());
+        resultDto.setPluginPackageId(pluginPackageEntity.getId());
+        resultDto.setStatus(configEntity.getStatus());
+        return resultDto;
+    }
+
+    private PluginConfigDto buildRichPluginConfigDto(PluginConfigs configEntity, PluginPackages pluginPackageEntity) {
+        PluginConfigDto resultDto = new PluginConfigDto();
+        resultDto.setId(configEntity.getId());
+        resultDto.setName(configEntity.getName());
+        resultDto.setTargetEntityWithFilterRule(configEntity.getTargetEntityWithFilterRule());
+        resultDto.setRegisterName(configEntity.getRegisterName());
+        resultDto.setPluginPackageId(pluginPackageEntity.getId());
+        resultDto.setStatus(configEntity.getStatus());
+
+        List<PluginConfigInterfaces> intfEntities = pluginConfigInterfacesMapper
+                .selectAllByPluginConfig(configEntity.getId());
+
+        if (intfEntities != null) {
+            List<PluginConfigInterfaceDto> intfDtos = new ArrayList<>();
+            for (PluginConfigInterfaces intfEntity : intfEntities) {
+                PluginConfigInterfaceDto intfDto = buildRichPluginConfigInterfaceDto(intfEntity, configEntity);
+                intfDtos.add(intfDto);
+            }
+
+            resultDto.setInterfaces(intfDtos);
+        }
+        return resultDto;
+    }
+
+    private PluginConfigInterfaceDto buildRichPluginConfigInterfaceDto(PluginConfigInterfaces intfEntity,
+            PluginConfigs pluginConfigsEntity) {
+
+        PluginConfigInterfaceDto resultDto = new PluginConfigInterfaceDto();
+        resultDto.setId(intfEntity.getId());
+        resultDto.setPluginConfigId(pluginConfigsEntity.getId());
+
+        resultDto.setPath(intfEntity.getPath());
+        resultDto.setServiceName(intfEntity.getServiceName());
+        resultDto.setServiceDisplayName(intfEntity.getServiceDisplayName());
+        resultDto.setAction(intfEntity.getAction());
+        resultDto.setHttpMethod(intfEntity.getHttpMethod());
+        resultDto.setIsAsyncProcessing(intfEntity.getIsAsyncProcessing());
+        resultDto.setFilterRule(intfEntity.getFilterRule());
+
+        List<PluginConfigInterfaceParameters> inputParamEntities = this.pluginConfigInterfaceParametersMapper
+                .selectAllByConfigInterfaceAndParamType(intfEntity.getId(), PluginConfigInterfaceParameters.TYPE_INPUT);
+        
+        if(inputParamEntities != null){
+            List<PluginConfigInterfaceParameterDto> inputParamDtos = new ArrayList<>();
+            for(PluginConfigInterfaceParameters paramEntity : inputParamEntities){
+                PluginConfigInterfaceParameterDto inputParamDto = buildRichPluginConfigInterfaceParameterDto(paramEntity, intfEntity);
+                inputParamDtos.add(inputParamDto);
+            }
+            
+            resultDto.setInputParameters(inputParamDtos);
+        }
+        
+        List<PluginConfigInterfaceParameters> outputParamEntities = this.pluginConfigInterfaceParametersMapper
+                .selectAllByConfigInterfaceAndParamType(intfEntity.getId(), PluginConfigInterfaceParameters.TYPE_OUTPUT);
+        
+        if(outputParamEntities != null){
+            List<PluginConfigInterfaceParameterDto> outputParamDtos = new ArrayList<>();
+            for(PluginConfigInterfaceParameters paramEntity : outputParamEntities){
+                PluginConfigInterfaceParameterDto outputParamDto = buildRichPluginConfigInterfaceParameterDto(paramEntity, intfEntity);
+                outputParamDtos.add(outputParamDto);
+            }
+            
+            resultDto.setOutputParameters(outputParamDtos);
+        }
+        
+        return resultDto;
+    }
+
+    private PluginConfigInterfaceParameterDto buildRichPluginConfigInterfaceParameterDto(
+            PluginConfigInterfaceParameters entity, PluginConfigInterfaces pluginConfigIntfEntity) {
+        PluginConfigInterfaceParameterDto dto = new PluginConfigInterfaceParameterDto();
+        dto.setId(entity.getId());
+        dto.setPluginConfigInterfaceId(pluginConfigIntfEntity.getId());
+        dto.setType(entity.getType());
+        dto.setName(entity.getName());
+        dto.setDataType(entity.getDataType());
+        dto.setMappingType(entity.getMappingType());
+        dto.setMappingEntityExpression(entity.getMappingEntityExpression());
+        dto.setMappingSystemVariableName(entity.getMappingSystemVariableName());
+        dto.setRequired(entity.getRequired());
+        dto.setSensitiveData(entity.getSensitiveData());
+        return dto;
+    }
+
+    private Map<String, List<String>> fetchPermissionToRoles(PluginConfigs pluginConfig) {
+        Map<String, List<String>> permissionToRoles = new HashMap<String, List<String>>();
+        if (pluginConfig == null) {
+            return permissionToRoles;
+        }
+
+        if (StringUtils.isBlank(pluginConfig.getId())) {
+            return permissionToRoles;
+        }
+        
+        List<PluginConfigRoles> configRolesEntities = pluginConfigRolesMapper.selectAllByPluginConfig(pluginConfig.getId());
+        if(configRolesEntities == null || configRolesEntities.isEmpty()){
+            return permissionToRoles;
+        }
+
+
+        for (PluginConfigRoles permEntity : configRolesEntities) {
+            List<String> roleIdsOfPerm = permissionToRoles.get(permEntity.getPermType());
+            if (roleIdsOfPerm == null) {
+                roleIdsOfPerm = new ArrayList<String>();
+                permissionToRoles.put(permEntity.getPermType(), roleIdsOfPerm);
+            }
+            roleIdsOfPerm.add(permEntity.getRoleId());
+        }
+        return permissionToRoles;
+    }
+
+    private SystemVariableDto buildSystemVariableDto(SystemVariables entity) {
         SystemVariableDto dto = new SystemVariableDto();
         dto.setDefaultValue(entity.getDefaultValue());
         dto.setId(entity.getId());
@@ -292,7 +634,7 @@ public class PluginPackageMgmtService extends AbstractPluginMgmtService {
         dto.setSource(entity.getSource());
         dto.setStatus(entity.getStatus());
         dto.setValue(entity.getValue());
-        
+
         return dto;
     }
 

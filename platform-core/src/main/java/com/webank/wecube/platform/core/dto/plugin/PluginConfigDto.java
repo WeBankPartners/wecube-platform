@@ -1,4 +1,4 @@
-package com.webank.wecube.platform.core.dto;
+package com.webank.wecube.platform.core.dto.plugin;
 
 import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.collect.Sets.newLinkedHashSet;
@@ -125,21 +125,21 @@ public class PluginConfigDto {
         return pluginConfig;
     }
 
-    public static PluginConfigDto fromDomain(PluginConfig pluginConfig) {
-        PluginConfigDto pluginConfigDto = new PluginConfigDto();
-        pluginConfigDto.setId(pluginConfig.getId());
-        pluginConfigDto.setName(pluginConfig.getName());
-        pluginConfigDto.setTargetEntityWithFilterRule(pluginConfig.getTargetEntityWithFilterRule());
-        pluginConfigDto.setRegisterName(pluginConfig.getRegisterName());
-        pluginConfigDto.setPluginPackageId(pluginConfig.getPluginPackage().getId());
-        pluginConfigDto.setStatus(pluginConfig.getStatus().name());
+    public static PluginConfigDto fromDomain(PluginConfig entity) {
+        PluginConfigDto dto = new PluginConfigDto();
+        dto.setId(entity.getId());
+        dto.setName(entity.getName());
+        dto.setTargetEntityWithFilterRule(entity.getTargetEntityWithFilterRule());
+        dto.setRegisterName(entity.getRegisterName());
+        dto.setPluginPackageId(entity.getPluginPackage().getId());
+        dto.setStatus(entity.getStatus().name());
         List<PluginConfigInterfaceDto> interfaces = newArrayList();
-        if (null != pluginConfig.getInterfaces() && pluginConfig.getInterfaces().size() > 0) {
-            pluginConfig.getInterfaces().forEach(pluginConfigInterface -> interfaces
+        if (null != entity.getInterfaces() && entity.getInterfaces().size() > 0) {
+            entity.getInterfaces().forEach(pluginConfigInterface -> interfaces
                     .add(PluginConfigInterfaceDto.fromDomain(pluginConfigInterface)));
         }
-        pluginConfigDto.setInterfaces(interfaces);
-        return pluginConfigDto;
+        dto.setInterfaces(interfaces);
+        return dto;
     }
 
     public static PluginConfigDto fromDomainWithoutInterfaces(PluginConfig pluginConfig) {

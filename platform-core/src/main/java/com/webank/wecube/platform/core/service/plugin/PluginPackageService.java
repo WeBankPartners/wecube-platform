@@ -57,14 +57,14 @@ import com.webank.wecube.platform.core.domain.plugin.PluginPackageRuntimeResourc
 import com.webank.wecube.platform.core.domain.plugin.PluginPackageRuntimeResourcesS3;
 import com.webank.wecube.platform.core.domain.plugin.RoleBind;
 import com.webank.wecube.platform.core.dto.MenuItemDto;
-import com.webank.wecube.platform.core.dto.PluginConfigDto;
-import com.webank.wecube.platform.core.dto.PluginConfigGroupByNameDto;
 import com.webank.wecube.platform.core.dto.PluginDeclarationDto;
 import com.webank.wecube.platform.core.dto.PluginPackageDependencyDto;
 import com.webank.wecube.platform.core.dto.PluginPackageDto;
 import com.webank.wecube.platform.core.dto.PluginPackageInfoDto;
-import com.webank.wecube.platform.core.dto.PluginPackageRuntimeResouceDto;
 import com.webank.wecube.platform.core.dto.S3PluginActifactDto;
+import com.webank.wecube.platform.core.dto.plugin.PluginConfigDto;
+import com.webank.wecube.platform.core.dto.plugin.PluginConfigGroupByNameDto;
+import com.webank.wecube.platform.core.dto.plugin.PluginPackageRuntimeResouceDto;
 import com.webank.wecube.platform.core.dto.user.RoleDto;
 import com.webank.wecube.platform.core.dto.workflow.PluginConfigOutlineDto;
 import com.webank.wecube.platform.core.entity.PluginAuthEntity;
@@ -516,66 +516,66 @@ public class PluginPackageService {
 //        return Collections.EMPTY_LIST;
 //    }
 
-    public Set<PluginPackageAuthority> getAuthoritiesById(String packageId) {
-        PluginPackage packageFoundById = getPackageById(packageId);
-        return packageFoundById.getPluginPackageAuthorities();
-    }
+//    public Set<PluginPackageAuthority> getAuthoritiesById(String packageId) {
+//        PluginPackage packageFoundById = getPackageById(packageId);
+//        return packageFoundById.getPluginPackageAuthorities();
+//    }
 
-    public PluginPackageRuntimeResouceDto getResourcesById(String packageId) {
-        PluginPackage packageFoundById = getPackageById(packageId);
-        Set<PluginPackageRuntimeResourcesDocker> dockerSet = packageFoundById.getPluginPackageRuntimeResourcesDocker();
-        Set<PluginPackageRuntimeResourcesMysql> mysqlSet = packageFoundById.getPluginPackageRuntimeResourcesMysql();
-        Set<PluginPackageRuntimeResourcesS3> s3Set = packageFoundById.getPluginPackageRuntimeResourcesS3();
-        return (new PluginPackageRuntimeResouceDto(dockerSet, mysqlSet, s3Set));
-    }
+//    public PluginPackageRuntimeResouceDto getResourcesById(String packageId) {
+//        PluginPackage packageFoundById = getPackageById(packageId);
+//        Set<PluginPackageRuntimeResourcesDocker> dockerSet = packageFoundById.getPluginPackageRuntimeResourcesDocker();
+//        Set<PluginPackageRuntimeResourcesMysql> mysqlSet = packageFoundById.getPluginPackageRuntimeResourcesMysql();
+//        Set<PluginPackageRuntimeResourcesS3> s3Set = packageFoundById.getPluginPackageRuntimeResourcesS3();
+//        return (new PluginPackageRuntimeResouceDto(dockerSet, mysqlSet, s3Set));
+//    }
 
-    public List<PluginConfigGroupByNameDto> getPluginConfigsByPackageId(String packageId, boolean needInterfaceInfo) {
-        List<PluginConfigGroupByNameDto> pluginConfigGroupByNameDtos = new ArrayList<>();
-        List<PluginConfigDto> pluginConfigDtos = new ArrayList<PluginConfigDto>();
-        Optional<PluginPackage> packageFoundById = pluginPackageRepository.findById(packageId);
-        if (!packageFoundById.isPresent()) {
-            return pluginConfigGroupByNameDtos;
-        }
-        Optional<List<PluginConfig>> configsOptional = pluginConfigRepository
-                .findByPluginPackage_idOrderByName(packageId);
-        if (!configsOptional.isPresent()) {
-            return pluginConfigGroupByNameDtos;
-        }
-        List<PluginConfig> configs = configsOptional.get();
-        if (null != configs && configs.size() > 0) {
-            if (needInterfaceInfo) {
-                configs.forEach(pluginConfig -> {
-                    PluginConfigDto pcDto = PluginConfigDto.fromDomain(pluginConfig);
-                    Map<String, List<String>> permToRoles = fetchPermissionToRoles(pluginConfig);
-                    pcDto.addAllPermissionToRole(permToRoles);
-                    pluginConfigDtos.add(pcDto);
-                });
-            } else {
-                configs.forEach(pluginConfig -> {
-                    PluginConfigDto pcDto = PluginConfigDto.fromDomainWithoutInterfaces(pluginConfig);
-                    Map<String, List<String>> permToRoles = fetchPermissionToRoles(pluginConfig);
-                    pcDto.addAllPermissionToRole(permToRoles);
-                    pluginConfigDtos.add(pcDto);
-                });
-            }
-        }
-
-        for (PluginConfigDto cfgDto : pluginConfigDtos) {
-            boolean continueFlag = false;
-            for (PluginConfigGroupByNameDto cfgGroupByName : pluginConfigGroupByNameDtos) {
-                if (cfgDto.getName().equals(cfgGroupByName.getPluginConfigName())) {
-                    cfgGroupByName.getPluginConfigDtoList().add(cfgDto);
-                    continueFlag = true;
-                }
-            }
-            if (continueFlag) {
-                continue;
-            }
-            pluginConfigGroupByNameDtos
-                    .add(new PluginConfigGroupByNameDto(cfgDto.getName(), Lists.newArrayList(cfgDto)));
-        }
-        return pluginConfigGroupByNameDtos;
-    }
+//    public List<PluginConfigGroupByNameDto> getPluginConfigsByPackageId(String packageId, boolean needInterfaceInfo) {
+//        List<PluginConfigGroupByNameDto> pluginConfigGroupByNameDtos = new ArrayList<>();
+//        List<PluginConfigDto> pluginConfigDtos = new ArrayList<PluginConfigDto>();
+//        Optional<PluginPackage> packageFoundById = pluginPackageRepository.findById(packageId);
+//        if (!packageFoundById.isPresent()) {
+//            return pluginConfigGroupByNameDtos;
+//        }
+//        Optional<List<PluginConfig>> configsOptional = pluginConfigRepository
+//                .findByPluginPackage_idOrderByName(packageId);
+//        if (!configsOptional.isPresent()) {
+//            return pluginConfigGroupByNameDtos;
+//        }
+//        List<PluginConfig> configs = configsOptional.get();
+//        if (null != configs && configs.size() > 0) {
+//            if (needInterfaceInfo) {
+//                configs.forEach(pluginConfig -> {
+//                    PluginConfigDto pcDto = PluginConfigDto.fromDomain(pluginConfig);
+//                    Map<String, List<String>> permToRoles = fetchPermissionToRoles(pluginConfig);
+//                    pcDto.addAllPermissionToRole(permToRoles);
+//                    pluginConfigDtos.add(pcDto);
+//                });
+//            } else {
+//                configs.forEach(pluginConfig -> {
+//                    PluginConfigDto pcDto = PluginConfigDto.fromDomainWithoutInterfaces(pluginConfig);
+//                    Map<String, List<String>> permToRoles = fetchPermissionToRoles(pluginConfig);
+//                    pcDto.addAllPermissionToRole(permToRoles);
+//                    pluginConfigDtos.add(pcDto);
+//                });
+//            }
+//        }
+//
+//        for (PluginConfigDto cfgDto : pluginConfigDtos) {
+//            boolean continueFlag = false;
+//            for (PluginConfigGroupByNameDto cfgGroupByName : pluginConfigGroupByNameDtos) {
+//                if (cfgDto.getName().equals(cfgGroupByName.getPluginConfigName())) {
+//                    cfgGroupByName.getPluginConfigDtoList().add(cfgDto);
+//                    continueFlag = true;
+//                }
+//            }
+//            if (continueFlag) {
+//                continue;
+//            }
+//            pluginConfigGroupByNameDtos
+//                    .add(new PluginConfigGroupByNameDto(cfgDto.getName(), Lists.newArrayList(cfgDto)));
+//        }
+//        return pluginConfigGroupByNameDtos;
+//    }
 
     private Map<String, List<String>> fetchPermissionToRoles(PluginConfig pluginConfig) {
         if (pluginConfig == null) {

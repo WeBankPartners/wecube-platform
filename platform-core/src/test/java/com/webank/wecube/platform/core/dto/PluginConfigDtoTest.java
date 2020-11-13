@@ -4,6 +4,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.Test;
 
+import com.webank.wecube.platform.core.dto.plugin.PluginConfigDto;
+
 public class PluginConfigDtoTest {
 
     @Test

@@ -1,5 +1,7 @@
 package com.webank.wecube.platform.core.entity.plugin;
 
+import org.apache.commons.lang3.StringUtils;
+
 public class PluginConfigs {
     public static final String DISABLED = "DISABLED";
     public static final String ENABLED = "ENABLED";
@@ -81,5 +83,9 @@ public class PluginConfigs {
 
     public void setStatus(String status) {
         this.status = status == null ? null : status.trim();
+    }
+    
+    public String getTargetEntityWithFilterRule() {
+        return StringUtils.join(targetPackage, ":", targetEntity, targetEntityFilterRule);
     }
 }

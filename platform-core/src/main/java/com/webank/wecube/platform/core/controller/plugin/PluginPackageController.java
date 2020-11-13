@@ -4,7 +4,6 @@ import static com.webank.wecube.platform.core.dto.CommonResponseDto.okay;
 import static com.webank.wecube.platform.core.dto.CommonResponseDto.okayWithData;
 
 import java.util.List;
-import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -17,14 +16,14 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
-import com.webank.wecube.platform.core.domain.plugin.PluginPackageAuthority;
 import com.webank.wecube.platform.core.dto.CommonResponseDto;
 import com.webank.wecube.platform.core.dto.MenuItemDto;
 import com.webank.wecube.platform.core.dto.PluginDeclarationDto;
 import com.webank.wecube.platform.core.dto.PluginPackageDependencyDto;
 import com.webank.wecube.platform.core.dto.PluginPackageInfoDto;
-import com.webank.wecube.platform.core.dto.PluginPackageRuntimeResouceDto;
 import com.webank.wecube.platform.core.dto.S3PluginActifactDto;
+import com.webank.wecube.platform.core.dto.plugin.PluginPackageAuthoritiesDto;
+import com.webank.wecube.platform.core.dto.plugin.PluginPackageRuntimeResouceDto;
 import com.webank.wecube.platform.core.dto.plugin.SystemVariableDto;
 import com.webank.wecube.platform.core.dto.plugin.UploadPackageResultDto;
 import com.webank.wecube.platform.core.service.plugin.PluginArtifactsMgmtService;
@@ -37,10 +36,10 @@ public class PluginPackageController {
 
     @Autowired
     private PluginPackageService pluginPackageService;
-    
+
     @Autowired
     private PluginPackageMgmtService pluginPackageMgmtService;
-    
+
     @Autowired
     private PluginArtifactsMgmtService pluginArtifactsMgmtService;
 
@@ -144,7 +143,7 @@ public class PluginPackageController {
      */
     @GetMapping("/packages/{package-id}/dependencies")
     public CommonResponseDto getDependenciesByPackageId(@PathVariable(value = "package-id") String packageId) {
-        PluginPackageDependencyDto dependencyDto  = pluginPackageMgmtService.getDependenciesByPackage(packageId);
+        PluginPackageDependencyDto dependencyDto = pluginPackageMgmtService.getDependenciesByPackage(packageId);
         return okayWithData(dependencyDto);
     }
 
@@ -170,29 +169,46 @@ public class PluginPackageController {
         return okayWithData(systemVariableSet);
     }
 
-    
+    /**
+     * 
+     * @param packageId
+     * @return
+     */
     @GetMapping("/packages/{package-id}/authorities")
     public CommonResponseDto getAuthorityByPackageId(@PathVariable(value = "package-id") String packageId) {
-        Set<PluginPackageAuthority> authoritySet;
-        authoritySet = pluginPackageService.getAuthoritiesById(packageId);
+        List<PluginPackageAuthoritiesDto> authoritySet = pluginPackageMgmtService.getAuthoritiesByPackageId(packageId);
         return okayWithData(authoritySet);
     }
 
+    /**
+     * 
+     * @param packageId
+     * @return
+     */
     @GetMapping("/packages/{package-id}/runtime-resources")
     public CommonResponseDto getResourceByPackageId(@PathVariable(value = "package-id") String packageId) {
-        PluginPackageRuntimeResouceDto resouceFoundById;
-        resouceFoundById = pluginPackageService.getResourcesById(packageId);
+        PluginPackageRuntimeResouceDto resouceFoundById = pluginPackageMgmtService.getResourcesByPackageId(packageId);
         return okayWithData(resouceFoundById);
     }
 
-    @GetMapping("/packages/{id}/plugins")
-    public CommonResponseDto getPluginsByPackageId(@PathVariable(value = "id") String packageId) {
-        return okayWithData(pluginPackageService.getPluginConfigsByPackageId(packageId, true));
+    /**
+     * 
+     * @param packageId
+     * @return
+     */
+    @GetMapping("/packages/{package-id}/plugins")
+    public CommonResponseDto getRichPluginConfigsByPackageId(@PathVariable(value = "package-id") String packageId) {
+        return okayWithData(pluginPackageMgmtService.getRichPluginConfigsByPackageId(packageId));
     }
 
-    @GetMapping("/packages/{id}/plugin-configs")
-    public CommonResponseDto getPluginConfigsByPackageId(@PathVariable(value = "id") String packageId) {
-        return okayWithData(pluginPackageService.getPluginConfigsByPackageId(packageId, false));
+    /**
+     * 
+     * @param packageId
+     * @return
+     */
+    @GetMapping("/packages/{package-id}/plugin-configs")
+    public CommonResponseDto getPluginConfigsByPackageId(@PathVariable(value = "package-id") String packageId) {
+        return okayWithData(pluginPackageMgmtService.getPluginConfigsByPackageId(packageId));
     }
 
     @GetMapping("/packages/{package-id}/plugin-config-outlines")
