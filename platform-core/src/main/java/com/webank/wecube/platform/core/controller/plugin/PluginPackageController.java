@@ -17,7 +17,6 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
-import com.webank.wecube.platform.core.domain.SystemVariable;
 import com.webank.wecube.platform.core.domain.plugin.PluginPackageAuthority;
 import com.webank.wecube.platform.core.dto.CommonResponseDto;
 import com.webank.wecube.platform.core.dto.MenuItemDto;
@@ -26,6 +25,7 @@ import com.webank.wecube.platform.core.dto.PluginPackageDependencyDto;
 import com.webank.wecube.platform.core.dto.PluginPackageInfoDto;
 import com.webank.wecube.platform.core.dto.PluginPackageRuntimeResouceDto;
 import com.webank.wecube.platform.core.dto.S3PluginActifactDto;
+import com.webank.wecube.platform.core.dto.plugin.SystemVariableDto;
 import com.webank.wecube.platform.core.dto.plugin.UploadPackageResultDto;
 import com.webank.wecube.platform.core.service.plugin.PluginArtifactsMgmtService;
 import com.webank.wecube.platform.core.service.plugin.PluginPackageMgmtService;
@@ -166,19 +166,20 @@ public class PluginPackageController {
      */
     @GetMapping("/packages/{package-id}/system-parameters")
     public CommonResponseDto getSystemParamsByPackageId(@PathVariable(value = "package-id") String packageId) {
-        List<SystemVariable> systemVariableSet = pluginPackageMgmtService.getSystemVarsByPackageId(packageId);
+        List<SystemVariableDto> systemVariableSet = pluginPackageMgmtService.getSystemVarsByPackageId(packageId);
         return okayWithData(systemVariableSet);
     }
 
-    @GetMapping("/packages/{id}/authorities")
-    public CommonResponseDto getAuthorityByPackageId(@PathVariable(value = "id") String packageId) {
+    
+    @GetMapping("/packages/{package-id}/authorities")
+    public CommonResponseDto getAuthorityByPackageId(@PathVariable(value = "package-id") String packageId) {
         Set<PluginPackageAuthority> authoritySet;
         authoritySet = pluginPackageService.getAuthoritiesById(packageId);
         return okayWithData(authoritySet);
     }
 
-    @GetMapping("/packages/{id}/runtime-resources")
-    public CommonResponseDto getResourceByPackageId(@PathVariable(value = "id") String packageId) {
+    @GetMapping("/packages/{package-id}/runtime-resources")
+    public CommonResponseDto getResourceByPackageId(@PathVariable(value = "package-id") String packageId) {
         PluginPackageRuntimeResouceDto resouceFoundById;
         resouceFoundById = pluginPackageService.getResourcesById(packageId);
         return okayWithData(resouceFoundById);
