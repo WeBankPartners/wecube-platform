@@ -22,7 +22,6 @@ import com.webank.wecube.platform.core.entity.plugin.PluginPackageMenus;
 import com.webank.wecube.platform.core.entity.plugin.PluginPackages;
 import com.webank.wecube.platform.core.repository.plugin.MenuItemsMapper;
 import com.webank.wecube.platform.core.repository.plugin.PluginPackageMenusMapper;
-import com.webank.wecube.platform.core.service.plugin.PluginPackageService;
 import com.webank.wecube.platform.core.service.user.RoleMenuService;
 
 @Service
@@ -34,9 +33,6 @@ public class MenuService {
 
     @Autowired
     private PluginPackageMenusMapper pluginPackageMenusMapper;
-
-    @Autowired
-    PluginPackageService pluginPackageService;
 
     @Autowired
     private RoleMenuService roleMenuService;
