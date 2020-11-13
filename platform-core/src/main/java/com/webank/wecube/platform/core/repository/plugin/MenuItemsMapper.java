@@ -21,9 +21,22 @@ public interface MenuItemsMapper {
 
     int updateByPrimaryKey(MenuItems record);
     
+    /**
+     * 
+     * @param code
+     * @return
+     */
     MenuItems selectByMenuCode(@Param("code")String code);
     
+    /**
+     * 
+     * @return
+     */
     List<MenuItems> selectAll();
     
+    /**
+     * 
+     * @return
+     */
     List<MenuItems> selectAllRootMenuItems();
 }
