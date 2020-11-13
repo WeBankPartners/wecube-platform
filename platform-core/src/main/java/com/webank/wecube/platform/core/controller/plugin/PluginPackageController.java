@@ -18,24 +18,20 @@ import org.springframework.web.multipart.MultipartFile;
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
 import com.webank.wecube.platform.core.dto.CommonResponseDto;
 import com.webank.wecube.platform.core.dto.MenuItemDto;
-import com.webank.wecube.platform.core.dto.PluginDeclarationDto;
 import com.webank.wecube.platform.core.dto.PluginPackageDependencyDto;
 import com.webank.wecube.platform.core.dto.PluginPackageInfoDto;
 import com.webank.wecube.platform.core.dto.S3PluginActifactDto;
+import com.webank.wecube.platform.core.dto.plugin.PluginDeclarationDto;
 import com.webank.wecube.platform.core.dto.plugin.PluginPackageAuthoritiesDto;
 import com.webank.wecube.platform.core.dto.plugin.PluginPackageRuntimeResouceDto;
 import com.webank.wecube.platform.core.dto.plugin.SystemVariableDto;
 import com.webank.wecube.platform.core.dto.plugin.UploadPackageResultDto;
 import com.webank.wecube.platform.core.service.plugin.PluginArtifactsMgmtService;
 import com.webank.wecube.platform.core.service.plugin.PluginPackageMgmtService;
-import com.webank.wecube.platform.core.service.plugin.PluginPackageService;
 
 @RestController
 @RequestMapping("/v1")
 public class PluginPackageController {
-
-    @Autowired
-    private PluginPackageService pluginPackageService;
 
     @Autowired
     private PluginPackageMgmtService pluginPackageMgmtService;
@@ -211,15 +207,26 @@ public class PluginPackageController {
         return okayWithData(pluginPackageMgmtService.getPluginConfigsByPackageId(packageId));
     }
 
+    /**
+     * 
+     * @param packageId
+     * @return
+     */
     @GetMapping("/packages/{package-id}/plugin-config-outlines")
     public CommonResponseDto getPluginConfigOutlinesByPackageId(@PathVariable(value = "package-id") String packageId) {
-        return okayWithData(pluginPackageService.getPluginConfigOutlinesByPackageId(packageId));
+        return okayWithData(pluginPackageMgmtService.getPluginConfigOutlinesByPackageId(packageId));
     }
 
+    /**
+     * 
+     * @param packageId
+     * @param pluginDeclarationDtos
+     * @return
+     */
     @PostMapping("/packages/{package-id}/plugin-configs/enable-in-batch")
     public CommonResponseDto enablePluginConfigInBatch(@PathVariable(value = "package-id") String packageId,
             @RequestBody List<PluginDeclarationDto> pluginDeclarationDtos) {
-        pluginPackageService.enablePluginConfigInBatchByPackageId(packageId, pluginDeclarationDtos);
+        pluginPackageMgmtService.enablePluginConfigsInBatchByPackageId(packageId, pluginDeclarationDtos);
         return okay();
     }
 
