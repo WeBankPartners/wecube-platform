@@ -20,7 +20,7 @@ import com.webank.wecube.platform.core.DatabaseBasedTest;
 import com.webank.wecube.platform.core.domain.plugin.PluginConfig;
 import com.webank.wecube.platform.core.domain.plugin.PluginConfigInterface;
 import com.webank.wecube.platform.core.domain.plugin.PluginPackage;
-import com.webank.wecube.platform.core.dto.PluginConfigInterfaceDto;
+import com.webank.wecube.platform.core.dto.plugin.PluginConfigInterfaceDto;
 import com.webank.wecube.platform.core.jpa.PluginPackageRepository;
 
 public class PluginConfigServiceTest extends DatabaseBasedTest {
