@@ -27,4 +27,27 @@ public interface PluginConfigsMapper {
      * @return
      */
     List<PluginConfigs> selectAllByPackageAndOrderByConfigName(@Param("pluginPackageId") String pluginPackageId);
+
+    /**
+     * 
+     * @param pluginPackageId
+     * @return
+     */
+    List<PluginConfigs> selectAllByPackageAndRegNameIsNull(@Param("pluginPackageId") String pluginPackageId);
+
+    /**
+     * 
+     * @param pluginPackageId
+     * @return
+     */
+    List<PluginConfigs> selectAllByPackageAndRegNameIsNotNull(@Param("pluginPackageId") String pluginPackageId);
+
+    /**
+     * 
+     * @param pluginPackageId
+     * @param name
+     * @return
+     */
+    List<PluginConfigs> selectAllByPackageAndNameAndRegNameIsNotNull(@Param("pluginPackageId") String pluginPackageId,
+            @Param("name") String name);
 }

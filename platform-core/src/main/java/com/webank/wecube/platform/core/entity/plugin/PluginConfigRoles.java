@@ -3,6 +3,8 @@ package com.webank.wecube.platform.core.entity.plugin;
 import java.util.Date;
 
 public class PluginConfigRoles {
+    public static final String PERM_TYPE_MGMT = "MGMT";
+    public static final String PERM_TYPE_USE = "USE";
     private String id;
 
     private String createdBy;

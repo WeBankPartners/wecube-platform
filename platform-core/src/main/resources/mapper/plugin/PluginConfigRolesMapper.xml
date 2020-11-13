@@ -334,4 +334,14 @@
         from plugin_config_roles
         where plugin_cfg_id = #{pluginConfigId,jdbcType=VARCHAR}
     </select>
+    
+    <select id="selectAllByPluginConfigAndPerm" parameterType="java.lang.String"
+        resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List" />
+        from plugin_config_roles
+        where plugin_cfg_id = #{pluginConfigId,jdbcType=VARCHAR}
+        and
+        perm_type = #{permission,jdbcType=VARCHAR}
+    </select>
 </mapper>
