@@ -23,6 +23,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.google.common.collect.Sets;
+import com.webank.wecube.platform.core.commons.AuthenticationContextHolder;
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
 import com.webank.wecube.platform.core.dto.MenuItemDto;
 import com.webank.wecube.platform.core.dto.PluginPackageDependencyDto;
@@ -31,6 +32,8 @@ import com.webank.wecube.platform.core.dto.plugin.PluginConfigDto;
 import com.webank.wecube.platform.core.dto.plugin.PluginConfigGroupByNameDto;
 import com.webank.wecube.platform.core.dto.plugin.PluginConfigInterfaceDto;
 import com.webank.wecube.platform.core.dto.plugin.PluginConfigInterfaceParameterDto;
+import com.webank.wecube.platform.core.dto.plugin.PluginConfigOutlineDto;
+import com.webank.wecube.platform.core.dto.plugin.PluginDeclarationDto;
 import com.webank.wecube.platform.core.dto.plugin.PluginPackageAuthoritiesDto;
 import com.webank.wecube.platform.core.dto.plugin.PluginPackageRuntimeResouceDto;
 import com.webank.wecube.platform.core.dto.plugin.PluginPackageRuntimeResourcesDockerDto;
@@ -68,6 +71,7 @@ import com.webank.wecube.platform.core.repository.plugin.PluginPackagesMapper;
 import com.webank.wecube.platform.core.service.user.RoleMenuService;
 import com.webank.wecube.platform.core.support.authserver.AsAuthorityDto;
 import com.webank.wecube.platform.core.support.authserver.AsRoleAuthoritiesDto;
+import com.webank.wecube.platform.core.utils.CollectionUtils;
 import com.webank.wecube.platform.core.utils.DateUtils;
 import com.webank.wecube.platform.core.utils.StringUtilsEx;
 import com.webank.wecube.platform.core.utils.SystemUtils;
@@ -113,7 +117,7 @@ public class PluginPackageMgmtService extends AbstractPluginMgmtService {
 
     @Autowired
     private PluginConfigInterfaceParametersMapper pluginConfigInterfaceParametersMapper;
-    
+
     @Autowired
     private PluginConfigRolesMapper pluginConfigRolesMapper;
 
@@ -428,81 +432,233 @@ public class PluginPackageMgmtService extends AbstractPluginMgmtService {
      */
     public List<PluginConfigGroupByNameDto> getRichPluginConfigsByPackageId(String pluginPackageId) {
         List<PluginConfigGroupByNameDto> resultDtos = new ArrayList<>();
-        
+
         PluginPackages pluginPackageEntity = pluginPackagesMapper.selectByPrimaryKey(pluginPackageId);
         if (pluginPackageEntity == null) {
             return resultDtos;
         }
-        
-        List<PluginConfigs> pluginConfigsEntities = pluginConfigsMapper.selectAllByPackageAndOrderByConfigName(pluginPackageId);
-        if(pluginConfigsEntities == null || pluginConfigsEntities.isEmpty()){
+
+        List<PluginConfigs> pluginConfigsEntities = pluginConfigsMapper
+                .selectAllByPackageAndOrderByConfigName(pluginPackageId);
+        if (pluginConfigsEntities == null || pluginConfigsEntities.isEmpty()) {
             return resultDtos;
         }
-        
+
         Map<String, PluginConfigGroupByNameDto> nameAndConfigMap = new HashMap<String, PluginConfigGroupByNameDto>();
-        for(PluginConfigs pluginConfigsEntity : pluginConfigsEntities){
+        for (PluginConfigs pluginConfigsEntity : pluginConfigsEntities) {
             PluginConfigDto pluginConfigDto = buildRichPluginConfigDto(pluginConfigsEntity, pluginPackageEntity);
             Map<String, List<String>> permToRoles = fetchPermissionToRoles(pluginConfigsEntity);
             pluginConfigDto.addAllPermissionToRole(permToRoles);
-            
+
             String name = pluginConfigDto.getName();
             PluginConfigGroupByNameDto groupedDto = nameAndConfigMap.get(name);
-            if(groupedDto == null){
+            if (groupedDto == null) {
                 groupedDto = new PluginConfigGroupByNameDto();
                 groupedDto.setPluginConfigName(name);
-                
+
                 nameAndConfigMap.put(name, groupedDto);
             }
-            
+
             groupedDto.addPluginConfigDto(pluginConfigDto);
         }
-        
+
         resultDtos.addAll(nameAndConfigMap.values());
         return resultDtos;
     }
-    
+
     /**
      * 
      * @param packageId
      * @return
      */
     public List<PluginConfigGroupByNameDto> getPluginConfigsByPackageId(String pluginPackageId) {
-        //needInterfaceInfo == false
         List<PluginConfigGroupByNameDto> resultDtos = new ArrayList<>();
-        
+
         PluginPackages pluginPackageEntity = pluginPackagesMapper.selectByPrimaryKey(pluginPackageId);
         if (pluginPackageEntity == null) {
             return resultDtos;
         }
-        
-        List<PluginConfigs> pluginConfigsEntities = pluginConfigsMapper.selectAllByPackageAndOrderByConfigName(pluginPackageId);
-        if(pluginConfigsEntities == null || pluginConfigsEntities.isEmpty()){
+
+        List<PluginConfigs> pluginConfigsEntities = pluginConfigsMapper
+                .selectAllByPackageAndOrderByConfigName(pluginPackageId);
+        if (pluginConfigsEntities == null || pluginConfigsEntities.isEmpty()) {
             return resultDtos;
         }
-        
+
         Map<String, PluginConfigGroupByNameDto> nameAndConfigMap = new HashMap<String, PluginConfigGroupByNameDto>();
-        for(PluginConfigs pluginConfigsEntity : pluginConfigsEntities){
+        for (PluginConfigs pluginConfigsEntity : pluginConfigsEntities) {
             PluginConfigDto pluginConfigDto = buildPluginConfigDto(pluginConfigsEntity, pluginPackageEntity);
             Map<String, List<String>> permToRoles = fetchPermissionToRoles(pluginConfigsEntity);
             pluginConfigDto.addAllPermissionToRole(permToRoles);
-            
+
             String name = pluginConfigDto.getName();
             PluginConfigGroupByNameDto groupedDto = nameAndConfigMap.get(name);
-            if(groupedDto == null){
+            if (groupedDto == null) {
                 groupedDto = new PluginConfigGroupByNameDto();
                 groupedDto.setPluginConfigName(name);
-                
+
                 nameAndConfigMap.put(name, groupedDto);
             }
-            
+
             groupedDto.addPluginConfigDto(pluginConfigDto);
         }
-        
+
         resultDtos.addAll(nameAndConfigMap.values());
         return resultDtos;
     }
-    
-    private  PluginConfigDto buildPluginConfigDto(PluginConfigs configEntity, PluginPackages pluginPackageEntity) {
+
+    /**
+     * 
+     * @param packageId
+     * @return
+     */
+    public List<PluginDeclarationDto> getPluginConfigOutlinesByPackageId(String pluginPackageId) {
+        List<PluginDeclarationDto> pluginDeclarationDtos = new ArrayList<>();
+
+        PluginPackages pluginPackageEntity = pluginPackagesMapper.selectByPrimaryKey(pluginPackageId);
+        if (pluginPackageEntity == null) {
+            throw new WecubeCoreException("3109",
+                    String.format("Plugin package id not found for id [%s] ", pluginPackageId), pluginPackageId);
+        }
+
+        List<PluginConfigs> configEntities = pluginConfigsMapper.selectAllByPackageAndRegNameIsNull(pluginPackageId);
+        if (configEntities == null || configEntities.isEmpty()) {
+            return pluginDeclarationDtos;
+        }
+
+        for (PluginConfigs configEntity : configEntities) {
+            PluginDeclarationDto pdDto = buildPluginDeclarationDto(configEntity, pluginPackageEntity);
+            List<PluginConfigs> pluginConfigsWithNameEntities = pluginConfigsMapper
+                    .selectAllByPackageAndNameAndRegNameIsNotNull(configEntity.getPluginPackageId(),
+                            configEntity.getName());
+
+            List<PluginConfigOutlineDto> childPdDtos = new ArrayList<>();
+            if (pluginConfigsWithNameEntities != null) {
+                for (PluginConfigs pluginConfigsWithNameEntity : pluginConfigsWithNameEntities) {
+                    PluginConfigOutlineDto pcDto = buildEnablePluginConfigDto(pluginConfigsWithNameEntity,
+                            pluginPackageEntity);
+                    childPdDtos.add(pcDto);
+                }
+            }
+            pdDto.setPluginConfigs(childPdDtos);
+            pluginDeclarationDtos.add(pdDto);
+        }
+
+        return pluginDeclarationDtos;
+    }
+
+    /**
+     * Enable plug-in configurations in batch.
+     * @param pluginPackageId
+     * @param pluginConfigDtos
+     */
+    public void enablePluginConfigsInBatchByPackageId(String pluginPackageId,
+            List<PluginDeclarationDto> pluginConfigDtos) {
+        if (StringUtils.isBlank(pluginPackageId)) {
+            throw new WecubeCoreException("3087", "Package ID is blank.");
+        }
+        PluginPackages pluginPackageEntity = pluginPackagesMapper.selectByPrimaryKey(pluginPackageId);
+        if (pluginPackageEntity == null) {
+            throw new WecubeCoreException("3088",
+                    String.format("Such plugin package with ID %s does not exist.", pluginPackageId));
+        }
+        if (PluginPackages.UNREGISTERED.equalsIgnoreCase(pluginPackageEntity.getStatus())
+                || PluginPackages.DECOMMISSIONED.equalsIgnoreCase(pluginPackageEntity.getStatus())) {
+            throw new WecubeCoreException("3089",
+                    "Plugin package is not in valid status [REGISTERED, RUNNING, STOPPED] to enable plugin.");
+        }
+
+        List<PluginConfigOutlineDto> privilegedPluginConfigDtos = new ArrayList<>();
+
+        for (PluginDeclarationDto pluginConfigDto : pluginConfigDtos) {
+            List<PluginConfigOutlineDto> pluginConfigOutlineDto = pluginConfigDto.getPluginConfigs();
+            for (PluginConfigOutlineDto configOutlineDto : pluginConfigOutlineDto) {
+                if (configOutlineDto.getHasMgmtPermission()) {
+                    privilegedPluginConfigDtos.add(configOutlineDto);
+                }
+            }
+        }
+
+        if (privilegedPluginConfigDtos.isEmpty()) {
+            return;
+        }
+
+        for (PluginConfigOutlineDto privilegedPluginConfigDto : privilegedPluginConfigDtos) {
+            if (!validateCurrentUserPermission(privilegedPluginConfigDto.getId(), PluginConfigRoles.PERM_TYPE_MGMT)) {
+                throw new WecubeCoreException("3090", "Lack of privilege to perform such operation.");
+            }
+        }
+
+        for (PluginConfigOutlineDto privilegedPluginConfigDto : privilegedPluginConfigDtos) {
+            PluginConfigs pluginConfigEntity = pluginConfigsMapper.selectByPrimaryKey(privilegedPluginConfigDto.getId());
+            if (pluginConfigEntity != null) {
+                pluginConfigEntity.setStatus(privilegedPluginConfigDto.getStatus());
+                pluginConfigsMapper.updateByPrimaryKeySelective(pluginConfigEntity);
+            }
+        }
+
+    }
+
+    private PluginConfigOutlineDto buildEnablePluginConfigDto(PluginConfigs pluginConfig,
+            PluginPackages pluginPackageEntity) {
+        PluginConfigOutlineDto enablePluginConfigDto = new PluginConfigOutlineDto();
+        enablePluginConfigDto.setId(pluginConfig.getId());
+        enablePluginConfigDto.setPluginPackageId(pluginPackageEntity.getId());
+        enablePluginConfigDto.setName(pluginConfig.getName());
+        enablePluginConfigDto.setTargetEntityWithFilterRule(pluginConfig.getTargetEntityWithFilterRule());
+        enablePluginConfigDto.setRegisterName(pluginConfig.getRegisterName());
+        enablePluginConfigDto.setStatus(pluginConfig.getStatus());
+        enablePluginConfigDto.setHasMgmtPermission(
+                validateCurrentUserPermission(pluginConfig.getId(), PluginConfigRoles.PERM_TYPE_MGMT));
+        return enablePluginConfigDto;
+    }
+
+    private Boolean validateCurrentUserPermission(String pluginConfigId, String permission) {
+        String currentUsername = AuthenticationContextHolder.getCurrentUsername();
+        if (StringUtils.isBlank(currentUsername)) {
+            return false;
+        }
+
+        Set<String> currUserRoles = AuthenticationContextHolder.getCurrentUserRoles();
+        if (currUserRoles == null || currUserRoles.isEmpty()) {
+            return false;
+        }
+
+        List<PluginConfigRoles> pluginAuthConfigEntities = this.pluginConfigRolesMapper
+                .selectAllByPluginConfigAndPerm(pluginConfigId, permission);
+
+        if (pluginAuthConfigEntities == null || pluginAuthConfigEntities.isEmpty()) {
+            return false;
+        }
+
+        boolean hasAuthority = false;
+        for (PluginConfigRoles auth : pluginAuthConfigEntities) {
+            String authRole = auth.getRoleName();
+            if (StringUtils.isBlank(authRole)) {
+                continue;
+            }
+            if (CollectionUtils.collectionContains(currUserRoles, authRole)) {
+                hasAuthority = true;
+                break;
+            }
+        }
+
+        return hasAuthority;
+    }
+
+    private PluginDeclarationDto buildPluginDeclarationDto(PluginConfigs pluginConfig,
+            PluginPackages pluginPackageEntity) {
+        PluginDeclarationDto pluginDeclarationDto = new PluginDeclarationDto();
+        pluginDeclarationDto.setId(pluginConfig.getId());
+        pluginDeclarationDto.setPluginPackageId(pluginPackageEntity.getId());
+        pluginDeclarationDto.setName(pluginConfig.getName());
+        pluginDeclarationDto.setTargetEntityWithFilterRule(pluginConfig.getTargetEntityWithFilterRule());
+        pluginDeclarationDto.setRegisterName(pluginConfig.getRegisterName());
+        pluginDeclarationDto.setStatus(pluginConfig.getStatus());
+        return pluginDeclarationDto;
+    }
+
+    private PluginConfigDto buildPluginConfigDto(PluginConfigs configEntity, PluginPackages pluginPackageEntity) {
         PluginConfigDto resultDto = new PluginConfigDto();
         resultDto.setId(configEntity.getId());
         resultDto.setName(configEntity.getName());
@@ -554,30 +710,33 @@ public class PluginPackageMgmtService extends AbstractPluginMgmtService {
 
         List<PluginConfigInterfaceParameters> inputParamEntities = this.pluginConfigInterfaceParametersMapper
                 .selectAllByConfigInterfaceAndParamType(intfEntity.getId(), PluginConfigInterfaceParameters.TYPE_INPUT);
-        
-        if(inputParamEntities != null){
+
+        if (inputParamEntities != null) {
             List<PluginConfigInterfaceParameterDto> inputParamDtos = new ArrayList<>();
-            for(PluginConfigInterfaceParameters paramEntity : inputParamEntities){
-                PluginConfigInterfaceParameterDto inputParamDto = buildRichPluginConfigInterfaceParameterDto(paramEntity, intfEntity);
+            for (PluginConfigInterfaceParameters paramEntity : inputParamEntities) {
+                PluginConfigInterfaceParameterDto inputParamDto = buildRichPluginConfigInterfaceParameterDto(
+                        paramEntity, intfEntity);
                 inputParamDtos.add(inputParamDto);
             }
-            
+
             resultDto.setInputParameters(inputParamDtos);
         }
-        
+
         List<PluginConfigInterfaceParameters> outputParamEntities = this.pluginConfigInterfaceParametersMapper
-                .selectAllByConfigInterfaceAndParamType(intfEntity.getId(), PluginConfigInterfaceParameters.TYPE_OUTPUT);
-        
-        if(outputParamEntities != null){
+                .selectAllByConfigInterfaceAndParamType(intfEntity.getId(),
+                        PluginConfigInterfaceParameters.TYPE_OUTPUT);
+
+        if (outputParamEntities != null) {
             List<PluginConfigInterfaceParameterDto> outputParamDtos = new ArrayList<>();
-            for(PluginConfigInterfaceParameters paramEntity : outputParamEntities){
-                PluginConfigInterfaceParameterDto outputParamDto = buildRichPluginConfigInterfaceParameterDto(paramEntity, intfEntity);
+            for (PluginConfigInterfaceParameters paramEntity : outputParamEntities) {
+                PluginConfigInterfaceParameterDto outputParamDto = buildRichPluginConfigInterfaceParameterDto(
+                        paramEntity, intfEntity);
                 outputParamDtos.add(outputParamDto);
             }
-            
+
             resultDto.setOutputParameters(outputParamDtos);
         }
-        
+
         return resultDto;
     }
 
@@ -606,12 +765,12 @@ public class PluginPackageMgmtService extends AbstractPluginMgmtService {
         if (StringUtils.isBlank(pluginConfig.getId())) {
             return permissionToRoles;
         }
-        
-        List<PluginConfigRoles> configRolesEntities = pluginConfigRolesMapper.selectAllByPluginConfig(pluginConfig.getId());
-        if(configRolesEntities == null || configRolesEntities.isEmpty()){
+
+        List<PluginConfigRoles> configRolesEntities = pluginConfigRolesMapper
+                .selectAllByPluginConfig(pluginConfig.getId());
+        if (configRolesEntities == null || configRolesEntities.isEmpty()) {
             return permissionToRoles;
         }
-
 
         for (PluginConfigRoles permEntity : configRolesEntities) {
             List<String> roleIdsOfPerm = permissionToRoles.get(permEntity.getPermType());

@@ -19,7 +19,8 @@
         <result column="status" property="status" jdbcType="VARCHAR" />
     </resultMap>
     <sql id="Base_Column_List">
-        id, plugin_package_id, name, target_package, target_entity,
+        id, plugin_package_id, name, target_package,
+        target_entity,
         target_entity_filter_rule,
         register_name, status
     </sql>
@@ -31,17 +32,21 @@
         where id = #{id,jdbcType=VARCHAR}
     </select>
     <delete id="deleteByPrimaryKey" parameterType="java.lang.String">
-        delete from plugin_configs
+        delete from
+        plugin_configs
         where id = #{id,jdbcType=VARCHAR}
     </delete>
     <insert id="insert"
         parameterType="com.webank.wecube.platform.core.entity.plugin.PluginConfigs">
-        insert into plugin_configs (id, plugin_package_id, name,
+        insert into plugin_configs (id, plugin_package_id,
+        name,
         target_package, target_entity, target_entity_filter_rule,
         register_name, status)
-        values (#{id,jdbcType=VARCHAR}, #{pluginPackageId,jdbcType=VARCHAR},
+        values (#{id,jdbcType=VARCHAR},
+        #{pluginPackageId,jdbcType=VARCHAR},
         #{name,jdbcType=VARCHAR},
-        #{targetPackage,jdbcType=VARCHAR}, #{targetEntity,jdbcType=VARCHAR},
+        #{targetPackage,jdbcType=VARCHAR},
+        #{targetEntity,jdbcType=VARCHAR},
         #{targetEntityFilterRule,jdbcType=VARCHAR},
         #{registerName,jdbcType=VARCHAR}, #{status,jdbcType=VARCHAR})
     </insert>
@@ -106,23 +111,27 @@
         update plugin_configs
         <set>
             <if test="pluginPackageId != null">
-                plugin_package_id = #{pluginPackageId,jdbcType=VARCHAR},
+                plugin_package_id =
+                #{pluginPackageId,jdbcType=VARCHAR},
             </if>
             <if test="name != null">
                 name = #{name,jdbcType=VARCHAR},
             </if>
             <if test="targetPackage != null">
-                target_package = #{targetPackage,jdbcType=VARCHAR},
+                target_package =
+                #{targetPackage,jdbcType=VARCHAR},
             </if>
             <if test="targetEntity != null">
-                target_entity = #{targetEntity,jdbcType=VARCHAR},
+                target_entity =
+                #{targetEntity,jdbcType=VARCHAR},
             </if>
             <if test="targetEntityFilterRule != null">
                 target_entity_filter_rule =
                 #{targetEntityFilterRule,jdbcType=VARCHAR},
             </if>
             <if test="registerName != null">
-                register_name = #{registerName,jdbcType=VARCHAR},
+                register_name =
+                #{registerName,jdbcType=VARCHAR},
             </if>
             <if test="status != null">
                 status = #{status,jdbcType=VARCHAR},
@@ -133,22 +142,66 @@
     <update id="updateByPrimaryKey"
         parameterType="com.webank.wecube.platform.core.entity.plugin.PluginConfigs">
         update plugin_configs
-        set plugin_package_id = #{pluginPackageId,jdbcType=VARCHAR},
-        name = #{name,jdbcType=VARCHAR},
-        target_package = #{targetPackage,jdbcType=VARCHAR},
-        target_entity = #{targetEntity,jdbcType=VARCHAR},
-        target_entity_filter_rule = #{targetEntityFilterRule,jdbcType=VARCHAR},
-        register_name = #{registerName,jdbcType=VARCHAR},
-        status = #{status,jdbcType=VARCHAR}
+        set plugin_package_id =
+        #{pluginPackageId,jdbcType=VARCHAR},
+        name =
+        #{name,jdbcType=VARCHAR},
+        target_package =
+        #{targetPackage,jdbcType=VARCHAR},
+        target_entity =
+        #{targetEntity,jdbcType=VARCHAR},
+        target_entity_filter_rule =
+        #{targetEntityFilterRule,jdbcType=VARCHAR},
+        register_name =
+        #{registerName,jdbcType=VARCHAR},
+        status =
+        #{status,jdbcType=VARCHAR}
         where id = #{id,jdbcType=VARCHAR}
     </update>
-    
-     <select id="selectAllByPackageAndOrderByConfigName" resultMap="BaseResultMap"
+
+    <select id="selectAllByPackageAndOrderByConfigName"
+        resultMap="BaseResultMap" parameterType="java.lang.String">
+        select
+        <include refid="Base_Column_List" />
+        from plugin_configs
+        where plugin_package_id =
+        #{pluginPackageId,jdbcType=VARCHAR}
+        order by name
+    </select>
+
+    <select id="selectAllByPackageAndRegNameIsNull" resultMap="BaseResultMap"
         parameterType="java.lang.String">
         select
         <include refid="Base_Column_List" />
         from plugin_configs
-        where plugin_package_id = #{pluginPackageId,jdbcType=VARCHAR}
-        order by name
+        where plugin_package_id =
+        #{pluginPackageId,jdbcType=VARCHAR}
+        and
+        register_name IS NULL
+    </select>
+
+    <select id="selectAllByPackageAndRegNameIsNotNull" resultMap="BaseResultMap"
+        parameterType="java.lang.String">
+        select
+        <include refid="Base_Column_List" />
+        from plugin_configs
+        where plugin_package_id =
+        #{pluginPackageId,jdbcType=VARCHAR}
+        and
+        register_name IS NOT NULL
+    </select>
+
+    <select id="selectAllByPackageAndNameAndRegNameIsNotNull"
+        resultMap="BaseResultMap" parameterType="java.lang.String">
+        select
+        <include refid="Base_Column_List" />
+        from plugin_configs
+        where plugin_package_id =
+        #{pluginPackageId,jdbcType=VARCHAR}
+        and
+        name =
+        #{name,jdbcType=VARCHAR}
+        and
+        register_name IS NOT NULL
     </select>
 </mapper>

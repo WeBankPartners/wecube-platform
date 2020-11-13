@@ -1,6 +1,4 @@
-package com.webank.wecube.platform.core.dto.workflow;
-
-import com.webank.wecube.platform.core.domain.plugin.PluginConfig;
+package com.webank.wecube.platform.core.dto.plugin;
 
 public class PluginConfigOutlineDto {
 
@@ -9,7 +7,7 @@ public class PluginConfigOutlineDto {
     private String name;
     private String targetEntityWithFilterRule;
     private String registerName;
-    private PluginConfig.Status status;
+    private String status;
     private Boolean hasMgmtPermission;
 
     public String getId() {
@@ -44,11 +42,11 @@ public class PluginConfigOutlineDto {
         this.targetEntityWithFilterRule = targetEntityWithFilterRule;
     }
 
-    public PluginConfig.Status getStatus() {
+    public String getStatus() {
         return status;
     }
 
-    public void setStatus(PluginConfig.Status status) {
+    public void setStatus(String status) {
         this.status = status;
     }
 
@@ -68,14 +66,14 @@ public class PluginConfigOutlineDto {
         this.hasMgmtPermission = hasMgmtPermission;
     }
 
-    public static PluginConfigOutlineDto fromDomain(PluginConfig pluginConfig) {
-        PluginConfigOutlineDto pluginConfigDto = new PluginConfigOutlineDto();
-        pluginConfigDto.setId(pluginConfig.getId());
-        pluginConfigDto.setName(pluginConfig.getName());
-        pluginConfigDto.setTargetEntityWithFilterRule(pluginConfig.getTargetEntityWithFilterRule());
-        pluginConfigDto.setRegisterName(pluginConfig.getRegisterName());
-        pluginConfigDto.setPluginPackageId(pluginConfig.getPluginPackage().getId());
-        pluginConfigDto.setStatus(pluginConfig.getStatus());
-        return pluginConfigDto;
-    }
+//    public static PluginConfigOutlineDto fromDomain(PluginConfig pluginConfig) {
+//        PluginConfigOutlineDto pluginConfigDto = new PluginConfigOutlineDto();
+//        pluginConfigDto.setId(pluginConfig.getId());
+//        pluginConfigDto.setName(pluginConfig.getName());
+//        pluginConfigDto.setTargetEntityWithFilterRule(pluginConfig.getTargetEntityWithFilterRule());
+//        pluginConfigDto.setRegisterName(pluginConfig.getRegisterName());
+//        pluginConfigDto.setPluginPackageId(pluginConfig.getPluginPackage().getId());
+//        pluginConfigDto.setStatus(pluginConfig.getStatus());
+//        return pluginConfigDto;
+//    }
 }
