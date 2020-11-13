@@ -1,8 +1,9 @@
-package com.webank.wecube.platform.core.dto;
+package com.webank.wecube.platform.core.dto.plugin;
 
 import com.webank.wecube.platform.core.domain.plugin.PluginConfig;
 import com.webank.wecube.platform.core.domain.plugin.PluginConfigInterface;
 import com.webank.wecube.platform.core.domain.plugin.PluginConfigInterfaceParameter;
+
 import org.apache.commons.lang.builder.ReflectionToStringBuilder;
 import java.util.List;
 import java.util.Set;
@@ -146,36 +147,36 @@ public class PluginConfigInterfaceDto {
         return pluginConfigInterface;
     }
 
-    public static PluginConfigInterfaceDto fromDomain(PluginConfigInterface pluginConfigInterface) {
-        PluginConfigInterfaceDto pluginConfigInterfaceDto = new PluginConfigInterfaceDto();
-        pluginConfigInterfaceDto.setId(pluginConfigInterface.getId());
-        pluginConfigInterfaceDto.setPluginConfigId(pluginConfigInterface.getPluginConfig().getId());
+    public static PluginConfigInterfaceDto fromDomain(PluginConfigInterface entity) {
+        PluginConfigInterfaceDto dto = new PluginConfigInterfaceDto();
+        dto.setId(entity.getId());
+        dto.setPluginConfigId(entity.getPluginConfig().getId());
 
-        pluginConfigInterfaceDto.setPath(pluginConfigInterface.getPath());
-        pluginConfigInterfaceDto.setServiceName(pluginConfigInterface.getServiceName());
-        pluginConfigInterfaceDto.setServiceDisplayName(pluginConfigInterface.getServiceDisplayName());
-        pluginConfigInterfaceDto.setAction(pluginConfigInterface.getAction());
-        pluginConfigInterfaceDto.setHttpMethod(pluginConfigInterface.getHttpMethod());
-        pluginConfigInterfaceDto.setIsAsyncProcessing(pluginConfigInterface.getIsAsyncProcessing());
-        pluginConfigInterfaceDto.setFilterRule(pluginConfigInterface.getFilterRule());
+        dto.setPath(entity.getPath());
+        dto.setServiceName(entity.getServiceName());
+        dto.setServiceDisplayName(entity.getServiceDisplayName());
+        dto.setAction(entity.getAction());
+        dto.setHttpMethod(entity.getHttpMethod());
+        dto.setIsAsyncProcessing(entity.getIsAsyncProcessing());
+        dto.setFilterRule(entity.getFilterRule());
 
         List<PluginConfigInterfaceParameterDto> interfaceInputParameterDtos = newArrayList();
-        if (null != pluginConfigInterface.getInputParameters()
-                && pluginConfigInterface.getInputParameters().size() > 0) {
-            pluginConfigInterface.getInputParameters()
+        if (null != entity.getInputParameters()
+                && entity.getInputParameters().size() > 0) {
+            entity.getInputParameters()
                     .forEach(pluginConfigInterfaceParameter -> interfaceInputParameterDtos
                             .add(PluginConfigInterfaceParameterDto.fromDomain(pluginConfigInterfaceParameter)));
         }
-        pluginConfigInterfaceDto.setInputParameters(interfaceInputParameterDtos);
+        dto.setInputParameters(interfaceInputParameterDtos);
         List<PluginConfigInterfaceParameterDto> interfaceOutputParameterDtos = newArrayList();
-        if (null != pluginConfigInterface.getOutputParameters()
-                && pluginConfigInterface.getOutputParameters().size() > 0) {
-            pluginConfigInterface.getOutputParameters()
+        if (null != entity.getOutputParameters()
+                && entity.getOutputParameters().size() > 0) {
+            entity.getOutputParameters()
                     .forEach(pluginConfigInterfaceParameter -> interfaceOutputParameterDtos
                             .add(PluginConfigInterfaceParameterDto.fromDomain(pluginConfigInterfaceParameter)));
         }
-        pluginConfigInterfaceDto.setOutputParameters(interfaceOutputParameterDtos);
-        return pluginConfigInterfaceDto;
+        dto.setOutputParameters(interfaceOutputParameterDtos);
+        return dto;
     }
 
     public String getIsAsyncProcessing() {
