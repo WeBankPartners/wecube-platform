@@ -1,118 +1,144 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
-<mapper namespace="com.webank.wecube.platform.core.repository.plugin.PluginPackageRuntimeResourcesDockerMapper" >
-  <resultMap id="BaseResultMap" type="com.webank.wecube.platform.core.entity.plugin.PluginPackageRuntimeResourcesDocker" >
-    <id column="id" property="id" jdbcType="VARCHAR" />
-    <result column="plugin_package_id" property="pluginPackageId" jdbcType="VARCHAR" />
-    <result column="image_name" property="imageName" jdbcType="VARCHAR" />
-    <result column="container_name" property="containerName" jdbcType="VARCHAR" />
-    <result column="port_bindings" property="portBindings" jdbcType="VARCHAR" />
-    <result column="volume_bindings" property="volumeBindings" jdbcType="VARCHAR" />
-    <result column="env_variables" property="envVariables" jdbcType="VARCHAR" />
-  </resultMap>
-  <sql id="Base_Column_List" >
-    id, plugin_package_id, image_name, container_name, port_bindings, volume_bindings, 
-    env_variables
-  </sql>
-  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.String" >
-    select 
-    <include refid="Base_Column_List" />
-    from plugin_package_runtime_resources_docker
-    where id = #{id,jdbcType=VARCHAR}
-  </select>
-  <delete id="deleteByPrimaryKey" parameterType="java.lang.String" >
-    delete from plugin_package_runtime_resources_docker
-    where id = #{id,jdbcType=VARCHAR}
-  </delete>
-  <insert id="insert" parameterType="com.webank.wecube.platform.core.entity.plugin.PluginPackageRuntimeResourcesDocker" >
-    insert into plugin_package_runtime_resources_docker (id, plugin_package_id, image_name, 
-      container_name, port_bindings, volume_bindings, 
-      env_variables)
-    values (#{id,jdbcType=VARCHAR}, #{pluginPackageId,jdbcType=VARCHAR}, #{imageName,jdbcType=VARCHAR}, 
-      #{containerName,jdbcType=VARCHAR}, #{portBindings,jdbcType=VARCHAR}, #{volumeBindings,jdbcType=VARCHAR}, 
-      #{envVariables,jdbcType=VARCHAR})
-  </insert>
-  <insert id="insertSelective" parameterType="com.webank.wecube.platform.core.entity.plugin.PluginPackageRuntimeResourcesDocker" >
-    insert into plugin_package_runtime_resources_docker
-    <trim prefix="(" suffix=")" suffixOverrides="," >
-      <if test="id != null" >
-        id,
-      </if>
-      <if test="pluginPackageId != null" >
-        plugin_package_id,
-      </if>
-      <if test="imageName != null" >
-        image_name,
-      </if>
-      <if test="containerName != null" >
-        container_name,
-      </if>
-      <if test="portBindings != null" >
-        port_bindings,
-      </if>
-      <if test="volumeBindings != null" >
+<mapper
+    namespace="com.webank.wecube.platform.core.repository.plugin.PluginPackageRuntimeResourcesDockerMapper">
+    <resultMap id="BaseResultMap"
+        type="com.webank.wecube.platform.core.entity.plugin.PluginPackageRuntimeResourcesDocker">
+        <id column="id" property="id" jdbcType="VARCHAR" />
+        <result column="plugin_package_id" property="pluginPackageId"
+            jdbcType="VARCHAR" />
+        <result column="image_name" property="imageName"
+            jdbcType="VARCHAR" />
+        <result column="container_name" property="containerName"
+            jdbcType="VARCHAR" />
+        <result column="port_bindings" property="portBindings"
+            jdbcType="VARCHAR" />
+        <result column="volume_bindings" property="volumeBindings"
+            jdbcType="VARCHAR" />
+        <result column="env_variables" property="envVariables"
+            jdbcType="VARCHAR" />
+    </resultMap>
+    <sql id="Base_Column_List">
+        id, plugin_package_id, image_name, container_name, port_bindings,
         volume_bindings,
-      </if>
-      <if test="envVariables != null" >
-        env_variables,
-      </if>
-    </trim>
-    <trim prefix="values (" suffix=")" suffixOverrides="," >
-      <if test="id != null" >
-        #{id,jdbcType=VARCHAR},
-      </if>
-      <if test="pluginPackageId != null" >
-        #{pluginPackageId,jdbcType=VARCHAR},
-      </if>
-      <if test="imageName != null" >
+        env_variables
+    </sql>
+    <select id="selectByPrimaryKey" resultMap="BaseResultMap"
+        parameterType="java.lang.String">
+        select
+        <include refid="Base_Column_List" />
+        from plugin_package_runtime_resources_docker
+        where id = #{id,jdbcType=VARCHAR}
+    </select>
+    <delete id="deleteByPrimaryKey" parameterType="java.lang.String">
+        delete from plugin_package_runtime_resources_docker
+        where id = #{id,jdbcType=VARCHAR}
+    </delete>
+    <insert id="insert"
+        parameterType="com.webank.wecube.platform.core.entity.plugin.PluginPackageRuntimeResourcesDocker">
+        insert into plugin_package_runtime_resources_docker (id,
+        plugin_package_id, image_name,
+        container_name, port_bindings, volume_bindings,
+        env_variables)
+        values (#{id,jdbcType=VARCHAR}, #{pluginPackageId,jdbcType=VARCHAR},
         #{imageName,jdbcType=VARCHAR},
-      </if>
-      <if test="containerName != null" >
         #{containerName,jdbcType=VARCHAR},
-      </if>
-      <if test="portBindings != null" >
         #{portBindings,jdbcType=VARCHAR},
-      </if>
-      <if test="volumeBindings != null" >
         #{volumeBindings,jdbcType=VARCHAR},
-      </if>
-      <if test="envVariables != null" >
-        #{envVariables,jdbcType=VARCHAR},
-      </if>
-    </trim>
-  </insert>
-  <update id="updateByPrimaryKeySelective" parameterType="com.webank.wecube.platform.core.entity.plugin.PluginPackageRuntimeResourcesDocker" >
-    update plugin_package_runtime_resources_docker
-    <set >
-      <if test="pluginPackageId != null" >
-        plugin_package_id = #{pluginPackageId,jdbcType=VARCHAR},
-      </if>
-      <if test="imageName != null" >
+        #{envVariables,jdbcType=VARCHAR})
+    </insert>
+    <insert id="insertSelective"
+        parameterType="com.webank.wecube.platform.core.entity.plugin.PluginPackageRuntimeResourcesDocker">
+        insert into plugin_package_runtime_resources_docker
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="id != null">
+                id,
+            </if>
+            <if test="pluginPackageId != null">
+                plugin_package_id,
+            </if>
+            <if test="imageName != null">
+                image_name,
+            </if>
+            <if test="containerName != null">
+                container_name,
+            </if>
+            <if test="portBindings != null">
+                port_bindings,
+            </if>
+            <if test="volumeBindings != null">
+                volume_bindings,
+            </if>
+            <if test="envVariables != null">
+                env_variables,
+            </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="id != null">
+                #{id,jdbcType=VARCHAR},
+            </if>
+            <if test="pluginPackageId != null">
+                #{pluginPackageId,jdbcType=VARCHAR},
+            </if>
+            <if test="imageName != null">
+                #{imageName,jdbcType=VARCHAR},
+            </if>
+            <if test="containerName != null">
+                #{containerName,jdbcType=VARCHAR},
+            </if>
+            <if test="portBindings != null">
+                #{portBindings,jdbcType=VARCHAR},
+            </if>
+            <if test="volumeBindings != null">
+                #{volumeBindings,jdbcType=VARCHAR},
+            </if>
+            <if test="envVariables != null">
+                #{envVariables,jdbcType=VARCHAR},
+            </if>
+        </trim>
+    </insert>
+    <update id="updateByPrimaryKeySelective"
+        parameterType="com.webank.wecube.platform.core.entity.plugin.PluginPackageRuntimeResourcesDocker">
+        update plugin_package_runtime_resources_docker
+        <set>
+            <if test="pluginPackageId != null">
+                plugin_package_id = #{pluginPackageId,jdbcType=VARCHAR},
+            </if>
+            <if test="imageName != null">
+                image_name = #{imageName,jdbcType=VARCHAR},
+            </if>
+            <if test="containerName != null">
+                container_name = #{containerName,jdbcType=VARCHAR},
+            </if>
+            <if test="portBindings != null">
+                port_bindings = #{portBindings,jdbcType=VARCHAR},
+            </if>
+            <if test="volumeBindings != null">
+                volume_bindings = #{volumeBindings,jdbcType=VARCHAR},
+            </if>
+            <if test="envVariables != null">
+                env_variables = #{envVariables,jdbcType=VARCHAR},
+            </if>
+        </set>
+        where id = #{id,jdbcType=VARCHAR}
+    </update>
+    <update id="updateByPrimaryKey"
+        parameterType="com.webank.wecube.platform.core.entity.plugin.PluginPackageRuntimeResourcesDocker">
+        update plugin_package_runtime_resources_docker
+        set plugin_package_id = #{pluginPackageId,jdbcType=VARCHAR},
         image_name = #{imageName,jdbcType=VARCHAR},
-      </if>
-      <if test="containerName != null" >
         container_name = #{containerName,jdbcType=VARCHAR},
-      </if>
-      <if test="portBindings != null" >
         port_bindings = #{portBindings,jdbcType=VARCHAR},
-      </if>
-      <if test="volumeBindings != null" >
         volume_bindings = #{volumeBindings,jdbcType=VARCHAR},
-      </if>
-      <if test="envVariables != null" >
-        env_variables = #{envVariables,jdbcType=VARCHAR},
-      </if>
-    </set>
-    where id = #{id,jdbcType=VARCHAR}
-  </update>
-  <update id="updateByPrimaryKey" parameterType="com.webank.wecube.platform.core.entity.plugin.PluginPackageRuntimeResourcesDocker" >
-    update plugin_package_runtime_resources_docker
-    set plugin_package_id = #{pluginPackageId,jdbcType=VARCHAR},
-      image_name = #{imageName,jdbcType=VARCHAR},
-      container_name = #{containerName,jdbcType=VARCHAR},
-      port_bindings = #{portBindings,jdbcType=VARCHAR},
-      volume_bindings = #{volumeBindings,jdbcType=VARCHAR},
-      env_variables = #{envVariables,jdbcType=VARCHAR}
-    where id = #{id,jdbcType=VARCHAR}
-  </update>
+        env_variables = #{envVariables,jdbcType=VARCHAR}
+        where id = #{id,jdbcType=VARCHAR}
+    </update>
+    
+    <select id="selectAllByPackage" resultMap="BaseResultMap"
+        parameterType="java.lang.String">
+        select
+        <include refid="Base_Column_List" />
+        from plugin_package_runtime_resources_docker
+        where plugin_package_id = #{pluginPackageId,jdbcType=VARCHAR}
+    </select>
 </mapper>
