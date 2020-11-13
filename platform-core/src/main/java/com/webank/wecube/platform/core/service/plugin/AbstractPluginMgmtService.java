@@ -20,37 +20,35 @@ import com.webank.wecube.platform.core.support.authserver.AuthServerRestClient;
 
 public abstract class AbstractPluginMgmtService {
     private static final Logger log = LoggerFactory.getLogger(AbstractPluginMgmtService.class);
-    
-    
-    
+
     @Autowired
     protected ApplicationVersionInfo applicationVersionInfo;
-    
+
     @Autowired
     protected SystemVariablesMapper systemVariablesMapper;
-    
+
     @Autowired
     protected PluginProperties pluginProperties;
-    
+
     @Autowired
     protected S3Client s3Client;
-    
+
     @Autowired
     protected ScpService scpService;
     @Autowired
     protected CommandService commandService;
-    
+
     @Autowired
     protected UserManagementService userManagementService;
-    
+
     @Autowired
     protected AuthServerRestClient authServerRestClient;
 
-    
     protected String getGlobalSystemVariableByName(String varName) {
         List<SystemVariables> vars = systemVariablesMapper.selectAllByNameAndScopeAndStatus(varName,
                 SystemVariables.SCOPE_GLOBAL, SystemVariables.ACTIVE);
         if (vars == null || vars.isEmpty()) {
+            log.info("Cannot find global system variables for {}", varName);
             return null;
         }
 
@@ -61,7 +59,7 @@ public abstract class AbstractPluginMgmtService {
         }
         return varVal;
     }
-    
+
     protected String stripString(String s) {
         if (s == null) {
             return null;
@@ -73,7 +71,7 @@ public abstract class AbstractPluginMgmtService {
 
         return s;
     }
-    
+
     protected void closeSilently(Closeable c) {
         if (c == null) {
             return;
