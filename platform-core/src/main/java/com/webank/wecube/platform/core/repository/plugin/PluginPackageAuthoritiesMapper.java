@@ -21,5 +21,10 @@ public interface PluginPackageAuthoritiesMapper {
 
     int updateByPrimaryKey(PluginPackageAuthorities record);
     
+    /**
+     * 
+     * @param pluginPackageId
+     * @return
+     */
     List<PluginPackageAuthorities> selectAllByPackage(@Param("pluginPackageId")String pluginPackageId);
 }
