@@ -8,7 +8,6 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -22,11 +21,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import com.google.common.collect.Sets;
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
-import com.webank.wecube.platform.core.domain.plugin.PluginPackage;
-import com.webank.wecube.platform.core.domain.plugin.PluginPackageDependency;
+import com.webank.wecube.platform.core.dto.MenuItemDto;
 import com.webank.wecube.platform.core.dto.PluginPackageDependencyDto;
 import com.webank.wecube.platform.core.dto.PluginPackageInfoDto;
+import com.webank.wecube.platform.core.dto.plugin.SystemVariableDto;
 import com.webank.wecube.platform.core.dto.user.RoleDto;
+import com.webank.wecube.platform.core.entity.plugin.MenuItems;
 import com.webank.wecube.platform.core.entity.plugin.PluginConfigs;
 import com.webank.wecube.platform.core.entity.plugin.PluginInstances;
 import com.webank.wecube.platform.core.entity.plugin.PluginPackageAuthorities;
@@ -34,6 +34,7 @@ import com.webank.wecube.platform.core.entity.plugin.PluginPackageDependencies;
 import com.webank.wecube.platform.core.entity.plugin.PluginPackageMenus;
 import com.webank.wecube.platform.core.entity.plugin.PluginPackages;
 import com.webank.wecube.platform.core.entity.plugin.SystemVariables;
+import com.webank.wecube.platform.core.repository.plugin.MenuItemsMapper;
 import com.webank.wecube.platform.core.repository.plugin.PluginConfigsMapper;
 import com.webank.wecube.platform.core.repository.plugin.PluginInstancesMapper;
 import com.webank.wecube.platform.core.repository.plugin.PluginPackageAuthoritiesMapper;
@@ -68,6 +69,9 @@ public class PluginPackageMgmtService extends AbstractPluginMgmtService {
     private PluginPackageAuthoritiesMapper pluginPackageAuthoritiesMapper;
 
     @Autowired
+    private MenuItemsMapper menuItemsMapper;
+
+    @Autowired
     private PluginPackageMenusMapper pluginPackageMenusMapper;
 
     @Autowired
@@ -75,6 +79,10 @@ public class PluginPackageMgmtService extends AbstractPluginMgmtService {
 
     private VersionComparator versionComparator = new VersionComparator();
 
+    /**
+     * 
+     * @return
+     */
     public List<PluginPackageInfoDto> getPluginPackages() {
         List<PluginPackageInfoDto> pluginPackageInfoDtos = new ArrayList<>();
 
@@ -92,6 +100,10 @@ public class PluginPackageMgmtService extends AbstractPluginMgmtService {
         return pluginPackageInfoDtos;
     }
 
+    /**
+     * 
+     * @return
+     */
     public List<PluginPackageInfoDto> getDistinctPluginPackages() {
         List<PluginPackageInfoDto> pluginPackageInfoDtos = new ArrayList<>();
         List<PluginPackages> pluginPackageEntities = pluginPackagesMapper.selectAllDistinctPackages();
@@ -110,6 +122,11 @@ public class PluginPackageMgmtService extends AbstractPluginMgmtService {
 
     }
 
+    /**
+     * 
+     * @param pluginPackageId
+     * @return
+     */
     @Transactional
     public PluginPackageInfoDto registerPluginPackage(String pluginPackageId) {
 
@@ -141,6 +158,10 @@ public class PluginPackageMgmtService extends AbstractPluginMgmtService {
         return result;
     }
 
+    /**
+     * 
+     * @param pluginPackageId
+     */
     public void decommissionPluginPackage(String pluginPackageId) {
         PluginPackages pluginPackageEntity = pluginPackagesMapper.selectByPrimaryKey(pluginPackageId);
         if (pluginPackageEntity == null) {
@@ -162,56 +183,218 @@ public class PluginPackageMgmtService extends AbstractPluginMgmtService {
         pluginPackagesMapper.updateByPrimaryKeySelective(pluginPackageEntity);
     }
 
+    /**
+     * 
+     * @param pluginPackageId
+     * @return
+     */
     public PluginPackageDependencyDto getDependenciesByPackage(String pluginPackageId) {
         PluginPackages pluginPackageEntity = pluginPackagesMapper.selectByPrimaryKey(pluginPackageId);
         if (pluginPackageEntity == null) {
             throw new WecubeCoreException("3109",
                     String.format("Plugin package id not found for id [%s] ", pluginPackageId), pluginPackageId);
         }
-        
+
         PluginPackageDependencyDto dependencyDto = new PluginPackageDependencyDto();
         dependencyDto.setPackageName(pluginPackageEntity.getName());
         dependencyDto.setVersion(pluginPackageEntity.getVersion());
 
         List<PluginPackageDependencies> dependencyEntities = pluginPackageDependenciesMapper
                 .selectAllByPackage(pluginPackageId);
-        
-        if(dependencyEntities == null || dependencyEntities.isEmpty()){
+
+        if (dependencyEntities == null || dependencyEntities.isEmpty()) {
             return dependencyDto;
         }
-        
-        
 
-        //--------------------
-        Set<PluginPackageDependency> dependencySet = packageFoundById.getPluginPackageDependencies();
+        List<PluginPackageDependencyDto> totalDependencies = new ArrayList<>();
+        totalDependencies.add(dependencyDto);
 
-        
-        for (PluginPackageDependency pluginPackageDependency : dependencySet) {
-            updateDependencyDto(pluginPackageDependency, dependencyDto);
+        for (PluginPackageDependencies dependencyEntity : dependencyEntities) {
+            appendPackageDependencies(dependencyDto, totalDependencies, dependencyEntity);
         }
+
         return dependencyDto;
     }
-    
-    private void updateDependencyDto(PluginPackageDependency pluginPackageDependency,
-            PluginPackageDependencyDto pluginPackageDependencyDto) {
-        // create new dependencyDto according to input dependency
-        String dependencyName = pluginPackageDependency.getDependencyPackageName();
-        String dependencyVersion = pluginPackageDependency.getDependencyPackageVersion();
-        PluginPackageDependencyDto dependencyDto = new PluginPackageDependencyDto();
-        dependencyDto.setPackageName(dependencyName);
-        dependencyDto.setVersion(dependencyVersion);
 
-        // update the current dto recursively
-        pluginPackageDependencyDto.getDependencies().add(dependencyDto);
-        Optional<List<PluginPackageDependency>> dependencySetFoundByNameAndVersion = pluginPackageDependencyRepository
-                .findAllByPluginPackageNameAndPluginPackageVersion(dependencyName, dependencyVersion);
-        dependencySetFoundByNameAndVersion.ifPresent(pluginPackageDependencies -> {
-            for (PluginPackageDependency dependency : pluginPackageDependencies) {
-                updateDependencyDto(dependency, dependencyDto);
+    /**
+     * 
+     * @param pluginPackageId
+     * @return
+     */
+    public List<MenuItemDto> getMenusByPackageId(String pluginPackageId) {
+        PluginPackages pluginPackageEntity = pluginPackagesMapper.selectByPrimaryKey(pluginPackageId);
+        if (pluginPackageEntity == null) {
+            throw new WecubeCoreException("3109",
+                    String.format("Plugin package id not found for id [%s] ", pluginPackageId), pluginPackageId);
+        }
+
+        List<MenuItemDto> resultMenuItemDtos = new ArrayList<>();
+
+        List<MenuItemDto> allSysMenuItemDtos = fetchAllSysMenuItems();
+        resultMenuItemDtos.addAll(allSysMenuItemDtos);
+
+        List<PluginPackageMenus> pluginPackageMenusEntities = pluginPackageMenusMapper
+                .selectAllMenusByPackage(pluginPackageId);
+
+        if (pluginPackageMenusEntities == null) {
+            Collections.sort(resultMenuItemDtos);
+            return resultMenuItemDtos;
+        }
+
+        for (PluginPackageMenus pluginPackageMenusEntity : pluginPackageMenusEntities) {
+            MenuItems sysMenusItemEntity = menuItemsMapper.selectByMenuCode(pluginPackageMenusEntity.getCategory());
+            if (sysMenusItemEntity == null) {
+                String msg = String.format("Cannot find system menu item by package menu's category: [%s]",
+                        pluginPackageMenusEntity.getCategory());
+                log.error(msg);
+                throw new WecubeCoreException("3101", msg, pluginPackageMenusEntity.getCategory());
             }
-        });
+
+            MenuItemDto pluginPackageMenuItemDto = buildPackageMenuItemDto(pluginPackageMenusEntity, sysMenusItemEntity);
+            resultMenuItemDtos.add(pluginPackageMenuItemDto);
+        }
+
+        Collections.sort(resultMenuItemDtos);
+        return resultMenuItemDtos;
     }
 
+    /**
+     * 
+     * @param packageId
+     * @return
+     */
+    public List<SystemVariableDto> getSystemVarsByPackageId(String packageId) {
+        List<SystemVariableDto> resultDtos = new ArrayList<>(); 
+        
+        
+        List<SystemVariables> systemVariablesEntities = systemVariablesMapper.selectAllBySource(packageId);
+        
+        if(systemVariablesEntities == null || systemVariablesEntities.isEmpty()){
+            return resultDtos;
+        }
+        
+        
+        for(SystemVariables systemVarEntity : systemVariablesEntities){
+            SystemVariableDto dto = buildSystemVariableDto(systemVarEntity);
+            resultDtos.add(dto);
+        }
+        
+        return resultDtos;
+    }
+    
+    private SystemVariableDto buildSystemVariableDto(SystemVariables entity){
+        SystemVariableDto dto = new SystemVariableDto();
+        dto.setDefaultValue(entity.getDefaultValue());
+        dto.setId(entity.getId());
+        dto.setName(entity.getName());
+        dto.setPackageName(entity.getPackageName());
+        dto.setScope(entity.getScope());
+        dto.setSource(entity.getSource());
+        dto.setStatus(entity.getStatus());
+        dto.setValue(entity.getValue());
+        
+        return dto;
+    }
+
+    private MenuItemDto buildPackageMenuItemDto(PluginPackageMenus packageMenu, MenuItems menuItem) {
+        MenuItemDto pluginPackageMenuDto = new MenuItemDto();
+        pluginPackageMenuDto.setId(packageMenu.getId());
+        pluginPackageMenuDto.setCategory(packageMenu.getCategory());
+        pluginPackageMenuDto.setCode(packageMenu.getCode());
+        pluginPackageMenuDto.setSource(packageMenu.getSource());
+        pluginPackageMenuDto.setMenuOrder(menuItem.getMenuOrder() * 10000 + packageMenu.getMenuOrder());
+        pluginPackageMenuDto.setDisplayName(packageMenu.getDisplayName());
+        pluginPackageMenuDto.setLocalDisplayName(packageMenu.getLocalDisplayName());
+        pluginPackageMenuDto.setPath(packageMenu.getPath());
+        pluginPackageMenuDto.setActive(packageMenu.getActive());
+        return pluginPackageMenuDto;
+    }
+
+    private List<MenuItemDto> fetchAllSysMenuItems() {
+        List<MenuItemDto> sysMenuItemDtos = new ArrayList<>();
+
+        List<MenuItems> sysMenuItemsEntities = menuItemsMapper.selectAll();
+
+        if (sysMenuItemsEntities == null || sysMenuItemsEntities.isEmpty()) {
+            return sysMenuItemDtos;
+        }
+
+        for (MenuItems sysMenuItemsEntity : sysMenuItemsEntities) {
+            MenuItemDto systemMenuDto = buildSystemMenuItem(sysMenuItemsEntity);
+            sysMenuItemDtos.add(systemMenuDto);
+        }
+
+        return sysMenuItemDtos;
+    }
+
+    private MenuItemDto buildSystemMenuItem(MenuItems systemMenu) {
+        MenuItemDto pluginPackageMenuDto = new MenuItemDto();
+        pluginPackageMenuDto.setId(systemMenu.getId());
+        String category = systemMenu.getParentCode();
+        if (category != null) {
+            pluginPackageMenuDto.setCategory(category);
+        }
+        pluginPackageMenuDto.setCode(systemMenu.getCode());
+        pluginPackageMenuDto.setSource(systemMenu.getSource());
+        pluginPackageMenuDto.setMenuOrder(systemMenu.getMenuOrder());
+        pluginPackageMenuDto.setDisplayName(systemMenu.getDescription());
+        pluginPackageMenuDto.setLocalDisplayName(systemMenu.getLocalDisplayName());
+        pluginPackageMenuDto.setPath(null);
+        pluginPackageMenuDto.setActive(true);
+        return pluginPackageMenuDto;
+    }
+
+    private void appendPackageDependencies(PluginPackageDependencyDto parentDependencyDto,
+            List<PluginPackageDependencyDto> totalDependenciesDtos, PluginPackageDependencies depEntity) {
+        if (depEntity == null) {
+            return;
+        }
+
+        PluginPackageDependencyDto dependencyDto = pickoutDependencyByNameAndVersion(
+                depEntity.getDependencyPackageName(), depEntity.getDependencyPackageVersion(), totalDependenciesDtos);
+        if (dependencyDto == null) {
+            dependencyDto = new PluginPackageDependencyDto();
+            dependencyDto.setPackageName(depEntity.getDependencyPackageName());
+            dependencyDto.setVersion(depEntity.getDependencyPackageVersion());
+
+            totalDependenciesDtos.add(dependencyDto);
+
+        }
+
+        parentDependencyDto.addDependency(dependencyDto);
+
+        List<PluginPackages> pluginPackagesEntities = pluginPackagesMapper.selectAllByNameAndVersion(
+                depEntity.getDependencyPackageName(), depEntity.getDependencyPackageVersion());
+
+        if (pluginPackagesEntities == null || pluginPackagesEntities.isEmpty()) {
+            return;
+        }
+
+        PluginPackages pluginPackgesEntity = pluginPackagesEntities.get(0);
+
+        List<PluginPackageDependencies> subDependencyEntities = pluginPackageDependenciesMapper
+                .selectAllByPackage(pluginPackgesEntity.getId());
+
+        if (subDependencyEntities == null || subDependencyEntities.isEmpty()) {
+            return;
+        }
+
+        for (PluginPackageDependencies subDepEntity : subDependencyEntities) {
+            appendPackageDependencies(dependencyDto, totalDependenciesDtos, subDepEntity);
+        }
+
+    }
+
+    private PluginPackageDependencyDto pickoutDependencyByNameAndVersion(String name, String version,
+            List<PluginPackageDependencyDto> totalDependencies) {
+        for (PluginPackageDependencyDto d : totalDependencies) {
+            if (name.equals(d.getPackageName()) && version.equals(d.getVersion())) {
+                return d;
+            }
+        }
+
+        return null;
+    }
 
     private void removePluginUiResourcesIfRequired(PluginPackages pluginPackage) {
         if (!pluginPackage.getUiPackageIncluded()) {
