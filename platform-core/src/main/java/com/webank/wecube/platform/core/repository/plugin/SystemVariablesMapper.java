@@ -62,4 +62,11 @@ public interface SystemVariablesMapper {
      * @return
      */
     List<SystemVariables> selectAllBySource(@Param("source") String source);
+    
+    
+    /**
+     * 
+     * @return
+     */
+    List<String> selectAllSystemVariableScopes();
 }
