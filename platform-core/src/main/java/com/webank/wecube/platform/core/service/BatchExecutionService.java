@@ -36,13 +36,13 @@ import com.webank.wecube.platform.core.commons.WecubeCoreException;
 import com.webank.wecube.platform.core.domain.BatchExecutionJob;
 import com.webank.wecube.platform.core.domain.ExecutionJob;
 import com.webank.wecube.platform.core.domain.ExecutionJobParameter;
-import com.webank.wecube.platform.core.domain.SystemVariable;
 import com.webank.wecube.platform.core.domain.plugin.PluginConfigInterface;
 import com.webank.wecube.platform.core.domain.plugin.PluginConfigInterfaceParameter;
 import com.webank.wecube.platform.core.domain.plugin.PluginInstance;
 import com.webank.wecube.platform.core.dto.BatchExecutionRequestDto;
 import com.webank.wecube.platform.core.dto.ExecutionJobResponseDto;
 import com.webank.wecube.platform.core.dto.InputParameterDefinition;
+import com.webank.wecube.platform.core.entity.plugin.SystemVariables;
 import com.webank.wecube.platform.core.jpa.BatchExecutionJobRepository;
 import com.webank.wecube.platform.core.jpa.PluginConfigInterfaceRepository;
 import com.webank.wecube.platform.core.service.dme.EntityOperationRootCondition;
@@ -428,7 +428,7 @@ public class BatchExecutionService {
             log.debug("calculate param value from system variable and paramName={},systemVarName={}",
                     parameter.getName(), parameter.getMappingSystemVariableName());
         }
-        SystemVariable sVariable = systemVariableService.getSystemVariableByPackageNameAndName(pluginPackageName,
+        SystemVariables sVariable = systemVariableService.getSystemVariableByPackageNameAndName(pluginPackageName,
                 parameter.getMappingSystemVariableName());
 
         if (sVariable == null && FIELD_REQUIRED.equals(parameter.getRequired())) {
