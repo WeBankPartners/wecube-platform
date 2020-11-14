@@ -18,15 +18,15 @@ import org.hibernate.proxy.HibernateProxy;
 
 import com.google.common.base.Strings;
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
-import com.webank.wecube.platform.core.dto.Filter;
+import com.webank.wecube.platform.core.dto.FilterDto;
 import com.webank.wecube.platform.core.dto.FilterOperator;
 import com.webank.wecube.platform.core.dto.FilterRelationship;
-import com.webank.wecube.platform.core.dto.Pageable;
-import com.webank.wecube.platform.core.dto.Sorting;
+import com.webank.wecube.platform.core.dto.PageableDto;
+import com.webank.wecube.platform.core.dto.SortingDto;
 
 public class JpaQueryUtils {
 
-    public static void applyPaging(boolean isPaging, Pageable pageable, TypedQuery typedQuery) {
+    public static void applyPaging(boolean isPaging, PageableDto pageable, TypedQuery typedQuery) {
         if (isPaging && pageable != null) {
             int startIndex = pageable.getStartIndex();
             int pageSize = pageable.getPageSize();
@@ -35,7 +35,7 @@ public class JpaQueryUtils {
         }
     }
 
-    public static void applySorting(Sorting sorting, CriteriaBuilder cb, CriteriaQuery query,
+    public static void applySorting(SortingDto sorting, CriteriaBuilder cb, CriteriaQuery query,
             Map<String, Expression> selectionMap) {
         if (sorting != null && sorting.getField() != null && selectionMap.get(sorting.getField()) == null) {
             String msg = String.format("Sorting field name [%s] is invalid.", sorting.getField());
@@ -53,13 +53,13 @@ public class JpaQueryUtils {
         }
     }
 
-    public static void applyFilter(CriteriaBuilder cb, CriteriaQuery query, List<Filter> filters,
+    public static void applyFilter(CriteriaBuilder cb, CriteriaQuery query, List<FilterDto> filters,
             Map<String, Expression> selectionMap, Map<String, Class<?>> fieldTypeMap, FilterRelationship filterRs,
             List<Predicate> predicates, Predicate accessControlPredicate) {
         if (predicates == null) {
             predicates = new LinkedList<>();
         }
-        for (Filter filter : filters) {
+        for (FilterDto filter : filters) {
             Expression filterExpr = validateFilterName(selectionMap, filter);
             switch (FilterOperator.fromCode(filter.getOperator())) {
             case IN:
@@ -110,7 +110,7 @@ public class JpaQueryUtils {
         }
     }
 
-    public static void processNotEqualsOperator(CriteriaBuilder cb, List<Predicate> predicates, Filter filter,
+    public static void processNotEqualsOperator(CriteriaBuilder cb, List<Predicate> predicates, FilterDto filter,
             Expression filterExpr) {
 
         Object value = filter.getValue();
@@ -126,7 +126,7 @@ public class JpaQueryUtils {
         }
     }
 
-    public static void processLessOperator(CriteriaBuilder cb, List<Predicate> predicates, Filter filter,
+    public static void processLessOperator(CriteriaBuilder cb, List<Predicate> predicates, FilterDto filter,
             Expression filterExpr) {
         Object value = filter.getValue();
         if (value instanceof Date) {
@@ -151,7 +151,7 @@ public class JpaQueryUtils {
         }
     }
 
-    public static void processGreaterOperator(CriteriaBuilder cb, List<Predicate> predicates, Filter filter,
+    public static void processGreaterOperator(CriteriaBuilder cb, List<Predicate> predicates, FilterDto filter,
             Expression filterExpr) {
         Object value = filter.getValue();
         if (value instanceof Date) {
@@ -176,7 +176,7 @@ public class JpaQueryUtils {
         }
     }
 
-    public static void processEqualsOperator(CriteriaBuilder cb, List<Predicate> predicates, Filter filter,
+    public static void processEqualsOperator(CriteriaBuilder cb, List<Predicate> predicates, FilterDto filter,
             Expression filterExpr) {
         Object value = filter.getValue();
         Class expectedType = filterExpr.getJavaType();
@@ -192,7 +192,7 @@ public class JpaQueryUtils {
 
     }
 
-    public static void processContainsOperator(CriteriaBuilder cb, List<Predicate> predicates, Filter filter,
+    public static void processContainsOperator(CriteriaBuilder cb, List<Predicate> predicates, FilterDto filter,
             Expression filterExpr) {
         if (!(filter.getValue() instanceof String)) {
             throw new WecubeCoreException("3297","Filter value should be string for 'contains' operator.");
@@ -201,7 +201,7 @@ public class JpaQueryUtils {
         predicates.add(cb.like(cb.upper(filterExpr), "%" + filterVal.toUpperCase() + "%"));
     }
 
-    public static void processInOperator(CriteriaBuilder cb, List<Predicate> predicates, Filter filter,
+    public static void processInOperator(CriteriaBuilder cb, List<Predicate> predicates, FilterDto filter,
             Expression filterExpr) {
         Class<?> expectedType = filterExpr.getJavaType();
         if (!(filter.getValue() instanceof List)) {
@@ -236,7 +236,7 @@ public class JpaQueryUtils {
         predicates.add(in);
     }
 
-    private static Expression validateFilterName(Map<String, Expression> selectionMap, Filter filter) {
+    private static Expression validateFilterName(Map<String, Expression> selectionMap, FilterDto filter) {
         Expression filterExpr = selectionMap.get(filter.getName());
         if (filterExpr == null) {
             String msg = String.format("Given filter name [%s] is not existed.", filter.getName());
