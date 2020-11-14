@@ -24,19 +24,13 @@ import com.webank.wecube.platform.core.support.S3Client;
 import com.webank.wecube.platform.workflow.EnablePlatformWorkflowApplication;
 
 @Configuration
-@EnableConfigurationProperties({
-        ApplicationProperties.class,
-        HttpClientProperties.class,
-        PluginProperties.class,
-        S3Properties.class,
-        ResourceProperties.class,
-        DockerRemoteProperties.class,
-        AppConfigProperties.class
-})
+@EnableConfigurationProperties({ ApplicationProperties.class, HttpClientProperties.class, PluginProperties.class,
+        S3Properties.class, ResourceProperties.class, DockerRemoteProperties.class, AppConfigProperties.class })
 @ComponentScan({ "com.webank.wecube.platform.core.service" })
 @EntityScan(basePackages = { "com.webank.wecube.platform.core" })
 @EnableJpaRepositories(basePackages = { "com.webank.wecube.platform.core" })
-@MapperScan(basePackages={"com.webank.wecube.platform.core.repository.workflow"})
+@MapperScan(basePackages = { "com.webank.wecube.platform.core.repository.plugin",
+        "com.webank.wecube.platform.core.repository.workflow" })
 @EnablePlatformWorkflowApplication
 @EnableEncryptableProperties
 public class SpringAppConfig {

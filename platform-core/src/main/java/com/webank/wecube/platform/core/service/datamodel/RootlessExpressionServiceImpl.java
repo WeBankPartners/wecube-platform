@@ -17,7 +17,7 @@ import org.springframework.web.client.RestTemplate;
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
 import com.webank.wecube.platform.core.dto.DmeFilterDto;
 import com.webank.wecube.platform.core.dto.DmeLinkFilterDto;
-import com.webank.wecube.platform.core.dto.Filter;
+import com.webank.wecube.platform.core.dto.FilterDto;
 import com.webank.wecube.platform.core.service.dme.EntityDataDelegate;
 import com.webank.wecube.platform.core.service.dme.EntityDataRouteFactory;
 import com.webank.wecube.platform.core.service.dme.EntityOperationContext;
@@ -137,9 +137,9 @@ public class RootlessExpressionServiceImpl implements RootlessExpressionService 
                                 filterDto.getPackageName(), filterDto.getEntityName()));
             }
 
-            List<Filter> attributeFilters = filterDto.getAttributeFilters();
+            List<FilterDto> attributeFilters = filterDto.getAttributeFilters();
             if (attributeFilters != null) {
-                for (Filter attributeFilter : attributeFilters) {
+                for (FilterDto attributeFilter : attributeFilters) {
                     EntityQueryFilter f = new EntityQueryFilter();
                     f.setAttrName(attributeFilter.getName());
                     f.setOp(EntityQueryFilter.OP_EQUALS);

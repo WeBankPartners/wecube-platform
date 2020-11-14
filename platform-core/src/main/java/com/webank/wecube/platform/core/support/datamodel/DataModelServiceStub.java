@@ -24,7 +24,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
 import com.webank.wecube.platform.core.dto.CommonResponseDto;
-import com.webank.wecube.platform.core.dto.Filter;
+import com.webank.wecube.platform.core.dto.FilterDto;
 import com.webank.wecube.platform.core.dto.UrlToResponseDto;
 import com.webank.wecube.platform.core.utils.FilterUtils;
 import com.webank.wecube.platform.core.utils.RestTemplateUtils;
@@ -328,7 +328,7 @@ public class DataModelServiceStub {
     }
 
     @SuppressWarnings("unchecked")
-    public List<Map<String, Object>> filterData(Object jsonData, List<Filter> filterList) {
+    public List<Map<String, Object>> filterData(Object jsonData, List<FilterDto> filterList) {
         List<Map<String, Object>> result = new ArrayList<>();
         if (jsonData instanceof Map) {
             result.addAll(filterData((Map<String, Object>) jsonData, filterList));
@@ -340,7 +340,7 @@ public class DataModelServiceStub {
         return result;
     }
 
-    private List<Map<String, Object>> filterData(List<Map<String, Object>> jsonData, List<Filter> filterList)
+    private List<Map<String, Object>> filterData(List<Map<String, Object>> jsonData, List<FilterDto> filterList)
             throws WecubeCoreException {
         List<Predicate<Map<String, Object>>> predicateFilters;
         try {
@@ -355,7 +355,7 @@ public class DataModelServiceStub {
                 .collect(Collectors.toList());
     }
 
-    private List<Map<String, Object>> filterData(Map<String, Object> jsonData, List<Filter> filterList) {
+    private List<Map<String, Object>> filterData(Map<String, Object> jsonData, List<FilterDto> filterList) {
         return this.filterData(Collections.singletonList(jsonData), filterList);
     }
 }

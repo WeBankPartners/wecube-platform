@@ -116,7 +116,7 @@
     </update>
 
 
-    <select id="countByNameAndVersion" resultMap="java.lang.Integer"
+    <select id="countByNameAndVersion" resultType="java.lang.Integer"
         parameterType="java.lang.String">
         select
         <include refid="Base_Column_List" />

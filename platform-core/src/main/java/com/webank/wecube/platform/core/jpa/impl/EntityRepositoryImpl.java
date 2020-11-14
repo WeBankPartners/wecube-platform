@@ -23,7 +23,7 @@ import org.springframework.stereotype.Repository;
 import com.google.common.collect.ImmutableSet;
 import com.webank.wecube.platform.core.dto.FilterRelationship;
 import com.webank.wecube.platform.core.dto.PageInfo;
-import com.webank.wecube.platform.core.dto.QueryRequest;
+import com.webank.wecube.platform.core.dto.QueryRequestDto;
 import com.webank.wecube.platform.core.dto.QueryResponse;
 import com.webank.wecube.platform.core.jpa.EntityRepository;
 import com.webank.wecube.platform.core.utils.JpaQueryUtils;
@@ -35,7 +35,7 @@ public class EntityRepositoryImpl implements EntityRepository {
     private EntityManager entityManager;
 
     @Override
-    public <T> QueryResponse query(Class<T> domainClzz, QueryRequest queryRequest) {
+    public <T> QueryResponse query(Class<T> domainClzz, QueryRequestDto queryRequest) {
         List<Field> fieldList = getDomainAttrFields(domainClzz);
         List<Object> countResult = doQuery(domainClzz, queryRequest, true, fieldList);
         int totalRow = convertResultToInteger(countResult);
@@ -62,7 +62,7 @@ public class EntityRepositoryImpl implements EntityRepository {
         return Integer.valueOf(strVal);
     }
 
-    private <T> List<Object> doQuery(Class<T> domainClazz, QueryRequest ciRequest, boolean isSelRowCount, List<Field> fieldList) {
+    private <T> List<Object> doQuery(Class<T> domainClazz, QueryRequestDto ciRequest, boolean isSelRowCount, List<Field> fieldList) {
         CriteriaBuilder cb = entityManager.getCriteriaBuilder();
 
         CriteriaQuery query = cb.createQuery(domainClazz);

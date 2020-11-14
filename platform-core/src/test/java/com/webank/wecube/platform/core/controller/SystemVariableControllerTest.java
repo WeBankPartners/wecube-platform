@@ -37,7 +37,7 @@ import com.webank.wecube.platform.core.domain.plugin.PluginPackage;
 import com.webank.wecube.platform.core.domain.plugin.PluginPackageDataModel;
 import com.webank.wecube.platform.core.dto.CommonResponseDto;
 import com.webank.wecube.platform.core.dto.PluginPackageDataModelDto;
-import com.webank.wecube.platform.core.dto.QueryRequest;
+import com.webank.wecube.platform.core.dto.QueryRequestDto;
 import com.webank.wecube.platform.core.jpa.PluginPackageRepository;
 
 @Ignore
@@ -56,13 +56,13 @@ public class SystemVariableControllerTest extends AbstractControllerTest {
     public void getGlobalSystemVariables() throws Exception {
         mockSystemVariables();
         String reqJson = toJsonString(
-                QueryRequest.defaultQueryObject().addEqualsFilter("scope", SystemVariable.SCOPE_GLOBAL));
+                QueryRequestDto.defaultQueryObject().addEqualsFilter("scope", SystemVariable.SCOPE_GLOBAL));
         mvc.perform(post("/v1/system-variables/retrieve").contentType(MediaType.APPLICATION_JSON).content(reqJson))
                 .andExpect(jsonPath("$.status", is("OK")))
                 .andExpect(jsonPath("$.data.contents[*].name", contains("propA", "propB")))
                 .andExpect(jsonPath("$.data.contents[*].value", contains("valueX", "valueY")));
 
-        reqJson = toJsonString(QueryRequest.defaultQueryObject().addEqualsFilter("scope", SystemVariable.SCOPE_GLOBAL)
+        reqJson = toJsonString(QueryRequestDto.defaultQueryObject().addEqualsFilter("scope", SystemVariable.SCOPE_GLOBAL)
                 .addEqualsFilter("status", SystemVariable.ACTIVE));
         mvc.perform(post("/v1/system-variables/retrieve").contentType(MediaType.APPLICATION_JSON).content(reqJson))
                 .andExpect(jsonPath("$.status", is("OK")))
@@ -73,14 +73,14 @@ public class SystemVariableControllerTest extends AbstractControllerTest {
     @Test
     public void getSystemVariables() throws Exception {
         mockSystemVariables();
-        String reqJson = toJsonString(QueryRequest.defaultQueryObject().addEqualsFilter("scope", "qcloud")
+        String reqJson = toJsonString(QueryRequestDto.defaultQueryObject().addEqualsFilter("scope", "qcloud")
                 .addEqualsFilter("source", "qcloud:v1"));
         mvc.perform(post("/v1/system-variables/retrieve").contentType(MediaType.APPLICATION_JSON).content(reqJson))
                 .andExpect(jsonPath("$.status", is("OK")))
                 .andExpect(jsonPath("$.data.contents[*].name", contains("propC", "propC")))
                 .andExpect(jsonPath("$.data.contents[*].value", contains("valueZ", "valuez")));
 
-        reqJson = toJsonString(QueryRequest.defaultQueryObject().addEqualsFilter("scope", "qcloud")
+        reqJson = toJsonString(QueryRequestDto.defaultQueryObject().addEqualsFilter("scope", "qcloud")
                 .addEqualsFilter("source", "qcloud:v1").addEqualsFilter("status", SystemVariable.ACTIVE));
         mvc.perform(post("/v1/system-variables/retrieve").contentType(MediaType.APPLICATION_JSON).content(reqJson))
                 .andExpect(jsonPath("$.status", is("OK")))
@@ -99,7 +99,7 @@ public class SystemVariableControllerTest extends AbstractControllerTest {
                 .andExpect(jsonPath("$.data.contents.[*].value", contains("valueX", "valueY", "valueZ", "valuez")));
 
         String reqJson = toJsonString(
-                QueryRequest.defaultQueryObject().addEqualsFilter("status", SystemVariable.ACTIVE));
+                QueryRequestDto.defaultQueryObject().addEqualsFilter("status", SystemVariable.ACTIVE));
         mvc.perform(post("/v1/system-variables/retrieve").contentType(MediaType.APPLICATION_JSON).content(reqJson))
                 .andExpect(jsonPath("$.status", is("OK")))
                 .andExpect(jsonPath("$.data.contents.[*].name", contains("propA", "propC")))
@@ -148,7 +148,7 @@ public class SystemVariableControllerTest extends AbstractControllerTest {
         assertThat(variable.getId()).isNotBlank();
 
         // create-verify
-        String reqJson = toJsonString(QueryRequest.defaultQueryObject().addEqualsFilter("id", variable.getId()));
+        String reqJson = toJsonString(QueryRequestDto.defaultQueryObject().addEqualsFilter("id", variable.getId()));
         mvc.perform(post("/v1/system-variables/retrieve").contentType(MediaType.APPLICATION_JSON).content(reqJson))
                 .andExpect(jsonPath("$.status", is("OK")))
                 .andExpect(jsonPath("$.data.contents[0].name", is("mockVariable")))

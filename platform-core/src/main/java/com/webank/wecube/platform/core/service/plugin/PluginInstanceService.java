@@ -42,7 +42,6 @@ import com.webank.wecube.platform.core.commons.ApplicationProperties.ResourcePro
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
 import com.webank.wecube.platform.core.domain.ResourceItem;
 import com.webank.wecube.platform.core.domain.ResourceServer;
-import com.webank.wecube.platform.core.domain.SystemVariable;
 import com.webank.wecube.platform.core.domain.plugin.PluginInstance;
 import com.webank.wecube.platform.core.domain.plugin.PluginMysqlInstance;
 import com.webank.wecube.platform.core.domain.plugin.PluginPackage;
@@ -50,9 +49,10 @@ import com.webank.wecube.platform.core.domain.plugin.PluginPackageRuntimeResourc
 import com.webank.wecube.platform.core.domain.plugin.PluginPackageRuntimeResourcesMysql;
 import com.webank.wecube.platform.core.domain.plugin.PluginPackageRuntimeResourcesS3;
 import com.webank.wecube.platform.core.dto.CreateInstanceDto;
-import com.webank.wecube.platform.core.dto.QueryRequest;
+import com.webank.wecube.platform.core.dto.QueryRequestDto;
 import com.webank.wecube.platform.core.dto.ResourceItemDto;
 import com.webank.wecube.platform.core.dto.ResourceServerDto;
+import com.webank.wecube.platform.core.entity.plugin.SystemVariables;
 import com.webank.wecube.platform.core.jpa.PluginConfigRepository;
 import com.webank.wecube.platform.core.jpa.PluginInstanceRepository;
 import com.webank.wecube.platform.core.jpa.PluginMysqlInstanceRepository;
@@ -123,7 +123,7 @@ public class PluginInstanceService {
     private VersionComparator versionComparator = new VersionComparator();
 
     public List<String> getAvailableContainerHosts() {
-        QueryRequest queryRequest = QueryRequest.defaultQueryObject("type", ResourceServerType.DOCKER);
+        QueryRequestDto queryRequest = QueryRequestDto.defaultQueryObject("type", ResourceServerType.DOCKER);
         List<String> hostList = new ArrayList<String>();
         resourceManagementService.retrieveServers(queryRequest).getContents().forEach(rs -> {
             hostList.add(rs.getHost());
@@ -139,7 +139,7 @@ public class PluginInstanceService {
                 .findByHostAndType(hostIp, ResourceServerType.DOCKER.getCode()).get(0);
         if (null == resourceServer)
             throw new WecubeCoreException("3065", String.format("Host IP [%s] is not found", hostIp), hostIp);
-        QueryRequest queryRequest = QueryRequest.defaultQueryObject("type", ResourceItemType.DOCKER_CONTAINER)
+        QueryRequestDto queryRequest = QueryRequestDto.defaultQueryObject("type", ResourceItemType.DOCKER_CONTAINER)
                 .addEqualsFilter("resourceServerId", resourceServer.getId());
 
         List<Integer> hasUsedPorts = Lists.newArrayList();
@@ -623,11 +623,11 @@ public class PluginInstanceService {
             return rawPassword;
         }
         
-        List<SystemVariable> pluginPropEncKeyFileSysVars = systemVariableService.getGlobalSystemVariableByName(SYS_VAR_PLUGIN_PROP_ENC_KEY_SWITCH);
+        List<SystemVariables> pluginPropEncKeyFileSysVars = systemVariableService.getGlobalSystemVariableByName(SYS_VAR_PLUGIN_PROP_ENC_KEY_SWITCH);
         String propEncSwitchOn = "on";
         String propEncSwitchOnConfig = null;
         if(pluginPropEncKeyFileSysVars != null && !pluginPropEncKeyFileSysVars.isEmpty()) {
-            SystemVariable pluginPropEncKeyFileSysVar = pluginPropEncKeyFileSysVars.get(0);
+            SystemVariables pluginPropEncKeyFileSysVar = pluginPropEncKeyFileSysVars.get(0);
             propEncSwitchOnConfig = pluginPropEncKeyFileSysVar.getValue();
             if(StringUtils.isBlank(propEncSwitchOnConfig)) {
                 propEncSwitchOnConfig = pluginPropEncKeyFileSysVar.getDefaultValue();
@@ -772,7 +772,7 @@ public class PluginInstanceService {
 
     public PluginMysqlInstance createPluginMysqlDatabase(PluginPackageRuntimeResourcesMysql mysqlInfo,
             String currentPluginVersion) {
-        QueryRequest queryRequest = QueryRequest.defaultQueryObject("type", ResourceServerType.MYSQL);
+        QueryRequestDto queryRequest = QueryRequestDto.defaultQueryObject("type", ResourceServerType.MYSQL);
         List<ResourceServerDto> mysqlServers = resourceManagementService.retrieveServers(queryRequest).getContents();
         if (mysqlServers.size() == 0) {
             throw new WecubeCoreException("3082",
@@ -813,7 +813,7 @@ public class PluginInstanceService {
     }
 
     private String createPluginS3Bucket(PluginPackageRuntimeResourcesS3 s3Info) {
-        QueryRequest queryRequest = QueryRequest.defaultQueryObject("type", ResourceServerType.S3);
+        QueryRequestDto queryRequest = QueryRequestDto.defaultQueryObject("type", ResourceServerType.S3);
         List<ResourceServerDto> s3Servers = resourceManagementService.retrieveServers(queryRequest).getContents();
         if (s3Servers.size() == 0) {
             throw new WecubeCoreException("3083", "Can not found available resource server for creating s3 bucket");

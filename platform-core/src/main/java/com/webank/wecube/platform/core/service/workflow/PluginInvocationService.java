@@ -20,12 +20,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
-import com.webank.wecube.platform.core.domain.SystemVariable;
 import com.webank.wecube.platform.core.domain.plugin.PluginConfig;
 import com.webank.wecube.platform.core.domain.plugin.PluginConfigInterface;
 import com.webank.wecube.platform.core.domain.plugin.PluginConfigInterfaceParameter;
 import com.webank.wecube.platform.core.domain.plugin.PluginInstance;
 import com.webank.wecube.platform.core.domain.plugin.PluginPackage;
+import com.webank.wecube.platform.core.entity.plugin.SystemVariables;
 import com.webank.wecube.platform.core.entity.workflow.ProcExecBindingEntity;
 import com.webank.wecube.platform.core.entity.workflow.ProcInstInfoEntity;
 import com.webank.wecube.platform.core.entity.workflow.TaskNodeDefInfoEntity;
@@ -620,7 +620,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
             List<Object> objectVals) {
         if (MAPPING_TYPE_SYSTEM_VARIABLE.equals(mappingType)) {
             String systemVariableName = param.getMappingSystemVariableName();
-            SystemVariable sVariable = systemVariableService.getSystemVariableByPackageNameAndName(
+            SystemVariables sVariable = systemVariableService.getSystemVariableByPackageNameAndName(
                     param.getPluginConfigInterface().getPluginConfig().getPluginPackage().getName(),
                     systemVariableName);
 

@@ -1,7 +1,7 @@
 package com.webank.wecube.platform.core.dto;
 
 
-public class PageInfo extends Pageable {
+public class PageInfo extends PageableDto {
     private int totalRows;
 
     public PageInfo() {

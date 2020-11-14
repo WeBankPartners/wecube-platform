@@ -1,6 +1,6 @@
 package com.webank.wecube.platform.core.utils;
 
-import com.webank.wecube.platform.core.dto.Filter;
+import com.webank.wecube.platform.core.dto.FilterDto;
 import com.webank.wecube.platform.core.dto.FilterOperator;
 
 import java.util.ArrayList;
@@ -31,9 +31,9 @@ public class FilterUtils {
     }
 
 
-    public static List<Predicate<Map<String, Object>>> getPredicateList(List<Filter> filterList) throws IllegalAccessException {
+    public static List<Predicate<Map<String, Object>>> getPredicateList(List<FilterDto> filterList) throws IllegalAccessException {
         List<Predicate<Map<String, Object>>> result = new ArrayList<>();
-        for (Filter filter : filterList) {
+        for (FilterDto filter : filterList) {
             if (!filter.checkNull()) {
                 switch (FilterOperator.fromCode(filter.getOperator())) {
                     case EQUAL:
