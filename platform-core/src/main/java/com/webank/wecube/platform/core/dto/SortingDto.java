@@ -1,13 +1,13 @@
 package com.webank.wecube.platform.core.dto;
 
-public class Sorting{
+public class SortingDto{
 	private boolean asc = true;
 	private String field;
 
-	public Sorting() {
+	public SortingDto() {
 	}
 
-	public Sorting(Boolean asc,String field) {
+	public SortingDto(Boolean asc,String field) {
 		this.asc = asc;
 		this.field = field;
 	}
