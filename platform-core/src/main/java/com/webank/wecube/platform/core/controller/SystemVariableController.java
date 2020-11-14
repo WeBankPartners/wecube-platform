@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.webank.wecube.platform.core.dto.CommonResponseDto;
-import com.webank.wecube.platform.core.dto.QueryRequest;
+import com.webank.wecube.platform.core.dto.QueryRequestDto;
 import com.webank.wecube.platform.core.dto.SystemVariableDto;
 import com.webank.wecube.platform.core.service.SystemVariableService;
 
@@ -25,7 +25,7 @@ public class SystemVariableController {
     private SystemVariableService systemVariableService;
 
     @PostMapping("/system-variables/retrieve")
-    public CommonResponseDto retrieveSystemVariables(@RequestBody QueryRequest queryRequest) {
+    public CommonResponseDto retrieveSystemVariables(@RequestBody QueryRequestDto queryRequest) {
         systemVariableService.validatePermission();
         return okayWithData(systemVariableService.retrieveSystemVariables(queryRequest));
     }

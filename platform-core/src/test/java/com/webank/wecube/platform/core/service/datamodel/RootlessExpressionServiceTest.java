@@ -20,7 +20,7 @@ import com.webank.wecube.platform.core.commons.ApplicationProperties;
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
 import com.webank.wecube.platform.core.dto.DmeFilterDto;
 import com.webank.wecube.platform.core.dto.DmeLinkFilterDto;
-import com.webank.wecube.platform.core.dto.Filter;
+import com.webank.wecube.platform.core.dto.FilterDto;
 
 @Ignore
 public class RootlessExpressionServiceTest extends BaseSpringBootTest {
@@ -60,7 +60,7 @@ public class RootlessExpressionServiceTest extends BaseSpringBootTest {
 		try {
 			List<Object> resultOne = rootlessExpressionService.fetchDataWithFilter(
 					new DmeFilterDto("wecmdb:system_design.code", Collections.singletonList(new DmeLinkFilterDto(0,
-							"platform", "core", Collections.singletonList(new Filter("key_name", "eq", "DEMO1"))))));
+							"platform", "core", Collections.singletonList(new FilterDto("key_name", "eq", "DEMO1"))))));
 			assertThat(resultOne.size()).isEqualTo(1);
 			assertThat(resultOne.get(0)).isEqualTo("DEMO1");
 		} catch (WecubeCoreException e) {
@@ -70,7 +70,7 @@ public class RootlessExpressionServiceTest extends BaseSpringBootTest {
 		try {
 			List<Object> resultTwo = rootlessExpressionService.fetchDataWithFilter(
 					new DmeFilterDto("wecmdb:unit.key_name", Collections.singletonList(new DmeLinkFilterDto(0,
-							"platform", "unit", Collections.singletonList(new Filter("code", "eq", "APP"))))));
+							"platform", "unit", Collections.singletonList(new FilterDto("code", "eq", "APP"))))));
 		} catch (WecubeCoreException e) {
 			assertThat(e.getMessage()).contains("don't match to the name in DME");
 		}
@@ -99,13 +99,13 @@ public class RootlessExpressionServiceTest extends BaseSpringBootTest {
 
 		List<Object> resultOne = rootlessExpressionService.fetchDataWithFilter(
 				new DmeFilterDto("wecmdb:system_design.code", Collections.singletonList(new DmeLinkFilterDto(0,
-						"wecmdb", "system_design", Collections.singletonList(new Filter("key_name", "eq", "DEMO1"))))));
+						"wecmdb", "system_design", Collections.singletonList(new FilterDto("key_name", "eq", "DEMO1"))))));
 		assertThat(resultOne.size()).isEqualTo(1);
 		assertThat(resultOne.get(0)).isEqualTo("DEMO1");
 
 		List<Object> resultTwo = rootlessExpressionService.fetchDataWithFilter(
 				new DmeFilterDto("wecmdb:unit.key_name", Collections.singletonList(new DmeLinkFilterDto(0, "wecmdb",
-						"unit", Collections.singletonList(new Filter("code", "eq", "APP"))))));
+						"unit", Collections.singletonList(new FilterDto("code", "eq", "APP"))))));
 		assertThat(resultTwo.size()).isEqualTo(2);
 		assertThat(resultTwo.get(0)).isEqualTo("DEMO1_PRD_ADM_APP");
 		assertThat(resultTwo.get(1)).isEqualTo("WECUBE_PRD_CORE_APP");
@@ -121,9 +121,9 @@ public class RootlessExpressionServiceTest extends BaseSpringBootTest {
 				.fetchDataWithFilter(new DmeFilterDto("wecmdb:subsys_design.system_design>wecmdb:system_design.code",
 						Arrays.asList(
 								new DmeLinkFilterDto(0, "wecmdb", "subsys_design",
-										Collections.singletonList(new Filter("business_group", "eq", 105))),
+										Collections.singletonList(new FilterDto("business_group", "eq", 105))),
 								new DmeLinkFilterDto(1, "wecmdb", "system_design",
-										Collections.singletonList(new Filter("state", "eq", 34))))));
+										Collections.singletonList(new FilterDto("state", "eq", 34))))));
 		assert resultOne.get(0).equals("EDP");
 
 		server.verify();
@@ -137,9 +137,9 @@ public class RootlessExpressionServiceTest extends BaseSpringBootTest {
 				.fetchDataWithFilter(new DmeFilterDto("wecmdb:subsys~(subsys)wecmdb:unit.fixed_date",
 						Arrays.asList(
 								new DmeLinkFilterDto(0, "wecmdb", "subsys",
-										Collections.singletonList(new Filter("code", "eq", "CORE"))),
+										Collections.singletonList(new FilterDto("code", "eq", "CORE"))),
 								new DmeLinkFilterDto(1, "wecmdb", "unit",
-										Collections.singletonList(new Filter("subsys", "eq", "0007_0000000001"))))));
+										Collections.singletonList(new FilterDto("subsys", "eq", "0007_0000000001"))))));
 		assertThat(resultOne.size()).isEqualTo(2);
 		assertThat(resultOne).containsExactlyInAnyOrder("2019-07-24 16:30:35", "");
 
@@ -153,7 +153,7 @@ public class RootlessExpressionServiceTest extends BaseSpringBootTest {
 		List<Object> resultOne = rootlessExpressionService.fetchDataWithFilter(new DmeFilterDto(
 				"wecmdb:subsys.subsys_design>wecmdb:subsys_design.system_design>wecmdb:system_design.key_name",
 				Collections.singletonList(new DmeLinkFilterDto(2, "wecmdb", "system_design",
-						Collections.singletonList(new Filter("name", "eq", "CRM System"))))));
+						Collections.singletonList(new FilterDto("name", "eq", "CRM System"))))));
 		assertThat(resultOne.size()).isEqualTo(1);
 		assertThat(resultOne).containsExactlyInAnyOrder("ECIF");
 
@@ -167,7 +167,7 @@ public class RootlessExpressionServiceTest extends BaseSpringBootTest {
 		List<Object> resultOne = rootlessExpressionService.fetchDataWithFilter(
 				new DmeFilterDto("wecmdb:subsys~(subsys)wecmdb:unit~(unit)wecmdb:running_instance.id",
 						Collections.singletonList(new DmeLinkFilterDto(1, "wecmdb", "unit",
-								Collections.singletonList(new Filter("id", "eq", "0008_0000000001"))))));
+								Collections.singletonList(new FilterDto("id", "eq", "0008_0000000001"))))));
 		assertThat(resultOne.size()).isEqualTo(1);
 		assertThat(resultOne).containsExactlyInAnyOrder("0015_0000000001");
 
@@ -180,7 +180,7 @@ public class RootlessExpressionServiceTest extends BaseSpringBootTest {
 		List<Object> resultOne = rootlessExpressionService.fetchDataWithFilter(new DmeFilterDto(
 				"wecmdb:subsys~(subsys)wecmdb:unit.unit_design>wecmdb:unit_design.subsys_design>wecmdb:subsys_design.key_name",
 				Collections.singletonList(new DmeLinkFilterDto(1, "wecmdb", "unit", Arrays
-						.asList(new Filter("state", "eq", 37), new Filter("unit_design", "eq", "0003_0000000006"))))));
+						.asList(new FilterDto("state", "eq", 37), new FilterDto("unit_design", "eq", "0003_0000000006"))))));
 
 		assertThat(resultOne.size()).isEqualTo(1);
 		assertThat(resultOne).containsExactlyInAnyOrder("ECIF-CORE");
