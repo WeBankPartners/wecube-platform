@@ -16,7 +16,8 @@
         <result column="status" property="status" jdbcType="VARCHAR" />
     </resultMap>
     <sql id="Base_Column_List">
-        id, package_name, name, value, default_value, scope, source, status
+        id, package_name, name, value, default_value, scope,
+        source, status
     </sql>
     <select id="selectByPrimaryKey" resultMap="BaseResultMap"
         parameterType="java.lang.String">
@@ -26,17 +27,21 @@
         where id = #{id,jdbcType=VARCHAR}
     </select>
     <delete id="deleteByPrimaryKey" parameterType="java.lang.String">
-        delete from system_variables
+        delete from
+        system_variables
         where id = #{id,jdbcType=VARCHAR}
     </delete>
     <insert id="insert"
         parameterType="com.webank.wecube.platform.core.entity.plugin.SystemVariables">
-        insert into system_variables (id, package_name, name,
+        insert into system_variables (id, package_name,
+        name,
         value, default_value, scope,
         source, status)
-        values (#{id,jdbcType=VARCHAR}, #{packageName,jdbcType=VARCHAR},
+        values
+        (#{id,jdbcType=VARCHAR}, #{packageName,jdbcType=VARCHAR},
         #{name,jdbcType=VARCHAR},
-        #{value,jdbcType=VARCHAR}, #{defaultValue,jdbcType=VARCHAR}, #{scope,jdbcType=VARCHAR},
+        #{value,jdbcType=VARCHAR},
+        #{defaultValue,jdbcType=VARCHAR}, #{scope,jdbcType=VARCHAR},
         #{source,jdbcType=VARCHAR}, #{status,jdbcType=VARCHAR})
     </insert>
     <insert id="insertSelective"
@@ -109,7 +114,8 @@
                 value = #{value,jdbcType=VARCHAR},
             </if>
             <if test="defaultValue != null">
-                default_value = #{defaultValue,jdbcType=VARCHAR},
+                default_value =
+                #{defaultValue,jdbcType=VARCHAR},
             </if>
             <if test="scope != null">
                 scope = #{scope,jdbcType=VARCHAR},
@@ -126,14 +132,18 @@
     <update id="updateByPrimaryKey"
         parameterType="com.webank.wecube.platform.core.entity.plugin.SystemVariables">
         update system_variables
-        set package_name = #{packageName,jdbcType=VARCHAR},
+        set package_name =
+        #{packageName,jdbcType=VARCHAR},
         name = #{name,jdbcType=VARCHAR},
         value = #{value,jdbcType=VARCHAR},
-        default_value = #{defaultValue,jdbcType=VARCHAR},
-        scope = #{scope,jdbcType=VARCHAR},
+        default_value =
+        #{defaultValue,jdbcType=VARCHAR},
+        scope =
+        #{scope,jdbcType=VARCHAR},
         source = #{source,jdbcType=VARCHAR},
         status = #{status,jdbcType=VARCHAR}
-        where id = #{id,jdbcType=VARCHAR}
+        where id =
+        #{id,jdbcType=VARCHAR}
     </update>
 
     <select id="selectAllByNameAndScopeAndStatus" resultMap="BaseResultMap"
@@ -142,8 +152,10 @@
         <include refid="Base_Column_List" />
         from system_variables
         where name = #{name,jdbcType=VARCHAR}
-        and scope = #{scope,jdbcType=VARCHAR}
-        and status = #{status,jdbcType=VARCHAR}
+        and
+        scope = #{scope,jdbcType=VARCHAR}
+        and status =
+        #{status,jdbcType=VARCHAR}
     </select>
 
     <select id="selectAllByNameAndScopeAndSource" resultMap="BaseResultMap"
@@ -152,10 +164,12 @@
         <include refid="Base_Column_List" />
         from system_variables
         where name = #{name,jdbcType=VARCHAR}
-        and scope = #{scope,jdbcType=VARCHAR}
-        and source = #{source,jdbcType=VARCHAR}
+        and
+        scope = #{scope,jdbcType=VARCHAR}
+        and source =
+        #{source,jdbcType=VARCHAR}
     </select>
-    
+
     <select id="selectAllByPluginPackages" resultMap="BaseResultMap"
         parameterType="list">
         select
@@ -163,25 +177,32 @@
         from system_variables
         <where>
             source in
-            <foreach item="pluginPackageId" collection="pluginPackageIds" separator="," open="(" close=")" index="">    
-                #{pluginPackageId, jdbcType=VARCHAR}    
+            <foreach item="pluginPackageId" collection="pluginPackageIds"
+                separator="," open="(" close=")" index="">
+                #{pluginPackageId, jdbcType=VARCHAR}
             </foreach>
         </where>
     </select>
-    
+
     <select id="selectAllByPluginPackage" resultMap="BaseResultMap"
         parameterType="java.lang.String">
         select
         <include refid="Base_Column_List" />
         from system_variables
-        where source = #{pluginPackageId, jdbcType=VARCHAR}
+        where source = #{pluginPackageId,
+        jdbcType=VARCHAR}
     </select>
-    
+
     <select id="selectAllBySource" resultMap="BaseResultMap"
         parameterType="java.lang.String">
         select
         <include refid="Base_Column_List" />
         from system_variables
         where source = #{source, jdbcType=VARCHAR}
+    </select>
+
+    <select id="selectAllSystemVariableScopes" resultType="java.lang.String">
+        select
+        distinct scope from system_variables
     </select>
 </mapper>

@@ -7,13 +7,13 @@ public class DmeLinkFilterDto {
     int index;
     String packageName;
     String entityName;
-    List<Filter> attributeFilters;
+    List<FilterDto> attributeFilters;
 
     public DmeLinkFilterDto() {
         this.attributeFilters = new ArrayList<>();
     }
 
-    public DmeLinkFilterDto(int index, String packageName, String entityName, List<Filter> attributeFilters) {
+    public DmeLinkFilterDto(int index, String packageName, String entityName, List<FilterDto> attributeFilters) {
         this.index = index;
         this.packageName = packageName;
         this.entityName = entityName;
@@ -44,11 +44,11 @@ public class DmeLinkFilterDto {
         this.entityName = entityName;
     }
 
-    public List<Filter> getAttributeFilters() {
+    public List<FilterDto> getAttributeFilters() {
         return attributeFilters;
     }
 
-    public void setAttributeFilters(List<Filter> attributeFilters) {
+    public void setAttributeFilters(List<FilterDto> attributeFilters) {
         this.attributeFilters = attributeFilters;
     }
 

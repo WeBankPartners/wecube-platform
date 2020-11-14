@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.google.common.collect.Lists;
 import com.webank.wecube.platform.core.dto.CommonResponseDto;
-import com.webank.wecube.platform.core.dto.QueryRequest;
+import com.webank.wecube.platform.core.dto.QueryRequestDto;
 import com.webank.wecube.platform.core.dto.ResourceItemDto;
 import com.webank.wecube.platform.core.dto.ResourceServerDto;
 import com.webank.wecube.platform.core.service.resource.ResourceItemStatus;
@@ -31,7 +31,7 @@ public class ResourceManagementController {
     private ResourceManagementService resourceService;
 
     @PostMapping("/servers/retrieve")
-    public CommonResponseDto retrieveServers(@RequestBody QueryRequest queryRequest) {
+    public CommonResponseDto retrieveServers(@RequestBody QueryRequestDto queryRequest) {
         return okayWithData(resourceService.retrieveServers(queryRequest));
     }
 
@@ -52,7 +52,7 @@ public class ResourceManagementController {
     }
 
     @PostMapping("/items/retrieve")
-    public CommonResponseDto retrieveItems(@RequestBody QueryRequest queryRequest) {
+    public CommonResponseDto retrieveItems(@RequestBody QueryRequestDto queryRequest) {
         return okayWithData(resourceService.retrieveItems(queryRequest));
     }
 
