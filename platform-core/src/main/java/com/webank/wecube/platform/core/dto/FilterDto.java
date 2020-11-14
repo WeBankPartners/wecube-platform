@@ -3,7 +3,7 @@ package com.webank.wecube.platform.core.dto;
 import javax.validation.constraints.NotNull;
 import java.lang.reflect.Field;
 
-public class Filter {
+public class FilterDto {
     @NotNull
     private String name;
     @NotNull
@@ -11,10 +11,10 @@ public class Filter {
     @NotNull
     private Object value;
 
-    public Filter() {
+    public FilterDto() {
     }
 
-    public Filter(String name, String operator, Object value) {
+    public FilterDto(String name, String operator, Object value) {
         this.name = name;
         this.operator = operator;
         this.value = value;

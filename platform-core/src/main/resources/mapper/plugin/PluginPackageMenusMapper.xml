@@ -201,7 +201,6 @@
         t1.plugin_package_id =
         t2.id
         AND t2.status IN
-        and status in
         <foreach item="status" collection="statuses" separator=","
             open="(" close=")" index="">
             #{status, jdbcType=VARCHAR}
@@ -226,8 +225,7 @@
         WHERE
         t1.plugin_package_id =
         t2.id
-        AND t2.status IN
-        and status in
+        and t2.status IN
         <foreach item="status" collection="statuses" separator=","
             open="(" close=")" index="">
             #{status, jdbcType=VARCHAR}

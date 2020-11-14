@@ -1,13 +1,13 @@
 package com.webank.wecube.platform.core.dto;
 
-public class Pageable{
+public class PageableDto{
 	private int startIndex;
 	private int pageSize = 10000;
 	
-	public Pageable() {
+	public PageableDto() {
 	}
 	
-	public Pageable(int startIndex,int pageSize) {
+	public PageableDto(int startIndex,int pageSize) {
 		this.startIndex = startIndex;
 		this.pageSize = pageSize;
 	}

@@ -1,9 +1,10 @@
 package com.webank.wecube.platform.core.dto;
 
+import org.apache.commons.lang3.builder.ToStringBuilder;
+
 import com.webank.wecube.platform.core.domain.MenuItem;
 import com.webank.wecube.platform.core.domain.plugin.PluginPackageMenu;
 import com.webank.wecube.platform.core.lazyDomain.plugin.LazyPluginPackageMenu;
-import org.apache.commons.lang3.builder.ToStringBuilder;
 
 public class MenuItemDto implements Comparable<MenuItemDto> {
 
@@ -15,7 +16,7 @@ public class MenuItemDto implements Comparable<MenuItemDto> {
     private String displayName;
     private String localDisplayName;
     private String path;
-    private boolean active;
+    private Boolean active;
 
     public MenuItemDto(String id, String category, String code, String source, Integer menuOrder, String displayName, String localDisplayName, String path, boolean active) {
         this.id = id;
@@ -141,11 +142,11 @@ public class MenuItemDto implements Comparable<MenuItemDto> {
         this.path = path;
     }
 
-    public boolean isActive() {
+    public Boolean isActive() {
         return active;
     }
 
-    public void setActive(boolean active) {
+    public void setActive(Boolean active) {
         this.active = active;
     }
 
