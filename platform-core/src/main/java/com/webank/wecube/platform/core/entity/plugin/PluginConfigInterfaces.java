@@ -1,6 +1,12 @@
 package com.webank.wecube.platform.core.entity.plugin;
 
+import static com.webank.wecube.platform.core.utils.Constants.LEFT_BRACKET_STRING;
+import static com.webank.wecube.platform.core.utils.Constants.RIGHT_BRACKET_STRING;
+import static com.webank.wecube.platform.core.utils.Constants.SEPARATOR_OF_NAMES;
+
 public class PluginConfigInterfaces {
+    public static final String DEFAULT_INTERFACE_TYPE = "EXECUTION";
+    public static final String DEFAULT_IS_ASYNC_PROCESSING_VALUE = "N";
     private String id;
 
     private String pluginConfigId;
@@ -99,5 +105,12 @@ public class PluginConfigInterfaces {
 
     public void setFilterRule(String filterRule) {
         this.filterRule = filterRule == null ? null : filterRule.trim();
+    }
+    
+    public String generateServiceName(PluginPackages pluginPackage, PluginConfigs pluginConfig) {
+        return pluginPackage.getName() + SEPARATOR_OF_NAMES + pluginConfig.getName()
+                + (null != pluginConfig.getRegisterName()
+                        ? LEFT_BRACKET_STRING + pluginConfig.getRegisterName() + RIGHT_BRACKET_STRING : "")
+                + SEPARATOR_OF_NAMES + action;
     }
 }
