@@ -19,7 +19,8 @@
         where id = #{id,jdbcType=VARCHAR}
     </select>
     <delete id="deleteByPrimaryKey" parameterType="java.lang.String">
-        delete from role_menu
+        delete from
+        role_menu
         where id = #{id,jdbcType=VARCHAR}
     </delete>
     <insert id="insert"
@@ -72,11 +73,13 @@
     <update id="updateByPrimaryKey"
         parameterType="com.webank.wecube.platform.core.entity.plugin.RoleMenu">
         update role_menu
-        set role_name = #{roleName,jdbcType=VARCHAR},
-        menu_code = #{menuCode,jdbcType=VARCHAR}
+        set role_name =
+        #{roleName,jdbcType=VARCHAR},
+        menu_code =
+        #{menuCode,jdbcType=VARCHAR}
         where id = #{id,jdbcType=VARCHAR}
     </update>
-    
+
     <select id="selectAllByRoleName" resultMap="BaseResultMap"
         parameterType="java.lang.String">
         select
@@ -84,7 +87,7 @@
         from role_menu
         where role_name = #{roleName,jdbcType=VARCHAR}
     </select>
-    
+
     <select id="selectAllByRoleNameAndMenuCode" resultMap="BaseResultMap"
         parameterType="java.lang.String">
         select
@@ -94,4 +97,14 @@
         and
         menu_code = #{menuCode,jdbcType=VARCHAR}
     </select>
+
+    <select id="selectAllByMenuCode" resultMap="BaseResultMap"
+        parameterType="java.lang.String">
+        select
+        <include refid="Base_Column_List" />
+        from role_menu
+        where
+        menu_code = #{menuCode,jdbcType=VARCHAR}
+    </select>
+
 </mapper>
