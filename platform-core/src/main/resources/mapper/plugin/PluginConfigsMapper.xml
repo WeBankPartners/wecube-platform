@@ -204,4 +204,19 @@
         and
         register_name IS NOT NULL
     </select>
+
+    <select id="selectAllByPluginPackageAndNameAndRegisterName"
+        resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List" />
+        from plugin_configs
+        where plugin_package_id =
+        #{pluginPackageId,jdbcType=VARCHAR}
+        and
+        name =
+        #{name,jdbcType=VARCHAR}
+        and
+        register_name =
+        #{registerName,jdbcType=VARCHAR}
+    </select>
 </mapper>

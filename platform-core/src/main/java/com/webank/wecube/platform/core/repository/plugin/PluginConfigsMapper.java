@@ -50,4 +50,14 @@ public interface PluginConfigsMapper {
      */
     List<PluginConfigs> selectAllByPackageAndNameAndRegNameIsNotNull(@Param("pluginPackageId") String pluginPackageId,
             @Param("name") String name);
+
+    /**
+     * 
+     * @param pluginPackageId
+     * @param name
+     * @param registerName
+     * @return
+     */
+    List<PluginConfigs> selectAllByPluginPackageAndNameAndRegisterName(@Param("pluginPackageId") String pluginPackageId,
+            @Param("name") String name, @Param("registerName") String registerName);
 }
