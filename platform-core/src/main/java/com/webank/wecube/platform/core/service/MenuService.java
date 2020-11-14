@@ -251,7 +251,7 @@ public class MenuService {
             String menuCode = menuEntityToCheck.getCode();
             PluginPackageMenus existMenuEntity = codeAndMenus.get(menuCode);
             if (existMenuEntity == null) {
-                codeAndMenus.put(menuCode, existMenuEntity);
+                codeAndMenus.put(menuCode, menuEntityToCheck);
             } else {
                 if (isBetterThanExistOne(menuEntityToCheck, existMenuEntity)) {
                     codeAndMenus.put(menuCode, menuEntityToCheck);
