@@ -16,11 +16,11 @@ import com.webank.wecube.platform.core.commons.ApplicationProperties.ResourcePro
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
 import com.webank.wecube.platform.core.domain.ResourceItem;
 import com.webank.wecube.platform.core.domain.ResourceServer;
-import com.webank.wecube.platform.core.dto.QueryRequest;
+import com.webank.wecube.platform.core.dto.QueryRequestDto;
 import com.webank.wecube.platform.core.dto.QueryResponse;
 import com.webank.wecube.platform.core.dto.ResourceItemDto;
 import com.webank.wecube.platform.core.dto.ResourceServerDto;
-import com.webank.wecube.platform.core.dto.Sorting;
+import com.webank.wecube.platform.core.dto.SortingDto;
 import com.webank.wecube.platform.core.jpa.EntityRepository;
 import com.webank.wecube.platform.core.jpa.ResourceItemRepository;
 import com.webank.wecube.platform.core.jpa.ResourceServerRepository;
@@ -45,7 +45,7 @@ public class ResourceManagementService {
     @Autowired
     private ResourceImplementationService resourceImplementationService;
 
-    public QueryResponse<ResourceServerDto> retrieveServers(QueryRequest queryRequest) {
+    public QueryResponse<ResourceServerDto> retrieveServers(QueryRequestDto queryRequest) {
         queryRequest = applyDefaultSortingAsDesc(queryRequest);
         QueryResponse<ResourceServer> queryResponse = entityRepository.query(ResourceServer.class, queryRequest);
         List<ResourceServerDto> resourceServerDto = Lists.transform(queryResponse.getContents(),
@@ -53,11 +53,11 @@ public class ResourceManagementService {
         return new QueryResponse<>(queryResponse.getPageInfo(), resourceServerDto);
     }
 
-    private QueryRequest applyDefaultSortingAsDesc(QueryRequest queryRequest) {
+    private QueryRequestDto applyDefaultSortingAsDesc(QueryRequestDto queryRequest) {
         if (queryRequest == null) {
-            queryRequest = QueryRequest.defaultQueryObject().descendingSortBy("createdDate");
+            queryRequest = QueryRequestDto.defaultQueryObject().descendingSortBy("createdDate");
         } else if (queryRequest.getSorting() == null || queryRequest.getSorting().getField() == null) {
-            queryRequest.setSorting(new Sorting(false, "createdDate"));
+            queryRequest.setSorting(new SortingDto(false, "createdDate"));
         }
         return queryRequest;
     }
@@ -104,7 +104,7 @@ public class ResourceManagementService {
         });
     }
 
-    public QueryResponse<ResourceItemDto> retrieveItems(QueryRequest queryRequest) {
+    public QueryResponse<ResourceItemDto> retrieveItems(QueryRequestDto queryRequest) {
         queryRequest = applyDefaultSortingAsDesc(queryRequest);
         QueryResponse<ResourceItem> queryResponse = entityRepository.query(ResourceItem.class, queryRequest);
         List<ResourceItemDto> resourceItemsDto = Lists.transform(queryResponse.getContents(),

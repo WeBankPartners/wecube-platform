@@ -55,7 +55,7 @@ camunda:
     generate-unique-process-engine-name: true
 mybatis:
   config-location: classpath:mybatis-config.xml
-  mapper-locations: classpath*:mapper/*Mapper.xml
+  mapper-locations: classpath*:mapper/*Mapper.xml,classpath*:mapper/plugin/*Mapper.xml,classpath*:mapper/workflow/*Mapper.xml
   type-aliases-package: com.webank.wecube.platform.core.entity
 wecube:
   core:
