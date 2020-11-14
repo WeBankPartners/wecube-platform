@@ -41,15 +41,16 @@ import com.webank.wecube.platform.core.dto.TargetEntityFilterRuleDto;
 import com.webank.wecube.platform.core.dto.plugin.PluginConfigDto;
 import com.webank.wecube.platform.core.dto.plugin.PluginConfigInterfaceDto;
 import com.webank.wecube.platform.core.dto.user.RoleDto;
-import com.webank.wecube.platform.core.entity.PluginAuthEntity;
-import com.webank.wecube.platform.core.jpa.PluginAuthRepository;
+import com.webank.wecube.platform.core.entity.plugin.PluginConfigRoles;
 import com.webank.wecube.platform.core.jpa.PluginConfigInterfaceRepository;
 import com.webank.wecube.platform.core.jpa.PluginConfigRepository;
 import com.webank.wecube.platform.core.jpa.PluginPackageDataModelRepository;
 import com.webank.wecube.platform.core.jpa.PluginPackageEntityRepository;
 import com.webank.wecube.platform.core.jpa.PluginPackageRepository;
+import com.webank.wecube.platform.core.repository.plugin.PluginConfigRolesMapper;
 import com.webank.wecube.platform.core.service.user.UserManagementServiceImpl;
 import com.webank.wecube.platform.core.utils.CollectionUtils;
+import com.webank.wecube.platform.workflow.commons.LocalIdGenerator;
 
 @Service
 @Transactional
@@ -68,7 +69,7 @@ public class PluginConfigService {
     private PluginPackageDataModelRepository dataModelRepository;
 
     @Autowired
-    private PluginAuthRepository pluginAuthRepository;
+    private PluginConfigRolesMapper pluginConfigRolesMapper;
 
     @Autowired
     private UserManagementServiceImpl userManagementService;
@@ -77,15 +78,15 @@ public class PluginConfigService {
         return pluginConfigRepository.findAllPluginConfigInterfacesByConfigIdAndFetchParameters(pluginConfigId);
     }
 
-    public PluginConfigDto savePluginConfig(PluginConfigDto pluginConfigDto) throws WecubeCoreException {
-        validatePermission(pluginConfigDto.getPermissionToRole());
-        if (pluginConfigDto.getId() == null) {
-            return createPluginConfig(pluginConfigDto);
-        }
-        return updatePluginConfig(pluginConfigDto);
-    }
+//    public PluginConfigDto savePluginConfig(PluginConfigDto pluginConfigDto) throws WecubeCoreException {
+//        validatePermission(pluginConfigDto.getPermissionToRole());
+//        if (pluginConfigDto.getId() == null) {
+//            return createPluginConfig(pluginConfigDto);
+//        }
+//        return updatePluginConfig(pluginConfigDto);
+//    }
 
-    public PluginConfigDto createPluginConfig(PluginConfigDto pluginConfigDto) throws WecubeCoreException {
+    private PluginConfigDto createPluginConfig(PluginConfigDto pluginConfigDto) throws WecubeCoreException {
         String packageId = pluginConfigDto.getPluginPackageId();
         PluginPackage pluginPackage = pluginPackageRepository.findById(packageId).get();
 
@@ -110,7 +111,7 @@ public class PluginConfigService {
         if (permissionToRole == null || permissionToRole.isEmpty()) {
             throw new WecubeCoreException("3036", "Permission configuration should provide.");
         }
-        List<String> mgmtRoleIds = permissionToRole.get(PluginAuthEntity.PERM_TYPE_MGMT);
+        List<String> mgmtRoleIds = permissionToRole.get(PluginConfigRoles.PERM_TYPE_MGMT);
         if (mgmtRoleIds == null || mgmtRoleIds.isEmpty()) {
             throw new WecubeCoreException("3037", "At least one management role should provide.");
         }
@@ -146,15 +147,16 @@ public class PluginConfigService {
 
         for (String roleId : roleIdsToAdd) {
             RoleDto roleDto = userManagementService.retrieveRoleById(roleId);
-            PluginAuthEntity pluginAuthEntity = new PluginAuthEntity();
-            pluginAuthEntity.setActive(true);
+            PluginConfigRoles pluginAuthEntity = new PluginConfigRoles();
+            pluginAuthEntity.setId(LocalIdGenerator.uuid());
+            pluginAuthEntity.setIsActive(true);
             pluginAuthEntity.setCreatedBy(AuthenticationContextHolder.getCurrentUsername());
             pluginAuthEntity.setCreatedTime(new Date());
-            pluginAuthEntity.setPermissionType(permission);
-            pluginAuthEntity.setPluginConfigId(pluginConfigId);
+            pluginAuthEntity.setPermType(permission);
+            pluginAuthEntity.setPluginCfgId(pluginConfigId);
             pluginAuthEntity.setRoleId(roleId);
             pluginAuthEntity.setRoleName(roleDto.getName());
-            pluginAuthRepository.saveAndFlush(pluginAuthEntity);
+            pluginConfigRolesMapper.insert(pluginAuthEntity);
         }
 
     }
@@ -164,19 +166,19 @@ public class PluginConfigService {
         if (log.isDebugEnabled()) {
             log.debug("roles to remove for {} {}:{}", pluginConfigId, permission, roleIdsToRemove);
         }
-        List<PluginAuthEntity> entities = this.pluginAuthRepository.findAllByPluginConfigIdAndPermission(pluginConfigId,
+        List<PluginConfigRoles> entities = this.pluginConfigRolesMapper.selectAllByPluginConfigAndPerm(pluginConfigId,
                 permission);
         for (String roleId : roleIdsToRemove) {
-            PluginAuthEntity entity = pickoutPluginAuthEntityByRoleId(entities, roleId);
+            PluginConfigRoles entity = pickoutPluginAuthEntityByRoleId(entities, roleId);
             if (entity != null) {
-                this.pluginAuthRepository.delete(entity);
+                this.pluginConfigRolesMapper.deleteByPrimaryKey(entity.getId());
             }
         }
 
     }
 
-    private PluginAuthEntity pickoutPluginAuthEntityByRoleId(List<PluginAuthEntity> entities, String roleId) {
-        for (PluginAuthEntity entity : entities) {
+    private PluginConfigRoles pickoutPluginAuthEntityByRoleId(List<PluginConfigRoles> entities, String roleId) {
+        for (PluginConfigRoles entity : entities) {
             if (roleId.equals(entity.getRoleId())) {
                 return entity;
             }
@@ -187,9 +189,9 @@ public class PluginConfigService {
 
     private List<String> getExistRoleIdsOfPluginConfigAndPermission(String pluginConfigId, String permission) {
         List<String> existRoleIds = new ArrayList<String>();
-        List<PluginAuthEntity> entities = this.pluginAuthRepository.findAllByPluginConfigIdAndPermission(pluginConfigId,
+        List<PluginConfigRoles> entities = this.pluginConfigRolesMapper.selectAllByPluginConfigAndPerm(pluginConfigId,
                 permission);
-        for (PluginAuthEntity e : entities) {
+        for (PluginConfigRoles e : entities) {
             existRoleIds.add(e.getRoleId());
         }
 
@@ -214,15 +216,16 @@ public class PluginConfigService {
                 List<String> addedRoleIds = new ArrayList<String>();
                 for (String roleId : roleIds) {
                     RoleDto roleDto = userManagementService.retrieveRoleById(roleId);
-                    PluginAuthEntity pluginAuthEntity = new PluginAuthEntity();
-                    pluginAuthEntity.setActive(true);
+                    PluginConfigRoles pluginAuthEntity = new PluginConfigRoles();
+                    pluginAuthEntity.setId(LocalIdGenerator.uuid());
+                    pluginAuthEntity.setIsActive(true);
                     pluginAuthEntity.setCreatedBy(AuthenticationContextHolder.getCurrentUsername());
                     pluginAuthEntity.setCreatedTime(new Date());
-                    pluginAuthEntity.setPermissionType(permission);
-                    pluginAuthEntity.setPluginConfigId(pluginConfigId);
+                    pluginAuthEntity.setPermType(permission);
+                    pluginAuthEntity.setPluginCfgId(pluginConfigId);
                     pluginAuthEntity.setRoleId(roleId);
                     pluginAuthEntity.setRoleName(roleDto.getName());
-                    pluginAuthRepository.saveAndFlush(pluginAuthEntity);
+                    pluginConfigRolesMapper.insert(pluginAuthEntity);
 
                     addedRoleIds.add(roleId);
                 }
@@ -243,7 +246,7 @@ public class PluginConfigService {
         }
         String permission = pluginConfigRoleRequestDto.getPermission();
         List<String> inputRoleIds = pluginConfigRoleRequestDto.getRoleIds();
-        validateCurrentUserPermission(pluginConfigId, PluginAuthEntity.PERM_TYPE_MGMT);
+        validateCurrentUserPermission(pluginConfigId, PluginConfigRoles.PERM_TYPE_MGMT);
 
         if (inputRoleIds == null || inputRoleIds.isEmpty()) {
             log.info("input role IDs is empty");
@@ -273,8 +276,8 @@ public class PluginConfigService {
             throw new WecubeCoreException("3039", "Lack of permission to update user permission configuration.");
         }
 
-        List<PluginAuthEntity> pluginAuthConfigEntities = this.pluginAuthRepository
-                .findAllByPluginConfigIdAndPermission(pluginConfigId, permission);
+        List<PluginConfigRoles> pluginAuthConfigEntities = this.pluginConfigRolesMapper
+                .selectAllByPluginConfigAndPerm(pluginConfigId, permission);
 
         if (pluginAuthConfigEntities == null || pluginAuthConfigEntities.isEmpty()) {
             throw new WecubeCoreException("3040", "None plugin authority configured for [%s] [%s]", pluginConfigId,
@@ -282,7 +285,7 @@ public class PluginConfigService {
         }
 
         boolean hasAuthority = false;
-        for (PluginAuthEntity auth : pluginAuthConfigEntities) {
+        for (PluginConfigRoles auth : pluginAuthConfigEntities) {
             String authRole = auth.getRoleName();
             if (StringUtils.isBlank(authRole)) {
                 continue;
@@ -295,7 +298,7 @@ public class PluginConfigService {
 
         if (!hasAuthority) {
             StringBuilder rolesStr = new StringBuilder();
-            for (PluginAuthEntity auth : pluginAuthConfigEntities) {
+            for (PluginConfigRoles auth : pluginAuthConfigEntities) {
                 rolesStr.append(auth.getRoleName());
             }
             String errorMsg = String.format(
@@ -311,7 +314,7 @@ public class PluginConfigService {
         String permission = pluginConfigRoleRequestDto.getPermission();
         List<String> inputRoleIds = pluginConfigRoleRequestDto.getRoleIds();
 
-        validateCurrentUserPermission(pluginConfigId, PluginAuthEntity.PERM_TYPE_MGMT);
+        validateCurrentUserPermission(pluginConfigId, PluginConfigRoles.PERM_TYPE_MGMT);
 
         if (inputRoleIds == null || inputRoleIds.isEmpty()) {
             return;
@@ -358,7 +361,7 @@ public class PluginConfigService {
         }
     }
 
-    public PluginConfigDto updatePluginConfig(PluginConfigDto pluginConfigDto) throws WecubeCoreException {
+    private PluginConfigDto updatePluginConfig(PluginConfigDto pluginConfigDto) throws WecubeCoreException {
         ensurePluginConfigIsValid(pluginConfigDto);
         String packageId = pluginConfigDto.getPluginPackageId();
         PluginPackage pluginPackage = pluginPackageRepository.findById(packageId).get();
@@ -440,7 +443,7 @@ public class PluginConfigService {
             throw new WecubeCoreException("3053", "Not allow to enable pluginConfig with status: ENABLED");
         }
 
-        validateCurrentUserPermission(pluginConfigId, PluginAuthEntity.PERM_TYPE_MGMT);
+        validateCurrentUserPermission(pluginConfigId, PluginConfigRoles.PERM_TYPE_MGMT);
 
         ensureEntityIsValid(pluginConfig.getName(), pluginConfig.getTargetPackage(), pluginConfig.getTargetEntity());
 
@@ -500,7 +503,7 @@ public class PluginConfigService {
 
         PluginConfig pluginConfig = pluginConfigRepository.findById(pluginConfigId).get();
 
-        validateCurrentUserPermission(pluginConfigId, PluginAuthEntity.PERM_TYPE_MGMT);
+        validateCurrentUserPermission(pluginConfigId, PluginConfigRoles.PERM_TYPE_MGMT);
 
         pluginConfig.setStatus(DISABLED);
         return PluginConfigDto.fromDomain(pluginConfigRepository.save(pluginConfig));
@@ -526,7 +529,7 @@ public class PluginConfigService {
                     .add(PluginConfigInterfaceDto.fromDomain(pluginConfigInterface)));
         }
 
-        return filterDtoWithPermissionValidation(pluginConfigInterfaceDtos, PluginAuthEntity.PERM_TYPE_USE);
+        return filterDtoWithPermissionValidation(pluginConfigInterfaceDtos, PluginConfigRoles.PERM_TYPE_USE);
     }
 
     public List<PluginConfigInterfaceDto> queryAllEnabledPluginConfigInterfaceForEntityByFilterRule(
@@ -560,7 +563,7 @@ public class PluginConfigService {
                             packageName, entityName, ENABLED);
             if (allEnabledInterfacesOptional.isPresent()) {
                 List<PluginConfigInterface> rawPluginIntfs = allEnabledInterfacesOptional.get();
-                List<PluginConfigInterface> filteredPluginConfigIntfs = filterWithPermissionValidation(rawPluginIntfs, PluginAuthEntity.PERM_TYPE_USE);
+                List<PluginConfigInterface> filteredPluginConfigIntfs = filterWithPermissionValidation(rawPluginIntfs, PluginConfigRoles.PERM_TYPE_USE);
                 
                 List<PluginConfigInterface> filteredLatestConfigIntfs = filterLatestPluginConfigInterfaces(filteredPluginConfigIntfs);
                 
@@ -576,7 +579,7 @@ public class PluginConfigService {
                                 packageName, entityName, ENABLED);
                 if (filterRuleIsNullEnabledInterfacesOptional.isPresent()) {
                     List<PluginConfigInterface> rawPluginIntfs = filterRuleIsNullEnabledInterfacesOptional.get();
-                    List<PluginConfigInterface> filteredPluginConfigIntfs = filterWithPermissionValidation(rawPluginIntfs, PluginAuthEntity.PERM_TYPE_USE);
+                    List<PluginConfigInterface> filteredPluginConfigIntfs = filterWithPermissionValidation(rawPluginIntfs, PluginConfigRoles.PERM_TYPE_USE);
                     
                     List<PluginConfigInterface> filteredLatestConfigIntfs = filterLatestPluginConfigInterfaces(filteredPluginConfigIntfs);
                     pluginConfigInterfaceDtos.addAll(filteredLatestConfigIntfs.stream()
@@ -588,7 +591,7 @@ public class PluginConfigService {
                                 packageName, entityName, "", ENABLED);
                 if (filterRuleIsEmptyEnabledInterfacesOptional.isPresent()) {
                     List<PluginConfigInterface> rawPluginIntfs = filterRuleIsEmptyEnabledInterfacesOptional.get();
-                    List<PluginConfigInterface> filteredPluginConfigIntfs = filterWithPermissionValidation(rawPluginIntfs, PluginAuthEntity.PERM_TYPE_USE);
+                    List<PluginConfigInterface> filteredPluginConfigIntfs = filterWithPermissionValidation(rawPluginIntfs, PluginConfigRoles.PERM_TYPE_USE);
                     
                     List<PluginConfigInterface> filteredLatestConfigIntfs = filterLatestPluginConfigInterfaces(filteredPluginConfigIntfs);
                     pluginConfigInterfaceDtos.addAll(filteredLatestConfigIntfs.stream()
@@ -601,7 +604,7 @@ public class PluginConfigService {
                                 packageName, entityName, filterRuleDto.getTargetEntityFilterRule(), ENABLED);
                 if (allEnabledInterfacesOptional.isPresent()) {
                     List<PluginConfigInterface> rawPluginIntfs = allEnabledInterfacesOptional.get();
-                    List<PluginConfigInterface> filteredPluginConfigIntfs = filterWithPermissionValidation(rawPluginIntfs, PluginAuthEntity.PERM_TYPE_USE);
+                    List<PluginConfigInterface> filteredPluginConfigIntfs = filterWithPermissionValidation(rawPluginIntfs, PluginConfigRoles.PERM_TYPE_USE);
                     
                     List<PluginConfigInterface> filteredLatestConfigIntfs = filterLatestPluginConfigInterfaces(filteredPluginConfigIntfs);
                     pluginConfigInterfaceDtos.addAll(filteredLatestConfigIntfs.stream()
@@ -616,7 +619,7 @@ public class PluginConfigService {
         if (allEnabledWithEntityNameNullOpt.isPresent()) {
             List<PluginConfigInterface> rawPluginConfigIntfs = allEnabledWithEntityNameNullOpt.get();
             
-            List<PluginConfigInterface> filteredPluginConfigIntfs = filterWithPermissionValidation(rawPluginConfigIntfs, PluginAuthEntity.PERM_TYPE_USE);
+            List<PluginConfigInterface> filteredPluginConfigIntfs = filterWithPermissionValidation(rawPluginConfigIntfs, PluginConfigRoles.PERM_TYPE_USE);
             
             List<PluginConfigInterface> filteredLatestConfigIntfs = filterLatestPluginConfigInterfaces(filteredPluginConfigIntfs);
             
@@ -714,13 +717,13 @@ public class PluginConfigService {
 
     private boolean verifyPluginConfigInterfacePrivilege(String pluginConfigId, String permission,
             Set<String> currUserRoles) {
-        List<PluginAuthEntity> entities = pluginAuthRepository.findAllByPluginConfigIdAndPermission(pluginConfigId,
+        List<PluginConfigRoles> entities = pluginConfigRolesMapper.selectAllByPluginConfigAndPerm(pluginConfigId,
                 permission);
         if (entities.isEmpty()) {
             return false;
         }
 
-        for (PluginAuthEntity entity : entities) {
+        for (PluginConfigRoles entity : entities) {
             if (CollectionUtils.collectionContains(currUserRoles, entity.getRoleName())) {
                 return true;
             }
@@ -770,7 +773,7 @@ public class PluginConfigService {
                         String.format("Can not delete [%s] status PluginConfig", cfg.getStatus()), cfg.getStatus());
             }
 
-            validateCurrentUserPermission(configId, PluginAuthEntity.PERM_TYPE_MGMT);
+            validateCurrentUserPermission(configId, PluginConfigRoles.PERM_TYPE_MGMT);
             PluginPackage pkg = cfg.getPluginPackage();
             pkg.getPluginConfigs().remove(cfg);
             pluginPackageRepository.save(pkg);

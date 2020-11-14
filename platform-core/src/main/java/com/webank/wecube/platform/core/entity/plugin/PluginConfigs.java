@@ -1,5 +1,8 @@
 package com.webank.wecube.platform.core.entity.plugin;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.apache.commons.lang3.StringUtils;
 
 public class PluginConfigs {
@@ -20,6 +23,8 @@ public class PluginConfigs {
     private String registerName;
 
     private String status;
+    
+    private transient List<PluginConfigInterfaces> interfaces = new ArrayList<>();
 
     public String getId() {
         return id;
@@ -87,5 +92,25 @@ public class PluginConfigs {
     
     public String getTargetEntityWithFilterRule() {
         return StringUtils.join(targetPackage, ":", targetEntity, targetEntityFilterRule);
+    }
+
+    public List<PluginConfigInterfaces> getInterfaces() {
+        return interfaces;
+    }
+
+    public void setInterfaces(List<PluginConfigInterfaces> interfaces) {
+        this.interfaces = interfaces;
+    }
+    
+    public void addPluginConfigInterfaces(PluginConfigInterfaces intf){
+        if(intf == null){
+            return;
+        }
+        
+        if(this.interfaces == null){
+            this.interfaces = new ArrayList<>();
+        }
+        
+        this.interfaces.add(intf);
     }
 }
