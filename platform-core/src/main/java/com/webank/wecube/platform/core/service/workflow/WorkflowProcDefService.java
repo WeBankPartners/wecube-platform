@@ -29,12 +29,12 @@ import com.webank.wecube.platform.core.dto.workflow.ProcRoleDto;
 import com.webank.wecube.platform.core.dto.workflow.TaskNodeDefBriefDto;
 import com.webank.wecube.platform.core.dto.workflow.TaskNodeDefInfoDto;
 import com.webank.wecube.platform.core.dto.workflow.TaskNodeDefParamDto;
-import com.webank.wecube.platform.core.entity.PluginAuthEntity;
+import com.webank.wecube.platform.core.entity.plugin.PluginConfigRoles;
 import com.webank.wecube.platform.core.entity.workflow.ProcDefInfoEntity;
 import com.webank.wecube.platform.core.entity.workflow.ProcRoleBindingEntity;
 import com.webank.wecube.platform.core.entity.workflow.TaskNodeDefInfoEntity;
 import com.webank.wecube.platform.core.entity.workflow.TaskNodeParamEntity;
-import com.webank.wecube.platform.core.jpa.PluginAuthRepository;
+import com.webank.wecube.platform.core.repository.plugin.PluginConfigRolesMapper;
 import com.webank.wecube.platform.core.service.plugin.PluginConfigService;
 import com.webank.wecube.platform.core.utils.CollectionUtils;
 import com.webank.wecube.platform.workflow.commons.LocalIdGenerator;
@@ -53,7 +53,7 @@ public class WorkflowProcDefService extends AbstractWorkflowProcDefService {
     protected PluginConfigService pluginConfigService;
 
     @Autowired
-    protected PluginAuthRepository pluginAuthRepository;
+    protected PluginConfigRolesMapper pluginAuthRepository;
 
     public void removeProcessDefinition(String procDefId) {
         if (StringUtils.isBlank(procDefId)) {
@@ -656,7 +656,7 @@ public class WorkflowProcDefService extends AbstractWorkflowProcDefService {
             throw new WecubeCoreException("3213", "Permission configuration should provide.");
         }
 
-        List<String> mgmtRoleIds = permissionToRole.get(PluginAuthEntity.PERM_TYPE_MGMT);
+        List<String> mgmtRoleIds = permissionToRole.get(PluginConfigRoles.PERM_TYPE_MGMT);
         if (mgmtRoleIds == null || mgmtRoleIds.isEmpty()) {
             log.warn("Management permission configuration not found for {}", procDefInfoDto.getProcDefName());
             throw new WecubeCoreException("3214", "Management permission configuration should provide.");
@@ -690,14 +690,14 @@ public class WorkflowProcDefService extends AbstractWorkflowProcDefService {
                     nodeDto.getServiceId());
         }
 
-        List<PluginAuthEntity> pluginAuthConfigEntities = this.pluginAuthRepository
-                .findAllByPluginConfigIdAndPermission(pluginConfig.getId(), PluginAuthEntity.PERM_TYPE_USE);
+        List<PluginConfigRoles> pluginAuthConfigEntities = this.pluginAuthRepository
+                .selectAllByPluginConfigAndPerm(pluginConfig.getId(), PluginConfigRoles.PERM_TYPE_USE);
         if (pluginAuthConfigEntities == null || pluginAuthConfigEntities.isEmpty()) {
             log.error("Plugin permission configuration does not exist for {}", pluginConfig.getId());
             throw new WecubeCoreException("3218", "Lack of plugin permission to deploy workflow definition.");
         }
 
-        for (PluginAuthEntity pluginAuthConfigEntity : pluginAuthConfigEntities) {
+        for (PluginConfigRoles pluginAuthConfigEntity : pluginAuthConfigEntities) {
             if (CollectionUtils.collectionContains(mgmtRoleIds, pluginAuthConfigEntity.getRoleId())) {
                 return;
             }
