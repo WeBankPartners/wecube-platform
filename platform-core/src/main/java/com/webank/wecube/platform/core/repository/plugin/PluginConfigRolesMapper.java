@@ -36,4 +36,15 @@ public interface PluginConfigRolesMapper {
      */
     List<PluginConfigRoles> selectAllByPluginConfigAndPerm(@Param("pluginConfigId") String pluginConfigId,
             @Param("permission")String permission);
+    
+    
+    /**
+     * 
+     * @param pluginConfigId
+     * @param permission
+     * @param roleName
+     * @return
+     */
+    List<PluginConfigRoles> selectAllByPluginConfigIdAndPermissionAndRoleName(@Param("pluginConfigId") String pluginConfigId,
+            @Param("permission")String permission, @Param("roleName")String roleName);
 }
