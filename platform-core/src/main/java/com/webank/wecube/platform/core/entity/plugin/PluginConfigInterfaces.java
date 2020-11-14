@@ -4,6 +4,9 @@ import static com.webank.wecube.platform.core.utils.Constants.LEFT_BRACKET_STRIN
 import static com.webank.wecube.platform.core.utils.Constants.RIGHT_BRACKET_STRING;
 import static com.webank.wecube.platform.core.utils.Constants.SEPARATOR_OF_NAMES;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class PluginConfigInterfaces {
     public static final String DEFAULT_INTERFACE_TYPE = "EXECUTION";
     public static final String DEFAULT_IS_ASYNC_PROCESSING_VALUE = "N";
@@ -26,6 +29,9 @@ public class PluginConfigInterfaces {
     private String type;
 
     private String filterRule;
+    
+    private transient List<PluginConfigInterfaceParameters> inputParameters = new ArrayList<>();
+    private transient List<PluginConfigInterfaceParameters> outputParameters = new ArrayList<>();
 
     public String getId() {
         return id;
@@ -112,5 +118,21 @@ public class PluginConfigInterfaces {
                 + (null != pluginConfig.getRegisterName()
                         ? LEFT_BRACKET_STRING + pluginConfig.getRegisterName() + RIGHT_BRACKET_STRING : "")
                 + SEPARATOR_OF_NAMES + action;
+    }
+
+    public List<PluginConfigInterfaceParameters> getInputParameters() {
+        return inputParameters;
+    }
+
+    public void setInputParameters(List<PluginConfigInterfaceParameters> inputParameters) {
+        this.inputParameters = inputParameters;
+    }
+
+    public List<PluginConfigInterfaceParameters> getOutputParameters() {
+        return outputParameters;
+    }
+
+    public void setOutputParameters(List<PluginConfigInterfaceParameters> outputParameters) {
+        this.outputParameters = outputParameters;
     }
 }
