@@ -143,14 +143,13 @@
         select
         <include refid="Base_Column_List" />
         from menu_items
-        limit 10000
     </select>
     
     <select id="selectAllRootMenuItems" resultMap="BaseResultMap">
         select
         <include refid="Base_Column_List" />
         from menu_items
-        where parent_code is null
+        where parent_code IS NULL
         or parent_code = ''
     </select>
     
