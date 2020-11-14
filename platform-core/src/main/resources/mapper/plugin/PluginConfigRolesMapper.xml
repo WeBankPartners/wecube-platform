@@ -19,7 +19,8 @@
         <result column="role_name" jdbcType="VARCHAR" property="roleName" />
     </resultMap>
     <sql id="Base_Column_List">
-        id, created_by, created_time, updated_by, updated_time, is_active,
+        id, created_by, created_time, updated_by, updated_time,
+        is_active,
         perm_type, plugin_cfg_id,
         role_id, role_name
     </sql>
@@ -31,16 +32,20 @@
         where id = #{id,jdbcType=VARCHAR}
     </select>
     <delete id="deleteByPrimaryKey" parameterType="java.lang.String">
-        delete from plugin_config_roles
+        delete from
+        plugin_config_roles
         where id = #{id,jdbcType=VARCHAR}
     </delete>
     <insert id="insert"
         parameterType="com.webank.wecube.platform.core.entity.plugin.PluginConfigRoles">
-        insert into plugin_config_roles (id, created_by, created_time,
+        insert into plugin_config_roles (id, created_by,
+        created_time,
         updated_by, updated_time, is_active,
-        perm_type, plugin_cfg_id, role_id,
+        perm_type,
+        plugin_cfg_id, role_id,
         role_name)
-        values (#{id,jdbcType=VARCHAR}, #{createdBy,jdbcType=VARCHAR},
+        values (#{id,jdbcType=VARCHAR},
+        #{createdBy,jdbcType=VARCHAR},
         #{createdTime,jdbcType=TIMESTAMP},
         #{updatedBy,jdbcType=VARCHAR},
         #{updatedTime,jdbcType=TIMESTAMP}, #{isActive,jdbcType=BIT},
@@ -124,13 +129,15 @@
                 created_by = #{createdBy,jdbcType=VARCHAR},
             </if>
             <if test="createdTime != null">
-                created_time = #{createdTime,jdbcType=TIMESTAMP},
+                created_time =
+                #{createdTime,jdbcType=TIMESTAMP},
             </if>
             <if test="updatedBy != null">
                 updated_by = #{updatedBy,jdbcType=VARCHAR},
             </if>
             <if test="updatedTime != null">
-                updated_time = #{updatedTime,jdbcType=TIMESTAMP},
+                updated_time =
+                #{updatedTime,jdbcType=TIMESTAMP},
             </if>
             <if test="isActive != null">
                 is_active = #{isActive,jdbcType=BIT},
@@ -153,15 +160,24 @@
     <update id="updateByPrimaryKey"
         parameterType="com.webank.wecube.platform.core.entity.plugin.PluginConfigRoles">
         update plugin_config_roles
-        set created_by = #{createdBy,jdbcType=VARCHAR},
-        created_time = #{createdTime,jdbcType=TIMESTAMP},
-        updated_by = #{updatedBy,jdbcType=VARCHAR},
-        updated_time = #{updatedTime,jdbcType=TIMESTAMP},
-        is_active = #{isActive,jdbcType=BIT},
-        perm_type = #{permType,jdbcType=VARCHAR},
-        plugin_cfg_id = #{pluginCfgId,jdbcType=VARCHAR},
-        role_id = #{roleId,jdbcType=VARCHAR},
-        role_name = #{roleName,jdbcType=VARCHAR}
+        set created_by =
+        #{createdBy,jdbcType=VARCHAR},
+        created_time =
+        #{createdTime,jdbcType=TIMESTAMP},
+        updated_by =
+        #{updatedBy,jdbcType=VARCHAR},
+        updated_time =
+        #{updatedTime,jdbcType=TIMESTAMP},
+        is_active =
+        #{isActive,jdbcType=BIT},
+        perm_type =
+        #{permType,jdbcType=VARCHAR},
+        plugin_cfg_id =
+        #{pluginCfgId,jdbcType=VARCHAR},
+        role_id =
+        #{roleId,jdbcType=VARCHAR},
+        role_name =
+        #{roleName,jdbcType=VARCHAR}
         where id = #{id,jdbcType=VARCHAR}
     </update>
     <resultMap id="BaseResultMap"
@@ -181,7 +197,8 @@
         <result column="role_name" jdbcType="VARCHAR" property="roleName" />
     </resultMap>
     <sql id="Base_Column_List">
-        id, created_by, created_time, updated_by, updated_time, is_active,
+        id, created_by, created_time, updated_by, updated_time,
+        is_active,
         perm_type, plugin_cfg_id,
         role_id, role_name
     </sql>
@@ -193,16 +210,20 @@
         where id = #{id,jdbcType=VARCHAR}
     </select>
     <delete id="deleteByPrimaryKey" parameterType="java.lang.String">
-        delete from plugin_config_roles
+        delete from
+        plugin_config_roles
         where id = #{id,jdbcType=VARCHAR}
     </delete>
     <insert id="insert"
         parameterType="com.webank.wecube.platform.core.entity.plugin.PluginConfigRoles">
-        insert into plugin_config_roles (id, created_by, created_time,
+        insert into plugin_config_roles (id, created_by,
+        created_time,
         updated_by, updated_time, is_active,
-        perm_type, plugin_cfg_id, role_id,
+        perm_type,
+        plugin_cfg_id, role_id,
         role_name)
-        values (#{id,jdbcType=VARCHAR}, #{createdBy,jdbcType=VARCHAR},
+        values (#{id,jdbcType=VARCHAR},
+        #{createdBy,jdbcType=VARCHAR},
         #{createdTime,jdbcType=TIMESTAMP},
         #{updatedBy,jdbcType=VARCHAR},
         #{updatedTime,jdbcType=TIMESTAMP}, #{isActive,jdbcType=BIT},
@@ -286,13 +307,15 @@
                 created_by = #{createdBy,jdbcType=VARCHAR},
             </if>
             <if test="createdTime != null">
-                created_time = #{createdTime,jdbcType=TIMESTAMP},
+                created_time =
+                #{createdTime,jdbcType=TIMESTAMP},
             </if>
             <if test="updatedBy != null">
                 updated_by = #{updatedBy,jdbcType=VARCHAR},
             </if>
             <if test="updatedTime != null">
-                updated_time = #{updatedTime,jdbcType=TIMESTAMP},
+                updated_time =
+                #{updatedTime,jdbcType=TIMESTAMP},
             </if>
             <if test="isActive != null">
                 is_active = #{isActive,jdbcType=BIT},
@@ -315,33 +338,58 @@
     <update id="updateByPrimaryKey"
         parameterType="com.webank.wecube.platform.core.entity.plugin.PluginConfigRoles">
         update plugin_config_roles
-        set created_by = #{createdBy,jdbcType=VARCHAR},
-        created_time = #{createdTime,jdbcType=TIMESTAMP},
-        updated_by = #{updatedBy,jdbcType=VARCHAR},
-        updated_time = #{updatedTime,jdbcType=TIMESTAMP},
-        is_active = #{isActive,jdbcType=BIT},
-        perm_type = #{permType,jdbcType=VARCHAR},
-        plugin_cfg_id = #{pluginCfgId,jdbcType=VARCHAR},
-        role_id = #{roleId,jdbcType=VARCHAR},
-        role_name = #{roleName,jdbcType=VARCHAR}
+        set created_by =
+        #{createdBy,jdbcType=VARCHAR},
+        created_time =
+        #{createdTime,jdbcType=TIMESTAMP},
+        updated_by =
+        #{updatedBy,jdbcType=VARCHAR},
+        updated_time =
+        #{updatedTime,jdbcType=TIMESTAMP},
+        is_active =
+        #{isActive,jdbcType=BIT},
+        perm_type =
+        #{permType,jdbcType=VARCHAR},
+        plugin_cfg_id =
+        #{pluginCfgId,jdbcType=VARCHAR},
+        role_id =
+        #{roleId,jdbcType=VARCHAR},
+        role_name =
+        #{roleName,jdbcType=VARCHAR}
         where id = #{id,jdbcType=VARCHAR}
     </update>
-    
-    <select id="selectAllByPluginConfig" parameterType="java.lang.String"
-        resultMap="BaseResultMap">
+
+    <select id="selectAllByPluginConfig" resultMap="BaseResultMap">
         select
         <include refid="Base_Column_List" />
         from plugin_config_roles
-        where plugin_cfg_id = #{pluginConfigId,jdbcType=VARCHAR}
+        where plugin_cfg_id =
+        #{pluginConfigId,jdbcType=VARCHAR}
     </select>
-    
-    <select id="selectAllByPluginConfigAndPerm" parameterType="java.lang.String"
+
+    <select id="selectAllByPluginConfigAndPerm" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List" />
+        from plugin_config_roles
+        where plugin_cfg_id =
+        #{pluginConfigId,jdbcType=VARCHAR}
+        and
+        perm_type =
+        #{permission,jdbcType=VARCHAR}
+    </select>
+
+    <select id="selectAllByPluginConfigIdAndPermissionAndRoleName"
         resultMap="BaseResultMap">
         select
         <include refid="Base_Column_List" />
         from plugin_config_roles
-        where plugin_cfg_id = #{pluginConfigId,jdbcType=VARCHAR}
+        where plugin_cfg_id =
+        #{pluginConfigId,jdbcType=VARCHAR}
         and
-        perm_type = #{permission,jdbcType=VARCHAR}
+        perm_type =
+        #{permission,jdbcType=VARCHAR}
+        and
+        role_name =
+        #{roleName,jdbcType=VARCHAR}
     </select>
 </mapper>
