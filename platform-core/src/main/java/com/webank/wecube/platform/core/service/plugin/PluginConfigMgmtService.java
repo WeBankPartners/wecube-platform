@@ -22,9 +22,11 @@ import com.webank.wecube.platform.core.commons.AuthenticationContextHolder;
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
 import com.webank.wecube.platform.core.domain.plugin.PluginConfig;
 import com.webank.wecube.platform.core.domain.plugin.PluginConfigInterface;
+import com.webank.wecube.platform.core.domain.plugin.PluginConfigInterfaceParameter;
 import com.webank.wecube.platform.core.domain.plugin.PluginPackage;
 import com.webank.wecube.platform.core.dto.plugin.PluginConfigDto;
 import com.webank.wecube.platform.core.dto.plugin.PluginConfigInterfaceDto;
+import com.webank.wecube.platform.core.dto.plugin.PluginConfigInterfaceParameterDto;
 import com.webank.wecube.platform.core.dto.user.RoleDto;
 import com.webank.wecube.platform.core.entity.plugin.PluginConfigRoles;
 import com.webank.wecube.platform.core.entity.plugin.PluginConfigs;
@@ -65,7 +67,7 @@ public class PluginConfigMgmtService extends AbstractPluginMgmtService {
         }
 
         ensurePluginConfigRegisterNameNotExists(pluginConfigDto);
-        PluginConfigs pluginConfigsEntity = buildPluginConfigsEntity(pluginConfigDto,pluginPackageEntity);
+        PluginConfigs pluginConfigsEntity = buildPluginConfigsEntity(pluginConfigDto, pluginPackageEntity);
 
         pluginConfigsEntity.setStatus(PluginConfigs.DISABLED);
         pluginConfigsMapper.insert(pluginConfigsEntity);
@@ -79,8 +81,8 @@ public class PluginConfigMgmtService extends AbstractPluginMgmtService {
 
         return results;
     }
-    
-    public  PluginConfigDto buildPluginConfigDto(PluginConfigs entity) {
+
+    private PluginConfigDto buildPluginConfigDto(PluginConfigs entity) {
         PluginConfigDto dto = new PluginConfigDto();
         dto.setId(entity.getId());
         dto.setName(entity.getName());
@@ -89,7 +91,7 @@ public class PluginConfigMgmtService extends AbstractPluginMgmtService {
         dto.setPluginPackageId(entity.getPluginPackage().getId());
         dto.setStatus(entity.getStatus().name());
         List<PluginConfigInterfaceDto> interfaces = newArrayList();
-        //TODO
+        // TODO
         if (null != entity.getInterfaces() && entity.getInterfaces().size() > 0) {
             entity.getInterfaces().forEach(pluginConfigInterface -> interfaces
                     .add(PluginConfigInterfaceDto.fromDomain(pluginConfigInterface)));
@@ -97,12 +99,35 @@ public class PluginConfigMgmtService extends AbstractPluginMgmtService {
         dto.setInterfaces(interfaces);
         return dto;
     }
-    
-    public PluginConfigs buildPluginConfigsEntity(PluginConfigDto pluginConfigDto,PluginPackages pluginPackage) {
-        PluginConfig pluginConfig = new PluginConfig();
-        if (getId() != null) {
-            pluginConfig.setId(getId());
+
+    private PluginConfigs buildPluginConfigsEntity(PluginConfigDto pluginConfigDto, PluginPackages pluginPackage) {
+        PluginConfigs pluginConfig = new PluginConfigs();
+        pluginConfig.setId(LocalIdGenerator.generateId());
+        pluginConfig.setPluginPackageId(pluginPackage.getId());
+        if (StringUtils.isNotBlank(pluginConfigDto.getTargetPackage())) {
+            pluginConfig.setTargetPackage(pluginConfigDto.getTargetPackage());
+        } else {
+            pluginConfig.setTargetPackage(pluginPackage.getName());
         }
+
+        pluginConfig.setName(pluginConfigDto.getName());
+
+        pluginConfig.setTargetEntity(pluginConfigDto.getTargetEntity());
+
+        pluginConfig.setTargetEntityFilterRule(pluginConfigDto.getFilterRule());
+        pluginConfig.setRegisterName(pluginConfigDto.getRegisterName());
+        Set<PluginConfigInterface> pluginConfigInterfaces = newLinkedHashSet();
+        if (null != getInterfaces() && getInterfaces().size() > 0) {
+            getInterfaces().forEach(interfaceDto -> pluginConfigInterfaces.add(interfaceDto.toDomain(pluginConfig)));
+        }
+        pluginConfig.setInterfaces(pluginConfigInterfaces);
+
+        return pluginConfig;
+    }
+
+    public PluginConfigs updatePluginConfigsEntity(PluginConfigDto pluginConfigDto, PluginPackages pluginPackage) {
+        PluginConfigs pluginConfig = new PluginConfigs();
+
         pluginConfig.setPluginPackage(pluginPackage);
 
         pluginConfig.setName(getName());
@@ -127,6 +152,68 @@ public class PluginConfigMgmtService extends AbstractPluginMgmtService {
         pluginConfig.setInterfaces(pluginConfigInterfaces);
 
         return pluginConfig;
+    }
+    
+    private PluginConfigInterface toDomain(PluginConfig pluginConfig) {
+        PluginConfigInterface pluginConfigInterface = new PluginConfigInterface();
+        if (pluginConfig.getId() != null) {
+            pluginConfigInterface.setId(getId());
+        }
+        pluginConfigInterface.setPluginConfig(pluginConfig);
+        pluginConfigInterface.setAction(getAction());
+        pluginConfigInterface.setServiceName(pluginConfigInterface.generateServiceName());
+        pluginConfigInterface.setServiceDisplayName(pluginConfigInterface.generateServiceName());
+        pluginConfigInterface.setPath(getPath());
+        pluginConfigInterface.setHttpMethod(getHttpMethod());
+        pluginConfigInterface.setFilterRule(getFilterRule());
+        Set<PluginConfigInterfaceParameter> pluginConfigInterfaceInputParameters = newLinkedHashSet();
+        if (null != getInputParameters() && getInputParameters().size() > 0) {
+            getInputParameters().forEach(inputParameter -> pluginConfigInterfaceInputParameters
+                    .add(inputParameter.toDomain(pluginConfigInterface, PluginConfigInterfaceParameter.TYPE_INPUT)));
+        }
+        pluginConfigInterface.setInputParameters(pluginConfigInterfaceInputParameters);
+
+        Set<PluginConfigInterfaceParameter> pluginConfigInterfaceOutputParameters = newLinkedHashSet();
+        if (null != getOutputParameters() && getOutputParameters().size() > 0) {
+            getOutputParameters().forEach(outputParameter -> pluginConfigInterfaceOutputParameters
+                    .add(outputParameter.toDomain(pluginConfigInterface, PluginConfigInterfaceParameter.TYPE_OUTPUT)));
+        }
+        pluginConfigInterface.setOutputParameters(pluginConfigInterfaceOutputParameters);
+        pluginConfigInterface.setIsAsyncProcessing(getIsAsyncProcessing());
+
+        return pluginConfigInterface;
+    }
+
+    private PluginConfigInterfaceDto fromDomain(PluginConfigInterface entity) {
+        PluginConfigInterfaceDto dto = new PluginConfigInterfaceDto();
+        dto.setId(entity.getId());
+        dto.setPluginConfigId(entity.getPluginConfig().getId());
+
+        dto.setPath(entity.getPath());
+        dto.setServiceName(entity.getServiceName());
+        dto.setServiceDisplayName(entity.getServiceDisplayName());
+        dto.setAction(entity.getAction());
+        dto.setHttpMethod(entity.getHttpMethod());
+        dto.setIsAsyncProcessing(entity.getIsAsyncProcessing());
+        dto.setFilterRule(entity.getFilterRule());
+
+        List<PluginConfigInterfaceParameterDto> interfaceInputParameterDtos = newArrayList();
+        if (null != entity.getInputParameters()
+                && entity.getInputParameters().size() > 0) {
+            entity.getInputParameters()
+                    .forEach(pluginConfigInterfaceParameter -> interfaceInputParameterDtos
+                            .add(PluginConfigInterfaceParameterDto.fromDomain(pluginConfigInterfaceParameter)));
+        }
+        dto.setInputParameters(interfaceInputParameterDtos);
+        List<PluginConfigInterfaceParameterDto> interfaceOutputParameterDtos = newArrayList();
+        if (null != entity.getOutputParameters()
+                && entity.getOutputParameters().size() > 0) {
+            entity.getOutputParameters()
+                    .forEach(pluginConfigInterfaceParameter -> interfaceOutputParameterDtos
+                            .add(PluginConfigInterfaceParameterDto.fromDomain(pluginConfigInterfaceParameter)));
+        }
+        dto.setOutputParameters(interfaceOutputParameterDtos);
+        return dto;
     }
 
     private void ensurePluginConfigRegisterNameNotExists(PluginConfigDto pluginConfigDto) {
@@ -176,7 +263,7 @@ public class PluginConfigMgmtService extends AbstractPluginMgmtService {
 
         return;
     }
-    
+
     private Map<String, List<String>> processCreatePluginConfigRoleBindings(String pluginConfigId,
             Map<String, List<String>> permissionToRole) {
 
