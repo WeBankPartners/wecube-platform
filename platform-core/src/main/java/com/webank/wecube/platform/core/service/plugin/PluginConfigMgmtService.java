@@ -1,14 +1,11 @@
 package com.webank.wecube.platform.core.service.plugin;
 
-import static com.google.common.collect.Lists.newArrayList;
-
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
@@ -19,12 +16,12 @@ import org.springframework.stereotype.Service;
 
 import com.webank.wecube.platform.core.commons.AuthenticationContextHolder;
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
-import com.webank.wecube.platform.core.domain.plugin.PluginConfigInterface;
 import com.webank.wecube.platform.core.dto.PluginConfigRoleRequestDto;
 import com.webank.wecube.platform.core.dto.plugin.PluginConfigDto;
 import com.webank.wecube.platform.core.dto.plugin.PluginConfigInterfaceDto;
 import com.webank.wecube.platform.core.dto.plugin.PluginConfigInterfaceParameterDto;
 import com.webank.wecube.platform.core.dto.user.RoleDto;
+import com.webank.wecube.platform.core.entity.plugin.AuthLatestEnabledInterfaces;
 import com.webank.wecube.platform.core.entity.plugin.PluginConfigInterfaceParameters;
 import com.webank.wecube.platform.core.entity.plugin.PluginConfigInterfaces;
 import com.webank.wecube.platform.core.entity.plugin.PluginConfigRoles;
@@ -68,27 +65,77 @@ public class PluginConfigMgmtService extends AbstractPluginMgmtService {
 
     @Autowired
     private PluginPackageEntitiesMapper pluginPackageEntitiesMapper;
-    
-    
+
     public List<PluginConfigInterfaceDto> queryAllLatestEnabledPluginConfigInterface() {
         List<PluginConfigInterfaceDto> resultIntfDtos = fetchAllAuthorizedLatestEnabledIntfs();
         return resultIntfDtos;
-        
-        //--------------------------
-        Optional<List<PluginConfigInterface>> pluginConfigsOptional = pluginConfigRepository
-                .findAllLatestEnabledForAllActivePackages();
-        List<PluginConfigInterfaceDto> pluginConfigInterfaceDtos = newArrayList();
-        if (pluginConfigsOptional.isPresent()) {
-            List<PluginConfigInterface> pluginConfigInterfaces = pluginConfigsOptional.get();
-            pluginConfigInterfaces.forEach(pluginConfigInterface -> pluginConfigInterfaceDtos
-                    .add(PluginConfigInterfaceDto.fromDomain(pluginConfigInterface)));
+    }
+
+    private String buildPackageConfigInterfaceMapKey(AuthLatestEnabledInterfaces intf) {
+        return String.join(":", intf.getPluginPackageName(), intf.getPluginConfigName(),
+                intf.getPluginConfigRegisterName(), intf.getPluginConfigTargetEntity(), intf.getAction());
+    }
+
+    protected List<PluginConfigInterfaceDto> fetchAllAuthorizedLatestEnabledIntfs() {
+        List<PluginConfigInterfaceDto> resultIntfDtos = new ArrayList<>();
+        Set<String> currUserRoles = AuthenticationContextHolder.getCurrentUserRoles();
+        List<String> currUserRoleList = new ArrayList<>();
+        if (currUserRoles != null) {
+            currUserRoleList.addAll(currUserRoles);
+        }
+        List<AuthLatestEnabledInterfaces> authLatestEnabledIntfEntities = pluginConfigInterfacesMapper
+                .selectAllAuthorizedLatestEnabledIntfs(PluginConfigs.ENABLED,
+                        PluginPackages.PLUGIN_PACKAGE_ACTIVE_STATUSES, PluginConfigRoles.PERM_TYPE_USE,
+                        currUserRoleList);
+
+        if (authLatestEnabledIntfEntities == null || authLatestEnabledIntfEntities.isEmpty()) {
+            return resultIntfDtos;
         }
 
-        return filterDtoWithPermissionValidation(pluginConfigInterfaceDtos, PluginConfigRoles.PERM_TYPE_USE);
+        Map<String, AuthLatestEnabledInterfaces> filteredLastestIntfEntities = new HashMap<>();
+        for (AuthLatestEnabledInterfaces intf : authLatestEnabledIntfEntities) {
+            String intfKeyStr = buildPackageConfigInterfaceMapKey(intf);
+            AuthLatestEnabledInterfaces oldIntf = filteredLastestIntfEntities.get(intfKeyStr);
+            if (oldIntf == null) {
+                filteredLastestIntfEntities.put(intfKeyStr, intf);
+            } else {
+                if (isNewerThanOldAuthLatestEnabledInterfaces(intf, oldIntf)) {
+                    filteredLastestIntfEntities.put(intfKeyStr, intf);
+                }else{
+                    log.debug("same key found but not newer than old one and discarded:{}", intfKeyStr);
+                }
+            }
+        }
+        
+        for(AuthLatestEnabledInterfaces intf : filteredLastestIntfEntities.values()){
+            PluginConfigInterfaces intfEntity = convertToPluginConfigInterfaces(intf);
+            PluginConfigInterfaceDto intfDto = buildPluginConfigInterfaceDto(intfEntity);
+            resultIntfDtos.add(intfDto);
+        } 
+
+        return resultIntfDtos;
     }
     
-    protected List<PluginConfigInterfaceDto> fetchAllAuthorizedLatestEnabledIntfs(){
+    private PluginConfigInterfaces convertToPluginConfigInterfaces(AuthLatestEnabledInterfaces intf){
+        PluginConfigInterfaces e = new PluginConfigInterfaces();
+        e.setAction(intf.getAction());
+        e.setFilterRule(intf.getFilterRule());
+        e.setHttpMethod(intf.getHttpMethod());
+        e.setId(intf.getId());
+        e.setIsAsyncProcessing(intf.getIsAsyncProcessing());
+        e.setPath(intf.getPath());
+        e.setServiceDisplayName(intf.getServiceDisplayName());
+        e.setServiceName(intf.getServiceName());
+        e.setPluginConfigId(intf.getPluginConfigId());
+        e.setType(intf.getType());
         
+        return e;
+        
+    }
+
+    private boolean isNewerThanOldAuthLatestEnabledInterfaces(AuthLatestEnabledInterfaces intf,
+            AuthLatestEnabledInterfaces oldIntf) {
+        return (intf.getUploadTimestamp().compareTo(oldIntf.getUploadTimestamp()) > 0);
     }
 
     /**
@@ -147,8 +194,8 @@ public class PluginConfigMgmtService extends AbstractPluginMgmtService {
 
         List<PluginConfigInterfaceParameters> inputParamEntities = pluginConfigInterfaceParametersMapper
                 .selectAllByConfigInterfaceAndParamType(intfEntity.getId(), PluginConfigInterfaceParameters.TYPE_INPUT);
-        if(inputParamEntities != null){
-            for(PluginConfigInterfaceParameters inputParam : inputParamEntities){
+        if (inputParamEntities != null) {
+            for (PluginConfigInterfaceParameters inputParam : inputParamEntities) {
                 inputParam.setPluginConfigInterface(intfEntity);
                 intfEntity.addInputParameters(inputParam);
             }
@@ -158,8 +205,8 @@ public class PluginConfigMgmtService extends AbstractPluginMgmtService {
                 .selectAllByConfigInterfaceAndParamType(intfEntity.getId(),
                         PluginConfigInterfaceParameters.TYPE_OUTPUT);
 
-        if(outputParamEntities != null){
-            for(PluginConfigInterfaceParameters outputParam : outputParamEntities){
+        if (outputParamEntities != null) {
+            for (PluginConfigInterfaceParameters outputParam : outputParamEntities) {
                 outputParam.setPluginConfigInterface(intfEntity);
                 intfEntity.addOutputParameters(outputParam);
             }

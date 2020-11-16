@@ -261,24 +261,59 @@
     </select>
 
 
-    <select id="selectAllAuthorizedLatestEnabledIntfs" resultMap="RichPluginConfigInterfacesResultMap">
+    <select id="selectAllAuthorizedLatestEnabledIntfs"
+        resultType="com.webank.wecube.platform.core.entity.plugin.AuthLatestEnabledInterfaces">
         SELECT DISTINCT
-        t1.*
+        t1.id AS id, t1.plugin_config_id AS
+        pluginConfigId, t1.action AS action, t1.service_name AS
+        serviceName,
+        t1.service_display_name AS serviceDisplayName,
+        t1.path AS path,
+        t1.http_method AS httpMethod,
+        t1.is_async_processing AS isAsyncProcessing,
+        t1.type AS type,
+        t1.filter_rule AS filterRule,
+        t2.name AS pluginConfigName,
+        t2.register_name AS pluginConfigRegisterName,
+        t2.target_entity AS
+        pluginConfigTargetEntity,
+        t2.status AS pluginConfigStatus,
+        t3.id
+        AS pluginPackageId,
+        t3.name AS pluginPackageName,
+        t3.status AS
+        pluginPackageStatus,
+        t3.version AS pluginPackageVersion,
+        t3.upload_timestamp AS
+        uploadTimestamp
         FROM
         plugin_config_interfaces t1,
-        plugin_configs t2,
+        plugin_configs
+        t2,
         plugin_packages t3,
         plugin_config_roles t4
         WHERE
         t1.plugin_config_id = t2.id
-        AND t2.status = 'ENABLED'
-        AND t2.plugin_package_id = t3.id
+        AND
+        t2.status = #{pluginConfigStatus,jdbcType=VARCHAR}
+        AND
+        t2.plugin_package_id = t3.id
         AND
         t4.plugin_cfg_id = t2.id
-        AND t4.perm_type = 'MGMT'
         AND
-        t4.role_name IN ('SUPER_ADMIN')
-        AND t3.status IN ('REGISTERED', 'RUNNING', 'STOPPED');
+        t4.perm_type = #{permissionType,jdbcType=VARCHAR}
+        AND
+        t4.role_name IN
+        <foreach item="roleName" collection="roleNames"
+            separator="," open="(" close=")" index="">
+            #{roleName, jdbcType=VARCHAR}
+        </foreach>
+        AND
+        t3.status IN
+        <foreach item="pluginPackageStatus" collection="pluginPackageStatuses"
+            separator="," open="(" close=")" index="">
+            #{pluginPackageStatus, jdbcType=VARCHAR}
+        </foreach>
     </select>
 
 </mapper>
