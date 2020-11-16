@@ -1,11 +1,14 @@
 package com.webank.wecube.platform.core.service.plugin;
 
+import static com.google.common.collect.Lists.newArrayList;
+
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
@@ -16,6 +19,7 @@ import org.springframework.stereotype.Service;
 
 import com.webank.wecube.platform.core.commons.AuthenticationContextHolder;
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
+import com.webank.wecube.platform.core.domain.plugin.PluginConfigInterface;
 import com.webank.wecube.platform.core.dto.PluginConfigRoleRequestDto;
 import com.webank.wecube.platform.core.dto.plugin.PluginConfigDto;
 import com.webank.wecube.platform.core.dto.plugin.PluginConfigInterfaceDto;
@@ -64,7 +68,34 @@ public class PluginConfigMgmtService extends AbstractPluginMgmtService {
 
     @Autowired
     private PluginPackageEntitiesMapper pluginPackageEntitiesMapper;
+    
+    
+    public List<PluginConfigInterfaceDto> queryAllLatestEnabledPluginConfigInterface() {
+        List<PluginConfigInterfaceDto> resultIntfDtos = fetchAllAuthorizedLatestEnabledIntfs();
+        return resultIntfDtos;
+        
+        //--------------------------
+        Optional<List<PluginConfigInterface>> pluginConfigsOptional = pluginConfigRepository
+                .findAllLatestEnabledForAllActivePackages();
+        List<PluginConfigInterfaceDto> pluginConfigInterfaceDtos = newArrayList();
+        if (pluginConfigsOptional.isPresent()) {
+            List<PluginConfigInterface> pluginConfigInterfaces = pluginConfigsOptional.get();
+            pluginConfigInterfaces.forEach(pluginConfigInterface -> pluginConfigInterfaceDtos
+                    .add(PluginConfigInterfaceDto.fromDomain(pluginConfigInterface)));
+        }
 
+        return filterDtoWithPermissionValidation(pluginConfigInterfaceDtos, PluginConfigRoles.PERM_TYPE_USE);
+    }
+    
+    protected List<PluginConfigInterfaceDto> fetchAllAuthorizedLatestEnabledIntfs(){
+        
+    }
+
+    /**
+     * 
+     * @param serviceName
+     * @return
+     */
     public PluginConfigInterfaces getPluginConfigInterfaceByServiceName(String serviceName) {
         if (StringUtils.isBlank(serviceName)) {
             throw new WecubeCoreException("Service name cannot be blank to query plugin interface.");

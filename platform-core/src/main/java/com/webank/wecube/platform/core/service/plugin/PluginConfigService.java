@@ -519,18 +519,18 @@ public class PluginConfigService {
 //        return pluginConfigInterface.get();
 //    }
 
-    public List<PluginConfigInterfaceDto> queryAllLatestEnabledPluginConfigInterface() {
-        Optional<List<PluginConfigInterface>> pluginConfigsOptional = pluginConfigRepository
-                .findAllLatestEnabledForAllActivePackages();
-        List<PluginConfigInterfaceDto> pluginConfigInterfaceDtos = newArrayList();
-        if (pluginConfigsOptional.isPresent()) {
-            List<PluginConfigInterface> pluginConfigInterfaces = pluginConfigsOptional.get();
-            pluginConfigInterfaces.forEach(pluginConfigInterface -> pluginConfigInterfaceDtos
-                    .add(PluginConfigInterfaceDto.fromDomain(pluginConfigInterface)));
-        }
-
-        return filterDtoWithPermissionValidation(pluginConfigInterfaceDtos, PluginConfigRoles.PERM_TYPE_USE);
-    }
+//    public List<PluginConfigInterfaceDto> queryAllLatestEnabledPluginConfigInterface() {
+//        Optional<List<PluginConfigInterface>> pluginConfigsOptional = pluginConfigRepository
+//                .findAllLatestEnabledForAllActivePackages();
+//        List<PluginConfigInterfaceDto> pluginConfigInterfaceDtos = newArrayList();
+//        if (pluginConfigsOptional.isPresent()) {
+//            List<PluginConfigInterface> pluginConfigInterfaces = pluginConfigsOptional.get();
+//            pluginConfigInterfaces.forEach(pluginConfigInterface -> pluginConfigInterfaceDtos
+//                    .add(PluginConfigInterfaceDto.fromDomain(pluginConfigInterface)));
+//        }
+//
+//        return filterDtoWithPermissionValidation(pluginConfigInterfaceDtos, PluginConfigRoles.PERM_TYPE_USE);
+//    }
 
     public List<PluginConfigInterfaceDto> queryAllEnabledPluginConfigInterfaceForEntityByFilterRule(
             TargetEntityFilterRuleDto filterRuleDto) {
