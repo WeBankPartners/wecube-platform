@@ -7,7 +7,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.UUID;
 
 import org.apache.commons.lang3.StringUtils;
@@ -21,8 +20,6 @@ import org.springframework.web.client.RestTemplate;
 
 import com.webank.wecube.platform.core.commons.AuthenticationContextHolder;
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
-import com.webank.wecube.platform.core.domain.plugin.PluginConfigInterface;
-import com.webank.wecube.platform.core.domain.plugin.PluginConfigInterfaceParameter;
 import com.webank.wecube.platform.core.dto.workflow.FlowNodeDefDto;
 import com.webank.wecube.platform.core.dto.workflow.GraphNodeDto;
 import com.webank.wecube.platform.core.dto.workflow.InterfaceParameterDto;
@@ -31,6 +28,8 @@ import com.webank.wecube.platform.core.dto.workflow.ProcessDataPreviewDto;
 import com.webank.wecube.platform.core.dto.workflow.RequestObjectDto;
 import com.webank.wecube.platform.core.dto.workflow.TaskNodeDefObjectBindInfoDto;
 import com.webank.wecube.platform.core.dto.workflow.TaskNodeExecContextDto;
+import com.webank.wecube.platform.core.entity.plugin.PluginConfigInterfaceParameters;
+import com.webank.wecube.platform.core.entity.plugin.PluginConfigInterfaces;
 import com.webank.wecube.platform.core.entity.workflow.GraphNodeEntity;
 import com.webank.wecube.platform.core.entity.workflow.ProcDefInfoEntity;
 import com.webank.wecube.platform.core.entity.workflow.ProcExecBindingTmpEntity;
@@ -49,7 +48,7 @@ import com.webank.wecube.platform.core.service.dme.EntityOperationRootCondition;
 import com.webank.wecube.platform.core.service.dme.EntityTreeNodesOverview;
 import com.webank.wecube.platform.core.service.dme.StandardEntityOperationService;
 import com.webank.wecube.platform.core.service.dme.TreeNode;
-import com.webank.wecube.platform.core.service.plugin.PluginConfigService;
+import com.webank.wecube.platform.core.service.plugin.PluginConfigMgmtService;
 
 @Service
 public class WorkflowDataService {
@@ -68,7 +67,7 @@ public class WorkflowDataService {
     private StandardEntityOperationService standardEntityOperationService;
 
     @Autowired
-    private PluginConfigService pluginConfigService;
+    protected PluginConfigMgmtService pluginConfigMgmtService;
 
     @Autowired
     protected TaskNodeExecParamMapper taskNodeExecParamRepository;
@@ -369,9 +368,9 @@ public class WorkflowDataService {
             return result;
         }
 
-        PluginConfigInterface pci = pluginConfigService.getPluginConfigInterfaceByServiceName(serviceId);
-        Set<PluginConfigInterfaceParameter> inputParameters = pci.getInputParameters();
-        Set<PluginConfigInterfaceParameter> outputParameters = pci.getOutputParameters();
+        PluginConfigInterfaces pci = pluginConfigMgmtService.getPluginConfigInterfaceByServiceName(serviceId);
+        List<PluginConfigInterfaceParameters> inputParameters = pci.getInputParameters();
+        List<PluginConfigInterfaceParameters> outputParameters = pci.getOutputParameters();
 
         inputParameters.forEach(p -> {
             result.add(buildInterfaceParameterDto(p));
@@ -671,7 +670,7 @@ public class WorkflowDataService {
             return expr;
         }
 
-        PluginConfigInterface inter = pluginConfigService.getPluginConfigInterfaceByServiceName(f.getServiceId());
+        PluginConfigInterfaces inter = pluginConfigMgmtService.getPluginConfigInterfaceByServiceName(f.getServiceId());
         if (inter == null) {
             return expr;
         }
@@ -798,7 +797,7 @@ public class WorkflowDataService {
         return requestObjects;
     }
 
-    private InterfaceParameterDto buildInterfaceParameterDto(PluginConfigInterfaceParameter p) {
+    private InterfaceParameterDto buildInterfaceParameterDto(PluginConfigInterfaceParameters p) {
         InterfaceParameterDto d = new InterfaceParameterDto();
         d.setType(p.getType());
         d.setName(p.getName());
