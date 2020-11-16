@@ -5,6 +5,7 @@ import java.util.List;
 import org.apache.ibatis.annotations.Param;
 import org.springframework.stereotype.Repository;
 
+import com.webank.wecube.platform.core.entity.plugin.AuthLatestEnabledInterfaces;
 import com.webank.wecube.platform.core.entity.plugin.PluginConfigInterfaces;
 import com.webank.wecube.platform.core.entity.plugin.RichPluginConfigInterfaces;
 
@@ -42,4 +43,16 @@ public interface PluginConfigInterfacesMapper {
      */
     List<RichPluginConfigInterfaces> selectAllByServiceNameAndConfigStatus(@Param("serviceName") String serviceName,
             @Param("configStatus") String configStatus);
+
+    /**
+     * 
+     * @param pluginConfigStatus
+     * @param pluginPackageStatuses
+     * @return
+     */
+    List<AuthLatestEnabledInterfaces> selectAllAuthorizedLatestEnabledIntfs(
+            @Param("pluginConfigStatus") String pluginConfigStatus,
+            @Param("pluginPackageStatuses") List<String> pluginPackageStatuses,
+            @Param("permissionType") String permissionType,
+            @Param("roleNames") List<String> roleNames);
 }
