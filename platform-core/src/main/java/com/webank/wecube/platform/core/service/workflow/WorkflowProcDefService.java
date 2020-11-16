@@ -20,8 +20,6 @@ import org.springframework.stereotype.Service;
 
 import com.webank.wecube.platform.core.commons.AuthenticationContextHolder;
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
-import com.webank.wecube.platform.core.domain.plugin.PluginConfig;
-import com.webank.wecube.platform.core.domain.plugin.PluginConfigInterface;
 import com.webank.wecube.platform.core.dto.workflow.FlowNodeDefDto;
 import com.webank.wecube.platform.core.dto.workflow.ProcDefInfoDto;
 import com.webank.wecube.platform.core.dto.workflow.ProcDefOutlineDto;
@@ -29,13 +27,15 @@ import com.webank.wecube.platform.core.dto.workflow.ProcRoleDto;
 import com.webank.wecube.platform.core.dto.workflow.TaskNodeDefBriefDto;
 import com.webank.wecube.platform.core.dto.workflow.TaskNodeDefInfoDto;
 import com.webank.wecube.platform.core.dto.workflow.TaskNodeDefParamDto;
+import com.webank.wecube.platform.core.entity.plugin.PluginConfigInterfaces;
 import com.webank.wecube.platform.core.entity.plugin.PluginConfigRoles;
+import com.webank.wecube.platform.core.entity.plugin.PluginConfigs;
 import com.webank.wecube.platform.core.entity.workflow.ProcDefInfoEntity;
 import com.webank.wecube.platform.core.entity.workflow.ProcRoleBindingEntity;
 import com.webank.wecube.platform.core.entity.workflow.TaskNodeDefInfoEntity;
 import com.webank.wecube.platform.core.entity.workflow.TaskNodeParamEntity;
 import com.webank.wecube.platform.core.repository.plugin.PluginConfigRolesMapper;
-import com.webank.wecube.platform.core.service.plugin.PluginConfigService;
+import com.webank.wecube.platform.core.service.plugin.PluginConfigMgmtService;
 import com.webank.wecube.platform.core.utils.CollectionUtils;
 import com.webank.wecube.platform.workflow.commons.LocalIdGenerator;
 import com.webank.wecube.platform.workflow.model.ProcDefOutline;
@@ -50,7 +50,7 @@ public class WorkflowProcDefService extends AbstractWorkflowProcDefService {
     private WorkflowEngineService workflowEngineService;
 
     @Autowired
-    protected PluginConfigService pluginConfigService;
+    protected PluginConfigMgmtService pluginConfigMgmtService;
 
     @Autowired
     protected PluginConfigRolesMapper pluginAuthRepository;
@@ -621,7 +621,7 @@ public class WorkflowProcDefService extends AbstractWorkflowProcDefService {
 
     }
 
-    private PluginConfigInterface retrievePluginConfigInterface(TaskNodeDefInfoDto taskNodeDefDto, String nodeId) {
+    private PluginConfigInterfaces retrievePluginConfigInterface(TaskNodeDefInfoDto taskNodeDefDto, String nodeId) {
 
         String serviceId = taskNodeDefDto.getServiceId();
         if (StringUtils.isBlank(serviceId)) {
@@ -633,7 +633,7 @@ public class WorkflowProcDefService extends AbstractWorkflowProcDefService {
             log.debug("retrieved service id {} for {},{}", serviceId, taskNodeDefDto.getProcDefId(), nodeId);
         }
 
-        PluginConfigInterface pluginConfigInterface = pluginConfigService
+        PluginConfigInterfaces pluginConfigInterface = pluginConfigMgmtService
                 .getPluginConfigInterfaceByServiceName(serviceId);
 
         if (pluginConfigInterface == null) {
@@ -681,8 +681,8 @@ public class WorkflowProcDefService extends AbstractWorkflowProcDefService {
     }
 
     private void validateTaskNodePluginPermission(TaskNodeDefInfoDto nodeDto, List<String> mgmtRoleIds) {
-        PluginConfigInterface intf = retrievePluginConfigInterface(nodeDto, nodeDto.getNodeId());
-        PluginConfig pluginConfig = intf.getPluginConfig();
+        PluginConfigInterfaces intf = retrievePluginConfigInterface(nodeDto, nodeDto.getNodeId());
+        PluginConfigs pluginConfig = intf.getPluginConfig();
         if (pluginConfig == null) {
             log.warn("Plugin config does not exist for {} {}", nodeDto.getServiceId(), intf.getId());
             throw new WecubeCoreException("3217",
