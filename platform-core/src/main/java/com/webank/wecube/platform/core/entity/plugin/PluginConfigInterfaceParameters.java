@@ -6,7 +6,7 @@ public class PluginConfigInterfaceParameters {
 
     public static final String MAPPING_TYPE_NOT_AVAILABLE = "N/A";
     public static final String MAPPING_TYPE_CMDB_CI_TYPE = "CMDB_CI_TYPE";
-    
+
     private String id;
 
     private String pluginConfigInterfaceId;
@@ -26,6 +26,8 @@ public class PluginConfigInterfaceParameters {
     private String required;
 
     private String sensitiveData;
+
+    private transient PluginConfigInterfaces pluginConfigInterface;
 
     public String getId() {
         return id;
@@ -106,4 +108,13 @@ public class PluginConfigInterfaceParameters {
     public void setSensitiveData(String sensitiveData) {
         this.sensitiveData = sensitiveData == null ? null : sensitiveData.trim();
     }
+
+    public PluginConfigInterfaces getPluginConfigInterface() {
+        return pluginConfigInterface;
+    }
+
+    public void setPluginConfigInterface(PluginConfigInterfaces pluginConfigInterface) {
+        this.pluginConfigInterface = pluginConfigInterface;
+    }
+
 }
