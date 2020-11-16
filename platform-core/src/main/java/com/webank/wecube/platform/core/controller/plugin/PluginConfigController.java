@@ -44,7 +44,7 @@ public class PluginConfigController {
 
     @GetMapping("/plugins/interfaces/enabled")
     public CommonResponseDto queryAllEnabledPluginConfigInterface() {
-        return okayWithData(pluginConfigService.queryAllLatestEnabledPluginConfigInterface());
+        return okayWithData(pluginConfigMgmtService.queryAllLatestEnabledPluginConfigInterface());
     }
 
     @GetMapping("/plugins/interfaces/package/{package-name}/entity/{entity-name}/enabled")
