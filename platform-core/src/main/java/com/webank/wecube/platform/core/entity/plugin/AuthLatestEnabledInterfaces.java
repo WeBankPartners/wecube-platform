@@ -24,8 +24,12 @@ public class AuthLatestEnabledInterfaces {
 
     private String filterRule;
 
+    private String pluginConfigName;
+    private String pluginConfigRegisterName;
+    private String pluginConfigTargetEntity;
     private String pluginConfigStatus;
     private String pluginPackageId;
+    private String pluginPackageName;
     private String pluginPackageStatus;
     private String pluginPackageVersion;
 
@@ -149,6 +153,38 @@ public class AuthLatestEnabledInterfaces {
 
     public void setUploadTimestamp(Date uploadTimestamp) {
         this.uploadTimestamp = uploadTimestamp;
+    }
+
+    public String getPluginConfigName() {
+        return pluginConfigName;
+    }
+
+    public void setPluginConfigName(String pluginConfigName) {
+        this.pluginConfigName = pluginConfigName;
+    }
+
+    public String getPluginConfigRegisterName() {
+        return pluginConfigRegisterName;
+    }
+
+    public void setPluginConfigRegisterName(String pluginConfigRegisterName) {
+        this.pluginConfigRegisterName = pluginConfigRegisterName;
+    }
+
+    public String getPluginConfigTargetEntity() {
+        return pluginConfigTargetEntity;
+    }
+
+    public void setPluginConfigTargetEntity(String pluginConfigTargetEntity) {
+        this.pluginConfigTargetEntity = pluginConfigTargetEntity;
+    }
+
+    public String getPluginPackageName() {
+        return pluginPackageName;
+    }
+
+    public void setPluginPackageName(String pluginPackageName) {
+        this.pluginPackageName = pluginPackageName;
     }
 
 }
