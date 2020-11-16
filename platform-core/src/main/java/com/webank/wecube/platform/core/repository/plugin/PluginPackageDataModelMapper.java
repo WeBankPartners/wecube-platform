@@ -1,5 +1,6 @@
 package com.webank.wecube.platform.core.repository.plugin;
 
+import org.apache.ibatis.annotations.Param;
 import org.springframework.stereotype.Repository;
 
 import com.webank.wecube.platform.core.entity.plugin.PluginPackageDataModel;
@@ -17,4 +18,12 @@ public interface PluginPackageDataModelMapper {
     int updateByPrimaryKeySelective(PluginPackageDataModel record);
 
     int updateByPrimaryKey(PluginPackageDataModel record);
+    
+    
+    /**
+     * 
+     * @param packageName
+     * @return
+     */
+    PluginPackageDataModel selectLatestDataModelByPackageName(@Param("packageName") String packageName);
 }
