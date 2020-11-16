@@ -64,12 +64,12 @@ public class PluginConfigController {
 
     @PostMapping("/plugins/enable/{plugin-config-id:.+}")
     public CommonResponseDto enablePlugin(@PathVariable(value = "plugin-config-id") String pluginConfigId) {
-        return okayWithData(pluginConfigService.enablePlugin(pluginConfigId));
+        return okayWithData(pluginConfigMgmtService.enablePlugin(pluginConfigId));
     }
 
     @PostMapping("/plugins/disable/{plugin-config-id:.+}")
     public CommonResponseDto disablePlugin(@PathVariable(value = "plugin-config-id") String pluginConfigId) {
-        return okayWithData(pluginConfigService.disablePlugin(pluginConfigId));
+        return okayWithData(pluginConfigMgmtService.disablePlugin(pluginConfigId));
     }
 
     @GetMapping("/plugins/interfaces/{plugin-config-id:.+}")
