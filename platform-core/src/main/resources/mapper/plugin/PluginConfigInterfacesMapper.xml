@@ -230,10 +230,7 @@
         #{pluginConfigId,jdbcType=VARCHAR}
     </select>
 
-    <select id="selectAllByServiceNameAndConfigStatus" resultMap="BaseResultMap"
-        parameterType="java.lang.String">
-        select
-        <include refid="Base_Column_List" />
+    <select id="selectAllByServiceNameAndConfigStatus" resultMap="RichPluginConfigInterfacesResultMap">
         SELECT
         t1.id, t1.plugin_config_id, t1.action, t1.service_name,
         t1.service_display_name, t1.path,
@@ -256,9 +253,32 @@
         t1.plugin_config_id =
         t2.id
         AND t2.plugin_package_id = t3.id
-        AND t2.status = #{configStatus,jdbcType=VARCHAR}
+        AND t2.status =
+        #{configStatus,jdbcType=VARCHAR}
         AND
-        t1.service_name = #{serviceName,jdbcType=VARCHAR};
+        t1.service_name =
+        #{serviceName,jdbcType=VARCHAR};
+    </select>
+
+
+    <select id="selectAllAuthorizedLatestEnabledIntfs" resultMap="RichPluginConfigInterfacesResultMap">
+        SELECT DISTINCT
+        t1.*
+        FROM
+        plugin_config_interfaces t1,
+        plugin_configs t2,
+        plugin_packages t3,
+        plugin_config_roles t4
+        WHERE
+        t1.plugin_config_id = t2.id
+        AND t2.status = 'ENABLED'
+        AND t2.plugin_package_id = t3.id
+        AND
+        t4.plugin_cfg_id = t2.id
+        AND t4.perm_type = 'MGMT'
+        AND
+        t4.role_name IN ('SUPER_ADMIN')
+        AND t3.status IN ('REGISTERED', 'RUNNING', 'STOPPED');
     </select>
 
 </mapper>
