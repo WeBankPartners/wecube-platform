@@ -1,117 +1,157 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
-<mapper namespace="com.webank.wecube.platform.core.repository.plugin.PluginPackageEntitiesMapper" >
-  <resultMap id="BaseResultMap" type="com.webank.wecube.platform.core.entity.plugin.PluginPackageEntities" >
-    <id column="id" property="id" jdbcType="VARCHAR" />
-    <result column="data_model_id" property="dataModelId" jdbcType="VARCHAR" />
-    <result column="data_model_version" property="dataModelVersion" jdbcType="INTEGER" />
-    <result column="package_name" property="packageName" jdbcType="VARCHAR" />
-    <result column="name" property="name" jdbcType="VARCHAR" />
-    <result column="display_name" property="displayName" jdbcType="VARCHAR" />
-    <result column="description" property="description" jdbcType="VARCHAR" />
-  </resultMap>
-  <sql id="Base_Column_List" >
-    id, data_model_id, data_model_version, package_name, name, display_name, description
-  </sql>
-  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.String" >
-    select 
-    <include refid="Base_Column_List" />
-    from plugin_package_entities
-    where id = #{id,jdbcType=VARCHAR}
-  </select>
-  <delete id="deleteByPrimaryKey" parameterType="java.lang.String" >
-    delete from plugin_package_entities
-    where id = #{id,jdbcType=VARCHAR}
-  </delete>
-  <insert id="insert" parameterType="com.webank.wecube.platform.core.entity.plugin.PluginPackageEntities" >
-    insert into plugin_package_entities (id, data_model_id, data_model_version, 
-      package_name, name, display_name, 
-      description)
-    values (#{id,jdbcType=VARCHAR}, #{dataModelId,jdbcType=VARCHAR}, #{dataModelVersion,jdbcType=INTEGER}, 
-      #{packageName,jdbcType=VARCHAR}, #{name,jdbcType=VARCHAR}, #{displayName,jdbcType=VARCHAR}, 
-      #{description,jdbcType=VARCHAR})
-  </insert>
-  <insert id="insertSelective" parameterType="com.webank.wecube.platform.core.entity.plugin.PluginPackageEntities" >
-    insert into plugin_package_entities
-    <trim prefix="(" suffix=")" suffixOverrides="," >
-      <if test="id != null" >
-        id,
-      </if>
-      <if test="dataModelId != null" >
+<mapper
+    namespace="com.webank.wecube.platform.core.repository.plugin.PluginPackageEntitiesMapper">
+    <resultMap id="BaseResultMap"
+        type="com.webank.wecube.platform.core.entity.plugin.PluginPackageEntities">
+        <id column="id" property="id" jdbcType="VARCHAR" />
+        <result column="data_model_id" property="dataModelId"
+            jdbcType="VARCHAR" />
+        <result column="data_model_version" property="dataModelVersion"
+            jdbcType="INTEGER" />
+        <result column="package_name" property="packageName"
+            jdbcType="VARCHAR" />
+        <result column="name" property="name" jdbcType="VARCHAR" />
+        <result column="display_name" property="displayName"
+            jdbcType="VARCHAR" />
+        <result column="description" property="description"
+            jdbcType="VARCHAR" />
+    </resultMap>
+    <sql id="Base_Column_List">
+        id, data_model_id, data_model_version, package_name,
+        name, display_name,
+        description
+    </sql>
+    <select id="selectByPrimaryKey" resultMap="BaseResultMap"
+        parameterType="java.lang.String">
+        select
+        <include refid="Base_Column_List" />
+        from plugin_package_entities
+        where id = #{id,jdbcType=VARCHAR}
+    </select>
+    <delete id="deleteByPrimaryKey" parameterType="java.lang.String">
+        delete from
+        plugin_package_entities
+        where id = #{id,jdbcType=VARCHAR}
+    </delete>
+    <insert id="insert"
+        parameterType="com.webank.wecube.platform.core.entity.plugin.PluginPackageEntities">
+        insert into plugin_package_entities (id,
         data_model_id,
-      </if>
-      <if test="dataModelVersion != null" >
         data_model_version,
-      </if>
-      <if test="packageName != null" >
-        package_name,
-      </if>
-      <if test="name != null" >
-        name,
-      </if>
-      <if test="displayName != null" >
+        package_name, name,
         display_name,
-      </if>
-      <if test="description != null" >
-        description,
-      </if>
-    </trim>
-    <trim prefix="values (" suffix=")" suffixOverrides="," >
-      <if test="id != null" >
-        #{id,jdbcType=VARCHAR},
-      </if>
-      <if test="dataModelId != null" >
+        description)
+        values (#{id,jdbcType=VARCHAR},
         #{dataModelId,jdbcType=VARCHAR},
-      </if>
-      <if test="dataModelVersion != null" >
         #{dataModelVersion,jdbcType=INTEGER},
-      </if>
-      <if test="packageName != null" >
-        #{packageName,jdbcType=VARCHAR},
-      </if>
-      <if test="name != null" >
-        #{name,jdbcType=VARCHAR},
-      </if>
-      <if test="displayName != null" >
+        #{packageName,jdbcType=VARCHAR}, #{name,jdbcType=VARCHAR},
         #{displayName,jdbcType=VARCHAR},
-      </if>
-      <if test="description != null" >
-        #{description,jdbcType=VARCHAR},
-      </if>
-    </trim>
-  </insert>
-  <update id="updateByPrimaryKeySelective" parameterType="com.webank.wecube.platform.core.entity.plugin.PluginPackageEntities" >
-    update plugin_package_entities
-    <set >
-      <if test="dataModelId != null" >
-        data_model_id = #{dataModelId,jdbcType=VARCHAR},
-      </if>
-      <if test="dataModelVersion != null" >
-        data_model_version = #{dataModelVersion,jdbcType=INTEGER},
-      </if>
-      <if test="packageName != null" >
-        package_name = #{packageName,jdbcType=VARCHAR},
-      </if>
-      <if test="name != null" >
+        #{description,jdbcType=VARCHAR})
+    </insert>
+    <insert id="insertSelective"
+        parameterType="com.webank.wecube.platform.core.entity.plugin.PluginPackageEntities">
+        insert into plugin_package_entities
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="id != null">
+                id,
+            </if>
+            <if test="dataModelId != null">
+                data_model_id,
+            </if>
+            <if test="dataModelVersion != null">
+                data_model_version,
+            </if>
+            <if test="packageName != null">
+                package_name,
+            </if>
+            <if test="name != null">
+                name,
+            </if>
+            <if test="displayName != null">
+                display_name,
+            </if>
+            <if test="description != null">
+                description,
+            </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="id != null">
+                #{id,jdbcType=VARCHAR},
+            </if>
+            <if test="dataModelId != null">
+                #{dataModelId,jdbcType=VARCHAR},
+            </if>
+            <if test="dataModelVersion != null">
+                #{dataModelVersion,jdbcType=INTEGER},
+            </if>
+            <if test="packageName != null">
+                #{packageName,jdbcType=VARCHAR},
+            </if>
+            <if test="name != null">
+                #{name,jdbcType=VARCHAR},
+            </if>
+            <if test="displayName != null">
+                #{displayName,jdbcType=VARCHAR},
+            </if>
+            <if test="description != null">
+                #{description,jdbcType=VARCHAR},
+            </if>
+        </trim>
+    </insert>
+    <update id="updateByPrimaryKeySelective"
+        parameterType="com.webank.wecube.platform.core.entity.plugin.PluginPackageEntities">
+        update plugin_package_entities
+        <set>
+            <if test="dataModelId != null">
+                data_model_id = #{dataModelId,jdbcType=VARCHAR},
+            </if>
+            <if test="dataModelVersion != null">
+                data_model_version =
+                #{dataModelVersion,jdbcType=INTEGER},
+            </if>
+            <if test="packageName != null">
+                package_name = #{packageName,jdbcType=VARCHAR},
+            </if>
+            <if test="name != null">
+                name = #{name,jdbcType=VARCHAR},
+            </if>
+            <if test="displayName != null">
+                display_name = #{displayName,jdbcType=VARCHAR},
+            </if>
+            <if test="description != null">
+                description = #{description,jdbcType=VARCHAR},
+            </if>
+        </set>
+        where id = #{id,jdbcType=VARCHAR}
+    </update>
+    <update id="updateByPrimaryKey"
+        parameterType="com.webank.wecube.platform.core.entity.plugin.PluginPackageEntities">
+        update plugin_package_entities
+        set data_model_id =
+        #{dataModelId,jdbcType=VARCHAR},
+        data_model_version =
+        #{dataModelVersion,jdbcType=INTEGER},
+        package_name =
+        #{packageName,jdbcType=VARCHAR},
         name = #{name,jdbcType=VARCHAR},
-      </if>
-      <if test="displayName != null" >
         display_name = #{displayName,jdbcType=VARCHAR},
-      </if>
-      <if test="description != null" >
-        description = #{description,jdbcType=VARCHAR},
-      </if>
-    </set>
-    where id = #{id,jdbcType=VARCHAR}
-  </update>
-  <update id="updateByPrimaryKey" parameterType="com.webank.wecube.platform.core.entity.plugin.PluginPackageEntities" >
-    update plugin_package_entities
-    set data_model_id = #{dataModelId,jdbcType=VARCHAR},
-      data_model_version = #{dataModelVersion,jdbcType=INTEGER},
-      package_name = #{packageName,jdbcType=VARCHAR},
-      name = #{name,jdbcType=VARCHAR},
-      display_name = #{displayName,jdbcType=VARCHAR},
-      description = #{description,jdbcType=VARCHAR}
-    where id = #{id,jdbcType=VARCHAR}
-  </update>
+        description =
+        #{description,jdbcType=VARCHAR}
+        where id = #{id,jdbcType=VARCHAR}
+    </update>
+
+
+    <select id="selectAllByPackageNameAndEntityNameAndDataModelVersion"
+        resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List" />
+        from plugin_package_entities
+        where package_name =
+        #{packageName,jdbcType=VARCHAR}
+        and name =
+        #{name,jdbcType=VARCHAR}
+        and data_model_version =
+        #{version,jdbcType=INTEGER}
+    </select>
 </mapper>

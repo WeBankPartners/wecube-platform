@@ -239,31 +239,31 @@ public class PluginConfigService {
         return boundPermissionToRole;
     }
 
-    public void updatePluginConfigRoleBinding(String pluginConfigId,
-            PluginConfigRoleRequestDto pluginConfigRoleRequestDto) throws WecubeCoreException {
-        if (log.isDebugEnabled()) {
-            log.debug("start to update plugin config role binding:{},{}", pluginConfigId, pluginConfigRoleRequestDto);
-        }
-        String permission = pluginConfigRoleRequestDto.getPermission();
-        List<String> inputRoleIds = pluginConfigRoleRequestDto.getRoleIds();
-        validateCurrentUserPermission(pluginConfigId, PluginConfigRoles.PERM_TYPE_MGMT);
-
-        if (inputRoleIds == null || inputRoleIds.isEmpty()) {
-            log.info("input role IDs is empty");
-            return;
-        }
-        List<String> existRoleIds = getExistRoleIdsOfPluginConfigAndPermission(pluginConfigId, permission);
-        List<String> roleIdsToAdd = new ArrayList<String>();
-        for (String roleId : inputRoleIds) {
-            if (existRoleIds.contains(roleId)) {
-                continue;
-            }
-
-            roleIdsToAdd.add(roleId);
-        }
-
-        addPluginConfigRoleBindings(pluginConfigId, permission, roleIdsToAdd);
-    }
+//    public void updatePluginConfigRoleBinding(String pluginConfigId,
+//            PluginConfigRoleRequestDto pluginConfigRoleRequestDto) throws WecubeCoreException {
+//        if (log.isDebugEnabled()) {
+//            log.debug("start to update plugin config role binding:{},{}", pluginConfigId, pluginConfigRoleRequestDto);
+//        }
+//        String permission = pluginConfigRoleRequestDto.getPermission();
+//        List<String> inputRoleIds = pluginConfigRoleRequestDto.getRoleIds();
+//        validateCurrentUserPermission(pluginConfigId, PluginConfigRoles.PERM_TYPE_MGMT);
+//
+//        if (inputRoleIds == null || inputRoleIds.isEmpty()) {
+//            log.info("input role IDs is empty");
+//            return;
+//        }
+//        List<String> existRoleIds = getExistRoleIdsOfPluginConfigAndPermission(pluginConfigId, permission);
+//        List<String> roleIdsToAdd = new ArrayList<String>();
+//        for (String roleId : inputRoleIds) {
+//            if (existRoleIds.contains(roleId)) {
+//                continue;
+//            }
+//
+//            roleIdsToAdd.add(roleId);
+//        }
+//
+//        addPluginConfigRoleBindings(pluginConfigId, permission, roleIdsToAdd);
+//    }
 
     private void validateCurrentUserPermission(String pluginConfigId, String permission) {
         String currentUsername = AuthenticationContextHolder.getCurrentUsername();
@@ -308,20 +308,20 @@ public class PluginConfigService {
         }
     }
 
-    public void deletePluginConfigRoleBinding(String pluginConfigId,
-            PluginConfigRoleRequestDto pluginConfigRoleRequestDto) throws WecubeCoreException {
-
-        String permission = pluginConfigRoleRequestDto.getPermission();
-        List<String> inputRoleIds = pluginConfigRoleRequestDto.getRoleIds();
-
-        validateCurrentUserPermission(pluginConfigId, PluginConfigRoles.PERM_TYPE_MGMT);
-
-        if (inputRoleIds == null || inputRoleIds.isEmpty()) {
-            return;
-        }
-
-        deletePluginConfigRoleBindings(pluginConfigId, permission, inputRoleIds);
-    }
+//    public void deletePluginConfigRoleBinding(String pluginConfigId,
+//            PluginConfigRoleRequestDto pluginConfigRoleRequestDto) throws WecubeCoreException {
+//
+//        String permission = pluginConfigRoleRequestDto.getPermission();
+//        List<String> inputRoleIds = pluginConfigRoleRequestDto.getRoleIds();
+//
+//        validateCurrentUserPermission(pluginConfigId, PluginConfigRoles.PERM_TYPE_MGMT);
+//
+//        if (inputRoleIds == null || inputRoleIds.isEmpty()) {
+//            return;
+//        }
+//
+//        deletePluginConfigRoleBindings(pluginConfigId, permission, inputRoleIds);
+//    }
 
     private void ensurePluginConfigIdNotExisted(PluginConfig pluginConfig) {
         pluginConfig.initId();
