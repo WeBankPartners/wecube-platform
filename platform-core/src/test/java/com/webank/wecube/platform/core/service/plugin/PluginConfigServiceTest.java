@@ -28,6 +28,9 @@ public class PluginConfigServiceTest extends DatabaseBasedTest {
     private PluginPackageRepository packageRepository;
 
     @Autowired
+    private PluginConfigMgmtService configMgmtService;
+    
+    @Autowired
     private PluginConfigService configService;
 
     @Ignore
@@ -79,7 +82,7 @@ public class PluginConfigServiceTest extends DatabaseBasedTest {
         Iterable<PluginPackage> pluginPackages = packageRepository.saveAll(newHashSet(pluginPackage1, pluginPackage2, pluginPackage3));
 
 
-        List<PluginConfigInterfaceDto> pluginConfigInterfaceDtos = configService.queryAllLatestEnabledPluginConfigInterface();
+        List<PluginConfigInterfaceDto> pluginConfigInterfaceDtos = configMgmtService.queryAllLatestEnabledPluginConfigInterface();
         assertThat(pluginConfigInterfaceDtos).hasSize(9);
         assertThat(pluginConfigInterfaceDtos.get(0).getId()).isEqualTo("qcloud__v1.1__vm__create");
         assertThat(pluginConfigInterfaceDtos.get(1).getId()).isEqualTo("qcloud__v1.1__vm__restart");
