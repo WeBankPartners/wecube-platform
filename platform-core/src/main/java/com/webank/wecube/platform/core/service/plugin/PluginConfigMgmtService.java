@@ -1,6 +1,7 @@
 package com.webank.wecube.platform.core.service.plugin;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -27,6 +28,7 @@ import com.webank.wecube.platform.core.entity.plugin.PluginConfigs;
 import com.webank.wecube.platform.core.entity.plugin.PluginPackageDataModel;
 import com.webank.wecube.platform.core.entity.plugin.PluginPackageEntities;
 import com.webank.wecube.platform.core.entity.plugin.PluginPackages;
+import com.webank.wecube.platform.core.entity.plugin.RichPluginConfigInterfaces;
 import com.webank.wecube.platform.core.repository.plugin.PluginConfigInterfaceParametersMapper;
 import com.webank.wecube.platform.core.repository.plugin.PluginConfigInterfacesMapper;
 import com.webank.wecube.platform.core.repository.plugin.PluginConfigRolesMapper;
@@ -35,6 +37,7 @@ import com.webank.wecube.platform.core.repository.plugin.PluginPackageDataModelM
 import com.webank.wecube.platform.core.repository.plugin.PluginPackageEntitiesMapper;
 import com.webank.wecube.platform.core.repository.plugin.PluginPackagesMapper;
 import com.webank.wecube.platform.core.utils.CollectionUtils;
+import com.webank.wecube.platform.core.utils.VersionUtils;
 import com.webank.wecube.platform.workflow.commons.LocalIdGenerator;
 
 @Service
@@ -62,6 +65,109 @@ public class PluginConfigMgmtService extends AbstractPluginMgmtService {
     @Autowired
     private PluginPackageEntitiesMapper pluginPackageEntitiesMapper;
 
+    public PluginConfigInterfaces getPluginConfigInterfaceByServiceName(String serviceName) {
+        if (StringUtils.isBlank(serviceName)) {
+            throw new WecubeCoreException("Service name cannot be blank to query plugin interface.");
+        }
+        return fetchLatestPluginConfigInterfacesByServiceName(serviceName);
+    }
+
+    protected PluginConfigInterfaces fetchLatestPluginConfigInterfacesByServiceName(String serviceName) {
+        List<RichPluginConfigInterfaces> richIntfEntities = pluginConfigInterfacesMapper
+                .selectAllByServiceNameAndConfigStatus(serviceName, PluginConfigs.ENABLED);
+
+        if (richIntfEntities == null || richIntfEntities.isEmpty()) {
+            throw new WecubeCoreException("3058",
+                    String.format("Plugin interface not found for serviceName [%s].", serviceName), serviceName);
+        }
+
+        richIntfEntities.sort(new Comparator<RichPluginConfigInterfaces>() {
+
+            @Override
+            public int compare(RichPluginConfigInterfaces o1, RichPluginConfigInterfaces o2) {
+                return VersionUtils.compare(o1.getPluginPackageVersion(), o2.getPluginPackageVersion());
+            }
+        });
+
+        RichPluginConfigInterfaces latestIntfEntity = richIntfEntities.get(richIntfEntities.size() - 1);
+
+        PluginConfigInterfaces resultIntfEntity = fetchRichPluginConfigInterfacesById(latestIntfEntity.getId());
+        if (resultIntfEntity == null) {
+            throw new WecubeCoreException("3058",
+                    String.format("Plugin interface not found for serviceName [%s].", serviceName), serviceName);
+        }
+        return resultIntfEntity;
+
+    }
+
+    protected PluginConfigInterfaces fetchRichPluginConfigInterfacesById(String intfId) {
+        PluginConfigInterfaces intfEntity = pluginConfigInterfacesMapper.selectByPrimaryKey(intfId);
+        if (intfEntity == null) {
+            return null;
+        }
+
+        PluginConfigs pluginConfigEntity = pluginConfigsMapper.selectByPrimaryKey(intfEntity.getPluginConfigId());
+        if (pluginConfigEntity != null) {
+            intfEntity.setPluginConfig(pluginConfigEntity);
+            PluginPackages pluginPackageEntity = pluginPackagesMapper
+                    .selectByPrimaryKey(pluginConfigEntity.getPluginPackageId());
+            pluginConfigEntity.setPluginPackage(pluginPackageEntity);
+        }
+
+        List<PluginConfigInterfaceParameters> inputParamEntities = pluginConfigInterfaceParametersMapper
+                .selectAllByConfigInterfaceAndParamType(intfEntity.getId(), PluginConfigInterfaceParameters.TYPE_INPUT);
+        if(inputParamEntities != null){
+            for(PluginConfigInterfaceParameters inputParam : inputParamEntities){
+                inputParam.setPluginConfigInterface(intfEntity);
+                intfEntity.addInputParameters(inputParam);
+            }
+        }
+
+        List<PluginConfigInterfaceParameters> outputParamEntities = pluginConfigInterfaceParametersMapper
+                .selectAllByConfigInterfaceAndParamType(intfEntity.getId(),
+                        PluginConfigInterfaceParameters.TYPE_OUTPUT);
+
+        if(outputParamEntities != null){
+            for(PluginConfigInterfaceParameters outputParam : outputParamEntities){
+                outputParam.setPluginConfigInterface(intfEntity);
+                intfEntity.addOutputParameters(outputParam);
+            }
+        }
+
+        return intfEntity;
+
+    }
+
+    /**
+     * 
+     * @param pluginConfigId
+     * @return
+     */
+    public PluginConfigDto disablePlugin(String pluginConfigId) {
+
+        PluginConfigs pluginConfigsEntity = pluginConfigsMapper.selectByPrimaryKey(pluginConfigId);
+
+        if (pluginConfigsEntity == null) {
+            throw new WecubeCoreException("3057", "PluginConfig not found for id: " + pluginConfigId);
+        }
+
+        validateCurrentUserPermission(pluginConfigId, PluginConfigRoles.PERM_TYPE_MGMT);
+
+        pluginConfigsEntity.setStatus(PluginConfigs.DISABLED);
+        pluginConfigsMapper.updateByPrimaryKeySelective(pluginConfigsEntity);
+
+        PluginPackages pluginPackageEntity = pluginPackagesMapper
+                .selectByPrimaryKey(pluginConfigsEntity.getPluginPackageId());
+
+        PluginConfigDto resultPluginConfigDto = buildPluginConfigDto(pluginConfigsEntity, pluginPackageEntity);
+        return resultPluginConfigDto;
+    }
+
+    /**
+     * 
+     * @param pluginConfigId
+     * @return
+     */
     public PluginConfigDto enablePlugin(String pluginConfigId) {
         PluginConfigs pluginConfigEntity = pluginConfigsMapper.selectByPrimaryKey(pluginConfigId);
 
@@ -96,31 +202,12 @@ public class PluginConfigMgmtService extends AbstractPluginMgmtService {
         return resultPluginConfigDto;
     }
 
-    private void validateTargetPackageAndTargetEntity(String pluginConfigName, String targetPackage,
-            String targetEntity) {
-        if (StringUtils.isNotBlank(targetPackage) || StringUtils.isNotBlank(targetEntity)) {
-            return;
-        }
-        PluginPackageDataModel dataModelEntity = pluginPackageDataModelMapper
-                .selectLatestDataModelByPackageName(targetPackage);
-        if (dataModelEntity == null) {
-            throw new WecubeCoreException("3049", "Data model not exists for package name [%s]");
-        }
-
-        Integer dataModelVersion = dataModelEntity.getVersion();
-        List<PluginPackageEntities> pluginPackageEntitiesList = pluginPackageEntitiesMapper
-                .selectAllByPackageNameAndEntityNameAndDataModelVersion(targetPackage, targetEntity, dataModelVersion);
-
-        if (pluginPackageEntitiesList == null || pluginPackageEntitiesList.isEmpty()) {
-            String errorMessage = String.format(
-                    "PluginPackageEntity not found for packageName:dataModelVersion:entityName [%s:%s:%s] for plugin config: %s",
-                    targetPackage, dataModelVersion, targetEntity, pluginConfigName);
-            log.error(errorMessage);
-            throw new WecubeCoreException("3050", errorMessage, targetPackage, dataModelVersion, targetEntity,
-                    pluginConfigName);
-        }
-    }
-
+    /**
+     * 
+     * @param pluginConfigId
+     * @param pluginConfigRoleRequestDto
+     * @throws WecubeCoreException
+     */
     public void deletePluginConfigRoleBinding(String pluginConfigId,
             PluginConfigRoleRequestDto pluginConfigRoleRequestDto) throws WecubeCoreException {
 
@@ -136,6 +223,11 @@ public class PluginConfigMgmtService extends AbstractPluginMgmtService {
         deletePluginConfigRoleBindings(pluginConfigId, permission, inputRoleIds);
     }
 
+    /**
+     * 
+     * @param pluginConfigId
+     * @param pluginConfigRoleRequestDto
+     */
     public void updatePluginConfigRoleBinding(String pluginConfigId,
             PluginConfigRoleRequestDto pluginConfigRoleRequestDto) {
         if (log.isDebugEnabled()) {
@@ -162,6 +254,11 @@ public class PluginConfigMgmtService extends AbstractPluginMgmtService {
         addPluginConfigRoleBindings(pluginConfigId, permission, roleIdsToAdd);
     }
 
+    /**
+     * 
+     * @param pluginConfigDto
+     * @return
+     */
     public PluginConfigDto createOrUpdatePluginConfig(PluginConfigDto pluginConfigDto) {
         validatePermission(pluginConfigDto.getPermissionToRole());
 
@@ -173,6 +270,35 @@ public class PluginConfigMgmtService extends AbstractPluginMgmtService {
             resultPluginConfigDto = updatePluginConfig(pluginConfigDto);
             return resultPluginConfigDto;
         }
+    }
+
+    protected PluginConfigs fetchRichPluginConfigsEntity(String pluginConfigId) {
+        PluginConfigs pluginConfigsEntity = pluginConfigsMapper.selectByPrimaryKey(pluginConfigId);
+        if (pluginConfigsEntity == null) {
+            return null;
+        }
+
+        List<PluginConfigInterfaces> intfEntities = pluginConfigInterfacesMapper
+                .selectAllByPluginConfig(pluginConfigsEntity.getId());
+
+        if (intfEntities != null) {
+            for (PluginConfigInterfaces intfEntity : intfEntities) {
+                List<PluginConfigInterfaceParameters> inputParamEntities = pluginConfigInterfaceParametersMapper
+                        .selectAllByConfigInterfaceAndParamType(intfEntity.getId(),
+                                PluginConfigInterfaceParameters.TYPE_INPUT);
+                intfEntity.setInputParameters(inputParamEntities);
+
+                List<PluginConfigInterfaceParameters> outputParamEntities = pluginConfigInterfaceParametersMapper
+                        .selectAllByConfigInterfaceAndParamType(intfEntity.getId(),
+                                PluginConfigInterfaceParameters.TYPE_OUTPUT);
+
+                intfEntity.setOutputParameters(outputParamEntities);
+
+                pluginConfigsEntity.addPluginConfigInterfaces(intfEntity);
+            }
+        }
+
+        return pluginConfigsEntity;
     }
 
     private void validateCurrentUserPermission(String pluginConfigId, String permission) {
@@ -337,7 +463,7 @@ public class PluginConfigMgmtService extends AbstractPluginMgmtService {
         return results;
     }
 
-    private PluginConfigDto buildPluginConfigDto(PluginConfigs entity, PluginPackages pluginPackageEntity) {
+    private PluginConfigDto buildPluginConfigDto(PluginConfigs entity, PluginPackages pluginPackageEntity11) {
         PluginConfigDto dto = new PluginConfigDto();
         dto.setId(entity.getId());
         dto.setName(entity.getName());
@@ -655,6 +781,31 @@ public class PluginConfigMgmtService extends AbstractPluginMgmtService {
         }
 
         return null;
+    }
+
+    private void validateTargetPackageAndTargetEntity(String pluginConfigName, String targetPackage,
+            String targetEntity) {
+        if (StringUtils.isNotBlank(targetPackage) || StringUtils.isNotBlank(targetEntity)) {
+            return;
+        }
+        PluginPackageDataModel dataModelEntity = pluginPackageDataModelMapper
+                .selectLatestDataModelByPackageName(targetPackage);
+        if (dataModelEntity == null) {
+            throw new WecubeCoreException("3049", "Data model not exists for package name [%s]");
+        }
+
+        Integer dataModelVersion = dataModelEntity.getVersion();
+        List<PluginPackageEntities> pluginPackageEntitiesList = pluginPackageEntitiesMapper
+                .selectAllByPackageNameAndEntityNameAndDataModelVersion(targetPackage, targetEntity, dataModelVersion);
+
+        if (pluginPackageEntitiesList == null || pluginPackageEntitiesList.isEmpty()) {
+            String errorMessage = String.format(
+                    "PluginPackageEntity not found for packageName:dataModelVersion:entityName [%s:%s:%s] for plugin config: %s",
+                    targetPackage, dataModelVersion, targetEntity, pluginConfigName);
+            log.error(errorMessage);
+            throw new WecubeCoreException("3050", errorMessage, targetPackage, dataModelVersion, targetEntity,
+                    pluginConfigName);
+        }
     }
 
 }
