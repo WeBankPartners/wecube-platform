@@ -74,9 +74,9 @@ public class PluginConfigService {
     @Autowired
     private UserManagementServiceImpl userManagementService;
 
-    public List<PluginConfigInterface> getPluginConfigInterfaces(String pluginConfigId) {
-        return pluginConfigRepository.findAllPluginConfigInterfacesByConfigIdAndFetchParameters(pluginConfigId);
-    }
+//    public List<PluginConfigInterface> getPluginConfigInterfaces(String pluginConfigId) {
+//        return pluginConfigRepository.findAllPluginConfigInterfacesByConfigIdAndFetchParameters(pluginConfigId);
+//    }
 
 //    public PluginConfigDto savePluginConfig(PluginConfigDto pluginConfigDto) throws WecubeCoreException {
 //        validatePermission(pluginConfigDto.getPermissionToRole());
@@ -426,32 +426,32 @@ public class PluginConfigService {
         }
     }
 
-    public PluginConfigDto enablePlugin(String pluginConfigId) {
-        if (!pluginConfigRepository.existsById(pluginConfigId)) {
-            throw new WecubeCoreException("3051", "PluginConfig not found for id: " + pluginConfigId);
-        }
-
-        PluginConfig pluginConfig = pluginConfigRepository.findById(pluginConfigId).get();
-
-        if (pluginConfig.getPluginPackage() == null || UNREGISTERED == pluginConfig.getPluginPackage().getStatus()
-                || DECOMMISSIONED == pluginConfig.getPluginPackage().getStatus()) {
-            throw new WecubeCoreException("3052",
-                    "Plugin package is not in valid status [REGISTERED, RUNNING, STOPPED] to enable plugin.");
-        }
-
-        if (ENABLED == pluginConfig.getStatus()) {
-            throw new WecubeCoreException("3053", "Not allow to enable pluginConfig with status: ENABLED");
-        }
-
-        validateCurrentUserPermission(pluginConfigId, PluginConfigRoles.PERM_TYPE_MGMT);
-
-        ensureEntityIsValid(pluginConfig.getName(), pluginConfig.getTargetPackage(), pluginConfig.getTargetEntity());
-
-        checkMandatoryParameters(pluginConfig);
-
-        pluginConfig.setStatus(ENABLED);
-        return PluginConfigDto.fromDomain(pluginConfigRepository.save(pluginConfig));
-    }
+//    public PluginConfigDto enablePlugin(String pluginConfigId) {
+//        if (!pluginConfigRepository.existsById(pluginConfigId)) {
+//            throw new WecubeCoreException("3051", "PluginConfig not found for id: " + pluginConfigId);
+//        }
+//
+//        PluginConfig pluginConfig = pluginConfigRepository.findById(pluginConfigId).get();
+//
+//        if (pluginConfig.getPluginPackage() == null || UNREGISTERED == pluginConfig.getPluginPackage().getStatus()
+//                || DECOMMISSIONED == pluginConfig.getPluginPackage().getStatus()) {
+//            throw new WecubeCoreException("3052",
+//                    "Plugin package is not in valid status [REGISTERED, RUNNING, STOPPED] to enable plugin.");
+//        }
+//
+//        if (ENABLED == pluginConfig.getStatus()) {
+//            throw new WecubeCoreException("3053", "Not allow to enable pluginConfig with status: ENABLED");
+//        }
+//
+//        validateCurrentUserPermission(pluginConfigId, PluginConfigRoles.PERM_TYPE_MGMT);
+//
+//        ensureEntityIsValid(pluginConfig.getName(), pluginConfig.getTargetPackage(), pluginConfig.getTargetEntity());
+//
+//        checkMandatoryParameters(pluginConfig);
+//
+//        pluginConfig.setStatus(ENABLED);
+//        return PluginConfigDto.fromDomain(pluginConfigRepository.save(pluginConfig));
+//    }
 
     private void checkMandatoryParameters(PluginConfig pluginConfig) {
         Set<PluginConfigInterface> interfaces = pluginConfig.getInterfaces();
@@ -496,28 +496,28 @@ public class PluginConfigService {
         }
     }
 
-    public PluginConfigDto disablePlugin(String pluginConfigId) {
-        if (!pluginConfigRepository.existsById(pluginConfigId)) {
-            throw new WecubeCoreException("3057", "PluginConfig not found for id: " + pluginConfigId);
-        }
+//    public PluginConfigDto disablePlugin(String pluginConfigId) {
+//        if (!pluginConfigRepository.existsById(pluginConfigId)) {
+//            throw new WecubeCoreException("3057", "PluginConfig not found for id: " + pluginConfigId);
+//        }
+//
+//        PluginConfig pluginConfig = pluginConfigRepository.findById(pluginConfigId).get();
+//
+//        validateCurrentUserPermission(pluginConfigId, PluginConfigRoles.PERM_TYPE_MGMT);
+//
+//        pluginConfig.setStatus(DISABLED);
+//        return PluginConfigDto.fromDomain(pluginConfigRepository.save(pluginConfig));
+//    }
 
-        PluginConfig pluginConfig = pluginConfigRepository.findById(pluginConfigId).get();
-
-        validateCurrentUserPermission(pluginConfigId, PluginConfigRoles.PERM_TYPE_MGMT);
-
-        pluginConfig.setStatus(DISABLED);
-        return PluginConfigDto.fromDomain(pluginConfigRepository.save(pluginConfig));
-    }
-
-    public PluginConfigInterface getPluginConfigInterfaceByServiceName(String serviceName) {
-        Optional<PluginConfigInterface> pluginConfigInterface = pluginConfigRepository
-                .findLatestOnlinePluginConfigInterfaceByServiceNameAndFetchParameters(serviceName);
-        if (!pluginConfigInterface.isPresent()) {
-            throw new WecubeCoreException("3058",
-                    String.format("Plugin interface not found for serviceName [%s].", serviceName), serviceName);
-        }
-        return pluginConfigInterface.get();
-    }
+//    public PluginConfigInterface getPluginConfigInterfaceByServiceName(String serviceName) {
+//        Optional<PluginConfigInterface> pluginConfigInterface = pluginConfigRepository
+//                .findLatestOnlinePluginConfigInterfaceByServiceNameAndFetchParameters(serviceName);
+//        if (!pluginConfigInterface.isPresent()) {
+//            throw new WecubeCoreException("3058",
+//                    String.format("Plugin interface not found for serviceName [%s].", serviceName), serviceName);
+//        }
+//        return pluginConfigInterface.get();
+//    }
 
     public List<PluginConfigInterfaceDto> queryAllLatestEnabledPluginConfigInterface() {
         Optional<List<PluginConfigInterface>> pluginConfigsOptional = pluginConfigRepository

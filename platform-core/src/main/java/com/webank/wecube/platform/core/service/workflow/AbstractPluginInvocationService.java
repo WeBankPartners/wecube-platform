@@ -3,7 +3,6 @@ package com.webank.wecube.platform.core.service.workflow;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -12,7 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import com.webank.wecube.platform.core.commons.ApplicationProperties;
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
-import com.webank.wecube.platform.core.domain.plugin.PluginConfigInterfaceParameter;
+import com.webank.wecube.platform.core.entity.plugin.PluginConfigInterfaceParameters;
 import com.webank.wecube.platform.core.entity.workflow.TaskNodeDefInfoEntity;
 import com.webank.wecube.platform.core.entity.workflow.TaskNodeInstInfoEntity;
 import com.webank.wecube.platform.core.repository.workflow.TaskNodeDefInfoMapper;
@@ -20,6 +19,7 @@ import com.webank.wecube.platform.core.repository.workflow.TaskNodeExecParamMapp
 import com.webank.wecube.platform.core.repository.workflow.TaskNodeExecRequestMapper;
 import com.webank.wecube.platform.core.repository.workflow.TaskNodeInstInfoMapper;
 import com.webank.wecube.platform.core.service.dme.StandardEntityOperationService;
+import com.webank.wecube.platform.core.service.plugin.PluginConfigMgmtService;
 import com.webank.wecube.platform.core.service.plugin.PluginConfigService;
 
 public abstract class AbstractPluginInvocationService extends AbstractWorkflowService {
@@ -61,6 +61,9 @@ public abstract class AbstractPluginInvocationService extends AbstractWorkflowSe
 
     @Autowired
     protected PluginConfigService pluginConfigService;
+    
+    @Autowired
+    protected PluginConfigMgmtService pluginConfigMgmtService;
 
     @Autowired
     protected StandardEntityOperationService entityOperationService;
@@ -188,9 +191,9 @@ public abstract class AbstractPluginInvocationService extends AbstractWorkflowSe
 
     }
 
-    protected PluginConfigInterfaceParameter findPreConfiguredPluginConfigInterfaceParameter(
-            Set<PluginConfigInterfaceParameter> outputParameters, String paramName) {
-        for (PluginConfigInterfaceParameter p : outputParameters) {
+    protected PluginConfigInterfaceParameters findPreConfiguredPluginConfigInterfaceParameter(
+            List<PluginConfigInterfaceParameters> outputParameters, String paramName) {
+        for (PluginConfigInterfaceParameters p : outputParameters) {
             if (p.getName().equals(paramName)) {
                 return p;
             }

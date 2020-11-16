@@ -29,9 +29,11 @@ public class PluginConfigInterfaces {
     private String type;
 
     private String filterRule;
-    
+
     private transient List<PluginConfigInterfaceParameters> inputParameters = new ArrayList<>();
     private transient List<PluginConfigInterfaceParameters> outputParameters = new ArrayList<>();
+
+    private transient PluginConfigs pluginConfig;
 
     public String getId() {
         return id;
@@ -112,7 +114,7 @@ public class PluginConfigInterfaces {
     public void setFilterRule(String filterRule) {
         this.filterRule = filterRule == null ? null : filterRule.trim();
     }
-    
+
     public String generateServiceName(PluginPackages pluginPackage, PluginConfigs pluginConfig) {
         return pluginPackage.getName() + SEPARATOR_OF_NAMES + pluginConfig.getName()
                 + (null != pluginConfig.getRegisterName()
@@ -128,6 +130,26 @@ public class PluginConfigInterfaces {
         this.inputParameters = inputParameters;
     }
 
+    public void addInputParameters(PluginConfigInterfaceParameters inputParameter) {
+        if (inputParameter == null) {
+            return;
+        }
+        if (this.inputParameters == null) {
+            this.inputParameters = new ArrayList<>();
+        }
+        this.inputParameters.add(inputParameter);
+    }
+
+    public void addOutputParameters(PluginConfigInterfaceParameters outputParameter) {
+        if (outputParameter == null) {
+            return;
+        }
+        if (this.outputParameters == null) {
+            this.outputParameters = new ArrayList<>();
+        }
+        this.outputParameters.add(outputParameter);
+    }
+
     public List<PluginConfigInterfaceParameters> getOutputParameters() {
         return outputParameters;
     }
@@ -135,4 +157,13 @@ public class PluginConfigInterfaces {
     public void setOutputParameters(List<PluginConfigInterfaceParameters> outputParameters) {
         this.outputParameters = outputParameters;
     }
+
+    public PluginConfigs getPluginConfig() {
+        return pluginConfig;
+    }
+
+    public void setPluginConfig(PluginConfigs pluginConfig) {
+        this.pluginConfig = pluginConfig;
+    }
+
 }

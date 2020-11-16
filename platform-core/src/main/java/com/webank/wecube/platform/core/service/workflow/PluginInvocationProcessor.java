@@ -11,7 +11,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
-import com.webank.wecube.platform.core.domain.plugin.PluginConfigInterface;
+import com.webank.wecube.platform.core.entity.plugin.PluginConfigInterfaces;
 import com.webank.wecube.platform.core.entity.workflow.ProcExecBindingEntity;
 import com.webank.wecube.platform.core.entity.workflow.ProcInstInfoEntity;
 import com.webank.wecube.platform.core.entity.workflow.TaskNodeDefInfoEntity;
@@ -269,7 +269,7 @@ public class PluginInvocationProcessor {
     public static class PluginInterfaceInvocationContext {
         private ProcInstInfoEntity procInstEntity;
         private TaskNodeInstInfoEntity taskNodeInstEntity;
-        private PluginConfigInterface pluginConfigInterface;
+        private PluginConfigInterfaces pluginConfigInterface;
         private List<ProcExecBindingEntity> nodeObjectBindings;
         private List<Map<String, Object>> pluginParameters;
         private String interfacePath;
@@ -297,11 +297,11 @@ public class PluginInvocationProcessor {
             this.taskNodeInstEntity = taskNodeInstEntity;
         }
 
-        public PluginConfigInterface getPluginConfigInterface() {
+        public PluginConfigInterfaces getPluginConfigInterface() {
             return pluginConfigInterface;
         }
 
-        public void setPluginConfigInterface(PluginConfigInterface pluginConfigInterface) {
+        public void setPluginConfigInterface(PluginConfigInterfaces pluginConfigInterface) {
             this.pluginConfigInterface = pluginConfigInterface;
         }
 
@@ -374,7 +374,7 @@ public class PluginInvocationProcessor {
             return this;
         }
 
-        public PluginInterfaceInvocationContext withPluginConfigInterface(PluginConfigInterface pluginConfigInterface) {
+        public PluginInterfaceInvocationContext withPluginConfigInterface(PluginConfigInterfaces pluginConfigInterface) {
             this.pluginConfigInterface = pluginConfigInterface;
             return this;
         }

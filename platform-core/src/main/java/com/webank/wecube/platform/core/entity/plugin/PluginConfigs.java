@@ -23,8 +23,10 @@ public class PluginConfigs {
     private String registerName;
 
     private String status;
-    
+
     private transient List<PluginConfigInterfaces> interfaces = new ArrayList<>();
+
+    private transient PluginPackages pluginPackage;
 
     public String getId() {
         return id;
@@ -89,7 +91,7 @@ public class PluginConfigs {
     public void setStatus(String status) {
         this.status = status == null ? null : status.trim();
     }
-    
+
     public String getTargetEntityWithFilterRule() {
         return StringUtils.join(targetPackage, ":", targetEntity, targetEntityFilterRule);
     }
@@ -101,16 +103,25 @@ public class PluginConfigs {
     public void setInterfaces(List<PluginConfigInterfaces> interfaces) {
         this.interfaces = interfaces;
     }
-    
-    public void addPluginConfigInterfaces(PluginConfigInterfaces intf){
-        if(intf == null){
+
+    public void addPluginConfigInterfaces(PluginConfigInterfaces intf) {
+        if (intf == null) {
             return;
         }
-        
-        if(this.interfaces == null){
+
+        if (this.interfaces == null) {
             this.interfaces = new ArrayList<>();
         }
-        
+
         this.interfaces.add(intf);
     }
+
+    public PluginPackages getPluginPackage() {
+        return pluginPackage;
+    }
+
+    public void setPluginPackage(PluginPackages pluginPackage) {
+        this.pluginPackage = pluginPackage;
+    }
+
 }

@@ -3,15 +3,14 @@ package com.webank.wecube.platform.core.service.workflow;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
-import com.webank.wecube.platform.core.domain.plugin.PluginConfigInterface;
-import com.webank.wecube.platform.core.domain.plugin.PluginConfigInterfaceParameter;
 import com.webank.wecube.platform.core.dto.workflow.PluginAsyncInvocationResultDto;
+import com.webank.wecube.platform.core.entity.plugin.PluginConfigInterfaceParameters;
+import com.webank.wecube.platform.core.entity.plugin.PluginConfigInterfaces;
 import com.webank.wecube.platform.core.entity.workflow.TaskNodeDefInfoEntity;
 import com.webank.wecube.platform.core.entity.workflow.TaskNodeExecParamEntity;
 import com.webank.wecube.platform.core.entity.workflow.TaskNodeExecRequestEntity;
@@ -97,7 +96,7 @@ public class AsyncPluginInvocationService extends AbstractPluginInvocationServic
             throw new WecubeCoreException("3157", "Task node definition does not exist.");
         }
 
-        PluginConfigInterface pluginConfigInterface = pluginConfigService
+        PluginConfigInterfaces pluginConfigInterface = pluginConfigMgmtService
                 .getPluginConfigInterfaceByServiceName(nodeDefEntity.getServiceId());
 
         if (pluginConfigInterface == null) {
@@ -143,8 +142,8 @@ public class AsyncPluginInvocationService extends AbstractPluginInvocationServic
     private void handleNullResultData(PluginInterfaceInvocationContext ctx) {
         PluginInvocationResult result = new PluginInvocationResult()
                 .parsePluginInvocationCommand(ctx.getPluginInvocationCommand());
-        PluginConfigInterface pluginConfigInterface = ctx.getPluginConfigInterface();
-        Set<PluginConfigInterfaceParameter> outputParameters = pluginConfigInterface.getOutputParameters();
+        PluginConfigInterfaces pluginConfigInterface = ctx.getPluginConfigInterface();
+        List<PluginConfigInterfaceParameters> outputParameters = pluginConfigInterface.getOutputParameters();
 
         if (outputParameters == null || outputParameters.isEmpty()) {
             log.debug("output parameter is NOT configured for interface {}", pluginConfigInterface.getServiceName());
@@ -236,8 +235,8 @@ public class AsyncPluginInvocationService extends AbstractPluginInvocationServic
 
     private void handleSingleOutputMap(PluginInterfaceInvocationContext ctx, Map<String, Object> outputParameterMap) {
 
-        PluginConfigInterface pci = ctx.getPluginConfigInterface();
-        Set<PluginConfigInterfaceParameter> outputParameters = pci.getOutputParameters();
+        PluginConfigInterfaces pci = ctx.getPluginConfigInterface();
+        List<PluginConfigInterfaceParameters> outputParameters = pci.getOutputParameters();
 
         if (outputParameters == null) {
             return;
@@ -263,7 +262,7 @@ public class AsyncPluginInvocationService extends AbstractPluginInvocationServic
             return;
         }
 
-        for (PluginConfigInterfaceParameter pciParam : outputParameters) {
+        for (PluginConfigInterfaceParameters pciParam : outputParameters) {
             String paramName = pciParam.getName();
             String paramExpr = pciParam.getMappingEntityExpression();
 
@@ -325,11 +324,11 @@ public class AsyncPluginInvocationService extends AbstractPluginInvocationServic
             entityDataId = callbackParameterInputEntity.getEntityDataId();
         }
 
-        Set<PluginConfigInterfaceParameter> outputParameters = ctx.getPluginConfigInterface().getOutputParameters();
+        List<PluginConfigInterfaceParameters> outputParameters = ctx.getPluginConfigInterface().getOutputParameters();
 
         for (Map.Entry<String, Object> entry : outputParameterMap.entrySet()) {
 
-            PluginConfigInterfaceParameter p = findPreConfiguredPluginConfigInterfaceParameter(outputParameters,
+            PluginConfigInterfaceParameters p = findPreConfiguredPluginConfigInterfaceParameter(outputParameters,
                     entry.getKey());
 
             String paramDataType = null;
