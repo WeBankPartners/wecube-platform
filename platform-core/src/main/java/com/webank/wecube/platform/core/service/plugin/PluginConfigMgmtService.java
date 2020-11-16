@@ -5,6 +5,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -14,6 +15,7 @@ import org.springframework.stereotype.Service;
 
 import com.webank.wecube.platform.core.commons.AuthenticationContextHolder;
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
+import com.webank.wecube.platform.core.dto.PluginConfigRoleRequestDto;
 import com.webank.wecube.platform.core.dto.plugin.PluginConfigDto;
 import com.webank.wecube.platform.core.dto.plugin.PluginConfigInterfaceDto;
 import com.webank.wecube.platform.core.dto.plugin.PluginConfigInterfaceParameterDto;
@@ -22,11 +24,15 @@ import com.webank.wecube.platform.core.entity.plugin.PluginConfigInterfaceParame
 import com.webank.wecube.platform.core.entity.plugin.PluginConfigInterfaces;
 import com.webank.wecube.platform.core.entity.plugin.PluginConfigRoles;
 import com.webank.wecube.platform.core.entity.plugin.PluginConfigs;
+import com.webank.wecube.platform.core.entity.plugin.PluginPackageDataModel;
+import com.webank.wecube.platform.core.entity.plugin.PluginPackageEntities;
 import com.webank.wecube.platform.core.entity.plugin.PluginPackages;
 import com.webank.wecube.platform.core.repository.plugin.PluginConfigInterfaceParametersMapper;
 import com.webank.wecube.platform.core.repository.plugin.PluginConfigInterfacesMapper;
 import com.webank.wecube.platform.core.repository.plugin.PluginConfigRolesMapper;
 import com.webank.wecube.platform.core.repository.plugin.PluginConfigsMapper;
+import com.webank.wecube.platform.core.repository.plugin.PluginPackageDataModelMapper;
+import com.webank.wecube.platform.core.repository.plugin.PluginPackageEntitiesMapper;
 import com.webank.wecube.platform.core.repository.plugin.PluginPackagesMapper;
 import com.webank.wecube.platform.core.utils.CollectionUtils;
 import com.webank.wecube.platform.workflow.commons.LocalIdGenerator;
@@ -50,6 +56,112 @@ public class PluginConfigMgmtService extends AbstractPluginMgmtService {
     @Autowired
     private PluginConfigInterfaceParametersMapper pluginConfigInterfaceParametersMapper;
 
+    @Autowired
+    private PluginPackageDataModelMapper pluginPackageDataModelMapper;
+
+    @Autowired
+    private PluginPackageEntitiesMapper pluginPackageEntitiesMapper;
+
+    public PluginConfigDto enablePlugin(String pluginConfigId) {
+        PluginConfigs pluginConfigEntity = pluginConfigsMapper.selectByPrimaryKey(pluginConfigId);
+
+        if (pluginConfigEntity == null) {
+            throw new WecubeCoreException("3051", "PluginConfig not found for id: " + pluginConfigId);
+        }
+
+        if (PluginConfigs.ENABLED.equals(pluginConfigEntity.getStatus())) {
+            throw new WecubeCoreException("3053", "Not allow to enable pluginConfig with status: ENABLED");
+        }
+
+        PluginPackages pluginPackageEntity = pluginPackagesMapper
+                .selectByPrimaryKey(pluginConfigEntity.getPluginPackageId());
+
+        if (pluginPackageEntity == null || PluginPackages.UNREGISTERED.equals(pluginPackageEntity.getStatus())
+                || PluginPackages.DECOMMISSIONED.equals(pluginPackageEntity.getStatus())) {
+            throw new WecubeCoreException("3052",
+                    "Plugin package is not in valid status [REGISTERED, RUNNING, STOPPED] to enable plugin.");
+        }
+
+        validateCurrentUserPermission(pluginConfigId, PluginConfigRoles.PERM_TYPE_MGMT);
+
+        validateTargetPackageAndTargetEntity(pluginConfigEntity.getName(), pluginConfigEntity.getTargetPackage(),
+                pluginConfigEntity.getTargetEntity());
+
+        // checkMandatoryParameters(pluginConfig);
+
+        pluginConfigEntity.setStatus(PluginConfigs.ENABLED);
+        pluginConfigsMapper.updateByPrimaryKeySelective(pluginConfigEntity);
+
+        PluginConfigDto resultPluginConfigDto = buildPluginConfigDto(pluginConfigEntity, pluginPackageEntity);
+        return resultPluginConfigDto;
+    }
+
+    private void validateTargetPackageAndTargetEntity(String pluginConfigName, String targetPackage,
+            String targetEntity) {
+        if (StringUtils.isNotBlank(targetPackage) || StringUtils.isNotBlank(targetEntity)) {
+            return;
+        }
+        PluginPackageDataModel dataModelEntity = pluginPackageDataModelMapper
+                .selectLatestDataModelByPackageName(targetPackage);
+        if (dataModelEntity == null) {
+            throw new WecubeCoreException("3049", "Data model not exists for package name [%s]");
+        }
+
+        Integer dataModelVersion = dataModelEntity.getVersion();
+        List<PluginPackageEntities> pluginPackageEntitiesList = pluginPackageEntitiesMapper
+                .selectAllByPackageNameAndEntityNameAndDataModelVersion(targetPackage, targetEntity, dataModelVersion);
+
+        if (pluginPackageEntitiesList == null || pluginPackageEntitiesList.isEmpty()) {
+            String errorMessage = String.format(
+                    "PluginPackageEntity not found for packageName:dataModelVersion:entityName [%s:%s:%s] for plugin config: %s",
+                    targetPackage, dataModelVersion, targetEntity, pluginConfigName);
+            log.error(errorMessage);
+            throw new WecubeCoreException("3050", errorMessage, targetPackage, dataModelVersion, targetEntity,
+                    pluginConfigName);
+        }
+    }
+
+    public void deletePluginConfigRoleBinding(String pluginConfigId,
+            PluginConfigRoleRequestDto pluginConfigRoleRequestDto) throws WecubeCoreException {
+
+        String permission = pluginConfigRoleRequestDto.getPermission();
+        List<String> inputRoleIds = pluginConfigRoleRequestDto.getRoleIds();
+
+        validateCurrentUserPermission(pluginConfigId, PluginConfigRoles.PERM_TYPE_MGMT);
+
+        if (inputRoleIds == null || inputRoleIds.isEmpty()) {
+            return;
+        }
+
+        deletePluginConfigRoleBindings(pluginConfigId, permission, inputRoleIds);
+    }
+
+    public void updatePluginConfigRoleBinding(String pluginConfigId,
+            PluginConfigRoleRequestDto pluginConfigRoleRequestDto) {
+        if (log.isDebugEnabled()) {
+            log.debug("start to update plugin config role binding:{},{}", pluginConfigId, pluginConfigRoleRequestDto);
+        }
+        String permission = pluginConfigRoleRequestDto.getPermission();
+        List<String> inputRoleIds = pluginConfigRoleRequestDto.getRoleIds();
+        validateCurrentUserPermission(pluginConfigId, PluginConfigRoles.PERM_TYPE_MGMT);
+
+        if (inputRoleIds == null || inputRoleIds.isEmpty()) {
+            log.info("input role IDs is empty");
+            return;
+        }
+        List<String> existRoleIds = getExistRoleIdsOfPluginConfigAndPermission(pluginConfigId, permission);
+        List<String> roleIdsToAdd = new ArrayList<String>();
+        for (String roleId : inputRoleIds) {
+            if (existRoleIds.contains(roleId)) {
+                continue;
+            }
+
+            roleIdsToAdd.add(roleId);
+        }
+
+        addPluginConfigRoleBindings(pluginConfigId, permission, roleIdsToAdd);
+    }
+
     public PluginConfigDto createOrUpdatePluginConfig(PluginConfigDto pluginConfigDto) {
         validatePermission(pluginConfigDto.getPermissionToRole());
 
@@ -60,6 +172,49 @@ public class PluginConfigMgmtService extends AbstractPluginMgmtService {
         } else {
             resultPluginConfigDto = updatePluginConfig(pluginConfigDto);
             return resultPluginConfigDto;
+        }
+    }
+
+    private void validateCurrentUserPermission(String pluginConfigId, String permission) {
+        String currentUsername = AuthenticationContextHolder.getCurrentUsername();
+        if (StringUtils.isBlank(currentUsername)) {
+            throw new WecubeCoreException("3038", "Current user did not login in.");
+        }
+
+        Set<String> currUserRoles = AuthenticationContextHolder.getCurrentUserRoles();
+        if (currUserRoles == null || currUserRoles.isEmpty()) {
+            throw new WecubeCoreException("3039", "Lack of permission to update user permission configuration.");
+        }
+
+        List<PluginConfigRoles> pluginAuthConfigEntities = this.pluginConfigRolesMapper
+                .selectAllByPluginConfigAndPerm(pluginConfigId, permission);
+
+        if (pluginAuthConfigEntities == null || pluginAuthConfigEntities.isEmpty()) {
+            throw new WecubeCoreException("3040", "None plugin authority configured for [%s] [%s]", pluginConfigId,
+                    permission);
+        }
+
+        boolean hasAuthority = false;
+        for (PluginConfigRoles auth : pluginAuthConfigEntities) {
+            String authRole = auth.getRoleName();
+            if (StringUtils.isBlank(authRole)) {
+                continue;
+            }
+            if (CollectionUtils.collectionContains(currUserRoles, authRole)) {
+                hasAuthority = true;
+                break;
+            }
+        }
+
+        if (!hasAuthority) {
+            StringBuilder rolesStr = new StringBuilder();
+            for (PluginConfigRoles auth : pluginAuthConfigEntities) {
+                rolesStr.append(auth.getRoleName());
+            }
+            String errorMsg = String.format(
+                    "Current user do not have privilege to update [%s].Must have one of the roles:%s", pluginConfigId,
+                    rolesStr.toString());
+            throw new WecubeCoreException("3041", errorMsg, pluginConfigId, rolesStr.toString());
         }
     }
 
@@ -147,9 +302,9 @@ public class PluginConfigMgmtService extends AbstractPluginMgmtService {
                 List<PluginConfigInterfaceParameters> outputParamEntities = pluginConfigInterfaceParametersMapper
                         .selectAllByConfigInterfaceAndParamType(intfEntity.getId(),
                                 PluginConfigInterfaceParameters.TYPE_OUTPUT);
-                
+
                 intfEntity.setOutputParameters(outputParamEntities);
-                
+
                 pluginConfigEntity.addPluginConfigInterfaces(intfEntity);
             }
         }
