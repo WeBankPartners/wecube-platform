@@ -12,7 +12,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.UUID;
 
 import org.apache.commons.lang3.StringUtils;
@@ -20,11 +19,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
-import com.webank.wecube.platform.core.domain.plugin.PluginConfig;
-import com.webank.wecube.platform.core.domain.plugin.PluginConfigInterface;
-import com.webank.wecube.platform.core.domain.plugin.PluginConfigInterfaceParameter;
 import com.webank.wecube.platform.core.domain.plugin.PluginInstance;
-import com.webank.wecube.platform.core.domain.plugin.PluginPackage;
+import com.webank.wecube.platform.core.entity.plugin.PluginConfigInterfaceParameters;
+import com.webank.wecube.platform.core.entity.plugin.PluginConfigInterfaces;
+import com.webank.wecube.platform.core.entity.plugin.PluginConfigs;
+import com.webank.wecube.platform.core.entity.plugin.PluginPackages;
 import com.webank.wecube.platform.core.entity.plugin.SystemVariables;
 import com.webank.wecube.platform.core.entity.workflow.ProcExecBindingEntity;
 import com.webank.wecube.platform.core.entity.workflow.ProcInstInfoEntity;
@@ -210,7 +209,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
         TaskNodeDefInfoEntity taskNodeDefEntity = retrieveTaskNodeDefInfoEntity(procInstEntity.getProcDefId(),
                 cmd.getNodeId());
         List<ProcExecBindingEntity> nodeObjectBindings = retrieveProcExecBindingEntities(taskNodeInstEntity);
-        PluginConfigInterface pluginConfigInterface = retrievePluginConfigInterface(taskNodeDefEntity, cmd.getNodeId());
+        PluginConfigInterfaces pluginConfigInterface = retrievePluginConfigInterface(taskNodeDefEntity, cmd.getNodeId());
 
         List<InputParamObject> inputParamObjs = calculateInputParamObjects(procInstEntity, taskNodeInstEntity,
                 taskNodeDefEntity, nodeObjectBindings, pluginConfigInterface);
@@ -248,14 +247,14 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 
     private List<InputParamObject> tryCalculateInputParamObjectsFromSystem(ProcInstInfoEntity procInstEntity,
             TaskNodeInstInfoEntity taskNodeInstEntity, TaskNodeDefInfoEntity taskNodeDefEntity,
-            List<ProcExecBindingEntity> nodeObjectBindings, PluginConfigInterface pluginConfigInterface) {
+            List<ProcExecBindingEntity> nodeObjectBindings, PluginConfigInterfaces pluginConfigInterface) {
         if (nodeObjectBindings != null && !nodeObjectBindings.isEmpty()) {
             return new ArrayList<>();
         }
 
         List<InputParamObject> inputParamObjs = new ArrayList<InputParamObject>();
 
-        Set<PluginConfigInterfaceParameter> configInterfaceInputParams = pluginConfigInterface.getInputParameters();
+        List<PluginConfigInterfaceParameters> configInterfaceInputParams = pluginConfigInterface.getInputParameters();
 
         if (!checkIfCouldCalculateFromSystem(configInterfaceInputParams)) {
             return new ArrayList<>();
@@ -267,7 +266,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
         inputObj.setEntityDataId(String.format("%s-%s-%s-%s", taskNodeInstEntity.getProcDefId(),
                 taskNodeInstEntity.getNodeDefId(), taskNodeInstEntity.getProcInstId(), taskNodeInstEntity.getId()));
 
-        for (PluginConfigInterfaceParameter param : configInterfaceInputParams) {
+        for (PluginConfigInterfaceParameters param : configInterfaceInputParams) {
             String paramName = param.getName();
             String paramType = param.getDataType();
 
@@ -301,12 +300,12 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
         return inputParamObjs;
     }
 
-    private boolean checkIfCouldCalculateFromSystem(Set<PluginConfigInterfaceParameter> configInterfaceInputParams) {
+    private boolean checkIfCouldCalculateFromSystem(List<PluginConfigInterfaceParameters> configInterfaceInputParams) {
         if (configInterfaceInputParams == null || configInterfaceInputParams.isEmpty()) {
             return false;
         }
 
-        for (PluginConfigInterfaceParameter c : configInterfaceInputParams) {
+        for (PluginConfigInterfaceParameters c : configInterfaceInputParams) {
             if ((!MAPPING_TYPE_SYSTEM_VARIABLE.equalsIgnoreCase(c.getMappingType()))
                     && (!MAPPING_TYPE_CONSTANT.equalsIgnoreCase(c.getMappingType()))) {
                 return false;
@@ -356,7 +355,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
     }
 
     private void parsePluginInstance(PluginInterfaceInvocationContext ctx) {
-        PluginConfigInterface pluginConfigInterface = ctx.getPluginConfigInterface();
+        PluginConfigInterfaces pluginConfigInterface = ctx.getPluginConfigInterface();
         PluginInstance pluginInstance = retrieveAvailablePluginInstance(pluginConfigInterface);
         String interfacePath = pluginConfigInterface.getPath();
         if (pluginInstance == null) {
@@ -371,11 +370,11 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 
     private List<InputParamObject> calculateInputParamObjects(ProcInstInfoEntity procInstEntity,
             TaskNodeInstInfoEntity taskNodeInstEntity, TaskNodeDefInfoEntity taskNodeDefEntity,
-            List<ProcExecBindingEntity> nodeObjectBindings, PluginConfigInterface pluginConfigInterface) {
+            List<ProcExecBindingEntity> nodeObjectBindings, PluginConfigInterfaces pluginConfigInterface) {
 
         List<InputParamObject> inputParamObjs = new ArrayList<InputParamObject>();
 
-        Set<PluginConfigInterfaceParameter> configInterfaceInputParams = pluginConfigInterface.getInputParameters();
+        List<PluginConfigInterfaceParameters> configInterfaceInputParams = pluginConfigInterface.getInputParameters();
         for (ProcExecBindingEntity nodeObjectBinding : nodeObjectBindings) {
             String entityTypeId = nodeObjectBinding.getEntityTypeId();
             String entityDataId = nodeObjectBinding.getEntityDataId();
@@ -384,7 +383,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
             inputObj.setEntityTypeId(entityTypeId);
             inputObj.setEntityDataId(entityDataId);
 
-            for (PluginConfigInterfaceParameter param : configInterfaceInputParams) {
+            for (PluginConfigInterfaceParameters param : configInterfaceInputParams) {
                 String paramName = param.getName();
                 String paramType = param.getDataType();
 
@@ -421,7 +420,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
         return inputParamObjs;
     }
 
-    private void handleEntityMapping(String mappingType, PluginConfigInterfaceParameter param, String entityDataId,
+    private void handleEntityMapping(String mappingType, PluginConfigInterfaceParameters param, String entityDataId,
             List<Object> objectVals) {
         if (MAPPING_TYPE_ENTITY.equals(mappingType)) {
             String mappingEntityExpression = param.getMappingEntityExpression();
@@ -451,7 +450,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
     }
 
     private void handleContextMapping(String mappingType, TaskNodeDefInfoEntity taskNodeDefEntity, String paramName,
-            ProcInstInfoEntity procInstEntity, PluginConfigInterfaceParameter param, String paramType,
+            ProcInstInfoEntity procInstEntity, PluginConfigInterfaceParameters param, String paramType,
             List<Object> objectVals) {
         if (!MAPPING_TYPE_CONTEXT.equals(mappingType)) {
             return;
@@ -493,7 +492,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
     }
 
     private void handleContextMappingForStartEvent(String mappingType, TaskNodeDefInfoEntity taskNodeDefEntity,
-            String paramName, ProcInstInfoEntity procInstEntity, PluginConfigInterfaceParameter param, String paramType,
+            String paramName, ProcInstInfoEntity procInstEntity, PluginConfigInterfaceParameters param, String paramType,
             List<Object> objectVals, TaskNodeInstInfoEntity bindNodeInstEntity, String bindParamName,
             String bindParamType) {
         // #1993
@@ -575,7 +574,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
     }
 
     private void handleContextMappingForTaskNode(String mappingType, TaskNodeDefInfoEntity taskNodeDefEntity,
-            String paramName, ProcInstInfoEntity procInstEntity, PluginConfigInterfaceParameter param, String paramType,
+            String paramName, ProcInstInfoEntity procInstEntity, PluginConfigInterfaceParameters param, String paramType,
             List<Object> objectVals, TaskNodeInstInfoEntity bindNodeInstEntity, String bindParamName,
             String bindParamType) {
         List<TaskNodeExecRequestEntity> requestEntities = taskNodeExecRequestRepository
@@ -616,7 +615,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
         objectVals.add(finalInputParam);
     }
 
-    private void handleSystemMapping(String mappingType, PluginConfigInterfaceParameter param, String paramName,
+    private void handleSystemMapping(String mappingType, PluginConfigInterfaceParameters param, String paramName,
             List<Object> objectVals) {
         if (MAPPING_TYPE_SYSTEM_VARIABLE.equals(mappingType)) {
             String systemVariableName = param.getMappingSystemVariableName();
@@ -707,10 +706,10 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
         return retDataValues;
     }
 
-    private PluginConfigInterface retrievePluginConfigInterface(TaskNodeDefInfoEntity taskNodeDefEntity,
+    private PluginConfigInterfaces retrievePluginConfigInterface(TaskNodeDefInfoEntity taskNodeDefEntity,
             String nodeId) {
         String serviceId = retrieveServiceId(taskNodeDefEntity, nodeId);
-        PluginConfigInterface pluginConfigInterface = pluginConfigService
+        PluginConfigInterfaces pluginConfigInterface = pluginConfigMgmtService
                 .getPluginConfigInterfaceByServiceName(serviceId);
 
         if (pluginConfigInterface == null) {
@@ -913,9 +912,9 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
     }
     
 
-    private PluginInstance retrieveAvailablePluginInstance(PluginConfigInterface itf) {
-        PluginConfig config = itf.getPluginConfig();
-        PluginPackage pkg = config.getPluginPackage();
+    private PluginInstance retrieveAvailablePluginInstance(PluginConfigInterfaces itf) {
+        PluginConfigs config = itf.getPluginConfig();
+        PluginPackages pkg = config.getPluginPackage();
         String pluginName = pkg.getName();
 
         List<PluginInstance> instances = pluginInstanceService.getRunningPluginInstances(pluginName);
@@ -936,7 +935,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
             return;
         }
 
-        PluginConfigInterface pci = ctx.getPluginConfigInterface();
+        PluginConfigInterfaces pci = ctx.getPluginConfigInterface();
         if (ASYNC_SERVICE_SYMBOL.equalsIgnoreCase(pci.getIsAsyncProcessing())) {
             log.debug("such interface is asynchronous service : {} ", pci.getServiceName());
             return;
@@ -994,8 +993,8 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
             PluginInterfaceInvocationContext ctx) {
         PluginInvocationResult result = new PluginInvocationResult()
                 .parsePluginInvocationCommand(ctx.getPluginInvocationCommand());
-        PluginConfigInterface pluginConfigInterface = ctx.getPluginConfigInterface();
-        Set<PluginConfigInterfaceParameter> outputParameters = pluginConfigInterface.getOutputParameters();
+        PluginConfigInterfaces pluginConfigInterface = ctx.getPluginConfigInterface();
+        List<PluginConfigInterfaceParameters> outputParameters = pluginConfigInterface.getOutputParameters();
 
         if (outputParameters == null || outputParameters.isEmpty()) {
             log.debug("output parameter is NOT configured for interface {}", pluginConfigInterface.getServiceName());
@@ -1083,11 +1082,11 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
             entityDataId = callbackParameterInputEntity.getEntityDataId();
         }
 
-        Set<PluginConfigInterfaceParameter> outputParameters = ctx.getPluginConfigInterface().getOutputParameters();
+        List<PluginConfigInterfaceParameters> outputParameters = ctx.getPluginConfigInterface().getOutputParameters();
 
         for (Map.Entry<String, Object> entry : outputParameterMap.entrySet()) {
 
-            PluginConfigInterfaceParameter p = findPreConfiguredPluginConfigInterfaceParameter(outputParameters,
+            PluginConfigInterfaceParameters p = findPreConfiguredPluginConfigInterfaceParameter(outputParameters,
                     entry.getKey());
 
             String paramDataType = null;
@@ -1123,8 +1122,8 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
     private void handleSingleOutputMap(PluginInterfaceInvocationResult pluginInvocationResult,
             PluginInterfaceInvocationContext ctx, Map<String, Object> outputParameterMap) {
 
-        PluginConfigInterface pci = ctx.getPluginConfigInterface();
-        Set<PluginConfigInterfaceParameter> outputParameters = pci.getOutputParameters();
+        PluginConfigInterfaces pci = ctx.getPluginConfigInterface();
+        List<PluginConfigInterfaceParameters> outputParameters = pci.getOutputParameters();
 
         if (outputParameters == null) {
             return;
@@ -1150,7 +1149,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
             return;
         }
 
-        for (PluginConfigInterfaceParameter pciParam : outputParameters) {
+        for (PluginConfigInterfaceParameters pciParam : outputParameters) {
             String paramName = pciParam.getName();
             String paramExpr = pciParam.getMappingEntityExpression();
 
