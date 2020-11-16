@@ -89,6 +89,16 @@ public class PluginConfigDto {
         this.interfaces = interfaces;
     }
 
+    public void addInterfaces(PluginConfigInterfaceDto interfaceDto) {
+        if (interfaceDto == null) {
+            return;
+        }
+        if (this.interfaces == null) {
+            this.interfaces = new ArrayList<>();
+        }
+        this.interfaces.add(interfaceDto);
+    }
+
     @Override
     public String toString() {
         return ReflectionToStringBuilder.toString(this);
