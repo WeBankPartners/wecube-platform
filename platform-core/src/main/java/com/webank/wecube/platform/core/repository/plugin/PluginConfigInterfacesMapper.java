@@ -53,6 +53,64 @@ public interface PluginConfigInterfacesMapper {
     List<AuthLatestEnabledInterfaces> selectAllAuthorizedLatestEnabledIntfs(
             @Param("pluginConfigStatus") String pluginConfigStatus,
             @Param("pluginPackageStatuses") List<String> pluginPackageStatuses,
-            @Param("permissionType") String permissionType,
-            @Param("roleNames") List<String> roleNames);
+            @Param("permissionType") String permissionType, @Param("roleNames") List<String> roleNames);
+
+    /**
+     * 
+     * @param targetPackage
+     * @param targetEntity
+     * @param configStatus
+     * @return
+     */
+    List<AuthLatestEnabledInterfaces> selectAllAuthEnabledIntfsByTargetInfo(
+            @Param("targetPackage") String targetPackage, @Param("targetEntity") String targetEntity,
+            @Param("pluginConfigStatus") String pluginConfigStatus, @Param("permissionType") String permissionType, @Param("roleNames") List<String> roleNames,
+            @Param("pluginPackageStatuses") List<String> pluginPackageStatuses);
+    
+    
+    /**
+     * 
+     * @param targetPackage
+     * @param targetEntity
+     * @param pluginConfigStatus
+     * @param permissionType
+     * @param roleNames
+     * @param pluginPackageStatuses
+     * @return
+     */
+    List<AuthLatestEnabledInterfaces> selectAllAuthEnabledIntfsByTargetInfoAndNullFilterRule(
+            @Param("targetPackage") String targetPackage, @Param("targetEntity") String targetEntity,
+            @Param("pluginConfigStatus") String pluginConfigStatus, @Param("permissionType") String permissionType, @Param("roleNames") List<String> roleNames,
+            @Param("pluginPackageStatuses") List<String> pluginPackageStatuses);
+    
+    
+    /**
+     * 
+     * @param targetPackage
+     * @param targetEntity
+     * @param pluginConfigStatus
+     * @param permissionType
+     * @param roleNames
+     * @param pluginPackageStatuses
+     * @param filterRule
+     * @return
+     */
+    List<AuthLatestEnabledInterfaces> selectAllAuthEnabledIntfsByTargetInfoAndFilterRule(
+            @Param("targetPackage") String targetPackage, @Param("targetEntity") String targetEntity,
+            @Param("pluginConfigStatus") String pluginConfigStatus, @Param("permissionType") String permissionType, @Param("roleNames") List<String> roleNames,
+            @Param("pluginPackageStatuses") List<String> pluginPackageStatuses, @Param("filterRule") String filterRule);
+    
+    /**
+     * 
+     * @param pluginConfigStatus
+     * @param permissionType
+     * @param roleNames
+     * @param pluginPackageStatuses
+     * @param filterRule
+     * @return
+     */
+    List<AuthLatestEnabledInterfaces> selectAllAuthEnabledIntfsByNullTargetInfo(
+            @Param("pluginConfigStatus") String pluginConfigStatus, @Param("permissionType") String permissionType, @Param("roleNames") List<String> roleNames,
+            @Param("pluginPackageStatuses") List<String> pluginPackageStatuses);
+
 }
