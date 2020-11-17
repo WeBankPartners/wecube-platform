@@ -7,7 +7,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.webank.wecube.platform.core.service.plugin.PluginInstanceService;
+import com.webank.wecube.platform.core.service.plugin.PluginInstanceMgmtService;
 import com.webank.wecube.platform.core.support.authserver.AuthServerRestClient;
 
 @Service
@@ -16,7 +16,7 @@ public class ApplicationInformationService {
 	private static final Logger log = LoggerFactory.getLogger(ApplicationInformationService.class);
 	
 	@Autowired
-	private PluginInstanceService pluginInstanceService;
+	private PluginInstanceMgmtService pluginInstanceService;
 	
 	@Autowired
 	private AuthServerRestClient authServerRestClient;

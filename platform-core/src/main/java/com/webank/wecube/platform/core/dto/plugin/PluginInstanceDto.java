@@ -1,8 +1,7 @@
-package com.webank.wecube.platform.core.entity.plugin;
+package com.webank.wecube.platform.core.dto.plugin;
 
-public class PluginInstances {
-    public static final String CONTAINER_STATUS_RUNNING = "RUNNING";
-    public static final String CONTAINER_STATUS_REMOVED = "REMOVED";
+public class PluginInstanceDto {
+
     private String id;
 
     private String host;
@@ -23,14 +22,12 @@ public class PluginInstances {
 
     private String s3bucketResourceId;
 
-    private transient PluginPackages pluginPackage;
-
     public String getId() {
         return id;
     }
 
     public void setId(String id) {
-        this.id = id == null ? null : id.trim();
+        this.id = id;
     }
 
     public String getHost() {
@@ -38,7 +35,7 @@ public class PluginInstances {
     }
 
     public void setHost(String host) {
-        this.host = host == null ? null : host.trim();
+        this.host = host;
     }
 
     public String getContainerName() {
@@ -46,7 +43,7 @@ public class PluginInstances {
     }
 
     public void setContainerName(String containerName) {
-        this.containerName = containerName == null ? null : containerName.trim();
+        this.containerName = containerName;
     }
 
     public Integer getPort() {
@@ -62,7 +59,7 @@ public class PluginInstances {
     }
 
     public void setContainerStatus(String containerStatus) {
-        this.containerStatus = containerStatus == null ? null : containerStatus.trim();
+        this.containerStatus = containerStatus;
     }
 
     public String getPackageId() {
@@ -70,7 +67,7 @@ public class PluginInstances {
     }
 
     public void setPackageId(String packageId) {
-        this.packageId = packageId == null ? null : packageId.trim();
+        this.packageId = packageId;
     }
 
     public String getDockerInstanceResourceId() {
@@ -78,7 +75,7 @@ public class PluginInstances {
     }
 
     public void setDockerInstanceResourceId(String dockerInstanceResourceId) {
-        this.dockerInstanceResourceId = dockerInstanceResourceId == null ? null : dockerInstanceResourceId.trim();
+        this.dockerInstanceResourceId = dockerInstanceResourceId;
     }
 
     public String getInstanceName() {
@@ -86,7 +83,7 @@ public class PluginInstances {
     }
 
     public void setInstanceName(String instanceName) {
-        this.instanceName = instanceName == null ? null : instanceName.trim();
+        this.instanceName = instanceName;
     }
 
     public String getPluginMysqlInstanceResourceId() {
@@ -94,8 +91,7 @@ public class PluginInstances {
     }
 
     public void setPluginMysqlInstanceResourceId(String pluginMysqlInstanceResourceId) {
-        this.pluginMysqlInstanceResourceId = pluginMysqlInstanceResourceId == null ? null
-                : pluginMysqlInstanceResourceId.trim();
+        this.pluginMysqlInstanceResourceId = pluginMysqlInstanceResourceId;
     }
 
     public String getS3bucketResourceId() {
@@ -103,15 +99,7 @@ public class PluginInstances {
     }
 
     public void setS3bucketResourceId(String s3bucketResourceId) {
-        this.s3bucketResourceId = s3bucketResourceId == null ? null : s3bucketResourceId.trim();
-    }
-
-    public PluginPackages getPluginPackage() {
-        return pluginPackage;
-    }
-
-    public void setPluginPackage(PluginPackages pluginPackage) {
-        this.pluginPackage = pluginPackage;
+        this.s3bucketResourceId = s3bucketResourceId;
     }
 
 }
