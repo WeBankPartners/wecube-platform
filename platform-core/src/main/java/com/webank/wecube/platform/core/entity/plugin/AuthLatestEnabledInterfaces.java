@@ -1,5 +1,9 @@
 package com.webank.wecube.platform.core.entity.plugin;
 
+import static com.webank.wecube.platform.core.utils.Constants.LEFT_BRACKET_STRING;
+import static com.webank.wecube.platform.core.utils.Constants.RIGHT_BRACKET_STRING;
+import static com.webank.wecube.platform.core.utils.Constants.SEPARATOR_OF_NAMES;
+
 import java.util.Date;
 
 public class AuthLatestEnabledInterfaces {
@@ -185,6 +189,13 @@ public class AuthLatestEnabledInterfaces {
 
     public void setPluginPackageName(String pluginPackageName) {
         this.pluginPackageName = pluginPackageName;
+    }
+    
+    public String generateServiceName() {
+        return pluginPackageName + SEPARATOR_OF_NAMES + pluginConfigName
+                + (pluginConfigRegisterName != null
+                        ? LEFT_BRACKET_STRING + pluginConfigRegisterName + RIGHT_BRACKET_STRING : "")
+                + SEPARATOR_OF_NAMES + action;
     }
 
 }
