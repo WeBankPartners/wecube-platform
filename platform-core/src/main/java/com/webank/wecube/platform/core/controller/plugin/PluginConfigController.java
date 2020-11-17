@@ -17,14 +17,10 @@ import com.webank.wecube.platform.core.dto.PluginConfigRoleRequestDto;
 import com.webank.wecube.platform.core.dto.TargetEntityFilterRuleDto;
 import com.webank.wecube.platform.core.dto.plugin.PluginConfigDto;
 import com.webank.wecube.platform.core.service.plugin.PluginConfigMgmtService;
-import com.webank.wecube.platform.core.service.plugin.PluginConfigService;
 
 @RestController
 @RequestMapping("/v1")
 public class PluginConfigController {
-
-    @Autowired
-    private PluginConfigService pluginConfigService;
 
     @Autowired
     private PluginConfigMgmtService pluginConfigMgmtService;
@@ -62,11 +58,16 @@ public class PluginConfigController {
                 pluginConfigMgmtService.queryAllEnabledPluginConfigInterfaceForEntity(packageName, entityName, null));
     }
 
+    /**
+     * 
+     * @param filterRuleDto
+     * @return
+     */
     @PostMapping("/plugins/interfaces/enabled/query-by-target-entity-filter-rule")
     public CommonResponseDto queryAllEnabledPluginConfigInterfaceByEntityNameAndFilterRule(
             @RequestBody TargetEntityFilterRuleDto filterRuleDto) {
         return okayWithData(
-                pluginConfigService.queryAllEnabledPluginConfigInterfaceForEntityByFilterRule(filterRuleDto));
+                pluginConfigMgmtService.queryAllEnabledPluginConfigInterfaceForEntityByFilterRule(filterRuleDto));
     }
 
     /**
