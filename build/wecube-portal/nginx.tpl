@@ -52,7 +52,7 @@ http {
 	location /wecmdb {
 		proxy_pass http://core;
 	}
-	location /wecube-monitor {
+	location /monitor {
 		proxy_pass http://core;
 	}
         location /artifacts {
