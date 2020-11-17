@@ -4,7 +4,7 @@ import com.google.common.collect.Lists;
 import com.webank.wecube.platform.core.domain.BatchExecutionJob;
 import com.webank.wecube.platform.core.domain.MenuItem;
 import com.webank.wecube.platform.core.domain.ResourceItem;
-import com.webank.wecube.platform.core.domain.ResourceServer;
+import com.webank.wecube.platform.core.domain.ResourceServerDomain;
 import com.webank.wecube.platform.core.domain.SystemVariable;
 import com.webank.wecube.platform.core.domain.plugin.*;
 import com.webank.wecube.platform.core.lazyDomain.plugin.*;
@@ -257,7 +257,7 @@ public class DomainIdBuilder {
         );
     }
 
-    public static String buildDomainId(ResourceServer resourceServer) {
+    public static String buildDomainId(ResourceServerDomain resourceServer) {
         return StringUtils.isNotBlank(resourceServer.getId())
                 ? resourceServer.getId()
                 : buildDomainId(

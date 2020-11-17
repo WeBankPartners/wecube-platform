@@ -9,7 +9,7 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.google.common.collect.Lists;
 import com.webank.wecube.platform.core.commons.AuthenticationContextHolder;
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
-import com.webank.wecube.platform.core.domain.ResourceServer;
+import com.webank.wecube.platform.core.domain.ResourceServerDomain;
 import com.webank.wecube.platform.core.service.resource.ResourceItemStatus;
 import com.webank.wecube.platform.core.service.resource.ResourceServerStatus;
 import com.webank.wecube.platform.core.service.resource.ResourceServerType;
@@ -58,7 +58,7 @@ public class ResourceServerDto {
         this.resourceItemDtos = resourceItemDtos;
     }
 
-    public static ResourceServerDto fromDomain(ResourceServer resourceServer) {
+    public static ResourceServerDto fromDomain(ResourceServerDomain resourceServer) {
         ResourceServerDto resourceServerDto = new ResourceServerDto();
         resourceServerDto.setId(resourceServer.getId());
         resourceServerDto.setName(resourceServer.getName());
@@ -82,10 +82,10 @@ public class ResourceServerDto {
         return resourceServerDto;
     }
 
-    public static ResourceServer toDomain(ResourceServerDto resourceServerDto, ResourceServer existedResourceServer) {
-        ResourceServer resourceServer = existedResourceServer;
+    public static ResourceServerDomain toDomain(ResourceServerDto resourceServerDto, ResourceServerDomain existedResourceServer) {
+        ResourceServerDomain resourceServer = existedResourceServer;
         if (resourceServer == null) {
-            resourceServer = new ResourceServer();
+            resourceServer = new ResourceServerDomain();
         }
 
         if (resourceServerDto.getId() != null) {
@@ -135,7 +135,7 @@ public class ResourceServerDto {
         return resourceServer;
     }
 
-    private static void updateSystemFieldsWithDefaultValues(ResourceServer resourceServer) {
+    private static void updateSystemFieldsWithDefaultValues(ResourceServerDomain resourceServer) {
         if (resourceServer.getStatus() == null) {
             resourceServer.setStatus(ResourceItemStatus.CREATED.getCode());
         }
