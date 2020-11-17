@@ -181,4 +181,14 @@
         from plugin_instances
         where package_id = #{pluginPackageId,jdbcType=VARCHAR}
     </select>
+    
+    <select id="selectAllByPluginPackageAndStatus" resultMap="BaseResultMap"
+        parameterType="java.lang.String">
+        select
+        <include refid="Base_Column_List" />
+        from plugin_instances
+        where package_id = #{pluginPackageId,jdbcType=VARCHAR}
+        and
+        container_status = #{status,jdbcType=VARCHAR}
+    </select>
 </mapper>

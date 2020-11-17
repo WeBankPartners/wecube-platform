@@ -13,7 +13,7 @@ import org.apache.commons.lang.builder.ReflectionToStringBuilder;
 
 @Entity
 @Table(name = "resource_server")
-public class ResourceServer {
+public class ResourceServerDomain {
     @Id
     private String id;
 
@@ -70,10 +70,10 @@ public class ResourceServer {
         this.id = DomainIdBuilder.buildDomainId(this);
     }
 
-    public ResourceServer() {
+    public ResourceServerDomain() {
     }
 
-    public ResourceServer(String id, @NotBlank String name, @NotBlank String host, @NotBlank String port,
+    public ResourceServerDomain(String id, @NotBlank String name, @NotBlank String host, @NotBlank String port,
             @NotBlank String loginUsername, @NotBlank String loginPassword, @NotBlank String type, Integer isAllocated,
             @NotBlank String purpose, String status, List<ResourceItem> resourceItems, String createdBy,
             Timestamp createdDate, String updatedBy, Timestamp updatedDate) {
@@ -222,7 +222,7 @@ public class ResourceServer {
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
-        ResourceServer that = (ResourceServer) o;
+        ResourceServerDomain that = (ResourceServerDomain) o;
         return getId().equals(that.getId()) && getName().equals(that.getName()) && getHost().equals(that.getHost())
                 && getPort().equals(that.getPort()) && getLoginUsername().equals(that.getLoginUsername())
                 && getLoginPassword().equals(that.getLoginPassword()) && getType().equals(that.getType())

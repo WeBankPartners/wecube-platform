@@ -38,15 +38,16 @@ import com.webank.wecube.platform.core.domain.ExecutionJob;
 import com.webank.wecube.platform.core.domain.ExecutionJobParameter;
 import com.webank.wecube.platform.core.domain.plugin.PluginConfigInterface;
 import com.webank.wecube.platform.core.domain.plugin.PluginConfigInterfaceParameter;
-import com.webank.wecube.platform.core.domain.plugin.PluginInstance;
 import com.webank.wecube.platform.core.dto.BatchExecutionRequestDto;
 import com.webank.wecube.platform.core.dto.ExecutionJobResponseDto;
 import com.webank.wecube.platform.core.dto.InputParameterDefinition;
+import com.webank.wecube.platform.core.entity.plugin.PluginInstances;
 import com.webank.wecube.platform.core.entity.plugin.SystemVariables;
 import com.webank.wecube.platform.core.jpa.BatchExecutionJobRepository;
 import com.webank.wecube.platform.core.jpa.PluginConfigInterfaceRepository;
 import com.webank.wecube.platform.core.service.dme.EntityOperationRootCondition;
 import com.webank.wecube.platform.core.service.dme.StandardEntityOperationService;
+import com.webank.wecube.platform.core.service.plugin.PluginInstanceMgmtService;
 import com.webank.wecube.platform.core.service.plugin.PluginInstanceService;
 import com.webank.wecube.platform.core.service.workflow.SimpleEncryptionService;
 import com.webank.wecube.platform.core.support.plugin.PluginServiceStub;
@@ -64,6 +65,9 @@ public class BatchExecutionService {
 
     @Autowired
     protected PluginInstanceService pluginInstanceService;
+    
+    @Autowired
+    protected PluginInstanceMgmtService pluginInstanceMgmtService;
 
     @Autowired
     private SystemVariableService systemVariableService;
@@ -272,7 +276,7 @@ public class BatchExecutionService {
 
         pluginInputParamMap.put(CALLBACK_PARAMETER_KEY, exeJob.getRootEntityId());
 
-        PluginInstance pluginInstance = pluginInstanceService
+        PluginInstances pluginInstance = pluginInstanceMgmtService
                 .getRunningPluginInstance(pluginConfigInterface.getPluginConfig().getPluginPackage().getName());
         ResultData<Object> responseData = new ResultData<Object>();
         try {

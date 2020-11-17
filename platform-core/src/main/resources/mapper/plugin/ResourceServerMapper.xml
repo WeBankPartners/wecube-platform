@@ -1,199 +1,227 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
-<mapper namespace="com.webank.wecube.platform.core.repository.plugin.ResourceServerMapper" >
-  <resultMap id="BaseResultMap" type="com.webank.wecube.platform.core.entity.plugin.ResourceServer" >
-    <id column="id" property="id" jdbcType="VARCHAR" />
-    <result column="created_by" property="createdBy" jdbcType="VARCHAR" />
-    <result column="created_date" property="createdDate" jdbcType="TIMESTAMP" />
-    <result column="host" property="host" jdbcType="VARCHAR" />
-    <result column="is_allocated" property="isAllocated" jdbcType="INTEGER" />
-    <result column="login_password" property="loginPassword" jdbcType="VARCHAR" />
-    <result column="login_username" property="loginUsername" jdbcType="VARCHAR" />
-    <result column="name" property="name" jdbcType="VARCHAR" />
-    <result column="port" property="port" jdbcType="VARCHAR" />
-    <result column="purpose" property="purpose" jdbcType="VARCHAR" />
-    <result column="status" property="status" jdbcType="VARCHAR" />
-    <result column="type" property="type" jdbcType="VARCHAR" />
-    <result column="updated_by" property="updatedBy" jdbcType="VARCHAR" />
-    <result column="updated_date" property="updatedDate" jdbcType="TIMESTAMP" />
-  </resultMap>
-  <sql id="Base_Column_List" >
-    id, created_by, created_date, host, is_allocated, login_password, login_username, 
-    name, port, purpose, status, type, updated_by, updated_date
-  </sql>
-  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.String" >
-    select 
-    <include refid="Base_Column_List" />
-    from resource_server
-    where id = #{id,jdbcType=VARCHAR}
-  </select>
-  <delete id="deleteByPrimaryKey" parameterType="java.lang.String" >
-    delete from resource_server
-    where id = #{id,jdbcType=VARCHAR}
-  </delete>
-  <insert id="insert" parameterType="com.webank.wecube.platform.core.entity.plugin.ResourceServer" >
-    insert into resource_server (id, created_by, created_date, 
-      host, is_allocated, login_password, 
-      login_username, name, port, 
-      purpose, status, type, 
-      updated_by, updated_date)
-    values (#{id,jdbcType=VARCHAR}, #{createdBy,jdbcType=VARCHAR}, #{createdDate,jdbcType=TIMESTAMP}, 
-      #{host,jdbcType=VARCHAR}, #{isAllocated,jdbcType=INTEGER}, #{loginPassword,jdbcType=VARCHAR}, 
-      #{loginUsername,jdbcType=VARCHAR}, #{name,jdbcType=VARCHAR}, #{port,jdbcType=VARCHAR}, 
-      #{purpose,jdbcType=VARCHAR}, #{status,jdbcType=VARCHAR}, #{type,jdbcType=VARCHAR}, 
-      #{updatedBy,jdbcType=VARCHAR}, #{updatedDate,jdbcType=TIMESTAMP})
-  </insert>
-  <insert id="insertSelective" parameterType="com.webank.wecube.platform.core.entity.plugin.ResourceServer" >
-    insert into resource_server
-    <trim prefix="(" suffix=")" suffixOverrides="," >
-      <if test="id != null" >
-        id,
-      </if>
-      <if test="createdBy != null" >
-        created_by,
-      </if>
-      <if test="createdDate != null" >
-        created_date,
-      </if>
-      <if test="host != null" >
-        host,
-      </if>
-      <if test="isAllocated != null" >
-        is_allocated,
-      </if>
-      <if test="loginPassword != null" >
-        login_password,
-      </if>
-      <if test="loginUsername != null" >
+<mapper
+    namespace="com.webank.wecube.platform.core.repository.plugin.ResourceServerMapper">
+    <resultMap id="BaseResultMap"
+        type="com.webank.wecube.platform.core.entity.plugin.ResourceServer">
+        <id column="id" property="id" jdbcType="VARCHAR" />
+        <result column="created_by" property="createdBy"
+            jdbcType="VARCHAR" />
+        <result column="created_date" property="createdDate"
+            jdbcType="TIMESTAMP" />
+        <result column="host" property="host" jdbcType="VARCHAR" />
+        <result column="is_allocated" property="isAllocated"
+            jdbcType="INTEGER" />
+        <result column="login_password" property="loginPassword"
+            jdbcType="VARCHAR" />
+        <result column="login_username" property="loginUsername"
+            jdbcType="VARCHAR" />
+        <result column="name" property="name" jdbcType="VARCHAR" />
+        <result column="port" property="port" jdbcType="VARCHAR" />
+        <result column="purpose" property="purpose" jdbcType="VARCHAR" />
+        <result column="status" property="status" jdbcType="VARCHAR" />
+        <result column="type" property="type" jdbcType="VARCHAR" />
+        <result column="updated_by" property="updatedBy"
+            jdbcType="VARCHAR" />
+        <result column="updated_date" property="updatedDate"
+            jdbcType="TIMESTAMP" />
+    </resultMap>
+    <sql id="Base_Column_List">
+        id, created_by, created_date, host, is_allocated, login_password,
         login_username,
-      </if>
-      <if test="name != null" >
-        name,
-      </if>
-      <if test="port != null" >
-        port,
-      </if>
-      <if test="purpose != null" >
-        purpose,
-      </if>
-      <if test="status != null" >
-        status,
-      </if>
-      <if test="type != null" >
-        type,
-      </if>
-      <if test="updatedBy != null" >
-        updated_by,
-      </if>
-      <if test="updatedDate != null" >
-        updated_date,
-      </if>
-    </trim>
-    <trim prefix="values (" suffix=")" suffixOverrides="," >
-      <if test="id != null" >
-        #{id,jdbcType=VARCHAR},
-      </if>
-      <if test="createdBy != null" >
-        #{createdBy,jdbcType=VARCHAR},
-      </if>
-      <if test="createdDate != null" >
+        name, port, purpose, status, type, updated_by, updated_date
+    </sql>
+    <select id="selectByPrimaryKey" resultMap="BaseResultMap"
+        parameterType="java.lang.String">
+        select
+        <include refid="Base_Column_List" />
+        from resource_server
+        where id = #{id,jdbcType=VARCHAR}
+    </select>
+    <delete id="deleteByPrimaryKey" parameterType="java.lang.String">
+        delete from resource_server
+        where id = #{id,jdbcType=VARCHAR}
+    </delete>
+    <insert id="insert"
+        parameterType="com.webank.wecube.platform.core.entity.plugin.ResourceServer">
+        insert into resource_server (id, created_by, created_date,
+        host, is_allocated, login_password,
+        login_username, name, port,
+        purpose, status, type,
+        updated_by, updated_date)
+        values (#{id,jdbcType=VARCHAR}, #{createdBy,jdbcType=VARCHAR},
         #{createdDate,jdbcType=TIMESTAMP},
-      </if>
-      <if test="host != null" >
-        #{host,jdbcType=VARCHAR},
-      </if>
-      <if test="isAllocated != null" >
-        #{isAllocated,jdbcType=INTEGER},
-      </if>
-      <if test="loginPassword != null" >
-        #{loginPassword,jdbcType=VARCHAR},
-      </if>
-      <if test="loginUsername != null" >
-        #{loginUsername,jdbcType=VARCHAR},
-      </if>
-      <if test="name != null" >
-        #{name,jdbcType=VARCHAR},
-      </if>
-      <if test="port != null" >
+        #{host,jdbcType=VARCHAR}, #{isAllocated,jdbcType=INTEGER}, #{loginPassword,jdbcType=VARCHAR},
+        #{loginUsername,jdbcType=VARCHAR}, #{name,jdbcType=VARCHAR},
         #{port,jdbcType=VARCHAR},
-      </if>
-      <if test="purpose != null" >
-        #{purpose,jdbcType=VARCHAR},
-      </if>
-      <if test="status != null" >
-        #{status,jdbcType=VARCHAR},
-      </if>
-      <if test="type != null" >
-        #{type,jdbcType=VARCHAR},
-      </if>
-      <if test="updatedBy != null" >
+        #{purpose,jdbcType=VARCHAR}, #{status,jdbcType=VARCHAR}, #{type,jdbcType=VARCHAR},
         #{updatedBy,jdbcType=VARCHAR},
-      </if>
-      <if test="updatedDate != null" >
-        #{updatedDate,jdbcType=TIMESTAMP},
-      </if>
-    </trim>
-  </insert>
-  <update id="updateByPrimaryKeySelective" parameterType="com.webank.wecube.platform.core.entity.plugin.ResourceServer" >
-    update resource_server
-    <set >
-      <if test="createdBy != null" >
-        created_by = #{createdBy,jdbcType=VARCHAR},
-      </if>
-      <if test="createdDate != null" >
+        #{updatedDate,jdbcType=TIMESTAMP})
+    </insert>
+    <insert id="insertSelective"
+        parameterType="com.webank.wecube.platform.core.entity.plugin.ResourceServer">
+        insert into resource_server
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="id != null">
+                id,
+            </if>
+            <if test="createdBy != null">
+                created_by,
+            </if>
+            <if test="createdDate != null">
+                created_date,
+            </if>
+            <if test="host != null">
+                host,
+            </if>
+            <if test="isAllocated != null">
+                is_allocated,
+            </if>
+            <if test="loginPassword != null">
+                login_password,
+            </if>
+            <if test="loginUsername != null">
+                login_username,
+            </if>
+            <if test="name != null">
+                name,
+            </if>
+            <if test="port != null">
+                port,
+            </if>
+            <if test="purpose != null">
+                purpose,
+            </if>
+            <if test="status != null">
+                status,
+            </if>
+            <if test="type != null">
+                type,
+            </if>
+            <if test="updatedBy != null">
+                updated_by,
+            </if>
+            <if test="updatedDate != null">
+                updated_date,
+            </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="id != null">
+                #{id,jdbcType=VARCHAR},
+            </if>
+            <if test="createdBy != null">
+                #{createdBy,jdbcType=VARCHAR},
+            </if>
+            <if test="createdDate != null">
+                #{createdDate,jdbcType=TIMESTAMP},
+            </if>
+            <if test="host != null">
+                #{host,jdbcType=VARCHAR},
+            </if>
+            <if test="isAllocated != null">
+                #{isAllocated,jdbcType=INTEGER},
+            </if>
+            <if test="loginPassword != null">
+                #{loginPassword,jdbcType=VARCHAR},
+            </if>
+            <if test="loginUsername != null">
+                #{loginUsername,jdbcType=VARCHAR},
+            </if>
+            <if test="name != null">
+                #{name,jdbcType=VARCHAR},
+            </if>
+            <if test="port != null">
+                #{port,jdbcType=VARCHAR},
+            </if>
+            <if test="purpose != null">
+                #{purpose,jdbcType=VARCHAR},
+            </if>
+            <if test="status != null">
+                #{status,jdbcType=VARCHAR},
+            </if>
+            <if test="type != null">
+                #{type,jdbcType=VARCHAR},
+            </if>
+            <if test="updatedBy != null">
+                #{updatedBy,jdbcType=VARCHAR},
+            </if>
+            <if test="updatedDate != null">
+                #{updatedDate,jdbcType=TIMESTAMP},
+            </if>
+        </trim>
+    </insert>
+    <update id="updateByPrimaryKeySelective"
+        parameterType="com.webank.wecube.platform.core.entity.plugin.ResourceServer">
+        update resource_server
+        <set>
+            <if test="createdBy != null">
+                created_by = #{createdBy,jdbcType=VARCHAR},
+            </if>
+            <if test="createdDate != null">
+                created_date = #{createdDate,jdbcType=TIMESTAMP},
+            </if>
+            <if test="host != null">
+                host = #{host,jdbcType=VARCHAR},
+            </if>
+            <if test="isAllocated != null">
+                is_allocated = #{isAllocated,jdbcType=INTEGER},
+            </if>
+            <if test="loginPassword != null">
+                login_password = #{loginPassword,jdbcType=VARCHAR},
+            </if>
+            <if test="loginUsername != null">
+                login_username = #{loginUsername,jdbcType=VARCHAR},
+            </if>
+            <if test="name != null">
+                name = #{name,jdbcType=VARCHAR},
+            </if>
+            <if test="port != null">
+                port = #{port,jdbcType=VARCHAR},
+            </if>
+            <if test="purpose != null">
+                purpose = #{purpose,jdbcType=VARCHAR},
+            </if>
+            <if test="status != null">
+                status = #{status,jdbcType=VARCHAR},
+            </if>
+            <if test="type != null">
+                type = #{type,jdbcType=VARCHAR},
+            </if>
+            <if test="updatedBy != null">
+                updated_by = #{updatedBy,jdbcType=VARCHAR},
+            </if>
+            <if test="updatedDate != null">
+                updated_date = #{updatedDate,jdbcType=TIMESTAMP},
+            </if>
+        </set>
+        where id = #{id,jdbcType=VARCHAR}
+    </update>
+    <update id="updateByPrimaryKey"
+        parameterType="com.webank.wecube.platform.core.entity.plugin.ResourceServer">
+        update resource_server
+        set created_by = #{createdBy,jdbcType=VARCHAR},
         created_date = #{createdDate,jdbcType=TIMESTAMP},
-      </if>
-      <if test="host != null" >
         host = #{host,jdbcType=VARCHAR},
-      </if>
-      <if test="isAllocated != null" >
         is_allocated = #{isAllocated,jdbcType=INTEGER},
-      </if>
-      <if test="loginPassword != null" >
         login_password = #{loginPassword,jdbcType=VARCHAR},
-      </if>
-      <if test="loginUsername != null" >
         login_username = #{loginUsername,jdbcType=VARCHAR},
-      </if>
-      <if test="name != null" >
         name = #{name,jdbcType=VARCHAR},
-      </if>
-      <if test="port != null" >
         port = #{port,jdbcType=VARCHAR},
-      </if>
-      <if test="purpose != null" >
         purpose = #{purpose,jdbcType=VARCHAR},
-      </if>
-      <if test="status != null" >
         status = #{status,jdbcType=VARCHAR},
-      </if>
-      <if test="type != null" >
         type = #{type,jdbcType=VARCHAR},
-      </if>
-      <if test="updatedBy != null" >
         updated_by = #{updatedBy,jdbcType=VARCHAR},
-      </if>
-      <if test="updatedDate != null" >
-        updated_date = #{updatedDate,jdbcType=TIMESTAMP},
-      </if>
-    </set>
-    where id = #{id,jdbcType=VARCHAR}
-  </update>
-  <update id="updateByPrimaryKey" parameterType="com.webank.wecube.platform.core.entity.plugin.ResourceServer" >
-    update resource_server
-    set created_by = #{createdBy,jdbcType=VARCHAR},
-      created_date = #{createdDate,jdbcType=TIMESTAMP},
-      host = #{host,jdbcType=VARCHAR},
-      is_allocated = #{isAllocated,jdbcType=INTEGER},
-      login_password = #{loginPassword,jdbcType=VARCHAR},
-      login_username = #{loginUsername,jdbcType=VARCHAR},
-      name = #{name,jdbcType=VARCHAR},
-      port = #{port,jdbcType=VARCHAR},
-      purpose = #{purpose,jdbcType=VARCHAR},
-      status = #{status,jdbcType=VARCHAR},
-      type = #{type,jdbcType=VARCHAR},
-      updated_by = #{updatedBy,jdbcType=VARCHAR},
-      updated_date = #{updatedDate,jdbcType=TIMESTAMP}
-    where id = #{id,jdbcType=VARCHAR}
-  </update>
+        updated_date = #{updatedDate,jdbcType=TIMESTAMP}
+        where id = #{id,jdbcType=VARCHAR}
+    </update>
+    
+    <select id="selectAllByHostAndType" resultMap="BaseResultMap"
+        parameterType="java.lang.String">
+        select
+        <include refid="Base_Column_List" />
+        from resource_server
+        where host = #{host,jdbcType=VARCHAR}
+        and
+        type = #{type,jdbcType=VARCHAR}
+    </select>
 </mapper>

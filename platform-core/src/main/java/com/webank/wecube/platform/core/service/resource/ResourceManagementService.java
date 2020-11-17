@@ -15,7 +15,7 @@ import com.google.common.collect.Lists;
 import com.webank.wecube.platform.core.commons.ApplicationProperties.ResourceProperties;
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
 import com.webank.wecube.platform.core.domain.ResourceItem;
-import com.webank.wecube.platform.core.domain.ResourceServer;
+import com.webank.wecube.platform.core.domain.ResourceServerDomain;
 import com.webank.wecube.platform.core.dto.QueryRequestDto;
 import com.webank.wecube.platform.core.dto.QueryResponse;
 import com.webank.wecube.platform.core.dto.ResourceItemDto;
@@ -47,7 +47,7 @@ public class ResourceManagementService {
 
     public QueryResponse<ResourceServerDto> retrieveServers(QueryRequestDto queryRequest) {
         queryRequest = applyDefaultSortingAsDesc(queryRequest);
-        QueryResponse<ResourceServer> queryResponse = entityRepository.query(ResourceServer.class, queryRequest);
+        QueryResponse<ResourceServerDomain> queryResponse = entityRepository.query(ResourceServerDomain.class, queryRequest);
         List<ResourceServerDto> resourceServerDto = Lists.transform(queryResponse.getContents(),
                 x -> ResourceServerDto.fromDomain(x));
         return new QueryResponse<>(queryResponse.getPageInfo(), resourceServerDto);
@@ -64,14 +64,14 @@ public class ResourceManagementService {
 
     @Transactional
     public List<ResourceServerDto> createServers(List<ResourceServerDto> resourceServers) {
-        Iterable<ResourceServer> savedDomains = resourceServerRepository
+        Iterable<ResourceServerDomain> savedDomains = resourceServerRepository
                 .saveAll(convertServerDtoToDomain(resourceServers));
         return convertServerDomainToDto(savedDomains);
     }
 
     @Transactional
     public List<ResourceServerDto> updateServers(List<ResourceServerDto> resourceServers) {
-        Iterable<ResourceServer> savedDomains = resourceServerRepository
+        Iterable<ResourceServerDomain> savedDomains = resourceServerRepository
                 .saveAll(convertServerDtoToDomain(resourceServers));
         return convertServerDomainToDto(savedDomains);
     }
@@ -79,7 +79,7 @@ public class ResourceManagementService {
     @Transactional
     public void deleteServers(List<ResourceServerDto> resourceServers) {
         validateIfServersAreExists(resourceServers);
-        List<ResourceServer> domains = convertServerDtoToDomain(resourceServers);
+        List<ResourceServerDomain> domains = convertServerDtoToDomain(resourceServers);
         validateIfServerAllocated(domains);
         resourceServerRepository.deleteAll(convertServerDtoToDomain(resourceServers));
     }
@@ -93,7 +93,7 @@ public class ResourceManagementService {
         });
     }
 
-    private void validateIfServerAllocated(List<ResourceServer> resourceServers) {
+    private void validateIfServerAllocated(List<ResourceServerDomain> resourceServers) {
         resourceServers.forEach(server -> {
             if (server.getIsAllocated() != null && server.getIsAllocated() == 1) {
                 throw new WecubeCoreException("3017",
@@ -136,9 +136,9 @@ public class ResourceManagementService {
         return enrichedItems;
     }
 
-    private ResourceServer getResourceServerById(String resourceServerId) {
+    private ResourceServerDomain getResourceServerById(String resourceServerId) {
         if (resourceServerId != null) {
-            Optional<ResourceServer> enrichedServerOpt = resourceServerRepository.findById(resourceServerId);
+            Optional<ResourceServerDomain> enrichedServerOpt = resourceServerRepository.findById(resourceServerId);
             if (enrichedServerOpt.isPresent()) {
                 return enrichedServerOpt.get();
             }
@@ -184,24 +184,24 @@ public class ResourceManagementService {
         });
     }
 
-    private List<ResourceServerDto> convertServerDomainToDto(Iterable<ResourceServer> savedDomains) {
+    private List<ResourceServerDto> convertServerDomainToDto(Iterable<ResourceServerDomain> savedDomains) {
         List<ResourceServerDto> dtos = new ArrayList<>();
         savedDomains.forEach(domain -> dtos.add(ResourceServerDto.fromDomain(domain)));
         return dtos;
     }
 
-    private List<ResourceServer> convertServerDtoToDomain(List<ResourceServerDto> resourceServerDtos) {
-        List<ResourceServer> domains = new ArrayList<>();
+    private List<ResourceServerDomain> convertServerDtoToDomain(List<ResourceServerDto> resourceServerDtos) {
+        List<ResourceServerDomain> domains = new ArrayList<>();
         resourceServerDtos.forEach(dto -> {
-            ResourceServer existedServer = null;
+            ResourceServerDomain existedServer = null;
             if (dto.getId() != null) {
-                Optional<ResourceServer> existedServerOpt = resourceServerRepository.findById(dto.getId());
+                Optional<ResourceServerDomain> existedServerOpt = resourceServerRepository.findById(dto.getId());
                 if (existedServerOpt.isPresent()) {
                     existedServer = existedServerOpt.get();
                 }
             }
             handleServerPasswordEncryption(dto);
-            ResourceServer domain = ResourceServerDto.toDomain(dto, existedServer);
+            ResourceServerDomain domain = ResourceServerDto.toDomain(dto, existedServer);
             domains.add(domain);
         });
         return domains;

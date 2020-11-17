@@ -39,7 +39,7 @@ public class ResourceItem {
 
     @ManyToOne
     @JoinColumn(name = "resource_server_id", insertable = false, updatable = false)
-    private ResourceServer resourceServer;
+    private ResourceServerDomain resourceServer;
 
     @Column(name = "is_allocated")
     private Integer isAllocated;
@@ -86,7 +86,7 @@ public class ResourceItem {
     public ResourceItem() {
     }
 
-    public ResourceItem(String id, String name, String type, String additionalProperties, String resourceServerId, ResourceServer resourceServer, Integer isAllocated, String purpose, String status, String createdBy, Timestamp createdDate, String updatedBy, Timestamp updatedDate) {
+    public ResourceItem(String id, String name, String type, String additionalProperties, String resourceServerId, ResourceServerDomain resourceServer, Integer isAllocated, String purpose, String status, String createdBy, Timestamp createdDate, String updatedBy, Timestamp updatedDate) {
         this.id = id;
         this.name = name;
         this.type = type;
@@ -142,11 +142,11 @@ public class ResourceItem {
         this.resourceServerId = resourceServerId;
     }
 
-    public ResourceServer getResourceServer() {
+    public ResourceServerDomain getResourceServer() {
         return resourceServer;
     }
 
-    public void setResourceServer(ResourceServer resourceServer) {
+    public void setResourceServer(ResourceServerDomain resourceServer) {
         this.resourceServer = resourceServer;
     }
 

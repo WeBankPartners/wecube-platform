@@ -19,10 +19,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
-import com.webank.wecube.platform.core.domain.plugin.PluginInstance;
 import com.webank.wecube.platform.core.entity.plugin.PluginConfigInterfaceParameters;
 import com.webank.wecube.platform.core.entity.plugin.PluginConfigInterfaces;
 import com.webank.wecube.platform.core.entity.plugin.PluginConfigs;
+import com.webank.wecube.platform.core.entity.plugin.PluginInstances;
 import com.webank.wecube.platform.core.entity.plugin.PluginPackages;
 import com.webank.wecube.platform.core.entity.plugin.SystemVariables;
 import com.webank.wecube.platform.core.entity.workflow.ProcExecBindingEntity;
@@ -43,6 +43,7 @@ import com.webank.wecube.platform.core.repository.workflow.TaskNodeExecRequestMa
 import com.webank.wecube.platform.core.repository.workflow.TaskNodeParamMapper;
 import com.webank.wecube.platform.core.service.SystemVariableService;
 import com.webank.wecube.platform.core.service.dme.EntityOperationRootCondition;
+import com.webank.wecube.platform.core.service.plugin.PluginInstanceMgmtService;
 import com.webank.wecube.platform.core.service.plugin.PluginInstanceService;
 import com.webank.wecube.platform.core.service.workflow.PluginInvocationProcessor.PluginInterfaceInvocationContext;
 import com.webank.wecube.platform.core.service.workflow.PluginInvocationProcessor.PluginInterfaceInvocationResult;
@@ -68,6 +69,9 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 
     @Autowired
     protected PluginInstanceService pluginInstanceService;
+    
+    @Autowired
+    protected PluginInstanceMgmtService pluginInstanceMgmtService;
 
     @Autowired
     private ProcExecBindingMapper procExecBindingRepository;
@@ -356,7 +360,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 
     private void parsePluginInstance(PluginInterfaceInvocationContext ctx) {
         PluginConfigInterfaces pluginConfigInterface = ctx.getPluginConfigInterface();
-        PluginInstance pluginInstance = retrieveAvailablePluginInstance(pluginConfigInterface);
+        PluginInstances pluginInstance = retrieveAvailablePluginInstance(pluginConfigInterface);
         String interfacePath = pluginConfigInterface.getPath();
         if (pluginInstance == null) {
             log.warn("cannot find an available plugin instance for {}", pluginConfigInterface.getServiceName());
@@ -912,12 +916,12 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
     }
     
 
-    private PluginInstance retrieveAvailablePluginInstance(PluginConfigInterfaces itf) {
+    private PluginInstances retrieveAvailablePluginInstance(PluginConfigInterfaces itf) {
         PluginConfigs config = itf.getPluginConfig();
         PluginPackages pkg = config.getPluginPackage();
         String pluginName = pkg.getName();
 
-        List<PluginInstance> instances = pluginInstanceService.getRunningPluginInstances(pluginName);
+        List<PluginInstances> instances = pluginInstanceMgmtService.getRunningPluginInstances(pluginName);
 
         return instances.get(0);
 

@@ -20,11 +20,20 @@ public interface PluginInstancesMapper {
     int updateByPrimaryKeySelective(PluginInstances record);
 
     int updateByPrimaryKey(PluginInstances record);
-    
+
     /**
      * 
      * @param pluginPackageId
      * @return
      */
     List<PluginInstances> selectAllByPluginPackage(@Param("pluginPackageId") String pluginPackageId);
+
+    /**
+     * 
+     * @param pluginPackageId
+     * @param status
+     * @return
+     */
+    List<PluginInstances> selectAllByPluginPackageAndStatus(@Param("pluginPackageId") String pluginPackageId,
+            @Param("status")String status);
 }
