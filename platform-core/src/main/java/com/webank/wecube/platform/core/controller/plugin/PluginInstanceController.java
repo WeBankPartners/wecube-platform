@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
 import com.webank.wecube.platform.core.dto.CommonResponseDto;
+import com.webank.wecube.platform.core.service.plugin.PluginInstanceMgmtService;
 import com.webank.wecube.platform.core.service.plugin.PluginInstanceService;
 
 @RestController
@@ -25,15 +26,27 @@ public class PluginInstanceController {
 
     @Autowired
     private PluginInstanceService pluginInstanceService;
+    
+    @Autowired
+    private PluginInstanceMgmtService pluginInstanceMgmtService;
 
+    /**
+     * 
+     * @return
+     */
     @GetMapping("/available-container-hosts")
     public CommonResponseDto getAvailableContainerHosts() {
-        return okayWithData(pluginInstanceService.getAvailableContainerHosts());
+        return okayWithData(pluginInstanceMgmtService.getAvailableContainerHosts());
     }
 
+    /**
+     * 
+     * @param hostIp
+     * @return
+     */
     @GetMapping("/hosts/{host-ip}/next-available-port")
     public CommonResponseDto getAvailablePortByHostIp(@PathVariable(value = "host-ip") String hostIp) {
-        return okayWithData(pluginInstanceService.getAvailablePortByHostIp(hostIp));
+        return okayWithData(pluginInstanceMgmtService.getAvailablePortByHostIp(hostIp));
     }
 
     @PostMapping("/packages/{package-id}/hosts/{host-ip}/ports/{port}/instance/launch")
@@ -62,7 +75,7 @@ public class PluginInstanceController {
 
     @GetMapping("/packages/{package-id}/instances")
     public CommonResponseDto getAvailableInstancesByPackageId(@PathVariable(value = "package-id") String packageId) {
-        return okayWithData(pluginInstanceService.getAvailableInstancesByPackageId(packageId));
+        return okayWithData(pluginInstanceMgmtService.getAvailableInstancesByPackageId(packageId));
     }
 
 }
