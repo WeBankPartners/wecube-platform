@@ -532,7 +532,7 @@ public class PluginConfigService {
 //        return filterDtoWithPermissionValidation(pluginConfigInterfaceDtos, PluginConfigRoles.PERM_TYPE_USE);
 //    }
 
-    public List<PluginConfigInterfaceDto> queryAllEnabledPluginConfigInterfaceForEntityByFilterRule(
+    private List<PluginConfigInterfaceDto> queryAllEnabledPluginConfigInterfaceForEntityByFilterRule(
             TargetEntityFilterRuleDto filterRuleDto) {
         return distinctPluginConfigInfDto(queryAllEnabledPluginConfigInterfaceForEntity(filterRuleDto.getPkgName(),
                 filterRuleDto.getEntityName(), filterRuleDto));
