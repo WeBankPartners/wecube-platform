@@ -88,30 +88,8 @@ public class PluginConfigMgmtService extends AbstractPluginMgmtService {
     public List<PluginConfigInterfaceDto> queryAllEnabledPluginConfigInterfaceForEntity(String targetPackageName,
             String targetEntityName, TargetEntityFilterRuleDto filterRuleDto) {
         List<PluginConfigInterfaceDto> resultPluginConfigInterfaceDtos = new ArrayList<>();
-        PluginPackageDataModel dataModelEntity = pluginPackageDataModelMapper
-                .selectLatestDataModelByPackageName(targetPackageName);
-
-        if (dataModelEntity == null) {
-            log.info("No data model found for package [{}]", targetPackageName);
+        if (!validateTargetPackageAndTargetEntityForQuery(targetPackageName, targetEntityName)) {
             return resultPluginConfigInterfaceDtos;
-        }
-
-        List<PluginPackageEntities> pluginPackageEntitiesList = pluginPackageEntitiesMapper
-                .selectAllByDataModel(dataModelEntity.getId());
-
-        if (pluginPackageEntitiesList != null && !pluginPackageEntitiesList.isEmpty()) {
-            boolean targetEntityNameFound = false;
-            for (PluginPackageEntities entity : pluginPackageEntitiesList) {
-                if (targetEntityName.equals(entity.getName())) {
-                    targetEntityNameFound = true;
-                    break;
-                }
-            }
-
-            if (!targetEntityNameFound) {
-                log.info("No entity found with name [{}}] for package [{}}]", targetEntityName, targetPackageName);
-                return resultPluginConfigInterfaceDtos;
-            }
         }
 
         if (filterRuleDto == null) {
@@ -1145,6 +1123,35 @@ public class PluginConfigMgmtService extends AbstractPluginMgmtService {
         }
 
         return resultIntfDtos;
+    }
+
+    private boolean validateTargetPackageAndTargetEntityForQuery(String targetPackageName, String targetEntityName) {
+        PluginPackageDataModel dataModelEntity = pluginPackageDataModelMapper
+                .selectLatestDataModelByPackageName(targetPackageName);
+
+        if (dataModelEntity == null) {
+            log.info("No data model found for package [{}]", targetPackageName);
+            return false;
+        }
+        
+        return true;
+
+//        List<PluginPackageEntities> pluginPackageEntitiesList = pluginPackageEntitiesMapper
+//                .selectAllByDataModel(dataModelEntity.getId());
+//
+//        if (pluginPackageEntitiesList != null && !pluginPackageEntitiesList.isEmpty()) {
+//            for (PluginPackageEntities entity : pluginPackageEntitiesList) {
+//                if (targetEntityName.equals(entity.getName())) {
+//                    return true;
+//                }
+//            }
+//
+//            log.info("No entity found with name [{}}] for package [{}}]", targetEntityName, targetPackageName);
+//            return false;
+//        } else {
+//            return true;
+//        }
+
     }
 
 }

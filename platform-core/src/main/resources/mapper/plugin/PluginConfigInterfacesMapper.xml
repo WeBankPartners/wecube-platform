@@ -304,11 +304,18 @@
         t4.perm_type = #{permissionType,jdbcType=VARCHAR}
         AND
         t4.role_name IN
-        <foreach item="roleName" collection="roleNames"
-            separator="," open="(" close=")" index="">
-            #{roleName,
-            jdbcType=VARCHAR}
-        </foreach>
+        <choose>
+            <when test="roleNames != null and roleNames.size()>0">
+                <foreach item="roleName" collection="roleNames"
+                    separator="," open="(" close=")" index="">
+                    #{roleName,
+                    jdbcType=VARCHAR}
+                </foreach>
+            </when>
+            <otherwise>
+                ('NONE_EXIST_ROLE')
+            </otherwise>
+        </choose>
         AND
         t3.status IN
         <foreach item="pluginPackageStatus" collection="pluginPackageStatuses"
@@ -367,11 +374,18 @@
         t4.perm_type = #{permissionType,jdbcType=VARCHAR}
         AND
         t4.role_name IN
-        <foreach item="roleName" collection="roleNames"
-            separator="," open="(" close=")" index="">
-            #{roleName,
-            jdbcType=VARCHAR}
-        </foreach>
+        <choose>
+            <when test="roleNames != null and roleNames.size()>0">
+                <foreach item="roleName" collection="roleNames"
+                    separator="," open="(" close=")" index="">
+                    #{roleName,
+                    jdbcType=VARCHAR}
+                </foreach>
+            </when>
+            <otherwise>
+                ('NONE_EXIST_ROLE')
+            </otherwise>
+        </choose>
         AND
         t3.status IN
         <foreach item="pluginPackageStatus" collection="pluginPackageStatuses"
@@ -433,11 +447,18 @@
         #{permissionType,jdbcType=VARCHAR}
         AND
         t4.role_name IN
-        <foreach item="roleName" collection="roleNames"
-            separator="," open="(" close=")" index="">
-            #{roleName,
-            jdbcType=VARCHAR}
-        </foreach>
+        <choose>
+            <when test="roleNames != null and roleNames.size()>0">
+                <foreach item="roleName" collection="roleNames"
+                    separator="," open="(" close=")" index="">
+                    #{roleName,
+                    jdbcType=VARCHAR}
+                </foreach>
+            </when>
+            <otherwise>
+                ('NONE_EXIST_ROLE')
+            </otherwise>
+        </choose>
         AND
         t3.status IN
         <foreach item="pluginPackageStatus" collection="pluginPackageStatuses"
@@ -498,11 +519,18 @@
         #{permissionType,jdbcType=VARCHAR}
         AND
         t4.role_name IN
-        <foreach item="roleName" collection="roleNames"
-            separator="," open="(" close=")" index="">
-            #{roleName,
-            jdbcType=VARCHAR}
-        </foreach>
+        <choose>
+            <when test="roleNames != null and roleNames.size()>0">
+                <foreach item="roleName" collection="roleNames"
+                    separator="," open="(" close=")" index="">
+                    #{roleName,
+                    jdbcType=VARCHAR}
+                </foreach>
+            </when>
+            <otherwise>
+                ('NONE_EXIST_ROLE')
+            </otherwise>
+        </choose>
         AND
         t3.status IN
         <foreach item="pluginPackageStatus" collection="pluginPackageStatuses"
@@ -510,7 +538,7 @@
             #{pluginPackageStatus, jdbcType=VARCHAR}
         </foreach>
     </select>
-    
+
     <select id="selectAllAuthEnabledIntfsByNullTargetInfo"
         resultType="com.webank.wecube.platform.core.entity.plugin.AuthLatestEnabledInterfaces">
         SELECT DISTINCT
@@ -545,8 +573,6 @@
         WHERE
         t1.plugin_config_id = t2.id
         AND
-        t1.filter_rule = #{filterRule,jdbcType=VARCHAR}
-        AND
         t2.status =
         #{pluginConfigStatus,jdbcType=VARCHAR}
         AND
@@ -561,11 +587,18 @@
         #{permissionType,jdbcType=VARCHAR}
         AND
         t4.role_name IN
-        <foreach item="roleName" collection="roleNames"
-            separator="," open="(" close=")" index="">
-            #{roleName,
-            jdbcType=VARCHAR}
-        </foreach>
+        <choose>
+            <when test="roleNames != null and roleNames.size()>0">
+                <foreach item="roleName" collection="roleNames"
+                    separator="," open="(" close=")" index="">
+                    #{roleName,
+                    jdbcType=VARCHAR}
+                </foreach>
+            </when>
+            <otherwise>
+                ('NONE_EXIST_ROLE')
+            </otherwise>
+        </choose>
         AND
         t3.status IN
         <foreach item="pluginPackageStatus" collection="pluginPackageStatuses"
