@@ -154,4 +154,13 @@
         and data_model_version =
         #{version,jdbcType=INTEGER}
     </select>
+    
+    <select id="selectAllByDataModel"
+        resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List" />
+        from plugin_package_entities
+        where data_model_id =
+        #{dataModelId,jdbcType=VARCHAR}
+    </select>
 </mapper>

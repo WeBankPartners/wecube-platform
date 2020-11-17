@@ -539,7 +539,7 @@ public class PluginConfigService {
     }
 
     @SuppressWarnings("unchecked")
-    public List<PluginConfigInterfaceDto> queryAllEnabledPluginConfigInterfaceForEntity(String packageName,
+    private List<PluginConfigInterfaceDto> queryAllEnabledPluginConfigInterfaceForEntity(String packageName,
             String entityName, TargetEntityFilterRuleDto filterRuleDto) {
         Optional<PluginPackageDataModel> dataModelOptional = dataModelRepository
                 .findLatestDataModelByPackageName(packageName);
@@ -733,7 +733,7 @@ public class PluginConfigService {
     }
 
     @SuppressWarnings("unchecked")
-    public List<PluginConfigInterfaceDto> distinctPluginConfigInfDto(List<PluginConfigInterfaceDto> dto) {
+    private List<PluginConfigInterfaceDto> distinctPluginConfigInfDto(List<PluginConfigInterfaceDto> dto) {
         dto = dto.stream()
                 .collect(Collectors.collectingAndThen(
                         Collectors.toCollection(
@@ -752,34 +752,34 @@ public class PluginConfigService {
 //        }
 //    }
 
-    public List<PluginConfigInterfaceDto> queryPluginConfigInterfaceByConfigId(String configId) {
-        Optional<List<PluginConfigInterface>> pluginConfigsOptional = pluginConfigInterfaceRepository
-                .findAllByPluginConfig_Id(configId);
-        List<PluginConfigInterfaceDto> pluginConfigInterfaceDtos = newArrayList();
-        if (pluginConfigsOptional.isPresent()) {
-            List<PluginConfigInterface> pluginConfigInterfaces = pluginConfigsOptional.get();
-            pluginConfigInterfaces.forEach(pluginConfigInterface -> pluginConfigInterfaceDtos
-                    .add(PluginConfigInterfaceDto.fromDomain(pluginConfigInterface)));
-        }
-        return pluginConfigInterfaceDtos;
-    }
+//    public List<PluginConfigInterfaceDto> queryPluginConfigInterfaceByConfigId(String configId) {
+//        Optional<List<PluginConfigInterface>> pluginConfigsOptional = pluginConfigInterfaceRepository
+//                .findAllByPluginConfig_Id(configId);
+//        List<PluginConfigInterfaceDto> pluginConfigInterfaceDtos = newArrayList();
+//        if (pluginConfigsOptional.isPresent()) {
+//            List<PluginConfigInterface> pluginConfigInterfaces = pluginConfigsOptional.get();
+//            pluginConfigInterfaces.forEach(pluginConfigInterface -> pluginConfigInterfaceDtos
+//                    .add(PluginConfigInterfaceDto.fromDomain(pluginConfigInterface)));
+//        }
+//        return pluginConfigInterfaceDtos;
+//    }
 
-    public void deletePluginConfigById(String configId) {
-        Optional<PluginConfig> cfgOptional = pluginConfigRepository.findById(configId);
-        if (cfgOptional.isPresent()) {
-            PluginConfig cfg = cfgOptional.get();
-            if (!cfg.getStatus().equals(PluginConfig.Status.DISABLED)) {
-                throw new WecubeCoreException("3061",
-                        String.format("Can not delete [%s] status PluginConfig", cfg.getStatus()), cfg.getStatus());
-            }
-
-            validateCurrentUserPermission(configId, PluginConfigRoles.PERM_TYPE_MGMT);
-            PluginPackage pkg = cfg.getPluginPackage();
-            pkg.getPluginConfigs().remove(cfg);
-            pluginPackageRepository.save(pkg);
-        } else {
-            throw new WecubeCoreException("3062", String.format("Can not found PluginConfig[%s]", configId), configId);
-        }
-    }
+//    public void deletePluginConfigById(String configId) {
+//        Optional<PluginConfig> cfgOptional = pluginConfigRepository.findById(configId);
+//        if (cfgOptional.isPresent()) {
+//            PluginConfig cfg = cfgOptional.get();
+//            if (!cfg.getStatus().equals(PluginConfig.Status.DISABLED)) {
+//                throw new WecubeCoreException("3061",
+//                        String.format("Can not delete [%s] status PluginConfig", cfg.getStatus()), cfg.getStatus());
+//            }
+//
+//            validateCurrentUserPermission(configId, PluginConfigRoles.PERM_TYPE_MGMT);
+//            PluginPackage pkg = cfg.getPluginPackage();
+//            pkg.getPluginConfigs().remove(cfg);
+//            pluginPackageRepository.save(pkg);
+//        } else {
+//            throw new WecubeCoreException("3062", String.format("Can not found PluginConfig[%s]", configId), configId);
+//        }
+//    }
 
 }
