@@ -36,7 +36,7 @@ import com.google.common.collect.Lists;
 import com.webank.wecube.platform.core.commons.ApplicationProperties.ResourceProperties;
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
 import com.webank.wecube.platform.core.domain.ResourceItem;
-import com.webank.wecube.platform.core.domain.ResourceServer;
+import com.webank.wecube.platform.core.domain.ResourceServerDomain;
 import com.webank.wecube.platform.core.domain.plugin.PluginInstance;
 import com.webank.wecube.platform.core.domain.plugin.PluginMysqlInstance;
 import com.webank.wecube.platform.core.domain.plugin.PluginPackage;
@@ -309,7 +309,7 @@ public class ResourceDataQueryService {
                     String.format("Can not find out ResourceItem for packageId:%s", packageId), packageId);
         }
 
-        ResourceServer resourceServer = resourceItem.getResourceServer();
+        ResourceServerDomain resourceServer = resourceItem.getResourceServer();
         if (resourceServer == null) {
             throw new WecubeCoreException("3015",
                     String.format("Can not find out mysql ResourceServer for packageId:%s", packageId), packageId);
