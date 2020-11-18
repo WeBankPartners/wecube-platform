@@ -761,5 +761,8 @@ export default {
         </div>
       </div>
     )
+  },
+  beforeDestroy () {
+    this.$emit('getSelectedRows', [], false)
   }
 }
