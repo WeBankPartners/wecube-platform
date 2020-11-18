@@ -8,24 +8,26 @@ import java.util.Optional;
 
 import javax.transaction.Transactional;
 
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.google.common.collect.Lists;
 import com.webank.wecube.platform.core.commons.ApplicationProperties.ResourceProperties;
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
-import com.webank.wecube.platform.core.domain.ResourceItem;
-import com.webank.wecube.platform.core.domain.ResourceServerDomain;
 import com.webank.wecube.platform.core.dto.QueryRequestDto;
 import com.webank.wecube.platform.core.dto.QueryResponse;
 import com.webank.wecube.platform.core.dto.ResourceItemDto;
 import com.webank.wecube.platform.core.dto.ResourceServerDto;
 import com.webank.wecube.platform.core.dto.SortingDto;
+import com.webank.wecube.platform.core.entity.plugin.ResourceItem;
+import com.webank.wecube.platform.core.entity.plugin.ResourceServer;
 import com.webank.wecube.platform.core.jpa.EntityRepository;
-import com.webank.wecube.platform.core.jpa.ResourceItemRepository;
-import com.webank.wecube.platform.core.jpa.ResourceServerRepository;
+import com.webank.wecube.platform.core.repository.plugin.ResourceItemMapper;
+import com.webank.wecube.platform.core.repository.plugin.ResourceServerMapper;
 import com.webank.wecube.platform.core.utils.EncryptionUtils;
 import com.webank.wecube.platform.core.utils.JsonUtils;
+import com.webank.wecube.platform.workflow.commons.LocalIdGenerator;
 
 @Service
 public class ResourceManagementService {
@@ -34,10 +36,10 @@ public class ResourceManagementService {
     private EntityRepository entityRepository;
 
     @Autowired
-    private ResourceServerRepository resourceServerRepository;
+    private ResourceServerMapper resourceServerRepository;
 
     @Autowired
-    private ResourceItemRepository resourceItemRepository;
+    private ResourceItemMapper resourceItemRepository;
 
     @Autowired
     private ResourceProperties resourceProperties;
@@ -47,7 +49,8 @@ public class ResourceManagementService {
 
     public QueryResponse<ResourceServerDto> retrieveServers(QueryRequestDto queryRequest) {
         queryRequest = applyDefaultSortingAsDesc(queryRequest);
-        QueryResponse<ResourceServerDomain> queryResponse = entityRepository.query(ResourceServerDomain.class, queryRequest);
+        QueryResponse<ResourceServerDomain> queryResponse = entityRepository.query(ResourceServerDomain.class,
+                queryRequest);
         List<ResourceServerDto> resourceServerDto = Lists.transform(queryResponse.getContents(),
                 x -> ResourceServerDto.fromDomain(x));
         return new QueryResponse<>(queryResponse.getPageInfo(), resourceServerDto);
@@ -64,36 +67,62 @@ public class ResourceManagementService {
 
     @Transactional
     public List<ResourceServerDto> createServers(List<ResourceServerDto> resourceServers) {
-        Iterable<ResourceServerDomain> savedDomains = resourceServerRepository
-                .saveAll(convertServerDtoToDomain(resourceServers));
+        List<ResourceServerDto> resultDto = new ArrayList<>();
+        for (ResourceServerDto inputDto : resourceServers) {
+
+        }
+        List<ResourceServer> savedDomains = convertServerDtoToDomain(resourceServers);
         return convertServerDomainToDto(savedDomains);
     }
 
     @Transactional
     public List<ResourceServerDto> updateServers(List<ResourceServerDto> resourceServers) {
-        Iterable<ResourceServerDomain> savedDomains = resourceServerRepository
-                .saveAll(convertServerDtoToDomain(resourceServers));
+        
+        List<ResourceServer> savedDomains = convertServerDtoToDomain(resourceServers);
+        for(ResourceServer savedDomain : savedDomains){
+            if(StringUtils.isNoneBlank(savedDomain.getId())){
+                resourceServerRepository.updateByPrimaryKeySelective(savedDomain);
+            }else{
+                savedDomain.setId(LocalIdGenerator.generateId());
+                resourceServerRepository.insert(savedDomain);
+            }
+        }
+        
         return convertServerDomainToDto(savedDomains);
     }
 
     @Transactional
     public void deleteServers(List<ResourceServerDto> resourceServers) {
         validateIfServersAreExists(resourceServers);
-        List<ResourceServerDomain> domains = convertServerDtoToDomain(resourceServers);
+        List<ResourceServer> domains = convertServerDtoToDomain(resourceServers);
         validateIfServerAllocated(domains);
-        resourceServerRepository.deleteAll(convertServerDtoToDomain(resourceServers));
+        
+        for(ResourceServerDto dto : resourceServers){
+            if(StringUtils.isBlank(dto.getId())){
+                continue;
+            }else{
+                resourceServerRepository.deleteByPrimaryKey(dto.getId());
+            }
+        }
+        
     }
 
     private void validateIfServersAreExists(List<ResourceServerDto> resourceServers) {
-        resourceServers.forEach(server -> {
-            if (server.getId() == null || !resourceServerRepository.existsById(server.getId())) {
+        for(ResourceServerDto dto : resourceServers){
+            if(dto.getId() == null){
                 throw new WecubeCoreException("3016",
-                        String.format("Can not find server with id [%s].", server.getId()), server.getId());
+                        String.format("Can not find server with id [%s].", dto.getId()), dto.getId());
             }
-        });
+            
+            ResourceServer entity = resourceServerRepository.selectByPrimaryKey(dto.getId());
+            if(entity == null){
+                throw new WecubeCoreException("3016",
+                        String.format("Can not find server with id [%s].", dto.getId()), dto.getId());
+            }
+        }
     }
 
-    private void validateIfServerAllocated(List<ResourceServerDomain> resourceServers) {
+    private void validateIfServerAllocated(List<ResourceServer> resourceServers) {
         resourceServers.forEach(server -> {
             if (server.getIsAllocated() != null && server.getIsAllocated() == 1) {
                 throw new WecubeCoreException("3017",
@@ -115,19 +144,26 @@ public class ResourceManagementService {
     @Transactional
     public List<ResourceItemDto> createItems(List<ResourceItemDto> resourceItems) {
         List<ResourceItem> convertedDomains = convertItemDtoToDomain(resourceItems);
-        resourceItemRepository.saveAll(convertedDomains);
+        for (ResourceItem item : convertedDomains) {
+            if (StringUtils.isBlank(item.getId())) {
+                item.setId(LocalIdGenerator.generateId());
+                resourceItemRepository.insert(item);
+            } else {
+                resourceItemRepository.updateByPrimaryKeySelective(item);
+            }
+        }
         Iterable<ResourceItem> enrichedItems = enrichItemsFullInfo(convertedDomains);
         resourceImplementationService.createItems(enrichedItems);
         return convertItemDomainToDto(enrichedItems);
     }
 
-    private Iterable<ResourceItem> enrichItemsFullInfo(Iterable<ResourceItem> items) {
+    private List<ResourceItem> enrichItemsFullInfo(List<ResourceItem> items) {
         List<ResourceItem> enrichedItems = new ArrayList<>();
         for (ResourceItem item : items) {
             if (item.getId() != null) {
-                Optional<ResourceItem> enrichedItemOpt = resourceItemRepository.findById(item.getId());
-                if (enrichedItemOpt.isPresent()) {
-                    ResourceItem enrichedItem = enrichedItemOpt.get();
+                ResourceItem enrichedItemOpt = resourceItemRepository.selectByPrimaryKey(item.getId());
+                if (enrichedItemOpt != null) {
+                    ResourceItem enrichedItem = enrichedItemOpt;
                     enrichedItem.setResourceServer(getResourceServerById(enrichedItem.getResourceServerId()));
                     enrichedItems.add(enrichedItem);
                 }
@@ -136,21 +172,27 @@ public class ResourceManagementService {
         return enrichedItems;
     }
 
-    private ResourceServerDomain getResourceServerById(String resourceServerId) {
-        if (resourceServerId != null) {
-            Optional<ResourceServerDomain> enrichedServerOpt = resourceServerRepository.findById(resourceServerId);
-            if (enrichedServerOpt.isPresent()) {
-                return enrichedServerOpt.get();
-            }
+    private ResourceServer getResourceServerById(String resourceServerId) {
+        if (StringUtils.isBlank(resourceServerId)) {
+            return null;
         }
-        return null;
+        ResourceServer enrichedServer = resourceServerRepository.selectByPrimaryKey(resourceServerId);
+
+        return enrichedServer;
     }
 
     @Transactional
     public List<ResourceItemDto> updateItems(List<ResourceItemDto> resourceItems) {
         validateIfItemsAreExists(resourceItems);
         List<ResourceItem> convertedDomains = convertItemDtoToDomain(resourceItems);
-        resourceItemRepository.saveAll(convertedDomains);
+        for (ResourceItem item : convertedDomains) {
+            if (StringUtils.isBlank(item.getId())) {
+                item.setId(LocalIdGenerator.generateId());
+                resourceItemRepository.insert(item);
+            } else {
+                resourceItemRepository.updateByPrimaryKeySelective(item);
+            }
+        }
         Iterable<ResourceItem> enrichedItems = enrichItemsFullInfo(convertedDomains);
         resourceImplementationService.updateItems(enrichedItems);
         return convertItemDomainToDto(enrichedItems);
@@ -159,19 +201,30 @@ public class ResourceManagementService {
     @Transactional
     public void deleteItems(List<ResourceItemDto> resourceItems) {
         validateIfItemsAreExists(resourceItems);
-        Iterable<ResourceItem> enrichedItems = enrichItemsFullInfo(convertItemDtoToDomain(resourceItems));
+        List<ResourceItem> enrichedItems = enrichItemsFullInfo(convertItemDtoToDomain(resourceItems));
         // validateIfItemAllocated(enrichedItems);
         resourceImplementationService.deleteItems(enrichedItems);
-        resourceItemRepository.deleteAll(enrichedItems);
+
+        if (enrichedItems != null) {
+            for (ResourceItem item : enrichedItems) {
+                resourceItemRepository.deleteByPrimaryKey(item.getId());
+            }
+        }
     }
 
     private void validateIfItemsAreExists(List<ResourceItemDto> resourceItems) {
-        resourceItems.forEach(item -> {
-            if (item.getId() == null && !resourceItemRepository.existsById(item.getId())) {
-                throw new WecubeCoreException("3018", String.format("Can not find item with id [%s].", item.getId()),
-                        item.getId());
+        for (ResourceItemDto item : resourceItems) {
+            if (StringUtils.isBlank(item.getId())) {
+                String errMsg = String.format("Can not find item with id [%s].", item.getId());
+                throw new WecubeCoreException("3018", errMsg, item.getId());
             }
-        });
+
+            ResourceItem resourceItemEntity = resourceItemRepository.selectByPrimaryKey(item.getId());
+            if (resourceItemEntity == null) {
+                String errMsg = String.format("Can not find item with id [%s].", item.getId());
+                throw new WecubeCoreException("3018", errMsg, item.getId());
+            }
+        }
     }
 
     private void validateIfItemAllocated(Iterable<ResourceItem> items) {
@@ -184,26 +237,27 @@ public class ResourceManagementService {
         });
     }
 
-    private List<ResourceServerDto> convertServerDomainToDto(Iterable<ResourceServerDomain> savedDomains) {
+    private List<ResourceServerDto> convertServerDomainToDto(List<ResourceServer> savedDomains) {
         List<ResourceServerDto> dtos = new ArrayList<>();
         savedDomains.forEach(domain -> dtos.add(ResourceServerDto.fromDomain(domain)));
         return dtos;
     }
 
-    private List<ResourceServerDomain> convertServerDtoToDomain(List<ResourceServerDto> resourceServerDtos) {
-        List<ResourceServerDomain> domains = new ArrayList<>();
-        resourceServerDtos.forEach(dto -> {
-            ResourceServerDomain existedServer = null;
+    private List<ResourceServer> convertServerDtoToDomain(List<ResourceServerDto> resourceServerDtos) {
+        List<ResourceServer> domains = new ArrayList<>();
+        for (ResourceServerDto dto : resourceServerDtos) {
+            ResourceServer existedServer = null;
             if (dto.getId() != null) {
-                Optional<ResourceServerDomain> existedServerOpt = resourceServerRepository.findById(dto.getId());
-                if (existedServerOpt.isPresent()) {
-                    existedServer = existedServerOpt.get();
+                ResourceServer existedServerOpt = resourceServerRepository.selectByPrimaryKey(dto.getId());
+                if (existedServerOpt != null) {
+                    existedServer = existedServerOpt;
                 }
             }
             handleServerPasswordEncryption(dto);
-            ResourceServerDomain domain = ResourceServerDto.toDomain(dto, existedServer);
+            ResourceServer domain = ResourceServerDto.toDomain(dto, existedServer);
+
             domains.add(domain);
-        });
+        }
         return domains;
     }
 
@@ -267,9 +321,9 @@ public class ResourceManagementService {
         resourceItemDtos.forEach(dto -> {
             ResourceItem existedItem = null;
             if (dto.getId() != null) {
-                Optional<ResourceItem> existedItemOpt = resourceItemRepository.findById(dto.getId());
-                if (existedItemOpt.isPresent()) {
-                    existedItem = existedItemOpt.get();
+                ResourceItem existedItemOpt = resourceItemRepository.selectByPrimaryKey(dto.getId());
+                if (existedItemOpt != null) {
+                    existedItem = existedItemOpt;
                 }
             }
             handleItemPasswordEncryption(dto);
