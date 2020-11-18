@@ -86,61 +86,31 @@
             </Col>
           </Form>
         </Col>
-        <!-- <Col span="4" style="text-align: right;margin-bottom:8px;padding-right:40px;float:right;">
-          <Button type="info" v-if="!isEnqueryPage" @click="queryHistory">{{ $t('enquery_new_workflow_job') }}</Button>
-          <Button type="success" v-if="isEnqueryPage" @click="createHandler">
-            {{ $t('create_new_workflow_job') }}
-          </Button>
-        </Col> -->
       </Row>
       <Row>
         <Row id="graphcontain">
           <Col span="7" style="border-right:1px solid #d3cece; text-align: center;height:100%;position: relative;">
-            <!-- <div class="excution-serach">
-              <Form>
-                <FormItem :label-width="100" :label="$t('select_orch')">
-                  <Select
-                    label
-                    v-model="selectedFlow"
-                    :disabled="isEnqueryPage"
-                    @on-change="orchestrationSelectHandler"
-                    @on-open-change="getAllFlow"
-                    filterable
-                    clearable
-                    @on-clear="clearFlow"
-                  >
-                    <Option v-for="item in allFlows" :value="item.procDefId" :key="item.procDefId">{{
-                      item.procDefName + ' ' + item.createdTime
-                    }}</Option>
-                  </Select>
-                </FormItem>
-              </Form>
-            </div> -->
             <div class="graph-container" id="flow" style="height:90%"></div>
             <Button class="reset-button" size="small" @click="ResetFlow">ResetZoom</Button>
+            <Button
+              v-if="!isEnqueryPage && selectedFlow && selectedTarget && processSessionId.length > 0"
+              style="left:5px"
+              class="set-data-button"
+              icon="ios-grid"
+              size="small"
+              @click="setFlowDataForAllNodes"
+            ></Button>
           </Col>
           <Col span="17" style="text-align: center;text-align: center;height:100%; position: relative;">
-            <!-- <div>
-              <Form>
-                <FormItem :label-width="100" :label="$t('target_object')">
-                  <Select
-                    style="width:400px;float:left"
-                    label
-                    v-model="selectedTarget"
-                    :disabled="isEnqueryPage"
-                    @on-change="onTargetSelectHandler"
-                    @on-open-change="getTargetOptions"
-                    filterable
-                    clearable
-                    @on-clear="clearTarget"
-                  >
-                    <Option v-for="item in allTarget" :value="item.id" :key="item.id">{{ item.key_name }}</Option>
-                  </Select>
-                </FormItem>
-              </Form>
-            </div> -->
             <div class="graph-container" id="graph" style="height:90%"></div>
             <Button class="reset-button" size="small" @click="ResetModel">ResetZoom</Button>
+            <Button
+              v-if="selectedFlow && selectedTarget && processSessionId.length > 0"
+              class="set-data-button"
+              icon="ios-grid"
+              size="small"
+              @click="showModelDataWithFlow"
+            ></Button>
             <Spin size="large" fix v-show="isLoading">
               <Icon type="ios-loading" size="44" class="spin-icon-load"></Icon>
               <div>{{ $t('loading') }}</div>
@@ -148,18 +118,51 @@
           </Col>
         </Row>
       </Row>
-      <!-- <div v-if="showExcution" style="text-align: right;margin-top: 6px;">
-        <Button
-          v-if="showExcution"
-          :disabled="isExecuteActive"
-          :loading="btnLoading"
-          style="width:120px"
-          type="info"
-          @click="excutionFlow"
-          >{{ $t('execute') }}</Button
-        >
-      </div> -->
     </Card>
+    <Modal
+      :title="$t('overview')"
+      v-model="targetWithFlowModalVisible"
+      :scrollable="true"
+      width="70"
+      :footer-hide="true"
+    >
+      <Table
+        border
+        :columns="targetWithFlowModelColums"
+        max-height="550"
+        :data="modelDataWithFlowNodes"
+        :span-method="modelDataHandleSpan"
+      >
+        <template slot-scope="{ row, index }" slot="nodeTitle">
+          <div style="margin-bottom:5px" v-for="title in row.nodeTitle.split(';')" :key="title">
+            {{ title }}
+          </div>
+        </template>
+      </Table>
+    </Modal>
+    <Modal
+      :title="$t('overview')"
+      v-model="flowNodesWithDataModalVisible"
+      :scrollable="true"
+      width="70"
+      @on-ok="flowNodesTargetModelConfirm"
+    >
+      <Table
+        border
+        :columns="flowNodesWithModelDataColums"
+        max-height="550"
+        :data="allFlowNodesModelData"
+        @on-select="allFlowNodesSingleSelect"
+        @on-select-cancel="allFlowNodesSingleCancle"
+        @on-select-all-cancel="allFlowNodesSelectAllCancle"
+        @on-select-all="allFlowNodesSelectAll"
+        :span-method="flowNodeDataHandleSpan"
+      >
+        <template slot-scope="{ row, index }" slot="orderedNo">
+          <span>{{ row.orderedNo + ' ' + row.nodeName }}</span>
+        </template>
+      </Table>
+    </Modal>
     <Modal
       :title="$t('select_an_operation')"
       v-model="workflowActionModalVisible"
@@ -192,7 +195,7 @@
       <Table
         border
         ref="selection"
-        max-height="300"
+        max-height="350"
         @on-select="singleSelect"
         @on-select-cancel="singleCancle"
         @on-select-all-cancel="selectAllCancle"
@@ -269,6 +272,13 @@ import { addEvent, removeEvent } from '../util/event.js'
 export default {
   data () {
     return {
+      allFlowNodesModelData: [],
+      selectedFlowNodesModelData: [],
+      modelDataWithFlowNodes: [],
+      targetWithFlowModalVisible: false,
+      flowNodesWithDataModalVisible: false,
+      indexArray: [0],
+      flowIndexArray: [0],
       currentTab: 'create_new_workflow_job',
       btnLoading: false,
       currentModelNodeRefs: [],
@@ -300,6 +310,41 @@ export default {
       tableFilterParam: null,
       tartetModels: [],
       catchTartetModels: [],
+      flowNodesWithModelDataColums: [
+        {
+          title: 'NodeName',
+          slot: 'orderedNo',
+          width: 240
+        },
+        {
+          type: 'selection',
+          width: 60,
+          align: 'center'
+        },
+        {
+          title: 'Entity',
+          key: 'entity',
+          width: 270
+        },
+        {
+          title: 'DisplayName',
+          key: 'displayName'
+        }
+      ],
+      targetWithFlowModelColums: [
+        {
+          title: 'Entity',
+          key: 'entity'
+        },
+        {
+          title: 'DisplayName',
+          key: 'displayName'
+        },
+        {
+          title: 'NodeName',
+          slot: 'nodeTitle'
+        }
+      ],
       targetModelColums: [
         {
           type: 'selection',
@@ -473,6 +518,151 @@ export default {
         this.catchNodeTableList = []
       }
     },
+    allFlowNodesSingleSelect (selection, row) {
+      this.selectedFlowNodesModelData = this.selectedFlowNodesModelData.concat(row)
+    },
+    allFlowNodesSingleCancle (selection, row) {
+      const index = this.selectedFlowNodesModelData.findIndex(cn => {
+        return cn.id === row.id
+      })
+      this.selectedFlowNodesModelData.splice(index, 1)
+    },
+    allFlowNodesSelectAll (selection) {
+      let temp = []
+      this.selectedFlowNodesModelData.forEach(cntl => {
+        temp.push(cntl.id)
+      })
+      selection.forEach(se => {
+        if (!temp.includes(se.id)) {
+          this.selectedFlowNodesModelData.push(se)
+        }
+      })
+    },
+    allFlowNodesSelectAllCancle () {
+      let temp = []
+      this.tartetModels.forEach(tm => {
+        temp.push(tm.id)
+      })
+      this.selectedFlowNodesModelData = this.selectedFlowNodesModelData.filter(item => {
+        return !temp.includes(item.id)
+      })
+    },
+    async setFlowDataForAllNodes () {
+      let compare = (a, b) => {
+        if (a.orderedNo * 1 < b.orderedNo * 1) {
+          return -1
+        }
+        if (a.orderedNo * 1 > b.orderedNo * 1) {
+          return 1
+        }
+        return 0
+      }
+      let allPromises = []
+      this.flowData.flowNodes
+        .filter(_ => _.orderedNo)
+        .forEach(node => {
+          allPromises.push(getDataByNodeDefIdAndProcessSessionId(node.nodeDefId, this.processSessionId))
+        })
+      const dataArray = await Promise.all(allPromises)
+      this.selectedFlowNodesModelData = []
+      this.allFlowNodesModelData = []
+        .concat(
+          ...dataArray.map(_ => {
+            return _.data.map(d => {
+              const found = this.modelData.find(j => j.dataId === d.entityDataId)
+              const flowNode = this.flowData.flowNodes.find(j => j.orderedNo === d.orderedNo)
+              const res = {
+                ...d,
+                _checked: d.bound === 'Y',
+                ...found,
+                entity: found.packageName + ':' + found.entityName,
+                nodeName: flowNode.nodeName,
+                nodeDefId: flowNode.nodeDefId
+              }
+              if (d.bound === 'Y') {
+                this.selectedFlowNodesModelData.push(res)
+              }
+              return res
+            })
+          })
+        )
+        .sort(compare)
+      let start = 0
+      for (let i = 0; i < this.allFlowNodesModelData.length; i++) {
+        let startName = this.allFlowNodesModelData[start].orderedNo + this.allFlowNodesModelData[start].nodeName
+        const node = this.allFlowNodesModelData[i]
+        if (node.orderedNo + node.nodeName !== startName) {
+          start = i
+          this.flowIndexArray.push(i)
+        }
+      }
+      this.flowNodesWithDataModalVisible = true
+    },
+    flowNodeDataHandleSpan ({ row, column, rowIndex, columnIndex }) {
+      return this.rowSpanComputed(this.allFlowNodesModelData, this.flowIndexArray, rowIndex, columnIndex)
+    },
+    modelDataHandleSpan ({ row, column, rowIndex, columnIndex }) {
+      return this.rowSpanComputed(this.modelDataWithFlowNodes, this.indexArray, rowIndex, columnIndex)
+    },
+    rowSpanComputed (data, indexArray, rowIndex, columnIndex) {
+      let arr = []
+      for (let i = 0; i < indexArray.length; i++) {
+        if (rowIndex === indexArray[i] && columnIndex === 0) {
+          arr = [indexArray[i + 1] - indexArray[i], 1]
+        } else if (rowIndex > indexArray[i - 1] && rowIndex < indexArray[i] && columnIndex === 0) {
+          arr = [0, 0]
+        }
+      }
+      if (rowIndex === indexArray[indexArray.length - 1] && columnIndex === 0) {
+        arr = [data.length - indexArray[indexArray.length - 1], 1]
+      }
+      if (rowIndex > indexArray[indexArray.length - 1] && columnIndex === 0) {
+        arr = [0, 0]
+      }
+      return arr
+    },
+    showModelDataWithFlow () {
+      this.modelDataWithFlowNodes = this.modelData.map(_ => {
+        return {
+          ..._,
+          entity: _.packageName + ':' + _.entityName,
+          nodeTitle:
+            _.refFlowNodeIds.length > 0
+              ? _.refFlowNodeIds
+                .map(id => {
+                  const found = this.flowData.flowNodes.find(n => n.orderedNo === id)
+                  return found.orderedNo + ' ' + found.nodeName
+                })
+                .join(';')
+              : ''
+        }
+      })
+      this.targetWithFlowModalVisible = true
+      let start = 0
+      for (let i = 0; i < this.modelDataWithFlowNodes.length; i++) {
+        let startEntity = this.modelDataWithFlowNodes[start].entity
+        if (this.modelDataWithFlowNodes[i].entity !== startEntity) {
+          start = i
+          this.indexArray.push(i)
+        }
+      }
+    },
+    async flowNodesTargetModelConfirm () {
+      let obj = {}
+      this.selectedFlowNodesModelData.forEach(_ => {
+        if (!obj[_.nodeDefId]) {
+          obj[_.nodeDefId] = []
+          obj[_.nodeDefId].push(_)
+        } else {
+          obj[_.nodeDefId].push(_)
+        }
+      })
+      let promiseArray = []
+      Object.keys(obj).forEach(key => {
+        promiseArray.push(setDataByNodeDefIdAndProcessSessionId(key, this.processSessionId, obj[key]))
+      })
+      await Promise.all(promiseArray)
+    },
     async updateNodeInfo () {
       const currentNode = this.flowData.flowNodes.find(_ => {
         return _.nodeId === this.currentFlowNodeId
@@ -610,6 +800,7 @@ export default {
         .remove()
     },
     onTargetSelectHandler () {
+      this.processSessionId = ''
       if (!this.selectedTarget) return
       this.currentModelNodeRefs = []
       this.getModelData()
@@ -1160,7 +1351,9 @@ export default {
         Object.keys(objData).forEach(i => {
           this.allBindingsList.forEach(j => {
             if (j.nodeDefId === nodeDefId && j.entityDataId === objData[i].entityDataId) {
-              objData[i]._isChecked = true
+              if (objData[i].bound === 'Y') {
+                objData[i]._isChecked = true
+              }
               this.catchNodeTableList.push(objData[i])
             }
           })
@@ -1270,6 +1463,12 @@ body {
   position: absolute;
   right: 20px;
   bottom: 5px;
+  font-size: 12px;
+}
+.set-data-button {
+  position: absolute;
+  left: 10px;
+  top: 5px;
   font-size: 12px;
 }
 </style>
