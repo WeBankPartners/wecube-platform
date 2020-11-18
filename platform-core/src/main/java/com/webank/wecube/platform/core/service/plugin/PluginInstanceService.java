@@ -916,7 +916,7 @@ public class PluginInstanceService {
         return result.get(0);
     }
 
-    public void removePluginInstanceById(String instanceId) throws Exception {
+    private void removePluginInstanceById(String instanceId) throws Exception {
         logger.info("Removing instanceId: " + instanceId);
         Optional<PluginInstance> instanceOptional = pluginInstanceRepository.findById(instanceId);
         PluginInstance instance = instanceOptional.get();
@@ -950,7 +950,7 @@ public class PluginInstanceService {
         return JsonUtils.toJsonString(additionalProperties);
     }
 
-    public String getInstanceAddress(PluginInstance instance) {
+    private String getInstanceAddress(PluginInstance instance) {
         return trim(instance.getHost()) + ":" + trim(instance.getPort().toString());
     }
 
