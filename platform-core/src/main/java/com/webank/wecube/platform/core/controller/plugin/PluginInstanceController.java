@@ -16,7 +16,6 @@ import org.springframework.web.bind.annotation.RestController;
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
 import com.webank.wecube.platform.core.dto.CommonResponseDto;
 import com.webank.wecube.platform.core.service.plugin.PluginInstanceMgmtService;
-import com.webank.wecube.platform.core.service.plugin.PluginInstanceService;
 
 @RestController
 @RequestMapping("/v1")
@@ -24,9 +23,6 @@ public class PluginInstanceController {
 
     private static final Logger log = LoggerFactory.getLogger(PluginInstanceController.class);
 
-    @Autowired
-    private PluginInstanceService pluginInstanceService;
-    
     @Autowired
     private PluginInstanceMgmtService pluginInstanceMgmtService;
 
@@ -69,10 +65,15 @@ public class PluginInstanceController {
         return okay();
     }
 
+    /**
+     * 
+     * @param instanceId
+     * @return
+     */
     @DeleteMapping("/packages/instances/{instance-id}/remove")
     public CommonResponseDto removePluginInstance(@PathVariable(value = "instance-id") String instanceId) {
         try {
-            pluginInstanceService.removePluginInstanceById(instanceId);
+            pluginInstanceMgmtService.removePluginInstanceById(instanceId);
         } catch (Exception e) {
             log.info("Remove plugin package instance failed. Meet error: {}", e);
             throw new WecubeCoreException("3272","Remove plugin package instance failed.");
@@ -80,6 +81,11 @@ public class PluginInstanceController {
         return okay();
     }
 
+    /**
+     * 
+     * @param packageId
+     * @return
+     */
     @GetMapping("/packages/{package-id}/instances")
     public CommonResponseDto getAvailableInstancesByPackageId(@PathVariable(value = "package-id") String packageId) {
         return okayWithData(pluginInstanceMgmtService.getAvailableInstancesByPackageId(packageId));
