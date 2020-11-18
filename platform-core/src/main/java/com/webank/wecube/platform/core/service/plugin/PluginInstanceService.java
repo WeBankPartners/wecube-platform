@@ -276,6 +276,8 @@ public class PluginInstanceService {
 
         List<PluginMysqlInstance> mysqlInstances = pluginMysqlInstanceRepository.findByStatusAndPluginPackage_name(
                 PluginMysqlInstance.MYSQL_INSTANCE_STATUS_ACTIVE, pluginPackage.getName());
+        
+        //already exists
         if (mysqlInstances.size() > 0) {
             PluginMysqlInstance mysqlInstance = mysqlInstances.get(0);
             tryUpgradeMysqlDatabaseData(mysqlInstance, pluginPackage);
@@ -294,6 +296,7 @@ public class PluginInstanceService {
                     mysqlInstance.getUsername(), mysqlInstance.getPassword(), mysqlInstance.getResourceItemId());
         }
 
+        //new mysql instance
         return initMysqlDatabaseSchema(mysqlInfoSet, pluginPackage);
     }
 
@@ -471,7 +474,7 @@ public class PluginInstanceService {
         return false;
     }
 
-    public boolean versionGreaterThan(String version, String baseVersion) {
+    private boolean versionGreaterThan(String version, String baseVersion) {
         VersionComparator vc = new VersionComparator();
         int compare = vc.compare(version, baseVersion);
         if (compare > 0) {
@@ -482,7 +485,7 @@ public class PluginInstanceService {
 
     }
 
-    public boolean versionEquals(String version, String baseVersion) {
+    private boolean versionEquals(String version, String baseVersion) {
         VersionComparator vc = new VersionComparator();
         int compare = vc.compare(version, baseVersion);
         if (compare == 0) {
@@ -535,7 +538,7 @@ public class PluginInstanceService {
         }
     }
 
-    public void launchPluginInstance(String packageId, String hostIp, Integer port)
+    private void launchPluginInstance(String packageId, String hostIp, Integer port)
             throws Exception, WecubeCoreException {
         Optional<PluginPackage> pluginPackageResult = pluginPackageRepository.findById(packageId);
         if (!pluginPackageResult.isPresent())
@@ -969,7 +972,7 @@ public class PluginInstanceService {
             this.resourceItemId = resourceItemId;
         }
 
-        public DatabaseInfo() {
+        private DatabaseInfo() {
         }
 
         public String getUser() {

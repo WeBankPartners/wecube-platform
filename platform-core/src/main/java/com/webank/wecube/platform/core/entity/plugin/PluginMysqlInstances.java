@@ -3,6 +3,8 @@ package com.webank.wecube.platform.core.entity.plugin;
 import java.util.Date;
 
 public class PluginMysqlInstances {
+    public static final String MYSQL_INSTANCE_STATUS_ACTIVE = "active";
+    public static final String MYSQL_INSTANCE_STATUS_INACTIVE = "inactive";
     private String id;
 
     private String password;

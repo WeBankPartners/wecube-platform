@@ -35,5 +35,15 @@ public interface PluginInstancesMapper {
      * @return
      */
     List<PluginInstances> selectAllByPluginPackageAndStatus(@Param("pluginPackageId") String pluginPackageId,
-            @Param("status")String status);
+            @Param("status") String status);
+
+    /**
+     * 
+     * @param hostIpAddr
+     * @param port
+     * @param status
+     * @return
+     */
+    List<PluginInstances> selectAllByHostAndPortAndStatus(@Param("hostIpAddr") String hostIpAddr,
+            @Param("port") int port, @Param("status") String status);
 }
