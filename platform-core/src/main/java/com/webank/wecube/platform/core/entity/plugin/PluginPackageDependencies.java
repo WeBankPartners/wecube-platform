@@ -8,6 +8,8 @@ public class PluginPackageDependencies {
     private String dependencyPackageName;
 
     private String dependencyPackageVersion;
+    
+    private transient PluginPackages pluginPackage;
 
     public String getId() {
         return id;
@@ -40,4 +42,14 @@ public class PluginPackageDependencies {
     public void setDependencyPackageVersion(String dependencyPackageVersion) {
         this.dependencyPackageVersion = dependencyPackageVersion == null ? null : dependencyPackageVersion.trim();
     }
+
+    public PluginPackages getPluginPackage() {
+        return pluginPackage;
+    }
+
+    public void setPluginPackage(PluginPackages pluginPackage) {
+        this.pluginPackage = pluginPackage;
+    }
+    
+    
 }
