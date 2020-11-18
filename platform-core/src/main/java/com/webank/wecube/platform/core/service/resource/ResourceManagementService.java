@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 import javax.transaction.Transactional;
 
@@ -48,12 +47,16 @@ public class ResourceManagementService {
     private ResourceImplementationService resourceImplementationService;
 
     public QueryResponse<ResourceServerDto> retrieveServers(QueryRequestDto queryRequest) {
-        queryRequest = applyDefaultSortingAsDesc(queryRequest);
-        QueryResponse<ResourceServerDomain> queryResponse = entityRepository.query(ResourceServerDomain.class,
-                queryRequest);
-        List<ResourceServerDto> resourceServerDto = Lists.transform(queryResponse.getContents(),
-                x -> ResourceServerDto.fromDomain(x));
-        return new QueryResponse<>(queryResponse.getPageInfo(), resourceServerDto);
+//        queryRequest = applyDefaultSortingAsDesc(queryRequest);
+//        QueryResponse<ResourceServerDomain> queryResponse = entityRepository.query(ResourceServerDomain.class,
+//                queryRequest);
+//        List<ResourceServerDto> resourceServerDto = Lists.transform(queryResponse.getContents(),
+//                x -> ResourceServerDto.fromDomain(x));
+//        return new QueryResponse<>(queryResponse.getPageInfo(), resourceServerDto);
+        //TODO 
+        //FIXME
+        return null;
+        
     }
 
     private QueryRequestDto applyDefaultSortingAsDesc(QueryRequestDto queryRequest) {
@@ -67,11 +70,16 @@ public class ResourceManagementService {
 
     @Transactional
     public List<ResourceServerDto> createServers(List<ResourceServerDto> resourceServers) {
-        List<ResourceServerDto> resultDto = new ArrayList<>();
-        for (ResourceServerDto inputDto : resourceServers) {
-
-        }
+        
         List<ResourceServer> savedDomains = convertServerDtoToDomain(resourceServers);
+        for(ResourceServer s : savedDomains){
+            if(StringUtils.isBlank(s.getId())){
+                s.setId(LocalIdGenerator.generateId());
+                resourceServerRepository.insert(s);
+            }else{
+                resourceServerRepository.updateByPrimaryKeySelective(s);
+            }
+        }
         return convertServerDomainToDto(savedDomains);
     }
 
