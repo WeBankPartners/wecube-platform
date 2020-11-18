@@ -1,6 +1,12 @@
 package com.webank.wecube.platform.core.entity.plugin;
 
+import java.io.IOException;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
+
+import com.webank.wecube.platform.core.commons.WecubeCoreException;
+import com.webank.wecube.platform.core.utils.JsonUtils;
 
 public class ResourceItem {
     private String id;
@@ -121,5 +127,21 @@ public class ResourceItem {
 
     public void setUpdatedDate(Date updatedDate) {
         this.updatedDate = updatedDate;
+    }
+    
+    public Map<String, String> getAdditionalPropertiesMap() {
+        if (additionalProperties != null) {
+            return convertToMap(additionalProperties);
+        }
+        return new HashMap<String, String>();
+    }
+
+    @SuppressWarnings("unchecked")
+    private Map<String, String> convertToMap(String additionalProperties) {
+        try {
+            return JsonUtils.toObject(additionalProperties, Map.class);
+        } catch (IOException e) {
+            throw new WecubeCoreException(String.format("Failed to parse resource_item.additional_properties [%s] : Invalid json format.", additionalProperties), e);
+        }
     }
 }

@@ -191,4 +191,16 @@
         and
         container_status = #{status,jdbcType=VARCHAR}
     </select>
+    
+    <select id="selectAllByHostAndPortAndStatus" resultMap="BaseResultMap"
+        parameterType="java.lang.String">
+        select
+        <include refid="Base_Column_List" />
+        from plugin_instances
+        where host = #{host,jdbcType=VARCHAR}
+        and
+        port = #{port,jdbcType=INTEGER}
+        and
+        container_status = #{status,jdbcType=VARCHAR}
+    </select>
 </mapper>
