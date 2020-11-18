@@ -15,7 +15,7 @@ import com.github.dockerjava.core.DockerClientBuilder;
 import com.github.dockerjava.core.command.PullImageResultCallback;
 import com.webank.wecube.platform.core.commons.ApplicationProperties.ResourceProperties;
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
-import com.webank.wecube.platform.core.domain.ResourceItem;
+import com.webank.wecube.platform.core.entity.plugin.ResourceItem;
 
 @Service
 public class DockerImageManagementService implements ResourceItemService {

@@ -44,7 +44,6 @@ import com.webank.wecube.platform.core.repository.workflow.TaskNodeParamMapper;
 import com.webank.wecube.platform.core.service.SystemVariableService;
 import com.webank.wecube.platform.core.service.dme.EntityOperationRootCondition;
 import com.webank.wecube.platform.core.service.plugin.PluginInstanceMgmtService;
-import com.webank.wecube.platform.core.service.plugin.PluginInstanceService;
 import com.webank.wecube.platform.core.service.workflow.PluginInvocationProcessor.PluginInterfaceInvocationContext;
 import com.webank.wecube.platform.core.service.workflow.PluginInvocationProcessor.PluginInterfaceInvocationResult;
 import com.webank.wecube.platform.core.service.workflow.PluginInvocationProcessor.PluginInvocationOperation;
@@ -66,9 +65,6 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 
     @Autowired
     private ProcInstInfoMapper procInstInfoRepository;
-
-    @Autowired
-    protected PluginInstanceService pluginInstanceService;
     
     @Autowired
     protected PluginInstanceMgmtService pluginInstanceMgmtService;
