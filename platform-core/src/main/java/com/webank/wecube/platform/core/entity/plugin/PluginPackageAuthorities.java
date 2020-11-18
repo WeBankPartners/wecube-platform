@@ -9,6 +9,8 @@ public class PluginPackageAuthorities {
 
     private String menuCode;
 
+    private transient PluginPackages pluginPackge;
+
     public String getId() {
         return id;
     }
@@ -40,4 +42,13 @@ public class PluginPackageAuthorities {
     public void setMenuCode(String menuCode) {
         this.menuCode = menuCode == null ? null : menuCode.trim();
     }
+
+    public PluginPackages getPluginPackge() {
+        return pluginPackge;
+    }
+
+    public void setPluginPackge(PluginPackages pluginPackge) {
+        this.pluginPackge = pluginPackge;
+    }
+
 }
