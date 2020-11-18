@@ -29,4 +29,14 @@ public interface ResourceItemMapper {
      */
     List<ResourceItem> selectAllByResourceServerAndType(@Param("resourceServerId") String resourceServerId,
             @Param("type") String type);
+    
+    
+    /**
+     * 
+     * @param name
+     * @param type
+     * @return
+     */
+    List<ResourceItem> selectAllByNameAndType(@Param("name") String name,
+            @Param("type") String type);
 }
