@@ -49,12 +49,19 @@ public class PluginInstanceController {
         return okayWithData(pluginInstanceMgmtService.getAvailablePortByHostIp(hostIp));
     }
 
+    /**
+     * 
+     * @param packageId
+     * @param hostIp
+     * @param port
+     * @return
+     */
     @PostMapping("/packages/{package-id}/hosts/{host-ip}/ports/{port}/instance/launch")
     public CommonResponseDto createPluginInstanceByPackageIdAndHostIp(
             @PathVariable(value = "package-id") String packageId, @PathVariable(value = "host-ip") String hostIp,
             @PathVariable(value = "port") int port) {
         try {
-            pluginInstanceService.launchPluginInstance(packageId, hostIp, port);
+            pluginInstanceMgmtService.launchPluginInstance(packageId, hostIp, port);
         } catch (Exception e) {
             String msg = String.format("Launch plugin instance failed. Error is %s" , e.getMessage());
             throw new WecubeCoreException("3271",msg, e.getMessage());

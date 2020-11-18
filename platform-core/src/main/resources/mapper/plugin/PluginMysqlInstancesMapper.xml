@@ -1,153 +1,184 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
-<mapper namespace="com.webank.wecube.platform.core.repository.plugin.PluginMysqlInstancesMapper" >
-  <resultMap id="BaseResultMap" type="com.webank.wecube.platform.core.entity.plugin.PluginMysqlInstances" >
-    <id column="id" property="id" jdbcType="VARCHAR" />
-    <result column="password" property="password" jdbcType="VARCHAR" />
-    <result column="plugun_package_id" property="plugunPackageId" jdbcType="VARCHAR" />
-    <result column="resource_item_id" property="resourceItemId" jdbcType="VARCHAR" />
-    <result column="schema_name" property="schemaName" jdbcType="VARCHAR" />
-    <result column="status" property="status" jdbcType="VARCHAR" />
-    <result column="username" property="username" jdbcType="VARCHAR" />
-    <result column="created_time" property="createdTime" jdbcType="TIMESTAMP" />
-    <result column="pre_version" property="preVersion" jdbcType="VARCHAR" />
-    <result column="updated_time" property="updatedTime" jdbcType="TIMESTAMP" />
-  </resultMap>
-  <sql id="Base_Column_List" >
-    id, password, plugun_package_id, resource_item_id, schema_name, status, username, 
-    created_time, pre_version, updated_time
-  </sql>
-  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.String" >
-    select 
-    <include refid="Base_Column_List" />
-    from plugin_mysql_instances
-    where id = #{id,jdbcType=VARCHAR}
-  </select>
-  <delete id="deleteByPrimaryKey" parameterType="java.lang.String" >
-    delete from plugin_mysql_instances
-    where id = #{id,jdbcType=VARCHAR}
-  </delete>
-  <insert id="insert" parameterType="com.webank.wecube.platform.core.entity.plugin.PluginMysqlInstances" >
-    insert into plugin_mysql_instances (id, password, plugun_package_id, 
-      resource_item_id, schema_name, status, 
-      username, created_time, pre_version, 
-      updated_time)
-    values (#{id,jdbcType=VARCHAR}, #{password,jdbcType=VARCHAR}, #{plugunPackageId,jdbcType=VARCHAR}, 
-      #{resourceItemId,jdbcType=VARCHAR}, #{schemaName,jdbcType=VARCHAR}, #{status,jdbcType=VARCHAR}, 
-      #{username,jdbcType=VARCHAR}, #{createdTime,jdbcType=TIMESTAMP}, #{preVersion,jdbcType=VARCHAR}, 
-      #{updatedTime,jdbcType=TIMESTAMP})
-  </insert>
-  <insert id="insertSelective" parameterType="com.webank.wecube.platform.core.entity.plugin.PluginMysqlInstances" >
-    insert into plugin_mysql_instances
-    <trim prefix="(" suffix=")" suffixOverrides="," >
-      <if test="id != null" >
-        id,
-      </if>
-      <if test="password != null" >
-        password,
-      </if>
-      <if test="plugunPackageId != null" >
-        plugun_package_id,
-      </if>
-      <if test="resourceItemId != null" >
-        resource_item_id,
-      </if>
-      <if test="schemaName != null" >
-        schema_name,
-      </if>
-      <if test="status != null" >
-        status,
-      </if>
-      <if test="username != null" >
+<mapper
+    namespace="com.webank.wecube.platform.core.repository.plugin.PluginMysqlInstancesMapper">
+    <resultMap id="BaseResultMap"
+        type="com.webank.wecube.platform.core.entity.plugin.PluginMysqlInstances">
+        <id column="id" property="id" jdbcType="VARCHAR" />
+        <result column="password" property="password" jdbcType="VARCHAR" />
+        <result column="plugun_package_id" property="plugunPackageId"
+            jdbcType="VARCHAR" />
+        <result column="resource_item_id" property="resourceItemId"
+            jdbcType="VARCHAR" />
+        <result column="schema_name" property="schemaName"
+            jdbcType="VARCHAR" />
+        <result column="status" property="status" jdbcType="VARCHAR" />
+        <result column="username" property="username" jdbcType="VARCHAR" />
+        <result column="created_time" property="createdTime"
+            jdbcType="TIMESTAMP" />
+        <result column="pre_version" property="preVersion"
+            jdbcType="VARCHAR" />
+        <result column="updated_time" property="updatedTime"
+            jdbcType="TIMESTAMP" />
+    </resultMap>
+    <sql id="Base_Column_List">
+        id, password, plugun_package_id, resource_item_id, schema_name, status,
         username,
-      </if>
-      <if test="createdTime != null" >
-        created_time,
-      </if>
-      <if test="preVersion != null" >
-        pre_version,
-      </if>
-      <if test="updatedTime != null" >
-        updated_time,
-      </if>
-    </trim>
-    <trim prefix="values (" suffix=")" suffixOverrides="," >
-      <if test="id != null" >
-        #{id,jdbcType=VARCHAR},
-      </if>
-      <if test="password != null" >
-        #{password,jdbcType=VARCHAR},
-      </if>
-      <if test="plugunPackageId != null" >
+        created_time, pre_version, updated_time
+    </sql>
+    <select id="selectByPrimaryKey" resultMap="BaseResultMap"
+        parameterType="java.lang.String">
+        select
+        <include refid="Base_Column_List" />
+        from plugin_mysql_instances
+        where id = #{id,jdbcType=VARCHAR}
+    </select>
+    <delete id="deleteByPrimaryKey" parameterType="java.lang.String">
+        delete from plugin_mysql_instances
+        where id = #{id,jdbcType=VARCHAR}
+    </delete>
+    <insert id="insert"
+        parameterType="com.webank.wecube.platform.core.entity.plugin.PluginMysqlInstances">
+        insert into plugin_mysql_instances (id, password,
+        plugun_package_id,
+        resource_item_id, schema_name, status,
+        username, created_time, pre_version,
+        updated_time)
+        values (#{id,jdbcType=VARCHAR}, #{password,jdbcType=VARCHAR},
         #{plugunPackageId,jdbcType=VARCHAR},
-      </if>
-      <if test="resourceItemId != null" >
         #{resourceItemId,jdbcType=VARCHAR},
-      </if>
-      <if test="schemaName != null" >
-        #{schemaName,jdbcType=VARCHAR},
-      </if>
-      <if test="status != null" >
-        #{status,jdbcType=VARCHAR},
-      </if>
-      <if test="username != null" >
-        #{username,jdbcType=VARCHAR},
-      </if>
-      <if test="createdTime != null" >
-        #{createdTime,jdbcType=TIMESTAMP},
-      </if>
-      <if test="preVersion != null" >
+        #{schemaName,jdbcType=VARCHAR}, #{status,jdbcType=VARCHAR},
+        #{username,jdbcType=VARCHAR}, #{createdTime,jdbcType=TIMESTAMP},
         #{preVersion,jdbcType=VARCHAR},
-      </if>
-      <if test="updatedTime != null" >
-        #{updatedTime,jdbcType=TIMESTAMP},
-      </if>
-    </trim>
-  </insert>
-  <update id="updateByPrimaryKeySelective" parameterType="com.webank.wecube.platform.core.entity.plugin.PluginMysqlInstances" >
-    update plugin_mysql_instances
-    <set >
-      <if test="password != null" >
-        password = #{password,jdbcType=VARCHAR},
-      </if>
-      <if test="plugunPackageId != null" >
+        #{updatedTime,jdbcType=TIMESTAMP})
+    </insert>
+    <insert id="insertSelective"
+        parameterType="com.webank.wecube.platform.core.entity.plugin.PluginMysqlInstances">
+        insert into plugin_mysql_instances
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="id != null">
+                id,
+            </if>
+            <if test="password != null">
+                password,
+            </if>
+            <if test="plugunPackageId != null">
+                plugun_package_id,
+            </if>
+            <if test="resourceItemId != null">
+                resource_item_id,
+            </if>
+            <if test="schemaName != null">
+                schema_name,
+            </if>
+            <if test="status != null">
+                status,
+            </if>
+            <if test="username != null">
+                username,
+            </if>
+            <if test="createdTime != null">
+                created_time,
+            </if>
+            <if test="preVersion != null">
+                pre_version,
+            </if>
+            <if test="updatedTime != null">
+                updated_time,
+            </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="id != null">
+                #{id,jdbcType=VARCHAR},
+            </if>
+            <if test="password != null">
+                #{password,jdbcType=VARCHAR},
+            </if>
+            <if test="plugunPackageId != null">
+                #{plugunPackageId,jdbcType=VARCHAR},
+            </if>
+            <if test="resourceItemId != null">
+                #{resourceItemId,jdbcType=VARCHAR},
+            </if>
+            <if test="schemaName != null">
+                #{schemaName,jdbcType=VARCHAR},
+            </if>
+            <if test="status != null">
+                #{status,jdbcType=VARCHAR},
+            </if>
+            <if test="username != null">
+                #{username,jdbcType=VARCHAR},
+            </if>
+            <if test="createdTime != null">
+                #{createdTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="preVersion != null">
+                #{preVersion,jdbcType=VARCHAR},
+            </if>
+            <if test="updatedTime != null">
+                #{updatedTime,jdbcType=TIMESTAMP},
+            </if>
+        </trim>
+    </insert>
+    <update id="updateByPrimaryKeySelective"
+        parameterType="com.webank.wecube.platform.core.entity.plugin.PluginMysqlInstances">
+        update plugin_mysql_instances
+        <set>
+            <if test="password != null">
+                password = #{password,jdbcType=VARCHAR},
+            </if>
+            <if test="plugunPackageId != null">
+                plugun_package_id = #{plugunPackageId,jdbcType=VARCHAR},
+            </if>
+            <if test="resourceItemId != null">
+                resource_item_id = #{resourceItemId,jdbcType=VARCHAR},
+            </if>
+            <if test="schemaName != null">
+                schema_name = #{schemaName,jdbcType=VARCHAR},
+            </if>
+            <if test="status != null">
+                status = #{status,jdbcType=VARCHAR},
+            </if>
+            <if test="username != null">
+                username = #{username,jdbcType=VARCHAR},
+            </if>
+            <if test="createdTime != null">
+                created_time = #{createdTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="preVersion != null">
+                pre_version = #{preVersion,jdbcType=VARCHAR},
+            </if>
+            <if test="updatedTime != null">
+                updated_time = #{updatedTime,jdbcType=TIMESTAMP},
+            </if>
+        </set>
+        where id = #{id,jdbcType=VARCHAR}
+    </update>
+    <update id="updateByPrimaryKey"
+        parameterType="com.webank.wecube.platform.core.entity.plugin.PluginMysqlInstances">
+        update plugin_mysql_instances
+        set password = #{password,jdbcType=VARCHAR},
         plugun_package_id = #{plugunPackageId,jdbcType=VARCHAR},
-      </if>
-      <if test="resourceItemId != null" >
         resource_item_id = #{resourceItemId,jdbcType=VARCHAR},
-      </if>
-      <if test="schemaName != null" >
         schema_name = #{schemaName,jdbcType=VARCHAR},
-      </if>
-      <if test="status != null" >
         status = #{status,jdbcType=VARCHAR},
-      </if>
-      <if test="username != null" >
         username = #{username,jdbcType=VARCHAR},
-      </if>
-      <if test="createdTime != null" >
         created_time = #{createdTime,jdbcType=TIMESTAMP},
-      </if>
-      <if test="preVersion != null" >
         pre_version = #{preVersion,jdbcType=VARCHAR},
-      </if>
-      <if test="updatedTime != null" >
-        updated_time = #{updatedTime,jdbcType=TIMESTAMP},
-      </if>
-    </set>
-    where id = #{id,jdbcType=VARCHAR}
-  </update>
-  <update id="updateByPrimaryKey" parameterType="com.webank.wecube.platform.core.entity.plugin.PluginMysqlInstances" >
-    update plugin_mysql_instances
-    set password = #{password,jdbcType=VARCHAR},
-      plugun_package_id = #{plugunPackageId,jdbcType=VARCHAR},
-      resource_item_id = #{resourceItemId,jdbcType=VARCHAR},
-      schema_name = #{schemaName,jdbcType=VARCHAR},
-      status = #{status,jdbcType=VARCHAR},
-      username = #{username,jdbcType=VARCHAR},
-      created_time = #{createdTime,jdbcType=TIMESTAMP},
-      pre_version = #{preVersion,jdbcType=VARCHAR},
-      updated_time = #{updatedTime,jdbcType=TIMESTAMP}
-    where id = #{id,jdbcType=VARCHAR}
-  </update>
+        updated_time = #{updatedTime,jdbcType=TIMESTAMP}
+        where id = #{id,jdbcType=VARCHAR}
+    </update>
+    
+    <select id="selectAllByPackageNameAndStatus" resultMap="BaseResultMap"
+        parameterType="java.lang.String">
+        select
+        t1.id, t1.password, t1.plugun_package_id, t1.resource_item_id, t1.schema_name, t1.status,
+        t1.username,
+        t1.created_time, t1.pre_version, t1.updated_time
+        from plugin_mysql_instances t1, plugin_packages t2
+        where t1.plugun_package_id = t2.id
+        and
+        t2.name = #{packageName,jdbcType=VARCHAR}
+        and t1.status = #{status,jdbcType=VARCHAR}
+    </select>
 </mapper>
