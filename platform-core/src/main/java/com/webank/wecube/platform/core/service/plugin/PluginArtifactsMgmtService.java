@@ -43,9 +43,14 @@ import com.webank.wecube.platform.core.entity.plugin.PluginArtifactPullReq;
 import com.webank.wecube.platform.core.entity.plugin.PluginConfigRoles;
 import com.webank.wecube.platform.core.entity.plugin.PluginConfigs;
 import com.webank.wecube.platform.core.entity.plugin.PluginPackageAttributes;
+import com.webank.wecube.platform.core.entity.plugin.PluginPackageAuthorities;
 import com.webank.wecube.platform.core.entity.plugin.PluginPackageDataModel;
+import com.webank.wecube.platform.core.entity.plugin.PluginPackageDependencies;
 import com.webank.wecube.platform.core.entity.plugin.PluginPackageEntities;
 import com.webank.wecube.platform.core.entity.plugin.PluginPackageResourceFiles;
+import com.webank.wecube.platform.core.entity.plugin.PluginPackageRuntimeResourcesDocker;
+import com.webank.wecube.platform.core.entity.plugin.PluginPackageRuntimeResourcesMysql;
+import com.webank.wecube.platform.core.entity.plugin.PluginPackageRuntimeResourcesS3;
 import com.webank.wecube.platform.core.entity.plugin.PluginPackages;
 import com.webank.wecube.platform.core.entity.plugin.SystemVariables;
 import com.webank.wecube.platform.core.parser.PluginConfigXmlValidator;
@@ -55,21 +60,36 @@ import com.webank.wecube.platform.core.repository.plugin.PluginArtifactPullReqMa
 import com.webank.wecube.platform.core.repository.plugin.PluginConfigRolesMapper;
 import com.webank.wecube.platform.core.repository.plugin.PluginConfigsMapper;
 import com.webank.wecube.platform.core.repository.plugin.PluginPackageAttributesMapper;
+import com.webank.wecube.platform.core.repository.plugin.PluginPackageAuthoritiesMapper;
 import com.webank.wecube.platform.core.repository.plugin.PluginPackageDataModelMapper;
+import com.webank.wecube.platform.core.repository.plugin.PluginPackageDependenciesMapper;
 import com.webank.wecube.platform.core.repository.plugin.PluginPackageEntitiesMapper;
 import com.webank.wecube.platform.core.repository.plugin.PluginPackageResourceFilesMapper;
+import com.webank.wecube.platform.core.repository.plugin.PluginPackageRuntimeResourcesDockerMapper;
+import com.webank.wecube.platform.core.repository.plugin.PluginPackageRuntimeResourcesMysqlMapper;
+import com.webank.wecube.platform.core.repository.plugin.PluginPackageRuntimeResourcesS3Mapper;
 import com.webank.wecube.platform.core.repository.plugin.PluginPackagesMapper;
 import com.webank.wecube.platform.core.repository.plugin.SystemVariablesMapper;
 import com.webank.wecube.platform.core.service.plugin.PluginArtifactOperationExecutor.PluginArtifactPullContext;
 import com.webank.wecube.platform.core.service.plugin.xml.register.AttributeType;
+import com.webank.wecube.platform.core.service.plugin.xml.register.AuthoritiesType;
+import com.webank.wecube.platform.core.service.plugin.xml.register.AuthorityType;
 import com.webank.wecube.platform.core.service.plugin.xml.register.DataModelType;
+import com.webank.wecube.platform.core.service.plugin.xml.register.DockerType;
 import com.webank.wecube.platform.core.service.plugin.xml.register.EntityType;
 import com.webank.wecube.platform.core.service.plugin.xml.register.InterfaceType;
+import com.webank.wecube.platform.core.service.plugin.xml.register.MenuType;
+import com.webank.wecube.platform.core.service.plugin.xml.register.MenusType;
+import com.webank.wecube.platform.core.service.plugin.xml.register.MysqlType;
+import com.webank.wecube.platform.core.service.plugin.xml.register.PackageDependenciesType;
+import com.webank.wecube.platform.core.service.plugin.xml.register.PackageDependencyType;
 import com.webank.wecube.platform.core.service.plugin.xml.register.PackageType;
 import com.webank.wecube.platform.core.service.plugin.xml.register.PluginType;
 import com.webank.wecube.platform.core.service.plugin.xml.register.PluginsType;
+import com.webank.wecube.platform.core.service.plugin.xml.register.ResourceDependenciesType;
 import com.webank.wecube.platform.core.service.plugin.xml.register.RoleBindType;
 import com.webank.wecube.platform.core.service.plugin.xml.register.RoleBindsType;
+import com.webank.wecube.platform.core.service.plugin.xml.register.S3Type;
 import com.webank.wecube.platform.core.service.plugin.xml.register.SystemParameterType;
 import com.webank.wecube.platform.core.service.plugin.xml.register.SystemParametersType;
 import com.webank.wecube.platform.core.service.user.UserManagementService;
@@ -128,8 +148,25 @@ public class PluginArtifactsMgmtService extends AbstractPluginMgmtService {
     private PluginPackageResourceFilesMapper pluginPackageResourceFilesMapper;
 
     @Autowired
+    private PluginPackageDependenciesMapper pluginPackageDependenciesMapper;
+
+    @Autowired
+    private PluginPackageAuthoritiesMapper pluginPackageAuthoritiesMapper;
+    @Autowired
+    private PluginPackageRuntimeResourcesDockerMapper pluginPackageRuntimeResourcesDockerMapper;
+    @Autowired
+    private PluginPackageRuntimeResourcesMysqlMapper pluginPackageRuntimeResourcesMysqlMapper;
+    @Autowired
+    private PluginPackageRuntimeResourcesS3Mapper pluginPackageRuntimeResourcesS3Mapper;
+
+    @Autowired
     private UserManagementService userManagementService;
 
+    /**
+     * 
+     * @param ctx
+     * @throws Exception
+     */
     public void pullPluginArtifact(PluginArtifactPullContext ctx) throws Exception {
 
         PluginArtifactPullReq reqEntity = getPluginArtifactPullRequestEntity(ctx);
@@ -174,6 +211,10 @@ public class PluginArtifactsMgmtService extends AbstractPluginMgmtService {
         pluginArtifactPullReqMapper.updateByPrimaryKeySelective(reqEntity);
     }
 
+    /**
+     * 
+     * @return
+     */
     public List<S3PluginActifactDto> listS3PluginActifacts() {
         String releaseFileUrl = getGlobalSystemVariableByName(SYS_VAR_PUBLIC_PLUGIN_ARTIFACTS_RELEASE_URL);
 
@@ -191,6 +232,11 @@ public class PluginArtifactsMgmtService extends AbstractPluginMgmtService {
         }
     }
 
+    /**
+     * 
+     * @param pullRequestDto
+     * @return
+     */
     public S3PluginActifactPullRequestDto createS3PluginActifactPullRequest(S3PluginActifactDto pullRequestDto) {
         if (pullRequestDto == null) {
             throw new WecubeCoreException("3095", "Illegal argument.");
@@ -232,6 +278,11 @@ public class PluginArtifactsMgmtService extends AbstractPluginMgmtService {
         return buildS3PluginActifactPullRequestDto(entity);
     }
 
+    /**
+     * 
+     * @param requestId
+     * @return
+     */
     public S3PluginActifactPullRequestDto queryS3PluginActifactPullRequest(String requestId) {
         if (StringUtils.isBlank(requestId)) {
             throw new WecubeCoreException("3295", "Request ID cannot be null.");
@@ -246,6 +297,11 @@ public class PluginArtifactsMgmtService extends AbstractPluginMgmtService {
         return buildS3PluginActifactPullRequestDto(reqEntity);
     }
 
+    /**
+     * 
+     * @param ctx
+     * @param e
+     */
     public void handlePullPluginArtifactFailure(PluginArtifactPullContext ctx, Exception e) {
         PluginArtifactPullReq reqEntity = pluginArtifactPullReqMapper.selectByPrimaryKey(ctx.getRequestId());
         if (reqEntity == null) {
@@ -265,6 +321,11 @@ public class PluginArtifactsMgmtService extends AbstractPluginMgmtService {
         pluginArtifactPullReqMapper.updateByPrimaryKeySelective(reqEntity);
     }
 
+    /**
+     * 
+     * @param pluginPackageFile
+     * @return
+     */
     public UploadPackageResultDto uploadPackage(MultipartFile pluginPackageFile) {
         String pluginPackageFileName = pluginPackageFile.getName();
 
@@ -276,9 +337,8 @@ public class PluginArtifactsMgmtService extends AbstractPluginMgmtService {
             if (localFilePath.mkdirs()) {
                 log.info("Create directory [{}] successful", localFilePath.getAbsolutePath());
             } else {
-                throw new WecubeCoreException("3099",
-                        String.format("Create directory [%s] failed.", localFilePath.getAbsolutePath()),
-                        localFilePath.getAbsolutePath());
+                String errMsg = String.format("Create directory [%s] failed.", localFilePath.getAbsolutePath());
+                throw new WecubeCoreException("3099", errMsg, localFilePath.getAbsolutePath());
             }
         }
 
@@ -306,6 +366,14 @@ public class PluginArtifactsMgmtService extends AbstractPluginMgmtService {
         return result;
     }
 
+    /**
+     * 
+     * @param dest
+     * @param localFilePath
+     * @return
+     * @throws IOException
+     * @throws SAXException
+     */
     public UploadPackageResultDto parsePackageFile(File dest, File localFilePath) throws IOException, SAXException {
         // 2. unzip local package file
         unzipLocalFile(dest.getCanonicalPath(), localFilePath.getCanonicalPath() + "/");
@@ -313,8 +381,9 @@ public class PluginArtifactsMgmtService extends AbstractPluginMgmtService {
         // 3. read xml file in plugin package
         File registerXmlFile = new File(localFilePath.getCanonicalPath() + "/" + pluginProperties.getRegisterFile());
         if (!registerXmlFile.exists()) {
-            throw new WecubeCoreException("3114", String.format("Plugin package definition file: [%s] does not exist.",
-                    pluginProperties.getRegisterFile()), pluginProperties.getRegisterFile());
+            String errMsg = String.format("Plugin package definition file: [%s] does not exist.",
+                    pluginProperties.getRegisterFile());
+            throw new WecubeCoreException("3114", errMsg, pluginProperties.getRegisterFile());
         }
 
         FileInputStream registerXmlFileFis = null;
@@ -339,8 +408,9 @@ public class PluginArtifactsMgmtService extends AbstractPluginMgmtService {
         dataModelValidator.validateDataModel(xmlPackage.getDataModel());
 
         if (isPluginPackageExists(xmlPackage.getName(), xmlPackage.getVersion())) {
-            throw new WecubeCoreException("3115", String.format("Plugin package [name=%s, version=%s] exists.",
-                    xmlPackage.getName(), xmlPackage.getVersion()), xmlPackage.getName(), xmlPackage.getVersion());
+            String errMsg = String.format("Plugin package [name=%s, version=%s] exists.", xmlPackage.getName(),
+                    xmlPackage.getVersion());
+            throw new WecubeCoreException("3115", errMsg, xmlPackage.getName(), xmlPackage.getVersion());
         }
 
         processPluginDockerImageFile(localFilePath, xmlPackage);
@@ -366,6 +436,11 @@ public class PluginArtifactsMgmtService extends AbstractPluginMgmtService {
         processPluginConfigs(xmlPackage.getPlugins(), xmlPackage, pluginPackageEntity);
 
         processSystemVaraibles(xmlPackage.getSystemParameters(), xmlPackage, pluginPackageEntity);
+        processPackageDependencies(xmlPackage.getPackageDependencies(), xmlPackage, pluginPackageEntity);
+
+        processMenus(xmlPackage.getMenus(), xmlPackage, pluginPackageEntity);
+        processAuthorities(xmlPackage.getAuthorities(), xmlPackage, pluginPackageEntity);
+        processResourceDependencies(xmlPackage.getResourceDependencies(), xmlPackage, pluginPackageEntity);
 
         processDataModels(xmlPackage.getDataModel(), xmlPackage, pluginPackageEntity);
 
@@ -377,6 +452,124 @@ public class PluginArtifactsMgmtService extends AbstractPluginMgmtService {
         result.setUiPackageIncluded(pluginPackageEntity.getUiPackageIncluded());
 
         return result;
+    }
+
+    private void processPackageDependencies(PackageDependenciesType xmlPackageDependenciesType, PackageType xmlPackage,
+            PluginPackages pluginPackageEntity) {
+        if (xmlPackageDependenciesType == null) {
+            log.info("There is not package dependency defined.");
+            return;
+        }
+
+        List<PackageDependencyType> xmlPackageDependencyList = xmlPackageDependenciesType.getPackageDependency();
+
+        if (xmlPackageDependencyList == null || xmlPackageDependencyList.isEmpty()) {
+            return;
+        }
+
+        for (PackageDependencyType xmlDependency : xmlPackageDependencyList) {
+            PluginPackageDependencies dependencyEntity = new PluginPackageDependencies();
+            dependencyEntity.setId(LocalIdGenerator.generateId());
+            dependencyEntity.setPluginPackageId(pluginPackageEntity.getId());
+            dependencyEntity.setDependencyPackageName(xmlDependency.getName());
+            dependencyEntity.setDependencyPackageVersion(xmlDependency.getVersion());
+
+            dependencyEntity.setPluginPackage(pluginPackageEntity);
+            pluginPackageDependenciesMapper.insert(dependencyEntity);
+
+            pluginPackageEntity.getPluginPackageDependencies().add(dependencyEntity);
+        }
+    }
+
+    private void processMenus(MenusType xmlMenusType, PackageType xmlPackage, PluginPackages pluginPackageEntity) {
+        // TODO
+    }
+
+    private void processAuthorities(AuthoritiesType xmlAuthoritiesType, PackageType xmlPackage,
+            PluginPackages pluginPackageEntity) {
+        if (xmlAuthoritiesType == null) {
+            return;
+        }
+
+        List<AuthorityType> xmlAuthorityList = xmlAuthoritiesType.getAuthority();
+        if (xmlAuthorityList == null || xmlAuthorityList.isEmpty()) {
+            return;
+        }
+
+        for (AuthorityType xmlAuthortity : xmlAuthorityList) {
+            String xmlSystemRoleName = xmlAuthortity.getSystemRoleName();
+            List<MenuType> xmlMenuList = xmlAuthortity.getMenu();
+            if (xmlMenuList == null || xmlMenuList.isEmpty()) {
+                continue;
+            }
+
+            for (MenuType xmlMenu : xmlMenuList) {
+                PluginPackageAuthorities authEntity = new PluginPackageAuthorities();
+                authEntity.setId(LocalIdGenerator.generateId());
+                authEntity.setMenuCode(xmlMenu.getCode());
+                authEntity.setPluginPackageId(pluginPackageEntity.getId());
+                authEntity.setPluginPackge(pluginPackageEntity);
+                authEntity.setRoleName(xmlSystemRoleName);
+
+                pluginPackageAuthoritiesMapper.insert(authEntity);
+            }
+
+        }
+    }
+
+    private void processResourceDependencies(ResourceDependenciesType xmlResourceDependenciesType,
+            PackageType xmlPackage, PluginPackages pluginPackageEntity) {
+        if(xmlResourceDependenciesType == null ){
+            return;
+        }
+        
+        List<DockerType> xmlDockerList = xmlResourceDependenciesType.getDocker();
+        if(xmlDockerList != null){
+            for(DockerType xmlDocker : xmlDockerList){
+                PluginPackageRuntimeResourcesDocker dockerEntity = new PluginPackageRuntimeResourcesDocker();
+                dockerEntity.setId(LocalIdGenerator.generateId());
+                dockerEntity.setContainerName(xmlDocker.getContainerName());
+                dockerEntity.setEnvVariables(xmlDocker.getEnvVariables());
+                dockerEntity.setImageName(xmlDocker.getImageName());
+                dockerEntity.setPluginPackageId(pluginPackageEntity.getId());
+                dockerEntity.setPortBindings(xmlDocker.getPortBindings());
+                dockerEntity.setVolumeBindings(xmlDocker.getVolumeBindings());
+                
+                pluginPackageRuntimeResourcesDockerMapper.insert(dockerEntity);
+                
+                pluginPackageEntity.getDockers().add(dockerEntity);
+            }
+        }
+        
+        List<MysqlType> xmlMysqlList = xmlResourceDependenciesType.getMysql();
+        if(xmlMysqlList != null){
+            for(MysqlType xmlMysql : xmlMysqlList){
+                PluginPackageRuntimeResourcesMysql mysqlEntity = new PluginPackageRuntimeResourcesMysql();
+                mysqlEntity.setId(LocalIdGenerator.generateId());
+                mysqlEntity.setInitFileName(xmlMysql.getInitFileName());
+                mysqlEntity.setPluginPackageId(pluginPackageEntity.getId());
+                mysqlEntity.setSchemaName(xmlMysql.getSchema());
+                mysqlEntity.setUpgradeFileName(xmlMysql.getUpgradeFileName());
+                
+                pluginPackageRuntimeResourcesMysqlMapper.insert(mysqlEntity);
+                
+                pluginPackageEntity.getMysqls().add(mysqlEntity);
+            }
+        }
+        
+        List<S3Type> xmlS3List = xmlResourceDependenciesType.getS3();
+        if(xmlS3List != null){
+            for(S3Type xmlS3 : xmlS3List){
+                PluginPackageRuntimeResourcesS3 s3Entity = new PluginPackageRuntimeResourcesS3();
+                s3Entity.setId(LocalIdGenerator.generateId());
+                s3Entity.setPluginPackageId(pluginPackageEntity.getId());
+                s3Entity.setBucketName(xmlS3.getBucketName());
+                
+                pluginPackageRuntimeResourcesS3Mapper.insert(s3Entity);
+                
+                pluginPackageEntity.getS3s().add(s3Entity);
+            }
+        }
     }
 
     private void trySavePluginPackageResourceFiles(
