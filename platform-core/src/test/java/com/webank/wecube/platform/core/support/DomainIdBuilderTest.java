@@ -1,8 +1,8 @@
 package com.webank.wecube.platform.core.support;
 
 import com.webank.wecube.platform.core.domain.MenuItem;
-import com.webank.wecube.platform.core.domain.ResourceItem;
-import com.webank.wecube.platform.core.domain.ResourceServerDomain;
+//import com.webank.wecube.platform.core.domain.ResourceItem;
+//import com.webank.wecube.platform.core.domain.ResourceServerDomain;
 import com.webank.wecube.platform.core.domain.SystemVariable;
 import com.webank.wecube.platform.core.domain.plugin.*;
 import com.webank.wecube.platform.core.dto.PluginPackageDataModelDto;
@@ -144,14 +144,6 @@ public class DomainIdBuilderTest {
     }
 
     @Test
-    public void givenPluginMysqlInstanceWhenBuildIdThenReturnCorrectId() {
-        pluginPackage.initId();
-        PluginMysqlInstance domain = new PluginMysqlInstance("service_mgmt", "service-mgmt__v1.8.2__service_mgmt__service_mgmt__service_mgmt__mysql_database", "service_mgmt", "woszHUwVEmYQF7qYCpYm5xsUF6hh02IWInyBHxtgn1A=", PluginMysqlInstance.MYSQL_INSTANCE_STATUS_ACTIVE, pluginPackage);
-        String expectedId = "service-management__v1.0__service_mgmt__service_mgmt";
-        assertThat(DomainIdBuilder.buildDomainId(domain)).isEqualTo(expectedId);
-    }
-
-    @Test
     public void givenMenuItemWhenBuildIdThenReturnCorrectId() {
         MenuItem rootMenu = new MenuItem("IMPLEMENTATION_WORKFLOW_EXECUTION", "IMPLEMENTATION", "Workflow Execution");
         String expectedRootMenuId = "IMPLEMENTATION__IMPLEMENTATION_WORKFLOW_EXECUTION";
@@ -162,22 +154,5 @@ public class DomainIdBuilderTest {
         assertThat(DomainIdBuilder.buildDomainId(childMenu)).isEqualTo(expectedChildMenuId);
     }
 
-    @Test
-    public void givenResourceServerWhenBuildIdThenReturnCorrectId() {
-        ResourceServerDomain domain = new ResourceServerDomain(null, "containerHost", "127.0.0.1", "22", "root", "FBzGPMbCod8MXqoghHhOkA==", "docker", 1, "docker", "active", null, "Ben", null, null, null);
-        String expectedId = "127.0.0.1__docker__containerHost";
-        assertThat(DomainIdBuilder.buildDomainId(domain)).isEqualTo(expectedId);
-    }
-
-    @Test
-    public void givenResourceItemWhenBuildIdThenReturnCorrectId() {
-        ResourceServerDomain resourceServer = new ResourceServerDomain(null, "containerHost", "127.0.0.1", "22", "root", "FBzGPMbCod8MXqoghHhOkA==", "docker", 1, "docker", "active", null, "Ben", null, null, null);
-        resourceServer.initId();
-        ResourceItem domain = new ResourceItem(null, "service-mgmt-v1.8.4", "docker_container", "{\"volumeBindings\":\"/data/service-mgmt/log:/log\",\"imageName\":\"service-mgmt:v1.8.4\",\"portBindings\":\"20005:21000\",\"envVariables\":\"DB_HOST=127.0.0.1,DB_PORT=3306,DB_SCHEMA=service_mgmt,DB_USER=service_mgmt,DB_PWD=3284e2195ba5f03a,CORE_ADDR=http://111.230.161.237:19090/platform\",\"containerId\":\"4d660434213eb0e6f521416a557f8045e8337088838ecfa5aaeff40e0bf423d1\"}",
-                "127.0.0.1__docker__containerHost", resourceServer, 1, "Create docker instance for plugin[service-mgmt]", "active", "Ben", null, null, null);
-
-        String expectedRootMenuId = "127.0.0.1__docker__containerHost__docker_container__service-mgmt-v1.8.4";
-        assertThat(DomainIdBuilder.buildDomainId(domain)).isEqualTo(expectedRootMenuId);
-    }
 
 }

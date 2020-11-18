@@ -48,7 +48,6 @@ import com.webank.wecube.platform.core.jpa.PluginConfigInterfaceRepository;
 import com.webank.wecube.platform.core.service.dme.EntityOperationRootCondition;
 import com.webank.wecube.platform.core.service.dme.StandardEntityOperationService;
 import com.webank.wecube.platform.core.service.plugin.PluginInstanceMgmtService;
-import com.webank.wecube.platform.core.service.plugin.PluginInstanceService;
 import com.webank.wecube.platform.core.service.workflow.SimpleEncryptionService;
 import com.webank.wecube.platform.core.support.plugin.PluginServiceStub;
 import com.webank.wecube.platform.core.support.plugin.dto.PluginResponse.ResultData;
@@ -63,9 +62,6 @@ public class BatchExecutionService {
     @Autowired
     private PluginServiceStub pluginServiceStub;
 
-    @Autowired
-    protected PluginInstanceService pluginInstanceService;
-    
     @Autowired
     protected PluginInstanceMgmtService pluginInstanceMgmtService;
 

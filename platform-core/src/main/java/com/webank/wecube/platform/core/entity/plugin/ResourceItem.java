@@ -32,6 +32,8 @@ public class ResourceItem {
     private String updatedBy;
 
     private Date updatedDate;
+    
+    private transient ResourceServer resourceServer;
 
     public String getId() {
         return id;
@@ -144,4 +146,14 @@ public class ResourceItem {
             throw new WecubeCoreException(String.format("Failed to parse resource_item.additional_properties [%s] : Invalid json format.", additionalProperties), e);
         }
     }
+
+    public ResourceServer getResourceServer() {
+        return resourceServer;
+    }
+
+    public void setResourceServer(ResourceServer resourceServer) {
+        this.resourceServer = resourceServer;
+    }
+    
+    
 }

@@ -17,7 +17,6 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -35,18 +34,19 @@ import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.webank.wecube.platform.core.commons.ApplicationProperties.ResourceProperties;
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
-import com.webank.wecube.platform.core.domain.ResourceItem;
-import com.webank.wecube.platform.core.domain.ResourceServerDomain;
-import com.webank.wecube.platform.core.domain.plugin.PluginInstance;
-import com.webank.wecube.platform.core.domain.plugin.PluginMysqlInstance;
-import com.webank.wecube.platform.core.domain.plugin.PluginPackage;
 import com.webank.wecube.platform.core.dto.PageInfo;
 import com.webank.wecube.platform.core.dto.QueryResponse;
 import com.webank.wecube.platform.core.dto.SqlQueryRequest;
-import com.webank.wecube.platform.core.jpa.PluginInstanceRepository;
-import com.webank.wecube.platform.core.jpa.PluginMysqlInstanceRepository;
-import com.webank.wecube.platform.core.jpa.PluginPackageRepository;
-import com.webank.wecube.platform.core.jpa.ResourceItemRepository;
+import com.webank.wecube.platform.core.entity.plugin.PluginInstances;
+import com.webank.wecube.platform.core.entity.plugin.PluginMysqlInstances;
+import com.webank.wecube.platform.core.entity.plugin.PluginPackages;
+import com.webank.wecube.platform.core.entity.plugin.ResourceItem;
+import com.webank.wecube.platform.core.entity.plugin.ResourceServer;
+import com.webank.wecube.platform.core.repository.plugin.PluginInstancesMapper;
+import com.webank.wecube.platform.core.repository.plugin.PluginMysqlInstancesMapper;
+import com.webank.wecube.platform.core.repository.plugin.PluginPackagesMapper;
+import com.webank.wecube.platform.core.repository.plugin.ResourceItemMapper;
+import com.webank.wecube.platform.core.repository.plugin.ResourceServerMapper;
 import com.webank.wecube.platform.core.support.S3Client;
 import com.webank.wecube.platform.core.utils.EncryptionUtils;
 
@@ -59,9 +59,15 @@ public class ResourceDataQueryService {
     private static final String[] JDBC_METADATA_TABLE_TYPES = { "TABLE" };
 
     @Autowired
-    private PluginMysqlInstanceRepository pluginMysqlInstanceRepository;
+    private PluginMysqlInstancesMapper pluginMysqlInstancesMapper;
     @Autowired
-    private PluginPackageRepository pluginPackageRepository;
+    private PluginPackagesMapper pluginPackagesMapper;
+    @Autowired
+    private PluginInstancesMapper pluginInstancesMapper;
+    @Autowired
+    private ResourceItemMapper resourceItemMapper;
+    @Autowired
+    private ResourceServerMapper resourceServerMapper;
     @Autowired
     private ResourceProperties resourceProperties;
     @Autowired
@@ -69,11 +75,6 @@ public class ResourceDataQueryService {
 
     @Autowired
     private S3Client s3client;
-
-    @Autowired
-    private PluginInstanceRepository pluginInstanceRepository;
-    @Autowired
-    private ResourceItemRepository resourceItemRepository;
 
     public QueryResponse<List<String>> queryDB(String packageId, SqlQueryRequest sqlQueryRequest) {
         DataSource dataSource = getDataSource(packageId);
@@ -278,38 +279,39 @@ public class ResourceDataQueryService {
     }
 
     private DataSource getDataSource(String packageId) {
-        Optional<PluginPackage> pluginPackageOpt = pluginPackageRepository.findById(packageId);
-        if (!pluginPackageOpt.isPresent()) {
-            throw new WecubeCoreException("3012",
-                    String.format("Can not find out PluginPackage for package id:%s", packageId));
+        PluginPackages pluginPackage = pluginPackagesMapper.selectByPrimaryKey(packageId);
+        if (pluginPackage == null) {
+            String errMsg = String.format("Can not find out PluginPackage for package id:%s", packageId);
+            throw new WecubeCoreException("3012", errMsg, packageId);
         }
 
-        PluginMysqlInstance pluginMysqlInstance = pluginMysqlInstanceRepository
-                .findByPluginPackage_name(pluginPackageOpt.get().getName());
-        if (pluginMysqlInstance == null) {
-            throw new WecubeCoreException("3013",
-                    String.format("Can not find out PluginMysqlInstance for package name:%s",
-                            pluginPackageOpt.get().getName()),
-                    pluginPackageOpt.get().getName());
+        List<PluginMysqlInstances> pluginMysqlInstances = pluginMysqlInstancesMapper.selectAllByPackageNameAndStatus(
+                pluginPackage.getName(), PluginMysqlInstances.MYSQL_INSTANCE_STATUS_ACTIVE);
+
+        if (pluginMysqlInstances == null || pluginMysqlInstances.isEmpty()) {
+            String errMsg = String.format("Can not find out PluginMysqlInstance for package name:%s",
+                    pluginPackage.getName());
+            throw new WecubeCoreException("3013", errMsg, pluginPackage.getName());
         }
+
+        PluginMysqlInstances pluginMysqlInstance = pluginMysqlInstances.get(0);
 
         String dbUsername = pluginMysqlInstance.getUsername();
         String password = pluginMysqlInstance.getPassword();
         if (password.startsWith(ResourceManagementService.PASSWORD_ENCRYPT_AES_PREFIX)) {
             password = password.substring(ResourceManagementService.PASSWORD_ENCRYPT_AES_PREFIX.length());
         }
-        
-        password = EncryptionUtils.decryptWithAes(
-                password,
-                resourceProperties.getPasswordEncryptionSeed(), dbUsername);
 
-        ResourceItem resourceItem = pluginMysqlInstance.getResourceItem();
+        password = EncryptionUtils.decryptWithAes(password, resourceProperties.getPasswordEncryptionSeed(), dbUsername);
+
+        ResourceItem resourceItem = resourceItemMapper.selectByPrimaryKey(pluginMysqlInstance.getResourceItemId());
         if (resourceItem == null) {
             throw new WecubeCoreException("3014",
                     String.format("Can not find out ResourceItem for packageId:%s", packageId), packageId);
         }
 
-        ResourceServerDomain resourceServer = resourceItem.getResourceServer();
+        
+        ResourceServer resourceServer = resourceServerMapper.selectByPrimaryKey(resourceItem.getResourceServerId());
         if (resourceServer == null) {
             throw new WecubeCoreException("3015",
                     String.format("Can not find out mysql ResourceServer for packageId:%s", packageId), packageId);
@@ -322,21 +324,21 @@ public class ResourceDataQueryService {
     }
 
     public List<List<String>> queryS3Files(String packageId) {
-        List<PluginInstance> pluginInstances = pluginInstanceRepository.findByPluginPackage_Id(packageId);
-        if (pluginInstances == null || pluginInstances.size() == 0) {
+        List<PluginInstances> pluginInstances = pluginInstancesMapper.selectAllByPluginPackage(packageId);
+        if (pluginInstances == null || pluginInstances.isEmpty()) {
             logger.info("Can not find out plugin instance for packageId:{}", packageId);
             return Lists.newArrayList();
         }
 
         String bucketName = null;
-        for (PluginInstance ps : pluginInstances) {
-            if (ps.getS3BucketResourceId() == null) {
+        for (PluginInstances ps : pluginInstances) {
+            if (StringUtils.isBlank(ps.getS3bucketResourceId())) {
                 continue;
             }
 
-            Optional<ResourceItem> item = resourceItemRepository.findById(ps.getS3BucketResourceId());
-            if (item.isPresent()) {
-                bucketName = item.get().getName();
+            ResourceItem item = resourceItemMapper.selectByPrimaryKey(ps.getS3bucketResourceId());
+            if (item != null) {
+                bucketName = item.getName();
                 break;
             }
         }
