@@ -28,4 +28,11 @@ public interface ResourceServerMapper {
      * @return
      */
     List<ResourceServer> selectAllByHostAndType(@Param("host")String host, @Param("type")String type);
+    
+    /**
+     * 
+     * @param type
+     * @return
+     */
+    List<ResourceServer> selectAllByType(@Param("type")String type);
 }
