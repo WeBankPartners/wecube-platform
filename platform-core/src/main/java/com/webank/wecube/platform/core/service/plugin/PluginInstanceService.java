@@ -780,7 +780,7 @@ public class PluginInstanceService {
         return createPluginS3Bucket(s3InfoSet.iterator().next());
     }
 
-    public PluginMysqlInstance createPluginMysqlDatabase(PluginPackageRuntimeResourcesMysql mysqlInfo,
+    private PluginMysqlInstance createPluginMysqlDatabase(PluginPackageRuntimeResourcesMysql mysqlInfo,
             String currentPluginVersion) {
         QueryRequestDto queryRequest = QueryRequestDto.defaultQueryObject("type", ResourceServerType.MYSQL);
         List<ResourceServerDto> mysqlServers = resourceManagementService.retrieveServers(queryRequest).getContents();
