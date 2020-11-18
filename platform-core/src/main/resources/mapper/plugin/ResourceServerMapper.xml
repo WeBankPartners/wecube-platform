@@ -27,9 +27,11 @@
             jdbcType="TIMESTAMP" />
     </resultMap>
     <sql id="Base_Column_List">
-        id, created_by, created_date, host, is_allocated, login_password,
+        id, created_by, created_date, host, is_allocated,
+        login_password,
         login_username,
-        name, port, purpose, status, type, updated_by, updated_date
+        name, port, purpose, status, type,
+        updated_by, updated_date
     </sql>
     <select id="selectByPrimaryKey" resultMap="BaseResultMap"
         parameterType="java.lang.String">
@@ -39,22 +41,28 @@
         where id = #{id,jdbcType=VARCHAR}
     </select>
     <delete id="deleteByPrimaryKey" parameterType="java.lang.String">
-        delete from resource_server
+        delete from
+        resource_server
         where id = #{id,jdbcType=VARCHAR}
     </delete>
     <insert id="insert"
         parameterType="com.webank.wecube.platform.core.entity.plugin.ResourceServer">
-        insert into resource_server (id, created_by, created_date,
+        insert into resource_server (id, created_by,
+        created_date,
         host, is_allocated, login_password,
-        login_username, name, port,
+        login_username,
+        name, port,
         purpose, status, type,
         updated_by, updated_date)
         values (#{id,jdbcType=VARCHAR}, #{createdBy,jdbcType=VARCHAR},
         #{createdDate,jdbcType=TIMESTAMP},
-        #{host,jdbcType=VARCHAR}, #{isAllocated,jdbcType=INTEGER}, #{loginPassword,jdbcType=VARCHAR},
+        #{host,jdbcType=VARCHAR},
+        #{isAllocated,jdbcType=INTEGER},
+        #{loginPassword,jdbcType=VARCHAR},
         #{loginUsername,jdbcType=VARCHAR}, #{name,jdbcType=VARCHAR},
         #{port,jdbcType=VARCHAR},
-        #{purpose,jdbcType=VARCHAR}, #{status,jdbcType=VARCHAR}, #{type,jdbcType=VARCHAR},
+        #{purpose,jdbcType=VARCHAR},
+        #{status,jdbcType=VARCHAR}, #{type,jdbcType=VARCHAR},
         #{updatedBy,jdbcType=VARCHAR},
         #{updatedDate,jdbcType=TIMESTAMP})
     </insert>
@@ -158,7 +166,8 @@
                 created_by = #{createdBy,jdbcType=VARCHAR},
             </if>
             <if test="createdDate != null">
-                created_date = #{createdDate,jdbcType=TIMESTAMP},
+                created_date =
+                #{createdDate,jdbcType=TIMESTAMP},
             </if>
             <if test="host != null">
                 host = #{host,jdbcType=VARCHAR},
@@ -167,10 +176,12 @@
                 is_allocated = #{isAllocated,jdbcType=INTEGER},
             </if>
             <if test="loginPassword != null">
-                login_password = #{loginPassword,jdbcType=VARCHAR},
+                login_password =
+                #{loginPassword,jdbcType=VARCHAR},
             </if>
             <if test="loginUsername != null">
-                login_username = #{loginUsername,jdbcType=VARCHAR},
+                login_username =
+                #{loginUsername,jdbcType=VARCHAR},
             </if>
             <if test="name != null">
                 name = #{name,jdbcType=VARCHAR},
@@ -191,7 +202,8 @@
                 updated_by = #{updatedBy,jdbcType=VARCHAR},
             </if>
             <if test="updatedDate != null">
-                updated_date = #{updatedDate,jdbcType=TIMESTAMP},
+                updated_date =
+                #{updatedDate,jdbcType=TIMESTAMP},
             </if>
         </set>
         where id = #{id,jdbcType=VARCHAR}
@@ -199,22 +211,32 @@
     <update id="updateByPrimaryKey"
         parameterType="com.webank.wecube.platform.core.entity.plugin.ResourceServer">
         update resource_server
-        set created_by = #{createdBy,jdbcType=VARCHAR},
-        created_date = #{createdDate,jdbcType=TIMESTAMP},
-        host = #{host,jdbcType=VARCHAR},
-        is_allocated = #{isAllocated,jdbcType=INTEGER},
-        login_password = #{loginPassword,jdbcType=VARCHAR},
-        login_username = #{loginUsername,jdbcType=VARCHAR},
-        name = #{name,jdbcType=VARCHAR},
+        set created_by =
+        #{createdBy,jdbcType=VARCHAR},
+        created_date =
+        #{createdDate,jdbcType=TIMESTAMP},
+        host =
+        #{host,jdbcType=VARCHAR},
+        is_allocated =
+        #{isAllocated,jdbcType=INTEGER},
+        login_password =
+        #{loginPassword,jdbcType=VARCHAR},
+        login_username =
+        #{loginUsername,jdbcType=VARCHAR},
+        name =
+        #{name,jdbcType=VARCHAR},
         port = #{port,jdbcType=VARCHAR},
         purpose = #{purpose,jdbcType=VARCHAR},
-        status = #{status,jdbcType=VARCHAR},
+        status =
+        #{status,jdbcType=VARCHAR},
         type = #{type,jdbcType=VARCHAR},
         updated_by = #{updatedBy,jdbcType=VARCHAR},
-        updated_date = #{updatedDate,jdbcType=TIMESTAMP}
-        where id = #{id,jdbcType=VARCHAR}
+        updated_date =
+        #{updatedDate,jdbcType=TIMESTAMP}
+        where id =
+        #{id,jdbcType=VARCHAR}
     </update>
-    
+
     <select id="selectAllByHostAndType" resultMap="BaseResultMap"
         parameterType="java.lang.String">
         select
@@ -222,6 +244,15 @@
         from resource_server
         where host = #{host,jdbcType=VARCHAR}
         and
+        type = #{type,jdbcType=VARCHAR}
+    </select>
+
+    <select id="selectAllByType" resultMap="BaseResultMap"
+        parameterType="java.lang.String">
+        select
+        <include refid="Base_Column_List" />
+        from resource_server
+        where
         type = #{type,jdbcType=VARCHAR}
     </select>
 </mapper>
