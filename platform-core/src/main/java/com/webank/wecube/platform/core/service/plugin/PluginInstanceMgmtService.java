@@ -119,6 +119,27 @@ public class PluginInstanceMgmtService extends AbstractPluginMgmtService {
     @Autowired
     private GatewayServiceStub gatewayServiceStub;
 
+    public void removePluginInstanceById(String instanceId) throws Exception {
+        log.info("Removing instanceId: " + instanceId);
+        PluginInstances pluginInstanceEntity = pluginInstancesMapper.selectByPrimaryKey(instanceId);
+        if (pluginInstanceEntity == null) {
+            log.info("invalid plugin instance id to remove:{}", instanceId);
+            return;
+        }
+        ResourceItemDto removeDockerInstanceDto = new ResourceItemDto();
+        removeDockerInstanceDto.setName(pluginInstanceEntity.getContainerName());
+        removeDockerInstanceDto.setId(pluginInstanceEntity.getDockerInstanceResourceId());
+
+        try {
+            resourceManagementService.deleteItems(Lists.newArrayList(removeDockerInstanceDto));
+        } catch (Exception e) {
+            log.error("Failed to remove docker resource items.", e);
+            throw new WecubeCoreException("Failed to remove docker resource items.");
+        }
+
+        pluginInstancesMapper.deleteByPrimaryKey(instanceId);
+    }
+
     /**
      * 
      * @param pluginPackageId
@@ -231,8 +252,7 @@ public class PluginInstanceMgmtService extends AbstractPluginMgmtService {
         List<RouteItem> routeItems = new ArrayList<>();
         RouteItem currRouteItem = new RouteItem(name, "http", host, port);
         routeItems.add(currRouteItem);
-        return gatewayServiceStub.registerRoute(
-                new RegisterRouteItemsDto(name, routeItems));
+        return gatewayServiceStub.registerRoute(new RegisterRouteItemsDto(name, routeItems));
     }
 
     private ResourceItemDto createPluginDockerInstance(PluginPackages pluginPackage, String hostIp,
