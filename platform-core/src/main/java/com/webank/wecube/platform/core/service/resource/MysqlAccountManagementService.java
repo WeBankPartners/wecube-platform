@@ -70,8 +70,8 @@ public class MysqlAccountManagementService implements ResourceItemService {
                     username, rawPassword));
         } catch (Exception e) {
             String errorMessage = String.format("Failed to create account [username = %s]", username);
-            log.error(errorMessage);
-            throw new WecubeCoreException("3241", errorMessage, e);
+            log.error(errorMessage, e);
+            throw new WecubeCoreException("3241", errorMessage, username);
         }
         return item;
     }
