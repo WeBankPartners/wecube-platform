@@ -3,8 +3,8 @@ package com.webank.wecube.platform.core.support;
 import com.google.common.collect.Lists;
 import com.webank.wecube.platform.core.domain.BatchExecutionJob;
 import com.webank.wecube.platform.core.domain.MenuItem;
-import com.webank.wecube.platform.core.domain.ResourceItem;
-import com.webank.wecube.platform.core.domain.ResourceServerDomain;
+//import com.webank.wecube.platform.core.domain.ResourceItem;
+//import com.webank.wecube.platform.core.domain.ResourceServerDomain;
 import com.webank.wecube.platform.core.domain.SystemVariable;
 import com.webank.wecube.platform.core.domain.plugin.*;
 import com.webank.wecube.platform.core.lazyDomain.plugin.*;
@@ -238,15 +238,15 @@ public class DomainIdBuilder {
         );
     }
 
-    public static String buildDomainId(PluginMysqlInstance mysqlInstance) {
-        return StringUtils.isNotBlank(mysqlInstance.getId())
-                ? mysqlInstance.getId()
-                : buildDomainId(
-                null != mysqlInstance.getPluginPackage() ? mysqlInstance.getPluginPackage().getId() : null,
-                mysqlInstance.getSchemaName(),
-                mysqlInstance.getUsername()
-        );
-    }
+//    public static String buildDomainId(PluginMysqlInstance mysqlInstance) {
+//        return StringUtils.isNotBlank(mysqlInstance.getId())
+//                ? mysqlInstance.getId()
+//                : buildDomainId(
+//                null != mysqlInstance.getPluginPackage() ? mysqlInstance.getPluginPackage().getId() : null,
+//                mysqlInstance.getSchemaName(),
+//                mysqlInstance.getUsername()
+//        );
+//    }
 
     public static String buildDomainId(MenuItem menuItem) {
         return StringUtils.isNotBlank(menuItem.getId())
@@ -257,25 +257,25 @@ public class DomainIdBuilder {
         );
     }
 
-    public static String buildDomainId(ResourceServerDomain resourceServer) {
-        return StringUtils.isNotBlank(resourceServer.getId())
-                ? resourceServer.getId()
-                : buildDomainId(
-                resourceServer.getHost(),
-                resourceServer.getType(),
-                resourceServer.getName()
-        );
-    }
+//    public static String buildDomainId(ResourceServerDomain resourceServer) {
+//        return StringUtils.isNotBlank(resourceServer.getId())
+//                ? resourceServer.getId()
+//                : buildDomainId(
+//                resourceServer.getHost(),
+//                resourceServer.getType(),
+//                resourceServer.getName()
+//        );
+//    }
 
-    public static String buildDomainId(ResourceItem resourceItem) {
-        return StringUtils.isNotBlank(resourceItem.getId())
-                ? resourceItem.getId()
-                : buildDomainId(
-                null != resourceItem.getResourceServerId() ? resourceItem.getResourceServerId(): null,
-                resourceItem.getType(),
-                resourceItem.getName()
-        );
-    }
+//    public static String buildDomainId(ResourceItem resourceItem) {
+//        return StringUtils.isNotBlank(resourceItem.getId())
+//                ? resourceItem.getId()
+//                : buildDomainId(
+//                null != resourceItem.getResourceServerId() ? resourceItem.getResourceServerId(): null,
+//                resourceItem.getType(),
+//                resourceItem.getName()
+//        );
+//    }
 
     public static String buildDomainId(BatchExecutionJob batchExecutionJob) throws ParseException {
         return StringUtils.isNotBlank(batchExecutionJob.getId()) ? batchExecutionJob.getId()
