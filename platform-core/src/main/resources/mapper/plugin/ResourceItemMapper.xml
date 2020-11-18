@@ -203,6 +203,14 @@
         from resource_item
         where resource_server_id = #{resourceServerId,jdbcType=VARCHAR}
         and type = #{type,jdbcType=VARCHAR}
-        
+    </select>
+    
+    <select id="selectAllByNameAndType" resultMap="BaseResultMap"
+        parameterType="java.lang.String">
+        select
+        <include refid="Base_Column_List" />
+        from resource_item
+        where name = #{name,jdbcType=VARCHAR}
+        and type = #{type,jdbcType=VARCHAR}
     </select>
 </mapper>
