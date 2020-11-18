@@ -1,6 +1,8 @@
 package com.webank.wecube.platform.core.entity.plugin;
 
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 public class ResourceServer {
     private String id;
@@ -30,6 +32,8 @@ public class ResourceServer {
     private String updatedBy;
 
     private Date updatedDate;
+
+    private transient List<ResourceItem> resourceItems = new ArrayList<>();
 
     public String getId() {
         return id;
@@ -142,4 +146,13 @@ public class ResourceServer {
     public void setUpdatedDate(Date updatedDate) {
         this.updatedDate = updatedDate;
     }
+
+    public List<ResourceItem> getResourceItems() {
+        return resourceItems;
+    }
+
+    public void setResourceItems(List<ResourceItem> resourceItems) {
+        this.resourceItems = resourceItems;
+    }
+
 }
