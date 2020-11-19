@@ -47,6 +47,7 @@ import com.webank.wecube.platform.core.entity.plugin.PluginPackageAuthorities;
 import com.webank.wecube.platform.core.entity.plugin.PluginPackageDataModel;
 import com.webank.wecube.platform.core.entity.plugin.PluginPackageDependencies;
 import com.webank.wecube.platform.core.entity.plugin.PluginPackageEntities;
+import com.webank.wecube.platform.core.entity.plugin.PluginPackageMenus;
 import com.webank.wecube.platform.core.entity.plugin.PluginPackageResourceFiles;
 import com.webank.wecube.platform.core.entity.plugin.PluginPackageRuntimeResourcesDocker;
 import com.webank.wecube.platform.core.entity.plugin.PluginPackageRuntimeResourcesMysql;
@@ -64,6 +65,7 @@ import com.webank.wecube.platform.core.repository.plugin.PluginPackageAuthoritie
 import com.webank.wecube.platform.core.repository.plugin.PluginPackageDataModelMapper;
 import com.webank.wecube.platform.core.repository.plugin.PluginPackageDependenciesMapper;
 import com.webank.wecube.platform.core.repository.plugin.PluginPackageEntitiesMapper;
+import com.webank.wecube.platform.core.repository.plugin.PluginPackageMenusMapper;
 import com.webank.wecube.platform.core.repository.plugin.PluginPackageResourceFilesMapper;
 import com.webank.wecube.platform.core.repository.plugin.PluginPackageRuntimeResourcesDockerMapper;
 import com.webank.wecube.platform.core.repository.plugin.PluginPackageRuntimeResourcesMysqlMapper;
@@ -104,6 +106,8 @@ public class PluginArtifactsMgmtService extends AbstractPluginMgmtService {
     public static final Set<String> ACCEPTED_FILES = Sets.newHashSet("register.xml", "image.tar", "ui.zip", "init.sql",
             "upgrade.sql");
 
+    public static final String DEFAULT_DATA_MODEL_UPDATE_PATH = "/data-model";
+    public static final String DEFAULT_DATA_MODEL_UPDATE_METHOD = "GET";
     public static final String SYS_VAR_PUBLIC_PLUGIN_ARTIFACTS_RELEASE_URL = "PLUGIN_ARTIFACTS_RELEASE_URL";
 
     private static final String DEFAULT_USER = "sys";
@@ -152,6 +156,8 @@ public class PluginArtifactsMgmtService extends AbstractPluginMgmtService {
 
     @Autowired
     private PluginPackageAuthoritiesMapper pluginPackageAuthoritiesMapper;
+    @Autowired
+    private PluginPackageMenusMapper pluginPackageMenusMapper;
     @Autowired
     private PluginPackageRuntimeResourcesDockerMapper pluginPackageRuntimeResourcesDockerMapper;
     @Autowired
@@ -482,7 +488,34 @@ public class PluginArtifactsMgmtService extends AbstractPluginMgmtService {
     }
 
     private void processMenus(MenusType xmlMenusType, PackageType xmlPackage, PluginPackages pluginPackageEntity) {
-        // TODO
+        if (xmlMenusType == null) {
+            return;
+        }
+
+        List<MenuType> xmlMenuList = xmlMenusType.getMenu();
+        if (xmlMenuList == null || xmlMenuList.isEmpty()) {
+            return;
+        }
+
+        for (MenuType xmlMenu : xmlMenuList) {
+            PluginPackageMenus packageMenuEntity = new PluginPackageMenus();
+            packageMenuEntity.setId(LocalIdGenerator.generateId());
+            packageMenuEntity.setActive(false);
+            packageMenuEntity.setCategory(xmlMenu.getCat());
+            packageMenuEntity.setCode(xmlMenu.getCode());
+            packageMenuEntity.setDisplayName(xmlMenu.getDisplayName());
+            packageMenuEntity.setLocalDisplayName(StringUtils.isBlank(xmlMenu.getLocalDisplayName())
+                    ? xmlMenu.getDisplayName() : xmlMenu.getLocalDisplayName());
+//            packageMenuEntity.setMenuOrder(menuOrder);
+            
+            packageMenuEntity.setPath(xmlMenu.getValue());
+            packageMenuEntity.setPluginPackageId(pluginPackageEntity.getId());
+            packageMenuEntity.setSource(pluginPackageEntity.getId());
+            
+            pluginPackageMenusMapper.insert(packageMenuEntity);
+            pluginPackageEntity.getPluginPackageMenus().add(packageMenuEntity);
+        }
+
     }
 
     private void processAuthorities(AuthoritiesType xmlAuthoritiesType, PackageType xmlPackage,
@@ -519,13 +552,13 @@ public class PluginArtifactsMgmtService extends AbstractPluginMgmtService {
 
     private void processResourceDependencies(ResourceDependenciesType xmlResourceDependenciesType,
             PackageType xmlPackage, PluginPackages pluginPackageEntity) {
-        if(xmlResourceDependenciesType == null ){
+        if (xmlResourceDependenciesType == null) {
             return;
         }
-        
+
         List<DockerType> xmlDockerList = xmlResourceDependenciesType.getDocker();
-        if(xmlDockerList != null){
-            for(DockerType xmlDocker : xmlDockerList){
+        if (xmlDockerList != null) {
+            for (DockerType xmlDocker : xmlDockerList) {
                 PluginPackageRuntimeResourcesDocker dockerEntity = new PluginPackageRuntimeResourcesDocker();
                 dockerEntity.setId(LocalIdGenerator.generateId());
                 dockerEntity.setContainerName(xmlDocker.getContainerName());
@@ -534,39 +567,39 @@ public class PluginArtifactsMgmtService extends AbstractPluginMgmtService {
                 dockerEntity.setPluginPackageId(pluginPackageEntity.getId());
                 dockerEntity.setPortBindings(xmlDocker.getPortBindings());
                 dockerEntity.setVolumeBindings(xmlDocker.getVolumeBindings());
-                
+
                 pluginPackageRuntimeResourcesDockerMapper.insert(dockerEntity);
-                
+
                 pluginPackageEntity.getDockers().add(dockerEntity);
             }
         }
-        
+
         List<MysqlType> xmlMysqlList = xmlResourceDependenciesType.getMysql();
-        if(xmlMysqlList != null){
-            for(MysqlType xmlMysql : xmlMysqlList){
+        if (xmlMysqlList != null) {
+            for (MysqlType xmlMysql : xmlMysqlList) {
                 PluginPackageRuntimeResourcesMysql mysqlEntity = new PluginPackageRuntimeResourcesMysql();
                 mysqlEntity.setId(LocalIdGenerator.generateId());
                 mysqlEntity.setInitFileName(xmlMysql.getInitFileName());
                 mysqlEntity.setPluginPackageId(pluginPackageEntity.getId());
                 mysqlEntity.setSchemaName(xmlMysql.getSchema());
                 mysqlEntity.setUpgradeFileName(xmlMysql.getUpgradeFileName());
-                
+
                 pluginPackageRuntimeResourcesMysqlMapper.insert(mysqlEntity);
-                
+
                 pluginPackageEntity.getMysqls().add(mysqlEntity);
             }
         }
-        
+
         List<S3Type> xmlS3List = xmlResourceDependenciesType.getS3();
-        if(xmlS3List != null){
-            for(S3Type xmlS3 : xmlS3List){
+        if (xmlS3List != null) {
+            for (S3Type xmlS3 : xmlS3List) {
                 PluginPackageRuntimeResourcesS3 s3Entity = new PluginPackageRuntimeResourcesS3();
                 s3Entity.setId(LocalIdGenerator.generateId());
                 s3Entity.setPluginPackageId(pluginPackageEntity.getId());
                 s3Entity.setBucketName(xmlS3.getBucketName());
-                
+
                 pluginPackageRuntimeResourcesS3Mapper.insert(s3Entity);
-                
+
                 pluginPackageEntity.getS3s().add(s3Entity);
             }
         }
@@ -592,14 +625,24 @@ public class PluginArtifactsMgmtService extends AbstractPluginMgmtService {
         // TODO
         PluginPackageDataModel dataModelEntity = new PluginPackageDataModel();
         dataModelEntity.setId(LocalIdGenerator.generateId());
-        dataModelEntity.setIsDynamic(false);
+        boolean isDynamic = "true".equalsIgnoreCase(xmlDataModel.getIsDynamic());
+        dataModelEntity.setIsDynamic(isDynamic);
         dataModelEntity.setPackageName(xmlPackage.getName());
-        dataModelEntity.setUpdateMethod(xmlDataModel.getMethod());
-        dataModelEntity.setUpdatePath(xmlDataModel.getPath());
+        String updatePath = xmlDataModel.getPath();
+        if (StringUtils.isEmpty(updatePath) && isDynamic) {
+            updatePath = DEFAULT_DATA_MODEL_UPDATE_PATH;
+        }
+        
+        dataModelEntity.setUpdatePath(updatePath);
+        String updateMethod = xmlDataModel.getMethod();
+        if (StringUtils.isEmpty(updateMethod) && isDynamic) {
+            updateMethod = DEFAULT_DATA_MODEL_UPDATE_METHOD;
+        }
+        dataModelEntity.setUpdateMethod(updateMethod);
         dataModelEntity.setUpdateSource(PluginPackageDataModel.PLUGIN_PACKAGE);
         dataModelEntity.setUpdateTime(System.currentTimeMillis());
         // TODO
-        dataModelEntity.setVersion(0);
+        dataModelEntity.setVersion(1);
         pluginPackageDataModelMapper.insert(dataModelEntity);
 
         List<EntityType> xmlEntityList = xmlDataModel.getEntity();
@@ -617,6 +660,7 @@ public class PluginArtifactsMgmtService extends AbstractPluginMgmtService {
             entity.setId(LocalIdGenerator.generateId());
             entity.setName(xmlEntity.getName());
             entity.setPackageName(xmlPackage.getName());
+            
 
             pluginPackageEntitiesMapper.insert(entity);
 
