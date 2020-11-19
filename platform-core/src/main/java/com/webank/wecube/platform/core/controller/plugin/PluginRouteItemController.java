@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.webank.wecube.platform.core.dto.CommonResponseDto;
 import com.webank.wecube.platform.core.dto.PluginRouteItemDto;
-import com.webank.wecube.platform.core.service.PluginRouteItemService;
+import com.webank.wecube.platform.core.service.plugin.PluginRouteItemService;
 
 @RestController
 @RequestMapping("/v1")
