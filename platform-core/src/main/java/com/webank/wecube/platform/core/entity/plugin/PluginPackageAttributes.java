@@ -6,11 +6,6 @@ public class PluginPackageAttributes {
     private String entityId;
 
     private String referenceId;
-    //TODO
-    private String packageName;
-    
-    //TODO
-    private String entityName;
 
     private String name;
 

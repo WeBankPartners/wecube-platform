@@ -24,6 +24,10 @@ public class PluginPackageDataModelController {
     @Autowired
     private PluginPackageDataModelService pluginPackageDataModelService;
 
+    /**
+     * 
+     * @return
+     */
     @GetMapping("/models")
     public CommonResponseDto allDataModels() {
         return CommonResponseDto.okayWithData(pluginPackageDataModelService.overview());

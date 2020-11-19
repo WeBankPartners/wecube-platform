@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -51,17 +52,14 @@ import com.webank.wecube.platform.core.entity.plugin.PluginPackageAttributes;
 import com.webank.wecube.platform.core.entity.plugin.PluginPackageDataModel;
 import com.webank.wecube.platform.core.entity.plugin.PluginPackageEntities;
 import com.webank.wecube.platform.core.entity.plugin.PluginPackages;
-import com.webank.wecube.platform.core.jpa.PluginConfigRepository;
-import com.webank.wecube.platform.core.jpa.PluginPackageAttributeRepository;
-import com.webank.wecube.platform.core.jpa.PluginPackageDataModelRepository;
-import com.webank.wecube.platform.core.jpa.PluginPackageEntityRepository;
-import com.webank.wecube.platform.core.jpa.PluginPackageRepository;
 import com.webank.wecube.platform.core.lazyDomain.plugin.LazyPluginPackageAttribute;
 import com.webank.wecube.platform.core.lazyDomain.plugin.LazyPluginPackageDataModel;
 import com.webank.wecube.platform.core.lazyDomain.plugin.LazyPluginPackageEntity;
-import com.webank.wecube.platform.core.lazyJpa.LazyPluginPackageAttributeRepository;
-import com.webank.wecube.platform.core.lazyJpa.LazyPluginPackageDataModelRepository;
+import com.webank.wecube.platform.core.repository.plugin.PluginConfigsMapper;
+import com.webank.wecube.platform.core.repository.plugin.PluginPackageAttributesMapper;
 import com.webank.wecube.platform.core.repository.plugin.PluginPackageDataModelMapper;
+import com.webank.wecube.platform.core.repository.plugin.PluginPackageEntitiesMapper;
+import com.webank.wecube.platform.core.repository.plugin.PluginPackagesMapper;
 import com.webank.wecube.platform.core.support.PluginPackageDataModelHelper;
 import com.webank.wecube.platform.core.utils.JsonUtils;
 
@@ -70,48 +68,52 @@ public class PluginPackageDataModelService {
     private static final Logger logger = LoggerFactory.getLogger(PluginPackageDataModelService.class);
     private static final String dataModelUrl = "http://{gatewayUrl}/{packageName}/{dataModelUrl}";
 
-    public static final String ATTRIBUTE_KEY_SEPARATOR = "`";
-    @Autowired
-    private PluginPackageDataModelRepository dataModelRepository;
+    private static final String ATTRIBUTE_KEY_SEPARATOR = "`";
 
-    @Autowired
-    private LazyPluginPackageDataModelRepository lazyDataModelRepository;
-
-    @Autowired
-    private PluginPackageAttributeRepository pluginPackageAttributeRepository;
-    @Autowired
-    private LazyPluginPackageAttributeRepository lazyPluginPackageAttributeRepository;
-    @Autowired
-    private PluginPackageRepository pluginPackageRepository;
     @Autowired
     private ApplicationProperties applicationProperties;
     @Autowired
     @Qualifier("userJwtSsoTokenRestTemplate")
     private RestTemplate restTemplate;
-    @Autowired
-    private PluginPackageEntityRepository pluginPackageEntityRepository;
-    @Autowired
-    private PluginConfigRepository pluginConfigRepository;
 
     @Autowired
-    private PluginPackageMgmtService pluginPackageMgmtService;
+    private PluginPackageDataModelMapper dataModelRepository;
+
+    @Autowired
+    private PluginPackageAttributesMapper pluginPackageAttributeRepository;
+
+    @Autowired
+    private PluginPackageEntitiesMapper pluginPackageEntityRepository;
+
+    @Autowired
+    private PluginConfigsMapper pluginConfigRepository;
+
+    @Autowired
+    private PluginPackagesMapper pluginPackagesMapper;
 
     @Autowired
     private PluginPackageDataModelMapper pluginPackageDataModelMapper;
 
+    @Autowired
+    private PluginPackageMgmtService pluginPackageMgmtService;
+
     /**
      * 
+     * @param pluginPackageDataModelDto
+     * @return
      */
     public PluginPackageDataModelDto register(PluginPackageDataModelDto pluginPackageDataModelDto) {
         return register(pluginPackageDataModelDto, false);
     }
 
+    //TODO
+    //FIXME
     public PluginPackageDataModelDto register(PluginPackageDataModelDto pluginPackageDataModelDto,
             boolean fromDynamicUpdate) {
-        PluginPackages latestPackageByName = pluginPackageMgmtService
+        PluginPackages latestVersionPluginPackage = pluginPackageMgmtService
                 .fetchLatestVersionPluginPackage(pluginPackageDataModelDto.getPackageName());
 
-        if (latestPackageByName == null) {
+        if (latestVersionPluginPackage == null) {
             String msg = String.format("Cannot find the package [%s] while registering data model",
                     pluginPackageDataModelDto.getPackageName());
             logger.error(msg);
@@ -138,10 +140,10 @@ public class PluginPackageDataModelService {
         pluginPackageDataModelDto.setVersion(newDataModelVersion);
         PluginPackageDataModel pluginPackageDataModel = PluginPackageDataModelDto.toDomain(pluginPackageDataModelDto);
 
-        if (null != pluginPackageDataModelDto.getPluginPackageEntities()
-                && pluginPackageDataModelDto.getPluginPackageEntities().size() > 0) {
+        if (pluginPackageDataModelDto.getPluginPackageEntities() != null
+                && !pluginPackageDataModelDto.getPluginPackageEntities().isEmpty()) {
             Map<String, String> attributeReferenceNameMap = buildAttributeReferenceNameMap(pluginPackageDataModelDto);
-            Map<String, PluginPackageAttribute> referenceAttributeMap = buildReferenceAttributeMap(
+            Map<String, PluginPackageAttributes> referenceAttributeMap = buildReferenceAttributeMap(
                     pluginPackageDataModel);
             updateAttributeReference(pluginPackageDataModel, attributeReferenceNameMap, referenceAttributeMap);
         }
@@ -149,30 +151,7 @@ public class PluginPackageDataModelService {
         return convertDataModelDomainToDto(dataModelRepository.save(pluginPackageDataModel));
     }
 
-    private Map<String, PluginPackageAttribute> buildReferenceAttributeMap(
-            PluginPackageDataModel transferredPluginPackageDataModel) {
-        Map<String, PluginPackageAttribute> nameToAttributeMap = new HashMap<>();
-        transferredPluginPackageDataModel.getPluginPackageEntities()
-                .forEach(entity -> entity.getPluginPackageAttributeList()
-                        .forEach(attribute -> nameToAttributeMap.put(entity.getPackageName() + ATTRIBUTE_KEY_SEPARATOR
-                                + entity.getName() + ATTRIBUTE_KEY_SEPARATOR + attribute.getName(), attribute)));
-
-        return nameToAttributeMap;
-    }
-
-    private Map<String, String> buildAttributeReferenceNameMap(PluginPackageDataModelDto pluginPackageDataModelDto) {
-        Map<String, String> attributeReferenceNameMap = new HashMap<>();
-        pluginPackageDataModelDto.getPluginPackageEntities()
-                .forEach(entityDto -> entityDto.getAttributes().stream()
-                        .filter(attribute -> "ref".equals(attribute.getDataType())).forEach(
-                                attribute -> attributeReferenceNameMap.put(
-                                        entityDto.getPackageName() + ATTRIBUTE_KEY_SEPARATOR + entityDto.getName()
-                                                + ATTRIBUTE_KEY_SEPARATOR + attribute.getName(),
-                                        attribute.getRefPackageName() + ATTRIBUTE_KEY_SEPARATOR
-                                                + attribute.getRefEntityName() + ATTRIBUTE_KEY_SEPARATOR
-                                                + attribute.getRefAttributeName())));
-        return attributeReferenceNameMap;
-    }
+    
 
     /**
      * Plugin model overview
@@ -181,78 +160,27 @@ public class PluginPackageDataModelService {
      *         both entities and attributes
      */
     public Set<PluginPackageDataModelDto> overview() {
-        Set<PluginPackageDataModelDto> pluginPackageDataModelDtos = newLinkedHashSet();
-        Optional<List<String>> allPackageNamesOptional = pluginPackageRepository.findAllDistinctPackage();
-        allPackageNamesOptional.ifPresent(allPackageNames -> {
-            for (String packageName : allPackageNames) {
-                Optional<String> dataModelId = lazyDataModelRepository.findLatestDataModelIdByPackageName(packageName);
-                if (dataModelId.isPresent()) {
-                    Optional<LazyPluginPackageDataModel> pluginPackageDataModelOptional = lazyDataModelRepository
-                            .findById(dataModelId.get());
-                    if (pluginPackageDataModelOptional.isPresent()) {
-                        pluginPackageDataModelDtos
-                                .add(convertDataModelDomainToDto(pluginPackageDataModelOptional.get()));
-                    }
-                }
+        Set<PluginPackageDataModelDto> pluginPackageDataModelDtos = new HashSet<>();
+        List<PluginPackages> pluginPackagesEntities = pluginPackagesMapper.selectAllDistinctPackages();
+
+        if (pluginPackagesEntities == null) {
+            return pluginPackageDataModelDtos;
+        }
+
+        for (PluginPackages pluginPackagesEntity : pluginPackagesEntities) {
+
+            PluginPackageDataModel dataModelEntity = dataModelRepository
+                    .selectLatestDataModelByPackageName(pluginPackagesEntity.getName());
+            if(dataModelEntity != null){
+                PluginPackageDataModelDto dto = buildPluginPackageDataModelDto(dataModelEntity);
+                pluginPackageDataModelDtos.add(dto);
             }
-        });
+        }
 
         return pluginPackageDataModelDtos;
     }
 
-    private PluginPackageDataModelDto convertDataModelDomainToDto(LazyPluginPackageDataModel dataModel) {
-        Set<LazyPluginPackageEntity> entities = newLinkedHashSet();
-
-        PluginPackageDataModelDto dataModelDto = new PluginPackageDataModelDto();
-        dataModelDto.setId(dataModel.getId());
-        dataModelDto.setVersion(dataModel.getVersion());
-        dataModelDto.setPackageName(dataModel.getPackageName());
-        dataModelDto.setUpdateSource(dataModel.getUpdateSource());
-        dataModelDto.setUpdateTime(dataModel.getUpdateTime());
-        dataModelDto.setDynamic(dataModel.isDynamic());
-        if (dataModel.isDynamic()) {
-            dataModelDto.setUpdatePath(dataModel.getUpdatePath());
-            dataModelDto.setUpdateMethod(dataModel.getUpdateMethod());
-        }
-        if (null != dataModel.getPluginPackageEntities() && dataModel.getPluginPackageEntities().size() > 0) {
-            Set<PluginPackageEntityDto> pluginPackageEntities = newLinkedHashSet();
-            dataModel.getPluginPackageEntities()
-                    .forEach(entity -> pluginPackageEntities.add(PluginPackageEntityDto.fromDomain(entity)));
-            dataModelDto.setPluginPackageEntities(pluginPackageEntities);
-        }
-        dataModel.getPluginPackageEntities().forEach(entity -> entities.add(entity));
-
-        dataModelDto.setPluginPackageEntities(Sets.newLinkedHashSet(convertEntityDomainToDto_lazy(entities, true)));
-
-        return dataModelDto;
-    }
-
-    private PluginPackageDataModelDto convertDataModelDomainToDto(PluginPackageDataModel dataModel) {
-        Set<PluginPackageEntity> entities = newLinkedHashSet();
-
-        PluginPackageDataModelDto dataModelDto = new PluginPackageDataModelDto();
-        dataModelDto.setId(dataModel.getId());
-        dataModelDto.setVersion(dataModel.getVersion());
-        dataModelDto.setPackageName(dataModel.getPackageName());
-        dataModelDto.setUpdateSource(dataModel.getUpdateSource());
-        dataModelDto.setUpdateTime(dataModel.getUpdateTime());
-        dataModelDto.setDynamic(dataModel.isDynamic());
-        if (dataModel.isDynamic()) {
-            dataModelDto.setUpdatePath(dataModel.getUpdatePath());
-            dataModelDto.setUpdateMethod(dataModel.getUpdateMethod());
-        }
-        if (null != dataModel.getPluginPackageEntities() && dataModel.getPluginPackageEntities().size() > 0) {
-            Set<PluginPackageEntityDto> pluginPackageEntities = newLinkedHashSet();
-            dataModel.getPluginPackageEntities()
-                    .forEach(entity -> pluginPackageEntities.add(PluginPackageEntityDto.fromDomain(entity)));
-            dataModelDto.setPluginPackageEntities(pluginPackageEntities);
-        }
-        dataModel.getPluginPackageEntities().forEach(entity -> entities.add(entity));
-
-        dataModelDto.setPluginPackageEntities(Sets.newLinkedHashSet(convertEntityDomainToDto(entities, true)));
-
-        return dataModelDto;
-    }
+    
 
     /**
      * View one data model entity with its relationship by packageName
@@ -296,10 +224,9 @@ public class PluginPackageDataModelService {
      *             when reference name the dto passed is invalid
      */
     private void updateAttributeReference(PluginPackageDataModel pluginPackageDataModel,
-            Map<String, String> referenceNameMap, Map<String, PluginPackageAttribute> nameToAttributeMap)
-            throws WecubeCoreException {
+            Map<String, String> referenceNameMap, Map<String, PluginPackageAttributes> nameToAttributeMap) {
         // update the attribtue domain object with pre-noted map
-        for (PluginPackageEntity candidateEntity : pluginPackageDataModel.getPluginPackageEntities()) {
+        for (PluginPackageEntities candidateEntity : pluginPackageDataModel.getPluginPackageEntities()) {
 
             for (PluginPackageAttribute pluginPackageAttribute : candidateEntity.getPluginPackageAttributeList()) {
                 String selfName = pluginPackageAttribute.getPluginPackageEntity().getPackageName()
@@ -514,26 +441,24 @@ public class PluginPackageDataModelService {
         return pluginPackageEntityDtos;
     }
 
-    @Override
     public PluginPackageDataModelDto pullDynamicDataModel(String packageName) {
-        Optional<PluginPackage> latestPluginPackageByName = pluginPackageRepository
-                .findLatestVersionByName(packageName);
-        if (!latestPluginPackageByName.isPresent()) {
+        PluginPackages latestPluginPackagesEntity = pluginPackageMgmtService.fetchLatestVersionPluginPackage(packageName);
+        
+        if (latestPluginPackagesEntity == null) {
             String errorMessage = String.format("Plugin package with name [%s] is not found", packageName);
             logger.error(errorMessage);
             throw new WecubeCoreException("3123", errorMessage, packageName);
         }
 
-        Optional<PluginPackageDataModel> latestDataModelByPackageName = dataModelRepository
-                .findLatestDataModelByPackageName(packageName);
-        if (!latestDataModelByPackageName.isPresent()) {
+        PluginPackageDataModel dataModel = dataModelRepository.selectLatestDataModelByPackageName(packageName);
+        
+        if (dataModel == null) {
             String errorMessage = String.format("Data model not found for package name=[%s]", packageName);
             logger.error(errorMessage);
             throw new WecubeCoreException("3124", errorMessage, packageName);
         }
 
-        PluginPackageDataModel dataModel = latestDataModelByPackageName.get();
-        if (!dataModel.isDynamic()) {
+        if (!dataModel.getIsDynamic()) {
             String message = String.format("DataMode does not support dynamic update for package: [%s]", packageName);
             logger.error(message);
             throw new WecubeCoreException("3125", message, packageName);
@@ -663,7 +588,8 @@ public class PluginPackageDataModelService {
                 String refAttrName = pluginPackageAttribute.getPluginPackageAttribute().getName();
                 if (packageName.equals(refPackageName) && entityName.equals(refEntityName)
                         && "id".equals(refAttrName)) {
-                    PluginPackageAttributeDto returnedAttributeDto = buildPluginPackageAttributeDto(pluginPackageAttribute);
+                    PluginPackageAttributeDto returnedAttributeDto = buildPluginPackageAttributeDto(
+                            pluginPackageAttribute);
                     resultList.add(returnedAttributeDto);
                 }
             }
@@ -758,81 +684,176 @@ public class PluginPackageDataModelService {
             }
         }
     }
-    
-    
-    
+
     public PluginPackageAttributeDto buildPluginPackageAttributeDto(PluginPackageAttributes pluginPackageAttribute) {
         PluginPackageAttributeDto pluginPackageAttributeDto = new PluginPackageAttributeDto();
-//        pluginPackageAttributeDto.setId(pluginPackageAttribute.getId());
-//        pluginPackageAttributeDto.setName(pluginPackageAttribute.getName());
-//        pluginPackageAttributeDto.setDescription(pluginPackageAttribute.getDescription());
-//        pluginPackageAttributeDto.setDataType(pluginPackageAttribute.getDataType());
-//        
-//        
-//        //TODO
-//        pluginPackageAttributeDto.setPackageName(pluginPackageAttribute.getPluginPackageEntities().getPluginPackageDataModel().getPackageName());
-//        pluginPackageAttributeDto.setEntityName(pluginPackageAttribute.getPluginPackageEntities().getName());
-//        //TODO
-//        if (pluginPackageAttribute.getPluginPackageAttribute() != null) {
-//            pluginPackageAttributeDto.setRefPackageName(pluginPackageAttribute.getPluginPackageAttribute().getPluginPackageEntity().getPluginPackageDataModel().getPackageName());
-//            pluginPackageAttributeDto.setRefEntityName(pluginPackageAttribute.getPluginPackageAttribute().getPluginPackageEntity().getName());
-//            pluginPackageAttributeDto.setRefAttributeName(pluginPackageAttribute.getPluginPackageAttribute().getName());
-//        }
-
+        // pluginPackageAttributeDto.setId(pluginPackageAttribute.getId());
+        // pluginPackageAttributeDto.setName(pluginPackageAttribute.getName());
+        // pluginPackageAttributeDto.setDescription(pluginPackageAttribute.getDescription());
+        // pluginPackageAttributeDto.setDataType(pluginPackageAttribute.getDataType());
+        //
+        //
+        // //TODO
+        // pluginPackageAttributeDto.setPackageName(pluginPackageAttribute.getPluginPackageEntities().getPluginPackageDataModel().getPackageName());
+        // pluginPackageAttributeDto.setEntityName(pluginPackageAttribute.getPluginPackageEntities().getName());
+        // //TODO
+        // if (pluginPackageAttribute.getPluginPackageAttribute() != null) {
+        // pluginPackageAttributeDto.setRefPackageName(pluginPackageAttribute.getPluginPackageAttribute().getPluginPackageEntity().getPluginPackageDataModel().getPackageName());
+        // pluginPackageAttributeDto.setRefEntityName(pluginPackageAttribute.getPluginPackageAttribute().getPluginPackageEntity().getName());
+        // pluginPackageAttributeDto.setRefAttributeName(pluginPackageAttribute.getPluginPackageAttribute().getName());
+        // }
 
         return pluginPackageAttributeDto;
     }
-    
-    public  PluginPackageEntityDto buildPluginPackageEntityDto(PluginPackageEntities pluginPackageEntity) {
+
+    private PluginPackageEntityDto buildPluginPackageEntityDto(PluginPackageEntities pluginPackageEntity) {
         PluginPackageEntityDto pluginPackageEntityDto = new PluginPackageEntityDto();
-//        pluginPackageEntityDto.setId(pluginPackageEntity.getId());
-//        pluginPackageEntityDto.setPackageName(pluginPackageEntity.getPluginPackageDataModel().getPackageName());
-//        pluginPackageEntityDto.setName(pluginPackageEntity.getName());
-//        pluginPackageEntityDto.setDisplayName(pluginPackageEntity.getDisplayName());
-//        pluginPackageEntityDto.setDescription(pluginPackageEntity.getDescription());
-//        pluginPackageEntityDto.setDataModelVersion(pluginPackageEntity.getPluginPackageDataModel().getVersion());
-//        if (pluginPackageEntity.getPluginPackageAttributes() != null) {
-//            pluginPackageEntity.getPluginPackageAttributes()
-//                    .forEach(pluginPackageAttribute -> pluginPackageEntityDto.attributes
-//                            .add(PluginPackageAttributeDto.fromDomain(pluginPackageAttribute)));
-//        }
+        // pluginPackageEntityDto.setId(pluginPackageEntity.getId());
+        // pluginPackageEntityDto.setPackageName(pluginPackageEntity.getPluginPackageDataModel().getPackageName());
+        // pluginPackageEntityDto.setName(pluginPackageEntity.getName());
+        // pluginPackageEntityDto.setDisplayName(pluginPackageEntity.getDisplayName());
+        // pluginPackageEntityDto.setDescription(pluginPackageEntity.getDescription());
+        // pluginPackageEntityDto.setDataModelVersion(pluginPackageEntity.getPluginPackageDataModel().getVersion());
+        // if (pluginPackageEntity.getPluginPackageAttributes() != null) {
+        // pluginPackageEntity.getPluginPackageAttributes()
+        // .forEach(pluginPackageAttribute -> pluginPackageEntityDto.attributes
+        // .add(PluginPackageAttributeDto.fromDomain(pluginPackageAttribute)));
+        // }
         return pluginPackageEntityDto;
     }
-    
-    public  PluginPackageDataModelDto buildPluginPackageDataModelDto(PluginPackageDataModel savedPluginPackageDataModel) {
+
+    private PluginPackageDataModelDto buildPluginPackageDataModelDto(
+            PluginPackageDataModel savedPluginPackageDataModel) {
         PluginPackageDataModelDto dataModelDto = new PluginPackageDataModelDto();
-//        dataModelDto.setId(savedPluginPackageDataModel.getId());
-//        dataModelDto.setVersion(savedPluginPackageDataModel.getVersion());
-//        dataModelDto.setPackageName(savedPluginPackageDataModel.getPackageName());
-//        dataModelDto.setUpdateSource(savedPluginPackageDataModel.getUpdateSource());
-//        dataModelDto.setUpdateTime(savedPluginPackageDataModel.getUpdateTime());
-//        dataModelDto.setDynamic(savedPluginPackageDataModel.isDynamic());
-//        if (savedPluginPackageDataModel.isDynamic()) {
-//            dataModelDto.setUpdatePath(savedPluginPackageDataModel.getUpdatePath());
-//            dataModelDto.setUpdateMethod(savedPluginPackageDataModel.getUpdateMethod());
-//        }
-//        if (null != savedPluginPackageDataModel.getPluginPackageEntities() && savedPluginPackageDataModel.getPluginPackageEntities().size() > 0) {
-//            Set<PluginPackageEntityDto> pluginPackageEntities = newLinkedHashSet();
-//            savedPluginPackageDataModel.getPluginPackageEntities().forEach(entity->pluginPackageEntities.add(PluginPackageEntityDto.fromDomain(entity)));
-//            dataModelDto.setPluginPackageEntities(pluginPackageEntities);
-//        }
+        // dataModelDto.setId(savedPluginPackageDataModel.getId());
+        // dataModelDto.setVersion(savedPluginPackageDataModel.getVersion());
+        // dataModelDto.setPackageName(savedPluginPackageDataModel.getPackageName());
+        // dataModelDto.setUpdateSource(savedPluginPackageDataModel.getUpdateSource());
+        // dataModelDto.setUpdateTime(savedPluginPackageDataModel.getUpdateTime());
+        // dataModelDto.setDynamic(savedPluginPackageDataModel.isDynamic());
+        // if (savedPluginPackageDataModel.isDynamic()) {
+        // dataModelDto.setUpdatePath(savedPluginPackageDataModel.getUpdatePath());
+        // dataModelDto.setUpdateMethod(savedPluginPackageDataModel.getUpdateMethod());
+        // }
+        // if (null != savedPluginPackageDataModel.getPluginPackageEntities() &&
+        // savedPluginPackageDataModel.getPluginPackageEntities().size() > 0) {
+        // Set<PluginPackageEntityDto> pluginPackageEntities =
+        // newLinkedHashSet();
+        // savedPluginPackageDataModel.getPluginPackageEntities().forEach(entity->pluginPackageEntities.add(PluginPackageEntityDto.fromDomain(entity)));
+        // dataModelDto.setPluginPackageEntities(pluginPackageEntities);
+        // }
 
         return dataModelDto;
     }
-    
-    public  DataModelEntityDto buildDataModelEntityDto(PluginPackageEntities pluginPackageEntity) {
+
+    private DataModelEntityDto buildDataModelEntityDto(PluginPackageEntities pluginPackageEntity) {
         DataModelEntityDto dataModelEntityDto = new DataModelEntityDto();
-//        dataModelEntityDto.setId(pluginPackageEntity.getId());
-//        dataModelEntityDto.setPackageName(pluginPackageEntity.getPluginPackageDataModel().getPackageName());
-//        dataModelEntityDto.setName(pluginPackageEntity.getName());
-//        dataModelEntityDto.setDisplayName(pluginPackageEntity.getDisplayName());
-//        dataModelEntityDto.setDescription(pluginPackageEntity.getDescription());
-//        dataModelEntityDto.setDataModelVersion(pluginPackageEntity.getPluginPackageDataModel().getVersion());
-//        if (pluginPackageEntity.getPluginPackageAttributeList() != null) {
-//            pluginPackageEntity.getPluginPackageAttributeList().forEach(pluginPackageAttribute -> dataModelEntityDto
-//                    .getAttributes().add(PluginPackageAttributeDto.fromDomain(pluginPackageAttribute)));
-//        }
+        // dataModelEntityDto.setId(pluginPackageEntity.getId());
+        // dataModelEntityDto.setPackageName(pluginPackageEntity.getPluginPackageDataModel().getPackageName());
+        // dataModelEntityDto.setName(pluginPackageEntity.getName());
+        // dataModelEntityDto.setDisplayName(pluginPackageEntity.getDisplayName());
+        // dataModelEntityDto.setDescription(pluginPackageEntity.getDescription());
+        // dataModelEntityDto.setDataModelVersion(pluginPackageEntity.getPluginPackageDataModel().getVersion());
+        // if (pluginPackageEntity.getPluginPackageAttributeList() != null) {
+        // pluginPackageEntity.getPluginPackageAttributeList().forEach(pluginPackageAttribute
+        // -> dataModelEntityDto
+        // .getAttributes().add(PluginPackageAttributeDto.fromDomain(pluginPackageAttribute)));
+        // }
         return dataModelEntityDto;
+    }
+    
+    private Map<String, PluginPackageAttributes> buildReferenceAttributeMap(
+            PluginPackageDataModel transferredPluginPackageDataModel) {
+        Map<String, PluginPackageAttributes> nameToAttributeMap = new HashMap<>();
+        List<PluginPackageEntities> entities = transferredPluginPackageDataModel.getPluginPackageEntities();
+        for (PluginPackageEntities entity : entities) {
+            List<PluginPackageAttributes> pluginPackageAttributes = entity.getPluginPackageAttributes();
+            for (PluginPackageAttributes attribute : pluginPackageAttributes) {
+                String key = entity.getPackageName() + ATTRIBUTE_KEY_SEPARATOR + entity.getName()
+                        + ATTRIBUTE_KEY_SEPARATOR + attribute.getName();
+                nameToAttributeMap.put(key, attribute);
+            }
+
+        }
+
+        return nameToAttributeMap;
+    }
+
+    private Map<String, String> buildAttributeReferenceNameMap(PluginPackageDataModelDto pluginPackageDataModelDto) {
+        Map<String, String> attributeReferenceNameMap = new HashMap<>();
+        Set<PluginPackageEntityDto> pluginPackageEntities = pluginPackageDataModelDto.getPluginPackageEntities();
+        for (PluginPackageEntityDto entityDto : pluginPackageEntities) {
+            List<PluginPackageAttributeDto> attributes = entityDto.getAttributes();
+            if (attributes == null) {
+                continue;
+            }
+
+            for (PluginPackageAttributeDto attribute : attributes) {
+                if ("ref".equals(attribute.getDataType())) {
+                    String key = entityDto.getPackageName() + ATTRIBUTE_KEY_SEPARATOR + entityDto.getName()
+                            + ATTRIBUTE_KEY_SEPARATOR + attribute.getName();
+                    String val = attribute.getRefPackageName() + ATTRIBUTE_KEY_SEPARATOR + attribute.getRefEntityName()
+                            + ATTRIBUTE_KEY_SEPARATOR + attribute.getRefAttributeName();
+                    attributeReferenceNameMap.put(key, val);
+                }
+            }
+
+        }
+        return attributeReferenceNameMap;
+    }
+    
+    private PluginPackageDataModelDto convertDataModelDomainToDto(LazyPluginPackageDataModel dataModel) {
+        Set<LazyPluginPackageEntity> entities = newLinkedHashSet();
+
+        PluginPackageDataModelDto dataModelDto = new PluginPackageDataModelDto();
+        dataModelDto.setId(dataModel.getId());
+        dataModelDto.setVersion(dataModel.getVersion());
+        dataModelDto.setPackageName(dataModel.getPackageName());
+        dataModelDto.setUpdateSource(dataModel.getUpdateSource());
+        dataModelDto.setUpdateTime(dataModel.getUpdateTime());
+        dataModelDto.setDynamic(dataModel.isDynamic());
+        if (dataModel.isDynamic()) {
+            dataModelDto.setUpdatePath(dataModel.getUpdatePath());
+            dataModelDto.setUpdateMethod(dataModel.getUpdateMethod());
+        }
+        if (null != dataModel.getPluginPackageEntities() && dataModel.getPluginPackageEntities().size() > 0) {
+            Set<PluginPackageEntityDto> pluginPackageEntities = newLinkedHashSet();
+            dataModel.getPluginPackageEntities()
+                    .forEach(entity -> pluginPackageEntities.add(PluginPackageEntityDto.fromDomain(entity)));
+            dataModelDto.setPluginPackageEntities(pluginPackageEntities);
+        }
+        dataModel.getPluginPackageEntities().forEach(entity -> entities.add(entity));
+
+        dataModelDto.setPluginPackageEntities(Sets.newLinkedHashSet(convertEntityDomainToDto_lazy(entities, true)));
+
+        return dataModelDto;
+    }
+
+    private PluginPackageDataModelDto convertDataModelDomainToDto(PluginPackageDataModel dataModel) {
+        Set<PluginPackageEntity> entities = newLinkedHashSet();
+
+        PluginPackageDataModelDto dataModelDto = new PluginPackageDataModelDto();
+        dataModelDto.setId(dataModel.getId());
+        dataModelDto.setVersion(dataModel.getVersion());
+        dataModelDto.setPackageName(dataModel.getPackageName());
+        dataModelDto.setUpdateSource(dataModel.getUpdateSource());
+        dataModelDto.setUpdateTime(dataModel.getUpdateTime());
+        dataModelDto.setDynamic(dataModel.getIsDynamic());
+        if (dataModel.getIsDynamic()) {
+            dataModelDto.setUpdatePath(dataModel.getUpdatePath());
+            dataModelDto.setUpdateMethod(dataModel.getUpdateMethod());
+        }
+        if (null != dataModel.getPluginPackageEntities() && dataModel.getPluginPackageEntities().size() > 0) {
+            Set<PluginPackageEntityDto> pluginPackageEntities = newLinkedHashSet();
+            dataModel.getPluginPackageEntities()
+                    .forEach(entity -> pluginPackageEntities.add(PluginPackageEntityDto.fromDomain(entity)));
+            dataModelDto.setPluginPackageEntities(pluginPackageEntities);
+        }
+        dataModel.getPluginPackageEntities().forEach(entity -> entities.add(entity));
+
+        dataModelDto.setPluginPackageEntities(Sets.newLinkedHashSet(convertEntityDomainToDto(entities, true)));
+
+        return dataModelDto;
     }
 
 }
