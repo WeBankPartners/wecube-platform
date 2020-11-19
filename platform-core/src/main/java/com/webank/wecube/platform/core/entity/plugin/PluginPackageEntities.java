@@ -1,5 +1,8 @@
 package com.webank.wecube.platform.core.entity.plugin;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class PluginPackageEntities {
     private String id;
 
@@ -14,6 +17,10 @@ public class PluginPackageEntities {
     private String displayName;
 
     private String description;
+
+    private transient PluginPackageDataModel pluginPackageDataModel;
+
+    private transient List<PluginPackageAttributes> pluginPackageAttributes = new ArrayList<>();
 
     public String getId() {
         return id;
@@ -70,4 +77,21 @@ public class PluginPackageEntities {
     public void setDescription(String description) {
         this.description = description == null ? null : description.trim();
     }
+
+    public PluginPackageDataModel getPluginPackageDataModel() {
+        return pluginPackageDataModel;
+    }
+
+    public void setPluginPackageDataModel(PluginPackageDataModel pluginPackageDataModel) {
+        this.pluginPackageDataModel = pluginPackageDataModel;
+    }
+
+    public List<PluginPackageAttributes> getPluginPackageAttributes() {
+        return pluginPackageAttributes;
+    }
+
+    public void setPluginPackageAttributes(List<PluginPackageAttributes> pluginPackageAttributes) {
+        this.pluginPackageAttributes = pluginPackageAttributes;
+    }
+
 }

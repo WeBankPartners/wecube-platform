@@ -14,7 +14,7 @@ import com.webank.wecube.platform.core.dto.CommonResponseDto;
 import com.webank.wecube.platform.core.dto.DataModelEntityDto;
 import com.webank.wecube.platform.core.dto.PluginPackageAttributeDto;
 import com.webank.wecube.platform.core.dto.PluginPackageDataModelDto;
-import com.webank.wecube.platform.core.service.PluginPackageDataModelServiceImpl;
+import com.webank.wecube.platform.core.service.plugin.PluginPackageDataModelService;
 
 @RestController
 @RequestMapping("/v1")
@@ -22,7 +22,7 @@ import com.webank.wecube.platform.core.service.PluginPackageDataModelServiceImpl
 public class PluginPackageDataModelController {
 
     @Autowired
-    private PluginPackageDataModelServiceImpl pluginPackageDataModelService;
+    private PluginPackageDataModelService pluginPackageDataModelService;
 
     @GetMapping("/models")
     public CommonResponseDto allDataModels() {
