@@ -63,4 +63,6 @@ public interface PluginPackagesMapper {
      * @return
      */
     List<PluginPackages> selectAllByNameAndVersion(@Param("name")String name, @Param("version")String version);
+    
+    
 }

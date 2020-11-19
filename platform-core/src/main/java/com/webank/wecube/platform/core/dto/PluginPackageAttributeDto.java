@@ -1,12 +1,12 @@
 package com.webank.wecube.platform.core.dto;
 
-import com.webank.wecube.platform.core.domain.plugin.PluginPackageAttribute;
-import com.webank.wecube.platform.core.domain.plugin.PluginPackageEntity;
-import com.webank.wecube.platform.core.lazyDomain.plugin.LazyPluginPackageAttribute;
+import java.util.Objects;
+
 import org.apache.commons.lang.builder.ReflectionToStringBuilder;
 import org.springframework.util.StringUtils;
 
-import java.util.Objects;
+import com.webank.wecube.platform.core.entity.plugin.PluginPackageAttributes;
+import com.webank.wecube.platform.core.entity.plugin.PluginPackageEntities;
 
 public class PluginPackageAttributeDto {
     private String id;
@@ -39,45 +39,9 @@ public class PluginPackageAttributeDto {
     }
 
 
-    /**
-     * @param pluginPackageAttribute input attribute domain object
-     * @return attribute dto exposed to the server
-     */
-    public static PluginPackageAttributeDto fromDomain(LazyPluginPackageAttribute pluginPackageAttribute) {
-        PluginPackageAttributeDto pluginPackageAttributeDto = new PluginPackageAttributeDto();
-        pluginPackageAttributeDto.setId(pluginPackageAttribute.getId());
-        pluginPackageAttributeDto.setPackageName(pluginPackageAttribute.getPluginPackageEntity().getPluginPackageDataModel().getPackageName());
-        pluginPackageAttributeDto.setEntityName(pluginPackageAttribute.getPluginPackageEntity().getName());
-        pluginPackageAttributeDto.setName(pluginPackageAttribute.getName());
-        pluginPackageAttributeDto.setDescription(pluginPackageAttribute.getDescription());
-        pluginPackageAttributeDto.setDataType(pluginPackageAttribute.getDataType());
-        if (pluginPackageAttribute.getPluginPackageAttribute() != null) {
-            pluginPackageAttributeDto.setRefPackageName(pluginPackageAttribute.getPluginPackageAttribute().getPluginPackageEntity().getPluginPackageDataModel().getPackageName());
-            pluginPackageAttributeDto.setRefEntityName(pluginPackageAttribute.getPluginPackageAttribute().getPluginPackageEntity().getName());
-            pluginPackageAttributeDto.setRefAttributeName(pluginPackageAttribute.getPluginPackageAttribute().getName());
-        }
+   
 
-
-        return pluginPackageAttributeDto;
-    }
-
-    public static PluginPackageAttributeDto fromDomain(PluginPackageAttribute pluginPackageAttribute) {
-        PluginPackageAttributeDto pluginPackageAttributeDto = new PluginPackageAttributeDto();
-        pluginPackageAttributeDto.setId(pluginPackageAttribute.getId());
-        pluginPackageAttributeDto.setPackageName(pluginPackageAttribute.getPluginPackageEntity().getPluginPackageDataModel().getPackageName());
-        pluginPackageAttributeDto.setEntityName(pluginPackageAttribute.getPluginPackageEntity().getName());
-        pluginPackageAttributeDto.setName(pluginPackageAttribute.getName());
-        pluginPackageAttributeDto.setDescription(pluginPackageAttribute.getDescription());
-        pluginPackageAttributeDto.setDataType(pluginPackageAttribute.getDataType());
-        if (pluginPackageAttribute.getPluginPackageAttribute() != null) {
-            pluginPackageAttributeDto.setRefPackageName(pluginPackageAttribute.getPluginPackageAttribute().getPluginPackageEntity().getPluginPackageDataModel().getPackageName());
-            pluginPackageAttributeDto.setRefEntityName(pluginPackageAttribute.getPluginPackageAttribute().getPluginPackageEntity().getName());
-            pluginPackageAttributeDto.setRefAttributeName(pluginPackageAttribute.getPluginPackageAttribute().getName());
-        }
-
-
-        return pluginPackageAttributeDto;
-    }
+    
 
     /**
      * @param attributeDto       input attribute dto
@@ -85,14 +49,14 @@ public class PluginPackageAttributeDto {
      * @param referenceEntity    the entity this attribute refers to
      * @return transformed attribute domain object
      */
-    public static PluginPackageAttribute toDomain(PluginPackageAttributeDto attributeDto,
-                                                  PluginPackageAttribute referenceAttribute,
-                                                  PluginPackageEntity referenceEntity) {
-        PluginPackageAttribute pluginPackageAttribute = new PluginPackageAttribute();
+    public static PluginPackageAttributes toDomain(PluginPackageAttributeDto attributeDto,
+                                                  PluginPackageAttributes referenceAttribute,
+                                                  PluginPackageEntities referenceEntity) {
+        PluginPackageAttributes pluginPackageAttribute = new PluginPackageAttributes();
 
 
         if (referenceEntity != null) {
-            pluginPackageAttribute.setPluginPackageEntity(referenceEntity);
+            pluginPackageAttribute.setPluginPackageEntities(referenceEntity);
         }
 
         if (referenceAttribute != null) {
