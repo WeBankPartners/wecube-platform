@@ -146,6 +146,7 @@
       :scrollable="true"
       width="70"
       @on-ok="flowNodesTargetModelConfirm"
+      :ok-text="$t('submit')"
     >
       <Table
         border
@@ -186,6 +187,7 @@
       :scrollable="true"
       :mask="false"
       :mask-closable="false"
+      :ok-text="$t('submit')"
       class="model_target"
       width="50"
       @on-ok="targetModelConfirm"
@@ -662,6 +664,10 @@ export default {
         promiseArray.push(setDataByNodeDefIdAndProcessSessionId(key, this.processSessionId, obj[key]))
       })
       await Promise.all(promiseArray)
+      this.$Notice.success({
+        title: 'Success',
+        desc: 'Success'
+      })
     },
     async updateNodeInfo () {
       const currentNode = this.flowData.flowNodes.find(_ => {
@@ -672,6 +678,10 @@ export default {
       })
       await setDataByNodeDefIdAndProcessSessionId(currentNode.nodeDefId, this.processSessionId, payload)
       const filter = this.allBindingsList.filter(_ => _.nodeDefId !== currentNode.nodeDefId)
+      this.$Notice.success({
+        title: 'Success',
+        desc: 'Success'
+      })
       this.allBindingsList = filter.concat(payload)
     },
     async getProcessInstances (isAfterCreate = false, createResponse = undefined) {
