@@ -1,12 +1,11 @@
 package com.webank.wecube.platform.core.dto;
 
-import com.webank.wecube.platform.core.domain.plugin.PluginPackageDataModel;
-import com.webank.wecube.platform.core.domain.plugin.PluginPackageEntity;
 
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static com.google.common.collect.Sets.newLinkedHashSet;
+import com.webank.wecube.platform.core.entity.plugin.PluginPackageDataModel;
+import com.webank.wecube.platform.core.entity.plugin.PluginPackageEntities;
 
 public class PluginPackageDataModelDto {
 
@@ -128,40 +127,21 @@ public class PluginPackageDataModelDto {
         }
         dataModel.setPackageName(dataModelDto.getPackageName());
         if (dataModelDto.isDynamic()) {
-            dataModel.setDynamic(true);
+            dataModel.setIsDynamic(true);
             dataModel.setUpdatePath(dataModelDto.getUpdatePath());
             dataModel.setUpdateMethod(dataModelDto.getUpdateMethod());
         } else {
-            dataModel.setDynamic(false);
+            dataModel.setIsDynamic(false);
         }
         dataModel.setUpdateSource(dataModelDto.getUpdateSource());
         dataModel.setUpdateTime(dataModelDto.getUpdateTime());
-        if (null != dataModelDto.getPluginPackageEntities() && dataModelDto.getPluginPackageEntities().size() > 0) {
-            Set<PluginPackageEntity> pluginPackageEntities = dataModelDto.getPluginPackageEntities().stream().map(entityDto -> PluginPackageEntityDto.toDomain(entityDto, dataModel)).collect(Collectors.toSet());
-            dataModel.setPluginPackageEntities(pluginPackageEntities);
+        if (dataModelDto.getPluginPackageEntities() != null && dataModelDto.getPluginPackageEntities().size() > 0) {
+            Set<PluginPackageEntities> pluginPackageEntities = dataModelDto.getPluginPackageEntities().stream().map(entityDto -> PluginPackageEntityDto.toDomain(entityDto, dataModel)).collect(Collectors.toSet());
+            dataModel.getPluginPackageEntities().addAll(pluginPackageEntities);
         }
 
         return dataModel;
     }
 
-    public static PluginPackageDataModelDto fromDomain(PluginPackageDataModel savedPluginPackageDataModel) {
-        PluginPackageDataModelDto dataModelDto = new PluginPackageDataModelDto();
-        dataModelDto.setId(savedPluginPackageDataModel.getId());
-        dataModelDto.setVersion(savedPluginPackageDataModel.getVersion());
-        dataModelDto.setPackageName(savedPluginPackageDataModel.getPackageName());
-        dataModelDto.setUpdateSource(savedPluginPackageDataModel.getUpdateSource());
-        dataModelDto.setUpdateTime(savedPluginPackageDataModel.getUpdateTime());
-        dataModelDto.setDynamic(savedPluginPackageDataModel.isDynamic());
-        if (savedPluginPackageDataModel.isDynamic()) {
-            dataModelDto.setUpdatePath(savedPluginPackageDataModel.getUpdatePath());
-            dataModelDto.setUpdateMethod(savedPluginPackageDataModel.getUpdateMethod());
-        }
-        if (null != savedPluginPackageDataModel.getPluginPackageEntities() && savedPluginPackageDataModel.getPluginPackageEntities().size() > 0) {
-            Set<PluginPackageEntityDto> pluginPackageEntities = newLinkedHashSet();
-            savedPluginPackageDataModel.getPluginPackageEntities().forEach(entity->pluginPackageEntities.add(PluginPackageEntityDto.fromDomain(entity)));
-            dataModelDto.setPluginPackageEntities(pluginPackageEntities);
-        }
-
-        return dataModelDto;
-    }
+    
 }

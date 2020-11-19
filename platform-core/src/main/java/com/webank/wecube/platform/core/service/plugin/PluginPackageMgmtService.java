@@ -125,6 +125,28 @@ public class PluginPackageMgmtService extends AbstractPluginMgmtService {
     private RoleMenuService roleMenuService;
 
     private VersionComparator versionComparator = new VersionComparator();
+    
+    public PluginPackages fetchLatestVersionPluginPackage(String packageName){
+        List<PluginPackages> pluginPackagesEntities = pluginPackagesMapper.selectAllByName(packageName);
+        if(pluginPackagesEntities == null || pluginPackagesEntities.isEmpty()){
+            return null;
+        }
+        
+        PluginPackages latestVersionPluginPackagesEntity = null;
+        for (PluginPackages lazyPluginPackage : pluginPackagesEntities) {
+            if(latestVersionPluginPackagesEntity == null){
+                latestVersionPluginPackagesEntity = lazyPluginPackage;
+            }else{
+                String formerVersion = latestVersionPluginPackagesEntity.getVersion();
+                int compare = versionComparator.compare(lazyPluginPackage.getVersion(), formerVersion);
+                if(compare > 0){
+                    latestVersionPluginPackagesEntity = lazyPluginPackage;
+                }
+            }
+        }
+        
+        return latestVersionPluginPackagesEntity;
+    }
 
     /**
      * 

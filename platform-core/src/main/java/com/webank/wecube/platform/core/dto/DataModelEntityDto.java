@@ -1,15 +1,14 @@
 package com.webank.wecube.platform.core.dto;
 
-import java.util.*;
-
-import com.webank.wecube.platform.core.domain.plugin.PluginPackageEntity;
+import java.util.ArrayList;
+import java.util.List;
 
 public class DataModelEntityDto extends PluginPackageEntityDto {
 
     private LeafEntityList leafEntityList;
 
     public class LeafEntityList {
-        
+
         private List<BindedInterfaceEntityDto> referenceToEntityList = new ArrayList<>();
         private List<BindedInterfaceEntityDto> referenceByEntityList = new ArrayList<>();
 
@@ -49,21 +48,6 @@ public class DataModelEntityDto extends PluginPackageEntityDto {
 
     public void setLeafEntityList(LeafEntityList leafEntityList) {
         this.leafEntityList = leafEntityList;
-    }
-
-    public static DataModelEntityDto fromDomain(PluginPackageEntity pluginPackageEntity) {
-        DataModelEntityDto dataModelEntityDto = new DataModelEntityDto();
-        dataModelEntityDto.setId(pluginPackageEntity.getId());
-        dataModelEntityDto.setPackageName(pluginPackageEntity.getPluginPackageDataModel().getPackageName());
-        dataModelEntityDto.setName(pluginPackageEntity.getName());
-        dataModelEntityDto.setDisplayName(pluginPackageEntity.getDisplayName());
-        dataModelEntityDto.setDescription(pluginPackageEntity.getDescription());
-        dataModelEntityDto.setDataModelVersion(pluginPackageEntity.getPluginPackageDataModel().getVersion());
-        if (pluginPackageEntity.getPluginPackageAttributeList() != null) {
-            pluginPackageEntity.getPluginPackageAttributeList().forEach(pluginPackageAttribute -> dataModelEntityDto
-                    .getAttributes().add(PluginPackageAttributeDto.fromDomain(pluginPackageAttribute)));
-        }
-        return dataModelEntityDto;
     }
 
     public DataModelEntityDto() {

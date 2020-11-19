@@ -1,4 +1,4 @@
-package com.webank.wecube.platform.core.service;
+package com.webank.wecube.platform.core.service.plugin;
 
 import static com.google.common.collect.Sets.newLinkedHashSet;
 
@@ -13,12 +13,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import com.google.common.base.Strings;
-import com.webank.wecube.platform.core.lazyDomain.plugin.LazyPluginPackageAttribute;
-import com.webank.wecube.platform.core.lazyDomain.plugin.LazyPluginPackageDataModel;
-import com.webank.wecube.platform.core.lazyDomain.plugin.LazyPluginPackageEntity;
-import com.webank.wecube.platform.core.lazyJpa.LazyPluginPackageAttributeRepository;
-import com.webank.wecube.platform.core.lazyJpa.LazyPluginPackageDataModelRepository;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,13 +24,13 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponents;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import com.google.common.base.Splitter;
+import com.google.common.base.Strings;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
@@ -45,7 +39,6 @@ import com.webank.wecube.platform.core.commons.WecubeCoreException;
 import com.webank.wecube.platform.core.domain.plugin.PluginConfig;
 import com.webank.wecube.platform.core.domain.plugin.PluginPackage;
 import com.webank.wecube.platform.core.domain.plugin.PluginPackageAttribute;
-import com.webank.wecube.platform.core.domain.plugin.PluginPackageDataModel;
 import com.webank.wecube.platform.core.domain.plugin.PluginPackageEntity;
 import com.webank.wecube.platform.core.dto.BindedInterfaceEntityDto;
 import com.webank.wecube.platform.core.dto.CommonResponseDto;
@@ -54,17 +47,27 @@ import com.webank.wecube.platform.core.dto.PluginPackageAttributeDto;
 import com.webank.wecube.platform.core.dto.PluginPackageDataModelDto;
 import com.webank.wecube.platform.core.dto.PluginPackageEntityDto;
 import com.webank.wecube.platform.core.dto.PluginPackageEntityDto.TrimmedPluginPackageEntityDto;
+import com.webank.wecube.platform.core.entity.plugin.PluginPackageAttributes;
+import com.webank.wecube.platform.core.entity.plugin.PluginPackageDataModel;
+import com.webank.wecube.platform.core.entity.plugin.PluginPackageEntities;
+import com.webank.wecube.platform.core.entity.plugin.PluginPackages;
 import com.webank.wecube.platform.core.jpa.PluginConfigRepository;
 import com.webank.wecube.platform.core.jpa.PluginPackageAttributeRepository;
 import com.webank.wecube.platform.core.jpa.PluginPackageDataModelRepository;
 import com.webank.wecube.platform.core.jpa.PluginPackageEntityRepository;
 import com.webank.wecube.platform.core.jpa.PluginPackageRepository;
+import com.webank.wecube.platform.core.lazyDomain.plugin.LazyPluginPackageAttribute;
+import com.webank.wecube.platform.core.lazyDomain.plugin.LazyPluginPackageDataModel;
+import com.webank.wecube.platform.core.lazyDomain.plugin.LazyPluginPackageEntity;
+import com.webank.wecube.platform.core.lazyJpa.LazyPluginPackageAttributeRepository;
+import com.webank.wecube.platform.core.lazyJpa.LazyPluginPackageDataModelRepository;
+import com.webank.wecube.platform.core.repository.plugin.PluginPackageDataModelMapper;
 import com.webank.wecube.platform.core.support.PluginPackageDataModelHelper;
 import com.webank.wecube.platform.core.utils.JsonUtils;
 
 @Service
-@Transactional
-public class PluginPackageDataModelServiceImpl implements PluginPackageDataModelService {
+public class PluginPackageDataModelService {
+    private static final Logger logger = LoggerFactory.getLogger(PluginPackageDataModelService.class);
     private static final String dataModelUrl = "http://{gatewayUrl}/{packageName}/{dataModelUrl}";
 
     public static final String ATTRIBUTE_KEY_SEPARATOR = "`";
@@ -90,19 +93,25 @@ public class PluginPackageDataModelServiceImpl implements PluginPackageDataModel
     @Autowired
     private PluginConfigRepository pluginConfigRepository;
 
-    private static final Logger logger = LoggerFactory.getLogger(PluginPackageDataModelServiceImpl.class);
+    @Autowired
+    private PluginPackageMgmtService pluginPackageMgmtService;
 
-    @Override
+    @Autowired
+    private PluginPackageDataModelMapper pluginPackageDataModelMapper;
+
+    /**
+     * 
+     */
     public PluginPackageDataModelDto register(PluginPackageDataModelDto pluginPackageDataModelDto) {
         return register(pluginPackageDataModelDto, false);
     }
 
-    @Override
     public PluginPackageDataModelDto register(PluginPackageDataModelDto pluginPackageDataModelDto,
             boolean fromDynamicUpdate) {
-        Optional<PluginPackage> latestPackageByName = pluginPackageRepository
-                .findLatestVersionByName(pluginPackageDataModelDto.getPackageName());
-        if (!latestPackageByName.isPresent()) {
+        PluginPackages latestPackageByName = pluginPackageMgmtService
+                .fetchLatestVersionPluginPackage(pluginPackageDataModelDto.getPackageName());
+
+        if (latestPackageByName == null) {
             String msg = String.format("Cannot find the package [%s] while registering data model",
                     pluginPackageDataModelDto.getPackageName());
             logger.error(msg);
@@ -114,11 +123,12 @@ public class PluginPackageDataModelServiceImpl implements PluginPackageDataModel
             pluginPackageDataModelDto.setUpdateTime(System.currentTimeMillis());
             pluginPackageDataModelDto.setUpdateSource(PluginPackageDataModelDto.Source.DATA_MODEL_ENDPOINT.name());
         }
-        Optional<PluginPackageDataModel> pluginPackageDataModelOptional = dataModelRepository
-                .findLatestDataModelByPackageName(pluginPackageDataModelDto.getPackageName());
+
+        PluginPackageDataModel existingDataModelDomain = pluginPackageDataModelMapper
+                .selectLatestDataModelByPackageName(pluginPackageDataModelDto.getPackageName());
+
         int newDataModelVersion = 1;
-        if (pluginPackageDataModelOptional.isPresent()) {
-            PluginPackageDataModel existingDataModelDomain = pluginPackageDataModelOptional.get();
+        if (existingDataModelDomain != null) {
             if (PluginPackageDataModelHelper.isDataModelSameAsAnother(pluginPackageDataModelDto,
                     existingDataModelDomain)) {
                 throw new WecubeCoreException("3117", "Refreshed data model is same as existing latest one.");
@@ -170,7 +180,6 @@ public class PluginPackageDataModelServiceImpl implements PluginPackageDataModel
      * @return an list of data model DTOs consist of entity dtos which contain
      *         both entities and attributes
      */
-    @Override
     public Set<PluginPackageDataModelDto> overview() {
         Set<PluginPackageDataModelDto> pluginPackageDataModelDtos = newLinkedHashSet();
         Optional<List<String>> allPackageNamesOptional = pluginPackageRepository.findAllDistinctPackage();
@@ -252,7 +261,6 @@ public class PluginPackageDataModelServiceImpl implements PluginPackageDataModel
      *            the name of package
      * @return list of entity dto
      */
-    @Override
     public PluginPackageDataModelDto packageView(String packageName) throws WecubeCoreException {
         Optional<PluginPackage> latestPluginPackageByName = pluginPackageRepository
                 .findLatestVersionByName(packageName);
@@ -655,8 +663,7 @@ public class PluginPackageDataModelServiceImpl implements PluginPackageDataModel
                 String refAttrName = pluginPackageAttribute.getPluginPackageAttribute().getName();
                 if (packageName.equals(refPackageName) && entityName.equals(refEntityName)
                         && "id".equals(refAttrName)) {
-                    PluginPackageAttributeDto returnedAttributeDto = PluginPackageAttributeDto
-                            .fromDomain(pluginPackageAttribute);
+                    PluginPackageAttributeDto returnedAttributeDto = buildPluginPackageAttributeDto(pluginPackageAttribute);
                     resultList.add(returnedAttributeDto);
                 }
             }
@@ -750,6 +757,82 @@ public class PluginPackageDataModelServiceImpl implements PluginPackageDataModel
                 }
             }
         }
+    }
+    
+    
+    
+    public PluginPackageAttributeDto buildPluginPackageAttributeDto(PluginPackageAttributes pluginPackageAttribute) {
+        PluginPackageAttributeDto pluginPackageAttributeDto = new PluginPackageAttributeDto();
+//        pluginPackageAttributeDto.setId(pluginPackageAttribute.getId());
+//        pluginPackageAttributeDto.setName(pluginPackageAttribute.getName());
+//        pluginPackageAttributeDto.setDescription(pluginPackageAttribute.getDescription());
+//        pluginPackageAttributeDto.setDataType(pluginPackageAttribute.getDataType());
+//        
+//        
+//        //TODO
+//        pluginPackageAttributeDto.setPackageName(pluginPackageAttribute.getPluginPackageEntities().getPluginPackageDataModel().getPackageName());
+//        pluginPackageAttributeDto.setEntityName(pluginPackageAttribute.getPluginPackageEntities().getName());
+//        //TODO
+//        if (pluginPackageAttribute.getPluginPackageAttribute() != null) {
+//            pluginPackageAttributeDto.setRefPackageName(pluginPackageAttribute.getPluginPackageAttribute().getPluginPackageEntity().getPluginPackageDataModel().getPackageName());
+//            pluginPackageAttributeDto.setRefEntityName(pluginPackageAttribute.getPluginPackageAttribute().getPluginPackageEntity().getName());
+//            pluginPackageAttributeDto.setRefAttributeName(pluginPackageAttribute.getPluginPackageAttribute().getName());
+//        }
+
+
+        return pluginPackageAttributeDto;
+    }
+    
+    public  PluginPackageEntityDto buildPluginPackageEntityDto(PluginPackageEntities pluginPackageEntity) {
+        PluginPackageEntityDto pluginPackageEntityDto = new PluginPackageEntityDto();
+//        pluginPackageEntityDto.setId(pluginPackageEntity.getId());
+//        pluginPackageEntityDto.setPackageName(pluginPackageEntity.getPluginPackageDataModel().getPackageName());
+//        pluginPackageEntityDto.setName(pluginPackageEntity.getName());
+//        pluginPackageEntityDto.setDisplayName(pluginPackageEntity.getDisplayName());
+//        pluginPackageEntityDto.setDescription(pluginPackageEntity.getDescription());
+//        pluginPackageEntityDto.setDataModelVersion(pluginPackageEntity.getPluginPackageDataModel().getVersion());
+//        if (pluginPackageEntity.getPluginPackageAttributes() != null) {
+//            pluginPackageEntity.getPluginPackageAttributes()
+//                    .forEach(pluginPackageAttribute -> pluginPackageEntityDto.attributes
+//                            .add(PluginPackageAttributeDto.fromDomain(pluginPackageAttribute)));
+//        }
+        return pluginPackageEntityDto;
+    }
+    
+    public  PluginPackageDataModelDto buildPluginPackageDataModelDto(PluginPackageDataModel savedPluginPackageDataModel) {
+        PluginPackageDataModelDto dataModelDto = new PluginPackageDataModelDto();
+//        dataModelDto.setId(savedPluginPackageDataModel.getId());
+//        dataModelDto.setVersion(savedPluginPackageDataModel.getVersion());
+//        dataModelDto.setPackageName(savedPluginPackageDataModel.getPackageName());
+//        dataModelDto.setUpdateSource(savedPluginPackageDataModel.getUpdateSource());
+//        dataModelDto.setUpdateTime(savedPluginPackageDataModel.getUpdateTime());
+//        dataModelDto.setDynamic(savedPluginPackageDataModel.isDynamic());
+//        if (savedPluginPackageDataModel.isDynamic()) {
+//            dataModelDto.setUpdatePath(savedPluginPackageDataModel.getUpdatePath());
+//            dataModelDto.setUpdateMethod(savedPluginPackageDataModel.getUpdateMethod());
+//        }
+//        if (null != savedPluginPackageDataModel.getPluginPackageEntities() && savedPluginPackageDataModel.getPluginPackageEntities().size() > 0) {
+//            Set<PluginPackageEntityDto> pluginPackageEntities = newLinkedHashSet();
+//            savedPluginPackageDataModel.getPluginPackageEntities().forEach(entity->pluginPackageEntities.add(PluginPackageEntityDto.fromDomain(entity)));
+//            dataModelDto.setPluginPackageEntities(pluginPackageEntities);
+//        }
+
+        return dataModelDto;
+    }
+    
+    public  DataModelEntityDto buildDataModelEntityDto(PluginPackageEntities pluginPackageEntity) {
+        DataModelEntityDto dataModelEntityDto = new DataModelEntityDto();
+//        dataModelEntityDto.setId(pluginPackageEntity.getId());
+//        dataModelEntityDto.setPackageName(pluginPackageEntity.getPluginPackageDataModel().getPackageName());
+//        dataModelEntityDto.setName(pluginPackageEntity.getName());
+//        dataModelEntityDto.setDisplayName(pluginPackageEntity.getDisplayName());
+//        dataModelEntityDto.setDescription(pluginPackageEntity.getDescription());
+//        dataModelEntityDto.setDataModelVersion(pluginPackageEntity.getPluginPackageDataModel().getVersion());
+//        if (pluginPackageEntity.getPluginPackageAttributeList() != null) {
+//            pluginPackageEntity.getPluginPackageAttributeList().forEach(pluginPackageAttribute -> dataModelEntityDto
+//                    .getAttributes().add(PluginPackageAttributeDto.fromDomain(pluginPackageAttribute)));
+//        }
+        return dataModelEntityDto;
     }
 
 }

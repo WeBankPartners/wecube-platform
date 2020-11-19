@@ -1,5 +1,8 @@
 package com.webank.wecube.platform.core.entity.plugin;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class PluginPackageDataModel {
     public static final String PLUGIN_PACKAGE = "PLUGIN_PACKAGE";
     public static final String DATA_MODEL_ENDPOINT = "DATA_MODEL_ENDPOINT";
@@ -18,6 +21,8 @@ public class PluginPackageDataModel {
     private String updateSource;
 
     private Long updateTime;
+    
+    private transient List<PluginPackageEntities> pluginPackageEntities = new ArrayList<>();
 
     public String getId() {
         return id;
@@ -82,4 +87,14 @@ public class PluginPackageDataModel {
     public void setUpdateTime(Long updateTime) {
         this.updateTime = updateTime;
     }
+
+    public List<PluginPackageEntities> getPluginPackageEntities() {
+        return pluginPackageEntities;
+    }
+
+    public void setPluginPackageEntities(List<PluginPackageEntities> pluginPackageEntities) {
+        this.pluginPackageEntities = pluginPackageEntities;
+    }
+    
+    
 }

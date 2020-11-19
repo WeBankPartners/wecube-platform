@@ -33,6 +33,7 @@ import com.webank.wecube.platform.core.dto.PluginPackageEntityDto;
 import com.webank.wecube.platform.core.jpa.PluginPackageAttributeRepository;
 import com.webank.wecube.platform.core.jpa.PluginPackageEntityRepository;
 import com.webank.wecube.platform.core.jpa.PluginPackageRepository;
+import com.webank.wecube.platform.core.service.plugin.PluginPackageDataModelService;
 
 @Ignore
 public class PluginPackageDataModelServiceTest extends DatabaseBasedTest {
@@ -45,7 +46,7 @@ public class PluginPackageDataModelServiceTest extends DatabaseBasedTest {
     @Autowired
     PluginPackageAttributeRepository pluginPackageAttributeRepository;
     @Autowired
-    PluginPackageDataModelServiceImpl pluginPackageDataModelService;
+    PluginPackageDataModelService pluginPackageDataModelService;
 
     Integer MOCK_SIZE_PER_PACKAGE = 3;
     Integer PACKAGE_SIZE = 4;

@@ -1,4 +1,4 @@
-package com.webank.wecube.platform.core.service;
+package com.webank.wecube.platform.core.service.plugin;
 
 import static com.webank.wecube.platform.core.utils.Constants.CALLBACK_PARAMETER_KEY;
 import static com.webank.wecube.platform.core.utils.Constants.DATA_TYPE_NUMBER;
@@ -47,7 +47,6 @@ import com.webank.wecube.platform.core.jpa.BatchExecutionJobRepository;
 import com.webank.wecube.platform.core.jpa.PluginConfigInterfaceRepository;
 import com.webank.wecube.platform.core.service.dme.EntityOperationRootCondition;
 import com.webank.wecube.platform.core.service.dme.StandardEntityOperationService;
-import com.webank.wecube.platform.core.service.plugin.PluginInstanceMgmtService;
 import com.webank.wecube.platform.core.service.workflow.SimpleEncryptionService;
 import com.webank.wecube.platform.core.support.plugin.PluginServiceStub;
 import com.webank.wecube.platform.core.support.plugin.dto.PluginResponse.ResultData;

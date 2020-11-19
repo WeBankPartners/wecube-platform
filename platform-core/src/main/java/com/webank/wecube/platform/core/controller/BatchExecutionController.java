@@ -2,7 +2,7 @@ package com.webank.wecube.platform.core.controller;
 
 import com.webank.wecube.platform.core.dto.BatchExecutionRequestDto;
 import com.webank.wecube.platform.core.dto.CommonResponseDto;
-import com.webank.wecube.platform.core.service.BatchExecutionService;
+import com.webank.wecube.platform.core.service.plugin.BatchExecutionService;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;

@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.webank.wecube.platform.core.dto.CommonResponseDto;
 import com.webank.wecube.platform.core.dto.QueryRequestDto;
 import com.webank.wecube.platform.core.dto.SystemVariableDto;
-import com.webank.wecube.platform.core.service.SystemVariableService;
+import com.webank.wecube.platform.core.service.plugin.SystemVariableService;
 
 @RestController
 @RequestMapping("/v1")

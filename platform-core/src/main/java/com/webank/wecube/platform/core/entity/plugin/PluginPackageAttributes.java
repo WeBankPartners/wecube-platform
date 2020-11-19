@@ -6,12 +6,21 @@ public class PluginPackageAttributes {
     private String entityId;
 
     private String referenceId;
+    //TODO
+    private String packageName;
+    
+    //TODO
+    private String entityName;
 
     private String name;
 
     private String description;
 
     private String dataType;
+
+    private transient PluginPackageEntities pluginPackageEntities;
+
+    private transient PluginPackageAttributes pluginPackageAttribute;
 
     public String getId() {
         return id;
@@ -60,4 +69,22 @@ public class PluginPackageAttributes {
     public void setDataType(String dataType) {
         this.dataType = dataType == null ? null : dataType.trim();
     }
+
+    public PluginPackageEntities getPluginPackageEntities() {
+        return pluginPackageEntities;
+    }
+
+    public void setPluginPackageEntities(PluginPackageEntities pluginPackageEntities) {
+        this.pluginPackageEntities = pluginPackageEntities;
+    }
+
+    public PluginPackageAttributes getPluginPackageAttribute() {
+        return pluginPackageAttribute;
+    }
+
+    public void setPluginPackageAttribute(PluginPackageAttributes pluginPackageAttribute) {
+        this.pluginPackageAttribute = pluginPackageAttribute;
+    }
+
+    
 }

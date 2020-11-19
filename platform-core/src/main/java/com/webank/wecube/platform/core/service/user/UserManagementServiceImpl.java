@@ -17,7 +17,7 @@ import com.webank.wecube.platform.core.dto.user.UserDto;
 import com.webank.wecube.platform.core.dto.user.UserPasswordDto;
 import com.webank.wecube.platform.core.dto.user.UserPasswordResetDto;
 import com.webank.wecube.platform.core.entity.plugin.SystemVariables;
-import com.webank.wecube.platform.core.service.SystemVariableService;
+import com.webank.wecube.platform.core.service.plugin.SystemVariableService;
 import com.webank.wecube.platform.core.support.RestClientException;
 import com.webank.wecube.platform.core.support.authserver.AsRoleDto;
 import com.webank.wecube.platform.core.support.authserver.AsUserDto;
