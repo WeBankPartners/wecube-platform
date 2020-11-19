@@ -29,12 +29,14 @@ public class PluginPackages {
 
     private transient List<PluginPackageDependencies> pluginPackageDependencies = new ArrayList<>();
     private transient List<PluginPackageAuthorities> pluginPackageAuthorities = new ArrayList<>();
-    
+
     private transient List<PluginPackageRuntimeResourcesDocker> dockers = new ArrayList<>();
-    
+
     private transient List<PluginPackageRuntimeResourcesMysql> mysqls = new ArrayList<>();
     private transient List<PluginPackageRuntimeResourcesS3> s3s = new ArrayList<>();
- 
+
+    private transient List<PluginPackageMenus> pluginPackageMenus = new ArrayList<>();
+
     public String getId() {
         return id;
     }
@@ -123,5 +125,12 @@ public class PluginPackages {
         this.s3s = s3s;
     }
 
-    
+    public List<PluginPackageMenus> getPluginPackageMenus() {
+        return pluginPackageMenus;
+    }
+
+    public void setPluginPackageMenus(List<PluginPackageMenus> pluginPackageMenus) {
+        this.pluginPackageMenus = pluginPackageMenus;
+    }
+
 }
