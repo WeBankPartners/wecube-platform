@@ -194,8 +194,8 @@
         ref="selection"
         max-height="300"
         @on-select="singleSelect"
-        @on-select-cancel="singleCancle"
-        @on-select-all-cancel="selectAllCancle"
+        @on-select-cancel="singleCancel"
+        @on-select-all-cancel="selectAllCancel"
         @on-select-all="selectAll"
         :columns="targetModelColums"
         :data="tartetModels"
@@ -443,7 +443,7 @@ export default {
     singleSelect (selection, row) {
       this.catchNodeTableList = this.catchNodeTableList.concat(row)
     },
-    singleCancle (selection, row) {
+    singleCancel (selection, row) {
       const index = this.catchNodeTableList.findIndex(cn => {
         return cn.id === row.id
       })
@@ -460,7 +460,7 @@ export default {
         }
       })
     },
-    selectAllCancle () {
+    selectAllCancel () {
       let temp = []
       this.tartetModels.forEach(tm => {
         temp.push(tm.id)

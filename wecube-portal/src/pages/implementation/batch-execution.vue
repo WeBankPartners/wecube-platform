@@ -333,8 +333,8 @@
                 <Table
                   ref="currentRowTable"
                   @on-select="singleSelect"
-                  @on-select-cancel="singleCancle"
-                  @on-select-all-cancel="selectAllCancle"
+                  @on-select-cancel="singleCancel"
+                  @on-select-all-cancel="selectAllCancel"
                   @on-select-all="selectAll"
                   :columns="tableColumns"
                   :data="tableData"
@@ -405,7 +405,7 @@
         </Button>
         <!-- 放弃功能 -->
         <Button @click="closeModal">
-          {{ $t('cancle') }}
+          {{ $t('cancel') }}
         </Button>
       </div>
     </Modal>
@@ -437,7 +437,7 @@
         ></Transfer>
       </div>
       <div slot="footer">
-        <Button @click="collectionRoleManageModal = false">{{ $t('bc_cancle') }}</Button>
+        <Button @click="collectionRoleManageModal = false">{{ $t('bc_cancel') }}</Button>
         <Button type="primary" @click="confirmCollection">{{ $t('bc_confirm') }}</Button>
       </div>
     </Modal>
@@ -660,7 +660,7 @@ export default {
     singleSelect (selection, row) {
       this.seletedRows = this.seletedRows.concat(row)
     },
-    singleCancle (selection, row) {
+    singleCancel (selection, row) {
       const index = this.seletedRows.findIndex(cn => {
         return cn.id === row.id
       })
@@ -677,7 +677,7 @@ export default {
         }
       })
     },
-    selectAllCancle () {
+    selectAllCancel () {
       let temp = []
       this.tartetModels.forEach(tm => {
         temp.push(tm.id)
