@@ -12,6 +12,8 @@ public class BatchExecutionRequestDto {
     private List<InputParameterDefinition> inputParameterDefinitions;
     private BusinessKeyAttributeDto businessKeyAttribute;
     private List<ResourceDataDto> resourceDatas;
+    
+    private String continueToken;
 
     public BatchExecutionRequestDto() {
     }
@@ -63,6 +65,8 @@ public class BatchExecutionRequestDto {
     public void setResourceDatas(List<ResourceDataDto> resourceDatas) {
         this.resourceDatas = resourceDatas;
     }
+    
+    
 
 	@Override
 	public String toString() {
@@ -82,6 +86,14 @@ public class BatchExecutionRequestDto {
 		builder.append("]");
 		return builder.toString();
 	}
+
+    public String getContinueToken() {
+        return continueToken;
+    }
+
+    public void setContinueToken(String continueToken) {
+        this.continueToken = continueToken;
+    }
 
     
 }
