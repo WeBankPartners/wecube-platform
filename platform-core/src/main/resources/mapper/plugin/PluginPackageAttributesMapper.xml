@@ -1,106 +1,133 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
-<mapper namespace="com.webank.wecube.platform.core.repository.plugin.PluginPackageAttributesMapper" >
-  <resultMap id="BaseResultMap" type="com.webank.wecube.platform.core.entity.plugin.PluginPackageAttributes" >
-    <id column="id" property="id" jdbcType="VARCHAR" />
-    <result column="entity_id" property="entityId" jdbcType="VARCHAR" />
-    <result column="reference_id" property="referenceId" jdbcType="VARCHAR" />
-    <result column="name" property="name" jdbcType="VARCHAR" />
-    <result column="description" property="description" jdbcType="VARCHAR" />
-    <result column="data_type" property="dataType" jdbcType="VARCHAR" />
-  </resultMap>
-  <sql id="Base_Column_List" >
-    id, entity_id, reference_id, name, description, data_type
-  </sql>
-  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.String" >
-    select 
-    <include refid="Base_Column_List" />
-    from plugin_package_attributes
-    where id = #{id,jdbcType=VARCHAR}
-  </select>
-  <delete id="deleteByPrimaryKey" parameterType="java.lang.String" >
-    delete from plugin_package_attributes
-    where id = #{id,jdbcType=VARCHAR}
-  </delete>
-  <insert id="insert" parameterType="com.webank.wecube.platform.core.entity.plugin.PluginPackageAttributes" >
-    insert into plugin_package_attributes (id, entity_id, reference_id, 
-      name, description, data_type
-      )
-    values (#{id,jdbcType=VARCHAR}, #{entityId,jdbcType=VARCHAR}, #{referenceId,jdbcType=VARCHAR}, 
-      #{name,jdbcType=VARCHAR}, #{description,jdbcType=VARCHAR}, #{dataType,jdbcType=VARCHAR}
-      )
-  </insert>
-  <insert id="insertSelective" parameterType="com.webank.wecube.platform.core.entity.plugin.PluginPackageAttributes" >
-    insert into plugin_package_attributes
-    <trim prefix="(" suffix=")" suffixOverrides="," >
-      <if test="id != null" >
-        id,
-      </if>
-      <if test="entityId != null" >
-        entity_id,
-      </if>
-      <if test="referenceId != null" >
+<mapper
+    namespace="com.webank.wecube.platform.core.repository.plugin.PluginPackageAttributesMapper">
+    <resultMap id="BaseResultMap"
+        type="com.webank.wecube.platform.core.entity.plugin.PluginPackageAttributes">
+        <id column="id" property="id" jdbcType="VARCHAR" />
+        <result column="entity_id" property="entityId" jdbcType="VARCHAR" />
+        <result column="reference_id" property="referenceId"
+            jdbcType="VARCHAR" />
+        <result column="name" property="name" jdbcType="VARCHAR" />
+        <result column="description" property="description"
+            jdbcType="VARCHAR" />
+        <result column="data_type" property="dataType" jdbcType="VARCHAR" />
+    </resultMap>
+    <sql id="Base_Column_List">
+        id, entity_id, reference_id, name, description, data_type
+    </sql>
+    <select id="selectByPrimaryKey" resultMap="BaseResultMap"
+        parameterType="java.lang.String">
+        select
+        <include refid="Base_Column_List" />
+        from plugin_package_attributes
+        where id = #{id,jdbcType=VARCHAR}
+    </select>
+    <delete id="deleteByPrimaryKey" parameterType="java.lang.String">
+        delete from plugin_package_attributes
+        where id = #{id,jdbcType=VARCHAR}
+    </delete>
+    <insert id="insert"
+        parameterType="com.webank.wecube.platform.core.entity.plugin.PluginPackageAttributes">
+        insert into plugin_package_attributes (id, entity_id,
         reference_id,
-      </if>
-      <if test="name != null" >
-        name,
-      </if>
-      <if test="description != null" >
-        description,
-      </if>
-      <if test="dataType != null" >
-        data_type,
-      </if>
-    </trim>
-    <trim prefix="values (" suffix=")" suffixOverrides="," >
-      <if test="id != null" >
-        #{id,jdbcType=VARCHAR},
-      </if>
-      <if test="entityId != null" >
-        #{entityId,jdbcType=VARCHAR},
-      </if>
-      <if test="referenceId != null" >
+        name, description, data_type
+        )
+        values (#{id,jdbcType=VARCHAR}, #{entityId,jdbcType=VARCHAR},
         #{referenceId,jdbcType=VARCHAR},
-      </if>
-      <if test="name != null" >
-        #{name,jdbcType=VARCHAR},
-      </if>
-      <if test="description != null" >
-        #{description,jdbcType=VARCHAR},
-      </if>
-      <if test="dataType != null" >
-        #{dataType,jdbcType=VARCHAR},
-      </if>
-    </trim>
-  </insert>
-  <update id="updateByPrimaryKeySelective" parameterType="com.webank.wecube.platform.core.entity.plugin.PluginPackageAttributes" >
-    update plugin_package_attributes
-    <set >
-      <if test="entityId != null" >
-        entity_id = #{entityId,jdbcType=VARCHAR},
-      </if>
-      <if test="referenceId != null" >
+        #{name,jdbcType=VARCHAR}, #{description,jdbcType=VARCHAR}, #{dataType,jdbcType=VARCHAR}
+        )
+    </insert>
+    <insert id="insertSelective"
+        parameterType="com.webank.wecube.platform.core.entity.plugin.PluginPackageAttributes">
+        insert into plugin_package_attributes
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="id != null">
+                id,
+            </if>
+            <if test="entityId != null">
+                entity_id,
+            </if>
+            <if test="referenceId != null">
+                reference_id,
+            </if>
+            <if test="name != null">
+                name,
+            </if>
+            <if test="description != null">
+                description,
+            </if>
+            <if test="dataType != null">
+                data_type,
+            </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="id != null">
+                #{id,jdbcType=VARCHAR},
+            </if>
+            <if test="entityId != null">
+                #{entityId,jdbcType=VARCHAR},
+            </if>
+            <if test="referenceId != null">
+                #{referenceId,jdbcType=VARCHAR},
+            </if>
+            <if test="name != null">
+                #{name,jdbcType=VARCHAR},
+            </if>
+            <if test="description != null">
+                #{description,jdbcType=VARCHAR},
+            </if>
+            <if test="dataType != null">
+                #{dataType,jdbcType=VARCHAR},
+            </if>
+        </trim>
+    </insert>
+    <update id="updateByPrimaryKeySelective"
+        parameterType="com.webank.wecube.platform.core.entity.plugin.PluginPackageAttributes">
+        update plugin_package_attributes
+        <set>
+            <if test="entityId != null">
+                entity_id = #{entityId,jdbcType=VARCHAR},
+            </if>
+            <if test="referenceId != null">
+                reference_id = #{referenceId,jdbcType=VARCHAR},
+            </if>
+            <if test="name != null">
+                name = #{name,jdbcType=VARCHAR},
+            </if>
+            <if test="description != null">
+                description = #{description,jdbcType=VARCHAR},
+            </if>
+            <if test="dataType != null">
+                data_type = #{dataType,jdbcType=VARCHAR},
+            </if>
+        </set>
+        where id = #{id,jdbcType=VARCHAR}
+    </update>
+    <update id="updateByPrimaryKey"
+        parameterType="com.webank.wecube.platform.core.entity.plugin.PluginPackageAttributes">
+        update plugin_package_attributes
+        set entity_id = #{entityId,jdbcType=VARCHAR},
         reference_id = #{referenceId,jdbcType=VARCHAR},
-      </if>
-      <if test="name != null" >
         name = #{name,jdbcType=VARCHAR},
-      </if>
-      <if test="description != null" >
         description = #{description,jdbcType=VARCHAR},
-      </if>
-      <if test="dataType != null" >
-        data_type = #{dataType,jdbcType=VARCHAR},
-      </if>
-    </set>
-    where id = #{id,jdbcType=VARCHAR}
-  </update>
-  <update id="updateByPrimaryKey" parameterType="com.webank.wecube.platform.core.entity.plugin.PluginPackageAttributes" >
-    update plugin_package_attributes
-    set entity_id = #{entityId,jdbcType=VARCHAR},
-      reference_id = #{referenceId,jdbcType=VARCHAR},
-      name = #{name,jdbcType=VARCHAR},
-      description = #{description,jdbcType=VARCHAR},
-      data_type = #{dataType,jdbcType=VARCHAR}
-    where id = #{id,jdbcType=VARCHAR}
-  </update>
+        data_type = #{dataType,jdbcType=VARCHAR}
+        where id = #{id,jdbcType=VARCHAR}
+    </update>
+    
+    <select id="selectAllByEntity" resultMap="BaseResultMap"
+        parameterType="java.lang.String">
+        select
+        <include refid="Base_Column_List" />
+        from plugin_package_attributes
+        where entity_id = #{entityId,jdbcType=VARCHAR}
+    </select>
+    
+    <select id="selectAllReferences" resultMap="BaseResultMap"
+        parameterType="java.lang.String">
+        select
+        <include refid="Base_Column_List" />
+        from plugin_package_attributes
+        where reference_id = #{attributeId,jdbcType=VARCHAR}
+    </select>
 </mapper>
