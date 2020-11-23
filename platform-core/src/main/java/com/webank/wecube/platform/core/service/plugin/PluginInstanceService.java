@@ -199,10 +199,10 @@ public class PluginInstanceService {
             }
         }
 
-        if (runningInstances.isEmpty()) {
-            throw new WecubeCoreException("3069",
-                    String.format("No instance for plugin [%s] is available.", pluginName));
-        }
+//        if (runningInstances.isEmpty()) {
+//            throw new WecubeCoreException("3069",
+//                    String.format("No instance for plugin [%s] is available.", pluginName), pluginName);
+//        }
         return runningInstances;
     }
 
