@@ -496,10 +496,6 @@ public class PluginPackageDataModelService {
             referenceEntityDtoMaps.put(key, trimmedDto);
         }
 
-//        referenceEntityDtoMaps = Collections.unmodifiableMap(
-//                dynamicPluginPackageEntities.stream().map(entity -> entity.toTrimmedPluginPackageEntityDto())
-//                        .collect(Collectors.toMap(x -> x.getPluginPackageEntityKey(), x -> x)));
-
         Map<PluginPackageEntityDto.PluginPackageEntityKey, PluginPackageEntityDto.TrimmedPluginPackageEntityDto> finalReferenceEntityDtoMaps = referenceEntityDtoMaps;
 
         for(PluginPackageEntityDto entityDto : dynamicPluginPackageEntities){
@@ -520,22 +516,6 @@ public class PluginPackageDataModelService {
             }
         }
         
-//        dynamicPluginPackageEntities.forEach(entity -> {
-//            entity.getAttributes().forEach(attribute -> {
-//                attribute.setPackageName(packageName);
-//                if (StringUtils.isNotBlank(attribute.getRefAttributeName())) {
-//                    if (StringUtils.isBlank(attribute.getRefPackageName())) {
-//                        attribute.setRefPackageName(packageName);
-//                    }
-//                    if (StringUtils.isBlank(attribute.getRefEntityName())) {
-//                        attribute.setRefEntityName(entity.getName());
-//                    }
-//                    entity.updateReferenceTo(
-//                            finalReferenceEntityDtoMaps.get(new PluginPackageEntityDto.PluginPackageEntityKey(
-//                                    attribute.getRefPackageName(), attribute.getRefEntityName())));
-//                }
-//            });
-//        });
     }
 
     @SuppressWarnings("unchecked")
@@ -570,7 +550,10 @@ public class PluginPackageDataModelService {
             dynamicPluginPackageEntities = JsonUtils.toList(JsonUtils.toJsonString(responseDto.getData()),
                     PluginPackageEntityDto.class);
         } catch (IOException ex) {
-            logger.error(ex.getMessage());
+            logger.error("errors while fetch dynamic data models for {} {}",dataModel.getPackageName(), updatePath);
+            String msg = String.format("Request error! The error message is [%s]", ex.getMessage());
+            logger.error(msg);
+            throw new WecubeCoreException("3126", msg, ex.getMessage());
         }
         return Sets.newLinkedHashSet(dynamicPluginPackageEntities);
     }
