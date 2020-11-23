@@ -100,8 +100,8 @@ public class BatchExecutionService {
     private ObjectMapper objectMapper = new ObjectMapper().setSerializationInclusion(JsonInclude.Include.NON_NULL);
 
     @Transactional
-    public BatchExecutionResult handleBatchExecutionJob(BatchExecutionRequestDto batchExecutionRequest)
-            throws IOException {
+    public BatchExecutionResult handleBatchExecutionJob(BatchExecutionRequestDto batchExecutionRequest,
+            String continueToken) throws IOException {
         verifyParameters(batchExecutionRequest.getInputParameterDefinitions());
         BatchExecutionJob batchExeJob = saveToDb(batchExecutionRequest);
 
@@ -112,7 +112,7 @@ public class BatchExecutionService {
             ctxes.add(ctx);
         }
 
-        if (needPerformDangerousCommandsChecking(batchExecutionRequest)) {
+        if (needPerformDangerousCommandsChecking(batchExecutionRequest, continueToken)) {
             BatchExecutionResult result = performDangerCheck(batchExecutionRequest, batchExeJob, ctxes);
             if (result != null) {
                 return result;
@@ -201,51 +201,47 @@ public class BatchExecutionService {
 
             req.getInputParams().add(pluginInputParamMap);
         }
-        
-        ItsDangerCheckRespDto resp = itsDangerRestClient.check(req);
 
-        
+        ItsDangerCheckRespDto resp = itsDangerRestClient.check(req);
 
         if (resp == null) {
             return null;
         }
-        
+
         ItsDanerResultDataInfoDto respData = resp.getData();
-        if(respData == null){
+        if (respData == null) {
             return null;
         }
-        
+
         List<Object> checkData = respData.getData();
 
         if (checkData == null || checkData.isEmpty()) {
             return null;
         }
-        
+
         BatchExecutionResult result = new BatchExecutionResult();
         ItsDangerConfirmResultDto itsDangerConfirmResultDto = new ItsDangerConfirmResultDto();
         itsDangerConfirmResultDto.setMessage(respData.getText());
         itsDangerConfirmResultDto.setStatus("CONFIRM");
-        
+
         String md5 = buildContinueToken(batchExecutionRequest);
-        
+
         ItsDangerTokenInfoDto tokenInfo = new ItsDangerTokenInfoDto();
         tokenInfo.setContinueToken(md5);
         itsDangerConfirmResultDto.setData(tokenInfo);
-        
+
         result.setItsDangerConfirmResultDto(itsDangerConfirmResultDto);
-        
+
         return result;
 
     }
 
-    private boolean needPerformDangerousCommandsChecking(BatchExecutionRequestDto requestDto) {
+    private boolean needPerformDangerousCommandsChecking(BatchExecutionRequestDto requestDto, String continueToken) {
 
         PluginInstance itsdangerInstance = pluginInstanceService.getRunningPluginInstance(PLUGIN_NAME_ITSDANGEROUS);
         if (itsdangerInstance == null) {
             return false;
         }
-
-        String continueToken = requestDto.getContinueToken();
 
         if (StringUtils.isNoneBlank(continueToken)) {
             String md5 = buildContinueToken(requestDto);
