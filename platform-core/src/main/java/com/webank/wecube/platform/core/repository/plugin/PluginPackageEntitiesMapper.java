@@ -37,4 +37,13 @@ public interface PluginPackageEntitiesMapper {
      * @return
      */
     List<PluginPackageEntities> selectAllByDataModel(@Param("dataModelId")String dataModelId);
+    
+    
+    /**
+     * 
+     * @param packageName
+     * @param entityName
+     * @return
+     */
+    PluginPackageEntities selectLatestByPackageNameAndEntityName(@Param("packageName")String packageName, @Param("entityName")String entityName);
 }
