@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -25,9 +26,11 @@ public class BatchExecutionController {
 
     @PostMapping("/batch-execution/run")
     @ResponseBody
-    public Object runBatchExecution(@RequestBody BatchExecutionRequestDto batchExecutionRequest) throws IOException {
+    public Object runBatchExecution(@RequestBody BatchExecutionRequestDto batchExecutionRequest,
+            @RequestParam(value = "continue_token", required = false) String continueToken) throws IOException {
 
-        BatchExecutionResult result = batchExecutionService.handleBatchExecutionJob(batchExecutionRequest);
+        BatchExecutionResult result = batchExecutionService.handleBatchExecutionJob(batchExecutionRequest,
+                continueToken);
         if (result.getItsDangerConfirmResultDto() != null) {
             return result.getItsDangerConfirmResultDto();
         } else {
