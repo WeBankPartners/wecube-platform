@@ -598,6 +598,8 @@ export default {
           title: 'Success',
           desc: 'Instance launched successfully'
         })
+        const index = this.availiableHostsWithPort.findIndex(item => item.port === port)
+        this.availiableHostsWithPort.splice(index, 1)
         this.getAvailableInstancesByPackageId(this.currentPlugin.id)
       }
     },
