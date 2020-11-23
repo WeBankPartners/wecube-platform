@@ -125,7 +125,7 @@ export const dmeAllEntities = data => req.post(`/platform/v1/data-model/dme/all-
 export const dmeIntegratedQuery = data => req.post(`/platform/v1/data-model/dme/integrated-query`, data)
 export const entityView = (packageName, entityName) =>
   req.get(`/platform/v1/models/package/${packageName}/entity/${entityName}/attributes`)
-export const batchExecution = data => req.post(`/platform/v1/batch-execution/run`, data)
+export const batchExecution = (url, data) => req.post(url, data)
 export const deleteCollectionsRole = (id, data) => req.delete(`/platform/v1/roles/${id}/favorites`, { data })
 export const addCollectionsRole = (id, data) => req.post(`/platform/v1/roles/${id}/favorites`, data)
 export const getAllCollections = data => req.get(`/platform/v1/roles/favorites/retrieve`)
