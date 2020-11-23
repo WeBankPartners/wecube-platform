@@ -40,6 +40,8 @@ import com.webank.wecube.platform.core.dto.S3PluginActifactPullRequestDto;
 import com.webank.wecube.platform.core.dto.plugin.UploadPackageResultDto;
 import com.webank.wecube.platform.core.dto.user.RoleDto;
 import com.webank.wecube.platform.core.entity.plugin.PluginArtifactPullReq;
+import com.webank.wecube.platform.core.entity.plugin.PluginConfigInterfaceParameters;
+import com.webank.wecube.platform.core.entity.plugin.PluginConfigInterfaces;
 import com.webank.wecube.platform.core.entity.plugin.PluginConfigRoles;
 import com.webank.wecube.platform.core.entity.plugin.PluginConfigs;
 import com.webank.wecube.platform.core.entity.plugin.PluginPackageAttributes;
@@ -58,6 +60,8 @@ import com.webank.wecube.platform.core.parser.PluginConfigXmlValidator;
 import com.webank.wecube.platform.core.parser.PluginPackageDataModelValidator;
 import com.webank.wecube.platform.core.parser.PluginPackageValidator;
 import com.webank.wecube.platform.core.repository.plugin.PluginArtifactPullReqMapper;
+import com.webank.wecube.platform.core.repository.plugin.PluginConfigInterfaceParametersMapper;
+import com.webank.wecube.platform.core.repository.plugin.PluginConfigInterfacesMapper;
 import com.webank.wecube.platform.core.repository.plugin.PluginConfigRolesMapper;
 import com.webank.wecube.platform.core.repository.plugin.PluginConfigsMapper;
 import com.webank.wecube.platform.core.repository.plugin.PluginPackageAttributesMapper;
@@ -79,10 +83,14 @@ import com.webank.wecube.platform.core.service.plugin.xml.register.AuthorityType
 import com.webank.wecube.platform.core.service.plugin.xml.register.DataModelType;
 import com.webank.wecube.platform.core.service.plugin.xml.register.DockerType;
 import com.webank.wecube.platform.core.service.plugin.xml.register.EntityType;
+import com.webank.wecube.platform.core.service.plugin.xml.register.InputParameterType;
+import com.webank.wecube.platform.core.service.plugin.xml.register.InputParametersType;
 import com.webank.wecube.platform.core.service.plugin.xml.register.InterfaceType;
 import com.webank.wecube.platform.core.service.plugin.xml.register.MenuType;
 import com.webank.wecube.platform.core.service.plugin.xml.register.MenusType;
 import com.webank.wecube.platform.core.service.plugin.xml.register.MysqlType;
+import com.webank.wecube.platform.core.service.plugin.xml.register.OutputParameterType;
+import com.webank.wecube.platform.core.service.plugin.xml.register.OutputParametersType;
 import com.webank.wecube.platform.core.service.plugin.xml.register.PackageDependenciesType;
 import com.webank.wecube.platform.core.service.plugin.xml.register.PackageDependencyType;
 import com.webank.wecube.platform.core.service.plugin.xml.register.PackageType;
@@ -132,6 +140,12 @@ public class PluginArtifactsMgmtService extends AbstractPluginMgmtService {
 
     @Autowired
     private PluginConfigsMapper pluginConfigsMapper;
+    
+    @Autowired
+    private PluginConfigInterfacesMapper pluginConfigInterfacesMapper;
+    
+    @Autowired
+    private PluginConfigInterfaceParametersMapper pluginConfigInterfaceParameters;
 
     @Autowired
     private PluginConfigRolesMapper pluginConfigRolesMapper;
@@ -506,12 +520,12 @@ public class PluginArtifactsMgmtService extends AbstractPluginMgmtService {
             packageMenuEntity.setDisplayName(xmlMenu.getDisplayName());
             packageMenuEntity.setLocalDisplayName(StringUtils.isBlank(xmlMenu.getLocalDisplayName())
                     ? xmlMenu.getDisplayName() : xmlMenu.getLocalDisplayName());
-//            packageMenuEntity.setMenuOrder(menuOrder);
-            
+            // packageMenuEntity.setMenuOrder(menuOrder);
+
             packageMenuEntity.setPath(xmlMenu.getValue());
             packageMenuEntity.setPluginPackageId(pluginPackageEntity.getId());
             packageMenuEntity.setSource(pluginPackageEntity.getId());
-            
+
             pluginPackageMenusMapper.insert(packageMenuEntity);
             pluginPackageEntity.getPluginPackageMenus().add(packageMenuEntity);
         }
@@ -622,7 +636,14 @@ public class PluginArtifactsMgmtService extends AbstractPluginMgmtService {
             return;
         }
 
-        // TODO
+        int lastDataModelVersion = -1;
+        PluginPackageDataModel existModelEntity = pluginPackageDataModelMapper
+                .selectLatestDataModelByPackageName(pluginPackageEntity.getName());
+
+        if (existModelEntity != null) {
+            lastDataModelVersion = existModelEntity.getVersion();
+        }
+
         PluginPackageDataModel dataModelEntity = new PluginPackageDataModel();
         dataModelEntity.setId(LocalIdGenerator.generateId());
         boolean isDynamic = "true".equalsIgnoreCase(xmlDataModel.getIsDynamic());
@@ -632,7 +653,7 @@ public class PluginArtifactsMgmtService extends AbstractPluginMgmtService {
         if (StringUtils.isEmpty(updatePath) && isDynamic) {
             updatePath = DEFAULT_DATA_MODEL_UPDATE_PATH;
         }
-        
+
         dataModelEntity.setUpdatePath(updatePath);
         String updateMethod = xmlDataModel.getMethod();
         if (StringUtils.isEmpty(updateMethod) && isDynamic) {
@@ -641,8 +662,7 @@ public class PluginArtifactsMgmtService extends AbstractPluginMgmtService {
         dataModelEntity.setUpdateMethod(updateMethod);
         dataModelEntity.setUpdateSource(PluginPackageDataModel.PLUGIN_PACKAGE);
         dataModelEntity.setUpdateTime(System.currentTimeMillis());
-        // TODO
-        dataModelEntity.setVersion(1);
+        dataModelEntity.setVersion(lastDataModelVersion + 1);
         pluginPackageDataModelMapper.insert(dataModelEntity);
 
         List<EntityType> xmlEntityList = xmlDataModel.getEntity();
@@ -653,14 +673,12 @@ public class PluginArtifactsMgmtService extends AbstractPluginMgmtService {
         for (EntityType xmlEntity : xmlEntityList) {
             PluginPackageEntities entity = new PluginPackageEntities();
             entity.setDataModelId(dataModelEntity.getId());
-            // TODO
-            entity.setDataModelVersion(0);
+            entity.setDataModelVersion(dataModelEntity.getVersion());
             entity.setDescription(xmlEntity.getDescription());
             entity.setDisplayName(xmlEntity.getDisplayName());
             entity.setId(LocalIdGenerator.generateId());
             entity.setName(xmlEntity.getName());
             entity.setPackageName(xmlPackage.getName());
-            
 
             pluginPackageEntitiesMapper.insert(entity);
 
@@ -670,7 +688,6 @@ public class PluginArtifactsMgmtService extends AbstractPluginMgmtService {
             }
 
             for (AttributeType xmlAttribute : xmlAttributeList) {
-                // TODO
                 PluginPackageAttributes attributeEntity = new PluginPackageAttributes();
                 attributeEntity.setId(LocalIdGenerator.generateId());
                 attributeEntity.setDataType(xmlAttribute.getDatatype());
@@ -678,14 +695,36 @@ public class PluginArtifactsMgmtService extends AbstractPluginMgmtService {
                 attributeEntity.setEntityId(entity.getId());
                 attributeEntity.setName(xmlAttribute.getName());
 
-                // TODO
-                String referenceId = null;
+                String referenceId = calAttributeReference(pluginPackageEntity, dataModelEntity, entity, xmlAttribute);
                 attributeEntity.setReferenceId(referenceId);
 
                 pluginPackageAttributesMapper.insert(attributeEntity);
             }
         }
 
+    }
+
+    private String calAttributeReference(PluginPackages pluginPackageEntity, PluginPackageDataModel dataModelEntity,
+            PluginPackageEntities entitiesEntity, AttributeType xmlAttribute) {
+        String xmlRef = xmlAttribute.getRef();
+        if (StringUtils.isBlank(xmlRef)) {
+            return null;
+        }
+
+        String xmlRefPackageName = xmlAttribute.getRefPackage();
+        String xmlRefEntityName = xmlAttribute.getRefEntity();
+
+        PluginPackageEntities latestRefEntitiesEntity = pluginPackageEntitiesMapper
+                .selectLatestByPackageNameAndEntityName(xmlRefPackageName, xmlRefEntityName);
+
+        if (latestRefEntitiesEntity == null) {
+            log.error("cannot find reference entity for {} {} {}", xmlRefPackageName, xmlRefEntityName, xmlRef);
+            String errMsg = String.format("Cannot find reference entity for %s:%s:%s", xmlRefPackageName,
+                    xmlRefEntityName, xmlRef);
+            throw new WecubeCoreException(errMsg);
+        }
+
+        return latestRefEntitiesEntity.getId();
     }
 
     private void processSystemVaraibles(SystemParametersType xmlSystemParameters, PackageType xmlPackage,
@@ -704,7 +743,6 @@ public class PluginArtifactsMgmtService extends AbstractPluginMgmtService {
             systemVariableEntity.setId(LocalIdGenerator.generateId());
             systemVariableEntity.setName(xmlSystemParameter.getName());
             systemVariableEntity.setPackageName(xmlPackage.getName());
-            // TODO
             systemVariableEntity.setScope(xmlSystemParameter.getScopeType());
             systemVariableEntity.setDefaultValue(xmlSystemParameter.getDefaultValue());
             systemVariableEntity.setValue(xmlSystemParameter.getValue());
@@ -740,19 +778,117 @@ public class PluginArtifactsMgmtService extends AbstractPluginMgmtService {
         pluginConfigEntity.setRegisterName(xmlPlugin.getRegisterName());
         pluginConfigEntity.setStatus(PluginConfigs.DISABLED);
         pluginConfigEntity.setTargetEntity(xmlPlugin.getTargetEntity());
-        // TODO
         pluginConfigEntity.setTargetEntityFilterRule(xmlPlugin.getTargetEntityFilterRule());
         pluginConfigEntity.setTargetPackage(xmlPlugin.getTargetPackage());
 
         pluginConfigsMapper.insert(pluginConfigEntity);
 
         List<InterfaceType> xmlInterfaces = xmlPlugin.getInterface();
-        // TODO
+        
+        if(xmlInterfaces != null){
+            for(InterfaceType xmlIntf : xmlInterfaces){
+                processDefinedInterfaces( xmlIntf,  pluginPackageEntity,
+                         pluginConfigEntity);
+            }
+        }
 
         RoleBindsType xmlRoleBinds = xmlPlugin.getRoleBinds();
-        // TODO
         processRoleBinds(xmlRoleBinds, pluginConfigEntity);
 
+    }
+
+    private void processDefinedInterfaces(InterfaceType xmlIntf, PluginPackages pluginPackageEntity,
+            PluginConfigs pluginConfigEntity) {
+        if(xmlIntf == null){
+            return;
+        }
+        
+        PluginConfigInterfaces intfEntity = new PluginConfigInterfaces();
+        intfEntity.setId(LocalIdGenerator.generateId());
+        intfEntity.setAction(xmlIntf.getAction());
+        intfEntity.setFilterRule(xmlIntf.getFilterRule());
+        intfEntity.setHttpMethod(xmlIntf.getHttpMethod());
+        intfEntity.setIsAsyncProcessing(xmlIntf.getIsAsyncProcessing());
+        intfEntity.setPath(xmlIntf.getPath());
+        intfEntity.setPluginConfigId(pluginConfigEntity.getId());
+        intfEntity.setType(xmlIntf.getType());
+        //
+        intfEntity.setServiceName(intfEntity.generateServiceName(pluginPackageEntity, pluginConfigEntity));
+        
+        pluginConfigInterfacesMapper.insert(intfEntity);
+        
+        InputParametersType xmlInputParameters = xmlIntf.getInputParameters();
+        if(xmlInputParameters != null){
+            processInputParameters( xmlInputParameters,  pluginPackageEntity,
+                     pluginConfigEntity,  intfEntity);
+        }
+        
+        OutputParametersType xmlOutputParameters = xmlIntf.getOutputParameters();
+        if(xmlOutputParameters != null){
+            processOutputParameters(xmlOutputParameters, pluginPackageEntity,
+                     pluginConfigEntity,  intfEntity);
+        }
+    }
+    
+    private void processOutputParameters(OutputParametersType xmlOutputParameters, PluginPackages pluginPackageEntity,
+            PluginConfigs pluginConfigEntity, PluginConfigInterfaces intfEntity){
+        
+        if(xmlOutputParameters == null ){
+            return;
+        }
+        
+        List<OutputParameterType> xmlParameterList = xmlOutputParameters.getParameter();
+        if(xmlParameterList == null || xmlParameterList.isEmpty()){
+            return;
+        }
+        
+        for(OutputParameterType xmlParameter : xmlParameterList){
+            PluginConfigInterfaceParameters paramEntity = new PluginConfigInterfaceParameters();
+            paramEntity.setDataType(xmlParameter.getDatatype());
+            paramEntity.setId(LocalIdGenerator.generateId());
+            paramEntity.setMappingEntityExpression(xmlParameter.getMappingEntityExpression());
+            paramEntity.setMappingType(xmlParameter.getMappingType());
+            paramEntity.setName(xmlParameter.getValue());
+            paramEntity.setPluginConfigInterface(intfEntity);
+            paramEntity.setPluginConfigInterfaceId(intfEntity.getId());
+            paramEntity.setSensitiveData(xmlParameter.getSensitiveData());
+            paramEntity.setType(PluginConfigInterfaceParameters.TYPE_OUTPUT);
+            
+            pluginConfigInterfaceParameters.insert(paramEntity);
+            
+            intfEntity.getOutputParameters().add(paramEntity);
+        }
+    }
+    
+    private void processInputParameters(InputParametersType xmlInputParameters, PluginPackages pluginPackageEntity,
+            PluginConfigs pluginConfigEntity, PluginConfigInterfaces intfEntity){
+        if(xmlInputParameters == null){
+            return;
+        }
+        
+        List<InputParameterType> xmlParameterList = xmlInputParameters.getParameter();
+        if(xmlParameterList == null || xmlParameterList.isEmpty()){
+            return;
+        }
+        
+        for(InputParameterType xmlParameter : xmlParameterList){
+            PluginConfigInterfaceParameters paramEntity = new PluginConfigInterfaceParameters();
+            paramEntity.setDataType(xmlParameter.getDatatype());
+            paramEntity.setId(LocalIdGenerator.generateId());
+            paramEntity.setMappingEntityExpression(xmlParameter.getMappingEntityExpression());
+            paramEntity.setMappingSystemVariableName(xmlParameter.getMappingSystemVariableName());
+            paramEntity.setMappingType(xmlParameter.getMappingType());
+            paramEntity.setName(xmlParameter.getValue());
+            paramEntity.setPluginConfigInterface(intfEntity);
+            paramEntity.setPluginConfigInterfaceId(intfEntity.getId());
+            paramEntity.setRequired(xmlParameter.getRequired());
+            paramEntity.setSensitiveData(xmlParameter.getSensitiveData());
+            paramEntity.setType(PluginConfigInterfaceParameters.TYPE_INPUT);
+            
+            pluginConfigInterfaceParameters.insert(paramEntity);
+            
+            intfEntity.getInputParameters().add(paramEntity);
+        }
     }
 
     private void processRoleBinds(RoleBindsType xmlRoleBinds, PluginConfigs pluginConfigEntity) {
