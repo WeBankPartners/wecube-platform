@@ -13,8 +13,6 @@ public class BatchExecutionRequestDto {
     private BusinessKeyAttributeDto businessKeyAttribute;
     private List<ResourceDataDto> resourceDatas;
     
-    private String continueToken;
-
     public BatchExecutionRequestDto() {
     }
 
@@ -87,13 +85,4 @@ public class BatchExecutionRequestDto {
 		return builder.toString();
 	}
 
-    public String getContinueToken() {
-        return continueToken;
-    }
-
-    public void setContinueToken(String continueToken) {
-        this.continueToken = continueToken;
-    }
-
-    
 }
