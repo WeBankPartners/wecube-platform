@@ -249,11 +249,13 @@ mappingEntityExpression  -- 模型表达式，当mappingType为entity的时候�
 
         当status=OK/ERROR/WARN时，任意类型数据均可，插件自行解析使用
 
-        当status=CONFIRM时，data必须为映射字典, eg. {"continue_token": "sign key", "其他自定字段": "其他自定义内容"}
+        当status=CONFIRM时，data必须为映射字典, eg. {"continueToken": "sign key", "其他自定字段": "其他自定义内容"}
 
-        > 当收到status=CONFIRM时，data必须包含continue_token字段，且前端弹出提示内容(message字段)由用户进行二次确认，用户确认后前端应重新发送请求，请求参数与前一次请求相同，并在url后增加query参数continue_token, eg. /plugin-name/version/api?continue_token=sign key，插件须对请求参数与continue_token进行校验，若校验成功则执行请求，否则返回status=ERROR，说明错误原因。
+        > 当收到status=CONFIRM时，data必须包含continueToken字段，且前端弹出提示内容(message字段)由用户进行二次确认，用户确认后前端应重新发送请求，请求参数与前一次请求相同，并在url后增加query参数continue_token, eg. /plugin-name/version/api?continue_token=sign key，插件须对请求参数与continue_token进行校验，若校验成功则执行请求，否则返回status=ERROR，说明错误原因。
         >
         > continue_token为请求参数的内容签名，签名算法由插件自定义，二次确认后若请求参数发生改变时，插件应能根据token识别到内容被篡改，从而防止二次确认的执行内容与用户确认存在差异。
+        >
+        > 为保持命名兼容，data内的continueToken使用驼峰命名法，而URL中使用了RESTFUL常见的小写命名
 
 响应示例如下：
 
@@ -289,7 +291,7 @@ Content-Type: application/json;charset=UTF-8
 	"status": "CONFIRM",
 	"message": "'rm -rf /' is dangerous, comfirm to execute it",
 	"code": "80001",
-	"data": {"continue_token": "2b475d2dc99fcaf658f35b62f4d27201c45f711daf6212962cd3ebc6d04e0510"}
+	"data": {"continueToken": "2b475d2dc99fcaf658f35b62f4d27201c45f711daf6212962cd3ebc6d04e0510"}
 }
 
 二次确认请求
