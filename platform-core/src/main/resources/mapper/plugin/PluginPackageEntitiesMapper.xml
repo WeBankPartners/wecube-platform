@@ -163,4 +163,22 @@
         where data_model_id =
         #{dataModelId,jdbcType=VARCHAR}
     </select>
+    
+    <select id="selectLatestByPackageNameAndEntityName"
+        resultMap="BaseResultMap">
+    SELECT
+    id, data_model_id, data_model_version, package_name,
+    name, display_name,
+    description
+    FROM plugin_package_entities t1
+    WHERE t1.package_name = #{packageName,jdbcType=VARCHAR}
+    AND t1.name = #{name,jdbcType=VARCHAR}
+    AND t1.data_model_version =
+    ( SELECT max(t2.data_model_version)
+    FROM plugin_package_entities t2
+    WHERE t2.package_name = #{packageName,jdbcType=VARCHAR}
+    AND t2.name = #{name,jdbcType=VARCHAR}
+    GROUP BY t2.package_name, t2.name
+    )
+    </select>
 </mapper>
