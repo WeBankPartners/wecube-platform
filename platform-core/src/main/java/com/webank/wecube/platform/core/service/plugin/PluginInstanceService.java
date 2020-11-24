@@ -79,7 +79,7 @@ import com.webank.wecube.platform.core.utils.SystemUtils;
 @Service
 public class PluginInstanceService {
     private static final Logger logger = LoggerFactory.getLogger(PluginInstanceService.class);
-    
+
     private static final String PLUGIN_PROP_ENC_KEY_FILE_PATH = "/certs/plugin_rsa_key.pub";
     private static final String SYS_VAR_PLUGIN_PROP_ENC_KEY_SWITCH = "PLUGIN_PROP_ENC_KEY_SWITCH";
 
@@ -172,10 +172,10 @@ public class PluginInstanceService {
 
     public PluginInstance getRunningPluginInstance(String pluginName) {
         List<PluginInstance> instances = getRunningPluginInstances(pluginName);
-        if (instances.size() > 0) {
-            return instances.get(0);
+        if (instances == null || instances.isEmpty()) {
+            return null;
         }
-        return null;
+        return instances.get(0);
     }
 
     public List<PluginInstance> getRunningPluginInstances(String pluginName) {
@@ -183,8 +183,9 @@ public class PluginInstanceService {
                 .findLatestActiveVersionPluginPackagesByName(pluginName);
         if (activePluginPackages == null || activePluginPackages.isEmpty()) {
             return null;
-//            throw new WecubeCoreException("3068", String.format("Plugin package [%s] not found.", pluginName),
-//                    pluginName);
+            // throw new WecubeCoreException("3068", String.format("Plugin
+            // package [%s] not found.", pluginName),
+            // pluginName);
         }
 
         List<PluginInstance> runningInstances = new ArrayList<PluginInstance>();
@@ -200,10 +201,11 @@ public class PluginInstanceService {
             }
         }
 
-//        if (runningInstances.isEmpty()) {
-//            throw new WecubeCoreException("3069",
-//                    String.format("No instance for plugin [%s] is available.", pluginName), pluginName);
-//        }
+        // if (runningInstances.isEmpty()) {
+        // throw new WecubeCoreException("3069",
+        // String.format("No instance for plugin [%s] is available.",
+        // pluginName), pluginName);
+        // }
         return runningInstances;
     }
 
@@ -334,9 +336,8 @@ public class PluginInstanceService {
         if (password.startsWith(ResourceManagementService.PASSWORD_ENCRYPT_AES_PREFIX)) {
             password = password.substring(ResourceManagementService.PASSWORD_ENCRYPT_AES_PREFIX.length());
         }
-        password = EncryptionUtils.decryptWithAes(
-                password,
-                resourceProperties.getPasswordEncryptionSeed(), mysqlInstance.getSchemaName());
+        password = EncryptionUtils.decryptWithAes(password, resourceProperties.getPasswordEncryptionSeed(),
+                mysqlInstance.getSchemaName());
         DriverManagerDataSource dataSource = new DriverManagerDataSource(
                 "jdbc:mysql://" + dbServer.getHost() + ":" + dbServer.getPort() + "/" + mysqlInstance.getSchemaName()
                         + "?characterEncoding=utf8&serverTimezone=UTC",
@@ -577,14 +578,14 @@ public class PluginInstanceService {
             if (password.startsWith(ResourceManagementService.PASSWORD_ENCRYPT_AES_PREFIX)) {
                 password = password.substring(ResourceManagementService.PASSWORD_ENCRYPT_AES_PREFIX.length());
             }
-            
-            password = EncryptionUtils.decryptWithAes(
-                    password,
-                    resourceProperties.getPasswordEncryptionSeed(), dbInfo.getSchema());
+
+            password = EncryptionUtils.decryptWithAes(password, resourceProperties.getPasswordEncryptionSeed(),
+                    dbInfo.getSchema());
 
             envVariablesString = envVariablesString.replace("{{DB_HOST}}", dbInfo.getHost())
                     .replace("{{DB_PORT}}", dbInfo.getPort()).replace("{{DB_SCHEMA}}", dbInfo.getSchema())
-                    .replace("{{DB_USER}}", dbInfo.getUser()).replace("{{DB_PWD}}", tryEncryptPasswordAsPluginEnv(password));
+                    .replace("{{DB_USER}}", dbInfo.getUser())
+                    .replace("{{DB_PWD}}", tryEncryptPasswordAsPluginEnv(password));
         }
         logger.info("before replace envVariablesString=" + envVariablesString);
         envVariablesString = replaceJwtSigningKey(envVariablesString);
@@ -618,55 +619,60 @@ public class PluginInstanceService {
             logger.error("Launch instance has done, but register routing information is failed, please check");
         }
     }
-    
+
     private String tryEncryptPasswordAsPluginEnv(String rawPassword) {
-        if(StringUtils.isBlank(rawPassword)) {
+        if (StringUtils.isBlank(rawPassword)) {
             return rawPassword;
         }
-        
-        List<SystemVariable> pluginPropEncKeyFileSysVars = systemVariableService.getGlobalSystemVariableByName(SYS_VAR_PLUGIN_PROP_ENC_KEY_SWITCH);
+
+        List<SystemVariable> pluginPropEncKeyFileSysVars = systemVariableService
+                .getGlobalSystemVariableByName(SYS_VAR_PLUGIN_PROP_ENC_KEY_SWITCH);
         String propEncSwitchOn = "on";
         String propEncSwitchOnConfig = null;
-        if(pluginPropEncKeyFileSysVars != null && !pluginPropEncKeyFileSysVars.isEmpty()) {
+        if (pluginPropEncKeyFileSysVars != null && !pluginPropEncKeyFileSysVars.isEmpty()) {
             SystemVariable pluginPropEncKeyFileSysVar = pluginPropEncKeyFileSysVars.get(0);
             propEncSwitchOnConfig = pluginPropEncKeyFileSysVar.getValue();
-            if(StringUtils.isBlank(propEncSwitchOnConfig)) {
+            if (StringUtils.isBlank(propEncSwitchOnConfig)) {
                 propEncSwitchOnConfig = pluginPropEncKeyFileSysVar.getDefaultValue();
             }
         }
-        
-        if(!StringUtils.isBlank(propEncSwitchOnConfig)) {
+
+        if (!StringUtils.isBlank(propEncSwitchOnConfig)) {
             propEncSwitchOn = propEncSwitchOnConfig;
         }
-        
-        if("off".equalsIgnoreCase(propEncSwitchOn)) {
-            logger.info("property encryption was switched off by system variable:{}", SYS_VAR_PLUGIN_PROP_ENC_KEY_SWITCH);
+
+        if ("off".equalsIgnoreCase(propEncSwitchOn)) {
+            logger.info("property encryption was switched off by system variable:{}",
+                    SYS_VAR_PLUGIN_PROP_ENC_KEY_SWITCH);
             return rawPassword;
         }
-        
+
         File rsaPubKeyFile = new File(PLUGIN_PROP_ENC_KEY_FILE_PATH);
-        if(!rsaPubKeyFile.exists()) {
-            logger.info("plugin property encryption not applied as file not exist.Filepath={}", PLUGIN_PROP_ENC_KEY_FILE_PATH);
+        if (!rsaPubKeyFile.exists()) {
+            logger.info("plugin property encryption not applied as file not exist.Filepath={}",
+                    PLUGIN_PROP_ENC_KEY_FILE_PATH);
             return rawPassword;
         }
-        
+
         String rsaPubKeyAsString = null;
         try (FileInputStream input = new FileInputStream(rsaPubKeyFile)) {
             rsaPubKeyAsString = readInputStream(input);
         } catch (IOException e) {
             logger.info("errors while reading public key", e);
         }
-        
-        if(StringUtils.isBlank(rsaPubKeyAsString)) {
-            logger.info("plugin property encryption not applied as key not available.Filepath={}", PLUGIN_PROP_ENC_KEY_FILE_PATH);
+
+        if (StringUtils.isBlank(rsaPubKeyAsString)) {
+            logger.info("plugin property encryption not applied as key not available.Filepath={}",
+                    PLUGIN_PROP_ENC_KEY_FILE_PATH);
             return rawPassword;
         }
-        
-        byte[] cipheredPasswordData = RsaEncryptor.encryptByPublicKey(rawPassword.getBytes(Charset.forName(RsaEncryptor.DEF_ENCODING)), rsaPubKeyAsString);
+
+        byte[] cipheredPasswordData = RsaEncryptor.encryptByPublicKey(
+                rawPassword.getBytes(Charset.forName(RsaEncryptor.DEF_ENCODING)), rsaPubKeyAsString);
         String cipheredPassword = RsaEncryptor.encodeBase64String(cipheredPasswordData);
-        return "RSA@"+cipheredPassword;
+        return "RSA@" + cipheredPassword;
     }
-    
+
     private String readInputStream(InputStream inputStream) throws IOException {
 
         if (inputStream == null) {
@@ -735,10 +741,9 @@ public class PluginInstanceService {
         if (password.startsWith(ResourceManagementService.PASSWORD_ENCRYPT_AES_PREFIX)) {
             password = password.substring(ResourceManagementService.PASSWORD_ENCRYPT_AES_PREFIX.length());
         }
-        
-        password = EncryptionUtils.decryptWithAes(
-                password,
-                resourceProperties.getPasswordEncryptionSeed(), mysqlInstance.getSchemaName());
+
+        password = EncryptionUtils.decryptWithAes(password, resourceProperties.getPasswordEncryptionSeed(),
+                mysqlInstance.getSchemaName());
 
         DriverManagerDataSource dataSource = new DriverManagerDataSource(
                 "jdbc:mysql://" + dbServer.getHost() + ":" + dbServer.getPort() + "/" + mysqlInstance.getSchemaName()
@@ -796,15 +801,14 @@ public class PluginInstanceService {
         if (logger.isDebugEnabled()) {
             logger.info("Request parameters= " + createMysqlDto);
         }
-        
-        dbPassword = ResourceManagementService.PASSWORD_ENCRYPT_AES_PREFIX + EncryptionUtils.encryptWithAes(dbPassword, resourceProperties.getPasswordEncryptionSeed(),
-                mysqlInfo.getSchemaName());
+
+        dbPassword = ResourceManagementService.PASSWORD_ENCRYPT_AES_PREFIX + EncryptionUtils.encryptWithAes(dbPassword,
+                resourceProperties.getPasswordEncryptionSeed(), mysqlInfo.getSchemaName());
 
         List<ResourceItemDto> result = resourceManagementService.createItems(Lists.newArrayList(createMysqlDto));
         PluginMysqlInstance mysqlInstance = new PluginMysqlInstance(mysqlInfo.getSchemaName(), result.get(0).getId(),
-                mysqlInfo.getSchemaName(),
-                dbPassword,
-                PluginMysqlInstance.MYSQL_INSTANCE_STATUS_ACTIVE, mysqlInfo.getPluginPackage());
+                mysqlInfo.getSchemaName(), dbPassword, PluginMysqlInstance.MYSQL_INSTANCE_STATUS_ACTIVE,
+                mysqlInfo.getPluginPackage());
         mysqlInstance.setLatestUpgradeVersion(currentPluginVersion);
         mysqlInstance.setCreatedTime(new Date());
         pluginMysqlInstanceRepository.save(mysqlInstance);
@@ -863,10 +867,9 @@ public class PluginInstanceService {
             if (dbPassword.startsWith(ResourceManagementService.PASSWORD_ENCRYPT_AES_PREFIX)) {
                 dbPassword = dbPassword.substring(ResourceManagementService.PASSWORD_ENCRYPT_AES_PREFIX.length());
             }
-            
-            String password = EncryptionUtils.decryptWithAes(
-                    dbPassword,
-                    resourceProperties.getPasswordEncryptionSeed(), hostInfo.getName());
+
+            String password = EncryptionUtils.decryptWithAes(dbPassword, resourceProperties.getPasswordEncryptionSeed(),
+                    hostInfo.getName());
             scpService.put(hostIp, Integer.valueOf(hostInfo.getPort()), hostInfo.getLoginUsername(), password,
                     tmpFilePath, pluginProperties.getPluginDeployPath());
         } catch (Exception e) {
@@ -881,12 +884,12 @@ public class PluginInstanceService {
         logger.info("Run docker load command: " + loadCmd);
         try {
             String loginPassword = hostInfo.getLoginPassword();
-            if(loginPassword.startsWith(ResourceManagementService.PASSWORD_ENCRYPT_AES_PREFIX)) {
-                loginPassword = EncryptionUtils.decryptWithAes(loginPassword.substring(ResourceManagementService.PASSWORD_ENCRYPT_AES_PREFIX.length()),
+            if (loginPassword.startsWith(ResourceManagementService.PASSWORD_ENCRYPT_AES_PREFIX)) {
+                loginPassword = EncryptionUtils.decryptWithAes(
+                        loginPassword.substring(ResourceManagementService.PASSWORD_ENCRYPT_AES_PREFIX.length()),
                         resourceProperties.getPasswordEncryptionSeed(), hostInfo.getName());
             }
-            commandService.runAtRemote(hostIp, hostInfo.getLoginUsername(),
-                    loginPassword,
+            commandService.runAtRemote(hostIp, hostInfo.getLoginUsername(), loginPassword,
                     Integer.valueOf(hostInfo.getPort()), loadCmd);
         } catch (Exception e) {
             logger.error("Run command [{}] meet error: {}", loadCmd, e.getMessage());
