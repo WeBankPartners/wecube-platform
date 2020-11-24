@@ -20,18 +20,26 @@ public interface PluginPackageAttributesMapper {
     int updateByPrimaryKeySelective(PluginPackageAttributes record);
 
     int updateByPrimaryKey(PluginPackageAttributes record);
-    
+
     /**
      * 
      * @param entityId
      * @return
      */
-    List<PluginPackageAttributes> selectAllByEntity(@Param("entityId")String entityId);
-    
+    List<PluginPackageAttributes> selectAllByEntity(@Param("entityId") String entityId);
+
     /**
      * 
      * @param attributeId
      * @return
      */
     List<PluginPackageAttributes> selectAllReferences(@Param("attributeId") String attributeId);
+
+    /**
+     * 
+     * @param dataModelId
+     * @return
+     */
+    List<PluginPackageAttributes> selectAllRefAttributesToRefreshByDataModel(
+            @Param("dataModelId") String dataModelId);
 }

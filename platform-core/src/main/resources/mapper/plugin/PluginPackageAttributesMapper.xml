@@ -12,9 +12,19 @@
         <result column="description" property="description"
             jdbcType="VARCHAR" />
         <result column="data_type" property="dataType" jdbcType="VARCHAR" />
+        <result column="ref_package" property="refPackage"
+            jdbcType="VARCHAR" />
+        <result column="ref_entity" property="refEntity"
+            jdbcType="VARCHAR" />
+        <result column="ref_attr" property="refAttr" jdbcType="VARCHAR" />
     </resultMap>
     <sql id="Base_Column_List">
-        id, entity_id, reference_id, name, description, data_type
+        id, entity_id, reference_id, name, description,
+        data_type,ref_package,ref_entity,ref_attr
+    </sql>
+    <sql id="Base_Column_List_T1">
+        t1.id, t1.entity_id, t1.reference_id, t1.name, t1.description,
+        t1.data_type,t1.ref_package,t1.ref_entity,t1.ref_attr
     </sql>
     <select id="selectByPrimaryKey" resultMap="BaseResultMap"
         parameterType="java.lang.String">
@@ -24,18 +34,35 @@
         where id = #{id,jdbcType=VARCHAR}
     </select>
     <delete id="deleteByPrimaryKey" parameterType="java.lang.String">
-        delete from plugin_package_attributes
+        delete from
+        plugin_package_attributes
         where id = #{id,jdbcType=VARCHAR}
     </delete>
     <insert id="insert"
         parameterType="com.webank.wecube.platform.core.entity.plugin.PluginPackageAttributes">
-        insert into plugin_package_attributes (id, entity_id,
+        insert into plugin_package_attributes 
+        (
+        id,
+        entity_id,
         reference_id,
-        name, description, data_type
+        name, 
+        description,
+        data_type,
+        ref_package,
+        ref_entity,
+        ref_attr
         )
-        values (#{id,jdbcType=VARCHAR}, #{entityId,jdbcType=VARCHAR},
+        values
+        (
+        #{id,jdbcType=VARCHAR}, 
+        #{entityId,jdbcType=VARCHAR},
         #{referenceId,jdbcType=VARCHAR},
-        #{name,jdbcType=VARCHAR}, #{description,jdbcType=VARCHAR}, #{dataType,jdbcType=VARCHAR}
+        #{name,jdbcType=VARCHAR},
+        #{description,jdbcType=VARCHAR}, 
+        #{dataType,jdbcType=VARCHAR},
+        #{refPackage,jdbcType=VARCHAR}
+        #{refEntity,jdbcType=VARCHAR}
+        #{refAttr,jdbcType=VARCHAR}
         )
     </insert>
     <insert id="insertSelective"
@@ -60,6 +87,15 @@
             <if test="dataType != null">
                 data_type,
             </if>
+            <if test="refPackage != null">
+                ref_package,
+            </if>
+            <if test="refEntity != null">
+                ref_entity,
+            </if>
+            <if test="refAttr != null">
+                ref_attr,
+            </if>
         </trim>
         <trim prefix="values (" suffix=")" suffixOverrides=",">
             <if test="id != null">
@@ -79,6 +115,15 @@
             </if>
             <if test="dataType != null">
                 #{dataType,jdbcType=VARCHAR},
+            </if>
+            <if test="refPackage != null">
+                #{refPackage,jdbcType=VARCHAR},
+            </if>
+            <if test="refEntity != null">
+                #{refEntity,jdbcType=VARCHAR},
+            </if>
+            <if test="refAttr != null">
+                #{refAttr,jdbcType=VARCHAR},
             </if>
         </trim>
     </insert>
@@ -101,33 +146,65 @@
             <if test="dataType != null">
                 data_type = #{dataType,jdbcType=VARCHAR},
             </if>
+            <if test="refPackage != null">
+                ref_package = #{refPackage,jdbcType=VARCHAR},
+            </if>
+            <if test="refEntity != null">
+                ref_entity = #{refEntity,jdbcType=VARCHAR},
+            </if>
+            <if test="refAttr != null">
+                ref_attr = #{refAttr,jdbcType=VARCHAR},
+            </if>
         </set>
         where id = #{id,jdbcType=VARCHAR}
     </update>
     <update id="updateByPrimaryKey"
         parameterType="com.webank.wecube.platform.core.entity.plugin.PluginPackageAttributes">
         update plugin_package_attributes
-        set entity_id = #{entityId,jdbcType=VARCHAR},
-        reference_id = #{referenceId,jdbcType=VARCHAR},
+        set entity_id =
+        #{entityId,jdbcType=VARCHAR},
+        reference_id =
+        #{referenceId,jdbcType=VARCHAR},
         name = #{name,jdbcType=VARCHAR},
         description = #{description,jdbcType=VARCHAR},
-        data_type = #{dataType,jdbcType=VARCHAR}
+        data_type =
+        #{dataType,jdbcType=VARCHAR},
+        ref_package =
+        #{refPackage,jdbcType=VARCHAR},
+        ref_entity =
+        #{refEntity,jdbcType=VARCHAR},
+        ref_attr =
+        #{refAttr,jdbcType=VARCHAR}
         where id = #{id,jdbcType=VARCHAR}
     </update>
-    
+
     <select id="selectAllByEntity" resultMap="BaseResultMap"
         parameterType="java.lang.String">
         select
         <include refid="Base_Column_List" />
         from plugin_package_attributes
-        where entity_id = #{entityId,jdbcType=VARCHAR}
+        where entity_id =
+        #{entityId,jdbcType=VARCHAR}
     </select>
-    
+
     <select id="selectAllReferences" resultMap="BaseResultMap"
         parameterType="java.lang.String">
         select
         <include refid="Base_Column_List" />
         from plugin_package_attributes
-        where reference_id = #{attributeId,jdbcType=VARCHAR}
+        where reference_id =
+        #{attributeId,jdbcType=VARCHAR}
+    </select>
+    
+    <select id="selectAllRefAttributesToRefreshByDataModel" resultMap="BaseResultMap"
+        parameterType="java.lang.String">
+        select
+        <include refid="Base_Column_List_T1" />
+        FROM plugin_package_attributes t1,
+        plugin_package_entities t2
+        WHERE t1.reference_id IS NULL
+        AND t1.data_type = 'ref'
+        AND t1.entity_id = t2.id
+        AND t2.data_model_id = #{dataModelId,jdbcType=VARCHAR}
     </select>
 </mapper>
