@@ -441,9 +441,18 @@
         <Button type="primary" @click="confirmCollection">{{ $t('bc_confirm') }}</Button>
       </div>
     </Modal>
-    <!-- <Modal v-model="confirmModal.isShowConfirmModal">
-      {{confirmModal.message}}
-    </Modal> -->
+
+    <Modal v-model="confirmModal.isShowConfirmModal" width="800">
+      <div>
+        <Icon :size="28" :color="'#f90'" type="md-help-circle" />
+        <span class="confirm-msg">{{ $t('confirm_to_exect') }}</span>
+      </div>
+      <pre style="margin-left: 44px;">{{ this.confirmModal.message }}</pre>
+      <div slot="footer">
+        <Button type="text" @click="confirmModal.isShowConfirmModal = false">{{ $t('bc_cancel') }}</Button>
+        <Button type="warning" @click="confirmToExecution">{{ $t('bc_confirm') }}</Button>
+      </div>
+    </Modal>
   </div>
 </template>
 <script>
@@ -576,7 +585,8 @@ export default {
         isShowConfirmModal: false,
         continueToken: '',
         message: '',
-        requestBody: ''
+        requestBody: '',
+        func: ''
       }
     }
   },
@@ -1286,24 +1296,21 @@ export default {
         this.manageExecutionResult(data, requestBody)
       }
       if (status === 'CONFIRM') {
-        this.confirmModal.isShowConfirmModal = true
         this.confirmModal.continueToken = data.continueToken
         this.confirmModal.message = message
-        this.$Modal.confirm({
-          title: this.$t('confirm_to_exect'),
-          width: 1000,
-          content: '<pre>' + message + '</pre>',
-          onOk: async () => {
-            const { status, data } = await batchExecution(
-              BATCH_EXECUTION_URL + `?continue_token=${this.confirmModal.continueToken}`,
-              requestBody
-            )
-            if (status === 'OK') {
-              this.manageExecutionResult(data, requestBody)
-            }
-          },
-          onCancel: () => {}
-        })
+        this.confirmModal.requestBody = requestBody
+        this.confirmModal.func = 'manageExecutionResult'
+        this.confirmModal.isShowConfirmModal = true
+      }
+    },
+    async confirmToExecution () {
+      const { status, data } = await batchExecution(
+        BATCH_EXECUTION_URL + `?continue_token=${this.confirmModal.continueToken}`,
+        this.confirmModal.requestBody
+      )
+      if (status === 'OK') {
+        this[this.confirmModal.func](data, this.confirmModal.requestBody)
+        this.confirmModal.isShowConfirmModal = false
       }
     },
     manageExecutionResult (data, requestBody) {
@@ -1364,24 +1371,11 @@ export default {
         this.manageExecutionResultAgain(data, requestBody)
       }
       if (status === 'CONFIRM') {
-        this.confirmModal.isShowConfirmModal = true
         this.confirmModal.continueToken = data.continueToken
         this.confirmModal.message = message
-        this.$Modal.confirm({
-          title: this.$t('confirm_to_exect'),
-          width: 1000,
-          content: '<pre>' + message + '</pre>',
-          onOk: async () => {
-            const { status, data } = await batchExecution(
-              BATCH_EXECUTION_URL + `?continue_token=${this.confirmModal.continueToken}`,
-              requestBody
-            )
-            if (status === 'OK') {
-              this.manageExecutionResultAgain(data, requestBody)
-            }
-          },
-          onCancel: () => {}
-        })
+        this.confirmModal.requestBody = requestBody
+        this.confirmModal.func = 'manageExecutionResultAgain'
+        this.confirmModal.isShowConfirmModal = true
       }
     },
     manageExecutionResultAgain (data, requestBody) {
@@ -1660,5 +1654,12 @@ pre {
 .dispaly-result {
   height: calc(100vh - 300px);
   overflow-y: auto;
+}
+.confirm-msg {
+  vertical-align: text-bottom;
+  margin-left: 12px;
+  font-size: 16px;
+  color: #17233d;
+  font-weight: 500;
 }
 </style>

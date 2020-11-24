@@ -921,6 +921,11 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
         String pluginName = pkg.getName();
 
         List<PluginInstance> instances = pluginInstanceService.getRunningPluginInstances(pluginName);
+        
+        if (instances == null || instances.isEmpty()) {
+          throw new WecubeCoreException("3069",
+                  String.format("No instance for plugin [%s] is available.", pluginName), pluginName);
+      }
 
         return instances.get(0);
 
