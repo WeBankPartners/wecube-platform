@@ -12,6 +12,12 @@ public class PluginPackageAttributes {
     private String description;
 
     private String dataType;
+    
+    private String refPackage;
+    
+    private String refEntity;
+    
+    private String refAttr;
 
     private transient PluginPackageEntities pluginPackageEntities;
 
@@ -79,6 +85,30 @@ public class PluginPackageAttributes {
 
     public void setPluginPackageAttribute(PluginPackageAttributes pluginPackageAttribute) {
         this.pluginPackageAttribute = pluginPackageAttribute;
+    }
+
+    public String getRefPackage() {
+        return refPackage;
+    }
+
+    public void setRefPackage(String refPackage) {
+        this.refPackage = refPackage;
+    }
+
+    public String getRefEntity() {
+        return refEntity;
+    }
+
+    public void setRefEntity(String refEntity) {
+        this.refEntity = refEntity;
+    }
+
+    public String getRefAttr() {
+        return refAttr;
+    }
+
+    public void setRefAttr(String refAttr) {
+        this.refAttr = refAttr;
     }
 
     
