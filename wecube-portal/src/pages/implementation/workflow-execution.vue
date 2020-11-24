@@ -76,7 +76,9 @@
                   <Option v-for="item in allTarget" :value="item.id" :key="item.id">{{ item.key_name }}</Option>
                 </Select>
                 <Button
-                  :disabled="isExecuteActive || !showExcution || !this.selectedTarget || !this.selectedFlow"
+                  :disabled="
+                    isExecuteActive || !showExcution || !this.selectedTarget || !this.selectedFlow || !isShowExect
+                  "
                   :loading="btnLoading"
                   type="info"
                   @click="excutionFlow"
@@ -422,7 +424,8 @@ export default {
       isLoading: false,
       catchNodeTableList: [],
       processSessionId: '',
-      allBindingsList: []
+      allBindingsList: [],
+      isShowExect: false // 模型查询返回，激活执行按钮
     }
   },
   watch: {
@@ -810,6 +813,7 @@ export default {
         .remove()
     },
     onTargetSelectHandler () {
+      this.isShowExect = false
       this.processSessionId = ''
       if (!this.selectedTarget) return
       this.currentModelNodeRefs = []
@@ -828,6 +832,9 @@ export default {
       this.isLoading = false
       if (!this.selectedTarget && !this.isEnqueryPage) return
       if (status === 'OK') {
+        if (!this.isEnqueryPage) {
+          this.isShowExect = true
+        }
         this.processSessionId = data.processSessionId
         const binds = await getAllBindingsProcessSessionId(data.processSessionId)
         this.allBindingsList = binds.data
@@ -1134,6 +1141,7 @@ export default {
         let { status, data } = await createFlowInstance(payload)
         this.btnLoading = false
         if (status === 'OK') {
+          this.processSessionId = ''
           this.getProcessInstances(true, data)
           this.isExecuteActive = false
           this.showExcution = false
