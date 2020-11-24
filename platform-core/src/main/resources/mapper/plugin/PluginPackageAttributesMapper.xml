@@ -207,4 +207,24 @@
         AND t1.entity_id = t2.id
         AND t2.data_model_id = #{dataModelId,jdbcType=VARCHAR}
     </select>
+    
+    <select id="selectLatestAttributeByPackageAndEntityAndAttr" resultMap="BaseResultMap"
+        parameterType="java.lang.String">
+        select
+        <include refid="Base_Column_List_T1" />
+        FROM plugin_package_attributes t1,
+        plugin_package_entities t2
+        WHERE 
+        t1.name = #{attrName,jdbcType=VARCHAR}
+        AND
+        t1.entity_id = t2.id
+        AND t2.package_name = #{packageName,jdbcType=VARCHAR}
+        AND t2.name = #{entityName,jdbcType=VARCHAR}
+        AND t2.data_model_version = (
+            SELECT max(t3.data_model_version) FROM plugin_package_entities
+            WHERE t3.package_name = #{packageName,jdbcType=VARCHAR}
+            AND t3.name = #{entityName,jdbcType=VARCHAR}
+            GROUP BY t3.package_name,t3.name
+        )
+    </select>
 </mapper>
