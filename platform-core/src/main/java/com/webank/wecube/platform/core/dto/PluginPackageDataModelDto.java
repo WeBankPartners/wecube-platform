@@ -1,19 +1,14 @@
 package com.webank.wecube.platform.core.dto;
 
-
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import com.webank.wecube.platform.core.entity.plugin.PluginPackageDataModel;
-import com.webank.wecube.platform.core.entity.plugin.PluginPackageEntities;
 
 public class PluginPackageDataModelDto {
 
     public static enum Source {
         PLUGIN_PACKAGE, DATA_MODEL_ENDPOINT
     }
+
     private String id;
 
     private Integer version;
@@ -106,44 +101,17 @@ public class PluginPackageDataModelDto {
     public void setPluginPackageEntities(List<PluginPackageEntityDto> pluginPackageEntities) {
         this.entities = pluginPackageEntities;
     }
-    
-    public void addPluginPackageEntity(PluginPackageEntityDto pluginPackageEntityDto){
-        if(pluginPackageEntityDto == null){
+
+    public void addPluginPackageEntity(PluginPackageEntityDto pluginPackageEntityDto) {
+        if (pluginPackageEntityDto == null) {
             return;
         }
-        
-        if(this.entities == null){
+
+        if (this.entities == null) {
             this.entities = new ArrayList<>();
         }
-        
+
         this.entities.add(pluginPackageEntityDto);
     }
 
-    public static PluginPackageDataModel toDomain(PluginPackageDataModelDto dataModelDto) {
-        PluginPackageDataModel dataModel = new PluginPackageDataModel();
-        if (null != dataModelDto.getId()) {
-            dataModel.setId(dataModelDto.getId());
-        }
-        if (null != dataModelDto.getVersion()) {
-            dataModel.setVersion(dataModelDto.getVersion());
-        }
-        dataModel.setPackageName(dataModelDto.getPackageName());
-        if (dataModelDto.isDynamic()) {
-            dataModel.setIsDynamic(true);
-            dataModel.setUpdatePath(dataModelDto.getUpdatePath());
-            dataModel.setUpdateMethod(dataModelDto.getUpdateMethod());
-        } else {
-            dataModel.setIsDynamic(false);
-        }
-        dataModel.setUpdateSource(dataModelDto.getUpdateSource());
-        dataModel.setUpdateTime(dataModelDto.getUpdateTime());
-        if (dataModelDto.getPluginPackageEntities() != null && dataModelDto.getPluginPackageEntities().size() > 0) {
-            Set<PluginPackageEntities> pluginPackageEntities = dataModelDto.getPluginPackageEntities().stream().map(entityDto -> DynamicPluginEntityDto.toDomain(entityDto, dataModel)).collect(Collectors.toSet());
-            dataModel.getPluginPackageEntities().addAll(pluginPackageEntities);
-        }
-
-        return dataModel;
-    }
-
-    
 }
