@@ -4,7 +4,6 @@ import static com.google.common.collect.Sets.newLinkedHashSet;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -12,7 +11,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -47,6 +45,8 @@ import com.webank.wecube.platform.core.dto.PluginPackageDataModelDto;
 import com.webank.wecube.platform.core.dto.PluginPackageEntityDto;
 import com.webank.wecube.platform.core.dto.PluginPackageEntityDto.PluginPackageEntityKey;
 import com.webank.wecube.platform.core.dto.PluginPackageEntityDto.TrimmedPluginPackageEntityDto;
+import com.webank.wecube.platform.core.dto.plugin.DynamicDataModelPullResponseDto;
+import com.webank.wecube.platform.core.dto.plugin.DynamicPluginEntityDto;
 import com.webank.wecube.platform.core.entity.plugin.PluginPackageAttributes;
 import com.webank.wecube.platform.core.entity.plugin.PluginPackageDataModel;
 import com.webank.wecube.platform.core.entity.plugin.PluginPackageEntities;
@@ -197,7 +197,41 @@ public class PluginPackageDataModelService {
             throw new WecubeCoreException("3118", errorMessage, packageName);
         }
 
-        return convertDataModelDomainToDto(latestDataModelEntity);
+        PluginPackageDataModelDto resultDto = buildPackageViewPluginPackageDataModelDto(latestDataModelEntity);
+        return resultDto;
+    }
+
+    private PluginPackageDataModelDto buildPackageViewPluginPackageDataModelDto(PluginPackageDataModel dataModel) {
+        PluginPackageDataModelDto dataModelDto = new PluginPackageDataModelDto();
+        dataModelDto.setId(dataModel.getId());
+        dataModelDto.setVersion(dataModel.getVersion());
+        dataModelDto.setPackageName(dataModel.getPackageName());
+        dataModelDto.setUpdateSource(dataModel.getUpdateSource());
+        dataModelDto.setUpdateTime(dataModel.getUpdateTime());
+        dataModelDto.setDynamic(dataModel.getIsDynamic());
+        if (dataModel.getIsDynamic()) {
+            dataModelDto.setUpdatePath(dataModel.getUpdatePath());
+            dataModelDto.setUpdateMethod(dataModel.getUpdateMethod());
+        }
+
+        List<PluginPackageEntities> pluginPackageEntities = pluginPackageEntityRepository
+                .selectAllByDataModel(dataModel.getId());
+
+        if (pluginPackageEntities == null || pluginPackageEntities.isEmpty()) {
+            return dataModelDto;
+        }
+
+        for (PluginPackageEntities entity : pluginPackageEntities) {
+            PluginPackageEntityDto entityDto = buildPackageViewPluginPackageEntityDto(entity, dataModel);
+            dataModelDto.addPluginPackageEntity(entityDto);
+        }
+
+        return dataModelDto;
+    }
+
+    private PluginPackageEntityDto buildPackageViewPluginPackageEntityDto(PluginPackageEntities pluginPackageEntities,
+            PluginPackageDataModel dataModel) {
+        // TODO
     }
 
     /**
@@ -411,7 +445,7 @@ public class PluginPackageDataModelService {
                         .ifPresent(dataModel -> dataModel.getPluginPackageEntities().stream()
                                 .filter(entity -> attributeDto.getRefEntityName().equals(entity.getName())).findAny()
                                 .ifPresent(entity -> {
-                                    PluginPackageEntityDto entityReferenceToDto = PluginPackageEntityDto
+                                    DynamicPluginEntityDto entityReferenceToDto = DynamicPluginEntityDto
                                             .fromDomain(entity);
                                     inputEntityDto.updateReferenceTo(entityReferenceToDto.getId(),
                                             entityReferenceToDto.getPackageName(),
@@ -468,6 +502,7 @@ public class PluginPackageDataModelService {
         dataModelDto.setUpdatePath(dataModel.getUpdatePath());
         dataModelDto.setDynamic(true);
 
+        //TODO
         Set<PluginPackageEntityDto> dynamicPluginPackageEntities = pullDynamicDataModelFromPlugin(dataModel);
 
         updateEntityReferences(packageName, newDataModelVersion, dynamicPluginPackageEntities);
@@ -489,8 +524,8 @@ public class PluginPackageDataModelService {
             entity.setPackageName(packageName);
             entity.setDataModelVersion(newDataModelVersion);
         });
-        
-        for(PluginPackageEntityDto dto : dynamicPluginPackageEntities){
+
+        for (PluginPackageEntityDto dto : dynamicPluginPackageEntities) {
             TrimmedPluginPackageEntityDto trimmedDto = dto.toTrimmedPluginPackageEntityDto();
             PluginPackageEntityKey key = trimmedDto.getPluginPackageEntityKey();
             referenceEntityDtoMaps.put(key, trimmedDto);
@@ -498,9 +533,9 @@ public class PluginPackageDataModelService {
 
         Map<PluginPackageEntityDto.PluginPackageEntityKey, PluginPackageEntityDto.TrimmedPluginPackageEntityDto> finalReferenceEntityDtoMaps = referenceEntityDtoMaps;
 
-        for(PluginPackageEntityDto entityDto : dynamicPluginPackageEntities){
-            List<PluginPackageAttributeDto>  attributes = entityDto.getAttributes();
-            for(PluginPackageAttributeDto attribute:attributes){
+        for (PluginPackageEntityDto entityDto : dynamicPluginPackageEntities) {
+            List<PluginPackageAttributeDto> attributes = entityDto.getAttributes();
+            for (PluginPackageAttributeDto attribute : attributes) {
                 attribute.setPackageName(packageName);
                 if (StringUtils.isNotBlank(attribute.getRefAttributeName())) {
                     if (StringUtils.isBlank(attribute.getRefPackageName())) {
@@ -515,11 +550,11 @@ public class PluginPackageDataModelService {
                 }
             }
         }
-        
+
     }
 
     @SuppressWarnings("unchecked")
-    private Set<PluginPackageEntityDto> pullDynamicDataModelFromPlugin(PluginPackageDataModel dataModel) {
+    private List<DynamicPluginEntityDto> pullDynamicDataModelFromPlugin(PluginPackageDataModel dataModel) {
         Map<String, Object> parametersMap = new HashMap<>();
         String gatewayUrl = applicationProperties.getGatewayUrl();
         parametersMap.put("gatewayUrl", gatewayUrl);
@@ -527,7 +562,7 @@ public class PluginPackageDataModelService {
         String updatePath = dataModel.getUpdatePath();
         parametersMap.put("dataModelUrl", updatePath.startsWith("/") ? updatePath.substring(1) : updatePath);
 
-        List<PluginPackageEntityDto> dynamicPluginPackageEntities = Collections.EMPTY_LIST;
+        List<DynamicPluginEntityDto> dynamicPluginPackageEntities = new ArrayList<>();
         try {
             HttpHeaders httpHeaders = new HttpHeaders();
             UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromUriString(dataModelUrl);
@@ -536,26 +571,30 @@ public class PluginPackageDataModelService {
             httpHeaders.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
             HttpEntity<Object> requestEntity = new HttpEntity<>(httpHeaders);
 
-            ResponseEntity<String> response = restTemplate.exchange(uriComponents.toString(), method, requestEntity,
-                    String.class);
-            if (StringUtils.isBlank(response.getBody()) || response.getStatusCode().isError()) {
-                throw new WecubeCoreException(response.toString());
-            }
-            CommonResponseDto responseDto = JsonUtils.toObject(response.getBody(), CommonResponseDto.class);
+            ResponseEntity<DynamicDataModelPullResponseDto> responseEntity = restTemplate
+                    .exchange(uriComponents.toString(), method, requestEntity, DynamicDataModelPullResponseDto.class);
+
+            DynamicDataModelPullResponseDto responseDto = responseEntity.getBody();
             if (!CommonResponseDto.STATUS_OK.equals(responseDto.getStatus())) {
                 String msg = String.format("Request error! The error message is [%s]", responseDto.getMessage());
                 logger.error(msg);
                 throw new WecubeCoreException("3126", msg, responseDto.getMessage());
             }
-            dynamicPluginPackageEntities = JsonUtils.toList(JsonUtils.toJsonString(responseDto.getData()),
-                    PluginPackageEntityDto.class);
+
+            List<DynamicPluginEntityDto> responseEntityDtos = responseDto.getData();
+            if (responseEntityDtos != null) {
+                dynamicPluginPackageEntities.addAll(responseEntityDtos);
+                logger.info("Total {} entities synchorized from {}", responseEntityDtos.size(),
+                        dataModel.getPackageName());
+            }
+
         } catch (IOException ex) {
-            logger.error("errors while fetch dynamic data models for {} {}",dataModel.getPackageName(), updatePath);
+            logger.error("errors while fetch dynamic data models for {} {}", dataModel.getPackageName(), updatePath);
             String msg = String.format("Request error! The error message is [%s]", ex.getMessage());
             logger.error(msg);
             throw new WecubeCoreException("3126", msg, ex.getMessage());
         }
-        return Sets.newLinkedHashSet(dynamicPluginPackageEntities);
+        return dynamicPluginPackageEntities;
     }
 
     /**
