@@ -40,6 +40,16 @@ public interface PluginPackageAttributesMapper {
      * @param dataModelId
      * @return
      */
-    List<PluginPackageAttributes> selectAllRefAttributesToRefreshByDataModel(
-            @Param("dataModelId") String dataModelId);
+    List<PluginPackageAttributes> selectAllRefAttributesToRefreshByDataModel(@Param("dataModelId") String dataModelId);
+
+    /**
+     * 
+     * @param packageName
+     * @param entityName
+     * @param attrName
+     * @return
+     */
+    PluginPackageAttributes selectLatestAttributeByPackageAndEntityAndAttr(@Param("packageName") String packageName,
+            @Param("entityName") String entityName, @Param("attrName") String attrName);
+
 }
