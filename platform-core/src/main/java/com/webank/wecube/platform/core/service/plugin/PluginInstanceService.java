@@ -182,8 +182,9 @@ public class PluginInstanceService {
         List<PluginPackage> activePluginPackages = pluginPackageRepository
                 .findLatestActiveVersionPluginPackagesByName(pluginName);
         if (activePluginPackages == null || activePluginPackages.isEmpty()) {
-            throw new WecubeCoreException("3068", String.format("Plugin package [%s] not found.", pluginName),
-                    pluginName);
+            return null;
+//            throw new WecubeCoreException("3068", String.format("Plugin package [%s] not found.", pluginName),
+//                    pluginName);
         }
 
         List<PluginInstance> runningInstances = new ArrayList<PluginInstance>();
