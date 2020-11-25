@@ -593,7 +593,7 @@ export default {
   mounted () {},
   computed: {
     businessKeyContent: function () {
-      if (this.activeResultKey !== null && this.catchExecuteResult !== null) {
+      if (this.activeResultKey && this.catchExecuteResult) {
         return this.catchExecuteResult[this.activeResultKey]
       }
     }
