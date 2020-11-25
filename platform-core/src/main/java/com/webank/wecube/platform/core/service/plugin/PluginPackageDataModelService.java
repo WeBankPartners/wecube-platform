@@ -54,8 +54,6 @@ public class PluginPackageDataModelService {
     private static final Logger log = LoggerFactory.getLogger(PluginPackageDataModelService.class);
     private static final String dataModelUrl = "http://{gatewayUrl}/{packageName}/{dataModelUrl}";
 
-    private static final String ATTRIBUTE_KEY_SEPARATOR = "`";
-
     @Autowired
     private ApplicationProperties applicationProperties;
     @Autowired
@@ -80,65 +78,6 @@ public class PluginPackageDataModelService {
     @Autowired
     private PluginPackageMgmtService pluginPackageMgmtService;
 
-    /**
-     * 
-     * @param pluginPackageDataModelDto
-     * @return
-     */
-    // public PluginPackageDataModelDto register(PluginPackageDataModelDto
-    // pluginPackageDataModelDto) {
-    // return register(pluginPackageDataModelDto, false);
-    // }
-
-    // TODO
-    // FIXME
-    // public PluginPackageDataModelDto register(PluginPackageDataModelDto
-    // pluginPackageDataModelDto,
-    // boolean fromDynamicUpdate) {
-    // PluginPackages latestVersionPluginPackage = pluginPackageMgmtService
-    // .fetchLatestVersionPluginPackage(pluginPackageDataModelDto.getPackageName());
-    //
-    // if (latestVersionPluginPackage == null) {
-    // String msg = String.format("Cannot find the package [%s] while
-    // registering data model",
-    // pluginPackageDataModelDto.getPackageName());
-    // log.error(msg);
-    // throw new WecubeCoreException("3116", msg,
-    // pluginPackageDataModelDto.getPackageName());
-    // }
-    //
-    // if (fromDynamicUpdate) {
-    // pluginPackageDataModelDto.setDynamic(true);
-    // pluginPackageDataModelDto.setUpdateTime(System.currentTimeMillis());
-    // pluginPackageDataModelDto.setUpdateSource(PluginPackageDataModelDto.Source.DATA_MODEL_ENDPOINT.name());
-    // }
-    //
-    // PluginPackageDataModel existingDataModelDomain =
-    // pluginPackageDataModelMapper
-    // .selectLatestDataModelByPackageName(pluginPackageDataModelDto.getPackageName());
-    //
-    // int newDataModelVersion = 1;
-    // if (existingDataModelDomain != null) {
-    // newDataModelVersion = existingDataModelDomain.getVersion() + 1;
-    // }
-    // pluginPackageDataModelDto.setVersion(newDataModelVersion);
-    // PluginPackageDataModel pluginPackageDataModel =
-    // PluginPackageDataModelDto.toDomain(pluginPackageDataModelDto);
-    //
-    // if (pluginPackageDataModelDto.getPluginPackageEntities() != null
-    // && !pluginPackageDataModelDto.getPluginPackageEntities().isEmpty()) {
-    // Map<String, String> attributeReferenceNameMap =
-    // buildAttributeReferenceNameMap(pluginPackageDataModelDto);
-    // Map<String, PluginPackageAttributes> referenceAttributeMap =
-    // buildReferenceAttributeMap(
-    // pluginPackageDataModel);
-    // updateAttributeReference(pluginPackageDataModel,
-    // attributeReferenceNameMap, referenceAttributeMap);
-    // }
-    //
-    // return
-    // convertDataModelDomainToDto(pluginPackageDataModelMapper.save(pluginPackageDataModel));
-    // }
 
     /**
      * Plugin model overview
@@ -755,18 +694,22 @@ public class PluginPackageDataModelService {
     public DataModelEntityDto getEntityByPackageNameAndName(String packageName, String entityName) {
         DataModelEntityDto dataModelEntityDto = new DataModelEntityDto();
 
-        Optional<PluginPackageDataModel> dataModelOptional = pluginPackageDataModelMapper
-                .findLatestDataModelByPackageName(packageName);
-        if (!dataModelOptional.isPresent()) {
+        PluginPackageDataModel dataModelEntity = pluginPackageDataModelMapper
+                .selectLatestDataModelByPackageName(packageName);
+        if (dataModelEntity == null) {
             return dataModelEntityDto;
         }
-        Optional<PluginPackageEntity> entityOptional = pluginPackageEntitiesMapper
-                .findByPackageNameAndNameAndDataModelVersion(packageName, entityName,
-                        dataModelOptional.get().getVersion());
-        if (!entityOptional.isPresent()) {
+        List<PluginPackageEntities> pluginPackageEntitiesList = pluginPackageEntitiesMapper
+                .selectAllByPackageNameAndEntityNameAndDataModelVersion(packageName, entityName,
+                        dataModelEntity.getVersion());
+        
+        if (pluginPackageEntitiesList == null || pluginPackageEntitiesList.isEmpty()) {
             return dataModelEntityDto;
         }
-        dataModelEntityDto = DataModelEntityDto.fromDomain(entityOptional.get());
+        
+        PluginPackageEntities pluginPackageEntitiesEntity =  pluginPackageEntitiesList.get(0);
+        
+        dataModelEntityDto = DataModelEntityDto.fromDomain(pluginPackageEntitiesEntity);
         updateReferenceInfoIncludeSelfReference(dataModelEntityDto);
 
         List<BindedInterfaceEntityDto> referenceToEntityList = new ArrayList<BindedInterfaceEntityDto>();
@@ -787,6 +730,13 @@ public class PluginPackageDataModelService {
         dataModelEntityDto.getLeafEntityList().setReferenceByEntityList(referenceByEntityList);
 
         return dataModelEntityDto;
+    }
+    
+    private DataModelEntityDto buildDataModelEntityDto(PluginPackageEntities pluginPackageEntitiesEntity){
+        //TODO
+        
+        
+        return null;
     }
 
     private void buildLeafEntity(List<BindedInterfaceEntityDto> leafEntityList,
