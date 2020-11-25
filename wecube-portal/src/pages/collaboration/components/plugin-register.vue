@@ -137,16 +137,16 @@
                     <Col span="3" offset="0" style="text-align: center">
                       <strong style="font-size:15px;">{{ $t('data_type') }}</strong>
                     </Col>
-                    <Col span="3" offset="0">
+                    <Col span="2" offset="0">
                       <strong style="font-size:15px;">{{ $t('sensitive') }}</strong>
                     </Col>
-                    <Col span="8" offset="0">
-                      <strong style="font-size:15px;">{{ $t('attribute') }}</strong>
-                    </Col>
-                    <Col span="3" offset="1">
+                    <Col span="4" offset="1">
                       <strong style="font-size:15px;">
                         {{ $t('attribute_type') }}
                       </strong>
+                    </Col>
+                    <Col span="7" offset="1">
+                      <strong style="font-size:15px;">{{ $t('attribute') }}</strong>
                     </Col>
                   </Row>
                   <div class="interfaceContainers">
@@ -176,7 +176,7 @@
                               <span>{{ param.dataType }}</span>
                             </FormItem>
                           </Col>
-                          <Col span="3" offset="0">
+                          <Col span="2" offset="0">
                             <FormItem :label-width="0">
                               <Select
                                 v-model="param.sensitiveData"
@@ -191,7 +191,23 @@
                               </Select>
                             </FormItem>
                           </Col>
-                          <Col span="10" offset="0">
+                          <Col span="5" offset="1">
+                            <FormItem :label-width="0">
+                              <Select
+                                size="small"
+                                filterable
+                                :disabled="currentPluginObj.status === 'ENABLED'"
+                                v-model="param.mappingType"
+                                @on-change="mappingTypeChange($event, param)"
+                              >
+                                <Option value="context" key="context">context</Option>
+                                <Option value="system_variable" key="system_variable">system_variable</Option>
+                                <Option value="entity" key="entity">entity</Option>
+                                <Option value="constant" key="constant">constant</Option>
+                              </Select>
+                            </FormItem>
+                          </Col>
+                          <Col span="8" offset="1">
                             <FormItem :label-width="0">
                               <FilterRules
                                 v-if="param.mappingType === 'entity'"
@@ -222,22 +238,6 @@
                               >
                             </FormItem>
                           </Col>
-                          <Col span="3" offset="1">
-                            <FormItem :label-width="0">
-                              <Select
-                                size="small"
-                                filterable
-                                :disabled="currentPluginObj.status === 'ENABLED'"
-                                v-model="param.mappingType"
-                                @on-change="mappingTypeChange($event, param)"
-                              >
-                                <Option value="context" key="context">context</Option>
-                                <Option value="system_variable" key="system_variable">system_variable</Option>
-                                <Option value="entity" key="entity">entity</Option>
-                                <Option value="constant" key="constant">constant</Option>
-                              </Select>
-                            </FormItem>
-                          </Col>
                         </Row>
                       </Col>
                     </Row>
@@ -265,7 +265,7 @@
                               <span>{{ outPut.dataType }}</span>
                             </FormItem>
                           </Col>
-                          <Col span="3" offset="0">
+                          <Col span="2" offset="0">
                             <FormItem :label-width="0">
                               <Select
                                 filterable
@@ -280,7 +280,19 @@
                               </Select>
                             </FormItem>
                           </Col>
-                          <Col span="10" offset="0">
+                          <Col span="5" offset="1">
+                            <FormItem :label-width="0">
+                              <Select
+                                size="small"
+                                :disabled="currentPluginObj.status === 'ENABLED'"
+                                v-model="outPut.mappingType"
+                              >
+                                <Option value="context" key="context">context</Option>
+                                <Option value="entity" key="entity">entity</Option>
+                              </Select>
+                            </FormItem>
+                          </Col>
+                          <Col span="8" offset="1">
                             <FormItem :label-width="0">
                               <FilterRules
                                 v-if="outPut.mappingType === 'entity'"
@@ -292,18 +304,6 @@
                                 :needAttr="true"
                               ></FilterRules>
                               <span v-if="outPut.mappingType === 'context'">N/A</span>
-                            </FormItem>
-                          </Col>
-                          <Col span="3" offset="1">
-                            <FormItem :label-width="0">
-                              <Select
-                                size="small"
-                                :disabled="currentPluginObj.status === 'ENABLED'"
-                                v-model="outPut.mappingType"
-                              >
-                                <Option value="context" key="context">context</Option>
-                                <Option value="entity" key="entity">entity</Option>
-                              </Select>
                             </FormItem>
                           </Col>
                         </Row>
@@ -352,16 +352,16 @@
           <Col span="3" offset="0" style="text-align: center;margin-left: 30px">
             <strong style="font-size:15px;">{{ $t('data_type') }}</strong>
           </Col>
-          <Col span="1" offset="0">
+          <Col span="1" style="margin-left:20px" offset="0">
             <strong style="font-size:15px;">{{ $t('sensitive') }}</strong>
-          </Col>
-          <Col span="13" offset="0">
-            <strong style="font-size:15px;">{{ $t('attribute') }}</strong>
           </Col>
           <Col span="2" offset="1">
             <strong style="font-size:15px;">
               {{ $t('attribute_type') }}
             </strong>
+          </Col>
+          <Col span="11" style="margin-left:100px" offset="0">
+            <strong style="font-size:15px;">{{ $t('attribute') }}</strong>
           </Col>
         </Row>
         <div class="modal-interfaceContainers">
@@ -372,7 +372,7 @@
                   <span>{{ $t('input_params') }}</span>
                 </FormItem>
               </Col>
-              <Col span="21" offset="0">
+              <Col span="22" offset="0">
                 <Row v-for="(param, index) in currentInter['inputParameters']" :key="index">
                   <Col span="3">
                     <FormItem :label-width="0">
@@ -402,7 +402,22 @@
                       </Select>
                     </FormItem>
                   </Col>
-                  <Col span="15" style="margin-left:0px" offset="0">
+                  <Col span="3" offset="1">
+                    <FormItem :label-width="0">
+                      <Select
+                        filterable
+                        :disabled="currentPluginObj.status === 'ENABLED'"
+                        v-model="param.mappingType"
+                        @on-change="mappingTypeChange($event, param)"
+                      >
+                        <Option value="context" key="context">context</Option>
+                        <Option value="system_variable" key="system_variable">system_variable</Option>
+                        <Option value="entity" key="entity">entity</Option>
+                        <Option value="constant" key="constant">constant</Option>
+                      </Select>
+                    </FormItem>
+                  </Col>
+                  <Col span="13" offset="1">
                     <FormItem :label-width="0">
                       <FilterRules
                         v-if="param.mappingType === 'entity'"
@@ -431,21 +446,6 @@
                       <span v-if="param.mappingType === 'context' || param.mappingType === 'constant'">N/A</span>
                     </FormItem>
                   </Col>
-                  <Col span="2" offset="1">
-                    <FormItem :label-width="0">
-                      <Select
-                        filterable
-                        :disabled="currentPluginObj.status === 'ENABLED'"
-                        v-model="param.mappingType"
-                        @on-change="mappingTypeChange($event, param)"
-                      >
-                        <Option value="context" key="context">context</Option>
-                        <Option value="system_variable" key="system_variable">system_variable</Option>
-                        <Option value="entity" key="entity">entity</Option>
-                        <Option value="constant" key="constant">constant</Option>
-                      </Select>
-                    </FormItem>
-                  </Col>
                 </Row>
               </Col>
             </Row>
@@ -456,7 +456,7 @@
                   <span>{{ $t('output_params') }}</span>
                 </FormItem>
               </Col>
-              <Col span="21" offset="0">
+              <Col span="22" offset="0">
                 <Row v-for="(outPut, index) in currentInter['outputParameters']" :key="index">
                   <Col span="3">
                     <FormItem :label-width="0">
@@ -486,7 +486,15 @@
                       </Select>
                     </FormItem>
                   </Col>
-                  <Col span="15" style="margin-left:0px" offset="0">
+                  <Col span="3" offset="1">
+                    <FormItem :label-width="0">
+                      <Select :disabled="currentPluginObj.status === 'ENABLED'" v-model="outPut.mappingType">
+                        <Option value="context" key="context">context</Option>
+                        <Option value="entity" key="entity">entity</Option>
+                      </Select>
+                    </FormItem>
+                  </Col>
+                  <Col span="13" offset="1">
                     <FormItem :label-width="0">
                       <FilterRules
                         v-if="outPut.mappingType === 'entity'"
@@ -498,14 +506,6 @@
                         :needAttr="true"
                       ></FilterRules>
                       <span v-if="outPut.mappingType === 'context'">N/A</span>
-                    </FormItem>
-                  </Col>
-                  <Col span="2" offset="1">
-                    <FormItem :label-width="0">
-                      <Select :disabled="currentPluginObj.status === 'ENABLED'" v-model="outPut.mappingType">
-                        <Option value="context" key="context">context</Option>
-                        <Option value="entity" key="entity">entity</Option>
-                      </Select>
                     </FormItem>
                   </Col>
                 </Row>
