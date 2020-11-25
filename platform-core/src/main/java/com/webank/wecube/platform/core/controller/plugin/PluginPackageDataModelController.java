@@ -50,10 +50,10 @@ public class PluginPackageDataModelController {
         return CommonResponseDto.okayWithData(pluginPackageDataModelService.getRefByInfo(packageName, entityName));
     }
 
-    @PostMapping("/models")
-    public CommonResponseDto applyNewDataModel(@RequestBody PluginPackageDataModelDto dataModelDto) {
-        return CommonResponseDto.okayWithData(pluginPackageDataModelService.register(dataModelDto, true));
-    }
+//    @PostMapping("/models")
+//    public CommonResponseDto applyNewDataModel(@RequestBody PluginPackageDataModelDto dataModelDto) {
+//        return CommonResponseDto.okayWithData(pluginPackageDataModelService.register(dataModelDto, true));
+//    }
 
     @GetMapping("/models/package/{plugin-package-name}/entity/{entity-name}/attributes")
     public CommonResponseDto getAttributeInfoByPackageNameAndEntityName(
