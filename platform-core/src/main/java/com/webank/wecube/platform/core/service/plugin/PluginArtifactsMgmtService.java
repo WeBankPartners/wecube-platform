@@ -19,6 +19,7 @@ import java.util.Set;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -140,10 +141,10 @@ public class PluginArtifactsMgmtService extends AbstractPluginMgmtService {
 
     @Autowired
     private PluginConfigsMapper pluginConfigsMapper;
-    
+
     @Autowired
     private PluginConfigInterfacesMapper pluginConfigInterfacesMapper;
-    
+
     @Autowired
     private PluginConfigInterfaceParametersMapper pluginConfigInterfaceParameters;
 
@@ -347,12 +348,26 @@ public class PluginArtifactsMgmtService extends AbstractPluginMgmtService {
      * @return
      */
     public UploadPackageResultDto uploadPackage(MultipartFile pluginPackageFile) {
-        String pluginPackageFileName = pluginPackageFile.getName();
 
         // 1. save package file to local
         String tmpFileName = new SimpleDateFormat("yyyyMMddHHmmssSSS").format(new Date());
         File localFilePath = new File(SystemUtils.getTempFolderPath() + tmpFileName + "/");
         log.info("tmp File Path= {}", localFilePath.getName());
+
+        try {
+            UploadPackageResultDto result = performUploadPackage(pluginPackageFile, localFilePath);
+
+            return result;
+        } finally {
+            if(localFilePath !=null && localFilePath.exists()){
+                FileUtils.deleteQuietly(localFilePath);
+            }
+
+        }
+    }
+    
+    protected UploadPackageResultDto performUploadPackage(MultipartFile pluginPackageFile, File localFilePath) {
+        String pluginPackageFileName = pluginPackageFile.getName();
         if (!localFilePath.exists()) {
             if (localFilePath.mkdirs()) {
                 log.info("Create directory [{}] successful", localFilePath.getAbsolutePath());
@@ -362,7 +377,7 @@ public class PluginArtifactsMgmtService extends AbstractPluginMgmtService {
             }
         }
 
-        File dest = new File(localFilePath + "/" + pluginPackageFileName);
+        File dest = new File(localFilePath, "/" + pluginPackageFileName);
         try {
             log.info("new file location: {}, filename: {}, canonicalpath: {}, canonicalfilename: {}",
                     dest.getAbsoluteFile(), dest.getName(), dest.getCanonicalPath(), dest.getCanonicalFile().getName());
@@ -380,8 +395,6 @@ public class PluginArtifactsMgmtService extends AbstractPluginMgmtService {
             log.error("Errors to parse uploaded package file.", e);
             throw new WecubeCoreException("Failed to upload package due to " + e.getMessage());
         }
-
-        // TODO to remove tmp files
 
         return result;
     }
@@ -787,11 +800,10 @@ public class PluginArtifactsMgmtService extends AbstractPluginMgmtService {
         pluginConfigsMapper.insert(pluginConfigEntity);
 
         List<InterfaceType> xmlInterfaces = xmlPlugin.getInterface();
-        
-        if(xmlInterfaces != null){
-            for(InterfaceType xmlIntf : xmlInterfaces){
-                processDefinedInterfaces( xmlIntf,  pluginPackageEntity,
-                         pluginConfigEntity);
+
+        if (xmlInterfaces != null) {
+            for (InterfaceType xmlIntf : xmlInterfaces) {
+                processDefinedInterfaces(xmlIntf, pluginPackageEntity, pluginConfigEntity);
             }
         }
 
@@ -802,10 +814,10 @@ public class PluginArtifactsMgmtService extends AbstractPluginMgmtService {
 
     private void processDefinedInterfaces(InterfaceType xmlIntf, PluginPackages pluginPackageEntity,
             PluginConfigs pluginConfigEntity) {
-        if(xmlIntf == null){
+        if (xmlIntf == null) {
             return;
         }
-        
+
         PluginConfigInterfaces intfEntity = new PluginConfigInterfaces();
         intfEntity.setId(LocalIdGenerator.generateId());
         intfEntity.setAction(xmlIntf.getAction());
@@ -817,35 +829,33 @@ public class PluginArtifactsMgmtService extends AbstractPluginMgmtService {
         intfEntity.setType(xmlIntf.getType());
         //
         intfEntity.setServiceName(intfEntity.generateServiceName(pluginPackageEntity, pluginConfigEntity));
-        
+
         pluginConfigInterfacesMapper.insert(intfEntity);
-        
+
         InputParametersType xmlInputParameters = xmlIntf.getInputParameters();
-        if(xmlInputParameters != null){
-            processInputParameters( xmlInputParameters,  pluginPackageEntity,
-                     pluginConfigEntity,  intfEntity);
+        if (xmlInputParameters != null) {
+            processInputParameters(xmlInputParameters, pluginPackageEntity, pluginConfigEntity, intfEntity);
         }
-        
+
         OutputParametersType xmlOutputParameters = xmlIntf.getOutputParameters();
-        if(xmlOutputParameters != null){
-            processOutputParameters(xmlOutputParameters, pluginPackageEntity,
-                     pluginConfigEntity,  intfEntity);
+        if (xmlOutputParameters != null) {
+            processOutputParameters(xmlOutputParameters, pluginPackageEntity, pluginConfigEntity, intfEntity);
         }
     }
-    
+
     private void processOutputParameters(OutputParametersType xmlOutputParameters, PluginPackages pluginPackageEntity,
-            PluginConfigs pluginConfigEntity, PluginConfigInterfaces intfEntity){
-        
-        if(xmlOutputParameters == null ){
+            PluginConfigs pluginConfigEntity, PluginConfigInterfaces intfEntity) {
+
+        if (xmlOutputParameters == null) {
             return;
         }
-        
+
         List<OutputParameterType> xmlParameterList = xmlOutputParameters.getParameter();
-        if(xmlParameterList == null || xmlParameterList.isEmpty()){
+        if (xmlParameterList == null || xmlParameterList.isEmpty()) {
             return;
         }
-        
-        for(OutputParameterType xmlParameter : xmlParameterList){
+
+        for (OutputParameterType xmlParameter : xmlParameterList) {
             PluginConfigInterfaceParameters paramEntity = new PluginConfigInterfaceParameters();
             paramEntity.setDataType(xmlParameter.getDatatype());
             paramEntity.setId(LocalIdGenerator.generateId());
@@ -856,25 +866,25 @@ public class PluginArtifactsMgmtService extends AbstractPluginMgmtService {
             paramEntity.setPluginConfigInterfaceId(intfEntity.getId());
             paramEntity.setSensitiveData(xmlParameter.getSensitiveData());
             paramEntity.setType(PluginConfigInterfaceParameters.TYPE_OUTPUT);
-            
+
             pluginConfigInterfaceParameters.insert(paramEntity);
-            
+
             intfEntity.getOutputParameters().add(paramEntity);
         }
     }
-    
+
     private void processInputParameters(InputParametersType xmlInputParameters, PluginPackages pluginPackageEntity,
-            PluginConfigs pluginConfigEntity, PluginConfigInterfaces intfEntity){
-        if(xmlInputParameters == null){
+            PluginConfigs pluginConfigEntity, PluginConfigInterfaces intfEntity) {
+        if (xmlInputParameters == null) {
             return;
         }
-        
+
         List<InputParameterType> xmlParameterList = xmlInputParameters.getParameter();
-        if(xmlParameterList == null || xmlParameterList.isEmpty()){
+        if (xmlParameterList == null || xmlParameterList.isEmpty()) {
             return;
         }
-        
-        for(InputParameterType xmlParameter : xmlParameterList){
+
+        for (InputParameterType xmlParameter : xmlParameterList) {
             PluginConfigInterfaceParameters paramEntity = new PluginConfigInterfaceParameters();
             paramEntity.setDataType(xmlParameter.getDatatype());
             paramEntity.setId(LocalIdGenerator.generateId());
@@ -887,9 +897,9 @@ public class PluginArtifactsMgmtService extends AbstractPluginMgmtService {
             paramEntity.setRequired(xmlParameter.getRequired());
             paramEntity.setSensitiveData(xmlParameter.getSensitiveData());
             paramEntity.setType(PluginConfigInterfaceParameters.TYPE_INPUT);
-            
+
             pluginConfigInterfaceParameters.insert(paramEntity);
-            
+
             intfEntity.getInputParameters().add(paramEntity);
         }
     }
