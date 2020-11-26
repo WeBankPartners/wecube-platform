@@ -694,6 +694,9 @@ public class PluginArtifactsMgmtService extends AbstractPluginMgmtService {
                 attributeEntity.setDescription(xmlAttribute.getDescription());
                 attributeEntity.setEntityId(entity.getId());
                 attributeEntity.setName(xmlAttribute.getName());
+                attributeEntity.setRefAttr(xmlAttribute.getRef());
+                attributeEntity.setRefPackage(xmlAttribute.getRefPackage());
+                attributeEntity.setRefEntity(xmlAttribute.getRefEntity());
 
                 String referenceId = calAttributeReference(pluginPackageEntity, dataModelEntity, entity, xmlAttribute);
                 attributeEntity.setReferenceId(referenceId);
