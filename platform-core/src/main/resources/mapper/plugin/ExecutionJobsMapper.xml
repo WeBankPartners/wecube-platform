@@ -1,0 +1,207 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper
+    namespace="com.webank.wecube.platform.core.repository.plugin.ExecutionJobsMapper">
+    <resultMap id="BaseResultMap"
+        type="com.webank.wecube.platform.core.entity.plugin.ExecutionJobs">
+        <id column="id" property="id" jdbcType="INTEGER" />
+        <result column="batch_execution_job_id" property="batchExecutionJobId"
+            jdbcType="VARCHAR" />
+        <result column="package_name" property="packageName"
+            jdbcType="VARCHAR" />
+        <result column="entity_name" property="entityName"
+            jdbcType="VARCHAR" />
+        <result column="business_key" property="businessKey"
+            jdbcType="VARCHAR" />
+        <result column="root_entity_id" property="rootEntityId"
+            jdbcType="VARCHAR" />
+        <result column="execute_time" property="executeTime"
+            jdbcType="TIMESTAMP" />
+        <result column="complete_time" property="completeTime"
+            jdbcType="TIMESTAMP" />
+        <result column="error_code" property="errorCode"
+            jdbcType="VARCHAR" />
+        <result column="plugin_config_interface_id" property="pluginConfigInterfaceId"
+            jdbcType="VARCHAR" />
+        <result column="error_message" property="errorMessage"
+            jdbcType="LONGVARCHAR" />
+        <result column="return_json" property="returnJson"
+            jdbcType="LONGVARCHAR" />
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id, batch_execution_job_id, package_name, entity_name, business_key,
+        root_entity_id,
+        execute_time, complete_time, error_code, plugin_config_interface_id,error_message,
+        return_json
+    </sql>
+
+    <select id="selectByPrimaryKey" resultMap="BaseResultMap"
+        parameterType="java.lang.Integer">
+        select
+        <include refid="Base_Column_List" />
+        from execution_jobs
+        where id = #{id,jdbcType=INTEGER}
+    </select>
+    <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer">
+        delete from execution_jobs
+        where id = #{id,jdbcType=INTEGER}
+    </delete>
+    <insert id="insert"
+        parameterType="com.webank.wecube.platform.core.entity.plugin.ExecutionJobs">
+        insert into execution_jobs (id, batch_execution_job_id,
+        package_name,
+        entity_name, business_key, root_entity_id,
+        execute_time, complete_time, error_code,
+        plugin_config_interface_id, error_message,
+        return_json)
+        values (#{id,jdbcType=INTEGER}, #{batchExecutionJobId,jdbcType=VARCHAR},
+        #{packageName,jdbcType=VARCHAR},
+        #{entityName,jdbcType=VARCHAR}, #{businessKey,jdbcType=VARCHAR}, #{rootEntityId,jdbcType=VARCHAR},
+        #{executeTime,jdbcType=TIMESTAMP},
+        #{completeTime,jdbcType=TIMESTAMP},
+        #{errorCode,jdbcType=VARCHAR},
+        #{pluginConfigInterfaceId,jdbcType=VARCHAR},
+        #{errorMessage,jdbcType=LONGVARCHAR},
+        #{returnJson,jdbcType=LONGVARCHAR})
+    </insert>
+    <insert id="insertSelective"
+        parameterType="com.webank.wecube.platform.core.entity.plugin.ExecutionJobs">
+        insert into execution_jobs
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="id != null">
+                id,
+            </if>
+            <if test="batchExecutionJobId != null">
+                batch_execution_job_id,
+            </if>
+            <if test="packageName != null">
+                package_name,
+            </if>
+            <if test="entityName != null">
+                entity_name,
+            </if>
+            <if test="businessKey != null">
+                business_key,
+            </if>
+            <if test="rootEntityId != null">
+                root_entity_id,
+            </if>
+            <if test="executeTime != null">
+                execute_time,
+            </if>
+            <if test="completeTime != null">
+                complete_time,
+            </if>
+            <if test="errorCode != null">
+                error_code,
+            </if>
+            <if test="pluginConfigInterfaceId != null">
+                plugin_config_interface_id,
+            </if>
+            <if test="errorMessage != null">
+                error_message,
+            </if>
+            <if test="returnJson != null">
+                return_json,
+            </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="id != null">
+                #{id,jdbcType=INTEGER},
+            </if>
+            <if test="batchExecutionJobId != null">
+                #{batchExecutionJobId,jdbcType=VARCHAR},
+            </if>
+            <if test="packageName != null">
+                #{packageName,jdbcType=VARCHAR},
+            </if>
+            <if test="entityName != null">
+                #{entityName,jdbcType=VARCHAR},
+            </if>
+            <if test="businessKey != null">
+                #{businessKey,jdbcType=VARCHAR},
+            </if>
+            <if test="rootEntityId != null">
+                #{rootEntityId,jdbcType=VARCHAR},
+            </if>
+            <if test="executeTime != null">
+                #{executeTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="completeTime != null">
+                #{completeTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="errorCode != null">
+                #{errorCode,jdbcType=VARCHAR},
+            </if>
+            <if test="pluginConfigInterfaceId != null">
+                #{pluginConfigInterfaceId,jdbcType=VARCHAR},
+            </if>
+            <if test="errorMessage != null">
+                #{errorMessage,jdbcType=LONGVARCHAR},
+            </if>
+            <if test="returnJson != null">
+                #{returnJson,jdbcType=LONGVARCHAR},
+            </if>
+        </trim>
+    </insert>
+    <update id="updateByPrimaryKeySelective"
+        parameterType="com.webank.wecube.platform.core.entity.plugin.ExecutionJobs">
+        update execution_jobs
+        <set>
+            <if test="batchExecutionJobId != null">
+                batch_execution_job_id =
+                #{batchExecutionJobId,jdbcType=VARCHAR},
+            </if>
+            <if test="packageName != null">
+                package_name = #{packageName,jdbcType=VARCHAR},
+            </if>
+            <if test="entityName != null">
+                entity_name = #{entityName,jdbcType=VARCHAR},
+            </if>
+            <if test="businessKey != null">
+                business_key = #{businessKey,jdbcType=VARCHAR},
+            </if>
+            <if test="rootEntityId != null">
+                root_entity_id = #{rootEntityId,jdbcType=VARCHAR},
+            </if>
+            <if test="executeTime != null">
+                execute_time = #{executeTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="completeTime != null">
+                complete_time = #{completeTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="errorCode != null">
+                error_code = #{errorCode,jdbcType=VARCHAR},
+            </if>
+            <if test="pluginConfigInterfaceId != null">
+                plugin_config_interface_id =
+                #{pluginConfigInterfaceId,jdbcType=VARCHAR},
+            </if>
+            <if test="errorMessage != null">
+                error_message = #{errorMessage,jdbcType=LONGVARCHAR},
+            </if>
+            <if test="returnJson != null">
+                return_json = #{returnJson,jdbcType=LONGVARCHAR},
+            </if>
+        </set>
+        where id = #{id,jdbcType=INTEGER}
+    </update>
+    <update id="updateByPrimaryKey"
+        parameterType="com.webank.wecube.platform.core.entity.plugin.ExecutionJobs">
+        update execution_jobs
+        set batch_execution_job_id = #{batchExecutionJobId,jdbcType=VARCHAR},
+        package_name = #{packageName,jdbcType=VARCHAR},
+        entity_name = #{entityName,jdbcType=VARCHAR},
+        business_key = #{businessKey,jdbcType=VARCHAR},
+        root_entity_id = #{rootEntityId,jdbcType=VARCHAR},
+        execute_time = #{executeTime,jdbcType=TIMESTAMP},
+        complete_time = #{completeTime,jdbcType=TIMESTAMP},
+        error_code = #{errorCode,jdbcType=VARCHAR},
+        plugin_config_interface_id = #{pluginConfigInterfaceId,jdbcType=VARCHAR},
+        error_message = #{errorMessage,jdbcType=LONGVARCHAR},
+        return_json = #{returnJson,jdbcType=LONGVARCHAR}
+        where id = #{id,jdbcType=INTEGER}
+    </update>
+
+</mapper>
