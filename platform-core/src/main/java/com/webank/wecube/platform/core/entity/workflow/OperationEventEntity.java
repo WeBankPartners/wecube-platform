@@ -2,7 +2,11 @@ package com.webank.wecube.platform.core.entity.workflow;
 
 import java.util.Date;
 
-public class CoreOperationEvent {
+public class OperationEventEntity {
+    public static final String STATUS_NEW = "New";
+    public static final String STATUS_IN_PROGRESS = "InProgress";
+    public static final String STATUS_COMPLETED = "Completed";
+
     private Long id;
 
     private String createdBy;
@@ -39,13 +43,13 @@ public class CoreOperationEvent {
 
     private Integer rev;
 
-    private Boolean isSensitive;
-
     private String srcSubSystem;
 
     private Date startTime;
 
     private String status;
+
+    private String procInstKey;
 
     public Long getId() {
         return id;
@@ -191,14 +195,6 @@ public class CoreOperationEvent {
         this.rev = rev;
     }
 
-    public Boolean getIsSensitive() {
-        return isSensitive;
-    }
-
-    public void setIsSensitive(Boolean isSensitive) {
-        this.isSensitive = isSensitive;
-    }
-
     public String getSrcSubSystem() {
         return srcSubSystem;
     }
@@ -221,5 +217,13 @@ public class CoreOperationEvent {
 
     public void setStatus(String status) {
         this.status = status == null ? null : status.trim();
+    }
+
+    public String getProcInstKey() {
+        return procInstKey;
+    }
+
+    public void setProcInstKey(String procInstKey) {
+        this.procInstKey = procInstKey;
     }
 }
