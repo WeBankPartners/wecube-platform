@@ -356,7 +356,33 @@
         status =
         #{status,jdbcType=VARCHAR},
         proc_inst_key =
-        #{procInstKey,jdbcType=BIT},
+        #{procInstKey,jdbcType=VARCHAR}
         where id = #{id,jdbcType=BIGINT}
     </update>
+    
+    <select id="selectAllByEventSeqNo" parameterType="java.lang.Long"
+        resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List" />
+        from core_operation_event
+        where event_seq_no = #{eventSeqNo,jdbcType=BIGINT}
+    </select>
+    
+    <select id="selectAllByStatus" parameterType="java.lang.Long"
+        resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List" />
+        from core_operation_event
+        where status =
+        #{status,jdbcType=VARCHAR}
+    </select>
+    
+    <select id="selectAllByProcInstKey" parameterType="java.lang.Long"
+        resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List" />
+        from core_operation_event
+        where proc_inst_key =
+        #{procInstKey,jdbcType=VARCHAR}
+    </select>
 </mapper>
