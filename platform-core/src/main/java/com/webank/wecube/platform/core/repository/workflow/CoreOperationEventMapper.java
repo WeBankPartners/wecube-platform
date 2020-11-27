@@ -1,6 +1,8 @@
-package com.webank.wecube.platform.core.entity.workflow;
+package com.webank.wecube.platform.core.repository.workflow;
 
 import org.springframework.stereotype.Repository;
+
+import com.webank.wecube.platform.core.entity.workflow.CoreOperationEvent;
 
 @Repository
 public interface CoreOperationEventMapper {
