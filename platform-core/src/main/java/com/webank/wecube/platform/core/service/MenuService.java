@@ -91,6 +91,9 @@ public class MenuService {
         resultMenuItemDtos.addAll(allSysMenusDtos);
 
         List<PluginPackageMenus> pluginPackageMenusEntities = calAvailablePluginPackgeMenus();
+        if(pluginPackageMenusEntities == null ){
+            return resultMenuItemDtos;
+        }
         for (PluginPackageMenus pluginPackageMenuEntity : pluginPackageMenusEntities) {
             MenuItemDto pluginPackageMenuItemDto = buildPackageMenuItemDto(pluginPackageMenuEntity);
             resultMenuItemDtos.add(pluginPackageMenuItemDto);
@@ -222,7 +225,7 @@ public class MenuService {
             String menuCode = menuEntityToCheck.getCode();
             PluginPackageMenus existMenuEntity = codeAndMenus.get(menuCode);
             if (existMenuEntity == null) {
-                codeAndMenus.put(menuCode, existMenuEntity);
+                codeAndMenus.put(menuCode, menuEntityToCheck);
             } else {
                 if (isBetterThanExistOne(menuEntityToCheck, existMenuEntity)) {
                     codeAndMenus.put(menuCode, menuEntityToCheck);
