@@ -45,7 +45,7 @@ camunda:
       resume-previous-by: a value
     history-level: full
     database:
-      schema-update: false
+      schema-update: true
     filter:
       create: All tasks
     job-execution:

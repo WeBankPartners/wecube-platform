@@ -25,5 +25,5 @@ public interface OperationEventMapper {
 
     List<OperationEventEntity> selectAllByStatus(@Param("status") String status);
 
-    List<OperationEventEntity> findAllByProcInstKey(@Param("procInstKey") String procInstKey);
+    List<OperationEventEntity> selectAllByProcInstKey(@Param("procInstKey") String procInstKey);
 }

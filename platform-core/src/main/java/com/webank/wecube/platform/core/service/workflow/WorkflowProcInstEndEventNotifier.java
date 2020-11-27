@@ -35,7 +35,7 @@ public class WorkflowProcInstEndEventNotifier {
 
     public void notify(WorkflowNotifyEvent event, PluginInvocationCommand cmd, ProcInstInfoEntity procInstEntity) {
         List<OperationEventEntity> operationEventEntities = operationEventRepository
-                .findAllByProcInstKey(procInstEntity.getProcInstKey());
+                .selectAllByProcInstKey(procInstEntity.getProcInstKey());
 
         if (operationEventEntities == null || operationEventEntities.isEmpty()) {
             log.debug("none operation event to notify");
