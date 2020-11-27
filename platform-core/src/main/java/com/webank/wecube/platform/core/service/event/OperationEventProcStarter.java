@@ -16,10 +16,10 @@ import com.webank.wecube.platform.core.dto.workflow.ProcInstInfoDto;
 import com.webank.wecube.platform.core.dto.workflow.ProcessDataPreviewDto;
 import com.webank.wecube.platform.core.dto.workflow.StartProcInstRequestDto;
 import com.webank.wecube.platform.core.dto.workflow.TaskNodeDefObjectBindInfoDto;
-import com.webank.wecube.platform.core.entity.event.OperationEventEntity;
+import com.webank.wecube.platform.core.entity.workflow.OperationEventEntity;
 import com.webank.wecube.platform.core.entity.workflow.ProcDefInfoEntity;
 import com.webank.wecube.platform.core.entity.workflow.TaskNodeDefInfoEntity;
-import com.webank.wecube.platform.core.jpa.event.OperationEventRepository;
+import com.webank.wecube.platform.core.repository.workflow.OperationEventMapper;
 import com.webank.wecube.platform.core.repository.workflow.ProcDefInfoMapper;
 import com.webank.wecube.platform.core.repository.workflow.TaskNodeDefInfoMapper;
 import com.webank.wecube.platform.core.service.workflow.WorkflowDataService;
@@ -40,13 +40,13 @@ public class OperationEventProcStarter {
     private WorkflowProcInstService workflowProcInstService;
     
     @Autowired
-    private OperationEventRepository operationEventRepository;
+    private OperationEventMapper operationEventRepository;
     
     @Autowired
     private WorkflowDataService workflowDataService;
     
     public OperationEventEntity startInstantOperationEventProcess(OperationEventEntity operEventEntity){
-        String procDefKey = operEventEntity.getOperationKey();
+        String procDefKey = operEventEntity.getOperKey();
 
         ProcDefInfoEntity procDefEntity = findSuitableProcDefInfoEntityWithProcDefKey(procDefKey);
 
@@ -55,7 +55,7 @@ public class OperationEventProcStarter {
             throw new WecubeCoreException("3225",String.format("Process definition key {%s} is NOT available.", procDefKey), procDefKey);
         }
         
-        String entityDataId = operEventEntity.getOperationData();
+        String entityDataId = operEventEntity.getOperData();
         String entityTypeId = procDefEntity.getRootEntity();
         
         StartProcInstRequestDto initDto = new StartProcInstRequestDto();
@@ -75,13 +75,13 @@ public class OperationEventProcStarter {
         operEventEntity.setProcInstId(String.valueOf(procInst.getId()));
         operEventEntity.setProcInstKey(procInst.getProcInstKey());
         
-        OperationEventEntity flushedOperEventEntity = operationEventRepository.saveAndFlush(operEventEntity);
+        operationEventRepository.updateByPrimaryKeySelective(operEventEntity);
         
-        return flushedOperEventEntity;
+        return operEventEntity;
     }
 
     public void startOperationEventProcess(OperationEventEntity operEventEntity) {
-        String procDefKey = operEventEntity.getOperationKey();
+        String procDefKey = operEventEntity.getOperKey();
 
         ProcDefInfoEntity procDefEntity = findSuitableProcDefInfoEntityWithProcDefKey(procDefKey);
 
@@ -90,7 +90,7 @@ public class OperationEventProcStarter {
             throw new WecubeCoreException("3225",String.format("Process definition key {%s} is NOT available.", procDefKey), procDefKey);
         }
 
-        String entityDataId = operEventEntity.getOperationData();
+        String entityDataId = operEventEntity.getOperData();
         String entityTypeId = procDefEntity.getRootEntity();
 
         StartProcInstRequestDto initDto = new StartProcInstRequestDto();
@@ -122,7 +122,7 @@ public class OperationEventProcStarter {
         operEventEntity.setProcInstId(String.valueOf(procInst.getId()));
         operEventEntity.setProcInstKey(procInst.getProcInstKey());
         
-        operationEventRepository.saveAndFlush(operEventEntity);
+        operationEventRepository.updateByPrimaryKeySelective(operEventEntity);
         
     }
 

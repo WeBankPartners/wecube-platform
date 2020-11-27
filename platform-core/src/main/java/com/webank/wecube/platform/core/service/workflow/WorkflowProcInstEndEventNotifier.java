@@ -12,11 +12,11 @@ import org.springframework.stereotype.Service;
 import com.webank.wecube.platform.auth.client.http.JwtSsoRestTemplate;
 import com.webank.wecube.platform.core.commons.ApplicationProperties;
 import com.webank.wecube.platform.core.dto.event.OperationEventNotificationDto;
-import com.webank.wecube.platform.core.entity.event.OperationEventEntity;
+import com.webank.wecube.platform.core.entity.workflow.OperationEventEntity;
 import com.webank.wecube.platform.core.entity.workflow.ProcInstInfoEntity;
-import com.webank.wecube.platform.core.jpa.event.OperationEventRepository;
 import com.webank.wecube.platform.core.model.workflow.PluginInvocationCommand;
 import com.webank.wecube.platform.core.model.workflow.WorkflowNotifyEvent;
+import com.webank.wecube.platform.core.repository.workflow.OperationEventMapper;
 
 @Service
 public class WorkflowProcInstEndEventNotifier {
@@ -24,7 +24,7 @@ public class WorkflowProcInstEndEventNotifier {
     private static final Logger log = LoggerFactory.getLogger(WorkflowProcInstEndEventNotifier.class);
 
     @Autowired
-    private OperationEventRepository operationEventRepository;
+    private OperationEventMapper operationEventRepository;
 
     @Autowired
     @Qualifier("jwtSsoRestTemplate")
@@ -46,7 +46,7 @@ public class WorkflowProcInstEndEventNotifier {
             if (OperationEventEntity.STATUS_COMPLETED.equalsIgnoreCase(operationEventEntity.getStatus())) {
                 continue;
             }
-            if (operationEventEntity.getNotifyRequired() != null && operationEventEntity.getNotifyRequired() == true) {
+            if (operationEventEntity.getIsNotifyRequired() != null && operationEventEntity.getIsNotifyRequired() == true) {
 
                 String url = String.format("http://%s/%s", applicationProperties.getGatewayUrl(),
                         operationEventEntity.getNotifyEndpoint());
@@ -55,7 +55,7 @@ public class WorkflowProcInstEndEventNotifier {
                 OperationEventNotificationDto notificationDto = new OperationEventNotificationDto();
                 notificationDto.setEventSeqNo(operationEventEntity.getEventSeqNo());
                 notificationDto.setEventType(operationEventEntity.getEventType());
-                notificationDto.setSourceSubSystem(operationEventEntity.getSourceSubSystem());
+                notificationDto.setSourceSubSystem(operationEventEntity.getSrcSubSystem());
                 notificationDto.setStatus(OperationEventEntity.STATUS_COMPLETED);
 
                 try {
@@ -65,14 +65,14 @@ public class WorkflowProcInstEndEventNotifier {
                     log.error("notification failed", e);
                 }
 
-                operationEventEntity.setNotified(true);
+                operationEventEntity.setIsNotified(true);
             }
 
             operationEventEntity.setStatus(OperationEventEntity.STATUS_COMPLETED);
             operationEventEntity.setEndTime(new Date());
             operationEventEntity.setUpdatedTime(new Date());
 
-            operationEventRepository.saveAndFlush(operationEventEntity);
+            operationEventRepository.updateByPrimaryKeySelective(operationEventEntity);
         }
     }
 }
