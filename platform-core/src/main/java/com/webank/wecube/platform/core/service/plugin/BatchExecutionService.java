@@ -72,19 +72,29 @@ public class BatchExecutionService {
     private PluginConfigInterfaceRepository pluginConfigInterfaceRepository;
     @Autowired
     protected StandardEntityOperationService standardEntityOperationService;
-    
+
     @Autowired
     @Qualifier("userJwtSsoTokenRestTemplate")
     private RestTemplate userJwtSsoTokenRestTemplate;
-    
+
     @Autowired
     private SimpleEncryptionService encryptionService;
 
     private ObjectMapper objectMapper = new ObjectMapper().setSerializationInclusion(JsonInclude.Include.NON_NULL);
 
     @Transactional
-    public Map<String, ExecutionJobResponseDto> handleBatchExecutionJob(BatchExecutionRequestDto batchExecutionRequest)
-            throws IOException {
+    public Map<String, ExecutionJobResponseDto> handleBatchExecutionJob(
+            BatchExecutionRequestDto batchExecutionRequest) {
+        try{
+            return doHandleBatchExecutionJob(batchExecutionRequest);
+        }catch(IOException e){
+            log.error("Errors while processing batch execution.", e);
+            throw new WecubeCoreException("Errors while processing batch execution.");
+        }
+    }
+
+    private Map<String, ExecutionJobResponseDto> doHandleBatchExecutionJob(
+            BatchExecutionRequestDto batchExecutionRequest) throws IOException {
         verifyParameters(batchExecutionRequest.getInputParameterDefinitions());
         BatchExecutionJob batchExeJob = saveToDb(batchExecutionRequest);
 
@@ -152,7 +162,7 @@ public class BatchExecutionService {
             exeJob.setPackageName(batchExeRequest.getPackageName());
             exeJob.setEntityName(batchExeRequest.getEntityName());
             exeJob.setBusinessKey(resourceData.getBusinessKeyValue().toString());
-            
+
             List<ExecutionJobParameter> parameters = transFromInputParameterDefinitionToExecutionJobParameter(
                     batchExeRequest.getInputParameterDefinitions(), exeJob);
             exeJob.setParameters(parameters);
@@ -171,13 +181,13 @@ public class BatchExecutionService {
     private List<ExecutionJobParameter> transFromInputParameterDefinitionToExecutionJobParameter(
             List<InputParameterDefinition> inputParameterDefinitions, ExecutionJob executionJob) {
         List<ExecutionJobParameter> executionJobParameters = new ArrayList<ExecutionJobParameter>();
-        for(InputParameterDefinition inputParameterDefinition : inputParameterDefinitions) {
+        for (InputParameterDefinition inputParameterDefinition : inputParameterDefinitions) {
             PluginConfigInterfaceParameter interfaceParameter = inputParameterDefinition.getInputParameter();
 
             if (inputParameterDefinition.getInputParameterValue() != null) {
-                
+
                 String paramValue = inputParameterDefinition.getInputParameterValue().toString();
-                if("Y".equalsIgnoreCase(interfaceParameter.getSensitiveData())) {
+                if ("Y".equalsIgnoreCase(interfaceParameter.getSensitiveData())) {
                     paramValue = tryEncryptParamValue(paramValue);
                 }
                 ExecutionJobParameter executionJobParameter = new ExecutionJobParameter(interfaceParameter.getName(),
@@ -187,7 +197,7 @@ public class BatchExecutionService {
                         paramValue);
                 executionJobParameter.setExecutionJob(executionJob);
                 executionJobParameters.add(executionJobParameter);
-                
+
                 executionJobParameter.setParameterDefinition(interfaceParameter);
             } else {
                 ExecutionJobParameter executionJobParameter = new ExecutionJobParameter(interfaceParameter.getName(),
@@ -196,28 +206,27 @@ public class BatchExecutionService {
                         interfaceParameter.getMappingSystemVariableName(), interfaceParameter.getRequired(), null);
                 executionJobParameter.setExecutionJob(executionJob);
                 executionJobParameters.add(executionJobParameter);
-                
+
                 executionJobParameter.setParameterDefinition(interfaceParameter);
             }
-            
-            
+
         }
         return executionJobParameters;
     }
-    
+
     private String tryEncryptParamValue(String paramValue) {
-        if(StringUtils.isBlank(paramValue)) {
+        if (StringUtils.isBlank(paramValue)) {
             return paramValue;
         }
-        
+
         return encryptionService.encodeToAesBase64(paramValue);
     }
-    
+
     private String tryDecryptParamValue(String cipherValue) {
-        if(StringUtils.isBlank(cipherValue)) {
+        if (StringUtils.isBlank(cipherValue)) {
             return cipherValue;
         }
-        
+
         return encryptionService.decodeFromAesBase64(cipherValue);
     }
 
@@ -258,8 +267,8 @@ public class BatchExecutionService {
             if (DATA_TYPE_STRING.equals(parameter.getDataType())
                     || MAPPING_TYPE_SYSTEM_VARIABLE.equals(parameter.getMappingEntityExpression())) {
                 String paramValue = parameter.getValue();
-                if(parameter.getParameterDefinition() != null 
-                        && "Y".equalsIgnoreCase(parameter.getParameterDefinition().getSensitiveData())){
+                if (parameter.getParameterDefinition() != null
+                        && "Y".equalsIgnoreCase(parameter.getParameterDefinition().getSensitiveData())) {
                     paramValue = tryDecryptParamValue(paramValue);
                 }
                 pluginInputParamMap.put(parameter.getName(), paramValue);
@@ -279,8 +288,7 @@ public class BatchExecutionService {
                     String.format("%s:%s", pluginInstance.getHost(), pluginInstance.getPort()),
                     pluginConfigInterface.getPath(), Lists.newArrayList(pluginInputParamMap),
                     "RequestId-" + Long.toString(System.currentTimeMillis()));
-            
-            
+
             handleResultData(responseData, exeJob);
         } catch (Exception e) {
             log.error("errors while call plugin interface", e);
@@ -308,54 +316,55 @@ public class BatchExecutionService {
         exeJob.setErrorMessage(stationaryOutput.getErrorMessage());
         return responseData;
     }
-    
+
     @SuppressWarnings("unchecked")
     private void handleResultData(ResultData<Object> responseData, ExecutionJob exeJob) {
-        //#2046
-        if(responseData == null || responseData.getOutputs() == null) {
+        // #2046
+        if (responseData == null || responseData.getOutputs() == null) {
             log.info("response data is empty for execution job {}", exeJob.getId());
             return;
         }
-        
+
         List<Object> resultObjects = responseData.getOutputs();
-        if(resultObjects.isEmpty()) {
+        if (resultObjects.isEmpty()) {
             log.info("result object is empty for execution job {}", exeJob.getId());
             return;
         }
-        
-        for(Object resultObject : resultObjects) {
-            if(resultObject == null) {
+
+        for (Object resultObject : resultObjects) {
+            if (resultObject == null) {
                 continue;
             }
-            
-            if(resultObject instanceof Map) {
-                Map<String, Object> resultObjectMap = (Map<String,Object>)resultObject;
+
+            if (resultObject instanceof Map) {
+                Map<String, Object> resultObjectMap = (Map<String, Object>) resultObject;
                 handleSingleResultObject(resultObjectMap, exeJob);
             }
         }
-        
+
     }
-    
-    private void handleSingleResultObject(Map<String,Object> resultObjectMap, ExecutionJob exeJob) {
+
+    private void handleSingleResultObject(Map<String, Object> resultObjectMap, ExecutionJob exeJob) {
         String rootEntityId = (String) resultObjectMap.get(CALLBACK_PARAMETER_KEY);
 
         if (StringUtils.isBlank(rootEntityId)) {
             log.info("There is no root entity ID found in output for execution job {}", exeJob.getId());
             return;
         }
-        
+
         String pluginConfigInterfaceId = exeJob.getPluginConfigInterfaceId();
-        if(StringUtils.isBlank(pluginConfigInterfaceId)) {
+        if (StringUtils.isBlank(pluginConfigInterfaceId)) {
             log.info("Plugin config interface ID is not found for execution job {}", exeJob.getId());
             return;
         }
-        
-        Optional<PluginConfigInterface> pluginConfigInterfOpt = pluginConfigInterfaceRepository.findById(pluginConfigInterfaceId);
-        if(!pluginConfigInterfOpt.isPresent()) {
+
+        Optional<PluginConfigInterface> pluginConfigInterfOpt = pluginConfigInterfaceRepository
+                .findById(pluginConfigInterfaceId);
+        if (!pluginConfigInterfOpt.isPresent()) {
             log.info("Plugin config interface does not exist for ID:{}", pluginConfigInterfaceId);
             return;
         }
-        
+
         PluginConfigInterface pluginConfigInterf = pluginConfigInterfOpt.get();
 
         Set<PluginConfigInterfaceParameter> outputParameters = pluginConfigInterf.getOutputParameters();
@@ -364,8 +373,8 @@ public class BatchExecutionService {
             String paramName = pciParam.getName();
             String paramExpr = pciParam.getMappingEntityExpression();
             String paramMappingType = pciParam.getMappingType();
-            
-            if(!Constants.MAPPING_TYPE_ENTITY.equalsIgnoreCase(paramMappingType)) {
+
+            if (!Constants.MAPPING_TYPE_ENTITY.equalsIgnoreCase(paramMappingType)) {
                 continue;
             }
 
@@ -456,9 +465,10 @@ public class BatchExecutionService {
                 executionJob.setPrepareException(new WecubeCoreException(errorMessage));
                 return;
             }
-            
-            //#2046
-            if(parameter.getParameterDefinition() != null && "Y".equalsIgnoreCase(parameter.getParameterDefinition().getSensitiveData())) {
+
+            // #2046
+            if (parameter.getParameterDefinition() != null
+                    && "Y".equalsIgnoreCase(parameter.getParameterDefinition().getSensitiveData())) {
                 sVal = tryEncryptParamValue(sVal);
             }
             parameter.setValue(sVal);
@@ -475,7 +485,8 @@ public class BatchExecutionService {
         EntityOperationRootCondition criteria = new EntityOperationRootCondition(mappingEntityExpression,
                 executionJob.getRootEntityId());
 
-        List<Object> attrValsPerExpr = standardEntityOperationService.queryAttributeValues(criteria, userJwtSsoTokenRestTemplate);
+        List<Object> attrValsPerExpr = standardEntityOperationService.queryAttributeValues(criteria,
+                userJwtSsoTokenRestTemplate);
 
         if ((attrValsPerExpr == null || attrValsPerExpr.size() == 0)
                 && FIELD_REQUIRED.equals(parameter.getRequired())) {
@@ -490,9 +501,10 @@ public class BatchExecutionService {
         }
 
         if (attrValsPerExpr != null && (!attrValsPerExpr.isEmpty())) {
-          //#2046
+            // #2046
             String paramValue = attrValsPerExpr.get(0) == null ? null : attrValsPerExpr.get(0).toString();
-            if(parameter.getParameterDefinition() != null && "Y".equalsIgnoreCase(parameter.getParameterDefinition().getSensitiveData())) {
+            if (parameter.getParameterDefinition() != null
+                    && "Y".equalsIgnoreCase(parameter.getParameterDefinition().getSensitiveData())) {
                 paramValue = tryEncryptParamValue(paramValue);
             }
             parameter.setValue(paramValue);
