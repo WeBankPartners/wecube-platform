@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.webank.wecube.platform.core.repository.plugin.FavoritesRoleMapper" >
+  <resultMap id="BaseResultMap" type="com.webank.wecube.platform.core.entity.plugin.FavoritesRole" >
+    <id column="id" property="id" jdbcType="VARCHAR" />
+    <result column="favorites_id" property="favoritesId" jdbcType="VARCHAR" />
+    <result column="permission" property="permission" jdbcType="VARCHAR" />
+    <result column="role_id" property="roleId" jdbcType="VARCHAR" />
+    <result column="role_name" property="roleName" jdbcType="VARCHAR" />
+  </resultMap>
+  <sql id="Base_Column_List" >
+    id, favorites_id, permission, role_id, role_name
+  </sql>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.String" >
+    select 
+    <include refid="Base_Column_List" />
+    from favorites_role
+    where id = #{id,jdbcType=VARCHAR}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.String" >
+    delete from favorites_role
+    where id = #{id,jdbcType=VARCHAR}
+  </delete>
+  <insert id="insert" parameterType="com.webank.wecube.platform.core.entity.plugin.FavoritesRole" >
+    insert into favorites_role (id, favorites_id, permission, 
+      role_id, role_name)
+    values (#{id,jdbcType=VARCHAR}, #{favoritesId,jdbcType=VARCHAR}, #{permission,jdbcType=VARCHAR}, 
+      #{roleId,jdbcType=VARCHAR}, #{roleName,jdbcType=VARCHAR})
+  </insert>
+  <insert id="insertSelective" parameterType="com.webank.wecube.platform.core.entity.plugin.FavoritesRole" >
+    insert into favorites_role
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        id,
+      </if>
+      <if test="favoritesId != null" >
+        favorites_id,
+      </if>
+      <if test="permission != null" >
+        permission,
+      </if>
+      <if test="roleId != null" >
+        role_id,
+      </if>
+      <if test="roleName != null" >
+        role_name,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        #{id,jdbcType=VARCHAR},
+      </if>
+      <if test="favoritesId != null" >
+        #{favoritesId,jdbcType=VARCHAR},
+      </if>
+      <if test="permission != null" >
+        #{permission,jdbcType=VARCHAR},
+      </if>
+      <if test="roleId != null" >
+        #{roleId,jdbcType=VARCHAR},
+      </if>
+      <if test="roleName != null" >
+        #{roleName,jdbcType=VARCHAR},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="com.webank.wecube.platform.core.entity.plugin.FavoritesRole" >
+    update favorites_role
+    <set >
+      <if test="favoritesId != null" >
+        favorites_id = #{favoritesId,jdbcType=VARCHAR},
+      </if>
+      <if test="permission != null" >
+        permission = #{permission,jdbcType=VARCHAR},
+      </if>
+      <if test="roleId != null" >
+        role_id = #{roleId,jdbcType=VARCHAR},
+      </if>
+      <if test="roleName != null" >
+        role_name = #{roleName,jdbcType=VARCHAR},
+      </if>
+    </set>
+    where id = #{id,jdbcType=VARCHAR}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.webank.wecube.platform.core.entity.plugin.FavoritesRole" >
+    update favorites_role
+    set favorites_id = #{favoritesId,jdbcType=VARCHAR},
+      permission = #{permission,jdbcType=VARCHAR},
+      role_id = #{roleId,jdbcType=VARCHAR},
+      role_name = #{roleName,jdbcType=VARCHAR}
+    where id = #{id,jdbcType=VARCHAR}
+  </update>
+</mapper>
