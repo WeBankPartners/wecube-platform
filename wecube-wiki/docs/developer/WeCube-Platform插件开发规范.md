@@ -91,6 +91,9 @@ envVariables  -- 容器环境变量， 容器启动所需参数，例如envVaria
 ```
 
 ###### 插件服务接口规范
+
+**<u>插件服务接口必须是幂等的，这一点非常重要</u>**
+幂等是我们对插件接口的首要要求，插件接口主要给系统编排自动化调用使用，可能会失败重试，如果接口不是幂等的，那么重试的结果就无法得到保证。
 如有对外提供服务的插件接口，需要在register.xml里plugins部分声明；  
 plugins里面可以有多个plugin，一个plugin里面可以有多个interface，一个interface下面有inputParameters和outputParameter，inputParameters和outputParameters里面都可以有多个parameter。
 
@@ -143,6 +146,7 @@ mappingEntityExpression  -- 模型表达式，当mappingType为entity的时候�
 
 输入参数中input数组的一个元素是一个json对象，它包含一个无需xml声明的属性（callbackParameter，类型String，同一个api请求中，input数组中的callbackParameter必须唯一，此字段会在返回参数中的results.output中返回，用于定位input数组中的每个元素的返回结果），其他的每个属性都需要定义在inputParameters标签的parameter中；
 输出参数中results.output数组的一个元素也是一个json对象，如上所述，它包含一个无需xml声明的属性（callbackParameter，类型String），其他的每个属性都需要定义在outputParameters标签的parameter中，并且固定包含以下两个属性
+
  - errorCode  //String类型，"0"代表成功，"1"代表失败
  - errorMessage  //String类型，当errorCode="1"时返回失败信息
 
