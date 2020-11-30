@@ -13,6 +13,7 @@ import static com.webank.wecube.platform.core.utils.Constants.RESULT_CODE_OK;
 import java.io.IOException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -39,10 +40,13 @@ import com.webank.wecube.platform.core.domain.ExecutionJobParameter;
 import com.webank.wecube.platform.core.dto.BatchExecutionRequestDto;
 import com.webank.wecube.platform.core.dto.ExecutionJobResponseDto;
 import com.webank.wecube.platform.core.dto.InputParameterDefinition;
+import com.webank.wecube.platform.core.dto.ResourceDataDto;
 import com.webank.wecube.platform.core.dto.plugin.PluginConfigInterfaceParameterDto;
+import com.webank.wecube.platform.core.entity.plugin.BatchExecutionJobs;
+import com.webank.wecube.platform.core.entity.plugin.ExecutionJobs;
 import com.webank.wecube.platform.core.entity.plugin.PluginInstances;
 import com.webank.wecube.platform.core.entity.plugin.SystemVariables;
-import com.webank.wecube.platform.core.jpa.BatchExecutionJobRepository;
+import com.webank.wecube.platform.core.repository.plugin.BatchExecutionJobsMapper;
 import com.webank.wecube.platform.core.repository.plugin.PluginConfigInterfacesMapper;
 import com.webank.wecube.platform.core.service.dme.EntityOperationRootCondition;
 import com.webank.wecube.platform.core.service.dme.StandardEntityOperationService;
@@ -52,6 +56,7 @@ import com.webank.wecube.platform.core.support.plugin.dto.PluginResponse.ResultD
 import com.webank.wecube.platform.core.support.plugin.dto.PluginResponseStationaryOutput;
 import com.webank.wecube.platform.core.utils.Constants;
 import com.webank.wecube.platform.core.utils.JsonUtils;
+import com.webank.wecube.platform.workflow.commons.LocalIdGenerator;
 
 @Service
 public class BatchExecutionService {
@@ -66,7 +71,7 @@ public class BatchExecutionService {
     @Autowired
     private SystemVariableService systemVariableService;
     @Autowired
-    private BatchExecutionJobRepository batchExecutionJobRepository;
+    private BatchExecutionJobsMapper batchExecutionJobsMapper;
     @Autowired
     private PluginConfigInterfacesMapper pluginConfigInterfacesMapper;
     @Autowired
@@ -84,9 +89,9 @@ public class BatchExecutionService {
     @Transactional
     public Map<String, ExecutionJobResponseDto> handleBatchExecutionJob(
             BatchExecutionRequestDto batchExecutionRequest) {
-        try{
+        try {
             return doHandleBatchExecutionJob(batchExecutionRequest);
-        }catch(IOException e){
+        } catch (IOException e) {
             log.error("Errors while processing batch execution.", e);
             throw new WecubeCoreException("Errors while processing batch execution.");
         }
@@ -137,7 +142,10 @@ public class BatchExecutionService {
     }
 
     private void verifyParameters(List<InputParameterDefinition> inputParameterDefinitions) {
-        inputParameterDefinitions.forEach(inputParameterDefinition -> {
+        if (inputParameterDefinitions == null) {
+            return;
+        }
+        for (InputParameterDefinition inputParameterDefinition : inputParameterDefinitions) {
             PluginConfigInterfaceParameterDto inputParameter = inputParameterDefinition.getInputParameter();
             if (FIELD_REQUIRED.equalsIgnoreCase(inputParameter.getRequired())
                     && MAPPING_TYPE_CONTEXT.equalsIgnoreCase(inputParameter.getMappingType())) {
@@ -147,15 +155,24 @@ public class BatchExecutionService {
                 throw new WecubeCoreException("3001", msg, inputParameter.getName(), inputParameter.getMappingType(),
                         inputParameter.getRequired());
             }
-        });
+        }
     }
 
     private BatchExecutionJob saveToDb(BatchExecutionRequestDto batchExeRequest) {
-        BatchExecutionJob batchExeJob = new BatchExecutionJob();
-        List<ExecutionJob> exeJobs = new ArrayList<ExecutionJob>();
-        batchExeRequest.getResourceDatas().forEach(resourceData -> {
-
-            ExecutionJob exeJob = new ExecutionJob();
+        BatchExecutionJobs batchExeJobEntity = new BatchExecutionJobs();
+        batchExeJobEntity.setId(LocalIdGenerator.generateId());
+        batchExeJobEntity.setCreateTimestamp(new Date());
+        
+        List<ExecutionJobs> exeJobsEntities = new ArrayList<ExecutionJobs>();
+        
+        List<ResourceDataDto> resourceDatas = batchExeRequest.getResourceDatas();
+        
+        if(resourceDatas == null){
+            throw new WecubeCoreException("Resource data cannot be empty.");
+        }
+        
+        for(ResourceDataDto resourceData : resourceDatas){
+            ExecutionJobs exeJob = new ExecutionJobs();
             exeJob.setRootEntityId(resourceData.getId());
             exeJob.setPluginConfigInterfaceId(batchExeRequest.getPluginConfigInterface().getId());
             exeJob.setPackageName(batchExeRequest.getPackageName());
@@ -165,11 +182,12 @@ public class BatchExecutionService {
             List<ExecutionJobParameter> parameters = transFromInputParameterDefinitionToExecutionJobParameter(
                     batchExeRequest.getInputParameterDefinitions(), exeJob);
             exeJob.setParameters(parameters);
-            exeJob.setBatchExecutionJob(batchExeJob);
-            exeJobs.add(exeJob);
-        });
-        batchExeJob.setJobs(exeJobs);
-        return batchExecutionJobRepository.save(batchExeJob);
+            exeJob.setBatchExecutionJob(batchExeJobEntity);
+            exeJobsEntities.add(exeJob);
+        }
+        
+        batchExeJobEntity.setJobs(exeJobsEntities);
+        return batchExecutionJobRepository.save(batchExeJobEntity);
     }
 
     private void postProcessBatchExecutionJob(BatchExecutionJob batchExeJob) {
