@@ -1,19 +1,32 @@
 package com.webank.wecube.platform.core.support;
 
+import java.text.ParseException;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import org.apache.commons.lang3.StringUtils;
+
 import com.google.common.collect.Lists;
 import com.webank.wecube.platform.core.domain.BatchExecutionJob;
 import com.webank.wecube.platform.core.domain.MenuItem;
 //import com.webank.wecube.platform.core.domain.ResourceItem;
 //import com.webank.wecube.platform.core.domain.ResourceServerDomain;
 import com.webank.wecube.platform.core.domain.SystemVariable;
-import com.webank.wecube.platform.core.domain.plugin.*;
-import com.webank.wecube.platform.core.lazyDomain.plugin.*;
+import com.webank.wecube.platform.core.domain.plugin.PluginConfig;
+import com.webank.wecube.platform.core.domain.plugin.PluginConfigInterface;
+import com.webank.wecube.platform.core.domain.plugin.PluginConfigInterfaceParameter;
+import com.webank.wecube.platform.core.domain.plugin.PluginInstance;
+import com.webank.wecube.platform.core.domain.plugin.PluginPackage;
+import com.webank.wecube.platform.core.domain.plugin.PluginPackageAttribute;
+import com.webank.wecube.platform.core.domain.plugin.PluginPackageAuthority;
+import com.webank.wecube.platform.core.domain.plugin.PluginPackageDataModel;
+import com.webank.wecube.platform.core.domain.plugin.PluginPackageDependency;
+import com.webank.wecube.platform.core.domain.plugin.PluginPackageEntity;
+import com.webank.wecube.platform.core.domain.plugin.PluginPackageMenu;
+import com.webank.wecube.platform.core.domain.plugin.PluginPackageRuntimeResourcesDocker;
+import com.webank.wecube.platform.core.domain.plugin.PluginPackageRuntimeResourcesMysql;
+import com.webank.wecube.platform.core.domain.plugin.PluginPackageRuntimeResourcesS3;
 import com.webank.wecube.platform.core.utils.Constants;
-import org.apache.commons.lang3.StringUtils;
-
-import java.text.ParseException;
-import java.util.List;
-import java.util.stream.Collectors;
 
 public class DomainIdBuilder {
 
@@ -67,16 +80,16 @@ public class DomainIdBuilder {
         );
     }
 
-    public static String buildDomainId(LazyPluginPackageMenu pluginPackageMenu) {
-        return StringUtils.isNotBlank(pluginPackageMenu.getId())
-                ? pluginPackageMenu.getId()
-                : buildDomainId(
-                null != pluginPackageMenu.getPluginPackage() ? pluginPackageMenu.getPluginPackage().getName() : null,
-                null != pluginPackageMenu.getPluginPackage() ? pluginPackageMenu.getPluginPackage().getVersion() : null,
-                pluginPackageMenu.getCategory(),
-                pluginPackageMenu.getCode()
-        );
-    }
+//    public static String buildDomainId(LazyPluginPackageMenu pluginPackageMenu) {
+//        return StringUtils.isNotBlank(pluginPackageMenu.getId())
+//                ? pluginPackageMenu.getId()
+//                : buildDomainId(
+//                null != pluginPackageMenu.getPluginPackage() ? pluginPackageMenu.getPluginPackage().getName() : null,
+//                null != pluginPackageMenu.getPluginPackage() ? pluginPackageMenu.getPluginPackage().getVersion() : null,
+//                pluginPackageMenu.getCategory(),
+//                pluginPackageMenu.getCode()
+//        );
+//    }
 
     public static String buildDomainId(PluginPackageDataModel pluginPackageDataModel) {
         return StringUtils.isNotBlank(pluginPackageDataModel.getId())
@@ -88,15 +101,15 @@ public class DomainIdBuilder {
         );
     }
 
-    public static String buildDomainId(LazyPluginPackageDataModel pluginPackageDataModel) {
-        return StringUtils.isNotBlank(pluginPackageDataModel.getId())
-                ? pluginPackageDataModel.getId()
-                : buildDomainId(
-                "DataModel",
-                pluginPackageDataModel.getPackageName(),
-                String.valueOf(pluginPackageDataModel.getVersion())
-        );
-    }
+//    public static String buildDomainId(LazyPluginPackageDataModel pluginPackageDataModel) {
+//        return StringUtils.isNotBlank(pluginPackageDataModel.getId())
+//                ? pluginPackageDataModel.getId()
+//                : buildDomainId(
+//                "DataModel",
+//                pluginPackageDataModel.getPackageName(),
+//                String.valueOf(pluginPackageDataModel.getVersion())
+//        );
+//    }
 
     public static String buildDomainId(PluginPackageEntity pluginPackageEntity) {
         return StringUtils.isNotBlank(pluginPackageEntity.getId())
@@ -108,15 +121,15 @@ public class DomainIdBuilder {
         );
     }
 
-    public static String buildDomainId(LazyPluginPackageEntity pluginPackageEntity) {
-        return StringUtils.isNotBlank(pluginPackageEntity.getId())
-                ? pluginPackageEntity.getId()
-                : buildDomainId(
-                pluginPackageEntity.getPackageName(),
-                String.valueOf(pluginPackageEntity.getDataModelVersion()),
-                pluginPackageEntity.getName()
-        );
-    }
+//    public static String buildDomainId(LazyPluginPackageEntity pluginPackageEntity) {
+//        return StringUtils.isNotBlank(pluginPackageEntity.getId())
+//                ? pluginPackageEntity.getId()
+//                : buildDomainId(
+//                pluginPackageEntity.getPackageName(),
+//                String.valueOf(pluginPackageEntity.getDataModelVersion()),
+//                pluginPackageEntity.getName()
+//        );
+//    }
 
     public static String buildDomainId(PluginPackageAttribute pluginPackageAttribute) {
         return StringUtils.isNotBlank(pluginPackageAttribute.getId())
@@ -129,16 +142,16 @@ public class DomainIdBuilder {
         );
     }
 
-    public static String buildDomainId(LazyPluginPackageAttribute pluginPackageAttribute) {
-        return StringUtils.isNotBlank(pluginPackageAttribute.getId())
-                ? pluginPackageAttribute.getId()
-                : buildDomainId(
-                null != pluginPackageAttribute.getPluginPackageEntity() ? pluginPackageAttribute.getPluginPackageEntity().getPackageName() : null,
-                null != pluginPackageAttribute.getPluginPackageEntity() ? String.valueOf(pluginPackageAttribute.getPluginPackageEntity().getDataModelVersion()) : null,
-                null != pluginPackageAttribute.getPluginPackageEntity() ? pluginPackageAttribute.getPluginPackageEntity().getName() : null,
-                pluginPackageAttribute.getName()
-        );
-    }
+//    public static String buildDomainId(LazyPluginPackageAttribute pluginPackageAttribute) {
+//        return StringUtils.isNotBlank(pluginPackageAttribute.getId())
+//                ? pluginPackageAttribute.getId()
+//                : buildDomainId(
+//                null != pluginPackageAttribute.getPluginPackageEntity() ? pluginPackageAttribute.getPluginPackageEntity().getPackageName() : null,
+//                null != pluginPackageAttribute.getPluginPackageEntity() ? String.valueOf(pluginPackageAttribute.getPluginPackageEntity().getDataModelVersion()) : null,
+//                null != pluginPackageAttribute.getPluginPackageEntity() ? pluginPackageAttribute.getPluginPackageEntity().getName() : null,
+//                pluginPackageAttribute.getName()
+//        );
+//    }
 
     public static String buildDomainId(SystemVariable systemVariable) {
         return StringUtils.isNotBlank(systemVariable.getId())
