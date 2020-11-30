@@ -21,7 +21,7 @@
         favorites_id, created_by, created_time, updated_by,
         updated_time, collection_name, data
     </sql>
-    <select id="selectByPrimaryKey" resultMap="ResultMapWithBLOBs"
+    <select id="selectByPrimaryKey" resultMap="BaseResultMap"
         parameterType="java.lang.String">
         select
         <include refid="Base_Column_List" />
@@ -145,7 +145,7 @@
         #{favoritesId,jdbcType=VARCHAR}
     </update>
 
-    <select id="selectAllByCollectionName" resultMap="ResultMapWithBLOBs"
+    <select id="selectAllByCollectionName" resultMap="BaseResultMap"
         parameterType="java.lang.String">
         select
         <include refid="Base_Column_List" />
