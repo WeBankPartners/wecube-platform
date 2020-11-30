@@ -4,7 +4,6 @@ import org.apache.commons.lang3.builder.ToStringBuilder;
 
 import com.webank.wecube.platform.core.domain.MenuItem;
 import com.webank.wecube.platform.core.domain.plugin.PluginPackageMenu;
-import com.webank.wecube.platform.core.lazyDomain.plugin.LazyPluginPackageMenu;
 
 public class MenuItemDto implements Comparable<MenuItemDto> {
 
@@ -64,19 +63,19 @@ public class MenuItemDto implements Comparable<MenuItemDto> {
         return pluginPackageMenuDto;
     }
 
-    public static MenuItemDto fromPackageMenuItem(LazyPluginPackageMenu packageMenu, MenuItem menuItem) {
-        MenuItemDto pluginPackageMenuDto = new MenuItemDto();
-        pluginPackageMenuDto.setId(packageMenu.getId());
-        pluginPackageMenuDto.setCategory(packageMenu.getCategory());
-        pluginPackageMenuDto.setCode(packageMenu.getCode());
-        pluginPackageMenuDto.setSource(packageMenu.getSource());
-        pluginPackageMenuDto.setMenuOrder(menuItem.getMenuOrder() * 10000 + packageMenu.getMenuOrder());
-        pluginPackageMenuDto.setDisplayName(packageMenu.getDisplayName());
-        pluginPackageMenuDto.setLocalDisplayName(packageMenu.getLocalDisplayName());
-        pluginPackageMenuDto.setPath(packageMenu.getPath());
-        pluginPackageMenuDto.setActive(packageMenu.isActive());
-        return pluginPackageMenuDto;
-    }
+//    public static MenuItemDto fromPackageMenuItem(LazyPluginPackageMenu packageMenu, MenuItem menuItem) {
+//        MenuItemDto pluginPackageMenuDto = new MenuItemDto();
+//        pluginPackageMenuDto.setId(packageMenu.getId());
+//        pluginPackageMenuDto.setCategory(packageMenu.getCategory());
+//        pluginPackageMenuDto.setCode(packageMenu.getCode());
+//        pluginPackageMenuDto.setSource(packageMenu.getSource());
+//        pluginPackageMenuDto.setMenuOrder(menuItem.getMenuOrder() * 10000 + packageMenu.getMenuOrder());
+//        pluginPackageMenuDto.setDisplayName(packageMenu.getDisplayName());
+//        pluginPackageMenuDto.setLocalDisplayName(packageMenu.getLocalDisplayName());
+//        pluginPackageMenuDto.setPath(packageMenu.getPath());
+//        pluginPackageMenuDto.setActive(packageMenu.isActive());
+//        return pluginPackageMenuDto;
+//    }
 
     public String getId() {
         return id;

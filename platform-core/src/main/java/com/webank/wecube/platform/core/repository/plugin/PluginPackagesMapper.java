@@ -6,6 +6,7 @@ import org.apache.ibatis.annotations.Param;
 import org.springframework.stereotype.Repository;
 
 import com.webank.wecube.platform.core.entity.plugin.PluginPackages;
+import com.webank.wecube.platform.core.entity.plugin.SimplePluginPackageInfo;
 
 @Repository
 public interface PluginPackagesMapper {
@@ -71,5 +72,12 @@ public interface PluginPackagesMapper {
      * @return
      */
     List<PluginPackages> selectAllLatestUploadedPackages(@Param("statuses") List<String> statuses);
+    
+    
+    /**
+     * 
+     * @return
+     */
+    List<SimplePluginPackageInfo> selectAllActivePluginPackageEntities();
 
 }
