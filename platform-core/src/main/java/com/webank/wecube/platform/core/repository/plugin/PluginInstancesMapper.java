@@ -6,6 +6,7 @@ import org.apache.ibatis.annotations.Param;
 import org.springframework.stereotype.Repository;
 
 import com.webank.wecube.platform.core.entity.plugin.PluginInstances;
+import com.webank.wecube.platform.core.entity.plugin.PluginInstancesInfo;
 
 @Repository
 public interface PluginInstancesMapper {
@@ -46,4 +47,19 @@ public interface PluginInstancesMapper {
      */
     List<PluginInstances> selectAllByHostAndPortAndStatus(@Param("hostIpAddr") String hostIpAddr,
             @Param("port") int port, @Param("status") String status);
+
+    /**
+     * 
+     * @return
+     */
+    List<PluginInstancesInfo> selectAllRunningPluginInstanceInfos();
+
+    /**
+     * 
+     * @param status
+     * @param instanceName
+     * @return
+     */
+    List<PluginInstances> selectAllByContainerStatusAndInstanceName(@Param("status") String status,
+            @Param("instanceName") String instanceName);
 }
