@@ -32,6 +32,7 @@ import org.springframework.stereotype.Service;
 import com.google.common.collect.Lists;
 import com.webank.wecube.platform.core.commons.ApplicationProperties.ResourceProperties;
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
+import com.webank.wecube.platform.core.domain.plugin.PluginPackageMenuStatusListener;
 import com.webank.wecube.platform.core.dto.CreateInstanceDto;
 import com.webank.wecube.platform.core.dto.QueryRequestDto;
 import com.webank.wecube.platform.core.dto.ResourceItemDto;
@@ -115,6 +116,9 @@ public class PluginInstanceMgmtService extends AbstractPluginMgmtService {
 
     @Autowired
     private GatewayServiceStub gatewayServiceStub;
+    
+    @Autowired
+    private PluginPackageMenuStatusListener pluginPackageMenuStatusListener;
 
     public void removePluginInstanceById(String instanceId) throws Exception {
         log.info("Removing instanceId: " + instanceId);
@@ -134,6 +138,7 @@ public class PluginInstanceMgmtService extends AbstractPluginMgmtService {
             throw new WecubeCoreException("Failed to remove docker resource items.");
         }
 
+        pluginPackageMenuStatusListener.preRemove(pluginInstanceEntity);
         pluginInstancesMapper.deleteByPrimaryKey(instanceId);
     }
 
@@ -234,6 +239,8 @@ public class PluginInstanceMgmtService extends AbstractPluginMgmtService {
 
         // 4. insert to DB
         pluginInstanceEntity.setContainerStatus(PluginInstances.CONTAINER_STATUS_RUNNING);
+        
+        pluginPackageMenuStatusListener.prePersist(pluginInstanceEntity);
         pluginInstancesMapper.insert(pluginInstanceEntity);
 
         // pluginInstanceRepository.save(instance);
