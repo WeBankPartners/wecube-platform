@@ -80,6 +80,7 @@
           <div style="height: calc(100vh - 300px);overflow:auto" id="paramsContainer">
             <Collapse v-model="activePanel" accordion>
               <Panel
+                hide-arrow
                 v-for="(inter, index) in currentPluginObj.interfaces"
                 :key="index + inter.action"
                 :name="index + inter.action"
@@ -126,8 +127,8 @@
                   icon="ios-expand"
                   @click.stop.prevent="showParamsModal(inter, index)"
                 ></Button>
-                <div slot="content">
-                  <Row style="border-bottom: 1px solid gray;margin-bottom:5px">
+                <!-- <div slot="content"> -->
+                <!-- <Row style="border-bottom: 1px solid gray;margin-bottom:5px">
                     <Col span="3" offset="0">
                       <strong style="font-size:15px;">{{ $t('params_type') }}</strong>
                     </Col>
@@ -309,8 +310,8 @@
                         </Row>
                       </Col>
                     </Row>
-                  </div>
-                </div>
+                  </div> -->
+                <!-- </div> -->
               </Panel>
             </Collapse>
           </div>
