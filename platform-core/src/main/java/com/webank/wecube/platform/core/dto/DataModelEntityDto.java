@@ -3,6 +3,8 @@ package com.webank.wecube.platform.core.dto;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.webank.wecube.platform.core.dto.plugin.PluginPackageEntityDto;
+
 public class DataModelEntityDto extends PluginPackageEntityDto {
 
     private LeafEntityList leafEntityList;

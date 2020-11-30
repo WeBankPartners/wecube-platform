@@ -1,4 +1,4 @@
-package com.webank.wecube.platform.core.dto;
+package com.webank.wecube.platform.core.dto.plugin;
 
 import java.util.ArrayList;
 import java.util.List;

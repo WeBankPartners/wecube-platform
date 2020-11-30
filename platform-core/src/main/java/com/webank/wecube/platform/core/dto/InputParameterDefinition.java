@@ -1,6 +1,6 @@
 package com.webank.wecube.platform.core.dto;
 
-import com.webank.wecube.platform.core.domain.plugin.PluginConfigInterfaceParameter;
+import com.webank.wecube.platform.core.dto.plugin.PluginConfigInterfaceParameterDto;
 
 public class InputParameterDefinition {
     public static final String DATA_TYPE_STRING = "string";
@@ -9,14 +9,14 @@ public class InputParameterDefinition {
     public static final String DEFAULT_VALUE_DATA_TYPE_STRING = "";
     public static final int DEFAULT_VALUE_DATA_TYPE_NUMBER = 0;
 
-    private PluginConfigInterfaceParameter inputParameter;
+    private PluginConfigInterfaceParameterDto inputParameter;
     private Object inputParameterValue;
 
-    public PluginConfigInterfaceParameter getInputParameter() {
+    public PluginConfigInterfaceParameterDto getInputParameter() {
         return inputParameter;
     }
 
-    public void setInputParameter(PluginConfigInterfaceParameter inputParameter) {
+    public void setInputParameter(PluginConfigInterfaceParameterDto inputParameter) {
         this.inputParameter = inputParameter;
     }
 

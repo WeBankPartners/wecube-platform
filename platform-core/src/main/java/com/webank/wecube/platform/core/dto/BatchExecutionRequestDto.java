@@ -2,11 +2,11 @@ package com.webank.wecube.platform.core.dto;
 
 import java.util.List;
 
-import com.webank.wecube.platform.core.domain.plugin.PluginConfigInterface;
+import com.webank.wecube.platform.core.dto.plugin.PluginConfigInterfaceDto;
 
 public class BatchExecutionRequestDto {
 
-    private PluginConfigInterface pluginConfigInterface;
+    private PluginConfigInterfaceDto pluginConfigInterface;
     private String packageName;
     private String entityName;
     private List<InputParameterDefinition> inputParameterDefinitions;
@@ -16,11 +16,11 @@ public class BatchExecutionRequestDto {
     public BatchExecutionRequestDto() {
     }
 
-    public PluginConfigInterface getPluginConfigInterface() {
+    public PluginConfigInterfaceDto getPluginConfigInterface() {
         return pluginConfigInterface;
     }
 
-    public void setPluginConfigInterface(PluginConfigInterface pluginConfigInterface) {
+    public void setPluginConfigInterface(PluginConfigInterfaceDto pluginConfigInterface) {
         this.pluginConfigInterface = pluginConfigInterface;
     }
 

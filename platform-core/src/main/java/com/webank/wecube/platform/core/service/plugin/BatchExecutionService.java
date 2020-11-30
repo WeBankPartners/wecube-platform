@@ -36,15 +36,14 @@ import com.webank.wecube.platform.core.commons.WecubeCoreException;
 import com.webank.wecube.platform.core.domain.BatchExecutionJob;
 import com.webank.wecube.platform.core.domain.ExecutionJob;
 import com.webank.wecube.platform.core.domain.ExecutionJobParameter;
-import com.webank.wecube.platform.core.domain.plugin.PluginConfigInterface;
-import com.webank.wecube.platform.core.domain.plugin.PluginConfigInterfaceParameter;
 import com.webank.wecube.platform.core.dto.BatchExecutionRequestDto;
 import com.webank.wecube.platform.core.dto.ExecutionJobResponseDto;
 import com.webank.wecube.platform.core.dto.InputParameterDefinition;
+import com.webank.wecube.platform.core.dto.plugin.PluginConfigInterfaceParameterDto;
 import com.webank.wecube.platform.core.entity.plugin.PluginInstances;
 import com.webank.wecube.platform.core.entity.plugin.SystemVariables;
 import com.webank.wecube.platform.core.jpa.BatchExecutionJobRepository;
-import com.webank.wecube.platform.core.jpa.PluginConfigInterfaceRepository;
+import com.webank.wecube.platform.core.repository.plugin.PluginConfigInterfacesMapper;
 import com.webank.wecube.platform.core.service.dme.EntityOperationRootCondition;
 import com.webank.wecube.platform.core.service.dme.StandardEntityOperationService;
 import com.webank.wecube.platform.core.service.workflow.SimpleEncryptionService;
@@ -69,7 +68,7 @@ public class BatchExecutionService {
     @Autowired
     private BatchExecutionJobRepository batchExecutionJobRepository;
     @Autowired
-    private PluginConfigInterfaceRepository pluginConfigInterfaceRepository;
+    private PluginConfigInterfacesMapper pluginConfigInterfacesMapper;
     @Autowired
     protected StandardEntityOperationService standardEntityOperationService;
 
@@ -139,7 +138,7 @@ public class BatchExecutionService {
 
     private void verifyParameters(List<InputParameterDefinition> inputParameterDefinitions) {
         inputParameterDefinitions.forEach(inputParameterDefinition -> {
-            PluginConfigInterfaceParameter inputParameter = inputParameterDefinition.getInputParameter();
+            PluginConfigInterfaceParameterDto inputParameter = inputParameterDefinition.getInputParameter();
             if (FIELD_REQUIRED.equalsIgnoreCase(inputParameter.getRequired())
                     && MAPPING_TYPE_CONTEXT.equalsIgnoreCase(inputParameter.getMappingType())) {
                 String msg = String.format(
@@ -182,7 +181,7 @@ public class BatchExecutionService {
             List<InputParameterDefinition> inputParameterDefinitions, ExecutionJob executionJob) {
         List<ExecutionJobParameter> executionJobParameters = new ArrayList<ExecutionJobParameter>();
         for (InputParameterDefinition inputParameterDefinition : inputParameterDefinitions) {
-            PluginConfigInterfaceParameter interfaceParameter = inputParameterDefinition.getInputParameter();
+            PluginConfigInterfaceParameterDto interfaceParameter = inputParameterDefinition.getInputParameter();
 
             if (inputParameterDefinition.getInputParameterValue() != null) {
 
