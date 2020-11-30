@@ -8,7 +8,6 @@ import org.apache.commons.lang3.StringUtils;
 
 import com.google.common.collect.Lists;
 import com.webank.wecube.platform.core.domain.BatchExecutionJob;
-import com.webank.wecube.platform.core.domain.MenuItem;
 //import com.webank.wecube.platform.core.domain.ResourceItem;
 //import com.webank.wecube.platform.core.domain.ResourceServerDomain;
 import com.webank.wecube.platform.core.domain.SystemVariable;
@@ -247,14 +246,14 @@ public class DomainIdBuilder {
 //        );
 //    }
 
-    public static String buildDomainId(MenuItem menuItem) {
-        return StringUtils.isNotBlank(menuItem.getId())
-                ? menuItem.getId()
-                : buildDomainId(
-                menuItem.getParentCode(),
-                menuItem.getCode()
-        );
-    }
+//    public static String buildDomainId(MenuItem menuItem) {
+//        return StringUtils.isNotBlank(menuItem.getId())
+//                ? menuItem.getId()
+//                : buildDomainId(
+//                menuItem.getParentCode(),
+//                menuItem.getCode()
+//        );
+//    }
 
 //    public static String buildDomainId(ResourceServerDomain resourceServer) {
 //        return StringUtils.isNotBlank(resourceServer.getId())
