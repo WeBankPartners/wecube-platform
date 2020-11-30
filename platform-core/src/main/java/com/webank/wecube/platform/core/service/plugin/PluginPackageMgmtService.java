@@ -26,7 +26,6 @@ import com.google.common.collect.Sets;
 import com.webank.wecube.platform.core.commons.AuthenticationContextHolder;
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
 import com.webank.wecube.platform.core.dto.MenuItemDto;
-import com.webank.wecube.platform.core.dto.PluginPackageDependencyDto;
 import com.webank.wecube.platform.core.dto.PluginPackageInfoDto;
 import com.webank.wecube.platform.core.dto.plugin.PluginConfigDto;
 import com.webank.wecube.platform.core.dto.plugin.PluginConfigGroupByNameDto;
@@ -35,6 +34,7 @@ import com.webank.wecube.platform.core.dto.plugin.PluginConfigInterfaceParameter
 import com.webank.wecube.platform.core.dto.plugin.PluginConfigOutlineDto;
 import com.webank.wecube.platform.core.dto.plugin.PluginDeclarationDto;
 import com.webank.wecube.platform.core.dto.plugin.PluginPackageAuthoritiesDto;
+import com.webank.wecube.platform.core.dto.plugin.PluginPackageDependencyDto;
 import com.webank.wecube.platform.core.dto.plugin.PluginPackageRuntimeResouceDto;
 import com.webank.wecube.platform.core.dto.plugin.PluginPackageRuntimeResourcesDockerDto;
 import com.webank.wecube.platform.core.dto.plugin.PluginPackageRuntimeResourcesMysqlDto;
