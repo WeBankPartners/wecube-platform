@@ -1,106 +1,129 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
-<mapper namespace="com.webank.wecube.platform.core.repository.plugin.PluginPackageResourceFilesMapper" >
-  <resultMap id="BaseResultMap" type="com.webank.wecube.platform.core.entity.plugin.PluginPackageResourceFiles" >
-    <id column="id" property="id" jdbcType="VARCHAR" />
-    <result column="plugin_package_id" property="pluginPackageId" jdbcType="VARCHAR" />
-    <result column="package_name" property="packageName" jdbcType="VARCHAR" />
-    <result column="package_version" property="packageVersion" jdbcType="VARCHAR" />
-    <result column="source" property="source" jdbcType="VARCHAR" />
-    <result column="related_path" property="relatedPath" jdbcType="VARCHAR" />
-  </resultMap>
-  <sql id="Base_Column_List" >
-    id, plugin_package_id, package_name, package_version, source, related_path
-  </sql>
-  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.String" >
-    select 
-    <include refid="Base_Column_List" />
-    from plugin_package_resource_files
-    where id = #{id,jdbcType=VARCHAR}
-  </select>
-  <delete id="deleteByPrimaryKey" parameterType="java.lang.String" >
-    delete from plugin_package_resource_files
-    where id = #{id,jdbcType=VARCHAR}
-  </delete>
-  <insert id="insert" parameterType="com.webank.wecube.platform.core.entity.plugin.PluginPackageResourceFiles" >
-    insert into plugin_package_resource_files (id, plugin_package_id, package_name, 
-      package_version, source, related_path
-      )
-    values (#{id,jdbcType=VARCHAR}, #{pluginPackageId,jdbcType=VARCHAR}, #{packageName,jdbcType=VARCHAR}, 
-      #{packageVersion,jdbcType=VARCHAR}, #{source,jdbcType=VARCHAR}, #{relatedPath,jdbcType=VARCHAR}
-      )
-  </insert>
-  <insert id="insertSelective" parameterType="com.webank.wecube.platform.core.entity.plugin.PluginPackageResourceFiles" >
-    insert into plugin_package_resource_files
-    <trim prefix="(" suffix=")" suffixOverrides="," >
-      <if test="id != null" >
-        id,
-      </if>
-      <if test="pluginPackageId != null" >
-        plugin_package_id,
-      </if>
-      <if test="packageName != null" >
-        package_name,
-      </if>
-      <if test="packageVersion != null" >
-        package_version,
-      </if>
-      <if test="source != null" >
-        source,
-      </if>
-      <if test="relatedPath != null" >
-        related_path,
-      </if>
-    </trim>
-    <trim prefix="values (" suffix=")" suffixOverrides="," >
-      <if test="id != null" >
-        #{id,jdbcType=VARCHAR},
-      </if>
-      <if test="pluginPackageId != null" >
-        #{pluginPackageId,jdbcType=VARCHAR},
-      </if>
-      <if test="packageName != null" >
+<mapper
+    namespace="com.webank.wecube.platform.core.repository.plugin.PluginPackageResourceFilesMapper">
+    <resultMap id="BaseResultMap"
+        type="com.webank.wecube.platform.core.entity.plugin.PluginPackageResourceFiles">
+        <id column="id" property="id" jdbcType="VARCHAR" />
+        <result column="plugin_package_id" property="pluginPackageId"
+            jdbcType="VARCHAR" />
+        <result column="package_name" property="packageName"
+            jdbcType="VARCHAR" />
+        <result column="package_version" property="packageVersion"
+            jdbcType="VARCHAR" />
+        <result column="source" property="source" jdbcType="VARCHAR" />
+        <result column="related_path" property="relatedPath"
+            jdbcType="VARCHAR" />
+    </resultMap>
+    <sql id="Base_Column_List">
+        id, plugin_package_id, package_name, package_version, source,
+        related_path
+    </sql>
+    <select id="selectByPrimaryKey" resultMap="BaseResultMap"
+        parameterType="java.lang.String">
+        select
+        <include refid="Base_Column_List" />
+        from plugin_package_resource_files
+        where id = #{id,jdbcType=VARCHAR}
+    </select>
+    <delete id="deleteByPrimaryKey" parameterType="java.lang.String">
+        delete from plugin_package_resource_files
+        where id = #{id,jdbcType=VARCHAR}
+    </delete>
+    <insert id="insert"
+        parameterType="com.webank.wecube.platform.core.entity.plugin.PluginPackageResourceFiles">
+        insert into plugin_package_resource_files (id,
+        plugin_package_id, package_name,
+        package_version, source, related_path
+        )
+        values (#{id,jdbcType=VARCHAR}, #{pluginPackageId,jdbcType=VARCHAR},
         #{packageName,jdbcType=VARCHAR},
-      </if>
-      <if test="packageVersion != null" >
-        #{packageVersion,jdbcType=VARCHAR},
-      </if>
-      <if test="source != null" >
-        #{source,jdbcType=VARCHAR},
-      </if>
-      <if test="relatedPath != null" >
-        #{relatedPath,jdbcType=VARCHAR},
-      </if>
-    </trim>
-  </insert>
-  <update id="updateByPrimaryKeySelective" parameterType="com.webank.wecube.platform.core.entity.plugin.PluginPackageResourceFiles" >
-    update plugin_package_resource_files
-    <set >
-      <if test="pluginPackageId != null" >
-        plugin_package_id = #{pluginPackageId,jdbcType=VARCHAR},
-      </if>
-      <if test="packageName != null" >
+        #{packageVersion,jdbcType=VARCHAR}, #{source,jdbcType=VARCHAR},
+        #{relatedPath,jdbcType=VARCHAR}
+        )
+    </insert>
+    <insert id="insertSelective"
+        parameterType="com.webank.wecube.platform.core.entity.plugin.PluginPackageResourceFiles">
+        insert into plugin_package_resource_files
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="id != null">
+                id,
+            </if>
+            <if test="pluginPackageId != null">
+                plugin_package_id,
+            </if>
+            <if test="packageName != null">
+                package_name,
+            </if>
+            <if test="packageVersion != null">
+                package_version,
+            </if>
+            <if test="source != null">
+                source,
+            </if>
+            <if test="relatedPath != null">
+                related_path,
+            </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="id != null">
+                #{id,jdbcType=VARCHAR},
+            </if>
+            <if test="pluginPackageId != null">
+                #{pluginPackageId,jdbcType=VARCHAR},
+            </if>
+            <if test="packageName != null">
+                #{packageName,jdbcType=VARCHAR},
+            </if>
+            <if test="packageVersion != null">
+                #{packageVersion,jdbcType=VARCHAR},
+            </if>
+            <if test="source != null">
+                #{source,jdbcType=VARCHAR},
+            </if>
+            <if test="relatedPath != null">
+                #{relatedPath,jdbcType=VARCHAR},
+            </if>
+        </trim>
+    </insert>
+    <update id="updateByPrimaryKeySelective"
+        parameterType="com.webank.wecube.platform.core.entity.plugin.PluginPackageResourceFiles">
+        update plugin_package_resource_files
+        <set>
+            <if test="pluginPackageId != null">
+                plugin_package_id = #{pluginPackageId,jdbcType=VARCHAR},
+            </if>
+            <if test="packageName != null">
+                package_name = #{packageName,jdbcType=VARCHAR},
+            </if>
+            <if test="packageVersion != null">
+                package_version = #{packageVersion,jdbcType=VARCHAR},
+            </if>
+            <if test="source != null">
+                source = #{source,jdbcType=VARCHAR},
+            </if>
+            <if test="relatedPath != null">
+                related_path = #{relatedPath,jdbcType=VARCHAR},
+            </if>
+        </set>
+        where id = #{id,jdbcType=VARCHAR}
+    </update>
+    <update id="updateByPrimaryKey"
+        parameterType="com.webank.wecube.platform.core.entity.plugin.PluginPackageResourceFiles">
+        update plugin_package_resource_files
+        set plugin_package_id = #{pluginPackageId,jdbcType=VARCHAR},
         package_name = #{packageName,jdbcType=VARCHAR},
-      </if>
-      <if test="packageVersion != null" >
         package_version = #{packageVersion,jdbcType=VARCHAR},
-      </if>
-      <if test="source != null" >
         source = #{source,jdbcType=VARCHAR},
-      </if>
-      <if test="relatedPath != null" >
-        related_path = #{relatedPath,jdbcType=VARCHAR},
-      </if>
-    </set>
-    where id = #{id,jdbcType=VARCHAR}
-  </update>
-  <update id="updateByPrimaryKey" parameterType="com.webank.wecube.platform.core.entity.plugin.PluginPackageResourceFiles" >
-    update plugin_package_resource_files
-    set plugin_package_id = #{pluginPackageId,jdbcType=VARCHAR},
-      package_name = #{packageName,jdbcType=VARCHAR},
-      package_version = #{packageVersion,jdbcType=VARCHAR},
-      source = #{source,jdbcType=VARCHAR},
-      related_path = #{relatedPath,jdbcType=VARCHAR}
-    where id = #{id,jdbcType=VARCHAR}
-  </update>
+        related_path = #{relatedPath,jdbcType=VARCHAR}
+        where id = #{id,jdbcType=VARCHAR}
+    </update>
+    
+    <select id="selectAllByPluginPackage" resultMap="BaseResultMap"
+        parameterType="java.lang.String">
+        select
+        <include refid="Base_Column_List" />
+        from plugin_package_resource_files
+        where plugin_package_id = #{pluginPackageId,jdbcType=VARCHAR}
+    </select>
 </mapper>
