@@ -2,9 +2,6 @@ package com.webank.wecube.platform.core.dto;
 
 import org.apache.commons.lang3.builder.ToStringBuilder;
 
-import com.webank.wecube.platform.core.domain.MenuItem;
-import com.webank.wecube.platform.core.domain.plugin.PluginPackageMenu;
-
 public class MenuItemDto implements Comparable<MenuItemDto> {
 
     private String id;
@@ -32,36 +29,36 @@ public class MenuItemDto implements Comparable<MenuItemDto> {
     public MenuItemDto() {
     }
 
-    public static MenuItemDto fromSystemMenuItem(MenuItem systemMenu) {
-        MenuItemDto pluginPackageMenuDto = new MenuItemDto();
-        pluginPackageMenuDto.setId(systemMenu.getId());
-        String category = systemMenu.getParentCode();
-        if (category != null) {
-            pluginPackageMenuDto.setCategory(category);
-        }
-        pluginPackageMenuDto.setCode(systemMenu.getCode());
-        pluginPackageMenuDto.setSource(systemMenu.getSource());
-        pluginPackageMenuDto.setMenuOrder(systemMenu.getMenuOrder());
-        pluginPackageMenuDto.setDisplayName(systemMenu.getDescription());
-        pluginPackageMenuDto.setLocalDisplayName(systemMenu.getLocalDisplayName());
-        pluginPackageMenuDto.setPath(null);
-        pluginPackageMenuDto.setActive(true);
-        return pluginPackageMenuDto;
-    }
-
-    public static MenuItemDto fromPackageMenuItem(PluginPackageMenu packageMenu, MenuItem menuItem) {
-        MenuItemDto pluginPackageMenuDto = new MenuItemDto();
-        pluginPackageMenuDto.setId(packageMenu.getId());
-        pluginPackageMenuDto.setCategory(packageMenu.getCategory());
-        pluginPackageMenuDto.setCode(packageMenu.getCode());
-        pluginPackageMenuDto.setSource(packageMenu.getSource());
-        pluginPackageMenuDto.setMenuOrder(menuItem.getMenuOrder() * 10000 + packageMenu.getMenuOrder());
-        pluginPackageMenuDto.setDisplayName(packageMenu.getDisplayName());
-        pluginPackageMenuDto.setLocalDisplayName(packageMenu.getLocalDisplayName());
-        pluginPackageMenuDto.setPath(packageMenu.getPath());
-        pluginPackageMenuDto.setActive(packageMenu.isActive());
-        return pluginPackageMenuDto;
-    }
+//    public static MenuItemDto fromSystemMenuItem(MenuItem systemMenu) {
+//        MenuItemDto pluginPackageMenuDto = new MenuItemDto();
+//        pluginPackageMenuDto.setId(systemMenu.getId());
+//        String category = systemMenu.getParentCode();
+//        if (category != null) {
+//            pluginPackageMenuDto.setCategory(category);
+//        }
+//        pluginPackageMenuDto.setCode(systemMenu.getCode());
+//        pluginPackageMenuDto.setSource(systemMenu.getSource());
+//        pluginPackageMenuDto.setMenuOrder(systemMenu.getMenuOrder());
+//        pluginPackageMenuDto.setDisplayName(systemMenu.getDescription());
+//        pluginPackageMenuDto.setLocalDisplayName(systemMenu.getLocalDisplayName());
+//        pluginPackageMenuDto.setPath(null);
+//        pluginPackageMenuDto.setActive(true);
+//        return pluginPackageMenuDto;
+//    }
+//
+//    public static MenuItemDto fromPackageMenuItem(PluginPackageMenu packageMenu, MenuItem menuItem) {
+//        MenuItemDto pluginPackageMenuDto = new MenuItemDto();
+//        pluginPackageMenuDto.setId(packageMenu.getId());
+//        pluginPackageMenuDto.setCategory(packageMenu.getCategory());
+//        pluginPackageMenuDto.setCode(packageMenu.getCode());
+//        pluginPackageMenuDto.setSource(packageMenu.getSource());
+//        pluginPackageMenuDto.setMenuOrder(menuItem.getMenuOrder() * 10000 + packageMenu.getMenuOrder());
+//        pluginPackageMenuDto.setDisplayName(packageMenu.getDisplayName());
+//        pluginPackageMenuDto.setLocalDisplayName(packageMenu.getLocalDisplayName());
+//        pluginPackageMenuDto.setPath(packageMenu.getPath());
+//        pluginPackageMenuDto.setActive(packageMenu.isActive());
+//        return pluginPackageMenuDto;
+//    }
 
 //    public static MenuItemDto fromPackageMenuItem(LazyPluginPackageMenu packageMenu, MenuItem menuItem) {
 //        MenuItemDto pluginPackageMenuDto = new MenuItemDto();
