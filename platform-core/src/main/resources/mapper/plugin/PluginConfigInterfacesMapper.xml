@@ -579,14 +579,16 @@
         t2.plugin_package_id =
         t3.id
         AND
-        ( t2.target_entity = '' OR t2.target_entity IS NULL)
+        ( t2.target_entity = '' OR
+        t2.target_entity IS NULL)
         AND
         t4.plugin_cfg_id = t2.id
         AND
         t4.perm_type =
         #{permissionType,jdbcType=VARCHAR}
         AND
-        t4.role_name IN
+        t4.role_name
+        IN
         <choose>
             <when test="roleNames != null and roleNames.size()>0">
                 <foreach item="roleName" collection="roleNames"
@@ -605,6 +607,27 @@
             separator="," open="(" close=")" index="">
             #{pluginPackageStatus, jdbcType=VARCHAR}
         </foreach>
+    </select>
+
+
+    <select id="selectAllPluginConfigInterfaceInfos"
+        resultType="com.webank.wecube.platform.core.entity.plugin.SimplePluginConfigInterfaceInfo">
+        SELECT
+        i.id,
+        i.service_name,
+        i.path,
+        i.http_method,
+        pp.name AS package_name
+        FROM
+        plugin_config_interfaces i
+        JOIN
+        plugin_configs c ON i.plugin_config_id = c.id
+        JOIN
+        plugin_configs pc ON i.plugin_config_id = pc.id
+        JOIN
+        plugin_packages pp ON pc.plugin_package_id = pp.id
+        WHERE
+        c.status = 'ENABLED'
     </select>
 
 </mapper>

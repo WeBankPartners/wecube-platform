@@ -8,6 +8,7 @@ import org.springframework.stereotype.Repository;
 import com.webank.wecube.platform.core.entity.plugin.AuthLatestEnabledInterfaces;
 import com.webank.wecube.platform.core.entity.plugin.PluginConfigInterfaces;
 import com.webank.wecube.platform.core.entity.plugin.RichPluginConfigInterfaces;
+import com.webank.wecube.platform.core.entity.plugin.SimplePluginConfigInterfaceInfo;
 
 /**
  * 
@@ -112,5 +113,12 @@ public interface PluginConfigInterfacesMapper {
     List<AuthLatestEnabledInterfaces> selectAllAuthEnabledIntfsByNullTargetInfo(
             @Param("pluginConfigStatus") String pluginConfigStatus, @Param("permissionType") String permissionType, @Param("roleNames") List<String> roleNames,
             @Param("pluginPackageStatuses") List<String> pluginPackageStatuses);
+    
+    
+    /**
+     * 
+     * @return
+     */
+    List<SimplePluginConfigInterfaceInfo> selectAllPluginConfigInterfaceInfos();
 
 }

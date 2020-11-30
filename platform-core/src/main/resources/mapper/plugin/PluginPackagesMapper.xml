@@ -223,4 +223,12 @@
         GROUP BY t2.name)
     </select>
 
+
+    <select id="selectAllActivePluginPackageEntities"
+        resultType="com.webank.wecube.platform.core.entity.plugin.SimplePluginPackageInfo">
+        SELECT id,name FROM plugin_packages WHERE status IN
+        ('REGISTERED','RUNNING','STOPPED') ORDER BY name,
+        upload_timestamp DESC
+    </select>
+
 </mapper>

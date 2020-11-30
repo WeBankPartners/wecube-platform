@@ -224,4 +224,28 @@
         container_status =
         #{status,jdbcType=VARCHAR}
     </select>
+
+    <select id="selectAllRunningPluginInstanceInfos"
+        resultType="com.webank.wecube.platform.core.entity.plugin.PluginInstancesInfo">
+        SELECT
+        i.id,i.package_id,i.instance_name,i.container_name,i.host,i.port,i.container_status,
+        p.name AS package_name
+        FROM plugin_instances i JOIN
+        plugin_packages p ON i.package_id = p.id
+        WHERE i.container_status
+        = 'RUNNING'
+    </select>
+
+
+    <select id="selectAllByContainerStatusAndInstanceName"
+        resultMap="BaseResultMap" parameterType="java.lang.String">
+        select
+        <include refid="Base_Column_List" />
+        from plugin_instances
+        where container_status =
+        #{status,jdbcType=VARCHAR}
+        and
+        instance_name =
+        #{instanceName,jdbcType=VARCHAR}
+    </select>
 </mapper>
