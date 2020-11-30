@@ -1,67 +1,53 @@
 package com.webank.wecube.platform.core.domain.plugin;
 
-import com.webank.wecube.platform.core.jpa.PluginPackageMenuRepository;
+import java.util.List;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.BeansException;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.ApplicationContextAware;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
-import javax.persistence.PostLoad;
-import javax.persistence.PrePersist;
-import javax.persistence.PreRemove;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import com.webank.wecube.platform.core.entity.plugin.PluginInstances;
+import com.webank.wecube.platform.core.entity.plugin.PluginPackageMenus;
+import com.webank.wecube.platform.core.entity.plugin.PluginPackages;
+import com.webank.wecube.platform.core.repository.plugin.PluginPackageMenusMapper;
+import com.webank.wecube.platform.core.repository.plugin.PluginPackagesMapper;
 
-
-public class PluginPackageMenuStatusListener implements ApplicationContextAware {
-    private PluginPackageMenuRepository packageMenuRepository;
-
+@Service
+public class PluginPackageMenuStatusListener {
     private Logger logger = LoggerFactory.getLogger(this.getClass());
-    private ApplicationContext applicationContext;
+    @Autowired
+    private PluginPackageMenusMapper packageMenuRepository;
+    @Autowired
+    private PluginPackagesMapper pluginPackagesMapper;
 
-    @PrePersist
-    public void prePersist(PluginInstance pluginInstance){
+    public void prePersist(PluginInstances pluginInstance){
         updatePluginPackageMenuStatusForPluginPackage(pluginInstance, false, true);
     }
 
-    @PreRemove
-    public void preRemove(PluginInstance pluginInstance) {
+    public void preRemove(PluginInstances pluginInstance) {
         updatePluginPackageMenuStatusForPluginPackage(pluginInstance, true, false);
     }
 
-    @PostLoad
-    public void postLoad(PluginInstance pluginInstance) {
+    public void postLoad(PluginInstances pluginInstance) {
         updatePluginPackageMenuStatusForPluginPackage(pluginInstance, false, true);
     }
 
-    private void updatePluginPackageMenuStatusForPluginPackage(PluginInstance pluginInstance, boolean fromStatus, boolean toStatus) {
-        if (null == packageMenuRepository) {
-            this.packageMenuRepository = applicationContext.getBean(PluginPackageMenuRepository.class);
+    private void updatePluginPackageMenuStatusForPluginPackage(PluginInstances pluginInstance, boolean fromStatus, boolean toStatus) {
+        PluginPackages pluginPackage = pluginInstance.getPluginPackage();
+        if(pluginPackage == null){
+            pluginPackage = pluginPackagesMapper.selectByPrimaryKey(pluginInstance.getPackageId());
         }
-        String packageId = pluginInstance.getPluginPackage().getId();
-        Optional<List<PluginPackageMenu>> pluginPackageMenusOptional = packageMenuRepository.findAllMenusByStatusAndPluginPackageId(fromStatus, packageId);
-        if (pluginPackageMenusOptional.isPresent()) {
-            List<PluginPackageMenu> pluginPackageMenus = pluginPackageMenusOptional.get();
-            if (pluginPackageMenus.size() > 0) {
-                List<PluginPackageMenu> updatePluginPackageMenus = new ArrayList<>();
-                pluginPackageMenus.forEach(
-                        pluginPackageMenu -> {
-                            logger.info("Updating PluginPackageMenu[{}] to {}", pluginPackageMenu.getId(), toStatus);
-                            pluginPackageMenu.setActive(toStatus);
-                            updatePluginPackageMenus.add(pluginPackageMenu);
-                        }
-                );
-                if (updatePluginPackageMenus.size() > 0) {
-                    packageMenuRepository.saveAll(updatePluginPackageMenus);
-                }
+        String packageId = pluginPackage.getId();
+        
+        List<PluginPackageMenus> pluginPackageMenusList = packageMenuRepository.selectAllMenusByStatusAndPluginPackage(fromStatus, packageId);
+        if (pluginPackageMenusList != null) {
+            for(PluginPackageMenus pluginPackageMenus : pluginPackageMenusList){
+                logger.info("Updating PluginPackageMenu[{}] to {}", pluginPackageMenus.getId(), toStatus);
+                pluginPackageMenus.setActive(toStatus);
+                packageMenuRepository.updateByPrimaryKeySelective(pluginPackageMenus);
             }
         }
     }
 
-    @Override
-    public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
-        this.applicationContext = applicationContext;
-    }
 }
