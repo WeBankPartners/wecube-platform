@@ -42,4 +42,13 @@ public interface PluginPackageMenusMapper {
      * @return
      */
     List<PluginPackageMenus> selectAllMenusByPackage(@Param("pluginPackageId")String pluginPackageId);
+    
+    
+    /**
+     * 
+     * @param status
+     * @param pluginPackageId
+     * @return
+     */
+    List<PluginPackageMenus> selectAllMenusByStatusAndPluginPackage(@Param("status")boolean status, @Param("pluginPackageId")String pluginPackageId );
 }

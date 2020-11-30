@@ -17,8 +17,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -34,20 +32,27 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
-import com.webank.wecube.platform.core.domain.BatchExecutionJob;
-import com.webank.wecube.platform.core.domain.ExecutionJob;
-import com.webank.wecube.platform.core.domain.ExecutionJobParameter;
 import com.webank.wecube.platform.core.dto.BatchExecutionRequestDto;
 import com.webank.wecube.platform.core.dto.ExecutionJobResponseDto;
 import com.webank.wecube.platform.core.dto.InputParameterDefinition;
 import com.webank.wecube.platform.core.dto.ResourceDataDto;
 import com.webank.wecube.platform.core.dto.plugin.PluginConfigInterfaceParameterDto;
 import com.webank.wecube.platform.core.entity.plugin.BatchExecutionJobs;
+import com.webank.wecube.platform.core.entity.plugin.ExecutionJobParameters;
 import com.webank.wecube.platform.core.entity.plugin.ExecutionJobs;
+import com.webank.wecube.platform.core.entity.plugin.PluginConfigInterfaceParameters;
+import com.webank.wecube.platform.core.entity.plugin.PluginConfigInterfaces;
+import com.webank.wecube.platform.core.entity.plugin.PluginConfigs;
 import com.webank.wecube.platform.core.entity.plugin.PluginInstances;
+import com.webank.wecube.platform.core.entity.plugin.PluginPackages;
 import com.webank.wecube.platform.core.entity.plugin.SystemVariables;
 import com.webank.wecube.platform.core.repository.plugin.BatchExecutionJobsMapper;
+import com.webank.wecube.platform.core.repository.plugin.ExecutionJobParametersMapper;
+import com.webank.wecube.platform.core.repository.plugin.ExecutionJobsMapper;
+import com.webank.wecube.platform.core.repository.plugin.PluginConfigInterfaceParametersMapper;
 import com.webank.wecube.platform.core.repository.plugin.PluginConfigInterfacesMapper;
+import com.webank.wecube.platform.core.repository.plugin.PluginConfigsMapper;
+import com.webank.wecube.platform.core.repository.plugin.PluginPackagesMapper;
 import com.webank.wecube.platform.core.service.dme.EntityOperationRootCondition;
 import com.webank.wecube.platform.core.service.dme.StandardEntityOperationService;
 import com.webank.wecube.platform.core.service.workflow.SimpleEncryptionService;
@@ -75,6 +80,16 @@ public class BatchExecutionService {
     @Autowired
     private PluginConfigInterfacesMapper pluginConfigInterfacesMapper;
     @Autowired
+    private PluginConfigInterfaceParametersMapper pluginConfigInterfaceParametersMapper;
+    @Autowired
+    private PluginConfigsMapper pluginConfigsMapper;
+    @Autowired
+    private PluginPackagesMapper pluginPackagesMapper;
+    @Autowired
+    private ExecutionJobParametersMapper executionJobParametersMapper;
+    @Autowired
+    private ExecutionJobsMapper executionJobsMapper;
+    @Autowired
     protected StandardEntityOperationService standardEntityOperationService;
 
     @Autowired
@@ -100,10 +115,10 @@ public class BatchExecutionService {
     private Map<String, ExecutionJobResponseDto> doHandleBatchExecutionJob(
             BatchExecutionRequestDto batchExecutionRequest) throws IOException {
         verifyParameters(batchExecutionRequest.getInputParameterDefinitions());
-        BatchExecutionJob batchExeJob = saveToDb(batchExecutionRequest);
+        BatchExecutionJobs batchExeJob = saveToDb(batchExecutionRequest);
 
         Map<String, ExecutionJobResponseDto> exeResults = new HashMap<>();
-        for (ExecutionJob exeJob : batchExeJob.getJobs()) {
+        for (ExecutionJobs exeJob : batchExeJob.getJobs()) {
             ResultData<?> exeResult = null;
             try {
                 exeResult = performExecutionJob(exeJob);
@@ -158,46 +173,52 @@ public class BatchExecutionService {
         }
     }
 
-    private BatchExecutionJob saveToDb(BatchExecutionRequestDto batchExeRequest) {
+    private BatchExecutionJobs saveToDb(BatchExecutionRequestDto batchExeRequest) {
         BatchExecutionJobs batchExeJobEntity = new BatchExecutionJobs();
         batchExeJobEntity.setId(LocalIdGenerator.generateId());
         batchExeJobEntity.setCreateTimestamp(new Date());
-        
+
         List<ExecutionJobs> exeJobsEntities = new ArrayList<ExecutionJobs>();
-        
+
         List<ResourceDataDto> resourceDatas = batchExeRequest.getResourceDatas();
-        
-        if(resourceDatas == null){
+
+        if (resourceDatas == null) {
             throw new WecubeCoreException("Resource data cannot be empty.");
         }
-        
-        for(ResourceDataDto resourceData : resourceDatas){
-            ExecutionJobs exeJob = new ExecutionJobs();
-            exeJob.setRootEntityId(resourceData.getId());
-            exeJob.setPluginConfigInterfaceId(batchExeRequest.getPluginConfigInterface().getId());
-            exeJob.setPackageName(batchExeRequest.getPackageName());
-            exeJob.setEntityName(batchExeRequest.getEntityName());
-            exeJob.setBusinessKey(resourceData.getBusinessKeyValue().toString());
 
-            List<ExecutionJobParameter> parameters = transFromInputParameterDefinitionToExecutionJobParameter(
-                    batchExeRequest.getInputParameterDefinitions(), exeJob);
-            exeJob.setParameters(parameters);
-            exeJob.setBatchExecutionJob(batchExeJobEntity);
-            exeJobsEntities.add(exeJob);
+        for (ResourceDataDto resourceData : resourceDatas) {
+            ExecutionJobs exeJobEntity = new ExecutionJobs();
+            exeJobEntity.setRootEntityId(resourceData.getId());
+            exeJobEntity.setPluginConfigInterfaceId(batchExeRequest.getPluginConfigInterface().getId());
+            exeJobEntity.setPackageName(batchExeRequest.getPackageName());
+            exeJobEntity.setEntityName(batchExeRequest.getEntityName());
+            exeJobEntity.setBusinessKey(resourceData.getBusinessKeyValue().toString());
+
+            executionJobsMapper.insert(exeJobEntity);
+
+            List<ExecutionJobParameters> parametersList = transFromInputParameterDefinitionToExecutionJobParameter(
+                    batchExeRequest.getInputParameterDefinitions(), exeJobEntity);
+            exeJobEntity.setParameters(parametersList);
+            exeJobEntity.setBatchExecutionJob(batchExeJobEntity);
+            exeJobsEntities.add(exeJobEntity);
         }
-        
+
         batchExeJobEntity.setJobs(exeJobsEntities);
-        return batchExecutionJobRepository.save(batchExeJobEntity);
+
+        batchExecutionJobsMapper.insert(batchExeJobEntity);
+        return batchExeJobEntity;
     }
 
-    private void postProcessBatchExecutionJob(BatchExecutionJob batchExeJob) {
+    private void postProcessBatchExecutionJob(BatchExecutionJobs batchExeJob) {
         batchExeJob.setCompleteTimestamp(new Timestamp(System.currentTimeMillis()));
-        batchExecutionJobRepository.save(batchExeJob);
+        
+        //TODO
+        batchExecutionJobsMapper.updateByPrimaryKeySelective(batchExeJob);
     }
 
-    private List<ExecutionJobParameter> transFromInputParameterDefinitionToExecutionJobParameter(
-            List<InputParameterDefinition> inputParameterDefinitions, ExecutionJob executionJob) {
-        List<ExecutionJobParameter> executionJobParameters = new ArrayList<ExecutionJobParameter>();
+    private List<ExecutionJobParameters> transFromInputParameterDefinitionToExecutionJobParameter(
+            List<InputParameterDefinition> inputParameterDefinitions, ExecutionJobs executionJob) {
+        List<ExecutionJobParameters> executionJobParametersList = new ArrayList<ExecutionJobParameters>();
         for (InputParameterDefinition inputParameterDefinition : inputParameterDefinitions) {
             PluginConfigInterfaceParameterDto interfaceParameter = inputParameterDefinition.getInputParameter();
 
@@ -207,28 +228,32 @@ public class BatchExecutionService {
                 if ("Y".equalsIgnoreCase(interfaceParameter.getSensitiveData())) {
                     paramValue = tryEncryptParamValue(paramValue);
                 }
-                ExecutionJobParameter executionJobParameter = new ExecutionJobParameter(interfaceParameter.getName(),
+                ExecutionJobParameters executionJobParameter = new ExecutionJobParameters(interfaceParameter.getName(),
                         interfaceParameter.getDataType(), interfaceParameter.getMappingType(),
                         interfaceParameter.getMappingEntityExpression(),
                         interfaceParameter.getMappingSystemVariableName(), interfaceParameter.getRequired(),
                         paramValue);
                 executionJobParameter.setExecutionJob(executionJob);
-                executionJobParameters.add(executionJobParameter);
+                executionJobParametersList.add(executionJobParameter);
 
                 executionJobParameter.setParameterDefinition(interfaceParameter);
+
+                executionJobParametersMapper.insert(executionJobParameter);
             } else {
-                ExecutionJobParameter executionJobParameter = new ExecutionJobParameter(interfaceParameter.getName(),
+                ExecutionJobParameters executionJobParameter = new ExecutionJobParameters(interfaceParameter.getName(),
                         interfaceParameter.getDataType(), interfaceParameter.getMappingType(),
                         interfaceParameter.getMappingEntityExpression(),
                         interfaceParameter.getMappingSystemVariableName(), interfaceParameter.getRequired(), null);
                 executionJobParameter.setExecutionJob(executionJob);
-                executionJobParameters.add(executionJobParameter);
+                executionJobParametersList.add(executionJobParameter);
 
                 executionJobParameter.setParameterDefinition(interfaceParameter);
+
+                executionJobParametersMapper.insert(executionJobParameter);
             }
 
         }
-        return executionJobParameters;
+        return executionJobParametersList;
     }
 
     private String tryEncryptParamValue(String paramValue) {
@@ -247,7 +272,7 @@ public class BatchExecutionService {
         return encryptionService.decodeFromAesBase64(cipherValue);
     }
 
-    protected ResultData<?> performExecutionJob(ExecutionJob exeJob) throws IOException {
+    protected ResultData<?> performExecutionJob(ExecutionJobs exeJob) throws IOException {
         if (exeJob == null) {
             throw new WecubeCoreException("3002", "execution job as input argument cannot be null.");
         }
@@ -256,9 +281,10 @@ public class BatchExecutionService {
                     exeJob.getRootEntityId());
         }
 
-        Optional<PluginConfigInterface> pluginConfigInterfaceOptional = pluginConfigInterfaceRepository
-                .findById(exeJob.getPluginConfigInterfaceId());
-        if (!pluginConfigInterfaceOptional.isPresent()) {
+        PluginConfigInterfaces pluginConfigInterfaceEntity = pluginConfigInterfacesMapper
+                .selectByPrimaryKey(exeJob.getPluginConfigInterfaceId());
+        
+        if (pluginConfigInterfaceEntity == null) {
             String errorMessage = String.format("Can not found plugin config interface[%s]",
                     exeJob.getPluginConfigInterfaceId());
             log.error(errorMessage);
@@ -267,9 +293,16 @@ public class BatchExecutionService {
             return buildResultDataWithError(errorMessage);
         }
 
-        PluginConfigInterface pluginConfigInterface = pluginConfigInterfaceOptional.get();
+        PluginConfigs pluginConfigEntity = pluginConfigsMapper
+                .selectByPrimaryKey(pluginConfigInterfaceEntity.getPluginConfigId());
+        PluginPackages pluginPackagesEntity = pluginPackagesMapper
+                .selectByPrimaryKey(pluginConfigEntity.getPluginPackageId());
+        pluginConfigEntity.setPluginPackage(pluginPackagesEntity);
+        pluginConfigInterfaceEntity.setPluginConfig(pluginConfigEntity);
 
-        tryPrepareInputParamValues(exeJob, pluginConfigInterface);
+        
+
+        tryPrepareInputParamValues(exeJob, pluginConfigInterfaceEntity);
 
         if (exeJob.getPrepareException() != null) {
             log.error("Errors to calculate input parameters", exeJob.getPrepareException());
@@ -280,7 +313,7 @@ public class BatchExecutionService {
 
         Map<String, Object> pluginInputParamMap = new HashMap<String, Object>();
 
-        for (ExecutionJobParameter parameter : exeJob.getParameters()) {
+        for (ExecutionJobParameters parameter : exeJob.getParameters()) {
             if (DATA_TYPE_STRING.equals(parameter.getDataType())
                     || MAPPING_TYPE_SYSTEM_VARIABLE.equals(parameter.getMappingEntityExpression())) {
                 String paramValue = parameter.getValue();
@@ -298,12 +331,12 @@ public class BatchExecutionService {
         pluginInputParamMap.put(CALLBACK_PARAMETER_KEY, exeJob.getRootEntityId());
 
         PluginInstances pluginInstance = pluginInstanceMgmtService
-                .getRunningPluginInstance(pluginConfigInterface.getPluginConfig().getPluginPackage().getName());
+                .getRunningPluginInstance(pluginPackagesEntity.getName());
         ResultData<Object> responseData = new ResultData<Object>();
         try {
             responseData = pluginServiceStub.callPluginInterface(
                     String.format("%s:%s", pluginInstance.getHost(), pluginInstance.getPort()),
-                    pluginConfigInterface.getPath(), Lists.newArrayList(pluginInputParamMap),
+                    pluginConfigInterfaceEntity.getPath(), Lists.newArrayList(pluginInputParamMap),
                     "RequestId-" + Long.toString(System.currentTimeMillis()));
 
             handleResultData(responseData, exeJob);
@@ -322,7 +355,7 @@ public class BatchExecutionService {
         if (stationaryResultData.getOutputs().size() == 0) {
             String errorMessage = String.format("Call interface[%s][%s:%s%s] with parameters[%s] has no response",
                     exeJob.getPluginConfigInterfaceId(), pluginInstance.getHost(), pluginInstance.getPort(),
-                    pluginConfigInterface.getPath(), pluginInputParamMap);
+                    pluginConfigInterfaceEntity.getPath(), pluginInputParamMap);
             log.error(errorMessage);
             exeJob.setErrorWithMessage(errorMessage);
             return buildResultDataWithError(errorMessage);
@@ -335,7 +368,7 @@ public class BatchExecutionService {
     }
 
     @SuppressWarnings("unchecked")
-    private void handleResultData(ResultData<Object> responseData, ExecutionJob exeJob) {
+    private void handleResultData(ResultData<Object> responseData, ExecutionJobs exeJob) {
         // #2046
         if (responseData == null || responseData.getOutputs() == null) {
             log.info("response data is empty for execution job {}", exeJob.getId());
@@ -361,7 +394,7 @@ public class BatchExecutionService {
 
     }
 
-    private void handleSingleResultObject(Map<String, Object> resultObjectMap, ExecutionJob exeJob) {
+    private void handleSingleResultObject(Map<String, Object> resultObjectMap, ExecutionJobs exeJob) {
         String rootEntityId = (String) resultObjectMap.get(CALLBACK_PARAMETER_KEY);
 
         if (StringUtils.isBlank(rootEntityId)) {
@@ -375,18 +408,19 @@ public class BatchExecutionService {
             return;
         }
 
-        Optional<PluginConfigInterface> pluginConfigInterfOpt = pluginConfigInterfaceRepository
-                .findById(pluginConfigInterfaceId);
-        if (!pluginConfigInterfOpt.isPresent()) {
+        PluginConfigInterfaces pluginConfigInterfaceEntity = pluginConfigInterfacesMapper
+                .selectByPrimaryKey(pluginConfigInterfaceId);
+        if (pluginConfigInterfaceEntity == null) {
             log.info("Plugin config interface does not exist for ID:{}", pluginConfigInterfaceId);
             return;
         }
 
-        PluginConfigInterface pluginConfigInterf = pluginConfigInterfOpt.get();
+        List<PluginConfigInterfaceParameters> outputParameters = pluginConfigInterfaceParametersMapper
+                .selectAllByConfigInterfaceAndParamType(pluginConfigInterfaceEntity.getId(),
+                        PluginConfigInterfaceParameters.TYPE_OUTPUT);
 
-        Set<PluginConfigInterfaceParameter> outputParameters = pluginConfigInterf.getOutputParameters();
 
-        for (PluginConfigInterfaceParameter pciParam : outputParameters) {
+        for (PluginConfigInterfaceParameters pciParam : outputParameters) {
             String paramName = pciParam.getName();
             String paramExpr = pciParam.getMappingEntityExpression();
             String paramMappingType = pciParam.getMappingType();
@@ -426,15 +460,17 @@ public class BatchExecutionService {
         return errorReultData;
     }
 
-    private void tryPrepareInputParamValues(ExecutionJob exeJob, PluginConfigInterface pluginConfigInterface) {
+    private void tryPrepareInputParamValues(ExecutionJobs exeJob, PluginConfigInterfaces pluginConfigInterface) {
         if (log.isDebugEnabled()) {
             log.debug("try prepare input param values for {} {} {}", exeJob.getPackageName(), exeJob.getEntityName(),
                     exeJob.getRootEntityId());
         }
 
-        String pluginPackageName = pluginConfigInterface.getPluginConfig().getPluginPackage().getName();
+        PluginConfigs pluginConfigEntity = pluginConfigInterface.getPluginConfig();
+        PluginPackages pluginPackageEntity = pluginConfigEntity.getPluginPackage();
+        String pluginPackageName = pluginPackageEntity.getName();
 
-        for (ExecutionJobParameter param : exeJob.getParameters()) {
+        for (ExecutionJobParameters param : exeJob.getParameters()) {
             String mappingType = param.getMappingType();
             if (MAPPING_TYPE_ENTITY.equals(mappingType)) {
                 calculateInputParamValueFromExpr(exeJob, param);
@@ -447,8 +483,8 @@ public class BatchExecutionService {
         return;
     }
 
-    private void calculateInputParamValueFromSystemVariable(ExecutionJob executionJob, ExecutionJobParameter parameter,
-            String pluginPackageName) {
+    private void calculateInputParamValueFromSystemVariable(ExecutionJobs executionJob,
+            ExecutionJobParameters parameter, String pluginPackageName) {
         if (log.isDebugEnabled()) {
             log.debug("calculate param value from system variable and paramName={},systemVarName={}",
                     parameter.getName(), parameter.getMappingSystemVariableName());
@@ -492,7 +528,7 @@ public class BatchExecutionService {
         }
     }
 
-    private void calculateInputParamValueFromExpr(ExecutionJob executionJob, ExecutionJobParameter parameter) {
+    private void calculateInputParamValueFromExpr(ExecutionJobs executionJob, ExecutionJobParameters parameter) {
         String mappingEntityExpression = parameter.getMappingEntityExpression();
         if (log.isDebugEnabled()) {
             log.debug("calculate param value from entity, name={} ,expression={}", parameter.getName(),
