@@ -1,5 +1,8 @@
 package com.webank.wecube.platform.core.repository.plugin;
 
+import java.util.List;
+
+import org.apache.ibatis.annotations.Param;
 import org.springframework.stereotype.Repository;
 
 import com.webank.wecube.platform.core.entity.plugin.PluginPackageResourceFiles;
@@ -17,4 +20,11 @@ public interface PluginPackageResourceFilesMapper {
     int updateByPrimaryKeySelective(PluginPackageResourceFiles record);
 
     int updateByPrimaryKey(PluginPackageResourceFiles record);
+
+    /**
+     * 
+     * @param pluginPackageId
+     * @return
+     */
+    List<PluginPackageResourceFiles> selectAllByPluginPackage(@Param("pluginPackageId") String pluginPackageId);
 }
