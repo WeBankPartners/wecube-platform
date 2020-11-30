@@ -14,7 +14,13 @@
             jdbcType="BIT" />
     </resultMap>
     <sql id="Base_Column_List">
-        id, name, version, status, upload_timestamp, ui_package_included
+        id, name, version, status, upload_timestamp,
+        ui_package_included
+    </sql>
+    <sql id="Base_Column_List_T1">
+        t1.id, t1.name, t1.version, t1.status,
+        t1.upload_timestamp,
+        t1.ui_package_included
     </sql>
     <select id="selectByPrimaryKey" resultMap="BaseResultMap"
         parameterType="java.lang.String">
@@ -24,7 +30,8 @@
         where id = #{id,jdbcType=VARCHAR}
     </select>
     <delete id="deleteByPrimaryKey" parameterType="java.lang.String">
-        delete from plugin_packages
+        delete from
+        plugin_packages
         where id = #{id,jdbcType=VARCHAR}
     </delete>
     <insert id="insert"
@@ -32,9 +39,11 @@
         insert into plugin_packages (id, name, version,
         status, upload_timestamp, ui_package_included
         )
-        values (#{id,jdbcType=VARCHAR}, #{name,jdbcType=VARCHAR},
+        values
+        (#{id,jdbcType=VARCHAR}, #{name,jdbcType=VARCHAR},
         #{version,jdbcType=VARCHAR},
-        #{status,jdbcType=VARCHAR}, #{uploadTimestamp,jdbcType=TIMESTAMP},
+        #{status,jdbcType=VARCHAR},
+        #{uploadTimestamp,jdbcType=TIMESTAMP},
         #{uiPackageIncluded,jdbcType=BIT}
         )
     </insert>
@@ -96,10 +105,12 @@
                 status = #{status,jdbcType=VARCHAR},
             </if>
             <if test="uploadTimestamp != null">
-                upload_timestamp = #{uploadTimestamp,jdbcType=TIMESTAMP},
+                upload_timestamp =
+                #{uploadTimestamp,jdbcType=TIMESTAMP},
             </if>
             <if test="uiPackageIncluded != null">
-                ui_package_included = #{uiPackageIncluded,jdbcType=BIT},
+                ui_package_included =
+                #{uiPackageIncluded,jdbcType=BIT},
             </if>
         </set>
         where id = #{id,jdbcType=VARCHAR}
@@ -107,12 +118,16 @@
     <update id="updateByPrimaryKey"
         parameterType="com.webank.wecube.platform.core.entity.plugin.PluginPackages">
         update plugin_packages
-        set name = #{name,jdbcType=VARCHAR},
+        set name =
+        #{name,jdbcType=VARCHAR},
         version = #{version,jdbcType=VARCHAR},
         status = #{status,jdbcType=VARCHAR},
-        upload_timestamp = #{uploadTimestamp,jdbcType=TIMESTAMP},
-        ui_package_included = #{uiPackageIncluded,jdbcType=BIT}
-        where id = #{id,jdbcType=VARCHAR}
+        upload_timestamp =
+        #{uploadTimestamp,jdbcType=TIMESTAMP},
+        ui_package_included =
+        #{uiPackageIncluded,jdbcType=BIT}
+        where id =
+        #{id,jdbcType=VARCHAR}
     </update>
 
 
@@ -122,7 +137,8 @@
         <include refid="Base_Column_List" />
         from plugin_packages
         where name = #{name,jdbcType=VARCHAR}
-        and version = #{version,jdbcType=VARCHAR}
+        and
+        version = #{version,jdbcType=VARCHAR}
     </select>
 
     <select id="selectAll" resultMap="BaseResultMap">
@@ -145,35 +161,66 @@
         plugin_packages t2
         WHERE
         t2.name = t1.name
-        ORDER BY t2.upload_timestamp DESC
+        ORDER BY
+        t2.upload_timestamp DESC
         LIMIT 1
         )
     </select>
-    
-    <select id="selectAllByName" resultMap="BaseResultMap" parameterType="java.lang.String">
+
+    <select id="selectAllByName" resultMap="BaseResultMap"
+        parameterType="java.lang.String">
         select
         <include refid="Base_Column_List" />
         from plugin_packages
         where name = #{name,jdbcType=VARCHAR}
     </select>
-    
+
     <select id="selectAllByNameAndStatuses" resultMap="BaseResultMap">
         select
         <include refid="Base_Column_List" />
         from plugin_packages
         where name = #{name,jdbcType=VARCHAR}
-        and status in
-        <foreach item="status" collection="statuses" separator="," open="(" close=")" index="">    
-            #{status, jdbcType=VARCHAR}    
+        and
+        status in
+        <foreach item="status" collection="statuses" separator=","
+            open="(" close=")" index="">
+            #{status, jdbcType=VARCHAR}
         </foreach>
     </select>
-    
-    <select id="selectAllByNameAndVersion" resultMap="BaseResultMap" parameterType="java.lang.String">
+
+    <select id="selectAllByNameAndVersion" resultMap="BaseResultMap"
+        parameterType="java.lang.String">
         select
         <include refid="Base_Column_List" />
         from plugin_packages
         where name = #{name,jdbcType=VARCHAR}
-        and version = #{version,jdbcType=VARCHAR}
+        and
+        version = #{version,jdbcType=VARCHAR}
     </select>
-    
+
+    <select id="selectAllLatestUploadedPackages" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List_T1" />
+        FROM
+        plugin_packages t1
+        WHERE
+        t1.status IN
+        <foreach item="status" collection="statuses" separator=","
+            open="(" close=")" index="">
+            #{status, jdbcType=VARCHAR}
+        </foreach>
+        AND t1.upload_timestamp = (SELECT
+        MAX(t2.upload_timestamp)
+        FROM
+        plugin_packages t2
+        WHERE
+        t2.status IN
+        <foreach item="status" collection="statuses" separator=","
+            open="(" close=")" index="">
+            #{status, jdbcType=VARCHAR}
+        </foreach>
+        AND t2.name = t1.name
+        GROUP BY t2.name)
+    </select>
+
 </mapper>
