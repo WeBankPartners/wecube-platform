@@ -1,5 +1,7 @@
 package com.webank.wecube.platform.core.entity.plugin;
 
+import com.webank.wecube.platform.core.dto.plugin.PluginConfigInterfaceParameterDto;
+
 public class ExecutionJobParameters {
     private Integer id;
 
@@ -20,6 +22,26 @@ public class ExecutionJobParameters {
     private String constantValue;
 
     private String value;
+
+    private transient ExecutionJobs executionJob;
+
+    private transient PluginConfigInterfaceParameterDto parameterDefinition;
+
+    public ExecutionJobParameters() {
+
+    }
+
+    public ExecutionJobParameters(String name, String dataType, String mappingType, String mappingEntityExpression,
+            String mappingSystemVariableName, String required, String value) {
+        super();
+        this.name = name;
+        this.dataType = dataType;
+        this.mappingType = mappingType;
+        this.mappingEntityExpression = mappingEntityExpression;
+        this.mappingSystemVariableName = mappingSystemVariableName;
+        this.required = required;
+        this.value = value;
+    }
 
     public Integer getId() {
         return id;
@@ -100,4 +122,21 @@ public class ExecutionJobParameters {
     public void setValue(String value) {
         this.value = value == null ? null : value.trim();
     }
+
+    public ExecutionJobs getExecutionJob() {
+        return executionJob;
+    }
+
+    public void setExecutionJob(ExecutionJobs executionJob) {
+        this.executionJob = executionJob;
+    }
+
+    public PluginConfigInterfaceParameterDto getParameterDefinition() {
+        return parameterDefinition;
+    }
+
+    public void setParameterDefinition(PluginConfigInterfaceParameterDto parameterDefinition) {
+        this.parameterDefinition = parameterDefinition;
+    }
+
 }

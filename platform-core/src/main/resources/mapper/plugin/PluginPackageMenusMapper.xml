@@ -239,4 +239,13 @@
         from plugin_package_menus
         where plugin_package_id = #{pluginPackageId,jdbcType=VARCHAR}
     </select>
+    
+    <select id="selectAllMenusByStatusAndPluginPackage" resultMap="BaseResultMap"
+        parameterType="java.lang.String">
+        select
+        <include refid="Base_Column_List" />
+        from plugin_package_menus
+        where plugin_package_id = #{pluginPackageId,jdbcType=VARCHAR}
+        and active = #{status,jdbcType=BIT}
+    </select>
 </mapper>
