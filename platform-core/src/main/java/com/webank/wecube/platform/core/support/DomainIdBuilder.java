@@ -1,13 +1,11 @@
 package com.webank.wecube.platform.core.support;
 
-import java.text.ParseException;
 import java.util.List;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
 
 import com.google.common.collect.Lists;
-import com.webank.wecube.platform.core.domain.BatchExecutionJob;
 //import com.webank.wecube.platform.core.domain.ResourceItem;
 //import com.webank.wecube.platform.core.domain.ResourceServerDomain;
 import com.webank.wecube.platform.core.domain.SystemVariable;
@@ -275,9 +273,9 @@ public class DomainIdBuilder {
 //        );
 //    }
 
-    public static String buildDomainId(BatchExecutionJob batchExecutionJob) throws ParseException {
-        return StringUtils.isNotBlank(batchExecutionJob.getId()) ? batchExecutionJob.getId()
-                : buildDomainId(Long.toString(System.currentTimeMillis()));
-    }
+//    public static String buildDomainId(BatchExecutionJob batchExecutionJob) throws ParseException {
+//        return StringUtils.isNotBlank(batchExecutionJob.getId()) ? batchExecutionJob.getId()
+//                : buildDomainId(Long.toString(System.currentTimeMillis()));
+//    }
 
 }
