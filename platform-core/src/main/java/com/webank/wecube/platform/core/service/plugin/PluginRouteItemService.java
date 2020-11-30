@@ -13,7 +13,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Service;
 
-import com.webank.wecube.platform.core.domain.plugin.PluginInstance;
 import com.webank.wecube.platform.core.dto.PluginRouteItemDto;
 import com.webank.wecube.platform.core.entity.plugin.PluginInstances;
 import com.webank.wecube.platform.core.entity.plugin.PluginInstancesInfo;
@@ -261,7 +260,7 @@ public class PluginRouteItemService {
         List<PluginRouteItemDto> dtos = new ArrayList<>();
 
         List<PluginInstances> pluginInstances = pluginInstancesMapper
-                .selectAllByContainerStatusAndInstanceName(PluginInstance.CONTAINER_STATUS_RUNNING, name);
+                .selectAllByContainerStatusAndInstanceName(PluginInstances.CONTAINER_STATUS_RUNNING, name);
 
         if (pluginInstances != null) {
             pluginInstances.forEach(pi -> {
