@@ -12,20 +12,11 @@ import com.webank.wecube.platform.core.domain.MenuItem;
 //import com.webank.wecube.platform.core.domain.ResourceItem;
 //import com.webank.wecube.platform.core.domain.ResourceServerDomain;
 import com.webank.wecube.platform.core.domain.SystemVariable;
-import com.webank.wecube.platform.core.domain.plugin.PluginConfig;
-import com.webank.wecube.platform.core.domain.plugin.PluginConfigInterface;
 import com.webank.wecube.platform.core.domain.plugin.PluginConfigInterfaceParameter;
 import com.webank.wecube.platform.core.domain.plugin.PluginInstance;
-import com.webank.wecube.platform.core.domain.plugin.PluginPackage;
 import com.webank.wecube.platform.core.domain.plugin.PluginPackageAttribute;
-import com.webank.wecube.platform.core.domain.plugin.PluginPackageAuthority;
 import com.webank.wecube.platform.core.domain.plugin.PluginPackageDataModel;
-import com.webank.wecube.platform.core.domain.plugin.PluginPackageDependency;
 import com.webank.wecube.platform.core.domain.plugin.PluginPackageEntity;
-import com.webank.wecube.platform.core.domain.plugin.PluginPackageMenu;
-import com.webank.wecube.platform.core.domain.plugin.PluginPackageRuntimeResourcesDocker;
-import com.webank.wecube.platform.core.domain.plugin.PluginPackageRuntimeResourcesMysql;
-import com.webank.wecube.platform.core.domain.plugin.PluginPackageRuntimeResourcesS3;
 import com.webank.wecube.platform.core.utils.Constants;
 
 public class DomainIdBuilder {
@@ -44,12 +35,12 @@ public class DomainIdBuilder {
         return null;
     }
 
-    public static String buildDomainId(PluginPackage pluginPackage) {
-        return StringUtils.isNotBlank(pluginPackage.getId())
-                ? pluginPackage.getId()
-                : buildDomainId(pluginPackage.getName(), pluginPackage.getVersion()
-        );
-    }
+//    public static String buildDomainId(PluginPackage pluginPackage) {
+//        return StringUtils.isNotBlank(pluginPackage.getId())
+//                ? pluginPackage.getId()
+//                : buildDomainId(pluginPackage.getName(), pluginPackage.getVersion()
+//        );
+//    }
 
 //    public static String buildDomainId(LazyPluginPackage pluginPackage) {
 //        return StringUtils.isNotBlank(pluginPackage.getId())
@@ -58,27 +49,27 @@ public class DomainIdBuilder {
 //        );
 //    }
 
-    public static String buildDomainId(PluginPackageDependency pluginPackageDependency) {
-        return StringUtils.isNotBlank(pluginPackageDependency.getId())
-                ? pluginPackageDependency.getId()
-                : buildDomainId(
-                null != pluginPackageDependency.getPluginPackage() ? pluginPackageDependency.getPluginPackage().getName() : null,
-                null != pluginPackageDependency.getPluginPackage() ? pluginPackageDependency.getPluginPackage().getVersion() : null,
-                pluginPackageDependency.getDependencyPackageName(),
-                pluginPackageDependency.getDependencyPackageVersion()
-        );
-    }
+//    public static String buildDomainId(PluginPackageDependency pluginPackageDependency) {
+//        return StringUtils.isNotBlank(pluginPackageDependency.getId())
+//                ? pluginPackageDependency.getId()
+//                : buildDomainId(
+//                null != pluginPackageDependency.getPluginPackage() ? pluginPackageDependency.getPluginPackage().getName() : null,
+//                null != pluginPackageDependency.getPluginPackage() ? pluginPackageDependency.getPluginPackage().getVersion() : null,
+//                pluginPackageDependency.getDependencyPackageName(),
+//                pluginPackageDependency.getDependencyPackageVersion()
+//        );
+//    }
 
-    public static String buildDomainId(PluginPackageMenu pluginPackageMenu) {
-        return StringUtils.isNotBlank(pluginPackageMenu.getId())
-                ? pluginPackageMenu.getId()
-                : buildDomainId(
-                null != pluginPackageMenu.getPluginPackage() ? pluginPackageMenu.getPluginPackage().getName() : null,
-                null != pluginPackageMenu.getPluginPackage() ? pluginPackageMenu.getPluginPackage().getVersion() : null,
-                pluginPackageMenu.getCategory(),
-                pluginPackageMenu.getCode()
-        );
-    }
+//    public static String buildDomainId(PluginPackageMenu pluginPackageMenu) {
+//        return StringUtils.isNotBlank(pluginPackageMenu.getId())
+//                ? pluginPackageMenu.getId()
+//                : buildDomainId(
+//                null != pluginPackageMenu.getPluginPackage() ? pluginPackageMenu.getPluginPackage().getName() : null,
+//                null != pluginPackageMenu.getPluginPackage() ? pluginPackageMenu.getPluginPackage().getVersion() : null,
+//                pluginPackageMenu.getCategory(),
+//                pluginPackageMenu.getCode()
+//        );
+//    }
 
 //    public static String buildDomainId(LazyPluginPackageMenu pluginPackageMenu) {
 //        return StringUtils.isNotBlank(pluginPackageMenu.getId())
@@ -163,73 +154,73 @@ public class DomainIdBuilder {
         );
     }
 
-    public static String buildDomainId(PluginPackageAuthority pluginPackageAuthority) {
-        return StringUtils.isNotBlank(pluginPackageAuthority.getId())
-                ? pluginPackageAuthority.getId()
-                : buildDomainId(
-                null != pluginPackageAuthority.getPluginPackage() ? pluginPackageAuthority.getPluginPackage().getName() : null,
-                null != pluginPackageAuthority.getPluginPackage() ? pluginPackageAuthority.getPluginPackage().getVersion() : null,
-                pluginPackageAuthority.getRoleName(),
-                pluginPackageAuthority.getMenuCode()
-        );
-    }
+//    public static String buildDomainId(PluginPackageAuthority pluginPackageAuthority) {
+//        return StringUtils.isNotBlank(pluginPackageAuthority.getId())
+//                ? pluginPackageAuthority.getId()
+//                : buildDomainId(
+//                null != pluginPackageAuthority.getPluginPackage() ? pluginPackageAuthority.getPluginPackage().getName() : null,
+//                null != pluginPackageAuthority.getPluginPackage() ? pluginPackageAuthority.getPluginPackage().getVersion() : null,
+//                pluginPackageAuthority.getRoleName(),
+//                pluginPackageAuthority.getMenuCode()
+//        );
+//    }
 
-    public static String buildDomainId(PluginPackageRuntimeResourcesDocker runtimeResourcesDocker) {
-        return StringUtils.isNotBlank(runtimeResourcesDocker.getId())
-                ? runtimeResourcesDocker.getId()
-                : buildDomainId(
-                "Docker",
-                null != runtimeResourcesDocker.getPluginPackage() ? runtimeResourcesDocker.getPluginPackage().getName() : null,
-                null != runtimeResourcesDocker.getPluginPackage() ? runtimeResourcesDocker.getPluginPackage().getVersion() : null,
-                runtimeResourcesDocker.getImageName()
-        );
-    }
+//    public static String buildDomainId(PluginPackageRuntimeResourcesDocker runtimeResourcesDocker) {
+//        return StringUtils.isNotBlank(runtimeResourcesDocker.getId())
+//                ? runtimeResourcesDocker.getId()
+//                : buildDomainId(
+//                "Docker",
+//                null != runtimeResourcesDocker.getPluginPackage() ? runtimeResourcesDocker.getPluginPackage().getName() : null,
+//                null != runtimeResourcesDocker.getPluginPackage() ? runtimeResourcesDocker.getPluginPackage().getVersion() : null,
+//                runtimeResourcesDocker.getImageName()
+//        );
+//    }
 
-    public static String buildDomainId(PluginPackageRuntimeResourcesMysql runtimeResourcesMysql) {
-        return StringUtils.isNotBlank(runtimeResourcesMysql.getId())
-                ? runtimeResourcesMysql.getId()
-                : buildDomainId(
-                "MySql",
-                null != runtimeResourcesMysql.getPluginPackage() ? runtimeResourcesMysql.getPluginPackage().getName() : null,
-                null != runtimeResourcesMysql.getPluginPackage() ? runtimeResourcesMysql.getPluginPackage().getVersion() : null,
-                runtimeResourcesMysql.getSchemaName()
-        );
-    }
+//    public static String buildDomainId(PluginPackageRuntimeResourcesMysql runtimeResourcesMysql) {
+//        return StringUtils.isNotBlank(runtimeResourcesMysql.getId())
+//                ? runtimeResourcesMysql.getId()
+//                : buildDomainId(
+//                "MySql",
+//                null != runtimeResourcesMysql.getPluginPackage() ? runtimeResourcesMysql.getPluginPackage().getName() : null,
+//                null != runtimeResourcesMysql.getPluginPackage() ? runtimeResourcesMysql.getPluginPackage().getVersion() : null,
+//                runtimeResourcesMysql.getSchemaName()
+//        );
+//    }
 
-    public static String buildDomainId(PluginPackageRuntimeResourcesS3 runtimeResourcesS3) {
-        return StringUtils.isNotBlank(runtimeResourcesS3.getId())
-                ? runtimeResourcesS3.getId()
-                : buildDomainId(
-                "S3",
-                null != runtimeResourcesS3.getPluginPackage() ? runtimeResourcesS3.getPluginPackage().getName() : null,
-                null != runtimeResourcesS3.getPluginPackage() ? runtimeResourcesS3.getPluginPackage().getVersion() : null,
-                runtimeResourcesS3.getBucketName()
-        );
-    }
+//    public static String buildDomainId(PluginPackageRuntimeResourcesS3 runtimeResourcesS3) {
+//        return StringUtils.isNotBlank(runtimeResourcesS3.getId())
+//                ? runtimeResourcesS3.getId()
+//                : buildDomainId(
+//                "S3",
+//                null != runtimeResourcesS3.getPluginPackage() ? runtimeResourcesS3.getPluginPackage().getName() : null,
+//                null != runtimeResourcesS3.getPluginPackage() ? runtimeResourcesS3.getPluginPackage().getVersion() : null,
+//                runtimeResourcesS3.getBucketName()
+//        );
+//    }
+//
+//    public static String buildDomainId(PluginConfig pluginConfig) {
+//        return StringUtils.isNotBlank(pluginConfig.getId())
+//                ? pluginConfig.getId()
+//                : buildDomainId(
+//                null != pluginConfig.getPluginPackage() ? pluginConfig.getPluginPackage().getName() : null,
+//                null != pluginConfig.getPluginPackage() ? pluginConfig.getPluginPackage().getVersion() : null,
+//                pluginConfig.getName(),
+//                pluginConfig.getRegisterName()
+//        );
+//    }
 
-    public static String buildDomainId(PluginConfig pluginConfig) {
-        return StringUtils.isNotBlank(pluginConfig.getId())
-                ? pluginConfig.getId()
-                : buildDomainId(
-                null != pluginConfig.getPluginPackage() ? pluginConfig.getPluginPackage().getName() : null,
-                null != pluginConfig.getPluginPackage() ? pluginConfig.getPluginPackage().getVersion() : null,
-                pluginConfig.getName(),
-                pluginConfig.getRegisterName()
-        );
-    }
-
-    public static String buildDomainId(PluginConfigInterface pluginConfigInterface) {
-        return StringUtils.isNotBlank(pluginConfigInterface.getId())
-                ? pluginConfigInterface.getId()
-                : buildDomainId(
-                null != pluginConfigInterface.getPluginConfig() ? (null != pluginConfigInterface.getPluginConfig().getPluginPackage() ? pluginConfigInterface.getPluginConfig().getPluginPackage().getName() : null) : null,
-                null != pluginConfigInterface.getPluginConfig() ? (null != pluginConfigInterface.getPluginConfig().getPluginPackage() ? pluginConfigInterface.getPluginConfig().getPluginPackage().getVersion() : null) : null,
-                null != pluginConfigInterface.getPluginConfig() ? pluginConfigInterface.getPluginConfig().getName() : null,
-                null != pluginConfigInterface.getPluginConfig() ? pluginConfigInterface.getPluginConfig().getRegisterName() : null,
-                pluginConfigInterface.getAction(),
-                null != pluginConfigInterface.getPluginConfig() ? pluginConfigInterface.getPluginConfig().getTargetEntity() : null
-        );
-    }
+//    public static String buildDomainId(PluginConfigInterface pluginConfigInterface) {
+//        return StringUtils.isNotBlank(pluginConfigInterface.getId())
+//                ? pluginConfigInterface.getId()
+//                : buildDomainId(
+//                null != pluginConfigInterface.getPluginConfig() ? (null != pluginConfigInterface.getPluginConfig().getPluginPackage() ? pluginConfigInterface.getPluginConfig().getPluginPackage().getName() : null) : null,
+//                null != pluginConfigInterface.getPluginConfig() ? (null != pluginConfigInterface.getPluginConfig().getPluginPackage() ? pluginConfigInterface.getPluginConfig().getPluginPackage().getVersion() : null) : null,
+//                null != pluginConfigInterface.getPluginConfig() ? pluginConfigInterface.getPluginConfig().getName() : null,
+//                null != pluginConfigInterface.getPluginConfig() ? pluginConfigInterface.getPluginConfig().getRegisterName() : null,
+//                pluginConfigInterface.getAction(),
+//                null != pluginConfigInterface.getPluginConfig() ? pluginConfigInterface.getPluginConfig().getTargetEntity() : null
+//        );
+//    }
 
     public static String buildDomainId(PluginConfigInterfaceParameter interfaceParameter) {
         return StringUtils.isNotBlank(interfaceParameter.getId())
