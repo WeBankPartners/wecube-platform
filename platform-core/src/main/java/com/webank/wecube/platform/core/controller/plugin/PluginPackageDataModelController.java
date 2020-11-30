@@ -12,8 +12,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.webank.wecube.platform.core.dto.CommonResponseDto;
 import com.webank.wecube.platform.core.dto.DataModelEntityDto;
-import com.webank.wecube.platform.core.dto.PluginPackageAttributeDto;
-import com.webank.wecube.platform.core.dto.PluginPackageDataModelDto;
+import com.webank.wecube.platform.core.dto.plugin.PluginPackageAttributeDto;
+import com.webank.wecube.platform.core.dto.plugin.PluginPackageDataModelDto;
 import com.webank.wecube.platform.core.service.plugin.PluginPackageDataModelService;
 
 @RestController
