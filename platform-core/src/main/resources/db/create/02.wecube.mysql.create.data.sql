@@ -44,8 +44,6 @@ insert into menu_items (id,parent_code,code,source,menu_order,description,local_
 insert into menu_items (id,parent_code,code,source,menu_order,description,local_display_name) values
 ('ADMIN__ADMIN_USER_ROLE_MANAGEMENT', 'ADMIN', 'ADMIN_USER_ROLE_MANAGEMENT', 'SYSTEM', 14, '', '用户管理');
 insert into menu_items (id,parent_code,code,source,menu_order,description,local_display_name) values
-('ADMIN__ADMIN_SYSTEM_DATA_MODEL', 'ADMIN', 'ADMIN_SYSTEM_DATA_MODEL', 'SYSTEM', 16, '', '系统数据模型');
-insert into menu_items (id,parent_code,code,source,menu_order,description,local_display_name) values
 ('IMPLEMENTATION__IMPLEMENTATION_BATCH_EXECUTION', 'IMPLEMENTATION', 'IMPLEMENTATION_BATCH_EXECUTION', 'SYSTEM', 15, '', '批量执行');
 
 delete from role_menu where id = 'SUPER_ADMIN__IMPLEMENTATION_WORKFLOW_EXECUTION';
@@ -70,8 +68,6 @@ insert into role_menu (id, role_name, menu_code) values
 ('SUPER_ADMIN__ADMIN_USER_ROLE_MANAGEMENT','SUPER_ADMIN','ADMIN_USER_ROLE_MANAGEMENT');
 insert into role_menu (id, role_name, menu_code) values
 ('SUPER_ADMIN__IMPLEMENTATION_BATCH_EXECUTION','SUPER_ADMIN','IMPLEMENTATION_BATCH_EXECUTION');
-insert into role_menu (id, role_name, menu_code) values
-('SUPER_ADMIN__ADMIN_SYSTEM_DATA_MODEL','SUPER_ADMIN','ADMIN_SYSTEM_DATA_MODEL');
 
 
 delete from system_variables where id = 'system__global__GATEWAY_URL';
