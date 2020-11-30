@@ -38,12 +38,12 @@ public class DomainIdBuilder {
         );
     }
 
-    public static String buildDomainId(LazyPluginPackage pluginPackage) {
-        return StringUtils.isNotBlank(pluginPackage.getId())
-                ? pluginPackage.getId()
-                : buildDomainId(pluginPackage.getName(), pluginPackage.getVersion()
-        );
-    }
+//    public static String buildDomainId(LazyPluginPackage pluginPackage) {
+//        return StringUtils.isNotBlank(pluginPackage.getId())
+//                ? pluginPackage.getId()
+//                : buildDomainId(pluginPackage.getName(), pluginPackage.getVersion()
+//        );
+//    }
 
     public static String buildDomainId(PluginPackageDependency pluginPackageDependency) {
         return StringUtils.isNotBlank(pluginPackageDependency.getId())
