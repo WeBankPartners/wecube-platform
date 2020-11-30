@@ -51,6 +51,13 @@ public interface FavoritesRoleMapper {
      */
     List<FavoritesRole> selectAllByFavorites(@Param("favoritesId") String favoritesId);
 
+    /**
+     * 
+     * @param favoritesId
+     * @param roleId
+     * @param permission
+     * @return
+     */
     int deleteByfavoritesIdAndRoleIdAndPermission(@Param("favoritesId") String favoritesId,
             @Param("roleId") String roleId, @Param("permission") String permission);
 }
