@@ -1,14 +1,12 @@
-package com.webank.wecube.platform.core.dto;
+package com.webank.wecube.platform.core.dto.plugin;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import com.webank.wecube.platform.core.domain.plugin.PluginPackageAttribute;
-
 public class EntityDto {
     private String packageName;
     private String entityName;
-    private List<PluginPackageAttribute> attributes = new ArrayList<PluginPackageAttribute>();
+    private List<PluginPackageAttributeDto> attributes = new ArrayList<PluginPackageAttributeDto>();
 
     public String getPackageName() {
         return packageName;
@@ -35,12 +33,24 @@ public class EntityDto {
         this.entityName = entityName;
     }
 
-    public List<PluginPackageAttribute> getAttributes() {
+    public List<PluginPackageAttributeDto> getAttributes() {
         return attributes;
     }
 
-    public void setAttributes(List<PluginPackageAttribute> attributes) {
+    public void setAttributes(List<PluginPackageAttributeDto> attributes) {
         this.attributes = attributes;
+    }
+
+    public void addAttribute(PluginPackageAttributeDto attributeDto) {
+        if (attributeDto == null) {
+            return;
+        }
+
+        if (this.attributes == null) {
+            this.attributes = new ArrayList<>();
+        }
+
+        this.attributes.add(attributeDto);
     }
 
 }

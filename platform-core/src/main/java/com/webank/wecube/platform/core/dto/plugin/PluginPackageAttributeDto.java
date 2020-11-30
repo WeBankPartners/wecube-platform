@@ -1,4 +1,4 @@
-package com.webank.wecube.platform.core.dto;
+package com.webank.wecube.platform.core.dto.plugin;
 
 public class PluginPackageAttributeDto {
     private String id;
@@ -27,9 +27,9 @@ public class PluginPackageAttributeDto {
 //        this.refAttributeName = referenceAttributeName;
 //    }
 
-    public PluginPackageAttributeDto() {
-    }
-
+//    public PluginPackageAttributeDto() {
+//    }
+//
 
    
 
