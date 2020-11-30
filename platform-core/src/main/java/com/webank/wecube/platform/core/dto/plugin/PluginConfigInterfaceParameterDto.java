@@ -1,7 +1,5 @@
 package com.webank.wecube.platform.core.dto.plugin;
 
-import com.webank.wecube.platform.core.domain.plugin.PluginConfigInterface;
-import com.webank.wecube.platform.core.domain.plugin.PluginConfigInterfaceParameter;
 import org.apache.commons.lang.builder.ReflectionToStringBuilder;
 
 public class PluginConfigInterfaceParameterDto {
@@ -111,40 +109,40 @@ public class PluginConfigInterfaceParameterDto {
         return ReflectionToStringBuilder.toString(this);
     }
 
-    public PluginConfigInterfaceParameter toDomain(PluginConfigInterface pluginConfigInterface, String type) {
-        PluginConfigInterfaceParameter parameter = new PluginConfigInterfaceParameter();
-        parameter.setPluginConfigInterface(pluginConfigInterface);
-
-        if (pluginConfigInterface.getPluginConfig().getId() != null) {
-            parameter.setId(getId());
-        }
-        parameter.setName(getName());
-        parameter.setType(type);
-        parameter.setDataType(getDataType());
-        parameter.setMappingType(getMappingType());
-        parameter.setMappingEntityExpression(getMappingEntityExpression());
-        parameter.setMappingSystemVariableName(getMappingSystemVariableName());
-        parameter.setRequired(getRequired());
-        
-        parameter.setSensitiveData(this.getSensitiveData());
-
-        return parameter;
-    }
-
-    public static PluginConfigInterfaceParameterDto fromDomain(PluginConfigInterfaceParameter entity) {
-        PluginConfigInterfaceParameterDto dto = new PluginConfigInterfaceParameterDto();
-        dto.setId(entity.getId());
-        dto.setPluginConfigInterfaceId(entity.getPluginConfigInterface().getId());
-        dto.setType(entity.getType());
-        dto.setName(entity.getName());
-        dto.setDataType(entity.getDataType());
-        dto.setMappingType(entity.getMappingType());
-        dto.setMappingEntityExpression(entity.getMappingEntityExpression());
-        dto.setMappingSystemVariableName(entity.getMappingSystemVariableName());
-        dto.setRequired(entity.getRequired());
-        dto.setSensitiveData(entity.getSensitiveData());
-        return dto;
-    }
+//    public PluginConfigInterfaceParameter toDomain(PluginConfigInterface pluginConfigInterface, String type) {
+//        PluginConfigInterfaceParameter parameter = new PluginConfigInterfaceParameter();
+//        parameter.setPluginConfigInterface(pluginConfigInterface);
+//
+//        if (pluginConfigInterface.getPluginConfig().getId() != null) {
+//            parameter.setId(getId());
+//        }
+//        parameter.setName(getName());
+//        parameter.setType(type);
+//        parameter.setDataType(getDataType());
+//        parameter.setMappingType(getMappingType());
+//        parameter.setMappingEntityExpression(getMappingEntityExpression());
+//        parameter.setMappingSystemVariableName(getMappingSystemVariableName());
+//        parameter.setRequired(getRequired());
+//        
+//        parameter.setSensitiveData(this.getSensitiveData());
+//
+//        return parameter;
+//    }
+//
+//    public static PluginConfigInterfaceParameterDto fromDomain(PluginConfigInterfaceParameter entity) {
+//        PluginConfigInterfaceParameterDto dto = new PluginConfigInterfaceParameterDto();
+//        dto.setId(entity.getId());
+//        dto.setPluginConfigInterfaceId(entity.getPluginConfigInterface().getId());
+//        dto.setType(entity.getType());
+//        dto.setName(entity.getName());
+//        dto.setDataType(entity.getDataType());
+//        dto.setMappingType(entity.getMappingType());
+//        dto.setMappingEntityExpression(entity.getMappingEntityExpression());
+//        dto.setMappingSystemVariableName(entity.getMappingSystemVariableName());
+//        dto.setRequired(entity.getRequired());
+//        dto.setSensitiveData(entity.getSensitiveData());
+//        return dto;
+//    }
 
     public String getSensitiveData() {
         return sensitiveData;
