@@ -32,8 +32,6 @@ import org.springframework.stereotype.Service;
 import com.google.common.collect.Lists;
 import com.webank.wecube.platform.core.commons.ApplicationProperties.ResourceProperties;
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
-import com.webank.wecube.platform.core.domain.plugin.PluginInstance;
-import com.webank.wecube.platform.core.domain.plugin.PluginPackage;
 import com.webank.wecube.platform.core.dto.CreateInstanceDto;
 import com.webank.wecube.platform.core.dto.QueryRequestDto;
 import com.webank.wecube.platform.core.dto.ResourceItemDto;
@@ -235,7 +233,7 @@ public class PluginInstanceMgmtService extends AbstractPluginMgmtService {
         pluginInstanceEntity.setPort(port);
 
         // 4. insert to DB
-        pluginInstanceEntity.setContainerStatus(PluginInstance.CONTAINER_STATUS_RUNNING);
+        pluginInstanceEntity.setContainerStatus(PluginInstances.CONTAINER_STATUS_RUNNING);
         pluginInstancesMapper.insert(pluginInstanceEntity);
 
         // pluginInstanceRepository.save(instance);
@@ -888,8 +886,8 @@ public class PluginInstanceMgmtService extends AbstractPluginMgmtService {
             throw new WecubeCoreException("3071", errMsg, port, hostIpAddr);
         }
 
-        if (pluginPackage.getStatus().equals(PluginPackage.Status.DECOMMISSIONED)
-                || pluginPackage.getStatus().equals(PluginPackage.Status.UNREGISTERED)) {
+        if (pluginPackage.getStatus().equals(PluginPackages.DECOMMISSIONED)
+                || pluginPackage.getStatus().equals(PluginPackages.UNREGISTERED)) {
             throw new WecubeCoreException("3072",
                     "'DECOMMISSIONED' or 'UNREGISTERED' state can not launch plugin instance ");
         }
@@ -897,7 +895,7 @@ public class PluginInstanceMgmtService extends AbstractPluginMgmtService {
 
     private boolean isPortValid(String hostIp, Integer port) {
         List<PluginInstances> pluginInstances = pluginInstancesMapper.selectAllByHostAndPortAndStatus(hostIp, port,
-                PluginInstance.CONTAINER_STATUS_RUNNING);
+                PluginInstances.CONTAINER_STATUS_RUNNING);
         if (pluginInstances == null || pluginInstances.isEmpty()) {
             return true;
         }
