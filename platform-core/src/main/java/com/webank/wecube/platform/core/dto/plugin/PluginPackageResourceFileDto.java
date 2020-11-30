@@ -1,11 +1,9 @@
 package com.webank.wecube.platform.core.dto.plugin;
 
-import com.webank.wecube.platform.core.domain.plugin.PluginPackage;
-
 public class PluginPackageResourceFileDto {
     private String id;
 
-    private PluginPackage pluginPackage;
+//    private PluginPackage pluginPackage;
 
     private String packageName;
 
@@ -23,13 +21,13 @@ public class PluginPackageResourceFileDto {
         this.id = id;
     }
 
-    public PluginPackage getPluginPackage() {
-        return pluginPackage;
-    }
-
-    public void setPluginPackage(PluginPackage pluginPackage) {
-        this.pluginPackage = pluginPackage;
-    }
+//    public PluginPackage getPluginPackage() {
+//        return pluginPackage;
+//    }
+//
+//    public void setPluginPackage(PluginPackage pluginPackage) {
+//        this.pluginPackage = pluginPackage;
+//    }
 
     public String getPackageName() {
         return packageName;
