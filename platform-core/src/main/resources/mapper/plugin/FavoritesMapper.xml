@@ -1,133 +1,157 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
-<mapper namespace="com.webank.wecube.platform.core.repository.plugin.FavoritesMapper" >
-  <resultMap id="BaseResultMap" type="com.webank.wecube.platform.core.entity.plugin.Favorites" >
-    <id column="favorites_id" property="favoritesId" jdbcType="VARCHAR" />
-    <result column="created_by" property="createdBy" jdbcType="VARCHAR" />
-    <result column="created_time" property="createdTime" jdbcType="TIMESTAMP" />
-    <result column="updated_by" property="updatedBy" jdbcType="VARCHAR" />
-    <result column="updated_time" property="updatedTime" jdbcType="TIMESTAMP" />
-    <result column="collection_name" property="collectionName" jdbcType="VARCHAR" />
-  </resultMap>
-  <resultMap id="ResultMapWithBLOBs" type="com.webank.wecube.platform.core.entity.plugin.Favorites" extends="BaseResultMap" >
-    <result column="data" property="data" jdbcType="LONGVARBINARY" />
-  </resultMap>
-  <sql id="Base_Column_List" >
-    favorites_id, created_by, created_time, updated_by, updated_time, collection_name
-  </sql>
-  <sql id="Blob_Column_List" >
-    data
-  </sql>
-  <select id="selectByPrimaryKey" resultMap="ResultMapWithBLOBs" parameterType="java.lang.String" >
-    select 
-    <include refid="Base_Column_List" />
-    ,
-    <include refid="Blob_Column_List" />
-    from favorites
-    where favorites_id = #{favoritesId,jdbcType=VARCHAR}
-  </select>
-  <delete id="deleteByPrimaryKey" parameterType="java.lang.String" >
-    delete from favorites
-    where favorites_id = #{favoritesId,jdbcType=VARCHAR}
-  </delete>
-  <insert id="insert" parameterType="com.webank.wecube.platform.core.entity.plugin.Favorites" >
-    insert into favorites (favorites_id, created_by, created_time, 
-      updated_by, updated_time, collection_name, 
-      data)
-    values (#{favoritesId,jdbcType=VARCHAR}, #{createdBy,jdbcType=VARCHAR}, #{createdTime,jdbcType=TIMESTAMP}, 
-      #{updatedBy,jdbcType=VARCHAR}, #{updatedTime,jdbcType=TIMESTAMP}, #{collectionName,jdbcType=VARCHAR}, 
-      #{data,jdbcType=LONGVARBINARY})
-  </insert>
-  <insert id="insertSelective" parameterType="com.webank.wecube.platform.core.entity.plugin.Favorites" >
-    insert into favorites
-    <trim prefix="(" suffix=")" suffixOverrides="," >
-      <if test="favoritesId != null" >
-        favorites_id,
-      </if>
-      <if test="createdBy != null" >
-        created_by,
-      </if>
-      <if test="createdTime != null" >
+<mapper
+    namespace="com.webank.wecube.platform.core.repository.plugin.FavoritesMapper">
+    <resultMap id="BaseResultMap"
+        type="com.webank.wecube.platform.core.entity.plugin.Favorites">
+        <id column="favorites_id" property="favoritesId" jdbcType="VARCHAR" />
+        <result column="created_by" property="createdBy"
+            jdbcType="VARCHAR" />
+        <result column="created_time" property="createdTime"
+            jdbcType="TIMESTAMP" />
+        <result column="updated_by" property="updatedBy"
+            jdbcType="VARCHAR" />
+        <result column="updated_time" property="updatedTime"
+            jdbcType="TIMESTAMP" />
+        <result column="collection_name" property="collectionName"
+            jdbcType="VARCHAR" />
+        <result column="data" property="data" jdbcType="LONGVARBINARY" />
+    </resultMap>
+    <sql id="Base_Column_List">
+        favorites_id, created_by, created_time, updated_by,
+        updated_time, collection_name, data
+    </sql>
+    <select id="selectByPrimaryKey" resultMap="ResultMapWithBLOBs"
+        parameterType="java.lang.String">
+        select
+        <include refid="Base_Column_List" />
+        from favorites
+        where favorites_id =
+        #{favoritesId,jdbcType=VARCHAR}
+    </select>
+    <delete id="deleteByPrimaryKey" parameterType="java.lang.String">
+        delete from
+        favorites
+        where favorites_id = #{favoritesId,jdbcType=VARCHAR}
+    </delete>
+    <insert id="insert"
+        parameterType="com.webank.wecube.platform.core.entity.plugin.Favorites">
+        insert into favorites (favorites_id, created_by,
         created_time,
-      </if>
-      <if test="updatedBy != null" >
-        updated_by,
-      </if>
-      <if test="updatedTime != null" >
-        updated_time,
-      </if>
-      <if test="collectionName != null" >
-        collection_name,
-      </if>
-      <if test="data != null" >
-        data,
-      </if>
-    </trim>
-    <trim prefix="values (" suffix=")" suffixOverrides="," >
-      <if test="favoritesId != null" >
-        #{favoritesId,jdbcType=VARCHAR},
-      </if>
-      <if test="createdBy != null" >
+        updated_by, updated_time, collection_name,
+        data)
+        values (#{favoritesId,jdbcType=VARCHAR},
         #{createdBy,jdbcType=VARCHAR},
-      </if>
-      <if test="createdTime != null" >
         #{createdTime,jdbcType=TIMESTAMP},
-      </if>
-      <if test="updatedBy != null" >
         #{updatedBy,jdbcType=VARCHAR},
-      </if>
-      <if test="updatedTime != null" >
         #{updatedTime,jdbcType=TIMESTAMP},
-      </if>
-      <if test="collectionName != null" >
         #{collectionName,jdbcType=VARCHAR},
-      </if>
-      <if test="data != null" >
-        #{data,jdbcType=LONGVARBINARY},
-      </if>
-    </trim>
-  </insert>
-  <update id="updateByPrimaryKeySelective" parameterType="com.webank.wecube.platform.core.entity.plugin.Favorites" >
-    update favorites
-    <set >
-      <if test="createdBy != null" >
-        created_by = #{createdBy,jdbcType=VARCHAR},
-      </if>
-      <if test="createdTime != null" >
-        created_time = #{createdTime,jdbcType=TIMESTAMP},
-      </if>
-      <if test="updatedBy != null" >
-        updated_by = #{updatedBy,jdbcType=VARCHAR},
-      </if>
-      <if test="updatedTime != null" >
-        updated_time = #{updatedTime,jdbcType=TIMESTAMP},
-      </if>
-      <if test="collectionName != null" >
-        collection_name = #{collectionName,jdbcType=VARCHAR},
-      </if>
-      <if test="data != null" >
-        data = #{data,jdbcType=LONGVARBINARY},
-      </if>
-    </set>
-    where favorites_id = #{favoritesId,jdbcType=VARCHAR}
-  </update>
-  <update id="updateByPrimaryKeyWithBLOBs" parameterType="com.webank.wecube.platform.core.entity.plugin.Favorites" >
-    update favorites
-    set created_by = #{createdBy,jdbcType=VARCHAR},
-      created_time = #{createdTime,jdbcType=TIMESTAMP},
-      updated_by = #{updatedBy,jdbcType=VARCHAR},
-      updated_time = #{updatedTime,jdbcType=TIMESTAMP},
-      collection_name = #{collectionName,jdbcType=VARCHAR},
-      data = #{data,jdbcType=LONGVARBINARY}
-    where favorites_id = #{favoritesId,jdbcType=VARCHAR}
-  </update>
-  <update id="updateByPrimaryKey" parameterType="com.webank.wecube.platform.core.entity.plugin.Favorites" >
-    update favorites
-    set created_by = #{createdBy,jdbcType=VARCHAR},
-      created_time = #{createdTime,jdbcType=TIMESTAMP},
-      updated_by = #{updatedBy,jdbcType=VARCHAR},
-      updated_time = #{updatedTime,jdbcType=TIMESTAMP},
-      collection_name = #{collectionName,jdbcType=VARCHAR}
-    where favorites_id = #{favoritesId,jdbcType=VARCHAR}
-  </update>
+        #{data,jdbcType=LONGVARBINARY})
+    </insert>
+    <insert id="insertSelective"
+        parameterType="com.webank.wecube.platform.core.entity.plugin.Favorites">
+        insert into favorites
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="favoritesId != null">
+                favorites_id,
+            </if>
+            <if test="createdBy != null">
+                created_by,
+            </if>
+            <if test="createdTime != null">
+                created_time,
+            </if>
+            <if test="updatedBy != null">
+                updated_by,
+            </if>
+            <if test="updatedTime != null">
+                updated_time,
+            </if>
+            <if test="collectionName != null">
+                collection_name,
+            </if>
+            <if test="data != null">
+                data,
+            </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="favoritesId != null">
+                #{favoritesId,jdbcType=VARCHAR},
+            </if>
+            <if test="createdBy != null">
+                #{createdBy,jdbcType=VARCHAR},
+            </if>
+            <if test="createdTime != null">
+                #{createdTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="updatedBy != null">
+                #{updatedBy,jdbcType=VARCHAR},
+            </if>
+            <if test="updatedTime != null">
+                #{updatedTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="collectionName != null">
+                #{collectionName,jdbcType=VARCHAR},
+            </if>
+            <if test="data != null">
+                #{data,jdbcType=LONGVARBINARY},
+            </if>
+        </trim>
+    </insert>
+    <update id="updateByPrimaryKeySelective"
+        parameterType="com.webank.wecube.platform.core.entity.plugin.Favorites">
+        update favorites
+        <set>
+            <if test="createdBy != null">
+                created_by = #{createdBy,jdbcType=VARCHAR},
+            </if>
+            <if test="createdTime != null">
+                created_time =
+                #{createdTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="updatedBy != null">
+                updated_by = #{updatedBy,jdbcType=VARCHAR},
+            </if>
+            <if test="updatedTime != null">
+                updated_time =
+                #{updatedTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="collectionName != null">
+                collection_name =
+                #{collectionName,jdbcType=VARCHAR},
+            </if>
+            <if test="data != null">
+                data = #{data,jdbcType=LONGVARBINARY},
+            </if>
+        </set>
+        where favorites_id = #{favoritesId,jdbcType=VARCHAR}
+    </update>
+    <update id="updateByPrimaryKey"
+        parameterType="com.webank.wecube.platform.core.entity.plugin.Favorites">
+        update favorites
+        set created_by =
+        #{createdBy,jdbcType=VARCHAR},
+        created_time =
+        #{createdTime,jdbcType=TIMESTAMP},
+        updated_by =
+        #{updatedBy,jdbcType=VARCHAR},
+        updated_time =
+        #{updatedTime,jdbcType=TIMESTAMP},
+        collection_name =
+        #{collectionName,jdbcType=VARCHAR},
+        data =
+        #{data,jdbcType=LONGVARBINARY}
+        where favorites_id =
+        #{favoritesId,jdbcType=VARCHAR}
+    </update>
+
+    <select id="selectAllByCollectionName" resultMap="ResultMapWithBLOBs"
+        parameterType="java.lang.String">
+        select
+        <include refid="Base_Column_List" />
+        from favorites
+        where collection_name =
+        #{collectionName,jdbcType=VARCHAR}
+    </select>
+
 </mapper>

@@ -1,6 +1,8 @@
 package com.webank.wecube.platform.core.entity.plugin;
 
 public class FavoritesRole {
+    public static final String MGMT = "MGMT";
+    public static final String USE = "USE";
     private String id;
 
     private String favoritesId;
