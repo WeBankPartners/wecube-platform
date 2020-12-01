@@ -35,7 +35,6 @@ import org.xml.sax.SAXException;
 import com.google.common.collect.Sets;
 import com.webank.wecube.platform.core.commons.AuthenticationContextHolder;
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
-import com.webank.wecube.platform.core.domain.plugin.PluginArtifactPullRequestEntity;
 import com.webank.wecube.platform.core.dto.S3PluginActifactDto;
 import com.webank.wecube.platform.core.dto.S3PluginActifactPullRequestDto;
 import com.webank.wecube.platform.core.dto.plugin.UploadPackageResultDto;
@@ -227,7 +226,7 @@ public class PluginArtifactsMgmtService extends AbstractPluginMgmtService {
         reqEntity.setUpdatedTime(new Date());
         reqEntity.setTotalSize(downloadedFile.length());
         reqEntity.setPkgId(uploadResult.getId());
-        reqEntity.setState(PluginArtifactPullRequestEntity.STATE_COMPLETED);
+        reqEntity.setState(PluginArtifactPullReq.STATE_COMPLETED);
 
         pluginArtifactPullReqMapper.updateByPrimaryKeySelective(reqEntity);
     }
@@ -279,7 +278,7 @@ public class PluginArtifactsMgmtService extends AbstractPluginMgmtService {
         entity.setBucketName(null);
         entity.setKeyName(pullRequestDto.getKeyName());
         entity.setRev(0);
-        entity.setState(PluginArtifactPullRequestEntity.STATE_IN_PROGRESS);
+        entity.setState(PluginArtifactPullReq.STATE_IN_PROGRESS);
         entity.setCreatedTime(new Date());
         entity.setCreatedBy(AuthenticationContextHolder.getCurrentUsername());
 
@@ -330,14 +329,14 @@ public class PluginArtifactsMgmtService extends AbstractPluginMgmtService {
             return;
         }
 
-        if (PluginArtifactPullRequestEntity.STATE_COMPLETED.equals(reqEntity.getState())) {
+        if (PluginArtifactPullReq.STATE_COMPLETED.equals(reqEntity.getState())) {
             return;
         }
 
         reqEntity.setErrMsg(stripString(e.getMessage()));
         reqEntity.setUpdatedBy(DEFAULT_USER);
         reqEntity.setUpdatedTime(new Date());
-        reqEntity.setState(PluginArtifactPullRequestEntity.STATE_FAULTED);
+        reqEntity.setState(PluginArtifactPullReq.STATE_FAULTED);
 
         pluginArtifactPullReqMapper.updateByPrimaryKeySelective(reqEntity);
     }

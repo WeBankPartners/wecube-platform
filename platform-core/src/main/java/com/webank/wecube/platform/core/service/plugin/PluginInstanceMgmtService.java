@@ -32,7 +32,6 @@ import org.springframework.stereotype.Service;
 import com.google.common.collect.Lists;
 import com.webank.wecube.platform.core.commons.ApplicationProperties.ResourceProperties;
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
-import com.webank.wecube.platform.core.domain.plugin.PluginPackageMenuStatusListener;
 import com.webank.wecube.platform.core.dto.CreateInstanceDto;
 import com.webank.wecube.platform.core.dto.QueryRequestDto;
 import com.webank.wecube.platform.core.dto.ResourceItemDto;
