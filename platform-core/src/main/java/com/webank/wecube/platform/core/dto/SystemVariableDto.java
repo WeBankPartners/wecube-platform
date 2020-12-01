@@ -2,7 +2,6 @@ package com.webank.wecube.platform.core.dto;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
-import com.webank.wecube.platform.core.domain.SystemVariable;
 
 @JsonInclude(Include.NON_NULL)
 public class SystemVariableDto {
@@ -18,18 +17,7 @@ public class SystemVariableDto {
     public SystemVariableDto() {
     }
 
-    public static SystemVariableDto fromDomain(SystemVariable domain) {
-        SystemVariableDto systemVariableDto = new SystemVariableDto();
-        systemVariableDto.setId(domain.getId());
-        systemVariableDto.setPackageName(domain.getPackageName());
-        systemVariableDto.setName(domain.getName());
-        systemVariableDto.setValue(domain.getValue());
-        systemVariableDto.setDefaultValue(domain.getDefaultValue());
-        systemVariableDto.setScope(domain.getScope());
-        systemVariableDto.setSource(domain.getSource());
-        systemVariableDto.setStatus(domain.getStatus());
-        return systemVariableDto;
-    }
+    
 
     public String getId() {
         return id;

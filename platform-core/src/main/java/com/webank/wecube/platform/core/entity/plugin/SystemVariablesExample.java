@@ -2,6 +2,11 @@ package com.webank.wecube.platform.core.entity.plugin;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import com.webank.wecube.platform.core.dto.FilterDto;
+import com.webank.wecube.platform.core.dto.FilterOperator;
 
 public class SystemVariablesExample {
     protected String orderByClause;
@@ -663,12 +668,80 @@ public class SystemVariablesExample {
             addCriterion("status not between", value1, value2, "status");
             return (Criteria) this;
         }
+
     }
 
     public static class Criteria extends GeneratedCriteria {
+        private static Pattern humpPattern = Pattern.compile("[A-Z]");
 
         protected Criteria() {
             super();
+        }
+        
+        private static String humpToLine2(String str) {
+            Matcher matcher = humpPattern.matcher(str);
+            StringBuffer sb = new StringBuffer();
+            while (matcher.find()) {
+                matcher.appendReplacement(sb, "_" + matcher.group(0).toLowerCase());
+            }
+            matcher.appendTail(sb);
+            return sb.toString();
+        }
+        
+        
+
+        @SuppressWarnings("unchecked")
+        public Criteria andFilters(List<FilterDto> filters) {
+            if (filters == null || filters.isEmpty()) {
+                return this;
+            }
+
+            for (FilterDto filter : filters) {
+                String fieldName = humpToLine2(filter.getName());
+                String propertyName = filter.getName();
+                Object val = filter.getValue();
+                String condition = null;
+                switch (FilterOperator.fromCode(filter.getOperator())) {
+                case IN:
+                    List<String> valList = (List<String>)val;
+                    condition = String.format("%s IN", fieldName);
+                    addCriterion(condition, valList, propertyName);
+                    break;
+                case CONTAINS:
+                    String strVal = (String)val;
+                    condition = String.format("%s like", fieldName);
+                    addCriterion(condition, strVal, propertyName);
+                    break;
+                case EQUAL:
+                    condition = String.format("%s =", fieldName);
+                    addCriterion(condition, val, propertyName);
+                    break;
+                case GREATER:
+                    condition = String.format("%s >", fieldName);
+                    addCriterion(condition, val, propertyName);
+                    break;
+                case LESS:
+                    condition = String.format("%s <", fieldName);
+                    addCriterion(condition, val, propertyName);
+                    break;
+                case NOT_EQUAL:
+                    condition = String.format("%s <>", fieldName);
+                    addCriterion(condition, val, propertyName);
+                    break;
+                case NOT_NULL:
+                    condition = String.format("%s is not null", fieldName);
+                    addCriterion(condition, val, propertyName);
+                    break;
+                case NULL:
+                    condition = String.format("%s is null", fieldName);
+                    addCriterion(condition, val, propertyName);
+                    break;
+                default:
+                    break;
+                }
+            }
+            
+            return this;
         }
     }
 
