@@ -452,5 +452,6 @@
   "batch_regist": "Batch Regist",
   "modal_close": "Close",
   "reset_password": "Reset Password",
-  "overview": "Overview"
+  "overview": "Overview",
+  "parameter_configuration": "Parameter Configuration"
 }
