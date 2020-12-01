@@ -53,6 +53,7 @@
   "pub_enum": "Public Enum",
   "pri_enum": "Private Enum",
   "confirm_to_delete": "Confirm to delete",
+  "confirm_to_exect": "Confirm Execution ?",
   "confirm_to_skip": "Confirm to skip",
   "more_filters": "More Filters",
   "less_filters": "Less Filters",
@@ -414,7 +415,7 @@
   "bc_filter_type_regex": "Regex",
   "bc_filter_type_warn": "Regular expression is incorrect",
   "bc_confirm": "Confirm",
-  "bc_cancle": "Cancle",
+  "bc_cancel": "Cancel",
   "bc_favorites_list": "Favorites List",
   "bc_execution_parameter": "Execution Parameters",
   "bc_complement_parameters": "Change Parameters",
@@ -426,7 +427,7 @@
   "bc_exect_tip": "The operation has been submitted, please wait for the execution result!",
   "plugin_type": "Plugin Type",
   "sstn": "Automatic Node",
-  "sutn": "Manual Approval Node",
+  "sutn": "Manual Node",
   "copy": "Copy",
   "copy_success": "Copy Successful",
   "filter_rule": "Filter Rules",
@@ -450,5 +451,7 @@
   "config_permission": "Permission",
   "batch_regist": "Batch Regist",
   "modal_close": "Close",
-  "reset_password": "Reset Password"
+  "reset_password": "Reset Password",
+  "overview": "Overview",
+  "parameter_configuration": "Parameter Configuration"
 }
