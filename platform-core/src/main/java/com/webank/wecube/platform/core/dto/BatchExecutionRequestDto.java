@@ -12,7 +12,7 @@ public class BatchExecutionRequestDto {
     private List<InputParameterDefinition> inputParameterDefinitions;
     private BusinessKeyAttributeDto businessKeyAttribute;
     private List<ResourceDataDto> resourceDatas;
-
+    
     public BatchExecutionRequestDto() {
     }
 
@@ -63,6 +63,8 @@ public class BatchExecutionRequestDto {
     public void setResourceDatas(List<ResourceDataDto> resourceDatas) {
         this.resourceDatas = resourceDatas;
     }
+    
+    
 
 	@Override
 	public String toString() {
@@ -83,5 +85,4 @@ public class BatchExecutionRequestDto {
 		return builder.toString();
 	}
 
-    
 }

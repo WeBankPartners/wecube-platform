@@ -44,8 +44,6 @@ insert into menu_items (id,parent_code,code,source,menu_order,description,local_
 insert into menu_items (id,parent_code,code,source,menu_order,description,local_display_name) values
 ('ADMIN__ADMIN_USER_ROLE_MANAGEMENT', 'ADMIN', 'ADMIN_USER_ROLE_MANAGEMENT', 'SYSTEM', 14, '', '用户管理');
 insert into menu_items (id,parent_code,code,source,menu_order,description,local_display_name) values
-('ADMIN__ADMIN_SYSTEM_DATA_MODEL', 'ADMIN', 'ADMIN_SYSTEM_DATA_MODEL', 'SYSTEM', 16, '', '系统数据模型');
-insert into menu_items (id,parent_code,code,source,menu_order,description,local_display_name) values
 ('IMPLEMENTATION__IMPLEMENTATION_BATCH_EXECUTION', 'IMPLEMENTATION', 'IMPLEMENTATION_BATCH_EXECUTION', 'SYSTEM', 15, '', '批量执行');
 
 delete from role_menu where id = 'SUPER_ADMIN__IMPLEMENTATION_WORKFLOW_EXECUTION';
@@ -70,8 +68,6 @@ insert into role_menu (id, role_name, menu_code) values
 ('SUPER_ADMIN__ADMIN_USER_ROLE_MANAGEMENT','SUPER_ADMIN','ADMIN_USER_ROLE_MANAGEMENT');
 insert into role_menu (id, role_name, menu_code) values
 ('SUPER_ADMIN__IMPLEMENTATION_BATCH_EXECUTION','SUPER_ADMIN','IMPLEMENTATION_BATCH_EXECUTION');
-insert into role_menu (id, role_name, menu_code) values
-('SUPER_ADMIN__ADMIN_SYSTEM_DATA_MODEL','SUPER_ADMIN','ADMIN_SYSTEM_DATA_MODEL');
 
 
 delete from system_variables where id = 'system__global__GATEWAY_URL';
@@ -93,7 +89,7 @@ INSERT INTO `system_variables` (`id`, `package_name`, `name`, `value`, `default_
 INSERT INTO `system_variables` (`id`, `package_name`, `name`, `value`, `default_value`, `scope`, `source`, `status`) VALUES ('system__global__S3_SECRET_KEY', NULL, 'S3_SECRET_KEY', '', 'secret_key', 'global', 'system', 'active');
 INSERT INTO `system_variables` (`id`, `package_name`, `name`, `value`, `default_value`, `scope`, `source`, `status`) VALUES ('system__global__S3_SERVER_URL', NULL, 'S3_SERVER_URL', '', 'localhost:20000', 'global', 'system', 'active');
 INSERT INTO `system_variables` (`id`,`package_name`, `name`, `value`, `default_value`, `scope`, `source`, `status`) VALUES ('system__global__ENCRYPT_SEED', NULL, 'ENCRYPT_SEED', NULL, 'seed-wecube2.1-2020', 'global', 'system', 'active');
-INSERT INTO `system_variables` (`id`,`package_name`, `name`, `value`, `default_value`, `scope`, `source`, `status`) VALUES ('system__global__PLUGIN_ARTIFACTS_RELEASE_URL', NULL, 'PLUGIN_ARTIFACTS_RELEASE_URL', NULL, 'https://wecube-1259801214.cos.ap-guangzhou.myqcloud.com/v2.4.0/public-plugin-artifacts.release', 'global', 'system', 'active');
+INSERT INTO `system_variables` (`id`,`package_name`, `name`, `value`, `default_value`, `scope`, `source`, `status`) VALUES ('system__global__PLUGIN_ARTIFACTS_RELEASE_URL', NULL, 'PLUGIN_ARTIFACTS_RELEASE_URL', NULL, 'https://wecube-1259801214.cos.ap-guangzhou.myqcloud.com/plugins-v2/public-plugin-artifacts.release', 'global', 'system', 'active');
 
 INSERT INTO `system_variables` (`id`,`package_name`, `name`, `value`, `default_value`, `scope`, `source`, `status`) VALUES ('system__global__HTTP_PROXY', NULL, 'HTTP_PROXY', NULL, '', 'global', 'system', 'active');
 INSERT INTO `system_variables` (`id`,`package_name`, `name`, `value`, `default_value`, `scope`, `source`, `status`) VALUES ('system__global__HTTPS_PROXY', NULL, 'HTTPS_PROXY', NULL, '', 'global', 'system', 'active');
