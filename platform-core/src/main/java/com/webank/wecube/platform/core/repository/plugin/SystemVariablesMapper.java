@@ -6,16 +6,27 @@ import org.apache.ibatis.annotations.Param;
 import org.springframework.stereotype.Repository;
 
 import com.webank.wecube.platform.core.entity.plugin.SystemVariables;
+import com.webank.wecube.platform.core.entity.plugin.SystemVariablesExample;
 
 @Repository
 public interface SystemVariablesMapper {
+    int countByExample(SystemVariablesExample example);
+
+    int deleteByExample(SystemVariablesExample example);
+
     int deleteByPrimaryKey(String id);
 
     int insert(SystemVariables record);
 
     int insertSelective(SystemVariables record);
 
+    List<SystemVariables> selectByExample(SystemVariablesExample example);
+
     SystemVariables selectByPrimaryKey(String id);
+
+    int updateByExampleSelective(@Param("record") SystemVariables record, @Param("example") SystemVariablesExample example);
+
+    int updateByExample(@Param("record") SystemVariables record, @Param("example") SystemVariablesExample example);
 
     int updateByPrimaryKeySelective(SystemVariables record);
 
