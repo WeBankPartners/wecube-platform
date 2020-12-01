@@ -1,4 +1,4 @@
-package com.webank.wecube.platform.core.domain.plugin;
+package com.webank.wecube.platform.core.service.plugin;
 
 import java.util.List;
 
