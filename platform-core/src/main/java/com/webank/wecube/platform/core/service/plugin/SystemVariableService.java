@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import javax.persistence.criteria.Expression;
+
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,11 +18,14 @@ import com.webank.wecube.platform.core.commons.AuthenticationContextHolder;
 import com.webank.wecube.platform.core.commons.AuthenticationContextHolder.AuthenticatedUser;
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
 import com.webank.wecube.platform.core.domain.SystemVariable;
+import com.webank.wecube.platform.core.dto.FilterDto;
+import com.webank.wecube.platform.core.dto.FilterOperator;
 import com.webank.wecube.platform.core.dto.QueryRequestDto;
 import com.webank.wecube.platform.core.dto.QueryResponse;
 import com.webank.wecube.platform.core.dto.SystemVariableDto;
 import com.webank.wecube.platform.core.entity.plugin.RoleMenu;
 import com.webank.wecube.platform.core.entity.plugin.SystemVariables;
+import com.webank.wecube.platform.core.entity.plugin.SystemVariablesExample;
 import com.webank.wecube.platform.core.jpa.EntityRepository;
 import com.webank.wecube.platform.core.repository.plugin.RoleMenuMapper;
 import com.webank.wecube.platform.core.repository.plugin.SystemVariablesMapper;
@@ -46,6 +51,45 @@ public class SystemVariableService {
         List<SystemVariableDto> systemVariableDto = Lists.transform(queryResponse.getContents(),
                 x -> SystemVariableDto.fromDomain(x));
         return new QueryResponse<>(queryResponse.getPageInfo(), systemVariableDto);
+    }
+
+    private void buildExample(SystemVariablesExample example, QueryRequestDto queryRequest) {
+        List<FilterDto> filters = queryRequest.getFilters();
+        if (filters == null) {
+            return;
+        }
+        // for (FilterDto filter : filters) {
+        // switch (FilterOperator.fromCode(filter.getOperator())) {
+        // case IN:
+        // processInOperator(cb, predicates, filter, filterExpr);
+        // break;
+        // case CONTAINS:
+        // processContainsOperator(cb, predicates, filter, filterExpr);
+        // break;
+        // case EQUAL:
+        // processEqualsOperator(cb, predicates, filter, filterExpr);
+        // break;
+        // case GREATER:
+        // processGreaterOperator(cb, predicates, filter, filterExpr);
+        // break;
+        // case LESS:
+        // processLessOperator(cb, predicates, filter, filterExpr);
+        // break;
+        // case NOT_EQUAL:
+        // processNotEqualsOperator(cb, predicates, filter, filterExpr);
+        // break;
+        // case NOT_NULL:
+        // predicates.add(cb.isNotNull(filterExpr));
+        // break;
+        // case NULL:
+        // predicates.add(cb.isNull(filterExpr));
+        // break;
+        // default:
+        // throw new WecubeCoreException("3298",
+        // String.format("Filter operator [%s] is unsupportted.",
+        // filter.getOperator()), filter.getOperator());
+        // }
+        // }
     }
 
     /**
@@ -258,21 +302,23 @@ public class SystemVariableService {
         throw new WecubeCoreException(msg);
     }
 
-//    private List<SystemVariable> convertVariableDtoToDomain(List<SystemVariableDto> systemVariableDtos) {
-//        List<SystemVariable> domains = new ArrayList<>();
-//        systemVariableDtos.forEach(dto -> {
-//            SystemVariable existingSystemVariable = null;
-//            if (dto.getId() != null) {
-//                Optional<SystemVariable> existingSystemVariableOpt = systemVariableRepository.findById(dto.getId());
-//                if (existingSystemVariableOpt.isPresent()) {
-//                    existingSystemVariable = existingSystemVariableOpt.get();
-//                }
-//            }
-//            SystemVariable domain = toDomain(dto, existingSystemVariable);
-//            domains.add(domain);
-//        });
-//        return domains;
-//    }
+    // private List<SystemVariable>
+    // convertVariableDtoToDomain(List<SystemVariableDto> systemVariableDtos) {
+    // List<SystemVariable> domains = new ArrayList<>();
+    // systemVariableDtos.forEach(dto -> {
+    // SystemVariable existingSystemVariable = null;
+    // if (dto.getId() != null) {
+    // Optional<SystemVariable> existingSystemVariableOpt =
+    // systemVariableRepository.findById(dto.getId());
+    // if (existingSystemVariableOpt.isPresent()) {
+    // existingSystemVariable = existingSystemVariableOpt.get();
+    // }
+    // }
+    // SystemVariable domain = toDomain(dto, existingSystemVariable);
+    // domains.add(domain);
+    // });
+    // return domains;
+    // }
 
     private SystemVariableDto buildSystemVariableDto(SystemVariables entity) {
         SystemVariableDto dto = new SystemVariableDto();
@@ -339,9 +385,11 @@ public class SystemVariableService {
         return systemVariable;
     }
 
-//    private List<SystemVariableDto> convertVariableDomainToDto(Iterable<SystemVariable> savedDomains) {
-//        List<SystemVariableDto> dtos = new ArrayList<>();
-//        savedDomains.forEach(domain -> dtos.add(SystemVariableDto.fromDomain(domain)));
-//        return dtos;
-//    }
+    // private List<SystemVariableDto>
+    // convertVariableDomainToDto(Iterable<SystemVariable> savedDomains) {
+    // List<SystemVariableDto> dtos = new ArrayList<>();
+    // savedDomains.forEach(domain ->
+    // dtos.add(SystemVariableDto.fromDomain(domain)));
+    // return dtos;
+    // }
 }
