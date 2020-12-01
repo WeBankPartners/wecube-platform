@@ -4,8 +4,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import javax.persistence.criteria.Expression;
-
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,20 +11,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.google.common.collect.Lists;
 import com.webank.wecube.platform.core.commons.AuthenticationContextHolder;
 import com.webank.wecube.platform.core.commons.AuthenticationContextHolder.AuthenticatedUser;
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
-import com.webank.wecube.platform.core.domain.SystemVariable;
-import com.webank.wecube.platform.core.dto.FilterDto;
-import com.webank.wecube.platform.core.dto.FilterOperator;
 import com.webank.wecube.platform.core.dto.QueryRequestDto;
 import com.webank.wecube.platform.core.dto.QueryResponse;
 import com.webank.wecube.platform.core.dto.SystemVariableDto;
 import com.webank.wecube.platform.core.entity.plugin.RoleMenu;
 import com.webank.wecube.platform.core.entity.plugin.SystemVariables;
-import com.webank.wecube.platform.core.entity.plugin.SystemVariablesExample;
-import com.webank.wecube.platform.core.jpa.EntityRepository;
 import com.webank.wecube.platform.core.repository.plugin.RoleMenuMapper;
 import com.webank.wecube.platform.core.repository.plugin.SystemVariablesMapper;
 import com.webank.wecube.platform.core.utils.StringUtilsEx;
@@ -36,62 +28,39 @@ import com.webank.wecube.platform.workflow.commons.LocalIdGenerator;
 public class SystemVariableService {
     private static final Logger log = LoggerFactory.getLogger(SystemVariableService.class);
     public static final String MENU_CODE_ADMIN_SYSTEM_PARAMS = "ADMIN_SYSTEM_PARAMS";
-    @Autowired
-    private EntityRepository entityRepository;
 
     @Autowired
     private SystemVariablesMapper systemVariablesMapper;
+    
+    @Autowired
+    private SystemVariableDataService systemVariableDataService;
 
     @Autowired
     private RoleMenuMapper roleMenuMapper;
 
-    // TODO
     public QueryResponse<SystemVariableDto> retrieveSystemVariables(QueryRequestDto queryRequest) {
-        QueryResponse<SystemVariable> queryResponse = entityRepository.query(SystemVariable.class, queryRequest);
-        List<SystemVariableDto> systemVariableDto = Lists.transform(queryResponse.getContents(),
-                x -> SystemVariableDto.fromDomain(x));
-        return new QueryResponse<>(queryResponse.getPageInfo(), systemVariableDto);
-    }
-
-    private void buildExample(SystemVariablesExample example, QueryRequestDto queryRequest) {
-        List<FilterDto> filters = queryRequest.getFilters();
-        if (filters == null) {
-            return;
+//        QueryResponse<SystemVariable> queryResponse = entityRepository.query(SystemVariable.class, queryRequest);
+//        List<SystemVariableDto> systemVariableDto = Lists.transform(queryResponse.getContents(),
+//                x -> SystemVariableDto.fromDomain(x));
+//        return new QueryResponse<>(queryResponse.getPageInfo(), systemVariableDto);
+        
+        com.github.pagehelper.PageInfo<SystemVariables> pageInfo = systemVariableDataService.retrieveSystemVariables(queryRequest);
+        
+        List<SystemVariableDto> systemVariableDtos = new ArrayList<>();
+        for(SystemVariables e : pageInfo.getList()){
+            SystemVariableDto dto = buildSystemVariableDto(e);
+            systemVariableDtos.add(dto);
         }
-        // for (FilterDto filter : filters) {
-        // switch (FilterOperator.fromCode(filter.getOperator())) {
-        // case IN:
-        // processInOperator(cb, predicates, filter, filterExpr);
-        // break;
-        // case CONTAINS:
-        // processContainsOperator(cb, predicates, filter, filterExpr);
-        // break;
-        // case EQUAL:
-        // processEqualsOperator(cb, predicates, filter, filterExpr);
-        // break;
-        // case GREATER:
-        // processGreaterOperator(cb, predicates, filter, filterExpr);
-        // break;
-        // case LESS:
-        // processLessOperator(cb, predicates, filter, filterExpr);
-        // break;
-        // case NOT_EQUAL:
-        // processNotEqualsOperator(cb, predicates, filter, filterExpr);
-        // break;
-        // case NOT_NULL:
-        // predicates.add(cb.isNotNull(filterExpr));
-        // break;
-        // case NULL:
-        // predicates.add(cb.isNull(filterExpr));
-        // break;
-        // default:
-        // throw new WecubeCoreException("3298",
-        // String.format("Filter operator [%s] is unsupportted.",
-        // filter.getOperator()), filter.getOperator());
-        // }
-        // }
+        
+        com.webank.wecube.platform.core.dto.PageInfo respPageInfo = new com.webank.wecube.platform.core.dto.PageInfo();
+        respPageInfo.setPageSize(queryRequest.getPageable().getPageSize());
+        respPageInfo.setStartIndex(queryRequest.getPageable().getStartIndex());
+        respPageInfo.setTotalRows((int)pageInfo.getTotal());
+        return new QueryResponse<>(respPageInfo, systemVariableDtos);
     }
+    
 
+   
     /**
      * 
      * @param resourceSystemVariables
@@ -231,8 +200,8 @@ public class SystemVariableService {
     }
 
     public List<SystemVariables> getGlobalSystemVariableByName(String varName) {
-        return systemVariablesMapper.selectAllByNameAndScopeAndStatus(varName, SystemVariable.SCOPE_GLOBAL,
-                SystemVariable.ACTIVE);
+        return systemVariablesMapper.selectAllByNameAndScopeAndStatus(varName, SystemVariables.SCOPE_GLOBAL,
+                SystemVariables.ACTIVE);
     }
 
     public String variableReplacement(String packageName, String originalString) {
@@ -343,7 +312,7 @@ public class SystemVariableService {
         entity.setScope(dto.getScope());
         entity.setSource(dto.getSource());
         if (StringUtils.isBlank(dto.getStatus())) {
-            entity.setStatus(SystemVariable.ACTIVE);
+            entity.setStatus(SystemVariables.ACTIVE);
         } else {
             entity.setStatus(dto.getStatus());
         }
@@ -379,7 +348,7 @@ public class SystemVariableService {
         if (dto.getStatus() != null) {
             systemVariable.setStatus(dto.getStatus());
         } else {
-            systemVariable.setStatus(SystemVariable.ACTIVE);
+            systemVariable.setStatus(SystemVariables.ACTIVE);
         }
 
         return systemVariable;
