@@ -41,6 +41,13 @@ WeCube目前支持以下几种插件：
 ##### 注册描述文件规范
 必须命名为register.xml, [具体示例在此](https://github.com/WeBankPartners/wecube-platform/blob/master/wecube-wiki/docs/developer/wecube_developer_package_XML_guide.md)  
 
+Platform < v2.6.1：版本依赖packageDependencies节点仅描述插件间依赖
+​               \>=v2.6.1：版本依赖packageDependencies可表示对platform的依赖，如 \<packageDependency name="platform" version="v2.6.1" />，并且确认插件								  注册时将校验依赖版本号
+​               \>=v2.7.0：resourceDependencies节点的docker.envVariables增加JWT_SIGNING_KEY默认环境变量，是jwt token的base64(secret)值，用于平台token								  校验
+​               \>=v2.7.1：resourceDependencies节点的docker.portBindings增加映射{{BASE_MOUNT_PATH}}/certs/，目录下存在ras_key文件，用于环境参数的解								  密（加密的环境参数加密方式为PKCS#1_v1.5(base64(value))，再拼接前缀RSA@，若非RSA@前缀作为起始字符，则为明文模式）
+
+​               
+
 ##### 后端API服务规范
 ###### 启动及打包方式规范 
 1.提供镜像包，目前仅支持以容器方式启动插件服务程序，  
@@ -344,6 +351,7 @@ Content-Type: application/json;charset=UTF-8
 </menus>
 ```
 2.必须提供静态资源包，命名和格式都固定为ui.zip，目录结构如下：  
+
 ```
 ui.zip
 └─dist
