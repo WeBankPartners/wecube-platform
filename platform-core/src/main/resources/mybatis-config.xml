@@ -9,4 +9,18 @@
         <typeHandler handler="org.apache.ibatis.type.EnumTypeHandler"
             javaType="com.webank.wecube.platform.workflow.model.TraceStatus" />
     </typeHandlers>
+
+    <plugins>
+        <plugin interceptor="com.github.pagehelper.PageHelper">
+            <property name="dialect" value="mysql" />
+            <property name="offsetAsPageNum" value="true" />
+            <property name="rowBoundsWithCount" value="true" />
+            <property name="pageSizeZero" value="true" />
+            <property name="reasonable" value="false" />
+            <property name="params"
+                value="pageNum=pageHelperStart;pageSize=pageHelperRows;" />
+            <property name="supportMethodsArguments" value="false" />
+            <property name="returnPageInfo" value="none" />
+        </plugin>
+    </plugins>
 </configuration>
