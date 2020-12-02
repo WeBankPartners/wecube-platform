@@ -1,6 +1,7 @@
 package com.webank.wecube.platform.core.service.plugin;
 
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,7 +13,7 @@ import com.webank.wecube.platform.core.dto.QueryRequestDto;
 import com.webank.wecube.platform.core.dto.QueryResponse;
 import com.webank.wecube.platform.core.dto.SystemVariableDto;
 
-
+@Ignore
 @RunWith(SpringRunner.class)
 @SpringBootTest
 public class SystemVariableServiceTest {
