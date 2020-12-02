@@ -24,11 +24,101 @@
         <result column="updated_date" property="updatedDate"
             jdbcType="TIMESTAMP" />
     </resultMap>
-    <sql id="Base_Column_List">
-        id, additional_properties, created_by, created_date, is_allocated, name,
-        purpose,
-        resource_server_id, status, type, updated_by, updated_date
+    <sql id="Example_Where_Clause">
+        <where>
+            <foreach collection="oredCriteria" item="criteria"
+                separator="or">
+                <if test="criteria.valid">
+                    <trim prefix="(" suffix=")" prefixOverrides="and">
+                        <foreach collection="criteria.criteria"
+                            item="criterion">
+                            <choose>
+                                <when test="criterion.noValue">
+                                    and ${criterion.condition}
+                                </when>
+                                <when test="criterion.singleValue">
+                                    and ${criterion.condition}
+                                    #{criterion.value}
+                                </when>
+                                <when test="criterion.betweenValue">
+                                    and ${criterion.condition}
+                                    #{criterion.value} and
+                                    #{criterion.secondValue}
+                                </when>
+                                <when test="criterion.listValue">
+                                    and ${criterion.condition}
+                                    <foreach collection="criterion.value"
+                                        item="listItem" open="(" close=")"
+                                        separator=",">
+                                        #{listItem}
+                                    </foreach>
+                                </when>
+                            </choose>
+                        </foreach>
+                    </trim>
+                </if>
+            </foreach>
+        </where>
     </sql>
+    <sql id="Update_By_Example_Where_Clause">
+        <where>
+            <foreach collection="example.oredCriteria" item="criteria"
+                separator="or">
+                <if test="criteria.valid">
+                    <trim prefix="(" suffix=")" prefixOverrides="and">
+                        <foreach collection="criteria.criteria"
+                            item="criterion">
+                            <choose>
+                                <when test="criterion.noValue">
+                                    and ${criterion.condition}
+                                </when>
+                                <when test="criterion.singleValue">
+                                    and ${criterion.condition}
+                                    #{criterion.value}
+                                </when>
+                                <when test="criterion.betweenValue">
+                                    and ${criterion.condition}
+                                    #{criterion.value} and
+                                    #{criterion.secondValue}
+                                </when>
+                                <when test="criterion.listValue">
+                                    and ${criterion.condition}
+                                    <foreach collection="criterion.value"
+                                        item="listItem" open="(" close=")"
+                                        separator=",">
+                                        #{listItem}
+                                    </foreach>
+                                </when>
+                            </choose>
+                        </foreach>
+                    </trim>
+                </if>
+            </foreach>
+        </where>
+    </sql>
+    <sql id="Base_Column_List">
+        id, additional_properties, created_by, created_date,
+        is_allocated, name,
+        purpose,
+        resource_server_id, status, type,
+        updated_by, updated_date
+    </sql>
+    <select id="selectByExample" resultMap="BaseResultMap"
+        parameterType="com.webank.wecube.platform.core.entity.plugin.ResourceItemExample">
+        select
+        <if test="distinct">
+            distinct
+        </if>
+        'true' as QUERYID,
+        <include refid="Base_Column_List" />
+        from resource_item
+        <if test="_parameter != null">
+            <include refid="Example_Where_Clause" />
+        </if>
+        <if test="orderByClause != null">
+            order by ${orderByClause}
+        </if>
+    </select>
     <select id="selectByPrimaryKey" resultMap="BaseResultMap"
         parameterType="java.lang.String">
         select
@@ -37,25 +127,38 @@
         where id = #{id,jdbcType=VARCHAR}
     </select>
     <delete id="deleteByPrimaryKey" parameterType="java.lang.String">
-        delete from resource_item
+        delete from
+        resource_item
         where id = #{id,jdbcType=VARCHAR}
+    </delete>
+    <delete id="deleteByExample"
+        parameterType="com.webank.wecube.platform.core.entity.plugin.ResourceItemExample">
+        delete from resource_item
+        <if test="_parameter != null">
+            <include refid="Example_Where_Clause" />
+        </if>
     </delete>
     <insert id="insert"
         parameterType="com.webank.wecube.platform.core.entity.plugin.ResourceItem">
-        insert into resource_item (id, additional_properties,
+        insert into resource_item (id,
+        additional_properties,
         created_by,
-        created_date, is_allocated, name,
+        created_date, is_allocated,
+        name,
         purpose, resource_server_id, status,
-        type, updated_by, updated_date
+        type, updated_by,
+        updated_date
         )
-        values (#{id,jdbcType=VARCHAR}, #{additionalProperties,jdbcType=VARCHAR},
+        values (#{id,jdbcType=VARCHAR},
+        #{additionalProperties,jdbcType=VARCHAR},
         #{createdBy,jdbcType=VARCHAR},
         #{createdDate,jdbcType=TIMESTAMP},
         #{isAllocated,jdbcType=INTEGER}, #{name,jdbcType=VARCHAR},
         #{purpose,jdbcType=VARCHAR},
         #{resourceServerId,jdbcType=VARCHAR},
         #{status,jdbcType=VARCHAR},
-        #{type,jdbcType=VARCHAR}, #{updatedBy,jdbcType=VARCHAR}, #{updatedDate,jdbcType=TIMESTAMP}
+        #{type,jdbcType=VARCHAR},
+        #{updatedBy,jdbcType=VARCHAR}, #{updatedDate,jdbcType=TIMESTAMP}
         )
     </insert>
     <insert id="insertSelective"
@@ -138,6 +241,78 @@
             </if>
         </trim>
     </insert>
+    <select id="countByExample"
+        parameterType="com.webank.wecube.platform.core.entity.plugin.ResourceItemExample"
+        resultType="java.lang.Integer">
+        select count(*) from resource_item
+        <if test="_parameter != null">
+            <include refid="Example_Where_Clause" />
+        </if>
+    </select>
+    <update id="updateByExampleSelective" parameterType="map">
+        update resource_item
+        <set>
+            <if test="record.id != null">
+                id = #{record.id,jdbcType=VARCHAR},
+            </if>
+            <if test="record.additionalProperties != null">
+                additional_properties =
+                #{record.additionalProperties,jdbcType=VARCHAR},
+            </if>
+            <if test="record.createdBy != null">
+                created_by = #{record.createdBy,jdbcType=VARCHAR},
+            </if>
+            <if test="record.createdDate != null">
+                created_date = #{record.createdDate,jdbcType=TIMESTAMP},
+            </if>
+            <if test="record.isAllocated != null">
+                is_allocated = #{record.isAllocated,jdbcType=INTEGER},
+            </if>
+            <if test="record.name != null">
+                name = #{record.name,jdbcType=VARCHAR},
+            </if>
+            <if test="record.purpose != null">
+                purpose = #{record.purpose,jdbcType=VARCHAR},
+            </if>
+            <if test="record.resourceServerId != null">
+                resource_server_id =
+                #{record.resourceServerId,jdbcType=VARCHAR},
+            </if>
+            <if test="record.status != null">
+                status = #{record.status,jdbcType=VARCHAR},
+            </if>
+            <if test="record.type != null">
+                type = #{record.type,jdbcType=VARCHAR},
+            </if>
+            <if test="record.updatedBy != null">
+                updated_by = #{record.updatedBy,jdbcType=VARCHAR},
+            </if>
+            <if test="record.updatedDate != null">
+                updated_date = #{record.updatedDate,jdbcType=TIMESTAMP},
+            </if>
+        </set>
+        <if test="_parameter != null">
+            <include refid="Update_By_Example_Where_Clause" />
+        </if>
+    </update>
+    <update id="updateByExample" parameterType="map">
+        update resource_item
+        set id = #{record.id,jdbcType=VARCHAR},
+        additional_properties = #{record.additionalProperties,jdbcType=VARCHAR},
+        created_by = #{record.createdBy,jdbcType=VARCHAR},
+        created_date = #{record.createdDate,jdbcType=TIMESTAMP},
+        is_allocated = #{record.isAllocated,jdbcType=INTEGER},
+        name = #{record.name,jdbcType=VARCHAR},
+        purpose = #{record.purpose,jdbcType=VARCHAR},
+        resource_server_id = #{record.resourceServerId,jdbcType=VARCHAR},
+        status = #{record.status,jdbcType=VARCHAR},
+        type = #{record.type,jdbcType=VARCHAR},
+        updated_by = #{record.updatedBy,jdbcType=VARCHAR},
+        updated_date = #{record.updatedDate,jdbcType=TIMESTAMP}
+        <if test="_parameter != null">
+            <include refid="Update_By_Example_Where_Clause" />
+        </if>
+    </update>
     <update id="updateByPrimaryKeySelective"
         parameterType="com.webank.wecube.platform.core.entity.plugin.ResourceItem">
         update resource_item
@@ -150,7 +325,8 @@
                 created_by = #{createdBy,jdbcType=VARCHAR},
             </if>
             <if test="createdDate != null">
-                created_date = #{createdDate,jdbcType=TIMESTAMP},
+                created_date =
+                #{createdDate,jdbcType=TIMESTAMP},
             </if>
             <if test="isAllocated != null">
                 is_allocated = #{isAllocated,jdbcType=INTEGER},
@@ -162,7 +338,8 @@
                 purpose = #{purpose,jdbcType=VARCHAR},
             </if>
             <if test="resourceServerId != null">
-                resource_server_id = #{resourceServerId,jdbcType=VARCHAR},
+                resource_server_id =
+                #{resourceServerId,jdbcType=VARCHAR},
             </if>
             <if test="status != null">
                 status = #{status,jdbcType=VARCHAR},
@@ -174,7 +351,8 @@
                 updated_by = #{updatedBy,jdbcType=VARCHAR},
             </if>
             <if test="updatedDate != null">
-                updated_date = #{updatedDate,jdbcType=TIMESTAMP},
+                updated_date =
+                #{updatedDate,jdbcType=TIMESTAMP},
             </if>
         </set>
         where id = #{id,jdbcType=VARCHAR}
@@ -182,35 +360,46 @@
     <update id="updateByPrimaryKey"
         parameterType="com.webank.wecube.platform.core.entity.plugin.ResourceItem">
         update resource_item
-        set additional_properties = #{additionalProperties,jdbcType=VARCHAR},
-        created_by = #{createdBy,jdbcType=VARCHAR},
-        created_date = #{createdDate,jdbcType=TIMESTAMP},
-        is_allocated = #{isAllocated,jdbcType=INTEGER},
+        set additional_properties =
+        #{additionalProperties,jdbcType=VARCHAR},
+        created_by =
+        #{createdBy,jdbcType=VARCHAR},
+        created_date =
+        #{createdDate,jdbcType=TIMESTAMP},
+        is_allocated =
+        #{isAllocated,jdbcType=INTEGER},
         name = #{name,jdbcType=VARCHAR},
         purpose = #{purpose,jdbcType=VARCHAR},
-        resource_server_id = #{resourceServerId,jdbcType=VARCHAR},
-        status = #{status,jdbcType=VARCHAR},
+        resource_server_id =
+        #{resourceServerId,jdbcType=VARCHAR},
+        status =
+        #{status,jdbcType=VARCHAR},
         type = #{type,jdbcType=VARCHAR},
         updated_by = #{updatedBy,jdbcType=VARCHAR},
-        updated_date = #{updatedDate,jdbcType=TIMESTAMP}
-        where id = #{id,jdbcType=VARCHAR}
+        updated_date =
+        #{updatedDate,jdbcType=TIMESTAMP}
+        where id =
+        #{id,jdbcType=VARCHAR}
     </update>
-    
+
     <select id="selectAllByResourceServerAndType" resultMap="BaseResultMap"
         parameterType="java.lang.String">
         select
         <include refid="Base_Column_List" />
         from resource_item
-        where resource_server_id = #{resourceServerId,jdbcType=VARCHAR}
-        and type = #{type,jdbcType=VARCHAR}
+        where resource_server_id =
+        #{resourceServerId,jdbcType=VARCHAR}
+        and type =
+        #{type,jdbcType=VARCHAR}
     </select>
-    
+
     <select id="selectAllByNameAndType" resultMap="BaseResultMap"
         parameterType="java.lang.String">
         select
         <include refid="Base_Column_List" />
         from resource_item
         where name = #{name,jdbcType=VARCHAR}
-        and type = #{type,jdbcType=VARCHAR}
+        and type
+        = #{type,jdbcType=VARCHAR}
     </select>
 </mapper>

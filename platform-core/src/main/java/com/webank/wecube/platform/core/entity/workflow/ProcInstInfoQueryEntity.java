@@ -2,32 +2,17 @@ package com.webank.wecube.platform.core.entity.workflow;
 
 import java.util.Date;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Id;
-
-@Entity
 public class ProcInstInfoQueryEntity {
-    @Id
     private Integer id;
-    @Column(name = "PROC_INST_KEY")
     private String procInstKey;
-    @Column(name = "PROC_DEF_NAME")
     private String procDefName;
-    @Column(name = "CREATED_TIME")
     private Date createdTime;
-    @Column(name = "OPER")
     private String operator;
-    @Column(name = "STATUS")
     private String status;
-    @Column(name = "PROC_DEF_ID")
     private String procDefId;
 
-    @Column(name = "ENTITY_TYPE_ID")
     private String entityTypeId;
-    @Column(name = "ENTITY_DATA_ID")
     private String entityDataId;
-    @Column(name = "ENTITY_DATA_NAME")
     private String entityDataName;
 
     public Integer getId() {
