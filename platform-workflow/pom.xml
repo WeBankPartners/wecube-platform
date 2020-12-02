@@ -6,7 +6,7 @@
     <parent>
         <artifactId>wecube-platform</artifactId>
         <groupId>com.webank.wecube.platform</groupId>
-        <version>1.0-SNAPSHOT</version>
+        <version>3.0-SNAPSHOT</version>
     </parent>
     
     <artifactId>platform-workflow</artifactId>
