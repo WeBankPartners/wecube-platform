@@ -5,22 +5,17 @@
     <resultMap id="BaseResultMap"
         type="com.webank.wecube.platform.core.entity.workflow.ProcInstInfoEntity">
         <id column="id" jdbcType="INTEGER" property="id" />
-        <result column="created_by" jdbcType="VARCHAR"
-            property="createdBy" />
+        <result column="created_by" jdbcType="VARCHAR" property="createdBy" />
         <result column="created_time" jdbcType="TIMESTAMP"
             property="createdTime" />
-        <result column="updated_by" jdbcType="VARCHAR"
-            property="updatedBy" />
+        <result column="updated_by" jdbcType="VARCHAR" property="updatedBy" />
         <result column="updated_time" jdbcType="TIMESTAMP"
             property="updatedTime" />
         <result column="oper" jdbcType="VARCHAR" property="oper" />
-        <result column="oper_grp" jdbcType="VARCHAR"
-            property="operGrp" />
+        <result column="oper_grp" jdbcType="VARCHAR" property="operGrp" />
         <result column="rev" jdbcType="INTEGER" property="rev" />
-        <result column="status" jdbcType="VARCHAR"
-            property="status" />
-        <result column="proc_def_id" jdbcType="VARCHAR"
-            property="procDefId" />
+        <result column="status" jdbcType="VARCHAR" property="status" />
+        <result column="proc_def_id" jdbcType="VARCHAR" property="procDefId" />
         <result column="proc_def_key" jdbcType="VARCHAR"
             property="procDefKey" />
         <result column="proc_def_name" jdbcType="VARCHAR"
@@ -31,42 +26,46 @@
             property="procInstKey" />
     </resultMap>
     <sql id="Base_Column_List">
-        id, created_by, created_time, updated_by, updated_time, oper, oper_grp,
+        id, created_by, created_time, updated_by, updated_time,
+        oper, oper_grp,
         rev, status,
-        proc_def_id, proc_def_key, proc_def_name, proc_inst_kernel_id, proc_inst_key
+        proc_def_id, proc_def_key,
+        proc_def_name, proc_inst_kernel_id, proc_inst_key
     </sql>
-    <select id="selectByPrimaryKey"
-        parameterType="java.lang.Integer" resultMap="BaseResultMap">
+    <select id="selectByPrimaryKey" parameterType="java.lang.Integer"
+        resultMap="BaseResultMap">
         select
         <include refid="Base_Column_List" />
         from core_ru_proc_inst_info
         where id = #{id,jdbcType=INTEGER}
     </select>
-    <delete id="deleteByPrimaryKey"
-        parameterType="java.lang.Integer">
-        delete from core_ru_proc_inst_info
+    <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer">
+        delete from
+        core_ru_proc_inst_info
         where id = #{id,jdbcType=INTEGER}
     </delete>
-    <insert id="insert"
-        useGeneratedKeys="true" keyProperty="id"
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id"
         parameterType="com.webank.wecube.platform.core.entity.workflow.ProcInstInfoEntity">
-        insert into core_ru_proc_inst_info (id, created_by, created_time,
+        insert into core_ru_proc_inst_info (id,
+        created_by, created_time,
         updated_by, updated_time, oper,
         oper_grp, rev, status,
         proc_def_id, proc_def_key, proc_def_name,
         proc_inst_kernel_id, proc_inst_key)
-        values (#{id,jdbcType=INTEGER}, #{createdBy,jdbcType=VARCHAR},
+        values
+        (#{id,jdbcType=INTEGER}, #{createdBy,jdbcType=VARCHAR},
         #{createdTime,jdbcType=TIMESTAMP},
         #{updatedBy,jdbcType=VARCHAR},
         #{updatedTime,jdbcType=TIMESTAMP}, #{oper,jdbcType=VARCHAR},
         #{operGrp,jdbcType=VARCHAR}, #{rev,jdbcType=INTEGER},
         #{status,jdbcType=VARCHAR},
-        #{procDefId,jdbcType=VARCHAR}, #{procDefKey,jdbcType=VARCHAR}, #{procDefName,jdbcType=VARCHAR},
+        #{procDefId,jdbcType=VARCHAR},
+        #{procDefKey,jdbcType=VARCHAR}, #{procDefName,jdbcType=VARCHAR},
         #{procInstKernelId,jdbcType=VARCHAR},
         #{procInstKey,jdbcType=VARCHAR})
     </insert>
-    <insert id="insertSelective"
-        useGeneratedKeys="true" keyProperty="id"
+    <insert id="insertSelective" useGeneratedKeys="true"
+        keyProperty="id"
         parameterType="com.webank.wecube.platform.core.entity.workflow.ProcInstInfoEntity">
         insert into core_ru_proc_inst_info
         <trim prefix="(" suffix=")" suffixOverrides=",">
@@ -160,13 +159,15 @@
                 created_by = #{createdBy,jdbcType=VARCHAR},
             </if>
             <if test="createdTime != null">
-                created_time = #{createdTime,jdbcType=TIMESTAMP},
+                created_time =
+                #{createdTime,jdbcType=TIMESTAMP},
             </if>
             <if test="updatedBy != null">
                 updated_by = #{updatedBy,jdbcType=VARCHAR},
             </if>
             <if test="updatedTime != null">
-                updated_time = #{updatedTime,jdbcType=TIMESTAMP},
+                updated_time =
+                #{updatedTime,jdbcType=TIMESTAMP},
             </if>
             <if test="oper != null">
                 oper = #{oper,jdbcType=VARCHAR},
@@ -190,7 +191,8 @@
                 proc_def_name = #{procDefName,jdbcType=VARCHAR},
             </if>
             <if test="procInstKernelId != null">
-                proc_inst_kernel_id = #{procInstKernelId,jdbcType=VARCHAR},
+                proc_inst_kernel_id =
+                #{procInstKernelId,jdbcType=VARCHAR},
             </if>
             <if test="procInstKey != null">
                 proc_inst_key = #{procInstKey,jdbcType=VARCHAR},
@@ -201,48 +203,102 @@
     <update id="updateByPrimaryKey"
         parameterType="com.webank.wecube.platform.core.entity.workflow.ProcInstInfoEntity">
         update core_ru_proc_inst_info
-        set created_by = #{createdBy,jdbcType=VARCHAR},
-        created_time = #{createdTime,jdbcType=TIMESTAMP},
-        updated_by = #{updatedBy,jdbcType=VARCHAR},
-        updated_time = #{updatedTime,jdbcType=TIMESTAMP},
-        oper = #{oper,jdbcType=VARCHAR},
+        set created_by =
+        #{createdBy,jdbcType=VARCHAR},
+        created_time =
+        #{createdTime,jdbcType=TIMESTAMP},
+        updated_by =
+        #{updatedBy,jdbcType=VARCHAR},
+        updated_time =
+        #{updatedTime,jdbcType=TIMESTAMP},
+        oper =
+        #{oper,jdbcType=VARCHAR},
         oper_grp = #{operGrp,jdbcType=VARCHAR},
         rev = #{rev,jdbcType=INTEGER},
-        status = #{status,jdbcType=VARCHAR},
-        proc_def_id = #{procDefId,jdbcType=VARCHAR},
-        proc_def_key = #{procDefKey,jdbcType=VARCHAR},
-        proc_def_name = #{procDefName,jdbcType=VARCHAR},
-        proc_inst_kernel_id = #{procInstKernelId,jdbcType=VARCHAR},
-        proc_inst_key = #{procInstKey,jdbcType=VARCHAR}
+        status =
+        #{status,jdbcType=VARCHAR},
+        proc_def_id =
+        #{procDefId,jdbcType=VARCHAR},
+        proc_def_key =
+        #{procDefKey,jdbcType=VARCHAR},
+        proc_def_name =
+        #{procDefName,jdbcType=VARCHAR},
+        proc_inst_kernel_id =
+        #{procInstKernelId,jdbcType=VARCHAR},
+        proc_inst_key =
+        #{procInstKey,jdbcType=VARCHAR}
         where id = #{id,jdbcType=INTEGER}
     </update>
-    
-    <select id="findOneByProcInstKernelId"
-        parameterType="java.lang.String" resultMap="BaseResultMap">
+
+    <select id="findOneByProcInstKernelId" parameterType="java.lang.String"
+        resultMap="BaseResultMap">
         select
         <include refid="Base_Column_List" />
         from core_ru_proc_inst_info
-        where proc_inst_kernel_id = #{procInstKernelId,jdbcType=VARCHAR}
+        where proc_inst_kernel_id =
+        #{procInstKernelId,jdbcType=VARCHAR}
     </select>
-    
-    <select id="findByProcDefIdIn"
-        parameterType="list" resultMap="BaseResultMap">
+
+    <select id="findByProcDefIdIn" parameterType="list"
+        resultMap="BaseResultMap">
         select
         <include refid="Base_Column_List" />
         from core_ru_proc_inst_info
         <where>
             proc_def_id in
-            <foreach item="procDefId" collection="procDefIds" separator="," open="(" close=")" index="">    
-                #{procDefId, jdbcType=VARCHAR}    
+            <foreach item="procDefId" collection="procDefIds"
+                separator="," open="(" close=")" index="">
+                #{procDefId,
+                jdbcType=VARCHAR}
             </foreach>
         </where>
     </select>
-    
-    <select id="findAllByProcDefId"
-        parameterType="java.lang.String" resultMap="BaseResultMap">
+
+    <select id="findAllByProcDefId" parameterType="java.lang.String"
+        resultMap="BaseResultMap">
         select
         <include refid="Base_Column_List" />
         from core_ru_proc_inst_info
-        where proc_def_id = #{procDefId,jdbcType=VARCHAR}
+        where proc_def_id =
+        #{procDefId,jdbcType=VARCHAR}
     </select>
+
+
+    <select id="findAllByProcInstInfoByRoleNames" parameterType="java.lang.String"
+        resultType="com.webank.wecube.platform.core.entity.workflow.ProcInstInfoQueryEntity">
+        SELECT distinct
+        t1.id AS id,
+        t1.created_time AS createdTime,
+        t1.oper AS operator,
+        t1.status AS status,
+        t1.proc_inst_key AS
+        procInstKey,
+        t1.proc_def_name AS procDefName,
+        t1.proc_def_id AS
+        procDefId,
+        t2.entity_data_id AS entityDataId,
+        t2.entity_type_id AS
+        entityTypeId,
+        t2.entity_data_name AS entityDataName
+        FROM
+        core_ru_proc_inst_info t1
+        LEFT JOIN
+        core_ru_proc_exec_binding t2
+        ON t1.id = t2.proc_inst_id
+        AND
+        t2.bind_type = 'process'
+        JOIN core_ru_proc_role_binding t3 ON
+        t1.proc_def_id = t3.proc_id
+        AND t3.role_name IN
+        <foreach item="roleName" collection="roleNames"
+            separator="," open="(" close=")" index="">
+            #{roleName,
+            jdbcType=VARCHAR}
+        </foreach>
+        AND
+        t3.permission = 'USE'
+        ORDER BY t1.created_time DESC LIMIT 500
+    </select>
+
+
 </mapper>
