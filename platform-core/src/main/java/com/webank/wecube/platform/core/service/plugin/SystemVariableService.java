@@ -33,7 +33,7 @@ public class SystemVariableService {
     private SystemVariablesMapper systemVariablesMapper;
     
     @Autowired
-    private SystemVariableDataService systemVariableDataService;
+    private PluginPageableDataService systemVariableDataService;
 
     @Autowired
     private RoleMenuMapper roleMenuMapper;
