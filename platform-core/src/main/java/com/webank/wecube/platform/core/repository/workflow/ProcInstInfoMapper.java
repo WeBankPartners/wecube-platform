@@ -2,10 +2,11 @@ package com.webank.wecube.platform.core.repository.workflow;
 
 import java.util.List;
 
-import org.springframework.data.repository.query.Param;
+import org.apache.ibatis.annotations.Param;
 import org.springframework.stereotype.Repository;
 
 import com.webank.wecube.platform.core.entity.workflow.ProcInstInfoEntity;
+import com.webank.wecube.platform.core.entity.workflow.ProcInstInfoQueryEntity;
 
 @Repository
 public interface ProcInstInfoMapper{
@@ -36,5 +37,12 @@ public interface ProcInstInfoMapper{
      * @return
      */
     List<ProcInstInfoEntity> findAllByProcDefId(@Param("procDefId") String procDefId);
+    
+    /**
+     * 
+     * @param roleNames
+     * @return
+     */
+    List<ProcInstInfoQueryEntity> findAllByProcInstInfoByRoleNames(@Param("roleNames")List<String> roleNames);
     
 }
