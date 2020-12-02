@@ -5,9 +5,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.Set;
 
-import javax.persistence.EntityManager;
-import javax.persistence.Query;
-
 import org.apache.commons.lang3.StringUtils;
 import org.camunda.bpm.engine.runtime.ProcessInstance;
 import org.slf4j.Logger;
@@ -85,9 +82,6 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
 
     @Autowired
     protected GraphNodeMapper graphNodeRepository;
-
-    @Autowired
-    private EntityManager entityManager;
 
     public List<TaskNodeDefObjectBindInfoDto> getProcessInstanceExecBindings(Integer procInstId) {
         ProcInstInfoEntity procInstEntity = procInstInfoRepository.selectByPrimaryKey(procInstId);
@@ -717,15 +711,7 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
     }
 
     private List<?> queryProcInstInfoByRoleNames(List<String> roleNames) {
-        //TODO
-        String sql = "select distinct t1.id,t1.created_time,t1.oper,t1.status,t1.proc_inst_key,t1.proc_def_name,t1.proc_def_id,t2.entity_data_id,t2.entity_type_id,t2.entity_data_name "
-                + " from core_ru_proc_inst_info t1  "
-                + " left join core_ru_proc_exec_binding t2 on t1.id = t2.proc_inst_id and t2.bind_type = 'process' "
-                + " join core_ru_proc_role_binding t3 on t1.proc_def_id = t3.proc_id "
-                + " and t3.role_name in (:roleNames) and t3.permission = 'USE' "
-                + " order by t1.created_time desc limit 500";
-        Query query = entityManager.createNativeQuery(sql, ProcInstInfoQueryEntity.class).setParameter("roleNames",
-                roleNames);
-        return query.getResultList();
+        List<ProcInstInfoQueryEntity> insts = procInstInfoRepository.findAllByProcInstInfoByRoleNames(roleNames);
+        return insts;
     }
 }

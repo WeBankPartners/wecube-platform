@@ -7,7 +7,6 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 
 import com.ulisesbocchio.jasyptspringboot.annotation.EnableEncryptableProperties;
 import com.webank.wecube.platform.core.commons.ApplicationProperties;
@@ -28,7 +27,6 @@ import com.webank.wecube.platform.workflow.EnablePlatformWorkflowApplication;
         S3Properties.class, ResourceProperties.class, DockerRemoteProperties.class, AppConfigProperties.class })
 @ComponentScan({ "com.webank.wecube.platform.core.service" })
 @EntityScan(basePackages = { "com.webank.wecube.platform.core" })
-@EnableJpaRepositories(basePackages = { "com.webank.wecube.platform.core" })
 @MapperScan(basePackages = { "com.webank.wecube.platform.core.repository.plugin",
         "com.webank.wecube.platform.core.repository.workflow" })
 @EnablePlatformWorkflowApplication
