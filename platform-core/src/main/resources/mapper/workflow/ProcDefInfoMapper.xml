@@ -348,4 +348,23 @@
         and is_deleted = false
         and status = #{status,jdbcType=VARCHAR}
     </select>
+    
+    <select id="findAllAuthorizedProcDefs"
+         resultType="com.webank.wecube.platform.core.entity.workflow.ProcDefAuthInfoQueryEntity">
+        SELECT t1.id , t1.proc_def_key AS procDefKey,
+        t1.proc_def_name AS procDefName,
+        t1.root_entity AS rootEntity,
+        t1.status AS status,
+        t1.proc_def_ver AS procDefVersion
+        FROM core_re_proc_def_info t1 , core_ru_proc_role_binding t2 
+        WHERE t2.proc_id = t1.id 
+        AND t2.permission = 'USE' 
+        AND t2.role_name IN 
+        <foreach item="roleName" collection="roleNames"
+                separator="," open="(" close=")" index="">
+                #{roleName,
+                jdbcType=VARCHAR}
+        </foreach>
+        AND t1.status = 'deployed'
+    </select>
 </mapper>
