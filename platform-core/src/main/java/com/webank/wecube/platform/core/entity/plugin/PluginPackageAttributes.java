@@ -13,6 +13,8 @@ public class PluginPackageAttributes {
 
     private String dataType;
     
+    private Boolean mandatory;
+    
     private String refPackage;
     
     private String refEntity;
@@ -109,6 +111,14 @@ public class PluginPackageAttributes {
 
     public void setRefAttr(String refAttr) {
         this.refAttr = refAttr;
+    }
+
+    public Boolean getMandatory() {
+        return mandatory;
+    }
+
+    public void setMandatory(Boolean mandatory) {
+        this.mandatory = mandatory;
     }
 
     
