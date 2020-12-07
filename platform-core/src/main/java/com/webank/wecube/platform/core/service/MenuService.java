@@ -16,7 +16,7 @@ import org.springframework.stereotype.Service;
 
 import com.webank.wecube.platform.core.commons.AuthenticationContextHolder;
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
-import com.webank.wecube.platform.core.dto.MenuItemDto;
+import com.webank.wecube.platform.core.dto.plugin.MenuItemDto;
 import com.webank.wecube.platform.core.entity.plugin.MenuItems;
 import com.webank.wecube.platform.core.entity.plugin.PluginPackageMenus;
 import com.webank.wecube.platform.core.entity.plugin.PluginPackages;

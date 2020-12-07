@@ -18,9 +18,9 @@ import org.springframework.web.client.RestTemplate;
 import com.webank.wecube.platform.core.BaseSpringBootTest;
 import com.webank.wecube.platform.core.commons.ApplicationProperties;
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
-import com.webank.wecube.platform.core.dto.DmeFilterDto;
-import com.webank.wecube.platform.core.dto.DmeLinkFilterDto;
-import com.webank.wecube.platform.core.dto.FilterDto;
+import com.webank.wecube.platform.core.dto.plugin.DmeFilterDto;
+import com.webank.wecube.platform.core.dto.plugin.DmeLinkFilterDto;
+import com.webank.wecube.platform.core.dto.plugin.FilterDto;
 
 @Ignore
 public class RootlessExpressionServiceTest extends BaseSpringBootTest {
