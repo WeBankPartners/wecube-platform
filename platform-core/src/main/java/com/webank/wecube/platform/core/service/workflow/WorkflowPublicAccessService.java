@@ -13,8 +13,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.webank.wecube.platform.core.commons.AuthenticationContextHolder;
+import com.webank.wecube.platform.core.commons.WecubeCoreException;
 import com.webank.wecube.platform.core.dto.workflow.DynamicWorkflowInstCreationInfoDto;
 import com.webank.wecube.platform.core.dto.workflow.DynamicWorkflowInstInfoDto;
+import com.webank.wecube.platform.core.dto.workflow.ProcInstTerminationRequestDto;
 import com.webank.wecube.platform.core.dto.workflow.RegisteredEntityAttrDefDto;
 import com.webank.wecube.platform.core.dto.workflow.RegisteredEntityDefDto;
 import com.webank.wecube.platform.core.dto.workflow.WorkflowDefInfoDto;
@@ -54,6 +56,27 @@ public class WorkflowPublicAccessService {
 
     @Autowired
     private EntityQueryExpressionParser entityQueryExpressionParser;
+    
+    @Autowired
+    private WorkflowProcInstService workflowProcInstService;
+    
+    
+    /**
+     * 
+     * @param requestDto
+     */
+    public void createWorkflowInstanceTerminationRequest(ProcInstTerminationRequestDto requestDto){
+        if(requestDto == null){
+            throw new WecubeCoreException("3320", "Unknown which process instance to terminate.");
+        }
+        
+        if(StringUtils.isBlank(requestDto.getProcInstId())){
+            throw new WecubeCoreException("3320", "Unknown which process instance to terminate.");
+        }
+        
+        int procInstId = Integer.parseInt(requestDto.getProcInstId());
+        workflowProcInstService.createProcessInstanceTermination(procInstId);
+    }
 
     /**
      * 
