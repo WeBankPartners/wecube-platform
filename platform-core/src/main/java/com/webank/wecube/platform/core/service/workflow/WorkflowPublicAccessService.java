@@ -74,6 +74,7 @@ public class WorkflowPublicAccessService {
             throw new WecubeCoreException("3320", "Unknown which process instance to terminate.");
         }
         
+        //TODO permission checking
         int procInstId = Integer.parseInt(requestDto.getProcInstId());
         workflowProcInstService.createProcessInstanceTermination(procInstId);
     }
