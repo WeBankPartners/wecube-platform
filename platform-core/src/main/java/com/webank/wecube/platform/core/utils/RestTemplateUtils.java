@@ -2,7 +2,8 @@ package com.webank.wecube.platform.core.utils;
 
 import com.webank.wecube.platform.core.commons.HttpRequestErrorHandler;
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
-import com.webank.wecube.platform.core.dto.CommonResponseDto;
+import com.webank.wecube.platform.core.dto.plugin.CommonResponseDto;
+
 import org.springframework.http.*;
 import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestTemplate;

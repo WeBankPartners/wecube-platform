@@ -1,7 +1,7 @@
 package com.webank.wecube.platform.core.controller.plugin;
 
-import static com.webank.wecube.platform.core.dto.CommonResponseDto.okay;
-import static com.webank.wecube.platform.core.dto.CommonResponseDto.okayWithData;
+import static com.webank.wecube.platform.core.dto.plugin.CommonResponseDto.okay;
+import static com.webank.wecube.platform.core.dto.plugin.CommonResponseDto.okayWithData;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
-import com.webank.wecube.platform.core.dto.CommonResponseDto;
+import com.webank.wecube.platform.core.dto.plugin.CommonResponseDto;
 import com.webank.wecube.platform.core.service.plugin.PluginInstanceMgmtService;
 
 @RestController
