@@ -51,6 +51,8 @@
             property="timeoutExp" />
         <result column="task_category" jdbcType="VARCHAR"
             property="taskCategory" />
+        <result column="dynamic_bind" jdbcType="VARCHAR"
+            property="dynamicBind" />
     </resultMap>
     <sql id="Base_Column_List">
         id, created_by, created_time, updated_by, updated_time, active, rev,
@@ -59,7 +61,7 @@
         proc_def_kernel_id,
         proc_def_key, proc_def_ver, routine_exp, routine_raw, service_id, service_name,
         succeed_node_ids,
-        timeout_exp, task_category
+        timeout_exp, task_category,dynamic_bind
     </sql>
     <select id="selectByPrimaryKey"
         parameterType="java.lang.String" resultMap="BaseResultMap">
@@ -83,7 +85,7 @@
         proc_def_kernel_id, proc_def_key, proc_def_ver,
         routine_exp, routine_raw, service_id,
         service_name, succeed_node_ids, timeout_exp,
-        task_category)
+        task_category,dynamic_bind)
         values (#{id,jdbcType=VARCHAR}, #{createdBy,jdbcType=VARCHAR},
         #{createdTime,jdbcType=TIMESTAMP},
         #{updatedBy,jdbcType=VARCHAR},
@@ -98,7 +100,7 @@
         #{routineExp,jdbcType=VARCHAR}, #{routineRaw,jdbcType=VARCHAR},
         #{serviceId,jdbcType=VARCHAR},
         #{serviceName,jdbcType=VARCHAR}, #{succeedNodeIds,jdbcType=VARCHAR}, #{timeoutExp,jdbcType=VARCHAR},
-        #{taskCategory,jdbcType=VARCHAR})
+        #{taskCategory,jdbcType=VARCHAR},#{dynamicBind,jdbcType=VARCHAR})
     </insert>
     <insert id="insertSelective"
         parameterType="com.webank.wecube.platform.core.entity.workflow.TaskNodeDefInfoEntity">
@@ -179,6 +181,9 @@
             <if test="taskCategory != null">
                 task_category,
             </if>
+            <if test="dynamicBind != null">
+                dynamic_bind,
+            </if>
         </trim>
         <trim prefix="values (" suffix=")" suffixOverrides=",">
             <if test="id != null">
@@ -255,6 +260,9 @@
             </if>
             <if test="taskCategory != null">
                 #{taskCategory,jdbcType=VARCHAR},
+            </if>
+            <if test="dynamicBind != null">
+                #{dynamicBind,jdbcType=VARCHAR},
             </if>
         </trim>
     </insert>
@@ -334,6 +342,9 @@
             <if test="taskCategory != null">
                 task_category = #{taskCategory,jdbcType=VARCHAR},
             </if>
+            <if test="dynamicBind != null">
+                dynamic_bind = #{dynamicBind,jdbcType=VARCHAR},
+            </if>
         </set>
         where id = #{id,jdbcType=VARCHAR}
     </update>
@@ -363,7 +374,8 @@
         service_name = #{serviceName,jdbcType=VARCHAR},
         succeed_node_ids = #{succeedNodeIds,jdbcType=VARCHAR},
         timeout_exp = #{timeoutExp,jdbcType=VARCHAR},
-        task_category = #{taskCategory,jdbcType=VARCHAR}
+        task_category = #{taskCategory,jdbcType=VARCHAR},
+        dynamic_bind = #{dynamicBind,jdbcType=VARCHAR}
         where id = #{id,jdbcType=VARCHAR}
     </update>
     
