@@ -1,6 +1,6 @@
 package com.webank.wecube.platform.core.service.user;
 
-import com.webank.wecube.platform.core.dto.FavoritesDto;
+import com.webank.wecube.platform.core.dto.plugin.FavoritesDto;
 import com.webank.wecube.platform.core.dto.workflow.ProcRoleRequestDto;
 
 import java.util.List;
