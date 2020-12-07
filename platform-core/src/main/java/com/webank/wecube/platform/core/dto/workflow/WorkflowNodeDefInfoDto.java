@@ -87,4 +87,29 @@ public class WorkflowNodeDefInfoDto {
         this.boundEntity = boundEntity;
     }
 
+    @Override
+    public String toString() {
+        StringBuilder builder = new StringBuilder();
+        builder.append("WorkflowNodeDefInfoDto [nodeId=");
+        builder.append(nodeId);
+        builder.append(", nodeName=");
+        builder.append(nodeName);
+        builder.append(", nodeType=");
+        builder.append(nodeType);
+        builder.append(", nodeDefId=");
+        builder.append(nodeDefId);
+        builder.append(", taskCategory=");
+        builder.append(taskCategory);
+        builder.append(", routineExp=");
+        builder.append(routineExp);
+        builder.append(", serviceId=");
+        builder.append(serviceId);
+        builder.append(", serviceName=");
+        builder.append(serviceName);
+        builder.append(", boundEntity=");
+        builder.append(boundEntity);
+        builder.append("]");
+        return builder.toString();
+    }
+
 }
