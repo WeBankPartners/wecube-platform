@@ -30,6 +30,8 @@ import com.webank.wecube.platform.core.repository.plugin.PluginPackageEntitiesMa
 import com.webank.wecube.platform.core.repository.workflow.ProcDefInfoMapper;
 import com.webank.wecube.platform.core.repository.workflow.ProcRoleBindingMapper;
 import com.webank.wecube.platform.core.repository.workflow.TaskNodeDefInfoMapper;
+import com.webank.wecube.platform.core.service.dme.EntityQueryExprNodeInfo;
+import com.webank.wecube.platform.core.service.dme.EntityQueryExpressionParser;
 
 @Service
 public class WorkflowPublicAccessService {
@@ -49,6 +51,9 @@ public class WorkflowPublicAccessService {
 
     @Autowired
     private PluginPackageAttributesMapper pluginPackageAttributesMapper;
+
+    @Autowired
+    private EntityQueryExpressionParser entityQueryExpressionParser;
 
     /**
      * 
@@ -149,6 +154,14 @@ public class WorkflowPublicAccessService {
             nodeDto.setServiceId(nodeDefInfo.getServiceId());
             nodeDto.setServiceName(nodeDefInfo.getServiceName());
 
+            nodeDto.setRoutineExp(nodeDefInfo.getRoutineExp());
+            nodeDto.setTaskCategory(nodeDefInfo.getTaskCategory());
+
+            RegisteredEntityDefDto boundEntity = buildTaskNodeBoundEntity(nodeDefInfo);
+
+            // bound entity
+            nodeDto.setBoundEntity(boundEntity);
+
             nodeDefInfoDtos.add(nodeDto);
         }
 
@@ -164,6 +177,22 @@ public class WorkflowPublicAccessService {
         return new DynamicWorkflowInstInfoDto();
     }
 
+    private RegisteredEntityDefDto buildTaskNodeBoundEntity(TaskNodeDefInfoEntity nodeDefInfo) {
+        String routineExp = nodeDefInfo.getRoutineExp();
+        if (StringUtils.isBlank(routineExp)) {
+            return null;
+        }
+
+        List<EntityQueryExprNodeInfo> exprNodeInfos = this.entityQueryExpressionParser.parse(routineExp);
+        if (exprNodeInfos == null || exprNodeInfos.isEmpty()) {
+            return null;
+        }
+
+        EntityQueryExprNodeInfo tailExprNodeInfo = exprNodeInfos.get(exprNodeInfos.size() - 1);
+
+        return buildRegisteredEntityDefDto(tailExprNodeInfo.getPackageName(), tailExprNodeInfo.getEntityName());
+    }
+
     private RegisteredEntityDefDto buildRegisteredEntityDefDto(String rootEntity) {
         if (StringUtils.isBlank(rootEntity)) {
             return null;
@@ -177,6 +206,11 @@ public class WorkflowPublicAccessService {
 
         String packageName = rootEntityParts[0];
         String entityName = rootEntityParts[1];
+
+        return buildRegisteredEntityDefDto(packageName, entityName);
+    }
+
+    private RegisteredEntityDefDto buildRegisteredEntityDefDto(String packageName, String entityName) {
         //
         PluginPackageEntities entity = findLatestPluginPackageEntity(packageName, entityName);
         if (entity == null) {

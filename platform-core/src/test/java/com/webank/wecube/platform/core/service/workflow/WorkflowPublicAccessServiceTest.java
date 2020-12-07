@@ -16,6 +16,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 import com.webank.wecube.platform.core.commons.AuthenticationContextHolder;
 import com.webank.wecube.platform.core.commons.AuthenticationContextHolder.AuthenticatedUser;
 import com.webank.wecube.platform.core.dto.workflow.WorkflowDefInfoDto;
+import com.webank.wecube.platform.core.dto.workflow.WorkflowNodeDefInfoDto;
 
 @Ignore
 @RunWith(SpringRunner.class)
@@ -42,7 +43,10 @@ public class WorkflowPublicAccessServiceTest {
 
     @Test
     public void testFetchWorkflowTasknodeInfos() {
-        fail("Not yet implemented");
+        
+        String procDefId = "rWMKoelC2BR";
+        List<WorkflowNodeDefInfoDto> nodeDefInfos = workflowPublicAccessService.fetchWorkflowTasknodeInfos(procDefId);
+        nodeDefInfos.forEach(System.out::println);
     }
 
     @Test
