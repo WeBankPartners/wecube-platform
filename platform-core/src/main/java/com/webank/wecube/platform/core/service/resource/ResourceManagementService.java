@@ -11,11 +11,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.webank.wecube.platform.core.commons.ApplicationProperties.ResourceProperties;
+import com.webank.wecube.platform.core.dto.plugin.QueryRequestDto;
+import com.webank.wecube.platform.core.dto.plugin.QueryResponse;
+import com.webank.wecube.platform.core.dto.plugin.ResourceItemDto;
+import com.webank.wecube.platform.core.dto.plugin.ResourceServerDto;
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
-import com.webank.wecube.platform.core.dto.QueryRequestDto;
-import com.webank.wecube.platform.core.dto.QueryResponse;
-import com.webank.wecube.platform.core.dto.ResourceItemDto;
-import com.webank.wecube.platform.core.dto.ResourceServerDto;
 import com.webank.wecube.platform.core.entity.plugin.ResourceItem;
 import com.webank.wecube.platform.core.entity.plugin.ResourceServer;
 import com.webank.wecube.platform.core.repository.plugin.ResourceItemMapper;
@@ -55,7 +55,7 @@ public class ResourceManagementService {
             resultDataList.add(dto);
         }
 
-        com.webank.wecube.platform.core.dto.PageInfo respPageInfo = new com.webank.wecube.platform.core.dto.PageInfo();
+        com.webank.wecube.platform.core.dto.plugin.PageInfo respPageInfo = new com.webank.wecube.platform.core.dto.plugin.PageInfo();
         respPageInfo.setPageSize(queryRequest.getPageable().getPageSize());
         respPageInfo.setStartIndex(queryRequest.getPageable().getStartIndex());
         respPageInfo.setTotalRows((int) pageInfo.getTotal());
@@ -79,7 +79,7 @@ public class ResourceManagementService {
             resultDataList.add(dto);
         }
 
-        com.webank.wecube.platform.core.dto.PageInfo respPageInfo = new com.webank.wecube.platform.core.dto.PageInfo();
+        com.webank.wecube.platform.core.dto.plugin.PageInfo respPageInfo = new com.webank.wecube.platform.core.dto.plugin.PageInfo();
         respPageInfo.setPageSize(queryRequest.getPageable().getPageSize());
         respPageInfo.setStartIndex(queryRequest.getPageable().getStartIndex());
         respPageInfo.setTotalRows((int) pageInfo.getTotal());
