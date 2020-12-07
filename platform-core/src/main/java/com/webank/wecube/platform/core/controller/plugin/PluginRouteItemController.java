@@ -10,8 +10,8 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.webank.wecube.platform.core.dto.CommonResponseDto;
-import com.webank.wecube.platform.core.dto.PluginRouteItemDto;
+import com.webank.wecube.platform.core.dto.plugin.CommonResponseDto;
+import com.webank.wecube.platform.core.dto.plugin.PluginRouteItemDto;
 import com.webank.wecube.platform.core.service.plugin.PluginRouteItemService;
 
 @RestController

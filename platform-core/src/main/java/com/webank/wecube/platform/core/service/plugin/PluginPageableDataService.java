@@ -7,8 +7,8 @@ import org.springframework.stereotype.Service;
 
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
-import com.webank.wecube.platform.core.dto.PageableDto;
-import com.webank.wecube.platform.core.dto.QueryRequestDto;
+import com.webank.wecube.platform.core.dto.plugin.PageableDto;
+import com.webank.wecube.platform.core.dto.plugin.QueryRequestDto;
 import com.webank.wecube.platform.core.entity.plugin.ResourceItem;
 import com.webank.wecube.platform.core.entity.plugin.ResourceItemExample;
 import com.webank.wecube.platform.core.entity.plugin.ResourceServer;
