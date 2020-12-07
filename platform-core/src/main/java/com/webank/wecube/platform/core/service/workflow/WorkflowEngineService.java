@@ -99,6 +99,11 @@ public class WorkflowEngineService {
     private List<String> statelessNodeTypes = Arrays.asList("startEvent", "endEvent", "exclusiveGateway",
             "parallelGateway");
 
+    public void deleteProcessInstance(String processInstanceId){
+        String deleteReason = "Aborted by admin user";
+        runtimeService.deleteProcessInstance(processInstanceId, deleteReason);
+    }
+    
     public String getTaskNodeStatus(String procInstanceId, String nodeId) {
         ServiceNodeStatusEntity nodeStatusEntity = serviceNodeStatusRepository
                 .findOneByProcInstanceIdAndNodeId(procInstanceId, nodeId);
