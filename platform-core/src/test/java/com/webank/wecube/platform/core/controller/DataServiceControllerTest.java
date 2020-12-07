@@ -1,7 +1,8 @@
 package com.webank.wecube.platform.core.controller;
 
 import com.webank.wecube.platform.core.commons.ApplicationProperties;
-import com.webank.wecube.platform.core.dto.CommonResponseDto;
+import com.webank.wecube.platform.core.dto.plugin.CommonResponseDto;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
