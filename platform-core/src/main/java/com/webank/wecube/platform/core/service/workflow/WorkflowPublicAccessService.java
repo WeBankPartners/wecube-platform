@@ -50,6 +50,10 @@ public class WorkflowPublicAccessService {
     @Autowired
     private PluginPackageAttributesMapper pluginPackageAttributesMapper;
 
+    /**
+     * 
+     * @return
+     */
     public List<WorkflowDefInfoDto> fetchLatestReleasedWorkflowDefs() {
         List<WorkflowDefInfoDto> procDefInfoDtos = new ArrayList<>();
         Set<String> currUserRoleNames = AuthenticationContextHolder.getCurrentUserRoles();
@@ -90,78 +94,12 @@ public class WorkflowPublicAccessService {
 
         return procDefInfoDtos;
     }
-
-    private RegisteredEntityDefDto buildRegisteredEntityDefDto(String rootEntity) {
-        if (StringUtils.isBlank(rootEntity)) {
-            return null;
-        }
-
-        String[] rootEntityParts = rootEntity.split(":");
-        if (rootEntityParts.length != 2) {
-            log.info("Abnormal root entity string : {}", rootEntity);
-            return null;
-        }
-
-        String packageName = rootEntityParts[0];
-        String entityName = rootEntityParts[1];
-        //
-        PluginPackageEntities entity = findLatestPluginPackageEntity(packageName, entityName);
-        if (entity == null) {
-            log.info("Cannot find entity with package name: {} and entity name: {}", packageName, entityName);
-            return null;
-        }
-        RegisteredEntityDefDto entityDefDto = new RegisteredEntityDefDto();
-        entityDefDto.setDescription(entity.getDescription());
-        entityDefDto.setDisplayName(entity.getDisplayName());
-        entityDefDto.setId(entity.getId());
-        entityDefDto.setName(entity.getName());
-        entityDefDto.setPackageName(entity.getPackageName());
-
-        List<PluginPackageAttributes> attrs = findPluginPackageAttributesByEntityId(entity.getId());
-        if (attrs == null || attrs.isEmpty()) {
-            return entityDefDto;
-        }
-
-        for (PluginPackageAttributes attr : attrs) {
-            RegisteredEntityAttrDefDto dto = buildRegisteredEntityAttrDefDto(attr);
-            entityDefDto.getAttributes().add(dto);
-        }
-
-        return entityDefDto;
-    }
-
-    private RegisteredEntityAttrDefDto buildRegisteredEntityAttrDefDto(PluginPackageAttributes attr) {
-        RegisteredEntityAttrDefDto attrDto = new RegisteredEntityAttrDefDto();
-        attrDto.setDataType(attr.getDataType());
-        attrDto.setDescription(attr.getDescription());
-        attrDto.setId(attr.getId());
-        attrDto.setMandatory(attr.getMandatory());
-        attrDto.setName(attr.getName());
-
-        String referenceId = attr.getReferenceId();
-        if (StringUtils.isBlank(referenceId)) {
-            return attrDto;
-        }
-
-        PluginPackageAttributes refAttr = findPluginPackageAttributeById(referenceId);
-        if (refAttr == null) {
-            log.info("Cannot find plugin package attribute by reference id:{}", referenceId);
-            return attrDto;
-        }
-
-        PluginPackageEntities refEntity = findPluginPackageEntityById(refAttr.getEntityId());
-        if (refEntity == null) {
-            log.info("Cannot find plugin package entity by reference entity id:{}", refAttr.getEntityId());
-            return attrDto;
-        }
-
-        attrDto.setRefAttrName(refAttr.getName());
-        attrDto.setRefEntityName(refEntity.getName());
-        attrDto.setRefPackageName(refEntity.getPackageName());
-
-        return attrDto;
-    }
-
+    
+    /**
+     * 
+     * @param procDefId
+     * @return
+     */
     public List<WorkflowNodeDefInfoDto> fetchWorkflowTasknodeInfos(String procDefId) {
         List<WorkflowNodeDefInfoDto> nodeDefInfoDtos = new ArrayList<>();
 
@@ -217,8 +155,69 @@ public class WorkflowPublicAccessService {
         return nodeDefInfoDtos;
     }
 
+    /**
+     * 
+     * @param creationInfoDto
+     * @return
+     */
     public DynamicWorkflowInstInfoDto createNewWorkflowInstance(DynamicWorkflowInstCreationInfoDto creationInfoDto) {
         return new DynamicWorkflowInstInfoDto();
+    }
+
+    private RegisteredEntityDefDto buildRegisteredEntityDefDto(String rootEntity) {
+        if (StringUtils.isBlank(rootEntity)) {
+            return null;
+        }
+
+        String[] rootEntityParts = rootEntity.split(":");
+        if (rootEntityParts.length != 2) {
+            log.info("Abnormal root entity string : {}", rootEntity);
+            return null;
+        }
+
+        String packageName = rootEntityParts[0];
+        String entityName = rootEntityParts[1];
+        //
+        PluginPackageEntities entity = findLatestPluginPackageEntity(packageName, entityName);
+        if (entity == null) {
+            log.info("Cannot find entity with package name: {} and entity name: {}", packageName, entityName);
+            return null;
+        }
+        RegisteredEntityDefDto entityDefDto = new RegisteredEntityDefDto();
+        entityDefDto.setDescription(entity.getDescription());
+        entityDefDto.setDisplayName(entity.getDisplayName());
+        entityDefDto.setId(entity.getId());
+        entityDefDto.setName(entity.getName());
+        entityDefDto.setPackageName(entity.getPackageName());
+
+        List<PluginPackageAttributes> attrs = findPluginPackageAttributesByEntityId(entity.getId());
+        if (attrs == null || attrs.isEmpty()) {
+            return entityDefDto;
+        }
+
+        for (PluginPackageAttributes attr : attrs) {
+            RegisteredEntityAttrDefDto dto = buildRegisteredEntityAttrDefDto(attr);
+            entityDefDto.getAttributes().add(dto);
+        }
+
+        return entityDefDto;
+    }
+
+    private RegisteredEntityAttrDefDto buildRegisteredEntityAttrDefDto(PluginPackageAttributes attr) {
+        RegisteredEntityAttrDefDto attrDto = new RegisteredEntityAttrDefDto();
+        attrDto.setDataType(attr.getDataType());
+        attrDto.setDescription(attr.getDescription());
+        attrDto.setId(attr.getId());
+        attrDto.setMandatory(attr.getMandatory());
+        attrDto.setName(attr.getName());
+        
+        attrDto.setRefAttrName(attr.getRefAttr());
+        attrDto.setRefEntityName(attr.getRefEntity());
+        attrDto.setRefPackageName(attr.getRefPackage());
+        
+        attrDto.setReferenceId(attr.getReferenceId());
+
+        return attrDto;
     }
 
     private PluginPackageEntities findLatestPluginPackageEntity(String packageName, String entityName) {
@@ -228,21 +227,10 @@ public class WorkflowPublicAccessService {
         return entity;
     }
 
-    private PluginPackageEntities findPluginPackageEntityById(String entityId) {
-        PluginPackageEntities entity = this.pluginPackageEntitiesMapper.selectByPrimaryKey(entityId);
-        return entity;
-    }
-
     private List<ProcDefAuthInfoQueryEntity> retrieveAllAuthorizedProcDefs(Set<String> roleNames) {
         List<ProcDefAuthInfoQueryEntity> procDefInfos = this.procDefInfoRepository.findAllAuthorizedProcDefs(roleNames);
 
         return procDefInfos;
-    }
-
-    private PluginPackageAttributes findPluginPackageAttributeById(String attrId) {
-        
-        PluginPackageAttributes attr = this.pluginPackageAttributesMapper.selectByPrimaryKey(attrId);
-        return attr;
     }
 
     private List<PluginPackageAttributes> findPluginPackageAttributesByEntityId(String entityId) {
