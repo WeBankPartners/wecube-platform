@@ -57,6 +57,25 @@ public class WorkflowDefInfoDto {
     public void setCreatedTime(String createdTime) {
         this.createdTime = createdTime;
     }
+
+    @Override
+    public String toString() {
+        StringBuilder builder = new StringBuilder();
+        builder.append("WorkflowDefInfoDto [procDefId=");
+        builder.append(procDefId);
+        builder.append(", procDefKey=");
+        builder.append(procDefKey);
+        builder.append(", procDefName=");
+        builder.append(procDefName);
+        builder.append(", status=");
+        builder.append(status);
+        builder.append(", rootEntity=");
+        builder.append(rootEntity);
+        builder.append(", createdTime=");
+        builder.append(createdTime);
+        builder.append("]");
+        return builder.toString();
+    }
     
     
 
