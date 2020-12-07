@@ -46,6 +46,8 @@ import com.webank.wecube.platform.core.repository.plugin.PluginPackageEntitiesMa
 import com.webank.wecube.platform.core.repository.plugin.PluginPackagesMapper;
 import com.webank.wecube.platform.workflow.commons.LocalIdGenerator;
 
+
+
 @Service
 public class PluginPackageDataModelService {
     private static final Logger log = LoggerFactory.getLogger(PluginPackageDataModelService.class);
