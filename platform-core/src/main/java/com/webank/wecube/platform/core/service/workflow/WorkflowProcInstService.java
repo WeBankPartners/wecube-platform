@@ -83,6 +83,29 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
     @Autowired
     protected GraphNodeMapper graphNodeRepository;
 
+    /**
+     * 
+     * @param procInstId
+     */
+    public void createProcessInstanceTermination(int procInstId) {
+        ProcInstInfoEntity procInstEntity = procInstInfoRepository.selectByPrimaryKey(procInstId);
+        if (procInstEntity == null) {
+            throw new WecubeCoreException("3135", String.format("Such entity with id [%s] does not exist.", procInstId),
+                    procInstId);
+        }
+
+        if (log.isInfoEnabled()) {
+            log.info("About to terminate process instance, procInstId={},procInstKernelId={}", procInstId,
+                    procInstEntity.getProcInstKernelId());
+        }
+        workflowEngineService.deleteProcessInstance(procInstEntity.getProcInstKernelId());
+    }
+
+    /**
+     * 
+     * @param procInstId
+     * @return
+     */
     public List<TaskNodeDefObjectBindInfoDto> getProcessInstanceExecBindings(Integer procInstId) {
         ProcInstInfoEntity procInstEntity = procInstInfoRepository.selectByPrimaryKey(procInstId);
         if (procInstEntity == null) {
@@ -124,6 +147,10 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
         return result;
     }
 
+    /**
+     * 
+     * @param request
+     */
     public void proceedProcessInstance(ProceedProcInstRequestDto request) {
         if (request == null) {
             log.warn("request is null");
@@ -563,8 +590,7 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
             String procInstKey) {
         ProcessInstance processInstance = workflowEngineService.startProcessInstance(processDefinitionId, procInstKey);
 
-        ProcInstInfoEntity procEntity = procInstInfoRepository
-                .selectByPrimaryKey(procInstInfoEntity.getId());
+        ProcInstInfoEntity procEntity = procInstInfoRepository.selectByPrimaryKey(procInstInfoEntity.getId());
 
         if (procEntity == null) {
             log.warn("such record does not exist,id={},procInstKey={}", procInstInfoEntity.getId(), procInstKey);
