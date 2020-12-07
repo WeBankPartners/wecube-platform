@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
-import com.webank.wecube.platform.core.dto.CommonResponseDto;
+import com.webank.wecube.platform.core.dto.plugin.CommonResponseDto;
 
 /**
  * 
