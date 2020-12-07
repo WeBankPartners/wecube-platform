@@ -94,7 +94,7 @@ public class WorkflowPublicAccessService {
 
         return procDefInfoDtos;
     }
-    
+
     /**
      * 
      * @param procDefId
@@ -208,13 +208,13 @@ public class WorkflowPublicAccessService {
         attrDto.setDataType(attr.getDataType());
         attrDto.setDescription(attr.getDescription());
         attrDto.setId(attr.getId());
-        attrDto.setMandatory(attr.getMandatory());
+        attrDto.setMandatory(attr.getMandatory() == null ? false : attr.getMandatory());
         attrDto.setName(attr.getName());
-        
+
         attrDto.setRefAttrName(attr.getRefAttr());
         attrDto.setRefEntityName(attr.getRefEntity());
         attrDto.setRefPackageName(attr.getRefPackage());
-        
+
         attrDto.setReferenceId(attr.getReferenceId());
 
         return attrDto;
@@ -223,7 +223,7 @@ public class WorkflowPublicAccessService {
     private PluginPackageEntities findLatestPluginPackageEntity(String packageName, String entityName) {
         PluginPackageEntities entity = this.pluginPackageEntitiesMapper
                 .selectLatestByPackageNameAndEntityName(packageName, entityName);
-        
+
         return entity;
     }
 
