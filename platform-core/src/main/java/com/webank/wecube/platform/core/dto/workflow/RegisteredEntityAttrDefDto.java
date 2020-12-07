@@ -11,6 +11,8 @@ public class RegisteredEntityAttrDefDto {
     private String refEntityName;
     private String refAttrName;
 
+    private String referenceId;
+
     public String getId() {
         return id;
     }
@@ -75,6 +77,14 @@ public class RegisteredEntityAttrDefDto {
         this.refAttrName = refAttrName;
     }
 
+    public String getReferenceId() {
+        return referenceId;
+    }
+
+    public void setReferenceId(String referenceId) {
+        this.referenceId = referenceId;
+    }
+
     @Override
     public String toString() {
         StringBuilder builder = new StringBuilder();
@@ -94,6 +104,8 @@ public class RegisteredEntityAttrDefDto {
         builder.append(refEntityName);
         builder.append(", refAttrName=");
         builder.append(refAttrName);
+        builder.append(", referenceId=");
+        builder.append(referenceId);
         builder.append("]");
         return builder.toString();
     }
