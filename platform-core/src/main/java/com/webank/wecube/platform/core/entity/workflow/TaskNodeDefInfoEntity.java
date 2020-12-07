@@ -62,6 +62,8 @@ public class TaskNodeDefInfoEntity {
 
     private String taskCategory;
 
+    private String dynamicBind;
+
     public String getId() {
         return id;
     }
@@ -260,6 +262,14 @@ public class TaskNodeDefInfoEntity {
 
     public void setTaskCategory(String taskCategory) {
         this.taskCategory = taskCategory;
+    }
+
+    public String getDynamicBind() {
+        return dynamicBind;
+    }
+
+    public void setDynamicBind(String dynamicBind) {
+        this.dynamicBind = dynamicBind;
     }
 
 }
