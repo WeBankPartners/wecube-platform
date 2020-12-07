@@ -1,12 +1,12 @@
 package com.webank.wecube.platform.core.utils;
 
-import com.webank.wecube.platform.core.dto.FilterDto;
-import com.webank.wecube.platform.core.dto.FilterOperator;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Predicate;
+
+import com.webank.wecube.platform.core.dto.plugin.FilterDto;
+import com.webank.wecube.platform.core.dto.plugin.FilterOperator;
 
 public class FilterUtils {
 

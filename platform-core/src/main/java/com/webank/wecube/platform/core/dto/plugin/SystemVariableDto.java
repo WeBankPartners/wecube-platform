@@ -1,21 +1,23 @@
 package com.webank.wecube.platform.core.dto.plugin;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+
+@JsonInclude(Include.NON_NULL)
 public class SystemVariableDto {
     private String id;
-
     private String packageName;
-
     private String name;
-
     private String value;
-
     private String defaultValue;
-
     private String scope;
-
     private String source;
-
     private String status;
+
+    public SystemVariableDto() {
+    }
+
+    
 
     public String getId() {
         return id;

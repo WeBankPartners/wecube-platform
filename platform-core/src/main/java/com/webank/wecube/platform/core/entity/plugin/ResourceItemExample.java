@@ -6,8 +6,8 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import com.webank.wecube.platform.core.dto.FilterDto;
-import com.webank.wecube.platform.core.dto.FilterOperator;
+import com.webank.wecube.platform.core.dto.plugin.FilterDto;
+import com.webank.wecube.platform.core.dto.plugin.FilterOperator;
 
 public class ResourceItemExample {
     protected String orderByClause;

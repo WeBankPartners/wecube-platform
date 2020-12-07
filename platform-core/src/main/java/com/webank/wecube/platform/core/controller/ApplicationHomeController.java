@@ -1,6 +1,6 @@
 package com.webank.wecube.platform.core.controller;
 
-import static com.webank.wecube.platform.core.dto.CommonResponseDto.okayWithData;
+import static com.webank.wecube.platform.core.dto.plugin.CommonResponseDto.okayWithData;
 
 import java.security.Principal;
 import java.util.List;
@@ -10,8 +10,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.webank.wecube.platform.core.dto.CommonResponseDto;
-import com.webank.wecube.platform.core.dto.MenuItemDto;
+import com.webank.wecube.platform.core.dto.plugin.CommonResponseDto;
+import com.webank.wecube.platform.core.dto.plugin.MenuItemDto;
 import com.webank.wecube.platform.core.service.MenuService;
 
 @RestController

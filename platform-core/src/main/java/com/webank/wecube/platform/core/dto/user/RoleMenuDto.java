@@ -1,8 +1,8 @@
 package com.webank.wecube.platform.core.dto.user;
 
-import com.webank.wecube.platform.core.dto.MenuItemDto;
-
 import java.util.List;
+
+import com.webank.wecube.platform.core.dto.plugin.MenuItemDto;
 
 public class RoleMenuDto {
     private String roleId;

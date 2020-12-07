@@ -1,7 +1,7 @@
 package com.webank.wecube.platform.core.controller.plugin;
 
-import static com.webank.wecube.platform.core.dto.CommonResponseDto.okay;
-import static com.webank.wecube.platform.core.dto.CommonResponseDto.okayWithData;
+import static com.webank.wecube.platform.core.dto.plugin.CommonResponseDto.okay;
+import static com.webank.wecube.platform.core.dto.plugin.CommonResponseDto.okayWithData;
 
 import java.util.List;
 
@@ -16,14 +16,14 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
-import com.webank.wecube.platform.core.dto.CommonResponseDto;
-import com.webank.wecube.platform.core.dto.MenuItemDto;
-import com.webank.wecube.platform.core.dto.PluginPackageInfoDto;
-import com.webank.wecube.platform.core.dto.S3PluginActifactDto;
+import com.webank.wecube.platform.core.dto.plugin.CommonResponseDto;
+import com.webank.wecube.platform.core.dto.plugin.MenuItemDto;
 import com.webank.wecube.platform.core.dto.plugin.PluginDeclarationDto;
 import com.webank.wecube.platform.core.dto.plugin.PluginPackageAuthoritiesDto;
 import com.webank.wecube.platform.core.dto.plugin.PluginPackageDependencyDto;
+import com.webank.wecube.platform.core.dto.plugin.PluginPackageInfoDto;
 import com.webank.wecube.platform.core.dto.plugin.PluginPackageRuntimeResouceDto;
+import com.webank.wecube.platform.core.dto.plugin.S3PluginActifactDto;
 import com.webank.wecube.platform.core.dto.plugin.SystemVariableDto;
 import com.webank.wecube.platform.core.dto.plugin.UploadPackageResultDto;
 import com.webank.wecube.platform.core.service.plugin.PluginArtifactsMgmtService;

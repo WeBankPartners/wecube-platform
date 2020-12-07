@@ -14,9 +14,9 @@ import org.springframework.transaction.annotation.Transactional;
 import com.webank.wecube.platform.core.commons.AuthenticationContextHolder;
 import com.webank.wecube.platform.core.commons.AuthenticationContextHolder.AuthenticatedUser;
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
-import com.webank.wecube.platform.core.dto.QueryRequestDto;
-import com.webank.wecube.platform.core.dto.QueryResponse;
-import com.webank.wecube.platform.core.dto.SystemVariableDto;
+import com.webank.wecube.platform.core.dto.plugin.QueryRequestDto;
+import com.webank.wecube.platform.core.dto.plugin.QueryResponse;
+import com.webank.wecube.platform.core.dto.plugin.SystemVariableDto;
 import com.webank.wecube.platform.core.entity.plugin.RoleMenu;
 import com.webank.wecube.platform.core.entity.plugin.SystemVariables;
 import com.webank.wecube.platform.core.repository.plugin.RoleMenuMapper;
@@ -52,7 +52,7 @@ public class SystemVariableService {
             systemVariableDtos.add(dto);
         }
         
-        com.webank.wecube.platform.core.dto.PageInfo respPageInfo = new com.webank.wecube.platform.core.dto.PageInfo();
+        com.webank.wecube.platform.core.dto.plugin.PageInfo respPageInfo = new com.webank.wecube.platform.core.dto.plugin.PageInfo();
         respPageInfo.setPageSize(queryRequest.getPageable().getPageSize());
         respPageInfo.setStartIndex(queryRequest.getPageable().getStartIndex());
         respPageInfo.setTotalRows((int)pageInfo.getTotal());

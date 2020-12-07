@@ -13,7 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Service;
 
-import com.webank.wecube.platform.core.dto.PluginRouteItemDto;
+import com.webank.wecube.platform.core.dto.plugin.PluginRouteItemDto;
 import com.webank.wecube.platform.core.entity.plugin.PluginInstances;
 import com.webank.wecube.platform.core.entity.plugin.PluginInstancesInfo;
 import com.webank.wecube.platform.core.entity.plugin.PluginPackages;

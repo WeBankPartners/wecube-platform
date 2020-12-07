@@ -23,9 +23,9 @@ import org.springframework.web.util.UriComponents;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
-import com.webank.wecube.platform.core.dto.CommonResponseDto;
-import com.webank.wecube.platform.core.dto.FilterDto;
-import com.webank.wecube.platform.core.dto.UrlToResponseDto;
+import com.webank.wecube.platform.core.dto.plugin.CommonResponseDto;
+import com.webank.wecube.platform.core.dto.plugin.FilterDto;
+import com.webank.wecube.platform.core.dto.plugin.UrlToResponseDto;
 import com.webank.wecube.platform.core.utils.FilterUtils;
 import com.webank.wecube.platform.core.utils.RestTemplateUtils;
 

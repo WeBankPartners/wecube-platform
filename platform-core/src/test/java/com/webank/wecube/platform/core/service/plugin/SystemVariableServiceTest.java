@@ -8,10 +8,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
 
-import com.webank.wecube.platform.core.dto.PageableDto;
-import com.webank.wecube.platform.core.dto.QueryRequestDto;
-import com.webank.wecube.platform.core.dto.QueryResponse;
-import com.webank.wecube.platform.core.dto.SystemVariableDto;
+import com.webank.wecube.platform.core.dto.plugin.PageableDto;
+import com.webank.wecube.platform.core.dto.plugin.QueryRequestDto;
+import com.webank.wecube.platform.core.dto.plugin.QueryResponse;
+import com.webank.wecube.platform.core.dto.plugin.SystemVariableDto;
 
 @Ignore
 @RunWith(SpringRunner.class)

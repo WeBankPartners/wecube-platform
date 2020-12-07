@@ -24,9 +24,9 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import com.webank.wecube.platform.core.commons.ApplicationProperties;
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
-import com.webank.wecube.platform.core.dto.BindedInterfaceEntityDto;
-import com.webank.wecube.platform.core.dto.CommonResponseDto;
-import com.webank.wecube.platform.core.dto.DataModelEntityDto;
+import com.webank.wecube.platform.core.dto.plugin.BindedInterfaceEntityDto;
+import com.webank.wecube.platform.core.dto.plugin.CommonResponseDto;
+import com.webank.wecube.platform.core.dto.plugin.DataModelEntityDto;
 import com.webank.wecube.platform.core.dto.plugin.DynamicDataModelPullResponseDto;
 import com.webank.wecube.platform.core.dto.plugin.DynamicEntityAttributeDto;
 import com.webank.wecube.platform.core.dto.plugin.DynamicPluginEntityDto;
