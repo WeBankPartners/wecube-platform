@@ -709,7 +709,9 @@ public class SystemVariablesExample {
                     break;
                 case CONTAINS:
                     String strVal = (String)val;
-                    condition = String.format("%s like", fieldName);
+                    strVal = strVal.toUpperCase();
+                    strVal = "%"+strVal+"%";
+                    condition = String.format("upper(%s) like", fieldName);
                     addCriterion(condition, strVal, propertyName);
                     break;
                 case EQUAL:
