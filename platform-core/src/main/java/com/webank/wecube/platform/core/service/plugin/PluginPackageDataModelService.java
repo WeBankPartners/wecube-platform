@@ -46,8 +46,6 @@ import com.webank.wecube.platform.core.repository.plugin.PluginPackageEntitiesMa
 import com.webank.wecube.platform.core.repository.plugin.PluginPackagesMapper;
 import com.webank.wecube.platform.workflow.commons.LocalIdGenerator;
 
-
-
 @Service
 public class PluginPackageDataModelService {
     private static final Logger log = LoggerFactory.getLogger(PluginPackageDataModelService.class);
@@ -126,7 +124,7 @@ public class PluginPackageDataModelService {
         if (latestDataModelEntity == null) {
             String errorMessage = String.format("Data model not found for package name=[%s]", packageName);
             log.warn(errorMessage);
-//            throw new WecubeCoreException("3118", errorMessage, packageName);
+            // throw new WecubeCoreException("3118", errorMessage, packageName);
             return new PluginPackageDataModelDto();
         }
 
@@ -154,8 +152,7 @@ public class PluginPackageDataModelService {
         if (dataModel == null) {
             String errorMessage = String.format("Data model not found for package name=[%s]", packageName);
             log.warn(errorMessage);
-//            throw new WecubeCoreException("3124", errorMessage, packageName);
-            //TODO
+            throw new WecubeCoreException("3124", errorMessage, packageName);
         }
 
         if (!dataModel.getIsDynamic()) {
@@ -173,7 +170,13 @@ public class PluginPackageDataModelService {
         dataModelDto.setUpdatePath(dataModel.getUpdatePath());
         dataModelDto.setDynamic(true);
 
-        List<DynamicPluginEntityDto> dynamicPluginPackageEntityDtos = pullDynamicDataModelFromPlugin(dataModel);
+        List<DynamicPluginEntityDto> dynamicPluginPackageEntityDtos = null;
+        try {
+            dynamicPluginPackageEntityDtos = pullDynamicDataModelFromPlugin(dataModel);
+        } catch (Exception e) {
+            log.error("errors to pull dynamic data model from plugin : {}", dataModel.getPackageName(), e);
+            throw new WecubeCoreException("errors to pull dynamic data model from plugin:" + e.getMessage());
+        }
 
         if (dynamicPluginPackageEntityDtos == null || dynamicPluginPackageEntityDtos.isEmpty()) {
             return dataModelDto;
@@ -333,10 +336,10 @@ public class PluginPackageDataModelService {
 
         List<BindedInterfaceEntityDto> referenceToEntityList = new ArrayList<BindedInterfaceEntityDto>();
         List<BindedInterfaceEntityDto> referenceByEntityList = new ArrayList<BindedInterfaceEntityDto>();
-        
+
         PluginPackages latestPluginPackagesEntity = pluginPackageMgmtService
                 .fetchLatestVersionPluginPackage(packageName);
-        if(latestPluginPackagesEntity == null){
+        if (latestPluginPackagesEntity == null) {
             return dataModelEntityDto;
         }
 

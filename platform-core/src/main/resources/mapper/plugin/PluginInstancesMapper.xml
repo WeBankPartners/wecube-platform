@@ -217,7 +217,7 @@
         select
         <include refid="Base_Column_List" />
         from plugin_instances
-        where host = #{host,jdbcType=VARCHAR}
+        where host = #{hostIpAddr,jdbcType=VARCHAR}
         and
         port = #{port,jdbcType=INTEGER}
         and
