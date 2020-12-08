@@ -6,6 +6,7 @@ import java.nio.charset.Charset;
 
 import org.apache.commons.io.IOUtils;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -15,6 +16,7 @@ import com.webank.wecube.platform.core.service.plugin.xml.register.PackageType;
 import com.webank.wecube.platform.core.utils.JaxbUtils;
 
 
+@Ignore
 @RunWith(SpringRunner.class)
 @SpringBootTest
 public class PluginArtifactsMgmtServiceTest {
