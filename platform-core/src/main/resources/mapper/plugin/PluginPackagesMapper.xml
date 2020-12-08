@@ -133,11 +133,12 @@
 
     <select id="countByNameAndVersion" resultType="java.lang.Integer"
         parameterType="java.lang.String">
-        select
-        <include refid="Base_Column_List" />
-        from plugin_packages
-        where name = #{name,jdbcType=VARCHAR}
-        and
+        SELECT
+        count(*)
+        FROM plugin_packages
+        WHERE name =
+        #{name,jdbcType=VARCHAR}
+        AND
         version = #{version,jdbcType=VARCHAR}
     </select>
 

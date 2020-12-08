@@ -359,6 +359,7 @@ public class PluginArtifactsMgmtService extends AbstractPluginMgmtService {
             return result;
         } finally {
             if(localFilePath !=null && localFilePath.exists()){
+                log.info("try to clean up temporary files:{}", localFilePath.getAbsolutePath());
                 FileUtils.deleteQuietly(localFilePath);
             }
 
