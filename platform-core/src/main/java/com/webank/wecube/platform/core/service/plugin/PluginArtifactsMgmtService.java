@@ -118,6 +118,11 @@ public class PluginArtifactsMgmtService extends AbstractPluginMgmtService {
     public static final String DEFAULT_DATA_MODEL_UPDATE_METHOD = "GET";
     public static final String SYS_VAR_PUBLIC_PLUGIN_ARTIFACTS_RELEASE_URL = "PLUGIN_ARTIFACTS_RELEASE_URL";
 
+    public static final String DEFAULT_REQUIRED = "N";
+    public static final String DEFAULT_SENSITIVE_DATA = "N";
+    public static final String DEFAULT_TARGET_ENTITY_FILTER_RULE = "";
+    public static final String DEFAULT_FILTER_RULE_FOR_INTERFACE = "";
+
     private static final String DEFAULT_USER = "sys";
 
     @Autowired
@@ -358,14 +363,14 @@ public class PluginArtifactsMgmtService extends AbstractPluginMgmtService {
 
             return result;
         } finally {
-            if(localFilePath !=null && localFilePath.exists()){
+            if (localFilePath != null && localFilePath.exists()) {
                 log.info("try to clean up temporary files:{}", localFilePath.getAbsolutePath());
                 FileUtils.deleteQuietly(localFilePath);
             }
 
         }
     }
-    
+
     protected UploadPackageResultDto performUploadPackage(MultipartFile pluginPackageFile, File localFilePath) {
         String pluginPackageFileName = pluginPackageFile.getName();
         if (!localFilePath.exists()) {
@@ -391,7 +396,7 @@ public class PluginArtifactsMgmtService extends AbstractPluginMgmtService {
         try {
             result = parsePackageFile(dest, localFilePath);
             log.info("Package uploaded successfully.");
-        } catch (IOException | SAXException e) {
+        } catch (Exception e) {
             log.error("Errors to parse uploaded package file.", e);
             throw new WecubeCoreException("Failed to upload package due to " + e.getMessage());
         }
@@ -433,6 +438,10 @@ public class PluginArtifactsMgmtService extends AbstractPluginMgmtService {
             registerXmlDataAsStr = IOUtils.toString(registerXmlFileFis, Charset.forName("utf-8"));
         } finally {
             closeSilently(registerXmlFileFis);
+        }
+
+        if (log.isInfoEnabled()) {
+            log.info("parsing register xml:{}", registerXmlDataAsStr);
         }
 
         PackageType xmlPackage = JaxbUtils.convertToObject(registerXmlDataAsStr, PackageType.class);
@@ -645,7 +654,10 @@ public class PluginArtifactsMgmtService extends AbstractPluginMgmtService {
 
     private void processDataModels(DataModelType xmlDataModel, PackageType xmlPackage,
             PluginPackages pluginPackageEntity) {
+        log.info("start to process data model...");
+
         if (xmlDataModel == null) {
+            log.info("data model is null...");
             return;
         }
 
@@ -787,6 +799,9 @@ public class PluginArtifactsMgmtService extends AbstractPluginMgmtService {
     }
 
     private void processSinglePlugin(PluginType xmlPlugin, PluginPackages pluginPackageEntity) {
+        if (log.isInfoEnabled()) {
+            log.info("process single plugin:{}", xmlPlugin.getName());
+        }
         PluginConfigs pluginConfigEntity = new PluginConfigs();
         pluginConfigEntity.setId(LocalIdGenerator.generateId());
         pluginConfigEntity.setName(xmlPlugin.getName());
@@ -794,7 +809,10 @@ public class PluginArtifactsMgmtService extends AbstractPluginMgmtService {
         pluginConfigEntity.setRegisterName(xmlPlugin.getRegisterName());
         pluginConfigEntity.setStatus(PluginConfigs.DISABLED);
         pluginConfigEntity.setTargetEntity(xmlPlugin.getTargetEntity());
-        pluginConfigEntity.setTargetEntityFilterRule(xmlPlugin.getTargetEntityFilterRule());
+
+        String targetEntityFilterRule = xmlPlugin.getTargetEntityFilterRule() == null
+                ? DEFAULT_TARGET_ENTITY_FILTER_RULE : xmlPlugin.getTargetEntityFilterRule();
+        pluginConfigEntity.setTargetEntityFilterRule(targetEntityFilterRule);
         pluginConfigEntity.setTargetPackage(xmlPlugin.getTargetPackage());
 
         pluginConfigsMapper.insert(pluginConfigEntity);
@@ -814,6 +832,9 @@ public class PluginArtifactsMgmtService extends AbstractPluginMgmtService {
 
     private void processDefinedInterfaces(InterfaceType xmlIntf, PluginPackages pluginPackageEntity,
             PluginConfigs pluginConfigEntity) {
+        if (log.isInfoEnabled()) {
+            log.info("process interfaces...");
+        }
         if (xmlIntf == null) {
             return;
         }
@@ -821,14 +842,35 @@ public class PluginArtifactsMgmtService extends AbstractPluginMgmtService {
         PluginConfigInterfaces intfEntity = new PluginConfigInterfaces();
         intfEntity.setId(LocalIdGenerator.generateId());
         intfEntity.setAction(xmlIntf.getAction());
-        intfEntity.setFilterRule(xmlIntf.getFilterRule());
-        intfEntity.setHttpMethod(xmlIntf.getHttpMethod());
-        intfEntity.setIsAsyncProcessing(xmlIntf.getIsAsyncProcessing());
+        
+        String filterRule = xmlIntf.getFilterRule();
+        if(StringUtils.isBlank(filterRule)){
+            filterRule = DEFAULT_FILTER_RULE_FOR_INTERFACE;
+        }
+        intfEntity.setFilterRule(filterRule);
+        
+        String httpMethod = xmlIntf.getHttpMethod();
+        if(StringUtils.isBlank(httpMethod)){
+            httpMethod = "POST";
+        }
+        intfEntity.setHttpMethod(httpMethod);
+        String asyncProcessing = xmlIntf.getIsAsyncProcessing();
+        if(StringUtils.isBlank(asyncProcessing)){
+            asyncProcessing = PluginConfigInterfaces.DEFAULT_IS_ASYNC_PROCESSING_VALUE;
+        }
+        intfEntity.setIsAsyncProcessing(asyncProcessing);
         intfEntity.setPath(xmlIntf.getPath());
         intfEntity.setPluginConfigId(pluginConfigEntity.getId());
-        intfEntity.setType(xmlIntf.getType());
+        
+        String interfaceType = xmlIntf.getType();
+        if(StringUtils.isBlank(interfaceType)){
+            interfaceType = PluginConfigInterfaces.DEFAULT_INTERFACE_TYPE;
+        }
+        intfEntity.setType(interfaceType);
         //
-        intfEntity.setServiceName(intfEntity.generateServiceName(pluginPackageEntity, pluginConfigEntity));
+        String serviceName = intfEntity.generateServiceName(pluginPackageEntity, pluginConfigEntity);
+        intfEntity.setServiceName(serviceName);
+        intfEntity.setServiceDisplayName(serviceName);
 
         pluginConfigInterfacesMapper.insert(intfEntity);
 
@@ -864,7 +906,12 @@ public class PluginArtifactsMgmtService extends AbstractPluginMgmtService {
             paramEntity.setName(xmlParameter.getValue());
             paramEntity.setPluginConfigInterface(intfEntity);
             paramEntity.setPluginConfigInterfaceId(intfEntity.getId());
-            paramEntity.setSensitiveData(xmlParameter.getSensitiveData());
+            
+            String sensitiveData = xmlParameter.getSensitiveData();
+            if (StringUtils.isBlank(sensitiveData)) {
+                sensitiveData = DEFAULT_SENSITIVE_DATA;
+            }
+            paramEntity.setSensitiveData(sensitiveData);
             paramEntity.setType(PluginConfigInterfaceParameters.TYPE_OUTPUT);
 
             pluginConfigInterfaceParameters.insert(paramEntity);
@@ -894,8 +941,17 @@ public class PluginArtifactsMgmtService extends AbstractPluginMgmtService {
             paramEntity.setName(xmlParameter.getValue());
             paramEntity.setPluginConfigInterface(intfEntity);
             paramEntity.setPluginConfigInterfaceId(intfEntity.getId());
-            paramEntity.setRequired(xmlParameter.getRequired());
-            paramEntity.setSensitiveData(xmlParameter.getSensitiveData());
+            String required = xmlParameter.getRequired();
+            if (StringUtils.isBlank(required)) {
+                required = DEFAULT_REQUIRED;
+            }
+            paramEntity.setRequired(required);
+
+            String sensitiveData = xmlParameter.getSensitiveData();
+            if (StringUtils.isBlank(sensitiveData)) {
+                sensitiveData = DEFAULT_SENSITIVE_DATA;
+            }
+            paramEntity.setSensitiveData(sensitiveData);
             paramEntity.setType(PluginConfigInterfaceParameters.TYPE_INPUT);
 
             pluginConfigInterfaceParameters.insert(paramEntity);

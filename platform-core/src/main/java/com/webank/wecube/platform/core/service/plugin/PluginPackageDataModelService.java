@@ -125,8 +125,9 @@ public class PluginPackageDataModelService {
 
         if (latestDataModelEntity == null) {
             String errorMessage = String.format("Data model not found for package name=[%s]", packageName);
-            log.error(errorMessage);
-            throw new WecubeCoreException("3118", errorMessage, packageName);
+            log.warn(errorMessage);
+//            throw new WecubeCoreException("3118", errorMessage, packageName);
+            return new PluginPackageDataModelDto();
         }
 
         PluginPackageDataModelDto resultDto = buildPackageViewPluginPackageDataModelDto(latestDataModelEntity);
@@ -152,8 +153,9 @@ public class PluginPackageDataModelService {
 
         if (dataModel == null) {
             String errorMessage = String.format("Data model not found for package name=[%s]", packageName);
-            log.error(errorMessage);
-            throw new WecubeCoreException("3124", errorMessage, packageName);
+            log.warn(errorMessage);
+//            throw new WecubeCoreException("3124", errorMessage, packageName);
+            //TODO
         }
 
         if (!dataModel.getIsDynamic()) {

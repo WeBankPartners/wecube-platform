@@ -1,4 +1,4 @@
-package com.webank.wecube.platform.core.controller;
+package com.webank.wecube.platform.core.controller.plugin;
 
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
 import com.webank.wecube.platform.core.dto.plugin.CommonResponseDto;

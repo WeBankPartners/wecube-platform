@@ -16,6 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
+import com.webank.wecube.platform.core.controller.plugin.DataModelController;
 import com.webank.wecube.platform.core.dto.plugin.DmeDto;
 
 @Ignore

@@ -1,4 +1,4 @@
-package com.webank.wecube.platform.core.controller;
+package com.webank.wecube.platform.core.controller.plugin;
 
 import java.util.List;
 import java.util.stream.Collectors;
