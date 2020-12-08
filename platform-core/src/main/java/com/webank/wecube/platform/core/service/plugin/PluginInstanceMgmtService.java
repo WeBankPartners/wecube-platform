@@ -115,7 +115,7 @@ public class PluginInstanceMgmtService extends AbstractPluginMgmtService {
 
     @Autowired
     private GatewayServiceStub gatewayServiceStub;
-    
+
     @Autowired
     private PluginPackageMenuStatusListener pluginPackageMenuStatusListener;
 
@@ -155,7 +155,12 @@ public class PluginInstanceMgmtService extends AbstractPluginMgmtService {
             throw new WecubeCoreException("3077", errMsg, pluginPackageId);
         }
 
-        doLaunchPluginInstance(pluginPackageEntity, hostIpAddr, port);
+        try {
+            doLaunchPluginInstance(pluginPackageEntity, hostIpAddr, port);
+        } catch (Exception e) {
+            log.error("errors while launch plugin instance.", e);
+            throw new WecubeCoreException("Failed to launch plugin instance:" + e.getMessage());
+        }
     }
 
     private void doLaunchPluginInstance(PluginPackages pluginPackage, String hostIpAddr, Integer port) {
@@ -177,7 +182,6 @@ public class PluginInstanceMgmtService extends AbstractPluginMgmtService {
 
         LocalDatabaseInfo dbInfo = handleCreateDatabase(mysqlInfoSet, pluginPackage);
         if (dbInfo != null) {
-            // TODO ? reource item id?
             pluginInstanceEntity.setPluginMysqlInstanceResourceId(dbInfo.getResourceItemId());
         }
 
@@ -226,7 +230,7 @@ public class PluginInstanceMgmtService extends AbstractPluginMgmtService {
                     createContainerParameters);
             pluginInstanceEntity.setDockerInstanceResourceId(dockerResourceDto.getId());
         } catch (Exception e) {
-            log.error("Creating docker container instance meet error: ", e.getMessage());
+            log.error("Creating docker container instance meet error: ", e);
             throw new WecubeCoreException("3079", "Creating docker container instance meet error: " + e.getMessage(),
                     e);
         }
@@ -238,7 +242,7 @@ public class PluginInstanceMgmtService extends AbstractPluginMgmtService {
 
         // 4. insert to DB
         pluginInstanceEntity.setContainerStatus(PluginInstances.CONTAINER_STATUS_RUNNING);
-        
+
         pluginPackageMenuStatusListener.prePersist(pluginInstanceEntity);
         pluginInstancesMapper.insert(pluginInstanceEntity);
 
@@ -293,7 +297,7 @@ public class PluginInstanceMgmtService extends AbstractPluginMgmtService {
             scpService.put(hostIp, Integer.valueOf(hostInfo.getPort()), hostInfo.getLoginUsername(), password,
                     tmpFilePath, pluginProperties.getPluginDeployPath());
         } catch (Exception e) {
-            log.error("Put file to remote host meet error: {}", e.getMessage());
+            log.error("Put file to remote host meet error", e);
             throw new WecubeCoreException("3085",
                     String.format("Put file to remote host meet error:%s ", e.getMessage()), e);
         }
@@ -494,6 +498,7 @@ public class PluginInstanceMgmtService extends AbstractPluginMgmtService {
 
         if (mysqlInstancesEntities == null || mysqlInstancesEntities.isEmpty()) {
             // new mysql instance
+            // TODDO
             LocalDatabaseInfo newLocalDatabaseInfo = tryInitMysqlDatabaseSchema(mysqlInfoResourceEntities,
                     pluginPackage);
             return newLocalDatabaseInfo;
@@ -513,6 +518,8 @@ public class PluginInstanceMgmtService extends AbstractPluginMgmtService {
     private LocalDatabaseInfo tryHandleExistMysqlInstance(PluginMysqlInstances mysqlInstance,
             PluginPackages pluginPackage) {
         // already exists
+        //
+        log.info("Mysql instance already existed for {} and try to process upgrading.", pluginPackage.getName());
         ResourceItem resourceItemEntity = resourceItemMapper.selectByPrimaryKey(mysqlInstance.getResourceItemId());
         ResourceServer resourceServerEntity = resourceServerMapper
                 .selectByPrimaryKey(resourceItemEntity.getResourceServerId());
@@ -537,7 +544,9 @@ public class PluginInstanceMgmtService extends AbstractPluginMgmtService {
 
     private LocalDatabaseInfo tryInitMysqlDatabaseSchema(List<PluginPackageRuntimeResourcesMysql> mysqlResources,
             PluginPackages pluginPackage) {
-        if (mysqlResources.size() != 0) {
+        log.info("Mysql instance does not exist for {} and try to process initializing.", pluginPackage.getName());
+
+        if (mysqlResources.size() > 0) {
             PluginMysqlInstances mysqlInstance = tryCreatePluginMysqlDatabase(mysqlResources.get(0),
                     pluginPackage.getVersion(), pluginPackage);
 
@@ -554,8 +563,10 @@ public class PluginInstanceMgmtService extends AbstractPluginMgmtService {
             // execute init.sql
             tryInitMysqlDatabaseTables(resourceServerEntity, mysqlInstance, pluginPackage);
             return dbInfo;
+        } else {
+            log.warn("mysql resources is empty for {}", pluginPackage.getName());
+            return null;
         }
-        return null;
     }
 
     // execute init.sql
@@ -567,7 +578,7 @@ public class PluginInstanceMgmtService extends AbstractPluginMgmtService {
 
         String s3KeyName = pluginPackage.getName() + File.separator + pluginPackage.getVersion() + File.separator
                 + pluginProperties.getInitDbSql();
-        log.info("Download init.sql from S3: {}", s3KeyName);
+        log.info("Download init.sql from S3: {} {}", s3KeyName, initSqlPath);
 
         s3Client.downFile(pluginProperties.getPluginPackageBucketName(), s3KeyName, initSqlPath);
 
@@ -596,7 +607,7 @@ public class PluginInstanceMgmtService extends AbstractPluginMgmtService {
         } catch (Exception e) {
             String errorMessage = String.format("Failed to execute init.sql for schema[%s]",
                     mysqlInstance.getSchemaName());
-            log.error(errorMessage);
+            log.error(errorMessage, e);
             throw new WecubeCoreException("3080", errorMessage, e);
         }
         log.info(String.format("Init database[%s] tables has done..", mysqlInstance.getSchemaName()));
@@ -648,6 +659,7 @@ public class PluginInstanceMgmtService extends AbstractPluginMgmtService {
         newMysqlInstanceEntity.setResourceItemId(result.get(0).getId());
         newMysqlInstanceEntity.setSchemaName(mysqlResourceInfo.getSchemaName());
         newMysqlInstanceEntity.setStatus(PluginMysqlInstances.MYSQL_INSTANCE_STATUS_ACTIVE);
+        newMysqlInstanceEntity.setUsername(dbUser);
 
         pluginMysqlInstancesMapper.insert(newMysqlInstanceEntity);
 
@@ -674,6 +686,9 @@ public class PluginInstanceMgmtService extends AbstractPluginMgmtService {
         if (isStringBlank(latestVersion)) {
             latestVersion = pluginPackage.getVersion();
         }
+
+        log.info("try to upgrade databaase, latest version {} and current version {}, no need to upgrade.",
+                latestVersion, pluginPackage.getVersion());
 
         try {
             log.info("try to perform database upgrade for {} {}", pluginPackage.getName(), pluginPackage.getVersion());
@@ -749,7 +764,7 @@ public class PluginInstanceMgmtService extends AbstractPluginMgmtService {
         } catch (Exception e) {
             String errorMessage = String.format("Failed to execute [%s] for schema[%s]", upgradeSqlFile.getName(),
                     mysqlInstance.getSchemaName());
-            log.error(errorMessage);
+            log.error(errorMessage, e);
             throw new WecubeCoreException("3075", errorMessage, e);
         }
         log.info(String.format("Upgrade database[%s] finished...", mysqlInstance.getSchemaName()));

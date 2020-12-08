@@ -240,8 +240,7 @@
         where plugin_package_id = #{pluginPackageId,jdbcType=VARCHAR}
     </select>
     
-    <select id="selectAllMenusByStatusAndPluginPackage" resultMap="BaseResultMap"
-        parameterType="java.lang.String">
+    <select id="selectAllMenusByStatusAndPluginPackage" resultMap="BaseResultMap">
         select
         <include refid="Base_Column_List" />
         from plugin_package_menus
