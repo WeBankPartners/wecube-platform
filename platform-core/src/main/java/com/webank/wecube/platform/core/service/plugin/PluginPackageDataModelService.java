@@ -182,7 +182,7 @@ public class PluginPackageDataModelService {
             return dataModelDto;
         }
 
-        int newDataModelVersion = dataModel.getVersion();
+        int newDataModelVersion = dataModel.getVersion() + 1;
         PluginPackageDataModel newDataModelEntity = new PluginPackageDataModel();
         newDataModelEntity.setId(LocalIdGenerator.generateId());
         newDataModelEntity.setIsDynamic(dataModel.getIsDynamic());
@@ -715,6 +715,7 @@ public class PluginPackageDataModelService {
         entitiesEntity.setDescription(dynamicPluginPackageEntityDto.getDescription());
         entitiesEntity.setDisplayName(dynamicPluginPackageEntityDto.getDisplayName());
         entitiesEntity.setName(dynamicPluginPackageEntityDto.getName());
+        entitiesEntity.setDataModelId(newDataModelEntity.getId());
 
         String packageName = dynamicPluginPackageEntityDto.getPackageName();
         if (StringUtils.isBlank(packageName)) {
