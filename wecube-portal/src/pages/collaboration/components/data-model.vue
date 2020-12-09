@@ -1,27 +1,14 @@
 <template>
   <div>
-    <!-- <div>111</div> -->
     <div id="dataModelContainer">
       <Button class="data-model-reset-button" size="small" @click="ResetModel">ResetZoom</Button>
-      <!-- <div class="loading" v-if="isLoading"> -->
       <Spin v-if="isLoading" fix size="large">
         <Icon type="ios-loading" size="54" class="demo-spin-icon-load"></Icon>
-        <!-- <div>Loading</div> -->
       </Spin>
-      <!-- </div> -->
-      <div v-show="dataModel.dynamic" style="padding-left:3px;margin-bottom: 10px">
+      <div style="padding-left:3px;margin-bottom: 10px">
         <Button size="small" shape="circle" type="primary" icon="md-sync" @click="getData(true)">{{
           $t('get_dynamic_model')
         }}</Button>
-        <Button
-          :disabled="isApplyBtnDisabled"
-          size="small"
-          shape="circle"
-          type="primary"
-          icon="md-hammer"
-          @click="applyNewDataModel"
-          >{{ $t('apply_data_model') }}</Button
-        >
       </div>
       <div v-if="!dataModel.dynamic && dataModel.pluginPackageEntities && dataModel.pluginPackageEntities.length === 0">
         {{ $t('no_data_model_provided') }}
@@ -80,18 +67,31 @@ export default {
           this.isApplyBtnDisabled = false
         }
         this.dataModel = data
-        this.data = data.pluginPackageEntities.map(_ => {
-          return {
-            ..._,
-            id: '[' + _.packageName + ']' + _.name,
-            tos: _.referenceToEntityList.map(to => {
-              return { ...to, id: '[' + to.packageName + ']' + to.name }
-            }),
-            bys: _.referenceByEntityList.map(by => {
-              return { ...by, id: '[' + by.packageName + ']' + by.name }
-            })
-          }
-        })
+        this.data = data.entities
+          .sort(function (a, b) {
+            let nameA = a.name.toUpperCase()
+            let nameB = b.name.toUpperCase()
+            if (nameA < nameB) {
+              return -1
+            }
+            if (nameA > nameB) {
+              return 1
+            }
+            return 0
+          })
+          .map(_ => {
+            return {
+              ..._,
+              id: '[' + _.packageName + ']' + _.name,
+              tos: _.referenceToEntityList.map(to => {
+                return { ...to, id: '[' + to.packageName + ']' + to.name }
+              }),
+              bys: _.referenceByEntityList.map(by => {
+                return { ...by, id: '[' + by.packageName + ']' + by.name }
+              })
+            }
+          })
+        console.log(this.data)
         this.initGraph()
       }
     },
