@@ -1,5 +1,6 @@
 package com.webank.wecube.platform.core.dto.user;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import com.webank.wecube.platform.core.dto.plugin.MenuItemDto;
@@ -7,7 +8,7 @@ import com.webank.wecube.platform.core.dto.plugin.MenuItemDto;
 public class RoleMenuDto {
     private String roleId;
     private String roleName;
-    private List<MenuItemDto> menuList;
+    private List<MenuItemDto> menuList = new ArrayList<>();
 
     public RoleMenuDto() {
         super();
@@ -19,7 +20,9 @@ public class RoleMenuDto {
     }
 
     public List<MenuItemDto> getMenuList() {
-        menuList.sort(MenuItemDto::compareTo);
+        if (menuList != null) {
+            menuList.sort(MenuItemDto::compareTo);
+        }
         return menuList;
     }
 
