@@ -13,7 +13,7 @@ public class PluginPackageAttributes {
 
     private String dataType;
     
-    private Boolean mandatory;
+    private Boolean mandatory = false;
     
     private String refPackage;
     

@@ -17,14 +17,15 @@
         <result column="ref_entity" property="refEntity"
             jdbcType="VARCHAR" />
         <result column="ref_attr" property="refAttr" jdbcType="VARCHAR" />
+        <result column="mandatory" property="mandatory" jdbcType="BIT" />
     </resultMap>
     <sql id="Base_Column_List">
         id, entity_id, reference_id, name, description,
-        data_type,ref_package,ref_entity,ref_attr
+        data_type,ref_package,ref_entity,ref_attr,mandatory
     </sql>
     <sql id="Base_Column_List_T1">
         t1.id, t1.entity_id, t1.reference_id, t1.name, t1.description,
-        t1.data_type,t1.ref_package,t1.ref_entity,t1.ref_attr
+        t1.data_type,t1.ref_package,t1.ref_entity,t1.ref_attr,t1.mandatory
     </sql>
     <select id="selectByPrimaryKey" resultMap="BaseResultMap"
         parameterType="java.lang.String">
@@ -50,7 +51,8 @@
         data_type,
         ref_package,
         ref_entity,
-        ref_attr
+        ref_attr,
+        mandatory
         )
         values
         (
@@ -60,9 +62,10 @@
         #{name,jdbcType=VARCHAR},
         #{description,jdbcType=VARCHAR}, 
         #{dataType,jdbcType=VARCHAR},
-        #{refPackage,jdbcType=VARCHAR}
-        #{refEntity,jdbcType=VARCHAR}
-        #{refAttr,jdbcType=VARCHAR}
+        #{refPackage,jdbcType=VARCHAR},
+        #{refEntity,jdbcType=VARCHAR},
+        #{refAttr,jdbcType=VARCHAR},
+        #{mandatory,jdbcType=VARCHAR}
         )
     </insert>
     <insert id="insertSelective"
@@ -96,6 +99,9 @@
             <if test="refAttr != null">
                 ref_attr,
             </if>
+            <if test="mandatory != null">
+                mandatory,
+            </if>
         </trim>
         <trim prefix="values (" suffix=")" suffixOverrides=",">
             <if test="id != null">
@@ -124,6 +130,9 @@
             </if>
             <if test="refAttr != null">
                 #{refAttr,jdbcType=VARCHAR},
+            </if>
+            <if test="mandatory != null">
+                #{mandatory,jdbcType=BIT},
             </if>
         </trim>
     </insert>
@@ -155,6 +164,9 @@
             <if test="refAttr != null">
                 ref_attr = #{refAttr,jdbcType=VARCHAR},
             </if>
+            <if test="mandatory != null">
+                mandatory = #{mandatory,jdbcType=BIT},
+            </if>
         </set>
         where id = #{id,jdbcType=VARCHAR}
     </update>
@@ -174,7 +186,8 @@
         ref_entity =
         #{refEntity,jdbcType=VARCHAR},
         ref_attr =
-        #{refAttr,jdbcType=VARCHAR}
+        #{refAttr,jdbcType=VARCHAR},
+        mandatory = #{mandatory,jdbcType=BIT}
         where id = #{id,jdbcType=VARCHAR}
     </update>
 
@@ -221,7 +234,7 @@
         AND t2.package_name = #{packageName,jdbcType=VARCHAR}
         AND t2.name = #{entityName,jdbcType=VARCHAR}
         AND t2.data_model_version = (
-            SELECT max(t3.data_model_version) FROM plugin_package_entities
+            SELECT max(t3.data_model_version) FROM plugin_package_entities t3
             WHERE t3.package_name = #{packageName,jdbcType=VARCHAR}
             AND t3.name = #{entityName,jdbcType=VARCHAR}
             GROUP BY t3.package_name,t3.name
