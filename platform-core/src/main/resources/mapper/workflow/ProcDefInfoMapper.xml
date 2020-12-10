@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.webank.wecube.platform.core.repository.workflow.ProcDefInfoMapper">
+<mapper
+    namespace="com.webank.wecube.platform.core.repository.workflow.ProcDefInfoMapper">
     <resultMap id="BaseResultMap"
         type="com.webank.wecube.platform.core.entity.workflow.ProcDefInfoEntity">
         <id column="id" jdbcType="VARCHAR" property="id" />
@@ -27,6 +28,9 @@
         <result column="is_deleted" jdbcType="BIT" property="isDeleted" />
         <result column="owner" jdbcType="VARCHAR" property="owner" />
         <result column="owner_grp" jdbcType="VARCHAR" property="ownerGrp" />
+        <result column="dynamic_bind" jdbcType="VARCHAR"
+            property="dynamicBind" />
+        <result column="pre_check" jdbcType="VARCHAR" property="preCheck" />
     </resultMap>
     <resultMap extends="BaseResultMap" id="ResultMapWithBLOBs"
         type="com.webank.wecube.platform.core.entity.workflow.ProcDefInfoEntity">
@@ -40,7 +44,7 @@
         proc_def_kernel_id,
         proc_def_key, proc_def_name, proc_def_ver, root_entity,
         is_deleted,
-        owner, owner_grp
+        owner, owner_grp,dynamic_bind,pre_check
     </sql>
     <sql id="Blob_Column_List">
         proc_def_data
@@ -70,9 +74,10 @@
         proc_def_name,
         proc_def_ver, root_entity, is_deleted,
         owner,
-        owner_grp, proc_def_data
+        owner_grp, proc_def_data,dynamic_bind,pre_check
         )
-        values (#{id,jdbcType=VARCHAR},
+        values
+        (#{id,jdbcType=VARCHAR},
         #{createdBy,jdbcType=VARCHAR},
         #{createdTime,jdbcType=TIMESTAMP},
         #{updatedBy,jdbcType=VARCHAR},
@@ -85,7 +90,9 @@
         #{isDeleted,jdbcType=BIT},
         #{owner,jdbcType=VARCHAR},
         #{ownerGrp,jdbcType=VARCHAR},
-        #{procDefData,jdbcType=LONGVARCHAR}
+        #{procDefData,jdbcType=LONGVARCHAR},
+        #{dynamicBind,jdbcType=VARCHAR},
+        #{preCheck,jdbcType=VARCHAR}
         )
     </insert>
     <insert id="insertSelective"
@@ -146,6 +153,12 @@
             <if test="procDefData != null">
                 proc_def_data,
             </if>
+            <if test="dynamicBind != null">
+                dynamic_bind,
+            </if>
+            <if test="preCheck != null">
+                pre_check,
+            </if>
         </trim>
         <trim prefix="values (" suffix=")" suffixOverrides=",">
             <if test="id != null">
@@ -201,6 +214,12 @@
             </if>
             <if test="procDefData != null">
                 #{procDefData,jdbcType=LONGVARCHAR},
+            </if>
+            <if test="dynamicBind != null">
+                #{dynamicBind,jdbcType=VARCHAR},
+            </if>
+            <if test="preCheck != null">
+                #{preCheck,jdbcType=VARCHAR},
             </if>
         </trim>
     </insert>
@@ -264,6 +283,12 @@
                 proc_def_data =
                 #{procDefData,jdbcType=LONGVARCHAR},
             </if>
+            <if test="dynamicBind != null">
+                dynamic_bind = #{dynamicBind,jdbcType=VARCHAR},
+            </if>
+            <if test="preCheck != null">
+                pre_check = #{preCheck,jdbcType=VARCHAR},
+            </if>
         </set>
         where id = #{id,jdbcType=VARCHAR}
     </update>
@@ -299,7 +324,11 @@
         is_deleted =
         #{isDeleted,jdbcType=BIT},
         owner = #{owner,jdbcType=VARCHAR},
-        owner_grp = #{ownerGrp,jdbcType=VARCHAR}
+        owner_grp = #{ownerGrp,jdbcType=VARCHAR},
+        dynamic_bind =
+        #{dynamicBind,jdbcType=VARCHAR},
+        pre_check =
+        #{preCheck,jdbcType=VARCHAR}
         where id =
         #{id,jdbcType=VARCHAR}
     </update>
@@ -315,7 +344,8 @@
         active = false
         and
         (
-        status = 'deployed'
+        status =
+        'deployed'
         or
         status = 'draft'
         )
@@ -332,7 +362,8 @@
         where proc_def_name =
         #{procDefName,jdbcType=VARCHAR}
         and active = true
-        and status = 'deployed'
+        and status =
+        'deployed'
         and is_deleted = false
     </select>
 
@@ -343,27 +374,31 @@
         ,
         <include refid="Blob_Column_List" />
         from core_re_proc_def_info
-        where proc_def_key = #{procDefKey,jdbcType=VARCHAR}
+        where proc_def_key =
+        #{procDefKey,jdbcType=VARCHAR}
         and active = true
-        and is_deleted = false
+        and is_deleted =
+        false
         and status = #{status,jdbcType=VARCHAR}
     </select>
-    
+
     <select id="findAllAuthorizedProcDefs"
-         resultType="com.webank.wecube.platform.core.entity.workflow.ProcDefAuthInfoQueryEntity">
+        resultType="com.webank.wecube.platform.core.entity.workflow.ProcDefAuthInfoQueryEntity">
         SELECT t1.id , t1.proc_def_key AS procDefKey,
-        t1.proc_def_name AS procDefName,
+        t1.proc_def_name AS
+        procDefName,
         t1.root_entity AS rootEntity,
         t1.status AS status,
         t1.proc_def_ver AS procDefVersion
-        FROM core_re_proc_def_info t1 , core_ru_proc_role_binding t2 
-        WHERE t2.proc_id = t1.id 
-        AND t2.permission = 'USE' 
-        AND t2.role_name IN 
+        FROM core_re_proc_def_info t1 ,
+        core_ru_proc_role_binding t2
+        WHERE t2.proc_id = t1.id
+        AND t2.permission = 'USE'
+        AND t2.role_name IN
         <foreach item="roleName" collection="roleNames"
-                separator="," open="(" close=")" index="">
-                #{roleName,
-                jdbcType=VARCHAR}
+            separator="," open="(" close=")" index="">
+            #{roleName,
+            jdbcType=VARCHAR}
         </foreach>
         AND t1.status = 'deployed'
     </select>
