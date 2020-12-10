@@ -462,10 +462,9 @@ public class PluginArtifactsMgmtService extends AbstractPluginMgmtService {
         pluginPackageEntity.setName(xmlPackage.getName());
         pluginPackageEntity.setVersion(xmlPackage.getVersion());
 
-        List<PluginPackageResourceFiles> pluginPackageResourceFilesEntities = processPluginUiPackageFile(localFilePath,
-                xmlPackage, pluginPackageEntity);
+        processPluginUiPackageFile(localFilePath, xmlPackage, pluginPackageEntity);
 
-        trySavePluginPackageResourceFiles(pluginPackageResourceFilesEntities);
+        //trySavePluginPackageResourceFiles(pluginPackageResourceFilesEntities);
 
         processPluginInitSqlFile(localFilePath, xmlPackage);
         processPluginUpgradeSqlFile(localFilePath, xmlPackage);
@@ -641,16 +640,16 @@ public class PluginArtifactsMgmtService extends AbstractPluginMgmtService {
         }
     }
 
-    private void trySavePluginPackageResourceFiles(
-            List<PluginPackageResourceFiles> pluginPackageResourceFilesEntities) {
-        if (pluginPackageResourceFilesEntities == null || pluginPackageResourceFilesEntities.isEmpty()) {
-            return;
-        }
-
-        for (PluginPackageResourceFiles fileEntity : pluginPackageResourceFilesEntities) {
-            pluginPackageResourceFilesMapper.insert(fileEntity);
-        }
-    }
+//    private void trySavePluginPackageResourceFiles(
+//            List<PluginPackageResourceFiles> pluginPackageResourceFilesEntities) {
+//        if (pluginPackageResourceFilesEntities == null || pluginPackageResourceFilesEntities.isEmpty()) {
+//            return;
+//        }
+//
+//        for (PluginPackageResourceFiles fileEntity : pluginPackageResourceFilesEntities) {
+//            pluginPackageResourceFilesMapper.insert(fileEntity);
+//        }
+//    }
 
     private void processDataModels(DataModelType xmlDataModel, PackageType xmlPackage,
             PluginPackages pluginPackageEntity) {
@@ -842,28 +841,28 @@ public class PluginArtifactsMgmtService extends AbstractPluginMgmtService {
         PluginConfigInterfaces intfEntity = new PluginConfigInterfaces();
         intfEntity.setId(LocalIdGenerator.generateId());
         intfEntity.setAction(xmlIntf.getAction());
-        
+
         String filterRule = xmlIntf.getFilterRule();
-        if(StringUtils.isBlank(filterRule)){
+        if (StringUtils.isBlank(filterRule)) {
             filterRule = DEFAULT_FILTER_RULE_FOR_INTERFACE;
         }
         intfEntity.setFilterRule(filterRule);
-        
+
         String httpMethod = xmlIntf.getHttpMethod();
-        if(StringUtils.isBlank(httpMethod)){
+        if (StringUtils.isBlank(httpMethod)) {
             httpMethod = "POST";
         }
         intfEntity.setHttpMethod(httpMethod);
         String asyncProcessing = xmlIntf.getIsAsyncProcessing();
-        if(StringUtils.isBlank(asyncProcessing)){
+        if (StringUtils.isBlank(asyncProcessing)) {
             asyncProcessing = PluginConfigInterfaces.DEFAULT_IS_ASYNC_PROCESSING_VALUE;
         }
         intfEntity.setIsAsyncProcessing(asyncProcessing);
         intfEntity.setPath(xmlIntf.getPath());
         intfEntity.setPluginConfigId(pluginConfigEntity.getId());
-        
+
         String interfaceType = xmlIntf.getType();
-        if(StringUtils.isBlank(interfaceType)){
+        if (StringUtils.isBlank(interfaceType)) {
             interfaceType = PluginConfigInterfaces.DEFAULT_INTERFACE_TYPE;
         }
         intfEntity.setType(interfaceType);
@@ -906,7 +905,7 @@ public class PluginArtifactsMgmtService extends AbstractPluginMgmtService {
             paramEntity.setName(xmlParameter.getValue());
             paramEntity.setPluginConfigInterface(intfEntity);
             paramEntity.setPluginConfigInterfaceId(intfEntity.getId());
-            
+
             String sensitiveData = xmlParameter.getSensitiveData();
             if (StringUtils.isBlank(sensitiveData)) {
                 sensitiveData = DEFAULT_SENSITIVE_DATA;
@@ -1048,7 +1047,15 @@ public class PluginArtifactsMgmtService extends AbstractPluginMgmtService {
                     pluginUiPackageFile);
             pluginPackageEntity.setUiPackageIncluded(true);
             log.info("UI static package file has uploaded to MinIO {}", uiPackageUrl.split("\\?")[0]);
+        } else {
+            pluginPackageEntity.setUiPackageIncluded(false);
         }
+
+        for (PluginPackageResourceFiles fileEntity : pluginPackageResourceFilesEntities) {
+            pluginPackageResourceFilesMapper.insert(fileEntity);
+        }
+        
+        log.info("total {} resource files saved for {}", pluginPackageResourceFilesEntities.size(), xmlPackage.getName());
 
         return pluginPackageResourceFilesEntities;
     }
