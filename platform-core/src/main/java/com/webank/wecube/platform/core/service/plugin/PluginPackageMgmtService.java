@@ -124,31 +124,31 @@ public class PluginPackageMgmtService extends AbstractPluginMgmtService {
     private RoleMenuService roleMenuService;
 
     private VersionComparator versionComparator = new VersionComparator();
-    
+
     /**
      * 
      * @param packageName
      * @return
      */
-    public PluginPackages fetchLatestVersionPluginPackage(String packageName){
+    public PluginPackages fetchLatestVersionPluginPackage(String packageName) {
         List<PluginPackages> pluginPackagesEntities = pluginPackagesMapper.selectAllByName(packageName);
-        if(pluginPackagesEntities == null || pluginPackagesEntities.isEmpty()){
+        if (pluginPackagesEntities == null || pluginPackagesEntities.isEmpty()) {
             return null;
         }
-        
+
         PluginPackages latestVersionPluginPackagesEntity = null;
         for (PluginPackages lazyPluginPackage : pluginPackagesEntities) {
-            if(latestVersionPluginPackagesEntity == null){
+            if (latestVersionPluginPackagesEntity == null) {
                 latestVersionPluginPackagesEntity = lazyPluginPackage;
-            }else{
+            } else {
                 String formerVersion = latestVersionPluginPackagesEntity.getVersion();
                 int compare = versionComparator.compare(lazyPluginPackage.getVersion(), formerVersion);
-                if(compare > 0){
+                if (compare > 0) {
                     latestVersionPluginPackagesEntity = lazyPluginPackage;
                 }
             }
         }
-        
+
         return latestVersionPluginPackagesEntity;
     }
 
@@ -575,6 +575,7 @@ public class PluginPackageMgmtService extends AbstractPluginMgmtService {
 
     /**
      * Enable plug-in configurations in batch.
+     * 
      * @param pluginPackageId
      * @param pluginConfigDtos
      */
@@ -616,7 +617,8 @@ public class PluginPackageMgmtService extends AbstractPluginMgmtService {
         }
 
         for (PluginConfigOutlineDto privilegedPluginConfigDto : privilegedPluginConfigDtos) {
-            PluginConfigs pluginConfigEntity = pluginConfigsMapper.selectByPrimaryKey(privilegedPluginConfigDto.getId());
+            PluginConfigs pluginConfigEntity = pluginConfigsMapper
+                    .selectByPrimaryKey(privilegedPluginConfigDto.getId());
             if (pluginConfigEntity != null) {
                 pluginConfigEntity.setStatus(privilegedPluginConfigDto.getStatus());
                 pluginConfigsMapper.updateByPrimaryKeySelective(pluginConfigEntity);
@@ -1010,7 +1012,7 @@ public class PluginPackageMgmtService extends AbstractPluginMgmtService {
     }
 
     private void deployPluginUiResourcesIfRequired(PluginPackages pluginPackage) {
-        if (!pluginPackage.getUiPackageIncluded()) {
+        if (pluginPackage.getUiPackageIncluded() == null || !pluginPackage.getUiPackageIncluded()) {
             return;
         }
         // download UI package from MinIO
@@ -1302,7 +1304,7 @@ public class PluginPackageMgmtService extends AbstractPluginMgmtService {
         dto.setId(entity.getId());
         dto.setName(entity.getName());
         dto.setStatus(entity.getStatus());
-        dto.setUiPackageIncluded(entity.getUiPackageIncluded());
+        dto.setUiPackageIncluded(entity.getUiPackageIncluded() == null ? false : entity.getUiPackageIncluded());
         dto.setUploadTimestamp(DateUtils.dateToString(entity.getUploadTimestamp()));
         dto.setVersion(entity.getVersion());
 
