@@ -13,6 +13,12 @@ public class ProcDefInfoEntity {
     public static final String PROC_DATA_FORMAT_XML = "xml";
     public static final String PROC_DATA_FORMAT_JSON = "json";
 
+    public static final String DYNAMIC_BIND_YES = "Y";
+    public static final String DYNAMIC_BIND_NO = "N";
+
+    public static final String PRE_CHECK_YES = "Y";
+    public static final String PRE_CHECK_NO = "N";
+
     private String id;
 
     private String createdBy;
@@ -48,6 +54,10 @@ public class ProcDefInfoEntity {
     private String ownerGrp;
 
     private String procDefData;
+
+    private String dynamicBind;
+
+    private String preCheck;
 
     public String getId() {
         return id;
@@ -191,6 +201,22 @@ public class ProcDefInfoEntity {
 
     public void setProcDefData(String procDefData) {
         this.procDefData = procDefData;
+    }
+
+    public String getDynamicBind() {
+        return dynamicBind;
+    }
+
+    public void setDynamicBind(String dynamicBind) {
+        this.dynamicBind = dynamicBind;
+    }
+
+    public String getPreCheck() {
+        return preCheck;
+    }
+
+    public void setPreCheck(String preCheck) {
+        this.preCheck = preCheck;
     }
 
 }
