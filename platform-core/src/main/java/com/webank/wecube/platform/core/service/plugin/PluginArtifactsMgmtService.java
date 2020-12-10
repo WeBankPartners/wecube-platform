@@ -1032,7 +1032,7 @@ public class PluginArtifactsMgmtService extends AbstractPluginMgmtService {
 
     private List<PluginPackageResourceFiles> processPluginUiPackageFile(File localFilePath, PackageType xmlPackage,
             PluginPackages pluginPackageEntity) throws IOException {
-        File pluginUiPackageFile = new File(localFilePath + "/" + pluginProperties.getUiFile());
+        File pluginUiPackageFile = new File(localFilePath,  pluginProperties.getUiFile());
         log.info("pluginUiPackageFile: {}", pluginUiPackageFile.getAbsolutePath());
         String uiPackageUrl = "";
         List<PluginPackageResourceFiles> pluginPackageResourceFilesEntities = new ArrayList<>();
