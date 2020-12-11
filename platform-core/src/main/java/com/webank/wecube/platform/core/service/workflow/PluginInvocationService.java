@@ -373,6 +373,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
             List<ProcExecBindingEntity> nodeObjectBindings, PluginConfigInterfaces pluginConfigInterface) {
 
         List<InputParamObject> inputParamObjs = new ArrayList<InputParamObject>();
+        Map<Object,Object> externalCacheMap = new HashMap<>();
 
         List<PluginConfigInterfaceParameters> configInterfaceInputParams = pluginConfigInterface.getInputParameters();
         for (ProcExecBindingEntity nodeObjectBinding : nodeObjectBindings) {
@@ -399,7 +400,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
                 String mappingType = param.getMappingType();
                 inputAttr.setMapType(mappingType);
 
-                handleEntityMapping(mappingType, param, entityDataId, objectVals);
+                handleEntityMapping(mappingType, param, entityDataId, objectVals, externalCacheMap);
 
                 handleContextMapping(mappingType, taskNodeDefEntity, paramName, procInstEntity, param, paramType,
                         objectVals);
@@ -421,7 +422,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
     }
 
     private void handleEntityMapping(String mappingType, PluginConfigInterfaceParameters param, String entityDataId,
-            List<Object> objectVals) {
+            List<Object> objectVals,Map<Object,Object> cacheMap) {
         if (MAPPING_TYPE_ENTITY.equals(mappingType)) {
             String mappingEntityExpression = param.getMappingEntityExpression();
 
@@ -432,7 +433,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
             EntityOperationRootCondition condition = new EntityOperationRootCondition(mappingEntityExpression,
                     entityDataId);
 
-            List<Object> attrValsPerExpr = entityOperationService.queryAttributeValues(condition);
+            List<Object> attrValsPerExpr = entityOperationService.queryAttributeValues(condition, cacheMap);
 
             if (attrValsPerExpr == null) {
                 log.info("returned null while fetch data with expression:{}", mappingEntityExpression);
@@ -1168,7 +1169,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
             EntityOperationRootCondition condition = new EntityOperationRootCondition(paramExpr, nodeEntityId);
 
             try {
-                this.entityOperationService.update(condition, retVal);
+                this.entityOperationService.update(condition, retVal, null);
             } catch (Exception e) {
                 log.warn("Exceptions while updating entity.But still keep going to update.", e);
             }
