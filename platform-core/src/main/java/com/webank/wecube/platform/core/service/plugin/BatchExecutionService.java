@@ -444,7 +444,7 @@ public class BatchExecutionService {
             EntityOperationRootCondition condition = new EntityOperationRootCondition(paramExpr, rootEntityId);
 
             try {
-                this.standardEntityOperationService.update(condition, retVal, this.userJwtSsoTokenRestTemplate);
+                this.standardEntityOperationService.update(condition, retVal, this.userJwtSsoTokenRestTemplate, null);
             } catch (Exception e) {
                 log.error("Exceptions while updating entity.But still keep going to update.", e);
                 throw new WecubeCoreException(e.getMessage());
@@ -539,7 +539,7 @@ public class BatchExecutionService {
                 executionJob.getRootEntityId());
 
         List<Object> attrValsPerExpr = standardEntityOperationService.queryAttributeValues(criteria,
-                userJwtSsoTokenRestTemplate);
+                userJwtSsoTokenRestTemplate, null);
 
         if ((attrValsPerExpr == null || attrValsPerExpr.size() == 0)
                 && FIELD_REQUIRED.equals(parameter.getRequired())) {
