@@ -926,7 +926,7 @@ public class PluginPackageMgmtService extends AbstractPluginMgmtService {
     }
 
     private void removePluginUiResourcesIfRequired(PluginPackages pluginPackage) {
-        if (!pluginPackage.getUiPackageIncluded()) {
+        if (pluginPackage.getUiPackageIncluded() == null || (!pluginPackage.getUiPackageIncluded())) {
             return;
         }
 
@@ -944,6 +944,7 @@ public class PluginPackageMgmtService extends AbstractPluginMgmtService {
                             pluginProperties.getStaticResourceServerPort(), mkdirCmd);
                 }
             } catch (Exception e) {
+                log.error("errors while remove plugin resources:{}", remotePath, e);
                 log.error("Run command [rm] meet error: ", e.getMessage());
                 throw new WecubeCoreException("3113", String.format("Run command [rm] meet error: %s", e.getMessage()),
                         e.getMessage());
@@ -1055,6 +1056,7 @@ public class PluginPackageMgmtService extends AbstractPluginMgmtService {
                         pluginProperties.getStaticResourceServerUser(),
                         pluginProperties.getStaticResourceServerPassword(), downloadUiZipPath, remotePath);
             } catch (Exception e) {
+                log.error("errors to remotely copy file to :{}", remoteIp, e);
                 throw new WecubeCoreException("3111",
                         String.format("Put file to remote host meet error: ", e.getMessage()));
             }
@@ -1067,6 +1069,7 @@ public class PluginPackageMgmtService extends AbstractPluginMgmtService {
                         pluginProperties.getStaticResourceServerPassword(),
                         pluginProperties.getStaticResourceServerPort(), unzipCmd);
             } catch (Exception e) {
+                log.error("errors to remotely execute command :{}", unzipCmd, e);
                 log.error("Run command [unzip] meet error: ", e.getMessage());
                 throw new WecubeCoreException("3112",
                         String.format("Run remote command meet error: %s", e.getMessage()));
