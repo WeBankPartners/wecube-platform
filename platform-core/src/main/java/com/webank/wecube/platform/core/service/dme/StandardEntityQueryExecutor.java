@@ -389,11 +389,19 @@ public class StandardEntityQueryExecutor implements EntityQueryExecutor {
     private void performRestOperation(EntityOperationContext ctx, EntityQueryLinkNode linkNode,
             EntityRouteDescription entityDef, EntityDataDelegate prevEntityDataDelegate,
             EntityQuerySpecification querySpec) {
+        List<Map<String, Object>> cachedRecordMapList = trySearchFromCache(ctx, entityDef, querySpec);
+        if (cachedRecordMapList != null) {
+            log.info("picked out query result from cache for {}", linkNode.getExprNodeInfo());
+            performEntityDataExtractionFromCachedResultData(ctx, linkNode, prevEntityDataDelegate, cachedRecordMapList);
+            return;
+        }
         StandardEntityOperationRestClient restClient = ctx.getStandardEntityOperationRestClient();
         StandardEntityOperationResponseDto responseDto = restClient.query(entityDef, querySpec);
 
         if (StandardEntityOperationResponseDto.STATUS_OK.equalsIgnoreCase(responseDto.getStatus())) {
-            performEntityDataExtraction(ctx, linkNode, prevEntityDataDelegate, responseDto.getData());
+            List<Map<String, Object>> recordMapList = performEntityDataExtraction(ctx, linkNode, prevEntityDataDelegate,
+                    responseDto.getData());
+            tryCacheQueryResultData(ctx, entityDef, querySpec, recordMapList);
         } else {
             log.error("Error status met {} with message {}", responseDto.getStatus(), responseDto.getMessage());
             String msg = String.format("Errors met while fetching data from %s due to status %s.",
@@ -402,13 +410,66 @@ public class StandardEntityQueryExecutor implements EntityQueryExecutor {
         }
     }
 
-    protected void performEntityDataExtraction(EntityOperationContext ctx, EntityQueryLinkNode linkNode,
-            EntityDataDelegate prevEntityDataDelegate, Object responseData) {
-        List<Map<String, Object>> recordMapList = extractEntityDataFromResponse(responseData);
+    protected void tryCacheQueryResultData(EntityOperationContext ctx, EntityRouteDescription entityDef,
+            EntityQuerySpecification querySpec, List<Map<String, Object>> recordMapList) {
+        Map<Object, Object> externalCacheMap = ctx.getExternalCacheMap();
+        if (externalCacheMap == null) {
+            log.debug("There is no external cache provided to cache.");
+            return;
+        }
+        StandardEntityQueryCacheKey key = new StandardEntityQueryCacheKey(entityDef, querySpec);
+        StandardEntityQueryCacheData data = new StandardEntityQueryCacheData(recordMapList, System.currentTimeMillis());
+        
+        externalCacheMap.put(key, data);
+    }
+
+    @SuppressWarnings("unchecked")
+    protected List<Map<String, Object>> trySearchFromCache(EntityOperationContext ctx, EntityRouteDescription entityDef,
+            EntityQuerySpecification querySpec) {
+        Map<Object, Object> externalCacheMap = ctx.getExternalCacheMap();
+        if (externalCacheMap == null) {
+            log.debug("There is no external cache provided to search.");
+            return null;
+        }
+        
+        StandardEntityQueryCacheKey key = new StandardEntityQueryCacheKey(entityDef, querySpec);
+        Object objData = externalCacheMap.get(key);
+        if(objData == null){
+            return null;
+        }
+        if(!(objData instanceof StandardEntityQueryCacheData)){
+            return null;
+        }
+        StandardEntityQueryCacheData data = (StandardEntityQueryCacheData)objData;
+        Object cachedObjData = data.getData();
+        if(cachedObjData == null){
+            return null;
+        }
+        
+        return (List<Map<String, Object>>)cachedObjData;
+    }
+
+    protected List<Map<String, Object>> performEntityDataExtractionFromCachedResultData(EntityOperationContext ctx,
+            EntityQueryLinkNode linkNode, EntityDataDelegate prevEntityDataDelegate,
+            List<Map<String, Object>> recordMapList) {
         for (Map<String, Object> recordMap : recordMapList) {
-            linkNode.addEntityDataDelegates(buildEntityDataDelegate(prevEntityDataDelegate, recordMap, linkNode));
+            EntityDataDelegate delegate = buildEntityDataDelegate(prevEntityDataDelegate, recordMap, linkNode);
+            linkNode.addEntityDataDelegates(delegate);
         }
 
+        return recordMapList;
+
+    }
+
+    protected List<Map<String, Object>> performEntityDataExtraction(EntityOperationContext ctx,
+            EntityQueryLinkNode linkNode, EntityDataDelegate prevEntityDataDelegate, Object responseData) {
+        List<Map<String, Object>> recordMapList = extractEntityDataFromResponse(responseData);
+        for (Map<String, Object> recordMap : recordMapList) {
+            EntityDataDelegate delegate = buildEntityDataDelegate(prevEntityDataDelegate, recordMap, linkNode);
+            linkNode.addEntityDataDelegates(delegate);
+        }
+
+        return recordMapList;
     }
 
     private EntityDataDelegate buildEntityDataDelegate(EntityDataDelegate prevEntityDataDelegate,
