@@ -391,7 +391,7 @@ public class StandardEntityQueryExecutor implements EntityQueryExecutor {
             EntityQuerySpecification querySpec) {
         List<Map<String, Object>> cachedRecordMapList = trySearchFromCache(ctx, entityDef, querySpec);
         if (cachedRecordMapList != null) {
-            log.info("picked out query result from cache for {}", linkNode.getExprNodeInfo());
+            log.debug("picked out query result from cache for {}", linkNode.getExprNodeInfo());
             performEntityDataExtractionFromCachedResultData(ctx, linkNode, prevEntityDataDelegate, cachedRecordMapList);
             return;
         }
