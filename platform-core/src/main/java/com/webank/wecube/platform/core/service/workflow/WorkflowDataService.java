@@ -160,9 +160,14 @@ public class WorkflowDataService {
         if (StringUtils.isBlank(rootEntityExpr)) {
             return result;
         }
+        
+        
+        Map<Object, Object> externalCacheMap = new HashMap<Object,Object>();
+        
+        EntityOperationRootCondition condition = new EntityOperationRootCondition(rootEntityExpr, null);
 
         List<Map<String, Object>> retRecords = standardEntityOperationService.queryAttributeValuesOfLeafNode(
-                new EntityOperationRootCondition(rootEntityExpr, null), userJwtSsoTokenRestTemplate);
+                condition , userJwtSsoTokenRestTemplate, externalCacheMap);
 
         if (retRecords == null) {
             return result;
@@ -191,7 +196,7 @@ public class WorkflowDataService {
         }
 
         List<Map<String, Object>> retRecords = standardEntityOperationService.queryAttributeValuesOfLeafNode(
-                new EntityOperationRootCondition(rootEntityExpr, null), userJwtSsoTokenRestTemplate);
+                new EntityOperationRootCondition(rootEntityExpr, null), userJwtSsoTokenRestTemplate, null);
 
         if (retRecords == null) {
             return result;
@@ -503,6 +508,8 @@ public class WorkflowDataService {
 
         List<GraphNodeDto> hierarchicalEntityNodes = new ArrayList<>();
         String processSessionId = UUID.randomUUID().toString();
+        
+        Map<Object,Object> externalCacheMap = new HashMap<>();
 
         for (FlowNodeDefDto f : outline.getFlowNodes()) {
             String nodeType = f.getNodeType();
@@ -511,7 +518,7 @@ public class WorkflowDataService {
                 continue;
             }
 
-            processSingleFlowNodeDefDto(f, hierarchicalEntityNodes, dataId, processSessionId, needSaveTmp);
+            processSingleFlowNodeDefDto(f, hierarchicalEntityNodes, dataId, processSessionId, needSaveTmp, externalCacheMap);
         }
 
         result.addAllEntityTreeNodes(hierarchicalEntityNodes);
@@ -545,7 +552,7 @@ public class WorkflowDataService {
     }
 
     private void processSingleFlowNodeDefDto(FlowNodeDefDto f, List<GraphNodeDto> hierarchicalEntityNodes,
-            String dataId, String processSessionId, boolean needSaveTmp) {
+            String dataId, String processSessionId, boolean needSaveTmp, Map<Object,Object> cacheMap) {
         String routineExpr = calculateDataModelExpression(f);
 
         if (StringUtils.isBlank(routineExpr)) {
@@ -559,7 +566,7 @@ public class WorkflowDataService {
         List<TreeNode> nodes = null;
         try {
             EntityTreeNodesOverview overview = standardEntityOperationService.generateEntityLinkOverview(condition,
-                    this.userJwtSsoTokenRestTemplate);
+                    this.userJwtSsoTokenRestTemplate, cacheMap);
             nodes = overview.getHierarchicalEntityNodes();
 
             if (needSaveTmp) {
