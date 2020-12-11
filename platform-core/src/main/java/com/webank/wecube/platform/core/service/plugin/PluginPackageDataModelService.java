@@ -138,6 +138,9 @@ public class PluginPackageDataModelService {
      * @return
      */
     public PluginPackageDataModelDto pullDynamicDataModel(String packageName) {
+        if(log.isInfoEnabled()){
+            log.info("try to pull dynamic data model for {}", packageName);
+        }
         PluginPackages latestPluginPackagesEntity = pluginPackageMgmtService
                 .fetchLatestVersionPluginPackage(packageName);
 
@@ -155,8 +158,8 @@ public class PluginPackageDataModelService {
             throw new WecubeCoreException("3124", errorMessage, packageName);
         }
 
-        if (!dataModel.getIsDynamic()) {
-            String message = String.format("DataMode does not support dynamic update for package: [%s]", packageName);
+        if (dataModel.getIsDynamic() == null || (!dataModel.getIsDynamic())) {
+            String message = String.format("DataModel does not support dynamic update for package: [%s]", packageName);
             log.error(message);
             throw new WecubeCoreException("3125", message, packageName);
         }
@@ -796,14 +799,6 @@ public class PluginPackageDataModelService {
             log.info("Total {} entities synchorized from {}", responseEntityDtos.size(), dataModel.getPackageName());
         }
 
-        // } catch (IOException ex) {
-        // log.error("errors while fetch dynamic data models for {} {}",
-        // dataModel.getPackageName(), updatePath);
-        // String msg = String.format("Request error! The error message is
-        // [%s]", ex.getMessage());
-        // log.error(msg);
-        // throw new WecubeCoreException("3126", msg, ex.getMessage());
-        // }
         return dynamicPluginPackageEntities;
     }
 
