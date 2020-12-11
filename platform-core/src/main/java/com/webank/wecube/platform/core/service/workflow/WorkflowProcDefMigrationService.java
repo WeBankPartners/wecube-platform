@@ -49,12 +49,14 @@ public class WorkflowProcDefMigrationService extends AbstractWorkflowProcDefServ
         }
 
         Date currTime = new Date();
+        String currUser = AuthenticationContextHolder.getCurrentUsername();
 
         ProcDefInfoExportImportDto result = new ProcDefInfoExportImportDto();
 
         ProcDefInfoEntity draftEntity = new ProcDefInfoEntity();
         draftEntity.setId(LocalIdGenerator.generateId());
         draftEntity.setStatus(ProcDefInfoEntity.DRAFT_STATUS);
+        draftEntity.setCreatedTime(currTime);
         draftEntity.setCreatedBy(AuthenticationContextHolder.getCurrentUsername());
 
         draftEntity.setProcDefData(importDto.getProcDefData());
@@ -62,6 +64,7 @@ public class WorkflowProcDefMigrationService extends AbstractWorkflowProcDefServ
         draftEntity.setProcDefName(importDto.getProcDefName());
         draftEntity.setRootEntity(importDto.getRootEntity());
         draftEntity.setUpdatedTime(currTime);
+        draftEntity.setUpdatedBy(currUser);
 
         processDefInfoRepo.insert(draftEntity);
         log.info("process definition saved with id:{}", draftEntity.getId());
@@ -99,7 +102,10 @@ public class WorkflowProcDefMigrationService extends AbstractWorkflowProcDefServ
                 draftNodeEntity.setServiceName(nodeDto.getServiceName());
                 draftNodeEntity.setTimeoutExp(nodeDto.getTimeoutExpression());
                 draftNodeEntity.setUpdatedTime(currTime);
+                draftNodeEntity.setUpdatedBy(currUser);
                 draftNodeEntity.setTaskCategory(nodeDto.getTaskCategory());
+                draftNodeEntity.setCreatedBy(currUser);
+                draftNodeEntity.setCreatedTime(currTime);
 
                 taskNodeDefInfoRepo.insert(draftNodeEntity);
 
@@ -120,6 +126,9 @@ public class WorkflowProcDefMigrationService extends AbstractWorkflowProcDefServ
                         draftNodeParamEntity.setUpdatedTime(currTime);
                         draftNodeParamEntity.setBindType(nodeParamDto.getBindType());
                         draftNodeParamEntity.setBindVal(nodeParamDto.getBindValue());
+                        draftNodeParamEntity.setCreatedBy(currUser);
+                        draftNodeParamEntity.setCreatedTime(currTime);
+                        draftNodeParamEntity.setUpdatedBy(currUser);
 
                         taskNodeParamRepo.insert(draftNodeParamEntity);
 
@@ -160,15 +169,15 @@ public class WorkflowProcDefMigrationService extends AbstractWorkflowProcDefServ
             throw new WecubeCoreException("3134","Unexpected process status.Only deployed status meets.");
         }
 
-        ProcDefInfoExportImportDto result = new ProcDefInfoExportImportDto();
-        result.setProcDefId(procDef.getId());
-        result.setRootEntity(procDef.getRootEntity());
-        result.setStatus(procDef.getStatus());
-        result.setCreatedTime(formatDate(procDef.getCreatedTime()));
-        result.setProcDefData(procDef.getProcDefData());
-        result.setProcDefKey(procDef.getProcDefKey());
-        result.setProcDefName(procDef.getProcDefName());
-        result.setProcDefVersion(String.valueOf(procDef.getProcDefVer()));
+        ProcDefInfoExportImportDto resultDto = new ProcDefInfoExportImportDto();
+        resultDto.setProcDefId(procDef.getId());
+        resultDto.setRootEntity(procDef.getRootEntity());
+        resultDto.setStatus(procDef.getStatus());
+        resultDto.setCreatedTime(formatDate(procDef.getCreatedTime()));
+        resultDto.setProcDefData(procDef.getProcDefData());
+        resultDto.setProcDefKey(procDef.getProcDefKey());
+        resultDto.setProcDefName(procDef.getProcDefName());
+        resultDto.setProcDefVersion(String.valueOf(procDef.getProcDefVer()));
 
         List<TaskNodeDefInfoEntity> taskNodeDefEntities = taskNodeDefInfoRepo.findAllByProcDefId(procDef.getId());
         for (TaskNodeDefInfoEntity nodeEntity : taskNodeDefEntities) {
@@ -183,10 +192,10 @@ public class WorkflowProcDefMigrationService extends AbstractWorkflowProcDefServ
                 tdto.addParamInfos(pdto);
             }
 
-            result.addTaskNodeInfos(tdto);
+            resultDto.addTaskNodeInfos(tdto);
         }
 
-        return result;
+        return resultDto;
     }
 
 }

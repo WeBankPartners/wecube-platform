@@ -42,6 +42,9 @@ public abstract class AbstractWorkflowService {
     }
     
     protected String formatDate(Date date){
+        if(date == null){
+            return null;
+        }
         DateFormat df = new SimpleDateFormat(PROC_DATETIME_PATTERN);
         return df.format(date);
     }
