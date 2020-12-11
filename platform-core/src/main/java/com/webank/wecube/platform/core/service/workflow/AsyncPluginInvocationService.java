@@ -281,7 +281,7 @@ public class AsyncPluginInvocationService extends AbstractPluginInvocationServic
             EntityOperationRootCondition condition = new EntityOperationRootCondition(paramExpr, nodeEntityId);
 
             try {
-                this.entityOperationService.update(condition, retVal);
+                this.entityOperationService.update(condition, retVal, null);
             } catch (Exception e) {
                 log.warn("Exceptions to update entity.", e);
             }
