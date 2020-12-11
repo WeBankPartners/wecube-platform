@@ -9,7 +9,7 @@ public class PluginPackageInfoDto {
 
     private String uploadTimestamp;
 
-    private boolean uiPackageIncluded;
+    private Boolean uiPackageIncluded;
 
     private String status;
 
@@ -45,11 +45,11 @@ public class PluginPackageInfoDto {
         this.uploadTimestamp = uploadTimestamp;
     }
 
-    public boolean isUiPackageIncluded() {
+    public Boolean getUiPackageIncluded() {
         return uiPackageIncluded;
     }
 
-    public void setUiPackageIncluded(boolean uiPackageIncluded) {
+    public void setUiPackageIncluded(Boolean uiPackageIncluded) {
         this.uiPackageIncluded = uiPackageIncluded;
     }
 
