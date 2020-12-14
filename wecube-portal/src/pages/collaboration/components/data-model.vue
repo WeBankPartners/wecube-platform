@@ -5,12 +5,12 @@
       <Spin v-if="isLoading" fix size="large">
         <Icon type="ios-loading" size="54" class="demo-spin-icon-load"></Icon>
       </Spin>
-      <div style="padding-left:3px;margin-bottom: 10px">
+      <div v-if="dataModel.dynamic" style="padding-left:3px;margin-bottom: 10px">
         <Button size="small" shape="circle" type="primary" icon="md-sync" @click="getData(true)">{{
           $t('get_dynamic_model')
         }}</Button>
       </div>
-      <div v-if="!dataModel.dynamic && dataModel.pluginPackageEntities && dataModel.pluginPackageEntities.length === 0">
+      <div v-if="!dataModel.dynamic && dataModel.entities && dataModel.entities.length === 0">
         {{ $t('no_data_model_provided') }}
       </div>
       <div class="graph-container" id="data-model-graph"></div>
@@ -91,7 +91,6 @@ export default {
               })
             }
           })
-        console.log(this.data)
         this.initGraph()
       }
     },

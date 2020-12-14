@@ -153,8 +153,8 @@
         max-height="550"
         :data="allFlowNodesModelData"
         @on-select="allFlowNodesSingleSelect"
-        @on-select-cancel="allFlowNodesSingleCancle"
-        @on-select-all-cancel="allFlowNodesSelectAllCancle"
+        @on-select-cancel="allFlowNodesSingleCancel"
+        @on-select-all-cancel="allFlowNodesSelectAllCancel"
         @on-select-all="allFlowNodesSelectAll"
         :span-method="flowNodeDataHandleSpan"
       >
@@ -197,8 +197,8 @@
         ref="selection"
         max-height="350"
         @on-select="singleSelect"
-        @on-select-cancel="singleCancle"
-        @on-select-all-cancel="selectAllCancle"
+        @on-select-cancel="singleCancel"
+        @on-select-all-cancel="selectAllCancel"
         @on-select-all="selectAll"
         :columns="targetModelColums"
         :data="tartetModels"
@@ -488,7 +488,7 @@ export default {
     singleSelect (selection, row) {
       this.catchNodeTableList = this.catchNodeTableList.concat(row)
     },
-    singleCancle (selection, row) {
+    singleCancel (selection, row) {
       const index = this.catchNodeTableList.findIndex(cn => {
         return cn.id === row.id
       })
@@ -505,7 +505,7 @@ export default {
         }
       })
     },
-    selectAllCancle () {
+    selectAllCancel () {
       let temp = []
       this.tartetModels.forEach(tm => {
         temp.push(tm.id)
@@ -521,7 +521,7 @@ export default {
     allFlowNodesSingleSelect (selection, row) {
       this.selectedFlowNodesModelData = this.selectedFlowNodesModelData.concat(row)
     },
-    allFlowNodesSingleCancle (selection, row) {
+    allFlowNodesSingleCancel (selection, row) {
       const index = this.selectedFlowNodesModelData.findIndex(cn => {
         return cn.id === row.id
       })
@@ -538,7 +538,7 @@ export default {
         }
       })
     },
-    allFlowNodesSelectAllCancle () {
+    allFlowNodesSelectAllCancel () {
       let temp = []
       this.tartetModels.forEach(tm => {
         temp.push(tm.id)
