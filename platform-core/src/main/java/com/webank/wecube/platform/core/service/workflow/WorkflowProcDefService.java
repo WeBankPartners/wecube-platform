@@ -167,7 +167,7 @@ public class WorkflowProcDefService extends AbstractWorkflowProcDefService {
         fDto.setProcDefId(nodeEntity.getProcDefId());
         fDto.setProcDefKey(nodeEntity.getProcDefKey());
         fDto.setNodeId(nodeEntity.getNodeId());
-        fDto.setNodeName(reduceTaskNodeName(nodeEntity));
+        fDto.setNodeName(deduceTaskNodeName(nodeEntity));
         fDto.setNodeType(nodeEntity.getNodeType());
 
         fDto.setNodeDefId(nodeEntity.getId());
@@ -186,7 +186,7 @@ public class WorkflowProcDefService extends AbstractWorkflowProcDefService {
         return fDto;
     }
 
-    private String reduceTaskNodeName(TaskNodeDefInfoEntity nodeEntity) {
+    private String deduceTaskNodeName(TaskNodeDefInfoEntity nodeEntity) {
         if (!StringUtils.isBlank(nodeEntity.getNodeName())) {
             return nodeEntity.getNodeName();
         }
@@ -279,6 +279,7 @@ public class WorkflowProcDefService extends AbstractWorkflowProcDefService {
         String originalId = procDefDto.getProcDefId();
 
         Date currTime = new Date();
+        String currUser = AuthenticationContextHolder.getCurrentUsername();
 
         ProcDefInfoEntity draftEntity = null;
         if (!StringUtils.isBlank(originalId)) {
@@ -297,6 +298,8 @@ public class WorkflowProcDefService extends AbstractWorkflowProcDefService {
             draftEntity = new ProcDefInfoEntity();
             draftEntity.setId(LocalIdGenerator.generateId());
             draftEntity.setStatus(ProcDefInfoEntity.DRAFT_STATUS);
+            draftEntity.setCreatedBy(currUser);
+            draftEntity.setCreatedTime(currTime);
 
             processDefInfoRepo.insert(draftEntity);
         }
@@ -306,6 +309,7 @@ public class WorkflowProcDefService extends AbstractWorkflowProcDefService {
         draftEntity.setProcDefName(procDefDto.getProcDefName());
         draftEntity.setRootEntity(procDefDto.getRootEntity());
         draftEntity.setUpdatedTime(currTime);
+        draftEntity.setUpdatedBy(currUser);
 
         processDefInfoRepo.updateByPrimaryKeySelective(draftEntity);
         // Save ProcRoleBindingEntity
@@ -364,6 +368,7 @@ public class WorkflowProcDefService extends AbstractWorkflowProcDefService {
         }
 
         TaskNodeDefInfoDto startEventNodeDto = null;
+        String currUser = AuthenticationContextHolder.getCurrentUsername();
 
         // #1993
         for (TaskNodeDefInfoDto nodeDto : procDefDto.getTaskNodeInfos()) {
@@ -385,6 +390,8 @@ public class WorkflowProcDefService extends AbstractWorkflowProcDefService {
                 draftNodeEntity = new TaskNodeDefInfoEntity();
                 draftNodeEntity.setId(LocalIdGenerator.generateId());
                 draftNodeEntity.setStatus(TaskNodeDefInfoEntity.DRAFT_STATUS);
+                draftNodeEntity.setCreatedBy(currUser);
+                draftNodeEntity.setCreatedTime(currTime);
                 taskNodeDefInfoRepo.insert(draftNodeEntity);
             }
 
@@ -407,6 +414,7 @@ public class WorkflowProcDefService extends AbstractWorkflowProcDefService {
             draftNodeEntity.setServiceName(nodeDto.getServiceName());
             draftNodeEntity.setTimeoutExp(nodeDto.getTimeoutExpression());
             draftNodeEntity.setUpdatedTime(currTime);
+            draftNodeEntity.setUpdatedBy(currUser);
             draftNodeEntity.setTaskCategory(nodeDto.getTaskCategory());
 
             taskNodeDefInfoRepo.updateByPrimaryKeySelective(draftNodeEntity);
@@ -433,6 +441,10 @@ public class WorkflowProcDefService extends AbstractWorkflowProcDefService {
                     draftNodeEntity = new TaskNodeDefInfoEntity();
                     draftNodeEntity.setId(LocalIdGenerator.generateId());
                     draftNodeEntity.setStatus(TaskNodeDefInfoEntity.DRAFT_STATUS);
+                    draftNodeEntity.setCreatedBy(AuthenticationContextHolder.getCurrentUsername());
+                    draftNodeEntity.setCreatedTime(currTime);
+                    
+                    taskNodeDefInfoRepo.insert(draftNodeEntity);
                 }
 
                 draftNodeEntity.setNodeId(startProcFlowNode.getId());
@@ -532,6 +544,8 @@ public class WorkflowProcDefService extends AbstractWorkflowProcDefService {
                 draftNodeParamEntity = new TaskNodeParamEntity();
                 draftNodeParamEntity.setId(LocalIdGenerator.generateId());
                 draftNodeParamEntity.setStatus(TaskNodeParamEntity.DRAFT_STATUS);
+                draftNodeParamEntity.setCreatedBy(AuthenticationContextHolder.getCurrentUsername());
+                draftNodeParamEntity.setCreatedTime(currTime);
                 taskNodeParamRepo.insert(draftNodeParamEntity);
             }
 
@@ -543,6 +557,7 @@ public class WorkflowProcDefService extends AbstractWorkflowProcDefService {
             draftNodeParamEntity.setParamName(nodeParamDto.getParamName());
             draftNodeParamEntity.setProcDefId(draftEntity.getId());
             draftNodeParamEntity.setTaskNodeDefId(draftNodeEntity.getId());
+            draftNodeParamEntity.setUpdatedBy(AuthenticationContextHolder.getCurrentUsername());
             draftNodeParamEntity.setUpdatedTime(currTime);
             draftNodeParamEntity.setBindType(nodeParamDto.getBindType());
             draftNodeParamEntity.setBindVal(nodeParamDto.getBindValue());
@@ -725,6 +740,9 @@ public class WorkflowProcDefService extends AbstractWorkflowProcDefService {
                 nodeEntity.setServiceName(nodeDto.getServiceName());
                 nodeEntity.setStatus(TaskNodeDefInfoEntity.PREDEPLOY_STATUS);
                 nodeEntity.setUpdatedTime(currTime);
+                nodeEntity.setUpdatedBy(AuthenticationContextHolder.getCurrentUsername());
+                nodeEntity.setCreatedBy(AuthenticationContextHolder.getCurrentUsername());
+                nodeEntity.setCreatedTime(currTime);
                 nodeEntity.setTimeoutExp(nodeDto.getTimeoutExpression());
                 nodeEntity.setTaskCategory(nodeDto.getTaskCategory());
 
@@ -744,6 +762,9 @@ public class WorkflowProcDefService extends AbstractWorkflowProcDefService {
                         paramEntity.setStatus(TaskNodeParamEntity.PREDEPLOY_STATUS);
                         paramEntity.setTaskNodeDefId(nodeEntity.getId());
                         paramEntity.setUpdatedTime(currTime);
+                        paramEntity.setUpdatedBy(AuthenticationContextHolder.getCurrentUsername());
+                        paramEntity.setCreatedBy(AuthenticationContextHolder.getCurrentUsername());
+                        paramEntity.setCreatedTime(currTime);
                         paramEntity.setBindType(paramDto.getBindType());
                         paramEntity.setBindVal(paramDto.getBindValue());
 
@@ -767,6 +788,7 @@ public class WorkflowProcDefService extends AbstractWorkflowProcDefService {
         procDefEntity.setProcDefVer(procDef.getVersion());
         procDefEntity.setStatus(ProcDefInfoEntity.DEPLOYED_STATUS);
         procDefEntity.setUpdatedTime(now);
+        procDefEntity.setUpdatedBy(AuthenticationContextHolder.getCurrentUsername());
 
         processDefInfoRepo.updateByPrimaryKeySelective(procDefEntity);
 
@@ -793,9 +815,12 @@ public class WorkflowProcDefService extends AbstractWorkflowProcDefService {
                 nodeEntity.setProcDefId(procDefEntity.getId());
                 nodeEntity.setProcDefKey(procDef.getKey());
                 nodeEntity.setNodeId(pfn.getId());
+                nodeEntity.setCreatedBy(AuthenticationContextHolder.getCurrentUsername());
+                nodeEntity.setCreatedTime(now);
                 taskNodeDefInfoRepo.insert(nodeEntity);
             } else {
                 nodeEntity.setUpdatedTime(now);
+                nodeEntity.setUpdatedBy(AuthenticationContextHolder.getCurrentUsername());
             }
             nodeEntity.setNodeName(pfn.getNodeName());
             nodeEntity.setNodeType(pfn.getNodeType());
@@ -808,6 +833,8 @@ public class WorkflowProcDefService extends AbstractWorkflowProcDefService {
             }
             nodeEntity.setPrevNodeIds(marshalNodeIds(pfn.getPreviousFlowNodes()));
             nodeEntity.setSucceedNodeIds(marshalNodeIds(pfn.getSucceedingFlowNodes()));
+            nodeEntity.setUpdatedBy(AuthenticationContextHolder.getCurrentUsername());
+            nodeEntity.setUpdatedTime(now);
             taskNodeDefInfoRepo.updateByPrimaryKeySelective(nodeEntity);
 
             FlowNodeDefDto nodeDefDto = result.findFlowNodeDefDto(pfn.getId());
@@ -839,6 +866,7 @@ public class WorkflowProcDefService extends AbstractWorkflowProcDefService {
         if (nodeParamEntities != null && !nodeParamEntities.isEmpty()) {
             nodeParamEntities.forEach(n -> {
                 n.setUpdatedTime(now);
+                n.setUpdatedBy(AuthenticationContextHolder.getCurrentUsername());
                 n.setStatus(TaskNodeParamEntity.DEPLOYED_STATUS);
                 taskNodeParamRepo.updateByPrimaryKeySelective(n);
             });
