@@ -107,7 +107,7 @@
         </FormItem>
       </Form>
       <div slot="footer">
-        <Button @click="cancelChangePassword(false)">{{ $t('bc_cancle') }}</Button>
+        <Button @click="cancelChangePassword(false)">{{ $t('bc_cancel') }}</Button>
         <Button type="primary" @click="okChangePassword">{{ $t('bc_confirm') }}</Button>
       </div>
     </Modal>

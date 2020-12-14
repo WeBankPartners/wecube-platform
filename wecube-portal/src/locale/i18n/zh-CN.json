@@ -414,7 +414,7 @@
   "bc_filter_type_regex": "正则匹配",
   "bc_filter_type_warn": "正则表达式不正确",
   "bc_confirm": "确定",
-  "bc_cancle": "取消",
+  "bc_cancel": "取消",
   "bc_favorites_list": "收藏列表",
   "bc_execution_parameter": "执行参数",
   "bc_complement_parameters": "补充参数",
