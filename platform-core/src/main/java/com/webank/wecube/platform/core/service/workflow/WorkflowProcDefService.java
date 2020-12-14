@@ -443,7 +443,7 @@ public class WorkflowProcDefService extends AbstractWorkflowProcDefService {
                     draftNodeEntity.setStatus(TaskNodeDefInfoEntity.DRAFT_STATUS);
                     draftNodeEntity.setCreatedBy(AuthenticationContextHolder.getCurrentUsername());
                     draftNodeEntity.setCreatedTime(currTime);
-                    
+
                     taskNodeDefInfoRepo.insert(draftNodeEntity);
                 }
 
@@ -604,6 +604,9 @@ public class WorkflowProcDefService extends AbstractWorkflowProcDefService {
         procDefEntity.setProcDefKey(procDefInfoDto.getProcDefKey());
         procDefEntity.setRootEntity(procDefInfoDto.getRootEntity());
         procDefEntity.setStatus(ProcDefInfoEntity.PREDEPLOY_STATUS);
+        procDefEntity.setCreatedBy(AuthenticationContextHolder.getCurrentUsername());
+        procDefEntity.setCreatedTime(currTime);
+        procDefEntity.setUpdatedBy(AuthenticationContextHolder.getCurrentUsername());
         procDefEntity.setUpdatedTime(currTime);
 
         processDefInfoRepo.insert(procDefEntity);
@@ -723,50 +726,63 @@ public class WorkflowProcDefService extends AbstractWorkflowProcDefService {
         throw new WecubeCoreException("3219", "Lack of permission to deploy process.");
     }
 
+    private TaskNodeDefInfoEntity buildDeployNewTaskNodeDefInfoEntity(TaskNodeDefInfoDto nodeDto,
+            ProcDefInfoEntity procDefEntity, Date currTime) {
+        TaskNodeDefInfoEntity nodeEntity = new TaskNodeDefInfoEntity();
+        nodeEntity.setId(LocalIdGenerator.generateId());
+        nodeEntity.setDescription(nodeDto.getDescription());
+        nodeEntity.setNodeId(nodeDto.getNodeId());
+        nodeEntity.setNodeName(nodeDto.getNodeName());
+        nodeEntity.setProcDefId(procDefEntity.getId());
+        nodeEntity.setProcDefKey(nodeDto.getProcDefKey());
+        nodeEntity.setRoutineExp(nodeDto.getRoutineExpression());
+        nodeEntity.setRoutineRaw(nodeDto.getRoutineRaw());
+        nodeEntity.setServiceId(nodeDto.getServiceId());
+        nodeEntity.setServiceName(nodeDto.getServiceName());
+        nodeEntity.setStatus(TaskNodeDefInfoEntity.PREDEPLOY_STATUS);
+        nodeEntity.setUpdatedTime(currTime);
+        nodeEntity.setUpdatedBy(AuthenticationContextHolder.getCurrentUsername());
+        nodeEntity.setCreatedBy(AuthenticationContextHolder.getCurrentUsername());
+        nodeEntity.setCreatedTime(currTime);
+        nodeEntity.setTimeoutExp(nodeDto.getTimeoutExpression());
+        nodeEntity.setTaskCategory(nodeDto.getTaskCategory());
+
+        return nodeEntity;
+    }
+
+    private TaskNodeParamEntity buildDeployNewTaskNodeParamEntity(TaskNodeDefParamDto paramDto, TaskNodeDefInfoDto nodeDto,
+            ProcDefInfoEntity procDefEntity, TaskNodeDefInfoEntity nodeEntity, Date currTime) {
+        TaskNodeParamEntity paramEntity = new TaskNodeParamEntity();
+        paramEntity.setId(LocalIdGenerator.generateId());
+        paramEntity.setNodeId(StringUtils.isBlank(paramDto.getNodeId()) ? nodeDto.getNodeId() : paramDto.getNodeId());
+        paramEntity.setBindNodeId(paramDto.getBindNodeId());
+        paramEntity.setBindParamName(paramDto.getBindParamName());
+        paramEntity.setBindParamType(paramDto.getBindParamType());
+        paramEntity.setParamName(paramDto.getParamName());
+        paramEntity.setProcDefId(procDefEntity.getId());
+        paramEntity.setStatus(TaskNodeParamEntity.PREDEPLOY_STATUS);
+        paramEntity.setTaskNodeDefId(nodeEntity.getId());
+        paramEntity.setUpdatedTime(currTime);
+        paramEntity.setUpdatedBy(AuthenticationContextHolder.getCurrentUsername());
+        paramEntity.setCreatedBy(AuthenticationContextHolder.getCurrentUsername());
+        paramEntity.setCreatedTime(currTime);
+        paramEntity.setBindType(paramDto.getBindType());
+        paramEntity.setBindVal(paramDto.getBindValue());
+
+        return paramEntity;
+    }
+
     private void processDeployTaskNodeInfos(ProcDefInfoDto procDefInfoDto, ProcDefInfoEntity procDefEntity,
             Date currTime) {
         if (procDefInfoDto.getTaskNodeInfos() != null) {
             for (TaskNodeDefInfoDto nodeDto : procDefInfoDto.getTaskNodeInfos()) {
-                TaskNodeDefInfoEntity nodeEntity = new TaskNodeDefInfoEntity();
-                nodeEntity.setId(LocalIdGenerator.generateId());
-                nodeEntity.setDescription(nodeDto.getDescription());
-                nodeEntity.setNodeId(nodeDto.getNodeId());
-                nodeEntity.setNodeName(nodeDto.getNodeName());
-                nodeEntity.setProcDefId(procDefEntity.getId());
-                nodeEntity.setProcDefKey(nodeDto.getProcDefKey());
-                nodeEntity.setRoutineExp(nodeDto.getRoutineExpression());
-                nodeEntity.setRoutineRaw(nodeDto.getRoutineRaw());
-                nodeEntity.setServiceId(nodeDto.getServiceId());
-                nodeEntity.setServiceName(nodeDto.getServiceName());
-                nodeEntity.setStatus(TaskNodeDefInfoEntity.PREDEPLOY_STATUS);
-                nodeEntity.setUpdatedTime(currTime);
-                nodeEntity.setUpdatedBy(AuthenticationContextHolder.getCurrentUsername());
-                nodeEntity.setCreatedBy(AuthenticationContextHolder.getCurrentUsername());
-                nodeEntity.setCreatedTime(currTime);
-                nodeEntity.setTimeoutExp(nodeDto.getTimeoutExpression());
-                nodeEntity.setTaskCategory(nodeDto.getTaskCategory());
-
+                TaskNodeDefInfoEntity nodeEntity = buildDeployNewTaskNodeDefInfoEntity(nodeDto, procDefEntity, currTime);
                 taskNodeDefInfoRepo.insert(nodeEntity);
 
                 if (nodeDto.getParamInfos() != null) {
                     for (TaskNodeDefParamDto paramDto : nodeDto.getParamInfos()) {
-                        TaskNodeParamEntity paramEntity = new TaskNodeParamEntity();
-                        paramEntity.setId(LocalIdGenerator.generateId());
-                        paramEntity.setNodeId(
-                                StringUtils.isBlank(paramDto.getNodeId()) ? nodeDto.getNodeId() : paramDto.getNodeId());
-                        paramEntity.setBindNodeId(paramDto.getBindNodeId());
-                        paramEntity.setBindParamName(paramDto.getBindParamName());
-                        paramEntity.setBindParamType(paramDto.getBindParamType());
-                        paramEntity.setParamName(paramDto.getParamName());
-                        paramEntity.setProcDefId(procDefEntity.getId());
-                        paramEntity.setStatus(TaskNodeParamEntity.PREDEPLOY_STATUS);
-                        paramEntity.setTaskNodeDefId(nodeEntity.getId());
-                        paramEntity.setUpdatedTime(currTime);
-                        paramEntity.setUpdatedBy(AuthenticationContextHolder.getCurrentUsername());
-                        paramEntity.setCreatedBy(AuthenticationContextHolder.getCurrentUsername());
-                        paramEntity.setCreatedTime(currTime);
-                        paramEntity.setBindType(paramDto.getBindType());
-                        paramEntity.setBindVal(paramDto.getBindValue());
+                        TaskNodeParamEntity paramEntity = buildDeployNewTaskNodeParamEntity(paramDto, nodeDto, procDefEntity,
+                                nodeEntity, currTime);
 
                         taskNodeParamRepo.insert(paramEntity);
                     }
@@ -925,13 +941,13 @@ public class WorkflowProcDefService extends AbstractWorkflowProcDefService {
         List<TaskNodeDefInfoEntity> nodeEntities = taskNodeDefInfoRepo.findAllByProcDefId(procEntity.getId());
 
         if (nodeParamEntities != null && !nodeParamEntities.isEmpty()) {
-            for(TaskNodeParamEntity nodeParamEntity : nodeParamEntities){
+            for (TaskNodeParamEntity nodeParamEntity : nodeParamEntities) {
                 taskNodeParamRepo.deleteByPrimaryKey(nodeParamEntity.getId());
             }
         }
 
         if (nodeEntities != null && !nodeEntities.isEmpty()) {
-            for(TaskNodeDefInfoEntity nodeEntity:nodeEntities) {
+            for (TaskNodeDefInfoEntity nodeEntity : nodeEntities) {
                 taskNodeDefInfoRepo.deleteByPrimaryKey(nodeEntity.getId());
             }
         }
