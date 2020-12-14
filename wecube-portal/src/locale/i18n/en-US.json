@@ -414,7 +414,7 @@
   "bc_filter_type_regex": "Regex",
   "bc_filter_type_warn": "Regular expression is incorrect",
   "bc_confirm": "Confirm",
-  "bc_cancle": "Cancle",
+  "bc_cancel": "Cancel",
   "bc_favorites_list": "Favorites List",
   "bc_execution_parameter": "Execution Parameters",
   "bc_complement_parameters": "Change Parameters",
