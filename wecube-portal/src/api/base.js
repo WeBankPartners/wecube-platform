@@ -39,6 +39,7 @@ req.interceptors.response.use(
   res => {
     if (res.status === 200) {
       if (res.data.status === 'ERROR') {
+        debugger
         const errorMes = Array.isArray(res.data.data)
           ? res.data.data.map(_ => _.errorMessage).join('<br/>')
           : res.data.message
@@ -89,7 +90,7 @@ req.interceptors.response.use(
                   // do request success again
                   if (res.data.status === 'ERROR') {
                     const errorMes = Array.isArray(res.data.data)
-                      ? res.data.data.map(_ => _.errorMessage).join('<br/>')
+                      ? res.data.data.map(_ => _.message || _.errorMessage).join('<br/>')
                       : res.data.message
                     Vue.prototype.$Notice.warning({
                       title: 'Error',
