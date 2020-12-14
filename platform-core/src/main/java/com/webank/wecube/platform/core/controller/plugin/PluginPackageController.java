@@ -93,12 +93,12 @@ public class PluginPackageController {
      * @return
      */
     @GetMapping("/packages")
-    public CommonResponseDto getAllPluginPackages(
+    public CommonResponseDto fetchAllPluginPackages(
             @RequestParam(value = "distinct", required = false, defaultValue = "false") boolean ifDistinct) {
         if (ifDistinct) {
             return okayWithData(pluginPackageMgmtService.getDistinctPluginPackages());
         } else {
-            return okayWithData(pluginPackageMgmtService.getPluginPackages());
+            return okayWithData(pluginPackageMgmtService.fetchAllPluginPackages());
         }
 
     }
@@ -142,8 +142,8 @@ public class PluginPackageController {
      * @return
      */
     @GetMapping("/packages/{package-id}/dependencies")
-    public CommonResponseDto getDependenciesByPackageId(@PathVariable(value = "package-id") String packageId) {
-        PluginPackageDependencyDto dependencyDto = pluginPackageMgmtService.getDependenciesByPackage(packageId);
+    public CommonResponseDto fetchPluginPackageDependencies(@PathVariable(value = "package-id") String packageId) {
+        PluginPackageDependencyDto dependencyDto = pluginPackageMgmtService.fetchPluginPackageDependencies(packageId);
         return okayWithData(dependencyDto);
     }
 

@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -153,10 +154,11 @@ public class PluginPackageMgmtService extends AbstractPluginMgmtService {
     }
 
     /**
+     * Fetch all plugin packages including decommissioned ones.
      * 
      * @return
      */
-    public List<PluginPackageInfoDto> getPluginPackages() {
+    public List<PluginPackageInfoDto> fetchAllPluginPackages() {
         List<PluginPackageInfoDto> pluginPackageInfoDtos = new ArrayList<>();
 
         List<PluginPackages> pluginPackageEntities = pluginPackagesMapper.selectAll();
@@ -169,6 +171,15 @@ public class PluginPackageMgmtService extends AbstractPluginMgmtService {
 
             pluginPackageInfoDtos.add(dto);
         }
+
+        Collections.sort(pluginPackageInfoDtos, new Comparator<PluginPackageInfoDto>() {
+
+            @Override
+            public int compare(PluginPackageInfoDto o1, PluginPackageInfoDto o2) {
+                return o1.getName().compareTo(o2.getName());
+            }
+
+        });
 
         return pluginPackageInfoDtos;
     }
@@ -205,30 +216,23 @@ public class PluginPackageMgmtService extends AbstractPluginMgmtService {
 
         PluginPackages pluginPackageEntity = pluginPackagesMapper.selectByPrimaryKey(pluginPackageId);
         if (pluginPackageEntity == null) {
-            throw new WecubeCoreException("3109",
-                    String.format("Plugin package id not found for id [%s] ", pluginPackageId), pluginPackageId);
+            String errMsg = String.format("Plugin package does not exist for id [%s] ", pluginPackageId);
+            throw new WecubeCoreException("3109", errMsg, pluginPackageId);
         }
 
-        validatePackageDependencies(pluginPackageEntity);
+        try {
 
-        ensurePluginPackageIsAllowedToRegister(pluginPackageEntity);
+            PluginPackageInfoDto result = doRegisterPluginPackage(pluginPackageEntity);
 
-        ensureNoMoreThanTwoActivePackages(pluginPackageEntity);
+            if (log.isInfoEnabled()) {
+                log.info("Plugin package {} registered successfully.", pluginPackageId);
+            }
 
-        createRolesIfNotExistInSystem(pluginPackageEntity);
-
-        bindRoleToMenuWithAuthority(pluginPackageEntity);
-
-        updateSystemVariableStatus(pluginPackageEntity);
-
-        deployPluginUiResourcesIfRequired(pluginPackageEntity);
-
-        pluginPackageEntity.setStatus(PluginPackages.REGISTERED);
-        pluginPackagesMapper.updateByPrimaryKeySelective(pluginPackageEntity);
-
-        PluginPackageInfoDto result = buildPluginPackageInfoDto(pluginPackageEntity);
-
-        return result;
+            return result;
+        } catch (Exception e) {
+            log.error("Errors to register plugin package.", e);
+            throw new WecubeCoreException("3322", "Failed to register plugin package", e.getMessage());
+        }
     }
 
     /**
@@ -261,7 +265,7 @@ public class PluginPackageMgmtService extends AbstractPluginMgmtService {
      * @param pluginPackageId
      * @return
      */
-    public PluginPackageDependencyDto getDependenciesByPackage(String pluginPackageId) {
+    public PluginPackageDependencyDto fetchPluginPackageDependencies(String pluginPackageId) {
         PluginPackages pluginPackageEntity = pluginPackagesMapper.selectByPrimaryKey(pluginPackageId);
         if (pluginPackageEntity == null) {
             throw new WecubeCoreException("3109",
@@ -1014,17 +1018,29 @@ public class PluginPackageMgmtService extends AbstractPluginMgmtService {
 
     private void deployPluginUiResourcesIfRequired(PluginPackages pluginPackage) {
         if (pluginPackage.getUiPackageIncluded() == null || !pluginPackage.getUiPackageIncluded()) {
+            log.info("Such package {} does not include UI resources and no need to remote copy.",
+                    pluginPackage.getId());
             return;
         }
         // download UI package from MinIO
         String tmpFolderName = SystemUtils.getTempFolderPath()
                 + new SimpleDateFormat("yyyyMMddHHmmssSSS").format(new Date());
-        String downloadUiZipPath = tmpFolderName + File.separator + pluginProperties.getUiFile();
-        log.info("Download UI.zip from S3 to " + downloadUiZipPath);
+
+        try {
+            downloadAndRemoteCopyUiResourceFiles(pluginPackage, tmpFolderName);
+        } finally {
+            FileUtils.deleteQuietly(new File(tmpFolderName));
+        }
+
+    }
+
+    private void downloadAndRemoteCopyUiResourceFiles(PluginPackages pluginPackage, String tmpFolderName) {
+        String tmpDownloadUiZipPath = tmpFolderName + File.separator + pluginProperties.getUiFile();
+        log.info("Download UI.zip from S3 to " + tmpDownloadUiZipPath);
 
         String s3UiPackagePath = pluginPackage.getName() + File.separator + pluginPackage.getVersion() + File.separator
                 + pluginProperties.getUiFile();
-        s3Client.downFile(pluginProperties.getPluginPackageBucketName(), s3UiPackagePath, downloadUiZipPath);
+        s3Client.downFile(pluginProperties.getPluginPackageBucketName(), s3UiPackagePath, tmpDownloadUiZipPath);
 
         String remotePath = pluginProperties.getStaticResourceServerPath() + File.separator + pluginPackage.getName()
                 + File.separator + pluginPackage.getVersion() + File.separator;
@@ -1052,9 +1068,10 @@ public class PluginPackageMgmtService extends AbstractPluginMgmtService {
 
             // scp UI.zip to Static Resource Server
             try {
+                log.info("Scp files from {} to {}", tmpDownloadUiZipPath, remotePath);
                 scpService.put(remoteIp, pluginProperties.getStaticResourceServerPort(),
                         pluginProperties.getStaticResourceServerUser(),
-                        pluginProperties.getStaticResourceServerPassword(), downloadUiZipPath, remotePath);
+                        pluginProperties.getStaticResourceServerPassword(), tmpDownloadUiZipPath, remotePath);
             } catch (Exception e) {
                 log.error("errors to remotely copy file to :{}", remoteIp, e);
                 throw new WecubeCoreException("3111",
@@ -1065,6 +1082,7 @@ public class PluginPackageMgmtService extends AbstractPluginMgmtService {
             // unzip file
             String unzipCmd = String.format("cd %s && unzip %s", remotePath, pluginProperties.getUiFile());
             try {
+                log.info("To run ssh command at remote:{}", unzipCmd);
                 commandService.runAtRemote(remoteIp, pluginProperties.getStaticResourceServerUser(),
                         pluginProperties.getStaticResourceServerPassword(),
                         pluginProperties.getStaticResourceServerPort(), unzipCmd);
@@ -1076,8 +1094,30 @@ public class PluginPackageMgmtService extends AbstractPluginMgmtService {
             }
         }
 
-        log.info("UI package deployment has done...");
+        log.info("UI package {} deployment has done...", pluginPackage.getId());
+    }
 
+    private PluginPackageInfoDto doRegisterPluginPackage(PluginPackages pluginPackageEntity) {
+        validatePackageDependencies(pluginPackageEntity);
+
+        ensurePluginPackageIsAllowedToRegister(pluginPackageEntity);
+
+        ensureNoMoreThanTwoActivePackages(pluginPackageEntity);
+
+        createRolesIfNotExistInSystem(pluginPackageEntity);
+
+        bindRoleToMenuWithAuthority(pluginPackageEntity);
+
+        updateSystemVariableStatus(pluginPackageEntity);
+
+        deployPluginUiResourcesIfRequired(pluginPackageEntity);
+
+        pluginPackageEntity.setStatus(PluginPackages.REGISTERED);
+        pluginPackagesMapper.updateByPrimaryKeySelective(pluginPackageEntity);
+
+        PluginPackageInfoDto result = buildPluginPackageInfoDto(pluginPackageEntity);
+
+        return result;
     }
 
     private void updateSystemVariableStatus(PluginPackages pluginPackage) {
@@ -1206,7 +1246,7 @@ public class PluginPackageMgmtService extends AbstractPluginMgmtService {
             String errorMessage = String.format(
                     "Failed to register PluginPackage[%s/%s] as it is not in UNREGISTERED status [%s]",
                     pluginPackage.getName(), pluginPackage.getVersion(), pluginPackage.getStatus());
-            log.warn(errorMessage);
+            log.error(errorMessage);
             throw new WecubeCoreException("3105", errorMessage, pluginPackage.getName(), pluginPackage.getVersion(),
                     pluginPackage.getStatus());
         }

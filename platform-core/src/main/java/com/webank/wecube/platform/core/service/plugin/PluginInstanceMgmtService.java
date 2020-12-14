@@ -120,11 +120,11 @@ public class PluginInstanceMgmtService extends AbstractPluginMgmtService {
     private PluginPackageMenuStatusListener pluginPackageMenuStatusListener;
 
     public void removePluginInstanceById(String instanceId) throws Exception {
-        log.info("Removing instanceId: " + instanceId);
+        log.info("Removing plugin instance,instanceId: {}", instanceId);
         PluginInstances pluginInstanceEntity = pluginInstancesMapper.selectByPrimaryKey(instanceId);
         if (pluginInstanceEntity == null) {
-            log.info("invalid plugin instance id to remove:{}", instanceId);
-            return;
+            log.info("The plugin instance {} does not exist.", instanceId);
+            throw new WecubeCoreException("3272","Remove plugin package instance failed.");
         }
         ResourceItemDto removeDockerInstanceDto = new ResourceItemDto();
         removeDockerInstanceDto.setName(pluginInstanceEntity.getContainerName());
@@ -134,11 +134,13 @@ public class PluginInstanceMgmtService extends AbstractPluginMgmtService {
             resourceManagementService.deleteItems(Lists.newArrayList(removeDockerInstanceDto));
         } catch (Exception e) {
             log.error("Failed to remove docker resource items.", e);
-            throw new WecubeCoreException("Failed to remove docker resource items.");
+            throw new WecubeCoreException("3321", "Failed to remove docker resource items.",e.getMessage());
         }
 
         pluginPackageMenuStatusListener.preRemove(pluginInstanceEntity);
         pluginInstancesMapper.deleteByPrimaryKey(instanceId);
+        
+        log.info("Plugin instance {} was removed.", instanceId);
     }
 
     /**
@@ -907,8 +909,8 @@ public class PluginInstanceMgmtService extends AbstractPluginMgmtService {
             throw new WecubeCoreException("3071", errMsg, port, hostIpAddr);
         }
 
-        if (pluginPackage.getStatus().equals(PluginPackages.DECOMMISSIONED)
-                || pluginPackage.getStatus().equals(PluginPackages.UNREGISTERED)) {
+        if (PluginPackages.DECOMMISSIONED.equals(pluginPackage.getStatus())
+                || PluginPackages.UNREGISTERED.equals(pluginPackage.getStatus())) {
             throw new WecubeCoreException("3072",
                     "'DECOMMISSIONED' or 'UNREGISTERED' state can not launch plugin instance ");
         }
