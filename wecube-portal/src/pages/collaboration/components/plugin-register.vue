@@ -79,13 +79,12 @@
               </FormItem>
             </Col>
           </Row>
-          <div style="height: calc(100vh - 300px);overflow:auto" id="paramsContainer">
-            <Collapse v-model="activePanel" accordion>
-              <Panel
-                hide-arrow
+          <div style="height: calc(100vh - 300px);overflow:auto;" id="paramsContainer">
+            <div style="background:#f7f7f7">
+              <div
                 v-for="(inter, index) in currentPluginObj.interfaces"
+                style="margin:4px;padding: 4px; border-bottom:1px solid #dcdee2;"
                 :key="index + inter.action"
-                :name="index + inter.action"
               >
                 <Input
                   :value="inter.action"
@@ -122,15 +121,15 @@
                   >
                 </Tooltip>
                 <Button
-                  style="float:right;margin-top:8px"
+                  style="float:right;"
                   size="small"
                   type="primary"
                   ghost
                   @click.stop.prevent="showParamsModal(inter, index, currentPluginObj.interfaces)"
                   >{{ $t('parameter_configuration') }}</Button
                 >
-              </Panel>
-            </Collapse>
+              </div>
+            </div>
           </div>
           <Row v-if="currentPluginObjKeysLength > 1" style="margin:45px auto;margin-bottom:0;">
             <Col span="9" offset="8">
@@ -420,7 +419,6 @@ export default {
       isAdd: false,
       currentPluginForPermission: {},
       isLoading: false,
-      activePanel: null,
       allDataModelsWithAttrs: {},
       currentPlugin: '',
       plugins: [],
