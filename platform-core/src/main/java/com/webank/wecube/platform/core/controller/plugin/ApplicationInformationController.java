@@ -20,7 +20,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.webank.wecube.platform.core.boot.ApplicationVersionInfo;
 import com.webank.wecube.platform.core.dto.plugin.CommonResponseDto;
 import com.webank.wecube.platform.core.dto.plugin.LoggerInfoDto;
-import com.webank.wecube.platform.core.service.ApplicationInformationService;
+import com.webank.wecube.platform.core.service.plugin.ApplicationInformationService;
 
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.LoggerContext;
