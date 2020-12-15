@@ -177,7 +177,7 @@
         where plugin_package_id =
         #{pluginPackageId,jdbcType=VARCHAR}
         and
-        register_name IS NULL
+        ( (register_name IS NULL) or (register_name = '') ) 
     </select>
 
     <select id="selectAllByPackageAndRegNameIsNotNull" resultMap="BaseResultMap"
@@ -189,6 +189,8 @@
         #{pluginPackageId,jdbcType=VARCHAR}
         and
         register_name IS NOT NULL
+        and
+        register_name != ''
     </select>
 
     <select id="selectAllByPackageAndNameAndRegNameIsNotNull"
@@ -203,6 +205,8 @@
         #{name,jdbcType=VARCHAR}
         and
         register_name IS NOT NULL
+        and
+        register_name != ''
     </select>
 
     <select id="selectAllByPluginPackageAndNameAndRegisterName"
