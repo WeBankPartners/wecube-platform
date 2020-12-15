@@ -441,6 +441,18 @@
         <Button type="primary" @click="confirmCollection">{{ $t('bc_confirm') }}</Button>
       </div>
     </Modal>
+
+    <Modal v-model="confirmModal.isShowConfirmModal" width="800">
+      <div>
+        <Icon :size="28" :color="'#f90'" type="md-help-circle" />
+        <span class="confirm-msg">{{ $t('confirm_to_exect') }}</span>
+      </div>
+      <pre style="margin-left: 44px;">{{ this.confirmModal.message }}</pre>
+      <div slot="footer">
+        <Button type="text" @click="confirmModal.isShowConfirmModal = false">{{ $t('bc_cancel') }}</Button>
+        <Button type="warning" @click="confirmToExecution">{{ $t('bc_confirm') }}</Button>
+      </div>
+    </Modal>
   </div>
 </template>
 <script>
@@ -461,6 +473,7 @@ import {
   updateCollections,
   getPluginsByTargetEntityFilterRule
 } from '@/api/server.js'
+const BATCH_EXECUTION_URL = '/platform/v1/batch-execution/run'
 
 export default {
   name: '',
@@ -566,13 +579,21 @@ export default {
       allRolesBackUp: [],
       USE: [],
       transferTitles: [this.$t('unselected_role'), this.$t('selected_role')],
-      transferStyle: { width: '300px' }
+      transferStyle: { width: '300px' },
+
+      confirmModal: {
+        isShowConfirmModal: false,
+        continueToken: '',
+        message: '',
+        requestBody: '',
+        func: ''
+      }
     }
   },
   mounted () {},
   computed: {
     businessKeyContent: function () {
-      if (this.activeResultKey !== null && this.catchExecuteResult !== null) {
+      if (this.activeResultKey && this.catchExecuteResult) {
         return this.catchExecuteResult[this.activeResultKey]
       }
     }
@@ -1269,30 +1290,50 @@ export default {
         duration: 1
       })
 
-      const { status, data } = await batchExecution(requestBody)
+      const { status, data, message } = await batchExecution(BATCH_EXECUTION_URL, requestBody)
       // this.seletedRows = []
       if (status === 'OK') {
-        this.executeResult = data
-        this.filterBusinessKeySet = []
-        for (const key in data) {
-          this.filterBusinessKeySet.push(key)
-        }
-        this.displayResultTableZone = false
-        this.displayExecuteResultZone = false
-
-        this.executeHistory.push({
-          id: this.getCurrentDate(),
-          plugin: {
-            pluginName: this.pluginId,
-            pluginParams: this.selectedPluginParams
-          },
-          requestBody: requestBody,
-          executeResult: data,
-          filterBusinessKeySet: this.filterBusinessKeySet
-        })
-        this.activeExecuteHistoryKey = this.executeHistory.length - 1
-        this.activeExecuteHistory = JSON.parse(JSON.stringify(this.executeHistory[this.activeExecuteHistoryKey]))
+        this.manageExecutionResult(data, requestBody)
       }
+      if (status === 'CONFIRM') {
+        this.confirmModal.continueToken = data.continueToken
+        this.confirmModal.message = message
+        this.confirmModal.requestBody = requestBody
+        this.confirmModal.func = 'manageExecutionResult'
+        this.confirmModal.isShowConfirmModal = true
+      }
+    },
+    async confirmToExecution () {
+      const { status, data } = await batchExecution(
+        BATCH_EXECUTION_URL + `?continue_token=${this.confirmModal.continueToken}`,
+        this.confirmModal.requestBody
+      )
+      if (status === 'OK') {
+        this[this.confirmModal.func](data, this.confirmModal.requestBody)
+        this.confirmModal.isShowConfirmModal = false
+      }
+    },
+    manageExecutionResult (data, requestBody) {
+      this.executeResult = data
+      this.filterBusinessKeySet = []
+      for (const key in data) {
+        this.filterBusinessKeySet.push(key)
+      }
+      this.displayResultTableZone = false
+      this.displayExecuteResultZone = false
+
+      this.executeHistory.push({
+        id: this.getCurrentDate(),
+        plugin: {
+          pluginName: this.pluginId,
+          pluginParams: this.selectedPluginParams
+        },
+        requestBody: requestBody,
+        executeResult: data,
+        filterBusinessKeySet: this.filterBusinessKeySet
+      })
+      this.activeExecuteHistoryKey = this.executeHistory.length - 1
+      this.activeExecuteHistory = JSON.parse(JSON.stringify(this.executeHistory[this.activeExecuteHistoryKey]))
     },
     getCurrentDate () {
       const timeStr = '-'
@@ -1323,27 +1364,37 @@ export default {
         duration: 1
       })
       this.btnLoading = true
-      const { status, data } = await batchExecution(requestBody)
+      const { status, data, message } = await batchExecution(BATCH_EXECUTION_URL, requestBody)
       this.btnLoading = false
       // this.seletedRows = []
       if (status === 'OK') {
-        this.setPluginParamsModal = false
-        this.operaModal = false
-        this.executeResult = data
-        this.filterBusinessKeySet = []
-        for (const key in data) {
-          this.filterBusinessKeySet.push(key)
-        }
-        this.executeHistory.push({
-          id: this.getCurrentDate(),
-          plugin: this.activeExecuteHistory.plugin,
-          requestBody: requestBody,
-          executeResult: data,
-          filterBusinessKeySet: this.filterBusinessKeySet
-        })
-        this.activeExecuteHistoryKey = this.executeHistory.length - 1
-        this.activeExecuteHistory = JSON.parse(JSON.stringify(this.executeHistory[this.activeExecuteHistoryKey]))
+        this.manageExecutionResultAgain(data, requestBody)
       }
+      if (status === 'CONFIRM') {
+        this.confirmModal.continueToken = data.continueToken
+        this.confirmModal.message = message
+        this.confirmModal.requestBody = requestBody
+        this.confirmModal.func = 'manageExecutionResultAgain'
+        this.confirmModal.isShowConfirmModal = true
+      }
+    },
+    manageExecutionResultAgain (data, requestBody) {
+      this.setPluginParamsModal = false
+      this.operaModal = false
+      this.executeResult = data
+      this.filterBusinessKeySet = []
+      for (const key in data) {
+        this.filterBusinessKeySet.push(key)
+      }
+      this.executeHistory.push({
+        id: this.getCurrentDate(),
+        plugin: this.activeExecuteHistory.plugin,
+        requestBody: requestBody,
+        executeResult: data,
+        filterBusinessKeySet: this.filterBusinessKeySet
+      })
+      this.activeExecuteHistoryKey = this.executeHistory.length - 1
+      this.activeExecuteHistory = JSON.parse(JSON.stringify(this.executeHistory[this.activeExecuteHistoryKey]))
     },
     changeActiveExecuteHistory (keyIndex) {
       if (this.executeHistory.length === 0) {
@@ -1603,5 +1654,12 @@ pre {
 .dispaly-result {
   height: calc(100vh - 300px);
   overflow-y: auto;
+}
+.confirm-msg {
+  vertical-align: text-bottom;
+  margin-left: 12px;
+  font-size: 16px;
+  color: #17233d;
+  font-weight: 500;
 }
 </style>

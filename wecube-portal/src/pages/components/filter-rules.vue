@@ -146,7 +146,11 @@ export default {
       default: false
     },
     disabled: {},
-    allDataModelsWithAttrs: {}
+    allDataModelsWithAttrs: {},
+    rootEntityFirst: {
+      required: false,
+      default: false
+    }
   },
   watch: {
     filterString: {
@@ -518,6 +522,11 @@ export default {
       return
     }
     this.formatFirstCurrentOptions()
+    if (this.rootEntityFirst && !this.rootEntity) {
+      this.restorePathExp('')
+      this.$emit('input', this.fullPathExp)
+      this.$emit('change', this.fullPathExp)
+    }
     this.$refs.filter_rules_path_options.style.width = this.$refs.filter_rules_contain.offsetWidth - 32 + 'px'
   }
 }
@@ -527,7 +536,7 @@ export default {
   padding: 0;
   margin: 0;
   list-style: none;
-  font-size: 14px;
+  // font-size: 14px;
 }
 .paste_input {
   width: 100%;
