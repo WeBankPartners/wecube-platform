@@ -296,8 +296,8 @@ public class PluginConfigMigrationService {
         return xmlParam;
     }
 
-    private PluginConfigInterfaces tryUpdatePluginConfigInterface(PluginPackages pluginPackage,PluginConfigs existPluginConfig,
-            PluginConfigInterfaces toUpdateIntf, PluginConfigInterfaceType xmlIntf) {
+    private PluginConfigInterfaces tryUpdatePluginConfigInterface(PluginPackages pluginPackage,
+            PluginConfigs existPluginConfig, PluginConfigInterfaces toUpdateIntf, PluginConfigInterfaceType xmlIntf) {
         if (xmlIntf == null) {
             return toUpdateIntf;
         }
@@ -328,8 +328,8 @@ public class PluginConfigMigrationService {
             }
         }
 
-        toUpdateIntf.setServiceDisplayName(toUpdateIntf.generateServiceName(pluginPackage,existPluginConfig));
-        toUpdateIntf.setServiceName(toUpdateIntf.generateServiceName(pluginPackage,existPluginConfig));
+        toUpdateIntf.setServiceDisplayName(toUpdateIntf.generateServiceName(pluginPackage, existPluginConfig));
+        toUpdateIntf.setServiceName(toUpdateIntf.generateServiceName(pluginPackage, existPluginConfig));
 
         pluginConfigInterfacesMapper.updateByPrimaryKeySelective(toUpdateIntf);
 
@@ -382,8 +382,7 @@ public class PluginConfigMigrationService {
         List<PluginConfigInterfaceType> xmlPluginInterfaceList = xmlPluginConfig.getPluginInterface();
         List<PluginConfigInterfaces> defInterfaces = pluginConfigInterfacesMapper
                 .selectAllByPluginConfig(pluginConfigDef.getId());
-        // List<PluginConfigInterfaces> createdInterfaces = new
-        // ArrayList<PluginConfigInterfaces>();
+        List<PluginConfigInterfaces> createdInterfaces = new ArrayList<PluginConfigInterfaces>();
 
         if (defInterfaces == null || defInterfaces.isEmpty()) {
             return pluginConfig;
@@ -398,20 +397,22 @@ public class PluginConfigMigrationService {
             Map<String, PluginConfigInterfaceType> actionAndXmlIntfs = pickoutPluginConfigInterfaceTypeByPath(
                     xmlPluginInterfaceList, defIntf.getPath());
             if (actionAndXmlIntfs.isEmpty()) {
-                PluginConfigInterfaces intf = tryCreatePluginConfigInterface(pluginPackage,pluginConfig, null, defIntf);
-                pluginConfigInterfacesMapper.insert(intf);
-                // createdInterfaces.add(intf);
+                PluginConfigInterfaces intf = tryCreatePluginConfigInterface(pluginPackage, pluginConfig, null,
+                        defIntf);
+                // pluginConfigInterfacesMapper.insert(intf);
+                createdInterfaces.add(intf);
             } else {
                 for (PluginConfigInterfaceType xmlIntf : actionAndXmlIntfs.values()) {
-                    PluginConfigInterfaces intf = tryCreatePluginConfigInterface(pluginPackage,pluginConfig, xmlIntf, defIntf);
-                    pluginConfigInterfacesMapper.insert(intf);
-                    // createdInterfaces.add(intf);
+                    PluginConfigInterfaces intf = tryCreatePluginConfigInterface(pluginPackage, pluginConfig, xmlIntf,
+                            defIntf);
+                    // pluginConfigInterfacesMapper.insert(intf);
+                    createdInterfaces.add(intf);
                 }
             }
 
         }
 
-        // pluginConfig.setInterfaces(createdInterfaces);
+        pluginConfig.setInterfaces(createdInterfaces);
 
         pluginConfigsMapper.insert(pluginConfig);
         // PluginConfigs savedPluginConfig =
@@ -616,20 +617,21 @@ public class PluginConfigMigrationService {
                         xmlIntf.getAction());
                 PluginConfigInterfaces defIntf = pickoutDefPluginConfigInterface(pluginConfigDef, xmlIntf.getPath());
                 if (defIntf != null) {
-                    PluginConfigInterfaces newIntf = tryCreatePluginConfigInterface(pluginPackage,toUpdatePluginConfig, xmlIntf,
-                            defIntf);
+                    PluginConfigInterfaces newIntf = tryCreatePluginConfigInterface(pluginPackage, toUpdatePluginConfig,
+                            xmlIntf, defIntf);
 
                     log.info("created {} {}", PluginConfigInterfaces.class.getSimpleName(), newIntf.getId());
                 }
             } else {
                 log.debug("interface exists and try to update,{} {}", toUpdatePluginConfig.getId(),
                         xmlIntf.getAction());
-                tryUpdatePluginConfigInterface(pluginPackage,toUpdatePluginConfig, toUpdateIntf, xmlIntf);
+                tryUpdatePluginConfigInterface(pluginPackage, toUpdatePluginConfig, toUpdateIntf, xmlIntf);
             }
         }
 
         pluginConfigsMapper.updateByPrimaryKeySelective(toUpdatePluginConfig);
-//        toUpdatePluginConfig = pluginConfigRepository.saveAndFlush(toUpdatePluginConfig);
+        // toUpdatePluginConfig =
+        // pluginConfigRepository.saveAndFlush(toUpdatePluginConfig);
         log.debug("plugin config updated : {} {} {} {}", toUpdatePluginConfig.getId(),
                 toUpdatePluginConfig.getTargetEntity(), toUpdatePluginConfig.getTargetEntityFilterRule(),
                 toUpdatePluginConfig.getTargetPackage());
@@ -706,8 +708,8 @@ public class PluginConfigMigrationService {
         return xmlIntfs;
     }
 
-    private PluginConfigInterfaces tryCreatePluginConfigInterface(PluginPackages pluginPackage,PluginConfigs pluginConfig,
-            PluginConfigInterfaceType xmlIntf, PluginConfigInterfaces defIntf) {
+    private PluginConfigInterfaces tryCreatePluginConfigInterface(PluginPackages pluginPackage,
+            PluginConfigs pluginConfig, PluginConfigInterfaceType xmlIntf, PluginConfigInterfaces defIntf) {
         PluginConfigInterfaces intf = new PluginConfigInterfaces();
         intf.setId(LocalIdGenerator.generateId());
         intf.setPluginConfigId(pluginConfig.getId());
@@ -731,17 +733,18 @@ public class PluginConfigMigrationService {
 
         List<PluginConfigInterfaceParameters> defInputParameters = pluginConfigInterfaceParametersMapper
                 .selectAllByConfigInterfaceAndParamType(defIntf.getId(), PluginConfigInterfaceParameters.TYPE_INPUT);
-
+        List<PluginConfigInterfaceParameters> inputParameters = new ArrayList<>();
         if (defInputParameters != null) {
             for (PluginConfigInterfaceParameters defInputParam : defInputParameters) {
                 PluginConfigInputParameterType xmlInputParam = pickoutPluginConfigInputParameterType(xmlIntf,
                         defInputParam.getName());
-                tryCreateInputParameter(intf, xmlInputParam, defInputParam);
-
+                PluginConfigInterfaceParameters inputParam = tryCreateInputParameter(intf, xmlInputParam,
+                        defInputParam);
+                inputParameters.add(inputParam);
             }
         }
 
-        // intf.setInputParameters(inputParameters);
+        intf.setInputParameters(inputParameters);
 
         List<PluginConfigInterfaceParameters> defOutputParameters = pluginConfigInterfaceParametersMapper
                 .selectAllByConfigInterfaceAndParamType(defIntf.getId(), PluginConfigInterfaceParameters.TYPE_OUTPUT);
@@ -753,15 +756,15 @@ public class PluginConfigMigrationService {
                         defOutputParam.getName());
                 PluginConfigInterfaceParameters outputParam = tryCreateOutputParameter(intf, xmlOutputParam,
                         defOutputParam);
-                pluginConfigInterfaceParametersMapper.insert(outputParam);
                 outputParameters.add(outputParam);
             }
         }
 
         // intf.setOutputParameters(outputParameters);
 
-        intf.setServiceDisplayName(intf.generateServiceName(pluginPackage,pluginConfig));
-        intf.setServiceName(intf.generateServiceName(pluginPackage,pluginConfig));
+        intf.setServiceDisplayName(intf.generateServiceName(pluginPackage, pluginConfig));
+        intf.setServiceName(intf.generateServiceName(pluginPackage, pluginConfig));
+        intf.setOutputParameters(outputParameters);
 
         pluginConfigInterfacesMapper.insert(intf);
 
