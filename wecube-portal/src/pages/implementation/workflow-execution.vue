@@ -76,7 +76,9 @@
                   <Option v-for="item in allTarget" :value="item.id" :key="item.id">{{ item.key_name }}</Option>
                 </Select>
                 <Button
-                  :disabled="isExecuteActive || !showExcution || !this.selectedTarget || !this.selectedFlow"
+                  :disabled="
+                    isExecuteActive || !showExcution || !this.selectedTarget || !this.selectedFlow || !isShowExect
+                  "
                   :loading="btnLoading"
                   type="info"
                   @click="excutionFlow"
@@ -146,6 +148,7 @@
       :scrollable="true"
       width="70"
       @on-ok="flowNodesTargetModelConfirm"
+      :ok-text="$t('submit')"
     >
       <Table
         border
@@ -186,6 +189,7 @@
       :scrollable="true"
       :mask="false"
       :mask-closable="false"
+      :ok-text="$t('submit')"
       class="model_target"
       width="50"
       @on-ok="targetModelConfirm"
@@ -420,7 +424,8 @@ export default {
       isLoading: false,
       catchNodeTableList: [],
       processSessionId: '',
-      allBindingsList: []
+      allBindingsList: [],
+      isShowExect: false // 模型查询返回，激活执行按钮
     }
   },
   watch: {
@@ -662,6 +667,10 @@ export default {
         promiseArray.push(setDataByNodeDefIdAndProcessSessionId(key, this.processSessionId, obj[key]))
       })
       await Promise.all(promiseArray)
+      this.$Notice.success({
+        title: 'Success',
+        desc: 'Success'
+      })
     },
     async updateNodeInfo () {
       const currentNode = this.flowData.flowNodes.find(_ => {
@@ -672,6 +681,10 @@ export default {
       })
       await setDataByNodeDefIdAndProcessSessionId(currentNode.nodeDefId, this.processSessionId, payload)
       const filter = this.allBindingsList.filter(_ => _.nodeDefId !== currentNode.nodeDefId)
+      this.$Notice.success({
+        title: 'Success',
+        desc: 'Success'
+      })
       this.allBindingsList = filter.concat(payload)
     },
     async getProcessInstances (isAfterCreate = false, createResponse = undefined) {
@@ -800,6 +813,7 @@ export default {
         .remove()
     },
     onTargetSelectHandler () {
+      this.isShowExect = false
       this.processSessionId = ''
       if (!this.selectedTarget) return
       this.currentModelNodeRefs = []
@@ -818,6 +832,9 @@ export default {
       this.isLoading = false
       if (!this.selectedTarget && !this.isEnqueryPage) return
       if (status === 'OK') {
+        if (!this.isEnqueryPage) {
+          this.isShowExect = true
+        }
         this.processSessionId = data.processSessionId
         const binds = await getAllBindingsProcessSessionId(data.processSessionId)
         this.allBindingsList = binds.data
@@ -1124,6 +1141,7 @@ export default {
         let { status, data } = await createFlowInstance(payload)
         this.btnLoading = false
         if (status === 'OK') {
+          this.processSessionId = ''
           this.getProcessInstances(true, data)
           this.isExecuteActive = false
           this.showExcution = false

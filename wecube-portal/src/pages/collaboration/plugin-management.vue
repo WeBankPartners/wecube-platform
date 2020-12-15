@@ -180,11 +180,10 @@
                       </Button>
                       <div v-if="availiableHostsWithPort.length > 0">
                         <p style="margin-top: 20px">{{ $t('avaliable_port') }}:</p>
-
                         <div v-for="item in availiableHostsWithPort" :key="item.ip + item.port">
                           <div class="instance-item-container" style="border-bottom: 1px solid gray; padding: 10px 0">
                             <div class="instance-item">
-                              <Col span="3">{{ item.ip + ':' + item.port }}</Col>
+                              <Col span="4">{{ item.ip + ':' + item.port }}</Col>
                               <Button
                                 size="small"
                                 type="success"
@@ -202,7 +201,7 @@
                       <div v-else>
                         <div v-for="item in allInstances" :key="item.id">
                           <div class="instance-item-container">
-                            <Col span="3">
+                            <Col span="4">
                               <div class="instance-item">{{ item.displayLabel }}</div>
                             </Col>
                             <Col span="5" offset="0">
@@ -598,6 +597,8 @@ export default {
           title: 'Success',
           desc: 'Instance launched successfully'
         })
+        const index = this.availiableHostsWithPort.findIndex(item => item.port === port)
+        this.availiableHostsWithPort.splice(index, 1)
         this.getAvailableInstancesByPackageId(this.currentPlugin.id)
       }
     },
