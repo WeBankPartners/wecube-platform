@@ -727,7 +727,7 @@ public class PluginConfigMgmtService extends AbstractPluginMgmtService {
         List<PluginConfigInterfaceParameters> outputParameterEntities = intfEntity.getOutputParameters();
         if (outputParameterEntities != null) {
             List<PluginConfigInterfaceParameterDto> outputParamDtos = new ArrayList<>();
-            for (PluginConfigInterfaceParameters paramEntity : inputParameterEntities) {
+            for (PluginConfigInterfaceParameters paramEntity : outputParameterEntities) {
                 PluginConfigInterfaceParameterDto paramDto = buildPluginConfigInterfaceParameterDto(paramEntity);
                 outputParamDtos.add(paramDto);
             }
@@ -1135,23 +1135,6 @@ public class PluginConfigMgmtService extends AbstractPluginMgmtService {
         }
         
         return true;
-
-//        List<PluginPackageEntities> pluginPackageEntitiesList = pluginPackageEntitiesMapper
-//                .selectAllByDataModel(dataModelEntity.getId());
-//
-//        if (pluginPackageEntitiesList != null && !pluginPackageEntitiesList.isEmpty()) {
-//            for (PluginPackageEntities entity : pluginPackageEntitiesList) {
-//                if (targetEntityName.equals(entity.getName())) {
-//                    return true;
-//                }
-//            }
-//
-//            log.info("No entity found with name [{}}] for package [{}}]", targetEntityName, targetPackageName);
-//            return false;
-//        } else {
-//            return true;
-//        }
-
     }
 
 }
