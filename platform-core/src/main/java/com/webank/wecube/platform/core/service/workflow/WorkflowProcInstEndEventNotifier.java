@@ -41,6 +41,8 @@ public class WorkflowProcInstEndEventNotifier {
             log.debug("none operation event to notify");
             return;
         }
+        
+        Date currTime = new Date();
 
         for (OperationEventEntity operationEventEntity : operationEventEntities) {
             if (OperationEventEntity.STATUS_COMPLETED.equalsIgnoreCase(operationEventEntity.getStatus())) {
@@ -69,8 +71,8 @@ public class WorkflowProcInstEndEventNotifier {
             }
 
             operationEventEntity.setStatus(OperationEventEntity.STATUS_COMPLETED);
-            operationEventEntity.setEndTime(new Date());
-            operationEventEntity.setUpdatedTime(new Date());
+            operationEventEntity.setEndTime(currTime);
+            operationEventEntity.setUpdatedTime(currTime);
 
             operationEventRepository.updateByPrimaryKeySelective(operationEventEntity);
         }
