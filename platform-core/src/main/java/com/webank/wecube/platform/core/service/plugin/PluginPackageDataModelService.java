@@ -775,7 +775,6 @@ public class PluginPackageDataModelService {
         parametersMap.put("dataModelUrl", updatePath.startsWith("/") ? updatePath.substring(1) : updatePath);
 
         List<DynamicPluginEntityDto> dynamicPluginPackageEntities = new ArrayList<>();
-        // try {
         HttpHeaders httpHeaders = new HttpHeaders();
         UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromUriString(DATA_MODEL_URL);
         UriComponents uriComponents = uriComponentsBuilder.buildAndExpand(parametersMap);
