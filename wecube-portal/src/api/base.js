@@ -13,7 +13,8 @@ const req = axios.create({
 const throwError = res => {
   Vue.prototype.$Notice.warning({
     title: 'Error',
-    desc: (res.data && 'status:' + res.data.status + '<br/> message:' + res.data.message) || 'error'
+    desc: (res.data && 'status:' + res.data.status + '<br/> message:' + res.data.message) || 'error',
+    duration: 10
   })
 }
 
@@ -39,7 +40,7 @@ req.interceptors.response.use(
     if (res.status === 200) {
       if (res.data.status === 'ERROR') {
         const errorMes = Array.isArray(res.data.data)
-          ? res.data.data.map(_ => _.errorMessage).join('<br/>')
+          ? res.data.data.map(_ => _.message || _.errorMessage).join('<br/>')
           : res.data.message
         Vue.prototype.$Notice.warning({
           title: 'Error',
@@ -55,7 +56,7 @@ req.interceptors.response.use(
         Vue.prototype.$Notice.info({
           title: 'Success',
           desc: '',
-          duration: 0
+          duration: 10
         })
         return
       }
@@ -88,12 +89,12 @@ req.interceptors.response.use(
                   // do request success again
                   if (res.data.status === 'ERROR') {
                     const errorMes = Array.isArray(res.data.data)
-                      ? res.data.data.map(_ => _.errorMessage).join('<br/>')
+                      ? res.data.data.map(_ => _.message || _.errorMessage).join('<br/>')
                       : res.data.message
                     Vue.prototype.$Notice.warning({
                       title: 'Error',
                       desc: errorMes,
-                      duration: 0
+                      duration: 10
                     })
                   }
                   if (
@@ -104,7 +105,7 @@ req.interceptors.response.use(
                     Vue.prototype.$Notice.info({
                       title: 'Success',
                       desc: '',
-                      duration: 0
+                      duration: 10
                     })
                     return
                   }
@@ -140,7 +141,7 @@ req.interceptors.response.use(
           Vue.prototype.$Notice.warning({
             title: 'Error',
             desc: response.data.message || '401',
-            duration: 0
+            duration: 10
           })
         }
         // throwInfo(response)
