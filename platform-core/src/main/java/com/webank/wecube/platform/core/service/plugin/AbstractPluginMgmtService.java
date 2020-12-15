@@ -19,8 +19,8 @@ import com.webank.wecube.platform.core.commons.ApplicationProperties.PluginPrope
 import com.webank.wecube.platform.core.entity.plugin.SystemVariables;
 import com.webank.wecube.platform.core.propenc.RsaEncryptor;
 import com.webank.wecube.platform.core.repository.plugin.SystemVariablesMapper;
-import com.webank.wecube.platform.core.service.CommandService;
-import com.webank.wecube.platform.core.service.ScpService;
+import com.webank.wecube.platform.core.service.cmder.ssh2.CommandService;
+import com.webank.wecube.platform.core.service.cmder.ssh2.ScpService;
 import com.webank.wecube.platform.core.service.user.UserManagementService;
 import com.webank.wecube.platform.core.support.S3Client;
 import com.webank.wecube.platform.core.support.authserver.AuthServerRestClient;
