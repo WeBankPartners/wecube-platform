@@ -180,16 +180,18 @@ public class PluginInstanceMgmtService extends AbstractPluginMgmtService {
         pluginInstanceEntity.setPackageId(pluginPackage.getId());
         pluginInstanceEntity.setPluginPackage(pluginPackage);
 
-        //
+        //1. try to create mysql schema
 
         LocalDatabaseInfo dbInfo = handleCreateDatabase(mysqlInfoSet, pluginPackage);
         if (dbInfo != null) {
             pluginInstanceEntity.setPluginMysqlInstanceResourceId(dbInfo.getResourceItemId());
         }
 
+        //2. try to create s3 bucket
         String s3BucketResourceId = handleCreateS3Bucket(s3InfoSet, pluginPackage);
-        if (s3BucketResourceId != null)
+        if (s3BucketResourceId != null){
             pluginInstanceEntity.setS3bucketResourceId(s3BucketResourceId);
+        }
 
         // 3. create docker instance
         if (dockerInfoSet.size() != 1) {
