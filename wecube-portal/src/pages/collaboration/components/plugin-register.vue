@@ -1034,7 +1034,7 @@ export default {
       this.hasNewSource = true
     },
     async exectAddPluginConfigDto () {
-      const id = this.newPluginConfig.pluginConfigDtoList.find(_ => _.registerName === null).id
+      const id = this.newPluginConfig.pluginConfigDtoList.find(_ => _.registerName === '' || _.registerName === null).id
       await this.getInterfacesByPluginConfigId(id)
       this.registerName = ''
       this.selectedEntityType = ''
