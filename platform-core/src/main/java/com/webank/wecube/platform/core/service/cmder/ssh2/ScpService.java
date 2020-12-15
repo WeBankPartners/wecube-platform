@@ -1,4 +1,4 @@
-package com.webank.wecube.platform.core.service;
+package com.webank.wecube.platform.core.service.cmder.ssh2;
 
 import java.io.File;
 import java.io.IOException;

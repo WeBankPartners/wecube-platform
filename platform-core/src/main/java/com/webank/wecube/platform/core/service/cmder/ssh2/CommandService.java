@@ -1,4 +1,4 @@
-package com.webank.wecube.platform.core.service;
+package com.webank.wecube.platform.core.service.cmder.ssh2;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -11,8 +11,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
-import com.webank.wecube.platform.core.service.cmder.ssh2.RemoteCommand;
-import com.webank.wecube.platform.core.service.cmder.ssh2.RemoteCommandExecutorConfig;
 import com.webank.wecube.platform.core.service.cmder.ssh2.impl.PooledRemoteCommandExecutor;
 import com.webank.wecube.platform.core.service.cmder.ssh2.impl.SimpleRemoteCommand;
 

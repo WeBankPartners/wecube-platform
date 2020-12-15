@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.webank.wecube.platform.core.dto.plugin.CommonResponseDto;
 import com.webank.wecube.platform.core.dto.plugin.MenuItemDto;
-import com.webank.wecube.platform.core.service.MenuService;
+import com.webank.wecube.platform.core.service.plugin.MenuService;
 
 @RestController
 @RequestMapping("/v1")
