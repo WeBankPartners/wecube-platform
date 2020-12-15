@@ -1,4 +1,4 @@
-package com.webank.wecube.platform.core.service;
+package com.webank.wecube.platform.core.service.plugin;
 
 import java.util.List;
 
@@ -7,7 +7,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.webank.wecube.platform.core.service.plugin.PluginInstanceMgmtService;
 import com.webank.wecube.platform.core.support.authserver.AuthServerRestClient;
 
 @Service

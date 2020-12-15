@@ -16,6 +16,7 @@ import com.webank.wecube.platform.core.entity.plugin.PluginPackages;
 import com.webank.wecube.platform.core.repository.plugin.MenuItemsMapper;
 import com.webank.wecube.platform.core.repository.plugin.PluginPackageMenusMapper;
 import com.webank.wecube.platform.core.repository.plugin.PluginPackagesMapper;
+import com.webank.wecube.platform.core.service.plugin.MenuService;
 import com.webank.wecube.platform.workflow.commons.LocalIdGenerator;
 
 public class MenuServiceTest extends DatabaseBasedTest {
