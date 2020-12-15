@@ -57,12 +57,13 @@ export default {
         this.childBreadcrumb = menuObj.title
       } else {
         this.parentBreadcrumb = '-'
-        this.childBreadcrumb = this.$route.path.substr(1)
+        let path = this.$route.path.substr(1)
         if (!window.implicitRoutes) {
           return
         }
-        const implicitRoute = window.implicitRoutes[this.childBreadcrumb]
-        this.parentBreadcrumb = implicitRoute ? implicitRoute[currentLangKey] : '-'
+        const implicitRoute = window.implicitRoutes[path]
+        this.parentBreadcrumb = implicitRoute ? implicitRoute['parentBreadcrumb'][currentLangKey] : '-'
+        this.childBreadcrumb = implicitRoute ? implicitRoute['childBreadcrumb'][currentLangKey] : '-'
       }
     },
     homePageClickHandler () {
