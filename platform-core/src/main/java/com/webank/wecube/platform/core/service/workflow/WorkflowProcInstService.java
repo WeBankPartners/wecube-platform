@@ -26,6 +26,7 @@ import com.webank.wecube.platform.core.entity.workflow.ProcExecBindingEntity;
 import com.webank.wecube.platform.core.entity.workflow.ProcExecBindingTmpEntity;
 import com.webank.wecube.platform.core.entity.workflow.ProcInstInfoEntity;
 import com.webank.wecube.platform.core.entity.workflow.ProcInstInfoQueryEntity;
+import com.webank.wecube.platform.core.entity.workflow.ProcRoleBindingEntity;
 import com.webank.wecube.platform.core.entity.workflow.TaskNodeDefInfoEntity;
 import com.webank.wecube.platform.core.entity.workflow.TaskNodeInstInfoEntity;
 import com.webank.wecube.platform.core.repository.workflow.GraphNodeMapper;
@@ -38,7 +39,6 @@ import com.webank.wecube.platform.core.repository.workflow.TaskNodeDefInfoMapper
 import com.webank.wecube.platform.core.repository.workflow.TaskNodeExecParamMapper;
 import com.webank.wecube.platform.core.repository.workflow.TaskNodeExecRequestMapper;
 import com.webank.wecube.platform.core.repository.workflow.TaskNodeInstInfoMapper;
-import com.webank.wecube.platform.core.service.user.UserManagementServiceImpl;
 import com.webank.wecube.platform.workflow.commons.LocalIdGenerator;
 import com.webank.wecube.platform.workflow.model.ProcFlowNodeInst;
 import com.webank.wecube.platform.workflow.model.ProcInstOutline;
@@ -71,8 +71,8 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
     @Autowired
     protected TaskNodeExecRequestMapper taskNodeExecRequestRepository;
 
-    @Autowired
-    private UserManagementServiceImpl userManagementService;
+//    @Autowired
+//    private UserManagementServiceImpl userManagementService;
 
     @Autowired
     private ProcRoleBindingMapper procRoleBindingRepository;
@@ -373,20 +373,26 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
     }
 
     public void checkCurrentUserRole(String procDefId) {
-        List<String> roleIdList = this.userManagementService
-                .getRoleIdsByUsername(AuthenticationContextHolder.getCurrentUsername());
-        if (roleIdList.size() == 0) {
-            throw new WecubeCoreException("3144", "No access to this resource.");
+//        List<String> roleIdList = this.userManagementService
+//                .getRoleIdsByUsername(AuthenticationContextHolder.getCurrentUsername());
+        
+        Set<String> currRoleNames = AuthenticationContextHolder.getCurrentUserRoles();
+        if (currRoleNames == null || currRoleNames.isEmpty()) {
+            throw new WecubeCoreException("3144", "No access to this resource due to current user did not log in.");
         }
 
-        List<String> procDefIds = procRoleBindingRepository.findDistinctProcIdByRoleIdsAndPermissionIsUse(roleIdList);
-        if (procDefIds.size() == 0) {
-            throw new WecubeCoreException("3145", "No access to this resource.");
+        List<ProcRoleBindingEntity> procRoleBindingEntities = procRoleBindingRepository.findDistinctProcIdByRolesAndPermissionIsUse(currRoleNames);
+        if (procRoleBindingEntities == null || procRoleBindingEntities.isEmpty()) {
+            throw new WecubeCoreException("3145", "No access to this resource due to permission not configured.");
+        }
+        
+        for(ProcRoleBindingEntity e : procRoleBindingEntities){
+            if(procDefId.equals(e.getProcId())){
+                return;
+            }
         }
 
-        if (!procDefIds.contains(procDefId)) {
-            throw new WecubeCoreException("3146", "No access to this resource.");
-        }
+        throw new WecubeCoreException("3146", "No access to this resource due to none permission configuration found.");
 
     }
 
