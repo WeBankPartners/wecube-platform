@@ -36,6 +36,7 @@ public abstract class AbstractServiceNodeStartListener extends AbstractServiceNo
         entity.setUpdatedTime(currTime);
         entity.setStatus(TraceStatus.InProgress);
         entity.setStartTime(currTime);
+        entity.setNodeInstId(execution.getActivityInstanceId());
         
         serviceNodeStatusRepository.updateByPrimaryKeySelective(entity);
         

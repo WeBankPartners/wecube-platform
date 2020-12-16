@@ -75,6 +75,8 @@ public class WorkflowProcDefService extends AbstractWorkflowProcDefService {
             log.info(String.format("Setting process: [%s]'s status to deleted status: [%s]", procDefId,
                     ProcDefInfoEntity.DELETED_STATUS));
             procDef.setStatus(ProcDefInfoEntity.DELETED_STATUS);
+            procDef.setUpdatedBy(AuthenticationContextHolder.getCurrentUsername());
+            procDef.setUpdatedTime(new Date());
             processDefInfoRepo.updateByPrimaryKeySelective(procDef);
             return;
         }
@@ -454,6 +456,7 @@ public class WorkflowProcDefService extends AbstractWorkflowProcDefService {
                 draftNodeEntity.setProcDefKey(draftEntity.getProcDefKey());
 
                 draftNodeEntity.setUpdatedTime(currTime);
+                draftNodeEntity.setUpdatedBy(currUser);
 
                 taskNodeDefInfoRepo.updateByPrimaryKeySelective(draftNodeEntity);
 
