@@ -482,6 +482,8 @@ public class WorkflowDataService {
             entity.setPrevIds(GraphNodeEntity.convertIdsListToString(gNode.getPreviousIds()));
             entity.setSuccIds(GraphNodeEntity.convertIdsListToString(gNode.getSucceedingIds()));
             entity.setProcSessId(previewDto.getProcessSessionId());
+            entity.setCreatedBy(AuthenticationContextHolder.getCurrentUsername());
+            entity.setCreatedTime(new Date());
 
             graphNodeRepository.insert(entity);
         }
@@ -498,6 +500,7 @@ public class WorkflowDataService {
         procInstBindingTmpEntity.setEntityTypeId(outline.getRootEntity());
         procInstBindingTmpEntity.setEntityDataName(dataName);
         procInstBindingTmpEntity.setCreatedBy(AuthenticationContextHolder.getCurrentUsername());
+        procInstBindingTmpEntity.setCreatedTime(new Date());
 
         procExecBindingTmpRepository.insert(procInstBindingTmpEntity);
     }
@@ -647,6 +650,7 @@ public class WorkflowDataService {
             taskNodeBinding.setNodeDefId(f.getNodeDefId());
             taskNodeBinding.setOrderedNo(f.getOrderedNo());
             taskNodeBinding.setCreatedBy(AuthenticationContextHolder.getCurrentUsername());
+            taskNodeBinding.setCreatedTime(new Date());
 
             procExecBindingTmpRepository.insert(taskNodeBinding);
             savedTreeNodes.add(tn);
