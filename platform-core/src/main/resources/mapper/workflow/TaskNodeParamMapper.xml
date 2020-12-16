@@ -252,7 +252,7 @@
         where id = #{id,jdbcType=VARCHAR}
     </update>
     
-    <select id="findAllByProcDefId" parameterType="java.lang.String"
+    <select id="selectAllByProcDefId" parameterType="java.lang.String"
         resultMap="BaseResultMap">
         select
         <include refid="Base_Column_List" />
@@ -260,7 +260,7 @@
         where proc_def_id = #{procDefId,jdbcType=VARCHAR}
     </select>
     
-    <select id="findAllByProcDefIdAndStatus"
+    <select id="selectAllByProcDefIdAndStatus"
         resultMap="BaseResultMap">
         select
         <include refid="Base_Column_List" />
@@ -269,7 +269,7 @@
         and status = #{status,jdbcType=VARCHAR}
     </select>
     
-    <select id="findAllByProcDefIdAndTaskNodeDefId"
+    <select id="selectAllByProcDefIdAndTaskNodeDefId"
         resultMap="BaseResultMap">
         select
         <include refid="Base_Column_List" />
@@ -278,7 +278,7 @@
         and task_node_def_id = #{taskNodeDefId,jdbcType=VARCHAR}
     </select>
     
-    <select id="findAllDraftByProcDefIdAndTaskNodeDefId" parameterType="java.lang.String"
+    <select id="selectAllDraftByProcDefIdAndTaskNodeDefId" parameterType="java.lang.String"
         resultMap="BaseResultMap">
         select
         <include refid="Base_Column_List" />
@@ -288,7 +288,7 @@
         and status = 'draft'
     </select>
     
-    <select id="findOneByTaskNodeDefIdAndParamName" parameterType="java.lang.String"
+    <select id="selectOneByTaskNodeDefIdAndParamName" parameterType="java.lang.String"
         resultMap="BaseResultMap">
         select
         <include refid="Base_Column_List" />
