@@ -265,7 +265,7 @@ public class WorkflowEngineService {
         }
 
         ProcessInstanceStatusEntity procInstStatusEntity = processInstanceStatusRepository
-                .findOneByprocInstanceId(procInstId);
+                .findOneByProcInstanceId(procInstId);
 
         if (procInstStatusEntity == null) {
             log.warn("cannot find such process instance record with procInstId={}", procInstId);
