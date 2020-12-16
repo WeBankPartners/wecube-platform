@@ -24,7 +24,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import com.webank.wecube.platform.core.commons.ApplicationProperties;
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
-import com.webank.wecube.platform.core.dto.plugin.BindedInterfaceEntityDto;
+import com.webank.wecube.platform.core.dto.plugin.BoundInterfaceEntityDto;
 import com.webank.wecube.platform.core.dto.plugin.CommonResponseDto;
 import com.webank.wecube.platform.core.dto.plugin.DataModelEntityDto;
 import com.webank.wecube.platform.core.dto.plugin.DynamicDataModelPullResponseDto;
@@ -337,8 +337,8 @@ public class PluginPackageDataModelService {
 
         dataModelEntityDto = buildDataModelEntityDto(pluginPackageEntitiesEntity);
 
-        List<BindedInterfaceEntityDto> referenceToEntityList = new ArrayList<BindedInterfaceEntityDto>();
-        List<BindedInterfaceEntityDto> referenceByEntityList = new ArrayList<BindedInterfaceEntityDto>();
+        List<BoundInterfaceEntityDto> referenceToEntityList = new ArrayList<BoundInterfaceEntityDto>();
+        List<BoundInterfaceEntityDto> referenceByEntityList = new ArrayList<BoundInterfaceEntityDto>();
 
         PluginPackages latestPluginPackagesEntity = pluginPackageMgmtService
                 .fetchLatestVersionPluginPackage(packageName);
@@ -409,13 +409,13 @@ public class PluginPackageDataModelService {
         return dataModelEntityDto;
     }
 
-    private void buildLeafEntity(List<BindedInterfaceEntityDto> leafEntityList,
+    private void buildLeafEntity(List<BoundInterfaceEntityDto> leafEntityList,
             List<TrimmedPluginPackageEntityDto> entityDtoList, PluginConfigs config) {
         for (TrimmedPluginPackageEntityDto entityDto : entityDtoList) {
             if (entityDto.getPackageName().equals(config.getTargetPackage())
                     && entityDto.getName().equals(config.getTargetEntity())) {
                 boolean entityExistedFlag = false;
-                for (BindedInterfaceEntityDto bindedInterfaceEntityDto : leafEntityList) {
+                for (BoundInterfaceEntityDto bindedInterfaceEntityDto : leafEntityList) {
                     if (bindedInterfaceEntityDto.getPackageName().equals(config.getTargetPackage())
                             && bindedInterfaceEntityDto.getEntityName().equals(config.getTargetEntity())
                             && bindedInterfaceEntityDto.getFilterRule()
@@ -424,7 +424,7 @@ public class PluginPackageDataModelService {
                     }
                 }
                 if (!entityExistedFlag) {
-                    leafEntityList.add(new BindedInterfaceEntityDto(config.getTargetPackage(), config.getTargetEntity(),
+                    leafEntityList.add(new BoundInterfaceEntityDto(config.getTargetPackage(), config.getTargetEntity(),
                             config.getTargetEntityWithFilterRule()));
                 }
             }

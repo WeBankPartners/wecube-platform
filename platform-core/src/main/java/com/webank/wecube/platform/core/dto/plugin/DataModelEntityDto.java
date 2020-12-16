@@ -9,27 +9,27 @@ public class DataModelEntityDto extends PluginPackageEntityDto {
 
     public class LeafEntityList {
 
-        private List<BindedInterfaceEntityDto> referenceToEntityList = new ArrayList<>();
-        private List<BindedInterfaceEntityDto> referenceByEntityList = new ArrayList<>();
+        private List<BoundInterfaceEntityDto> referenceToEntityList = new ArrayList<>();
+        private List<BoundInterfaceEntityDto> referenceByEntityList = new ArrayList<>();
 
-        public List<BindedInterfaceEntityDto> getReferenceToEntityList() {
+        public List<BoundInterfaceEntityDto> getReferenceToEntityList() {
             return referenceToEntityList;
         }
 
-        public void setReferenceToEntityList(List<BindedInterfaceEntityDto> referenceToEntityList) {
+        public void setReferenceToEntityList(List<BoundInterfaceEntityDto> referenceToEntityList) {
             this.referenceToEntityList = referenceToEntityList;
         }
 
-        public List<BindedInterfaceEntityDto> getReferenceByEntityList() {
+        public List<BoundInterfaceEntityDto> getReferenceByEntityList() {
             return referenceByEntityList;
         }
 
-        public void setReferenceByEntityList(List<BindedInterfaceEntityDto> referenceByEntityList) {
+        public void setReferenceByEntityList(List<BoundInterfaceEntityDto> referenceByEntityList) {
             this.referenceByEntityList = referenceByEntityList;
         }
 
-        public LeafEntityList(List<BindedInterfaceEntityDto> referenceToEntityList,
-                List<BindedInterfaceEntityDto> referenceByEntityList) {
+        public LeafEntityList(List<BoundInterfaceEntityDto> referenceToEntityList,
+                List<BoundInterfaceEntityDto> referenceByEntityList) {
             super();
             this.referenceToEntityList = referenceToEntityList;
             this.referenceByEntityList = referenceByEntityList;
