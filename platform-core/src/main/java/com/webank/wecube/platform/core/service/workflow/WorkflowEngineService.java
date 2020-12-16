@@ -106,7 +106,7 @@ public class WorkflowEngineService {
     
     public String getTaskNodeStatus(String procInstanceId, String nodeId) {
         ServiceNodeStatusEntity nodeStatusEntity = serviceNodeStatusRepository
-                .findOneByProcInstanceIdAndNodeId(procInstanceId, nodeId);
+                .selectOneByProcInstanceIdAndNodeId(procInstanceId, nodeId);
 
         if (nodeStatusEntity == null) {
             return null;
@@ -265,7 +265,7 @@ public class WorkflowEngineService {
         }
 
         ProcessInstanceStatusEntity procInstStatusEntity = processInstanceStatusRepository
-                .findOneByProcInstanceId(procInstId);
+                .selectOneByProcInstanceId(procInstId);
 
         if (procInstStatusEntity == null) {
             log.warn("cannot find such process instance record with procInstId={}", procInstId);
@@ -473,7 +473,7 @@ public class WorkflowEngineService {
         }
 
         ServiceNodeStatusEntity nodeStatus = serviceNodeStatusRepository
-                .findOneByProcInstanceIdAndNodeId(outline.getId(), pfn.getId());
+                .selectOneByProcInstanceIdAndNodeId(outline.getId(), pfn.getId());
 
         if (nodeStatus != null) {
             pfn.setStartTime(nodeStatus.getStartTime());
