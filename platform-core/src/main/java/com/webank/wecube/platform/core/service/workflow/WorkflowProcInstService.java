@@ -98,6 +98,11 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
             log.info("About to terminate process instance, procInstId={},procInstKernelId={}", procInstId,
                     procInstEntity.getProcInstKernelId());
         }
+        
+        procInstEntity.setStatus(ProcInstInfoEntity.INTERNALLY_TERMINATED_STATUS);
+        procInstEntity.setUpdatedBy(AuthenticationContextHolder.getCurrentUsername());
+        procInstEntity.setUpdatedTime(new Date());
+        procInstInfoRepository.updateByPrimaryKeySelective(procInstEntity);
         workflowEngineService.deleteProcessInstance(procInstEntity.getProcInstKernelId());
     }
 

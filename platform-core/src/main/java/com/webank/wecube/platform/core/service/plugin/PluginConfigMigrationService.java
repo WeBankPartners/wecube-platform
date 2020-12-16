@@ -378,6 +378,8 @@ public class PluginConfigMigrationService {
         pluginConfig.setTargetEntityFilterRule(xmlPluginConfig.getTargetEntityFilterRule());
         pluginConfig.setTargetPackage(xmlPluginConfig.getTargetPackage());
         pluginConfig.setPluginPackageId(pluginPackage.getId());
+        
+        pluginConfigsMapper.insert(pluginConfig);
 
         List<PluginConfigInterfaceType> xmlPluginInterfaceList = xmlPluginConfig.getPluginInterface();
         List<PluginConfigInterfaces> defInterfaces = pluginConfigInterfacesMapper
@@ -414,7 +416,7 @@ public class PluginConfigMigrationService {
 
         pluginConfig.setInterfaces(createdInterfaces);
 
-        pluginConfigsMapper.insert(pluginConfig);
+        
         // PluginConfigs savedPluginConfig =
         // pluginConfigRepository.saveAndFlush(pluginConfig);
 
@@ -730,6 +732,10 @@ public class PluginConfigMigrationService {
 
             intf.setType(defIntf.getType());
         }
+        intf.setServiceDisplayName(intf.generateServiceName(pluginPackage, pluginConfig));
+        intf.setServiceName(intf.generateServiceName(pluginPackage, pluginConfig));
+        
+        pluginConfigInterfacesMapper.insert(intf);
 
         List<PluginConfigInterfaceParameters> defInputParameters = pluginConfigInterfaceParametersMapper
                 .selectAllByConfigInterfaceAndParamType(defIntf.getId(), PluginConfigInterfaceParameters.TYPE_INPUT);
@@ -762,11 +768,10 @@ public class PluginConfigMigrationService {
 
         // intf.setOutputParameters(outputParameters);
 
-        intf.setServiceDisplayName(intf.generateServiceName(pluginPackage, pluginConfig));
-        intf.setServiceName(intf.generateServiceName(pluginPackage, pluginConfig));
+        
         intf.setOutputParameters(outputParameters);
 
-        pluginConfigInterfacesMapper.insert(intf);
+        pluginConfigInterfacesMapper.updateByPrimaryKeySelective(intf);
 
         return intf;
     }
