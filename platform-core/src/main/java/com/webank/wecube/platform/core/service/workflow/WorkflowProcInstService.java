@@ -71,9 +71,6 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
     @Autowired
     protected TaskNodeExecRequestMapper taskNodeExecRequestRepository;
 
-//    @Autowired
-//    private UserManagementServiceImpl userManagementService;
-
     @Autowired
     private ProcRoleBindingMapper procRoleBindingRepository;
 
@@ -202,6 +199,7 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
         if (StringUtils.isNotBlank(nodeStatus)) {
             if (!nodeStatus.equals(nodeInst.getStatus())) {
                 nodeInst.setUpdatedTime(new Date());
+                nodeInst.setUpdatedBy(AuthenticationContextHolder.getCurrentUsername());
                 nodeInst.setStatus(nodeStatus);
                 taskNodeInstInfoRepository.updateByPrimaryKeySelective(nodeInst);
             }
@@ -223,6 +221,7 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
             if (!nodeStatus.equals(nie.getStatus())) {
                 nie.setStatus(nodeStatus);
                 nie.setUpdatedTime(currTime);
+                nie.setUpdatedBy(AuthenticationContextHolder.getCurrentUsername());
                 taskNodeInstInfoRepository.updateByPrimaryKeySelective(nie);
             }
         }
@@ -252,14 +251,13 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
             roleNames.add(roleName);
         }
 
-        List<?> procInstInfoQueryEntities = queryProcInstInfoByRoleNames(roleNames);
+        List<ProcInstInfoQueryEntity> procInstInfoQueryEntities = queryProcInstInfoByRoleNames(roleNames);
 
         if (procInstInfoQueryEntities == null || procInstInfoQueryEntities.isEmpty()) {
             return results;
         }
 
-        for (Object obj : procInstInfoQueryEntities) {
-            ProcInstInfoQueryEntity e = (ProcInstInfoQueryEntity) obj;
+        for (ProcInstInfoQueryEntity e : procInstInfoQueryEntities) {
             ProcInstInfoDto d = new ProcInstInfoDto();
             d.setCreatedTime(formatDate(e.getCreatedTime()));
             d.setId(e.getId());
@@ -303,6 +301,8 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
         ProcInstOutline procInstOutline = workflowEngineService.getProcInstOutline(procInstanceKernelId);
         if (procInstEntity.getStatus().equals(procInstOutline.getStatus())) {
             procInstEntity.setStatus(procInstOutline.getStatus());
+            procInstEntity.setUpdatedTime(new Date());
+            procInstEntity.setUpdatedBy(AuthenticationContextHolder.getCurrentUsername());
             procInstInfoRepository.updateByPrimaryKeySelective(procInstEntity);
         }
 
@@ -313,6 +313,7 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
             if (pfni != null && (pfni.getStatus() != null) && (!pfni.getStatus().equals(nodeInstEntity.getStatus()))) {
                 nodeInstEntity.setStatus(pfni.getStatus());
                 nodeInstEntity.setUpdatedTime(new Date());
+                nodeInstEntity.setUpdatedBy(AuthenticationContextHolder.getCurrentUsername());
                 taskNodeInstInfoRepository.updateByPrimaryKeySelective(nodeInstEntity);
             }
         }
@@ -478,8 +479,10 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
         procInstInfoEntity.setProcDefKey(procDefInfoEntity.getProcDefKey());
         procInstInfoEntity.setProcDefName(procDefInfoEntity.getProcDefName());
         procInstInfoEntity.setProcInstKey(procInstKey);
+        procInstInfoEntity.setCreatedBy(AuthenticationContextHolder.getCurrentUsername());
+        procInstInfoEntity.setCreatedTime(new Date());
 
-        procInstInfoRepository.updateByPrimaryKeySelective(procInstInfoEntity);
+        procInstInfoRepository.insert(procInstInfoEntity);
 
         ProcExecBindingEntity procInstBindEntity = new ProcExecBindingEntity();
         procInstBindEntity.setBindType(ProcExecBindingEntity.BIND_TYPE_PROC_INSTANCE);
@@ -488,6 +491,8 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
         procInstBindEntity.setEntityDataName(rootEntityDataName);
         procInstBindEntity.setProcDefId(procDefId);
         procInstBindEntity.setProcInstId(procInstInfoEntity.getId());
+        procInstBindEntity.setCreatedBy(AuthenticationContextHolder.getCurrentUsername());
+        procInstBindEntity.setCreatedTime(new Date());
         procExecBindingRepository.insert(procInstBindEntity);
 
         List<TaskNodeDefInfoEntity> taskNodeDefInfoEntities = taskNodeDefInfoRepository.selectAllByProcDefId(procDefId);
@@ -527,6 +532,8 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
             nodeBindEntity.setEntityTypeId(bindInfoDto.getEntityTypeId());
             nodeBindEntity.setEntityDataId(bindInfoDto.getEntityDataId());
             nodeBindEntity.setEntityDataName(bindInfoDto.getEntityDisplayName());
+            nodeBindEntity.setCreatedBy(AuthenticationContextHolder.getCurrentUsername());
+            nodeBindEntity.setCreatedTime(new Date());
 
             procExecBindingRepository.insert(nodeBindEntity);
 
@@ -561,8 +568,10 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
         taskNodeInstInfoEntity.setProcInstKey(procInstInfoEntity.getProcInstKey());
         taskNodeInstInfoEntity.setNodeType(taskNodeDefInfoEntity.getNodeType());
         taskNodeInstInfoEntity.setOrderedNo(taskNodeDefInfoEntity.getOrderedNo());
+        taskNodeInstInfoEntity.setCreatedBy(AuthenticationContextHolder.getCurrentUsername());
+        taskNodeInstInfoEntity.setCreatedTime(new Date());
 
-        taskNodeInstInfoRepository.updateByPrimaryKeySelective(taskNodeInstInfoEntity);
+        taskNodeInstInfoRepository.insert(taskNodeInstInfoEntity);
 
         return taskNodeInstInfoEntity;
     }
@@ -591,6 +600,7 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
 
         for (GraphNodeEntity gNode : gNodes) {
             gNode.setUpdatedTime(new Date());
+            gNode.setUpdatedBy(AuthenticationContextHolder.getCurrentUsername());
             gNode.setProcInstId(result.getId());
 
             graphNodeRepository.updateByPrimaryKeySelective(gNode);
@@ -611,6 +621,7 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
         Date now = new Date();
 
         procEntity.setUpdatedTime(now);
+        procEntity.setUpdatedBy(AuthenticationContextHolder.getCurrentUsername());
         procEntity.setProcInstKernelId(processInstance.getId());
         procEntity.setStatus(ProcInstInfoEntity.IN_PROGRESS_STATUS);
 
@@ -747,7 +758,7 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
         return result;
     }
 
-    private List<?> queryProcInstInfoByRoleNames(List<String> roleNames) {
+    private List<ProcInstInfoQueryEntity> queryProcInstInfoByRoleNames(List<String> roleNames) {
         List<ProcInstInfoQueryEntity> insts = procInstInfoRepository.selectAllByProcInstInfoByRoleNames(roleNames);
         return insts;
     }
