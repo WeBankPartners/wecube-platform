@@ -60,7 +60,7 @@
                 </Select>
               </FormItem>
             </Col>
-            <Col v-if="!isEnqueryPage" span="8" offset="0">
+            <Col v-if="!isEnqueryPage" span="12" offset="0">
               <FormItem :label-width="100" :label="$t('target_object')">
                 <Select
                   style="width:80%"
@@ -834,10 +834,11 @@ export default {
       if (status === 'OK') {
         if (!this.isEnqueryPage) {
           this.isShowExect = true
+        } else {
+          this.processSessionId = data.processSessionId
+          const binds = await getAllBindingsProcessSessionId(data.processSessionId)
+          this.allBindingsList = binds.data
         }
-        this.processSessionId = data.processSessionId
-        const binds = await getAllBindingsProcessSessionId(data.processSessionId)
-        this.allBindingsList = binds.data
         this.modelData = data.entityTreeNodes.map(_ => {
           return {
             ..._,
