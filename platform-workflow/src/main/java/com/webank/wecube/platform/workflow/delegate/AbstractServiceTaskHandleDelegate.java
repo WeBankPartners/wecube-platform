@@ -72,7 +72,7 @@ public abstract class AbstractServiceTaskHandleDelegate implements JavaDelegate 
         ServiceNodeStatusMapper repository = SpringApplicationContextUtil
                 .getBean(ServiceNodeStatusMapper.class);
 
-        ServiceNodeStatusEntity entity = repository.findOneByProcInstanceBizKeyAndNodeId(procInstanceBizKey, nodeId);
+        ServiceNodeStatusEntity entity = repository.selectOneByProcInstanceBizKeyAndNodeId(procInstanceBizKey, nodeId);
 
         if (entity != null) {
             entity.setTryTimes(entity.getTryTimes() + 1);

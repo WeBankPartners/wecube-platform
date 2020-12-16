@@ -29,7 +29,7 @@
     where id = #{id,jdbcType=VARCHAR}
   </select>
   
-  <select id="findOneByProcInstanceBizKeyAndNodeId" parameterType="java.lang.String" resultMap="BaseResultMap">
+  <select id="selectOneByProcInstanceBizKeyAndNodeId" parameterType="java.lang.String" resultMap="BaseResultMap">
     select 
     <include refid="Base_Column_List" />
     from act_ru_srvnode_status
@@ -38,7 +38,7 @@
   </select>
   
   
-  <select id="findOneByProcInstanceIdAndNodeId" resultMap="BaseResultMap">
+  <select id="selectOneByProcInstanceIdAndNodeId" resultMap="BaseResultMap">
     select 
     <include refid="Base_Column_List" />
     from act_ru_srvnode_status
@@ -46,7 +46,7 @@
     and node_id = #{nodeId,jdbcType=VARCHAR}
   </select>
   
-  <select id="findOneByProcInstanceBizKeyAndNodeIdAndStatus" resultMap="BaseResultMap">
+  <select id="selectOneByProcInstanceBizKeyAndNodeIdAndStatus" resultMap="BaseResultMap">
     select 
     <include refid="Base_Column_List" />
     from act_ru_srvnode_status

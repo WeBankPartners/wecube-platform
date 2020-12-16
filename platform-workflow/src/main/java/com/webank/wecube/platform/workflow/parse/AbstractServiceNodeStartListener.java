@@ -23,7 +23,7 @@ public abstract class AbstractServiceNodeStartListener extends AbstractServiceNo
                 .getBean(ServiceNodeStatusMapper.class);
 
         ServiceNodeStatusEntity entity = serviceNodeStatusRepository
-                .findOneByProcInstanceBizKeyAndNodeId(procInstanceBizKey, nodeId);
+                .selectOneByProcInstanceBizKeyAndNodeId(procInstanceBizKey, nodeId);
 
         if (entity == null) {
             getLogger().warn("{} is null for procInstanceBizKey={},nodeId={}", ServiceNodeStatusEntity.class.getSimpleName(),

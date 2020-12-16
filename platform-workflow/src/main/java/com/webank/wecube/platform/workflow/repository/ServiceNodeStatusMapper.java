@@ -52,14 +52,14 @@ public interface ServiceNodeStatusMapper {
      * @param nodeId
      * @return
      */
-    ServiceNodeStatusEntity findOneByProcInstanceBizKeyAndNodeId(@Param("procInstKey")String procInstKey, @Param("nodeId")String nodeId);
+    ServiceNodeStatusEntity selectOneByProcInstanceBizKeyAndNodeId(@Param("procInstKey")String procInstKey, @Param("nodeId")String nodeId);
     /**
      * 
      * @param procInstId
      * @param nodeId
      * @return
      */
-    ServiceNodeStatusEntity findOneByProcInstanceIdAndNodeId(@Param("procInstId")String procInstId, @Param("nodeId")String nodeId);
+    ServiceNodeStatusEntity selectOneByProcInstanceIdAndNodeId(@Param("procInstId")String procInstId, @Param("nodeId")String nodeId);
     
     /**
      * 
@@ -68,5 +68,5 @@ public interface ServiceNodeStatusMapper {
      * @param status
      * @return
      */
-    ServiceNodeStatusEntity findOneByProcInstanceBizKeyAndNodeIdAndStatus(@Param("procInstKey")String procInstKey, @Param("nodeId")String nodeId, @Param("status")TraceStatus status);
+    ServiceNodeStatusEntity selectOneByProcInstanceBizKeyAndNodeIdAndStatus(@Param("procInstKey")String procInstKey, @Param("nodeId")String nodeId, @Param("status")TraceStatus status);
 }
