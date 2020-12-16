@@ -89,7 +89,7 @@ public class WorkflowDataService {
     protected RestTemplate userJwtSsoTokenRestTemplate;
 
     public ProcessDataPreviewDto generateProcessDataPreviewForProcInstance(Integer procInstId) {
-        List<GraphNodeEntity> gNodeEntities = graphNodeRepository.findAllByProcInstId(procInstId);
+        List<GraphNodeEntity> gNodeEntities = graphNodeRepository.selectAllByProcInstId(procInstId);
         ProcessDataPreviewDto result = new ProcessDataPreviewDto();
         if (gNodeEntities == null || gNodeEntities.isEmpty()) {
             return result;
@@ -121,7 +121,7 @@ public class WorkflowDataService {
             throw new WecubeCoreException("3186", "Process definition ID cannot be blank.");
         }
 
-        List<ProcDefInfoEntity> procDefEntities = procDefInfoRepository.findAllDeployedProcDefsByProcDefKey(procDefKey,
+        List<ProcDefInfoEntity> procDefEntities = procDefInfoRepository.selectAllDeployedProcDefsByProcDefKey(procDefKey,
                 ProcDefInfoEntity.DEPLOYED_STATUS);
 
         List<Map<String, Object>> result = new ArrayList<>();
@@ -211,7 +211,7 @@ public class WorkflowDataService {
             List<TaskNodeDefObjectBindInfoDto> bindings) {
 
         List<ProcExecBindingTmpEntity> bindingEntities = procExecBindingTmpRepository
-                .findAllNodeBindingsByNodeAndSession(nodeDefId, processSessionId);
+                .selectAllNodeBindingsByNodeAndSession(nodeDefId, processSessionId);
 
         if (bindingEntities == null || bindingEntities.isEmpty()) {
             return;
@@ -264,7 +264,7 @@ public class WorkflowDataService {
 
     public List<TaskNodeDefObjectBindInfoDto> getProcessInstanceExecBindingsOfSession(String processSessionId) {
         List<ProcExecBindingTmpEntity> bindingEntities = procExecBindingTmpRepository
-                .findAllNodeBindingsBySession(processSessionId);
+                .selectAllNodeBindingsBySession(processSessionId);
 
         List<TaskNodeDefObjectBindInfoDto> result = new ArrayList<>();
         if (bindingEntities == null) {
@@ -288,7 +288,7 @@ public class WorkflowDataService {
     public List<TaskNodeDefObjectBindInfoDto> getProcessInstanceExecBindingsOfSessionAndNode(String nodeDefId,
             String processSessionId) {
         List<ProcExecBindingTmpEntity> bindingEntities = procExecBindingTmpRepository
-                .findAllNodeBindingsByNodeAndSession(nodeDefId, processSessionId);
+                .selectAllNodeBindingsByNodeAndSession(nodeDefId, processSessionId);
 
         List<TaskNodeDefObjectBindInfoDto> result = new ArrayList<>();
         if (bindingEntities == null) {
@@ -326,7 +326,7 @@ public class WorkflowDataService {
         result.setErrorMessage(nodeEntity.getErrMsg());
 
         List<TaskNodeExecRequestEntity> requestEntities = taskNodeExecRequestRepository
-                .findCurrentEntityByNodeInstId(nodeEntity.getId());
+                .selectCurrentEntityByNodeInstId(nodeEntity.getId());
 
         if (requestEntities == null || requestEntities.isEmpty()) {
             return result;
@@ -338,10 +338,10 @@ public class WorkflowDataService {
         result.setErrorCode(requestEntity.getErrCode());
 
         List<TaskNodeExecParamEntity> requestParamEntities = taskNodeExecParamRepository
-                .findAllByRequestIdAndParamType(requestEntity.getReqId(), TaskNodeExecParamEntity.PARAM_TYPE_REQUEST);
+                .selectAllByRequestIdAndParamType(requestEntity.getReqId(), TaskNodeExecParamEntity.PARAM_TYPE_REQUEST);
 
         List<TaskNodeExecParamEntity> responseParamEntities = taskNodeExecParamRepository
-                .findAllByRequestIdAndParamType(requestEntity.getReqId(), TaskNodeExecParamEntity.PARAM_TYPE_RESPONSE);
+                .selectAllByRequestIdAndParamType(requestEntity.getReqId(), TaskNodeExecParamEntity.PARAM_TYPE_RESPONSE);
 
         List<RequestObjectDto> requestObjects = calculateRequestObjectDtos(requestParamEntities, responseParamEntities);
 
