@@ -33,7 +33,7 @@ public abstract class AbstractServiceExceptionHandleDelegate {
         ServiceNodeStatusMapper repository = SpringApplicationContextUtil
                 .getBean(ServiceNodeStatusMapper.class);
 
-        ServiceNodeStatusEntity entity = repository.findOneByProcInstanceBizKeyAndNodeId(procInstanceBizKey, nodeId);
+        ServiceNodeStatusEntity entity = repository.selectOneByProcInstanceBizKeyAndNodeId(procInstanceBizKey, nodeId);
 
         if (entity == null) {
             getLogger().warn("{} doesnt exist for procInstanceBizKey={},nodeId={}",
