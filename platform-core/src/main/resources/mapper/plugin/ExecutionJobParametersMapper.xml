@@ -39,7 +39,7 @@
         execution_job_parameters
         where id = #{id,jdbcType=INTEGER}
     </delete>
-    <insert id="insert"
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id"
         parameterType="com.webank.wecube.platform.core.entity.plugin.ExecutionJobParameters">
         insert into execution_job_parameters (id,
         execution_job_id,
@@ -58,7 +58,8 @@
         #{required,jdbcType=VARCHAR}, #{constantValue,jdbcType=VARCHAR},
         #{value,jdbcType=VARCHAR})
     </insert>
-    <insert id="insertSelective"
+    <insert id="insertSelective" useGeneratedKeys="true"
+        keyProperty="id"
         parameterType="com.webank.wecube.platform.core.entity.plugin.ExecutionJobParameters">
         insert into execution_job_parameters
         <trim prefix="(" suffix=")" suffixOverrides=",">
