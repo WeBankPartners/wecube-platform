@@ -60,11 +60,11 @@ public class AbstractWorkflowProcDefService extends AbstractWorkflowService{
         ProcDefInfoDto result = procDefInfoDtoFromEntity(procDefEntity);
         result.setProcDefData(procDefEntity.getProcDefData());
 
-        List<TaskNodeDefInfoEntity> taskNodeDefEntities = taskNodeDefInfoRepo.findAllByProcDefId(id);
+        List<TaskNodeDefInfoEntity> taskNodeDefEntities = taskNodeDefInfoRepo.selectAllByProcDefId(id);
         for (TaskNodeDefInfoEntity e : taskNodeDefEntities) {
             TaskNodeDefInfoDto tdto = taskNodeDefInfoDtoFromEntity(e);
 
-            List<TaskNodeParamEntity> taskNodeParamEntities = taskNodeParamRepo.findAllByProcDefIdAndTaskNodeDefId(id,
+            List<TaskNodeParamEntity> taskNodeParamEntities = taskNodeParamRepo.selectAllByProcDefIdAndTaskNodeDefId(id,
                     e.getId());
 
             for (TaskNodeParamEntity tnpe : taskNodeParamEntities) {

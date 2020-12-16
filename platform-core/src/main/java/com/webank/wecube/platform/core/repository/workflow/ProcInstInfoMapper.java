@@ -22,27 +22,27 @@ public interface ProcInstInfoMapper{
      * @param procInstKernelId
      * @return
      */
-    ProcInstInfoEntity findOneByProcInstKernelId(@Param("procInstKernelId") String procInstKernelId);
+    ProcInstInfoEntity selectOneByProcInstKernelId(@Param("procInstKernelId") String procInstKernelId);
 
     /**
      * 
      * @param procDefIds
      * @return
      */
-    List<ProcInstInfoEntity> findByProcDefIdIn(@Param("procDefIds") List<String> procDefIds);
+    List<ProcInstInfoEntity> selectByProcDefIdIn(@Param("procDefIds") List<String> procDefIds);
     
     /**
      * 
      * @param procDefId
      * @return
      */
-    List<ProcInstInfoEntity> findAllByProcDefId(@Param("procDefId") String procDefId);
+    List<ProcInstInfoEntity> selectAllByProcDefId(@Param("procDefId") String procDefId);
     
     /**
      * 
      * @param roleNames
      * @return
      */
-    List<ProcInstInfoQueryEntity> findAllByProcInstInfoByRoleNames(@Param("roleNames")List<String> roleNames);
+    List<ProcInstInfoQueryEntity> selectAllByProcInstInfoByRoleNames(@Param("roleNames")List<String> roleNames);
     
 }

@@ -247,7 +247,7 @@
         #{id,jdbcType=INTEGER}
     </update>
 
-    <select id="findAllTaskNodeBindings" parameterType="java.lang.Integer"
+    <select id="selectAllTaskNodeBindings" parameterType="java.lang.Integer"
         resultMap="BaseResultMap">
         select
         <include refid="Base_Column_List" />
@@ -259,7 +259,7 @@
         and bind_type = 'taskNode'
     </select>
 
-    <select id="findProcInstBindings" parameterType="java.lang.Integer"
+    <select id="selectProcInstBindings" parameterType="java.lang.Integer"
         resultMap="BaseResultMap">
         select
         <include refid="Base_Column_List" />
@@ -269,7 +269,7 @@
         and bind_type = 'process'
     </select>
 
-    <select id="findAllTaskNodeBindingsByProcInstId"
+    <select id="selectAllTaskNodeBindingsByProcInstId"
         parameterType="java.lang.Integer" resultMap="BaseResultMap">
         select
         <include refid="Base_Column_List" />

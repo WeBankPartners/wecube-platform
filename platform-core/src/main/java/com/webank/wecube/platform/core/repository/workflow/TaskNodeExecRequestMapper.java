@@ -26,12 +26,12 @@ public interface TaskNodeExecRequestMapper {
      * @param requestId
      * @return
      */
-    TaskNodeExecRequestEntity findOneByRequestId(@Param("requestId") String requestId);
+    TaskNodeExecRequestEntity selectOneByRequestId(@Param("requestId") String requestId);
 
     /**
      * 
      * @param nodeInstId
      * @return
      */
-    List<TaskNodeExecRequestEntity> findCurrentEntityByNodeInstId(@Param("nodeInstId") Integer nodeInstId);
+    List<TaskNodeExecRequestEntity> selectCurrentEntityByNodeInstId(@Param("nodeInstId") Integer nodeInstId);
 }

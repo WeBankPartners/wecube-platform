@@ -21,11 +21,11 @@ public interface TaskNodeDefInfoMapper {
 
     int updateByPrimaryKey(TaskNodeDefInfoEntity record);
 
-    TaskNodeDefInfoEntity findOneWithProcessIdAndNodeIdAndStatus(@Param("procDefId") String procDefId,
+    TaskNodeDefInfoEntity selectOneWithProcessIdAndNodeIdAndStatus(@Param("procDefId") String procDefId,
             @Param("nodeId") String nodeId, @Param("status") String status);
 
-    List<TaskNodeDefInfoEntity> findAllByProcDefId(@Param("procDefId") String procDefId);
+    List<TaskNodeDefInfoEntity> selectAllByProcDefId(@Param("procDefId") String procDefId);
 
-    List<TaskNodeDefInfoEntity> findAllByProcDefIdAndStatus(@Param("procDefId") String procDefId,
+    List<TaskNodeDefInfoEntity> selectAllByProcDefIdAndStatus(@Param("procDefId") String procDefId,
             @Param("status") String status);
 }

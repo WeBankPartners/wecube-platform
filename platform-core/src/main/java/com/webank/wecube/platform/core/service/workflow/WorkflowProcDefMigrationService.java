@@ -135,12 +135,12 @@ public class WorkflowProcDefMigrationService extends AbstractWorkflowProcDefServ
         resultDto.setProcDefName(procDef.getProcDefName());
         resultDto.setProcDefVersion(String.valueOf(procDef.getProcDefVer()));
 
-        List<TaskNodeDefInfoEntity> taskNodeDefEntities = taskNodeDefInfoRepo.findAllByProcDefId(procDef.getId());
+        List<TaskNodeDefInfoEntity> taskNodeDefEntities = taskNodeDefInfoRepo.selectAllByProcDefId(procDef.getId());
         for (TaskNodeDefInfoEntity nodeEntity : taskNodeDefEntities) {
             TaskNodeDefInfoDto tdto = taskNodeDefInfoDtoFromEntity(nodeEntity);
 
             List<TaskNodeParamEntity> taskNodeParamEntities = taskNodeParamRepo
-                    .findAllByProcDefIdAndTaskNodeDefId(procDef.getId(), nodeEntity.getId());
+                    .selectAllByProcDefIdAndTaskNodeDefId(procDef.getId(), nodeEntity.getId());
 
             for (TaskNodeParamEntity tnpe : taskNodeParamEntities) {
                 TaskNodeDefParamDto pdto = taskNodeDefParamDtoFromEntity(tnpe);

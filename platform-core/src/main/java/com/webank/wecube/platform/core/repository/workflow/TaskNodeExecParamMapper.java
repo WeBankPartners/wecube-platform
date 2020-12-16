@@ -29,7 +29,7 @@ public interface TaskNodeExecParamMapper {
      * @param paramType
      * @return
      */
-    List<TaskNodeExecParamEntity> findAllByRequestIdAndParamNameAndParamType(@Param("requestId") String requestId,
+    List<TaskNodeExecParamEntity> selectAllByRequestIdAndParamNameAndParamType(@Param("requestId") String requestId,
             @Param("paramName") String paramName, @Param("paramType") String paramType);
 
     /**
@@ -38,7 +38,7 @@ public interface TaskNodeExecParamMapper {
      * @param paramType
      * @return
      */
-    List<TaskNodeExecParamEntity> findAllByRequestIdAndParamType(@Param("requestId") String requestId,
+    List<TaskNodeExecParamEntity> selectAllByRequestIdAndParamType(@Param("requestId") String requestId,
             @Param("paramType") String paramType);
 
     /**
@@ -49,7 +49,7 @@ public interface TaskNodeExecParamMapper {
      * @param paramDataValue
      * @return
      */
-    List<TaskNodeExecParamEntity> findOneByRequestIdAndParamTypeAndParamNameAndValue(@Param("requestId") String requestId,
+    List<TaskNodeExecParamEntity> selectOneByRequestIdAndParamTypeAndParamNameAndValue(@Param("requestId") String requestId,
             @Param("paramType") String paramType, @Param("paramName") String paramName,
             @Param("paramDataValue") String paramDataValue);
 

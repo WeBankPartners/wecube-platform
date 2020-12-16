@@ -237,7 +237,7 @@
         where id = #{id,jdbcType=INTEGER}
     </update>
 
-    <select id="findAllByProcessSessionId" resultMap="BaseResultMap">
+    <select id="selectAllByProcessSessionId" resultMap="BaseResultMap">
         select
         <include refid="Base_Column_List" />
         from core_ru_graph_node
@@ -245,7 +245,7 @@
         #{processSessionId,jdbcType=INTEGER}
     </select>
 
-    <select id="findAllByProcInstId" parameterType="java.lang.Integer"
+    <select id="selectAllByProcInstId" parameterType="java.lang.Integer"
         resultMap="BaseResultMap">
         select
         <include refid="Base_Column_List" />

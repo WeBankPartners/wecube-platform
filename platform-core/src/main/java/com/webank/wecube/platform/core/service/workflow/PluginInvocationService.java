@@ -95,7 +95,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
         int times = 0;
 
         while (times < 20) {
-            procInstEntity = procInstInfoRepository.findOneByProcInstKernelId(cmd.getProcInstId());
+            procInstEntity = procInstInfoRepository.selectOneByProcInstKernelId(cmd.getProcInstId());
             if (procInstEntity != null) {
                 break;
             }
@@ -124,9 +124,9 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 
 
         List<TaskNodeInstInfoEntity> nodeInstEntities = taskNodeInstInfoRepository
-                .findAllByProcInstId(procInstEntity.getId());
+                .selectAllByProcInstId(procInstEntity.getId());
         List<TaskNodeDefInfoEntity> nodeDefEntities = taskNodeDefInfoRepository
-                .findAllByProcDefId(procInstEntity.getProcDefId());
+                .selectAllByProcDefId(procInstEntity.getProcDefId());
 
         for (TaskNodeInstInfoEntity n : nodeInstEntities) {
             if ("endEvent".equals(n.getNodeType()) && n.getNodeId().equals(cmd.getNodeId())) {
@@ -321,7 +321,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
     private void buildTaskNodeExecRequestEntity(PluginInterfaceInvocationContext ctx) {
 
         List<TaskNodeExecRequestEntity> formerRequestEntities = taskNodeExecRequestRepository
-                .findCurrentEntityByNodeInstId(ctx.getTaskNodeInstEntity().getId());
+                .selectCurrentEntityByNodeInstId(ctx.getTaskNodeInstEntity().getId());
 
         if (formerRequestEntities != null) {
             for (TaskNodeExecRequestEntity formerRequestEntity : formerRequestEntities) {
@@ -462,7 +462,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
         // #1993
         String curTaskNodeDefId = taskNodeDefEntity.getId();
         TaskNodeParamEntity nodeParamEntity = taskNodeParamRepository
-                .findOneByTaskNodeDefIdAndParamName(curTaskNodeDefId, paramName);
+                .selectOneByTaskNodeDefIdAndParamName(curTaskNodeDefId, paramName);
 
         if (nodeParamEntity == null) {
             log.error("mapping type is {} but node parameter entity is null for {}", mappingType, curTaskNodeDefId);
@@ -475,7 +475,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 
         // get by procInstId and nodeId
         TaskNodeInstInfoEntity bindNodeInstEntity = taskNodeInstInfoRepository
-                .findOneByProcInstIdAndNodeId(procInstEntity.getId(), bindNodeId);
+                .selectOneByProcInstIdAndNodeId(procInstEntity.getId(), bindNodeId);
 
         if (bindNodeInstEntity == null) {
             log.error("Bound node instance entity does not exist for {} {}", procInstEntity.getId(), bindNodeId);
@@ -532,7 +532,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
         // 5
         if (LocalWorkflowConstants.CONTEXT_NAME_PROC_INST_NAME.equals(bindParamName)) {
             ProcExecBindingEntity procExecBindingEntity = procExecBindingRepository
-                    .findProcInstBindings(procInstEntity.getId());
+                    .selectProcInstBindings(procInstEntity.getId());
             String rootEntityName = "";
             if (procExecBindingEntity != null) {
                 rootEntityName = procExecBindingEntity.getEntityDataName();
@@ -549,7 +549,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
             //
 
             ProcExecBindingEntity procExecBindingEntity = procExecBindingRepository
-                    .findProcInstBindings(procInstEntity.getId());
+                    .selectProcInstBindings(procInstEntity.getId());
             String rootEntityName = null;
             if (procExecBindingEntity != null) {
                 rootEntityName = procExecBindingEntity.getEntityDataName();
@@ -565,7 +565,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
             //
 
             ProcExecBindingEntity procExecBindingEntity = procExecBindingRepository
-                    .findProcInstBindings(procInstEntity.getId());
+                    .selectProcInstBindings(procInstEntity.getId());
             String rootEntityId = null;
             if (procExecBindingEntity != null) {
                 rootEntityId = procExecBindingEntity.getEntityDataId();
@@ -582,7 +582,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
             String paramType, List<Object> objectVals, TaskNodeInstInfoEntity bindNodeInstEntity, String bindParamName,
             String bindParamType) {
         List<TaskNodeExecRequestEntity> requestEntities = taskNodeExecRequestRepository
-                .findCurrentEntityByNodeInstId(bindNodeInstEntity.getId());
+                .selectCurrentEntityByNodeInstId(bindNodeInstEntity.getId());
 
         if (requestEntities == null || requestEntities.isEmpty()) {
             log.error("cannot find request entity for {}", bindNodeInstEntity.getId());
@@ -598,7 +598,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
         TaskNodeExecRequestEntity requestEntity = requestEntities.get(0);
 
         List<TaskNodeExecParamEntity> execParamEntities = taskNodeExecParamRepository
-                .findAllByRequestIdAndParamNameAndParamType(requestEntity.getReqId(), bindParamName, bindParamType);
+                .selectAllByRequestIdAndParamNameAndParamType(requestEntity.getReqId(), bindParamName, bindParamType);
 
         if (execParamEntities == null || execParamEntities.isEmpty()) {
             if (FIELD_REQUIRED.equals(param.getRequired())) {
@@ -656,7 +656,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
         if (MAPPING_TYPE_CONSTANT.equals(mappingType)) {
             String curTaskNodeDefId = taskNodeDefEntity.getId();
             TaskNodeParamEntity nodeParamEntity = taskNodeParamRepository
-                    .findOneByTaskNodeDefIdAndParamName(curTaskNodeDefId, paramName);
+                    .selectOneByTaskNodeDefIdAndParamName(curTaskNodeDefId, paramName);
 
             if (nodeParamEntity == null) {
                 log.error("mapping type is {} but node parameter entity is null for {}", mappingType, curTaskNodeDefId);
@@ -727,7 +727,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 
     private List<ProcExecBindingEntity> retrieveProcExecBindingEntities(TaskNodeInstInfoEntity taskNodeInstEntity) {
         List<ProcExecBindingEntity> nodeObjectBindings = procExecBindingRepository
-                .findAllTaskNodeBindings(taskNodeInstEntity.getProcInstId(), taskNodeInstEntity.getId());
+                .selectAllTaskNodeBindings(taskNodeInstEntity.getProcInstId(), taskNodeInstEntity.getId());
 
         if (nodeObjectBindings == null) {
             log.info("node object bindings is empty for {} {}", taskNodeInstEntity.getProcInstId(),
@@ -753,7 +753,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 
     private TaskNodeInstInfoEntity retrieveTaskNodeInstInfoEntity(Integer procInstId, String nodeId) {
         Date currTime = new Date();
-        TaskNodeInstInfoEntity taskNodeInstEntity = taskNodeInstInfoRepository.findOneByProcInstIdAndNodeId(procInstId,
+        TaskNodeInstInfoEntity taskNodeInstEntity = taskNodeInstInfoRepository.selectOneByProcInstIdAndNodeId(procInstId,
                 nodeId);
         if (taskNodeInstEntity == null) {
             log.warn("Task node instance does not exist for {} {}", procInstId, nodeId);
@@ -773,7 +773,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
         taskNodeInstInfoRepository.updateByPrimaryKeySelective(taskNodeInstEntity);
 
         List<TaskNodeExecRequestEntity> formerRequestEntities = taskNodeExecRequestRepository
-                .findCurrentEntityByNodeInstId(taskNodeInstEntity.getId());
+                .selectCurrentEntityByNodeInstId(taskNodeInstEntity.getId());
 
         if (formerRequestEntities != null) {
             for (TaskNodeExecRequestEntity formerRequestEntity : formerRequestEntities) {
@@ -788,7 +788,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 
     private TaskNodeDefInfoEntity retrieveTaskNodeDefInfoEntity(String procDefId, String nodeId) {
         TaskNodeDefInfoEntity taskNodeDefEntity = taskNodeDefInfoRepository
-                .findOneWithProcessIdAndNodeIdAndStatus(procDefId, nodeId, TaskNodeDefInfoEntity.DEPLOYED_STATUS);
+                .selectOneWithProcessIdAndNodeIdAndStatus(procDefId, nodeId, TaskNodeDefInfoEntity.DEPLOYED_STATUS);
 
         if (taskNodeDefEntity == null) {
             log.warn("Task node definition does not exist for {} {} {}", procDefId, nodeId,
@@ -809,7 +809,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
         ProcInstInfoEntity procInstEntity = null;
         int round = 0;
         while (round < 15) {
-            procInstEntity = procInstInfoRepository.findOneByProcInstKernelId(procInstKernelId);
+            procInstEntity = procInstInfoRepository.selectOneByProcInstKernelId(procInstKernelId);
 
             if (procInstEntity != null) {
                 break;
@@ -1072,7 +1072,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
         TaskNodeExecParamEntity callbackParameterInputEntity = null;
         if (StringUtils.isNotBlank(callbackParameter)) {
             List<TaskNodeExecParamEntity> callbackParameterInputEntities = taskNodeExecParamRepository
-                    .findOneByRequestIdAndParamTypeAndParamNameAndValue(requestId,
+                    .selectOneByRequestIdAndParamTypeAndParamNameAndValue(requestId,
                             TaskNodeExecParamEntity.PARAM_TYPE_REQUEST, CALLBACK_PARAMETER_KEY, callbackParameter);
             if (callbackParameterInputEntities != null && !callbackParameterInputEntities.isEmpty()) {
                 callbackParameterInputEntity = callbackParameterInputEntities.get(0);

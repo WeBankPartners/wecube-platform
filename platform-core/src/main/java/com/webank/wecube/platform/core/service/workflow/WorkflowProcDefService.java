@@ -79,7 +79,7 @@ public class WorkflowProcDefService extends AbstractWorkflowProcDefService {
             return;
         }
         // delete DRAFT_STATUS process with all nodes and params deleted as well
-        List<TaskNodeParamEntity> nodeParams = taskNodeParamRepo.findAllByProcDefId(procDef.getId());
+        List<TaskNodeParamEntity> nodeParams = taskNodeParamRepo.selectAllByProcDefId(procDef.getId());
 
         if (nodeParams != null) {
             for (TaskNodeParamEntity p : nodeParams) {
@@ -87,7 +87,7 @@ public class WorkflowProcDefService extends AbstractWorkflowProcDefService {
             }
         }
 
-        List<TaskNodeDefInfoEntity> nodeDefs = taskNodeDefInfoRepo.findAllByProcDefId(procDef.getId());
+        List<TaskNodeDefInfoEntity> nodeDefs = taskNodeDefInfoRepo.selectAllByProcDefId(procDef.getId());
         if (nodeDefs != null) {
             for (TaskNodeDefInfoEntity n : nodeDefs) {
                 taskNodeDefInfoRepo.deleteByPrimaryKey(n.getId());
@@ -103,7 +103,7 @@ public class WorkflowProcDefService extends AbstractWorkflowProcDefService {
 
     public List<TaskNodeDefBriefDto> getTaskNodeBriefs(String procDefId) {
         List<TaskNodeDefBriefDto> result = new ArrayList<>();
-        List<TaskNodeDefInfoEntity> nodeEntities = taskNodeDefInfoRepo.findAllByProcDefId(procDefId);
+        List<TaskNodeDefInfoEntity> nodeEntities = taskNodeDefInfoRepo.selectAllByProcDefId(procDefId);
         if (nodeEntities == null || nodeEntities.isEmpty()) {
             return result;
         }
@@ -151,7 +151,7 @@ public class WorkflowProcDefService extends AbstractWorkflowProcDefService {
         result.setRootEntity(procDefEntity.getRootEntity());
         result.setStatus(procDefEntity.getStatus());
 
-        List<TaskNodeDefInfoEntity> nodeEntities = taskNodeDefInfoRepo.findAllByProcDefId(procDefEntity.getId());
+        List<TaskNodeDefInfoEntity> nodeEntities = taskNodeDefInfoRepo.selectAllByProcDefId(procDefEntity.getId());
 
         for (TaskNodeDefInfoEntity nodeEntity : nodeEntities) {
             FlowNodeDefDto fDto = flowNodeDefDtoFromEntity(nodeEntity);
@@ -348,7 +348,7 @@ public class WorkflowProcDefService extends AbstractWorkflowProcDefService {
         }
 
         List<TaskNodeParamEntity> taskNodeParamEntities = taskNodeParamRepo
-                .findAllByProcDefIdAndTaskNodeDefId(draftNodeEntity.getProcDefId(), draftNodeEntity.getId());
+                .selectAllByProcDefIdAndTaskNodeDefId(draftNodeEntity.getProcDefId(), draftNodeEntity.getId());
         for (TaskNodeParamEntity np : taskNodeParamEntities) {
             taskNodeParamRepo.deleteByPrimaryKey(np.getId());
         }
@@ -434,7 +434,7 @@ public class WorkflowProcDefService extends AbstractWorkflowProcDefService {
         if (startEventNodeDto == null) {
             ProcFlowNode startProcFlowNode = tryFindoutStartEventNode(procDefOutline);
             if (startProcFlowNode != null) {
-                TaskNodeDefInfoEntity draftNodeEntity = taskNodeDefInfoRepo.findOneWithProcessIdAndNodeIdAndStatus(
+                TaskNodeDefInfoEntity draftNodeEntity = taskNodeDefInfoRepo.selectOneWithProcessIdAndNodeIdAndStatus(
                         draftEntity.getId(), startProcFlowNode.getId(), TaskNodeDefInfoEntity.DRAFT_STATUS);
 
                 if (draftNodeEntity == null) {
@@ -485,7 +485,7 @@ public class WorkflowProcDefService extends AbstractWorkflowProcDefService {
 
     private void tryClearAllParamInfos(ProcDefInfoEntity draftEntity, TaskNodeDefInfoEntity draftNodeEntity) {
         List<TaskNodeParamEntity> existParamEntities = taskNodeParamRepo
-                .findAllDraftByProcDefIdAndTaskNodeDefId(draftEntity.getId(), draftNodeEntity.getId());
+                .selectAllDraftByProcDefIdAndTaskNodeDefId(draftEntity.getId(), draftNodeEntity.getId());
         if (existParamEntities == null || existParamEntities.isEmpty()) {
             return;
         }
@@ -497,7 +497,7 @@ public class WorkflowProcDefService extends AbstractWorkflowProcDefService {
     private void tryClearAbandonedParamInfos(ProcDefInfoEntity draftEntity, TaskNodeDefInfoEntity draftNodeEntity,
             List<TaskNodeParamEntity> reusedDraftParamEntities) {
         List<TaskNodeParamEntity> dbParamEntities = taskNodeParamRepo
-                .findAllDraftByProcDefIdAndTaskNodeDefId(draftEntity.getId(), draftNodeEntity.getId());
+                .selectAllDraftByProcDefIdAndTaskNodeDefId(draftEntity.getId(), draftNodeEntity.getId());
         for (TaskNodeParamEntity dbParamEntity : dbParamEntities) {
             TaskNodeParamEntity reusedEntity = findTaskNodeParamEntityFromListById(reusedDraftParamEntities,
                     dbParamEntity.getId());
@@ -580,7 +580,7 @@ public class WorkflowProcDefService extends AbstractWorkflowProcDefService {
             throw new WecubeCoreException("3208", "Process definition name cannot be empty.");
         }
 
-        List<ProcDefInfoEntity> existingProcDefs = processDefInfoRepo.findAllDeployedProcDefsByProcDefName(procDefName);
+        List<ProcDefInfoEntity> existingProcDefs = processDefInfoRepo.selectAllDeployedProcDefsByProcDefName(procDefName);
         if (existingProcDefs != null && !existingProcDefs.isEmpty()) {
             log.warn("such process definition name already exists,procDefName={}", procDefName);
             throw new WecubeCoreException("3209", "Process definition name should NOT duplicated.");
@@ -816,8 +816,8 @@ public class WorkflowProcDefService extends AbstractWorkflowProcDefService {
         result.setRootEntity(procDefEntity.getRootEntity());
         result.setStatus(procDefEntity.getStatus());
 
-        List<TaskNodeParamEntity> nodeParamEntities = taskNodeParamRepo.findAllByProcDefId(procDefEntity.getId());
-        List<TaskNodeDefInfoEntity> nodeEntities = taskNodeDefInfoRepo.findAllByProcDefId(procDefEntity.getId());
+        List<TaskNodeParamEntity> nodeParamEntities = taskNodeParamRepo.selectAllByProcDefId(procDefEntity.getId());
+        List<TaskNodeDefInfoEntity> nodeEntities = taskNodeDefInfoRepo.selectAllByProcDefId(procDefEntity.getId());
 
         final AtomicInteger orderedNo = new AtomicInteger(1);
 
@@ -889,9 +889,9 @@ public class WorkflowProcDefService extends AbstractWorkflowProcDefService {
         }
 
         List<TaskNodeParamEntity> nodeParamEntitiesToRemove = taskNodeParamRepo
-                .findAllByProcDefIdAndStatus(procDefEntity.getId(), TaskNodeParamEntity.PREDEPLOY_STATUS);
+                .selectAllByProcDefIdAndStatus(procDefEntity.getId(), TaskNodeParamEntity.PREDEPLOY_STATUS);
         List<TaskNodeDefInfoEntity> nodeEntitiesToRemove = taskNodeDefInfoRepo
-                .findAllByProcDefIdAndStatus(procDefEntity.getId(), TaskNodeParamEntity.PREDEPLOY_STATUS);
+                .selectAllByProcDefIdAndStatus(procDefEntity.getId(), TaskNodeParamEntity.PREDEPLOY_STATUS);
 
         nodeParamEntitiesToRemove.forEach(m -> {
             taskNodeParamRepo.deleteByPrimaryKey(m.getId());
@@ -937,8 +937,8 @@ public class WorkflowProcDefService extends AbstractWorkflowProcDefService {
     }
 
     protected void purgeProcessDefInfoEntity(ProcDefInfoEntity procEntity) {
-        List<TaskNodeParamEntity> nodeParamEntities = taskNodeParamRepo.findAllByProcDefId(procEntity.getId());
-        List<TaskNodeDefInfoEntity> nodeEntities = taskNodeDefInfoRepo.findAllByProcDefId(procEntity.getId());
+        List<TaskNodeParamEntity> nodeParamEntities = taskNodeParamRepo.selectAllByProcDefId(procEntity.getId());
+        List<TaskNodeDefInfoEntity> nodeEntities = taskNodeDefInfoRepo.selectAllByProcDefId(procEntity.getId());
 
         if (nodeParamEntities != null && !nodeParamEntities.isEmpty()) {
             for (TaskNodeParamEntity nodeParamEntity : nodeParamEntities) {

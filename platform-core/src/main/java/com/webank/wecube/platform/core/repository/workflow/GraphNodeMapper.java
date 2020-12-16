@@ -28,12 +28,12 @@ public interface GraphNodeMapper{
      * @param processSessionId
      * @return
      */
-    List<GraphNodeEntity> findAllByProcessSessionId(@Param("processSessionId") String processSessionId);
+    List<GraphNodeEntity> selectAllByProcessSessionId(@Param("processSessionId") String processSessionId);
 
     /**
      * 
      * @param procInstId
      * @return
      */
-    List<GraphNodeEntity> findAllByProcInstId(@Param("procInstId") Integer procInstId);
+    List<GraphNodeEntity> selectAllByProcInstId(@Param("procInstId") Integer procInstId);
 }

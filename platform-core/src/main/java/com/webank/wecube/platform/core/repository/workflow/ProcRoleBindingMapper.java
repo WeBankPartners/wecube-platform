@@ -28,7 +28,7 @@ public interface ProcRoleBindingMapper {
      * @param roleName
      * @return
      */
-    List<ProcRoleBindingEntity> findAllByRoleName(@Param("roleName") String roleName);
+    List<ProcRoleBindingEntity> selectAllByRoleName(@Param("roleName") String roleName);
 
     /**
      * 
@@ -36,7 +36,7 @@ public interface ProcRoleBindingMapper {
      * @param permission
      * @return
      */
-    List<ProcRoleBindingEntity> findAllByRoleNameAndPermission(@Param("roleName") String roleName,
+    List<ProcRoleBindingEntity> selectAllByRoleNameAndPermission(@Param("roleName") String roleName,
             @Param("permission") String permission);
 
     /**
@@ -44,7 +44,7 @@ public interface ProcRoleBindingMapper {
      * @param procId
      * @return
      */
-    List<ProcRoleBindingEntity> findAllByProcId(@Param("procId") String procId);
+    List<ProcRoleBindingEntity> selectAllByProcId(@Param("procId") String procId);
 
     /**
      * 
@@ -54,7 +54,7 @@ public interface ProcRoleBindingMapper {
      * @param permission
      * @return
      */
-    ProcRoleBindingEntity findByProcIdAndRoleNameAndPermission(@Param("procId") String procId,
+    ProcRoleBindingEntity selectByProcIdAndRoleNameAndPermission(@Param("procId") String procId,
             @Param("roleName") String roleName, @Param("permission") String permission);
 
     /**
@@ -63,7 +63,7 @@ public interface ProcRoleBindingMapper {
      * @param permission
      * @return
      */
-    List<ProcRoleBindingEntity> findAllByProcIdAndPermission(@Param("procId") String procId,
+    List<ProcRoleBindingEntity> selectAllByProcIdAndPermission(@Param("procId") String procId,
             @Param("permission") String permission);
 
     /**
@@ -71,7 +71,7 @@ public interface ProcRoleBindingMapper {
      * @param roleIds
      * @return
      */
-    List<ProcRoleBindingEntity> findDistinctProcIdByRolesAndPermissionIsUse(@Param("roleNames") Set<String> roleNames);
+    List<ProcRoleBindingEntity> selectDistinctProcIdByRolesAndPermissionIsUse(@Param("roleNames") Set<String> roleNames);
 
     /**
      * 

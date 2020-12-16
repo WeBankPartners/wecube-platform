@@ -303,7 +303,7 @@
         where id = #{id,jdbcType=INTEGER}
     </update>
 
-    <select id="findAllByProcInstId" resultMap="BaseResultMap">
+    <select id="selectAllByProcInstId" resultMap="BaseResultMap">
         select
         <include refid="Base_Column_List" />
         from core_ru_task_node_inst_info
@@ -311,7 +311,7 @@
         #{procInstId,jdbcType=INTEGER}
     </select>
 
-    <select id="findOneByProcInstIdAndNodeId" resultMap="BaseResultMap">
+    <select id="selectOneByProcInstIdAndNodeId" resultMap="BaseResultMap">
         select
         <include refid="Base_Column_List" />
         from core_ru_task_node_inst_info

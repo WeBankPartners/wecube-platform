@@ -263,7 +263,7 @@
         where id = #{id,jdbcType=INTEGER}
     </update>
 
-    <select id="findAllByRequestIdAndParamNameAndParamType"
+    <select id="selectAllByRequestIdAndParamNameAndParamType"
         resultMap="BaseResultMap">
         select
         <include refid="Base_Column_List" />
@@ -276,7 +276,7 @@
         #{paramType,jdbcType=VARCHAR}
     </select>
 
-    <select id="findAllByRequestIdAndParamType" resultMap="BaseResultMap">
+    <select id="selectAllByRequestIdAndParamType" resultMap="BaseResultMap">
         select
         <include refid="Base_Column_List" />
         from core_ru_task_node_exec_param
@@ -286,7 +286,7 @@
         #{paramType,jdbcType=VARCHAR}
     </select>
 
-    <select id="findOneByRequestIdAndParamTypeAndParamNameAndValue"
+    <select id="selectOneByRequestIdAndParamTypeAndParamNameAndValue"
         resultMap="BaseResultMap">
         select
         <include refid="Base_Column_List" />

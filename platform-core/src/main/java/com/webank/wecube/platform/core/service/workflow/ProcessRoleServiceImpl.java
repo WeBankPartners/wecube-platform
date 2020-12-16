@@ -46,7 +46,7 @@ public class ProcessRoleServiceImpl implements ProcessRoleService {
 
         ProcRoleOverviewDto result = new ProcRoleOverviewDto();
         result.setProcessId(procId);
-        List<ProcRoleBindingEntity> allByProcId = this.procRoleBindingRepository.findAllByProcId(procId);
+        List<ProcRoleBindingEntity> allByProcId = this.procRoleBindingRepository.selectAllByProcId(procId);
         allByProcId.forEach(procRoleBindingEntity -> {
             switch (procRoleBindingEntity.getPermission()) {
             case ProcRoleBindingEntity.USE:
@@ -68,7 +68,7 @@ public class ProcessRoleServiceImpl implements ProcessRoleService {
         for (String roleName : roleNameList) {
             logger.info(String.format("Finding process to role binding information from roleName: [%s].", roleName));
             List<ProcRoleBindingEntity> allByRoleIdAndPermission = this.procRoleBindingRepository
-                    .findAllByRoleName(roleName);
+                    .selectAllByRoleName(roleName);
             for (ProcRoleBindingEntity procRoleBindingEntity : allByRoleIdAndPermission) {
                 result.add(ProcRoleDto.fromDomain(procRoleBindingEntity));
             }
@@ -85,7 +85,7 @@ public class ProcessRoleServiceImpl implements ProcessRoleService {
                     "Finding process to role binding information from roleName: [%s] and permission: [%s]", roleName,
                     permissionEnum));
             List<ProcRoleBindingEntity> allByRoleIdAndPermission = this.procRoleBindingRepository
-                    .findAllByRoleNameAndPermission(roleName, permissionEnum);
+                    .selectAllByRoleNameAndPermission(roleName, permissionEnum);
             for (ProcRoleBindingEntity procRoleBindingEntity : allByRoleIdAndPermission) {
                 result.add(ProcRoleDto.fromDomain(procRoleBindingEntity));
             }
@@ -121,7 +121,7 @@ public class ProcessRoleServiceImpl implements ProcessRoleService {
         // assure corresponding data has at least one row of MGMT permission
         if (ProcRoleBindingEntity.MGMT.equals(permissionEnum)) {
             List<ProcRoleBindingEntity> procRoleBindingEntities = this.procRoleBindingRepository
-                    .findAllByProcIdAndPermission(procId, permissionEnum);
+                    .selectAllByProcIdAndPermission(procId, permissionEnum);
             if (procRoleBindingEntities != null) {
 
                 if (procRoleBindingEntities.size() <= procRoleRequestDto.getRoleIdList().size()) {
@@ -145,11 +145,11 @@ public class ProcessRoleServiceImpl implements ProcessRoleService {
         List<ProcRoleBindingEntity> foundProcRoleBinding = null;
         switch (permissionEnum) {
         case ProcRoleBindingEntity.MGMT:
-            foundProcRoleBinding = this.procRoleBindingRepository.findAllByProcIdAndPermission(procId,
+            foundProcRoleBinding = this.procRoleBindingRepository.selectAllByProcIdAndPermission(procId,
                     ProcRoleBindingEntity.MGMT);
             break;
         case ProcRoleBindingEntity.USE:
-            foundProcRoleBinding = this.procRoleBindingRepository.findAllByProcIdAndPermission(procId,
+            foundProcRoleBinding = this.procRoleBindingRepository.selectAllByProcIdAndPermission(procId,
                     ProcRoleBindingEntity.USE);
             break;
         default:
@@ -183,7 +183,7 @@ public class ProcessRoleServiceImpl implements ProcessRoleService {
             String roleName = roleDto.getName();
             // find current stored data
             ProcRoleBindingEntity byProcIdAndRoleIdAndPermission = this.procRoleBindingRepository
-                    .findByProcIdAndRoleNameAndPermission(procId, roleName, permissionEnum);
+                    .selectByProcIdAndRoleNameAndPermission(procId, roleName, permissionEnum);
 
             if (byProcIdAndRoleIdAndPermission != null) {
                 logger.warn(String.format(

@@ -244,7 +244,7 @@
         #{id,jdbcType=INTEGER}
     </update>
 
-    <select id="findAllNodeBindingsByNodeAndSession" resultMap="BaseResultMap">
+    <select id="selectAllNodeBindingsByNodeAndSession" resultMap="BaseResultMap">
         select
         <include refid="Base_Column_List" />
         from core_ru_proc_exec_binding_tmp
@@ -255,7 +255,7 @@
         and bind_type = 'taskNode'
     </select>
 
-    <select id="findAllNodeBindingsBySession" resultMap="BaseResultMap">
+    <select id="selectAllNodeBindingsBySession" resultMap="BaseResultMap">
         select
         <include refid="Base_Column_List" />
         from core_ru_proc_exec_binding_tmp
@@ -264,7 +264,7 @@
         and bind_type = 'taskNode'
     </select>
 
-    <select id="findAllRootBindingsBySession" parameterType="java.lang.String"
+    <select id="selectAllRootBindingsBySession" parameterType="java.lang.String"
         resultMap="BaseResultMap">
         select
         <include refid="Base_Column_List" />
