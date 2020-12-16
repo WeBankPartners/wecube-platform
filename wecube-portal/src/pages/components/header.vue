@@ -363,7 +363,7 @@ export default {
       line-height: 50px;
       display: flex;
       .ivu-menu-submenu {
-        padding: 0 10px;
+        padding: 0 8px;
         font-size: 15px;
       }
       .ivu-menu-item {
