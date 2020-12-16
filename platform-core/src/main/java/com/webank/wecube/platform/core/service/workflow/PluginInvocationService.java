@@ -65,7 +65,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 
     @Autowired
     private ProcInstInfoMapper procInstInfoRepository;
-    
+
     @Autowired
     protected PluginInstanceMgmtService pluginInstanceMgmtService;
 
@@ -83,7 +83,6 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 
     @Autowired
     private WorkflowProcInstEndEventNotifier workflowProcInstEndEventNotifier;
-    
 
     public void handleProcessInstanceEndEvent(PluginInvocationCommand cmd) {
         if (log.isInfoEnabled()) {
@@ -115,11 +114,14 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
             return;
         }
 
-        procInstEntity.setUpdatedTime(currTime);
-        procInstEntity.setStatus(ProcInstInfoEntity.COMPLETED_STATUS);
-        procInstInfoRepository.updateByPrimaryKeySelective(procInstEntity);
+        String oldProcInstStatus = procInstEntity.getStatus();
+        if (!ProcInstInfoEntity.INTERNALLY_TERMINATED_STATUS.equalsIgnoreCase(procInstEntity.getStatus())) {
+            procInstEntity.setUpdatedTime(currTime);
+            procInstEntity.setStatus(ProcInstInfoEntity.COMPLETED_STATUS);
+            procInstInfoRepository.updateByPrimaryKeySelective(procInstEntity);
+            log.info("updated process instance {} from {} to {}", procInstEntity.getId(), oldProcInstStatus,  ProcInstInfoEntity.COMPLETED_STATUS);
+        }
 
-        log.debug("updated process instance {} to {}", procInstEntity.getId(), ProcInstInfoEntity.COMPLETED_STATUS);
 
         List<TaskNodeInstInfoEntity> nodeInstEntities = taskNodeInstInfoRepository
                 .findAllByProcInstId(procInstEntity.getId());
@@ -209,7 +211,8 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
         TaskNodeDefInfoEntity taskNodeDefEntity = retrieveTaskNodeDefInfoEntity(procInstEntity.getProcDefId(),
                 cmd.getNodeId());
         List<ProcExecBindingEntity> nodeObjectBindings = retrieveProcExecBindingEntities(taskNodeInstEntity);
-        PluginConfigInterfaces pluginConfigInterface = retrievePluginConfigInterface(taskNodeDefEntity, cmd.getNodeId());
+        PluginConfigInterfaces pluginConfigInterface = retrievePluginConfigInterface(taskNodeDefEntity,
+                cmd.getNodeId());
 
         List<InputParamObject> inputParamObjs = calculateInputParamObjects(procInstEntity, taskNodeInstEntity,
                 taskNodeDefEntity, nodeObjectBindings, pluginConfigInterface);
@@ -373,7 +376,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
             List<ProcExecBindingEntity> nodeObjectBindings, PluginConfigInterfaces pluginConfigInterface) {
 
         List<InputParamObject> inputParamObjs = new ArrayList<InputParamObject>();
-        Map<Object,Object> externalCacheMap = new HashMap<>();
+        Map<Object, Object> externalCacheMap = new HashMap<>();
 
         List<PluginConfigInterfaceParameters> configInterfaceInputParams = pluginConfigInterface.getInputParameters();
         for (ProcExecBindingEntity nodeObjectBinding : nodeObjectBindings) {
@@ -422,7 +425,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
     }
 
     private void handleEntityMapping(String mappingType, PluginConfigInterfaceParameters param, String entityDataId,
-            List<Object> objectVals,Map<Object,Object> cacheMap) {
+            List<Object> objectVals, Map<Object, Object> cacheMap) {
         if (MAPPING_TYPE_ENTITY.equals(mappingType)) {
             String mappingEntityExpression = param.getMappingEntityExpression();
 
@@ -493,40 +496,40 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
     }
 
     private void handleContextMappingForStartEvent(String mappingType, TaskNodeDefInfoEntity taskNodeDefEntity,
-            String paramName, ProcInstInfoEntity procInstEntity, PluginConfigInterfaceParameters param, String paramType,
-            List<Object> objectVals, TaskNodeInstInfoEntity bindNodeInstEntity, String bindParamName,
+            String paramName, ProcInstInfoEntity procInstEntity, PluginConfigInterfaceParameters param,
+            String paramType, List<Object> objectVals, TaskNodeInstInfoEntity bindNodeInstEntity, String bindParamName,
             String bindParamType) {
         // #1993
-        //1
-        if(LocalWorkflowConstants.CONTEXT_NAME_PROC_DEF_KEY.equals(bindParamName)){
+        // 1
+        if (LocalWorkflowConstants.CONTEXT_NAME_PROC_DEF_KEY.equals(bindParamName)) {
             String procDefKey = procInstEntity.getProcDefKey();
             objectVals.add(procDefKey);
             return;
         }
-        
-        //2
+
+        // 2
         if (LocalWorkflowConstants.CONTEXT_NAME_PROC_DEF_NAME.equals(bindParamName)) {
             String procDefName = procInstEntity.getProcDefName();
             objectVals.add(procDefName);
 
             return;
         }
-        
-        //3
-        if(LocalWorkflowConstants.CONTEXT_NAME_PROC_INST_ID.equals(bindParamName)){
+
+        // 3
+        if (LocalWorkflowConstants.CONTEXT_NAME_PROC_INST_ID.equals(bindParamName)) {
             String procInstId = String.valueOf(procInstEntity.getId());
             objectVals.add(procInstId);
             return;
         }
-        
-        //4
-        if(LocalWorkflowConstants.CONTEXT_NAME_PROC_INST_KEY.equals(bindParamName)){
+
+        // 4
+        if (LocalWorkflowConstants.CONTEXT_NAME_PROC_INST_KEY.equals(bindParamName)) {
             String procInstKey = procInstEntity.getProcInstKey();
             objectVals.add(procInstKey);
             return;
         }
 
-        //5
+        // 5
         if (LocalWorkflowConstants.CONTEXT_NAME_PROC_INST_NAME.equals(bindParamName)) {
             ProcExecBindingEntity procExecBindingEntity = procExecBindingRepository
                     .findProcInstBindings(procInstEntity.getId());
@@ -541,7 +544,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
             return;
         }
 
-        //6
+        // 6
         if (LocalWorkflowConstants.CONTEXT_NAME_ROOT_ENTITY_NAME.equals(bindParamName)) {
             //
 
@@ -556,8 +559,8 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 
             return;
         }
-        
-        //7
+
+        // 7
         if (LocalWorkflowConstants.CONTEXT_NAME_ROOT_ENTITY_ID.equals(bindParamName)) {
             //
 
@@ -575,8 +578,8 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
     }
 
     private void handleContextMappingForTaskNode(String mappingType, TaskNodeDefInfoEntity taskNodeDefEntity,
-            String paramName, ProcInstInfoEntity procInstEntity, PluginConfigInterfaceParameters param, String paramType,
-            List<Object> objectVals, TaskNodeInstInfoEntity bindNodeInstEntity, String bindParamName,
+            String paramName, ProcInstInfoEntity procInstEntity, PluginConfigInterfaceParameters param,
+            String paramType, List<Object> objectVals, TaskNodeInstInfoEntity bindNodeInstEntity, String bindParamName,
             String bindParamType) {
         List<TaskNodeExecRequestEntity> requestEntities = taskNodeExecRequestRepository
                 .findCurrentEntityByNodeInstId(bindNodeInstEntity.getId());
@@ -698,7 +701,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 
         for (TaskNodeExecParamEntity e : execParamEntities) {
             String paramDataValue = e.getParamDataValue();
-            if(e.getIsSensitive() != null && e.getIsSensitive() == true){
+            if (e.getIsSensitive() != null && e.getIsSensitive() == true) {
                 paramDataValue = tryDecodeParamDataValue(paramDataValue);
             }
             retDataValues.add(fromString(e.getParamDataValue(), e.getParamDataType()));
@@ -898,20 +901,19 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 
         return pluginParameters;
     }
-    
-    private String tryCalculateParamDataValue(InputParamAttr attr){
-        if(attr.getExpectedValue() == null){
+
+    private String tryCalculateParamDataValue(InputParamAttr attr) {
+        if (attr.getExpectedValue() == null) {
             return null;
         }
-        
+
         String dataValue = attr.getExpectedValue().toString();
-        if(attr.isSensitive()){
+        if (attr.isSensitive()) {
             dataValue = tryEncodeParamDataValue(dataValue);
         }
-        
+
         return dataValue;
     }
-    
 
     private PluginInstances retrieveAvailablePluginInstance(PluginConfigInterfaces itf) {
         PluginConfigs config = itf.getPluginConfig();
@@ -1098,10 +1100,10 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
                 paramDataType = p.getDataType();
                 isSensitiveData = (IS_SENSITIVE_ATTR.equalsIgnoreCase(p.getSensitiveData()));
             }
-            
+
             String paramDataValue = trimExceedParamValue(asString(entry.getValue(), paramDataType), MAX_PARAM_VAL_SIZE);
-            
-            if(isSensitiveData){
+
+            if (isSensitiveData) {
                 paramDataValue = tryEncodeParamDataValue(paramDataValue);
             }
 
