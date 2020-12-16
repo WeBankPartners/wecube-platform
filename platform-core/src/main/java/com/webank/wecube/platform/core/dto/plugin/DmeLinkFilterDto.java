@@ -4,13 +4,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class DmeLinkFilterDto {
-    int index;
-    String packageName;
-    String entityName;
-    List<FilterDto> attributeFilters;
+    private int index;
+    private String packageName;
+    private String entityName;
+    private List<FilterDto> attributeFilters = new ArrayList<>();
 
     public DmeLinkFilterDto() {
-        this.attributeFilters = new ArrayList<>();
     }
 
     public DmeLinkFilterDto(int index, String packageName, String entityName, List<FilterDto> attributeFilters) {
@@ -66,6 +65,5 @@ public class DmeLinkFilterDto {
         builder.append("]");
         return builder.toString();
     }
-    
-    
+
 }
