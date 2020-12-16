@@ -28,7 +28,7 @@ public interface ProcExecBindingTmpMapper {
      * @param processSessionId
      * @return
      */
-    List<ProcExecBindingTmpEntity> findAllNodeBindingsByNodeAndSession(@Param("nodeDefId") String nodeDefId,
+    List<ProcExecBindingTmpEntity> selectAllNodeBindingsByNodeAndSession(@Param("nodeDefId") String nodeDefId,
             @Param("processSessionId") String processSessionId);
 
     /**
@@ -36,12 +36,12 @@ public interface ProcExecBindingTmpMapper {
      * @param processSessionId
      * @return
      */
-    List<ProcExecBindingTmpEntity> findAllNodeBindingsBySession(@Param("processSessionId") String processSessionId);
+    List<ProcExecBindingTmpEntity> selectAllNodeBindingsBySession(@Param("processSessionId") String processSessionId);
 
     /**
      * 
      * @param processSessionId
      * @return
      */
-    List<ProcExecBindingTmpEntity> findAllRootBindingsBySession(@Param("processSessionId") String processSessionId);
+    List<ProcExecBindingTmpEntity> selectAllRootBindingsBySession(@Param("processSessionId") String processSessionId);
 }
