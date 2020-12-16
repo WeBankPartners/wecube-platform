@@ -37,7 +37,7 @@ public class UserTaskEndListener implements ExecutionListener {
         ServiceNodeStatusMapper respository = SpringApplicationContextUtil
                 .getBean(ServiceNodeStatusMapper.class);
         Date currTime = new Date();
-        ServiceNodeStatusEntity entity = respository.findOneByProcInstanceBizKeyAndNodeIdAndStatus(
+        ServiceNodeStatusEntity entity = respository.selectOneByProcInstanceBizKeyAndNodeIdAndStatus(
                 execution.getProcessBusinessKey(), execution.getCurrentActivityId(), TraceStatus.InProgress);
 
         if (entity != null) {
