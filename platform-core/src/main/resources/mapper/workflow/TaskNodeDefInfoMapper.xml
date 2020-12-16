@@ -379,7 +379,7 @@
         where id = #{id,jdbcType=VARCHAR}
     </update>
     
-    <select id="findOneWithProcessIdAndNodeIdAndStatus"
+    <select id="selectOneWithProcessIdAndNodeIdAndStatus"
         parameterType="java.lang.String" resultMap="BaseResultMap">
         select
         <include refid="Base_Column_List" />
@@ -389,7 +389,7 @@
         and status = #{status,jdbcType=VARCHAR}
     </select>
     
-    <select id="findAllByProcDefId"
+    <select id="selectAllByProcDefId"
         parameterType="java.lang.String" resultMap="BaseResultMap">
         select
         <include refid="Base_Column_List" />
@@ -397,7 +397,7 @@
         where proc_def_id = #{procDefId,jdbcType=VARCHAR}
     </select>
     
-    <select id="findAllByProcDefIdAndStatus"
+    <select id="selectAllByProcDefIdAndStatus"
         parameterType="java.lang.String" resultMap="BaseResultMap">
         select
         <include refid="Base_Column_List" />
