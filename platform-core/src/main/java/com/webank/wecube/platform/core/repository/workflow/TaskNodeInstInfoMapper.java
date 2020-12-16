@@ -27,7 +27,7 @@ public interface TaskNodeInstInfoMapper{
      * @param procInstId
      * @return
      */
-    List<TaskNodeInstInfoEntity> findAllByProcInstId(@Param("procInstId")Integer procInstId);
+    List<TaskNodeInstInfoEntity> selectAllByProcInstId(@Param("procInstId")Integer procInstId);
     
     /**
      * 
@@ -35,6 +35,6 @@ public interface TaskNodeInstInfoMapper{
      * @param nodeId
      * @return
      */
-    TaskNodeInstInfoEntity findOneByProcInstIdAndNodeId(@Param("procInstId")Integer procInstId, @Param("nodeId")String nodeId);
+    TaskNodeInstInfoEntity selectOneByProcInstIdAndNodeId(@Param("procInstId")Integer procInstId, @Param("nodeId")String nodeId);
     
 }
