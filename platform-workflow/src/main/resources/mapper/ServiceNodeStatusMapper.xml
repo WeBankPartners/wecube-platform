@@ -42,9 +42,8 @@
     select 
     <include refid="Base_Column_List" />
     from act_ru_srvnode_status
-    where proc_inst_key = #{procInstKey,jdbcType=VARCHAR}
+    where proc_inst_id = #{procInstId,jdbcType=VARCHAR}
     and node_id = #{nodeId,jdbcType=VARCHAR}
-    and status = #{status,jdbcType=VARCHAR}
   </select>
   
   <select id="findOneByProcInstanceBizKeyAndNodeIdAndStatus" resultMap="BaseResultMap">

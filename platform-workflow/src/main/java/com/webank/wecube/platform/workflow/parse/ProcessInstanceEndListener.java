@@ -39,7 +39,7 @@ public class ProcessInstanceEndListener implements ExecutionListener {
         ProcessInstanceStatusMapper processInstanceStatusRepository = SpringApplicationContextUtil
                 .getBean(ProcessInstanceStatusMapper.class);
         ProcessInstanceStatusEntity procInstEntity = processInstanceStatusRepository
-                .findOneByprocInstanceId(execution.getId());
+                .findOneByProcInstanceId(execution.getId());
 
         if (procInstEntity == null) {
             log.warn("process instance status doesnt exist,procInstanceId={},procIntanceBizKey={}", execution.getId(),

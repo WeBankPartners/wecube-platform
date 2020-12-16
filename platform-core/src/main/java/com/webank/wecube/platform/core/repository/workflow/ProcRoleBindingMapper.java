@@ -1,6 +1,7 @@
 package com.webank.wecube.platform.core.repository.workflow;
 
 import java.util.List;
+import java.util.Set;
 
 import org.apache.ibatis.annotations.Param;
 import org.springframework.stereotype.Repository;
@@ -70,7 +71,7 @@ public interface ProcRoleBindingMapper {
      * @param roleIds
      * @return
      */
-    List<String> findDistinctProcIdByRoleIdsAndPermissionIsUse(@Param("roleIds") List<String> roleIds);
+    List<ProcRoleBindingEntity> findDistinctProcIdByRolesAndPermissionIsUse(@Param("roleNames") Set<String> roleNames);
 
     /**
      * 

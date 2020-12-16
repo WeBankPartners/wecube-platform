@@ -181,6 +181,7 @@ public class BatchExecutionService {
         List<ExecutionJobs> exeJobsEntities = new ArrayList<ExecutionJobs>();
 
         List<ResourceDataDto> resourceDatas = batchExeRequest.getResourceDatas();
+        batchExecutionJobsMapper.insert(batchExeJobEntity);
 
         if (resourceDatas == null) {
             throw new WecubeCoreException("Resource data cannot be empty.");
@@ -193,6 +194,7 @@ public class BatchExecutionService {
             exeJobEntity.setPackageName(batchExeRequest.getPackageName());
             exeJobEntity.setEntityName(batchExeRequest.getEntityName());
             exeJobEntity.setBusinessKey(resourceData.getBusinessKeyValue().toString());
+            exeJobEntity.setBatchExecutionJobId(batchExeJobEntity.getId());
 
             executionJobsMapper.insert(exeJobEntity);
 
@@ -205,7 +207,6 @@ public class BatchExecutionService {
 
         batchExeJobEntity.setJobs(exeJobsEntities);
 
-        batchExecutionJobsMapper.insert(batchExeJobEntity);
         return batchExeJobEntity;
     }
 
