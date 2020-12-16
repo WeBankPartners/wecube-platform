@@ -159,7 +159,7 @@
         #{permission,jdbcType=VARCHAR}
     </select>
 
-    <select id="findDistinctProcIdByRoleIdsAndPermissionIsUse"
+    <select id="findDistinctProcIdByRolesAndPermissionIsUse"
         parameterType="list" resultMap="BaseResultMap">
 
         select
@@ -167,10 +167,10 @@
         from core_ru_proc_role_binding
         where permission = 'USE'
         and
-        role_id in
-        <foreach item="roleId" collection="roleIds" separator=","
+        role_name in
+        <foreach item="roleName" collection="roleNames" separator=","
             open="(" close=")" index="">
-            #{roleId, jdbcType=VARCHAR}
+            #{roleName, jdbcType=VARCHAR}
         </foreach>
     </select>
 

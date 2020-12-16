@@ -48,5 +48,5 @@ public interface ProcessInstanceStatusMapper{
      * @param procInstanceId
      * @return
      */
-    ProcessInstanceStatusEntity findOneByprocInstanceId(@Param("procInstId")String procInstId);
+    ProcessInstanceStatusEntity findOneByProcInstanceId(@Param("procInstId")String procInstId);
 }
