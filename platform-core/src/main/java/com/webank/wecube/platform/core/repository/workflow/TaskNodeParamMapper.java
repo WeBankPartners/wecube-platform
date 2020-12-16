@@ -27,7 +27,7 @@ public interface TaskNodeParamMapper {
      * @param procDefId
      * @return
      */
-    List<TaskNodeParamEntity> findAllByProcDefId(@Param("procDefId")String procDefId);
+    List<TaskNodeParamEntity> selectAllByProcDefId(@Param("procDefId")String procDefId);
 
     /**
      * 
@@ -35,7 +35,7 @@ public interface TaskNodeParamMapper {
      * @param status
      * @return
      */
-    List<TaskNodeParamEntity> findAllByProcDefIdAndStatus(@Param("procDefId") String procDefId,
+    List<TaskNodeParamEntity> selectAllByProcDefIdAndStatus(@Param("procDefId") String procDefId,
             @Param("status") String status);
 
     /**
@@ -44,7 +44,7 @@ public interface TaskNodeParamMapper {
      * @param taskNodeDefId
      * @return
      */
-    List<TaskNodeParamEntity> findAllByProcDefIdAndTaskNodeDefId(@Param("procDefId") String procDefId,
+    List<TaskNodeParamEntity> selectAllByProcDefIdAndTaskNodeDefId(@Param("procDefId") String procDefId,
             @Param("taskNodeDefId") String taskNodeDefId);
     
     
@@ -54,7 +54,7 @@ public interface TaskNodeParamMapper {
      * @param taskNodeDefId
      * @return
      */
-    List<TaskNodeParamEntity> findAllDraftByProcDefIdAndTaskNodeDefId(@Param("procDefId") String procDefId,
+    List<TaskNodeParamEntity> selectAllDraftByProcDefIdAndTaskNodeDefId(@Param("procDefId") String procDefId,
             @Param("taskNodeDefId") String taskNodeDefId);
 
     /**
@@ -63,6 +63,6 @@ public interface TaskNodeParamMapper {
      * @param paramName
      * @return
      */
-    TaskNodeParamEntity findOneByTaskNodeDefIdAndParamName(@Param("taskNodeDefId") String taskNodeDefId,
+    TaskNodeParamEntity selectOneByTaskNodeDefIdAndParamName(@Param("taskNodeDefId") String taskNodeDefId,
             @Param("paramName") String paramName);
 }
