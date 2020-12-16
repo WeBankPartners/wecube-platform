@@ -151,7 +151,7 @@ public class WorkflowPublicAccessService {
         ProcRoleBindingEntity procRoleBinding = null;
         for (String roleName : currUserRoleNames) {
             ProcRoleBindingEntity procRoleBindingEntity = procRoleBindingRepository
-                    .findByProcIdAndRoleNameAndPermission(procDefInfo.getId(), roleName, ProcRoleBindingEntity.USE);
+                    .selectByProcIdAndRoleNameAndPermission(procDefInfo.getId(), roleName, ProcRoleBindingEntity.USE);
             if (procRoleBindingEntity != null) {
                 procRoleBinding = procRoleBindingEntity;
                 break;
@@ -163,7 +163,7 @@ public class WorkflowPublicAccessService {
             return nodeDefInfoDtos;
         }
 
-        List<TaskNodeDefInfoEntity> taskNodeDefInfos = taskNodeDefInfoRepository.findAllByProcDefId(procDefId);
+        List<TaskNodeDefInfoEntity> taskNodeDefInfos = taskNodeDefInfoRepository.selectAllByProcDefId(procDefId);
 
         if (taskNodeDefInfos == null || taskNodeDefInfos.isEmpty()) {
             return nodeDefInfoDtos;
@@ -286,7 +286,7 @@ public class WorkflowPublicAccessService {
     }
 
     private List<ProcDefAuthInfoQueryEntity> retrieveAllAuthorizedProcDefs(Set<String> roleNames) {
-        List<ProcDefAuthInfoQueryEntity> procDefInfos = this.procDefInfoRepository.findAllAuthorizedProcDefs(roleNames);
+        List<ProcDefAuthInfoQueryEntity> procDefInfos = this.procDefInfoRepository.selectAllAuthorizedProcDefs(roleNames);
 
         return procDefInfos;
     }

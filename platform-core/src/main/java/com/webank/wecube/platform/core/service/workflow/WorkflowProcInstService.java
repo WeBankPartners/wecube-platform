@@ -119,7 +119,7 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
         }
 
         List<ProcExecBindingEntity> bindEntities = procExecBindingRepository
-                .findAllTaskNodeBindingsByProcInstId(procInstEntity.getId());
+                .selectAllTaskNodeBindingsByProcInstId(procInstEntity.getId());
 
         List<TaskNodeDefObjectBindInfoDto> result = new ArrayList<>();
 
@@ -128,7 +128,7 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
         }
 
         List<TaskNodeInstInfoEntity> nodeInstEntities = taskNodeInstInfoRepository
-                .findAllByProcInstId(procInstEntity.getId());
+                .selectAllByProcInstId(procInstEntity.getId());
 
         bindEntities.forEach(n -> {
             TaskNodeDefObjectBindInfoDto d = new TaskNodeDefObjectBindInfoDto();
@@ -210,7 +210,7 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
 
     protected void refreshProcessInstanceStatus(ProcInstInfoEntity procInstEntity) {
         List<TaskNodeInstInfoEntity> nodeInstEntities = taskNodeInstInfoRepository
-                .findAllByProcInstId(procInstEntity.getId());
+                .selectAllByProcInstId(procInstEntity.getId());
         String kernelProcInstId = procInstEntity.getProcInstKernelId();
         Date currTime = new Date();
         for (TaskNodeInstInfoEntity nie : nodeInstEntities) {
@@ -307,7 +307,7 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
         }
 
         List<TaskNodeInstInfoEntity> nodeInstEntities = taskNodeInstInfoRepository
-                .findAllByProcInstId(procInstEntity.getId());
+                .selectAllByProcInstId(procInstEntity.getId());
         for (TaskNodeInstInfoEntity nodeInstEntity : nodeInstEntities) {
             ProcFlowNodeInst pfni = procInstOutline.findProcFlowNodeInstByNodeId(nodeInstEntity.getNodeId());
             if (pfni != null && (pfni.getStatus() != null) && (!pfni.getStatus().equals(nodeInstEntity.getStatus()))) {
@@ -318,7 +318,7 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
         }
 
         ProcExecBindingEntity procInstBindEntity = procExecBindingRepository
-                .findProcInstBindings(procInstEntity.getId());
+                .selectProcInstBindings(procInstEntity.getId());
 
         String entityTypeId = null;
         String entityDataId = null;
@@ -339,10 +339,10 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
         result.setCreatedTime(formatDate(procInstEntity.getCreatedTime()));
 
         List<TaskNodeInstInfoEntity> nodeEntities = taskNodeInstInfoRepository
-                .findAllByProcInstId(procInstEntity.getId());
+                .selectAllByProcInstId(procInstEntity.getId());
 
         List<TaskNodeDefInfoEntity> nodeDefEntities = taskNodeDefInfoRepository
-                .findAllByProcDefId(procInstEntity.getProcDefId());
+                .selectAllByProcDefId(procInstEntity.getProcDefId());
 
         for (TaskNodeInstInfoEntity n : nodeEntities) {
             TaskNodeDefInfoEntity nodeDef = findTaskNodeDefInfoEntityByNodeDefId(nodeDefEntities, n.getNodeDefId());
@@ -381,7 +381,7 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
             throw new WecubeCoreException("3144", "No access to this resource due to current user did not log in.");
         }
 
-        List<ProcRoleBindingEntity> procRoleBindingEntities = procRoleBindingRepository.findDistinctProcIdByRolesAndPermissionIsUse(currRoleNames);
+        List<ProcRoleBindingEntity> procRoleBindingEntities = procRoleBindingRepository.selectDistinctProcIdByRolesAndPermissionIsUse(currRoleNames);
         if (procRoleBindingEntities == null || procRoleBindingEntities.isEmpty()) {
             throw new WecubeCoreException("3145", "No access to this resource due to permission not configured.");
         }
@@ -490,7 +490,7 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
         procInstBindEntity.setProcInstId(procInstInfoEntity.getId());
         procExecBindingRepository.insert(procInstBindEntity);
 
-        List<TaskNodeDefInfoEntity> taskNodeDefInfoEntities = taskNodeDefInfoRepository.findAllByProcDefId(procDefId);
+        List<TaskNodeDefInfoEntity> taskNodeDefInfoEntities = taskNodeDefInfoRepository.selectAllByProcDefId(procDefId);
 
         for (TaskNodeDefInfoEntity taskNodeDefInfoEntity : taskNodeDefInfoEntities) {
             processSingleTaskNodeDefInfoEntityWhenCreate(taskNodeDefInfoEntity, procInstInfoEntity, requestDto,
@@ -571,7 +571,7 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
         String entityDataName = null;
         if (!StringUtils.isBlank(requestDto.getProcessSessionId())) {
             List<ProcExecBindingTmpEntity> tmpBindings = procExecBindingTmpRepository
-                    .findAllRootBindingsBySession(requestDto.getProcessSessionId());
+                    .selectAllRootBindingsBySession(requestDto.getProcessSessionId());
             if (tmpBindings != null && tmpBindings.size() > 0) {
                 entityDataName = tmpBindings.get(0).getEntityDataName();
             }
@@ -584,7 +584,7 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
             return;
         }
 
-        List<GraphNodeEntity> gNodes = graphNodeRepository.findAllByProcessSessionId(requestDto.getProcessSessionId());
+        List<GraphNodeEntity> gNodes = graphNodeRepository.selectAllByProcessSessionId(requestDto.getProcessSessionId());
         if (gNodes == null || gNodes.isEmpty()) {
             return;
         }
@@ -620,7 +620,7 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
         String entityDataId = null;
 
         ProcExecBindingEntity procInstBindEntity = procExecBindingRepository
-                .findProcInstBindings(procInstInfoEntity.getId());
+                .selectProcInstBindings(procInstInfoEntity.getId());
 
         if (procInstBindEntity != null) {
             entityTypeId = procInstBindEntity.getEntityTypeId();
@@ -637,7 +637,7 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
         result.setEntityDataId(entityDataId);
 
         List<TaskNodeInstInfoEntity> nodeInstEntities = taskNodeInstInfoRepository
-                .findAllByProcInstId(procEntity.getId());
+                .selectAllByProcInstId(procEntity.getId());
 
         for (TaskNodeInstInfoEntity n : nodeInstEntities) {
             if ("startEvent".equals(n.getNodeType())) {
@@ -649,7 +649,7 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
         }
 
         List<TaskNodeDefInfoEntity> nodeDefEntities = taskNodeDefInfoRepository
-                .findAllByProcDefId(procEntity.getProcDefId());
+                .selectAllByProcDefId(procEntity.getProcDefId());
 
         for (TaskNodeDefInfoEntity nodeDefEntity : nodeDefEntities) {
             TaskNodeInstInfoEntity nodeInstEntity = findTaskNodeInstInfoEntityByTaskNodeDefId(nodeInstEntities,
@@ -708,7 +708,7 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
             StartProcInstRequestDto requestDto, String nodeDefId) {
 
         List<ProcExecBindingTmpEntity> sessionBindings = this.procExecBindingTmpRepository
-                .findAllNodeBindingsByNodeAndSession(nodeDefId, requestDto.getProcessSessionId());
+                .selectAllNodeBindingsByNodeAndSession(nodeDefId, requestDto.getProcessSessionId());
 
         List<TaskNodeDefObjectBindInfoDto> result = new ArrayList<>();
         if (sessionBindings == null || sessionBindings.isEmpty()) {
@@ -748,7 +748,7 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
     }
 
     private List<?> queryProcInstInfoByRoleNames(List<String> roleNames) {
-        List<ProcInstInfoQueryEntity> insts = procInstInfoRepository.findAllByProcInstInfoByRoleNames(roleNames);
+        List<ProcInstInfoQueryEntity> insts = procInstInfoRepository.selectAllByProcInstInfoByRoleNames(roleNames);
         return insts;
     }
 }
