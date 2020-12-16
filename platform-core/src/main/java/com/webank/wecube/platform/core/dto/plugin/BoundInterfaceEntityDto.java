@@ -1,6 +1,6 @@
 package com.webank.wecube.platform.core.dto.plugin;
 
-public class BindedInterfaceEntityDto {
+public class BoundInterfaceEntityDto {
     private String packageName;
     private String entityName;
     private String filterRule;
@@ -21,11 +21,11 @@ public class BindedInterfaceEntityDto {
         this.entityName = entityName;
     }
 
-    public BindedInterfaceEntityDto() {
+    public BoundInterfaceEntityDto() {
         super();
     }
 
-    public BindedInterfaceEntityDto(String packageName, String entityName, String filterRule) {
+    public BoundInterfaceEntityDto(String packageName, String entityName, String filterRule) {
         super();
         this.packageName = packageName;
         this.entityName = entityName;
