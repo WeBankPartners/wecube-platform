@@ -32,7 +32,7 @@ public class AsyncPluginInvocationService extends AbstractPluginInvocationServic
 
         List<Object> outputs = asyncResultDto.getOutputs();
 
-        TaskNodeExecRequestEntity reqEntity = taskNodeExecRequestRepository.findOneByRequestId(requestId);
+        TaskNodeExecRequestEntity reqEntity = taskNodeExecRequestRepository.selectOneByRequestId(requestId);
 
         if (reqEntity == null) {
             log.error("request ID is NOT available:{}", requestId);
@@ -155,7 +155,7 @@ public class AsyncPluginInvocationService extends AbstractPluginInvocationServic
 
         if (outputParameters != null && !outputParameters.isEmpty()) {
             List<TaskNodeExecParamEntity> inputParameters = taskNodeExecParamRepository
-                    .findAllByRequestIdAndParamType(ctx.getRequestId(), TaskNodeExecParamEntity.PARAM_TYPE_REQUEST);
+                    .selectAllByRequestIdAndParamType(ctx.getRequestId(), TaskNodeExecParamEntity.PARAM_TYPE_REQUEST);
             if (inputParameters == null || inputParameters.isEmpty()) {
                 log.debug("output parameter is configured but INPUT is empty for interface {}",
                         pluginConfigInterface.getServiceName());
@@ -311,7 +311,7 @@ public class AsyncPluginInvocationService extends AbstractPluginInvocationServic
         TaskNodeExecParamEntity callbackParameterInputEntity = null;
         if (StringUtils.isNotBlank(callbackParameter)) {
             List<TaskNodeExecParamEntity> callbackParameterInputEntities = taskNodeExecParamRepository
-                    .findOneByRequestIdAndParamTypeAndParamNameAndValue(requestId,
+                    .selectOneByRequestIdAndParamTypeAndParamNameAndValue(requestId,
                             TaskNodeExecParamEntity.PARAM_TYPE_REQUEST, CALLBACK_PARAMETER_KEY, callbackParameter);
             if (callbackParameterInputEntities != null && !callbackParameterInputEntities.isEmpty()) {
                 callbackParameterInputEntity = callbackParameterInputEntities.get(0);

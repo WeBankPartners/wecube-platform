@@ -230,7 +230,7 @@
         where id = #{id,jdbcType=INTEGER}
     </update>
 
-    <select id="findOneByProcInstKernelId" parameterType="java.lang.String"
+    <select id="selectOneByProcInstKernelId" parameterType="java.lang.String"
         resultMap="BaseResultMap">
         select
         <include refid="Base_Column_List" />
@@ -239,7 +239,7 @@
         #{procInstKernelId,jdbcType=VARCHAR}
     </select>
 
-    <select id="findByProcDefIdIn" parameterType="list"
+    <select id="selectByProcDefIdIn" parameterType="list"
         resultMap="BaseResultMap">
         select
         <include refid="Base_Column_List" />
@@ -254,7 +254,7 @@
         </where>
     </select>
 
-    <select id="findAllByProcDefId" parameterType="java.lang.String"
+    <select id="selectAllByProcDefId" parameterType="java.lang.String"
         resultMap="BaseResultMap">
         select
         <include refid="Base_Column_List" />
@@ -264,7 +264,7 @@
     </select>
 
 
-    <select id="findAllByProcInstInfoByRoleNames" parameterType="java.lang.String"
+    <select id="selectAllByProcInstInfoByRoleNames" parameterType="java.lang.String"
         resultType="com.webank.wecube.platform.core.entity.workflow.ProcInstInfoQueryEntity">
         SELECT distinct
         t1.id AS id,

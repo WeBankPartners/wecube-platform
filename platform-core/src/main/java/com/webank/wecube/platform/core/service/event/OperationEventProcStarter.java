@@ -98,7 +98,7 @@ public class OperationEventProcStarter {
         initDto.setEntityTypeId(entityTypeId);
         initDto.setProcDefId(procDefEntity.getId());
 
-        List<TaskNodeDefInfoEntity> taskNodeDefs = taskNodeDefInfoRepository.findAllByProcDefId(procDefEntity.getId());
+        List<TaskNodeDefInfoEntity> taskNodeDefs = taskNodeDefInfoRepository.selectAllByProcDefId(procDefEntity.getId());
         List<TaskNodeDefObjectBindInfoDto> taskNodeBinds = new ArrayList<TaskNodeDefObjectBindInfoDto>();
         
         for(TaskNodeDefInfoEntity tnDef : taskNodeDefs){
@@ -128,7 +128,7 @@ public class OperationEventProcStarter {
 
     private ProcDefInfoEntity findSuitableProcDefInfoEntityWithProcDefKey(String procDefKey) {
         List<ProcDefInfoEntity> procDefEntities = processDefInfoRepository
-                .findAllDeployedProcDefsByProcDefKey(procDefKey, ProcDefInfoEntity.DEPLOYED_STATUS);
+                .selectAllDeployedProcDefsByProcDefKey(procDefKey, ProcDefInfoEntity.DEPLOYED_STATUS);
 
         if (procDefEntities == null || procDefEntities.isEmpty()) {
             return null;

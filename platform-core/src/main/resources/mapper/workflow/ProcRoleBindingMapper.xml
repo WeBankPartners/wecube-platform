@@ -105,7 +105,7 @@
         where id = #{id,jdbcType=VARCHAR}
     </update>
 
-    <select id="findAllByRoleName" parameterType="java.lang.String"
+    <select id="selectAllByRoleName" parameterType="java.lang.String"
         resultMap="BaseResultMap">
         select
         <include refid="Base_Column_List" />
@@ -114,7 +114,7 @@
         #{roleName,jdbcType=VARCHAR}
     </select>
 
-    <select id="findAllByRoleNameAndPermission" parameterType="java.lang.String"
+    <select id="selectAllByRoleNameAndPermission" parameterType="java.lang.String"
         resultMap="BaseResultMap">
         select
         <include refid="Base_Column_List" />
@@ -125,7 +125,7 @@
         #{permission,jdbcType=VARCHAR}
     </select>
 
-    <select id="findAllByProcId" parameterType="java.lang.String"
+    <select id="selectAllByProcId" parameterType="java.lang.String"
         resultMap="BaseResultMap">
         select
         <include refid="Base_Column_List" />
@@ -134,7 +134,7 @@
         #{procId,jdbcType=VARCHAR}
     </select>
 
-    <select id="findByProcIdAndRoleNameAndPermission"
+    <select id="selectByProcIdAndRoleNameAndPermission"
         parameterType="java.lang.String" resultMap="BaseResultMap">
         select
         <include refid="Base_Column_List" />
@@ -148,7 +148,7 @@
 
     </select>
 
-    <select id="findAllByProcIdAndPermission" parameterType="java.lang.String"
+    <select id="selectAllByProcIdAndPermission" parameterType="java.lang.String"
         resultMap="BaseResultMap">
         select
         <include refid="Base_Column_List" />
@@ -159,7 +159,7 @@
         #{permission,jdbcType=VARCHAR}
     </select>
 
-    <select id="findDistinctProcIdByRolesAndPermissionIsUse"
+    <select id="selectDistinctProcIdByRolesAndPermissionIsUse"
         parameterType="list" resultMap="BaseResultMap">
 
         select
