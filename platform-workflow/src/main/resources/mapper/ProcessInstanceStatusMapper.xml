@@ -39,7 +39,7 @@
         where id = #{id,jdbcType=VARCHAR}
     </select>
 
-    <select id="findOneByProcInstanceId" parameterType="java.lang.String"
+    <select id="selectOneByProcInstanceId" parameterType="java.lang.String"
         resultMap="BaseResultMap">
         select
         <include refid="Base_Column_List" />
