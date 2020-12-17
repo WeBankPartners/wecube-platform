@@ -6,9 +6,9 @@ import java.util.List;
 public class DynamicWorkflowInstCreationInfoDto {
     private String procDefId;
     private String procDefKey;
-    
+
     private DynamicEntityValueDto rootEntityValue;
-    
+
     private List<DynamicTaskNodeBindInfoDto> taskNodeBindInfos = new ArrayList<>();
 
     public String getProcDefId() {
@@ -42,9 +42,20 @@ public class DynamicWorkflowInstCreationInfoDto {
     public void setTaskNodeBindInfos(List<DynamicTaskNodeBindInfoDto> taskNodeBindInfos) {
         this.taskNodeBindInfos = taskNodeBindInfos;
     }
-    
-    
-    
 
-    
+    @Override
+    public String toString() {
+        StringBuilder builder = new StringBuilder();
+        builder.append("DynamicWorkflowInstCreationInfoDto [procDefId=");
+        builder.append(procDefId);
+        builder.append(", procDefKey=");
+        builder.append(procDefKey);
+        builder.append(", rootEntityValue=");
+        builder.append(rootEntityValue);
+        builder.append(", taskNodeBindInfos=");
+        builder.append(taskNodeBindInfos);
+        builder.append("]");
+        return builder.toString();
+    }
+
 }
