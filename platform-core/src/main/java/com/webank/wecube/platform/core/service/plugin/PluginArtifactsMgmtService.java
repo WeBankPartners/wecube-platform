@@ -461,6 +461,9 @@ public class PluginArtifactsMgmtService extends AbstractPluginMgmtService {
         pluginPackageEntity.setId(LocalIdGenerator.generateId());
         pluginPackageEntity.setName(xmlPackage.getName());
         pluginPackageEntity.setVersion(xmlPackage.getVersion());
+        pluginPackageEntity.setStatus(PluginPackages.UNREGISTERED);
+        pluginPackageEntity.setUploadTimestamp(new Date());
+        pluginPackagesMapper.insert(pluginPackageEntity);
 
         processPluginUiPackageFile(localFilePath, xmlPackage, pluginPackageEntity);
 
@@ -469,10 +472,7 @@ public class PluginArtifactsMgmtService extends AbstractPluginMgmtService {
         processPluginInitSqlFile(localFilePath, xmlPackage);
         processPluginUpgradeSqlFile(localFilePath, xmlPackage);
 
-        pluginPackageEntity.setStatus(PluginPackages.UNREGISTERED);
-        pluginPackageEntity.setUploadTimestamp(new Date());
-
-        pluginPackagesMapper.insert(pluginPackageEntity);
+        pluginPackagesMapper.updateByPrimaryKeySelective(pluginPackageEntity);
 
         processPluginConfigs(xmlPackage.getPlugins(), xmlPackage, pluginPackageEntity);
 
@@ -770,7 +770,11 @@ public class PluginArtifactsMgmtService extends AbstractPluginMgmtService {
             systemVariableEntity.setId(LocalIdGenerator.generateId());
             systemVariableEntity.setName(xmlSystemParameter.getName());
             systemVariableEntity.setPackageName(xmlPackage.getName());
-            systemVariableEntity.setScope(xmlSystemParameter.getScopeType());
+            String scopeType = xmlSystemParameter.getScopeType();
+            if(!SystemVariables.SCOPE_GLOBAL.equalsIgnoreCase(scopeType)){
+                scopeType = xmlPackage.getName();
+            }
+            systemVariableEntity.setScope(scopeType);
             systemVariableEntity.setDefaultValue(xmlSystemParameter.getDefaultValue());
             systemVariableEntity.setValue(xmlSystemParameter.getValue());
             systemVariableEntity.setStatus(SystemVariables.INACTIVE);

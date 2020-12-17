@@ -222,6 +222,7 @@ public class SystemVariableService {
                         : varObject.getValue();
             }
 
+            log.info("replace system variable {}:{}", varString, varValue);
             originalString = originalString.replace(varString, varValue);
         }
         return originalString;
