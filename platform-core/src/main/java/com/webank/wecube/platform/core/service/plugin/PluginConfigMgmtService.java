@@ -532,6 +532,18 @@ public class PluginConfigMgmtService extends AbstractPluginMgmtService {
         }
         pluginConfigEntity.setRegisterName(pluginConfigDto.getRegisterName());
 
+        List<PluginConfigInterfaceDto> interfaceDtos = pluginConfigDto.getInterfaces();
+
+        if (interfaceDtos != null) {
+            for (PluginConfigInterfaceDto intfDto : interfaceDtos) {
+                if (intfDto == null) {
+                    continue;
+                }
+
+                createOrUpdatePluginConfigInterface(intfDto, pluginPackage, pluginConfigEntity);
+            }
+        }
+
         List<PluginConfigInterfaces> intfEntities = pluginConfigInterfacesMapper
                 .selectAllByPluginConfig(pluginConfigEntity.getId());
 
@@ -555,6 +567,69 @@ public class PluginConfigMgmtService extends AbstractPluginMgmtService {
         return pluginConfigEntity;
     }
 
+    private void createOrUpdatePluginConfigInterface(PluginConfigInterfaceDto intfDto, PluginPackages pluginPackage,
+            PluginConfigs pluginConfigEntity) {
+        if (StringUtils.isBlank(intfDto.getId())) {
+            createPluginConfigInterface(intfDto, pluginPackage, pluginConfigEntity);
+        } else {
+            updatePluginConfigInterface(intfDto, pluginPackage, pluginConfigEntity);
+        }
+    }
+
+    private void createPluginConfigInterface(PluginConfigInterfaceDto intfDto, PluginPackages pluginPackage,
+            PluginConfigs pluginConfigEntity) {
+        buildPluginConfigInterfaces(intfDto, pluginConfigEntity, pluginPackage);
+    }
+
+    private void updatePluginConfigInterface(PluginConfigInterfaceDto intfDto, PluginPackages pluginPackage,
+            PluginConfigs pluginConfigEntity) {
+        PluginConfigInterfaces intfEntity = pluginConfigInterfacesMapper.selectByPrimaryKey(intfDto.getId());
+        if (intfEntity == null) {
+            return;
+        }
+
+        intfEntity.setAction(intfDto.getAction());
+        intfEntity.setFilterRule(intfDto.getFilterRule());
+        intfEntity.setHttpMethod(intfDto.getHttpMethod());
+        intfEntity.setIsAsyncProcessing(intfDto.getIsAsyncProcessing());
+        intfEntity.setPath(intfDto.getPath());
+        intfEntity.setServiceDisplayName(intfEntity.generateServiceName(pluginPackage, pluginConfigEntity));
+        intfEntity.setServiceName(intfEntity.generateServiceName(pluginPackage, pluginConfigEntity));
+
+        pluginConfigInterfacesMapper.updateByPrimaryKey(intfEntity);
+
+        List<PluginConfigInterfaceParameterDto> inputParameterDtos = intfDto.getInputParameters();
+
+        if (inputParameterDtos != null) {
+            for (PluginConfigInterfaceParameterDto paramDto : inputParameterDtos) {
+                if (StringUtils.isBlank(paramDto.getId())) {
+                    buildPluginConfigInterfaceParameters(PluginConfigInterfaceParameters.TYPE_INPUT, paramDto,
+                            pluginPackage, pluginConfigEntity, intfEntity);
+                } else {
+                    updatePluginConfigInterfaceParameters(PluginConfigInterfaceParameters.TYPE_INPUT, paramDto,
+                            pluginPackage, pluginConfigEntity, intfEntity);
+                }
+            }
+
+        }
+
+        List<PluginConfigInterfaceParameterDto> outputParameterDtos = intfDto.getOutputParameters();
+
+        if (outputParameterDtos != null) {
+            for (PluginConfigInterfaceParameterDto paramDto : outputParameterDtos) {
+                if (StringUtils.isBlank(paramDto.getId())) {
+                    buildPluginConfigInterfaceParameters(PluginConfigInterfaceParameters.TYPE_OUTPUT, paramDto,
+                            pluginPackage, pluginConfigEntity, intfEntity);
+                } else {
+                    updatePluginConfigInterfaceParameters(PluginConfigInterfaceParameters.TYPE_OUTPUT, paramDto,
+                            pluginPackage, pluginConfigEntity, intfEntity);
+                }
+            }
+
+        }
+
+    }
+
     private PluginConfigDto createPluginConfig(PluginConfigDto pluginConfigDto) {
         String pluginPackageId = pluginConfigDto.getPluginPackageId();
 
@@ -566,9 +641,6 @@ public class PluginConfigMgmtService extends AbstractPluginMgmtService {
 
         ensurePluginConfigRegisterNameNotExists(pluginConfigDto);
         PluginConfigs pluginConfigsEntity = buildPluginConfigsEntity(pluginConfigDto, pluginPackageEntity);
-
-        pluginConfigsEntity.setStatus(PluginConfigs.DISABLED);
-        pluginConfigsMapper.insert(pluginConfigsEntity);
 
         PluginConfigDto results = buildPluginConfigDto(pluginConfigsEntity, pluginPackageEntity);
 
@@ -619,6 +691,9 @@ public class PluginConfigMgmtService extends AbstractPluginMgmtService {
         pluginConfig.setTargetEntityFilterRule(pluginConfigDto.getFilterRule());
         pluginConfig.setRegisterName(pluginConfigDto.getRegisterName());
 
+        pluginConfig.setStatus(PluginConfigs.DISABLED);
+        pluginConfigsMapper.insert(pluginConfig);
+
         List<PluginConfigInterfaceDto> interfaceDtos = pluginConfigDto.getInterfaces();
         if (interfaceDtos != null) {
             for (PluginConfigInterfaceDto intfDto : interfaceDtos) {
@@ -642,6 +717,7 @@ public class PluginConfigMgmtService extends AbstractPluginMgmtService {
         intfEntity.setHttpMethod(intfDto.getHttpMethod());
         intfEntity.setFilterRule(intfDto.getFilterRule());
 
+        // TODO type
         intfEntity.setServiceName(intfEntity.generateServiceName(pluginPackage, pluginConfig));
         intfEntity.setServiceDisplayName(intfEntity.generateServiceName(pluginPackage, pluginConfig));
         intfEntity.setIsAsyncProcessing(intfDto.getIsAsyncProcessing());
@@ -675,6 +751,31 @@ public class PluginConfigMgmtService extends AbstractPluginMgmtService {
         }
 
         return intfEntity;
+    }
+
+    private void updatePluginConfigInterfaceParameters(String type, PluginConfigInterfaceParameterDto paramDto,
+            PluginPackages pluginPackage, PluginConfigs pluginConfig, PluginConfigInterfaces intfEntity) {
+        PluginConfigInterfaceParameters paramEntity = pluginConfigInterfaceParametersMapper
+                .selectByPrimaryKey(paramDto.getId());
+        
+        if(paramEntity == null){
+            return;
+        }
+
+        paramEntity.setPluginConfigInterfaceId(intfEntity.getId());
+
+        paramEntity.setName(paramDto.getName());
+        paramEntity.setType(type);
+        paramEntity.setDataType(paramDto.getDataType());
+        paramEntity.setMappingType(paramDto.getMappingType());
+        paramEntity.setMappingEntityExpression(paramDto.getMappingEntityExpression());
+        paramEntity.setMappingSystemVariableName(paramDto.getMappingSystemVariableName());
+        paramEntity.setRequired(paramDto.getRequired());
+
+        paramEntity.setSensitiveData(paramDto.getSensitiveData());
+
+        pluginConfigInterfaceParametersMapper.updateByPrimaryKey(paramEntity);
+
     }
 
     private PluginConfigInterfaceParameters buildPluginConfigInterfaceParameters(String type,
@@ -1133,7 +1234,7 @@ public class PluginConfigMgmtService extends AbstractPluginMgmtService {
             log.info("No data model found for package [{}]", targetPackageName);
             return false;
         }
-        
+
         return true;
     }
 
