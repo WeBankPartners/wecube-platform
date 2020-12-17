@@ -17,6 +17,7 @@ import com.webank.wecube.platform.core.entity.workflow.ProcInstInfoEntity;
 import com.webank.wecube.platform.core.model.workflow.PluginInvocationCommand;
 import com.webank.wecube.platform.core.model.workflow.WorkflowNotifyEvent;
 import com.webank.wecube.platform.core.repository.workflow.OperationEventMapper;
+import com.webank.wecube.platform.workflow.WorkflowConstants;
 
 @Service
 public class WorkflowProcInstEndEventNotifier {
@@ -73,6 +74,7 @@ public class WorkflowProcInstEndEventNotifier {
             operationEventEntity.setStatus(OperationEventEntity.STATUS_COMPLETED);
             operationEventEntity.setEndTime(currTime);
             operationEventEntity.setUpdatedTime(currTime);
+            operationEventEntity.setUpdatedBy(WorkflowConstants.DEFAULT_USER);
 
             operationEventRepository.updateByPrimaryKeySelective(operationEventEntity);
         }
