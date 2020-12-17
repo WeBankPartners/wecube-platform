@@ -402,16 +402,20 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
             return nodeInstEntity.getNodeName();
         }
 
-        if ("startEvent".equals(nodeInstEntity.getNodeType())) {
+        if (NODE_START_EVENT.equals(nodeInstEntity.getNodeType())) {
             return "S";
         }
 
-        if ("endEvent".equals(nodeInstEntity.getNodeType())) {
+        if (NODE_END_EVENT.equals(nodeInstEntity.getNodeType())) {
             return "E";
         }
 
-        if ("exclusiveGateway".equals(nodeInstEntity.getNodeType())) {
+        if (NODE_EXCLUSIVE_GATEWAY.equals(nodeInstEntity.getNodeType())) {
             return "X";
+        }
+        
+        if(NODE_PARALLEL_GATEWAY.equals(nodeInstEntity.getNodeType())){
+            return "O";
         }
 
         return "";
