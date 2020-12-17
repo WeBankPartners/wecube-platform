@@ -198,6 +198,7 @@ public class WorkflowPublicAccessService {
      * @return
      */
     public DynamicWorkflowInstInfoDto createNewWorkflowInstance(DynamicWorkflowInstCreationInfoDto creationInfoDto) {
+        log.info("try to create new workflow instance with data: {}", creationInfoDto);
         return new DynamicWorkflowInstInfoDto();
     }
 
