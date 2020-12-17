@@ -32,6 +32,19 @@ public class DynamicTaskNodeBindInfoDto {
     public void setBoundEntityValues(List<DynamicEntityValueDto> boundEntityValues) {
         this.boundEntityValues = boundEntityValues;
     }
+
+    @Override
+    public String toString() {
+        StringBuilder builder = new StringBuilder();
+        builder.append("DynamicTaskNodeBindInfoDto [nodeId=");
+        builder.append(nodeId);
+        builder.append(", nodeDefId=");
+        builder.append(nodeDefId);
+        builder.append(", boundEntityValues=");
+        builder.append(boundEntityValues);
+        builder.append("]");
+        return builder.toString();
+    }
     
     
 }
