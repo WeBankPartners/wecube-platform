@@ -46,7 +46,7 @@ http {
 	location /auth {
 		proxy_pass http://core;
 	}
-	location /service-mgmt {
+	location /taskman {
 		proxy_pass http://core;
 	}
 	location /wecmdb {
