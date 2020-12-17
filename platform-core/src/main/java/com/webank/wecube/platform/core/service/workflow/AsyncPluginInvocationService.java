@@ -19,6 +19,7 @@ import com.webank.wecube.platform.core.model.workflow.PluginInvocationCommand;
 import com.webank.wecube.platform.core.model.workflow.PluginInvocationResult;
 import com.webank.wecube.platform.core.service.dme.EntityOperationRootCondition;
 import com.webank.wecube.platform.core.service.workflow.PluginInvocationProcessor.PluginInterfaceInvocationContext;
+import com.webank.wecube.platform.workflow.WorkflowConstants;
 
 @Service
 public class AsyncPluginInvocationService extends AbstractPluginInvocationService {
@@ -183,6 +184,7 @@ public class AsyncPluginInvocationService extends AbstractPluginInvocationServic
         TaskNodeExecRequestEntity requestEntity = ctx.getTaskNodeExecRequestEntity();
 
         requestEntity.setUpdatedTime(now);
+        requestEntity.setUpdatedBy(WorkflowConstants.DEFAULT_USER);
         requestEntity.setErrCode(errorCode);
         requestEntity.setErrMsg(errorMsg);
         requestEntity.setIsCompleted(true);
@@ -191,6 +193,7 @@ public class AsyncPluginInvocationService extends AbstractPluginInvocationServic
 
         TaskNodeInstInfoEntity nodeInstEntity = ctx.getTaskNodeInstEntity();
         nodeInstEntity.setUpdatedTime(now);
+        nodeInstEntity.setUpdatedBy(WorkflowConstants.DEFAULT_USER);
         nodeInstEntity.setStatus(TaskNodeInstInfoEntity.FAULTED_STATUS);
 
         taskNodeInstInfoRepository.updateByPrimaryKeySelective(nodeInstEntity);
@@ -201,12 +204,14 @@ public class AsyncPluginInvocationService extends AbstractPluginInvocationServic
         Date now = new Date();
         TaskNodeExecRequestEntity requestEntity = ctx.getTaskNodeExecRequestEntity();
         requestEntity.setUpdatedTime(now);
+        requestEntity.setUpdatedBy(WorkflowConstants.DEFAULT_USER);
         requestEntity.setIsCompleted(true);
 
         taskNodeExecRequestRepository.updateByPrimaryKeySelective(requestEntity);
 
         TaskNodeInstInfoEntity nodeInstEntity = ctx.getTaskNodeInstEntity();
         nodeInstEntity.setUpdatedTime(now);
+        nodeInstEntity.setUpdatedBy(WorkflowConstants.DEFAULT_USER);
         nodeInstEntity.setStatus(TaskNodeInstInfoEntity.COMPLETED_STATUS);
         nodeInstEntity.setErrMsg(EMPTY_ERROR_MSG);
 
@@ -354,6 +359,8 @@ public class AsyncPluginInvocationService extends AbstractPluginInvocationServic
             paramEntity.setParamDataType(paramDataType);
             paramEntity.setParamDataValue(paramDataValue);
             paramEntity.setReqId(requestId);
+            paramEntity.setCreatedBy(WorkflowConstants.DEFAULT_USER);
+            paramEntity.setCreatedTime(new Date());
 
             taskNodeExecParamRepository.insert(paramEntity);
         }
@@ -384,6 +391,7 @@ public class AsyncPluginInvocationService extends AbstractPluginInvocationServic
         TaskNodeExecRequestEntity requestEntity = ctx.getTaskNodeExecRequestEntity();
 
         requestEntity.setUpdatedTime(now);
+        requestEntity.setUpdatedBy(WorkflowConstants.DEFAULT_USER);
         requestEntity.setErrCode(errorCode);
         requestEntity.setErrMsg(errorMsg);
         requestEntity.setIsCompleted(true);
@@ -392,6 +400,7 @@ public class AsyncPluginInvocationService extends AbstractPluginInvocationServic
 
         TaskNodeInstInfoEntity nodeInstEntity = ctx.getTaskNodeInstEntity();
         nodeInstEntity.setUpdatedTime(now);
+        nodeInstEntity.setUpdatedBy(WorkflowConstants.DEFAULT_USER);
         nodeInstEntity.setStatus(TaskNodeInstInfoEntity.FAULTED_STATUS);
         nodeInstEntity.setErrMsg(errorMsg);
 
