@@ -86,6 +86,29 @@ public class DynamicEntityValueDto {
     public void setAttrValues(List<DynamicEntityAttrValueDto> attrValues) {
         this.attrValues = attrValues;
     }
+
+    @Override
+    public String toString() {
+        StringBuilder builder = new StringBuilder();
+        builder.append("DynamicEntityValueDto [entityDefId=");
+        builder.append(entityDefId);
+        builder.append(", packageName=");
+        builder.append(packageName);
+        builder.append(", entityName=");
+        builder.append(entityName);
+        builder.append(", dataId=");
+        builder.append(dataId);
+        builder.append(", oid=");
+        builder.append(oid);
+        builder.append(", previousOids=");
+        builder.append(previousOids);
+        builder.append(", succeedingOids=");
+        builder.append(succeedingOids);
+        builder.append(", attrValues=");
+        builder.append(attrValues);
+        builder.append("]");
+        return builder.toString();
+    }
     
     
 }
