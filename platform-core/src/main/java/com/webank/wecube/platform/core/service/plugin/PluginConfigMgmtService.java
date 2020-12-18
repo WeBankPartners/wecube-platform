@@ -534,6 +534,29 @@ public class PluginConfigMgmtService extends AbstractPluginMgmtService {
 
         List<PluginConfigInterfaceDto> interfaceDtos = pluginConfigDto.getInterfaces();
 
+        List<PluginConfigInterfaces> existIntfEntities = pluginConfigInterfacesMapper
+                .selectAllByPluginConfig(pluginConfigEntity.getId());
+
+        List<String> pluginConfigInterfacesIdsPresentedInDto = new ArrayList<>();
+
+        if (interfaceDtos != null) {
+            for (PluginConfigInterfaceDto intfDto : interfaceDtos) {
+                if (intfDto == null || StringUtils.isBlank(intfDto.getId())) {
+                    continue;
+                }
+
+                pluginConfigInterfacesIdsPresentedInDto.add(intfDto.getId());
+            }
+        }
+
+        for (PluginConfigInterfaces existIntfEntity : existIntfEntities) {
+            if (!pluginConfigInterfacesIdsPresentedInDto.contains(existIntfEntity.getId())) {
+                log.info("Such interface did not find in DTO input,and about to delete.id={}", existIntfEntity.getId());
+                pluginConfigInterfaceParametersMapper.deleteAllByConfigInterface(existIntfEntity.getId());
+                pluginConfigInterfacesMapper.deleteByPrimaryKey(existIntfEntity.getId());
+            }
+        }
+
         if (interfaceDtos != null) {
             for (PluginConfigInterfaceDto intfDto : interfaceDtos) {
                 if (intfDto == null) {
@@ -757,8 +780,8 @@ public class PluginConfigMgmtService extends AbstractPluginMgmtService {
             PluginPackages pluginPackage, PluginConfigs pluginConfig, PluginConfigInterfaces intfEntity) {
         PluginConfigInterfaceParameters paramEntity = pluginConfigInterfaceParametersMapper
                 .selectByPrimaryKey(paramDto.getId());
-        
-        if(paramEntity == null){
+
+        if (paramEntity == null) {
             return;
         }
 
