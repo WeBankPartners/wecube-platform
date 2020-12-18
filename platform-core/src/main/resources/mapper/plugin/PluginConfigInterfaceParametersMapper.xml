@@ -21,7 +21,8 @@
             jdbcType="VARCHAR" />
     </resultMap>
     <sql id="Base_Column_List">
-        id, plugin_config_interface_id, type, name, data_type, mapping_type,
+        id, plugin_config_interface_id, type, name, data_type,
+        mapping_type,
         mapping_entity_expression,
         mapping_system_variable_name, required, sensitive_data
     </sql>
@@ -30,22 +31,31 @@
         select
         <include refid="Base_Column_List" />
         from plugin_config_interface_parameters
-        where id = #{id,jdbcType=VARCHAR}
+        where id =
+        #{id,jdbcType=VARCHAR}
     </select>
     <delete id="deleteByPrimaryKey" parameterType="java.lang.String">
-        delete from plugin_config_interface_parameters
-        where id = #{id,jdbcType=VARCHAR}
+        delete from
+        plugin_config_interface_parameters
+        where id =
+        #{id,jdbcType=VARCHAR}
     </delete>
     <insert id="insert"
         parameterType="com.webank.wecube.platform.core.entity.plugin.PluginConfigInterfaceParameters">
-        insert into plugin_config_interface_parameters (id,
+        insert into plugin_config_interface_parameters
+        (id,
         plugin_config_interface_id, type,
-        name, data_type, mapping_type,
-        mapping_entity_expression, mapping_system_variable_name,
+        name, data_type,
+        mapping_type,
+        mapping_entity_expression,
+        mapping_system_variable_name,
         required, sensitive_data)
-        values (#{id,jdbcType=VARCHAR}, #{pluginConfigInterfaceId,jdbcType=VARCHAR},
+        values
+        (#{id,jdbcType=VARCHAR},
+        #{pluginConfigInterfaceId,jdbcType=VARCHAR},
         #{type,jdbcType=VARCHAR},
-        #{name,jdbcType=VARCHAR}, #{dataType,jdbcType=VARCHAR}, #{mappingType,jdbcType=VARCHAR},
+        #{name,jdbcType=VARCHAR},
+        #{dataType,jdbcType=VARCHAR}, #{mappingType,jdbcType=VARCHAR},
         #{mappingEntityExpression,jdbcType=VARCHAR},
         #{mappingSystemVariableName,jdbcType=VARCHAR},
         #{required,jdbcType=VARCHAR}, #{sensitiveData,jdbcType=VARCHAR})
@@ -150,7 +160,8 @@
                 required = #{required,jdbcType=VARCHAR},
             </if>
             <if test="sensitiveData != null">
-                sensitive_data = #{sensitiveData,jdbcType=VARCHAR},
+                sensitive_data =
+                #{sensitiveData,jdbcType=VARCHAR},
             </if>
         </set>
         where id = #{id,jdbcType=VARCHAR}
@@ -158,28 +169,45 @@
     <update id="updateByPrimaryKey"
         parameterType="com.webank.wecube.platform.core.entity.plugin.PluginConfigInterfaceParameters">
         update plugin_config_interface_parameters
-        set plugin_config_interface_id =
+        set
+        plugin_config_interface_id =
         #{pluginConfigInterfaceId,jdbcType=VARCHAR},
-        type = #{type,jdbcType=VARCHAR},
+        type =
+        #{type,jdbcType=VARCHAR},
         name = #{name,jdbcType=VARCHAR},
         data_type = #{dataType,jdbcType=VARCHAR},
-        mapping_type = #{mappingType,jdbcType=VARCHAR},
-        mapping_entity_expression = #{mappingEntityExpression,jdbcType=VARCHAR},
+        mapping_type =
+        #{mappingType,jdbcType=VARCHAR},
+        mapping_entity_expression =
+        #{mappingEntityExpression,jdbcType=VARCHAR},
         mapping_system_variable_name =
         #{mappingSystemVariableName,jdbcType=VARCHAR},
-        required = #{required,jdbcType=VARCHAR},
-        sensitive_data = #{sensitiveData,jdbcType=VARCHAR}
-        where id = #{id,jdbcType=VARCHAR}
+        required =
+        #{required,jdbcType=VARCHAR},
+        sensitive_data =
+        #{sensitiveData,jdbcType=VARCHAR}
+        where id =
+        #{id,jdbcType=VARCHAR}
     </update>
-    
-    <select id="selectAllByConfigInterfaceAndParamType" resultMap="BaseResultMap"
-        parameterType="java.lang.String">
+
+    <select id="selectAllByConfigInterfaceAndParamType"
+        resultMap="BaseResultMap" parameterType="java.lang.String">
         select
         <include refid="Base_Column_List" />
         from plugin_config_interface_parameters
-        where plugin_config_interface_id =
+        where
+        plugin_config_interface_id =
         #{pluginConfigInterfaceId,jdbcType=VARCHAR}
         and
-        type = #{paramType,jdbcType=VARCHAR}
+        type =
+        #{paramType,jdbcType=VARCHAR}
     </select>
+
+    <delete id="deleteAllByConfigInterface" parameterType="java.lang.String">
+        delete
+        from plugin_config_interface_parameters
+        where
+        plugin_config_interface_id =
+        #{pluginConfigInterfaceId,jdbcType=VARCHAR}
+    </delete>
 </mapper>

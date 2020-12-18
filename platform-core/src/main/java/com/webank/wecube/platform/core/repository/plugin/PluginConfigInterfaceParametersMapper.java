@@ -29,4 +29,11 @@ public interface PluginConfigInterfaceParametersMapper {
      */
     List<PluginConfigInterfaceParameters> selectAllByConfigInterfaceAndParamType(
             @Param("pluginConfigInterfaceId") String pluginConfigInterfaceId, @Param("paramType")String paramType);
+    
+    /**
+     * 
+     * @param pluginConfigInterfaceId
+     * @return
+     */
+    int deleteAllByConfigInterface(@Param("pluginConfigInterfaceId") String pluginConfigInterfaceId);
 }
