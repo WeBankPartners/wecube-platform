@@ -2,10 +2,11 @@ package com.webank.wecube.platform.core.entity.plugin;
 
 import static com.webank.wecube.platform.core.utils.Constants.LEFT_BRACKET_STRING;
 import static com.webank.wecube.platform.core.utils.Constants.RIGHT_BRACKET_STRING;
-import static com.webank.wecube.platform.core.utils.Constants.SEPARATOR_OF_NAMES;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import org.apache.commons.lang3.StringUtils;
 
 public class PluginConfigInterfaces {
     public static final String DEFAULT_INTERFACE_TYPE = "EXECUTION";
@@ -116,10 +117,20 @@ public class PluginConfigInterfaces {
     }
 
     public String generateServiceName(PluginPackages pluginPackage, PluginConfigs pluginConfig) {
-        return pluginPackage.getName() + SEPARATOR_OF_NAMES + pluginConfig.getName()
-                + (null != pluginConfig.getRegisterName()
-                        ? LEFT_BRACKET_STRING + pluginConfig.getRegisterName() + RIGHT_BRACKET_STRING : "")
-                + SEPARATOR_OF_NAMES + action;
+        String serviceNameTemplate = "%s/%s/%s"; // packageName/configName/action
+        String configName = pluginConfig.getName();
+        if (StringUtils.isNoneBlank(pluginConfig.getRegisterName())) {
+            configName = configName + LEFT_BRACKET_STRING + pluginConfig.getRegisterName() + RIGHT_BRACKET_STRING;
+        }
+
+        return String.format(serviceNameTemplate, pluginPackage.getName(), configName, this.action);
+
+        // return pluginPackage.getName() + SEPARATOR_OF_NAMES +
+        // pluginConfig.getName()
+        // + (null != pluginConfig.getRegisterName()
+        // ? LEFT_BRACKET_STRING + pluginConfig.getRegisterName() +
+        // RIGHT_BRACKET_STRING : "")
+        // + SEPARATOR_OF_NAMES + action;
     }
 
     public List<PluginConfigInterfaceParameters> getInputParameters() {
