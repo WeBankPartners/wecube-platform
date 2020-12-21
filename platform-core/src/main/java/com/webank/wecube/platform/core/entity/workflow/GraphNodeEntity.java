@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+//core_ru_graph_node
 public class GraphNodeEntity {
     private static final String IDS_DELIMITER = ",";
 
