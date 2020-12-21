@@ -96,6 +96,26 @@ public class StandardEntityQueryExecutor implements EntityQueryExecutor {
 
         return null;
     }
+    
+    public Map<String, Object> executeCreate(EntityOperationContext ctx, EntityRouteDescription entityDef, List<EntityDataRecord> recordsToCreate){
+        StandardEntityOperationRestClient restClient = ctx.getStandardEntityOperationRestClient();
+        StandardEntityOperationResponseDto responseDto = restClient.create(entityDef, recordsToCreate);
+        
+        if (StandardEntityOperationResponseDto.STATUS_OK.equalsIgnoreCase(responseDto.getStatus())) {
+            List<Map<String, Object>> recordMapList = extractEntityDataFromResponse(responseDto.getData());
+            if(recordMapList == null || recordMapList.isEmpty()){
+                return null;
+            }
+            
+            return recordMapList.get(0);
+            
+        } else {
+            log.error("Error status met {} with message {}", responseDto.getStatus(), responseDto.getMessage());
+            String msg = String.format("Errors met while creating data from %s due to status %s.",
+                    entityDef.getPackageName(), responseDto.getStatus());
+            throw new EntityOperationException("3309", msg, entityDef.getPackageName(), responseDto.getStatus());
+        }
+    }
 
     public void executeUpdate(EntityOperationContext ctx, Object valueToUpdate) {
         List<EntityDataDelegate> entitiesToUpdate = executeQueryLeafEntity(ctx);
