@@ -19,7 +19,6 @@ import org.springframework.transaction.annotation.Transactional;
 import com.webank.wecube.platform.core.commons.AuthenticationContextHolder;
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
 import com.webank.wecube.platform.core.dto.plugin.FavoritesDto;
-import com.webank.wecube.platform.core.dto.user.RoleDto;
 import com.webank.wecube.platform.core.dto.workflow.ProcRoleRequestDto;
 import com.webank.wecube.platform.core.entity.plugin.Favorites;
 import com.webank.wecube.platform.core.entity.plugin.FavoritesRole;
@@ -40,8 +39,8 @@ public class RoleFavoritesServiceImpl implements RoleFavoritesService {
     @Autowired
     private FavoritesMapper favoritesMapper;
 
-    @Autowired
-    private UserManagementServiceImpl userManagementService;
+//    @Autowired
+//    private UserManagementServiceImpl userManagementService;
 
     /**
      * 
@@ -157,7 +156,7 @@ public class RoleFavoritesServiceImpl implements RoleFavoritesService {
             List<FavoritesRole> foundMgmtData = this.favoritesRoleMapper
                     .selectAllByFavoritesAndPermission(favoritesId, permission);
             if(foundMgmtData != null){
-                if(foundMgmtData.size() <= favoritesRoleRequestDto.getRoleIdList().size()){
+                if(foundMgmtData.size() <= favoritesRoleRequestDto.getRoleNames().size()){
                     String msg = "The process's management permission should have at least one role.";
                     log.info(String.format("The DELETE management roles operation was blocked, the process id is [%s].",
                             favoritesId));
@@ -167,8 +166,8 @@ public class RoleFavoritesServiceImpl implements RoleFavoritesService {
             
         }
 
-        for (String roleId : favoritesRoleRequestDto.getRoleIdList()) {
-            this.favoritesRoleMapper.deleteByfavoritesIdAndRoleIdAndPermission(favoritesId, roleId, permission);
+        for (String roleName : favoritesRoleRequestDto.getRoleNames()) {
+            this.favoritesRoleMapper.deleteByfavoritesIdAndRoleNameAndPermission(favoritesId, roleName, permission);
         }
     }
 
@@ -176,11 +175,11 @@ public class RoleFavoritesServiceImpl implements RoleFavoritesService {
     @Transactional(rollbackFor = Exception.class)
     public void updateFavoritesRoleBinding(String favoritesId, ProcRoleRequestDto favoritesRoleRequestDto) {
         String permissionStr = favoritesRoleRequestDto.getPermission();
-        List<String> roleIdList = favoritesRoleRequestDto.getRoleIdList();
+        List<String> roleNames = favoritesRoleRequestDto.getRoleNames();
 
         // check if user's roles has permission to manage this process
         checkPermission(favoritesId, FavoritesRole.MGMT);
-        batchSaveRoleFavorites(favoritesId, roleIdList, permissionStr);
+        batchSaveRoleFavorites(favoritesId, roleNames, permissionStr);
     }
 
     private void saveFavoritesRoleBinding(String collectId, FavoritesDto favoritesDto) throws WecubeCoreException {
@@ -202,32 +201,32 @@ public class RoleFavoritesServiceImpl implements RoleFavoritesService {
                 throw new WecubeCoreException("3260", errorMsg);
             }
 
-            List<String> roleIdList = permissionToRoleListEntry.getValue();
+            List<String> roleNameList = permissionToRoleListEntry.getValue();
 
             // check if roleIdList is NULL
-            if (roleIdList == null) {
+            if (roleNameList == null) {
                 errorMsg = String.format("The value of permission: [%s] should not be NULL", permissionStr);
                 log.error(errorMsg);
                 throw new WecubeCoreException("3262", errorMsg);
             }
             // when permission is MGMT and roleIdList is empty, then it is
             // invalid
-            if (FavoritesRole.MGMT.equals(permissionStr) && roleIdList.isEmpty()) {
+            if (FavoritesRole.MGMT.equals(permissionStr) && roleNameList.isEmpty()) {
                 errorMsg = "At least one role with MGMT role should be declared.";
                 log.error(errorMsg);
                 throw new WecubeCoreException("3263", errorMsg);
             }
-            batchSaveRoleFavorites(collectId, roleIdList, permissionStr);
+            batchSaveRoleFavorites(collectId, roleNameList, permissionStr);
         }
     }
 
-    public void batchSaveRoleFavorites(String favoritesId, List<String> roleIdList, String permissionStr) {
-        for (String roleId : roleIdList) {
-            RoleDto roleDto = userManagementService.retrieveRoleById(roleId);
+    public void batchSaveRoleFavorites(String favoritesId, List<String> roleNameList, String permissionStr) {
+        for (String roleName : roleNameList) {
+            //RoleDto roleDto = userManagementService.retrieveRoleById(roleId);
             // if no stored data found, then save new data in to the database
             // get roleDto from auth server
-            FavoritesRole favoritesRoleEntity = buildFavoritesRole(LocalIdGenerator.generateId(), favoritesId, roleId,
-                    permissionStr, roleDto.getName());
+            FavoritesRole favoritesRoleEntity = buildFavoritesRole(LocalIdGenerator.generateId(), favoritesId, null,
+                    permissionStr, roleName);
             this.favoritesRoleMapper.insert(favoritesRoleEntity);
         }
     }
@@ -243,12 +242,12 @@ public class RoleFavoritesServiceImpl implements RoleFavoritesService {
         return result;
     }
 
-    public void checkPermission(String favoritesId, String permissionEnum) throws WecubeCoreException {
+    public void checkPermission(String favoritesId, String permission) throws WecubeCoreException {
         List<String> currentUserRoleNameList = new ArrayList<>(
                 Objects.requireNonNull(AuthenticationContextHolder.getCurrentUserRoles()));
         boolean ifUserHasSuchPermission = false;
         List<FavoritesRole> foundProcRoleBinding = this.favoritesRoleMapper
-                .selectAllByFavoritesAndPermission(favoritesId, permissionEnum);
+                .selectAllByFavoritesAndPermission(favoritesId, permission);
 
         List<String> roleNameListWithPermission = new ArrayList<>();
         if (foundProcRoleBinding != null) {
@@ -256,8 +255,8 @@ public class RoleFavoritesServiceImpl implements RoleFavoritesService {
                 roleNameListWithPermission.add(fr.getRoleName());
             }
         }
-        for (String roleId : currentUserRoleNameList) {
-            if (roleNameListWithPermission.contains(roleId)) {
+        for (String roleName : currentUserRoleNameList) {
+            if (roleNameListWithPermission.contains(roleName)) {
                 ifUserHasSuchPermission = true;
                 break;
             }
@@ -265,8 +264,8 @@ public class RoleFavoritesServiceImpl implements RoleFavoritesService {
 
         if (!ifUserHasSuchPermission) {
             String msg = String.format("The user doesn't have favorites: [%s]'s [%s] permission", favoritesId,
-                    permissionEnum.toString());
-            throw new WecubeCoreException("3265", msg, favoritesId, permissionEnum.toString());
+                    permission);
+            throw new WecubeCoreException("3265", msg, favoritesId, permission);
         }
     }
 

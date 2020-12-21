@@ -217,17 +217,17 @@ public class WorkflowProcDefService extends AbstractWorkflowProcDefService {
         return result;
     }
 
-    public List<ProcDefInfoDto> getProcessDefinitions(boolean includeDraftProcDef, String permissionStr) {
+    public List<ProcDefInfoDto> getProcessDefinitions(boolean includeDraftProcDef, String permission) {
         List<String> currentUserRoleNameList = new ArrayList<>(
                 Objects.requireNonNull(AuthenticationContextHolder.getCurrentUserRoles()));
 
         // check if there is permission specified
         List<ProcRoleDto> procRoleDtoList;
-        if (!StringUtils.isEmpty(permissionStr)) {
-            procRoleDtoList = processRoleService.retrieveProcessByRoleIdListAndPermission(currentUserRoleNameList,
-                    permissionStr);
+        if (!StringUtils.isBlank(permission)) {
+            procRoleDtoList = processRoleService.retrieveProcessByRolesAndPermission(currentUserRoleNameList,
+                    permission);
         } else {
-            procRoleDtoList = processRoleService.retrieveAllProcessByRoleIdList(currentUserRoleNameList);
+            procRoleDtoList = processRoleService.retrieveAllProcessByRoles(currentUserRoleNameList);
         }
         Set<ProcRoleDto> procRoleDtoSet = new HashSet<>(procRoleDtoList);
 
