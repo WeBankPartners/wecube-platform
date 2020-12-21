@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.client.RestTemplate;
@@ -33,21 +34,31 @@ public class StandardEntityOperationRestClient {
     public StandardEntityOperationResponseDto create(EntityRouteDescription entityDef,
             List<EntityDataRecord> recordsToCreate) {
         URI requestUri = buildStandardOperationUri(entityDef, getCreateUriTemplate());
-        
-        //TODO
-        
-        
-        return null;
+
+        List<Map<String, Object>> requestBody = convertToMapList(recordsToCreate);
+
+        long timeMilliSeconds = System.currentTimeMillis();
+        log.info("SEND CREATE post [{}] url={}, request={}", timeMilliSeconds, requestUri.toString(),
+                toJson(requestBody));
+        StandardEntityOperationResponseDto result = getRestTemplate().postForObject(requestUri, requestBody,
+                StandardEntityOperationResponseDto.class);
+        log.debug("RECEIVE CREATE post [{}] url={},result={}", timeMilliSeconds, requestUri.toString(), result);
+        return result;
     }
-    
+
     public StandardEntityOperationResponseDto delete(EntityRouteDescription entityDef,
             List<EntityDataRecord> recordsToDelete) {
         URI requestUri = buildStandardOperationUri(entityDef, getDeleteUriTemplate());
-        
-        //TODO
-        
-        
-        return null;
+
+        List<Map<String, Object>> requestBody = convertToMapList(recordsToDelete);
+
+        long timeMilliSeconds = System.currentTimeMillis();
+        log.info("SEND DELETE post [{}] url={}, request={}", timeMilliSeconds, requestUri.toString(),
+                toJson(requestBody));
+        StandardEntityOperationResponseDto result = getRestTemplate().postForObject(requestUri, requestBody,
+                StandardEntityOperationResponseDto.class);
+        log.debug("RECEIVE DELETE post [{}] url={},result={}", timeMilliSeconds, requestUri.toString(), result);
+        return result;
     }
 
     public StandardEntityOperationResponseDto query(EntityRouteDescription entityDef,
@@ -108,16 +119,15 @@ public class StandardEntityOperationRestClient {
     public RestTemplate getRestTemplate() {
         return restTemplate;
     }
-    
-    protected URI buildStandardOperationUri(EntityRouteDescription entityDef,String operationUriTemplate){
+
+    protected URI buildStandardOperationUri(EntityRouteDescription entityDef, String operationUriTemplate) {
         String baseUri = buildBaseRequestUri(entityDef);
         String requestUriStr = buildRequestUri(baseUri, operationUriTemplate);
         URI requestUri = getRestTemplate().getUriTemplateHandler().expand(requestUriStr, entityDef.getPackageName(),
                 entityDef.getEntityName());
-        
+
         return requestUri;
     }
-    
 
     private String buildRequestUri(String baseUri, String path) {
         if (!path.startsWith("/")) {
@@ -137,14 +147,16 @@ public class StandardEntityOperationRestClient {
         return builder.toString();
     }
 
-    private List<Map<String, Object>> convertToMapList(List<EntityDataRecord> recordsToUpdate) {
-        if (recordsToUpdate == null) {
+    private List<Map<String, Object>> convertToMapList(List<EntityDataRecord> records) {
+        if (records == null) {
             return null;
         }
         List<Map<String, Object>> mapList = new ArrayList<>();
-        for (EntityDataRecord record : recordsToUpdate) {
+        for (EntityDataRecord record : records) {
             Map<String, Object> paramMap = new HashMap<>();
-            paramMap.put(EntityDataDelegate.UNIQUE_IDENTIFIER, record.getId());
+            if (StringUtils.isNoneBlank(record.getId())) {
+                paramMap.put(EntityDataDelegate.UNIQUE_IDENTIFIER, record.getId());
+            }
             if (record.getAttrs() != null) {
                 for (EntityDataAttr attr : record.getAttrs()) {
                     paramMap.put(attr.getAttrName(), attr.getAttrValue());
@@ -174,6 +186,10 @@ public class StandardEntityOperationRestClient {
 
     public String getDeleteUriTemplate() {
         return deleteUriTemplate;
+    }
+
+    public void setRestTemplate(RestTemplate restTemplate) {
+        this.restTemplate = restTemplate;
     }
 
 }

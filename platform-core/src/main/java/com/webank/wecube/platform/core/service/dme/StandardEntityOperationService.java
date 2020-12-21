@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -95,6 +96,46 @@ public class StandardEntityOperationService {
     public void update(EntityOperationRootCondition condition, Object attrValueToUpdate, Map<Object, Object> externalCacheMap) {
         update(condition, attrValueToUpdate, jwtSsoRestTemplate, externalCacheMap);
         return;
+    }
+    
+    public Map<String,Object> create(String packageName,String entityName, Map<String, Object> objDataMap){
+        if(objDataMap == null || objDataMap.isEmpty()){
+            return null;
+        }
+        
+        if(StringUtils.isBlank(packageName) || StringUtils.isBlank(entityName)){
+            throw new IllegalArgumentException("package name and entity name must provide.");
+        }
+        
+        EntityRouteDescription entityDef = entityDataRouteFactory.deduceEntityDescription(packageName, entityName);
+        
+        List<EntityDataRecord> recordsToCreate = new ArrayList<>();
+        EntityDataRecord newEntityDataRecord = new EntityDataRecord();
+        for(Map.Entry<String, Object> attrEntry : objDataMap.entrySet()){
+            EntityDataAttr attr = new EntityDataAttr();
+            attr.setAttrName(attrEntry.getKey());
+            attr.setAttrValue(attrEntry.getValue());
+            
+            newEntityDataRecord.addAttrs(attr);
+        }
+        
+        recordsToCreate.add(newEntityDataRecord);
+        
+        EntityOperationContext ctx = new EntityOperationContext();
+        ctx.setEntityQueryExprNodeInfos(null);
+        ctx.setOriginalEntityLinkExpression(null);
+        ctx.setOriginalEntityData(null);
+        ctx.setStandardEntityOperationRestClient(new StandardEntityOperationRestClient(this.getRestTemplate()));
+        ctx.setHeadEntityQueryLinkNode(null);
+        ctx.setEntityDataRouteFactory(entityDataRouteFactory);
+        
+        Map<String, Object> createdDataMap = standardEntityQueryExcutor.executeCreate(ctx, entityDef, recordsToCreate);
+        
+        return createdDataMap;
+    }
+    
+    public boolean delete(String packageName, String entityName, String entityDataId){
+        return false;
     }
 
     public EntityTreeNodesOverview generateEntityLinkOverview(EntityOperationRootCondition condition, Map<Object, Object> externalCacheMap) {
