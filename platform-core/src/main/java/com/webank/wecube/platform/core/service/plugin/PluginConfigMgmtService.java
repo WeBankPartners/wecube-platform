@@ -329,15 +329,15 @@ public class PluginConfigMgmtService extends AbstractPluginMgmtService {
             PluginConfigRoleRequestDto pluginConfigRoleRequestDto) throws WecubeCoreException {
 
         String permission = pluginConfigRoleRequestDto.getPermission();
-        List<String> inputRoleIds = pluginConfigRoleRequestDto.getRoleIds();
+        List<String> inputRoleNames = pluginConfigRoleRequestDto.getRoleIds();
 
         validateCurrentUserPermission(pluginConfigId, PluginConfigRoles.PERM_TYPE_MGMT);
 
-        if (inputRoleIds == null || inputRoleIds.isEmpty()) {
+        if (inputRoleNames == null || inputRoleNames.isEmpty()) {
             return;
         }
 
-        deletePluginConfigRoleBindings(pluginConfigId, permission, inputRoleIds);
+        deletePluginConfigRoleBindings(pluginConfigId, permission, inputRoleNames);
     }
 
     /**
@@ -351,24 +351,24 @@ public class PluginConfigMgmtService extends AbstractPluginMgmtService {
             log.debug("start to update plugin config role binding:{},{}", pluginConfigId, pluginConfigRoleRequestDto);
         }
         String permission = pluginConfigRoleRequestDto.getPermission();
-        List<String> inputRoleIds = pluginConfigRoleRequestDto.getRoleIds();
+        List<String> inputRoleNames = pluginConfigRoleRequestDto.getRoleIds();
         validateCurrentUserPermission(pluginConfigId, PluginConfigRoles.PERM_TYPE_MGMT);
 
-        if (inputRoleIds == null || inputRoleIds.isEmpty()) {
+        if (inputRoleNames == null || inputRoleNames.isEmpty()) {
             log.info("input role IDs is empty");
             return;
         }
-        List<String> existRoleIds = getExistRoleIdsOfPluginConfigAndPermission(pluginConfigId, permission);
-        List<String> roleIdsToAdd = new ArrayList<String>();
-        for (String roleId : inputRoleIds) {
-            if (existRoleIds.contains(roleId)) {
+        List<String> existRoleNames = getExistRoleNamesOfPluginConfigAndPermission(pluginConfigId, permission);
+        List<String> roleNamesToAdd = new ArrayList<String>();
+        for (String roleName : inputRoleNames) {
+            if (existRoleNames.contains(roleName)) {
                 continue;
             }
 
-            roleIdsToAdd.add(roleId);
+            roleNamesToAdd.add(roleName);
         }
 
-        addPluginConfigRoleBindings(pluginConfigId, permission, roleIdsToAdd);
+        addPluginConfigRoleBindings(pluginConfigId, permission, roleNamesToAdd);
     }
 
     /**
@@ -740,7 +740,7 @@ public class PluginConfigMgmtService extends AbstractPluginMgmtService {
         intfEntity.setHttpMethod(intfDto.getHttpMethod());
         intfEntity.setFilterRule(intfDto.getFilterRule());
 
-        // TODO type
+        //  type ?
         intfEntity.setServiceName(intfEntity.generateServiceName(pluginPackage, pluginConfig));
         intfEntity.setServiceDisplayName(intfEntity.generateServiceName(pluginPackage, pluginConfig));
         intfEntity.setIsAsyncProcessing(intfDto.getIsAsyncProcessing());
@@ -952,7 +952,7 @@ public class PluginConfigMgmtService extends AbstractPluginMgmtService {
         }
 
         for (String permission : permissionToRole.keySet()) {
-            List<String> existRoleIds = getExistRoleIdsOfPluginConfigAndPermission(pluginConfigId, permission);
+            List<String> existRoleIds = getExistRoleNamesOfPluginConfigAndPermission(pluginConfigId, permission);
             List<String> inputRoleIds = permissionToRole.get(permission);
 
             List<String> roleIdsToAdd = CollectionUtils.listMinus(inputRoleIds, existRoleIds);
@@ -966,24 +966,24 @@ public class PluginConfigMgmtService extends AbstractPluginMgmtService {
         return permissionToRole;
     }
 
-    private List<String> getExistRoleIdsOfPluginConfigAndPermission(String pluginConfigId, String permission) {
+    private List<String> getExistRoleNamesOfPluginConfigAndPermission(String pluginConfigId, String permission) {
         List<String> existRoleIds = new ArrayList<String>();
         List<PluginConfigRoles> entities = this.pluginConfigRolesMapper.selectAllByPluginConfigAndPerm(pluginConfigId,
                 permission);
         for (PluginConfigRoles e : entities) {
-            existRoleIds.add(e.getRoleId());
+            existRoleIds.add(e.getRoleName());
         }
 
         return existRoleIds;
     }
 
-    private void addPluginConfigRoleBindings(String pluginConfigId, String permission, List<String> roleIdsToAdd) {
+    private void addPluginConfigRoleBindings(String pluginConfigId, String permission, List<String> roleNamesToAdd) {
         if (log.isDebugEnabled()) {
-            log.debug("roles to add for {} {}:{}", pluginConfigId, permission, roleIdsToAdd);
+            log.debug("roles to add for {} {}:{}", pluginConfigId, permission, roleNamesToAdd);
         }
 
-        for (String roleId : roleIdsToAdd) {
-            RoleDto roleDto = userManagementService.retrieveRoleById(roleId);
+        for (String roleName : roleNamesToAdd) {
+//            RoleDto roleDto = userManagementService.retrieveRoleById(roleId);
             PluginConfigRoles pluginAuthEntity = new PluginConfigRoles();
             pluginAuthEntity.setId(LocalIdGenerator.uuid());
             pluginAuthEntity.setIsActive(true);
@@ -991,22 +991,22 @@ public class PluginConfigMgmtService extends AbstractPluginMgmtService {
             pluginAuthEntity.setCreatedTime(new Date());
             pluginAuthEntity.setPermType(permission);
             pluginAuthEntity.setPluginCfgId(pluginConfigId);
-            pluginAuthEntity.setRoleId(roleId);
-            pluginAuthEntity.setRoleName(roleDto.getName());
+            pluginAuthEntity.setRoleId(null);
+            pluginAuthEntity.setRoleName(roleName);
             pluginConfigRolesMapper.insert(pluginAuthEntity);
         }
 
     }
 
     private void deletePluginConfigRoleBindings(String pluginConfigId, String permission,
-            List<String> roleIdsToRemove) {
+            List<String> roleNamesToRemove) {
         if (log.isDebugEnabled()) {
-            log.debug("roles to remove for {} {}:{}", pluginConfigId, permission, roleIdsToRemove);
+            log.debug("roles to remove for {} {}:{}", pluginConfigId, permission, roleNamesToRemove);
         }
         List<PluginConfigRoles> entities = this.pluginConfigRolesMapper.selectAllByPluginConfigAndPerm(pluginConfigId,
                 permission);
-        for (String roleId : roleIdsToRemove) {
-            PluginConfigRoles entity = pickoutPluginAuthEntityByRoleId(entities, roleId);
+        for (String roleName : roleNamesToRemove) {
+            PluginConfigRoles entity = pickoutPluginAuthEntityByRoleName(entities, roleName);
             if (entity != null) {
                 this.pluginConfigRolesMapper.deleteByPrimaryKey(entity.getId());
             }
@@ -1014,9 +1014,9 @@ public class PluginConfigMgmtService extends AbstractPluginMgmtService {
 
     }
 
-    private PluginConfigRoles pickoutPluginAuthEntityByRoleId(List<PluginConfigRoles> entities, String roleId) {
+    private PluginConfigRoles pickoutPluginAuthEntityByRoleName(List<PluginConfigRoles> entities, String roleName) {
         for (PluginConfigRoles entity : entities) {
-            if (roleId.equals(entity.getRoleId())) {
+            if (roleName.equals(entity.getRoleName())) {
                 return entity;
             }
         }
