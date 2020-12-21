@@ -193,15 +193,15 @@ public class WorkflowProcDefService extends AbstractWorkflowProcDefService {
             return nodeEntity.getNodeName();
         }
 
-        if ("startEvent".equals(nodeEntity.getNodeType())) {
+        if (NODE_START_EVENT.equals(nodeEntity.getNodeType())) {
             return "S";
         }
 
-        if ("endEvent".equals(nodeEntity.getNodeType())) {
+        if (NODE_END_EVENT.equals(nodeEntity.getNodeType())) {
             return "E";
         }
 
-        if ("exclusiveGateway".equals(nodeEntity.getNodeType())) {
+        if (NODE_EXCLUSIVE_GATEWAY.equals(nodeEntity.getNodeType())) {
             return "X";
         }
 
@@ -384,7 +384,7 @@ public class WorkflowProcDefService extends AbstractWorkflowProcDefService {
                 continue;
             }
 
-            if ("startEvent".equals(procFlowNode.getNodeType())) {
+            if (NODE_START_EVENT.equals(procFlowNode.getNodeType())) {
                 startEventNodeDto = nodeDto;
             }
 
@@ -847,7 +847,7 @@ public class WorkflowProcDefService extends AbstractWorkflowProcDefService {
             nodeEntity.setProcDefKernelId(procDef.getId());
             nodeEntity.setProcDefKey(procDef.getKey());
             nodeEntity.setProcDefVer(procDef.getVersion());
-            if ("subProcess".equals(pfn.getNodeType()) || "serviceTask".equals(pfn.getNodeType())) {
+            if (NODE_SUB_PROCESS.equals(pfn.getNodeType()) || "serviceTask".equals(pfn.getNodeType())) {
                 nodeEntity.setOrderedNo(String.valueOf(orderedNo.getAndIncrement()));
             }
             nodeEntity.setPrevNodeIds(marshalNodeIds(pfn.getPreviousFlowNodes()));
