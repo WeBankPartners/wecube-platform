@@ -359,15 +359,16 @@
         #{procInstKey,jdbcType=VARCHAR}
         where id = #{id,jdbcType=BIGINT}
     </update>
-    
+
     <select id="selectAllByEventSeqNo" parameterType="java.lang.String"
         resultMap="BaseResultMap">
         select
         <include refid="Base_Column_List" />
         from core_operation_event
-        where event_seq_no = #{eventSeqNo,jdbcType=VARCHAR}
+        where event_seq_no =
+        #{eventSeqNo,jdbcType=VARCHAR}
     </select>
-    
+
     <select id="selectAllByStatus" parameterType="java.lang.String"
         resultMap="BaseResultMap">
         select
@@ -375,8 +376,9 @@
         from core_operation_event
         where status =
         #{status,jdbcType=VARCHAR}
+        limit 3000
     </select>
-    
+
     <select id="selectAllByProcInstKey" parameterType="java.lang.String"
         resultMap="BaseResultMap">
         select
