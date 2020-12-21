@@ -323,7 +323,7 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
             nd.setId(n.getId());
             nd.setNodeDefId(n.getNodeDefId());
             nd.setNodeId(n.getNodeId());
-            nd.setNodeName(reduceTaskNodeName(n));
+            nd.setNodeName(deduceTaskNodeName(n));
             nd.setNodeType(n.getNodeType());
             nd.setOrderedNo(n.getOrderedNo());
 
@@ -724,7 +724,7 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
                 request.getAct());
     }
 
-    private String reduceTaskNodeName(TaskNodeInstInfoEntity nodeInstEntity) {
+    private String deduceTaskNodeName(TaskNodeInstInfoEntity nodeInstEntity) {
         if (!StringUtils.isBlank(nodeInstEntity.getNodeName())) {
             return nodeInstEntity.getNodeName();
         }

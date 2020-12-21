@@ -23,6 +23,8 @@ public abstract class AbstractWorkflowService {
     
     public static final String IS_SENSITIVE_ATTR = "Y";
     
+    public static final String NODE_SUB_PROCESS = "subProcess";
+    
     public static final String NODE_START_EVENT = "startEvent";
     public static final String NODE_END_EVENT = "endEvent";
     public static final String NODE_EXCLUSIVE_GATEWAY = "exclusiveGateway";
