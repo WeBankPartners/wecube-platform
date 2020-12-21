@@ -34,7 +34,7 @@ public class WorkflowProcessInstanceController {
 
     @PostMapping("/process/instances")
     public CommonResponseDto createProcessInstance(@RequestBody StartProcInstRequestDto requestDto) {
-        ProcInstInfoDto result = procInstService.createProcessInstanceAndRole(requestDto);
+        ProcInstInfoDto result = procInstService.createProcessInstanceWithPermissionValidation(requestDto);
         return CommonResponseDto.okayWithData(result);
     }
 
