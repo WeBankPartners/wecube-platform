@@ -944,11 +944,11 @@ public class PluginConfigMgmtService extends AbstractPluginMgmtService {
         }
 
         for (String permission : permissionToRole.keySet()) {
-            List<String> roleIds = permissionToRole.get(permission);
-            if (roleIds != null) {
+            List<String> roleNames = permissionToRole.get(permission);
+            if (roleNames != null) {
                 List<String> addedRoleIds = new ArrayList<String>();
-                for (String roleId : roleIds) {
-                    RoleDto roleDto = userManagementService.retrieveRoleById(roleId);
+                for (String roleName : roleNames) {
+//                    RoleDto roleDto = userManagementService.retrieveRoleById(roleId);
                     PluginConfigRoles pluginAuthEntity = new PluginConfigRoles();
                     pluginAuthEntity.setId(LocalIdGenerator.uuid());
                     pluginAuthEntity.setIsActive(true);
@@ -956,11 +956,11 @@ public class PluginConfigMgmtService extends AbstractPluginMgmtService {
                     pluginAuthEntity.setCreatedTime(new Date());
                     pluginAuthEntity.setPermType(permission);
                     pluginAuthEntity.setPluginCfgId(pluginConfigId);
-                    pluginAuthEntity.setRoleId(roleId);
-                    pluginAuthEntity.setRoleName(roleDto.getName());
+                    pluginAuthEntity.setRoleId(roleName);
+                    pluginAuthEntity.setRoleName(roleName);
                     pluginConfigRolesMapper.insert(pluginAuthEntity);
 
-                    addedRoleIds.add(roleId);
+                    addedRoleIds.add(roleName);
                 }
 
                 log.info("plugin config roles bound:{}, {}, {}", pluginConfigId, permission, addedRoleIds.size());
@@ -1018,7 +1018,7 @@ public class PluginConfigMgmtService extends AbstractPluginMgmtService {
             pluginAuthEntity.setCreatedTime(new Date());
             pluginAuthEntity.setPermType(permission);
             pluginAuthEntity.setPluginCfgId(pluginConfigId);
-            pluginAuthEntity.setRoleId(null);
+            pluginAuthEntity.setRoleId(roleName);
             pluginAuthEntity.setRoleName(roleName);
             pluginConfigRolesMapper.insert(pluginAuthEntity);
         }
