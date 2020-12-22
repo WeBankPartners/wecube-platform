@@ -114,11 +114,11 @@ public class RoleFavoritesServiceImpl implements RoleFavoritesService {
 
                 for (FavoritesRole fr : favoritesRolesEntities) {
                     if (FavoritesRole.MGMT.equals(fr.getPermission())) {
-                        mgmtRoleNames.add(fr.getRoleId());
+                        mgmtRoleNames.add(fr.getRoleName());
                     }
 
                     if (FavoritesRole.USE.equals(fr.getPermission())) {
-                        useRoleNames.add(fr.getRoleId());
+                        useRoleNames.add(fr.getRoleName());
                     }
                 }
                 permissionToRole.put(FavoritesRole.MGMT, mgmtRoleNames);
