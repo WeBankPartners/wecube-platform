@@ -53,7 +53,7 @@ public class ProcessRoleServiceImpl implements ProcessRoleService {
         for(ProcRoleBindingEntity roleBinding  : allRoleBindingsByProc) {
             if(ProcRoleBindingEntity.USE.equalsIgnoreCase(roleBinding.getPermission())) {
                 result.getUseRoleList().add(roleBinding.getRoleName());
-            }else if(ProcRoleBindingEntity.MGMT.equalsIgnoreCase(roleBinding.getRoleName())) {
+            }else if(ProcRoleBindingEntity.MGMT.equalsIgnoreCase(roleBinding.getPermission())) {
                 result.getMgmtRoleList().add(roleBinding.getRoleName());
             }
         }
