@@ -146,40 +146,79 @@ public class RoleFavoritesServiceImpl implements RoleFavoritesService {
 
     @Transactional(rollbackFor = Exception.class)
     public void deleteFavoritesRoleBinding(String favoritesId, ProcRoleRequestDto favoritesRoleRequestDto) {
-        String permission = favoritesRoleRequestDto.getPermission();
-
-        // check if the current user has the role to manage such process
+        
+        
+        if(favoritesRoleRequestDto == null ) {
+            throw new WecubeCoreException("There is not role setting provided.");
+        }
+        Map<String,List<String>> permissionToRole = favoritesRoleRequestDto.getPermissionToRole();
+        if(permissionToRole == null || permissionToRole.isEmpty()) {
+            throw new WecubeCoreException("There is not role setting provided.");
+        }
+        
         checkPermission(favoritesId, FavoritesRole.MGMT);
-
-        // assure corresponding data has at least one row of MGMT permission
-        if (FavoritesRole.MGMT.equals(permission)) {
-            List<FavoritesRole> foundMgmtData = this.favoritesRoleMapper
-                    .selectAllByFavoritesAndPermission(favoritesId, permission);
-            if(foundMgmtData != null){
-                if(foundMgmtData.size() <= favoritesRoleRequestDto.getRoleNames().size()){
-                    String msg = "The process's management permission should have at least one role.";
-                    log.info(String.format("The DELETE management roles operation was blocked, the process id is [%s].",
-                            favoritesId));
-                    throw new WecubeCoreException("3258", msg);
-                }
+        
+        for(Map.Entry<String, List<String>> entry :permissionToRole.entrySet()) {
+            String permission = entry.getKey();
+            List<String> roleNames = entry.getValue();
+            
+            if(roleNames == null || roleNames.isEmpty()) {
+                continue;
             }
             
+            if (FavoritesRole.MGMT.equals(permission)) {
+                List<FavoritesRole> foundMgmtData = this.favoritesRoleMapper
+                        .selectAllByFavoritesAndPermission(favoritesId, permission);
+                if(foundMgmtData != null){
+                    if(foundMgmtData.size() <= roleNames.size()){
+                        String msg = "The process's management permission should have at least one role.";
+                        log.info(String.format("The DELETE management roles operation was blocked, the process id is [%s].",
+                                favoritesId));
+                        throw new WecubeCoreException("3258", msg);
+                    }
+                }
+                
+            }
+
+            for (String roleName : roleNames) {
+                this.favoritesRoleMapper.deleteByfavoritesIdAndRoleNameAndPermission(favoritesId, roleName, permission);
+            }
         }
 
-        for (String roleName : favoritesRoleRequestDto.getRoleNames()) {
-            this.favoritesRoleMapper.deleteByfavoritesIdAndRoleNameAndPermission(favoritesId, roleName, permission);
-        }
+        // check if the current user has the role to manage such process
+
+        // assure corresponding data has at least one row of MGMT permission
+        
     }
 
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void updateFavoritesRoleBinding(String favoritesId, ProcRoleRequestDto favoritesRoleRequestDto) {
-        String permissionStr = favoritesRoleRequestDto.getPermission();
-        List<String> roleNames = favoritesRoleRequestDto.getRoleNames();
-
-        // check if user's roles has permission to manage this process
+        
+        
+        if(favoritesRoleRequestDto == null ) {
+            throw new WecubeCoreException("There is not role setting provided.");
+        }
+        Map<String,List<String>> permissionToRole = favoritesRoleRequestDto.getPermissionToRole();
+        if(permissionToRole == null || permissionToRole.isEmpty()) {
+            throw new WecubeCoreException("There is not role setting provided.");
+        }
+        
         checkPermission(favoritesId, FavoritesRole.MGMT);
-        batchSaveRoleFavorites(favoritesId, roleNames, permissionStr);
+        
+        for(Map.Entry<String, List<String>> entry :permissionToRole.entrySet()) {
+            String permission = entry.getKey();
+            List<String> roleNames = entry.getValue();
+            
+            if(roleNames == null || roleNames.isEmpty()) {
+                continue;
+            }
+            
+            // check if user's roles has permission to manage this process
+            batchSaveRoleFavorites(favoritesId, roleNames, permission);
+        }
+        
+        
     }
 
     private void saveFavoritesRoleBinding(String collectId, FavoritesDto favoritesDto) throws WecubeCoreException {
