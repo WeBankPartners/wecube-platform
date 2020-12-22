@@ -327,17 +327,28 @@ public class PluginConfigMgmtService extends AbstractPluginMgmtService {
      */
     public void deletePluginConfigRoleBinding(String pluginConfigId,
             PluginConfigRoleRequestDto pluginConfigRoleRequestDto) throws WecubeCoreException {
-
-        String permission = pluginConfigRoleRequestDto.getPermission();
-        List<String> inputRoleNames = pluginConfigRoleRequestDto.getRoleIds();
-
-        validateCurrentUserPermission(pluginConfigId, PluginConfigRoles.PERM_TYPE_MGMT);
-
-        if (inputRoleNames == null || inputRoleNames.isEmpty()) {
-            return;
+        
+        if(pluginConfigRoleRequestDto == null ) {
+            throw new WecubeCoreException("There is not role setting provided.");
         }
+        Map<String,List<String>> permissionToRole = pluginConfigRoleRequestDto.getPermissionToRole();
+        if(permissionToRole == null || permissionToRole.isEmpty()) {
+            throw new WecubeCoreException("There is not role setting provided.");
+        }
+        validateCurrentUserPermission(pluginConfigId, PluginConfigRoles.PERM_TYPE_MGMT);
+        
+        for(Map.Entry<String, List<String>> entry :permissionToRole.entrySet()) {
+            String permission = entry.getKey();
+            List<String> roleNames = entry.getValue();
+            
+            if(roleNames == null || roleNames.isEmpty()) {
+                continue;
+            }
+            
+            deletePluginConfigRoleBindings(pluginConfigId, permission, roleNames);
+        }
+        
 
-        deletePluginConfigRoleBindings(pluginConfigId, permission, inputRoleNames);
     }
 
     /**
@@ -350,25 +361,41 @@ public class PluginConfigMgmtService extends AbstractPluginMgmtService {
         if (log.isDebugEnabled()) {
             log.debug("start to update plugin config role binding:{},{}", pluginConfigId, pluginConfigRoleRequestDto);
         }
-        String permission = pluginConfigRoleRequestDto.getPermission();
-        List<String> inputRoleNames = pluginConfigRoleRequestDto.getRoleIds();
-        validateCurrentUserPermission(pluginConfigId, PluginConfigRoles.PERM_TYPE_MGMT);
-
-        if (inputRoleNames == null || inputRoleNames.isEmpty()) {
-            log.info("input role IDs is empty");
-            return;
+        
+        if(pluginConfigRoleRequestDto == null ) {
+            throw new WecubeCoreException("There is not role setting provided.");
         }
-        List<String> existRoleNames = getExistRoleNamesOfPluginConfigAndPermission(pluginConfigId, permission);
-        List<String> roleNamesToAdd = new ArrayList<String>();
-        for (String roleName : inputRoleNames) {
-            if (existRoleNames.contains(roleName)) {
+        Map<String,List<String>> permissionToRole = pluginConfigRoleRequestDto.getPermissionToRole();
+        if(permissionToRole == null || permissionToRole.isEmpty()) {
+            throw new WecubeCoreException("There is not role setting provided.");
+        }
+        validateCurrentUserPermission(pluginConfigId, PluginConfigRoles.PERM_TYPE_MGMT);
+        
+        for(Map.Entry<String, List<String>> entry :permissionToRole.entrySet()) {
+            String permission = entry.getKey();
+            List<String> roleNames = entry.getValue();
+            
+            if(roleNames == null || roleNames.isEmpty()) {
                 continue;
             }
+            
+            
+            List<String> existRoleNames = getExistRoleNamesOfPluginConfigAndPermission(pluginConfigId, permission);
+            List<String> roleNamesToAdd = new ArrayList<String>();
+            for (String roleName : roleNames) {
+                if (existRoleNames.contains(roleName)) {
+                    continue;
+                }
 
-            roleNamesToAdd.add(roleName);
+                roleNamesToAdd.add(roleName);
+            }
+
+            addPluginConfigRoleBindings(pluginConfigId, permission, roleNamesToAdd);
+            
         }
+        
 
-        addPluginConfigRoleBindings(pluginConfigId, permission, roleNamesToAdd);
+        
     }
 
     /**
