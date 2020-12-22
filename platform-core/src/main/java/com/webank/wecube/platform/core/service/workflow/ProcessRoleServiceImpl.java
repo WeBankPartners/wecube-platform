@@ -2,6 +2,7 @@ package com.webank.wecube.platform.core.service.workflow;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
@@ -94,47 +95,99 @@ public class ProcessRoleServiceImpl implements ProcessRoleService {
 
     @Override
     public void createProcRoleBinding(String procId, ProcRoleRequestDto procRoleRequestDto) throws WecubeCoreException {
-        String permissionEnum = procRoleRequestDto.getPermission();
-        List<String> roleNameList = procRoleRequestDto.getRoleNames();
+        if(procRoleRequestDto == null ) {
+            throw new WecubeCoreException("There is not process role setting provided.");
+        }
+        Map<String,List<String>> permissionToRole = procRoleRequestDto.getPermissionToRole();
+        if(permissionToRole == null || permissionToRole.isEmpty()) {
+            throw new WecubeCoreException("There is not process role setting provided.");
+        }
+        
+        for(Map.Entry<String, List<String>> entry :permissionToRole.entrySet()) {
+            String permission = entry.getKey();
+            List<String> roleNames = entry.getValue();
+            
+            if(roleNames == null || roleNames.isEmpty()) {
+                continue;
+            }
 
-        batchSaveData(procId, roleNameList, permissionEnum);
+            batchSaveData(procId, roleNames, permission);
+        }
+        
+        
     }
 
     @Override
     public void updateProcRoleBinding(String procId, ProcRoleRequestDto procRoleRequestDto) throws WecubeCoreException {
-        String permissionEnum = procRoleRequestDto.getPermission();
-        List<String> roleNameList = procRoleRequestDto.getRoleNames();
-
+        
+        if(procRoleRequestDto == null ) {
+            throw new WecubeCoreException("There is not process role setting provided.");
+        }
+        Map<String,List<String>> permissionToRole = procRoleRequestDto.getPermissionToRole();
+        if(permissionToRole == null || permissionToRole.isEmpty()) {
+            throw new WecubeCoreException("There is not process role setting provided.");
+        }
+        
         // check if user's roles has permission to manage this process
         checkPermission(procId, ProcRoleBindingEntity.MGMT);
-        batchSaveData(procId, roleNameList, permissionEnum);
+        
+        for(Map.Entry<String, List<String>> entry :permissionToRole.entrySet()) {
+            String permission = entry.getKey();
+            List<String> roleNames = entry.getValue();
+            
+            if(roleNames == null || roleNames.isEmpty()) {
+                continue;
+            }
+
+            batchSaveData(procId, roleNames, permission);
+        }
     }
 
     @Override
     public void deleteProcRoleBinding(String procId, ProcRoleRequestDto procRoleRequestDto) throws WecubeCoreException {
-        String permission = procRoleRequestDto.getPermission();
-
+        
+        if(procRoleRequestDto == null ) {
+            throw new WecubeCoreException("There is not process role setting provided.");
+        }
+        Map<String,List<String>> permissionToRole = procRoleRequestDto.getPermissionToRole();
+        if(permissionToRole == null || permissionToRole.isEmpty()) {
+            throw new WecubeCoreException("There is not process role setting provided.");
+        }
+        
         // check if the current user has the role to manage such process
         checkPermission(procId, ProcRoleBindingEntity.MGMT);
+        
+        
 
-        // assure corresponding data has at least one row of MGMT permission
-        if (ProcRoleBindingEntity.MGMT.equals(permission)) {
-            List<ProcRoleBindingEntity> procRoleBindingEntities = this.procRoleBindingRepository
-                    .selectAllByProcIdAndPermission(procId, permission);
-            if (procRoleBindingEntities != null) {
+        for(Map.Entry<String, List<String>> entry :permissionToRole.entrySet()) {
+            String permission = entry.getKey();
+            List<String> roleNames = entry.getValue();
+            
+            if(roleNames == null || roleNames.isEmpty()) {
+                continue;
+            }
+            
+            if (ProcRoleBindingEntity.MGMT.equals(permission)) {
+                List<ProcRoleBindingEntity> procRoleBindingEntities = this.procRoleBindingRepository
+                        .selectAllByProcIdAndPermission(procId, permission);
+                if (procRoleBindingEntities != null) {
 
-                if (procRoleBindingEntities.size() <= procRoleRequestDto.getRoleNames().size()) {
-                    String msg = "The process's management permission should have at least one role.";
-                    logger.info(String.format(
-                            "The DELETE management roles operation was blocked, the process id is [%s].", procId));
-                    throw new WecubeCoreException("3184", msg);
+                    if (procRoleBindingEntities.size() <= roleNames.size()) {
+                        String msg = "The process's management permission should have at least one role.";
+                        logger.info(String.format(
+                                "The DELETE management roles operation was blocked, the process id is [%s].", procId));
+                        throw new WecubeCoreException("3184", msg);
+                    }
                 }
+            }
+
+            for (String roleName : roleNames) {
+                this.procRoleBindingRepository.deleteByProcIdAndRoleAndPermission(procId, roleName, permission);
             }
         }
 
-        for (String roleName : procRoleRequestDto.getRoleNames()) {
-            this.procRoleBindingRepository.deleteByProcIdAndRoleAndPermission(procId, roleName, permission);
-        }
+        // assure corresponding data has at least one row of MGMT permission
+        
     }
 
     public void checkPermission(String procId, String permission){
