@@ -1,38 +1,19 @@
 package com.webank.wecube.platform.core.dto.plugin;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 public class PluginConfigRoleRequestDto {
-    private String permission;
-    private List<String> roleIds = new ArrayList<>();
+    private Map<String,List<String>> permissionToRole;
 
-    public String getPermission() {
-        return permission;
+    public Map<String, List<String>> getPermissionToRole() {
+        return permissionToRole;
     }
 
-    public void setPermission(String permission) {
-        this.permission = permission;
+    public void setPermissionToRole(Map<String, List<String>> permissionToRole) {
+        this.permissionToRole = permissionToRole;
     }
-
-    public List<String> getRoleIds() {
-        return roleIds;
-    }
-
-    public void setRoleIds(List<String> roleIds) {
-        this.roleIds = roleIds;
-    }
-
-    @Override
-    public String toString() {
-        StringBuilder builder = new StringBuilder();
-        builder.append("PluginConfigRoleRequestDto [permission=");
-        builder.append(permission);
-        builder.append(", roleIds=");
-        builder.append(roleIds);
-        builder.append("]");
-        return builder.toString();
-    }
+    
 
     
 }
