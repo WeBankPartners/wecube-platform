@@ -412,6 +412,7 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
 
         ProcInstInfoDto result = doCreateProcessInstance(procInstInfoEntity, procDefInfoEntity.getProcDefKernelId(),
                 procInstKey);
+        result.setProcDefKey(procDefInfoEntity.getProcDefKey());
 
         postHandleGraphNodes(requestDto, result);
         return result;
