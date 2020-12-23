@@ -133,13 +133,37 @@ public class ProcessRoleServiceImpl implements ProcessRoleService {
         
         for(Map.Entry<String, List<String>> entry :permissionToRole.entrySet()) {
             String permission = entry.getKey();
-            List<String> roleNames = entry.getValue();
+            List<String> inputRoleNames = entry.getValue();
             
-            if(roleNames == null || roleNames.isEmpty()) {
-                continue;
+            if(inputRoleNames == null) {
+                inputRoleNames = new ArrayList<>();
+            }
+            
+            List<String> existRoleNames = getExistRoleBindingsOfProcessAndPermission(procId, permission);
+            
+            List<String> roleNamesToAdd = new ArrayList<>();
+            for(String roleName : inputRoleNames) {
+                if(existRoleNames.contains(roleName)) {
+                    continue;
+                }
+                
+                roleNamesToAdd.add(roleName);
+            }
+            
+            List<String> roleNamesToRemove = new ArrayList<>();
+            
+            for(String roleName : existRoleNames) {
+                if(inputRoleNames.contains(roleName)) {
+                    continue;
+                }
+                
+                roleNamesToRemove.add(roleName);
             }
 
-            batchSaveData(procId, roleNames, permission);
+            for (String roleName : roleNamesToRemove) {
+                this.procRoleBindingRepository.deleteByProcIdAndRoleAndPermission(procId, roleName, permission);
+            }
+            batchSaveData(procId, roleNamesToAdd, permission);
         }
     }
 
@@ -244,5 +268,23 @@ public class ProcessRoleServiceImpl implements ProcessRoleService {
             newEntity.setId(LocalIdGenerator.generateId());
             this.procRoleBindingRepository.insert(newEntity);
         }
+    }
+    
+    private List<String> getExistRoleBindingsOfProcessAndPermission(String procDefId, String permission){
+        List<String> existRoleNames = new ArrayList<>();
+        
+        List<ProcRoleBindingEntity> roleBindings = procRoleBindingRepository.selectAllByProcIdAndPermission(procDefId, permission);
+        if(roleBindings == null || roleBindings.isEmpty()) {
+            return existRoleNames;
+        }
+        
+        for(ProcRoleBindingEntity b : roleBindings) {
+            if(!existRoleNames.contains(b.getRoleName())) {
+                existRoleNames.add(b.getRoleName());
+            }
+        }
+        
+        return existRoleNames;
+        
     }
 }
