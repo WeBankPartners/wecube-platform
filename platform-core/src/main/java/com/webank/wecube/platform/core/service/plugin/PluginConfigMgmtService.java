@@ -132,10 +132,17 @@ public class PluginConfigMgmtService extends AbstractPluginMgmtService {
         }
 
         validateCurrentUserPermission(pluginConfigId, PluginConfigRoles.PERM_TYPE_MGMT);
+        
+        int deletedInterfacesRows = deletePluginConfigInterfaces(pluginConfigsEntity);
+        log.info("total {} interfaces was deleted for plugin config:{}", deletedInterfacesRows, pluginConfigsEntity.getId());
+        int deletedRoleBindingsRows = deletePluginConfigRoleBindings(pluginConfigsEntity);
+        log.info("total {} role bindings was deleted for plugin config:{}", deletedRoleBindingsRows, pluginConfigsEntity.getId());
 
         log.info("About to delete plugin config with id:{}", pluginConfigId);
         pluginConfigsMapper.deleteByPrimaryKey(pluginConfigId);
     }
+    
+   
 
     /**
      * 
@@ -1297,6 +1304,41 @@ public class PluginConfigMgmtService extends AbstractPluginMgmtService {
         }
 
         return true;
+    }
+    
+    private int deletePluginConfigRoleBindings(PluginConfigs pluginConfigsEntity) {
+        List<PluginConfigRoles> entities = this.pluginConfigRolesMapper.selectAllByPluginConfig(pluginConfigsEntity.getId());
+        if(entities == null || entities.isEmpty()) {
+            return 0;
+        }
+        
+        for(PluginConfigRoles entity : entities) {
+            pluginConfigRolesMapper.deleteByPrimaryKey(entity.getId());
+        }
+        
+        return entities.size();
+    }
+    
+    private int deletePluginConfigInterfaces(PluginConfigs pluginConfigsEntity) {
+        List<PluginConfigInterfaces> intfEntities = pluginConfigInterfacesMapper
+                .selectAllByPluginConfig(pluginConfigsEntity.getId());
+        
+        if(intfEntities == null || intfEntities.isEmpty()) {
+            return 0;
+        }
+        
+        for(PluginConfigInterfaces intfEntity : intfEntities) {
+            deletePluginConfigInterfaceParameters(intfEntity);
+            pluginConfigInterfacesMapper.deleteByPrimaryKey(intfEntity.getId());
+        }
+        
+        return intfEntities.size();
+    }
+    
+    private int deletePluginConfigInterfaceParameters(PluginConfigInterfaces intfEntity) {
+        int deletedRows = pluginConfigInterfaceParametersMapper
+                .deleteAllByConfigInterface(intfEntity.getId());
+        return deletedRows;
     }
 
 }
