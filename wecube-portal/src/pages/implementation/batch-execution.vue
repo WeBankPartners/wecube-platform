@@ -467,7 +467,6 @@ import {
   deleteCollections,
   getRoleList,
   getRolesByCurrentUser,
-  deleteCollectionsRole,
   addCollectionsRole,
   saveBatchExecution,
   updateCollections,
@@ -730,7 +729,7 @@ export default {
         this.allRolesBackUp = data.map(_ => {
           return {
             ..._,
-            key: _.id,
+            key: _.name,
             label: _.displayName
           }
         })
@@ -742,7 +741,7 @@ export default {
         this.allRoles = data.map(_ => {
           return {
             ..._,
-            key: _.id,
+            key: _.name,
             label: _.displayName
           }
         })
@@ -775,84 +774,9 @@ export default {
       this.editCollectionName = false
     },
     async handleMgmtRoleTransferChange (newTargetKeys, direction, moveKeys) {
-      if (this.isAddCollect) {
-        this.MGMT = newTargetKeys
-      } else {
-        let params = {
-          permission: 'mgmt',
-          roleId: moveKeys
-        }
-        if (direction === 'right') {
-          const { status, message } = await addCollectionsRole(this.selectedCollection.favoritesId, params)
-          if (status === 'OK') {
-            this.$Notice.success({
-              title: 'Success',
-              desc: message
-            })
-          } else {
-            this.$Notice.error({
-              title: 'Fail',
-              desc: message
-            })
-          }
-        } else {
-          if (newTargetKeys.length === 0) {
-            this.$Message.warning(this.$t('bc_mgmt_role_cannot_empty'))
-          } else {
-            const { status, message } = await deleteCollectionsRole(this.selectedCollection.favoritesId, params)
-            if (status === 'OK') {
-              this.$Notice.success({
-                title: 'Success',
-                desc: message
-              })
-            } else {
-              this.$Notice.error({
-                title: 'Fail',
-                desc: message
-              })
-            }
-          }
-        }
-      }
-
       this.MGMT = newTargetKeys
     },
     async handleUseRoleTransferChange (newTargetKeys, direction, moveKeys) {
-      if (this.isAddCollect) {
-        this.USE = newTargetKeys
-      } else {
-        let params = {
-          permission: 'use',
-          roleId: moveKeys
-        }
-        if (direction === 'right') {
-          const { status, message } = await addCollectionsRole(this.selectedCollection.favoritesId, params)
-          if (status === 'OK') {
-            this.$Notice.success({
-              title: 'Success',
-              desc: message
-            })
-          } else {
-            this.$Notice.error({
-              title: 'Fail',
-              desc: message
-            })
-          }
-        } else {
-          const { status, message } = await deleteCollectionsRole(this.selectedCollection.favoritesId, params)
-          if (status === 'OK') {
-            this.$Notice.success({
-              title: 'Success',
-              desc: message
-            })
-          } else {
-            this.$Notice.error({
-              title: 'Fail',
-              desc: message
-            })
-          }
-        }
-      }
       this.USE = newTargetKeys
     },
     showDeleteConfirm (id, name) {
@@ -872,8 +796,26 @@ export default {
         this.$Message.success(message)
       }
     },
+    async updateRoles (favoritesId) {
+      const payload = {
+        permissionToRole: { MGMT: this.MGMT, USE: this.USE }
+      }
+      const { status, message } = await addCollectionsRole(favoritesId, payload)
+      if (status === 'OK') {
+        this.$Notice.success({
+          title: 'Success',
+          desc: message
+        })
+      } else {
+        this.$Notice.error({
+          title: 'Fail',
+          desc: message
+        })
+      }
+    },
     async confirmCollection () {
       if (!this.isAddCollect) {
+        await this.updateRoles(this.selectedCollection.favoritesId)
         this.collectionRoleManageModal = false
         return
       }
