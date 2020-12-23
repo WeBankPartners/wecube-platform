@@ -14,11 +14,16 @@ import org.springframework.stereotype.Service;
 
 import com.webank.wecube.platform.core.commons.AuthenticationContextHolder;
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
+import com.webank.wecube.platform.core.dto.workflow.DynamicEntityValueDto;
+import com.webank.wecube.platform.core.dto.workflow.DynamicTaskNodeBindInfoDto;
 import com.webank.wecube.platform.core.dto.workflow.DynamicWorkflowInstCreationInfoDto;
 import com.webank.wecube.platform.core.dto.workflow.DynamicWorkflowInstInfoDto;
+import com.webank.wecube.platform.core.dto.workflow.ProcInstInfoDto;
 import com.webank.wecube.platform.core.dto.workflow.ProcInstTerminationRequestDto;
 import com.webank.wecube.platform.core.dto.workflow.RegisteredEntityAttrDefDto;
 import com.webank.wecube.platform.core.dto.workflow.RegisteredEntityDefDto;
+import com.webank.wecube.platform.core.dto.workflow.StartProcInstRequestDto;
+import com.webank.wecube.platform.core.dto.workflow.TaskNodeDefObjectBindInfoDto;
 import com.webank.wecube.platform.core.dto.workflow.WorkflowDefInfoDto;
 import com.webank.wecube.platform.core.dto.workflow.WorkflowNodeDefInfoDto;
 import com.webank.wecube.platform.core.entity.plugin.PluginPackageAttributes;
@@ -199,7 +204,53 @@ public class WorkflowPublicAccessService {
      */
     public DynamicWorkflowInstInfoDto createNewWorkflowInstance(DynamicWorkflowInstCreationInfoDto creationInfoDto) {
         log.info("try to create new workflow instance with data: {}", creationInfoDto);
-        return new DynamicWorkflowInstInfoDto();
+        
+        StartProcInstRequestDto requestDto = calculateStartProcInstContext(creationInfoDto);
+        ProcInstInfoDto createdProcInstInfoDto = workflowProcInstService.createProcessInstance(requestDto);
+        DynamicWorkflowInstInfoDto resultDto = new DynamicWorkflowInstInfoDto();
+        resultDto.setId(createdProcInstInfoDto.getId());
+        resultDto.setProcDefId(createdProcInstInfoDto.getProcDefId());
+        resultDto.setProcDefKey(createdProcInstInfoDto.getProcDefKey());
+        resultDto.setProcInstKey(createdProcInstInfoDto.getProcInstKey());
+        resultDto.setStatus(createdProcInstInfoDto.getStatus());
+        
+        return resultDto;
+    }
+    
+    private StartProcInstRequestDto calculateStartProcInstContext(DynamicWorkflowInstCreationInfoDto creationInfoDto) {
+        StartProcInstRequestDto requestDto = new StartProcInstRequestDto();
+        requestDto.setEntityDataId(creationInfoDto.getRootEntityValue().getDataId());
+        requestDto.setEntityDisplayName(null);
+        requestDto.setEntityTypeId(creationInfoDto.getRootEntityValue().getPackageName()+":"+creationInfoDto.getRootEntityValue().getEntityName());
+        requestDto.setProcDefId(creationInfoDto.getProcDefId());
+        
+        List<DynamicTaskNodeBindInfoDto> taskNodeBindInfos = creationInfoDto.getTaskNodeBindInfos();
+        if(taskNodeBindInfos == null) {
+            taskNodeBindInfos = new ArrayList<>();
+        }
+        List<TaskNodeDefObjectBindInfoDto> taskNodeBinds = new ArrayList<>();
+        for(DynamicTaskNodeBindInfoDto dynamicBindInfoDto : taskNodeBindInfos) {
+            List<DynamicEntityValueDto> boundEntityValues = dynamicBindInfoDto.getBoundEntityValues();
+            if(boundEntityValues == null || boundEntityValues.isEmpty()) {
+                continue;
+            }
+            
+            for(DynamicEntityValueDto entityValueDto : boundEntityValues) {
+                TaskNodeDefObjectBindInfoDto bindDto = new TaskNodeDefObjectBindInfoDto();
+                bindDto.setBound("Y");
+                bindDto.setEntityDataId(entityValueDto.getDataId());
+                bindDto.setEntityDisplayName(null);
+                bindDto.setEntityTypeId(entityValueDto.getPackageName()+":"+entityValueDto.getEntityName());
+                bindDto.setNodeDefId(dynamicBindInfoDto.getNodeDefId());
+                bindDto.setOrderedNo("");
+                
+                taskNodeBinds.add(bindDto);
+            }
+        }
+        
+        requestDto.setTaskNodeBinds(taskNodeBinds);
+        
+        return requestDto;
     }
 
     private RegisteredEntityDefDto buildTaskNodeBoundEntity(TaskNodeDefInfoEntity nodeDefInfo) {
