@@ -398,7 +398,6 @@ import {
   getInterfacesByPluginConfigId,
   getRoleList,
   updatePluginConfigRoleBinding,
-  deletePluginConfigRoleBinding,
   getRolesByCurrentUser,
   getConfigByPkgId,
   updateConfigStatus
@@ -587,7 +586,7 @@ export default {
         this.currentUserRoles = data.map(_ => {
           return {
             ..._,
-            key: _.id,
+            key: _.name,
             label: _.displayName
           }
         })
@@ -598,7 +597,7 @@ export default {
       this.useRolesKey = config.permissionToRole.USE || []
       let hasPermission = false
       this.mgmtRolesKey.forEach(_ => {
-        const found = this.currentUserRoles.find(role => role.id === _)
+        const found = this.currentUserRoles.find(role => role.name === _)
         if (found) {
           hasPermission = true
         }
@@ -606,22 +605,40 @@ export default {
       if (hasPermission) {
         this.configRoleManageModal = true
         this.currentPluginForPermission = config
-        this.isAdd = false
+        this.isAddOrCopy = 'new'
       } else {
         this.$Message.warning(this.$t('no_permission_to_mgmt'))
       }
     },
-    confirmRole () {
+    async confirmRole () {
       if (this.mgmtRolesKey.length) {
-        this.configRoleManageModal = false
+        if (this.isAddOrCopy === 'new') {
+          await this.updatePermission(this.currentPluginForPermission.id)
+        }
         if (this.isAddOrCopy === 'copy') {
+          await this.updatePermission(this.newPluginConfig)
           this.exectCopyPluginConfigDto()
         } else if (this.isAddOrCopy === 'add') {
           this.exectAddPluginConfigDto()
+          this.configRoleManageModal = false
         }
       } else {
         this.$Message.warning(this.$t('mgmt_role_warning'))
       }
+    },
+    async updatePermission (id) {
+      const payload = {
+        permissionToRole: { MGMT: this.mgmtRolesKey, USE: this.useRolesKey }
+      }
+      const { status } = await updatePluginConfigRoleBinding(id, payload)
+      if (status === 'OK') {
+        this.$Notice.success({
+          title: 'Success',
+          desc: 'Success'
+        })
+        this.configRoleManageModal = false
+      }
+      this.getAllPluginByPkgId()
     },
     async getRoleList () {
       const { status, data } = await getRoleList()
@@ -629,35 +646,17 @@ export default {
         this.allRolesBackUp = data.map(_ => {
           return {
             ..._,
-            key: _.id,
+            key: _.name,
             label: _.displayName
           }
         })
       }
     },
     handleMgmtRoleTransferChange (newTargetKeys, direction, moveKeys) {
-      if (this.hasNewSource) {
-        this.mgmtRolesKey = newTargetKeys
-      } else {
-        if (direction === 'right') {
-          this.updateConfigPermission(this.currentPluginForPermission.id, moveKeys, 'MGMT')
-        } else {
-          this.deleteConfigPermission(this.currentPluginForPermission.id, moveKeys, 'MGMT')
-        }
-        this.mgmtRolesKey = newTargetKeys
-      }
+      this.mgmtRolesKey = newTargetKeys
     },
     handleUseRoleTransferChange (newTargetKeys, direction, moveKeys) {
-      if (this.hasNewSource) {
-        this.useRolesKey = newTargetKeys
-      } else {
-        if (direction === 'right') {
-          this.updateConfigPermission(this.currentPluginForPermission.id, moveKeys, 'USE')
-        } else {
-          this.deleteConfigPermission(this.currentPluginForPermission.id, moveKeys, 'USE')
-        }
-        this.useRolesKey = newTargetKeys
-      }
+      this.useRolesKey = newTargetKeys
     },
     async updateConfigPermission (proId, roleId, type) {
       const payload = {
@@ -665,20 +664,6 @@ export default {
         roleIds: roleId
       }
       const { status } = await updatePluginConfigRoleBinding(proId, payload)
-      if (status === 'OK') {
-        this.$Notice.success({
-          title: 'Success',
-          desc: 'Success'
-        })
-      }
-      this.getAllPluginByPkgId()
-    },
-    async deleteConfigPermission (proId, roleId, type) {
-      const payload = {
-        permission: type,
-        roleIds: roleId
-      }
-      const { status } = await deletePluginConfigRoleBinding(proId, payload)
       if (status === 'OK') {
         this.$Notice.success({
           title: 'Success',
@@ -845,6 +830,7 @@ export default {
       }
     },
     async copyPluginConfigDto (id) {
+      console.log('复制')
       this.newPluginConfig = id
       this.isAddOrCopy = 'copy'
 
@@ -861,6 +847,7 @@ export default {
       this.$refs.registerName.focus()
     },
     async addPluginConfigDto (plugin) {
+      console.log('新增插件函数')
       this.newPluginConfig = plugin
       this.isAddOrCopy = 'add'
 
@@ -871,6 +858,7 @@ export default {
     },
     async exectAddPluginConfigDto () {
       const id = this.newPluginConfig.pluginConfigDtoList.find(_ => _.registerName === '' || _.registerName === null).id
+      console.log(id)
       await this.getInterfacesByPluginConfigId(id)
       this.registerName = ''
       this.selectedEntityType = ''
