@@ -84,7 +84,7 @@ WeCube分为核心功能模块和插件模块。
 3, API gateway：负责Portal nginx或其他外部系统的动态服务请求的路由分发。  
  - A）	登录认证请求，转发到Auth server，使用用户名密码换取Token。Token采用非对称加密，包含用户名、角色、菜单权限信息。
  - B）	Core服务请求，转发到Core。比如角色添加、插件注册、编排设计等等。
- - C）	Plugin服务请求，转发到对于的Plugin。比如CMDB配置管理、监控数据查询、任务管理等。
+ - C）	Plugin服务请求，转发到对应的Plugin。比如CMDB配置管理、监控数据查询、任务管理等。
 
 建议负载均衡实现高可用，也可以使用keepalived做主从高可用。  
 APIGateway启动时通过Core获取插件实例列表，并建立路由规则。  
