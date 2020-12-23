@@ -208,17 +208,53 @@ public class RoleFavoritesServiceImpl implements RoleFavoritesService {
         
         for(Map.Entry<String, List<String>> entry :permissionToRole.entrySet()) {
             String permission = entry.getKey();
-            List<String> roleNames = entry.getValue();
+            List<String> inputRoleNames = entry.getValue();
             
-            if(roleNames == null || roleNames.isEmpty()) {
-                continue;
+            if(inputRoleNames == null) {
+                inputRoleNames = new ArrayList<>();
             }
             
+            List<String> existRoleNames = getExistRoleNamesWithFavoritesAndPermission(favoritesId, permission);
+            List<String> roleNamesToAdd = new ArrayList<>();
+            List<String> roleNamesToRemove = new ArrayList<>();
+            
+            for(String inputRoleName : inputRoleNames) {
+                if(!existRoleNames.contains(inputRoleName)) {
+                    roleNamesToAdd.add(inputRoleName);
+                }
+            }
+            
+            for(String existRoleName : existRoleNames) {
+                if(!inputRoleNames.contains(existRoleName)) {
+                    roleNamesToRemove.add(existRoleName);
+                }
+            }
+            
+            for (String roleName : existRoleNames) {
+                this.favoritesRoleMapper.deleteByfavoritesIdAndRoleNameAndPermission(favoritesId, roleName, permission);
+            }
             // check if user's roles has permission to manage this process
-            batchSaveRoleFavorites(favoritesId, roleNames, permission);
+            batchSaveRoleFavorites(favoritesId, roleNamesToAdd, permission);
         }
         
         
+    }
+    
+    private List<String> getExistRoleNamesWithFavoritesAndPermission(String favoritesId, String permission){
+        
+        List<String> existRoleNames = new ArrayList<>();
+        List<FavoritesRole> favoriteRoles = favoritesRoleMapper.selectAllByFavoritesAndPermission(favoritesId, permission);
+        if(favoriteRoles == null || favoriteRoles.isEmpty()) {
+            return existRoleNames;
+        }
+        
+        for(FavoritesRole fr : favoriteRoles) {
+            if(!existRoleNames.contains(fr.getRoleName())) {
+                existRoleNames.add(fr.getRoleName());
+            }
+        }
+        
+        return existRoleNames;
     }
 
     private void saveFavoritesRoleBinding(String collectId, FavoritesDto favoritesDto) throws WecubeCoreException {
