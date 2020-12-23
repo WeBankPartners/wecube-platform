@@ -21,7 +21,6 @@ import com.webank.wecube.platform.core.dto.plugin.PluginConfigInterfaceDto;
 import com.webank.wecube.platform.core.dto.plugin.PluginConfigInterfaceParameterDto;
 import com.webank.wecube.platform.core.dto.plugin.PluginConfigRoleRequestDto;
 import com.webank.wecube.platform.core.dto.plugin.TargetEntityFilterRuleDto;
-import com.webank.wecube.platform.core.dto.user.RoleDto;
 import com.webank.wecube.platform.core.entity.plugin.AuthLatestEnabledInterfaces;
 import com.webank.wecube.platform.core.entity.plugin.PluginConfigInterfaceParameters;
 import com.webank.wecube.platform.core.entity.plugin.PluginConfigInterfaces;
@@ -373,23 +372,32 @@ public class PluginConfigMgmtService extends AbstractPluginMgmtService {
         
         for(Map.Entry<String, List<String>> entry :permissionToRole.entrySet()) {
             String permission = entry.getKey();
-            List<String> roleNames = entry.getValue();
+            List<String> inputRoleNames = entry.getValue();
             
-            if(roleNames == null || roleNames.isEmpty()) {
-                continue;
+            if(inputRoleNames == null ) {
+                inputRoleNames = new ArrayList<>();
             }
-            
             
             List<String> existRoleNames = getExistRoleNamesOfPluginConfigAndPermission(pluginConfigId, permission);
             List<String> roleNamesToAdd = new ArrayList<String>();
-            for (String roleName : roleNames) {
-                if (existRoleNames.contains(roleName)) {
+            for (String inputRoleName : inputRoleNames) {
+                if (existRoleNames.contains(inputRoleName)) {
                     continue;
                 }
 
-                roleNamesToAdd.add(roleName);
+                roleNamesToAdd.add(inputRoleName);
             }
-
+            
+            List<String> roleNamesToRemove = new ArrayList<String>();
+            for(String existRoleName : existRoleNames) {
+                if(inputRoleNames.contains(existRoleName)) {
+                    continue;
+                }
+                
+                roleNamesToRemove.add(existRoleName);
+            }
+            
+            deletePluginConfigRoleBindings(pluginConfigId, permission, roleNamesToRemove);
             addPluginConfigRoleBindings(pluginConfigId, permission, roleNamesToAdd);
             
         }
@@ -994,14 +1002,17 @@ public class PluginConfigMgmtService extends AbstractPluginMgmtService {
     }
 
     private List<String> getExistRoleNamesOfPluginConfigAndPermission(String pluginConfigId, String permission) {
-        List<String> existRoleIds = new ArrayList<String>();
+        List<String> existRoleNames = new ArrayList<String>();
         List<PluginConfigRoles> entities = this.pluginConfigRolesMapper.selectAllByPluginConfigAndPerm(pluginConfigId,
                 permission);
+        if(entities == null || entities.isEmpty()) {
+            return existRoleNames;
+        }
         for (PluginConfigRoles e : entities) {
-            existRoleIds.add(e.getRoleName());
+            existRoleNames.add(e.getRoleName());
         }
 
-        return existRoleIds;
+        return existRoleNames;
     }
 
     private void addPluginConfigRoleBindings(String pluginConfigId, String permission, List<String> roleNamesToAdd) {
