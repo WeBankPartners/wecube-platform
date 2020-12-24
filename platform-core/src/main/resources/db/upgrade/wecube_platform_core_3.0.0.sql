@@ -49,7 +49,8 @@ CREATE TABLE `core_object_property_meta` (
   `created_time` datetime NOT NULL,
   `updated_by` varchar(45) DEFAULT NULL,
   `updated_time` datetime DEFAULT NULL,
-  `sensitive` bit(1) DEFAULT NULL,
+  `is_sensitive` bit(1) DEFAULT NULL,
+  `ref_name` varchar(45) DEFAULT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
@@ -80,7 +81,7 @@ CREATE TABLE `core_object_property_var` (
   `created_time` datetime NOT NULL,
   `updated_by` varchar(45) DEFAULT NULL,
   `updated_time` datetime DEFAULT NULL,
-  `sensitive` bit(1) DEFAULT NULL,
+  `is_sensitive` bit(1) DEFAULT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
@@ -90,6 +91,6 @@ CREATE TABLE `core_object_list_var` (
   `data_value` varchar(1000) NOT NULL,
   `created_by` varchar(45) DEFAULT NULL,
   `created_time` datetime NOT NULL,
-  `sensitive` bit(1) NOT NULL,
+  `is_sensitive` bit(1) NOT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
