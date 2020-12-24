@@ -258,17 +258,20 @@
           <xs:documentation>6.运行资源 - 描述部署运行本插件包需要的基础资源(如主机、虚拟机、容器、数据库等)</xs:documentation>
         </xs:annotation>
       </xs:element>
-      <xs:element type="pluginsType" name="plugins" minOccurs="0">
-        <xs:annotation>
-          <xs:documentation>7.插件列表 - 描述插件包中单个插件的输入和输出</xs:documentation>
-        </xs:annotation>
-      </xs:element>
       
       <xs:element type="paramObjectsType" name="paramObjects" minOccurs="0" maxOccurs="1">
         <xs:annotation>
-          <xs:documentation>8.对象参数列表 - 描述插件包定义的对象参数结构</xs:documentation>
+          <xs:documentation>7.对象参数列表 - 描述插件包定义的对象参数结构</xs:documentation>
         </xs:annotation>
       </xs:element>
+      
+      <xs:element type="pluginsType" name="plugins" minOccurs="0">
+        <xs:annotation>
+          <xs:documentation>8.插件列表 - 描述插件包中单个插件的输入和输出</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      
+      
     </xs:sequence>
     <xs:attribute type="xs:string" name="name"/>
     <xs:attribute type="xs:string" name="version"/>
