@@ -490,27 +490,33 @@ export default {
     },
     async confirmRole () {
       if (this.mgmtRolesKeyToFlow.length) {
-        const payload = {
-          permissionToRole: { MGMT: this.mgmtRolesKeyToFlow, USE: this.useRolesKeyToFlow }
-        }
-        const { status, message } = await updateFlowPermission(this.currentSettingFlow, payload)
-        if (status === 'OK') {
-          this.$Notice.success({
-            title: 'Success',
-            desc: message
-          })
+        console.log(this.isAdd)
+        if (this.isAdd) {
           this.flowRoleManageModal = false
         } else {
-          this.$Notice.error({
-            title: 'Fail',
-            desc: message
-          })
+          this.updatePermission(this.currentSettingFlow)
         }
-        // this.showBpmn = true
       } else {
         this.$Message.warning(this.$t('mgmt_role_warning'))
-        // this.showBpmn = false
         this.isAdd = false
+      }
+    },
+    async updatePermission (id) {
+      const payload = {
+        permissionToRole: { MGMT: this.mgmtRolesKeyToFlow, USE: this.useRolesKeyToFlow }
+      }
+      const { status, message } = await updateFlowPermission(id, payload)
+      if (status === 'OK') {
+        this.$Notice.success({
+          title: 'Success',
+          desc: message
+        })
+        this.flowRoleManageModal = false
+      } else {
+        this.$Notice.error({
+          title: 'Fail',
+          desc: message
+        })
       }
     },
     async getRoleList () {
@@ -699,14 +705,13 @@ export default {
       })
     },
     createNewDiagram () {
+      this.newFlowID = 'wecube' + Date.now()
       this.isAdd = true
-      this.flowRoleManageModal = true
       this.mgmtRolesKeyToFlow = []
       this.useRolesKeyToFlow = []
       this.currentSelectedEntity = ''
       this.pluginForm = { ...this.defaultPluginForm }
       this.currentFlow = {}
-      this.newFlowID = 'wecube' + Date.now()
       const bpmnXmlStr =
         '<?xml version="1.0" encoding="UTF-8"?>\n' +
         '<bpmn2:definitions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:bpmn2="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xsi:schemaLocation="http://www.omg.org/spec/BPMN/20100524/MODEL BPMN20.xsd" id="sample-diagram" targetNamespace="http://bpmn.io/schema/bpmn">\n' +
@@ -729,6 +734,7 @@ export default {
       this.$nextTick(() => {
         this.selectedFlow = null
       })
+      this.flowRoleManageModal = true
     },
     saveDiagram (isDraft) {
       let _this = this
