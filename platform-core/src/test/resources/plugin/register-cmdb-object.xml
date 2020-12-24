@@ -42,7 +42,8 @@
         </menu>
         <menu code='MENU_APPLICATION_DEPLOYMENT_DESIGN' cat='DESIGNING'
             displayName="APP View - Deploy Management" localDisplayName="应用视图-部署管理">
-            /wecmdb/view-management/application-deployment-design</menu>
+            /wecmdb/view-management/application-deployment-design
+        </menu>
         <menu code='MENU_ADMIN_CMDB_MODEL_MANAGEMENT' cat='ADMIN'
             displayName="CMDB Modeling" localDisplayName="CMDB模型管理">/wecmdb/admin/cmdb-model-management
         </menu>
@@ -109,7 +110,7 @@
     <!-- 7.插件列表 - 描述插件包中单个插件的输入和输出 -->
     <paramObjects>
         <paramObject name="k8sObjA">
-            <property name="attrA" dataType="string" refType=""
+            <property name="attrA" dataType="string" refType="string"
                 mapType="entity" mapExpr="wecmdb:instances" />
             <property name="attrB" dataType="list" refType="string"
                 mapType="entity" mapExpr="wecmdb:instances" />
@@ -117,14 +118,14 @@
                 mapType="constant" mapExpr="" />
         </paramObject>
         <paramObject name="k8sObjB">
-            <property name="attrA" dataType="object" refType="k8sObjA"
-                mapType="" mapExpr="" />
-            <property name="attrB" dataType="list" refType="k8sObjA"
-                mapType="" mapExpr="" />
+            <property name="attrA" dataType="object" refType="object"
+                refName="k8sObjA" mapType="" mapExpr="" />
+            <property name="attrB" dataType="list" refType="object"
+                refName="k8sObjA" mapType="" mapExpr="" />
             <property name="attrC" dataType="string" refType=""
                 mapType="entity" mapExpr="wecmdb:instances" />
             <property name="attrD" dataType="list" refType="string"
-                mapType="entity" mapExpr="wecmdb:instances" />
+                refName="" mapType="entity" mapExpr="wecmdb:instances" />
         </paramObject>
     </paramObjects>
     <plugins>
@@ -137,7 +138,8 @@
                         sensitiveData="N" mappingType="constant">entity-name
                     </parameter>
                     <parameter datatype="object" required="Y"
-                        sensitiveData="N" mappingType="object" mappingEntityExpression='k8sObjA'>cidata</parameter>
+                        sensitiveData="N" mappingType="object"
+                        mappingEntityExpression='k8sObjA'>cidata</parameter>
                 </inputParameters>
                 <outputParameters>
                     <parameter datatype="string"

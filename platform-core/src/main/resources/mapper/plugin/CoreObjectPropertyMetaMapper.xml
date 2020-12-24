@@ -25,12 +25,16 @@
             jdbcType="VARCHAR" />
         <result column="updated_time" property="updatedTime"
             jdbcType="TIMESTAMP" />
-        <result column="sensitive" property="sensitive" jdbcType="BIT" />
+        <result column="is_sensitive" property="sensitive"
+            jdbcType="BIT" />
+        <result column="ref_name" property="refName" jdbcType="VARCHAR" />
     </resultMap>
     <sql id="Base_Column_List">
-        id, name, data_type, ref_type, map_type, map_expr, object_meta_id,
+        id, name, data_type, ref_type, map_type, map_expr,
+        object_meta_id,
         object_name, package_name,
-        source, created_by, created_time, updated_by, updated_time, sensitive
+        source, created_by,
+        created_time, updated_by, updated_time, is_sensitive,ref_name
     </sql>
     <select id="selectByPrimaryKey" resultMap="BaseResultMap"
         parameterType="java.lang.String">
@@ -40,26 +44,33 @@
         where id = #{id,jdbcType=VARCHAR}
     </select>
     <delete id="deleteByPrimaryKey" parameterType="java.lang.String">
-        delete from core_object_property_meta
+        delete from
+        core_object_property_meta
         where id = #{id,jdbcType=VARCHAR}
     </delete>
     <insert id="insert"
         parameterType="com.webank.wecube.platform.core.entity.plugin.CoreObjectPropertyMeta">
-        insert into core_object_property_meta (id, name, data_type,
+        insert into core_object_property_meta (id, name,
+        data_type,
         ref_type, map_type, map_expr,
-        object_meta_id, object_name, package_name,
+        object_meta_id,
+        object_name, package_name,
         source, created_by, created_time,
-        updated_by, updated_time, sensitive
+        updated_by, updated_time, is_sensitive,ref_name
         )
-        values (#{id,jdbcType=VARCHAR}, #{name,jdbcType=VARCHAR},
+        values
+        (#{id,jdbcType=VARCHAR}, #{name,jdbcType=VARCHAR},
         #{dataType,jdbcType=VARCHAR},
-        #{refType,jdbcType=VARCHAR}, #{mapType,jdbcType=VARCHAR}, #{mapExpr,jdbcType=VARCHAR},
+        #{refType,jdbcType=VARCHAR},
+        #{mapType,jdbcType=VARCHAR}, #{mapExpr,jdbcType=VARCHAR},
         #{objectMetaId,jdbcType=VARCHAR},
         #{objectName,jdbcType=VARCHAR}, #{packageName,jdbcType=VARCHAR},
         #{source,jdbcType=VARCHAR}, #{createdBy,jdbcType=VARCHAR},
         #{createdTime,jdbcType=TIMESTAMP},
         #{updatedBy,jdbcType=VARCHAR},
-        #{updatedTime,jdbcType=TIMESTAMP}, #{sensitive,jdbcType=BIT}
+        #{updatedTime,jdbcType=TIMESTAMP},
+        #{sensitive,jdbcType=BIT},
+        #{refName,jdbcType=VARCHAR}
         )
     </insert>
     <insert id="insertSelective"
@@ -109,7 +120,10 @@
                 updated_time,
             </if>
             <if test="sensitive != null">
-                sensitive,
+                is_sensitive,
+            </if>
+            <if test="refName != null">
+                ref_name,
             </if>
         </trim>
         <trim prefix="values (" suffix=")" suffixOverrides=",">
@@ -158,6 +172,9 @@
             <if test="sensitive != null">
                 #{sensitive,jdbcType=BIT},
             </if>
+            <if test="refName != null">
+                #{refName,jdbcType=VARCHAR},
+            </if>
         </trim>
     </insert>
     <update id="updateByPrimaryKeySelective"
@@ -180,7 +197,8 @@
                 map_expr = #{mapExpr,jdbcType=VARCHAR},
             </if>
             <if test="objectMetaId != null">
-                object_meta_id = #{objectMetaId,jdbcType=VARCHAR},
+                object_meta_id =
+                #{objectMetaId,jdbcType=VARCHAR},
             </if>
             <if test="objectName != null">
                 object_name = #{objectName,jdbcType=VARCHAR},
@@ -195,16 +213,21 @@
                 created_by = #{createdBy,jdbcType=VARCHAR},
             </if>
             <if test="createdTime != null">
-                created_time = #{createdTime,jdbcType=TIMESTAMP},
+                created_time =
+                #{createdTime,jdbcType=TIMESTAMP},
             </if>
             <if test="updatedBy != null">
                 updated_by = #{updatedBy,jdbcType=VARCHAR},
             </if>
             <if test="updatedTime != null">
-                updated_time = #{updatedTime,jdbcType=TIMESTAMP},
+                updated_time =
+                #{updatedTime,jdbcType=TIMESTAMP},
             </if>
             <if test="sensitive != null">
-                sensitive = #{sensitive,jdbcType=BIT},
+                is_sensitive = #{sensitive,jdbcType=BIT},
+            </if>
+            <if test="refName != null">
+                ref_name = #{refName,jdbcType=VARCHAR},
             </if>
         </set>
         where id = #{id,jdbcType=VARCHAR}
@@ -212,20 +235,35 @@
     <update id="updateByPrimaryKey"
         parameterType="com.webank.wecube.platform.core.entity.plugin.CoreObjectPropertyMeta">
         update core_object_property_meta
-        set name = #{name,jdbcType=VARCHAR},
-        data_type = #{dataType,jdbcType=VARCHAR},
-        ref_type = #{refType,jdbcType=VARCHAR},
-        map_type = #{mapType,jdbcType=VARCHAR},
-        map_expr = #{mapExpr,jdbcType=VARCHAR},
-        object_meta_id = #{objectMetaId,jdbcType=VARCHAR},
-        object_name = #{objectName,jdbcType=VARCHAR},
-        package_name = #{packageName,jdbcType=VARCHAR},
-        source = #{source,jdbcType=VARCHAR},
-        created_by = #{createdBy,jdbcType=VARCHAR},
-        created_time = #{createdTime,jdbcType=TIMESTAMP},
-        updated_by = #{updatedBy,jdbcType=VARCHAR},
-        updated_time = #{updatedTime,jdbcType=TIMESTAMP},
-        sensitive = #{sensitive,jdbcType=BIT}
+        set name =
+        #{name,jdbcType=VARCHAR},
+        data_type =
+        #{dataType,jdbcType=VARCHAR},
+        ref_type =
+        #{refType,jdbcType=VARCHAR},
+        map_type =
+        #{mapType,jdbcType=VARCHAR},
+        map_expr =
+        #{mapExpr,jdbcType=VARCHAR},
+        object_meta_id =
+        #{objectMetaId,jdbcType=VARCHAR},
+        object_name =
+        #{objectName,jdbcType=VARCHAR},
+        package_name =
+        #{packageName,jdbcType=VARCHAR},
+        source =
+        #{source,jdbcType=VARCHAR},
+        created_by =
+        #{createdBy,jdbcType=VARCHAR},
+        created_time =
+        #{createdTime,jdbcType=TIMESTAMP},
+        updated_by =
+        #{updatedBy,jdbcType=VARCHAR},
+        updated_time =
+        #{updatedTime,jdbcType=TIMESTAMP},
+        is_sensitive =
+        #{sensitive,jdbcType=BIT},
+        ref_name = #{refName,jdbcType=VARCHAR}
         where id = #{id,jdbcType=VARCHAR}
     </update>
 

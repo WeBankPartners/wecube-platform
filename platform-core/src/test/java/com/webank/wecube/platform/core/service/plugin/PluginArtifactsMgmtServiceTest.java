@@ -7,7 +7,12 @@ import java.util.List;
 
 import org.apache.commons.io.IOUtils;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.junit4.SpringRunner;
 import org.xml.sax.SAXException;
 
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
@@ -17,8 +22,14 @@ import com.webank.wecube.platform.core.utils.JaxbUtils;
 import com.webank.wecube.platform.core.utils.StringUtilsEx;
 
 
+@RunWith(SpringRunner.class)
+@SpringBootTest
 public class PluginArtifactsMgmtServiceTest {
+    
+    @Autowired
+    PluginParamObjectSupportService pluginParamObjectSupportService;
 
+    @Ignore
     @SuppressWarnings("deprecation")
     @Test
     public void testParseRegisterXmlFile() throws IOException, WecubeCoreException, SAXException {
@@ -38,6 +49,8 @@ public class PluginArtifactsMgmtServiceTest {
         System.out.println(envString);
         
         List<String> envs = StringUtilsEx.findSystemVariableString(envString);
+        
+        pluginParamObjectSupportService.registerParamObjects(xmlPackage.getParamObjects(), xmlPackage.getName(), xmlPackage.getVersion());
         
         
         System.out.println(envs.size());

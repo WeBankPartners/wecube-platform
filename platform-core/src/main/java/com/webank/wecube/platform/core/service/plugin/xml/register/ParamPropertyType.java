@@ -5,7 +5,6 @@
 // Generated on: 2020.12.24 at 03:15:42 PM CST 
 //
 
-
 package com.webank.wecube.platform.core.service.plugin.xml.register;
 
 import javax.xml.bind.annotation.XmlAccessType;
@@ -14,11 +13,13 @@ import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlType;
 import javax.xml.bind.annotation.XmlValue;
 
-
 /**
- * <p>Java class for paramPropertyType complex type.
+ * <p>
+ * Java class for paramPropertyType complex type.
  * 
- * <p>The following schema fragment specifies the expected content contained within this class.
+ * <p>
+ * The following schema fragment specifies the expected content contained within
+ * this class.
  * 
  * <pre>
  * &lt;complexType name="paramPropertyType">
@@ -38,9 +39,7 @@ import javax.xml.bind.annotation.XmlValue;
  * 
  */
 @XmlAccessorType(XmlAccessType.FIELD)
-@XmlType(name = "paramPropertyType", propOrder = {
-    "value"
-})
+@XmlType(name = "paramPropertyType", propOrder = { "value" })
 public class ParamPropertyType {
 
     @XmlValue
@@ -51,6 +50,8 @@ public class ParamPropertyType {
     protected String dataType;
     @XmlAttribute(name = "refType")
     protected String refType;
+    @XmlAttribute(name = "refName")
+    protected String refName;
     @XmlAttribute(name = "mapType")
     protected String mapType;
     @XmlAttribute(name = "mapExpr")
@@ -61,10 +62,8 @@ public class ParamPropertyType {
     /**
      * Gets the value of the value property.
      * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
+     * @return possible object is {@link String }
+     * 
      */
     public String getValue() {
         return value;
@@ -74,9 +73,8 @@ public class ParamPropertyType {
      * Sets the value of the value property.
      * 
      * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
+     *            allowed object is {@link String }
+     * 
      */
     public void setValue(String value) {
         this.value = value;
@@ -85,10 +83,8 @@ public class ParamPropertyType {
     /**
      * Gets the value of the name property.
      * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
+     * @return possible object is {@link String }
+     * 
      */
     public String getName() {
         return name;
@@ -98,9 +94,8 @@ public class ParamPropertyType {
      * Sets the value of the name property.
      * 
      * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
+     *            allowed object is {@link String }
+     * 
      */
     public void setName(String value) {
         this.name = value;
@@ -109,10 +104,8 @@ public class ParamPropertyType {
     /**
      * Gets the value of the dataType property.
      * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
+     * @return possible object is {@link String }
+     * 
      */
     public String getDataType() {
         return dataType;
@@ -122,9 +115,8 @@ public class ParamPropertyType {
      * Sets the value of the dataType property.
      * 
      * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
+     *            allowed object is {@link String }
+     * 
      */
     public void setDataType(String value) {
         this.dataType = value;
@@ -133,10 +125,8 @@ public class ParamPropertyType {
     /**
      * Gets the value of the refType property.
      * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
+     * @return possible object is {@link String }
+     * 
      */
     public String getRefType() {
         return refType;
@@ -146,9 +136,8 @@ public class ParamPropertyType {
      * Sets the value of the refType property.
      * 
      * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
+     *            allowed object is {@link String }
+     * 
      */
     public void setRefType(String value) {
         this.refType = value;
@@ -157,10 +146,8 @@ public class ParamPropertyType {
     /**
      * Gets the value of the mapType property.
      * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
+     * @return possible object is {@link String }
+     * 
      */
     public String getMapType() {
         return mapType;
@@ -170,9 +157,8 @@ public class ParamPropertyType {
      * Sets the value of the mapType property.
      * 
      * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
+     *            allowed object is {@link String }
+     * 
      */
     public void setMapType(String value) {
         this.mapType = value;
@@ -181,10 +167,8 @@ public class ParamPropertyType {
     /**
      * Gets the value of the mapExpr property.
      * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
+     * @return possible object is {@link String }
+     * 
      */
     public String getMapExpr() {
         return mapExpr;
@@ -194,9 +178,8 @@ public class ParamPropertyType {
      * Sets the value of the mapExpr property.
      * 
      * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
+     *            allowed object is {@link String }
+     * 
      */
     public void setMapExpr(String value) {
         this.mapExpr = value;
@@ -205,10 +188,8 @@ public class ParamPropertyType {
     /**
      * Gets the value of the sensitiveData property.
      * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
+     * @return possible object is {@link String }
+     * 
      */
     public String getSensitiveData() {
         if (sensitiveData == null) {
@@ -222,12 +203,19 @@ public class ParamPropertyType {
      * Sets the value of the sensitiveData property.
      * 
      * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
+     *            allowed object is {@link String }
+     * 
      */
     public void setSensitiveData(String value) {
         this.sensitiveData = value;
+    }
+
+    public String getRefName() {
+        return refName;
+    }
+
+    public void setRefName(String refName) {
+        this.refName = refName;
     }
 
 }

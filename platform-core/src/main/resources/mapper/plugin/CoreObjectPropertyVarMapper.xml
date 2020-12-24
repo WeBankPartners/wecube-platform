@@ -1,213 +1,238 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
-<mapper namespace="com.webank.wecube.platform.core.repository.plugin.CoreObjectPropertyVarMapper" >
-  <resultMap id="BaseResultMap" type="com.webank.wecube.platform.core.entity.plugin.CoreObjectPropertyVar" >
-    <id column="id" property="id" jdbcType="VARCHAR" />
-    <result column="name" property="name" jdbcType="VARCHAR" />
-    <result column="data_type" property="dataType" jdbcType="VARCHAR" />
-    <result column="object_property_meta_id" property="objectPropertyMetaId" jdbcType="VARCHAR" />
-    <result column="object_meta_id" property="objectMetaId" jdbcType="VARCHAR" />
-    <result column="object_var_id" property="objectVarId" jdbcType="VARCHAR" />
-    <result column="data_value" property="dataValue" jdbcType="VARCHAR" />
-    <result column="data_type_id" property="dataTypeId" jdbcType="VARCHAR" />
-    <result column="data_id" property="dataId" jdbcType="VARCHAR" />
-    <result column="data_name" property="dataName" jdbcType="VARCHAR" />
-    <result column="created_by" property="createdBy" jdbcType="VARCHAR" />
-    <result column="created_time" property="createdTime" jdbcType="TIMESTAMP" />
-    <result column="updated_by" property="updatedBy" jdbcType="VARCHAR" />
-    <result column="updated_time" property="updatedTime" jdbcType="TIMESTAMP" />
-    <result column="sensitive" property="sensitive" jdbcType="BIT" />
-  </resultMap>
-  <sql id="Base_Column_List" >
-    id, name, data_type, object_property_meta_id, object_meta_id, object_var_id, data_value, 
-    data_type_id, data_id, data_name, created_by, created_time, updated_by, updated_time, 
-    sensitive
-  </sql>
-  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.String" >
-    select 
-    <include refid="Base_Column_List" />
-    from core_object_property_var
-    where id = #{id,jdbcType=VARCHAR}
-  </select>
-  <delete id="deleteByPrimaryKey" parameterType="java.lang.String" >
-    delete from core_object_property_var
-    where id = #{id,jdbcType=VARCHAR}
-  </delete>
-  <insert id="insert" parameterType="com.webank.wecube.platform.core.entity.plugin.CoreObjectPropertyVar" >
-    insert into core_object_property_var (id, name, data_type, 
-      object_property_meta_id, object_meta_id, object_var_id, 
-      data_value, data_type_id, data_id, 
-      data_name, created_by, created_time, 
-      updated_by, updated_time, sensitive
-      )
-    values (#{id,jdbcType=VARCHAR}, #{name,jdbcType=VARCHAR}, #{dataType,jdbcType=VARCHAR}, 
-      #{objectPropertyMetaId,jdbcType=VARCHAR}, #{objectMetaId,jdbcType=VARCHAR}, #{objectVarId,jdbcType=VARCHAR}, 
-      #{dataValue,jdbcType=VARCHAR}, #{dataTypeId,jdbcType=VARCHAR}, #{dataId,jdbcType=VARCHAR}, 
-      #{dataName,jdbcType=VARCHAR}, #{createdBy,jdbcType=VARCHAR}, #{createdTime,jdbcType=TIMESTAMP}, 
-      #{updatedBy,jdbcType=VARCHAR}, #{updatedTime,jdbcType=TIMESTAMP}, #{sensitive,jdbcType=BIT}
-      )
-  </insert>
-  <insert id="insertSelective" parameterType="com.webank.wecube.platform.core.entity.plugin.CoreObjectPropertyVar" >
-    insert into core_object_property_var
-    <trim prefix="(" suffix=")" suffixOverrides="," >
-      <if test="id != null" >
-        id,
-      </if>
-      <if test="name != null" >
-        name,
-      </if>
-      <if test="dataType != null" >
-        data_type,
-      </if>
-      <if test="objectPropertyMetaId != null" >
-        object_property_meta_id,
-      </if>
-      <if test="objectMetaId != null" >
-        object_meta_id,
-      </if>
-      <if test="objectVarId != null" >
-        object_var_id,
-      </if>
-      <if test="dataValue != null" >
-        data_value,
-      </if>
-      <if test="dataTypeId != null" >
-        data_type_id,
-      </if>
-      <if test="dataId != null" >
-        data_id,
-      </if>
-      <if test="dataName != null" >
-        data_name,
-      </if>
-      <if test="createdBy != null" >
-        created_by,
-      </if>
-      <if test="createdTime != null" >
-        created_time,
-      </if>
-      <if test="updatedBy != null" >
-        updated_by,
-      </if>
-      <if test="updatedTime != null" >
+<mapper
+    namespace="com.webank.wecube.platform.core.repository.plugin.CoreObjectPropertyVarMapper">
+    <resultMap id="BaseResultMap"
+        type="com.webank.wecube.platform.core.entity.plugin.CoreObjectPropertyVar">
+        <id column="id" property="id" jdbcType="VARCHAR" />
+        <result column="name" property="name" jdbcType="VARCHAR" />
+        <result column="data_type" property="dataType" jdbcType="VARCHAR" />
+        <result column="object_property_meta_id" property="objectPropertyMetaId"
+            jdbcType="VARCHAR" />
+        <result column="object_meta_id" property="objectMetaId"
+            jdbcType="VARCHAR" />
+        <result column="object_var_id" property="objectVarId"
+            jdbcType="VARCHAR" />
+        <result column="data_value" property="dataValue"
+            jdbcType="VARCHAR" />
+        <result column="data_type_id" property="dataTypeId"
+            jdbcType="VARCHAR" />
+        <result column="data_id" property="dataId" jdbcType="VARCHAR" />
+        <result column="data_name" property="dataName" jdbcType="VARCHAR" />
+        <result column="created_by" property="createdBy"
+            jdbcType="VARCHAR" />
+        <result column="created_time" property="createdTime"
+            jdbcType="TIMESTAMP" />
+        <result column="updated_by" property="updatedBy"
+            jdbcType="VARCHAR" />
+        <result column="updated_time" property="updatedTime"
+            jdbcType="TIMESTAMP" />
+        <result column="is_sensitive" property="sensitive"
+            jdbcType="BIT" />
+    </resultMap>
+    <sql id="Base_Column_List">
+        id, name, data_type, object_property_meta_id, object_meta_id,
+        object_var_id, data_value,
+        data_type_id, data_id, data_name, created_by, created_time, updated_by,
         updated_time,
-      </if>
-      <if test="sensitive != null" >
-        sensitive,
-      </if>
-    </trim>
-    <trim prefix="values (" suffix=")" suffixOverrides="," >
-      <if test="id != null" >
-        #{id,jdbcType=VARCHAR},
-      </if>
-      <if test="name != null" >
-        #{name,jdbcType=VARCHAR},
-      </if>
-      <if test="dataType != null" >
+        is_sensitive
+    </sql>
+    <select id="selectByPrimaryKey" resultMap="BaseResultMap"
+        parameterType="java.lang.String">
+        select
+        <include refid="Base_Column_List" />
+        from core_object_property_var
+        where id = #{id,jdbcType=VARCHAR}
+    </select>
+    <delete id="deleteByPrimaryKey" parameterType="java.lang.String">
+        delete from core_object_property_var
+        where id = #{id,jdbcType=VARCHAR}
+    </delete>
+    <insert id="insert"
+        parameterType="com.webank.wecube.platform.core.entity.plugin.CoreObjectPropertyVar">
+        insert into core_object_property_var (id, name, data_type,
+        object_property_meta_id, object_meta_id, object_var_id,
+        data_value, data_type_id, data_id,
+        data_name, created_by, created_time,
+        updated_by, updated_time, is_sensitive
+        )
+        values (#{id,jdbcType=VARCHAR}, #{name,jdbcType=VARCHAR},
         #{dataType,jdbcType=VARCHAR},
-      </if>
-      <if test="objectPropertyMetaId != null" >
         #{objectPropertyMetaId,jdbcType=VARCHAR},
-      </if>
-      <if test="objectMetaId != null" >
         #{objectMetaId,jdbcType=VARCHAR},
-      </if>
-      <if test="objectVarId != null" >
         #{objectVarId,jdbcType=VARCHAR},
-      </if>
-      <if test="dataValue != null" >
-        #{dataValue,jdbcType=VARCHAR},
-      </if>
-      <if test="dataTypeId != null" >
-        #{dataTypeId,jdbcType=VARCHAR},
-      </if>
-      <if test="dataId != null" >
-        #{dataId,jdbcType=VARCHAR},
-      </if>
-      <if test="dataName != null" >
-        #{dataName,jdbcType=VARCHAR},
-      </if>
-      <if test="createdBy != null" >
-        #{createdBy,jdbcType=VARCHAR},
-      </if>
-      <if test="createdTime != null" >
+        #{dataValue,jdbcType=VARCHAR}, #{dataTypeId,jdbcType=VARCHAR}, #{dataId,jdbcType=VARCHAR},
+        #{dataName,jdbcType=VARCHAR}, #{createdBy,jdbcType=VARCHAR},
         #{createdTime,jdbcType=TIMESTAMP},
-      </if>
-      <if test="updatedBy != null" >
         #{updatedBy,jdbcType=VARCHAR},
-      </if>
-      <if test="updatedTime != null" >
-        #{updatedTime,jdbcType=TIMESTAMP},
-      </if>
-      <if test="sensitive != null" >
-        #{sensitive,jdbcType=BIT},
-      </if>
-    </trim>
-  </insert>
-  <update id="updateByPrimaryKeySelective" parameterType="com.webank.wecube.platform.core.entity.plugin.CoreObjectPropertyVar" >
-    update core_object_property_var
-    <set >
-      <if test="name != null" >
-        name = #{name,jdbcType=VARCHAR},
-      </if>
-      <if test="dataType != null" >
+        #{updatedTime,jdbcType=TIMESTAMP}, #{sensitive,jdbcType=BIT}
+        )
+    </insert>
+    <insert id="insertSelective"
+        parameterType="com.webank.wecube.platform.core.entity.plugin.CoreObjectPropertyVar">
+        insert into core_object_property_var
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="id != null">
+                id,
+            </if>
+            <if test="name != null">
+                name,
+            </if>
+            <if test="dataType != null">
+                data_type,
+            </if>
+            <if test="objectPropertyMetaId != null">
+                object_property_meta_id,
+            </if>
+            <if test="objectMetaId != null">
+                object_meta_id,
+            </if>
+            <if test="objectVarId != null">
+                object_var_id,
+            </if>
+            <if test="dataValue != null">
+                data_value,
+            </if>
+            <if test="dataTypeId != null">
+                data_type_id,
+            </if>
+            <if test="dataId != null">
+                data_id,
+            </if>
+            <if test="dataName != null">
+                data_name,
+            </if>
+            <if test="createdBy != null">
+                created_by,
+            </if>
+            <if test="createdTime != null">
+                created_time,
+            </if>
+            <if test="updatedBy != null">
+                updated_by,
+            </if>
+            <if test="updatedTime != null">
+                updated_time,
+            </if>
+            <if test="sensitive != null">
+                is_sensitive,
+            </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="id != null">
+                #{id,jdbcType=VARCHAR},
+            </if>
+            <if test="name != null">
+                #{name,jdbcType=VARCHAR},
+            </if>
+            <if test="dataType != null">
+                #{dataType,jdbcType=VARCHAR},
+            </if>
+            <if test="objectPropertyMetaId != null">
+                #{objectPropertyMetaId,jdbcType=VARCHAR},
+            </if>
+            <if test="objectMetaId != null">
+                #{objectMetaId,jdbcType=VARCHAR},
+            </if>
+            <if test="objectVarId != null">
+                #{objectVarId,jdbcType=VARCHAR},
+            </if>
+            <if test="dataValue != null">
+                #{dataValue,jdbcType=VARCHAR},
+            </if>
+            <if test="dataTypeId != null">
+                #{dataTypeId,jdbcType=VARCHAR},
+            </if>
+            <if test="dataId != null">
+                #{dataId,jdbcType=VARCHAR},
+            </if>
+            <if test="dataName != null">
+                #{dataName,jdbcType=VARCHAR},
+            </if>
+            <if test="createdBy != null">
+                #{createdBy,jdbcType=VARCHAR},
+            </if>
+            <if test="createdTime != null">
+                #{createdTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="updatedBy != null">
+                #{updatedBy,jdbcType=VARCHAR},
+            </if>
+            <if test="updatedTime != null">
+                #{updatedTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="sensitive != null">
+                #{sensitive,jdbcType=BIT},
+            </if>
+        </trim>
+    </insert>
+    <update id="updateByPrimaryKeySelective"
+        parameterType="com.webank.wecube.platform.core.entity.plugin.CoreObjectPropertyVar">
+        update core_object_property_var
+        <set>
+            <if test="name != null">
+                name = #{name,jdbcType=VARCHAR},
+            </if>
+            <if test="dataType != null">
+                data_type = #{dataType,jdbcType=VARCHAR},
+            </if>
+            <if test="objectPropertyMetaId != null">
+                object_property_meta_id =
+                #{objectPropertyMetaId,jdbcType=VARCHAR},
+            </if>
+            <if test="objectMetaId != null">
+                object_meta_id = #{objectMetaId,jdbcType=VARCHAR},
+            </if>
+            <if test="objectVarId != null">
+                object_var_id = #{objectVarId,jdbcType=VARCHAR},
+            </if>
+            <if test="dataValue != null">
+                data_value = #{dataValue,jdbcType=VARCHAR},
+            </if>
+            <if test="dataTypeId != null">
+                data_type_id = #{dataTypeId,jdbcType=VARCHAR},
+            </if>
+            <if test="dataId != null">
+                data_id = #{dataId,jdbcType=VARCHAR},
+            </if>
+            <if test="dataName != null">
+                data_name = #{dataName,jdbcType=VARCHAR},
+            </if>
+            <if test="createdBy != null">
+                created_by = #{createdBy,jdbcType=VARCHAR},
+            </if>
+            <if test="createdTime != null">
+                created_time = #{createdTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="updatedBy != null">
+                updated_by = #{updatedBy,jdbcType=VARCHAR},
+            </if>
+            <if test="updatedTime != null">
+                updated_time = #{updatedTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="sensitive != null">
+                is_sensitive = #{sensitive,jdbcType=BIT},
+            </if>
+        </set>
+        where id = #{id,jdbcType=VARCHAR}
+    </update>
+    <update id="updateByPrimaryKey"
+        parameterType="com.webank.wecube.platform.core.entity.plugin.CoreObjectPropertyVar">
+        update core_object_property_var
+        set name = #{name,jdbcType=VARCHAR},
         data_type = #{dataType,jdbcType=VARCHAR},
-      </if>
-      <if test="objectPropertyMetaId != null" >
         object_property_meta_id = #{objectPropertyMetaId,jdbcType=VARCHAR},
-      </if>
-      <if test="objectMetaId != null" >
         object_meta_id = #{objectMetaId,jdbcType=VARCHAR},
-      </if>
-      <if test="objectVarId != null" >
         object_var_id = #{objectVarId,jdbcType=VARCHAR},
-      </if>
-      <if test="dataValue != null" >
         data_value = #{dataValue,jdbcType=VARCHAR},
-      </if>
-      <if test="dataTypeId != null" >
         data_type_id = #{dataTypeId,jdbcType=VARCHAR},
-      </if>
-      <if test="dataId != null" >
         data_id = #{dataId,jdbcType=VARCHAR},
-      </if>
-      <if test="dataName != null" >
         data_name = #{dataName,jdbcType=VARCHAR},
-      </if>
-      <if test="createdBy != null" >
         created_by = #{createdBy,jdbcType=VARCHAR},
-      </if>
-      <if test="createdTime != null" >
         created_time = #{createdTime,jdbcType=TIMESTAMP},
-      </if>
-      <if test="updatedBy != null" >
         updated_by = #{updatedBy,jdbcType=VARCHAR},
-      </if>
-      <if test="updatedTime != null" >
         updated_time = #{updatedTime,jdbcType=TIMESTAMP},
-      </if>
-      <if test="sensitive != null" >
-        sensitive = #{sensitive,jdbcType=BIT},
-      </if>
-    </set>
-    where id = #{id,jdbcType=VARCHAR}
-  </update>
-  <update id="updateByPrimaryKey" parameterType="com.webank.wecube.platform.core.entity.plugin.CoreObjectPropertyVar" >
-    update core_object_property_var
-    set name = #{name,jdbcType=VARCHAR},
-      data_type = #{dataType,jdbcType=VARCHAR},
-      object_property_meta_id = #{objectPropertyMetaId,jdbcType=VARCHAR},
-      object_meta_id = #{objectMetaId,jdbcType=VARCHAR},
-      object_var_id = #{objectVarId,jdbcType=VARCHAR},
-      data_value = #{dataValue,jdbcType=VARCHAR},
-      data_type_id = #{dataTypeId,jdbcType=VARCHAR},
-      data_id = #{dataId,jdbcType=VARCHAR},
-      data_name = #{dataName,jdbcType=VARCHAR},
-      created_by = #{createdBy,jdbcType=VARCHAR},
-      created_time = #{createdTime,jdbcType=TIMESTAMP},
-      updated_by = #{updatedBy,jdbcType=VARCHAR},
-      updated_time = #{updatedTime,jdbcType=TIMESTAMP},
-      sensitive = #{sensitive,jdbcType=BIT}
-    where id = #{id,jdbcType=VARCHAR}
-  </update>
+        is_sensitive = #{sensitive,jdbcType=BIT}
+        where id = #{id,jdbcType=VARCHAR}
+    </update>
 </mapper>
