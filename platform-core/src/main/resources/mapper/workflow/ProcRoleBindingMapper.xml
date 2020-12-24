@@ -174,14 +174,14 @@
         </foreach>
     </select>
 
-    <delete id="deleteByProcIdAndRoleIdAndPermission"
+    <delete id="deleteByProcIdAndRoleAndPermission"
         parameterType="java.lang.String">
         delete from
         core_ru_proc_role_binding
         where proc_id
         = #{procId,jdbcType=VARCHAR}
-        and role_id =
-        #{roleId,jdbcType=VARCHAR}
+        and role_name =
+        #{roleName,jdbcType=VARCHAR}
         and permission =
         #{permission,jdbcType=VARCHAR}
 
