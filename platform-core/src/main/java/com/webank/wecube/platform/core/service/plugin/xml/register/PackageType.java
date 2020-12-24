@@ -33,6 +33,7 @@ import javax.xml.bind.annotation.XmlType;
  *         &lt;element name="authorities" type="{}authoritiesType" minOccurs="0"/>
  *         &lt;element name="resourceDependencies" type="{}resourceDependenciesType"/>
  *         &lt;element name="plugins" type="{}pluginsType" minOccurs="0"/>
+ *         &lt;element name="paramObjects" type="{}paramObjectsType" minOccurs="0"/>
  *       &lt;/sequence>
  *       &lt;attribute name="name" type="{http://www.w3.org/2001/XMLSchema}string" />
  *       &lt;attribute name="version" type="{http://www.w3.org/2001/XMLSchema}string" />
@@ -52,6 +53,7 @@ import javax.xml.bind.annotation.XmlType;
     "systemParameters",
     "authorities",
     "resourceDependencies",
+    "paramObjects",
     "plugins"
 })
 public class PackageType {
@@ -68,6 +70,7 @@ public class PackageType {
     protected String name;
     @XmlAttribute(name = "version")
     protected String version;
+    protected ParamObjectsType paramObjects;
 
     /**
      * Gets the value of the packageDependencies property.
@@ -285,4 +288,13 @@ public class PackageType {
         this.version = value;
     }
 
+    public ParamObjectsType getParamObjects() {
+        return paramObjects;
+    }
+
+    public void setParamObjects(ParamObjectsType paramObjects) {
+        this.paramObjects = paramObjects;
+    }
+
+    
 }

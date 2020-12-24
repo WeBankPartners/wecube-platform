@@ -94,6 +94,7 @@ import com.webank.wecube.platform.core.service.plugin.xml.register.OutputParamet
 import com.webank.wecube.platform.core.service.plugin.xml.register.PackageDependenciesType;
 import com.webank.wecube.platform.core.service.plugin.xml.register.PackageDependencyType;
 import com.webank.wecube.platform.core.service.plugin.xml.register.PackageType;
+import com.webank.wecube.platform.core.service.plugin.xml.register.ParamObjectsType;
 import com.webank.wecube.platform.core.service.plugin.xml.register.PluginType;
 import com.webank.wecube.platform.core.service.plugin.xml.register.PluginsType;
 import com.webank.wecube.platform.core.service.plugin.xml.register.ResourceDependenciesType;
@@ -186,6 +187,9 @@ public class PluginArtifactsMgmtService extends AbstractPluginMgmtService {
 
     @Autowired
     private UserManagementService userManagementService;
+    
+    @Autowired
+    private PluginParamObjectSupportService pluginParamObjectSupportService;
 
     /**
      * 
@@ -484,6 +488,8 @@ public class PluginArtifactsMgmtService extends AbstractPluginMgmtService {
         processResourceDependencies(xmlPackage.getResourceDependencies(), xmlPackage, pluginPackageEntity);
 
         processDataModels(xmlPackage.getDataModel(), xmlPackage, pluginPackageEntity);
+        
+        processParamObjects(xmlPackage.getParamObjects(), xmlPackage.getName(), xmlPackage.getVersion());
 
         UploadPackageResultDto result = new UploadPackageResultDto();
         result.setId(pluginPackageEntity.getId());
@@ -493,6 +499,10 @@ public class PluginArtifactsMgmtService extends AbstractPluginMgmtService {
         result.setUiPackageIncluded(pluginPackageEntity.getUiPackageIncluded());
 
         return result;
+    }
+    
+    private void processParamObjects(ParamObjectsType xmlParamObjects, String packageName, String packageVersion){
+        pluginParamObjectSupportService.registerParamObjects(xmlParamObjects, packageName, packageVersion);
     }
 
     private void processPackageDependencies(PackageDependenciesType xmlPackageDependenciesType, PackageType xmlPackage,
