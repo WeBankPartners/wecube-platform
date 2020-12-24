@@ -137,10 +137,10 @@
     </select>
     
     
-    <delete id="deleteByfavoritesIdAndRoleIdAndPermission" parameterType="java.lang.String">
+    <delete id="deleteByfavoritesIdAndRoleNameAndPermission" parameterType="java.lang.String">
         delete from favorites_role
         where favorites_id = #{favoritesId,jdbcType=VARCHAR}
         and permission = #{permission,jdbcType=VARCHAR}
-        and role_id = #{roleId,jdbcType=VARCHAR}
+        and role_name = #{roleName,jdbcType=VARCHAR}
     </delete>
 </mapper>
