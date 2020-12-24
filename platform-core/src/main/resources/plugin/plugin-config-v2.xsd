@@ -122,6 +122,33 @@
       <xs:element type="s3Type" name="s3" minOccurs="0" maxOccurs="unbounded"/>
     </xs:sequence>
   </xs:complexType>
+  
+  <xs:complexType name="paramPropertyType">
+    <xs:simpleContent>
+      <xs:extension base="xs:string">
+        <xs:attribute type="xs:string" name="name" use="required"/>
+        <xs:attribute type="xs:string" name="dataType" use="required"/>
+        <xs:attribute type="xs:string" name="refType" use="optional"/>
+        <xs:attribute type="xs:string" name="mapType" use="optional"/>
+        <xs:attribute type="xs:string" name="mapExpr" use="optional"/>
+        <xs:attribute type="xs:string" name="sensitiveData" use="optional" default="N"/>
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+  
+  <xs:complexType name="paramObjectType">
+    <xs:sequence>
+      <xs:element type="paramPropertyType" name="property" minOccurs="0" maxOccurs="unbounded"/>
+    </xs:sequence>
+    <xs:attribute type="xs:string" name="name" use="required"/>
+  </xs:complexType>
+  
+  <xs:complexType name="paramObjectsType">
+    <xs:sequence minOccurs="0">
+      <xs:element type="paramObjectType" name="paramObject" maxOccurs="unbounded"/>
+    </xs:sequence>
+  </xs:complexType>
+  
   <xs:complexType name="inputParameterType">
     <xs:simpleContent>
       <xs:extension base="xs:string">
@@ -234,6 +261,12 @@
       <xs:element type="pluginsType" name="plugins" minOccurs="0">
         <xs:annotation>
           <xs:documentation>7.插件列表 - 描述插件包中单个插件的输入和输出</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      
+      <xs:element type="paramObjectsType" name="paramObjects" minOccurs="0" maxOccurs="1">
+        <xs:annotation>
+          <xs:documentation>8.对象参数列表 - 描述插件包定义的对象参数结构</xs:documentation>
         </xs:annotation>
       </xs:element>
     </xs:sequence>
