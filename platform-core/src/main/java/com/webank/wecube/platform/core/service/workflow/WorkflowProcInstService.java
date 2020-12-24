@@ -390,51 +390,82 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
         if (!ProcDefInfoEntity.DEPLOYED_STATUS.equals(procDefInfoEntity.getStatus())) {
             log.warn("expected status {} but {} for procDefId {}", ProcDefInfoEntity.DEPLOYED_STATUS,
                     procDefInfoEntity.getStatus(), procDefId);
-            throw new WecubeCoreException("3150", String.format("Invalid process definition ID:%s", procDefId));
+            throw new WecubeCoreException("3150", String.format("Invalid process definition ID:%s", procDefId), procDefId);
         }
 
         if (StringUtils.isBlank(procDefInfoEntity.getProcDefKernelId())) {
             log.warn("cannot know process definition id for {}", procDefId);
-            throw new WecubeCoreException("3151", String.format("Invalid process definition ID:%s", procDefId));
+            throw new WecubeCoreException("3151", String.format("Invalid process definition ID:%s", procDefId), procDefId);
         }
 
         String procInstKey = LocalIdGenerator.generateId();
 
-        ProcInstInfoEntity procInstInfoEntity = new ProcInstInfoEntity();
-        procInstInfoEntity.setStatus(ProcInstInfoEntity.NOT_STARTED_STATUS);
-        procInstInfoEntity.setOper(AuthenticationContextHolder.getCurrentUsername());
-        procInstInfoEntity.setProcDefId(procDefId);
-        procInstInfoEntity.setProcDefKey(procDefInfoEntity.getProcDefKey());
-        procInstInfoEntity.setProcDefName(procDefInfoEntity.getProcDefName());
-        procInstInfoEntity.setProcInstKey(procInstKey);
-        procInstInfoEntity.setCreatedBy(AuthenticationContextHolder.getCurrentUsername());
-        procInstInfoEntity.setCreatedTime(new Date());
+        ProcInstInfoEntity procInstInfoEntity = buildAndStoreProcInstInfoEntity(procDefInfoEntity, procInstKey);
+        
 
-        procInstInfoRepository.insert(procInstInfoEntity);
+        buildAndStoreProcInstProcExecBinding( rootEntityTypeId, 
+                 rootEntityDataId,  rootEntityDataName, 
+                 procDefInfoEntity, 
+                 procInstInfoEntity);
+        
+        buildAndStoreTaskNodeInstances(procDefInfoEntity, procInstInfoEntity, requestDto);
 
+        ProcInstInfoDto result = doCreateProcessInstance(procInstInfoEntity, procDefInfoEntity.getProcDefKernelId(),
+                procInstKey);
+        result.setProcDefKey(procDefInfoEntity.getProcDefKey());
+
+        postHandleGraphNodes(requestDto, result);
+        return result;
+    }
+    
+    private void buildAndStoreTaskNodeInstances(ProcDefInfoEntity procDefInfoEntity, ProcInstInfoEntity procInstInfoEntity, StartProcInstRequestDto requestDto) {
+        List<TaskNodeDefInfoEntity> taskNodeDefInfoEntities = taskNodeDefInfoRepository.selectAllByProcDefId(procDefInfoEntity.getId());
+        
+        if(taskNodeDefInfoEntities == null || taskNodeDefInfoEntities.isEmpty()) {
+            log.info("There is not task node definitions found for process definition {}", procDefInfoEntity.getId());
+            return;
+        }
+
+        for (TaskNodeDefInfoEntity taskNodeDefInfoEntity : taskNodeDefInfoEntities) {
+            processSingleTaskNodeDefInfoEntityWhenCreate(taskNodeDefInfoEntity, procInstInfoEntity, requestDto,
+                    procDefInfoEntity.getId());
+        }
+    }
+    
+    private ProcExecBindingEntity buildAndStoreProcInstProcExecBinding(String rootEntityTypeId, 
+            String rootEntityDataId, String rootEntityDataName, 
+            ProcDefInfoEntity procDefInfoEntity, 
+            ProcInstInfoEntity procInstInfoEntity) {
         ProcExecBindingEntity procInstBindEntity = new ProcExecBindingEntity();
         procInstBindEntity.setBindType(ProcExecBindingEntity.BIND_TYPE_PROC_INSTANCE);
         procInstBindEntity.setEntityTypeId(rootEntityTypeId);
         procInstBindEntity.setEntityDataId(rootEntityDataId);
         procInstBindEntity.setEntityDataName(rootEntityDataName);
-        procInstBindEntity.setProcDefId(procDefId);
+        procInstBindEntity.setProcDefId(procDefInfoEntity.getId());
         procInstBindEntity.setProcInstId(procInstInfoEntity.getId());
         procInstBindEntity.setCreatedBy(AuthenticationContextHolder.getCurrentUsername());
         procInstBindEntity.setCreatedTime(new Date());
+        
         procExecBindingRepository.insert(procInstBindEntity);
-
-        List<TaskNodeDefInfoEntity> taskNodeDefInfoEntities = taskNodeDefInfoRepository.selectAllByProcDefId(procDefId);
-
-        for (TaskNodeDefInfoEntity taskNodeDefInfoEntity : taskNodeDefInfoEntities) {
-            processSingleTaskNodeDefInfoEntityWhenCreate(taskNodeDefInfoEntity, procInstInfoEntity, requestDto,
-                    procDefId);
-        }
-
-        ProcInstInfoDto result = doCreateProcessInstance(procInstInfoEntity, procDefInfoEntity.getProcDefKernelId(),
-                procInstKey);
-
-        postHandleGraphNodes(requestDto, result);
-        return result;
+        
+        return procInstBindEntity;
+    }
+    
+    private ProcInstInfoEntity buildAndStoreProcInstInfoEntity(ProcDefInfoEntity procDefInfoEntity, String procInstKey ) {
+        ProcInstInfoEntity procInstInfoEntity = new ProcInstInfoEntity();
+        procInstInfoEntity.setStatus(ProcInstInfoEntity.NOT_STARTED_STATUS);
+        procInstInfoEntity.setOper(AuthenticationContextHolder.getCurrentUsername());
+        procInstInfoEntity.setProcDefId(procDefInfoEntity.getId());
+        procInstInfoEntity.setProcDefKey(procDefInfoEntity.getProcDefKey());
+        procInstInfoEntity.setProcDefName(procDefInfoEntity.getProcDefName());
+        procInstInfoEntity.setProcInstKey(procInstKey);
+        procInstInfoEntity.setCreatedBy(AuthenticationContextHolder.getCurrentUsername());
+        procInstInfoEntity.setCreatedTime(new Date());
+        procInstInfoEntity.setRev(0);
+        
+        procInstInfoRepository.insert(procInstInfoEntity);
+        
+        return procInstInfoEntity;
     }
 
     private void processSingleTaskNodeDefInfoEntityWhenCreate(TaskNodeDefInfoEntity taskNodeDefInfoEntity,
