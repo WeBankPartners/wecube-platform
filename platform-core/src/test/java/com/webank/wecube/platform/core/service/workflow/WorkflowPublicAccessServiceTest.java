@@ -22,6 +22,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.webank.wecube.platform.core.commons.AuthenticationContextHolder;
 import com.webank.wecube.platform.core.commons.AuthenticationContextHolder.AuthenticatedUser;
+import com.webank.wecube.platform.core.dto.workflow.DynamicWorkflowInstCreationInfoDto;
 import com.webank.wecube.platform.core.dto.workflow.WorkflowDefInfoDto;
 import com.webank.wecube.platform.core.dto.workflow.WorkflowNodeDefInfoDto;
 
@@ -80,6 +81,18 @@ public class WorkflowPublicAccessServiceTest {
     @Ignore
     @Test
     public void testCreateNewWorkflowInstance() {
+        DynamicWorkflowInstCreationInfoDto creationRequestDto = mockCreationRequestDto();
+        
+        
+    }
+    
+    private DynamicWorkflowInstCreationInfoDto mockCreationRequestDto() {
+        DynamicWorkflowInstCreationInfoDto creationRequestDto = new DynamicWorkflowInstCreationInfoDto();
+        
+        
+        
+        
+        return creationRequestDto;
     }
 
 }
