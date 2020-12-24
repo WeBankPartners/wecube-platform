@@ -83,7 +83,7 @@ public class AbstractWorkflowProcDefService extends AbstractWorkflowService{
 
         Map<String, List<String>> permissionToRoleMap = procDefInfoDto.getPermissionToRole();
 
-        if (null == permissionToRoleMap) {
+        if (permissionToRoleMap == null || permissionToRoleMap.isEmpty()) {
             throw new WecubeCoreException("3164","There is no process to role with permission mapping found.");
         }
 
@@ -92,7 +92,7 @@ public class AbstractWorkflowProcDefService extends AbstractWorkflowService{
             String permissionStr = permissionToRoleListEntry.getKey();
 
             // check if key is empty or NULL
-            if (StringUtils.isEmpty(permissionStr)) {
+            if (StringUtils.isBlank(permissionStr)) {
                 errorMsg = "The permission key should not be empty or NULL";
                 log.error(errorMsg);
                 throw new WecubeCoreException("3165",errorMsg);
@@ -100,10 +100,10 @@ public class AbstractWorkflowProcDefService extends AbstractWorkflowService{
 
            
 
-            List<String> roleIdList = permissionToRoleListEntry.getValue();
+            List<String> roleNameList = permissionToRoleListEntry.getValue();
 
             // check if roleIdList is NULL
-            if (null == roleIdList) {
+            if (roleNameList == null) {
                 errorMsg = String.format("The value of permission: [%s] should not be NULL", permissionStr);
                 log.error(errorMsg);
                 throw new WecubeCoreException("3294",errorMsg,permissionStr);
@@ -111,12 +111,12 @@ public class AbstractWorkflowProcDefService extends AbstractWorkflowService{
 
             // when permission is MGMT and roleIdList is empty, then it is
             // invalid
-            if (ProcRoleBindingEntity.MGMT.equals(permissionStr) && roleIdList.isEmpty()) {
+            if (ProcRoleBindingEntity.MGMT.equals(permissionStr) && roleNameList.isEmpty()) {
                 errorMsg = "At least one role with MGMT role should be declared.";
                 log.error(errorMsg);
                 throw new WecubeCoreException("3168",errorMsg);
             }
-            processRoleService.batchSaveData(procId, roleIdList, permissionStr);
+            processRoleService.batchSaveData(procId, roleNameList, permissionStr);
         }
     }
     
