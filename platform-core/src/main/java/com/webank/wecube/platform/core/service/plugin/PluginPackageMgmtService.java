@@ -805,12 +805,12 @@ public class PluginPackageMgmtService extends AbstractPluginMgmtService {
         }
 
         for (PluginConfigRoles permEntity : configRolesEntities) {
-            List<String> roleIdsOfPerm = permissionToRoles.get(permEntity.getPermType());
-            if (roleIdsOfPerm == null) {
-                roleIdsOfPerm = new ArrayList<String>();
-                permissionToRoles.put(permEntity.getPermType(), roleIdsOfPerm);
+            List<String> roleNamesOfPerm = permissionToRoles.get(permEntity.getPermType());
+            if (roleNamesOfPerm == null) {
+                roleNamesOfPerm = new ArrayList<String>();
+                permissionToRoles.put(permEntity.getPermType(), roleNamesOfPerm);
             }
-            roleIdsOfPerm.add(permEntity.getRoleId());
+            roleNamesOfPerm.add(permEntity.getRoleName());
         }
         return permissionToRoles;
     }
