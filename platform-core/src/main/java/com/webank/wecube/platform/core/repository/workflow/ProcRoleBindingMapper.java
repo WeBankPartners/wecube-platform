@@ -80,6 +80,6 @@ public interface ProcRoleBindingMapper {
      * @param roleId
      * @param permission
      */
-    void deleteByProcIdAndRoleIdAndPermission(@Param("procId") String procId, @Param("roleId") String roleId,
+    void deleteByProcIdAndRoleAndPermission(@Param("procId") String procId, @Param("roleName") String roleName,
             @Param("permission") String permission);
 }

@@ -1,35 +1,20 @@
 package com.webank.wecube.platform.core.dto.workflow;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-
 import java.util.List;
+import java.util.Map;
 
 public class ProcRoleRequestDto {
-    String permission;
-    @JsonProperty(value = "roleId")
-    List<String> roleIdList;
+    private Map<String,List<String>> permissionToRole;
 
-    public ProcRoleRequestDto() {
+    public Map<String, List<String>> getPermissionToRole() {
+        return permissionToRole;
     }
 
-    public ProcRoleRequestDto(String permission, List<String> roleIdList) {
-        this.permission = permission;
-        this.roleIdList = roleIdList;
+    public void setPermissionToRole(Map<String, List<String>> permissionToRole) {
+        this.permissionToRole = permissionToRole;
     }
+   
+   
 
-    public String getPermission() {
-        return permission;
-    }
-
-    public void setPermission(String permission) {
-        this.permission = permission;
-    }
-
-    public List<String> getRoleIdList() {
-        return roleIdList;
-    }
-
-    public void setRoleIdList(List<String> roleIdList) {
-        this.roleIdList = roleIdList;
-    }
+    
 }

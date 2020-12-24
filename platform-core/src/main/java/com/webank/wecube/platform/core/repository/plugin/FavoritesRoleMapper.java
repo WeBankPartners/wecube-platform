@@ -58,6 +58,6 @@ public interface FavoritesRoleMapper {
      * @param permission
      * @return
      */
-    int deleteByfavoritesIdAndRoleIdAndPermission(@Param("favoritesId") String favoritesId,
-            @Param("roleId") String roleId, @Param("permission") String permission);
+    int deleteByfavoritesIdAndRoleNameAndPermission(@Param("favoritesId") String favoritesId,
+            @Param("roleName") String roleName, @Param("permission") String permission);
 }

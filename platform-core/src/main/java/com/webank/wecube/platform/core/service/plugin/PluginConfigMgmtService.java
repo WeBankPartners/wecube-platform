@@ -21,7 +21,6 @@ import com.webank.wecube.platform.core.dto.plugin.PluginConfigInterfaceDto;
 import com.webank.wecube.platform.core.dto.plugin.PluginConfigInterfaceParameterDto;
 import com.webank.wecube.platform.core.dto.plugin.PluginConfigRoleRequestDto;
 import com.webank.wecube.platform.core.dto.plugin.TargetEntityFilterRuleDto;
-import com.webank.wecube.platform.core.dto.user.RoleDto;
 import com.webank.wecube.platform.core.entity.plugin.AuthLatestEnabledInterfaces;
 import com.webank.wecube.platform.core.entity.plugin.PluginConfigInterfaceParameters;
 import com.webank.wecube.platform.core.entity.plugin.PluginConfigInterfaces;
@@ -133,10 +132,17 @@ public class PluginConfigMgmtService extends AbstractPluginMgmtService {
         }
 
         validateCurrentUserPermission(pluginConfigId, PluginConfigRoles.PERM_TYPE_MGMT);
+        
+        int deletedInterfacesRows = deletePluginConfigInterfaces(pluginConfigsEntity);
+        log.info("total {} interfaces was deleted for plugin config:{}", deletedInterfacesRows, pluginConfigsEntity.getId());
+        int deletedRoleBindingsRows = deletePluginConfigRoleBindings(pluginConfigsEntity);
+        log.info("total {} role bindings was deleted for plugin config:{}", deletedRoleBindingsRows, pluginConfigsEntity.getId());
 
         log.info("About to delete plugin config with id:{}", pluginConfigId);
         pluginConfigsMapper.deleteByPrimaryKey(pluginConfigId);
     }
+    
+   
 
     /**
      * 
@@ -327,17 +333,28 @@ public class PluginConfigMgmtService extends AbstractPluginMgmtService {
      */
     public void deletePluginConfigRoleBinding(String pluginConfigId,
             PluginConfigRoleRequestDto pluginConfigRoleRequestDto) throws WecubeCoreException {
-
-        String permission = pluginConfigRoleRequestDto.getPermission();
-        List<String> inputRoleIds = pluginConfigRoleRequestDto.getRoleIds();
-
-        validateCurrentUserPermission(pluginConfigId, PluginConfigRoles.PERM_TYPE_MGMT);
-
-        if (inputRoleIds == null || inputRoleIds.isEmpty()) {
-            return;
+        
+        if(pluginConfigRoleRequestDto == null ) {
+            throw new WecubeCoreException("There is not role setting provided.");
         }
+        Map<String,List<String>> permissionToRole = pluginConfigRoleRequestDto.getPermissionToRole();
+        if(permissionToRole == null || permissionToRole.isEmpty()) {
+            throw new WecubeCoreException("There is not role setting provided.");
+        }
+        validateCurrentUserPermission(pluginConfigId, PluginConfigRoles.PERM_TYPE_MGMT);
+        
+        for(Map.Entry<String, List<String>> entry :permissionToRole.entrySet()) {
+            String permission = entry.getKey();
+            List<String> roleNames = entry.getValue();
+            
+            if(roleNames == null || roleNames.isEmpty()) {
+                continue;
+            }
+            
+            deletePluginConfigRoleBindings(pluginConfigId, permission, roleNames);
+        }
+        
 
-        deletePluginConfigRoleBindings(pluginConfigId, permission, inputRoleIds);
     }
 
     /**
@@ -350,25 +367,50 @@ public class PluginConfigMgmtService extends AbstractPluginMgmtService {
         if (log.isDebugEnabled()) {
             log.debug("start to update plugin config role binding:{},{}", pluginConfigId, pluginConfigRoleRequestDto);
         }
-        String permission = pluginConfigRoleRequestDto.getPermission();
-        List<String> inputRoleIds = pluginConfigRoleRequestDto.getRoleIds();
+        
+        if(pluginConfigRoleRequestDto == null ) {
+            throw new WecubeCoreException("There is not role setting provided.");
+        }
+        Map<String,List<String>> permissionToRole = pluginConfigRoleRequestDto.getPermissionToRole();
+        if(permissionToRole == null || permissionToRole.isEmpty()) {
+            throw new WecubeCoreException("There is not role setting provided.");
+        }
         validateCurrentUserPermission(pluginConfigId, PluginConfigRoles.PERM_TYPE_MGMT);
-
-        if (inputRoleIds == null || inputRoleIds.isEmpty()) {
-            log.info("input role IDs is empty");
-            return;
-        }
-        List<String> existRoleIds = getExistRoleIdsOfPluginConfigAndPermission(pluginConfigId, permission);
-        List<String> roleIdsToAdd = new ArrayList<String>();
-        for (String roleId : inputRoleIds) {
-            if (existRoleIds.contains(roleId)) {
-                continue;
+        
+        for(Map.Entry<String, List<String>> entry :permissionToRole.entrySet()) {
+            String permission = entry.getKey();
+            List<String> inputRoleNames = entry.getValue();
+            
+            if(inputRoleNames == null ) {
+                inputRoleNames = new ArrayList<>();
             }
+            
+            List<String> existRoleNames = getExistRoleNamesOfPluginConfigAndPermission(pluginConfigId, permission);
+            List<String> roleNamesToAdd = new ArrayList<String>();
+            for (String inputRoleName : inputRoleNames) {
+                if (existRoleNames.contains(inputRoleName)) {
+                    continue;
+                }
 
-            roleIdsToAdd.add(roleId);
+                roleNamesToAdd.add(inputRoleName);
+            }
+            
+            List<String> roleNamesToRemove = new ArrayList<String>();
+            for(String existRoleName : existRoleNames) {
+                if(inputRoleNames.contains(existRoleName)) {
+                    continue;
+                }
+                
+                roleNamesToRemove.add(existRoleName);
+            }
+            
+            deletePluginConfigRoleBindings(pluginConfigId, permission, roleNamesToRemove);
+            addPluginConfigRoleBindings(pluginConfigId, permission, roleNamesToAdd);
+            
         }
+        
 
-        addPluginConfigRoleBindings(pluginConfigId, permission, roleIdsToAdd);
+        
     }
 
     /**
@@ -740,7 +782,7 @@ public class PluginConfigMgmtService extends AbstractPluginMgmtService {
         intfEntity.setHttpMethod(intfDto.getHttpMethod());
         intfEntity.setFilterRule(intfDto.getFilterRule());
 
-        // TODO type
+        //  type ?
         intfEntity.setServiceName(intfEntity.generateServiceName(pluginPackage, pluginConfig));
         intfEntity.setServiceDisplayName(intfEntity.generateServiceName(pluginPackage, pluginConfig));
         intfEntity.setIsAsyncProcessing(intfDto.getIsAsyncProcessing());
@@ -917,11 +959,11 @@ public class PluginConfigMgmtService extends AbstractPluginMgmtService {
         }
 
         for (String permission : permissionToRole.keySet()) {
-            List<String> roleIds = permissionToRole.get(permission);
-            if (roleIds != null) {
+            List<String> roleNames = permissionToRole.get(permission);
+            if (roleNames != null) {
                 List<String> addedRoleIds = new ArrayList<String>();
-                for (String roleId : roleIds) {
-                    RoleDto roleDto = userManagementService.retrieveRoleById(roleId);
+                for (String roleName : roleNames) {
+//                    RoleDto roleDto = userManagementService.retrieveRoleById(roleId);
                     PluginConfigRoles pluginAuthEntity = new PluginConfigRoles();
                     pluginAuthEntity.setId(LocalIdGenerator.uuid());
                     pluginAuthEntity.setIsActive(true);
@@ -929,11 +971,11 @@ public class PluginConfigMgmtService extends AbstractPluginMgmtService {
                     pluginAuthEntity.setCreatedTime(new Date());
                     pluginAuthEntity.setPermType(permission);
                     pluginAuthEntity.setPluginCfgId(pluginConfigId);
-                    pluginAuthEntity.setRoleId(roleId);
-                    pluginAuthEntity.setRoleName(roleDto.getName());
+                    pluginAuthEntity.setRoleId(roleName);
+                    pluginAuthEntity.setRoleName(roleName);
                     pluginConfigRolesMapper.insert(pluginAuthEntity);
 
-                    addedRoleIds.add(roleId);
+                    addedRoleIds.add(roleName);
                 }
 
                 log.info("plugin config roles bound:{}, {}, {}", pluginConfigId, permission, addedRoleIds.size());
@@ -952,7 +994,7 @@ public class PluginConfigMgmtService extends AbstractPluginMgmtService {
         }
 
         for (String permission : permissionToRole.keySet()) {
-            List<String> existRoleIds = getExistRoleIdsOfPluginConfigAndPermission(pluginConfigId, permission);
+            List<String> existRoleIds = getExistRoleNamesOfPluginConfigAndPermission(pluginConfigId, permission);
             List<String> inputRoleIds = permissionToRole.get(permission);
 
             List<String> roleIdsToAdd = CollectionUtils.listMinus(inputRoleIds, existRoleIds);
@@ -966,24 +1008,27 @@ public class PluginConfigMgmtService extends AbstractPluginMgmtService {
         return permissionToRole;
     }
 
-    private List<String> getExistRoleIdsOfPluginConfigAndPermission(String pluginConfigId, String permission) {
-        List<String> existRoleIds = new ArrayList<String>();
+    private List<String> getExistRoleNamesOfPluginConfigAndPermission(String pluginConfigId, String permission) {
+        List<String> existRoleNames = new ArrayList<String>();
         List<PluginConfigRoles> entities = this.pluginConfigRolesMapper.selectAllByPluginConfigAndPerm(pluginConfigId,
                 permission);
+        if(entities == null || entities.isEmpty()) {
+            return existRoleNames;
+        }
         for (PluginConfigRoles e : entities) {
-            existRoleIds.add(e.getRoleId());
+            existRoleNames.add(e.getRoleName());
         }
 
-        return existRoleIds;
+        return existRoleNames;
     }
 
-    private void addPluginConfigRoleBindings(String pluginConfigId, String permission, List<String> roleIdsToAdd) {
+    private void addPluginConfigRoleBindings(String pluginConfigId, String permission, List<String> roleNamesToAdd) {
         if (log.isDebugEnabled()) {
-            log.debug("roles to add for {} {}:{}", pluginConfigId, permission, roleIdsToAdd);
+            log.debug("roles to add for {} {}:{}", pluginConfigId, permission, roleNamesToAdd);
         }
 
-        for (String roleId : roleIdsToAdd) {
-            RoleDto roleDto = userManagementService.retrieveRoleById(roleId);
+        for (String roleName : roleNamesToAdd) {
+//            RoleDto roleDto = userManagementService.retrieveRoleById(roleId);
             PluginConfigRoles pluginAuthEntity = new PluginConfigRoles();
             pluginAuthEntity.setId(LocalIdGenerator.uuid());
             pluginAuthEntity.setIsActive(true);
@@ -991,22 +1036,22 @@ public class PluginConfigMgmtService extends AbstractPluginMgmtService {
             pluginAuthEntity.setCreatedTime(new Date());
             pluginAuthEntity.setPermType(permission);
             pluginAuthEntity.setPluginCfgId(pluginConfigId);
-            pluginAuthEntity.setRoleId(roleId);
-            pluginAuthEntity.setRoleName(roleDto.getName());
+            pluginAuthEntity.setRoleId(roleName);
+            pluginAuthEntity.setRoleName(roleName);
             pluginConfigRolesMapper.insert(pluginAuthEntity);
         }
 
     }
 
     private void deletePluginConfigRoleBindings(String pluginConfigId, String permission,
-            List<String> roleIdsToRemove) {
+            List<String> roleNamesToRemove) {
         if (log.isDebugEnabled()) {
-            log.debug("roles to remove for {} {}:{}", pluginConfigId, permission, roleIdsToRemove);
+            log.debug("roles to remove for {} {}:{}", pluginConfigId, permission, roleNamesToRemove);
         }
         List<PluginConfigRoles> entities = this.pluginConfigRolesMapper.selectAllByPluginConfigAndPerm(pluginConfigId,
                 permission);
-        for (String roleId : roleIdsToRemove) {
-            PluginConfigRoles entity = pickoutPluginAuthEntityByRoleId(entities, roleId);
+        for (String roleName : roleNamesToRemove) {
+            PluginConfigRoles entity = pickoutPluginAuthEntityByRoleName(entities, roleName);
             if (entity != null) {
                 this.pluginConfigRolesMapper.deleteByPrimaryKey(entity.getId());
             }
@@ -1014,9 +1059,9 @@ public class PluginConfigMgmtService extends AbstractPluginMgmtService {
 
     }
 
-    private PluginConfigRoles pickoutPluginAuthEntityByRoleId(List<PluginConfigRoles> entities, String roleId) {
+    private PluginConfigRoles pickoutPluginAuthEntityByRoleName(List<PluginConfigRoles> entities, String roleName) {
         for (PluginConfigRoles entity : entities) {
-            if (roleId.equals(entity.getRoleId())) {
+            if (roleName.equals(entity.getRoleName())) {
                 return entity;
             }
         }
@@ -1259,6 +1304,41 @@ public class PluginConfigMgmtService extends AbstractPluginMgmtService {
         }
 
         return true;
+    }
+    
+    private int deletePluginConfigRoleBindings(PluginConfigs pluginConfigsEntity) {
+        List<PluginConfigRoles> entities = this.pluginConfigRolesMapper.selectAllByPluginConfig(pluginConfigsEntity.getId());
+        if(entities == null || entities.isEmpty()) {
+            return 0;
+        }
+        
+        for(PluginConfigRoles entity : entities) {
+            pluginConfigRolesMapper.deleteByPrimaryKey(entity.getId());
+        }
+        
+        return entities.size();
+    }
+    
+    private int deletePluginConfigInterfaces(PluginConfigs pluginConfigsEntity) {
+        List<PluginConfigInterfaces> intfEntities = pluginConfigInterfacesMapper
+                .selectAllByPluginConfig(pluginConfigsEntity.getId());
+        
+        if(intfEntities == null || intfEntities.isEmpty()) {
+            return 0;
+        }
+        
+        for(PluginConfigInterfaces intfEntity : intfEntities) {
+            deletePluginConfigInterfaceParameters(intfEntity);
+            pluginConfigInterfacesMapper.deleteByPrimaryKey(intfEntity.getId());
+        }
+        
+        return intfEntities.size();
+    }
+    
+    private int deletePluginConfigInterfaceParameters(PluginConfigInterfaces intfEntity) {
+        int deletedRows = pluginConfigInterfaceParametersMapper
+                .deleteAllByConfigInterface(intfEntity.getId());
+        return deletedRows;
     }
 
 }

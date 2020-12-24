@@ -148,7 +148,7 @@ public class WorkflowProcessDefinitionController {
 
     @GetMapping("/process/{proc-id}/roles")
     public CommonResponseDto retrieveProcRoleBinding(@PathVariable("proc-id") String procId) {
-        return CommonResponseDto.okayWithData(processRoleService.retrieveRoleIdByProcId(procId));
+        return CommonResponseDto.okayWithData(processRoleService.retrieveRoleNamesByProcess(procId));
     }
 
     @PostMapping("/process/{proc-id}/roles")
