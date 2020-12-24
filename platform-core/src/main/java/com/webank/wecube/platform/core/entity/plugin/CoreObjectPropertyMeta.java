@@ -11,6 +11,8 @@ public class CoreObjectPropertyMeta {
 
     private String refType;
 
+    private String refName;
+
     private String mapType;
 
     private String mapExpr;
@@ -152,4 +154,13 @@ public class CoreObjectPropertyMeta {
     public void setSensitive(Boolean sensitive) {
         this.sensitive = sensitive;
     }
+
+    public String getRefName() {
+        return refName;
+    }
+
+    public void setRefName(String refName) {
+        this.refName = refName;
+    }
+
 }
