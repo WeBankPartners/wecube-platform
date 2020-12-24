@@ -108,6 +108,7 @@ public class PluginParamObjectSupportService {
             propertyMetaEntity.setObjectName(objectMetaEntity.getName());
             propertyMetaEntity.setPackageName(objectMetaEntity.getPackageName());
             propertyMetaEntity.setRefType(xmlProperty.getRefType());
+            propertyMetaEntity.setRefName(xmlProperty.getRefName());
             propertyMetaEntity.setSource(packageVersion);
             
             boolean sensitive = false;
