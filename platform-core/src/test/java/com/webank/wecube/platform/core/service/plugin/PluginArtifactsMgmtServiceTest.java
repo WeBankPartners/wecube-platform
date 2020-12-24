@@ -19,7 +19,7 @@ public class PluginArtifactsMgmtServiceTest {
     @SuppressWarnings("deprecation")
     @Test
     public void testParseRegisterXmlFile() throws IOException {
-        InputStream input = PluginArtifactsMgmtServiceTest.class.getClassLoader().getResourceAsStream("plugin/register-artifacts.xml");
+        InputStream input = PluginArtifactsMgmtServiceTest.class.getClassLoader().getResourceAsStream("plugin/register-cmdb-object.xml");
         String xmlFileDataStr = IOUtils.toString(input, Charset.forName("UTF-8"));
         PackageType xmlPackage = JaxbUtils.convertToObject(xmlFileDataStr, PackageType.class);
         

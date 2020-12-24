@@ -109,21 +109,21 @@
     <!-- 7.插件列表 - 描述插件包中单个插件的输入和输出 -->
     <paramObjects>
         <paramObject name="k8sObjA">
-            <property name="attrA" datatype="string" refType=""
+            <property name="attrA" dataType="string" refType=""
                 mapType="entity" mapExpr="wecmdb:instances" />
-            <property name="attrB" datatype="list" refType="string"
+            <property name="attrB" dataType="list" refType="string"
                 mapType="entity" mapExpr="wecmdb:instances" />
-            <property name="attrC" datatype="list" refType="string"
+            <property name="attrC" dataType="list" refType="string"
                 mapType="constant" mapExpr="" />
         </paramObject>
         <paramObject name="k8sObjB">
-            <property name="attrA" datatype="object" refType="k8sObjA"
+            <property name="attrA" dataType="object" refType="k8sObjA"
                 mapType="" mapExpr="" />
-            <property name="attrB" datatype="list" refType="k8sObjA"
+            <property name="attrB" dataType="list" refType="k8sObjA"
                 mapType="" mapExpr="" />
-            <property name="attrC" datatype="string" refType=""
+            <property name="attrC" dataType="string" refType=""
                 mapType="entity" mapExpr="wecmdb:instances" />
-            <property name="attrD" datatype="list" refType="string"
+            <property name="attrD" dataType="list" refType="string"
                 mapType="entity" mapExpr="wecmdb:instances" />
         </paramObject>
     </paramObjects>
