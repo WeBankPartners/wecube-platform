@@ -215,7 +215,7 @@
         ></Transfer>
       </div>
       <div slot="footer">
-        <Button type="primary" @click="confirmRole">{{ $t('close') }}</Button>
+        <Button type="primary" @click="confirmRole">{{ $t('bc_confirm') }}</Button>
       </div>
     </Modal>
   </div>
@@ -259,8 +259,7 @@ import {
   getRolesByCurrentUser,
   getRoleList,
   getPermissionByProcessId,
-  updateFlowPermission,
-  deleteFlowPermission
+  updateFlowPermission
 } from '@/api/server.js'
 
 function setCTM (node, m) {
@@ -453,28 +452,10 @@ export default {
       return item.label
     },
     handleMgmtRoleTransferChange (newTargetKeys, direction, moveKeys) {
-      if (this.isAdd) {
-        this.mgmtRolesKeyToFlow = newTargetKeys
-      } else {
-        if (direction === 'right') {
-          this.updateFlowPermission(this.currentSettingFlow, moveKeys, 'mgmt')
-        } else {
-          this.deleteFlowPermission(this.currentSettingFlow, moveKeys, 'mgmt')
-        }
-        this.mgmtRolesKeyToFlow = newTargetKeys
-      }
+      this.mgmtRolesKeyToFlow = newTargetKeys
     },
     handleUseRoleTransferChange (newTargetKeys, direction, moveKeys) {
-      if (this.isAdd) {
-        this.useRolesKeyToFlow = newTargetKeys
-      } else {
-        if (direction === 'right') {
-          this.updateFlowPermission(this.currentSettingFlow, moveKeys, 'use')
-        } else {
-          this.deleteFlowPermission(this.currentSettingFlow, moveKeys, 'use')
-        }
-        this.useRolesKeyToFlow = newTargetKeys
-      }
+      this.useRolesKeyToFlow = newTargetKeys
     },
     async updateFlowPermission (proId, roleId, type) {
       const payload = {
@@ -482,24 +463,6 @@ export default {
         roleId: roleId
       }
       const { status, message } = await updateFlowPermission(proId, payload)
-      if (status === 'OK') {
-        this.$Notice.success({
-          title: 'Success',
-          desc: message
-        })
-      } else {
-        this.$Notice.error({
-          title: 'Fail',
-          desc: message
-        })
-      }
-    },
-    async deleteFlowPermission (proId, roleId, type) {
-      const payload = {
-        permission: type,
-        roleId: roleId
-      }
-      const { status, message } = await deleteFlowPermission(proId, payload)
       if (status === 'OK') {
         this.$Notice.success({
           title: 'Success',
@@ -525,14 +488,35 @@ export default {
         this.useRolesKeyToFlow = data.USE
       }
     },
-    confirmRole () {
+    async confirmRole () {
       if (this.mgmtRolesKeyToFlow.length) {
-        this.flowRoleManageModal = false
-        // this.showBpmn = true
+        console.log(this.isAdd)
+        if (this.isAdd) {
+          this.flowRoleManageModal = false
+        } else {
+          this.updatePermission(this.currentSettingFlow)
+        }
       } else {
         this.$Message.warning(this.$t('mgmt_role_warning'))
-        // this.showBpmn = false
         this.isAdd = false
+      }
+    },
+    async updatePermission (id) {
+      const payload = {
+        permissionToRole: { MGMT: this.mgmtRolesKeyToFlow, USE: this.useRolesKeyToFlow }
+      }
+      const { status, message } = await updateFlowPermission(id, payload)
+      if (status === 'OK') {
+        this.$Notice.success({
+          title: 'Success',
+          desc: message
+        })
+        this.flowRoleManageModal = false
+      } else {
+        this.$Notice.error({
+          title: 'Fail',
+          desc: message
+        })
       }
     },
     async getRoleList () {
@@ -541,7 +525,7 @@ export default {
         this.allRolesBackUp = data.map(_ => {
           return {
             ..._,
-            key: _.id,
+            key: _.name,
             label: _.displayName
           }
         })
@@ -553,7 +537,7 @@ export default {
         this.currentUserRoles = data.map(_ => {
           return {
             ..._,
-            key: _.id,
+            key: _.name,
             label: _.displayName
           }
         })
@@ -721,14 +705,13 @@ export default {
       })
     },
     createNewDiagram () {
+      this.newFlowID = 'wecube' + Date.now()
       this.isAdd = true
-      this.flowRoleManageModal = true
       this.mgmtRolesKeyToFlow = []
       this.useRolesKeyToFlow = []
       this.currentSelectedEntity = ''
       this.pluginForm = { ...this.defaultPluginForm }
       this.currentFlow = {}
-      this.newFlowID = 'wecube' + Date.now()
       const bpmnXmlStr =
         '<?xml version="1.0" encoding="UTF-8"?>\n' +
         '<bpmn2:definitions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:bpmn2="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xsi:schemaLocation="http://www.omg.org/spec/BPMN/20100524/MODEL BPMN20.xsd" id="sample-diagram" targetNamespace="http://bpmn.io/schema/bpmn">\n' +
@@ -751,6 +734,7 @@ export default {
       this.$nextTick(() => {
         this.selectedFlow = null
       })
+      this.flowRoleManageModal = true
     },
     saveDiagram (isDraft) {
       let _this = this
