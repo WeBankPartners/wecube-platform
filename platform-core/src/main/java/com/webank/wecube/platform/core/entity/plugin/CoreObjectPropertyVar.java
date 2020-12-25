@@ -3,6 +3,7 @@ package com.webank.wecube.platform.core.entity.plugin;
 import java.util.Date;
 
 public class CoreObjectPropertyVar {
+    
     private String id;
 
     private String name;
@@ -32,6 +33,12 @@ public class CoreObjectPropertyVar {
     private Date updatedTime;
 
     private Boolean sensitive;
+
+    private transient CoreObjectPropertyMeta propertyMeta;
+
+    private transient CoreObjectVar objectVar;
+    
+    private transient Object dataValueObject;
 
     public String getId() {
         return id;
@@ -152,4 +159,31 @@ public class CoreObjectPropertyVar {
     public void setSensitive(Boolean sensitive) {
         this.sensitive = sensitive;
     }
+
+    public CoreObjectVar getObjectVar() {
+        return objectVar;
+    }
+
+    public void setObjectVar(CoreObjectVar objectVar) {
+        this.objectVar = objectVar;
+    }
+
+    public CoreObjectPropertyMeta getPropertyMeta() {
+        return propertyMeta;
+    }
+
+    public void setPropertyMeta(CoreObjectPropertyMeta propertyMeta) {
+        this.propertyMeta = propertyMeta;
+    }
+
+    public Object getDataValueObject() {
+        return dataValueObject;
+    }
+
+    public void setDataValueObject(Object dataValueObject) {
+        this.dataValueObject = dataValueObject;
+    }
+    
+    
+
 }
