@@ -42,11 +42,11 @@ public class PluginArtifactsMgmtServiceTest {
         PackageType xmlPackage = JaxbUtils.convertToObject(xmlFileDataStr, PackageType.class);
         
         Assert.assertNotNull(xmlPackage);
-        System.out.println(xmlPackage.getName());
+        Assert.assertEquals("wecmdb", xmlPackage.getName());
         
         String envString = xmlPackage.getResourceDependencies().getDocker().get(0).getEnvVariables();
         
-        System.out.println(envString);
+        Assert.assertNotNull(envString);
         
         List<String> envs = StringUtilsEx.findSystemVariableString(envString);
         

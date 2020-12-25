@@ -3,6 +3,18 @@ package com.webank.wecube.platform.core.entity.plugin;
 import java.util.Date;
 
 public class CoreObjectPropertyMeta {
+    public static final String DATA_TYPE_STRING = "string";
+    public static final String DATA_TYPE_NUMBER = "number";
+    public static final String DATA_TYPE_LIST = "list";
+    public static final String DATA_TYPE_OBJECT = "object";
+    
+    
+    public static final String MAP_TYPE_ENTITY = "entity";
+    public static final String MAP_TYPE_CONTEXT = "context";
+    public static final String MAP_TYPE_CONSTANT = "constant";
+    public static final String MAP_TYPE_SYSTEM_VARIABLE = "system_variable";
+    
+
     private String id;
 
     private String name;
@@ -34,6 +46,8 @@ public class CoreObjectPropertyMeta {
     private Date updatedTime;
 
     private Boolean sensitive;
+
+    private transient CoreObjectMeta objectMeta;
 
     public String getId() {
         return id;
@@ -161,6 +175,14 @@ public class CoreObjectPropertyMeta {
 
     public void setRefName(String refName) {
         this.refName = refName;
+    }
+
+    public CoreObjectMeta getObjectMeta() {
+        return objectMeta;
+    }
+
+    public void setObjectMeta(CoreObjectMeta objectMeta) {
+        this.objectMeta = objectMeta;
     }
 
 }

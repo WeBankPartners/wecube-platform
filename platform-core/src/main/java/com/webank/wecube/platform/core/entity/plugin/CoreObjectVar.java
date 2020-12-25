@@ -1,6 +1,8 @@
 package com.webank.wecube.platform.core.entity.plugin;
 
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 public class CoreObjectVar {
     private String id;
@@ -18,6 +20,9 @@ public class CoreObjectVar {
     private String updatedBy;
 
     private Date updatedTime;
+
+    private transient CoreObjectMeta objectMeta;
+    private transient List<CoreObjectPropertyVar> propertyVars = new ArrayList<>();
 
     public String getId() {
         return id;
@@ -82,4 +87,33 @@ public class CoreObjectVar {
     public void setUpdatedTime(Date updatedTime) {
         this.updatedTime = updatedTime;
     }
+
+    public List<CoreObjectPropertyVar> getPropertyVars() {
+        return propertyVars;
+    }
+
+    public void setPropertyVars(List<CoreObjectPropertyVar> propertyVars) {
+        this.propertyVars = propertyVars;
+    }
+
+    public CoreObjectMeta getObjectMeta() {
+        return objectMeta;
+    }
+
+    public void setObjectMeta(CoreObjectMeta objectMeta) {
+        this.objectMeta = objectMeta;
+    }
+    
+    public void addPropertyVar(CoreObjectPropertyVar propertyVar){
+        if(propertyVar == null){
+            return;
+        }
+        
+        if(propertyVar.getObjectVar() == null){
+            propertyVar.setObjectVar(this);
+        }
+        
+        this.getPropertyVars().add(propertyVar);
+    }
+
 }

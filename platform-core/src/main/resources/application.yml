@@ -21,15 +21,6 @@ spring:
       driver-class-name: com.mysql.cj.jdbc.Driver
   banner:
     location: classpath:/banner.txt
-  jpa:
-    database: mysql
-    show-sql: false
-    hibernate:
-      ddl-auto: none
-      use-new-id-generator-mappings: false
-      naming:
-        physical-strategy: org.springframework.boot.orm.jpa.hibernate.SpringPhysicalNamingStrategy
-    open-in-view: false
   servlet:
     multipart:
       max-file-size: 2GB

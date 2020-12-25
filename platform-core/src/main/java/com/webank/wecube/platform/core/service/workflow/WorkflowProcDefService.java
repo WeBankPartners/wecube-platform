@@ -677,8 +677,8 @@ public class WorkflowProcDefService extends AbstractWorkflowProcDefService {
             throw new WecubeCoreException("3213", "Permission configuration should provide.");
         }
 
-        List<String> mgmtRoleIds = permissionToRole.get(PluginConfigRoles.PERM_TYPE_MGMT);
-        if (mgmtRoleIds == null || mgmtRoleIds.isEmpty()) {
+        List<String> mgmtRoleNames = permissionToRole.get(PluginConfigRoles.PERM_TYPE_MGMT);
+        if (mgmtRoleNames == null || mgmtRoleNames.isEmpty()) {
             log.warn("Management permission configuration not found for {}", procDefInfoDto.getProcDefName());
             throw new WecubeCoreException("3214", "Management permission configuration should provide.");
         }
@@ -697,11 +697,11 @@ public class WorkflowProcDefService extends AbstractWorkflowProcDefService {
                         nodeDto.getNodeId());
             }
 
-            validateTaskNodePluginPermission(nodeDto, mgmtRoleIds);
+            validateTaskNodePluginPermission(nodeDto, mgmtRoleNames);
         }
     }
 
-    private void validateTaskNodePluginPermission(TaskNodeDefInfoDto nodeDto, List<String> mgmtRoleIds) {
+    private void validateTaskNodePluginPermission(TaskNodeDefInfoDto nodeDto, List<String> mgmtRoleNames) {
         PluginConfigInterfaces intf = retrievePluginConfigInterface(nodeDto, nodeDto.getNodeId());
         PluginConfigs pluginConfig = intf.getPluginConfig();
         if (pluginConfig == null) {
@@ -719,12 +719,12 @@ public class WorkflowProcDefService extends AbstractWorkflowProcDefService {
         }
 
         for (PluginConfigRoles pluginAuthConfigEntity : pluginAuthConfigEntities) {
-            if (CollectionUtils.collectionContains(mgmtRoleIds, pluginAuthConfigEntity.getRoleId())) {
+            if (CollectionUtils.collectionContains(mgmtRoleNames, pluginAuthConfigEntity.getRoleName())) {
                 return;
             }
         }
 
-        log.warn("Lack of permission to deploy process,managementRoles={},pluginConfigId={}", mgmtRoleIds,
+        log.warn("Lack of permission to deploy process,managementRoles={},pluginConfigId={}", mgmtRoleNames,
                 pluginConfig.getId());
         throw new WecubeCoreException("3219", "Lack of permission to deploy process.");
     }
