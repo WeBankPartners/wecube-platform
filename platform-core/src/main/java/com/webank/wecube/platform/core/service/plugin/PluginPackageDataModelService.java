@@ -387,8 +387,9 @@ public class PluginPackageDataModelService {
                     for (PluginPackageAttributes refByAttr : refByAttrEntities) {
                         PluginPackageEntities refByEntity = pluginPackageEntitiesMapper
                                 .selectByPrimaryKey(refByAttr.getEntityId());
+                        PluginPackageAttributeDto refByAttrDto = buildPluginPackageAttributeDto(refByEntity, refByAttr);
                         TrimmedPluginPackageEntityDto refByEntityDto = buildTrimmedPluginPackageEntityDto(refByEntity,
-                                attrDto);
+                                refByAttrDto);
                         dataModelEntityDto.getReferenceByEntityList().add(refByEntityDto);
                     }
                 }
