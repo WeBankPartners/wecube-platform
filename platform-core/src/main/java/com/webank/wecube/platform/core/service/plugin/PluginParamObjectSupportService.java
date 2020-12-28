@@ -13,7 +13,6 @@ import org.springframework.stereotype.Service;
 import com.webank.wecube.platform.core.commons.AuthenticationContextHolder;
 import com.webank.wecube.platform.core.entity.plugin.CoreObjectMeta;
 import com.webank.wecube.platform.core.entity.plugin.CoreObjectPropertyMeta;
-import com.webank.wecube.platform.core.entity.plugin.CoreObjectVar;
 import com.webank.wecube.platform.core.repository.plugin.CoreObjectMetaMapper;
 import com.webank.wecube.platform.core.repository.plugin.CoreObjectPropertyMetaMapper;
 import com.webank.wecube.platform.core.service.plugin.xml.register.ParamObjectType;
@@ -103,10 +102,7 @@ public class PluginParamObjectSupportService {
         return null;
     }
 
-    public CoreObjectVar calculateCoreObjectVar(CoreObjectMeta objectMeta, CoreObjectVarCalculationContext ctx) {
-        
-        return null;
-    }
+    
 
     private void tryRegisterSingleParamObject(ParamObjectType xmlParamObject, String packageName,
             String packageVersion) {
@@ -132,7 +128,7 @@ public class PluginParamObjectSupportService {
             return;
         }
 
-        // to implement in future
+        //TODO to implement in future
         return;
     }
 
