@@ -475,6 +475,8 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 
         if (nodeParamEntity == null) {
             log.error("mapping type is {} but node parameter entity is null for {}", mappingType, curTaskNodeDefId);
+            
+            //TODO surpress errors if not required
             throw new WecubeCoreException("3170", "Task node parameter entity does not exist.");
         }
 

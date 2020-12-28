@@ -7,13 +7,11 @@ public class CoreObjectPropertyMeta {
     public static final String DATA_TYPE_NUMBER = "number";
     public static final String DATA_TYPE_LIST = "list";
     public static final String DATA_TYPE_OBJECT = "object";
-    
-    
+
     public static final String MAP_TYPE_ENTITY = "entity";
     public static final String MAP_TYPE_CONTEXT = "context";
     public static final String MAP_TYPE_CONSTANT = "constant";
     public static final String MAP_TYPE_SYSTEM_VARIABLE = "system_variable";
-    
 
     private String id;
 
@@ -48,6 +46,8 @@ public class CoreObjectPropertyMeta {
     private Boolean sensitive;
 
     private transient CoreObjectMeta objectMeta;
+
+    private transient CoreObjectMeta refObjectMeta;
 
     public String getId() {
         return id;
@@ -183,6 +183,14 @@ public class CoreObjectPropertyMeta {
 
     public void setObjectMeta(CoreObjectMeta objectMeta) {
         this.objectMeta = objectMeta;
+    }
+
+    public CoreObjectMeta getRefObjectMeta() {
+        return refObjectMeta;
+    }
+
+    public void setRefObjectMeta(CoreObjectMeta refObjectMeta) {
+        this.refObjectMeta = refObjectMeta;
     }
 
 }
