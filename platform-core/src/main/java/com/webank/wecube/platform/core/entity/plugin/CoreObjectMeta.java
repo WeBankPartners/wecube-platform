@@ -22,7 +22,7 @@ public class CoreObjectMeta {
     private String updatedBy;
 
     private Date updatedTime;
-    
+
     private transient List<CoreObjectPropertyMeta> propertyMetas = new ArrayList<>();
 
     public String getId() {
@@ -104,8 +104,15 @@ public class CoreObjectMeta {
     public void setPropertyMetas(List<CoreObjectPropertyMeta> propertyMetas) {
         this.propertyMetas = propertyMetas;
     }
-    
+
     public void addPropertyMeta(CoreObjectPropertyMeta propertyMeta) {
+        if (propertyMeta == null) {
+            return;
+        }
+
+        if (propertyMeta.getObjectMeta() == null) {
+            propertyMeta.setObjectMeta(this);
+        }
         this.propertyMetas.add(propertyMeta);
     }
 }

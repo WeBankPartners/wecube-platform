@@ -1,6 +1,7 @@
 package com.webank.wecube.platform.core.service.plugin;
 
 import java.util.Date;
+import java.util.LinkedList;
 import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
@@ -49,8 +50,61 @@ public class PluginParamObjectSupportService {
         }
 
     }
+
+    public CoreObjectMeta fetchAssembledCoreObjectMeta(String packageName, String coreObjectName) {
+        List<CoreObjectMeta> objectMetaList = new LinkedList<>();
+        CoreObjectMeta objectMetaEntity = doFetchAssembledCoreObjectMeta(packageName, coreObjectName, objectMetaList);
+
+        return objectMetaEntity;
+    }
+
+    private CoreObjectMeta doFetchAssembledCoreObjectMeta(String packageName, String coreObjectName, List<CoreObjectMeta> objectMetaList) {
+        CoreObjectMeta cachedObjectMetaEntity = findoutFromCachedObjetMetaEntityList(objectMetaList, packageName, coreObjectName);
+        if(cachedObjectMetaEntity != null){
+            return cachedObjectMetaEntity;
+        }
+        CoreObjectMeta objectMetaEntity = coreObjectMetaMapper.selectOneByPackageNameAndObjectName(packageName,
+                coreObjectName);
+        if (objectMetaEntity == null) {
+            return null;
+        }
+        
+        objectMetaList.add(objectMetaEntity);
+
+        List<CoreObjectPropertyMeta> propertyMetaEntities = coreObjectPropertyMetaMapper
+                .selectAllByObjectMeta(objectMetaEntity.getId());
+        if (propertyMetaEntities == null || propertyMetaEntities.isEmpty()) {
+            return objectMetaEntity;
+        }
+
+        for (CoreObjectPropertyMeta propertyMetaEntity : propertyMetaEntities) {
+            if (CoreObjectPropertyMeta.DATA_TYPE_OBJECT.equals(propertyMetaEntity.getRefType())) {
+                
+                CoreObjectMeta refObjectMetaEntity = doFetchAssembledCoreObjectMeta(packageName,
+                        propertyMetaEntity.getRefName(), objectMetaList);
+                propertyMetaEntity.setRefObjectMeta(refObjectMetaEntity);
+            }
+
+            objectMetaEntity.addPropertyMeta(propertyMetaEntity);
+        }
+        
+        
+
+        return objectMetaEntity;
+    }
     
-    public CoreObjectVar calculateCoreObjectVar(CoreObjectMeta objectMeta, CoreObjectVarCalculationContext ctx){
+    private CoreObjectMeta findoutFromCachedObjetMetaEntityList(List<CoreObjectMeta> objectMetaList, String packageName, String coreObjectName){
+        for(CoreObjectMeta m : objectMetaList){
+            if(packageName.equals(m.getPackageName()) && coreObjectName.equals(m.getName())){
+                return m;
+            }
+        }
+        
+        return null;
+    }
+
+    public CoreObjectVar calculateCoreObjectVar(CoreObjectMeta objectMeta, CoreObjectVarCalculationContext ctx) {
+        
         return null;
     }
 
@@ -115,15 +169,15 @@ public class PluginParamObjectSupportService {
             propertyMetaEntity.setRefType(xmlProperty.getRefType());
             propertyMetaEntity.setRefName(xmlProperty.getRefName());
             propertyMetaEntity.setSource(packageVersion);
-            
+
             boolean sensitive = false;
-            if(StringUtils.isNoneBlank(xmlProperty.getSensitiveData())){
-                if("Y".equalsIgnoreCase(xmlProperty.getSensitiveData())){
+            if (StringUtils.isNoneBlank(xmlProperty.getSensitiveData())) {
+                if ("Y".equalsIgnoreCase(xmlProperty.getSensitiveData())) {
                     sensitive = true;
                 }
             }
             propertyMetaEntity.setSensitive(sensitive);
-            
+
             coreObjectPropertyMetaMapper.insert(propertyMetaEntity);
         }
 
