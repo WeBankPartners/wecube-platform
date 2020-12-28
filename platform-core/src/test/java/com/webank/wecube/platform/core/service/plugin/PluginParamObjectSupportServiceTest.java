@@ -17,6 +17,9 @@ public class PluginParamObjectSupportServiceTest {
     
     @Autowired
     PluginParamObjectSupportService pluginParamObjectSupportService;
+    
+    @Autowired
+    PluginParamObjectVarCalculationService pluginParamObjectVarCalculationService;
 
     @Ignore
     @Test
@@ -36,7 +39,7 @@ public class PluginParamObjectSupportServiceTest {
         String objectName = "k8sObjB";
         CoreObjectMeta objectMeta = pluginParamObjectSupportService.fetchAssembledCoreObjectMeta(packageName, objectName);
         CoreObjectVarCalculationContext ctx = null;
-        CoreObjectVar resultVar = pluginParamObjectSupportService.calculateCoreObjectVar(objectMeta, ctx);
+        CoreObjectVar resultVar = pluginParamObjectVarCalculationService.calculateCoreObjectVar(objectMeta, ctx);
         
         Assert.assertNotNull(resultVar);
     }
