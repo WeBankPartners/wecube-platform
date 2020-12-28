@@ -36,7 +36,7 @@ public class PluginParamObjectVarCalculationService extends AbstractPluginParamO
         List<CoreObjectPropertyMeta> propertyMetas = objectMeta.getPropertyMetas();
         for(CoreObjectPropertyMeta propertyMeta : propertyMetas){
             CoreObjectPropertyVar propertyVar = new CoreObjectPropertyVar();
-            propertyVar.setId(LocalIdGenerator.generateId());
+            propertyVar.setId(LocalIdGenerator.generateId("attr"));
             propertyVar.setName(propertyMeta.getName());
             propertyVar.setObjectMetaId(rootObjectVar.getObjectMetaId());
             propertyVar.setDataType(propertyMeta.getDataType());
@@ -49,7 +49,6 @@ public class PluginParamObjectVarCalculationService extends AbstractPluginParamO
             propertyVar.setSensitive(propertyMeta.getSensitive());
             propertyVar.setObjectVar(rootObjectVar);
             propertyVar.setObjectVarId(rootObjectVar.getId());
-            
             
             rootObjectVar.addPropertyVar(propertyVar);
         }
@@ -86,13 +85,13 @@ public class PluginParamObjectVarCalculationService extends AbstractPluginParamO
         String dataType = propertyMeta.getDataType();
         Object dataObjectValue = null;
         
-        if(CoreObjectPropertyMeta.DATA_TYPE_STRING.equals(dataType)){
+        if(isStringDataType(dataType)){
             dataObjectValue = calculateStringPropertyValue(propertyMeta);
-        }else if(CoreObjectPropertyMeta.DATA_TYPE_NUMBER.equals(dataType)){
+        }else if(isNumberDataType(dataType)){
             dataObjectValue = calculateNumberPropertyValue(propertyMeta);
-        }else if(CoreObjectPropertyMeta.DATA_TYPE_OBJECT.equals(dataType)){
+        }else if(isObjectDataType(dataType)){
             dataObjectValue = calculateObjectPropertyValue(propertyMeta);
-        }else if(CoreObjectPropertyMeta.DATA_TYPE_LIST.equals(dataType)){
+        }else if(isListDataType(dataType)){
             dataObjectValue = calculateListPropertyValue(propertyMeta);
         }
         
@@ -100,7 +99,7 @@ public class PluginParamObjectVarCalculationService extends AbstractPluginParamO
     }
     
     private Object calculateStringPropertyValue(CoreObjectPropertyMeta propertyMeta){
-        if(CoreObjectPropertyMeta.DATA_TYPE_STRING.equals(propertyMeta.getDataType())){
+        if(isStringDataType(propertyMeta.getDataType())){
             //TODO
             return String.valueOf(System.currentTimeMillis());
         }
@@ -108,7 +107,7 @@ public class PluginParamObjectVarCalculationService extends AbstractPluginParamO
     }
     
     private Object calculateNumberPropertyValue(CoreObjectPropertyMeta propertyMeta){
-        if(CoreObjectPropertyMeta.DATA_TYPE_NUMBER.equals(propertyMeta.getDataType())){
+        if(isNumberDataType(propertyMeta.getDataType())){
             //TODO
             return System.currentTimeMillis();
         }
@@ -116,7 +115,7 @@ public class PluginParamObjectVarCalculationService extends AbstractPluginParamO
     }
     
     private Object calculateObjectPropertyValue(CoreObjectPropertyMeta propertyMeta){
-        if(CoreObjectPropertyMeta.DATA_TYPE_OBJECT.equals(propertyMeta.getDataType())){
+        if(isObjectDataType(propertyMeta.getDataType())){
             CoreObjectMeta refObjectMeta = propertyMeta.getRefObjectMeta();
             //TODO
             CoreObjectVar refObjectVar = calculateCoreObjectVar(refObjectMeta, null);
@@ -126,18 +125,18 @@ public class PluginParamObjectVarCalculationService extends AbstractPluginParamO
     }
     
     private Object calculateListPropertyValue(CoreObjectPropertyMeta propertyMeta){
-        if(CoreObjectPropertyMeta.DATA_TYPE_LIST.equals(propertyMeta.getDataType())){
-            if(CoreObjectPropertyMeta.DATA_TYPE_STRING.equals(propertyMeta.getRefType())){
+        if(isListDataType(propertyMeta.getDataType())){
+            if(isStringDataType(propertyMeta.getRefType())){
                 List<String> refValues = new ArrayList<>();
                 return refValues;
             }
             
-            if(CoreObjectPropertyMeta.DATA_TYPE_NUMBER.equals(propertyMeta.getRefType())){
+            if(isNumberDataType(propertyMeta.getRefType())){
                 List<Integer> refValues = new ArrayList<>();
                 return refValues;
             }
             
-            if(CoreObjectPropertyMeta.DATA_TYPE_OBJECT.equals(propertyMeta.getRefType())){
+            if(isObjectDataType(propertyMeta.getRefType())){
                 List<CoreObjectVar> refValues = new ArrayList<>();
                 
                 
