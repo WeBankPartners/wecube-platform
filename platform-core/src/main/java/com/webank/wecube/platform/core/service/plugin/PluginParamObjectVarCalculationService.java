@@ -1,47 +1,62 @@
 package com.webank.wecube.platform.core.service.plugin;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.webank.wecube.platform.core.entity.plugin.CoreObjectListVar;
 import com.webank.wecube.platform.core.entity.plugin.CoreObjectMeta;
 import com.webank.wecube.platform.core.entity.plugin.CoreObjectPropertyMeta;
 import com.webank.wecube.platform.core.entity.plugin.CoreObjectPropertyVar;
 import com.webank.wecube.platform.core.entity.plugin.CoreObjectVar;
+import com.webank.wecube.platform.core.service.dme.StandardEntityOperationService;
 import com.webank.wecube.platform.workflow.commons.LocalIdGenerator;
 
 @Service
-public class PluginParamObjectVarCalculationService extends AbstractPluginParamObjectService{
-    
+public class PluginParamObjectVarCalculationService extends AbstractPluginParamObjectService {
+    private static final Logger log = LoggerFactory.getLogger(PluginParamObjectVarCalculationService.class);
+
+    public static final String PREFIX_OBJECT_VAR_ID = "objvar";
+
+    public static final String PREFIX_PROPERTY_VAR_ID = "attrvar";
+
+    public static final String PREFIX_LIST_VAR_ID = "listvar";
+
+    @Autowired
+    private StandardEntityOperationService standardEntityOperationService;
+
     public CoreObjectVar calculateCoreObjectVar(CoreObjectMeta objectMeta, CoreObjectVarCalculationContext ctx) {
-        Map<String,CoreObjectVar> cachedObjectVars = new HashMap<String,CoreObjectVar>();
-        CoreObjectVar rootObjectVar = doCalculateCoreObjectVar(objectMeta, ctx, cachedObjectVars);
+       
+        CoreObjectVar rootObjectVar = doCalculateCoreObjectVar(objectMeta, ctx);
+        // TODO store object var
         return rootObjectVar;
     }
-    
-    private CoreObjectVar doCalculateCoreObjectVar(CoreObjectMeta objectMeta, CoreObjectVarCalculationContext ctx, Map<String,CoreObjectVar> cachedObjectVars){
-        if(objectMeta == null ){
+
+    private CoreObjectVar doCalculateCoreObjectVar(CoreObjectMeta objectMeta, CoreObjectVarCalculationContext ctx) {
+        if (objectMeta == null) {
             return null;
         }
         CoreObjectVar rootObjectVar = new CoreObjectVar();
-        rootObjectVar.setId(LocalIdGenerator.generateId());
+        rootObjectVar.setId(LocalIdGenerator.generateId(PREFIX_OBJECT_VAR_ID));
         rootObjectVar.setName(objectMeta.getName());
         rootObjectVar.setObjectMeta(objectMeta);
         rootObjectVar.setObjectMetaId(objectMeta.getId());
         rootObjectVar.setPackageName(objectMeta.getPackageName());
-        
+
         List<CoreObjectPropertyMeta> propertyMetas = objectMeta.getPropertyMetas();
-        for(CoreObjectPropertyMeta propertyMeta : propertyMetas){
+        for (CoreObjectPropertyMeta propertyMeta : propertyMetas) {
             CoreObjectPropertyVar propertyVar = new CoreObjectPropertyVar();
-            propertyVar.setId(LocalIdGenerator.generateId("attr"));
+            propertyVar.setId(LocalIdGenerator.generateId(PREFIX_PROPERTY_VAR_ID));
             propertyVar.setName(propertyMeta.getName());
             propertyVar.setObjectMetaId(rootObjectVar.getObjectMetaId());
             propertyVar.setDataType(propertyMeta.getDataType());
-            
-            Object dataValueObject = calculateDataValueObject(propertyMeta);
+
+            Object dataValueObject = calculateDataValueObject(propertyMeta, ctx);
             String dataValue = convertPropertyValueToString(propertyMeta, dataValueObject);
             propertyVar.setDataValueObject(dataValueObject);
             propertyVar.setDataValue(dataValue);
@@ -49,101 +64,160 @@ public class PluginParamObjectVarCalculationService extends AbstractPluginParamO
             propertyVar.setSensitive(propertyMeta.getSensitive());
             propertyVar.setObjectVar(rootObjectVar);
             propertyVar.setObjectVarId(rootObjectVar.getId());
-            
+
             rootObjectVar.addPropertyVar(propertyVar);
         }
-        
+
         return rootObjectVar;
     }
-    
-    private String convertPropertyValueToString(CoreObjectPropertyMeta propertyMeta, Object dataValueObject){
-        if(dataValueObject == null ){
+
+    private String convertPropertyValueToString(CoreObjectPropertyMeta propertyMeta, Object dataValueObject) {
+        if (dataValueObject == null) {
             return null;
         }
-        
-        
+
         return null;
     }
-    
-    protected boolean isStringDataType(String dataType){
-        return CoreObjectPropertyMeta.DATA_TYPE_STRING.equals(dataType);
-    }
-    
-    protected boolean isNumberDataType(String dataType){
-        return CoreObjectPropertyMeta.DATA_TYPE_NUMBER.equals(dataType);
-    }
-    
-    protected boolean isListDataType(String dataType){
-        return CoreObjectPropertyMeta.DATA_TYPE_LIST.equals(dataType);
-    }
-    
-    protected boolean isObjectDataType(String dataType){
-        return CoreObjectPropertyMeta.DATA_TYPE_OBJECT.equals(dataType);
-    }
-    
-    private Object calculateDataValueObject(CoreObjectPropertyMeta propertyMeta){
+
+    private Object calculateDataValueObject(CoreObjectPropertyMeta propertyMeta, CoreObjectVarCalculationContext ctx) {
         String dataType = propertyMeta.getDataType();
         Object dataObjectValue = null;
-        
-        if(isStringDataType(dataType)){
-            dataObjectValue = calculateStringPropertyValue(propertyMeta);
-        }else if(isNumberDataType(dataType)){
-            dataObjectValue = calculateNumberPropertyValue(propertyMeta);
-        }else if(isObjectDataType(dataType)){
-            dataObjectValue = calculateObjectPropertyValue(propertyMeta);
-        }else if(isListDataType(dataType)){
-            dataObjectValue = calculateListPropertyValue(propertyMeta);
+
+        if (isStringDataType(dataType)) {
+            dataObjectValue = calculateStringPropertyValue(propertyMeta, ctx);
+        } else if (isNumberDataType(dataType)) {
+            dataObjectValue = calculateNumberPropertyValue(propertyMeta, ctx);
+        } else if (isObjectDataType(dataType)) {
+            dataObjectValue = calculateObjectPropertyValue(propertyMeta, ctx);
+        } else if (isListDataType(dataType)) {
+            dataObjectValue = calculateListPropertyValue(propertyMeta, ctx);
         }
-        
+
         return dataObjectValue;
     }
-    
-    private Object calculateStringPropertyValue(CoreObjectPropertyMeta propertyMeta){
-        if(isStringDataType(propertyMeta.getDataType())){
-            //TODO
+
+    private String calculateStringPropertyValue(CoreObjectPropertyMeta propertyMeta, CoreObjectVarCalculationContext ctx) {
+        if (isStringDataType(propertyMeta.getDataType())) {
+            // TODO
             return String.valueOf(System.currentTimeMillis());
         }
         return null;
     }
-    
-    private Object calculateNumberPropertyValue(CoreObjectPropertyMeta propertyMeta){
-        if(isNumberDataType(propertyMeta.getDataType())){
-            //TODO
-            return System.currentTimeMillis();
+
+    private Integer calculateNumberPropertyValue(CoreObjectPropertyMeta propertyMeta, CoreObjectVarCalculationContext ctx) {
+        if (isNumberDataType(propertyMeta.getDataType())) {
+            // TODO
+            return Integer.valueOf(1000);
         }
         return null;
     }
-    
-    private Object calculateObjectPropertyValue(CoreObjectPropertyMeta propertyMeta){
-        if(isObjectDataType(propertyMeta.getDataType())){
+
+    private CoreObjectVar calculateObjectPropertyValue(CoreObjectPropertyMeta propertyMeta, CoreObjectVarCalculationContext ctx) {
+        if (isObjectDataType(propertyMeta.getDataType())) {
             CoreObjectMeta refObjectMeta = propertyMeta.getRefObjectMeta();
-            //TODO
+            // TODO
             CoreObjectVar refObjectVar = calculateCoreObjectVar(refObjectMeta, null);
             return refObjectVar;
         }
         return null;
     }
-    
-    private Object calculateListPropertyValue(CoreObjectPropertyMeta propertyMeta){
-        if(isListDataType(propertyMeta.getDataType())){
-            if(isStringDataType(propertyMeta.getRefType())){
-                List<String> refValues = new ArrayList<>();
-                return refValues;
+
+    private List<CoreObjectListVar> calculateListPropertyValue(CoreObjectPropertyMeta propertyMeta, CoreObjectVarCalculationContext ctx) {
+        if (isListDataType(propertyMeta.getDataType())) {
+            if (isStringDataType(propertyMeta.getRefType())) {
+                // TODO
+                List<Object> rawObjectValues = new ArrayList<>();
+                Object rawObjectValue = Integer.valueOf("1111");
+                rawObjectValues.add(rawObjectValue);
+
+                List<CoreObjectListVar> stringListVars = new ArrayList<>();
+                for (Object rawObject : rawObjectValues) {
+                    CoreObjectListVar stringListVar = new CoreObjectListVar();
+                    stringListVar.setId(LocalIdGenerator.generateId(PREFIX_LIST_VAR_ID));
+                    stringListVar.setDataType(propertyMeta.getRefType());
+                    // TODO
+                    String dataValue = String.valueOf(rawObject);
+
+                    stringListVar.setDataValue(dataValue);
+                    stringListVar.setRawObjectValue(rawObject);
+                    stringListVar.setSensitive(propertyMeta.getSensitive());
+                    stringListVar.setObjectPropertyMeta(propertyMeta);
+
+                    stringListVars.add(stringListVar);
+                }
+
+                return stringListVars;
             }
-            
-            if(isNumberDataType(propertyMeta.getRefType())){
-                List<Integer> refValues = new ArrayList<>();
-                return refValues;
+
+            if (isNumberDataType(propertyMeta.getRefType())) {
+                List<Object> rawObjectValues = new ArrayList<>();
+                Object rawObjectValue = Integer.valueOf("1111");
+                rawObjectValues.add(rawObjectValue);
+
+                List<CoreObjectListVar> numberListVars = new ArrayList<>();
+                for (Object rawObject : rawObjectValues) {
+                    CoreObjectListVar numberListVar = new CoreObjectListVar();
+                    numberListVar.setId(LocalIdGenerator.generateId(PREFIX_LIST_VAR_ID));
+                    numberListVar.setDataType(propertyMeta.getRefType());
+                    // TODO
+                    String dataValue = String.valueOf(rawObject);
+
+                    numberListVar.setDataValue(dataValue);
+                    numberListVar.setRawObjectValue(rawObject);
+                    numberListVar.setSensitive(propertyMeta.getSensitive());
+                    numberListVar.setObjectPropertyMeta(propertyMeta);
+
+                    numberListVars.add(numberListVar);
+                }
+
+                return numberListVars;
             }
-            
-            if(isObjectDataType(propertyMeta.getRefType())){
-                List<CoreObjectVar> refValues = new ArrayList<>();
-                
-                
-                return refValues;
+
+            if (isObjectDataType(propertyMeta.getRefType())) {
+                List<CoreObjectVar> rawObjectValues = calculateListObjectVars(propertyMeta, ctx);
+
+                // TODO
+                List<CoreObjectListVar> objectListVars = new ArrayList<>();
+                for (CoreObjectVar objectVar : rawObjectValues) {
+                    CoreObjectListVar objectListVar = new CoreObjectListVar();
+                    objectListVar.setId(LocalIdGenerator.generateId(PREFIX_LIST_VAR_ID));
+                    objectListVar.setDataType(propertyMeta.getRefType());
+
+                    // TODO
+                    String dataValue = objectVar.getId();
+
+                    objectListVar.setDataValue(dataValue);
+                    objectListVar.setRawObjectValue(objectVar);
+                    objectListVar.setSensitive(propertyMeta.getSensitive());
+                    objectListVar.setObjectPropertyMeta(propertyMeta);
+
+                    objectListVars.add(objectListVar);
+                }
+
+                return objectListVars;
             }
         }
         return null;
+    }
+
+    private List<CoreObjectVar> doCalculateCoreObjectVarList(CoreObjectMeta objectMeta,
+            CoreObjectVarCalculationContext ctx) {
+        List<CoreObjectVar> rawObjectValues = new ArrayList<>();
+
+        CoreObjectVar objectVar = new CoreObjectVar();
+
+        rawObjectValues.add(objectVar);
+
+        return rawObjectValues;
+    }
+
+    private List<CoreObjectVar> calculateListObjectVars(CoreObjectPropertyMeta propertyMeta, CoreObjectVarCalculationContext ctx) {
+        // TODO
+        CoreObjectMeta refObjectMeta = propertyMeta.getRefObjectMeta();
+        List<CoreObjectVar> rawObjectValues = doCalculateCoreObjectVarList(refObjectMeta, ctx);
+
+        return rawObjectValues;
+
     }
 
 }
