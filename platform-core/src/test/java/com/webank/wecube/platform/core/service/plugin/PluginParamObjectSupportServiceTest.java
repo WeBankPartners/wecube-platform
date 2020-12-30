@@ -36,7 +36,7 @@ public class PluginParamObjectSupportServiceTest {
     public void testCalculateCoreObjectVar(){
         
         String packageName = "wecmdb";
-        String objectName = "k8sObjB";
+        String objectName = "k8sObjC";
         CoreObjectMeta objectMeta = pluginParamObjectSupportService.fetchAssembledCoreObjectMeta(packageName, objectName);
         CoreObjectVarCalculationContext ctx = null;
         CoreObjectVar resultVar = pluginParamObjectVarCalculationService.calculateCoreObjectVar(objectMeta, ctx);
