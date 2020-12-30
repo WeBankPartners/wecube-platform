@@ -15,6 +15,9 @@ public class CoreObjectListVar {
 
     private Boolean sensitive;
 
+    private transient Object rawObjectValue;
+    private transient CoreObjectPropertyMeta objectPropertyMeta;
+
     public String getId() {
         return id;
     }
@@ -62,4 +65,21 @@ public class CoreObjectListVar {
     public void setSensitive(Boolean sensitive) {
         this.sensitive = sensitive;
     }
+
+    public Object getRawObjectValue() {
+        return rawObjectValue;
+    }
+
+    public void setRawObjectValue(Object rawObjectValue) {
+        this.rawObjectValue = rawObjectValue;
+    }
+
+    public CoreObjectPropertyMeta getObjectPropertyMeta() {
+        return objectPropertyMeta;
+    }
+
+    public void setObjectPropertyMeta(CoreObjectPropertyMeta objectPropertyMeta) {
+        this.objectPropertyMeta = objectPropertyMeta;
+    }
+
 }
