@@ -1,6 +1,7 @@
 package com.webank.wecube.platform.core.service.plugin;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -75,6 +76,30 @@ public class PluginParamObjectVarCalculationService extends AbstractPluginParamO
         if (dataValueObject == null) {
             return null;
         }
+        
+        String dataType = propertyMeta.getDataType();
+        if(isStringDataType(dataType)){
+            return dataValueObject.toString();
+        }
+        
+        if(isNumberDataType(dataType)){
+            return dataValueObject.toString();
+        }
+        
+        if(isObjectDataType(dataType)){
+            CoreObjectVar objVar = (CoreObjectVar)dataValueObject;
+            return objVar.getId();
+        }
+        
+        if(isListDataType(dataType)){
+            List<CoreObjectListVar> listVars = (List<CoreObjectListVar>)dataValueObject;
+            StringBuilder sb = new StringBuilder();
+            for(CoreObjectListVar v : listVars){
+                sb.append(v.getId()).append(",");
+            }
+            
+            return sb.toString();
+        }
 
         return null;
     }
@@ -116,27 +141,42 @@ public class PluginParamObjectVarCalculationService extends AbstractPluginParamO
         if (isObjectDataType(propertyMeta.getDataType())) {
             CoreObjectMeta refObjectMeta = propertyMeta.getRefObjectMeta();
             // TODO
-            CoreObjectVar refObjectVar = calculateCoreObjectVar(refObjectMeta, null);
+            CoreObjectVar refObjectVar = calculateCoreObjectVar(refObjectMeta, ctx);
             return refObjectVar;
         }
         return null;
+    }
+    
+    private List<String> calculateListStringVars(CoreObjectPropertyMeta propertyMeta, CoreObjectVarCalculationContext ctx){
+        //TODO
+        List<String> rawObjectValues = new ArrayList<>();
+        String rawObjectValue = String.valueOf(System.currentTimeMillis());
+        rawObjectValues.add(rawObjectValue);
+        
+        return rawObjectValues;
+    }
+     
+    private List<Integer> calculateListNumberVars(CoreObjectPropertyMeta propertyMeta, CoreObjectVarCalculationContext ctx){
+        List<Integer> rawObjectValues = new ArrayList<>();
+        Integer rawObjectValue = 1111111;
+        rawObjectValues.add(rawObjectValue);
+        
+        return rawObjectValues;
     }
 
     private List<CoreObjectListVar> calculateListPropertyValue(CoreObjectPropertyMeta propertyMeta, CoreObjectVarCalculationContext ctx) {
         if (isListDataType(propertyMeta.getDataType())) {
             if (isStringDataType(propertyMeta.getRefType())) {
                 // TODO
-                List<Object> rawObjectValues = new ArrayList<>();
-                Object rawObjectValue = Integer.valueOf("1111");
-                rawObjectValues.add(rawObjectValue);
+                List<String> rawObjectValues = calculateListStringVars(propertyMeta, ctx);
 
                 List<CoreObjectListVar> stringListVars = new ArrayList<>();
-                for (Object rawObject : rawObjectValues) {
+                for (String rawObject : rawObjectValues) {
                     CoreObjectListVar stringListVar = new CoreObjectListVar();
                     stringListVar.setId(LocalIdGenerator.generateId(PREFIX_LIST_VAR_ID));
                     stringListVar.setDataType(propertyMeta.getRefType());
                     // TODO
-                    String dataValue = String.valueOf(rawObject);
+                    String dataValue = rawObject;
 
                     stringListVar.setDataValue(dataValue);
                     stringListVar.setRawObjectValue(rawObject);
@@ -150,12 +190,10 @@ public class PluginParamObjectVarCalculationService extends AbstractPluginParamO
             }
 
             if (isNumberDataType(propertyMeta.getRefType())) {
-                List<Object> rawObjectValues = new ArrayList<>();
-                Object rawObjectValue = Integer.valueOf("1111");
-                rawObjectValues.add(rawObjectValue);
+                List<Integer> rawObjectValues = calculateListNumberVars(propertyMeta, ctx);
 
                 List<CoreObjectListVar> numberListVars = new ArrayList<>();
-                for (Object rawObject : rawObjectValues) {
+                for (Integer rawObject : rawObjectValues) {
                     CoreObjectListVar numberListVar = new CoreObjectListVar();
                     numberListVar.setId(LocalIdGenerator.generateId(PREFIX_LIST_VAR_ID));
                     numberListVar.setDataType(propertyMeta.getRefType());
@@ -203,6 +241,9 @@ public class PluginParamObjectVarCalculationService extends AbstractPluginParamO
     private List<CoreObjectVar> doCalculateCoreObjectVarList(CoreObjectMeta objectMeta,
             CoreObjectVarCalculationContext ctx) {
         List<CoreObjectVar> rawObjectValues = new ArrayList<>();
+        
+        Map<String,List<CoreObjectPropertyVar>> propertyMetaVarsMap = new HashMap<String,List<CoreObjectPropertyVar>>();
+        
 
         CoreObjectVar objectVar = new CoreObjectVar();
 
