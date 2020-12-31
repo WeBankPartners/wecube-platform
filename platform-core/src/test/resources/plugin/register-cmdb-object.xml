@@ -135,6 +135,15 @@
             <property name="attrC" dataType="number" refType="number"
                 mapType="constant" mapExpr="" />
         </paramObject>
+        
+        <paramObject name="k8sObjD">
+            <property name="attrA" dataType="string" refType="string" refName=""
+                mapType="entity" mapExpr="wecmdb:instances" />
+            <property name="attrB" dataType="list" refType="string" refName=""
+                mapType="entity" mapExpr="wecmdb:instances" />
+            <property name="attrC" dataType="list" refType="object" refName="k8sObjC"
+                mapType="entity" mapExpr="wecmdb:instances" />
+        </paramObject>
     </paramObjects>
     <plugins>
         <plugin name="k8s-service-create" targetPackage=""
