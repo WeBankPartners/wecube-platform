@@ -192,5 +192,7 @@ public class CoreObjectPropertyMeta {
     public void setRefObjectMeta(CoreObjectMeta refObjectMeta) {
         this.refObjectMeta = refObjectMeta;
     }
+    
+    
 
 }
