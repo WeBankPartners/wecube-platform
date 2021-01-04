@@ -2,8 +2,10 @@ package com.webank.wecube.platform.core.entity.plugin;
 
 import java.util.Date;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 public class CoreObjectPropertyVar {
-    
+
     private String id;
 
     private String name;
@@ -34,10 +36,17 @@ public class CoreObjectPropertyVar {
 
     private Boolean sensitive;
 
+    private String objectName;
+
+    private String packageName;
+
+    @JsonIgnore
     private transient CoreObjectPropertyMeta propertyMeta;
 
+    @JsonIgnore
     private transient CoreObjectVar objectVar;
-    
+
+    // @JsonIgnore
     private transient Object dataValueObject;
 
     public String getId() {
@@ -183,7 +192,21 @@ public class CoreObjectPropertyVar {
     public void setDataValueObject(Object dataValueObject) {
         this.dataValueObject = dataValueObject;
     }
-    
-    
+
+    public String getObjectName() {
+        return objectName;
+    }
+
+    public void setObjectName(String objectName) {
+        this.objectName = objectName;
+    }
+
+    public String getPackageName() {
+        return packageName;
+    }
+
+    public void setPackageName(String packageName) {
+        this.packageName = packageName;
+    }
 
 }
