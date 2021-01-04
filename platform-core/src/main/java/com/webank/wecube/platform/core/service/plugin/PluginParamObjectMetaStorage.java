@@ -11,6 +11,12 @@ import com.webank.wecube.platform.core.entity.plugin.CoreObjectPropertyMeta;
 @Service
 public class PluginParamObjectMetaStorage extends AbstractPluginParamObjectService {
     
+    /**
+     * 
+     * @param packageName
+     * @param coreObjectName
+     * @return
+     */
     public CoreObjectMeta fetchAssembledCoreObjectMeta(String packageName, String coreObjectName) {
         List<CoreObjectMeta> objectMetaList = new LinkedList<>();
         CoreObjectMeta objectMetaEntity = doFetchAssembledCoreObjectMeta(packageName, coreObjectName, objectMetaList);
@@ -18,8 +24,8 @@ public class PluginParamObjectMetaStorage extends AbstractPluginParamObjectServi
         return objectMetaEntity;
     }
 
-    private CoreObjectMeta doFetchAssembledCoreObjectMeta(String packageName, String coreObjectName, List<CoreObjectMeta> objectMetaList) {
-        CoreObjectMeta cachedObjectMetaEntity = findoutFromCachedObjetMetaEntityList(objectMetaList, packageName, coreObjectName);
+    private CoreObjectMeta doFetchAssembledCoreObjectMeta(String packageName, String coreObjectName, List<CoreObjectMeta> cachedObjectMetaList) {
+        CoreObjectMeta cachedObjectMetaEntity = findoutFromCachedObjetMetaEntityList(cachedObjectMetaList, packageName, coreObjectName);
         if(cachedObjectMetaEntity != null){
             return cachedObjectMetaEntity;
         }
@@ -29,7 +35,7 @@ public class PluginParamObjectMetaStorage extends AbstractPluginParamObjectServi
             return null;
         }
         
-        objectMetaList.add(objectMetaEntity);
+        cachedObjectMetaList.add(objectMetaEntity);
 
         List<CoreObjectPropertyMeta> propertyMetaEntities = coreObjectPropertyMetaMapper
                 .selectAllByObjectMeta(objectMetaEntity.getId());
@@ -41,7 +47,7 @@ public class PluginParamObjectMetaStorage extends AbstractPluginParamObjectServi
             if (CoreObjectPropertyMeta.DATA_TYPE_OBJECT.equals(propertyMetaEntity.getRefType())) {
                 
                 CoreObjectMeta refObjectMetaEntity = doFetchAssembledCoreObjectMeta(packageName,
-                        propertyMetaEntity.getRefName(), objectMetaList);
+                        propertyMetaEntity.getRefName(), cachedObjectMetaList);
                 propertyMetaEntity.setRefObjectMeta(refObjectMetaEntity);
             }
 
