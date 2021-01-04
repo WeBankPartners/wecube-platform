@@ -82,6 +82,8 @@ CREATE TABLE `core_object_property_var` (
   `updated_by` varchar(45) DEFAULT NULL,
   `updated_time` datetime DEFAULT NULL,
   `is_sensitive` bit(1) DEFAULT NULL,
+  `object_name` VARCHAR(45) NULL,
+  `package_name` VARCHAR(45) NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
@@ -94,3 +96,4 @@ CREATE TABLE `core_object_list_var` (
   `is_sensitive` bit(1) NOT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
