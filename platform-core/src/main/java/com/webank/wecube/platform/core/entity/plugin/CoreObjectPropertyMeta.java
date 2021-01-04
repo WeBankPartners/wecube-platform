@@ -2,6 +2,8 @@ package com.webank.wecube.platform.core.entity.plugin;
 
 import java.util.Date;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 public class CoreObjectPropertyMeta {
     public static final String DATA_TYPE_STRING = "string";
     public static final String DATA_TYPE_NUMBER = "number";
@@ -45,8 +47,10 @@ public class CoreObjectPropertyMeta {
 
     private Boolean sensitive;
 
+    @JsonIgnore
     private transient CoreObjectMeta objectMeta;
 
+    @JsonIgnore
     private transient CoreObjectMeta refObjectMeta;
 
     public String getId() {
