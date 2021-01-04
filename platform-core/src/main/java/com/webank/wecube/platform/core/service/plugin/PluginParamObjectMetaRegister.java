@@ -1,34 +1,24 @@
 package com.webank.wecube.platform.core.service.plugin;
 
 import java.util.Date;
-import java.util.LinkedList;
 import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.webank.wecube.platform.core.commons.AuthenticationContextHolder;
 import com.webank.wecube.platform.core.entity.plugin.CoreObjectMeta;
 import com.webank.wecube.platform.core.entity.plugin.CoreObjectPropertyMeta;
-import com.webank.wecube.platform.core.repository.plugin.CoreObjectMetaMapper;
-import com.webank.wecube.platform.core.repository.plugin.CoreObjectPropertyMetaMapper;
 import com.webank.wecube.platform.core.service.plugin.xml.register.ParamObjectType;
 import com.webank.wecube.platform.core.service.plugin.xml.register.ParamObjectsType;
 import com.webank.wecube.platform.core.service.plugin.xml.register.ParamPropertyType;
 import com.webank.wecube.platform.workflow.commons.LocalIdGenerator;
 
 @Service
-public class PluginParamObjectSupportService {
-    private static final Logger log = LoggerFactory.getLogger(PluginParamObjectSupportService.class);
-
-    @Autowired
-    private CoreObjectMetaMapper coreObjectMetaMapper;
-
-    @Autowired
-    private CoreObjectPropertyMetaMapper coreObjectPropertyMetaMapper;
+public class PluginParamObjectMetaRegister extends AbstractPluginParamObjectService{
+    private static final Logger log = LoggerFactory.getLogger(PluginParamObjectMetaRegister.class);
 
     public void registerParamObjects(ParamObjectsType xmlParamObjects, String packageName, String packageVersion) {
         log.info("try to register param objects for {} {}", packageName, packageVersion);
@@ -49,60 +39,6 @@ public class PluginParamObjectSupportService {
         }
 
     }
-
-    public CoreObjectMeta fetchAssembledCoreObjectMeta(String packageName, String coreObjectName) {
-        List<CoreObjectMeta> objectMetaList = new LinkedList<>();
-        CoreObjectMeta objectMetaEntity = doFetchAssembledCoreObjectMeta(packageName, coreObjectName, objectMetaList);
-
-        return objectMetaEntity;
-    }
-
-    private CoreObjectMeta doFetchAssembledCoreObjectMeta(String packageName, String coreObjectName, List<CoreObjectMeta> objectMetaList) {
-        CoreObjectMeta cachedObjectMetaEntity = findoutFromCachedObjetMetaEntityList(objectMetaList, packageName, coreObjectName);
-        if(cachedObjectMetaEntity != null){
-            return cachedObjectMetaEntity;
-        }
-        CoreObjectMeta objectMetaEntity = coreObjectMetaMapper.selectOneByPackageNameAndObjectName(packageName,
-                coreObjectName);
-        if (objectMetaEntity == null) {
-            return null;
-        }
-        
-        objectMetaList.add(objectMetaEntity);
-
-        List<CoreObjectPropertyMeta> propertyMetaEntities = coreObjectPropertyMetaMapper
-                .selectAllByObjectMeta(objectMetaEntity.getId());
-        if (propertyMetaEntities == null || propertyMetaEntities.isEmpty()) {
-            return objectMetaEntity;
-        }
-
-        for (CoreObjectPropertyMeta propertyMetaEntity : propertyMetaEntities) {
-            if (CoreObjectPropertyMeta.DATA_TYPE_OBJECT.equals(propertyMetaEntity.getRefType())) {
-                
-                CoreObjectMeta refObjectMetaEntity = doFetchAssembledCoreObjectMeta(packageName,
-                        propertyMetaEntity.getRefName(), objectMetaList);
-                propertyMetaEntity.setRefObjectMeta(refObjectMetaEntity);
-            }
-
-            objectMetaEntity.addPropertyMeta(propertyMetaEntity);
-        }
-        
-        
-
-        return objectMetaEntity;
-    }
-    
-    private CoreObjectMeta findoutFromCachedObjetMetaEntityList(List<CoreObjectMeta> objectMetaList, String packageName, String coreObjectName){
-        for(CoreObjectMeta m : objectMetaList){
-            if(packageName.equals(m.getPackageName()) && coreObjectName.equals(m.getName())){
-                return m;
-            }
-        }
-        
-        return null;
-    }
-
-    
 
     private void tryRegisterSingleParamObject(ParamObjectType xmlParamObject, String packageName,
             String packageVersion) {
@@ -128,7 +64,7 @@ public class PluginParamObjectSupportService {
             return;
         }
 
-        //TODO to implement in future
+        // TODO to implement in future
         return;
     }
 
