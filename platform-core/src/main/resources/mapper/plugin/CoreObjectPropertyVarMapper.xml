@@ -29,13 +29,21 @@
             jdbcType="TIMESTAMP" />
         <result column="is_sensitive" property="sensitive"
             jdbcType="BIT" />
+        <result column="object_name" property="objectName"
+            jdbcType="VARCHAR" />
+        <result column="package_name" property="packageName"
+            jdbcType="VARCHAR" />
     </resultMap>
     <sql id="Base_Column_List">
-        id, name, data_type, object_property_meta_id, object_meta_id,
+        id, name, data_type, object_property_meta_id,
+        object_meta_id,
         object_var_id, data_value,
-        data_type_id, data_id, data_name, created_by, created_time, updated_by,
+        data_type_id, data_id,
+        data_name, created_by, created_time, updated_by,
         updated_time,
-        is_sensitive
+        is_sensitive,
+        object_name,
+        package_name
     </sql>
     <select id="selectByPrimaryKey" resultMap="BaseResultMap"
         parameterType="java.lang.String">
@@ -45,27 +53,35 @@
         where id = #{id,jdbcType=VARCHAR}
     </select>
     <delete id="deleteByPrimaryKey" parameterType="java.lang.String">
-        delete from core_object_property_var
+        delete from
+        core_object_property_var
         where id = #{id,jdbcType=VARCHAR}
     </delete>
     <insert id="insert"
         parameterType="com.webank.wecube.platform.core.entity.plugin.CoreObjectPropertyVar">
-        insert into core_object_property_var (id, name, data_type,
-        object_property_meta_id, object_meta_id, object_var_id,
+        insert into core_object_property_var (id, name,
+        data_type,
+        object_property_meta_id, object_meta_id,
+        object_var_id,
         data_value, data_type_id, data_id,
-        data_name, created_by, created_time,
-        updated_by, updated_time, is_sensitive
+        data_name,
+        created_by, created_time,
+        updated_by, updated_time, is_sensitive,object_name,
+        package_name
         )
         values (#{id,jdbcType=VARCHAR}, #{name,jdbcType=VARCHAR},
         #{dataType,jdbcType=VARCHAR},
         #{objectPropertyMetaId,jdbcType=VARCHAR},
         #{objectMetaId,jdbcType=VARCHAR},
         #{objectVarId,jdbcType=VARCHAR},
-        #{dataValue,jdbcType=VARCHAR}, #{dataTypeId,jdbcType=VARCHAR}, #{dataId,jdbcType=VARCHAR},
+        #{dataValue,jdbcType=VARCHAR},
+        #{dataTypeId,jdbcType=VARCHAR}, #{dataId,jdbcType=VARCHAR},
         #{dataName,jdbcType=VARCHAR}, #{createdBy,jdbcType=VARCHAR},
         #{createdTime,jdbcType=TIMESTAMP},
         #{updatedBy,jdbcType=VARCHAR},
-        #{updatedTime,jdbcType=TIMESTAMP}, #{sensitive,jdbcType=BIT}
+        #{updatedTime,jdbcType=TIMESTAMP}, #{sensitive,jdbcType=BIT},
+        #{objectName,jdbcType=VARCHAR},
+        #{packageName,jdbcType=VARCHAR}
         )
     </insert>
     <insert id="insertSelective"
@@ -117,6 +133,12 @@
             <if test="sensitive != null">
                 is_sensitive,
             </if>
+            <if test="objectName != null">
+                object_name,
+            </if>
+            <if test="packageName != null">
+                package_name,
+            </if>
         </trim>
         <trim prefix="values (" suffix=")" suffixOverrides=",">
             <if test="id != null">
@@ -164,6 +186,12 @@
             <if test="sensitive != null">
                 #{sensitive,jdbcType=BIT},
             </if>
+            <if test="objectName != null">
+                #{objectName,jdbcType=VARCHAR},
+            </if>
+            <if test="packageName != null">
+                #{packageName,jdbcType=VARCHAR},
+            </if>
         </trim>
     </insert>
     <update id="updateByPrimaryKeySelective"
@@ -181,7 +209,8 @@
                 #{objectPropertyMetaId,jdbcType=VARCHAR},
             </if>
             <if test="objectMetaId != null">
-                object_meta_id = #{objectMetaId,jdbcType=VARCHAR},
+                object_meta_id =
+                #{objectMetaId,jdbcType=VARCHAR},
             </if>
             <if test="objectVarId != null">
                 object_var_id = #{objectVarId,jdbcType=VARCHAR},
@@ -202,16 +231,24 @@
                 created_by = #{createdBy,jdbcType=VARCHAR},
             </if>
             <if test="createdTime != null">
-                created_time = #{createdTime,jdbcType=TIMESTAMP},
+                created_time =
+                #{createdTime,jdbcType=TIMESTAMP},
             </if>
             <if test="updatedBy != null">
                 updated_by = #{updatedBy,jdbcType=VARCHAR},
             </if>
             <if test="updatedTime != null">
-                updated_time = #{updatedTime,jdbcType=TIMESTAMP},
+                updated_time =
+                #{updatedTime,jdbcType=TIMESTAMP},
             </if>
             <if test="sensitive != null">
                 is_sensitive = #{sensitive,jdbcType=BIT},
+            </if>
+            <if test="objectName != null">
+                object_name = #{objectName,jdbcType=VARCHAR},
+            </if>
+            <if test="packageName != null">
+                package_name = #{packageName,jdbcType=VARCHAR},
             </if>
         </set>
         where id = #{id,jdbcType=VARCHAR}
@@ -219,20 +256,38 @@
     <update id="updateByPrimaryKey"
         parameterType="com.webank.wecube.platform.core.entity.plugin.CoreObjectPropertyVar">
         update core_object_property_var
-        set name = #{name,jdbcType=VARCHAR},
-        data_type = #{dataType,jdbcType=VARCHAR},
-        object_property_meta_id = #{objectPropertyMetaId,jdbcType=VARCHAR},
-        object_meta_id = #{objectMetaId,jdbcType=VARCHAR},
-        object_var_id = #{objectVarId,jdbcType=VARCHAR},
-        data_value = #{dataValue,jdbcType=VARCHAR},
-        data_type_id = #{dataTypeId,jdbcType=VARCHAR},
-        data_id = #{dataId,jdbcType=VARCHAR},
-        data_name = #{dataName,jdbcType=VARCHAR},
-        created_by = #{createdBy,jdbcType=VARCHAR},
-        created_time = #{createdTime,jdbcType=TIMESTAMP},
-        updated_by = #{updatedBy,jdbcType=VARCHAR},
-        updated_time = #{updatedTime,jdbcType=TIMESTAMP},
-        is_sensitive = #{sensitive,jdbcType=BIT}
+        set name =
+        #{name,jdbcType=VARCHAR},
+        data_type =
+        #{dataType,jdbcType=VARCHAR},
+        object_property_meta_id =
+        #{objectPropertyMetaId,jdbcType=VARCHAR},
+        object_meta_id =
+        #{objectMetaId,jdbcType=VARCHAR},
+        object_var_id =
+        #{objectVarId,jdbcType=VARCHAR},
+        data_value =
+        #{dataValue,jdbcType=VARCHAR},
+        data_type_id =
+        #{dataTypeId,jdbcType=VARCHAR},
+        data_id =
+        #{dataId,jdbcType=VARCHAR},
+        data_name =
+        #{dataName,jdbcType=VARCHAR},
+        created_by =
+        #{createdBy,jdbcType=VARCHAR},
+        created_time =
+        #{createdTime,jdbcType=TIMESTAMP},
+        updated_by =
+        #{updatedBy,jdbcType=VARCHAR},
+        updated_time =
+        #{updatedTime,jdbcType=TIMESTAMP},
+        is_sensitive =
+        #{sensitive,jdbcType=BIT},
+        object_name =
+        #{objectName,jdbcType=VARCHAR},
+        package_name =
+        #{packageName,jdbcType=VARCHAR}
         where id = #{id,jdbcType=VARCHAR}
     </update>
 </mapper>

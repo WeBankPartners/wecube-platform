@@ -2,6 +2,8 @@ package com.webank.wecube.platform.core.entity.plugin;
 
 import java.util.Date;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 public class CoreObjectListVar {
     private String id;
 
@@ -15,7 +17,9 @@ public class CoreObjectListVar {
 
     private Boolean sensitive;
 
+    @JsonIgnore
     private transient Object rawObjectValue;
+    @JsonIgnore
     private transient CoreObjectPropertyMeta objectPropertyMeta;
 
     public String getId() {
