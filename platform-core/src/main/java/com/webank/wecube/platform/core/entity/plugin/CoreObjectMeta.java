@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 public class CoreObjectMeta {
     private String id;
 
@@ -23,6 +25,7 @@ public class CoreObjectMeta {
 
     private Date updatedTime;
 
+    @JsonIgnore
     private transient List<CoreObjectPropertyMeta> propertyMetas = new ArrayList<>();
 
     public String getId() {
