@@ -247,6 +247,7 @@ public class PluginParamObjectVarCalculator extends AbstractPluginParamObjectSer
             propertyVar.setDataValueObject(listObject);
             propertyVar.setObjectName(propertyMeta.getObjectName());
             propertyVar.setPackageName(propertyMeta.getPackageName());
+            propertyVar.setSensitive(propertyMeta.getSensitive());
 
             listPropertyVars.add(propertyVar);
         }
@@ -291,6 +292,7 @@ public class PluginParamObjectVarCalculator extends AbstractPluginParamObjectSer
             propertyVar1.setObjectName(propertyMeta.getObjectName());
             propertyVar1.setPackageName(propertyMeta.getPackageName());
             propertyVar1.setObjectPropertyMetaId(propertyMeta.getId());
+            propertyVar1.setSensitive(propertyMeta.getSensitive());
             listPropertyVars.add(propertyVar1);
 
             List<CoreObjectListVar> basicListVars2 = new ArrayList<>();
@@ -319,6 +321,7 @@ public class PluginParamObjectVarCalculator extends AbstractPluginParamObjectSer
             propertyVar2.setObjectName(propertyMeta.getObjectName());
             propertyVar2.setPackageName(propertyMeta.getPackageName());
             propertyVar2.setObjectPropertyMetaId(propertyMeta.getId());
+            propertyVar2.setSensitive(propertyMeta.getSensitive());
 
             listPropertyVars.add(propertyVar2);
 
