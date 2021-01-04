@@ -85,6 +85,7 @@ public class PluginParamObjectMetaRegisterTest {
 
     }
 
+    @Ignore
     @Test
     public void testCalculateCoreObjectVarWhenListProperty() throws JsonProcessingException {
 
