@@ -66,10 +66,12 @@
         data_value, data_type_id, data_id,
         data_name,
         created_by, created_time,
-        updated_by, updated_time, is_sensitive,object_name,
+        updated_by, updated_time,
+        is_sensitive,object_name,
         package_name
         )
-        values (#{id,jdbcType=VARCHAR}, #{name,jdbcType=VARCHAR},
+        values
+        (#{id,jdbcType=VARCHAR}, #{name,jdbcType=VARCHAR},
         #{dataType,jdbcType=VARCHAR},
         #{objectPropertyMetaId,jdbcType=VARCHAR},
         #{objectMetaId,jdbcType=VARCHAR},
@@ -290,4 +292,13 @@
         #{packageName,jdbcType=VARCHAR}
         where id = #{id,jdbcType=VARCHAR}
     </update>
+
+    <select id="selectAllByObjectVar" resultMap="BaseResultMap"
+        parameterType="java.lang.String">
+        select
+        <include refid="Base_Column_List" />
+        from core_object_property_var
+        where object_var_id =
+        #{objectVarId,jdbcType=VARCHAR}
+    </select>
 </mapper>
