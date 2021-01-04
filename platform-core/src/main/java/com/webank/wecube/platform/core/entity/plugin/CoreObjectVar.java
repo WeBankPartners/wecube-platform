@@ -23,9 +23,13 @@ public class CoreObjectVar {
 
     private Date updatedTime;
 
+    private String parentObjectVarId;
+
+    private String parentObjectName;
+
     @JsonIgnore
     private transient CoreObjectMeta objectMeta;
-//    @JsonIgnore
+    // @JsonIgnore
     private transient List<CoreObjectPropertyVar> propertyVars = new ArrayList<>();
 
     public String getId() {
@@ -107,17 +111,33 @@ public class CoreObjectVar {
     public void setObjectMeta(CoreObjectMeta objectMeta) {
         this.objectMeta = objectMeta;
     }
-    
-    public void addPropertyVar(CoreObjectPropertyVar propertyVar){
-        if(propertyVar == null){
+
+    public void addPropertyVar(CoreObjectPropertyVar propertyVar) {
+        if (propertyVar == null) {
             return;
         }
-        
-        if(propertyVar.getObjectVar() == null){
+
+        if (propertyVar.getObjectVar() == null) {
             propertyVar.setObjectVar(this);
         }
-        
+
         this.getPropertyVars().add(propertyVar);
+    }
+
+    public String getParentObjectVarId() {
+        return parentObjectVarId;
+    }
+
+    public void setParentObjectVarId(String parentObjectVarId) {
+        this.parentObjectVarId = parentObjectVarId;
+    }
+
+    public String getParentObjectName() {
+        return parentObjectName;
+    }
+
+    public void setParentObjectName(String parentObjectName) {
+        this.parentObjectName = parentObjectName;
     }
 
 }
