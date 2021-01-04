@@ -63,6 +63,8 @@ CREATE TABLE `core_object_var` (
   `created_time` datetime NOT NULL,
   `updated_by` varchar(45) DEFAULT NULL,
   `updated_time` datetime DEFAULT NULL,
+  `parent_object_var_id` VARCHAR(45) NULL,
+  `parent_object_name` VARCHAR(45) NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
