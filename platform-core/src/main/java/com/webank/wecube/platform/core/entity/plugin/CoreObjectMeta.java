@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import org.apache.commons.lang3.StringUtils;
+
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 public class CoreObjectMeta {
@@ -117,5 +119,19 @@ public class CoreObjectMeta {
             propertyMeta.setObjectMeta(this);
         }
         this.propertyMetas.add(propertyMeta);
+    }
+    
+    public CoreObjectPropertyMeta findCoreObjectPropertyMeta(String propertyMetaId){
+        if(StringUtils.isBlank(propertyMetaId)){
+            return null;
+        }
+        
+        for(CoreObjectPropertyMeta propertyMeta : propertyMetas){
+            if(propertyMetaId.equals(propertyMeta.getId())){
+                return propertyMeta;
+            }
+        }
+        
+        return null;
     }
 }
