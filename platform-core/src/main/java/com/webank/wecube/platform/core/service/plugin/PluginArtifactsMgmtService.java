@@ -189,7 +189,7 @@ public class PluginArtifactsMgmtService extends AbstractPluginMgmtService {
     private UserManagementService userManagementService;
     
     @Autowired
-    private PluginParamObjectSupportService pluginParamObjectSupportService;
+    private PluginParamObjectMetaRegister pluginParamObjectSupportService;
 
     /**
      * 

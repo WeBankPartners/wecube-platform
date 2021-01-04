@@ -27,7 +27,7 @@ import com.webank.wecube.platform.core.utils.StringUtilsEx;
 public class PluginArtifactsMgmtServiceTest {
     
     @Autowired
-    PluginParamObjectSupportService pluginParamObjectSupportService;
+    PluginParamObjectMetaRegister pluginParamObjectSupportService;
 
     @Ignore
     @SuppressWarnings("deprecation")
