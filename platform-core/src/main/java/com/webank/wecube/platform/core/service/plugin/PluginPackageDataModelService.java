@@ -138,7 +138,7 @@ public class PluginPackageDataModelService {
      * @return
      */
     public PluginPackageDataModelDto pullDynamicDataModel(String packageName) {
-        if(log.isInfoEnabled()){
+        if (log.isInfoEnabled()) {
             log.info("try to pull dynamic data model for {}", packageName);
         }
         PluginPackages latestPluginPackagesEntity = pluginPackageMgmtService
@@ -168,7 +168,7 @@ public class PluginPackageDataModelService {
         dataModelDto.setPackageName(dataModel.getPackageName());
         dataModelDto.setVersion(dataModel.getVersion());
         dataModelDto.setUpdateTime(dataModel.getUpdateTime());
-        dataModelDto.setUpdateSource(PluginPackageDataModelDto.Source.DATA_MODEL_ENDPOINT.name());
+        dataModelDto.setUpdateSource(PluginPackageDataModel.DATA_MODEL_ENDPOINT);
         dataModelDto.setUpdateMethod(dataModel.getUpdateMethod());
         dataModelDto.setUpdatePath(dataModel.getUpdatePath());
         dataModelDto.setDynamic(true);
@@ -477,7 +477,7 @@ public class PluginPackageDataModelService {
         dataModelDto.setPackageName(dataModel.getPackageName());
         dataModelDto.setVersion(dataModel.getVersion());
         dataModelDto.setUpdateTime(dataModel.getUpdateTime());
-        dataModelDto.setUpdateSource(PluginPackageDataModelDto.Source.DATA_MODEL_ENDPOINT.name());
+        dataModelDto.setUpdateSource(PluginPackageDataModel.DATA_MODEL_ENDPOINT);
         dataModelDto.setUpdateMethod(dataModel.getUpdateMethod());
         dataModelDto.setUpdatePath(dataModel.getUpdatePath());
         dataModelDto.setDynamic(true);
