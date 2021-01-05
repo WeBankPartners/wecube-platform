@@ -4,7 +4,7 @@ public class TargetEntityFilterRuleDto {
     private String targetEntityFilterRule;
     private String entityName;
     private String pkgName;
-    
+
     public String getTargetEntityFilterRule() {
         return targetEntityFilterRule;
     }
