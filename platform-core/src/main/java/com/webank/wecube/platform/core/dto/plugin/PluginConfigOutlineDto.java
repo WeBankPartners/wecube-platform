@@ -65,15 +65,4 @@ public class PluginConfigOutlineDto {
     public void setHasMgmtPermission(Boolean hasMgmtPermission) {
         this.hasMgmtPermission = hasMgmtPermission;
     }
-
-//    public static PluginConfigOutlineDto fromDomain(PluginConfig pluginConfig) {
-//        PluginConfigOutlineDto pluginConfigDto = new PluginConfigOutlineDto();
-//        pluginConfigDto.setId(pluginConfig.getId());
-//        pluginConfigDto.setName(pluginConfig.getName());
-//        pluginConfigDto.setTargetEntityWithFilterRule(pluginConfig.getTargetEntityWithFilterRule());
-//        pluginConfigDto.setRegisterName(pluginConfig.getRegisterName());
-//        pluginConfigDto.setPluginPackageId(pluginConfig.getPluginPackage().getId());
-//        pluginConfigDto.setStatus(pluginConfig.getStatus());
-//        return pluginConfigDto;
-//    }
 }

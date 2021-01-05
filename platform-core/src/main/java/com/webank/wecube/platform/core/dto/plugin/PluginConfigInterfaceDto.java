@@ -14,9 +14,9 @@ public class PluginConfigInterfaceDto {
     private String path;
     private String httpMethod;
     private String isAsyncProcessing;
+    private String filterRule;
     private List<PluginConfigInterfaceParameterDto> inputParameters;
     private List<PluginConfigInterfaceParameterDto> outputParameters;
-    private String filterRule;
 
     public String getId() {
         return id;
@@ -90,87 +90,10 @@ public class PluginConfigInterfaceDto {
         this.outputParameters = outputParameters;
     }
 
-    public PluginConfigInterfaceDto() {
-    }
-
-    public PluginConfigInterfaceDto(String id, String pluginConfigId, String action, String serviceName, String serviceDisplayName, String path, String httpMethod, List<PluginConfigInterfaceParameterDto> inputParameters, List<PluginConfigInterfaceParameterDto> outputParameters) {
-        this.id = id;
-        this.pluginConfigId = pluginConfigId;
-        this.action = action;
-        this.serviceName = serviceName;
-        this.serviceDisplayName = serviceDisplayName;
-        this.path = path;
-        this.httpMethod = httpMethod;
-        this.inputParameters = inputParameters;
-        this.outputParameters = outputParameters;
-    }
-
     @Override
     public String toString() {
         return ReflectionToStringBuilder.toString(this);
     }
-
-//    public PluginConfigInterface toDomain(PluginConfig pluginConfig) {
-//        PluginConfigInterface pluginConfigInterface = new PluginConfigInterface();
-//        if (pluginConfig.getId() != null) {
-//            pluginConfigInterface.setId(getId());
-//        }
-//        pluginConfigInterface.setPluginConfig(pluginConfig);
-//        pluginConfigInterface.setAction(getAction());
-//        pluginConfigInterface.setServiceName(pluginConfigInterface.generateServiceName());
-//        pluginConfigInterface.setServiceDisplayName(pluginConfigInterface.generateServiceName());
-//        pluginConfigInterface.setPath(getPath());
-//        pluginConfigInterface.setHttpMethod(getHttpMethod());
-//        pluginConfigInterface.setFilterRule(getFilterRule());
-//        Set<PluginConfigInterfaceParameter> pluginConfigInterfaceInputParameters = newLinkedHashSet();
-//        if (null != getInputParameters() && getInputParameters().size() > 0) {
-//            getInputParameters().forEach(inputParameter -> pluginConfigInterfaceInputParameters
-//                    .add(inputParameter.toDomain(pluginConfigInterface, PluginConfigInterfaceParameter.TYPE_INPUT)));
-//        }
-//        pluginConfigInterface.setInputParameters(pluginConfigInterfaceInputParameters);
-//
-//        Set<PluginConfigInterfaceParameter> pluginConfigInterfaceOutputParameters = newLinkedHashSet();
-//        if (null != getOutputParameters() && getOutputParameters().size() > 0) {
-//            getOutputParameters().forEach(outputParameter -> pluginConfigInterfaceOutputParameters
-//                    .add(outputParameter.toDomain(pluginConfigInterface, PluginConfigInterfaceParameter.TYPE_OUTPUT)));
-//        }
-//        pluginConfigInterface.setOutputParameters(pluginConfigInterfaceOutputParameters);
-//        pluginConfigInterface.setIsAsyncProcessing(getIsAsyncProcessing());
-//
-//        return pluginConfigInterface;
-//    }
-//
-//    public static PluginConfigInterfaceDto fromDomain(PluginConfigInterface entity) {
-//        PluginConfigInterfaceDto dto = new PluginConfigInterfaceDto();
-//        dto.setId(entity.getId());
-//        dto.setPluginConfigId(entity.getPluginConfig().getId());
-//
-//        dto.setPath(entity.getPath());
-//        dto.setServiceName(entity.getServiceName());
-//        dto.setServiceDisplayName(entity.getServiceDisplayName());
-//        dto.setAction(entity.getAction());
-//        dto.setHttpMethod(entity.getHttpMethod());
-//        dto.setIsAsyncProcessing(entity.getIsAsyncProcessing());
-//        dto.setFilterRule(entity.getFilterRule());
-//
-//        List<PluginConfigInterfaceParameterDto> interfaceInputParameterDtos = newArrayList();
-//        if (null != entity.getInputParameters()
-//                && entity.getInputParameters().size() > 0) {
-//            entity.getInputParameters()
-//                    .forEach(pluginConfigInterfaceParameter -> interfaceInputParameterDtos
-//                            .add(PluginConfigInterfaceParameterDto.fromDomain(pluginConfigInterfaceParameter)));
-//        }
-//        dto.setInputParameters(interfaceInputParameterDtos);
-//        List<PluginConfigInterfaceParameterDto> interfaceOutputParameterDtos = newArrayList();
-//        if (null != entity.getOutputParameters()
-//                && entity.getOutputParameters().size() > 0) {
-//            entity.getOutputParameters()
-//                    .forEach(pluginConfigInterfaceParameter -> interfaceOutputParameterDtos
-//                            .add(PluginConfigInterfaceParameterDto.fromDomain(pluginConfigInterfaceParameter)));
-//        }
-//        dto.setOutputParameters(interfaceOutputParameterDtos);
-//        return dto;
-//    }
 
     public String getIsAsyncProcessing() {
         return isAsyncProcessing;
