@@ -5,10 +5,6 @@ import java.util.List;
 
 public class PluginPackageDataModelDto {
 
-    public static enum Source {
-        PLUGIN_PACKAGE, DATA_MODEL_ENDPOINT
-    }
-
     private String id;
 
     private Integer version;
@@ -26,9 +22,6 @@ public class PluginPackageDataModelDto {
     private Long updateTime;
 
     private List<PluginPackageEntityDto> entities = new ArrayList<>();
-
-    public PluginPackageDataModelDto() {
-    }
 
     public String getId() {
         return id;

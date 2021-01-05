@@ -3,8 +3,6 @@ package com.webank.wecube.platform.core.dto.plugin;
 public class PluginPackageResourceFileDto {
     private String id;
 
-//    private PluginPackage pluginPackage;
-
     private String packageName;
 
     private String packageVersion;
@@ -20,14 +18,6 @@ public class PluginPackageResourceFileDto {
     public void setId(String id) {
         this.id = id;
     }
-
-//    public PluginPackage getPluginPackage() {
-//        return pluginPackage;
-//    }
-//
-//    public void setPluginPackage(PluginPackage pluginPackage) {
-//        this.pluginPackage = pluginPackage;
-//    }
 
     public String getPackageName() {
         return packageName;
