@@ -429,7 +429,7 @@
         WHERE
         t1.plugin_config_id = t2.id
         AND
-        (t1.filter_rule IS NULL OR t1.filter_rule = '')
+        (t2.target_entity_filter_rule IS NULL OR t2.target_entity_filter_rule = '')
         AND
         t2.status =
         #{pluginConfigStatus,jdbcType=VARCHAR}
@@ -501,7 +501,7 @@
         WHERE
         t1.plugin_config_id = t2.id
         AND
-        t1.filter_rule = #{filterRule,jdbcType=VARCHAR}
+        t2.target_entity_filter_rule = #{filterRule,jdbcType=VARCHAR}
         AND
         t2.status =
         #{pluginConfigStatus,jdbcType=VARCHAR}
