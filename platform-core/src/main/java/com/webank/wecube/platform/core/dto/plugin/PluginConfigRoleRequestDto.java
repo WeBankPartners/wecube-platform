@@ -3,6 +3,10 @@ package com.webank.wecube.platform.core.dto.plugin;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * 
+ *
+ */
 public class PluginConfigRoleRequestDto {
     private Map<String,List<String>> permissionToRole;
 
