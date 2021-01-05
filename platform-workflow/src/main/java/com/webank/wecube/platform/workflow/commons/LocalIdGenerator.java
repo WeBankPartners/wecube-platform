@@ -23,6 +23,8 @@ public final class LocalIdGenerator {
 
     private AtomicLong count = new AtomicLong(COUNT_MIN);
 
+    private Random r = new Random();
+
     private String idSaltStr;
 
     private LocalIdGenerator() {
@@ -59,13 +61,20 @@ public final class LocalIdGenerator {
 
     private String doGenerateTimestampedId() {
         String timeStr = number2base62(System.currentTimeMillis());
+        String countStr = doGenerateCountStr();
+
+        int salt = r.nextInt(62);
+        String saltStr = String.valueOf(BASE62_CHARS[salt]);
+
+        return timeStr + idSaltStr + countStr + saltStr;
+    }
+
+    private synchronized String doGenerateCountStr() {
         if (count.get() >= COUNT_MAX) {
             count.set(COUNT_MIN);
         }
 
-        String countStr = number2base62(count.getAndIncrement());
-
-        return timeStr + idSaltStr + countStr;
+        return number2base62(count.incrementAndGet());
     }
 
     private String number2base62(long num) {
