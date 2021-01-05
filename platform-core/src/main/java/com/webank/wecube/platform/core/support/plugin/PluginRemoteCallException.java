@@ -6,23 +6,23 @@ import com.webank.wecube.platform.core.support.plugin.dto.PluginResponse;
 public class PluginRemoteCallException extends RemoteCallException {
 
     private static final long serialVersionUID = -722980206574018150L;
-    private transient PluginResponse pluginResponse;
+    private transient PluginResponse<?> pluginResponse;
 
     public PluginRemoteCallException(String message) {
         super(message);
     }
 
-    public PluginRemoteCallException(String message, PluginResponse pluginResponse) {
+    public PluginRemoteCallException(String message, PluginResponse<?> pluginResponse) {
         super(message);
         this.pluginResponse = pluginResponse;
     }
 
-    public PluginRemoteCallException(String message, PluginResponse pluginResponse, Throwable cause) {
+    public PluginRemoteCallException(String message, PluginResponse<?> pluginResponse, Throwable cause) {
         super(message, cause);
         this.pluginResponse = pluginResponse;
     }
 
-    public PluginResponse getPluginResponse() {
+    public PluginResponse<?> getPluginResponse() {
         return pluginResponse;
     }
 
@@ -36,7 +36,7 @@ public class PluginRemoteCallException extends RemoteCallException {
         return pluginResponse == null ? null : pluginResponse.getResultData();
     }
 
-    private String getStatusCode(PluginResponse pluginResponse) {
+    private String getStatusCode(PluginResponse<?> pluginResponse) {
         return pluginResponse == null ? null : pluginResponse.getResultCode();
     }
 }
