@@ -158,6 +158,7 @@ export default {
       newPassword: '',
       currentRoleId: 0,
       users: [],
+      selectedUser: '',
       roles: [],
       addedUser: {
         authType: 'LOCAL'
@@ -328,6 +329,7 @@ export default {
       }
     },
     async handleUserClick (checked, name) {
+      this.selectedUser = name
       this.currentRoleId = 0
       this.users.forEach(_ => {
         _.checked = false
@@ -409,9 +411,9 @@ export default {
         }
       }
     },
-    confirmUser () {
-      if (this.currentRoleId !== 0) {
-        this.handleRoleClick(true, this.currentRoleId)
+    async confirmUser () {
+      if (this.selectedUser) {
+        await this.handleUserClick(true, this.selectedUser)
       }
       this.userManageModal = false
     },
