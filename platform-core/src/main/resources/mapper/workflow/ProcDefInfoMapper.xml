@@ -28,8 +28,6 @@
         <result column="is_deleted" jdbcType="BIT" property="isDeleted" />
         <result column="owner" jdbcType="VARCHAR" property="owner" />
         <result column="owner_grp" jdbcType="VARCHAR" property="ownerGrp" />
-        <result column="dynamic_bind" jdbcType="VARCHAR"
-            property="dynamicBind" />
         <result column="pre_check" jdbcType="VARCHAR" property="preCheck" />
     </resultMap>
     <resultMap extends="BaseResultMap" id="ResultMapWithBLOBs"
@@ -44,7 +42,7 @@
         proc_def_kernel_id,
         proc_def_key, proc_def_name, proc_def_ver, root_entity,
         is_deleted,
-        owner, owner_grp,dynamic_bind,pre_check
+        owner, owner_grp,pre_check
     </sql>
     <sql id="Blob_Column_List">
         proc_def_data
@@ -74,7 +72,7 @@
         proc_def_name,
         proc_def_ver, root_entity, is_deleted,
         owner,
-        owner_grp, proc_def_data,dynamic_bind,pre_check
+        owner_grp, proc_def_data,pre_check
         )
         values
         (#{id,jdbcType=VARCHAR},
@@ -91,7 +89,6 @@
         #{owner,jdbcType=VARCHAR},
         #{ownerGrp,jdbcType=VARCHAR},
         #{procDefData,jdbcType=LONGVARCHAR},
-        #{dynamicBind,jdbcType=VARCHAR},
         #{preCheck,jdbcType=VARCHAR}
         )
     </insert>
@@ -153,9 +150,6 @@
             <if test="procDefData != null">
                 proc_def_data,
             </if>
-            <if test="dynamicBind != null">
-                dynamic_bind,
-            </if>
             <if test="preCheck != null">
                 pre_check,
             </if>
@@ -214,9 +208,6 @@
             </if>
             <if test="procDefData != null">
                 #{procDefData,jdbcType=LONGVARCHAR},
-            </if>
-            <if test="dynamicBind != null">
-                #{dynamicBind,jdbcType=VARCHAR},
             </if>
             <if test="preCheck != null">
                 #{preCheck,jdbcType=VARCHAR},
@@ -283,9 +274,6 @@
                 proc_def_data =
                 #{procDefData,jdbcType=LONGVARCHAR},
             </if>
-            <if test="dynamicBind != null">
-                dynamic_bind = #{dynamicBind,jdbcType=VARCHAR},
-            </if>
             <if test="preCheck != null">
                 pre_check = #{preCheck,jdbcType=VARCHAR},
             </if>
@@ -325,8 +313,6 @@
         #{isDeleted,jdbcType=BIT},
         owner = #{owner,jdbcType=VARCHAR},
         owner_grp = #{ownerGrp,jdbcType=VARCHAR},
-        dynamic_bind =
-        #{dynamicBind,jdbcType=VARCHAR},
         pre_check =
         #{preCheck,jdbcType=VARCHAR}
         where id =
