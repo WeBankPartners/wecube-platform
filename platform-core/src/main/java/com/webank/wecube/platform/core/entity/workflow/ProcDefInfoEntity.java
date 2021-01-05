@@ -55,8 +55,6 @@ public class ProcDefInfoEntity {
 
     private String procDefData;
 
-    private String dynamicBind;
-
     private String preCheck;
 
     public String getId() {
@@ -201,14 +199,6 @@ public class ProcDefInfoEntity {
 
     public void setProcDefData(String procDefData) {
         this.procDefData = procDefData;
-    }
-
-    public String getDynamicBind() {
-        return dynamicBind;
-    }
-
-    public void setDynamicBind(String dynamicBind) {
-        this.dynamicBind = dynamicBind;
     }
 
     public String getPreCheck() {
