@@ -176,12 +176,14 @@ WeCube采用容器化部署。
 [WeCube编译文档](wecube-wiki/docs/install/wecube_compile_guide.md)
 
 如何安装WeCube， 请查看以下文档
-[WeCube部署文档](wecube-wiki/docs/install/wecube_install_guide.md)
+[WeCube部署文档@GitHub](https://webankpartners.github.io/wecube-docs/standalone-mode-on-premises/)
+[WeCube部署文档@Gitee](http://webankpartners.gitee.io/wecube-docs/standalone-mode-on-premises/)
 
 
 ## 用户手册
 更多关于WeCube的使用和操作说明， 请查看以下文档
-[WeCube用户手册](wecube-wiki/docs/manual/wecube_user_guide.md)
+[WeCube用户手册@GitHub](https://webankpartners.github.io/wecube-docs/)
+[WeCube用户手册@Gitee](http://webankpartners.gitee.io/wecube-docs/)
 
 
 ## 开发者文档
