@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.webank.wecube.platform.core.repository.plugin.RolePluginInterfaceMapper" >
+  <resultMap id="BaseResultMap" type="com.webank.wecube.platform.core.entity.plugin.RolePluginInterface" >
+    <id column="id" property="id" jdbcType="VARCHAR" />
+    <result column="role_name" property="roleName" jdbcType="VARCHAR" />
+    <result column="plugin_interface_id" property="pluginInterfaceId" jdbcType="VARCHAR" />
+  </resultMap>
+  <sql id="Base_Column_List" >
+    id, role_name, plugin_interface_id
+  </sql>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.String" >
+    select 
+    <include refid="Base_Column_List" />
+    from role_plugin_interface
+    where id = #{id,jdbcType=VARCHAR}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.String" >
+    delete from role_plugin_interface
+    where id = #{id,jdbcType=VARCHAR}
+  </delete>
+  <insert id="insert" parameterType="com.webank.wecube.platform.core.entity.plugin.RolePluginInterface" >
+    insert into role_plugin_interface (id, role_name, plugin_interface_id
+      )
+    values (#{id,jdbcType=VARCHAR}, #{roleName,jdbcType=VARCHAR}, #{pluginInterfaceId,jdbcType=VARCHAR}
+      )
+  </insert>
+  <insert id="insertSelective" parameterType="com.webank.wecube.platform.core.entity.plugin.RolePluginInterface" >
+    insert into role_plugin_interface
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        id,
+      </if>
+      <if test="roleName != null" >
+        role_name,
+      </if>
+      <if test="pluginInterfaceId != null" >
+        plugin_interface_id,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        #{id,jdbcType=VARCHAR},
+      </if>
+      <if test="roleName != null" >
+        #{roleName,jdbcType=VARCHAR},
+      </if>
+      <if test="pluginInterfaceId != null" >
+        #{pluginInterfaceId,jdbcType=VARCHAR},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="com.webank.wecube.platform.core.entity.plugin.RolePluginInterface" >
+    update role_plugin_interface
+    <set >
+      <if test="roleName != null" >
+        role_name = #{roleName,jdbcType=VARCHAR},
+      </if>
+      <if test="pluginInterfaceId != null" >
+        plugin_interface_id = #{pluginInterfaceId,jdbcType=VARCHAR},
+      </if>
+    </set>
+    where id = #{id,jdbcType=VARCHAR}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.webank.wecube.platform.core.entity.plugin.RolePluginInterface" >
+    update role_plugin_interface
+    set role_name = #{roleName,jdbcType=VARCHAR},
+      plugin_interface_id = #{pluginInterfaceId,jdbcType=VARCHAR}
+    where id = #{id,jdbcType=VARCHAR}
+  </update>
+</mapper>
