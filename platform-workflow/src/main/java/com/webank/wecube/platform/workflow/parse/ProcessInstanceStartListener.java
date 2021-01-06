@@ -19,8 +19,8 @@ import com.webank.wecube.platform.workflow.entity.ProcessInstanceStatusEntity;
 import com.webank.wecube.platform.workflow.entity.ServiceNodeStatusEntity;
 import com.webank.wecube.platform.workflow.model.NodeType;
 import com.webank.wecube.platform.workflow.model.TraceStatus;
-import com.webank.wecube.platform.workflow.repository.ProcessInstanceStatusRepository;
-import com.webank.wecube.platform.workflow.repository.ServiceNodeStatusRepository;
+import com.webank.wecube.platform.workflow.repository.ProcessInstanceStatusMapper;
+import com.webank.wecube.platform.workflow.repository.ServiceNodeStatusMapper;
 
 /**
  * 
@@ -50,24 +50,24 @@ public class ProcessInstanceStartListener implements ExecutionListener {
         Collection<SubProcess> subProcesses = process.getChildElementsByType(SubProcess.class);
 
         Date currTime = new Date();
-        ProcessInstanceStatusRepository processInstanceStatusRepository = SpringApplicationContextUtil
-                .getBean(ProcessInstanceStatusRepository.class);
-        ServiceNodeStatusRepository serviceNodeStatusRepository = SpringApplicationContextUtil
-                .getBean(ServiceNodeStatusRepository.class);
+        ProcessInstanceStatusMapper processInstanceStatusRepository = SpringApplicationContextUtil
+                .getBean(ProcessInstanceStatusMapper.class);
+        ServiceNodeStatusMapper serviceNodeStatusRepository = SpringApplicationContextUtil
+                .getBean(ServiceNodeStatusMapper.class);
         
         ProcessInstanceStatusEntity instanceEntity = new ProcessInstanceStatusEntity();
         instanceEntity.setId(LocalIdGenerator.generateId());
         instanceEntity.setCreatedBy(WorkflowConstants.DEFAULT_USER);
         instanceEntity.setCreatedTime(currTime);
-        instanceEntity.setProcDefinitionId(procDef.getId());
-        instanceEntity.setProcDefinitionKey(procDef.getKey());
-        instanceEntity.setProcDefinitionName(procDef.getName());
-        instanceEntity.setProcInstanceBizKey(procInstanceBizKey);
-        instanceEntity.setProcInstanceId(procInstanceId);
+        instanceEntity.setProcDefId(procDef.getId());
+        instanceEntity.setProcDefKey(procDef.getKey());
+        instanceEntity.setProcDefName(procDef.getName());
+        instanceEntity.setProcInstKey(procInstanceBizKey);
+        instanceEntity.setProcInstId(procInstanceId);
         instanceEntity.setStartTime(currTime);
         instanceEntity.setStatus(TraceStatus.InProgress);
         
-        processInstanceStatusRepository.saveAndFlush(instanceEntity);
+        processInstanceStatusRepository.insert(instanceEntity);
 
         for (ServiceTask node : serviceTasks) {
             ServiceNodeStatusEntity entity = new ServiceNodeStatusEntity();
@@ -77,13 +77,13 @@ public class ProcessInstanceStartListener implements ExecutionListener {
             entity.setNodeId(node.getId());
             entity.setNodeName(node.getName());
             entity.setNodeType(NodeType.SERVICE_TASK);
-            entity.setProcInstanceBizKey(procInstanceBizKey);
-            entity.setProcInstanceId(procInstanceId);
+            entity.setProcInstKey(procInstanceBizKey);
+            entity.setProcInstId(procInstanceId);
             entity.setStartTime(currTime);
             entity.setStatus(TraceStatus.NotStarted);
             entity.setTryTimes(0);
 
-            serviceNodeStatusRepository.saveAndFlush(entity);
+            serviceNodeStatusRepository.insert(entity);
         }
 
         for (SubProcess node : subProcesses) {
@@ -94,13 +94,13 @@ public class ProcessInstanceStartListener implements ExecutionListener {
             entity.setNodeId(node.getId());
             entity.setNodeName(node.getName());
             entity.setNodeType(NodeType.SUB_PROCESS);
-            entity.setProcInstanceBizKey(procInstanceBizKey);
-            entity.setProcInstanceId(procInstanceId);
+            entity.setProcInstKey(procInstanceBizKey);
+            entity.setProcInstId(procInstanceId);
             entity.setStartTime(currTime);
             entity.setStatus(TraceStatus.NotStarted);
             entity.setTryTimes(0);
 
-            serviceNodeStatusRepository.saveAndFlush(entity);
+            serviceNodeStatusRepository.insert(entity);
         }
     }
 
