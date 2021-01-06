@@ -25,6 +25,7 @@
             property="entityTypeId" />
         <result column="entity_data_name" jdbcType="VARCHAR"
             property="entityDataName" />
+        <result column="bind_flag" jdbcType="CHAR" property="bindFlag" />
     </resultMap>
     <sql id="Base_Column_List">
         id, created_by, created_time, updated_by, updated_time,
@@ -32,7 +33,7 @@
         entity_id, node_def_id,
         proc_def_id, proc_inst_id,
         task_node_inst_id, entity_data_id, entity_type_id,
-        entity_data_name
+        entity_data_name,bind_flag
     </sql>
     <select id="selectByPrimaryKey" parameterType="java.lang.Integer"
         resultMap="BaseResultMap">
@@ -55,7 +56,8 @@
         proc_inst_id,
         task_node_inst_id, entity_data_id,
         entity_type_id,
-        entity_data_name)
+        entity_data_name,
+        bind_flag)
         values (#{id,jdbcType=INTEGER},
         #{createdBy,jdbcType=VARCHAR},
         #{createdTime,jdbcType=TIMESTAMP},
@@ -67,7 +69,8 @@
         #{taskNodeInstId,jdbcType=INTEGER},
         #{entityDataId,jdbcType=VARCHAR},
         #{entityTypeId,jdbcType=VARCHAR},
-        #{entityDataName,jdbcType=VARCHAR})
+        #{entityDataName,jdbcType=VARCHAR},
+        #{bindFlag,jdbcType=CHAR})
     </insert>
     <insert id="insertSelective" useGeneratedKeys="true"
         keyProperty="id"
@@ -116,6 +119,9 @@
             <if test="entityDataName != null">
                 entity_data_name,
             </if>
+            <if test="bindFlag != null">
+                bind_flag,
+            </if>
         </trim>
         <trim prefix="values (" suffix=")" suffixOverrides=",">
             <if test="id != null">
@@ -159,6 +165,9 @@
             </if>
             <if test="entityDataName != null">
                 #{entityDataName,jdbcType=VARCHAR},
+            </if>
+            <if test="bindFlag != null">
+                #{bindFlag,jdbcType=CHAR},
             </if>
         </trim>
     </insert>
@@ -211,6 +220,10 @@
                 entity_data_name =
                 #{entityDataName,jdbcType=VARCHAR},
             </if>
+            <if test="bindFlag != null">
+                bind_flag =
+                #{bindFlag,jdbcType=CHAR},
+            </if>
         </set>
         where id = #{id,jdbcType=INTEGER}
     </update>
@@ -242,7 +255,9 @@
         entity_type_id =
         #{entityTypeId,jdbcType=VARCHAR},
         entity_data_name =
-        #{entityDataName,jdbcType=VARCHAR}
+        #{entityDataName,jdbcType=VARCHAR},
+        bind_flag =
+        #{bindFlag,jdbcType=VARCHAR}
         where id =
         #{id,jdbcType=INTEGER}
     </update>
@@ -278,4 +293,28 @@
         #{procInstId,jdbcType=INTEGER}
         and bind_type = 'taskNode'
     </select>
+    
+    <select id="selectAllBoundTaskNodeBindings" parameterType="java.lang.Integer"
+        resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List" />
+        from core_ru_proc_exec_binding
+        where proc_inst_id =
+        #{procInstId,jdbcType=INTEGER}
+        and task_node_inst_id =
+        #{nodeInstId,jdbcType=INTEGER}
+        and bind_type = 'taskNode'
+        and bind_flag != 'N'
+    </select>
+
+    <delete id="deleteAllTaskNodeBindings" resultType="java.lang.Integer">
+        delete
+        from
+        core_ru_proc_exec_binding
+        where proc_inst_id =
+        #{procInstId,jdbcType=INTEGER}
+        and task_node_inst_id =
+        #{nodeInstId,jdbcType=INTEGER}
+        and bind_type = 'taskNode'
+    </delete>
 </mapper>

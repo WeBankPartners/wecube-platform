@@ -427,6 +427,8 @@ public class WorkflowProcDefService extends AbstractWorkflowProcDefService {
             draftNodeEntity.setUpdatedTime(currTime);
             draftNodeEntity.setUpdatedBy(currUser);
             draftNodeEntity.setTaskCategory(nodeDto.getTaskCategory());
+            draftNodeEntity.setPreCheck(nodeDto.getPreCheck());
+            draftNodeEntity.setDynamicBind(nodeDto.getDynamicBind());
 
             taskNodeDefInfoRepo.updateByPrimaryKeySelective(draftNodeEntity);
 
