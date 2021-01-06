@@ -7,6 +7,9 @@ public class ProcExecBindingEntity {
     public static final String BIND_TYPE_PROC_INSTANCE = "process";
     public static final String BIND_TYPE_TASK_NODE_INSTANCE = "taskNode";
 
+    public static final String BIND_FLAG_YES = "Y";
+    public static final String BIND_FLAG_NO = "N";
+
     private Integer id;
 
     private String createdBy;
@@ -34,6 +37,8 @@ public class ProcExecBindingEntity {
     private String entityTypeId;
 
     private String entityDataName;
+
+    private String bindFlag;
 
     public Integer getId() {
         return id;
@@ -145,6 +150,14 @@ public class ProcExecBindingEntity {
 
     public void setEntityDataName(String entityDataName) {
         this.entityDataName = entityDataName;
+    }
+
+    public String getBindFlag() {
+        return bindFlag;
+    }
+
+    public void setBindFlag(String bindFlag) {
+        this.bindFlag = bindFlag;
     }
 
 }

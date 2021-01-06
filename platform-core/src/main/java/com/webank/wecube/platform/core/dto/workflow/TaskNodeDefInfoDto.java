@@ -23,6 +23,10 @@ public class TaskNodeDefInfoDto extends BaseNodeDefDto{
     private String orderedNo;
     
     private String taskCategory; //SUTN-user task,SSTN-service task
+    
+    private String preCheck;
+    
+    private String dynamicBind;
 
     private List<TaskNodeDefParamDto> paramInfos = new ArrayList<>();
 
@@ -142,6 +146,8 @@ public class TaskNodeDefInfoDto extends BaseNodeDefDto{
         this.orderedNo = orderedNo;
     }
     
+    
+    
     @Override
     public String toString() {
         return "TaskNodeDefInfoDto [nodeDefId=" + nodeDefId + ", processDefKey=" + procDefKey + ", processDefId="
@@ -149,5 +155,21 @@ public class TaskNodeDefInfoDto extends BaseNodeDefDto{
                 + routineExpression + ", routineRaw=" + routineRaw + ", description=" + description
                 + ", timeoutExpression=" + timeoutExpression + ", status=" + status + ", orderedNo=" + orderedNo
                 + ", paramInfos=" + paramInfos + ", toString()=" + super.toString() + "]";
+    }
+
+    public String getPreCheck() {
+        return preCheck;
+    }
+
+    public void setPreCheck(String preCheck) {
+        this.preCheck = preCheck;
+    }
+
+    public String getDynamicBind() {
+        return dynamicBind;
+    }
+
+    public void setDynamicBind(String dynamicBind) {
+        this.dynamicBind = dynamicBind;
     }
 }
