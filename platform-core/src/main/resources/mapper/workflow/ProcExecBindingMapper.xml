@@ -307,7 +307,7 @@
         and bind_flag != 'N'
     </select>
 
-    <delete id="deleteAllTaskNodeBindings" resultType="java.lang.Integer">
+    <delete id="deleteAllTaskNodeBindings">
         delete
         from
         core_ru_proc_exec_binding
