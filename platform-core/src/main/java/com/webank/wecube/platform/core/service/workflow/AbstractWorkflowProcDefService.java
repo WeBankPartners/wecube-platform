@@ -137,6 +137,8 @@ public class AbstractWorkflowProcDefService extends AbstractWorkflowService{
         tdto.setStatus(e.getStatus());
         tdto.setTimeoutExpression(e.getTimeoutExp());
         tdto.setTaskCategory(e.getTaskCategory());
+        tdto.setPreCheck(e.getPreCheck());
+        tdto.setDynamicBind(e.getDynamicBind());
 
         return tdto;
     }
