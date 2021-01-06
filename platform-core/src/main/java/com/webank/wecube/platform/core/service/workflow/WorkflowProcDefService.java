@@ -761,6 +761,8 @@ public class WorkflowProcDefService extends AbstractWorkflowProcDefService {
         nodeEntity.setCreatedTime(currTime);
         nodeEntity.setTimeoutExp(nodeDto.getTimeoutExpression());
         nodeEntity.setTaskCategory(nodeDto.getTaskCategory());
+        nodeEntity.setPreCheck(nodeDto.getPreCheck());
+        nodeEntity.setDynamicBind(nodeDto.getDynamicBind());
 
         return nodeEntity;
     }
