@@ -42,6 +42,8 @@ import com.webank.wecube.platform.core.repository.workflow.ProcInstInfoMapper;
 import com.webank.wecube.platform.core.repository.workflow.TaskNodeExecRequestMapper;
 import com.webank.wecube.platform.core.repository.workflow.TaskNodeParamMapper;
 import com.webank.wecube.platform.core.service.dme.EntityOperationRootCondition;
+import com.webank.wecube.platform.core.service.dme.EntityTreeNodesOverview;
+import com.webank.wecube.platform.core.service.dme.TreeNode;
 import com.webank.wecube.platform.core.service.plugin.PluginInstanceMgmtService;
 import com.webank.wecube.platform.core.service.plugin.SystemVariableService;
 import com.webank.wecube.platform.core.service.workflow.PluginInvocationProcessor.PluginInterfaceInvocationContext;
@@ -121,9 +123,9 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
             procInstEntity.setUpdatedBy(WorkflowConstants.DEFAULT_USER);
             procInstEntity.setStatus(ProcInstInfoEntity.COMPLETED_STATUS);
             procInstInfoRepository.updateByPrimaryKeySelective(procInstEntity);
-            log.info("updated process instance {} from {} to {}", procInstEntity.getId(), oldProcInstStatus,  ProcInstInfoEntity.COMPLETED_STATUS);
+            log.info("updated process instance {} from {} to {}", procInstEntity.getId(), oldProcInstStatus,
+                    ProcInstInfoEntity.COMPLETED_STATUS);
         }
-
 
         List<TaskNodeInstInfoEntity> nodeInstEntities = taskNodeInstInfoRepository
                 .selectAllByProcInstId(procInstEntity.getId());
@@ -213,14 +215,24 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 
     protected void doInvokePluginInterface(ProcInstInfoEntity procInstEntity, TaskNodeInstInfoEntity taskNodeInstEntity,
             PluginInvocationCommand cmd) {
+
+        Map<Object, Object> externalCacheMap = new HashMap<>();
         TaskNodeDefInfoEntity taskNodeDefEntity = retrieveTaskNodeDefInfoEntity(procInstEntity.getProcDefId(),
                 cmd.getNodeId());
-        List<ProcExecBindingEntity> nodeObjectBindings = retrieveProcExecBindingEntities(taskNodeInstEntity);
+        
+        List<ProcExecBindingEntity> nodeObjectBindings = null;
+        if (TaskNodeDefInfoEntity.DYNAMIC_BIND_YES.equalsIgnoreCase(taskNodeDefEntity.getDynamicBind())) {
+            nodeObjectBindings = dynamicCalculateTaskNodeExecBindings(taskNodeDefEntity, procInstEntity,
+                    taskNodeInstEntity, cmd, externalCacheMap);
+        } else {
+            nodeObjectBindings = retrieveProcExecBindingEntities(taskNodeInstEntity);
+        }
+
         PluginConfigInterfaces pluginConfigInterface = retrievePluginConfigInterface(taskNodeDefEntity,
                 cmd.getNodeId());
 
         List<InputParamObject> inputParamObjs = calculateInputParamObjects(procInstEntity, taskNodeInstEntity,
-                taskNodeDefEntity, nodeObjectBindings, pluginConfigInterface);
+                taskNodeDefEntity, nodeObjectBindings, pluginConfigInterface, externalCacheMap);
 
         if (inputParamObjs == null || inputParamObjs.isEmpty()) {
             inputParamObjs = tryCalculateInputParamObjectsFromSystem(procInstEntity, taskNodeInstEntity,
@@ -251,6 +263,113 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
                 .withRequestId(ctx.getRequestId());
 
         pluginInvocationProcessor.process(operation);
+    }
+
+    private List<ProcExecBindingEntity> dynamicCalculateTaskNodeExecBindings(TaskNodeDefInfoEntity taskNodeDefEntity,
+            ProcInstInfoEntity procInstEntity, TaskNodeInstInfoEntity taskNodeInstEntity, PluginInvocationCommand cmd,
+            Map<Object, Object> cacheMap) {
+        int procInstId = procInstEntity.getId();
+        int nodeInstId = taskNodeInstEntity.getId();
+        procExecBindingRepository.deleteAllTaskNodeBindings(procInstId, nodeInstId);
+
+        List<ProcExecBindingEntity> entities = new ArrayList<>();
+
+        ProcExecBindingEntity procInstBinding = procExecBindingRepository.selectProcInstBindings(procInstId);
+        if (procInstBinding == null) {
+            log.info("cannot find process instance exec binding for {}", procInstId);
+            return entities;
+        }
+
+        String rootDataId = procInstBinding.getEntityDataId();
+
+        if (StringUtils.isBlank(rootDataId)) {
+            log.info("root data id is blank for process instance {}", procInstId);
+            return entities;
+        }
+        String routineExpr = calculateDataModelExpression(taskNodeDefEntity);
+
+        if (StringUtils.isBlank(routineExpr)) {
+            log.info("the routine expression is blank for {} {}", taskNodeDefEntity.getId(),
+                    taskNodeDefEntity.getNodeName());
+            return entities;
+        }
+
+        log.info("About to fetch data for node {} {} with expression {} and data id {}", taskNodeDefEntity.getId(),
+                taskNodeDefEntity.getNodeName(), routineExpr, rootDataId);
+        EntityOperationRootCondition condition = new EntityOperationRootCondition(routineExpr, rootDataId);
+        try {
+            EntityTreeNodesOverview overview = entityOperationService.generateEntityLinkOverview(condition, cacheMap);
+
+            return saveLeafNodeEntityNodesTemporary(taskNodeDefEntity, procInstEntity, taskNodeInstEntity,
+                    overview.getLeafNodeEntityNodes());
+        } catch (Exception e) {
+            String errMsg = String.format("Errors while fetching data for node %s %s with expr %s and data id %s",
+                    taskNodeDefEntity.getId(), taskNodeDefEntity.getNodeName(), routineExpr, rootDataId);
+            log.error(errMsg, e);
+            throw new WecubeCoreException("3191", errMsg, taskNodeDefEntity.getId(), taskNodeDefEntity.getNodeName(),
+                    routineExpr, rootDataId);
+        }
+
+    }
+
+    private List<ProcExecBindingEntity> saveLeafNodeEntityNodesTemporary(TaskNodeDefInfoEntity f,
+            ProcInstInfoEntity procInstEntity, TaskNodeInstInfoEntity taskNodeInstEntity,
+            List<TreeNode> leafNodeEntityNodes) {
+        List<ProcExecBindingEntity> entities = new ArrayList<>();
+        if (leafNodeEntityNodes == null) {
+            return entities;
+        }
+
+        if (log.isInfoEnabled()) {
+            log.info("total {} nodes returned as default bindings for {} {} {}", leafNodeEntityNodes.size(), f.getId(),
+                    f.getNodeId(), f.getNodeName());
+        }
+
+        for (TreeNode tn : leafNodeEntityNodes) {
+
+            ProcExecBindingEntity taskNodeBinding = new ProcExecBindingEntity();
+            taskNodeBinding.setBindType(ProcExecBindingEntity.BIND_TYPE_TASK_NODE_INSTANCE);
+            taskNodeBinding.setBindFlag(ProcExecBindingEntity.BIND_FLAG_YES);
+            taskNodeBinding.setProcDefId(f.getProcDefId());
+            taskNodeBinding.setProcInstId(procInstEntity.getId());
+            taskNodeBinding.setEntityDataId(String.valueOf(tn.getRootId()));
+            taskNodeBinding.setEntityTypeId(String.format("%s:%s", tn.getPackageName(), tn.getEntityName()));
+            taskNodeBinding.setNodeDefId(f.getId());
+            taskNodeBinding.setTaskNodeInstId(taskNodeInstEntity.getId());
+            // taskNodeBinding.setOrderedNo(f.getOrderedNo());
+            taskNodeBinding.setCreatedBy(WorkflowConstants.DEFAULT_USER);
+            taskNodeBinding.setCreatedTime(new Date());
+
+            procExecBindingRepository.insert(taskNodeBinding);
+
+            entities.add(taskNodeBinding);
+        }
+
+        return entities;
+
+    }
+
+    private String calculateDataModelExpression(TaskNodeDefInfoEntity f) {
+        if (StringUtils.isBlank(f.getRoutineExp())) {
+            return null;
+        }
+
+        String expr = f.getRoutineExp();
+
+        if (StringUtils.isBlank(f.getServiceId())) {
+            return expr;
+        }
+
+        PluginConfigInterfaces inter = pluginConfigMgmtService.getPluginConfigInterfaceByServiceName(f.getServiceId());
+        if (inter == null) {
+            return expr;
+        }
+
+        if (StringUtils.isBlank(inter.getFilterRule())) {
+            return expr;
+        }
+
+        return expr + inter.getFilterRule();
     }
 
     private List<InputParamObject> tryCalculateInputParamObjectsFromSystem(ProcInstInfoEntity procInstEntity,
@@ -357,7 +476,6 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
         requestEntity.setCreatedBy(WorkflowConstants.DEFAULT_USER);
         requestEntity.setCreatedTime(new Date());
         requestEntity.setIsCurrent(true);
-        
 
         taskNodeExecRequestRepository.insert(requestEntity);
 
@@ -382,10 +500,10 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 
     private List<InputParamObject> calculateInputParamObjects(ProcInstInfoEntity procInstEntity,
             TaskNodeInstInfoEntity taskNodeInstEntity, TaskNodeDefInfoEntity taskNodeDefEntity,
-            List<ProcExecBindingEntity> nodeObjectBindings, PluginConfigInterfaces pluginConfigInterface) {
+            List<ProcExecBindingEntity> nodeObjectBindings, PluginConfigInterfaces pluginConfigInterface,
+            Map<Object, Object> externalCacheMap) {
 
         List<InputParamObject> inputParamObjs = new ArrayList<InputParamObject>();
-        Map<Object, Object> externalCacheMap = new HashMap<>();
 
         List<PluginConfigInterfaceParameters> configInterfaceInputParams = pluginConfigInterface.getInputParameters();
         for (ProcExecBindingEntity nodeObjectBinding : nodeObjectBindings) {
@@ -475,8 +593,8 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 
         if (nodeParamEntity == null) {
             log.error("mapping type is {} but node parameter entity is null for {}", mappingType, curTaskNodeDefId);
-            
-            //TODO surpress errors if not required
+
+            // TODO surpress errors if not required
             throw new WecubeCoreException("3170", "Task node parameter entity does not exist.");
         }
 
@@ -738,7 +856,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 
     private List<ProcExecBindingEntity> retrieveProcExecBindingEntities(TaskNodeInstInfoEntity taskNodeInstEntity) {
         List<ProcExecBindingEntity> nodeObjectBindings = procExecBindingRepository
-                .selectAllTaskNodeBindings(taskNodeInstEntity.getProcInstId(), taskNodeInstEntity.getId());
+                .selectAllBoundTaskNodeBindings(taskNodeInstEntity.getProcInstId(), taskNodeInstEntity.getId());
 
         if (nodeObjectBindings == null) {
             log.info("node object bindings is empty for {} {}", taskNodeInstEntity.getProcInstId(),
@@ -764,8 +882,8 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 
     private TaskNodeInstInfoEntity retrieveTaskNodeInstInfoEntity(Integer procInstId, String nodeId) {
         Date currTime = new Date();
-        TaskNodeInstInfoEntity taskNodeInstEntity = taskNodeInstInfoRepository.selectOneByProcInstIdAndNodeId(procInstId,
-                nodeId);
+        TaskNodeInstInfoEntity taskNodeInstEntity = taskNodeInstInfoRepository
+                .selectOneByProcInstIdAndNodeId(procInstId, nodeId);
         if (taskNodeInstEntity == null) {
             log.warn("Task node instance does not exist for {} {}", procInstId, nodeId);
             throw new WecubeCoreException("3180", "Task node instance does not exist.");
@@ -888,7 +1006,6 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
             p.setCreatedBy(WorkflowConstants.DEFAULT_USER);
             p.setCreatedTime(new Date());
             p.setIsSensitive(false);
-            
 
             taskNodeExecParamRepository.insert(p);
 
