@@ -268,6 +268,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
     private List<ProcExecBindingEntity> dynamicCalculateTaskNodeExecBindings(TaskNodeDefInfoEntity taskNodeDefEntity,
             ProcInstInfoEntity procInstEntity, TaskNodeInstInfoEntity taskNodeInstEntity, PluginInvocationCommand cmd,
             Map<Object, Object> cacheMap) {
+        log.info("about to calculate bindings for task node {} {}", taskNodeDefEntity.getId(), taskNodeDefEntity.getNodeName());
         int procInstId = procInstEntity.getId();
         int nodeInstId = taskNodeInstEntity.getId();
         procExecBindingRepository.deleteAllTaskNodeBindings(procInstId, nodeInstId);
