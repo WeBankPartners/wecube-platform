@@ -3,6 +3,9 @@ ADD COLUMN `ref_package` VARCHAR(45) NULL,
 ADD COLUMN `ref_entity` VARCHAR(45) NULL,
 ADD COLUMN `ref_attr` VARCHAR(45) NULL;
 
+ALTER TABLE `core_ru_proc_exec_binding` 
+ADD COLUMN `bind_flag` char(1) DEFAULT 'Y';
+
 ALTER TABLE `plugin_package_attributes` 
 ADD COLUMN `mandatory` BIT(1) NULL DEFAULT 0;
 
