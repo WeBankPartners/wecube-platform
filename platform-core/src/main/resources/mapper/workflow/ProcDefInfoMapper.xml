@@ -28,7 +28,6 @@
         <result column="is_deleted" jdbcType="BIT" property="isDeleted" />
         <result column="owner" jdbcType="VARCHAR" property="owner" />
         <result column="owner_grp" jdbcType="VARCHAR" property="ownerGrp" />
-        <result column="pre_check" jdbcType="VARCHAR" property="preCheck" />
     </resultMap>
     <resultMap extends="BaseResultMap" id="ResultMapWithBLOBs"
         type="com.webank.wecube.platform.core.entity.workflow.ProcDefInfoEntity">
@@ -42,7 +41,7 @@
         proc_def_kernel_id,
         proc_def_key, proc_def_name, proc_def_ver, root_entity,
         is_deleted,
-        owner, owner_grp,pre_check
+        owner, owner_grp
     </sql>
     <sql id="Blob_Column_List">
         proc_def_data
@@ -72,7 +71,7 @@
         proc_def_name,
         proc_def_ver, root_entity, is_deleted,
         owner,
-        owner_grp, proc_def_data,pre_check
+        owner_grp, proc_def_data
         )
         values
         (#{id,jdbcType=VARCHAR},
@@ -88,8 +87,7 @@
         #{isDeleted,jdbcType=BIT},
         #{owner,jdbcType=VARCHAR},
         #{ownerGrp,jdbcType=VARCHAR},
-        #{procDefData,jdbcType=LONGVARCHAR},
-        #{preCheck,jdbcType=VARCHAR}
+        #{procDefData,jdbcType=LONGVARCHAR}
         )
     </insert>
     <insert id="insertSelective"
@@ -150,9 +148,6 @@
             <if test="procDefData != null">
                 proc_def_data,
             </if>
-            <if test="preCheck != null">
-                pre_check,
-            </if>
         </trim>
         <trim prefix="values (" suffix=")" suffixOverrides=",">
             <if test="id != null">
@@ -208,9 +203,6 @@
             </if>
             <if test="procDefData != null">
                 #{procDefData,jdbcType=LONGVARCHAR},
-            </if>
-            <if test="preCheck != null">
-                #{preCheck,jdbcType=VARCHAR},
             </if>
         </trim>
     </insert>
@@ -274,9 +266,6 @@
                 proc_def_data =
                 #{procDefData,jdbcType=LONGVARCHAR},
             </if>
-            <if test="preCheck != null">
-                pre_check = #{preCheck,jdbcType=VARCHAR},
-            </if>
         </set>
         where id = #{id,jdbcType=VARCHAR}
     </update>
@@ -312,9 +301,7 @@
         is_deleted =
         #{isDeleted,jdbcType=BIT},
         owner = #{owner,jdbcType=VARCHAR},
-        owner_grp = #{ownerGrp,jdbcType=VARCHAR},
-        pre_check =
-        #{preCheck,jdbcType=VARCHAR}
+        owner_grp = #{ownerGrp,jdbcType=VARCHAR}
         where id =
         #{id,jdbcType=VARCHAR}
     </update>
