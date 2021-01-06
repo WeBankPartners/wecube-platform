@@ -830,7 +830,6 @@ export default {
       }
     },
     async copyPluginConfigDto (id) {
-      console.log('复制')
       this.newPluginConfig = id
       this.isAddOrCopy = 'copy'
 
@@ -847,7 +846,6 @@ export default {
       this.$refs.registerName.focus()
     },
     async addPluginConfigDto (plugin) {
-      console.log('新增插件函数')
       this.newPluginConfig = plugin
       this.isAddOrCopy = 'add'
 
@@ -858,7 +856,6 @@ export default {
     },
     async exectAddPluginConfigDto () {
       const id = this.newPluginConfig.pluginConfigDtoList.find(_ => _.registerName === '' || _.registerName === null).id
-      console.log(id)
       await this.getInterfacesByPluginConfigId(id)
       this.registerName = ''
       this.selectedEntityType = ''
