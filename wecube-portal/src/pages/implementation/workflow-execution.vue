@@ -60,7 +60,7 @@
                 </Select>
               </FormItem>
             </Col>
-            <Col v-if="!isEnqueryPage" span="8" offset="0">
+            <Col v-if="!isEnqueryPage" span="12" offset="0">
               <FormItem :label-width="100" :label="$t('target_object')">
                 <Select
                   style="width:80%"
