@@ -330,7 +330,7 @@ public class WorkflowProcDefService extends AbstractWorkflowProcDefService {
         return procDefResult;
     }
 
-    private TaskNodeDefInfoEntity tryFindDraftNodeEntity(String nodeOid) {
+    private TaskNodeDefInfoEntity tryFindDraftNodeEntity(String nodeOid, String procDefId, String nodeId) {
         TaskNodeDefInfoEntity draftNodeEntity = null;
         if (!StringUtils.isBlank(nodeOid)) {
             TaskNodeDefInfoEntity nEntity = taskNodeDefInfoRepo.selectByPrimaryKey(nodeOid);
@@ -339,6 +339,14 @@ public class WorkflowProcDefService extends AbstractWorkflowProcDefService {
                     draftNodeEntity = nEntity;
                 }
             }
+        } else {
+            List<TaskNodeDefInfoEntity> nEntities = taskNodeDefInfoRepo.selectAllByProcDefIdAndNodeId(procDefId,
+                    nodeId);
+            if (nEntities == null || nEntities.isEmpty()) {
+                return null;
+            }
+
+            return nEntities.get(0);
         }
 
         return draftNodeEntity;
@@ -375,7 +383,8 @@ public class WorkflowProcDefService extends AbstractWorkflowProcDefService {
         // #1993
         for (TaskNodeDefInfoDto nodeDto : procDefDto.getTaskNodeInfos()) {
             String nodeOid = nodeDto.getNodeDefId();
-            TaskNodeDefInfoEntity draftNodeEntity = tryFindDraftNodeEntity(nodeOid);
+            TaskNodeDefInfoEntity draftNodeEntity = tryFindDraftNodeEntity(nodeOid, draftEntity.getId(),
+                    nodeDto.getNodeId());
 
             ProcFlowNode procFlowNode = procDefOutline.findFlowNode(nodeDto.getNodeId());
             if (procFlowNode == null) {
@@ -583,7 +592,8 @@ public class WorkflowProcDefService extends AbstractWorkflowProcDefService {
             throw new WecubeCoreException("3208", "Process definition name cannot be empty.");
         }
 
-        List<ProcDefInfoEntity> existingProcDefs = processDefInfoRepo.selectAllDeployedProcDefsByProcDefName(procDefName);
+        List<ProcDefInfoEntity> existingProcDefs = processDefInfoRepo
+                .selectAllDeployedProcDefsByProcDefName(procDefName);
         if (existingProcDefs != null && !existingProcDefs.isEmpty()) {
             log.warn("such process definition name already exists,procDefName={}", procDefName);
             throw new WecubeCoreException("3209", "Process definition name should NOT duplicated.");
@@ -753,8 +763,9 @@ public class WorkflowProcDefService extends AbstractWorkflowProcDefService {
         return nodeEntity;
     }
 
-    private TaskNodeParamEntity buildDeployNewTaskNodeParamEntity(TaskNodeDefParamDto paramDto, TaskNodeDefInfoDto nodeDto,
-            ProcDefInfoEntity procDefEntity, TaskNodeDefInfoEntity nodeEntity, Date currTime) {
+    private TaskNodeParamEntity buildDeployNewTaskNodeParamEntity(TaskNodeDefParamDto paramDto,
+            TaskNodeDefInfoDto nodeDto, ProcDefInfoEntity procDefEntity, TaskNodeDefInfoEntity nodeEntity,
+            Date currTime) {
         TaskNodeParamEntity paramEntity = new TaskNodeParamEntity();
         paramEntity.setId(LocalIdGenerator.generateId());
         paramEntity.setNodeId(StringUtils.isBlank(paramDto.getNodeId()) ? nodeDto.getNodeId() : paramDto.getNodeId());
@@ -779,13 +790,14 @@ public class WorkflowProcDefService extends AbstractWorkflowProcDefService {
             Date currTime) {
         if (procDefInfoDto.getTaskNodeInfos() != null) {
             for (TaskNodeDefInfoDto nodeDto : procDefInfoDto.getTaskNodeInfos()) {
-                TaskNodeDefInfoEntity nodeEntity = buildDeployNewTaskNodeDefInfoEntity(nodeDto, procDefEntity, currTime);
+                TaskNodeDefInfoEntity nodeEntity = buildDeployNewTaskNodeDefInfoEntity(nodeDto, procDefEntity,
+                        currTime);
                 taskNodeDefInfoRepo.insert(nodeEntity);
 
                 if (nodeDto.getParamInfos() != null) {
                     for (TaskNodeDefParamDto paramDto : nodeDto.getParamInfos()) {
-                        TaskNodeParamEntity paramEntity = buildDeployNewTaskNodeParamEntity(paramDto, nodeDto, procDefEntity,
-                                nodeEntity, currTime);
+                        TaskNodeParamEntity paramEntity = buildDeployNewTaskNodeParamEntity(paramDto, nodeDto,
+                                procDefEntity, nodeEntity, currTime);
 
                         taskNodeParamRepo.insert(paramEntity);
                     }
