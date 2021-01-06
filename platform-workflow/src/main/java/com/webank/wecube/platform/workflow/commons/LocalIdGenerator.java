@@ -2,7 +2,6 @@ package com.webank.wecube.platform.workflow.commons;
 
 import java.util.Random;
 import java.util.UUID;
-import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * For workflow related ID generation
@@ -21,7 +20,7 @@ public final class LocalIdGenerator {
     private static final long COUNT_MIN = 10000;
     private static final long COUNT_MAX = 90000;
 
-    private AtomicLong count = new AtomicLong(COUNT_MIN);
+    private volatile long count = COUNT_MIN;
 
     private Random r = new Random();
 
@@ -70,11 +69,13 @@ public final class LocalIdGenerator {
     }
 
     private synchronized String doGenerateCountStr() {
-        if (count.get() >= COUNT_MAX) {
-            count.set(COUNT_MIN);
+        if (count >= COUNT_MAX) {
+            count = COUNT_MIN;
         }
+        
+        count++;
 
-        return number2base62(count.incrementAndGet());
+        return number2base62(count);
     }
 
     private String number2base62(long num) {
