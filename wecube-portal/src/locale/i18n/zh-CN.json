@@ -452,5 +452,7 @@
   "modal_close": "关闭",
   "reset_password": "重置密码",
   "overview": "总览",
-  "parameter_configuration": "参数配置"
+  "parameter_configuration": "参数配置",
+  "dynamic_bind": "动态绑定",
+  "pre_check": "高危检测"
 }

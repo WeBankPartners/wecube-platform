@@ -164,6 +164,30 @@
                 </FormItem>
               </Col>
             </Row>
+            <Row>
+              <Col span="8">
+                <FormItem prop="dynamicBind">
+                  <label slot="label"
+                    >{{ $t('dynamic_bind') }}
+                    <span class="requires-tip">*</span>
+                  </label>
+                  <Select v-model="pluginForm.dynamicBind">
+                    <Option v-for="item in yOn" :value="item" :key="item">{{ item }}</Option>
+                  </Select>
+                </FormItem>
+              </Col>
+              <Col span="8">
+                <FormItem prop="preCheck">
+                  <label slot="label"
+                    >{{ $t('pre_check') }}
+                    <span class="requires-tip">*</span>
+                  </label>
+                  <Select v-model="pluginForm.preCheck">
+                    <Option v-for="item in yOn" :value="item" :key="item">{{ item }}</Option>
+                  </Select>
+                </FormItem>
+              </Col>
+            </Row>
             <hr style="margin-bottom: 8px" />
             <FormItem
               :label="item.paramName"
@@ -302,6 +326,7 @@ export default {
   },
   data () {
     return {
+      yOn: ['Y', 'N'],
       splitPanal: 1,
       show: false,
       taskCategoryList: [
@@ -343,12 +368,14 @@ export default {
       routineExpressionCache: '',
       defaultPluginForm: {
         description: '',
+        dynamicBind: 'N',
         nodeDefId: '',
         nodeId: '',
         nodeName: '',
         nodeType: '',
         orderedNo: '',
         paramInfos: [],
+        preCheck: 'N',
         procDefId: '',
         procDefKey: '',
         routineExpression: '',
@@ -513,7 +540,6 @@ export default {
     },
     async confirmRole () {
       if (this.mgmtRolesKeyToFlow.length) {
-        console.log(this.isAdd)
         if (this.isAdd) {
           this.flowRoleManageModal = false
         } else {
@@ -848,6 +874,8 @@ export default {
             this.currentFlow.taskNodeInfos &&
             this.currentFlow.taskNodeInfos.find(_ => _.nodeId === this.currentNode.id)) ||
           this.prepareDefaultPluginForm()
+        this.pluginForm.dynamicBind = this.pluginForm.dynamicBind || 'N'
+        this.pluginForm.preCheck = this.pluginForm.preCheck || 'N'
         // 实体类型条件不带入节点中
         let rootEntity = this.currentSelectedEntity.split('{')[0]
         this.pluginForm.routineExpression = this.pluginForm.routineExpression || rootEntity
