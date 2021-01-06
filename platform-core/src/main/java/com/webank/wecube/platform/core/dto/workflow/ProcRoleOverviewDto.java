@@ -1,10 +1,9 @@
 package com.webank.wecube.platform.core.dto.workflow;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.webank.wecube.platform.core.entity.workflow.ProcRoleBindingEntity;
-
 import java.util.ArrayList;
 import java.util.List;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * @author howechen
@@ -13,20 +12,11 @@ public class ProcRoleOverviewDto {
     @JsonProperty(value = "processId")
     private String processId;
     @JsonProperty(value = "MGMT")
-    private List<String> mgmtRoleIdList;
+    private List<String> mgmtRoleList = new ArrayList<>();
     @JsonProperty(value = "USE")
-    private List<String> useRoleIdList;
+    private List<String> useRoleList = new ArrayList<>();
 
-    public ProcRoleOverviewDto(String processId, List<String> mgmtRoleIdList, List<String> useRoleIdList) {
-        this.processId = processId;
-        this.mgmtRoleIdList = mgmtRoleIdList;
-        this.useRoleIdList = useRoleIdList;
-    }
-
-    public ProcRoleOverviewDto() {
-        this.mgmtRoleIdList = new ArrayList<>();
-        this.useRoleIdList = new ArrayList<>();
-    }
+    
 
     public String getProcessId() {
         return processId;
@@ -36,19 +26,21 @@ public class ProcRoleOverviewDto {
         this.processId = processId;
     }
 
-    public List<String> getMgmtRoleIdList() {
-        return mgmtRoleIdList;
+    public List<String> getMgmtRoleList() {
+        return mgmtRoleList;
     }
 
-    public void setMgmtRoleIdList(List<String> mgmtRoleIdList) {
-        this.mgmtRoleIdList = mgmtRoleIdList;
+    public void setMgmtRoleList(List<String> mgmtRoleList) {
+        this.mgmtRoleList = mgmtRoleList;
     }
 
-    public List<String> getUseRoleIdList() {
-        return useRoleIdList;
+    public List<String> getUseRoleList() {
+        return useRoleList;
     }
 
-    public void setUseRoleIdList(List<String> useRoleIdList) {
-        this.useRoleIdList = useRoleIdList;
+    public void setUseRoleList(List<String> useRoleList) {
+        this.useRoleList = useRoleList;
     }
+
+    
 }

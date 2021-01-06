@@ -1,132 +1,153 @@
 package com.webank.wecube.platform.core.entity.workflow;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
-import javax.persistence.Table;
+import java.util.Date;
 
-import com.webank.wecube.platform.core.entity.BaseTraceableEntity;
+public class ProcExecBindingTmpEntity {
 
-@Entity
-@Table(name = "CORE_RU_PROC_EXEC_BINDING_TMP")
-public class ProcExecBindingTmpEntity extends BaseTraceableEntity {
+    public static final String BIND_TYPE_PROC_INSTANCE = "process";
+    public static final String BIND_TYPE_TASK_NODE_INSTANCE = "taskNode";
 
-	public static final String BIND_TYPE_PROC_INSTANCE = "process";
-	public static final String BIND_TYPE_TASK_NODE_INSTANCE = "taskNode";
+    public static final String BOUND = "Y";
+    public static final String UNBOUND = "N";
 
-	public static final String BOUND = "Y";
-	public static final String UNBOUND = "N";
+    private Integer id;
 
-	@Id
-	@Column(name = "ID")
-	@GeneratedValue
-	private Integer id;
+    private String createdBy;
 
-	@Column(name = "PROC_DEF_ID")
-	private String procDefId;
+    private Date createdTime;
 
-	@Column(name = "NODE_DEF_ID")
-	private String nodeDefId;
+    private String updatedBy;
 
-	@Column(name = "ORDERED_NO")
-	private String orderedNo;
+    private Date updatedTime;
 
-	@Column(name = "PROC_SESSION_ID")
-	private String procSessionId;
+    private String bindType;
 
-	@Column(name = "IS_BOUND")
-	private String bound;
+    private String isBound;
 
-	@Column(name = "BIND_TYPE")
-	private String bindType;
+    private String entityDataId;
 
-	@Column(name = "ENTITY_TYPE_ID")
-	private String entityTypeId;
+    private String entityTypeId;
 
-	@Column(name = "ENTITY_DATA_ID")
-	private String entityDataId;
-	
-	@Column(name = "ENTITY_DATA_NAME")
-	private String entityDataName;
+    private String nodeDefId;
 
-	public Integer getId() {
-		return id;
-	}
+    private String orderedNo;
 
-	public void setId(Integer id) {
-		this.id = id;
-	}
+    private String procDefId;
 
-	public String getBindType() {
-		return bindType;
-	}
+    private String procSessionId;
 
-	public void setBindType(String bindType) {
-		this.bindType = bindType;
-	}
+    private String entityDataName;
 
-	public String getEntityTypeId() {
-		return entityTypeId;
-	}
+    public Integer getId() {
+        return id;
+    }
 
-	public void setEntityTypeId(String entityTypeId) {
-		this.entityTypeId = entityTypeId;
-	}
+    public void setId(Integer id) {
+        this.id = id;
+    }
 
-	public String getEntityDataId() {
-		return entityDataId;
-	}
+    public String getCreatedBy() {
+        return createdBy;
+    }
 
-	public void setEntityDataId(String entityDataId) {
-		this.entityDataId = entityDataId;
-	}
+    public void setCreatedBy(String createdBy) {
+        this.createdBy = createdBy;
+    }
 
-	public String getProcDefId() {
-		return procDefId;
-	}
+    public Date getCreatedTime() {
+        return createdTime;
+    }
 
-	public void setProcDefId(String procDefId) {
-		this.procDefId = procDefId;
-	}
+    public void setCreatedTime(Date createdTime) {
+        this.createdTime = createdTime;
+    }
 
-	public String getNodeDefId() {
-		return nodeDefId;
-	}
+    public String getUpdatedBy() {
+        return updatedBy;
+    }
 
-	public void setNodeDefId(String nodeDefId) {
-		this.nodeDefId = nodeDefId;
-	}
+    public void setUpdatedBy(String updatedBy) {
+        this.updatedBy = updatedBy;
+    }
 
-	public String getOrderedNo() {
-		return orderedNo;
-	}
+    public Date getUpdatedTime() {
+        return updatedTime;
+    }
 
-	public void setOrderedNo(String orderedNo) {
-		this.orderedNo = orderedNo;
-	}
+    public void setUpdatedTime(Date updatedTime) {
+        this.updatedTime = updatedTime;
+    }
 
-	public String getProcSessionId() {
-		return procSessionId;
-	}
+    public String getBindType() {
+        return bindType;
+    }
 
-	public void setProcSessionId(String procSessionId) {
-		this.procSessionId = procSessionId;
-	}
+    public void setBindType(String bindType) {
+        this.bindType = bindType;
+    }
 
-	public String getBound() {
-		return bound;
-	}
+    public String getIsBound() {
+        return isBound;
+    }
 
-	public void setBound(String bound) {
-		this.bound = bound;
-	}
+    public void setIsBound(String isBound) {
+        this.isBound = isBound;
+    }
 
-	public String getEntityDataName() {
-		return entityDataName;
-	}
+    public String getEntityDataId() {
+        return entityDataId;
+    }
 
-	public void setEntityDataName(String entityDataName) {
-		this.entityDataName = entityDataName;
-	}
+    public void setEntityDataId(String entityDataId) {
+        this.entityDataId = entityDataId;
+    }
+
+    public String getEntityTypeId() {
+        return entityTypeId;
+    }
+
+    public void setEntityTypeId(String entityTypeId) {
+        this.entityTypeId = entityTypeId;
+    }
+
+    public String getNodeDefId() {
+        return nodeDefId;
+    }
+
+    public void setNodeDefId(String nodeDefId) {
+        this.nodeDefId = nodeDefId;
+    }
+
+    public String getOrderedNo() {
+        return orderedNo;
+    }
+
+    public void setOrderedNo(String orderedNo) {
+        this.orderedNo = orderedNo;
+    }
+
+    public String getProcDefId() {
+        return procDefId;
+    }
+
+    public void setProcDefId(String procDefId) {
+        this.procDefId = procDefId;
+    }
+
+    public String getProcSessionId() {
+        return procSessionId;
+    }
+
+    public void setProcSessionId(String procSessionId) {
+        this.procSessionId = procSessionId;
+    }
+
+    public String getEntityDataName() {
+        return entityDataName;
+    }
+
+    public void setEntityDataName(String entityDataName) {
+        this.entityDataName = entityDataName;
+    }
+
 }

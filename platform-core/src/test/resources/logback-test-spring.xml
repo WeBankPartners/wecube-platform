@@ -40,8 +40,8 @@
     <logger name="com.webank.wecube" level="debug" 
         additivity="false"> 
         <!-- 
-        <appender-ref ref="console"/>
          -->
+        <appender-ref ref="console"/>
         <appender-ref ref="rollingFile"/>
     </logger>
          

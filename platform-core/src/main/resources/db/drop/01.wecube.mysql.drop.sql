@@ -90,4 +90,10 @@ DROP TABLE IF EXISTS core_ru_task_node_exec_param;
 DROP TABLE IF EXISTS core_ru_task_node_exec_req;
 DROP TABLE IF EXISTS core_ru_task_node_inst_info;
 DROP TABLE IF EXISTS plugin_config_roles;
+
+DROP TABLE IF EXISTS core_object_meta;
+DROP TABLE IF EXISTS core_object_property_meta;
+DROP TABLE IF EXISTS core_object_var;
+DROP TABLE IF EXISTS core_object_property_var;
+DROP TABLE IF EXISTS core_object_list_var;
 SET FOREIGN_KEY_CHECKS = 1;

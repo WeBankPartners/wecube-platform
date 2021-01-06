@@ -52,7 +52,7 @@ public abstract class DatabaseBasedTest extends BaseSpringBootTest {
     }
 
     private void cleanUpDatabase() {
-        executeSqlScript("/database/00.drop.all.sql");
+//        executeSqlScript("/database/00.drop.all.sql");
     }
 
     protected void executeSql(String sql) {

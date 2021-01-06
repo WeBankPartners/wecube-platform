@@ -10,11 +10,10 @@ import com.webank.wecube.platform.core.config.SpringWebConfig;
 @SpringBootApplication
 public class Application extends AbstractAnnotationConfigDispatcherServletInitializer {
 
-	public static void main(String[] args) {
-	    System.setProperty("hibernate.dialect.storage_engine", "innodb");
-		SpringApplication.run(Application.class, args);
-	}
-
+    public static void main(String[] args) {
+        System.setProperty("hibernate.dialect.storage_engine", "innodb");
+        SpringApplication.run(Application.class, args);
+    }
 
     @Override
     protected Class<?>[] getRootConfigClasses() {
@@ -28,7 +27,7 @@ public class Application extends AbstractAnnotationConfigDispatcherServletInitia
 
     @Override
     protected String[] getServletMappings() {
-        return new String[] {"/" };
+        return new String[] { "/" };
     }
 
 }

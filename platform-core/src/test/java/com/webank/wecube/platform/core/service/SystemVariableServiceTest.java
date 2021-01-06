@@ -14,6 +14,7 @@ import org.springframework.core.io.Resource;
 import org.springframework.jdbc.datasource.init.ResourceDatabasePopulator;
 
 import com.webank.wecube.platform.core.DatabaseBasedTest;
+import com.webank.wecube.platform.core.service.plugin.SystemVariableService;
 
 public class SystemVariableServiceTest extends DatabaseBasedTest {
     @Autowired
