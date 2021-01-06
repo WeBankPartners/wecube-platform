@@ -6,7 +6,6 @@ spring:
     password: null
     hikari:
       driver-class-name: org.h2.Driver
-
   jpa:
     database: H2
     database-platform: org.hibernate.dialect.H2Dialect
@@ -17,3 +16,22 @@ wecube:
   core:
     gateway-url: localhost:9999
     db-init-strategy: none
+camunda:
+  bpm:
+    enabled: true
+    application:
+      delete-upon-undeploy: false
+      scan-for-process-definitions: false
+      deploy-changed-only: true
+      resume-previous-versions: true
+      resume-previous-by: a value
+    history-level: full
+    database:
+      schema-update: true
+    filter:
+      create: All tasks
+    job-execution:
+      enabled: true
+    auto-deployment-enabled: true
+    generate-unique-process-application-name: true
+    generate-unique-process-engine-name: true

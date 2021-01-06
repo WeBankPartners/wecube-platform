@@ -27,7 +27,7 @@ import com.github.dockerjava.core.DockerClientConfig;
 import com.google.common.collect.Lists;
 import com.webank.wecube.platform.core.commons.ApplicationProperties;
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
-import com.webank.wecube.platform.core.domain.ResourceItem;
+import com.webank.wecube.platform.core.entity.plugin.ResourceItem;
 import com.webank.wecube.platform.core.utils.JsonUtils;
 
 @Service
