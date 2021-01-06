@@ -1,6 +1,6 @@
 <template>
   <div>
-    <Row style="height:40px">
+    <Row style="margin-bottom:8px">
       <Col span="9">
         <span style="margin-right: 10px">{{ $t('flow_name') }}</span>
         <Select clearable v-model="selectedFlow" style="width: 60%" @on-open-change="getAllFlows" filterable>
@@ -99,8 +99,12 @@
           >
             <Row>
               <Col span="8">
-                <FormItem :label="$t('plugin_type')" prop="serviceName">
-                  <Select filterable clearable v-model="pluginForm.taskCategory">
+                <FormItem prop="serviceName">
+                  <label slot="label"
+                    >{{ $t('plugin_type') }}
+                    <span class="requires-tip">*</span>
+                  </label>
+                  <Select filterable v-model="pluginForm.taskCategory">
                     <Option v-for="(item, index) in taskCategoryList" :value="item.value" :key="index">{{
                       item.label
                     }}</Option>
@@ -108,7 +112,11 @@
                 </FormItem>
               </Col>
               <Col span="16">
-                <FormItem :label="$t('locate_rules')" prop="routineExpression">
+                <FormItem prop="routineExpression">
+                  <label slot="label"
+                    >{{ $t('locate_rules') }}
+                    <span class="requires-tip">*</span>
+                  </label>
                   <FilterRules
                     :needAttr="true"
                     v-model="pluginForm.routineExpression"
@@ -119,7 +127,11 @@
             </Row>
             <Row>
               <Col span="8">
-                <FormItem :label="$t('plugin')" prop="serviceName">
+                <FormItem prop="serviceName">
+                  <label slot="label"
+                    >{{ $t('plugin') }}
+                    <span class="requires-tip">*</span>
+                  </label>
                   <Select
                     filterable
                     clearable
@@ -134,8 +146,12 @@
                 </FormItem>
               </Col>
               <Col span="8">
-                <FormItem :label="$t('timeout')" prop="timeoutExpression">
-                  <Select clearable v-model="pluginForm.timeoutExpression">
+                <FormItem prop="timeoutExpression">
+                  <label slot="label"
+                    >{{ $t('timeout') }}
+                    <span class="requires-tip">*</span>
+                  </label>
+                  <Select v-model="pluginForm.timeoutExpression">
                     <Option v-for="(item, index) in timeSelection" :value="item.mins" :key="index"
                       >{{ item.label }}
                     </Option>
@@ -155,6 +171,10 @@
               v-for="(item, index) in pluginForm.paramInfos"
               :key="index"
             >
+              <label slot="label" v-if="item.bindType === 'context' && item.required"
+                >{{ item.paramName }}
+                <span class="requires-tip">*</span>
+              </label>
               <Select
                 filterable
                 clearable
@@ -175,9 +195,12 @@
               >
                 <Option v-for="i in paramsTypes" :value="i.value" :key="i.value">{{ i.label }}</Option>
               </Select>
-              <Select filterable v-if="item.bindType === 'context'" v-model="item.bindParamName" style="width:30%">
+              <Select filterable v-if="item.bindType === 'context'" v-model="item.bindValue" style="width:30%">
                 <Option v-for="i in item.currentParamNames" :value="i.name" :key="i.name">{{ i.name }}</Option>
               </Select>
+              <label v-if="item.bindType === 'context' && item.required">
+                <span class="requires-tip">*</span>
+              </label>
               <Input v-if="item.bindType === 'constant'" v-model="item.bindValue" />
             </FormItem>
             <FormItem>
@@ -1017,6 +1040,10 @@ export default {
 }
 </script>
 <style lang="scss">
+.requires-tip {
+  color: red;
+  vertical-align: middle;
+}
 .containers {
   position: absolute;
   background-color: white;
