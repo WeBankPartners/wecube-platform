@@ -88,6 +88,11 @@ public class WorkflowDataService {
     @Qualifier("userJwtSsoTokenRestTemplate")
     protected RestTemplate userJwtSsoTokenRestTemplate;
 
+    /**
+     * 
+     * @param procInstId
+     * @return
+     */
     public ProcessDataPreviewDto generateProcessDataPreviewForProcInstance(Integer procInstId) {
         List<GraphNodeEntity> gNodeEntities = graphNodeRepository.selectAllByProcInstId(procInstId);
         ProcessDataPreviewDto result = new ProcessDataPreviewDto();
@@ -116,6 +121,11 @@ public class WorkflowDataService {
         return result;
     }
 
+    /**
+     * 
+     * @param procDefKey
+     * @return
+     */
     public List<Map<String, Object>> getProcessDefinitionRootEntitiesByProcDefKey(String procDefKey) {
         if (StringUtils.isBlank(procDefKey)) {
             throw new WecubeCoreException("3186", "Process definition ID cannot be blank.");
@@ -178,6 +188,11 @@ public class WorkflowDataService {
         return result;
     }
 
+    /**
+     * 
+     * @param procDefId
+     * @return
+     */
     public List<Map<String, Object>> getProcessDefinitionRootEntities(String procDefId) {
         if (StringUtils.isBlank(procDefId)) {
             throw new WecubeCoreException("3186", "Process definition ID cannot be blank.");
@@ -207,6 +222,12 @@ public class WorkflowDataService {
         return result;
     }
 
+    /**
+     * 
+     * @param nodeDefId
+     * @param processSessionId
+     * @param bindings
+     */
     public void updateProcessInstanceExecBindingsOfSession(String nodeDefId, String processSessionId,
             List<TaskNodeDefObjectBindInfoDto> bindings) {
 
@@ -388,6 +409,12 @@ public class WorkflowDataService {
         return result;
     }
 
+    /**
+     * 
+     * @param procDefId
+     * @param dataId
+     * @return
+     */
     @Transactional
     public ProcessDataPreviewDto generateProcessDataPreview(String procDefId, String dataId) {
         if (StringUtils.isBlank(procDefId) || StringUtils.isBlank(dataId)) {

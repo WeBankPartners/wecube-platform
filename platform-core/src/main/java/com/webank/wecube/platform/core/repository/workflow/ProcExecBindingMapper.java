@@ -44,4 +44,25 @@ public interface ProcExecBindingMapper{
      * @return
      */
     List<ProcExecBindingEntity> selectAllTaskNodeBindingsByProcInstId(@Param("procInstId") Integer procInstId);
+    
+    /**
+     * 
+     * @param procInstId
+     * @param nodeInstId
+     * @return
+     */
+    List<ProcExecBindingEntity> selectAllBoundTaskNodeBindings(@Param("procInstId") Integer procInstId,
+            @Param("nodeInstId") Integer nodeInstId);
+    
+    /**
+     * 
+     * @param procInstId
+     * @param nodeInstId
+     * @return
+     */
+    int deleteAllTaskNodeBindings(@Param("procInstId") Integer procInstId,
+            @Param("nodeInstId") Integer nodeInstId);
+    
+    
+   
 }
