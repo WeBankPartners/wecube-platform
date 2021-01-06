@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.webank.wecube.platform.core.dto.CommonResponseDto;
+import com.webank.wecube.platform.core.dto.plugin.CommonResponseDto;
 import com.webank.wecube.platform.core.dto.workflow.ProcInstInfoDto;
 import com.webank.wecube.platform.core.dto.workflow.ProceedProcInstRequestDto;
 import com.webank.wecube.platform.core.dto.workflow.ProcessDataPreviewDto;
@@ -34,7 +34,7 @@ public class WorkflowProcessInstanceController {
 
     @PostMapping("/process/instances")
     public CommonResponseDto createProcessInstance(@RequestBody StartProcInstRequestDto requestDto) {
-        ProcInstInfoDto result = procInstService.createProcessInstanceAndRole(requestDto);
+        ProcInstInfoDto result = procInstService.createProcessInstanceWithPermissionValidation(requestDto);
         return CommonResponseDto.okayWithData(result);
     }
 

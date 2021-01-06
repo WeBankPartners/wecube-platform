@@ -1,8 +1,8 @@
 package com.webank.wecube.platform.core.support.datamodel.dto;
 
-import com.webank.wecube.platform.core.dto.CommonResponseDto;
-
 import java.util.List;
+
+import com.webank.wecube.platform.core.dto.plugin.CommonResponseDto;
 
 public class WriteBackTargetDto {
     List<CommonResponseDto> lastRequestResponse;
