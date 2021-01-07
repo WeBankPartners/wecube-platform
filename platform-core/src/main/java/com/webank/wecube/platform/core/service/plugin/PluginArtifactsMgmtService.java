@@ -27,6 +27,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StreamUtils;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
@@ -187,7 +188,7 @@ public class PluginArtifactsMgmtService extends AbstractPluginMgmtService {
 
     @Autowired
     private UserManagementService userManagementService;
-    
+
     @Autowired
     private PluginParamObjectMetaRegister pluginParamObjectSupportService;
 
@@ -355,6 +356,7 @@ public class PluginArtifactsMgmtService extends AbstractPluginMgmtService {
      * @param pluginPackageFile
      * @return
      */
+    @Transactional
     public UploadPackageResultDto uploadPackage(MultipartFile pluginPackageFile) {
 
         // 1. save package file to local
@@ -416,6 +418,7 @@ public class PluginArtifactsMgmtService extends AbstractPluginMgmtService {
      * @throws IOException
      * @throws SAXException
      */
+    @Transactional
     public UploadPackageResultDto parsePackageFile(File dest, File localFilePath) throws IOException, SAXException {
         // 2. unzip local package file
         unzipLocalFile(dest.getCanonicalPath(), localFilePath.getCanonicalPath() + "/");
@@ -471,7 +474,7 @@ public class PluginArtifactsMgmtService extends AbstractPluginMgmtService {
 
         processPluginUiPackageFile(localFilePath, xmlPackage, pluginPackageEntity);
 
-        //trySavePluginPackageResourceFiles(pluginPackageResourceFilesEntities);
+        // trySavePluginPackageResourceFiles(pluginPackageResourceFilesEntities);
 
         processPluginInitSqlFile(localFilePath, xmlPackage);
         processPluginUpgradeSqlFile(localFilePath, xmlPackage);
@@ -488,7 +491,7 @@ public class PluginArtifactsMgmtService extends AbstractPluginMgmtService {
         processResourceDependencies(xmlPackage.getResourceDependencies(), xmlPackage, pluginPackageEntity);
 
         processDataModels(xmlPackage.getDataModel(), xmlPackage, pluginPackageEntity);
-        
+
         processParamObjects(xmlPackage.getParamObjects(), xmlPackage.getName(), xmlPackage.getVersion());
 
         UploadPackageResultDto result = new UploadPackageResultDto();
@@ -500,8 +503,8 @@ public class PluginArtifactsMgmtService extends AbstractPluginMgmtService {
 
         return result;
     }
-    
-    private void processParamObjects(ParamObjectsType xmlParamObjects, String packageName, String packageVersion){
+
+    private void processParamObjects(ParamObjectsType xmlParamObjects, String packageName, String packageVersion) {
         pluginParamObjectSupportService.registerParamObjects(xmlParamObjects, packageName, packageVersion);
     }
 
@@ -650,17 +653,6 @@ public class PluginArtifactsMgmtService extends AbstractPluginMgmtService {
         }
     }
 
-//    private void trySavePluginPackageResourceFiles(
-//            List<PluginPackageResourceFiles> pluginPackageResourceFilesEntities) {
-//        if (pluginPackageResourceFilesEntities == null || pluginPackageResourceFilesEntities.isEmpty()) {
-//            return;
-//        }
-//
-//        for (PluginPackageResourceFiles fileEntity : pluginPackageResourceFilesEntities) {
-//            pluginPackageResourceFilesMapper.insert(fileEntity);
-//        }
-//    }
-
     private void processDataModels(DataModelType xmlDataModel, PackageType xmlPackage,
             PluginPackages pluginPackageEntity) {
         log.info("start to process data model...");
@@ -728,8 +720,10 @@ public class PluginArtifactsMgmtService extends AbstractPluginMgmtService {
                 attributeEntity.setDescription(xmlAttribute.getDescription());
                 attributeEntity.setEntityId(entity.getId());
                 attributeEntity.setName(xmlAttribute.getName());
+                String refPackage = xmlAttribute.getRefPackage();
+                refPackage = xmlPackage.getName();
                 attributeEntity.setRefAttr(xmlAttribute.getRef());
-                attributeEntity.setRefPackage(xmlAttribute.getRefPackage());
+                attributeEntity.setRefPackage(refPackage);
                 attributeEntity.setRefEntity(xmlAttribute.getRefEntity());
 
                 String referenceId = calAttributeReference(pluginPackageEntity, dataModelEntity, entity, xmlAttribute);
@@ -781,7 +775,7 @@ public class PluginArtifactsMgmtService extends AbstractPluginMgmtService {
             systemVariableEntity.setName(xmlSystemParameter.getName());
             systemVariableEntity.setPackageName(xmlPackage.getName());
             String scopeType = xmlSystemParameter.getScopeType();
-            if(!SystemVariables.SCOPE_GLOBAL.equalsIgnoreCase(scopeType)){
+            if (!SystemVariables.SCOPE_GLOBAL.equalsIgnoreCase(scopeType)) {
                 scopeType = xmlPackage.getName();
             }
             systemVariableEntity.setScope(scopeType);
@@ -1046,7 +1040,7 @@ public class PluginArtifactsMgmtService extends AbstractPluginMgmtService {
 
     private List<PluginPackageResourceFiles> processPluginUiPackageFile(File localFilePath, PackageType xmlPackage,
             PluginPackages pluginPackageEntity) throws IOException {
-        File pluginUiPackageFile = new File(localFilePath,  pluginProperties.getUiFile());
+        File pluginUiPackageFile = new File(localFilePath, pluginProperties.getUiFile());
         log.info("pluginUiPackageFile: {}", pluginUiPackageFile.getAbsolutePath());
         String uiPackageUrl = "";
         List<PluginPackageResourceFiles> pluginPackageResourceFilesEntities = new ArrayList<>();
@@ -1068,8 +1062,9 @@ public class PluginArtifactsMgmtService extends AbstractPluginMgmtService {
         for (PluginPackageResourceFiles fileEntity : pluginPackageResourceFilesEntities) {
             pluginPackageResourceFilesMapper.insert(fileEntity);
         }
-        
-        log.info("total {} resource files saved for {}", pluginPackageResourceFilesEntities.size(), xmlPackage.getName());
+
+        log.info("total {} resource files saved for {}", pluginPackageResourceFilesEntities.size(),
+                xmlPackage.getName());
 
         return pluginPackageResourceFilesEntities;
     }
