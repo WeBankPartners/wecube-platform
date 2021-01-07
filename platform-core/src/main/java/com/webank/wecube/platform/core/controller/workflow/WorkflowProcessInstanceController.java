@@ -151,12 +151,26 @@ public class WorkflowProcessInstanceController {
      * @param nodeInstId
      * @return
      */
-    @GetMapping("/process/instances/{proc-inst-id}/tasknodes/{node-inst-id}tasknode-bindings")
+    @GetMapping("/process/instances/{proc-inst-id}/tasknodes/{node-inst-id}/tasknode-bindings")
     public CommonResponseDto getTaskNodeInstanceExecBindings(@PathVariable(name = "proc-inst-id") Integer procInstId,
             @PathVariable(name = "node-inst-id") Integer nodeInstId) {
         List<TaskNodeInstObjectBindInfoDto> result = workflowDataService.getTaskNodeInstanceExecBindings(procInstId,
                 nodeInstId);
         return CommonResponseDto.okayWithData(result);
+    }
+
+    /**
+     * 
+     * @param procInstId
+     * @param nodeInstId
+     * @return
+     */
+    @PostMapping("/process/instances/{proc-inst-id}/tasknodes/{node-inst-id}/tasknode-bindings")
+    public CommonResponseDto updateTaskNodeInstanceExecBindings(@PathVariable(name = "proc-inst-id") Integer procInstId,
+            @PathVariable(name = "node-inst-id") Integer nodeInstId,
+            @RequestBody List<TaskNodeInstObjectBindInfoDto> bindings) {
+        workflowDataService.updateTaskNodeInstanceExecBindings(procInstId, nodeInstId, bindings);
+        return CommonResponseDto.okay();
     }
 
     /**
