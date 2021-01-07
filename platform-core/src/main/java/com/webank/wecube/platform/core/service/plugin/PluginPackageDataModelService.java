@@ -317,6 +317,12 @@ public class PluginPackageDataModelService {
 
     }
 
+    /**
+     * 
+     * @param packageName
+     * @param entityName
+     * @return
+     */
     public DataModelEntityDto getEntityByPackageNameAndName(String packageName, String entityName) {
         DataModelEntityDto dataModelEntityDto = new DataModelEntityDto();
 
@@ -346,13 +352,15 @@ public class PluginPackageDataModelService {
             return dataModelEntityDto;
         }
 
-        List<PluginConfigs> bindedInterfacesConfigs = pluginConfigsMapper
+        List<PluginConfigs> boundInterfacesConfigs = pluginConfigsMapper
                 .selectAllByPackageAndRegNameIsNotNull(latestPluginPackagesEntity.getId());
-        if (bindedInterfacesConfigs == null || bindedInterfacesConfigs.size() == 0) {
+        if (boundInterfacesConfigs == null || boundInterfacesConfigs.isEmpty()) {
+            log.info("bound plugin configs do not find for plugin package with id {} ",
+                    latestPluginPackagesEntity.getId());
             return dataModelEntityDto;
         }
 
-        for (PluginConfigs config : bindedInterfacesConfigs) {
+        for (PluginConfigs config : boundInterfacesConfigs) {
             buildLeafEntity(referenceToEntityList, dataModelEntityDto.getReferenceToEntityList(), config);
             buildLeafEntity(referenceByEntityList, dataModelEntityDto.getReferenceByEntityList(), config);
         }
@@ -411,22 +419,27 @@ public class PluginPackageDataModelService {
     }
 
     private void buildLeafEntity(List<BoundInterfaceEntityDto> leafEntityList,
-            List<TrimmedPluginPackageEntityDto> entityDtoList, PluginConfigs config) {
-        for (TrimmedPluginPackageEntityDto entityDto : entityDtoList) {
-            if (entityDto.getPackageName().equals(config.getTargetPackage())
-                    && entityDto.getName().equals(config.getTargetEntity())) {
+            List<TrimmedPluginPackageEntityDto> refEntityDtoList, PluginConfigs config) {
+        for (TrimmedPluginPackageEntityDto refEntityDto : refEntityDtoList) {
+            if (refEntityDto.getPackageName().equals(config.getTargetPackage())
+                    && refEntityDto.getName().equals(config.getTargetEntity())) {
                 boolean entityExistedFlag = false;
-                for (BoundInterfaceEntityDto bindedInterfaceEntityDto : leafEntityList) {
-                    if (bindedInterfaceEntityDto.getPackageName().equals(config.getTargetPackage())
-                            && bindedInterfaceEntityDto.getEntityName().equals(config.getTargetEntity())
-                            && bindedInterfaceEntityDto.getFilterRule()
-                                    .equals(config.getTargetEntityWithFilterRule())) {
+                for (BoundInterfaceEntityDto boundInterfaceEntityDto : leafEntityList) {
+                    if (boundInterfaceEntityDto.getPackageName().equals(config.getTargetPackage())
+                            && boundInterfaceEntityDto.getEntityName().equals(config.getTargetEntity())
+                            && boundInterfaceEntityDto.getFilterRule().equals(config.getTargetEntityWithFilterRule())) {
+                        log.debug("leaf entity already exists: {} {} {}", config.getTargetPackage(),
+                                config.getTargetEntity(), config.getTargetEntityWithFilterRule());
                         entityExistedFlag = true;
                     }
                 }
                 if (!entityExistedFlag) {
-                    leafEntityList.add(new BoundInterfaceEntityDto(config.getTargetPackage(), config.getTargetEntity(),
-                            config.getTargetEntityWithFilterRule()));
+                    log.debug("leaf entity does not exis:{} {} {}", config.getTargetPackage(), config.getTargetEntity(),
+                            config.getTargetEntityWithFilterRule());
+                    BoundInterfaceEntityDto newBoundInterfaceEntityDto = new BoundInterfaceEntityDto(
+                            config.getTargetPackage(), config.getTargetEntity(),
+                            config.getTargetEntityWithFilterRule());
+                    leafEntityList.add(newBoundInterfaceEntityDto);
                 }
             }
         }
