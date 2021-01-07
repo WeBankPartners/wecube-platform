@@ -230,7 +230,7 @@ public class RoleFavoritesServiceImpl implements RoleFavoritesService {
                 }
             }
             
-            for (String roleName : existRoleNames) {
+            for (String roleName : roleNamesToRemove) {
                 this.favoritesRoleMapper.deleteByfavoritesIdAndRoleNameAndPermission(favoritesId, roleName, permission);
             }
             // check if user's roles has permission to manage this process
