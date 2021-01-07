@@ -28,6 +28,7 @@ import com.webank.wecube.platform.core.dto.workflow.ProcessDataPreviewDto;
 import com.webank.wecube.platform.core.dto.workflow.RequestObjectDto;
 import com.webank.wecube.platform.core.dto.workflow.TaskNodeDefObjectBindInfoDto;
 import com.webank.wecube.platform.core.dto.workflow.TaskNodeExecContextDto;
+import com.webank.wecube.platform.core.dto.workflow.TaskNodeInstObjectBindInfoDto;
 import com.webank.wecube.platform.core.entity.plugin.PluginConfigInterfaceParameters;
 import com.webank.wecube.platform.core.entity.plugin.PluginConfigInterfaces;
 import com.webank.wecube.platform.core.entity.workflow.GraphNodeEntity;
@@ -87,6 +88,12 @@ public class WorkflowDataService {
     @Autowired
     @Qualifier("userJwtSsoTokenRestTemplate")
     protected RestTemplate userJwtSsoTokenRestTemplate;
+    
+    
+    public List<TaskNodeInstObjectBindInfoDto> getTaskNodeInstanceExecBindings(Integer procInstId, Integer nodeInstId){
+        //TODO
+        return null;
+    }
 
     /**
      * 
