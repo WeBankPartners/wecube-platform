@@ -39,9 +39,6 @@ public class RoleFavoritesServiceImpl implements RoleFavoritesService {
     @Autowired
     private FavoritesMapper favoritesMapper;
 
-//    @Autowired
-//    private UserManagementServiceImpl userManagementService;
-
     /**
      * 
      */
