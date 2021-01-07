@@ -696,6 +696,8 @@ public class PluginArtifactsMgmtService extends AbstractPluginMgmtService {
             return;
         }
 
+        List<PluginPackageAttributes> savedAttributes = new ArrayList<>();
+
         for (EntityType xmlEntity : xmlEntityList) {
             PluginPackageEntities entity = new PluginPackageEntities();
             entity.setDataModelId(dataModelEntity.getId());
@@ -726,32 +728,44 @@ public class PluginArtifactsMgmtService extends AbstractPluginMgmtService {
                 attributeEntity.setRefPackage(refPackage);
                 attributeEntity.setRefEntity(xmlAttribute.getRefEntity());
 
-                String referenceId = calAttributeReference(pluginPackageEntity, dataModelEntity, entity, xmlAttribute);
-                attributeEntity.setReferenceId(referenceId);
+                // String referenceId =
+                // calAttributeReference(pluginPackageEntity, dataModelEntity,
+                // entity, xmlAttribute);
+                // attributeEntity.setReferenceId(referenceId);
 
                 pluginPackageAttributesMapper.insert(attributeEntity);
+
+                savedAttributes.add(attributeEntity);
+            }
+        }
+
+        for (PluginPackageAttributes attribute : savedAttributes) {
+            String referenceId = calAttributeReference(pluginPackageEntity, dataModelEntity, attribute);
+            if (StringUtils.isNoneBlank(referenceId)) {
+                attribute.setReferenceId(referenceId);
+                pluginPackageAttributesMapper.updateByPrimaryKey(attribute);
             }
         }
 
     }
 
     private String calAttributeReference(PluginPackages pluginPackageEntity, PluginPackageDataModel dataModelEntity,
-            PluginPackageEntities entitiesEntity, AttributeType xmlAttribute) {
-        String xmlRef = xmlAttribute.getRef();
-        if (StringUtils.isBlank(xmlRef)) {
+            PluginPackageAttributes attribute) {
+        String refAttr = attribute.getRefAttr();
+        if (StringUtils.isBlank(refAttr)) {
             return null;
         }
 
-        String xmlRefPackageName = xmlAttribute.getRefPackage();
-        String xmlRefEntityName = xmlAttribute.getRefEntity();
+        String refPackageName = attribute.getRefPackage();
+        String refEntityName = attribute.getRefEntity();
 
         PluginPackageEntities latestRefEntitiesEntity = pluginPackageEntitiesMapper
-                .selectLatestByPackageNameAndEntityName(xmlRefPackageName, xmlRefEntityName);
+                .selectLatestByPackageNameAndEntityName(refPackageName, refEntityName);
 
         if (latestRefEntitiesEntity == null) {
-            log.error("cannot find reference entity for {} {} {}", xmlRefPackageName, xmlRefEntityName, xmlRef);
-            String errMsg = String.format("Cannot find reference entity for %s:%s:%s", xmlRefPackageName,
-                    xmlRefEntityName, xmlRef);
+            log.error("cannot find reference entity for {} {} {}", refPackageName, refEntityName, refAttr);
+            String errMsg = String.format("Cannot find reference entity for %s:%s:%s", refPackageName,
+                    refEntityName, refAttr);
             throw new WecubeCoreException(errMsg);
         }
 

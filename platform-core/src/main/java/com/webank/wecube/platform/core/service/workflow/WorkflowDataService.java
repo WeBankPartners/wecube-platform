@@ -5,8 +5,10 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 import org.apache.commons.lang3.StringUtils;
@@ -36,6 +38,7 @@ import com.webank.wecube.platform.core.entity.workflow.ProcDefInfoEntity;
 import com.webank.wecube.platform.core.entity.workflow.ProcExecBindingEntity;
 import com.webank.wecube.platform.core.entity.workflow.ProcExecBindingTmpEntity;
 import com.webank.wecube.platform.core.entity.workflow.ProcInstInfoEntity;
+import com.webank.wecube.platform.core.entity.workflow.ProcRoleBindingEntity;
 import com.webank.wecube.platform.core.entity.workflow.TaskNodeDefInfoEntity;
 import com.webank.wecube.platform.core.entity.workflow.TaskNodeExecParamEntity;
 import com.webank.wecube.platform.core.entity.workflow.TaskNodeExecRequestEntity;
@@ -45,6 +48,7 @@ import com.webank.wecube.platform.core.repository.workflow.ProcDefInfoMapper;
 import com.webank.wecube.platform.core.repository.workflow.ProcExecBindingMapper;
 import com.webank.wecube.platform.core.repository.workflow.ProcExecBindingTmpMapper;
 import com.webank.wecube.platform.core.repository.workflow.ProcInstInfoMapper;
+import com.webank.wecube.platform.core.repository.workflow.ProcRoleBindingMapper;
 import com.webank.wecube.platform.core.repository.workflow.TaskNodeDefInfoMapper;
 import com.webank.wecube.platform.core.repository.workflow.TaskNodeExecParamMapper;
 import com.webank.wecube.platform.core.repository.workflow.TaskNodeExecRequestMapper;
@@ -96,6 +100,9 @@ public class WorkflowDataService {
     protected ProcInstInfoMapper procInstInfoMapper;
 
     @Autowired
+    protected ProcRoleBindingMapper procRoleBindingMapper;
+
+    @Autowired
     @Qualifier("userJwtSsoTokenRestTemplate")
     protected RestTemplate userJwtSsoTokenRestTemplate;
 
@@ -137,18 +144,75 @@ public class WorkflowDataService {
      * @param nodeInstId
      * @param bindings
      */
+    @Transactional
     public void updateTaskNodeInstanceExecBindings(Integer procInstId, Integer nodeInstId,
-            List<TaskNodeInstObjectBindInfoDto> bindings) {
-        // TODO
+            List<TaskNodeInstObjectBindInfoDto> bindingInfoDtos) {
         ProcInstInfoEntity procInstInfo = procInstInfoMapper.selectByPrimaryKey(procInstId);
         if (procInstInfo == null) {
-            String errMsg = String.format("Such process instance with id [:{0}] does not exist.", procInstId);
+            String errMsg = String.format("Such process instance with id [:%s] does not exist.", procInstId);
             throw new WecubeCoreException("3197", errMsg, procInstId);
         }
 
         if (ProcInstInfoEntity.COMPLETED_STATUS.equals(procInstInfo.getStatus())
                 || ProcInstInfoEntity.INTERNALLY_TERMINATED_STATUS.equals(procInstInfo.getStatus())) {
-//TODO
+            String errMsg = "Cannot update task node bindings due to completed process instance state.";
+            throw new WecubeCoreException(errMsg);
+        }
+
+        TaskNodeInstInfoEntity nodeInstInfo = taskNodeInstInfoRepository.selectByPrimaryKey(nodeInstId);
+        if (nodeInstInfo == null) {
+            String errMsg = String.format("Such node instance with id [:%s] does not exist.", nodeInstId);
+            throw new WecubeCoreException("3323", errMsg, nodeInstId);
+        }
+
+        if (TaskNodeInstInfoEntity.COMPLETED_STATUS.equals(nodeInstInfo.getStatus())) {
+            String errMsg = "Cannot update task node bindings due to completed task node instance state.";
+            throw new WecubeCoreException(errMsg);
+        }
+
+        if (bindingInfoDtos == null || bindingInfoDtos.isEmpty()) {
+            log.info("object bind infos to update is empty.");
+            return;
+        }
+
+        List<ProcRoleBindingEntity> procRoleBinds = procRoleBindingMapper
+                .selectAllByProcIdAndPermission(procInstInfo.getProcDefId(), ProcRoleBindingEntity.USE);
+        
+        if(procRoleBinds == null || procRoleBinds.isEmpty()){
+            throw new WecubeCoreException("Lack of permission to update task node bindings.");
+        }
+        
+        Set<String> currUserRoles = AuthenticationContextHolder.getCurrentUserRoles();
+        if(currUserRoles == null){
+            currUserRoles = new HashSet<String>();
+        }
+        
+        boolean lackOfPermission = true;
+        for(ProcRoleBindingEntity procRoleBind : procRoleBinds){
+            if(currUserRoles.contains(procRoleBind.getRoleName())){
+                lackOfPermission = false;
+                break;
+            }
+        }
+        
+        if(lackOfPermission){
+            throw new WecubeCoreException("Lack of permission to update task node bindings.");
+        }
+
+        for (TaskNodeInstObjectBindInfoDto bindInfoDto : bindingInfoDtos) {
+            ProcExecBindingEntity bindEntity = procExecBindingMapper.selectByPrimaryKey(bindInfoDto.getId());
+            if (bindEntity == null) {
+                String errMsg = String.format("Such exec binding does not exist with id:%s", bindInfoDto.getId());
+                throw new WecubeCoreException(errMsg);
+            }
+
+            if (bindInfoDto.getBound().equals(bindEntity.getBindFlag())) {
+                continue;
+            }
+
+            bindEntity.setBindFlag(bindInfoDto.getBound());
+
+            procExecBindingMapper.updateByPrimaryKey(bindEntity);
         }
     }
 
