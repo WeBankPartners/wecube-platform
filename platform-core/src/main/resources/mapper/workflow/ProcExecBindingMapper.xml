@@ -304,7 +304,7 @@
         and task_node_inst_id =
         #{nodeInstId,jdbcType=INTEGER}
         and bind_type = 'taskNode'
-        and bind_flag != 'N'
+        and (bind_flag != 'N'  OR bind_flag IS NULL OR bind_flag = '')
     </select>
 
     <delete id="deleteAllTaskNodeBindings">

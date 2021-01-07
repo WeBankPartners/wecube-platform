@@ -28,16 +28,9 @@ import com.webank.wecube.platform.workflow.commons.LocalIdGenerator;
 @Transactional(rollbackFor = Exception.class)
 public class ProcessRoleServiceImpl implements ProcessRoleService {
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
-//    private UserManagementServiceImpl userManagementService;
     @Autowired
     private ProcRoleBindingMapper procRoleBindingRepository;
 
-//    @Autowired
-//    public ProcessRoleServiceImpl(UserManagementServiceImpl userManagementService,
-//            ProcRoleBindingMapper procRoleBindingRepository) {
-//        this.userManagementService = userManagementService;
-//        this.procRoleBindingRepository = procRoleBindingRepository;
-//    }
 
     @Override
     public ProcRoleOverviewDto retrieveRoleNamesByProcess(String procDefId){

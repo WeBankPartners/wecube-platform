@@ -112,7 +112,7 @@ public class SystemVariableService {
         }
 
         for (SystemVariableDto sysVarDto : resourceSystemVariables) {
-            if (StringUtils.isBlank(sysVarDto.getId())) {
+            if (StringUtils.isNoneBlank(sysVarDto.getId())) {
                 SystemVariables existSystemVariablesEntity = systemVariablesMapper
                         .selectByPrimaryKey(sysVarDto.getId());
 
