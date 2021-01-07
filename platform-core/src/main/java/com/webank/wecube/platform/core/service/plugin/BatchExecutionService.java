@@ -235,6 +235,7 @@ public class BatchExecutionService {
                         interfaceParameter.getMappingSystemVariableName(), interfaceParameter.getRequired(),
                         paramValue);
                 executionJobParameter.setExecutionJob(executionJob);
+                executionJobParameter.setExecutionJobId(executionJob.getId());
                 executionJobParametersList.add(executionJobParameter);
 
                 executionJobParameter.setParameterDefinition(interfaceParameter);
@@ -245,6 +246,7 @@ public class BatchExecutionService {
                         interfaceParameter.getDataType(), interfaceParameter.getMappingType(),
                         interfaceParameter.getMappingEntityExpression(),
                         interfaceParameter.getMappingSystemVariableName(), interfaceParameter.getRequired(), null);
+                executionJobParameter.setExecutionJobId(executionJob.getId());
                 executionJobParameter.setExecutionJob(executionJob);
                 executionJobParametersList.add(executionJobParameter);
 
