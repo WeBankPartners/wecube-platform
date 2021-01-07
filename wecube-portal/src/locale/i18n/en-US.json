@@ -455,5 +455,6 @@
   "overview": "Overview",
   "parameter_configuration": "Parameter Configuration",
   "dynamic_bind": "Dynamic Bind",
-  "pre_check": "Its Dangerous"
+  "pre_check": "Its Dangerous",
+  "required": "Required"
 }

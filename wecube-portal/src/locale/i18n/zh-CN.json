@@ -454,5 +454,6 @@
   "overview": "总览",
   "parameter_configuration": "参数配置",
   "dynamic_bind": "动态绑定",
-  "pre_check": "高危检测"
+  "pre_check": "高危检测",
+  "required": "必填"
 }
