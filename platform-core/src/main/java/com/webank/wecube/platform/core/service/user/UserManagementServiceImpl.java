@@ -335,9 +335,9 @@ public class UserManagementServiceImpl implements UserManagementService {
     }
 
     @Override
-    public List<String> getRoleIdsByUsername(String username) {
+    public List<String> getRoleNamesByUsername(String username) {
         List<RoleDto> roleListByUserName = this.getGrantedRolesByUsername(username);
-        return roleListByUserName.stream().map(RoleDto::getId).collect(Collectors.toList());
+        return roleListByUserName.stream().map(RoleDto::getName).collect(Collectors.toList());
     }
 
     @Override
