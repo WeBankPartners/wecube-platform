@@ -58,9 +58,13 @@ public class WorkflowProcDefMigrationService extends AbstractWorkflowProcDefServ
         processDefInfoRepo.insert(draftEntity);
         log.info("process definition saved with id:{}", draftEntity.getId());
         String currentUsername = AuthenticationContextHolder.getCurrentUsername();
-        List<String> roleIds = userManagementService.getRoleIdsByUsername(currentUsername);
+        
+        
+        List<String> roleNames = userManagementService.getRoleNamesByUsername(currentUsername);
+        
+        
         Map<String, List<String>> roleBinds = new HashMap<>();
-        roleBinds.put(ProcRoleBindingEntity.MGMT, roleIds);
+        roleBinds.put(ProcRoleBindingEntity.MGMT, roleNames);
 
         ProcDefInfoDto tmpProcDefInfoDto = new ProcDefInfoDto();
         tmpProcDefInfoDto.setPermissionToRole(roleBinds);
