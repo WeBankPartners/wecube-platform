@@ -61,6 +61,12 @@ public class PluginPackageDataModelController {
         return CommonResponseDto.okayWithData(result);
     }
 
+    /**
+     * 
+     * @param packageName
+     * @param entityName
+     * @return
+     */
     @GetMapping("/models/package/{plugin-package-name}/entity/{entity-name}")
     public CommonResponseDto getEntityInfoByPackageNameAndEntityName(
             @PathVariable(value = "plugin-package-name") String packageName,
