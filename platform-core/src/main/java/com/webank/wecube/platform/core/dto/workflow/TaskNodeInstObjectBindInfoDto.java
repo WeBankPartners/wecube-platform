@@ -4,6 +4,8 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class TaskNodeInstObjectBindInfoDto {
+    
+    private Integer id;
 
     private Integer procInstId;
     private Integer nodeInstId;
@@ -80,4 +82,11 @@ public class TaskNodeInstObjectBindInfoDto {
         this.bound = bound;
     }
 
+    public Integer getId() {
+        return id;
+    }
+
+    public void setId(Integer id) {
+        this.id = id;
+    }
 }
