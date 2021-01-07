@@ -19,6 +19,7 @@ import com.webank.wecube.platform.core.dto.workflow.ProcessDataPreviewDto;
 import com.webank.wecube.platform.core.dto.workflow.StartProcInstRequestDto;
 import com.webank.wecube.platform.core.dto.workflow.TaskNodeDefObjectBindInfoDto;
 import com.webank.wecube.platform.core.dto.workflow.TaskNodeExecContextDto;
+import com.webank.wecube.platform.core.dto.workflow.TaskNodeInstObjectBindInfoDto;
 import com.webank.wecube.platform.core.service.workflow.WorkflowDataService;
 import com.webank.wecube.platform.core.service.workflow.WorkflowProcInstService;
 
@@ -32,18 +33,35 @@ public class WorkflowProcessInstanceController {
     @Autowired
     private WorkflowDataService workflowDataService;
 
+    /**
+     * Start a new process instance.
+     * 
+     * @param requestDto
+     * @return
+     */
     @PostMapping("/process/instances")
     public CommonResponseDto createProcessInstance(@RequestBody StartProcInstRequestDto requestDto) {
         ProcInstInfoDto result = procInstService.createProcessInstanceWithPermissionValidation(requestDto);
         return CommonResponseDto.okayWithData(result);
     }
 
+    /**
+     * Fetch all process instances.
+     * 
+     * @return
+     */
     @GetMapping("/process/instances")
     public CommonResponseDto getProcessInstances() {
         List<ProcInstInfoDto> result = procInstService.getProcessInstances();
         return CommonResponseDto.okayWithData(result);
     }
 
+    /**
+     * Fetch specific process instance.
+     * 
+     * @param procInstId
+     * @return
+     */
     @GetMapping("/process/instances/{id}")
     public CommonResponseDto getProcessInstance(@PathVariable(name = "id") Integer procInstId) {
         ProcInstInfoDto result = procInstService.getProcessInstanceById(procInstId);
@@ -54,12 +72,25 @@ public class WorkflowProcessInstanceController {
         return CommonResponseDto.okayWithData(result);
     }
 
+    /**
+     * Proceed once errors occurred manually.
+     * 
+     * @param requestDto
+     * @return
+     */
     @PostMapping("/process/instances/proceed")
     public CommonResponseDto proceedProcessInstance(@RequestBody ProceedProcInstRequestDto requestDto) {
         procInstService.proceedProcessInstance(requestDto);
         return CommonResponseDto.okay();
     }
 
+    /**
+     * 
+     * @param nodeDefId
+     * @param processSessionId
+     * @param bindings
+     * @return
+     */
     @RequestMapping(path = "/process/instances/tasknodes/{node-def-id}/session/{process-session-id}/tasknode-bindings", method = {
             RequestMethod.POST, RequestMethod.PUT }, consumes = {
                     MediaType.APPLICATION_JSON_UTF8_VALUE }, produces = { MediaType.APPLICATION_JSON_UTF8_VALUE })
@@ -71,6 +102,11 @@ public class WorkflowProcessInstanceController {
         return CommonResponseDto.okay();
     }
 
+    /**
+     * 
+     * @param processSessionId
+     * @return
+     */
     @GetMapping("/process/instances/tasknodes/session/{process-session-id}/tasknode-bindings")
     public CommonResponseDto getProcessInstanceExecBindingsOfSession(
             @PathVariable(name = "process-session-id") String processSessionId) {
@@ -81,6 +117,12 @@ public class WorkflowProcessInstanceController {
 
     }
 
+    /**
+     * 
+     * @param nodeDefId
+     * @param processSessionId
+     * @return
+     */
     @GetMapping("/process/instances/tasknodes/{node-def-id}/session/{process-session-id}/tasknode-bindings")
     public CommonResponseDto getProcessInstanceExecBindingsOfSessionAndNode(
             @PathVariable(name = "node-def-id") String nodeDefId,
@@ -92,12 +134,37 @@ public class WorkflowProcessInstanceController {
         return CommonResponseDto.okayWithData(result);
     }
 
+    /**
+     * 
+     * @param procInstId
+     * @return
+     */
     @GetMapping("/process/instances/{proc-inst-id}/tasknode-bindings")
     public CommonResponseDto getProcessInstanceExecBindings(@PathVariable(name = "proc-inst-id") Integer procInstId) {
         List<TaskNodeDefObjectBindInfoDto> result = procInstService.getProcessInstanceExecBindings(procInstId);
         return CommonResponseDto.okayWithData(result);
     }
 
+    /**
+     * 
+     * @param procInstId
+     * @param nodeInstId
+     * @return
+     */
+    @GetMapping("/process/instances/{proc-inst-id}/tasknodes/{node-inst-id}tasknode-bindings")
+    public CommonResponseDto getTaskNodeInstanceExecBindings(@PathVariable(name = "proc-inst-id") Integer procInstId,
+            @PathVariable(name = "node-inst-id") Integer nodeInstId) {
+        List<TaskNodeInstObjectBindInfoDto> result = workflowDataService.getTaskNodeInstanceExecBindings(procInstId,
+                nodeInstId);
+        return CommonResponseDto.okayWithData(result);
+    }
+
+    /**
+     * 
+     * @param procInstId
+     * @param nodeInstId
+     * @return
+     */
     @GetMapping("/process/instances/{proc-inst-id}/tasknodes/{node-inst-id}/context")
     public CommonResponseDto getTaskNodeContextInfo(@PathVariable(name = "proc-inst-id") Integer procInstId,
             @PathVariable(name = "node-inst-id") Integer nodeInstId) {
@@ -105,6 +172,11 @@ public class WorkflowProcessInstanceController {
         return CommonResponseDto.okayWithData(result);
     }
 
+    /**
+     * 
+     * @param procInstId
+     * @return
+     */
     @GetMapping("/process/instances/{proc-inst-id}/preview/entities")
     public CommonResponseDto getProcessDataPreview(@PathVariable(name = "proc-inst-id") Integer procInstId) {
         ProcessDataPreviewDto result = workflowDataService.generateProcessDataPreviewForProcInstance(procInstId);
