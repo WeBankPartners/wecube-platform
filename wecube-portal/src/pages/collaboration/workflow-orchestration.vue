@@ -383,6 +383,7 @@ export default {
         serviceId: '',
         serviceName: '',
         status: '',
+        taskCategory: 'SSTN',
         timeoutExpression: '30'
       },
       serviceTaskBindInfos: [],
@@ -844,11 +845,11 @@ export default {
       this.saveDiagram(true)
     },
     checkSaveParams (pluginFormCopy) {
-      if (!(pluginFormCopy.routineExpression && pluginFormCopy.routineRaw)) {
+      if (!pluginFormCopy.routineExpression) {
         this.$Message.warning(this.$t('locate_rules') + ' ' + this.$t('required'))
         return false
       }
-      if (!(pluginFormCopy.serviceId && pluginFormCopy.serviceName)) {
+      if (!pluginFormCopy.serviceId) {
         this.$Message.warning(this.$t('plugin') + ' ' + this.$t('required'))
         return false
       }
