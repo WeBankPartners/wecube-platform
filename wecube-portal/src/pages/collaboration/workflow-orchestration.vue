@@ -195,7 +195,7 @@
               v-for="(item, index) in pluginForm.paramInfos"
               :key="index"
             >
-              <label slot="label" v-if="item.bindType === 'context' && item.required"
+              <label slot="label" v-if="item.bindType === 'context' && item.required === 'Y'"
                 >{{ item.paramName }}
                 <span class="requires-tip">*</span>
               </label>
@@ -222,7 +222,7 @@
               <Select filterable v-if="item.bindType === 'context'" v-model="item.bindValue" style="width:30%">
                 <Option v-for="i in item.currentParamNames" :value="i.name" :key="i.name">{{ i.name }}</Option>
               </Select>
-              <label v-if="item.bindType === 'context' && item.required">
+              <label v-if="item.bindType === 'context' && item.required === 'Y'">
                 <span class="requires-tip">*</span>
               </label>
               <Input v-if="item.bindType === 'constant'" v-model="item.bindValue" />
@@ -646,6 +646,7 @@ export default {
     },
     async changePluginInterfaceList (val) {
       let found = this.filteredPlugins.find(_ => _.serviceName === this.pluginForm.serviceId)
+      this.pluginForm.paramInfos = {}
       if (found) {
         let needParams = found.inputParameters.filter(_ => _.mappingType === 'context' || _.mappingType === 'constant')
         this.pluginForm.paramInfos = needParams.map(_ => {
@@ -655,35 +656,12 @@ export default {
             bindParamType: 'INPUT',
             bindParamName: '',
             bindType: _.mappingType,
-            bindValue: ''
+            bindValue: '',
+            required: _.required
           }
         })
       }
     },
-    // async getPluginInterfaceList (isUseOriginParamsInfo = true) {
-    //   let { status, data } = await getPluginInterfaceList()
-    //   if (status === 'OK') {
-    //     this.allPlugins = data
-
-    //     let found = data.find(_ => _.serviceName === this.pluginForm.serviceId)
-    //     if (found) {
-    //       let needParams = found.inputParameters.filter(
-    //         _ => _.mappingType === 'context' || _.mappingType === 'constant'
-    //       )
-    //       if (isUseOriginParamsInfo) return
-    //       this.pluginForm.paramInfos = needParams.map(_ => {
-    //         return {
-    //           paramName: _.name,
-    //           bindNodeId: '',
-    //           bindParamType: 'INPUT',
-    //           bindParamName: '',
-    //           bindType: _.mappingType,
-    //           bindValue: ''
-    //         }
-    //       })
-    //     }
-    //   }
-    // },
     async getAllFlows (s) {
       if (s) {
         const { data, status } = await getAllFlow()
@@ -851,6 +829,9 @@ export default {
       let found = this.filteredPlugins.find(_ => _.serviceName === this.pluginForm.serviceId)
 
       let pluginFormCopy = JSON.parse(JSON.stringify(this.pluginForm))
+      // 校验必填项
+      const res = this.checkSaveParams(pluginFormCopy)
+      if (!res) return
       this.serviceTaskBindInfos.push({
         ...pluginFormCopy,
         nodeDefId: this.currentNode.nodeDefId,
@@ -861,6 +842,27 @@ export default {
         taskCategory: pluginFormCopy.taskCategory
       })
       this.saveDiagram(true)
+    },
+    checkSaveParams (pluginFormCopy) {
+      if (!(pluginFormCopy.routineExpression && pluginFormCopy.routineRaw)) {
+        this.$Message.warning(this.$t('locate_rules') + ' ' + this.$t('required'))
+        return false
+      }
+      if (!(pluginFormCopy.serviceId && pluginFormCopy.serviceName)) {
+        this.$Message.warning(this.$t('plugin') + ' ' + this.$t('required'))
+        return false
+      }
+      let hasvalue = true
+      pluginFormCopy.paramInfos.forEach(item => {
+        if (item.required === 'Y' && item.bindValue === '') {
+          this.$Message.warning(item.paramName + ' ' + this.$t('required'))
+          hasvalue = false
+        }
+      })
+      if (!hasvalue) {
+        return false
+      }
+      return true
     },
     async openPluginModal (e) {
       if (!this.currentSelectedEntity) {
@@ -888,7 +890,15 @@ export default {
 
         // get flow's params infos
         this.getFlowsNodes()
-        this.getFilteredPluginInterfaceList(this.pluginForm.routineExpression)
+        await this.getFilteredPluginInterfaceList(this.pluginForm.routineExpression)
+        const nodeOrigin = this.filteredPlugins.find(item => item.serviceName === this.pluginForm.serviceName)
+        this.pluginForm.paramInfos.forEach(pItem => {
+          nodeOrigin.inputParameters.forEach(oItem => {
+            if (pItem.paramName === oItem.name) {
+              pItem.required = oItem.required
+            }
+          })
+        })
         this.$nextTick(() => {
           this.show = e.target.tagName === 'rect'
         })
