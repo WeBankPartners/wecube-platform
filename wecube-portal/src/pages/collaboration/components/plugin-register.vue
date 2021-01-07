@@ -1,7 +1,7 @@
 <template>
   <div class="plugin-register-page">
     <Row>
-      <Col span="6" style="border-right: 1px solid #e8eaec;">
+      <Col span="7" style="border-right: 1px solid #e8eaec;">
         <div style="height: calc(100vh - 180px);overflow-y:auto;">
           <div v-if="plugins.length < 1">{{ $t('no_plugin') }}</div>
           <div style="">
@@ -53,7 +53,7 @@
           <Button type="info" long ghost @click="batchRegist">{{ $t('batch_regist') }}</Button>
         </div>
       </Col>
-      <Col span="18" offset="0" style="padding-left: 10px">
+      <Col span="17" offset="0" style="padding-left: 10px">
         <Spin size="large" fix style="margin-top: 200px;" v-show="isLoading">
           <Icon type="ios-loading" size="44" class="spin-icon-load"></Icon>
           <div>{{ $t('loading') }}</div>
@@ -612,15 +612,15 @@ export default {
     },
     async confirmRole () {
       if (this.mgmtRolesKey.length) {
-        if (this.isAddOrCopy === 'new') {
-          await this.updatePermission(this.currentPluginForPermission.id)
-        }
         if (this.isAddOrCopy === 'copy') {
-          await this.updatePermission(this.newPluginConfig)
-          this.exectCopyPluginConfigDto()
+          // await this.updatePermission(this.newPluginConfig)
+          await this.exectCopyPluginConfigDto()
+          this.configRoleManageModal = false
         } else if (this.isAddOrCopy === 'add') {
           this.exectAddPluginConfigDto()
           this.configRoleManageModal = false
+        } else if (this.isAddOrCopy === 'new') {
+          await this.updatePermission(this.currentPluginForPermission.id)
         }
       } else {
         this.$Message.warning(this.$t('mgmt_role_warning'))
