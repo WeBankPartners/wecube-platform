@@ -33,14 +33,18 @@ import com.webank.wecube.platform.core.entity.plugin.PluginConfigInterfaceParame
 import com.webank.wecube.platform.core.entity.plugin.PluginConfigInterfaces;
 import com.webank.wecube.platform.core.entity.workflow.GraphNodeEntity;
 import com.webank.wecube.platform.core.entity.workflow.ProcDefInfoEntity;
+import com.webank.wecube.platform.core.entity.workflow.ProcExecBindingEntity;
 import com.webank.wecube.platform.core.entity.workflow.ProcExecBindingTmpEntity;
+import com.webank.wecube.platform.core.entity.workflow.ProcInstInfoEntity;
 import com.webank.wecube.platform.core.entity.workflow.TaskNodeDefInfoEntity;
 import com.webank.wecube.platform.core.entity.workflow.TaskNodeExecParamEntity;
 import com.webank.wecube.platform.core.entity.workflow.TaskNodeExecRequestEntity;
 import com.webank.wecube.platform.core.entity.workflow.TaskNodeInstInfoEntity;
 import com.webank.wecube.platform.core.repository.workflow.GraphNodeMapper;
 import com.webank.wecube.platform.core.repository.workflow.ProcDefInfoMapper;
+import com.webank.wecube.platform.core.repository.workflow.ProcExecBindingMapper;
 import com.webank.wecube.platform.core.repository.workflow.ProcExecBindingTmpMapper;
+import com.webank.wecube.platform.core.repository.workflow.ProcInstInfoMapper;
 import com.webank.wecube.platform.core.repository.workflow.TaskNodeDefInfoMapper;
 import com.webank.wecube.platform.core.repository.workflow.TaskNodeExecParamMapper;
 import com.webank.wecube.platform.core.repository.workflow.TaskNodeExecRequestMapper;
@@ -86,13 +90,66 @@ public class WorkflowDataService {
     protected GraphNodeMapper graphNodeRepository;
 
     @Autowired
+    protected ProcExecBindingMapper procExecBindingMapper;
+
+    @Autowired
+    protected ProcInstInfoMapper procInstInfoMapper;
+
+    @Autowired
     @Qualifier("userJwtSsoTokenRestTemplate")
     protected RestTemplate userJwtSsoTokenRestTemplate;
-    
-    
-    public List<TaskNodeInstObjectBindInfoDto> getTaskNodeInstanceExecBindings(Integer procInstId, Integer nodeInstId){
-        //TODO
-        return null;
+
+    /**
+     * 
+     * @param procInstId
+     * @param nodeInstId
+     * @return
+     */
+    public List<TaskNodeInstObjectBindInfoDto> getTaskNodeInstanceExecBindings(Integer procInstId, Integer nodeInstId) {
+
+        List<TaskNodeInstObjectBindInfoDto> bindInfoDtos = new ArrayList<>();
+        List<ProcExecBindingEntity> bindingEntities = procExecBindingMapper.selectAllTaskNodeBindings(procInstId,
+                nodeInstId);
+        if (bindingEntities == null || bindingEntities.isEmpty()) {
+            return bindInfoDtos;
+        }
+
+        for (ProcExecBindingEntity e : bindingEntities) {
+            TaskNodeInstObjectBindInfoDto d = new TaskNodeInstObjectBindInfoDto();
+            d.setId(e.getId());
+            d.setEntityDataId(e.getEntityDataId());
+            d.setEntityDisplayName(e.getEntityDataName());
+            d.setEntityTypeId(e.getEntityTypeId());
+            d.setBound(e.getBindFlag());
+            d.setNodeDefId(e.getNodeDefId());
+            d.setNodeInstId(e.getTaskNodeInstId());
+            d.setProcInstId(e.getProcInstId());
+
+            bindInfoDtos.add(d);
+        }
+
+        return bindInfoDtos;
+    }
+
+    /**
+     * 
+     * @param procInstId
+     * @param nodeInstId
+     * @param bindings
+     */
+    public void updateTaskNodeInstanceExecBindings(Integer procInstId, Integer nodeInstId,
+            List<TaskNodeInstObjectBindInfoDto> bindings) {
+        // TODO
+        ProcInstInfoEntity procInstInfo = procInstInfoMapper.selectByPrimaryKey(procInstId);
+        if (procInstInfo == null) {
+            String errMsg = String.format("Such process instance with id [:{0}] does not exist.", procInstId);
+            throw new WecubeCoreException("3197", errMsg, procInstId);
+        }
+
+        if (ProcInstInfoEntity.COMPLETED_STATUS.equals(procInstInfo.getStatus())
+                || ProcInstInfoEntity.INTERNALLY_TERMINATED_STATUS.equals(procInstInfo.getStatus())) {
+//TODO
+        }
     }
 
     /**
@@ -138,8 +195,8 @@ public class WorkflowDataService {
             throw new WecubeCoreException("3186", "Process definition ID cannot be blank.");
         }
 
-        List<ProcDefInfoEntity> procDefEntities = procDefInfoRepository.selectAllDeployedProcDefsByProcDefKey(procDefKey,
-                ProcDefInfoEntity.DEPLOYED_STATUS);
+        List<ProcDefInfoEntity> procDefEntities = procDefInfoRepository
+                .selectAllDeployedProcDefsByProcDefKey(procDefKey, ProcDefInfoEntity.DEPLOYED_STATUS);
 
         List<Map<String, Object>> result = new ArrayList<>();
         if (procDefEntities == null || procDefEntities.isEmpty()) {
@@ -177,14 +234,13 @@ public class WorkflowDataService {
         if (StringUtils.isBlank(rootEntityExpr)) {
             return result;
         }
-        
-        
-        Map<Object, Object> externalCacheMap = new HashMap<Object,Object>();
-        
+
+        Map<Object, Object> externalCacheMap = new HashMap<Object, Object>();
+
         EntityOperationRootCondition condition = new EntityOperationRootCondition(rootEntityExpr, null);
 
-        List<Map<String, Object>> retRecords = standardEntityOperationService.queryAttributeValuesOfLeafNode(
-                condition , userJwtSsoTokenRestTemplate, externalCacheMap);
+        List<Map<String, Object>> retRecords = standardEntityOperationService.queryAttributeValuesOfLeafNode(condition,
+                userJwtSsoTokenRestTemplate, externalCacheMap);
 
         if (retRecords == null) {
             return result;
@@ -278,18 +334,11 @@ public class WorkflowDataService {
         }
     }
 
-    private ProcExecBindingTmpEntity findProcExecBindingTmpEntityWithNodeAndEntity(String nodeDefId,
-            String entityTypeId, String entityDataId, List<ProcExecBindingTmpEntity> bindingEntities) {
-        for (ProcExecBindingTmpEntity entity : bindingEntities) {
-            if (nodeDefId.equals(entity.getNodeDefId()) && entityTypeId.equals(entity.getEntityTypeId())
-                    && entityDataId.equals(entity.getEntityDataId())) {
-                return entity;
-            }
-        }
-
-        return null;
-    }
-
+    /**
+     * 
+     * @param processSessionId
+     * @return
+     */
     public List<TaskNodeDefObjectBindInfoDto> getProcessInstanceExecBindingsOfSession(String processSessionId) {
         List<ProcExecBindingTmpEntity> bindingEntities = procExecBindingTmpRepository
                 .selectAllNodeBindingsBySession(processSessionId);
@@ -313,6 +362,12 @@ public class WorkflowDataService {
         return result;
     }
 
+    /**
+     * 
+     * @param nodeDefId
+     * @param processSessionId
+     * @return
+     */
     public List<TaskNodeDefObjectBindInfoDto> getProcessInstanceExecBindingsOfSessionAndNode(String nodeDefId,
             String processSessionId) {
         List<ProcExecBindingTmpEntity> bindingEntities = procExecBindingTmpRepository
@@ -338,6 +393,12 @@ public class WorkflowDataService {
         return result;
     }
 
+    /**
+     * 
+     * @param procInstId
+     * @param nodeInstId
+     * @return
+     */
     public TaskNodeExecContextDto getTaskNodeContextInfo(Integer procInstId, Integer nodeInstId) {
         TaskNodeInstInfoEntity nodeEntity = taskNodeInstInfoRepository.selectByPrimaryKey(nodeInstId);
         if (nodeEntity == null) {
@@ -369,7 +430,8 @@ public class WorkflowDataService {
                 .selectAllByRequestIdAndParamType(requestEntity.getReqId(), TaskNodeExecParamEntity.PARAM_TYPE_REQUEST);
 
         List<TaskNodeExecParamEntity> responseParamEntities = taskNodeExecParamRepository
-                .selectAllByRequestIdAndParamType(requestEntity.getReqId(), TaskNodeExecParamEntity.PARAM_TYPE_RESPONSE);
+                .selectAllByRequestIdAndParamType(requestEntity.getReqId(),
+                        TaskNodeExecParamEntity.PARAM_TYPE_RESPONSE);
 
         List<RequestObjectDto> requestObjects = calculateRequestObjectDtos(requestParamEntities, responseParamEntities);
 
@@ -378,6 +440,12 @@ public class WorkflowDataService {
         return result;
     }
 
+    /**
+     * 
+     * @param procDefId
+     * @param nodeDefId
+     * @return
+     */
     public List<InterfaceParameterDto> getTaskNodeParameters(String procDefId, String nodeDefId) {
         List<InterfaceParameterDto> result = new ArrayList<>();
         TaskNodeDefInfoEntity e = taskNodeDefInfoRepository.selectByPrimaryKey(nodeDefId);
@@ -493,15 +561,15 @@ public class WorkflowDataService {
         rootEntityName.setType(LocalWorkflowConstants.PLUGIN_PARAM_TYPE_INPUT);
 
         predefinedParams.add(rootEntityName);
-        
-        //7
+
+        // 7
         InterfaceParameterDto rootEntityId = new InterfaceParameterDto();
         rootEntityId.setDataType(LocalWorkflowConstants.PLUGIN_DATA_TYPE_STRING);
         rootEntityId.setName(LocalWorkflowConstants.CONTEXT_NAME_ROOT_ENTITY_ID);
         rootEntityId.setType(LocalWorkflowConstants.PLUGIN_PARAM_TYPE_INPUT);
-        
+
         predefinedParams.add(rootEntityId);
-       
+
         return predefinedParams;
     }
 
@@ -545,8 +613,8 @@ public class WorkflowDataService {
 
         List<GraphNodeDto> hierarchicalEntityNodes = new ArrayList<>();
         String processSessionId = UUID.randomUUID().toString();
-        
-        Map<Object,Object> externalCacheMap = new HashMap<>();
+
+        Map<Object, Object> externalCacheMap = new HashMap<>();
 
         for (FlowNodeDefDto f : outline.getFlowNodes()) {
             String nodeType = f.getNodeType();
@@ -555,7 +623,8 @@ public class WorkflowDataService {
                 continue;
             }
 
-            processSingleFlowNodeDefDto(f, hierarchicalEntityNodes, dataId, processSessionId, needSaveTmp, externalCacheMap);
+            processSingleFlowNodeDefDto(f, hierarchicalEntityNodes, dataId, processSessionId, needSaveTmp,
+                    externalCacheMap);
         }
 
         result.addAllEntityTreeNodes(hierarchicalEntityNodes);
@@ -589,7 +658,7 @@ public class WorkflowDataService {
     }
 
     private void processSingleFlowNodeDefDto(FlowNodeDefDto f, List<GraphNodeDto> hierarchicalEntityNodes,
-            String dataId, String processSessionId, boolean needSaveTmp, Map<Object,Object> cacheMap) {
+            String dataId, String processSessionId, boolean needSaveTmp, Map<Object, Object> cacheMap) {
         String routineExpr = calculateDataModelExpression(f);
 
         if (StringUtils.isBlank(routineExpr)) {
@@ -849,6 +918,18 @@ public class WorkflowDataService {
         d.setDataType(p.getDataType());
 
         return d;
+    }
+
+    private ProcExecBindingTmpEntity findProcExecBindingTmpEntityWithNodeAndEntity(String nodeDefId,
+            String entityTypeId, String entityDataId, List<ProcExecBindingTmpEntity> bindingEntities) {
+        for (ProcExecBindingTmpEntity entity : bindingEntities) {
+            if (nodeDefId.equals(entity.getNodeDefId()) && entityTypeId.equals(entity.getEntityTypeId())
+                    && entityDataId.equals(entity.getEntityDataId())) {
+                return entity;
+            }
+        }
+
+        return null;
     }
 
 }
