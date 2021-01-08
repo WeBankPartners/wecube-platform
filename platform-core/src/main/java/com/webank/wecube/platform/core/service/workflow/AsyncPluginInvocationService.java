@@ -41,7 +41,7 @@ public class AsyncPluginInvocationService extends AbstractPluginInvocationServic
         }
 
         if (reqEntity.getIsCompleted() || !reqEntity.getIsCurrent()) {
-            log.error("request state is not expected,completed:{},current:{}", reqEntity.getIsCompleted(),
+            log.error("request {} state is not expected,completed:{},current:{}",reqEntity.getReqId(),  reqEntity.getIsCompleted(),
                     reqEntity.getIsCurrent());
             throw new WecubeCoreException("3154", "Request state is not expected");
         }
