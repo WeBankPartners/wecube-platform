@@ -353,7 +353,7 @@ public class PluginPackageDataModelService {
         }
 
         List<PluginConfigs> boundInterfacesConfigs = pluginConfigsMapper
-                .selectAllByPackageAndRegNameIsNotNull(latestPluginPackagesEntity.getId());
+                .selectAllByStatus(PluginConfigs.ENABLED);
         if (boundInterfacesConfigs == null || boundInterfacesConfigs.isEmpty()) {
             log.info("bound plugin configs do not find for plugin package with id {} ",
                     latestPluginPackagesEntity.getId());
@@ -434,7 +434,7 @@ public class PluginPackageDataModelService {
                     }
                 }
                 if (!entityExistedFlag) {
-                    log.debug("leaf entity does not exis:{} {} {}", config.getTargetPackage(), config.getTargetEntity(),
+                    log.debug("leaf entity does not exist:{} {} {}", config.getTargetPackage(), config.getTargetEntity(),
                             config.getTargetEntityWithFilterRule());
                     BoundInterfaceEntityDto newBoundInterfaceEntityDto = new BoundInterfaceEntityDto(
                             config.getTargetPackage(), config.getTargetEntity(),
