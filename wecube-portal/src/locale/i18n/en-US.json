@@ -453,5 +453,8 @@
   "modal_close": "Close",
   "reset_password": "Reset Password",
   "overview": "Overview",
-  "parameter_configuration": "Parameter Configuration"
+  "parameter_configuration": "Parameter Configuration",
+  "stop_orch": "Stop",
+  "partial_retry": "Partial Retry",
+  "data_selection": "Data selection"
 }
