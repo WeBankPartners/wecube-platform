@@ -1,13 +1,8 @@
 package com.webank.wecube.platform.core.entity.workflow;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.Table;
+import java.util.Date;
 
-@Entity
-@Table(name = "CORE_RE_TASK_NODE_DEF_INFO")
-public class TaskNodeDefInfoEntity extends BaseStatusFeaturedEntity {
+public class TaskNodeDefInfoEntity {
 
     public static final String DRAFT_STATUS = "draft";
     public static final String DEPLOYED_STATUS = "deployed";
@@ -17,58 +12,65 @@ public class TaskNodeDefInfoEntity extends BaseStatusFeaturedEntity {
     public static final String NODE_TYPE_SUBPROCESS = "subProcess";
     public static final String NODE_TYPE_START_EVENT = "startEvent";
 
-    @Id
-    @Column(name = "ID")
+    public static final String DYNAMIC_BIND_YES = "Y";
+    public static final String DYNAMIC_BIND_NO = "N";
+    
+    public static final String PRE_CHECK_YES = "Y";
+    public static final String PRE_CHECK_NO = "N";
+
     private String id;
-    @Column(name = "NODE_ID")
-    private String nodeId;
-    @Column(name = "NODE_NAME")
-    private String nodeName;
 
-    @Column(name = "PROC_DEF_ID")
-    private String procDefId;
+    private String createdBy;
 
-    @Column(name = "PROC_DEF_KEY")
-    private String procDefKey;
+    private Date createdTime;
 
-    @Column(name = "PROC_DEF_VER")
-    private Integer procDefVersion;
+    private String updatedBy;
 
-    @Column(name = "PROC_DEF_KERNEL_ID")
-    private String procDefKernelId;
+    private Date updatedTime;
 
-    @Column(name = "SERVICE_ID")
-    private String serviceId;
+    private Boolean active;
 
-    @Column(name = "SERVICE_NAME")
-    private String serviceName;
+    private Integer rev;
 
-    @Column(name = "ROUTINE_EXP")
-    private String routineExpression;
+    private String status;
 
-    @Column(name = "ROUTINE_RAW")
-    private String routineRaw;
-
-    @Column(name = "DESCRIPTION")
     private String description;
 
-    @Column(name = "TIMEOUT_EXP")
-    private String timeoutExpression;
+    private String nodeId;
 
-    @Column(name = "NODE_TYPE")
+    private String nodeName;
+
     private String nodeType;
 
-    @Column(name = "ORDERED_NO")
     private String orderedNo;
-    
-    @Column(name = "PREV_NODE_IDS")
-    private String previousNodeIds;
-    
-    @Column(name="SUCCEED_NODE_IDS")
-    private String succeedingNodeIds;
-    
-    @Column(name="TASK_CATEGORY")
+
+    private String prevNodeIds;
+
+    private String procDefId;
+
+    private String procDefKernelId;
+
+    private String procDefKey;
+
+    private Integer procDefVer;
+
+    private String routineExp;
+
+    private String routineRaw;
+
+    private String serviceId;
+
+    private String serviceName;
+
+    private String succeedNodeIds;
+
+    private String timeoutExp;
+
     private String taskCategory;
+
+    private String dynamicBind;
+
+    private String preCheck;
 
     public String getId() {
         return id;
@@ -76,6 +78,70 @@ public class TaskNodeDefInfoEntity extends BaseStatusFeaturedEntity {
 
     public void setId(String id) {
         this.id = id;
+    }
+
+    public String getCreatedBy() {
+        return createdBy;
+    }
+
+    public void setCreatedBy(String createdBy) {
+        this.createdBy = createdBy;
+    }
+
+    public Date getCreatedTime() {
+        return createdTime;
+    }
+
+    public void setCreatedTime(Date createdTime) {
+        this.createdTime = createdTime;
+    }
+
+    public String getUpdatedBy() {
+        return updatedBy;
+    }
+
+    public void setUpdatedBy(String updatedBy) {
+        this.updatedBy = updatedBy;
+    }
+
+    public Date getUpdatedTime() {
+        return updatedTime;
+    }
+
+    public void setUpdatedTime(Date updatedTime) {
+        this.updatedTime = updatedTime;
+    }
+
+    public Boolean getActive() {
+        return active;
+    }
+
+    public void setActive(Boolean active) {
+        this.active = active;
+    }
+
+    public Integer getRev() {
+        return rev;
+    }
+
+    public void setRev(Integer rev) {
+        this.rev = rev;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
     }
 
     public String getNodeId() {
@@ -94,12 +160,44 @@ public class TaskNodeDefInfoEntity extends BaseStatusFeaturedEntity {
         this.nodeName = nodeName;
     }
 
+    public String getNodeType() {
+        return nodeType;
+    }
+
+    public void setNodeType(String nodeType) {
+        this.nodeType = nodeType;
+    }
+
+    public String getOrderedNo() {
+        return orderedNo;
+    }
+
+    public void setOrderedNo(String orderedNo) {
+        this.orderedNo = orderedNo;
+    }
+
+    public String getPrevNodeIds() {
+        return prevNodeIds;
+    }
+
+    public void setPrevNodeIds(String prevNodeIds) {
+        this.prevNodeIds = prevNodeIds;
+    }
+
     public String getProcDefId() {
         return procDefId;
     }
 
     public void setProcDefId(String procDefId) {
         this.procDefId = procDefId;
+    }
+
+    public String getProcDefKernelId() {
+        return procDefKernelId;
+    }
+
+    public void setProcDefKernelId(String procDefKernelId) {
+        this.procDefKernelId = procDefKernelId;
     }
 
     public String getProcDefKey() {
@@ -110,20 +208,28 @@ public class TaskNodeDefInfoEntity extends BaseStatusFeaturedEntity {
         this.procDefKey = procDefKey;
     }
 
-    public Integer getProcDefVersion() {
-        return procDefVersion;
+    public Integer getProcDefVer() {
+        return procDefVer;
     }
 
-    public void setProcDefVersion(Integer procDefVersion) {
-        this.procDefVersion = procDefVersion;
+    public void setProcDefVer(Integer procDefVer) {
+        this.procDefVer = procDefVer;
     }
 
-    public String getProcDefKernelId() {
-        return procDefKernelId;
+    public String getRoutineExp() {
+        return routineExp;
     }
 
-    public void setProcDefKernelId(String procDefKernelId) {
-        this.procDefKernelId = procDefKernelId;
+    public void setRoutineExp(String routineExp) {
+        this.routineExp = routineExp;
+    }
+
+    public String getRoutineRaw() {
+        return routineRaw;
+    }
+
+    public void setRoutineRaw(String routineRaw) {
+        this.routineRaw = routineRaw;
     }
 
     public String getServiceId() {
@@ -142,68 +248,20 @@ public class TaskNodeDefInfoEntity extends BaseStatusFeaturedEntity {
         this.serviceName = serviceName;
     }
 
-    public String getRoutineExpression() {
-        return routineExpression;
+    public String getSucceedNodeIds() {
+        return succeedNodeIds;
     }
 
-    public void setRoutineExpression(String routineExpression) {
-        this.routineExpression = routineExpression;
+    public void setSucceedNodeIds(String succeedNodeIds) {
+        this.succeedNodeIds = succeedNodeIds;
     }
 
-    public String getRoutineRaw() {
-        return routineRaw;
+    public String getTimeoutExp() {
+        return timeoutExp;
     }
 
-    public void setRoutineRaw(String routineRaw) {
-        this.routineRaw = routineRaw;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
-    public String getTimeoutExpression() {
-        return timeoutExpression;
-    }
-
-    public void setTimeoutExpression(String timeoutExpression) {
-        this.timeoutExpression = timeoutExpression;
-    }
-
-    public String getNodeType() {
-        return nodeType;
-    }
-
-    public void setNodeType(String nodeType) {
-        this.nodeType = nodeType;
-    }
-
-    public String getOrderedNo() {
-        return orderedNo;
-    }
-
-    public void setOrderedNo(String orderedNo) {
-        this.orderedNo = orderedNo;
-    }
-
-    public String getPreviousNodeIds() {
-        return previousNodeIds;
-    }
-
-    public void setPreviousNodeIds(String previousNodeIds) {
-        this.previousNodeIds = previousNodeIds;
-    }
-
-    public String getSucceedingNodeIds() {
-        return succeedingNodeIds;
-    }
-
-    public void setSucceedingNodeIds(String succeedingNodeIds) {
-        this.succeedingNodeIds = succeedingNodeIds;
+    public void setTimeoutExp(String timeoutExp) {
+        this.timeoutExp = timeoutExp;
     }
 
     public String getTaskCategory() {
@@ -213,4 +271,21 @@ public class TaskNodeDefInfoEntity extends BaseStatusFeaturedEntity {
     public void setTaskCategory(String taskCategory) {
         this.taskCategory = taskCategory;
     }
+
+    public String getDynamicBind() {
+        return dynamicBind;
+    }
+
+    public void setDynamicBind(String dynamicBind) {
+        this.dynamicBind = dynamicBind;
+    }
+
+    public String getPreCheck() {
+        return preCheck;
+    }
+
+    public void setPreCheck(String preCheck) {
+        this.preCheck = preCheck;
+    }
+
 }
