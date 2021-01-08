@@ -9,12 +9,19 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.webank.wecube.platform.core.commons.AuthenticationContextHolder;
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
 import com.webank.wecube.platform.core.dto.event.OperationEventDto;
 import com.webank.wecube.platform.core.dto.event.OperationEventResultDto;
 import com.webank.wecube.platform.core.entity.workflow.OperationEventEntity;
 import com.webank.wecube.platform.core.repository.workflow.OperationEventMapper;
+import com.webank.wecube.platform.workflow.WorkflowConstants;
 
+/**
+ * 
+ * @author gavin
+ *
+ */
 @Service
 public class OperationEventManagementService {
 
@@ -32,6 +39,11 @@ public class OperationEventManagementService {
     @Autowired
     private OperationEventProcStarter operationEventProcStarter;
 
+    /**
+     * 
+     * @param eventDto
+     * @return
+     */
     public OperationEventResultDto reportOperationEvent(OperationEventDto eventDto) {
         validateOperationEventInput(eventDto);
 
@@ -53,6 +65,9 @@ public class OperationEventManagementService {
         newOperationEventEntity.setOperKey(eventDto.getOperationKey());
         newOperationEventEntity.setOperUser(eventDto.getOperationUser());
         newOperationEventEntity.setSrcSubSystem(eventDto.getSourceSubSystem());
+        newOperationEventEntity.setCreatedBy(AuthenticationContextHolder.getCurrentUsername());
+        newOperationEventEntity.setCreatedTime(new Date());
+        newOperationEventEntity.setRev(0);
         if (OPER_MODE_INSTANT.equalsIgnoreCase(eventDto.getOperationMode())) {
             newOperationEventEntity.setStatus(OperationEventEntity.STATUS_IN_PROGRESS);
         } else {
@@ -75,8 +90,9 @@ public class OperationEventManagementService {
             return fromOperationEventEntity(entity);
         } catch (Exception e) {
             log.error("failed to process instant operation event", e);
+            instantOperEventEntity.setUpdatedBy(WorkflowConstants.DEFAULT_USER);
             instantOperEventEntity.setUpdatedTime(new Date());
-            instantOperEventEntity.setStatus(OperationEventEntity.STATUS_IN_PROGRESS);
+            instantOperEventEntity.setStatus(OperationEventEntity.STATUS_FAULTED);
             instantOperEventEntity.setPriority(-100);
             throw new WecubeCoreException("Failed to process instant operation event");
         }
