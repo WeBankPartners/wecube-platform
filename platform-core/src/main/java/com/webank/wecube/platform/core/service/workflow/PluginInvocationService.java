@@ -87,6 +87,10 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
     @Autowired
     private WorkflowProcInstEndEventNotifier workflowProcInstEndEventNotifier;
 
+    /**
+     * 
+     * @param cmd
+     */
     public void handleProcessInstanceEndEvent(PluginInvocationCommand cmd) {
         if (log.isInfoEnabled()) {
             log.info("handle end event:{}", cmd);
@@ -151,26 +155,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 
     }
 
-    private void refreshStatusOfPreviousNodes(List<TaskNodeInstInfoEntity> nodeInstEntities,
-            TaskNodeDefInfoEntity currNodeDefInfo) {
-        List<String> previousNodeIds = unmarshalNodeIds(currNodeDefInfo.getPrevNodeIds());
-        log.debug("previousNodeIds:{}", previousNodeIds);
-        for (String prevNodeId : previousNodeIds) {
-            TaskNodeInstInfoEntity prevNodeInst = findExactTaskNodeInstInfoEntityWithNodeId(nodeInstEntities,
-                    prevNodeId);
-            log.debug("prevNodeInst:{} - {}", prevNodeInst, prevNodeId);
-            if (prevNodeInst != null) {
-                if (statelessNodeTypes.contains(prevNodeInst.getNodeType())
-                        && !TaskNodeInstInfoEntity.COMPLETED_STATUS.equalsIgnoreCase(prevNodeInst.getStatus())) {
-                    prevNodeInst.setUpdatedTime(new Date());
-                    prevNodeInst.setUpdatedBy(WorkflowConstants.DEFAULT_USER);
-                    prevNodeInst.setStatus(TaskNodeInstInfoEntity.COMPLETED_STATUS);
-
-                    taskNodeInstInfoRepository.updateByPrimaryKeySelective(prevNodeInst);
-                }
-            }
-        }
-    }
+    
 
     /**
      * 
@@ -194,6 +179,57 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 
             updateTaskNodeInstInfoEntityFaulted(taskNodeInstEntity, e);
         }
+    }
+    
+    /**
+     * handle results of plugin interface invocation.
+     * @param pluginInvocationResult
+     * @param ctx
+     */
+    public void handlePluginInterfaceInvocationResult(PluginInterfaceInvocationResult pluginInvocationResult,
+            PluginInterfaceInvocationContext ctx) {
+        if (log.isDebugEnabled()) {
+            log.debug("handle plugin interface invocation result");
+        }
+
+        if (!pluginInvocationResult.isSuccess() || pluginInvocationResult.hasErrors()) {
+            handleErrorInvocationResult(pluginInvocationResult, ctx);
+
+            return;
+        }
+
+        PluginConfigInterfaces pci = ctx.getPluginConfigInterface();
+        if (ASYNC_SERVICE_SYMBOL.equalsIgnoreCase(pci.getIsAsyncProcessing())) {
+            log.debug("such interface is asynchronous service : {} ", pci.getServiceName());
+            return;
+        }
+
+        List<Object> resultData = pluginInvocationResult.getResultData();
+
+        if (resultData == null) {
+            handleNullResultData(pluginInvocationResult, ctx);
+            return;
+        }
+
+        PluginInvocationResult result = new PluginInvocationResult()
+                .parsePluginInvocationCommand(ctx.getPluginInvocationCommand());
+        try {
+            handleResultData(pluginInvocationResult, ctx, resultData);
+            result.setResultCode(RESULT_CODE_OK);
+            pluginInvocationResultService.responsePluginInterfaceInvocation(result);
+            handlePluginInterfaceInvocationSuccess(pluginInvocationResult, ctx);
+
+            return;
+        } catch (Exception e) {
+            log.warn("result data handling failed", e);
+            result.setResultCode(RESULT_CODE_ERR);
+            pluginInvocationResultService.responsePluginInterfaceInvocation(result);
+            String errMsg = e.getMessage() == null ? "error" : trimWithMaxLength(e.getMessage());
+            handlePluginInterfaceInvocationFailure(pluginInvocationResult, ctx, "5002",
+                    "result data handling failed:" + errMsg);
+        }
+
+        return;
     }
 
     private void updateTaskNodeInstInfoEntityFaulted(TaskNodeInstInfoEntity taskNodeInstEntity, Exception e) {
@@ -1065,51 +1101,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 
     }
 
-    public void handlePluginInterfaceInvocationResult(PluginInterfaceInvocationResult pluginInvocationResult,
-            PluginInterfaceInvocationContext ctx) {
-        if (log.isDebugEnabled()) {
-            log.debug("handle plugin interface invocation result");
-        }
-
-        if (!pluginInvocationResult.isSuccess() || pluginInvocationResult.hasErrors()) {
-            handleErrorInvocationResult(pluginInvocationResult, ctx);
-
-            return;
-        }
-
-        PluginConfigInterfaces pci = ctx.getPluginConfigInterface();
-        if (ASYNC_SERVICE_SYMBOL.equalsIgnoreCase(pci.getIsAsyncProcessing())) {
-            log.debug("such interface is asynchronous service : {} ", pci.getServiceName());
-            return;
-        }
-
-        List<Object> resultData = pluginInvocationResult.getResultData();
-
-        if (resultData == null) {
-            handleNullResultData(pluginInvocationResult, ctx);
-            return;
-        }
-
-        PluginInvocationResult result = new PluginInvocationResult()
-                .parsePluginInvocationCommand(ctx.getPluginInvocationCommand());
-        try {
-            handleResultData(pluginInvocationResult, ctx, resultData);
-            result.setResultCode(RESULT_CODE_OK);
-            pluginInvocationResultService.responsePluginInterfaceInvocation(result);
-            handlePluginInterfaceInvocationSuccess(pluginInvocationResult, ctx);
-
-            return;
-        } catch (Exception e) {
-            log.warn("result data handling failed", e);
-            result.setResultCode(RESULT_CODE_ERR);
-            pluginInvocationResultService.responsePluginInterfaceInvocation(result);
-            String errMsg = e.getMessage() == null ? "error" : trimWithMaxLength(e.getMessage());
-            handlePluginInterfaceInvocationFailure(pluginInvocationResult, ctx, "5002",
-                    "result data handling failed:" + errMsg);
-        }
-
-        return;
-    }
+    
 
     private void handleErrorInvocationResult(PluginInterfaceInvocationResult pluginInvocationResult,
             PluginInterfaceInvocationContext ctx) {
@@ -1364,6 +1356,27 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 
         taskNodeInstInfoRepository.updateByPrimaryKeySelective(nodeInstEntity);
 
+    }
+    
+    private void refreshStatusOfPreviousNodes(List<TaskNodeInstInfoEntity> nodeInstEntities,
+            TaskNodeDefInfoEntity currNodeDefInfo) {
+        List<String> previousNodeIds = unmarshalNodeIds(currNodeDefInfo.getPrevNodeIds());
+        log.debug("previousNodeIds:{}", previousNodeIds);
+        for (String prevNodeId : previousNodeIds) {
+            TaskNodeInstInfoEntity prevNodeInst = findExactTaskNodeInstInfoEntityWithNodeId(nodeInstEntities,
+                    prevNodeId);
+            log.debug("prevNodeInst:{} - {}", prevNodeInst, prevNodeId);
+            if (prevNodeInst != null) {
+                if (statelessNodeTypes.contains(prevNodeInst.getNodeType())
+                        && !TaskNodeInstInfoEntity.COMPLETED_STATUS.equalsIgnoreCase(prevNodeInst.getStatus())) {
+                    prevNodeInst.setUpdatedTime(new Date());
+                    prevNodeInst.setUpdatedBy(WorkflowConstants.DEFAULT_USER);
+                    prevNodeInst.setStatus(TaskNodeInstInfoEntity.COMPLETED_STATUS);
+
+                    taskNodeInstInfoRepository.updateByPrimaryKeySelective(prevNodeInst);
+                }
+            }
+        }
     }
 
 }
