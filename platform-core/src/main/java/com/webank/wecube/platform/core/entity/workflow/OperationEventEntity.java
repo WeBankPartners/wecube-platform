@@ -6,6 +6,7 @@ public class OperationEventEntity {
     public static final String STATUS_NEW = "New";
     public static final String STATUS_IN_PROGRESS = "InProgress";
     public static final String STATUS_COMPLETED = "Completed";
+    public static final String STATUS_FAULTED = "Faulted";
 
     private Long id;
 
