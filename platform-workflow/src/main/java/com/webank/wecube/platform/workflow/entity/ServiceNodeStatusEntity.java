@@ -1,37 +1,21 @@
 package com.webank.wecube.platform.workflow.entity;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.Table;
-
-@Entity
-@Table(name = "ACT_RU_SRVNODE_STATUS")
 public class ServiceNodeStatusEntity extends AbstractTraceableEntity {
 
-    @Id
-    @Column(name = "ID")
     private String id;
 
-    @Column(name = "PROC_INST_ID")
-    private String procInstanceId;
+    private String procInstId;
 
-    @Column(name = "PROC_INST_KEY")
-    private String procInstanceBizKey;
+    private String procInstKey;
 
-    @Column(name = "NODE_ID")
     private String nodeId;
 
-    @Column(name = "NODE_NAME")
     private String nodeName;
 
-    @Column(name = "NODE_TYPE")
     private String nodeType;
 
-    @Column(name = "NODE_INST_ID")
-    private String nodeInstanceId;
+    private String nodeInstId;
 
-    @Column(name = "TRY_TIMES")
     private int tryTimes;
 
     public String getId() {
@@ -42,20 +26,28 @@ public class ServiceNodeStatusEntity extends AbstractTraceableEntity {
         this.id = id;
     }
 
-    public String getProcInstanceId() {
-        return procInstanceId;
+    public int getTryTimes() {
+        return tryTimes;
     }
 
-    public void setProcInstanceId(String procInstanceId) {
-        this.procInstanceId = procInstanceId;
+    public void setTryTimes(int tryTimes) {
+        this.tryTimes = tryTimes;
     }
 
-    public String getProcInstanceBizKey() {
-        return procInstanceBizKey;
+    public String getProcInstId() {
+        return procInstId;
     }
 
-    public void setProcInstanceBizKey(String procInstanceBizKey) {
-        this.procInstanceBizKey = procInstanceBizKey;
+    public void setProcInstId(String procInstId) {
+        this.procInstId = procInstId;
+    }
+
+    public String getProcInstKey() {
+        return procInstKey;
+    }
+
+    public void setProcInstKey(String procInstKey) {
+        this.procInstKey = procInstKey;
     }
 
     public String getNodeId() {
@@ -82,20 +74,12 @@ public class ServiceNodeStatusEntity extends AbstractTraceableEntity {
         this.nodeType = nodeType;
     }
 
-    public String getNodeInstanceId() {
-        return nodeInstanceId;
+    public String getNodeInstId() {
+        return nodeInstId;
     }
 
-    public void setNodeInstanceId(String nodeInstanceId) {
-        this.nodeInstanceId = nodeInstanceId;
-    }
-
-    public int getTryTimes() {
-        return tryTimes;
-    }
-
-    public void setTryTimes(int tryTimes) {
-        this.tryTimes = tryTimes;
+    public void setNodeInstId(String nodeInstId) {
+        this.nodeInstId = nodeInstId;
     }
 
 }
