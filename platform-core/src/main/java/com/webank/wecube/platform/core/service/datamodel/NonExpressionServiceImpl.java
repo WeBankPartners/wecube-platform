@@ -7,7 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.webank.wecube.platform.core.commons.ApplicationProperties;
-import com.webank.wecube.platform.core.dto.UrlToResponseDto;
+import com.webank.wecube.platform.core.dto.plugin.UrlToResponseDto;
 import com.webank.wecube.platform.core.support.datamodel.DataModelServiceStub;
 
 @Service
