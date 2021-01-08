@@ -46,6 +46,11 @@ import com.webank.wecube.platform.core.service.user.UserManagementService;
 import com.webank.wecube.platform.core.utils.JaxbUtils;
 import com.webank.wecube.platform.workflow.commons.LocalIdGenerator;
 
+/**
+ * 
+ * @author gavin
+ *
+ */
 @Service
 public class PluginConfigMigrationService {
     private static final Logger log = LoggerFactory.getLogger(PluginConfigMigrationService.class);
