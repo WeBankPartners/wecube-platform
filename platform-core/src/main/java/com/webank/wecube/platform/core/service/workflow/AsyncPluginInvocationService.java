@@ -40,9 +40,10 @@ public class AsyncPluginInvocationService extends AbstractPluginInvocationServic
             throw new WecubeCoreException("3153", "Request id is invalid.");
         }
 
-        if (reqEntity.getIsCompleted() || !reqEntity.getIsCurrent()) {
-            log.error("request {} state is not expected,completed:{},current:{}",reqEntity.getReqId(),  reqEntity.getIsCompleted(),
-                    reqEntity.getIsCurrent());
+        if ((reqEntity.getIsCompleted() != null && reqEntity.getIsCompleted())
+                || (reqEntity.getIsCurrent() != null && (!reqEntity.getIsCurrent()))) {
+            log.error("request {} state is not expected,completed:{},current:{}", reqEntity.getReqId(),
+                    reqEntity.getIsCompleted(), reqEntity.getIsCurrent());
             throw new WecubeCoreException("3154", "Request state is not expected");
         }
 
@@ -50,7 +51,7 @@ public class AsyncPluginInvocationService extends AbstractPluginInvocationServic
 
         TaskNodeInstInfoEntity taskNodeInstEntity = taskNodeInstInfoRepository.selectByPrimaryKey(nodeInstId);
 
-        if (taskNodeInstEntity ==  null) {
+        if (taskNodeInstEntity == null) {
             log.error("task node instance does not exist for {} {}", nodeInstId, requestId);
             throw new WecubeCoreException("3155", "Task node instance does not exist.");
         }
