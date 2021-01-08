@@ -484,6 +484,7 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
             }
             ProcExecBindingEntity nodeBindEntity = new ProcExecBindingEntity();
             nodeBindEntity.setBindType(ProcExecBindingEntity.BIND_TYPE_TASK_NODE_INSTANCE);
+            nodeBindEntity.setBindFlag(ProcExecBindingEntity.BIND_FLAG_YES);
             nodeBindEntity.setProcInstId(procInstInfoEntity.getId());
             nodeBindEntity.setProcDefId(procDefId);
             nodeBindEntity.setNodeDefId(bindInfoDto.getNodeDefId());
@@ -692,6 +693,7 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
                 dto.setBound(entity.getIsBound());
                 dto.setEntityDataId(entity.getEntityDataId());
                 dto.setEntityTypeId(entity.getEntityTypeId());
+                dto.setEntityDisplayName(entity.getEntityDataName());
                 dto.setNodeDefId(entity.getNodeDefId());
                 dto.setOrderedNo(entity.getOrderedNo());
 
