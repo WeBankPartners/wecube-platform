@@ -32,6 +32,7 @@ http {
     client_header_timeout 99999999999s;
     keepalive_timeout     999999999s;
     proxy_read_timeout    180s;
+    access_log            /var/log/nginx/access.log  main;
 
     location = / {
       index index.html;
@@ -66,6 +67,7 @@ http {
       proxy_set_header Host ${PUBLIC_DOMAIN};
       proxy_pass http://gateway;
     }
+
   }
 }
 

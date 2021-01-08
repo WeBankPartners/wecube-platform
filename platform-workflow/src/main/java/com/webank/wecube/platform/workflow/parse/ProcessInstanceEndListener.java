@@ -7,6 +7,7 @@ import javax.annotation.PostConstruct;
 import org.camunda.bpm.engine.delegate.DelegateExecution;
 import org.camunda.bpm.engine.delegate.ExecutionListener;
 import org.camunda.bpm.engine.impl.persistence.entity.ExecutionEntity;
+import org.camunda.bpm.engine.impl.pvm.process.ActivityImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -17,7 +18,7 @@ import com.webank.wecube.platform.workflow.entity.ProcessInstanceStatusEntity;
 import com.webank.wecube.platform.workflow.model.ServiceInvocationEvent;
 import com.webank.wecube.platform.workflow.model.ServiceInvocationEventImpl;
 import com.webank.wecube.platform.workflow.model.TraceStatus;
-import com.webank.wecube.platform.workflow.repository.ProcessInstanceStatusRepository;
+import com.webank.wecube.platform.workflow.repository.ProcessInstanceStatusMapper;
 
 /**
  * 
@@ -36,10 +37,10 @@ public class ProcessInstanceEndListener implements ExecutionListener {
     @Override
     public void notify(DelegateExecution execution) throws Exception {
 
-        ProcessInstanceStatusRepository processInstanceStatusRepository = SpringApplicationContextUtil
-                .getBean(ProcessInstanceStatusRepository.class);
+        ProcessInstanceStatusMapper processInstanceStatusRepository = SpringApplicationContextUtil
+                .getBean(ProcessInstanceStatusMapper.class);
         ProcessInstanceStatusEntity procInstEntity = processInstanceStatusRepository
-                .findOneByprocInstanceId(execution.getId());
+                .selectOneByProcInstanceId(execution.getId());
 
         if (procInstEntity == null) {
             log.warn("process instance status doesnt exist,procInstanceId={},procIntanceBizKey={}", execution.getId(),
@@ -98,11 +99,14 @@ public class ProcessInstanceEndListener implements ExecutionListener {
     private boolean hasErrorEndEvent(DelegateExecution execution) {
         if (execution instanceof ExecutionEntity) {
             ExecutionEntity entity = (ExecutionEntity) execution;
-            Object typeProperty = entity.getActivity().getProperty("type");
-            if ((typeProperty instanceof String)) {
-                if ("errorEndEvent".equalsIgnoreCase((String) typeProperty)) {
-                    logErrorEnd(execution);
-                    return true;
+            ActivityImpl activity = entity.getActivity();
+            if (activity != null) {
+                Object typeProperty = activity.getProperty("type");
+                if (typeProperty != null && (typeProperty instanceof String)) {
+                    if ("errorEndEvent".equalsIgnoreCase((String) typeProperty)) {
+                        logErrorEnd(execution);
+                        return true;
+                    }
                 }
             }
         }
@@ -121,24 +125,24 @@ public class ProcessInstanceEndListener implements ExecutionListener {
     }
 
     protected void logProcessInstanceError(ProcessInstanceStatusEntity procInstEntity,
-            ProcessInstanceStatusRepository processInstanceStatusRepository) {
+            ProcessInstanceStatusMapper processInstanceStatusRepository) {
         Date currTime = new Date();
         procInstEntity.setUpdatedBy(WorkflowConstants.DEFAULT_USER);
         procInstEntity.setUpdatedTime(currTime);
         procInstEntity.setEndTime(currTime);
         procInstEntity.setStatus(TraceStatus.Faulted);
 
-        processInstanceStatusRepository.saveAndFlush(procInstEntity);
+        processInstanceStatusRepository.updateByPrimaryKeySelective(procInstEntity);
     }
 
     protected void logProcessInstanceSuccess(ProcessInstanceStatusEntity procInstEntity,
-            ProcessInstanceStatusRepository processInstanceStatusRepository) {
+            ProcessInstanceStatusMapper processInstanceStatusRepository) {
         Date currTime = new Date();
         procInstEntity.setUpdatedBy(WorkflowConstants.DEFAULT_USER);
         procInstEntity.setUpdatedTime(currTime);
         procInstEntity.setEndTime(currTime);
         procInstEntity.setStatus(TraceStatus.Completed);
 
-        processInstanceStatusRepository.saveAndFlush(procInstEntity);
+        processInstanceStatusRepository.updateByPrimaryKeySelective(procInstEntity);
     }
 }

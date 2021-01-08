@@ -1,0 +1,704 @@
+{
+	"status": "OK",
+	"message": "Success",
+	"data": {
+		"id": "wecmdb__2__host_resource_instance",
+		"packageName": "wecmdb",
+		"name": "host_resource_instance",
+		"displayName": "主机资源实例",
+		"description": "主机资源实例",
+		"dataModelVersion": 2,
+		"referenceToEntityList": [
+			{
+				"id": "wecmdb__2__charge_type",
+				"packageName": "wecmdb",
+				"dataModelVersion": 2,
+				"name": "charge_type",
+				"displayName": "计费模式",
+				"relatedAttribute": {
+					"id": "wecmdb__2__host_resource_instance__charge_type",
+					"packageName": "wecmdb",
+					"entityName": "host_resource_instance",
+					"name": "charge_type",
+					"description": "计费模式",
+					"dataType": "ref",
+					"refPackageName": "wecmdb",
+					"refEntityName": "charge_type",
+					"refAttributeName": "id"
+				}
+			},
+			{
+				"id": "wecmdb__2__cluster_node_type",
+				"packageName": "wecmdb",
+				"dataModelVersion": 2,
+				"name": "cluster_node_type",
+				"displayName": "集群节点类型",
+				"relatedAttribute": {
+					"id": "wecmdb__2__host_resource_instance__cluster_node_type",
+					"packageName": "wecmdb",
+					"entityName": "host_resource_instance",
+					"name": "cluster_node_type",
+					"description": "集群节点类型",
+					"dataType": "ref",
+					"refPackageName": "wecmdb",
+					"refEntityName": "cluster_node_type",
+					"refAttributeName": "id"
+				}
+			},
+			{
+				"id": "wecmdb__2__host_resource_instance",
+				"packageName": "wecmdb",
+				"dataModelVersion": 2,
+				"name": "host_resource_instance",
+				"displayName": "主机资源实例",
+				"relatedAttribute": {
+					"id": "wecmdb__2__host_resource_instance__master_resource_instance",
+					"packageName": "wecmdb",
+					"entityName": "host_resource_instance",
+					"name": "master_resource_instance",
+					"description": "主资源实例",
+					"dataType": "ref",
+					"refPackageName": "wecmdb",
+					"refEntityName": "host_resource_instance",
+					"refAttributeName": "id"
+				}
+			},
+			{
+				"id": "wecmdb__2__network_segment",
+				"packageName": "wecmdb",
+				"dataModelVersion": 2,
+				"name": "network_segment",
+				"displayName": "网段",
+				"relatedAttribute": {
+					"id": "wecmdb__2__host_resource_instance__network_segment",
+					"packageName": "wecmdb",
+					"entityName": "host_resource_instance",
+					"name": "network_segment",
+					"description": "网段",
+					"dataType": "ref",
+					"refPackageName": "wecmdb",
+					"refEntityName": "network_segment",
+					"refAttributeName": "id"
+				}
+			},
+			{
+				"id": "wecmdb__2__resource_instance_spec",
+				"packageName": "wecmdb",
+				"dataModelVersion": 2,
+				"name": "resource_instance_spec",
+				"displayName": "资源实例规格",
+				"relatedAttribute": {
+					"id": "wecmdb__2__host_resource_instance__resource_instance_spec",
+					"packageName": "wecmdb",
+					"entityName": "host_resource_instance",
+					"name": "resource_instance_spec",
+					"description": "资源实例规格",
+					"dataType": "ref",
+					"refPackageName": "wecmdb",
+					"refEntityName": "resource_instance_spec",
+					"refAttributeName": "id"
+				}
+			},
+			{
+				"id": "wecmdb__2__resource_instance_system",
+				"packageName": "wecmdb",
+				"dataModelVersion": 2,
+				"name": "resource_instance_system",
+				"displayName": "资源实例系统",
+				"relatedAttribute": {
+					"id": "wecmdb__2__host_resource_instance__resource_instance_system",
+					"packageName": "wecmdb",
+					"entityName": "host_resource_instance",
+					"name": "resource_instance_system",
+					"description": "资源实例系统",
+					"dataType": "ref",
+					"refPackageName": "wecmdb",
+					"refEntityName": "resource_instance_system",
+					"refAttributeName": "id"
+				}
+			},
+			{
+				"id": "wecmdb__2__resource_instance_type",
+				"packageName": "wecmdb",
+				"dataModelVersion": 2,
+				"name": "resource_instance_type",
+				"displayName": "资源实例类型",
+				"relatedAttribute": {
+					"id": "wecmdb__2__host_resource_instance__resource_instance_type",
+					"packageName": "wecmdb",
+					"entityName": "host_resource_instance",
+					"name": "resource_instance_type",
+					"description": "资源实例类型",
+					"dataType": "ref",
+					"refPackageName": "wecmdb",
+					"refEntityName": "resource_instance_type",
+					"refAttributeName": "id"
+				}
+			},
+			{
+				"id": "wecmdb__2__resource_set",
+				"packageName": "wecmdb",
+				"dataModelVersion": 2,
+				"name": "resource_set",
+				"displayName": "资源集合",
+				"relatedAttribute": {
+					"id": "wecmdb__2__host_resource_instance__resource_set",
+					"packageName": "wecmdb",
+					"entityName": "host_resource_instance",
+					"name": "resource_set",
+					"description": "资源集合",
+					"dataType": "ref",
+					"refPackageName": "wecmdb",
+					"refEntityName": "resource_set",
+					"refAttributeName": "id"
+				}
+			},
+			{
+				"id": "wecmdb__2__storage_type",
+				"packageName": "wecmdb",
+				"dataModelVersion": 2,
+				"name": "storage_type",
+				"displayName": "存储类型",
+				"relatedAttribute": {
+					"id": "wecmdb__2__host_resource_instance__storage_type",
+					"packageName": "wecmdb",
+					"entityName": "host_resource_instance",
+					"name": "storage_type",
+					"description": "存储类型",
+					"dataType": "ref",
+					"refPackageName": "wecmdb",
+					"refEntityName": "storage_type",
+					"refAttributeName": "id"
+				}
+			}
+		],
+		"referenceByEntityList": [
+			{
+				"id": "wecmdb__2__app_instance",
+				"packageName": "wecmdb",
+				"dataModelVersion": 2,
+				"name": "app_instance",
+				"displayName": "应用实例",
+				"relatedAttribute": {
+					"id": "wecmdb__2__app_instance__host_resource_instance",
+					"packageName": "wecmdb",
+					"entityName": "app_instance",
+					"name": "host_resource_instance",
+					"description": "主机资源实例",
+					"dataType": "ref",
+					"refPackageName": "wecmdb",
+					"refEntityName": "host_resource_instance",
+					"refAttributeName": "id"
+				}
+			},
+			{
+				"id": "wecmdb__2__block_storage",
+				"packageName": "wecmdb",
+				"dataModelVersion": 2,
+				"name": "block_storage",
+				"displayName": "块存储",
+				"relatedAttribute": {
+					"id": "wecmdb__2__block_storage__host_resource_instance",
+					"packageName": "wecmdb",
+					"entityName": "block_storage",
+					"name": "host_resource_instance",
+					"description": "主机资源实例",
+					"dataType": "ref",
+					"refPackageName": "wecmdb",
+					"refEntityName": "host_resource_instance",
+					"refAttributeName": "id"
+				}
+			},
+			{
+				"id": "wecmdb__2__host_resource_instance",
+				"packageName": "wecmdb",
+				"dataModelVersion": 2,
+				"name": "host_resource_instance",
+				"displayName": "主机资源实例",
+				"relatedAttribute": {
+					"id": "wecmdb__2__host_resource_instance__master_resource_instance",
+					"packageName": "wecmdb",
+					"entityName": "host_resource_instance",
+					"name": "master_resource_instance",
+					"description": "主资源实例",
+					"dataType": "ref",
+					"refPackageName": "wecmdb",
+					"refEntityName": "host_resource_instance",
+					"refAttributeName": "id"
+				}
+			}
+		],
+		"attributes": [
+			{
+				"id": "wecmdb__2__host_resource_instance__asset_id",
+				"packageName": "wecmdb",
+				"entityName": "host_resource_instance",
+				"name": "asset_id",
+				"description": "资产ID",
+				"dataType": "str",
+				"refPackageName": null,
+				"refEntityName": null,
+				"refAttributeName": null
+			},
+			{
+				"id": "wecmdb__2__host_resource_instance__backup_asset_id",
+				"packageName": "wecmdb",
+				"entityName": "host_resource_instance",
+				"name": "backup_asset_id",
+				"description": "备份资产ID",
+				"dataType": "str",
+				"refPackageName": null,
+				"refEntityName": null,
+				"refAttributeName": null
+			},
+			{
+				"id": "wecmdb__2__host_resource_instance__billing_cycle",
+				"packageName": "wecmdb",
+				"entityName": "host_resource_instance",
+				"name": "billing_cycle",
+				"description": "1 | 2 | 3",
+				"dataType": "str",
+				"refPackageName": null,
+				"refEntityName": null,
+				"refAttributeName": null
+			},
+			{
+				"id": "wecmdb__2__host_resource_instance__charge_type",
+				"packageName": "wecmdb",
+				"entityName": "host_resource_instance",
+				"name": "charge_type",
+				"description": "计费模式",
+				"dataType": "ref",
+				"refPackageName": "wecmdb",
+				"refEntityName": "charge_type",
+				"refAttributeName": "id"
+			},
+			{
+				"id": "wecmdb__2__host_resource_instance__cluster_node_type",
+				"packageName": "wecmdb",
+				"entityName": "host_resource_instance",
+				"name": "cluster_node_type",
+				"description": "集群节点类型",
+				"dataType": "ref",
+				"refPackageName": "wecmdb",
+				"refEntityName": "cluster_node_type",
+				"refAttributeName": "id"
+			},
+			{
+				"id": "wecmdb__2__host_resource_instance__code",
+				"packageName": "wecmdb",
+				"entityName": "host_resource_instance",
+				"name": "code",
+				"description": "编码",
+				"dataType": "str",
+				"refPackageName": null,
+				"refEntityName": null,
+				"refAttributeName": null
+			},
+			{
+				"id": "wecmdb__2__host_resource_instance__cpu",
+				"packageName": "wecmdb",
+				"entityName": "host_resource_instance",
+				"name": "cpu",
+				"description": "CPU(核)",
+				"dataType": "str",
+				"refPackageName": null,
+				"refEntityName": null,
+				"refAttributeName": null
+			},
+			{
+				"id": "wecmdb__2__host_resource_instance__created_by",
+				"packageName": "wecmdb",
+				"entityName": "host_resource_instance",
+				"name": "created_by",
+				"description": "创建用户",
+				"dataType": "str",
+				"refPackageName": null,
+				"refEntityName": null,
+				"refAttributeName": null
+			},
+			{
+				"id": "wecmdb__2__host_resource_instance__created_date",
+				"packageName": "wecmdb",
+				"entityName": "host_resource_instance",
+				"name": "created_date",
+				"description": "创建日期",
+				"dataType": "timestamp",
+				"refPackageName": null,
+				"refEntityName": null,
+				"refAttributeName": null
+			},
+			{
+				"id": "wecmdb__2__host_resource_instance__description",
+				"packageName": "wecmdb",
+				"entityName": "host_resource_instance",
+				"name": "description",
+				"description": "描述说明",
+				"dataType": "str",
+				"refPackageName": null,
+				"refEntityName": null,
+				"refAttributeName": null
+			},
+			{
+				"id": "wecmdb__2__host_resource_instance__displayName",
+				"packageName": "wecmdb",
+				"entityName": "host_resource_instance",
+				"name": "displayName",
+				"description": "Display Name",
+				"dataType": "str",
+				"refPackageName": null,
+				"refEntityName": null,
+				"refAttributeName": null
+			},
+			{
+				"id": "wecmdb__2__host_resource_instance__end_date",
+				"packageName": "wecmdb",
+				"entityName": "host_resource_instance",
+				"name": "end_date",
+				"description": "截止时间，包年包月时必须给出",
+				"dataType": "str",
+				"refPackageName": null,
+				"refEntityName": null,
+				"refAttributeName": null
+			},
+			{
+				"id": "wecmdb__2__host_resource_instance__fixed_date",
+				"packageName": "wecmdb",
+				"entityName": "host_resource_instance",
+				"name": "fixed_date",
+				"description": "确认日期",
+				"dataType": "str",
+				"refPackageName": null,
+				"refEntityName": null,
+				"refAttributeName": null
+			},
+			{
+				"id": "wecmdb__2__host_resource_instance__guid",
+				"packageName": "wecmdb",
+				"entityName": "host_resource_instance",
+				"name": "guid",
+				"description": "全局唯一ID",
+				"dataType": "str",
+				"refPackageName": null,
+				"refEntityName": null,
+				"refAttributeName": null
+			},
+			{
+				"id": "wecmdb__2__host_resource_instance__id",
+				"packageName": "wecmdb",
+				"entityName": "host_resource_instance",
+				"name": "id",
+				"description": "ID",
+				"dataType": "str",
+				"refPackageName": null,
+				"refEntityName": null,
+				"refAttributeName": null
+			},
+			{
+				"id": "wecmdb__2__host_resource_instance__ip_address",
+				"packageName": "wecmdb",
+				"entityName": "host_resource_instance",
+				"name": "ip_address",
+				"description": "待创建资源,填写IP+4位随机数字",
+				"dataType": "str",
+				"refPackageName": null,
+				"refEntityName": null,
+				"refAttributeName": null
+			},
+			{
+				"id": "wecmdb__2__host_resource_instance__key_name",
+				"packageName": "wecmdb",
+				"entityName": "host_resource_instance",
+				"name": "key_name",
+				"description": "唯一名称",
+				"dataType": "str",
+				"refPackageName": null,
+				"refEntityName": null,
+				"refAttributeName": null
+			},
+			{
+				"id": "wecmdb__2__host_resource_instance__login_port",
+				"packageName": "wecmdb",
+				"entityName": "host_resource_instance",
+				"name": "login_port",
+				"description": "22|3389",
+				"dataType": "str",
+				"refPackageName": null,
+				"refEntityName": null,
+				"refAttributeName": null
+			},
+			{
+				"id": "wecmdb__2__host_resource_instance__master_resource_instance",
+				"packageName": "wecmdb",
+				"entityName": "host_resource_instance",
+				"name": "master_resource_instance",
+				"description": "主资源实例",
+				"dataType": "ref",
+				"refPackageName": "wecmdb",
+				"refEntityName": "host_resource_instance",
+				"refAttributeName": "id"
+			},
+			{
+				"id": "wecmdb__2__host_resource_instance__memory",
+				"packageName": "wecmdb",
+				"entityName": "host_resource_instance",
+				"name": "memory",
+				"description": "内存(GB)",
+				"dataType": "str",
+				"refPackageName": null,
+				"refEntityName": null,
+				"refAttributeName": null
+			},
+			{
+				"id": "wecmdb__2__host_resource_instance__monitor_key_name",
+				"packageName": "wecmdb",
+				"entityName": "host_resource_instance",
+				"name": "monitor_key_name",
+				"description": "监控唯一名称",
+				"dataType": "str",
+				"refPackageName": null,
+				"refEntityName": null,
+				"refAttributeName": null
+			},
+			{
+				"id": "wecmdb__2__host_resource_instance__monitor_port",
+				"packageName": "wecmdb",
+				"entityName": "host_resource_instance",
+				"name": "monitor_port",
+				"description": "9100",
+				"dataType": "str",
+				"refPackageName": null,
+				"refEntityName": null,
+				"refAttributeName": null
+			},
+			{
+				"id": "wecmdb__2__host_resource_instance__name",
+				"packageName": "wecmdb",
+				"entityName": "host_resource_instance",
+				"name": "name",
+				"description": "名称",
+				"dataType": "str",
+				"refPackageName": null,
+				"refEntityName": null,
+				"refAttributeName": null
+			},
+			{
+				"id": "wecmdb__2__host_resource_instance__network_segment",
+				"packageName": "wecmdb",
+				"entityName": "host_resource_instance",
+				"name": "network_segment",
+				"description": "网段",
+				"dataType": "ref",
+				"refPackageName": "wecmdb",
+				"refEntityName": "network_segment",
+				"refAttributeName": "id"
+			},
+			{
+				"id": "wecmdb__2__host_resource_instance__p_guid",
+				"packageName": "wecmdb",
+				"entityName": "host_resource_instance",
+				"name": "p_guid",
+				"description": "前一版本数据的guid",
+				"dataType": "str",
+				"refPackageName": null,
+				"refEntityName": null,
+				"refAttributeName": null
+			},
+			{
+				"id": "wecmdb__2__host_resource_instance__resource_instance_spec",
+				"packageName": "wecmdb",
+				"entityName": "host_resource_instance",
+				"name": "resource_instance_spec",
+				"description": "资源实例规格",
+				"dataType": "ref",
+				"refPackageName": "wecmdb",
+				"refEntityName": "resource_instance_spec",
+				"refAttributeName": "id"
+			},
+			{
+				"id": "wecmdb__2__host_resource_instance__resource_instance_system",
+				"packageName": "wecmdb",
+				"entityName": "host_resource_instance",
+				"name": "resource_instance_system",
+				"description": "资源实例系统",
+				"dataType": "ref",
+				"refPackageName": "wecmdb",
+				"refEntityName": "resource_instance_system",
+				"refAttributeName": "id"
+			},
+			{
+				"id": "wecmdb__2__host_resource_instance__resource_instance_type",
+				"packageName": "wecmdb",
+				"entityName": "host_resource_instance",
+				"name": "resource_instance_type",
+				"description": "资源实例类型",
+				"dataType": "ref",
+				"refPackageName": "wecmdb",
+				"refEntityName": "resource_instance_type",
+				"refAttributeName": "id"
+			},
+			{
+				"id": "wecmdb__2__host_resource_instance__resource_set",
+				"packageName": "wecmdb",
+				"entityName": "host_resource_instance",
+				"name": "resource_set",
+				"description": "资源集合",
+				"dataType": "ref",
+				"refPackageName": "wecmdb",
+				"refEntityName": "resource_set",
+				"refAttributeName": "id"
+			},
+			{
+				"id": "wecmdb__2__host_resource_instance__r_guid",
+				"packageName": "wecmdb",
+				"entityName": "host_resource_instance",
+				"name": "r_guid",
+				"description": "原始数据guid",
+				"dataType": "str",
+				"refPackageName": null,
+				"refEntityName": null,
+				"refAttributeName": null
+			},
+			{
+				"id": "wecmdb__2__host_resource_instance__state",
+				"packageName": "wecmdb",
+				"entityName": "host_resource_instance",
+				"name": "state",
+				"description": "状态",
+				"dataType": "int",
+				"refPackageName": null,
+				"refEntityName": null,
+				"refAttributeName": null
+			},
+			{
+				"id": "wecmdb__2__host_resource_instance__state_code",
+				"packageName": "wecmdb",
+				"entityName": "host_resource_instance",
+				"name": "state_code",
+				"description": "状态编码",
+				"dataType": "str",
+				"refPackageName": null,
+				"refEntityName": null,
+				"refAttributeName": null
+			},
+			{
+				"id": "wecmdb__2__host_resource_instance__storage",
+				"packageName": "wecmdb",
+				"entityName": "host_resource_instance",
+				"name": "storage",
+				"description": "50的倍数",
+				"dataType": "str",
+				"refPackageName": null,
+				"refEntityName": null,
+				"refAttributeName": null
+			},
+			{
+				"id": "wecmdb__2__host_resource_instance__storage_type",
+				"packageName": "wecmdb",
+				"entityName": "host_resource_instance",
+				"name": "storage_type",
+				"description": "存储类型",
+				"dataType": "ref",
+				"refPackageName": "wecmdb",
+				"refEntityName": "storage_type",
+				"refAttributeName": "id"
+			},
+			{
+				"id": "wecmdb__2__host_resource_instance__subnet_security_group",
+				"packageName": "wecmdb",
+				"entityName": "host_resource_instance",
+				"name": "subnet_security_group",
+				"description": "Y | N ",
+				"dataType": "str",
+				"refPackageName": null,
+				"refEntityName": null,
+				"refAttributeName": null
+			},
+			{
+				"id": "wecmdb__2__host_resource_instance__updated_by",
+				"packageName": "wecmdb",
+				"entityName": "host_resource_instance",
+				"name": "updated_by",
+				"description": "更新用户",
+				"dataType": "str",
+				"refPackageName": null,
+				"refEntityName": null,
+				"refAttributeName": null
+			},
+			{
+				"id": "wecmdb__2__host_resource_instance__updated_date",
+				"packageName": "wecmdb",
+				"entityName": "host_resource_instance",
+				"name": "updated_date",
+				"description": "更新日期",
+				"dataType": "timestamp",
+				"refPackageName": null,
+				"refEntityName": null,
+				"refAttributeName": null
+			},
+			{
+				"id": "wecmdb__2__host_resource_instance__user_name",
+				"packageName": "wecmdb",
+				"entityName": "host_resource_instance",
+				"name": "user_name",
+				"description": "用户名",
+				"dataType": "str",
+				"refPackageName": null,
+				"refEntityName": null,
+				"refAttributeName": null
+			},
+			{
+				"id": "wecmdb__2__host_resource_instance__user_password",
+				"packageName": "wecmdb",
+				"entityName": "host_resource_instance",
+				"name": "user_password",
+				"description": "用户密码",
+				"dataType": "str",
+				"refPackageName": null,
+				"refEntityName": null,
+				"refAttributeName": null
+			}
+		],
+		"leafEntityList": {
+			"referenceToEntityList": [
+				{
+					"packageName": "wecmdb",
+					"entityName": "host_resource_instance",
+					"filterRule": "wecmdb:host_resource_instance"
+				},
+				{
+					"packageName": "wecmdb",
+					"entityName": "network_segment",
+					"filterRule": "wecmdb:network_segment{network_segment_usage eq 'SUBNET'}"
+				},
+				{
+					"packageName": "wecmdb",
+					"entityName": "network_segment",
+					"filterRule": "wecmdb:network_segment{network_segment_usage eq 'VPC'}"
+				},
+				{
+					"packageName": "wecmdb",
+					"entityName": "resource_set",
+					"filterRule": "wecmdb:resource_set"
+				}
+			],
+			"referenceByEntityList": [
+				{
+					"packageName": "wecmdb",
+					"entityName": "app_instance",
+					"filterRule": "wecmdb:app_instance"
+				},
+				{
+					"packageName": "wecmdb",
+					"entityName": "block_storage",
+					"filterRule": "wecmdb:block_storage"
+				},
+				{
+					"packageName": "wecmdb",
+					"entityName": "host_resource_instance",
+					"filterRule": "wecmdb:host_resource_instance"
+				}
+			]
+		}
+	}
+}

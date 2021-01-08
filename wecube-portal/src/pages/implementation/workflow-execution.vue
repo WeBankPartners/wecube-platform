@@ -26,7 +26,7 @@
                       ' ' +
                       item.entityDisplayName +
                       ' ' +
-                      (item.createdTime || 'createdTime') +
+                      (item.createdTime || '0000-00-00 00:00:00') +
                       ' ' +
                       (item.operator || 'operator')
                   "
@@ -35,7 +35,7 @@
                     <span style="color:#2b85e4">{{ item.procInstName + ' ' }}</span>
                     <span style="color:#515a6e">{{ item.entityDisplayName + ' ' }}</span>
                     <span style="color:#ccc;padding-left:8px;float:right">{{ item.status }}</span>
-                    <span style="color:#ccc;float:right">{{ (item.createdTime || 'createdTime') + ' ' }}</span>
+                    <span style="color:#ccc;float:right">{{ (item.createdTime || '0000-00-00 00:00:00') + ' ' }}</span>
                     <span style="float:right;color:#515a6e;margin-right:20px">{{ item.operator || 'operator' }}</span>
                   </span>
                 </Option>
@@ -159,8 +159,8 @@
         max-height="550"
         :data="allFlowNodesModelData"
         @on-select="allFlowNodesSingleSelect"
-        @on-select-cancel="allFlowNodesSingleCancle"
-        @on-select-all-cancel="allFlowNodesSelectAllCancle"
+        @on-select-cancel="allFlowNodesSingleCancel"
+        @on-select-all-cancel="allFlowNodesSelectAllCancel"
         @on-select-all="allFlowNodesSelectAll"
         :span-method="flowNodeDataHandleSpan"
       >
@@ -681,7 +681,7 @@ export default {
     allFlowNodesSingleSelect (selection, row) {
       this.selectedFlowNodesModelData = this.selectedFlowNodesModelData.concat(row)
     },
-    allFlowNodesSingleCancle (selection, row) {
+    allFlowNodesSingleCancel (selection, row) {
       const index = this.selectedFlowNodesModelData.findIndex(cn => {
         return cn.id === row.id
       })
@@ -698,7 +698,7 @@ export default {
         }
       })
     },
-    allFlowNodesSelectAllCancle () {
+    allFlowNodesSelectAllCancel () {
       let temp = []
       this.tartetModels.forEach(tm => {
         temp.push(tm.id)
@@ -990,7 +990,6 @@ export default {
       if (status === 'OK') {
         if (!this.isEnqueryPage) {
           this.isShowExect = true
-        } else {
           this.processSessionId = data.processSessionId
           const binds = await getAllBindingsProcessSessionId(data.processSessionId)
           this.allBindingsList = binds.data
