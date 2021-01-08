@@ -1,58 +1,96 @@
 package com.webank.wecube.platform.core.parser;
 
-import com.webank.wecube.platform.core.commons.WecubeCoreException;
-import com.webank.wecube.platform.core.domain.plugin.PluginPackage;
-import com.webank.wecube.platform.core.domain.plugin.PluginPackageRuntimeResourcesDocker;
-import com.webank.wecube.platform.core.domain.plugin.PluginPackageRuntimeResourcesMysql;
-import com.webank.wecube.platform.core.domain.plugin.PluginPackageRuntimeResourcesS3;
-import org.apache.commons.lang3.StringUtils;
+import static com.webank.wecube.platform.core.utils.Constants.MYSQL_SCHEMA_NAMING_PATTERN;
+import static com.webank.wecube.platform.core.utils.Constants.PACKAGE_NAMING_PATTERN;
+import static com.webank.wecube.platform.core.utils.Constants.PACKAGE_VERSION_PATTERN;
+import static com.webank.wecube.platform.core.utils.Constants.S3_BUCKET_NAMING_PATTERN;
 
-import java.util.Set;
+import java.util.List;
 import java.util.regex.Pattern;
 
-import static com.webank.wecube.platform.core.utils.Constants.*;
+import org.apache.commons.lang3.StringUtils;
+
+import com.webank.wecube.platform.core.commons.WecubeCoreException;
+import com.webank.wecube.platform.core.service.plugin.xml.register.DockerType;
+import com.webank.wecube.platform.core.service.plugin.xml.register.MysqlType;
+import com.webank.wecube.platform.core.service.plugin.xml.register.PackageType;
+import com.webank.wecube.platform.core.service.plugin.xml.register.ResourceDependenciesType;
+import com.webank.wecube.platform.core.service.plugin.xml.register.S3Type;
 
 public class PluginPackageValidator {
-
-    public void validate(PluginPackage pluginPackage) {
-        if (!Pattern.matches(PACKAGE_NAMING_PATTERN, pluginPackage.getName())) {
+    
+    public void validatePackage(PackageType xmlPackage){
+        validatePackageName(xmlPackage);
+        validatePackageVersionPattern(xmlPackage);
+        validateResourceDependencies(xmlPackage);
+    }
+    
+    private void validatePackageName(PackageType xmlPackage){
+        if (!Pattern.matches(PACKAGE_NAMING_PATTERN, xmlPackage.getName())) {
             throw new WecubeCoreException("3273",
                     String.format("Invalid plugin package name [%s] - Only alphanumeric and hyphen('-') are allowed. ",
-                            pluginPackage.getName()));
+                            xmlPackage.getName()));
         }
-        validatePackageVersion(pluginPackage.getVersion());
-
-        Set<PluginPackageRuntimeResourcesS3> pluginPackageRuntimeResourcesS3s = pluginPackage.getPluginPackageRuntimeResourcesS3();
-        if (null != pluginPackageRuntimeResourcesS3s && pluginPackageRuntimeResourcesS3s.size() > 1) {
-            PluginPackageRuntimeResourcesS3 pluginPackageRuntimeResourcesS3 = pluginPackageRuntimeResourcesS3s.iterator().next();
-            if (!Pattern.matches(S3_BUCKET_NAMING_PATTERN, pluginPackageRuntimeResourcesS3.getBucketName())) {
-                throw new WecubeCoreException("3274",String.format("Invalid bucket name [%s] - Only alphanumeric and hyphen('-') are allowed with length {3,63}.", pluginPackageRuntimeResourcesS3.getBucketName()));
-            }
+    }
+    
+    private void validatePackageVersionPattern(PackageType xmlPackage){
+        if (!Pattern.matches(PACKAGE_VERSION_PATTERN, xmlPackage.getVersion())) {
+            throw new WecubeCoreException("3278",String.format("Invalid plugin package version [%s].", xmlPackage.getVersion()));
         }
-        Set<PluginPackageRuntimeResourcesMysql> pluginPackageRuntimeResourcesMysqls = pluginPackage.getPluginPackageRuntimeResourcesMysql();
-        if (null != pluginPackageRuntimeResourcesMysqls && pluginPackageRuntimeResourcesMysqls.size() > 0) {
-            PluginPackageRuntimeResourcesMysql packageRuntimeResourcesMysql = pluginPackageRuntimeResourcesMysqls.iterator().next();
-            if (!Pattern.matches(MYSQL_SCHEMA_NAMING_PATTERN, packageRuntimeResourcesMysql.getSchemaName())) {
-                throw new WecubeCoreException("3275",String.format("Invalid bucket name [%s] - Only alphanumeric and underscore('_') are allowed with length {3,64}.", packageRuntimeResourcesMysql.getSchemaName()));
-            }
+    }
+    
+    private void validateResourceDependencies(PackageType xmlPackage){
+        ResourceDependenciesType xmlResourceDependencies = xmlPackage.getResourceDependencies();
+        if(xmlResourceDependencies == null){
+            return;
         }
-        Set<PluginPackageRuntimeResourcesDocker> pluginPackageRuntimeResourcesDockers = pluginPackage.getPluginPackageRuntimeResourcesDocker();
-        if (null != pluginPackageRuntimeResourcesDockers && pluginPackageRuntimeResourcesDockers.size() > 0) {
-            PluginPackageRuntimeResourcesDocker runtimeResourcesDocker = pluginPackageRuntimeResourcesDockers.iterator().next();
-            String portBindings = runtimeResourcesDocker.getPortBindings();
-            if (StringUtils.isNotEmpty(portBindings) && portBindings.indexOf(":") < 0) {
-                throw new WecubeCoreException("3276",String.format("portBindings attribute [%s] for docker should contains semi-colon (':')", portBindings));
-            }
-            String volumeBindings = runtimeResourcesDocker.getVolumeBindings();
-            if (StringUtils.isNotEmpty(volumeBindings) && volumeBindings.indexOf(":") < 0) {
-                throw new WecubeCoreException("3277",String.format("volumeBindings attribute [%s] for docker should contains semi-colon (':')", volumeBindings));
+        
+        validateS3(xmlResourceDependencies);
+        validateMysql(xmlResourceDependencies);
+        validateDocker(xmlResourceDependencies);
+    }
+    
+    private void validateS3(ResourceDependenciesType xmlResourceDependencies){
+        List<S3Type> xmlS3List = xmlResourceDependencies.getS3();
+        if(xmlS3List == null || xmlS3List.isEmpty()){
+            return;
+        }
+        
+        for(S3Type xmlS3Type : xmlS3List){
+            if (!Pattern.matches(S3_BUCKET_NAMING_PATTERN, xmlS3Type.getBucketName())) {
+                throw new WecubeCoreException("3274",String.format("Invalid bucket name [%s] - Only alphanumeric and hyphen('-') are allowed with length {3,63}.", xmlS3Type.getBucketName()));
             }
         }
     }
-
-    public static void validatePackageVersion(String packageVersion) {
-        if (!Pattern.matches(PACKAGE_VERSION_PATTERN, packageVersion)) {
-            throw new WecubeCoreException("3278",String.format("Invalid plugin package version [%s].", packageVersion));
+    
+    private void validateMysql(ResourceDependenciesType xmlResourceDependencies){
+        List<MysqlType> xmlMysqlList = xmlResourceDependencies.getMysql();
+        if(xmlMysqlList == null || xmlMysqlList.isEmpty()){
+            return;
+        }
+        
+        for(MysqlType xmlMysql : xmlMysqlList){
+            if (!Pattern.matches(MYSQL_SCHEMA_NAMING_PATTERN, xmlMysql.getSchema())) {
+                throw new WecubeCoreException("3275",String.format("Invalid bucket name [%s] - Only alphanumeric and underscore('_') are allowed with length {3,64}.", xmlMysql.getSchema()));
+            }
+        }
+    }
+    
+    private void validateDocker(ResourceDependenciesType xmlResourceDependencies){
+        List<DockerType> xmlDockerList = xmlResourceDependencies.getDocker();
+        if(xmlDockerList == null || xmlDockerList.isEmpty()){
+            return;
+        }
+        
+        for(DockerType xmlDocker : xmlDockerList){
+            String portBindings = xmlDocker.getPortBindings();
+            if (StringUtils.isNotEmpty(portBindings) && portBindings.indexOf(":") < 0) {
+                throw new WecubeCoreException("3276",String.format("portBindings attribute [%s] for docker should contains semi-colon (':')", portBindings));
+            }
+            String volumeBindings = xmlDocker.getVolumeBindings();
+            if (StringUtils.isNotEmpty(volumeBindings) && volumeBindings.indexOf(":") < 0) {
+                throw new WecubeCoreException("3277",String.format("volumeBindings attribute [%s] for docker should contains semi-colon (':')", volumeBindings));
+            }
         }
     }
 }

@@ -1,0 +1,177 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.webank.wecube.platform.core.repository.plugin.PluginArtifactPullReqMapper" >
+  <resultMap id="BaseResultMap" type="com.webank.wecube.platform.core.entity.plugin.PluginArtifactPullReq" >
+    <id column="id" property="id" jdbcType="VARCHAR" />
+    <result column="bucket_name" property="bucketName" jdbcType="VARCHAR" />
+    <result column="created_by" property="createdBy" jdbcType="VARCHAR" />
+    <result column="created_time" property="createdTime" jdbcType="TIMESTAMP" />
+    <result column="err_msg" property="errMsg" jdbcType="VARCHAR" />
+    <result column="key_name" property="keyName" jdbcType="VARCHAR" />
+    <result column="pkg_id" property="pkgId" jdbcType="VARCHAR" />
+    <result column="rev" property="rev" jdbcType="INTEGER" />
+    <result column="state" property="state" jdbcType="VARCHAR" />
+    <result column="total_size" property="totalSize" jdbcType="BIGINT" />
+    <result column="updated_by" property="updatedBy" jdbcType="VARCHAR" />
+    <result column="updated_time" property="updatedTime" jdbcType="TIMESTAMP" />
+  </resultMap>
+  <sql id="Base_Column_List" >
+    id, bucket_name, created_by, created_time, err_msg, key_name, pkg_id, rev, state, 
+    total_size, updated_by, updated_time
+  </sql>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.String" >
+    select 
+    <include refid="Base_Column_List" />
+    from plugin_artifact_pull_req
+    where id = #{id,jdbcType=VARCHAR}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.String" >
+    delete from plugin_artifact_pull_req
+    where id = #{id,jdbcType=VARCHAR}
+  </delete>
+  <insert id="insert" parameterType="com.webank.wecube.platform.core.entity.plugin.PluginArtifactPullReq" >
+    insert into plugin_artifact_pull_req (id, bucket_name, created_by, 
+      created_time, err_msg, key_name, 
+      pkg_id, rev, state, 
+      total_size, updated_by, updated_time
+      )
+    values (#{id,jdbcType=VARCHAR}, #{bucketName,jdbcType=VARCHAR}, #{createdBy,jdbcType=VARCHAR}, 
+      #{createdTime,jdbcType=TIMESTAMP}, #{errMsg,jdbcType=VARCHAR}, #{keyName,jdbcType=VARCHAR}, 
+      #{pkgId,jdbcType=VARCHAR}, #{rev,jdbcType=INTEGER}, #{state,jdbcType=VARCHAR}, 
+      #{totalSize,jdbcType=BIGINT}, #{updatedBy,jdbcType=VARCHAR}, #{updatedTime,jdbcType=TIMESTAMP}
+      )
+  </insert>
+  <insert id="insertSelective" parameterType="com.webank.wecube.platform.core.entity.plugin.PluginArtifactPullReq" >
+    insert into plugin_artifact_pull_req
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        id,
+      </if>
+      <if test="bucketName != null" >
+        bucket_name,
+      </if>
+      <if test="createdBy != null" >
+        created_by,
+      </if>
+      <if test="createdTime != null" >
+        created_time,
+      </if>
+      <if test="errMsg != null" >
+        err_msg,
+      </if>
+      <if test="keyName != null" >
+        key_name,
+      </if>
+      <if test="pkgId != null" >
+        pkg_id,
+      </if>
+      <if test="rev != null" >
+        rev,
+      </if>
+      <if test="state != null" >
+        state,
+      </if>
+      <if test="totalSize != null" >
+        total_size,
+      </if>
+      <if test="updatedBy != null" >
+        updated_by,
+      </if>
+      <if test="updatedTime != null" >
+        updated_time,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        #{id,jdbcType=VARCHAR},
+      </if>
+      <if test="bucketName != null" >
+        #{bucketName,jdbcType=VARCHAR},
+      </if>
+      <if test="createdBy != null" >
+        #{createdBy,jdbcType=VARCHAR},
+      </if>
+      <if test="createdTime != null" >
+        #{createdTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="errMsg != null" >
+        #{errMsg,jdbcType=VARCHAR},
+      </if>
+      <if test="keyName != null" >
+        #{keyName,jdbcType=VARCHAR},
+      </if>
+      <if test="pkgId != null" >
+        #{pkgId,jdbcType=VARCHAR},
+      </if>
+      <if test="rev != null" >
+        #{rev,jdbcType=INTEGER},
+      </if>
+      <if test="state != null" >
+        #{state,jdbcType=VARCHAR},
+      </if>
+      <if test="totalSize != null" >
+        #{totalSize,jdbcType=BIGINT},
+      </if>
+      <if test="updatedBy != null" >
+        #{updatedBy,jdbcType=VARCHAR},
+      </if>
+      <if test="updatedTime != null" >
+        #{updatedTime,jdbcType=TIMESTAMP},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="com.webank.wecube.platform.core.entity.plugin.PluginArtifactPullReq" >
+    update plugin_artifact_pull_req
+    <set >
+      <if test="bucketName != null" >
+        bucket_name = #{bucketName,jdbcType=VARCHAR},
+      </if>
+      <if test="createdBy != null" >
+        created_by = #{createdBy,jdbcType=VARCHAR},
+      </if>
+      <if test="createdTime != null" >
+        created_time = #{createdTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="errMsg != null" >
+        err_msg = #{errMsg,jdbcType=VARCHAR},
+      </if>
+      <if test="keyName != null" >
+        key_name = #{keyName,jdbcType=VARCHAR},
+      </if>
+      <if test="pkgId != null" >
+        pkg_id = #{pkgId,jdbcType=VARCHAR},
+      </if>
+      <if test="rev != null" >
+        rev = #{rev,jdbcType=INTEGER},
+      </if>
+      <if test="state != null" >
+        state = #{state,jdbcType=VARCHAR},
+      </if>
+      <if test="totalSize != null" >
+        total_size = #{totalSize,jdbcType=BIGINT},
+      </if>
+      <if test="updatedBy != null" >
+        updated_by = #{updatedBy,jdbcType=VARCHAR},
+      </if>
+      <if test="updatedTime != null" >
+        updated_time = #{updatedTime,jdbcType=TIMESTAMP},
+      </if>
+    </set>
+    where id = #{id,jdbcType=VARCHAR}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.webank.wecube.platform.core.entity.plugin.PluginArtifactPullReq" >
+    update plugin_artifact_pull_req
+    set bucket_name = #{bucketName,jdbcType=VARCHAR},
+      created_by = #{createdBy,jdbcType=VARCHAR},
+      created_time = #{createdTime,jdbcType=TIMESTAMP},
+      err_msg = #{errMsg,jdbcType=VARCHAR},
+      key_name = #{keyName,jdbcType=VARCHAR},
+      pkg_id = #{pkgId,jdbcType=VARCHAR},
+      rev = #{rev,jdbcType=INTEGER},
+      state = #{state,jdbcType=VARCHAR},
+      total_size = #{totalSize,jdbcType=BIGINT},
+      updated_by = #{updatedBy,jdbcType=VARCHAR},
+      updated_time = #{updatedTime,jdbcType=TIMESTAMP}
+    where id = #{id,jdbcType=VARCHAR}
+  </update>
+</mapper>
