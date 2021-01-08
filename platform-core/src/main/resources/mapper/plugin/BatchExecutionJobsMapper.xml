@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper
+    namespace="com.webank.wecube.platform.core.repository.plugin.BatchExecutionJobsMapper">
+    <resultMap id="BaseResultMap"
+        type="com.webank.wecube.platform.core.entity.plugin.BatchExecutionJobs">
+        <id column="id" property="id" jdbcType="VARCHAR" />
+        <result column="create_timestamp" property="createTimestamp"
+            jdbcType="TIMESTAMP" />
+        <result column="complete_timestamp" property="completeTimestamp"
+            jdbcType="TIMESTAMP" />
+        <result column="creator" property="creator" jdbcType="VARCHAR" />
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id, create_timestamp, complete_timestamp, creator
+    </sql>
+
+    <select id="selectByPrimaryKey" resultMap="BaseResultMap"
+        parameterType="java.lang.String">
+        select
+        <include refid="Base_Column_List" />
+        from batch_execution_jobs
+        where id = #{id,jdbcType=VARCHAR}
+    </select>
+    <delete id="deleteByPrimaryKey" parameterType="java.lang.String">
+        delete from batch_execution_jobs
+        where id = #{id,jdbcType=VARCHAR}
+    </delete>
+    <insert id="insert"
+        parameterType="com.webank.wecube.platform.core.entity.plugin.BatchExecutionJobs">
+        insert into batch_execution_jobs (id, create_timestamp,
+        complete_timestamp,
+        creator)
+        values (#{id,jdbcType=VARCHAR}, #{createTimestamp,jdbcType=TIMESTAMP},
+        #{completeTimestamp,jdbcType=TIMESTAMP},
+        #{creator,jdbcType=VARCHAR})
+    </insert>
+    <insert id="insertSelective"
+        parameterType="com.webank.wecube.platform.core.entity.plugin.BatchExecutionJobs">
+        insert into batch_execution_jobs
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="id != null">
+                id,
+            </if>
+            <if test="createTimestamp != null">
+                create_timestamp,
+            </if>
+            <if test="completeTimestamp != null">
+                complete_timestamp,
+            </if>
+            <if test="creator != null">
+                creator,
+            </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="id != null">
+                #{id,jdbcType=VARCHAR},
+            </if>
+            <if test="createTimestamp != null">
+                #{createTimestamp,jdbcType=TIMESTAMP},
+            </if>
+            <if test="completeTimestamp != null">
+                #{completeTimestamp,jdbcType=TIMESTAMP},
+            </if>
+            <if test="creator != null">
+                #{creator,jdbcType=VARCHAR},
+            </if>
+        </trim>
+    </insert>
+
+    <update id="updateByPrimaryKeySelective"
+        parameterType="com.webank.wecube.platform.core.entity.plugin.BatchExecutionJobs">
+        update batch_execution_jobs
+        <set>
+            <if test="createTimestamp != null">
+                create_timestamp = #{createTimestamp,jdbcType=TIMESTAMP},
+            </if>
+            <if test="completeTimestamp != null">
+                complete_timestamp = #{completeTimestamp,jdbcType=TIMESTAMP},
+            </if>
+            <if test="creator != null">
+                creator = #{creator,jdbcType=VARCHAR},
+            </if>
+        </set>
+        where id = #{id,jdbcType=VARCHAR}
+    </update>
+    <update id="updateByPrimaryKey"
+        parameterType="com.webank.wecube.platform.core.entity.plugin.BatchExecutionJobs">
+        update batch_execution_jobs
+        set create_timestamp = #{createTimestamp,jdbcType=TIMESTAMP},
+        complete_timestamp = #{completeTimestamp,jdbcType=TIMESTAMP},
+        creator = #{creator,jdbcType=VARCHAR}
+        where id = #{id,jdbcType=VARCHAR}
+    </update>
+</mapper>
