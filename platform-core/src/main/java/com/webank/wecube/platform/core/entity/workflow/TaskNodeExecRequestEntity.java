@@ -13,7 +13,7 @@ public class TaskNodeExecRequestEntity  {
 
     private Date updatedTime;
 
-    private Boolean isCompleted;
+    private Boolean isCompleted = false;
 
     private Boolean isCurrent;
 
