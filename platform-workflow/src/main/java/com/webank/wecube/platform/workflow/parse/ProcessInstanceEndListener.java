@@ -7,6 +7,7 @@ import javax.annotation.PostConstruct;
 import org.camunda.bpm.engine.delegate.DelegateExecution;
 import org.camunda.bpm.engine.delegate.ExecutionListener;
 import org.camunda.bpm.engine.impl.persistence.entity.ExecutionEntity;
+import org.camunda.bpm.engine.impl.pvm.process.ActivityImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -98,11 +99,14 @@ public class ProcessInstanceEndListener implements ExecutionListener {
     private boolean hasErrorEndEvent(DelegateExecution execution) {
         if (execution instanceof ExecutionEntity) {
             ExecutionEntity entity = (ExecutionEntity) execution;
-            Object typeProperty = entity.getActivity().getProperty("type");
-            if ((typeProperty instanceof String)) {
-                if ("errorEndEvent".equalsIgnoreCase((String) typeProperty)) {
-                    logErrorEnd(execution);
-                    return true;
+            ActivityImpl activity = entity.getActivity();
+            if (activity != null) {
+                Object typeProperty = activity.getProperty("type");
+                if (typeProperty != null && (typeProperty instanceof String)) {
+                    if ("errorEndEvent".equalsIgnoreCase((String) typeProperty)) {
+                        logErrorEnd(execution);
+                        return true;
+                    }
                 }
             }
         }
