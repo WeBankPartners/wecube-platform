@@ -455,5 +455,9 @@
   "reset_password": "重置密码",
   "overview": "总览",
   "parameter_configuration": "参数配置",
-  "stop_orch": "终止"
+  "stop_orch": "终止",
+  "dynamic_bind": "动态绑定",
+  "pre_check": "高危检测",
+  "required": "必填",
+  "obtain_plugin_warn": "该定位规则无法获取插件"
 }
