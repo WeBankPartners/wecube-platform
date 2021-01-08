@@ -477,6 +477,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
         requestEntity.setCreatedBy(WorkflowConstants.DEFAULT_USER);
         requestEntity.setCreatedTime(new Date());
         requestEntity.setIsCurrent(true);
+        requestEntity.setIsCompleted(false);
 
         taskNodeExecRequestRepository.insert(requestEntity);
 
