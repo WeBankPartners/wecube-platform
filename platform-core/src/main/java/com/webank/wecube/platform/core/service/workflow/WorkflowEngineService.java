@@ -50,8 +50,8 @@ import com.webank.wecube.platform.workflow.parse.BpmnCustomizationException;
 import com.webank.wecube.platform.workflow.parse.BpmnParseAttachment;
 import com.webank.wecube.platform.workflow.parse.BpmnProcessModelCustomizer;
 import com.webank.wecube.platform.workflow.parse.SubProcessAdditionalInfo;
-import com.webank.wecube.platform.workflow.repository.ProcessInstanceStatusRepository;
-import com.webank.wecube.platform.workflow.repository.ServiceNodeStatusRepository;
+import com.webank.wecube.platform.workflow.repository.ProcessInstanceStatusMapper;
+import com.webank.wecube.platform.workflow.repository.ServiceNodeStatusMapper;
 
 /**
  * 
@@ -88,10 +88,10 @@ public class WorkflowEngineService {
     protected ManagementService managementService;
 
     @Autowired
-    protected ProcessInstanceStatusRepository processInstanceStatusRepository;
+    protected ProcessInstanceStatusMapper processInstanceStatusRepository;
 
     @Autowired
-    protected ServiceNodeStatusRepository serviceNodeStatusRepository;
+    protected ServiceNodeStatusMapper serviceNodeStatusRepository;
 
     @Autowired
     protected TaskService taskService;
@@ -99,9 +99,14 @@ public class WorkflowEngineService {
     private List<String> statelessNodeTypes = Arrays.asList("startEvent", "endEvent", "exclusiveGateway",
             "parallelGateway");
 
+    public void deleteProcessInstance(String processInstanceId){
+        String deleteReason = "Aborted by admin user";
+        runtimeService.deleteProcessInstance(processInstanceId, deleteReason);
+    }
+    
     public String getTaskNodeStatus(String procInstanceId, String nodeId) {
         ServiceNodeStatusEntity nodeStatusEntity = serviceNodeStatusRepository
-                .findOneByProcInstanceIdAndNodeId(procInstanceId, nodeId);
+                .selectOneByProcInstanceIdAndNodeId(procInstanceId, nodeId);
 
         if (nodeStatusEntity == null) {
             return null;
@@ -260,7 +265,7 @@ public class WorkflowEngineService {
         }
 
         ProcessInstanceStatusEntity procInstStatusEntity = processInstanceStatusRepository
-                .findOneByprocInstanceId(procInstId);
+                .selectOneByProcInstanceId(procInstId);
 
         if (procInstStatusEntity == null) {
             log.warn("cannot find such process instance record with procInstId={}", procInstId);
@@ -270,8 +275,8 @@ public class WorkflowEngineService {
         String processInstanceId = null;
         String processDefinitionId = null;
         if (TraceStatus.Completed.equals(procInstStatusEntity.getStatus())) {
-            processInstanceId = procInstStatusEntity.getProcInstanceId();
-            processDefinitionId = procInstStatusEntity.getProcDefinitionId();
+            processInstanceId = procInstStatusEntity.getProcInstId();
+            processDefinitionId = procInstStatusEntity.getProcDefId();
         } else {
             ProcessInstance existProcInst = getProcessInstanceByProcInstId(procInstId);
 
@@ -304,7 +309,7 @@ public class WorkflowEngineService {
 
         ProcInstOutline result = new ProcInstOutline();
         result.setId(processInstanceId);
-        result.setProcInstKey(procInstStatusEntity.getProcInstanceBizKey());
+        result.setProcInstKey(procInstStatusEntity.getProcInstKey());
         result.setProcDefKernelId(procDef.getId());
         result.setProcDefKey(procDef.getKey());
         result.setProcDefName(procDef.getName());
@@ -468,7 +473,7 @@ public class WorkflowEngineService {
         }
 
         ServiceNodeStatusEntity nodeStatus = serviceNodeStatusRepository
-                .findOneByProcInstanceIdAndNodeId(outline.getId(), pfn.getId());
+                .selectOneByProcInstanceIdAndNodeId(outline.getId(), pfn.getId());
 
         if (nodeStatus != null) {
             pfn.setStartTime(nodeStatus.getStartTime());
