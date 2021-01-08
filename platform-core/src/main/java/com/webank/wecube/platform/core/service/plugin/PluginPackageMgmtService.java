@@ -1237,7 +1237,7 @@ public class PluginPackageMgmtService extends AbstractPluginMgmtService {
                     .collect(Collectors.joining(","));
             String msg = String.format("Not allowed to register more packages. Current active packages: [%s]",
                     activePackagesString);
-            throw new WecubeCoreException("3106", msg, activePackagesString);
+            throw new WecubeCoreException(msg);
         }
     }
 
@@ -1247,8 +1247,7 @@ public class PluginPackageMgmtService extends AbstractPluginMgmtService {
                     "Failed to register PluginPackage[%s/%s] as it is not in UNREGISTERED status [%s]",
                     pluginPackage.getName(), pluginPackage.getVersion(), pluginPackage.getStatus());
             log.error(errorMessage);
-            throw new WecubeCoreException("3105", errorMessage, pluginPackage.getName(), pluginPackage.getVersion(),
-                    pluginPackage.getStatus());
+            throw new WecubeCoreException(errorMessage);
         }
     }
 

@@ -23,6 +23,11 @@ public class OperationEventController {
     @Autowired
     private OperationEventManagementService operationEventManagementService;
 
+    /**
+     * 
+     * @param eventDto
+     * @return
+     */
     @PostMapping("/operation-events")
     public CommonResponseDto reportOperationEvent(@RequestBody OperationEventDto eventDto) {
         if (log.isInfoEnabled()) {
@@ -36,6 +41,12 @@ public class OperationEventController {
         return CommonResponseDto.okayWithData(result);
     }
 
+    /**
+     * 
+     * @param subSystemCode
+     * @param eventSeqNo
+     * @return
+     */
     @GetMapping("/source-sub-systems/{sub-system-code}/operation-events/{event-seq-no}")
     public CommonResponseDto queryOperationEvent(@PathVariable String subSystemCode, @PathVariable String eventSeqNo) {
         return CommonResponseDto.okay();
