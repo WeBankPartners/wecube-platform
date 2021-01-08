@@ -117,6 +117,11 @@ public class PluginConfigMigrationService {
         return prInfo;
     }
 
+    /**
+     * 
+     * @param pluginPackageId
+     * @param registersAsXml
+     */
     @Transactional
     public void importPluginRegistersForOnePackage(String pluginPackageId, String registersAsXml) {
         if (StringUtils.isBlank(pluginPackageId)) {
@@ -482,11 +487,16 @@ public class PluginConfigMigrationService {
 
             SystemVariables sysVarEntity = null;
             List<SystemVariables> existSysVars = systemVariablesMapper.selectAllByNameAndScopeAndSource(
-                    xmlSysVar.getName(), xmlSysVar.getScopeType(), pluginPackage.getId());
+                    xmlSysVar.getName(), xmlSysVar.getScopeType(), buildSystemVariableSource(pluginPackage));
+            if(existSysVars == null || existSysVars.isEmpty()){
+                existSysVars = systemVariablesMapper.selectAllByNameAndScopeAndSource(
+                        xmlSysVar.getName(), xmlSysVar.getScopeType(), pluginPackage.getId());
+            }
+            
             if (existSysVars != null && !existSysVars.isEmpty()) {
                 sysVarEntity = existSysVars.get(0);
             }
-
+            
             if (sysVarEntity == null) {
                 sysVarEntity = new SystemVariables();
                 sysVarEntity.setId(LocalIdGenerator.generateId());
