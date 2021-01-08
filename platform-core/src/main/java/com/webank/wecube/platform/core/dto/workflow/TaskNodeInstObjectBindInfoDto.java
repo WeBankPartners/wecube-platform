@@ -4,7 +4,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class TaskNodeInstObjectBindInfoDto {
-    
+
     private Integer id;
 
     private Integer procInstId;
@@ -15,6 +15,10 @@ public class TaskNodeInstObjectBindInfoDto {
     private String entityTypeId;
     private String entityDataId;
     private String entityDisplayName;
+
+    private String packageName;
+    private String entityName;
+    private String entityStatus;
 
     private String bound;// "Y"-bound,default;"N"-unbound;
 
@@ -89,4 +93,29 @@ public class TaskNodeInstObjectBindInfoDto {
     public void setId(Integer id) {
         this.id = id;
     }
+
+    public String getPackageName() {
+        return packageName;
+    }
+
+    public void setPackageName(String packageName) {
+        this.packageName = packageName;
+    }
+
+    public String getEntityName() {
+        return entityName;
+    }
+
+    public void setEntityName(String entityName) {
+        this.entityName = entityName;
+    }
+
+    public String getEntityStatus() {
+        return entityStatus;
+    }
+
+    public void setEntityStatus(String entityStatus) {
+        this.entityStatus = entityStatus;
+    }
+
 }
