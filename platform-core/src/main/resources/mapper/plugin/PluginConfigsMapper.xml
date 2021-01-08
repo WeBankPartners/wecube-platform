@@ -223,4 +223,15 @@
         register_name =
         #{registerName,jdbcType=VARCHAR}
     </select>
+    
+    
+    <select id="selectAllByStatus"
+        resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List" />
+        from plugin_configs
+        where 
+        status =
+        #{status,jdbcType=VARCHAR}
+    </select>
 </mapper>
