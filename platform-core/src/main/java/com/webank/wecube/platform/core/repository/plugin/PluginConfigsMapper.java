@@ -60,4 +60,11 @@ public interface PluginConfigsMapper {
      */
     List<PluginConfigs> selectAllByPluginPackageAndNameAndRegisterName(@Param("pluginPackageId") String pluginPackageId,
             @Param("name") String name, @Param("registerName") String registerName);
+    
+    /**
+     * 
+     * @param status
+     * @return
+     */
+    List<PluginConfigs> selectAllByStatus(@Param("status") String status);
 }
