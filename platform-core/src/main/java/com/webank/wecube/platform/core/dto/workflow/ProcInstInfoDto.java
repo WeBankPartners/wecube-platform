@@ -14,6 +14,7 @@ public class ProcInstInfoDto {
     private String operator;
     private String status;
     private String procDefId;
+    private String procDefKey;
 
     private String entityTypeId;
     private String entityDataId;
@@ -148,6 +149,14 @@ public class ProcInstInfoDto {
         builder.append(taskNodeInstances);
         builder.append("]");
         return builder.toString();
+    }
+
+    public String getProcDefKey() {
+        return procDefKey;
+    }
+
+    public void setProcDefKey(String procDefKey) {
+        this.procDefKey = procDefKey;
     }
 
     
