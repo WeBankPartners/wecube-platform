@@ -456,5 +456,6 @@
   "parameter_configuration": "Parameter Configuration",
   "dynamic_bind": "Dynamic Bind",
   "pre_check": "Its Dangerous",
-  "required": "Required"
+  "required": "Required",
+  "obtain_plugin_warn": "The positioning rule cannot obtain plugins"
 }
