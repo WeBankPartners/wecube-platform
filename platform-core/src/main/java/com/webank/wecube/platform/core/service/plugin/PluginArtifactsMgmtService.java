@@ -764,8 +764,8 @@ public class PluginArtifactsMgmtService extends AbstractPluginMgmtService {
 
         if (latestRefEntitiesEntity == null) {
             log.error("cannot find reference entity for {} {} {}", refPackageName, refEntityName, refAttr);
-            String errMsg = String.format("Cannot find reference entity for %s:%s:%s", refPackageName,
-                    refEntityName, refAttr);
+            String errMsg = String.format("Cannot find reference entity for %s:%s:%s", refPackageName, refEntityName,
+                    refAttr);
             throw new WecubeCoreException(errMsg);
         }
 
@@ -796,11 +796,17 @@ public class PluginArtifactsMgmtService extends AbstractPluginMgmtService {
             systemVariableEntity.setDefaultValue(xmlSystemParameter.getDefaultValue());
             systemVariableEntity.setValue(xmlSystemParameter.getValue());
             systemVariableEntity.setStatus(SystemVariables.INACTIVE);
-            systemVariableEntity.setSource(pluginPackageEntity.getId());
+            systemVariableEntity.setSource(buildSystemVariableSource(pluginPackageEntity));
             systemVariableEntity.setPackageName(xmlPackage.getName());
 
             systemVariablesMapper.insert(systemVariableEntity);
         }
+    }
+
+    private String buildSystemVariableSource(PluginPackages pluginPackageEntity) {
+        String source = String.format("%s-%s:%s", pluginPackageEntity.getName(), pluginPackageEntity.getVersion(),
+                pluginPackageEntity.getId());
+        return source;
     }
 
     private void processPluginConfigs(PluginsType xmlPlugins, PackageType xmlPackage,
