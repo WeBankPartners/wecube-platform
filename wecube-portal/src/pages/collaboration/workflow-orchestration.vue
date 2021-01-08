@@ -1,6 +1,6 @@
 <template>
   <div>
-    <Row style="height:40px">
+    <Row style="margin-bottom:8px">
       <Col span="9">
         <span style="margin-right: 10px">{{ $t('flow_name') }}</span>
         <Select clearable v-model="selectedFlow" style="width: 60%" @on-open-change="getAllFlows" filterable>
@@ -99,8 +99,12 @@
           >
             <Row>
               <Col span="8">
-                <FormItem :label="$t('plugin_type')" prop="serviceName">
-                  <Select filterable clearable v-model="pluginForm.taskCategory">
+                <FormItem prop="serviceName">
+                  <label slot="label"
+                    >{{ $t('plugin_type') }}
+                    <span class="requires-tip">*</span>
+                  </label>
+                  <Select filterable v-model="pluginForm.taskCategory">
                     <Option v-for="(item, index) in taskCategoryList" :value="item.value" :key="index">{{
                       item.label
                     }}</Option>
@@ -108,9 +112,14 @@
                 </FormItem>
               </Col>
               <Col span="16">
-                <FormItem :label="$t('locate_rules')" prop="routineExpression">
+                <FormItem prop="routineExpression">
+                  <label slot="label"
+                    >{{ $t('locate_rules') }}
+                    <span class="requires-tip">*</span>
+                  </label>
                   <FilterRules
                     :needAttr="true"
+                    ref="filterRules"
                     v-model="pluginForm.routineExpression"
                     :allDataModelsWithAttrs="allEntityType"
                   ></FilterRules>
@@ -119,14 +128,19 @@
             </Row>
             <Row>
               <Col span="8">
-                <FormItem :label="$t('plugin')" prop="serviceName">
+                <FormItem prop="serviceName">
+                  <label slot="label"
+                    >{{ $t('plugin') }}
+                    <span class="requires-tip">*</span>
+                  </label>
                   <Select
                     filterable
                     clearable
                     v-model="pluginForm.serviceId"
-                    @on-open-change="getFilteredPluginInterfaceList(pluginForm.routineExpression)"
+                    @on-open-change="getPlugin"
                     @on-change="changePluginInterfaceList"
                   >
+                    <!-- @on-open-change="getFilteredPluginInterfaceList(val, pluginForm.routineExpression)" -->
                     <Option v-for="(item, index) in filteredPlugins" :value="item.serviceName" :key="index">{{
                       item.serviceDisplayName
                     }}</Option>
@@ -134,8 +148,12 @@
                 </FormItem>
               </Col>
               <Col span="8">
-                <FormItem :label="$t('timeout')" prop="timeoutExpression">
-                  <Select clearable v-model="pluginForm.timeoutExpression">
+                <FormItem prop="timeoutExpression">
+                  <label slot="label"
+                    >{{ $t('timeout') }}
+                    <span class="requires-tip">*</span>
+                  </label>
+                  <Select v-model="pluginForm.timeoutExpression">
                     <Option v-for="(item, index) in timeSelection" :value="item.mins" :key="index"
                       >{{ item.label }}
                     </Option>
@@ -148,6 +166,30 @@
                 </FormItem>
               </Col>
             </Row>
+            <Row>
+              <Col span="8">
+                <FormItem prop="dynamicBind">
+                  <label slot="label"
+                    >{{ $t('dynamic_bind') }}
+                    <span class="requires-tip">*</span>
+                  </label>
+                  <Select v-model="pluginForm.dynamicBind">
+                    <Option v-for="item in yOn" :value="item" :key="item">{{ item }}</Option>
+                  </Select>
+                </FormItem>
+              </Col>
+              <Col span="8">
+                <FormItem prop="preCheck">
+                  <label slot="label"
+                    >{{ $t('pre_check') }}
+                    <span class="requires-tip">*</span>
+                  </label>
+                  <Select v-model="pluginForm.preCheck">
+                    <Option v-for="item in yOn" :value="item" :key="item">{{ item }}</Option>
+                  </Select>
+                </FormItem>
+              </Col>
+            </Row>
             <hr style="margin-bottom: 8px" />
             <FormItem
               :label="item.paramName"
@@ -155,6 +197,10 @@
               v-for="(item, index) in pluginForm.paramInfos"
               :key="index"
             >
+              <label slot="label" v-if="item.bindType === 'context' && item.required === 'Y'"
+                >{{ item.paramName }}
+                <span class="requires-tip">*</span>
+              </label>
               <Select
                 filterable
                 clearable
@@ -175,9 +221,12 @@
               >
                 <Option v-for="i in paramsTypes" :value="i.value" :key="i.value">{{ i.label }}</Option>
               </Select>
-              <Select filterable v-if="item.bindType === 'context'" v-model="item.bindParamName" style="width:30%">
+              <Select filterable v-if="item.bindType === 'context'" v-model="item.bindValue" style="width:30%">
                 <Option v-for="i in item.currentParamNames" :value="i.name" :key="i.name">{{ i.name }}</Option>
               </Select>
+              <label v-if="item.bindType === 'context' && item.required === 'Y'">
+                <span class="requires-tip">*</span>
+              </label>
               <Input v-if="item.bindType === 'constant'" v-model="item.bindValue" />
             </FormItem>
             <FormItem>
@@ -215,7 +264,7 @@
         ></Transfer>
       </div>
       <div slot="footer">
-        <Button type="primary" @click="confirmRole">{{ $t('close') }}</Button>
+        <Button type="primary" @click="confirmRole">{{ $t('bc_confirm') }}</Button>
       </div>
     </Modal>
   </div>
@@ -251,16 +300,13 @@ import {
   getFlowNodes,
   getParamsInfosByFlowIdAndNodeId,
   getAllDataModels,
-  // getPluginInterfaceList,
   removeProcessDefinition,
-  // getFilteredPluginInterfaceList,
   getPluginsByTargetEntityFilterRule,
   exportProcessDefinitionWithId,
   getRolesByCurrentUser,
   getRoleList,
   getPermissionByProcessId,
-  updateFlowPermission,
-  deleteFlowPermission
+  updateFlowPermission
 } from '@/api/server.js'
 
 function setCTM (node, m) {
@@ -280,6 +326,7 @@ export default {
   },
   data () {
     return {
+      yOn: ['Y', 'N'],
       splitPanal: 1,
       show: false,
       taskCategoryList: [
@@ -321,12 +368,14 @@ export default {
       routineExpressionCache: '',
       defaultPluginForm: {
         description: '',
+        dynamicBind: 'N',
         nodeDefId: '',
         nodeId: '',
         nodeName: '',
         nodeType: '',
         orderedNo: '',
         paramInfos: [],
+        preCheck: 'N',
         procDefId: '',
         procDefKey: '',
         routineExpression: '',
@@ -334,6 +383,7 @@ export default {
         serviceId: '',
         serviceName: '',
         status: '',
+        taskCategory: 'SSTN',
         timeoutExpression: '30'
       },
       serviceTaskBindInfos: [],
@@ -453,28 +503,10 @@ export default {
       return item.label
     },
     handleMgmtRoleTransferChange (newTargetKeys, direction, moveKeys) {
-      if (this.isAdd) {
-        this.mgmtRolesKeyToFlow = newTargetKeys
-      } else {
-        if (direction === 'right') {
-          this.updateFlowPermission(this.currentSettingFlow, moveKeys, 'mgmt')
-        } else {
-          this.deleteFlowPermission(this.currentSettingFlow, moveKeys, 'mgmt')
-        }
-        this.mgmtRolesKeyToFlow = newTargetKeys
-      }
+      this.mgmtRolesKeyToFlow = newTargetKeys
     },
     handleUseRoleTransferChange (newTargetKeys, direction, moveKeys) {
-      if (this.isAdd) {
-        this.useRolesKeyToFlow = newTargetKeys
-      } else {
-        if (direction === 'right') {
-          this.updateFlowPermission(this.currentSettingFlow, moveKeys, 'use')
-        } else {
-          this.deleteFlowPermission(this.currentSettingFlow, moveKeys, 'use')
-        }
-        this.useRolesKeyToFlow = newTargetKeys
-      }
+      this.useRolesKeyToFlow = newTargetKeys
     },
     async updateFlowPermission (proId, roleId, type) {
       const payload = {
@@ -482,24 +514,6 @@ export default {
         roleId: roleId
       }
       const { status, message } = await updateFlowPermission(proId, payload)
-      if (status === 'OK') {
-        this.$Notice.success({
-          title: 'Success',
-          desc: message
-        })
-      } else {
-        this.$Notice.error({
-          title: 'Fail',
-          desc: message
-        })
-      }
-    },
-    async deleteFlowPermission (proId, roleId, type) {
-      const payload = {
-        permission: type,
-        roleId: roleId
-      }
-      const { status, message } = await deleteFlowPermission(proId, payload)
       if (status === 'OK') {
         this.$Notice.success({
           title: 'Success',
@@ -525,14 +539,34 @@ export default {
         this.useRolesKeyToFlow = data.USE
       }
     },
-    confirmRole () {
+    async confirmRole () {
       if (this.mgmtRolesKeyToFlow.length) {
-        this.flowRoleManageModal = false
-        // this.showBpmn = true
+        if (this.isAdd) {
+          this.flowRoleManageModal = false
+        } else {
+          this.updatePermission(this.currentSettingFlow)
+        }
       } else {
         this.$Message.warning(this.$t('mgmt_role_warning'))
-        // this.showBpmn = false
         this.isAdd = false
+      }
+    },
+    async updatePermission (id) {
+      const payload = {
+        permissionToRole: { MGMT: this.mgmtRolesKeyToFlow, USE: this.useRolesKeyToFlow }
+      }
+      const { status, message } = await updateFlowPermission(id, payload)
+      if (status === 'OK') {
+        this.$Notice.success({
+          title: 'Success',
+          desc: message
+        })
+        this.flowRoleManageModal = false
+      } else {
+        this.$Notice.error({
+          title: 'Fail',
+          desc: message
+        })
       }
     },
     async getRoleList () {
@@ -541,7 +575,7 @@ export default {
         this.allRolesBackUp = data.map(_ => {
           return {
             ..._,
-            key: _.id,
+            key: _.name,
             label: _.displayName
           }
         })
@@ -553,7 +587,7 @@ export default {
         this.currentUserRoles = data.map(_ => {
           return {
             ..._,
-            key: _.id,
+            key: _.name,
             label: _.displayName
           }
         })
@@ -570,8 +604,25 @@ export default {
         this.allEntityType = data
       }
     },
+    async getPlugin (status) {
+      if (status) {
+        await this.getFilteredPluginInterfaceList(this.pluginForm.routineExpression)
+      }
+    },
     async getFilteredPluginInterfaceList (path) {
+      // 相同定位规则使用缓存数据
       if (path === this.routineExpressionCache) {
+        return
+      }
+      const lastSelectType = this.$refs.filterRules && this.$refs.filterRules.lastSelectType
+      // 上下游节点不请求插件信息
+      if (lastSelectType === 'up' || lastSelectType === 'down') {
+        this.$Notice.warning({
+          title: 'Warning',
+          desc: this.$t('obtain_plugin_warn')
+        })
+        this.pluginForm.serviceId = ''
+        this.filteredPlugins = []
         return
       }
       let pkg = ''
@@ -613,6 +664,7 @@ export default {
     },
     async changePluginInterfaceList (val) {
       let found = this.filteredPlugins.find(_ => _.serviceName === this.pluginForm.serviceId)
+      this.pluginForm.paramInfos = {}
       if (found) {
         let needParams = found.inputParameters.filter(_ => _.mappingType === 'context' || _.mappingType === 'constant')
         this.pluginForm.paramInfos = needParams.map(_ => {
@@ -622,35 +674,12 @@ export default {
             bindParamType: 'INPUT',
             bindParamName: '',
             bindType: _.mappingType,
-            bindValue: ''
+            bindValue: '',
+            required: _.required
           }
         })
       }
     },
-    // async getPluginInterfaceList (isUseOriginParamsInfo = true) {
-    //   let { status, data } = await getPluginInterfaceList()
-    //   if (status === 'OK') {
-    //     this.allPlugins = data
-
-    //     let found = data.find(_ => _.serviceName === this.pluginForm.serviceId)
-    //     if (found) {
-    //       let needParams = found.inputParameters.filter(
-    //         _ => _.mappingType === 'context' || _.mappingType === 'constant'
-    //       )
-    //       if (isUseOriginParamsInfo) return
-    //       this.pluginForm.paramInfos = needParams.map(_ => {
-    //         return {
-    //           paramName: _.name,
-    //           bindNodeId: '',
-    //           bindParamType: 'INPUT',
-    //           bindParamName: '',
-    //           bindType: _.mappingType,
-    //           bindValue: ''
-    //         }
-    //       })
-    //     }
-    //   }
-    // },
     async getAllFlows (s) {
       if (s) {
         const { data, status } = await getAllFlow()
@@ -721,14 +750,13 @@ export default {
       })
     },
     createNewDiagram () {
+      this.newFlowID = 'wecube' + Date.now()
       this.isAdd = true
-      this.flowRoleManageModal = true
       this.mgmtRolesKeyToFlow = []
       this.useRolesKeyToFlow = []
       this.currentSelectedEntity = ''
       this.pluginForm = { ...this.defaultPluginForm }
       this.currentFlow = {}
-      this.newFlowID = 'wecube' + Date.now()
       const bpmnXmlStr =
         '<?xml version="1.0" encoding="UTF-8"?>\n' +
         '<bpmn2:definitions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:bpmn2="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xsi:schemaLocation="http://www.omg.org/spec/BPMN/20100524/MODEL BPMN20.xsd" id="sample-diagram" targetNamespace="http://bpmn.io/schema/bpmn">\n' +
@@ -751,6 +779,7 @@ export default {
       this.$nextTick(() => {
         this.selectedFlow = null
       })
+      this.flowRoleManageModal = true
     },
     saveDiagram (isDraft) {
       let _this = this
@@ -818,6 +847,9 @@ export default {
       let found = this.filteredPlugins.find(_ => _.serviceName === this.pluginForm.serviceId)
 
       let pluginFormCopy = JSON.parse(JSON.stringify(this.pluginForm))
+      // 校验必填项
+      const res = this.checkSaveParams(pluginFormCopy)
+      if (!res) return
       this.serviceTaskBindInfos.push({
         ...pluginFormCopy,
         nodeDefId: this.currentNode.nodeDefId,
@@ -828,6 +860,27 @@ export default {
         taskCategory: pluginFormCopy.taskCategory
       })
       this.saveDiagram(true)
+    },
+    checkSaveParams (pluginFormCopy) {
+      if (!pluginFormCopy.routineExpression) {
+        this.$Message.warning(this.$t('locate_rules') + ' ' + this.$t('required'))
+        return false
+      }
+      if (!pluginFormCopy.serviceId) {
+        this.$Message.warning(this.$t('plugin') + ' ' + this.$t('required'))
+        return false
+      }
+      let hasvalue = true
+      pluginFormCopy.paramInfos.forEach(item => {
+        if (item.required === 'Y' && item.bindValue === '') {
+          this.$Message.warning(item.paramName + ' ' + this.$t('required'))
+          hasvalue = false
+        }
+      })
+      if (!hasvalue) {
+        return false
+      }
+      return true
     },
     async openPluginModal (e) {
       if (!this.currentSelectedEntity) {
@@ -841,6 +894,8 @@ export default {
             this.currentFlow.taskNodeInfos &&
             this.currentFlow.taskNodeInfos.find(_ => _.nodeId === this.currentNode.id)) ||
           this.prepareDefaultPluginForm()
+        this.pluginForm.dynamicBind = this.pluginForm.dynamicBind || 'N'
+        this.pluginForm.preCheck = this.pluginForm.preCheck || 'N'
         // 实体类型条件不带入节点中
         let rootEntity = this.currentSelectedEntity.split('{')[0]
         this.pluginForm.routineExpression = this.pluginForm.routineExpression || rootEntity
@@ -853,7 +908,15 @@ export default {
 
         // get flow's params infos
         this.getFlowsNodes()
-        this.getFilteredPluginInterfaceList(this.pluginForm.routineExpression)
+        await this.getFilteredPluginInterfaceList(this.pluginForm.routineExpression)
+        const nodeOrigin = this.filteredPlugins.find(item => item.serviceName === this.pluginForm.serviceName)
+        this.pluginForm.paramInfos.forEach(pItem => {
+          nodeOrigin.inputParameters.forEach(oItem => {
+            if (pItem.paramName === oItem.name) {
+              pItem.required = oItem.required
+            }
+          })
+        })
         this.$nextTick(() => {
           this.show = e.target.tagName === 'rect'
         })
@@ -1033,6 +1096,10 @@ export default {
 }
 </script>
 <style lang="scss">
+.requires-tip {
+  color: red;
+  vertical-align: middle;
+}
 .containers {
   position: absolute;
   background-color: white;
