@@ -167,4 +167,4 @@ export const createWorkflowInstanceTerminationRequest = data =>
 export const getTaskNodeInstanceExecBindings = data =>
   req.get(`/platform/v1/process/instances/${data.procInstId}/tasknodes/${data.nodeInstId}/tasknode-bindings`)
 export const updateTaskNodeInstanceExecBindings = data =>
-  req.post(`platform/v1/process/instances/${data.procInstId}/tasknodes/${data.nodeInstId}/tasknode-bindings`, data)
+  req.post(`platform/v1/process/instances/${data.procInstId}/tasknodes/${data.nodeInstId}/tasknode-bindings`, data.data)
