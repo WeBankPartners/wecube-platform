@@ -456,5 +456,9 @@
   "parameter_configuration": "Parameter Configuration",
   "stop_orch": "Stop",
   "partial_retry": "Partial Retry",
-  "data_selection": "Data selection"
+  "data_selection": "Data selection",
+  "dynamic_bind": "Dynamic Bind",
+  "pre_check": "Its Dangerous",
+  "required": "Required",
+  "obtain_plugin_warn": "The positioning rule cannot obtain plugins"
 }

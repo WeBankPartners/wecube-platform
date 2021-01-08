@@ -13,7 +13,7 @@ import com.webank.wecube.platform.workflow.commons.LocalIdGenerator;
 import com.webank.wecube.platform.workflow.entity.ServiceNodeStatusEntity;
 import com.webank.wecube.platform.workflow.model.NodeType;
 import com.webank.wecube.platform.workflow.model.TraceStatus;
-import com.webank.wecube.platform.workflow.repository.ServiceNodeStatusRepository;
+import com.webank.wecube.platform.workflow.repository.ServiceNodeStatusMapper;
 
 /**
  * 
@@ -42,16 +42,16 @@ public class UserTaskStartListener implements ExecutionListener {
         entity.setCreatedTime(currTime);
         entity.setId(LocalIdGenerator.generateId());
         entity.setNodeId(execution.getCurrentActivityId());
-        entity.setNodeInstanceId(execution.getActivityInstanceId());
+        entity.setNodeInstId(execution.getActivityInstanceId());
         entity.setNodeName(execution.getCurrentActivityName());
         entity.setNodeType(NodeType.USER_TASK);
-        entity.setProcInstanceBizKey(execution.getProcessBusinessKey());
-        entity.setProcInstanceId(execution.getProcessInstanceId());
+        entity.setProcInstKey(execution.getProcessBusinessKey());
+        entity.setProcInstId(execution.getProcessInstanceId());
         entity.setStartTime(currTime);
         entity.setStatus(TraceStatus.InProgress);
         entity.setTryTimes(0);
 
-        SpringApplicationContextUtil.getBean(ServiceNodeStatusRepository.class).saveAndFlush(entity);
+        SpringApplicationContextUtil.getBean(ServiceNodeStatusMapper.class).insert(entity);
     }
 
 }
