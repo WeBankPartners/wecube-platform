@@ -21,9 +21,18 @@ import com.webank.wecube.platform.core.service.dme.EntityOperationRootCondition;
 import com.webank.wecube.platform.core.service.workflow.PluginInvocationProcessor.PluginInterfaceInvocationContext;
 import com.webank.wecube.platform.workflow.WorkflowConstants;
 
+/**
+ * 
+ * @author gavin
+ *
+ */
 @Service
 public class AsyncPluginInvocationService extends AbstractPluginInvocationService {
 
+    /**
+     * 
+     * @param asyncResultDto
+     */
     public void handleAsyncInvocationResult(PluginAsyncInvocationResultDto asyncResultDto) {
         validate(asyncResultDto);
 
