@@ -41,6 +41,9 @@
                 </Option>
               </Select>
               <Button type="info" @click="queryHandler">{{ $t('query_orch') }}</Button>
+              <Button :disabled="currentInstanceStatus || stopSuccess" type="warning" @click="stopHandler">{{
+                $t('stop_orch')
+              }}</Button>
             </FormItem>
             <Col v-if="!isEnqueryPage" span="7">
               <FormItem :label-width="100" :label="$t('select_orch')">
@@ -174,14 +177,48 @@
       :scrollable="true"
     >
       <div class="workflowActionModal-container" style="text-align: center;margin-top: 20px;">
-        <Button type="info" @click="workFlowActionHandler('retry')" :loading="btnLoading">{{ $t('retry') }}</Button>
-        <Button type="warning" @click="workFlowActionHandler('skip')" :loading="btnLoading" style="margin-left: 20px">{{
+        <!-- <Button type="primary" @click="workFlowActionHandler('dataSelection')" :loading="btnLoading">{{
+          $t('data_selection')
+        }}</Button> -->
+        <Button type="primary" @click="workFlowActionHandler('partialRetry')" :loading="btnLoading">{{
+          $t('partial_retry')
+        }}</Button>
+        <Button type="info" @click="workFlowActionHandler('retry')" :loading="btnLoading" style="margin-left: 10px">{{
+          $t('retry')
+        }}</Button>
+        <Button type="warning" @click="workFlowActionHandler('skip')" :loading="btnLoading" style="margin-left: 10px">{{
           $t('skip')
         }}</Button>
-        <Button type="info" @click="workFlowActionHandler('showlog')" style="margin-left: 20px">{{
+        <Button type="info" @click="workFlowActionHandler('showlog')" style="margin-left: 10px">{{
           $t('show_log')
         }}</Button>
       </div>
+    </Modal>
+    <Modal
+      :title="currentNodeTitle"
+      v-model="retryTargetModalVisible"
+      :scrollable="true"
+      :mask="false"
+      :mask-closable="false"
+      :ok-text="$t('submit')"
+      class="model_target"
+      width="50"
+      @on-ok="retryTargetModelConfirm"
+    >
+      <Input v-model="retryTableFilterParam" placeholder="displayName filter" style="width: 300px;margin-bottom:8px;" />
+      {{ retryCatchNodeTableList.length }}
+      <Table
+        border
+        ref="selection"
+        max-height="350"
+        @on-select="retrySingleSelect"
+        @on-select-cancel="retrySingleCancel"
+        @on-select-all-cancel="retrySelectAllCancel"
+        @on-select-all="retrySelectAll"
+        :columns="retryTargetModelColums"
+        :data="retryTartetModels"
+      >
+      </Table>
     </Modal>
     <Modal
       :title="currentNodeTitle"
@@ -267,7 +304,10 @@ import {
   setDataByNodeDefIdAndProcessSessionId,
   getAllBindingsProcessSessionId,
   getTargetModelByProcessDefId,
-  getPreviewEntitiesByInstancesId
+  getPreviewEntitiesByInstancesId,
+  createWorkflowInstanceTerminationRequest,
+  getTaskNodeInstanceExecBindings,
+  updateTaskNodeInstanceExecBindings
 } from '@/api/server'
 import * as d3 from 'd3-selection'
 // eslint-disable-next-line no-unused-vars
@@ -311,8 +351,11 @@ export default {
       isEnqueryPage: false,
       workflowActionModalVisible: false,
       targetModalVisible: false,
+      retryTargetModalVisible: false,
       tableFilterParam: null,
+      retryTableFilterParam: null,
       tartetModels: [],
+      retryTartetModels: [],
       catchTartetModels: [],
       flowNodesWithModelDataColums: [
         {
@@ -347,6 +390,29 @@ export default {
         {
           title: 'NodeName',
           slot: 'nodeTitle'
+        }
+      ],
+      retryTargetModelColums: [
+        {
+          type: 'selection',
+          width: 60,
+          align: 'center'
+        },
+        {
+          title: 'PackageName',
+          key: 'packageName'
+        },
+        {
+          title: 'EntityName',
+          key: 'entityName'
+        },
+        {
+          title: 'DisplayName',
+          key: 'entityDisplayName'
+        },
+        {
+          title: 'Status',
+          key: 'entityStatus'
         }
       ],
       targetModelColums: [
@@ -423,17 +489,56 @@ export default {
       flowDetailTimer: null,
       isLoading: false,
       catchNodeTableList: [],
+      retryCatchNodeTableList: [],
       processSessionId: '',
       allBindingsList: [],
-      isShowExect: false // 模型查询返回，激活执行按钮
+      isShowExect: false, // 模型查询返回，激活执行按钮
+      stopSuccess: false
+    }
+  },
+  computed: {
+    currentInstanceStatus () {
+      if (this.selectedFlowInstance.length === 0) {
+        return true
+      }
+      const found = this.allFlowInstances.find(_ => _.id === this.selectedFlowInstance)
+      if (found && (found.status === 'Completed' || found.status === 'InternallyTerminated')) {
+        return true
+      } else {
+        return false
+      }
     }
   },
   watch: {
+    selectedFlowInstance: {
+      handler (val, oldVal) {
+        if (val !== oldVal) {
+          this.stopSuccess = false
+        }
+      }
+    },
     targetModalVisible: function (val) {
       this.tableFilterParam = null
       if (!val) {
         this.catchNodeTableList = []
       }
+    },
+    retryTableFilterParam: function (filter) {
+      if (!filter) {
+        this.retryTartetModels = this.retryCatchNodeTableList
+      } else {
+        this.retryTartetModels = this.retryCatchNodeTableList.filter(item => {
+          return item.entityDisplayName.includes(filter)
+        })
+      }
+      this.retryTartetModels.forEach(tm => {
+        tm._checked = false
+        this.retryCatchNodeTableList.forEach(cn => {
+          if (tm.id === cn.id) {
+            tm._checked = true
+          }
+        })
+      })
     },
     tableFilterParam: function (filter) {
       if (!filter) {
@@ -465,6 +570,24 @@ export default {
     clearInterval(this.timer)
   },
   methods: {
+    async stopHandler () {
+      // createWorkflowInstanceTerminationRequest
+      const instance = this.allFlowInstances.find(_ => _.id === this.selectedFlowInstance)
+      console.log(instance, this.selectedFlowInstance)
+      const payload = {
+        procInstId: this.selectedFlowInstance,
+        procInstKey: instance.procInstKey
+      }
+      const { status } = await createWorkflowInstanceTerminationRequest(payload)
+      if (status === 'OK') {
+        this.getProcessInstances()
+        this.stopSuccess = true
+        this.$Notice.success({
+          title: 'Success',
+          desc: 'Success'
+        })
+      }
+    },
     tabChanged (v) {
       // create_new_workflow_job   enquery_new_workflow_job
       this.currentTab = v
@@ -479,6 +602,39 @@ export default {
       const { status, data } = await getModelNodeDetail(row.entityName, row.dataId)
       if (status === 'OK') {
         this.rowContent = data
+      }
+    },
+    async retryTargetModelConfirm (visible) {
+      const found = this.flowData.flowNodes.find(_ => _.nodeId === this.currentFailedNodeID)
+      let tem = []
+      this.retryTartetModels.forEach(d => {
+        const f = this.retryCatchNodeTableList.find(c => c.id === d.id)
+        if (f) {
+          tem.push({ ...d, bound: 'Y' })
+        } else {
+          tem.push({ ...d, bound: 'N' })
+        }
+      })
+      const payload = {
+        nodeInstId: found.id,
+        procInstId: found.procInstId,
+        data: tem
+      }
+      const { status } = await updateTaskNodeInstanceExecBindings(payload)
+      if (status === 'OK') {
+        const retry = await retryProcessInstance({
+          act: 'retry',
+          nodeInstId: found.id,
+          procInstId: found.procInstId
+        })
+        if (retry.status === 'OK') {
+          this.$Notice.success({
+            title: 'Success',
+            desc: 'Retry' + ' action is proceed successfully'
+          })
+          this.workflowActionModalVisible = false
+          this.processInstance()
+        }
       }
     },
     async targetModelConfirm (visible) {
@@ -521,6 +677,39 @@ export default {
         })
       } else {
         this.catchNodeTableList = []
+      }
+    },
+    retrySingleSelect (selection, row) {
+      this.retryCatchNodeTableList = this.retryCatchNodeTableList.concat(row)
+    },
+    retrySingleCancel (selection, row) {
+      const index = this.retryCatchNodeTableList.findIndex(cn => {
+        return cn.id === row.id
+      })
+      this.retryCatchNodeTableList.splice(index, 1)
+    },
+    retrySelectAll (selection) {
+      let temp = []
+      this.retryCatchNodeTableList.forEach(cntl => {
+        temp.push(cntl.id)
+      })
+      selection.forEach(se => {
+        if (!temp.includes(se.id)) {
+          this.retryCatchNodeTableList.push(se)
+        }
+      })
+    },
+    retrySelectAllCancel () {
+      let temp = []
+      this.retryTartetModels.forEach(tm => {
+        temp.push(tm.id)
+      })
+      if (this.retryTableFilterParam) {
+        this.retryCatchNodeTableList = this.retryCatchNodeTableList.filter(item => {
+          return !temp.includes(item.id)
+        })
+      } else {
+        this.retryCatchNodeTableList = []
       }
     },
     allFlowNodesSingleSelect (selection, row) {
@@ -688,6 +877,7 @@ export default {
       this.allBindingsList = filter.concat(payload)
     },
     async getProcessInstances (isAfterCreate = false, createResponse = undefined) {
+      this.allFlowInstances = []
       let { status, data } = await getProcessInstances()
       if (status === 'OK') {
         this.allFlowInstances = data.sort((a, b) => {
@@ -1183,6 +1373,7 @@ export default {
           this.renderModelGraph()
         }
         if (data.status === 'Completed') {
+          this.stopSuccess = true
           this.stop()
         }
       }
@@ -1243,7 +1434,7 @@ export default {
           },
           onCancel: () => {}
         })
-      } else {
+      } else if (type === 'retry') {
         const payload = {
           act: type,
           nodeInstId: found.id,
@@ -1263,6 +1454,29 @@ export default {
           this.workflowActionModalVisible = false
           this.processInstance()
         }
+      } else {
+        const payload = {
+          nodeInstId: found.id,
+          procInstId: found.procInstId
+        }
+        this.currentNodeTitle = `${found.orderedNo}、${found.nodeName}`
+        this.getTaskNodeInstanceExecBindings(payload)
+        this.retryTargetModalVisible = true
+      }
+    },
+    async getTaskNodeInstanceExecBindings (payload) {
+      const { status, data } = await getTaskNodeInstanceExecBindings(payload)
+      if (status === 'OK') {
+        this.retryTartetModels = data
+        this.retryCatchNodeTableList = JSON.parse(JSON.stringify(data))
+        this.retryTartetModels.forEach(tm => {
+          tm._checked = false
+          this.retryCatchNodeTableList.forEach(cn => {
+            if (tm.id === cn.id && tm.bound === 'Y') {
+              tm._checked = true
+            }
+          })
+        })
       }
     },
     bindFlowEvent () {
