@@ -162,3 +162,9 @@ export const getConfigByPkgId = id => req.get(`/platform/v1/packages/${id}/plugi
 export const updateConfigStatus = (id, data) =>
   req.post(`/platform/v1/packages/${id}/plugin-configs/enable-in-batch`, data)
 export const resetPassword = data => req.post(`platform/v1/users/reset-password`, data)
+export const createWorkflowInstanceTerminationRequest = data =>
+  req.post(`platform/v1/public/process/instances/${data.procInstId}/terminations`, data)
+export const getTaskNodeInstanceExecBindings = data =>
+  req.get(`/platform/v1/process/instances/${data.procInstId}/tasknodes/${data.nodeInstId}/tasknode-bindings`)
+export const updateTaskNodeInstanceExecBindings = data =>
+  req.post(`platform/v1/process/instances/${data.procInstId}/tasknodes/${data.nodeInstId}/tasknode-bindings`, data.data)
