@@ -119,6 +119,7 @@
                   </label>
                   <FilterRules
                     :needAttr="true"
+                    ref="filterRules"
                     v-model="pluginForm.routineExpression"
                     :allDataModelsWithAttrs="allEntityType"
                   ></FilterRules>
@@ -136,9 +137,10 @@
                     filterable
                     clearable
                     v-model="pluginForm.serviceId"
-                    @on-open-change="getFilteredPluginInterfaceList(pluginForm.routineExpression)"
+                    @on-open-change="getPlugin"
                     @on-change="changePluginInterfaceList"
                   >
+                    <!-- @on-open-change="getFilteredPluginInterfaceList(val, pluginForm.routineExpression)" -->
                     <Option v-for="(item, index) in filteredPlugins" :value="item.serviceName" :key="index">{{
                       item.serviceDisplayName
                     }}</Option>
@@ -298,9 +300,7 @@ import {
   getFlowNodes,
   getParamsInfosByFlowIdAndNodeId,
   getAllDataModels,
-  // getPluginInterfaceList,
   removeProcessDefinition,
-  // getFilteredPluginInterfaceList,
   getPluginsByTargetEntityFilterRule,
   exportProcessDefinitionWithId,
   getRolesByCurrentUser,
@@ -604,8 +604,25 @@ export default {
         this.allEntityType = data
       }
     },
+    async getPlugin (status) {
+      if (status) {
+        await this.getFilteredPluginInterfaceList(this.pluginForm.routineExpression)
+      }
+    },
     async getFilteredPluginInterfaceList (path) {
+      // 相同定位规则使用缓存数据
       if (path === this.routineExpressionCache) {
+        return
+      }
+      const lastSelectType = this.$refs.filterRules && this.$refs.filterRules.lastSelectType
+      // 上下游节点不请求插件信息
+      if (lastSelectType === 'up' || lastSelectType === 'down') {
+        this.$Notice.warning({
+          title: 'Warning',
+          desc: this.$t('obtain_plugin_warn')
+        })
+        this.pluginForm.serviceId = ''
+        this.filteredPlugins = []
         return
       }
       let pkg = ''
