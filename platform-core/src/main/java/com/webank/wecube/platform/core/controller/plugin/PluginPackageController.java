@@ -5,8 +5,6 @@ import static com.webank.wecube.platform.core.dto.plugin.CommonResponseDto.okayW
 
 import java.util.List;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -17,7 +15,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.webank.wecube.platform.core.commons.WecubeCoreException;
 import com.webank.wecube.platform.core.dto.plugin.CommonResponseDto;
 import com.webank.wecube.platform.core.dto.plugin.MenuItemDto;
 import com.webank.wecube.platform.core.dto.plugin.PluginDeclarationDto;
@@ -34,7 +31,6 @@ import com.webank.wecube.platform.core.service.plugin.PluginPackageMgmtService;
 @RestController
 @RequestMapping("/v1")
 public class PluginPackageController {
-    private static final Logger log = LoggerFactory.getLogger(PluginPackageController.class);
 
     @Autowired
     private PluginPackageMgmtService pluginPackageMgmtService;
@@ -110,13 +106,8 @@ public class PluginPackageController {
      */
     @PostMapping("/packages/register/{package-id:.+}")
     public CommonResponseDto registerPluginPackage(@PathVariable(value = "package-id") String packageId) {
-        try {
-            PluginPackageInfoDto pluginPackage = pluginPackageMgmtService.registerPluginPackage(packageId);
-            return okayWithData(pluginPackage);
-        } catch (Exception e) {
-            String msg = String.format("Failed to register plugin package with error message [%s]", e.getMessage());
-            throw new WecubeCoreException("3307", msg, e.getMessage());
-        }
+        PluginPackageInfoDto pluginPackage = pluginPackageMgmtService.registerPluginPackage(packageId);
+        return okayWithData(pluginPackage);
     }
 
     /**
@@ -126,13 +117,7 @@ public class PluginPackageController {
      */
     @PostMapping("/packages/decommission/{package-id:.+}")
     public CommonResponseDto decommissionPluginPackage(@PathVariable(value = "package-id") String packageId) {
-        try {
-            pluginPackageMgmtService.decommissionPluginPackage(packageId);
-        } catch (Exception e) {
-            log.error("errors to decommission plugin package {}", packageId, e);
-            String msg = String.format("Failed to decommission plugin package with error message [%s]", e.getMessage());
-            throw new WecubeCoreException("3308", msg, e.getMessage());
-        }
+        pluginPackageMgmtService.decommissionPluginPackage(packageId);
         return okay();
     }
 
