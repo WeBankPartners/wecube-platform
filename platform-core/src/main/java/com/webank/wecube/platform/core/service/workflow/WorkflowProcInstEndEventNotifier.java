@@ -34,6 +34,12 @@ public class WorkflowProcInstEndEventNotifier {
     @Autowired
     private ApplicationProperties applicationProperties;
 
+    /**
+     * 
+     * @param event
+     * @param cmd
+     * @param procInstEntity
+     */
     public void notify(WorkflowNotifyEvent event, PluginInvocationCommand cmd, ProcInstInfoEntity procInstEntity) {
         List<OperationEventEntity> operationEventEntities = operationEventRepository
                 .selectAllByProcInstKey(procInstEntity.getProcInstKey());
