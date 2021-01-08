@@ -177,6 +177,7 @@ public class WorkflowProcDefService extends AbstractWorkflowProcDefService {
         fDto.setOrderedNo(nodeEntity.getOrderedNo());
         fDto.setRoutineExpression(nodeEntity.getRoutineExp());
         fDto.setServiceId(nodeEntity.getServiceId());
+        fDto.setDynamicBind(nodeEntity.getDynamicBind());
 
         List<String> previousNodeIds = unmarshalNodeIds(nodeEntity.getPrevNodeIds());
         previousNodeIds.forEach(n -> fDto.addPreviousNodeIds(n));

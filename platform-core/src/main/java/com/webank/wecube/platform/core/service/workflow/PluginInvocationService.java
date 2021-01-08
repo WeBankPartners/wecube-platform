@@ -155,8 +155,6 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 
     }
 
-    
-
     /**
      * 
      * @param cmd
@@ -180,9 +178,10 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
             updateTaskNodeInstInfoEntityFaulted(taskNodeInstEntity, e);
         }
     }
-    
+
     /**
      * handle results of plugin interface invocation.
+     * 
      * @param pluginInvocationResult
      * @param ctx
      */
@@ -255,7 +254,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
         Map<Object, Object> externalCacheMap = new HashMap<>();
         TaskNodeDefInfoEntity taskNodeDefEntity = retrieveTaskNodeDefInfoEntity(procInstEntity.getProcDefId(),
                 cmd.getNodeId());
-        
+
         List<ProcExecBindingEntity> nodeObjectBindings = null;
         if (TaskNodeDefInfoEntity.DYNAMIC_BIND_YES.equalsIgnoreCase(taskNodeDefEntity.getDynamicBind())) {
             nodeObjectBindings = dynamicCalculateTaskNodeExecBindings(taskNodeDefEntity, procInstEntity,
@@ -304,7 +303,8 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
     private List<ProcExecBindingEntity> dynamicCalculateTaskNodeExecBindings(TaskNodeDefInfoEntity taskNodeDefEntity,
             ProcInstInfoEntity procInstEntity, TaskNodeInstInfoEntity taskNodeInstEntity, PluginInvocationCommand cmd,
             Map<Object, Object> cacheMap) {
-        log.info("about to calculate bindings for task node {} {}", taskNodeDefEntity.getId(), taskNodeDefEntity.getNodeName());
+        log.info("about to calculate bindings for task node {} {}", taskNodeDefEntity.getId(),
+                taskNodeDefEntity.getNodeName());
         int procInstId = procInstEntity.getId();
         int nodeInstId = taskNodeInstEntity.getId();
         procExecBindingRepository.deleteAllTaskNodeBindings(procInstId, nodeInstId);
@@ -337,8 +337,11 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
         try {
             EntityTreeNodesOverview overview = entityOperationService.generateEntityLinkOverview(condition, cacheMap);
 
-            return saveLeafNodeEntityNodesTemporary(taskNodeDefEntity, procInstEntity, taskNodeInstEntity,
-                    overview.getLeafNodeEntityNodes());
+            List<ProcExecBindingEntity> boundEntities = saveCalculatedLeafNodeEntityNodesBindings(taskNodeDefEntity,
+                    procInstEntity, taskNodeInstEntity, overview.getLeafNodeEntityNodes());
+            log.info("DYNAMIC BINDING:total {} entities bound for {}-{}-{}", boundEntities.size(), taskNodeInstEntity.getNodeDefId(),
+                    taskNodeInstEntity.getNodeName(), taskNodeInstEntity.getId());
+            return boundEntities;
         } catch (Exception e) {
             String errMsg = String.format("Errors while fetching data for node %s %s with expr %s and data id %s",
                     taskNodeDefEntity.getId(), taskNodeDefEntity.getNodeName(), routineExpr, rootDataId);
@@ -349,7 +352,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 
     }
 
-    private List<ProcExecBindingEntity> saveLeafNodeEntityNodesTemporary(TaskNodeDefInfoEntity f,
+    private List<ProcExecBindingEntity> saveCalculatedLeafNodeEntityNodesBindings(TaskNodeDefInfoEntity f,
             ProcInstInfoEntity procInstEntity, TaskNodeInstInfoEntity taskNodeInstEntity,
             List<TreeNode> leafNodeEntityNodes) {
         List<ProcExecBindingEntity> entities = new ArrayList<>();
@@ -373,6 +376,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
             taskNodeBinding.setEntityTypeId(String.format("%s:%s", tn.getPackageName(), tn.getEntityName()));
             taskNodeBinding.setNodeDefId(f.getId());
             taskNodeBinding.setTaskNodeInstId(taskNodeInstEntity.getId());
+            taskNodeBinding.setEntityDataName(String.valueOf(tn.getDisplayName()));
             // taskNodeBinding.setOrderedNo(f.getOrderedNo());
             taskNodeBinding.setCreatedBy(WorkflowConstants.DEFAULT_USER);
             taskNodeBinding.setCreatedTime(new Date());
@@ -1101,8 +1105,6 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 
     }
 
-    
-
     private void handleErrorInvocationResult(PluginInterfaceInvocationResult pluginInvocationResult,
             PluginInterfaceInvocationContext ctx) {
 
@@ -1357,7 +1359,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
         taskNodeInstInfoRepository.updateByPrimaryKeySelective(nodeInstEntity);
 
     }
-    
+
     private void refreshStatusOfPreviousNodes(List<TaskNodeInstInfoEntity> nodeInstEntities,
             TaskNodeDefInfoEntity currNodeDefInfo) {
         List<String> previousNodeIds = unmarshalNodeIds(currNodeDefInfo.getPrevNodeIds());

@@ -12,10 +12,12 @@ public class FlowNodeDefDto extends BaseNodeDefDto {
     private String procDefKey;
 
     private String routineExpression;
-    
-    private String taskCategory; //APPROVAL,EXECUTION
-    
+
+    private String taskCategory; // APPROVAL,EXECUTION
+
     private String serviceId;
+
+    private String dynamicBind;
 
     private List<String> previousNodeIds = new ArrayList<>();
     private List<String> succeedingNodeIds = new ArrayList<>();
@@ -63,7 +65,7 @@ public class FlowNodeDefDto extends BaseNodeDefDto {
     public String getProcDefKey() {
         return procDefKey;
     }
-    
+
     public String getTaskCategory() {
         return taskCategory;
     }
@@ -91,7 +93,7 @@ public class FlowNodeDefDto extends BaseNodeDefDto {
     public void setSucceedingNodeIds(List<String> succeedingNodeIds) {
         this.succeedingNodeIds = succeedingNodeIds;
     }
-    
+
     public void addSucceedingNodes(FlowNodeDefDto... nodes) {
         if (this.succeedingNodeIds == null) {
             this.succeedingNodeIds = new ArrayList<>();
@@ -147,8 +149,6 @@ public class FlowNodeDefDto extends BaseNodeDefDto {
             }
         }
     }
-    
-    
 
     @Override
     public String toString() {
@@ -163,6 +163,14 @@ public class FlowNodeDefDto extends BaseNodeDefDto {
 
     public void setServiceId(String serviceId) {
         this.serviceId = serviceId;
+    }
+
+    public String getDynamicBind() {
+        return dynamicBind;
+    }
+
+    public void setDynamicBind(String dynamicBind) {
+        this.dynamicBind = dynamicBind;
     }
 
 }

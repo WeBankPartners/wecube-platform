@@ -59,6 +59,11 @@ import com.webank.wecube.platform.core.service.dme.StandardEntityOperationServic
 import com.webank.wecube.platform.core.service.dme.TreeNode;
 import com.webank.wecube.platform.core.service.plugin.PluginConfigMgmtService;
 
+/**
+ * 
+ * @author gavin
+ *
+ */
 @Service
 public class WorkflowDataService {
     private static final Logger log = LoggerFactory.getLogger(WorkflowDataService.class);
@@ -131,6 +136,16 @@ public class WorkflowDataService {
             d.setNodeDefId(e.getNodeDefId());
             d.setNodeInstId(e.getTaskNodeInstId());
             d.setProcInstId(e.getProcInstId());
+            d.setEntityDisplayName(e.getEntityDataName());
+            if(StringUtils.isNoneBlank(d.getEntityTypeId())){
+                String [] parts = d.getEntityTypeId().trim().split(":");
+                if(parts.length == 1){
+                    d.setEntityName(parts[0]);
+                }else if(parts.length == 2){
+                    d.setPackageName(parts[0]);
+                    d.setEntityName(parts[1]);
+                }
+            }
 
             bindInfoDtos.add(d);
         }
@@ -655,7 +670,7 @@ public class WorkflowDataService {
         }
     }
 
-    private void saveProcExecBindingTmpEntity(ProcDefOutlineDto outline, String dataId, String dataName,
+    private void saveProcInstExecBindingTmpEntity(ProcDefOutlineDto outline, String dataId, String dataName,
             String processSessionId) {
         ProcExecBindingTmpEntity procInstBindingTmpEntity = new ProcExecBindingTmpEntity();
         procInstBindingTmpEntity.setBindType(ProcExecBindingTmpEntity.BIND_TYPE_PROC_INSTANCE);
@@ -686,6 +701,11 @@ public class WorkflowDataService {
             if (!"subProcess".equals(nodeType)) {
                 continue;
             }
+            
+            if(TaskNodeDefInfoEntity.DYNAMIC_BIND_YES.equalsIgnoreCase(f.getDynamicBind())){
+                log.info("task node {}-{} is dynamic binding node and no need to pre-bind.", f.getNodeDefId(), f.getNodeName());
+                continue;
+            }
 
             processSingleFlowNodeDefDto(f, hierarchicalEntityNodes, dataId, processSessionId, needSaveTmp,
                     externalCacheMap);
@@ -700,7 +720,7 @@ public class WorkflowDataService {
             if (rootEntity != null) {
                 dataName = rootEntity.getDisplayName();
             }
-            saveProcExecBindingTmpEntity(outline, dataId, dataName, processSessionId);
+            saveProcInstExecBindingTmpEntity(outline, dataId, dataName, processSessionId);
         }
 
         return result;
@@ -814,6 +834,7 @@ public class WorkflowDataService {
             taskNodeBinding.setProcDefId(f.getProcDefId());
             taskNodeBinding.setEntityDataId(String.valueOf(tn.getRootId()));
             taskNodeBinding.setEntityTypeId(String.format("%s:%s", tn.getPackageName(), tn.getEntityName()));
+            taskNodeBinding.setEntityDataName(String.valueOf(tn.getDisplayName()));
             taskNodeBinding.setNodeDefId(f.getNodeDefId());
             taskNodeBinding.setOrderedNo(f.getOrderedNo());
             taskNodeBinding.setCreatedBy(AuthenticationContextHolder.getCurrentUsername());
