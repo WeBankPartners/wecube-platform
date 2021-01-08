@@ -55,13 +55,13 @@
               v-for="opt in filterCurrentLeafOptiongs"
               :key="opt.pathExp + Math.random() * 1000"
             >
-              <li style="color:rgb(49, 104, 4)" @click="optClickHandler(opt)">{{ opt.pathExp }}</li>
+              <li style="color:rgb(49, 104, 4)" @click="optClickHandler(opt, 'leaf')">{{ opt.pathExp }}</li>
             </ul>
             <ul v-for="opt in filterCurrentRefOptiongs" :key="opt.pathExp + Math.random() * 1000">
-              <li style="color:rgb(64, 141, 218)" @click="optClickHandler(opt)">{{ opt.pathExp }}</li>
+              <li style="color:rgb(64, 141, 218)" @click="optClickHandler(opt, 'up')">{{ opt.pathExp }}</li>
             </ul>
             <ul v-for="opt in filterCurrentOptiongs" :key="opt.pathExp + Math.random() * 1000">
-              <li style="color:rgb(211, 82, 32)" @click="optClickHandler(opt)">{{ opt.pathExp }}</li>
+              <li style="color:rgb(211, 82, 32)" @click="optClickHandler(opt, 'down')">{{ opt.pathExp }}</li>
             </ul>
           </div>
         </div>
@@ -127,7 +127,8 @@ export default {
       currentNode: {},
       currentNodeEntityAttrs: [],
       pasteValue: '',
-      filterString: ''
+      filterString: '',
+      lastSelectType: '' // 标记最后选中项内容
     }
   },
   props: {
@@ -281,7 +282,8 @@ export default {
       // this.$emit('change', this.fullPathExp)
       this.poptipVisable = false
     },
-    optClickHandler (opt) {
+    optClickHandler (opt, lastSelectType) {
+      this.lastSelectType = lastSelectType
       this.pathList = this.pathList.slice(0, this.currentNodeIndex + 1)
       this.pathList.push(opt)
       this.$emit('input', this.fullPathExp)
