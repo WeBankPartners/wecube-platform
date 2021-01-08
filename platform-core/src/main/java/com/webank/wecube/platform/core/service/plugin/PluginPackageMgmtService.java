@@ -231,7 +231,7 @@ public class PluginPackageMgmtService extends AbstractPluginMgmtService {
             return result;
         } catch (Exception e) {
             log.error("Errors to register plugin package.", e);
-            throw new WecubeCoreException("3322", "Failed to register plugin package", e.getMessage());
+            throw new WecubeCoreException("3322", "Failed to register plugin package."+e.getMessage(), e.getMessage());
         }
     }
 
