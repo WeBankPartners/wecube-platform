@@ -494,7 +494,7 @@ public class PluginConfigMigrationService {
                 sysVarEntity.setPackageName(xmlSysVar.getPackageName());
                 sysVarEntity.setName(xmlSysVar.getName());
                 sysVarEntity.setScope(xmlSysVar.getScopeType());
-                sysVarEntity.setSource(pluginPackage.getId());
+                sysVarEntity.setSource(buildSystemVariableSource(pluginPackage));
                 sysVarEntity.setStatus(xmlSysVar.getStatus());
                 sysVarEntity.setValue(xmlSysVar.getValue());
 
@@ -509,6 +509,12 @@ public class PluginConfigMigrationService {
 
             // systemVariableRepository.saveAndFlush(sysVarEntity);
         }
+    }
+    
+    private String buildSystemVariableSource(PluginPackages pluginPackageEntity) {
+        String source = String.format("%s-%s:%s", pluginPackageEntity.getName(), pluginPackageEntity.getVersion(),
+                pluginPackageEntity.getId());
+        return source;
     }
 
     private void performImportPluginRegistersForOnePackage(PluginPackages pluginPackage,
