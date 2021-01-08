@@ -177,21 +177,43 @@
       :scrollable="true"
     >
       <div class="workflowActionModal-container" style="text-align: center;margin-top: 20px;">
-        <!-- <Button type="primary" @click="workFlowActionHandler('dataSelection')" :loading="btnLoading">{{
-          $t('data_selection')
-        }}</Button> -->
-        <Button type="primary" @click="workFlowActionHandler('partialRetry')" :loading="btnLoading">{{
-          $t('partial_retry')
-        }}</Button>
-        <Button type="info" @click="workFlowActionHandler('retry')" :loading="btnLoading" style="margin-left: 10px">{{
-          $t('retry')
-        }}</Button>
-        <Button type="warning" @click="workFlowActionHandler('skip')" :loading="btnLoading" style="margin-left: 10px">{{
-          $t('skip')
-        }}</Button>
-        <Button type="info" @click="workFlowActionHandler('showlog')" style="margin-left: 10px">{{
-          $t('show_log')
-        }}</Button>
+        <Button
+          type="primary"
+          v-show="currentNodeStatus === 'NotStarted'"
+          @click="workFlowActionHandler('dataSelection')"
+          :loading="btnLoading"
+          >{{ $t('data_selection') }}</Button
+        >
+        <Button
+          type="primary"
+          v-show="currentNodeStatus === 'Faulted' || currentNodeStatus === 'Timeouted'"
+          @click="workFlowActionHandler('partialRetry')"
+          :loading="btnLoading"
+          >{{ $t('partial_retry') }}</Button
+        >
+        <Button
+          type="info"
+          v-show="currentNodeStatus === 'Faulted' || currentNodeStatus === 'Timeouted'"
+          @click="workFlowActionHandler('retry')"
+          :loading="btnLoading"
+          style="margin-left: 10px"
+          >{{ $t('retry') }}</Button
+        >
+        <Button
+          type="warning"
+          v-show="currentNodeStatus === 'Faulted' || currentNodeStatus === 'Timeouted'"
+          @click="workFlowActionHandler('skip')"
+          :loading="btnLoading"
+          style="margin-left: 10px"
+          >{{ $t('skip') }}</Button
+        >
+        <Button
+          type="info"
+          v-show="currentNodeStatus === 'Faulted' || currentNodeStatus === 'Timeouted'"
+          @click="workFlowActionHandler('showlog')"
+          style="margin-left: 10px"
+          >{{ $t('show_log') }}</Button
+        >
       </div>
     </Modal>
     <Modal
@@ -316,6 +338,7 @@ import { addEvent, removeEvent } from '../util/event.js'
 export default {
   data () {
     return {
+      currentAction: '',
       allFlowNodesModelData: [],
       selectedFlowNodesModelData: [],
       modelDataWithFlowNodes: [],
@@ -507,6 +530,17 @@ export default {
       } else {
         return false
       }
+    },
+    currentNodeStatus () {
+      if (!this.flowData.flowNodes) {
+        return ''
+      }
+      const found = this.flowData.flowNodes.find(_ => _.nodeId === this.currentFailedNodeID)
+      if (found) {
+        return found.status
+      } else {
+        return ''
+      }
     }
   },
   watch: {
@@ -622,6 +656,14 @@ export default {
       }
       const { status } = await updateTaskNodeInstanceExecBindings(payload)
       if (status === 'OK') {
+        if (this.currentAction === 'dataSelection') {
+          this.$Notice.success({
+            title: 'Success',
+            desc: 'Success'
+          })
+          this.workflowActionModalVisible = false
+          return
+        }
         const retry = await retryProcessInstance({
           act: 'retry',
           nodeInstId: found.id,
@@ -1225,7 +1267,8 @@ export default {
                 excution ? 'filled' : 'none'
               }" color="${excution ? statusColor[_.status] : '#7F8A96'}" shape="circle", id="${_.nodeId}"]`
             } else {
-              const className = _.status === 'Faulted' || _.status === 'Timeouted' ? 'retry' : 'normal'
+              // const className = _.status === 'Faulted' || _.status === 'Timeouted' ? 'retry' : 'normal'
+              const className = 'retry'
               const isModelClick = this.currentModelNodeRefs.indexOf(_.orderedNo) > -1
               return `${_.nodeId} [fixedsize=false label="${(_.orderedNo ? _.orderedNo + ' ' : '') +
                 _.nodeName}" class="flow ${className}" style="${excution || isModelClick ? 'filled' : 'none'}" color="${
@@ -1372,7 +1415,7 @@ export default {
           this.initFlowGraph(true)
           this.renderModelGraph()
         }
-        if (data.status === 'Completed') {
+        if (data.status === 'Completed' || data.status === 'InternallyTerminated') {
           this.stopSuccess = true
           this.stop()
         }
@@ -1459,6 +1502,7 @@ export default {
           nodeInstId: found.id,
           procInstId: found.procInstId
         }
+        this.currentAction = type
         this.currentNodeTitle = `${found.orderedNo}、${found.nodeName}`
         this.getTaskNodeInstanceExecBindings(payload)
         this.retryTargetModalVisible = true
