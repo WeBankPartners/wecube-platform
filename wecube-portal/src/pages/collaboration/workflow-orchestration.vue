@@ -910,13 +910,15 @@ export default {
         this.getFlowsNodes()
         await this.getFilteredPluginInterfaceList(this.pluginForm.routineExpression)
         const nodeOrigin = this.filteredPlugins.find(item => item.serviceName === this.pluginForm.serviceName)
-        this.pluginForm.paramInfos.forEach(pItem => {
-          nodeOrigin.inputParameters.forEach(oItem => {
-            if (pItem.paramName === oItem.name) {
-              pItem.required = oItem.required
-            }
+        nodeOrigin &&
+          nodeOrigin.inputParameters &&
+          this.pluginForm.paramInfos.forEach(pItem => {
+            nodeOrigin.inputParameters.forEach(oItem => {
+              if (pItem.paramName === oItem.name) {
+                pItem.required = oItem.required
+              }
+            })
           })
-        })
         this.$nextTick(() => {
           this.show = e.target.tagName === 'rect'
         })
