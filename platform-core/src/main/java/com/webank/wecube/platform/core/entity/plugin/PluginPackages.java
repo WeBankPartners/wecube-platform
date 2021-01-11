@@ -132,5 +132,9 @@ public class PluginPackages {
     public void setPluginPackageMenus(List<PluginPackageMenus> pluginPackageMenus) {
         this.pluginPackageMenus = pluginPackageMenus;
     }
-
+    
+    public static String buildSystemVariableSource(PluginPackages pluginPackageEntity) {
+        String source = String.format("%s-%s", pluginPackageEntity.getName(), pluginPackageEntity.getVersion());
+        return source;
+    }
 }
