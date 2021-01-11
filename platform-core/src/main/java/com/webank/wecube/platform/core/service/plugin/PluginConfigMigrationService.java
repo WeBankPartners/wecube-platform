@@ -492,7 +492,7 @@ public class PluginConfigMigrationService {
 
             SystemVariables sysVarEntity = null;
             List<SystemVariables> existSysVars = systemVariablesMapper.selectAllByNameAndScopeAndSource(
-                    xmlSysVar.getName(), xmlSysVar.getScopeType(), buildSystemVariableSource(pluginPackage));
+                    xmlSysVar.getName(), xmlSysVar.getScopeType(), PluginPackages.buildSystemVariableSource(pluginPackage));
             if(existSysVars == null || existSysVars.isEmpty()){
                 existSysVars = systemVariablesMapper.selectAllByNameAndScopeAndSource(
                         xmlSysVar.getName(), xmlSysVar.getScopeType(), pluginPackage.getId());
@@ -509,7 +509,7 @@ public class PluginConfigMigrationService {
                 sysVarEntity.setPackageName(xmlSysVar.getPackageName());
                 sysVarEntity.setName(xmlSysVar.getName());
                 sysVarEntity.setScope(xmlSysVar.getScopeType());
-                sysVarEntity.setSource(buildSystemVariableSource(pluginPackage));
+                sysVarEntity.setSource(PluginPackages.buildSystemVariableSource(pluginPackage));
                 sysVarEntity.setStatus(xmlSysVar.getStatus());
                 sysVarEntity.setValue(xmlSysVar.getValue());
 
@@ -526,12 +526,6 @@ public class PluginConfigMigrationService {
         }
     }
     
-    private String buildSystemVariableSource(PluginPackages pluginPackageEntity) {
-        String source = String.format("%s-%s:%s", pluginPackageEntity.getName(), pluginPackageEntity.getVersion(),
-                pluginPackageEntity.getId());
-        return source;
-    }
-
     private void performImportPluginRegistersForOnePackage(PluginPackages pluginPackage,
             PluginPackageType xmlPluginPackage) {
         log.info("start to import plugin registries for {} {} from {} {}", pluginPackage.getName(),
