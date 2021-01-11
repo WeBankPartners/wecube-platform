@@ -197,7 +197,7 @@
               v-for="(item, index) in pluginForm.paramInfos"
               :key="index"
             >
-              <label slot="label" v-if="item.bindType === 'context' && item.required === 'Y'"
+              <label slot="label" v-if="item.required === 'Y'"
                 >{{ item.paramName }}
                 <span class="requires-tip">*</span>
               </label>
@@ -614,17 +614,17 @@ export default {
       if (path === this.routineExpressionCache) {
         return
       }
-      const lastSelectType = this.$refs.filterRules && this.$refs.filterRules.lastSelectType
-      // 上下游节点不请求插件信息
-      if (lastSelectType === 'up' || lastSelectType === 'down') {
-        this.$Notice.warning({
-          title: 'Warning',
-          desc: this.$t('obtain_plugin_warn')
-        })
-        this.pluginForm.serviceId = ''
-        this.filteredPlugins = []
-        return
-      }
+      // const lastSelectType = this.$refs.filterRules && this.$refs.filterRules.lastSelectType
+      // // 上下游节点不请求插件信息
+      // if (lastSelectType === 'up' || lastSelectType === 'down') {
+      //   this.$Notice.warning({
+      //     title: 'Warning',
+      //     desc: this.$t('obtain_plugin_warn')
+      //   })
+      //   this.pluginForm.serviceId = ''
+      //   this.filteredPlugins = []
+      //   return
+      // }
       let pkg = ''
       let entity = ''
       let payload = {}
