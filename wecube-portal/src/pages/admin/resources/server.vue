@@ -385,6 +385,10 @@ export default {
       })
     },
     cancelHandler () {
+      const index = this.tableData.findIndex(item => item.isNewAddedRow === true)
+      if (index > -1) {
+        this.tableData.splice(index, 1)
+      }
       this.$refs.table.setAllRowsUneditable()
       this.$refs.table.setCheckoutStatus()
       this.outerActions &&
