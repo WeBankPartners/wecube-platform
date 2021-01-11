@@ -1132,14 +1132,15 @@ public class PluginPackageMgmtService extends AbstractPluginMgmtService {
         List<SystemVariables> systemVariablesEntities = systemVariablesMapper
                 .selectAllByPluginPackages(pluginPackageIds);
         for (SystemVariables systemVariableEntity : systemVariablesEntities) {
+            String systemVarSource = PluginPackages.buildSystemVariableSource(pluginPackage);
             if (SystemVariables.ACTIVE.equals(systemVariableEntity.getStatus())
-                    && !pluginPackage.getId().equals(systemVariableEntity.getSource())) {
+                    && !systemVarSource.equals(systemVariableEntity.getSource())) {
                 systemVariableEntity.setStatus(SystemVariables.INACTIVE);
                 systemVariablesMapper.updateByPrimaryKeySelective(systemVariableEntity);
             }
 
             if (SystemVariables.INACTIVE.equals(systemVariableEntity.getStatus())
-                    && pluginPackage.getId().equals(systemVariableEntity.getSource())) {
+                    && systemVarSource.equals(systemVariableEntity.getSource())) {
                 systemVariableEntity.setStatus(SystemVariables.ACTIVE);
                 systemVariablesMapper.updateByPrimaryKeySelective(systemVariableEntity);
             }
