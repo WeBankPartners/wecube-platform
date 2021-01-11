@@ -972,7 +972,7 @@ public class PluginPackageMgmtService extends AbstractPluginMgmtService {
 
     private void deactivateSystemVariables(PluginPackages pluginPackage) {
         List<SystemVariables> systemVariablesEntities = systemVariablesMapper
-                .selectAllByPluginPackage(pluginPackage.getId());
+                .selectAllBySource(PluginPackages.buildSystemVariableSource(pluginPackage));
         if (systemVariablesEntities == null || systemVariablesEntities.isEmpty()) {
             return;
         }
@@ -1123,14 +1123,14 @@ public class PluginPackageMgmtService extends AbstractPluginMgmtService {
     private void updateSystemVariableStatus(PluginPackages pluginPackage) {
         List<PluginPackages> pluginPackagesEntities = pluginPackagesMapper.selectAllByName(pluginPackage.getName());
 
-        List<String> pluginPackageIds = new ArrayList<String>();
+        List<String> sourceList = new ArrayList<String>();
 
         for (PluginPackages p : pluginPackagesEntities) {
-            pluginPackageIds.add(p.getId());
+            sourceList.add(PluginPackages.buildSystemVariableSource(p));
         }
 
         List<SystemVariables> systemVariablesEntities = systemVariablesMapper
-                .selectAllByPluginPackages(pluginPackageIds);
+                .selectAllBySourceList(sourceList);
         for (SystemVariables systemVariableEntity : systemVariablesEntities) {
             String systemVarSource = PluginPackages.buildSystemVariableSource(pluginPackage);
             if (SystemVariables.ACTIVE.equals(systemVariableEntity.getStatus())
