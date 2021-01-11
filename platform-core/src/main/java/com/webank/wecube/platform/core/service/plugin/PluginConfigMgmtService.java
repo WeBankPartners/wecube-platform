@@ -16,12 +16,16 @@ import org.springframework.stereotype.Service;
 
 import com.webank.wecube.platform.core.commons.AuthenticationContextHolder;
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
+import com.webank.wecube.platform.core.dto.plugin.CoreObjectMetaDto;
+import com.webank.wecube.platform.core.dto.plugin.CoreObjectPropertyMetaDto;
 import com.webank.wecube.platform.core.dto.plugin.PluginConfigDto;
 import com.webank.wecube.platform.core.dto.plugin.PluginConfigInterfaceDto;
 import com.webank.wecube.platform.core.dto.plugin.PluginConfigInterfaceParameterDto;
 import com.webank.wecube.platform.core.dto.plugin.PluginConfigRoleRequestDto;
 import com.webank.wecube.platform.core.dto.plugin.TargetEntityFilterRuleDto;
 import com.webank.wecube.platform.core.entity.plugin.AuthLatestEnabledInterfaces;
+import com.webank.wecube.platform.core.entity.plugin.CoreObjectMeta;
+import com.webank.wecube.platform.core.entity.plugin.CoreObjectPropertyMeta;
 import com.webank.wecube.platform.core.entity.plugin.PluginConfigInterfaceParameters;
 import com.webank.wecube.platform.core.entity.plugin.PluginConfigInterfaces;
 import com.webank.wecube.platform.core.entity.plugin.PluginConfigRoles;
@@ -65,6 +69,9 @@ public class PluginConfigMgmtService extends AbstractPluginMgmtService {
 
     @Autowired
     private PluginPackageEntitiesMapper pluginPackageEntitiesMapper;
+
+    @Autowired
+    private PluginParamObjectMetaStorage pluginParamObjectMetaStorage;
 
     /**
      * 
@@ -222,8 +229,14 @@ public class PluginConfigMgmtService extends AbstractPluginMgmtService {
                 .selectAllByConfigInterfaceAndParamType(intfEntity.getId(), PluginConfigInterfaceParameters.TYPE_INPUT);
         if (inputParamEntities != null) {
             for (PluginConfigInterfaceParameters inputParam : inputParamEntities) {
+
                 inputParam.setPluginConfigInterface(intfEntity);
                 intfEntity.addInputParameters(inputParam);
+
+                if (PluginConfigInterfaceParameters.DATA_TYPE_OBJECT.equals(inputParam.getMappingType())) {
+                    CoreObjectMeta objectMeta = tryFetchEnrichCoreObjectMeta(inputParam);
+                    inputParam.setObjectMeta(objectMeta);
+                }
             }
         }
 
@@ -233,12 +246,54 @@ public class PluginConfigMgmtService extends AbstractPluginMgmtService {
 
         if (outputParamEntities != null) {
             for (PluginConfigInterfaceParameters outputParam : outputParamEntities) {
+
                 outputParam.setPluginConfigInterface(intfEntity);
                 intfEntity.addOutputParameters(outputParam);
+
+                if (PluginConfigInterfaceParameters.DATA_TYPE_OBJECT.equals(outputParam.getMappingType())) {
+                    CoreObjectMeta objectMeta = tryFetchEnrichCoreObjectMeta(outputParam);
+                    outputParam.setObjectMeta(objectMeta);
+                }
             }
         }
 
         return intfEntity;
+    }
+
+    protected CoreObjectMeta tryFetchEnrichCoreObjectMeta(PluginConfigInterfaceParameters param) {
+        PluginConfigInterfaces intfDef = param.getPluginConfigInterface();
+        if (intfDef == null) {
+            log.debug("Cannot find plugin config interface for {}", param.getId());
+            return null;
+        }
+
+        PluginConfigs pluginConfig = intfDef.getPluginConfig();
+        if (pluginConfig == null) {
+            log.debug("Cannot find plugin config for {}", intfDef.getId());
+            return null;
+        }
+
+        PluginPackages pluginPackage = pluginConfig.getPluginPackage();
+        if (pluginPackage == null) {
+            log.debug("cannot find plugin package for {}", pluginConfig.getId());
+            return null;
+        }
+
+        String packageName = pluginPackage.getName();
+        if (StringUtils.isBlank(param.getMappingEntityExpression())) {
+            log.info("object name value is blank for {}", param.getId());
+            return null;
+        }
+
+        String objectName = param.getMappingEntityExpression();
+        CoreObjectMeta objectMeta = pluginParamObjectMetaStorage.fetchAssembledCoreObjectMeta(packageName, objectName);
+        if (objectMeta == null) {
+            log.info("Cannot fetch core object meta for interface param:{},and packge:{},objectName:{}", param.getId(),
+                    packageName, objectName);
+            return null;
+        }
+
+        return objectMeta;
     }
 
     protected PluginConfigInterfaces fetchRichPluginConfigInterfacesById(String intfId) {
@@ -881,6 +936,10 @@ public class PluginConfigMgmtService extends AbstractPluginMgmtService {
             List<PluginConfigInterfaceParameterDto> inputParamDtos = new ArrayList<>();
             for (PluginConfigInterfaceParameters paramEntity : inputParameterEntities) {
                 PluginConfigInterfaceParameterDto paramDto = buildPluginConfigInterfaceParameterDto(paramEntity);
+                CoreObjectMetaDto objectMetaDto = tryBuildCoreObjectMetaDto(paramEntity);
+                if (objectMetaDto != null) {
+                    paramDto.setObjectMeta(objectMetaDto);
+                }
                 inputParamDtos.add(paramDto);
             }
 
@@ -892,6 +951,11 @@ public class PluginConfigMgmtService extends AbstractPluginMgmtService {
             List<PluginConfigInterfaceParameterDto> outputParamDtos = new ArrayList<>();
             for (PluginConfigInterfaceParameters paramEntity : outputParameterEntities) {
                 PluginConfigInterfaceParameterDto paramDto = buildPluginConfigInterfaceParameterDto(paramEntity);
+
+                CoreObjectMetaDto objectMetaDto = tryBuildCoreObjectMetaDto(paramEntity);
+                if (objectMetaDto != null) {
+                    paramDto.setObjectMeta(objectMetaDto);
+                }
                 outputParamDtos.add(paramDto);
             }
 
@@ -899,6 +963,59 @@ public class PluginConfigMgmtService extends AbstractPluginMgmtService {
         }
 
         return dto;
+    }
+
+    private CoreObjectMetaDto tryBuildCoreObjectMetaDto(PluginConfigInterfaceParameters paramEntity) {
+        CoreObjectMeta objectMeta = paramEntity.getObjectMeta();
+        if (objectMeta == null) {
+            return null;
+        }
+
+        CoreObjectMetaDto objectMetaDto = tryBuildCoreObjectMetaDtoWithEntity(objectMeta);
+
+        return objectMetaDto;
+    }
+
+    private CoreObjectMetaDto tryBuildCoreObjectMetaDtoWithEntity(CoreObjectMeta objectMeta) {
+        CoreObjectMetaDto objectMetaDto = new CoreObjectMetaDto();
+        objectMetaDto.setId(objectMeta.getId());
+        objectMetaDto.setLatestSource(objectMeta.getLatestSource());
+        objectMetaDto.setName(objectMeta.getName());
+        objectMetaDto.setPackageName(objectMeta.getPackageName());
+        objectMetaDto.setSource(objectMeta.getSource());
+
+        List<CoreObjectPropertyMeta> propertyMetas = objectMeta.getPropertyMetas();
+        if (propertyMetas == null || propertyMetas.isEmpty()) {
+            return objectMetaDto;
+        }
+
+        for (CoreObjectPropertyMeta propertyMeta : propertyMetas) {
+            CoreObjectPropertyMetaDto propertyMetaDto = tryBuildCoreObjectPropertyMetaDto(propertyMeta);
+            objectMetaDto.addPropertyMeta(propertyMetaDto);
+        }
+
+        return objectMetaDto;
+    }
+
+    private CoreObjectPropertyMetaDto tryBuildCoreObjectPropertyMetaDto(CoreObjectPropertyMeta propertyMeta) {
+        CoreObjectPropertyMetaDto propertyMetaDto = new CoreObjectPropertyMetaDto();
+        propertyMetaDto.setId(propertyMeta.getId());
+        propertyMetaDto.setDataType(propertyMeta.getDataType());
+        propertyMetaDto.setMapExpr(propertyMeta.getMapExpr());
+        propertyMetaDto.setMapType(propertyMeta.getMapType());
+        propertyMetaDto.setName(propertyMeta.getName());
+        propertyMetaDto.setObjectMetaId(propertyMeta.getObjectMetaId());
+        propertyMetaDto.setObjectName(propertyMeta.getObjectName());
+        propertyMetaDto.setPackageName(propertyMeta.getPackageName());
+        propertyMetaDto.setRefName(propertyMeta.getRefName());
+        if (propertyMeta.getRefObjectMeta() != null) {
+            CoreObjectMetaDto refObjectMetaDto = tryBuildCoreObjectMetaDtoWithEntity(propertyMeta.getRefObjectMeta());
+            propertyMetaDto.setRefObjectMeta(refObjectMetaDto);
+        }
+        propertyMetaDto.setRefType(propertyMeta.getRefType());
+        propertyMetaDto.setSensitive(propertyMeta.getSensitive());
+
+        return propertyMetaDto;
     }
 
     private void ensurePluginConfigRegisterNameNotExists(PluginConfigDto pluginConfigDto) {
@@ -1154,7 +1271,7 @@ public class PluginConfigMgmtService extends AbstractPluginMgmtService {
                 .selectAllByConfigInterfaceAndParamType(intf.getId(), PluginConfigInterfaceParameters.TYPE_INPUT);
         List<PluginConfigInterfaceParameters> outputParameters = pluginConfigInterfaceParametersMapper
                 .selectAllByConfigInterfaceAndParamType(intf.getId(), PluginConfigInterfaceParameters.TYPE_OUTPUT);
-        
+
         e.setInputParameters(inputParameters);
         e.setOutputParameters(outputParameters);
 
