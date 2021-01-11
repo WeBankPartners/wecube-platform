@@ -134,7 +134,7 @@ public class PluginPackages {
     }
     
     public static String buildSystemVariableSource(PluginPackages pluginPackageEntity) {
-        String source = String.format("%s-%s", pluginPackageEntity.getName(), pluginPackageEntity.getVersion());
+        String source = String.format("%s__%s", pluginPackageEntity.getName(), pluginPackageEntity.getVersion());
         return source;
     }
 }
