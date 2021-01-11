@@ -796,16 +796,11 @@ public class PluginArtifactsMgmtService extends AbstractPluginMgmtService {
             systemVariableEntity.setDefaultValue(xmlSystemParameter.getDefaultValue());
             systemVariableEntity.setValue(xmlSystemParameter.getValue());
             systemVariableEntity.setStatus(SystemVariables.INACTIVE);
-            systemVariableEntity.setSource(buildSystemVariableSource(pluginPackageEntity));
+            systemVariableEntity.setSource(PluginPackages.buildSystemVariableSource(pluginPackageEntity));
             systemVariableEntity.setPackageName(xmlPackage.getName());
 
             systemVariablesMapper.insert(systemVariableEntity);
         }
-    }
-
-    private String buildSystemVariableSource(PluginPackages pluginPackageEntity) {
-        String source = String.format("%s-%s", pluginPackageEntity.getName(), pluginPackageEntity.getVersion());
-        return source;
     }
 
     private void processPluginConfigs(PluginsType xmlPlugins, PackageType xmlPackage,
