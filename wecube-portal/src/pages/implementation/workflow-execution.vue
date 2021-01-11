@@ -605,22 +605,29 @@ export default {
   },
   methods: {
     async stopHandler () {
-      // createWorkflowInstanceTerminationRequest
-      const instance = this.allFlowInstances.find(_ => _.id === this.selectedFlowInstance)
-      console.log(instance, this.selectedFlowInstance)
-      const payload = {
-        procInstId: this.selectedFlowInstance,
-        procInstKey: instance.procInstKey
-      }
-      const { status } = await createWorkflowInstanceTerminationRequest(payload)
-      if (status === 'OK') {
-        this.getProcessInstances()
-        this.stopSuccess = true
-        this.$Notice.success({
-          title: 'Success',
-          desc: 'Success'
-        })
-      }
+      this.$Modal.confirm({
+        title: this.$t('bc_confirm') + ' ' + this.$t('stop_orch'),
+        'z-index': 1000000,
+        onOk: async () => {
+          // createWorkflowInstanceTerminationRequest
+          const instance = this.allFlowInstances.find(_ => _.id === this.selectedFlowInstance)
+          console.log(instance, this.selectedFlowInstance)
+          const payload = {
+            procInstId: this.selectedFlowInstance,
+            procInstKey: instance.procInstKey
+          }
+          const { status } = await createWorkflowInstanceTerminationRequest(payload)
+          if (status === 'OK') {
+            this.getProcessInstances()
+            this.stopSuccess = true
+            this.$Notice.success({
+              title: 'Success',
+              desc: 'Success'
+            })
+          }
+        },
+        onCancel: () => {}
+      })
     },
     tabChanged (v) {
       // create_new_workflow_job   enquery_new_workflow_job
