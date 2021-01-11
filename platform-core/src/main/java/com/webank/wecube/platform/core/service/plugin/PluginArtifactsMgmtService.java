@@ -804,8 +804,7 @@ public class PluginArtifactsMgmtService extends AbstractPluginMgmtService {
     }
 
     private String buildSystemVariableSource(PluginPackages pluginPackageEntity) {
-        String source = String.format("%s-%s:%s", pluginPackageEntity.getName(), pluginPackageEntity.getVersion(),
-                pluginPackageEntity.getId());
+        String source = String.format("%s-%s", pluginPackageEntity.getName(), pluginPackageEntity.getVersion());
         return source;
     }
 
