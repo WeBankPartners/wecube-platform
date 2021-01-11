@@ -3,6 +3,10 @@ package com.webank.wecube.platform.core.entity.plugin;
 public class PluginConfigInterfaceParameters {
     public static final String TYPE_INPUT = "INPUT";
     public static final String TYPE_OUTPUT = "OUTPUT";
+    public static final String DATA_TYPE_OBJECT = "object";
+    public static final String DATA_TYPE_STRING = "string";
+    public static final String DATA_TYPE_NUMBER = "number";
+    
 
     public static final String MAPPING_TYPE_NOT_AVAILABLE = "N/A";
     public static final String MAPPING_TYPE_CMDB_CI_TYPE = "CMDB_CI_TYPE";
@@ -28,6 +32,8 @@ public class PluginConfigInterfaceParameters {
     private String sensitiveData;
 
     private transient PluginConfigInterfaces pluginConfigInterface;
+
+    private transient CoreObjectMeta objectMeta;
 
     public String getId() {
         return id;
@@ -115,6 +121,14 @@ public class PluginConfigInterfaceParameters {
 
     public void setPluginConfigInterface(PluginConfigInterfaces pluginConfigInterface) {
         this.pluginConfigInterface = pluginConfigInterface;
+    }
+
+    public CoreObjectMeta getObjectMeta() {
+        return objectMeta;
+    }
+
+    public void setObjectMeta(CoreObjectMeta objectMeta) {
+        this.objectMeta = objectMeta;
     }
 
 }

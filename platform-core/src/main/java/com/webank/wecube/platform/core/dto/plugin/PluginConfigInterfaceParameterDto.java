@@ -14,6 +14,8 @@ public class PluginConfigInterfaceParameterDto {
     private String required;
     private String sensitiveData;
 
+    private CoreObjectMetaDto objectMeta;
+
     public String getId() {
         return id;
     }
@@ -99,7 +101,12 @@ public class PluginConfigInterfaceParameterDto {
         this.sensitiveData = sensitiveData;
     }
 
-//    public static enum MappingType {
-//        context, entity, system_variable
-//    }
+    public CoreObjectMetaDto getObjectMeta() {
+        return objectMeta;
+    }
+
+    public void setObjectMeta(CoreObjectMetaDto objectMeta) {
+        this.objectMeta = objectMeta;
+    }
+
 }
