@@ -160,29 +160,6 @@ public class SystemVariableService {
 
     }
 
-    // private void validateIfSystemVariablesAreExists(List<SystemVariableDto>
-    // systemVariableDtos) {
-    // systemVariableDtos.forEach(dto -> {
-    // if (dto.getId() == null &&
-    // !systemVariableRepository.existsById(dto.getId())) {
-    // throw new WecubeCoreException("3025", String.format("Can not find
-    // variable with id [%s].", dto.getId()),
-    // dto.getId());
-    // }
-    // });
-    // }
-
-    // public SystemVariable getSystemVariableById(String varId) {
-    // Optional<SystemVariable> systemVariable =
-    // systemVariableRepository.findById(varId);
-    // if (systemVariable.isPresent()) {
-    // return systemVariable.get();
-    // } else {
-    // throw new WecubeCoreException("3026", "System Variable not found for id:
-    // " + varId, varId);
-    // }
-    // }
-
     public SystemVariables getSystemVariableByPackageNameAndName(String packageName, String varName) {
         List<SystemVariables> pluginSystemVariables = getPluginSystemVariableByPackageNameAndName(packageName, varName);
         if (null != pluginSystemVariables && pluginSystemVariables.size() > 0) {
