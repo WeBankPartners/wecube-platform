@@ -333,35 +333,26 @@
         #{source,jdbcType=VARCHAR}
     </select>
 
-    <select id="selectAllByPluginPackages" resultMap="BaseResultMap"
-        parameterType="list">
-        SELECT
-        <include refid="Base_Column_List" />
-        FROM system_variables
-        <where>
-            source IN
-            <foreach item="pluginPackageId" collection="pluginPackageIds"
-                separator="," open="(" close=")" index="">
-                #{pluginPackageId, jdbcType=VARCHAR}
-            </foreach>
-        </where>
-    </select>
-
-    <select id="selectAllByPluginPackage" resultMap="BaseResultMap"
-        parameterType="java.lang.String">
-        SELECT
-        <include refid="Base_Column_List" />
-        FROM system_variables
-        WHERE source = #{pluginPackageId,
-        jdbcType=VARCHAR}
-    </select>
-
     <select id="selectAllBySource" resultMap="BaseResultMap"
         parameterType="java.lang.String">
         SELECT
         <include refid="Base_Column_List" />
         FROM system_variables
         WHERE source = #{source, jdbcType=VARCHAR}
+    </select>
+    
+    
+    <select id="selectAllBySourceList" resultMap="BaseResultMap" parameterType="list">
+        SELECT
+        <include refid="Base_Column_List" />
+        FROM system_variables
+        <where>
+            source IN
+            <foreach item="source" collection="sourceList"
+                separator="," open="(" close=")" index="">
+                #{source, jdbcType=VARCHAR}
+            </foreach>
+        </where>
     </select>
 
     <select id="selectAllSystemVariableScopes" resultType="java.lang.String">

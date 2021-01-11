@@ -53,19 +53,27 @@ public interface SystemVariablesMapper {
             @Param("source") String source);
     
     
-    /**
-     * 
-     * @param packageName
-     * @return
-     */
-    List<SystemVariables> selectAllByPluginPackages(@Param("pluginPackageIds") List<String> pluginPackageIds);
+//    /**
+//     * 
+//     * @param packageName
+//     * @return
+//     */
+//    List<SystemVariables> selectAllByPluginPackages(@Param("pluginPackageIds") List<String> pluginPackageIds);
      
+//    /**
+//     * 
+//     * @param pluginPackageId
+//     * @return
+//     */
+//    List<SystemVariables> selectAllByPluginPackage(@Param("pluginPackageId") String pluginPackageId);
+    
+    
     /**
      * 
-     * @param pluginPackageId
+     * @param sourceList
      * @return
      */
-    List<SystemVariables> selectAllByPluginPackage(@Param("pluginPackageId") String pluginPackageId);
+    List<SystemVariables> selectAllBySourceList(@Param("sourceList") List<String> sourceList);
     
     /**
      * 
