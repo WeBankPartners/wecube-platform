@@ -250,7 +250,7 @@
             <FormItem :rules="{ required: true }" :show-message="false" :label="$t('bc_query_path')">
               <FilterRules
                 :allDataModelsWithAttrs="allEntityType"
-                :needNativeAttr="true"
+                :needNativeAttr="false"
                 :needAttr="true"
                 v-model="dataModelExpression"
               ></FilterRules>
