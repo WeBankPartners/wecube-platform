@@ -209,7 +209,9 @@
         >
         <Button
           type="info"
-          v-show="currentNodeStatus === 'Faulted' || currentNodeStatus === 'Timeouted'"
+          v-show="
+            currentNodeStatus === 'Faulted' || currentNodeStatus === 'Timeouted' || currentNodeStatus === 'Completed'
+          "
           @click="workFlowActionHandler('showlog')"
           style="margin-left: 10px"
           >{{ $t('show_log') }}</Button
