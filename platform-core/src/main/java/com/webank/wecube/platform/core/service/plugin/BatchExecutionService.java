@@ -11,6 +11,7 @@ import static com.webank.wecube.platform.core.utils.Constants.RESULT_CODE_ERROR;
 import static com.webank.wecube.platform.core.utils.Constants.RESULT_CODE_OK;
 
 import java.io.IOException;
+import java.nio.charset.Charset;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Date;
@@ -25,16 +26,21 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.DigestUtils;
 import org.springframework.web.client.RestTemplate;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
+import com.webank.wecube.platform.core.commons.AuthenticationContextHolder;
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
 import com.webank.wecube.platform.core.dto.plugin.BatchExecutionRequestDto;
+import com.webank.wecube.platform.core.dto.plugin.BatchExecutionResultDto;
 import com.webank.wecube.platform.core.dto.plugin.ExecutionJobResponseDto;
 import com.webank.wecube.platform.core.dto.plugin.InputParameterDefinition;
+import com.webank.wecube.platform.core.dto.plugin.ItsDangerConfirmResultDto;
+import com.webank.wecube.platform.core.dto.plugin.ItsDangerConfirmResultDto.ItsDangerTokenInfoDto;
 import com.webank.wecube.platform.core.dto.plugin.PluginConfigInterfaceParameterDto;
 import com.webank.wecube.platform.core.dto.plugin.ResourceDataDto;
 import com.webank.wecube.platform.core.entity.plugin.BatchExecutionJobs;
@@ -56,6 +62,11 @@ import com.webank.wecube.platform.core.repository.plugin.PluginPackagesMapper;
 import com.webank.wecube.platform.core.service.dme.EntityOperationRootCondition;
 import com.webank.wecube.platform.core.service.dme.StandardEntityOperationService;
 import com.webank.wecube.platform.core.service.workflow.SimpleEncryptionService;
+import com.webank.wecube.platform.core.support.itsdanger.ItsDanerResultDataInfoDto;
+import com.webank.wecube.platform.core.support.itsdanger.ItsDangerCheckReqDto;
+import com.webank.wecube.platform.core.support.itsdanger.ItsDangerCheckRespDto;
+import com.webank.wecube.platform.core.support.itsdanger.ItsDangerInstanceInfoDto;
+import com.webank.wecube.platform.core.support.itsdanger.ItsDangerRestClient;
 import com.webank.wecube.platform.core.support.plugin.PluginServiceStub;
 import com.webank.wecube.platform.core.support.plugin.dto.PluginResponse.ResultData;
 import com.webank.wecube.platform.core.support.plugin.dto.PluginResponseStationaryOutput;
@@ -66,6 +77,8 @@ import com.webank.wecube.platform.workflow.commons.LocalIdGenerator;
 @Service
 public class BatchExecutionService {
     private final Logger log = LoggerFactory.getLogger(this.getClass());
+    
+    private static final String PLUGIN_NAME_ITSDANGEROUS = "itsdangerous";
 
     @Autowired
     private PluginServiceStub pluginServiceStub;
@@ -98,28 +111,46 @@ public class BatchExecutionService {
 
     @Autowired
     private SimpleEncryptionService encryptionService;
+    
+    @Autowired
+    private ItsDangerRestClient itsDangerRestClient;
 
     private ObjectMapper objectMapper = new ObjectMapper().setSerializationInclusion(JsonInclude.Include.NON_NULL);
 
     @Transactional
-    public Map<String, ExecutionJobResponseDto> handleBatchExecutionJob(
-            BatchExecutionRequestDto batchExecutionRequest) {
+    public BatchExecutionResultDto handleBatchExecutionJob(
+            BatchExecutionRequestDto batchExecutionRequest, String continueToken) {
         try {
-            return doHandleBatchExecutionJob(batchExecutionRequest);
+            return doHandleBatchExecutionJob(batchExecutionRequest, continueToken);
         } catch (IOException e) {
             log.error("Errors while processing batch execution.", e);
             throw new WecubeCoreException("Errors while processing batch execution.");
         }
     }
 
-    private Map<String, ExecutionJobResponseDto> doHandleBatchExecutionJob(
-            BatchExecutionRequestDto batchExecutionRequest) throws IOException {
+    private BatchExecutionResultDto doHandleBatchExecutionJob(
+            BatchExecutionRequestDto batchExecutionRequest, String continueToken) throws IOException {
         verifyParameters(batchExecutionRequest.getInputParameterDefinitions());
         BatchExecutionJobs batchExeJob = saveToDb(batchExecutionRequest);
+        
+        List<BatchExecutionContext> ctxes = new ArrayList<>();
+
+        for (ExecutionJobs exeJob : batchExeJob.getJobs()) {
+            BatchExecutionContext ctx = prepareExecutionContext(exeJob);
+            ctxes.add(ctx);
+        }
+        
+        if (needPerformDangerousCommandsChecking(batchExecutionRequest, continueToken)) {
+            BatchExecutionResultDto result = performDangerCheck(batchExecutionRequest, batchExeJob, ctxes);
+            if (result != null) {
+                return result;
+            }
+        }
 
         Map<String, ExecutionJobResponseDto> exeResults = new HashMap<>();
-        for (ExecutionJobs exeJob : batchExeJob.getJobs()) {
+        for (BatchExecutionContext ctx : ctxes) {
             ResultData<?> exeResult = null;
+            ExecutionJobs exeJob = ctx.getExeJob();
             try {
                 exeResult = performExecutionJob(exeJob);
                 if (exeResult == null) {
@@ -152,8 +183,203 @@ public class BatchExecutionService {
             postProcessBatchExecutionJob(batchExeJob);
         } catch (Exception e) {
             log.error("errors while post processing batch execution job", e);
+            
         }
-        return exeResults;
+        
+        BatchExecutionResultDto result = new BatchExecutionResultDto();
+        result.setResult(exeResults);
+        return result;
+    }
+    
+    private PluginConfigInterfaces tryFetchEnrichedPluginConfigInterfaces(String intfId){
+        PluginConfigInterfaces pluginConfigIntf = pluginConfigInterfacesMapper
+                .selectByPrimaryKey(intfId);
+        
+        if(pluginConfigIntf == null ){
+            return null;
+        }
+        
+        PluginConfigs pluginConfig = pluginConfigsMapper.selectByPrimaryKey(pluginConfigIntf.getPluginConfigId());
+        if(pluginConfig == null){
+            log.debug("cannot find such plugin config with id : {}", pluginConfigIntf.getPluginConfigId());
+            return null;
+        }
+        
+        pluginConfigIntf.setPluginConfig(pluginConfig);
+        
+        PluginPackages pluginPackage = pluginPackagesMapper.selectByPrimaryKey(pluginConfig.getPluginPackageId());
+        
+        if(pluginPackage == null){
+            log.debug("cannot find such plugin package with id : {}", pluginConfig.getPluginPackageId());
+            return null;
+        }
+        
+        pluginConfig.setPluginPackage(pluginPackage);
+        
+        return pluginConfigIntf;
+        
+    }
+    
+    private BatchExecutionResultDto performDangerCheck(BatchExecutionRequestDto batchExecutionRequest,
+            BatchExecutionJobs batchExeJob, List<BatchExecutionContext> ctxes) {
+        if (batchExeJob == null) {
+            return null;
+        }
+
+        List<ExecutionJobs> jobs = batchExeJob.getJobs();
+        if (jobs == null || jobs.isEmpty()) {
+            return null;
+        }
+
+        if (ctxes == null || ctxes.isEmpty()) {
+            return null;
+        }
+
+        ItsDangerCheckReqDto req = new ItsDangerCheckReqDto();
+        req.setOperator(AuthenticationContextHolder.getCurrentUsername());
+        req.setEntityType(batchExecutionRequest.getEntityName());
+        req.setServiceName(batchExecutionRequest.getPluginConfigInterface().getServiceName());
+        req.setServicePath(batchExecutionRequest.getPluginConfigInterface().getPath());
+
+        for (BatchExecutionContext ctx : ctxes) {
+            if (ctx.getExeResult() != null) {
+                continue;
+            }
+
+            ExecutionJobs exeJob = ctx.getExeJob();
+
+            ItsDangerInstanceInfoDto instance = new ItsDangerInstanceInfoDto();
+            instance.setId(exeJob.getRootEntityId());
+            req.getEntityInstances().add(instance);
+
+            Map<String, Object> pluginInputParamMap = ctx.getPluginInputParamMap();
+            if (pluginInputParamMap == null) {
+                pluginInputParamMap = new HashMap<String, Object>();
+            }
+
+            req.getInputParams().add(pluginInputParamMap);
+        }
+
+        ItsDangerCheckRespDto resp = itsDangerRestClient.check(req);
+
+        if (resp == null) {
+            return null;
+        }
+
+        ItsDanerResultDataInfoDto respData = resp.getData();
+        if (respData == null) {
+            return null;
+        }
+
+        List<Object> checkData = respData.getData();
+
+        if (checkData == null || checkData.isEmpty()) {
+            return null;
+        }
+
+        BatchExecutionResultDto result = new BatchExecutionResultDto();
+        ItsDangerConfirmResultDto itsDangerConfirmResultDto = new ItsDangerConfirmResultDto();
+        itsDangerConfirmResultDto.setMessage(respData.getText());
+        itsDangerConfirmResultDto.setStatus("CONFIRM");
+
+        String md5 = buildContinueToken(batchExecutionRequest);
+
+        ItsDangerTokenInfoDto tokenInfo = new ItsDangerTokenInfoDto();
+        tokenInfo.setContinueToken(md5);
+        itsDangerConfirmResultDto.setData(tokenInfo);
+
+        result.setItsDangerConfirmResultDto(itsDangerConfirmResultDto);
+
+        return result;
+
+    }
+    
+    private BatchExecutionContext prepareExecutionContext(ExecutionJobs exeJob) {
+        BatchExecutionContext ctx = new BatchExecutionContext();
+        ctx.setExeJob(exeJob);
+        if (exeJob == null) {
+            throw new WecubeCoreException("3002", "execution job as input argument cannot be null.");
+        }
+        if (log.isInfoEnabled()) {
+            log.info("perform batch execution job:{} {} {}", exeJob.getPackageName(), exeJob.getEntityName(),
+                    exeJob.getRootEntityId());
+        }
+
+        PluginConfigInterfaces pluginConfigInterfaces = tryFetchEnrichedPluginConfigInterfaces(exeJob.getPluginConfigInterfaceId());
+        if (pluginConfigInterfaces == null) {
+            String errorMessage = String.format("Can not found plugin config interface[%s]",
+                    exeJob.getPluginConfigInterfaceId());
+            log.error(errorMessage);
+            exeJob.setErrorWithMessage(errorMessage);
+
+            ResultData<PluginResponseStationaryOutput> resultData = buildResultDataWithError(errorMessage);
+            ctx.setExeResult(resultData);
+            return ctx;
+        }
+
+        tryPrepareInputParamValues(exeJob, pluginConfigInterfaces);
+
+        if (exeJob.getPrepareException() != null) {
+            log.error("Errors to calculate input parameters", exeJob.getPrepareException());
+            throw new WecubeCoreException("3003",
+                    "Failed to prepare input parameter due to error:" + exeJob.getPrepareException().getMessage(),
+                    exeJob.getPrepareException().getMessage());
+        }
+
+        Map<String, Object> pluginInputParamMap = new HashMap<String, Object>();
+
+        for (ExecutionJobParameters parameter : exeJob.getParameters()) {
+            if (DATA_TYPE_STRING.equals(parameter.getDataType())
+                    || MAPPING_TYPE_SYSTEM_VARIABLE.equals(parameter.getMappingEntityExpression())) {
+                String paramValue = parameter.getValue();
+                if (parameter.getParameterDefinition() != null
+                        && "Y".equalsIgnoreCase(parameter.getParameterDefinition().getSensitiveData())) {
+                    paramValue = tryDecryptParamValue(paramValue);
+                }
+                pluginInputParamMap.put(parameter.getName(), paramValue);
+            }
+            if (DATA_TYPE_NUMBER.equals(parameter.getDataType())) {
+                pluginInputParamMap.put(parameter.getName(), Integer.valueOf(parameter.getValue()));
+            }
+        }
+
+        pluginInputParamMap.put(CALLBACK_PARAMETER_KEY, exeJob.getRootEntityId());
+
+        ctx.setPluginConfigInterface(pluginConfigInterfaces);
+        ctx.setPluginInputParamMap(pluginInputParamMap);
+
+        return ctx;
+    }
+    
+    private boolean needPerformDangerousCommandsChecking(BatchExecutionRequestDto requestDto, String continueToken) {
+
+        //TODO
+        PluginInstances itsdangerInstance = pluginInstanceMgmtService.getRunningPluginInstance(PLUGIN_NAME_ITSDANGEROUS);
+        if (itsdangerInstance == null) {
+            return false;
+        }
+
+        if (StringUtils.isNoneBlank(continueToken)) {
+            String md5 = buildContinueToken(requestDto);
+            if (md5.equals(continueToken)) {
+                return false;
+            } else {
+                throw new WecubeCoreException("Bad continue token!");
+            }
+        }
+
+        return true;
+    }
+
+    private String buildContinueToken(BatchExecutionRequestDto dto) {
+        StringBuilder data = new StringBuilder();
+        String seperator = ":";
+        data.append(dto.getClass().getName()).append(seperator);
+        data.append(dto.getPackageName()).append(seperator);
+        data.append(dto.getEntityName()).append(seperator);
+
+        String md5 = DigestUtils.md5DigestAsHex(data.toString().getBytes(Charset.forName("UTF-8")));
+        return md5;
     }
 
     private void verifyParameters(List<InputParameterDefinition> inputParameterDefinitions) {
