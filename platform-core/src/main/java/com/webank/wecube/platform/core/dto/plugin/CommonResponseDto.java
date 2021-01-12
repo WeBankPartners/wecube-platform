@@ -3,6 +3,7 @@ package com.webank.wecube.platform.core.dto.plugin;
 public class CommonResponseDto {
     public final static String STATUS_OK = "OK";
     public final static String STATUS_ERROR = "ERROR";
+    public final static String STATUS_CONFIRM = "CONFIRM";
 
     private String status;
     private String message;
