@@ -303,23 +303,25 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 
         ItsDangerConfirmResultDto confirmResult = null;
         if (needPerformDangerousCommandsChecking(taskNodeInstEntity, taskNodeDefEntity)) {
-            confirmResult = performDangerousCommandsChecking(ctx,pluginParameters);
+            log.info("risky commands pre checking needed by task node : {}:{}", taskNodeDefEntity.getId(),
+                    taskNodeInstEntity.getId());
+            confirmResult = performDangerousCommandsChecking(ctx, pluginParameters);
         }
-        
-        if(confirmResult != null){
+
+        if (confirmResult != null) {
             taskNodeInstEntity.setStatus(TaskNodeInstInfoEntity.RISKY_STATUS);
             taskNodeInstEntity.setUpdatedBy(WorkflowConstants.DEFAULT_USER);
             taskNodeInstEntity.setUpdatedTime(new Date());
             taskNodeInstInfoRepository.updateByPrimaryKeySelective(taskNodeInstEntity);
-            
+
             pluginInvocationResultService.responsePluginInterfaceInvocation(
                     new PluginInvocationResult().parsePluginInvocationCommand(cmd).withResultCode(RESULT_CODE_ERR));
-            
+
             TaskNodeExecRequestEntity requestEntity = ctx.getTaskNodeExecRequestEntity();
             requestEntity.setErrCode("CONFIRM");
             requestEntity.setErrMsg(confirmResult.getMessage());
             requestEntity.setUpdatedTime(new Date());
-            
+
             taskNodeExecRequestRepository.updateByPrimaryKey(requestEntity);
             return;
         }
@@ -329,7 +331,6 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
             taskNodeInstInfoRepository.updateByPrimaryKeySelective(taskNodeInstEntity);
         }
 
-        // TODO its verifying here
         PluginInvocationOperation operation = new PluginInvocationOperation() //
                 .withCallback(this::handlePluginInterfaceInvocationResult) //
                 .withPluginInvocationRestClient(this.pluginInvocationRestClient) //
@@ -368,7 +369,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 
         req.setInputParams(pluginParameters);
 
-        ItsDangerCheckRespDto resp = itsDangerRestClient.check(req);
+        ItsDangerCheckRespDto resp = itsDangerRestClient.checkFromBackend(req);
 
         if (resp == null) {
             return null;
