@@ -1,363 +1,352 @@
 SET FOREIGN_KEY_CHECKS = 0;
 
-CREATE TABLE `plugin_packages` (
-    `id`                    VARCHAR(255) PRIMARY KEY,
-    `name`                  VARCHAR(63) NOT NULL,
-    `version`               VARCHAR(20) NOT NULL,
-    `status`                VARCHAR(20) NOT NULL default 'UNREGISTERED',
+CREATE TABLE IF NOT EXISTS `plugin_packages` (
+    `id`                    VARCHAR(255) COLLATE utf8_bin PRIMARY KEY,
+    `name`                  VARCHAR(63) COLLATE utf8_bin NOT NULL,
+    `version`               VARCHAR(20) COLLATE utf8_bin NOT NULL,
+    `status`                VARCHAR(20) COLLATE utf8_bin NOT NULL default 'UNREGISTERED',
     `upload_timestamp`      timestamp default current_timestamp,
     `ui_package_included`   BIT default 0,
     UNIQUE INDEX `name` (`name`, `version`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 ;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 
 
-create table plugin_package_dependencies (
-  id VARCHAR(255) PRIMARY KEY,
-  plugin_package_id VARCHAR(255) not null,
-  dependency_package_name VARCHAR(63) not null,
-  dependency_package_version varchar(20) not null
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8 ;
+create table IF NOT EXISTS  `plugin_package_dependencies` (
+  id VARCHAR(255) COLLATE utf8_bin PRIMARY KEY,
+  plugin_package_id VARCHAR(255) COLLATE utf8_bin NOT NULL,
+  dependency_package_name VARCHAR(63) COLLATE utf8_bin NOT NULL,
+  dependency_package_version varchar(20) COLLATE utf8_bin NOT NULL
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 
 
-create table plugin_package_menus (
-  id VARCHAR(255) PRIMARY KEY,
-  plugin_package_id VARCHAR(255) not null,
-  code varchar(64) not null,
-  category varchar(64) not null,
-  source VARCHAR(255) DEFAULT 'PLUGIN',
-  display_name VARCHAR(256) not null,
-  local_display_name VARCHAR(256) not null,
+create table IF NOT EXISTS  plugin_package_menus (
+  id VARCHAR(255) COLLATE utf8_bin PRIMARY KEY,
+  plugin_package_id VARCHAR(255) NOT NULL,
+  code varchar(64) COLLATE utf8_bin not null,
+  category varchar(64) COLLATE utf8_bin not null,
+  source VARCHAR(255) COLLATE utf8_bin DEFAULT 'PLUGIN',
+  display_name VARCHAR(256) COLLATE utf8_bin not null,
+  local_display_name VARCHAR(256) COLLATE utf8_bin not null,
   menu_order INTEGER NOT NULL AUTO_INCREMENT,
-  path VARCHAR(512) not null,
+  path VARCHAR(512) COLLATE utf8_bin not null,
   active BIT default 0,
   KEY `plugin_package_menu_order` (`menu_order`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 
 
-CREATE TABLE plugin_package_data_model
+CREATE TABLE IF NOT EXISTS  plugin_package_data_model
 (
-    id                  VARCHAR(255) PRIMARY KEY,
+    id                  VARCHAR(255) COLLATE utf8_bin  PRIMARY KEY,
     version             INTEGER                        NOT NULL DEFAULT 1,
-    package_name        VARCHAR(63)                             NOT NULL,
+    package_name        VARCHAR(63)  COLLATE utf8_bin                            NOT NULL,
     is_dynamic          BIT  default 0,
-    update_path         VARCHAR(256),
-    update_method       VARCHAR(10),
-    update_source       VARCHAR(32),
+    update_path         VARCHAR(256) COLLATE utf8_bin,
+    update_method       VARCHAR(10) COLLATE utf8_bin,
+    update_source       VARCHAR(32) COLLATE utf8_bin,
     update_time         BIGINT   default 0     NOT NULL,
     UNIQUE uk_plugin_package_data_model(package_name, version)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 
 
-CREATE TABLE plugin_package_entities
+CREATE TABLE IF NOT EXISTS  plugin_package_entities
 (
-    id                 VARCHAR(255) PRIMARY KEY,
-    data_model_id      VARCHAR(255)                        NOT NULL,
+    id                 VARCHAR(255) COLLATE utf8_bin PRIMARY KEY,
+    data_model_id      VARCHAR(255)   COLLATE utf8_bin                     NOT NULL,
     data_model_version INTEGER                        NOT NULL,
-    package_name        VARCHAR(63)                    NOT NULL,
-    name               VARCHAR(100)                   NOT NULL,
-    display_name       VARCHAR(100)                   NOT NULL,
-    description        VARCHAR(256)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8 ;
+    package_name        VARCHAR(63)      COLLATE utf8_bin              NOT NULL,
+    name               VARCHAR(100)     COLLATE utf8_bin              NOT NULL,
+    display_name       VARCHAR(100)   COLLATE utf8_bin                NOT NULL,
+    description        VARCHAR(256) COLLATE utf8_bin
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 
 
-CREATE TABLE plugin_package_attributes
+CREATE TABLE IF NOT EXISTS  plugin_package_attributes
 (
-    id           VARCHAR(255) PRIMARY KEY,
-    entity_id    VARCHAR(255)                        NOT NULL,
-    reference_id VARCHAR(255),
-    name         VARCHAR(100)                   NOT NULL,
-    description  VARCHAR(256),
-    data_type    VARCHAR(20)                    NOT NULL
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8 ;
+    id           VARCHAR(255) COLLATE utf8_bin PRIMARY KEY,
+    entity_id    VARCHAR(255)   COLLATE utf8_bin                     NOT NULL,
+    reference_id VARCHAR(255) COLLATE utf8_bin,
+    name         VARCHAR(100)  COLLATE utf8_bin                 NOT NULL,
+    description  VARCHAR(256) COLLATE utf8_bin,
+    data_type    VARCHAR(20)   COLLATE utf8_bin                 NOT NULL
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 
 
-create table system_variables (
-  id VARCHAR(255) PRIMARY KEY,
-  package_name VARCHAR(63) ,
-  name varchar(255) not null,
-  value varchar(4096),
-  default_value varchar(4096) null,
-  scope varchar(50) not null default 'global',
-  source varchar(500) null default 'system',
-  status varchar(50) null default 'active'
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8 ;
+create table IF NOT EXISTS  system_variables (
+  id VARCHAR(255) COLLATE utf8_bin PRIMARY KEY,
+  package_name  VARCHAR(63)  COLLATE utf8_bin,
+  name varchar(255) COLLATE utf8_bin not null,
+  value varchar(4096) COLLATE utf8_bin ,
+  default_value varchar(4096) COLLATE utf8_bin null,
+  scope varchar(50) not null COLLATE utf8_bin default 'global',
+  source varchar(500) COLLATE utf8_bin null default 'system',
+  status varchar(50) COLLATE utf8_bin null default 'active'
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 
 
-create table plugin_package_authorities (
-  id VARCHAR(255) PRIMARY KEY,
-  plugin_package_id VARCHAR(255) not null,
-  role_name varchar(64) not null,
-  menu_code varchar(64) not null
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8 ;
+create table IF NOT EXISTS  plugin_package_authorities (
+  id VARCHAR(255) COLLATE utf8_bin PRIMARY KEY,
+  plugin_package_id VARCHAR(255) COLLATE utf8_bin not null,
+  role_name varchar(64) COLLATE utf8_bin not null,
+  menu_code varchar(64) COLLATE utf8_bin not null
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
+
+create table IF NOT EXISTS  plugin_package_runtime_resources_docker (
+  id VARCHAR(255) COLLATE utf8_bin PRIMARY KEY,
+  plugin_package_id VARCHAR(255) COLLATE utf8_bin not null,
+  image_name varchar(256) COLLATE utf8_bin not null, 
+  container_name varchar(128) COLLATE utf8_bin not null,
+  port_bindings varchar(256) COLLATE utf8_bin not null, 
+  volume_bindings varchar(1024) COLLATE utf8_bin not null,
+  env_variables varchar(2000) COLLATE utf8_bin
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 
 
-
-create table plugin_package_runtime_resources_docker (
-  id VARCHAR(255) PRIMARY KEY,
-  plugin_package_id VARCHAR(255) not null,
-  image_name varchar(256) not null, 
-  container_name varchar(128) not null,
-  port_bindings varchar(256) not null, 
-  volume_bindings varchar(1024) not null,
-  env_variables varchar(2000)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8 ;
+create table IF NOT EXISTS  plugin_package_runtime_resources_mysql (
+  id VARCHAR(255) COLLATE utf8_bin PRIMARY KEY,
+  plugin_package_id VARCHAR(255) COLLATE utf8_bin not null,
+  schema_name varchar(128) COLLATE utf8_bin not null,
+  init_file_name varchar(256) COLLATE utf8_bin,
+  upgrade_file_name varchar(256) COLLATE utf8_bin
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 
 
-create table plugin_package_runtime_resources_mysql (
-  id VARCHAR(255) PRIMARY KEY,
-  plugin_package_id VARCHAR(255) not null,
-  schema_name varchar(128) not null,
-  init_file_name varchar(256),
-  upgrade_file_name varchar(256)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8 ;
-
-
-create table plugin_package_runtime_resources_s3 (
-  id VARCHAR(255) PRIMARY KEY,
-  plugin_package_id VARCHAR(255) not null,
-  bucket_name varchar(255) not null
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8 ;
-
-
-
-CREATE TABLE `plugin_configs` (
-  id VARCHAR(255) PRIMARY KEY,
-  `plugin_package_id` VARCHAR(255) NOT NULL,
-  `name` VARCHAR(100) NOT NULL,
-  `target_package` VARCHAR(63) NULL DEFAULT NULL,
-  `target_entity` VARCHAR(100) NULL,
-  `target_entity_filter_rule` VARCHAR(2048) NULL DEFAULT '',
-  `register_name` VARCHAR(100) NULL DEFAULT NULL,
-  `status` VARCHAR(20) NOT NULL default 'DISABLED'
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8 ;
-
-
-create table plugin_config_interfaces (
-    `id` VARCHAR(255) PRIMARY KEY,
-    `plugin_config_id` VARCHAR(255) NOT NULL,
-    `action` VARCHAR(100) NOT NULL,
-    `service_name` VARCHAR(500) NOT NULL, 
-    `service_display_name` VARCHAR(500) NOT NULL,
-    `path` VARCHAR(500) NOT NULL, 
-    `http_method` VARCHAR(10) NOT NULL, 
-    `is_async_processing` VARCHAR(1) DEFAULT 'N',
-    `type` VARCHAR(16) DEFAULT 'EXECUTION',
-    `filter_rule` VARCHAR(2048) NULL DEFAULT ''
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8 ;
-
-
-CREATE TABLE `plugin_config_interface_parameters` (
-    `id` VARCHAR(255) PRIMARY KEY,
-    `plugin_config_interface_id` VARCHAR(255) NOT NULL,
-    `type` VARCHAR(50) NOT NULL,
-    `name` VARCHAR(255) NOT NULL,
-    `data_type` VARCHAR(50) NOT NULL,
-    `mapping_type` VARCHAR(50) NULL DEFAULT NULL,
-    `mapping_entity_expression` varchar(2048) NULL DEFAULT NULL,
-    `mapping_system_variable_name` VARCHAR(500) NULL DEFAULT NULL,
-    `required` varchar(5),
-    `sensitive_data` varchar(5)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8 ;
+create table IF NOT EXISTS plugin_package_runtime_resources_s3 (
+  id VARCHAR(255) COLLATE utf8_bin PRIMARY KEY,
+  plugin_package_id VARCHAR(255) COLLATE utf8_bin not null,
+  bucket_name varchar(255) COLLATE utf8_bin not null
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 
 
 
-create table menu_items
+CREATE TABLE IF NOT EXISTS `plugin_configs` (
+  id VARCHAR(255) COLLATE utf8_bin PRIMARY KEY,
+  `plugin_package_id` VARCHAR(255) COLLATE utf8_bin NOT NULL,
+  `name` VARCHAR(100) COLLATE utf8_bin NOT NULL,
+  `target_package` VARCHAR(63) COLLATE utf8_bin NULL DEFAULT NULL,
+  `target_entity` VARCHAR(100) COLLATE utf8_bin NULL,
+  `target_entity_filter_rule` VARCHAR(2048) COLLATE utf8_bin NULL DEFAULT '',
+  `register_name` VARCHAR(100) COLLATE utf8_bin NULL DEFAULT NULL,
+  `status` VARCHAR(20) COLLATE utf8_bin NOT NULL default 'DISABLED'
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
+
+
+create table IF NOT EXISTS plugin_config_interfaces (
+    `id` VARCHAR(255) COLLATE utf8_bin PRIMARY KEY,
+    `plugin_config_id` VARCHAR(255) COLLATE utf8_bin NOT NULL,
+    `action` VARCHAR(100) COLLATE utf8_bin NOT NULL,
+    `service_name` VARCHAR(500) COLLATE utf8_bin NOT NULL, 
+    `service_display_name` VARCHAR(500) COLLATE utf8_bin NOT NULL,
+    `path` VARCHAR(500) COLLATE utf8_bin NOT NULL, 
+    `http_method` VARCHAR(10) COLLATE utf8_bin NOT NULL, 
+    `is_async_processing` VARCHAR(1) COLLATE utf8_bin DEFAULT 'N',
+    `type` VARCHAR(16) COLLATE utf8_bin DEFAULT 'EXECUTION',
+    `filter_rule` VARCHAR(2048) COLLATE utf8_bin NULL DEFAULT ''
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
+
+
+CREATE TABLE IF NOT EXISTS `plugin_config_interface_parameters` (
+    `id` VARCHAR(255) COLLATE utf8_bin PRIMARY KEY,
+    `plugin_config_interface_id` VARCHAR(255) COLLATE utf8_bin NOT NULL,
+    `type` VARCHAR(50) COLLATE utf8_bin NOT NULL,
+    `name` VARCHAR(255) COLLATE utf8_bin NOT NULL,
+    `data_type` VARCHAR(50) COLLATE utf8_bin NOT NULL,
+    `mapping_type` VARCHAR(50) COLLATE utf8_bin NULL DEFAULT NULL,
+    `mapping_entity_expression` varchar(2048) COLLATE utf8_bin NULL DEFAULT NULL,
+    `mapping_system_variable_name` VARCHAR(500) COLLATE utf8_bin NULL DEFAULT NULL,
+    `required` varchar(5) COLLATE utf8_bin,
+    `sensitive_data` varchar(5) COLLATE utf8_bin
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
+
+
+
+create table IF NOT EXISTS menu_items
 (
-    id VARCHAR(255) PRIMARY KEY,
-    parent_code VARCHAR(64),
-    code        VARCHAR(64) NOT NULL,
-    source      VARCHAR(255) NOT NULL,
-    description VARCHAR(200),
-    local_display_name VARCHAR(200),
+    id VARCHAR(255) COLLATE utf8_bin PRIMARY KEY,
+    parent_code VARCHAR(64) COLLATE utf8_bin,
+    code        VARCHAR(64) COLLATE utf8_bin NOT NULL,
+    source      VARCHAR(255) COLLATE utf8_bin NOT NULL,
+    description VARCHAR(200) COLLATE utf8_bin,
+    local_display_name VARCHAR(200) COLLATE utf8_bin,
     menu_order INTEGER NOT NULL AUTO_INCREMENT,
     UNIQUE KEY uk_code (code),
     KEY `menu_item_order` (`menu_order`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 
 
-create table plugin_package_resource_files
+create table IF NOT EXISTS plugin_package_resource_files
 (
-  id VARCHAR(255) PRIMARY KEY,
-  plugin_package_id VARCHAR(255) not null,
-  package_name varchar(63) not null,
-  package_version varchar(20) not null,
-  source varchar(64) not null,
-  related_path varchar(1024) not null
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8 ;
+  id VARCHAR(255) COLLATE utf8_bin PRIMARY KEY,
+  plugin_package_id VARCHAR(255) COLLATE utf8_bin not null,
+  package_name varchar(63) COLLATE utf8_bin not null,
+  package_version varchar(20) COLLATE utf8_bin not null,
+  source varchar(64) COLLATE utf8_bin not null,
+  related_path varchar(1024) COLLATE utf8_bin not null
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 
 
-CREATE TABLE `resource_server` (
-    `id` VARCHAR(255) PRIMARY KEY,
-    `created_by` VARCHAR(255) NULL DEFAULT NULL ,
+CREATE TABLE IF NOT EXISTS `resource_server` (
+    `id` VARCHAR(255) COLLATE utf8_bin PRIMARY KEY,
+    `created_by` VARCHAR(255) COLLATE utf8_bin NULL DEFAULT NULL ,
     `created_date` DATETIME NULL DEFAULT NULL,
-    `host` VARCHAR(255) NULL DEFAULT NULL ,
+    `host` VARCHAR(255) COLLATE utf8_bin NULL DEFAULT NULL ,
     `is_allocated` INT(11) NULL DEFAULT NULL,
-    `login_password` VARCHAR(255) NULL DEFAULT NULL ,
-    `login_username` VARCHAR(255) NULL DEFAULT NULL ,
-    `name` VARCHAR(255) NULL DEFAULT NULL ,
-    `port` VARCHAR(255) NULL DEFAULT NULL ,
-    `purpose` VARCHAR(255) NULL DEFAULT NULL ,
-    `status` VARCHAR(255) NULL DEFAULT NULL ,
-    `type` VARCHAR(255) NULL DEFAULT NULL ,
-    `updated_by` VARCHAR(255) NULL DEFAULT NULL ,
+    `login_password` VARCHAR(255) COLLATE utf8_bin NULL DEFAULT NULL ,
+    `login_username` VARCHAR(255) COLLATE utf8_bin NULL DEFAULT NULL ,
+    `name` VARCHAR(255) COLLATE utf8_bin NULL DEFAULT NULL ,
+    `port` VARCHAR(255) COLLATE utf8_bin NULL DEFAULT NULL ,
+    `purpose` VARCHAR(255) COLLATE utf8_bin NULL DEFAULT NULL ,
+    `status` VARCHAR(255) COLLATE utf8_bin NULL DEFAULT NULL ,
+    `type` VARCHAR(255) COLLATE utf8_bin NULL DEFAULT NULL ,
+    `updated_by` VARCHAR(255) COLLATE utf8_bin NULL DEFAULT NULL ,
     `updated_date` DATETIME NULL DEFAULT NULL
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 
 
-CREATE TABLE `resource_item` (
-    `id` VARCHAR(255) PRIMARY KEY,
-    `additional_properties` text NULL DEFAULT NULL,
-    `created_by` VARCHAR(255) NULL DEFAULT NULL,
+CREATE TABLE IF NOT EXISTS `resource_item` (
+    `id` VARCHAR(255) COLLATE utf8_bin PRIMARY KEY,
+    `additional_properties` TEXT COLLATE utf8_bin NULL DEFAULT NULL,
+    `created_by` VARCHAR(255) COLLATE utf8_bin NULL DEFAULT NULL,
     `created_date` DATETIME NULL DEFAULT NULL,
     `is_allocated` INT(11) NULL DEFAULT NULL,
-    `name` VARCHAR(255) NULL DEFAULT NULL,
-    `purpose` VARCHAR(255) NULL DEFAULT NULL,
-    `resource_server_id` VARCHAR(64) DEFAULT NULL,
-    `status` VARCHAR(255) NULL DEFAULT NULL,
-    `type` VARCHAR(255) NULL DEFAULT NULL,
-    `updated_by` VARCHAR(255) NULL DEFAULT NULL,
+    `name` VARCHAR(255) COLLATE utf8_bin NULL DEFAULT NULL,
+    `purpose` VARCHAR(255) COLLATE utf8_bin NULL DEFAULT NULL,
+    `resource_server_id` VARCHAR(64) COLLATE utf8_bin DEFAULT NULL,
+    `status` VARCHAR(255) COLLATE utf8_bin NULL DEFAULT NULL,
+    `type` VARCHAR(255) COLLATE utf8_bin NULL DEFAULT NULL,
+    `updated_by` VARCHAR(255) COLLATE utf8_bin NULL DEFAULT NULL,
     `updated_date` DATETIME NULL DEFAULT NULL,
     INDEX `FK2g8cf9beg7msqry6cmqedvv9n` (`resource_server_id`),
     CONSTRAINT `FK2g8cf9beg7msqry6cmqedvv9n` FOREIGN KEY (`resource_server_id`) REFERENCES `resource_server` (`id`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 
 
-CREATE TABLE `plugin_instances` (
-    `id` VARCHAR(255) PRIMARY KEY,
-    `host` VARCHAR(255) NULL DEFAULT NULL,
-    `container_name` VARCHAR(255) NULL DEFAULT NULL,
+CREATE TABLE IF NOT EXISTS `plugin_instances` (
+    `id` VARCHAR(255) COLLATE utf8_bin PRIMARY KEY,
+    `host` VARCHAR(255) COLLATE utf8_bin NULL DEFAULT NULL,
+    `container_name` VARCHAR(255) COLLATE utf8_bin NULL DEFAULT NULL,
     `port` INT(11) NULL DEFAULT NULL,
-    `container_status` VARCHAR(255) NULL DEFAULT NULL,
-    `package_id` VARCHAR(255) DEFAULT NULL,
-    `docker_instance_resource_id` VARCHAR(255) DEFAULT NULL,
-    `instance_name` VARCHAR(255) NULL DEFAULT NULL,
-    `plugin_mysql_instance_resource_id` VARCHAR(255) DEFAULT NULL,
-    `s3bucket_resource_id` VARCHAR(255) DEFAULT NULL,
+    `container_status` VARCHAR(255) COLLATE utf8_bin NULL DEFAULT NULL,
+    `package_id` VARCHAR(255) COLLATE utf8_bin DEFAULT NULL,
+    `docker_instance_resource_id` VARCHAR(255) COLLATE utf8_bin DEFAULT NULL,
+    `instance_name` VARCHAR(255) COLLATE utf8_bin NULL DEFAULT NULL,
+    `plugin_mysql_instance_resource_id` VARCHAR(255) COLLATE utf8_bin DEFAULT NULL,
+    `s3bucket_resource_id` VARCHAR(255) COLLATE utf8_bin DEFAULT NULL,
     INDEX `FKn8124r2uvtipsy1hfkjmd4jts` (`package_id`),
     INDEX `FKbqqlg3wrp1n0h926v5cojcjk7` (`s3bucket_resource_id`),
     CONSTRAINT `FKbqqlg3wrp1n0h926v5cojcjk7` FOREIGN KEY (`s3bucket_resource_id`) REFERENCES `resource_item` (`id`),
     CONSTRAINT `FKn8124r2uvtipsy1hfkjmd4jts` FOREIGN KEY (`package_id`) REFERENCES `plugin_packages` (`id`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 
 
 
 
-CREATE TABLE `plugin_mysql_instances` (
-    `id` VARCHAR(255) PRIMARY KEY,
-    `password` VARCHAR(255) NULL DEFAULT NULL,
-    `plugun_package_id` VARCHAR(255) DEFAULT NULL,
-    `resource_item_id` VARCHAR(255) DEFAULT NULL,
-    `schema_name` VARCHAR(255) NULL DEFAULT NULL,
-    `status` VARCHAR(255) NULL DEFAULT NULL,
-    `username` VARCHAR(255) NULL DEFAULT NULL,
-    `pre_version` VARCHAR(255) NULL DEFAULT NULL,
+CREATE TABLE IF NOT EXISTS `plugin_mysql_instances` (
+    `id` VARCHAR(255) COLLATE utf8_bin PRIMARY KEY,
+    `password` VARCHAR(255) COLLATE utf8_bin NULL DEFAULT NULL,
+    `plugun_package_id` VARCHAR(255) COLLATE utf8_bin DEFAULT NULL,
+    `resource_item_id` VARCHAR(255) COLLATE utf8_bin DEFAULT NULL,
+    `schema_name` VARCHAR(255) COLLATE utf8_bin NULL DEFAULT NULL,
+    `status` VARCHAR(255) COLLATE utf8_bin NULL DEFAULT NULL,
+    `username` VARCHAR(255) COLLATE utf8_bin NULL DEFAULT NULL,
+    `pre_version` VARCHAR(255) COLLATE utf8_bin NULL DEFAULT NULL,
     `created_time` datetime DEFAULT NULL,
     `updated_time` datetime DEFAULT NULL,
     INDEX `FK6twufg10tr0fk81uyf9tdtxf1` (`plugun_package_id`),
     INDEX `FKn5plb1x3qnwxla4mixdhawo2o` (`resource_item_id`),
     CONSTRAINT `FK6twufg10tr0fk81uyf9tdtxf1` FOREIGN KEY (`plugun_package_id`) REFERENCES `plugin_packages` (`id`),
     CONSTRAINT `FKn5plb1x3qnwxla4mixdhawo2o` FOREIGN KEY (`resource_item_id`) REFERENCES `resource_item` (`id`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 
 
-CREATE TABLE `role_menu` (
-    `id`      VARCHAR(255) PRIMARY KEY,
-    `role_name` VARCHAR(64) NOT NULL,
-    `menu_code` VARCHAR(255) NOT NULL
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8;
+CREATE TABLE IF NOT EXISTS `role_menu` (
+    `id`      VARCHAR(255) COLLATE utf8_bin PRIMARY KEY,
+    `role_name` VARCHAR(64) COLLATE utf8_bin NOT NULL,
+    `menu_code` VARCHAR(255) COLLATE utf8_bin NOT NULL
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 
 
-CREATE TABLE `core_ru_proc_role_binding` (
-    `id`      VARCHAR(255) PRIMARY KEY,
-    `proc_id`      VARCHAR(255) NOT NULL,
-    `role_id` VARCHAR(512)       NOT NULL,
-    `role_name` VARCHAR(255)     NOT NULL,
-    `permission` VARCHAR(255) NOT NULL
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8;
-
-
-CREATE TABLE `batch_execution_jobs` (
-    `id` VARCHAR(255) NOT NULL,
+CREATE TABLE IF NOT EXISTS `batch_execution_jobs` (
+    `id` VARCHAR(255) COLLATE utf8_bin NOT NULL,
     `create_timestamp` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `complete_timestamp` TIMESTAMP NULL DEFAULT NULL,
-    `creator` VARCHAR(255) NULL DEFAULT NULL,
+    `creator` VARCHAR(255) COLLATE utf8_bin NULL DEFAULT NULL,
     PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 ;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 
 
-CREATE TABLE `execution_jobs` (
+CREATE TABLE IF NOT EXISTS `execution_jobs` (
     `id` INT(11) NOT NULL AUTO_INCREMENT,
-    `batch_execution_job_id` VARCHAR(255) NOT NULL,
-    `package_name` VARCHAR(63) NOT NULL,
-    `entity_name` VARCHAR(100) NOT NULL,
-    `business_key` VARCHAR(255) NOT NULL,
-    `root_entity_id` VARCHAR(255) NOT NULL,
+    `batch_execution_job_id` VARCHAR(255) COLLATE utf8_bin NOT NULL,
+    `package_name` VARCHAR(63) COLLATE utf8_bin NOT NULL,
+    `entity_name` VARCHAR(100) COLLATE utf8_bin NOT NULL,
+    `business_key` VARCHAR(255) COLLATE utf8_bin NOT NULL,
+    `root_entity_id` VARCHAR(255) COLLATE utf8_bin NOT NULL,
     `execute_time` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `complete_time` TIMESTAMP NULL,
-    `error_code` VARCHAR(1) NULL DEFAULT NULL,
-    `error_message` TEXT NULL,
-    `return_json` LONGTEXT NULL,
-    `plugin_config_interface_id` VARCHAR(255) NULL DEFAULT NULL,
+    `error_code` VARCHAR(1) COLLATE utf8_bin NULL DEFAULT NULL,
+    `error_message` TEXT COLLATE utf8_bin NULL,
+    `return_json` LONGTEXT COLLATE utf8_bin NULL,
+    `plugin_config_interface_id` VARCHAR(255) COLLATE utf8_bin NULL DEFAULT NULL,
     PRIMARY KEY (`id`),
     UNIQUE INDEX `job_id_and_root_entity_id` (`batch_execution_job_id`, `root_entity_id`),
     CONSTRAINT `FK534bth9hibanrjd5fqdel8u9c` FOREIGN KEY (`batch_execution_job_id`) REFERENCES `batch_execution_jobs` (`id`)
-)ENGINE=InnoDB DEFAULT CHARSET=utf8;
+)ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 
 
-CREATE TABLE `execution_job_parameters` (
+CREATE TABLE IF NOT EXISTS `execution_job_parameters` (
     `id` INT(11) NOT NULL AUTO_INCREMENT,
     `execution_job_id` INT(11) NOT NULL,
-    `name` VARCHAR(255) NOT NULL,
-    `data_type` VARCHAR(50) NOT NULL,
-    `mapping_type` VARCHAR(50) NULL DEFAULT NULL,
-    `mapping_entity_expression` VARCHAR(2048) NULL DEFAULT NULL,
-    `mapping_system_variable_name` VARCHAR(500) NULL DEFAULT NULL,
-    `required` VARCHAR(5) NULL DEFAULT NULL,
-    `constant_value` VARCHAR(255) NULL DEFAULT NULL,
-    `value` TEXT NULL DEFAULT NULL,
+    `name` VARCHAR(255) COLLATE utf8_bin NOT NULL,
+    `data_type` VARCHAR(50) COLLATE utf8_bin NOT NULL,
+    `mapping_type` VARCHAR(50) COLLATE utf8_bin NULL DEFAULT NULL,
+    `mapping_entity_expression` VARCHAR(2048) COLLATE utf8_bin NULL DEFAULT NULL,
+    `mapping_system_variable_name` VARCHAR(500) COLLATE utf8_bin NULL DEFAULT NULL,
+    `required` VARCHAR(5) COLLATE utf8_bin NULL DEFAULT NULL,
+    `constant_value` VARCHAR(255) COLLATE utf8_bin NULL DEFAULT NULL,
+    `value` TEXT COLLATE utf8_bin NULL DEFAULT NULL,
     PRIMARY KEY (`id`),
     INDEX `FK_execution_job_parameters_execution_jobs` (`execution_job_id`),
     CONSTRAINT `FK_execution_job_parameters_execution_jobs` FOREIGN KEY (`execution_job_id`) REFERENCES `execution_jobs` (`id`)
-)ENGINE=InnoDB DEFAULT CHARSET=utf8;
+)ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 
 
-CREATE TABLE `favorites` (
-  `favorites_id` varchar(255) NOT NULL,
-  `created_by` varchar(255) DEFAULT NULL,
+CREATE TABLE IF NOT EXISTS `favorites` (
+  `favorites_id` varchar(255) COLLATE utf8_bin NOT NULL,
+  `created_by` varchar(255) COLLATE utf8_bin DEFAULT NULL,
   `created_time` datetime DEFAULT NULL,
-  `updated_by` varchar(255) DEFAULT NULL,
+  `updated_by` varchar(255) COLLATE utf8_bin DEFAULT NULL,
   `updated_time` datetime DEFAULT NULL,
-  `collection_name` varchar(255) NOT NULL,
+  `collection_name` varchar(255) COLLATE utf8_bin NOT NULL,
   `data` blob,
   PRIMARY KEY (`favorites_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 
 
-CREATE TABLE `favorites_role` (
-  `id` varchar(255) NOT NULL,
-  `favorites_id` varchar(255) DEFAULT NULL,
-  `permission` varchar(255) DEFAULT NULL,
-  `role_id` varchar(512) DEFAULT NULL,
-  `role_name` varchar(255) DEFAULT NULL,
+CREATE TABLE IF NOT EXISTS `favorites_role` (
+  `id` varchar(255) COLLATE utf8_bin NOT NULL,
+  `favorites_id` varchar(255) COLLATE utf8_bin DEFAULT NULL,
+  `permission` varchar(255) COLLATE utf8_bin  DEFAULT NULL,
+  `role_id` varchar(512) COLLATE utf8_bin  DEFAULT NULL,
+  `role_name` varchar(255) COLLATE utf8_bin  DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 
 
-CREATE TABLE `plugin_artifact_pull_req` (
-  `id` varchar(255) NOT NULL,
-  `bucket_name` varchar(255) DEFAULT NULL,
-  `created_by` varchar(255) DEFAULT NULL,
+CREATE TABLE IF NOT EXISTS `plugin_artifact_pull_req` (
+  `id` varchar(255)COLLATE utf8_bin  NOT NULL,
+  `bucket_name` varchar(255) COLLATE utf8_bin  DEFAULT NULL,
+  `created_by` varchar(255) COLLATE utf8_bin DEFAULT NULL,
   `created_time` datetime DEFAULT NULL,
-  `err_msg` varchar(255) DEFAULT NULL,
-  `key_name` varchar(255) DEFAULT NULL,
-  `pkg_id` varchar(255) DEFAULT NULL,
+  `err_msg` varchar(255) COLLATE utf8_bin DEFAULT NULL,
+  `key_name` varchar(255) COLLATE utf8_bin DEFAULT NULL,
+  `pkg_id` varchar(255) COLLATE utf8_bin DEFAULT NULL,
   `rev` int(11) DEFAULT NULL,
-  `state` varchar(255) DEFAULT NULL,
+  `state` varchar(255) COLLATE utf8_bin DEFAULT NULL,
   `total_size` bigint(20) DEFAULT NULL,
-  `updated_by` varchar(255) DEFAULT NULL,
+  `updated_by` varchar(255) COLLATE utf8_bin DEFAULT NULL,
   `updated_time` datetime DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 
 #workflow
 
@@ -1416,45 +1405,6 @@ CREATE TABLE IF NOT EXISTS `act_ru_meter_log` (
   KEY `ACT_IDX_METER_LOG` (`NAME_`,`TIMESTAMP_`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 
-
-CREATE TABLE IF NOT EXISTS `act_ru_procinst_status` (
-  `id` varchar(255) NOT NULL,
-  `created_by` varchar(255) DEFAULT NULL,
-  `created_time` datetime DEFAULT NULL,
-  `end_time` datetime DEFAULT NULL,
-  `start_time` datetime DEFAULT NULL,
-  `status` varchar(255) DEFAULT NULL,
-  `updated_by` varchar(255) DEFAULT NULL,
-  `updated_time` datetime DEFAULT NULL,
-  `proc_def_id` varchar(255) DEFAULT NULL,
-  `proc_def_key` varchar(255) DEFAULT NULL,
-  `proc_def_name` varchar(255) DEFAULT NULL,
-  `proc_inst_key` varchar(255) DEFAULT NULL,
-  `proc_inst_id` varchar(255) DEFAULT NULL,
-  PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-
-
-CREATE TABLE IF NOT EXISTS `act_ru_srvnode_status` (
-  `id` varchar(255) NOT NULL,
-  `created_by` varchar(255) DEFAULT NULL,
-  `created_time` datetime DEFAULT NULL,
-  `end_time` datetime DEFAULT NULL,
-  `start_time` datetime DEFAULT NULL,
-  `status` varchar(255) DEFAULT NULL,
-  `updated_by` varchar(255) DEFAULT NULL,
-  `updated_time` datetime DEFAULT NULL,
-  `node_id` varchar(255) DEFAULT NULL,
-  `node_inst_id` varchar(255) DEFAULT NULL,
-  `node_name` varchar(255) DEFAULT NULL,
-  `node_type` varchar(255) DEFAULT NULL,
-  `proc_inst_key` varchar(255) DEFAULT NULL,
-  `proc_inst_id` varchar(255) DEFAULT NULL,
-  `try_times` int(11) DEFAULT NULL,
-  PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-
-
 CREATE TABLE IF NOT EXISTS `act_ru_task` (
   `ID_` varchar(64) COLLATE utf8_bin NOT NULL,
   `REV_` int(11) DEFAULT NULL,
@@ -1529,144 +1479,181 @@ CREATE TABLE IF NOT EXISTS `act_ru_variable` (
   CONSTRAINT `ACT_FK_VAR_PROCINST` FOREIGN KEY (`PROC_INST_ID_`) REFERENCES `act_ru_execution` (`ID_`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 
+CREATE TABLE IF NOT EXISTS `act_ru_procinst_status` (
+  `id` varchar(255) COLLATE utf8_bin  NOT NULL,
+  `created_by` varchar(255) COLLATE utf8_bin  DEFAULT NULL,
+  `created_time` datetime DEFAULT NULL,
+  `end_time` datetime DEFAULT NULL,
+  `start_time` datetime DEFAULT NULL,
+  `status` varchar(255) COLLATE utf8_bin DEFAULT NULL,
+  `updated_by` varchar(255) COLLATE utf8_bin DEFAULT NULL,
+  `updated_time` datetime DEFAULT NULL,
+  `proc_def_id` varchar(255) COLLATE utf8_bin DEFAULT NULL,
+  `proc_def_key` varchar(255) COLLATE utf8_bin DEFAULT NULL,
+  `proc_def_name` varchar(255) COLLATE utf8_bin DEFAULT NULL,
+  `proc_inst_key` varchar(255) COLLATE utf8_bin DEFAULT NULL,
+  `proc_inst_id` varchar(255) COLLATE utf8_bin DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
+
+
+CREATE TABLE IF NOT EXISTS `act_ru_srvnode_status` (
+  `id` varchar(255) COLLATE utf8_bin NOT NULL,
+  `created_by` varchar(255) COLLATE utf8_bin  DEFAULT NULL,
+  `created_time` datetime DEFAULT NULL,
+  `end_time` datetime DEFAULT NULL,
+  `start_time` datetime DEFAULT NULL,
+  `status` varchar(255) COLLATE utf8_bin DEFAULT NULL,
+  `updated_by` varchar(255) COLLATE utf8_bin DEFAULT NULL,
+  `updated_time` datetime DEFAULT NULL,
+  `node_id` varchar(255) COLLATE utf8_bin DEFAULT NULL,
+  `node_inst_id` varchar(255) COLLATE utf8_bin DEFAULT NULL,
+  `node_name` varchar(255) COLLATE utf8_bin DEFAULT NULL,
+  `node_type` varchar(255) COLLATE utf8_bin DEFAULT NULL,
+  `proc_inst_key` varchar(255) COLLATE utf8_bin DEFAULT NULL,
+  `proc_inst_id` varchar(255) COLLATE utf8_bin DEFAULT NULL,
+  `try_times` int(11) DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
+
 
 CREATE TABLE IF NOT EXISTS `core_operation_event` (
   `id` bigint(20) NOT NULL AUTO_INCREMENT,
-  `created_by` varchar(255) DEFAULT NULL,
+  `created_by` varchar(255) COLLATE utf8_bin  DEFAULT NULL,
   `created_time` datetime DEFAULT NULL,
-  `updated_by` varchar(255) DEFAULT NULL,
+  `updated_by` varchar(255) COLLATE utf8_bin DEFAULT NULL,
   `updated_time` datetime DEFAULT NULL,
-  `event_seq_no` varchar(255) DEFAULT NULL,
-  `event_type` varchar(255) DEFAULT NULL,
+  `event_seq_no` varchar(255) COLLATE utf8_bin DEFAULT NULL,
+  `event_type` varchar(255) COLLATE utf8_bin DEFAULT NULL,
   `is_notified` bit(1) DEFAULT NULL,
-  `notify_endpoint` varchar(255) DEFAULT NULL,
+  `notify_endpoint` varchar(255) COLLATE utf8_bin DEFAULT NULL,
   `is_notify_required` bit(1) DEFAULT NULL,
-  `oper_data` varchar(255) DEFAULT NULL,
-  `oper_key` varchar(255) DEFAULT NULL,
-  `oper_user` varchar(255) DEFAULT NULL,
-  `proc_def_id` varchar(255) DEFAULT NULL,
-  `proc_inst_id` varchar(255) DEFAULT NULL,
-  `src_sub_system` varchar(255) DEFAULT NULL,
-  `status` varchar(255) DEFAULT NULL,
+  `oper_data` varchar(255) COLLATE utf8_bin DEFAULT NULL,
+  `oper_key` varchar(255) COLLATE utf8_bin DEFAULT NULL,
+  `oper_user` varchar(255) COLLATE utf8_bin DEFAULT NULL,
+  `proc_def_id` varchar(255) COLLATE utf8_bin DEFAULT NULL,
+  `proc_inst_id` varchar(255) COLLATE utf8_bin DEFAULT NULL,
+  `src_sub_system` varchar(255) COLLATE utf8_bin DEFAULT NULL,
+  `status` varchar(255) COLLATE utf8_bin DEFAULT NULL,
   `end_time` datetime DEFAULT NULL,
   `priority` int(11) DEFAULT NULL,
-  `proc_inst_key` varchar(255) DEFAULT NULL,
+  `proc_inst_key` varchar(255) COLLATE utf8_bin DEFAULT NULL,
   `start_time` datetime DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 
 
 CREATE TABLE IF NOT EXISTS `core_re_proc_def_info` (
-  `id` varchar(255) NOT NULL,
-  `created_by` varchar(255) DEFAULT NULL,
+  `id` varchar(255) COLLATE utf8_bin NOT NULL,
+  `created_by` varchar(255) COLLATE utf8_bin DEFAULT NULL,
   `created_time` datetime DEFAULT NULL,
-  `updated_by` varchar(255) DEFAULT NULL,
+  `updated_by` varchar(255) COLLATE utf8_bin DEFAULT NULL,
   `updated_time` datetime DEFAULT NULL,
   `active` bit(1) DEFAULT NULL,
   `rev` int(11) DEFAULT NULL,
-  `status` varchar(255) DEFAULT NULL,
-  `proc_def_data` text,
-  `proc_def_data_fmt` varchar(255) DEFAULT NULL,
-  `proc_def_kernel_id` varchar(255) DEFAULT NULL,
-  `proc_def_key` varchar(255) DEFAULT NULL,
-  `proc_def_name` varchar(255) DEFAULT NULL,
+  `status` varchar(255) COLLATE utf8_bin DEFAULT NULL,
+  `proc_def_data` text COLLATE utf8_bin,
+  `proc_def_data_fmt` varchar(255) COLLATE utf8_bin DEFAULT NULL,
+  `proc_def_kernel_id` varchar(255) COLLATE utf8_bin DEFAULT NULL,
+  `proc_def_key` varchar(255) COLLATE utf8_bin DEFAULT NULL,
+  `proc_def_name` varchar(255) COLLATE utf8_bin DEFAULT NULL,
   `proc_def_ver` int(11) DEFAULT NULL,
-  `root_entity` varchar(255) DEFAULT NULL,
+  `root_entity` varchar(255) COLLATE utf8_bin DEFAULT NULL,
   `is_deleted` bit(1) DEFAULT NULL,
-  `owner` varchar(255) DEFAULT NULL,
-  `owner_grp` varchar(255) DEFAULT NULL,
+  `owner` varchar(255) COLLATE utf8_bin DEFAULT NULL,
+  `owner_grp` varchar(255) COLLATE utf8_bin DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 
 
 CREATE TABLE IF NOT EXISTS `core_re_task_node_def_info` (
-  `id` varchar(255) NOT NULL,
-  `created_by` varchar(255) DEFAULT NULL,
+  `id` varchar(255) COLLATE utf8_bin NOT NULL,
+  `created_by` varchar(255) COLLATE utf8_bin DEFAULT NULL,
   `created_time` datetime DEFAULT NULL,
-  `updated_by` varchar(255) DEFAULT NULL,
+  `updated_by` varchar(255) COLLATE utf8_bin DEFAULT NULL,
   `updated_time` datetime DEFAULT NULL,
   `active` bit(1) DEFAULT NULL,
   `rev` int(11) DEFAULT NULL,
-  `status` varchar(255) DEFAULT NULL,
-  `description` varchar(255) DEFAULT NULL,
-  `node_id` varchar(255) DEFAULT NULL,
-  `node_name` varchar(2048) DEFAULT NULL,
-  `node_type` varchar(255) DEFAULT NULL,
-  `ordered_no` varchar(255) DEFAULT NULL,
-  `prev_node_ids` varchar(2048) DEFAULT NULL,
-  `proc_def_id` varchar(255) DEFAULT NULL,
-  `proc_def_kernel_id` varchar(255) DEFAULT NULL,
-  `proc_def_key` varchar(255) DEFAULT NULL,
+  `status` varchar(255) COLLATE utf8_bin DEFAULT NULL,
+  `description` varchar(255) COLLATE utf8_bin DEFAULT NULL,
+  `node_id` varchar(255) COLLATE utf8_bin DEFAULT NULL,
+  `node_name` varchar(2048) COLLATE utf8_bin DEFAULT NULL,
+  `node_type` varchar(255) COLLATE utf8_bin DEFAULT NULL,
+  `ordered_no` varchar(255) COLLATE utf8_bin DEFAULT NULL,
+  `prev_node_ids` varchar(2048) COLLATE utf8_bin DEFAULT NULL,
+  `proc_def_id` varchar(255) COLLATE utf8_bin DEFAULT NULL,
+  `proc_def_kernel_id` varchar(255) COLLATE utf8_bin DEFAULT NULL,
+  `proc_def_key` varchar(255) COLLATE utf8_bin DEFAULT NULL,
   `proc_def_ver` int(11) DEFAULT NULL,
-  `routine_exp` varchar(2048) DEFAULT NULL,
-  `routine_raw` varchar(2048) DEFAULT NULL,
-  `service_id` varchar(255) DEFAULT NULL,
-  `service_name` varchar(255) DEFAULT NULL,
-  `succeed_node_ids` varchar(2048) DEFAULT NULL,
-  `timeout_exp` varchar(255) DEFAULT NULL,
-  `task_category` varchar(255) DEFAULT NULL,
+  `routine_exp` varchar(2048) COLLATE utf8_bin DEFAULT NULL,
+  `routine_raw` varchar(2048) COLLATE utf8_bin DEFAULT NULL,
+  `service_id` varchar(255) COLLATE utf8_bin DEFAULT NULL,
+  `service_name` varchar(255) COLLATE utf8_bin DEFAULT NULL,
+  `succeed_node_ids` varchar(2048) COLLATE utf8_bin DEFAULT NULL,
+  `timeout_exp` varchar(255) COLLATE utf8_bin DEFAULT NULL,
+  `task_category` varchar(255) COLLATE utf8_bin DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 
 
 CREATE TABLE IF NOT EXISTS `core_re_task_node_param` (
-  `id` varchar(255) NOT NULL,
-  `created_by` varchar(255) DEFAULT NULL,
+  `id` varchar(255) COLLATE utf8_bin NOT NULL,
+  `created_by` varchar(255) COLLATE utf8_bin DEFAULT NULL,
   `created_time` datetime DEFAULT NULL,
-  `updated_by` varchar(255) DEFAULT NULL,
+  `updated_by` varchar(255) COLLATE utf8_bin DEFAULT NULL,
   `updated_time` datetime DEFAULT NULL,
   `active` bit(1) DEFAULT NULL,
   `rev` int(11) DEFAULT NULL,
-  `status` varchar(255) DEFAULT NULL,
-  `bind_node_id` varchar(255) DEFAULT NULL,
-  `bind_param_name` varchar(255) DEFAULT NULL,
-  `bind_param_type` varchar(255) DEFAULT NULL,
-  `node_id` varchar(255) DEFAULT NULL,
-  `param_name` varchar(255) DEFAULT NULL,
-  `proc_def_id` varchar(255) DEFAULT NULL,
-  `task_node_def_id` varchar(255) DEFAULT NULL,
-  `bind_type` varchar(255) DEFAULT NULL,
-  `bind_val` varchar(1024) DEFAULT NULL,
+  `status` varchar(255) COLLATE utf8_bin DEFAULT NULL,
+  `bind_node_id` varchar(255) COLLATE utf8_bin DEFAULT NULL,
+  `bind_param_name` varchar(255) COLLATE utf8_bin DEFAULT NULL,
+  `bind_param_type` varchar(255) COLLATE utf8_bin DEFAULT NULL,
+  `node_id` varchar(255) COLLATE utf8_bin DEFAULT NULL,
+  `param_name` varchar(255) COLLATE utf8_bin DEFAULT NULL,
+  `proc_def_id` varchar(255) COLLATE utf8_bin DEFAULT NULL,
+  `task_node_def_id` varchar(255) COLLATE utf8_bin DEFAULT NULL,
+  `bind_type` varchar(255) COLLATE utf8_bin DEFAULT NULL,
+  `bind_val` varchar(1024) COLLATE utf8_bin DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 
 
 CREATE TABLE IF NOT EXISTS `core_ru_graph_node` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
-  `created_by` varchar(255) DEFAULT NULL,
+  `created_by` varchar(255) COLLATE utf8_bin DEFAULT NULL,
   `created_time` datetime DEFAULT NULL,
-  `updated_by` varchar(255) DEFAULT NULL,
+  `updated_by` varchar(255) COLLATE utf8_bin DEFAULT NULL,
   `updated_time` datetime DEFAULT NULL,
-  `data_id` varchar(255) DEFAULT NULL,
-  `display_name` varchar(255) DEFAULT NULL,
-  `entity_name` varchar(255) DEFAULT NULL,
-  `g_node_id` varchar(255) DEFAULT NULL,
-  `pkg_name` varchar(255) DEFAULT NULL,
-  `prev_ids` text,
-  `proc_inst_id` int(11) DEFAULT NULL,
-  `proc_sess_id` varchar(255) DEFAULT NULL,
-  `succ_ids` text,
+  `data_id` varchar(255) COLLATE utf8_bin DEFAULT NULL,
+  `display_name` varchar(255) COLLATE utf8_bin DEFAULT NULL,
+  `entity_name` varchar(255) COLLATE utf8_bin DEFAULT NULL,
+  `g_node_id` varchar(255) COLLATE utf8_bin DEFAULT NULL,
+  `pkg_name` varchar(255) COLLATE utf8_bin DEFAULT NULL,
+  `prev_ids` text COLLATE utf8_bin ,
+  `proc_inst_id` int(11) COLLATE utf8_bin DEFAULT NULL,
+  `proc_sess_id` varchar(255) COLLATE utf8_bin DEFAULT NULL,
+  `succ_ids` text COLLATE utf8_bin ,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 
 
 CREATE TABLE IF NOT EXISTS `core_ru_proc_exec_binding` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
-  `created_by` varchar(255) DEFAULT NULL,
+  `created_by` varchar(255) COLLATE utf8_bin  DEFAULT NULL,
   `created_time` datetime DEFAULT NULL,
-  `updated_by` varchar(255) DEFAULT NULL,
+  `updated_by` varchar(255) COLLATE utf8_bin  DEFAULT NULL,
   `updated_time` datetime DEFAULT NULL,
-  `bind_type` varchar(255) DEFAULT NULL,
-  `entity_id` varchar(255) DEFAULT NULL,
-  `node_def_id` varchar(255) DEFAULT NULL,
-  `proc_def_id` varchar(255) DEFAULT NULL,
+  `bind_type` varchar(255) COLLATE utf8_bin DEFAULT NULL,
+  `entity_id` varchar(255) COLLATE utf8_bin DEFAULT NULL,
+  `node_def_id` varchar(255) COLLATE utf8_bin DEFAULT NULL,
+  `proc_def_id` varchar(255) COLLATE utf8_bin DEFAULT NULL,
   `proc_inst_id` int(11) DEFAULT NULL,
   `task_node_inst_id` int(11) DEFAULT NULL,
-  `entity_data_id` varchar(255) DEFAULT NULL,
-  `entity_type_id` varchar(255) DEFAULT NULL,
-  `entity_data_name` varchar(255) DEFAULT NULL,
+  `entity_data_id` varchar(255) COLLATE utf8_bin DEFAULT NULL,
+  `entity_type_id` varchar(255) COLLATE utf8_bin DEFAULT NULL,
+  `entity_data_name` varchar(255) COLLATE utf8_bin DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 
 
 CREATE TABLE IF NOT EXISTS `core_ru_proc_exec_binding_tmp` (
@@ -1690,98 +1677,112 @@ CREATE TABLE IF NOT EXISTS `core_ru_proc_exec_binding_tmp` (
 
 CREATE TABLE IF NOT EXISTS `core_ru_proc_inst_info` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
-  `created_by` varchar(255) DEFAULT NULL,
+  `created_by` varchar(255) COLLATE utf8_bin DEFAULT NULL,
   `created_time` datetime DEFAULT NULL,
-  `updated_by` varchar(255) DEFAULT NULL,
+  `updated_by` varchar(255) COLLATE utf8_bin  DEFAULT NULL,
   `updated_time` datetime DEFAULT NULL,
-  `oper` varchar(255) DEFAULT NULL,
-  `oper_grp` varchar(255) DEFAULT NULL,
+  `oper` varchar(255) COLLATE utf8_bin  DEFAULT NULL,
+  `oper_grp` varchar(255) COLLATE utf8_bin DEFAULT NULL,
   `rev` int(11) DEFAULT NULL,
-  `status` varchar(255) DEFAULT NULL,
-  `proc_def_id` varchar(255) DEFAULT NULL,
-  `proc_def_key` varchar(255) DEFAULT NULL,
-  `proc_def_name` varchar(255) DEFAULT NULL,
-  `proc_inst_kernel_id` varchar(255) DEFAULT NULL,
-  `proc_inst_key` varchar(255) DEFAULT NULL,
+  `status` varchar(255) COLLATE utf8_bin DEFAULT NULL,
+  `proc_def_id` varchar(255) COLLATE utf8_bin DEFAULT NULL,
+  `proc_def_key` varchar(255) COLLATE utf8_bin DEFAULT NULL,
+  `proc_def_name` varchar(255) COLLATE utf8_bin DEFAULT NULL,
+  `proc_inst_kernel_id` varchar(255) COLLATE utf8_bin DEFAULT NULL,
+  `proc_inst_key` varchar(255) COLLATE utf8_bin DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 
 
 CREATE TABLE IF NOT EXISTS `core_ru_proc_role_binding` (
-  `id` varchar(255) NOT NULL,
-  `proc_id` varchar(255) NOT NULL,
-  `role_id` varchar(64) NOT NULL,
-  `role_name` varchar(64) NOT NULL,
-  `permission` varchar(255) NOT NULL,
+  `id` varchar(255) COLLATE utf8_bin NOT NULL,
+  `proc_id` varchar(255) COLLATE utf8_bin NOT NULL,
+  `role_id` varchar(64) COLLATE utf8_bin NOT NULL,
+  `role_name` varchar(64) COLLATE utf8_bin NOT NULL,
+  `permission` varchar(255) COLLATE utf8_bin NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 
 
 CREATE TABLE IF NOT EXISTS `core_ru_task_node_exec_param` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
-  `created_by` varchar(255) DEFAULT NULL,
+  `created_by` varchar(255) COLLATE utf8_bin DEFAULT NULL,
   `created_time` datetime DEFAULT NULL,
-  `updated_by` varchar(255) DEFAULT NULL,
+  `updated_by` varchar(255) COLLATE utf8_bin DEFAULT NULL,
   `updated_time` datetime DEFAULT NULL,
-  `obj_id` varchar(255) DEFAULT NULL,
-  `param_data_type` varchar(255) DEFAULT NULL,
-  `param_data_value` text DEFAULT NULL,
-  `param_name` varchar(255) DEFAULT NULL,
-  `param_type` varchar(255) DEFAULT NULL,
-  `req_id` varchar(255) DEFAULT NULL,
-  `root_entity_id` varchar(255) DEFAULT NULL,
-  `entity_data_id` varchar(255) DEFAULT NULL,
-  `entity_type_id` varchar(255) DEFAULT NULL,
+  `obj_id` varchar(255) COLLATE utf8_bin DEFAULT NULL,
+  `param_data_type` varchar(255) COLLATE utf8_bin  DEFAULT NULL,
+  `param_data_value` text COLLATE utf8_bin DEFAULT NULL,
+  `param_name` varchar(255) COLLATE utf8_bin DEFAULT NULL,
+  `param_type` varchar(255) COLLATE utf8_bin DEFAULT NULL,
+  `req_id` varchar(255) COLLATE utf8_bin DEFAULT NULL,
+  `root_entity_id` varchar(255) COLLATE utf8_bin DEFAULT NULL,
+  `entity_data_id` varchar(255) COLLATE utf8_bin DEFAULT NULL,
+  `entity_type_id` varchar(255) COLLATE utf8_bin DEFAULT NULL,
   `is_sensitive` bit(1) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 
 
 CREATE TABLE IF NOT EXISTS `core_ru_task_node_exec_req` (
-  `req_id` varchar(255) NOT NULL,
-  `created_by` varchar(255) DEFAULT NULL,
+  `req_id` varchar(255) COLLATE utf8_bin NOT NULL,
+  `created_by` varchar(255) COLLATE utf8_bin DEFAULT NULL,
   `created_time` datetime DEFAULT NULL,
-  `updated_by` varchar(255) DEFAULT NULL,
+  `updated_by` varchar(255) COLLATE utf8_bin DEFAULT NULL,
   `updated_time` datetime DEFAULT NULL,
   `is_completed` bit(1) DEFAULT NULL,
   `is_current` bit(1) DEFAULT NULL,
-  `err_code` varchar(255) DEFAULT NULL,
-  `err_msg` varchar(3000) DEFAULT NULL,
+  `err_code` varchar(255) COLLATE utf8_bin DEFAULT NULL,
+  `err_msg` varchar(3000) COLLATE utf8_bin DEFAULT NULL,
   `node_inst_id` int(11) DEFAULT NULL,
-  `req_url` varchar(255) DEFAULT NULL,
-  `execution_id` varchar(255) DEFAULT NULL,
-  `node_id` varchar(255) DEFAULT NULL,
-  `node_name` varchar(255) DEFAULT NULL,
-  `proc_def_kernel_id` varchar(255) DEFAULT NULL,
-  `proc_def_kernel_key` varchar(255) DEFAULT NULL,
+  `req_url` varchar(255) COLLATE utf8_bin DEFAULT NULL,
+  `execution_id` varchar(255) COLLATE utf8_bin DEFAULT NULL,
+  `node_id` varchar(255) COLLATE utf8_bin DEFAULT NULL,
+  `node_name` varchar(255) COLLATE utf8_bin DEFAULT NULL,
+  `proc_def_kernel_id` varchar(255) COLLATE utf8_bin DEFAULT NULL,
+  `proc_def_kernel_key` varchar(255) COLLATE utf8_bin DEFAULT NULL,
   `proc_def_ver` int(11) DEFAULT NULL,
-  `proc_inst_kernel_id` varchar(255) DEFAULT NULL,
-  `proc_inst_kernel_key` varchar(255) DEFAULT NULL,
+  `proc_inst_kernel_id` varchar(255) COLLATE utf8_bin DEFAULT NULL,
+  `proc_inst_kernel_key` varchar(255) COLLATE utf8_bin DEFAULT NULL,
   PRIMARY KEY (`req_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 
 
 CREATE TABLE IF NOT EXISTS `core_ru_task_node_inst_info` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
-  `created_by` varchar(255) DEFAULT NULL,
+  `created_by` varchar(255) COLLATE utf8_bin DEFAULT NULL,
   `created_time` datetime DEFAULT NULL,
-  `updated_by` varchar(255) DEFAULT NULL,
+  `updated_by` varchar(255) COLLATE utf8_bin DEFAULT NULL,
   `updated_time` datetime DEFAULT NULL,
-  `oper` varchar(255) DEFAULT NULL,
-  `oper_grp` varchar(255) DEFAULT NULL,
+  `oper` varchar(255) COLLATE utf8_bin DEFAULT NULL,
+  `oper_grp` varchar(255) COLLATE utf8_bin DEFAULT NULL,
   `rev` int(11) DEFAULT NULL,
-  `status` varchar(255) DEFAULT NULL,
-  `node_def_id` varchar(255) DEFAULT NULL,
-  `node_id` varchar(255) DEFAULT NULL,
-  `node_name` varchar(255) DEFAULT NULL,
-  `node_type` varchar(255) DEFAULT NULL,
-  `ordered_no` varchar(255) DEFAULT NULL,
-  `proc_def_id` varchar(255) DEFAULT NULL,
-  `proc_def_key` varchar(255) DEFAULT NULL,
+  `status` varchar(255) COLLATE utf8_bin DEFAULT NULL,
+  `node_def_id` varchar(255) COLLATE utf8_bin DEFAULT NULL,
+  `node_id` varchar(255) COLLATE utf8_bin DEFAULT NULL,
+  `node_name` varchar(255) COLLATE utf8_bin DEFAULT NULL,
+  `node_type` varchar(255) COLLATE utf8_bin DEFAULT NULL,
+  `ordered_no` varchar(255) COLLATE utf8_bin DEFAULT NULL,
+  `proc_def_id` varchar(255) COLLATE utf8_bin DEFAULT NULL,
+  `proc_def_key` varchar(255) COLLATE utf8_bin DEFAULT NULL,
   `proc_inst_id` int(11) DEFAULT NULL,
-  `proc_inst_key` varchar(255) DEFAULT NULL,
-  `err_msg` varchar(3000) DEFAULT NULL,
+  `proc_inst_key` varchar(255) COLLATE utf8_bin DEFAULT NULL,
+  `err_msg` varchar(3000) COLLATE utf8_bin DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
+
+CREATE TABLE IF NOT EXISTS `plugin_config_roles` (
+  `id` varchar(255) COLLATE utf8_bin  NOT NULL,
+  `created_by` varchar(255) COLLATE utf8_bin DEFAULT NULL,
+  `created_time` datetime DEFAULT NULL,
+  `updated_by` varchar(255) COLLATE utf8_bin DEFAULT NULL,
+  `updated_time` datetime DEFAULT NULL,
+  `is_active` bit(1) DEFAULT NULL,
+  `perm_type` varchar(255) COLLATE utf8_bin DEFAULT NULL,
+  `plugin_cfg_id` varchar(255) COLLATE utf8_bin  DEFAULT NULL,
+  `role_id` varchar(255)  COLLATE utf8_bin DEFAULT NULL,
+  `role_name` varchar(255) COLLATE utf8_bin DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 
 SET FOREIGN_KEY_CHECKS = 1;
