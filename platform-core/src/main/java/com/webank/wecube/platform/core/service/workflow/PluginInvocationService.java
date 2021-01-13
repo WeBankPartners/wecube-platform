@@ -288,6 +288,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
         List<Map<String, Object>> pluginParameters = calculateInputParameters(ctx, inputParamObjs, ctx.getRequestId(),
                 procInstEntity.getOper());
 
+        //TODO its verifying here
         PluginInvocationOperation operation = new PluginInvocationOperation() //
                 .withCallback(this::handlePluginInterfaceInvocationResult) //
                 .withPluginInvocationRestClient(this.pluginInvocationRestClient) //
