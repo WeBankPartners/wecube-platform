@@ -10,7 +10,7 @@ CREATE TABLE IF NOT EXISTS `plugin_config_roles` (
   `role_id` varchar(255) DEFAULT NULL,
   `role_name` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 
 
 delete from plugin_config_roles where created_by = 'bootScript';
