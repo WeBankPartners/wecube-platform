@@ -30,6 +30,8 @@ public abstract class AbstractWorkflowService {
     public static final String NODE_EXCLUSIVE_GATEWAY = "exclusiveGateway";
     public static final String NODE_PARALLEL_GATEWAY = "parallelGateway";
     
+    public static final String PLUGIN_NAME_ITSDANGEROUS = "itsdangerous";
+    
     protected static List<String> statelessNodeTypes = Arrays.asList(NODE_START_EVENT, NODE_END_EVENT, NODE_EXCLUSIVE_GATEWAY,
             NODE_PARALLEL_GATEWAY);
     
