@@ -44,6 +44,8 @@ public class ItsDangerRestClient implements RestClient {
 
         ItsDangerCheckRespDto resp = restTemplate.postForObject(url, requestDto,
                 ItsDangerCheckRespDto.class);
+        
+        log.info("Response:{}", resp);
 
         if ("OK".equalsIgnoreCase(resp.getStatus())) {
             return resp;
