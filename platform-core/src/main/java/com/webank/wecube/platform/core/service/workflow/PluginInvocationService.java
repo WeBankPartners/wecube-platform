@@ -349,11 +349,13 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
     private ItsDangerConfirmResultDto performDangerousCommandsChecking(PluginInterfaceInvocationContext ctx,
             List<Map<String, Object>> pluginParameters) {
         if (pluginParameters == null || pluginParameters.isEmpty()) {
+            log.debug("plugin input parameter is blank and no need to perform risk checking.");
             return null;
         }
 
         List<ProcExecBindingEntity> nodeObjectBindings = ctx.getNodeObjectBindings();
         if (nodeObjectBindings == null || nodeObjectBindings.isEmpty()) {
+            log.debug("object bindings is blank and no need to perform risk checking.");
             return null;
         }
         ItsDangerCheckReqDto req = new ItsDangerCheckReqDto();
@@ -375,17 +377,20 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
         ItsDangerCheckRespDto resp = itsDangerRestClient.checkFromBackend(req);
 
         if (resp == null) {
+            log.debug("response is null.");
             return null;
         }
 
         ItsDanerResultDataInfoDto respData = resp.getData();
         if (respData == null) {
+            log.debug("response data is null.");
             return null;
         }
 
         List<Object> checkData = respData.getData();
 
         if (checkData == null || checkData.isEmpty()) {
+            log.debug("check data is null.");
             return null;
         }
 
@@ -399,18 +404,19 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
     private boolean needPerformDangerousCommandsChecking(TaskNodeInstInfoEntity taskNodeInstEntity,
             TaskNodeDefInfoEntity taskNodeDefEntity) {
         if (!TaskNodeDefInfoEntity.PRE_CHECK_YES.equalsIgnoreCase(taskNodeDefEntity.getPreCheck())) {
-            log.debug("task node {} is defined no need to perform high risk commands checking.",
+            log.debug("Task node {} is defined no need to perform high risk commands checking.",
                     taskNodeDefEntity.getId());
             return false;
         }
         if (TaskNodeInstInfoEntity.RISKY_STATUS.equals(taskNodeInstEntity.getStatus())) {
+            log.debug("Task node {} is already risky status and no need to perform high risk commands checking.", taskNodeDefEntity.getId());
             return false;
         }
 
         int countRunningPluginInstances = pluginInstancesMapper
                 .countAllRunningPluginInstancesByPackage(PLUGIN_NAME_ITSDANGEROUS);
         if (countRunningPluginInstances < 1) {
-            log.info("There is not any running instance currently of package :{}", PLUGIN_NAME_ITSDANGEROUS);
+            log.info("There is not any running instance currently of package :{}, and no need to perform high risk commands checking.", PLUGIN_NAME_ITSDANGEROUS);
             return false;
         }
 

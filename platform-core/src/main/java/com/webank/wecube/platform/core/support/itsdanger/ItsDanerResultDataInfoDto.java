@@ -24,4 +24,16 @@ public class ItsDanerResultDataInfoDto {
         this.data = data;
     }
 
+    @Override
+    public String toString() {
+        StringBuilder builder = new StringBuilder();
+        builder.append("ItsDanerResultDataInfoDto [text=");
+        builder.append(text);
+        builder.append(", data=");
+        builder.append(data);
+        builder.append("]");
+        return builder.toString();
+    }
+
+    
 }
