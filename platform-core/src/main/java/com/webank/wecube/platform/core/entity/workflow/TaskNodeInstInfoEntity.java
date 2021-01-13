@@ -9,6 +9,8 @@ public class TaskNodeInstInfoEntity {
     public static final String COMPLETED_STATUS = "Completed";
     public static final String FAULTED_STATUS = "Faulted";
     public static final String TIMEOUTED_STATUS = "Timeouted";
+    public static final String RISKY_STATUS = "Risky";
+    public static final String INTERNALLY_TERMINATED_STATUS = "InternallyTerminated";
 
     private Integer id;
 

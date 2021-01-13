@@ -736,6 +736,10 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
             if (StringUtils.isBlank(nodeStatus)) {
                 continue;
             }
+            
+            if(TaskNodeInstInfoEntity.RISKY_STATUS.equalsIgnoreCase(nie.getStatus())){
+                continue;
+            }
 
             if (!nodeStatus.equals(nie.getStatus())) {
                 nie.setStatus(nodeStatus);

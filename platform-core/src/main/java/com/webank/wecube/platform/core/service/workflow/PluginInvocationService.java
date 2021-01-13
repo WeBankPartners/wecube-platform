@@ -19,6 +19,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
+import com.webank.wecube.platform.core.dto.plugin.ItsDangerConfirmResultDto;
 import com.webank.wecube.platform.core.entity.plugin.PluginConfigInterfaceParameters;
 import com.webank.wecube.platform.core.entity.plugin.PluginConfigInterfaces;
 import com.webank.wecube.platform.core.entity.plugin.PluginConfigs;
@@ -37,6 +38,7 @@ import com.webank.wecube.platform.core.model.workflow.InputParamObject;
 import com.webank.wecube.platform.core.model.workflow.PluginInvocationCommand;
 import com.webank.wecube.platform.core.model.workflow.PluginInvocationResult;
 import com.webank.wecube.platform.core.model.workflow.WorkflowNotifyEvent;
+import com.webank.wecube.platform.core.repository.plugin.PluginInstancesMapper;
 import com.webank.wecube.platform.core.repository.workflow.ProcExecBindingMapper;
 import com.webank.wecube.platform.core.repository.workflow.ProcInstInfoMapper;
 import com.webank.wecube.platform.core.repository.workflow.TaskNodeExecRequestMapper;
@@ -49,6 +51,11 @@ import com.webank.wecube.platform.core.service.plugin.SystemVariableService;
 import com.webank.wecube.platform.core.service.workflow.PluginInvocationProcessor.PluginInterfaceInvocationContext;
 import com.webank.wecube.platform.core.service.workflow.PluginInvocationProcessor.PluginInterfaceInvocationResult;
 import com.webank.wecube.platform.core.service.workflow.PluginInvocationProcessor.PluginInvocationOperation;
+import com.webank.wecube.platform.core.support.itsdanger.ItsDanerResultDataInfoDto;
+import com.webank.wecube.platform.core.support.itsdanger.ItsDangerCheckReqDto;
+import com.webank.wecube.platform.core.support.itsdanger.ItsDangerCheckRespDto;
+import com.webank.wecube.platform.core.support.itsdanger.ItsDangerInstanceInfoDto;
+import com.webank.wecube.platform.core.support.itsdanger.ItsDangerRestClient;
 import com.webank.wecube.platform.core.support.plugin.PluginInvocationRestClient;
 import com.webank.wecube.platform.workflow.WorkflowConstants;
 
@@ -86,6 +93,12 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 
     @Autowired
     private WorkflowProcInstEndEventNotifier workflowProcInstEndEventNotifier;
+
+    @Autowired
+    private PluginInstancesMapper pluginInstancesMapper;
+
+    @Autowired
+    private ItsDangerRestClient itsDangerRestClient;
 
     /**
      * 
@@ -288,7 +301,35 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
         List<Map<String, Object>> pluginParameters = calculateInputParameters(ctx, inputParamObjs, ctx.getRequestId(),
                 procInstEntity.getOper());
 
-        //TODO its verifying here
+        ItsDangerConfirmResultDto confirmResult = null;
+        if (needPerformDangerousCommandsChecking(taskNodeInstEntity, taskNodeDefEntity)) {
+            confirmResult = performDangerousCommandsChecking(ctx,pluginParameters);
+        }
+        
+        if(confirmResult != null){
+            taskNodeInstEntity.setStatus(TaskNodeInstInfoEntity.RISKY_STATUS);
+            taskNodeInstEntity.setUpdatedBy(WorkflowConstants.DEFAULT_USER);
+            taskNodeInstEntity.setUpdatedTime(new Date());
+            taskNodeInstInfoRepository.updateByPrimaryKeySelective(taskNodeInstEntity);
+            
+            pluginInvocationResultService.responsePluginInterfaceInvocation(
+                    new PluginInvocationResult().parsePluginInvocationCommand(cmd).withResultCode(RESULT_CODE_ERR));
+            
+            TaskNodeExecRequestEntity requestEntity = ctx.getTaskNodeExecRequestEntity();
+            requestEntity.setErrCode("CONFIRM");
+            requestEntity.setErrMsg(confirmResult.getMessage());
+            requestEntity.setUpdatedTime(new Date());
+            
+            taskNodeExecRequestRepository.updateByPrimaryKey(requestEntity);
+            return;
+        }
+
+        if (TaskNodeInstInfoEntity.RISKY_STATUS.equalsIgnoreCase(taskNodeInstEntity.getStatus())) {
+            taskNodeInstEntity.setStatus(TaskNodeInstInfoEntity.IN_PROGRESS_STATUS);
+            taskNodeInstInfoRepository.updateByPrimaryKeySelective(taskNodeInstEntity);
+        }
+
+        // TODO its verifying here
         PluginInvocationOperation operation = new PluginInvocationOperation() //
                 .withCallback(this::handlePluginInterfaceInvocationResult) //
                 .withPluginInvocationRestClient(this.pluginInvocationRestClient) //
@@ -299,6 +340,77 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
                 .withRequestId(ctx.getRequestId());
 
         pluginInvocationProcessor.process(operation);
+    }
+
+    private ItsDangerConfirmResultDto performDangerousCommandsChecking(PluginInterfaceInvocationContext ctx,
+            List<Map<String, Object>> pluginParameters) {
+        if (pluginParameters == null || pluginParameters.isEmpty()) {
+            return null;
+        }
+
+        List<ProcExecBindingEntity> nodeObjectBindings = ctx.getNodeObjectBindings();
+        if (nodeObjectBindings == null || nodeObjectBindings.isEmpty()) {
+            return null;
+        }
+        ItsDangerCheckReqDto req = new ItsDangerCheckReqDto();
+        req.setOperator(WorkflowConstants.DEFAULT_USER);
+        req.setEntityType(nodeObjectBindings.get(0).getEntityTypeId());
+        req.setServiceName(ctx.getPluginConfigInterface().getServiceName());
+        req.setServicePath(ctx.getPluginConfigInterface().getPath());
+
+        for (ProcExecBindingEntity nodeObjectBinding : nodeObjectBindings) {
+
+            ItsDangerInstanceInfoDto instance = new ItsDangerInstanceInfoDto();
+            instance.setId(nodeObjectBinding.getEntityDataId());
+            req.getEntityInstances().add(instance);
+
+        }
+
+        req.setInputParams(pluginParameters);
+
+        ItsDangerCheckRespDto resp = itsDangerRestClient.check(req);
+
+        if (resp == null) {
+            return null;
+        }
+
+        ItsDanerResultDataInfoDto respData = resp.getData();
+        if (respData == null) {
+            return null;
+        }
+
+        List<Object> checkData = respData.getData();
+
+        if (checkData == null || checkData.isEmpty()) {
+            return null;
+        }
+
+        ItsDangerConfirmResultDto itsDangerConfirmResultDto = new ItsDangerConfirmResultDto();
+        itsDangerConfirmResultDto.setMessage(respData.getText());
+        itsDangerConfirmResultDto.setStatus("CONFIRM");
+
+        return itsDangerConfirmResultDto;
+    }
+
+    private boolean needPerformDangerousCommandsChecking(TaskNodeInstInfoEntity taskNodeInstEntity,
+            TaskNodeDefInfoEntity taskNodeDefEntity) {
+        if (!TaskNodeDefInfoEntity.PRE_CHECK_YES.equalsIgnoreCase(taskNodeDefEntity.getPreCheck())) {
+            log.debug("task node {} is defined no need to perform high risk commands checking.",
+                    taskNodeDefEntity.getId());
+            return false;
+        }
+        if (TaskNodeInstInfoEntity.RISKY_STATUS.equals(taskNodeInstEntity.getStatus())) {
+            return false;
+        }
+
+        int countRunningPluginInstances = pluginInstancesMapper
+                .countAllRunningPluginInstancesByPackage(PLUGIN_NAME_ITSDANGEROUS);
+        if (countRunningPluginInstances < 1) {
+            log.info("There is not any running instance currently of package :{}", PLUGIN_NAME_ITSDANGEROUS);
+            return false;
+        }
+
+        return true;
     }
 
     private List<ProcExecBindingEntity> dynamicCalculateTaskNodeExecBindings(TaskNodeDefInfoEntity taskNodeDefEntity,
@@ -340,8 +452,8 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 
             List<ProcExecBindingEntity> boundEntities = saveCalculatedLeafNodeEntityNodesBindings(taskNodeDefEntity,
                     procInstEntity, taskNodeInstEntity, overview.getLeafNodeEntityNodes());
-            log.info("DYNAMIC BINDING:total {} entities bound for {}-{}-{}", boundEntities.size(), taskNodeInstEntity.getNodeDefId(),
-                    taskNodeInstEntity.getNodeName(), taskNodeInstEntity.getId());
+            log.info("DYNAMIC BINDING:total {} entities bound for {}-{}-{}", boundEntities.size(),
+                    taskNodeInstEntity.getNodeDefId(), taskNodeInstEntity.getNodeName(), taskNodeInstEntity.getId());
             return boundEntities;
         } catch (Exception e) {
             String errMsg = String.format("Errors while fetching data for node %s %s with expr %s and data id %s",
@@ -933,9 +1045,13 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
         }
 
         String originalStatus = taskNodeInstEntity.getStatus();
-        taskNodeInstEntity.setStatus(TaskNodeInstInfoEntity.IN_PROGRESS_STATUS);
+        // TODO risky status skipped
+        if (TaskNodeInstInfoEntity.RISKY_STATUS.equals(originalStatus)) {
+            log.debug("task node instance {} is {} and no need to uppdate.", taskNodeInstEntity.getId(),
+                    originalStatus);
+        } else {
+            taskNodeInstEntity.setStatus(TaskNodeInstInfoEntity.IN_PROGRESS_STATUS);
 
-        if (log.isDebugEnabled()) {
             log.debug("task node instance {} update status from {} to {}", taskNodeInstEntity.getId(), originalStatus,
                     taskNodeInstEntity.getStatus());
         }
