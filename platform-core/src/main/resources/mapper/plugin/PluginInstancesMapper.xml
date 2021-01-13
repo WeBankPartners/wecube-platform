@@ -248,4 +248,15 @@
         instance_name =
         #{instanceName,jdbcType=VARCHAR}
     </select>
+    
+    <select id="countAllRunningPluginInstancesByPackage"
+        resultType="int" parameterType="java.lang.String">
+        SELECT
+        count(1)
+        FROM plugin_instances t1, plugin_packages t2 
+        WHERE t1.container_status = 'RUNNING'
+        AND
+        t2.id = t1.package_id
+        AND t2.name = #{packageName,jdbcType=VARCHAR}
+    </select>
 </mapper>

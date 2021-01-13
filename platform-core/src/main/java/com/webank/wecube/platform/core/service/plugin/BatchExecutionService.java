@@ -58,6 +58,7 @@ import com.webank.wecube.platform.core.repository.plugin.ExecutionJobsMapper;
 import com.webank.wecube.platform.core.repository.plugin.PluginConfigInterfaceParametersMapper;
 import com.webank.wecube.platform.core.repository.plugin.PluginConfigInterfacesMapper;
 import com.webank.wecube.platform.core.repository.plugin.PluginConfigsMapper;
+import com.webank.wecube.platform.core.repository.plugin.PluginInstancesMapper;
 import com.webank.wecube.platform.core.repository.plugin.PluginPackagesMapper;
 import com.webank.wecube.platform.core.service.dme.EntityOperationRootCondition;
 import com.webank.wecube.platform.core.service.dme.StandardEntityOperationService;
@@ -78,7 +79,7 @@ import com.webank.wecube.platform.workflow.commons.LocalIdGenerator;
 public class BatchExecutionService {
     private final Logger log = LoggerFactory.getLogger(this.getClass());
     
-    private static final String PLUGIN_NAME_ITSDANGEROUS = "itsdangerous";
+    public static final String PLUGIN_NAME_ITSDANGEROUS = "itsdangerous";
 
     @Autowired
     private PluginServiceStub pluginServiceStub;
@@ -114,6 +115,9 @@ public class BatchExecutionService {
     
     @Autowired
     private ItsDangerRestClient itsDangerRestClient;
+    
+    @Autowired
+    private PluginInstancesMapper pluginInstancesMapper;
 
     private ObjectMapper objectMapper = new ObjectMapper().setSerializationInclusion(JsonInclude.Include.NON_NULL);
 
@@ -353,9 +357,9 @@ public class BatchExecutionService {
     
     private boolean needPerformDangerousCommandsChecking(BatchExecutionRequestDto requestDto, String continueToken) {
 
-        //TODO
-        PluginInstances itsdangerInstance = pluginInstanceMgmtService.getRunningPluginInstance(PLUGIN_NAME_ITSDANGEROUS);
-        if (itsdangerInstance == null) {
+        int countRunningPluginInstances = pluginInstancesMapper.countAllRunningPluginInstancesByPackage(PLUGIN_NAME_ITSDANGEROUS);
+        if(countRunningPluginInstances < 1){
+            log.info("There is not any running instance currently of package :{}", PLUGIN_NAME_ITSDANGEROUS);
             return false;
         }
 
