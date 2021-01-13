@@ -62,4 +62,11 @@ public interface PluginInstancesMapper {
      */
     List<PluginInstances> selectAllByContainerStatusAndInstanceName(@Param("status") String status,
             @Param("instanceName") String instanceName);
+    
+    /**
+     * 
+     * @param packageName
+     * @return
+     */
+    int countAllRunningPluginInstancesByPackage(@Param("packageName") String packageName);
 }
