@@ -14,7 +14,7 @@
         <result column="is_completed" jdbcType="BIT" property="isCompleted" />
         <result column="is_current" jdbcType="BIT" property="isCurrent" />
         <result column="err_code" jdbcType="VARCHAR" property="errCode" />
-        <result column="err_msg" jdbcType="VARCHAR" property="errMsg" />
+        <result column="err_msg" jdbcType="LONGVARCHAR" property="errMsg" />
         <result column="node_inst_id" jdbcType="INTEGER"
             property="nodeInstId" />
         <result column="req_url" jdbcType="VARCHAR" property="reqUrl" />
@@ -74,7 +74,7 @@
         #{updatedBy,jdbcType=VARCHAR},
         #{updatedTime,jdbcType=TIMESTAMP}, #{isCompleted,jdbcType=BIT},
         #{isCurrent,jdbcType=BIT}, #{errCode,jdbcType=VARCHAR},
-        #{errMsg,jdbcType=VARCHAR},
+        #{errMsg,jdbcType=LONGVARCHAR},
         #{nodeInstId,jdbcType=INTEGER},
         #{reqUrl,jdbcType=VARCHAR}, #{executionId,jdbcType=VARCHAR},
         #{nodeId,jdbcType=VARCHAR}, #{nodeName,jdbcType=VARCHAR},
@@ -172,7 +172,7 @@
                 #{errCode,jdbcType=VARCHAR},
             </if>
             <if test="errMsg != null">
-                #{errMsg,jdbcType=VARCHAR},
+                #{errMsg,jdbcType=LONGVARCHAR},
             </if>
             <if test="nodeInstId != null">
                 #{nodeInstId,jdbcType=INTEGER},
@@ -234,7 +234,7 @@
                 err_code = #{errCode,jdbcType=VARCHAR},
             </if>
             <if test="errMsg != null">
-                err_msg = #{errMsg,jdbcType=VARCHAR},
+                err_msg = #{errMsg,jdbcType=LONGVARCHAR},
             </if>
             <if test="nodeInstId != null">
                 node_inst_id = #{nodeInstId,jdbcType=INTEGER},
@@ -291,7 +291,7 @@
         err_code =
         #{errCode,jdbcType=VARCHAR},
         err_msg =
-        #{errMsg,jdbcType=VARCHAR},
+        #{errMsg,jdbcType=LONGVARCHAR},
         node_inst_id =
         #{nodeInstId,jdbcType=INTEGER},
         req_url =
