@@ -7,7 +7,7 @@
     <Col span="7">
       <Row>
         <Card dis-hover>
-          <p slot="title">{{ $t('upload_plugin_pkg_title') }}</p>
+          <div slot="title">{{ $t('upload_plugin_pkg_title') }}</div>
           <div style="text-align: center">
             <Button type="info" icon="md-list-box" ghost :loading="loadingPlugin" @click="showUploadModalHandler">{{
               $t('origin_plugins')
