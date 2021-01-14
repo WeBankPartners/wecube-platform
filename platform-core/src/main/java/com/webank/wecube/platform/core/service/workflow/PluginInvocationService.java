@@ -311,6 +311,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
                 taskNodeInstEntity.setStatus(TaskNodeInstInfoEntity.RISKY_STATUS);
                 taskNodeInstEntity.setUpdatedBy(WorkflowConstants.DEFAULT_USER);
                 taskNodeInstEntity.setUpdatedTime(new Date());
+                taskNodeInstEntity.setPreCheckRet(TaskNodeInstInfoEntity.PRE_CHECK_RESULT_RISKY);
                 taskNodeInstInfoRepository.updateByPrimaryKeySelective(taskNodeInstEntity);
 
                 pluginInvocationResultService.responsePluginInterfaceInvocation(
@@ -325,13 +326,11 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
                 return;
             }
 
+            taskNodeInstEntity.setPreCheckRet(TaskNodeInstInfoEntity.PRE_CHECK_RESULT_NONE_RISK);
+            taskNodeInstEntity.setUpdatedTime(new Date());
+            taskNodeInstInfoRepository.updateByPrimaryKeySelective(taskNodeInstEntity);
             log.info("RISKY commands checking performed and passed by task node: {}:{}:{}",
                     taskNodeDefEntity.getNodeName(), taskNodeDefEntity.getId(), taskNodeInstEntity.getId());
-        }
-
-        if (TaskNodeInstInfoEntity.RISKY_STATUS.equalsIgnoreCase(taskNodeInstEntity.getStatus())) {
-            taskNodeInstEntity.setStatus(TaskNodeInstInfoEntity.IN_PROGRESS_STATUS);
-            taskNodeInstInfoRepository.updateByPrimaryKeySelective(taskNodeInstEntity);
         }
 
         PluginInvocationOperation operation = new PluginInvocationOperation() //
@@ -403,20 +402,32 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 
     private boolean needPerformDangerousCommandsChecking(TaskNodeInstInfoEntity taskNodeInstEntity,
             TaskNodeDefInfoEntity taskNodeDefEntity) {
+        String preCheckResult = taskNodeInstEntity.getPreCheckRet();
+
+        if (StringUtils.isNoneBlank(preCheckResult)) {
+            log.info("Such task node already performed risk commands checking:{}:{}", taskNodeInstEntity.getId(),
+                    preCheckResult);
+            return false;
+        }
+
         if (!TaskNodeDefInfoEntity.PRE_CHECK_YES.equalsIgnoreCase(taskNodeDefEntity.getPreCheck())) {
             log.debug("Task node {} is defined no need to perform high risk commands checking.",
                     taskNodeDefEntity.getId());
             return false;
         }
+        
         if (TaskNodeInstInfoEntity.RISKY_STATUS.equals(taskNodeInstEntity.getStatus())) {
-            log.debug("Task node {} is already risky status and no need to perform high risk commands checking.", taskNodeDefEntity.getId());
+            log.debug("Task node {} is already risky status and no need to perform high risk commands checking.",
+                    taskNodeDefEntity.getId());
             return false;
         }
 
         int countRunningPluginInstances = pluginInstancesMapper
                 .countAllRunningPluginInstancesByPackage(PLUGIN_NAME_ITSDANGEROUS);
         if (countRunningPluginInstances < 1) {
-            log.info("There is not any running instance currently of package :{}, and no need to perform high risk commands checking.", PLUGIN_NAME_ITSDANGEROUS);
+            log.info(
+                    "There is not any running instance currently of package :{}, and no need to perform high risk commands checking.",
+                    PLUGIN_NAME_ITSDANGEROUS);
             return false;
         }
 
@@ -1055,16 +1066,10 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
         }
 
         String originalStatus = taskNodeInstEntity.getStatus();
-        // TODO risky status skipped
-        if (TaskNodeInstInfoEntity.RISKY_STATUS.equals(originalStatus)) {
-            log.debug("task node instance {} is {} and no need to uppdate.", taskNodeInstEntity.getId(),
-                    originalStatus);
-        } else {
-            taskNodeInstEntity.setStatus(TaskNodeInstInfoEntity.IN_PROGRESS_STATUS);
+        taskNodeInstEntity.setStatus(TaskNodeInstInfoEntity.IN_PROGRESS_STATUS);
 
-            log.debug("task node instance {} update status from {} to {}", taskNodeInstEntity.getId(), originalStatus,
-                    taskNodeInstEntity.getStatus());
-        }
+        log.debug("task node instance {} update status from {} to {}", taskNodeInstEntity.getId(), originalStatus,
+                taskNodeInstEntity.getStatus());
 
         taskNodeInstEntity.setUpdatedTime(currTime);
         taskNodeInstEntity.setUpdatedBy(WorkflowConstants.DEFAULT_USER);

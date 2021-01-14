@@ -28,6 +28,8 @@
         <result column="proc_inst_key" jdbcType="VARCHAR"
             property="procInstKey" />
         <result column="err_msg" jdbcType="VARCHAR" property="errMsg" />
+        <result column="pre_check_ret" jdbcType="VARCHAR"
+            property="preCheckRet" />
     </resultMap>
     <sql id="Base_Column_List">
         id, created_by, created_time, updated_by, updated_time,
@@ -36,7 +38,7 @@
         node_def_id, node_id, node_name,
         node_type, ordered_no, proc_def_id, proc_def_key,
         proc_inst_id,
-        proc_inst_key, err_msg
+        proc_inst_key, err_msg, pre_check_ret
     </sql>
     <select id="selectByPrimaryKey" parameterType="java.lang.Integer"
         resultMap="BaseResultMap">
@@ -61,7 +63,8 @@
         node_type, ordered_no, proc_def_id,
         proc_def_key, proc_inst_id,
         proc_inst_key,
-        err_msg)
+        err_msg,
+        pre_check_ret)
         values (#{id,jdbcType=INTEGER},
         #{createdBy,jdbcType=VARCHAR},
         #{createdTime,jdbcType=TIMESTAMP},
@@ -75,7 +78,8 @@
         #{procDefId,jdbcType=VARCHAR},
         #{procDefKey,jdbcType=VARCHAR},
         #{procInstId,jdbcType=INTEGER}, #{procInstKey,jdbcType=VARCHAR},
-        #{errMsg,jdbcType=VARCHAR})
+        #{errMsg,jdbcType=VARCHAR},
+        #{preCheckRet,jdbcType=VARCHAR})
     </insert>
     <insert id="insertSelective" useGeneratedKeys="true"
         keyProperty="id"
@@ -139,6 +143,9 @@
             <if test="errMsg != null">
                 err_msg,
             </if>
+            <if test="preCheckRet != null">
+                pre_check_ret,
+            </if>
         </trim>
         <trim prefix="values (" suffix=")" suffixOverrides=",">
             <if test="id != null">
@@ -197,6 +204,9 @@
             </if>
             <if test="errMsg != null">
                 #{errMsg,jdbcType=VARCHAR},
+            </if>
+            <if test="preCheckRet != null">
+                #{preCheckRet,jdbcType=VARCHAR},
             </if>
         </trim>
     </insert>
@@ -260,6 +270,9 @@
             <if test="errMsg != null">
                 err_msg = #{errMsg,jdbcType=VARCHAR},
             </if>
+            <if test="preCheckRet != null">
+                pre_check_ret = #{preCheckRet,jdbcType=VARCHAR},
+            </if>
         </set>
         where id = #{id,jdbcType=INTEGER}
     </update>
@@ -299,7 +312,9 @@
         proc_inst_key =
         #{procInstKey,jdbcType=VARCHAR},
         err_msg =
-        #{errMsg,jdbcType=VARCHAR}
+        #{errMsg,jdbcType=VARCHAR},
+        pre_check_ret =
+        #{preCheckRet,jdbcType=VARCHAR}
         where id = #{id,jdbcType=INTEGER}
     </update>
 
