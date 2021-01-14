@@ -10,6 +10,14 @@ public class ItsDangerInstanceInfoDto {
     public void setId(String id) {
         this.id = id;
     }
-    
+
+    @Override
+    public String toString() {
+        StringBuilder builder = new StringBuilder();
+        builder.append("ItsDangerInstanceInfoDto [id=");
+        builder.append(id);
+        builder.append("]");
+        return builder.toString();
+    }
 
 }
