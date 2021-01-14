@@ -147,6 +147,7 @@
   "partial_retry": "错误重试",
   "data_selection": "反选数据",
   "dangerous_confirm": "高危确认",
+  "dangerous_confirm_tip": "已阅读并确认执行该高危操作",
   "preview_execution": "执行预览",
   "query_execution": "执行查询",
   "no_orchestration_properties": "该CI没有编排属性",
