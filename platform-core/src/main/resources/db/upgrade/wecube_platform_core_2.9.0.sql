@@ -101,6 +101,9 @@ CREATE TABLE IF NOT EXISTS `core_object_list_var` (
 ALTER TABLE `core_ru_task_node_inst_info` 
 ADD COLUMN `pre_check_ret` VARCHAR(45) NULL;
 
+ALTER TABLE `core_ru_task_node_exec_req` 
+CHANGE COLUMN `err_msg` `err_msg` MEDIUMTEXT NULL DEFAULT NULL ;
+
 alter table plugin_packages collate = 'utf8_bin';
 alter table plugin_package_dependencies collate = 'utf8_bin';
 alter table plugin_package_menus collate = 'utf8_bin';
