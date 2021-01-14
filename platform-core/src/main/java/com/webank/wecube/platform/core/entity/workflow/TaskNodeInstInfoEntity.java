@@ -11,6 +11,9 @@ public class TaskNodeInstInfoEntity {
     public static final String TIMEOUTED_STATUS = "Timeouted";
     public static final String RISKY_STATUS = "Risky";
     public static final String INTERNALLY_TERMINATED_STATUS = "InternallyTerminated";
+    
+    public static final String PRE_CHECK_RESULT_RISKY = "RISKY";
+    public static final String PRE_CHECK_RESULT_NONE_RISK = "NONE_RISK";
 
     private Integer id;
 
@@ -49,6 +52,8 @@ public class TaskNodeInstInfoEntity {
     private String procInstKey;
 
     private String errMsg;
+    
+    private String preCheckRet;
 
     public Integer getId() {
         return id;
@@ -202,4 +207,12 @@ public class TaskNodeInstInfoEntity {
         this.errMsg = errMsg;
     }
 
+    public String getPreCheckRet() {
+        return preCheckRet;
+    }
+
+    public void setPreCheckRet(String preCheckRet) {
+        this.preCheckRet = preCheckRet;
+    }
+    
 }
