@@ -283,10 +283,12 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
         for (TaskNodeInstInfoEntity nodeInstEntity : nodeInstEntities) {
             ProcFlowNodeInst pfni = procInstOutline.findProcFlowNodeInstByNodeId(nodeInstEntity.getNodeId());
             if (pfni != null && (pfni.getStatus() != null) && (!pfni.getStatus().equals(nodeInstEntity.getStatus()))) {
-                nodeInstEntity.setStatus(pfni.getStatus());
-                nodeInstEntity.setUpdatedTime(new Date());
-                nodeInstEntity.setUpdatedBy(AuthenticationContextHolder.getCurrentUsername());
-                taskNodeInstInfoRepository.updateByPrimaryKeySelective(nodeInstEntity);
+                if (!TaskNodeInstInfoEntity.RISKY_STATUS.equalsIgnoreCase(nodeInstEntity.getStatus())) {
+                    nodeInstEntity.setStatus(pfni.getStatus());
+                    nodeInstEntity.setUpdatedTime(new Date());
+                    nodeInstEntity.setUpdatedBy(AuthenticationContextHolder.getCurrentUsername());
+                    taskNodeInstInfoRepository.updateByPrimaryKeySelective(nodeInstEntity);
+                }
             }
         }
 
@@ -384,30 +386,30 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
         ProcDefInfoEntity procDefInfoEntity = processDefInfoRepository.selectByPrimaryKey(procDefId);
 
         if (procDefInfoEntity == null) {
-            throw new WecubeCoreException("3149", String.format("Invalid process definition ID:%s", procDefId), procDefId);
+            throw new WecubeCoreException("3149", String.format("Invalid process definition ID:%s", procDefId),
+                    procDefId);
         }
 
         if (!ProcDefInfoEntity.DEPLOYED_STATUS.equals(procDefInfoEntity.getStatus())) {
             log.warn("expected status {} but {} for procDefId {}", ProcDefInfoEntity.DEPLOYED_STATUS,
                     procDefInfoEntity.getStatus(), procDefId);
-            throw new WecubeCoreException("3150", String.format("Invalid process definition ID:%s", procDefId), procDefId);
+            throw new WecubeCoreException("3150", String.format("Invalid process definition ID:%s", procDefId),
+                    procDefId);
         }
 
         if (StringUtils.isBlank(procDefInfoEntity.getProcDefKernelId())) {
             log.warn("cannot know process definition id for {}", procDefId);
-            throw new WecubeCoreException("3151", String.format("Invalid process definition ID:%s", procDefId), procDefId);
+            throw new WecubeCoreException("3151", String.format("Invalid process definition ID:%s", procDefId),
+                    procDefId);
         }
 
         String procInstKey = LocalIdGenerator.generateId();
 
         ProcInstInfoEntity procInstInfoEntity = buildAndStoreProcInstInfoEntity(procDefInfoEntity, procInstKey);
-        
 
-        buildAndStoreProcInstProcExecBinding( rootEntityTypeId, 
-                 rootEntityDataId,  rootEntityDataName, 
-                 procDefInfoEntity, 
-                 procInstInfoEntity);
-        
+        buildAndStoreProcInstProcExecBinding(rootEntityTypeId, rootEntityDataId, rootEntityDataName, procDefInfoEntity,
+                procInstInfoEntity);
+
         buildAndStoreTaskNodeInstances(procDefInfoEntity, procInstInfoEntity, requestDto);
 
         ProcInstInfoDto result = doCreateProcessInstance(procInstInfoEntity, procDefInfoEntity.getProcDefKernelId(),
@@ -417,11 +419,13 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
         postHandleGraphNodes(requestDto, result);
         return result;
     }
-    
-    private void buildAndStoreTaskNodeInstances(ProcDefInfoEntity procDefInfoEntity, ProcInstInfoEntity procInstInfoEntity, StartProcInstRequestDto requestDto) {
-        List<TaskNodeDefInfoEntity> taskNodeDefInfoEntities = taskNodeDefInfoRepository.selectAllByProcDefId(procDefInfoEntity.getId());
-        
-        if(taskNodeDefInfoEntities == null || taskNodeDefInfoEntities.isEmpty()) {
+
+    private void buildAndStoreTaskNodeInstances(ProcDefInfoEntity procDefInfoEntity,
+            ProcInstInfoEntity procInstInfoEntity, StartProcInstRequestDto requestDto) {
+        List<TaskNodeDefInfoEntity> taskNodeDefInfoEntities = taskNodeDefInfoRepository
+                .selectAllByProcDefId(procDefInfoEntity.getId());
+
+        if (taskNodeDefInfoEntities == null || taskNodeDefInfoEntities.isEmpty()) {
             log.info("There is not task node definitions found for process definition {}", procDefInfoEntity.getId());
             return;
         }
@@ -431,11 +435,9 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
                     procDefInfoEntity.getId());
         }
     }
-    
-    private ProcExecBindingEntity buildAndStoreProcInstProcExecBinding(String rootEntityTypeId, 
-            String rootEntityDataId, String rootEntityDataName, 
-            ProcDefInfoEntity procDefInfoEntity, 
-            ProcInstInfoEntity procInstInfoEntity) {
+
+    private ProcExecBindingEntity buildAndStoreProcInstProcExecBinding(String rootEntityTypeId, String rootEntityDataId,
+            String rootEntityDataName, ProcDefInfoEntity procDefInfoEntity, ProcInstInfoEntity procInstInfoEntity) {
         ProcExecBindingEntity procInstBindEntity = new ProcExecBindingEntity();
         procInstBindEntity.setBindType(ProcExecBindingEntity.BIND_TYPE_PROC_INSTANCE);
         procInstBindEntity.setEntityTypeId(rootEntityTypeId);
@@ -445,13 +447,14 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
         procInstBindEntity.setProcInstId(procInstInfoEntity.getId());
         procInstBindEntity.setCreatedBy(AuthenticationContextHolder.getCurrentUsername());
         procInstBindEntity.setCreatedTime(new Date());
-        
+
         procExecBindingRepository.insert(procInstBindEntity);
-        
+
         return procInstBindEntity;
     }
-    
-    private ProcInstInfoEntity buildAndStoreProcInstInfoEntity(ProcDefInfoEntity procDefInfoEntity, String procInstKey ) {
+
+    private ProcInstInfoEntity buildAndStoreProcInstInfoEntity(ProcDefInfoEntity procDefInfoEntity,
+            String procInstKey) {
         ProcInstInfoEntity procInstInfoEntity = new ProcInstInfoEntity();
         procInstInfoEntity.setStatus(ProcInstInfoEntity.NOT_STARTED_STATUS);
         procInstInfoEntity.setOper(AuthenticationContextHolder.getCurrentUsername());
@@ -462,9 +465,9 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
         procInstInfoEntity.setCreatedBy(AuthenticationContextHolder.getCurrentUsername());
         procInstInfoEntity.setCreatedTime(new Date());
         procInstInfoEntity.setRev(0);
-        
+
         procInstInfoRepository.insert(procInstInfoEntity);
-        
+
         return procInstInfoEntity;
     }
 
@@ -736,8 +739,8 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
             if (StringUtils.isBlank(nodeStatus)) {
                 continue;
             }
-            
-            if(TaskNodeInstInfoEntity.RISKY_STATUS.equalsIgnoreCase(nie.getStatus())){
+
+            if (TaskNodeInstInfoEntity.RISKY_STATUS.equalsIgnoreCase(nie.getStatus())) {
                 continue;
             }
 
