@@ -319,10 +319,17 @@
         <Icon :size="28" :color="'#f90'" type="md-help-circle" />
         <span class="confirm-msg">{{ $t('confirm_to_exect') }}</span>
       </div>
-      <pre style="margin-left: 44px;">{{ this.confirmModal.message }}</pre>
+      <div style="max-height: 400px;overflow-y: auto;">
+        <pre style="margin-left: 44px;">{{ this.confirmModal.message }}</pre>
+      </div>
+      <div style="margin-left:30px">
+        <Checkbox v-model="confirmModal.check">{{ $t('dangerous_confirm_tip') }}</Checkbox>
+      </div>
       <div slot="footer">
         <Button type="text" @click="confirmModal.isShowConfirmModal = false">{{ $t('bc_cancel') }}</Button>
-        <Button type="warning" @click="confirmToExecution">{{ $t('bc_confirm') }}</Button>
+        <Button type="warning" :disabled="!confirmModal.check" @click="confirmToExecution">{{
+          $t('bc_confirm')
+        }}</Button>
       </div>
     </Modal>
   </div>
@@ -538,6 +545,7 @@ export default {
 
       confirmModal: {
         isShowConfirmModal: false,
+        check: false,
         message: '',
         requestBody: ''
       }
