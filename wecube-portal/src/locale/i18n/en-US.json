@@ -458,6 +458,7 @@
   "partial_retry": "Retry",
   "data_selection": "Data selection",
   "dangerous_confirm": "Risky Confirmation",
+  "dangerous_confirm_tip": "Confirm Execution",
   "dynamic_bind": "Dynamic Bind",
   "pre_check": "Its Dangerous",
   "required": "Required",
