@@ -1,21 +1,21 @@
 SET FOREIGN_KEY_CHECKS = 0;
 
 ALTER TABLE `plugin_package_attributes` 
-ADD COLUMN `ref_package` VARCHAR(45) NULL,
-ADD COLUMN `ref_entity` VARCHAR(45) NULL,
-ADD COLUMN `ref_attr` VARCHAR(45) NULL;
+ADD COLUMN `ref_package` VARCHAR(45) COLLATE utf8_bin NULL,
+ADD COLUMN `ref_entity` VARCHAR(45) COLLATE utf8_bin NULL,
+ADD COLUMN `ref_attr` VARCHAR(45) COLLATE utf8_bin NULL;
 
 ALTER TABLE `core_ru_proc_exec_binding` 
-ADD COLUMN `bind_flag` char(1) DEFAULT 'Y';
+ADD COLUMN `bind_flag` char(1) COLLATE utf8_bin DEFAULT 'Y';
 
 ALTER TABLE `plugin_package_attributes` 
 ADD COLUMN `mandatory` BIT(1) NULL DEFAULT 0;
 
 ALTER TABLE `core_re_task_node_def_info` 
-ADD COLUMN `dynamic_bind` VARCHAR(45) NULL DEFAULT 'N';
+ADD COLUMN `dynamic_bind` VARCHAR(45) COLLATE utf8_bin NULL DEFAULT 'N';
 
 ALTER TABLE `core_re_task_node_def_info` 
-ADD COLUMN `pre_check` VARCHAR(45) NULL DEFAULT 'N';
+ADD COLUMN `pre_check` VARCHAR(45) COLLATE utf8_bin NULL DEFAULT 'N';
 
 ALTER TABLE `core_operation_event`
 ADD COLUMN `rev` INT(11) DEFAULT '0';
@@ -99,10 +99,10 @@ CREATE TABLE IF NOT EXISTS `core_object_list_var` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 
 ALTER TABLE `core_ru_task_node_inst_info` 
-ADD COLUMN `pre_check_ret` VARCHAR(45) NULL;
+ADD COLUMN `pre_check_ret` VARCHAR(45) COLLATE utf8_bin NULL;
 
 ALTER TABLE `core_ru_task_node_exec_req` 
-CHANGE COLUMN `err_msg` `err_msg` MEDIUMTEXT NULL DEFAULT NULL ;
+CHANGE COLUMN `err_msg` `err_msg` MEDIUMTEXT COLLATE utf8_bin NULL DEFAULT NULL ;
 
 alter table plugin_packages collate = 'utf8_bin';
 alter table plugin_package_dependencies collate = 'utf8_bin';
