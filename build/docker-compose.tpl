@@ -34,7 +34,7 @@ services:
       - GATEWAY_PORT={{GATEWAY_PORT}}
       - PUBLIC_DOMAIN={{PUBLIC_DOMAIN}}
       - TZ=Asia/Shanghai
-    command: /bin/bash -c "envsubst < /etc/nginx/conf.d/nginx.tpl > /etc/nginx/nginx.conf && exec nginx -g 'daemon off;'"
+    command: /bin/bash -c "/etc/nginx/start_platform_portal.sh"
 
   platform-gateway:
     image: {{GATEWAY_IMAGE_NAME}}:{{GATEWAY_IMAGE_VERSION}}
