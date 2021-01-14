@@ -504,6 +504,7 @@ public class WorkflowDataService {
 
         result.setRequestId(requestEntity.getReqId());
         result.setErrorCode(requestEntity.getErrCode());
+        result.setErrorMessage(requestEntity.getErrMsg());
 
         List<TaskNodeExecParamEntity> requestParamEntities = taskNodeExecParamRepository
                 .selectAllByRequestIdAndParamType(requestEntity.getReqId(), TaskNodeExecParamEntity.PARAM_TYPE_REQUEST);
