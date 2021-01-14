@@ -178,30 +178,37 @@
     >
       <div class="workflowActionModal-container" style="text-align: center;margin-top: 20px;">
         <Button
+          type="error"
+          v-show="['Risky'].includes(currentNodeStatus)"
+          @click="workFlowActionHandler('risky')"
+          :loading="btnLoading"
+          >{{ $t('dangerous_confirm') }}</Button
+        >
+        <Button
           type="primary"
-          v-show="currentNodeStatus === 'NotStarted'"
+          v-show="['NotStarted', 'Risky'].includes(currentNodeStatus)"
           @click="workFlowActionHandler('dataSelection')"
           :loading="btnLoading"
           >{{ $t('data_selection') }}</Button
         >
         <Button
           type="primary"
-          v-show="currentNodeStatus === 'Faulted' || currentNodeStatus === 'Timeouted'"
+          v-show="['Faulted', 'Timeouted'].includes(currentNodeStatus)"
           @click="workFlowActionHandler('partialRetry')"
           :loading="btnLoading"
           >{{ $t('partial_retry') }}</Button
         >
-        <Button
+        <!-- <Button
           type="info"
           v-show="currentNodeStatus === 'Faulted' || currentNodeStatus === 'Timeouted'"
           @click="workFlowActionHandler('retry')"
           :loading="btnLoading"
           style="margin-left: 10px"
           >{{ $t('retry') }}</Button
-        >
+        > -->
         <Button
           type="warning"
-          v-show="currentNodeStatus === 'Faulted' || currentNodeStatus === 'Timeouted'"
+          v-show="['Faulted', 'Timeouted', 'Risky'].includes(currentNodeStatus)"
           @click="workFlowActionHandler('skip')"
           :loading="btnLoading"
           style="margin-left: 10px"
@@ -209,9 +216,7 @@
         >
         <Button
           type="info"
-          v-show="
-            currentNodeStatus === 'Faulted' || currentNodeStatus === 'Timeouted' || currentNodeStatus === 'Completed'
-          "
+          v-show="['Faulted', 'Timeouted', 'Completed', 'Risky'].includes(currentNodeStatus)"
           @click="workFlowActionHandler('showlog')"
           style="margin-left: 10px"
           >{{ $t('show_log') }}</Button
@@ -309,6 +314,17 @@
     <div id="flow_graph_detail">
       <highlight-code lang="json">{{ flowNodeDetail }}</highlight-code>
     </div>
+    <Modal v-model="confirmModal.isShowConfirmModal" width="1000">
+      <div>
+        <Icon :size="28" :color="'#f90'" type="md-help-circle" />
+        <span class="confirm-msg">{{ $t('confirm_to_exect') }}</span>
+      </div>
+      <pre style="margin-left: 44px;">{{ this.confirmModal.message }}</pre>
+      <div slot="footer">
+        <Button type="text" @click="confirmModal.isShowConfirmModal = false">{{ $t('bc_cancel') }}</Button>
+        <Button type="warning" @click="confirmToExecution">{{ $t('bc_confirm') }}</Button>
+      </div>
+    </Modal>
   </div>
 </template>
 <script>
@@ -518,12 +534,18 @@ export default {
       processSessionId: '',
       allBindingsList: [],
       isShowExect: false, // 模型查询返回，激活执行按钮
-      stopSuccess: false
+      stopSuccess: false,
+
+      confirmModal: {
+        isShowConfirmModal: false,
+        message: '',
+        requestBody: ''
+      }
     }
   },
   computed: {
     currentInstanceStatus () {
-      if (this.selectedFlowInstance.length === 0) {
+      if (this.selectedFlowInstance && this.selectedFlowInstance.length === 0) {
         return true
       }
       const found = this.allFlowInstances.find(_ => _.id === this.selectedFlowInstance)
@@ -1261,6 +1283,7 @@ export default {
         deployed: '#7F8A96',
         InProgress: '#3C83F8',
         Faulted: '#FF6262',
+        Risky: '#EF0C2F',
         Timeouted: '#F7B500',
         NotStarted: '#7F8A96'
       }
@@ -1487,25 +1510,9 @@ export default {
           onCancel: () => {}
         })
       } else if (type === 'retry') {
-        const payload = {
-          act: type,
-          nodeInstId: found.id,
-          procInstId: found.procInstId
-        }
-        this.btnLoading = true
-        setTimeout(() => {
-          this.btnLoading = false
-        }, 5000)
-        const { status } = await retryProcessInstance(payload)
-        this.btnLoading = false
-        if (status === 'OK') {
-          this.$Notice.success({
-            title: 'Success',
-            desc: (type === 'retry' ? 'Retry' : 'Skip') + ' action is proceed successfully'
-          })
-          this.workflowActionModalVisible = false
-          this.processInstance()
-        }
+        this.executeRetry(found, type)
+      } else if (type === 'risky') {
+        this.executeRisky(found)
       } else {
         const payload = {
           nodeInstId: found.id,
@@ -1516,6 +1523,39 @@ export default {
         this.getTaskNodeInstanceExecBindings(payload)
         this.retryTargetModalVisible = true
       }
+    },
+    async executeRetry (nodeInfo, type) {
+      const payload = {
+        act: type,
+        nodeInstId: nodeInfo.id,
+        procInstId: nodeInfo.procInstId
+      }
+      this.btnLoading = true
+      setTimeout(() => {
+        this.btnLoading = false
+      }, 5000)
+      const { status } = await retryProcessInstance(payload)
+      this.btnLoading = false
+      if (status === 'OK') {
+        this.$Notice.success({
+          title: 'Success',
+          desc: (type === 'retry' ? 'Retry' : 'Skip') + ' action is proceed successfully'
+        })
+        this.workflowActionModalVisible = false
+        this.processInstance()
+      }
+    },
+    async executeRisky (nodeInfo) {
+      const { status, data } = await getNodeContext(nodeInfo.procInstId, nodeInfo.id)
+      if (status === 'OK') {
+        this.confirmModal.message = data.errorMessage
+        this.confirmModal.isShowConfirmModal = true
+        this.confirmModal.requestBody = nodeInfo
+      }
+    },
+    confirmToExecution () {
+      this.confirmModal.isShowConfirmModal = false
+      this.executeRetry(this.confirmModal.requestBody, 'retry')
     },
     async getTaskNodeInstanceExecBindings (payload) {
       const { status, data } = await getTaskNodeInstanceExecBindings(payload)
