@@ -254,6 +254,7 @@ public class BatchExecutionService {
 
             ItsDangerInstanceInfoDto instance = new ItsDangerInstanceInfoDto();
             instance.setId(exeJob.getRootEntityId());
+            instance.setDisplayName(exeJob.getBusinessKey());
             req.getEntityInstances().add(instance);
 
             Map<String, Object> pluginInputParamMap = ctx.getPluginInputParamMap();
