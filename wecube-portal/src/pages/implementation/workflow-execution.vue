@@ -178,7 +178,7 @@
     >
       <div class="workflowActionModal-container" style="text-align: center;margin-top: 20px;">
         <Button
-          type="error"
+          style="background-color:#BF22E0;color:white"
           v-show="['Risky'].includes(currentNodeStatus)"
           @click="workFlowActionHandler('risky')"
           :loading="btnLoading"
@@ -319,13 +319,13 @@
         <Icon :size="28" :color="'#f90'" type="md-help-circle" />
         <span class="confirm-msg">{{ $t('confirm_to_exect') }}</span>
       </div>
-      <div style="max-height: 400px;overflow-y: auto;">
+      <div style="max-height: 390px;overflow-y: auto;">
         <pre style="margin-left: 44px;">{{ this.confirmModal.message }}</pre>
       </div>
-      <div style="margin-left:30px">
-        <Checkbox v-model="confirmModal.check">{{ $t('dangerous_confirm_tip') }}</Checkbox>
-      </div>
       <div slot="footer">
+        <span style="margin-left:30px;color:#ed4014;float: left;text-align:left">
+          <Checkbox v-model="confirmModal.check">{{ $t('dangerous_confirm_tip') }}</Checkbox>
+        </span>
         <Button type="text" @click="confirmModal.isShowConfirmModal = false">{{ $t('bc_cancel') }}</Button>
         <Button type="warning" :disabled="!confirmModal.check" @click="confirmToExecution">{{
           $t('bc_confirm')
@@ -1291,7 +1291,7 @@ export default {
         deployed: '#7F8A96',
         InProgress: '#3C83F8',
         Faulted: '#FF6262',
-        Risky: '#EF0C2F',
+        Risky: '#BF22E0',
         Timeouted: '#F7B500',
         NotStarted: '#7F8A96'
       }
