@@ -163,13 +163,13 @@
           <Col span="2" offset="0">
             <strong style="font-size:15px;">{{ $t('params_type') }}</strong>
           </Col>
-          <Col span="1" offset="0">
+          <Col span="2" offset="0">
             <strong style="font-size:15px;">{{ $t('params_name') }}</strong>
           </Col>
-          <Col span="3" offset="0" style="text-align: center;margin-left: 30px">
+          <Col span="2" offset="0" style="text-align: center;">
             <strong style="font-size:15px;">{{ $t('data_type') }}</strong>
           </Col>
-          <Col span="1" style="margin-left:20px" offset="0">
+          <Col span="1" style="margin-left:45px" offset="0">
             <strong style="font-size:15px;">{{ $t('sensitive') }}</strong>
           </Col>
           <Col span="2" offset="1">
