@@ -367,6 +367,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 
             ItsDangerInstanceInfoDto instance = new ItsDangerInstanceInfoDto();
             instance.setId(nodeObjectBinding.getEntityDataId());
+            instance.setDisplayName(nodeObjectBinding.getEntityDataName());
             req.getEntityInstances().add(instance);
 
         }
