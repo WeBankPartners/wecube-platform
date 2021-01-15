@@ -460,7 +460,7 @@ public class PluginInstanceMgmtService extends AbstractPluginMgmtService {
     }
 
     private String createPluginS3Bucket(PluginPackageRuntimeResourcesS3 s3ResourceInfo) {
-        QueryRequestDto queryRequest = QueryRequestDto.defaultQueryObject("type", ResourceServerType.S3);
+        QueryRequestDto queryRequest = QueryRequestDto.defaultQueryObject("type", ResourceServerType.S3.getCode());
         List<ResourceServerDto> s3Servers = resourceManagementService.retrieveServers(queryRequest).getContents();
         if (s3Servers.size() == 0) {
             throw new WecubeCoreException("3083", "Can not found available resource server for creating s3 bucket");
