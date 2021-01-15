@@ -16,6 +16,9 @@ public class ProcDefInfoEntity {
     public static final String DYNAMIC_BIND_YES = "Y";
     public static final String DYNAMIC_BIND_NO = "N";
 
+    public static final String EXCLUDE_MODE_YES = "Y";
+    public static final String EXCLUDE_MODE_NO = "N";
+
     private String id;
 
     private String createdBy;
@@ -51,6 +54,8 @@ public class ProcDefInfoEntity {
     private String ownerGrp;
 
     private String procDefData;
+
+    private String excludeMode;
 
     public String getId() {
         return id;
@@ -194,6 +199,14 @@ public class ProcDefInfoEntity {
 
     public void setProcDefData(String procDefData) {
         this.procDefData = procDefData;
+    }
+
+    public String getExcludeMode() {
+        return excludeMode;
+    }
+
+    public void setExcludeMode(String excludeMode) {
+        this.excludeMode = excludeMode;
     }
 
 }
