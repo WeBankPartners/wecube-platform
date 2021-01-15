@@ -458,6 +458,7 @@
   "partial_retry": "Retry",
   "data_selection": "Data selection",
   "dangerous_confirm": "Risky Confirmation",
+  "dangerous_confirm_tip": "I HEREBY ACKNOWLEDGE THAT I AM AWARE OF THESE HIGH-RISK OPERATIONS DISCOVERED DURING SCANNING AND HAVE EVALUATED ALL THE RISKS, I CONFIRM TO CONTINUE THE EXECUTION AND BEAR THE CONSEQUENCES IT MAY CAUSE.",
   "dynamic_bind": "Dynamic Bind",
   "pre_check": "Its Dangerous",
   "required": "Required",
