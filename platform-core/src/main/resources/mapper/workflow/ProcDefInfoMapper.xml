@@ -28,6 +28,8 @@
         <result column="is_deleted" jdbcType="BIT" property="isDeleted" />
         <result column="owner" jdbcType="VARCHAR" property="owner" />
         <result column="owner_grp" jdbcType="VARCHAR" property="ownerGrp" />
+        <result column="exclude_mode" jdbcType="VARCHAR"
+            property="excludeMode" />
     </resultMap>
     <resultMap extends="BaseResultMap" id="ResultMapWithBLOBs"
         type="com.webank.wecube.platform.core.entity.workflow.ProcDefInfoEntity">
@@ -41,7 +43,7 @@
         proc_def_kernel_id,
         proc_def_key, proc_def_name, proc_def_ver, root_entity,
         is_deleted,
-        owner, owner_grp
+        owner, owner_grp, exclude_mode
     </sql>
     <sql id="Blob_Column_List">
         proc_def_data
@@ -71,7 +73,7 @@
         proc_def_name,
         proc_def_ver, root_entity, is_deleted,
         owner,
-        owner_grp, proc_def_data
+        owner_grp, exclude_mode, proc_def_data
         )
         values
         (#{id,jdbcType=VARCHAR},
@@ -87,6 +89,7 @@
         #{isDeleted,jdbcType=BIT},
         #{owner,jdbcType=VARCHAR},
         #{ownerGrp,jdbcType=VARCHAR},
+        #{excludeMode,jdbcType=VARCHAR},
         #{procDefData,jdbcType=LONGVARCHAR}
         )
     </insert>
@@ -145,6 +148,9 @@
             <if test="ownerGrp != null">
                 owner_grp,
             </if>
+            <if test="excludeMode != null">
+                exclude_mode,
+            </if>
             <if test="procDefData != null">
                 proc_def_data,
             </if>
@@ -200,6 +206,9 @@
             </if>
             <if test="ownerGrp != null">
                 #{ownerGrp,jdbcType=VARCHAR},
+            </if>
+            <if test="excludeMode != null">
+                #{excludeMode,jdbcType=VARCHAR},
             </if>
             <if test="procDefData != null">
                 #{procDefData,jdbcType=LONGVARCHAR},
@@ -262,6 +271,9 @@
             <if test="ownerGrp != null">
                 owner_grp = #{ownerGrp,jdbcType=VARCHAR},
             </if>
+            <if test="excludeMode != null">
+                exclude_mode = #{excludeMode,jdbcType=VARCHAR},
+            </if>
             <if test="procDefData != null">
                 proc_def_data =
                 #{procDefData,jdbcType=LONGVARCHAR},
@@ -301,7 +313,11 @@
         is_deleted =
         #{isDeleted,jdbcType=BIT},
         owner = #{owner,jdbcType=VARCHAR},
-        owner_grp = #{ownerGrp,jdbcType=VARCHAR}
+        owner_grp = #{ownerGrp,jdbcType=VARCHAR},
+        exclude_mode =
+        #{excludeMode,jdbcType=VARCHAR},
+        proc_def_data =
+        #{procDefData,jdbcType=LONGVARCHAR}
         where id =
         #{id,jdbcType=VARCHAR}
     </update>
