@@ -447,7 +447,7 @@ public class PluginInstanceMgmtService extends AbstractPluginMgmtService {
         PluginPackageRuntimeResourcesS3 s3ResourceInfo = s3ResourceInfoList.get(0);
 
         List<ResourceItem> s3BucketsItemEntities = resourceItemMapper
-                .selectAllByNameAndType(s3ResourceInfo.getBucketName(), ResourceItemType.S3_BUCKET.toString());
+                .selectAllByNameAndType(s3ResourceInfo.getBucketName(), ResourceItemType.S3_BUCKET.getCode());
         if (s3BucketsItemEntities.size() > 0) {
             return s3BucketsItemEntities.get(0).getId();
         } else {
