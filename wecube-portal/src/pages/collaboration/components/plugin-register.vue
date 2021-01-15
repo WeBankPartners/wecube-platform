@@ -100,16 +100,17 @@
                   :rootEntity="rootEntity"
                   :allDataModelsWithAttrs="allEntityType"
                 ></InterfaceFilterRule>
-                <Button
-                  size="small"
-                  type="success"
-                  :disabled="currentPluginObj.status === 'ENABLED'"
-                  ghost
-                  icon="md-copy"
-                  @click.stop.prevent="copyInterface(inter)"
-                  >{{ $t('copy') }}</Button
-                >
-                <Tooltip :content="$t('completely_deleted')" placement="top">
+                <Tooltip :content="$t('copy')" placement="top">
+                  <Button
+                    size="small"
+                    type="success"
+                    :disabled="currentPluginObj.status === 'ENABLED'"
+                    ghost
+                    icon="md-copy"
+                    @click.stop.prevent="copyInterface(inter)"
+                  ></Button>
+                </Tooltip>
+                <Tooltip :content="$t('delete')" placement="top">
                   <Button
                     size="small"
                     type="error"
@@ -117,17 +118,19 @@
                     ghost
                     icon="ios-trash-outline"
                     @click.stop.prevent="deleteInterface(index)"
-                    >{{ $t('remove') }}</Button
-                  >
+                  ></Button>
                 </Tooltip>
-                <Button
-                  style="float:right;"
-                  size="small"
-                  type="primary"
-                  ghost
-                  @click.stop.prevent="showParamsModal(inter, index, currentPluginObj.interfaces)"
-                  >{{ $t('parameter_configuration') }}</Button
-                >
+                <span style="float:right">
+                  <Tooltip :content="$t('parameter_configuration')" placement="top-end">
+                    <Button
+                      size="small"
+                      type="primary"
+                      icon="ios-settings"
+                      ghost
+                      @click.stop.prevent="showParamsModal(inter, index, currentPluginObj.interfaces)"
+                    ></Button>
+                  </Tooltip>
+                </span>
               </div>
             </div>
           </div>
