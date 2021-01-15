@@ -14,6 +14,8 @@ delete from menu_items where id = 'ADMIN__ADMIN_SYSTEM_PARAMS';
 delete from menu_items where id = 'ADMIN__ADMIN_RESOURCES_MANAGEMENT';
 delete from menu_items where id = 'ADMIN__ADMIN_USER_ROLE_MANAGEMENT';
 delete from menu_items where id = 'IMPLEMENTATION__IMPLEMENTATION_BATCH_EXECUTION';
+delete from menu_items where id = 'ADMIN__ADMIN_SYSTEM_DATA_MODEL';
+delete from role_menu where id = 'SUPER_ADMIN__ADMIN_SYSTEM_DATA_MODEL';
 
 insert into menu_items (id,parent_code,code,source,menu_order,description,local_display_name) values
 ('JOBS',null,'JOBS','SYSTEM', 1, '', '任务');
