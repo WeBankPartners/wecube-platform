@@ -77,7 +77,7 @@ create table IF NOT EXISTS  system_variables (
   name varchar(255) COLLATE utf8_bin not null,
   value varchar(4096) COLLATE utf8_bin ,
   default_value varchar(4096) COLLATE utf8_bin null,
-  scope varchar(50) not null COLLATE utf8_bin default 'global',
+  scope varchar(50) COLLATE utf8_bin not null default 'global',
   source varchar(500) COLLATE utf8_bin null default 'system',
   status varchar(50) COLLATE utf8_bin null default 'active'
 ) ENGINE=InnoDB  DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
@@ -1630,7 +1630,7 @@ CREATE TABLE IF NOT EXISTS `core_ru_graph_node` (
   `g_node_id` varchar(255) COLLATE utf8_bin DEFAULT NULL,
   `pkg_name` varchar(255) COLLATE utf8_bin DEFAULT NULL,
   `prev_ids` text COLLATE utf8_bin ,
-  `proc_inst_id` int(11) COLLATE utf8_bin DEFAULT NULL,
+  `proc_inst_id` int(11) DEFAULT NULL,
   `proc_sess_id` varchar(255) COLLATE utf8_bin DEFAULT NULL,
   `succ_ids` text COLLATE utf8_bin ,
   PRIMARY KEY (`id`)

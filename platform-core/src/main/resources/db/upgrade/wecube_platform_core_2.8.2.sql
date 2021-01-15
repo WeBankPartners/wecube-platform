@@ -14,6 +14,9 @@ ADD COLUMN `mandatory` BIT(1) NULL DEFAULT 0;
 ALTER TABLE `core_re_task_node_def_info` 
 ADD COLUMN `dynamic_bind` VARCHAR(45) COLLATE utf8_bin NULL DEFAULT 'N';
 
+ALTER TABLE `core_re_proc_def_info` 
+ADD COLUMN `exclude_mode` VARCHAR(10) COLLATE utf8_bin NULL DEFAULT 'N';
+
 ALTER TABLE `core_re_task_node_def_info` 
 ADD COLUMN `pre_check` VARCHAR(45) COLLATE utf8_bin NULL DEFAULT 'N';
 
