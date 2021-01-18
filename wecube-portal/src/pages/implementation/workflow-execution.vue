@@ -565,6 +565,9 @@ export default {
   },
   computed: {
     currentInstanceStatus () {
+      if (!this.selectedFlowInstance) {
+        return true
+      }
       if (this.selectedFlowInstance && this.selectedFlowInstance.length === 0) {
         return true
       }
