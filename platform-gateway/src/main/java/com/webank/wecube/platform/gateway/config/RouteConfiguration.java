@@ -5,6 +5,7 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import com.webank.wecube.platform.gateway.authclient.http.configuration.EnableJwtSsoClient;
 import com.webank.wecube.platform.gateway.filter.factory.DynamicRouteGatewayFilterFactory;
 import com.webank.wecube.platform.gateway.filter.factory.DynamicRouteProperties;
 import com.webank.wecube.platform.gateway.filter.factory.ExRetryGatewayFilterFactory;
@@ -14,6 +15,7 @@ import com.webank.wecube.platform.gateway.filter.factory.JwtSsoTokenGatewayFilte
 @EnableConfigurationProperties({
     DynamicRouteProperties.class
 })
+@EnableJwtSsoClient
 public class RouteConfiguration {
     @Autowired
     private DynamicRouteProperties dynamicRouteProperties;
