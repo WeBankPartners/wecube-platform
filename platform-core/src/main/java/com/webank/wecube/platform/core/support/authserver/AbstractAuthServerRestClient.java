@@ -12,6 +12,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.client.RestTemplate;
 
 import com.webank.wecube.platform.auth.client.http.JwtSsoRestTemplate;
 import com.webank.wecube.platform.core.http.UserJwtSsoTokenRestTemplate;
@@ -28,7 +29,7 @@ public abstract class AbstractAuthServerRestClient implements RestClient {
 
     @Autowired
     protected AuthServerRestClientProperties clientProperties;
-    
+
     protected String buildFullUriString(String path, String httpScheme, String host, int port) {
         if (StringUtils.isNotBlank(path) && !path.startsWith(URI_PATH_DELIMITER)) {
             path = URI_PATH_DELIMITER + path;
@@ -41,8 +42,8 @@ public abstract class AbstractAuthServerRestClient implements RestClient {
     }
 
     protected void deleteObject(String path, Object... uriVariables) throws AuthServerClientException {
-        String requestUri = buildFullUriString(path, clientProperties.getHttpScheme(),
-                clientProperties.getHost(), clientProperties.getPort());
+        String requestUri = buildFullUriString(path, clientProperties.getHttpScheme(), clientProperties.getHost(),
+                clientProperties.getPort());
 
         URI expandedUri = userJwtSsoTokenRestTemplate.getUriTemplateHandler().expand(requestUri, uriVariables);
 
@@ -61,8 +62,8 @@ public abstract class AbstractAuthServerRestClient implements RestClient {
 
     protected <T> T getForObject(String path, ParameterizedTypeReference<AuthServerRestResponseDto<T>> responseType,
             Object... uriVariables) throws AuthServerClientException {
-        String requestUri = buildFullUriString(path, clientProperties.getHttpScheme(),
-                clientProperties.getHost(), clientProperties.getPort());
+        String requestUri = buildFullUriString(path, clientProperties.getHttpScheme(), clientProperties.getHost(),
+                clientProperties.getPort());
 
         URI expandedUri = userJwtSsoTokenRestTemplate.getUriTemplateHandler().expand(requestUri, uriVariables);
         ResponseEntity<AuthServerRestResponseDto<T>> responseEntity = userJwtSsoTokenRestTemplate.exchange(expandedUri,
@@ -80,10 +81,16 @@ public abstract class AbstractAuthServerRestClient implements RestClient {
     protected <T> T postForObject(String path, Object request,
             ParameterizedTypeReference<AuthServerRestResponseDto<T>> responseType, Object... uriVariables)
             throws AuthServerClientException {
-        String requestUri = buildFullUriString(path, clientProperties.getHttpScheme(),
-                clientProperties.getHost(), clientProperties.getPort());
+        return postForObject(userJwtSsoTokenRestTemplate, path,request, responseType, uriVariables);
+    }
 
-        URI expandedUri = userJwtSsoTokenRestTemplate.getUriTemplateHandler().expand(requestUri, uriVariables);
+    protected <T> T postForObject(RestTemplate restTemplate, String path, Object request,
+            ParameterizedTypeReference<AuthServerRestResponseDto<T>> responseType, Object... uriVariables)
+            throws AuthServerClientException {
+        String requestUri = buildFullUriString(path, clientProperties.getHttpScheme(), clientProperties.getHost(),
+                clientProperties.getPort());
+
+        URI expandedUri = restTemplate.getUriTemplateHandler().expand(requestUri, uriVariables);
         ResponseEntity<AuthServerRestResponseDto<T>> responseEntity = userJwtSsoTokenRestTemplate.exchange(expandedUri,
                 HttpMethod.POST, buildRequestEntity(request), responseType);
         AuthServerRestResponseDto<T> responseDto = responseEntity.getBody();
@@ -110,6 +117,6 @@ public abstract class AbstractAuthServerRestClient implements RestClient {
 
         return requestEntity;
     }
-    
+
     protected abstract Logger getLogger();
 }
