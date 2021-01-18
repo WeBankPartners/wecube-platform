@@ -58,6 +58,8 @@ import com.webank.wecube.platform.core.repository.plugin.ResourceServerMapper;
 import com.webank.wecube.platform.core.service.resource.ResourceItemType;
 import com.webank.wecube.platform.core.service.resource.ResourceManagementService;
 import com.webank.wecube.platform.core.service.resource.ResourceServerType;
+import com.webank.wecube.platform.core.support.authserver.AuthServerRestClient;
+import com.webank.wecube.platform.core.support.authserver.SimpleSubSystemDto;
 import com.webank.wecube.platform.core.support.gateway.GatewayResponse;
 import com.webank.wecube.platform.core.support.gateway.GatewayServiceStub;
 import com.webank.wecube.platform.core.support.gateway.RegisterRouteItemsDto;
@@ -118,6 +120,9 @@ public class PluginInstanceMgmtService extends AbstractPluginMgmtService {
 
     @Autowired
     private PluginPackageMenuStatusListener pluginPackageMenuStatusListener;
+    
+    @Autowired
+    private AuthServerRestClient authServerRestClient;
 
     public void removePluginInstanceById(String instanceId) throws Exception {
         log.info("Removing plugin instance,instanceId: {}", instanceId);
@@ -217,15 +222,24 @@ public class PluginInstanceMgmtService extends AbstractPluginMgmtService {
             password = EncryptionUtils.decryptWithAes(password, resourceProperties.getPasswordEncryptionSeed(),
                     dbInfo.getSchema());
 
-            envVariablesString = envVariablesString.replace("{{DB_HOST}}", dbInfo.getHost())
-                    .replace("{{DB_PORT}}", dbInfo.getPort()).replace("{{DB_SCHEMA}}", dbInfo.getSchema())
-                    .replace("{{DB_USER}}", dbInfo.getUser())
+            envVariablesString = envVariablesString.replace("{{DB_HOST}}", dbInfo.getHost()) //
+                    .replace("{{DB_PORT}}", dbInfo.getPort()) //
+                    .replace("{{DB_SCHEMA}}", dbInfo.getSchema()) //
+                    .replace("{{DB_USER}}", dbInfo.getUser()) //
                     .replace("{{DB_PWD}}", tryEncryptPasswordAsPluginEnv(password));
         }
+        
+        SimpleSubSystemDto subSystemAs = tryRegisterSubSystem(pluginPackage);
+        if(subSystemAs != null){
+            envVariablesString = envVariablesString.replace("{{SUB_SYSTEM_CODE}}", subSystemAs.getSystemCode()) //
+                    .replace("{{SUB_SYSTEM_KEY}}", subSystemAs.getApikey());
+        }
+        
         log.info("before replace envVariablesString=" + envVariablesString);
         envVariablesString = replaceJwtSigningKey(envVariablesString);
         envVariablesString = replaceSystemVariablesForEnvVariables(pluginPackage.getName(), envVariablesString);
         log.info("after replace envVariablesString=" + envVariablesString);
+        
 
         createContainerParameters.setEnvVariableParameters(envVariablesString.isEmpty() ? "" : envVariablesString);
 
@@ -257,6 +271,23 @@ public class PluginInstanceMgmtService extends AbstractPluginMgmtService {
         if (!response.getStatus().equals(GatewayResponse.getStatusCodeOk())) {
             log.error("Launch instance has done, but register routing information is failed, please check");
         }
+    }
+    
+    private SimpleSubSystemDto tryRegisterSubSystem(PluginPackages pluginPackage){
+        log.info("About to register sub system infomation for {}", pluginPackage.getName());
+        SimpleSubSystemDto subSystemReq = new SimpleSubSystemDto();
+        String subSystemCode = String.format("SYS_%s", pluginPackage.getName().toUpperCase());
+        subSystemReq.setName(pluginPackage.getName());
+        subSystemReq.setSystemCode(subSystemCode);
+        subSystemReq.setActive(true);
+        subSystemReq.setBlocked(false);
+        subSystemReq.setDescription(String.format("Plugin %s registered from platform.", pluginPackage.getName()));
+        
+        
+        SimpleSubSystemDto subSystemAs = authServerRestClient.registerSimpleSubSystem(subSystemReq);
+        log.info("Finished to register sub system infomation for {}:{}", pluginPackage.getName(), subSystemAs);
+        return subSystemAs;
+        
     }
 
     private GatewayResponse registerRoute(String name, String host, String port) {
