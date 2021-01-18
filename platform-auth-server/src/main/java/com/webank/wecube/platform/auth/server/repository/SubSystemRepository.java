@@ -10,4 +10,7 @@ public interface SubSystemRepository extends JpaRepository<SysSubSystemEntity, S
     
     @Query("select t from SysSubSystemEntity t " + " where t.systemCode = :systemCode ")
 	SysSubSystemEntity findOneBySystemCode(@Param("systemCode")String systemCode);
+    
+    @Query("select t from SysSubSystemEntity t " + " where t.name = :name ")
+    SysSubSystemEntity findOneBySystemName(@Param("name")String name);
 }

@@ -87,11 +87,9 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 
     @Autowired
     private WorkflowProcInstEndEventNotifier workflowProcInstEndEventNotifier;
-    
+
     @Autowired
     private RiskyCommandVerifier riskyCommandVerifier;
-
-
 
     /**
      * 
@@ -128,14 +126,15 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
         }
 
         String oldProcInstStatus = procInstEntity.getStatus();
-        if (!ProcInstInfoEntity.INTERNALLY_TERMINATED_STATUS.equalsIgnoreCase(procInstEntity.getStatus())) {
-            procInstEntity.setUpdatedTime(currTime);
-            procInstEntity.setUpdatedBy(WorkflowConstants.DEFAULT_USER);
-            procInstEntity.setStatus(ProcInstInfoEntity.COMPLETED_STATUS);
-            procInstInfoRepository.updateByPrimaryKeySelective(procInstEntity);
-            log.info("updated process instance {} from {} to {}", procInstEntity.getId(), oldProcInstStatus,
-                    ProcInstInfoEntity.COMPLETED_STATUS);
+        if (ProcInstInfoEntity.INTERNALLY_TERMINATED_STATUS.equalsIgnoreCase(procInstEntity.getStatus())) {
+            return;
         }
+        procInstEntity.setUpdatedTime(currTime);
+        procInstEntity.setUpdatedBy(WorkflowConstants.DEFAULT_USER);
+        procInstEntity.setStatus(ProcInstInfoEntity.COMPLETED_STATUS);
+        procInstInfoRepository.updateByPrimaryKeySelective(procInstEntity);
+        log.info("updated process instance {} from {} to {}", procInstEntity.getId(), oldProcInstStatus,
+                ProcInstInfoEntity.COMPLETED_STATUS);
 
         List<TaskNodeInstInfoEntity> nodeInstEntities = taskNodeInstInfoRepository
                 .selectAllByProcInstId(procInstEntity.getId());
@@ -337,10 +336,6 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 
         pluginInvocationProcessor.process(operation);
     }
-
-    
-
-    
 
     private List<ProcExecBindingEntity> dynamicCalculateTaskNodeExecBindings(TaskNodeDefInfoEntity taskNodeDefEntity,
             ProcInstInfoEntity procInstEntity, TaskNodeInstInfoEntity taskNodeInstEntity, PluginInvocationCommand cmd,

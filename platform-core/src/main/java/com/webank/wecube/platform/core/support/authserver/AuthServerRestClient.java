@@ -47,6 +47,21 @@ public class AuthServerRestClient extends AbstractAuthServerRestClient {
             throw new WecubeCoreException("3301", "Auth server health check failed.");
         }
     }
+    
+    /**
+     * 
+     * @param subSystemReq
+     * @return
+     */
+    public SimpleSubSystemDto registerSimpleSubSystem(SimpleSubSystemDto subSystemReq){
+        if(subSystemReq == null){
+            return null;
+        }
+        SimpleSubSystemDto subSystemAs = postForObject(clientProperties.getPathRegisterSubSystem(), subSystemReq, new ParameterizedTypeReference<AuthServerRestResponseDto<SimpleSubSystemDto>>() {
+                });
+        
+        return subSystemAs;
+    }
 
     public void revokeAuthoritiesFromRole(String roleId, List<AsAuthorityDto> authorities) {
         if (StringUtils.isBlank(roleId)) {
