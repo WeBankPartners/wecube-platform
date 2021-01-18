@@ -1056,7 +1056,7 @@ export default {
             ...data,
             flowNodes: data.taskNodeInstances
           }
-          this.getTargetOptions()
+          // this.getTargetOptions()
           removeEvent('.retry', 'click', this.retryHandler)
           removeEvent('.normal', 'click', this.normalHandler)
           this.initFlowGraph(true)
