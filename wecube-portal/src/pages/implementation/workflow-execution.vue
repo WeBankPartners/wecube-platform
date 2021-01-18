@@ -179,21 +179,29 @@
       <div class="workflowActionModal-container" style="text-align: center;margin-top: 20px;">
         <Button
           style="background-color:#BF22E0;color:white"
-          v-show="['Risky'].includes(currentNodeStatus)"
+          v-show="
+            ['Risky'].includes(currentNodeStatus) && currentInstanceStatusForNodeOperation != 'InternallyTerminated'
+          "
           @click="workFlowActionHandler('risky')"
           :loading="btnLoading"
           >{{ $t('dangerous_confirm') }}</Button
         >
         <Button
           type="primary"
-          v-show="['NotStarted', 'Risky'].includes(currentNodeStatus)"
+          v-show="
+            ['NotStarted', 'Risky'].includes(currentNodeStatus) &&
+              currentInstanceStatusForNodeOperation != 'InternallyTerminated'
+          "
           @click="workFlowActionHandler('dataSelection')"
           :loading="btnLoading"
           >{{ $t('data_selection') }}</Button
         >
         <Button
           type="primary"
-          v-show="['Faulted', 'Timeouted'].includes(currentNodeStatus)"
+          v-show="
+            ['Faulted', 'Timeouted'].includes(currentNodeStatus) &&
+              currentInstanceStatusForNodeOperation != 'InternallyTerminated'
+          "
           @click="workFlowActionHandler('partialRetry')"
           :loading="btnLoading"
           >{{ $t('partial_retry') }}</Button
@@ -208,7 +216,10 @@
         > -->
         <Button
           type="warning"
-          v-show="['Faulted', 'Timeouted', 'Risky'].includes(currentNodeStatus)"
+          v-show="
+            ['Faulted', 'Timeouted', 'Risky'].includes(currentNodeStatus) &&
+              currentInstanceStatusForNodeOperation != 'InternallyTerminated'
+          "
           @click="workFlowActionHandler('skip')"
           :loading="btnLoading"
           style="margin-left: 10px"
@@ -319,7 +330,7 @@
         <Icon :size="28" :color="'#f90'" type="md-help-circle" />
         <span class="confirm-msg">{{ $t('confirm_to_exect') }}</span>
       </div>
-      <div style="max-height: 390px;overflow-y: auto;">
+      <div style="max-height: 390px;overflow: auto;">
         <pre style="margin-left: 44px;">{{ this.confirmModal.message }}</pre>
       </div>
       <div slot="footer">
@@ -548,11 +559,15 @@ export default {
         check: false,
         message: '',
         requestBody: ''
-      }
+      },
+      currentInstanceStatusForNodeOperation: '' // 流程状态
     }
   },
   computed: {
     currentInstanceStatus () {
+      if (!this.selectedFlowInstance) {
+        return true
+      }
       if (this.selectedFlowInstance && this.selectedFlowInstance.length === 0) {
         return true
       }
@@ -1025,12 +1040,15 @@ export default {
         .remove()
     },
     queryHandler () {
+      this.currentInstanceStatusForNodeOperation = ''
       this.stop()
       if (!this.selectedFlowInstance) return
+
       this.isEnqueryPage = true
       this.$nextTick(async () => {
         const found = this.allFlowInstances.find(_ => _.id === this.selectedFlowInstance)
         if (!(found && found.id)) return
+        this.currentInstanceStatusForNodeOperation = found.status
         this.selectedFlow = found.procDefId
         this.selectedTarget = found.entityDataId
         this.processInstance()
@@ -1041,7 +1059,7 @@ export default {
             ...data,
             flowNodes: data.taskNodeInstances
           }
-          this.getTargetOptions()
+          // this.getTargetOptions()
           removeEvent('.retry', 'click', this.retryHandler)
           removeEvent('.normal', 'click', this.normalHandler)
           this.initFlowGraph(true)
@@ -1554,6 +1572,9 @@ export default {
       }
     },
     async executeRisky (nodeInfo) {
+      this.confirmModal.message = ''
+      this.confirmModal.requestBody = ''
+      this.confirmModal.check = false
       const { status, data } = await getNodeContext(nodeInfo.procInstId, nodeInfo.id)
       if (status === 'OK') {
         this.confirmModal.message = data.errorMessage
