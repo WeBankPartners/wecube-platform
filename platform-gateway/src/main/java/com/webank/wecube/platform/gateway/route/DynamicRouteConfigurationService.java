@@ -19,6 +19,7 @@ import javax.annotation.Resource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.cloud.gateway.event.RefreshRoutesEvent;
 import org.springframework.cloud.gateway.filter.FilterDefinition;
 import org.springframework.cloud.gateway.handler.predicate.PredicateDefinition;
@@ -34,7 +35,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
-import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import com.webank.wecube.platform.gateway.dto.GenericResponseDto;
@@ -60,15 +60,19 @@ public class DynamicRouteConfigurationService implements ApplicationEventPublish
 
     @Autowired
     private DynamicRouteProperties dynamicRouteProperties;
+    
+    @Autowired
+    @Qualifier("jwtSsoRestTemplate")
+    private RestTemplate restTemplate;
 
     private ApplicationEventPublisher publisher;
 
     private Map<String, Object> loadedContexts = new ConcurrentHashMap<>();
 
     private volatile boolean isDynamicRouteLoaded = false;
-    
+
     private volatile boolean isDynamicRouteLoading = false;
-    
+
     private ReentrantLock loadLock = new ReentrantLock();
 
     private ReentrantLock refreshLock = new ReentrantLock();
@@ -116,7 +120,7 @@ public class DynamicRouteConfigurationService implements ApplicationEventPublish
 
     private void handleRefreshRouteConfigInfoResponse(RouteConfigInfoResponseDto respDto) {
         List<DynamicRouteItemInfo> routeItemInfos = parseRouteConfigInfoResponse(respDto);
-        
+
         log.debug("Finished fetch route item from {} {} {}", dynamicRouteProperties.getRouteConfigServer(),
                 dynamicRouteProperties.getRouteConfigUri(), routeItemInfos.size());
 
@@ -160,12 +164,12 @@ public class DynamicRouteConfigurationService implements ApplicationEventPublish
 
                 return;
             }
-            
-            if(isDynamicRouteLoading){
+
+            if (isDynamicRouteLoading) {
                 log.info("Routes is loading ...{}", time);
                 return;
             }
-            
+
             log.info("try to do load routes --- {}", time);
             doLoadRoutes();
         } finally {
@@ -231,7 +235,7 @@ public class DynamicRouteConfigurationService implements ApplicationEventPublish
 
             isDynamicRouteLoading = false;
             isDynamicRouteLoaded = true;
-            
+
             log.info("ROUTES loaded successfully, total size:{}", routeItemInfoDtos.size());
         } finally {
             loadLock.unlock();
@@ -434,16 +438,42 @@ public class DynamicRouteConfigurationService implements ApplicationEventPublish
         return items;
     }
 
-    protected Mono<RouteConfigInfoResponseDto> fetchAllRouteItemsWithWebClient() {
-        
-        String url = dynamicRouteProperties.getRouteConfigServer() + dynamicRouteProperties.getRouteConfigUri();
-        log.debug("HTTP invoke:{}", url);
-        Mono<RouteConfigInfoResponseDto> bodyMono = WebClient.create().get().uri(url)
-                .header("Content-Type", "application/json").accept(MediaType.APPLICATION_JSON)
-                .header("Authorization", String.format("Bearer %s", dynamicRouteProperties.getRouteConfigAccessKey()))
-                .retrieve().bodyToMono(RouteConfigInfoResponseDto.class);
+    protected Mono<RouteConfigInfoResponseDto> fetchAllRouteItemsWithRestClient() {
+        RestTemplate client = restTemplate;
 
-        return bodyMono;
+        String url = dynamicRouteProperties.getRouteConfigServer() + dynamicRouteProperties.getRouteConfigUri();
+
+//        HttpHeaders header = new HttpHeaders();
+//        header.setContentType(MediaType.APPLICATION_JSON_UTF8);
+//        header.add("Authorization", String.format("Bearer %s", dynamicRouteProperties.getRouteConfigAccessKey()));
+//
+//        HttpEntity<MultiValueMap<String, String>> httpEntity = new HttpEntity<>(header);
+
+        try {
+            RouteConfigInfoResponseDto responseEntity = client.getForObject(url, 
+                    RouteConfigInfoResponseDto.class);
+
+            return Mono.just(responseEntity);
+
+        } catch (Exception e) {
+            log.error("Errors while fetching routes.", e);
+            return Mono.error(e);
+        }
+
+    }
+
+    protected Mono<RouteConfigInfoResponseDto> fetchAllRouteItemsWithWebClient() {
+
+//        String url = dynamicRouteProperties.getRouteConfigServer() + dynamicRouteProperties.getRouteConfigUri();
+//        log.debug("HTTP invoke:{}", url);
+//        Mono<RouteConfigInfoResponseDto> bodyMono = WebClient.create().get().uri(url)
+//                .header("Content-Type", "application/json").accept(MediaType.APPLICATION_JSON)
+//                .header("Authorization", String.format("Bearer %s", dynamicRouteProperties.getRouteConfigAccessKey()))
+//                .retrieve().bodyToMono(RouteConfigInfoResponseDto.class);
+//
+//        return bodyMono;
+        
+        return fetchAllRouteItemsWithRestClient();
     }
 
     protected List<RouteItemInfoDto> fetchAllRouteItems() {
