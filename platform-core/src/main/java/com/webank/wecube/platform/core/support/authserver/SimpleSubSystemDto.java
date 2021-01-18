@@ -74,6 +74,25 @@ public class SimpleSubSystemDto implements Serializable{
     public void setApikey(String apikey) {
         this.apikey = apikey;
     }
+
+    @Override
+    public String toString() {
+        StringBuilder builder = new StringBuilder();
+        builder.append("SimpleSubSystemDto [id=");
+        builder.append(id);
+        builder.append(", name=");
+        builder.append(name);
+        builder.append(", systemCode=");
+        builder.append(systemCode);
+        builder.append(", description=");
+        builder.append(description);
+        builder.append(", active=");
+        builder.append(active);
+        builder.append(", blocked=");
+        builder.append(blocked);
+        builder.append("]");
+        return builder.toString();
+    }
 	
 	
 }
