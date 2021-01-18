@@ -210,7 +210,7 @@ public class SubSystemManagementService {
         }
 
         log.info("current username is : {}", currUser.getUsername());
-//        throw new AuthServerException("Lack of permission due to not platform identity.");
+        throw new AuthServerException("Lack of permission due to not platform identity.");
     }
 
     private JwtToken tryAuthenticateSubSystem(SubSystemTokenDto subSystem) {
