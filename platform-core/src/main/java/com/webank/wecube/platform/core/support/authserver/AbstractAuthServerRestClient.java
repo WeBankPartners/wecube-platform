@@ -91,7 +91,7 @@ public abstract class AbstractAuthServerRestClient implements RestClient {
                 clientProperties.getPort());
 
         URI expandedUri = restTemplate.getUriTemplateHandler().expand(requestUri, uriVariables);
-        ResponseEntity<AuthServerRestResponseDto<T>> responseEntity = userJwtSsoTokenRestTemplate.exchange(expandedUri,
+        ResponseEntity<AuthServerRestResponseDto<T>> responseEntity = restTemplate.exchange(expandedUri,
                 HttpMethod.POST, buildRequestEntity(request), responseType);
         AuthServerRestResponseDto<T> responseDto = responseEntity.getBody();
         String status = responseDto.getStatus();
