@@ -109,6 +109,10 @@ public class BatchExecutionService {
     @Autowired
     @Qualifier("userJwtSsoTokenRestTemplate")
     private RestTemplate userJwtSsoTokenRestTemplate;
+    
+    @Autowired
+    @Qualifier(value = "jwtSsoRestTemplate")
+    private RestTemplate jwtSsoRestTemplate;
 
     @Autowired
     private SimpleEncryptionService encryptionService;
@@ -265,7 +269,7 @@ public class BatchExecutionService {
             req.getInputParams().add(pluginInputParamMap);
         }
 
-        ItsDangerCheckRespDto resp = itsDangerRestClient.check(req);
+        ItsDangerCheckRespDto resp = itsDangerRestClient.checkFromBackend(req);
 
         if (resp == null) {
             return null;
