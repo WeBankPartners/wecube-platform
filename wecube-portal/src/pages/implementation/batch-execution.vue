@@ -442,7 +442,7 @@
       </div>
     </Modal>
 
-    <Modal v-model="confirmModal.isShowConfirmModal" width="800">
+    <Modal v-model="confirmModal.isShowConfirmModal" width="900">
       <div>
         <Icon :size="28" :color="'#f90'" type="md-help-circle" />
         <span class="confirm-msg">{{ $t('confirm_to_exect') }}</span>
@@ -450,10 +450,10 @@
       <div style="max-height: 400px;overflow-y: auto;">
         <pre style="margin-left: 44px;">{{ this.confirmModal.message }}</pre>
       </div>
-      <div style="margin-left:30px">
-        <Checkbox v-model="confirmModal.check">{{ $t('dangerous_confirm_tip') }}</Checkbox>
-      </div>
       <div slot="footer">
+        <span style="margin-left:30px;color:#ed4014;float: left;text-align:left">
+          <Checkbox v-model="confirmModal.check">{{ $t('dangerous_confirm_tip') }}</Checkbox>
+        </span>
         <Button type="text" @click="confirmModal.isShowConfirmModal = false">{{ $t('bc_cancel') }}</Button>
         <Button type="warning" :disabled="!confirmModal.check" @click="confirmToExecution">{{
           $t('bc_confirm')
