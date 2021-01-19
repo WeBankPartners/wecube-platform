@@ -94,7 +94,7 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
             log.info("About to terminate process instance, procInstId={},procInstKernelId={}", procInstId,
                     procInstEntity.getProcInstKernelId());
         }
-        
+
         checkCurrentUserRole(procInstEntity.getProcDefId());
 
         procInstEntity.setStatus(ProcInstInfoEntity.INTERNALLY_TERMINATED_STATUS);
@@ -273,7 +273,8 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
         }
 
         ProcInstOutline procInstOutline = workflowEngineService.getProcInstOutline(procInstanceKernelId);
-        if (!procInstEntity.getStatus().equals(procInstOutline.getStatus())) {
+        if (!procInstEntity.getStatus().equals(procInstOutline.getStatus())
+                && !ProcInstInfoEntity.INTERNALLY_TERMINATED_STATUS.equalsIgnoreCase(procInstEntity.getStatus())) {
             procInstEntity.setStatus(procInstOutline.getStatus());
             procInstEntity.setUpdatedTime(new Date());
             procInstEntity.setUpdatedBy(AuthenticationContextHolder.getCurrentUsername());
@@ -736,10 +737,10 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
     }
 
     protected void refreshProcessInstanceStatus(ProcInstInfoEntity procInstEntity) {
-        if(ProcInstInfoEntity.INTERNALLY_TERMINATED_STATUS.equalsIgnoreCase(procInstEntity.getStatus())){
+        if (ProcInstInfoEntity.INTERNALLY_TERMINATED_STATUS.equalsIgnoreCase(procInstEntity.getStatus())) {
             return;
         }
-        
+
         List<TaskNodeInstInfoEntity> nodeInstEntities = taskNodeInstInfoRepository
                 .selectAllByProcInstId(procInstEntity.getId());
         String kernelProcInstId = procInstEntity.getProcInstKernelId();
