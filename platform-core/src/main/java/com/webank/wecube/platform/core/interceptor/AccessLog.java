@@ -9,7 +9,6 @@ public class AccessLog {
     private long startTime;
     private long endTime;
     private String requestData;
-    private String responseData;
     private String responseStatus;
 
     public String getId() {
@@ -76,14 +75,6 @@ public class AccessLog {
         this.requestData = requestData;
     }
 
-    public String getResponseData() {
-        return responseData;
-    }
-
-    public void setResponseData(String responseData) {
-        this.responseData = responseData;
-    }
-
     public String getResponseStatus() {
         return responseStatus;
     }
@@ -115,8 +106,6 @@ public class AccessLog {
         builder.append(endTime);
         builder.append(", requestData=");
         builder.append(requestData);
-        builder.append(", responseData=");
-        builder.append(responseData);
         builder.append(", responseStatus=");
         builder.append(responseStatus);
         builder.append("]");
