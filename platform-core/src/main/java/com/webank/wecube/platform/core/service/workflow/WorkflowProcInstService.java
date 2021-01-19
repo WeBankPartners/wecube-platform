@@ -95,6 +95,8 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
                     procInstEntity.getProcInstKernelId());
         }
 
+        checkCurrentUserRole(procInstEntity.getProcDefId());
+
         procInstEntity.setStatus(ProcInstInfoEntity.INTERNALLY_TERMINATED_STATUS);
         procInstEntity.setUpdatedBy(AuthenticationContextHolder.getCurrentUsername());
         procInstEntity.setUpdatedTime(new Date());
@@ -271,25 +273,31 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
         }
 
         ProcInstOutline procInstOutline = workflowEngineService.getProcInstOutline(procInstanceKernelId);
-        if (procInstEntity.getStatus().equals(procInstOutline.getStatus())) {
+        if (!procInstEntity.getStatus().equals(procInstOutline.getStatus())
+                && !ProcInstInfoEntity.INTERNALLY_TERMINATED_STATUS.equalsIgnoreCase(procInstEntity.getStatus())) {
             procInstEntity.setStatus(procInstOutline.getStatus());
             procInstEntity.setUpdatedTime(new Date());
             procInstEntity.setUpdatedBy(AuthenticationContextHolder.getCurrentUsername());
             procInstInfoRepository.updateByPrimaryKeySelective(procInstEntity);
         }
 
-        List<TaskNodeInstInfoEntity> nodeInstEntities = taskNodeInstInfoRepository
-                .selectAllByProcInstId(procInstEntity.getId());
-        for (TaskNodeInstInfoEntity nodeInstEntity : nodeInstEntities) {
-            ProcFlowNodeInst pfni = procInstOutline.findProcFlowNodeInstByNodeId(nodeInstEntity.getNodeId());
-            if (pfni != null && (pfni.getStatus() != null) && (!pfni.getStatus().equals(nodeInstEntity.getStatus()))) {
-                if (!TaskNodeInstInfoEntity.RISKY_STATUS.equalsIgnoreCase(nodeInstEntity.getStatus())) {
-                    nodeInstEntity.setStatus(pfni.getStatus());
-                    nodeInstEntity.setUpdatedTime(new Date());
-                    nodeInstEntity.setUpdatedBy(AuthenticationContextHolder.getCurrentUsername());
-                    taskNodeInstInfoRepository.updateByPrimaryKeySelective(nodeInstEntity);
+        if (!ProcInstInfoEntity.INTERNALLY_TERMINATED_STATUS.equalsIgnoreCase(procInstEntity.getStatus())) {
+
+            List<TaskNodeInstInfoEntity> nodeInstEntities = taskNodeInstInfoRepository
+                    .selectAllByProcInstId(procInstEntity.getId());
+            for (TaskNodeInstInfoEntity nodeInstEntity : nodeInstEntities) {
+                ProcFlowNodeInst pfni = procInstOutline.findProcFlowNodeInstByNodeId(nodeInstEntity.getNodeId());
+                if (pfni != null && (pfni.getStatus() != null)
+                        && (!pfni.getStatus().equals(nodeInstEntity.getStatus()))) {
+                    if (!TaskNodeInstInfoEntity.RISKY_STATUS.equalsIgnoreCase(nodeInstEntity.getStatus())) {
+                        nodeInstEntity.setStatus(pfni.getStatus());
+                        nodeInstEntity.setUpdatedTime(new Date());
+                        nodeInstEntity.setUpdatedBy(AuthenticationContextHolder.getCurrentUsername());
+                        taskNodeInstInfoRepository.updateByPrimaryKeySelective(nodeInstEntity);
+                    }
                 }
             }
+
         }
 
         ProcExecBindingEntity procInstBindEntity = procExecBindingRepository
@@ -729,6 +737,10 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
     }
 
     protected void refreshProcessInstanceStatus(ProcInstInfoEntity procInstEntity) {
+        if (ProcInstInfoEntity.INTERNALLY_TERMINATED_STATUS.equalsIgnoreCase(procInstEntity.getStatus())) {
+            return;
+        }
+
         List<TaskNodeInstInfoEntity> nodeInstEntities = taskNodeInstInfoRepository
                 .selectAllByProcInstId(procInstEntity.getId());
         String kernelProcInstId = procInstEntity.getProcInstKernelId();
