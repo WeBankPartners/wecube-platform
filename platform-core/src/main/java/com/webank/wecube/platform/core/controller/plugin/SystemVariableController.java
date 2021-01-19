@@ -26,6 +26,7 @@ public class SystemVariableController {
     private SystemVariableService systemVariableService;
 
     @PostMapping("/system-variables/retrieve")
+    @PreAuthorize("hasAnyAuthority('ADMIN_SYSTEM_PARAMS')")
     public CommonResponseDto retrieveSystemVariables(@RequestBody QueryRequestDto queryRequest) {
         systemVariableService.validatePermission();
         return okayWithData(systemVariableService.retrieveSystemVariables(queryRequest));
@@ -59,6 +60,7 @@ public class SystemVariableController {
     }
 
     @GetMapping("/system-variables/constant/system-variable-scope")
+    @PreAuthorize("hasAnyAuthority('ADMIN_SYSTEM_PARAMS')")
     public CommonResponseDto retrieveSystemVariableScope() {
         systemVariableService.validatePermission();
         return okayWithData(systemVariableService.retrieveSystemVariableScope());
