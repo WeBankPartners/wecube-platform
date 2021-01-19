@@ -1,39 +1,39 @@
-package com.webank.wecube.platform.auth.server.dto;
+package com.webank.wecube.platform.core.support.authserver;
 
 import java.io.Serializable;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class SimpleSubSystemDto implements Serializable {
-
+public class SimpleSubSystemDto implements Serializable{
+    
     /**
      * 
      */
     private static final long serialVersionUID = -5229760225564596993L;
     private String id;
-    private String name;
-    private String systemCode;
-    private String description;
-    private String apikey;
-    private boolean active;
-    private boolean blocked;
+	private String name;
+	private String systemCode;
+	private String description;
+	private String apikey;
+	private boolean active;
+	private boolean blocked;
 
-    public String getName() {
-        return name;
-    }
+	public String getName() {
+		return name;
+	}
 
-    public void setName(String name) {
-        this.name = name;
-    }
+	public void setName(String name) {
+		this.name = name;
+	}
 
-    public String getSystemCode() {
-        return systemCode;
-    }
+	public String getSystemCode() {
+		return systemCode;
+	}
 
-    public void setSystemCode(String systemCode) {
-        this.systemCode = systemCode;
-    }
+	public void setSystemCode(String systemCode) {
+		this.systemCode = systemCode;
+	}
 
     public String getId() {
         return id;
@@ -86,8 +86,6 @@ public class SimpleSubSystemDto implements Serializable {
         builder.append(systemCode);
         builder.append(", description=");
         builder.append(description);
-        builder.append(", apikey=");
-        builder.append(apikey);
         builder.append(", active=");
         builder.append(active);
         builder.append(", blocked=");
@@ -95,5 +93,6 @@ public class SimpleSubSystemDto implements Serializable {
         builder.append("]");
         return builder.toString();
     }
-
+	
+	
 }
