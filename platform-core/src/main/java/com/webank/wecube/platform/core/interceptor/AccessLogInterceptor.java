@@ -44,15 +44,15 @@ public class AccessLogInterceptor implements HandlerInterceptor {
         
         alog.setEndTime(System.currentTimeMillis());
         alog.setResponseStatus(String.valueOf(response.getStatus()));
-        alog.setResponseData("");
         accessLog.info("{}", alog);
     }
     
     private AccessLog buildAccessLog(HttpServletRequest request){
         AccessLog alog = new AccessLog();
         alog.setId(UUID.randomUUID().toString().replace("-", ""));
-        alog.setPath(request.getPathInfo());
+        alog.setPath(request.getRequestURI());
         alog.setRemoteAddr(request.getRemoteAddr());
+        alog.setHttpMethod(request.getMethod());
         String requestData = "";
         try {
             requestData = objectMapper.writeValueAsString(request.getParameterMap());
