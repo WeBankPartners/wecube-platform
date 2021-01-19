@@ -25,7 +25,7 @@
                   v-for="(dto, index) in plugin.pluginConfigDtoList.filter(dto => dto.registerName)"
                   :name="dto.id"
                   :key="index"
-                  style="padding: 5px 30px;"
+                  style="padding: 5px 10px 5px 16px;"
                 >
                   <span
                     style="display: inline-block;white-space: nowrap; overflow: hidden; text-overflow: ellipsis;font-size: 15px; font-weight:400"
