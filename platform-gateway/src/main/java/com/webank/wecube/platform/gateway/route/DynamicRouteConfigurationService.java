@@ -27,13 +27,7 @@ import org.springframework.cloud.gateway.route.RouteDefinition;
 import org.springframework.cloud.gateway.route.RouteDefinitionRepository;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationEventPublisherAware;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
@@ -476,37 +470,37 @@ public class DynamicRouteConfigurationService implements ApplicationEventPublish
         return fetchAllRouteItemsWithRestClient();
     }
 
-    protected List<RouteItemInfoDto> fetchAllRouteItems() {
-        RestTemplate client = new RestTemplate();
-
-        String url = dynamicRouteProperties.getRouteConfigServer() + dynamicRouteProperties.getRouteConfigUri();
-
-        HttpHeaders header = new HttpHeaders();
-        header.setContentType(MediaType.APPLICATION_JSON_UTF8);
-        header.add("Authorization", String.format("Bearer %s", dynamicRouteProperties.getRouteConfigAccessKey()));
-
-        HttpEntity<MultiValueMap<String, String>> httpEntity = new HttpEntity<>(header);
-
-        ResponseEntity<RouteConfigInfoResponseDto> responseEntity = client.exchange(url, HttpMethod.GET, httpEntity,
-                RouteConfigInfoResponseDto.class);
-
-        RouteConfigInfoResponseDto responseDto = responseEntity.getBody();
-
-        List<RouteItemInfoDto> routeItemInfoDtos = responseDto.getData();
-        if (log.isDebugEnabled()) {
-            if (routeItemInfoDtos != null) {
-                routeItemInfoDtos.forEach(ri -> {
-                    log.debug("Route Item:{}", ri);
-                });
-            }
-        }
-
-        if (routeItemInfoDtos == null) {
-            routeItemInfoDtos = new ArrayList<>();
-        }
-
-        return routeItemInfoDtos;
-    }
+//    protected List<RouteItemInfoDto> fetchAllRouteItems() {
+//        RestTemplate client = new RestTemplate();
+//
+//        String url = dynamicRouteProperties.getRouteConfigServer() + dynamicRouteProperties.getRouteConfigUri();
+//
+//        HttpHeaders header = new HttpHeaders();
+//        header.setContentType(MediaType.APPLICATION_JSON_UTF8);
+//        header.add("Authorization", String.format("Bearer %s", dynamicRouteProperties.getRouteConfigAccessKey()));
+//
+//        HttpEntity<MultiValueMap<String, String>> httpEntity = new HttpEntity<>(header);
+//
+//        ResponseEntity<RouteConfigInfoResponseDto> responseEntity = client.exchange(url, HttpMethod.GET, httpEntity,
+//                RouteConfigInfoResponseDto.class);
+//
+//        RouteConfigInfoResponseDto responseDto = responseEntity.getBody();
+//
+//        List<RouteItemInfoDto> routeItemInfoDtos = responseDto.getData();
+//        if (log.isDebugEnabled()) {
+//            if (routeItemInfoDtos != null) {
+//                routeItemInfoDtos.forEach(ri -> {
+//                    log.debug("Route Item:{}", ri);
+//                });
+//            }
+//        }
+//
+//        if (routeItemInfoDtos == null) {
+//            routeItemInfoDtos = new ArrayList<>();
+//        }
+//
+//        return routeItemInfoDtos;
+//    }
 
     private void notifyChanged() {
         this.publisher.publishEvent(new RefreshRoutesEvent(this));
