@@ -3,6 +3,7 @@ package com.webank.wecube.platform.core.controller.plugin;
 import static com.webank.wecube.platform.core.dto.plugin.CommonResponseDto.okayWithData;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -23,11 +24,12 @@ public class BatchExecutionController {
     private BatchExecutionService batchExecutionService;
 
     /**
-     * 
+     * Allowed menu:IMPLEMENTATION_BATCH_EXECUTION
      * @param batchExecutionRequest
      * @return
      */
     @PostMapping("/batch-execution/run")
+    @PreAuthorize("hasAnyAuthority('IMPLEMENTATION_BATCH_EXECUTION')")
     public CommonResponseDto runBatchExecution(@RequestBody BatchExecutionRequestDto batchExecutionRequest,
             @RequestParam(value = "continue_token", required = false) String continueToken) {
 
