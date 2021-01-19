@@ -6,6 +6,7 @@ import static com.webank.wecube.platform.core.dto.plugin.CommonResponseDto.okayW
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -31,48 +32,72 @@ public class ResourceManagementController {
     private ResourceManagementService resourceService;
 
     @PostMapping("/servers/retrieve")
+    @PreAuthorize("hasAnyAuthority('ADMIN_RESOURCES_MANAGEMENT')")
     public CommonResponseDto retrieveServers(@RequestBody QueryRequestDto queryRequest) {
         return okayWithData(resourceService.retrieveServers(queryRequest));
     }
 
     @PostMapping("/servers/create")
+    @PreAuthorize("hasAnyAuthority('ADMIN_RESOURCES_MANAGEMENT')")
     public CommonResponseDto createServers(@RequestBody List<ResourceServerDto> resourceServers) {
         return okayWithData(resourceService.createServers(resourceServers));
     }
 
     @PostMapping("/servers/update")
+    @PreAuthorize("hasAnyAuthority('ADMIN_RESOURCES_MANAGEMENT')")
     public CommonResponseDto updateServers(@RequestBody List<ResourceServerDto> resourceServers) {
         return okayWithData(resourceService.updateServers(resourceServers));
     }
 
+    /**
+     * 
+     * @param resourceServers
+     * @return
+     */
     @PostMapping("/servers/delete")
+    @PreAuthorize("hasAnyAuthority('ADMIN_RESOURCES_MANAGEMENT')")
     public CommonResponseDto deleteServers(@RequestBody List<ResourceServerDto> resourceServers) {
         resourceService.deleteServers(resourceServers);
         return okay();
     }
 
     @PostMapping("/items/retrieve")
+    @PreAuthorize("hasAnyAuthority('ADMIN_RESOURCES_MANAGEMENT')")
     public CommonResponseDto retrieveItems(@RequestBody QueryRequestDto queryRequest) {
         return okayWithData(resourceService.retrieveItems(queryRequest));
     }
 
+    /**
+     * 
+     * @param resourceItems
+     * @return
+     */
     @PostMapping("/items/create")
+    @PreAuthorize("hasAnyAuthority('ADMIN_RESOURCES_MANAGEMENT')")
     public CommonResponseDto createItems(@RequestBody List<ResourceItemDto> resourceItems) {
         return okayWithData(resourceService.createItems(resourceItems));
     }
 
+    /**
+     * Allowed menu:ADMIN_RESOURCES_MANAGEMENT
+     * @param resourceItems
+     * @return
+     */
     @PostMapping("/items/update")
+    @PreAuthorize("hasAnyAuthority('ADMIN_RESOURCES_MANAGEMENT')")
     public CommonResponseDto updateItems(@RequestBody List<ResourceItemDto> resourceItems) {
         return okayWithData(resourceService.updateItems(resourceItems));
     }
 
     @PostMapping("/items/delete")
+    @PreAuthorize("hasAnyAuthority('ADMIN_RESOURCES_MANAGEMENT')")
     public CommonResponseDto deleteItems(@RequestBody List<ResourceItemDto> resourceItems) {
         resourceService.deleteItems(resourceItems);
         return okay();
     }
 
     @GetMapping("/constants/resource-server-types")
+    @PreAuthorize("hasAnyAuthority('ADMIN_RESOURCES_MANAGEMENT')")
     public CommonResponseDto getResourceServerType() {
         List<String> resourceServerTypes = Lists.newLinkedList();
         for (ResourceServerType type : ResourceServerType.values()) {
@@ -85,6 +110,7 @@ public class ResourceManagementController {
     }
 
     @GetMapping("/constants/resource-item-types")
+    @PreAuthorize("hasAnyAuthority('ADMIN_RESOURCES_MANAGEMENT')")
     public CommonResponseDto getResourceItemType() {
         List<String> resourceItemTypes = Lists.newLinkedList();
         for (ResourceItemType type : ResourceItemType.values()) {
@@ -97,6 +123,7 @@ public class ResourceManagementController {
     }
 
     @GetMapping("/constants/resource-server-status")
+    @PreAuthorize("hasAnyAuthority('ADMIN_RESOURCES_MANAGEMENT')")
     public CommonResponseDto getResourceServerStatus() {
         List<String> resourceServerStatus = Lists.newLinkedList();
         for (ResourceServerStatus type : ResourceServerStatus.values()) {
@@ -109,6 +136,7 @@ public class ResourceManagementController {
     }
 
     @GetMapping("/constants/resource-item-status")
+    @PreAuthorize("hasAnyAuthority('ADMIN_RESOURCES_MANAGEMENT')")
     public CommonResponseDto getResourceItemStatus() {
         List<String> resourceItemStatus = Lists.newLinkedList();
         for (ResourceItemStatus type : ResourceItemStatus.values()) {
