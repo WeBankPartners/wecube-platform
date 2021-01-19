@@ -24,22 +24,51 @@ public class LocalSubSystemManagementController {
     @Autowired
     private SubSystemManagementService subSystemManagementService;
 
+    /**
+     * 
+     * @param subSystemDto
+     * @return
+     */
     @PostMapping("/sub-systems")
     public CommonResponseDto registerSubSystem(@RequestBody SimpleSubSystemDto subSystemDto) {
         return okayWithData(subSystemManagementService.registerSubSystem(subSystemDto));
     }
 
+    /**
+     * 
+     * @param subSystemTokenDto
+     * @return
+     */
     @PostMapping("/sub-systems/tokens")
     @PreAuthorize("hasAnyAuthority('SUPER_ADMIN')")
     public CommonResponseDto registerSubSystemAccessToken(@RequestBody SubSystemTokenDto subSystemTokenDto) {
         return okayWithData(subSystemManagementService.registerSubSystemAccessToken(subSystemTokenDto));
     }
 
+    /**
+     * 
+     * @return
+     */
     @GetMapping("/sub-systems")
     public CommonResponseDto retrieveAllSubSystems() {
         return okayWithData(subSystemManagementService.retrieveAllSubSystems());
     }
 
+    /**
+     * 
+     * @param name
+     * @return
+     */
+    @GetMapping("/sub-systems/names/{name}")
+    public CommonResponseDto retrieveAllSubSystemByName(@PathVariable("name") String name) {
+        return okayWithData(subSystemManagementService.retrieveSubSystemByName(name));
+    }
+
+    /**
+     * 
+     * @param systemCode
+     * @return
+     */
     @GetMapping("/sub-systems/{system-code}/apikey")
     @PreAuthorize("hasAnyAuthority('SUPER_ADMIN')")
     public CommonResponseDto retrieveAllSubSystems(@PathVariable("system-code") String systemCode) {
