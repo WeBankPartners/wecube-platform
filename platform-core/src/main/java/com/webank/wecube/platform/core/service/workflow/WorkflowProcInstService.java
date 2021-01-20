@@ -413,6 +413,8 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
 
         String procInstKey = LocalIdGenerator.generateId();
 
+        //TODO to impl concurrent control
+        //FIXME pre checking while starting
         ProcInstInfoEntity procInstInfoEntity = buildAndStoreProcInstInfoEntity(procDefInfoEntity, procInstKey);
 
         buildAndStoreProcInstProcExecBinding(rootEntityTypeId, rootEntityDataId, rootEntityDataName, procDefInfoEntity,
@@ -484,6 +486,7 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
         TaskNodeInstInfoEntity taskNodeInstInfoEntity = createTaskNodeInstInfoEntity(taskNodeDefInfoEntity,
                 procInstInfoEntity);
 
+        //TODO
         List<TaskNodeDefObjectBindInfoDto> bindInfoDtos = pickUpTaskNodeDefObjectBindInfoDtos(requestDto,
                 taskNodeDefInfoEntity.getId());
 
