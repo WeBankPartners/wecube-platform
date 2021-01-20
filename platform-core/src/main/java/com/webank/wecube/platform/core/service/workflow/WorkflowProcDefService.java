@@ -152,6 +152,7 @@ public class WorkflowProcDefService extends AbstractWorkflowProcDefService {
         result.setProcDefVersion(String.valueOf(procDefEntity.getProcDefVer()));
         result.setRootEntity(procDefEntity.getRootEntity());
         result.setStatus(procDefEntity.getStatus());
+        result.setExcludeMode(procDefEntity.getExcludeMode());
 
         List<TaskNodeDefInfoEntity> nodeEntities = taskNodeDefInfoRepo.selectAllByProcDefId(procDefEntity.getId());
 
@@ -313,6 +314,7 @@ public class WorkflowProcDefService extends AbstractWorkflowProcDefService {
         draftEntity.setRootEntity(procDefDto.getRootEntity());
         draftEntity.setUpdatedTime(currTime);
         draftEntity.setUpdatedBy(currUser);
+        draftEntity.setExcludeMode(procDefDto.getExcludeMode());
 
         processDefInfoRepo.updateByPrimaryKeySelective(draftEntity);
         // Save ProcRoleBindingEntity
@@ -325,6 +327,7 @@ public class WorkflowProcDefService extends AbstractWorkflowProcDefService {
         procDefResult.setProcDefName(draftEntity.getProcDefName());
         procDefResult.setRootEntity(draftEntity.getRootEntity());
         procDefResult.setStatus(draftEntity.getStatus());
+        procDefResult.setExcludeMode(draftEntity.getExcludeMode());
 
         processDraftTaskNodeInfos(procDefDto, draftEntity, procDefResult, currTime);
 
@@ -624,6 +627,7 @@ public class WorkflowProcDefService extends AbstractWorkflowProcDefService {
         procDefEntity.setCreatedTime(currTime);
         procDefEntity.setUpdatedBy(AuthenticationContextHolder.getCurrentUsername());
         procDefEntity.setUpdatedTime(currTime);
+        procDefEntity.setExcludeMode(procDefInfoDto.getExcludeMode());
 
         processDefInfoRepo.insert(procDefEntity);
         // Save ProcRoleBindingEntity
@@ -835,6 +839,7 @@ public class WorkflowProcDefService extends AbstractWorkflowProcDefService {
         result.setProcDefVersion(String.valueOf(procDef.getVersion()));
         result.setRootEntity(procDefEntity.getRootEntity());
         result.setStatus(procDefEntity.getStatus());
+        result.setExcludeMode(procDefEntity.getExcludeMode());
 
         List<TaskNodeParamEntity> nodeParamEntities = taskNodeParamRepo.selectAllByProcDefId(procDefEntity.getId());
         List<TaskNodeDefInfoEntity> nodeEntities = taskNodeDefInfoRepo.selectAllByProcDefId(procDefEntity.getId());
