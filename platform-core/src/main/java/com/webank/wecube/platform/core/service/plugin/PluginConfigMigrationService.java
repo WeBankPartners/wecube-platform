@@ -168,7 +168,8 @@ public class PluginConfigMigrationService {
 
     private SystemParametersType buildSystemParametersType(PluginPackages pluginPackage) {
         SystemParametersType xmlSystemParameters = new SystemParametersType();
-        List<SystemVariables> sysVars = this.systemVariablesMapper.selectAllBySource(pluginPackage.getId());
+        List<SystemVariables> sysVars = this.systemVariablesMapper
+                .selectAllBySource(PluginPackages.buildSystemVariableSource(pluginPackage));
         if (sysVars == null || sysVars.isEmpty()) {
             return xmlSystemParameters;
         }
@@ -388,7 +389,7 @@ public class PluginConfigMigrationService {
         pluginConfig.setTargetEntityFilterRule(xmlPluginConfig.getTargetEntityFilterRule());
         pluginConfig.setTargetPackage(xmlPluginConfig.getTargetPackage());
         pluginConfig.setPluginPackageId(pluginPackage.getId());
-        
+
         pluginConfigsMapper.insert(pluginConfig);
 
         List<PluginConfigInterfaceType> xmlPluginInterfaceList = xmlPluginConfig.getPluginInterface();
@@ -426,7 +427,6 @@ public class PluginConfigMigrationService {
 
         pluginConfig.setInterfaces(createdInterfaces);
 
-        
         // PluginConfigs savedPluginConfig =
         // pluginConfigRepository.saveAndFlush(pluginConfig);
 
@@ -492,16 +492,17 @@ public class PluginConfigMigrationService {
 
             SystemVariables sysVarEntity = null;
             List<SystemVariables> existSysVars = systemVariablesMapper.selectAllByNameAndScopeAndSource(
-                    xmlSysVar.getName(), xmlSysVar.getScopeType(), PluginPackages.buildSystemVariableSource(pluginPackage));
-            if(existSysVars == null || existSysVars.isEmpty()){
-                existSysVars = systemVariablesMapper.selectAllByNameAndScopeAndSource(
-                        xmlSysVar.getName(), xmlSysVar.getScopeType(), pluginPackage.getId());
+                    xmlSysVar.getName(), xmlSysVar.getScopeType(),
+                    PluginPackages.buildSystemVariableSource(pluginPackage));
+            if (existSysVars == null || existSysVars.isEmpty()) {
+                existSysVars = systemVariablesMapper.selectAllByNameAndScopeAndSource(xmlSysVar.getName(),
+                        xmlSysVar.getScopeType(), pluginPackage.getId());
             }
-            
+
             if (existSysVars != null && !existSysVars.isEmpty()) {
                 sysVarEntity = existSysVars.get(0);
             }
-            
+
             if (sysVarEntity == null) {
                 sysVarEntity = new SystemVariables();
                 sysVarEntity.setId(LocalIdGenerator.generateId());
@@ -525,7 +526,7 @@ public class PluginConfigMigrationService {
             // systemVariableRepository.saveAndFlush(sysVarEntity);
         }
     }
-    
+
     private void performImportPluginRegistersForOnePackage(PluginPackages pluginPackage,
             PluginPackageType xmlPluginPackage) {
         log.info("start to import plugin registries for {} {} from {} {}", pluginPackage.getName(),
@@ -749,7 +750,7 @@ public class PluginConfigMigrationService {
         }
         intf.setServiceDisplayName(intf.generateServiceName(pluginPackage, pluginConfig));
         intf.setServiceName(intf.generateServiceName(pluginPackage, pluginConfig));
-        
+
         pluginConfigInterfacesMapper.insert(intf);
 
         List<PluginConfigInterfaceParameters> defInputParameters = pluginConfigInterfaceParametersMapper
@@ -783,7 +784,6 @@ public class PluginConfigMigrationService {
 
         // intf.setOutputParameters(outputParameters);
 
-        
         intf.setOutputParameters(outputParameters);
 
         pluginConfigInterfacesMapper.updateByPrimaryKeySelective(intf);
