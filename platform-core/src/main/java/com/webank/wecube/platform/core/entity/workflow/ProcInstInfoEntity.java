@@ -1,6 +1,8 @@
 package com.webank.wecube.platform.core.entity.workflow;
 
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 public class ProcInstInfoEntity {
     public static final String NOT_STARTED_STATUS = "NotStarted";
@@ -37,6 +39,10 @@ public class ProcInstInfoEntity {
     private String procInstKernelId;
 
     private String procInstKey;
+    
+    private transient List<TaskNodeInstInfoEntity> nodeInstInfos = new ArrayList<>();
+    
+    private transient ProcExecBindingEntity procInstBindEntity;
 
     public String getProcInstKey() {
         return procInstKey;
@@ -150,4 +156,31 @@ public class ProcInstInfoEntity {
         this.status = status;
     }
 
+    public List<TaskNodeInstInfoEntity> getNodeInstInfos() {
+        return nodeInstInfos;
+    }
+
+    public void setNodeInstInfos(List<TaskNodeInstInfoEntity> nodeInstInfos) {
+        this.nodeInstInfos = nodeInstInfos;
+    }
+
+    public ProcExecBindingEntity getProcInstBindEntity() {
+        return procInstBindEntity;
+    }
+
+    public void setProcInstBindEntity(ProcExecBindingEntity procInstBindEntity) {
+        this.procInstBindEntity = procInstBindEntity;
+    }
+
+    public void addNodeInstInfo(TaskNodeInstInfoEntity nodeInstInfo){
+        if(nodeInstInfo == null){
+            return;
+        }
+        
+        if(this.nodeInstInfos == null){
+            this.nodeInstInfos = new ArrayList<>();
+        }
+        
+        this.nodeInstInfos.add(nodeInstInfo);
+    }
 }
