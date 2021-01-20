@@ -1,6 +1,8 @@
 package com.webank.wecube.platform.core.entity.workflow;
 
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 public class TaskNodeInstInfoEntity {
 
@@ -54,6 +56,9 @@ public class TaskNodeInstInfoEntity {
     private String errMsg;
     
     private String preCheckRet;
+    
+    
+    private transient List<ProcExecBindingEntity> nodeBindEntities = new ArrayList<>();
 
     public Integer getId() {
         return id;
@@ -214,5 +219,24 @@ public class TaskNodeInstInfoEntity {
     public void setPreCheckRet(String preCheckRet) {
         this.preCheckRet = preCheckRet;
     }
+
+    public List<ProcExecBindingEntity> getNodeBindEntities() {
+        return nodeBindEntities;
+    }
+
+    public void setNodeBindEntities(List<ProcExecBindingEntity> nodeBindEntities) {
+        this.nodeBindEntities = nodeBindEntities;
+    }
     
+    public void addNodeBindEntity(ProcExecBindingEntity nodeBindEntity){
+        if(nodeBindEntity == null){
+            return;
+        }
+        
+        if(this.nodeBindEntities == null){
+            this.nodeBindEntities = new ArrayList<>();
+        }
+        
+        this.nodeBindEntities.add(nodeBindEntity);
+    }
 }
