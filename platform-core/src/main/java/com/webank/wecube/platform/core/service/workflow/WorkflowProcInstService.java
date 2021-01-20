@@ -413,8 +413,8 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
 
         String procInstKey = LocalIdGenerator.generateId();
 
-        //TODO to impl concurrent control
-        //FIXME pre checking while starting
+        // TODO to impl concurrent control
+        // FIXME pre checking while starting
         ProcInstInfoEntity procInstInfoEntity = buildAndStoreProcInstInfoEntity(procDefInfoEntity, procInstKey);
 
         buildAndStoreProcInstProcExecBinding(rootEntityTypeId, rootEntityDataId, rootEntityDataName, procDefInfoEntity,
@@ -428,6 +428,19 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
 
         postHandleGraphNodes(requestDto, result);
         return result;
+    }
+
+    private void tryVerifyExcludeModeBindings(ProcDefInfoEntity procDefInfoEntity,
+            ProcInstInfoEntity procInstInfoEntity) {
+        // TODO
+    }
+
+    private boolean isExcludeModeProcDefInfo(ProcDefInfoEntity procDefInfoEntity) {
+        if (StringUtils.isBlank(procDefInfoEntity.getExcludeMode())) {
+            return false;
+        }
+
+        return ProcDefInfoEntity.EXCLUDE_MODE_YES.equalsIgnoreCase(procDefInfoEntity.getExcludeMode());
     }
 
     private void buildAndStoreTaskNodeInstances(ProcDefInfoEntity procDefInfoEntity,
@@ -450,7 +463,9 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
             String rootEntityDataName, ProcDefInfoEntity procDefInfoEntity, ProcInstInfoEntity procInstInfoEntity) {
         ProcExecBindingEntity procInstBindEntity = new ProcExecBindingEntity();
         procInstBindEntity.setBindType(ProcExecBindingEntity.BIND_TYPE_PROC_INSTANCE);
-        procInstBindEntity.setEntityTypeId(rootEntityTypeId);
+        
+        String butifiedRootEntityTypeId = butifyEntityTypeId(rootEntityTypeId);
+        procInstBindEntity.setEntityTypeId(butifiedRootEntityTypeId);
         procInstBindEntity.setEntityDataId(rootEntityDataId);
         procInstBindEntity.setEntityDataName(rootEntityDataName);
         procInstBindEntity.setProcDefId(procDefInfoEntity.getId());
@@ -461,6 +476,19 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
         procExecBindingRepository.insert(procInstBindEntity);
 
         return procInstBindEntity;
+    }
+    
+    private String butifyEntityTypeId(String entityTypeId){
+        if(StringUtils.isBlank(entityTypeId)){
+            return null;
+        }
+        
+        int idx = entityTypeId.indexOf("{");
+        if(idx <= 0 ){
+            return entityTypeId;
+        }
+        
+        return entityTypeId.substring(0, idx);
     }
 
     private ProcInstInfoEntity buildAndStoreProcInstInfoEntity(ProcDefInfoEntity procDefInfoEntity,
@@ -486,7 +514,7 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
         TaskNodeInstInfoEntity taskNodeInstInfoEntity = createTaskNodeInstInfoEntity(taskNodeDefInfoEntity,
                 procInstInfoEntity);
 
-        //TODO
+        // TODO
         List<TaskNodeDefObjectBindInfoDto> bindInfoDtos = pickUpTaskNodeDefObjectBindInfoDtos(requestDto,
                 taskNodeDefInfoEntity.getId());
 
@@ -509,6 +537,7 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
             nodeBindEntity.setCreatedBy(AuthenticationContextHolder.getCurrentUsername());
             nodeBindEntity.setCreatedTime(new Date());
 
+            // TODO to prepare
             procExecBindingRepository.insert(nodeBindEntity);
 
             savedBindInfoDtos.add(bindInfoDto);
