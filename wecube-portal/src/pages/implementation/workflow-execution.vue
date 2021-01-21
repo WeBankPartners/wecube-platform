@@ -1123,10 +1123,10 @@ export default {
       if (status === 'OK') {
         if (!this.isEnqueryPage) {
           this.isShowExect = true
-          this.processSessionId = data.processSessionId
-          const binds = await getAllBindingsProcessSessionId(data.processSessionId)
-          this.allBindingsList = binds.data
         }
+        this.processSessionId = data.processSessionId
+        const binds = await getAllBindingsProcessSessionId(data.processSessionId)
+        this.allBindingsList = binds.data
         this.modelData = data.entityTreeNodes.map(_ => {
           return {
             ..._,
