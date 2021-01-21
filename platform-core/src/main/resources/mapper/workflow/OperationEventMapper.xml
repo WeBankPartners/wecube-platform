@@ -481,6 +481,9 @@
         from core_operation_event
         where status =
         #{status,jdbcType=VARCHAR}
+        and (oper_mode is null or oper_mode = 'defer') 
+        and priority > -5
+        order by priority desc
         limit 3000
     </select>
 
