@@ -63,7 +63,8 @@ public class OperationEventManagementService {
         newOperationEventEntity.setSrcSubSystem(eventDto.getSourceSubSystem());
         newOperationEventEntity.setCreatedBy(AuthenticationContextHolder.getCurrentUsername());
         newOperationEventEntity.setCreatedTime(new Date());
-        newOperationEventEntity.setRev(0);
+        newOperationEventEntity.setRev(OperationEventEntity.REV_INIT);
+        newOperationEventEntity.setPriority(OperationEventEntity.PRIORITY_INIT);
         if (OperationEventEntity.OPER_MODE_INSTANT.equalsIgnoreCase(eventDto.getOperationMode())) {
             newOperationEventEntity.setStatus(OperationEventEntity.STATUS_IN_PROGRESS);
             newOperationEventEntity.setOperMode(OperationEventEntity.OPER_MODE_INSTANT);
