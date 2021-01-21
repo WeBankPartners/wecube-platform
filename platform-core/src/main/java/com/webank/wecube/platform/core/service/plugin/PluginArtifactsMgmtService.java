@@ -470,7 +470,7 @@ public class PluginArtifactsMgmtService extends AbstractPluginMgmtService {
 
         return result;
     }
-    
+
     protected UploadPackageResultDto performUploadPackage(MultipartFile pluginPackageFile, File localFilePath) {
         String pluginPackageFileName = pluginPackageFile.getName();
         if (!localFilePath.exists()) {
@@ -769,7 +769,15 @@ public class PluginArtifactsMgmtService extends AbstractPluginMgmtService {
             throw new WecubeCoreException(errMsg);
         }
 
-        return latestRefEntitiesEntity.getId();
+
+        PluginPackageAttributes latestRefAttr = pluginPackageAttributesMapper
+                .selectLatestAttributeByPackageAndEntityAndAttr(refPackageName, refEntityName, refAttr);
+        
+        if(latestRefAttr == null){
+            return null;
+        }
+
+        return latestRefAttr.getId();
     }
 
     private void processSystemVaraibles(SystemParametersType xmlSystemParameters, PackageType xmlPackage,
