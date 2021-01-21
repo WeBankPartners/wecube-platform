@@ -1,9 +1,9 @@
 <template>
   <div>
     <Row style="margin-bottom:8px">
-      <Col span="9">
+      <Col span="7" style="margin-right: 15px">
         <span style="margin-right: 10px">{{ $t('flow_name') }}</span>
-        <Select clearable v-model="selectedFlow" style="width: 60%" @on-open-change="getAllFlows" filterable>
+        <Select clearable v-model="selectedFlow" style="width: 77%" @on-open-change="getAllFlows" filterable>
           <Option
             v-for="item in allFlows"
             :value="item.procDefId"
@@ -31,21 +31,10 @@
             </span>
           </Option>
         </Select>
-        <Tooltip placement="top" :content="$t('create_new_diagram')" :delay="500">
-          <Button @click="createNewDiagram()" icon="md-add" type="success"></Button>
-        </Tooltip>
-        <Tooltip placement="top" :content="$t('set_flow_permission')" :delay="500">
-          <Button
-            @click="setFlowPermission(selectedFlow)"
-            v-if="selectedFlow"
-            icon="ios-person"
-            type="primary"
-          ></Button>
-        </Tooltip>
       </Col>
-      <Col span="8" offset="1">
+      <Col span="6" style="margin-right: 15px">
         <span style="margin-right: 10px">{{ $t('instance_type') }}</span>
-        <div style="width:70%;display: inline-block;vertical-align: middle;">
+        <div style="width:75%;display: inline-block;vertical-align: middle;">
           <FilterRules
             @change="onEntitySelect"
             v-model="currentSelectedEntity"
@@ -53,13 +42,29 @@
           ></FilterRules>
         </div>
       </Col>
-      <Button type="info" :disabled="isSaving" @click="saveDiagram(false)">
+      <Checkbox style="margin-right: 25px" border :disabled="!selectedFlow && !isAdd" v-model="excludeMode">{{
+        $t('conflict_test')
+      }}</Checkbox>
+      <Button style="margin-top: -1px;" type="info" :disabled="isSaving || !selectedFlow" @click="saveDiagram(false)">
         {{ $t('release_flow') }}
       </Button>
-      <Button type="info" @click="exportProcessDefinition(false)">
+      <Button
+        @click="setFlowPermission(selectedFlow)"
+        :disabled="!selectedFlow"
+        style="margin-top: -1px;"
+        type="primary"
+      >
+        {{ $t('permission_for_flow') }}
+      </Button>
+      <Button :disabled="!selectedFlow" style="margin-top: -1px;" type="info" @click="exportProcessDefinition(false)">
         {{ $t('export_flow') }}
       </Button>
-      <Button type="info" @click="getHeaders">{{ $t('import_flow') }}</Button>
+
+      <Button style="float: right" @click="createNewDiagram()" type="success">
+        {{ $t('create') }}
+      </Button>
+      <Button style="float: right;margin-right:4px" type="primary" @click="getHeaders">{{ $t('import_flow') }}</Button>
+
       <Upload
         v-show="isShowUploadList"
         ref="uploadButton"
@@ -326,6 +331,7 @@ export default {
   },
   data () {
     return {
+      excludeMode: false,
       yOn: ['Y', 'N'],
       splitPanal: 1,
       show: false,
@@ -755,6 +761,7 @@ export default {
       this.mgmtRolesKeyToFlow = []
       this.useRolesKeyToFlow = []
       this.currentSelectedEntity = ''
+      this.excludeMode = false
       this.pluginForm = { ...this.defaultPluginForm }
       this.currentFlow = {}
       const bpmnXmlStr =
@@ -793,6 +800,7 @@ export default {
             MGMT: _this.mgmtRolesKeyToFlow,
             USE: _this.useRolesKeyToFlow
           },
+          excludeMode: _this.excludeMode === true ? 'Y' : 'N',
           procDefData: xmlString,
           procDefId: (_this.currentFlow && _this.currentFlow.procDefId) || '',
           procDefKey: isDraft ? (_this.currentFlow && _this.currentFlow.procDefKey) || '' : _this.newFlowID,
@@ -979,6 +987,7 @@ export default {
           }
           _this.serviceTaskBindInfos = data.taskNodeInfos
           _this.currentSelectedEntity = data.rootEntity || ''
+          _this.excludeMode = data.excludeMode === 'Y'
           // _this.rootPkg = data.rootEntity.split(':')[0] || ''
           // _this.rootEntity = data.rootEntity.split(':')[1].split('{')[0] || ''
         })
