@@ -24,6 +24,7 @@ import com.webank.wecube.platform.core.repository.workflow.ProcDefInfoMapper;
 import com.webank.wecube.platform.core.repository.workflow.TaskNodeDefInfoMapper;
 import com.webank.wecube.platform.core.service.workflow.WorkflowDataService;
 import com.webank.wecube.platform.core.service.workflow.WorkflowProcInstService;
+import com.webank.wecube.platform.workflow.WorkflowConstants;
 
 @Service
 public class OperationEventProcStarter {
@@ -121,6 +122,7 @@ public class OperationEventProcStarter {
         ProcInstInfoDto procInst = workflowProcInstService.createProcessInstance(initDto);
         
         operEventEntity.setUpdatedTime(new Date());
+        operEventEntity.setUpdatedBy(WorkflowConstants.DEFAULT_USER);
         operEventEntity.setProcDefId(procDefEntity.getId());
         operEventEntity.setProcInstId(String.valueOf(procInst.getId()));
         operEventEntity.setProcInstKey(procInst.getProcInstKey());
@@ -130,7 +132,17 @@ public class OperationEventProcStarter {
         
         operEventEntity.setRev(expectedRev + 1);
         
-        operationEventRepository.updateByPrimaryKeySelectiveCas(operEventEntity, expectedRev);
+        OperationEventEntity toUpdateEvent = new OperationEventEntity();
+        toUpdateEvent.setId(operEventEntity.getId());
+        toUpdateEvent.setRev(operEventEntity.getRev());
+        toUpdateEvent.setUpdatedTime(operEventEntity.getUpdatedTime());
+        toUpdateEvent.setUpdatedBy(operEventEntity.getUpdatedBy());
+        toUpdateEvent.setProcDefId(operEventEntity.getProcDefId());
+        toUpdateEvent.setProcInstId(operEventEntity.getProcInstId());
+        toUpdateEvent.setProcInstKey(operEventEntity.getProcInstKey());
+        toUpdateEvent.setStatus(operEventEntity.getStatus());
+        
+        operationEventRepository.updateByPrimaryKeySelectiveCas(toUpdateEvent, expectedRev);
         
     }
 
