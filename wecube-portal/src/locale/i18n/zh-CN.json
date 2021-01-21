@@ -224,7 +224,8 @@
   "create_new_diagram": "新建流程",
   "set_flow_permission": "权限设置",
   "ci_type": "CI类型",
-  "release_flow": "发布编排",
+  "release_flow": "发布",
+  "permission_for_flow": "授权",
   "calc_form": "表单计算",
   "config_plugin": "配置插件",
   "node_type": "节点类型",
@@ -323,7 +324,7 @@
   "plugin_load": "插件加载完成",
   "get_dynamic_model": "同步数据模型",
   "apply_data_model": "应用数据模型",
-  "instance_type": "编排实体类型",
+  "instance_type": "对象类型",
   "input_correct_operator": "请输入正确的操作符 . 或 ~ ",
   "hosts": "主机",
   "instances": "实例",
@@ -461,5 +462,6 @@
   "dynamic_bind": "动态绑定",
   "pre_check": "高危检测",
   "required": "必填",
-  "obtain_plugin_warn": "该定位规则无法获取插件， 请选择绿色节点"
+  "obtain_plugin_warn": "该定位规则无法获取插件， 请选择绿色节点",
+  "conflict_test": "冲突检测"
 }
