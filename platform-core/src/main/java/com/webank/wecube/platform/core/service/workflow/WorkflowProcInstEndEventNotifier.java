@@ -81,8 +81,11 @@ public class WorkflowProcInstEndEventNotifier {
             operationEventEntity.setEndTime(currTime);
             operationEventEntity.setUpdatedTime(currTime);
             operationEventEntity.setUpdatedBy(WorkflowConstants.DEFAULT_USER);
+            
+            int expectRev = operationEventEntity.getRev();
+            operationEventEntity.setRev(expectRev + 1);
 
-            operationEventRepository.updateByPrimaryKeySelective(operationEventEntity);
+            operationEventRepository.updateByPrimaryKeySelectiveCas(operationEventEntity, expectRev);
         }
     }
 }

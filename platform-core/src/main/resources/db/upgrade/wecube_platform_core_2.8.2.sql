@@ -21,7 +21,9 @@ ALTER TABLE `core_re_task_node_def_info`
 ADD COLUMN `pre_check` VARCHAR(45) COLLATE utf8_bin NULL DEFAULT 'N';
 
 ALTER TABLE `core_operation_event`
-ADD COLUMN `rev` INT(11) DEFAULT '0';
+ADD COLUMN `rev` INT(11) DEFAULT 0;
+ALTER TABLE `core_operation_event` 
+ADD COLUMN `oper_mode` VARCHAR(45) COLLATE utf8_bin NULL DEFAULT 'defer';
 
 CREATE TABLE IF NOT EXISTS `core_object_meta` (
   `id` varchar(20) COLLATE utf8_bin  NOT NULL,

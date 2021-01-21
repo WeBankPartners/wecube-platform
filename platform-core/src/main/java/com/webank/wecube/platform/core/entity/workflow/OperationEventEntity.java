@@ -4,9 +4,17 @@ import java.util.Date;
 
 public class OperationEventEntity {
     public static final String STATUS_NEW = "New";
+    public static final String STATUS_PREPROCESS = "Preprocess";
     public static final String STATUS_IN_PROGRESS = "InProgress";
     public static final String STATUS_COMPLETED = "Completed";
     public static final String STATUS_FAULTED = "Faulted";
+    public static final String STATUS_FAILED = "Failed";
+
+    public static final String OPER_MODE_INSTANT = "instant";
+    public static final String OPER_MODE_DEFER = "defer";
+    
+    public static final int REV_INIT = 0;
+    public static final int PRIORITY_INIT = 0;
 
     private Long id;
 
@@ -42,7 +50,7 @@ public class OperationEventEntity {
 
     private String procInstId;
 
-    private Integer rev;
+    private Integer rev = 0;
 
     private String srcSubSystem;
 
@@ -51,6 +59,8 @@ public class OperationEventEntity {
     private String status;
 
     private String procInstKey;
+
+    private String operMode;
 
     public Long getId() {
         return id;
@@ -227,4 +237,13 @@ public class OperationEventEntity {
     public void setProcInstKey(String procInstKey) {
         this.procInstKey = procInstKey;
     }
+
+    public String getOperMode() {
+        return operMode;
+    }
+
+    public void setOperMode(String operMode) {
+        this.operMode = operMode;
+    }
+
 }

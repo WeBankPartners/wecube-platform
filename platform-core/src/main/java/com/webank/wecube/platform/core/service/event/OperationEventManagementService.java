@@ -24,10 +24,6 @@ import com.webank.wecube.platform.workflow.WorkflowConstants;
  */
 @Service
 public class OperationEventManagementService {
-
-    public static final String OPER_MODE_INSTANT = "instant";
-    public static final String OPER_MODE_DEFER = "defer";
-
     private static final Logger log = LoggerFactory.getLogger(OperationEventManagementService.class);
 
     public static final String BOOLEAN_TRUE = "Y";
@@ -67,16 +63,19 @@ public class OperationEventManagementService {
         newOperationEventEntity.setSrcSubSystem(eventDto.getSourceSubSystem());
         newOperationEventEntity.setCreatedBy(AuthenticationContextHolder.getCurrentUsername());
         newOperationEventEntity.setCreatedTime(new Date());
-        newOperationEventEntity.setRev(0);
-        if (OPER_MODE_INSTANT.equalsIgnoreCase(eventDto.getOperationMode())) {
+        newOperationEventEntity.setRev(OperationEventEntity.REV_INIT);
+        newOperationEventEntity.setPriority(OperationEventEntity.PRIORITY_INIT);
+        if (OperationEventEntity.OPER_MODE_INSTANT.equalsIgnoreCase(eventDto.getOperationMode())) {
             newOperationEventEntity.setStatus(OperationEventEntity.STATUS_IN_PROGRESS);
+            newOperationEventEntity.setOperMode(OperationEventEntity.OPER_MODE_INSTANT);
         } else {
             newOperationEventEntity.setStatus(OperationEventEntity.STATUS_NEW);
+            newOperationEventEntity.setOperMode(OperationEventEntity.OPER_MODE_DEFER);
         }
 
         operationEventMapper.insert(newOperationEventEntity);
 
-        if (OPER_MODE_INSTANT.equalsIgnoreCase(eventDto.getOperationMode())) {
+        if (OperationEventEntity.OPER_MODE_INSTANT.equalsIgnoreCase(eventDto.getOperationMode())) {
             return handleInstantOperationEvent(newOperationEventEntity);
         }
 
