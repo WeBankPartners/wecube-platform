@@ -44,6 +44,7 @@ public class AbstractWorkflowProcDefService extends AbstractWorkflowService{
         result.setProcDefVersion(String.valueOf(procDefEntity.getProcDefVer()));
         result.setRootEntity(procDefEntity.getRootEntity());
         result.setStatus(procDefEntity.getStatus());
+        result.setExcludeMode(procDefEntity.getExcludeMode());
         // result.setProcDefData(procDefEntity.getProcDefData());
         result.setCreatedTime(formatDate(procDefEntity.getCreatedTime()));
 
