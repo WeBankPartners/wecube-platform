@@ -77,6 +77,7 @@ public class WorkflowProcDefMigrationService extends AbstractWorkflowProcDefServ
         result.setRootEntity(draftEntity.getRootEntity());
         result.setStatus(draftEntity.getStatus());
         result.setProcDefId(draftEntity.getId());
+        result.setExcludeMode(draftEntity.getExcludeMode());
 
         if (importDto.getTaskNodeInfos() != null) {
             for (TaskNodeDefInfoDto nodeDto : importDto.getTaskNodeInfos()) {
@@ -138,6 +139,7 @@ public class WorkflowProcDefMigrationService extends AbstractWorkflowProcDefServ
         resultDto.setProcDefKey(procDef.getProcDefKey());
         resultDto.setProcDefName(procDef.getProcDefName());
         resultDto.setProcDefVersion(String.valueOf(procDef.getProcDefVer()));
+        resultDto.setExcludeMode(procDef.getExcludeMode());
 
         List<TaskNodeDefInfoEntity> taskNodeDefEntities = taskNodeDefInfoRepo.selectAllByProcDefId(procDef.getId());
         for (TaskNodeDefInfoEntity nodeEntity : taskNodeDefEntities) {
@@ -170,6 +172,7 @@ public class WorkflowProcDefMigrationService extends AbstractWorkflowProcDefServ
         draftEntity.setProcDefKey(importDto.getProcDefKey());
         draftEntity.setProcDefName(importDto.getProcDefName());
         draftEntity.setRootEntity(importDto.getRootEntity());
+        draftEntity.setExcludeMode(importDto.getExcludeMode());
         draftEntity.setUpdatedTime(currTime);
         draftEntity.setUpdatedBy(currUser);
 
