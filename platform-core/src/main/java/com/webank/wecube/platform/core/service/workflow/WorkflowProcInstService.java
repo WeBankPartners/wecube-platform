@@ -435,7 +435,7 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
         // TODO
     }
 
-    private boolean isExcludeModeProcDefInfo(ProcDefInfoEntity procDefInfoEntity) {
+    protected boolean isExcludeModeProcDefInfo(ProcDefInfoEntity procDefInfoEntity) {
         if (StringUtils.isBlank(procDefInfoEntity.getExcludeMode())) {
             return false;
         }
