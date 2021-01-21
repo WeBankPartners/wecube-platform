@@ -989,7 +989,7 @@ export default {
       if (!id) return
       const { status, data } = await getNodeBindings(id)
       if (status === 'OK') {
-        this.allBindingsList = data
+        this.flowNodesBindings = data
       }
     },
     async getAllFlow () {
@@ -1123,10 +1123,10 @@ export default {
       if (status === 'OK') {
         if (!this.isEnqueryPage) {
           this.isShowExect = true
-          this.processSessionId = data.processSessionId
-          const binds = await getAllBindingsProcessSessionId(data.processSessionId)
-          this.allBindingsList = binds.data
         }
+        this.processSessionId = data.processSessionId
+        const binds = await getAllBindingsProcessSessionId(data.processSessionId)
+        this.allBindingsList = binds.data
         this.modelData = data.entityTreeNodes.map(_ => {
           return {
             ..._,
