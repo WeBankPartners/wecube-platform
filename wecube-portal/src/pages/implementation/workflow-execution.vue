@@ -989,7 +989,7 @@ export default {
       if (!id) return
       const { status, data } = await getNodeBindings(id)
       if (status === 'OK') {
-        this.flowNodesBindings = data
+        this.allBindingsList = data
       }
     },
     async getAllFlow () {
