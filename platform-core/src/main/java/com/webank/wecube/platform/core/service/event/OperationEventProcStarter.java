@@ -121,6 +121,7 @@ public class OperationEventProcStarter {
         operEventEntity.setProcDefId(procDefEntity.getId());
         operEventEntity.setProcInstId(String.valueOf(procInst.getId()));
         operEventEntity.setProcInstKey(procInst.getProcInstKey());
+        operEventEntity.setStatus(OperationEventEntity.STATUS_IN_PROGRESS);
         
         operationEventRepository.updateByPrimaryKeySelective(operEventEntity);
         

@@ -16,6 +16,8 @@ public class ProcDefInfoExportImportDto {
 
     private String createdTime;
 
+    private String excludeMode;
+
     private Map<String, List<Long>> permissionToRole;
 
     private List<TaskNodeDefInfoDto> taskNodeInfos = new ArrayList<>();
@@ -108,8 +110,16 @@ public class ProcDefInfoExportImportDto {
         for (TaskNodeDefInfoDto info : infos) {
             this.taskNodeInfos.add(info);
         }
-        
+
         return this;
+    }
+
+    public String getExcludeMode() {
+        return excludeMode;
+    }
+
+    public void setExcludeMode(String excludeMode) {
+        this.excludeMode = excludeMode;
     }
 
 }
