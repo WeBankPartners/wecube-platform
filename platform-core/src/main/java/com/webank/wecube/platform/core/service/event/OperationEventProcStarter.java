@@ -75,7 +75,10 @@ public class OperationEventProcStarter {
         operEventEntity.setProcInstId(String.valueOf(procInst.getId()));
         operEventEntity.setProcInstKey(procInst.getProcInstKey());
         
-        operationEventRepository.updateByPrimaryKeySelective(operEventEntity);
+        int expectRev = operEventEntity.getRev();
+        operEventEntity.setRev(expectRev + 1);
+        
+        operationEventRepository.updateByPrimaryKeySelectiveCas(operEventEntity, expectRev);
         
         return operEventEntity;
     }
@@ -123,7 +126,11 @@ public class OperationEventProcStarter {
         operEventEntity.setProcInstKey(procInst.getProcInstKey());
         operEventEntity.setStatus(OperationEventEntity.STATUS_IN_PROGRESS);
         
-        operationEventRepository.updateByPrimaryKeySelective(operEventEntity);
+        int expectedRev = operEventEntity.getRev();
+        
+        operEventEntity.setRev(expectedRev + 1);
+        
+        operationEventRepository.updateByPrimaryKeySelectiveCas(operEventEntity, expectedRev);
         
     }
 
