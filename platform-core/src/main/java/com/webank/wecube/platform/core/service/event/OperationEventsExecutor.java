@@ -51,43 +51,48 @@ public class OperationEventsExecutor {
                 continue;
             }
 
-            int expectRev = operationEventEntity.getRev() == null ? 0 : operationEventEntity.getRev();
-
-            operationEventEntity.setStatus(OperationEventEntity.STATUS_PREPROCESS);
-            operationEventEntity.setUpdatedTime(new Date());
-            operationEventEntity.setUpdatedBy(WorkflowConstants.DEFAULT_USER);
-            operationEventEntity.setStartTime(new Date());
-            operationEventEntity.setRev(expectRev + 1);
-            int priority = (operationEventEntity.getPriority() == null ? 0 : operationEventEntity.getPriority());
-            operationEventEntity.setPriority(priority - 1);
-
-            OperationEventEntity toUpdateEventEntity = new OperationEventEntity();
-            toUpdateEventEntity.setId(operationEventEntity.getId());
-            toUpdateEventEntity.setUpdatedTime(operationEventEntity.getUpdatedTime());
-            toUpdateEventEntity.setUpdatedBy(WorkflowConstants.DEFAULT_USER);
-            toUpdateEventEntity.setRev(operationEventEntity.getRev());
-            toUpdateEventEntity.setStatus(operationEventEntity.getStatus());
-            toUpdateEventEntity.setStartTime(operationEventEntity.getStartTime());
-            toUpdateEventEntity.setPriority(operationEventEntity.getPriority());
-
-            int updateResult = operationEventRepository.updateByPrimaryKeySelectiveCas(toUpdateEventEntity, expectRev);
-            if (updateResult > 0) {
-                log.info("About to process operation event:{}:{}:{}", operationEventEntity.getId(),
-                        operationEventEntity.getEventSeqNo(), operationEventEntity.getEventType());
-                try {
-                    operationEventProcStarter.startOperationEventProcess(operationEventEntity);
-                } catch (Exception e) {
-                    log.error("operation event process starting failed", e);
-                    operationEventEntity.setStatus(OperationEventEntity.STATUS_FAILED);
-                    expectRev = operationEventEntity.getRev();
-                    operationEventEntity.setRev(expectRev + 1);
-                    operationEventRepository.updateByPrimaryKeySelectiveCas(operationEventEntity, expectRev);
-                }
-            } else {
-                log.info("Failed to get lock for operation event:id={},status={}", operationEventEntity.getId(),
-                        operationEventEntity.getStatus());
-            }
+            tryRestart(operationEventEntity);
         }
+    }
+
+    private void tryRestart(OperationEventEntity operationEventEntity) {
+        int expectRev = operationEventEntity.getRev() == null ? 0 : operationEventEntity.getRev();
+
+        operationEventEntity.setStatus(OperationEventEntity.STATUS_PREPROCESS);
+        operationEventEntity.setUpdatedTime(new Date());
+        operationEventEntity.setUpdatedBy(WorkflowConstants.DEFAULT_USER);
+        operationEventEntity.setStartTime(new Date());
+        operationEventEntity.setRev(expectRev + 1);
+        int priority = (operationEventEntity.getPriority() == null ? 0 : operationEventEntity.getPriority());
+        operationEventEntity.setPriority(priority - 1);
+
+        OperationEventEntity toUpdateEventEntity = new OperationEventEntity();
+        toUpdateEventEntity.setId(operationEventEntity.getId());
+        toUpdateEventEntity.setUpdatedTime(operationEventEntity.getUpdatedTime());
+        toUpdateEventEntity.setUpdatedBy(WorkflowConstants.DEFAULT_USER);
+        toUpdateEventEntity.setRev(operationEventEntity.getRev());
+        toUpdateEventEntity.setStatus(operationEventEntity.getStatus());
+        toUpdateEventEntity.setStartTime(operationEventEntity.getStartTime());
+        toUpdateEventEntity.setPriority(operationEventEntity.getPriority());
+
+        int updateResult = operationEventRepository.updateByPrimaryKeySelectiveCas(toUpdateEventEntity, expectRev);
+        if (updateResult > 0) {
+            log.info("About to process operation event:{}:{}:{}", operationEventEntity.getId(),
+                    operationEventEntity.getEventSeqNo(), operationEventEntity.getEventType());
+            performStart(operationEventEntity);
+        } else {
+            log.info("Failed to get lock for operation event:id={},status={}", operationEventEntity.getId(),
+                    operationEventEntity.getStatus());
+        }
+    }
+
+    private void tryHandleFailedStart(OperationEventEntity operationEventEntity, Exception e) {
+        OperationEventEntity toUpdateEventEntity = new OperationEventEntity();
+        toUpdateEventEntity.setId(operationEventEntity.getId());
+        toUpdateEventEntity.setStatus(OperationEventEntity.STATUS_FAILED);
+        int expectRev = operationEventEntity.getRev();
+        toUpdateEventEntity.setRev(expectRev + 1);
+        operationEventRepository.updateByPrimaryKeySelectiveCas(toUpdateEventEntity, expectRev);
     }
 
     private boolean needRetryFailedEvent(OperationEventEntity e) {
@@ -119,42 +124,7 @@ public class OperationEventsExecutor {
                 continue;
             }
 
-            int expectRev = operationEventEntity.getRev();
-
-            operationEventEntity.setStatus(OperationEventEntity.STATUS_PREPROCESS);
-            operationEventEntity.setUpdatedTime(new Date());
-            operationEventEntity.setUpdatedBy(WorkflowConstants.DEFAULT_USER);
-            operationEventEntity.setStartTime(new Date());
-            operationEventEntity.setRev(expectRev + 1);
-            int priority = (operationEventEntity.getPriority() == null ? 0 : operationEventEntity.getPriority());
-            operationEventEntity.setPriority(priority - 1);
-
-            OperationEventEntity toUpdateEventEntity = new OperationEventEntity();
-            toUpdateEventEntity.setId(operationEventEntity.getId());
-            toUpdateEventEntity.setUpdatedTime(operationEventEntity.getUpdatedTime());
-            toUpdateEventEntity.setUpdatedBy(WorkflowConstants.DEFAULT_USER);
-            toUpdateEventEntity.setRev(operationEventEntity.getRev());
-            toUpdateEventEntity.setStatus(operationEventEntity.getStatus());
-            toUpdateEventEntity.setStartTime(operationEventEntity.getStartTime());
-            toUpdateEventEntity.setPriority(operationEventEntity.getPriority());
-
-            int updateResult = operationEventRepository.updateByPrimaryKeySelectiveCas(toUpdateEventEntity, expectRev);
-            if (updateResult > 0) {
-                log.info("About to process operation event:{}:{}:{}", operationEventEntity.getId(),
-                        operationEventEntity.getEventSeqNo(), operationEventEntity.getEventType());
-                try {
-                    operationEventProcStarter.startOperationEventProcess(operationEventEntity);
-                } catch (Exception e) {
-                    log.error("operation event process starting failed", e);
-                    operationEventEntity.setStatus(OperationEventEntity.STATUS_FAILED);
-                    expectRev = operationEventEntity.getRev();
-                    operationEventEntity.setRev(expectRev + 1);
-                    operationEventRepository.updateByPrimaryKeySelectiveCas(operationEventEntity, expectRev);
-                }
-            } else {
-                log.info("Failed to get lock for operation event:id={},status={}", operationEventEntity.getId(),
-                        operationEventEntity.getStatus());
-            }
+            tryRestart(operationEventEntity);
         }
     }
 
@@ -172,6 +142,43 @@ public class OperationEventsExecutor {
 
     }
 
+    private void tryStart(OperationEventEntity operationEventEntity) {
+        int expectRev = operationEventEntity.getRev();
+
+        operationEventEntity.setStatus(OperationEventEntity.STATUS_PREPROCESS);
+        operationEventEntity.setUpdatedTime(new Date());
+        operationEventEntity.setUpdatedBy(WorkflowConstants.DEFAULT_USER);
+        operationEventEntity.setStartTime(new Date());
+        operationEventEntity.setRev(expectRev + 1);
+
+        OperationEventEntity toUpdateEventEntity = new OperationEventEntity();
+        toUpdateEventEntity.setId(operationEventEntity.getId());
+        toUpdateEventEntity.setUpdatedTime(operationEventEntity.getUpdatedTime());
+        toUpdateEventEntity.setUpdatedBy(WorkflowConstants.DEFAULT_USER);
+        toUpdateEventEntity.setRev(operationEventEntity.getRev());
+        toUpdateEventEntity.setStatus(operationEventEntity.getStatus());
+        toUpdateEventEntity.setStartTime(operationEventEntity.getStartTime());
+
+        int updateResult = operationEventRepository.updateByPrimaryKeySelectiveCas(toUpdateEventEntity, expectRev);
+        if (updateResult > 0) {
+            log.info("About to process operation event:{}:{}:{}", operationEventEntity.getId(),
+                    operationEventEntity.getEventSeqNo(), operationEventEntity.getEventType());
+            performStart(operationEventEntity);
+        } else {
+            log.info("Failed to get lock for operation event:id={},status={}", operationEventEntity.getId(),
+                    operationEventEntity.getStatus());
+        }
+    }
+
+    private void performStart(OperationEventEntity operationEventEntity) {
+        try {
+            operationEventProcStarter.startOperationEventProcess(operationEventEntity);
+        } catch (Exception e) {
+            log.error("operation event process starting failed", e);
+            tryHandleFailedStart(operationEventEntity, e);
+        }
+    }
+
     protected void tryProcessNewOperationEvents() {
         List<OperationEventEntity> outstandingOperationEventEntities = operationEventRepository
                 .selectAllByStatus(OperationEventEntity.STATUS_NEW);
@@ -186,39 +193,7 @@ public class OperationEventsExecutor {
 
         for (OperationEventEntity operationEventEntity : outstandingOperationEventEntities) {
 
-            int expectRev = operationEventEntity.getRev();
-
-            operationEventEntity.setStatus(OperationEventEntity.STATUS_PREPROCESS);
-            operationEventEntity.setUpdatedTime(new Date());
-            operationEventEntity.setUpdatedBy(WorkflowConstants.DEFAULT_USER);
-            operationEventEntity.setStartTime(new Date());
-            operationEventEntity.setRev(expectRev + 1);
-
-            OperationEventEntity toUpdateEventEntity = new OperationEventEntity();
-            toUpdateEventEntity.setId(operationEventEntity.getId());
-            toUpdateEventEntity.setUpdatedTime(operationEventEntity.getUpdatedTime());
-            toUpdateEventEntity.setUpdatedBy(WorkflowConstants.DEFAULT_USER);
-            toUpdateEventEntity.setRev(operationEventEntity.getRev());
-            toUpdateEventEntity.setStatus(operationEventEntity.getStatus());
-            toUpdateEventEntity.setStartTime(operationEventEntity.getStartTime());
-
-            int updateResult = operationEventRepository.updateByPrimaryKeySelectiveCas(toUpdateEventEntity, expectRev);
-            if (updateResult > 0) {
-                log.info("About to process operation event:{}:{}:{}", operationEventEntity.getId(),
-                        operationEventEntity.getEventSeqNo(), operationEventEntity.getEventType());
-                try {
-                    operationEventProcStarter.startOperationEventProcess(operationEventEntity);
-                } catch (Exception e) {
-                    log.error("operation event process starting failed", e);
-                    operationEventEntity.setStatus(OperationEventEntity.STATUS_FAILED);
-                    expectRev = operationEventEntity.getRev();
-                    operationEventEntity.setRev(expectRev + 1);
-                    operationEventRepository.updateByPrimaryKeySelectiveCas(operationEventEntity, expectRev);
-                }
-            } else {
-                log.info("Failed to get lock for operation event:id={},status={}", operationEventEntity.getId(),
-                        operationEventEntity.getStatus());
-            }
+            tryStart(operationEventEntity);
 
         }
     }

@@ -17,7 +17,7 @@ public interface OperationEventMapper {
 
     OperationEventEntity selectByPrimaryKey(Long id);
 
-//    int updateByPrimaryKeySelective(OperationEventEntity record);
+    int updateByPrimaryKeySelective(OperationEventEntity record);
 
     int updateByPrimaryKey(OperationEventEntity record);
 
