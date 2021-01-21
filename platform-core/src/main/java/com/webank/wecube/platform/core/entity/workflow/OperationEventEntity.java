@@ -12,6 +12,9 @@ public class OperationEventEntity {
 
     public static final String OPER_MODE_INSTANT = "instant";
     public static final String OPER_MODE_DEFER = "defer";
+    
+    public static final int REV_INIT = 0;
+    public static final int PRIORITY_INIT = 0;
 
     private Long id;
 
