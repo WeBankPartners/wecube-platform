@@ -26,7 +26,7 @@ public class SystemVariableController {
     private SystemVariableService systemVariableService;
 
     @PostMapping("/system-variables/retrieve")
-    @PreAuthorize("hasAnyAuthority('ADMIN_SYSTEM_PARAMS')")
+    @PreAuthorize("hasAnyAuthority('ADMIN_SYSTEM_PARAMS','SUB_SYSTEM')")
     public CommonResponseDto retrieveSystemVariables(@RequestBody QueryRequestDto queryRequest) {
         systemVariableService.validatePermission();
         return okayWithData(systemVariableService.retrieveSystemVariables(queryRequest));
