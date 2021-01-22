@@ -169,6 +169,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
             log.info("invoke plugin interface with:{}", cmd);
         }
 
+        //TODO to reentry here ?
         ProcInstInfoEntity procInstEntity = null;
         TaskNodeInstInfoEntity taskNodeInstEntity = null;
         try {
@@ -267,6 +268,9 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
         } else {
             nodeObjectBindings = retrieveProcExecBindingEntities(taskNodeInstEntity);
         }
+        
+        //TODO to implement concurrency verifying here
+        //FIXME
 
         PluginConfigInterfaces pluginConfigInterface = retrievePluginConfigInterface(taskNodeDefEntity,
                 cmd.getNodeId());
@@ -293,36 +297,18 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
         List<Map<String, Object>> pluginParameters = calculateInputParameters(ctx, inputParamObjs, ctx.getRequestId(),
                 procInstEntity.getOper());
 
-        ItsDangerConfirmResultDto confirmResult = null;
         if (riskyCommandVerifier.needPerformDangerousCommandsChecking(taskNodeInstEntity, taskNodeDefEntity)) {
             log.info("risky commands pre checking needed by task node : {}:{}", taskNodeDefEntity.getId(),
                     taskNodeInstEntity.getId());
-            confirmResult = riskyCommandVerifier.performDangerousCommandsChecking(ctx, pluginParameters);
+            ItsDangerConfirmResultDto confirmResult = riskyCommandVerifier.performDangerousCommandsChecking(ctx, pluginParameters);
 
             if (confirmResult != null) {
-                taskNodeInstEntity.setStatus(TaskNodeInstInfoEntity.RISKY_STATUS);
-                taskNodeInstEntity.setUpdatedBy(WorkflowConstants.DEFAULT_USER);
-                taskNodeInstEntity.setUpdatedTime(new Date());
-                taskNodeInstEntity.setPreCheckRet(TaskNodeInstInfoEntity.PRE_CHECK_RESULT_RISKY);
-                taskNodeInstInfoRepository.updateByPrimaryKeySelective(taskNodeInstEntity);
-
-                pluginInvocationResultService.responsePluginInterfaceInvocation(
-                        new PluginInvocationResult().parsePluginInvocationCommand(cmd).withResultCode(RESULT_CODE_ERR));
-
-                TaskNodeExecRequestEntity requestEntity = ctx.getTaskNodeExecRequestEntity();
-                requestEntity.setErrCode("CONFIRM");
-                requestEntity.setErrMsg(confirmResult.getMessage());
-                requestEntity.setUpdatedTime(new Date());
-
-                taskNodeExecRequestRepository.updateByPrimaryKey(requestEntity);
+                postProcessRiskyVerifyingResult(ctx, cmd, taskNodeInstEntity, confirmResult);
                 return;
+            } else {
+                postProcessNoneRiskyVerifyingResult(ctx, cmd, taskNodeInstEntity, taskNodeDefEntity);
             }
 
-            taskNodeInstEntity.setPreCheckRet(TaskNodeInstInfoEntity.PRE_CHECK_RESULT_NONE_RISK);
-            taskNodeInstEntity.setUpdatedTime(new Date());
-            taskNodeInstInfoRepository.updateByPrimaryKeySelective(taskNodeInstEntity);
-            log.info("RISKY commands checking performed and passed by task node: {}:{}:{}",
-                    taskNodeDefEntity.getNodeName(), taskNodeDefEntity.getId(), taskNodeInstEntity.getId());
         }
 
         PluginInvocationOperation operation = new PluginInvocationOperation() //
@@ -335,6 +321,34 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
                 .withRequestId(ctx.getRequestId());
 
         pluginInvocationProcessor.process(operation);
+    }
+
+    private void postProcessNoneRiskyVerifyingResult(PluginInterfaceInvocationContext ctx, PluginInvocationCommand cmd,
+            TaskNodeInstInfoEntity taskNodeInstEntity, TaskNodeDefInfoEntity taskNodeDefEntity) {
+        taskNodeInstEntity.setPreCheckRet(TaskNodeInstInfoEntity.PRE_CHECK_RESULT_NONE_RISK);
+        taskNodeInstEntity.setUpdatedTime(new Date());
+        taskNodeInstInfoRepository.updateByPrimaryKeySelective(taskNodeInstEntity);
+        log.info("RISKY commands checking performed and passed by task node: {}:{}:{}", taskNodeDefEntity.getNodeName(),
+                taskNodeDefEntity.getId(), taskNodeInstEntity.getId());
+    }
+
+    private void postProcessRiskyVerifyingResult(PluginInterfaceInvocationContext ctx, PluginInvocationCommand cmd,
+            TaskNodeInstInfoEntity taskNodeInstEntity, ItsDangerConfirmResultDto confirmResult) {
+        taskNodeInstEntity.setStatus(TaskNodeInstInfoEntity.RISKY_STATUS);
+        taskNodeInstEntity.setUpdatedBy(WorkflowConstants.DEFAULT_USER);
+        taskNodeInstEntity.setUpdatedTime(new Date());
+        taskNodeInstEntity.setPreCheckRet(TaskNodeInstInfoEntity.PRE_CHECK_RESULT_RISKY);
+        taskNodeInstInfoRepository.updateByPrimaryKeySelective(taskNodeInstEntity);
+
+        pluginInvocationResultService.responsePluginInterfaceInvocation(
+                new PluginInvocationResult().parsePluginInvocationCommand(cmd).withResultCode(RESULT_CODE_ERR));
+
+        TaskNodeExecRequestEntity requestEntity = ctx.getTaskNodeExecRequestEntity();
+        requestEntity.setErrCode("CONFIRM");
+        requestEntity.setErrMsg(confirmResult.getMessage());
+        requestEntity.setUpdatedTime(new Date());
+
+        taskNodeExecRequestRepository.updateByPrimaryKey(requestEntity);
     }
 
     private List<ProcExecBindingEntity> dynamicCalculateTaskNodeExecBindings(TaskNodeDefInfoEntity taskNodeDefEntity,
@@ -465,6 +479,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
             return new ArrayList<>();
         }
 
+        //TODO to support multiple records from context
         InputParamObject inputObj = new InputParamObject();
 
         inputObj.setEntityTypeId("TaskNode");
@@ -1319,6 +1334,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
                 && PLUGIN_RESULT_CODE_PARTIALLY_FAIL.equalsIgnoreCase(errorCodeOfSingleRecord)) {
             log.info("such request is partially failed for request:{} and {}:{}", ctx.getRequestId(),
                     CALLBACK_PARAMETER_KEY, nodeEntityId);
+            // TODO to store status
             return;
         }
 
