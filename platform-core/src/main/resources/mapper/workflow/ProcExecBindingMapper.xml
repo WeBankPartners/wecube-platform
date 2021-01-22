@@ -293,7 +293,7 @@
         #{procInstId,jdbcType=INTEGER}
         and bind_type = 'taskNode'
     </select>
-    
+
     <select id="selectAllBoundTaskNodeBindings" parameterType="java.lang.Integer"
         resultMap="BaseResultMap">
         select
@@ -304,17 +304,103 @@
         and task_node_inst_id =
         #{nodeInstId,jdbcType=INTEGER}
         and bind_type = 'taskNode'
-        and (bind_flag != 'N'  OR bind_flag IS NULL OR bind_flag = '')
+        and
+        (bind_flag != 'N' OR bind_flag IS NULL OR bind_flag = '')
     </select>
 
     <delete id="deleteAllTaskNodeBindings">
         delete
         from
         core_ru_proc_exec_binding
-        where proc_inst_id =
+        where
+        proc_inst_id =
         #{procInstId,jdbcType=INTEGER}
-        and task_node_inst_id =
+        and
+        task_node_inst_id =
         #{nodeInstId,jdbcType=INTEGER}
-        and bind_type = 'taskNode'
+        and bind_type =
+        'taskNode'
     </delete>
+
+    <select id="selectAllBoundRunningProcInstances"
+        parameterType="java.lang.String">
+        SELECT DISTINCT
+        t1.proc_inst_id
+        FROM
+        core_ru_proc_exec_binding t1,
+        core_ru_proc_inst_info t2
+        WHERE
+        t1.bind_type = 'taskNode'
+        AND t2.id = t1.proc_inst_id
+        AND
+        t2.status != 'Completed'
+        AND t2.status != 'InternallyTerminated'
+        AND t2.status !=
+        'NotStarted'
+        AND t1.entity_data_id =
+        #{entityDataId,jdbcType=VARCHAR}
+    </select>
+
+    <select id="countAllBoundRunningProcInstances" parameterType="java.lang.String">
+        SELECT count(*)
+        FROM
+        core_ru_proc_exec_binding t1,
+        core_ru_proc_inst_info t2
+        WHERE
+        t1.bind_type = 'taskNode'
+        AND t2.id
+        = t1.proc_inst_id
+        AND t2.status != 'Completed'
+        AND t2.status !=
+        'InternallyTerminated'
+        AND t2.status !=
+        'NotStarted'
+        AND
+        t1.entity_data_id = #{entityDataId,jdbcType=VARCHAR}
+    </select>
+
+    <select id="selectAllExclusiveBoundRunningProcInstances"
+        parameterType="java.lang.String">
+        SELECT DISTINCT t1.proc_inst_id
+        FROM
+        core_ru_proc_exec_binding t1,
+        core_ru_proc_inst_info t2,
+        core_re_proc_def_info t3
+        WHERE
+        t1.bind_type = 'taskNode'
+        AND t2.id
+        = t1.proc_inst_id
+        AND t2.status != 'Completed'
+        AND t2.status !=
+        'InternallyTerminated'
+        AND t2.status !=
+        'NotStarted'
+        AND t3.id =
+        t1.proc_def_id
+        AND t3.exclude_mode = 'Y'
+        AND t1.entity_data_id =
+        #{entityDataId,jdbcType=VARCHAR}
+    </select>
+
+    <select id="countAllExclusiveBoundRunningProcInstances"
+        parameterType="java.lang.String">
+        SELECT count(*)
+        FROM
+        core_ru_proc_exec_binding t1,
+        core_ru_proc_inst_info t2,
+        core_re_proc_def_info t3
+        WHERE
+        t1.bind_type = 'taskNode'
+        AND t2.id = t1.proc_inst_id
+        AND
+        t2.status != 'Completed'
+        AND t2.status != 'InternallyTerminated'
+        AND t2.status !=
+        'NotStarted'
+        AND t3.id = t1.proc_def_id
+        AND
+        t3.exclude_mode = 'Y'
+        AND t1.entity_data_id =
+        #{entityDataId,jdbcType=VARCHAR}
+    </select>
 </mapper>

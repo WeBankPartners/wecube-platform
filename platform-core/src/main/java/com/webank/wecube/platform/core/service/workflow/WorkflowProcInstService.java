@@ -2,6 +2,7 @@ package com.webank.wecube.platform.core.service.workflow;
 
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -432,7 +433,111 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
 
     private void tryVerifyExcludeModeBindings(ProcDefInfoEntity procDefInfoEntity,
             ProcInstInfoEntity procInstInfoEntity) {
+        String excludeMode = procDefInfoEntity.getExcludeMode();
+        if (ProcDefInfoEntity.EXCLUDE_MODE_YES.equalsIgnoreCase(excludeMode)) {
+            tryVerifyIfAnyRunningProcInstBound(procDefInfoEntity, procInstInfoEntity);
+        } else {
+            tryVerifyIfAnyExclusiveRunningProcInstBound(procDefInfoEntity, procInstInfoEntity);
+        }
+    }
+
+    private void tryVerifyIfAnyExclusiveRunningProcInstBound(ProcDefInfoEntity procDefInfoEntity,
+            ProcInstInfoEntity procInstInfoEntity) {
         // TODO
+        Set<WfBindEntityDataInfo> selfBoundEntityDataInfos = collectAllBoundEntityDataInfos(procInstInfoEntity);
+        if (selfBoundEntityDataInfos == null || selfBoundEntityDataInfos.isEmpty()) {
+            return;
+        }
+
+        Set<Integer> boundExclusiveProcInstIds = new HashSet<>();
+
+        for (WfBindEntityDataInfo bindEntityDataInfo : selfBoundEntityDataInfos) {
+            if (StringUtils.isBlank(bindEntityDataInfo.getEntityDataId())) {
+                continue;
+            }
+
+            int exclusiveProcInstCount = procExecBindingRepository
+                    .countAllExclusiveBoundRunningProcInstances(bindEntityDataInfo.getEntityDataId());
+            
+            if(exclusiveProcInstCount <= 0){
+                continue;
+            }
+            
+            List<Integer> boundProcInstIdsOfSingleEntity = procExecBindingRepository
+                    .selectAllExclusiveBoundRunningProcInstances(bindEntityDataInfo.getEntityDataId());
+            if (boundProcInstIdsOfSingleEntity == null || boundProcInstIdsOfSingleEntity.isEmpty()) {
+                continue;
+            }
+
+            boundExclusiveProcInstIds.addAll(boundProcInstIdsOfSingleEntity);
+        }
+
+        if (boundExclusiveProcInstIds.isEmpty()) {
+            return;
+        }
+
+        List<ProcInstInfoEntity> exclusiveRunningProcInstances = new ArrayList<>();
+
+    }
+
+    private void tryVerifyIfAnyRunningProcInstBound(ProcDefInfoEntity procDefInfoEntity,
+            ProcInstInfoEntity procInstInfoEntity) {
+        Set<WfBindEntityDataInfo> selfBoundEntityDataInfos = collectAllBoundEntityDataInfos(procInstInfoEntity);
+        if (selfBoundEntityDataInfos == null || selfBoundEntityDataInfos.isEmpty()) {
+            return;
+        }
+
+        Set<Integer> boundProcInstIds = new HashSet<>();
+
+        for (WfBindEntityDataInfo bindEntityDataInfo : selfBoundEntityDataInfos) {
+            if (StringUtils.isBlank(bindEntityDataInfo.getEntityDataId())) {
+                continue;
+            }
+            int boundCount = procExecBindingRepository
+                    .countAllBoundRunningProcInstances(bindEntityDataInfo.getEntityDataId());
+            if (boundCount <= 0) {
+                continue;
+            }
+
+            List<Integer> boundProcInstIdsOfSingleEntity = procExecBindingRepository
+                    .selectAllBoundRunningProcInstances(bindEntityDataInfo.getEntityDataId());
+            if (boundProcInstIdsOfSingleEntity == null || boundProcInstIdsOfSingleEntity.isEmpty()) {
+                continue;
+            }
+
+            boundProcInstIds.addAll(boundProcInstIdsOfSingleEntity);
+        }
+
+        if (boundProcInstIds.isEmpty()) {
+            return;
+        }
+
+        // TODO to assemble error messages here
+        throw new WecubeCoreException("Bound running process instances exist.");
+        // TODO
+    }
+
+    private Set<WfBindEntityDataInfo> collectAllBoundEntityDataInfos(ProcInstInfoEntity procInstInfoEntity) {
+        Set<WfBindEntityDataInfo> entityDataInfos = new HashSet<>();
+        List<TaskNodeInstInfoEntity> nodeInstInfos = procInstInfoEntity.getNodeInstInfos();
+        if (nodeInstInfos == null || nodeInstInfos.isEmpty()) {
+            return entityDataInfos;
+        }
+
+        for (TaskNodeInstInfoEntity nodeInstInfo : nodeInstInfos) {
+            List<ProcExecBindingEntity> nodeBindEntities = nodeInstInfo.getNodeBindEntities();
+            if (nodeBindEntities == null || nodeBindEntities.isEmpty()) {
+                continue;
+            }
+
+            for (ProcExecBindingEntity nodeBindEntity : nodeBindEntities) {
+                WfBindEntityDataInfo bindDataInfo = new WfBindEntityDataInfo(nodeBindEntity.getEntityTypeId(),
+                        nodeBindEntity.getEntityDataId());
+                entityDataInfos.add(bindDataInfo);
+            }
+        }
+
+        return entityDataInfos;
     }
 
     protected boolean isExcludeModeProcDefInfo(ProcDefInfoEntity procDefInfoEntity) {
@@ -463,7 +568,7 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
             String rootEntityDataName, ProcDefInfoEntity procDefInfoEntity, ProcInstInfoEntity procInstInfoEntity) {
         ProcExecBindingEntity procInstBindEntity = new ProcExecBindingEntity();
         procInstBindEntity.setBindType(ProcExecBindingEntity.BIND_TYPE_PROC_INSTANCE);
-        
+
         String butifiedRootEntityTypeId = butifyEntityTypeId(rootEntityTypeId);
         procInstBindEntity.setEntityTypeId(butifiedRootEntityTypeId);
         procInstBindEntity.setEntityDataId(rootEntityDataId);
@@ -477,17 +582,17 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
 
         return procInstBindEntity;
     }
-    
-    private String butifyEntityTypeId(String entityTypeId){
-        if(StringUtils.isBlank(entityTypeId)){
+
+    private String butifyEntityTypeId(String entityTypeId) {
+        if (StringUtils.isBlank(entityTypeId)) {
             return null;
         }
-        
+
         int idx = entityTypeId.indexOf("{");
-        if(idx <= 0 ){
+        if (idx <= 0) {
             return entityTypeId;
         }
-        
+
         return entityTypeId.substring(0, idx);
     }
 
