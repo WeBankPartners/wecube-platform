@@ -63,6 +63,34 @@ public interface ProcExecBindingMapper{
     int deleteAllTaskNodeBindings(@Param("procInstId") Integer procInstId,
             @Param("nodeInstId") Integer nodeInstId);
     
-    
+    /**
+     * 
+     * @param entityDataId
+     * @return
+     */
+    List<Integer> selectAllBoundRunningProcInstances(@Param("entityDataId") String entityDataId);
    
+    
+    /**
+     * 
+     * @param entityDataId
+     * @return
+     */
+    int countAllBoundRunningProcInstances(@Param("entityDataId") String entityDataId);
+    
+    
+    /**
+     * 
+     * @param entityDataId
+     * @return
+     */
+    List<Integer> selectAllExclusiveBoundRunningProcInstances(@Param("entityDataId") String entityDataId);
+    
+    
+    /**
+     * 
+     * @param entityDataId
+     * @return
+     */
+    int countAllExclusiveBoundRunningProcInstances(@Param("entityDataId") String entityDataId);
 }
