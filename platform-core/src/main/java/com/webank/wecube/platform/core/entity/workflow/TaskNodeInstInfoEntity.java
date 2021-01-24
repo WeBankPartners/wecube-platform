@@ -16,6 +16,8 @@ public class TaskNodeInstInfoEntity {
     
     public static final String PRE_CHECK_RESULT_RISKY = "RISKY";
     public static final String PRE_CHECK_RESULT_NONE_RISK = "NONE_RISK";
+    
+    public static final String BIND_STATUS_BOUND = "BOUND";
 
     private Integer id;
 
@@ -56,6 +58,8 @@ public class TaskNodeInstInfoEntity {
     private String errMsg;
     
     private String preCheckRet;
+    
+    private String bindStatus;
     
     
     private transient List<ProcExecBindingEntity> nodeBindEntities = new ArrayList<>();
@@ -239,4 +243,14 @@ public class TaskNodeInstInfoEntity {
         
         this.nodeBindEntities.add(nodeBindEntity);
     }
+
+    public String getBindStatus() {
+        return bindStatus;
+    }
+
+    public void setBindStatus(String bindStatus) {
+        this.bindStatus = bindStatus;
+    }
+    
+    
 }
