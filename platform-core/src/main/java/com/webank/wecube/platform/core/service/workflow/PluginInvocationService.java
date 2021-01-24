@@ -267,11 +267,40 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
         return TaskNodeInstInfoEntity.BIND_STATUS_BOUND.equalsIgnoreCase(taskNodeInst.getBindStatus());
     }
 
-    private boolean hasExcludeModeExecBindings(ProcDefInfoEntity procDefInfo, ProcInstInfoEntity procInst,
-            TaskNodeDefInfoEntity taskNodeDef, TaskNodeInstInfoEntity taskNodeInst, PluginInvocationCommand cmd) {
-        //TODO
-        //FIXME
+    private boolean verifyIfExcludeModeExecBindings(ProcDefInfoEntity procDefInfo, ProcInstInfoEntity procInst,
+            TaskNodeDefInfoEntity taskNodeDef, TaskNodeInstInfoEntity taskNodeInst, PluginInvocationCommand cmd,
+            List<ProcExecBindingEntity> nodeObjectBindings) {
+        // TODO
+        // FIXME
+        if (nodeObjectBindings == null || nodeObjectBindings.isEmpty()) {
+            return false;
+        }
+
+        String excludeMode = procDefInfo.getExcludeMode();
+        if (ProcDefInfoEntity.EXCLUDE_MODE_YES.equalsIgnoreCase(excludeMode)) {
+            tryVerifyIfAnyRunningProcInstBound(procDefInfo, procInst, taskNodeDef, taskNodeInst, cmd,
+                    nodeObjectBindings);
+        } else {
+            tryVerifyIfAnyExclusiveRunningProcInstBound(procDefInfo, procInst, taskNodeDef, taskNodeInst, cmd,
+                    nodeObjectBindings);
+        }
         return true;
+    }
+
+    private boolean tryVerifyIfAnyRunningProcInstBound(ProcDefInfoEntity procDefInfo, ProcInstInfoEntity procInst,
+            TaskNodeDefInfoEntity taskNodeDef, TaskNodeInstInfoEntity taskNodeInst, PluginInvocationCommand cmd,
+            List<ProcExecBindingEntity> nodeObjectBindings) {
+
+        // TODO
+        return false;
+
+    }
+
+    private boolean tryVerifyIfAnyExclusiveRunningProcInstBound(ProcDefInfoEntity procDefInfo,
+            ProcInstInfoEntity procInst, TaskNodeDefInfoEntity taskNodeDef, TaskNodeInstInfoEntity taskNodeInst,
+            PluginInvocationCommand cmd, List<ProcExecBindingEntity> nodeObjectBindings) {
+        // TODO
+        return false;
     }
 
     private void storeProcExecBindingEntities(List<ProcExecBindingEntity> nodeObjectBindings) {
@@ -299,9 +328,11 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
             nodeObjectBindings = dynamicCalculateTaskNodeExecBindings(taskNodeDefEntity, procInstEntity,
                     taskNodeInstEntity, cmd, externalCacheMap);
             // TODO try verify concurrency
-            if (hasExcludeModeExecBindings(procDefInfoEntity, procInstEntity, taskNodeDefEntity, taskNodeInstEntity,
-                    cmd)) {
+            boolean hasExcludeModeExecBindings = verifyIfExcludeModeExecBindings(procDefInfoEntity, procInstEntity,
+                    taskNodeDefEntity, taskNodeInstEntity, cmd, nodeObjectBindings);
+            if (hasExcludeModeExecBindings) {
                 // TODO raise jobs
+                // FIXME
                 return;
             } else {
                 storeProcExecBindingEntities(nodeObjectBindings);
