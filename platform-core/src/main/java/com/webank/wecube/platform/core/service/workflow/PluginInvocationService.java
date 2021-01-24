@@ -26,6 +26,7 @@ import com.webank.wecube.platform.core.entity.plugin.PluginConfigs;
 import com.webank.wecube.platform.core.entity.plugin.PluginInstances;
 import com.webank.wecube.platform.core.entity.plugin.PluginPackages;
 import com.webank.wecube.platform.core.entity.plugin.SystemVariables;
+import com.webank.wecube.platform.core.entity.workflow.ProcDefInfoEntity;
 import com.webank.wecube.platform.core.entity.workflow.ProcExecBindingEntity;
 import com.webank.wecube.platform.core.entity.workflow.ProcInstInfoEntity;
 import com.webank.wecube.platform.core.entity.workflow.TaskNodeDefInfoEntity;
@@ -38,6 +39,7 @@ import com.webank.wecube.platform.core.model.workflow.InputParamObject;
 import com.webank.wecube.platform.core.model.workflow.PluginInvocationCommand;
 import com.webank.wecube.platform.core.model.workflow.PluginInvocationResult;
 import com.webank.wecube.platform.core.model.workflow.WorkflowNotifyEvent;
+import com.webank.wecube.platform.core.repository.workflow.ProcDefInfoMapper;
 import com.webank.wecube.platform.core.repository.workflow.ProcExecBindingMapper;
 import com.webank.wecube.platform.core.repository.workflow.ProcInstInfoMapper;
 import com.webank.wecube.platform.core.repository.workflow.TaskNodeExecRequestMapper;
@@ -71,10 +73,13 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
     private ProcInstInfoMapper procInstInfoRepository;
 
     @Autowired
+    private ProcDefInfoMapper procDefInfoMapper;
+
+    @Autowired
     protected PluginInstanceMgmtService pluginInstanceMgmtService;
 
     @Autowired
-    private ProcExecBindingMapper procExecBindingRepository;
+    private ProcExecBindingMapper procExecBindingMapper;
 
     @Autowired
     private SystemVariableService systemVariableService;
@@ -169,7 +174,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
             log.info("invoke plugin interface with:{}", cmd);
         }
 
-        //TODO to reentry here ?
+        // TODO to reentry here ?
         ProcInstInfoEntity procInstEntity = null;
         TaskNodeInstInfoEntity taskNodeInstEntity = null;
         try {
@@ -254,23 +259,59 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
         taskNodeInstInfoRepository.updateByPrimaryKeySelective(toUpdateTaskNodeInstInfoEntity);
     }
 
+    private boolean isDynamicBindTaskNode(TaskNodeDefInfoEntity taskNodeDef) {
+        return TaskNodeDefInfoEntity.DYNAMIC_BIND_YES.equalsIgnoreCase(taskNodeDef.getDynamicBind());
+    }
+
+    private boolean isBoundTaskNodeInst(TaskNodeInstInfoEntity taskNodeInst) {
+        return TaskNodeInstInfoEntity.BIND_STATUS_BOUND.equalsIgnoreCase(taskNodeInst.getBindStatus());
+    }
+
+    private boolean hasExcludeModeExecBindings(ProcDefInfoEntity procDefInfo, ProcInstInfoEntity procInst,
+            TaskNodeDefInfoEntity taskNodeDef, TaskNodeInstInfoEntity taskNodeInst, PluginInvocationCommand cmd) {
+        //TODO
+        //FIXME
+        return true;
+    }
+
+    private void storeProcExecBindingEntities(List<ProcExecBindingEntity> nodeObjectBindings) {
+        if (nodeObjectBindings == null || nodeObjectBindings.isEmpty()) {
+            return;
+        }
+
+        for (ProcExecBindingEntity nob : nodeObjectBindings) {
+            procExecBindingMapper.insert(nob);
+        }
+    }
+
     protected void doInvokePluginInterface(ProcInstInfoEntity procInstEntity, TaskNodeInstInfoEntity taskNodeInstEntity,
             PluginInvocationCommand cmd) {
 
         Map<Object, Object> externalCacheMap = new HashMap<>();
+        ProcDefInfoEntity procDefInfoEntity = procDefInfoMapper.selectByPrimaryKey(procInstEntity.getProcDefId());
         TaskNodeDefInfoEntity taskNodeDefEntity = retrieveTaskNodeDefInfoEntity(procInstEntity.getProcDefId(),
                 cmd.getNodeId());
 
         List<ProcExecBindingEntity> nodeObjectBindings = null;
-        if (TaskNodeDefInfoEntity.DYNAMIC_BIND_YES.equalsIgnoreCase(taskNodeDefEntity.getDynamicBind())) {
+        // TODO consider risky verifying result
+        // TODO retry
+        if (isDynamicBindTaskNode(taskNodeDefEntity) && !isBoundTaskNodeInst(taskNodeInstEntity)) {
             nodeObjectBindings = dynamicCalculateTaskNodeExecBindings(taskNodeDefEntity, procInstEntity,
                     taskNodeInstEntity, cmd, externalCacheMap);
+            // TODO try verify concurrency
+            if (hasExcludeModeExecBindings(procDefInfoEntity, procInstEntity, taskNodeDefEntity, taskNodeInstEntity,
+                    cmd)) {
+                // TODO raise jobs
+                return;
+            } else {
+                storeProcExecBindingEntities(nodeObjectBindings);
+                taskNodeInstEntity.setBindStatus(TaskNodeInstInfoEntity.BIND_STATUS_BOUND);
+                taskNodeInstInfoRepository.updateByPrimaryKeySelective(taskNodeInstEntity);
+            }
+
         } else {
             nodeObjectBindings = retrieveProcExecBindingEntities(taskNodeInstEntity);
         }
-        
-        //TODO to implement concurrency verifying here
-        //FIXME
 
         PluginConfigInterfaces pluginConfigInterface = retrievePluginConfigInterface(taskNodeDefEntity,
                 cmd.getNodeId());
@@ -300,7 +341,8 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
         if (riskyCommandVerifier.needPerformDangerousCommandsChecking(taskNodeInstEntity, taskNodeDefEntity)) {
             log.info("risky commands pre checking needed by task node : {}:{}", taskNodeDefEntity.getId(),
                     taskNodeInstEntity.getId());
-            ItsDangerConfirmResultDto confirmResult = riskyCommandVerifier.performDangerousCommandsChecking(ctx, pluginParameters);
+            ItsDangerConfirmResultDto confirmResult = riskyCommandVerifier.performDangerousCommandsChecking(ctx,
+                    pluginParameters);
 
             if (confirmResult != null) {
                 postProcessRiskyVerifyingResult(ctx, cmd, taskNodeInstEntity, confirmResult);
@@ -354,15 +396,16 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
     private List<ProcExecBindingEntity> dynamicCalculateTaskNodeExecBindings(TaskNodeDefInfoEntity taskNodeDefEntity,
             ProcInstInfoEntity procInstEntity, TaskNodeInstInfoEntity taskNodeInstEntity, PluginInvocationCommand cmd,
             Map<Object, Object> cacheMap) {
+
         log.info("about to calculate bindings for task node {} {}", taskNodeDefEntity.getId(),
                 taskNodeDefEntity.getNodeName());
         int procInstId = procInstEntity.getId();
         int nodeInstId = taskNodeInstEntity.getId();
-        procExecBindingRepository.deleteAllTaskNodeBindings(procInstId, nodeInstId);
+        procExecBindingMapper.deleteAllTaskNodeBindings(procInstId, nodeInstId);
 
         List<ProcExecBindingEntity> entities = new ArrayList<>();
 
-        ProcExecBindingEntity procInstBinding = procExecBindingRepository.selectProcInstBindings(procInstId);
+        ProcExecBindingEntity procInstBinding = procExecBindingMapper.selectProcInstBindings(procInstId);
         if (procInstBinding == null) {
             log.info("cannot find process instance exec binding for {}", procInstId);
             return entities;
@@ -388,8 +431,9 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
         try {
             EntityTreeNodesOverview overview = entityOperationService.generateEntityLinkOverview(condition, cacheMap);
 
-            List<ProcExecBindingEntity> boundEntities = saveCalculatedLeafNodeEntityNodesBindings(taskNodeDefEntity,
+            List<ProcExecBindingEntity> boundEntities = calDynamicLeafNodeEntityNodesBindings(taskNodeDefEntity,
                     procInstEntity, taskNodeInstEntity, overview.getLeafNodeEntityNodes());
+
             log.info("DYNAMIC BINDING:total {} entities bound for {}-{}-{}", boundEntities.size(),
                     taskNodeInstEntity.getNodeDefId(), taskNodeInstEntity.getNodeName(), taskNodeInstEntity.getId());
             return boundEntities;
@@ -403,7 +447,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 
     }
 
-    private List<ProcExecBindingEntity> saveCalculatedLeafNodeEntityNodesBindings(TaskNodeDefInfoEntity f,
+    private List<ProcExecBindingEntity> calDynamicLeafNodeEntityNodesBindings(TaskNodeDefInfoEntity f,
             ProcInstInfoEntity procInstEntity, TaskNodeInstInfoEntity taskNodeInstEntity,
             List<TreeNode> leafNodeEntityNodes) {
         List<ProcExecBindingEntity> entities = new ArrayList<>();
@@ -432,7 +476,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
             taskNodeBinding.setCreatedBy(WorkflowConstants.DEFAULT_USER);
             taskNodeBinding.setCreatedTime(new Date());
 
-            procExecBindingRepository.insert(taskNodeBinding);
+            // procExecBindingRepository.insert(taskNodeBinding);
 
             entities.add(taskNodeBinding);
         }
@@ -479,7 +523,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
             return new ArrayList<>();
         }
 
-        //TODO to support multiple records from context
+        // TODO to support multiple records from context
         InputParamObject inputObj = new InputParamObject();
 
         inputObj.setEntityTypeId("TaskNode");
@@ -754,7 +798,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 
         // 5
         if (LocalWorkflowConstants.CONTEXT_NAME_PROC_INST_NAME.equals(bindParamName)) {
-            ProcExecBindingEntity procExecBindingEntity = procExecBindingRepository
+            ProcExecBindingEntity procExecBindingEntity = procExecBindingMapper
                     .selectProcInstBindings(procInstEntity.getId());
             String rootEntityName = "";
             if (procExecBindingEntity != null) {
@@ -771,7 +815,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
         if (LocalWorkflowConstants.CONTEXT_NAME_ROOT_ENTITY_NAME.equals(bindParamName)) {
             //
 
-            ProcExecBindingEntity procExecBindingEntity = procExecBindingRepository
+            ProcExecBindingEntity procExecBindingEntity = procExecBindingMapper
                     .selectProcInstBindings(procInstEntity.getId());
             String rootEntityName = null;
             if (procExecBindingEntity != null) {
@@ -787,7 +831,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
         if (LocalWorkflowConstants.CONTEXT_NAME_ROOT_ENTITY_ID.equals(bindParamName)) {
             //
 
-            ProcExecBindingEntity procExecBindingEntity = procExecBindingRepository
+            ProcExecBindingEntity procExecBindingEntity = procExecBindingMapper
                     .selectProcInstBindings(procInstEntity.getId());
             String rootEntityId = null;
             if (procExecBindingEntity != null) {
@@ -949,7 +993,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
     }
 
     private List<ProcExecBindingEntity> retrieveProcExecBindingEntities(TaskNodeInstInfoEntity taskNodeInstEntity) {
-        List<ProcExecBindingEntity> nodeObjectBindings = procExecBindingRepository
+        List<ProcExecBindingEntity> nodeObjectBindings = procExecBindingMapper
                 .selectAllBoundTaskNodeBindings(taskNodeInstEntity.getProcInstId(), taskNodeInstEntity.getId());
 
         if (nodeObjectBindings == null) {
@@ -983,6 +1027,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
             throw new WecubeCoreException("3180", "Task node instance does not exist.");
         }
 
+        //
         String originalStatus = taskNodeInstEntity.getStatus();
         taskNodeInstEntity.setStatus(TaskNodeInstInfoEntity.IN_PROGRESS_STATUS);
 
