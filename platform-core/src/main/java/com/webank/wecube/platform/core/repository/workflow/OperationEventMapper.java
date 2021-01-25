@@ -21,10 +21,25 @@ public interface OperationEventMapper {
 
     int updateByPrimaryKey(OperationEventEntity record);
 
+    /**
+     * 
+     * @param eventSeqNo
+     * @return
+     */
     List<OperationEventEntity> selectAllByEventSeqNo(@Param("eventSeqNo") String eventSeqNo);
 
+    /**
+     * 
+     * @param status
+     * @return
+     */
     List<OperationEventEntity> selectAllByStatus(@Param("status") String status);
 
+    /**
+     * 
+     * @param procInstKey
+     * @return
+     */
     List<OperationEventEntity> selectAllByProcInstKey(@Param("procInstKey") String procInstKey);
     
     /**
