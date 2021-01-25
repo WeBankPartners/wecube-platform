@@ -37,8 +37,8 @@ create table IF NOT EXISTS  plugin_package_menus (
 CREATE TABLE IF NOT EXISTS  plugin_package_data_model
 (
     id                  VARCHAR(255) COLLATE utf8_bin  PRIMARY KEY,
-    version             INTEGER                        NOT NULL DEFAULT 1,
-    package_name        VARCHAR(63)  COLLATE utf8_bin                            NOT NULL,
+    version             INTEGER  NOT NULL DEFAULT 1,
+    package_name        VARCHAR(63)  COLLATE utf8_bin  NOT NULL,
     is_dynamic          BIT  default 0,
     update_path         VARCHAR(256) COLLATE utf8_bin,
     update_method       VARCHAR(10) COLLATE utf8_bin,
@@ -51,11 +51,11 @@ CREATE TABLE IF NOT EXISTS  plugin_package_data_model
 CREATE TABLE IF NOT EXISTS  plugin_package_entities
 (
     id                 VARCHAR(255) COLLATE utf8_bin PRIMARY KEY,
-    data_model_id      VARCHAR(255)   COLLATE utf8_bin                     NOT NULL,
-    data_model_version INTEGER                        NOT NULL,
-    package_name        VARCHAR(63)      COLLATE utf8_bin              NOT NULL,
-    name               VARCHAR(100)     COLLATE utf8_bin              NOT NULL,
-    display_name       VARCHAR(100)   COLLATE utf8_bin                NOT NULL,
+    data_model_id      VARCHAR(255) COLLATE utf8_bin NOT NULL,
+    data_model_version INTEGER NOT NULL,
+    package_name        VARCHAR(63) COLLATE utf8_bin NOT NULL,
+    name               VARCHAR(100) COLLATE utf8_bin NOT NULL,
+    display_name       VARCHAR(100) COLLATE utf8_bin NOT NULL,
     description        VARCHAR(256) COLLATE utf8_bin
 ) ENGINE=InnoDB  DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 
@@ -63,11 +63,11 @@ CREATE TABLE IF NOT EXISTS  plugin_package_entities
 CREATE TABLE IF NOT EXISTS  plugin_package_attributes
 (
     id           VARCHAR(255) COLLATE utf8_bin PRIMARY KEY,
-    entity_id    VARCHAR(255)   COLLATE utf8_bin                     NOT NULL,
+    entity_id    VARCHAR(255)   COLLATE utf8_bin NOT NULL,
     reference_id VARCHAR(255) COLLATE utf8_bin,
-    name         VARCHAR(100)  COLLATE utf8_bin                 NOT NULL,
+    name         VARCHAR(100)  COLLATE utf8_bin  NOT NULL,
     description  VARCHAR(256) COLLATE utf8_bin,
-    data_type    VARCHAR(20)   COLLATE utf8_bin                 NOT NULL
+    data_type    VARCHAR(20)   COLLATE utf8_bin NOT NULL
 ) ENGINE=InnoDB  DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 
 
@@ -350,7 +350,7 @@ CREATE TABLE IF NOT EXISTS `plugin_artifact_pull_req` (
 
 #workflow
 
-CREATE TABLE IF NOT EXISTS `act_ge_bytearray` (
+CREATE TABLE IF NOT EXISTS `ACT_GE_BYTEARRAY` (
   `ID_` varchar(64) COLLATE utf8_bin NOT NULL,
   `REV_` int(11) DEFAULT NULL,
   `NAME_` varchar(255) COLLATE utf8_bin DEFAULT NULL,
@@ -371,7 +371,7 @@ CREATE TABLE IF NOT EXISTS `act_ge_bytearray` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 
 
-CREATE TABLE IF NOT EXISTS `act_ge_property` (
+CREATE TABLE IF NOT EXISTS `ACT_GE_PROPERTY` (
   `NAME_` varchar(64) COLLATE utf8_bin NOT NULL,
   `VALUE_` varchar(300) COLLATE utf8_bin DEFAULT NULL,
   `REV_` int(11) DEFAULT NULL,
@@ -379,7 +379,7 @@ CREATE TABLE IF NOT EXISTS `act_ge_property` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 
 
-CREATE TABLE IF NOT EXISTS `act_ge_schema_log` (
+CREATE TABLE IF NOT EXISTS `ACT_GE_SCHEMA_LOG` (
   `ID_` varchar(64) COLLATE utf8_bin NOT NULL,
   `TIMESTAMP_` datetime(3) DEFAULT NULL,
   `VERSION_` varchar(255) COLLATE utf8_bin DEFAULT NULL,
@@ -387,7 +387,7 @@ CREATE TABLE IF NOT EXISTS `act_ge_schema_log` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 
 
-CREATE TABLE IF NOT EXISTS `act_hi_actinst` (
+CREATE TABLE IF NOT EXISTS `ACT_HI_ACTINST` (
   `ID_` varchar(64) COLLATE utf8_bin NOT NULL,
   `PARENT_ACT_INST_ID_` varchar(64) COLLATE utf8_bin DEFAULT NULL,
   `PROC_DEF_KEY_` varchar(255) COLLATE utf8_bin DEFAULT NULL,
@@ -423,7 +423,7 @@ CREATE TABLE IF NOT EXISTS `act_hi_actinst` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 
 
-CREATE TABLE IF NOT EXISTS `act_hi_attachment` (
+CREATE TABLE IF NOT EXISTS `ACT_HI_ATTACHMENT` (
   `ID_` varchar(64) COLLATE utf8_bin NOT NULL,
   `REV_` int(11) DEFAULT NULL,
   `USER_ID_` varchar(255) COLLATE utf8_bin DEFAULT NULL,
@@ -447,7 +447,7 @@ CREATE TABLE IF NOT EXISTS `act_hi_attachment` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 
 
-CREATE TABLE IF NOT EXISTS `act_hi_batch` (
+CREATE TABLE IF NOT EXISTS `ACT_HI_BATCH` (
   `ID_` varchar(64) COLLATE utf8_bin NOT NULL,
   `TYPE_` varchar(255) COLLATE utf8_bin DEFAULT NULL,
   `TOTAL_JOBS_` int(11) DEFAULT NULL,
@@ -466,7 +466,7 @@ CREATE TABLE IF NOT EXISTS `act_hi_batch` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 
 
-CREATE TABLE IF NOT EXISTS `act_hi_caseactinst` (
+CREATE TABLE IF NOT EXISTS `ACT_HI_CASEACTINST` (
   `ID_` varchar(64) COLLATE utf8_bin NOT NULL,
   `PARENT_ACT_INST_ID_` varchar(64) COLLATE utf8_bin DEFAULT NULL,
   `CASE_DEF_ID_` varchar(64) COLLATE utf8_bin NOT NULL,
@@ -492,7 +492,7 @@ CREATE TABLE IF NOT EXISTS `act_hi_caseactinst` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 
 
-CREATE TABLE IF NOT EXISTS `act_hi_caseinst` (
+CREATE TABLE IF NOT EXISTS `ACT_HI_CASEINST` (
   `ID_` varchar(64) COLLATE utf8_bin NOT NULL,
   `CASE_INST_ID_` varchar(64) COLLATE utf8_bin NOT NULL,
   `BUSINESS_KEY_` varchar(255) COLLATE utf8_bin DEFAULT NULL,
@@ -513,7 +513,7 @@ CREATE TABLE IF NOT EXISTS `act_hi_caseinst` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 
 
-CREATE TABLE IF NOT EXISTS `act_hi_comment` (
+CREATE TABLE IF NOT EXISTS `ACT_HI_COMMENT` (
   `ID_` varchar(64) COLLATE utf8_bin NOT NULL,
   `TYPE_` varchar(255) COLLATE utf8_bin DEFAULT NULL,
   `TIME_` datetime(3) NOT NULL,
@@ -534,7 +534,7 @@ CREATE TABLE IF NOT EXISTS `act_hi_comment` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 
 
-CREATE TABLE IF NOT EXISTS `act_hi_decinst` (
+CREATE TABLE IF NOT EXISTS `ACT_HI_DECINST` (
   `ID_` varchar(64) COLLATE utf8_bin NOT NULL,
   `DEC_DEF_ID_` varchar(64) COLLATE utf8_bin NOT NULL,
   `DEC_DEF_KEY_` varchar(255) COLLATE utf8_bin NOT NULL,
@@ -573,7 +573,7 @@ CREATE TABLE IF NOT EXISTS `act_hi_decinst` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 
 
-CREATE TABLE IF NOT EXISTS `act_hi_dec_in` (
+CREATE TABLE IF NOT EXISTS `ACT_HI_DEC_IN` (
   `ID_` varchar(64) COLLATE utf8_bin NOT NULL,
   `DEC_INST_ID_` varchar(64) COLLATE utf8_bin NOT NULL,
   `CLAUSE_ID_` varchar(64) COLLATE utf8_bin DEFAULT NULL,
@@ -596,7 +596,7 @@ CREATE TABLE IF NOT EXISTS `act_hi_dec_in` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 
 
-CREATE TABLE IF NOT EXISTS `act_hi_dec_out` (
+CREATE TABLE IF NOT EXISTS `ACT_HI_DEC_OUT` (
   `ID_` varchar(64) COLLATE utf8_bin NOT NULL,
   `DEC_INST_ID_` varchar(64) COLLATE utf8_bin NOT NULL,
   `CLAUSE_ID_` varchar(64) COLLATE utf8_bin DEFAULT NULL,
@@ -622,7 +622,7 @@ CREATE TABLE IF NOT EXISTS `act_hi_dec_out` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 
 
-CREATE TABLE IF NOT EXISTS `act_hi_detail` (
+CREATE TABLE IF NOT EXISTS `ACT_HI_DETAIL` (
   `ID_` varchar(64) COLLATE utf8_bin NOT NULL,
   `TYPE_` varchar(255) COLLATE utf8_bin NOT NULL,
   `PROC_DEF_KEY_` varchar(255) COLLATE utf8_bin DEFAULT NULL,
@@ -667,7 +667,7 @@ CREATE TABLE IF NOT EXISTS `act_hi_detail` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 
 
-CREATE TABLE IF NOT EXISTS `act_hi_ext_task_log` (
+CREATE TABLE IF NOT EXISTS `ACT_HI_EXT_TASK_LOG` (
   `ID_` varchar(64) COLLATE utf8_bin NOT NULL,
   `TIMESTAMP_` timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
   `EXT_TASK_ID_` varchar(64) COLLATE utf8_bin NOT NULL,
@@ -698,7 +698,7 @@ CREATE TABLE IF NOT EXISTS `act_hi_ext_task_log` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 
 
-CREATE TABLE IF NOT EXISTS `act_hi_identitylink` (
+CREATE TABLE IF NOT EXISTS `ACT_HI_IDENTITYLINK` (
   `ID_` varchar(64) COLLATE utf8_bin NOT NULL,
   `TIMESTAMP_` timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
   `TYPE_` varchar(255) COLLATE utf8_bin DEFAULT NULL,
@@ -724,7 +724,7 @@ CREATE TABLE IF NOT EXISTS `act_hi_identitylink` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 
 
-CREATE TABLE IF NOT EXISTS `act_hi_incident` (
+CREATE TABLE IF NOT EXISTS `ACT_HI_INCIDENT` (
   `ID_` varchar(64) COLLATE utf8_bin NOT NULL,
   `PROC_DEF_KEY_` varchar(255) COLLATE utf8_bin DEFAULT NULL,
   `PROC_DEF_ID_` varchar(64) COLLATE utf8_bin DEFAULT NULL,
@@ -752,7 +752,7 @@ CREATE TABLE IF NOT EXISTS `act_hi_incident` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 
 
-CREATE TABLE IF NOT EXISTS `act_hi_job_log` (
+CREATE TABLE IF NOT EXISTS `ACT_HI_JOB_LOG` (
   `ID_` varchar(64) COLLATE utf8_bin NOT NULL,
   `TIMESTAMP_` datetime(3) NOT NULL,
   `JOB_ID_` varchar(64) COLLATE utf8_bin NOT NULL,
@@ -787,7 +787,7 @@ CREATE TABLE IF NOT EXISTS `act_hi_job_log` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 
 
-CREATE TABLE IF NOT EXISTS `act_hi_op_log` (
+CREATE TABLE IF NOT EXISTS `ACT_HI_OP_LOG` (
   `ID_` varchar(64) COLLATE utf8_bin NOT NULL,
   `DEPLOYMENT_ID_` varchar(64) COLLATE utf8_bin DEFAULT NULL,
   `PROC_DEF_ID_` varchar(64) COLLATE utf8_bin DEFAULT NULL,
@@ -827,7 +827,7 @@ CREATE TABLE IF NOT EXISTS `act_hi_op_log` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 
 
-CREATE TABLE IF NOT EXISTS `act_hi_procinst` (
+CREATE TABLE IF NOT EXISTS `ACT_HI_PROCINST` (
   `ID_` varchar(64) COLLATE utf8_bin NOT NULL,
   `PROC_INST_ID_` varchar(64) COLLATE utf8_bin NOT NULL,
   `BUSINESS_KEY_` varchar(255) COLLATE utf8_bin DEFAULT NULL,
@@ -860,7 +860,7 @@ CREATE TABLE IF NOT EXISTS `act_hi_procinst` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 
 
-CREATE TABLE IF NOT EXISTS `act_hi_taskinst` (
+CREATE TABLE IF NOT EXISTS `ACT_HI_TASKINST` (
   `ID_` varchar(64) COLLATE utf8_bin NOT NULL,
   `TASK_DEF_KEY_` varchar(255) COLLATE utf8_bin DEFAULT NULL,
   `PROC_DEF_KEY_` varchar(255) COLLATE utf8_bin DEFAULT NULL,
@@ -899,7 +899,7 @@ CREATE TABLE IF NOT EXISTS `act_hi_taskinst` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 
 
-CREATE TABLE IF NOT EXISTS `act_hi_varinst` (
+CREATE TABLE IF NOT EXISTS `ACT_HI_VARINST` (
   `ID_` varchar(64) COLLATE utf8_bin NOT NULL,
   `PROC_DEF_KEY_` varchar(255) COLLATE utf8_bin DEFAULT NULL,
   `PROC_DEF_ID_` varchar(64) COLLATE utf8_bin DEFAULT NULL,
@@ -936,7 +936,7 @@ CREATE TABLE IF NOT EXISTS `act_hi_varinst` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 
 
-CREATE TABLE IF NOT EXISTS `act_id_group` (
+CREATE TABLE IF NOT EXISTS `ACT_ID_GROUP` (
   `ID_` varchar(64) COLLATE utf8_bin NOT NULL,
   `REV_` int(11) DEFAULT NULL,
   `NAME_` varchar(255) COLLATE utf8_bin DEFAULT NULL,
@@ -945,7 +945,7 @@ CREATE TABLE IF NOT EXISTS `act_id_group` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 
 
-CREATE TABLE IF NOT EXISTS `act_id_info` (
+CREATE TABLE IF NOT EXISTS `ACT_ID_INFO` (
   `ID_` varchar(64) COLLATE utf8_bin NOT NULL,
   `REV_` int(11) DEFAULT NULL,
   `USER_ID_` varchar(64) COLLATE utf8_bin DEFAULT NULL,
@@ -958,7 +958,7 @@ CREATE TABLE IF NOT EXISTS `act_id_info` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 
 
-CREATE TABLE IF NOT EXISTS `act_id_membership` (
+CREATE TABLE IF NOT EXISTS `ACT_ID_MEMBERSHIP` (
   `USER_ID_` varchar(64) COLLATE utf8_bin NOT NULL,
   `GROUP_ID_` varchar(64) COLLATE utf8_bin NOT NULL,
   PRIMARY KEY (`USER_ID_`,`GROUP_ID_`),
@@ -968,7 +968,7 @@ CREATE TABLE IF NOT EXISTS `act_id_membership` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 
 
-CREATE TABLE IF NOT EXISTS `act_id_tenant` (
+CREATE TABLE IF NOT EXISTS `ACT_ID_TENANT` (
   `ID_` varchar(64) COLLATE utf8_bin NOT NULL,
   `REV_` int(11) DEFAULT NULL,
   `NAME_` varchar(255) COLLATE utf8_bin DEFAULT NULL,
@@ -976,7 +976,7 @@ CREATE TABLE IF NOT EXISTS `act_id_tenant` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 
 
-CREATE TABLE IF NOT EXISTS `act_id_tenant_member` (
+CREATE TABLE IF NOT EXISTS `ACT_ID_TENANT_MEMBER` (
   `ID_` varchar(64) COLLATE utf8_bin NOT NULL,
   `TENANT_ID_` varchar(64) COLLATE utf8_bin NOT NULL,
   `USER_ID_` varchar(64) COLLATE utf8_bin DEFAULT NULL,
@@ -992,7 +992,7 @@ CREATE TABLE IF NOT EXISTS `act_id_tenant_member` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 
 
-CREATE TABLE IF NOT EXISTS `act_id_user` (
+CREATE TABLE IF NOT EXISTS `ACT_ID_USER` (
   `ID_` varchar(64) COLLATE utf8_bin NOT NULL,
   `REV_` int(11) DEFAULT NULL,
   `FIRST_` varchar(255) COLLATE utf8_bin DEFAULT NULL,
@@ -1007,7 +1007,7 @@ CREATE TABLE IF NOT EXISTS `act_id_user` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 
 
-CREATE TABLE IF NOT EXISTS `act_re_case_def` (
+CREATE TABLE IF NOT EXISTS `ACT_RE_CASE_DEF` (
   `ID_` varchar(64) COLLATE utf8_bin NOT NULL,
   `REV_` int(11) DEFAULT NULL,
   `CATEGORY_` varchar(255) COLLATE utf8_bin DEFAULT NULL,
@@ -1024,7 +1024,7 @@ CREATE TABLE IF NOT EXISTS `act_re_case_def` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 
 
-CREATE TABLE IF NOT EXISTS `act_re_decision_def` (
+CREATE TABLE IF NOT EXISTS `ACT_RE_DECISION_DEF` (
   `ID_` varchar(64) COLLATE utf8_bin NOT NULL,
   `REV_` int(11) DEFAULT NULL,
   `CATEGORY_` varchar(255) COLLATE utf8_bin DEFAULT NULL,
@@ -1046,7 +1046,7 @@ CREATE TABLE IF NOT EXISTS `act_re_decision_def` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 
 
-CREATE TABLE IF NOT EXISTS `act_re_decision_req_def` (
+CREATE TABLE IF NOT EXISTS `ACT_RE_DECISION_REQ_DEF` (
   `ID_` varchar(64) COLLATE utf8_bin NOT NULL,
   `REV_` int(11) DEFAULT NULL,
   `CATEGORY_` varchar(255) COLLATE utf8_bin DEFAULT NULL,
@@ -1062,7 +1062,7 @@ CREATE TABLE IF NOT EXISTS `act_re_decision_req_def` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 
 
-CREATE TABLE IF NOT EXISTS `act_re_deployment` (
+CREATE TABLE IF NOT EXISTS `ACT_RE_DEPLOYMENT` (
   `ID_` varchar(64) COLLATE utf8_bin NOT NULL,
   `NAME_` varchar(255) COLLATE utf8_bin DEFAULT NULL,
   `DEPLOY_TIME_` datetime(3) DEFAULT NULL,
@@ -1074,7 +1074,7 @@ CREATE TABLE IF NOT EXISTS `act_re_deployment` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 
 
-CREATE TABLE IF NOT EXISTS `act_re_procdef` (
+CREATE TABLE IF NOT EXISTS `ACT_RE_PROCDEF` (
   `ID_` varchar(64) COLLATE utf8_bin NOT NULL,
   `REV_` int(11) DEFAULT NULL,
   `CATEGORY_` varchar(255) COLLATE utf8_bin DEFAULT NULL,
@@ -1097,7 +1097,7 @@ CREATE TABLE IF NOT EXISTS `act_re_procdef` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 
 
-CREATE TABLE IF NOT EXISTS `act_ru_authorization` (
+CREATE TABLE IF NOT EXISTS `ACT_RU_AUTHORIZATION` (
   `ID_` varchar(64) COLLATE utf8_bin NOT NULL,
   `REV_` int(11) NOT NULL,
   `TYPE_` int(11) NOT NULL,
@@ -1114,7 +1114,7 @@ CREATE TABLE IF NOT EXISTS `act_ru_authorization` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 
 
-CREATE TABLE IF NOT EXISTS `act_ru_batch` (
+CREATE TABLE IF NOT EXISTS `ACT_RU_BATCH` (
   `ID_` varchar(64) COLLATE utf8_bin NOT NULL,
   `REV_` int(11) NOT NULL,
   `TYPE_` varchar(255) COLLATE utf8_bin DEFAULT NULL,
@@ -1139,7 +1139,7 @@ CREATE TABLE IF NOT EXISTS `act_ru_batch` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 
 
-CREATE TABLE IF NOT EXISTS `act_ru_case_execution` (
+CREATE TABLE IF NOT EXISTS `ACT_RU_CASE_EXECUTION` (
   `ID_` varchar(64) COLLATE utf8_bin NOT NULL,
   `REV_` int(11) DEFAULT NULL,
   `CASE_INST_ID_` varchar(64) COLLATE utf8_bin DEFAULT NULL,
@@ -1165,7 +1165,7 @@ CREATE TABLE IF NOT EXISTS `act_ru_case_execution` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 
 
-CREATE TABLE IF NOT EXISTS `act_ru_case_sentry_part` (
+CREATE TABLE IF NOT EXISTS `ACT_RU_CASE_SENTRY_PART` (
   `ID_` varchar(64) COLLATE utf8_bin NOT NULL,
   `REV_` int(11) DEFAULT NULL,
   `CASE_INST_ID_` varchar(64) COLLATE utf8_bin DEFAULT NULL,
@@ -1187,7 +1187,7 @@ CREATE TABLE IF NOT EXISTS `act_ru_case_sentry_part` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 
 
-CREATE TABLE IF NOT EXISTS `act_ru_event_subscr` (
+CREATE TABLE IF NOT EXISTS `ACT_RU_EVENT_SUBSCR` (
   `ID_` varchar(64) COLLATE utf8_bin NOT NULL,
   `REV_` int(11) DEFAULT NULL,
   `EVENT_TYPE_` varchar(255) COLLATE utf8_bin NOT NULL,
@@ -1207,7 +1207,7 @@ CREATE TABLE IF NOT EXISTS `act_ru_event_subscr` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 
 
-CREATE TABLE IF NOT EXISTS `act_ru_execution` (
+CREATE TABLE IF NOT EXISTS `ACT_RU_EXECUTION` (
   `ID_` varchar(64) COLLATE utf8_bin NOT NULL,
   `REV_` int(11) DEFAULT NULL,
   `ROOT_PROC_INST_ID_` varchar(64) COLLATE utf8_bin DEFAULT NULL,
@@ -1243,7 +1243,7 @@ CREATE TABLE IF NOT EXISTS `act_ru_execution` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 
 
-CREATE TABLE IF NOT EXISTS `act_ru_ext_task` (
+CREATE TABLE IF NOT EXISTS `ACT_RU_EXT_TASK` (
   `ID_` varchar(64) COLLATE utf8_bin NOT NULL,
   `REV_` int(11) NOT NULL,
   `WORKER_ID_` varchar(255) COLLATE utf8_bin DEFAULT NULL,
@@ -1272,7 +1272,7 @@ CREATE TABLE IF NOT EXISTS `act_ru_ext_task` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 
 
-CREATE TABLE IF NOT EXISTS `act_ru_filter` (
+CREATE TABLE IF NOT EXISTS `ACT_RU_FILTER` (
   `ID_` varchar(64) COLLATE utf8_bin NOT NULL,
   `REV_` int(11) NOT NULL,
   `RESOURCE_TYPE_` varchar(255) COLLATE utf8_bin NOT NULL,
@@ -1284,7 +1284,7 @@ CREATE TABLE IF NOT EXISTS `act_ru_filter` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 
 
-CREATE TABLE IF NOT EXISTS `act_ru_identitylink` (
+CREATE TABLE IF NOT EXISTS `ACT_RU_IDENTITYLINK` (
   `ID_` varchar(64) COLLATE utf8_bin NOT NULL,
   `REV_` int(11) DEFAULT NULL,
   `GROUP_ID_` varchar(255) COLLATE utf8_bin DEFAULT NULL,
@@ -1303,7 +1303,7 @@ CREATE TABLE IF NOT EXISTS `act_ru_identitylink` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 
 
-CREATE TABLE IF NOT EXISTS `act_ru_incident` (
+CREATE TABLE IF NOT EXISTS `ACT_RU_INCIDENT` (
   `ID_` varchar(64) COLLATE utf8_bin NOT NULL,
   `REV_` int(11) NOT NULL,
   `INCIDENT_TIMESTAMP_` datetime(3) NOT NULL,
@@ -1336,7 +1336,7 @@ CREATE TABLE IF NOT EXISTS `act_ru_incident` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 
 
-CREATE TABLE IF NOT EXISTS `act_ru_job` (
+CREATE TABLE IF NOT EXISTS `ACT_RU_JOB` (
   `ID_` varchar(64) COLLATE utf8_bin NOT NULL,
   `REV_` int(11) DEFAULT NULL,
   `TYPE_` varchar(255) COLLATE utf8_bin NOT NULL,
@@ -1373,7 +1373,7 @@ CREATE TABLE IF NOT EXISTS `act_ru_job` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 
 
-CREATE TABLE IF NOT EXISTS `act_ru_jobdef` (
+CREATE TABLE IF NOT EXISTS `ACT_RU_JOBDEF` (
   `ID_` varchar(64) COLLATE utf8_bin NOT NULL,
   `REV_` int(11) DEFAULT NULL,
   `PROC_DEF_ID_` varchar(64) COLLATE utf8_bin DEFAULT NULL,
@@ -1390,7 +1390,7 @@ CREATE TABLE IF NOT EXISTS `act_ru_jobdef` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 
 
-CREATE TABLE IF NOT EXISTS `act_ru_meter_log` (
+CREATE TABLE IF NOT EXISTS `ACT_RU_METER_LOG` (
   `ID_` varchar(64) COLLATE utf8_bin NOT NULL,
   `NAME_` varchar(64) COLLATE utf8_bin NOT NULL,
   `REPORTER_` varchar(255) COLLATE utf8_bin DEFAULT NULL,
@@ -1405,7 +1405,7 @@ CREATE TABLE IF NOT EXISTS `act_ru_meter_log` (
   KEY `ACT_IDX_METER_LOG` (`NAME_`,`TIMESTAMP_`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 
-CREATE TABLE IF NOT EXISTS `act_ru_task` (
+CREATE TABLE IF NOT EXISTS `ACT_RU_TASK` (
   `ID_` varchar(64) COLLATE utf8_bin NOT NULL,
   `REV_` int(11) DEFAULT NULL,
   `EXECUTION_ID_` varchar(64) COLLATE utf8_bin DEFAULT NULL,
@@ -1444,7 +1444,7 @@ CREATE TABLE IF NOT EXISTS `act_ru_task` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 
 
-CREATE TABLE IF NOT EXISTS `act_ru_variable` (
+CREATE TABLE IF NOT EXISTS `ACT_RU_VARIABLE` (
   `ID_` varchar(64) COLLATE utf8_bin NOT NULL,
   `REV_` int(11) DEFAULT NULL,
   `TYPE_` varchar(255) COLLATE utf8_bin NOT NULL,
