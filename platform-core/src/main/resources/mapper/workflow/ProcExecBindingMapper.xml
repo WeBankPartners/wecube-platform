@@ -323,7 +323,7 @@
     </delete>
 
     <select id="selectAllBoundRunningProcInstances"
-        parameterType="java.lang.String">
+        parameterType="java.lang.String" resultType="java.lang.Integer">
         SELECT DISTINCT
         t1.proc_inst_id
         FROM
@@ -341,7 +341,7 @@
         #{entityDataId,jdbcType=VARCHAR}
     </select>
 
-    <select id="countAllBoundRunningProcInstances" parameterType="java.lang.String">
+    <select id="countAllBoundRunningProcInstances" parameterType="java.lang.String" resultType="int">
         SELECT count(*)
         FROM
         core_ru_proc_exec_binding t1,
@@ -360,7 +360,7 @@
     </select>
 
     <select id="selectAllExclusiveBoundRunningProcInstances"
-        parameterType="java.lang.String">
+        parameterType="java.lang.String" resultType="java.lang.Integer">
         SELECT DISTINCT t1.proc_inst_id
         FROM
         core_ru_proc_exec_binding t1,
@@ -383,7 +383,7 @@
     </select>
 
     <select id="countAllExclusiveBoundRunningProcInstances"
-        parameterType="java.lang.String">
+        parameterType="java.lang.String" resultType="java.lang.Integer">
         SELECT count(*)
         FROM
         core_ru_proc_exec_binding t1,
@@ -404,8 +404,7 @@
         #{entityDataId,jdbcType=VARCHAR}
     </select>
     
-    <!--  ################## -->
-    <select id="selectAllBoundRunningProcInstancesWithoutProcInst">
+    <select id="selectAllBoundRunningProcInstancesWithoutProcInst" resultType="java.lang.Integer">
         SELECT DISTINCT
         t1.proc_inst_id
         FROM
@@ -425,7 +424,7 @@
         t1.proc_inst_id != #{procInstId,jdbcType=INTEGER}
     </select>
 
-    <select id="countAllBoundRunningProcInstancesWithoutProcInst">
+    <select id="countAllBoundRunningProcInstancesWithoutProcInst" resultType="java.lang.Integer">
         SELECT count(*)
         FROM
         core_ru_proc_exec_binding t1,
@@ -445,7 +444,7 @@
         t1.proc_inst_id != #{procInstId,jdbcType=INTEGER}
     </select>
 
-    <select id="selectAllExclusiveBoundRunningProcInstancesWithoutProcInst">
+    <select id="selectAllExclusiveBoundRunningProcInstancesWithoutProcInst" resultType="java.lang.Integer">
         SELECT DISTINCT t1.proc_inst_id
         FROM
         core_ru_proc_exec_binding t1,
@@ -469,7 +468,7 @@
         t1.proc_inst_id != #{procInstId,jdbcType=INTEGER}
     </select>
 
-    <select id="countAllExclusiveBoundRunningProcInstancesWithoutProcInst">
+    <select id="countAllExclusiveBoundRunningProcInstancesWithoutProcInst" resultType="java.lang.Integer">
         SELECT count(*)
         FROM
         core_ru_proc_exec_binding t1,
