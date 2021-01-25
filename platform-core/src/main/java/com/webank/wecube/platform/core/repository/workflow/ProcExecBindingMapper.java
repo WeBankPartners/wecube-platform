@@ -8,8 +8,8 @@ import org.springframework.stereotype.Repository;
 import com.webank.wecube.platform.core.entity.workflow.ProcExecBindingEntity;
 
 @Repository
-public interface ProcExecBindingMapper{
-    
+public interface ProcExecBindingMapper {
+
     int deleteByPrimaryKey(Integer id);
 
     int insert(ProcExecBindingEntity record);
@@ -37,14 +37,14 @@ public interface ProcExecBindingMapper{
      * @return
      */
     ProcExecBindingEntity selectProcInstBindings(@Param("procInstId") Integer procInstId);
-    
+
     /**
      * 
      * @param procInstId
      * @return
      */
     List<ProcExecBindingEntity> selectAllTaskNodeBindingsByProcInstId(@Param("procInstId") Integer procInstId);
-    
+
     /**
      * 
      * @param procInstId
@@ -53,44 +53,72 @@ public interface ProcExecBindingMapper{
      */
     List<ProcExecBindingEntity> selectAllBoundTaskNodeBindings(@Param("procInstId") Integer procInstId,
             @Param("nodeInstId") Integer nodeInstId);
-    
+
     /**
      * 
      * @param procInstId
      * @param nodeInstId
      * @return
      */
-    int deleteAllTaskNodeBindings(@Param("procInstId") Integer procInstId,
-            @Param("nodeInstId") Integer nodeInstId);
-    
+    int deleteAllTaskNodeBindings(@Param("procInstId") Integer procInstId, @Param("nodeInstId") Integer nodeInstId);
+
     /**
      * 
      * @param entityDataId
      * @return
      */
     List<Integer> selectAllBoundRunningProcInstances(@Param("entityDataId") String entityDataId);
-   
-    
+
     /**
      * 
      * @param entityDataId
      * @return
      */
     int countAllBoundRunningProcInstances(@Param("entityDataId") String entityDataId);
-    
-    
+
     /**
      * 
      * @param entityDataId
      * @return
      */
     List<Integer> selectAllExclusiveBoundRunningProcInstances(@Param("entityDataId") String entityDataId);
-    
-    
+
     /**
      * 
      * @param entityDataId
      * @return
      */
     int countAllExclusiveBoundRunningProcInstances(@Param("entityDataId") String entityDataId);
+
+    /**
+     * 
+     * @param entityDataId
+     * @return
+     */
+    List<Integer> selectAllBoundRunningProcInstancesWithoutProcInst(@Param("entityDataId") String entityDataId,
+            @Param("procInstId") int procInstId);
+
+    /**
+     * 
+     * @param entityDataId
+     * @return
+     */
+    int countAllBoundRunningProcInstancesWithoutProcInst(@Param("entityDataId") String entityDataId,
+            @Param("procInstId") int procInstId);
+
+    /**
+     * 
+     * @param entityDataId
+     * @return
+     */
+    List<Integer> selectAllExclusiveBoundRunningProcInstancesWithoutProcInst(@Param("entityDataId") String entityDataId,
+            @Param("procInstId") int procInstId);
+
+    /**
+     * 
+     * @param entityDataId
+     * @return
+     */
+    int countAllExclusiveBoundRunningProcInstancesWithoutProcInst(@Param("entityDataId") String entityDataId,
+            @Param("procInstId") int procInstId);
 }
