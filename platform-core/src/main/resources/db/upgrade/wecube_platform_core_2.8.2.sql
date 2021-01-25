@@ -157,4 +157,25 @@ alter table core_object_var convert to character set utf8 collate utf8_bin;
 alter table core_object_property_var convert to character set utf8 collate utf8_bin;
 alter table core_object_list_var convert to character set utf8 collate utf8_bin;
 
+CREATE TABLE IF NOT EXISTS  `core_extra_task` (
+  `id` bigint(20) NOT NULL AUTO_INCREMENT,
+  `task_seq_no` VARCHAR(60) NOT NULL,
+  `task_type` VARCHAR(45) NOT NULL,
+  `rev` INT(11) NOT NULL,
+  `status` VARCHAR(45) NULL,
+  `start_time` DATETIME NULL,
+  `end_time` DATETIME NULL,
+  `created_by` VARCHAR(45) NULL,
+  `created_time` DATETIME NULL,
+  `updated_by` VARCHAR(45) NULL,
+  `updated_time` DATETIME NULL,
+  `task_def` VARCHAR(2000) NULL,
+  `priority` INT NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE = InnoDB DEFAULT CHARACTER SET = utf8 COLLATE = utf8_bin;
+
+
+ALTER TABLE core_ru_task_node_inst_info 
+ADD COLUMN bind_status VARCHAR(45) CHARACTER SET 'utf8' COLLATE 'utf8_bin' NULL;
+
 SET FOREIGN_KEY_CHECKS = 1;
