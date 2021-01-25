@@ -30,6 +30,8 @@
         <result column="err_msg" jdbcType="VARCHAR" property="errMsg" />
         <result column="pre_check_ret" jdbcType="VARCHAR"
             property="preCheckRet" />
+        <result column="bind_status" jdbcType="VARCHAR"
+            property="bindStatus" />
     </resultMap>
     <sql id="Base_Column_List">
         id, created_by, created_time, updated_by, updated_time,
@@ -38,7 +40,7 @@
         node_def_id, node_id, node_name,
         node_type, ordered_no, proc_def_id, proc_def_key,
         proc_inst_id,
-        proc_inst_key, err_msg, pre_check_ret
+        proc_inst_key, err_msg, pre_check_ret,bind_status
     </sql>
     <select id="selectByPrimaryKey" parameterType="java.lang.Integer"
         resultMap="BaseResultMap">
@@ -64,7 +66,7 @@
         proc_def_key, proc_inst_id,
         proc_inst_key,
         err_msg,
-        pre_check_ret)
+        pre_check_ret,bind_status)
         values (#{id,jdbcType=INTEGER},
         #{createdBy,jdbcType=VARCHAR},
         #{createdTime,jdbcType=TIMESTAMP},
@@ -79,7 +81,8 @@
         #{procDefKey,jdbcType=VARCHAR},
         #{procInstId,jdbcType=INTEGER}, #{procInstKey,jdbcType=VARCHAR},
         #{errMsg,jdbcType=VARCHAR},
-        #{preCheckRet,jdbcType=VARCHAR})
+        #{preCheckRet,jdbcType=VARCHAR},
+        #{bindStatus,jdbcType=VARCHAR})
     </insert>
     <insert id="insertSelective" useGeneratedKeys="true"
         keyProperty="id"
@@ -146,6 +149,9 @@
             <if test="preCheckRet != null">
                 pre_check_ret,
             </if>
+             <if test="bindStatus != null">
+                bind_status,
+            </if>
         </trim>
         <trim prefix="values (" suffix=")" suffixOverrides=",">
             <if test="id != null">
@@ -207,6 +213,9 @@
             </if>
             <if test="preCheckRet != null">
                 #{preCheckRet,jdbcType=VARCHAR},
+            </if>
+            <if test="bindStatus != null">
+                #{bindStatus,jdbcType=VARCHAR},
             </if>
         </trim>
     </insert>
@@ -273,6 +282,9 @@
             <if test="preCheckRet != null">
                 pre_check_ret = #{preCheckRet,jdbcType=VARCHAR},
             </if>
+            <if test="bindStatus != null">
+                bind_status = #{bindStatus,jdbcType=VARCHAR},
+            </if>
         </set>
         where id = #{id,jdbcType=INTEGER}
     </update>
@@ -314,7 +326,9 @@
         err_msg =
         #{errMsg,jdbcType=VARCHAR},
         pre_check_ret =
-        #{preCheckRet,jdbcType=VARCHAR}
+        #{preCheckRet,jdbcType=VARCHAR},
+        bind_status =
+        #{bindStatus,jdbcType=VARCHAR}
         where id = #{id,jdbcType=INTEGER}
     </update>
 
