@@ -1096,6 +1096,8 @@ export default {
       })
     },
     clearTarget () {
+      this.isExecuteActive = false
+      this.showExcution = false
       this.selectedTarget = ''
       d3.select('#graph')
         .selectAll('*')
