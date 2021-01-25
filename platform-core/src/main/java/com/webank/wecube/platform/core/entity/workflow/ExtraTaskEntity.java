@@ -2,7 +2,7 @@ package com.webank.wecube.platform.core.entity.workflow;
 
 import java.util.Date;
 
-public class ExternalTaskEntity {
+public class ExtraTaskEntity {
     public static final String STATUS_NEW = "New";
     public static final String STATUS_PREPROCESS = "Preprocess";
     public static final String STATUS_IN_PROGRESS = "InProgress";
@@ -14,9 +14,7 @@ public class ExternalTaskEntity {
     
     private Long id;
 
-    private Date endTime;
-
-    private String eventSeqNo;
+    private String taskSeqNo;
 
     private String taskType;
     
@@ -26,11 +24,17 @@ public class ExternalTaskEntity {
     
     private Date startTime;
     
+    private Date endTime;
+    
+    private String createdBy;
+
     private Date createdTime;
+
+    private String updatedBy;
 
     private Date updatedTime;
     
-    private String taskDescription;
+    private String taskDef;
 
     public Long getId() {
         return id;
@@ -48,12 +52,12 @@ public class ExternalTaskEntity {
         this.endTime = endTime;
     }
 
-    public String getEventSeqNo() {
-        return eventSeqNo;
+    public String getTaskSeqNo() {
+        return taskSeqNo;
     }
 
-    public void setEventSeqNo(String eventSeqNo) {
-        this.eventSeqNo = eventSeqNo;
+    public void setTaskSeqNo(String eventSeqNo) {
+        this.taskSeqNo = eventSeqNo;
     }
 
     public String getTaskType() {
@@ -104,11 +108,29 @@ public class ExternalTaskEntity {
         this.updatedTime = updatedTime;
     }
 
-    public String getTaskDescription() {
-        return taskDescription;
+    public String getTaskDef() {
+        return taskDef;
     }
 
-    public void setTaskDescription(String taskDescription) {
-        this.taskDescription = taskDescription;
+    public void setTaskDef(String taskDef) {
+        this.taskDef = taskDef;
     }
+
+    public String getCreatedBy() {
+        return createdBy;
+    }
+
+    public void setCreatedBy(String createdBy) {
+        this.createdBy = createdBy;
+    }
+
+    public String getUpdatedBy() {
+        return updatedBy;
+    }
+
+    public void setUpdatedBy(String updatedBy) {
+        this.updatedBy = updatedBy;
+    }
+    
+    
 }

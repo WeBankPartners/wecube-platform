@@ -6,23 +6,23 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
-import com.webank.wecube.platform.core.service.workflow.ExternalTaskExecutor;
+import com.webank.wecube.platform.core.service.workflow.ExtraTaskExecutor;
 
 @Component
-public class ExternalTaskJobsHandler {
-    private static final Logger log = LoggerFactory.getLogger(ExternalTaskJobsHandler.class);
+public class ExtraTaskJobsHandler {
+    private static final Logger log = LoggerFactory.getLogger(ExtraTaskJobsHandler.class);
     
     @Autowired
-    private ExternalTaskExecutor externalTaskExecutor;
+    private ExtraTaskExecutor extraTaskExecutor;
     
     @Scheduled(cron="0 */5 * * * ?")
-    public void extractOutstandingOperationEvents(){
+    public void extractOutstandingExtraTasks(){
         if(log.isInfoEnabled()){
             log.info("scheduled execution start...");
         }
         
         try{
-            externalTaskExecutor.execute();
+            extraTaskExecutor.execute();
         }catch(Exception e){
             log.error("external task processing errors", e);
         }

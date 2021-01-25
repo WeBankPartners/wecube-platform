@@ -9,6 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.webank.wecube.platform.core.commons.ApplicationProperties;
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
 import com.webank.wecube.platform.core.entity.plugin.PluginConfigInterfaceParameters;
@@ -69,6 +70,8 @@ public abstract class AbstractPluginInvocationService extends AbstractWorkflowSe
     
     @Autowired
     protected SimpleEncryptionService simpleEncryptionService;
+    
+    protected ObjectMapper objectMapper = new ObjectMapper();
 
     protected TaskNodeInstInfoEntity findExactTaskNodeInstInfoEntityWithNodeId(
             List<TaskNodeInstInfoEntity> nodeInstEntities, String nodeId) {
