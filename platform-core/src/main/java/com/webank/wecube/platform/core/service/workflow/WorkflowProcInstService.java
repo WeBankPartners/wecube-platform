@@ -481,7 +481,6 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
 
     private void tryVerifyIfAnyExclusiveRunningProcInstBound(ProcDefInfoEntity procDefInfoEntity,
             ProcInstInfoEntity procInstInfoEntity) {
-        // TODO
         Set<WfBindEntityDataInfo> selfBoundEntityDataInfos = collectAllBoundEntityDataInfos(procInstInfoEntity);
         if (selfBoundEntityDataInfos == null || selfBoundEntityDataInfos.isEmpty()) {
             return;
@@ -513,10 +512,11 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
         if (boundExclusiveProcInstIds.isEmpty()) {
             return;
         }
-
-        List<ProcInstInfoEntity> exclusiveRunningProcInstances = new ArrayList<>();
         
-        //TODO
+        String runningMsg = assembleExclusiveExceptionMsg(boundExclusiveProcInstIds);
+
+        String errMsg = String.format("Exclusive condition exist,due to running process instances : %s", runningMsg);
+        throw new WecubeCoreException(errMsg);
 
     }
 
@@ -551,10 +551,43 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
         if (boundProcInstIds.isEmpty()) {
             return;
         }
+        
+        String runningMsg = assembleExclusiveExceptionMsg(boundProcInstIds);
 
-        // TODO to assemble error messages here
-        throw new WecubeCoreException("Bound running process instances exist.");
-        // TODO
+        String errMsg = String.format("Exclusive condition exist,due to running process instances : %s", runningMsg);
+        throw new WecubeCoreException(errMsg);
+    }
+    
+    private String assembleExclusiveExceptionMsg(Set<Integer> boundExclusiveProcInstIds){
+        StringBuilder sb = new StringBuilder();
+        sb.append("[");
+        int size = 0;
+        for(Integer id : boundExclusiveProcInstIds){
+            if(size >= 10){
+                break;
+            }
+            
+            
+            ProcInstInfoQueryEntity entity = procInstInfoRepository.selectQueryEntityByPrimaryKey(id);
+            if(entity == null){
+                continue;
+            }
+            
+            if(size != 0){
+                sb.append(",");
+            }
+            String entityDataName = entity.getEntityDataName();
+            if(StringUtils.isBlank(entityDataName)){
+                entityDataName = entity.getEntityDataId();
+            }
+            sb.append(entity.getProcDefName()).append(":").append(entityDataName);
+            
+            size++;
+        }
+        
+        sb.append("]");
+        
+        return sb.toString();
     }
 
     private Set<WfBindEntityDataInfo> collectAllBoundEntityDataInfos(ProcInstInfoEntity procInstInfoEntity) {
