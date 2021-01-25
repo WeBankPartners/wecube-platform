@@ -10,14 +10,17 @@ import static com.webank.wecube.platform.core.utils.Constants.MAPPING_TYPE_SYSTE
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
 import com.webank.wecube.platform.core.dto.plugin.ItsDangerConfirmResultDto;
 import com.webank.wecube.platform.core.entity.plugin.PluginConfigInterfaceParameters;
@@ -26,6 +29,7 @@ import com.webank.wecube.platform.core.entity.plugin.PluginConfigs;
 import com.webank.wecube.platform.core.entity.plugin.PluginInstances;
 import com.webank.wecube.platform.core.entity.plugin.PluginPackages;
 import com.webank.wecube.platform.core.entity.plugin.SystemVariables;
+import com.webank.wecube.platform.core.entity.workflow.ExtraTaskEntity;
 import com.webank.wecube.platform.core.entity.workflow.ProcDefInfoEntity;
 import com.webank.wecube.platform.core.entity.workflow.ProcExecBindingEntity;
 import com.webank.wecube.platform.core.entity.workflow.ProcInstInfoEntity;
@@ -39,6 +43,7 @@ import com.webank.wecube.platform.core.model.workflow.InputParamObject;
 import com.webank.wecube.platform.core.model.workflow.PluginInvocationCommand;
 import com.webank.wecube.platform.core.model.workflow.PluginInvocationResult;
 import com.webank.wecube.platform.core.model.workflow.WorkflowNotifyEvent;
+import com.webank.wecube.platform.core.repository.workflow.ExtraTaskMapper;
 import com.webank.wecube.platform.core.repository.workflow.ProcDefInfoMapper;
 import com.webank.wecube.platform.core.repository.workflow.ProcExecBindingMapper;
 import com.webank.wecube.platform.core.repository.workflow.ProcInstInfoMapper;
@@ -54,6 +59,7 @@ import com.webank.wecube.platform.core.service.workflow.PluginInvocationProcesso
 import com.webank.wecube.platform.core.service.workflow.PluginInvocationProcessor.PluginInvocationOperation;
 import com.webank.wecube.platform.core.support.plugin.PluginInvocationRestClient;
 import com.webank.wecube.platform.workflow.WorkflowConstants;
+import com.webank.wecube.platform.workflow.commons.LocalIdGenerator;
 
 /**
  * 
@@ -95,6 +101,9 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 
     @Autowired
     private RiskyCommandVerifier riskyCommandVerifier;
+    
+    @Autowired
+    private ExtraTaskMapper extraTaskMapper;
 
     /**
      * 
@@ -174,7 +183,6 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
             log.info("invoke plugin interface with:{}", cmd);
         }
 
-        // TODO to reentry here ?
         ProcInstInfoEntity procInstEntity = null;
         TaskNodeInstInfoEntity taskNodeInstEntity = null;
         try {
@@ -270,8 +278,6 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
     private boolean verifyIfExcludeModeExecBindings(ProcDefInfoEntity procDefInfo, ProcInstInfoEntity procInst,
             TaskNodeDefInfoEntity taskNodeDef, TaskNodeInstInfoEntity taskNodeInst, PluginInvocationCommand cmd,
             List<ProcExecBindingEntity> nodeObjectBindings) {
-        // TODO
-        // FIXME
         if (nodeObjectBindings == null || nodeObjectBindings.isEmpty()) {
             return false;
         }
@@ -290,17 +296,74 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
     private boolean tryVerifyIfAnyRunningProcInstBound(ProcDefInfoEntity procDefInfo, ProcInstInfoEntity procInst,
             TaskNodeDefInfoEntity taskNodeDef, TaskNodeInstInfoEntity taskNodeInst, PluginInvocationCommand cmd,
             List<ProcExecBindingEntity> nodeObjectBindings) {
+        if(nodeObjectBindings == null || nodeObjectBindings.isEmpty()){
+            return false;
+        }
+        
+        Set<Integer> boundProcInstIds = new HashSet<>();
+        for(ProcExecBindingEntity nodeObjectBinding : nodeObjectBindings){
+            if (StringUtils.isBlank(nodeObjectBinding.getEntityDataId())) {
+                continue;
+            }
+            int boundCount = procExecBindingMapper
+                    .countAllBoundRunningProcInstancesWithoutProcInst(nodeObjectBinding.getEntityDataId(), procInst.getId());
+            if (boundCount <= 0) {
+                continue;
+            }
 
-        // TODO
-        return false;
+            List<Integer> boundProcInstIdsOfSingleEntity = procExecBindingMapper
+                    .selectAllBoundRunningProcInstancesWithoutProcInst(nodeObjectBinding.getEntityDataId(), procInst.getId());
+            if (boundProcInstIdsOfSingleEntity == null || boundProcInstIdsOfSingleEntity.isEmpty()) {
+                continue;
+            }
+
+            boundProcInstIds.addAll(boundProcInstIdsOfSingleEntity);
+        }
+        
+        if (boundProcInstIds.isEmpty()) {
+            return false;
+        }
+
+        //TODO logging
+        return true;
 
     }
 
     private boolean tryVerifyIfAnyExclusiveRunningProcInstBound(ProcDefInfoEntity procDefInfo,
             ProcInstInfoEntity procInst, TaskNodeDefInfoEntity taskNodeDef, TaskNodeInstInfoEntity taskNodeInst,
             PluginInvocationCommand cmd, List<ProcExecBindingEntity> nodeObjectBindings) {
+        if(nodeObjectBindings == null || nodeObjectBindings.isEmpty()){
+            return false;
+        }
         // TODO
-        return false;
+        Set<Integer> boundExclusiveProcInstIds = new HashSet<>();
+        
+        for(ProcExecBindingEntity nodeObjectBinding : nodeObjectBindings){
+            if (StringUtils.isBlank(nodeObjectBinding.getEntityDataId())) {
+                continue;
+            }
+
+            int exclusiveProcInstCount = procExecBindingMapper
+                    .countAllExclusiveBoundRunningProcInstancesWithoutProcInst(nodeObjectBinding.getEntityDataId(), procInst.getId());
+            
+            if(exclusiveProcInstCount <= 0){
+                continue;
+            }
+            
+            List<Integer> boundProcInstIdsOfSingleEntity = procExecBindingMapper
+                    .selectAllExclusiveBoundRunningProcInstancesWithoutProcInst(nodeObjectBinding.getEntityDataId(), procInst.getId());
+            if (boundProcInstIdsOfSingleEntity == null || boundProcInstIdsOfSingleEntity.isEmpty()) {
+                continue;
+            }
+
+            boundExclusiveProcInstIds.addAll(boundProcInstIdsOfSingleEntity);
+        }
+        
+        if (boundExclusiveProcInstIds.isEmpty()) {
+            return false;
+        }
+        
+        return true;
     }
 
     private void storeProcExecBindingEntities(List<ProcExecBindingEntity> nodeObjectBindings) {
@@ -310,6 +373,16 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 
         for (ProcExecBindingEntity nob : nodeObjectBindings) {
             procExecBindingMapper.insert(nob);
+        }
+    }
+    
+    private String marshalPluginInvocationCommand(PluginInvocationCommand cmd){
+        String json;
+        try {
+            json = objectMapper.writeValueAsString(cmd);
+            return json;
+        } catch (JsonProcessingException e) {
+            throw new WecubeCoreException("Failed to marshal plugin invocation command.", e);
         }
     }
 
@@ -322,17 +395,25 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
                 cmd.getNodeId());
 
         List<ProcExecBindingEntity> nodeObjectBindings = null;
-        // TODO consider risky verifying result
-        // TODO retry
+        
         if (isDynamicBindTaskNode(taskNodeDefEntity) && !isBoundTaskNodeInst(taskNodeInstEntity)) {
             nodeObjectBindings = dynamicCalculateTaskNodeExecBindings(taskNodeDefEntity, procInstEntity,
                     taskNodeInstEntity, cmd, externalCacheMap);
-            // TODO try verify concurrency
             boolean hasExcludeModeExecBindings = verifyIfExcludeModeExecBindings(procDefInfoEntity, procInstEntity,
                     taskNodeDefEntity, taskNodeInstEntity, cmd, nodeObjectBindings);
             if (hasExcludeModeExecBindings) {
-                // TODO raise jobs
-                // FIXME
+                
+                ExtraTaskEntity extraTaskEntity = new ExtraTaskEntity();
+                extraTaskEntity.setCreatedBy(WorkflowConstants.DEFAULT_USER);
+                extraTaskEntity.setCreatedTime(new Date());
+                extraTaskEntity.setRev(0);
+                extraTaskEntity.setTaskType(ExtraTaskEntity.TASK_TYPE_DYNAMIC_BIND_TASK_NODE_RETRY);
+                extraTaskEntity.setStatus(ExtraTaskEntity.STATUS_NEW);
+                extraTaskEntity.setTaskSeqNo(LocalIdGenerator.generateId());
+                String taskDef = marshalPluginInvocationCommand(cmd);
+                extraTaskEntity.setTaskDef(taskDef);
+                
+                extraTaskMapper.insert(extraTaskEntity);
                 return;
             } else {
                 storeProcExecBindingEntities(nodeObjectBindings);
