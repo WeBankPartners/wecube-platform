@@ -45,4 +45,11 @@ public interface ProcInstInfoMapper{
      */
     List<ProcInstInfoQueryEntity> selectAllByProcInstInfoByRoleNames(@Param("roleNames")List<String> roleNames);
     
+    
+    /**
+     * 
+     * @param id
+     * @return
+     */
+    ProcInstInfoQueryEntity selectQueryEntityByPrimaryKey(@Param("id")Integer id);
 }
