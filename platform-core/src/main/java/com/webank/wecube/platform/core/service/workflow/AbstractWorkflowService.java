@@ -9,6 +9,10 @@ import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
 
+import com.webank.wecube.platform.core.entity.workflow.ProcDefInfoEntity;
+import com.webank.wecube.platform.core.entity.workflow.ProcInstInfoEntity;
+import com.webank.wecube.platform.core.entity.workflow.TaskNodeInstInfoEntity;
+
 /**
  * 
  * @author gavin
@@ -58,5 +62,48 @@ public abstract class AbstractWorkflowService {
         return df.format(date);
     }
     
+    protected boolean isProcessInstanceFinalStatus(ProcInstInfoEntity procInst) {
+        if (ProcInstInfoEntity.COMPLETED_STATUS.equalsIgnoreCase(procInst.getStatus())) {
+            return true;
+        }
+
+        if (ProcInstInfoEntity.INTERNALLY_TERMINATED_STATUS.equalsIgnoreCase(procInst.getStatus())) {
+            return true;
+        }
+
+        return false;
+    }
+    
+    protected String deduceTaskNodeName(TaskNodeInstInfoEntity nodeInstEntity) {
+        if (!StringUtils.isBlank(nodeInstEntity.getNodeName())) {
+            return nodeInstEntity.getNodeName();
+        }
+
+        if (NODE_START_EVENT.equals(nodeInstEntity.getNodeType())) {
+            return "S";
+        }
+
+        if (NODE_END_EVENT.equals(nodeInstEntity.getNodeType())) {
+            return "E";
+        }
+
+        if (NODE_EXCLUSIVE_GATEWAY.equals(nodeInstEntity.getNodeType())) {
+            return "X";
+        }
+
+        if (NODE_PARALLEL_GATEWAY.equals(nodeInstEntity.getNodeType())) {
+            return "O";
+        }
+
+        return "";
+    }
+    
+    protected boolean isExcludeModeProcDefInfo(ProcDefInfoEntity procDefInfoEntity) {
+        if (StringUtils.isBlank(procDefInfoEntity.getExcludeMode())) {
+            return false;
+        }
+
+        return ProcDefInfoEntity.EXCLUDE_MODE_YES.equalsIgnoreCase(procDefInfoEntity.getExcludeMode());
+    }
     
 }
