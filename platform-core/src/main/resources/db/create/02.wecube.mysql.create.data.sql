@@ -101,20 +101,20 @@ INSERT INTO `system_variables` (`id`,`package_name`, `name`, `value`, `default_v
 INSERT INTO `system_variables` (`id`,`package_name`, `name`, `value`, `default_value`, `scope`, `source`, `status`) VALUES ('system__global__HTTPS_PROXY', NULL, 'HTTPS_PROXY', NULL, '', 'global', 'system', 'active');
 
 #workflow
-delete from `act_ge_property` where NAME_ = 'deployment.lock';
-delete from `act_ge_property` where NAME_ = 'history.cleanup.job.lock';
-delete from `act_ge_property` where NAME_ = 'historyLevel';
-delete from `act_ge_property` where NAME_ = 'next.dbid';
-delete from `act_ge_property` where NAME_ = 'schema.history';
-delete from `act_ge_property` where NAME_ = 'schema.version';
-delete from `act_ge_property` where NAME_ = 'startup.lock';
+delete from `ACT_GE_PROPERTY` where NAME_ = 'deployment.lock';
+delete from `ACT_GE_PROPERTY` where NAME_ = 'history.cleanup.job.lock';
+delete from `ACT_GE_PROPERTY` where NAME_ = 'historyLevel';
+delete from `ACT_GE_PROPERTY` where NAME_ = 'next.dbid';
+delete from `ACT_GE_PROPERTY` where NAME_ = 'schema.history';
+delete from `ACT_GE_PROPERTY` where NAME_ = 'schema.version';
+delete from `ACT_GE_PROPERTY` where NAME_ = 'startup.lock';
 
-INSERT INTO `act_ge_property` (`NAME_`,`VALUE_`,`REV_`) VALUES ('deployment.lock','0',1);
-INSERT INTO `act_ge_property` (`NAME_`,`VALUE_`,`REV_`) VALUES ('history.cleanup.job.lock','0',1);
-INSERT INTO `act_ge_property` (`NAME_`,`VALUE_`,`REV_`) VALUES ('historyLevel','3',1);
-INSERT INTO `act_ge_property` (`NAME_`,`VALUE_`,`REV_`) VALUES ('next.dbid','1',1);
-INSERT INTO `act_ge_property` (`NAME_`,`VALUE_`,`REV_`) VALUES ('schema.history','create(fox)',1);
-INSERT INTO `act_ge_property` (`NAME_`,`VALUE_`,`REV_`) VALUES ('schema.version','fox',1);
-INSERT INTO `act_ge_property` (`NAME_`,`VALUE_`,`REV_`) VALUES ('startup.lock','0',1);
+INSERT INTO `ACT_GE_PROPERTY` (`NAME_`,`VALUE_`,`REV_`) VALUES ('deployment.lock','0',1);
+INSERT INTO `ACT_GE_PROPERTY` (`NAME_`,`VALUE_`,`REV_`) VALUES ('history.cleanup.job.lock','0',1);
+INSERT INTO `ACT_GE_PROPERTY` (`NAME_`,`VALUE_`,`REV_`) VALUES ('historyLevel','3',1);
+INSERT INTO `ACT_GE_PROPERTY` (`NAME_`,`VALUE_`,`REV_`) VALUES ('next.dbid','1',1);
+INSERT INTO `ACT_GE_PROPERTY` (`NAME_`,`VALUE_`,`REV_`) VALUES ('schema.history','create(fox)',1);
+INSERT INTO `ACT_GE_PROPERTY` (`NAME_`,`VALUE_`,`REV_`) VALUES ('schema.version','fox',1);
+INSERT INTO `ACT_GE_PROPERTY` (`NAME_`,`VALUE_`,`REV_`) VALUES ('startup.lock','0',1);
 
 SET FOREIGN_KEY_CHECKS = 1;
