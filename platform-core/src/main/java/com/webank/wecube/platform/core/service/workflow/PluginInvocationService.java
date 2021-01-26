@@ -101,7 +101,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 
     @Autowired
     private RiskyCommandVerifier riskyCommandVerifier;
-    
+
     @Autowired
     private ExtraTaskMapper extraTaskMapper;
 
@@ -296,35 +296,38 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
     private boolean tryVerifyIfAnyRunningProcInstBound(ProcDefInfoEntity procDefInfo, ProcInstInfoEntity procInst,
             TaskNodeDefInfoEntity taskNodeDef, TaskNodeInstInfoEntity taskNodeInst, PluginInvocationCommand cmd,
             List<ProcExecBindingEntity> nodeObjectBindings) {
-        if(nodeObjectBindings == null || nodeObjectBindings.isEmpty()){
+        if (nodeObjectBindings == null || nodeObjectBindings.isEmpty()) {
             return false;
         }
-        
+
         Set<Integer> boundProcInstIds = new HashSet<>();
-        for(ProcExecBindingEntity nodeObjectBinding : nodeObjectBindings){
+        for (ProcExecBindingEntity nodeObjectBinding : nodeObjectBindings) {
             if (StringUtils.isBlank(nodeObjectBinding.getEntityDataId())) {
                 continue;
             }
-            int boundCount = procExecBindingMapper
-                    .countAllBoundRunningProcInstancesWithoutProcInst(nodeObjectBinding.getEntityDataId(), procInst.getId());
+            int boundCount = procExecBindingMapper.countAllBoundRunningProcInstancesWithoutProcInst(
+                    nodeObjectBinding.getEntityDataId(), procInst.getId());
             if (boundCount <= 0) {
                 continue;
             }
 
             List<Integer> boundProcInstIdsOfSingleEntity = procExecBindingMapper
-                    .selectAllBoundRunningProcInstancesWithoutProcInst(nodeObjectBinding.getEntityDataId(), procInst.getId());
+                    .selectAllBoundRunningProcInstancesWithoutProcInst(nodeObjectBinding.getEntityDataId(),
+                            procInst.getId());
             if (boundProcInstIdsOfSingleEntity == null || boundProcInstIdsOfSingleEntity.isEmpty()) {
                 continue;
             }
 
             boundProcInstIds.addAll(boundProcInstIdsOfSingleEntity);
         }
-        
+
         if (boundProcInstIds.isEmpty()) {
             return false;
         }
 
-        //TODO logging
+        log.info("Current process {}:{} is exclusive but still {} processes running.", procDefInfo.getId(),
+                procDefInfo.getProcDefName(), boundProcInstIds.size());
+
         return true;
 
     }
@@ -332,37 +335,41 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
     private boolean tryVerifyIfAnyExclusiveRunningProcInstBound(ProcDefInfoEntity procDefInfo,
             ProcInstInfoEntity procInst, TaskNodeDefInfoEntity taskNodeDef, TaskNodeInstInfoEntity taskNodeInst,
             PluginInvocationCommand cmd, List<ProcExecBindingEntity> nodeObjectBindings) {
-        if(nodeObjectBindings == null || nodeObjectBindings.isEmpty()){
+        if (nodeObjectBindings == null || nodeObjectBindings.isEmpty()) {
             return false;
         }
-        // TODO
         Set<Integer> boundExclusiveProcInstIds = new HashSet<>();
-        
-        for(ProcExecBindingEntity nodeObjectBinding : nodeObjectBindings){
+
+        for (ProcExecBindingEntity nodeObjectBinding : nodeObjectBindings) {
             if (StringUtils.isBlank(nodeObjectBinding.getEntityDataId())) {
                 continue;
             }
 
             int exclusiveProcInstCount = procExecBindingMapper
-                    .countAllExclusiveBoundRunningProcInstancesWithoutProcInst(nodeObjectBinding.getEntityDataId(), procInst.getId());
-            
-            if(exclusiveProcInstCount <= 0){
+                    .countAllExclusiveBoundRunningProcInstancesWithoutProcInst(nodeObjectBinding.getEntityDataId(),
+                            procInst.getId());
+
+            if (exclusiveProcInstCount <= 0) {
                 continue;
             }
-            
+
             List<Integer> boundProcInstIdsOfSingleEntity = procExecBindingMapper
-                    .selectAllExclusiveBoundRunningProcInstancesWithoutProcInst(nodeObjectBinding.getEntityDataId(), procInst.getId());
+                    .selectAllExclusiveBoundRunningProcInstancesWithoutProcInst(nodeObjectBinding.getEntityDataId(),
+                            procInst.getId());
             if (boundProcInstIdsOfSingleEntity == null || boundProcInstIdsOfSingleEntity.isEmpty()) {
                 continue;
             }
 
             boundExclusiveProcInstIds.addAll(boundProcInstIdsOfSingleEntity);
         }
-        
+
         if (boundExclusiveProcInstIds.isEmpty()) {
             return false;
         }
-        
+
+        log.info("Current process {}:{} is shared but there are {}  exclusive processes running.", procDefInfo.getId(),
+                procDefInfo.getProcDefName(), boundExclusiveProcInstIds.size());
+
         return true;
     }
 
@@ -375,8 +382,8 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
             procExecBindingMapper.insert(nob);
         }
     }
-    
-    private String marshalPluginInvocationCommand(PluginInvocationCommand cmd){
+
+    private String marshalPluginInvocationCommand(PluginInvocationCommand cmd) {
         String json;
         try {
             json = objectMapper.writeValueAsString(cmd);
@@ -395,14 +402,14 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
                 cmd.getNodeId());
 
         List<ProcExecBindingEntity> nodeObjectBindings = null;
-        
+
         if (isDynamicBindTaskNode(taskNodeDefEntity) && !isBoundTaskNodeInst(taskNodeInstEntity)) {
             nodeObjectBindings = dynamicCalculateTaskNodeExecBindings(taskNodeDefEntity, procInstEntity,
                     taskNodeInstEntity, cmd, externalCacheMap);
             boolean hasExcludeModeExecBindings = verifyIfExcludeModeExecBindings(procDefInfoEntity, procInstEntity,
                     taskNodeDefEntity, taskNodeInstEntity, cmd, nodeObjectBindings);
             if (hasExcludeModeExecBindings) {
-                
+
                 ExtraTaskEntity extraTaskEntity = new ExtraTaskEntity();
                 extraTaskEntity.setCreatedBy(WorkflowConstants.DEFAULT_USER);
                 extraTaskEntity.setCreatedTime(new Date());
@@ -412,7 +419,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
                 extraTaskEntity.setTaskSeqNo(LocalIdGenerator.generateId());
                 String taskDef = marshalPluginInvocationCommand(cmd);
                 extraTaskEntity.setTaskDef(taskDef);
-                
+
                 extraTaskMapper.insert(extraTaskEntity);
                 return;
             } else {
