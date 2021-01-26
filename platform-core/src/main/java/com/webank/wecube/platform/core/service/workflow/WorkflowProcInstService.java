@@ -531,7 +531,7 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
         String runningMsg = assembleExclusiveExceptionMsg(boundExclusiveProcInstIds);
 
         String errMsg = String.format(
-                "Data binding conflict exist!The following process instances are still in progress : %s", runningMsg);
+                "Data binding conflicts exist.Current process is shared mode,but the following exclusive processes are still running: %s", runningMsg);
         throw new WecubeCoreException(errMsg);
 
     }
@@ -571,7 +571,7 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
         String runningMsg = assembleExclusiveExceptionMsg(boundProcInstIds);
 
         String errMsg = String.format(
-                "Data binding conflict exist!The following process instances are still in progress: %s", runningMsg);
+                "Data binding conflicts exist.Current process is exclusive, but the following processes are still in progress: %s", runningMsg);
         throw new WecubeCoreException(errMsg);
     }
 
