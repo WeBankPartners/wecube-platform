@@ -284,7 +284,7 @@ public class PluginInstanceMgmtService extends AbstractPluginMgmtService {
         if(StringUtils.isBlank(envVariablesString)){
             return String.format("TZ=%s", tz);
         }else{
-            return envVariablesString+String.format(",TZ=%s", tz);
+            return envVariablesString+String.format("\\,TZ=%s", tz);
         }
     }
     
