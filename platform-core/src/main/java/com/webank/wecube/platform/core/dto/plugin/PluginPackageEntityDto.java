@@ -79,6 +79,17 @@ public class PluginPackageEntityDto {
     public void setAttributes(List<PluginPackageAttributeDto> attributes) {
         this.attributes = attributes;
     }
+    
+    public void addAttribute(PluginPackageAttributeDto attributeDto) {
+        if(attributeDto == null){
+            return;
+        }
+        
+        if(this.attributes == null){
+            this.attributes = new ArrayList<>();
+        }
+        this.attributes.add(attributeDto);
+    }
 
     public String getDisplayName() {
         return displayName;
