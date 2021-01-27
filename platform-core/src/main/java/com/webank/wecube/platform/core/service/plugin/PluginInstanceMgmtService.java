@@ -16,6 +16,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
+import java.util.TimeZone;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -238,6 +239,7 @@ public class PluginInstanceMgmtService extends AbstractPluginMgmtService {
         log.info("before replace envVariablesString=" + envVariablesString);
         envVariablesString = replaceJwtSigningKey(envVariablesString);
         envVariablesString = replaceSystemVariablesForEnvVariables(pluginPackage.getName(), envVariablesString);
+        envVariablesString = appendTimeZoneToPluginEnv(envVariablesString);
         log.info("after replace envVariablesString=" + envVariablesString);
         
 
@@ -270,6 +272,19 @@ public class PluginInstanceMgmtService extends AbstractPluginMgmtService {
         GatewayResponse response = registerRoute(pluginPackage.getName(), hostIpAddr, String.valueOf(port));
         if (!response.getStatus().equals(GatewayResponse.getStatusCodeOk())) {
             log.error("Launch instance has done, but register routing information is failed, please check");
+        }
+    }
+    
+    private String appendTimeZoneToPluginEnv(String envVariablesString){
+        String tz = System.getenv("TZ");
+        if(StringUtils.isBlank(tz)){
+            tz = TimeZone.getDefault().getID();
+        }
+        
+        if(StringUtils.isBlank(envVariablesString)){
+            return String.format("TZ=%s", tz);
+        }else{
+            return envVariablesString+String.format("\\,TZ=%s", tz);
         }
     }
     
