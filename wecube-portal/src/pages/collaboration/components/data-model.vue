@@ -18,7 +18,7 @@
   </div>
 </template>
 <script>
-import { getPluginPkgDataModel, pullDynamicDataModel, applyNewDataModel } from '@/api/server'
+import { getPluginPkgDataModel, pullDynamicDataModel } from '@/api/server'
 import * as d3 from 'd3-selection'
 // eslint-disable-next-line no-unused-vars
 import * as d3Graphviz from 'd3-graphviz'
@@ -94,21 +94,6 @@ export default {
         this.initGraph()
       }
     },
-    async applyNewDataModel () {
-      this.isLoading = true
-      let { status } = await applyNewDataModel(this.dataModel)
-      this.isLoading = false
-      if (status === 'OK') {
-        if (this.dataModel.dynamic) {
-          this.isApplyBtnDisabled = true
-        }
-        this.$Notice.success({
-          title: 'Success',
-          desc: 'Data model apply successfully'
-        })
-      }
-    },
-
     genDOT () {
       var dots = [
         'digraph  {',
