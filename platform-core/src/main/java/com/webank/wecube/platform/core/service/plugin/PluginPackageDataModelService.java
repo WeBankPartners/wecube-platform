@@ -388,6 +388,7 @@ public class PluginPackageDataModelService {
                 // build refBy
                 PluginPackageAttributeDto attrDto = buildPluginPackageAttributeDto(pluginPackageEntitiesEntity,
                         attrEntity);
+                dataModelEntityDto.addAttribute(attrDto);
                 List<PluginPackageAttributes> refByAttrEntities = pluginPackageAttributesMapper
                         .selectAllReferences(attrEntity.getId());
 
