@@ -139,17 +139,21 @@ public class DockerContainerManagementService implements ResourceItemService, Re
         List<String> envList = new ArrayList<String>();
 
         for (String env : envVariables) {
+            if(StringUtils.isBlank(env)){
+                continue;
+            }
             int idx = env.indexOf("=");
             if (idx > 0) {
                 String envName = env.substring(0, idx);
                 String envVal = env.substring(idx + 1, env.length());
                 if (StringUtils.isNoneBlank(envVal)) {
-                    envList.add(env);
+//                    envList.add(env.trim());
+                    envList.add(envName.trim() + "=" + envVal.trim());
                 } else {
                     log.info("env variable {} was discarded:{} ", envName, env);
                 }
             } else {
-                envList.add(env);
+                envList.add(env.trim());
             }
             // String[] envArray = env.split("=");
             // if (envArray.length == 2 && !envArray[1].trim().isEmpty()) {
