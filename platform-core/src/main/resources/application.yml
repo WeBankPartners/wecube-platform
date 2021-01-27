@@ -9,6 +9,10 @@ spring:
     basename: message/platform_core_err_message
     encoding: UTF-8
   datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://${MYSQL_SERVER_ADDR:localhost}:${MYSQL_SERVER_PORT:3306}/${MYSQL_SERVER_DATABASE_NAME:wecube_core}?serverTimezone=${TZ:Asia/Shanghai}&characterEncoding=utf8&nullCatalogMeansCurrent=true&useSSL=false
+    username: ${MYSQL_USER_NAME:db-user}
+    password: ${MYSQL_USER_PASSWORD:db-password}
     hikari:
       pool-name: We3_HikariCP
       minimum-idle: 20
