@@ -7,6 +7,7 @@ java -Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.port=${WECUBE
 --wecube.core.s3.access-key=${S3_ACCESS_KEY} \
 --wecube.core.s3.secret-key=${S3_SECRET_KEY} \
 --wecube.core.gateway-url=${GATEWAY_URL} \
+--wecube.core.gateway-host-ports=${GATEWAY_HOST_PORTS} \
 --wecube.core.plugin.static-resource-server-ip=${STATIC_RESOURCE_SERVER_IP} \
 --wecube.core.plugin.static-resource-server-user=${STATIC_RESOURCE_SERVER_USER} \
 --wecube.core.plugin.static-resource-server-password=${STATIC_RESOURCE_SERVER_PASSWORD} \

@@ -413,6 +413,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
                 ExtraTaskEntity extraTaskEntity = new ExtraTaskEntity();
                 extraTaskEntity.setCreatedBy(WorkflowConstants.DEFAULT_USER);
                 extraTaskEntity.setCreatedTime(new Date());
+                extraTaskEntity.setPriority(0);
                 extraTaskEntity.setRev(0);
                 extraTaskEntity.setTaskType(ExtraTaskEntity.TASK_TYPE_DYNAMIC_BIND_TASK_NODE_RETRY);
                 extraTaskEntity.setStatus(ExtraTaskEntity.STATUS_NEW);
