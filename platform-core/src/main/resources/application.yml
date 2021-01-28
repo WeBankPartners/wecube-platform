@@ -56,6 +56,7 @@ wecube:
   core:
     db-init-strategy: update
     gateway-url: 127.0.0.1:19110
+    gateway-host-ports: 127.0.0.1:19110,127.0.0.1:19111
     httpclient:
       max-total-connections: 200
     authserver:
