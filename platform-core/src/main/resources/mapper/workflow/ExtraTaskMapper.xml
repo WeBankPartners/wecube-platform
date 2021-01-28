@@ -212,43 +212,43 @@
     <update id="updateByPrimaryKeySelectiveCas">
         update core_extra_task
         <set>
-            <if test="createdBy != null">
-                created_by = #{createdBy,jdbcType=VARCHAR},
+            <if test="record.createdBy != null">
+                created_by = #{record.createdBy,jdbcType=VARCHAR},
             </if>
-            <if test="createdTime != null">
+            <if test="record.createdTime != null">
                 created_time =
-                #{createdTime,jdbcType=TIMESTAMP},
+                #{record.createdTime,jdbcType=TIMESTAMP},
             </if>
-            <if test="updatedBy != null">
-                updated_by = #{updatedBy,jdbcType=VARCHAR},
+            <if test="record.updatedBy != null">
+                updated_by = #{record.updatedBy,jdbcType=VARCHAR},
             </if>
-            <if test="updatedTime != null">
+            <if test="record.updatedTime != null">
                 updated_time =
-                #{updatedTime,jdbcType=TIMESTAMP},
+                #{record.updatedTime,jdbcType=TIMESTAMP},
             </if>
-            <if test="endTime != null">
-                end_time = #{endTime,jdbcType=TIMESTAMP},
+            <if test="record.endTime != null">
+                end_time = #{record.endTime,jdbcType=TIMESTAMP},
             </if>
-            <if test="taskSeqNo != null">
-                task_seq_no = #{taskSeqNo,jdbcType=VARCHAR},
+            <if test="record.taskSeqNo != null">
+                task_seq_no = #{record.taskSeqNo,jdbcType=VARCHAR},
             </if>
-            <if test="taskType != null">
-                task_type = #{taskType,jdbcType=VARCHAR},
+            <if test="record.taskType != null">
+                task_type = #{record.taskType,jdbcType=VARCHAR},
             </if>
-            <if test="priority != null">
-                priority = #{priority,jdbcType=INTEGER},
+            <if test="record.priority != null">
+                priority = #{record.priority,jdbcType=INTEGER},
             </if>
-            <if test="rev != null">
-                rev = #{rev,jdbcType=INTEGER},
+            <if test="record.rev != null">
+                rev = #{record.rev,jdbcType=INTEGER},
             </if>
-            <if test="status != null">
-                status = #{status,jdbcType=VARCHAR},
+            <if test="record.status != null">
+                status = #{record.status,jdbcType=VARCHAR},
             </if>
-            <if test="startTime != null">
-                start_time = #{startTime,jdbcType=TIMESTAMP},
+            <if test="record.startTime != null">
+                start_time = #{record.startTime,jdbcType=TIMESTAMP},
             </if>
-            <if test="taskDef != null">
-                task_def = #{taskDef,jdbcType=VARCHAR},
+            <if test="record.taskDef != null">
+                task_def = #{record.taskDef,jdbcType=VARCHAR},
             </if>
         </set>
         where id = #{record.id,jdbcType=BIGINT}
