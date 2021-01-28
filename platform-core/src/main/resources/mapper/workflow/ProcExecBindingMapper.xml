@@ -437,7 +437,7 @@
         AND t1.entity_data_id =
         #{entityDataId,jdbcType=VARCHAR}
         AND
-        t1.proc_inst_id !=
+        t2.id !=
         #{procInstId,jdbcType=INTEGER}
     </select>
 
@@ -459,7 +459,7 @@
         AND
         t1.entity_data_id = #{entityDataId,jdbcType=VARCHAR}
         AND
-        t1.proc_inst_id != #{procInstId,jdbcType=INTEGER}
+        t2.id != #{procInstId,jdbcType=INTEGER}
     </select>
 
     <select id="selectAllExclusiveBoundRunningProcInstancesWithoutProcInst"
@@ -484,7 +484,7 @@
         AND t1.entity_data_id =
         #{entityDataId,jdbcType=VARCHAR}
         AND
-        t1.proc_inst_id !=
+        t2.id !=
         #{procInstId,jdbcType=INTEGER}
     </select>
 
@@ -509,7 +509,7 @@
         AND t1.entity_data_id =
         #{entityDataId,jdbcType=VARCHAR}
         AND
-        t1.proc_inst_id !=
+        t2.id !=
         #{procInstId,jdbcType=INTEGER}
     </select>
 </mapper>
