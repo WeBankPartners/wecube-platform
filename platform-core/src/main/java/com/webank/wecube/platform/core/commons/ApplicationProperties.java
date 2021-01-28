@@ -5,9 +5,10 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @ConfigurationProperties(prefix = "wecube.core")
 public class ApplicationProperties {
     private String gatewayUrl = "127.0.0.1:19110";
+    private String gatewayHostPorts = "127.0.0.1:19110,127.0.0.1:19111";
     private String dbInitStrategy = "update";
     private String jwtSigningKey = "Platform+Auth+Server+Secret";
-    
+
     @ConfigurationProperties(prefix = "wecube.core.config")
     public class AppConfigProperties {
         private String propertyRsaKey = null;
@@ -332,12 +333,19 @@ public class ApplicationProperties {
     }
 
     public String getJwtSigningKey() {
-		return jwtSigningKey;
-	}
+        return jwtSigningKey;
+    }
 
     public void setJwtSigningKey(String jwtSigningKey) {
-		this.jwtSigningKey = jwtSigningKey;
-	}
+        this.jwtSigningKey = jwtSigningKey;
+    }
 
-    
+    public String getGatewayHostPorts() {
+        return gatewayHostPorts;
+    }
+
+    public void setGatewayHostPorts(String gatewayHostPorts) {
+        this.gatewayHostPorts = gatewayHostPorts;
+    }
+
 }
