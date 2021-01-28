@@ -9,23 +9,25 @@ public class ExtraTaskEntity {
     public static final String STATUS_COMPLETED = "Completed";
     public static final String STATUS_FAULTED = "Faulted";
     public static final String STATUS_FAILED = "Failed";
-    
+
     public static final String TASK_TYPE_DYNAMIC_BIND_TASK_NODE_RETRY = "dynamicBindRetry";
-    
+
     private Long id;
 
     private String taskSeqNo;
 
     private String taskType;
-    
+
     private String status;
+
+    private int priority = 0;
     
     private int rev = 0;
-    
+
     private Date startTime;
-    
+
     private Date endTime;
-    
+
     private String createdBy;
 
     private Date createdTime;
@@ -33,7 +35,7 @@ public class ExtraTaskEntity {
     private String updatedBy;
 
     private Date updatedTime;
-    
+
     private String taskDef;
 
     public Long getId() {
@@ -131,6 +133,13 @@ public class ExtraTaskEntity {
     public void setUpdatedBy(String updatedBy) {
         this.updatedBy = updatedBy;
     }
-    
-    
+
+    public int getPriority() {
+        return priority;
+    }
+
+    public void setPriority(int priority) {
+        this.priority = priority;
+    }
+
 }
