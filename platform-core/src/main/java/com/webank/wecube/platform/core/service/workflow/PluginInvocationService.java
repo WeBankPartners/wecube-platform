@@ -325,8 +325,11 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
             return false;
         }
 
-        log.info("Current process {}:{} is exclusive but still {} processes running.", procDefInfo.getId(),
-                procDefInfo.getProcDefName(), boundProcInstIds.size());
+        log.info("Current process {}:{}:{} is exclusive but still {} processes running.", procDefInfo.getId(),
+                procDefInfo.getProcDefName(),procInst.getId() , boundProcInstIds.size());
+        for(Integer boundProcInstId : boundProcInstIds){
+            log.info("boundProcInstId:{}", boundProcInstId);
+        }
 
         return true;
 
@@ -367,8 +370,12 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
             return false;
         }
 
-        log.info("Current process {}:{} is shared but there are {}  exclusive processes running.", procDefInfo.getId(),
-                procDefInfo.getProcDefName(), boundExclusiveProcInstIds.size());
+        log.info("Current process {}:{}:{} is shared but there are {}  exclusive processes running.", procDefInfo.getId(),
+                procDefInfo.getProcDefName(),procInst.getId(),  boundExclusiveProcInstIds.size());
+        
+        for(Integer boundExclusiveProcInstId : boundExclusiveProcInstIds){
+            log.info("boundExclusiveProcInstId:{}", boundExclusiveProcInstId);
+        }
 
         return true;
     }
