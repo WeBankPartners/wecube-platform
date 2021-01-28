@@ -270,10 +270,11 @@
         from core_ru_task_node_exec_param
         where req_id =
         #{requestId,jdbcType=VARCHAR}
-        and param_name =
-        #{paramName,jdbcType=VARCHAR}
         and param_type =
         #{paramType,jdbcType=VARCHAR}
+        and param_name =
+        #{paramName,jdbcType=VARCHAR}
+        
     </select>
 
     <select id="selectAllByRequestIdAndParamType" resultMap="BaseResultMap">

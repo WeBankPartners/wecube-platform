@@ -177,4 +177,52 @@ CREATE TABLE IF NOT EXISTS  `core_extra_task` (
 ALTER TABLE core_ru_task_node_inst_info 
 ADD COLUMN bind_status VARCHAR(45) CHARACTER SET utf8 COLLATE utf8_bin DEFAULT NULL;
 
+ALTER TABLE core_ru_task_node_exec_param 
+ADD INDEX idx_core_t_n_e_param_comp (req_id, param_type, param_name);
+
+ALTER TABLE core_ru_task_node_exec_req 
+ADD INDEX idx_core_t_n_e_req_n_inst (node_inst_id);
+
+ALTER TABLE act_ru_srvnode_status 
+ADD INDEX idx_act_snode_status_insti_n (proc_inst_id,node_id);
+
+ALTER TABLE act_ru_srvnode_status 
+ADD INDEX idx_act_snode_status_instk_n (proc_inst_key,node_id);
+
+ALTER TABLE act_ru_procinst_status 
+ADD INDEX idx_act_procinst_status_inst_id (proc_inst_id);
+
+ALTER TABLE core_ru_task_node_inst_info 
+ADD INDEX idx_core_t_n_i_inst_node (proc_inst_id, node_id);
+
+ALTER TABLE core_ru_proc_exec_binding 
+ADD INDEX idx_core_p_e_binding_p_bt_n (proc_inst_id, bind_type, task_node_inst_id);
+
+ALTER TABLE core_ru_proc_exec_binding 
+ADD INDEX idx_core_p_e_binding_e_d_id (entity_data_id);
+
+ALTER TABLE core_ru_proc_exec_binding_tmp 
+ADD INDEX idx_core_p_e_binding_tmp_p_s_id (proc_session_id);
+
+ALTER TABLE core_ru_graph_node 
+ADD INDEX idx_core_g_node_p_s_id (proc_sess_id);
+
+ALTER TABLE core_ru_graph_node 
+ADD INDEX idx_core_g_node_p_i_id (proc_inst_id);
+
+ALTER TABLE core_ru_proc_inst_info 
+ADD INDEX idx_core_p_inst_p_kernel_id (proc_inst_kernel_id);
+
+ALTER TABLE core_operation_event 
+ADD INDEX idx_core_o_event_p_i_key (proc_inst_key);
+
+ALTER TABLE plugin_config_interfaces 
+ADD INDEX idx_core_plugin_c_intf_c_id (plugin_config_id);
+
+ALTER TABLE plugin_config_interface_parameters 
+ADD INDEX idx_core_plugin_c_intf_param_intf_id (plugin_config_interface_id);
+
+ALTER TABLE plugin_package_attributes 
+ADD INDEX idx_core_plugin_p_attr_e_id (entity_id);
+
 SET FOREIGN_KEY_CHECKS = 1;

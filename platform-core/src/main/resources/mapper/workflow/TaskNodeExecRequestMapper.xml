@@ -331,7 +331,7 @@
         <include refid="Base_Column_List" />
         from core_ru_task_node_exec_req
         where node_inst_id =
-        #{nodeInstId,jdbcType=VARCHAR}
+        #{nodeInstId,jdbcType=INTEGER}
         and is_current = true
     </select>
 </mapper>
