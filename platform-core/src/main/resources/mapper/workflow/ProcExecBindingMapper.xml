@@ -269,9 +269,10 @@
         from core_ru_proc_exec_binding
         where proc_inst_id =
         #{procInstId,jdbcType=INTEGER}
-        and task_node_inst_id =
-        #{nodeInstId,jdbcType=INTEGER}
         and bind_type = 'taskNode'
+        and
+        task_node_inst_id =
+        #{nodeInstId,jdbcType=INTEGER}
     </select>
 
     <select id="selectProcInstBindings" parameterType="java.lang.Integer"
@@ -301,11 +302,13 @@
         from core_ru_proc_exec_binding
         where proc_inst_id =
         #{procInstId,jdbcType=INTEGER}
-        and task_node_inst_id =
-        #{nodeInstId,jdbcType=INTEGER}
         and bind_type = 'taskNode'
         and
-        (bind_flag != 'N' OR bind_flag IS NULL OR bind_flag = '')
+        task_node_inst_id =
+        #{nodeInstId,jdbcType=INTEGER}
+        and
+        (bind_flag
+        != 'N' OR bind_flag IS NULL OR bind_flag = '')
     </select>
 
     <delete id="deleteAllTaskNodeBindings">
@@ -315,11 +318,12 @@
         where
         proc_inst_id =
         #{procInstId,jdbcType=INTEGER}
+        and bind_type =
+        'taskNode'
         and
         task_node_inst_id =
         #{nodeInstId,jdbcType=INTEGER}
-        and bind_type =
-        'taskNode'
+
     </delete>
 
     <select id="selectAllBoundRunningProcInstances"
@@ -331,17 +335,21 @@
         core_ru_proc_inst_info t2
         WHERE
         t1.bind_type = 'taskNode'
-        AND t2.id = t1.proc_inst_id
+        AND t2.id
+        = t1.proc_inst_id
         AND
         t2.status != 'Completed'
-        AND t2.status != 'InternallyTerminated'
+        AND t2.status !=
+        'InternallyTerminated'
         AND t2.status !=
         'NotStarted'
-        AND t1.entity_data_id =
+        AND
+        t1.entity_data_id =
         #{entityDataId,jdbcType=VARCHAR}
     </select>
 
-    <select id="countAllBoundRunningProcInstances" parameterType="java.lang.String" resultType="int">
+    <select id="countAllBoundRunningProcInstances" parameterType="java.lang.String"
+        resultType="int">
         SELECT count(*)
         FROM
         core_ru_proc_exec_binding t1,
@@ -361,7 +369,8 @@
 
     <select id="selectAllExclusiveBoundRunningProcInstances"
         parameterType="java.lang.String" resultType="java.lang.Integer">
-        SELECT DISTINCT t1.proc_inst_id
+        SELECT DISTINCT
+        t1.proc_inst_id
         FROM
         core_ru_proc_exec_binding t1,
         core_ru_proc_inst_info t2,
@@ -370,14 +379,17 @@
         t1.bind_type = 'taskNode'
         AND t2.id
         = t1.proc_inst_id
-        AND t2.status != 'Completed'
+        AND t2.status
+        != 'Completed'
         AND t2.status !=
         'InternallyTerminated'
-        AND t2.status !=
+        AND
+        t2.status !=
         'NotStarted'
         AND t3.id =
         t1.proc_def_id
-        AND t3.exclude_mode = 'Y'
+        AND
+        t3.exclude_mode = 'Y'
         AND t1.entity_data_id =
         #{entityDataId,jdbcType=VARCHAR}
     </select>
@@ -391,20 +403,24 @@
         core_re_proc_def_info t3
         WHERE
         t1.bind_type = 'taskNode'
-        AND t2.id = t1.proc_inst_id
+        AND t2.id
+        = t1.proc_inst_id
         AND
         t2.status != 'Completed'
-        AND t2.status != 'InternallyTerminated'
+        AND t2.status !=
+        'InternallyTerminated'
         AND t2.status !=
         'NotStarted'
-        AND t3.id = t1.proc_def_id
+        AND t3.id =
+        t1.proc_def_id
         AND
         t3.exclude_mode = 'Y'
         AND t1.entity_data_id =
         #{entityDataId,jdbcType=VARCHAR}
     </select>
-    
-    <select id="selectAllBoundRunningProcInstancesWithoutProcInst" resultType="java.lang.Integer">
+
+    <select id="selectAllBoundRunningProcInstancesWithoutProcInst"
+        resultType="java.lang.Integer">
         SELECT DISTINCT
         t1.proc_inst_id
         FROM
@@ -421,10 +437,12 @@
         AND t1.entity_data_id =
         #{entityDataId,jdbcType=VARCHAR}
         AND
-        t1.proc_inst_id != #{procInstId,jdbcType=INTEGER}
+        t1.proc_inst_id !=
+        #{procInstId,jdbcType=INTEGER}
     </select>
 
-    <select id="countAllBoundRunningProcInstancesWithoutProcInst" resultType="java.lang.Integer">
+    <select id="countAllBoundRunningProcInstancesWithoutProcInst"
+        resultType="java.lang.Integer">
         SELECT count(*)
         FROM
         core_ru_proc_exec_binding t1,
@@ -444,7 +462,8 @@
         t1.proc_inst_id != #{procInstId,jdbcType=INTEGER}
     </select>
 
-    <select id="selectAllExclusiveBoundRunningProcInstancesWithoutProcInst" resultType="java.lang.Integer">
+    <select id="selectAllExclusiveBoundRunningProcInstancesWithoutProcInst"
+        resultType="java.lang.Integer">
         SELECT DISTINCT t1.proc_inst_id
         FROM
         core_ru_proc_exec_binding t1,
@@ -465,10 +484,12 @@
         AND t1.entity_data_id =
         #{entityDataId,jdbcType=VARCHAR}
         AND
-        t1.proc_inst_id != #{procInstId,jdbcType=INTEGER}
+        t1.proc_inst_id !=
+        #{procInstId,jdbcType=INTEGER}
     </select>
 
-    <select id="countAllExclusiveBoundRunningProcInstancesWithoutProcInst" resultType="java.lang.Integer">
+    <select id="countAllExclusiveBoundRunningProcInstancesWithoutProcInst"
+        resultType="java.lang.Integer">
         SELECT count(*)
         FROM
         core_ru_proc_exec_binding t1,
@@ -488,6 +509,7 @@
         AND t1.entity_data_id =
         #{entityDataId,jdbcType=VARCHAR}
         AND
-        t1.proc_inst_id != #{procInstId,jdbcType=INTEGER}
+        t1.proc_inst_id !=
+        #{procInstId,jdbcType=INTEGER}
     </select>
 </mapper>
