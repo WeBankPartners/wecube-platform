@@ -1105,6 +1105,7 @@ export default {
     },
     onTargetSelectHandler () {
       this.isShowExect = false
+      this.showExcution = true
       this.processSessionId = ''
       if (!this.selectedTarget) return
       this.currentModelNodeRefs = []
