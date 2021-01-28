@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import com.webank.wecube.platform.core.entity.plugin.PluginInstances;
 import com.webank.wecube.platform.core.entity.plugin.PluginPackageMenus;
 import com.webank.wecube.platform.core.entity.plugin.PluginPackages;
+import com.webank.wecube.platform.core.repository.plugin.PluginInstancesMapper;
 import com.webank.wecube.platform.core.repository.plugin.PluginPackageMenusMapper;
 import com.webank.wecube.platform.core.repository.plugin.PluginPackagesMapper;
 
@@ -20,6 +21,9 @@ public class PluginPackageMenuStatusListener {
     private PluginPackageMenusMapper packageMenuRepository;
     @Autowired
     private PluginPackagesMapper pluginPackagesMapper;
+    
+    @Autowired
+    private PluginInstancesMapper pluginInstancesMapper;
 
     public void prePersist(PluginInstances pluginInstance){
         updatePluginPackageMenuStatusForPluginPackage(pluginInstance, false, true);
@@ -39,6 +43,27 @@ public class PluginPackageMenuStatusListener {
             pluginPackage = pluginPackagesMapper.selectByPrimaryKey(pluginInstance.getPackageId());
         }
         String packageId = pluginPackage.getId();
+        
+        boolean hasOneMoreRunningInstances = false;
+        List<PluginInstances> instances = pluginInstancesMapper.selectAllByPluginPackage(packageId);
+        
+        if(instances != null){
+            for(PluginInstances inst : instances){
+                if(inst.getId().equals(pluginInstance.getId())){
+                    continue;
+                }
+                
+                if(PluginInstances.CONTAINER_STATUS_RUNNING.equalsIgnoreCase(inst.getContainerStatus())){
+                    hasOneMoreRunningInstances = true;
+                    break;
+                }
+            }
+        }
+        
+        if(hasOneMoreRunningInstances){
+            logger.info("There are still one or more plugin instances running for {}", packageId);
+            return;
+        }
         
         List<PluginPackageMenus> pluginPackageMenusList = packageMenuRepository.selectAllMenusByStatusAndPluginPackage(fromStatus, packageId);
         if (pluginPackageMenusList != null) {

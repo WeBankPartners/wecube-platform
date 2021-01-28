@@ -597,6 +597,8 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
                 entityDataName = entity.getEntityDataId();
             }
             sb.append(entity.getProcDefName()).append(":").append(entityDataName);
+            sb.append(":").append(entity.getOperator()).append(":").append(formatDate(entity.getCreatedTime()));
+
 
             size++;
         }
