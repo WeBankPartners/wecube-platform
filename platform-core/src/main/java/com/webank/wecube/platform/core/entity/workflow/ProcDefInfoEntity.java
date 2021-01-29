@@ -1,16 +1,8 @@
 package com.webank.wecube.platform.core.entity.workflow;
 
-import javax.persistence.Basic;
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.FetchType;
-import javax.persistence.Id;
-import javax.persistence.Lob;
-import javax.persistence.Table;
+import java.util.Date;
 
-@Entity
-@Table(name = "CORE_RE_PROC_DEF_INFO")
-public class ProcDefInfoEntity extends BaseStatusFeaturedEntity {
+public class ProcDefInfoEntity {
 
     public static final String DRAFT_STATUS = "draft";
     public static final String DEPLOYED_STATUS = "deployed";
@@ -21,44 +13,49 @@ public class ProcDefInfoEntity extends BaseStatusFeaturedEntity {
     public static final String PROC_DATA_FORMAT_XML = "xml";
     public static final String PROC_DATA_FORMAT_JSON = "json";
 
-    @Id
-    @Column(name = "ID")
+    public static final String DYNAMIC_BIND_YES = "Y";
+    public static final String DYNAMIC_BIND_NO = "N";
+
+    public static final String EXCLUDE_MODE_YES = "Y";
+    public static final String EXCLUDE_MODE_NO = "N";
+
     private String id;
 
-    @Column(name = "PROC_DEF_KEY")
-    private String procDefKey;
+    private String createdBy;
 
-    @Column(name = "PROC_DEF_NAME")
-    private String procDefName;
+    private Date createdTime;
 
-    @Column(name = "PROC_DEF_KERNEL_ID")
+    private String updatedBy;
+
+    private Date updatedTime;
+
+    private Boolean active = true;
+
+    private Integer rev;
+
+    private String status;
+
+    private String procDefDataFmt;
+
     private String procDefKernelId;
 
-    @Column(name = "PROC_DEF_VER")
-    private Integer procDefVersion;
+    private String procDefKey;
 
-    @Column(name = "ROOT_ENTITY")
+    private String procDefName;
+
+    private Integer procDefVer;
+
     private String rootEntity;
-    
-//    @Column(name = "ROOT_ENTITY_NAME")
-//    private String rootEntityName;
 
-    @Lob
-    @Basic(fetch=FetchType.EAGER)
-    @Column(name = "PROC_DEF_DATA",columnDefinition="text")
+    private Boolean isDeleted = false;
+
+    private String owner;
+
+    private String ownerGrp;
+
     private String procDefData;
 
-    @Column(name = "PROC_DEF_DATA_FMT")
-    private String procDefDataFormat = PROC_DATA_FORMAT_XML;
-    
-    @Column(name = "OWNER")
-    private String owner;
-    
-    @Column(name = "OWNER_GRP")
-    private String ownerGroup;
-    
-    @Column(name = "IS_DELETED")
-    private boolean deleted = false;
+    private String excludeMode;
 
     public String getId() {
         return id;
@@ -66,6 +63,78 @@ public class ProcDefInfoEntity extends BaseStatusFeaturedEntity {
 
     public void setId(String id) {
         this.id = id;
+    }
+
+    public String getCreatedBy() {
+        return createdBy;
+    }
+
+    public void setCreatedBy(String createdBy) {
+        this.createdBy = createdBy;
+    }
+
+    public Date getCreatedTime() {
+        return createdTime;
+    }
+
+    public void setCreatedTime(Date createdTime) {
+        this.createdTime = createdTime;
+    }
+
+    public String getUpdatedBy() {
+        return updatedBy;
+    }
+
+    public void setUpdatedBy(String updatedBy) {
+        this.updatedBy = updatedBy;
+    }
+
+    public Date getUpdatedTime() {
+        return updatedTime;
+    }
+
+    public void setUpdatedTime(Date updatedTime) {
+        this.updatedTime = updatedTime;
+    }
+
+    public Boolean getActive() {
+        return active;
+    }
+
+    public void setActive(Boolean active) {
+        this.active = active;
+    }
+
+    public Integer getRev() {
+        return rev;
+    }
+
+    public void setRev(Integer rev) {
+        this.rev = rev;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+
+    public String getProcDefDataFmt() {
+        return procDefDataFmt;
+    }
+
+    public void setProcDefDataFmt(String procDefDataFmt) {
+        this.procDefDataFmt = procDefDataFmt;
+    }
+
+    public String getProcDefKernelId() {
+        return procDefKernelId;
+    }
+
+    public void setProcDefKernelId(String procDefKernelId) {
+        this.procDefKernelId = procDefKernelId;
     }
 
     public String getProcDefKey() {
@@ -84,20 +153,12 @@ public class ProcDefInfoEntity extends BaseStatusFeaturedEntity {
         this.procDefName = procDefName;
     }
 
-    public String getProcDefKernelId() {
-        return procDefKernelId;
+    public Integer getProcDefVer() {
+        return procDefVer;
     }
 
-    public void setProcDefKernelId(String procDefKernelId) {
-        this.procDefKernelId = procDefKernelId;
-    }
-
-    public Integer getProcDefVersion() {
-        return procDefVersion;
-    }
-
-    public void setProcDefVersion(Integer procDefVersion) {
-        this.procDefVersion = procDefVersion;
+    public void setProcDefVer(Integer procDefVer) {
+        this.procDefVer = procDefVer;
     }
 
     public String getRootEntity() {
@@ -108,20 +169,12 @@ public class ProcDefInfoEntity extends BaseStatusFeaturedEntity {
         this.rootEntity = rootEntity;
     }
 
-    public String getProcDefData() {
-        return procDefData;
+    public Boolean getIsDeleted() {
+        return isDeleted;
     }
 
-    public void setProcDefData(String procDefData) {
-        this.procDefData = procDefData;
-    }
-
-    public String getProcDefDataFormat() {
-        return procDefDataFormat;
-    }
-
-    public void setProcDefDataFormat(String procDefDataFormat) {
-        this.procDefDataFormat = procDefDataFormat;
+    public void setIsDeleted(Boolean isDeleted) {
+        this.isDeleted = isDeleted;
     }
 
     public String getOwner() {
@@ -132,27 +185,28 @@ public class ProcDefInfoEntity extends BaseStatusFeaturedEntity {
         this.owner = owner;
     }
 
-    public String getOwnerGroup() {
-        return ownerGroup;
+    public String getOwnerGrp() {
+        return ownerGrp;
     }
 
-    public void setOwnerGroup(String ownerGroup) {
-        this.ownerGroup = ownerGroup;
+    public void setOwnerGrp(String ownerGrp) {
+        this.ownerGrp = ownerGrp;
     }
 
-    public boolean isDeleted() {
-        return deleted;
+    public String getProcDefData() {
+        return procDefData;
     }
 
-    public void setDeleted(boolean deleted) {
-        this.deleted = deleted;
+    public void setProcDefData(String procDefData) {
+        this.procDefData = procDefData;
     }
 
-//    public String getRootEntityName() {
-//        return rootEntityName;
-//    }
-//
-//    public void setRootEntityName(String rootEntityName) {
-//        this.rootEntityName = rootEntityName;
-//    }
+    public String getExcludeMode() {
+        return excludeMode;
+    }
+
+    public void setExcludeMode(String excludeMode) {
+        this.excludeMode = excludeMode;
+    }
+
 }

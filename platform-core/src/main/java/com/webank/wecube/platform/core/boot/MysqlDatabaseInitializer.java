@@ -378,6 +378,15 @@ final class MysqlDatabaseInitializer extends AbstractDatabaseInitializer {
             log.info("There is no upgrade files.");
             return;
         }
+        
+        Collections.sort(upgradeFilePaths, new Comparator<Path>() {
+
+            @Override
+            public int compare(Path p1, Path p2) {
+                return p1.getFileName().compareTo(p2.getFileName());
+            }
+
+        });
 
         log.info("upgradeFilePaths size:{}, and upgrade files:", upgradeFilePaths.size());
 
@@ -453,7 +462,7 @@ final class MysqlDatabaseInitializer extends AbstractDatabaseInitializer {
 
         log.info("upgradeFilePaths size:{}, and upgrade files:", upgradeFilePaths.size());
         for (PathAndVersion pv : upgradeFilePaths) {
-            log.info("upgrade file:{}, {}", pv.getPath().getFileName(), pv.getPath().toAbsolutePath());
+            log.info("upgrade file: {} , {}, {}", pv.getVersion(), pv.getPath().getFileName(), pv.getPath().toAbsolutePath());
         }
 
         for (PathAndVersion pv : upgradeFilePaths) {
