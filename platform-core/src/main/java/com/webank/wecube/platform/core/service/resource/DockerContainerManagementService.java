@@ -27,7 +27,7 @@ import com.github.dockerjava.core.DockerClientConfig;
 import com.google.common.collect.Lists;
 import com.webank.wecube.platform.core.commons.ApplicationProperties;
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
-import com.webank.wecube.platform.core.domain.ResourceItem;
+import com.webank.wecube.platform.core.entity.plugin.ResourceItem;
 import com.webank.wecube.platform.core.utils.JsonUtils;
 
 @Service
@@ -37,15 +37,12 @@ public class DockerContainerManagementService implements ResourceItemService, Re
     private ApplicationProperties.DockerRemoteProperties dockerRemoteProperties;
 
     public DockerClient newDockerClient(String host) {
-        String url = String.format("tcp://%s:%d", host,dockerRemoteProperties.getPort());
-        if(dockerRemoteProperties.getEnableTls() == true){
-            DockerClientConfig config = DefaultDockerClientConfig.createDefaultConfigBuilder()
-                    .withDockerHost(url)
-                    .withDockerTlsVerify(true)
-                    .withDockerCertPath(dockerRemoteProperties.getCertPath())
-                    .build();
+        String url = String.format("tcp://%s:%d", host, dockerRemoteProperties.getPort());
+        if (dockerRemoteProperties.getEnableTls() == true) {
+            DockerClientConfig config = DefaultDockerClientConfig.createDefaultConfigBuilder().withDockerHost(url)
+                    .withDockerTlsVerify(true).withDockerCertPath(dockerRemoteProperties.getCertPath()).build();
             return DockerClientBuilder.getInstance(config).build();
-        }else{
+        } else {
             return DockerClientBuilder.getInstance(url).build();
         }
     }
@@ -65,7 +62,8 @@ public class DockerContainerManagementService implements ResourceItemService, Re
         String volumeBindingsString = additionalProperties.get("volumeBindings");
         String envVariablesString = additionalProperties.get("envVariables");
 
-        log.info(String.format("Receive request to create container[%s] with image[%s] and port[%s] and volume[%s] and env[%s]",
+        log.info(String.format(
+                "Receive request to create container[%s] with image[%s] and port[%s] and volume[%s] and env[%s]",
                 containerName, imageName, portBindingsString, volumeBindingsString, envVariablesString));
 
         List<String> portBindings = (StringUtils.isBlank(portBindingsString) ? Lists.newArrayList()
@@ -74,7 +72,7 @@ public class DockerContainerManagementService implements ResourceItemService, Re
                 : Arrays.asList(volumeBindingsString.split(",")));
         List<String> envVariables = (StringUtils.isBlank(envVariablesString) ? Lists.newArrayList()
                 : Arrays.asList(envVariablesString.split("\\\\,")));
-        log.info("env list= "+envVariables.toString());
+        log.info("env list= " + envVariables.toString());
 
         List<Container> containers = dockerClient.listContainersCmd().withShowAll(true)
                 .withFilter("name", Arrays.asList(containerName)).exec();
@@ -141,10 +139,26 @@ public class DockerContainerManagementService implements ResourceItemService, Re
         List<String> envList = new ArrayList<String>();
 
         for (String env : envVariables) {
-            String[] envArray = env.split("=");
-            if (envArray.length == 2 && !envArray[1].trim().isEmpty()) {
-                envList.add(envArray[0].trim() + "=" + envArray[1].trim());
+            if(StringUtils.isBlank(env)){
+                continue;
             }
+            int idx = env.indexOf("=");
+            if (idx > 0) {
+                String envName = env.substring(0, idx);
+                String envVal = env.substring(idx + 1, env.length());
+                if (StringUtils.isNoneBlank(envVal)) {
+//                    envList.add(env.trim());
+                    envList.add(envName.trim() + "=" + envVal.trim());
+                } else {
+                    log.info("env variable {} was discarded:{} ", envName, env);
+                }
+            } else {
+                envList.add(env.trim());
+            }
+            // String[] envArray = env.split("=");
+            // if (envArray.length == 2 && !envArray[1].trim().isEmpty()) {
+            // envList.add(envArray[0].trim() + "=" + envArray[1].trim());
+            // }
         }
         return envList;
     }
@@ -176,8 +190,9 @@ public class DockerContainerManagementService implements ResourceItemService, Re
         List<Container> containers = dockerClient.listContainersCmd().withShowAll(true)
                 .withFilter("name", Arrays.asList(containerName)).exec();
         if (containers.isEmpty()) {
-            throw new WecubeCoreException("3237",String
-                    .format("Failed to start container with name [%s] : Container is not exists.", containerName), containerName);
+            throw new WecubeCoreException("3237",
+                    String.format("Failed to start container with name [%s] : Container is not exists.", containerName),
+                    containerName);
         }
 
         Container container = containers.get(0);
@@ -195,8 +210,9 @@ public class DockerContainerManagementService implements ResourceItemService, Re
         List<Container> containers = dockerClient.listContainersCmd().withShowAll(true)
                 .withFilter("name", Arrays.asList(containerName)).exec();
         if (containers.isEmpty()) {
-            throw new WecubeCoreException("3238",String
-                    .format("Failed to start container with name [%s] : Container is not exists.", containerName), containerName);
+            throw new WecubeCoreException("3238",
+                    String.format("Failed to start container with name [%s] : Container is not exists.", containerName),
+                    containerName);
         }
 
         Container container = containers.get(0);
