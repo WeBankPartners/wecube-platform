@@ -5,6 +5,11 @@ server:
 logging:
    config: classpath:logback-spring.xml
 spring:
+   datasource:
+      url: jdbc:mysql://${MYSQL_SERVER_ADDR:localhost}:${MYSQL_SERVER_PORT:3306}/${MYSQL_SERVER_DATABASE_NAME:auth_server}?useUnicode=true&characterEncoding=UTF8&useJDBCTCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=${TZ:Asia/Shanghai}&useSSL=false
+      username: ${MYSQL_USER_NAME:db_user}
+      password: ${MYSQL_USER_PASSWORD:db_password}
+      driver-class-name: com.mysql.cj.jdbc.Driver
    profiles:
       active: dev
    messages:
