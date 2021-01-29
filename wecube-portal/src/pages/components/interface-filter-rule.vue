@@ -90,8 +90,8 @@ export default {
     allEntity () {
       let entity = []
       this.allDataModelsWithAttrs.forEach(_ => {
-        if (_.pluginPackageEntities) {
-          entity = entity.concat(_.pluginPackageEntities).map(i => {
+        if (_.entities) {
+          entity = entity.concat(_.entities).map(i => {
             let noneFound = i.attributes.find(_ => _.name === 'NONE')
             return {
               ...i,
