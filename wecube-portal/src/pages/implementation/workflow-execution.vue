@@ -560,24 +560,25 @@ export default {
         message: '',
         requestBody: ''
       },
-      currentInstanceStatusForNodeOperation: '' // 流程状态
+      currentInstanceStatusForNodeOperation: '', // 流程状态
+      currentInstanceStatus: true
     }
   },
   computed: {
-    currentInstanceStatus () {
-      if (!this.selectedFlowInstance) {
-        return true
-      }
-      if (this.selectedFlowInstance && this.selectedFlowInstance.length === 0) {
-        return true
-      }
-      const found = this.allFlowInstances.find(_ => _.id === this.selectedFlowInstance)
-      if (found && (found.status === 'Completed' || found.status === 'InternallyTerminated')) {
-        return true
-      } else {
-        return false
-      }
-    },
+    // currentInstanceStatus () {
+    //   if (!this.selectedFlowInstance) {
+    //     return true
+    //   }
+    //   if (this.selectedFlowInstance && this.selectedFlowInstance.length === 0) {
+    //     return true
+    //   }
+    //   const found = this.allFlowInstances.find(_ => _.id === this.selectedFlowInstance)
+    //   if (found && (found.status === 'Completed' || found.status === 'InternallyTerminated')) {
+    //     return true
+    //   } else {
+    //     return false
+    //   }
+    // },
     currentNodeStatus () {
       if (!this.flowData.flowNodes) {
         return ''
@@ -595,6 +596,7 @@ export default {
       handler (val, oldVal) {
         if (val !== oldVal) {
           this.stopSuccess = false
+          this.currentInstanceStatus = true
         }
       }
     },
@@ -1039,11 +1041,19 @@ export default {
         .selectAll('*')
         .remove()
     },
+    getCurrentInstanceStatus () {
+      const found = this.allFlowInstances.find(_ => _.id === this.selectedFlowInstance)
+      if (found && (found.status === 'Completed' || found.status === 'InternallyTerminated')) {
+        this.currentInstanceStatus = true
+      } else {
+        this.currentInstanceStatus = false
+      }
+    },
     queryHandler () {
       this.currentInstanceStatusForNodeOperation = ''
       this.stop()
       if (!this.selectedFlowInstance) return
-
+      this.getCurrentInstanceStatus()
       this.isEnqueryPage = true
       this.$nextTick(async () => {
         const found = this.allFlowInstances.find(_ => _.id === this.selectedFlowInstance)
@@ -1128,7 +1138,6 @@ export default {
           this.isShowExect = true
         }
         if (data.processSessionId) {
-          console.log(111111)
           this.processSessionId = data.processSessionId
           const binds = await getAllBindingsProcessSessionId(data.processSessionId)
           this.allBindingsList = binds.data
