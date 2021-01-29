@@ -31,6 +31,8 @@ public class AuthServerRestClientProperties {
 
     private String pathHealthCheck = "/auth/v1/health-check";
 
+    private String pathRegisterSubSystem = "/auth/v1/sub-systems";
+
     public String getHost() {
         return host;
     }
@@ -214,4 +216,13 @@ public class AuthServerRestClientProperties {
     public void setPathUserResetPassword(String pathUserResetPassword) {
         this.pathUserResetPassword = pathUserResetPassword;
     }
+
+    public String getPathRegisterSubSystem() {
+        return pathRegisterSubSystem;
+    }
+
+    public void setPathRegisterSubSystem(String pathRegisterSubSystem) {
+        this.pathRegisterSubSystem = pathRegisterSubSystem;
+    }
+
 }

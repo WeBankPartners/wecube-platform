@@ -44,6 +44,7 @@ sed -i "s~{{STATIC_RESOURCE_SERVER_PASSWORD}}~$static_resource_server_password~g
 sed -i "s~{{STATIC_RESOURCE_SERVER_PORT}}~$static_resource_server_port~g" docker-compose.yml
 sed -i "s~{{STATIC_RESOURCE_SERVER_PATH}}~$static_resource_server_path~g" docker-compose.yml
 sed -i "s~{{GATEWAY_URL}}~$gateway_url~g" docker-compose.yml
+sed -i "s~{{GATEWAY_HOST_PORTS}}~$gateway_host_ports~g" docker-compose.yml
 sed -i "s~{{GATEWAY_CUSTOM_PARAM}}~$gateway_custom_param~g" docker-compose.yml
 sed -i "s~{{AUTH_SERVER_IMAGE_NAME}}~$auth_server_image_name~g" docker-compose.yml
 sed -i "s~{{AUTH_SERVER_IMAGE_VERSION}}~$auth_server_image_version~g" docker-compose.yml
