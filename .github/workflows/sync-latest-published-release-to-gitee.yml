@@ -10,6 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
-    - run: sh build/sync-github-latest-release-to-gitee.sh
+    - run: build/sync-github-latest-release-to-gitee.sh
+      shell: bash
       env:
         GITEE_API_TOKEN: ${{ secrets.GITEE_API_TOKEN }}
