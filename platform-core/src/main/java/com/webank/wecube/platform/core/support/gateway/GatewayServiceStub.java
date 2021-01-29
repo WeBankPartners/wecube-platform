@@ -18,10 +18,14 @@ public class GatewayServiceStub {
     private ApplicationProperties applicationProperties;
 
     public GatewayResponse registerRoute(RegisterRouteItemsDto requestBody) {
-        String targetUrl = "http://" + applicationProperties.getGatewayUrl() + REGISTER_ROUTE_ITEMS;
-        log.info("About to POST {} to GATEWAY with requestBody {}", targetUrl, requestBody);
-        GatewayResponse response = restTemplate.postForObject(targetUrl, requestBody, GatewayResponse.class);
-        log.info("GATEWAY response: {} ", response);
+        String[] gatewayHostPortParts = applicationProperties.getGatewayHostPorts().split(",");
+        GatewayResponse response = null;
+        for (String gatewayHostPortPart : gatewayHostPortParts) {
+            String targetUrl = "http://" + gatewayHostPortPart + REGISTER_ROUTE_ITEMS;
+            log.info("About to POST {} to GATEWAY with requestBody {}", targetUrl, requestBody);
+            response = restTemplate.postForObject(targetUrl, requestBody, GatewayResponse.class);
+            log.info("GATEWAY response: {} ", response);
+        }
         return response;
     }
 }

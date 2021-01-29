@@ -59,7 +59,7 @@ export default {
           // handle result sort by name
           return {
             ..._,
-            pluginPackageEntities: _.pluginPackageEntities.sort(function (a, b) {
+            entities: _.entities.sort(function (a, b) {
               var s = a.name.toLowerCase()
               var t = b.name.toLowerCase()
               if (s < t) return -1
@@ -68,7 +68,7 @@ export default {
           }
         })
         data.forEach(i => {
-          i.pluginPackageEntities.forEach(_ => {
+          i.entities.forEach(_ => {
             this.data.push({
               ..._,
               id: '[' + _.packageName + ']' + _.name,

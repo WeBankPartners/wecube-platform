@@ -1,47 +1,62 @@
 package com.webank.wecube.platform.core.service.plugin;
 
-import com.webank.wecube.platform.core.lazyDomain.plugin.LazyPluginPackageResourceFile;
-import com.webank.wecube.platform.core.lazyDomain.plugin.LazyPluginPackage;
-import com.webank.wecube.platform.core.lazyJpa.LazyPluginPackageRepository;
-import com.webank.wecube.platform.core.lazyJpa.LazyPluginPackageResourceFileRepository;
+import java.util.ArrayList;
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import static com.google.common.collect.Sets.newLinkedHashSet;
-
-
+import com.webank.wecube.platform.core.dto.plugin.PluginPackageResourceFileDto;
+import com.webank.wecube.platform.core.entity.plugin.PluginPackageResourceFiles;
+import com.webank.wecube.platform.core.entity.plugin.PluginPackages;
+import com.webank.wecube.platform.core.repository.plugin.PluginPackageResourceFilesMapper;
+import com.webank.wecube.platform.core.repository.plugin.PluginPackagesMapper;
 
 @Service
 @Transactional
 public class PluginPackageResourceFileService {
     @Autowired
-    private LazyPluginPackageResourceFileRepository pluginPackageResourceFileRepository;
+    private PluginPackagesMapper pluginPackagesMapper;
 
     @Autowired
-    private LazyPluginPackageRepository lazyPluginPackageRepository;
+    private PluginPackageResourceFilesMapper pluginPackageResourceFilesMapper;
 
-    public Set<LazyPluginPackageResourceFile> getAllPluginPackageResourceFiles() {
-        Optional<Set<LazyPluginPackage>> pluginPackagesOptional = lazyPluginPackageRepository.findLatestPluginPackagesByStatusGroupByPackageName(LazyPluginPackage.Status.REGISTERED, LazyPluginPackage.Status.RUNNING, LazyPluginPackage.Status.STOPPED);
-        if (pluginPackagesOptional.isPresent()) {
-            Set<String> pluginPackageIds = pluginPackagesOptional.get().stream().map(p->p.getId()).collect(Collectors.toSet());
+    public List<PluginPackageResourceFileDto> getAllPluginPackageResourceFiles() {
+        List<PluginPackageResourceFileDto> resultDtos = new ArrayList<>();
 
-            if (null != pluginPackageIds && pluginPackageIds.size() > 0) {
-                Optional<List<LazyPluginPackageResourceFile>> pluginPackageResourceFilesOptional = pluginPackageResourceFileRepository.findPluginPackageResourceFileByPluginPackageIds(pluginPackageIds.toArray(new String[pluginPackageIds.size()]));
-                if (pluginPackageResourceFilesOptional.isPresent()) {
-                    List<LazyPluginPackageResourceFile> pluginPackageResourceFiles = pluginPackageResourceFilesOptional.get();
-                    if (null != pluginPackageResourceFiles && pluginPackageResourceFiles.size() > 0) {
-                        return newLinkedHashSet(pluginPackageResourceFiles);
-                    }
-                }
-            }
+        List<PluginPackages> pluginPackagesEntities = pluginPackagesMapper
+                .selectAllLatestUploadedPackages(PluginPackages.PLUGIN_PACKAGE_ACTIVE_STATUSES);
+
+        if (pluginPackagesEntities == null || pluginPackagesEntities.isEmpty()) {
+            return resultDtos;
         }
 
-        return null;
+        for (PluginPackages pluginPackageEntity : pluginPackagesEntities) {
+            List<PluginPackageResourceFiles> resourceFilesEntities = pluginPackageResourceFilesMapper
+                    .selectAllByPluginPackage(pluginPackageEntity.getId());
+            if(resourceFilesEntities == null){
+                continue;
+            }
+            
+            for(PluginPackageResourceFiles resourceFilesEntity : resourceFilesEntities){
+                PluginPackageResourceFileDto dto = buildPluginPackageResourceFileDto(resourceFilesEntity);
+                resultDtos.add(dto);
+            }
+        }
+        
+        return resultDtos;
+
+    }
+    
+    private PluginPackageResourceFileDto buildPluginPackageResourceFileDto(PluginPackageResourceFiles entity){
+        PluginPackageResourceFileDto dto = new PluginPackageResourceFileDto();
+        dto.setId(entity.getId());
+        dto.setPackageName(entity.getPackageName());
+        dto.setPackageVersion(entity.getPackageVersion());
+        dto.setRelatedPath(entity.getRelatedPath());
+        dto.setSource(entity.getSource());
+        
+        return dto;
     }
 }

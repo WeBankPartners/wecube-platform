@@ -1,10 +1,9 @@
 package com.webank.wecube.platform.core.controller.plugin;
 
-import static com.webank.wecube.platform.core.dto.CommonResponseDto.okay;
-import static com.webank.wecube.platform.core.dto.CommonResponseDto.okayWithData;
+import static com.webank.wecube.platform.core.dto.plugin.CommonResponseDto.okay;
+import static com.webank.wecube.platform.core.dto.plugin.CommonResponseDto.okayWithData;
 
 import java.util.List;
-import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -16,138 +15,207 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.webank.wecube.platform.core.commons.WecubeCoreException;
-import com.webank.wecube.platform.core.domain.SystemVariable;
-import com.webank.wecube.platform.core.domain.plugin.PluginPackage;
-import com.webank.wecube.platform.core.domain.plugin.PluginPackageAuthority;
-import com.webank.wecube.platform.core.dto.CommonResponseDto;
-import com.webank.wecube.platform.core.dto.MenuItemDto;
-import com.webank.wecube.platform.core.dto.PluginDeclarationDto;
-import com.webank.wecube.platform.core.dto.PluginPackageDependencyDto;
-import com.webank.wecube.platform.core.dto.PluginPackageRuntimeResouceDto;
-import com.webank.wecube.platform.core.dto.S3PluginActifactDto;
-import com.webank.wecube.platform.core.service.plugin.PluginPackageService;
+import com.webank.wecube.platform.core.dto.plugin.CommonResponseDto;
+import com.webank.wecube.platform.core.dto.plugin.MenuItemDto;
+import com.webank.wecube.platform.core.dto.plugin.PluginDeclarationDto;
+import com.webank.wecube.platform.core.dto.plugin.PluginPackageAuthoritiesDto;
+import com.webank.wecube.platform.core.dto.plugin.PluginPackageDependencyDto;
+import com.webank.wecube.platform.core.dto.plugin.PluginPackageInfoDto;
+import com.webank.wecube.platform.core.dto.plugin.PluginPackageRuntimeResouceDto;
+import com.webank.wecube.platform.core.dto.plugin.S3PluginActifactDto;
+import com.webank.wecube.platform.core.dto.plugin.SystemVariableDto;
+import com.webank.wecube.platform.core.dto.plugin.UploadPackageResultDto;
+import com.webank.wecube.platform.core.service.plugin.PluginArtifactsMgmtService;
+import com.webank.wecube.platform.core.service.plugin.PluginPackageMgmtService;
 
 @RestController
 @RequestMapping("/v1")
 public class PluginPackageController {
 
     @Autowired
-    private PluginPackageService pluginPackageService;
+    private PluginPackageMgmtService pluginPackageMgmtService;
 
+    @Autowired
+    private PluginArtifactsMgmtService pluginArtifactsMgmtService;
+
+    /**
+     * 
+     * @return
+     */
     @GetMapping("/plugin-artifacts")
     public CommonResponseDto listS3PluginActifacts() {
-        return okayWithData(pluginPackageService.listS3PluginActifacts());
+        return okayWithData(pluginArtifactsMgmtService.listS3PluginActifacts());
     }
 
+    /**
+     * 
+     * @param pullRequestDto
+     * @return
+     */
     @PostMapping("/plugin-artifacts/pull-requests")
     public CommonResponseDto createS3PluginActifactPullRequest(@RequestBody S3PluginActifactDto pullRequestDto) {
-        return okayWithData(pluginPackageService.createS3PluginActifactPullRequest(pullRequestDto));
+        return okayWithData(pluginArtifactsMgmtService.createS3PluginActifactPullRequest(pullRequestDto));
     }
 
+    /**
+     * 
+     * @param requestId
+     * @return
+     */
     @GetMapping("/plugin-artifacts/pull-requests/{request-id}")
     public CommonResponseDto queryS3PluginActifactPullRequest(@PathVariable(value = "request-id") String requestId) {
-        return okayWithData(pluginPackageService.queryS3PluginActifactPullRequest(requestId));
+        return okayWithData(pluginArtifactsMgmtService.queryS3PluginActifactPullRequest(requestId));
     }
 
+    /**
+     * 
+     * @param file
+     * @return
+     * @throws Exception
+     */
     @PostMapping("/packages")
     public CommonResponseDto uploadPluginPackage(@RequestParam(value = "zip-file") MultipartFile file)
             throws Exception {
         if (file == null || file.isEmpty())
             throw new IllegalArgumentException("zip-file required.");
 
-        PluginPackage pluginPackage = pluginPackageService.uploadPackage(file);
-        return okayWithData(pluginPackage);
+        UploadPackageResultDto result = pluginArtifactsMgmtService.uploadPackage(file);
+        return okayWithData(result);
     }
 
+    /**
+     * 
+     * @param ifDistinct
+     * @return
+     */
     @GetMapping("/packages")
-    public CommonResponseDto getAllPluginPackages(
+    public CommonResponseDto fetchAllPluginPackages(
             @RequestParam(value = "distinct", required = false, defaultValue = "false") boolean ifDistinct) {
         if (ifDistinct) {
-            return okayWithData(pluginPackageService.getAllDistinctPluginPackageNameList());
+            return okayWithData(pluginPackageMgmtService.getDistinctPluginPackages());
         } else {
-            return okayWithData(pluginPackageService.getPluginPackages());
+            return okayWithData(pluginPackageMgmtService.fetchAllPluginPackages());
         }
 
     }
 
+    /**
+     * 
+     * @param packageId
+     * @return
+     */
     @PostMapping("/packages/register/{package-id:.+}")
     public CommonResponseDto registerPluginPackage(@PathVariable(value = "package-id") String packageId) {
-        PluginPackage pluginPackage = null;
-        try {
-            pluginPackage = pluginPackageService.registerPluginPackage(packageId);
-        } catch (Exception e) {
-            String msg = String.format("Failed to register plugin package with error message [%s]", e.getMessage());
-            throw new WecubeCoreException("3307", msg, e.getMessage());
-        }
+        PluginPackageInfoDto pluginPackage = pluginPackageMgmtService.registerPluginPackage(packageId);
         return okayWithData(pluginPackage);
     }
 
+    /**
+     * 
+     * @param packageId
+     * @return
+     */
     @PostMapping("/packages/decommission/{package-id:.+}")
     public CommonResponseDto decommissionPluginPackage(@PathVariable(value = "package-id") String packageId) {
-        try {
-            pluginPackageService.decommissionPluginPackage(packageId);
-        } catch (Exception e) {
-            String msg = String.format("Failed to decommission plugin package with error message [%s]", e.getMessage());
-            throw new WecubeCoreException("3308", msg, e.getMessage());
-        }
+        pluginPackageMgmtService.decommissionPluginPackage(packageId);
         return okay();
     }
 
-    @GetMapping("/packages/{id}/dependencies")
-    public CommonResponseDto getDependenciesById(@PathVariable(value = "id") String packageId) {
-        PluginPackageDependencyDto dependencySetFoundById;
-        dependencySetFoundById = pluginPackageService.getDependenciesById(packageId);
-        return okayWithData(dependencySetFoundById);
+    /**
+     * 
+     * @param packageId
+     * @return
+     */
+    @GetMapping("/packages/{package-id}/dependencies")
+    public CommonResponseDto fetchPluginPackageDependencies(@PathVariable(value = "package-id") String packageId) {
+        PluginPackageDependencyDto dependencyDto = pluginPackageMgmtService.fetchPluginPackageDependencies(packageId);
+        return okayWithData(dependencyDto);
     }
 
-    @GetMapping("/packages/{id}/menus")
-    public CommonResponseDto getMenusById(@PathVariable(value = "id") String packageId) {
-        List<MenuItemDto> menuList;
-        menuList = pluginPackageService.getMenusById(packageId);
+    /**
+     * 
+     * @param packageId
+     * @return
+     */
+    @GetMapping("/packages/{package-id}/menus")
+    public CommonResponseDto getMenusByPackageId(@PathVariable(value = "package-id") String packageId) {
+        List<MenuItemDto> menuList = pluginPackageMgmtService.getMenusByPackageId(packageId);
         return okayWithData(menuList);
     }
 
-    @GetMapping("/packages/{id}/system-parameters")
-    public CommonResponseDto getSystemParamsById(@PathVariable(value = "id") String packageId) {
-        List<SystemVariable> systemVariableSet;
-        systemVariableSet = pluginPackageService.getSystemVarsById(packageId);
+    /**
+     * 
+     * @param packageId
+     * @return
+     */
+    @GetMapping("/packages/{package-id}/system-parameters")
+    public CommonResponseDto getSystemParamsByPackageId(@PathVariable(value = "package-id") String packageId) {
+        List<SystemVariableDto> systemVariableSet = pluginPackageMgmtService.getSystemVarsByPackageId(packageId);
         return okayWithData(systemVariableSet);
     }
 
-    @GetMapping("/packages/{id}/authorities")
-    public CommonResponseDto getAuthorityById(@PathVariable(value = "id") String packageId) {
-        Set<PluginPackageAuthority> authoritySet;
-        authoritySet = pluginPackageService.getAuthoritiesById(packageId);
+    /**
+     * 
+     * @param packageId
+     * @return
+     */
+    @GetMapping("/packages/{package-id}/authorities")
+    public CommonResponseDto getAuthorityByPackageId(@PathVariable(value = "package-id") String packageId) {
+        List<PluginPackageAuthoritiesDto> authoritySet = pluginPackageMgmtService.getAuthoritiesByPackageId(packageId);
         return okayWithData(authoritySet);
     }
 
-    @GetMapping("/packages/{id}/runtime-resources")
-    public CommonResponseDto getResourceById(@PathVariable(value = "id") String packageId) {
-        PluginPackageRuntimeResouceDto resouceFoundById;
-        resouceFoundById = pluginPackageService.getResourcesById(packageId);
+    /**
+     * 
+     * @param packageId
+     * @return
+     */
+    @GetMapping("/packages/{package-id}/runtime-resources")
+    public CommonResponseDto getResourceByPackageId(@PathVariable(value = "package-id") String packageId) {
+        PluginPackageRuntimeResouceDto resouceFoundById = pluginPackageMgmtService.getResourcesByPackageId(packageId);
         return okayWithData(resouceFoundById);
     }
 
-    @GetMapping("/packages/{id}/plugins")
-    public CommonResponseDto getPluginsById(@PathVariable(value = "id") String packageId) {
-        return okayWithData(pluginPackageService.getPluginConfigsByPackageId(packageId, true));
+    /**
+     * 
+     * @param packageId
+     * @return
+     */
+    @GetMapping("/packages/{package-id}/plugins")
+    public CommonResponseDto getRichPluginConfigsByPackageId(@PathVariable(value = "package-id") String packageId) {
+        return okayWithData(pluginPackageMgmtService.getRichPluginConfigsByPackageId(packageId));
     }
 
-    @GetMapping("/packages/{id}/plugin-configs")
-    public CommonResponseDto getPluginConfigsByPackageId(@PathVariable(value = "id") String packageId) {
-        return okayWithData(pluginPackageService.getPluginConfigsByPackageId(packageId, false));
+    /**
+     * 
+     * @param packageId
+     * @return
+     */
+    @GetMapping("/packages/{package-id}/plugin-configs")
+    public CommonResponseDto getPluginConfigsByPackageId(@PathVariable(value = "package-id") String packageId) {
+        return okayWithData(pluginPackageMgmtService.getPluginConfigsByPackageId(packageId));
     }
 
+    /**
+     * 
+     * @param packageId
+     * @return
+     */
     @GetMapping("/packages/{package-id}/plugin-config-outlines")
     public CommonResponseDto getPluginConfigOutlinesByPackageId(@PathVariable(value = "package-id") String packageId) {
-        return okayWithData(pluginPackageService.getPluginConfigOutlinesByPackageId(packageId));
+        return okayWithData(pluginPackageMgmtService.getPluginConfigOutlinesByPackageId(packageId));
     }
 
+    /**
+     * 
+     * @param packageId
+     * @param pluginDeclarationDtos
+     * @return
+     */
     @PostMapping("/packages/{package-id}/plugin-configs/enable-in-batch")
     public CommonResponseDto enablePluginConfigInBatch(@PathVariable(value = "package-id") String packageId,
             @RequestBody List<PluginDeclarationDto> pluginDeclarationDtos) {
-        pluginPackageService.enablePluginConfigInBatchByPackageId(packageId, pluginDeclarationDtos);
+        pluginPackageMgmtService.enablePluginConfigsInBatchByPackageId(packageId, pluginDeclarationDtos);
         return okay();
     }
 

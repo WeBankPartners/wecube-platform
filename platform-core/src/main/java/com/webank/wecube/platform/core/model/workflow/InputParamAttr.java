@@ -12,7 +12,7 @@ public class InputParamAttr {
     public static final int DEFAULT_VALUE_DATA_TYPE_NUMBER = 0;
 
     private String name;
-    private String type; // string, number
+    private String type; // string, number, object
     private String mapType; // entity, context, constant
     private List<Object> values = new ArrayList<>();
     private boolean sensitive;

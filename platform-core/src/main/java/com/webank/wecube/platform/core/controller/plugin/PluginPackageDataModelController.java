@@ -5,16 +5,13 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.webank.wecube.platform.core.dto.CommonResponseDto;
-import com.webank.wecube.platform.core.dto.DataModelEntityDto;
-import com.webank.wecube.platform.core.dto.PluginPackageAttributeDto;
-import com.webank.wecube.platform.core.dto.PluginPackageDataModelDto;
-import com.webank.wecube.platform.core.service.PluginPackageDataModelServiceImpl;
+import com.webank.wecube.platform.core.dto.plugin.CommonResponseDto;
+import com.webank.wecube.platform.core.dto.plugin.DataModelEntityDto;
+import com.webank.wecube.platform.core.dto.plugin.PluginPackageAttributeDto;
+import com.webank.wecube.platform.core.service.plugin.PluginPackageDataModelService;
 
 @RestController
 @RequestMapping("/v1")
@@ -22,8 +19,12 @@ import com.webank.wecube.platform.core.service.PluginPackageDataModelServiceImpl
 public class PluginPackageDataModelController {
 
     @Autowired
-    private PluginPackageDataModelServiceImpl pluginPackageDataModelService;
+    private PluginPackageDataModelService pluginPackageDataModelService;
 
+    /**
+     * 
+     * @return
+     */
     @GetMapping("/models")
     public CommonResponseDto allDataModels() {
         return CommonResponseDto.okayWithData(pluginPackageDataModelService.overview());
@@ -46,10 +47,10 @@ public class PluginPackageDataModelController {
         return CommonResponseDto.okayWithData(pluginPackageDataModelService.getRefByInfo(packageName, entityName));
     }
 
-    @PostMapping("/models")
-    public CommonResponseDto applyNewDataModel(@RequestBody PluginPackageDataModelDto dataModelDto) {
-        return CommonResponseDto.okayWithData(pluginPackageDataModelService.register(dataModelDto, true));
-    }
+//    @PostMapping("/models")
+//    public CommonResponseDto applyNewDataModel(@RequestBody PluginPackageDataModelDto dataModelDto) {
+//        return CommonResponseDto.okayWithData(pluginPackageDataModelService.register(dataModelDto, true));
+//    }
 
     @GetMapping("/models/package/{plugin-package-name}/entity/{entity-name}/attributes")
     public CommonResponseDto getAttributeInfoByPackageNameAndEntityName(
@@ -60,6 +61,12 @@ public class PluginPackageDataModelController {
         return CommonResponseDto.okayWithData(result);
     }
 
+    /**
+     * 
+     * @param packageName
+     * @param entityName
+     * @return
+     */
     @GetMapping("/models/package/{plugin-package-name}/entity/{entity-name}")
     public CommonResponseDto getEntityInfoByPackageNameAndEntityName(
             @PathVariable(value = "plugin-package-name") String packageName,

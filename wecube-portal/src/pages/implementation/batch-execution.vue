@@ -250,7 +250,7 @@
             <FormItem :rules="{ required: true }" :show-message="false" :label="$t('bc_query_path')">
               <FilterRules
                 :allDataModelsWithAttrs="allEntityType"
-                :needNativeAttr="true"
+                :needNativeAttr="false"
                 :needAttr="true"
                 v-model="dataModelExpression"
               ></FilterRules>
@@ -442,15 +442,22 @@
       </div>
     </Modal>
 
-    <Modal v-model="confirmModal.isShowConfirmModal" width="800">
+    <Modal v-model="confirmModal.isShowConfirmModal" width="900">
       <div>
         <Icon :size="28" :color="'#f90'" type="md-help-circle" />
         <span class="confirm-msg">{{ $t('confirm_to_exect') }}</span>
       </div>
-      <pre style="margin-left: 44px;">{{ this.confirmModal.message }}</pre>
+      <div style="max-height: 400px;overflow-y: auto;">
+        <pre style="margin-left: 44px;">{{ this.confirmModal.message }}</pre>
+      </div>
       <div slot="footer">
+        <span style="margin-left:30px;color:#ed4014;float: left;text-align:left">
+          <Checkbox v-model="confirmModal.check">{{ $t('dangerous_confirm_tip') }}</Checkbox>
+        </span>
         <Button type="text" @click="confirmModal.isShowConfirmModal = false">{{ $t('bc_cancel') }}</Button>
-        <Button type="warning" @click="confirmToExecution">{{ $t('bc_confirm') }}</Button>
+        <Button type="warning" :disabled="!confirmModal.check" @click="confirmToExecution">{{
+          $t('bc_confirm')
+        }}</Button>
       </div>
     </Modal>
   </div>
@@ -467,7 +474,6 @@ import {
   deleteCollections,
   getRoleList,
   getRolesByCurrentUser,
-  deleteCollectionsRole,
   addCollectionsRole,
   saveBatchExecution,
   updateCollections,
@@ -583,6 +589,7 @@ export default {
 
       confirmModal: {
         isShowConfirmModal: false,
+        check: false,
         continueToken: '',
         message: '',
         requestBody: '',
@@ -730,7 +737,7 @@ export default {
         this.allRolesBackUp = data.map(_ => {
           return {
             ..._,
-            key: _.id,
+            key: _.name,
             label: _.displayName
           }
         })
@@ -742,7 +749,7 @@ export default {
         this.allRoles = data.map(_ => {
           return {
             ..._,
-            key: _.id,
+            key: _.name,
             label: _.displayName
           }
         })
@@ -775,84 +782,9 @@ export default {
       this.editCollectionName = false
     },
     async handleMgmtRoleTransferChange (newTargetKeys, direction, moveKeys) {
-      if (this.isAddCollect) {
-        this.MGMT = newTargetKeys
-      } else {
-        let params = {
-          permission: 'mgmt',
-          roleId: moveKeys
-        }
-        if (direction === 'right') {
-          const { status, message } = await addCollectionsRole(this.selectedCollection.favoritesId, params)
-          if (status === 'OK') {
-            this.$Notice.success({
-              title: 'Success',
-              desc: message
-            })
-          } else {
-            this.$Notice.error({
-              title: 'Fail',
-              desc: message
-            })
-          }
-        } else {
-          if (newTargetKeys.length === 0) {
-            this.$Message.warning(this.$t('bc_mgmt_role_cannot_empty'))
-          } else {
-            const { status, message } = await deleteCollectionsRole(this.selectedCollection.favoritesId, params)
-            if (status === 'OK') {
-              this.$Notice.success({
-                title: 'Success',
-                desc: message
-              })
-            } else {
-              this.$Notice.error({
-                title: 'Fail',
-                desc: message
-              })
-            }
-          }
-        }
-      }
-
       this.MGMT = newTargetKeys
     },
     async handleUseRoleTransferChange (newTargetKeys, direction, moveKeys) {
-      if (this.isAddCollect) {
-        this.USE = newTargetKeys
-      } else {
-        let params = {
-          permission: 'use',
-          roleId: moveKeys
-        }
-        if (direction === 'right') {
-          const { status, message } = await addCollectionsRole(this.selectedCollection.favoritesId, params)
-          if (status === 'OK') {
-            this.$Notice.success({
-              title: 'Success',
-              desc: message
-            })
-          } else {
-            this.$Notice.error({
-              title: 'Fail',
-              desc: message
-            })
-          }
-        } else {
-          const { status, message } = await deleteCollectionsRole(this.selectedCollection.favoritesId, params)
-          if (status === 'OK') {
-            this.$Notice.success({
-              title: 'Success',
-              desc: message
-            })
-          } else {
-            this.$Notice.error({
-              title: 'Fail',
-              desc: message
-            })
-          }
-        }
-      }
       this.USE = newTargetKeys
     },
     showDeleteConfirm (id, name) {
@@ -872,8 +804,26 @@ export default {
         this.$Message.success(message)
       }
     },
+    async updateRoles (favoritesId) {
+      const payload = {
+        permissionToRole: { MGMT: this.MGMT, USE: this.USE }
+      }
+      const { status, message } = await addCollectionsRole(favoritesId, payload)
+      if (status === 'OK') {
+        this.$Notice.success({
+          title: 'Success',
+          desc: message
+        })
+      } else {
+        this.$Notice.error({
+          title: 'Fail',
+          desc: message
+        })
+      }
+    },
     async confirmCollection () {
       if (!this.isAddCollect) {
+        await this.updateRoles(this.selectedCollection.favoritesId)
         this.collectionRoleManageModal = false
         return
       }
@@ -1021,7 +971,7 @@ export default {
           // handle result sort by name
           return {
             ..._,
-            pluginPackageEntities: _.pluginPackageEntities.sort(function (a, b) {
+            entities: _.entities.sort(function (a, b) {
               var s = a.name.toLowerCase()
               var t = b.name.toLowerCase()
               if (s < t) return -1

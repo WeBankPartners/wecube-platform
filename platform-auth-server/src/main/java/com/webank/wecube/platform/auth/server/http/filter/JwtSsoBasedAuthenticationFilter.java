@@ -111,7 +111,7 @@ public class JwtSsoBasedAuthenticationFilter extends BasicAuthenticationFilter {
             throw new AccessDeniedException("Access token is required.");
         }
         
-        log.debug("Subject:{};Authorities:{}", username, sAuthorities);
+        log.info("Subject:{};Authorities:{}", username, sAuthorities);
 
         if (sAuthorities.length() >= 2) {
             sAuthorities = sAuthorities.substring(1);

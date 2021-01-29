@@ -12,12 +12,12 @@ import org.springframework.stereotype.Service;
 
 import com.webank.wecube.platform.core.commons.AuthenticationContextHolder;
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
-import com.webank.wecube.platform.core.domain.SystemVariable;
 import com.webank.wecube.platform.core.dto.user.RoleDto;
 import com.webank.wecube.platform.core.dto.user.UserDto;
 import com.webank.wecube.platform.core.dto.user.UserPasswordDto;
 import com.webank.wecube.platform.core.dto.user.UserPasswordResetDto;
-import com.webank.wecube.platform.core.service.SystemVariableService;
+import com.webank.wecube.platform.core.entity.plugin.SystemVariables;
+import com.webank.wecube.platform.core.service.plugin.SystemVariableService;
 import com.webank.wecube.platform.core.support.RestClientException;
 import com.webank.wecube.platform.core.support.authserver.AsRoleDto;
 import com.webank.wecube.platform.core.support.authserver.AsUserDto;
@@ -141,7 +141,7 @@ public class UserManagementServiceImpl implements UserManagementService {
     }
 
     private String tryCalculateUmAuthContext() {
-        List<SystemVariable> sysVars = systemVariableService.getGlobalSystemVariableByName(SYS_VAR_UM_CTX);
+        List<SystemVariables> sysVars = systemVariableService.getGlobalSystemVariableByName(SYS_VAR_UM_CTX);
         if (sysVars == null || sysVars.isEmpty()) {
             String msg = String.format(
                     "System variable %s does NOT exist and UM authentication is not supported currently.",
@@ -161,7 +161,7 @@ public class UserManagementServiceImpl implements UserManagementService {
 
     }
 
-    private String getSystemVariableValue(SystemVariable var) {
+    private String getSystemVariableValue(SystemVariables var) {
         String varVal = var.getValue();
         if (StringUtils.isBlank(varVal)) {
             varVal = var.getDefaultValue();
@@ -335,9 +335,9 @@ public class UserManagementServiceImpl implements UserManagementService {
     }
 
     @Override
-    public List<String> getRoleIdsByUsername(String username) {
+    public List<String> getRoleNamesByUsername(String username) {
         List<RoleDto> roleListByUserName = this.getGrantedRolesByUsername(username);
-        return roleListByUserName.stream().map(RoleDto::getId).collect(Collectors.toList());
+        return roleListByUserName.stream().map(RoleDto::getName).collect(Collectors.toList());
     }
 
     @Override

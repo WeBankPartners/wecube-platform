@@ -9,35 +9,43 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.webank.wecube.platform.core.commons.AuthenticationContextHolder;
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
 import com.webank.wecube.platform.core.dto.event.OperationEventDto;
 import com.webank.wecube.platform.core.dto.event.OperationEventResultDto;
-import com.webank.wecube.platform.core.entity.event.OperationEventEntity;
-import com.webank.wecube.platform.core.jpa.event.OperationEventRepository;
+import com.webank.wecube.platform.core.entity.workflow.OperationEventEntity;
+import com.webank.wecube.platform.core.repository.workflow.OperationEventMapper;
+import com.webank.wecube.platform.workflow.WorkflowConstants;
 
+/**
+ * 
+ * @author gavin
+ *
+ */
 @Service
 public class OperationEventManagementService {
-
-    public static final String OPER_MODE_INSTANT = "instant";
-    public static final String OPER_MODE_DEFER = "defer";
-
     private static final Logger log = LoggerFactory.getLogger(OperationEventManagementService.class);
 
     public static final String BOOLEAN_TRUE = "Y";
     public static final String BOOLEAN_FALSE = "N";
 
     @Autowired
-    private OperationEventRepository operationEventRepository;
+    private OperationEventMapper operationEventMapper;
 
     @Autowired
     private OperationEventProcStarter operationEventProcStarter;
 
+    /**
+     * 
+     * @param eventDto
+     * @return
+     */
     public OperationEventResultDto reportOperationEvent(OperationEventDto eventDto) {
         validateOperationEventInput(eventDto);
 
         String eventSeqNo = eventDto.getEventSeqNo();
 
-        List<OperationEventEntity> operationEventEntities = operationEventRepository.findAllByEventSeqNo(eventSeqNo);
+        List<OperationEventEntity> operationEventEntities = operationEventMapper.selectAllByEventSeqNo(eventSeqNo);
 
         if (operationEventEntities != null && !operationEventEntities.isEmpty()) {
             log.error("operation event already exists,eventSeqNo={}", eventSeqNo);
@@ -47,25 +55,31 @@ public class OperationEventManagementService {
         OperationEventEntity newOperationEventEntity = new OperationEventEntity();
         newOperationEventEntity.setEventSeqNo(eventDto.getEventSeqNo());
         newOperationEventEntity.setEventType(eventDto.getEventType());
-        newOperationEventEntity.setNotifyRequired(parseBoolean(eventDto.getNotifyRequired()));
+        newOperationEventEntity.setIsNotifyRequired(parseBoolean(eventDto.getNotifyRequired()));
         newOperationEventEntity.setNotifyEndpoint(eventDto.getNotifyEndpoint());
-        newOperationEventEntity.setOperationData(eventDto.getOperationData());
-        newOperationEventEntity.setOperationKey(eventDto.getOperationKey());
-        newOperationEventEntity.setOperationUser(eventDto.getOperationUser());
-        newOperationEventEntity.setSourceSubSystem(eventDto.getSourceSubSystem());
-        if (OPER_MODE_INSTANT.equalsIgnoreCase(eventDto.getOperationMode())) {
+        newOperationEventEntity.setOperData(eventDto.getOperationData());
+        newOperationEventEntity.setOperKey(eventDto.getOperationKey());
+        newOperationEventEntity.setOperUser(eventDto.getOperationUser());
+        newOperationEventEntity.setSrcSubSystem(eventDto.getSourceSubSystem());
+        newOperationEventEntity.setCreatedBy(AuthenticationContextHolder.getCurrentUsername());
+        newOperationEventEntity.setCreatedTime(new Date());
+        newOperationEventEntity.setRev(OperationEventEntity.REV_INIT);
+        newOperationEventEntity.setPriority(OperationEventEntity.PRIORITY_INIT);
+        if (OperationEventEntity.OPER_MODE_INSTANT.equalsIgnoreCase(eventDto.getOperationMode())) {
             newOperationEventEntity.setStatus(OperationEventEntity.STATUS_IN_PROGRESS);
+            newOperationEventEntity.setOperMode(OperationEventEntity.OPER_MODE_INSTANT);
         } else {
             newOperationEventEntity.setStatus(OperationEventEntity.STATUS_NEW);
+            newOperationEventEntity.setOperMode(OperationEventEntity.OPER_MODE_DEFER);
         }
 
-        OperationEventEntity savedOperEventEntity = operationEventRepository.saveAndFlush(newOperationEventEntity);
+        operationEventMapper.insert(newOperationEventEntity);
 
-        if (OPER_MODE_INSTANT.equalsIgnoreCase(eventDto.getOperationMode())) {
-            return handleInstantOperationEvent(savedOperEventEntity);
+        if (OperationEventEntity.OPER_MODE_INSTANT.equalsIgnoreCase(eventDto.getOperationMode())) {
+            return handleInstantOperationEvent(newOperationEventEntity);
         }
 
-        return fromOperationEventEntity(savedOperEventEntity);
+        return fromOperationEventEntity(newOperationEventEntity);
     }
 
     private OperationEventResultDto handleInstantOperationEvent(OperationEventEntity instantOperEventEntity) {
@@ -75,8 +89,9 @@ public class OperationEventManagementService {
             return fromOperationEventEntity(entity);
         } catch (Exception e) {
             log.error("failed to process instant operation event", e);
+            instantOperEventEntity.setUpdatedBy(WorkflowConstants.DEFAULT_USER);
             instantOperEventEntity.setUpdatedTime(new Date());
-            instantOperEventEntity.setStatus(OperationEventEntity.STATUS_IN_PROGRESS);
+            instantOperEventEntity.setStatus(OperationEventEntity.STATUS_FAULTED);
             instantOperEventEntity.setPriority(-100);
             throw new WecubeCoreException("Failed to process instant operation event");
         }
@@ -88,14 +103,14 @@ public class OperationEventManagementService {
         result.setEventSeqNo(entity.getEventSeqNo());
         result.setEventType(entity.getEventType());
         result.setNotifyEndpoint(entity.getNotifyEndpoint());
-        result.setNotifyRequired(String.valueOf(entity.getNotifyRequired()));
-        result.setOperationData(entity.getOperationData());
-        result.setOperationKey(entity.getOperationKey());
-        result.setOperationUser(entity.getOperationUser());
+        result.setNotifyRequired(String.valueOf(entity.getIsNotifyRequired()));
+        result.setOperationData(entity.getOperData());
+        result.setOperationKey(entity.getOperKey());
+        result.setOperationUser(entity.getOperUser());
         result.setProcDefId(entity.getProcDefId());
         result.setProcInstId(entity.getProcInstId());
         result.setProcInstKey(entity.getProcInstKey());
-        result.setSourceSubSystem(entity.getSourceSubSystem());
+        result.setSourceSubSystem(entity.getSrcSubSystem());
         result.setStatus(entity.getStatus());
 
         return result;

@@ -92,7 +92,6 @@ export const queryStorageFilesByPackageId = (id, payload) =>
   req.get(`/platform/v1/packages/${id}/resources/s3/files`, payload)
 export const getAllPluginPackageResourceFiles = () => req.get('/platform/v1/resource-files')
 export const pullDynamicDataModel = name => req.get(`/platform/v1/models/package/${name}`)
-export const applyNewDataModel = data => req.post(`/platform/v1/models`, data)
 export const getRefByIdInfoByPackageNameAndEntityName = (pkgName, entityName) =>
   req.get(`/platform/v1/models/package/${pkgName}/entity/${entityName}/refById`)
 export const getModelNodeDetail = (entity, id) => req.get(`/wecmdb/entities/${entity}?filter=id,${id}&sortName=id`)
@@ -162,3 +161,9 @@ export const getConfigByPkgId = id => req.get(`/platform/v1/packages/${id}/plugi
 export const updateConfigStatus = (id, data) =>
   req.post(`/platform/v1/packages/${id}/plugin-configs/enable-in-batch`, data)
 export const resetPassword = data => req.post(`platform/v1/users/reset-password`, data)
+export const createWorkflowInstanceTerminationRequest = data =>
+  req.post(`platform/v1/public/process/instances/${data.procInstId}/terminations`, data)
+export const getTaskNodeInstanceExecBindings = data =>
+  req.get(`/platform/v1/process/instances/${data.procInstId}/tasknodes/${data.nodeInstId}/tasknode-bindings`)
+export const updateTaskNodeInstanceExecBindings = data =>
+  req.post(`platform/v1/process/instances/${data.procInstId}/tasknodes/${data.nodeInstId}/tasknode-bindings`, data.data)

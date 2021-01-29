@@ -16,7 +16,7 @@ public class OperationEventJobsHandler {
     @Autowired
     private OperationEventsExecutor operationEventsProcessor;
     
-    @Scheduled(cron="*/30 * * * * ?")
+    @Scheduled(cron="*/10 * * * * ?")
     public void extractOutstandingOperationEvents(){
         if(log.isInfoEnabled()){
             log.info("scheduled execution start...");

@@ -20,6 +20,7 @@ import com.webank.wecube.platform.auth.client.filter.Http401AuthenticationEntryP
 import com.webank.wecube.platform.auth.client.filter.JwtClientConfig;
 import com.webank.wecube.platform.auth.client.filter.JwtSsoBasedAuthenticationFilter;
 import com.webank.wecube.platform.core.commons.ApplicationProperties;
+import com.webank.wecube.platform.core.interceptor.AccessLogInterceptor;
 import com.webank.wecube.platform.core.interceptor.AuthenticationRequestContextInterceptor;
 import com.webank.wecube.platform.core.support.cache.CacheHandlerInterceptor;
 
@@ -37,6 +38,9 @@ public class SpringWebConfig extends WebSecurityConfigurerAdapter implements Web
 
     @Autowired
     private AuthenticationRequestContextInterceptor authenticationRequestContextInterceptor;
+    
+    @Autowired
+    private AccessLogInterceptor accessLogInterceptor;
 
     @Autowired
     private CacheHandlerInterceptor cacheHandlerInterceptor;
@@ -66,6 +70,7 @@ public class SpringWebConfig extends WebSecurityConfigurerAdapter implements Web
     public void addInterceptors(InterceptorRegistry registry) {
         registry.addInterceptor(authenticationRequestContextInterceptor).addPathPatterns("/**");
         registry.addInterceptor(cacheHandlerInterceptor).addPathPatterns("/**");
+        registry.addInterceptor(accessLogInterceptor).addPathPatterns("/**");
         WebMvcConfigurer.super.addInterceptors(registry);
     }
 

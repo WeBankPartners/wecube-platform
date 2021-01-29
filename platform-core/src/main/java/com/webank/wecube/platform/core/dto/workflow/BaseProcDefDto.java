@@ -15,6 +15,8 @@ public abstract class BaseProcDefDto {
 
     private String createdTime;
 
+    private String excludeMode;
+
     private Map<String, List<String>> permissionToRole;
 
     public String getProcDefId() {
@@ -88,4 +90,13 @@ public abstract class BaseProcDefDto {
     public void setPermissionToRole(Map<String, List<String>> permissionToRole) {
         this.permissionToRole = permissionToRole;
     }
+
+    public String getExcludeMode() {
+        return excludeMode;
+    }
+
+    public void setExcludeMode(String excludeMode) {
+        this.excludeMode = excludeMode;
+    }
+
 }

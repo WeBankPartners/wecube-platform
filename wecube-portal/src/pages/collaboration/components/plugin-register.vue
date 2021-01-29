@@ -1,7 +1,7 @@
 <template>
   <div class="plugin-register-page">
     <Row>
-      <Col span="6" style="border-right: 1px solid #e8eaec;">
+      <Col span="7" style="border-right: 1px solid #e8eaec;">
         <div style="height: calc(100vh - 180px);overflow-y:auto;">
           <div v-if="plugins.length < 1">{{ $t('no_plugin') }}</div>
           <div style="">
@@ -25,7 +25,7 @@
                   v-for="(dto, index) in plugin.pluginConfigDtoList.filter(dto => dto.registerName)"
                   :name="dto.id"
                   :key="index"
-                  style="padding: 5px 30px;"
+                  style="padding: 5px 10px 5px 16px;"
                 >
                   <span
                     style="display: inline-block;white-space: nowrap; overflow: hidden; text-overflow: ellipsis;font-size: 15px; font-weight:400"
@@ -53,20 +53,20 @@
           <Button type="info" long ghost @click="batchRegist">{{ $t('batch_regist') }}</Button>
         </div>
       </Col>
-      <Col span="18" offset="0" style="padding-left: 10px">
+      <Col span="17" offset="0" style="padding-left: 10px">
         <Spin size="large" fix style="margin-top: 200px;" v-show="isLoading">
           <Icon type="ios-loading" size="44" class="spin-icon-load"></Icon>
           <div>{{ $t('loading') }}</div>
         </Spin>
-        <Form :model="form" v-if="hidePanal">
+        <Form :model="form" v-if="hidePanal" label-position="left" :label-width="100">
           <Row style="border-bottom: 1px solid #bbb7b7; margin-top: 20px">
-            <Col span="12" offset="0">
-              <FormItem :label-width="100" :label="$t('regist_name')">
+            <Col span="8" offset="0">
+              <FormItem :label="$t('regist_name')">
                 <Input v-model="registerName" ref="registerName" :disabled="currentPluginObj.status === 'ENABLED'" />
               </FormItem>
             </Col>
-            <Col span="12" v-if="hidePanal" offset="0">
-              <FormItem :label-width="100" :label="$t('target_type')">
+            <Col span="15" v-if="hidePanal" offset="1">
+              <FormItem :label="$t('target_type')">
                 <span @click="getAllDataModels">
                   <FilterRules
                     v-model="selectedEntityType"
@@ -100,16 +100,17 @@
                   :rootEntity="rootEntity"
                   :allDataModelsWithAttrs="allEntityType"
                 ></InterfaceFilterRule>
-                <Button
-                  size="small"
-                  type="success"
-                  :disabled="currentPluginObj.status === 'ENABLED'"
-                  ghost
-                  icon="md-copy"
-                  @click.stop.prevent="copyInterface(inter)"
-                  >{{ $t('copy') }}</Button
-                >
-                <Tooltip :content="$t('completely_deleted')" placement="top">
+                <Tooltip :content="$t('copy')" placement="top">
+                  <Button
+                    size="small"
+                    type="success"
+                    :disabled="currentPluginObj.status === 'ENABLED'"
+                    ghost
+                    icon="md-copy"
+                    @click.stop.prevent="copyInterface(inter)"
+                  ></Button>
+                </Tooltip>
+                <Tooltip :content="$t('delete')" placement="top">
                   <Button
                     size="small"
                     type="error"
@@ -117,17 +118,19 @@
                     ghost
                     icon="ios-trash-outline"
                     @click.stop.prevent="deleteInterface(index)"
-                    >{{ $t('remove') }}</Button
-                  >
+                  ></Button>
                 </Tooltip>
-                <Button
-                  style="float:right;"
-                  size="small"
-                  type="primary"
-                  ghost
-                  @click.stop.prevent="showParamsModal(inter, index, currentPluginObj.interfaces)"
-                  >{{ $t('parameter_configuration') }}</Button
-                >
+                <span style="float:right">
+                  <Tooltip :content="$t('parameter_configuration')" placement="top-end">
+                    <Button
+                      size="small"
+                      type="primary"
+                      icon="ios-settings"
+                      ghost
+                      @click.stop.prevent="showParamsModal(inter, index, currentPluginObj.interfaces)"
+                    ></Button>
+                  </Tooltip>
+                </span>
               </div>
             </div>
           </div>
@@ -163,13 +166,13 @@
           <Col span="2" offset="0">
             <strong style="font-size:15px;">{{ $t('params_type') }}</strong>
           </Col>
-          <Col span="1" offset="0">
+          <Col span="2" offset="0">
             <strong style="font-size:15px;">{{ $t('params_name') }}</strong>
           </Col>
-          <Col span="3" offset="0" style="text-align: center;margin-left: 30px">
+          <Col span="2" offset="0" style="text-align: center;">
             <strong style="font-size:15px;">{{ $t('data_type') }}</strong>
           </Col>
-          <Col span="1" style="margin-left:20px" offset="0">
+          <Col span="1" style="margin-left:45px" offset="0">
             <strong style="font-size:15px;">{{ $t('sensitive') }}</strong>
           </Col>
           <Col span="2" offset="1">
@@ -398,7 +401,6 @@ import {
   getInterfacesByPluginConfigId,
   getRoleList,
   updatePluginConfigRoleBinding,
-  deletePluginConfigRoleBinding,
   getRolesByCurrentUser,
   getConfigByPkgId,
   updateConfigStatus
@@ -587,7 +589,7 @@ export default {
         this.currentUserRoles = data.map(_ => {
           return {
             ..._,
-            key: _.id,
+            key: _.name,
             label: _.displayName
           }
         })
@@ -598,7 +600,7 @@ export default {
       this.useRolesKey = config.permissionToRole.USE || []
       let hasPermission = false
       this.mgmtRolesKey.forEach(_ => {
-        const found = this.currentUserRoles.find(role => role.id === _)
+        const found = this.currentUserRoles.find(role => role.name === _)
         if (found) {
           hasPermission = true
         }
@@ -606,22 +608,40 @@ export default {
       if (hasPermission) {
         this.configRoleManageModal = true
         this.currentPluginForPermission = config
-        this.isAdd = false
+        this.isAddOrCopy = 'new'
       } else {
         this.$Message.warning(this.$t('no_permission_to_mgmt'))
       }
     },
-    confirmRole () {
+    async confirmRole () {
       if (this.mgmtRolesKey.length) {
-        this.configRoleManageModal = false
         if (this.isAddOrCopy === 'copy') {
-          this.exectCopyPluginConfigDto()
+          // await this.updatePermission(this.newPluginConfig)
+          await this.exectCopyPluginConfigDto()
+          this.configRoleManageModal = false
         } else if (this.isAddOrCopy === 'add') {
           this.exectAddPluginConfigDto()
+          this.configRoleManageModal = false
+        } else if (this.isAddOrCopy === 'new') {
+          await this.updatePermission(this.currentPluginForPermission.id)
         }
       } else {
         this.$Message.warning(this.$t('mgmt_role_warning'))
       }
+    },
+    async updatePermission (id) {
+      const payload = {
+        permissionToRole: { MGMT: this.mgmtRolesKey, USE: this.useRolesKey }
+      }
+      const { status } = await updatePluginConfigRoleBinding(id, payload)
+      if (status === 'OK') {
+        this.$Notice.success({
+          title: 'Success',
+          desc: 'Success'
+        })
+        this.configRoleManageModal = false
+      }
+      this.getAllPluginByPkgId()
     },
     async getRoleList () {
       const { status, data } = await getRoleList()
@@ -629,35 +649,17 @@ export default {
         this.allRolesBackUp = data.map(_ => {
           return {
             ..._,
-            key: _.id,
+            key: _.name,
             label: _.displayName
           }
         })
       }
     },
     handleMgmtRoleTransferChange (newTargetKeys, direction, moveKeys) {
-      if (this.hasNewSource) {
-        this.mgmtRolesKey = newTargetKeys
-      } else {
-        if (direction === 'right') {
-          this.updateConfigPermission(this.currentPluginForPermission.id, moveKeys, 'MGMT')
-        } else {
-          this.deleteConfigPermission(this.currentPluginForPermission.id, moveKeys, 'MGMT')
-        }
-        this.mgmtRolesKey = newTargetKeys
-      }
+      this.mgmtRolesKey = newTargetKeys
     },
     handleUseRoleTransferChange (newTargetKeys, direction, moveKeys) {
-      if (this.hasNewSource) {
-        this.useRolesKey = newTargetKeys
-      } else {
-        if (direction === 'right') {
-          this.updateConfigPermission(this.currentPluginForPermission.id, moveKeys, 'USE')
-        } else {
-          this.deleteConfigPermission(this.currentPluginForPermission.id, moveKeys, 'USE')
-        }
-        this.useRolesKey = newTargetKeys
-      }
+      this.useRolesKey = newTargetKeys
     },
     async updateConfigPermission (proId, roleId, type) {
       const payload = {
@@ -665,20 +667,6 @@ export default {
         roleIds: roleId
       }
       const { status } = await updatePluginConfigRoleBinding(proId, payload)
-      if (status === 'OK') {
-        this.$Notice.success({
-          title: 'Success',
-          desc: 'Success'
-        })
-      }
-      this.getAllPluginByPkgId()
-    },
-    async deleteConfigPermission (proId, roleId, type) {
-      const payload = {
-        permission: type,
-        roleIds: roleId
-      }
-      const { status } = await deletePluginConfigRoleBinding(proId, payload)
       if (status === 'OK') {
         this.$Notice.success({
           title: 'Success',
@@ -870,7 +858,7 @@ export default {
       this.hasNewSource = true
     },
     async exectAddPluginConfigDto () {
-      const id = this.newPluginConfig.pluginConfigDtoList.find(_ => _.registerName === null).id
+      const id = this.newPluginConfig.pluginConfigDtoList.find(_ => _.registerName === '' || _.registerName === null).id
       await this.getInterfacesByPluginConfigId(id)
       this.registerName = ''
       this.selectedEntityType = ''
@@ -913,7 +901,7 @@ export default {
           // handle result sort by name
           return {
             ..._,
-            pluginPackageEntities: _.pluginPackageEntities.sort(function (a, b) {
+            entities: _.entities.sort(function (a, b) {
               var s = a.name.toLowerCase()
               var t = b.name.toLowerCase()
               if (s < t) return -1
