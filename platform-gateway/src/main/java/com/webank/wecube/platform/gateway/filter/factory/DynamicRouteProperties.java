@@ -6,7 +6,6 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 public class DynamicRouteProperties {
     private String routeConfigServer;
     private String routeConfigUri;
-    private String routeConfigAccessKey;
 
     private boolean enableRetry = true;
     private int retryIntervalOfSeconds = 30;
@@ -26,14 +25,6 @@ public class DynamicRouteProperties {
 
     public void setRouteConfigUri(String routeConfigUri) {
         this.routeConfigUri = routeConfigUri;
-    }
-
-    public String getRouteConfigAccessKey() {
-        return routeConfigAccessKey;
-    }
-
-    public void setRouteConfigAccessKey(String routeConfigAccessKey) {
-        this.routeConfigAccessKey = routeConfigAccessKey;
     }
 
     public boolean isEnableRetry() {
