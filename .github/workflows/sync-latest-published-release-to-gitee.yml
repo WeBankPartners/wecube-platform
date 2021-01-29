@@ -1,0 +1,19 @@
+name: Synchronize latest published release to Gitee
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+jobs:
+  sync-published-release:
+    name: Synchronize latest published release to Gitee
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout script file
+      use: Bhacaz/checkout-files
+      with:
+        files: build/sync-github-latest-release-to-gitee.sh
+    - name: Execute script file
+      run: build/sync-github-latest-release-to-gitee.sh
+      env:
+        GITEE_API_TOKEN: ${{ secrets.GITEE_API_TOKEN }}
