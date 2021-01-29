@@ -4,40 +4,36 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
-import javax.transaction.Transactional;
-
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import com.google.common.collect.Lists;
 import com.webank.wecube.platform.core.commons.ApplicationProperties.ResourceProperties;
+import com.webank.wecube.platform.core.dto.plugin.QueryRequestDto;
+import com.webank.wecube.platform.core.dto.plugin.QueryResponse;
+import com.webank.wecube.platform.core.dto.plugin.ResourceItemDto;
+import com.webank.wecube.platform.core.dto.plugin.ResourceServerDto;
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
-import com.webank.wecube.platform.core.domain.ResourceItem;
-import com.webank.wecube.platform.core.domain.ResourceServer;
-import com.webank.wecube.platform.core.dto.QueryRequest;
-import com.webank.wecube.platform.core.dto.QueryResponse;
-import com.webank.wecube.platform.core.dto.ResourceItemDto;
-import com.webank.wecube.platform.core.dto.ResourceServerDto;
-import com.webank.wecube.platform.core.dto.Sorting;
-import com.webank.wecube.platform.core.jpa.EntityRepository;
-import com.webank.wecube.platform.core.jpa.ResourceItemRepository;
-import com.webank.wecube.platform.core.jpa.ResourceServerRepository;
+import com.webank.wecube.platform.core.entity.plugin.ResourceItem;
+import com.webank.wecube.platform.core.entity.plugin.ResourceServer;
+import com.webank.wecube.platform.core.repository.plugin.ResourceItemMapper;
+import com.webank.wecube.platform.core.repository.plugin.ResourceServerMapper;
+import com.webank.wecube.platform.core.service.plugin.PluginPageableDataService;
 import com.webank.wecube.platform.core.utils.EncryptionUtils;
 import com.webank.wecube.platform.core.utils.JsonUtils;
+import com.webank.wecube.platform.workflow.commons.LocalIdGenerator;
 
 @Service
 public class ResourceManagementService {
     public static final String PASSWORD_ENCRYPT_AES_PREFIX = "{AES}";
-    @Autowired
-    private EntityRepository entityRepository;
 
     @Autowired
-    private ResourceServerRepository resourceServerRepository;
+    private ResourceServerMapper resourceServerRepository;
 
     @Autowired
-    private ResourceItemRepository resourceItemRepository;
+    private ResourceItemMapper resourceItemRepository;
 
     @Autowired
     private ResourceProperties resourceProperties;
@@ -45,34 +41,93 @@ public class ResourceManagementService {
     @Autowired
     private ResourceImplementationService resourceImplementationService;
 
-    public QueryResponse<ResourceServerDto> retrieveServers(QueryRequest queryRequest) {
-        queryRequest = applyDefaultSortingAsDesc(queryRequest);
-        QueryResponse<ResourceServer> queryResponse = entityRepository.query(ResourceServer.class, queryRequest);
-        List<ResourceServerDto> resourceServerDto = Lists.transform(queryResponse.getContents(),
-                x -> ResourceServerDto.fromDomain(x));
-        return new QueryResponse<>(queryResponse.getPageInfo(), resourceServerDto);
+    @Autowired
+    private PluginPageableDataService pluginPageableDataService;
+
+    public QueryResponse<ResourceServerDto> retrieveServers(QueryRequestDto queryRequest) {
+
+        com.github.pagehelper.PageInfo<ResourceServer> pageInfo = pluginPageableDataService
+                .retrieveResourceServers(queryRequest);
+
+        List<ResourceServerDto> resultDataList = new ArrayList<>();
+        for (ResourceServer e : pageInfo.getList()) {
+            ResourceServerDto dto = buildResourceServerDto(e);
+            resultDataList.add(dto);
+        }
+
+        com.webank.wecube.platform.core.dto.plugin.PageInfo respPageInfo = new com.webank.wecube.platform.core.dto.plugin.PageInfo();
+        respPageInfo.setPageSize(queryRequest.getPageable().getPageSize());
+        respPageInfo.setStartIndex(queryRequest.getPageable().getStartIndex());
+        respPageInfo.setTotalRows((int) pageInfo.getTotal());
+        return new QueryResponse<>(respPageInfo, resultDataList);
+
     }
 
-    private QueryRequest applyDefaultSortingAsDesc(QueryRequest queryRequest) {
-        if (queryRequest == null) {
-            queryRequest = QueryRequest.defaultQueryObject().descendingSortBy("createdDate");
-        } else if (queryRequest.getSorting() == null || queryRequest.getSorting().getField() == null) {
-            queryRequest.setSorting(new Sorting(false, "createdDate"));
-        }
-        return queryRequest;
+    private ResourceServerDto buildResourceServerDto(ResourceServer e) {
+        ResourceServerDto dto = ResourceServerDto.fromDomain(e);
+        return dto;
     }
+
+    public QueryResponse<ResourceItemDto> retrieveItems(QueryRequestDto queryRequest) {
+
+        com.github.pagehelper.PageInfo<ResourceItem> pageInfo = pluginPageableDataService
+                .retrieveResourceItems(queryRequest);
+
+        List<ResourceItemDto> resultDataList = new ArrayList<>();
+        for (ResourceItem e : pageInfo.getList()) {
+            ResourceItemDto dto = buildResourceItemDto(e);
+            resultDataList.add(dto);
+        }
+
+        com.webank.wecube.platform.core.dto.plugin.PageInfo respPageInfo = new com.webank.wecube.platform.core.dto.plugin.PageInfo();
+        respPageInfo.setPageSize(queryRequest.getPageable().getPageSize());
+        respPageInfo.setStartIndex(queryRequest.getPageable().getStartIndex());
+        respPageInfo.setTotalRows((int) pageInfo.getTotal());
+        return new QueryResponse<>(respPageInfo, resultDataList);
+    }
+
+    private ResourceItemDto buildResourceItemDto(ResourceItem e) {
+        ResourceItemDto dto = ResourceItemDto.fromDomain(e);
+        return dto;
+    }
+
+//    private QueryRequestDto applyDefaultSortingAsDesc(QueryRequestDto queryRequest) {
+//        if (queryRequest == null) {
+//            queryRequest = QueryRequestDto.defaultQueryObject().descendingSortBy("createdDate");
+//        } else if (queryRequest.getSorting() == null || queryRequest.getSorting().getField() == null) {
+//            queryRequest.setSorting(new SortingDto(false, "createdDate"));
+//        }
+//        return queryRequest;
+//    }
 
     @Transactional
     public List<ResourceServerDto> createServers(List<ResourceServerDto> resourceServers) {
-        Iterable<ResourceServer> savedDomains = resourceServerRepository
-                .saveAll(convertServerDtoToDomain(resourceServers));
+
+        List<ResourceServer> savedDomains = convertServerDtoToDomain(resourceServers);
+        for (ResourceServer s : savedDomains) {
+            if (StringUtils.isBlank(s.getId())) {
+                s.setId(LocalIdGenerator.generateId());
+                resourceServerRepository.insert(s);
+            } else {
+                resourceServerRepository.updateByPrimaryKeySelective(s);
+            }
+        }
         return convertServerDomainToDto(savedDomains);
     }
 
     @Transactional
     public List<ResourceServerDto> updateServers(List<ResourceServerDto> resourceServers) {
-        Iterable<ResourceServer> savedDomains = resourceServerRepository
-                .saveAll(convertServerDtoToDomain(resourceServers));
+
+        List<ResourceServer> savedDomains = convertServerDtoToDomain(resourceServers);
+        for (ResourceServer savedDomain : savedDomains) {
+            if (StringUtils.isNoneBlank(savedDomain.getId())) {
+                resourceServerRepository.updateByPrimaryKeySelective(savedDomain);
+            } else {
+                savedDomain.setId(LocalIdGenerator.generateId());
+                resourceServerRepository.insert(savedDomain);
+            }
+        }
+
         return convertServerDomainToDto(savedDomains);
     }
 
@@ -81,16 +136,30 @@ public class ResourceManagementService {
         validateIfServersAreExists(resourceServers);
         List<ResourceServer> domains = convertServerDtoToDomain(resourceServers);
         validateIfServerAllocated(domains);
-        resourceServerRepository.deleteAll(convertServerDtoToDomain(resourceServers));
+
+        for (ResourceServerDto dto : resourceServers) {
+            if (StringUtils.isBlank(dto.getId())) {
+                continue;
+            } else {
+                resourceServerRepository.deleteByPrimaryKey(dto.getId());
+            }
+        }
+
     }
 
     private void validateIfServersAreExists(List<ResourceServerDto> resourceServers) {
-        resourceServers.forEach(server -> {
-            if (server.getId() == null || !resourceServerRepository.existsById(server.getId())) {
-                throw new WecubeCoreException("3016",
-                        String.format("Can not find server with id [%s].", server.getId()), server.getId());
+        for (ResourceServerDto dto : resourceServers) {
+            if (dto.getId() == null) {
+                throw new WecubeCoreException("3016", String.format("Can not find server with id [%s].", dto.getId()),
+                        dto.getId());
             }
-        });
+
+            ResourceServer entity = resourceServerRepository.selectByPrimaryKey(dto.getId());
+            if (entity == null) {
+                throw new WecubeCoreException("3016", String.format("Can not find server with id [%s].", dto.getId()),
+                        dto.getId());
+            }
+        }
     }
 
     private void validateIfServerAllocated(List<ResourceServer> resourceServers) {
@@ -104,30 +173,29 @@ public class ResourceManagementService {
         });
     }
 
-    public QueryResponse<ResourceItemDto> retrieveItems(QueryRequest queryRequest) {
-        queryRequest = applyDefaultSortingAsDesc(queryRequest);
-        QueryResponse<ResourceItem> queryResponse = entityRepository.query(ResourceItem.class, queryRequest);
-        List<ResourceItemDto> resourceItemsDto = Lists.transform(queryResponse.getContents(),
-                x -> ResourceItemDto.fromDomain(x));
-        return new QueryResponse<>(queryResponse.getPageInfo(), resourceItemsDto);
-    }
-
     @Transactional
     public List<ResourceItemDto> createItems(List<ResourceItemDto> resourceItems) {
         List<ResourceItem> convertedDomains = convertItemDtoToDomain(resourceItems);
-        resourceItemRepository.saveAll(convertedDomains);
+        for (ResourceItem item : convertedDomains) {
+            if (StringUtils.isBlank(item.getId())) {
+                item.setId(LocalIdGenerator.generateId());
+                resourceItemRepository.insert(item);
+            } else {
+                resourceItemRepository.updateByPrimaryKeySelective(item);
+            }
+        }
         Iterable<ResourceItem> enrichedItems = enrichItemsFullInfo(convertedDomains);
         resourceImplementationService.createItems(enrichedItems);
         return convertItemDomainToDto(enrichedItems);
     }
 
-    private Iterable<ResourceItem> enrichItemsFullInfo(Iterable<ResourceItem> items) {
+    private List<ResourceItem> enrichItemsFullInfo(List<ResourceItem> items) {
         List<ResourceItem> enrichedItems = new ArrayList<>();
         for (ResourceItem item : items) {
             if (item.getId() != null) {
-                Optional<ResourceItem> enrichedItemOpt = resourceItemRepository.findById(item.getId());
-                if (enrichedItemOpt.isPresent()) {
-                    ResourceItem enrichedItem = enrichedItemOpt.get();
+                ResourceItem enrichedItemOpt = resourceItemRepository.selectByPrimaryKey(item.getId());
+                if (enrichedItemOpt != null) {
+                    ResourceItem enrichedItem = enrichedItemOpt;
                     enrichedItem.setResourceServer(getResourceServerById(enrichedItem.getResourceServerId()));
                     enrichedItems.add(enrichedItem);
                 }
@@ -137,20 +205,26 @@ public class ResourceManagementService {
     }
 
     private ResourceServer getResourceServerById(String resourceServerId) {
-        if (resourceServerId != null) {
-            Optional<ResourceServer> enrichedServerOpt = resourceServerRepository.findById(resourceServerId);
-            if (enrichedServerOpt.isPresent()) {
-                return enrichedServerOpt.get();
-            }
+        if (StringUtils.isBlank(resourceServerId)) {
+            return null;
         }
-        return null;
+        ResourceServer enrichedServer = resourceServerRepository.selectByPrimaryKey(resourceServerId);
+
+        return enrichedServer;
     }
 
     @Transactional
     public List<ResourceItemDto> updateItems(List<ResourceItemDto> resourceItems) {
         validateIfItemsAreExists(resourceItems);
         List<ResourceItem> convertedDomains = convertItemDtoToDomain(resourceItems);
-        resourceItemRepository.saveAll(convertedDomains);
+        for (ResourceItem item : convertedDomains) {
+            if (StringUtils.isBlank(item.getId())) {
+                item.setId(LocalIdGenerator.generateId());
+                resourceItemRepository.insert(item);
+            } else {
+                resourceItemRepository.updateByPrimaryKeySelective(item);
+            }
+        }
         Iterable<ResourceItem> enrichedItems = enrichItemsFullInfo(convertedDomains);
         resourceImplementationService.updateItems(enrichedItems);
         return convertItemDomainToDto(enrichedItems);
@@ -159,32 +233,43 @@ public class ResourceManagementService {
     @Transactional
     public void deleteItems(List<ResourceItemDto> resourceItems) {
         validateIfItemsAreExists(resourceItems);
-        Iterable<ResourceItem> enrichedItems = enrichItemsFullInfo(convertItemDtoToDomain(resourceItems));
+        List<ResourceItem> enrichedItems = enrichItemsFullInfo(convertItemDtoToDomain(resourceItems));
         // validateIfItemAllocated(enrichedItems);
         resourceImplementationService.deleteItems(enrichedItems);
-        resourceItemRepository.deleteAll(enrichedItems);
+
+        if (enrichedItems != null) {
+            for (ResourceItem item : enrichedItems) {
+                resourceItemRepository.deleteByPrimaryKey(item.getId());
+            }
+        }
     }
 
     private void validateIfItemsAreExists(List<ResourceItemDto> resourceItems) {
-        resourceItems.forEach(item -> {
-            if (item.getId() == null && !resourceItemRepository.existsById(item.getId())) {
-                throw new WecubeCoreException("3018", String.format("Can not find item with id [%s].", item.getId()),
-                        item.getId());
+        for (ResourceItemDto item : resourceItems) {
+            if (StringUtils.isBlank(item.getId())) {
+                String errMsg = String.format("Can not find item with id [%s].", item.getId());
+                throw new WecubeCoreException("3018", errMsg, item.getId());
             }
-        });
+
+            ResourceItem resourceItemEntity = resourceItemRepository.selectByPrimaryKey(item.getId());
+            if (resourceItemEntity == null) {
+                String errMsg = String.format("Can not find item with id [%s].", item.getId());
+                throw new WecubeCoreException("3018", errMsg, item.getId());
+            }
+        }
     }
 
-    private void validateIfItemAllocated(Iterable<ResourceItem> items) {
-        items.forEach(item -> {
-            if (item.getIsAllocated() != null && item.getIsAllocated() == 1) {
-                String msg = String.format("Can not delete resource item [%s] as it has been allocated for [%s].",
-                        item.getName(), item.getPurpose());
-                throw new WecubeCoreException("3019", msg, item.getName(), item.getPurpose());
-            }
-        });
-    }
+//    private void validateIfItemAllocated(Iterable<ResourceItem> items) {
+//        items.forEach(item -> {
+//            if (item.getIsAllocated() != null && item.getIsAllocated() == 1) {
+//                String msg = String.format("Can not delete resource item [%s] as it has been allocated for [%s].",
+//                        item.getName(), item.getPurpose());
+//                throw new WecubeCoreException("3019", msg, item.getName(), item.getPurpose());
+//            }
+//        });
+//    }
 
-    private List<ResourceServerDto> convertServerDomainToDto(Iterable<ResourceServer> savedDomains) {
+    private List<ResourceServerDto> convertServerDomainToDto(List<ResourceServer> savedDomains) {
         List<ResourceServerDto> dtos = new ArrayList<>();
         savedDomains.forEach(domain -> dtos.add(ResourceServerDto.fromDomain(domain)));
         return dtos;
@@ -192,18 +277,19 @@ public class ResourceManagementService {
 
     private List<ResourceServer> convertServerDtoToDomain(List<ResourceServerDto> resourceServerDtos) {
         List<ResourceServer> domains = new ArrayList<>();
-        resourceServerDtos.forEach(dto -> {
+        for (ResourceServerDto dto : resourceServerDtos) {
             ResourceServer existedServer = null;
             if (dto.getId() != null) {
-                Optional<ResourceServer> existedServerOpt = resourceServerRepository.findById(dto.getId());
-                if (existedServerOpt.isPresent()) {
-                    existedServer = existedServerOpt.get();
+                ResourceServer existedServerOpt = resourceServerRepository.selectByPrimaryKey(dto.getId());
+                if (existedServerOpt != null) {
+                    existedServer = existedServerOpt;
                 }
             }
             handleServerPasswordEncryption(dto);
             ResourceServer domain = ResourceServerDto.toDomain(dto, existedServer);
+
             domains.add(domain);
-        });
+        }
         return domains;
     }
 
@@ -267,9 +353,9 @@ public class ResourceManagementService {
         resourceItemDtos.forEach(dto -> {
             ResourceItem existedItem = null;
             if (dto.getId() != null) {
-                Optional<ResourceItem> existedItemOpt = resourceItemRepository.findById(dto.getId());
-                if (existedItemOpt.isPresent()) {
-                    existedItem = existedItemOpt.get();
+                ResourceItem existedItemOpt = resourceItemRepository.selectByPrimaryKey(dto.getId());
+                if (existedItemOpt != null) {
+                    existedItem = existedItemOpt;
                 }
             }
             handleItemPasswordEncryption(dto);

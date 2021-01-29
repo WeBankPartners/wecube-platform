@@ -1,6 +1,6 @@
 package com.webank.wecube.platform.core.commons;
 
-import static com.webank.wecube.platform.core.domain.MenuItem.ROLE_PREFIX;
+import static com.webank.wecube.platform.core.entity.plugin.MenuItems.ROLE_PREFIX;
 
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.BeanPostProcessor;

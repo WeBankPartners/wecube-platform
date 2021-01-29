@@ -9,7 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
-import com.webank.wecube.platform.core.domain.ResourceItem;
+import com.webank.wecube.platform.core.entity.plugin.ResourceItem;
 
 @Service
 public class ResourceImplementationService {
