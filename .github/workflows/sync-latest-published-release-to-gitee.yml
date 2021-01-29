@@ -1,6 +1,5 @@
 name: Synchronize latest published release to Gitee
 on:
-  push:
   release:
     types: [published]
   workflow_dispatch:
