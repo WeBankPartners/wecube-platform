@@ -1,5 +1,4 @@
 name: Synchronize latest published release to Gitee
-
 on:
   release:
     types: [published]
