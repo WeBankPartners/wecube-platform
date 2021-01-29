@@ -41,13 +41,6 @@ WeCube目前支持以下几种插件：
 ##### 注册描述文件规范
 必须命名为register.xml, [具体示例在此](https://github.com/WeBankPartners/wecube-platform/blob/master/wecube-wiki/docs/developer/wecube_developer_package_XML_guide.md)  
 
-Platform < v2.6.1：版本依赖packageDependencies节点仅描述插件间依赖
-​               \>=v2.6.1：版本依赖packageDependencies可表示对platform的依赖，如 \<packageDependency name="platform" version="v2.6.1" />，并且确认插件								  注册时将校验依赖版本号
-​               \>=v2.7.0：resourceDependencies节点的docker.envVariables增加JWT_SIGNING_KEY默认环境变量，是jwt token的base64(secret)值，用于平台token								  校验
-​               \>=v2.7.1：resourceDependencies节点的docker.portBindings增加映射{{BASE_MOUNT_PATH}}/certs/，目录下存在ras_key文件，用于环境参数的解								  密（加密的环境参数加密方式为PKCS#1_v1.5(base64(value))，再拼接前缀RSA@，若非RSA@前缀作为起始字符，则为明文模式）
-
-​               
-
 ##### 后端API服务规范
 ###### 启动及打包方式规范 
 1.提供镜像包，目前仅支持以容器方式启动插件服务程序，  
@@ -60,7 +53,6 @@ Platform < v2.6.1：版本依赖packageDependencies节点仅描述插件间依�
     根据其他任意一个属性值（除主键外）查询数据；~~  
 ~~###### 日志查询功能规范
 必须提供日志查询API（url及参数待定）~~  
-
 ###### 容器启动参数的规范
 在register.xml里resourceDependencies部分，必须声明docker标签，并描述以下属性：  
 ```
@@ -97,13 +89,9 @@ envVariables  -- 容器环境变量， 容器启动所需参数，例如envVaria
 5.创建插件实例时，会找到envVariables中两个大括号中的变量名，然后以system_variable的value替换（若value为空，则使用defaultValue）。然后将替换后的值以env变量的方式传入到容器中。
 ```
 
-###### 插件服务接口规范
-
-**<u>插件服务接口必须是幂等的，这一点非常重要</u>**
-幂等是我们对插件接口的首要要求，插件接口主要给系统编排自动化调用使用，可能会失败重试，如果接口不是幂等的，那么重试的结果就无法得到保证。
+###### 插件服务及接口规范
 如有对外提供服务的插件接口，需要在register.xml里plugins部分声明；  
 plugins里面可以有多个plugin，一个plugin里面可以有多个interface，一个interface下面有inputParameters和outputParameter，inputParameters和outputParameters里面都可以有多个parameter。
-
  - plugin声明插件的name 和对应的entity（和dataModel种的entity对应）,若不声明entity，也可以在插件注册页面让用户手动选择；  
  - interface声明单个API的action、path、httpMethod、isAsyncProcessing、type；  
 ```
@@ -135,7 +123,7 @@ mappingEntityExpression  -- 模型表达式，当mappingType为entity的时候�
         {}
     ]
 }
-```
+```  
 ```json
 输出参数
 {
@@ -149,11 +137,10 @@ mappingEntityExpression  -- 模型表达式，当mappingType为entity的时候�
         ]
     }
 }
-```
+```  
 
 输入参数中input数组的一个元素是一个json对象，它包含一个无需xml声明的属性（callbackParameter，类型String，同一个api请求中，input数组中的callbackParameter必须唯一，此字段会在返回参数中的results.output中返回，用于定位input数组中的每个元素的返回结果），其他的每个属性都需要定义在inputParameters标签的parameter中；
 输出参数中results.output数组的一个元素也是一个json对象，如上所述，它包含一个无需xml声明的属性（callbackParameter，类型String），其他的每个属性都需要定义在outputParameters标签的parameter中，并且固定包含以下两个属性
-
  - errorCode  //String类型，"0"代表成功，"1"代表失败
  - errorMessage  //String类型，当errorCode="1"时返回失败信息
 
@@ -220,128 +207,7 @@ mappingEntityExpression  -- 模型表达式，当mappingType为entity的时候�
 }
 ```
 
-##### 非插件服务接口规范
-
-插件中除了存在插件接口服务外，一般还会提供UI使用的普通接口，区别是
-
-插件服务接口：用于编排执行/批量执行场景，符合平台统一调用规范[同步/异步]
-
-非插件服务接口：常用于UI调用或提供给其他插件直接依赖调用
-
-同样的，非插件服务接口规范如下(文件流服务除外)：
-
-- url地址以 /plugin-name/version/ 开头
-
-- http请求参数无固定要求，可按照插件要求自定义
-
-- http响应必须包含以下信息：
-
-    1. status：字符串，接口调用结果
-
-        可选内容为 - OK/ERROR/WARN/CONFIRM，大写
-
-        OK         代表请求处理成功
-
-        ERROR  代表请求处理发生错误，程序无法继续处理
-
-        WARN   代表请求处理成功，但存在一些需要用户注意的潜在问题
-
-        CONFIRM  代表请求已收到，但需要用户二次确认后方能继续处理，CONFIRM对返回数据及请求url有固定要求(见4备注说明)
-
-    2. message：字符串，提示信息
-
-        当status=ERROR/WARN/CONFIRM，message为提示到用户的展示内容
-
-        当status=OK时，可为空字符串
-
-    3. code：字符串，错误代码，虽然类型无强制要求，但建议插件提供一个错误代码说明列表，便于排错使用。
-
-    4. data：多种类型，接口调用返回的结果
-
-        当status=OK/ERROR/WARN时，任意类型数据均可，插件自行解析使用
-
-        当status=CONFIRM时，data必须为映射字典, eg. {"continueToken": "sign key", "其他自定字段": "其他自定义内容"}
-
-        > 当收到status=CONFIRM时，data必须包含continueToken字段，且前端弹出提示内容(message字段)由用户进行二次确认，用户确认后前端应重新发送请求，请求参数与前一次请求相同，并在url后增加query参数continue_token, eg. /plugin-name/version/api?continue_token=sign key，插件须对请求参数与continue_token进行校验，若校验成功则执行请求，否则返回status=ERROR，说明错误原因。
-        >
-        > continue_token为请求参数的内容签名，签名算法由插件自定义，二次确认后若请求参数发生改变时，插件应能根据token识别到内容被篡改，从而防止二次确认的执行内容与用户确认存在差异。
-        >
-        > 为保持命名兼容，data内的continueToken使用驼峰命名法，而URL中使用了RESTFUL常见的小写命名
-
-响应示例如下：
-
-```
-POST /wecmdb/v1/ci/37/retrieve
-Authorization: Bearer your_auth_token
-Content-Type: application/json;charset=UTF-8
-{
-    "filters":[...]
-}
-
-响应
-{
-	"status": "OK",
-	"message": "success",
-	"code": "200",
-	"data": {...}
-}
-```
-
-CONFIRM示例如下：
-
-```
-POST /myplugin/v1/execute
-Authorization: Bearer your_token
-Content-Type: application/json;charset=UTF-8
-{
-    "scripts":[{"type": "shell", "content": "rm -rf /"}]
-}
-
-响应
-{
-	"status": "CONFIRM",
-	"message": "'rm -rf /' is dangerous, comfirm to execute it",
-	"code": "80001",
-	"data": {"continueToken": "2b475d2dc99fcaf658f35b62f4d27201c45f711daf6212962cd3ebc6d04e0510"}
-}
-
-二次确认请求
-POST /myplugin/v1/execute?continue_token=2b475d2dc99fcaf658f35b62f4d27201c45f711daf6212962cd3ebc6d04e0510
-Authorization: Bearer your_auth_token
-Content-Type: application/json;charset=UTF-8
-{
-    "scripts":[{"type": "shell", "content": "rm -rf /"}]
-}
-
-响应
-{
-	"status": "OK",
-	"message": "success",
-	"code": "200",
-	"data": "retcode 0"
-}
-
-非法二次确认请求
-POST /myplugin/v1/execute?continue_token=2b475d2dc99fcaf658f35b62f4d27201c45f711daf6212962cd3ebc6d04e0510
-Authorization: Bearer your_auth_token
-Content-Type: application/json;charset=UTF-8
-{
-    "scripts":[{"type": "shell", "content": "ls -al"}]
-}
-
-响应
-{
-	"status": "ERROR",
-	"message": "continue_token mismatch with request body",
-	"code": "40000",
-	"data": null
-}
-```
-
-
-
-##### 前端UI页面规范
-
+##### 前端UI页面规范  
 1.必须在register.xml的menus标签内声明菜单对应的访问页面相对路径； 
  menus标签内容中cat必须是Portal提供6大菜单（任务JOBS、设计DESIGNING、实现IMPLEMENTATION、监测MONITORING、调整ADJUSTMENT、智慧INTELLIGENCE）之一， 并且code要保持唯一，不允许与已注册的code重复。  
  例如，在任务JOBS菜单下注入“任务管理TASK_MANAGEMENT”菜单，该菜单对应的前端页面是前端资源包中的/task-management：  
@@ -351,7 +217,6 @@ Content-Type: application/json;charset=UTF-8
 </menus>
 ```
 2.必须提供静态资源包，命名和格式都固定为ui.zip，目录结构如下：  
-
 ```
 ui.zip
 └─dist

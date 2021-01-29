@@ -2,13 +2,6 @@ server:
   port: 18080
   address: localhost
 
-spring:
-  datasource:
-    driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://uat-db-server:3306/wecube_core_04?characterEncoding=utf8&serverTimezone=UTC
-    username: db-user
-    password: db-password
-
 wecube:
   core:
     s3:

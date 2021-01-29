@@ -16,14 +16,15 @@ import com.webank.wecube.platform.core.dto.workflow.ProcInstInfoDto;
 import com.webank.wecube.platform.core.dto.workflow.ProcessDataPreviewDto;
 import com.webank.wecube.platform.core.dto.workflow.StartProcInstRequestDto;
 import com.webank.wecube.platform.core.dto.workflow.TaskNodeDefObjectBindInfoDto;
-import com.webank.wecube.platform.core.entity.event.OperationEventEntity;
+import com.webank.wecube.platform.core.entity.workflow.OperationEventEntity;
 import com.webank.wecube.platform.core.entity.workflow.ProcDefInfoEntity;
 import com.webank.wecube.platform.core.entity.workflow.TaskNodeDefInfoEntity;
-import com.webank.wecube.platform.core.jpa.event.OperationEventRepository;
-import com.webank.wecube.platform.core.jpa.workflow.ProcDefInfoRepository;
-import com.webank.wecube.platform.core.jpa.workflow.TaskNodeDefInfoRepository;
+import com.webank.wecube.platform.core.repository.workflow.OperationEventMapper;
+import com.webank.wecube.platform.core.repository.workflow.ProcDefInfoMapper;
+import com.webank.wecube.platform.core.repository.workflow.TaskNodeDefInfoMapper;
 import com.webank.wecube.platform.core.service.workflow.WorkflowDataService;
 import com.webank.wecube.platform.core.service.workflow.WorkflowProcInstService;
+import com.webank.wecube.platform.workflow.WorkflowConstants;
 
 @Service
 public class OperationEventProcStarter {
@@ -31,22 +32,22 @@ public class OperationEventProcStarter {
     private static final Logger log = LoggerFactory.getLogger(OperationEventProcStarter.class);
 
     @Autowired
-    private ProcDefInfoRepository processDefInfoRepository;
+    private ProcDefInfoMapper processDefInfoRepository;
 
     @Autowired
-    private TaskNodeDefInfoRepository taskNodeDefInfoRepository;
+    private TaskNodeDefInfoMapper taskNodeDefInfoRepository;
     
     @Autowired
     private WorkflowProcInstService workflowProcInstService;
     
     @Autowired
-    private OperationEventRepository operationEventRepository;
+    private OperationEventMapper operationEventRepository;
     
     @Autowired
     private WorkflowDataService workflowDataService;
     
     public OperationEventEntity startInstantOperationEventProcess(OperationEventEntity operEventEntity){
-        String procDefKey = operEventEntity.getOperationKey();
+        String procDefKey = operEventEntity.getOperKey();
 
         ProcDefInfoEntity procDefEntity = findSuitableProcDefInfoEntityWithProcDefKey(procDefKey);
 
@@ -55,7 +56,7 @@ public class OperationEventProcStarter {
             throw new WecubeCoreException("3225",String.format("Process definition key {%s} is NOT available.", procDefKey), procDefKey);
         }
         
-        String entityDataId = operEventEntity.getOperationData();
+        String entityDataId = operEventEntity.getOperData();
         String entityTypeId = procDefEntity.getRootEntity();
         
         StartProcInstRequestDto initDto = new StartProcInstRequestDto();
@@ -75,13 +76,16 @@ public class OperationEventProcStarter {
         operEventEntity.setProcInstId(String.valueOf(procInst.getId()));
         operEventEntity.setProcInstKey(procInst.getProcInstKey());
         
-        OperationEventEntity flushedOperEventEntity = operationEventRepository.saveAndFlush(operEventEntity);
+        int expectRev = operEventEntity.getRev();
+        operEventEntity.setRev(expectRev + 1);
         
-        return flushedOperEventEntity;
+        operationEventRepository.updateByPrimaryKeySelectiveCas(operEventEntity, expectRev);
+        
+        return operEventEntity;
     }
 
     public void startOperationEventProcess(OperationEventEntity operEventEntity) {
-        String procDefKey = operEventEntity.getOperationKey();
+        String procDefKey = operEventEntity.getOperKey();
 
         ProcDefInfoEntity procDefEntity = findSuitableProcDefInfoEntityWithProcDefKey(procDefKey);
 
@@ -90,7 +94,7 @@ public class OperationEventProcStarter {
             throw new WecubeCoreException("3225",String.format("Process definition key {%s} is NOT available.", procDefKey), procDefKey);
         }
 
-        String entityDataId = operEventEntity.getOperationData();
+        String entityDataId = operEventEntity.getOperData();
         String entityTypeId = procDefEntity.getRootEntity();
 
         StartProcInstRequestDto initDto = new StartProcInstRequestDto();
@@ -98,7 +102,7 @@ public class OperationEventProcStarter {
         initDto.setEntityTypeId(entityTypeId);
         initDto.setProcDefId(procDefEntity.getId());
 
-        List<TaskNodeDefInfoEntity> taskNodeDefs = taskNodeDefInfoRepository.findAllByProcDefId(procDefEntity.getId());
+        List<TaskNodeDefInfoEntity> taskNodeDefs = taskNodeDefInfoRepository.selectAllByProcDefId(procDefEntity.getId());
         List<TaskNodeDefObjectBindInfoDto> taskNodeBinds = new ArrayList<TaskNodeDefObjectBindInfoDto>();
         
         for(TaskNodeDefInfoEntity tnDef : taskNodeDefs){
@@ -118,17 +122,33 @@ public class OperationEventProcStarter {
         ProcInstInfoDto procInst = workflowProcInstService.createProcessInstance(initDto);
         
         operEventEntity.setUpdatedTime(new Date());
+        operEventEntity.setUpdatedBy(WorkflowConstants.DEFAULT_USER);
         operEventEntity.setProcDefId(procDefEntity.getId());
         operEventEntity.setProcInstId(String.valueOf(procInst.getId()));
         operEventEntity.setProcInstKey(procInst.getProcInstKey());
+        operEventEntity.setStatus(OperationEventEntity.STATUS_IN_PROGRESS);
         
-        operationEventRepository.saveAndFlush(operEventEntity);
+        int expectedRev = operEventEntity.getRev();
+        
+        operEventEntity.setRev(expectedRev + 1);
+        
+        OperationEventEntity toUpdateEvent = new OperationEventEntity();
+        toUpdateEvent.setId(operEventEntity.getId());
+        toUpdateEvent.setRev(operEventEntity.getRev());
+        toUpdateEvent.setUpdatedTime(operEventEntity.getUpdatedTime());
+        toUpdateEvent.setUpdatedBy(operEventEntity.getUpdatedBy());
+        toUpdateEvent.setProcDefId(operEventEntity.getProcDefId());
+        toUpdateEvent.setProcInstId(operEventEntity.getProcInstId());
+        toUpdateEvent.setProcInstKey(operEventEntity.getProcInstKey());
+        toUpdateEvent.setStatus(operEventEntity.getStatus());
+        
+        operationEventRepository.updateByPrimaryKeySelectiveCas(toUpdateEvent, expectedRev);
         
     }
 
     private ProcDefInfoEntity findSuitableProcDefInfoEntityWithProcDefKey(String procDefKey) {
         List<ProcDefInfoEntity> procDefEntities = processDefInfoRepository
-                .findAllDeployedProcDefsByProcDefKey(procDefKey, ProcDefInfoEntity.DEPLOYED_STATUS);
+                .selectAllDeployedProcDefsByProcDefKey(procDefKey, ProcDefInfoEntity.DEPLOYED_STATUS);
 
         if (procDefEntities == null || procDefEntities.isEmpty()) {
             return null;
@@ -138,23 +158,23 @@ public class OperationEventProcStarter {
 
             @Override
             public int compare(ProcDefInfoEntity o1, ProcDefInfoEntity o2) {
-                if (o1.getProcDefVersion() == null && o2.getProcDefVersion() == null) {
+                if (o1.getProcDefVer() == null && o2.getProcDefVer() == null) {
                     return 0;
                 }
 
-                if (o1.getProcDefVersion() == null && o2.getProcDefVersion() != null) {
+                if (o1.getProcDefVer() == null && o2.getProcDefVer() != null) {
                     return -1;
                 }
 
-                if (o1.getProcDefVersion() != null && o2.getProcDefVersion() == null) {
+                if (o1.getProcDefVer() != null && o2.getProcDefVer() == null) {
                     return 1;
                 }
 
-                if (o1.getProcDefVersion() == o2.getProcDefVersion()) {
+                if (o1.getProcDefVer() == o2.getProcDefVer()) {
                     return 0;
                 }
 
-                return o1.getProcDefVersion() > o2.getProcDefVersion() ? -1 : 1;
+                return o1.getProcDefVer() > o2.getProcDefVer() ? -1 : 1;
             }
 
         });

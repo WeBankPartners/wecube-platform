@@ -2,36 +2,22 @@ package com.webank.wecube.platform.workflow.entity;
 
 import java.util.Date;
 
-import javax.persistence.Column;
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
-import javax.persistence.MappedSuperclass;
-
 import com.webank.wecube.platform.workflow.model.TraceStatus;
 
-@MappedSuperclass
 public abstract class AbstractTraceableEntity {
     
-    @Column(name = "STATUS")
-    @Enumerated(EnumType.STRING)
     private TraceStatus status;
 
-    @Column(name = "START_TIME")
     private Date startTime;
 
-    @Column(name = "END_TIME")
     private Date endTime;
 
-    @Column(name="CREATED_BY")
     private String createdBy;
     
-    @Column(name="CREATED_TIME")
     private Date createdTime;
     
-    @Column(name="UPDATED_BY")
     private String updatedBy;
     
-    @Column(name="UPDATED_TIME")
     private Date updatedTime;
 
     public String getCreatedBy() {

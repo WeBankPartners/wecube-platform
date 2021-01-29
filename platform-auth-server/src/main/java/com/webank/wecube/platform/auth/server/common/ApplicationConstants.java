@@ -52,4 +52,8 @@ public final class ApplicationConstants {
         public static final String HEADER_WWW_AUTHENTICATE = "WWW-Authenticate";
         public static final String PREFIX_BEARER_TOKEN = "Bearer ";
     }
+    
+    public static class SubSystemName {
+        public static final String SYS_PLATFORM = "SYS_PLATFORM";
+    }
 }

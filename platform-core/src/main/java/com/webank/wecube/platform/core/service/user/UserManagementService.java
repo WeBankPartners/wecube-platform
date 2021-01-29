@@ -39,6 +39,6 @@ public interface UserManagementService {
 
     void revokeRoleFromUsers(String roleId, List<String> userIds);
 
-    List<String> getRoleIdsByUsername(String username);
+    List<String> getRoleNamesByUsername(String username);
 
 }

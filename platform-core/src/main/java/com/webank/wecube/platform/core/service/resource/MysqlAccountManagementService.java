@@ -14,7 +14,7 @@ import org.springframework.stereotype.Service;
 import com.google.common.base.Strings;
 import com.webank.wecube.platform.core.commons.ApplicationProperties.ResourceProperties;
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
-import com.webank.wecube.platform.core.domain.ResourceItem;
+import com.webank.wecube.platform.core.entity.plugin.ResourceItem;
 import com.webank.wecube.platform.core.utils.EncryptionUtils;
 
 @Service
@@ -70,8 +70,8 @@ public class MysqlAccountManagementService implements ResourceItemService {
                     username, rawPassword));
         } catch (Exception e) {
             String errorMessage = String.format("Failed to create account [username = %s]", username);
-            log.error(errorMessage);
-            throw new WecubeCoreException("3241", errorMessage, e);
+            log.error(errorMessage, e);
+            throw new WecubeCoreException("3241", errorMessage, username);
         }
         return item;
     }

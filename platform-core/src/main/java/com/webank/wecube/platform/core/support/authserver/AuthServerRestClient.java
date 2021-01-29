@@ -48,6 +48,22 @@ public class AuthServerRestClient extends AbstractAuthServerRestClient {
         }
     }
 
+    /**
+     * 
+     * @param subSystemReq
+     * @return
+     */
+    public SimpleSubSystemDto registerSimpleSubSystem(SimpleSubSystemDto subSystemReq) {
+        if (subSystemReq == null) {
+            return null;
+        }
+        SimpleSubSystemDto subSystemAs = postForObject(jwtSsoRestTemplate, clientProperties.getPathRegisterSubSystem(),
+                subSystemReq, new ParameterizedTypeReference<AuthServerRestResponseDto<SimpleSubSystemDto>>() {
+                });
+
+        return subSystemAs;
+    }
+
     public void revokeAuthoritiesFromRole(String roleId, List<AsAuthorityDto> authorities) {
         if (StringUtils.isBlank(roleId)) {
             throw new IllegalArgumentException();
@@ -224,7 +240,7 @@ public class AuthServerRestClient extends AbstractAuthServerRestClient {
                 });
         return result;
     }
-    
+
     public String resetUserPassword(AsUserPassDto asUserPassDto) {
         String result = postForObject(clientProperties.getPathUserResetPassword(), asUserPassDto,
                 new ParameterizedTypeReference<AuthServerRestResponseDto<String>>() {

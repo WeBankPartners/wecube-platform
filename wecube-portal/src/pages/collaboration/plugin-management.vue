@@ -7,7 +7,7 @@
     <Col span="7">
       <Row>
         <Card dis-hover>
-          <p slot="title">{{ $t('upload_plugin_pkg_title') }}</p>
+          <div slot="title">{{ $t('upload_plugin_pkg_title') }}</div>
           <div style="text-align: center">
             <Button type="info" icon="md-list-box" ghost :loading="loadingPlugin" @click="showUploadModalHandler">{{
               $t('origin_plugins')
@@ -54,7 +54,7 @@
           </Spin>
           <div v-if="!isLoadingPluginList" style="height: 70%; overflow: auto">
             <span v-if="plugins.length < 1">{{ $t('no_plugin_packages') }}</span>
-            <div style="height: calc(100vh - 325px);overflow:auto" v-else>
+            <div style="height: calc(100vh - 316px);overflow:auto" v-else>
               <Collapse accordion @on-change="pluginPackageChangeHandler">
                 <Panel
                   :name="plugin.id + ''"
