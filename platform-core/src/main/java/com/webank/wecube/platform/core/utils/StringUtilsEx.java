@@ -4,16 +4,18 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.apache.commons.lang3.StringUtils;
+
 import com.google.common.collect.Lists;
 
 public class StringUtilsEx {
+    private static final String VALID_IP_PATTERN = "^(([1-9])|([1-9][0-9])|(1[0-9][0-9])|(2[0-4][0-9])|(25[0-5]))((\\.([0-9]|([1-9][0-9])|(1[0-9][0-9])|(2[0-4][0-9])|(25[0-5]))){3})$";
 
     public static boolean isValidIp(String ip) {
-        if (ip != null && !ip.isEmpty()) {
-            String ipValidityRegularExpression = "^(([1-9])|([1-9][0-9])|(1[0-9][0-9])|(2[0-4][0-9])|(25[0-5]))((\\.([0-9]|([1-9][0-9])|(1[0-9][0-9])|(2[0-4][0-9])|(25[0-5]))){3})$";
-            return ip.matches(ipValidityRegularExpression);
+        if (StringUtils.isBlank(ip)) {
+            return false;
         }
-        return false;
+        return ip.matches(VALID_IP_PATTERN);
     }
 
     public static List<String> findSystemVariableString(String str) {
@@ -27,12 +29,10 @@ public class StringUtilsEx {
 
         return returnVarName;
     }
-    
-    public static List<String> splitByComma(String ipsString){
-        String[] ips= ipsString.split(",");
+
+    public static List<String> splitByComma(String ipsString) {
+        String[] ips = ipsString.split(",");
         return Lists.newArrayList(ips);
     }
-    
-   
 
 }
