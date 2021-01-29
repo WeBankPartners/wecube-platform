@@ -10,10 +10,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout script file
-      use: Bhacaz/checkout-files
+      uses: Bhacaz/checkout-files
       with:
         files: build/sync-github-latest-release-to-gitee.sh
     - name: Execute script file
-      run: build/sync-github-latest-release-to-gitee.sh
+      run: sh build/sync-github-latest-release-to-gitee.sh
       env:
         GITEE_API_TOKEN: ${{ secrets.GITEE_API_TOKEN }}
