@@ -284,13 +284,12 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 
         String excludeMode = procDefInfo.getExcludeMode();
         if (ProcDefInfoEntity.EXCLUDE_MODE_YES.equalsIgnoreCase(excludeMode)) {
-            tryVerifyIfAnyRunningProcInstBound(procDefInfo, procInst, taskNodeDef, taskNodeInst, cmd,
+            return tryVerifyIfAnyRunningProcInstBound(procDefInfo, procInst, taskNodeDef, taskNodeInst, cmd,
                     nodeObjectBindings);
         } else {
-            tryVerifyIfAnyExclusiveRunningProcInstBound(procDefInfo, procInst, taskNodeDef, taskNodeInst, cmd,
+            return tryVerifyIfAnyExclusiveRunningProcInstBound(procDefInfo, procInst, taskNodeDef, taskNodeInst, cmd,
                     nodeObjectBindings);
         }
-        return true;
     }
 
     private boolean tryVerifyIfAnyRunningProcInstBound(ProcDefInfoEntity procDefInfo, ProcInstInfoEntity procInst,
@@ -325,8 +324,11 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
             return false;
         }
 
-        log.info("Current process {}:{} is exclusive but still {} processes running.", procDefInfo.getId(),
-                procDefInfo.getProcDefName(), boundProcInstIds.size());
+        log.info("Current process {}:{}:{} is exclusive but still {} processes running.", procDefInfo.getId(),
+                procDefInfo.getProcDefName(), procInst.getId(), boundProcInstIds.size());
+        for (Integer boundProcInstId : boundProcInstIds) {
+            log.info("boundProcInstId:{}", boundProcInstId);
+        }
 
         return true;
 
@@ -367,8 +369,12 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
             return false;
         }
 
-        log.info("Current process {}:{} is shared but there are {}  exclusive processes running.", procDefInfo.getId(),
-                procDefInfo.getProcDefName(), boundExclusiveProcInstIds.size());
+        log.info("Current process {}:{}:{} is shared but there are {}  exclusive processes running.",
+                procDefInfo.getId(), procDefInfo.getProcDefName(), procInst.getId(), boundExclusiveProcInstIds.size());
+
+        for (Integer boundExclusiveProcInstId : boundExclusiveProcInstIds) {
+            log.info("boundExclusiveProcInstId:{}", boundExclusiveProcInstId);
+        }
 
         return true;
     }
