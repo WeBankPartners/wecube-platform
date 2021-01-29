@@ -32,7 +32,7 @@ WeCube是一套开源的，一站式IT架构管理和运维管理工具，主要
 > 注意：
 >
 > 1. 体验环境每天凌晨2:00-4:00进行重建，重建时间段内环境将不可用，且所有用户修改内容将被丢弃
-> 2. 多人同时使用admin用户，可能会相互影响，若希望更好的体验可参照：[WeCube全量体验过程说明](https://wecube-1259801214.cos.ap-guangzhou.myqcloud.com/v2.5.0/WeCube全量体验过程说明v2.5.0.pdf) 搭建私有环境
+> 2. 多人同时使用admin用户，可能会相互影响，若希望更好的体验可参照：[WeCube全量体验过程说明](https://wecube-1259801214.cos.ap-guangzhou.myqcloud.com/WeCube全量体验过程说明.pdf) 搭建私有环境
 
 ## 起源
 微众银行在分布式架构实践的过程中，发现将银行核心系统构建于分布式架构之上，会遇到一些与传统单体应用不同的痛点（例如，服务器增多，部署难度大；调用链长，全链路跟踪困难； 系统复杂，问题定位时间长等），在逐步解决这些痛点的过程中，总结了一套IT管理的方法论和最佳实践，并研发了与之配套的IT管理工具体系。WeCube就是将该套方法论和最佳实践，从微众内部众多IT管理工具体系中提炼出来，整合成一套开箱即用的IT管理解决方案。
@@ -72,7 +72,7 @@ WeCube分为核心功能模块和插件模块。
 
 ## 系统架构
 
-### WeCube 2.0版本
+### WeCube 2.x版本
 ![WeCube2.0功能架构](wecube-wiki/images/wecube_arch_2.0.png) 
 
 组件间详细关联图：
@@ -109,7 +109,8 @@ WeCube的功能菜单设计与设计理念保持一致。分别是任务、设�
 
 	- 系统参数：管理WeCube Platform运行所需的系统参数。   
 	- 资源管理：管理WeCube提供的资源如容器母机及资源上运行的实例。   
-	- 权限管理：管理WeCube Platform的用户，角色和菜单，可以对权限进行菜单级别的管控。  
+	- 权限管理：管理WeCube Platform的用户，角色和菜单，可以对权限进行菜单级别的管控。 
+	- 高危规则配置：管理高危命令的检测规则，当使用平台执行功能时命中规则将弹窗提示进行二次确认。  
 
 - 协同
 
@@ -130,8 +131,6 @@ WeCube的功能菜单设计与设计理念保持一致。分别是任务、设�
 	- CI数据管理/查询：通过模型图形进入单个数据管理以及查询。
 
 	- CI综合查询管理/数据综合查询：用于配制多CI属性报表。比如一个应用使用到了哪些主机。
-
-	- 枚举数据管理/查询：通过对公共枚举和私有枚举进行管理以及查询。
 
 
 - 执行
@@ -160,7 +159,10 @@ WeCube的功能菜单设计与设计理念保持一致。分别是任务、设�
 
 - 调整（规划中）
 
-- 智慧（规划中）
+- 智慧
+	- 容量建模：通过多元回归分析建模，获取业务量指标和资源消耗之间的系数关系。
+
+	- 容量预测：将预测的业务量指标输入到模型中，获取合理的资源容量配置建议。
   
 ## 核心流程时序说明：
 
@@ -176,18 +178,21 @@ WeCube采用容器化部署。
 [WeCube编译文档](wecube-wiki/docs/install/wecube_compile_guide.md)
 
 如何安装WeCube， 请查看以下文档
-[WeCube部署文档](wecube-wiki/docs/install/wecube_install_guide.md)
+[WeCube部署文档@GitHub](https://webankpartners.github.io/wecube-docs/standalone-mode-on-premises/)
+[WeCube部署文档@Gitee](http://webankpartners.gitee.io/wecube-docs/standalone-mode-on-premises/)
 
 
 ## 用户手册
 更多关于WeCube的使用和操作说明， 请查看以下文档
-[WeCube用户手册](wecube-wiki/docs/manual/wecube_user_guide.md)
+[WeCube用户手册@GitHub](https://webankpartners.github.io/wecube-docs/)
+[WeCube用户手册@Gitee](http://webankpartners.gitee.io/wecube-docs/)
 
 
 ## 开发者文档
 WeCube使用Java和VUE进行开发，数据存储于MySQL，并依赖Tomcat Web容器运行。
 
 请参考以下文档进行开发环境配置[WeCube开发环境配置](wecube-wiki/docs/developer/wecube_developer_guide.md)
+请参考以下文档进行插件开发[WeCube-Platform插件开发规范](wecube-wiki/docs/developer/WeCube-Platform插件开发规范.md)
 
 
 ## License
