@@ -9,7 +9,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.webank.wecube.platform.core.domain.plugin.PluginArtifactPullRequestEntity;
+import com.webank.wecube.platform.core.entity.plugin.PluginArtifactPullReq;
 
 @Service
 public class PluginArtifactOperationExecutor {
@@ -17,7 +17,7 @@ public class PluginArtifactOperationExecutor {
     private ExecutorService executorService = Executors.newCachedThreadPool();
 
     @Autowired
-    private PluginPackageService pluginPackageService;
+    private PluginArtifactsMgmtService pluginPackageService;
 
     public void pullPluginArtifact(PluginArtifactPullContext ctx) {
         PluginArtifactOperationWorker worker = new PluginArtifactOperationWorker();
@@ -28,7 +28,7 @@ public class PluginArtifactOperationExecutor {
 
     public static class PluginArtifactOperationWorker implements Callable<Void> {
         private PluginArtifactPullContext pluginArtifactPullContext;
-        private PluginPackageService pluginPackageService;
+        private PluginArtifactsMgmtService pluginPackageService;
 
         @Override
         public Void call() throws Exception {
@@ -46,7 +46,7 @@ public class PluginArtifactOperationExecutor {
             this.pluginArtifactPullContext = pluginArtifactPullContext;
         }
 
-        public void setPluginPackageService(PluginPackageService pluginPackageService) {
+        public void setPluginPackageService(PluginArtifactsMgmtService pluginPackageService) {
             this.pluginPackageService = pluginPackageService;
         }
 
@@ -60,7 +60,7 @@ public class PluginArtifactOperationExecutor {
 
         private String keyName;
         private String requestId;
-        private PluginArtifactPullRequestEntity entity;
+        private PluginArtifactPullReq entity;
 
         public String getRemoteEndpoint() {
             return remoteEndpoint;
@@ -110,11 +110,11 @@ public class PluginArtifactOperationExecutor {
             this.requestId = requestId;
         }
 
-        public PluginArtifactPullRequestEntity getEntity() {
+        public PluginArtifactPullReq getEntity() {
             return entity;
         }
 
-        public void setEntity(PluginArtifactPullRequestEntity entity) {
+        public void setEntity(PluginArtifactPullReq entity) {
             this.entity = entity;
         }
 

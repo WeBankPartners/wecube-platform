@@ -14,6 +14,8 @@ delete from menu_items where id = 'ADMIN__ADMIN_SYSTEM_PARAMS';
 delete from menu_items where id = 'ADMIN__ADMIN_RESOURCES_MANAGEMENT';
 delete from menu_items where id = 'ADMIN__ADMIN_USER_ROLE_MANAGEMENT';
 delete from menu_items where id = 'IMPLEMENTATION__IMPLEMENTATION_BATCH_EXECUTION';
+delete from menu_items where id = 'ADMIN__ADMIN_SYSTEM_DATA_MODEL';
+delete from role_menu where id = 'SUPER_ADMIN__ADMIN_SYSTEM_DATA_MODEL';
 
 insert into menu_items (id,parent_code,code,source,menu_order,description,local_display_name) values
 ('JOBS',null,'JOBS','SYSTEM', 1, '', '任务');
@@ -44,6 +46,8 @@ insert into menu_items (id,parent_code,code,source,menu_order,description,local_
 insert into menu_items (id,parent_code,code,source,menu_order,description,local_display_name) values
 ('ADMIN__ADMIN_USER_ROLE_MANAGEMENT', 'ADMIN', 'ADMIN_USER_ROLE_MANAGEMENT', 'SYSTEM', 14, '', '用户管理');
 insert into menu_items (id,parent_code,code,source,menu_order,description,local_display_name) values
+('ADMIN__ADMIN_SYSTEM_DATA_MODEL', 'ADMIN', 'ADMIN_SYSTEM_DATA_MODEL', 'SYSTEM', 16, '', '系统数据模型');
+insert into menu_items (id,parent_code,code,source,menu_order,description,local_display_name) values
 ('IMPLEMENTATION__IMPLEMENTATION_BATCH_EXECUTION', 'IMPLEMENTATION', 'IMPLEMENTATION_BATCH_EXECUTION', 'SYSTEM', 15, '', '批量执行');
 
 delete from role_menu where id = 'SUPER_ADMIN__IMPLEMENTATION_WORKFLOW_EXECUTION';
@@ -68,6 +72,8 @@ insert into role_menu (id, role_name, menu_code) values
 ('SUPER_ADMIN__ADMIN_USER_ROLE_MANAGEMENT','SUPER_ADMIN','ADMIN_USER_ROLE_MANAGEMENT');
 insert into role_menu (id, role_name, menu_code) values
 ('SUPER_ADMIN__IMPLEMENTATION_BATCH_EXECUTION','SUPER_ADMIN','IMPLEMENTATION_BATCH_EXECUTION');
+insert into role_menu (id, role_name, menu_code) values
+('SUPER_ADMIN__ADMIN_SYSTEM_DATA_MODEL','SUPER_ADMIN','ADMIN_SYSTEM_DATA_MODEL');
 
 
 delete from system_variables where id = 'system__global__GATEWAY_URL';
@@ -95,20 +101,20 @@ INSERT INTO `system_variables` (`id`,`package_name`, `name`, `value`, `default_v
 INSERT INTO `system_variables` (`id`,`package_name`, `name`, `value`, `default_value`, `scope`, `source`, `status`) VALUES ('system__global__HTTPS_PROXY', NULL, 'HTTPS_PROXY', NULL, '', 'global', 'system', 'active');
 
 #workflow
-delete from `act_ge_property` where NAME_ = 'deployment.lock';
-delete from `act_ge_property` where NAME_ = 'history.cleanup.job.lock';
-delete from `act_ge_property` where NAME_ = 'historyLevel';
-delete from `act_ge_property` where NAME_ = 'next.dbid';
-delete from `act_ge_property` where NAME_ = 'schema.history';
-delete from `act_ge_property` where NAME_ = 'schema.version';
-delete from `act_ge_property` where NAME_ = 'startup.lock';
+delete from `ACT_GE_PROPERTY` where NAME_ = 'deployment.lock';
+delete from `ACT_GE_PROPERTY` where NAME_ = 'history.cleanup.job.lock';
+delete from `ACT_GE_PROPERTY` where NAME_ = 'historyLevel';
+delete from `ACT_GE_PROPERTY` where NAME_ = 'next.dbid';
+delete from `ACT_GE_PROPERTY` where NAME_ = 'schema.history';
+delete from `ACT_GE_PROPERTY` where NAME_ = 'schema.version';
+delete from `ACT_GE_PROPERTY` where NAME_ = 'startup.lock';
 
-INSERT INTO `act_ge_property` (`NAME_`,`VALUE_`,`REV_`) VALUES ('deployment.lock','0',1);
-INSERT INTO `act_ge_property` (`NAME_`,`VALUE_`,`REV_`) VALUES ('history.cleanup.job.lock','0',1);
-INSERT INTO `act_ge_property` (`NAME_`,`VALUE_`,`REV_`) VALUES ('historyLevel','3',1);
-INSERT INTO `act_ge_property` (`NAME_`,`VALUE_`,`REV_`) VALUES ('next.dbid','1',1);
-INSERT INTO `act_ge_property` (`NAME_`,`VALUE_`,`REV_`) VALUES ('schema.history','create(fox)',1);
-INSERT INTO `act_ge_property` (`NAME_`,`VALUE_`,`REV_`) VALUES ('schema.version','fox',1);
-INSERT INTO `act_ge_property` (`NAME_`,`VALUE_`,`REV_`) VALUES ('startup.lock','0',1);
+INSERT INTO `ACT_GE_PROPERTY` (`NAME_`,`VALUE_`,`REV_`) VALUES ('deployment.lock','0',1);
+INSERT INTO `ACT_GE_PROPERTY` (`NAME_`,`VALUE_`,`REV_`) VALUES ('history.cleanup.job.lock','0',1);
+INSERT INTO `ACT_GE_PROPERTY` (`NAME_`,`VALUE_`,`REV_`) VALUES ('historyLevel','3',1);
+INSERT INTO `ACT_GE_PROPERTY` (`NAME_`,`VALUE_`,`REV_`) VALUES ('next.dbid','1',1);
+INSERT INTO `ACT_GE_PROPERTY` (`NAME_`,`VALUE_`,`REV_`) VALUES ('schema.history','create(fox)',1);
+INSERT INTO `ACT_GE_PROPERTY` (`NAME_`,`VALUE_`,`REV_`) VALUES ('schema.version','fox',1);
+INSERT INTO `ACT_GE_PROPERTY` (`NAME_`,`VALUE_`,`REV_`) VALUES ('startup.lock','0',1);
 
 SET FOREIGN_KEY_CHECKS = 1;
