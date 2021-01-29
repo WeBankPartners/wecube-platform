@@ -31,7 +31,7 @@ WeCube is an open source, one-stop tool for architecture management and IT opera
 
 > Note:
 >  1. Live Demo will reset on 2:00 - 4:00am every day. The environment is not available during the period, and all changes will be discarded.
->  2. Multiple people use [admin] at the same time, may influence each other, if you want to get better experience, please set up your private environment refer to: [WeCube experience manaul](https://wecube-1259801214.cos.ap-guangzhou.myqcloud.com/v2.5.0/WeCube全量体验过程说明v2.5.0.pdf)
+>  2. Multiple people use [admin] at the same time, may influence each other, if you want to get better experience, please set up your private environment refer to: [WeCube experience manaul](https://wecube-1259801214.cos.ap-guangzhou.myqcloud.com/WeCube全量体验过程说明.pdf)
 
 ## Origin
 During the implementation of distributed architecture, core banking systems are built in WeBank. Comparing this to traditional monolithic architecture, there are quite a few different pain points, e.g. increasing number of servers, complicated deployment process, difficulties in service tracing and problem diagnosis due to complex systems and long invocation chains. 
@@ -84,7 +84,7 @@ Implemented features in WeCube Version 1.0:
 ![WeCube1.0 Logical Architecture](wecube-wiki/images/wecube_arch_2_en.png) 
 
 
-### WeCube Version 2.0
+### WeCube Version 2.x
 WeCube Version 2.0 is under active development and will come soon.
 
 
@@ -95,6 +95,7 @@ The main menu of WeCube matches its design concept, including Workbench, Expecta
   - System parameters: All the necessary parameters used during the WeCube Platform running can be managed.
   - Authorization: Users, Roles, and Menus are managed in this section, also the mapping between users, roles and menus.
   - Resources: Manage resources provided by WeCube, such as container hosts and instances running on the hosts.
+  - High-risk rules: manage the detection rules of high-risk commands. When the platform is used to perform interface, confirm prompt will pop-up while any rules hit.
 
 - Workflow
   - Plugin registration: Select the plugin package to upload. The plugin package needs to declare the plugin's dependencies, required menus, data models, system parameters, authorization settings, and resources. After registration, the plugin runs through the container, multiple instances supported, and you can view the log of the plugin operation. Select the plugin service, and associate the CMDB data model attribute value with the parameters.
@@ -107,7 +108,6 @@ The main menu of WeCube matches its design concept, including Workbench, Expecta
   - Application deployment design: to design the deployment architectural view and trigger deployment for applications
   - CI data query and management: to query and manage data for a single CI type through the graph of the CI model
   - CI integrated query: to configure queries involving multiple CI types, for example, to find out all hosts used by a specific application
-  - Enumeration query and management
 
 - Execution
   - Task orchestration execution: to execute complicated operations with predefined workflow and plugins. Canary release supported.
@@ -127,7 +127,10 @@ The main menu of WeCube matches its design concept, including Workbench, Expecta
 
 - Equilibration (On Planning)
 
-- Wisdom (On Planning)
+- Wisdom
+  - Capacity modeling: obtain the coefficient relationship between the business metrics and resource consumption metrics through multiple regression analysis modeling.
+  - Capacity prediction: input the predicted business metrics into the model to obtain reasonable suggestions on resource capacity allocation.
+    
 
 ## Quick Start
 WeCube is using containerized deployment.
@@ -145,6 +148,8 @@ Please refer to the [WeCube User Guide](wecube-wiki/docs/manual/wecube_user_guid
 WeCube is developed with Java and Vue.js, it uses MySQL for data persistence and relies on Tomcat as the web application container.
 
 Please refer to the [WeCube Developer Guide](wecube-wiki/docs/developer/wecube_developer_guide_en.md) on how to set up the development environment.
+
+Please refer to the [WeCube Plugin Developer Guide](wecube-wiki/docs/developer/WeCube-Platform插件开发规范.md) on how to develop a new plugin.
 
 
 ## License
