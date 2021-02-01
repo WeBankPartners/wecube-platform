@@ -1,7 +1,7 @@
 name: Synchronize latest published release to Gitee
 on:
   release:
-    types: [published]
+    types: [published, edited]
   workflow_dispatch:
 jobs:
   sync-published-release:
