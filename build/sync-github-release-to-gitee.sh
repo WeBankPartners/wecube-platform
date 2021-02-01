@@ -25,7 +25,7 @@ TAG_NAME=$(jq -r '.tag_name' <<<"$RELEASE_JSON")
 echo "Fetching Gitee release for tag \"${TAG_NAME}\"..."
 GITEE_RELEASE_ID=$(curl -sSfL \
 	--request GET "https://gitee.com/api/v5/repos/${GITHUB_REPOSITORY}/releases/tags/${TAG_NAME}" 2>/dev/null \
-	| jq --exit-status '.id'
+	| jq --exit-status -r '.id'
 )
 
 
@@ -35,12 +35,12 @@ if [ -z "${GITEE_RELEASE_ID}" ]; then
 		--request POST "https://gitee.com/api/v5/repos/${GITHUB_REPOSITORY}/releases" \
 		--header 'Content-Type: application/json;charset=UTF-8' \
 		--data @- <<<"$RELEASE_JSON" \
-		| jq --exit-status
+		| jq --exit-status '.'
 else
-	echo "Patching Gitee release for id \"${GITEE_RELEASE_ID}\""
+	echo "Patching Gitee release for id \"${GITEE_RELEASE_ID}\"..."
 	curl -sSfL \
 		--request PATCH "https://gitee.com/api/v5/repos/${GITHUB_REPOSITORY}/releases/${GITEE_RELEASE_ID}" \
 		--header 'Content-Type: application/json;charset=UTF-8' \
 		--data @- <<<"$RELEASE_JSON" \
-		| jq --exit-status
+		| jq --exit-status '.'
 fi
