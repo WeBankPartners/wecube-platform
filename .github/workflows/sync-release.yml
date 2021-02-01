@@ -1,7 +1,6 @@
 name: Synchronize release
 on:
   release:
-    types: [published, edited]
   workflow_dispatch:
 jobs:
   sync-published-release:
