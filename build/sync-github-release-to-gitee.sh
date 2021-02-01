@@ -34,11 +34,13 @@ if [ -z "${GITEE_RELEASE_ID}" ]; then
 	curl -sSfL \
 		--request POST "https://gitee.com/api/v5/repos/${GITHUB_REPOSITORY}/releases" \
 		--header 'Content-Type: application/json;charset=UTF-8' \
-		--data @- <<<"$RELEASE_JSON"
+		--data @- <<<"$RELEASE_JSON" \
+		| jq --exit-status
 else
 	echo "Patching Gitee release for id \"${GITEE_RELEASE_ID}\""
 	curl -sSfL \
 		--request PATCH "https://gitee.com/api/v5/repos/${GITHUB_REPOSITORY}/releases/${GITEE_RELEASE_ID}" \
 		--header 'Content-Type: application/json;charset=UTF-8' \
-		--data @- <<<"$RELEASE_JSON"
+		--data @- <<<"$RELEASE_JSON" \
+		| jq --exit-status
 fi
