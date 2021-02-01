@@ -7,7 +7,7 @@ echo "- GITHUB_EVENT_NAME=${GITHUB_EVENT_NAME}"
 echo "- GITHUB_REF=${GITHUB_REF}"
 
 
-if [ -z "${GITHUB_REF}" ]; then
+if [ "${GITHUB_REF/refs/}" != "${GITHUB_REF}" ]; then
 	GITHUB_RELEASE_URL="${GITHUB_API_URL}/repos/${GITHUB_REPOSITORY}/latest"
 else
 	GITHUB_RELEASE_URL="${GITHUB_API_URL}/repos/${GITHUB_REPOSITORY}/tags/${GITHUB_REF}"
