@@ -8,9 +8,9 @@ echo "- GITHUB_REF=${GITHUB_REF}"
 
 
 if [ "${GITHUB_REF/refs/}" != "${GITHUB_REF}" ]; then
-	GITHUB_RELEASE_URL="${GITHUB_API_URL}/repos/${GITHUB_REPOSITORY}/latest"
+	GITHUB_RELEASE_URL="${GITHUB_API_URL}/repos/${GITHUB_REPOSITORY}/releases/latest"
 else
-	GITHUB_RELEASE_URL="${GITHUB_API_URL}/repos/${GITHUB_REPOSITORY}/tags/${GITHUB_REF}"
+	GITHUB_RELEASE_URL="${GITHUB_API_URL}/repos/${GITHUB_REPOSITORY}/releases/tags/${GITHUB_REF}"
 fi
 
 echo "Fetching GitHub release from \"${GITHUB_RELEASE_URL}\"..."
