@@ -1,6 +1,7 @@
 #!/bin/bash
 
 set -e
+set -o pipefail
 
 echo "GitHub action was triggered with:"
 echo "- GITHUB_EVENT_NAME=${GITHUB_EVENT_NAME}"
