@@ -45,16 +45,16 @@ export default {
       }
       const { status, data } = await login(payload)
       if (status === 'OK') {
-        let session = window.sessionStorage
+        let localStorage = window.localStorage
         setCookie(data)
-        session.setItem('username', this.username)
+        localStorage.setItem('username', this.username)
         this.$router.push('/homepage')
       }
       this.loading = false
     },
     clearSession () {
-      let session = window.sessionStorage
-      session.removeItem('username')
+      let localStorage = window.localStorage
+      localStorage.removeItem('username')
       window.needReLoad = true
     }
   },

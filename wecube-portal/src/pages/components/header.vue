@@ -320,7 +320,7 @@ export default {
     this.getLocalLang()
     this.getApplicationVersion()
     this.getMyMenus()
-    this.username = window.sessionStorage.getItem('username')
+    this.username = window.localStorage.getItem('username')
   },
   watch: {
     $lang: async function (lang) {
