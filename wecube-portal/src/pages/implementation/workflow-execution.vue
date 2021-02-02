@@ -12,7 +12,6 @@
               <Select
                 v-model="selectedFlowInstance"
                 style="width:60%"
-                class="reset-select"
                 filterable
                 clearable
                 @on-clear="clearHistoryOrch"
@@ -1771,7 +1770,7 @@ export default {
 </script>
 <style lang="scss">
 .ivu-select-dropdown {
-  max-height: 340px !important;
+  max-height: 400px !important;
 }
 </style>
 <style lang="scss" scoped>
