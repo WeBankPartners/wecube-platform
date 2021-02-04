@@ -281,7 +281,7 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
         }
 
         ProcInstOutline procInstOutline = workflowEngineService.getProcInstOutline(procInstanceKernelId);
-        if (!procInstEntity.getStatus().equals(procInstOutline.getStatus())
+        if (!procInstEntity.getStatus().equals(procInstOutline.getStatus()) && (procInstOutline.getStatus() != null)
                 && !ProcInstInfoEntity.INTERNALLY_TERMINATED_STATUS.equalsIgnoreCase(procInstEntity.getStatus())) {
             procInstEntity.setStatus(procInstOutline.getStatus());
             procInstEntity.setUpdatedTime(new Date());
@@ -308,8 +308,7 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
 
         }
 
-        ProcExecBindingEntity procInstBindEntity = procExecBindingMapper
-                .selectProcInstBindings(procInstEntity.getId());
+        ProcExecBindingEntity procInstBindEntity = procExecBindingMapper.selectProcInstBindings(procInstEntity.getId());
 
         String entityTypeId = null;
         String entityDataId = null;
@@ -531,7 +530,8 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
         String runningMsg = assembleExclusiveExceptionMsg(boundExclusiveProcInstIds);
 
         String errMsg = String.format(
-                "Data binding conflicts exist.Current process is shared mode,but the following exclusive processes are still running: %s", runningMsg);
+                "Data binding conflicts exist.Current process is shared mode,but the following exclusive processes are still running: %s",
+                runningMsg);
         throw new WecubeCoreException(errMsg);
 
     }
@@ -571,7 +571,8 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
         String runningMsg = assembleExclusiveExceptionMsg(boundProcInstIds);
 
         String errMsg = String.format(
-                "Data binding conflicts exist.Current process is exclusive, but the following processes are still in progress: %s", runningMsg);
+                "Data binding conflicts exist.Current process is exclusive, but the following processes are still in progress: %s",
+                runningMsg);
         throw new WecubeCoreException(errMsg);
     }
 
@@ -598,7 +599,6 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
             }
             sb.append(entity.getProcDefName()).append(":").append(entityDataName);
             sb.append(":").append(entity.getOperator()).append(":").append(formatDate(entity.getCreatedTime()));
-
 
             size++;
         }
@@ -785,8 +785,7 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
             return;
         }
 
-        List<GraphNodeEntity> gNodes = graphNodeMapper
-                .selectAllByProcessSessionId(requestDto.getProcessSessionId());
+        List<GraphNodeEntity> gNodes = graphNodeMapper.selectAllByProcessSessionId(requestDto.getProcessSessionId());
         if (gNodes == null || gNodes.isEmpty()) {
             return;
         }
