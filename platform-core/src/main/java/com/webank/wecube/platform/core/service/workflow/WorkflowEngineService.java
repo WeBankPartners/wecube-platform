@@ -313,6 +313,7 @@ public class WorkflowEngineService {
         result.setProcDefKernelId(procDef.getId());
         result.setProcDefKey(procDef.getKey());
         result.setProcDefName(procDef.getName());
+        result.setStatus(procInstStatusEntity.getStatus().name());
 
         populateFlowNodeInsts(result, startEvent);
         refreshFlowNodeStatus(result);
