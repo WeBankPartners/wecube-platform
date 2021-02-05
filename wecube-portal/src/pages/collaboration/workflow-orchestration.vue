@@ -226,7 +226,7 @@
               >
                 <Option v-for="i in paramsTypes" :value="i.value" :key="i.value">{{ i.label }}</Option>
               </Select>
-              <Select filterable v-if="item.bindType === 'context'" v-model="item.bindValue" style="width:30%">
+              <Select filterable v-if="item.bindType === 'context'" v-model="item.bindParamName" style="width:30%">
                 <Option v-for="i in item.currentParamNames" :value="i.name" :key="i.name">{{ i.name }}</Option>
               </Select>
               <label v-if="item.bindType === 'context' && item.required === 'Y'">
