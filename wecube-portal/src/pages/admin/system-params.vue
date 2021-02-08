@@ -47,18 +47,6 @@ export default {
       tableData: [],
       tableColumns: [
         {
-          title: this.$t('table_id'),
-          key: 'id',
-          inputKey: 'id',
-          searchSeqNo: 1,
-          displaySeqNo: 1,
-          disEditor: true,
-          disAdded: true,
-          component: 'Input',
-          inputType: 'text',
-          placeholder: this.$t('table_id')
-        },
-        {
           title: this.$t('table_name'),
           key: 'name',
           inputKey: 'name',
