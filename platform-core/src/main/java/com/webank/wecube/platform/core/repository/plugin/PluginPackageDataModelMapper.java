@@ -1,5 +1,7 @@
 package com.webank.wecube.platform.core.repository.plugin;
 
+import java.util.List;
+
 import org.apache.ibatis.annotations.Param;
 import org.springframework.stereotype.Repository;
 
@@ -26,4 +28,11 @@ public interface PluginPackageDataModelMapper {
      * @return
      */
     PluginPackageDataModel selectLatestDataModelByPackageName(@Param("packageName") String packageName);
+    
+    /**
+     * 
+     * @param packageName
+     * @return
+     */
+    List<PluginPackageDataModel> selectDataModelsByPackageName(@Param("packageName") String packageName);
 }
