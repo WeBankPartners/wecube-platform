@@ -175,4 +175,17 @@
         )
 
     </select>
+    
+    <select id="selectDataModelsByPackageName" resultMap="BaseResultMap"
+        parameterType="java.lang.String">
+        SELECT
+        t1.id, t1.version, t1.package_name,
+        t1.is_dynamic, t1.update_path, t1.update_method,
+        t1.update_source,
+        t1.update_time
+        FROM plugin_package_data_model t1
+        WHERE t1.package_name = #{packageName,jdbcType=VARCHAR}
+        order by t1.version desc
+        limit 10
+    </select>
 </mapper>
