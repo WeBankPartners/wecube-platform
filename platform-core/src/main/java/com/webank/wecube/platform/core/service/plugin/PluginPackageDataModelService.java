@@ -78,8 +78,8 @@ public class PluginPackageDataModelService {
     /**
      * Plugin model overview
      *
-     * @return an list of data model DTOs consist of entity dtos which contain
-     *         both entities and attributes
+     * @return an list of data model DTOs consist of entity dtos which contain both
+     *         entities and attributes
      */
     public Set<PluginPackageDataModelDto> overview() {
         Set<PluginPackageDataModelDto> pluginPackageDataModelDtos = new HashSet<>();
@@ -91,8 +91,7 @@ public class PluginPackageDataModelService {
 
         for (PluginPackages pluginPackagesEntity : pluginPackagesEntities) {
 
-            PluginPackageDataModel dataModelEntity = pluginPackageDataModelMapper
-                    .selectLatestDataModelByPackageName(pluginPackagesEntity.getName());
+            PluginPackageDataModel dataModelEntity = tryFetchLatestAvailableDataModelEntity(pluginPackagesEntity.getName());
             if (dataModelEntity != null) {
                 PluginPackageDataModelDto dto = buildPackageViewPluginPackageDataModelDto(dataModelEntity);
                 pluginPackageDataModelDtos.add(dto);
@@ -105,8 +104,7 @@ public class PluginPackageDataModelService {
     /**
      * View one data model entity with its relationship by packageName
      *
-     * @param packageName
-     *            the name of package
+     * @param packageName the name of package
      * @return list of entity dto
      */
     public PluginPackageDataModelDto packageView(String packageName) {
@@ -118,8 +116,7 @@ public class PluginPackageDataModelService {
             return null;
         }
 
-        PluginPackageDataModel latestDataModelEntity = pluginPackageDataModelMapper
-                .selectLatestDataModelByPackageName(packageName);
+        PluginPackageDataModel latestDataModelEntity = tryFetchLatestAvailableDataModelEntity(packageName);
 
         if (latestDataModelEntity == null) {
             String errorMessage = String.format("Data model not found for package name=[%s]", packageName);
@@ -130,6 +127,43 @@ public class PluginPackageDataModelService {
 
         PluginPackageDataModelDto resultDto = buildPackageViewPluginPackageDataModelDto(latestDataModelEntity);
         return resultDto;
+    }
+
+    public PluginPackageDataModel tryFetchLatestAvailableDataModelEntity(String packageName) {
+        PluginPackageDataModel latestDataModelEntity = pluginPackageDataModelMapper
+                .selectLatestDataModelByPackageName(packageName);
+
+        if (latestDataModelEntity == null) {
+            return null;
+        }
+
+        if ((latestDataModelEntity.getIsDynamic() != null) && (latestDataModelEntity.getIsDynamic() == true)) {
+            PluginPackageDataModel reCalculatedEntity = tryCalculateDynamicLatestAvailableDataModelEntity(latestDataModelEntity);
+            return reCalculatedEntity;
+        }else {
+            return latestDataModelEntity;
+        }
+    }
+    
+    private PluginPackageDataModel tryCalculateDynamicLatestAvailableDataModelEntity(PluginPackageDataModel dataModelEntity) {
+        List<PluginPackageDataModel> dataModelEntities = pluginPackageDataModelMapper.selectDataModelsByPackageName(dataModelEntity.getPackageName());
+        PluginPackageDataModel targetDataMode = null;
+        
+        for(PluginPackageDataModel dataModel : dataModelEntities) {
+            List<PluginPackageEntities> pluginPackageEntities = pluginPackageEntitiesMapper
+                    .selectAllByDataModel(dataModelEntity.getId());
+            if(pluginPackageEntities != null && !pluginPackageEntities.isEmpty()) {
+                targetDataMode = dataModel;
+                break;
+            }
+        }
+        
+        if(targetDataMode == null) {
+            targetDataMode = dataModelEntity;
+        }
+        
+        return targetDataMode;
+        
     }
 
     /**
@@ -209,18 +243,14 @@ public class PluginPackageDataModelService {
     /**
      * Get all refByInfo at attribute level
      *
-     * @param packageName
-     *            package name
-     * @param entityName
-     *            entity name
+     * @param packageName package name
+     * @param entityName  entity name
      * @return attribute dto list
-     * @throws WecubeCoreException
-     *             the wecube core exception
+     * @throws WecubeCoreException the wecube core exception
      */
     public List<PluginPackageAttributeDto> getRefByInfo(String packageName, String entityName) {
 
-        PluginPackageDataModel latestDataModelEntity = pluginPackageDataModelMapper
-                .selectLatestDataModelByPackageName(packageName);
+        PluginPackageDataModel latestDataModelEntity = tryFetchLatestAvailableDataModelEntity(packageName);
         if (latestDataModelEntity == null) {
             String msg = String.format("Cannot find data model by package name: [%s] and entity name: [%s]",
                     packageName, entityName);
@@ -279,8 +309,7 @@ public class PluginPackageDataModelService {
      * @return
      */
     public List<PluginPackageAttributeDto> entityView(String packageName, String entityName) {
-        PluginPackageDataModel latestDataModelEntity = pluginPackageDataModelMapper
-                .selectLatestDataModelByPackageName(packageName);
+        PluginPackageDataModel latestDataModelEntity = tryFetchLatestAvailableDataModelEntity(packageName);
         if (latestDataModelEntity == null) {
             String msg = String.format("Cannot find data model by package name: [%s] and entity name: [%s]",
                     packageName, entityName);
@@ -326,8 +355,7 @@ public class PluginPackageDataModelService {
     public DataModelEntityDto getEntityByPackageNameAndName(String packageName, String entityName) {
         DataModelEntityDto dataModelEntityDto = new DataModelEntityDto();
 
-        PluginPackageDataModel dataModelEntity = pluginPackageDataModelMapper
-                .selectLatestDataModelByPackageName(packageName);
+        PluginPackageDataModel dataModelEntity = tryFetchLatestAvailableDataModelEntity(packageName);
         if (dataModelEntity == null) {
             return dataModelEntityDto;
         }
@@ -352,8 +380,7 @@ public class PluginPackageDataModelService {
             return dataModelEntityDto;
         }
 
-        List<PluginConfigs> boundInterfacesConfigs = pluginConfigsMapper
-                .selectAllByStatus(PluginConfigs.ENABLED);
+        List<PluginConfigs> boundInterfacesConfigs = pluginConfigsMapper.selectAllByStatus(PluginConfigs.ENABLED);
         if (boundInterfacesConfigs == null || boundInterfacesConfigs.isEmpty()) {
             log.info("bound plugin configs do not find for plugin package with id {} ",
                     latestPluginPackagesEntity.getId());
@@ -435,8 +462,8 @@ public class PluginPackageDataModelService {
                     }
                 }
                 if (!entityExistedFlag) {
-                    log.debug("leaf entity does not exist:{} {} {}", config.getTargetPackage(), config.getTargetEntity(),
-                            config.getTargetEntityWithFilterRule());
+                    log.debug("leaf entity does not exist:{} {} {}", config.getTargetPackage(),
+                            config.getTargetEntity(), config.getTargetEntityWithFilterRule());
                     BoundInterfaceEntityDto newBoundInterfaceEntityDto = new BoundInterfaceEntityDto(
                             config.getTargetPackage(), config.getTargetEntity(),
                             config.getTargetEntityWithFilterRule());
