@@ -151,7 +151,7 @@ public class PluginPackageDataModelService {
         
         for(PluginPackageDataModel dataModel : dataModelEntities) {
             List<PluginPackageEntities> pluginPackageEntities = pluginPackageEntitiesMapper
-                    .selectAllByDataModel(dataModelEntity.getId());
+                    .selectAllByDataModel(dataModel.getId());
             if(pluginPackageEntities != null && !pluginPackageEntities.isEmpty()) {
                 targetDataMode = dataModel;
                 break;
