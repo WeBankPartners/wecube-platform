@@ -132,7 +132,7 @@ public class PluginPackageMgmtService extends AbstractPluginMgmtService {
      * @return
      */
     public PluginPackages fetchLatestVersionPluginPackage(String packageName) {
-        List<PluginPackages> pluginPackagesEntities = pluginPackagesMapper.selectAllByName(packageName);
+        List<PluginPackages> pluginPackagesEntities = pluginPackagesMapper.selectAllByNameAndStatuses(packageName, PluginPackages.PLUGIN_PACKAGE_ACTIVE_STATUSES);
         if (pluginPackagesEntities == null || pluginPackagesEntities.isEmpty()) {
             return null;
         }

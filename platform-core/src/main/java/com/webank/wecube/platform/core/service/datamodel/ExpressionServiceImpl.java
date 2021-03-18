@@ -16,17 +16,17 @@ import com.webank.wecube.platform.core.entity.plugin.PluginPackageAttributes;
 import com.webank.wecube.platform.core.entity.plugin.PluginPackageDataModel;
 import com.webank.wecube.platform.core.entity.plugin.PluginPackageEntities;
 import com.webank.wecube.platform.core.repository.plugin.PluginPackageAttributesMapper;
-import com.webank.wecube.platform.core.repository.plugin.PluginPackageDataModelMapper;
 import com.webank.wecube.platform.core.repository.plugin.PluginPackageEntitiesMapper;
 import com.webank.wecube.platform.core.service.dme.EntityQueryExprNodeInfo;
 import com.webank.wecube.platform.core.service.dme.EntityQueryExpressionParser;
+import com.webank.wecube.platform.core.service.plugin.PluginPackageDataModelService;
 
 @Service
 public class ExpressionServiceImpl implements ExpressionService {
     private static final Logger log = LoggerFactory.getLogger(ExpressionServiceImpl.class);
 
     @Autowired
-    private PluginPackageDataModelMapper pluginPackageDataModelMapper;
+    private PluginPackageDataModelService pluginPackageDataModelService;
 
     @Autowired
     private PluginPackageEntitiesMapper pluginPackageEntitiesMapper;
@@ -58,8 +58,7 @@ public class ExpressionServiceImpl implements ExpressionService {
         }
 
         for (EntityDto entityDto : entityDtos) {
-            PluginPackageDataModel dataModelEntity = pluginPackageDataModelMapper
-                    .selectLatestDataModelByPackageName(entityDto.getPackageName());
+            PluginPackageDataModel dataModelEntity = pluginPackageDataModelService.tryFetchLatestAvailableDataModelEntity(entityDto.getPackageName());
 
             if (dataModelEntity == null) {
                 continue;
