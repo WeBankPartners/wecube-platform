@@ -3,7 +3,7 @@ package com.webank.wecube.platform.core.service.plugin;
 import java.util.regex.Matcher;
 
 public class VersionTagInfo {
-    public static final String VERSION_TAG_PATTERN = "^(#@((v|V)(\\d+)((\\.\\d+)*))-(begin|Begin|BEGIN|end|End|END)@)(.*)$";
+    public static final String VERSION_TAG_PATTERN = "^(#@((v|V)(\\d+)((\\.\\d+)*))-(begin|Begin|BEGIN|end|End|END)@)$";
     private static final String BORDER_INDICATOR_BEGIN = "begin";
     private static final String BORDER_INDICATOR_END = "end";
     private String rawVersionTag;
