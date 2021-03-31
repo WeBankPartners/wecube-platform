@@ -880,7 +880,11 @@ export default {
       }
       let hasvalue = true
       pluginFormCopy.paramInfos.forEach(item => {
-        if (item.required === 'Y' && item.bindValue === '') {
+        if (
+          item.required === 'Y' &&
+          ((item.bindType === 'constant' && item.bindValue === '') ||
+            (item.bindType === 'context' && item.bindParamName === ''))
+        ) {
           this.$Message.warning(item.paramName + ' ' + this.$t('required'))
           hasvalue = false
         }
