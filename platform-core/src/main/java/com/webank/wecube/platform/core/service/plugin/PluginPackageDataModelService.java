@@ -531,7 +531,7 @@ public class PluginPackageDataModelService {
         }
 
         //TODO
-        calOverviewDynamicEntityDtoRelationShips(entityDtos, pluginPackageEntities);
+        calOverviewDynamicEntityDtoRelationShips(entityDtos, pluginPackageEntities, totalEntityDtos);
 
         dataModelDto.getEntities().addAll(entityDtos);
 
@@ -623,7 +623,7 @@ public class PluginPackageDataModelService {
     
     //TODO
     private void calOverviewDynamicEntityDtoRelationShips(List<PluginPackageEntityDto> entityDtos,
-            List<PluginPackageEntities> pluginPackageEntitiesList) {
+            List<PluginPackageEntities> pluginPackageEntitiesList, List<PluginPackageEntityDto> totalEntityDtos) {
         if (entityDtos == null || entityDtos.isEmpty()) {
             return;
         }
@@ -633,7 +633,7 @@ public class PluginPackageDataModelService {
         }
 
         Map<String, PluginPackageEntityDto> idAndEntityDtoMap = new HashMap<>();
-        for (PluginPackageEntityDto dto : entityDtos) {
+        for (PluginPackageEntityDto dto : totalEntityDtos) {
             idAndEntityDtoMap.put(dto.getId(), dto);
         }
 
