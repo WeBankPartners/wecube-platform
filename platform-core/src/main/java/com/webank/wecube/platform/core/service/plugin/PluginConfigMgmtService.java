@@ -39,7 +39,6 @@ import com.webank.wecube.platform.core.repository.plugin.PluginConfigInterfacePa
 import com.webank.wecube.platform.core.repository.plugin.PluginConfigInterfacesMapper;
 import com.webank.wecube.platform.core.repository.plugin.PluginConfigRolesMapper;
 import com.webank.wecube.platform.core.repository.plugin.PluginConfigsMapper;
-import com.webank.wecube.platform.core.repository.plugin.PluginPackageDataModelMapper;
 import com.webank.wecube.platform.core.repository.plugin.PluginPackageEntitiesMapper;
 import com.webank.wecube.platform.core.repository.plugin.PluginPackagesMapper;
 import com.webank.wecube.platform.core.utils.CollectionUtils;
@@ -66,7 +65,7 @@ public class PluginConfigMgmtService extends AbstractPluginMgmtService {
     private PluginConfigInterfaceParametersMapper pluginConfigInterfaceParametersMapper;
 
     @Autowired
-    private PluginPackageDataModelMapper pluginPackageDataModelMapper;
+    private PluginPackageDataModelService pluginPackageDataModelService;
 
     @Autowired
     private PluginPackageEntitiesMapper pluginPackageEntitiesMapper;
@@ -1213,8 +1212,7 @@ public class PluginConfigMgmtService extends AbstractPluginMgmtService {
         if (StringUtils.isNotBlank(targetPackage) || StringUtils.isNotBlank(targetEntity)) {
             return;
         }
-        PluginPackageDataModel dataModelEntity = pluginPackageDataModelMapper
-                .selectLatestDataModelByPackageName(targetPackage);
+        PluginPackageDataModel dataModelEntity = pluginPackageDataModelService.tryFetchLatestAvailableDataModelEntity(targetPackage);
         if (dataModelEntity == null) {
             throw new WecubeCoreException("3049", "Data model not exists for package name [%s]");
         }
@@ -1442,8 +1440,7 @@ public class PluginConfigMgmtService extends AbstractPluginMgmtService {
     }
 
     private boolean validateTargetPackageAndTargetEntityForQuery(String targetPackageName, String targetEntityName) {
-        PluginPackageDataModel dataModelEntity = pluginPackageDataModelMapper
-                .selectLatestDataModelByPackageName(targetPackageName);
+        PluginPackageDataModel dataModelEntity = pluginPackageDataModelService.tryFetchLatestAvailableDataModelEntity(targetPackageName);
 
         if (dataModelEntity == null) {
             log.info("No data model found for package [{}]", targetPackageName);

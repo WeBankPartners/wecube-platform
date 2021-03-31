@@ -552,8 +552,9 @@ public class PluginArtifactsMgmtService extends AbstractPluginMgmtService {
             packageMenuEntity.setCategory(xmlMenu.getCat());
             packageMenuEntity.setCode(xmlMenu.getCode());
             packageMenuEntity.setDisplayName(xmlMenu.getDisplayName());
-            packageMenuEntity.setLocalDisplayName(StringUtils.isBlank(xmlMenu.getLocalDisplayName())
-                    ? xmlMenu.getDisplayName() : xmlMenu.getLocalDisplayName());
+            packageMenuEntity
+                    .setLocalDisplayName(StringUtils.isBlank(xmlMenu.getLocalDisplayName()) ? xmlMenu.getDisplayName()
+                            : xmlMenu.getLocalDisplayName());
             // packageMenuEntity.setMenuOrder(menuOrder);
 
             packageMenuEntity.setPath(xmlMenu.getValue());
@@ -723,7 +724,9 @@ public class PluginArtifactsMgmtService extends AbstractPluginMgmtService {
                 attributeEntity.setEntityId(entity.getId());
                 attributeEntity.setName(xmlAttribute.getName());
                 String refPackage = xmlAttribute.getRefPackage();
-                refPackage = xmlPackage.getName();
+                if (StringUtils.isBlank(refPackage)) {
+                    refPackage = xmlPackage.getName();
+                }
                 attributeEntity.setRefAttr(xmlAttribute.getRef());
                 attributeEntity.setRefPackage(refPackage);
                 attributeEntity.setRefEntity(xmlAttribute.getRefEntity());
@@ -769,11 +772,10 @@ public class PluginArtifactsMgmtService extends AbstractPluginMgmtService {
             throw new WecubeCoreException(errMsg);
         }
 
-
         PluginPackageAttributes latestRefAttr = pluginPackageAttributesMapper
                 .selectLatestAttributeByPackageAndEntityAndAttr(refPackageName, refEntityName, refAttr);
-        
-        if(latestRefAttr == null){
+
+        if (latestRefAttr == null) {
             return null;
         }
 
@@ -840,7 +842,8 @@ public class PluginArtifactsMgmtService extends AbstractPluginMgmtService {
         pluginConfigEntity.setTargetEntity(xmlPlugin.getTargetEntity());
 
         String targetEntityFilterRule = xmlPlugin.getTargetEntityFilterRule() == null
-                ? DEFAULT_TARGET_ENTITY_FILTER_RULE : xmlPlugin.getTargetEntityFilterRule();
+                ? DEFAULT_TARGET_ENTITY_FILTER_RULE
+                : xmlPlugin.getTargetEntityFilterRule();
         pluginConfigEntity.setTargetEntityFilterRule(targetEntityFilterRule);
         pluginConfigEntity.setTargetPackage(xmlPlugin.getTargetPackage());
 
