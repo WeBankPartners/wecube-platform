@@ -32,7 +32,7 @@
     "moment": "^2.24.0",
     "view-design": "4.3.2",
     "vis": "^4.21.0",
-    "vue": "^2.6.6",
+    "vue": "2.6.12",
     "vue-highlight.js": "^3.1.0",
     "vue-i18n": "^5.0.3",
     "vue-router": "^3.0.1",
