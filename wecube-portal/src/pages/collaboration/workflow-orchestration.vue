@@ -1200,12 +1200,14 @@ export default {
 }
 
 // hide panal tab item
+[data-entry='process-is-executable'],
 [data-group='documentation'],
 [data-group='historyConfiguration'],
 [data-group='jobConfiguration'],
 [data-group='externalTaskConfiguration'],
 [data-group='candidateStarterConfiguration'],
 [data-group='tasklist'],
+[data-group='details'],
 [data-group='async'] {
   display: none;
 }
