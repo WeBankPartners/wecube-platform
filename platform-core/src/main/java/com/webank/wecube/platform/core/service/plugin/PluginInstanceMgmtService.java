@@ -737,7 +737,7 @@ public class PluginInstanceMgmtService extends AbstractPluginMgmtService {
             latestVersion = pluginPackage.getVersion();
         }
 
-        log.info("try to upgrade databaase, latest version {} and current version {}, no need to upgrade.",
+        log.info("try to upgrade databaase, latest version {} and current version {}, need to upgrade.",
                 latestVersion, pluginPackage.getVersion());
 
         try {
