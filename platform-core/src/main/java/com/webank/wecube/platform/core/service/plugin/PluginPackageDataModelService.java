@@ -643,7 +643,6 @@ public class PluginPackageDataModelService {
                 }
 
                 String referenceId = attr.getReferenceId();
-                // TODO
                 PluginPackageAttributes referencedAttrEntity = pluginPackageAttributesMapper
                         .selectByPrimaryKey(referenceId);
                 if (referencedAttrEntity == null) {
@@ -654,11 +653,11 @@ public class PluginPackageDataModelService {
                 PluginPackageEntities referencedEntity = totalIdAndEntityMap.get(referencedAttrEntity.getEntityId());
 
                 if (referencedEntity == null) {
-                    if (StringUtils.isNoneBlank(referencedAttrEntity.getRefPackage())
-                            && StringUtils.isNoneBlank(referencedAttrEntity.getRefEntity())
-                            && StringUtils.isNoneBlank(referencedAttrEntity.getRefAttr())) {
-                        referencedEntity = findoutFromTotalEntitiesByAttrInfo(referencedAttrEntity.getRefPackage(),
-                                referencedAttrEntity.getRefEntity(), totalIdAndEntityMap);
+                    if (StringUtils.isNoneBlank(attr.getRefPackage())
+                            && StringUtils.isNoneBlank(attr.getRefEntity())
+                            && StringUtils.isNoneBlank(attr.getRefAttr())) {
+                        referencedEntity = findoutFromTotalEntitiesByAttrInfo(attr.getRefPackage(),
+                                attr.getRefEntity(), totalIdAndEntityMap);
                     }
                 }
 
