@@ -90,9 +90,10 @@ public class PluginPackageDataModelService {
         }
 
         List<PluginPackageDataModel> latestDataModelEntities = new ArrayList<>();
-        List<PluginPackageEntityDto> totalEntityDtos = new ArrayList<>();
-        
-        Map<String,List<PluginPackageEntities>> dataModelIdAndPluginPackageEntityMap = new HashMap<>();
+        Map<String, PluginPackageEntityDto> totalIdAndEntityDtoMap = new HashMap<>();
+        Map<String, PluginPackageEntities> totalIdAndEntityMap = new HashMap<>();
+
+        Map<String, List<PluginPackageEntities>> dataModelIdAndPluginPackageEntityMap = new HashMap<>();
 
         for (PluginPackages pluginPackagesEntity : pluginPackagesEntities) {
             PluginPackageDataModel dataModelEntity = tryFetchLatestAvailableDataModelEntity(
@@ -103,27 +104,29 @@ public class PluginPackageDataModelService {
                         .selectAllByDataModel(dataModelEntity.getId());
 
                 if (pluginPackageEntities != null && !pluginPackageEntities.isEmpty()) {
-                    List<PluginPackageEntities> entitiesByDataModelId = dataModelIdAndPluginPackageEntityMap.get(dataModelEntity.getId());
-                    if(entitiesByDataModelId == null) {
+                    List<PluginPackageEntities> entitiesByDataModelId = dataModelIdAndPluginPackageEntityMap
+                            .get(dataModelEntity.getId());
+                    if (entitiesByDataModelId == null) {
                         entitiesByDataModelId = new ArrayList<PluginPackageEntities>();
                         dataModelIdAndPluginPackageEntityMap.put(dataModelEntity.getId(), entitiesByDataModelId);
                     }
                     entitiesByDataModelId.addAll(pluginPackageEntities);
-                    
+
                     for (PluginPackageEntities entity : pluginPackageEntities) {
                         PluginPackageEntityDto entityDto = buildPackageViewPluginPackageEntityDto(entity,
                                 dataModelEntity);
-                        totalEntityDtos.add(entityDto);
+                        totalIdAndEntityDtoMap.put(entityDto.getId(), entityDto);
+                        totalIdAndEntityMap.put(entity.getId(), entity);
                     }
                 }
             }
         }
 
-        // TODO
         for (PluginPackageDataModel dataModelEntity : latestDataModelEntities) {
             String entityId = dataModelEntity.getId();
             List<PluginPackageEntities> entitiesByDataModelId = dataModelIdAndPluginPackageEntityMap.get(entityId);
-            PluginPackageDataModelDto dto = buildOverviewPackageViewPluginPackageDataModelDto(dataModelEntity, totalEntityDtos, entitiesByDataModelId);
+            PluginPackageDataModelDto dto = buildOverviewPackageViewPluginPackageDataModelDto(dataModelEntity,
+                    totalIdAndEntityDtoMap, entitiesByDataModelId, totalIdAndEntityMap);
             pluginPackageDataModelDtos.add(dto);
         }
 
@@ -506,7 +509,8 @@ public class PluginPackageDataModelService {
     }
 
     private PluginPackageDataModelDto buildOverviewPackageViewPluginPackageDataModelDto(
-            PluginPackageDataModel dataModel, List<PluginPackageEntityDto> totalEntityDtos, List<PluginPackageEntities> pluginPackageEntities) {
+            PluginPackageDataModel dataModel, Map<String, PluginPackageEntityDto> totalIdAndEntityDtoMap,
+            List<PluginPackageEntities> pluginPackageEntities, Map<String, PluginPackageEntities> totalIdAndEntityMap) {
         PluginPackageDataModelDto dataModelDto = new PluginPackageDataModelDto();
         dataModelDto.setId(dataModel.getId());
         dataModelDto.setVersion(dataModel.getVersion());
@@ -523,33 +527,22 @@ public class PluginPackageDataModelService {
             return dataModelDto;
         }
 
-        List<PluginPackageEntityDto> entityDtos = new ArrayList<>();
+        List<PluginPackageEntityDto> dataModelEntityDtos = new ArrayList<>();
 
         for (PluginPackageEntities entity : pluginPackageEntities) {
-            PluginPackageEntityDto entityDto = findoutFromTotalEntityDtos(entity.getId(), totalEntityDtos);
-            entityDtos.add(entityDto);
-        }
-
-        //TODO
-        calOverviewDynamicEntityDtoRelationShips(entityDtos, pluginPackageEntities, totalEntityDtos);
-
-        dataModelDto.getEntities().addAll(entityDtos);
-
-        return dataModelDto;
-    }
-    
-    private PluginPackageEntityDto findoutFromTotalEntityDtos(String entityId, List<PluginPackageEntityDto> totalEntityDtos) {
-        if(totalEntityDtos == null || totalEntityDtos.isEmpty()) {
-            return null;
-        }
-        
-        for(PluginPackageEntityDto dto : totalEntityDtos) {
-            if(entityId.equals(dto.getId())) {
-                return dto;
+            PluginPackageEntityDto entityDto = totalIdAndEntityDtoMap.get(entity.getId());
+            if (entityDto != null) {
+                dataModelEntityDtos.add(entityDto);
             }
         }
-        
-        return null;
+
+        // TODO
+        calOverviewDynamicEntityDtoRelationShips(dataModelEntityDtos, pluginPackageEntities, totalIdAndEntityDtoMap,
+                totalIdAndEntityMap);
+
+        dataModelDto.getEntities().addAll(dataModelEntityDtos);
+
+        return dataModelDto;
     }
 
     private PluginPackageDataModelDto buildPackageViewPluginPackageDataModelDto(PluginPackageDataModel dataModel) {
@@ -620,10 +613,11 @@ public class PluginPackageDataModelService {
 
         return dataModelDto;
     }
-    
-    //TODO
+
     private void calOverviewDynamicEntityDtoRelationShips(List<PluginPackageEntityDto> entityDtos,
-            List<PluginPackageEntities> pluginPackageEntitiesList, List<PluginPackageEntityDto> totalEntityDtos) {
+            List<PluginPackageEntities> pluginPackageEntitiesList,
+            Map<String, PluginPackageEntityDto> totalIdAndEntityDtoMap,
+            Map<String, PluginPackageEntities> totalIdAndEntityMap) {
         if (entityDtos == null || entityDtos.isEmpty()) {
             return;
         }
@@ -632,13 +626,8 @@ public class PluginPackageDataModelService {
             return;
         }
 
-        Map<String, PluginPackageEntityDto> idAndEntityDtoMap = new HashMap<>();
-        for (PluginPackageEntityDto dto : totalEntityDtos) {
-            idAndEntityDtoMap.put(dto.getId(), dto);
-        }
-
         for (PluginPackageEntities entitiesEntity : pluginPackageEntitiesList) {
-            PluginPackageEntityDto currEntityDto = idAndEntityDtoMap.get(entitiesEntity.getId());
+            PluginPackageEntityDto currEntityDto = totalIdAndEntityDtoMap.get(entitiesEntity.getId());
             if (currEntityDto == null) {
                 log.warn("Cannot find entity DTO for id : {}", entitiesEntity.getId());
                 continue;
@@ -654,7 +643,7 @@ public class PluginPackageDataModelService {
                 }
 
                 String referenceId = attr.getReferenceId();
-                //TODO
+                // TODO
                 PluginPackageAttributes referencedAttrEntity = pluginPackageAttributesMapper
                         .selectByPrimaryKey(referenceId);
                 if (referencedAttrEntity == null) {
@@ -662,7 +651,7 @@ public class PluginPackageDataModelService {
                     continue;
                 }
 
-                //TODO
+                // TODO
                 PluginPackageEntities referencedEntity = pickoutPluginPackageEntitiesById(pluginPackageEntitiesList,
                         referencedAttrEntity.getEntityId());
 
@@ -671,7 +660,7 @@ public class PluginPackageDataModelService {
                     continue;
                 }
 
-                PluginPackageEntityDto referencedEntityDto = idAndEntityDtoMap.get(referencedEntity.getId());
+                PluginPackageEntityDto referencedEntityDto = totalIdAndEntityDtoMap.get(referencedEntity.getId());
 
                 PluginPackageAttributeDto attrDto = buildPluginPackageAttributeDto(entitiesEntity, attr);
 
@@ -728,7 +717,7 @@ public class PluginPackageDataModelService {
                     continue;
                 }
 
-                //TODO
+                // TODO
                 PluginPackageEntities referencedEntity = pickoutPluginPackageEntitiesById(pluginPackageEntitiesList,
                         referencedAttrEntity.getEntityId());
 
