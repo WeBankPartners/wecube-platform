@@ -651,9 +651,16 @@ public class PluginPackageDataModelService {
                     continue;
                 }
 
-                // TODO
-                PluginPackageEntities referencedEntity = pickoutPluginPackageEntitiesById(pluginPackageEntitiesList,
-                        referencedAttrEntity.getEntityId());
+                PluginPackageEntities referencedEntity = totalIdAndEntityMap.get(referencedAttrEntity.getEntityId());
+
+                if (referencedEntity == null) {
+                    if (StringUtils.isNoneBlank(referencedAttrEntity.getRefPackage())
+                            && StringUtils.isNoneBlank(referencedAttrEntity.getRefEntity())
+                            && StringUtils.isNoneBlank(referencedAttrEntity.getRefAttr())) {
+                        referencedEntity = findoutFromTotalEntitiesByAttrInfo(referencedAttrEntity.getRefPackage(),
+                                referencedAttrEntity.getRefEntity(), totalIdAndEntityMap);
+                    }
+                }
 
                 if (referencedEntity == null) {
                     log.warn("referred entity does not exist,id:{}", referencedAttrEntity.getEntityId());
@@ -676,6 +683,17 @@ public class PluginPackageDataModelService {
             }
 
         }
+    }
+
+    private PluginPackageEntities findoutFromTotalEntitiesByAttrInfo(String refPackage, String refEntity,
+            Map<String, PluginPackageEntities> totalIdAndEntityMap) {
+        for (PluginPackageEntities e : totalIdAndEntityMap.values()) {
+            if (refPackage.equals(e.getPackageName()) && refEntity.equals(e.getName())) {
+                return e;
+            }
+        }
+
+        return null;
     }
 
     private void calDynamicEntityDtoRelationShips(List<PluginPackageEntityDto> entityDtos,
