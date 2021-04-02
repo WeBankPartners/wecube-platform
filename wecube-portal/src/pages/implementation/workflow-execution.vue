@@ -659,7 +659,6 @@ export default {
         onOk: async () => {
           // createWorkflowInstanceTerminationRequest
           const instance = this.allFlowInstances.find(_ => _.id === this.selectedFlowInstance)
-          console.log(instance, this.selectedFlowInstance)
           const payload = {
             procInstId: this.selectedFlowInstance,
             procInstKey: instance.procInstKey
@@ -1172,7 +1171,9 @@ export default {
     },
     renderModelGraph () {
       let nodes = this.modelData.map((_, index) => {
-        const nodeId = _.packageName + '_' + _.entityName + '_' + _.dataId
+        let nodeId = _.packageName + '_' + _.entityName + '_' + _.dataId
+        // '-' 在viz.js中存在渲染问题
+        nodeId = nodeId.replace(/-/g, '_')
         let color = _.isHighlight ? '#5DB400' : 'black'
         // const isRecord = _.refFlowNodeIds.length > 0
         // const shape = isRecord ? 'ellipse' : 'ellipse'
