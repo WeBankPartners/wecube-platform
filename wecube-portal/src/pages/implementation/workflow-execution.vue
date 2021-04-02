@@ -1171,9 +1171,9 @@ export default {
     },
     renderModelGraph () {
       let nodes = this.modelData.map((_, index) => {
-        let nodeId = _.packageName + '_' + _.entityName + '_' + _.dataId
+        const nodeId = _.packageName + '_' + _.entityName + '_' + _.dataId
         // '-' 在viz.js中存在渲染问题
-        nodeId = nodeId.replace(/-/g, '_')
+        const nodeTitle = nodeId.replace(/-/g, '_')
         let color = _.isHighlight ? '#5DB400' : 'black'
         // const isRecord = _.refFlowNodeIds.length > 0
         // const shape = isRecord ? 'ellipse' : 'ellipse'
@@ -1209,7 +1209,7 @@ export default {
         const firstLabel = str.length > 30 ? `${str.slice(0, 1)}...${str.slice(-29)}` : str
         // const fontSize = Math.min((58 / len) * 3, 16)
         const label = firstLabel + '\n' + refStr
-        return `${nodeId} [label="${label}" class="model" id="${nodeId}" color="${color}" fontsize="6" style="filled" fillcolor="${fillcolor}" shape="box"]`
+        return `${nodeTitle} [label="${label}" class="model" id="${nodeId}" color="${color}" fontsize="6" style="filled" fillcolor="${fillcolor}" shape="box"]`
       })
       let genEdge = () => {
         let pathAry = []
