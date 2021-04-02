@@ -102,138 +102,142 @@
             :label-width="120"
             style="margin-right:12px;padding-top: 16px;"
           >
-            <Row>
-              <Col span="8">
-                <FormItem prop="serviceName">
-                  <label slot="label"
-                    >{{ $t('plugin_type') }}
-                    <span class="requires-tip">*</span>
-                  </label>
-                  <Select filterable v-model="pluginForm.taskCategory">
-                    <Option v-for="(item, index) in taskCategoryList" :value="item.value" :key="index">{{
-                      item.label
-                    }}</Option>
-                  </Select>
-                </FormItem>
-              </Col>
-              <Col span="16">
-                <FormItem prop="routineExpression">
-                  <label slot="label"
-                    >{{ $t('locate_rules') }}
-                    <span class="requires-tip">*</span>
-                  </label>
-                  <FilterRules
-                    :needAttr="true"
-                    ref="filterRules"
-                    v-model="pluginForm.routineExpression"
-                    :allDataModelsWithAttrs="allEntityType"
-                  ></FilterRules>
-                </FormItem>
-              </Col>
-            </Row>
-            <Row>
-              <Col span="8">
-                <FormItem prop="serviceName">
-                  <label slot="label"
-                    >{{ $t('plugin') }}
-                    <span class="requires-tip">*</span>
-                  </label>
-                  <Select
-                    filterable
-                    clearable
-                    v-model="pluginForm.serviceId"
-                    @on-open-change="getPlugin"
-                    @on-change="changePluginInterfaceList"
-                  >
-                    <!-- @on-open-change="getFilteredPluginInterfaceList(val, pluginForm.routineExpression)" -->
-                    <Option v-for="(item, index) in filteredPlugins" :value="item.serviceName" :key="index">{{
-                      item.serviceDisplayName
-                    }}</Option>
-                  </Select>
-                </FormItem>
-              </Col>
-              <Col span="8">
-                <FormItem prop="timeoutExpression">
-                  <label slot="label"
-                    >{{ $t('timeout') }}
-                    <span class="requires-tip">*</span>
-                  </label>
-                  <Select v-model="pluginForm.timeoutExpression">
-                    <Option v-for="(item, index) in timeSelection" :value="item.mins" :key="index"
-                      >{{ item.label }}
-                    </Option>
-                  </Select>
-                </FormItem>
-              </Col>
-              <Col span="8">
-                <FormItem :label="$t('description')" prop="description">
-                  <Input v-model="pluginForm.description" />
-                </FormItem>
-              </Col>
-            </Row>
-            <Row>
-              <Col span="8">
-                <FormItem prop="dynamicBind">
-                  <label slot="label"
-                    >{{ $t('dynamic_bind') }}
-                    <span class="requires-tip">*</span>
-                  </label>
-                  <Select v-model="pluginForm.dynamicBind">
-                    <Option v-for="item in yOn" :value="item" :key="item">{{ item }}</Option>
-                  </Select>
-                </FormItem>
-              </Col>
-              <Col span="8">
-                <FormItem prop="preCheck">
-                  <label slot="label"
-                    >{{ $t('pre_check') }}
-                    <span class="requires-tip">*</span>
-                  </label>
-                  <Select v-model="pluginForm.preCheck">
-                    <Option v-for="item in yOn" :value="item" :key="item">{{ item }}</Option>
-                  </Select>
-                </FormItem>
-              </Col>
-            </Row>
-            <hr style="margin-bottom: 8px" />
-            <FormItem
-              :label="item.paramName"
-              :prop="item.paramName"
-              v-for="(item, index) in pluginForm.paramInfos"
-              :key="index"
-            >
-              <label slot="label" v-if="item.required === 'Y'"
-                >{{ item.paramName }}
-                <span class="requires-tip">*</span>
-              </label>
-              <Select
-                filterable
-                clearable
-                v-model="item.bindNodeId"
-                style="width:30%"
-                v-if="item.bindType === 'context'"
-                @on-change="onParamsNodeChange(index)"
-                @on-open-change="getFlowsNodes"
+            <template v-if="!isShowSaveBtnOnly">
+              <Row>
+                <Col span="8">
+                  <FormItem prop="serviceName">
+                    <label slot="label"
+                      >{{ $t('plugin_type') }}
+                      <span class="requires-tip">*</span>
+                    </label>
+                    <Select filterable v-model="pluginForm.taskCategory">
+                      <Option v-for="(item, index) in taskCategoryList" :value="item.value" :key="index">{{
+                        item.label
+                      }}</Option>
+                    </Select>
+                  </FormItem>
+                </Col>
+                <Col span="16">
+                  <FormItem prop="routineExpression">
+                    <label slot="label"
+                      >{{ $t('locate_rules') }}
+                      <span class="requires-tip">*</span>
+                    </label>
+                    <FilterRules
+                      :needAttr="true"
+                      ref="filterRules"
+                      v-model="pluginForm.routineExpression"
+                      :allDataModelsWithAttrs="allEntityType"
+                    ></FilterRules>
+                  </FormItem>
+                </Col>
+              </Row>
+              <Row>
+                <Col span="8">
+                  <FormItem prop="serviceName">
+                    <label slot="label"
+                      >{{ $t('plugin') }}
+                      <span class="requires-tip">*</span>
+                    </label>
+                    <Select
+                      filterable
+                      clearable
+                      v-model="pluginForm.serviceId"
+                      @on-open-change="getPlugin"
+                      @on-change="changePluginInterfaceList"
+                    >
+                      <!-- @on-open-change="getFilteredPluginInterfaceList(val, pluginForm.routineExpression)" -->
+                      <Option v-for="(item, index) in filteredPlugins" :value="item.serviceName" :key="index">{{
+                        item.serviceDisplayName
+                      }}</Option>
+                    </Select>
+                  </FormItem>
+                </Col>
+                <Col span="8">
+                  <FormItem prop="timeoutExpression">
+                    <label slot="label"
+                      >{{ $t('timeout') }}
+                      <span class="requires-tip">*</span>
+                    </label>
+                    <Select v-model="pluginForm.timeoutExpression">
+                      <Option v-for="(item, index) in timeSelection" :value="item.mins" :key="index"
+                        >{{ item.label }}
+                      </Option>
+                    </Select>
+                  </FormItem>
+                </Col>
+                <Col span="8">
+                  <FormItem :label="$t('description')" prop="description">
+                    <Input v-model="pluginForm.description" />
+                  </FormItem>
+                </Col>
+              </Row>
+              <Row>
+                <Col span="8">
+                  <FormItem prop="dynamicBind">
+                    <label slot="label"
+                      >{{ $t('dynamic_bind') }}
+                      <span class="requires-tip">*</span>
+                    </label>
+                    <Select v-model="pluginForm.dynamicBind">
+                      <Option v-for="item in yOn" :value="item" :key="item">{{ item }}</Option>
+                    </Select>
+                  </FormItem>
+                </Col>
+                <Col span="8">
+                  <FormItem prop="preCheck">
+                    <label slot="label"
+                      >{{ $t('pre_check') }}
+                      <span class="requires-tip">*</span>
+                    </label>
+                    <Select v-model="pluginForm.preCheck">
+                      <Option v-for="item in yOn" :value="item" :key="item">{{ item }}</Option>
+                    </Select>
+                  </FormItem>
+                </Col>
+              </Row>
+              <hr style="margin-bottom: 8px" />
+              <FormItem
+                :label="item.paramName"
+                :prop="item.paramName"
+                v-for="(item, index) in pluginForm.paramInfos"
+                :key="index"
               >
-                <Option v-for="(i, index) in currentflowsNodes" :value="i.nodeId" :key="index">{{ i.nodeName }}</Option>
-              </Select>
-              <Select
-                v-model="item.bindParamType"
-                filterable
-                v-if="item.bindType === 'context'"
-                style="width:30%"
-                @on-change="onParamsNodeChange(index)"
-              >
-                <Option v-for="i in paramsTypes" :value="i.value" :key="i.value">{{ i.label }}</Option>
-              </Select>
-              <Select filterable v-if="item.bindType === 'context'" v-model="item.bindParamName" style="width:30%">
-                <Option v-for="i in item.currentParamNames" :value="i.name" :key="i.name">{{ i.name }}</Option>
-              </Select>
-              <label v-if="item.bindType === 'context' && item.required === 'Y'">
-                <span class="requires-tip">*</span>
-              </label>
-              <Input v-if="item.bindType === 'constant'" v-model="item.bindValue" />
-            </FormItem>
+                <label slot="label" v-if="item.required === 'Y'"
+                  >{{ item.paramName }}
+                  <span class="requires-tip">*</span>
+                </label>
+                <Select
+                  filterable
+                  clearable
+                  v-model="item.bindNodeId"
+                  style="width:30%"
+                  v-if="item.bindType === 'context'"
+                  @on-change="onParamsNodeChange(index)"
+                  @on-open-change="getFlowsNodes"
+                >
+                  <Option v-for="(i, index) in currentflowsNodes" :value="i.nodeId" :key="index">{{
+                    i.nodeName
+                  }}</Option>
+                </Select>
+                <Select
+                  v-model="item.bindParamType"
+                  filterable
+                  v-if="item.bindType === 'context'"
+                  style="width:30%"
+                  @on-change="onParamsNodeChange(index)"
+                >
+                  <Option v-for="i in paramsTypes" :value="i.value" :key="i.value">{{ i.label }}</Option>
+                </Select>
+                <Select filterable v-if="item.bindType === 'context'" v-model="item.bindParamName" style="width:30%">
+                  <Option v-for="i in item.currentParamNames" :value="i.name" :key="i.name">{{ i.name }}</Option>
+                </Select>
+                <label v-if="item.bindType === 'context' && item.required === 'Y'">
+                  <span class="requires-tip">*</span>
+                </label>
+                <Input v-if="item.bindType === 'constant'" v-model="item.bindValue" />
+              </FormItem>
+            </template>
             <FormItem>
               <div class="btn-plugin-config">
                 <Button type="primary" @click="savePluginConfig('pluginConfigForm')">{{ $t('save') }}</Button>
@@ -335,6 +339,8 @@ export default {
       yOn: ['Y', 'N'],
       splitPanal: 1,
       show: false,
+      // 选中开始节点触发
+      isShowSaveBtnOnly: false,
       taskCategoryList: [
         { value: 'SSTN', label: this.$t('sstn') },
         { value: 'SUTN', label: this.$t('sutn') }
@@ -449,6 +455,11 @@ export default {
         this.setCss('ivu-split-trigger-con', 'display: none;')
         this.setCss('bottom-pane', 'display: none;')
         this.setCss('top-pane', 'bottom: 0;')
+      }
+    },
+    isShowSaveBtnOnly: function (val) {
+      if (val) {
+        this.splitPanal = 0.9
       }
     },
     selectedFlow: {
@@ -856,8 +867,10 @@ export default {
 
       let pluginFormCopy = JSON.parse(JSON.stringify(this.pluginForm))
       // 校验必填项
-      const res = this.checkSaveParams(pluginFormCopy)
-      if (!res) return
+      if (!this.isShowSaveBtnOnly) {
+        const res = this.checkSaveParams(pluginFormCopy)
+        if (!res) return
+      }
       this.serviceTaskBindInfos.push({
         ...pluginFormCopy,
         nodeDefId: this.currentNode.nodeDefId,
@@ -1003,11 +1016,17 @@ export default {
       canvas.onmouseup = e => {
         this.show = false
         this.bindCurrentNode(e)
+        this.isShowSaveBtnOnly = false
         if (
           this.currentNode.id &&
           (this.currentNode.id.startsWith('SubProcess_') || this.currentNode.id.startsWith('Task_'))
         ) {
           this.openPluginModal(e)
+        }
+
+        if (this.currentNode.id && this.currentNode.id.startsWith('StartEvent_')) {
+          this.show = true
+          this.isShowSaveBtnOnly = true
         }
       }
       var customTranslateModule = {
