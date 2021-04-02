@@ -75,7 +75,7 @@
                   clearable
                   @on-clear="clearTarget"
                 >
-                  <Option v-for="item in allTarget" :value="item.id" :key="item.id">{{ item.key_name }}</Option>
+                  <Option v-for="item in allTarget" :value="item.id" :key="item.id">{{ item.displayName }}</Option>
                 </Select>
                 <Button
                   :disabled="
