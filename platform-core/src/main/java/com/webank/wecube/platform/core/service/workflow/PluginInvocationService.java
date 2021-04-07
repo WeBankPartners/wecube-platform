@@ -1495,6 +1495,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 
         String nodeEntityId = (String) outputParameterMap.get(CALLBACK_PARAMETER_KEY);
 
+      //TODO #2169 to support entity creation
         if (StringUtils.isBlank(nodeEntityId)) {
             log.info("none entity ID found in output for request {}", ctx.getRequestId());
             return;
@@ -1509,6 +1510,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
             return;
         }
 
+        //TODO #2169 to support entity creation
         for (PluginConfigInterfaceParameters pciParam : outputParameters) {
             String paramName = pciParam.getName();
             String paramExpr = pciParam.getMappingEntityExpression();
