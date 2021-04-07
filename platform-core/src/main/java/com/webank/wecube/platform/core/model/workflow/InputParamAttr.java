@@ -71,7 +71,16 @@ public class InputParamAttr {
         }
 
         if (values.size() == 1) {
-            return values.get(0);
+            Object val = values.get(0);
+            if(val == null) {
+                return val;
+            }
+            
+            if(DATA_TYPE_STRING.equalsIgnoreCase(type)) {
+                return String.valueOf(val);
+            }
+            
+            return val;
         }
 
         if (DATA_TYPE_STRING.equalsIgnoreCase(type)) {
