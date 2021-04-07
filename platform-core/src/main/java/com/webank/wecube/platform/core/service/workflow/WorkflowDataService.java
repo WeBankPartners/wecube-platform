@@ -67,6 +67,8 @@ import com.webank.wecube.platform.core.service.plugin.PluginConfigMgmtService;
 @Service
 public class WorkflowDataService {
     private static final Logger log = LoggerFactory.getLogger(WorkflowDataService.class);
+    
+    public static final String MASKED_VALUE = "***MASK***";
 
     @Autowired
     private WorkflowProcDefService workflowProcDefService;
@@ -918,12 +920,7 @@ public class WorkflowDataService {
             return false;
         }
 
-        if (Boolean.TRUE.equals(respParamEntity.getIsSensitive())) {
-            return true;
-
-        }
-
-        return false;
+        return respParamEntity.getIsSensitive();
 
     }
 
@@ -938,7 +935,7 @@ public class WorkflowDataService {
                     respParamsByObjectId.put(respParamEntity.getObjId(), respParamsMap);
                 }
                 if (isSensitiveData(respParamEntity)) {
-                    respParamsMap.put(respParamEntity.getParamName(), "***MASK***");
+                    respParamsMap.put(respParamEntity.getParamName(), MASKED_VALUE);
                 } else {
                     respParamsMap.put(respParamEntity.getParamName(), respParamEntity.getParamDataValue());
                 }
@@ -960,7 +957,7 @@ public class WorkflowDataService {
             }
 
             if (isSensitiveData(rp)) {
-                ro.addInput(rp.getParamName(), "***MASK***");
+                ro.addInput(rp.getParamName(), MASKED_VALUE);
             } else {
                 ro.addInput(rp.getParamName(), rp.getParamDataValue());
             }
@@ -969,6 +966,7 @@ public class WorkflowDataService {
         return objs;
     }
 
+    //TODO #2169
     private List<RequestObjectDto> calculateRequestObjectDtos(List<TaskNodeExecParamEntity> requestParamEntities,
             List<TaskNodeExecParamEntity> responseParamEntities) {
         List<RequestObjectDto> requestObjects = new ArrayList<>();
@@ -980,10 +978,10 @@ public class WorkflowDataService {
         Map<String, Map<String, String>> respParamsByObjectId = calculateRespParamsByObjectId(requestParamEntities,
                 responseParamEntities);
 
-        Map<String, RequestObjectDto> objs = calculateRequestObjects(requestParamEntities, responseParamEntities);
+        Map<String, RequestObjectDto> reqObjsByObjectId = calculateRequestObjects(requestParamEntities, responseParamEntities);
 
-        for (String objectId : objs.keySet()) {
-            RequestObjectDto obj = objs.get(objectId);
+        for (String objectId : reqObjsByObjectId.keySet()) {
+            RequestObjectDto obj = reqObjsByObjectId.get(objectId);
             Map<String, String> respParamsMap = respParamsByObjectId.get(objectId);
             if (respParamsMap != null) {
                 respParamsMap.forEach((k, v) -> {

@@ -653,8 +653,8 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
         InputParamObject inputObj = new InputParamObject();
 
         inputObj.setEntityTypeId("TaskNode");
-        inputObj.setEntityDataId(String.format("%s-%s-%s-%s", taskNodeInstEntity.getProcDefId(),
-                taskNodeInstEntity.getNodeDefId(), taskNodeInstEntity.getProcInstId(), taskNodeInstEntity.getId()));
+        inputObj.setEntityDataId(String.format("%s-%s-%s", CALLBACK_PARAMETER_SYSTEM_PREFIX,
+                 taskNodeInstEntity.getId(), LocalIdGenerator.generateId()));
 
         for (PluginConfigInterfaceParameters param : configInterfaceInputParams) {
             String paramName = param.getName();
@@ -1382,6 +1382,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
         return;
     }
 
+    //TODO #2169
     private void handleResultData(PluginInterfaceInvocationResult pluginInvocationResult,
             PluginInterfaceInvocationContext ctx, List<Object> resultData) {
 
@@ -1413,6 +1414,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
         }
     }
 
+    //TODO #2169
     private void storeSingleOutputParameterMap(PluginInterfaceInvocationContext ctx,
             Map<String, Object> outputParameterMap, String objectId) {
 
@@ -1478,6 +1480,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
         }
     }
 
+    //TODO #2169
     private void handleSingleOutputMap(PluginInterfaceInvocationResult pluginInvocationResult,
             PluginInterfaceInvocationContext ctx, Map<String, Object> outputParameterMap) {
 
