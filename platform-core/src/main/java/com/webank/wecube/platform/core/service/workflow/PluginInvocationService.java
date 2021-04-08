@@ -653,7 +653,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
         InputParamObject inputObj = new InputParamObject();
 
         inputObj.setEntityTypeId("TaskNode");
-        inputObj.setEntityDataId(String.format("%s-%s-%s", CALLBACK_PARAMETER_SYSTEM_PREFIX, taskNodeInstEntity.getId(),
+        inputObj.setEntityDataId(String.format("%s-%s", CALLBACK_PARAMETER_SYSTEM_PREFIX,
                 LocalIdGenerator.generateId()));
 
         for (PluginConfigInterfaceParameters param : configInterfaceInputParams) {
@@ -1384,7 +1384,6 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
         return;
     }
 
-    // TODO #2169
     private void handleResultData(PluginInterfaceInvocationResult pluginInvocationResult,
             PluginInterfaceInvocationContext ctx, List<Object> resultData) {
 
@@ -1419,11 +1418,14 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
     // TODO #2169
     private void storeSingleOutputParameterMap(PluginInterfaceInvocationContext ctx,
             Map<String, Object> outputParameterMap, String inputObjectId) {
+        String requestId = ctx.getTaskNodeExecRequestEntity().getReqId();
 
+        if(outputParameterMap == null || outputParameterMap.isEmpty()){
+            log.info("empty output parameters for {} {} and ignored", requestId, inputObjectId);
+            return;
+        }
         String entityTypeId = null;
         String entityDataId = null;
-
-        String requestId = ctx.getTaskNodeExecRequestEntity().getReqId();
 
         String callbackParameter = (String) outputParameterMap.get(CALLBACK_PARAMETER_KEY);
 
@@ -1437,11 +1439,33 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
             }
         }
 
+        //#2169
         String objectId = inputObjectId;
         if (callbackParameterInputEntity != null) {
             // objectId = callbackParameterInputEntity.getObjId();
             entityTypeId = callbackParameterInputEntity.getEntityTypeId();
             entityDataId = callbackParameterInputEntity.getEntityDataId();
+        }
+        
+        //#2169
+        if(StringUtils.isBlank(callbackParameter)){
+            callbackParameter = String.format("%s-%s", CALLBACK_PARAMETER_SYSTEM_PREFIX,
+                    LocalIdGenerator.generateId());
+            
+            TaskNodeExecParamEntity paramEntity = new TaskNodeExecParamEntity();
+            paramEntity.setEntityTypeId(entityTypeId);
+            paramEntity.setEntityDataId(entityDataId);
+            paramEntity.setObjId(objectId);
+            paramEntity.setParamType(TaskNodeExecParamEntity.PARAM_TYPE_RESPONSE);
+            paramEntity.setParamName(CALLBACK_PARAMETER_KEY);
+            paramEntity.setParamDataType(DATA_TYPE_STRING);
+            paramEntity.setParamDataValue(callbackParameter);
+            paramEntity.setReqId(requestId);
+            paramEntity.setIsSensitive(false);
+            paramEntity.setCreatedBy(WorkflowConstants.DEFAULT_USER);
+            paramEntity.setCreatedTime(new Date());
+            
+            taskNodeExecParamRepository.insert(paramEntity);
         }
 
         List<PluginConfigInterfaceParameters> outputParameters = ctx.getPluginConfigInterface().getOutputParameters();
