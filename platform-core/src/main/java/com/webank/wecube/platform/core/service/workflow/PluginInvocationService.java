@@ -679,6 +679,8 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
             if (MAPPING_TYPE_CONSTANT.equalsIgnoreCase(mappingType)) {
                 handleConstantMapping(mappingType, taskNodeDefEntity, paramName, objectVals);
             }
+            
+            //TODO #2169 to add context mapping
 
             inputAttr.addValues(objectVals);
 
@@ -1416,7 +1418,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 
     //TODO #2169
     private void storeSingleOutputParameterMap(PluginInterfaceInvocationContext ctx,
-            Map<String, Object> outputParameterMap, String objectId) {
+            Map<String, Object> outputParameterMap, String inputObjectId) {
 
         String entityTypeId = null;
         String entityDataId = null;
@@ -1435,8 +1437,9 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
             }
         }
 
+        String objectId = inputObjectId;
         if (callbackParameterInputEntity != null) {
-            objectId = callbackParameterInputEntity.getObjId();
+//            objectId = callbackParameterInputEntity.getObjId();
             entityTypeId = callbackParameterInputEntity.getEntityTypeId();
             entityDataId = callbackParameterInputEntity.getEntityDataId();
         }
