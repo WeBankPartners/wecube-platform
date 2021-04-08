@@ -1482,8 +1482,21 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
             taskNodeExecParamRepository.insert(paramEntity);
         }
     }
+    
+    private boolean isSystemCallbackParameterKeyValue(String callbackParameterValue){
+        if(StringUtils.isBlank(callbackParameterValue)){
+            return false;
+        }
+        
+        return callbackParameterValue.startsWith(CALLBACK_PARAMETER_SYSTEM_PREFIX);
+    }
+    
+    //#2169
+    private void handleSingleOutputMapOnceEntityCreation(PluginInterfaceInvocationResult pluginInvocationResult,
+            PluginInterfaceInvocationContext ctx, Map<String, Object> outputParameterMap){
+        //TODO #2169
+    }
 
-    //TODO #2169
     private void handleSingleOutputMap(PluginInterfaceInvocationResult pluginInvocationResult,
             PluginInterfaceInvocationContext ctx, Map<String, Object> outputParameterMap) {
 
@@ -1501,12 +1514,6 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 
         String nodeEntityId = (String) outputParameterMap.get(CALLBACK_PARAMETER_KEY);
 
-      //TODO #2169 to support entity creation
-        if (StringUtils.isBlank(nodeEntityId)) {
-            log.info("none entity ID found in output for request {}", ctx.getRequestId());
-            return;
-        }
-
         String errorCodeOfSingleRecord = (String) outputParameterMap.get(PLUGIN_RESULT_CODE_PARTIALLY_KEY);
         if (StringUtils.isNotBlank(errorCodeOfSingleRecord)
                 && PLUGIN_RESULT_CODE_PARTIALLY_FAIL.equalsIgnoreCase(errorCodeOfSingleRecord)) {
@@ -1515,8 +1522,15 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
             // TODO to store status
             return;
         }
+        
+        //#2169
+        if (StringUtils.isBlank(nodeEntityId) || isSystemCallbackParameterKeyValue(nodeEntityId)) {
+            log.info("callback parameter value {} for request {},and try to create entity", nodeEntityId, ctx.getRequestId());
+            handleSingleOutputMapOnceEntityCreation( pluginInvocationResult,
+                     ctx, outputParameterMap);
+            return;
+        }
 
-        //TODO #2169 to support entity creation
         for (PluginConfigInterfaceParameters pciParam : outputParameters) {
             String paramName = pciParam.getName();
             String paramExpr = pciParam.getMappingEntityExpression();
