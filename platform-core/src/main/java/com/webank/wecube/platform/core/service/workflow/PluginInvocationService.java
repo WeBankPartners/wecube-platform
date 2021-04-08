@@ -1520,8 +1520,6 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
     // #2169
     private void tryHandleSingleOutputMapOnceEntityCreation(PluginInterfaceInvocationResult pluginInvocationResult,
             PluginInterfaceInvocationContext ctx, Map<String, Object> outputParameterMap) {
-        // TODO #2169
-
         // to check if there are any bindings?
         List<DmeOutputParamAttr> allDmeOutputParamAttrs = new ArrayList<>();
 
