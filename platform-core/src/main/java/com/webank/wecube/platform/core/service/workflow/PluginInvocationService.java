@@ -38,6 +38,7 @@ import com.webank.wecube.platform.core.entity.workflow.TaskNodeExecParamEntity;
 import com.webank.wecube.platform.core.entity.workflow.TaskNodeExecRequestEntity;
 import com.webank.wecube.platform.core.entity.workflow.TaskNodeInstInfoEntity;
 import com.webank.wecube.platform.core.entity.workflow.TaskNodeParamEntity;
+import com.webank.wecube.platform.core.model.workflow.DmeOutputParamAttr;
 import com.webank.wecube.platform.core.model.workflow.InputParamAttr;
 import com.webank.wecube.platform.core.model.workflow.InputParamObject;
 import com.webank.wecube.platform.core.model.workflow.PluginInvocationCommand;
@@ -49,7 +50,9 @@ import com.webank.wecube.platform.core.repository.workflow.ProcExecBindingMapper
 import com.webank.wecube.platform.core.repository.workflow.ProcInstInfoMapper;
 import com.webank.wecube.platform.core.repository.workflow.TaskNodeExecRequestMapper;
 import com.webank.wecube.platform.core.repository.workflow.TaskNodeParamMapper;
+import com.webank.wecube.platform.core.service.dme.EntityDataDelegate;
 import com.webank.wecube.platform.core.service.dme.EntityOperationRootCondition;
+import com.webank.wecube.platform.core.service.dme.EntityQueryExprNodeInfo;
 import com.webank.wecube.platform.core.service.dme.EntityTreeNodesOverview;
 import com.webank.wecube.platform.core.service.dme.TreeNode;
 import com.webank.wecube.platform.core.service.plugin.PluginInstanceMgmtService;
@@ -653,8 +656,8 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
         InputParamObject inputObj = new InputParamObject();
 
         inputObj.setEntityTypeId("TaskNode");
-        inputObj.setEntityDataId(String.format("%s-%s", CALLBACK_PARAMETER_SYSTEM_PREFIX,
-                LocalIdGenerator.generateId()));
+        inputObj.setEntityDataId(
+                String.format("%s-%s", CALLBACK_PARAMETER_SYSTEM_PREFIX, LocalIdGenerator.generateId()));
 
         for (PluginConfigInterfaceParameters param : configInterfaceInputParams) {
             String paramName = param.getName();
@@ -1420,7 +1423,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
             Map<String, Object> outputParameterMap, String inputObjectId) {
         String requestId = ctx.getTaskNodeExecRequestEntity().getReqId();
 
-        if(outputParameterMap == null || outputParameterMap.isEmpty()){
+        if (outputParameterMap == null || outputParameterMap.isEmpty()) {
             log.info("empty output parameters for {} {} and ignored", requestId, inputObjectId);
             return;
         }
@@ -1439,19 +1442,18 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
             }
         }
 
-        //#2169
+        // #2169
         String objectId = inputObjectId;
         if (callbackParameterInputEntity != null) {
             // objectId = callbackParameterInputEntity.getObjId();
             entityTypeId = callbackParameterInputEntity.getEntityTypeId();
             entityDataId = callbackParameterInputEntity.getEntityDataId();
         }
-        
-        //#2169
-        if(StringUtils.isBlank(callbackParameter)){
-            callbackParameter = String.format("%s-%s", CALLBACK_PARAMETER_SYSTEM_PREFIX,
-                    LocalIdGenerator.generateId());
-            
+
+        // #2169
+        if (StringUtils.isBlank(callbackParameter)) {
+            callbackParameter = String.format("%s-%s", CALLBACK_PARAMETER_SYSTEM_PREFIX, LocalIdGenerator.generateId());
+
             TaskNodeExecParamEntity paramEntity = new TaskNodeExecParamEntity();
             paramEntity.setEntityTypeId(entityTypeId);
             paramEntity.setEntityDataId(entityDataId);
@@ -1464,7 +1466,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
             paramEntity.setIsSensitive(false);
             paramEntity.setCreatedBy(WorkflowConstants.DEFAULT_USER);
             paramEntity.setCreatedTime(new Date());
-            
+
             taskNodeExecParamRepository.insert(paramEntity);
         }
 
@@ -1507,7 +1509,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
         }
     }
 
-    private boolean isSystemCallbackParameterKeyValue(String callbackParameterValue) {
+    private boolean verifySystemCallbackParameterKeyValue(String callbackParameterValue) {
         if (StringUtils.isBlank(callbackParameterValue)) {
             return false;
         }
@@ -1521,7 +1523,77 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
         // TODO #2169
 
         // to check if there are any bindings?
+        List<DmeOutputParamAttr> allDmeOutputParamAttrs = new ArrayList<>();
 
+        List<DmeOutputParamAttr> rootDemOutputParamAttrs = new ArrayList<>();
+
+        PluginConfigInterfaces pci = ctx.getPluginConfigInterface();
+        List<PluginConfigInterfaceParameters> outputParameters = pci.getOutputParameters();
+        for (PluginConfigInterfaceParameters pciParam : outputParameters) {
+            String paramName = pciParam.getName();
+            String paramExpr = pciParam.getMappingEntityExpression();
+
+            if (StringUtils.isBlank(paramExpr)) {
+                log.info("expression not configured for {}", paramName);
+                continue;
+            }
+
+            Object retVal = outputParameterMap.get(paramName);
+
+            if (retVal == null) {
+                log.info("returned value is null for {} {}", ctx.getRequestId(), paramName);
+                continue;
+            }
+
+            DmeOutputParamAttr outputParamAttr = new DmeOutputParamAttr();
+            List<EntityQueryExprNodeInfo> exprNodeInfos = entityQueryExpressionParser.parse(paramExpr);
+            outputParamAttr.setExprNodeInfos(exprNodeInfos);
+            outputParamAttr.setInterf(pci);
+            outputParamAttr.setInterfParam(pciParam);
+            outputParamAttr.setParamExpr(paramExpr);
+            outputParamAttr.setParamName(paramName);
+            outputParamAttr.setRetVal(retVal);
+
+            allDmeOutputParamAttrs.add(outputParamAttr);
+            if (outputParamAttr.isRootEntityAttr()) {
+                rootDemOutputParamAttrs.add(outputParamAttr);
+            }
+        }
+
+        if (rootDemOutputParamAttrs.isEmpty()) {
+            // unknown rootNodeEntityId
+            return;
+        }
+        EntityQueryExprNodeInfo rootExprNodeInfo = rootDemOutputParamAttrs.get(0).getExprNodeInfos().get(0);
+        String packageName = rootExprNodeInfo.getPackageName();
+        String entityName = rootExprNodeInfo.getEntityName();
+
+        Map<String, Object> objDataMap = new HashMap<String, Object>(rootDemOutputParamAttrs.size());
+        for (DmeOutputParamAttr attr : rootDemOutputParamAttrs) {
+            attr.setProcessed(true);
+            EntityQueryExprNodeInfo exprNodeNodeInfo = attr.getExprNodeInfos().get(0);
+            objDataMap.put(exprNodeNodeInfo.getQueryAttrName(), attr.getRetVal());
+        }
+
+        Map<String, Object> resultMap = entityOperationService.create(packageName, entityName, objDataMap);
+        String rootEntityId = (String) resultMap.get(EntityDataDelegate.UNIQUE_IDENTIFIER);
+        if (StringUtils.isBlank(rootEntityId)) {
+            return;
+        }
+
+        for (DmeOutputParamAttr attr : allDmeOutputParamAttrs) {
+            if (attr.isRootEntityAttr() || attr.isProcessed()) {
+                continue;
+            }
+            EntityOperationRootCondition condition = new EntityOperationRootCondition(attr.getParamExpr(),
+                    rootEntityId);
+
+            try {
+                this.entityOperationService.update(condition, attr.getRetVal(), null);
+            } catch (Exception e) {
+                log.warn("Exceptions while updating entity.But still keep going to update.", e);
+            }
+        }
     }
 
     private void tryHandleSingleOutputMapOnceEntityUpdate(PluginInterfaceInvocationResult pluginInvocationResult,
@@ -1583,7 +1655,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
         }
 
         // #2169
-        if (StringUtils.isBlank(nodeEntityId) || isSystemCallbackParameterKeyValue(nodeEntityId)) {
+        if (StringUtils.isBlank(nodeEntityId) || verifySystemCallbackParameterKeyValue(nodeEntityId)) {
             log.info("callback parameter value {} for request {},and try to create entity", nodeEntityId,
                     ctx.getRequestId());
             tryHandleSingleOutputMapOnceEntityCreation(pluginInvocationResult, ctx, outputParameterMap);
