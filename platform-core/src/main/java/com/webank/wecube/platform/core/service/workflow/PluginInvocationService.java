@@ -653,8 +653,8 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
         InputParamObject inputObj = new InputParamObject();
 
         inputObj.setEntityTypeId("TaskNode");
-        inputObj.setEntityDataId(String.format("%s-%s-%s", CALLBACK_PARAMETER_SYSTEM_PREFIX,
-                 taskNodeInstEntity.getId(), LocalIdGenerator.generateId()));
+        inputObj.setEntityDataId(String.format("%s-%s-%s", CALLBACK_PARAMETER_SYSTEM_PREFIX, taskNodeInstEntity.getId(),
+                LocalIdGenerator.generateId()));
 
         for (PluginConfigInterfaceParameters param : configInterfaceInputParams) {
             String paramName = param.getName();
@@ -679,8 +679,8 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
             if (MAPPING_TYPE_CONSTANT.equalsIgnoreCase(mappingType)) {
                 handleConstantMapping(mappingType, taskNodeDefEntity, paramName, objectVals);
             }
-            
-            //TODO #2169 to add context mapping
+
+            // TODO #2169 to add context mapping
 
             inputAttr.addValues(objectVals);
 
@@ -1384,7 +1384,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
         return;
     }
 
-    //TODO #2169
+    // TODO #2169
     private void handleResultData(PluginInterfaceInvocationResult pluginInvocationResult,
             PluginInterfaceInvocationContext ctx, List<Object> resultData) {
 
@@ -1416,7 +1416,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
         }
     }
 
-    //TODO #2169
+    // TODO #2169
     private void storeSingleOutputParameterMap(PluginInterfaceInvocationContext ctx,
             Map<String, Object> outputParameterMap, String inputObjectId) {
 
@@ -1439,7 +1439,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 
         String objectId = inputObjectId;
         if (callbackParameterInputEntity != null) {
-//            objectId = callbackParameterInputEntity.getObjId();
+            // objectId = callbackParameterInputEntity.getObjId();
             entityTypeId = callbackParameterInputEntity.getEntityTypeId();
             entityDataId = callbackParameterInputEntity.getEntityDataId();
         }
@@ -1482,19 +1482,54 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
             taskNodeExecParamRepository.insert(paramEntity);
         }
     }
-    
-    private boolean isSystemCallbackParameterKeyValue(String callbackParameterValue){
-        if(StringUtils.isBlank(callbackParameterValue)){
+
+    private boolean isSystemCallbackParameterKeyValue(String callbackParameterValue) {
+        if (StringUtils.isBlank(callbackParameterValue)) {
             return false;
         }
-        
+
         return callbackParameterValue.startsWith(CALLBACK_PARAMETER_SYSTEM_PREFIX);
     }
-    
-    //#2169
-    private void handleSingleOutputMapOnceEntityCreation(PluginInterfaceInvocationResult pluginInvocationResult,
-            PluginInterfaceInvocationContext ctx, Map<String, Object> outputParameterMap){
-        //TODO #2169
+
+    // #2169
+    private void tryHandleSingleOutputMapOnceEntityCreation(PluginInterfaceInvocationResult pluginInvocationResult,
+            PluginInterfaceInvocationContext ctx, Map<String, Object> outputParameterMap) {
+        // TODO #2169
+
+        // to check if there are any bindings?
+
+    }
+
+    private void tryHandleSingleOutputMapOnceEntityUpdate(PluginInterfaceInvocationResult pluginInvocationResult,
+            PluginInterfaceInvocationContext ctx, Map<String, Object> outputParameterMap, String nodeEntityId) {
+        PluginConfigInterfaces pci = ctx.getPluginConfigInterface();
+        List<PluginConfigInterfaceParameters> outputParameters = pci.getOutputParameters();
+        for (PluginConfigInterfaceParameters pciParam : outputParameters) {
+            String paramName = pciParam.getName();
+            String paramExpr = pciParam.getMappingEntityExpression();
+
+            if (StringUtils.isBlank(paramExpr)) {
+                log.info("expression not configured for {}", paramName);
+                continue;
+            }
+
+            Object retVal = outputParameterMap.get(paramName);
+
+            if (retVal == null) {
+                log.info("returned value is null for {} {}", ctx.getRequestId(), paramName);
+                continue;
+            }
+
+            EntityOperationRootCondition condition = new EntityOperationRootCondition(paramExpr, nodeEntityId);
+
+            try {
+                this.entityOperationService.update(condition, retVal, null);
+            } catch (Exception e) {
+                log.warn("Exceptions while updating entity.But still keep going to update.", e);
+            }
+
+        }
+
     }
 
     private void handleSingleOutputMap(PluginInterfaceInvocationResult pluginInvocationResult,
@@ -1522,40 +1557,17 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
             // TODO to store status
             return;
         }
-        
-        //#2169
+
+        // #2169
         if (StringUtils.isBlank(nodeEntityId) || isSystemCallbackParameterKeyValue(nodeEntityId)) {
-            log.info("callback parameter value {} for request {},and try to create entity", nodeEntityId, ctx.getRequestId());
-            handleSingleOutputMapOnceEntityCreation( pluginInvocationResult,
-                     ctx, outputParameterMap);
+            log.info("callback parameter value {} for request {},and try to create entity", nodeEntityId,
+                    ctx.getRequestId());
+            tryHandleSingleOutputMapOnceEntityCreation(pluginInvocationResult, ctx, outputParameterMap);
             return;
         }
 
-        for (PluginConfigInterfaceParameters pciParam : outputParameters) {
-            String paramName = pciParam.getName();
-            String paramExpr = pciParam.getMappingEntityExpression();
+        tryHandleSingleOutputMapOnceEntityUpdate(pluginInvocationResult, ctx, outputParameterMap, nodeEntityId);
 
-            if (StringUtils.isBlank(paramExpr)) {
-                log.info("expression not configured for {}", paramName);
-                continue;
-            }
-
-            Object retVal = outputParameterMap.get(paramName);
-
-            if (retVal == null) {
-                log.info("returned value is null for {} {}", ctx.getRequestId(), paramName);
-                continue;
-            }
-
-            EntityOperationRootCondition condition = new EntityOperationRootCondition(paramExpr, nodeEntityId);
-
-            try {
-                this.entityOperationService.update(condition, retVal, null);
-            } catch (Exception e) {
-                log.warn("Exceptions while updating entity.But still keep going to update.", e);
-            }
-
-        }
     }
 
     private void handlePluginInterfaceInvocationSuccess(PluginInterfaceInvocationResult pluginInvocationResult,
