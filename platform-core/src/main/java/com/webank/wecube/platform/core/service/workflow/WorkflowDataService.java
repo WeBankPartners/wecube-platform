@@ -28,6 +28,8 @@ import com.webank.wecube.platform.core.dto.workflow.InterfaceParameterDto;
 import com.webank.wecube.platform.core.dto.workflow.ProcDefOutlineDto;
 import com.webank.wecube.platform.core.dto.workflow.ProcessDataPreviewDto;
 import com.webank.wecube.platform.core.dto.workflow.RequestObjectDto;
+import com.webank.wecube.platform.core.dto.workflow.RequestObjectDto.RequestParamAttrDto;
+import com.webank.wecube.platform.core.dto.workflow.RequestObjectDto.RequestParamObjectDto;
 import com.webank.wecube.platform.core.dto.workflow.TaskNodeDefObjectBindInfoDto;
 import com.webank.wecube.platform.core.dto.workflow.TaskNodeExecContextDto;
 import com.webank.wecube.platform.core.dto.workflow.TaskNodeInstObjectBindInfoDto;
@@ -67,8 +69,10 @@ import com.webank.wecube.platform.core.service.plugin.PluginConfigMgmtService;
 @Service
 public class WorkflowDataService {
     private static final Logger log = LoggerFactory.getLogger(WorkflowDataService.class);
-    
+
     public static final String MASKED_VALUE = "***MASK***";
+
+    public static final String CALLBACK_PARAMETER_KEY = "callbackParameter";
 
     @Autowired
     private WorkflowProcDefService workflowProcDefService;
@@ -139,11 +143,11 @@ public class WorkflowDataService {
             d.setNodeInstId(e.getTaskNodeInstId());
             d.setProcInstId(e.getProcInstId());
             d.setEntityDisplayName(e.getEntityDataName());
-            if(StringUtils.isNoneBlank(d.getEntityTypeId())){
-                String [] parts = d.getEntityTypeId().trim().split(":");
-                if(parts.length == 1){
+            if (StringUtils.isNoneBlank(d.getEntityTypeId())) {
+                String[] parts = d.getEntityTypeId().trim().split(":");
+                if (parts.length == 1) {
                     d.setEntityName(parts[0]);
-                }else if(parts.length == 2){
+                } else if (parts.length == 2) {
                     d.setPackageName(parts[0]);
                     d.setEntityName(parts[1]);
                 }
@@ -194,25 +198,25 @@ public class WorkflowDataService {
 
         List<ProcRoleBindingEntity> procRoleBinds = procRoleBindingMapper
                 .selectAllByProcIdAndPermission(procInstInfo.getProcDefId(), ProcRoleBindingEntity.USE);
-        
-        if(procRoleBinds == null || procRoleBinds.isEmpty()){
+
+        if (procRoleBinds == null || procRoleBinds.isEmpty()) {
             throw new WecubeCoreException("Lack of permission to update task node bindings.");
         }
-        
+
         Set<String> currUserRoles = AuthenticationContextHolder.getCurrentUserRoles();
-        if(currUserRoles == null){
+        if (currUserRoles == null) {
             currUserRoles = new HashSet<String>();
         }
-        
+
         boolean lackOfPermission = true;
-        for(ProcRoleBindingEntity procRoleBind : procRoleBinds){
-            if(currUserRoles.contains(procRoleBind.getRoleName())){
+        for (ProcRoleBindingEntity procRoleBind : procRoleBinds) {
+            if (currUserRoles.contains(procRoleBind.getRoleName())) {
                 lackOfPermission = false;
                 break;
             }
         }
-        
-        if(lackOfPermission){
+
+        if (lackOfPermission) {
             throw new WecubeCoreException("Lack of permission to update task node bindings.");
         }
 
@@ -704,9 +708,10 @@ public class WorkflowDataService {
             if (!"subProcess".equals(nodeType)) {
                 continue;
             }
-            
-            if(TaskNodeDefInfoEntity.DYNAMIC_BIND_YES.equalsIgnoreCase(f.getDynamicBind())){
-                log.info("task node {}-{} is dynamic binding node and no need to pre-bind.", f.getNodeDefId(), f.getNodeName());
+
+            if (TaskNodeDefInfoEntity.DYNAMIC_BIND_YES.equalsIgnoreCase(f.getDynamicBind())) {
+                log.info("task node {}-{} is dynamic binding node and no need to pre-bind.", f.getNodeDefId(),
+                        f.getNodeName());
                 continue;
             }
 
@@ -924,73 +929,100 @@ public class WorkflowDataService {
 
     }
 
-    private Map<String, Map<String, String>> calculateRespParamsByObjectId(
-            List<TaskNodeExecParamEntity> requestParamEntities, List<TaskNodeExecParamEntity> responseParamEntities) {
-        Map<String, Map<String, String>> respParamsByObjectId = new HashMap<String, Map<String, String>>();
-        if (responseParamEntities != null) {
-            for (TaskNodeExecParamEntity respParamEntity : responseParamEntities) {
-                Map<String, String> respParamsMap = respParamsByObjectId.get(respParamEntity.getObjId());
-                if (respParamsMap == null) {
-                    respParamsMap = new HashMap<String, String>();
-                    respParamsByObjectId.put(respParamEntity.getObjId(), respParamsMap);
-                }
-                if (isSensitiveData(respParamEntity)) {
-                    respParamsMap.put(respParamEntity.getParamName(), MASKED_VALUE);
-                } else {
-                    respParamsMap.put(respParamEntity.getParamName(), respParamEntity.getParamDataValue());
-                }
-
-            }
-        }
-
-        return respParamsByObjectId;
-    }
-
-    private Map<String, RequestObjectDto> calculateRequestObjects(List<TaskNodeExecParamEntity> requestParamEntities,
-            List<TaskNodeExecParamEntity> responseParamEntities) {
-        Map<String, RequestObjectDto> objs = new HashMap<>();
-        for (TaskNodeExecParamEntity rp : requestParamEntities) {
-            RequestObjectDto ro = objs.get(rp.getObjId());
-            if (ro == null) {
-                ro = new RequestObjectDto();
-                objs.put(rp.getObjId(), ro);
-            }
-
-            if (isSensitiveData(rp)) {
-                ro.addInput(rp.getParamName(), MASKED_VALUE);
-            } else {
-                ro.addInput(rp.getParamName(), rp.getParamDataValue());
-            }
-        }
-
-        return objs;
-    }
-
-    //TODO #2169
+    //#2169
     private List<RequestObjectDto> calculateRequestObjectDtos(List<TaskNodeExecParamEntity> requestParamEntities,
             List<TaskNodeExecParamEntity> responseParamEntities) {
         List<RequestObjectDto> requestObjects = new ArrayList<>();
 
-        if (requestParamEntities == null) {
-            return requestObjects;
-        }
+        Map<String, RequestParamObjectDto> reqParamObjectsByObjectId = new HashMap<>();
 
-        Map<String, Map<String, String>> respParamsByObjectId = calculateRespParamsByObjectId(requestParamEntities,
-                responseParamEntities);
+        Map<String, RequestParamObjectDto> respParamObjectsByObjectId = new HashMap<>();
 
-        Map<String, RequestObjectDto> reqObjsByObjectId = calculateRequestObjects(requestParamEntities, responseParamEntities);
+        if (requestParamEntities != null) {
+            for (TaskNodeExecParamEntity reqParam : requestParamEntities) {
+                RequestParamObjectDto paramObjectDto = reqParamObjectsByObjectId.get(reqParam.getObjId());
+                if (paramObjectDto == null) {
+                    paramObjectDto = new RequestParamObjectDto();
+                    reqParamObjectsByObjectId.put(reqParam.getObjId(), paramObjectDto);
+                }
 
-        for (String objectId : reqObjsByObjectId.keySet()) {
-            RequestObjectDto obj = reqObjsByObjectId.get(objectId);
-            Map<String, String> respParamsMap = respParamsByObjectId.get(objectId);
-            if (respParamsMap != null) {
-                respParamsMap.forEach((k, v) -> {
-                    obj.addOutput(k, v);
-                });
+                String attrValue = null;
+                if (isSensitiveData(reqParam)) {
+                    attrValue = MASKED_VALUE;
+                } else {
+                    attrValue = reqParam.getParamDataValue();
+                }
+
+                if (CALLBACK_PARAMETER_KEY.equalsIgnoreCase(reqParam.getParamName())) {
+                    paramObjectDto.setCallbackParameter(reqParam.getParamDataValue());
+                } else {
+                    RequestParamAttrDto attrDto = new RequestParamAttrDto(reqParam.getParamName(), attrValue);
+                    paramObjectDto.addParamAttr(attrDto);
+                }
             }
-
-            requestObjects.add(obj);
         }
+        
+        if(responseParamEntities != null){
+            for (TaskNodeExecParamEntity param : responseParamEntities) {
+                RequestParamObjectDto paramObjectDto = respParamObjectsByObjectId.get(param.getObjId());
+                if (paramObjectDto == null) {
+                    paramObjectDto = new RequestParamObjectDto();
+                    paramObjectDto.setObjectId(param.getObjId());
+                    reqParamObjectsByObjectId.put(param.getObjId(), paramObjectDto);
+                }
+
+                String attrValue = null;
+                if (isSensitiveData(param)) {
+                    attrValue = MASKED_VALUE;
+                } else {
+                    attrValue = param.getParamDataValue();
+                }
+
+                if (CALLBACK_PARAMETER_KEY.equalsIgnoreCase(param.getParamName())) {
+                    paramObjectDto.setCallbackParameter(param.getParamDataValue());
+                } else {
+                    RequestParamAttrDto attrDto = new RequestParamAttrDto(param.getParamName(), attrValue);
+                    paramObjectDto.addParamAttr(attrDto);
+                }
+            }
+        }
+        
+        Map<String, RequestObjectDto> requestObjectsByCallbackParameter = new HashMap<String,RequestObjectDto>();
+        
+        for(RequestParamObjectDto reqParamObjectDto : reqParamObjectsByObjectId.values()){
+            String callbackParameter = reqParamObjectDto.getCallbackParameter();
+            if(StringUtils.isBlank(callbackParameter)){
+                continue;
+            }
+            RequestObjectDto objectDto = requestObjectsByCallbackParameter.get(callbackParameter);
+            if(objectDto == null){
+                objectDto = new RequestObjectDto();
+                objectDto.setCallbackParameter(callbackParameter);
+                
+                requestObjectsByCallbackParameter.put(callbackParameter, objectDto);
+            }
+            
+            objectDto.addInput(reqParamObjectDto);
+            
+        }
+        
+        for(RequestParamObjectDto respParamObjectDto : respParamObjectsByObjectId.values()){
+            String callbackParameter = respParamObjectDto.getCallbackParameter();
+            if(StringUtils.isBlank(callbackParameter)){
+                continue;
+            }
+            RequestObjectDto objectDto = requestObjectsByCallbackParameter.get(callbackParameter);
+            if(objectDto == null){
+                objectDto = new RequestObjectDto();
+                objectDto.setCallbackParameter(callbackParameter);
+                
+                requestObjectsByCallbackParameter.put(callbackParameter, objectDto);
+            }
+            
+            objectDto.addOutput(respParamObjectDto);
+        }
+        
+        requestObjects.addAll(requestObjectsByCallbackParameter.values());
 
         return requestObjects;
     }
