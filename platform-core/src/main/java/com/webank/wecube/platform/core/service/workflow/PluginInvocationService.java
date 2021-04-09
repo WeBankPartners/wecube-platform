@@ -1418,7 +1418,6 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
         }
     }
 
-    // TODO #2169
     private void storeSingleOutputParameterMap(PluginInterfaceInvocationContext ctx,
             Map<String, Object> outputParameterMap, String inputObjectId) {
         String requestId = ctx.getTaskNodeExecRequestEntity().getReqId();
