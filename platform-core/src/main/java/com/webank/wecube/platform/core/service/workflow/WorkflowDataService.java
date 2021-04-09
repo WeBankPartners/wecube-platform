@@ -28,7 +28,6 @@ import com.webank.wecube.platform.core.dto.workflow.InterfaceParameterDto;
 import com.webank.wecube.platform.core.dto.workflow.ProcDefOutlineDto;
 import com.webank.wecube.platform.core.dto.workflow.ProcessDataPreviewDto;
 import com.webank.wecube.platform.core.dto.workflow.RequestObjectDto;
-import com.webank.wecube.platform.core.dto.workflow.RequestObjectDto.RequestParamAttrDto;
 import com.webank.wecube.platform.core.dto.workflow.RequestObjectDto.RequestParamObjectDto;
 import com.webank.wecube.platform.core.dto.workflow.TaskNodeDefObjectBindInfoDto;
 import com.webank.wecube.platform.core.dto.workflow.TaskNodeExecContextDto;
@@ -943,6 +942,7 @@ public class WorkflowDataService {
                 RequestParamObjectDto paramObjectDto = reqParamObjectsByObjectId.get(reqParam.getObjId());
                 if (paramObjectDto == null) {
                     paramObjectDto = new RequestParamObjectDto();
+                    paramObjectDto.setObjectId(reqParam.getObjId());
                     reqParamObjectsByObjectId.put(reqParam.getObjId(), paramObjectDto);
                 }
 
@@ -956,8 +956,8 @@ public class WorkflowDataService {
                 if (CALLBACK_PARAMETER_KEY.equalsIgnoreCase(reqParam.getParamName())) {
                     paramObjectDto.setCallbackParameter(reqParam.getParamDataValue());
                 } else {
-                    RequestParamAttrDto attrDto = new RequestParamAttrDto(reqParam.getParamName(), attrValue);
-                    paramObjectDto.addParamAttr(attrDto);
+//                    RequestParamAttrDto attrDto = new RequestParamAttrDto(reqParam.getParamName(), attrValue);
+                    paramObjectDto.addParamAttr(reqParam.getParamName(), attrValue);
                 }
             }
         }
@@ -968,7 +968,7 @@ public class WorkflowDataService {
                 if (paramObjectDto == null) {
                     paramObjectDto = new RequestParamObjectDto();
                     paramObjectDto.setObjectId(param.getObjId());
-                    reqParamObjectsByObjectId.put(param.getObjId(), paramObjectDto);
+                    respParamObjectsByObjectId.put(param.getObjId(), paramObjectDto);
                 }
 
                 String attrValue = null;
@@ -981,8 +981,8 @@ public class WorkflowDataService {
                 if (CALLBACK_PARAMETER_KEY.equalsIgnoreCase(param.getParamName())) {
                     paramObjectDto.setCallbackParameter(param.getParamDataValue());
                 } else {
-                    RequestParamAttrDto attrDto = new RequestParamAttrDto(param.getParamName(), attrValue);
-                    paramObjectDto.addParamAttr(attrDto);
+//                    RequestParamAttrDto attrDto = new RequestParamAttrDto(param.getParamName(), attrValue);
+                    paramObjectDto.addParamAttr(param.getParamName(), attrValue);
                 }
             }
         }
@@ -1002,7 +1002,7 @@ public class WorkflowDataService {
                 requestObjectsByCallbackParameter.put(callbackParameter, objectDto);
             }
             
-            objectDto.addInput(reqParamObjectDto);
+            objectDto.addInput(reqParamObjectDto.getParamAttrs());
             
         }
         
@@ -1019,7 +1019,7 @@ public class WorkflowDataService {
                 requestObjectsByCallbackParameter.put(callbackParameter, objectDto);
             }
             
-            objectDto.addOutput(respParamObjectDto);
+            objectDto.addOutput(respParamObjectDto.getParamAttrs());
         }
         
         requestObjects.addAll(requestObjectsByCallbackParameter.values());
