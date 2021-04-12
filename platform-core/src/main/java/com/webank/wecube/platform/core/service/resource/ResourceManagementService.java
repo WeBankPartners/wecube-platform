@@ -75,6 +75,10 @@ public class ResourceManagementService {
 
         List<ResourceItemDto> resultDataList = new ArrayList<>();
         for (ResourceItem e : pageInfo.getList()) {
+            if(StringUtils.isNoneBlank(e.getResourceServerId())) {
+                ResourceServer resourceServer = resourceServerRepository.selectByPrimaryKey(e.getResourceServerId());
+                e.setResourceServer(resourceServer);
+            }
             ResourceItemDto dto = buildResourceItemDto(e);
             resultDataList.add(dto);
         }
