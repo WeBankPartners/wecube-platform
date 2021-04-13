@@ -463,5 +463,7 @@
   "pre_check": "高危检测",
   "required": "必填",
   "obtain_plugin_warn": "该定位规则无法获取插件， 请选择绿色节点",
-  "conflict_test": "冲突检测"
+  "conflict_test": "冲突检测",
+  "resource": "资源",
+  "resource_instance": "资源实例"
 }
