@@ -6,37 +6,37 @@ import java.util.List;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
-public class TreeNode {
+public class StandardEntityDataNode {
     private String packageName;
     private String entityName;
-    private Object rootId;
+    private String id;
     private Object displayName;
-    private TreeNode parent;
-    private List<TreeNode> children = new ArrayList<>();
+    private StandardEntityDataNode parent;
+    private List<StandardEntityDataNode> children = new ArrayList<>();
 
-    public TreeNode() {
+    public StandardEntityDataNode() {
     }
 
-    public TreeNode(String packageName, String entityName, Object rootId, Object displayName, TreeNode parent,
-            List<TreeNode> children) {
+    public StandardEntityDataNode(String packageName, String entityName, String id, Object displayName, StandardEntityDataNode parent,
+            List<StandardEntityDataNode> children) {
         this.packageName = packageName;
         this.entityName = entityName;
-        this.rootId = rootId;
+        this.id = id;
         this.displayName = displayName;
         this.parent = parent;
         this.children = children;
     }
 
-    public TreeNode(String packageName, String entityName, Object rootId) {
+    public StandardEntityDataNode(String packageName, String entityName, String rootId) {
         this.packageName = packageName;
         this.entityName = entityName;
-        this.rootId = rootId;
+        this.id = rootId;
     }
 
-    public TreeNode(String packageName, String entityName, Object rootId, Object displayName) {
+    public StandardEntityDataNode(String packageName, String entityName, String rootId, Object displayName) {
         this.packageName = packageName;
         this.entityName = entityName;
-        this.rootId = rootId;
+        this.id = rootId;
         this.displayName = displayName;
     }
 
@@ -56,36 +56,36 @@ public class TreeNode {
         this.entityName = entityName;
     }
 
-    public Object getRootId() {
-        return rootId;
+    public String getId() {
+        return id;
     }
 
-    public void setRootId(Object rootId) {
-        this.rootId = rootId;
+    public void setId(String rootId) {
+        this.id = rootId;
     }
 
-    public TreeNode getParent() {
+    public StandardEntityDataNode getParent() {
         return parent;
     }
 
-    public void setParent(TreeNode parent) {
+    public void setParent(StandardEntityDataNode parent) {
         this.parent = parent;
     }
 
-    public List<TreeNode> getChildren() {
+    public List<StandardEntityDataNode> getChildren() {
         return children;
     }
 
-    public void setChildren(List<TreeNode> children) {
+    public void setChildren(List<StandardEntityDataNode> children) {
         this.children = children;
     }
 
-    public void addChildren(TreeNode node) {
+    public void addChildren(StandardEntityDataNode node) {
         if (node == null) {
             return;
         }
 
-        for (TreeNode n : children) {
+        for (StandardEntityDataNode n : children) {
             if (n.equals(node)) {
                 return;
             }
@@ -111,15 +111,15 @@ public class TreeNode {
             return false;
         }
 
-        TreeNode treeNode = (TreeNode) o;
+        StandardEntityDataNode treeNode = (StandardEntityDataNode) o;
 
         return new EqualsBuilder().append(getPackageName(), treeNode.getPackageName())
-                .append(getEntityName(), treeNode.getEntityName()).append(getRootId(), treeNode.getRootId()).isEquals();
+                .append(getEntityName(), treeNode.getEntityName()).append(getId(), treeNode.getId()).isEquals();
     }
 
     @Override
     public int hashCode() {
-        return new HashCodeBuilder(17, 37).append(getPackageName()).append(getEntityName()).append(getRootId())
+        return new HashCodeBuilder(17, 37).append(getPackageName()).append(getEntityName()).append(getId())
                 .toHashCode();
     }
 }

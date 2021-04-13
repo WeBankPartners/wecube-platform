@@ -54,7 +54,7 @@ import com.webank.wecube.platform.core.service.dme.EntityDataDelegate;
 import com.webank.wecube.platform.core.service.dme.EntityOperationRootCondition;
 import com.webank.wecube.platform.core.service.dme.EntityQueryExprNodeInfo;
 import com.webank.wecube.platform.core.service.dme.EntityTreeNodesOverview;
-import com.webank.wecube.platform.core.service.dme.TreeNode;
+import com.webank.wecube.platform.core.service.dme.StandardEntityDataNode;
 import com.webank.wecube.platform.core.service.plugin.PluginInstanceMgmtService;
 import com.webank.wecube.platform.core.service.plugin.SystemVariableService;
 import com.webank.wecube.platform.core.service.workflow.PluginInvocationProcessor.PluginInterfaceInvocationContext;
@@ -578,7 +578,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 
     private List<ProcExecBindingEntity> calDynamicLeafNodeEntityNodesBindings(TaskNodeDefInfoEntity f,
             ProcInstInfoEntity procInstEntity, TaskNodeInstInfoEntity taskNodeInstEntity,
-            List<TreeNode> leafNodeEntityNodes) {
+            List<StandardEntityDataNode> leafNodeEntityNodes) {
         List<ProcExecBindingEntity> entities = new ArrayList<>();
         if (leafNodeEntityNodes == null) {
             return entities;
@@ -589,14 +589,14 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
                     f.getNodeId(), f.getNodeName());
         }
 
-        for (TreeNode tn : leafNodeEntityNodes) {
+        for (StandardEntityDataNode tn : leafNodeEntityNodes) {
 
             ProcExecBindingEntity taskNodeBinding = new ProcExecBindingEntity();
             taskNodeBinding.setBindType(ProcExecBindingEntity.BIND_TYPE_TASK_NODE_INSTANCE);
             taskNodeBinding.setBindFlag(ProcExecBindingEntity.BIND_FLAG_YES);
             taskNodeBinding.setProcDefId(f.getProcDefId());
             taskNodeBinding.setProcInstId(procInstEntity.getId());
-            taskNodeBinding.setEntityDataId(String.valueOf(tn.getRootId()));
+            taskNodeBinding.setEntityDataId(tn.getId());
             taskNodeBinding.setEntityTypeId(String.format("%s:%s", tn.getPackageName(), tn.getEntityName()));
             taskNodeBinding.setNodeDefId(f.getId());
             taskNodeBinding.setTaskNodeInstId(taskNodeInstEntity.getId());
@@ -1010,6 +1010,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
             }
         }
 
+        //TODO #2169
         Object finalInputParam = calculateContextValue(paramType, execParamEntities);
 
         log.debug("context final input parameter {} {} {}", paramName, paramType, finalInputParam);
@@ -1091,6 +1092,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
         }
     }
 
+    //TODO #2169
     private List<Object> parseDataValueFromContext(List<TaskNodeExecParamEntity> execParamEntities) {
         List<Object> retDataValues = new ArrayList<>();
         if (execParamEntities == null) {
