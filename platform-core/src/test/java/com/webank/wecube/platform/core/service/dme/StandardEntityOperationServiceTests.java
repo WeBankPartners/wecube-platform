@@ -251,12 +251,12 @@ public class StandardEntityOperationServiceTests extends BaseSpringBootTest {
     public void wecmdbFwdNodeExpressionGetPreviewTreeShouldSucceed() {
         mockers.mockFwdNodeExpressionServer(server);
 
-        List<TreeNode> treeNodeListOne = standardEntityOperationService.generatePreviewTree(
+        List<StandardEntityDataNode> treeNodeListOne = standardEntityOperationService.generatePreviewTree(
                 new EntityOperationRootCondition("wecmdb:system_design.code", "0001_0000000001"), externalCacheMap);
         assertNotNull(treeNodeListOne);
         assertThat(treeNodeListOne.size()).isEqualTo(1);
 
-        List<TreeNode> treeNodeListTwo = standardEntityOperationService.generatePreviewTree(
+        List<StandardEntityDataNode> treeNodeListTwo = standardEntityOperationService.generatePreviewTree(
                 new EntityOperationRootCondition("wecmdb:unit.key_name", "0008_0000000003"), externalCacheMap);
         assertNotNull(treeNodeListTwo);
         assertThat(treeNodeListTwo.size()).isEqualTo(1);
@@ -268,7 +268,7 @@ public class StandardEntityOperationServiceTests extends BaseSpringBootTest {
     public void wecmdbOneLinkWithOpToExpressionGetPreviewTreeShouldSucceed() {
         mockers.mockOneLinkWithOpToOnlyExpressionServer(server);
 
-        List<TreeNode> treeNodeList = standardEntityOperationService.generatePreviewTree(
+        List<StandardEntityDataNode> treeNodeList = standardEntityOperationService.generatePreviewTree(
                 new EntityOperationRootCondition("wecmdb:subsys_design.system_design>wecmdb:system_design.code",
                         "0002_0000000006"),
                 externalCacheMap);
@@ -282,13 +282,13 @@ public class StandardEntityOperationServiceTests extends BaseSpringBootTest {
     public void wecmdbOneLinkWithOpByExpressionGetPreviewTreeShouldSucceed() {
         mockers.mockOneLinkWithOpByOnlyExpressionServer(server);
 
-        List<TreeNode> treeNodeListOne = standardEntityOperationService.generatePreviewTree(
+        List<StandardEntityDataNode> treeNodeListOne = standardEntityOperationService.generatePreviewTree(
                 new EntityOperationRootCondition("wecmdb:subsys~(subsys)wecmdb:unit.fixed_date", "0007_0000000001"),
                 externalCacheMap);
         assertNotNull(treeNodeListOne);
         assertThat(treeNodeListOne.size()).isEqualTo(3);
 
-        List<TreeNode> treeNodeListTwo = standardEntityOperationService.generatePreviewTree(
+        List<StandardEntityDataNode> treeNodeListTwo = standardEntityOperationService.generatePreviewTree(
                 new EntityOperationRootCondition("wecmdb:service_design~(service_design)wecmdb:invoke_design.key_name",
                         "0004_0000000001"),
                 externalCacheMap);
@@ -302,14 +302,14 @@ public class StandardEntityOperationServiceTests extends BaseSpringBootTest {
     public void wecmdbMultipleLinksWithOpToOnlyExpressionGetPreviewTreeShouldSucceed() {
         mockers.mockMultipleLinksWithOpToOnlyExpressionServer(server);
 
-        List<TreeNode> treeNodeListOne = standardEntityOperationService
+        List<StandardEntityDataNode> treeNodeListOne = standardEntityOperationService
                 .generatePreviewTree(new EntityOperationRootCondition(
                         "wecmdb:subsys.subsys_design>wecmdb:subsys_design.system_design>wecmdb:system_design.key_name",
                         "0007_0000000001"), externalCacheMap);
         assertNotNull(treeNodeListOne);
         assertThat(treeNodeListOne.size()).isEqualTo(3);
 
-        List<TreeNode> treeNodeListTwo = standardEntityOperationService
+        List<StandardEntityDataNode> treeNodeListTwo = standardEntityOperationService
                 .generatePreviewTree(new EntityOperationRootCondition(
                         "wecmdb:zone_link.zone1>wecmdb:zone.zone_design>wecmdb:zone_design.fixed_date",
                         "0018_0000000002"), externalCacheMap);
@@ -323,7 +323,7 @@ public class StandardEntityOperationServiceTests extends BaseSpringBootTest {
     public void wecmdbMultipleLinksWithOpByOnlyExpressionGetPreviewTreeShouldSucceed() {
         mockers.mockMultipleLinksWithOpByOnlyExpressionServer(server);
 
-        List<TreeNode> treeNodeList = standardEntityOperationService.generatePreviewTree(
+        List<StandardEntityDataNode> treeNodeList = standardEntityOperationService.generatePreviewTree(
                 new EntityOperationRootCondition("wecmdb:subsys~(subsys)wecmdb:unit~(unit)wecmdb:running_instance.id",
                         "0007_0000000001"),
                 externalCacheMap);
@@ -337,7 +337,7 @@ public class StandardEntityOperationServiceTests extends BaseSpringBootTest {
     public void wecmdbMultipleLinksWithMixedOpExpressionGetPreviewTreeShouldSucceed() {
         // mockMultipleLinksWithMixedOpExpressionServer(server);
         mockers.mockWecmdbMultipleLinksWithMixedOpExpressionGetPreviewTreeShouldSucceed(server);
-        List<TreeNode> treeNodeListOne = standardEntityOperationService
+        List<StandardEntityDataNode> treeNodeListOne = standardEntityOperationService
                 .generatePreviewTree(new EntityOperationRootCondition(
                         "wecmdb:subsys~(subsys)wecmdb:unit.unit_design>wecmdb:unit_design.subsys_design>wecmdb:subsys_design.key_name",
                         "0007_0000000001"), externalCacheMap);
@@ -348,7 +348,7 @@ public class StandardEntityOperationServiceTests extends BaseSpringBootTest {
                                                          // node has one node
                                                          // with same value
 
-        List<TreeNode> treeNodeListTwo = standardEntityOperationService
+        List<StandardEntityDataNode> treeNodeListTwo = standardEntityOperationService
                 .generatePreviewTree(new EntityOperationRootCondition(
                         "wecmdb:zone_design~(zone_design2)wecmdb:zone_link_design~(zone_link_design)wecmdb:zone_link.zone1>wecmdb:zone.key_name",
                         "0023_0000000004"), externalCacheMap);
