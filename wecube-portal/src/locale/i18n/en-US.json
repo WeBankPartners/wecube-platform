@@ -464,5 +464,7 @@
   "required": "Required",
   "obtain_plugin_warn": "The positioning rule cannot obtain plugins, Please select the green node",
   "permission_for_flow": "Permission",
-  "conflict_test": "Conflict Check"
+  "conflict_test": "Conflict Check",
+  "resource": "Resource",
+  "resource_instance": "Resource Instance"
 }
