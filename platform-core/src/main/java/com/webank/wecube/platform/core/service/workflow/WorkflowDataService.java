@@ -57,7 +57,7 @@ import com.webank.wecube.platform.core.repository.workflow.TaskNodeInstInfoMappe
 import com.webank.wecube.platform.core.service.dme.EntityOperationRootCondition;
 import com.webank.wecube.platform.core.service.dme.EntityTreeNodesOverview;
 import com.webank.wecube.platform.core.service.dme.StandardEntityOperationService;
-import com.webank.wecube.platform.core.service.dme.TreeNode;
+import com.webank.wecube.platform.core.service.dme.StandardEntityDataNode;
 import com.webank.wecube.platform.core.service.plugin.PluginConfigMgmtService;
 
 /**
@@ -760,7 +760,7 @@ public class WorkflowDataService {
         log.info("About to fetch data for node {} {} with expression {} and data id {}", f.getNodeDefId(),
                 f.getNodeName(), routineExpr, dataId);
         EntityOperationRootCondition condition = new EntityOperationRootCondition(routineExpr, dataId);
-        List<TreeNode> nodes = null;
+        List<StandardEntityDataNode> nodes = null;
         try {
             EntityTreeNodesOverview overview = standardEntityOperationService.generateEntityLinkOverview(condition,
                     this.userJwtSsoTokenRestTemplate, cacheMap);
@@ -786,13 +786,13 @@ public class WorkflowDataService {
         processTreeNodes(hierarchicalEntityNodes, nodes);
     }
 
-    private void processTreeNodes(List<GraphNodeDto> hierarchicalEntityNodes, List<TreeNode> nodes) {
-        for (TreeNode tn : nodes) {
+    private void processTreeNodes(List<GraphNodeDto> hierarchicalEntityNodes, List<StandardEntityDataNode> nodes) {
+        for (StandardEntityDataNode tn : nodes) {
             String treeNodeId = buildId(tn);
             GraphNodeDto currNode = findGraphNodeDtoById(hierarchicalEntityNodes, treeNodeId);
             if (currNode == null) {
                 currNode = new GraphNodeDto();
-                currNode.setDataId(tn.getRootId().toString());
+                currNode.setDataId(tn.getId().toString());
                 currNode.setPackageName(tn.getPackageName());
                 currNode.setEntityName(tn.getEntityName());
                 currNode.setDisplayName(tn.getDisplayName() == null ? null : tn.getDisplayName().toString());
@@ -800,15 +800,15 @@ public class WorkflowDataService {
                 addToResult(hierarchicalEntityNodes, currNode);
             }
 
-            TreeNode parentTreeNode = tn.getParent();
+            StandardEntityDataNode parentTreeNode = tn.getParent();
             if (parentTreeNode != null) {
                 String parentTreeNodeId = buildId(parentTreeNode);
                 currNode.addPreviousIds(parentTreeNodeId);
             }
 
-            List<TreeNode> childrenTreeNodes = tn.getChildren();
+            List<StandardEntityDataNode> childrenTreeNodes = tn.getChildren();
             if (childrenTreeNodes != null) {
-                for (TreeNode ctn : childrenTreeNodes) {
+                for (StandardEntityDataNode ctn : childrenTreeNodes) {
                     String ctnId = buildId(ctn);
                     currNode.addSucceedingIds(ctnId);
                 }
@@ -816,7 +816,7 @@ public class WorkflowDataService {
         }
     }
 
-    private void saveLeafNodeEntityNodesTemporary(FlowNodeDefDto f, List<TreeNode> leafNodeEntityNodes,
+    private void saveLeafNodeEntityNodesTemporary(FlowNodeDefDto f, List<StandardEntityDataNode> leafNodeEntityNodes,
             String processSessionId) {
         if (leafNodeEntityNodes == null) {
             return;
@@ -827,9 +827,9 @@ public class WorkflowDataService {
                     f.getNodeDefId(), f.getNodeId(), f.getNodeName());
         }
 
-        List<TreeNode> savedTreeNodes = new ArrayList<>();
+        List<StandardEntityDataNode> savedTreeNodes = new ArrayList<>();
 
-        for (TreeNode tn : leafNodeEntityNodes) {
+        for (StandardEntityDataNode tn : leafNodeEntityNodes) {
             if (containsTreeNode(savedTreeNodes, tn)) {
                 continue;
             }
@@ -839,7 +839,7 @@ public class WorkflowDataService {
             taskNodeBinding.setIsBound(ProcExecBindingTmpEntity.BOUND);
             taskNodeBinding.setProcSessionId(processSessionId);
             taskNodeBinding.setProcDefId(f.getProcDefId());
-            taskNodeBinding.setEntityDataId(String.valueOf(tn.getRootId()));
+            taskNodeBinding.setEntityDataId(String.valueOf(tn.getId()));
             taskNodeBinding.setEntityTypeId(String.format("%s:%s", tn.getPackageName(), tn.getEntityName()));
             taskNodeBinding.setEntityDataName(String.valueOf(tn.getDisplayName()));
             taskNodeBinding.setNodeDefId(f.getNodeDefId());
@@ -855,8 +855,8 @@ public class WorkflowDataService {
 
     }
 
-    private boolean containsTreeNode(List<TreeNode> treeNodes, TreeNode treeNode) {
-        for (TreeNode tn : treeNodes) {
+    private boolean containsTreeNode(List<StandardEntityDataNode> treeNodes, StandardEntityDataNode treeNode) {
+        for (StandardEntityDataNode tn : treeNodes) {
             if (tn.equals(treeNode)) {
                 return true;
             }
@@ -911,8 +911,8 @@ public class WorkflowDataService {
         return null;
     }
 
-    private String buildId(TreeNode n) {
-        return String.format("%s:%s:%s", n.getPackageName(), n.getEntityName(), n.getRootId());
+    private String buildId(StandardEntityDataNode n) {
+        return String.format("%s:%s:%s", n.getPackageName(), n.getEntityName(), n.getId());
     }
 
     private boolean isSensitiveData(TaskNodeExecParamEntity respParamEntity) {
