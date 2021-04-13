@@ -154,7 +154,7 @@ public class StandardEntityOperationService {
         return standardEntityQueryExcutor.generateEntityLinkOverview(ctx);
     }
 
-    public List<TreeNode> generatePreviewTree(EntityOperationRootCondition condition, Map<Object, Object> externalCacheMap) {
+    public List<StandardEntityDataNode> generatePreviewTree(EntityOperationRootCondition condition, Map<Object, Object> externalCacheMap) {
         if (log.isInfoEnabled()) {
             log.info("generate preview tree with condition {}", condition);
         }
