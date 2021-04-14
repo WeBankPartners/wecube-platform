@@ -671,6 +671,9 @@ public class WorkflowDataService extends AbstractWorkflowService{
             entity.setProcSessId(previewDto.getProcessSessionId());
             entity.setCreatedBy(AuthenticationContextHolder.getCurrentUsername());
             entity.setCreatedTime(new Date());
+            
+            //#2169
+            entity.setFullDataId(gNode.getFullDataId());
 
             graphNodeRepository.insert(entity);
         }
@@ -688,6 +691,7 @@ public class WorkflowDataService extends AbstractWorkflowService{
         procInstBindingTmpEntity.setEntityDataName(dataName);
         procInstBindingTmpEntity.setCreatedBy(AuthenticationContextHolder.getCurrentUsername());
         procInstBindingTmpEntity.setCreatedTime(new Date());
+        procInstBindingTmpEntity.setFullEntityDataId(dataId);
 
         procExecBindingTmpRepository.insert(procInstBindingTmpEntity);
     }
@@ -792,10 +796,12 @@ public class WorkflowDataService extends AbstractWorkflowService{
             GraphNodeDto currNode = findGraphNodeDtoById(hierarchicalEntityNodes, treeNodeId);
             if (currNode == null) {
                 currNode = new GraphNodeDto();
-                currNode.setDataId(tn.getId().toString());
+                currNode.setDataId(tn.getId());
                 currNode.setPackageName(tn.getPackageName());
                 currNode.setEntityName(tn.getEntityName());
-                currNode.setDisplayName(tn.getDisplayName() == null ? null : tn.getDisplayName().toString());
+                currNode.setDisplayName(tn.getDisplayName());
+                //#2169
+                currNode.setFullDataId(tn.getFullId());
 
                 addToResult(hierarchicalEntityNodes, currNode);
             }
@@ -841,11 +847,14 @@ public class WorkflowDataService extends AbstractWorkflowService{
             taskNodeBinding.setProcDefId(f.getProcDefId());
             taskNodeBinding.setEntityDataId(String.valueOf(tn.getId()));
             taskNodeBinding.setEntityTypeId(String.format("%s:%s", tn.getPackageName(), tn.getEntityName()));
-            taskNodeBinding.setEntityDataName(String.valueOf(tn.getDisplayName()));
+            taskNodeBinding.setEntityDataName(tn.getDisplayName());
             taskNodeBinding.setNodeDefId(f.getNodeDefId());
             taskNodeBinding.setOrderedNo(f.getOrderedNo());
             taskNodeBinding.setCreatedBy(AuthenticationContextHolder.getCurrentUsername());
             taskNodeBinding.setCreatedTime(new Date());
+            
+            //#2169 full data id
+            taskNodeBinding.setFullEntityDataId(tn.getFullId());
 
             procExecBindingTmpRepository.insert(taskNodeBinding);
             savedTreeNodes.add(tn);
@@ -865,27 +874,27 @@ public class WorkflowDataService extends AbstractWorkflowService{
         return false;
     }
 
-    private String calculateDataModelExpression(FlowNodeDefDto f) {
-        if (StringUtils.isBlank(f.getRoutineExpression())) {
+    private String calculateDataModelExpression(FlowNodeDefDto flowNode) {
+        if (StringUtils.isBlank(flowNode.getRoutineExpression())) {
             return null;
         }
 
-        String expr = f.getRoutineExpression();
+        String expr = flowNode.getRoutineExpression();
 
-        if (StringUtils.isBlank(f.getServiceId())) {
+        if (StringUtils.isBlank(flowNode.getServiceId())) {
             return expr;
         }
 
-        PluginConfigInterfaces inter = pluginConfigMgmtService.getPluginConfigInterfaceByServiceName(f.getServiceId());
-        if (inter == null) {
+        PluginConfigInterfaces pluginConfigIntf = pluginConfigMgmtService.getPluginConfigInterfaceByServiceName(flowNode.getServiceId());
+        if (pluginConfigIntf == null) {
             return expr;
         }
 
-        if (StringUtils.isBlank(inter.getFilterRule())) {
+        if (StringUtils.isBlank(pluginConfigIntf.getFilterRule())) {
             return expr;
         }
 
-        return expr + inter.getFilterRule();
+        return expr + pluginConfigIntf.getFilterRule();
     }
 
     private void addToResult(List<GraphNodeDto> result, GraphNodeDto... nodes) {

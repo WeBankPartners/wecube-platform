@@ -37,6 +37,9 @@ public class ProcExecBindingTmpEntity {
     private String procSessionId;
 
     private String entityDataName;
+    
+    //#2169
+    private String fullEntityDataId;
 
     public Integer getId() {
         return id;
@@ -150,4 +153,11 @@ public class ProcExecBindingTmpEntity {
         this.entityDataName = entityDataName;
     }
 
+    public String getFullEntityDataId() {
+        return fullEntityDataId;
+    }
+
+    public void setFullEntityDataId(String fullEntityDataId) {
+        this.fullEntityDataId = fullEntityDataId;
+    }
 }
