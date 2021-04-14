@@ -16,11 +16,11 @@ public class SimpleEntityDataRouteFactory implements EntityDataRouteFactory{
         String gatewayUrl = applicationProperties.getGatewayUrl();
         String [] parts = gatewayUrl.split(":");
         EntityRouteDescription entityDef = new EntityRouteDescription();
-        entityDef.setEntityName(packageName);
+        entityDef.setEntityName(entityName);
         entityDef.setHttpPort(parts[1]);
         entityDef.setHttpHost(parts[0]);
         entityDef.setHttpScheme(HTTP_SCHEME_HTTP);
-        entityDef.setPackageName(entityName);
+        entityDef.setPackageName(packageName);
         
         return entityDef;
     }
