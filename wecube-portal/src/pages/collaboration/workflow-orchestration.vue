@@ -127,6 +127,7 @@
                       :needAttr="true"
                       ref="filterRules"
                       v-model="pluginForm.routineExpression"
+                      @change="filterRuleChanged"
                       :allDataModelsWithAttrs="allEntityType"
                     ></FilterRules>
                   </FormItem>
@@ -448,7 +449,8 @@ export default {
         { value: 'OUTPUT', label: this.$t('output') }
       ],
       currentflowsNodes: [],
-      currentFlow: null
+      currentFlow: null,
+      cacheFlowInfo: null // 缓存流程数据，供节点数据展示时使用
     }
   },
   watch: {
@@ -521,6 +523,10 @@ export default {
     this.setCss('top-pane', 'bottom: 0;')
   },
   methods: {
+    // 节点定位规则变化检测
+    filterRuleChanged () {
+      this.isFormDataChange = true
+    },
     editFormdata () {
       this.isFormDataChange = true
     },
@@ -862,6 +868,8 @@ export default {
             }
           })
         }
+        _this.show = false
+        _this.isFormDataChange = false
       })
     },
     savePluginConfig (ref) {
@@ -926,11 +934,14 @@ export default {
           desc: this.$t('select_entity_first')
         })
       } else {
-        this.pluginForm =
-          (this.currentFlow &&
-            this.currentFlow.taskNodeInfos &&
-            this.currentFlow.taskNodeInfos.find(_ => _.nodeId === this.currentNode.id)) ||
-          this.prepareDefaultPluginForm()
+        this.pluginForm = JSON.parse(
+          JSON.stringify(
+            (this.cacheFlowInfo &&
+              this.cacheFlowInfo.taskNodeInfos &&
+              this.cacheFlowInfo.taskNodeInfos.find(_ => _.nodeId === this.currentNode.id)) ||
+              this.prepareDefaultPluginForm()
+          )
+        )
         this.pluginForm.dynamicBind = this.pluginForm.dynamicBind || 'N'
         this.pluginForm.preCheck = this.pluginForm.preCheck || 'N'
         // 实体类型条件不带入节点中
@@ -1010,6 +1021,7 @@ export default {
       const { status, data } = await getFlowDetailByID(id)
       if (status === 'OK') {
         this.currentFlow = data
+        this.cacheFlowInfo = JSON.parse(JSON.stringify(data))
         const _this = this
         this.bpmnModeler.importXML(data ? data.procDefData : '', function (err) {
           if (err) {
@@ -1023,7 +1035,8 @@ export default {
         })
       }
     },
-    test (e) {
+    nodeClicked (e) {
+      this.isFirstSelectNode = false
       this.show = false
       this.bindCurrentNode(e)
       this.isShowSaveBtnOnly = false
@@ -1044,25 +1057,26 @@ export default {
       this.container = this.$refs.content
       const canvas = this.$refs.canvas
       canvas.onmouseup = e => {
-        console.log(this.isFirstSelectNode, this.isFormDataChange)
         if (this.isFirstSelectNode) {
-          this.test(e)
-          return
-        }
-        this.isFirstSelectNode = false
-        if (this.isFormDataChange) {
-          this.$Modal.confirm({
-            title: this.$t('confirm_to_delete'),
-            'z-index': 1000000,
-            onOk: e => {
-              this.isFormDataChange = false
-              console.log(e.target.parentNode.getAttribute('data-element-id'))
-              this.test(e)
-            },
-            onCancel: () => {
-              this.isFormDataChange = true
-            }
-          })
+          this.nodeClicked(e)
+        } else {
+          if (this.isFormDataChange) {
+            this.$Modal.confirm({
+              title: this.$t('confirm_to_delete'),
+              content: this.$t('node_params_edit_confirm'),
+              okText: this.$t('abandon'),
+              'z-index': 1000000,
+              onOk: () => {
+                this.isFormDataChange = false
+                this.show = false
+              },
+              onCancel: () => {
+                this.isFormDataChange = true
+              }
+            })
+          } else {
+            this.nodeClicked(e)
+          }
         }
       }
       var customTranslateModule = {
