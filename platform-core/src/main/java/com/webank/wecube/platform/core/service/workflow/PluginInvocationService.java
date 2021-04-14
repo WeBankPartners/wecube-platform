@@ -782,6 +782,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
             InputParamObject inputObj = new InputParamObject();
             inputObj.setEntityTypeId(entityTypeId);
             inputObj.setEntityDataId(entityDataId);
+            inputObj.setFullEntityDataId(nodeObjectBinding.getFullEntityDataId());
 
             for (PluginConfigInterfaceParameters param : configInterfaceInputParams) {
                 String paramName = param.getName();
@@ -1261,6 +1262,8 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
             String sObjectId = String.valueOf(objectId);
             String entityTypeId = ipo.getEntityTypeId();
             String entityDataId = ipo.getEntityDataId();
+            //#2169
+            String fullEntityDataId = ipo.getFullEntityDataId();
 
             Map<String, Object> inputMap = new HashMap<String, Object>();
             inputMap.put(CALLBACK_PARAMETER_KEY, entityDataId);
@@ -1273,6 +1276,8 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
             p.setParamDataValue(entityDataId);
             p.setEntityDataId(entityDataId);
             p.setEntityTypeId(entityTypeId);
+            //2169
+            p.setFullEntityDataId(fullEntityDataId);
             p.setCreatedBy(WorkflowConstants.DEFAULT_USER);
             p.setCreatedTime(new Date());
             p.setIsSensitive(false);
@@ -1291,6 +1296,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
                 e.setParamDataValue(tryCalculateParamDataValue(attr));
                 e.setEntityDataId(entityDataId);
                 e.setEntityTypeId(entityTypeId);
+                e.setFullEntityDataId(fullEntityDataId);
                 e.setCreatedBy(WorkflowConstants.DEFAULT_USER);
                 e.setCreatedTime(new Date());
 
@@ -1430,6 +1436,8 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
         }
         String entityTypeId = null;
         String entityDataId = null;
+        //#2169
+        String fullEntityDataId = null;
 
         String callbackParameter = (String) outputParameterMap.get(CALLBACK_PARAMETER_KEY);
 
@@ -1445,10 +1453,12 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 
         // #2169
         String objectId = inputObjectId;
+        
         if (callbackParameterInputEntity != null) {
             // objectId = callbackParameterInputEntity.getObjId();
             entityTypeId = callbackParameterInputEntity.getEntityTypeId();
             entityDataId = callbackParameterInputEntity.getEntityDataId();
+            fullEntityDataId = callbackParameterInputEntity.getFullEntityDataId();
         }
 
         // #2169
@@ -1458,6 +1468,8 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
             TaskNodeExecParamEntity paramEntity = new TaskNodeExecParamEntity();
             paramEntity.setEntityTypeId(entityTypeId);
             paramEntity.setEntityDataId(entityDataId);
+            //#2169
+            paramEntity.setFullEntityDataId(fullEntityDataId);
             paramEntity.setObjId(objectId);
             paramEntity.setParamType(TaskNodeExecParamEntity.PARAM_TYPE_RESPONSE);
             paramEntity.setParamName(CALLBACK_PARAMETER_KEY);
@@ -1496,6 +1508,8 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
             TaskNodeExecParamEntity paramEntity = new TaskNodeExecParamEntity();
             paramEntity.setEntityTypeId(entityTypeId);
             paramEntity.setEntityDataId(entityDataId);
+            //2169
+            paramEntity.setFullEntityDataId(fullEntityDataId);
             paramEntity.setObjId(objectId);
             paramEntity.setParamType(TaskNodeExecParamEntity.PARAM_TYPE_RESPONSE);
             paramEntity.setParamName(entry.getKey());
@@ -1561,6 +1575,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 
         if (rootDemOutputParamAttrs.isEmpty()) {
             // unknown rootNodeEntityId
+            log.warn("There is not root DME output parameters to write.{}", outputParameterMap);
             return;
         }
         EntityQueryExprNodeInfo rootExprNodeInfo = rootDemOutputParamAttrs.get(0).getExprNodeInfos().get(0);
@@ -1577,6 +1592,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
         Map<String, Object> resultMap = entityOperationService.create(packageName, entityName, objDataMap);
         String rootEntityId = (String) resultMap.get(EntityDataDelegate.UNIQUE_IDENTIFIER);
         if (StringUtils.isBlank(rootEntityId)) {
+            log.warn("Entity created but there is not identity returned.{} {} {}", packageName, entityName, objDataMap);
             return;
         }
 
