@@ -41,6 +41,8 @@ public class TaskNodeExecParamEntity{
     private String entityTypeId;
 
     private Boolean isSensitive;
+    
+    private String fullEntityDataId;
 
     public Integer getId() {
         return id;
@@ -162,4 +164,11 @@ public class TaskNodeExecParamEntity{
         this.isSensitive = isSensitive;
     }
 
+    public String getFullEntityDataId() {
+        return fullEntityDataId;
+    }
+
+    public void setFullEntityDataId(String fullEntityDataId) {
+        this.fullEntityDataId = fullEntityDataId;
+    }
 }
