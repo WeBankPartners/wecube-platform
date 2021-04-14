@@ -66,7 +66,7 @@ import com.webank.wecube.platform.core.service.plugin.PluginConfigMgmtService;
  *
  */
 @Service
-public class WorkflowDataService {
+public class WorkflowDataService extends AbstractWorkflowService{
     private static final Logger log = LoggerFactory.getLogger(WorkflowDataService.class);
 
     public static final String MASKED_VALUE = "***MASK***";
@@ -704,7 +704,7 @@ public class WorkflowDataService {
         for (FlowNodeDefDto f : outline.getFlowNodes()) {
             String nodeType = f.getNodeType();
 
-            if (!"subProcess".equals(nodeType)) {
+            if (!NODE_SUB_PROCESS.equals(nodeType)) {
                 continue;
             }
 
@@ -714,7 +714,7 @@ public class WorkflowDataService {
                 continue;
             }
 
-            processSingleFlowNodeDefDto(f, hierarchicalEntityNodes, dataId, processSessionId, needSaveTmp,
+            tryProcessSingleFlowNodeDef(f, hierarchicalEntityNodes, dataId, processSessionId, needSaveTmp,
                     externalCacheMap);
         }
 
@@ -722,7 +722,7 @@ public class WorkflowDataService {
         result.setProcessSessionId(processSessionId);
 
         if (needSaveTmp) {
-            GraphNodeDto rootEntity = tryCalRootGraphNode(hierarchicalEntityNodes, dataId);
+            GraphNodeDto rootEntity = tryCalculateRootGraphNode(hierarchicalEntityNodes, dataId);
             String dataName = null;
             if (rootEntity != null) {
                 dataName = rootEntity.getDisplayName();
@@ -734,7 +734,7 @@ public class WorkflowDataService {
 
     }
 
-    private GraphNodeDto tryCalRootGraphNode(List<GraphNodeDto> hierarchicalEntityNodes, String dataId) {
+    private GraphNodeDto tryCalculateRootGraphNode(List<GraphNodeDto> hierarchicalEntityNodes, String dataId) {
         if (hierarchicalEntityNodes == null || hierarchicalEntityNodes.isEmpty()) {
             return null;
         }
@@ -748,17 +748,17 @@ public class WorkflowDataService {
         return null;
     }
 
-    private void processSingleFlowNodeDefDto(FlowNodeDefDto f, List<GraphNodeDto> hierarchicalEntityNodes,
+    private void tryProcessSingleFlowNodeDef(FlowNodeDefDto flowNode, List<GraphNodeDto> hierarchicalEntityNodes,
             String dataId, String processSessionId, boolean needSaveTmp, Map<Object, Object> cacheMap) {
-        String routineExpr = calculateDataModelExpression(f);
+        String routineExpr = calculateDataModelExpression(flowNode);
 
         if (StringUtils.isBlank(routineExpr)) {
-            log.info("the routine expression is blank for {} {}", f.getNodeDefId(), f.getNodeName());
+            log.info("the routine expression is blank for {} {}", flowNode.getNodeDefId(), flowNode.getNodeName());
             return;
         }
 
-        log.info("About to fetch data for node {} {} with expression {} and data id {}", f.getNodeDefId(),
-                f.getNodeName(), routineExpr, dataId);
+        log.info("About to fetch data for node {} {} with expression {} and data id {}", flowNode.getNodeDefId(),
+                flowNode.getNodeName(), routineExpr, dataId);
         EntityOperationRootCondition condition = new EntityOperationRootCondition(routineExpr, dataId);
         List<StandardEntityDataNode> nodes = null;
         try {
@@ -767,13 +767,13 @@ public class WorkflowDataService {
             nodes = overview.getHierarchicalEntityNodes();
 
             if (needSaveTmp) {
-                saveLeafNodeEntityNodesTemporary(f, overview.getLeafNodeEntityNodes(), processSessionId);
+                saveLeafNodeEntityNodesTemporary(flowNode, overview.getLeafNodeEntityNodes(), processSessionId);
             }
         } catch (Exception e) {
             String errMsg = String.format("Errors while fetching data for node %s %s with expr %s and data id %s",
-                    f.getNodeDefId(), f.getNodeName(), routineExpr, dataId);
+                    flowNode.getNodeDefId(), flowNode.getNodeName(), routineExpr, dataId);
             log.error(errMsg, e);
-            throw new WecubeCoreException("3191", errMsg, f.getNodeDefId(), f.getNodeName(), routineExpr, dataId);
+            throw new WecubeCoreException("3191", errMsg, flowNode.getNodeDefId(), flowNode.getNodeName(), routineExpr, dataId);
         }
 
         if (nodes == null || nodes.isEmpty()) {
