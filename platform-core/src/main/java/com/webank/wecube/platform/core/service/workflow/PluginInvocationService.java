@@ -61,6 +61,7 @@ import com.webank.wecube.platform.core.service.workflow.PluginInvocationProcesso
 import com.webank.wecube.platform.core.service.workflow.PluginInvocationProcessor.PluginInterfaceInvocationResult;
 import com.webank.wecube.platform.core.service.workflow.PluginInvocationProcessor.PluginInvocationOperation;
 import com.webank.wecube.platform.core.support.plugin.PluginInvocationRestClient;
+import com.webank.wecube.platform.core.utils.Constants;
 import com.webank.wecube.platform.workflow.WorkflowConstants;
 import com.webank.wecube.platform.workflow.commons.LocalIdGenerator;
 
@@ -1550,6 +1551,10 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
                 log.info("expression not configured for {}", paramName);
                 continue;
             }
+            
+            if(!Constants.MAPPING_TYPE_ENTITY.equalsIgnoreCase(pciParam.getMappingType())){
+                continue;
+            }
 
             Object retVal = outputParameterMap.get(paramName);
 
@@ -1557,6 +1562,8 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
                 log.info("returned value is null for {} {}", ctx.getRequestId(), paramName);
                 continue;
             }
+            
+            
 
             DmeOutputParamAttr outputParamAttr = new DmeOutputParamAttr();
             List<EntityQueryExprNodeInfo> exprNodeInfos = entityQueryExpressionParser.parse(paramExpr);
@@ -1588,6 +1595,8 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
             EntityQueryExprNodeInfo exprNodeNodeInfo = attr.getExprNodeInfos().get(0);
             objDataMap.put(exprNodeNodeInfo.getQueryAttrName(), attr.getRetVal());
         }
+        
+        log.info("try to create entity.{} {} {}", packageName, entityName, objDataMap);
 
         Map<String, Object> resultMap = entityOperationService.create(packageName, entityName, objDataMap);
         String rootEntityId = (String) resultMap.get(EntityDataDelegate.UNIQUE_IDENTIFIER);
