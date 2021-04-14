@@ -124,7 +124,7 @@ public class StandardEntityQueryExecutor implements EntityQueryExecutor {
         EntityQueryLinkNode leafLinkNode = ctx.getTailEntityQueryLinkNode();
         EntityQueryExprNodeInfo nodeInfo = leafLinkNode.getExprNodeInfo();
         EntityRouteDescription entityDef = ctx.getEntityDataRouteFactory()
-                .deduceEntityDescription(nodeInfo.getEntityName(), nodeInfo.getPackageName());
+                .deduceEntityDescription(nodeInfo.getPackageName(), nodeInfo.getEntityName());
 
         StandardEntityOperationRestClient restClient = ctx.getStandardEntityOperationRestClient();
         restClient.update(entityDef, entityDataRecordsToUpdate);
@@ -175,7 +175,7 @@ public class StandardEntityQueryExecutor implements EntityQueryExecutor {
 
         EntityQueryExprNodeInfo nodeInfo = linkNode.getExprNodeInfo();
         EntityRouteDescription entityDef = ctx.getEntityDataRouteFactory()
-                .deduceEntityDescription(nodeInfo.getEntityName(), nodeInfo.getPackageName());
+                .deduceEntityDescription(nodeInfo.getPackageName(), nodeInfo.getEntityName());
 
         doPerformQuery(ctx, linkNode, entityDef);
     }
