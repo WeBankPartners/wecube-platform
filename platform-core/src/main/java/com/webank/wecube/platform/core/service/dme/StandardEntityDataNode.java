@@ -10,14 +10,14 @@ public class StandardEntityDataNode {
     private String packageName;
     private String entityName;
     private String id;
-    private Object displayName;
+    private String displayName;
     private StandardEntityDataNode parent;
     private List<StandardEntityDataNode> children = new ArrayList<>();
 
     public StandardEntityDataNode() {
     }
 
-    public StandardEntityDataNode(String packageName, String entityName, String id, Object displayName, StandardEntityDataNode parent,
+    public StandardEntityDataNode(String packageName, String entityName, String id, String displayName, StandardEntityDataNode parent,
             List<StandardEntityDataNode> children) {
         this.packageName = packageName;
         this.entityName = entityName;
@@ -33,11 +33,19 @@ public class StandardEntityDataNode {
         this.id = rootId;
     }
 
-    public StandardEntityDataNode(String packageName, String entityName, String rootId, Object displayName) {
+    public StandardEntityDataNode(String packageName, String entityName, String rootId, String displayName) {
         this.packageName = packageName;
         this.entityName = entityName;
         this.id = rootId;
         this.displayName = displayName;
+    }
+    
+    public String getFullId(){
+        if(parent == null){
+            return id;
+        }
+        
+        return String.format("%s::%s", parent.getFullId(), id);
     }
 
     public String getPackageName() {
@@ -93,11 +101,11 @@ public class StandardEntityDataNode {
         this.children.add(node);
     }
 
-    public Object getDisplayName() {
+    public String getDisplayName() {
         return displayName;
     }
 
-    public void setDisplayName(Object displayName) {
+    public void setDisplayName(String displayName) {
         this.displayName = displayName;
     }
 
