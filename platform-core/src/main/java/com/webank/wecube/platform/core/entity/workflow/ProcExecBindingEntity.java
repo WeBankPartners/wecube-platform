@@ -39,6 +39,10 @@ public class ProcExecBindingEntity {
     private String entityDataName;
 
     private String bindFlag;
+    
+    //#2169
+    private String fullEntityDataId;
+    
 
     public Integer getId() {
         return id;
@@ -160,4 +164,11 @@ public class ProcExecBindingEntity {
         this.bindFlag = bindFlag;
     }
 
+    public String getFullEntityDataId() {
+        return fullEntityDataId;
+    }
+
+    public void setFullEntityDataId(String fullEntityDataId) {
+        this.fullEntityDataId = fullEntityDataId;
+    }
 }
