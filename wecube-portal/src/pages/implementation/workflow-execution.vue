@@ -686,8 +686,11 @@ export default {
       }
     },
     async getDetail (row) {
-      if (!row.entityName || !row.dataId) return
-      const { status, data } = await getModelNodeDetail(row.entityName, row.dataId)
+      if (!row.packageName || !row.entityName || !row.dataId) return
+      let params = {
+        additionalFilters: [{ attrName: 'id', op: 'eq', condition: row.dataId }]
+      }
+      const { status, data } = await getModelNodeDetail(row.packageName, row.entityName, params)
       if (status === 'OK') {
         this.rowContent = data
       }
@@ -1283,7 +1286,10 @@ export default {
           _ => _.packageName + '_' + _.entityName + '_' + _.dataId === e.target.parentNode.id
         )
         this.nodeTitle = `${found.displayName}`
-        const { status, data } = await getModelNodeDetail(found.entityName, found.dataId)
+        let params = {
+          additionalFilters: [{ attrName: 'id', op: 'eq', condition: found.dataId }]
+        }
+        const { status, data } = await getModelNodeDetail(found.packageName, found.entityName, params)
         if (status === 'OK') {
           this.nodeDetail = JSON.stringify(data)
             .split(',')
