@@ -3,6 +3,7 @@
     <Row style="margin-bottom:8px">
       <Col span="7" style="margin-right: 15px">
         <span style="margin-right: 10px">{{ $t('flow_name') }}</span>
+        {{ selectedFlow }}
         <Select clearable v-model="selectedFlow" style="width: 77%" @on-open-change="getAllFlows" filterable>
           <Option
             v-for="item in allFlows"
@@ -840,7 +841,11 @@ export default {
         }
 
         if (isDraft) {
-          payload.procDefName = _this.selectedFlowData.procDefName || 'default'
+          payload.procDefName =
+            _this.allFlows.find(_ => {
+              return _.procDefId === _this.selectedFlow
+            }).procDefName || 'default'
+          // payload.procDefName = _this.selectedFlowData.procDefName || 'default'
           saveFlowDraft(payload).then(data => {
             if (data && data.status === 'OK') {
               _this.$Notice.success({
