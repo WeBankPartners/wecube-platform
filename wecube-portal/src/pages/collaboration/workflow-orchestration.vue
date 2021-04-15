@@ -110,7 +110,7 @@
                       >{{ $t('plugin_type') }}
                       <span class="requires-tip">*</span>
                     </label>
-                    <Select filterable v-model="pluginForm.taskCategory">
+                    <Select filterable v-model="pluginForm.taskCategory" @on-change="editFormdata">
                       <Option v-for="(item, index) in taskCategoryList" :value="item.value" :key="index">{{
                         item.label
                       }}</Option>
@@ -127,6 +127,7 @@
                       :needAttr="true"
                       ref="filterRules"
                       v-model="pluginForm.routineExpression"
+                      @change="filterRuleChanged"
                       :allDataModelsWithAttrs="allEntityType"
                     ></FilterRules>
                   </FormItem>
@@ -159,7 +160,7 @@
                       >{{ $t('timeout') }}
                       <span class="requires-tip">*</span>
                     </label>
-                    <Select v-model="pluginForm.timeoutExpression">
+                    <Select v-model="pluginForm.timeoutExpression" @on-change="editFormdata">
                       <Option v-for="(item, index) in timeSelection" :value="item.mins" :key="index"
                         >{{ item.label }}
                       </Option>
@@ -168,7 +169,7 @@
                 </Col>
                 <Col span="8">
                   <FormItem :label="$t('description')" prop="description">
-                    <Input v-model="pluginForm.description" />
+                    <Input v-model="pluginForm.description" @on-change="editFormdata" />
                   </FormItem>
                 </Col>
               </Row>
@@ -179,7 +180,7 @@
                       >{{ $t('dynamic_bind') }}
                       <span class="requires-tip">*</span>
                     </label>
-                    <Select v-model="pluginForm.dynamicBind">
+                    <Select v-model="pluginForm.dynamicBind" @on-change="editFormdata">
                       <Option v-for="item in yOn" :value="item" :key="item">{{ item }}</Option>
                     </Select>
                   </FormItem>
@@ -190,7 +191,7 @@
                       >{{ $t('pre_check') }}
                       <span class="requires-tip">*</span>
                     </label>
-                    <Select v-model="pluginForm.preCheck">
+                    <Select v-model="pluginForm.preCheck" @on-change="editFormdata">
                       <Option v-for="item in yOn" :value="item" :key="item">{{ item }}</Option>
                     </Select>
                   </FormItem>
@@ -229,13 +230,19 @@
                 >
                   <Option v-for="i in paramsTypes" :value="i.value" :key="i.value">{{ i.label }}</Option>
                 </Select>
-                <Select filterable v-if="item.bindType === 'context'" v-model="item.bindParamName" style="width:30%">
+                <Select
+                  filterable
+                  v-if="item.bindType === 'context'"
+                  v-model="item.bindParamName"
+                  style="width:30%"
+                  @on-change="editFormdata"
+                >
                   <Option v-for="i in item.currentParamNames" :value="i.name" :key="i.name">{{ i.name }}</Option>
                 </Select>
                 <label v-if="item.bindType === 'context' && item.required === 'Y'">
                   <span class="requires-tip">*</span>
                 </label>
-                <Input v-if="item.bindType === 'constant'" v-model="item.bindValue" />
+                <Input v-if="item.bindType === 'constant'" v-model="item.bindValue" @on-change="editFormdata" />
               </FormItem>
             </template>
             <FormItem>
@@ -376,6 +383,8 @@ export default {
       currentSelectedEntity: '',
       rootPkg: '',
       rootEntity: '',
+      isFormDataChange: false, // 是否编辑过node数据
+      isFirstSelectNode: true,
       pluginForm: {},
       routineExpressionCache: '',
       defaultPluginForm: {
@@ -440,7 +449,8 @@ export default {
         { value: 'OUTPUT', label: this.$t('output') }
       ],
       currentflowsNodes: [],
-      currentFlow: null
+      currentFlow: null,
+      cacheFlowInfo: null // 缓存流程数据，供节点数据展示时使用
     }
   },
   watch: {
@@ -513,6 +523,13 @@ export default {
     this.setCss('top-pane', 'bottom: 0;')
   },
   methods: {
+    // 节点定位规则变化检测
+    filterRuleChanged () {
+      this.isFormDataChange = true
+    },
+    editFormdata () {
+      this.isFormDataChange = true
+    },
     setCss (className, css) {
       document.getElementsByClassName(className)[0].style.cssText = css
     },
@@ -680,6 +697,7 @@ export default {
       this.routineExpressionCache = path
     },
     async changePluginInterfaceList (val) {
+      this.editFormdata()
       let found = this.filteredPlugins.find(_ => _.serviceName === this.pluginForm.serviceId)
       this.pluginForm.paramInfos = {}
       if (found) {
@@ -850,6 +868,8 @@ export default {
             }
           })
         }
+        _this.show = false
+        _this.isFormDataChange = false
       })
     },
     savePluginConfig (ref) {
@@ -914,11 +934,14 @@ export default {
           desc: this.$t('select_entity_first')
         })
       } else {
-        this.pluginForm =
-          (this.currentFlow &&
-            this.currentFlow.taskNodeInfos &&
-            this.currentFlow.taskNodeInfos.find(_ => _.nodeId === this.currentNode.id)) ||
-          this.prepareDefaultPluginForm()
+        this.pluginForm = JSON.parse(
+          JSON.stringify(
+            (this.cacheFlowInfo &&
+              this.cacheFlowInfo.taskNodeInfos &&
+              this.cacheFlowInfo.taskNodeInfos.find(_ => _.nodeId === this.currentNode.id)) ||
+              this.prepareDefaultPluginForm()
+          )
+        )
         this.pluginForm.dynamicBind = this.pluginForm.dynamicBind || 'N'
         this.pluginForm.preCheck = this.pluginForm.preCheck || 'N'
         // 实体类型条件不带入节点中
@@ -955,6 +978,7 @@ export default {
       return { ...temp }
     },
     onParamsNodeChange (index) {
+      // this.editFormdata()
       this.getParamsOptionsByNode(index)
     },
     async getFlowsNodes () {
@@ -997,6 +1021,7 @@ export default {
       const { status, data } = await getFlowDetailByID(id)
       if (status === 'OK') {
         this.currentFlow = data
+        this.cacheFlowInfo = JSON.parse(JSON.stringify(data))
         const _this = this
         this.bpmnModeler.importXML(data ? data.procDefData : '', function (err) {
           if (err) {
@@ -1010,23 +1035,48 @@ export default {
         })
       }
     },
+    nodeClicked (e) {
+      this.isFirstSelectNode = false
+      this.show = false
+      this.bindCurrentNode(e)
+      this.isShowSaveBtnOnly = false
+      if (
+        this.currentNode.id &&
+        (this.currentNode.id.startsWith('SubProcess_') || this.currentNode.id.startsWith('Task_'))
+      ) {
+        this.openPluginModal(e)
+      }
+
+      if (this.currentNode.id && this.currentNode.id.startsWith('StartEvent_')) {
+        this.show = true
+        this.isShowSaveBtnOnly = true
+      }
+    },
     initFlow () {
+      this.isFirstSelectNode = true
       this.container = this.$refs.content
       const canvas = this.$refs.canvas
       canvas.onmouseup = e => {
-        this.show = false
-        this.bindCurrentNode(e)
-        this.isShowSaveBtnOnly = false
-        if (
-          this.currentNode.id &&
-          (this.currentNode.id.startsWith('SubProcess_') || this.currentNode.id.startsWith('Task_'))
-        ) {
-          this.openPluginModal(e)
-        }
-
-        if (this.currentNode.id && this.currentNode.id.startsWith('StartEvent_')) {
-          this.show = true
-          this.isShowSaveBtnOnly = true
+        if (this.isFirstSelectNode) {
+          this.nodeClicked(e)
+        } else {
+          if (this.isFormDataChange) {
+            this.$Modal.confirm({
+              title: this.$t('confirm_to_delete'),
+              content: this.$t('node_params_edit_confirm'),
+              okText: this.$t('abandon'),
+              'z-index': 1000000,
+              onOk: () => {
+                this.isFormDataChange = false
+                this.show = false
+              },
+              onCancel: () => {
+                this.isFormDataChange = true
+              }
+            })
+          } else {
+            this.nodeClicked(e)
+          }
         }
       }
       var customTranslateModule = {
@@ -1261,7 +1311,7 @@ export default {
 </style>
 <style scoped lang="scss">
 .split {
-  height: calc(100vh - 145px);
+  height: calc(100vh - 155px);
   border: 1px solid #999;
   // border-bottom: none;
 }
