@@ -459,7 +459,7 @@ export default {
           if (this.needNativeAttr) {
             const foundEntity = this.allEntity.find(i => i.packageName === opt.pkg && i.name === opt.entity)
             const attrOption = foundEntity.attributes
-              .filter(attr => attr.dataType !== 'ref')
+              // .filter(attr => attr.dataType !== 'ref')
               .map(a => {
                 return {
                   pkg: a.packageName,
