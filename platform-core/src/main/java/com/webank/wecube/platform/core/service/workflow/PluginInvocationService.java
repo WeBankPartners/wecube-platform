@@ -577,7 +577,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 
     }
 
-    private List<ProcExecBindingEntity> calDynamicLeafNodeEntityNodesBindings(TaskNodeDefInfoEntity f,
+    private List<ProcExecBindingEntity> calDynamicLeafNodeEntityNodesBindings(TaskNodeDefInfoEntity taskNodeDef,
             ProcInstInfoEntity procInstEntity, TaskNodeInstInfoEntity taskNodeInstEntity,
             List<StandardEntityDataNode> leafNodeEntityNodes) {
         List<ProcExecBindingEntity> entities = new ArrayList<>();
@@ -586,8 +586,8 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
         }
 
         if (log.isInfoEnabled()) {
-            log.info("total {} nodes returned as default bindings for {} {} {}", leafNodeEntityNodes.size(), f.getId(),
-                    f.getNodeId(), f.getNodeName());
+            log.info("total {} nodes returned as default bindings for {} {} {}", leafNodeEntityNodes.size(), taskNodeDef.getId(),
+                    taskNodeDef.getNodeId(), taskNodeDef.getNodeName());
         }
 
         for (StandardEntityDataNode tn : leafNodeEntityNodes) {
@@ -595,11 +595,11 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
             ProcExecBindingEntity taskNodeBinding = new ProcExecBindingEntity();
             taskNodeBinding.setBindType(ProcExecBindingEntity.BIND_TYPE_TASK_NODE_INSTANCE);
             taskNodeBinding.setBindFlag(ProcExecBindingEntity.BIND_FLAG_YES);
-            taskNodeBinding.setProcDefId(f.getProcDefId());
+            taskNodeBinding.setProcDefId(taskNodeDef.getProcDefId());
             taskNodeBinding.setProcInstId(procInstEntity.getId());
             taskNodeBinding.setEntityDataId(tn.getId());
             taskNodeBinding.setEntityTypeId(String.format("%s:%s", tn.getPackageName(), tn.getEntityName()));
-            taskNodeBinding.setNodeDefId(f.getId());
+            taskNodeBinding.setNodeDefId(taskNodeDef.getId());
             taskNodeBinding.setTaskNodeInstId(taskNodeInstEntity.getId());
             taskNodeBinding.setEntityDataName(String.valueOf(tn.getDisplayName()));
             // taskNodeBinding.setOrderedNo(f.getOrderedNo());
