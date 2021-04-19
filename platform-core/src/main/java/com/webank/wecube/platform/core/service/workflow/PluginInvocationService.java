@@ -586,8 +586,8 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
         }
 
         if (log.isInfoEnabled()) {
-            log.info("total {} nodes returned as default bindings for {} {} {}", leafNodeEntityNodes.size(), taskNodeDef.getId(),
-                    taskNodeDef.getNodeId(), taskNodeDef.getNodeName());
+            log.info("total {} nodes returned as default bindings for {} {} {}", leafNodeEntityNodes.size(),
+                    taskNodeDef.getId(), taskNodeDef.getNodeId(), taskNodeDef.getNodeName());
         }
 
         for (StandardEntityDataNode tn : leafNodeEntityNodes) {
@@ -777,12 +777,11 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 
         List<PluginConfigInterfaceParameters> configInterfaceInputParams = pluginConfigInterface.getInputParameters();
         for (ProcExecBindingEntity nodeObjectBinding : nodeObjectBindings) {
-            String entityTypeId = nodeObjectBinding.getEntityTypeId();
             String entityDataId = nodeObjectBinding.getEntityDataId();
 
             InputParamObject inputObj = new InputParamObject();
-            inputObj.setEntityTypeId(entityTypeId);
-            inputObj.setEntityDataId(entityDataId);
+            inputObj.setEntityTypeId(nodeObjectBinding.getEntityTypeId());
+            inputObj.setEntityDataId(nodeObjectBinding.getEntityDataId());
             inputObj.setFullEntityDataId(nodeObjectBinding.getFullEntityDataId());
 
             for (PluginConfigInterfaceParameters param : configInterfaceInputParams) {
@@ -804,7 +803,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
                 handleEntityMapping(mappingType, param, entityDataId, objectVals, externalCacheMap);
 
                 handleContextMapping(mappingType, taskNodeDefEntity, paramName, procInstEntity, param, paramType,
-                        objectVals);
+                        nodeObjectBinding, objectVals);
 
                 handleSystemMapping(mappingType, param, paramName, objectVals);
 
@@ -853,7 +852,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 
     private void handleContextMapping(String mappingType, TaskNodeDefInfoEntity taskNodeDefEntity, String paramName,
             ProcInstInfoEntity procInstEntity, PluginConfigInterfaceParameters param, String paramType,
-            List<Object> objectVals) {
+            ProcExecBindingEntity currNodeObjectBinding, List<Object> objectVals) {
         if (!MAPPING_TYPE_CONTEXT.equals(mappingType)) {
             return;
         }
@@ -865,8 +864,15 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
         if (nodeParamEntity == null) {
             log.error("mapping type is {} but node parameter entity is null for {}", mappingType, curTaskNodeDefId);
 
-            // TODO surpress errors if not required
-            throw new WecubeCoreException("3170", "Task node parameter entity does not exist.");
+            if (Constants.FIELD_REQUIRED.equalsIgnoreCase(param.getRequired())) {
+
+                log.error("Task node parameter entity does not exist for {} {}", curTaskNodeDefId, paramName);
+                throw new WecubeCoreException("3170", "Task node parameter entity does not exist.");
+            } else {
+                log.info("Task node parameter entity does not exist for {} {} but field not required.",
+                        curTaskNodeDefId, paramName);
+
+            }
         }
 
         String bindNodeId = nodeParamEntity.getBindNodeId();
@@ -888,7 +894,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
             return;
         } else {
             handleContextMappingForTaskNode(mappingType, taskNodeDefEntity, paramName, procInstEntity, param, paramType,
-                    objectVals, bindNodeInstEntity, bindParamName, bindParamType);
+                    objectVals, bindNodeInstEntity, bindParamName, bindParamType, currNodeObjectBinding);
 
             return;
         }
@@ -977,10 +983,10 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
         }
     }
 
-    private void handleContextMappingForTaskNode(String mappingType, TaskNodeDefInfoEntity taskNodeDefEntity,
+    private void handleContextMappingForTaskNode(String mappingType, TaskNodeDefInfoEntity currTaskNodeDefEntity,
             String paramName, ProcInstInfoEntity procInstEntity, PluginConfigInterfaceParameters param,
             String paramType, List<Object> objectVals, TaskNodeInstInfoEntity bindNodeInstEntity, String bindParamName,
-            String bindParamType) {
+            String bindParamType, ProcExecBindingEntity currNodeObjectBinding) {
         List<TaskNodeExecRequestEntity> requestEntities = taskNodeExecRequestRepository
                 .selectCurrentEntityByNodeInstId(bindNodeInstEntity.getId());
 
@@ -997,6 +1003,9 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 
         TaskNodeExecRequestEntity requestEntity = requestEntities.get(0);
 
+        TaskNodeDefInfoEntity bindNodeDefInfoEntity = taskNodeDefInfoRepository
+                .selectByPrimaryKey(bindNodeInstEntity.getNodeDefId());
+
         List<TaskNodeExecParamEntity> execParamEntities = taskNodeExecParamRepository
                 .selectAllByRequestIdAndParamNameAndParamType(requestEntity.getReqId(), bindParamName, bindParamType);
 
@@ -1012,12 +1021,35 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
             }
         }
 
-        //TODO #2169
-        Object finalInputParam = calculateContextValue(paramType, execParamEntities);
+        // TODO #2169
+        Object finalInputParam = calculateContextValue(paramType, execParamEntities, currTaskNodeDefEntity,
+                currNodeObjectBinding, bindNodeDefInfoEntity);
 
         log.debug("context final input parameter {} {} {}", paramName, paramType, finalInputParam);
 
         objectVals.add(finalInputParam);
+    }
+
+    // #2169
+    private Object calculateContextValue(String paramType, List<TaskNodeExecParamEntity> execParamEntities,
+            TaskNodeDefInfoEntity currTaskNodeDefEntity, ProcExecBindingEntity currNodeObjectBinding,
+            TaskNodeDefInfoEntity bindNodeDefInfoEntity) {
+
+        // TODO
+        List<Object> retDataValues = parseDataValueFromContext(execParamEntities);
+        if (retDataValues == null || retDataValues.isEmpty()) {
+            return null;
+        }
+
+        if (retDataValues.size() == 1) {
+            return retDataValues.get(0);
+        }
+
+        if (DATA_TYPE_STRING.equalsIgnoreCase(paramType)) {
+            return assembleValueList(retDataValues);
+        } else {
+            return retDataValues;
+        }
     }
 
     private void handleSystemMapping(String mappingType, PluginConfigInterfaceParameters param, String paramName,
@@ -1077,24 +1109,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
         }
     }
 
-    private Object calculateContextValue(String paramType, List<TaskNodeExecParamEntity> execParamEntities) {
-        List<Object> retDataValues = parseDataValueFromContext(execParamEntities);
-        if (retDataValues == null || retDataValues.isEmpty()) {
-            return null;
-        }
-
-        if (retDataValues.size() == 1) {
-            return retDataValues.get(0);
-        }
-
-        if (DATA_TYPE_STRING.equalsIgnoreCase(paramType)) {
-            return assembleValueList(retDataValues);
-        } else {
-            return retDataValues;
-        }
-    }
-
-    //TODO #2169
+    // TODO #2169
     private List<Object> parseDataValueFromContext(List<TaskNodeExecParamEntity> execParamEntities) {
         List<Object> retDataValues = new ArrayList<>();
         if (execParamEntities == null) {
@@ -1263,7 +1278,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
             String sObjectId = String.valueOf(objectId);
             String entityTypeId = ipo.getEntityTypeId();
             String entityDataId = ipo.getEntityDataId();
-            //#2169
+            // #2169
             String fullEntityDataId = ipo.getFullEntityDataId();
 
             Map<String, Object> inputMap = new HashMap<String, Object>();
@@ -1277,7 +1292,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
             p.setParamDataValue(entityDataId);
             p.setEntityDataId(entityDataId);
             p.setEntityTypeId(entityTypeId);
-            //2169
+            // 2169
             p.setFullEntityDataId(fullEntityDataId);
             p.setCreatedBy(WorkflowConstants.DEFAULT_USER);
             p.setCreatedTime(new Date());
@@ -1437,7 +1452,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
         }
         String entityTypeId = null;
         String entityDataId = null;
-        //#2169
+        // #2169
         String fullEntityDataId = null;
 
         String callbackParameter = (String) outputParameterMap.get(CALLBACK_PARAMETER_KEY);
@@ -1454,7 +1469,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 
         // #2169
         String objectId = inputObjectId;
-        
+
         if (callbackParameterInputEntity != null) {
             // objectId = callbackParameterInputEntity.getObjId();
             entityTypeId = callbackParameterInputEntity.getEntityTypeId();
@@ -1469,7 +1484,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
             TaskNodeExecParamEntity paramEntity = new TaskNodeExecParamEntity();
             paramEntity.setEntityTypeId(entityTypeId);
             paramEntity.setEntityDataId(entityDataId);
-            //#2169
+            // #2169
             paramEntity.setFullEntityDataId(fullEntityDataId);
             paramEntity.setObjId(objectId);
             paramEntity.setParamType(TaskNodeExecParamEntity.PARAM_TYPE_RESPONSE);
@@ -1509,7 +1524,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
             TaskNodeExecParamEntity paramEntity = new TaskNodeExecParamEntity();
             paramEntity.setEntityTypeId(entityTypeId);
             paramEntity.setEntityDataId(entityDataId);
-            //2169
+            // 2169
             paramEntity.setFullEntityDataId(fullEntityDataId);
             paramEntity.setObjId(objectId);
             paramEntity.setParamType(TaskNodeExecParamEntity.PARAM_TYPE_RESPONSE);
@@ -1551,8 +1566,8 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
                 log.info("expression not configured for {}", paramName);
                 continue;
             }
-            
-            if(!Constants.MAPPING_TYPE_ENTITY.equalsIgnoreCase(pciParam.getMappingType())){
+
+            if (!Constants.MAPPING_TYPE_ENTITY.equalsIgnoreCase(pciParam.getMappingType())) {
                 continue;
             }
 
@@ -1562,8 +1577,6 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
                 log.info("returned value is null for {} {}", ctx.getRequestId(), paramName);
                 continue;
             }
-            
-            
 
             DmeOutputParamAttr outputParamAttr = new DmeOutputParamAttr();
             List<EntityQueryExprNodeInfo> exprNodeInfos = entityQueryExpressionParser.parse(paramExpr);
@@ -1595,7 +1608,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
             EntityQueryExprNodeInfo exprNodeNodeInfo = attr.getExprNodeInfos().get(0);
             objDataMap.put(exprNodeNodeInfo.getQueryAttrName(), attr.getRetVal());
         }
-        
+
         log.info("try to create entity.{} {} {}", packageName, entityName, objDataMap);
 
         Map<String, Object> resultMap = entityOperationService.create(packageName, entityName, objDataMap);
