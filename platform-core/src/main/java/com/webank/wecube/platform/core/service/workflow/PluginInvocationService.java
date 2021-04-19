@@ -1021,7 +1021,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
             }
         }
 
-        // TODO #2169
+        // #2169
         Object finalInputParam = calculateContextValue(paramType, execParamEntities, currTaskNodeDefEntity,
                 currNodeObjectBinding, bindNodeDefInfoEntity);
 
@@ -1035,8 +1035,9 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
             TaskNodeDefInfoEntity currTaskNodeDefEntity, ProcExecBindingEntity currNodeObjectBinding,
             TaskNodeDefInfoEntity bindNodeDefInfoEntity) {
 
-        // TODO
-        List<Object> retDataValues = parseDataValueFromContext(execParamEntities);
+        // TODO #2169
+        List<Object> retDataValues = parseDataValueFromContext(paramType, execParamEntities, currTaskNodeDefEntity,
+                currNodeObjectBinding, bindNodeDefInfoEntity);
         if (retDataValues == null || retDataValues.isEmpty()) {
             return null;
         }
@@ -1050,6 +1051,49 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
         } else {
             return retDataValues;
         }
+    }
+
+    // #2169
+    private List<Object> parseDataValueFromContext(String paramType, List<TaskNodeExecParamEntity> execParamEntities,
+            TaskNodeDefInfoEntity currTaskNodeDefEntity, ProcExecBindingEntity currNodeObjectBinding,
+            TaskNodeDefInfoEntity bindNodeDefInfoEntity) {
+        List<Object> retDataValues = new ArrayList<>();
+        if (execParamEntities == null) {
+            return retDataValues;
+        }
+
+        String currTaskNodeRoutineExp = currTaskNodeDefEntity.getRoutineExp();
+        String bindTaskNodeRoutineExp = bindNodeDefInfoEntity.getRoutineExp();
+
+        String currFullEntityDataId = currNodeObjectBinding.getFullEntityDataId();
+
+        for (TaskNodeExecParamEntity e : execParamEntities) {
+            String lastFullEntityDataId = e.getFullEntityDataId();
+
+            if (!checkIfNeedPickoutFromContext(currTaskNodeRoutineExp, bindTaskNodeRoutineExp, currFullEntityDataId,
+                    lastFullEntityDataId)) {
+                continue;
+            }
+
+            String paramDataValue = e.getParamDataValue();
+            if (e.getIsSensitive() != null && e.getIsSensitive() == true) {
+                paramDataValue = tryDecodeParamDataValue(paramDataValue);
+            }
+            retDataValues.add(fromString(e.getParamDataValue(), e.getParamDataType()));
+        }
+
+        return retDataValues;
+    }
+
+    private boolean checkIfNeedPickoutFromContext(String currTaskNodeRoutineExp, String bindTaskNodeRoutineExp,
+            String currFullEntityDataId, String lastFullEntityDataId) {
+
+        log.debug("to calculate currTaskNodeRoutineExp={} {}, bindTaskNodeRoutineExp={}, currFullEntityDataId={}, lastFullEntityDataId={}", currTaskNodeRoutineExp,  bindTaskNodeRoutineExp,
+             currFullEntityDataId,  lastFullEntityDataId);
+        // TODO
+        
+        return true;
+
     }
 
     private void handleSystemMapping(String mappingType, PluginConfigInterfaceParameters param, String paramName,
@@ -1107,24 +1151,6 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
                 objectVals.add(val);
             }
         }
-    }
-
-    // TODO #2169
-    private List<Object> parseDataValueFromContext(List<TaskNodeExecParamEntity> execParamEntities) {
-        List<Object> retDataValues = new ArrayList<>();
-        if (execParamEntities == null) {
-            return retDataValues;
-        }
-
-        for (TaskNodeExecParamEntity e : execParamEntities) {
-            String paramDataValue = e.getParamDataValue();
-            if (e.getIsSensitive() != null && e.getIsSensitive() == true) {
-                paramDataValue = tryDecodeParamDataValue(paramDataValue);
-            }
-            retDataValues.add(fromString(e.getParamDataValue(), e.getParamDataType()));
-        }
-
-        return retDataValues;
     }
 
     private PluginConfigInterfaces retrievePluginConfigInterface(TaskNodeDefInfoEntity taskNodeDefEntity,
