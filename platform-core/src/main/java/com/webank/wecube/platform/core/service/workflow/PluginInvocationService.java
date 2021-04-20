@@ -599,6 +599,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
             taskNodeBinding.setProcDefId(taskNodeDef.getProcDefId());
             taskNodeBinding.setProcInstId(procInstEntity.getId());
             taskNodeBinding.setEntityDataId(tn.getId());
+            taskNodeBinding.setFullEntityDataId(tn.getFullId());
             taskNodeBinding.setEntityTypeId(String.format("%s:%s", tn.getPackageName(), tn.getEntityName()));
             taskNodeBinding.setNodeDefId(taskNodeDef.getId());
             taskNodeBinding.setTaskNodeInstId(taskNodeInstEntity.getId());
