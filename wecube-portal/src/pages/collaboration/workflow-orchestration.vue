@@ -840,10 +840,10 @@ export default {
         }
 
         if (isDraft) {
-          payload.procDefName =
-            _this.allFlows.find(_ => {
-              return _.procDefId === _this.selectedFlow
-            }).procDefName || 'default'
+          const selectedFlowData = _this.allFlows.find(_ => {
+            return _.procDefId === _this.selectedFlow
+          })
+          payload.procDefName = (selectedFlowData && selectedFlowData.procDefName) || 'default'
           // payload.procDefName = _this.selectedFlowData.procDefName || 'default'
           saveFlowDraft(payload).then(data => {
             if (data && data.status === 'OK') {
