@@ -26,15 +26,26 @@
         <result column="entity_type_id" jdbcType="VARCHAR"
             property="entityTypeId" />
         <result column="is_sensitive" jdbcType="BIT" property="isSensitive" />
+        <result column="full_data_id" jdbcType="VARCHAR"
+            property="fullEntityDataId" />
     </resultMap>
     <sql id="Base_Column_List">
-        id, created_by, created_time, updated_by, updated_time,
+        id, 
+        created_by, 
+        created_time, 
+        updated_by, 
+        updated_time,
         obj_id,
         param_data_type,
-        param_data_value, param_name, param_type,
-        req_id, root_entity_id, entity_data_id,
+        param_data_value, 
+        param_name, 
+        param_type,
+        req_id, 
+        root_entity_id, 
+        entity_data_id,
         entity_type_id,
-        is_sensitive
+        is_sensitive,
+        full_data_id
     </sql>
     <select id="selectByPrimaryKey" parameterType="java.lang.Integer"
         resultMap="BaseResultMap">
@@ -52,26 +63,38 @@
     <insert id="insert" useGeneratedKeys="true" keyProperty="id"
         parameterType="com.webank.wecube.platform.core.entity.workflow.TaskNodeExecParamEntity">
         insert into core_ru_task_node_exec_param (id,
-        created_by, created_time,
-        updated_by, updated_time, obj_id,
-        param_data_type, param_data_value, param_name,
+        created_by, 
+        created_time,
+        updated_by, 
+        updated_time, 
+        obj_id,
+        param_data_type, 
+        param_data_value, 
+        param_name,
         param_type,
-        req_id, root_entity_id,
-        entity_data_id, entity_type_id,
-        is_sensitive
+        req_id, 
+        root_entity_id,
+        entity_data_id, 
+        entity_type_id,
+        is_sensitive,
+        full_data_id
         )
         values (#{id,jdbcType=INTEGER},
         #{createdBy,jdbcType=VARCHAR},
         #{createdTime,jdbcType=TIMESTAMP},
         #{updatedBy,jdbcType=VARCHAR},
-        #{updatedTime,jdbcType=TIMESTAMP}, #{objId,jdbcType=VARCHAR},
+        #{updatedTime,jdbcType=TIMESTAMP}, 
+        #{objId,jdbcType=VARCHAR},
         #{paramDataType,jdbcType=VARCHAR},
         #{paramDataValue,jdbcType=VARCHAR},
         #{paramName,jdbcType=VARCHAR},
         #{paramType,jdbcType=VARCHAR},
-        #{reqId,jdbcType=VARCHAR}, #{rootEntityId,jdbcType=VARCHAR},
+        #{reqId,jdbcType=VARCHAR}, 
+        #{rootEntityId,jdbcType=VARCHAR},
         #{entityDataId,jdbcType=VARCHAR},
-        #{entityTypeId,jdbcType=VARCHAR}, #{isSensitive,jdbcType=BIT}
+        #{entityTypeId,jdbcType=VARCHAR}, 
+        #{isSensitive,jdbcType=BIT},
+        #{fullEntityDataId,jdbcType=VARCHAR}
         )
     </insert>
     <insert id="insertSelective" useGeneratedKeys="true"
@@ -124,6 +147,9 @@
             <if test="isSensitive != null">
                 is_sensitive,
             </if>
+            <if test="fullEntityDataId != null">
+                full_data_id,
+            </if>
         </trim>
         <trim prefix="values (" suffix=")" suffixOverrides=",">
             <if test="id != null">
@@ -170,6 +196,9 @@
             </if>
             <if test="isSensitive != null">
                 #{isSensitive,jdbcType=BIT},
+            </if>
+            <if test="fullEntityDataId != null">
+                #{fullEntityDataId,jdbcType=VARCHAR},
             </if>
         </trim>
     </insert>
@@ -226,6 +255,10 @@
             <if test="isSensitive != null">
                 is_sensitive = #{isSensitive,jdbcType=BIT},
             </if>
+             <if test="fullEntityDataId != null">
+                full_data_id =
+                #{fullEntityDataId,jdbcType=VARCHAR},
+            </if>
         </set>
         where id = #{id,jdbcType=INTEGER}
     </update>
@@ -259,7 +292,9 @@
         entity_type_id =
         #{entityTypeId,jdbcType=VARCHAR},
         is_sensitive =
-        #{isSensitive,jdbcType=BIT}
+        #{isSensitive,jdbcType=BIT},
+        full_data_id =
+        #{fullEntityDataId,jdbcType=VARCHAR}
         where id = #{id,jdbcType=INTEGER}
     </update>
 
