@@ -474,6 +474,7 @@ export default {
     },
     selectedFlow: {
       handler (val, oldVal) {
+        this.isFormDataChange = false
         this.currentSelectedEntity = ''
         this.show = false
         this.selectedFlowData = {}
