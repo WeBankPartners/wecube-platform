@@ -28,6 +28,14 @@ public class EntityDataDelegate {
     public String getId() {
         return id;
     }
+    
+    public String getFullId(){
+        if(previousEntity == null){
+            return id;
+        }
+        
+        return String.format("%s::%s", previousEntity.getFullId(), id);
+    }
 
     public String getDisplayName() {
         return displayName;
