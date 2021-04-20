@@ -323,6 +323,7 @@ public class AsyncPluginInvocationService extends AbstractPluginInvocationServic
 
         String entityTypeId = null;
         String entityDataId = null;
+        String fullEntityDataId = null;
 
         String requestId = ctx.getTaskNodeExecRequestEntity().getReqId();
 
@@ -341,6 +342,7 @@ public class AsyncPluginInvocationService extends AbstractPluginInvocationServic
             objectId = callbackParameterInputEntity.getObjId();
             entityTypeId = callbackParameterInputEntity.getEntityTypeId();
             entityDataId = callbackParameterInputEntity.getEntityDataId();
+            fullEntityDataId = callbackParameterInputEntity.getFullEntityDataId();
         }
 
         List<PluginConfigInterfaceParameters> outputParameters = ctx.getPluginConfigInterface().getOutputParameters();
@@ -367,6 +369,7 @@ public class AsyncPluginInvocationService extends AbstractPluginInvocationServic
             TaskNodeExecParamEntity paramEntity = new TaskNodeExecParamEntity();
             paramEntity.setEntityTypeId(entityTypeId);
             paramEntity.setEntityDataId(entityDataId);
+            paramEntity.setFullEntityDataId(fullEntityDataId);
             paramEntity.setObjId(objectId);
             paramEntity.setParamType(TaskNodeExecParamEntity.PARAM_TYPE_RESPONSE);
             paramEntity.setParamName(entry.getKey());
