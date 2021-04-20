@@ -315,7 +315,7 @@ public class StandardEntityOperationServiceTests extends BaseSpringBootTest {
                         "0018_0000000002"), externalCacheMap);
         assertNotNull(treeNodeListTwo);
         assertThat(treeNodeListTwo.size()).isEqualTo(3);
-
+        
         server.verify();
     }
 
