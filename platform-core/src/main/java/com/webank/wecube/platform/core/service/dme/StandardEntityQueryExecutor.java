@@ -45,6 +45,7 @@ public class StandardEntityQueryExecutor implements EntityQueryExecutor {
                 currTreeNode.setDisplayName(delegate.getDisplayName());
                 currTreeNode.setEntityName(delegate.getEntityName());
                 currTreeNode.setPackageName(delegate.getPackageName());
+                currTreeNode.setFullId(delegate.getFullId());
 
                 result.add(currTreeNode);
             }
@@ -56,6 +57,7 @@ public class StandardEntityQueryExecutor implements EntityQueryExecutor {
                 if (prevTreeNode == null) {
                     prevTreeNode = new StandardEntityDataNode();
                     prevTreeNode.setId(prevDelegate.getId());
+                    prevTreeNode.setFullId(prevDelegate.getFullId());
                     prevTreeNode.setDisplayName(prevDelegate.getDisplayName());
                     prevTreeNode.setEntityName(prevDelegate.getEntityName());
                     prevTreeNode.setPackageName(prevDelegate.getPackageName());
@@ -73,6 +75,7 @@ public class StandardEntityQueryExecutor implements EntityQueryExecutor {
                 if (succeedingTreeNode == null) {
                     succeedingTreeNode = new StandardEntityDataNode();
                     succeedingTreeNode.setId(succeedingDelegate.getId());
+                    succeedingTreeNode.setFullId(succeedingDelegate.getFullId());
                     succeedingTreeNode.setDisplayName(succeedingDelegate.getDisplayName());
                     succeedingTreeNode.setEntityName(succeedingDelegate.getEntityName());
                     succeedingTreeNode.setPackageName(succeedingDelegate.getPackageName());
@@ -611,6 +614,7 @@ public class StandardEntityQueryExecutor implements EntityQueryExecutor {
             tn.setEntityName(leafLinkNode.getExprNodeInfo().getEntityName());
             tn.setDisplayName(delegate.getDisplayName());
             tn.setId(delegate.getId());
+            tn.setFullId(delegate.getFullId());
 
             result.add(tn);
         }
