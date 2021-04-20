@@ -3,6 +3,7 @@ package com.webank.wecube.platform.core.service.dme;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
@@ -11,14 +12,15 @@ public class StandardEntityDataNode {
     private String entityName;
     private String id;
     private String displayName;
+    private String fullId;
     private StandardEntityDataNode parent;
     private List<StandardEntityDataNode> children = new ArrayList<>();
 
     public StandardEntityDataNode() {
     }
 
-    public StandardEntityDataNode(String packageName, String entityName, String id, String displayName, StandardEntityDataNode parent,
-            List<StandardEntityDataNode> children) {
+    public StandardEntityDataNode(String packageName, String entityName, String id, String displayName,
+            StandardEntityDataNode parent, List<StandardEntityDataNode> children) {
         this.packageName = packageName;
         this.entityName = entityName;
         this.id = id;
@@ -39,12 +41,16 @@ public class StandardEntityDataNode {
         this.id = rootId;
         this.displayName = displayName;
     }
-    
-    public String getFullId(){
-        if(parent == null){
+
+    public String getFullId() {
+        if (StringUtils.isNoneBlank(this.fullId)) {
+            return this.fullId;
+        }
+
+        if (parent == null) {
             return id;
         }
-        
+
         return String.format("%s::%s", parent.getFullId(), id);
     }
 
@@ -129,5 +135,9 @@ public class StandardEntityDataNode {
     public int hashCode() {
         return new HashCodeBuilder(17, 37).append(getPackageName()).append(getEntityName()).append(getId())
                 .toHashCode();
+    }
+
+    public void setFullId(String fullId) {
+        this.fullId = fullId;
     }
 }
