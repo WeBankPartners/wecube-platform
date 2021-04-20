@@ -722,6 +722,7 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
             nodeBindEntity.setTaskNodeInstId(taskNodeInstInfoEntity.getId());
             nodeBindEntity.setEntityTypeId(bindInfoDto.getEntityTypeId());
             nodeBindEntity.setEntityDataId(bindInfoDto.getEntityDataId());
+            nodeBindEntity.setFullEntityDataId(bindInfoDto.getFullEntityDataId());
             nodeBindEntity.setEntityDataName(bindInfoDto.getEntityDisplayName());
             nodeBindEntity.setCreatedBy(AuthenticationContextHolder.getCurrentUsername());
             nodeBindEntity.setCreatedTime(new Date());
@@ -927,6 +928,8 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
                 dto.setEntityDisplayName(entity.getEntityDataName());
                 dto.setNodeDefId(entity.getNodeDefId());
                 dto.setOrderedNo(entity.getOrderedNo());
+                //#2169
+                dto.setFullEntityDataId(entity.getFullEntityDataId());
 
                 result.add(dto);
             }
