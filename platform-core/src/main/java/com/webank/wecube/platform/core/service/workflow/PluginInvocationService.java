@@ -746,6 +746,8 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
                     inputAttr.setType(paramType);
                     inputAttr.addValueObjects(retDataValue);
                     inputAttr.setSensitive(IS_SENSITIVE_ATTR.equalsIgnoreCase(param.getSensitiveData()));
+                    
+                    inputObj.addAttrs(inputAttr);
 
                     paramObjects.add(inputObj);
                 }
@@ -763,6 +765,8 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
                     inputAttr.setType(paramType);
                     inputAttr.addValueObjects(retDataValues.get(index));
                     inputAttr.setSensitive(IS_SENSITIVE_ATTR.equalsIgnoreCase(param.getSensitiveData()));
+                    
+                    inputObj.addAttrs(inputAttr);
                 }
             }
 
