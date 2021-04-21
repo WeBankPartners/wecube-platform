@@ -644,6 +644,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
             TaskNodeInstInfoEntity currTaskNodeInstEntity, TaskNodeDefInfoEntity currTaskNodeDefEntity,
             PluginConfigInterfaces pluginConfigInterface,
             Map<String, PluginConfigInterfaceParameters> contextConfigInterfaceInputParams) {
+        log.info("try to calculate input parameter objects from context for taskNodeInstId={}", currTaskNodeInstEntity.getId());
         String curTaskNodeDefId = currTaskNodeDefEntity.getId();
 
         List<InputParamObject> paramObjects = new ArrayList<>();
@@ -775,6 +776,10 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
             TaskNodeInstInfoEntity taskNodeInstEntity, TaskNodeDefInfoEntity taskNodeDefEntity,
             PluginConfigInterfaces pluginConfigInterface) {
 
+        log.info(
+                "Did not get input parameter objects and try to calculate input parameter objects from system for taskNodeInstId={}",
+                taskNodeInstEntity.getId());
+
         List<PluginConfigInterfaceParameters> configInterfaceInputParams = pluginConfigInterface.getInputParameters();
 
         if (!checkIfCouldCalculateFromSystem(configInterfaceInputParams)) {
@@ -802,6 +807,8 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
             inputObj.setEntityTypeId("TaskNode");
             inputObj.setEntityDataId(
                     String.format("%s-%s", CALLBACK_PARAMETER_SYSTEM_PREFIX, LocalIdGenerator.generateId()));
+            
+            inputParamObjs.add(inputObj);
         }
 
         for (InputParamObject inputObj : inputParamObjs) {
