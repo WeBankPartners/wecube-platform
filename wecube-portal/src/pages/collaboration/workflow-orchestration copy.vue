@@ -91,166 +91,166 @@
                 <Button @click="resetZoom">Reset Zoom</Button>
               </li>
             </ul>
-            <div class="node-operate-area">
-              <Form
-                v-if="show"
-                ref="pluginConfigForm"
-                :model="pluginForm"
-                label-position="right"
-                :label-width="120"
-                style="margin-right:12px;padding-top: 16px;"
-              >
-                <template>
-                  <Row>
-                    <Col span="8">
-                      <FormItem prop="serviceName">
-                        <label slot="label"
-                          >{{ $t('plugin_type') }}
-                          <span class="requires-tip">*</span>
-                        </label>
-                        <Select filterable v-model="pluginForm.taskCategory" @on-change="editFormdata">
-                          <Option v-for="(item, index) in taskCategoryList" :value="item.value" :key="index">{{
-                            item.label
-                          }}</Option>
-                        </Select>
-                      </FormItem>
-                    </Col>
-                    <Col span="16">
-                      <FormItem prop="routineExpression">
-                        <label slot="label"
-                          >{{ $t('locate_rules') }}
-                          <span class="requires-tip">*</span>
-                        </label>
-                        <FilterRules
-                          :needAttr="true"
-                          ref="filterRules"
-                          v-model="pluginForm.routineExpression"
-                          @change="filterRuleChanged"
-                          :allDataModelsWithAttrs="allEntityType"
-                        ></FilterRules>
-                      </FormItem>
-                    </Col>
-                  </Row>
-                  <Row>
-                    <Col span="8">
-                      <FormItem prop="serviceName">
-                        <label slot="label"
-                          >{{ $t('plugin') }}
-                          <span class="requires-tip">*</span>
-                        </label>
-                        <Select
-                          filterable
-                          clearable
-                          v-model="pluginForm.serviceId"
-                          @on-open-change="getPlugin"
-                          @on-change="changePluginInterfaceList"
-                        >
-                          <Option v-for="(item, index) in filteredPlugins" :value="item.serviceName" :key="index">{{
-                            item.serviceDisplayName
-                          }}</Option>
-                        </Select>
-                      </FormItem>
-                    </Col>
-                    <Col span="8">
-                      <FormItem prop="timeoutExpression">
-                        <label slot="label"
-                          >{{ $t('timeout') }}
-                          <span class="requires-tip">*</span>
-                        </label>
-                        <Select v-model="pluginForm.timeoutExpression" @on-change="editFormdata">
-                          <Option v-for="(item, index) in timeSelection" :value="item.mins" :key="index"
-                            >{{ item.label }}
-                          </Option>
-                        </Select>
-                      </FormItem>
-                    </Col>
-                    <Col span="8">
-                      <FormItem :label="$t('description')" prop="description">
-                        <Input v-model="pluginForm.description" @on-change="editFormdata" />
-                      </FormItem>
-                    </Col>
-                  </Row>
-                  <Row>
-                    <Col span="8">
-                      <FormItem prop="dynamicBind">
-                        <label slot="label"
-                          >{{ $t('dynamic_bind') }}
-                          <span class="requires-tip">*</span>
-                        </label>
-                        <Select v-model="pluginForm.dynamicBind" @on-change="editFormdata">
-                          <Option v-for="item in yOn" :value="item" :key="item">{{ item }}</Option>
-                        </Select>
-                      </FormItem>
-                    </Col>
-                    <Col span="8">
-                      <FormItem prop="preCheck">
-                        <label slot="label"
-                          >{{ $t('pre_check') }}
-                          <span class="requires-tip">*</span>
-                        </label>
-                        <Select v-model="pluginForm.preCheck" @on-change="editFormdata">
-                          <Option v-for="item in yOn" :value="item" :key="item">{{ item }}</Option>
-                        </Select>
-                      </FormItem>
-                    </Col>
-                  </Row>
-                </template>
-                <div v-if="pluginForm.paramInfos.length" class="node-operate-plugin-config">
-                  <FormItem
-                    :label="item.paramName"
-                    :prop="item.paramName"
-                    v-for="(item, index) in pluginForm.paramInfos"
-                    :key="index"
-                  >
-                    <label slot="label" v-if="item.required === 'Y'"
-                      >{{ item.paramName }}
+          </div>
+        </div>
+        <div slot="bottom" class="split-bottom">
+          <Form
+            v-if="show"
+            ref="pluginConfigForm"
+            :model="pluginForm"
+            label-position="right"
+            :label-width="120"
+            style="margin-right:12px;padding-top: 16px;"
+          >
+            <template v-if="!isShowSaveBtnOnly">
+              <Row>
+                <Col span="8">
+                  <FormItem prop="serviceName">
+                    <label slot="label"
+                      >{{ $t('plugin_type') }}
+                      <span class="requires-tip">*</span>
+                    </label>
+                    <Select filterable v-model="pluginForm.taskCategory" @on-change="editFormdata">
+                      <Option v-for="(item, index) in taskCategoryList" :value="item.value" :key="index">{{
+                        item.label
+                      }}</Option>
+                    </Select>
+                  </FormItem>
+                </Col>
+                <Col span="16">
+                  <FormItem prop="routineExpression">
+                    <label slot="label"
+                      >{{ $t('locate_rules') }}
+                      <span class="requires-tip">*</span>
+                    </label>
+                    <FilterRules
+                      :needAttr="true"
+                      ref="filterRules"
+                      v-model="pluginForm.routineExpression"
+                      @change="filterRuleChanged"
+                      :allDataModelsWithAttrs="allEntityType"
+                    ></FilterRules>
+                  </FormItem>
+                </Col>
+              </Row>
+              <Row>
+                <Col span="8">
+                  <FormItem prop="serviceName">
+                    <label slot="label"
+                      >{{ $t('plugin') }}
                       <span class="requires-tip">*</span>
                     </label>
                     <Select
                       filterable
                       clearable
-                      v-model="item.bindNodeId"
-                      style="width:30%"
-                      v-if="item.bindType === 'context'"
-                      @on-change="onParamsNodeChange(index)"
-                      @on-open-change="getFlowsNodes"
+                      v-model="pluginForm.serviceId"
+                      @on-open-change="getPlugin"
+                      @on-change="changePluginInterfaceList"
                     >
-                      <Option v-for="(i, index) in currentflowsNodes" :value="i.nodeId" :key="index">{{
-                        i.nodeName
+                      <!-- @on-open-change="getFilteredPluginInterfaceList(val, pluginForm.routineExpression)" -->
+                      <Option v-for="(item, index) in filteredPlugins" :value="item.serviceName" :key="index">{{
+                        item.serviceDisplayName
                       }}</Option>
                     </Select>
-                    <Select
-                      v-model="item.bindParamType"
-                      filterable
-                      v-if="item.bindType === 'context'"
-                      style="width:30%"
-                      @on-change="onParamsNodeChange(index)"
-                    >
-                      <Option v-for="i in paramsTypes" :value="i.value" :key="i.value">{{ i.label }}</Option>
-                    </Select>
-                    <Select
-                      filterable
-                      v-if="item.bindType === 'context'"
-                      v-model="item.bindParamName"
-                      style="width:30%"
-                      @on-change="editFormdata"
-                    >
-                      <Option v-for="i in item.currentParamNames" :value="i.name" :key="i.name">{{ i.name }}</Option>
-                    </Select>
-                    <label v-if="item.bindType === 'context' && item.required === 'Y'">
+                  </FormItem>
+                </Col>
+                <Col span="8">
+                  <FormItem prop="timeoutExpression">
+                    <label slot="label"
+                      >{{ $t('timeout') }}
                       <span class="requires-tip">*</span>
                     </label>
-                    <Input v-if="item.bindType === 'constant'" v-model="item.bindValue" @on-change="editFormdata" />
+                    <Select v-model="pluginForm.timeoutExpression" @on-change="editFormdata">
+                      <Option v-for="(item, index) in timeSelection" :value="item.mins" :key="index"
+                        >{{ item.label }}
+                      </Option>
+                    </Select>
                   </FormItem>
-                </div>
-              </Form>
-              <div class="node-operate-area-save-btn">
-                <Button type="primary" style="float:right" @click="savePluginConfig('pluginConfigForm')">{{
-                  $t('save')
-                }}</Button>
+                </Col>
+                <Col span="8">
+                  <FormItem :label="$t('description')" prop="description">
+                    <Input v-model="pluginForm.description" @on-change="editFormdata" />
+                  </FormItem>
+                </Col>
+              </Row>
+              <Row>
+                <Col span="8">
+                  <FormItem prop="dynamicBind">
+                    <label slot="label"
+                      >{{ $t('dynamic_bind') }}
+                      <span class="requires-tip">*</span>
+                    </label>
+                    <Select v-model="pluginForm.dynamicBind" @on-change="editFormdata">
+                      <Option v-for="item in yOn" :value="item" :key="item">{{ item }}</Option>
+                    </Select>
+                  </FormItem>
+                </Col>
+                <Col span="8">
+                  <FormItem prop="preCheck">
+                    <label slot="label"
+                      >{{ $t('pre_check') }}
+                      <span class="requires-tip">*</span>
+                    </label>
+                    <Select v-model="pluginForm.preCheck" @on-change="editFormdata">
+                      <Option v-for="item in yOn" :value="item" :key="item">{{ item }}</Option>
+                    </Select>
+                  </FormItem>
+                </Col>
+              </Row>
+              <hr style="margin-bottom: 8px" />
+              <FormItem
+                :label="item.paramName"
+                :prop="item.paramName"
+                v-for="(item, index) in pluginForm.paramInfos"
+                :key="index"
+              >
+                <label slot="label" v-if="item.required === 'Y'"
+                  >{{ item.paramName }}
+                  <span class="requires-tip">*</span>
+                </label>
+                <Select
+                  filterable
+                  clearable
+                  v-model="item.bindNodeId"
+                  style="width:30%"
+                  v-if="item.bindType === 'context'"
+                  @on-change="onParamsNodeChange(index)"
+                  @on-open-change="getFlowsNodes"
+                >
+                  <Option v-for="(i, index) in currentflowsNodes" :value="i.nodeId" :key="index">{{
+                    i.nodeName
+                  }}</Option>
+                </Select>
+                <Select
+                  v-model="item.bindParamType"
+                  filterable
+                  v-if="item.bindType === 'context'"
+                  style="width:30%"
+                  @on-change="onParamsNodeChange(index)"
+                >
+                  <Option v-for="i in paramsTypes" :value="i.value" :key="i.value">{{ i.label }}</Option>
+                </Select>
+                <Select
+                  filterable
+                  v-if="item.bindType === 'context'"
+                  v-model="item.bindParamName"
+                  style="width:30%"
+                  @on-change="editFormdata"
+                >
+                  <Option v-for="i in item.currentParamNames" :value="i.name" :key="i.name">{{ i.name }}</Option>
+                </Select>
+                <label v-if="item.bindType === 'context' && item.required === 'Y'">
+                  <span class="requires-tip">*</span>
+                </label>
+                <Input v-if="item.bindType === 'constant'" v-model="item.bindValue" @on-change="editFormdata" />
+              </FormItem>
+            </template>
+            <FormItem>
+              <div class="btn-plugin-config">
+                <Button type="primary" @click="savePluginConfig('pluginConfigForm')">{{ $t('save') }}</Button>
               </div>
-            </div>
-          </div>
+            </FormItem>
+          </Form>
         </div>
       </Split>
     </div>
@@ -307,7 +307,7 @@ import FilterRules from '../components/filter-rules.vue'
 import axios from 'axios'
 import { setCookie, getCookie } from '../util/cookie'
 import CustomContextPad from '../util/CustomContextPad'
-import xml2js from 'xml2js'
+
 import {
   getAllFlow,
   saveFlow,
@@ -346,6 +346,8 @@ export default {
       yOn: ['Y', 'N'],
       splitPanal: 1,
       show: false,
+      // 选中开始节点触发
+      isShowSaveBtnOnly: false,
       taskCategoryList: [
         { value: 'SSTN', label: this.$t('sstn') },
         { value: 'SUTN', label: this.$t('sutn') }
@@ -452,6 +454,24 @@ export default {
     }
   },
   watch: {
+    show: function (val) {
+      if (val) {
+        this.splitPanal = 0.65
+        this.setCss('ivu-split-trigger-con', 'top: 60%;')
+        this.setCss('bottom-pane', 'top: 60%;')
+        this.setCss('top-pane', 'bottom: 40%;')
+      } else {
+        this.splitPanal = 1
+        this.setCss('ivu-split-trigger-con', 'display: none;')
+        this.setCss('bottom-pane', 'display: none;')
+        this.setCss('top-pane', 'bottom: 0;')
+      }
+    },
+    isShowSaveBtnOnly: function (val) {
+      if (val) {
+        this.splitPanal = 0.9
+      }
+    },
     selectedFlow: {
       handler (val, oldVal) {
         this.isFormDataChange = false
@@ -802,13 +822,9 @@ export default {
       let _this = this
       // eslint-disable-next-line handle-callback-err
       this.bpmnModeler.saveXML({ format: true }, function (err, xml) {
-        let processName
-        xml2js.parseString(xml, (errx, result) => {
-          console.log(errx)
-          processName = result['bpmn2:definitions']['bpmn2:process'][0]['$']['name']
-        })
         if (!xml) return
         const xmlString = xml.replace(/[\r\n]/g, '')
+        const processName = document.getElementById('camunda-name').innerText || ''
         let payload = {
           permissionToRole: {
             MGMT: _this.mgmtRolesKeyToFlow,
@@ -823,11 +839,12 @@ export default {
           status: isDraft ? (_this.currentFlow && _this.currentFlow.procDefKey) || '' : '',
           taskNodeInfos: [..._this.serviceTaskBindInfos]
         }
+
         if (isDraft) {
           const selectedFlowData = _this.allFlows.find(_ => {
             return _.procDefId === _this.selectedFlow
           })
-          payload.procDefName = processName || (selectedFlowData && selectedFlowData.procDefName) || 'default'
+          payload.procDefName = (selectedFlowData && selectedFlowData.procDefName) || 'default'
           // payload.procDefName = _this.selectedFlowData.procDefName || 'default'
           saveFlowDraft(payload).then(data => {
             if (data && data.status === 'OK') {
@@ -874,8 +891,8 @@ export default {
       let found = this.filteredPlugins.find(_ => _.serviceName === this.pluginForm.serviceId)
 
       let pluginFormCopy = JSON.parse(JSON.stringify(this.pluginForm))
-      // 校验必填项，未选中节点跳过校验
-      if ('nodeDefId' in pluginFormCopy) {
+      // 校验必填项
+      if (!this.isShowSaveBtnOnly) {
         const res = this.checkSaveParams(pluginFormCopy)
         if (!res) return
       }
@@ -1034,6 +1051,11 @@ export default {
       ) {
         this.openPluginModal(e)
       }
+
+      if (this.currentNode.id && this.currentNode.id.startsWith('StartEvent_')) {
+        this.show = true
+        this.isShowSaveBtnOnly = true
+      }
     },
     initFlow () {
       this.isFirstSelectNode = true
@@ -1162,7 +1184,6 @@ export default {
   }
 }
 </script>
-
 <style lang="scss">
 .requires-tip {
   color: red;
@@ -1208,7 +1229,7 @@ export default {
 .buttons {
   position: absolute;
   left: 44px;
-  bottom: 50px;
+  bottom: 20px;
   & > li {
     display: inline-block;
     margin: 5px;
@@ -1228,9 +1249,6 @@ export default {
 }
 </style>
 <style lang="scss">
-.bjs-powered-by {
-  bottom: 50px !important;
-}
 // hide toolbar
 .bpmn-icon-data-object,
 .bpmn-icon-data-store,
@@ -1320,19 +1338,5 @@ export default {
 .btn-plugin-config {
   float: right;
   background: white;
-}
-</style>
-<style lange="scss" scoped>
-.node-operate-area {
-  border: 1px solid #dcdee2;
-  background: #fff;
-  padding: 8px 32px;
-  position: absolute;
-  bottom: 0;
-  width: 100%;
-}
-.node-operate-plugin-config {
-  max-height: 200px;
-  overflow-y: auto;
 }
 </style>
