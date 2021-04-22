@@ -15,7 +15,6 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
-import com.webank.wecube.platform.core.commons.ApplicationProperties;
 import com.webank.wecube.platform.core.commons.AuthenticationContextHolder;
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
 import com.webank.wecube.platform.core.dto.workflow.DynamicEntityValueDto;
@@ -46,6 +45,7 @@ import com.webank.wecube.platform.core.repository.plugin.PluginPackageEntitiesMa
 import com.webank.wecube.platform.core.repository.workflow.ProcDefInfoMapper;
 import com.webank.wecube.platform.core.repository.workflow.ProcRoleBindingMapper;
 import com.webank.wecube.platform.core.repository.workflow.TaskNodeDefInfoMapper;
+import com.webank.wecube.platform.core.service.dme.EntityDataRouteFactory;
 import com.webank.wecube.platform.core.service.dme.EntityOperationRootCondition;
 import com.webank.wecube.platform.core.service.dme.EntityQueryCriteria;
 import com.webank.wecube.platform.core.service.dme.EntityQueryExprNodeInfo;
@@ -98,7 +98,7 @@ public class WorkflowPublicAccessService {
     protected RestTemplate userJwtSsoTokenRestTemplate;
 
     @Autowired
-    private ApplicationProperties applicationProperties;
+    private EntityDataRouteFactory entityDataRouteFactory;
 
     /**
      * 
@@ -313,7 +313,7 @@ public class WorkflowPublicAccessService {
     }
 
     private void tryEnrichEntityData(GraphNodeDto entityNode, StandardEntityOperationRestClient client) {
-        EntityRouteDescription entityRoute = deduceEntityDescription(entityNode.getPackageName(),
+        EntityRouteDescription entityRoute = entityDataRouteFactory.deduceEntityDescription(entityNode.getPackageName(),
                 entityNode.getEntityName());
 
         EntityQuerySpecification querySpec = new EntityQuerySpecification();
@@ -321,15 +321,12 @@ public class WorkflowPublicAccessService {
         c.setAttrName("id");
         c.setCondition(entityNode.getDataId());
         
-        
         StandardEntityOperationResponseDto respDto = client.query(entityRoute, querySpec);
-        
         List<Map<String, Object>> results = extractEntityDataFromResponse(respDto.getData());
         
         if(results == null || results.isEmpty()){
             return;
         }
-        
         entityNode.setEntityData(results.get(0));
     }
     
@@ -358,19 +355,6 @@ public class WorkflowPublicAccessService {
         }
 
         return recordMapList;
-    }
-
-    private EntityRouteDescription deduceEntityDescription(String packageName, String entityName) {
-        String gatewayUrl = applicationProperties.getGatewayUrl();
-        String[] parts = gatewayUrl.split(":");
-        EntityRouteDescription entityDef = new EntityRouteDescription();
-        entityDef.setEntityName(entityName);
-        entityDef.setHttpPort(parts[1]);
-        entityDef.setHttpHost(parts[0]);
-        entityDef.setHttpScheme("http");
-        entityDef.setPackageName(packageName);
-
-        return entityDef;
     }
 
     private String calculateDataModelExpression(FlowNodeDefDto f) {
