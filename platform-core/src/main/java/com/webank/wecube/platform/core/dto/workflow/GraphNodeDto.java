@@ -12,6 +12,9 @@ public class GraphNodeDto {
     private String dataId;
     private String displayName;
 
+    //for taskman
+    private Object entityData;
+
     private String id;
     private List<String> previousIds = new ArrayList<>();
     private List<String> succeedingIds = new ArrayList<>();
@@ -26,10 +29,10 @@ public class GraphNodeDto {
     }
 
     public String getId() {
-        if(StringUtils.isBlank(id)){
+        if (StringUtils.isBlank(id)) {
             this.id = buildId();
         }
-        
+
         return id;
     }
 
@@ -108,4 +111,13 @@ public class GraphNodeDto {
     public void setDisplayName(String displayName) {
         this.displayName = displayName;
     }
+
+    public Object getEntityData() {
+        return entityData;
+    }
+
+    public void setEntityData(Object entityData) {
+        this.entityData = entityData;
+    }
+
 }
