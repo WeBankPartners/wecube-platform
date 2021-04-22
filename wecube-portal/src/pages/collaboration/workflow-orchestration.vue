@@ -307,7 +307,7 @@ import FilterRules from '../components/filter-rules.vue'
 import axios from 'axios'
 import { setCookie, getCookie } from '../util/cookie'
 import CustomContextPad from '../util/CustomContextPad'
-
+import xml2js from 'xml2js'
 import {
   getAllFlow,
   saveFlow,
@@ -802,9 +802,13 @@ export default {
       let _this = this
       // eslint-disable-next-line handle-callback-err
       this.bpmnModeler.saveXML({ format: true }, function (err, xml) {
+        let processName
+        xml2js.parseString(xml, (errx, result) => {
+          console.log(errx)
+          processName = result['bpmn2:definitions']['bpmn2:process'][0]['$']['name']
+        })
         if (!xml) return
         const xmlString = xml.replace(/[\r\n]/g, '')
-        const processName = _this.bpmnModeler._definitions.rootElements[0].name || ''
         let payload = {
           permissionToRole: {
             MGMT: _this.mgmtRolesKeyToFlow,
@@ -823,7 +827,7 @@ export default {
           const selectedFlowData = _this.allFlows.find(_ => {
             return _.procDefId === _this.selectedFlow
           })
-          payload.procDefName = (selectedFlowData && selectedFlowData.procDefName) || processName || 'default'
+          payload.procDefName = processName || (selectedFlowData && selectedFlowData.procDefName) || 'default'
           // payload.procDefName = _this.selectedFlowData.procDefName || 'default'
           saveFlowDraft(payload).then(data => {
             if (data && data.status === 'OK') {
@@ -1029,11 +1033,6 @@ export default {
         (this.currentNode.id.startsWith('SubProcess_') || this.currentNode.id.startsWith('Task_'))
       ) {
         this.openPluginModal(e)
-      }
-
-      if (this.currentNode.id && this.currentNode.id.startsWith('StartEvent_')) {
-        this.show = true
-        this.isShowSaveBtnOnly = true
       }
     },
     initFlow () {
