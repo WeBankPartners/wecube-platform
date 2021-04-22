@@ -804,7 +804,7 @@ export default {
       this.bpmnModeler.saveXML({ format: true }, function (err, xml) {
         if (!xml) return
         const xmlString = xml.replace(/[\r\n]/g, '')
-        const processName = document.getElementById('camunda-name').innerText || ''
+        const processName = _this.bpmnModeler._definitions.rootElements[0].name || ''
         let payload = {
           permissionToRole: {
             MGMT: _this.mgmtRolesKeyToFlow,
@@ -819,12 +819,11 @@ export default {
           status: isDraft ? (_this.currentFlow && _this.currentFlow.procDefKey) || '' : '',
           taskNodeInfos: [..._this.serviceTaskBindInfos]
         }
-
         if (isDraft) {
           const selectedFlowData = _this.allFlows.find(_ => {
             return _.procDefId === _this.selectedFlow
           })
-          payload.procDefName = (selectedFlowData && selectedFlowData.procDefName) || 'default'
+          payload.procDefName = (selectedFlowData && selectedFlowData.procDefName) || processName || 'default'
           // payload.procDefName = _this.selectedFlowData.procDefName || 'default'
           saveFlowDraft(payload).then(data => {
             if (data && data.status === 'OK') {
