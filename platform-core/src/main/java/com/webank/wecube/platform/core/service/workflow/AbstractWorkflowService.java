@@ -36,8 +36,14 @@ public abstract class AbstractWorkflowService {
     
     public static final String PLUGIN_NAME_ITSDANGEROUS = "itsdangerous";
     
+    public static final String TASK_CATEGORY_SSTN = "SSTN";
+    public static final String TASK_CATEGORY_SUTN = "SUTN";
+    public static final String TASK_CATEGORY_SDTN = "SDTN";
+    
     protected static List<String> statelessNodeTypes = Arrays.asList(NODE_START_EVENT, NODE_END_EVENT, NODE_EXCLUSIVE_GATEWAY,
             NODE_PARALLEL_GATEWAY);
+    
+    
     
     protected List<String> unmarshalNodeIds(String nodeIdsAsString) {
         List<String> nodeIds = new ArrayList<>();
