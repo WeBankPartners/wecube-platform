@@ -17,6 +17,8 @@ public class DynamicEntityValueDto {
     private String dataId;//Existing data id,such as guid in cmdb.
     @Nonnull
     private String oid;//Equals to dataId once dataId presents,or a temporary assigned.
+    
+    //TODO delete?
 
     private List<String> previousOids = new ArrayList<>();
     private List<String> succeedingOids = new ArrayList<>();
