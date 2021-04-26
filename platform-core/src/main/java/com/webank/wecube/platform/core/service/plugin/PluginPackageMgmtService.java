@@ -343,8 +343,16 @@ public class PluginPackageMgmtService extends AbstractPluginMgmtService {
      */
     public List<SystemVariableDto> getSystemVarsByPackageId(String packageId) {
         List<SystemVariableDto> resultDtos = new ArrayList<>();
+        
+        PluginPackages pluginPackageEntity = pluginPackagesMapper.selectByPrimaryKey(packageId);
+        
+        if(pluginPackageEntity == null){
+            return resultDtos;
+        }
+        
+        String source = PluginPackages.buildSystemVariableSource(pluginPackageEntity);
 
-        List<SystemVariables> systemVariablesEntities = systemVariablesMapper.selectAllBySource(packageId);
+        List<SystemVariables> systemVariablesEntities = systemVariablesMapper.selectAllBySource(source);
 
         if (systemVariablesEntities == null || systemVariablesEntities.isEmpty()) {
             return resultDtos;
@@ -365,6 +373,8 @@ public class PluginPackageMgmtService extends AbstractPluginMgmtService {
      */
     public List<PluginPackageAuthoritiesDto> getAuthoritiesByPackageId(String pluginPackageId) {
         List<PluginPackageAuthoritiesDto> resultDtos = new ArrayList<>();
+        
+        
 
         List<PluginPackageAuthorities> authoritiesEntities = pluginPackageAuthoritiesMapper
                 .selectAllByPackage(pluginPackageId);
