@@ -428,6 +428,7 @@
   "plugin_type": "Plugin Type",
   "sstn": "Automatic Node",
   "sutn": "Manual Node",
+  "sdtn": "Write Node",
   "copy": "Copy",
   "copy_success": "Copy Successful",
   "filter_rule": "Filter Rules",

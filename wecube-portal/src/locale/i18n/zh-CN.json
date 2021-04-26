@@ -433,6 +433,7 @@
   "plugin_type": "插件类型",
   "sstn": "自动节点",
   "sutn": "人工节点",
+  "sdtn": "数据写入节点",
   "copy": "复制",
   "copy_success": "复制成功",
   "filter_rule": "过滤规则",
