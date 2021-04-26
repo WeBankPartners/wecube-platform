@@ -420,7 +420,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 
         //to refactor using strategy mode
         if (isSstnTaskNode(taskNodeDefEntity)) {
-            doSstnInvokePluginInterface(procInstEntity, taskNodeInstEntity, procDefInfoEntity, taskNodeDefEntity, cmd);
+            doInvokeSstnPluginInterface(procInstEntity, taskNodeInstEntity, procDefInfoEntity, taskNodeDefEntity, cmd);
         } else if (isSutnTaskNode(taskNodeDefEntity)) {
             doInvokeSutnPluginInterface(procInstEntity, taskNodeInstEntity, procDefInfoEntity, taskNodeDefEntity, cmd);
         } else if (isSdtnTaskNode(taskNodeDefEntity)) {
@@ -436,7 +436,9 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
             TaskNodeInstInfoEntity taskNodeInstEntity, ProcDefInfoEntity procDefInfoEntity,
             TaskNodeDefInfoEntity taskNodeDefEntity, PluginInvocationCommand cmd) {
         Map<Object, Object> externalCacheMap = new HashMap<>();
-        // TODO
+        // TODO #2109
+        //1 try to create or update entity data
+        //2 update entity data id of task node bindings
     }
 
     /**
@@ -447,14 +449,17 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
             TaskNodeInstInfoEntity taskNodeInstEntity, ProcDefInfoEntity procDefInfoEntity,
             TaskNodeDefInfoEntity taskNodeDefEntity, PluginInvocationCommand cmd) {
         Map<Object, Object> externalCacheMap = new HashMap<>();
-        // TODO
+        // TODO #2109
+        //1 try to get template
+        //2 calculate to render template
+        //3 invoke plugin asynchronously
     }
 
     /**
-     * Handling automation task node
+     * Handling system automation task node
      * 
      */
-    protected void doSstnInvokePluginInterface(ProcInstInfoEntity procInstEntity,
+    protected void doInvokeSstnPluginInterface(ProcInstInfoEntity procInstEntity,
             TaskNodeInstInfoEntity taskNodeInstEntity, ProcDefInfoEntity procDefInfoEntity,
             TaskNodeDefInfoEntity taskNodeDefEntity, PluginInvocationCommand cmd) {
 
