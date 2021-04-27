@@ -14,7 +14,7 @@ export default {
       tableColumns: [
         {
           title: this.$t('source'),
-          key: 'scopeType'
+          key: 'scope'
         },
         {
           title: this.$t('name'),
@@ -22,11 +22,10 @@ export default {
         },
         {
           title: this.$t('table_value'),
-          key: 'value'
-        },
-        {
-          title: this.$t('description'),
-          key: 'description'
+          key: 'value',
+          render: (h, params) => {
+            return h('span', params.row.value || params.row.defaultValue)
+          }
         },
         {
           title: this.$t('status'),
