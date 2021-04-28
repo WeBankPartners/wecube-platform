@@ -3,7 +3,7 @@
     <Row>
       <template v-for="(express, index) in routineExpressionItem">
         <div :key="express.routineExpression + index">
-          <Col :span="isBatch ? 22 : 24">
+          <Col :span="isBatch ? 21 : 24">
             <FilterRules
               :needAttr="true"
               ref="filterRules"
@@ -13,7 +13,7 @@
             >
             </FilterRules>
           </Col>
-          <Col span="2" v-if="isBatch">
+          <Col span="3" v-if="isBatch">
             <template>
               <Button
                 ghost
@@ -44,24 +44,27 @@ export default {
   name: '',
   data () {
     return {
-      // routineExpression: 'kubernetes:cluster#DME#wecmdb:app_instance',
       routineExpressionItem: []
     }
   },
-  props: ['isBatch', 'allEntityType', 'routineExpression'],
+  props: ['isBatch', 'allEntityType', 'routineExpression', 'rootEntity'],
   mounted () {
-    if (this.routineExpression) {
-      this.routineExpression.split('#DME#').forEach(item => {
-        this.routineExpressionItem.push({
-          routineExpression: item
-        })
-      })
-    }
+    this.changeRoutineExpressionItem(this.routineExpression)
   },
   methods: {
+    changeRoutineExpressionItem (routineExpression) {
+      this.routineExpressionItem = []
+      if (routineExpression) {
+        routineExpression.split('#DME#').forEach(item => {
+          this.routineExpressionItem.push({
+            routineExpression: item
+          })
+        })
+      }
+    },
     addFilterRule () {
       this.routineExpressionItem.push({
-        routineExpression: ''
+        routineExpression: this.rootEntity
       })
     },
     deleteFilterRule (index) {
