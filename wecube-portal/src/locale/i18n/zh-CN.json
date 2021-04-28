@@ -468,5 +468,6 @@
   "node_params_edit_confirm": "节点数据发生变化，选择放弃则变化信息不会被保存！",
   "abandon": "放弃",
   "resource": "资源",
-  "resource_instance": "资源实例"
+  "resource_instance": "资源实例",
+  "locate_rules_warning": "定位规则需以对象类型为起始点"
 }

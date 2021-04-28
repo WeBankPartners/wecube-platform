@@ -108,7 +108,14 @@
                           >{{ $t('plugin_type') }}
                           <span class="requires-tip">*</span>
                         </label>
-                        <Select filterable v-model="pluginForm.taskCategory" @on-change="editFormdata">
+                        <Select
+                          filterable
+                          v-model="pluginForm.taskCategory"
+                          @on-change="
+                            editFormdata()
+                            pluginTypeChange()
+                          "
+                        >
                           <Option v-for="(item, index) in taskCategoryList" :value="item.value" :key="index">{{
                             item.label
                           }}</Option>
@@ -151,6 +158,7 @@
                         <FilterRulesGroup
                           :isBatch="pluginForm.taskCategory === 'SDTN'"
                           ref="filterRulesGroup"
+                          :rootEntity="currentSelectedEntity"
                           :routineExpression="pluginForm.routineExpression"
                           :allEntityType="allEntityType"
                         >
@@ -202,7 +210,10 @@
                     </Col>
                   </Row>
                 </template>
-                <div v-if="pluginForm.paramInfos.length" class="node-operate-plugin-config">
+                <div
+                  v-if="pluginForm.paramInfos.length && pluginForm.taskCategory !== 'SDTN'"
+                  class="node-operate-plugin-config"
+                >
                   <FormItem
                     :label="item.paramName"
                     :prop="item.paramName"
@@ -514,6 +525,10 @@ export default {
     this.setCss('top-pane', 'bottom: 0;')
   },
   methods: {
+    pluginTypeChange () {
+      this.pluginForm.routineExpression = this.currentSelectedEntity
+      this.$refs.filterRulesGroup.changeRoutineExpressionItem(this.pluginForm.routineExpression)
+    },
     // 节点定位规则变化检测
     filterRuleChanged () {
       this.isFormDataChange = true
@@ -882,8 +897,17 @@ export default {
       }
 
       let found = this.filteredPlugins.find(_ => _.serviceName === this.pluginForm.serviceId)
-
       const routineExpressionItem = this.$refs.filterRulesGroup.routineExpressionItem
+      const isAllStartAsSelectedEntity = routineExpressionItem.every(item =>
+        item.routineExpression.startsWith(this.currentSelectedEntity)
+      )
+      if (!isAllStartAsSelectedEntity) {
+        this.$Notice.warning({
+          title: 'Warning',
+          desc: this.$t('locate_rules_warning')
+        })
+        return
+      }
       this.pluginForm.routineExpression = routineExpressionItem.reduce((tmp, item, index) => {
         return tmp + item.routineExpression + (index === routineExpressionItem.length - 1 ? '' : '#DME#')
       }, '')
