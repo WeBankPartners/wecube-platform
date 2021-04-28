@@ -398,14 +398,72 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
             throw new WecubeCoreException("Failed to marshal plugin invocation command.", e);
         }
     }
+    
+    private boolean isSstnTaskNode(TaskNodeDefInfoEntity taskNodeDefEntity){
+        return TASK_CATEGORY_SSTN.equalsIgnoreCase(taskNodeDefEntity.getTaskCategory());
+    }
+    
+    private boolean isSutnTaskNode(TaskNodeDefInfoEntity taskNodeDefEntity){
+        return TASK_CATEGORY_SUTN.equalsIgnoreCase(taskNodeDefEntity.getTaskCategory());
+    }
+    
+    private boolean isSdtnTaskNode(TaskNodeDefInfoEntity taskNodeDefEntity){
+        return TASK_CATEGORY_SDTN.equalsIgnoreCase(taskNodeDefEntity.getTaskCategory());
+    }
 
     protected void doInvokePluginInterface(ProcInstInfoEntity procInstEntity, TaskNodeInstInfoEntity taskNodeInstEntity,
             PluginInvocationCommand cmd) {
-
-        Map<Object, Object> externalCacheMap = new HashMap<>();
+        
         ProcDefInfoEntity procDefInfoEntity = procDefInfoMapper.selectByPrimaryKey(procInstEntity.getProcDefId());
         TaskNodeDefInfoEntity taskNodeDefEntity = retrieveTaskNodeDefInfoEntity(procInstEntity.getProcDefId(),
                 cmd.getNodeId());
+
+        //to refactor using strategy mode
+        if (isSstnTaskNode(taskNodeDefEntity)) {
+            doInvokeSstnPluginInterface(procInstEntity, taskNodeInstEntity, procDefInfoEntity, taskNodeDefEntity, cmd);
+        } else if (isSutnTaskNode(taskNodeDefEntity)) {
+            doInvokeSutnPluginInterface(procInstEntity, taskNodeInstEntity, procDefInfoEntity, taskNodeDefEntity, cmd);
+        } else if (isSdtnTaskNode(taskNodeDefEntity)) {
+            doInvokeSdtnPluginInterface(procInstEntity, taskNodeInstEntity, procDefInfoEntity, taskNodeDefEntity, cmd);
+        }
+    }
+
+    /**
+     * Handling data operation task node.
+     * 
+     */
+    protected void doInvokeSdtnPluginInterface(ProcInstInfoEntity procInstEntity,
+            TaskNodeInstInfoEntity taskNodeInstEntity, ProcDefInfoEntity procDefInfoEntity,
+            TaskNodeDefInfoEntity taskNodeDefEntity, PluginInvocationCommand cmd) {
+        Map<Object, Object> externalCacheMap = new HashMap<>();
+        // TODO #2109
+        //1 try to create or update entity data
+        //2 update entity data id of task node bindings
+    }
+
+    /**
+     * Handling user operation task node.
+     * 
+     */
+    protected void doInvokeSutnPluginInterface(ProcInstInfoEntity procInstEntity,
+            TaskNodeInstInfoEntity taskNodeInstEntity, ProcDefInfoEntity procDefInfoEntity,
+            TaskNodeDefInfoEntity taskNodeDefEntity, PluginInvocationCommand cmd) {
+        Map<Object, Object> externalCacheMap = new HashMap<>();
+        // TODO #2109
+        //1 try to get template
+        //2 calculate to render template
+        //3 invoke plugin asynchronously
+    }
+
+    /**
+     * Handling system automation task node
+     * 
+     */
+    protected void doInvokeSstnPluginInterface(ProcInstInfoEntity procInstEntity,
+            TaskNodeInstInfoEntity taskNodeInstEntity, ProcDefInfoEntity procDefInfoEntity,
+            TaskNodeDefInfoEntity taskNodeDefEntity, PluginInvocationCommand cmd) {
+
+        Map<Object, Object> externalCacheMap = new HashMap<>();
 
         List<ProcExecBindingEntity> nodeObjectBindings = null;
 
