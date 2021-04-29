@@ -1,6 +1,7 @@
 package com.webank.wecube.platform.core.service.workflow;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -9,18 +10,33 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.webank.wecube.platform.core.commons.ApplicationProperties;
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
 import com.webank.wecube.platform.core.entity.plugin.PluginConfigInterfaceParameters;
+import com.webank.wecube.platform.core.entity.plugin.PluginConfigInterfaces;
+import com.webank.wecube.platform.core.entity.workflow.ProcExecBindingEntity;
+import com.webank.wecube.platform.core.entity.workflow.ProcInstInfoEntity;
 import com.webank.wecube.platform.core.entity.workflow.TaskNodeDefInfoEntity;
 import com.webank.wecube.platform.core.entity.workflow.TaskNodeInstInfoEntity;
+import com.webank.wecube.platform.core.model.workflow.PluginInvocationCommand;
+import com.webank.wecube.platform.core.model.workflow.WorkflowNotifyEvent;
+import com.webank.wecube.platform.core.repository.workflow.ExtraTaskMapper;
+import com.webank.wecube.platform.core.repository.workflow.ProcDefInfoMapper;
+import com.webank.wecube.platform.core.repository.workflow.ProcExecBindingMapper;
+import com.webank.wecube.platform.core.repository.workflow.ProcInstInfoMapper;
 import com.webank.wecube.platform.core.repository.workflow.TaskNodeDefInfoMapper;
 import com.webank.wecube.platform.core.repository.workflow.TaskNodeExecParamMapper;
 import com.webank.wecube.platform.core.repository.workflow.TaskNodeExecRequestMapper;
 import com.webank.wecube.platform.core.repository.workflow.TaskNodeInstInfoMapper;
+import com.webank.wecube.platform.core.repository.workflow.TaskNodeParamMapper;
 import com.webank.wecube.platform.core.service.dme.StandardEntityOperationService;
 import com.webank.wecube.platform.core.service.plugin.PluginConfigMgmtService;
+import com.webank.wecube.platform.core.service.plugin.PluginInstanceMgmtService;
+import com.webank.wecube.platform.core.service.plugin.SystemVariableService;
+import com.webank.wecube.platform.core.support.plugin.PluginInvocationRestClient;
+import com.webank.wecube.platform.workflow.WorkflowConstants;
 
 public abstract class AbstractPluginInvocationService extends AbstractWorkflowService {
 
@@ -71,7 +87,131 @@ public abstract class AbstractPluginInvocationService extends AbstractWorkflowSe
     @Autowired
     protected SimpleEncryptionService simpleEncryptionService;
     
+    @Autowired
+    protected PluginInvocationRestClient pluginInvocationRestClient;
+
+    @Autowired
+    protected PluginInvocationProcessor pluginInvocationProcessor;
+
+    @Autowired
+    protected ProcInstInfoMapper procInstInfoRepository;
+
+    @Autowired
+    protected ProcDefInfoMapper procDefInfoMapper;
+
+    @Autowired
+    protected PluginInstanceMgmtService pluginInstanceMgmtService;
+
+    @Autowired
+    protected ProcExecBindingMapper procExecBindingMapper;
+
+    @Autowired
+    protected SystemVariableService systemVariableService;
+
+    @Autowired
+    protected TaskNodeParamMapper taskNodeParamRepository;
+
+    @Autowired
+    protected WorkflowProcInstEndEventNotifier workflowProcInstEndEventNotifier;
+
+    @Autowired
+    protected RiskyCommandVerifier riskyCommandVerifier;
+
+    @Autowired
+    protected ExtraTaskMapper extraTaskMapper;
+    
     protected ObjectMapper objectMapper = new ObjectMapper();
+    
+    
+    /**
+     * 
+     * @param cmd
+     */
+    public void handleProcessInstanceEndEvent(PluginInvocationCommand cmd) {
+        if (log.isInfoEnabled()) {
+            log.info("handle end event:{}", cmd);
+        }
+
+        Date currTime = new Date();
+
+        ProcInstInfoEntity procInstEntity = null;
+        int times = 0;
+
+        while (times < 20) {
+            procInstEntity = procInstInfoRepository.selectOneByProcInstKernelId(cmd.getProcInstId());
+            if (procInstEntity != null) {
+                break;
+            }
+
+            try {
+                Thread.sleep(300);
+            } catch (InterruptedException e) {
+                log.info("exceptions while handling end event.", e.getMessage());
+            }
+
+            times++;
+        }
+
+        if (procInstEntity == null) {
+            log.warn("Cannot find process instance entity currently for {}", cmd.getProcInstId());
+            return;
+        }
+
+        String oldProcInstStatus = procInstEntity.getStatus();
+        if (ProcInstInfoEntity.INTERNALLY_TERMINATED_STATUS.equalsIgnoreCase(procInstEntity.getStatus())) {
+            return;
+        }
+        procInstEntity.setUpdatedTime(currTime);
+        procInstEntity.setUpdatedBy(WorkflowConstants.DEFAULT_USER);
+        procInstEntity.setStatus(ProcInstInfoEntity.COMPLETED_STATUS);
+        procInstInfoRepository.updateByPrimaryKeySelective(procInstEntity);
+        log.info("updated process instance {} from {} to {}", procInstEntity.getId(), oldProcInstStatus,
+                ProcInstInfoEntity.COMPLETED_STATUS);
+
+        List<TaskNodeInstInfoEntity> nodeInstEntities = taskNodeInstInfoRepository
+                .selectAllByProcInstId(procInstEntity.getId());
+        List<TaskNodeDefInfoEntity> nodeDefEntities = taskNodeDefInfoRepository
+                .selectAllByProcDefId(procInstEntity.getProcDefId());
+
+        for (TaskNodeInstInfoEntity n : nodeInstEntities) {
+            if ("endEvent".equals(n.getNodeType()) && n.getNodeId().equals(cmd.getNodeId())) {
+                TaskNodeDefInfoEntity currNodeDefInfo = findExactTaskNodeDefInfoEntityWithNodeId(nodeDefEntities,
+                        n.getNodeId());
+                refreshStatusOfPreviousNodes(nodeInstEntities, currNodeDefInfo);
+                n.setUpdatedTime(currTime);
+                n.setUpdatedBy(WorkflowConstants.DEFAULT_USER);
+                n.setStatus(TaskNodeInstInfoEntity.COMPLETED_STATUS);
+
+                taskNodeInstInfoRepository.updateByPrimaryKeySelective(n);
+
+                log.debug("updated node {} to {}", n.getId(), TaskNodeInstInfoEntity.COMPLETED_STATUS);
+            }
+        }
+
+        workflowProcInstEndEventNotifier.notify(WorkflowNotifyEvent.PROCESS_INSTANCE_END, cmd, procInstEntity);
+
+    }
+    
+    protected void refreshStatusOfPreviousNodes(List<TaskNodeInstInfoEntity> nodeInstEntities,
+            TaskNodeDefInfoEntity currNodeDefInfo) {
+        List<String> previousNodeIds = unmarshalNodeIds(currNodeDefInfo.getPrevNodeIds());
+        log.debug("previousNodeIds:{}", previousNodeIds);
+        for (String prevNodeId : previousNodeIds) {
+            TaskNodeInstInfoEntity prevNodeInst = findExactTaskNodeInstInfoEntityWithNodeId(nodeInstEntities,
+                    prevNodeId);
+            log.debug("prevNodeInst:{} - {}", prevNodeInst, prevNodeId);
+            if (prevNodeInst != null) {
+                if (statelessNodeTypes.contains(prevNodeInst.getNodeType())
+                        && !TaskNodeInstInfoEntity.COMPLETED_STATUS.equalsIgnoreCase(prevNodeInst.getStatus())) {
+                    prevNodeInst.setUpdatedTime(new Date());
+                    prevNodeInst.setUpdatedBy(WorkflowConstants.DEFAULT_USER);
+                    prevNodeInst.setStatus(TaskNodeInstInfoEntity.COMPLETED_STATUS);
+
+                    taskNodeInstInfoRepository.updateByPrimaryKeySelective(prevNodeInst);
+                }
+            }
+        }
+    }
 
     protected TaskNodeInstInfoEntity findExactTaskNodeInstInfoEntityWithNodeId(
             List<TaskNodeInstInfoEntity> nodeInstEntities, String nodeId) {
@@ -224,6 +364,69 @@ public abstract class AbstractPluginInvocationService extends AbstractWorkflowSe
         }
         
         return rawDataValue;
+    }
+    
+    protected boolean isSystemAutomationTaskNode(TaskNodeDefInfoEntity taskNodeDefEntity) {
+        return TASK_CATEGORY_SSTN.equalsIgnoreCase(taskNodeDefEntity.getTaskCategory());
+    }
+
+    protected boolean isUserTaskNode(TaskNodeDefInfoEntity taskNodeDefEntity) {
+        return TASK_CATEGORY_SUTN.equalsIgnoreCase(taskNodeDefEntity.getTaskCategory());
+    }
+
+    protected boolean isDataOperationTaskNode(TaskNodeDefInfoEntity taskNodeDefEntity) {
+        return TASK_CATEGORY_SDTN.equalsIgnoreCase(taskNodeDefEntity.getTaskCategory());
+    }
+    
+    protected boolean isDynamicBindTaskNode(TaskNodeDefInfoEntity taskNodeDef) {
+        return TaskNodeDefInfoEntity.DYNAMIC_BIND_YES.equalsIgnoreCase(taskNodeDef.getDynamicBind());
+    }
+
+    protected boolean isBoundTaskNodeInst(TaskNodeInstInfoEntity taskNodeInst) {
+        return TaskNodeInstInfoEntity.BIND_STATUS_BOUND.equalsIgnoreCase(taskNodeInst.getBindStatus());
+    }
+    
+    protected void storeProcExecBindingEntities(List<ProcExecBindingEntity> nodeObjectBindings) {
+        if (nodeObjectBindings == null || nodeObjectBindings.isEmpty()) {
+            return;
+        }
+
+        for (ProcExecBindingEntity nob : nodeObjectBindings) {
+            procExecBindingMapper.insert(nob);
+        }
+    }
+
+    protected String marshalPluginInvocationCommand(PluginInvocationCommand cmd) {
+        String json;
+        try {
+            json = objectMapper.writeValueAsString(cmd);
+            return json;
+        } catch (JsonProcessingException e) {
+            throw new WecubeCoreException("Failed to marshal plugin invocation command.", e);
+        }
+    }
+    
+    protected String calculateDataModelExpression(TaskNodeDefInfoEntity f) {
+        if (StringUtils.isBlank(f.getRoutineExp())) {
+            return null;
+        }
+
+        String expr = f.getRoutineExp();
+
+        if (StringUtils.isBlank(f.getServiceId())) {
+            return expr;
+        }
+
+        PluginConfigInterfaces inter = pluginConfigMgmtService.getPluginConfigInterfaceByServiceName(f.getServiceId());
+        if (inter == null) {
+            return expr;
+        }
+
+        if (StringUtils.isBlank(inter.getFilterRule())) {
+            return expr;
+        }
+
+        return expr + inter.getFilterRule();
     }
 
 }
