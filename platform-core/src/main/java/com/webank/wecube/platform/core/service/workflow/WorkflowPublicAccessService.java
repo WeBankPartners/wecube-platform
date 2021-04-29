@@ -245,10 +245,10 @@ public class WorkflowPublicAccessService {
             nodeDto.setRoutineExp(nodeDefInfo.getRoutineExp());
             nodeDto.setTaskCategory(nodeDefInfo.getTaskCategory());
 
-            RegisteredEntityDefDto boundEntity = buildTaskNodeBoundEntity(nodeDefInfo);
+            List<RegisteredEntityDefDto> boundEntities = buildTaskNodeBoundEntities(nodeDefInfo);
 
             // bound entity
-            nodeDto.setBoundEntity(boundEntity);
+            nodeDto.setBoundEntities(boundEntities);
 
             nodeDefInfoDtos.add(nodeDto);
         }
@@ -555,20 +555,32 @@ public class WorkflowPublicAccessService {
         return requestDto;
     }
 
-    private RegisteredEntityDefDto buildTaskNodeBoundEntity(TaskNodeDefInfoEntity nodeDefInfo) {
+    private List<RegisteredEntityDefDto> buildTaskNodeBoundEntities(TaskNodeDefInfoEntity nodeDefInfo) {
+        List<RegisteredEntityDefDto> registerEntities = new ArrayList<>();
         String routineExp = nodeDefInfo.getRoutineExp();
         if (StringUtils.isBlank(routineExp)) {
-            return null;
+            return registerEntities;
         }
 
-        List<EntityQueryExprNodeInfo> exprNodeInfos = this.entityQueryExpressionParser.parse(routineExp);
-        if (exprNodeInfos == null || exprNodeInfos.isEmpty()) {
-            return null;
+        String[] exprParts = routineExp.split(DME_DELIMETER);
+        for (String exprPart : exprParts) {
+            if(StringUtils.isBlank(exprPart)){
+                continue;
+            }
+            
+            String nodeExpr = exprPart.trim();
+            List<EntityQueryExprNodeInfo> exprNodeInfos = this.entityQueryExpressionParser.parse(nodeExpr);
+            if (exprNodeInfos == null || exprNodeInfos.isEmpty()) {
+                continue;
+            }
+            EntityQueryExprNodeInfo tailExprNodeInfo = exprNodeInfos.get(exprNodeInfos.size() - 1);
+
+            RegisteredEntityDefDto regEntityDto = buildRegisteredEntityDefDto(tailExprNodeInfo.getPackageName(),
+                    tailExprNodeInfo.getEntityName());
+            registerEntities.add(regEntityDto);
         }
 
-        EntityQueryExprNodeInfo tailExprNodeInfo = exprNodeInfos.get(exprNodeInfos.size() - 1);
-
-        return buildRegisteredEntityDefDto(tailExprNodeInfo.getPackageName(), tailExprNodeInfo.getEntityName());
+        return registerEntities;
     }
 
     private RegisteredEntityDefDto buildRegisteredEntityDefDto(String rootEntity) {
