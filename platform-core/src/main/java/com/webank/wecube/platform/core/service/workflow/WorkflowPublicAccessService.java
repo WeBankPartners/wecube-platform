@@ -17,22 +17,14 @@ import org.springframework.web.client.RestTemplate;
 
 import com.webank.wecube.platform.core.commons.AuthenticationContextHolder;
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
-import com.webank.wecube.platform.core.dto.workflow.DynamicEntityValueDto;
-import com.webank.wecube.platform.core.dto.workflow.DynamicTaskNodeBindInfoDto;
-import com.webank.wecube.platform.core.dto.workflow.DynamicWorkflowInstCreationInfoDto;
-import com.webank.wecube.platform.core.dto.workflow.DynamicWorkflowInstInfoDto;
 import com.webank.wecube.platform.core.dto.workflow.FlowNodeDefDto;
 import com.webank.wecube.platform.core.dto.workflow.GraphNodeDto;
 import com.webank.wecube.platform.core.dto.workflow.ProcDefOutlineDto;
 import com.webank.wecube.platform.core.dto.workflow.ProcInstInfoDto;
 import com.webank.wecube.platform.core.dto.workflow.ProcInstTerminationRequestDto;
 import com.webank.wecube.platform.core.dto.workflow.ProcessDataPreviewDto;
-import com.webank.wecube.platform.core.dto.workflow.RegisteredEntityAttrDefDto;
-import com.webank.wecube.platform.core.dto.workflow.RegisteredEntityDefDto;
 import com.webank.wecube.platform.core.dto.workflow.StartProcInstRequestDto;
 import com.webank.wecube.platform.core.dto.workflow.TaskNodeDefObjectBindInfoDto;
-import com.webank.wecube.platform.core.dto.workflow.WorkflowDefInfoDto;
-import com.webank.wecube.platform.core.dto.workflow.WorkflowNodeDefInfoDto;
 import com.webank.wecube.platform.core.entity.plugin.PluginConfigInterfaces;
 import com.webank.wecube.platform.core.entity.plugin.PluginPackageAttributes;
 import com.webank.wecube.platform.core.entity.plugin.PluginPackageEntities;
@@ -58,6 +50,14 @@ import com.webank.wecube.platform.core.service.dme.StandardEntityOperationRespon
 import com.webank.wecube.platform.core.service.dme.StandardEntityOperationRestClient;
 import com.webank.wecube.platform.core.service.dme.StandardEntityOperationService;
 import com.webank.wecube.platform.core.service.plugin.PluginConfigMgmtService;
+import com.webank.wecube.platform.core.support.plugin.dto.DynamicEntityValueDto;
+import com.webank.wecube.platform.core.support.plugin.dto.DynamicTaskNodeBindInfoDto;
+import com.webank.wecube.platform.core.support.plugin.dto.DynamicWorkflowInstCreationInfoDto;
+import com.webank.wecube.platform.core.support.plugin.dto.DynamicWorkflowInstInfoDto;
+import com.webank.wecube.platform.core.support.plugin.dto.RegisteredEntityAttrDefDto;
+import com.webank.wecube.platform.core.support.plugin.dto.RegisteredEntityDefDto;
+import com.webank.wecube.platform.core.support.plugin.dto.WorkflowDefInfoDto;
+import com.webank.wecube.platform.core.support.plugin.dto.WorkflowNodeDefInfoDto;
 
 @Service
 public class WorkflowPublicAccessService {
@@ -474,7 +474,7 @@ public class WorkflowPublicAccessService {
 
     private StartProcInstRequestDto calculateStartProcInstContext(DynamicWorkflowInstCreationInfoDto creationInfoDto) {
         StartProcInstRequestDto requestDto = new StartProcInstRequestDto();
-        requestDto.setEntityDataId(creationInfoDto.getRootEntityValue().getDataId());
+        requestDto.setEntityDataId(creationInfoDto.getRootEntityValue().getEntityDataId());
         requestDto.setEntityDisplayName(null);
         requestDto.setEntityTypeId(creationInfoDto.getRootEntityValue().getPackageName() + ":"
                 + creationInfoDto.getRootEntityValue().getEntityName());
@@ -494,7 +494,7 @@ public class WorkflowPublicAccessService {
             for (DynamicEntityValueDto entityValueDto : boundEntityValues) {
                 TaskNodeDefObjectBindInfoDto bindDto = new TaskNodeDefObjectBindInfoDto();
                 bindDto.setBound("Y");
-                bindDto.setEntityDataId(entityValueDto.getDataId());
+                bindDto.setEntityDataId(entityValueDto.getEntityDataId());
                 bindDto.setEntityDisplayName(null);
                 bindDto.setEntityTypeId(entityValueDto.getPackageName() + ":" + entityValueDto.getEntityName());
                 bindDto.setNodeDefId(dynamicBindInfoDto.getNodeDefId());

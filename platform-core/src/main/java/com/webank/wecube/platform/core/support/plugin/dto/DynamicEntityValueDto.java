@@ -1,4 +1,4 @@
-package com.webank.wecube.platform.core.dto.workflow;
+package com.webank.wecube.platform.core.support.plugin.dto;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -8,21 +8,27 @@ import javax.annotation.Nullable;
 
 public class DynamicEntityValueDto {
     @Nullable
-    private String entityDefId;//Entity definition id from platform.
+    private String entityDefId;// Entity definition id from platform.
     @Nonnull
     private String packageName;
     @Nonnull
     private String entityName;
     @Nullable
-    private String dataId;//Existing data id,such as guid in cmdb.
+    private String entityDataId;// Existing data id,such as guid in cmdb.
+
+    private String fullEntityDataId;
     @Nonnull
-    private String oid;//Equals to dataId once dataId presents,or a temporary assigned.
-    
-    //TODO delete?
+    private String oid;// Equals to dataId once dataId presents,or a temporary
+                       // assigned.
+
+    private String entityDataState;
+    private String entityDataOp;
+
+    // TODO delete?
 
     private List<String> previousOids = new ArrayList<>();
     private List<String> succeedingOids = new ArrayList<>();
-    
+
     private List<DynamicEntityAttrValueDto> attrValues = new ArrayList<>();
 
     public String getEntityDefId() {
@@ -49,12 +55,12 @@ public class DynamicEntityValueDto {
         this.entityName = entityName;
     }
 
-    public String getDataId() {
-        return dataId;
+    public String getEntityDataId() {
+        return entityDataId;
     }
 
-    public void setDataId(String dataId) {
-        this.dataId = dataId;
+    public void setEntityDataId(String entityDataId) {
+        this.entityDataId = entityDataId;
     }
 
     public String getOid() {
@@ -98,8 +104,8 @@ public class DynamicEntityValueDto {
         builder.append(packageName);
         builder.append(", entityName=");
         builder.append(entityName);
-        builder.append(", dataId=");
-        builder.append(dataId);
+        builder.append(", entityDataId=");
+        builder.append(entityDataId);
         builder.append(", oid=");
         builder.append(oid);
         builder.append(", previousOids=");
@@ -111,6 +117,29 @@ public class DynamicEntityValueDto {
         builder.append("]");
         return builder.toString();
     }
-    
-    
+
+    public String getFullEntityDataId() {
+        return fullEntityDataId;
+    }
+
+    public void setFullEntityDataId(String fullEntityDataId) {
+        this.fullEntityDataId = fullEntityDataId;
+    }
+
+    public String getEntityDataState() {
+        return entityDataState;
+    }
+
+    public void setEntityDataState(String entityDataState) {
+        this.entityDataState = entityDataState;
+    }
+
+    public String getEntityDataOp() {
+        return entityDataOp;
+    }
+
+    public void setEntityDataOp(String entityDataOp) {
+        this.entityDataOp = entityDataOp;
+    }
+
 }

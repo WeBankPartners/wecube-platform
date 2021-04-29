@@ -11,13 +11,13 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.webank.wecube.platform.core.dto.plugin.CommonResponseDto;
-import com.webank.wecube.platform.core.dto.workflow.DynamicWorkflowInstCreationInfoDto;
-import com.webank.wecube.platform.core.dto.workflow.DynamicWorkflowInstInfoDto;
 import com.webank.wecube.platform.core.dto.workflow.ProcInstTerminationRequestDto;
 import com.webank.wecube.platform.core.dto.workflow.ProcessDataPreviewDto;
-import com.webank.wecube.platform.core.dto.workflow.WorkflowDefInfoDto;
-import com.webank.wecube.platform.core.dto.workflow.WorkflowNodeDefInfoDto;
 import com.webank.wecube.platform.core.service.workflow.WorkflowPublicAccessService;
+import com.webank.wecube.platform.core.support.plugin.dto.DynamicWorkflowInstCreationInfoDto;
+import com.webank.wecube.platform.core.support.plugin.dto.DynamicWorkflowInstInfoDto;
+import com.webank.wecube.platform.core.support.plugin.dto.WorkflowDefInfoDto;
+import com.webank.wecube.platform.core.support.plugin.dto.WorkflowNodeDefInfoDto;
 
 @RestController
 @RequestMapping("/v1")
