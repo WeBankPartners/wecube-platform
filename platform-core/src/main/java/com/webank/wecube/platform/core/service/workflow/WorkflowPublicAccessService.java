@@ -63,6 +63,8 @@ import com.webank.wecube.platform.core.support.plugin.dto.WorkflowNodeDefInfoDto
 public class WorkflowPublicAccessService {
     private static final Logger log = LoggerFactory.getLogger(WorkflowPublicAccessService.class);
 
+    private static final String DME_DELIMETER = "#DME#";
+
     @Autowired
     private ProcDefInfoMapper procDefInfoRepository;
 
@@ -320,16 +322,16 @@ public class WorkflowPublicAccessService {
         EntityQueryCriteria c = new EntityQueryCriteria();
         c.setAttrName("id");
         c.setCondition(entityNode.getDataId());
-        
+
         StandardEntityOperationResponseDto respDto = client.query(entityRoute, querySpec);
         List<Map<String, Object>> results = extractEntityDataFromResponse(respDto.getData());
-        
-        if(results == null || results.isEmpty()){
+
+        if (results == null || results.isEmpty()) {
             return;
         }
         entityNode.setEntityData(results.get(0));
     }
-    
+
     @SuppressWarnings("unchecked")
     private List<Map<String, Object>> extractEntityDataFromResponse(Object responseData) {
         List<Map<String, Object>> recordMapList = new ArrayList<Map<String, Object>>();
@@ -357,33 +359,77 @@ public class WorkflowPublicAccessService {
         return recordMapList;
     }
 
-    private String calculateDataModelExpression(FlowNodeDefDto f) {
+    private List<String> calculateDataModelExpressions(FlowNodeDefDto f) {
         if (StringUtils.isBlank(f.getRoutineExpression())) {
             return null;
         }
 
         String expr = f.getRoutineExpression();
+        List<String> exprs = new ArrayList<>();
 
+        if (StringUtils.isBlank(expr)) {
+            return exprs;
+        }
+
+        String[] exprParts = expr.split(DME_DELIMETER);
+
+        if (exprParts == null || exprParts.length <= 0) {
+            return exprs;
+        }
+
+        for (String exprPart : exprParts) {
+            if (StringUtils.isBlank(exprPart)) {
+                continue;
+            }
+
+            String trimmedExprPart = exprPart.trim();
+
+            String additionalFilterRule = tryFindOutAdditionalFilterRule(f);
+            if (StringUtils.isNoneBlank(additionalFilterRule)) {
+                trimmedExprPart = trimmedExprPart + additionalFilterRule.trim();
+            }
+
+            exprs.add(trimmedExprPart);
+        }
+
+        return exprs;
+    }
+
+    private String tryFindOutAdditionalFilterRule(FlowNodeDefDto f) {
         if (StringUtils.isBlank(f.getServiceId())) {
-            return expr;
+            return null;
         }
 
         PluginConfigInterfaces inter = pluginConfigMgmtService.getPluginConfigInterfaceByServiceName(f.getServiceId());
         if (inter == null) {
-            return expr;
+            return null;
         }
 
         if (StringUtils.isBlank(inter.getFilterRule())) {
-            return expr;
+            return null;
         }
 
-        return expr + inter.getFilterRule();
+        return inter.getFilterRule();
     }
 
     private void tryProcessSingleFlowNodeDefDto(FlowNodeDefDto f, List<GraphNodeDto> hierarchicalEntityNodes,
             String dataId, String processSessionId, boolean needSaveTmp, Map<Object, Object> cacheMap) {
-        String routineExpr = calculateDataModelExpression(f);
+        List<String> routineExprs = calculateDataModelExpressions(f);
 
+        if (routineExprs == null || routineExprs.isEmpty()) {
+            log.info("the routine expression is blank for {} {}", f.getNodeDefId(), f.getNodeName());
+            return;
+        }
+
+        for (String routineExpr : routineExprs) {
+            tryProcessSingleFlowNodeDefDtoAndExpression(routineExpr, f, hierarchicalEntityNodes, dataId,
+                    processSessionId, needSaveTmp, cacheMap);
+        }
+    }
+
+    private void tryProcessSingleFlowNodeDefDtoAndExpression(String routineExpr, FlowNodeDefDto f,
+            List<GraphNodeDto> hierarchicalEntityNodes, String dataId, String processSessionId, boolean needSaveTmp,
+            Map<Object, Object> cacheMap) {
         if (StringUtils.isBlank(routineExpr)) {
             log.info("the routine expression is blank for {} {}", f.getNodeDefId(), f.getNodeName());
             return;
