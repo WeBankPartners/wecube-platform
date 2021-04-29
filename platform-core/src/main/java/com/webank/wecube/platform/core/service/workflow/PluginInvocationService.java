@@ -17,7 +17,6 @@ import java.util.Set;
 import java.util.UUID;
 
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -42,22 +41,12 @@ import com.webank.wecube.platform.core.model.workflow.InputParamAttr;
 import com.webank.wecube.platform.core.model.workflow.InputParamObject;
 import com.webank.wecube.platform.core.model.workflow.PluginInvocationCommand;
 import com.webank.wecube.platform.core.model.workflow.PluginInvocationResult;
-import com.webank.wecube.platform.core.model.workflow.WorkflowNotifyEvent;
-import com.webank.wecube.platform.core.repository.workflow.ExtraTaskMapper;
-import com.webank.wecube.platform.core.repository.workflow.ProcDefInfoMapper;
-import com.webank.wecube.platform.core.repository.workflow.ProcExecBindingMapper;
-import com.webank.wecube.platform.core.repository.workflow.ProcInstInfoMapper;
-import com.webank.wecube.platform.core.repository.workflow.TaskNodeExecRequestMapper;
-import com.webank.wecube.platform.core.repository.workflow.TaskNodeParamMapper;
 import com.webank.wecube.platform.core.service.dme.EntityOperationRootCondition;
 import com.webank.wecube.platform.core.service.dme.EntityTreeNodesOverview;
 import com.webank.wecube.platform.core.service.dme.StandardEntityDataNode;
-import com.webank.wecube.platform.core.service.plugin.PluginInstanceMgmtService;
-import com.webank.wecube.platform.core.service.plugin.SystemVariableService;
 import com.webank.wecube.platform.core.service.workflow.PluginInvocationProcessor.PluginInterfaceInvocationContext;
 import com.webank.wecube.platform.core.service.workflow.PluginInvocationProcessor.PluginInterfaceInvocationResult;
 import com.webank.wecube.platform.core.service.workflow.PluginInvocationProcessor.PluginInvocationOperation;
-import com.webank.wecube.platform.core.support.plugin.PluginInvocationRestClient;
 import com.webank.wecube.platform.workflow.WorkflowConstants;
 import com.webank.wecube.platform.workflow.commons.LocalIdGenerator;
 
@@ -68,111 +57,6 @@ import com.webank.wecube.platform.workflow.commons.LocalIdGenerator;
  */
 @Service
 public class PluginInvocationService extends AbstractPluginInvocationService {
-
-    @Autowired
-    private PluginInvocationRestClient pluginInvocationRestClient;
-
-    @Autowired
-    private PluginInvocationProcessor pluginInvocationProcessor;
-
-    @Autowired
-    private ProcInstInfoMapper procInstInfoRepository;
-
-    @Autowired
-    private ProcDefInfoMapper procDefInfoMapper;
-
-    @Autowired
-    protected PluginInstanceMgmtService pluginInstanceMgmtService;
-
-    @Autowired
-    private ProcExecBindingMapper procExecBindingMapper;
-
-    @Autowired
-    private SystemVariableService systemVariableService;
-
-    @Autowired
-    private TaskNodeParamMapper taskNodeParamRepository;
-
-    @Autowired
-    private TaskNodeExecRequestMapper taskNodeExecRequestRepository;
-
-    @Autowired
-    private WorkflowProcInstEndEventNotifier workflowProcInstEndEventNotifier;
-
-    @Autowired
-    private RiskyCommandVerifier riskyCommandVerifier;
-
-    @Autowired
-    private ExtraTaskMapper extraTaskMapper;
-
-    /**
-     * 
-     * @param cmd
-     */
-    public void handleProcessInstanceEndEvent(PluginInvocationCommand cmd) {
-        if (log.isInfoEnabled()) {
-            log.info("handle end event:{}", cmd);
-        }
-
-        Date currTime = new Date();
-
-        ProcInstInfoEntity procInstEntity = null;
-        int times = 0;
-
-        while (times < 20) {
-            procInstEntity = procInstInfoRepository.selectOneByProcInstKernelId(cmd.getProcInstId());
-            if (procInstEntity != null) {
-                break;
-            }
-
-            try {
-                Thread.sleep(300);
-            } catch (InterruptedException e) {
-                log.info("exceptions while handling end event.", e.getMessage());
-            }
-
-            times++;
-        }
-
-        if (procInstEntity == null) {
-            log.warn("Cannot find process instance entity currently for {}", cmd.getProcInstId());
-            return;
-        }
-
-        String oldProcInstStatus = procInstEntity.getStatus();
-        if (ProcInstInfoEntity.INTERNALLY_TERMINATED_STATUS.equalsIgnoreCase(procInstEntity.getStatus())) {
-            return;
-        }
-        procInstEntity.setUpdatedTime(currTime);
-        procInstEntity.setUpdatedBy(WorkflowConstants.DEFAULT_USER);
-        procInstEntity.setStatus(ProcInstInfoEntity.COMPLETED_STATUS);
-        procInstInfoRepository.updateByPrimaryKeySelective(procInstEntity);
-        log.info("updated process instance {} from {} to {}", procInstEntity.getId(), oldProcInstStatus,
-                ProcInstInfoEntity.COMPLETED_STATUS);
-
-        List<TaskNodeInstInfoEntity> nodeInstEntities = taskNodeInstInfoRepository
-                .selectAllByProcInstId(procInstEntity.getId());
-        List<TaskNodeDefInfoEntity> nodeDefEntities = taskNodeDefInfoRepository
-                .selectAllByProcDefId(procInstEntity.getProcDefId());
-
-        for (TaskNodeInstInfoEntity n : nodeInstEntities) {
-            if ("endEvent".equals(n.getNodeType()) && n.getNodeId().equals(cmd.getNodeId())) {
-                TaskNodeDefInfoEntity currNodeDefInfo = findExactTaskNodeDefInfoEntityWithNodeId(nodeDefEntities,
-                        n.getNodeId());
-                refreshStatusOfPreviousNodes(nodeInstEntities, currNodeDefInfo);
-                n.setUpdatedTime(currTime);
-                n.setUpdatedBy(WorkflowConstants.DEFAULT_USER);
-                n.setStatus(TaskNodeInstInfoEntity.COMPLETED_STATUS);
-
-                taskNodeInstInfoRepository.updateByPrimaryKeySelective(n);
-
-                log.debug("updated node {} to {}", n.getId(), TaskNodeInstInfoEntity.COMPLETED_STATUS);
-            }
-        }
-
-        workflowProcInstEndEventNotifier.notify(WorkflowNotifyEvent.PROCESS_INSTANCE_END, cmd, procInstEntity);
-
-    }
 
     /**
      * 
@@ -267,13 +151,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
         taskNodeInstInfoRepository.updateByPrimaryKeySelective(toUpdateTaskNodeInstInfoEntity);
     }
 
-    private boolean isDynamicBindTaskNode(TaskNodeDefInfoEntity taskNodeDef) {
-        return TaskNodeDefInfoEntity.DYNAMIC_BIND_YES.equalsIgnoreCase(taskNodeDef.getDynamicBind());
-    }
-
-    private boolean isBoundTaskNodeInst(TaskNodeInstInfoEntity taskNodeInst) {
-        return TaskNodeInstInfoEntity.BIND_STATUS_BOUND.equalsIgnoreCase(taskNodeInst.getBindStatus());
-    }
+    
 
     private boolean verifyIfExcludeModeExecBindings(ProcDefInfoEntity procDefInfo, ProcInstInfoEntity procInst,
             TaskNodeDefInfoEntity taskNodeDef, TaskNodeInstInfoEntity taskNodeInst, PluginInvocationCommand cmd,
@@ -379,51 +257,19 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
         return true;
     }
 
-    private void storeProcExecBindingEntities(List<ProcExecBindingEntity> nodeObjectBindings) {
-        if (nodeObjectBindings == null || nodeObjectBindings.isEmpty()) {
-            return;
-        }
-
-        for (ProcExecBindingEntity nob : nodeObjectBindings) {
-            procExecBindingMapper.insert(nob);
-        }
-    }
-
-    private String marshalPluginInvocationCommand(PluginInvocationCommand cmd) {
-        String json;
-        try {
-            json = objectMapper.writeValueAsString(cmd);
-            return json;
-        } catch (JsonProcessingException e) {
-            throw new WecubeCoreException("Failed to marshal plugin invocation command.", e);
-        }
-    }
-    
-    private boolean isSstnTaskNode(TaskNodeDefInfoEntity taskNodeDefEntity){
-        return TASK_CATEGORY_SSTN.equalsIgnoreCase(taskNodeDefEntity.getTaskCategory());
-    }
-    
-    private boolean isSutnTaskNode(TaskNodeDefInfoEntity taskNodeDefEntity){
-        return TASK_CATEGORY_SUTN.equalsIgnoreCase(taskNodeDefEntity.getTaskCategory());
-    }
-    
-    private boolean isSdtnTaskNode(TaskNodeDefInfoEntity taskNodeDefEntity){
-        return TASK_CATEGORY_SDTN.equalsIgnoreCase(taskNodeDefEntity.getTaskCategory());
-    }
-
     protected void doInvokePluginInterface(ProcInstInfoEntity procInstEntity, TaskNodeInstInfoEntity taskNodeInstEntity,
             PluginInvocationCommand cmd) {
-        
+
         ProcDefInfoEntity procDefInfoEntity = procDefInfoMapper.selectByPrimaryKey(procInstEntity.getProcDefId());
         TaskNodeDefInfoEntity taskNodeDefEntity = retrieveTaskNodeDefInfoEntity(procInstEntity.getProcDefId(),
                 cmd.getNodeId());
 
-        //to refactor using strategy mode
-        if (isSstnTaskNode(taskNodeDefEntity)) {
+        // to refactor using strategy mode
+        if (isSystemAutomationTaskNode(taskNodeDefEntity)) {
             doInvokeSstnPluginInterface(procInstEntity, taskNodeInstEntity, procDefInfoEntity, taskNodeDefEntity, cmd);
-        } else if (isSutnTaskNode(taskNodeDefEntity)) {
+        } else if (isUserTaskNode(taskNodeDefEntity)) {
             doInvokeSutnPluginInterface(procInstEntity, taskNodeInstEntity, procDefInfoEntity, taskNodeDefEntity, cmd);
-        } else if (isSdtnTaskNode(taskNodeDefEntity)) {
+        } else if (isDataOperationTaskNode(taskNodeDefEntity)) {
             doInvokeSdtnPluginInterface(procInstEntity, taskNodeInstEntity, procDefInfoEntity, taskNodeDefEntity, cmd);
         }
     }
@@ -437,8 +283,8 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
             TaskNodeDefInfoEntity taskNodeDefEntity, PluginInvocationCommand cmd) {
         Map<Object, Object> externalCacheMap = new HashMap<>();
         // TODO #2109
-        //1 try to create or update entity data
-        //2 update entity data id of task node bindings
+        // 1 try to create or update entity data
+        // 2 update entity data id of task node bindings
     }
 
     /**
@@ -450,9 +296,9 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
             TaskNodeDefInfoEntity taskNodeDefEntity, PluginInvocationCommand cmd) {
         Map<Object, Object> externalCacheMap = new HashMap<>();
         // TODO #2109
-        //1 try to get template
-        //2 calculate to render template
-        //3 invoke plugin asynchronously
+        // 1 try to get template
+        // 2 calculate to render template
+        // 3 invoke plugin asynchronously
     }
 
     /**
@@ -669,28 +515,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 
     }
 
-    private String calculateDataModelExpression(TaskNodeDefInfoEntity f) {
-        if (StringUtils.isBlank(f.getRoutineExp())) {
-            return null;
-        }
-
-        String expr = f.getRoutineExp();
-
-        if (StringUtils.isBlank(f.getServiceId())) {
-            return expr;
-        }
-
-        PluginConfigInterfaces inter = pluginConfigMgmtService.getPluginConfigInterfaceByServiceName(f.getServiceId());
-        if (inter == null) {
-            return expr;
-        }
-
-        if (StringUtils.isBlank(inter.getFilterRule())) {
-            return expr;
-        }
-
-        return expr + inter.getFilterRule();
-    }
+    
 
     private List<InputParamObject> tryCalculateInputParamObjectsFromSystem(ProcInstInfoEntity procInstEntity,
             TaskNodeInstInfoEntity taskNodeInstEntity, TaskNodeDefInfoEntity taskNodeDefEntity,
@@ -1638,27 +1463,6 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 
         taskNodeInstInfoRepository.updateByPrimaryKeySelective(nodeInstEntity);
 
-    }
-
-    private void refreshStatusOfPreviousNodes(List<TaskNodeInstInfoEntity> nodeInstEntities,
-            TaskNodeDefInfoEntity currNodeDefInfo) {
-        List<String> previousNodeIds = unmarshalNodeIds(currNodeDefInfo.getPrevNodeIds());
-        log.debug("previousNodeIds:{}", previousNodeIds);
-        for (String prevNodeId : previousNodeIds) {
-            TaskNodeInstInfoEntity prevNodeInst = findExactTaskNodeInstInfoEntityWithNodeId(nodeInstEntities,
-                    prevNodeId);
-            log.debug("prevNodeInst:{} - {}", prevNodeInst, prevNodeId);
-            if (prevNodeInst != null) {
-                if (statelessNodeTypes.contains(prevNodeInst.getNodeType())
-                        && !TaskNodeInstInfoEntity.COMPLETED_STATUS.equalsIgnoreCase(prevNodeInst.getStatus())) {
-                    prevNodeInst.setUpdatedTime(new Date());
-                    prevNodeInst.setUpdatedBy(WorkflowConstants.DEFAULT_USER);
-                    prevNodeInst.setStatus(TaskNodeInstInfoEntity.COMPLETED_STATUS);
-
-                    taskNodeInstInfoRepository.updateByPrimaryKeySelective(prevNodeInst);
-                }
-            }
-        }
     }
 
 }
