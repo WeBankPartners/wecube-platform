@@ -19,7 +19,6 @@ import java.util.UUID;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
 import com.webank.wecube.platform.core.dto.plugin.ItsDangerConfirmResultDto;
 import com.webank.wecube.platform.core.entity.plugin.PluginConfigInterfaceParameters;
@@ -47,6 +46,8 @@ import com.webank.wecube.platform.core.service.dme.StandardEntityDataNode;
 import com.webank.wecube.platform.core.service.workflow.PluginInvocationProcessor.PluginInterfaceInvocationContext;
 import com.webank.wecube.platform.core.service.workflow.PluginInvocationProcessor.PluginInterfaceInvocationResult;
 import com.webank.wecube.platform.core.service.workflow.PluginInvocationProcessor.PluginInvocationOperation;
+import com.webank.wecube.platform.core.support.plugin.dto.TaskFormMetaDto;
+import com.webank.wecube.platform.core.support.plugin.dto.TaskFormValueDto;
 import com.webank.wecube.platform.workflow.WorkflowConstants;
 import com.webank.wecube.platform.workflow.commons.LocalIdGenerator;
 
@@ -299,6 +300,16 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
         // 1 try to get template
         // 2 calculate to render template
         // 3 invoke plugin asynchronously
+    }
+    
+    private TaskFormMetaDto tryFetchTaskFormMeta(){
+        //TODO
+        return null;
+    }
+    
+    private TaskFormValueDto tryCalculateTaskFormValue(){
+        //TODO
+        return null;
     }
 
     /**
