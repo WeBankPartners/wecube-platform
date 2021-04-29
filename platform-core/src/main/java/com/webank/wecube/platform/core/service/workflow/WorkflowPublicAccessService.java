@@ -377,6 +377,7 @@ public class WorkflowPublicAccessService {
             return exprs;
         }
 
+        String additionalFilterRule = tryFindOutAdditionalFilterRule(f);
         for (String exprPart : exprParts) {
             if (StringUtils.isBlank(exprPart)) {
                 continue;
@@ -384,7 +385,6 @@ public class WorkflowPublicAccessService {
 
             String trimmedExprPart = exprPart.trim();
 
-            String additionalFilterRule = tryFindOutAdditionalFilterRule(f);
             if (StringUtils.isNoneBlank(additionalFilterRule)) {
                 trimmedExprPart = trimmedExprPart + additionalFilterRule.trim();
             }
