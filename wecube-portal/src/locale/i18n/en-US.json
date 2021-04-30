@@ -470,5 +470,6 @@
   "abandon": "Abandon",
   "resource": "Resource",
   "resource_instance": "Resource Instance",
-  "locate_rules_warning": "Locate Rules Needs To Start With Entity Type"
+  "locate_rules_warning": "Locate Rules Needs To Start With Entity Type",
+  "ip_address": "IP Address"
 }

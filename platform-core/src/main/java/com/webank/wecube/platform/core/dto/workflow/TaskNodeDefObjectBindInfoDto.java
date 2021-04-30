@@ -9,6 +9,7 @@ public class TaskNodeDefObjectBindInfoDto {
 	private String orderedNo;
 	private String entityTypeId;
 	private String entityDataId;
+	private String fullEntityDataId;
 	private String entityDisplayName;
 
 	private String bound;// "Y"-bound,default;"N"-unbound;
@@ -58,6 +59,16 @@ public class TaskNodeDefObjectBindInfoDto {
 	}
 
 	public void setEntityDisplayName(String entityDisplayName) {
-		this.entityDisplayName = entityDisplayName;
-	}
+        this.entityDisplayName = entityDisplayName;
+    }
+
+    public String getFullEntityDataId() {
+        return fullEntityDataId;
+    }
+
+    public void setFullEntityDataId(String fullEntityDataId) {
+        this.fullEntityDataId = fullEntityDataId;
+    }
+	
+	
 }

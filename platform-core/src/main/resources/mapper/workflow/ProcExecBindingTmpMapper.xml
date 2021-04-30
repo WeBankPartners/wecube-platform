@@ -24,6 +24,8 @@
             property="procSessionId" />
         <result column="entity_data_name" jdbcType="VARCHAR"
             property="entityDataName" />
+        <result column="full_data_id" jdbcType="VARCHAR"
+            property="fullEntityDataId" />
     </resultMap>
     <sql id="Base_Column_List">
         id, created_by, created_time, updated_by, updated_time,
@@ -31,7 +33,7 @@
         is_bound, entity_data_id,
         entity_type_id, node_def_id,
         ordered_no, proc_def_id, proc_session_id,
-        entity_data_name
+        entity_data_name, full_data_id
     </sql>
     <select id="selectByPrimaryKey" parameterType="java.lang.Integer"
         resultMap="BaseResultMap">
@@ -48,23 +50,40 @@
     </delete>
     <insert id="insert" useGeneratedKeys="true" keyProperty="id"
         parameterType="com.webank.wecube.platform.core.entity.workflow.ProcExecBindingTmpEntity">
-        insert into core_ru_proc_exec_binding_tmp (id,
-        created_by, created_time,
-        updated_by, updated_time, bind_type,
-        is_bound, entity_data_id, entity_type_id,
+        insert into core_ru_proc_exec_binding_tmp (
+        id,
+        created_by, 
+        created_time,
+        updated_by, 
+        updated_time, 
+        bind_type,
+        is_bound, 
+        entity_data_id, 
+        entity_type_id,
         node_def_id,
-        ordered_no, proc_def_id,
-        proc_session_id, entity_data_name)
-        values (#{id,jdbcType=INTEGER}, #{createdBy,jdbcType=VARCHAR},
+        ordered_no, 
+        proc_def_id,
+        proc_session_id, 
+        entity_data_name, 
+        full_data_id
+        )
+        values (
+        #{id,jdbcType=INTEGER}, 
+        #{createdBy,jdbcType=VARCHAR},
         #{createdTime,jdbcType=TIMESTAMP},
         #{updatedBy,jdbcType=VARCHAR},
-        #{updatedTime,jdbcType=TIMESTAMP}, #{bindType,jdbcType=VARCHAR},
-        #{isBound,jdbcType=VARCHAR}, #{entityDataId,jdbcType=VARCHAR},
+        #{updatedTime,jdbcType=TIMESTAMP}, 
+        #{bindType,jdbcType=VARCHAR},
+        #{isBound,jdbcType=VARCHAR}, 
+        #{entityDataId,jdbcType=VARCHAR},
         #{entityTypeId,jdbcType=VARCHAR},
         #{nodeDefId,jdbcType=VARCHAR},
-        #{orderedNo,jdbcType=VARCHAR}, #{procDefId,jdbcType=VARCHAR},
+        #{orderedNo,jdbcType=VARCHAR}, 
+        #{procDefId,jdbcType=VARCHAR},
         #{procSessionId,jdbcType=VARCHAR},
-        #{entityDataName,jdbcType=VARCHAR})
+        #{entityDataName,jdbcType=VARCHAR},
+        #{fullEntityDataId,jdbcType=VARCHAR}
+         )
     </insert>
     <insert id="insertSelective" useGeneratedKeys="true"
         keyProperty="id"
@@ -113,6 +132,9 @@
             <if test="entityDataName != null">
                 entity_data_name,
             </if>
+            <if test="fullEntityDataId != null">
+                full_data_id,
+            </if>
         </trim>
         <trim prefix="values (" suffix=")" suffixOverrides=",">
             <if test="id != null">
@@ -156,6 +178,9 @@
             </if>
             <if test="entityDataName != null">
                 #{entityDataName,jdbcType=VARCHAR},
+            </if>
+            <if test="fullEntityDataId != null">
+                #{fullEntityDataId,jdbcType=VARCHAR},
             </if>
         </trim>
     </insert>
@@ -208,6 +233,10 @@
                 entity_data_name =
                 #{entityDataName,jdbcType=VARCHAR},
             </if>
+            <if test="fullEntityDataId != null">
+                full_data_id =
+                #{fullEntityDataId,jdbcType=VARCHAR},
+            </if>
         </set>
         where id = #{id,jdbcType=INTEGER}
     </update>
@@ -239,7 +268,9 @@
         proc_session_id =
         #{procSessionId,jdbcType=VARCHAR},
         entity_data_name =
-        #{entityDataName,jdbcType=VARCHAR}
+        #{entityDataName,jdbcType=VARCHAR},
+        full_data_id =
+        #{fullEntityDataId,jdbcType=VARCHAR}
         where id =
         #{id,jdbcType=INTEGER}
     </update>
