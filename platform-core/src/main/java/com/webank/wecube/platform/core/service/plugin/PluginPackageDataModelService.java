@@ -161,6 +161,11 @@ public class PluginPackageDataModelService {
         return resultDto;
     }
 
+    /**
+     * 
+     * @param packageName
+     * @return
+     */
     public PluginPackageDataModel tryFetchLatestAvailableDataModelEntity(String packageName) {
         PluginPackageDataModel latestDataModelEntity = pluginPackageDataModelMapper
                 .selectLatestDataModelByPackageName(packageName);
@@ -178,28 +183,7 @@ public class PluginPackageDataModelService {
         }
     }
 
-    private PluginPackageDataModel tryCalculateDynamicLatestAvailableDataModelEntity(
-            PluginPackageDataModel dataModelEntity) {
-        List<PluginPackageDataModel> dataModelEntities = pluginPackageDataModelMapper
-                .selectDataModelsByPackageName(dataModelEntity.getPackageName());
-        PluginPackageDataModel targetDataMode = null;
-
-        for (PluginPackageDataModel dataModel : dataModelEntities) {
-            List<PluginPackageEntities> pluginPackageEntities = pluginPackageEntitiesMapper
-                    .selectAllByDataModel(dataModel.getId());
-            if (pluginPackageEntities != null && !pluginPackageEntities.isEmpty()) {
-                targetDataMode = dataModel;
-                break;
-            }
-        }
-
-        if (targetDataMode == null) {
-            targetDataMode = dataModelEntity;
-        }
-
-        return targetDataMode;
-
-    }
+   
 
     /**
      * 
@@ -536,7 +520,6 @@ public class PluginPackageDataModelService {
             }
         }
 
-        // TODO
         calOverviewDynamicEntityDtoRelationShips(dataModelEntityDtos, pluginPackageEntities, totalIdAndEntityDtoMap,
                 totalIdAndEntityMap);
 
@@ -995,6 +978,29 @@ public class PluginPackageDataModelService {
         }
 
         return dynamicPluginPackageEntities;
+    }
+    
+    private PluginPackageDataModel tryCalculateDynamicLatestAvailableDataModelEntity(
+            PluginPackageDataModel dataModelEntity) {
+        List<PluginPackageDataModel> dataModelEntities = pluginPackageDataModelMapper
+                .selectDataModelsByPackageName(dataModelEntity.getPackageName());
+        PluginPackageDataModel targetDataMode = null;
+
+        for (PluginPackageDataModel dataModel : dataModelEntities) {
+            List<PluginPackageEntities> pluginPackageEntities = pluginPackageEntitiesMapper
+                    .selectAllByDataModel(dataModel.getId());
+            if (pluginPackageEntities != null && !pluginPackageEntities.isEmpty()) {
+                targetDataMode = dataModel;
+                break;
+            }
+        }
+
+        if (targetDataMode == null) {
+            targetDataMode = dataModelEntity;
+        }
+
+        return targetDataMode;
+
     }
 
 }
