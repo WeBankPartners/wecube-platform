@@ -64,13 +64,7 @@ export default {
 
         this.menus = allCats.map(_ => {
           data.forEach(item => {
-            if (item.category === '' + _.id) {
-              if (item.source === 'SYSTEM') {
-                const found = MENUS.find(m => m.code === item.code)
-                if (found) {
-                  item.displayName = this.$lang === 'zh-CN' ? found.cnName : found.enName
-                }
-              }
+            if (item.category === '' + _.id && item.source !== 'SYSTEM') {
               _.children.push(item)
             }
           })
