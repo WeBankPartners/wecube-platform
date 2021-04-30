@@ -875,7 +875,10 @@ export default {
 
       let pluginFormCopy = JSON.parse(JSON.stringify(this.pluginForm))
       // 校验必填项，未选中节点跳过校验
-      if ('nodeDefId' in pluginFormCopy) {
+      if (
+        this.currentNode.id &&
+        (this.currentNode.id.startsWith('SubProcess_') || this.currentNode.id.startsWith('Task_'))
+      ) {
         const res = this.checkSaveParams(pluginFormCopy)
         if (!res) return
       }
