@@ -82,14 +82,14 @@ export default {
           placeholder: this.$t('table_name')
         },
         {
-          title: this.$t('resource'),
+          title: this.$t('ip_address'),
           key: 'host',
           inputKey: 'host',
           searchSeqNo: 3,
           displaySeqNo: 3,
           component: 'Input',
           inputType: 'text',
-          placeholder: this.$t('resource')
+          placeholder: this.$t('ip_address')
         },
         {
           title: this.$t('table_is_allocated'),
