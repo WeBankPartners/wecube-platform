@@ -1,13 +1,15 @@
 package com.webank.wecube.platform.core.entity.workflow;
 
-public class ProcInstExecContextEntity {
+import java.util.Date;
+
+public class ProcExecContextEntity {
     public static final String REQ_DIR_REQUEST = "request";
     public static final String REQ_DIR_RESPONSE = "response";
-    
+
     public static final String CTX_TYPE_PROCESS = "process";
     public static final String CTX_TYPE_NODE = "taskNode";
     public static final String CTX_TYPE_REQUEST = "request";
-    
+
     public static final String CTX_DATA_FORMAT_JSON = "JSON";
     public static final String CTX_DATA_FORMAT_STRING = "string";
 
@@ -17,11 +19,19 @@ public class ProcInstExecContextEntity {
     private String nodeDefId;
     private Integer nodeInstId;
     private String reqId;
-    private String reqDir;//request,response
+    private String reqDir;// request,response
 
     private String ctxType;// process,taskNode,request
     private String ctxDataFormat;// JSON,string
     private String ctxData;
+
+    private String createdBy;
+
+    private Date createdTime;
+
+    private String updatedBy;
+
+    private Date updatedTime;
 
     public String getId() {
         return id;
@@ -103,5 +113,36 @@ public class ProcInstExecContextEntity {
         this.reqDir = reqDir;
     }
 
-    
+    public String getCreatedBy() {
+        return createdBy;
+    }
+
+    public void setCreatedBy(String createdBy) {
+        this.createdBy = createdBy;
+    }
+
+    public Date getCreatedTime() {
+        return createdTime;
+    }
+
+    public void setCreatedTime(Date createdTime) {
+        this.createdTime = createdTime;
+    }
+
+    public String getUpdatedBy() {
+        return updatedBy;
+    }
+
+    public void setUpdatedBy(String updatedBy) {
+        this.updatedBy = updatedBy;
+    }
+
+    public Date getUpdatedTime() {
+        return updatedTime;
+    }
+
+    public void setUpdatedTime(Date updatedTime) {
+        this.updatedTime = updatedTime;
+    }
+
 }
