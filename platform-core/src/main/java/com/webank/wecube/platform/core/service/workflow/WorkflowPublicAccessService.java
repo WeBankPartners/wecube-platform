@@ -30,6 +30,7 @@ import com.webank.wecube.platform.core.entity.plugin.PluginPackageAttributes;
 import com.webank.wecube.platform.core.entity.plugin.PluginPackageEntities;
 import com.webank.wecube.platform.core.entity.workflow.ProcDefAuthInfoQueryEntity;
 import com.webank.wecube.platform.core.entity.workflow.ProcDefInfoEntity;
+import com.webank.wecube.platform.core.entity.workflow.ProcExecBindingEntity;
 import com.webank.wecube.platform.core.entity.workflow.ProcRoleBindingEntity;
 import com.webank.wecube.platform.core.entity.workflow.TaskNodeDefInfoEntity;
 import com.webank.wecube.platform.core.repository.plugin.PluginPackageAttributesMapper;
@@ -264,6 +265,8 @@ public class WorkflowPublicAccessService {
     public DynamicWorkflowInstInfoDto createNewWorkflowInstance(DynamicWorkflowInstCreationInfoDto creationInfoDto) {
         log.info("try to create new workflow instance with data: {}", creationInfoDto);
 
+        //TODO #2109 
+        //TODO to store request info as json
         StartProcInstRequestDto requestDto = calculateStartProcInstContext(creationInfoDto);
         ProcInstInfoDto createdProcInstInfoDto = workflowProcInstService.createProcessInstance(requestDto);
         DynamicWorkflowInstInfoDto resultDto = new DynamicWorkflowInstInfoDto();
@@ -521,7 +524,7 @@ public class WorkflowPublicAccessService {
     private StartProcInstRequestDto calculateStartProcInstContext(DynamicWorkflowInstCreationInfoDto creationInfoDto) {
         StartProcInstRequestDto requestDto = new StartProcInstRequestDto();
         requestDto.setEntityDataId(creationInfoDto.getRootEntityValue().getEntityDataId());
-        requestDto.setEntityDisplayName(null);
+        requestDto.setEntityDisplayName(null);//TODO
         requestDto.setEntityTypeId(creationInfoDto.getRootEntityValue().getPackageName() + ":"
                 + creationInfoDto.getRootEntityValue().getEntityName());
         requestDto.setProcDefId(creationInfoDto.getProcDefId());
@@ -539,12 +542,17 @@ public class WorkflowPublicAccessService {
 
             for (DynamicEntityValueDto entityValueDto : boundEntityValues) {
                 TaskNodeDefObjectBindInfoDto bindDto = new TaskNodeDefObjectBindInfoDto();
-                bindDto.setBound("Y");
-                bindDto.setEntityDataId(entityValueDto.getEntityDataId());
+                bindDto.setBound(ProcExecBindingEntity.BIND_FLAG_YES);
+                if(StringUtils.isBlank(entityValueDto.getEntityDataId())){
+                    bindDto.setEntityDataId("OID-"+entityValueDto.getOid());
+                }else{
+                    bindDto.setEntityDataId(entityValueDto.getEntityDataId());
+                }
                 bindDto.setEntityDisplayName(null);
                 bindDto.setEntityTypeId(entityValueDto.getPackageName() + ":" + entityValueDto.getEntityName());
                 bindDto.setNodeDefId(dynamicBindInfoDto.getNodeDefId());
-                bindDto.setOrderedNo("");
+                bindDto.setOrderedNo("");//TODO
+                bindDto.setFullEntityDataId(null);//TODO
 
                 taskNodeBinds.add(bindDto);
             }
