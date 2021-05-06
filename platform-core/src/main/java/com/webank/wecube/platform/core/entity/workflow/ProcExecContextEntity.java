@@ -33,6 +33,8 @@ public class ProcExecContextEntity {
 
     private Date updatedTime;
 
+    private Integer rev;
+
     public String getId() {
         return id;
     }
@@ -143,6 +145,14 @@ public class ProcExecContextEntity {
 
     public void setUpdatedTime(Date updatedTime) {
         this.updatedTime = updatedTime;
+    }
+
+    public Integer getRev() {
+        return rev;
+    }
+
+    public void setRev(Integer rev) {
+        this.rev = rev;
     }
 
 }
