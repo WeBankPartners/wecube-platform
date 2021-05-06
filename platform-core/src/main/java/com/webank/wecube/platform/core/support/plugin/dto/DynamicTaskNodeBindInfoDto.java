@@ -44,7 +44,5 @@ public class DynamicTaskNodeBindInfoDto {
         builder.append(boundEntityValues);
         builder.append("]");
         return builder.toString();
-    }
-    
-    
+    }    
 }
