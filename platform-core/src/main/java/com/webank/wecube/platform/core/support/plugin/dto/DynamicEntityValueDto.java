@@ -3,28 +3,18 @@ package com.webank.wecube.platform.core.support.plugin.dto;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-
 public class DynamicEntityValueDto {
-    @Nullable
     private String entityDefId;// Entity definition id from platform.
-    @Nonnull
     private String packageName;
-    @Nonnull
     private String entityName;
-    @Nullable
     private String entityDataId;// Existing data id,such as guid in cmdb.
 
     private String fullEntityDataId;
-    @Nonnull
     private String oid;// Equals to dataId once dataId presents,or a temporary
                        // assigned.
 
     private String entityDataState;
     private String entityDataOp;
-
-    // TODO delete?
 
     private List<String> previousOids = new ArrayList<>();
     private List<String> succeedingOids = new ArrayList<>();
