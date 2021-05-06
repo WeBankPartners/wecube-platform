@@ -13,13 +13,16 @@ public class DynamicEntityValueDto {
     private String oid;// Equals to dataId once dataId presents,or a temporary
                        // assigned.
 
-    private String entityDataState;
-    private String entityDataOp;
+    private String entityDataState;// NotCreated,Created,Deleted
+    private String entityDataOp;// create,update,delete
 
     private List<String> previousOids = new ArrayList<>();
     private List<String> succeedingOids = new ArrayList<>();
 
     private List<DynamicEntityAttrValueDto> attrValues = new ArrayList<>();
+
+    private String bindFlag;// Y,N
+    private boolean processed = false;
 
     public String getEntityDefId() {
         return entityDefId;
@@ -130,6 +133,22 @@ public class DynamicEntityValueDto {
 
     public void setEntityDataOp(String entityDataOp) {
         this.entityDataOp = entityDataOp;
+    }
+
+    public String getBindFlag() {
+        return bindFlag;
+    }
+
+    public void setBindFlag(String bindFlag) {
+        this.bindFlag = bindFlag;
+    }
+
+    public boolean isProcessed() {
+        return processed;
+    }
+
+    public void setProcessed(boolean processed) {
+        this.processed = processed;
     }
 
 }
