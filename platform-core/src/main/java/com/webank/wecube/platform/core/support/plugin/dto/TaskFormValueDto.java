@@ -12,7 +12,7 @@ public class TaskFormValueDto {
     private String taskNodeDefId;
     private Integer taskNodeInstId;
 
-    private List<TaskFormDataRecordDto> formDataRecords = new ArrayList<>();
+    private List<TaskFormDataEntityDto> formDataEntities = new ArrayList<>();
 
     public Integer getProcInstId() {
         return procInstId;
@@ -54,18 +54,20 @@ public class TaskFormValueDto {
         this.formItemMetaId = formItemMetaId;
     }
 
-    public List<TaskFormDataRecordDto> getFormDataRecords() {
-        return formDataRecords;
-    }
+    
 
-    public void setFormDataRecords(List<TaskFormDataRecordDto> formDataRecords) {
-        this.formDataRecords = formDataRecords;
-    }
-
-    public void addFormDataRecord(TaskFormDataRecordDto formDataRecord) {
-        if (formDataRecord == null) {
+    public void addFormDataEntities(TaskFormDataEntityDto formDataEntity) {
+        if (formDataEntity == null) {
             return;
         }
-        this.formDataRecords.add(formDataRecord);
+        this.formDataEntities.add(formDataEntity);
+    }
+
+    public List<TaskFormDataEntityDto> getFormDataEntities() {
+        return formDataEntities;
+    }
+
+    public void setFormDataEntities(List<TaskFormDataEntityDto> formDataEntities) {
+        this.formDataEntities = formDataEntities;
     }
 }
