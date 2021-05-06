@@ -271,19 +271,20 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 
         // to refactor using strategy mode
         if (isSystemAutomationTaskNode(taskNodeDefEntity)) {
-            doInvokeSstnPluginInterface(procInstEntity, taskNodeInstEntity, procDefInfoEntity, taskNodeDefEntity, cmd);
+            doInvokeSystemAutomationPluginInterface(procInstEntity, taskNodeInstEntity, procDefInfoEntity, taskNodeDefEntity, cmd);
         } else if (isUserTaskNode(taskNodeDefEntity)) {
-            doInvokeSutnPluginInterface(procInstEntity, taskNodeInstEntity, procDefInfoEntity, taskNodeDefEntity, cmd);
+            doInvokeUserTaskPluginInterface(procInstEntity, taskNodeInstEntity, procDefInfoEntity, taskNodeDefEntity, cmd);
         } else if (isDataOperationTaskNode(taskNodeDefEntity)) {
-            doInvokeSdtnPluginInterface(procInstEntity, taskNodeInstEntity, procDefInfoEntity, taskNodeDefEntity, cmd);
+            doInvokeDataOperationPluginInterface(procInstEntity, taskNodeInstEntity, procDefInfoEntity, taskNodeDefEntity, cmd);
         }
     }
 
     /**
+     * SDTN
      * Handling data operation task node.
      * 
      */
-    protected void doInvokeSdtnPluginInterface(ProcInstInfoEntity procInstEntity,
+    protected void doInvokeDataOperationPluginInterface(ProcInstInfoEntity procInstEntity,
             TaskNodeInstInfoEntity taskNodeInstEntity, ProcDefInfoEntity procDefInfoEntity,
             TaskNodeDefInfoEntity taskNodeDefEntity, PluginInvocationCommand cmd) {
         Map<Object, Object> externalCacheMap = new HashMap<>();
@@ -293,10 +294,11 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
     }
 
     /**
+     * SUTN
      * Handling user operation task node.
      * 
      */
-    protected void doInvokeSutnPluginInterface(ProcInstInfoEntity procInstEntity,
+    protected void doInvokeUserTaskPluginInterface(ProcInstInfoEntity procInstEntity,
             TaskNodeInstInfoEntity taskNodeInstEntity, ProcDefInfoEntity procDefInfoEntity,
             TaskNodeDefInfoEntity taskNodeDefEntity, PluginInvocationCommand cmd) {
         Map<Object, Object> externalCacheMap = new HashMap<>();
@@ -306,21 +308,22 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
         // 3 invoke plugin asynchronously
     }
     
-    private TaskFormMetaDto tryFetchTaskFormMeta(){
+    private TaskFormMetaDto tryFetchUserTaskFormMeta(){
         //TODO
         return null;
     }
     
-    private TaskFormValueDto tryCalculateTaskFormValue(){
+    private TaskFormValueDto tryCalculateUserTaskFormValue(){
         //TODO
         return null;
     }
 
     /**
+     * SSTN
      * Handling system automation task node
      * 
      */
-    protected void doInvokeSstnPluginInterface(ProcInstInfoEntity procInstEntity,
+    protected void doInvokeSystemAutomationPluginInterface(ProcInstInfoEntity procInstEntity,
             TaskNodeInstInfoEntity taskNodeInstEntity, ProcDefInfoEntity procDefInfoEntity,
             TaskNodeDefInfoEntity taskNodeDefEntity, PluginInvocationCommand cmd) {
 
