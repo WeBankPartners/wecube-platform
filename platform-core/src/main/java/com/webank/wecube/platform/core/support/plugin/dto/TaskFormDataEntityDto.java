@@ -3,7 +3,7 @@ package com.webank.wecube.platform.core.support.plugin.dto;
 import java.util.ArrayList;
 import java.util.List;
 
-public class TaskFormDataRecordDto {
+public class TaskFormDataEntityDto {
     private String formItemMetaId;
 
     private String packageName;
@@ -15,6 +15,9 @@ public class TaskFormDataRecordDto {
 
     private String entityDataState;// NotCreated,Created,Deleted
     private String entityDataOp;// create,update,delete
+
+    private String bindFlag;// Y,N
+    private boolean processed = false;
 
     private List<TaskFormItemValueDto> formItemValues = new ArrayList<>();
 
@@ -96,6 +99,22 @@ public class TaskFormDataRecordDto {
 
     public void setEntityDataOp(String entityDataOp) {
         this.entityDataOp = entityDataOp;
+    }
+
+    public boolean isProcessed() {
+        return processed;
+    }
+
+    public void setProcessed(boolean processed) {
+        this.processed = processed;
+    }
+
+    public String getBindFlag() {
+        return bindFlag;
+    }
+
+    public void setBindFlag(String bindFlag) {
+        this.bindFlag = bindFlag;
     }
 
 }
