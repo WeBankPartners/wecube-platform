@@ -1,6 +1,7 @@
 package com.webank.wecube.platform.core.service.workflow;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -15,6 +16,8 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.webank.wecube.platform.core.commons.AuthenticationContextHolder;
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
 import com.webank.wecube.platform.core.dto.workflow.FlowNodeDefDto;
@@ -31,11 +34,13 @@ import com.webank.wecube.platform.core.entity.plugin.PluginPackageEntities;
 import com.webank.wecube.platform.core.entity.workflow.ProcDefAuthInfoQueryEntity;
 import com.webank.wecube.platform.core.entity.workflow.ProcDefInfoEntity;
 import com.webank.wecube.platform.core.entity.workflow.ProcExecBindingEntity;
+import com.webank.wecube.platform.core.entity.workflow.ProcExecContextEntity;
 import com.webank.wecube.platform.core.entity.workflow.ProcRoleBindingEntity;
 import com.webank.wecube.platform.core.entity.workflow.TaskNodeDefInfoEntity;
 import com.webank.wecube.platform.core.repository.plugin.PluginPackageAttributesMapper;
 import com.webank.wecube.platform.core.repository.plugin.PluginPackageEntitiesMapper;
 import com.webank.wecube.platform.core.repository.workflow.ProcDefInfoMapper;
+import com.webank.wecube.platform.core.repository.workflow.ProcExecContextMapper;
 import com.webank.wecube.platform.core.repository.workflow.ProcRoleBindingMapper;
 import com.webank.wecube.platform.core.repository.workflow.TaskNodeDefInfoMapper;
 import com.webank.wecube.platform.core.service.dme.EntityDataRouteFactory;
@@ -59,6 +64,7 @@ import com.webank.wecube.platform.core.support.plugin.dto.RegisteredEntityAttrDe
 import com.webank.wecube.platform.core.support.plugin.dto.RegisteredEntityDefDto;
 import com.webank.wecube.platform.core.support.plugin.dto.WorkflowDefInfoDto;
 import com.webank.wecube.platform.core.support.plugin.dto.WorkflowNodeDefInfoDto;
+import com.webank.wecube.platform.workflow.commons.LocalIdGenerator;
 
 @Service
 public class WorkflowPublicAccessService {
@@ -102,6 +108,11 @@ public class WorkflowPublicAccessService {
 
     @Autowired
     private EntityDataRouteFactory entityDataRouteFactory;
+
+    @Autowired
+    private ProcExecContextMapper procExecContextMapper;
+
+    private ObjectMapper objectMapper = new ObjectMapper();
 
     /**
      * 
@@ -264,9 +275,10 @@ public class WorkflowPublicAccessService {
      */
     public DynamicWorkflowInstInfoDto createNewWorkflowInstance(DynamicWorkflowInstCreationInfoDto creationInfoDto) {
         log.info("try to create new workflow instance with data: {}", creationInfoDto);
+        if (creationInfoDto == null) {
+            throw new WecubeCoreException("Workflow instance creation infomation must provide.");
+        }
 
-        //TODO #2109 
-        //TODO to store request info as json
         StartProcInstRequestDto requestDto = calculateStartProcInstContext(creationInfoDto);
         ProcInstInfoDto createdProcInstInfoDto = workflowProcInstService.createProcessInstance(requestDto);
         DynamicWorkflowInstInfoDto resultDto = new DynamicWorkflowInstInfoDto();
@@ -275,8 +287,33 @@ public class WorkflowPublicAccessService {
         resultDto.setProcDefKey(createdProcInstInfoDto.getProcDefKey());
         resultDto.setProcInstKey(createdProcInstInfoDto.getProcInstKey());
         resultDto.setStatus(createdProcInstInfoDto.getStatus());
+        
+        String jsonData = convertCreationInfoToJson(creationInfoDto);
+        
+        ProcExecContextEntity contextEntity = new ProcExecContextEntity();
+        contextEntity.setId(LocalIdGenerator.generateId());
+        contextEntity.setCreatedBy(AuthenticationContextHolder.getCurrentUsername());
+        contextEntity.setCreatedTime(new Date());
+        contextEntity.setCtxData(jsonData);
+        contextEntity.setCtxDataFormat(ProcExecContextEntity.CTX_DATA_FORMAT_JSON);
+        contextEntity.setCtxType(ProcExecContextEntity.CTX_TYPE_PROCESS);
+        contextEntity.setProcDefId(createdProcInstInfoDto.getProcDefId());
+        contextEntity.setProcInstId(createdProcInstInfoDto.getId());
+        contextEntity.setRev(0);
+        
+        procExecContextMapper.insert(contextEntity);
 
         return resultDto;
+    }
+
+    private String convertCreationInfoToJson(DynamicWorkflowInstCreationInfoDto dto) {
+        try {
+            String json = objectMapper.writeValueAsString(dto);
+            return json;
+        } catch (JsonProcessingException e) {
+            log.error("Failed to parse json object to string.", e);
+            throw new WecubeCoreException("Failed to parse json object to string.");
+        }
     }
 
     protected ProcessDataPreviewDto doCalculateProcessPreviewData(ProcDefOutlineDto outline, String dataId,
@@ -524,7 +561,7 @@ public class WorkflowPublicAccessService {
     private StartProcInstRequestDto calculateStartProcInstContext(DynamicWorkflowInstCreationInfoDto creationInfoDto) {
         StartProcInstRequestDto requestDto = new StartProcInstRequestDto();
         requestDto.setEntityDataId(creationInfoDto.getRootEntityValue().getEntityDataId());
-        requestDto.setEntityDisplayName(null);//TODO
+        requestDto.setEntityDisplayName(null);// TODO
         requestDto.setEntityTypeId(creationInfoDto.getRootEntityValue().getPackageName() + ":"
                 + creationInfoDto.getRootEntityValue().getEntityName());
         requestDto.setProcDefId(creationInfoDto.getProcDefId());
@@ -543,16 +580,16 @@ public class WorkflowPublicAccessService {
             for (DynamicEntityValueDto entityValueDto : boundEntityValues) {
                 TaskNodeDefObjectBindInfoDto bindDto = new TaskNodeDefObjectBindInfoDto();
                 bindDto.setBound(ProcExecBindingEntity.BIND_FLAG_YES);
-                if(StringUtils.isBlank(entityValueDto.getEntityDataId())){
-                    bindDto.setEntityDataId("OID-"+entityValueDto.getOid());
-                }else{
+                if (StringUtils.isBlank(entityValueDto.getEntityDataId())) {
+                    bindDto.setEntityDataId("OID-" + entityValueDto.getOid());
+                } else {
                     bindDto.setEntityDataId(entityValueDto.getEntityDataId());
                 }
                 bindDto.setEntityDisplayName(null);
                 bindDto.setEntityTypeId(entityValueDto.getPackageName() + ":" + entityValueDto.getEntityName());
                 bindDto.setNodeDefId(dynamicBindInfoDto.getNodeDefId());
-                bindDto.setOrderedNo("");//TODO
-                bindDto.setFullEntityDataId(null);//TODO
+                bindDto.setOrderedNo("");// TODO
+                bindDto.setFullEntityDataId(null);// TODO
 
                 taskNodeBinds.add(bindDto);
             }
@@ -572,10 +609,10 @@ public class WorkflowPublicAccessService {
 
         String[] exprParts = routineExp.split(DME_DELIMETER);
         for (String exprPart : exprParts) {
-            if(StringUtils.isBlank(exprPart)){
+            if (StringUtils.isBlank(exprPart)) {
                 continue;
             }
-            
+
             String nodeExpr = exprPart.trim();
             List<EntityQueryExprNodeInfo> exprNodeInfos = this.entityQueryExpressionParser.parse(nodeExpr);
             if (exprNodeInfos == null || exprNodeInfos.isEmpty()) {
