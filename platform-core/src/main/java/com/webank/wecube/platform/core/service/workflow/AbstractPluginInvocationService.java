@@ -37,6 +37,7 @@ import com.webank.wecube.platform.core.service.plugin.PluginConfigMgmtService;
 import com.webank.wecube.platform.core.service.plugin.PluginInstanceMgmtService;
 import com.webank.wecube.platform.core.service.plugin.SystemVariableService;
 import com.webank.wecube.platform.core.support.plugin.PluginInvocationRestClient;
+import com.webank.wecube.platform.core.support.plugin.PluginTaskFormRestClient;
 import com.webank.wecube.platform.workflow.WorkflowConstants;
 
 public abstract class AbstractPluginInvocationService extends AbstractWorkflowService {
@@ -122,6 +123,8 @@ public abstract class AbstractPluginInvocationService extends AbstractWorkflowSe
     protected ExtraTaskMapper extraTaskMapper;
     @Autowired
     protected EntityQueryExpressionParser entityQueryExpressionParser;
+    @Autowired
+    protected PluginTaskFormRestClient pluginTaskFormRestClient;
     
     protected ObjectMapper objectMapper = new ObjectMapper();
     
