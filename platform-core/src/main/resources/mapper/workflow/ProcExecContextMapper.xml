@@ -46,7 +46,7 @@
         where id = #{id,jdbcType=VARCHAR}
     </delete>
     <insert id="insert"
-        parameterType="com.webank.wecube.platform.core.entity.workflow.TaskNodeDefInfoEntity">
+        parameterType="com.webank.wecube.platform.core.entity.workflow.ProcExecContextEntity">
         insert into core_proc_exec_context ( 
         id, 
         proc_def_id, 
@@ -85,7 +85,7 @@
     </insert>
     
     <update id="updateByPrimaryKeySelective"
-        parameterType="com.webank.wecube.platform.core.entity.workflow.TaskNodeDefInfoEntity">
+        parameterType="com.webank.wecube.platform.core.entity.workflow.ProcExecContextEntity">
         update core_proc_exec_context
         <set>
             <if test="procDefId != null">
