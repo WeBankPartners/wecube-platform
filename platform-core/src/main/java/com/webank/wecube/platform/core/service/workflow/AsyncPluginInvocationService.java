@@ -106,6 +106,8 @@ public class AsyncPluginInvocationService extends AbstractPluginInvocationServic
                     ctx.getRequestId());
             throw new WecubeCoreException("3157", "Task node definition does not exist.");
         }
+        
+        //TODO #2109 handle user task output
 
         PluginConfigInterfaces pluginConfigInterface = pluginConfigMgmtService
                 .getPluginConfigInterfaceByServiceName(nodeDefEntity.getServiceId());
