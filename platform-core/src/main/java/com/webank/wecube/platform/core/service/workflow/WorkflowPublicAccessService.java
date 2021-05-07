@@ -37,6 +37,8 @@ import com.webank.wecube.platform.core.entity.workflow.ProcExecBindingEntity;
 import com.webank.wecube.platform.core.entity.workflow.ProcExecContextEntity;
 import com.webank.wecube.platform.core.entity.workflow.ProcRoleBindingEntity;
 import com.webank.wecube.platform.core.entity.workflow.TaskNodeDefInfoEntity;
+import com.webank.wecube.platform.core.model.workflow.TaskNodeBindInfoContext;
+import com.webank.wecube.platform.core.model.workflow.WorkflowInstCreationContext;
 import com.webank.wecube.platform.core.repository.plugin.PluginPackageAttributesMapper;
 import com.webank.wecube.platform.core.repository.plugin.PluginPackageEntitiesMapper;
 import com.webank.wecube.platform.core.repository.workflow.ProcDefInfoMapper;
@@ -288,8 +290,10 @@ public class WorkflowPublicAccessService {
         resultDto.setProcInstKey(createdProcInstInfoDto.getProcInstKey());
         resultDto.setStatus(createdProcInstInfoDto.getStatus());
         
-        String jsonData = convertCreationInfoToJson(creationInfoDto);
-        
+        WorkflowInstCreationContext ctx = buildWorkflowInstCreationContext(creationInfoDto);
+
+        String jsonData = convertWorkflowInstCreationContextToJson(ctx);
+
         ProcExecContextEntity contextEntity = new ProcExecContextEntity();
         contextEntity.setId(LocalIdGenerator.generateId());
         contextEntity.setCreatedBy(AuthenticationContextHolder.getCurrentUsername());
@@ -300,15 +304,48 @@ public class WorkflowPublicAccessService {
         contextEntity.setProcDefId(createdProcInstInfoDto.getProcDefId());
         contextEntity.setProcInstId(createdProcInstInfoDto.getId());
         contextEntity.setRev(0);
-        
+
         procExecContextMapper.insert(contextEntity);
 
         return resultDto;
     }
 
-    private String convertCreationInfoToJson(DynamicWorkflowInstCreationInfoDto dto) {
+    private WorkflowInstCreationContext buildWorkflowInstCreationContext(DynamicWorkflowInstCreationInfoDto dto) {
+        WorkflowInstCreationContext ctx = new WorkflowInstCreationContext();
+        ctx.setProcDefId(dto.getProcDefId());
+        ctx.setProcDefKey(dto.getProcDefKey());
+        ctx.setRootEntityOid(dto.getRootEntityValue().getOid());
+
+        ctx.addEntity(dto.getRootEntityValue());
+
+        List<DynamicTaskNodeBindInfoDto> taskNodeBindInfos = dto.getTaskNodeBindInfos();
+        if (taskNodeBindInfos == null) {
+            taskNodeBindInfos = new ArrayList<>();
+        }
+        for (DynamicTaskNodeBindInfoDto dynamicBindInfoDto : taskNodeBindInfos) {
+            List<DynamicEntityValueDto> boundEntityValues = dynamicBindInfoDto.getBoundEntityValues();
+            if (boundEntityValues == null || boundEntityValues.isEmpty()) {
+                continue;
+            }
+
+            for (DynamicEntityValueDto entityValueDto : boundEntityValues) {
+                TaskNodeBindInfoContext bindCtx = new TaskNodeBindInfoContext();
+                bindCtx.setBindFlag(ProcExecBindingEntity.BIND_FLAG_YES);
+                bindCtx.setOid(entityValueDto.getOid());
+                bindCtx.setEntityDataId(entityValueDto.getEntityDataId());
+                bindCtx.setNodeId(dynamicBindInfoDto.getNodeId());
+                bindCtx.setNodeDefId(dynamicBindInfoDto.getNodeDefId());
+
+                ctx.addBinding(bindCtx);
+            }
+        }
+        
+        return ctx;
+    }
+
+    private String convertWorkflowInstCreationContextToJson(WorkflowInstCreationContext ctx) {
         try {
-            String json = objectMapper.writeValueAsString(dto);
+            String json = objectMapper.writeValueAsString(ctx);
             return json;
         } catch (JsonProcessingException e) {
             log.error("Failed to parse json object to string.", e);
