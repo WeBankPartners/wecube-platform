@@ -882,15 +882,17 @@ export default {
         const res = this.checkSaveParams(pluginFormCopy)
         if (!res) return
       }
-      this.serviceTaskBindInfos.push({
-        ...pluginFormCopy,
-        nodeDefId: this.currentNode.nodeDefId,
-        nodeId: this.currentNode.id,
-        nodeName: this.currentNode.name,
-        serviceName: (found && found.serviceName) || '',
-        routineRaw: pluginFormCopy.routineExpression,
-        taskCategory: pluginFormCopy.taskCategory
-      })
+      if (this.currentNode.id) {
+        this.serviceTaskBindInfos.push({
+          ...pluginFormCopy,
+          nodeDefId: this.currentNode.nodeDefId,
+          nodeId: this.currentNode.id,
+          nodeName: this.currentNode.name,
+          serviceName: (found && found.serviceName) || '',
+          routineRaw: pluginFormCopy.routineExpression,
+          taskCategory: pluginFormCopy.taskCategory
+        })
+      }
       this.saveDiagram(true)
     },
     checkSaveParams (pluginFormCopy) {
