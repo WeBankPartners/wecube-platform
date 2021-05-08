@@ -317,7 +317,7 @@
                   </Col>
                   <Col span="13" offset="1">
                     <FormItem :label-width="0">
-                      <FilterRules
+                      <FilterRulesRef
                         v-if="outPut.mappingType === 'entity'"
                         v-model="outPut.mappingEntityExpression"
                         :disabled="currentPluginObj.status === 'ENABLED'"
@@ -326,7 +326,7 @@
                         :needNativeAttr="true"
                         :needAttr="true"
                         :rootEntityFirst="true"
-                      ></FilterRules>
+                      ></FilterRulesRef>
                       <span v-if="outPut.mappingType === 'context'">N/A</span>
                     </FormItem>
                   </Col>
@@ -388,6 +388,7 @@
 </template>
 <script>
 import FilterRules from '../../components/filter-rules.vue'
+import FilterRulesRef from '../../components/filter-rules-ref.vue'
 import InterfaceFilterRule from '../../components/interface-filter-rule.vue'
 import {
   getAllPluginByPkgId,
@@ -458,6 +459,7 @@ export default {
   },
   components: {
     FilterRules,
+    FilterRulesRef,
     InterfaceFilterRule
   },
   computed: {
