@@ -25,6 +25,7 @@
             property="prevIds" />
         <result column="succ_ids" jdbcType="LONGVARCHAR"
             property="succIds" />
+        <result column="full_data_id" jdbcType="VARCHAR" property="fullDataId" />
     </resultMap>
 
     <sql id="Base_Column_List">
@@ -33,7 +34,7 @@
         display_name, entity_name,
         g_node_id, pkg_name,
         proc_inst_id, proc_sess_id,
-        prev_ids, succ_ids
+        prev_ids, succ_ids, full_data_id
     </sql>
 
     <select id="selectByPrimaryKey" parameterType="java.lang.Integer"
@@ -56,7 +57,7 @@
         display_name,
         entity_name, g_node_id,
         pkg_name, proc_inst_id, proc_sess_id,
-        prev_ids, succ_ids)
+        prev_ids, succ_ids, full_data_id)
         values (#{id,jdbcType=INTEGER},
         #{createdBy,jdbcType=VARCHAR},
         #{createdTime,jdbcType=TIMESTAMP},
@@ -67,7 +68,8 @@
         #{pkgName,jdbcType=VARCHAR},
         #{procInstId,jdbcType=INTEGER}, #{procSessId,jdbcType=VARCHAR},
         #{prevIds,jdbcType=LONGVARCHAR},
-        #{succIds,jdbcType=LONGVARCHAR})
+        #{succIds,jdbcType=LONGVARCHAR},
+        #{fullDataId,jdbcType=VARCHAR})
     </insert>
     <insert id="insertSelective"
         useGeneratedKeys="true" keyProperty="id"
@@ -113,6 +115,9 @@
             <if test="succIds != null">
                 succ_ids,
             </if>
+             <if test="fullDataId != null">
+                full_data_id,
+            </if>
         </trim>
         <trim prefix="values (" suffix=")" suffixOverrides=",">
             <if test="createdBy != null">
@@ -153,6 +158,9 @@
             </if>
             <if test="succIds != null">
                 #{succIds,jdbcType=LONGVARCHAR},
+            </if>
+            <if test="fullDataId != null">
+                #{fullDataId,jdbcType=VARCHAR},
             </if>
         </trim>
     </insert>
@@ -201,6 +209,9 @@
             <if test="succIds != null">
                 succ_ids = #{succIds,jdbcType=LONGVARCHAR},
             </if>
+            <if test="fullDataId != null">
+                full_data_id = #{fullDataId,jdbcType=VARCHAR},
+            </if>
         </set>
         where id = #{id,jdbcType=INTEGER}
     </update>
@@ -233,7 +244,9 @@
         prev_ids =
         #{prevIds,jdbcType=LONGVARCHAR},
         succ_ids =
-        #{succIds,jdbcType=LONGVARCHAR}
+        #{succIds,jdbcType=LONGVARCHAR},
+        full_data_id =
+        #{fullDataId,jdbcType=INTEGER}
         where id = #{id,jdbcType=INTEGER}
     </update>
 
