@@ -87,6 +87,16 @@ public class DynamicEntityValueDto {
     public void setAttrValues(List<DynamicEntityAttrValueDto> attrValues) {
         this.attrValues = attrValues;
     }
+    
+    public DynamicEntityAttrValueDto findAttrValue(String attrName){
+        for(DynamicEntityAttrValueDto attrValue : attrValues){
+            if(attrName.equals(attrValue.getAttrName())){
+                return attrValue;
+            }
+        }
+        
+        return null;
+    }
 
     @Override
     public String toString() {
