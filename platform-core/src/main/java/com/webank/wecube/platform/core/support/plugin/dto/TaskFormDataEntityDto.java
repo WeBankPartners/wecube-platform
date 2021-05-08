@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class TaskFormDataEntityDto {
-    private String formItemMetaId;
+    private String formMetaId;
 
     private String packageName;
     private String entityName;
@@ -37,12 +37,12 @@ public class TaskFormDataEntityDto {
         this.formItemValues.add(formItemValue);
     }
 
-    public String getFormItemMetaId() {
-        return formItemMetaId;
+    public String getFormMetaId() {
+        return formMetaId;
     }
 
-    public void setFormItemMetaId(String formItemMetaId) {
-        this.formItemMetaId = formItemMetaId;
+    public void setFormMetaId(String formMetaId) {
+        this.formMetaId = formMetaId;
     }
 
     public String getPackageName() {
