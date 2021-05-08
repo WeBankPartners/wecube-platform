@@ -25,6 +25,7 @@ public class StandardEntityOperationRestClient {
     private ObjectMapper objectMapper = new ObjectMapper();
 
     public StandardEntityOperationRestClient() {
+        this.restTemplate = new RestTemplate();
     }
 
     public StandardEntityOperationRestClient(RestTemplate restTemplate) {

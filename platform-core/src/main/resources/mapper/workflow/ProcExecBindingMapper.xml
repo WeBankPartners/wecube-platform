@@ -26,6 +26,8 @@
         <result column="entity_data_name" jdbcType="VARCHAR"
             property="entityDataName" />
         <result column="bind_flag" jdbcType="CHAR" property="bindFlag" />
+        <result column="full_data_id" jdbcType="VARCHAR"
+            property="fullEntityDataId" />
     </resultMap>
     <sql id="Base_Column_List">
         id, created_by, created_time, updated_by, updated_time,
@@ -33,7 +35,7 @@
         entity_id, node_def_id,
         proc_def_id, proc_inst_id,
         task_node_inst_id, entity_data_id, entity_type_id,
-        entity_data_name,bind_flag
+        entity_data_name,bind_flag,full_data_id
     </sql>
     <select id="selectByPrimaryKey" parameterType="java.lang.Integer"
         resultMap="BaseResultMap">
@@ -57,7 +59,7 @@
         task_node_inst_id, entity_data_id,
         entity_type_id,
         entity_data_name,
-        bind_flag)
+        bind_flag,full_data_id)
         values (#{id,jdbcType=INTEGER},
         #{createdBy,jdbcType=VARCHAR},
         #{createdTime,jdbcType=TIMESTAMP},
@@ -70,7 +72,8 @@
         #{entityDataId,jdbcType=VARCHAR},
         #{entityTypeId,jdbcType=VARCHAR},
         #{entityDataName,jdbcType=VARCHAR},
-        #{bindFlag,jdbcType=CHAR})
+        #{bindFlag,jdbcType=CHAR},
+        #{fullEntityDataId,jdbcType=VARCHAR})
     </insert>
     <insert id="insertSelective" useGeneratedKeys="true"
         keyProperty="id"
@@ -122,6 +125,9 @@
             <if test="bindFlag != null">
                 bind_flag,
             </if>
+            <if test="fullEntityDataId != null">
+                full_data_id,
+            </if>
         </trim>
         <trim prefix="values (" suffix=")" suffixOverrides=",">
             <if test="id != null">
@@ -168,6 +174,9 @@
             </if>
             <if test="bindFlag != null">
                 #{bindFlag,jdbcType=CHAR},
+            </if>
+            <if test="fullEntityDataId != null">
+                #{fullEntityDataId,jdbcType=VARCHAR},
             </if>
         </trim>
     </insert>
@@ -224,6 +233,10 @@
                 bind_flag =
                 #{bindFlag,jdbcType=CHAR},
             </if>
+            <if test="fullEntityDataId != null">
+                full_data_id =
+                #{fullEntityDataId,jdbcType=VARCHAR},
+            </if>
         </set>
         where id = #{id,jdbcType=INTEGER}
     </update>
@@ -257,7 +270,9 @@
         entity_data_name =
         #{entityDataName,jdbcType=VARCHAR},
         bind_flag =
-        #{bindFlag,jdbcType=VARCHAR}
+        #{bindFlag,jdbcType=VARCHAR},
+        full_data_id =
+        #{fullEntityDataId,jdbcType=VARCHAR}
         where id =
         #{id,jdbcType=INTEGER}
     </update>
