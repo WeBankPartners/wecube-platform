@@ -63,6 +63,8 @@ public abstract class AbstractPluginInvocationService extends AbstractWorkflowSe
     
     protected static final String PARAM_NAME_TASK_FORM_INPUT = "taskFormInput";
     protected static final String PARAM_NAME_TASK_FORM_OUTPUT = "taskFormOutput";
+    
+    protected static final String TEMPORARY_ENTITY_ID_PREFIX = "OID-";
 
     protected final Logger log = LoggerFactory.getLogger(this.getClass());
 
