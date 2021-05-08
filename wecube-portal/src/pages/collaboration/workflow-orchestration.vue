@@ -914,19 +914,24 @@ export default {
 
       let pluginFormCopy = JSON.parse(JSON.stringify(this.pluginForm))
       // 校验必填项，未选中节点跳过校验
-      if ('nodeDefId' in pluginFormCopy) {
+      if (
+        this.currentNode.id &&
+        (this.currentNode.id.startsWith('SubProcess_') || this.currentNode.id.startsWith('Task_'))
+      ) {
         const res = this.checkSaveParams(pluginFormCopy)
         if (!res) return
       }
-      this.serviceTaskBindInfos.push({
-        ...pluginFormCopy,
-        nodeDefId: this.currentNode.nodeDefId,
-        nodeId: this.currentNode.id,
-        nodeName: this.currentNode.name,
-        serviceName: (found && found.serviceName) || '',
-        routineRaw: pluginFormCopy.routineExpression,
-        taskCategory: pluginFormCopy.taskCategory
-      })
+      if (this.currentNode.id) {
+        this.serviceTaskBindInfos.push({
+          ...pluginFormCopy,
+          nodeDefId: this.currentNode.nodeDefId,
+          nodeId: this.currentNode.id,
+          nodeName: this.currentNode.name,
+          serviceName: (found && found.serviceName) || '',
+          routineRaw: pluginFormCopy.routineExpression,
+          taskCategory: pluginFormCopy.taskCategory
+        })
+      }
       this.saveDiagram(true)
     },
     checkSaveParams (pluginFormCopy) {
