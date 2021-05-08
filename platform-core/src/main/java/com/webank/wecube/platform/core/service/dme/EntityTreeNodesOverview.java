@@ -4,33 +4,33 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class EntityTreeNodesOverview {
-	private List<TreeNode> hierarchicalEntityNodes = new ArrayList<>();
-	private List<TreeNode> leafNodeEntityNodes = new ArrayList<>();
+	private List<StandardEntityDataNode> hierarchicalEntityNodes = new ArrayList<>();
+	private List<StandardEntityDataNode> leafNodeEntityNodes = new ArrayList<>();
 
-	public List<TreeNode> getHierarchicalEntityNodes() {
+	public List<StandardEntityDataNode> getHierarchicalEntityNodes() {
 		return hierarchicalEntityNodes;
 	}
 
-	public void setHierarchicalEntityNodes(List<TreeNode> hierarchicalEntityNodes) {
+	public void setHierarchicalEntityNodes(List<StandardEntityDataNode> hierarchicalEntityNodes) {
 		this.hierarchicalEntityNodes = hierarchicalEntityNodes;
 	}
 
-	public List<TreeNode> getLeafNodeEntityNodes() {
+	public List<StandardEntityDataNode> getLeafNodeEntityNodes() {
 		return leafNodeEntityNodes;
 	}
 
-	public void setLeafNodeEntityNodes(List<TreeNode> leafNodeEntityNodes) {
+	public void setLeafNodeEntityNodes(List<StandardEntityDataNode> leafNodeEntityNodes) {
 		this.leafNodeEntityNodes = leafNodeEntityNodes;
 	}
 
-	public void addLeafNodeEntityNodes(TreeNode... leafNodeEntityNodes) {
-		for (TreeNode tn : leafNodeEntityNodes) {
+	public void addLeafNodeEntityNodes(StandardEntityDataNode... leafNodeEntityNodes) {
+		for (StandardEntityDataNode tn : leafNodeEntityNodes) {
 			this.leafNodeEntityNodes.add(tn);
 		}
 	}
 
-	public void addHierarchicalEntityNodes(TreeNode... hierarchicalEntityNodes) {
-		for (TreeNode tn : hierarchicalEntityNodes) {
+	public void addHierarchicalEntityNodes(StandardEntityDataNode... hierarchicalEntityNodes) {
+		for (StandardEntityDataNode tn : hierarchicalEntityNodes) {
 			this.hierarchicalEntityNodes.add(tn);
 		}
 	}
