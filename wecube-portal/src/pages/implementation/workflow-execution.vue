@@ -75,7 +75,7 @@
                   clearable
                   @on-clear="clearTarget"
                 >
-                  <Option v-for="item in allTarget" :value="item.id" :key="item.id">{{ item.key_name }}</Option>
+                  <Option v-for="item in allTarget" :value="item.id" :key="item.id">{{ item.displayName }}</Option>
                 </Select>
                 <Button
                   :disabled="
@@ -659,7 +659,6 @@ export default {
         onOk: async () => {
           // createWorkflowInstanceTerminationRequest
           const instance = this.allFlowInstances.find(_ => _.id === this.selectedFlowInstance)
-          console.log(instance, this.selectedFlowInstance)
           const payload = {
             procInstId: this.selectedFlowInstance,
             procInstKey: instance.procInstKey
@@ -687,8 +686,11 @@ export default {
       }
     },
     async getDetail (row) {
-      if (!row.entityName || !row.dataId) return
-      const { status, data } = await getModelNodeDetail(row.entityName, row.dataId)
+      if (!row.packageName || !row.entityName || !row.dataId) return
+      let params = {
+        additionalFilters: [{ attrName: 'id', op: 'eq', condition: row.dataId }]
+      }
+      const { status, data } = await getModelNodeDetail(row.packageName, row.entityName, params)
       if (status === 'OK') {
         this.rowContent = data
       }
@@ -1173,6 +1175,8 @@ export default {
     renderModelGraph () {
       let nodes = this.modelData.map((_, index) => {
         const nodeId = _.packageName + '_' + _.entityName + '_' + _.dataId
+        // '-' 在viz.js中存在渲染问题
+        const nodeTitle = nodeId.replace(/-/g, '_')
         let color = _.isHighlight ? '#5DB400' : 'black'
         // const isRecord = _.refFlowNodeIds.length > 0
         // const shape = isRecord ? 'ellipse' : 'ellipse'
@@ -1208,7 +1212,7 @@ export default {
         const firstLabel = str.length > 30 ? `${str.slice(0, 1)}...${str.slice(-29)}` : str
         // const fontSize = Math.min((58 / len) * 3, 16)
         const label = firstLabel + '\n' + refStr
-        return `${nodeId} [label="${label}" class="model" id="${nodeId}" color="${color}" fontsize="6" style="filled" fillcolor="${fillcolor}" shape="box"]`
+        return `${nodeTitle} [label="${label}" class="model" id="${nodeId}" color="${color}" fontsize="6" style="filled" fillcolor="${fillcolor}" shape="box"]`
       })
       let genEdge = () => {
         let pathAry = []
@@ -1282,7 +1286,10 @@ export default {
           _ => _.packageName + '_' + _.entityName + '_' + _.dataId === e.target.parentNode.id
         )
         this.nodeTitle = `${found.displayName}`
-        const { status, data } = await getModelNodeDetail(found.entityName, found.dataId)
+        let params = {
+          additionalFilters: [{ attrName: 'id', op: 'eq', condition: found.dataId }]
+        }
+        const { status, data } = await getModelNodeDetail(found.packageName, found.entityName, params)
         if (status === 'OK') {
           this.nodeDetail = JSON.stringify(data)
             .split(',')

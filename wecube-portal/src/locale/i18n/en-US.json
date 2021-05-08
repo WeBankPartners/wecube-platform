@@ -464,5 +464,10 @@
   "required": "Required",
   "obtain_plugin_warn": "The positioning rule cannot obtain plugins, Please select the green node",
   "permission_for_flow": "Permission",
-  "conflict_test": "Conflict Check"
+  "conflict_test": "Conflict Check",
+  "node_params_edit_confirm": "The node data changes, if you choose to give up, the changed information will not be saved!",
+  "abandon": "Abandon",
+  "resource": "Resource",
+  "resource_instance": "Resource Instance",
+  "ip_address": "IP Address"
 }

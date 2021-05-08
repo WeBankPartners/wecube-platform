@@ -35,6 +35,8 @@ public class GraphNodeEntity {
     private String prevIds;
 
     private String succIds;
+    
+    private String fullDataId;
 
     public static String convertIdsListToString(List<String> ids) {
         if (ids == null) {
@@ -177,6 +179,14 @@ public class GraphNodeEntity {
 
     public void setSuccIds(String succIds) {
         this.succIds = succIds;
+    }
+
+    public String getFullDataId() {
+        return fullDataId;
+    }
+
+    public void setFullDataId(String fullDataId) {
+        this.fullDataId = fullDataId;
     }
 
 }

@@ -28,6 +28,7 @@ import com.webank.wecube.platform.core.dto.workflow.InterfaceParameterDto;
 import com.webank.wecube.platform.core.dto.workflow.ProcDefOutlineDto;
 import com.webank.wecube.platform.core.dto.workflow.ProcessDataPreviewDto;
 import com.webank.wecube.platform.core.dto.workflow.RequestObjectDto;
+import com.webank.wecube.platform.core.dto.workflow.RequestObjectDto.RequestParamObjectDto;
 import com.webank.wecube.platform.core.dto.workflow.TaskNodeDefObjectBindInfoDto;
 import com.webank.wecube.platform.core.dto.workflow.TaskNodeExecContextDto;
 import com.webank.wecube.platform.core.dto.workflow.TaskNodeInstObjectBindInfoDto;
@@ -56,7 +57,7 @@ import com.webank.wecube.platform.core.repository.workflow.TaskNodeInstInfoMappe
 import com.webank.wecube.platform.core.service.dme.EntityOperationRootCondition;
 import com.webank.wecube.platform.core.service.dme.EntityTreeNodesOverview;
 import com.webank.wecube.platform.core.service.dme.StandardEntityOperationService;
-import com.webank.wecube.platform.core.service.dme.TreeNode;
+import com.webank.wecube.platform.core.service.dme.StandardEntityDataNode;
 import com.webank.wecube.platform.core.service.plugin.PluginConfigMgmtService;
 
 /**
@@ -65,8 +66,12 @@ import com.webank.wecube.platform.core.service.plugin.PluginConfigMgmtService;
  *
  */
 @Service
-public class WorkflowDataService {
+public class WorkflowDataService extends AbstractWorkflowService{
     private static final Logger log = LoggerFactory.getLogger(WorkflowDataService.class);
+
+    public static final String MASKED_VALUE = "***MASK***";
+
+    public static final String CALLBACK_PARAMETER_KEY = "callbackParameter";
 
     @Autowired
     private WorkflowProcDefService workflowProcDefService;
@@ -137,11 +142,11 @@ public class WorkflowDataService {
             d.setNodeInstId(e.getTaskNodeInstId());
             d.setProcInstId(e.getProcInstId());
             d.setEntityDisplayName(e.getEntityDataName());
-            if(StringUtils.isNoneBlank(d.getEntityTypeId())){
-                String [] parts = d.getEntityTypeId().trim().split(":");
-                if(parts.length == 1){
+            if (StringUtils.isNoneBlank(d.getEntityTypeId())) {
+                String[] parts = d.getEntityTypeId().trim().split(":");
+                if (parts.length == 1) {
                     d.setEntityName(parts[0]);
-                }else if(parts.length == 2){
+                } else if (parts.length == 2) {
                     d.setPackageName(parts[0]);
                     d.setEntityName(parts[1]);
                 }
@@ -192,25 +197,25 @@ public class WorkflowDataService {
 
         List<ProcRoleBindingEntity> procRoleBinds = procRoleBindingMapper
                 .selectAllByProcIdAndPermission(procInstInfo.getProcDefId(), ProcRoleBindingEntity.USE);
-        
-        if(procRoleBinds == null || procRoleBinds.isEmpty()){
+
+        if (procRoleBinds == null || procRoleBinds.isEmpty()) {
             throw new WecubeCoreException("Lack of permission to update task node bindings.");
         }
-        
+
         Set<String> currUserRoles = AuthenticationContextHolder.getCurrentUserRoles();
-        if(currUserRoles == null){
+        if (currUserRoles == null) {
             currUserRoles = new HashSet<String>();
         }
-        
+
         boolean lackOfPermission = true;
-        for(ProcRoleBindingEntity procRoleBind : procRoleBinds){
-            if(currUserRoles.contains(procRoleBind.getRoleName())){
+        for (ProcRoleBindingEntity procRoleBind : procRoleBinds) {
+            if (currUserRoles.contains(procRoleBind.getRoleName())) {
                 lackOfPermission = false;
                 break;
             }
         }
-        
-        if(lackOfPermission){
+
+        if (lackOfPermission) {
             throw new WecubeCoreException("Lack of permission to update task node bindings.");
         }
 
@@ -666,6 +671,9 @@ public class WorkflowDataService {
             entity.setProcSessId(previewDto.getProcessSessionId());
             entity.setCreatedBy(AuthenticationContextHolder.getCurrentUsername());
             entity.setCreatedTime(new Date());
+            
+            //#2169
+            entity.setFullDataId(gNode.getFullDataId());
 
             graphNodeRepository.insert(entity);
         }
@@ -683,6 +691,7 @@ public class WorkflowDataService {
         procInstBindingTmpEntity.setEntityDataName(dataName);
         procInstBindingTmpEntity.setCreatedBy(AuthenticationContextHolder.getCurrentUsername());
         procInstBindingTmpEntity.setCreatedTime(new Date());
+        procInstBindingTmpEntity.setFullEntityDataId(dataId);
 
         procExecBindingTmpRepository.insert(procInstBindingTmpEntity);
     }
@@ -699,16 +708,17 @@ public class WorkflowDataService {
         for (FlowNodeDefDto f : outline.getFlowNodes()) {
             String nodeType = f.getNodeType();
 
-            if (!"subProcess".equals(nodeType)) {
-                continue;
-            }
-            
-            if(TaskNodeDefInfoEntity.DYNAMIC_BIND_YES.equalsIgnoreCase(f.getDynamicBind())){
-                log.info("task node {}-{} is dynamic binding node and no need to pre-bind.", f.getNodeDefId(), f.getNodeName());
+            if (!NODE_SUB_PROCESS.equals(nodeType)) {
                 continue;
             }
 
-            processSingleFlowNodeDefDto(f, hierarchicalEntityNodes, dataId, processSessionId, needSaveTmp,
+            if (TaskNodeDefInfoEntity.DYNAMIC_BIND_YES.equalsIgnoreCase(f.getDynamicBind())) {
+                log.info("task node {}-{} is dynamic binding node and no need to pre-bind.", f.getNodeDefId(),
+                        f.getNodeName());
+                continue;
+            }
+
+            tryProcessSingleFlowNodeDef(f, hierarchicalEntityNodes, dataId, processSessionId, needSaveTmp,
                     externalCacheMap);
         }
 
@@ -716,7 +726,7 @@ public class WorkflowDataService {
         result.setProcessSessionId(processSessionId);
 
         if (needSaveTmp) {
-            GraphNodeDto rootEntity = tryCalRootGraphNode(hierarchicalEntityNodes, dataId);
+            GraphNodeDto rootEntity = tryCalculateRootGraphNode(hierarchicalEntityNodes, dataId);
             String dataName = null;
             if (rootEntity != null) {
                 dataName = rootEntity.getDisplayName();
@@ -728,7 +738,7 @@ public class WorkflowDataService {
 
     }
 
-    private GraphNodeDto tryCalRootGraphNode(List<GraphNodeDto> hierarchicalEntityNodes, String dataId) {
+    private GraphNodeDto tryCalculateRootGraphNode(List<GraphNodeDto> hierarchicalEntityNodes, String dataId) {
         if (hierarchicalEntityNodes == null || hierarchicalEntityNodes.isEmpty()) {
             return null;
         }
@@ -742,32 +752,32 @@ public class WorkflowDataService {
         return null;
     }
 
-    private void processSingleFlowNodeDefDto(FlowNodeDefDto f, List<GraphNodeDto> hierarchicalEntityNodes,
+    private void tryProcessSingleFlowNodeDef(FlowNodeDefDto flowNode, List<GraphNodeDto> hierarchicalEntityNodes,
             String dataId, String processSessionId, boolean needSaveTmp, Map<Object, Object> cacheMap) {
-        String routineExpr = calculateDataModelExpression(f);
+        String routineExpr = calculateDataModelExpression(flowNode);
 
         if (StringUtils.isBlank(routineExpr)) {
-            log.info("the routine expression is blank for {} {}", f.getNodeDefId(), f.getNodeName());
+            log.info("the routine expression is blank for {} {}", flowNode.getNodeDefId(), flowNode.getNodeName());
             return;
         }
 
-        log.info("About to fetch data for node {} {} with expression {} and data id {}", f.getNodeDefId(),
-                f.getNodeName(), routineExpr, dataId);
+        log.info("About to fetch data for node {} {} with expression {} and data id {}", flowNode.getNodeDefId(),
+                flowNode.getNodeName(), routineExpr, dataId);
         EntityOperationRootCondition condition = new EntityOperationRootCondition(routineExpr, dataId);
-        List<TreeNode> nodes = null;
+        List<StandardEntityDataNode> nodes = null;
         try {
             EntityTreeNodesOverview overview = standardEntityOperationService.generateEntityLinkOverview(condition,
                     this.userJwtSsoTokenRestTemplate, cacheMap);
             nodes = overview.getHierarchicalEntityNodes();
 
             if (needSaveTmp) {
-                saveLeafNodeEntityNodesTemporary(f, overview.getLeafNodeEntityNodes(), processSessionId);
+                saveLeafNodeEntityNodesTemporary(flowNode, overview.getLeafNodeEntityNodes(), processSessionId);
             }
         } catch (Exception e) {
             String errMsg = String.format("Errors while fetching data for node %s %s with expr %s and data id %s",
-                    f.getNodeDefId(), f.getNodeName(), routineExpr, dataId);
+                    flowNode.getNodeDefId(), flowNode.getNodeName(), routineExpr, dataId);
             log.error(errMsg, e);
-            throw new WecubeCoreException("3191", errMsg, f.getNodeDefId(), f.getNodeName(), routineExpr, dataId);
+            throw new WecubeCoreException("3191", errMsg, flowNode.getNodeDefId(), flowNode.getNodeName(), routineExpr, dataId);
         }
 
         if (nodes == null || nodes.isEmpty()) {
@@ -780,29 +790,31 @@ public class WorkflowDataService {
         processTreeNodes(hierarchicalEntityNodes, nodes);
     }
 
-    private void processTreeNodes(List<GraphNodeDto> hierarchicalEntityNodes, List<TreeNode> nodes) {
-        for (TreeNode tn : nodes) {
+    private void processTreeNodes(List<GraphNodeDto> hierarchicalEntityNodes, List<StandardEntityDataNode> nodes) {
+        for (StandardEntityDataNode tn : nodes) {
             String treeNodeId = buildId(tn);
             GraphNodeDto currNode = findGraphNodeDtoById(hierarchicalEntityNodes, treeNodeId);
             if (currNode == null) {
                 currNode = new GraphNodeDto();
-                currNode.setDataId(tn.getRootId().toString());
+                currNode.setDataId(tn.getId());
                 currNode.setPackageName(tn.getPackageName());
                 currNode.setEntityName(tn.getEntityName());
-                currNode.setDisplayName(tn.getDisplayName() == null ? null : tn.getDisplayName().toString());
+                currNode.setDisplayName(tn.getDisplayName());
+                //#2169
+                currNode.setFullDataId(tn.getFullId());
 
                 addToResult(hierarchicalEntityNodes, currNode);
             }
 
-            TreeNode parentTreeNode = tn.getParent();
+            StandardEntityDataNode parentTreeNode = tn.getParent();
             if (parentTreeNode != null) {
                 String parentTreeNodeId = buildId(parentTreeNode);
                 currNode.addPreviousIds(parentTreeNodeId);
             }
 
-            List<TreeNode> childrenTreeNodes = tn.getChildren();
+            List<StandardEntityDataNode> childrenTreeNodes = tn.getChildren();
             if (childrenTreeNodes != null) {
-                for (TreeNode ctn : childrenTreeNodes) {
+                for (StandardEntityDataNode ctn : childrenTreeNodes) {
                     String ctnId = buildId(ctn);
                     currNode.addSucceedingIds(ctnId);
                 }
@@ -810,7 +822,7 @@ public class WorkflowDataService {
         }
     }
 
-    private void saveLeafNodeEntityNodesTemporary(FlowNodeDefDto f, List<TreeNode> leafNodeEntityNodes,
+    private void saveLeafNodeEntityNodesTemporary(FlowNodeDefDto f, List<StandardEntityDataNode> leafNodeEntityNodes,
             String processSessionId) {
         if (leafNodeEntityNodes == null) {
             return;
@@ -821,9 +833,9 @@ public class WorkflowDataService {
                     f.getNodeDefId(), f.getNodeId(), f.getNodeName());
         }
 
-        List<TreeNode> savedTreeNodes = new ArrayList<>();
+        List<StandardEntityDataNode> savedTreeNodes = new ArrayList<>();
 
-        for (TreeNode tn : leafNodeEntityNodes) {
+        for (StandardEntityDataNode tn : leafNodeEntityNodes) {
             if (containsTreeNode(savedTreeNodes, tn)) {
                 continue;
             }
@@ -833,13 +845,16 @@ public class WorkflowDataService {
             taskNodeBinding.setIsBound(ProcExecBindingTmpEntity.BOUND);
             taskNodeBinding.setProcSessionId(processSessionId);
             taskNodeBinding.setProcDefId(f.getProcDefId());
-            taskNodeBinding.setEntityDataId(String.valueOf(tn.getRootId()));
+            taskNodeBinding.setEntityDataId(String.valueOf(tn.getId()));
             taskNodeBinding.setEntityTypeId(String.format("%s:%s", tn.getPackageName(), tn.getEntityName()));
-            taskNodeBinding.setEntityDataName(String.valueOf(tn.getDisplayName()));
+            taskNodeBinding.setEntityDataName(tn.getDisplayName());
             taskNodeBinding.setNodeDefId(f.getNodeDefId());
             taskNodeBinding.setOrderedNo(f.getOrderedNo());
             taskNodeBinding.setCreatedBy(AuthenticationContextHolder.getCurrentUsername());
             taskNodeBinding.setCreatedTime(new Date());
+            
+            //#2169 full data id
+            taskNodeBinding.setFullEntityDataId(tn.getFullId());
 
             procExecBindingTmpRepository.insert(taskNodeBinding);
             savedTreeNodes.add(tn);
@@ -849,8 +864,8 @@ public class WorkflowDataService {
 
     }
 
-    private boolean containsTreeNode(List<TreeNode> treeNodes, TreeNode treeNode) {
-        for (TreeNode tn : treeNodes) {
+    private boolean containsTreeNode(List<StandardEntityDataNode> treeNodes, StandardEntityDataNode treeNode) {
+        for (StandardEntityDataNode tn : treeNodes) {
             if (tn.equals(treeNode)) {
                 return true;
             }
@@ -859,27 +874,27 @@ public class WorkflowDataService {
         return false;
     }
 
-    private String calculateDataModelExpression(FlowNodeDefDto f) {
-        if (StringUtils.isBlank(f.getRoutineExpression())) {
+    private String calculateDataModelExpression(FlowNodeDefDto flowNode) {
+        if (StringUtils.isBlank(flowNode.getRoutineExpression())) {
             return null;
         }
 
-        String expr = f.getRoutineExpression();
+        String expr = flowNode.getRoutineExpression();
 
-        if (StringUtils.isBlank(f.getServiceId())) {
+        if (StringUtils.isBlank(flowNode.getServiceId())) {
             return expr;
         }
 
-        PluginConfigInterfaces inter = pluginConfigMgmtService.getPluginConfigInterfaceByServiceName(f.getServiceId());
-        if (inter == null) {
+        PluginConfigInterfaces pluginConfigIntf = pluginConfigMgmtService.getPluginConfigInterfaceByServiceName(flowNode.getServiceId());
+        if (pluginConfigIntf == null) {
             return expr;
         }
 
-        if (StringUtils.isBlank(inter.getFilterRule())) {
+        if (StringUtils.isBlank(pluginConfigIntf.getFilterRule())) {
             return expr;
         }
 
-        return expr + inter.getFilterRule();
+        return expr + pluginConfigIntf.getFilterRule();
     }
 
     private void addToResult(List<GraphNodeDto> result, GraphNodeDto... nodes) {
@@ -905,8 +920,8 @@ public class WorkflowDataService {
         return null;
     }
 
-    private String buildId(TreeNode n) {
-        return String.format("%s:%s:%s", n.getPackageName(), n.getEntityName(), n.getRootId());
+    private String buildId(StandardEntityDataNode n) {
+        return String.format("%s:%s:%s", n.getPackageName(), n.getEntityName(), n.getId());
     }
 
     private boolean isSensitiveData(TaskNodeExecParamEntity respParamEntity) {
@@ -918,81 +933,105 @@ public class WorkflowDataService {
             return false;
         }
 
-        if (Boolean.TRUE.equals(respParamEntity.getIsSensitive())) {
-            return true;
-
-        }
-
-        return false;
+        return respParamEntity.getIsSensitive();
 
     }
 
-    private Map<String, Map<String, String>> calculateRespParamsByObjectId(
-            List<TaskNodeExecParamEntity> requestParamEntities, List<TaskNodeExecParamEntity> responseParamEntities) {
-        Map<String, Map<String, String>> respParamsByObjectId = new HashMap<String, Map<String, String>>();
-        if (responseParamEntities != null) {
-            for (TaskNodeExecParamEntity respParamEntity : responseParamEntities) {
-                Map<String, String> respParamsMap = respParamsByObjectId.get(respParamEntity.getObjId());
-                if (respParamsMap == null) {
-                    respParamsMap = new HashMap<String, String>();
-                    respParamsByObjectId.put(respParamEntity.getObjId(), respParamsMap);
-                }
-                if (isSensitiveData(respParamEntity)) {
-                    respParamsMap.put(respParamEntity.getParamName(), "***MASK***");
-                } else {
-                    respParamsMap.put(respParamEntity.getParamName(), respParamEntity.getParamDataValue());
-                }
-
-            }
-        }
-
-        return respParamsByObjectId;
-    }
-
-    private Map<String, RequestObjectDto> calculateRequestObjects(List<TaskNodeExecParamEntity> requestParamEntities,
-            List<TaskNodeExecParamEntity> responseParamEntities) {
-        Map<String, RequestObjectDto> objs = new HashMap<>();
-        for (TaskNodeExecParamEntity rp : requestParamEntities) {
-            RequestObjectDto ro = objs.get(rp.getObjId());
-            if (ro == null) {
-                ro = new RequestObjectDto();
-                objs.put(rp.getObjId(), ro);
-            }
-
-            if (isSensitiveData(rp)) {
-                ro.addInput(rp.getParamName(), "***MASK***");
-            } else {
-                ro.addInput(rp.getParamName(), rp.getParamDataValue());
-            }
-        }
-
-        return objs;
-    }
-
+    //#2169
     private List<RequestObjectDto> calculateRequestObjectDtos(List<TaskNodeExecParamEntity> requestParamEntities,
             List<TaskNodeExecParamEntity> responseParamEntities) {
         List<RequestObjectDto> requestObjects = new ArrayList<>();
 
-        if (requestParamEntities == null) {
-            return requestObjects;
-        }
+        Map<String, RequestParamObjectDto> reqParamObjectsByObjectId = new HashMap<>();
 
-        Map<String, Map<String, String>> respParamsByObjectId = calculateRespParamsByObjectId(requestParamEntities,
-                responseParamEntities);
+        Map<String, RequestParamObjectDto> respParamObjectsByObjectId = new HashMap<>();
 
-        Map<String, RequestObjectDto> objs = calculateRequestObjects(requestParamEntities, responseParamEntities);
+        if (requestParamEntities != null) {
+            for (TaskNodeExecParamEntity reqParam : requestParamEntities) {
+                RequestParamObjectDto paramObjectDto = reqParamObjectsByObjectId.get(reqParam.getObjId());
+                if (paramObjectDto == null) {
+                    paramObjectDto = new RequestParamObjectDto();
+                    paramObjectDto.setObjectId(reqParam.getObjId());
+                    reqParamObjectsByObjectId.put(reqParam.getObjId(), paramObjectDto);
+                }
 
-        for (String objectId : objs.keySet()) {
-            RequestObjectDto obj = objs.get(objectId);
-            Map<String, String> respParamsMap = respParamsByObjectId.get(objectId);
-            if (respParamsMap != null) {
-                respParamsMap.forEach((k, v) -> {
-                    obj.addOutput(k, v);
-                });
+                String attrValue = null;
+                if (isSensitiveData(reqParam)) {
+                    attrValue = MASKED_VALUE;
+                } else {
+                    attrValue = reqParam.getParamDataValue();
+                }
+
+                if (CALLBACK_PARAMETER_KEY.equalsIgnoreCase(reqParam.getParamName())) {
+                    paramObjectDto.setCallbackParameter(reqParam.getParamDataValue());
+                } else {
+//                    RequestParamAttrDto attrDto = new RequestParamAttrDto(reqParam.getParamName(), attrValue);
+                    paramObjectDto.addParamAttr(reqParam.getParamName(), attrValue);
+                }
             }
-
-            requestObjects.add(obj);
         }
+        
+        if(responseParamEntities != null){
+            for (TaskNodeExecParamEntity param : responseParamEntities) {
+                RequestParamObjectDto paramObjectDto = respParamObjectsByObjectId.get(param.getObjId());
+                if (paramObjectDto == null) {
+                    paramObjectDto = new RequestParamObjectDto();
+                    paramObjectDto.setObjectId(param.getObjId());
+                    respParamObjectsByObjectId.put(param.getObjId(), paramObjectDto);
+                }
+
+                String attrValue = null;
+                if (isSensitiveData(param)) {
+                    attrValue = MASKED_VALUE;
+                } else {
+                    attrValue = param.getParamDataValue();
+                }
+
+                if (CALLBACK_PARAMETER_KEY.equalsIgnoreCase(param.getParamName())) {
+                    paramObjectDto.setCallbackParameter(param.getParamDataValue());
+                } else {
+//                    RequestParamAttrDto attrDto = new RequestParamAttrDto(param.getParamName(), attrValue);
+                    paramObjectDto.addParamAttr(param.getParamName(), attrValue);
+                }
+            }
+        }
+        
+        Map<String, RequestObjectDto> requestObjectsByCallbackParameter = new HashMap<String,RequestObjectDto>();
+        
+        for(RequestParamObjectDto reqParamObjectDto : reqParamObjectsByObjectId.values()){
+            String callbackParameter = reqParamObjectDto.getCallbackParameter();
+            if(StringUtils.isBlank(callbackParameter)){
+                continue;
+            }
+            RequestObjectDto objectDto = requestObjectsByCallbackParameter.get(callbackParameter);
+            if(objectDto == null){
+                objectDto = new RequestObjectDto();
+                objectDto.setCallbackParameter(callbackParameter);
+                
+                requestObjectsByCallbackParameter.put(callbackParameter, objectDto);
+            }
+            
+            objectDto.addInput(reqParamObjectDto.getParamAttrs());
+            
+        }
+        
+        for(RequestParamObjectDto respParamObjectDto : respParamObjectsByObjectId.values()){
+            String callbackParameter = respParamObjectDto.getCallbackParameter();
+            if(StringUtils.isBlank(callbackParameter)){
+                continue;
+            }
+            RequestObjectDto objectDto = requestObjectsByCallbackParameter.get(callbackParameter);
+            if(objectDto == null){
+                objectDto = new RequestObjectDto();
+                objectDto.setCallbackParameter(callbackParameter);
+                
+                requestObjectsByCallbackParameter.put(callbackParameter, objectDto);
+            }
+            
+            objectDto.addOutput(respParamObjectDto.getParamAttrs());
+        }
+        
+        requestObjects.addAll(requestObjectsByCallbackParameter.values());
 
         return requestObjects;
     }

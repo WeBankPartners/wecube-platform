@@ -85,10 +85,4 @@ public class PluginRequest<DATATYPE> {
 	public static class DefaultPluginRequest extends PluginRequest<Map<String, Object>> {
 	}
 
-	public static class PluginLoggingInfoRequest extends PluginRequest<PluginLoggingInfoRequestParameter> {
-	}
-
-	public static class PluginLoggingInfoSearchDetailRequest
-			extends PluginRequest<PluginLoggingInfoSearchDetailRequestParameter> {
-	}
 }

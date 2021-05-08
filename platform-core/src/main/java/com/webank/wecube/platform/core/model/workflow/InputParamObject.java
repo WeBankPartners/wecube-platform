@@ -8,13 +8,15 @@ import org.apache.commons.lang3.StringUtils;
 public class InputParamObject {
 
     private String entityTypeId;
-    
+
     private String entityDataId;
+
+    private String fullEntityDataId;
 
     private List<String> attrNames = new ArrayList<>();
 
     private List<InputParamAttr> attrs = new ArrayList<>();
-    
+
     public String getEntityTypeId() {
         return entityTypeId;
     }
@@ -62,6 +64,14 @@ public class InputParamObject {
                 this.attrs.add(a);
             }
         }
+    }
+
+    public String getFullEntityDataId() {
+        return fullEntityDataId;
+    }
+
+    public void setFullEntityDataId(String fullEntityDataId) {
+        this.fullEntityDataId = fullEntityDataId;
     }
 
 }

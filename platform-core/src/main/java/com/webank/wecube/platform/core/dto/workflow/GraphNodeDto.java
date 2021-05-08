@@ -11,8 +11,11 @@ public class GraphNodeDto {
     private String entityName;
     private String dataId;
     private String displayName;
+    // #2169
+    private String fullDataId;
 
     private String id;
+
     private List<String> previousIds = new ArrayList<>();
     private List<String> succeedingIds = new ArrayList<>();
 
@@ -26,10 +29,10 @@ public class GraphNodeDto {
     }
 
     public String getId() {
-        if(StringUtils.isBlank(id)){
+        if (StringUtils.isBlank(id)) {
             this.id = buildId();
         }
-        
+
         return id;
     }
 
@@ -108,4 +111,13 @@ public class GraphNodeDto {
     public void setDisplayName(String displayName) {
         this.displayName = displayName;
     }
+
+    public String getFullDataId() {
+        return fullDataId;
+    }
+
+    public void setFullDataId(String fullDataId) {
+        this.fullDataId = fullDataId;
+    }
+
 }

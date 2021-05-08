@@ -19,6 +19,7 @@ import com.webank.wecube.platform.core.repository.workflow.TaskNodeDefInfoMapper
 import com.webank.wecube.platform.core.repository.workflow.TaskNodeExecParamMapper;
 import com.webank.wecube.platform.core.repository.workflow.TaskNodeExecRequestMapper;
 import com.webank.wecube.platform.core.repository.workflow.TaskNodeInstInfoMapper;
+import com.webank.wecube.platform.core.service.dme.EntityQueryExpressionParser;
 import com.webank.wecube.platform.core.service.dme.StandardEntityOperationService;
 import com.webank.wecube.platform.core.service.plugin.PluginConfigMgmtService;
 
@@ -70,6 +71,9 @@ public abstract class AbstractPluginInvocationService extends AbstractWorkflowSe
     
     @Autowired
     protected SimpleEncryptionService simpleEncryptionService;
+    
+    @Autowired
+    protected EntityQueryExpressionParser entityQueryExpressionParser;
     
     protected ObjectMapper objectMapper = new ObjectMapper();
 
