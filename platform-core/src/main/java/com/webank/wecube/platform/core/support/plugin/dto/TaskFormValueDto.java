@@ -5,8 +5,10 @@ import java.util.List;
 
 public class TaskFormValueDto {
 
-    private String formItemMetaId;
+    private String formMetaId;
 
+    private String procDefId;
+    private String procDefKey;
     private Integer procInstId;
     private String procInstKey;
     private String taskNodeDefId;
@@ -46,15 +48,13 @@ public class TaskFormValueDto {
         this.taskNodeInstId = taskNodeInstId;
     }
 
-    public String getFormItemMetaId() {
-        return formItemMetaId;
+    public String getFormMetaId() {
+        return formMetaId;
     }
 
-    public void setFormItemMetaId(String formItemMetaId) {
-        this.formItemMetaId = formItemMetaId;
+    public void setFormMetaId(String formMetaId) {
+        this.formMetaId = formMetaId;
     }
-
-    
 
     public void addFormDataEntities(TaskFormDataEntityDto formDataEntity) {
         if (formDataEntity == null) {
@@ -70,4 +70,36 @@ public class TaskFormValueDto {
     public void setFormDataEntities(List<TaskFormDataEntityDto> formDataEntities) {
         this.formDataEntities = formDataEntities;
     }
+    
+    public void addFormDataEntities(List<TaskFormDataEntityDto> formDataEntities) {
+        if(formDataEntities == null){
+            return;
+        }
+        this.formDataEntities.addAll(formDataEntities);
+    }
+    
+    public void addFormDataEntity(TaskFormDataEntityDto entity){
+        if(entity == null){
+            return;
+        }
+        
+        this.formDataEntities.add(entity);
+    }
+
+    public String getProcDefId() {
+        return procDefId;
+    }
+
+    public void setProcDefId(String procDefId) {
+        this.procDefId = procDefId;
+    }
+
+    public String getProcDefKey() {
+        return procDefKey;
+    }
+
+    public void setProcDefKey(String procDefKey) {
+        this.procDefKey = procDefKey;
+    }
+
 }
