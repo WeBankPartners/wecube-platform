@@ -4,6 +4,8 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.commons.lang3.StringUtils;
+
 import com.webank.wecube.platform.core.support.plugin.dto.DynamicEntityValueDto;
 
 public class WorkflowInstCreationContext implements Serializable {
@@ -66,6 +68,20 @@ public class WorkflowInstCreationContext implements Serializable {
             return;
         }
         this.bindings.add(binding);
+    }
+    
+    public DynamicEntityValueDto findByEntityDataIdOrOid(String id){
+        for(DynamicEntityValueDto e : entities){
+            if(StringUtils.isNoneBlank(e.getEntityDataId()) && e.getEntityDataId().equals(id)){
+                return e;
+            }
+            
+            if(e.getOid().equals(id)){
+                return e;
+            }
+        }
+        
+        return null;
     }
     
     public DynamicEntityValueDto findByOid(String oid){
