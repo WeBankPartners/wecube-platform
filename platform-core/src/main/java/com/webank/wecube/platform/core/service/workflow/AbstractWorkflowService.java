@@ -36,6 +36,8 @@ public abstract class AbstractWorkflowService {
     
     public static final String PLUGIN_NAME_ITSDANGEROUS = "itsdangerous";
     
+    public static final String CALLBACK_PARAMETER_SYSTEM_PREFIX = "SYS-ENTITY";
+    
     protected static List<String> statelessNodeTypes = Arrays.asList(NODE_START_EVENT, NODE_END_EVENT, NODE_EXCLUSIVE_GATEWAY,
             NODE_PARALLEL_GATEWAY);
     
