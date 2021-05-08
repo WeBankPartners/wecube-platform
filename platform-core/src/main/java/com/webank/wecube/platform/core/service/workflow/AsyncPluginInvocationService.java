@@ -262,6 +262,7 @@ public class AsyncPluginInvocationService extends AbstractPluginInvocationServic
             return;
         }
 
+        //TODO #2169 to support entity creation
         String nodeEntityId = (String) outputParameterMap.get(CALLBACK_PARAMETER_KEY);
 
         if (StringUtils.isBlank(nodeEntityId)) {
@@ -274,9 +275,12 @@ public class AsyncPluginInvocationService extends AbstractPluginInvocationServic
                 && PLUGIN_RESULT_CODE_PARTIALLY_FAIL.equalsIgnoreCase(errorCodeOfSingleRecord)) {
             log.info("such request is partially failed for request:{} and {}:{}", ctx.getRequestId(),
                     CALLBACK_PARAMETER_KEY, nodeEntityId);
+            
+            //TODO to store status
             return;
         }
 
+        //TODO #2169 to support entity creation
         for (PluginConfigInterfaceParameters pciParam : outputParameters) {
             String paramName = pciParam.getName();
             String paramExpr = pciParam.getMappingEntityExpression();
@@ -319,6 +323,7 @@ public class AsyncPluginInvocationService extends AbstractPluginInvocationServic
 
         String entityTypeId = null;
         String entityDataId = null;
+        String fullEntityDataId = null;
 
         String requestId = ctx.getTaskNodeExecRequestEntity().getReqId();
 
@@ -337,6 +342,7 @@ public class AsyncPluginInvocationService extends AbstractPluginInvocationServic
             objectId = callbackParameterInputEntity.getObjId();
             entityTypeId = callbackParameterInputEntity.getEntityTypeId();
             entityDataId = callbackParameterInputEntity.getEntityDataId();
+            fullEntityDataId = callbackParameterInputEntity.getFullEntityDataId();
         }
 
         List<PluginConfigInterfaceParameters> outputParameters = ctx.getPluginConfigInterface().getOutputParameters();
@@ -363,6 +369,7 @@ public class AsyncPluginInvocationService extends AbstractPluginInvocationServic
             TaskNodeExecParamEntity paramEntity = new TaskNodeExecParamEntity();
             paramEntity.setEntityTypeId(entityTypeId);
             paramEntity.setEntityDataId(entityDataId);
+            paramEntity.setFullEntityDataId(fullEntityDataId);
             paramEntity.setObjId(objectId);
             paramEntity.setParamType(TaskNodeExecParamEntity.PARAM_TYPE_RESPONSE);
             paramEntity.setParamName(entry.getKey());
