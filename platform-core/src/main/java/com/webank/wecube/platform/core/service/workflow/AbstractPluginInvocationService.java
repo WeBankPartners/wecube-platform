@@ -59,6 +59,9 @@ public abstract class AbstractPluginInvocationService extends AbstractWorkflowSe
     protected static final int DEFAULT_VALUE_DATA_TYPE_NUMBER = 0;
 
     protected static final int MAX_PARAM_VAL_SIZE = 3000;
+    
+    protected static final String PARAM_NAME_TASK_FORM_INPUT = "taskFormInput";
+    protected static final String PARAM_NAME_TASK_FORM_OUTPUT = "taskFormOutput";
 
     protected final Logger log = LoggerFactory.getLogger(this.getClass());
 
@@ -121,8 +124,10 @@ public abstract class AbstractPluginInvocationService extends AbstractWorkflowSe
 
     @Autowired
     protected ExtraTaskMapper extraTaskMapper;
+    
     @Autowired
     protected EntityQueryExpressionParser entityQueryExpressionParser;
+    
     @Autowired
     protected PluginTaskFormRestClient pluginTaskFormRestClient;
     
