@@ -545,7 +545,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
         }
 
         for (TaskFormItemMetaDto taskFormItemMeta : formItemMetas) {
-            List<String> bindObjectIds = tryCalculateBindObjectId(taskFormItemMeta, nodeObjectBindings);
+            List<String> bindObjectIds = tryCalculateBindObjectIds(taskFormItemMeta, nodeObjectBindings);
             if (bindObjectIds == null || bindObjectIds.isEmpty()) {
                 continue;
             }
@@ -581,6 +581,8 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
                             .findAttrValue(taskFormItemMeta.getAttrName());
                     if (attrValueDto != null) {
                         taskFormItemValueDto.setAttrValue(attrValueDto.getDataValue());
+                    }else{
+                        //TODO fetch form cmdb
                     }
                 }
 
@@ -595,7 +597,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
         return formDataEntities;
     }
 
-    private List<String> tryCalculateBindObjectId(TaskFormItemMetaDto taskFormItemMeta,
+    private List<String> tryCalculateBindObjectIds(TaskFormItemMetaDto taskFormItemMeta,
             List<ProcExecBindingEntity> nodeObjectBindings) {
         List<String> nodeBindObjectIds = new ArrayList<>();
         for (ProcExecBindingEntity bindEntity : nodeObjectBindings) {
@@ -611,7 +613,11 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 
             if (taskFormItemMeta.getPackageName().equals(entityTypeIdParts[0])
                     && taskFormItemMeta.getEntityName().equals(entityTypeIdParts[1])) {
-                nodeBindObjectIds.add(bindEntity.getEntityDataId());
+                String bindId = bindEntity.getEntityDataId();
+                if(bindId.startsWith(TEMPORARY_ENTITY_ID_PREFIX)){
+                    bindId = bindId.substring(TEMPORARY_ENTITY_ID_PREFIX.length());
+                }
+                nodeBindObjectIds.add(bindId);
             }
             // TODO to tidy entity name here
         }
