@@ -22,40 +22,42 @@ public class StandardEntityQueryExecutor implements EntityQueryExecutor {
     public EntityTreeNodesOverview generateEntityLinkOverview(EntityOperationContext ctx) {
         doExecuteQuery(ctx);
 
-        List<TreeNode> hierarchicalEntityNodes = generateHierarchicalEntityTreeNodes(ctx);
-        List<TreeNode> leafNodeEntityNodes = generateLeafNodeEntityNodes(ctx);
+        List<StandardEntityDataNode> hierarchicalEntityNodes = generateHierarchicalEntityTreeNodes(ctx);
+        List<StandardEntityDataNode> leafNodeEntityNodes = generateLeafNodeEntityNodes(ctx);
 
         return buildEntityTreeNodesOverview(hierarchicalEntityNodes, leafNodeEntityNodes);
     }
 
     @Override
-    public List<TreeNode> generatePreviewTree(EntityOperationContext ctx) {
+    public List<StandardEntityDataNode> generatePreviewTree(EntityOperationContext ctx) {
         doExecuteQuery(ctx);
         return generateHierarchicalEntityTreeNodes(ctx);
     }
 
-    private void pupolateTreeNodeWithLinkNode(List<TreeNode> result, EntityQueryLinkNode linkNode) {
+    private void pupolateTreeNodeWithLinkNode(List<StandardEntityDataNode> result, EntityQueryLinkNode linkNode) {
         for (EntityDataDelegate delegate : linkNode.getEntityDataDelegates()) {
 
-            TreeNode currTreeNode = findTreeNode(result, delegate.getPackageName(), delegate.getEntityName(),
+            StandardEntityDataNode currTreeNode = findTreeNode(result, delegate.getPackageName(), delegate.getEntityName(),
                     delegate.getId());
             if (currTreeNode == null) {
-                currTreeNode = new TreeNode();
-                currTreeNode.setRootId(delegate.getId());
+                currTreeNode = new StandardEntityDataNode();
+                currTreeNode.setId(delegate.getId());
                 currTreeNode.setDisplayName(delegate.getDisplayName());
                 currTreeNode.setEntityName(delegate.getEntityName());
                 currTreeNode.setPackageName(delegate.getPackageName());
+                currTreeNode.setFullId(delegate.getFullId());
 
                 result.add(currTreeNode);
             }
 
             EntityDataDelegate prevDelegate = delegate.getPreviousEntity();
             if (prevDelegate != null) {
-                TreeNode prevTreeNode = findTreeNode(result, prevDelegate.getPackageName(),
+                StandardEntityDataNode prevTreeNode = findTreeNode(result, prevDelegate.getPackageName(),
                         prevDelegate.getEntityName(), prevDelegate.getId());
                 if (prevTreeNode == null) {
-                    prevTreeNode = new TreeNode();
-                    prevTreeNode.setRootId(prevDelegate.getId());
+                    prevTreeNode = new StandardEntityDataNode();
+                    prevTreeNode.setId(prevDelegate.getId());
+                    prevTreeNode.setFullId(prevDelegate.getFullId());
                     prevTreeNode.setDisplayName(prevDelegate.getDisplayName());
                     prevTreeNode.setEntityName(prevDelegate.getEntityName());
                     prevTreeNode.setPackageName(prevDelegate.getPackageName());
@@ -68,11 +70,12 @@ public class StandardEntityQueryExecutor implements EntityQueryExecutor {
             }
 
             for (EntityDataDelegate succeedingDelegate : delegate.getSucceedingEntities()) {
-                TreeNode succeedingTreeNode = findTreeNode(result, succeedingDelegate.getPackageName(),
+                StandardEntityDataNode succeedingTreeNode = findTreeNode(result, succeedingDelegate.getPackageName(),
                         succeedingDelegate.getEntityName(), succeedingDelegate.getId());
                 if (succeedingTreeNode == null) {
-                    succeedingTreeNode = new TreeNode();
-                    succeedingTreeNode.setRootId(succeedingDelegate.getId());
+                    succeedingTreeNode = new StandardEntityDataNode();
+                    succeedingTreeNode.setId(succeedingDelegate.getId());
+                    succeedingTreeNode.setFullId(succeedingDelegate.getFullId());
                     succeedingTreeNode.setDisplayName(succeedingDelegate.getDisplayName());
                     succeedingTreeNode.setEntityName(succeedingDelegate.getEntityName());
                     succeedingTreeNode.setPackageName(succeedingDelegate.getPackageName());
@@ -86,10 +89,10 @@ public class StandardEntityQueryExecutor implements EntityQueryExecutor {
         }
     }
 
-    private TreeNode findTreeNode(List<TreeNode> nodes, String packageName, String entityName, String id) {
-        for (TreeNode n : nodes) {
+    private StandardEntityDataNode findTreeNode(List<StandardEntityDataNode> nodes, String packageName, String entityName, String id) {
+        for (StandardEntityDataNode n : nodes) {
             if (n.getPackageName().equals(packageName) && n.getEntityName().equals(entityName)
-                    && n.getRootId().equals(id)) {
+                    && n.getId().equals(id)) {
                 return n;
             }
         }
@@ -124,7 +127,7 @@ public class StandardEntityQueryExecutor implements EntityQueryExecutor {
         EntityQueryLinkNode leafLinkNode = ctx.getTailEntityQueryLinkNode();
         EntityQueryExprNodeInfo nodeInfo = leafLinkNode.getExprNodeInfo();
         EntityRouteDescription entityDef = ctx.getEntityDataRouteFactory()
-                .deduceEntityDescription(nodeInfo.getEntityName(), nodeInfo.getPackageName());
+                .deduceEntityDescription(nodeInfo.getPackageName(), nodeInfo.getEntityName());
 
         StandardEntityOperationRestClient restClient = ctx.getStandardEntityOperationRestClient();
         restClient.update(entityDef, entityDataRecordsToUpdate);
@@ -175,7 +178,7 @@ public class StandardEntityQueryExecutor implements EntityQueryExecutor {
 
         EntityQueryExprNodeInfo nodeInfo = linkNode.getExprNodeInfo();
         EntityRouteDescription entityDef = ctx.getEntityDataRouteFactory()
-                .deduceEntityDescription(nodeInfo.getEntityName(), nodeInfo.getPackageName());
+                .deduceEntityDescription(nodeInfo.getPackageName(), nodeInfo.getEntityName());
 
         doPerformQuery(ctx, linkNode, entityDef);
     }
@@ -564,8 +567,8 @@ public class StandardEntityQueryExecutor implements EntityQueryExecutor {
         return Collections.unmodifiableList(tailEntityQueryLinkNode.extractFinalAttributeValues());
     }
 
-    protected List<TreeNode> generateHierarchicalEntityTreeNodes(EntityOperationContext ctx) {
-        List<TreeNode> result = new ArrayList<>();
+    protected List<StandardEntityDataNode> generateHierarchicalEntityTreeNodes(EntityOperationContext ctx) {
+        List<StandardEntityDataNode> result = new ArrayList<>();
 
         EntityQueryLinkNode headEntityQueryLinkNode = ctx.getHeadEntityQueryLinkNode();
         EntityQueryLinkNode linkNode = headEntityQueryLinkNode;
@@ -578,17 +581,17 @@ public class StandardEntityQueryExecutor implements EntityQueryExecutor {
         return result;
     }
 
-    protected EntityTreeNodesOverview buildEntityTreeNodesOverview(List<TreeNode> hierarchicalEntityNodes,
-            List<TreeNode> leafNodeEntityNodes) {
+    protected EntityTreeNodesOverview buildEntityTreeNodesOverview(List<StandardEntityDataNode> hierarchicalEntityNodes,
+            List<StandardEntityDataNode> leafNodeEntityNodes) {
         EntityTreeNodesOverview result = new EntityTreeNodesOverview();
         if (hierarchicalEntityNodes != null) {
-            for (TreeNode tn : hierarchicalEntityNodes) {
+            for (StandardEntityDataNode tn : hierarchicalEntityNodes) {
                 result.addHierarchicalEntityNodes(tn);
             }
         }
 
         if (leafNodeEntityNodes != null) {
-            for (TreeNode tn : leafNodeEntityNodes) {
+            for (StandardEntityDataNode tn : leafNodeEntityNodes) {
                 result.addLeafNodeEntityNodes(tn);
             }
         }
@@ -596,21 +599,22 @@ public class StandardEntityQueryExecutor implements EntityQueryExecutor {
         return result;
     }
 
-    protected List<TreeNode> generateLeafNodeEntityNodes(EntityOperationContext ctx) {
+    protected List<StandardEntityDataNode> generateLeafNodeEntityNodes(EntityOperationContext ctx) {
         EntityQueryLinkNode leafLinkNode = ctx.getTailEntityQueryLinkNode();
         List<EntityDataDelegate> entityDataDelegates = leafLinkNode.getEntityDataDelegates();
-        List<TreeNode> result = new ArrayList<>();
+        List<StandardEntityDataNode> result = new ArrayList<>();
 
         for (EntityDataDelegate delegate : entityDataDelegates) {
             if (delegate == null) {
                 continue;
             }
 
-            TreeNode tn = new TreeNode();
+            StandardEntityDataNode tn = new StandardEntityDataNode();
             tn.setPackageName(leafLinkNode.getExprNodeInfo().getPackageName());
             tn.setEntityName(leafLinkNode.getExprNodeInfo().getEntityName());
             tn.setDisplayName(delegate.getDisplayName());
-            tn.setRootId(delegate.getId());
+            tn.setId(delegate.getId());
+            tn.setFullId(delegate.getFullId());
 
             result.add(tn);
         }

@@ -52,7 +52,7 @@ public interface EntityQueryExecutor {
      * @param ctx
      * @return
      */
-    List<TreeNode> generatePreviewTree(EntityOperationContext ctx);
+    List<StandardEntityDataNode> generatePreviewTree(EntityOperationContext ctx);
 
     /**
      * 
