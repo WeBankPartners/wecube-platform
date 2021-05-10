@@ -88,6 +88,10 @@ public class DynamicEntityValueDto {
         this.attrValues = attrValues;
     }
     
+    public void addAttrValue(DynamicEntityAttrValueDto attrValue) {
+        this.attrValues.add(attrValue);
+    }
+    
     public DynamicEntityAttrValueDto findAttrValue(String attrName){
         for(DynamicEntityAttrValueDto attrValue : attrValues){
             if(attrName.equals(attrValue.getAttrName())){
