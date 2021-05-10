@@ -1,5 +1,6 @@
 package com.webank.wecube.platform.core.service.workflow;
 
+import java.io.IOException;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -11,14 +12,21 @@ import com.webank.wecube.platform.core.commons.WecubeCoreException;
 import com.webank.wecube.platform.core.dto.workflow.PluginAsyncInvocationResultDto;
 import com.webank.wecube.platform.core.entity.plugin.PluginConfigInterfaceParameters;
 import com.webank.wecube.platform.core.entity.plugin.PluginConfigInterfaces;
+import com.webank.wecube.platform.core.entity.workflow.ProcExecContextEntity;
 import com.webank.wecube.platform.core.entity.workflow.TaskNodeDefInfoEntity;
 import com.webank.wecube.platform.core.entity.workflow.TaskNodeExecParamEntity;
 import com.webank.wecube.platform.core.entity.workflow.TaskNodeExecRequestEntity;
 import com.webank.wecube.platform.core.entity.workflow.TaskNodeInstInfoEntity;
 import com.webank.wecube.platform.core.model.workflow.PluginInvocationCommand;
 import com.webank.wecube.platform.core.model.workflow.PluginInvocationResult;
+import com.webank.wecube.platform.core.model.workflow.WorkflowInstCreationContext;
 import com.webank.wecube.platform.core.service.dme.EntityOperationRootCondition;
 import com.webank.wecube.platform.core.service.workflow.PluginInvocationProcessor.PluginInterfaceInvocationContext;
+import com.webank.wecube.platform.core.support.plugin.dto.DynamicEntityAttrValueDto;
+import com.webank.wecube.platform.core.support.plugin.dto.DynamicEntityValueDto;
+import com.webank.wecube.platform.core.support.plugin.dto.TaskFormDataEntityDto;
+import com.webank.wecube.platform.core.support.plugin.dto.TaskFormItemValueDto;
+import com.webank.wecube.platform.core.support.plugin.dto.TaskFormValueDto;
 import com.webank.wecube.platform.workflow.WorkflowConstants;
 
 /**
@@ -106,8 +114,6 @@ public class AsyncPluginInvocationService extends AbstractPluginInvocationServic
                     ctx.getRequestId());
             throw new WecubeCoreException("3157", "Task node definition does not exist.");
         }
-        
-        //TODO #2109 handle user task output
 
         PluginConfigInterfaces pluginConfigInterface = pluginConfigMgmtService
                 .getPluginConfigInterfaceByServiceName(nodeDefEntity.getServiceId());
@@ -231,7 +237,16 @@ public class AsyncPluginInvocationService extends AbstractPluginInvocationServic
     }
 
     private void handleResultData(PluginInterfaceInvocationContext ctx, List<Object> resultData) {
+        TaskNodeDefInfoEntity taskNodeDefEntity = ctx.getTaskNodeDefEntity();
+        if (isUserTaskNode(taskNodeDefEntity)) {
+            handleUserTaskResultData(ctx, resultData);
+        } else {
+            handleNormalResultData(ctx, resultData);
+        }
 
+    }
+
+    private void handleNormalResultData(PluginInterfaceInvocationContext ctx, List<Object> resultData) {
         List<Map<String, Object>> outputParameterMaps = validateAndCastResultData(resultData);
         storeOutputParameterMaps(ctx, outputParameterMaps);
 
@@ -250,6 +265,131 @@ public class AsyncPluginInvocationService extends AbstractPluginInvocationServic
         return;
     }
 
+    private void handleUserTaskResultData(PluginInterfaceInvocationContext ctx, List<Object> resultData) {
+        List<Map<String, Object>> outputParameterMaps = validateAndCastResultData(resultData);
+        storeOutputParameterMaps(ctx, outputParameterMaps);
+
+        for (Map<String, Object> outputParameterMap : outputParameterMaps) {
+            handleSingleOutputMapForUserTask(ctx, outputParameterMap);
+        }
+
+    }
+
+    private void handleSingleOutputMapForUserTask(PluginInterfaceInvocationContext ctx,
+            Map<String, Object> outputParameterMap) {
+        PluginConfigInterfaces intf = ctx.getPluginConfigInterface();
+        List<PluginConfigInterfaceParameters> outputParameters = intf.getOutputParameters();
+        if (outputParameters == null || outputParameters.isEmpty()) {
+            return;
+        }
+
+        boolean hasTaskFormOutputParam = false;
+        for (PluginConfigInterfaceParameters outputParamDef : outputParameters) {
+            if (PARAM_NAME_TASK_FORM_OUTPUT.equals(outputParamDef.getName())) {
+                hasTaskFormOutputParam = true;
+                break;
+            }
+        }
+
+        if (!hasTaskFormOutputParam) {
+            return;
+        }
+
+        Object taskFormOutputValue = outputParameterMap.get(PARAM_NAME_TASK_FORM_OUTPUT);
+        if (taskFormOutputValue == null) {
+            return;
+        }
+
+        String taskFormOutputValueAsJson = (String) taskFormOutputValue;
+        if (StringUtils.isBlank(taskFormOutputValueAsJson)) {
+            return;
+        }
+
+        TaskNodeInstInfoEntity nodeInstInfo = ctx.getTaskNodeInstEntity();
+
+        List<ProcExecContextEntity> procExecContextEntities = this.procExecContextMapper.selectAllContextByCtxType(
+                nodeInstInfo.getProcDefId(), nodeInstInfo.getProcInstId(), ProcExecContextEntity.CTX_TYPE_PROCESS);
+
+        if (procExecContextEntities == null || procExecContextEntities.isEmpty()) {
+            log.info("Cannot find any process creation context infomation for {} {}", nodeInstInfo.getProcDefId(),
+                    nodeInstInfo.getProcInstId());
+
+            return;
+        }
+
+        ProcExecContextEntity procExecContextEntity = procExecContextEntities.get(0);
+
+        String ctxJsonData = procExecContextEntity.getCtxData();
+
+        if (StringUtils.isBlank(ctxJsonData)) {
+            log.info("Context data is blank for {} {}", nodeInstInfo.getProcDefId(), nodeInstInfo.getProcInstId());
+            return;
+        }
+
+        WorkflowInstCreationContext creationCtx = convertJsonToWorkflowInstCreationContext(ctxJsonData.trim());
+
+        if (creationCtx == null) {
+            return;
+        }
+        TaskFormValueDto taskFormValueDto = convertJsonToTaskFormValueDto(taskFormOutputValueAsJson);
+
+        List<TaskFormDataEntityDto> formDataEntities = taskFormValueDto.getFormDataEntities();
+        if (formDataEntities == null || formDataEntities.isEmpty()) {
+            return;
+        }
+
+        for (TaskFormDataEntityDto formDataEntity : formDataEntities) {
+            DynamicEntityValueDto existingEntityValue = creationCtx.findByOid(formDataEntity.getOid());
+            if (existingEntityValue == null) {
+                continue;
+            }
+
+            refreshDynamicEntityValueDto(existingEntityValue, formDataEntity);
+        }
+
+        String creationCtxUpdate = convertWorkflowInstCreationContextToJson(creationCtx);
+        procExecContextEntity.setUpdatedBy(WorkflowConstants.DEFAULT_USER);
+        procExecContextEntity.setUpdatedTime(new Date());
+        procExecContextEntity.setCtxData(creationCtxUpdate);
+
+        this.procExecContextMapper.updateByPrimaryKeySelective(procExecContextEntity);
+    }
+
+    private void refreshDynamicEntityValueDto(DynamicEntityValueDto existingEntityValue,
+            TaskFormDataEntityDto formDataEntity) {
+        List<TaskFormItemValueDto> formItemValues = formDataEntity.getFormItemValues();
+        if (formItemValues == null || formItemValues.isEmpty()) {
+            return;
+        }
+
+        for (TaskFormItemValueDto formItemValue : formItemValues) {
+            String attrName = formItemValue.getAttrName();
+            DynamicEntityAttrValueDto existingAttrValue = existingEntityValue.findAttrValue(attrName);
+            if (existingAttrValue == null) {
+                existingAttrValue = new DynamicEntityAttrValueDto();
+                existingAttrValue.setAttrDefId(null);
+                existingAttrValue.setAttrName(attrName);
+                existingAttrValue.setDataType(null);
+                existingAttrValue.setDataValue(formItemValue.getAttrValue());
+
+                existingEntityValue.addAttrValue(existingAttrValue);
+            } else {
+                existingAttrValue.setDataValue(formItemValue.getAttrValue());
+            }
+        }
+    }
+
+    private TaskFormValueDto convertJsonToTaskFormValueDto(String jsonData) {
+        try {
+            TaskFormValueDto dto = objectMapper.readValue(jsonData, TaskFormValueDto.class);
+            return dto;
+        } catch (IOException e) {
+            log.error("Failed to read value from json.", e);
+            throw new WecubeCoreException("Failed to read value from json.");
+        }
+
+    }
+
     private void handleSingleOutputMap(PluginInterfaceInvocationContext ctx, Map<String, Object> outputParameterMap) {
 
         PluginConfigInterfaces pci = ctx.getPluginConfigInterface();
@@ -264,7 +404,6 @@ public class AsyncPluginInvocationService extends AbstractPluginInvocationServic
             return;
         }
 
-        //TODO #2169 to support entity creation
         String nodeEntityId = (String) outputParameterMap.get(CALLBACK_PARAMETER_KEY);
 
         if (StringUtils.isBlank(nodeEntityId)) {
@@ -277,12 +416,11 @@ public class AsyncPluginInvocationService extends AbstractPluginInvocationServic
                 && PLUGIN_RESULT_CODE_PARTIALLY_FAIL.equalsIgnoreCase(errorCodeOfSingleRecord)) {
             log.info("such request is partially failed for request:{} and {}:{}", ctx.getRequestId(),
                     CALLBACK_PARAMETER_KEY, nodeEntityId);
-            
-            //TODO to store status
+
+            // TODO to store status
             return;
         }
 
-        //TODO #2169 to support entity creation
         for (PluginConfigInterfaceParameters pciParam : outputParameters) {
             String paramName = pciParam.getName();
             String paramExpr = pciParam.getMappingEntityExpression();
