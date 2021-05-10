@@ -45,11 +45,16 @@ import com.webank.wecube.platform.core.model.workflow.InputParamObject;
 import com.webank.wecube.platform.core.model.workflow.PluginInvocationCommand;
 import com.webank.wecube.platform.core.model.workflow.PluginInvocationResult;
 import com.webank.wecube.platform.core.model.workflow.WorkflowInstCreationContext;
+import com.webank.wecube.platform.core.service.dme.EntityDataAttr;
 import com.webank.wecube.platform.core.service.dme.EntityDataDelegate;
+import com.webank.wecube.platform.core.service.dme.EntityDataRecord;
 import com.webank.wecube.platform.core.service.dme.EntityOperationRootCondition;
 import com.webank.wecube.platform.core.service.dme.EntityQueryExprNodeInfo;
+import com.webank.wecube.platform.core.service.dme.EntityRouteDescription;
 import com.webank.wecube.platform.core.service.dme.EntityTreeNodesOverview;
 import com.webank.wecube.platform.core.service.dme.StandardEntityDataNode;
+import com.webank.wecube.platform.core.service.dme.StandardEntityOperationResponseDto;
+import com.webank.wecube.platform.core.service.dme.StandardEntityOperationRestClient;
 import com.webank.wecube.platform.core.service.workflow.PluginInvocationProcessor.PluginInterfaceInvocationContext;
 import com.webank.wecube.platform.core.service.workflow.PluginInvocationProcessor.PluginInterfaceInvocationResult;
 import com.webank.wecube.platform.core.service.workflow.PluginInvocationProcessor.PluginInvocationOperation;
@@ -296,10 +301,134 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
     protected void doInvokeDataOperationPluginInterface(ProcInstInfoEntity procInstEntity,
             TaskNodeInstInfoEntity taskNodeInstEntity, ProcDefInfoEntity procDefInfoEntity,
             TaskNodeDefInfoEntity taskNodeDefEntity, PluginInvocationCommand cmd) {
-        Map<Object, Object> externalCacheMap = new HashMap<>();
-        // TODO #2109
-        // 1 try to create or update entity data
-        // 2 update entity data id of task node bindings
+
+        List<ProcExecBindingEntity> nodeObjectBindings = retrieveProcExecBindingEntities(taskNodeInstEntity);
+        if (nodeObjectBindings == null || nodeObjectBindings.isEmpty()) {
+            log.info("There are not any task node object bindings found and skipped for task node:{}",
+                    taskNodeInstEntity.getId());
+            return;
+        }
+
+        WorkflowInstCreationContext ctx = tryFetchWorkflowInstCreationContext(procInstEntity, taskNodeInstEntity,
+                procDefInfoEntity, taskNodeDefEntity, cmd);
+        if (ctx == null) {
+            return;
+        }
+
+        for (ProcExecBindingEntity objectBinding : nodeObjectBindings) {
+
+            String bindDataId = objectBinding.getEntityDataId();
+            if (bindDataId.startsWith(TEMPORARY_ENTITY_ID_PREFIX)) {
+                tryCreateNewEntityData(bindDataId, ctx, objectBinding);
+            } else {
+                tryUpdateExistedEntityData(bindDataId, ctx);
+            }
+        }
+
+        String ctxJson = convertWorkflowInstCreationContextToJson(ctx);
+        List<ProcExecContextEntity> procExecContextEntities = this.procExecContextMapper.selectAllContextByCtxType(
+                procDefInfoEntity.getId(), procInstEntity.getId(), ProcExecContextEntity.CTX_TYPE_PROCESS);
+
+        if (procExecContextEntities == null || procExecContextEntities.isEmpty()) {
+            log.info("Cannot find any process creation context infomation for {} {}", procDefInfoEntity.getId(),
+                    procInstEntity.getId());
+
+            return;
+        }
+
+        ProcExecContextEntity procExecContextEntity = procExecContextEntities.get(0);
+        procExecContextEntity.setCtxData(ctxJson);
+        procExecContextEntity.setUpdatedBy(WorkflowConstants.DEFAULT_USER);
+        procExecContextEntity.setUpdatedTime(new Date());
+        procExecContextMapper.updateByPrimaryKeySelective(procExecContextEntity);
+    }
+
+    private void tryCreateNewEntityData(String bindDataId, WorkflowInstCreationContext ctx,
+            ProcExecBindingEntity objectBinding) {
+        String objectId = bindDataId.substring(TEMPORARY_ENTITY_ID_PREFIX.length());
+        DynamicEntityValueDto entityValueDto = ctx.findByOid(objectId);
+        if (entityValueDto == null) {
+            log.info("Can not find such entity value from creation context with ID:{}", objectId);
+            return;
+        }
+
+        String packageName = entityValueDto.getPackageName();
+        String entityName = entityValueDto.getEntityName();
+
+        List<DynamicEntityAttrValueDto> attrValues = entityValueDto.getAttrValues();
+        if (attrValues == null || attrValues.isEmpty()) {
+            log.info("Attributes not assigned values for object :{}", objectId);
+            return;
+        }
+
+        Map<String, Object> objDataMap = new HashMap<String, Object>();
+        for (DynamicEntityAttrValueDto attr : attrValues) {
+            objDataMap.put(attr.getAttrName(), attr.getDataValue());
+        }
+
+        log.info("try to create entity.{} {} {}", entityValueDto.getPackageName(), entityValueDto.getEntityName(),
+                objDataMap);
+
+        Map<String, Object> resultMap = entityOperationService.create(packageName, entityName, objDataMap);
+        String newDataEntityId = (String) resultMap.get(EntityDataDelegate.UNIQUE_IDENTIFIER);
+        if (StringUtils.isBlank(newDataEntityId)) {
+            log.warn("Entity created but there is not identity returned.{} {} {}", packageName, entityName, objDataMap);
+            return;
+        }
+
+        // to refresh entity data id to dto
+        if (StringUtils.isBlank(entityValueDto.getEntityDataId())) {
+            entityValueDto.setEntityDataId(newDataEntityId);
+            entityValueDto.setEntityDataState("Created");
+        }
+
+        // refresh object binding
+        objectBinding.setEntityDataId(newDataEntityId);
+        objectBinding.setUpdatedBy(WorkflowConstants.DEFAULT_USER);
+        objectBinding.setUpdatedTime(new Date());
+
+        procExecBindingMapper.updateByPrimaryKeySelective(objectBinding);
+
+    }
+
+    private void tryUpdateExistedEntityData(String bindDataId, WorkflowInstCreationContext ctx) {
+        DynamicEntityValueDto entityValueDto = ctx.findByEntityDataIdOrOid(bindDataId);
+        if (entityValueDto == null) {
+            log.info("entity data value does not exist in creation context for object id:{}", bindDataId);
+            return;
+        }
+
+        String packageName = entityValueDto.getPackageName();
+        String entityName = entityValueDto.getEntityName();
+        EntityRouteDescription entityDef = entityDataRouteFactory.deduceEntityDescription(packageName, entityName);
+        List<EntityDataRecord> recordsToUpdate = new ArrayList<>();
+        EntityDataRecord recordToUpdate = new EntityDataRecord();
+        recordToUpdate.setId(bindDataId);
+
+        List<DynamicEntityAttrValueDto> attrValues = entityValueDto.getAttrValues();
+        if (attrValues == null || attrValues.isEmpty()) {
+            return;
+        }
+
+        for (DynamicEntityAttrValueDto attr : attrValues) {
+            EntityDataAttr attrUpdate = new EntityDataAttr();
+            attrUpdate.setAttrName(attr.getAttrName());
+            attrUpdate.setAttrValue(attr.getDataValue());
+
+            recordToUpdate.addAttrs(attrUpdate);
+        }
+
+        recordsToUpdate.add(recordToUpdate);
+
+        StandardEntityOperationRestClient restClient = new StandardEntityOperationRestClient(jwtSsoRestTemplate);
+
+        StandardEntityOperationResponseDto resultDto = restClient.update(entityDef, recordsToUpdate);
+        if (StandardEntityOperationResponseDto.STATUS_ERROR.equals(resultDto.getStatus())) {
+            log.error("errors to update entity:{}", resultDto.getMessage());
+            return;
+        }
+
+        log.info("entity data updated successfully:{}", bindDataId);
     }
 
     /**
@@ -495,6 +624,43 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
         return taskFormValueDto;
     }
 
+    private WorkflowInstCreationContext tryFetchWorkflowInstCreationContext(ProcInstInfoEntity procInstEntity,
+            TaskNodeInstInfoEntity taskNodeInstEntity, ProcDefInfoEntity procDefInfoEntity,
+            TaskNodeDefInfoEntity taskNodeDefEntity, PluginInvocationCommand cmd) {
+        List<ProcExecContextEntity> procExecContextEntities = this.procExecContextMapper.selectAllContextByCtxType(
+                procDefInfoEntity.getId(), procInstEntity.getId(), ProcExecContextEntity.CTX_TYPE_PROCESS);
+
+        if (procExecContextEntities == null || procExecContextEntities.isEmpty()) {
+            log.info("Cannot find any process creation context infomation for {} {}", procDefInfoEntity.getId(),
+                    procInstEntity.getId());
+
+            return null;
+        }
+
+        ProcExecContextEntity procExecContextEntity = procExecContextEntities.get(0);
+
+        String ctxJsonData = procExecContextEntity.getCtxData();
+
+        if (StringUtils.isBlank(ctxJsonData)) {
+            log.info("Context data is blank for {} {}", procDefInfoEntity.getId(), procInstEntity.getId());
+            return null;
+        }
+
+        WorkflowInstCreationContext ctx = convertJsonToWorkflowInstCreationContext(ctxJsonData.trim());
+
+        return ctx;
+    }
+
+    private String convertWorkflowInstCreationContextToJson(WorkflowInstCreationContext ctx) {
+        try {
+            String json = this.objectMapper.writeValueAsString(ctx);
+            return json;
+        } catch (JsonProcessingException e) {
+            log.error("Failed to write object to string.", e);
+            throw new WecubeCoreException("JSON convertion exception.");
+        }
+    }
+
     private List<TaskFormDataEntityDto> calculateFormDataEntities(ProcInstInfoEntity procInstEntity,
             TaskNodeInstInfoEntity taskNodeInstEntity, ProcDefInfoEntity procDefInfoEntity,
             TaskNodeDefInfoEntity taskNodeDefEntity, PluginInvocationCommand cmd,
@@ -507,26 +673,11 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
             return formDataEntities;
         }
 
-        List<ProcExecContextEntity> procExecContextEntities = this.procExecContextMapper.selectAllContextByCtxType(
-                procDefInfoEntity.getId(), procInstEntity.getId(), ProcExecContextEntity.CTX_TYPE_PROCESS);
-
-        if (procExecContextEntities == null || procExecContextEntities.isEmpty()) {
-            log.info("Cannot find any process creation context infomation for {} {}", procDefInfoEntity.getId(),
-                    procInstEntity.getId());
-
+        WorkflowInstCreationContext ctx = tryFetchWorkflowInstCreationContext(procInstEntity, taskNodeInstEntity,
+                procDefInfoEntity, taskNodeDefEntity, cmd);
+        if (ctx == null) {
             return formDataEntities;
         }
-
-        ProcExecContextEntity procExecContextEntity = procExecContextEntities.get(0);
-
-        String ctxJsonData = procExecContextEntity.getCtxData();
-
-        if (StringUtils.isBlank(ctxJsonData)) {
-            log.info("Context data is blank for {} {}", procDefInfoEntity.getId(), procInstEntity.getId());
-            return formDataEntities;
-        }
-
-        WorkflowInstCreationContext ctx = convertJsonToWorkflowInstCreationContext(ctxJsonData.trim());
 
         formDataEntities = calculateFormDataEntitiesWithContext(nodeObjectBindings, ctx, taskFormMetaDto);
 
@@ -581,8 +732,8 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
                             .findAttrValue(taskFormItemMeta.getAttrName());
                     if (attrValueDto != null) {
                         taskFormItemValueDto.setAttrValue(attrValueDto.getDataValue());
-                    }else{
-                        //TODO fetch form cmdb
+                    } else {
+                        // TODO fetch form cmdb
                     }
                 }
 
@@ -614,7 +765,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
             if (taskFormItemMeta.getPackageName().equals(entityTypeIdParts[0])
                     && taskFormItemMeta.getEntityName().equals(entityTypeIdParts[1])) {
                 String bindId = bindEntity.getEntityDataId();
-                if(bindId.startsWith(TEMPORARY_ENTITY_ID_PREFIX)){
+                if (bindId.startsWith(TEMPORARY_ENTITY_ID_PREFIX)) {
                     bindId = bindId.substring(TEMPORARY_ENTITY_ID_PREFIX.length());
                 }
                 nodeBindObjectIds.add(bindId);
