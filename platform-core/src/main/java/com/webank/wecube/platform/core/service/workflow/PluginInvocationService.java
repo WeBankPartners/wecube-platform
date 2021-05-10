@@ -7,7 +7,6 @@ import static com.webank.wecube.platform.core.utils.Constants.MAPPING_TYPE_CONTE
 import static com.webank.wecube.platform.core.utils.Constants.MAPPING_TYPE_ENTITY;
 import static com.webank.wecube.platform.core.utils.Constants.MAPPING_TYPE_SYSTEM_VARIABLE;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -309,8 +308,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
             return;
         }
 
-        WorkflowInstCreationContext ctx = tryFetchWorkflowInstCreationContext(procInstEntity, taskNodeInstEntity,
-                procDefInfoEntity, taskNodeDefEntity, cmd);
+        WorkflowInstCreationContext ctx = tryFetchWorkflowInstCreationContext(taskNodeInstEntity);
         if (ctx == null) {
             return;
         }
@@ -624,42 +622,8 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
         return taskFormValueDto;
     }
 
-    private WorkflowInstCreationContext tryFetchWorkflowInstCreationContext(ProcInstInfoEntity procInstEntity,
-            TaskNodeInstInfoEntity taskNodeInstEntity, ProcDefInfoEntity procDefInfoEntity,
-            TaskNodeDefInfoEntity taskNodeDefEntity, PluginInvocationCommand cmd) {
-        List<ProcExecContextEntity> procExecContextEntities = this.procExecContextMapper.selectAllContextByCtxType(
-                procDefInfoEntity.getId(), procInstEntity.getId(), ProcExecContextEntity.CTX_TYPE_PROCESS);
+    
 
-        if (procExecContextEntities == null || procExecContextEntities.isEmpty()) {
-            log.info("Cannot find any process creation context infomation for {} {}", procDefInfoEntity.getId(),
-                    procInstEntity.getId());
-
-            return null;
-        }
-
-        ProcExecContextEntity procExecContextEntity = procExecContextEntities.get(0);
-
-        String ctxJsonData = procExecContextEntity.getCtxData();
-
-        if (StringUtils.isBlank(ctxJsonData)) {
-            log.info("Context data is blank for {} {}", procDefInfoEntity.getId(), procInstEntity.getId());
-            return null;
-        }
-
-        WorkflowInstCreationContext ctx = convertJsonToWorkflowInstCreationContext(ctxJsonData.trim());
-
-        return ctx;
-    }
-
-    private String convertWorkflowInstCreationContextToJson(WorkflowInstCreationContext ctx) {
-        try {
-            String json = this.objectMapper.writeValueAsString(ctx);
-            return json;
-        } catch (JsonProcessingException e) {
-            log.error("Failed to write object to string.", e);
-            throw new WecubeCoreException("JSON convertion exception.");
-        }
-    }
 
     private List<TaskFormDataEntityDto> calculateFormDataEntities(ProcInstInfoEntity procInstEntity,
             TaskNodeInstInfoEntity taskNodeInstEntity, ProcDefInfoEntity procDefInfoEntity,
@@ -673,8 +637,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
             return formDataEntities;
         }
 
-        WorkflowInstCreationContext ctx = tryFetchWorkflowInstCreationContext(procInstEntity, taskNodeInstEntity,
-                procDefInfoEntity, taskNodeDefEntity, cmd);
+        WorkflowInstCreationContext ctx = tryFetchWorkflowInstCreationContext(taskNodeInstEntity);
         if (ctx == null) {
             return formDataEntities;
         }
@@ -776,15 +739,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
         return nodeBindObjectIds;
     }
 
-    private WorkflowInstCreationContext convertJsonToWorkflowInstCreationContext(String ctxJsonData) {
-        try {
-            WorkflowInstCreationContext ctx = objectMapper.readValue(ctxJsonData, WorkflowInstCreationContext.class);
-            return ctx;
-        } catch (IOException e) {
-            log.error("Failed to read json value:" + ctxJsonData, e);
-            throw new WecubeCoreException("Failed to read JSON to object.");
-        }
-    }
+    
 
     /**
      * SSTN Handling system automation task node
