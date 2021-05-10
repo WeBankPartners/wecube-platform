@@ -9,6 +9,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.web.client.RestTemplate;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -32,6 +34,7 @@ import com.webank.wecube.platform.core.repository.workflow.TaskNodeExecParamMapp
 import com.webank.wecube.platform.core.repository.workflow.TaskNodeExecRequestMapper;
 import com.webank.wecube.platform.core.repository.workflow.TaskNodeInstInfoMapper;
 import com.webank.wecube.platform.core.repository.workflow.TaskNodeParamMapper;
+import com.webank.wecube.platform.core.service.dme.EntityDataRouteFactory;
 import com.webank.wecube.platform.core.service.dme.EntityQueryExpressionParser;
 import com.webank.wecube.platform.core.service.dme.StandardEntityOperationService;
 import com.webank.wecube.platform.core.service.plugin.PluginConfigMgmtService;
@@ -136,6 +139,14 @@ public abstract class AbstractPluginInvocationService extends AbstractWorkflowSe
     
     @Autowired
     protected ProcExecContextMapper procExecContextMapper;
+    
+    @Autowired
+    protected EntityDataRouteFactory entityDataRouteFactory;
+    
+    
+    @Autowired
+    @Qualifier(value = "jwtSsoRestTemplate")
+    protected RestTemplate jwtSsoRestTemplate;
     
     protected ObjectMapper objectMapper = new ObjectMapper();
     
