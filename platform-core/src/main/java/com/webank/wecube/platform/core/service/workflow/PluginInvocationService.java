@@ -1304,6 +1304,11 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
                 if (MAPPING_TYPE_CONSTANT.equals(mappingType)) {
                     handleConstantMapping(mappingType, taskNodeDefEntity, paramName, objectVals, isFieldRequired);
                 }
+                
+                if(MAPPING_TYPE_OBJECT.equals(mappingType)){
+                    handleObjectMapping( mappingType,  param,  entityDataId,
+                             objectVals, externalCacheMap);
+                }
 
                 inputAttr.addValues(objectVals);
 
