@@ -6,6 +6,7 @@ import static com.webank.wecube.platform.core.utils.Constants.MAPPING_TYPE_CONST
 import static com.webank.wecube.platform.core.utils.Constants.MAPPING_TYPE_CONTEXT;
 import static com.webank.wecube.platform.core.utils.Constants.MAPPING_TYPE_ENTITY;
 import static com.webank.wecube.platform.core.utils.Constants.MAPPING_TYPE_SYSTEM_VARIABLE;
+import static com.webank.wecube.platform.core.utils.Constants.MAPPING_TYPE_OBJECT;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -511,6 +512,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
             List<Object> objectVals = new ArrayList<Object>();
             //
             inputAttr.setMapType(mappingType);
+            boolean isFieldRequired = isFieldRequired(param.getRequired());
 
             if (PARAM_NAME_TASK_FORM_INPUT.equals(param.getName())) {
                 objectVals.add(taskFormInputValue);
@@ -525,13 +527,12 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
             }
 
             if (MAPPING_TYPE_CONSTANT.equalsIgnoreCase(mappingType)) {
-                handleConstantMapping(mappingType, taskNodeDefEntity, paramName, objectVals);
+                handleConstantMapping(mappingType, taskNodeDefEntity, paramName, objectVals, isFieldRequired);
             }
-            
-            if(MAPPING_TYPE_CONTEXT.equals(mappingType)){
-                handleContextMappingForUserTask( mappingType,  taskNodeDefEntity,  paramName,
-                         procInstEntity,  param,  paramType,
-                          objectVals);
+
+            if (MAPPING_TYPE_CONTEXT.equals(mappingType)) {
+                handleContextMappingForUserTask(mappingType, taskNodeDefEntity, paramName, procInstEntity, param,
+                        paramType, objectVals);
             }
 
             inputAttr.addValues(objectVals);
@@ -627,9 +628,6 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 
         return taskFormValueDto;
     }
-
-    
-
 
     private List<TaskFormDataEntityDto> calculateFormDataEntities(ProcInstInfoEntity procInstEntity,
             TaskNodeInstInfoEntity taskNodeInstEntity, ProcDefInfoEntity procDefInfoEntity,
@@ -744,8 +742,6 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 
         return nodeBindObjectIds;
     }
-
-    
 
     /**
      * SSTN Handling system automation task node
@@ -1157,6 +1153,8 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
                 inputAttr.setType(paramType);
                 inputAttr.setSensitive(IS_SENSITIVE_ATTR.equalsIgnoreCase(param.getSensitiveData()));
 
+                boolean isFieldRequired = isFieldRequired(param.getRequired());
+
                 List<Object> objectVals = new ArrayList<Object>();
                 //
                 inputAttr.setMapType(mappingType);
@@ -1166,7 +1164,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
                 }
 
                 if (MAPPING_TYPE_CONSTANT.equalsIgnoreCase(mappingType)) {
-                    handleConstantMapping(mappingType, taskNodeDefEntity, paramName, objectVals);
+                    handleConstantMapping(mappingType, taskNodeDefEntity, paramName, objectVals, isFieldRequired);
                 }
 
                 inputAttr.addValues(objectVals);
@@ -1283,19 +1281,29 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
                 inputAttr.setType(paramType);
                 inputAttr.setSensitive(IS_SENSITIVE_ATTR.equalsIgnoreCase(param.getSensitiveData()));
 
+                boolean isFieldRequired = isFieldRequired(param.getRequired());
+
                 List<Object> objectVals = new ArrayList<Object>();
                 //
                 String mappingType = param.getMappingType();
                 inputAttr.setMapType(mappingType);
 
-                handleEntityMapping(mappingType, param, entityDataId, objectVals, externalCacheMap);
+                if (MAPPING_TYPE_ENTITY.equals(mappingType)) {
+                    handleEntityMapping(mappingType, param, entityDataId, objectVals, externalCacheMap);
+                }
 
-                handleContextMapping(mappingType, taskNodeDefEntity, paramName, procInstEntity, param, paramType,
-                        nodeObjectBinding, objectVals);
+                if (MAPPING_TYPE_CONTEXT.equals(mappingType)) {
+                    handleContextMapping(mappingType, taskNodeDefEntity, paramName, procInstEntity, param, paramType,
+                            nodeObjectBinding, objectVals);
+                }
 
-                handleSystemMapping(mappingType, param, paramName, objectVals);
+                if (MAPPING_TYPE_SYSTEM_VARIABLE.equals(mappingType)) {
+                    handleSystemMapping(mappingType, param, paramName, objectVals);
+                }
 
-                handleConstantMapping(mappingType, taskNodeDefEntity, paramName, objectVals);
+                if (MAPPING_TYPE_CONSTANT.equals(mappingType)) {
+                    handleConstantMapping(mappingType, taskNodeDefEntity, paramName, objectVals, isFieldRequired);
+                }
 
                 inputAttr.addValues(objectVals);
 
@@ -1309,38 +1317,46 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
         return inputParamObjs;
     }
 
+    private void handleObjectMapping(String mappingType, PluginConfigInterfaceParameters param, String entityDataId,
+            List<Object> objectVals, Map<Object, Object> cacheMap) {
+        if (!MAPPING_TYPE_OBJECT.equals(mappingType)) {
+            return;
+        }
+        // TODO
+    }
+
     private void handleEntityMapping(String mappingType, PluginConfigInterfaceParameters param, String entityDataId,
             List<Object> objectVals, Map<Object, Object> cacheMap) {
-        if (MAPPING_TYPE_ENTITY.equals(mappingType)) {
-            String mappingEntityExpression = param.getMappingEntityExpression();
-
-            if (log.isDebugEnabled()) {
-                log.debug("expression:{}", mappingEntityExpression);
-            }
-
-            EntityOperationRootCondition condition = new EntityOperationRootCondition(mappingEntityExpression,
-                    entityDataId);
-
-            List<Object> attrValsPerExpr = entityOperationService.queryAttributeValues(condition, cacheMap);
-
-            if (attrValsPerExpr == null) {
-                log.info("returned null while fetch data with expression:{}", mappingEntityExpression);
-                attrValsPerExpr = new ArrayList<>();
-            }
-
-            if (log.isDebugEnabled()) {
-                log.debug("retrieved objects with expression,size={},values={}", attrValsPerExpr.size(),
-                        attrValsPerExpr);
-            }
-
-            objectVals.addAll(attrValsPerExpr);
-
+        if (!MAPPING_TYPE_ENTITY.equals(mappingType)) {
+            return;
         }
+        String mappingEntityExpression = param.getMappingEntityExpression();
+
+        if (log.isDebugEnabled()) {
+            log.debug("expression:{}", mappingEntityExpression);
+        }
+
+        EntityOperationRootCondition condition = new EntityOperationRootCondition(mappingEntityExpression,
+                entityDataId);
+
+        List<Object> attrValsPerExpr = entityOperationService.queryAttributeValues(condition, cacheMap);
+
+        if (attrValsPerExpr == null) {
+            log.info("returned null while fetch data with expression:{}", mappingEntityExpression);
+            attrValsPerExpr = new ArrayList<>();
+        }
+
+        if (log.isDebugEnabled()) {
+            log.debug("retrieved objects with expression,size={},values={}", attrValsPerExpr.size(), attrValsPerExpr);
+        }
+
+        objectVals.addAll(attrValsPerExpr);
+
     }
-    
-    private void handleContextMappingForUserTask(String mappingType, TaskNodeDefInfoEntity taskNodeDefEntity, String paramName,
-            ProcInstInfoEntity procInstEntity, PluginConfigInterfaceParameters param, String paramType,
-            List<Object> objectVals) {
+
+    private void handleContextMappingForUserTask(String mappingType, TaskNodeDefInfoEntity taskNodeDefEntity,
+            String paramName, ProcInstInfoEntity procInstEntity, PluginConfigInterfaceParameters param,
+            String paramType, List<Object> objectVals) {
         if (!MAPPING_TYPE_CONTEXT.equals(mappingType)) {
             return;
         }
@@ -1698,58 +1714,65 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 
     private void handleSystemMapping(String mappingType, PluginConfigInterfaceParameters param, String paramName,
             List<Object> objectVals) {
-        if (MAPPING_TYPE_SYSTEM_VARIABLE.equals(mappingType)) {
-            String systemVariableName = param.getMappingSystemVariableName();
-            SystemVariables sVariable = systemVariableService.getSystemVariableByPackageNameAndName(
-                    param.getPluginConfigInterface().getPluginConfig().getPluginPackage().getName(),
-                    systemVariableName);
-
-            if (sVariable == null && FIELD_REQUIRED.equals(param.getRequired())) {
-                log.error("variable is null but [{}] is mandatory", paramName);
-                throw new WecubeCoreException("3175",
-                        String.format("Variable is absent but [%s] is mandatory.", paramName), paramName);
-            }
-
-            String sVal = null;
-            if (sVariable != null) {
-                sVal = sVariable.getValue();
-                if (StringUtils.isBlank(sVal)) {
-                    sVal = sVariable.getDefaultValue();
-                }
-            }
-
-            if (StringUtils.isBlank(sVal) && FIELD_REQUIRED.equals(param.getRequired())) {
-                log.error("variable is blank but [{}] is mandatory", paramName);
-                throw new WecubeCoreException("3176",
-                        String.format("Variable is absent but [%s] is mandatory.", paramName));
-            }
-
-            objectVals.add(sVal);
+        if (!MAPPING_TYPE_SYSTEM_VARIABLE.equals(mappingType)) {
+            return;
         }
+        String systemVariableName = param.getMappingSystemVariableName();
+        SystemVariables sVariable = systemVariableService.getSystemVariableByPackageNameAndName(
+                param.getPluginConfigInterface().getPluginConfig().getPluginPackage().getName(), systemVariableName);
+
+        if (sVariable == null && FIELD_REQUIRED.equals(param.getRequired())) {
+            log.error("variable is null but [{}] is mandatory", paramName);
+            throw new WecubeCoreException("3175", String.format("Variable is absent but [%s] is mandatory.", paramName),
+                    paramName);
+        }
+
+        String sVal = null;
+        if (sVariable != null) {
+            sVal = sVariable.getValue();
+            if (StringUtils.isBlank(sVal)) {
+                sVal = sVariable.getDefaultValue();
+            }
+        }
+
+        if (StringUtils.isBlank(sVal) && FIELD_REQUIRED.equals(param.getRequired())) {
+            log.error("variable is blank but [{}] is mandatory", paramName);
+            throw new WecubeCoreException("3176",
+                    String.format("Variable is absent but [%s] is mandatory.", paramName));
+        }
+
+        objectVals.add(sVal);
     }
 
     private void handleConstantMapping(String mappingType, TaskNodeDefInfoEntity taskNodeDefEntity, String paramName,
-            List<Object> objectVals) {
-        if (MAPPING_TYPE_CONSTANT.equals(mappingType)) {
-            String curTaskNodeDefId = taskNodeDefEntity.getId();
-            TaskNodeParamEntity nodeParamEntity = taskNodeParamRepository
-                    .selectOneByTaskNodeDefIdAndParamName(curTaskNodeDefId, paramName);
+            List<Object> objectVals, boolean fieldRequired) {
+        if (!MAPPING_TYPE_CONSTANT.equals(mappingType)) {
+            return;
+        }
+        String curTaskNodeDefId = taskNodeDefEntity.getId();
+        TaskNodeParamEntity nodeParamEntity = taskNodeParamRepository
+                .selectOneByTaskNodeDefIdAndParamName(curTaskNodeDefId, paramName);
 
-            if (nodeParamEntity == null) {
+        if (nodeParamEntity == null) {
+            if (fieldRequired) {
                 log.error("mapping type is {} but node parameter entity is null for {}", mappingType, curTaskNodeDefId);
                 throw new WecubeCoreException("3177",
                         String.format("Task node parameter entity does not exist for {%s}.", paramName), paramName);
+            } else {
+                log.info("mapping type is {} but node parameter entity is null for {}, field not madantory.",
+                        mappingType, curTaskNodeDefId);
+                return;
             }
+        }
 
-            Object val = null;
+        Object val = null;
 
-            if (MAPPING_TYPE_CONSTANT.equalsIgnoreCase(nodeParamEntity.getBindType())) {
-                val = nodeParamEntity.getBindVal();
-            }
+        if (MAPPING_TYPE_CONSTANT.equalsIgnoreCase(nodeParamEntity.getBindType())) {
+            val = nodeParamEntity.getBindVal();
+        }
 
-            if (val != null) {
-                objectVals.add(val);
-            }
+        if (val != null) {
+            objectVals.add(val);
         }
     }
 

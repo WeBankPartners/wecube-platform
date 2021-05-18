@@ -19,7 +19,6 @@ import com.webank.wecube.platform.core.commons.ApplicationProperties;
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
 import com.webank.wecube.platform.core.entity.plugin.PluginConfigInterfaceParameters;
 import com.webank.wecube.platform.core.entity.plugin.PluginConfigInterfaces;
-import com.webank.wecube.platform.core.entity.workflow.ProcDefInfoEntity;
 import com.webank.wecube.platform.core.entity.workflow.ProcExecBindingEntity;
 import com.webank.wecube.platform.core.entity.workflow.ProcExecContextEntity;
 import com.webank.wecube.platform.core.entity.workflow.ProcInstInfoEntity;
@@ -46,6 +45,7 @@ import com.webank.wecube.platform.core.service.plugin.PluginInstanceMgmtService;
 import com.webank.wecube.platform.core.service.plugin.SystemVariableService;
 import com.webank.wecube.platform.core.support.plugin.PluginInvocationRestClient;
 import com.webank.wecube.platform.core.support.plugin.PluginTaskFormRestClient;
+import com.webank.wecube.platform.core.utils.Constants;
 import com.webank.wecube.platform.workflow.WorkflowConstants;
 
 public abstract class AbstractPluginInvocationService extends AbstractWorkflowService {
@@ -505,6 +505,10 @@ public abstract class AbstractPluginInvocationService extends AbstractWorkflowSe
             log.error("Failed to write object to string.", e);
             throw new WecubeCoreException("JSON convertion exception.");
         }
+    }
+    
+    protected boolean isFieldRequired(String requiredFlag){
+        return Constants.FIELD_REQUIRED.equalsIgnoreCase(requiredFlag);
     }
 
 }

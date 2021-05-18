@@ -28,6 +28,12 @@ public class PluginParamObjectVarCalculator extends AbstractPluginParamObjectSer
     @Autowired
     private PluginParamObjectVarStorage pluginParamObjectVarStorageService;
 
+    /**
+     * 
+     * @param objectMeta
+     * @param ctx
+     * @return
+     */
     public CoreObjectVar calculateCoreObjectVar(CoreObjectMeta objectMeta, CoreObjectVarCalculationContext ctx) {
 
         CoreObjectVar rootObjectVar = doCalculateCoreObjectVar(objectMeta, null, ctx);
@@ -116,6 +122,11 @@ public class PluginParamObjectVarCalculator extends AbstractPluginParamObjectSer
     private String calculateStringPropertyValue(CoreObjectPropertyMeta propertyMeta,
             CoreObjectVarCalculationContext ctx) {
         if (isStringDataType(propertyMeta.getDataType())) {
+            // TODO
+            // handling entity mapping
+            // handling constant mapping
+            // handling context mapping
+            // handling system variable mapping
             // TODO
             return String.valueOf(System.currentTimeMillis());
         }
@@ -369,8 +380,8 @@ public class PluginParamObjectVarCalculator extends AbstractPluginParamObjectSer
         return null;
     }
 
-    private List<CoreObjectVar> calculateObjectMetaAsListResult(CoreObjectMeta objectMeta, CoreObjectVar parentObjectVar,
-            CoreObjectVarCalculationContext ctx) {
+    private List<CoreObjectVar> calculateObjectMetaAsListResult(CoreObjectMeta objectMeta,
+            CoreObjectVar parentObjectVar, CoreObjectVarCalculationContext ctx) {
         List<CoreObjectVar> rawObjectValues = new ArrayList<>();
 
         Map<String, List<CoreObjectPropertyVar>> propertyMetaVarsMap = new HashMap<String, List<CoreObjectPropertyVar>>();
