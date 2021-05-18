@@ -527,6 +527,12 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
             if (MAPPING_TYPE_CONSTANT.equalsIgnoreCase(mappingType)) {
                 handleConstantMapping(mappingType, taskNodeDefEntity, paramName, objectVals);
             }
+            
+            if(MAPPING_TYPE_CONTEXT.equals(mappingType)){
+                handleContextMappingForUserTask( mappingType,  taskNodeDefEntity,  paramName,
+                         procInstEntity,  param,  paramType,
+                          objectVals);
+            }
 
             inputAttr.addValues(objectVals);
 
@@ -1330,6 +1336,54 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
             objectVals.addAll(attrValsPerExpr);
 
         }
+    }
+    
+    private void handleContextMappingForUserTask(String mappingType, TaskNodeDefInfoEntity taskNodeDefEntity, String paramName,
+            ProcInstInfoEntity procInstEntity, PluginConfigInterfaceParameters param, String paramType,
+            List<Object> objectVals) {
+        if (!MAPPING_TYPE_CONTEXT.equals(mappingType)) {
+            return;
+        }
+        // #1993
+        String curTaskNodeDefId = taskNodeDefEntity.getId();
+        TaskNodeParamEntity nodeParamEntity = taskNodeParamRepository
+                .selectOneByTaskNodeDefIdAndParamName(curTaskNodeDefId, paramName);
+
+        if (nodeParamEntity == null) {
+            log.error("mapping type is {} but node parameter entity is null for {}", mappingType, curTaskNodeDefId);
+
+            if (Constants.FIELD_REQUIRED.equalsIgnoreCase(param.getRequired())) {
+
+                log.error("Task node parameter entity does not exist for {} {}", curTaskNodeDefId, paramName);
+                throw new WecubeCoreException("3170", "Task node parameter entity does not exist.");
+            } else {
+                log.info("Task node parameter entity does not exist for {} {} but field not required.",
+                        curTaskNodeDefId, paramName);
+                return;
+            }
+        }
+
+        String bindNodeId = nodeParamEntity.getBindNodeId();
+        String bindParamType = nodeParamEntity.getBindParamType();
+        String bindParamName = nodeParamEntity.getBindParamName();
+
+        // get by procInstId and nodeId
+        TaskNodeInstInfoEntity bindNodeInstEntity = taskNodeInstInfoRepository
+                .selectOneByProcInstIdAndNodeId(procInstEntity.getId(), bindNodeId);
+
+        if (bindNodeInstEntity == null) {
+            log.error("Bound node instance entity does not exist for {} {}", procInstEntity.getId(), bindNodeId);
+            throw new WecubeCoreException("3171", "Bound node instance entity does not exist.");
+        }
+
+        if (TaskNodeDefInfoEntity.NODE_TYPE_START_EVENT.equalsIgnoreCase(bindNodeInstEntity.getNodeType())) {
+            handleContextMappingForStartEvent(mappingType, taskNodeDefEntity, paramName, procInstEntity, param,
+                    paramType, objectVals, bindNodeInstEntity, bindParamName, bindParamType);
+            return;
+        } else {
+            throw new WecubeCoreException("Unsupported context type currently.");
+        }
+
     }
 
     private void handleContextMapping(String mappingType, TaskNodeDefInfoEntity taskNodeDefEntity, String paramName,
