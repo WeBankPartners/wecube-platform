@@ -123,13 +123,10 @@ public abstract class AbstractPluginParamObjectService {
         }
 
         String dataType = propertyMeta.getDataType();
-        if (isStringDataType(dataType)) {
+        if (isBasicDataType(dataType)) {
             return dataValueObject.toString();
         }
 
-        if (isNumberDataType(dataType)) {
-            return dataValueObject.toString();
-        }
 
         if (isObjectDataType(dataType)) {
             CoreObjectVar objVar = (CoreObjectVar) dataValueObject;
