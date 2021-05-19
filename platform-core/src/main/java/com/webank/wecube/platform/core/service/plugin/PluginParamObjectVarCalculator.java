@@ -1,20 +1,26 @@
 package com.webank.wecube.platform.core.service.plugin;
 
+import static com.webank.wecube.platform.core.utils.Constants.FIELD_REQUIRED;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.webank.wecube.platform.core.commons.WecubeCoreException;
 import com.webank.wecube.platform.core.entity.plugin.CoreObjectListVar;
 import com.webank.wecube.platform.core.entity.plugin.CoreObjectMeta;
 import com.webank.wecube.platform.core.entity.plugin.CoreObjectPropertyMeta;
 import com.webank.wecube.platform.core.entity.plugin.CoreObjectPropertyVar;
 import com.webank.wecube.platform.core.entity.plugin.CoreObjectVar;
+import com.webank.wecube.platform.core.entity.plugin.SystemVariables;
+import com.webank.wecube.platform.core.service.dme.EntityOperationRootCondition;
 import com.webank.wecube.platform.core.service.dme.StandardEntityOperationService;
 import com.webank.wecube.platform.workflow.commons.LocalIdGenerator;
 
@@ -23,10 +29,13 @@ public class PluginParamObjectVarCalculator extends AbstractPluginParamObjectSer
     private static final Logger log = LoggerFactory.getLogger(PluginParamObjectVarCalculator.class);
 
     @Autowired
-    private StandardEntityOperationService standardEntityOperationService;
-
+    protected PluginParamObjectVarStorage pluginParamObjectVarStorageService;
+    
     @Autowired
-    private PluginParamObjectVarStorage pluginParamObjectVarStorageService;
+    protected SystemVariableService systemVariableService;
+    
+    @Autowired
+    protected StandardEntityOperationService entityOperationService;
 
     /**
      * 
@@ -86,7 +95,7 @@ public class PluginParamObjectVarCalculator extends AbstractPluginParamObjectSer
         propertyVar.setName(propertyMeta.getName());
         propertyVar.setDataType(propertyMeta.getDataType());
 
-        Object dataValueObject = calculateDataValueObject(propertyMeta, parentObjectVar, ctx);
+        Object dataValueObject = calculatePropertyDataValueObject(propertyMeta, parentObjectVar, ctx);
 
         log.info("data value object for {} : {}", propertyMeta.getName(), dataValueObject);
         String dataValue = convertPropertyValueToString(propertyMeta, dataValueObject);
@@ -101,42 +110,105 @@ public class PluginParamObjectVarCalculator extends AbstractPluginParamObjectSer
         return propertyVar;
     }
 
-    private Object calculateDataValueObject(CoreObjectPropertyMeta propertyMeta, CoreObjectVar parentObjectVar,
+    private Object calculatePropertyDataValueObject(CoreObjectPropertyMeta propertyMeta, CoreObjectVar parentObjectVar,
             CoreObjectVarCalculationContext ctx) {
         String dataType = propertyMeta.getDataType();
         Object dataObjectValue = null;
 
         if (isBasicDataType(dataType)) {
-            dataObjectValue = calculateBasicTypeDataValueObject(propertyMeta, parentObjectVar, ctx);
+            dataObjectValue = calculateBasicTypePropertyValue(propertyMeta, parentObjectVar, ctx);
         } else if (isObjectDataType(dataType)) {
-            dataObjectValue = calculateObjectPropertyValue(propertyMeta, parentObjectVar, ctx);
+            dataObjectValue = calculateObjectTypePropertyValue(propertyMeta, parentObjectVar, ctx);
         } else if (isListDataType(dataType)) {
-            dataObjectValue = calculateListPropertyValue(propertyMeta, parentObjectVar, ctx);
+            dataObjectValue = calculateListTypePropertyValue(propertyMeta, parentObjectVar, ctx);
         }
 
         return dataObjectValue;
     }
 
-    private Object calculateBasicTypeDataValueObject(CoreObjectPropertyMeta propertyMeta, CoreObjectVar parentObjectVar,
+    private Object calculateBasicTypePropertyValue(CoreObjectPropertyMeta propertyMeta, CoreObjectVar parentObjectVar,
             CoreObjectVarCalculationContext ctx) {
-        // TODO
-        // TODO
-        // handling entity mapping
-        // handling constant mapping
-        // handling context mapping
-        // handling system variable mapping
+        Object dataObjectValue = null;
+
+        if (propertyMeta.isEntityMapping()) {
+            dataObjectValue = calculateBasicTypePropertyValueFromEntity(propertyMeta, parentObjectVar, ctx);
+        } else if (propertyMeta.isConstantMapping()) {
+            dataObjectValue = calculateBasicTypePropertyValueFromConstant(propertyMeta, parentObjectVar, ctx);
+        } else if (propertyMeta.isSystemVariableMapping()) {
+            dataObjectValue = calculateBasicTypePropertyValueFromSystemVariable(propertyMeta, parentObjectVar, ctx);
+        } else if (propertyMeta.isContextMapping()) {
+            dataObjectValue = calculateBasicTypePropertyValueFromContext(propertyMeta, parentObjectVar, ctx);
+        } else {
+            // TODO
+            dataObjectValue = null;
+        }
+        return dataObjectValue;
+    }
+
+    private Object calculateBasicTypePropertyValueFromEntity(CoreObjectPropertyMeta propertyMeta,
+            CoreObjectVar parentObjectVar, CoreObjectVarCalculationContext ctx) {
+        String mappingEntityExpression = propertyMeta.getMapExpr();
+        if (log.isDebugEnabled()) {
+            log.debug("expression:{}", mappingEntityExpression);
+        }
+
+        EntityOperationRootCondition condition = new EntityOperationRootCondition(mappingEntityExpression,
+                ctx.getRootEntityDataId());
+
+        List<Object> attrValsPerExpr = entityOperationService.queryAttributeValues(condition, ctx.getExternalCacheMap());
+
+        if (attrValsPerExpr == null || attrValsPerExpr.isEmpty()) {
+            log.info("returned null while fetch data with expression:{}", mappingEntityExpression);
+            return null;
+        }
+
+        if (log.isDebugEnabled()) {
+            log.debug("retrieved objects with expression,size={},values={}", attrValsPerExpr.size(), attrValsPerExpr);
+        }
+        
+        //
+        Object  dataObjectValue = attrValsPerExpr.get(0);
+        return dataObjectValue;
+    }
+
+    private Object calculateBasicTypePropertyValueFromConstant(CoreObjectPropertyMeta propertyMeta,
+            CoreObjectVar parentObjectVar, CoreObjectVarCalculationContext ctx) {
         // TODO
         return null;
     }
 
-    private CoreObjectVar calculateObjectPropertyValue(CoreObjectPropertyMeta propertyMeta,
+    private Object calculateBasicTypePropertyValueFromSystemVariable(CoreObjectPropertyMeta propertyMeta,
             CoreObjectVar parentObjectVar, CoreObjectVarCalculationContext ctx) {
-        if (isObjectDataType(propertyMeta.getDataType())) {
-            CoreObjectMeta refObjectMeta = propertyMeta.getRefObjectMeta();
-            CoreObjectVar refObjectVar = doCalculateCoreObjectVar(refObjectMeta, parentObjectVar, ctx);
-            return refObjectVar;
+        String systemVariableName = propertyMeta.getMapExpr();
+        SystemVariables sVariable = systemVariableService.getSystemVariableByPackageNameAndName(
+                propertyMeta.getPackageName(), systemVariableName);
+        
+        if(sVariable == null){
+            return null;
         }
+
+        String sVal = null;
+        if (sVariable != null) {
+            sVal = sVariable.getValue();
+            if (StringUtils.isBlank(sVal)) {
+                sVal = sVariable.getDefaultValue();
+            }
+        }
+
+        return sVal;
+    }
+
+    private Object calculateBasicTypePropertyValueFromContext(CoreObjectPropertyMeta propertyMeta,
+            CoreObjectVar parentObjectVar, CoreObjectVarCalculationContext ctx) {
+        // TODO
         return null;
+    }
+
+    private CoreObjectVar calculateObjectTypePropertyValue(CoreObjectPropertyMeta propertyMeta,
+            CoreObjectVar parentObjectVar, CoreObjectVarCalculationContext ctx) {
+        CoreObjectMeta refObjectMeta = propertyMeta.getRefObjectMeta();
+        CoreObjectVar refObjectVar = doCalculateCoreObjectVar(refObjectMeta, parentObjectVar, ctx);
+        return refObjectVar;
     }
 
     private List<String> calListStringVars(CoreObjectPropertyMeta propertyMeta, CoreObjectVarCalculationContext ctx) {
@@ -147,6 +219,8 @@ public class PluginParamObjectVarCalculator extends AbstractPluginParamObjectSer
         rawObjectValues.add("222");
         rawObjectValues.add("333");
 
+        
+        //TODO
         return rawObjectValues;
     }
 
@@ -162,7 +236,7 @@ public class PluginParamObjectVarCalculator extends AbstractPluginParamObjectSer
         return rawObjectValues;
     }
 
-    private List<CoreObjectListVar> calculateListPropertyValue(CoreObjectPropertyMeta propertyMeta,
+    private List<CoreObjectListVar> calculateListTypePropertyValue(CoreObjectPropertyMeta propertyMeta,
             CoreObjectVar parentObjectVar, CoreObjectVarCalculationContext ctx) {
         if (!isListDataType(propertyMeta.getDataType())) {
             return null;// throw exception here?
@@ -343,7 +417,7 @@ public class PluginParamObjectVarCalculator extends AbstractPluginParamObjectSer
     private List<CoreObjectPropertyVar> calPropertyMetaAsListPropertyVars(CoreObjectPropertyMeta propertyMeta,
             CoreObjectVar parentObjectVar, CoreObjectVarCalculationContext ctx) {
 
-        log.debug("to cal list property vars for objectName={}, propName={}, dataType={}, refType={}",
+        log.debug("to calculate list property vars for objectName={}, propName={}, dataType={}, refType={}",
                 propertyMeta.getObjectMeta().getName(), propertyMeta.getName(), propertyMeta.getDataType(),
                 propertyMeta.getRefType());
 
@@ -428,7 +502,7 @@ public class PluginParamObjectVarCalculator extends AbstractPluginParamObjectSer
             CoreObjectVar parentObjectVar, CoreObjectVarCalculationContext ctx) {
         // TODO
         CoreObjectMeta refObjectMeta = propertyMeta.getRefObjectMeta();
-        log.debug("cal list object vars for objectName={},propertyName={}, refObject={} ",
+        log.debug("calculate list object vars for objectName={},propertyName={}, refObject={} ",
                 propertyMeta.getObjectMeta().getName(), propertyMeta.getName(), refObjectMeta.getName());
         List<CoreObjectVar> rawObjectValues = calculateObjectMetaAsListResult(refObjectMeta, parentObjectVar, ctx);
 
