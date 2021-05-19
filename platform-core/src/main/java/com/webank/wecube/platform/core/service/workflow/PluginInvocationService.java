@@ -1037,9 +1037,11 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
                                     "parameter entity does not exist but such plugin parameter is mandatory for {%s} {%s}",
                                     bindParamName, bindParamType),
                             bindParamName, bindParamType);
+                } else {
+                    log.info("parameter entity does not exist but such plugin parameter is not mandatory for {} {}",
+                            bindParamName, bindParamType);
+                    continue;
                 }
-
-                continue;
             }
 
             List<Object> retDataValues = new ArrayList<>();
@@ -1304,10 +1306,9 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
                 if (MAPPING_TYPE_CONSTANT.equals(mappingType)) {
                     handleConstantMapping(mappingType, taskNodeDefEntity, paramName, objectVals, isFieldRequired);
                 }
-                
-                if(MAPPING_TYPE_OBJECT.equals(mappingType)){
-                    handleObjectMapping( mappingType,  param,  entityDataId,
-                             objectVals, externalCacheMap);
+
+                if (MAPPING_TYPE_OBJECT.equals(mappingType)) {
+                    handleObjectMapping(mappingType, param, entityDataId, objectVals, externalCacheMap);
                 }
 
                 inputAttr.addValues(objectVals);

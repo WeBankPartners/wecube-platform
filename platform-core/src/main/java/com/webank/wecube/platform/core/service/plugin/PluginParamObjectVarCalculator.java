@@ -106,10 +106,8 @@ public class PluginParamObjectVarCalculator extends AbstractPluginParamObjectSer
         String dataType = propertyMeta.getDataType();
         Object dataObjectValue = null;
 
-        if (isStringDataType(dataType)) {
-            dataObjectValue = calculateStringPropertyValue(propertyMeta, ctx);
-        } else if (isNumberDataType(dataType)) {
-            dataObjectValue = calculateNumberPropertyValue(propertyMeta, ctx);
+        if (isBasicDataType(dataType)) {
+            dataObjectValue = calculateBasicTypeDataValueObject(propertyMeta, parentObjectVar, ctx);
         } else if (isObjectDataType(dataType)) {
             dataObjectValue = calculateObjectPropertyValue(propertyMeta, parentObjectVar, ctx);
         } else if (isListDataType(dataType)) {
@@ -119,26 +117,15 @@ public class PluginParamObjectVarCalculator extends AbstractPluginParamObjectSer
         return dataObjectValue;
     }
 
-    private String calculateStringPropertyValue(CoreObjectPropertyMeta propertyMeta,
+    private Object calculateBasicTypeDataValueObject(CoreObjectPropertyMeta propertyMeta, CoreObjectVar parentObjectVar,
             CoreObjectVarCalculationContext ctx) {
-        if (isStringDataType(propertyMeta.getDataType())) {
-            // TODO
-            // handling entity mapping
-            // handling constant mapping
-            // handling context mapping
-            // handling system variable mapping
-            // TODO
-            return String.valueOf(System.currentTimeMillis());
-        }
-        return null;
-    }
-
-    private Integer calculateNumberPropertyValue(CoreObjectPropertyMeta propertyMeta,
-            CoreObjectVarCalculationContext ctx) {
-        if (isNumberDataType(propertyMeta.getDataType())) {
-            // TODO
-            return Integer.valueOf(1000);
-        }
+        // TODO
+        // TODO
+        // handling entity mapping
+        // handling constant mapping
+        // handling context mapping
+        // handling system variable mapping
+        // TODO
         return null;
     }
 
@@ -177,78 +164,75 @@ public class PluginParamObjectVarCalculator extends AbstractPluginParamObjectSer
 
     private List<CoreObjectListVar> calculateListPropertyValue(CoreObjectPropertyMeta propertyMeta,
             CoreObjectVar parentObjectVar, CoreObjectVarCalculationContext ctx) {
-        if (isListDataType(propertyMeta.getDataType())) {
-            if (isStringDataType(propertyMeta.getRefType())) {
-                // TODO
-                List<String> rawObjectValues = calListStringVars(propertyMeta, ctx);
-
-                List<CoreObjectListVar> stringListVars = new ArrayList<>();
-                for (String rawObject : rawObjectValues) {
-                    CoreObjectListVar stringListVar = new CoreObjectListVar();
-                    stringListVar.setId(LocalIdGenerator.generateId(PREFIX_LIST_VAR_ID));
-                    stringListVar.setDataType(propertyMeta.getRefType());
-                    // TODO
-                    String dataValue = rawObject;
-
-                    stringListVar.setDataValue(dataValue);
-                    stringListVar.setRawObjectValue(rawObject);
-                    stringListVar.setSensitive(propertyMeta.getSensitive());
-                    stringListVar.setObjectPropertyMeta(propertyMeta);
-
-                    stringListVars.add(stringListVar);
-                }
-
-                return stringListVars;
-            }
-
-            if (isNumberDataType(propertyMeta.getRefType())) {
-                List<Integer> rawObjectValues = calculateListNumberVars(propertyMeta, ctx);
-
-                List<CoreObjectListVar> numberListVars = new ArrayList<>();
-                for (Integer rawObject : rawObjectValues) {
-                    CoreObjectListVar numberListVar = new CoreObjectListVar();
-                    numberListVar.setId(LocalIdGenerator.generateId(PREFIX_LIST_VAR_ID));
-                    numberListVar.setDataType(propertyMeta.getRefType());
-                    // TODO
-                    String dataValue = String.valueOf(rawObject);
-
-                    numberListVar.setDataValue(dataValue);
-                    numberListVar.setRawObjectValue(rawObject);
-                    numberListVar.setSensitive(propertyMeta.getSensitive());
-                    numberListVar.setObjectPropertyMeta(propertyMeta);
-
-                    numberListVars.add(numberListVar);
-                }
-
-                return numberListVars;
-            }
-
-            if (isObjectDataType(propertyMeta.getRefType())) {
-                List<CoreObjectVar> rawObjectValues = calObjectMetaPropertyAsListResult(propertyMeta, parentObjectVar,
-                        ctx);
-
-                // TODO
-                List<CoreObjectListVar> objectListVars = new ArrayList<>();
-                for (CoreObjectVar objectVar : rawObjectValues) {
-                    CoreObjectListVar objectListVar = new CoreObjectListVar();
-                    objectListVar.setId(LocalIdGenerator.generateId(PREFIX_LIST_VAR_ID));
-                    objectListVar.setDataType(propertyMeta.getRefType());
-
-                    // TODO
-                    String dataValue = objectVar.getId();
-
-                    objectListVar.setDataValue(dataValue);
-                    objectListVar.setRawObjectValue(objectVar);
-                    objectListVar.setSensitive(propertyMeta.getSensitive());
-                    objectListVar.setObjectPropertyMeta(propertyMeta);
-
-                    objectListVars.add(objectListVar);
-                }
-
-                return objectListVars;
-            }
+        if (!isListDataType(propertyMeta.getDataType())) {
+            return null;// throw exception here?
         }
-        return null;
+        if (isStringDataType(propertyMeta.getRefType())) {
+            // TODO
+            List<String> rawObjectValues = calListStringVars(propertyMeta, ctx);
+
+            List<CoreObjectListVar> stringListVars = new ArrayList<>();
+            for (String rawObject : rawObjectValues) {
+                CoreObjectListVar stringListVar = new CoreObjectListVar();
+                stringListVar.setId(LocalIdGenerator.generateId(PREFIX_LIST_VAR_ID));
+                stringListVar.setDataType(propertyMeta.getRefType());
+                // TODO
+                String dataValue = rawObject;
+
+                stringListVar.setDataValue(dataValue);
+                stringListVar.setRawObjectValue(rawObject);
+                stringListVar.setSensitive(propertyMeta.getSensitive());
+                stringListVar.setObjectPropertyMeta(propertyMeta);
+
+                stringListVars.add(stringListVar);
+            }
+
+            return stringListVars;
+        } else if (isNumberDataType(propertyMeta.getRefType())) {
+            List<Integer> rawObjectValues = calculateListNumberVars(propertyMeta, ctx);
+
+            List<CoreObjectListVar> numberListVars = new ArrayList<>();
+            for (Integer rawObject : rawObjectValues) {
+                CoreObjectListVar numberListVar = new CoreObjectListVar();
+                numberListVar.setId(LocalIdGenerator.generateId(PREFIX_LIST_VAR_ID));
+                numberListVar.setDataType(propertyMeta.getRefType());
+                // TODO
+                String dataValue = String.valueOf(rawObject);
+
+                numberListVar.setDataValue(dataValue);
+                numberListVar.setRawObjectValue(rawObject);
+                numberListVar.setSensitive(propertyMeta.getSensitive());
+                numberListVar.setObjectPropertyMeta(propertyMeta);
+
+                numberListVars.add(numberListVar);
+            }
+
+            return numberListVars;
+        } else if (isObjectDataType(propertyMeta.getRefType())) {
+            List<CoreObjectVar> rawObjectValues = calObjectMetaPropertyAsListResult(propertyMeta, parentObjectVar, ctx);
+
+            // TODO
+            List<CoreObjectListVar> objectListVars = new ArrayList<>();
+            for (CoreObjectVar objectVar : rawObjectValues) {
+                CoreObjectListVar objectListVar = new CoreObjectListVar();
+                objectListVar.setId(LocalIdGenerator.generateId(PREFIX_LIST_VAR_ID));
+                objectListVar.setDataType(propertyMeta.getRefType());
+
+                // TODO
+                String dataValue = objectVar.getId();
+
+                objectListVar.setDataValue(dataValue);
+                objectListVar.setRawObjectValue(objectVar);
+                objectListVar.setSensitive(propertyMeta.getSensitive());
+                objectListVar.setObjectPropertyMeta(propertyMeta);
+
+                objectListVars.add(objectListVar);
+            }
+
+            return objectListVars;
+        } else {
+            return null;
+        }
     }
 
     private List<CoreObjectPropertyVar> calBasicPropertyMetaAsListPropertyVars(CoreObjectPropertyMeta propertyMeta,
