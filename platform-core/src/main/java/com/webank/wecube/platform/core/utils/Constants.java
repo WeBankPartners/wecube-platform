@@ -27,10 +27,10 @@ public class Constants {
     public static final String DATA_TYPE_LIST = "list";
     public static final String DATA_TYPE_OBJECT = "object";
 
-    public static final String MAP_TYPE_ENTITY = "entity";
-    public static final String MAP_TYPE_CONTEXT = "context";
-    public static final String MAP_TYPE_CONSTANT = "constant";
-    public static final String MAP_TYPE_SYSTEM_VARIABLE = "system_variable";
+//    public static final String MAP_TYPE_ENTITY = "entity";
+//    public static final String MAP_TYPE_CONTEXT = "context";
+//    public static final String MAP_TYPE_CONSTANT = "constant";
+//    public static final String MAP_TYPE_SYSTEM_VARIABLE = "system_variable";
 
 
     public static final String DEFAULT_VALUE_DATA_TYPE_STRING = "";

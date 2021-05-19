@@ -3,6 +3,7 @@ package com.webank.wecube.platform.core.entity.plugin;
 import java.util.Date;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.webank.wecube.platform.core.utils.Constants;
 
 public class CoreObjectPropertyMeta {
 //    public static final String DATA_TYPE_STRING = "string";
@@ -27,7 +28,7 @@ public class CoreObjectPropertyMeta {
 
     private String mapType;
 
-    private String mapExpr;
+    private String mapExpr;//entity,systemVariable
 
     private String objectMetaId;
 
@@ -197,6 +198,24 @@ public class CoreObjectPropertyMeta {
         this.refObjectMeta = refObjectMeta;
     }
     
+    public boolean isEntityMapping(){
+        return Constants.MAPPING_TYPE_ENTITY.equalsIgnoreCase(mapType);
+    }
     
+    public boolean isContextMapping(){
+        return Constants.MAPPING_TYPE_CONTEXT.equalsIgnoreCase(mapType);
+    }
+    
+    public boolean isConstantMapping(){
+        return Constants.MAPPING_TYPE_CONSTANT.equalsIgnoreCase(mapType);
+    }
+    
+    public boolean isSystemVariableMapping(){
+        return Constants.MAPPING_TYPE_SYSTEM_VARIABLE.equalsIgnoreCase(mapType);
+    }
+    
+    public boolean isObjectMapping(){
+        return Constants.MAPPING_TYPE_OBJECT.equalsIgnoreCase(mapType);
+    }
 
 }
