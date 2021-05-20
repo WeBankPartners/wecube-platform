@@ -5,8 +5,8 @@ import static com.webank.wecube.platform.core.utils.Constants.FIELD_REQUIRED;
 import static com.webank.wecube.platform.core.utils.Constants.MAPPING_TYPE_CONSTANT;
 import static com.webank.wecube.platform.core.utils.Constants.MAPPING_TYPE_CONTEXT;
 import static com.webank.wecube.platform.core.utils.Constants.MAPPING_TYPE_ENTITY;
-import static com.webank.wecube.platform.core.utils.Constants.MAPPING_TYPE_SYSTEM_VARIABLE;
 import static com.webank.wecube.platform.core.utils.Constants.MAPPING_TYPE_OBJECT;
+import static com.webank.wecube.platform.core.utils.Constants.MAPPING_TYPE_SYSTEM_VARIABLE;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -23,6 +23,8 @@ import org.springframework.stereotype.Service;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
 import com.webank.wecube.platform.core.dto.plugin.ItsDangerConfirmResultDto;
+import com.webank.wecube.platform.core.entity.plugin.CoreObjectMeta;
+import com.webank.wecube.platform.core.entity.plugin.CoreObjectVar;
 import com.webank.wecube.platform.core.entity.plugin.PluginConfigInterfaceParameters;
 import com.webank.wecube.platform.core.entity.plugin.PluginConfigInterfaces;
 import com.webank.wecube.platform.core.entity.plugin.PluginConfigs;
@@ -55,6 +57,8 @@ import com.webank.wecube.platform.core.service.dme.EntityTreeNodesOverview;
 import com.webank.wecube.platform.core.service.dme.StandardEntityDataNode;
 import com.webank.wecube.platform.core.service.dme.StandardEntityOperationResponseDto;
 import com.webank.wecube.platform.core.service.dme.StandardEntityOperationRestClient;
+import com.webank.wecube.platform.core.service.plugin.CoreObjectVarCalculationContext;
+import com.webank.wecube.platform.core.service.plugin.PluginParamObject;
 import com.webank.wecube.platform.core.service.workflow.PluginInvocationProcessor.PluginInterfaceInvocationContext;
 import com.webank.wecube.platform.core.service.workflow.PluginInvocationProcessor.PluginInterfaceInvocationResult;
 import com.webank.wecube.platform.core.service.workflow.PluginInvocationProcessor.PluginInvocationOperation;
@@ -788,7 +792,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
         PluginConfigInterfaces pluginConfigInterface = retrievePluginConfigInterface(taskNodeDefEntity,
                 cmd.getNodeId());
 
-        List<InputParamObject> inputParamObjs = calculateInputParamObjects(procInstEntity, taskNodeInstEntity,
+        List<InputParamObject> inputParamObjs = calculateInputParamObjects(procDefInfoEntity, procInstEntity, taskNodeInstEntity,
                 taskNodeDefEntity, nodeObjectBindings, pluginConfigInterface, externalCacheMap);
 
         if ((inputParamObjs == null || inputParamObjs.isEmpty())
@@ -1256,7 +1260,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
         ctx.setInterfacePath(interfacePath);
     }
 
-    private List<InputParamObject> calculateInputParamObjects(ProcInstInfoEntity procInstEntity,
+    private List<InputParamObject> calculateInputParamObjects(ProcDefInfoEntity procDefInfoEntity, ProcInstInfoEntity procInstEntity,
             TaskNodeInstInfoEntity taskNodeInstEntity, TaskNodeDefInfoEntity taskNodeDefEntity,
             List<ProcExecBindingEntity> nodeObjectBindings, PluginConfigInterfaces pluginConfigInterface,
             Map<Object, Object> externalCacheMap) {
@@ -1308,7 +1312,9 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
                 }
 
                 if (MAPPING_TYPE_OBJECT.equals(mappingType)) {
-                    handleObjectMapping(mappingType, param, entityDataId, objectVals, externalCacheMap);
+                    handleObjectMapping(mappingType, param, entityDataId, objectVals, externalCacheMap,  procDefInfoEntity,
+                             procInstEntity,  nodeObjectBinding.getFullEntityDataId(), nodeObjectBinding.getEntityTypeId(),
+                             taskNodeDefEntity,  taskNodeInstEntity);
                 }
 
                 inputAttr.addValues(objectVals);
@@ -1324,11 +1330,32 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
     }
 
     private void handleObjectMapping(String mappingType, PluginConfigInterfaceParameters param, String entityDataId,
-            List<Object> objectVals, Map<Object, Object> cacheMap) {
+            List<Object> objectVals, Map<Object, Object> cacheMap, ProcDefInfoEntity procDefInfo,
+            ProcInstInfoEntity procInstInfo, String rootEntityFullDataId, String rootEntityTypeId,
+            TaskNodeDefInfoEntity taskNodeDefInfo, TaskNodeInstInfoEntity taskNodeInstInfo) {
         if (!MAPPING_TYPE_OBJECT.equals(mappingType)) {
             return;
         }
-        // TODO
+
+        CoreObjectVarCalculationContext calCtx = new CoreObjectVarCalculationContext();
+        calCtx.setExternalCacheMap(cacheMap);
+        calCtx.setProcDefInfo(procDefInfo);
+        calCtx.setProcInstInfo(procInstInfo);
+        calCtx.setRootEntityDataId(entityDataId);
+        calCtx.setRootEntityFullDataId(rootEntityFullDataId);
+        calCtx.setRootEntityTypeId(rootEntityTypeId);
+        calCtx.setTaskNodeDefInfo(taskNodeDefInfo);
+        calCtx.setTaskNodeInstInfo(taskNodeInstInfo);
+        
+        CoreObjectMeta objectMeta = param.getObjectMeta();
+        CoreObjectVar objectVar = pluginParamObjectVarCalculator.calculateCoreObjectVar(objectMeta, calCtx);
+
+        PluginParamObject paramObject = pluginParamObjectVarAssembleService.marshalPluginParamObject(objectVar,
+                calCtx);
+        
+        objectVals.add(paramObject);
+        
+        return;
     }
 
     private void handleEntityMapping(String mappingType, PluginConfigInterfaceParameters param, String entityDataId,
