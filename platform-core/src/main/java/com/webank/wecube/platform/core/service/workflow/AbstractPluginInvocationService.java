@@ -42,6 +42,9 @@ import com.webank.wecube.platform.core.service.dme.EntityQueryExpressionParser;
 import com.webank.wecube.platform.core.service.dme.StandardEntityOperationService;
 import com.webank.wecube.platform.core.service.plugin.PluginConfigMgmtService;
 import com.webank.wecube.platform.core.service.plugin.PluginInstanceMgmtService;
+import com.webank.wecube.platform.core.service.plugin.PluginParamObjectMetaStorage;
+import com.webank.wecube.platform.core.service.plugin.PluginParamObjectVarCalculator;
+import com.webank.wecube.platform.core.service.plugin.PluginParamObjectVarMarshaller;
 import com.webank.wecube.platform.core.service.plugin.SystemVariableService;
 import com.webank.wecube.platform.core.support.plugin.PluginInvocationRestClient;
 import com.webank.wecube.platform.core.support.plugin.PluginTaskFormRestClient;
@@ -150,6 +153,15 @@ public abstract class AbstractPluginInvocationService extends AbstractWorkflowSe
     @Autowired
     @Qualifier(value = "jwtSsoRestTemplate")
     protected RestTemplate jwtSsoRestTemplate;
+
+    @Autowired
+    protected PluginParamObjectVarCalculator pluginParamObjectVarCalculator;
+
+    @Autowired
+    protected PluginParamObjectMetaStorage pluginParamObjectMetaStorage;
+
+    @Autowired
+    protected PluginParamObjectVarMarshaller pluginParamObjectVarAssembleService;
 
     protected ObjectMapper objectMapper = new ObjectMapper();
 
@@ -506,8 +518,8 @@ public abstract class AbstractPluginInvocationService extends AbstractWorkflowSe
             throw new WecubeCoreException("JSON convertion exception.");
         }
     }
-    
-    protected boolean isFieldRequired(String requiredFlag){
+
+    protected boolean isFieldRequired(String requiredFlag) {
         return Constants.FIELD_REQUIRED.equalsIgnoreCase(requiredFlag);
     }
 
