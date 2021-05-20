@@ -792,8 +792,8 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
         PluginConfigInterfaces pluginConfigInterface = retrievePluginConfigInterface(taskNodeDefEntity,
                 cmd.getNodeId());
 
-        List<InputParamObject> inputParamObjs = calculateInputParamObjects(procDefInfoEntity, procInstEntity, taskNodeInstEntity,
-                taskNodeDefEntity, nodeObjectBindings, pluginConfigInterface, externalCacheMap);
+        List<InputParamObject> inputParamObjs = calculateInputParamObjects(procDefInfoEntity, procInstEntity,
+                taskNodeInstEntity, taskNodeDefEntity, nodeObjectBindings, pluginConfigInterface, externalCacheMap);
 
         if ((inputParamObjs == null || inputParamObjs.isEmpty())
                 && (nodeObjectBindings == null || nodeObjectBindings.isEmpty())) {
@@ -1260,10 +1260,10 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
         ctx.setInterfacePath(interfacePath);
     }
 
-    private List<InputParamObject> calculateInputParamObjects(ProcDefInfoEntity procDefInfoEntity, ProcInstInfoEntity procInstEntity,
-            TaskNodeInstInfoEntity taskNodeInstEntity, TaskNodeDefInfoEntity taskNodeDefEntity,
-            List<ProcExecBindingEntity> nodeObjectBindings, PluginConfigInterfaces pluginConfigInterface,
-            Map<Object, Object> externalCacheMap) {
+    private List<InputParamObject> calculateInputParamObjects(ProcDefInfoEntity procDefInfoEntity,
+            ProcInstInfoEntity procInstEntity, TaskNodeInstInfoEntity taskNodeInstEntity,
+            TaskNodeDefInfoEntity taskNodeDefEntity, List<ProcExecBindingEntity> nodeObjectBindings,
+            PluginConfigInterfaces pluginConfigInterface, Map<Object, Object> externalCacheMap) {
 
         List<InputParamObject> inputParamObjs = new ArrayList<InputParamObject>();
 
@@ -1312,9 +1312,9 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
                 }
 
                 if (MAPPING_TYPE_OBJECT.equals(mappingType)) {
-                    handleObjectMapping(mappingType, param, entityDataId, objectVals, externalCacheMap,  procDefInfoEntity,
-                             procInstEntity,  nodeObjectBinding.getFullEntityDataId(), nodeObjectBinding.getEntityTypeId(),
-                             taskNodeDefEntity,  taskNodeInstEntity);
+                    handleObjectMapping(mappingType, param, entityDataId, objectVals, externalCacheMap,
+                            procDefInfoEntity, procInstEntity, nodeObjectBinding.getFullEntityDataId(),
+                            nodeObjectBinding.getEntityTypeId(), taskNodeDefEntity, taskNodeInstEntity);
                 }
 
                 inputAttr.addValues(objectVals);
@@ -1346,15 +1346,16 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
         calCtx.setRootEntityTypeId(rootEntityTypeId);
         calCtx.setTaskNodeDefInfo(taskNodeDefInfo);
         calCtx.setTaskNodeInstInfo(taskNodeInstInfo);
-        
+
         CoreObjectMeta objectMeta = param.getObjectMeta();
         CoreObjectVar objectVar = pluginParamObjectVarCalculator.calculateCoreObjectVar(objectMeta, calCtx);
 
-        PluginParamObject paramObject = pluginParamObjectVarAssembleService.marshalPluginParamObject(objectVar,
-                calCtx);
-        
-        objectVals.add(paramObject);
-        
+        PluginParamObject paramObject = pluginParamObjectVarAssembleService.marshalPluginParamObject(objectVar, calCtx);
+
+        if (paramObject != null) {
+            objectVals.add(paramObject);
+        }
+
         return;
     }
 
