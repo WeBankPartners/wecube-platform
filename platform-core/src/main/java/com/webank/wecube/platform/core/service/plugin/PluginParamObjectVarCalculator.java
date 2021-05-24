@@ -73,7 +73,6 @@ public class PluginParamObjectVarCalculator extends AbstractPluginParamObjectSer
     public CoreObjectVar calculateCoreObjectVar(CoreObjectMeta objectMeta, CoreObjectVarCalculationContext ctx) {
 
         CoreObjectVar rootObjectVar = doCalculateCoreObjectVar(objectMeta, null, ctx);
-        // TODO store object var
 
         pluginParamObjectVarStorageService.storeCoreObjectVar(rootObjectVar);
         return rootObjectVar;
