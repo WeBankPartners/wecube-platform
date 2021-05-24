@@ -792,7 +792,7 @@ public class PluginConfigMgmtService extends AbstractPluginMgmtService {
         return results;
     }
 
-    private PluginConfigDto buildPluginConfigDto(PluginConfigs entity, PluginPackages pluginPackageEntity11) {
+    private PluginConfigDto buildPluginConfigDto(PluginConfigs entity, PluginPackages pluginPackageEntity) {
         PluginConfigDto dto = new PluginConfigDto();
         dto.setId(entity.getId());
         dto.setName(entity.getName());
