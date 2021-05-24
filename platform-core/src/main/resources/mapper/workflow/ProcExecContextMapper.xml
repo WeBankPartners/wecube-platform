@@ -135,4 +135,15 @@
         </set>
         where id = #{id,jdbcType=VARCHAR}
     </update>
+    
+    <select id="selectAllContextByCtxType" 
+        resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List" />
+        from core_proc_exec_context
+        where  proc_def_id = #{procDefId,jdbcType=VARCHAR}
+        and
+        proc_inst_id = #{procInstId,jdbcType=INTEGER}
+        and ctx_type = #{ctxType,jdbcType=VARCHAR}
+    </select>
 </mapper>

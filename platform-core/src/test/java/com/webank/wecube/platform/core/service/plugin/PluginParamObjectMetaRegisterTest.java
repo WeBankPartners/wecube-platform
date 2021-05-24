@@ -53,7 +53,10 @@ public class PluginParamObjectMetaRegisterTest {
         String packageName = "wecmdb";
         String objectName = "k8sObjD";
         CoreObjectMeta objectMeta = pluginParamObjectMetaStorage.fetchAssembledCoreObjectMeta(packageName, objectName);
-        CoreObjectVarCalculationContext ctx = null;
+        Assert.assertNotNull(objectMeta);
+        CoreObjectVarCalculationContext ctx = new CoreObjectVarCalculationContext();
+        ctx.setExternalCacheMap(null);
+        ctx.setRootEntityDataId("0003_11110000");
         CoreObjectVar resultVar = pluginParamObjectVarCalculationService.calculateCoreObjectVar(objectMeta, ctx);
 
         Assert.assertNotNull(resultVar);

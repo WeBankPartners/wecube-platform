@@ -137,7 +137,7 @@ public class PluginParamObjectVarCalculator extends AbstractPluginParamObjectSer
         } else if (propertyMeta.isContextMapping()) {
             dataObjectValue = calculateBasicTypePropertyValueFromContext(propertyMeta, parentObjectVar, ctx);
         } else {
-            //need throw exception here
+            // need throw exception here
             dataObjectValue = null;
         }
         return dataObjectValue;
@@ -228,7 +228,7 @@ public class PluginParamObjectVarCalculator extends AbstractPluginParamObjectSer
         // TODO
         return null;
     }
-    
+
     private Object calculateBasicTypePropertyValueFromContext(CoreObjectPropertyMeta propertyMeta,
             CoreObjectVar parentObjectVar, CoreObjectVarCalculationContext ctx) {
         // TODO
@@ -255,7 +255,9 @@ public class PluginParamObjectVarCalculator extends AbstractPluginParamObjectSer
             }
         } else if (propertyMeta.isConstantMapping()) {
             // TODO
+            // TODO
         } else if (propertyMeta.isContextMapping()) {
+            // TODO
             // TODO
         } else if (propertyMeta.isSystemVariableMapping()) {
             Object sysVal = calculateBasicTypePropertyValueFromSystemVariable(propertyMeta, null, ctx);
@@ -300,7 +302,9 @@ public class PluginParamObjectVarCalculator extends AbstractPluginParamObjectSer
             }
         } else if (propertyMeta.isConstantMapping()) {
             // TODO
+            // TODO
         } else if (propertyMeta.isContextMapping()) {
+            // TODO
             // TODO
         } else if (propertyMeta.isSystemVariableMapping()) {
             Object sysVal = calculateBasicTypePropertyValueFromSystemVariable(propertyMeta, null, ctx);
@@ -316,8 +320,8 @@ public class PluginParamObjectVarCalculator extends AbstractPluginParamObjectSer
     }
 
     /**
-     * data type: list
-     * ref type:string, int,object
+     * data type: list ref type:string, int,object
+     * 
      * @param propertyMeta
      * @param parentObjectVar
      * @param ctx
@@ -328,7 +332,7 @@ public class PluginParamObjectVarCalculator extends AbstractPluginParamObjectSer
         if (!isListDataType(propertyMeta.getDataType())) {
             return null;// throw exception here?
         }
-        
+
         if (isStringDataType(propertyMeta.getRefType())) {
             List<String> rawObjectValues = calListStringVars(propertyMeta, ctx);
 
@@ -417,22 +421,21 @@ public class PluginParamObjectVarCalculator extends AbstractPluginParamObjectSer
     }
 
     /**
-     * data type: list
-     * ref type: string, int, object
+     * data type: list ref type: string, int, object
+     * 
      * @param propertyMeta
      * @param parentObjectVar
      * @param ctx
      * @return
      */
-    private List<CoreObjectPropertyVar> calculateListPropertyMetaAsListPropertyVarResult(CoreObjectPropertyMeta propertyMeta,
-            CoreObjectVar parentObjectVar, CoreObjectVarCalculationContext ctx) {
+    private List<CoreObjectPropertyVar> calculateListPropertyMetaAsListPropertyVarResult(
+            CoreObjectPropertyMeta propertyMeta, CoreObjectVar parentObjectVar, CoreObjectVarCalculationContext ctx) {
         log.debug("calculate list property meta as list property vars for :{}", propertyMeta.getName());
         String refType = propertyMeta.getRefType();
-        
-        //refType = string, int
+
+        // refType = string, int
         if (isBasicDataType(refType)) {
-            List<Object> objectValues = calculateBasicTypePropertyValueAsListResult( propertyMeta,
-                     parentObjectVar,  ctx);
+            List<Object> objectValues = calculateBasicTypePropertyValueAsListResult(propertyMeta, parentObjectVar, ctx);
 
             List<CoreObjectPropertyVar> listPropertyVars = new ArrayList<>();
 
@@ -451,7 +454,7 @@ public class PluginParamObjectVarCalculator extends AbstractPluginParamObjectSer
                 basicListVars.add(basicListVar);
             }
 
-            for(CoreObjectListVar basicListVar : basicListVars){
+            for (CoreObjectListVar basicListVar : basicListVars) {
                 CoreObjectPropertyVar propertyVar = new CoreObjectPropertyVar();
                 propertyVar.setId(LocalIdGenerator.generateId(PREFIX_PROPERTY_VAR_ID));
                 propertyVar.setDataType(propertyMeta.getDataType());
@@ -465,17 +468,16 @@ public class PluginParamObjectVarCalculator extends AbstractPluginParamObjectSer
                 propertyVar.setSensitive(propertyMeta.getSensitive());
                 listPropertyVars.add(propertyVar);
             }
-            
 
             return listPropertyVars;
 
         }
-        
-        if(isObjectDataType(refType)){
+
+        if (isObjectDataType(refType)) {
             CoreObjectMeta refObjectMeta = propertyMeta.getRefObjectMeta();
-            List<CoreObjectVar> objectVars =  calculateObjectMetaAsObjectVarListResult( refObjectMeta,
-                     parentObjectVar,  ctx);
-            
+            List<CoreObjectVar> objectVars = calculateObjectMetaAsObjectVarListResult(refObjectMeta, parentObjectVar,
+                    ctx);
+
             List<CoreObjectPropertyVar> listPropertyVars = new ArrayList<>();
 
             List<CoreObjectListVar> basicListVars = new ArrayList<>();
@@ -493,11 +495,11 @@ public class PluginParamObjectVarCalculator extends AbstractPluginParamObjectSer
                 basicListVars.add(basicListVar);
             }
 
-            for(CoreObjectListVar basicListVar : basicListVars){
+            for (CoreObjectListVar basicListVar : basicListVars) {
                 CoreObjectPropertyVar propertyVar = new CoreObjectPropertyVar();
                 propertyVar.setId(LocalIdGenerator.generateId(PREFIX_PROPERTY_VAR_ID));
                 propertyVar.setDataType(propertyMeta.getDataType());
-//                propertyVar.setDataValue(convertCoreObjectListVarsToString(basicListVars));
+                // propertyVar.setDataValue(convertCoreObjectListVarsToString(basicListVars));
                 propertyVar.setDataValue(basicListVar.getId());
                 propertyVar.setName(propertyMeta.getName());
                 propertyVar.setPropertyMeta(propertyMeta);
@@ -508,7 +510,6 @@ public class PluginParamObjectVarCalculator extends AbstractPluginParamObjectSer
                 propertyVar.setSensitive(propertyMeta.getSensitive());
                 listPropertyVars.add(propertyVar);
             }
-            
 
             return listPropertyVars;
         }
@@ -538,10 +539,12 @@ public class PluginParamObjectVarCalculator extends AbstractPluginParamObjectSer
         if (isBasicDataType(dataType)) {
             return calBasicTypeAsListPropertyVars(propertyMeta, ctx);
         } else if (isListDataType(dataType)) {
-            //TODO
+            // TODO
+            // TODO
             return calculateListPropertyMetaAsListPropertyVarResult(propertyMeta, parentObjectVar, ctx);
         } else if (isObjectDataType(dataType)) {
-            //TODO
+            // TODO
+            // TODO
             return calObjectPropertyMetaAsListPropertyVars(propertyMeta, parentObjectVar, ctx);
         } else {
             return null;
@@ -608,8 +611,8 @@ public class PluginParamObjectVarCalculator extends AbstractPluginParamObjectSer
     }
 
     /**
-     * data type: list
-     * ref type: object
+     * data type: list ref type: object
+     * 
      * @param propertyMeta
      * @param parentObjectVar
      * @param ctx
@@ -621,7 +624,8 @@ public class PluginParamObjectVarCalculator extends AbstractPluginParamObjectSer
         CoreObjectMeta refObjectMeta = propertyMeta.getRefObjectMeta();
         log.debug("calculate list object vars for objectName={},propertyName={}, refObject={} ",
                 propertyMeta.getObjectMeta().getName(), propertyMeta.getName(), refObjectMeta.getName());
-        List<CoreObjectVar> rawObjectValues = calculateObjectMetaAsObjectVarListResult(refObjectMeta, parentObjectVar, ctx);
+        List<CoreObjectVar> rawObjectValues = calculateObjectMetaAsObjectVarListResult(refObjectMeta, parentObjectVar,
+                ctx);
 
         return rawObjectValues;
 
@@ -648,7 +652,7 @@ public class PluginParamObjectVarCalculator extends AbstractPluginParamObjectSer
             }
         } else if (propertyMeta.isContextMapping()) {
             List<Object> vals = calculateBasicTypePropertyValueListFromContext(propertyMeta, parentObjectVar, ctx);
-            if(vals != null){
+            if (vals != null) {
                 dataObjectValues.addAll(vals);
             }
         } else {
