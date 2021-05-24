@@ -1,5 +1,7 @@
 package com.webank.wecube.platform.core.service.plugin;
 
+import static com.webank.wecube.platform.core.utils.Constants.MAPPING_TYPE_CONSTANT;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -12,12 +14,24 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.webank.wecube.platform.core.commons.WecubeCoreException;
 import com.webank.wecube.platform.core.entity.plugin.CoreObjectListVar;
 import com.webank.wecube.platform.core.entity.plugin.CoreObjectMeta;
 import com.webank.wecube.platform.core.entity.plugin.CoreObjectPropertyMeta;
 import com.webank.wecube.platform.core.entity.plugin.CoreObjectPropertyVar;
 import com.webank.wecube.platform.core.entity.plugin.CoreObjectVar;
 import com.webank.wecube.platform.core.entity.plugin.SystemVariables;
+import com.webank.wecube.platform.core.entity.workflow.ProcInstInfoEntity;
+import com.webank.wecube.platform.core.entity.workflow.TaskNodeDefInfoEntity;
+import com.webank.wecube.platform.core.entity.workflow.TaskNodeExecParamEntity;
+import com.webank.wecube.platform.core.entity.workflow.TaskNodeExecRequestEntity;
+import com.webank.wecube.platform.core.entity.workflow.TaskNodeInstInfoEntity;
+import com.webank.wecube.platform.core.entity.workflow.TaskNodeParamEntity;
+import com.webank.wecube.platform.core.repository.workflow.TaskNodeDefInfoMapper;
+import com.webank.wecube.platform.core.repository.workflow.TaskNodeExecParamMapper;
+import com.webank.wecube.platform.core.repository.workflow.TaskNodeExecRequestMapper;
+import com.webank.wecube.platform.core.repository.workflow.TaskNodeInstInfoMapper;
+import com.webank.wecube.platform.core.repository.workflow.TaskNodeParamMapper;
 import com.webank.wecube.platform.core.service.dme.EntityOperationRootCondition;
 import com.webank.wecube.platform.core.service.dme.StandardEntityOperationService;
 import com.webank.wecube.platform.workflow.commons.LocalIdGenerator;
@@ -34,6 +48,21 @@ public class PluginParamObjectVarCalculator extends AbstractPluginParamObjectSer
 
     @Autowired
     protected StandardEntityOperationService entityOperationService;
+
+    @Autowired
+    protected TaskNodeParamMapper taskNodeParamRepository;
+
+    @Autowired
+    protected TaskNodeInstInfoMapper taskNodeInstInfoRepository;
+
+    @Autowired
+    protected TaskNodeExecRequestMapper taskNodeExecRequestRepository;
+
+    @Autowired
+    protected TaskNodeDefInfoMapper taskNodeDefInfoRepository;
+
+    @Autowired
+    protected TaskNodeExecParamMapper taskNodeExecParamRepository;
 
     /**
      * 
@@ -198,8 +227,25 @@ public class PluginParamObjectVarCalculator extends AbstractPluginParamObjectSer
 
     private Object calculateBasicTypePropertyValueFromConstant(CoreObjectPropertyMeta propertyMeta,
             CoreObjectVar parentObjectVar, CoreObjectVarCalculationContext ctx) {
-        // TODO
-        return null;
+        //
+        TaskNodeDefInfoEntity currTaskNodeDefInfo = ctx.getTaskNodeDefInfo();
+        String curTaskNodeDefId = currTaskNodeDefInfo.getId();
+
+        String paramName = propertyMeta.getName();
+        TaskNodeParamEntity nodeParamEntity = taskNodeParamRepository
+                .selectOneByTaskNodeDefIdAndParamName(curTaskNodeDefId, paramName);
+
+        if (nodeParamEntity == null) {
+            return null;
+        }
+
+        Object val = null;
+
+        if (MAPPING_TYPE_CONSTANT.equalsIgnoreCase(nodeParamEntity.getBindType())) {
+            val = nodeParamEntity.getBindVal();
+        }
+
+        return val;
     }
 
     private Object calculateBasicTypePropertyValueFromSystemVariable(CoreObjectPropertyMeta propertyMeta,
@@ -225,14 +271,124 @@ public class PluginParamObjectVarCalculator extends AbstractPluginParamObjectSer
 
     private List<Object> calculateBasicTypePropertyValueListFromContext(CoreObjectPropertyMeta propertyMeta,
             CoreObjectVar parentObjectVar, CoreObjectVarCalculationContext ctx) {
-        // TODO
-        return null;
+        TaskNodeDefInfoEntity currTaskNodeDefInfo = ctx.getTaskNodeDefInfo();
+        String curTaskNodeDefId = currTaskNodeDefInfo.getId();
+        String paramName = propertyMeta.getName();
+        TaskNodeParamEntity nodeParamEntity = taskNodeParamRepository
+                .selectOneByTaskNodeDefIdAndParamName(curTaskNodeDefId, paramName);
+
+        if (nodeParamEntity == null) {
+            return null;
+        }
+
+        String boundNodeId = nodeParamEntity.getBindNodeId();
+        String boundParamType = nodeParamEntity.getBindParamType();
+        String boundParamName = nodeParamEntity.getBindParamName();
+
+        ProcInstInfoEntity procInstInfo = ctx.getProcInstInfo();
+
+        // get by procInstId and nodeId
+        TaskNodeInstInfoEntity boundNodeInstEntity = taskNodeInstInfoRepository
+                .selectOneByProcInstIdAndNodeId(procInstInfo.getId(), boundNodeId);
+
+        if (boundNodeInstEntity == null) {
+            log.error("Bound node instance entity does not exist for {} {}", procInstInfo.getId(), boundNodeId);
+            throw new WecubeCoreException("3171", "Bound node instance entity does not exist.");
+        }
+
+        List<TaskNodeExecRequestEntity> requestEntities = taskNodeExecRequestRepository
+                .selectCurrentEntityByNodeInstId(boundNodeInstEntity.getId());
+
+        if (requestEntities == null || requestEntities.isEmpty()) {
+            log.error("cannot find request entity for {}", boundNodeInstEntity.getId());
+            throw new WecubeCoreException("3172", "Bound request entity does not exist.");
+        }
+
+        if (requestEntities.size() > 1) {
+            log.warn("duplicated request entity found for {} ", boundNodeInstEntity.getId());
+            // throw new WecubeCoreException("3173", "Duplicated request entity
+            // found.");
+        }
+
+        TaskNodeExecRequestEntity requestEntity = requestEntities.get(0);
+
+        // TaskNodeDefInfoEntity boundNodeDefInfoEntity =
+        // taskNodeDefInfoRepository
+        // .selectByPrimaryKey(boundNodeInstEntity.getNodeDefId());
+
+        List<TaskNodeExecParamEntity> execParamEntities = taskNodeExecParamRepository
+                .selectAllByRequestIdAndParamNameAndParamType(requestEntity.getReqId(), boundParamName, boundParamType);
+
+        if (execParamEntities == null || execParamEntities.isEmpty()) {
+            return null;
+        }
+
+        List<Object> vals = new ArrayList<>();
+
+        for (TaskNodeExecParamEntity execParam : execParamEntities) {
+            vals.add(execParam.getParamDataValue());
+        }
+
+        return vals;
     }
 
     private Object calculateBasicTypePropertyValueFromContext(CoreObjectPropertyMeta propertyMeta,
             CoreObjectVar parentObjectVar, CoreObjectVarCalculationContext ctx) {
-        // TODO
-        return null;
+        TaskNodeDefInfoEntity currTaskNodeDefInfo = ctx.getTaskNodeDefInfo();
+        String curTaskNodeDefId = currTaskNodeDefInfo.getId();
+        String paramName = propertyMeta.getName();
+        TaskNodeParamEntity nodeParamEntity = taskNodeParamRepository
+                .selectOneByTaskNodeDefIdAndParamName(curTaskNodeDefId, paramName);
+
+        if (nodeParamEntity == null) {
+            return null;
+        }
+
+        String boundNodeId = nodeParamEntity.getBindNodeId();
+        String boundParamType = nodeParamEntity.getBindParamType();
+        String boundParamName = nodeParamEntity.getBindParamName();
+
+        ProcInstInfoEntity procInstInfo = ctx.getProcInstInfo();
+
+        // get by procInstId and nodeId
+        TaskNodeInstInfoEntity boundNodeInstEntity = taskNodeInstInfoRepository
+                .selectOneByProcInstIdAndNodeId(procInstInfo.getId(), boundNodeId);
+
+        if (boundNodeInstEntity == null) {
+            log.error("Bound node instance entity does not exist for {} {}", procInstInfo.getId(), boundNodeId);
+            throw new WecubeCoreException("3171", "Bound node instance entity does not exist.");
+        }
+
+        List<TaskNodeExecRequestEntity> requestEntities = taskNodeExecRequestRepository
+                .selectCurrentEntityByNodeInstId(boundNodeInstEntity.getId());
+
+        if (requestEntities == null || requestEntities.isEmpty()) {
+            log.error("cannot find request entity for {}", boundNodeInstEntity.getId());
+            throw new WecubeCoreException("3172", "Bound request entity does not exist.");
+        }
+
+        if (requestEntities.size() > 1) {
+            log.warn("duplicated request entity found for {} ", boundNodeInstEntity.getId());
+            // throw new WecubeCoreException("3173", "Duplicated request entity
+            // found.");
+        }
+
+        TaskNodeExecRequestEntity requestEntity = requestEntities.get(0);
+
+        // TaskNodeDefInfoEntity boundNodeDefInfoEntity =
+        // taskNodeDefInfoRepository
+        // .selectByPrimaryKey(boundNodeInstEntity.getNodeDefId());
+
+        List<TaskNodeExecParamEntity> execParamEntities = taskNodeExecParamRepository
+                .selectAllByRequestIdAndParamNameAndParamType(requestEntity.getReqId(), boundParamName, boundParamType);
+
+        if (execParamEntities == null || execParamEntities.isEmpty()) {
+            return null;
+        }
+
+        TaskNodeExecParamEntity execParam = execParamEntities.get(0);
+
+        return execParam.getParamDataValue();
     }
 
     private CoreObjectVar calculateObjectTypePropertyValue(CoreObjectPropertyMeta propertyMeta,
@@ -254,11 +410,19 @@ public class PluginParamObjectVarCalculator extends AbstractPluginParamObjectSer
                 }
             }
         } else if (propertyMeta.isConstantMapping()) {
-            // TODO
-            // TODO
+            Object constantVal = calculateBasicTypePropertyValueFromConstant(propertyMeta, null, ctx);
+            if (constantVal != null) {
+                rawObjectValues.add(String.valueOf(constantVal));
+            }
         } else if (propertyMeta.isContextMapping()) {
-            // TODO
-            // TODO
+
+            List<Object> contextVals = calculateBasicTypePropertyValueListFromContext(propertyMeta, null, ctx);
+            if (contextVals != null) {
+                for (Object valueObject : contextVals) {
+                    String valueObjectStr = String.valueOf(valueObject);
+                    rawObjectValues.add(valueObjectStr);
+                }
+            }
         } else if (propertyMeta.isSystemVariableMapping()) {
             Object sysVal = calculateBasicTypePropertyValueFromSystemVariable(propertyMeta, null, ctx);
             if (sysVal != null) {
@@ -301,11 +465,19 @@ public class PluginParamObjectVarCalculator extends AbstractPluginParamObjectSer
                 }
             }
         } else if (propertyMeta.isConstantMapping()) {
-            // TODO
-            // TODO
+
+            Object constantVal = calculateBasicTypePropertyValueFromConstant(propertyMeta, null, ctx);
+            if (constantVal != null) {
+                rawObjectValues.add(convertObjectToInteger(constantVal));
+            }
         } else if (propertyMeta.isContextMapping()) {
-            // TODO
-            // TODO
+            List<Object> contextVals = calculateBasicTypePropertyValueListFromContext(propertyMeta, null, ctx);
+            if (contextVals != null) {
+                for (Object valueObject : contextVals) {
+                    String valueObjectStr = String.valueOf(valueObject);
+                    rawObjectValues.add(convertObjectToInteger(valueObjectStr));
+                }
+            }
         } else if (propertyMeta.isSystemVariableMapping()) {
             Object sysVal = calculateBasicTypePropertyValueFromSystemVariable(propertyMeta, null, ctx);
             if (sysVal != null) {
@@ -539,12 +711,8 @@ public class PluginParamObjectVarCalculator extends AbstractPluginParamObjectSer
         if (isBasicDataType(dataType)) {
             return calBasicTypeAsListPropertyVars(propertyMeta, ctx);
         } else if (isListDataType(dataType)) {
-            // TODO
-            // TODO
             return calculateListPropertyMetaAsListPropertyVarResult(propertyMeta, parentObjectVar, ctx);
         } else if (isObjectDataType(dataType)) {
-            // TODO
-            // TODO
             return calObjectPropertyMetaAsListPropertyVars(propertyMeta, parentObjectVar, ctx);
         } else {
             return null;
@@ -620,7 +788,6 @@ public class PluginParamObjectVarCalculator extends AbstractPluginParamObjectSer
      */
     private List<CoreObjectVar> calObjectTypePropertyAsListResult(CoreObjectPropertyMeta propertyMeta,
             CoreObjectVar parentObjectVar, CoreObjectVarCalculationContext ctx) {
-        // TODO
         CoreObjectMeta refObjectMeta = propertyMeta.getRefObjectMeta();
         log.debug("calculate list object vars for objectName={},propertyName={}, refObject={} ",
                 propertyMeta.getObjectMeta().getName(), propertyMeta.getName(), refObjectMeta.getName());
