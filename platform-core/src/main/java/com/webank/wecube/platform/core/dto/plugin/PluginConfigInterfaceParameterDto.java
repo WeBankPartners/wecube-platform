@@ -14,7 +14,7 @@ public class PluginConfigInterfaceParameterDto {
     private String required;
     private String sensitiveData;
 
-    private CoreObjectMetaDto objectMeta;
+    private CoreObjectMetaDto refObjectMeta;
 
     public String getId() {
         return id;
@@ -101,12 +101,12 @@ public class PluginConfigInterfaceParameterDto {
         this.sensitiveData = sensitiveData;
     }
 
-    public CoreObjectMetaDto getObjectMeta() {
-        return objectMeta;
+    public CoreObjectMetaDto getRefObjectMeta() {
+        return refObjectMeta;
     }
 
-    public void setObjectMeta(CoreObjectMetaDto objectMeta) {
-        this.objectMeta = objectMeta;
+    public void setRefObjectMeta(CoreObjectMetaDto refObjectMeta) {
+        this.refObjectMeta = refObjectMeta;
     }
 
 }
