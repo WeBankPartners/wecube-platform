@@ -970,7 +970,7 @@ public class PluginConfigMgmtService extends AbstractPluginMgmtService {
                 PluginConfigInterfaceParameterDto paramDto = buildPluginConfigInterfaceParameterDto(paramEntity);
                 CoreObjectMetaDto objectMetaDto = tryBuildCoreObjectMetaDto(paramEntity);
                 if (objectMetaDto != null) {
-                    paramDto.setObjectMeta(objectMetaDto);
+                    paramDto.setRefObjectMeta(objectMetaDto);
                 }
                 inputParamDtos.add(paramDto);
             }
@@ -986,7 +986,7 @@ public class PluginConfigMgmtService extends AbstractPluginMgmtService {
 
                 CoreObjectMetaDto objectMetaDto = tryBuildCoreObjectMetaDto(paramEntity);
                 if (objectMetaDto != null) {
-                    paramDto.setObjectMeta(objectMetaDto);
+                    paramDto.setRefObjectMeta(objectMetaDto);
                 }
                 outputParamDtos.add(paramDto);
             }
