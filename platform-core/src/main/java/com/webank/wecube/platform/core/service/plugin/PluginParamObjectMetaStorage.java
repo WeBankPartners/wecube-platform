@@ -60,6 +60,10 @@ public class PluginParamObjectMetaStorage extends AbstractPluginParamObjectServi
             propMeta.setSensitive(sensitive);
             
             coreObjectPropertyMetaMapper.updateByPrimaryKeySelective(propMeta);
+            
+            if(propMetaDto.getRefObjectMeta() != null){
+                updateObjectMeta(propMetaDto.getRefObjectMeta());
+            }
         }
     }
 
