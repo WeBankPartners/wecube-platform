@@ -17,7 +17,7 @@ import com.webank.wecube.platform.core.service.plugin.xml.register.ParamProperty
 import com.webank.wecube.platform.workflow.commons.LocalIdGenerator;
 
 @Service
-public class PluginParamObjectMetaRegister extends AbstractPluginParamObjectService{
+public class PluginParamObjectMetaRegister extends AbstractPluginParamObjectService {
     private static final Logger log = LoggerFactory.getLogger(PluginParamObjectMetaRegister.class);
 
     public void registerParamObjects(ParamObjectsType xmlParamObjects, String packageName, String packageVersion) {
@@ -64,8 +64,56 @@ public class PluginParamObjectMetaRegister extends AbstractPluginParamObjectServ
             return;
         }
 
-        // TODO to implement in future
+        List<CoreObjectPropertyMeta> propertyMetas = coreObjectPropertyMetaMapper
+                .selectAllByObjectMeta(objectMetaEntity.getId());
+
+        for (ParamPropertyType xmlPropertyType : xmlPropertyList) {
+            CoreObjectPropertyMeta propertyMeta = findOutObjectPropertyMetaByPropertyName(propertyMetas,
+                    xmlPropertyType.getName());
+            if(propertyMeta == null){
+                CoreObjectPropertyMeta propertyMetaEntity = new CoreObjectPropertyMeta();
+                propertyMetaEntity.setId(LocalIdGenerator.generateId());
+                propertyMetaEntity.setCreatedBy(AuthenticationContextHolder.getCurrentUsername());
+                propertyMetaEntity.setCreatedTime(new Date());
+                propertyMetaEntity.setDataType(xmlPropertyType.getDataType());
+                propertyMetaEntity.setMapExpr(xmlPropertyType.getMapExpr());
+                propertyMetaEntity.setMapType(xmlPropertyType.getMapType());
+                propertyMetaEntity.setName(xmlPropertyType.getName());
+                propertyMetaEntity.setObjectMetaId(objectMetaEntity.getId());
+                propertyMetaEntity.setObjectName(objectMetaEntity.getName());
+                propertyMetaEntity.setPackageName(objectMetaEntity.getPackageName());
+                propertyMetaEntity.setRefType(xmlPropertyType.getRefType());
+                propertyMetaEntity.setRefName(xmlPropertyType.getRefName());
+                propertyMetaEntity.setSource(packageVersion);
+
+                boolean sensitive = false;
+                if (StringUtils.isNoneBlank(xmlPropertyType.getSensitiveData())) {
+                    if ("Y".equalsIgnoreCase(xmlPropertyType.getSensitiveData())) {
+                        sensitive = true;
+                    }
+                }
+                propertyMetaEntity.setSensitive(sensitive);
+
+                coreObjectPropertyMetaMapper.insert(propertyMetaEntity);
+            }
+        }
+
         return;
+    }
+
+    private CoreObjectPropertyMeta findOutObjectPropertyMetaByPropertyName(List<CoreObjectPropertyMeta> propertyMetas,
+            String propertyName) {
+        if (propertyMetas == null) {
+            return null;
+        }
+
+        for (CoreObjectPropertyMeta propertyMeta : propertyMetas) {
+            if (propertyName.equals(propertyMeta.getName())) {
+                return propertyMeta;
+            }
+        }
+
+        return null;
     }
 
     private void tryCreateSingleParamObject(ParamObjectType xmlParamObject, String packageName, String packageVersion) {

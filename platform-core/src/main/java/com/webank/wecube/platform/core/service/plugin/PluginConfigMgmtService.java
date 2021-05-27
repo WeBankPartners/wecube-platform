@@ -1045,9 +1045,21 @@ public class PluginConfigMgmtService extends AbstractPluginMgmtService {
             propertyMetaDto.setRefObjectMeta(refObjectMetaDto);
         }
         propertyMetaDto.setRefType(propertyMeta.getRefType());
-        propertyMetaDto.setSensitive(propertyMeta.getSensitive());
+        propertyMetaDto.setSensitive(convertBooleanToString(propertyMeta.getSensitive()));
 
         return propertyMetaDto;
+    }
+    
+    private String convertBooleanToString(Boolean b){
+        if(b == null){
+            return CoreObjectPropertyMetaDto.SENSITIVE_NO;
+        }
+        
+        if(b){
+            return CoreObjectPropertyMetaDto.SENSITIVE_YES;
+        }else{
+            return CoreObjectPropertyMetaDto.SENSITIVE_NO;
+        }
     }
 
     private void ensurePluginConfigRegisterNameNotExists(PluginConfigDto pluginConfigDto) {

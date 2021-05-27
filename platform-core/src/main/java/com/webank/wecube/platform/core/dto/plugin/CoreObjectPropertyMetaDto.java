@@ -1,6 +1,9 @@
 package com.webank.wecube.platform.core.dto.plugin;
 
 public class CoreObjectPropertyMetaDto {
+    
+    public static final String SENSITIVE_YES = "Y";
+    public static final String SENSITIVE_NO = "N";
 
     private String id;
 
@@ -24,7 +27,7 @@ public class CoreObjectPropertyMetaDto {
 
     private String source;
 
-    private Boolean sensitive;
+    private String sensitive;
 
     private CoreObjectMetaDto refObjectMeta;
 
@@ -116,11 +119,11 @@ public class CoreObjectPropertyMetaDto {
         this.source = source;
     }
 
-    public Boolean getSensitive() {
+    public String getSensitive() {
         return sensitive;
     }
 
-    public void setSensitive(Boolean sensitive) {
+    public void setSensitive(String sensitive) {
         this.sensitive = sensitive;
     }
 
