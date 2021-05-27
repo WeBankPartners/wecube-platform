@@ -53,6 +53,12 @@ public class PluginParamObjectMetaStorage extends AbstractPluginParamObjectServi
             propMeta.setMapExpr(propMetaDto.getMapExpr());
             propMeta.setDataType(propMetaDto.getDataType());
             
+            boolean sensitive = false;
+            if("Y".equals(propMetaDto.getSensitive())){
+                sensitive = true;
+            }
+            propMeta.setSensitive(sensitive);
+            
             coreObjectPropertyMetaMapper.updateByPrimaryKeySelective(propMeta);
         }
     }
