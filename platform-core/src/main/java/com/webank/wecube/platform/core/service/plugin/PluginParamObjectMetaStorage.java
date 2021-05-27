@@ -5,7 +5,10 @@ import java.util.LinkedList;
 import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.webank.wecube.platform.core.commons.AuthenticationContextHolder;
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
@@ -17,54 +20,15 @@ import com.webank.wecube.platform.core.utils.Constants;
 
 @Service
 public class PluginParamObjectMetaStorage extends AbstractPluginParamObjectService {
+    private static final Logger log = LoggerFactory.getLogger(PluginParamObjectMetaStorage.class);
 
     /**
      * 
      * @param coreObjectMetaDto
      */
+    @Transactional
     public void updateObjectMeta(CoreObjectMetaDto coreObjectMetaDto) {
-        if (StringUtils.isBlank(coreObjectMetaDto.getId())) {
-            return;
-        }
-
-        CoreObjectMeta coreObjectMeta = coreObjectMetaMapper.selectByPrimaryKey(coreObjectMetaDto.getId());
-        if (coreObjectMeta == null) {
-            throw new WecubeCoreException("Such object meta does not exist with ID:" + coreObjectMetaDto.getId());
-        }
-        
-        List<CoreObjectPropertyMetaDto> propertyMetaDtos = coreObjectMetaDto.getPropertyMetas();
-        if(propertyMetaDtos == null || propertyMetaDtos.isEmpty()){
-            return;
-        }
-        
-        for(CoreObjectPropertyMetaDto propMetaDto : propertyMetaDtos){
-            if(StringUtils.isBlank(propMetaDto.getId())){
-                continue;
-            }
-            
-            CoreObjectPropertyMeta propMeta = coreObjectPropertyMetaMapper.selectByPrimaryKey(propMetaDto.getId());
-            if(propMeta == null){
-                continue;
-            }
-            
-            propMeta.setUpdatedBy(AuthenticationContextHolder.getCurrentUsername());
-            propMeta.setUpdatedTime(new Date());
-            propMeta.setMapType(propMetaDto.getMapType());
-            propMeta.setMapExpr(propMetaDto.getMapExpr());
-            propMeta.setDataType(propMetaDto.getDataType());
-            
-            boolean sensitive = false;
-            if("Y".equals(propMetaDto.getSensitive())){
-                sensitive = true;
-            }
-            propMeta.setSensitive(sensitive);
-            
-            coreObjectPropertyMetaMapper.updateByPrimaryKeySelective(propMeta);
-            
-            if(propMetaDto.getRefObjectMeta() != null){
-                updateObjectMeta(propMetaDto.getRefObjectMeta());
-            }
-        }
+        doUpdateObjectMeta(coreObjectMetaDto);
     }
 
     /**
@@ -79,21 +43,21 @@ public class PluginParamObjectMetaStorage extends AbstractPluginParamObjectServi
 
         return objectMetaEntity;
     }
-    
+
     /**
      * 
      * @param objectMetaId
      * @return
      */
-    public CoreObjectMeta fetchAssembledCoreObjectMetaById(String objectMetaId){
+    public CoreObjectMeta fetchAssembledCoreObjectMetaById(String objectMetaId) {
         CoreObjectMeta objectMetaEntity = coreObjectMetaMapper.selectByPrimaryKey(objectMetaId);
-        if(objectMetaEntity == null){
+        if (objectMetaEntity == null) {
             return null;
         }
-        
+
         List<CoreObjectMeta> cachedObjectMetaList = new LinkedList<>();
         cachedObjectMetaList.add(objectMetaEntity);
-        
+
         List<CoreObjectPropertyMeta> propertyMetaEntities = coreObjectPropertyMetaMapper
                 .selectAllByObjectMeta(objectMetaEntity.getId());
         if (propertyMetaEntities == null || propertyMetaEntities.isEmpty()) {
@@ -112,7 +76,7 @@ public class PluginParamObjectMetaStorage extends AbstractPluginParamObjectServi
         }
 
         return objectMetaEntity;
-        
+
     }
 
     private CoreObjectMeta doFetchAssembledCoreObjectMeta(String packageName, String coreObjectName,
@@ -159,6 +123,57 @@ public class PluginParamObjectMetaStorage extends AbstractPluginParamObjectServi
         }
 
         return null;
+    }
+
+    private void doUpdateObjectMeta(CoreObjectMetaDto coreObjectMetaDto) {
+        if (StringUtils.isBlank(coreObjectMetaDto.getId())) {
+            log.info("object meta id is blank.");
+            return;
+        }
+
+        CoreObjectMeta coreObjectMeta = coreObjectMetaMapper.selectByPrimaryKey(coreObjectMetaDto.getId());
+        if (coreObjectMeta == null) {
+            throw new WecubeCoreException("Such object meta does not exist with ID:" + coreObjectMetaDto.getId());
+        }
+
+        List<CoreObjectPropertyMetaDto> propertyMetaDtos = coreObjectMetaDto.getPropertyMetas();
+        if (propertyMetaDtos == null || propertyMetaDtos.isEmpty()) {
+            log.info("object property meta from dto is empty for {}", coreObjectMetaDto.getId());
+            return;
+        }
+
+        for (CoreObjectPropertyMetaDto propertyMetaDto : propertyMetaDtos) {
+            if (StringUtils.isBlank(propertyMetaDto.getId())) {
+                log.info("object property meta does not provide : {}", propertyMetaDto.getName());
+                continue;
+            }
+
+            CoreObjectPropertyMeta propertyMeta = coreObjectPropertyMetaMapper
+                    .selectByPrimaryKey(propertyMetaDto.getId());
+            if (propertyMeta == null) {
+                log.info("object property meta does not exist with ID {}", propertyMetaDto.getId());
+                continue;
+            }
+
+            propertyMeta.setUpdatedBy(AuthenticationContextHolder.getCurrentUsername());
+            propertyMeta.setUpdatedTime(new Date());
+            propertyMeta.setMapType(propertyMetaDto.getMapType());
+            propertyMeta.setMapExpr(propertyMetaDto.getMapExpr());
+            propertyMeta.setDataType(propertyMetaDto.getDataType());
+
+            boolean sensitive = false;
+            if ("Y".equals(propertyMetaDto.getSensitive())) {
+                sensitive = true;
+            }
+            propertyMeta.setSensitive(sensitive);
+
+            coreObjectPropertyMetaMapper.updateByPrimaryKeySelective(propertyMeta);
+
+            if (propertyMetaDto.getRefObjectMeta() != null) {
+                log.info("property {} has reference object meta and about to update recursively.", propertyMetaDto.getName());
+                doUpdateObjectMeta(propertyMetaDto.getRefObjectMeta());
+            }
+        }
     }
 
 }
