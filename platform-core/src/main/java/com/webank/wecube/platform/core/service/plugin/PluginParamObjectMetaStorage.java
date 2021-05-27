@@ -75,6 +75,41 @@ public class PluginParamObjectMetaStorage extends AbstractPluginParamObjectServi
 
         return objectMetaEntity;
     }
+    
+    /**
+     * 
+     * @param objectMetaId
+     * @return
+     */
+    public CoreObjectMeta fetchAssembledCoreObjectMetaById(String objectMetaId){
+        CoreObjectMeta objectMetaEntity = coreObjectMetaMapper.selectByPrimaryKey(objectMetaId);
+        if(objectMetaEntity == null){
+            return null;
+        }
+        
+        List<CoreObjectMeta> cachedObjectMetaList = new LinkedList<>();
+        cachedObjectMetaList.add(objectMetaEntity);
+        
+        List<CoreObjectPropertyMeta> propertyMetaEntities = coreObjectPropertyMetaMapper
+                .selectAllByObjectMeta(objectMetaEntity.getId());
+        if (propertyMetaEntities == null || propertyMetaEntities.isEmpty()) {
+            return objectMetaEntity;
+        }
+
+        for (CoreObjectPropertyMeta propertyMetaEntity : propertyMetaEntities) {
+            if (Constants.DATA_TYPE_OBJECT.equals(propertyMetaEntity.getRefType())) {
+
+                CoreObjectMeta refObjectMetaEntity = doFetchAssembledCoreObjectMeta(objectMetaEntity.getPackageName(),
+                        propertyMetaEntity.getRefName(), cachedObjectMetaList);
+                propertyMetaEntity.setRefObjectMeta(refObjectMetaEntity);
+            }
+
+            objectMetaEntity.addPropertyMeta(propertyMetaEntity);
+        }
+
+        return objectMetaEntity;
+        
+    }
 
     private CoreObjectMeta doFetchAssembledCoreObjectMeta(String packageName, String coreObjectName,
             List<CoreObjectMeta> cachedObjectMetaList) {
