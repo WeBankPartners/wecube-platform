@@ -79,7 +79,7 @@ public class PluginConfigController {
      * @param objectMetaId
      * @return
      */
-    @PostMapping("/plugins/objectmetas/id/{object-meta-id}")
+    @GetMapping("/plugins/objectmetas/id/{object-meta-id}")
     public CommonResponseDto fetchObjectMeta(@PathVariable(value = "object-meta-id") String objectMetaId) {
         CoreObjectMetaDto objectMetaDto = pluginConfigMgmtService.fetchObjectMetaById(objectMetaId);
         return okayWithData(objectMetaDto);
