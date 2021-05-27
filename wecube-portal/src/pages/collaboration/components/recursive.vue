@@ -1,0 +1,193 @@
+<template>
+  <div class="test">
+    <ul>
+      <li v-for="(objItem, itemIndex) in treeData.refObjectMeta.propertyMetas" class="tree-border" :key="itemIndex">
+        <div class="tree-title" :style="stylePadding">
+          <!-- @click="hide(itemIndex)" -->
+          <Form :label-width="80">
+            <Row>
+              <Col span="3">
+                <FormItem :label="$t('params_name')">
+                  <span v-if="objItem.required === 'Y'" style="color:red">*</span>
+                  <span style="display: inline-block;white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{
+                    objItem.name
+                  }}</span>
+                </FormItem>
+              </Col>
+              <Col span="3" offset="1">
+                <FormItem :label="$t('data_type')">
+                  <span>{{ objItem.dataType }}</span>
+                </FormItem>
+              </Col>
+              <Col span="3" offset="1">
+                <FormItem :label="$t('sensitive')">
+                  <Select v-model="objItem.sensitive" filterable style="width:150px">
+                    <Option v-for="item in sensitiveData" :value="item.value" :key="item.value">{{
+                      item.label
+                    }}</Option>
+                  </Select>
+                </FormItem>
+              </Col>
+              <Col span="3" offset="1">
+                <FormItem :label="$t('attribute_type')">
+                  <Select filterable v-model="objItem.mapType" @on-change="mapTypeChange($event, objItem)">
+                    <Option value="context" key="context">context</Option>
+                    <Option value="system_variable" key="system_variable">system_variable</Option>
+                    <Option value="entity" key="entity">entity</Option>
+                    <Option value="constant" key="constant">constant</Option>
+                    <Option value="object" key="object">object</Option>
+                  </Select>
+                </FormItem>
+              </Col>
+              <Col span="8" offset="1">
+                <FormItem :label="$t('attribute')">
+                  <FilterRules
+                    v-if="objItem.mapType === 'entity'"
+                    v-model="objItem.mapExpr"
+                    :allDataModelsWithAttrs="allEntityType"
+                    :rootEntity="clearedEntityType"
+                    :needNativeAttr="true"
+                    :needAttr="true"
+                    :rootEntityFirst="true"
+                  ></FilterRules>
+                  <Select
+                    filterable
+                    v-if="objItem.mapType === 'system_variable'"
+                    v-model="objItem.mappingSystemVariableName"
+                    @on-open-change="retrieveSystemVariables"
+                  >
+                    <Option
+                      v-for="(item, index) in allSystemVariables"
+                      v-if="item.status === 'active'"
+                      :value="item.name"
+                      :key="index"
+                      >{{ item.name }}</Option
+                    >
+                  </Select>
+                  <span v-if="objItem.mapType === 'context' || objItem.mapType === 'constant'">N/A</span>
+                </FormItem>
+              </Col>
+            </Row>
+          </Form>
+        </div>
+        <transition name="fade">
+          <div v-if="objItem.dataType === 'object'">
+            <recursive
+              :ref="'recursive' + count"
+              :increment="count"
+              :treeData="objItem"
+              :clearedEntityType="clearedEntityType"
+              :allEntityType="allEntityType"
+            >
+            </recursive>
+          </div>
+        </transition>
+      </li>
+    </ul>
+  </div>
+</template>
+
+<script>
+import FilterRules from '../../components/filter-rules.vue'
+export default {
+  name: 'recursive',
+  data () {
+    return {
+      sensitiveData: [
+        {
+          value: 'Y',
+          label: 'Y'
+        },
+        {
+          value: 'N',
+          label: 'N'
+        }
+      ]
+    }
+  },
+  props: ['treeData', 'clearedEntityType', 'allEntityType', 'increment'],
+  computed: {
+    count () {
+      var c = this.increment
+      return ++c
+    },
+    stylePadding () {
+      return {
+        'margin-left': this.count * 24 + 'px',
+        'border-left': '1px solid #e8eaec'
+      }
+    }
+  },
+  mounted () {
+    console.log(this.allEntityType)
+  },
+  methods: {
+    hide (index) {
+      this.recursiveViewConfig[index]._isShow = !this.recursiveViewConfig[index]._isShow
+      this.$set(this.recursiveViewConfig, index, this.recursiveViewConfig[index])
+    },
+    mapTypeChange (v, param) {
+      // if (v === 'entity') {
+      //   param.mappingEntityExpression = null
+      // }
+    }
+  },
+  components: {
+    FilterRules
+  }
+}
+</script>
+
+<style scoped lang="scss">
+.test /deep/ .ivu-form-item {
+  margin-bottom: 0;
+}
+ul {
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+.tree-menu {
+  height: 100%;
+  padding: 0px 12px;
+  border-right: 1px solid #e6e9f0;
+}
+
+.tree-menu-comm span {
+  display: block;
+  font-size: 12px;
+  position: relative;
+}
+
+.tree-menu-comm span strong {
+  display: block;
+  width: 82%;
+  position: relative;
+  line-height: 22px;
+  padding: 2px 0;
+  padding-left: 5px;
+  color: #161719;
+  font-weight: normal;
+}
+
+.tree-title {
+  margin-top: 1px;
+  cursor: pointer;
+}
+.tree-border {
+  // border-top: 1px solid #9966;
+  // border-right: none;
+  // border-left: none;
+  // border-top: none;
+  // padding: 4px 0;
+  // margin: 4px 0;
+}
+.box {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-around;
+}
+.box .list {
+  width: 580px;
+}
+</style>
