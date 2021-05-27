@@ -61,8 +61,9 @@ public class PluginConfigController {
 
     /**
      * 
-     * @param packageName
-     * @param entityName
+     * @param pluginConfigId
+     * @param objectMetaId
+     * @param coreObjectMetaDto
      * @return
      */
     @PostMapping("/plugins/configs/{plugin-config-id}/interfaces/objectmetas/{object-meta-id}")
@@ -71,6 +72,17 @@ public class PluginConfigController {
             @RequestBody CoreObjectMetaDto coreObjectMetaDto) {
         pluginConfigMgmtService.updateObjectMeta(pluginConfigId, objectMetaId, coreObjectMetaDto);
         return okay();
+    }
+
+    /**
+     * 
+     * @param objectMetaId
+     * @return
+     */
+    @PostMapping("/plugins/objectmetas/id/{object-meta-id}")
+    public CommonResponseDto fetchObjectMeta(@PathVariable(value = "object-meta-id") String objectMetaId) {
+        CoreObjectMetaDto objectMetaDto = pluginConfigMgmtService.fetchObjectMetaById(objectMetaId);
+        return okayWithData(objectMetaDto);
     }
 
     /**

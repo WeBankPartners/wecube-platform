@@ -78,6 +78,21 @@ public class PluginConfigMgmtService extends AbstractPluginMgmtService {
      * @param objectMetaId
      * @param coreObjectMetaDto
      */
+    public CoreObjectMetaDto fetchObjectMetaById(String objectMetaId) {
+        CoreObjectMeta objectMeta = pluginParamObjectMetaStorage.fetchAssembledCoreObjectMetaById(objectMetaId);
+        if (objectMeta == null) {
+            return null;
+        }
+        CoreObjectMetaDto objectMetaDto = tryBuildCoreObjectMetaDtoWithEntity(objectMeta);
+
+        return objectMetaDto;
+    }
+
+    /**
+     * 
+     * @param objectMetaId
+     * @param coreObjectMetaDto
+     */
     public void updateObjectMeta(String pluginConfigId, String objectMetaId, CoreObjectMetaDto coreObjectMetaDto) {
         validateCurrentUserPermission(pluginConfigId, PluginConfigRoles.PERM_TYPE_MGMT);
         pluginParamObjectMetaStorage.updateObjectMeta(coreObjectMetaDto);
@@ -1049,15 +1064,15 @@ public class PluginConfigMgmtService extends AbstractPluginMgmtService {
 
         return propertyMetaDto;
     }
-    
-    private String convertBooleanToString(Boolean b){
-        if(b == null){
+
+    private String convertBooleanToString(Boolean b) {
+        if (b == null) {
             return CoreObjectPropertyMetaDto.SENSITIVE_NO;
         }
-        
-        if(b){
+
+        if (b) {
             return CoreObjectPropertyMetaDto.SENSITIVE_YES;
-        }else{
+        } else {
             return CoreObjectPropertyMetaDto.SENSITIVE_NO;
         }
     }
