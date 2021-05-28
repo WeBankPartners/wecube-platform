@@ -1326,10 +1326,34 @@ public class PluginConfigMgmtService extends AbstractPluginMgmtService {
         e.setPluginConfigId(intf.getPluginConfigId());
         e.setType(intf.getType());
 
+        if (StringUtils.isNoneBlank(intf.getPluginConfigId())) {
+            PluginConfigs pluginConfigsEntity = pluginConfigsMapper.selectByPrimaryKey(intf.getPluginConfigId());
+            e.setPluginConfig(pluginConfigsEntity);
+        }
+
         List<PluginConfigInterfaceParameters> inputParameters = pluginConfigInterfaceParametersMapper
                 .selectAllByConfigInterfaceAndParamType(intf.getId(), PluginConfigInterfaceParameters.TYPE_INPUT);
+        if(inputParameters != null){
+            for(PluginConfigInterfaceParameters paramEntity : inputParameters){
+                paramEntity.setPluginConfigInterface(e);
+                if (PluginConfigInterfaceParameters.DATA_TYPE_OBJECT.equals(paramEntity.getMappingType())) {
+                    CoreObjectMeta objectMeta = tryFetchEnrichCoreObjectMeta(paramEntity);
+                    paramEntity.setObjectMeta(objectMeta);
+                }
+            }
+        }
         List<PluginConfigInterfaceParameters> outputParameters = pluginConfigInterfaceParametersMapper
                 .selectAllByConfigInterfaceAndParamType(intf.getId(), PluginConfigInterfaceParameters.TYPE_OUTPUT);
+        
+        if(outputParameters != null){
+            for(PluginConfigInterfaceParameters paramEntity : outputParameters){
+                paramEntity.setPluginConfigInterface(e);
+                if (PluginConfigInterfaceParameters.DATA_TYPE_OBJECT.equals(paramEntity.getMappingType())) {
+                    CoreObjectMeta objectMeta = tryFetchEnrichCoreObjectMeta(paramEntity);
+                    paramEntity.setObjectMeta(objectMeta);
+                }
+            }
+        }
 
         e.setInputParameters(inputParameters);
         e.setOutputParameters(outputParameters);
