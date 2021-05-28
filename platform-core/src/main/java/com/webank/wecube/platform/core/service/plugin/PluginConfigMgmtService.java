@@ -1328,13 +1328,18 @@ public class PluginConfigMgmtService extends AbstractPluginMgmtService {
 
         if (StringUtils.isNoneBlank(intf.getPluginConfigId())) {
             PluginConfigs pluginConfigsEntity = pluginConfigsMapper.selectByPrimaryKey(intf.getPluginConfigId());
-            e.setPluginConfig(pluginConfigsEntity);
+            if (pluginConfigsEntity != null) {
+                PluginPackages pluginPackage = pluginPackagesMapper
+                        .selectByPrimaryKey(pluginConfigsEntity.getPluginPackageId());
+                pluginConfigsEntity.setPluginPackage(pluginPackage);
+                e.setPluginConfig(pluginConfigsEntity);
+            }
         }
 
         List<PluginConfigInterfaceParameters> inputParameters = pluginConfigInterfaceParametersMapper
                 .selectAllByConfigInterfaceAndParamType(intf.getId(), PluginConfigInterfaceParameters.TYPE_INPUT);
-        if(inputParameters != null){
-            for(PluginConfigInterfaceParameters paramEntity : inputParameters){
+        if (inputParameters != null) {
+            for (PluginConfigInterfaceParameters paramEntity : inputParameters) {
                 paramEntity.setPluginConfigInterface(e);
                 if (PluginConfigInterfaceParameters.DATA_TYPE_OBJECT.equals(paramEntity.getMappingType())) {
                     CoreObjectMeta objectMeta = tryFetchEnrichCoreObjectMeta(paramEntity);
@@ -1344,9 +1349,9 @@ public class PluginConfigMgmtService extends AbstractPluginMgmtService {
         }
         List<PluginConfigInterfaceParameters> outputParameters = pluginConfigInterfaceParametersMapper
                 .selectAllByConfigInterfaceAndParamType(intf.getId(), PluginConfigInterfaceParameters.TYPE_OUTPUT);
-        
-        if(outputParameters != null){
-            for(PluginConfigInterfaceParameters paramEntity : outputParameters){
+
+        if (outputParameters != null) {
+            for (PluginConfigInterfaceParameters paramEntity : outputParameters) {
                 paramEntity.setPluginConfigInterface(e);
                 if (PluginConfigInterfaceParameters.DATA_TYPE_OBJECT.equals(paramEntity.getMappingType())) {
                     CoreObjectMeta objectMeta = tryFetchEnrichCoreObjectMeta(paramEntity);
