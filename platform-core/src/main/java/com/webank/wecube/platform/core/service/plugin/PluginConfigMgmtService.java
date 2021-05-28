@@ -1048,8 +1048,8 @@ public class PluginConfigMgmtService extends AbstractPluginMgmtService {
         CoreObjectPropertyMetaDto propertyMetaDto = new CoreObjectPropertyMetaDto();
         propertyMetaDto.setId(propertyMeta.getId());
         propertyMetaDto.setDataType(propertyMeta.getDataType());
-        propertyMetaDto.setMapExpr(propertyMeta.getMapExpr());
-        propertyMetaDto.setMapType(propertyMeta.getMapType());
+        propertyMetaDto.setMappingEntityExpression(propertyMeta.getMapExpr());
+        propertyMetaDto.setMappingType(propertyMeta.getMapType());
         propertyMetaDto.setName(propertyMeta.getName());
         propertyMetaDto.setObjectMetaId(propertyMeta.getObjectMetaId());
         propertyMetaDto.setObjectName(propertyMeta.getObjectName());
@@ -1060,7 +1060,7 @@ public class PluginConfigMgmtService extends AbstractPluginMgmtService {
             propertyMetaDto.setRefObjectMeta(refObjectMetaDto);
         }
         propertyMetaDto.setRefType(propertyMeta.getRefType());
-        propertyMetaDto.setSensitive(convertBooleanToString(propertyMeta.getSensitive()));
+        propertyMetaDto.setSensitiveData(convertBooleanToString(propertyMeta.getSensitive()));
 
         return propertyMetaDto;
     }

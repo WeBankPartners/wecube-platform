@@ -157,12 +157,12 @@ public class PluginParamObjectMetaStorage extends AbstractPluginParamObjectServi
 
             propertyMeta.setUpdatedBy(AuthenticationContextHolder.getCurrentUsername());
             propertyMeta.setUpdatedTime(new Date());
-            propertyMeta.setMapType(propertyMetaDto.getMapType());
-            propertyMeta.setMapExpr(propertyMetaDto.getMapExpr());
+            propertyMeta.setMapType(propertyMetaDto.getMappingType());
+            propertyMeta.setMapExpr(propertyMetaDto.getMappingEntityExpression());
             propertyMeta.setDataType(propertyMetaDto.getDataType());
 
             boolean sensitive = false;
-            if (CoreObjectPropertyMetaDto.SENSITIVE_YES.equals(propertyMetaDto.getSensitive())) {
+            if (CoreObjectPropertyMetaDto.SENSITIVE_YES.equals(propertyMetaDto.getSensitiveData())) {
                 sensitive = true;
             }
             propertyMeta.setSensitive(sensitive);
