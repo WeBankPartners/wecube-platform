@@ -162,7 +162,7 @@ public class PluginParamObjectMetaStorage extends AbstractPluginParamObjectServi
             propertyMeta.setDataType(propertyMetaDto.getDataType());
 
             boolean sensitive = false;
-            if ("Y".equals(propertyMetaDto.getSensitive())) {
+            if (CoreObjectPropertyMetaDto.SENSITIVE_YES.equals(propertyMetaDto.getSensitive())) {
                 sensitive = true;
             }
             propertyMeta.setSensitive(sensitive);
