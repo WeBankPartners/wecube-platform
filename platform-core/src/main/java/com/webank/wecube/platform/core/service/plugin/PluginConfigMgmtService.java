@@ -969,6 +969,7 @@ public class PluginConfigMgmtService extends AbstractPluginMgmtService {
         intfEntity.setPath(intfDto.getPath());
         intfEntity.setHttpMethod(intfDto.getHttpMethod());
         intfEntity.setFilterRule(intfDto.getFilterRule());
+        intfEntity.setDescription(intfDto.getDescription());
 
         // type ?
         intfEntity.setServiceName(intfEntity.generateServiceName(pluginPackage, pluginConfig));
@@ -1048,6 +1049,7 @@ public class PluginConfigMgmtService extends AbstractPluginMgmtService {
         paramEntity.setRequired(paramDto.getRequired());
 
         paramEntity.setSensitiveData(paramDto.getSensitiveData());
+        paramEntity.setDescription(paramDto.getDescription());
 
         pluginConfigInterfaceParametersMapper.insert(paramEntity);
 
@@ -1066,6 +1068,7 @@ public class PluginConfigMgmtService extends AbstractPluginMgmtService {
         dto.setHttpMethod(intfEntity.getHttpMethod());
         dto.setIsAsyncProcessing(intfEntity.getIsAsyncProcessing());
         dto.setFilterRule(intfEntity.getFilterRule());
+        dto.setDescription(intfEntity.getDescription());
 
         List<PluginConfigInterfaceParameters> inputParameterEntities = intfEntity.getInputParameters();
         if (inputParameterEntities != null) {
@@ -1193,6 +1196,7 @@ public class PluginConfigMgmtService extends AbstractPluginMgmtService {
         dto.setMappingSystemVariableName(entity.getMappingSystemVariableName());
         dto.setRequired(entity.getRequired());
         dto.setSensitiveData(entity.getSensitiveData());
+        dto.setDescription(entity.getDescription());
         return dto;
     }
 
