@@ -42,6 +42,7 @@ import com.webank.wecube.platform.core.repository.plugin.PluginConfigsMapper;
 import com.webank.wecube.platform.core.repository.plugin.PluginPackageEntitiesMapper;
 import com.webank.wecube.platform.core.repository.plugin.PluginPackagesMapper;
 import com.webank.wecube.platform.core.utils.CollectionUtils;
+import com.webank.wecube.platform.core.utils.Constants;
 import com.webank.wecube.platform.core.utils.VersionUtils;
 import com.webank.wecube.platform.workflow.commons.LocalIdGenerator;
 
@@ -151,7 +152,95 @@ public class PluginConfigMgmtService extends AbstractPluginMgmtService {
 
         });
 
+        tryCalculateConfigurableInputParameters(resultPluginConfigInterfaceDtos);
+
         return resultPluginConfigInterfaceDtos;
+    }
+
+    private void tryCalculateConfigurableInputParameters(
+            List<PluginConfigInterfaceDto> resultPluginConfigInterfaceDtos) {
+
+        for (PluginConfigInterfaceDto intfDto : resultPluginConfigInterfaceDtos) {
+            tryCalculateConfigurableInputParameters(intfDto);
+        }
+    }
+
+    private void tryCalculateConfigurableInputParameters(PluginConfigInterfaceDto intfDto) {
+        List<PluginConfigInterfaceParameterDto> inputParameters = intfDto.getInputParameters();
+        if (inputParameters == null || inputParameters.isEmpty()) {
+            return;
+        }
+
+        for (PluginConfigInterfaceParameterDto paramDto : inputParameters) {
+            if (Constants.MAPPING_TYPE_CONTEXT.equalsIgnoreCase(paramDto.getMappingType())
+                    || Constants.MAPPING_TYPE_CONSTANT.equalsIgnoreCase(paramDto.getMappingType())) {
+                PluginConfigInterfaceParameterDto configParamDto = new PluginConfigInterfaceParameterDto();
+                configParamDto.setId(paramDto.getId());
+                configParamDto.setDataType(paramDto.getDataType());
+                configParamDto.setMappingEntityExpression(paramDto.getMappingEntityExpression());
+                configParamDto.setMappingSystemVariableName(paramDto.getMappingSystemVariableName());
+                configParamDto.setMappingType(paramDto.getMappingType());
+                configParamDto.setName(paramDto.getName());
+                configParamDto.setPluginConfigInterfaceId(paramDto.getPluginConfigInterfaceId());
+                configParamDto.setRequired(paramDto.getRequired());
+                configParamDto.setSensitiveData(paramDto.getSensitiveData());
+                configParamDto.setType(paramDto.getType());
+
+                intfDto.addConfigurableInputParameter(configParamDto);
+            } else {
+                if (paramDto.getRefObjectMeta() != null) {
+                    List<PluginConfigInterfaceParameterDto> objectMetaConfigParamDtos = tryCalculateConfigurableParameters(
+                            paramDto.getRefObjectMeta());
+
+                    if (objectMetaConfigParamDtos != null) {
+                        for (PluginConfigInterfaceParameterDto p : objectMetaConfigParamDtos) {
+                            intfDto.addConfigurableInputParameter(p);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private List<PluginConfigInterfaceParameterDto> tryCalculateConfigurableParameters(
+            CoreObjectMetaDto refObjectMeta) {
+
+        List<PluginConfigInterfaceParameterDto> objectConfigParamDtos = new ArrayList<>();
+        List<CoreObjectPropertyMetaDto> propertyMetas = refObjectMeta.getPropertyMetas();
+
+        if (propertyMetas == null || propertyMetas.isEmpty()) {
+            return objectConfigParamDtos;
+        }
+
+        for (CoreObjectPropertyMetaDto propMetaDto : propertyMetas) {
+            if (Constants.MAPPING_TYPE_CONTEXT.equalsIgnoreCase(propMetaDto.getMappingType())
+                    || Constants.MAPPING_TYPE_CONSTANT.equalsIgnoreCase(propMetaDto.getMappingType())) {
+                PluginConfigInterfaceParameterDto propMetaParamDto = new PluginConfigInterfaceParameterDto();
+                propMetaParamDto.setId(propMetaDto.getId());
+                propMetaParamDto.setDataType(propMetaDto.getDataType());
+                propMetaParamDto.setMappingEntityExpression(propMetaDto.getMappingEntityExpression());
+                propMetaParamDto.setMappingSystemVariableName(null);
+                propMetaParamDto.setMappingType(propMetaDto.getMappingType());
+                propMetaParamDto.setName(propMetaDto.getName());
+                propMetaParamDto.setRequired("Y");
+                propMetaParamDto.setSensitiveData(propMetaDto.getSensitiveData());
+                propMetaParamDto.setType(PluginConfigInterfaceParameters.TYPE_INPUT);
+                
+                
+                objectConfigParamDtos.add(propMetaParamDto);
+            } else {
+                if (propMetaDto.getRefObjectMeta() != null) {
+                    List<PluginConfigInterfaceParameterDto> pDtos = tryCalculateConfigurableParameters(
+                            propMetaDto.getRefObjectMeta());
+                    if (pDtos != null && (!pDtos.isEmpty())) {
+                        objectConfigParamDtos.addAll(pDtos);
+                    }
+                }
+            }
+        }
+
+        return objectConfigParamDtos;
+
     }
 
     /**
