@@ -874,6 +874,7 @@ public class PluginArtifactsMgmtService extends AbstractPluginMgmtService {
         PluginConfigInterfaces intfEntity = new PluginConfigInterfaces();
         intfEntity.setId(LocalIdGenerator.generateId());
         intfEntity.setAction(xmlIntf.getAction());
+        intfEntity.setDescription(xmlIntf.getDescription());
 
         String filterRule = xmlIntf.getFilterRule();
         if (StringUtils.isBlank(filterRule)) {
@@ -936,6 +937,7 @@ public class PluginArtifactsMgmtService extends AbstractPluginMgmtService {
             paramEntity.setMappingEntityExpression(xmlParameter.getMappingEntityExpression());
             paramEntity.setMappingType(xmlParameter.getMappingType());
             paramEntity.setName(xmlParameter.getValue());
+            paramEntity.setDescription(xmlParameter.getDescription());
             paramEntity.setPluginConfigInterface(intfEntity);
             paramEntity.setPluginConfigInterfaceId(intfEntity.getId());
 
@@ -973,6 +975,7 @@ public class PluginArtifactsMgmtService extends AbstractPluginMgmtService {
             paramEntity.setName(xmlParameter.getValue());
             paramEntity.setPluginConfigInterface(intfEntity);
             paramEntity.setPluginConfigInterfaceId(intfEntity.getId());
+            paramEntity.setDescription(xmlParameter.getDescription());
             String required = xmlParameter.getRequired();
             if (StringUtils.isBlank(required)) {
                 required = DEFAULT_REQUIRED;

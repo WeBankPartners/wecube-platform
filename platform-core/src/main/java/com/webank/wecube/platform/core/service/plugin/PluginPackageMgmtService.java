@@ -749,6 +749,7 @@ public class PluginPackageMgmtService extends AbstractPluginMgmtService {
         resultDto.setHttpMethod(intfEntity.getHttpMethod());
         resultDto.setIsAsyncProcessing(intfEntity.getIsAsyncProcessing());
         resultDto.setFilterRule(intfEntity.getFilterRule());
+        resultDto.setDescription(intfEntity.getDescription());
 
         List<PluginConfigInterfaceParameters> inputParamEntities = this.pluginConfigInterfaceParametersMapper
                 .selectAllByConfigInterfaceAndParamType(intfEntity.getId(), PluginConfigInterfaceParameters.TYPE_INPUT);
@@ -795,6 +796,8 @@ public class PluginPackageMgmtService extends AbstractPluginMgmtService {
         dto.setMappingSystemVariableName(entity.getMappingSystemVariableName());
         dto.setRequired(entity.getRequired());
         dto.setSensitiveData(entity.getSensitiveData());
+        
+        dto.setDescription(entity.getDescription());
         return dto;
     }
 

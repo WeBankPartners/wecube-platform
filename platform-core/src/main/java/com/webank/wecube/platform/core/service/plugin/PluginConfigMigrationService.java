@@ -255,6 +255,7 @@ public class PluginConfigMigrationService {
         xmlIntf.setIsAsyncProcessing(intf.getIsAsyncProcessing());
         xmlIntf.setPath(intf.getPath());
         xmlIntf.setType(intf.getType());
+        xmlIntf.setDescription(intf.getDescription());
 
         PluginConfigInputParametersType xmlInputParameters = new PluginConfigInputParametersType();
         xmlIntf.setInputParameters(xmlInputParameters);
@@ -290,6 +291,7 @@ public class PluginConfigMigrationService {
         xmlParam.setMappingType(outputParameter.getMappingType());
         xmlParam.setValue(outputParameter.getName());
         xmlParam.setSensitiveData(outputParameter.getSensitiveData());
+        xmlParam.setDescription(outputParameter.getDescription());
 
         return xmlParam;
     }
@@ -303,6 +305,7 @@ public class PluginConfigMigrationService {
         xmlParam.setRequired(inputParameter.getRequired());
         xmlParam.setSensitiveData(inputParameter.getSensitiveData());
         xmlParam.setValue(inputParameter.getName());
+        xmlParam.setDescription(inputParameter.getDescription());
 
         return xmlParam;
     }
@@ -740,6 +743,7 @@ public class PluginConfigMigrationService {
             intf.setIsAsyncProcessing(xmlIntf.getIsAsyncProcessing());
 
             intf.setType(xmlIntf.getType());
+            intf.setDescription(xmlIntf.getDescription());
         } else {
             intf.setAction(defIntf.getAction());
             intf.setFilterRule(defIntf.getFilterRule());
@@ -747,6 +751,7 @@ public class PluginConfigMigrationService {
             intf.setIsAsyncProcessing(defIntf.getIsAsyncProcessing());
 
             intf.setType(defIntf.getType());
+            intf.setDescription(defIntf.getDescription());
         }
         intf.setServiceDisplayName(intf.generateServiceName(pluginPackage, pluginConfig));
         intf.setServiceName(intf.generateServiceName(pluginPackage, pluginConfig));
@@ -801,6 +806,7 @@ public class PluginConfigMigrationService {
         param.setType(PluginConfigInterfaceParameters.TYPE_INPUT);
         param.setPluginConfigInterfaceId(intf.getId());
         param.setRequired(defInputParam.getRequired());
+        param.setDescription(defInputParam.getDescription());
 
         if (xmlInputParam != null) {
             param.setMappingEntityExpression(xmlInputParam.getMappingEntityExpression());
@@ -828,6 +834,7 @@ public class PluginConfigMigrationService {
         param.setDataType(defOutputParam.getDataType());
         param.setType(PluginConfigInterfaceParameters.TYPE_OUTPUT);
         param.setPluginConfigInterfaceId(intf.getId());
+        param.setDescription(defOutputParam.getDescription());
 
         if (xmlOutputParam != null) {
             param.setMappingEntityExpression(xmlOutputParam.getMappingEntityExpression());

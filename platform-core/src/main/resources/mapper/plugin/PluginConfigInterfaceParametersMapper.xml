@@ -19,12 +19,14 @@
         <result column="required" property="required" jdbcType="VARCHAR" />
         <result column="sensitive_data" property="sensitiveData"
             jdbcType="VARCHAR" />
+        <result column="description" property="description"
+            jdbcType="VARCHAR" />
     </resultMap>
     <sql id="Base_Column_List">
         id, plugin_config_interface_id, type, name, data_type,
         mapping_type,
         mapping_entity_expression,
-        mapping_system_variable_name, required, sensitive_data
+        mapping_system_variable_name, required, sensitive_data,description
     </sql>
     <select id="selectByPrimaryKey" resultMap="BaseResultMap"
         parameterType="java.lang.String">
@@ -49,7 +51,7 @@
         mapping_type,
         mapping_entity_expression,
         mapping_system_variable_name,
-        required, sensitive_data)
+        required, sensitive_data,description)
         values
         (#{id,jdbcType=VARCHAR},
         #{pluginConfigInterfaceId,jdbcType=VARCHAR},
@@ -58,7 +60,8 @@
         #{dataType,jdbcType=VARCHAR}, #{mappingType,jdbcType=VARCHAR},
         #{mappingEntityExpression,jdbcType=VARCHAR},
         #{mappingSystemVariableName,jdbcType=VARCHAR},
-        #{required,jdbcType=VARCHAR}, #{sensitiveData,jdbcType=VARCHAR})
+        #{required,jdbcType=VARCHAR}, #{sensitiveData,jdbcType=VARCHAR},
+        #{description,jdbcType=VARCHAR})
     </insert>
     <insert id="insertSelective"
         parameterType="com.webank.wecube.platform.core.entity.plugin.PluginConfigInterfaceParameters">
@@ -94,6 +97,9 @@
             <if test="sensitiveData != null">
                 sensitive_data,
             </if>
+             <if test="description != null">
+                description,
+            </if>
         </trim>
         <trim prefix="values (" suffix=")" suffixOverrides=",">
             <if test="id != null">
@@ -125,6 +131,9 @@
             </if>
             <if test="sensitiveData != null">
                 #{sensitiveData,jdbcType=VARCHAR},
+            </if>
+            <if test="description != null">
+                #{description,jdbcType=VARCHAR},
             </if>
         </trim>
     </insert>
@@ -163,6 +172,10 @@
                 sensitive_data =
                 #{sensitiveData,jdbcType=VARCHAR},
             </if>
+            <if test="description != null">
+                description =
+                #{description,jdbcType=VARCHAR},
+            </if>
         </set>
         where id = #{id,jdbcType=VARCHAR}
     </update>
@@ -185,7 +198,9 @@
         required =
         #{required,jdbcType=VARCHAR},
         sensitive_data =
-        #{sensitiveData,jdbcType=VARCHAR}
+        #{sensitiveData,jdbcType=VARCHAR},
+        description =
+        #{description,jdbcType=VARCHAR}
         where id =
         #{id,jdbcType=VARCHAR}
     </update>

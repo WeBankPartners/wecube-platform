@@ -19,6 +19,9 @@ public class PluginConfigOutputParameterType {
     protected String mappingEntityExpression;
     @XmlAttribute(name = "sensitiveData")
     protected String sensitiveData;
+    
+    @XmlAttribute(name = "description")
+    protected String description;
 
     public String getValue() {
         return value;
@@ -60,4 +63,13 @@ public class PluginConfigOutputParameterType {
         this.sensitiveData = sensitiveData;
     }
 
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    
 }
