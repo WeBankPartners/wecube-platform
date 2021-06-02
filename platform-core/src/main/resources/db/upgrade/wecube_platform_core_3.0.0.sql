@@ -16,3 +16,9 @@ CREATE TABLE `core_proc_exec_context` (
   `rev` int(11) NOT NULL,
   PRIMARY KEY (`id`)
   ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
+  
+ALTER TABLE `plugin_config_interfaces` 
+ADD COLUMN `description` VARCHAR(200) NULL;
+
+ALTER TABLE `plugin_config_interface_parameters` 
+ADD COLUMN `description` VARCHAR(200) NULL;
