@@ -6,7 +6,6 @@ public class PluginConfigInterfaceParameters {
     public static final String DATA_TYPE_OBJECT = "object";
     public static final String DATA_TYPE_STRING = "string";
     public static final String DATA_TYPE_NUMBER = "number";
-    
 
     public static final String MAPPING_TYPE_NOT_AVAILABLE = "N/A";
     public static final String MAPPING_TYPE_CMDB_CI_TYPE = "CMDB_CI_TYPE";
@@ -30,6 +29,8 @@ public class PluginConfigInterfaceParameters {
     private String required;
 
     private String sensitiveData;
+
+    private String description;
 
     private transient PluginConfigInterfaces pluginConfigInterface;
 
@@ -129,6 +130,14 @@ public class PluginConfigInterfaceParameters {
 
     public void setObjectMeta(CoreObjectMeta objectMeta) {
         this.objectMeta = objectMeta;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
     }
 
 }
