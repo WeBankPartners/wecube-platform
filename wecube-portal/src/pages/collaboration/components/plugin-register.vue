@@ -196,11 +196,16 @@
                 <Row v-for="(param, index) in currentInter['inputParameters']" :key="index">
                   <Col span="3">
                     <FormItem :label-width="0">
-                      <span v-if="param.required === 'Y'" style="color:red">*</span>
-                      <span
-                        style="display: inline-block;white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 90%;"
-                        >{{ param.name }}</span
-                      >
+                      <span v-if="param.required === 'Y'" style="color:red;vertical-align: text-bottom;">*</span>
+                      <Tooltip content="">
+                        <span
+                          style="display: inline-block;white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"
+                          >{{ param.name }}</span
+                        >
+                        <div slot="content" style="white-space: normal;">
+                          <span>{{ param.description }}</span>
+                        </div>
+                      </Tooltip>
                     </FormItem>
                   </Col>
                   <Col span="2" offset="0">
@@ -285,11 +290,16 @@
                 <Row v-for="(outPut, index) in currentInter['outputParameters']" :key="index">
                   <Col span="3">
                     <FormItem :label-width="0">
-                      <span v-if="outPut.required === 'Y'" style="color:red">*</span>
-                      <span
-                        style="display: inline-block;white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 90%;"
-                        >{{ outPut.name }}</span
-                      >
+                      <span v-if="outPut.required === 'Y'" style="color:red;vertical-align: text-bottom;">*</span>
+                      <Tooltip content="">
+                        <span
+                          style="display: inline-block;white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"
+                          >{{ outPut.name }}</span
+                        >
+                        <div slot="content" style="white-space: normal;">
+                          <span>{{ outPut.description }}</span>
+                        </div>
+                      </Tooltip>
                     </FormItem>
                   </Col>
                   <Col span="2" offset="0">
@@ -392,7 +402,7 @@
   @on-cancel="cancel" -->
     <Modal
       v-model="objectModal.showObjectConfigModal"
-      title="哈哈"
+      :title="objectModal.title"
       width="100%"
       @on-ok="okEdit"
       @on-cancel="cancelEdit"
@@ -547,14 +557,16 @@ export default {
       }
     },
     async okEdit () {
-      console.log(this.objectModal.treeData)
       const { status } = await updatePluginRegisterObjectType(
         this.objectModal.pluginConfigId,
         this.objectModal.objectMetaId,
         this.objectModal.treeData.refObjectMeta
       )
       if (status === 'OK') {
-        console.log(111)
+        this.$Notice.success({
+          title: 'Success',
+          desc: 'Success'
+        })
       }
     },
     // 'inputParameters', param, index
@@ -562,11 +574,11 @@ export default {
       let datax = JSON.parse(JSON.stringify(originData))
       const { status, data } = await getPluginRegisterObjectType(originData.refObjectMeta.id)
       if (status === 'OK') {
-        console.log(111, data)
         datax.refObjectMeta = data
         this.objectModal.treeData = datax
       }
       this.objectModal.objectMetaId = originData.refObjectMeta.id
+      this.objectModal.title = originData.name
       // this.objectModal.treeData = JSON.parse(JSON.stringify(originData))
       this.objectModal.showObjectConfigModal = true
     },
@@ -587,7 +599,6 @@ export default {
     // refObjectMeta。id pluginConfigId
     showParamsModal (val, index, currentPluginObj) {
       this.currentInter = val
-      console.log(val)
       this.objectModal.pluginConfigId = val.pluginConfigId
       this.currentInterIndex = index
       this.currentServiceName = val.serviceName
