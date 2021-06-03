@@ -680,11 +680,13 @@ export default {
     async changePluginInterfaceList (val) {
       this.editFormdata()
       let found = this.filteredPlugins.find(_ => _.serviceName === this.pluginForm.serviceId)
-      this.pluginForm.paramInfos = {}
+      this.pluginForm.paramInfos = []
       if (found) {
-        let needParams = found.inputParameters.filter(_ => _.mappingType === 'context' || _.mappingType === 'constant')
-        this.pluginForm.paramInfos = needParams.map(_ => {
-          return {
+        let needParams = found.configurableInputParameters.filter(
+          _ => _.mappingType === 'context' || _.mappingType === 'constant'
+        )
+        needParams.forEach(_ => {
+          this.pluginForm.paramInfos.push({
             paramName: _.name,
             bindNodeId: '',
             bindParamType: 'INPUT',
@@ -692,8 +694,9 @@ export default {
             bindType: _.mappingType,
             bindValue: '',
             required: _.required
-          }
+          })
         })
+        console.log(this.pluginForm.paramInfos)
       }
     },
     async getAllFlows (s) {
@@ -952,9 +955,9 @@ export default {
         await this.getFilteredPluginInterfaceList(this.pluginForm.routineExpression)
         const nodeOrigin = this.filteredPlugins.find(item => item.serviceName === this.pluginForm.serviceName)
         nodeOrigin &&
-          nodeOrigin.inputParameters &&
+          nodeOrigin.configurableInputParameters &&
           this.pluginForm.paramInfos.forEach(pItem => {
-            nodeOrigin.inputParameters.forEach(oItem => {
+            nodeOrigin.configurableInputParameters.forEach(oItem => {
               if (pItem.paramName === oItem.name) {
                 pItem.required = oItem.required
               }
