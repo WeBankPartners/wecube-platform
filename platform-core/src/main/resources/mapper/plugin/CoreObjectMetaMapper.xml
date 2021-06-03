@@ -29,16 +29,16 @@
         parameterType="java.lang.String">
         select
         <include refid="Base_Column_List" />
-        from core_object_meta
+        from plugin_object_meta
         where id = #{id,jdbcType=VARCHAR}
     </select>
     <delete id="deleteByPrimaryKey" parameterType="java.lang.String">
-        delete from core_object_meta
+        delete from plugin_object_meta
         where id = #{id,jdbcType=VARCHAR}
     </delete>
     <insert id="insert"
         parameterType="com.webank.wecube.platform.core.entity.plugin.CoreObjectMeta">
-        insert into core_object_meta (id, name, package_name,
+        insert into plugin_object_meta (id, name, package_name,
         source, latest_source, created_by,
         created_time, updated_by, updated_time
         )
@@ -51,7 +51,7 @@
     </insert>
     <insert id="insertSelective"
         parameterType="com.webank.wecube.platform.core.entity.plugin.CoreObjectMeta">
-        insert into core_object_meta
+        insert into plugin_object_meta
         <trim prefix="(" suffix=")" suffixOverrides=",">
             <if test="id != null">
                 id,
@@ -113,7 +113,7 @@
     </insert>
     <update id="updateByPrimaryKeySelective"
         parameterType="com.webank.wecube.platform.core.entity.plugin.CoreObjectMeta">
-        update core_object_meta
+        update plugin_object_meta
         <set>
             <if test="name != null">
                 name = #{name,jdbcType=VARCHAR},
@@ -144,7 +144,7 @@
     </update>
     <update id="updateByPrimaryKey"
         parameterType="com.webank.wecube.platform.core.entity.plugin.CoreObjectMeta">
-        update core_object_meta
+        update plugin_object_meta
         set name = #{name,jdbcType=VARCHAR},
         package_name = #{packageName,jdbcType=VARCHAR},
         source = #{source,jdbcType=VARCHAR},
@@ -161,7 +161,7 @@
         parameterType="java.lang.String">
         select
         <include refid="Base_Column_List" />
-        from core_object_meta
+        from plugin_object_meta
         where package_name = #{packageName,jdbcType=VARCHAR}
         and
         name = #{name,jdbcType=VARCHAR}

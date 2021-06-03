@@ -22,16 +22,16 @@
         parameterType="java.lang.String">
         select
         <include refid="Base_Column_List" />
-        from core_object_list_var
+        from plugin_object_list_var
         where id = #{id,jdbcType=VARCHAR}
     </select>
     <delete id="deleteByPrimaryKey" parameterType="java.lang.String">
-        delete from core_object_list_var
+        delete from plugin_object_list_var
         where id = #{id,jdbcType=VARCHAR}
     </delete>
     <insert id="insert"
         parameterType="com.webank.wecube.platform.core.entity.plugin.CoreObjectListVar">
-        insert into core_object_list_var (id, data_type, data_value,
+        insert into plugin_object_list_var (id, data_type, data_value,
         created_by, created_time, is_sensitive
         )
         values (#{id,jdbcType=VARCHAR}, #{dataType,jdbcType=VARCHAR},
@@ -41,7 +41,7 @@
     </insert>
     <insert id="insertSelective"
         parameterType="com.webank.wecube.platform.core.entity.plugin.CoreObjectListVar">
-        insert into core_object_list_var
+        insert into plugin_object_list_var
         <trim prefix="(" suffix=")" suffixOverrides=",">
             <if test="id != null">
                 id,
@@ -85,7 +85,7 @@
     </insert>
     <update id="updateByPrimaryKeySelective"
         parameterType="com.webank.wecube.platform.core.entity.plugin.CoreObjectListVar">
-        update core_object_list_var
+        update plugin_object_list_var
         <set>
             <if test="dataType != null">
                 data_type = #{dataType,jdbcType=VARCHAR},
@@ -107,7 +107,7 @@
     </update>
     <update id="updateByPrimaryKey"
         parameterType="com.webank.wecube.platform.core.entity.plugin.CoreObjectListVar">
-        update core_object_list_var
+        update plugin_object_list_var
         set data_type = #{dataType,jdbcType=VARCHAR},
         data_value = #{dataValue,jdbcType=VARCHAR},
         created_by = #{createdBy,jdbcType=VARCHAR},
