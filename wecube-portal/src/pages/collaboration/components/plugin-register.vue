@@ -234,6 +234,7 @@
                         <Option value="system_variable" key="system_variable">system_variable</Option>
                         <Option value="entity" key="entity">entity</Option>
                         <Option value="constant" key="constant">constant</Option>
+                        <Option value="object" key="object">object</Option>
                       </Select>
                     </FormItem>
                   </Col>
@@ -265,6 +266,9 @@
                         >
                       </Select>
                       <span v-if="param.mappingType === 'context' || param.mappingType === 'constant'">N/A</span>
+                      <span v-if="param.mappingType === 'object'">
+                        <Button type="primary" size="small" @click="showObjectConfig(param)">配置</Button>
+                      </span>
                     </FormItem>
                   </Col>
                 </Row>
@@ -384,12 +388,31 @@
         <Button type="primary" @click="confirmRole">{{ $t('bc_confirm') }}</Button>
       </div>
     </Modal>
+    <!-- @on-ok="ok"
+  @on-cancel="cancel" -->
+    <Modal
+      v-model="objectModal.showObjectConfigModal"
+      title="哈哈"
+      width="100%"
+      @on-ok="okEdit"
+      @on-cancel="cancelEdit"
+    >
+      <recursive
+        ref="objectTree"
+        increment="0"
+        :treeData="objectModal.treeData"
+        :clearedEntityType="clearedEntityType"
+        :allEntityType="allEntityType"
+        :status="currentPluginObj.status"
+      ></recursive>
+    </Modal>
   </div>
 </template>
 <script>
 import FilterRules from '../../components/filter-rules.vue'
 import FilterRulesRef from '../../components/filter-rules-ref.vue'
 import InterfaceFilterRule from '../../components/interface-filter-rule.vue'
+import recursive from './recursive'
 import {
   getAllPluginByPkgId,
   getAllDataModels,
@@ -404,12 +427,24 @@ import {
   updatePluginConfigRoleBinding,
   getRolesByCurrentUser,
   getConfigByPkgId,
-  updateConfigStatus
+  updateConfigStatus,
+  getPluginRegisterObjectType,
+  updatePluginRegisterObjectType
 } from '@/api/server'
 
 export default {
   data () {
     return {
+      objectModal: {
+        showObjectConfigModal: false,
+        pluginConfigId: '',
+        objectMetaId: '',
+        treeData: {
+          refObjectMeta: {
+            propertyMetas: {}
+          }
+        }
+      },
       currentServiceName: '',
       currentInter: {},
       currentInterIndex: 0,
@@ -460,7 +495,8 @@ export default {
   components: {
     FilterRules,
     FilterRulesRef,
-    InterfaceFilterRule
+    InterfaceFilterRule,
+    recursive
   },
   computed: {
     rootEntity () {
@@ -498,6 +534,42 @@ export default {
     }
   },
   methods: {
+    cancelEdit () {
+      this.objectModal = {
+        showObjectConfigModal: false,
+        type: '',
+        indexNo: '',
+        treeData: {
+          refObjectMeta: {
+            propertyMetas: {}
+          }
+        }
+      }
+    },
+    async okEdit () {
+      console.log(this.objectModal.treeData)
+      const { status } = await updatePluginRegisterObjectType(
+        this.objectModal.pluginConfigId,
+        this.objectModal.objectMetaId,
+        this.objectModal.treeData.refObjectMeta
+      )
+      if (status === 'OK') {
+        console.log(111)
+      }
+    },
+    // 'inputParameters', param, index
+    async showObjectConfig (originData) {
+      let datax = JSON.parse(JSON.stringify(originData))
+      const { status, data } = await getPluginRegisterObjectType(originData.refObjectMeta.id)
+      if (status === 'OK') {
+        console.log(111, data)
+        datax.refObjectMeta = data
+        this.objectModal.treeData = datax
+      }
+      this.objectModal.objectMetaId = originData.refObjectMeta.id
+      // this.objectModal.treeData = JSON.parse(JSON.stringify(originData))
+      this.objectModal.showObjectConfigModal = true
+    },
     selectedEntityTypeChangeHandler (val) {
       this.currentPluginObj.interfaces.forEach(_ => {
         _.inputParameters.forEach(i => {
@@ -512,8 +584,11 @@ export default {
         })
       })
     },
+    // refObjectMeta。id pluginConfigId
     showParamsModal (val, index, currentPluginObj) {
       this.currentInter = val
+      console.log(val)
+      this.objectModal.pluginConfigId = val.pluginConfigId
       this.currentInterIndex = index
       this.currentServiceName = val.serviceName
       this.paramsModalVisible = true
