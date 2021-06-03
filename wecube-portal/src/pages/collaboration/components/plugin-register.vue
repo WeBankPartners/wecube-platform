@@ -403,6 +403,7 @@
         :treeData="objectModal.treeData"
         :clearedEntityType="clearedEntityType"
         :allEntityType="allEntityType"
+        :status="currentPluginObj.status"
       ></recursive>
     </Modal>
   </div>
