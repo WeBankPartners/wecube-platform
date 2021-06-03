@@ -35,7 +35,6 @@
               </Col>
               <Col span="3" offset="1">
                 <FormItem :label="$t('attribute_type')">
-                  {{ objItem }}
                   <Select
                     filterable
                     v-model="objItem.mappingType"
