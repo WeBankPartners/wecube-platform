@@ -8,10 +8,16 @@
             <Row>
               <Col span="3">
                 <FormItem :label="$t('params_name')">
-                  <span v-if="objItem.required === 'Y'" style="color:red">*</span>
-                  <span style="display: inline-block;white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{
-                    objItem.name
-                  }}</span>
+                  <span v-if="objItem.required === 'Y'" style="color:red;vertical-align: text-bottom;">*</span>
+                  <Tooltip content="">
+                    <span
+                      style="display: inline-block;white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"
+                      >{{ objItem.name }}</span
+                    >
+                    <div slot="content" style="white-space: normal;">
+                      <span>{{ objItem.description }}</span>
+                    </div>
+                  </Tooltip>
                 </FormItem>
               </Col>
               <Col span="3" offset="1">
