@@ -40,17 +40,17 @@
         parameterType="java.lang.String">
         select
         <include refid="Base_Column_List" />
-        from core_object_property_meta
+        from plugin_object_property_meta
         where id = #{id,jdbcType=VARCHAR}
     </select>
     <delete id="deleteByPrimaryKey" parameterType="java.lang.String">
         delete from
-        core_object_property_meta
+        plugin_object_property_meta
         where id = #{id,jdbcType=VARCHAR}
     </delete>
     <insert id="insert"
         parameterType="com.webank.wecube.platform.core.entity.plugin.CoreObjectPropertyMeta">
-        insert into core_object_property_meta (id, name,
+        insert into plugin_object_property_meta (id, name,
         data_type,
         ref_type, map_type, map_expr,
         object_meta_id,
@@ -75,7 +75,7 @@
     </insert>
     <insert id="insertSelective"
         parameterType="com.webank.wecube.platform.core.entity.plugin.CoreObjectPropertyMeta">
-        insert into core_object_property_meta
+        insert into plugin_object_property_meta
         <trim prefix="(" suffix=")" suffixOverrides=",">
             <if test="id != null">
                 id,
@@ -179,7 +179,7 @@
     </insert>
     <update id="updateByPrimaryKeySelective"
         parameterType="com.webank.wecube.platform.core.entity.plugin.CoreObjectPropertyMeta">
-        update core_object_property_meta
+        update plugin_object_property_meta
         <set>
             <if test="name != null">
                 name = #{name,jdbcType=VARCHAR},
@@ -234,7 +234,7 @@
     </update>
     <update id="updateByPrimaryKey"
         parameterType="com.webank.wecube.platform.core.entity.plugin.CoreObjectPropertyMeta">
-        update core_object_property_meta
+        update plugin_object_property_meta
         set name =
         #{name,jdbcType=VARCHAR},
         data_type =
@@ -271,7 +271,7 @@
         parameterType="java.lang.String">
         select
         <include refid="Base_Column_List" />
-        from core_object_property_meta
+        from plugin_object_property_meta
         where object_meta_id =
         #{objectMetaId,jdbcType=VARCHAR}
     </select>
