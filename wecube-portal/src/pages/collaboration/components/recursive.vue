@@ -21,7 +21,12 @@
               </Col>
               <Col span="3" offset="1">
                 <FormItem :label="$t('sensitive')">
-                  <Select v-model="objItem.sensitive" filterable style="width:150px">
+                  <Select
+                    v-model="objItem.sensitiveData"
+                    :disabled="status === 'ENABLED'"
+                    filterable
+                    style="width:150px"
+                  >
                     <Option v-for="item in sensitiveData" :value="item.value" :key="item.value">{{
                       item.label
                     }}</Option>
@@ -30,7 +35,13 @@
               </Col>
               <Col span="3" offset="1">
                 <FormItem :label="$t('attribute_type')">
-                  <Select filterable v-model="objItem.mapType" @on-change="mapTypeChange($event, objItem)">
+                  {{ objItem }}
+                  <Select
+                    filterable
+                    v-model="objItem.mappingType"
+                    :disabled="status === 'ENABLED'"
+                    @on-change="mappingTypeChange($event, objItem)"
+                  >
                     <Option value="context" key="context">context</Option>
                     <Option value="system_variable" key="system_variable">system_variable</Option>
                     <Option value="entity" key="entity">entity</Option>
@@ -42,8 +53,9 @@
               <Col span="8" offset="1">
                 <FormItem :label="$t('attribute')">
                   <FilterRules
-                    v-if="objItem.mapType === 'entity'"
-                    v-model="objItem.mapExpr"
+                    v-if="objItem.mappingType === 'entity'"
+                    :disabled="status === 'ENABLED'"
+                    v-model="objItem.mappingEntityExpression"
                     :allDataModelsWithAttrs="allEntityType"
                     :rootEntity="clearedEntityType"
                     :needNativeAttr="true"
@@ -52,8 +64,9 @@
                   ></FilterRules>
                   <Select
                     filterable
-                    v-if="objItem.mapType === 'system_variable'"
-                    v-model="objItem.mappingSystemVariableName"
+                    v-if="objItem.mappingType === 'system_variable'"
+                    v-model="objItem.mappingEntityExpression"
+                    :disabled="status === 'ENABLED'"
                     @on-open-change="retrieveSystemVariables"
                   >
                     <Option
@@ -64,7 +77,7 @@
                       >{{ item.name }}</Option
                     >
                   </Select>
-                  <span v-if="objItem.mapType === 'context' || objItem.mapType === 'constant'">N/A</span>
+                  <span v-if="objItem.mappingType === 'context' || objItem.mappingType === 'constant'">N/A</span>
                 </FormItem>
               </Col>
             </Row>
@@ -74,6 +87,7 @@
           <div v-if="objItem.dataType === 'object'">
             <recursive
               :ref="'recursive' + count"
+              :status="status"
               :increment="count"
               :treeData="objItem"
               :clearedEntityType="clearedEntityType"
@@ -105,7 +119,7 @@ export default {
       ]
     }
   },
-  props: ['treeData', 'clearedEntityType', 'allEntityType', 'increment'],
+  props: ['treeData', 'clearedEntityType', 'allEntityType', 'increment', 'status'],
   computed: {
     count () {
       var c = this.increment
@@ -118,18 +132,16 @@ export default {
       }
     }
   },
-  mounted () {
-    console.log(this.allEntityType)
-  },
+  mounted () {},
   methods: {
     hide (index) {
       this.recursiveViewConfig[index]._isShow = !this.recursiveViewConfig[index]._isShow
       this.$set(this.recursiveViewConfig, index, this.recursiveViewConfig[index])
     },
-    mapTypeChange (v, param) {
-      // if (v === 'entity') {
-      //   param.mappingEntityExpression = null
-      // }
+    mappingTypeChange (v, param) {
+      if (v === 'entity') {
+        param.mappingEntityExpression = null
+      }
     }
   },
   components: {
