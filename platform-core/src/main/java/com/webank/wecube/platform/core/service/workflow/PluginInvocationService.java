@@ -986,7 +986,8 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
                 if (Constants.FIELD_REQUIRED.equalsIgnoreCase(param.getRequired())) {
 
                     log.error("Task node parameter entity does not exist for {} {}", curTaskNodeDefId, paramName);
-                    throw new WecubeCoreException("3170", "Task node parameter entity does not exist.");
+//                    throw new WecubeCoreException("3170", "Task node parameter entity does not exist.");
+                    continue;
                 } else {
                     log.info("Task node parameter entity does not exist for {} {} but field not required.",
                             curTaskNodeDefId, paramName);
@@ -1012,7 +1013,8 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 
             if (requestEntities == null || requestEntities.isEmpty()) {
                 log.error("cannot find request entity for {}", bindNodeInstEntity.getId());
-                throw new WecubeCoreException("3172", "Bound request entity does not exist.");
+//                throw new WecubeCoreException("3172", "Bound request entity does not exist.");
+                continue;
             }
 
             if (requestEntities.size() > 1) {
@@ -1034,13 +1036,14 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 
             if (execParamEntities == null || execParamEntities.isEmpty()) {
                 if (FIELD_REQUIRED.equals(param.getRequired())) {
-                    log.error("parameter entity does not exist but such plugin parameter is mandatory for {} {}",
+                    log.warn("parameter entity does not exist but such plugin parameter is mandatory for {} {}",
                             bindParamName, bindParamType);
-                    throw new WecubeCoreException("3174",
-                            String.format(
-                                    "parameter entity does not exist but such plugin parameter is mandatory for {%s} {%s}",
-                                    bindParamName, bindParamType),
-                            bindParamName, bindParamType);
+//                    throw new WecubeCoreException("3174",
+//                            String.format(
+//                                    "parameter entity does not exist but such plugin parameter is mandatory for {%s} {%s}",
+//                                    bindParamName, bindParamType),
+//                            bindParamName, bindParamType);
+                    continue;
                 } else {
                     log.info("parameter entity does not exist but such plugin parameter is not mandatory for {} {}",
                             bindParamName, bindParamType);
@@ -1079,6 +1082,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
                 }
             } else {
                 if (retDataValues.size() != paramObjects.size()) {
+                    log.error("Unknown how to calculate context input parameter for {}", currTaskNodeInstEntity.getId());
                     throw new WecubeCoreException("Unknown how to calculate context input parameter.");
                 }
 
