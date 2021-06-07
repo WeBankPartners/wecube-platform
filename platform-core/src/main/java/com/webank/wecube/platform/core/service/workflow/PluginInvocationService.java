@@ -1601,13 +1601,13 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 
         if (execParamEntities == null || execParamEntities.isEmpty()) {
             if (FIELD_REQUIRED.equals(param.getRequired())) {
-                log.error("parameter entity does not exist but such plugin parameter is mandatory for {} {}",
+                log.warn("parameter entity does not exist but such plugin parameter is mandatory for {} {}",
                         bindParamName, bindParamType);
-                throw new WecubeCoreException("3174",
-                        String.format(
-                                "parameter entity does not exist but such plugin parameter is mandatory for {%s} {%s}",
-                                bindParamName, bindParamType),
-                        bindParamName, bindParamType);
+//                throw new WecubeCoreException("3174",
+//                        String.format(
+//                                "parameter entity does not exist but such plugin parameter is mandatory for {%s} {%s}",
+//                                bindParamName, bindParamType),
+//                        bindParamName, bindParamType);
             }
         }
 
