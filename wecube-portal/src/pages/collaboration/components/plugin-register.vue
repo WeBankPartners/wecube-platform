@@ -239,7 +239,7 @@
                   </Col>
                   <Col span="13" offset="1">
                     <FormItem :label-width="0">
-                      <FilterRules
+                      <!-- <FilterRules
                         v-if="param.mappingType === 'entity'"
                         v-model="param.mappingEntityExpression"
                         :disabled="currentPluginObj.status === 'ENABLED'"
@@ -248,7 +248,17 @@
                         :needNativeAttr="true"
                         :needAttr="true"
                         :rootEntityFirst="true"
-                      ></FilterRules>
+                      ></FilterRules> -->
+                      <FilterRulesRef
+                        v-if="param.mappingType === 'entity'"
+                        v-model="param.mappingEntityExpression"
+                        :disabled="currentPluginObj.status === 'ENABLED'"
+                        :allDataModelsWithAttrs="allEntityType"
+                        :rootEntity="clearedEntityType"
+                        :needNativeAttr="true"
+                        :needAttr="true"
+                        :rootEntityFirst="true"
+                      ></FilterRulesRef>
                       <Select
                         filterable
                         v-if="param.mappingType === 'system_variable'"
