@@ -306,6 +306,10 @@ public abstract class AbstractPluginInvocationService extends AbstractWorkflowSe
     }
 
     protected String trimExceedParamValue(String val, int size) {
+        if(StringUtils.isBlank(val)){
+            return val;
+        }
+        
         if (val.length() > size) {
             return val.substring(0, size);
         }
