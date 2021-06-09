@@ -108,16 +108,45 @@
                           >{{ $t('plugin_type') }}
                           <span class="requires-tip">*</span>
                         </label>
-                        <Select
-                          filterable
-                          v-model="pluginForm.taskCategory"
-                          @on-change="
-                            editFormdata()
-                            pluginTypeChange()
-                          "
-                        >
+                        <Select filterable v-model="pluginForm.taskCategory" @on-change="editFormdata">
                           <Option v-for="(item, index) in taskCategoryList" :value="item.value" :key="index">{{
                             item.label
+                          }}</Option>
+                        </Select>
+                      </FormItem>
+                    </Col>
+                    <Col span="16">
+                      <FormItem prop="routineExpression">
+                        <label slot="label"
+                          >{{ $t('locate_rules') }}
+                          <span class="requires-tip">*</span>
+                        </label>
+                        <FilterRules
+                          :needAttr="true"
+                          ref="filterRules"
+                          v-model="pluginForm.routineExpression"
+                          @change="filterRuleChanged"
+                          :allDataModelsWithAttrs="allEntityType"
+                        ></FilterRules>
+                      </FormItem>
+                    </Col>
+                  </Row>
+                  <Row>
+                    <Col span="8">
+                      <FormItem prop="serviceName">
+                        <label slot="label"
+                          >{{ $t('plugin') }}
+                          <span class="requires-tip">*</span>
+                        </label>
+                        <Select
+                          filterable
+                          clearable
+                          v-model="pluginForm.serviceId"
+                          @on-open-change="getPlugin"
+                          @on-change="changePluginInterfaceList"
+                        >
+                          <Option v-for="(item, index) in filteredPlugins" :value="item.serviceName" :key="index">{{
+                            item.serviceDisplayName
                           }}</Option>
                         </Select>
                       </FormItem>
@@ -142,50 +171,6 @@
                     </Col>
                   </Row>
                   <Row>
-                    <Col span="16">
-                      <FormItem prop="routineExpression">
-                        <label slot="label"
-                          >{{ $t('locate_rules') }}
-                          <span class="requires-tip">*</span>
-                        </label>
-                        <!-- <FilterRules
-                          :needAttr="true"
-                          ref="filterRules"
-                          v-model="pluginForm.routineExpression"
-                          @change="filterRuleChanged"
-                          :allDataModelsWithAttrs="allEntityType"
-                        ></FilterRules> -->
-                        <FilterRulesGroup
-                          :isBatch="pluginForm.taskCategory === 'SDTN'"
-                          ref="filterRulesGroup"
-                          :rootEntity="currentSelectedEntity"
-                          :routineExpression="pluginForm.routineExpression"
-                          :allEntityType="allEntityType"
-                        >
-                        </FilterRulesGroup>
-                      </FormItem>
-                    </Col>
-                    <Col span="8" v-if="pluginForm.taskCategory !== 'SDTN'">
-                      <FormItem prop="serviceName">
-                        <label slot="label"
-                          >{{ $t('plugin') }}
-                          <span class="requires-tip">*</span>
-                        </label>
-                        <Select
-                          filterable
-                          clearable
-                          v-model="pluginForm.serviceId"
-                          @on-open-change="getPlugin"
-                          @on-change="changePluginInterfaceList"
-                        >
-                          <Option v-for="(item, index) in filteredPlugins" :value="item.serviceName" :key="index">{{
-                            item.serviceDisplayName
-                          }}</Option>
-                        </Select>
-                      </FormItem>
-                    </Col>
-                  </Row>
-                  <Row v-if="pluginForm.taskCategory !== 'SDTN'">
                     <Col span="8">
                       <FormItem prop="dynamicBind">
                         <label slot="label"
@@ -210,10 +195,7 @@
                     </Col>
                   </Row>
                 </template>
-                <div
-                  v-if="pluginForm.paramInfos.length && pluginForm.taskCategory !== 'SDTN'"
-                  class="node-operate-plugin-config"
-                >
+                <div v-if="pluginForm.paramInfos.length" class="node-operate-plugin-config">
                   <FormItem
                     :label="item.paramName"
                     :prop="item.paramName"
@@ -322,7 +304,6 @@ import 'bpmn-js-properties-panel/dist/assets/bpmn-js-properties-panel.css'
 
 import PathExp from '../components/path-exp.vue'
 import FilterRules from '../components/filter-rules.vue'
-import FilterRulesGroup from './components/filter-rules-group'
 import axios from 'axios'
 import { setCookie, getCookie } from '../util/cookie'
 import CustomContextPad from '../util/CustomContextPad'
@@ -357,8 +338,7 @@ let contextPad = {
 export default {
   components: {
     PathExp,
-    FilterRules,
-    FilterRulesGroup
+    FilterRules
   },
   data () {
     return {
@@ -368,8 +348,7 @@ export default {
       show: false,
       taskCategoryList: [
         { value: 'SSTN', label: this.$t('sstn') },
-        { value: 'SUTN', label: this.$t('sutn') },
-        { value: 'SDTN', label: this.$t('sdtn') }
+        { value: 'SUTN', label: this.$t('sutn') }
       ],
       isSaving: false,
       headers: {},
@@ -525,10 +504,6 @@ export default {
     this.setCss('top-pane', 'bottom: 0;')
   },
   methods: {
-    pluginTypeChange () {
-      this.pluginForm.routineExpression = this.currentSelectedEntity
-      this.$refs.filterRulesGroup.changeRoutineExpressionItem(this.pluginForm.routineExpression)
-    },
     // 节点定位规则变化检测
     filterRuleChanged () {
       this.isFormDataChange = true
@@ -705,13 +680,13 @@ export default {
     async changePluginInterfaceList (val) {
       this.editFormdata()
       let found = this.filteredPlugins.find(_ => _.serviceName === this.pluginForm.serviceId)
-      this.pluginForm.paramInfos = []
+      this.pluginForm.paramInfos = {}
       if (found) {
         let needParams = found.configurableInputParameters.filter(
           _ => _.mappingType === 'context' || _.mappingType === 'constant'
         )
-        needParams.forEach(_ => {
-          this.pluginForm.paramInfos.push({
+        this.pluginForm.paramInfos = needParams.map(_ => {
+          return {
             paramName: _.name,
             bindNodeId: '',
             bindParamType: 'INPUT',
@@ -719,9 +694,8 @@ export default {
             bindType: _.mappingType,
             bindValue: '',
             required: _.required
-          })
+          }
         })
-        console.log(this.pluginForm.paramInfos)
       }
     },
     async getAllFlows (s) {
@@ -900,20 +874,6 @@ export default {
       }
 
       let found = this.filteredPlugins.find(_ => _.serviceName === this.pluginForm.serviceId)
-      const routineExpressionItem = this.$refs.filterRulesGroup.routineExpressionItem
-      const isAllStartAsSelectedEntity = routineExpressionItem.every(item =>
-        item.routineExpression.startsWith(this.currentSelectedEntity)
-      )
-      if (!isAllStartAsSelectedEntity) {
-        this.$Notice.warning({
-          title: 'Warning',
-          desc: this.$t('locate_rules_warning')
-        })
-        return
-      }
-      this.pluginForm.routineExpression = routineExpressionItem.reduce((tmp, item, index) => {
-        return tmp + item.routineExpression + (index === routineExpressionItem.length - 1 ? '' : '#DME#')
-      }, '')
 
       let pluginFormCopy = JSON.parse(JSON.stringify(this.pluginForm))
       // 校验必填项，未选中节点跳过校验
@@ -977,16 +937,13 @@ export default {
               this.prepareDefaultPluginForm()
           )
         )
-        console.log(JSON.stringify(this.pluginForm))
         this.pluginForm.dynamicBind = this.pluginForm.dynamicBind || 'N'
         this.pluginForm.preCheck = this.pluginForm.preCheck || 'N'
         // 实体类型条件不带入节点中
         let rootEntity = this.currentSelectedEntity.split('{')[0]
-        // TODO: 保存数据及获取到数据需处理
         this.pluginForm.routineExpression = this.pluginForm.routineExpression || rootEntity
         // eslint-disable-next-line no-useless-escape
         const pathList = this.pluginForm.routineExpression.split(/[.~]+(?=[^\}]*(\{|$))/).filter(p => p.length > 1)
-        console.log(pathList)
         if (pathList[0].split('{')[0] !== rootEntity) {
           this.pluginForm.routineExpression = rootEntity
         }
@@ -994,10 +951,7 @@ export default {
 
         // get flow's params infos
         this.getFlowsNodes()
-        // 数据写入节点无需获取插件
-        if (this.pluginForm.taskCategory !== 'SDTN') {
-          await this.getFilteredPluginInterfaceList(this.pluginForm.routineExpression)
-        }
+        await this.getFilteredPluginInterfaceList(this.pluginForm.routineExpression)
         const nodeOrigin = this.filteredPlugins.find(item => item.serviceName === this.pluginForm.serviceName)
         nodeOrigin &&
           nodeOrigin.configurableInputParameters &&
