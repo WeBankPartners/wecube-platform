@@ -105,3 +105,6 @@ CREATE TABLE IF NOT EXISTS `plugin_object_list_var` (
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 
+ALTER TABLE `plugin_object_meta` ADD COLUMN `config_id` VARCHAR(45) COLLATE utf8_bin NULL;
+ALTER TABLE `plugin_object_property_meta` ADD COLUMN `config_id` VARCHAR(45) COLLATE utf8_bin  NULL;
+
