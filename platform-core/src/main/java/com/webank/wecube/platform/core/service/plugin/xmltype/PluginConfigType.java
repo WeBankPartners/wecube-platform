@@ -10,7 +10,7 @@ import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlType;
 
 @XmlAccessorType(XmlAccessType.FIELD)
-@XmlType(name = "pluginType", propOrder = { "name", "pluginInterface", "roleBinds" })
+@XmlType(name = "pluginType", propOrder = { "name", "paramObject", "pluginInterface", "roleBinds" })
 public class PluginConfigType {
     @XmlAttribute(name = "name")
     protected String name;
@@ -24,7 +24,7 @@ public class PluginConfigType {
     protected String registerName;
     @XmlAttribute(name = "status")
     protected String status;
-    
+
     @XmlElement(name = "paramObject", required = false)
     protected List<ParamObjectType> paramObject;
 
