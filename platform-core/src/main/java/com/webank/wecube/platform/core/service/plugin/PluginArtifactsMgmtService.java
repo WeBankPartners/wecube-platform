@@ -459,7 +459,7 @@ public class PluginArtifactsMgmtService extends AbstractPluginMgmtService {
 
         processDataModels(xmlPackage.getDataModel(), xmlPackage, pluginPackageEntity);
 
-        processParamObjects(xmlPackage.getParamObjects(), xmlPackage.getName(), xmlPackage.getVersion());
+//        processParamObjects(xmlPackage.getParamObjects(), xmlPackage.getName(), xmlPackage.getVersion());
 
         UploadPackageResultDto result = new UploadPackageResultDto();
         result.setId(pluginPackageEntity.getId());
@@ -504,8 +504,8 @@ public class PluginArtifactsMgmtService extends AbstractPluginMgmtService {
         return result;
     }
 
-    private void processParamObjects(ParamObjectsType xmlParamObjects, String packageName, String packageVersion) {
-        pluginParamObjectSupportService.registerParamObjects(xmlParamObjects, packageName, packageVersion);
+    private void processParamObjects(ParamObjectsType xmlParamObjects, String packageName, String packageVersion, String configId) {
+        pluginParamObjectSupportService.registerParamObjects(xmlParamObjects, packageName, packageVersion, configId);
     }
 
     private void processPackageDependencies(PackageDependenciesType xmlPackageDependenciesType, PackageType xmlPackage,
@@ -825,11 +825,11 @@ public class PluginArtifactsMgmtService extends AbstractPluginMgmtService {
         }
 
         for (PluginType xmlPlugin : xmlPluginList) {
-            processSinglePlugin(xmlPlugin, pluginPackageEntity);
+            processSinglePlugin(xmlPlugin, pluginPackageEntity, xmlPackage);
         }
     }
 
-    private void processSinglePlugin(PluginType xmlPlugin, PluginPackages pluginPackageEntity) {
+    private void processSinglePlugin(PluginType xmlPlugin, PluginPackages pluginPackageEntity, PackageType xmlPackage) {
         if (log.isInfoEnabled()) {
             log.info("process single plugin:{}", xmlPlugin.getName());
         }
@@ -859,6 +859,8 @@ public class PluginArtifactsMgmtService extends AbstractPluginMgmtService {
 
         RoleBindsType xmlRoleBinds = xmlPlugin.getRoleBinds();
         processRoleBinds(xmlRoleBinds, pluginConfigEntity);
+        
+        processParamObjects(xmlPackage.getParamObjects(), xmlPackage.getName(), xmlPackage.getVersion(), pluginConfigEntity.getId());
 
     }
 
