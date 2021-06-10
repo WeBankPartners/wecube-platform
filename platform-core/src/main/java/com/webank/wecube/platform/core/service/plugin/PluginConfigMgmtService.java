@@ -96,7 +96,7 @@ public class PluginConfigMgmtService extends AbstractPluginMgmtService {
      */
     public void updateObjectMeta(String pluginConfigId, String objectMetaId, CoreObjectMetaDto coreObjectMetaDto) {
         validateCurrentUserPermission(pluginConfigId, PluginConfigRoles.PERM_TYPE_MGMT);
-        pluginParamObjectMetaStorage.updateObjectMeta(coreObjectMetaDto);
+        pluginParamObjectMetaStorage.updateOrCreateObjectMeta(coreObjectMetaDto, pluginConfigId);
     }
 
     /**
@@ -421,8 +421,9 @@ public class PluginConfigMgmtService extends AbstractPluginMgmtService {
             return null;
         }
 
+        String configId = pluginConfig.getId();
         String objectName = param.getMappingEntityExpression();
-        CoreObjectMeta objectMeta = pluginParamObjectMetaStorage.fetchAssembledCoreObjectMeta(packageName, objectName);
+        CoreObjectMeta objectMeta = pluginParamObjectMetaStorage.fetchAssembledCoreObjectMeta(packageName, objectName, configId);
         if (objectMeta == null) {
             log.info("Cannot fetch core object meta for interface param:{},and packge:{},objectName:{}", param.getId(),
                     packageName, objectName);
@@ -1122,6 +1123,7 @@ public class PluginConfigMgmtService extends AbstractPluginMgmtService {
         objectMetaDto.setName(objectMeta.getName());
         objectMetaDto.setPackageName(objectMeta.getPackageName());
         objectMetaDto.setSource(objectMeta.getSource());
+        objectMetaDto.setConfigId(objectMeta.getConfigId());
 
         List<CoreObjectPropertyMeta> propertyMetas = objectMeta.getPropertyMetas();
         if (propertyMetas == null || propertyMetas.isEmpty()) {
@@ -1147,6 +1149,7 @@ public class PluginConfigMgmtService extends AbstractPluginMgmtService {
         propertyMetaDto.setObjectName(propertyMeta.getObjectName());
         propertyMetaDto.setPackageName(propertyMeta.getPackageName());
         propertyMetaDto.setRefName(propertyMeta.getRefName());
+        propertyMetaDto.setConfigId(propertyMeta.getConfigId());
         if (propertyMeta.getRefObjectMeta() != null) {
             CoreObjectMetaDto refObjectMetaDto = tryBuildCoreObjectMetaDtoWithEntity(propertyMeta.getRefObjectMeta());
             propertyMetaDto.setRefObjectMeta(refObjectMetaDto);
