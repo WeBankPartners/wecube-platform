@@ -17,6 +17,7 @@ import com.webank.wecube.platform.core.dto.plugin.CoreObjectPropertyMetaDto;
 import com.webank.wecube.platform.core.entity.plugin.CoreObjectMeta;
 import com.webank.wecube.platform.core.entity.plugin.CoreObjectPropertyMeta;
 import com.webank.wecube.platform.core.utils.Constants;
+import com.webank.wecube.platform.workflow.commons.LocalIdGenerator;
 
 @Service
 public class PluginParamObjectMetaStorage extends AbstractPluginParamObjectService {
@@ -27,8 +28,8 @@ public class PluginParamObjectMetaStorage extends AbstractPluginParamObjectServi
      * @param coreObjectMetaDto
      */
     @Transactional
-    public void updateObjectMeta(CoreObjectMetaDto coreObjectMetaDto) {
-        doUpdateObjectMeta(coreObjectMetaDto);
+    public void updateOrCreateObjectMeta(CoreObjectMetaDto coreObjectMetaDto, String configId) {
+        doUpdateOrCreateObjectMeta(coreObjectMetaDto, configId);
     }
 
     /**
@@ -37,9 +38,10 @@ public class PluginParamObjectMetaStorage extends AbstractPluginParamObjectServi
      * @param coreObjectName
      * @return
      */
-    public CoreObjectMeta fetchAssembledCoreObjectMeta(String packageName, String coreObjectName) {
+    public CoreObjectMeta fetchAssembledCoreObjectMeta(String packageName, String coreObjectName, String configId) {
         List<CoreObjectMeta> objectMetaList = new LinkedList<>();
-        CoreObjectMeta objectMetaEntity = doFetchAssembledCoreObjectMeta(packageName, coreObjectName, objectMetaList);
+        CoreObjectMeta objectMetaEntity = doFetchAssembledCoreObjectMeta(packageName, coreObjectName, objectMetaList,
+                configId);
 
         return objectMetaEntity;
     }
@@ -55,6 +57,7 @@ public class PluginParamObjectMetaStorage extends AbstractPluginParamObjectServi
             return null;
         }
 
+        String configId = objectMetaEntity.getConfigId();
         List<CoreObjectMeta> cachedObjectMetaList = new LinkedList<>();
         cachedObjectMetaList.add(objectMetaEntity);
 
@@ -68,7 +71,7 @@ public class PluginParamObjectMetaStorage extends AbstractPluginParamObjectServi
             if (Constants.DATA_TYPE_OBJECT.equals(propertyMetaEntity.getRefType())) {
 
                 CoreObjectMeta refObjectMetaEntity = doFetchAssembledCoreObjectMeta(objectMetaEntity.getPackageName(),
-                        propertyMetaEntity.getRefName(), cachedObjectMetaList);
+                        propertyMetaEntity.getRefName(), cachedObjectMetaList, configId);
                 propertyMetaEntity.setRefObjectMeta(refObjectMetaEntity);
             }
 
@@ -80,14 +83,14 @@ public class PluginParamObjectMetaStorage extends AbstractPluginParamObjectServi
     }
 
     private CoreObjectMeta doFetchAssembledCoreObjectMeta(String packageName, String coreObjectName,
-            List<CoreObjectMeta> cachedObjectMetaList) {
+            List<CoreObjectMeta> cachedObjectMetaList, String configId) {
         CoreObjectMeta cachedObjectMetaEntity = findoutFromCachedObjetMetaEntityList(cachedObjectMetaList, packageName,
                 coreObjectName);
         if (cachedObjectMetaEntity != null) {
             return cachedObjectMetaEntity;
         }
-        CoreObjectMeta objectMetaEntity = coreObjectMetaMapper.selectOneByPackageNameAndObjectName(packageName,
-                coreObjectName);
+        CoreObjectMeta objectMetaEntity = coreObjectMetaMapper.selectOneByPackageNameAndObjectNameAndConfig(packageName,
+                coreObjectName, configId);
         if (objectMetaEntity == null) {
             return null;
         }
@@ -104,7 +107,7 @@ public class PluginParamObjectMetaStorage extends AbstractPluginParamObjectServi
             if (Constants.DATA_TYPE_OBJECT.equals(propertyMetaEntity.getRefType())) {
 
                 CoreObjectMeta refObjectMetaEntity = doFetchAssembledCoreObjectMeta(packageName,
-                        propertyMetaEntity.getRefName(), cachedObjectMetaList);
+                        propertyMetaEntity.getRefName(), cachedObjectMetaList, configId);
                 propertyMetaEntity.setRefObjectMeta(refObjectMetaEntity);
             }
 
@@ -125,12 +128,73 @@ public class PluginParamObjectMetaStorage extends AbstractPluginParamObjectServi
         return null;
     }
 
-    private void doUpdateObjectMeta(CoreObjectMetaDto coreObjectMetaDto) {
-        if (StringUtils.isBlank(coreObjectMetaDto.getId())) {
-            log.info("object meta id is blank.");
-            return;
+    private CoreObjectMetaDto doCreateObjectMeta(CoreObjectMetaDto coreObjectMetaDto, String configId) {
+        CoreObjectMeta coreObjectMeta = coreObjectMetaMapper.selectOneByPackageNameAndObjectNameAndConfig(
+                coreObjectMetaDto.getPackageName(), coreObjectMetaDto.getName(), configId);
+
+        if (coreObjectMeta == null) {
+            coreObjectMeta = new CoreObjectMeta();
+            coreObjectMeta.setConfigId(configId);
+            coreObjectMeta.setCreatedBy(AuthenticationContextHolder.getCurrentUsername());
+            coreObjectMeta.setCreatedTime(new Date());
+            coreObjectMeta.setId(LocalIdGenerator.generateId());
+            coreObjectMeta.setLatestSource(coreObjectMetaDto.getLatestSource());
+            coreObjectMeta.setName(coreObjectMetaDto.getName());
+            coreObjectMeta.setPackageName(coreObjectMetaDto.getPackageName());
+            coreObjectMetaMapper.insert(coreObjectMeta);
         }
 
+        coreObjectMetaDto.setId(coreObjectMeta.getId());
+
+        int recordCount = coreObjectPropertyMetaMapper.deleteByObjectMeta(coreObjectMeta.getId());
+
+        log.info("total {} object property metas had been deleted.", recordCount);
+
+        List<CoreObjectPropertyMetaDto> propertyMetaDtos = coreObjectMetaDto.getPropertyMetas();
+        if (propertyMetaDtos == null || propertyMetaDtos.isEmpty()) {
+            log.info("object property meta from dto is empty for {}", coreObjectMetaDto.getId());
+            return coreObjectMetaDto;
+        }
+
+        for (CoreObjectPropertyMetaDto propertyMetaDto : propertyMetaDtos) {
+
+            CoreObjectPropertyMeta propertyMeta = new CoreObjectPropertyMeta();
+            propertyMeta.setId(LocalIdGenerator.generateId());
+            propertyMeta.setConfigId(configId);
+            propertyMeta.setCreatedBy(AuthenticationContextHolder.getCurrentUsername());
+            propertyMeta.setCreatedTime(new Date());
+            propertyMeta.setMapExpr(propertyMetaDto.getMappingEntityExpression());
+            propertyMeta.setMapType(propertyMetaDto.getMappingType());
+            propertyMeta.setName(propertyMetaDto.getName());
+            propertyMeta.setObjectMetaId(coreObjectMeta.getId());
+            propertyMeta.setObjectName(propertyMetaDto.getObjectName());
+            propertyMeta.setPackageName(propertyMetaDto.getPackageName());
+            propertyMeta.setRefName(propertyMetaDto.getRefName());
+            propertyMeta.setRefType(propertyMetaDto.getRefType());
+            boolean sensitive = false;
+            if (CoreObjectPropertyMetaDto.SENSITIVE_YES.equals(propertyMetaDto.getSensitiveData())) {
+                sensitive = true;
+            }
+            propertyMeta.setSensitive(sensitive);
+            propertyMeta.setSource(propertyMetaDto.getSource());
+
+            propertyMeta.setObjectMeta(coreObjectMeta);
+
+            coreObjectPropertyMetaMapper.insert(propertyMeta);
+
+            propertyMetaDto.setId(propertyMeta.getId());
+            if (propertyMetaDto.getRefObjectMeta() != null) {
+                log.info("property {} has reference object meta and about to create recursively.",
+                        propertyMetaDto.getName());
+                CoreObjectMetaDto objectMetaDto = doCreateObjectMeta(propertyMetaDto.getRefObjectMeta(), configId);
+                propertyMetaDto.setRefObjectMeta(objectMetaDto);
+            }
+        }
+
+        return coreObjectMetaDto;
+    }
+
+    private CoreObjectMetaDto doUpdateObjectMeta(CoreObjectMetaDto coreObjectMetaDto, String configId) {
         CoreObjectMeta coreObjectMeta = coreObjectMetaMapper.selectByPrimaryKey(coreObjectMetaDto.getId());
         if (coreObjectMeta == null) {
             throw new WecubeCoreException("Such object meta does not exist with ID:" + coreObjectMetaDto.getId());
@@ -139,7 +203,7 @@ public class PluginParamObjectMetaStorage extends AbstractPluginParamObjectServi
         List<CoreObjectPropertyMetaDto> propertyMetaDtos = coreObjectMetaDto.getPropertyMetas();
         if (propertyMetaDtos == null || propertyMetaDtos.isEmpty()) {
             log.info("object property meta from dto is empty for {}", coreObjectMetaDto.getId());
-            return;
+            return coreObjectMetaDto;
         }
 
         for (CoreObjectPropertyMetaDto propertyMetaDto : propertyMetaDtos) {
@@ -170,9 +234,24 @@ public class PluginParamObjectMetaStorage extends AbstractPluginParamObjectServi
             coreObjectPropertyMetaMapper.updateByPrimaryKeySelective(propertyMeta);
 
             if (propertyMetaDto.getRefObjectMeta() != null) {
-                log.info("property {} has reference object meta and about to update recursively.", propertyMetaDto.getName());
-                doUpdateObjectMeta(propertyMetaDto.getRefObjectMeta());
+                log.info("property {} has reference object meta and about to update recursively.",
+                        propertyMetaDto.getName());
+                doUpdateObjectMeta(propertyMetaDto.getRefObjectMeta(), configId);
             }
+        }
+
+        return coreObjectMetaDto;
+    }
+
+    private CoreObjectMetaDto doUpdateOrCreateObjectMeta(CoreObjectMetaDto coreObjectMetaDto, String configId) {
+        if (StringUtils.isBlank(configId)) {
+            throw new WecubeCoreException("Configuration ID to update object metadata cannot be blank.");
+        }
+
+        if (StringUtils.isBlank(coreObjectMetaDto.getId()) || (!configId.equals(coreObjectMetaDto.getConfigId()))) {
+            return doCreateObjectMeta(coreObjectMetaDto, configId);
+        } else {
+            return doUpdateObjectMeta(coreObjectMetaDto, configId);
         }
     }
 
