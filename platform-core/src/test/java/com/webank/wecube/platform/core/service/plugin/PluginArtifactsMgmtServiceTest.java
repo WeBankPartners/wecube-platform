@@ -50,7 +50,10 @@ public class PluginArtifactsMgmtServiceTest {
         
         List<String> envs = StringUtilsEx.findSystemVariableString(envString);
         
-        pluginParamObjectSupportService.registerParamObjects(xmlPackage.getParamObjects(), xmlPackage.getName(), xmlPackage.getVersion());
+//        String configId = String.valueOf(System.currentTimeMillis());
+        String configId = "1623308026320";
+        
+        pluginParamObjectSupportService.registerParamObjects(xmlPackage.getParamObjects(), xmlPackage.getName(), xmlPackage.getVersion(), configId);
         
         
         System.out.println(envs.size());

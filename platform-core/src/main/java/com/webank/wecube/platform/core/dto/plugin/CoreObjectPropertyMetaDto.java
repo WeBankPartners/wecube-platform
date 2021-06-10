@@ -29,6 +29,8 @@ public class CoreObjectPropertyMetaDto {
 
     private String sensitiveData;
 
+    private String configId;
+
     private CoreObjectMetaDto refObjectMeta;
 
     public String getId() {
@@ -133,6 +135,14 @@ public class CoreObjectPropertyMetaDto {
 
     public void setSensitiveData(String sensitiveData) {
         this.sensitiveData = sensitiveData;
+    }
+
+    public String getConfigId() {
+        return configId;
+    }
+
+    public void setConfigId(String configId) {
+        this.configId = configId;
     }
 
 }

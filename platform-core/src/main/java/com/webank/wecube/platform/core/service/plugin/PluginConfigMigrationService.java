@@ -18,18 +18,24 @@ import org.springframework.transaction.annotation.Transactional;
 import com.webank.wecube.platform.core.commons.AuthenticationContextHolder;
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
 import com.webank.wecube.platform.core.dto.user.RoleDto;
+import com.webank.wecube.platform.core.entity.plugin.CoreObjectMeta;
+import com.webank.wecube.platform.core.entity.plugin.CoreObjectPropertyMeta;
 import com.webank.wecube.platform.core.entity.plugin.PluginConfigInterfaceParameters;
 import com.webank.wecube.platform.core.entity.plugin.PluginConfigInterfaces;
 import com.webank.wecube.platform.core.entity.plugin.PluginConfigRoles;
 import com.webank.wecube.platform.core.entity.plugin.PluginConfigs;
 import com.webank.wecube.platform.core.entity.plugin.PluginPackages;
 import com.webank.wecube.platform.core.entity.plugin.SystemVariables;
+import com.webank.wecube.platform.core.repository.plugin.CoreObjectMetaMapper;
+import com.webank.wecube.platform.core.repository.plugin.CoreObjectPropertyMetaMapper;
 import com.webank.wecube.platform.core.repository.plugin.PluginConfigInterfaceParametersMapper;
 import com.webank.wecube.platform.core.repository.plugin.PluginConfigInterfacesMapper;
 import com.webank.wecube.platform.core.repository.plugin.PluginConfigRolesMapper;
 import com.webank.wecube.platform.core.repository.plugin.PluginConfigsMapper;
 import com.webank.wecube.platform.core.repository.plugin.PluginPackagesMapper;
 import com.webank.wecube.platform.core.repository.plugin.SystemVariablesMapper;
+import com.webank.wecube.platform.core.service.plugin.xmltype.ParamObjectType;
+import com.webank.wecube.platform.core.service.plugin.xmltype.ParamPropertyType;
 import com.webank.wecube.platform.core.service.plugin.xmltype.PluginConfigInputParameterType;
 import com.webank.wecube.platform.core.service.plugin.xmltype.PluginConfigInputParametersType;
 import com.webank.wecube.platform.core.service.plugin.xmltype.PluginConfigInterfaceType;
@@ -69,6 +75,12 @@ public class PluginConfigMigrationService {
 
     @Autowired
     private UserManagementService userManagementService;
+
+    @Autowired
+    protected CoreObjectMetaMapper coreObjectMetaMapper;
+
+    @Autowired
+    protected CoreObjectPropertyMetaMapper coreObjectPropertyMetaMapper;
 
     /**
      * 
@@ -223,8 +235,63 @@ public class PluginConfigMigrationService {
 
         PluginRoleBindingsType xmlRoleBinds = buildXmlPluginRoleBindingsType(pluginConfig);
         xmlPluginConfig.setRoleBinds(xmlRoleBinds);
+
+        List<CoreObjectMeta> objectMetas = coreObjectMetaMapper.selectAllByConfig(pluginConfig.getId());
+        if (objectMetas != null && !objectMetas.isEmpty()) {
+            List<ParamObjectType> xmlParamObjectTypes = new ArrayList<>();
+            for (CoreObjectMeta objectMeta : objectMetas) {
+                ParamObjectType xmlParamObjectType = buildXmlParamObjectMetaType(pluginPackage, pluginConfig,
+                        objectMeta);
+                xmlParamObjectTypes.add(xmlParamObjectType);
+            }
+
+            xmlPluginConfig.setParamObject(xmlParamObjectTypes);
+        }
+
         return xmlPluginConfig;
 
+    }
+
+    private ParamObjectType buildXmlParamObjectMetaType(PluginPackages pluginPackage, PluginConfigs pluginConfig,
+            CoreObjectMeta objectMeta) {
+        ParamObjectType xmlParamObjectType = new ParamObjectType();
+        xmlParamObjectType.setLatestSource(objectMeta.getLatestSource());
+        xmlParamObjectType.setName(objectMeta.getName());
+        xmlParamObjectType.setPackageName(objectMeta.getPackageName());
+        xmlParamObjectType.setSource(objectMeta.getSource());
+
+        List<CoreObjectPropertyMeta> objectPropertyMetas = coreObjectPropertyMetaMapper
+                .selectAllByObjectMeta(objectMeta.getId());
+        if (objectPropertyMetas != null) {
+            for (CoreObjectPropertyMeta objectPropertyMeta : objectPropertyMetas) {
+                ParamPropertyType xmlParamPropertyType = buildXmlParamPropertyType(pluginPackage, pluginConfig,
+                        objectMeta, objectPropertyMeta);
+                xmlParamObjectType.getProperty().add(xmlParamPropertyType);
+            }
+        }
+
+        return xmlParamObjectType;
+
+    }
+
+    private ParamPropertyType buildXmlParamPropertyType(PluginPackages pluginPackage, PluginConfigs pluginConfig,
+            CoreObjectMeta objectMeta, CoreObjectPropertyMeta objectPropertyMeta) {
+        ParamPropertyType xmlParamPropertyType = new ParamPropertyType();
+        xmlParamPropertyType.setDataType(objectPropertyMeta.getDataType());
+        xmlParamPropertyType.setMapExpr(objectPropertyMeta.getMapExpr());
+        xmlParamPropertyType.setMapType(objectPropertyMeta.getMapType());
+        xmlParamPropertyType.setRefName(objectPropertyMeta.getRefName());
+        xmlParamPropertyType.setRefType(objectPropertyMeta.getRefType());
+
+        String sensitiveData = null;
+        if (objectPropertyMeta.getSensitive() == null) {
+            sensitiveData = "N";
+        } else {
+            sensitiveData = objectPropertyMeta.getSensitive() ? "Y" : "N";
+        }
+        xmlParamPropertyType.setSensitiveData(sensitiveData);
+
+        return xmlParamPropertyType;
     }
 
     private PluginRoleBindingsType buildXmlPluginRoleBindingsType(PluginConfigs pluginConfig) {
@@ -434,7 +501,69 @@ public class PluginConfigMigrationService {
         // pluginConfigRepository.saveAndFlush(pluginConfig);
 
         tryCreatePluginConfigRoleBinds(xmlPluginConfig, pluginConfig);
+
+        // #2109
+        tryCreateObjectMetas(xmlPluginConfig, pluginConfig);
         return pluginConfig;
+
+    }
+
+    private void tryCreateObjectMetas(PluginConfigType xmlPluginConfig, PluginConfigs savedPluginConfig) {
+        List<ParamObjectType> xmlParamObjects = xmlPluginConfig.getParamObject();
+        if (xmlParamObjects == null || xmlParamObjects.isEmpty()) {
+            return;
+        }
+
+        for (ParamObjectType xmlParamObjectType : xmlParamObjects) {
+            CoreObjectMeta objectMeta = new CoreObjectMeta();
+            objectMeta.setId(LocalIdGenerator.generateId());
+            objectMeta.setConfigId(savedPluginConfig.getId());
+            objectMeta.setCreatedBy(AuthenticationContextHolder.getCurrentUsername());
+            objectMeta.setCreatedTime(new Date());
+            objectMeta.setLatestSource(xmlParamObjectType.getLatestSource());
+            objectMeta.setName(xmlParamObjectType.getName());
+            objectMeta.setPackageName(xmlParamObjectType.getPackageName());
+            objectMeta.setSource(xmlParamObjectType.getSource());
+
+            coreObjectMetaMapper.insert(objectMeta);
+
+            tryCreateObjectPropertyMetas(xmlPluginConfig, savedPluginConfig, xmlParamObjectType, objectMeta);
+
+        }
+    }
+
+    private void tryCreateObjectPropertyMetas(PluginConfigType xmlPluginConfig, PluginConfigs savedPluginConfig,
+            ParamObjectType xmlParamObjectType, CoreObjectMeta objectMeta) {
+        List<ParamPropertyType> xmlPropertyMetas = xmlParamObjectType.getProperty();
+        if (xmlPropertyMetas == null || xmlPropertyMetas.isEmpty()) {
+            return;
+        }
+
+        for (ParamPropertyType xmlPropertyMeta : xmlPropertyMetas) {
+            CoreObjectPropertyMeta propertyMeta = new CoreObjectPropertyMeta();
+            propertyMeta.setConfigId(savedPluginConfig.getId());
+            propertyMeta.setCreatedBy(AuthenticationContextHolder.getCurrentUsername());
+            propertyMeta.setCreatedTime(new Date());
+            propertyMeta.setDataType(xmlPropertyMeta.getDataType());
+            propertyMeta.setId(LocalIdGenerator.generateId());
+            propertyMeta.setMapExpr(xmlPropertyMeta.getMapExpr());
+            propertyMeta.setMapType(xmlPropertyMeta.getMapType());
+            propertyMeta.setName(xmlPropertyMeta.getName());
+            propertyMeta.setObjectName(objectMeta.getName());
+            propertyMeta.setObjectMetaId(objectMeta.getId());
+            propertyMeta.setPackageName(objectMeta.getPackageName());
+            propertyMeta.setRefName(xmlPropertyMeta.getRefName());
+            propertyMeta.setRefType(xmlPropertyMeta.getRefType());
+            boolean sensitive = false;
+            if ("Y".equalsIgnoreCase(xmlPropertyMeta.getSensitiveData())) {
+                sensitive = true;
+            }
+            propertyMeta.setSensitive(sensitive);
+            propertyMeta.setSource(objectMeta.getSource());
+
+            coreObjectPropertyMetaMapper.insert(propertyMeta);
+
+        }
 
     }
 
@@ -658,7 +787,124 @@ public class PluginConfigMigrationService {
                 toUpdatePluginConfig.getTargetPackage());
         //
         tryUpdatePluginConfigRoleBinds(xmlPluginConfig, pluginConfigDef, toUpdatePluginConfig);
+
+        // #2109
+        tryUpdateObjectMetas(xmlPluginConfig, toUpdatePluginConfig);
         return toUpdatePluginConfig;
+    }
+
+    private void tryUpdateObjectMetas(PluginConfigType xmlPluginConfig, PluginConfigs savedPluginConfig) {
+        List<ParamObjectType> xmlParamObjects = xmlPluginConfig.getParamObject();
+        if (xmlParamObjects == null || xmlParamObjects.isEmpty()) {
+            return;
+        }
+
+        for (ParamObjectType xmlParamObjectType : xmlParamObjects) {
+            CoreObjectMeta objectMeta = coreObjectMetaMapper.selectOneByPackageNameAndObjectNameAndConfig(
+                    xmlParamObjectType.getPackageName(), xmlParamObjectType.getName(), savedPluginConfig.getId());
+
+            if (objectMeta == null) {
+                objectMeta = new CoreObjectMeta();
+                objectMeta.setId(LocalIdGenerator.generateId());
+                objectMeta.setConfigId(savedPluginConfig.getId());
+                objectMeta.setCreatedBy(AuthenticationContextHolder.getCurrentUsername());
+                objectMeta.setCreatedTime(new Date());
+                objectMeta.setLatestSource(xmlParamObjectType.getLatestSource());
+                objectMeta.setName(xmlParamObjectType.getName());
+                objectMeta.setPackageName(xmlParamObjectType.getPackageName());
+                objectMeta.setSource(xmlParamObjectType.getSource());
+
+                coreObjectMetaMapper.insert(objectMeta);
+            } else {
+                objectMeta.setUpdatedBy(AuthenticationContextHolder.getCurrentUsername());
+                objectMeta.setUpdatedTime(new Date());
+                coreObjectMetaMapper.updateByPrimaryKeySelective(objectMeta);
+            }
+
+            tryUpdateObjectPropertyMetas(xmlPluginConfig, savedPluginConfig, xmlParamObjectType, objectMeta);
+
+        }
+    }
+
+    private void tryUpdateObjectPropertyMetas(PluginConfigType xmlPluginConfig, PluginConfigs savedPluginConfig,
+            ParamObjectType xmlParamObjectType, CoreObjectMeta objectMeta) {
+        List<ParamPropertyType> xmlPropertyMetas = xmlParamObjectType.getProperty();
+        if (xmlPropertyMetas == null || xmlPropertyMetas.isEmpty()) {
+            return;
+        }
+
+        List<CoreObjectPropertyMeta> existsPropertyMetas = coreObjectPropertyMetaMapper
+                .selectAllByObjectMeta(objectMeta.getId());
+
+        for (ParamPropertyType xmlPropertyMeta : xmlPropertyMetas) {
+            String propertyName = xmlPropertyMeta.getName();
+            if (StringUtils.isBlank(propertyName)) {
+                continue;
+            }
+            CoreObjectPropertyMeta propertyMeta = findExistsPropertyMetas(existsPropertyMetas, propertyName);
+
+            if (propertyMeta == null) {
+                propertyMeta = new CoreObjectPropertyMeta();
+                propertyMeta.setConfigId(savedPluginConfig.getId());
+                propertyMeta.setCreatedBy(AuthenticationContextHolder.getCurrentUsername());
+                propertyMeta.setCreatedTime(new Date());
+                propertyMeta.setDataType(xmlPropertyMeta.getDataType());
+                propertyMeta.setId(LocalIdGenerator.generateId());
+                propertyMeta.setMapExpr(xmlPropertyMeta.getMapExpr());
+                propertyMeta.setMapType(xmlPropertyMeta.getMapType());
+                propertyMeta.setName(xmlPropertyMeta.getName());
+                propertyMeta.setObjectName(objectMeta.getName());
+                propertyMeta.setObjectMetaId(objectMeta.getId());
+                propertyMeta.setPackageName(objectMeta.getPackageName());
+                propertyMeta.setRefName(xmlPropertyMeta.getRefName());
+                propertyMeta.setRefType(xmlPropertyMeta.getRefType());
+                boolean sensitive = false;
+                if ("Y".equalsIgnoreCase(xmlPropertyMeta.getSensitiveData())) {
+                    sensitive = true;
+                }
+                propertyMeta.setSensitive(sensitive);
+                propertyMeta.setSource(objectMeta.getSource());
+
+                coreObjectPropertyMetaMapper.insert(propertyMeta);
+            } else {
+                propertyMeta.setConfigId(savedPluginConfig.getId());
+                propertyMeta.setUpdatedBy(AuthenticationContextHolder.getCurrentUsername());
+                propertyMeta.setUpdatedTime(new Date());
+                propertyMeta.setDataType(xmlPropertyMeta.getDataType());
+                propertyMeta.setMapExpr(xmlPropertyMeta.getMapExpr());
+                propertyMeta.setMapType(xmlPropertyMeta.getMapType());
+                propertyMeta.setRefName(xmlPropertyMeta.getRefName());
+                propertyMeta.setRefType(xmlPropertyMeta.getRefType());
+                boolean sensitive = false;
+                if ("Y".equalsIgnoreCase(xmlPropertyMeta.getSensitiveData())) {
+                    sensitive = true;
+                }
+                propertyMeta.setSensitive(sensitive);
+
+                coreObjectPropertyMetaMapper.updateByPrimaryKeySelective(propertyMeta);
+            }
+
+        }
+
+    }
+
+    private CoreObjectPropertyMeta findExistsPropertyMetas(List<CoreObjectPropertyMeta> existsPropertyMetas,
+            String propertyName) {
+        if (StringUtils.isBlank(propertyName)) {
+            return null;
+        }
+
+        if (existsPropertyMetas == null) {
+            return null;
+        }
+
+        for (CoreObjectPropertyMeta m : existsPropertyMetas) {
+            if (propertyName.equals(m.getName())) {
+                return m;
+            }
+        }
+
+        return null;
     }
 
     private void tryUpdatePluginConfigRoleBinds(PluginConfigType xmlPluginConfig, PluginConfigs pluginConfigDef,

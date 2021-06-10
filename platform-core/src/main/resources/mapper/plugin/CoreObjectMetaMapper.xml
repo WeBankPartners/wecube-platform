@@ -19,11 +19,13 @@
             jdbcType="VARCHAR" />
         <result column="updated_time" property="updatedTime"
             jdbcType="TIMESTAMP" />
+        <result column="config_id" property="configId"
+            jdbcType="VARCHAR" />
     </resultMap>
     <sql id="Base_Column_List">
         id, name, package_name, source, latest_source, created_by, created_time,
         updated_by,
-        updated_time
+        updated_time,config_id
     </sql>
     <select id="selectByPrimaryKey" resultMap="BaseResultMap"
         parameterType="java.lang.String">
@@ -38,15 +40,29 @@
     </delete>
     <insert id="insert"
         parameterType="com.webank.wecube.platform.core.entity.plugin.CoreObjectMeta">
-        insert into plugin_object_meta (id, name, package_name,
-        source, latest_source, created_by,
-        created_time, updated_by, updated_time
+        insert into plugin_object_meta (
+        id, 
+        name, 
+        package_name,
+        source, 
+        latest_source, 
+        created_by,
+        created_time, 
+        updated_by, 
+        updated_time,
+        config_id
         )
-        values (#{id,jdbcType=VARCHAR}, #{name,jdbcType=VARCHAR},
+        values (
+        #{id,jdbcType=VARCHAR},
+        #{name,jdbcType=VARCHAR},
         #{packageName,jdbcType=VARCHAR},
-        #{source,jdbcType=VARCHAR}, #{latestSource,jdbcType=VARCHAR}, #{createdBy,jdbcType=VARCHAR},
+        #{source,jdbcType=VARCHAR},
+        #{latestSource,jdbcType=VARCHAR},
+        #{createdBy,jdbcType=VARCHAR},
         #{createdTime,jdbcType=TIMESTAMP},
-        #{updatedBy,jdbcType=VARCHAR}, #{updatedTime,jdbcType=TIMESTAMP}
+        #{updatedBy,jdbcType=VARCHAR}, 
+        #{updatedTime,jdbcType=TIMESTAMP},
+        #{configId,jdbcType=VARCHAR}
         )
     </insert>
     <insert id="insertSelective"
@@ -80,6 +96,9 @@
             <if test="updatedTime != null">
                 updated_time,
             </if>
+            <if test="configId != null">
+                config_id,
+            </if>
         </trim>
         <trim prefix="values (" suffix=")" suffixOverrides=",">
             <if test="id != null">
@@ -108,6 +127,9 @@
             </if>
             <if test="updatedTime != null">
                 #{updatedTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="configId != null">
+                #{configId,jdbcType=VARCHAR},
             </if>
         </trim>
     </insert>
@@ -139,6 +161,9 @@
             <if test="updatedTime != null">
                 updated_time = #{updatedTime,jdbcType=TIMESTAMP},
             </if>
+            <if test="configId != null">
+                config_id = #{configId,jdbcType=VARCHAR},
+            </if>
         </set>
         where id = #{id,jdbcType=VARCHAR}
     </update>
@@ -152,12 +177,12 @@
         created_by = #{createdBy,jdbcType=VARCHAR},
         created_time = #{createdTime,jdbcType=TIMESTAMP},
         updated_by = #{updatedBy,jdbcType=VARCHAR},
-        updated_time = #{updatedTime,jdbcType=TIMESTAMP}
+        updated_time = #{updatedTime,jdbcType=TIMESTAMP},
+        config_id = #{configId,jdbcType=VARCHAR}
         where id = #{id,jdbcType=VARCHAR}
     </update>
     
-    
-    <select id="selectOneByPackageNameAndObjectName" resultMap="BaseResultMap"
+    <select id="selectOneByPackageNameAndObjectNameAndConfig" resultMap="BaseResultMap"
         parameterType="java.lang.String">
         select
         <include refid="Base_Column_List" />
@@ -165,5 +190,14 @@
         where package_name = #{packageName,jdbcType=VARCHAR}
         and
         name = #{name,jdbcType=VARCHAR}
+        and config_id = #{configId,jdbcType=VARCHAR}
+    </select>
+    
+    <select id="selectAllByConfig" resultMap="BaseResultMap"
+        parameterType="java.lang.String">
+        select
+        <include refid="Base_Column_List" />
+        from plugin_object_meta
+        where  config_id = #{configId,jdbcType=VARCHAR}
     </select>
 </mapper>

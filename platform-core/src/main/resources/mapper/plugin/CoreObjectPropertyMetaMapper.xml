@@ -28,13 +28,27 @@
         <result column="is_sensitive" property="sensitive"
             jdbcType="BIT" />
         <result column="ref_name" property="refName" jdbcType="VARCHAR" />
+        <result column="config_id" property="configId"
+            jdbcType="VARCHAR" />
     </resultMap>
     <sql id="Base_Column_List">
-        id, name, data_type, ref_type, map_type, map_expr,
+        id, 
+        name, 
+        data_type, 
+        ref_type, 
+        map_type, 
+        map_expr,
         object_meta_id,
-        object_name, package_name,
-        source, created_by,
-        created_time, updated_by, updated_time, is_sensitive,ref_name
+        object_name, 
+        package_name,
+        source, 
+        created_by,
+        created_time, 
+        updated_by, 
+        updated_time, 
+        is_sensitive,
+        ref_name,
+        config_id
     </sql>
     <select id="selectByPrimaryKey" resultMap="BaseResultMap"
         parameterType="java.lang.String">
@@ -50,27 +64,43 @@
     </delete>
     <insert id="insert"
         parameterType="com.webank.wecube.platform.core.entity.plugin.CoreObjectPropertyMeta">
-        insert into plugin_object_property_meta (id, name,
+        insert into plugin_object_property_meta (
+        id, 
+        name,
         data_type,
-        ref_type, map_type, map_expr,
+        ref_type, 
+        map_type, 
+        map_expr,
         object_meta_id,
-        object_name, package_name,
-        source, created_by, created_time,
-        updated_by, updated_time, is_sensitive,ref_name
+        object_name, 
+        package_name,
+        source, 
+        created_by, 
+        created_time,
+        updated_by, 
+        updated_time, 
+        is_sensitive,
+        ref_name,
+        config_id
         )
         values
-        (#{id,jdbcType=VARCHAR}, #{name,jdbcType=VARCHAR},
+        (#{id,jdbcType=VARCHAR}, 
+        #{name,jdbcType=VARCHAR},
         #{dataType,jdbcType=VARCHAR},
         #{refType,jdbcType=VARCHAR},
-        #{mapType,jdbcType=VARCHAR}, #{mapExpr,jdbcType=VARCHAR},
+        #{mapType,jdbcType=VARCHAR}, 
+        #{mapExpr,jdbcType=VARCHAR},
         #{objectMetaId,jdbcType=VARCHAR},
-        #{objectName,jdbcType=VARCHAR}, #{packageName,jdbcType=VARCHAR},
-        #{source,jdbcType=VARCHAR}, #{createdBy,jdbcType=VARCHAR},
+        #{objectName,jdbcType=VARCHAR}, 
+        #{packageName,jdbcType=VARCHAR},
+        #{source,jdbcType=VARCHAR}, 
+        #{createdBy,jdbcType=VARCHAR},
         #{createdTime,jdbcType=TIMESTAMP},
         #{updatedBy,jdbcType=VARCHAR},
         #{updatedTime,jdbcType=TIMESTAMP},
         #{sensitive,jdbcType=BIT},
-        #{refName,jdbcType=VARCHAR}
+        #{refName,jdbcType=VARCHAR},
+        #{configId,jdbcType=VARCHAR}
         )
     </insert>
     <insert id="insertSelective"
@@ -125,6 +155,9 @@
             <if test="refName != null">
                 ref_name,
             </if>
+            <if test="configId != null">
+                config_id,
+            </if>
         </trim>
         <trim prefix="values (" suffix=")" suffixOverrides=",">
             <if test="id != null">
@@ -174,6 +207,9 @@
             </if>
             <if test="refName != null">
                 #{refName,jdbcType=VARCHAR},
+            </if>
+            <if test="configId != null">
+                #{configId,jdbcType=VARCHAR},
             </if>
         </trim>
     </insert>
@@ -229,6 +265,9 @@
             <if test="refName != null">
                 ref_name = #{refName,jdbcType=VARCHAR},
             </if>
+            <if test="configId != null">
+                config_id = #{configId,jdbcType=VARCHAR},
+            </if>
         </set>
         where id = #{id,jdbcType=VARCHAR}
     </update>
@@ -263,7 +302,8 @@
         #{updatedTime,jdbcType=TIMESTAMP},
         is_sensitive =
         #{sensitive,jdbcType=BIT},
-        ref_name = #{refName,jdbcType=VARCHAR}
+        ref_name = #{refName,jdbcType=VARCHAR},
+        config_id = #{configId,jdbcType=VARCHAR}
         where id = #{id,jdbcType=VARCHAR}
     </update>
 
@@ -275,4 +315,11 @@
         where object_meta_id =
         #{objectMetaId,jdbcType=VARCHAR}
     </select>
+    
+    <delete id="deleteByObjectMeta" parameterType="java.lang.String">
+        delete from
+        plugin_object_property_meta
+        where object_meta_id =
+        #{objectMetaId,jdbcType=VARCHAR}
+    </delete>
 </mapper>
