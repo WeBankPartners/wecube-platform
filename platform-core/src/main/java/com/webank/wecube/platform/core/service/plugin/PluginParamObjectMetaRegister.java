@@ -20,7 +20,15 @@ import com.webank.wecube.platform.workflow.commons.LocalIdGenerator;
 public class PluginParamObjectMetaRegister extends AbstractPluginParamObjectService {
     private static final Logger log = LoggerFactory.getLogger(PluginParamObjectMetaRegister.class);
 
-    public void registerParamObjects(ParamObjectsType xmlParamObjects, String packageName, String packageVersion) {
+    /**
+     * 
+     * @param xmlParamObjects
+     * @param packageName
+     * @param packageVersion
+     * @param configId
+     */
+    public void registerParamObjects(ParamObjectsType xmlParamObjects, String packageName, String packageVersion,
+            String configId) {
         log.info("try to register param objects for {} {}", packageName, packageVersion);
         if (xmlParamObjects == null) {
             return;
@@ -35,20 +43,20 @@ public class PluginParamObjectMetaRegister extends AbstractPluginParamObjectServ
                 packageVersion);
 
         for (ParamObjectType xmlParamObject : xmlParamObjectList) {
-            tryRegisterSingleParamObject(xmlParamObject, packageName, packageVersion);
+            tryRegisterSingleParamObject(xmlParamObject, packageName, packageVersion, configId);
         }
 
     }
 
-    private void tryRegisterSingleParamObject(ParamObjectType xmlParamObject, String packageName,
-            String packageVersion) {
+    private void tryRegisterSingleParamObject(ParamObjectType xmlParamObject, String packageName, String packageVersion,
+            String configId) {
         log.info("try register param object {}", xmlParamObject.getName());
         String paramObjectName = xmlParamObject.getName();
-        CoreObjectMeta objectMetaEntity = coreObjectMetaMapper.selectOneByPackageNameAndObjectName(packageName,
-                paramObjectName);
+        CoreObjectMeta objectMetaEntity = coreObjectMetaMapper.selectOneByPackageNameAndObjectNameAndConfig(packageName,
+                paramObjectName, configId);
 
         if (objectMetaEntity == null) {
-            tryCreateSingleParamObject(xmlParamObject, packageName, packageVersion);
+            tryCreateSingleParamObject(xmlParamObject, packageName, packageVersion, configId);
             return;
         } else {
             tryUpdateSingleParamObject(xmlParamObject, packageName, packageVersion, objectMetaEntity);
@@ -70,7 +78,7 @@ public class PluginParamObjectMetaRegister extends AbstractPluginParamObjectServ
         for (ParamPropertyType xmlPropertyType : xmlPropertyList) {
             CoreObjectPropertyMeta propertyMeta = findOutObjectPropertyMetaByPropertyName(propertyMetas,
                     xmlPropertyType.getName());
-            if(propertyMeta == null){
+            if (propertyMeta == null) {
                 CoreObjectPropertyMeta propertyMetaEntity = new CoreObjectPropertyMeta();
                 propertyMetaEntity.setId(LocalIdGenerator.generateId());
                 propertyMetaEntity.setCreatedBy(AuthenticationContextHolder.getCurrentUsername());
@@ -116,7 +124,8 @@ public class PluginParamObjectMetaRegister extends AbstractPluginParamObjectServ
         return null;
     }
 
-    private void tryCreateSingleParamObject(ParamObjectType xmlParamObject, String packageName, String packageVersion) {
+    private void tryCreateSingleParamObject(ParamObjectType xmlParamObject, String packageName, String packageVersion,
+            String configId) {
         String paramObjectName = xmlParamObject.getName();
         CoreObjectMeta objectMetaEntity = new CoreObjectMeta();
         objectMetaEntity.setId(LocalIdGenerator.generateId());
@@ -125,6 +134,7 @@ public class PluginParamObjectMetaRegister extends AbstractPluginParamObjectServ
         objectMetaEntity.setPackageName(packageName);
         objectMetaEntity.setName(paramObjectName);
         objectMetaEntity.setSource(packageVersion);
+        objectMetaEntity.setConfigId(configId);
 
         log.info("there is not param object {} existed and try to create one.", paramObjectName);
         coreObjectMetaMapper.insert(objectMetaEntity);
@@ -149,6 +159,7 @@ public class PluginParamObjectMetaRegister extends AbstractPluginParamObjectServ
             propertyMetaEntity.setRefType(xmlProperty.getRefType());
             propertyMetaEntity.setRefName(xmlProperty.getRefName());
             propertyMetaEntity.setSource(packageVersion);
+            propertyMetaEntity.setConfigId(configId);
 
             boolean sensitive = false;
             if (StringUtils.isNoneBlank(xmlProperty.getSensitiveData())) {
