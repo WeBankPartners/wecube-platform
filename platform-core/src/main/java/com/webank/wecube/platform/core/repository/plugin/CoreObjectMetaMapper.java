@@ -1,5 +1,7 @@
 package com.webank.wecube.platform.core.repository.plugin;
 
+import java.util.List;
+
 import org.apache.ibatis.annotations.Param;
 import org.springframework.stereotype.Repository;
 
@@ -22,10 +24,18 @@ public interface CoreObjectMetaMapper {
     /**
      * 
      * @param packageName
-     * @param objectName
+     * @param name
+     * @param configId
      * @return
      */
-    CoreObjectMeta selectOneByPackageNameAndObjectName(@Param("packageName") String packageName,
-            @Param("name") String name);
+    CoreObjectMeta selectOneByPackageNameAndObjectNameAndConfig(@Param("packageName") String packageName,
+            @Param("name") String name,@Param("configId") String configId);
+    
+    /**
+     * 
+     * @param configId
+     * @return
+     */
+    List<CoreObjectMeta> selectAllByConfig(@Param("configId") String configId );
 
 }

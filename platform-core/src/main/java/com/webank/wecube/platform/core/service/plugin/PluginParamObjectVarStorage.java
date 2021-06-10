@@ -73,7 +73,7 @@ public class PluginParamObjectVarStorage extends AbstractPluginParamObjectServic
         if (objectMeta == null) {
             objectMeta = coreObjectMetaMapper.selectByPrimaryKey(objectVar.getObjectMetaId());
             assembledObjectMeta = pluginParamObjectMetaStorage.fetchAssembledCoreObjectMeta(objectMeta.getPackageName(),
-                    objectMeta.getName());
+                    objectMeta.getName(), objectMeta.getConfigId());
         } else {
             assembledObjectMeta = objectMeta;
         }
@@ -89,7 +89,7 @@ public class PluginParamObjectVarStorage extends AbstractPluginParamObjectServic
         if (objectVar.getObjectMeta() == null) {
             CoreObjectMeta objectMeta = coreObjectMetaMapper.selectByPrimaryKey(objectVar.getObjectMetaId());
             CoreObjectMeta assembledObjectMeta = pluginParamObjectMetaStorage
-                    .fetchAssembledCoreObjectMeta(objectMeta.getPackageName(), objectMeta.getName());
+                    .fetchAssembledCoreObjectMeta(objectMeta.getPackageName(), objectMeta.getName(), objectMeta.getConfigId());
             objectVar.setObjectMeta(assembledObjectMeta);
         }
 
