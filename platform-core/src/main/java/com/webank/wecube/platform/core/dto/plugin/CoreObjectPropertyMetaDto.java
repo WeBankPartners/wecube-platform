@@ -2,6 +2,9 @@ package com.webank.wecube.platform.core.dto.plugin;
 
 public class CoreObjectPropertyMetaDto {
 
+    public static final String SENSITIVE_YES = "Y";
+    public static final String SENSITIVE_NO = "N";
+
     private String id;
 
     private String name;
@@ -12,9 +15,9 @@ public class CoreObjectPropertyMetaDto {
 
     private String refName;
 
-    private String mapType;
+    private String mappingType;
 
-    private String mapExpr;
+    private String mappingEntityExpression;
 
     private String objectMetaId;
 
@@ -24,7 +27,9 @@ public class CoreObjectPropertyMetaDto {
 
     private String source;
 
-    private Boolean sensitive;
+    private String sensitiveData;
+
+    private String configId;
 
     private CoreObjectMetaDto refObjectMeta;
 
@@ -68,22 +73,6 @@ public class CoreObjectPropertyMetaDto {
         this.refName = refName;
     }
 
-    public String getMapType() {
-        return mapType;
-    }
-
-    public void setMapType(String mapType) {
-        this.mapType = mapType;
-    }
-
-    public String getMapExpr() {
-        return mapExpr;
-    }
-
-    public void setMapExpr(String mapExpr) {
-        this.mapExpr = mapExpr;
-    }
-
     public String getObjectMetaId() {
         return objectMetaId;
     }
@@ -116,20 +105,44 @@ public class CoreObjectPropertyMetaDto {
         this.source = source;
     }
 
-    public Boolean getSensitive() {
-        return sensitive;
-    }
-
-    public void setSensitive(Boolean sensitive) {
-        this.sensitive = sensitive;
-    }
-
     public CoreObjectMetaDto getRefObjectMeta() {
         return refObjectMeta;
     }
 
     public void setRefObjectMeta(CoreObjectMetaDto refObjectMeta) {
         this.refObjectMeta = refObjectMeta;
+    }
+
+    public String getMappingType() {
+        return mappingType;
+    }
+
+    public void setMappingType(String mappingType) {
+        this.mappingType = mappingType;
+    }
+
+    public String getMappingEntityExpression() {
+        return mappingEntityExpression;
+    }
+
+    public void setMappingEntityExpression(String mappingEntityExpression) {
+        this.mappingEntityExpression = mappingEntityExpression;
+    }
+
+    public String getSensitiveData() {
+        return sensitiveData;
+    }
+
+    public void setSensitiveData(String sensitiveData) {
+        this.sensitiveData = sensitiveData;
+    }
+
+    public String getConfigId() {
+        return configId;
+    }
+
+    public void setConfigId(String configId) {
+        this.configId = configId;
     }
 
 }

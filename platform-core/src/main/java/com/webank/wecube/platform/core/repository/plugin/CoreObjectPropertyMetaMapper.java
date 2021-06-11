@@ -27,4 +27,11 @@ public interface CoreObjectPropertyMetaMapper {
      * @return
      */
     List<CoreObjectPropertyMeta> selectAllByObjectMeta(@Param("objectMetaId")String objectMetaId);
+    
+    /**
+     * 
+     * @param objectMetaId
+     * @return
+     */
+    int deleteByObjectMeta(@Param("objectMetaId")String objectMetaId );
 }

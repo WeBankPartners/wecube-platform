@@ -1,4 +1,4 @@
-package com.webank.wecube.platform.core.dto.workflow;
+package com.webank.wecube.platform.core.support.plugin.dto;
 
 public class DynamicWorkflowInstInfoDto {
     private int id;

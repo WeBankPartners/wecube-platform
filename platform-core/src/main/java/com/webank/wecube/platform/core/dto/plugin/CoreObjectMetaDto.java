@@ -14,6 +14,8 @@ public class CoreObjectMetaDto {
 
     private String latestSource;
     
+    private String configId;
+    
     private List<CoreObjectPropertyMetaDto> propertyMetas = new ArrayList<>();
 
     public String getId() {
@@ -75,5 +77,15 @@ public class CoreObjectMetaDto {
         
         this.propertyMetas.add(propertyMetaDto);
     }
+
+    public String getConfigId() {
+        return configId;
+    }
+
+    public void setConfigId(String configId) {
+        this.configId = configId;
+    }
+    
+    
 
 }

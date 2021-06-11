@@ -11,12 +11,13 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.webank.wecube.platform.core.dto.plugin.CommonResponseDto;
-import com.webank.wecube.platform.core.dto.workflow.DynamicWorkflowInstCreationInfoDto;
-import com.webank.wecube.platform.core.dto.workflow.DynamicWorkflowInstInfoDto;
 import com.webank.wecube.platform.core.dto.workflow.ProcInstTerminationRequestDto;
-import com.webank.wecube.platform.core.dto.workflow.WorkflowDefInfoDto;
-import com.webank.wecube.platform.core.dto.workflow.WorkflowNodeDefInfoDto;
+import com.webank.wecube.platform.core.dto.workflow.ProcessDataPreviewDto;
 import com.webank.wecube.platform.core.service.workflow.WorkflowPublicAccessService;
+import com.webank.wecube.platform.core.support.plugin.dto.DynamicWorkflowInstCreationInfoDto;
+import com.webank.wecube.platform.core.support.plugin.dto.DynamicWorkflowInstInfoDto;
+import com.webank.wecube.platform.core.support.plugin.dto.WorkflowDefInfoDto;
+import com.webank.wecube.platform.core.support.plugin.dto.WorkflowNodeDefInfoDto;
 
 @RestController
 @RequestMapping("/v1")
@@ -48,5 +49,12 @@ public class WorkflowPublicAccessController {
     public CommonResponseDto createWorkflowInstanceTerminationRequest(@RequestBody ProcInstTerminationRequestDto requestDto){
         workflowPublicAccessService.createWorkflowInstanceTerminationRequest(requestDto);
         return CommonResponseDto.okay();
+    }
+    
+    @GetMapping("/public/process/definitions/{proc-def-id}/preview/entities/{entity-data-id}")
+    public CommonResponseDto calculateProcessDataPreview(@PathVariable("proc-def-id") String procDefId,
+            @PathVariable("entity-data-id") String dataId) {
+        ProcessDataPreviewDto result = workflowPublicAccessService.calculateProcessDataPreview(procDefId, dataId);
+        return CommonResponseDto.okayWithData(result);
     }
 }

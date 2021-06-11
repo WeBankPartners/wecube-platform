@@ -5,7 +5,6 @@
 // Generated on: 2020.11.09 at 03:29:54 PM CST 
 //
 
-
 package com.webank.wecube.platform.core.service.plugin.xml.register;
 
 import javax.xml.bind.annotation.XmlAccessType;
@@ -14,11 +13,13 @@ import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlType;
 import javax.xml.bind.annotation.XmlValue;
 
-
 /**
- * <p>Java class for outputParameterType complex type.
+ * <p>
+ * Java class for outputParameterType complex type.
  * 
- * <p>The following schema fragment specifies the expected content contained within this class.
+ * <p>
+ * The following schema fragment specifies the expected content contained within
+ * this class.
  * 
  * <pre>
  * &lt;complexType name="outputParameterType">
@@ -36,9 +37,7 @@ import javax.xml.bind.annotation.XmlValue;
  * 
  */
 @XmlAccessorType(XmlAccessType.FIELD)
-@XmlType(name = "outputParameterType", propOrder = {
-    "value"
-})
+@XmlType(name = "outputParameterType", propOrder = { "value" })
 public class OutputParameterType {
 
     @XmlValue
@@ -52,13 +51,14 @@ public class OutputParameterType {
     @XmlAttribute(name = "sensitiveData")
     protected String sensitiveData;
 
+    @XmlAttribute(name = "description")
+    protected String description;
+
     /**
      * Gets the value of the value property.
      * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
+     * @return possible object is {@link String }
+     * 
      */
     public String getValue() {
         return value;
@@ -68,9 +68,8 @@ public class OutputParameterType {
      * Sets the value of the value property.
      * 
      * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
+     *            allowed object is {@link String }
+     * 
      */
     public void setValue(String value) {
         this.value = value;
@@ -79,10 +78,8 @@ public class OutputParameterType {
     /**
      * Gets the value of the datatype property.
      * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
+     * @return possible object is {@link String }
+     * 
      */
     public String getDatatype() {
         return datatype;
@@ -92,9 +89,8 @@ public class OutputParameterType {
      * Sets the value of the datatype property.
      * 
      * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
+     *            allowed object is {@link String }
+     * 
      */
     public void setDatatype(String value) {
         this.datatype = value;
@@ -103,10 +99,8 @@ public class OutputParameterType {
     /**
      * Gets the value of the mappingType property.
      * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
+     * @return possible object is {@link String }
+     * 
      */
     public String getMappingType() {
         return mappingType;
@@ -116,9 +110,8 @@ public class OutputParameterType {
      * Sets the value of the mappingType property.
      * 
      * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
+     *            allowed object is {@link String }
+     * 
      */
     public void setMappingType(String value) {
         this.mappingType = value;
@@ -127,10 +120,8 @@ public class OutputParameterType {
     /**
      * Gets the value of the mappingEntityExpression property.
      * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
+     * @return possible object is {@link String }
+     * 
      */
     public String getMappingEntityExpression() {
         return mappingEntityExpression;
@@ -140,9 +131,8 @@ public class OutputParameterType {
      * Sets the value of the mappingEntityExpression property.
      * 
      * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
+     *            allowed object is {@link String }
+     * 
      */
     public void setMappingEntityExpression(String value) {
         this.mappingEntityExpression = value;
@@ -151,10 +141,8 @@ public class OutputParameterType {
     /**
      * Gets the value of the sensitiveData property.
      * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
+     * @return possible object is {@link String }
+     * 
      */
     public String getSensitiveData() {
         if (sensitiveData == null) {
@@ -168,12 +156,19 @@ public class OutputParameterType {
      * Sets the value of the sensitiveData property.
      * 
      * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
+     *            allowed object is {@link String }
+     * 
      */
     public void setSensitiveData(String value) {
         this.sensitiveData = value;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
     }
 
 }

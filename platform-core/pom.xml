@@ -11,7 +11,7 @@
     <artifactId>platform-core</artifactId>
 
     <properties>
-        <app.version>2.9.2</app.version>
+        <app.version>3.0.0</app.version>
     </properties>
 
     <dependencyManagement>

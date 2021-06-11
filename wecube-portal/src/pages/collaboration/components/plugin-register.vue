@@ -196,11 +196,16 @@
                 <Row v-for="(param, index) in currentInter['inputParameters']" :key="index">
                   <Col span="3">
                     <FormItem :label-width="0">
-                      <span v-if="param.required === 'Y'" style="color:red">*</span>
-                      <span
-                        style="display: inline-block;white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 90%;"
-                        >{{ param.name }}</span
-                      >
+                      <span v-if="param.required === 'Y'" style="color:red;vertical-align: text-bottom;">*</span>
+                      <Tooltip content="">
+                        <span
+                          style="display: inline-block;white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"
+                          >{{ param.name }}</span
+                        >
+                        <div slot="content" style="white-space: normal;">
+                          <span>{{ param.description }}</span>
+                        </div>
+                      </Tooltip>
                     </FormItem>
                   </Col>
                   <Col span="2" offset="0">
@@ -234,12 +239,13 @@
                         <Option value="system_variable" key="system_variable">system_variable</Option>
                         <Option value="entity" key="entity">entity</Option>
                         <Option value="constant" key="constant">constant</Option>
+                        <Option value="object" key="object">object</Option>
                       </Select>
                     </FormItem>
                   </Col>
                   <Col span="13" offset="1">
                     <FormItem :label-width="0">
-                      <FilterRules
+                      <!-- <FilterRules
                         v-if="param.mappingType === 'entity'"
                         v-model="param.mappingEntityExpression"
                         :disabled="currentPluginObj.status === 'ENABLED'"
@@ -248,7 +254,17 @@
                         :needNativeAttr="true"
                         :needAttr="true"
                         :rootEntityFirst="true"
-                      ></FilterRules>
+                      ></FilterRules> -->
+                      <FilterRulesRef
+                        v-if="param.mappingType === 'entity'"
+                        v-model="param.mappingEntityExpression"
+                        :disabled="currentPluginObj.status === 'ENABLED'"
+                        :allDataModelsWithAttrs="allEntityType"
+                        :rootEntity="clearedEntityType"
+                        :needNativeAttr="true"
+                        :needAttr="true"
+                        :rootEntityFirst="true"
+                      ></FilterRulesRef>
                       <Select
                         filterable
                         v-if="param.mappingType === 'system_variable'"
@@ -265,6 +281,9 @@
                         >
                       </Select>
                       <span v-if="param.mappingType === 'context' || param.mappingType === 'constant'">N/A</span>
+                      <span v-if="param.mappingType === 'object'">
+                        <Button type="primary" size="small" @click="showObjectConfig(param)">配置</Button>
+                      </span>
                     </FormItem>
                   </Col>
                 </Row>
@@ -281,11 +300,16 @@
                 <Row v-for="(outPut, index) in currentInter['outputParameters']" :key="index">
                   <Col span="3">
                     <FormItem :label-width="0">
-                      <span v-if="outPut.required === 'Y'" style="color:red">*</span>
-                      <span
-                        style="display: inline-block;white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 90%;"
-                        >{{ outPut.name }}</span
-                      >
+                      <span v-if="outPut.required === 'Y'" style="color:red;vertical-align: text-bottom;">*</span>
+                      <Tooltip content="">
+                        <span
+                          style="display: inline-block;white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"
+                          >{{ outPut.name }}</span
+                        >
+                        <div slot="content" style="white-space: normal;">
+                          <span>{{ outPut.description }}</span>
+                        </div>
+                      </Tooltip>
                     </FormItem>
                   </Col>
                   <Col span="2" offset="0">
@@ -384,12 +408,31 @@
         <Button type="primary" @click="confirmRole">{{ $t('bc_confirm') }}</Button>
       </div>
     </Modal>
+    <!-- @on-ok="ok"
+  @on-cancel="cancel" -->
+    <Modal
+      v-model="objectModal.showObjectConfigModal"
+      :title="objectModal.title"
+      width="100%"
+      @on-ok="okEdit"
+      @on-cancel="cancelEdit"
+    >
+      <recursive
+        ref="objectTree"
+        increment="0"
+        :treeData="objectModal.treeData"
+        :clearedEntityType="clearedEntityType"
+        :allEntityType="allEntityType"
+        :status="currentPluginObj.status"
+      ></recursive>
+    </Modal>
   </div>
 </template>
 <script>
 import FilterRules from '../../components/filter-rules.vue'
 import FilterRulesRef from '../../components/filter-rules-ref.vue'
 import InterfaceFilterRule from '../../components/interface-filter-rule.vue'
+import recursive from './recursive'
 import {
   getAllPluginByPkgId,
   getAllDataModels,
@@ -404,12 +447,24 @@ import {
   updatePluginConfigRoleBinding,
   getRolesByCurrentUser,
   getConfigByPkgId,
-  updateConfigStatus
+  updateConfigStatus,
+  getPluginRegisterObjectType,
+  updatePluginRegisterObjectType
 } from '@/api/server'
 
 export default {
   data () {
     return {
+      objectModal: {
+        showObjectConfigModal: false,
+        pluginConfigId: '',
+        objectMetaId: '',
+        treeData: {
+          refObjectMeta: {
+            propertyMetas: {}
+          }
+        }
+      },
       currentServiceName: '',
       currentInter: {},
       currentInterIndex: 0,
@@ -460,7 +515,8 @@ export default {
   components: {
     FilterRules,
     FilterRulesRef,
-    InterfaceFilterRule
+    InterfaceFilterRule,
+    recursive
   },
   computed: {
     rootEntity () {
@@ -498,22 +554,71 @@ export default {
     }
   },
   methods: {
+    cancelEdit () {
+      this.objectModal = {
+        showObjectConfigModal: false,
+        type: '',
+        indexNo: '',
+        treeData: {
+          refObjectMeta: {
+            propertyMetas: {}
+          }
+        }
+      }
+    },
+    async okEdit () {
+      const { status } = await updatePluginRegisterObjectType(
+        this.objectModal.pluginConfigId,
+        this.objectModal.objectMetaId,
+        this.objectModal.treeData.refObjectMeta
+      )
+      if (status === 'OK') {
+        this.$Notice.success({
+          title: 'Success',
+          desc: 'Success'
+        })
+      }
+    },
+    // 'inputParameters', param, index
+    async showObjectConfig (originData) {
+      let datax = JSON.parse(JSON.stringify(originData))
+      const { status, data } = await getPluginRegisterObjectType(originData.refObjectMeta.id)
+      if (status === 'OK') {
+        datax.refObjectMeta = data
+        this.objectModal.treeData = datax
+      }
+      this.objectModal.objectMetaId = originData.refObjectMeta.id
+      this.objectModal.title = originData.name
+      // this.objectModal.treeData = JSON.parse(JSON.stringify(originData))
+      this.objectModal.showObjectConfigModal = true
+    },
+    managementExpression (mappingEntityExpression, rootEntity) {
+      if (mappingEntityExpression.includes(rootEntity)) {
+        return mappingEntityExpression
+      } else {
+        return rootEntity
+      }
+    },
     selectedEntityTypeChangeHandler (val) {
+      const rootEntity = val.split('{')[0]
       this.currentPluginObj.interfaces.forEach(_ => {
         _.inputParameters.forEach(i => {
           if (i.mappingType === 'entity') {
-            i.mappingEntityExpression = val
+            i.mappingEntityExpression = this.managementExpression(i.mappingEntityExpression, rootEntity)
           }
         })
         _.outputParameters.forEach(o => {
           if (o.mappingType === 'entity') {
-            o.mappingEntityExpression = val
+            o.mappingEntityExpression = this.managementExpression(o.mappingEntityExpression, rootEntity)
           }
         })
       })
     },
+    // refObjectMeta。id pluginConfigId
     showParamsModal (val, index, currentPluginObj) {
+      console.log(val)
       this.currentInter = val
+      this.objectModal.pluginConfigId = val.pluginConfigId
       this.currentInterIndex = index
       this.currentServiceName = val.serviceName
       this.paramsModalVisible = true

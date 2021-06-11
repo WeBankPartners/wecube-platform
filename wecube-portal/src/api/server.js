@@ -168,3 +168,6 @@ export const getTaskNodeInstanceExecBindings = data =>
   req.get(`/platform/v1/process/instances/${data.procInstId}/tasknodes/${data.nodeInstId}/tasknode-bindings`)
 export const updateTaskNodeInstanceExecBindings = data =>
   req.post(`platform/v1/process/instances/${data.procInstId}/tasknodes/${data.nodeInstId}/tasknode-bindings`, data.data)
+export const getPluginRegisterObjectType = objectMetaId => req.get(`platform/v1/plugins/objectmetas/id/${objectMetaId}`)
+export const updatePluginRegisterObjectType = (pluginConfigId, objectMetaId, data) =>
+  req.post(`platform/v1/plugins/configs/${pluginConfigId}/interfaces/objectmetas/${objectMetaId}`, data)

@@ -1,4 +1,7 @@
-package com.webank.wecube.platform.core.dto.workflow;
+package com.webank.wecube.platform.core.support.plugin.dto;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class WorkflowNodeDefInfoDto {
     private String nodeId;
@@ -13,7 +16,7 @@ public class WorkflowNodeDefInfoDto {
     private String serviceId;
     private String serviceName;
 
-    private RegisteredEntityDefDto boundEntity;
+    private List<RegisteredEntityDefDto> boundEntities;
 
     public String getNodeId() {
         return nodeId;
@@ -79,13 +82,7 @@ public class WorkflowNodeDefInfoDto {
         this.routineExp = routineExp;
     }
 
-    public RegisteredEntityDefDto getBoundEntity() {
-        return boundEntity;
-    }
 
-    public void setBoundEntity(RegisteredEntityDefDto boundEntity) {
-        this.boundEntity = boundEntity;
-    }
 
     @Override
     public String toString() {
@@ -106,10 +103,28 @@ public class WorkflowNodeDefInfoDto {
         builder.append(serviceId);
         builder.append(", serviceName=");
         builder.append(serviceName);
-        builder.append(", boundEntity=");
-        builder.append(boundEntity);
         builder.append("]");
         return builder.toString();
     }
+
+    public List<RegisteredEntityDefDto> getBoundEntities() {
+        return boundEntities;
+    }
+
+    public void setBoundEntities(List<RegisteredEntityDefDto> boundEntities) {
+        this.boundEntities = boundEntities;
+    }
+    
+    public void addBoundEntities(RegisteredEntityDefDto boundEntity) {
+        if(boundEntity == null){
+            return;
+        }
+        
+        if(this.boundEntities == null){
+            this.boundEntities = new ArrayList<>();
+        }
+        this.boundEntities.add(boundEntity);
+    }
+
 
 }

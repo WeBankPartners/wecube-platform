@@ -22,7 +22,7 @@ public class TaskNodeDefInfoDto extends BaseNodeDefDto{
     
     private String orderedNo;
     
-    private String taskCategory; //SUTN-user task,SSTN-service task
+    private String taskCategory; //SUTN-user task,SSTN-service task,SDTN-data operation task
     
     private String preCheck;
     

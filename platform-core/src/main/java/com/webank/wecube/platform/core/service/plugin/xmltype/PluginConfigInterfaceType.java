@@ -21,6 +21,9 @@ public class PluginConfigInterfaceType {
     @XmlAttribute(name = "filterRule")
     protected String filterRule;
 
+    @XmlAttribute(name = "description")
+    protected String description;
+
     protected PluginConfigInputParametersType inputParameters;
     protected PluginConfigOutputParametersType outputParameters;
 
@@ -86,6 +89,14 @@ public class PluginConfigInterfaceType {
 
     public void setOutputParameters(PluginConfigOutputParametersType outputParameters) {
         this.outputParameters = outputParameters;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
     }
 
 }

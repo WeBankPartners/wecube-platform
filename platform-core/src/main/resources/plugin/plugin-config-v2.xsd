@@ -159,6 +159,7 @@
         <xs:attribute type="xs:string" name="required" use="required"/>
         <xs:attribute type="xs:string" name="mappingEntityExpression" use="optional"/>
         <xs:attribute type="xs:string" name="sensitiveData" use="optional" default="N"/>
+        <xs:attribute type="xs:string" name="description" use="optional"/>
       </xs:extension>
     </xs:simpleContent>
   </xs:complexType>
@@ -174,6 +175,7 @@
         <xs:attribute type="xs:string" name="mappingType" use="optional"/>
         <xs:attribute type="xs:string" name="mappingEntityExpression" use="optional"/>
         <xs:attribute type="xs:string" name="sensitiveData" use="optional" default="N"/>
+        <xs:attribute type="xs:string" name="description" use="optional"/>
       </xs:extension>
     </xs:simpleContent>
   </xs:complexType>
@@ -200,6 +202,7 @@
         </xs:restriction>
       </xs:simpleType>
     </xs:attribute>
+    <xs:attribute type="xs:string" name="description" use="optional"/>
   </xs:complexType>
   <xs:complexType name="pluginType">
     <xs:sequence>
