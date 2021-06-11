@@ -593,21 +593,23 @@ export default {
       this.objectModal.showObjectConfigModal = true
     },
     selectedEntityTypeChangeHandler (val) {
+      const rootEntity = val.split('{')[0]
       this.currentPluginObj.interfaces.forEach(_ => {
         _.inputParameters.forEach(i => {
           if (i.mappingType === 'entity') {
-            i.mappingEntityExpression = val
+            i.mappingEntityExpression = rootEntity
           }
         })
         _.outputParameters.forEach(o => {
           if (o.mappingType === 'entity') {
-            o.mappingEntityExpression = val
+            o.mappingEntityExpression = rootEntity
           }
         })
       })
     },
     // refObjectMeta。id pluginConfigId
     showParamsModal (val, index, currentPluginObj) {
+      console.log(val)
       this.currentInter = val
       this.objectModal.pluginConfigId = val.pluginConfigId
       this.currentInterIndex = index
