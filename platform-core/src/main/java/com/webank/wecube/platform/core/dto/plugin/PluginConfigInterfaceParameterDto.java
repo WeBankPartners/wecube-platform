@@ -13,8 +13,10 @@ public class PluginConfigInterfaceParameterDto {
     private String mappingSystemVariableName;
     private String required;
     private String sensitiveData;
+    
+    private String description;
 
-    private CoreObjectMetaDto objectMeta;
+    private CoreObjectMetaDto refObjectMeta;
 
     public String getId() {
         return id;
@@ -101,12 +103,22 @@ public class PluginConfigInterfaceParameterDto {
         this.sensitiveData = sensitiveData;
     }
 
-    public CoreObjectMetaDto getObjectMeta() {
-        return objectMeta;
+    public CoreObjectMetaDto getRefObjectMeta() {
+        return refObjectMeta;
     }
 
-    public void setObjectMeta(CoreObjectMetaDto objectMeta) {
-        this.objectMeta = objectMeta;
+    public void setRefObjectMeta(CoreObjectMetaDto refObjectMeta) {
+        this.refObjectMeta = refObjectMeta;
     }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+    
+    
 
 }
