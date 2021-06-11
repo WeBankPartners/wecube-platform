@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.webank.wecube.platform.core.dto.plugin.CommonResponseDto;
+import com.webank.wecube.platform.core.dto.plugin.CoreObjectMetaDto;
 import com.webank.wecube.platform.core.dto.plugin.PluginConfigDto;
 import com.webank.wecube.platform.core.dto.plugin.PluginConfigRoleRequestDto;
 import com.webank.wecube.platform.core.dto.plugin.TargetEntityFilterRuleDto;
@@ -56,6 +57,32 @@ public class PluginConfigController {
             @PathVariable(value = "entity-name") String entityName) {
         return okayWithData(
                 pluginConfigMgmtService.queryAllEnabledPluginConfigInterfaceForEntity(packageName, entityName, null));
+    }
+
+    /**
+     * 
+     * @param pluginConfigId
+     * @param objectMetaId
+     * @param coreObjectMetaDto
+     * @return
+     */
+    @PostMapping("/plugins/configs/{plugin-config-id}/interfaces/objectmetas/{object-meta-id}")
+    public CommonResponseDto updateObjectMeta(@PathVariable(value = "plugin-config-id") String pluginConfigId,
+            @PathVariable(value = "object-meta-id") String objectMetaId,
+            @RequestBody CoreObjectMetaDto coreObjectMetaDto) {
+        pluginConfigMgmtService.updateObjectMeta(pluginConfigId, objectMetaId, coreObjectMetaDto);
+        return okay();
+    }
+
+    /**
+     * 
+     * @param objectMetaId
+     * @return
+     */
+    @GetMapping("/plugins/objectmetas/id/{object-meta-id}")
+    public CommonResponseDto fetchObjectMeta(@PathVariable(value = "object-meta-id") String objectMetaId) {
+        CoreObjectMetaDto objectMetaDto = pluginConfigMgmtService.fetchObjectMetaById(objectMetaId);
+        return okayWithData(objectMetaDto);
     }
 
     /**
