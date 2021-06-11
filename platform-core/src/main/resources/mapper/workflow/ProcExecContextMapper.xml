@@ -1,0 +1,149 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper
+    namespace="com.webank.wecube.platform.core.repository.workflow.ProcExecContextMapper">
+    <resultMap id="BaseResultMap"
+        type="com.webank.wecube.platform.core.entity.workflow.ProcExecContextEntity">
+        <id column="id" jdbcType="VARCHAR" property="id" />
+        <result column="proc_def_id" jdbcType="VARCHAR" property="procDefId" />
+        <result column="proc_inst_id" jdbcType="INTEGER" property="procInstId" />
+        <result column="node_def_id" jdbcType="VARCHAR" property="nodeDefId" />
+        <result column="node_inst_id" jdbcType="INTEGER" property="nodeInstId" />
+        <result column="req_id" jdbcType="VARCHAR" property="reqId" />
+        <result column="req_dir" jdbcType="VARCHAR" property="reqDir" />
+        <result column="ctx_type" jdbcType="VARCHAR" property="ctxType" />
+        <result column="ctx_data_format" jdbcType="VARCHAR" property="ctxDataFormat" />
+        <result column="ctx_data" jdbcType="LONGVARCHAR"
+            property="ctxData" />
+        <result column="created_by" jdbcType="VARCHAR" property="createdBy" />
+        <result column="updated_by" jdbcType="VARCHAR" property="updatedBy" />
+        <result column="created_time" jdbcType="TIMESTAMP"
+            property="createdTime" />
+        <result column="updated_time" jdbcType="TIMESTAMP"
+            property="updatedTime" />
+        <result column="rev" jdbcType="INTEGER"
+            property="rev" />
+    </resultMap>
+    
+    <sql id="Base_Column_List">
+        id, proc_def_id, proc_inst_id, node_def_id, node_inst_id,
+        req_id, req_dir,
+        ctx_type, ctx_data_format,
+        ctx_data, created_by, updated_by,
+        created_time, updated_time, rev
+    </sql>
+    <select id="selectByPrimaryKey" parameterType="java.lang.String"
+        resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List" />
+        from core_proc_exec_context
+        where id = #{id,jdbcType=VARCHAR}
+    </select>
+    <delete id="deleteByPrimaryKey" parameterType="java.lang.String">
+        delete from
+        core_proc_exec_context
+        where id = #{id,jdbcType=VARCHAR}
+    </delete>
+    <insert id="insert"
+        parameterType="com.webank.wecube.platform.core.entity.workflow.ProcExecContextEntity">
+        insert into core_proc_exec_context ( 
+        id, 
+        proc_def_id, 
+        proc_inst_id, 
+        node_def_id, 
+        node_inst_id,
+        req_id, 
+        req_dir,
+        ctx_type, 
+        ctx_data_format,
+        ctx_data, 
+        created_by, 
+        updated_by,
+        created_time, 
+        updated_time, 
+        rev
+        )
+        values
+        (
+        #{id,jdbcType=VARCHAR}, 
+        #{procDefId,jdbcType=VARCHAR},
+        #{procInstId,jdbcType=INTEGER},
+        #{nodeDefId,jdbcType=VARCHAR},
+        #{nodeInstId,jdbcType=INTEGER}, 
+        #{reqId,jdbcType=VARCHAR},
+        #{reqDir,jdbcType=VARCHAR}, 
+        #{ctxType,jdbcType=VARCHAR},
+        #{ctxDataFormat,jdbcType=VARCHAR},
+        #{ctxData,jdbcType=LONGVARCHAR},
+        #{createdBy,jdbcType=VARCHAR}, 
+        #{updatedBy,jdbcType=VARCHAR},
+        #{createdTime,jdbcType=TIMESTAMP}, 
+        #{updatedTime,jdbcType=TIMESTAMP},
+        #{rev,jdbcType=INTEGER}
+        )
+    </insert>
+    
+    <update id="updateByPrimaryKeySelective"
+        parameterType="com.webank.wecube.platform.core.entity.workflow.ProcExecContextEntity">
+        update core_proc_exec_context
+        <set>
+            <if test="procDefId != null">
+                proc_def_id = #{procDefId,jdbcType=VARCHAR},
+            </if>
+            <if test="procInstId != null">
+                proc_inst_id =
+                #{procInstId,jdbcType=INTEGER},
+            </if>
+            <if test="nodeDefId != null">
+                node_def_id = #{nodeDefId,jdbcType=VARCHAR},
+            </if>
+            <if test="nodeInstId != null">
+                node_inst_id =
+                #{nodeInstId,jdbcType=INTEGER},
+            </if>
+            <if test="reqId != null">
+                req_id = #{reqId,jdbcType=VARCHAR},
+            </if>
+            <if test="reqDir != null">
+                req_dir = #{reqDir,jdbcType=VARCHAR},
+            </if>
+            <if test="ctxType != null">
+                ctx_type = #{ctxType,jdbcType=VARCHAR},
+            </if>
+            <if test="ctxDataFormat != null">
+                ctx_data_format = #{ctxDataFormat,jdbcType=VARCHAR},
+            </if>
+            <if test="ctxData != null">
+                ctx_data = #{ctxData,jdbcType=LONGVARCHAR},
+            </if>
+            <if test="createdBy != null">
+                created_by = #{createdBy,jdbcType=VARCHAR},
+            </if>
+            <if test="updatedBy != null">
+                updated_by = #{updatedBy,jdbcType=VARCHAR},
+            </if>
+            <if test="createdTime != null">
+                created_time = #{createdTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="updatedTime != null">
+                updated_time = #{updatedTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="rev != null">
+                rev = #{rev,jdbcType=INTEGER},
+            </if>
+        </set>
+        where id = #{id,jdbcType=VARCHAR}
+    </update>
+    
+    <select id="selectAllContextByCtxType" 
+        resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List" />
+        from core_proc_exec_context
+        where  proc_def_id = #{procDefId,jdbcType=VARCHAR}
+        and
+        proc_inst_id = #{procInstId,jdbcType=INTEGER}
+        and ctx_type = #{ctxType,jdbcType=VARCHAR}
+    </select>
+</mapper>

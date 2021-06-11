@@ -14,6 +14,9 @@ public class GraphNodeDto {
     // #2169
     private String fullDataId;
 
+    //for taskman
+    private Object entityData;
+
     private String id;
 
     private List<String> previousIds = new ArrayList<>();
@@ -112,6 +115,14 @@ public class GraphNodeDto {
         this.displayName = displayName;
     }
 
+    public Object getEntityData() {
+        return entityData;
+    }
+
+    public void setEntityData(Object entityData) {
+        this.entityData = entityData;
+    }
+    
     public String getFullDataId() {
         return fullDataId;
     }
