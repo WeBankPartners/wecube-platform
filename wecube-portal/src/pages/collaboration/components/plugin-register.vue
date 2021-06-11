@@ -592,17 +592,24 @@ export default {
       // this.objectModal.treeData = JSON.parse(JSON.stringify(originData))
       this.objectModal.showObjectConfigModal = true
     },
+    managementExpression (mappingEntityExpression, rootEntity) {
+      if (mappingEntityExpression.includes(rootEntity)) {
+        return mappingEntityExpression
+      } else {
+        return rootEntity
+      }
+    },
     selectedEntityTypeChangeHandler (val) {
       const rootEntity = val.split('{')[0]
       this.currentPluginObj.interfaces.forEach(_ => {
         _.inputParameters.forEach(i => {
           if (i.mappingType === 'entity') {
-            i.mappingEntityExpression = rootEntity
+            i.mappingEntityExpression = this.managementExpression(i.mappingEntityExpression, rootEntity)
           }
         })
         _.outputParameters.forEach(o => {
           if (o.mappingType === 'entity') {
-            o.mappingEntityExpression = rootEntity
+            o.mappingEntityExpression = this.managementExpression(o.mappingEntityExpression, rootEntity)
           }
         })
       })
