@@ -240,6 +240,10 @@ public class PluginParamObjectMetaStorage extends AbstractPluginParamObjectServi
                 doUpdateObjectMeta(propertyMetaDto.getRefObjectMeta(), configId);
             }
         }
+        
+        coreObjectMeta.setUpdatedBy(AuthenticationContextHolder.getCurrentUsername());
+        coreObjectMeta.setUpdatedTime(new Date());
+        coreObjectMetaMapper.updateByPrimaryKeySelective(coreObjectMeta);
 
         return coreObjectMetaDto;
     }
