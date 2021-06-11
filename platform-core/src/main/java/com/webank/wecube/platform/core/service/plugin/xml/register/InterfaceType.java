@@ -5,7 +5,6 @@
 // Generated on: 2020.11.09 at 03:29:54 PM CST 
 //
 
-
 package com.webank.wecube.platform.core.service.plugin.xml.register;
 
 import javax.xml.bind.annotation.XmlAccessType;
@@ -13,11 +12,13 @@ import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlType;
 
-
 /**
- * <p>Java class for interfaceType complex type.
+ * <p>
+ * Java class for interfaceType complex type.
  * 
- * <p>The following schema fragment specifies the expected content contained within this class.
+ * <p>
+ * The following schema fragment specifies the expected content contained within
+ * this class.
  * 
  * <pre>
  * &lt;complexType name="interfaceType">
@@ -48,10 +49,7 @@ import javax.xml.bind.annotation.XmlType;
  * 
  */
 @XmlAccessorType(XmlAccessType.FIELD)
-@XmlType(name = "interfaceType", propOrder = {
-    "inputParameters",
-    "outputParameters"
-})
+@XmlType(name = "interfaceType", propOrder = { "inputParameters", "outputParameters" })
 public class InterfaceType {
 
     protected InputParametersType inputParameters;
@@ -69,13 +67,14 @@ public class InterfaceType {
     @XmlAttribute(name = "type")
     protected String type;
 
+    @XmlAttribute(name = "description")
+    protected String description;
+
     /**
      * Gets the value of the inputParameters property.
      * 
-     * @return
-     *     possible object is
-     *     {@link InputParametersType }
-     *     
+     * @return possible object is {@link InputParametersType }
+     * 
      */
     public InputParametersType getInputParameters() {
         return inputParameters;
@@ -85,9 +84,8 @@ public class InterfaceType {
      * Sets the value of the inputParameters property.
      * 
      * @param value
-     *     allowed object is
-     *     {@link InputParametersType }
-     *     
+     *            allowed object is {@link InputParametersType }
+     * 
      */
     public void setInputParameters(InputParametersType value) {
         this.inputParameters = value;
@@ -96,10 +94,8 @@ public class InterfaceType {
     /**
      * Gets the value of the outputParameters property.
      * 
-     * @return
-     *     possible object is
-     *     {@link OutputParametersType }
-     *     
+     * @return possible object is {@link OutputParametersType }
+     * 
      */
     public OutputParametersType getOutputParameters() {
         return outputParameters;
@@ -109,9 +105,8 @@ public class InterfaceType {
      * Sets the value of the outputParameters property.
      * 
      * @param value
-     *     allowed object is
-     *     {@link OutputParametersType }
-     *     
+     *            allowed object is {@link OutputParametersType }
+     * 
      */
     public void setOutputParameters(OutputParametersType value) {
         this.outputParameters = value;
@@ -120,10 +115,8 @@ public class InterfaceType {
     /**
      * Gets the value of the action property.
      * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
+     * @return possible object is {@link String }
+     * 
      */
     public String getAction() {
         return action;
@@ -133,9 +126,8 @@ public class InterfaceType {
      * Sets the value of the action property.
      * 
      * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
+     *            allowed object is {@link String }
+     * 
      */
     public void setAction(String value) {
         this.action = value;
@@ -144,10 +136,8 @@ public class InterfaceType {
     /**
      * Gets the value of the path property.
      * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
+     * @return possible object is {@link String }
+     * 
      */
     public String getPath() {
         return path;
@@ -157,9 +147,8 @@ public class InterfaceType {
      * Sets the value of the path property.
      * 
      * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
+     *            allowed object is {@link String }
+     * 
      */
     public void setPath(String value) {
         this.path = value;
@@ -168,10 +157,8 @@ public class InterfaceType {
     /**
      * Gets the value of the httpMethod property.
      * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
+     * @return possible object is {@link String }
+     * 
      */
     public String getHttpMethod() {
         return httpMethod;
@@ -181,9 +168,8 @@ public class InterfaceType {
      * Sets the value of the httpMethod property.
      * 
      * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
+     *            allowed object is {@link String }
+     * 
      */
     public void setHttpMethod(String value) {
         this.httpMethod = value;
@@ -192,10 +178,8 @@ public class InterfaceType {
     /**
      * Gets the value of the isAsyncProcessing property.
      * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
+     * @return possible object is {@link String }
+     * 
      */
     public String getIsAsyncProcessing() {
         if (isAsyncProcessing == null) {
@@ -209,9 +193,8 @@ public class InterfaceType {
      * Sets the value of the isAsyncProcessing property.
      * 
      * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
+     *            allowed object is {@link String }
+     * 
      */
     public void setIsAsyncProcessing(String value) {
         this.isAsyncProcessing = value;
@@ -220,10 +203,8 @@ public class InterfaceType {
     /**
      * Gets the value of the filterRule property.
      * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
+     * @return possible object is {@link String }
+     * 
      */
     public String getFilterRule() {
         if (filterRule == null) {
@@ -237,9 +218,8 @@ public class InterfaceType {
      * Sets the value of the filterRule property.
      * 
      * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
+     *            allowed object is {@link String }
+     * 
      */
     public void setFilterRule(String value) {
         this.filterRule = value;
@@ -248,10 +228,8 @@ public class InterfaceType {
     /**
      * Gets the value of the type property.
      * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
+     * @return possible object is {@link String }
+     * 
      */
     public String getType() {
         return type;
@@ -261,12 +239,19 @@ public class InterfaceType {
      * Sets the value of the type property.
      * 
      * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
+     *            allowed object is {@link String }
+     * 
      */
     public void setType(String value) {
         this.type = value;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
     }
 
 }

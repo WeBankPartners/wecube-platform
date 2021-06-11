@@ -1,4 +1,4 @@
-package com.webank.wecube.platform.core.dto.workflow;
+package com.webank.wecube.platform.core.support.plugin.dto;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -44,7 +44,5 @@ public class DynamicTaskNodeBindInfoDto {
         builder.append(boundEntityValues);
         builder.append("]");
         return builder.toString();
-    }
-    
-    
+    }    
 }

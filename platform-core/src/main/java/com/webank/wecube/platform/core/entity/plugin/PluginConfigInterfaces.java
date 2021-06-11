@@ -31,6 +31,8 @@ public class PluginConfigInterfaces {
 
     private String filterRule;
 
+    private String description;
+
     private transient List<PluginConfigInterfaceParameters> inputParameters = new ArrayList<>();
     private transient List<PluginConfigInterfaceParameters> outputParameters = new ArrayList<>();
 
@@ -175,6 +177,14 @@ public class PluginConfigInterfaces {
 
     public void setPluginConfig(PluginConfigs pluginConfig) {
         this.pluginConfig = pluginConfig;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
     }
 
 }

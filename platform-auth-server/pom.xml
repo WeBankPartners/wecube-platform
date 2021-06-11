@@ -12,7 +12,7 @@
         <java.encoding>UTF-8</java.encoding>
         <sprinboot.version>2.1.3.RELEASE</sprinboot.version>
         <maven-jar-plugin.version>3.1.1</maven-jar-plugin.version>
-        <app.version>2.9.0</app.version>
+        <app.version>2.9.3</app.version>
     </properties>
 
     <dependencyManagement>

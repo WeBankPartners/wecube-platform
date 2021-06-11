@@ -20,6 +20,8 @@
         <result column="type" property="type" jdbcType="VARCHAR" />
         <result column="filter_rule" property="filterRule"
             jdbcType="VARCHAR" />
+        <result column="description" property="description"
+            jdbcType="VARCHAR" />
     </resultMap>
 
     <resultMap id="RichPluginConfigInterfacesResultMap"
@@ -59,7 +61,7 @@
         service_display_name, path,
         http_method,
         is_async_processing,
-        type, filter_rule
+        type, filter_rule,description
     </sql>
     <select id="selectByPrimaryKey" resultMap="BaseResultMap"
         parameterType="java.lang.String">
@@ -81,7 +83,7 @@
         service_name, service_display_name,
         path,
         http_method, is_async_processing, type,
-        filter_rule)
+        filter_rule,description)
         values
         (#{id,jdbcType=VARCHAR}, #{pluginConfigId,jdbcType=VARCHAR},
         #{action,jdbcType=VARCHAR},
@@ -90,7 +92,8 @@
         #{path,jdbcType=VARCHAR},
         #{httpMethod,jdbcType=VARCHAR},
         #{isAsyncProcessing,jdbcType=VARCHAR}, #{type,jdbcType=VARCHAR},
-        #{filterRule,jdbcType=VARCHAR})
+        #{filterRule,jdbcType=VARCHAR},
+        #{description,jdbcType=VARCHAR})
     </insert>
     <insert id="insertSelective"
         parameterType="com.webank.wecube.platform.core.entity.plugin.PluginConfigInterfaces">
@@ -126,6 +129,9 @@
             <if test="filterRule != null">
                 filter_rule,
             </if>
+            <if test="description != null">
+                description,
+            </if>
         </trim>
         <trim prefix="values (" suffix=")" suffixOverrides=",">
             <if test="id != null">
@@ -157,6 +163,9 @@
             </if>
             <if test="filterRule != null">
                 #{filterRule,jdbcType=VARCHAR},
+            </if>
+            <if test="description != null">
+                #{description,jdbcType=VARCHAR},
             </if>
         </trim>
     </insert>
@@ -194,6 +203,9 @@
             <if test="filterRule != null">
                 filter_rule = #{filterRule,jdbcType=VARCHAR},
             </if>
+            <if test="description != null">
+                description = #{description,jdbcType=VARCHAR},
+            </if>
         </set>
         where id = #{id,jdbcType=VARCHAR}
     </update>
@@ -217,7 +229,9 @@
         type =
         #{type,jdbcType=VARCHAR},
         filter_rule =
-        #{filterRule,jdbcType=VARCHAR}
+        #{filterRule,jdbcType=VARCHAR},
+        description =
+        #{description,jdbcType=VARCHAR}
         where id = #{id,jdbcType=VARCHAR}
     </update>
 

@@ -1,5 +1,6 @@
 package com.webank.wecube.platform.core.dto.plugin;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.lang.builder.ReflectionToStringBuilder;
@@ -15,8 +16,11 @@ public class PluginConfigInterfaceDto {
     private String httpMethod;
     private String isAsyncProcessing;
     private String filterRule;
+    private String description;
     private List<PluginConfigInterfaceParameterDto> inputParameters;
     private List<PluginConfigInterfaceParameterDto> outputParameters;
+
+    private List<PluginConfigInterfaceParameterDto> configurableInputParameters = new ArrayList<>();
 
     public String getId() {
         return id;
@@ -109,6 +113,35 @@ public class PluginConfigInterfaceDto {
 
     public void setFilterRule(String filterRule) {
         this.filterRule = filterRule;
+    }
+
+    public List<PluginConfigInterfaceParameterDto> getConfigurableInputParameters() {
+        return configurableInputParameters;
+    }
+
+    public void setConfigurableInputParameters(List<PluginConfigInterfaceParameterDto> configurableInputParameters) {
+        this.configurableInputParameters = configurableInputParameters;
+    }
+
+    public void addConfigurableInputParameter(PluginConfigInterfaceParameterDto configurableInputParameter) {
+        if (configurableInputParameter == null) {
+            return;
+        }
+        for (PluginConfigInterfaceParameterDto p : this.configurableInputParameters) {
+            if (p.getName().equals(configurableInputParameter.getName())) {
+                return;
+            }
+        }
+
+        this.configurableInputParameters.add(configurableInputParameter);
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
     }
 
 }

@@ -459,7 +459,7 @@ public class PluginArtifactsMgmtService extends AbstractPluginMgmtService {
 
         processDataModels(xmlPackage.getDataModel(), xmlPackage, pluginPackageEntity);
 
-        processParamObjects(xmlPackage.getParamObjects(), xmlPackage.getName(), xmlPackage.getVersion());
+//        processParamObjects(xmlPackage.getParamObjects(), xmlPackage.getName(), xmlPackage.getVersion());
 
         UploadPackageResultDto result = new UploadPackageResultDto();
         result.setId(pluginPackageEntity.getId());
@@ -504,8 +504,8 @@ public class PluginArtifactsMgmtService extends AbstractPluginMgmtService {
         return result;
     }
 
-    private void processParamObjects(ParamObjectsType xmlParamObjects, String packageName, String packageVersion) {
-        pluginParamObjectSupportService.registerParamObjects(xmlParamObjects, packageName, packageVersion);
+    private void processParamObjects(ParamObjectsType xmlParamObjects, String packageName, String packageVersion, String configId) {
+        pluginParamObjectSupportService.registerParamObjects(xmlParamObjects, packageName, packageVersion, configId);
     }
 
     private void processPackageDependencies(PackageDependenciesType xmlPackageDependenciesType, PackageType xmlPackage,
@@ -825,11 +825,11 @@ public class PluginArtifactsMgmtService extends AbstractPluginMgmtService {
         }
 
         for (PluginType xmlPlugin : xmlPluginList) {
-            processSinglePlugin(xmlPlugin, pluginPackageEntity);
+            processSinglePlugin(xmlPlugin, pluginPackageEntity, xmlPackage);
         }
     }
 
-    private void processSinglePlugin(PluginType xmlPlugin, PluginPackages pluginPackageEntity) {
+    private void processSinglePlugin(PluginType xmlPlugin, PluginPackages pluginPackageEntity, PackageType xmlPackage) {
         if (log.isInfoEnabled()) {
             log.info("process single plugin:{}", xmlPlugin.getName());
         }
@@ -859,6 +859,8 @@ public class PluginArtifactsMgmtService extends AbstractPluginMgmtService {
 
         RoleBindsType xmlRoleBinds = xmlPlugin.getRoleBinds();
         processRoleBinds(xmlRoleBinds, pluginConfigEntity);
+        
+        processParamObjects(xmlPackage.getParamObjects(), xmlPackage.getName(), xmlPackage.getVersion(), pluginConfigEntity.getId());
 
     }
 
@@ -874,6 +876,7 @@ public class PluginArtifactsMgmtService extends AbstractPluginMgmtService {
         PluginConfigInterfaces intfEntity = new PluginConfigInterfaces();
         intfEntity.setId(LocalIdGenerator.generateId());
         intfEntity.setAction(xmlIntf.getAction());
+        intfEntity.setDescription(xmlIntf.getDescription());
 
         String filterRule = xmlIntf.getFilterRule();
         if (StringUtils.isBlank(filterRule)) {
@@ -936,6 +939,7 @@ public class PluginArtifactsMgmtService extends AbstractPluginMgmtService {
             paramEntity.setMappingEntityExpression(xmlParameter.getMappingEntityExpression());
             paramEntity.setMappingType(xmlParameter.getMappingType());
             paramEntity.setName(xmlParameter.getValue());
+            paramEntity.setDescription(xmlParameter.getDescription());
             paramEntity.setPluginConfigInterface(intfEntity);
             paramEntity.setPluginConfigInterfaceId(intfEntity.getId());
 
@@ -973,6 +977,7 @@ public class PluginArtifactsMgmtService extends AbstractPluginMgmtService {
             paramEntity.setName(xmlParameter.getValue());
             paramEntity.setPluginConfigInterface(intfEntity);
             paramEntity.setPluginConfigInterfaceId(intfEntity.getId());
+            paramEntity.setDescription(xmlParameter.getDescription());
             String required = xmlParameter.getRequired();
             if (StringUtils.isBlank(required)) {
                 required = DEFAULT_REQUIRED;
