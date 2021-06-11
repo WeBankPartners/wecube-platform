@@ -1181,6 +1181,7 @@ public class PluginConfigMgmtService extends AbstractPluginMgmtService {
         }
         propertyMetaDto.setRefType(propertyMeta.getRefType());
         propertyMetaDto.setSensitiveData(convertBooleanToString(propertyMeta.getSensitive()));
+        propertyMetaDto.setSource(propertyMeta.getSource());
 
         return propertyMetaDto;
     }
