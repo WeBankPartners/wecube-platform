@@ -682,7 +682,9 @@ export default {
       let found = this.filteredPlugins.find(_ => _.serviceName === this.pluginForm.serviceId)
       this.pluginForm.paramInfos = {}
       if (found) {
-        let needParams = found.inputParameters.filter(_ => _.mappingType === 'context' || _.mappingType === 'constant')
+        let needParams = found.configurableInputParameters.filter(
+          _ => _.mappingType === 'context' || _.mappingType === 'constant'
+        )
         this.pluginForm.paramInfos = needParams.map(_ => {
           return {
             paramName: _.name,
@@ -952,9 +954,9 @@ export default {
         await this.getFilteredPluginInterfaceList(this.pluginForm.routineExpression)
         const nodeOrigin = this.filteredPlugins.find(item => item.serviceName === this.pluginForm.serviceName)
         nodeOrigin &&
-          nodeOrigin.inputParameters &&
+          nodeOrigin.configurableInputParameters &&
           this.pluginForm.paramInfos.forEach(pItem => {
-            nodeOrigin.inputParameters.forEach(oItem => {
+            nodeOrigin.configurableInputParameters.forEach(oItem => {
               if (pItem.paramName === oItem.name) {
                 pItem.required = oItem.required
               }
