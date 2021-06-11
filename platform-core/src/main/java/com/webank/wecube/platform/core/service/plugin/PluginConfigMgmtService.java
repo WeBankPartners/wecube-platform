@@ -225,8 +225,7 @@ public class PluginConfigMgmtService extends AbstractPluginMgmtService {
                 propMetaParamDto.setRequired("Y");
                 propMetaParamDto.setSensitiveData(propMetaDto.getSensitiveData());
                 propMetaParamDto.setType(PluginConfigInterfaceParameters.TYPE_INPUT);
-                
-                
+
                 objectConfigParamDtos.add(propMetaParamDto);
             } else {
                 if (propMetaDto.getRefObjectMeta() != null) {
@@ -423,7 +422,8 @@ public class PluginConfigMgmtService extends AbstractPluginMgmtService {
 
         String configId = pluginConfig.getId();
         String objectName = param.getMappingEntityExpression();
-        CoreObjectMeta objectMeta = pluginParamObjectMetaStorage.fetchAssembledCoreObjectMeta(packageName, objectName, configId);
+        CoreObjectMeta objectMeta = pluginParamObjectMetaStorage.fetchAssembledCoreObjectMeta(packageName, objectName,
+                configId);
         if (objectMeta == null) {
             log.info("Cannot fetch core object meta for interface param:{},and packge:{},objectName:{}", param.getId(),
                     packageName, objectName);
@@ -987,6 +987,11 @@ public class PluginConfigMgmtService extends AbstractPluginMgmtService {
                 PluginConfigInterfaceParameters inputParamEntity = buildPluginConfigInterfaceParameters(
                         PluginConfigInterfaceParameters.TYPE_INPUT, paramDto, pluginPackage, pluginConfig, intfEntity);
                 inputParamEntities.add(inputParamEntity);
+
+                if(paramDto.getRefObjectMeta() != null){
+                    CoreObjectMeta refCoreObjectMeta = tryCreateObjectMetaByConfig(paramDto, pluginConfig, pluginPackage);
+                    inputParamEntity.setObjectMeta(refCoreObjectMeta);
+                }
             }
 
             intfEntity.setInputParameters(inputParamEntities);
@@ -1000,12 +1005,30 @@ public class PluginConfigMgmtService extends AbstractPluginMgmtService {
                 PluginConfigInterfaceParameters outputParamEntity = buildPluginConfigInterfaceParameters(
                         PluginConfigInterfaceParameters.TYPE_OUTPUT, paramDto, pluginPackage, pluginConfig, intfEntity);
                 outputParamEntities.add(outputParamEntity);
+                if(paramDto.getRefObjectMeta() != null){
+                    CoreObjectMeta refCoreObjectMeta = tryCreateObjectMetaByConfig(paramDto, pluginConfig, pluginPackage);
+                    outputParamEntity.setObjectMeta(refCoreObjectMeta);
+                }
             }
 
             intfEntity.setOutputParameters(outputParamEntities);
         }
 
         return intfEntity;
+    }
+
+    private CoreObjectMeta tryCreateObjectMetaByConfig(PluginConfigInterfaceParameterDto paramDto,
+            PluginConfigs pluginConfig, PluginPackages pluginPackage) {
+        CoreObjectMetaDto refObjectMetaDto = paramDto.getRefObjectMeta();
+        if (refObjectMetaDto == null) {
+            return null;
+        }
+
+        pluginParamObjectMetaStorage.updateOrCreateObjectMeta(refObjectMetaDto, pluginConfig.getId());
+        CoreObjectMeta refCoreObjectMeta = pluginParamObjectMetaStorage.fetchAssembledCoreObjectMeta(refObjectMetaDto.getPackageName(),
+                refObjectMetaDto.getName(), pluginConfig.getId());
+        return refCoreObjectMeta;
+
     }
 
     private void updatePluginConfigInterfaceParameters(String type, PluginConfigInterfaceParameterDto paramDto,
