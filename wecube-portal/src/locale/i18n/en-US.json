@@ -428,6 +428,7 @@
   "plugin_type": "Plugin Type",
   "sstn": "Automatic Node",
   "sutn": "Manual Node",
+  "sdtn": "Write Node",
   "copy": "Copy",
   "copy_success": "Copy Successful",
   "filter_rule": "Filter Rules",
@@ -469,5 +470,6 @@
   "abandon": "Abandon",
   "resource": "Resource",
   "resource_instance": "Resource Instance",
+  "locate_rules_warning": "Locate Rules Needs To Start With Entity Type",
   "ip_address": "IP Address"
 }
