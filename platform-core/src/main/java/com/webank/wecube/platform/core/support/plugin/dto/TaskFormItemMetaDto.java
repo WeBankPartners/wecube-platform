@@ -1,19 +1,11 @@
 package com.webank.wecube.platform.core.support.plugin.dto;
 
-public class UserTaskFormItemTemplateMetaDto {
-    private String formItemTemplateId;
+public class TaskFormItemMetaDto {
+    private String formItemMetaId;
 
     private String packageName;
     private String entityName;
     private String attrName;
-
-    public String getFormItemTemplateId() {
-        return formItemTemplateId;
-    }
-
-    public void setFormItemTemplateId(String formItemTemplateId) {
-        this.formItemTemplateId = formItemTemplateId;
-    }
 
     public String getPackageName() {
         return packageName;
@@ -37,6 +29,14 @@ public class UserTaskFormItemTemplateMetaDto {
 
     public void setAttrName(String attrName) {
         this.attrName = attrName;
+    }
+
+    public String getFormItemMetaId() {
+        return formItemMetaId;
+    }
+
+    public void setFormItemMetaId(String formItemMetaId) {
+        this.formItemMetaId = formItemMetaId;
     }
 
 }
