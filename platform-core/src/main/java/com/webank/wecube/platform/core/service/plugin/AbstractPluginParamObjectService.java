@@ -13,6 +13,7 @@ import com.webank.wecube.platform.core.repository.plugin.CoreObjectMetaMapper;
 import com.webank.wecube.platform.core.repository.plugin.CoreObjectPropertyMetaMapper;
 import com.webank.wecube.platform.core.repository.plugin.CoreObjectPropertyVarMapper;
 import com.webank.wecube.platform.core.repository.plugin.CoreObjectVarMapper;
+import com.webank.wecube.platform.core.utils.Constants;
 
 public abstract class AbstractPluginParamObjectService {
 
@@ -39,19 +40,19 @@ public abstract class AbstractPluginParamObjectService {
     protected CoreObjectListVarMapper coreObjectListVarMapper;
 
     protected boolean isStringDataType(String dataType) {
-        return CoreObjectPropertyMeta.DATA_TYPE_STRING.equals(dataType);
+        return Constants.DATA_TYPE_STRING.equals(dataType);
     }
 
     protected boolean isNumberDataType(String dataType) {
-        return CoreObjectPropertyMeta.DATA_TYPE_NUMBER.equals(dataType);
+        return Constants.DATA_TYPE_NUMBER.equals(dataType);
     }
 
     protected boolean isListDataType(String dataType) {
-        return CoreObjectPropertyMeta.DATA_TYPE_LIST.equals(dataType);
+        return Constants.DATA_TYPE_LIST.equals(dataType);
     }
 
     protected boolean isObjectDataType(String dataType) {
-        return CoreObjectPropertyMeta.DATA_TYPE_OBJECT.equals(dataType);
+        return Constants.DATA_TYPE_OBJECT.equals(dataType);
     }
 
     protected boolean isBasicDataType(String dataType) {
@@ -122,13 +123,10 @@ public abstract class AbstractPluginParamObjectService {
         }
 
         String dataType = propertyMeta.getDataType();
-        if (isStringDataType(dataType)) {
+        if (isBasicDataType(dataType)) {
             return dataValueObject.toString();
         }
 
-        if (isNumberDataType(dataType)) {
-            return dataValueObject.toString();
-        }
 
         if (isObjectDataType(dataType)) {
             CoreObjectVar objVar = (CoreObjectVar) dataValueObject;
@@ -147,5 +145,7 @@ public abstract class AbstractPluginParamObjectService {
 
         return null;
     }
+    
+    
 
 }

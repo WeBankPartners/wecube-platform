@@ -41,7 +41,8 @@ public class PluginParamObjectMetaRegisterTest {
     public void testFetchAssembledCoreObjectMeta() {
         String packageName = "wecmdb";
         String objectName = "k8sObjB";
-        CoreObjectMeta objectMeta = pluginParamObjectMetaStorage.fetchAssembledCoreObjectMeta(packageName, objectName);
+        String configId = "1623308026320";
+        CoreObjectMeta objectMeta = pluginParamObjectMetaStorage.fetchAssembledCoreObjectMeta(packageName, objectName, configId);
 
         Assert.assertNotNull(objectMeta);
     }
@@ -52,8 +53,12 @@ public class PluginParamObjectMetaRegisterTest {
 
         String packageName = "wecmdb";
         String objectName = "k8sObjD";
-        CoreObjectMeta objectMeta = pluginParamObjectMetaStorage.fetchAssembledCoreObjectMeta(packageName, objectName);
-        CoreObjectVarCalculationContext ctx = null;
+        String configId = "1";
+        CoreObjectMeta objectMeta = pluginParamObjectMetaStorage.fetchAssembledCoreObjectMeta(packageName, objectName, configId);
+        Assert.assertNotNull(objectMeta);
+        CoreObjectVarCalculationContext ctx = new CoreObjectVarCalculationContext();
+        ctx.setExternalCacheMap(null);
+        ctx.setRootEntityDataId("0003_11110000");
         CoreObjectVar resultVar = pluginParamObjectVarCalculationService.calculateCoreObjectVar(objectMeta, ctx);
 
         Assert.assertNotNull(resultVar);
@@ -91,7 +96,8 @@ public class PluginParamObjectMetaRegisterTest {
 
         String packageName = "wecmdb";
         String objectName = "k8sObjC";
-        CoreObjectMeta objectMeta = pluginParamObjectMetaStorage.fetchAssembledCoreObjectMeta(packageName, objectName);
+        String configId = "1";
+        CoreObjectMeta objectMeta = pluginParamObjectMetaStorage.fetchAssembledCoreObjectMeta(packageName, objectName, configId);
         CoreObjectVarCalculationContext ctx = null;
         CoreObjectVar resultVar = pluginParamObjectVarCalculationService.calculateCoreObjectVar(objectMeta, ctx);
 
