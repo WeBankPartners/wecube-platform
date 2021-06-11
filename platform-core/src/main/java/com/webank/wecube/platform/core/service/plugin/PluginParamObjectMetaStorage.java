@@ -163,6 +163,7 @@ public class PluginParamObjectMetaStorage extends AbstractPluginParamObjectServi
             propertyMeta.setConfigId(configId);
             propertyMeta.setCreatedBy(AuthenticationContextHolder.getCurrentUsername());
             propertyMeta.setCreatedTime(new Date());
+            propertyMeta.setDataType(propertyMetaDto.getDataType());
             propertyMeta.setMapExpr(propertyMetaDto.getMappingEntityExpression());
             propertyMeta.setMapType(propertyMetaDto.getMappingType());
             propertyMeta.setName(propertyMetaDto.getName());
