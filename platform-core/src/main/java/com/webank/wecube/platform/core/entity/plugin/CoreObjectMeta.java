@@ -26,6 +26,8 @@ public class CoreObjectMeta {
     private String updatedBy;
 
     private Date updatedTime;
+    
+    private String configId;
 
     @JsonIgnore
     private transient List<CoreObjectPropertyMeta> propertyMetas = new ArrayList<>();
@@ -134,4 +136,14 @@ public class CoreObjectMeta {
         
         return null;
     }
+
+    public String getConfigId() {
+        return configId;
+    }
+
+    public void setConfigId(String configId) {
+        this.configId = configId;
+    }
+    
+    
 }
