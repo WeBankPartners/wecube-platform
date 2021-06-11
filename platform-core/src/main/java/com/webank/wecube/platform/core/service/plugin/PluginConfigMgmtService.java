@@ -14,6 +14,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.webank.wecube.platform.core.commons.AuthenticationContextHolder;
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
@@ -607,6 +608,7 @@ public class PluginConfigMgmtService extends AbstractPluginMgmtService {
      * @param pluginConfigDto
      * @return
      */
+    @Transactional
     public PluginConfigDto createOrUpdatePluginConfig(PluginConfigDto pluginConfigDto) {
         validatePermission(pluginConfigDto.getPermissionToRole());
 
