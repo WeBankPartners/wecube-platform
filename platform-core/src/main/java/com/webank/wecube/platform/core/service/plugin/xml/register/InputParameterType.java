@@ -57,6 +57,8 @@ public class InputParameterType {
     protected String mappingEntityExpression;
     @XmlAttribute(name = "sensitiveData")
     protected String sensitiveData;
+    @XmlAttribute(name = "description")
+    protected String description;
 
     /**
      * Gets the value of the value property.
@@ -229,5 +231,15 @@ public class InputParameterType {
     public void setSensitiveData(String value) {
         this.sensitiveData = value;
     }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+    
+    
 
 }

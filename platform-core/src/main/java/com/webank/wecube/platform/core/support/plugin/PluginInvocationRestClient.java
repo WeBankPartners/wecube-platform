@@ -44,6 +44,13 @@ public class PluginInvocationRestClient implements RestClient {
 
     protected PluginResponse<Object> doCallPluginService(String targetUrl, PluginRequest<?> parameters) {
         log.debug("About to call {} with parameters: {} ", targetUrl, parameters);
+        if(parameters.getInputs() == null || parameters.getInputs().isEmpty()){
+            log.debug("Inputs is empty so returned immediately.");
+            PluginResponse<Object> emptyResponse = new  DefaultPluginResponse();
+            emptyResponse.setResultCode(PluginResponse.RESULT_CODE_OK);
+            emptyResponse.setResultMessage("Empty inputs.");
+            return emptyResponse;
+        }
         PluginResponse<Object> response = jwtSsoRestTemplate.postForObject(targetUrl, parameters,
                 DefaultPluginResponse.class);
         log.debug("Plugin response: {} ", response);
