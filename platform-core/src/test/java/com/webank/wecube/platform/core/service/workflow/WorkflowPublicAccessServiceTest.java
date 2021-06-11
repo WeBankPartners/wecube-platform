@@ -22,9 +22,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.webank.wecube.platform.core.commons.AuthenticationContextHolder;
 import com.webank.wecube.platform.core.commons.AuthenticationContextHolder.AuthenticatedUser;
-import com.webank.wecube.platform.core.dto.workflow.DynamicWorkflowInstCreationInfoDto;
-import com.webank.wecube.platform.core.dto.workflow.WorkflowDefInfoDto;
-import com.webank.wecube.platform.core.dto.workflow.WorkflowNodeDefInfoDto;
+import com.webank.wecube.platform.core.support.plugin.dto.DynamicWorkflowInstCreationInfoDto;
+import com.webank.wecube.platform.core.support.plugin.dto.WorkflowDefInfoDto;
+import com.webank.wecube.platform.core.support.plugin.dto.WorkflowNodeDefInfoDto;
 
 @Ignore
 @RunWith(SpringRunner.class)
