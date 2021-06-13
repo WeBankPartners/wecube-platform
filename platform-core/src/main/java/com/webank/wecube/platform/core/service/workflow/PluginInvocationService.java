@@ -986,7 +986,8 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
                 if (Constants.FIELD_REQUIRED.equalsIgnoreCase(param.getRequired())) {
 
                     log.error("Task node parameter entity does not exist for {} {}", curTaskNodeDefId, paramName);
-//                    throw new WecubeCoreException("3170", "Task node parameter entity does not exist.");
+                    // throw new WecubeCoreException("3170", "Task node
+                    // parameter entity does not exist.");
                     continue;
                 } else {
                     log.info("Task node parameter entity does not exist for {} {} but field not required.",
@@ -1013,7 +1014,8 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 
             if (requestEntities == null || requestEntities.isEmpty()) {
                 log.error("cannot find request entity for {}", bindNodeInstEntity.getId());
-//                throw new WecubeCoreException("3172", "Bound request entity does not exist.");
+                // throw new WecubeCoreException("3172", "Bound request entity
+                // does not exist.");
                 continue;
             }
 
@@ -1038,11 +1040,12 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
                 if (FIELD_REQUIRED.equals(param.getRequired())) {
                     log.warn("parameter entity does not exist but such plugin parameter is mandatory for {} {}",
                             bindParamName, bindParamType);
-//                    throw new WecubeCoreException("3174",
-//                            String.format(
-//                                    "parameter entity does not exist but such plugin parameter is mandatory for {%s} {%s}",
-//                                    bindParamName, bindParamType),
-//                            bindParamName, bindParamType);
+                    // throw new WecubeCoreException("3174",
+                    // String.format(
+                    // "parameter entity does not exist but such plugin
+                    // parameter is mandatory for {%s} {%s}",
+                    // bindParamName, bindParamType),
+                    // bindParamName, bindParamType);
                     continue;
                 } else {
                     log.info("parameter entity does not exist but such plugin parameter is not mandatory for {} {}",
@@ -1082,7 +1085,8 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
                 }
             } else {
                 if (retDataValues.size() != paramObjects.size()) {
-                    log.error("Unknown how to calculate context input parameter for {}", currTaskNodeInstEntity.getId());
+                    log.error("Unknown how to calculate context input parameter for {}",
+                            currTaskNodeInstEntity.getId());
                     throw new WecubeCoreException("Unknown how to calculate context input parameter.");
                 }
 
@@ -1603,11 +1607,12 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
             if (FIELD_REQUIRED.equals(param.getRequired())) {
                 log.warn("parameter entity does not exist but such plugin parameter is mandatory for {} {}",
                         bindParamName, bindParamType);
-//                throw new WecubeCoreException("3174",
-//                        String.format(
-//                                "parameter entity does not exist but such plugin parameter is mandatory for {%s} {%s}",
-//                                bindParamName, bindParamType),
-//                        bindParamName, bindParamType);
+                // throw new WecubeCoreException("3174",
+                // String.format(
+                // "parameter entity does not exist but such plugin parameter is
+                // mandatory for {%s} {%s}",
+                // bindParamName, bindParamType),
+                // bindParamName, bindParamType);
             }
         }
 
@@ -2254,11 +2259,17 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
                 continue;
             }
 
-            if (!Constants.MAPPING_TYPE_ENTITY.equalsIgnoreCase(pciParam.getMappingType())) {
+            if (!(Constants.MAPPING_TYPE_ENTITY.equalsIgnoreCase(pciParam.getMappingType())
+                    || Constants.MAPPING_TYPE_ASSIGN.equalsIgnoreCase(pciParam.getMappingType()))) {
                 continue;
             }
 
-            Object retVal = outputParameterMap.get(paramName);
+            Object retVal = null;
+            if(Constants.MAPPING_TYPE_ENTITY.equalsIgnoreCase(pciParam.getMappingType())){
+                retVal = outputParameterMap.get(paramName);
+            }else if(Constants.MAPPING_TYPE_ASSIGN.equalsIgnoreCase(pciParam.getMappingType())){
+                retVal = pciParam.getMappingSystemVariableName();
+            }
 
             if (retVal == null) {
                 log.info("returned value is null for {} {}", ctx.getRequestId(), paramName);
@@ -2332,8 +2343,18 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
                 log.info("expression not configured for {}", paramName);
                 continue;
             }
+            
+            if (!(Constants.MAPPING_TYPE_ENTITY.equalsIgnoreCase(pciParam.getMappingType())
+                    || Constants.MAPPING_TYPE_ASSIGN.equalsIgnoreCase(pciParam.getMappingType()))) {
+                continue;
+            }
 
-            Object retVal = outputParameterMap.get(paramName);
+            Object retVal = null;
+            if(Constants.MAPPING_TYPE_ENTITY.equalsIgnoreCase(pciParam.getMappingType())){
+                retVal = outputParameterMap.get(paramName);
+            }else if(Constants.MAPPING_TYPE_ASSIGN.equalsIgnoreCase(pciParam.getMappingType())){
+                retVal = pciParam.getMappingSystemVariableName();
+            }
 
             if (retVal == null) {
                 log.info("returned value is null for {} {}", ctx.getRequestId(), paramName);
