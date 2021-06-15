@@ -17,6 +17,7 @@ public class Constants {
     public static final String MAPPING_TYPE_SYSTEM_VARIABLE = "system_variable";
     public static final String MAPPING_TYPE_CONSTANT = "constant";
     public static final String MAPPING_TYPE_OBJECT = "object";
+    public static final String MAPPING_TYPE_ASSIGN = "assign";
 
     public static final String FIELD_REQUIRED = "Y";
     public static final String ASYNC_SERVICE_SYMBOL = "Y";
