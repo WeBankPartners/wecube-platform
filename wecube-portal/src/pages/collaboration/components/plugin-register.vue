@@ -361,23 +361,17 @@
                     <Col span="5">
                       <FormItem :label-width="0">
                         <span v-if="outPut.required === 'Y'" style="color:red;vertical-align: text-bottom;">*</span>
-                        <Button @click="removeOutputParams(index)" size="small" icon="ios-trash"></Button>
-                        <Input
-                          v-model="outPut.name"
-                          placeholder="name"
-                          :disabled="outPut.id !== ''"
-                          style="width: 300px"
-                        />
+                        <!-- <Button @click="removeOutputParams(index)" size="small" icon="ios-trash"></Button> -->
+                        <Input v-model="outPut.name" placeholder="key" :disabled="outPut.id !== ''" />
                       </FormItem>
                     </Col>
-                    <Col span="5">
+                    <Col span="4" offset="1">
                       <FormItem :label-width="0">
                         <span v-if="outPut.required === 'Y'" style="color:red;vertical-align: text-bottom;">*</span>
                         <Input
                           v-model="outPut.mappingSystemVariableName"
                           :disabled="currentPluginObj.status === 'ENABLED'"
-                          placeholder="mappingSystemVariableName"
-                          style="width: 300px"
+                          placeholder="value"
                         />
                       </FormItem>
                     </Col>
@@ -660,13 +654,22 @@ export default {
       this.currentInter.outputParameters.splice(index, 1)
     },
     addOutputParams () {
+      const assginOutput = this.currentInter.outputParameters.filter(item => item.mappingType === 'assign')
+      const res = assginOutput.every(item => item.name !== '' && item.mappingSystemVariableName !== '')
+      if (!res) {
+        this.$Notice.warning({
+          title: 'Warning',
+          desc: this.$t('plugin_const_params_warning')
+        })
+        return
+      }
       const outputParametersSingle = this.currentInter.outputParameters[0]
       this.currentInter.outputParameters.push({
         dataType: 'string',
-        description: null,
+        description: '',
         id: '',
-        mappingEntityExpression: null,
-        mappingSystemVariableName: null,
+        mappingEntityExpression: '',
+        mappingSystemVariableName: '',
         mappingType: 'assign',
         name: '',
         pluginConfigInterfaceId: outputParametersSingle.pluginConfigInterfaceId,
@@ -675,11 +678,9 @@ export default {
         sensitiveData: 'N',
         type: 'OUTPUT'
       })
-      console.log(this.currentInter.outputParameters)
     },
     // refObjectMeta。id pluginConfigId
     showParamsModal (val, index, currentPluginObj) {
-      console.log(val)
       this.currentInter = val
       this.objectModal.pluginConfigId = val.pluginConfigId
       this.currentInterIndex = index
