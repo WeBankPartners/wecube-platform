@@ -294,66 +294,102 @@
               <Col span="2">
                 <FormItem :label-width="0">
                   <span>{{ $t('output_params') }}</span>
+                  <Button @click="addOutputParams" size="small" icon="ios-add"></Button>
                 </FormItem>
               </Col>
               <Col span="22" offset="0">
                 <Row v-for="(outPut, index) in currentInter['outputParameters']" :key="index">
-                  <Col span="3">
-                    <FormItem :label-width="0">
-                      <span v-if="outPut.required === 'Y'" style="color:red;vertical-align: text-bottom;">*</span>
-                      <Tooltip content="">
-                        <span
-                          style="display: inline-block;white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"
-                          >{{ outPut.name }}</span
+                  <template v-if="outPut.mappingType !== 'assign'">
+                    <Col span="3">
+                      <FormItem :label-width="0">
+                        <span v-if="outPut.required === 'Y'" style="color:red;vertical-align: text-bottom;">*</span>
+                        <Tooltip content="">
+                          <span
+                            style="display: inline-block;white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"
+                            >{{ outPut.name }}</span
+                          >
+                          <div slot="content" style="white-space: normal;">
+                            <span>{{ outPut.description }}</span>
+                          </div>
+                        </Tooltip>
+                      </FormItem>
+                    </Col>
+                    <Col span="2" offset="0">
+                      <FormItem :label-width="0">
+                        <span>{{ outPut.dataType }}</span>
+                      </FormItem>
+                    </Col>
+                    <Col span="1" offset="0">
+                      <FormItem :label-width="0">
+                        <Select
+                          filterable
+                          v-model="outPut.sensitiveData"
+                          style="width:50px"
+                          :disabled="currentPluginObj.status === 'ENABLED'"
                         >
-                        <div slot="content" style="white-space: normal;">
-                          <span>{{ outPut.description }}</span>
-                        </div>
-                      </Tooltip>
-                    </FormItem>
-                  </Col>
-                  <Col span="2" offset="0">
-                    <FormItem :label-width="0">
-                      <span>{{ outPut.dataType }}</span>
-                    </FormItem>
-                  </Col>
-                  <Col span="1" offset="0">
-                    <FormItem :label-width="0">
-                      <Select
-                        filterable
-                        v-model="outPut.sensitiveData"
-                        style="width:50px"
-                        :disabled="currentPluginObj.status === 'ENABLED'"
-                      >
-                        <Option v-for="item in sensitiveData" :value="item.value" :key="item.value">{{
-                          item.label
-                        }}</Option>
-                      </Select>
-                    </FormItem>
-                  </Col>
-                  <Col span="3" offset="1">
-                    <FormItem :label-width="0">
-                      <Select :disabled="currentPluginObj.status === 'ENABLED'" v-model="outPut.mappingType">
-                        <Option value="context" key="context">context</Option>
-                        <Option value="entity" key="entity">entity</Option>
-                      </Select>
-                    </FormItem>
-                  </Col>
-                  <Col span="13" offset="1">
-                    <FormItem :label-width="0">
-                      <FilterRulesRef
-                        v-if="outPut.mappingType === 'entity'"
-                        v-model="outPut.mappingEntityExpression"
-                        :disabled="currentPluginObj.status === 'ENABLED'"
-                        :allDataModelsWithAttrs="allEntityType"
-                        :rootEntity="clearedEntityType"
-                        :needNativeAttr="true"
-                        :needAttr="true"
-                        :rootEntityFirst="true"
-                      ></FilterRulesRef>
-                      <span v-if="outPut.mappingType === 'context'">N/A</span>
-                    </FormItem>
-                  </Col>
+                          <Option v-for="item in sensitiveData" :value="item.value" :key="item.value">{{
+                            item.label
+                          }}</Option>
+                        </Select>
+                      </FormItem>
+                    </Col>
+                    <Col span="3" offset="1">
+                      <FormItem :label-width="0">
+                        <Select :disabled="currentPluginObj.status === 'ENABLED'" v-model="outPut.mappingType">
+                          <Option value="context" key="context">context</Option>
+                          <Option value="entity" key="entity">entity</Option>
+                        </Select>
+                      </FormItem>
+                    </Col>
+                    <Col span="13" offset="1">
+                      <FormItem :label-width="0">
+                        <FilterRulesRef
+                          v-if="outPut.mappingType === 'entity'"
+                          v-model="outPut.mappingEntityExpression"
+                          :disabled="currentPluginObj.status === 'ENABLED'"
+                          :allDataModelsWithAttrs="allEntityType"
+                          :rootEntity="clearedEntityType"
+                          :needNativeAttr="true"
+                          :needAttr="true"
+                          :rootEntityFirst="true"
+                        ></FilterRulesRef>
+                        <span v-if="outPut.mappingType === 'context'">N/A</span>
+                      </FormItem>
+                    </Col>
+                  </template>
+                  <template v-else>
+                    <Col span="5">
+                      <FormItem :label-width="0">
+                        <span v-if="outPut.required === 'Y'" style="color:red;vertical-align: text-bottom;">*</span>
+                        <!-- <Button @click="removeOutputParams(index)" size="small" icon="ios-trash"></Button> -->
+                        <Input v-model="outPut.name" placeholder="key" :disabled="outPut.id !== ''" />
+                      </FormItem>
+                    </Col>
+                    <Col span="4" offset="1">
+                      <FormItem :label-width="0">
+                        <span v-if="outPut.required === 'Y'" style="color:red;vertical-align: text-bottom;">*</span>
+                        <Input
+                          v-model="outPut.mappingSystemVariableName"
+                          :disabled="currentPluginObj.status === 'ENABLED'"
+                          placeholder="value"
+                        />
+                      </FormItem>
+                    </Col>
+                    <Col span="13" offset="1">
+                      <FormItem :label-width="0">
+                        <FilterRulesRef
+                          v-model="outPut.mappingEntityExpression"
+                          :disabled="currentPluginObj.status === 'ENABLED'"
+                          :allDataModelsWithAttrs="allEntityType"
+                          :rootEntity="clearedEntityType"
+                          :needNativeAttr="true"
+                          :needAttr="true"
+                          :rootEntityFirst="true"
+                        ></FilterRulesRef>
+                        <span v-if="outPut.mappingType === 'context'">N/A</span>
+                      </FormItem>
+                    </Col>
+                  </template>
                 </Row>
               </Col>
             </Row>
@@ -614,9 +650,37 @@ export default {
         })
       })
     },
+    removeOutputParams (index) {
+      this.currentInter.outputParameters.splice(index, 1)
+    },
+    addOutputParams () {
+      const assginOutput = this.currentInter.outputParameters.filter(item => item.mappingType === 'assign')
+      const res = assginOutput.every(item => item.name !== '' && item.mappingSystemVariableName !== '')
+      if (!res) {
+        this.$Notice.warning({
+          title: 'Warning',
+          desc: this.$t('plugin_const_params_warning')
+        })
+        return
+      }
+      const outputParametersSingle = this.currentInter.outputParameters[0]
+      this.currentInter.outputParameters.push({
+        dataType: 'string',
+        description: '',
+        id: '',
+        mappingEntityExpression: '',
+        mappingSystemVariableName: '',
+        mappingType: 'assign',
+        name: '',
+        pluginConfigInterfaceId: outputParametersSingle.pluginConfigInterfaceId,
+        refObjectMeta: null,
+        required: 'N',
+        sensitiveData: 'N',
+        type: 'OUTPUT'
+      })
+    },
     // refObjectMeta。id pluginConfigId
     showParamsModal (val, index, currentPluginObj) {
-      console.log(val)
       this.currentInter = val
       this.objectModal.pluginConfigId = val.pluginConfigId
       this.currentInterIndex = index
