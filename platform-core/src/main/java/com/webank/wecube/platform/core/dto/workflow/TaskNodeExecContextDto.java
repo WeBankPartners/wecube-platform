@@ -12,6 +12,9 @@ public class TaskNodeExecContextDto {
     private String nodeDefId;
     private Integer nodeInstId;
     private String nodeType;
+    
+    private String nodeExpression;
+    private String pluginInfo;
 
     private String requestId;
     private String errorCode;
@@ -98,5 +101,23 @@ public class TaskNodeExecContextDto {
     public void setErrorMessage(String errorMsg) {
         this.errorMessage = errorMsg;
     }
+
+    public String getNodeExpression() {
+        return nodeExpression;
+    }
+
+    public void setNodeExpression(String nodeExpression) {
+        this.nodeExpression = nodeExpression;
+    }
+
+    public String getPluginInfo() {
+        return pluginInfo;
+    }
+
+    public void setPluginInfo(String pluginInfo) {
+        this.pluginInfo = pluginInfo;
+    }
+    
+    
 
 }
