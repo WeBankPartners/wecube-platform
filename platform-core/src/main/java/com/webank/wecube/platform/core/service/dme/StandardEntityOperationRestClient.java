@@ -93,6 +93,18 @@ public class StandardEntityOperationRestClient {
         log.debug("RECEIVE UPDATE post [{}] url={},result={}", timeMilliSeconds, requestUri.toString(), result);
         return result;
     }
+    
+    public StandardEntityOperationResponseDto updateData(EntityRouteDescription entityDef,List<Map<String, Object>> recordsToUpdate) {
+        URI requestUri = buildStandardOperationUri(entityDef, getUpdateUriTemplate());
+
+        long timeMilliSeconds = System.currentTimeMillis();
+        log.info("SEND UPDATE post [{}] url={}, request={}", timeMilliSeconds, requestUri.toString(),
+                toJson(recordsToUpdate));
+        StandardEntityOperationResponseDto result = getRestTemplate().postForObject(requestUri, recordsToUpdate,
+                StandardEntityOperationResponseDto.class);
+        log.debug("RECEIVE UPDATE post [{}] url={},result={}", timeMilliSeconds, requestUri.toString(), result);
+        return result;
+    }
 
     public StandardEntityOperationRestClient withQueryUriTemplate(String queryUriTemplate) {
         this.queryUriTemplate = queryUriTemplate;

@@ -2301,19 +2301,35 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
         String entityName = rootExprNodeInfo.getEntityName();
 
         Map<String, Object> objDataMap = new HashMap<String, Object>(rootDemOutputParamAttrs.size());
+        DmeOutputParamAttr idAttrDef = null;
         for (DmeOutputParamAttr attr : rootDemOutputParamAttrs) {
             attr.setProcessed(true);
             EntityQueryExprNodeInfo exprNodeNodeInfo = attr.getExprNodeInfos().get(0);
+            
+            if("id".equalsIgnoreCase(exprNodeNodeInfo.getQueryAttrName())) {
+                idAttrDef = attr;
+            }
             objDataMap.put(exprNodeNodeInfo.getQueryAttrName(), attr.getRetVal());
         }
 
         log.info("try to create entity.{} {} {}", packageName, entityName, objDataMap);
 
-        Map<String, Object> resultMap = entityOperationService.create(packageName, entityName, objDataMap);
-        String rootEntityId = (String) resultMap.get(EntityDataDelegate.UNIQUE_IDENTIFIER);
-        if (StringUtils.isBlank(rootEntityId)) {
-            log.warn("Entity created but there is not identity returned.{} {} {}", packageName, entityName, objDataMap);
-            return;
+        String rootEntityId = null;
+        if(idAttrDef != null && idAttrDef.getRetVal() != null) {
+            rootEntityId = (String)idAttrDef.getRetVal();
+            EntityRouteDescription entityDef = entityDataRouteFactory.deduceEntityDescription(packageName, entityName);
+            StandardEntityOperationRestClient restClient = new StandardEntityOperationRestClient(this.jwtSsoRestTemplate);
+            List<Map<String,Object>> objDataMaps = new ArrayList<>();
+            objDataMaps.add(objDataMap);
+            restClient.updateData(entityDef, objDataMaps);
+            
+        }else {
+            Map<String, Object> resultMap = entityOperationService.create(packageName, entityName, objDataMap);
+            rootEntityId = (String) resultMap.get(EntityDataDelegate.UNIQUE_IDENTIFIER);
+            if (StringUtils.isBlank(rootEntityId)) {
+                log.warn("Entity created but there is not identity returned.{} {} {}", packageName, entityName, objDataMap);
+                return;
+            }
         }
 
         for (DmeOutputParamAttr attr : allDmeOutputParamAttrs) {
