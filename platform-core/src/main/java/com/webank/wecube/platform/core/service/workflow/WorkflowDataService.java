@@ -489,6 +489,8 @@ public class WorkflowDataService extends AbstractWorkflowService{
             throw new WecubeCoreException("3188", String.format("Invalid node instance id: %s", nodeInstId),
                     nodeInstId);
         }
+        
+        TaskNodeDefInfoEntity nodeDefInfoEntity = taskNodeDefInfoRepository.selectByPrimaryKey(nodeEntity.getNodeDefId());
 
         TaskNodeExecContextDto result = new TaskNodeExecContextDto();
         result.setNodeDefId(nodeEntity.getNodeDefId());
@@ -497,6 +499,11 @@ public class WorkflowDataService extends AbstractWorkflowService{
         result.setNodeName(nodeEntity.getNodeName());
         result.setNodeType(nodeEntity.getNodeType());
         result.setErrorMessage(nodeEntity.getErrMsg());
+        
+        if(nodeDefInfoEntity != null) {
+            result.setNodeExpression(nodeDefInfoEntity.getRoutineExp());
+            result.setPluginInfo(nodeDefInfoEntity.getServiceId());
+        }
 
         List<TaskNodeExecRequestEntity> requestEntities = taskNodeExecRequestRepository
                 .selectCurrentEntityByNodeInstId(nodeEntity.getId());
