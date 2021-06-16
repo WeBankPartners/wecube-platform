@@ -13,6 +13,7 @@ import org.springframework.web.client.RestTemplate;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.webank.wecube.platform.core.commons.WecubeCoreException;
 
 public class StandardEntityOperationRestClient {
     private static final Logger log = LoggerFactory.getLogger(StandardEntityOperationRestClient.class);
@@ -91,6 +92,10 @@ public class StandardEntityOperationRestClient {
         StandardEntityOperationResponseDto result = getRestTemplate().postForObject(requestUri, requestBody,
                 StandardEntityOperationResponseDto.class);
         log.debug("RECEIVE UPDATE post [{}] url={},result={}", timeMilliSeconds, requestUri.toString(), result);
+        if(!StandardEntityOperationResponseDto.STATUS_OK.equalsIgnoreCase(result.getStatus())) {
+            log.error("update failed with error:{} {}", result.getStatus(), result.getMessage());
+            throw new WecubeCoreException(result.getMessage());
+        }
         return result;
     }
     
@@ -103,6 +108,11 @@ public class StandardEntityOperationRestClient {
         StandardEntityOperationResponseDto result = getRestTemplate().postForObject(requestUri, recordsToUpdate,
                 StandardEntityOperationResponseDto.class);
         log.debug("RECEIVE UPDATE post [{}] url={},result={}", timeMilliSeconds, requestUri.toString(), result);
+        
+        if(!StandardEntityOperationResponseDto.STATUS_OK.equalsIgnoreCase(result.getStatus())) {
+            log.error("update failed with error:{} {}", result.getStatus(), result.getMessage());
+            throw new WecubeCoreException(result.getMessage());
+        }
         return result;
     }
 
