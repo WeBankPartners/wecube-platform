@@ -2275,6 +2275,12 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
                 log.info("returned value is null for {} {}", ctx.getRequestId(), paramName);
                 continue;
             }
+            
+            if(retVal instanceof String){
+                if(StringUtils.isBlank((String)retVal)){
+                    continue;
+                }
+            }
 
             DmeOutputParamAttr outputParamAttr = new DmeOutputParamAttr();
             List<EntityQueryExprNodeInfo> exprNodeInfos = entityQueryExpressionParser.parse(paramExpr);
