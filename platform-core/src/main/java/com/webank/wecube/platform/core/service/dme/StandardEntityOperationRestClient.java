@@ -92,7 +92,7 @@ public class StandardEntityOperationRestClient {
         StandardEntityOperationResponseDto result = getRestTemplate().postForObject(requestUri, requestBody,
                 StandardEntityOperationResponseDto.class);
         log.debug("RECEIVE UPDATE post [{}] url={},result={}", timeMilliSeconds, requestUri.toString(), result);
-        if(StandardEntityOperationResponseDto.STATUS_OK.equalsIgnoreCase(result.getStatus())) {
+        if(!StandardEntityOperationResponseDto.STATUS_OK.equalsIgnoreCase(result.getStatus())) {
             log.error("update failed with error:{} {}", result.getStatus(), result.getMessage());
             throw new WecubeCoreException(result.getMessage());
         }
@@ -109,7 +109,7 @@ public class StandardEntityOperationRestClient {
                 StandardEntityOperationResponseDto.class);
         log.debug("RECEIVE UPDATE post [{}] url={},result={}", timeMilliSeconds, requestUri.toString(), result);
         
-        if(StandardEntityOperationResponseDto.STATUS_OK.equalsIgnoreCase(result.getStatus())) {
+        if(!StandardEntityOperationResponseDto.STATUS_OK.equalsIgnoreCase(result.getStatus())) {
             log.error("update failed with error:{} {}", result.getStatus(), result.getMessage());
             throw new WecubeCoreException(result.getMessage());
         }
