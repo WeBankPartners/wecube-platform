@@ -2376,6 +2376,12 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
                 log.info("returned value is null for {} {}", ctx.getRequestId(), paramName);
                 continue;
             }
+            
+            if(retVal instanceof String) {
+                if(StringUtils.isBlank((String)retVal)){
+                    continue;
+                }
+            }
 
             EntityOperationRootCondition condition = new EntityOperationRootCondition(paramExpr, nodeEntityId);
 
