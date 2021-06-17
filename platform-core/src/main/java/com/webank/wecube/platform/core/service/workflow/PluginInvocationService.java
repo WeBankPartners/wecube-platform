@@ -2112,8 +2112,21 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
         if (log.isDebugEnabled()) {
             log.debug("about to process output parameters for {}", ctx.getPluginConfigInterface().getServiceName());
         }
+
+        Exception except = null;
         for (Map<String, Object> outputParameterMap : outputParameterMaps) {
-            handleSingleOutputMap(pluginInvocationResult, ctx, outputParameterMap);
+            try {
+                handleSingleOutputMap(pluginInvocationResult, ctx, outputParameterMap);
+            } catch (Exception e) {
+                String errMsg = String.format("handling output errors:%s %s", outputParameterMap, e.getMessage());
+                log.error(errMsg);
+                except = new WecubeCoreException(e.getMessage());
+            }
+        }
+
+        if (except != null) {
+            log.error("failed to process output parameters for {}", ctx.getPluginConfigInterface().getServiceName());
+            throw new WecubeCoreException("Handling output result errors:" + except.getMessage());
         }
 
         if (log.isDebugEnabled()) {
@@ -2265,9 +2278,9 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
             }
 
             Object retVal = null;
-            if(Constants.MAPPING_TYPE_ENTITY.equalsIgnoreCase(pciParam.getMappingType())){
+            if (Constants.MAPPING_TYPE_ENTITY.equalsIgnoreCase(pciParam.getMappingType())) {
                 retVal = outputParameterMap.get(paramName);
-            }else if(Constants.MAPPING_TYPE_ASSIGN.equalsIgnoreCase(pciParam.getMappingType())){
+            } else if (Constants.MAPPING_TYPE_ASSIGN.equalsIgnoreCase(pciParam.getMappingType())) {
                 retVal = pciParam.getMappingSystemVariableName();
             }
 
@@ -2275,9 +2288,9 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
                 log.info("returned value is null for {} {}", ctx.getRequestId(), paramName);
                 continue;
             }
-            
-            if(retVal instanceof String){
-                if(StringUtils.isBlank((String)retVal)){
+
+            if (retVal instanceof String) {
+                if (StringUtils.isBlank((String) retVal)) {
                     continue;
                 }
             }
@@ -2311,8 +2324,8 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
         for (DmeOutputParamAttr attr : rootDemOutputParamAttrs) {
             attr.setProcessed(true);
             EntityQueryExprNodeInfo exprNodeNodeInfo = attr.getExprNodeInfos().get(0);
-            
-            if("id".equalsIgnoreCase(exprNodeNodeInfo.getQueryAttrName())) {
+
+            if ("id".equalsIgnoreCase(exprNodeNodeInfo.getQueryAttrName())) {
                 idAttrDef = attr;
             }
             objDataMap.put(exprNodeNodeInfo.getQueryAttrName(), attr.getRetVal());
@@ -2321,19 +2334,21 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
         log.info("try to create entity.{} {} {}", packageName, entityName, objDataMap);
 
         String rootEntityId = null;
-        if(idAttrDef != null && idAttrDef.getRetVal() != null) {
-            rootEntityId = (String)idAttrDef.getRetVal();
+        if (idAttrDef != null && idAttrDef.getRetVal() != null) {
+            rootEntityId = (String) idAttrDef.getRetVal();
             EntityRouteDescription entityDef = entityDataRouteFactory.deduceEntityDescription(packageName, entityName);
-            StandardEntityOperationRestClient restClient = new StandardEntityOperationRestClient(this.jwtSsoRestTemplate);
-            List<Map<String,Object>> objDataMaps = new ArrayList<>();
+            StandardEntityOperationRestClient restClient = new StandardEntityOperationRestClient(
+                    this.jwtSsoRestTemplate);
+            List<Map<String, Object>> objDataMaps = new ArrayList<>();
             objDataMaps.add(objDataMap);
             restClient.updateData(entityDef, objDataMaps);
-            
-        }else {
+
+        } else {
             Map<String, Object> resultMap = entityOperationService.create(packageName, entityName, objDataMap);
             rootEntityId = (String) resultMap.get(EntityDataDelegate.UNIQUE_IDENTIFIER);
             if (StringUtils.isBlank(rootEntityId)) {
-                log.warn("Entity created but there is not identity returned.{} {} {}", packageName, entityName, objDataMap);
+                log.warn("Entity created but there is not identity returned.{} {} {}", packageName, entityName,
+                        objDataMap);
                 return;
             }
         }
@@ -2365,16 +2380,16 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
                 log.info("expression not configured for {}", paramName);
                 continue;
             }
-            
+
             if (!(Constants.MAPPING_TYPE_ENTITY.equalsIgnoreCase(pciParam.getMappingType())
                     || Constants.MAPPING_TYPE_ASSIGN.equalsIgnoreCase(pciParam.getMappingType()))) {
                 continue;
             }
 
             Object retVal = null;
-            if(Constants.MAPPING_TYPE_ENTITY.equalsIgnoreCase(pciParam.getMappingType())){
+            if (Constants.MAPPING_TYPE_ENTITY.equalsIgnoreCase(pciParam.getMappingType())) {
                 retVal = outputParameterMap.get(paramName);
-            }else if(Constants.MAPPING_TYPE_ASSIGN.equalsIgnoreCase(pciParam.getMappingType())){
+            } else if (Constants.MAPPING_TYPE_ASSIGN.equalsIgnoreCase(pciParam.getMappingType())) {
                 retVal = pciParam.getMappingSystemVariableName();
             }
 
@@ -2382,9 +2397,9 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
                 log.info("returned value is null for {} {}", ctx.getRequestId(), paramName);
                 continue;
             }
-            
-            if(retVal instanceof String) {
-                if(StringUtils.isBlank((String)retVal)){
+
+            if (retVal instanceof String) {
+                if (StringUtils.isBlank((String) retVal)) {
                     continue;
                 }
             }
