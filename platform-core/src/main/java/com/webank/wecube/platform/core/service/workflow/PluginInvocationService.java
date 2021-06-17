@@ -2253,6 +2253,20 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
         return callbackParameterValue.startsWith(CALLBACK_PARAMETER_SYSTEM_PREFIX);
     }
 
+    private boolean verifyIfHasNormalEntityMappingExcludeAssign(List<DmeOutputParamAttr> rootDemOutputParamAttrs) {
+        if (rootDemOutputParamAttrs == null || rootDemOutputParamAttrs.isEmpty()) {
+            return false;
+        }
+
+        for (DmeOutputParamAttr attr : rootDemOutputParamAttrs) {
+            if (Constants.MAPPING_TYPE_ENTITY.equalsIgnoreCase(attr.getInterfParam().getMappingType())) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     // #2169
     private void tryHandleSingleOutputMapOnceEntityCreation(PluginInterfaceInvocationResult pluginInvocationResult,
             PluginInterfaceInvocationContext ctx, Map<String, Object> outputParameterMap) {
@@ -2344,11 +2358,16 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
             restClient.updateData(entityDef, objDataMaps);
 
         } else {
-            Map<String, Object> resultMap = entityOperationService.create(packageName, entityName, objDataMap);
-            rootEntityId = (String) resultMap.get(EntityDataDelegate.UNIQUE_IDENTIFIER);
-            if (StringUtils.isBlank(rootEntityId)) {
-                log.warn("Entity created but there is not identity returned.{} {} {}", packageName, entityName,
-                        objDataMap);
+            if (verifyIfHasNormalEntityMappingExcludeAssign(rootDemOutputParamAttrs)) {
+                Map<String, Object> resultMap = entityOperationService.create(packageName, entityName, objDataMap);
+                rootEntityId = (String) resultMap.get(EntityDataDelegate.UNIQUE_IDENTIFIER);
+                if (StringUtils.isBlank(rootEntityId)) {
+                    log.warn("Entity created but there is not identity returned.{} {} {}", packageName, entityName,
+                            objDataMap);
+                    return;
+                }
+            } else {
+                log.info("The result must has at least one entity mapping and ignored.{}", objDataMap);
                 return;
             }
         }
