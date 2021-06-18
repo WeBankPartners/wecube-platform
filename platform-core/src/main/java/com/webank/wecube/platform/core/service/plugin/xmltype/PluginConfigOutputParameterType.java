@@ -17,6 +17,8 @@ public class PluginConfigOutputParameterType {
     protected String mappingType;
     @XmlAttribute(name = "mappingEntityExpression")
     protected String mappingEntityExpression;
+    @XmlAttribute(name = "mappingSystemVariableName")
+    protected String mappingSystemVariableName;
     @XmlAttribute(name = "sensitiveData")
     protected String sensitiveData;
     
@@ -69,6 +71,14 @@ public class PluginConfigOutputParameterType {
 
     public void setDescription(String description) {
         this.description = description;
+    }
+
+    public String getMappingSystemVariableName() {
+        return mappingSystemVariableName;
+    }
+
+    public void setMappingSystemVariableName(String mappingSystemVariableName) {
+        this.mappingSystemVariableName = mappingSystemVariableName;
     }
 
     
