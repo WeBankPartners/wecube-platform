@@ -49,6 +49,7 @@ import com.webank.wecube.platform.core.service.plugin.xmltype.PluginRoleBindings
 import com.webank.wecube.platform.core.service.plugin.xmltype.SystemParameterType;
 import com.webank.wecube.platform.core.service.plugin.xmltype.SystemParametersType;
 import com.webank.wecube.platform.core.service.user.UserManagementService;
+import com.webank.wecube.platform.core.utils.Constants;
 import com.webank.wecube.platform.core.utils.JaxbUtils;
 import com.webank.wecube.platform.workflow.commons.LocalIdGenerator;
 
@@ -359,6 +360,7 @@ public class PluginConfigMigrationService {
         xmlParam.setValue(outputParameter.getName());
         xmlParam.setSensitiveData(outputParameter.getSensitiveData());
         xmlParam.setDescription(outputParameter.getDescription());
+        xmlParam.setMappingSystemVariableName(outputParameter.getMappingSystemVariableName());
 
         return xmlParam;
     }
@@ -377,6 +379,97 @@ public class PluginConfigMigrationService {
         return xmlParam;
     }
 
+    private List<PluginConfigInputParameterType> getXmlInputParameters(PluginConfigInterfaceType xmlIntf) {
+        if (xmlIntf.getInputParameters() == null) {
+            return new ArrayList<>();
+        }
+
+        return xmlIntf.getInputParameters().getParameter();
+    }
+
+    private List<PluginConfigOutputParameterType> getXmlOutputParameters(PluginConfigInterfaceType xmlIntf) {
+        if (xmlIntf.getOutputParameters() == null) {
+            return new ArrayList<>();
+        }
+
+        return xmlIntf.getOutputParameters().getParameter();
+    }
+
+    private PluginConfigInputParameterType tryPickoutXmlInputParameter(
+            List<PluginConfigInputParameterType> xmlInputParameters, String paramName) {
+        if (xmlInputParameters == null || xmlInputParameters.isEmpty()) {
+            return null;
+        }
+
+        for (PluginConfigInputParameterType xmlType : xmlInputParameters) {
+            if (paramName.equals(xmlType.getValue())) {
+                return xmlType;
+            }
+        }
+
+        return null;
+    }
+
+    private PluginConfigOutputParameterType tryPickoutXmlOutputParameter(
+            List<PluginConfigOutputParameterType> xmlOutputParameters, String paramName) {
+        if (xmlOutputParameters == null || xmlOutputParameters.isEmpty()) {
+            return null;
+        }
+
+        for (PluginConfigOutputParameterType xmlType : xmlOutputParameters) {
+            if (paramName.equals(xmlType.getValue())) {
+                return xmlType;
+            }
+        }
+
+        return null;
+    }
+
+    private List<PluginConfigInterfaceParameters> tryPickoutInputParametersToRemove(
+            List<PluginConfigInterfaceParameters> inputParameters,
+            List<PluginConfigInputParameterType> xmlInputParameters) {
+        if (inputParameters == null || inputParameters.isEmpty()) {
+            return new ArrayList<>();
+        }
+
+        if (xmlInputParameters == null || xmlInputParameters.isEmpty()) {
+            return inputParameters;
+        }
+
+        List<PluginConfigInterfaceParameters> paramsToDelete = new ArrayList<>();
+        for (PluginConfigInterfaceParameters param : inputParameters) {
+            PluginConfigInputParameterType xmlType = tryPickoutXmlInputParameter(xmlInputParameters, param.getName());
+            if (xmlType == null) {
+                paramsToDelete.add(param);
+            }
+        }
+
+        return paramsToDelete;
+    }
+
+    private List<PluginConfigInterfaceParameters> tryPickoutOutputParametersToRemove(
+            List<PluginConfigInterfaceParameters> parameters,
+            List<PluginConfigOutputParameterType> xmlOutputParameters) {
+        if (parameters == null || parameters.isEmpty()) {
+            return new ArrayList<>();
+        }
+
+        if (xmlOutputParameters == null || xmlOutputParameters.isEmpty()) {
+            return parameters;
+        }
+
+        List<PluginConfigInterfaceParameters> paramsToDelete = new ArrayList<>();
+        for (PluginConfigInterfaceParameters param : parameters) {
+            PluginConfigOutputParameterType xmlType = tryPickoutXmlOutputParameter(xmlOutputParameters,
+                    param.getName());
+            if (xmlType == null) {
+                paramsToDelete.add(param);
+            }
+        }
+
+        return paramsToDelete;
+    }
+
     private PluginConfigInterfaces tryUpdatePluginConfigInterface(PluginPackages pluginPackage,
             PluginConfigs existPluginConfig, PluginConfigInterfaces toUpdateIntf, PluginConfigInterfaceType xmlIntf) {
         if (xmlIntf == null) {
@@ -385,27 +478,58 @@ public class PluginConfigMigrationService {
 
         toUpdateIntf.setFilterRule(xmlIntf.getFilterRule());
 
+        List<PluginConfigInputParameterType> xmlInputParameters = getXmlInputParameters(xmlIntf);
+
         List<PluginConfigInterfaceParameters> inputParameters = pluginConfigInterfaceParametersMapper
                 .selectAllByConfigInterfaceAndParamType(toUpdateIntf.getId(),
                         PluginConfigInterfaceParameters.TYPE_INPUT);
-        if (inputParameters != null) {
-            for (PluginConfigInterfaceParameters inputParam : inputParameters) {
-                PluginConfigInputParameterType xmlInputParam = pickoutPluginConfigInputParameterType(xmlIntf,
-                        inputParam.getName());
-                tryUpdatePluginConfigInterfaceInputParameter(existPluginConfig, toUpdateIntf, inputParam,
+
+        List<PluginConfigInterfaceParameters> toRemoveInputParams = tryPickoutInputParametersToRemove(inputParameters,
+                xmlInputParameters);
+        for (PluginConfigInterfaceParameters toRemoveInputParam : toRemoveInputParams) {
+            pluginConfigInterfaceParametersMapper.deleteByPrimaryKey(toRemoveInputParam.getId());
+        }
+
+        for (PluginConfigInputParameterType xmlInputParam : xmlInputParameters) {
+            if (StringUtils.isBlank(xmlInputParam.getValue())) {
+                continue;
+            }
+
+            PluginConfigInterfaceParameters inputParamEntity = tryPickoutPluginConfigInterfaceParameter(inputParameters,
+                    xmlInputParam.getValue());
+            if (inputParamEntity != null) {
+                tryUpdatePluginConfigInterfaceInputParameter(existPluginConfig, toUpdateIntf, inputParamEntity,
                         xmlInputParam);
+            } else {
+                tryCreateInputParameter(toUpdateIntf, xmlInputParam, null);
             }
         }
 
+        List<PluginConfigOutputParameterType> xmlOutputParameters = getXmlOutputParameters(xmlIntf);
         List<PluginConfigInterfaceParameters> outputParameters = pluginConfigInterfaceParametersMapper
                 .selectAllByConfigInterfaceAndParamType(toUpdateIntf.getId(),
                         PluginConfigInterfaceParameters.TYPE_OUTPUT);
-        if (outputParameters != null) {
-            for (PluginConfigInterfaceParameters outputParam : outputParameters) {
-                PluginConfigOutputParameterType xmlOutputParam = pickoutPluginConfigOutputParameterType(xmlIntf,
-                        outputParam.getName());
-                tryUpdatePluginConfigInterfaceOutputParameter(existPluginConfig, toUpdateIntf, outputParam,
+
+        List<PluginConfigInterfaceParameters> toRemoveOutputParams = tryPickoutOutputParametersToRemove(
+                outputParameters, xmlOutputParameters);
+
+        for (PluginConfigInterfaceParameters toRemoveOutputParam : toRemoveOutputParams) {
+            pluginConfigInterfaceParametersMapper.deleteByPrimaryKey(toRemoveOutputParam.getId());
+        }
+
+        for (PluginConfigOutputParameterType xmlOutputParam : xmlOutputParameters) {
+            if (StringUtils.isBlank(xmlOutputParam.getValue())) {
+                continue;
+            }
+
+            PluginConfigInterfaceParameters outputParamEntity = tryPickoutPluginConfigInterfaceParameter(
+                    outputParameters, xmlOutputParam.getValue());
+
+            if (outputParamEntity != null) {
+                tryUpdatePluginConfigInterfaceOutputParameter(existPluginConfig, toUpdateIntf, outputParamEntity,
                         xmlOutputParam);
+            } else {
+                tryCreateOutputParameter(toUpdateIntf, xmlOutputParam, null);
             }
         }
 
@@ -442,6 +566,7 @@ public class PluginConfigMigrationService {
         param.setMappingType(xmlParam.getMappingType());
         param.setSensitiveData(xmlParam.getSensitiveData());
         param.setMappingEntityExpression(xmlParam.getMappingEntityExpression());
+        param.setMappingSystemVariableName(xmlParam.getMappingSystemVariableName());
 
         pluginConfigInterfaceParametersMapper.updateByPrimaryKeySelective(param);
         return param;
@@ -1006,13 +1131,25 @@ public class PluginConfigMigrationService {
 
         List<PluginConfigInterfaceParameters> defInputParameters = pluginConfigInterfaceParametersMapper
                 .selectAllByConfigInterfaceAndParamType(defIntf.getId(), PluginConfigInterfaceParameters.TYPE_INPUT);
+        PluginConfigInputParametersType xmlInputParametersType = xmlIntf.getInputParameters();
+        List<PluginConfigInputParameterType> xmlInputParameters = null;
+        if (xmlInputParametersType != null) {
+            xmlInputParameters = xmlInputParametersType.getParameter();
+        }
         List<PluginConfigInterfaceParameters> inputParameters = new ArrayList<>();
-        if (defInputParameters != null) {
-            for (PluginConfigInterfaceParameters defInputParam : defInputParameters) {
-                PluginConfigInputParameterType xmlInputParam = pickoutPluginConfigInputParameterType(xmlIntf,
-                        defInputParam.getName());
+        if (xmlInputParameters != null) {
+            for (PluginConfigInputParameterType xmlInputParam : xmlInputParameters) {
+                if (StringUtils.isBlank(xmlInputParam.getValue())) {
+                    continue;
+                }
+                PluginConfigInterfaceParameters defInputParam = tryPickoutPluginConfigInterfaceParameter(
+                        defInputParameters, xmlInputParam.getValue());
+//                PluginConfigInputParameterType xmlInputParam = pickoutPluginConfigInputParameterType(xmlIntf,
+//                        defInputParam.getName());
+
                 PluginConfigInterfaceParameters inputParam = tryCreateInputParameter(intf, xmlInputParam,
                         defInputParam);
+
                 inputParameters.add(inputParam);
             }
         }
@@ -1021,12 +1158,20 @@ public class PluginConfigMigrationService {
 
         List<PluginConfigInterfaceParameters> defOutputParameters = pluginConfigInterfaceParametersMapper
                 .selectAllByConfigInterfaceAndParamType(defIntf.getId(), PluginConfigInterfaceParameters.TYPE_OUTPUT);
+        PluginConfigOutputParametersType xmlOutputParametersType = xmlIntf.getOutputParameters();
+        List<PluginConfigOutputParameterType> xmlOutputParameters = null;
+        if (xmlOutputParametersType != null) {
+            xmlOutputParameters = xmlOutputParametersType.getParameter();
+        }
         List<PluginConfigInterfaceParameters> outputParameters = new ArrayList<>();
 
-        if (defOutputParameters != null) {
-            for (PluginConfigInterfaceParameters defOutputParam : defOutputParameters) {
-                PluginConfigOutputParameterType xmlOutputParam = pickoutPluginConfigOutputParameterType(xmlIntf,
-                        defOutputParam.getName());
+        if (xmlOutputParameters != null) {
+            for (PluginConfigOutputParameterType xmlOutputParam : xmlOutputParameters) {
+                if (StringUtils.isBlank(xmlOutputParam.getValue())) {
+                    continue;
+                }
+                PluginConfigInterfaceParameters defOutputParam = tryPickoutPluginConfigInterfaceParameter(
+                        defOutputParameters, xmlOutputParam.getValue());
                 PluginConfigInterfaceParameters outputParam = tryCreateOutputParameter(intf, xmlOutputParam,
                         defOutputParam);
                 outputParameters.add(outputParam);
@@ -1042,28 +1187,40 @@ public class PluginConfigMigrationService {
         return intf;
     }
 
+    private PluginConfigInterfaceParameters tryPickoutPluginConfigInterfaceParameter(
+            List<PluginConfigInterfaceParameters> defParameters, String paramName) {
+        if (defParameters == null || defParameters.isEmpty()) {
+            return null;
+        }
+
+        for (PluginConfigInterfaceParameters param : defParameters) {
+            if (paramName.equals(param.getName())) {
+                return param;
+            }
+        }
+
+        return null;
+    }
+
     private PluginConfigInterfaceParameters tryCreateInputParameter(PluginConfigInterfaces intf,
             PluginConfigInputParameterType xmlInputParam, PluginConfigInterfaceParameters defInputParam) {
         PluginConfigInterfaceParameters param = new PluginConfigInterfaceParameters();
 
         param.setId(LocalIdGenerator.generateId());
-        param.setName(defInputParam.getName());
-        param.setDataType(defInputParam.getDataType());
+        param.setName(xmlInputParam.getValue());
+        param.setDataType(xmlInputParam.getDatatype());
         param.setType(PluginConfigInterfaceParameters.TYPE_INPUT);
         param.setPluginConfigInterfaceId(intf.getId());
-        param.setRequired(defInputParam.getRequired());
-        param.setDescription(defInputParam.getDescription());
+        param.setDescription(xmlInputParam.getDescription());
+        param.setMappingEntityExpression(xmlInputParam.getMappingEntityExpression());
+        param.setMappingSystemVariableName(xmlInputParam.getMappingSystemVariableName());
+        param.setMappingType(xmlInputParam.getMappingType());
+        param.setSensitiveData(xmlInputParam.getSensitiveData());
 
-        if (xmlInputParam != null) {
-            param.setMappingEntityExpression(xmlInputParam.getMappingEntityExpression());
-            param.setMappingSystemVariableName(xmlInputParam.getMappingSystemVariableName());
-            param.setMappingType(xmlInputParam.getMappingType());
-            param.setSensitiveData(xmlInputParam.getSensitiveData());
+        if (defInputParam == null) {
+            param.setRequired(Constants.FIELD_NOT_REQUIRED);
         } else {
-            param.setMappingEntityExpression(defInputParam.getMappingEntityExpression());
-            param.setMappingSystemVariableName(defInputParam.getMappingSystemVariableName());
-            param.setMappingType(defInputParam.getMappingType());
-            param.setSensitiveData(defInputParam.getSensitiveData());
+            param.setRequired(defInputParam.getRequired());
         }
 
         pluginConfigInterfaceParametersMapper.insert(param);
@@ -1073,71 +1230,65 @@ public class PluginConfigMigrationService {
     }
 
     private PluginConfigInterfaceParameters tryCreateOutputParameter(PluginConfigInterfaces intf,
-            PluginConfigOutputParameterType xmlOutputParam, PluginConfigInterfaceParameters defOutputParam) {
+            PluginConfigOutputParameterType xmlOutputParam, PluginConfigInterfaceParameters defOutputParam1) {
         PluginConfigInterfaceParameters param = new PluginConfigInterfaceParameters();
         param.setId(LocalIdGenerator.generateId());
-        param.setName(defOutputParam.getName());
-        param.setDataType(defOutputParam.getDataType());
+        param.setName(xmlOutputParam.getValue());
+        param.setDataType(xmlOutputParam.getDatatype());
         param.setType(PluginConfigInterfaceParameters.TYPE_OUTPUT);
         param.setPluginConfigInterfaceId(intf.getId());
-        param.setDescription(defOutputParam.getDescription());
-
-        if (xmlOutputParam != null) {
-            param.setMappingEntityExpression(xmlOutputParam.getMappingEntityExpression());
-            param.setMappingType(xmlOutputParam.getMappingType());
-            param.setSensitiveData(xmlOutputParam.getSensitiveData());
-        } else {
-            param.setMappingEntityExpression(defOutputParam.getMappingEntityExpression());
-            param.setMappingType(defOutputParam.getMappingType());
-            param.setSensitiveData(defOutputParam.getSensitiveData());
-        }
+        param.setDescription(xmlOutputParam.getDescription());
+        param.setMappingEntityExpression(xmlOutputParam.getMappingEntityExpression());
+        param.setMappingType(xmlOutputParam.getMappingType());
+        param.setSensitiveData(xmlOutputParam.getSensitiveData());
+        param.setMappingSystemVariableName(xmlOutputParam.getMappingSystemVariableName());
 
         pluginConfigInterfaceParametersMapper.insert(param);
 
         return param;
     }
 
-    private PluginConfigInputParameterType pickoutPluginConfigInputParameterType(PluginConfigInterfaceType xmlIntf,
-            String paramName) {
-        if (xmlIntf == null) {
-            return null;
-        }
-
-        PluginConfigInputParametersType inputParameters = xmlIntf.getInputParameters();
-        if (inputParameters == null) {
-            return null;
-        }
-
-        for (PluginConfigInputParameterType p : inputParameters.getParameter()) {
-            if (paramName.equals(p.getValue())) {
-                return p;
-            }
-        }
-
-        return null;
-
-    }
-
-    private PluginConfigOutputParameterType pickoutPluginConfigOutputParameterType(PluginConfigInterfaceType xmlIntf,
-            String paramName) {
-        if (xmlIntf == null) {
-            return null;
-        }
-
-        PluginConfigOutputParametersType outputParameters = xmlIntf.getOutputParameters();
-
-        if (outputParameters == null) {
-            return null;
-        }
-
-        for (PluginConfigOutputParameterType p : outputParameters.getParameter()) {
-            if (paramName.equals(p.getValue())) {
-                return p;
-            }
-        }
-
-        return null;
-    }
+//    private PluginConfigInputParameterType pickoutPluginConfigInputParameterType(PluginConfigInterfaceType xmlIntf,
+//            String paramName) {
+//        if (xmlIntf == null) {
+//            return null;
+//        }
+//
+//        PluginConfigInputParametersType inputParameters = xmlIntf.getInputParameters();
+//        if (inputParameters == null) {
+//            return null;
+//        }
+//
+//        for (PluginConfigInputParameterType p : inputParameters.getParameter()) {
+//            if (paramName.equals(p.getValue())) {
+//                return p;
+//            }
+//        }
+//
+//        return null;
+//
+//    }
+//
+//    private PluginConfigOutputParameterType pickoutPluginConfigOutputParameterType(PluginConfigInterfaceType xmlIntf,
+//            String paramName) {
+//        if (xmlIntf == null) {
+//            return null;
+//        }
+//
+//        PluginConfigOutputParametersType outputParameters = xmlIntf.getOutputParameters();
+//
+//        if (outputParameters == null) {
+//            return null;
+//        }
+//
+//        for (PluginConfigOutputParameterType p : outputParameters.getParameter()) {
+//            if (paramName.equals(p.getValue())) {
+//                return p;
+//            }
+//        }
+//
+//        return null;
+//    }
 
     private void handlePluginConfig(PluginPackages pluginPackage, PluginConfigType xmlPluginConfig,
             PluginConfigs pluginConfigDef) {
