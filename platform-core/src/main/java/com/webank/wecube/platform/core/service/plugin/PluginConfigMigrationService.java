@@ -278,6 +278,8 @@ public class PluginConfigMigrationService {
     private ParamPropertyType buildXmlParamPropertyType(PluginPackages pluginPackage, PluginConfigs pluginConfig,
             CoreObjectMeta objectMeta, CoreObjectPropertyMeta objectPropertyMeta) {
         ParamPropertyType xmlParamPropertyType = new ParamPropertyType();
+        
+        xmlParamPropertyType.setName(objectPropertyMeta.getName());
         xmlParamPropertyType.setDataType(objectPropertyMeta.getDataType());
         xmlParamPropertyType.setMapExpr(objectPropertyMeta.getMapExpr());
         xmlParamPropertyType.setMapType(objectPropertyMeta.getMapType());
