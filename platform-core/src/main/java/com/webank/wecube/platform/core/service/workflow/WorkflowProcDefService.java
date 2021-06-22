@@ -24,6 +24,7 @@ import com.webank.wecube.platform.core.dto.workflow.FlowNodeDefDto;
 import com.webank.wecube.platform.core.dto.workflow.ProcDefInfoDto;
 import com.webank.wecube.platform.core.dto.workflow.ProcDefOutlineDto;
 import com.webank.wecube.platform.core.dto.workflow.ProcRoleDto;
+import com.webank.wecube.platform.core.dto.workflow.ProcessDeploymentResultDto;
 import com.webank.wecube.platform.core.dto.workflow.TaskNodeDefBriefDto;
 import com.webank.wecube.platform.core.dto.workflow.TaskNodeDefInfoDto;
 import com.webank.wecube.platform.core.dto.workflow.TaskNodeDefParamDto;
@@ -589,7 +590,7 @@ public class WorkflowProcDefService extends AbstractWorkflowProcDefService {
         tryClearAbandonedParamInfos(draftEntity, draftNodeEntity, reusedDraftParamEntities);
     }
 
-    public ProcDefOutlineDto deployProcessDefinition(ProcDefInfoDto procDefInfoDto, String continueToken) {
+    public ProcessDeploymentResultDto deployProcessDefinition(ProcDefInfoDto procDefInfoDto, String continueToken) {
 
         validateTaskInfos(procDefInfoDto);
 
@@ -601,12 +602,23 @@ public class WorkflowProcDefService extends AbstractWorkflowProcDefService {
         List<ProcDefInfoEntity> existingProcDefs = processDefInfoRepo
                 .selectAllDeployedProcDefsByProcDefName(procDefName);
         if (existingProcDefs != null && !existingProcDefs.isEmpty()) {
-            log.warn("such process definition name already exists,procDefName={}", procDefName);
-            //TODO
-            //#2222
-            throw new WecubeCoreException("3209", "Process definition name should NOT duplicated.");
+            return tryPerformExistingProcessDeployment(existingProcDefs.get(0), procDefInfoDto, continueToken);
         }
 
+        return tryPerformNewProcessDeployment(procDefInfoDto);
+
+    }
+
+    protected ProcessDeploymentResultDto tryPerformExistingProcessDeployment(ProcDefInfoEntity existingProcDef,
+            ProcDefInfoDto procDefInfoDto, String continueToken) {
+        log.warn("such process definition name already exists,procDefName={}", procDefInfoDto.getProcDefName());
+        // TODO
+        // #2222
+        throw new WecubeCoreException("3209", "Process definition name should NOT duplicated.");
+        // return null;
+    }
+
+    protected ProcessDeploymentResultDto tryPerformNewProcessDeployment(ProcDefInfoDto procDefInfoDto) {
         String originalId = procDefInfoDto.getProcDefId();
 
         Date currTime = new Date();
@@ -657,8 +669,13 @@ public class WorkflowProcDefService extends AbstractWorkflowProcDefService {
 
         ProcDefOutline procDefOutline = workflowEngineService.getProcDefOutline(procDef);
 
-        return postDeployProcessDefinition(procDefEntity, procDef, procDefOutline);
+        ProcDefOutlineDto outlineDto = postDeployProcessDefinition(procDefEntity, procDef, procDefOutline);
 
+        ProcessDeploymentResultDto processDeploymentResultDto = new ProcessDeploymentResultDto();
+        processDeploymentResultDto.setResult(outlineDto);
+        processDeploymentResultDto.setStatus(ProcessDeploymentResultDto.STATUS_OK);
+
+        return processDeploymentResultDto;
     }
 
     private PluginConfigInterfaces retrievePluginConfigInterface(TaskNodeDefInfoDto taskNodeDefDto, String nodeId) {
