@@ -1,5 +1,6 @@
 package com.webank.wecube.platform.core.service.workflow;
 
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -17,9 +18,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.util.DigestUtils;
 
 import com.webank.wecube.platform.core.commons.AuthenticationContextHolder;
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
+import com.webank.wecube.platform.core.dto.workflow.ContinueTokenInfoDto;
 import com.webank.wecube.platform.core.dto.workflow.FlowNodeDefDto;
 import com.webank.wecube.platform.core.dto.workflow.ProcDefInfoDto;
 import com.webank.wecube.platform.core.dto.workflow.ProcDefOutlineDto;
@@ -611,11 +614,76 @@ public class WorkflowProcDefService extends AbstractWorkflowProcDefService {
 
     protected ProcessDeploymentResultDto tryPerformExistingProcessDeployment(ProcDefInfoEntity existingProcDef,
             ProcDefInfoDto procDefInfoDto, String continueToken) {
-        log.warn("such process definition name already exists,procDefName={}", procDefInfoDto.getProcDefName());
-        // TODO
         // #2222
-        throw new WecubeCoreException("3209", "Process definition name should NOT duplicated.");
-        // return null;
+        log.info("such process definition name already exists,procDefName={}", procDefInfoDto.getProcDefName());
+        if (StringUtils.isNoneBlank(continueToken)) {
+            return tryPerformConditionalProcessDeploymentEdition(existingProcDef, procDefInfoDto, continueToken);
+        }
+
+        if (!verifyConditionalProcessDeploymentEdition(existingProcDef, procDefInfoDto)) {
+            log.error("Process definition name should NOT duplicated.procDefName={}", procDefInfoDto.getProcDefName());
+            throw new WecubeCoreException("3209", "Process definition name should NOT duplicated.");
+        }
+
+        String newContinueToken = buildProcessDeploymentContinueToken(procDefInfoDto);
+        String message = "Such process already had been deployed before,please confirm to proceed deployment.";
+        ProcessDeploymentResultDto resultDto = new ProcessDeploymentResultDto();
+        resultDto.setStatus(ProcessDeploymentResultDto.STATUS_CONFIRM);
+        resultDto.setMessage(message);
+        ContinueTokenInfoDto continueTokenInfo = new ContinueTokenInfoDto();
+        continueTokenInfo.setContinueToken(newContinueToken);
+        resultDto.setContinueToken(continueTokenInfo);
+
+        return resultDto;
+    }
+
+    private boolean verifyConditionalProcessDeploymentEdition(ProcDefInfoEntity existingProcDef,
+            ProcDefInfoDto procDefInfoDto) {
+        if (!Objects.equals(existingProcDef.getId(), procDefInfoDto.getProcDefId())) {
+            return false;
+        }
+
+        if (!Objects.equals(existingProcDef.getProcDefName(), procDefInfoDto.getProcDefKey())) {
+            return false;
+        }
+
+        List<TaskNodeDefInfoEntity> taskNodeDefEntities = taskNodeDefInfoRepo
+                .selectAllByProcDefId(existingProcDef.getId());
+        int existingNodeSize = (taskNodeDefEntities == null ? 0 : taskNodeDefEntities.size());
+        int newNodeSize = procDefInfoDto.getTaskNodeInfos() == null ? 0 : procDefInfoDto.getTaskNodeInfos().size();
+        if(newNodeSize != existingNodeSize){
+            return false;
+        }
+        
+        return verifyConditionalProcessDeploymentEdition(taskNodeDefEntities, procDefInfoDto.getTaskNodeInfos());
+    }
+    
+    private boolean verifyConditionalProcessDeploymentEdition(List<TaskNodeDefInfoEntity> taskNodeDefEntities, List<TaskNodeDefInfoDto> taskNodeInfos){
+        //TODO
+        return false;
+    }
+
+    private ProcessDeploymentResultDto tryPerformConditionalProcessDeploymentEdition(ProcDefInfoEntity existingProcDef,
+            ProcDefInfoDto procDefInfoDto, String continueToken) {
+        // TODO
+        return null;
+    }
+
+    private String buildProcessDeploymentContinueToken(ProcDefInfoDto procDefInfoDto) {
+        StringBuilder data = new StringBuilder();
+        String seperator = ":";
+        data.append(procDefInfoDto.getClass().getName()).append(seperator);
+        data.append(procDefInfoDto.getProcDefKey()).append(seperator);
+        data.append(procDefInfoDto.getProcDefName()).append(seperator);
+
+        String md5 = DigestUtils.md5DigestAsHex(data.toString().getBytes(Charset.forName("UTF-8")));
+        return md5;
+    }
+
+    private boolean verifyProcessDeploymentContinueToken(ProcDefInfoDto procDefInfoDto, String inputContinueToken) {
+        String genContinueToken = buildProcessDeploymentContinueToken(procDefInfoDto);
+
+        return genContinueToken.equals(inputContinueToken);
     }
 
     protected ProcessDeploymentResultDto tryPerformNewProcessDeployment(ProcDefInfoDto procDefInfoDto) {
