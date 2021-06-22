@@ -589,7 +589,7 @@ public class WorkflowProcDefService extends AbstractWorkflowProcDefService {
         tryClearAbandonedParamInfos(draftEntity, draftNodeEntity, reusedDraftParamEntities);
     }
 
-    public ProcDefOutlineDto deployProcessDefinition(ProcDefInfoDto procDefInfoDto) {
+    public ProcDefOutlineDto deployProcessDefinition(ProcDefInfoDto procDefInfoDto, String continueToken) {
 
         validateTaskInfos(procDefInfoDto);
 
@@ -602,6 +602,8 @@ public class WorkflowProcDefService extends AbstractWorkflowProcDefService {
                 .selectAllDeployedProcDefsByProcDefName(procDefName);
         if (existingProcDefs != null && !existingProcDefs.isEmpty()) {
             log.warn("such process definition name already exists,procDefName={}", procDefName);
+            //TODO
+            //#2222
             throw new WecubeCoreException("3209", "Process definition name should NOT duplicated.");
         }
 
