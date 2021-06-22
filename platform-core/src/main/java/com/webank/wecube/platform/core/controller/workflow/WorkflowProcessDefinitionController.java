@@ -37,6 +37,7 @@ import com.webank.wecube.platform.core.dto.workflow.ProcDefInfoExportImportDto;
 import com.webank.wecube.platform.core.dto.workflow.ProcDefOutlineDto;
 import com.webank.wecube.platform.core.dto.workflow.ProcRoleRequestDto;
 import com.webank.wecube.platform.core.dto.workflow.ProcessDataPreviewDto;
+import com.webank.wecube.platform.core.dto.workflow.ProcessDeploymentResultDto;
 import com.webank.wecube.platform.core.dto.workflow.TaskNodeDefBriefDto;
 import com.webank.wecube.platform.core.service.workflow.ProcessRoleServiceImpl;
 import com.webank.wecube.platform.core.service.workflow.WorkflowDataService;
@@ -63,16 +64,25 @@ public class WorkflowProcessDefinitionController {
     private ObjectMapper objectMapper = new ObjectMapper();
 
     @PostMapping("/process/definitions/deploy")
-    public CommonResponseDto deployProcessDefinition(@RequestBody ProcDefInfoDto requestDto, @RequestParam(value = "continue_token", required = false) String continueToken) {
+    public CommonResponseDto deployProcessDefinition(@RequestBody ProcDefInfoDto requestDto,
+            @RequestParam(value = "continue_token", required = false) String continueToken) {
         if (log.isDebugEnabled()) {
-            log.debug("deploy process:procDefKey={},procDefName={},rootEntity={}, continueToken={}", requestDto.getProcDefKey(),
-                    requestDto.getProcDefName(), requestDto.getRootEntity(), continueToken);
+            log.debug("deploy process:procDefKey={},procDefName={},rootEntity={}, continueToken={}",
+                    requestDto.getProcDefKey(), requestDto.getProcDefName(), requestDto.getRootEntity(), continueToken);
         }
 
-        //TODO 
-        //#2222
-        ProcDefOutlineDto result = procDefService.deployProcessDefinition(requestDto, continueToken);
-        return CommonResponseDto.okayWithData(result);
+        // #2222
+        ProcessDeploymentResultDto resultDto = procDefService.deployProcessDefinition(requestDto, continueToken);
+        if (resultDto.isConfirm()) {
+            CommonResponseDto respDto = new CommonResponseDto();
+            respDto.setStatus(resultDto.getStatus());
+            respDto.setData(resultDto.getContinueToken());
+            respDto.setMessage(resultDto.getMessage());
+
+            return respDto;
+        } else {
+            return CommonResponseDto.okayWithData(resultDto.getResult());
+        }
     }
 
     @PostMapping("/process/definitions/draft")
@@ -101,9 +111,10 @@ public class WorkflowProcessDefinitionController {
         List<Map<String, Object>> result = workflowDataService.getProcessDefinitionRootEntities(procDefId);
         return CommonResponseDto.okayWithData(result);
     }
-    
+
     @GetMapping("/process/definitions/process-keys/{proc-def-key}/root-entities")
-    public CommonResponseDto getProcessDefinitionRootEntitiesByProcDefKey(@PathVariable("proc-def-key") String procDefKey) {
+    public CommonResponseDto getProcessDefinitionRootEntitiesByProcDefKey(
+            @PathVariable("proc-def-key") String procDefKey) {
 
         List<Map<String, Object>> result = workflowDataService.getProcessDefinitionRootEntitiesByProcDefKey(procDefKey);
         return CommonResponseDto.okayWithData(result);
