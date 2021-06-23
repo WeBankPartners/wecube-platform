@@ -644,7 +644,7 @@ public class WorkflowProcDefService extends AbstractWorkflowProcDefService {
             return false;
         }
 
-        if (!Objects.equals(existingProcDef.getProcDefName(), procDefInfoDto.getProcDefKey())) {
+        if (!Objects.equals(existingProcDef.getProcDefName(), procDefInfoDto.getProcDefName())) {
             return false;
         }
 
