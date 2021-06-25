@@ -1149,6 +1149,7 @@ public class PluginConfigMgmtService extends AbstractPluginMgmtService {
         objectMetaDto.setPackageName(objectMeta.getPackageName());
         objectMetaDto.setSource(objectMeta.getSource());
         objectMetaDto.setConfigId(objectMeta.getConfigId());
+        objectMetaDto.setMappingEntityExpression(objectMeta.getMapExpr());
 
         List<CoreObjectPropertyMeta> propertyMetas = objectMeta.getPropertyMetas();
         if (propertyMetas == null || propertyMetas.isEmpty()) {
