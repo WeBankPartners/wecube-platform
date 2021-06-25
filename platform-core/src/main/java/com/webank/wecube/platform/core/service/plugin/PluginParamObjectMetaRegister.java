@@ -67,6 +67,15 @@ public class PluginParamObjectMetaRegister extends AbstractPluginParamObjectServ
 
     private void tryUpdateSingleParamObject(ParamObjectType xmlParamObject, String packageName, String packageVersion,
             CoreObjectMeta objectMetaEntity) {
+        if(StringUtils.isNoneBlank(xmlParamObject.getMapExpr())){
+            if(!xmlParamObject.getMapExpr().equals(objectMetaEntity.getMapExpr())){
+                objectMetaEntity.setMapExpr(xmlParamObject.getMapExpr());
+                objectMetaEntity.setUpdatedBy(AuthenticationContextHolder.getCurrentUsername());
+                objectMetaEntity.setUpdatedTime(new Date());
+                
+                coreObjectMetaMapper.updateByPrimaryKeySelective(objectMetaEntity);
+            }
+        }
         List<ParamPropertyType> xmlPropertyList = xmlParamObject.getProperty();
         if (xmlPropertyList == null) {
             return;
@@ -135,6 +144,7 @@ public class PluginParamObjectMetaRegister extends AbstractPluginParamObjectServ
         objectMetaEntity.setName(paramObjectName);
         objectMetaEntity.setSource(packageVersion);
         objectMetaEntity.setConfigId(configId);
+        objectMetaEntity.setMapExpr(xmlParamObject.getMapExpr());
 
         log.info("there is not param object {} existed and try to create one.", paramObjectName);
         coreObjectMetaMapper.insert(objectMetaEntity);
