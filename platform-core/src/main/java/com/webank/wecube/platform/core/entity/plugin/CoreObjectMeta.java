@@ -28,6 +28,8 @@ public class CoreObjectMeta {
     private Date updatedTime;
     
     private String configId;
+    
+    private String mapExpr;
 
     @JsonIgnore
     private transient List<CoreObjectPropertyMeta> propertyMetas = new ArrayList<>();
@@ -143,6 +145,14 @@ public class CoreObjectMeta {
 
     public void setConfigId(String configId) {
         this.configId = configId;
+    }
+
+    public String getMapExpr() {
+        return mapExpr;
+    }
+
+    public void setMapExpr(String mapExpr) {
+        this.mapExpr = mapExpr;
     }
     
     

@@ -142,6 +142,7 @@
       <xs:element type="paramPropertyType" name="property" minOccurs="0" maxOccurs="unbounded"/>
     </xs:sequence>
     <xs:attribute type="xs:string" name="name" use="required"/>
+    <xs:attribute type="xs:string" name="mapExpr" use="optional"/>
   </xs:complexType>
   
   <xs:complexType name="paramObjectsType">
@@ -160,6 +161,8 @@
         <xs:attribute type="xs:string" name="mappingEntityExpression" use="optional"/>
         <xs:attribute type="xs:string" name="sensitiveData" use="optional" default="N"/>
         <xs:attribute type="xs:string" name="description" use="optional"/>
+        <xs:attribute type="xs:string" name="refType" use="optional"/>
+        <xs:attribute type="xs:string" name="refName" use="optional"/>
       </xs:extension>
     </xs:simpleContent>
   </xs:complexType>
