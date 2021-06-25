@@ -141,6 +141,8 @@ public class PluginParamObjectMetaStorage extends AbstractPluginParamObjectServi
             coreObjectMeta.setLatestSource(coreObjectMetaDto.getLatestSource());
             coreObjectMeta.setName(coreObjectMetaDto.getName());
             coreObjectMeta.setPackageName(coreObjectMetaDto.getPackageName());
+            coreObjectMeta.setMapExpr(coreObjectMetaDto.getMappingEntityExpression());
+            
             coreObjectMetaMapper.insert(coreObjectMeta);
         }
 
@@ -200,6 +202,11 @@ public class PluginParamObjectMetaStorage extends AbstractPluginParamObjectServi
         if (coreObjectMeta == null) {
             throw new WecubeCoreException("Such object meta does not exist with ID:" + coreObjectMetaDto.getId());
         }
+        
+        coreObjectMeta.setMapExpr(coreObjectMetaDto.getMappingEntityExpression());
+        coreObjectMeta.setUpdatedBy(AuthenticationContextHolder.getCurrentUsername());
+        coreObjectMeta.setUpdatedTime(new Date());
+        coreObjectMetaMapper.updateByPrimaryKeySelective(coreObjectMeta);
 
         List<CoreObjectPropertyMetaDto> propertyMetaDtos = coreObjectMetaDto.getPropertyMetas();
         if (propertyMetaDtos == null || propertyMetaDtos.isEmpty()) {
