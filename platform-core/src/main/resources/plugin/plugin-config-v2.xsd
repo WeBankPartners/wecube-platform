@@ -179,6 +179,8 @@
         <xs:attribute type="xs:string" name="mappingEntityExpression" use="optional"/>
         <xs:attribute type="xs:string" name="sensitiveData" use="optional" default="N"/>
         <xs:attribute type="xs:string" name="description" use="optional"/>
+        <xs:attribute type="xs:string" name="refType" use="optional"/>
+        <xs:attribute type="xs:string" name="refName" use="optional"/>
       </xs:extension>
     </xs:simpleContent>
   </xs:complexType>
