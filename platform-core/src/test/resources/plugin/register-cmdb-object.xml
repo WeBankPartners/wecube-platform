@@ -151,8 +151,8 @@
             <interface action="create" path="/k8s/service/create"
                 filterRule="">
                 <inputParameters>
-                    <parameter datatype="list" required="Y" refType="object" refName="k8sObjD"
-                        sensitiveData="N" mappingType="constant">entity-name
+                    <parameter datatype="list" required="Y"
+                        sensitiveData="N" mappingEntityExpression='k8sObjA'>entity-name
                     </parameter>
                     <parameter datatype="object" required="Y"
                         sensitiveData="N" mappingType="object"
