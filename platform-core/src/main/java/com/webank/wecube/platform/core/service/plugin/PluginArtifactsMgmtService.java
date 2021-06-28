@@ -942,8 +942,6 @@ public class PluginArtifactsMgmtService extends AbstractPluginMgmtService {
             paramEntity.setDescription(xmlParameter.getDescription());
             paramEntity.setPluginConfigInterface(intfEntity);
             paramEntity.setPluginConfigInterfaceId(intfEntity.getId());
-            paramEntity.setRefType(xmlParameter.getRefType());
-            paramEntity.setRefName(xmlParameter.getRefName());
 
             String sensitiveData = xmlParameter.getSensitiveData();
             if (StringUtils.isBlank(sensitiveData)) {
@@ -980,8 +978,6 @@ public class PluginArtifactsMgmtService extends AbstractPluginMgmtService {
             paramEntity.setPluginConfigInterface(intfEntity);
             paramEntity.setPluginConfigInterfaceId(intfEntity.getId());
             paramEntity.setDescription(xmlParameter.getDescription());
-            paramEntity.setRefType(xmlParameter.getRefType());
-            paramEntity.setRefName(xmlParameter.getRefName());
             String required = xmlParameter.getRequired();
             if (StringUtils.isBlank(required)) {
                 required = DEFAULT_REQUIRED;

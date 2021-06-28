@@ -397,6 +397,7 @@ public class PluginConfigMgmtService extends AbstractPluginMgmtService {
     }
 
     protected CoreObjectMeta tryFetchEnrichCoreObjectMeta(PluginConfigInterfaceParameters param) {
+
         PluginConfigInterfaces intfDef = param.getPluginConfigInterface();
         if (intfDef == null) {
             log.debug("Cannot find plugin config interface for {}", param.getId());
@@ -990,8 +991,9 @@ public class PluginConfigMgmtService extends AbstractPluginMgmtService {
                         PluginConfigInterfaceParameters.TYPE_INPUT, paramDto, pluginPackage, pluginConfig, intfEntity);
                 inputParamEntities.add(inputParamEntity);
 
-                if(paramDto.getRefObjectMeta() != null){
-                    CoreObjectMeta refCoreObjectMeta = tryCreateObjectMetaByConfig(paramDto, pluginConfig, pluginPackage);
+                if (paramDto.getRefObjectMeta() != null) {
+                    CoreObjectMeta refCoreObjectMeta = tryCreateObjectMetaByConfig(paramDto, pluginConfig,
+                            pluginPackage);
                     inputParamEntity.setObjectMeta(refCoreObjectMeta);
                 }
             }
@@ -1007,8 +1009,9 @@ public class PluginConfigMgmtService extends AbstractPluginMgmtService {
                 PluginConfigInterfaceParameters outputParamEntity = buildPluginConfigInterfaceParameters(
                         PluginConfigInterfaceParameters.TYPE_OUTPUT, paramDto, pluginPackage, pluginConfig, intfEntity);
                 outputParamEntities.add(outputParamEntity);
-                if(paramDto.getRefObjectMeta() != null){
-                    CoreObjectMeta refCoreObjectMeta = tryCreateObjectMetaByConfig(paramDto, pluginConfig, pluginPackage);
+                if (paramDto.getRefObjectMeta() != null) {
+                    CoreObjectMeta refCoreObjectMeta = tryCreateObjectMetaByConfig(paramDto, pluginConfig,
+                            pluginPackage);
                     outputParamEntity.setObjectMeta(refCoreObjectMeta);
                 }
             }
@@ -1027,8 +1030,8 @@ public class PluginConfigMgmtService extends AbstractPluginMgmtService {
         }
 
         pluginParamObjectMetaStorage.updateOrCreateObjectMeta(refObjectMetaDto, pluginConfig.getId());
-        CoreObjectMeta refCoreObjectMeta = pluginParamObjectMetaStorage.fetchAssembledCoreObjectMeta(refObjectMetaDto.getPackageName(),
-                refObjectMetaDto.getName(), pluginConfig.getId());
+        CoreObjectMeta refCoreObjectMeta = pluginParamObjectMetaStorage.fetchAssembledCoreObjectMeta(
+                refObjectMetaDto.getPackageName(), refObjectMetaDto.getName(), pluginConfig.getId());
         return refCoreObjectMeta;
 
     }
@@ -1436,6 +1439,14 @@ public class PluginConfigMgmtService extends AbstractPluginMgmtService {
         return resultIntfDtos;
     }
 
+    private boolean isObjectParameter(PluginConfigInterfaceParameters paramEntity) {
+        if (PluginConfigInterfaceParameters.DATA_TYPE_OBJECT.equals(paramEntity.getMappingType())) {
+            return true;
+        }
+
+        return false;
+    }
+
     private PluginConfigInterfaces convertToPluginConfigInterfaces(AuthLatestEnabledInterfaces intf) {
         PluginConfigInterfaces e = new PluginConfigInterfaces();
         e.setAction(intf.getAction());
@@ -1464,7 +1475,7 @@ public class PluginConfigMgmtService extends AbstractPluginMgmtService {
         if (inputParameters != null) {
             for (PluginConfigInterfaceParameters paramEntity : inputParameters) {
                 paramEntity.setPluginConfigInterface(e);
-                if (PluginConfigInterfaceParameters.DATA_TYPE_OBJECT.equals(paramEntity.getMappingType())) {
+                if (isObjectParameter(paramEntity)) {
                     CoreObjectMeta objectMeta = tryFetchEnrichCoreObjectMeta(paramEntity);
                     paramEntity.setObjectMeta(objectMeta);
                 }
@@ -1476,7 +1487,7 @@ public class PluginConfigMgmtService extends AbstractPluginMgmtService {
         if (outputParameters != null) {
             for (PluginConfigInterfaceParameters paramEntity : outputParameters) {
                 paramEntity.setPluginConfigInterface(e);
-                if (PluginConfigInterfaceParameters.DATA_TYPE_OBJECT.equals(paramEntity.getMappingType())) {
+                if (isObjectParameter(paramEntity)) {
                     CoreObjectMeta objectMeta = tryFetchEnrichCoreObjectMeta(paramEntity);
                     paramEntity.setObjectMeta(objectMeta);
                 }

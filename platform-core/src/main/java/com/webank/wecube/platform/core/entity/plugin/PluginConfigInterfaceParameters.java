@@ -33,10 +33,6 @@ public class PluginConfigInterfaceParameters {
 
     private String description;
 
-    private String refType;
-
-    private String refName;
-
     private transient PluginConfigInterfaces pluginConfigInterface;
 
     private transient CoreObjectMeta objectMeta;
@@ -144,21 +140,4 @@ public class PluginConfigInterfaceParameters {
     public void setDescription(String description) {
         this.description = description;
     }
-
-    public String getRefType() {
-        return refType;
-    }
-
-    public void setRefType(String refType) {
-        this.refType = refType;
-    }
-
-    public String getRefName() {
-        return refName;
-    }
-
-    public void setRefName(String refName) {
-        this.refName = refName;
-    }
-
 }

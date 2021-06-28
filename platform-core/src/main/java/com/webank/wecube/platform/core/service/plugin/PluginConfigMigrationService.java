@@ -1218,7 +1218,7 @@ public class PluginConfigMigrationService {
         param.setMappingSystemVariableName(xmlInputParam.getMappingSystemVariableName());
         param.setMappingType(xmlInputParam.getMappingType());
         param.setSensitiveData(xmlInputParam.getSensitiveData());
-
+        
         if (defInputParam == null) {
             param.setRequired(Constants.FIELD_NOT_REQUIRED);
         } else {
@@ -1244,7 +1244,7 @@ public class PluginConfigMigrationService {
         param.setMappingType(xmlOutputParam.getMappingType());
         param.setSensitiveData(xmlOutputParam.getSensitiveData());
         param.setMappingSystemVariableName(xmlOutputParam.getMappingSystemVariableName());
-
+        
         pluginConfigInterfaceParametersMapper.insert(param);
 
         return param;

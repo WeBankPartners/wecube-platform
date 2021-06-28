@@ -24,7 +24,7 @@ public class PluginConfigInputParameterType {
     protected String required;
     @XmlAttribute(name = "sensitiveData")
     protected String sensitiveData;
-    
+
     @XmlAttribute(name = "description")
     protected String description;
 
@@ -91,5 +91,4 @@ public class PluginConfigInputParameterType {
     public void setDescription(String description) {
         this.description = description;
     }
-    
 }
