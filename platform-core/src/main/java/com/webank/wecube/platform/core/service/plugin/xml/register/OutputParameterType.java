@@ -54,12 +54,6 @@ public class OutputParameterType {
     @XmlAttribute(name = "description")
     protected String description;
 
-    @XmlAttribute(name = "refType")
-    protected String refType;
-
-    @XmlAttribute(name = "refName")
-    protected String refName;
-
     /**
      * Gets the value of the value property.
      * 
@@ -176,21 +170,4 @@ public class OutputParameterType {
     public void setDescription(String description) {
         this.description = description;
     }
-
-    public String getRefType() {
-        return refType;
-    }
-
-    public void setRefType(String refType) {
-        this.refType = refType;
-    }
-
-    public String getRefName() {
-        return refName;
-    }
-
-    public void setRefName(String refName) {
-        this.refName = refName;
-    }
-
 }
