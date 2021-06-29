@@ -1319,6 +1319,8 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
                     handleConstantMapping(mappingType, taskNodeDefEntity, paramName, objectVals, isFieldRequired);
                 }
 
+                //#2226
+                //TODO
                 if (MAPPING_TYPE_OBJECT.equals(mappingType)) {
                     handleObjectMapping(mappingType, param, entityDataId, objectVals, externalCacheMap,
                             procDefInfoEntity, procInstEntity, nodeObjectBinding.getFullEntityDataId(),
@@ -1341,6 +1343,8 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
             List<Object> objectVals, Map<Object, Object> cacheMap, ProcDefInfoEntity procDefInfo,
             ProcInstInfoEntity procInstInfo, String rootEntityFullDataId, String rootEntityTypeId,
             TaskNodeDefInfoEntity taskNodeDefInfo, TaskNodeInstInfoEntity taskNodeInstInfo) {
+        //TODO 
+        //#2226
         if (!MAPPING_TYPE_OBJECT.equals(mappingType)) {
             return;
         }

@@ -70,12 +70,40 @@ public class PluginParamObjectVarCalculator extends AbstractPluginParamObjectSer
      * @param ctx
      * @return
      */
+    public List<CoreObjectVar> calculateCoreObjectVarList(CoreObjectMeta objectMeta,
+            CoreObjectVarCalculationContext ctx) {
+
+        List<CoreObjectVar> rootObjectVars = doCalculateCoreObjectVarList(objectMeta, null, ctx);
+
+        if (rootObjectVars != null) {
+            for (CoreObjectVar rootObjectVar : rootObjectVars) {
+                pluginParamObjectVarStorageService.storeCoreObjectVar(rootObjectVar);
+            }
+
+        }
+
+        return rootObjectVars;
+
+    }
+
+    /**
+     * 
+     * @param objectMeta
+     * @param ctx
+     * @return
+     */
     public CoreObjectVar calculateCoreObjectVar(CoreObjectMeta objectMeta, CoreObjectVarCalculationContext ctx) {
 
         CoreObjectVar rootObjectVar = doCalculateCoreObjectVar(objectMeta, null, ctx);
 
         pluginParamObjectVarStorageService.storeCoreObjectVar(rootObjectVar);
         return rootObjectVar;
+    }
+
+    private List<CoreObjectVar> doCalculateCoreObjectVarList(CoreObjectMeta objectMeta, CoreObjectVar parentObjectVar,
+            CoreObjectVarCalculationContext ctx) {
+        // TODO
+        return null;
     }
 
     private CoreObjectVar doCalculateCoreObjectVar(CoreObjectMeta objectMeta, CoreObjectVar parentObjectVar,

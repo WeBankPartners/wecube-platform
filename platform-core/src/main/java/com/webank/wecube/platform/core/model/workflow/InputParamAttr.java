@@ -66,6 +66,8 @@ public class InputParamAttr {
     }
 
     public Object getExpectedValue() {
+        //TODO
+        //#2226
         if (values == null || values.isEmpty()) {
             return determineEmptyValue();
         }
