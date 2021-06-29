@@ -2032,6 +2032,8 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
             return null;
         }
 
+        //TODO
+        //#2226
         String dataValue = attr.getExpectedValue().toString();
         if (attr.isSensitive()) {
             dataValue = tryEncodeParamDataValue(dataValue);
