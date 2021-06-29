@@ -7,6 +7,7 @@ public class InputParamAttr {
 
     public static final String DATA_TYPE_STRING = "string";
     public static final String DATA_TYPE_NUMBER = "number";
+    public static final String DATA_TYPE_LIST = "list";
 
     public static final String DEFAULT_VALUE_DATA_TYPE_STRING = "";
     public static final int DEFAULT_VALUE_DATA_TYPE_NUMBER = 0;
@@ -66,10 +67,13 @@ public class InputParamAttr {
     }
 
     public Object getExpectedValue() {
-        //TODO
         //#2226
         if (values == null || values.isEmpty()) {
             return determineEmptyValue();
+        }
+        
+        if(DATA_TYPE_LIST.equalsIgnoreCase(type)){
+            return values;
         }
 
         if (values.size() == 1) {
