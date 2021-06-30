@@ -186,6 +186,7 @@ public class PluginConfigMgmtService extends AbstractPluginMgmtService {
                 configParamDto.setRequired(paramDto.getRequired());
                 configParamDto.setSensitiveData(paramDto.getSensitiveData());
                 configParamDto.setType(paramDto.getType());
+                configParamDto.setMappingValue(paramDto.getMappingValue());
 
                 intfDto.addConfigurableInputParameter(configParamDto);
             } else {
@@ -369,7 +370,7 @@ public class PluginConfigMgmtService extends AbstractPluginMgmtService {
                 inputParam.setPluginConfigInterface(intfEntity);
                 intfEntity.addInputParameters(inputParam);
 
-                if (PluginConfigInterfaceParameters.DATA_TYPE_OBJECT.equals(inputParam.getMappingType())) {
+                if (Constants.DATA_TYPE_OBJECT.equals(inputParam.getMappingType())) {
                     CoreObjectMeta objectMeta = tryFetchEnrichCoreObjectMeta(inputParam);
                     inputParam.setObjectMeta(objectMeta);
                 }
@@ -386,7 +387,7 @@ public class PluginConfigMgmtService extends AbstractPluginMgmtService {
                 outputParam.setPluginConfigInterface(intfEntity);
                 intfEntity.addOutputParameters(outputParam);
 
-                if (PluginConfigInterfaceParameters.DATA_TYPE_OBJECT.equals(outputParam.getMappingType())) {
+                if (Constants.DATA_TYPE_OBJECT.equals(outputParam.getMappingType())) {
                     CoreObjectMeta objectMeta = tryFetchEnrichCoreObjectMeta(outputParam);
                     outputParam.setObjectMeta(objectMeta);
                 }
@@ -1056,6 +1057,7 @@ public class PluginConfigMgmtService extends AbstractPluginMgmtService {
         paramEntity.setRequired(paramDto.getRequired());
 
         paramEntity.setSensitiveData(paramDto.getSensitiveData());
+        paramEntity.setMappingValue(paramDto.getMappingValue());
 
         pluginConfigInterfaceParametersMapper.updateByPrimaryKey(paramEntity);
 
@@ -1079,6 +1081,7 @@ public class PluginConfigMgmtService extends AbstractPluginMgmtService {
 
         paramEntity.setSensitiveData(paramDto.getSensitiveData());
         paramEntity.setDescription(paramDto.getDescription());
+        paramEntity.setMappingValue(paramDto.getMappingValue());
 
         pluginConfigInterfaceParametersMapper.insert(paramEntity);
 
@@ -1230,6 +1233,7 @@ public class PluginConfigMgmtService extends AbstractPluginMgmtService {
         dto.setRequired(entity.getRequired());
         dto.setSensitiveData(entity.getSensitiveData());
         dto.setDescription(entity.getDescription());
+        dto.setMappingValue(entity.getMappingValue());
         return dto;
     }
 
@@ -1440,7 +1444,7 @@ public class PluginConfigMgmtService extends AbstractPluginMgmtService {
     }
 
     private boolean isObjectParameter(PluginConfigInterfaceParameters paramEntity) {
-        if (PluginConfigInterfaceParameters.DATA_TYPE_OBJECT.equals(paramEntity.getMappingType())) {
+        if (Constants.DATA_TYPE_OBJECT.equals(paramEntity.getMappingType())) {
             return true;
         }
 

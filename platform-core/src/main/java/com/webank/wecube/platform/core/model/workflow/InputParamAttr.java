@@ -14,7 +14,7 @@ public class InputParamAttr {
 
     private String name;
     private String type; // string, number, object
-    private String mapType; // entity, context, constant
+    private String mapType; // entity, context, constant, object
     private List<Object> values = new ArrayList<>();
     private boolean sensitive;
 
@@ -83,6 +83,7 @@ public class InputParamAttr {
             }
             
             if(DATA_TYPE_STRING.equalsIgnoreCase(type)) {
+                //TODO
                 return String.valueOf(val);
             }
             
@@ -108,6 +109,7 @@ public class InputParamAttr {
                 isFirst = false;
             }
 
+            //TODO
             sb.append(dv == null ? "" : dv);
         }
 
@@ -138,12 +140,14 @@ public class InputParamAttr {
             if (v == null) {
                 return String.valueOf(determineEmptyValue());
             }
+            //TODO
             return String.valueOf(v);
         }
 
         StringBuilder sb = new StringBuilder();
         for (Object v : values) {
 
+            //TODO
             sb.append(v == null ? String.valueOf(determineEmptyValue()) : String.valueOf(v)).append(",");
         }
 

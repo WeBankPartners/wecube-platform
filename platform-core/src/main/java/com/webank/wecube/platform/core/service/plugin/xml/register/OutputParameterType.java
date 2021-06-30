@@ -54,6 +54,9 @@ public class OutputParameterType {
     @XmlAttribute(name = "description")
     protected String description;
 
+    @XmlAttribute(name = "mappingValue")
+    protected String mappingValue;
+
     /**
      * Gets the value of the value property.
      * 
@@ -170,4 +173,13 @@ public class OutputParameterType {
     public void setDescription(String description) {
         this.description = description;
     }
+
+    public String getMappingValue() {
+        return mappingValue;
+    }
+
+    public void setMappingValue(String mappingValue) {
+        this.mappingValue = mappingValue;
+    }
+
 }

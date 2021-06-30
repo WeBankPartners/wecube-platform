@@ -940,6 +940,7 @@ public class PluginArtifactsMgmtService extends AbstractPluginMgmtService {
             paramEntity.setMappingType(xmlParameter.getMappingType());
             paramEntity.setName(xmlParameter.getValue());
             paramEntity.setDescription(xmlParameter.getDescription());
+            paramEntity.setMappingValue(xmlParameter.getMappingValue());
             paramEntity.setPluginConfigInterface(intfEntity);
             paramEntity.setPluginConfigInterfaceId(intfEntity.getId());
 
@@ -978,6 +979,7 @@ public class PluginArtifactsMgmtService extends AbstractPluginMgmtService {
             paramEntity.setPluginConfigInterface(intfEntity);
             paramEntity.setPluginConfigInterfaceId(intfEntity.getId());
             paramEntity.setDescription(xmlParameter.getDescription());
+            paramEntity.setMappingValue(xmlParameter.getMappingValue());
             String required = xmlParameter.getRequired();
             if (StringUtils.isBlank(required)) {
                 required = DEFAULT_REQUIRED;
