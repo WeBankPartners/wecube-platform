@@ -363,6 +363,7 @@ public class PluginConfigMigrationService {
         xmlParam.setSensitiveData(outputParameter.getSensitiveData());
         xmlParam.setDescription(outputParameter.getDescription());
         xmlParam.setMappingSystemVariableName(outputParameter.getMappingSystemVariableName());
+        xmlParam.setMappingValue(outputParameter.getMappingValue());
 
         return xmlParam;
     }
@@ -553,6 +554,7 @@ public class PluginConfigMigrationService {
         param.setSensitiveData(xmlParam.getSensitiveData());
         param.setMappingEntityExpression(xmlParam.getMappingEntityExpression());
         param.setMappingSystemVariableName(xmlParam.getMappingSystemVariableName());
+        param.setMappingValue(xmlParam.getMappingValue());
 
         pluginConfigInterfaceParametersMapper.updateByPrimaryKeySelective(param);
 
@@ -569,6 +571,7 @@ public class PluginConfigMigrationService {
         param.setSensitiveData(xmlParam.getSensitiveData());
         param.setMappingEntityExpression(xmlParam.getMappingEntityExpression());
         param.setMappingSystemVariableName(xmlParam.getMappingSystemVariableName());
+        param.setMappingValue(xmlParam.getMappingValue());
 
         pluginConfigInterfaceParametersMapper.updateByPrimaryKeySelective(param);
         return param;
@@ -1218,6 +1221,7 @@ public class PluginConfigMigrationService {
         param.setMappingSystemVariableName(xmlInputParam.getMappingSystemVariableName());
         param.setMappingType(xmlInputParam.getMappingType());
         param.setSensitiveData(xmlInputParam.getSensitiveData());
+        param.setMappingValue(xmlInputParam.getMappingValue());
         
         if (defInputParam == null) {
             param.setRequired(Constants.FIELD_NOT_REQUIRED);
@@ -1244,6 +1248,7 @@ public class PluginConfigMigrationService {
         param.setMappingType(xmlOutputParam.getMappingType());
         param.setSensitiveData(xmlOutputParam.getSensitiveData());
         param.setMappingSystemVariableName(xmlOutputParam.getMappingSystemVariableName());
+        param.setMappingValue(xmlOutputParam.getMappingValue());
         
         pluginConfigInterfaceParametersMapper.insert(param);
 

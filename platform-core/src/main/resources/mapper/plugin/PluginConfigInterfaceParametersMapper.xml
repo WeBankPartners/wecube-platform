@@ -21,12 +21,22 @@
             jdbcType="VARCHAR" />
         <result column="description" property="description"
             jdbcType="VARCHAR" />
+        <result column="mapping_val" property="mappingValue"
+            jdbcType="VARCHAR" />
     </resultMap>
     <sql id="Base_Column_List">
-        id, plugin_config_interface_id, type, name, data_type,
+        id, 
+        plugin_config_interface_id, 
+        type, 
+        name, 
+        data_type,
         mapping_type,
         mapping_entity_expression,
-        mapping_system_variable_name, required, sensitive_data,description
+        mapping_system_variable_name, 
+        required, 
+        sensitive_data,
+        description,
+        mapping_val
     </sql>
     <select id="selectByPrimaryKey" resultMap="BaseResultMap"
         parameterType="java.lang.String">
@@ -45,23 +55,35 @@
     <insert id="insert"
         parameterType="com.webank.wecube.platform.core.entity.plugin.PluginConfigInterfaceParameters">
         insert into plugin_config_interface_parameters
-        (id,
-        plugin_config_interface_id, type,
-        name, data_type,
+        (
+        id,
+        plugin_config_interface_id, 
+        type,
+        name, 
+        data_type,
         mapping_type,
         mapping_entity_expression,
         mapping_system_variable_name,
-        required, sensitive_data,description)
+        required, 
+        sensitive_data,
+        description,
+        mapping_val
+        )
         values
-        (#{id,jdbcType=VARCHAR},
+        (
+        #{id,jdbcType=VARCHAR},
         #{pluginConfigInterfaceId,jdbcType=VARCHAR},
         #{type,jdbcType=VARCHAR},
         #{name,jdbcType=VARCHAR},
-        #{dataType,jdbcType=VARCHAR}, #{mappingType,jdbcType=VARCHAR},
+        #{dataType,jdbcType=VARCHAR}, 
+        #{mappingType,jdbcType=VARCHAR},
         #{mappingEntityExpression,jdbcType=VARCHAR},
         #{mappingSystemVariableName,jdbcType=VARCHAR},
-        #{required,jdbcType=VARCHAR}, #{sensitiveData,jdbcType=VARCHAR},
-        #{description,jdbcType=VARCHAR})
+        #{required,jdbcType=VARCHAR}, 
+        #{sensitiveData,jdbcType=VARCHAR},
+        #{description,jdbcType=VARCHAR},
+        #{mappingValue,jdbcType=VARCHAR}
+        )
     </insert>
     <insert id="insertSelective"
         parameterType="com.webank.wecube.platform.core.entity.plugin.PluginConfigInterfaceParameters">
@@ -97,8 +119,11 @@
             <if test="sensitiveData != null">
                 sensitive_data,
             </if>
-             <if test="description != null">
+            <if test="description != null">
                 description,
+            </if>
+            <if test="mappingValue != null">
+                mapping_val,
             </if>
         </trim>
         <trim prefix="values (" suffix=")" suffixOverrides=",">
@@ -134,6 +159,9 @@
             </if>
             <if test="description != null">
                 #{description,jdbcType=VARCHAR},
+            </if>
+            <if test="mappingValue != null">
+                #{mappingValue,jdbcType=VARCHAR},
             </if>
         </trim>
     </insert>
@@ -176,6 +204,10 @@
                 description =
                 #{description,jdbcType=VARCHAR},
             </if>
+            <if test="mappingValue != null">
+                mapping_val =
+                #{mappingValue,jdbcType=VARCHAR},
+            </if>
         </set>
         where id = #{id,jdbcType=VARCHAR}
     </update>
@@ -200,7 +232,9 @@
         sensitive_data =
         #{sensitiveData,jdbcType=VARCHAR},
         description =
-        #{description,jdbcType=VARCHAR}
+        #{description,jdbcType=VARCHAR},
+        mapping_val =
+        #{mappingValue,jdbcType=VARCHAR}
         where id =
         #{id,jdbcType=VARCHAR}
     </update>
