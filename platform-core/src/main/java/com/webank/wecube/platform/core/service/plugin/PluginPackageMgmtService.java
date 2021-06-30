@@ -798,6 +798,8 @@ public class PluginPackageMgmtService extends AbstractPluginMgmtService {
         dto.setSensitiveData(entity.getSensitiveData());
         
         dto.setDescription(entity.getDescription());
+        dto.setMappingValue(entity.getMappingValue());
+        
         return dto;
     }
 
