@@ -2301,7 +2301,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
             if (Constants.MAPPING_TYPE_ENTITY.equalsIgnoreCase(pciParam.getMappingType())) {
                 retVal = outputParameterMap.get(paramName);
             } else if (Constants.MAPPING_TYPE_ASSIGN.equalsIgnoreCase(pciParam.getMappingType())) {
-                retVal = pciParam.getMappingSystemVariableName();
+                retVal = pciParam.getMappingValue();
             }
 
             if (retVal == null) {
@@ -2415,7 +2415,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
             if (Constants.MAPPING_TYPE_ENTITY.equalsIgnoreCase(pciParam.getMappingType())) {
                 retVal = outputParameterMap.get(paramName);
             } else if (Constants.MAPPING_TYPE_ASSIGN.equalsIgnoreCase(pciParam.getMappingType())) {
-                retVal = pciParam.getMappingSystemVariableName();
+                retVal = pciParam.getMappingValue();
             }
 
             if (retVal == null) {

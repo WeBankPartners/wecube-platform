@@ -378,6 +378,7 @@ public class PluginConfigMigrationService {
         xmlParam.setSensitiveData(inputParameter.getSensitiveData());
         xmlParam.setValue(inputParameter.getName());
         xmlParam.setDescription(inputParameter.getDescription());
+        xmlParam.setMappingValue(inputParameter.getMappingValue());
 
         return xmlParam;
     }
