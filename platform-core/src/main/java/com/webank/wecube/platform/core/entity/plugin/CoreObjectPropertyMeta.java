@@ -28,7 +28,7 @@ public class CoreObjectPropertyMeta {
 
     private String mapType;
 
-    private String mapExpr;// entity,systemVariable
+    private String mapExpr;// entity,systemVariable, constant
 
     private String objectMetaId;
 
