@@ -1360,6 +1360,8 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
         calCtx.setTaskNodeInstInfo(taskNodeInstInfo);
 
         CoreObjectMeta objectMeta = param.getObjectMeta();
+        
+        //TODO
         CoreObjectVar objectVar = pluginParamObjectVarCalculator.calculateCoreObjectVar(objectMeta, calCtx);
 
         PluginParamObject paramObject = pluginParamObjectVarAssembleService.marshalPluginParamObject(objectVar, calCtx);
