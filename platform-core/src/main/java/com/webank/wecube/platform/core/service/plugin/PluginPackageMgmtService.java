@@ -72,6 +72,7 @@ import com.webank.wecube.platform.core.service.user.RoleMenuService;
 import com.webank.wecube.platform.core.support.authserver.AsAuthorityDto;
 import com.webank.wecube.platform.core.support.authserver.AsRoleAuthoritiesDto;
 import com.webank.wecube.platform.core.utils.CollectionUtils;
+import com.webank.wecube.platform.core.utils.Constants;
 import com.webank.wecube.platform.core.utils.DateUtils;
 import com.webank.wecube.platform.core.utils.StringUtilsEx;
 import com.webank.wecube.platform.core.utils.SystemUtils;
@@ -752,7 +753,7 @@ public class PluginPackageMgmtService extends AbstractPluginMgmtService {
         resultDto.setDescription(intfEntity.getDescription());
 
         List<PluginConfigInterfaceParameters> inputParamEntities = this.pluginConfigInterfaceParametersMapper
-                .selectAllByConfigInterfaceAndParamType(intfEntity.getId(), PluginConfigInterfaceParameters.TYPE_INPUT);
+                .selectAllByConfigInterfaceAndParamType(intfEntity.getId(), Constants.TYPE_INPUT);
 
         if (inputParamEntities != null) {
             List<PluginConfigInterfaceParameterDto> inputParamDtos = new ArrayList<>();
@@ -767,7 +768,7 @@ public class PluginPackageMgmtService extends AbstractPluginMgmtService {
 
         List<PluginConfigInterfaceParameters> outputParamEntities = this.pluginConfigInterfaceParametersMapper
                 .selectAllByConfigInterfaceAndParamType(intfEntity.getId(),
-                        PluginConfigInterfaceParameters.TYPE_OUTPUT);
+                        Constants.TYPE_OUTPUT);
 
         if (outputParamEntities != null) {
             List<PluginConfigInterfaceParameterDto> outputParamDtos = new ArrayList<>();
