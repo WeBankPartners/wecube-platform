@@ -35,4 +35,10 @@ public class Constants {
 
     public static final String RESULT_CODE_OK = "0";
     public static final String RESULT_CODE_ERROR = "1";
+    
+    public static final String TYPE_INPUT = "INPUT";
+    public static final String TYPE_OUTPUT = "OUTPUT";
+    
+    public static final String MAPPING_TYPE_NOT_AVAILABLE = "N/A";
+    public static final String MAPPING_TYPE_CMDB_CI_TYPE = "CMDB_CI_TYPE";
 }
