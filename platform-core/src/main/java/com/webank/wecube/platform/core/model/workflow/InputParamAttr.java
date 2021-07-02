@@ -87,6 +87,7 @@ public class InputParamAttr {
                 return String.valueOf(val);
             }
             
+            //TODO omit plugin object id and name here once map
             return val;
         }
 
