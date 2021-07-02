@@ -1302,26 +1302,26 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
                 String mappingType = param.getMappingType();
                 inputAttr.setMapType(mappingType);
 
-                if (MAPPING_TYPE_ENTITY.equals(mappingType)) {
+                if (MAPPING_TYPE_ENTITY.equalsIgnoreCase(mappingType)) {
                     handleEntityMapping(mappingType, param, entityDataId, objectVals, externalCacheMap);
                 }
 
-                if (MAPPING_TYPE_CONTEXT.equals(mappingType)) {
+                if (MAPPING_TYPE_CONTEXT.equalsIgnoreCase(mappingType)) {
                     handleContextMapping(mappingType, taskNodeDefEntity, paramName, procInstEntity, param, paramType,
                             nodeObjectBinding, objectVals);
                 }
 
-                if (MAPPING_TYPE_SYSTEM_VARIABLE.equals(mappingType)) {
+                if (MAPPING_TYPE_SYSTEM_VARIABLE.equalsIgnoreCase(mappingType)) {
                     handleSystemMapping(mappingType, param, paramName, objectVals);
                 }
 
-                if (MAPPING_TYPE_CONSTANT.equals(mappingType)) {
+                if (MAPPING_TYPE_CONSTANT.equalsIgnoreCase(mappingType)) {
                     handleConstantMapping(mappingType, taskNodeDefEntity, paramName, objectVals, isFieldRequired);
                 }
 
                 //#2226
                 //TODO
-                if (MAPPING_TYPE_OBJECT.equals(mappingType)) {
+                if (MAPPING_TYPE_OBJECT.equalsIgnoreCase(mappingType)) {
                     handleObjectMapping(mappingType, param, entityDataId, objectVals, externalCacheMap,
                             procDefInfoEntity, procInstEntity, nodeObjectBinding.getFullEntityDataId(),
                             nodeObjectBinding.getEntityTypeId(), taskNodeDefEntity, taskNodeInstEntity);
