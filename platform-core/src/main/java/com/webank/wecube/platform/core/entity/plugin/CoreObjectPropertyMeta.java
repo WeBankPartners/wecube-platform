@@ -6,15 +6,6 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.webank.wecube.platform.core.utils.Constants;
 
 public class CoreObjectPropertyMeta {
-    // public static final String DATA_TYPE_STRING = "string";
-    // public static final String DATA_TYPE_NUMBER = "number";
-    // public static final String DATA_TYPE_LIST = "list";
-    // public static final String DATA_TYPE_OBJECT = "object";
-    //
-    // public static final String MAP_TYPE_ENTITY = "entity";
-    // public static final String MAP_TYPE_CONTEXT = "context";
-    // public static final String MAP_TYPE_CONSTANT = "constant";
-    // public static final String MAP_TYPE_SYSTEM_VARIABLE = "system_variable";
 
     private String id;
 
