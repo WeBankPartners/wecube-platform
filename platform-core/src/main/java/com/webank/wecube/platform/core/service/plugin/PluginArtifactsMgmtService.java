@@ -105,6 +105,7 @@ import com.webank.wecube.platform.core.service.plugin.xml.register.S3Type;
 import com.webank.wecube.platform.core.service.plugin.xml.register.SystemParameterType;
 import com.webank.wecube.platform.core.service.plugin.xml.register.SystemParametersType;
 import com.webank.wecube.platform.core.service.user.UserManagementService;
+import com.webank.wecube.platform.core.utils.Constants;
 import com.webank.wecube.platform.core.utils.JaxbUtils;
 import com.webank.wecube.platform.core.utils.SystemUtils;
 import com.webank.wecube.platform.workflow.commons.LocalIdGenerator;
@@ -949,7 +950,7 @@ public class PluginArtifactsMgmtService extends AbstractPluginMgmtService {
                 sensitiveData = DEFAULT_SENSITIVE_DATA;
             }
             paramEntity.setSensitiveData(sensitiveData);
-            paramEntity.setType(PluginConfigInterfaceParameters.TYPE_OUTPUT);
+            paramEntity.setType(Constants.TYPE_OUTPUT);
 
             pluginConfigInterfaceParameters.insert(paramEntity);
 
@@ -991,7 +992,7 @@ public class PluginArtifactsMgmtService extends AbstractPluginMgmtService {
                 sensitiveData = DEFAULT_SENSITIVE_DATA;
             }
             paramEntity.setSensitiveData(sensitiveData);
-            paramEntity.setType(PluginConfigInterfaceParameters.TYPE_INPUT);
+            paramEntity.setType(Constants.TYPE_INPUT);
 
             pluginConfigInterfaceParameters.insert(paramEntity);
 

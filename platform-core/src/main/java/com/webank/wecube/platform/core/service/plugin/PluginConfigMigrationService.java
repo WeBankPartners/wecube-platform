@@ -331,7 +331,7 @@ public class PluginConfigMigrationService {
         xmlIntf.setInputParameters(xmlInputParameters);
 
         List<PluginConfigInterfaceParameters> inputParameters = this.pluginConfigInterfaceParametersMapper
-                .selectAllByConfigInterfaceAndParamType(intf.getId(), PluginConfigInterfaceParameters.TYPE_INPUT);
+                .selectAllByConfigInterfaceAndParamType(intf.getId(), Constants.TYPE_INPUT);
         if (inputParameters != null) {
             for (PluginConfigInterfaceParameters inputParameter : inputParameters) {
                 PluginConfigInputParameterType xmlInputParameter = buildXmlInputParameter(inputParameter);
@@ -343,7 +343,7 @@ public class PluginConfigMigrationService {
         xmlIntf.setOutputParameters(xmlOutputParameters);
 
         List<PluginConfigInterfaceParameters> outputParameters = this.pluginConfigInterfaceParametersMapper
-                .selectAllByConfigInterfaceAndParamType(intf.getId(), PluginConfigInterfaceParameters.TYPE_OUTPUT);
+                .selectAllByConfigInterfaceAndParamType(intf.getId(), Constants.TYPE_OUTPUT);
         if (outputParameters != null) {
             for (PluginConfigInterfaceParameters outputParameter : outputParameters) {
                 PluginConfigOutputParameterType xmlOutputParameter = buildXmlOutputParameter(outputParameter);
@@ -486,7 +486,7 @@ public class PluginConfigMigrationService {
 
         List<PluginConfigInterfaceParameters> inputParameters = pluginConfigInterfaceParametersMapper
                 .selectAllByConfigInterfaceAndParamType(toUpdateIntf.getId(),
-                        PluginConfigInterfaceParameters.TYPE_INPUT);
+                        Constants.TYPE_INPUT);
 
         List<PluginConfigInterfaceParameters> toRemoveInputParams = tryPickoutInputParametersToRemove(inputParameters,
                 xmlInputParameters);
@@ -512,7 +512,7 @@ public class PluginConfigMigrationService {
         List<PluginConfigOutputParameterType> xmlOutputParameters = getXmlOutputParameters(xmlIntf);
         List<PluginConfigInterfaceParameters> outputParameters = pluginConfigInterfaceParametersMapper
                 .selectAllByConfigInterfaceAndParamType(toUpdateIntf.getId(),
-                        PluginConfigInterfaceParameters.TYPE_OUTPUT);
+                        Constants.TYPE_OUTPUT);
 
         List<PluginConfigInterfaceParameters> toRemoveOutputParams = tryPickoutOutputParametersToRemove(
                 outputParameters, xmlOutputParameters);
@@ -1136,7 +1136,7 @@ public class PluginConfigMigrationService {
         pluginConfigInterfacesMapper.insert(intf);
 
         List<PluginConfigInterfaceParameters> defInputParameters = pluginConfigInterfaceParametersMapper
-                .selectAllByConfigInterfaceAndParamType(defIntf.getId(), PluginConfigInterfaceParameters.TYPE_INPUT);
+                .selectAllByConfigInterfaceAndParamType(defIntf.getId(), Constants.TYPE_INPUT);
         PluginConfigInputParametersType xmlInputParametersType = xmlIntf.getInputParameters();
         List<PluginConfigInputParameterType> xmlInputParameters = null;
         if (xmlInputParametersType != null) {
@@ -1163,7 +1163,7 @@ public class PluginConfigMigrationService {
         intf.setInputParameters(inputParameters);
 
         List<PluginConfigInterfaceParameters> defOutputParameters = pluginConfigInterfaceParametersMapper
-                .selectAllByConfigInterfaceAndParamType(defIntf.getId(), PluginConfigInterfaceParameters.TYPE_OUTPUT);
+                .selectAllByConfigInterfaceAndParamType(defIntf.getId(), Constants.TYPE_OUTPUT);
         PluginConfigOutputParametersType xmlOutputParametersType = xmlIntf.getOutputParameters();
         List<PluginConfigOutputParameterType> xmlOutputParameters = null;
         if (xmlOutputParametersType != null) {
@@ -1215,7 +1215,7 @@ public class PluginConfigMigrationService {
         param.setId(LocalIdGenerator.generateId());
         param.setName(xmlInputParam.getValue());
         param.setDataType(xmlInputParam.getDatatype());
-        param.setType(PluginConfigInterfaceParameters.TYPE_INPUT);
+        param.setType(Constants.TYPE_INPUT);
         param.setPluginConfigInterfaceId(intf.getId());
         param.setDescription(xmlInputParam.getDescription());
         param.setMappingEntityExpression(xmlInputParam.getMappingEntityExpression());
@@ -1242,7 +1242,7 @@ public class PluginConfigMigrationService {
         param.setId(LocalIdGenerator.generateId());
         param.setName(xmlOutputParam.getValue());
         param.setDataType(xmlOutputParam.getDatatype());
-        param.setType(PluginConfigInterfaceParameters.TYPE_OUTPUT);
+        param.setType(Constants.TYPE_OUTPUT);
         param.setPluginConfigInterfaceId(intf.getId());
         param.setDescription(xmlOutputParam.getDescription());
         param.setMappingEntityExpression(xmlOutputParam.getMappingEntityExpression());

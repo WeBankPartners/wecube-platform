@@ -655,7 +655,7 @@ public class BatchExecutionService {
 
         List<PluginConfigInterfaceParameters> outputParameters = pluginConfigInterfaceParametersMapper
                 .selectAllByConfigInterfaceAndParamType(pluginConfigInterfaceEntity.getId(),
-                        PluginConfigInterfaceParameters.TYPE_OUTPUT);
+                        Constants.TYPE_OUTPUT);
 
 
         for (PluginConfigInterfaceParameters pciParam : outputParameters) {
