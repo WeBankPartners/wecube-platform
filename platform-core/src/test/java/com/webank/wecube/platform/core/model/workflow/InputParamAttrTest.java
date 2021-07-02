@@ -6,6 +6,8 @@ import org.assertj.core.util.Arrays;
 import org.junit.Assert;
 import org.junit.Test;
 
+import com.webank.wecube.platform.core.utils.Constants;
+
 
 public class InputParamAttrTest {
     
@@ -14,7 +16,7 @@ public class InputParamAttrTest {
         InputParamAttr attr = new InputParamAttr();
         attr.setMapType("entity");
         attr.setName("testAttr");
-        attr.setType(InputParamAttr.DATA_TYPE_STRING);
+        attr.setType(Constants.DATA_TYPE_STRING);
         
         attr.addValues(new ArrayList<Object>());
         
@@ -28,7 +30,7 @@ public class InputParamAttrTest {
         InputParamAttr attr = new InputParamAttr();
         attr.setMapType("entity");
         attr.setName("testAttr");
-        attr.setType(InputParamAttr.DATA_TYPE_STRING);
+        attr.setType(Constants.DATA_TYPE_STRING);
         
         attr.addValues(Arrays.asList(new String[]{"A"}));
         
@@ -43,7 +45,7 @@ public class InputParamAttrTest {
         InputParamAttr attr = new InputParamAttr();
         attr.setMapType("entity");
         attr.setName("testAttr");
-        attr.setType(InputParamAttr.DATA_TYPE_STRING);
+        attr.setType(Constants.DATA_TYPE_STRING);
         
         attr.addValues(Arrays.asList(new String[]{"A","B"}));
         attr.addValueObjects((String)null);
@@ -59,7 +61,7 @@ public class InputParamAttrTest {
         InputParamAttr attr = new InputParamAttr();
         attr.setMapType("entity");
         attr.setName("testAttr");
-        attr.setType(InputParamAttr.DATA_TYPE_STRING);
+        attr.setType(Constants.DATA_TYPE_STRING);
         
         attr.addValues(Arrays.asList(new String[]{"A","B"}));
         attr.addValueObjects((String)null);
@@ -74,7 +76,7 @@ public class InputParamAttrTest {
         InputParamAttr attr = new InputParamAttr();
         attr.setMapType("entity");
         attr.setName("testAttr");
-        attr.setType(InputParamAttr.DATA_TYPE_NUMBER);
+        attr.setType(Constants.DATA_TYPE_NUMBER);
         
         attr.addValues(Arrays.asList(new int[]{1,2}));
         attr.addValueObjects((Integer)null);

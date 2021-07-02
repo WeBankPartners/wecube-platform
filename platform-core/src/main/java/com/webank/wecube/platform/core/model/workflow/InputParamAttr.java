@@ -3,19 +3,21 @@ package com.webank.wecube.platform.core.model.workflow;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.webank.wecube.platform.core.utils.Constants;
+
 public class InputParamAttr {
 
-    public static final String DATA_TYPE_STRING = "string";
-    public static final String DATA_TYPE_NUMBER = "number";
-    public static final String DATA_TYPE_LIST = "list";
+//    public static final String DATA_TYPE_STRING = "string";
+//    public static final String DATA_TYPE_NUMBER = "number";
+//    public static final String DATA_TYPE_LIST = "list";
 
-    public static final String DEFAULT_VALUE_DATA_TYPE_STRING = "";
-    public static final int DEFAULT_VALUE_DATA_TYPE_NUMBER = 0;
+//    public static final String DEFAULT_VALUE_DATA_TYPE_STRING = "";
+//    public static final int DEFAULT_VALUE_DATA_TYPE_NUMBER = 0;
 
-    private String name;
+    private String name; //parameter name
     private String type; // string, number, object
     private String mapType; // entity, context, constant, object
-    private List<Object> values = new ArrayList<>();
+    private List<Object> values = new ArrayList<>(); //raw object values
     private boolean sensitive;
 
     public String getName() {
@@ -72,7 +74,7 @@ public class InputParamAttr {
             return determineEmptyValue();
         }
         
-        if(DATA_TYPE_LIST.equalsIgnoreCase(type)){
+        if(Constants.DATA_TYPE_LIST.equalsIgnoreCase(type)){
             return values;
         }
 
@@ -82,7 +84,7 @@ public class InputParamAttr {
                 return val;
             }
             
-            if(DATA_TYPE_STRING.equalsIgnoreCase(type)) {
+            if(Constants.DATA_TYPE_STRING.equalsIgnoreCase(type)) {
                 //TODO
                 return String.valueOf(val);
             }
@@ -91,7 +93,7 @@ public class InputParamAttr {
             return val;
         }
 
-        if (DATA_TYPE_STRING.equalsIgnoreCase(type)) {
+        if (Constants.DATA_TYPE_STRING.equalsIgnoreCase(type)) {
             return assembleValueList(values);
         }
 
@@ -120,15 +122,15 @@ public class InputParamAttr {
     }
 
     private Object determineEmptyValue() {
-        if (DATA_TYPE_STRING.equalsIgnoreCase(type)) {
-            return DEFAULT_VALUE_DATA_TYPE_STRING;
+        if (Constants.DATA_TYPE_STRING.equalsIgnoreCase(type)) {
+            return Constants.DEFAULT_VALUE_DATA_TYPE_STRING;
         }
 
-        if (DATA_TYPE_NUMBER.equalsIgnoreCase(type)) {
-            return DEFAULT_VALUE_DATA_TYPE_NUMBER;
+        if (Constants.DATA_TYPE_NUMBER.equalsIgnoreCase(type)) {
+            return Constants.DEFAULT_VALUE_DATA_TYPE_NUMBER;
         }
 
-        return DEFAULT_VALUE_DATA_TYPE_STRING;
+        return Constants.DEFAULT_VALUE_DATA_TYPE_STRING;
     }
 
     public String getValuesAsString() {
