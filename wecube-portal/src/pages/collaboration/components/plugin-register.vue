@@ -369,7 +369,7 @@
                       <FormItem :label-width="0">
                         <span v-if="outPut.required === 'Y'" style="color:red;vertical-align: text-bottom;">*</span>
                         <Input
-                          v-model="outPut.mappingSystemVariableName"
+                          v-model="outPut.mappingValue"
                           :disabled="currentPluginObj.status === 'ENABLED'"
                           placeholder="value"
                         />
@@ -655,7 +655,7 @@ export default {
     },
     addOutputParams () {
       const assginOutput = this.currentInter.outputParameters.filter(item => item.mappingType === 'assign')
-      const res = assginOutput.every(item => item.name !== '' && item.mappingSystemVariableName !== '')
+      const res = assginOutput.every(item => item.name !== '' && item.mappingValue !== '')
       if (!res) {
         this.$Notice.warning({
           title: 'Warning',
@@ -669,7 +669,7 @@ export default {
         description: '',
         id: '',
         mappingEntityExpression: '',
-        mappingSystemVariableName: '',
+        mappingValue: '',
         mappingType: 'assign',
         name: '',
         pluginConfigInterfaceId: outputParametersSingle.pluginConfigInterfaceId,
