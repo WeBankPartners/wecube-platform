@@ -158,8 +158,7 @@ public class PluginParamObjectVarCalculator extends AbstractPluginParamObjectSer
             
             List<CoreObjectPropertyMeta> propertyMetas = objectMeta.getPropertyMetas();
             for (CoreObjectPropertyMeta propertyMeta : propertyMetas) {
-                //TODO
-                CoreObjectPropertyVar propertyVar = calculatePropertyVar(propertyMeta, objectVar, ctx);
+                CoreObjectPropertyVar propertyVar = tryCalculatePropertyVar(propertyMeta, objectVar, ctx, boundDataId);
                 propertyVar.setId(LocalIdGenerator.generateId(PREFIX_PROPERTY_VAR_ID));
                 propertyVar.setObjectMetaId(objectVar.getObjectMetaId());
 
@@ -222,6 +221,47 @@ public class PluginParamObjectVarCalculator extends AbstractPluginParamObjectSer
         }
 
         return objectVar;
+    }
+    
+    private CoreObjectPropertyVar tryCalculatePropertyVar(CoreObjectPropertyMeta propertyMeta,
+            CoreObjectVar parentObjectVar, CoreObjectVarCalculationContext ctx, String rootDataId) {
+        
+        //TODO
+        CoreObjectPropertyVar propertyVar = new CoreObjectPropertyVar();
+        propertyVar.setId(LocalIdGenerator.generateId(PREFIX_PROPERTY_VAR_ID));
+        propertyVar.setName(propertyMeta.getName());
+        propertyVar.setDataType(propertyMeta.getDataType());
+
+        Object dataValueObject = tryCalculatePropertyDataValueObject(propertyMeta, parentObjectVar, ctx, rootDataId);
+
+        log.info("data value object for {} : {}", propertyMeta.getName(), dataValueObject);
+        String dataValue = convertPropertyValueToString(propertyMeta, dataValueObject);
+        propertyVar.setDataValueObject(dataValueObject);
+        propertyVar.setDataValue(dataValue);
+        propertyVar.setPropertyMeta(propertyMeta);
+        propertyVar.setSensitive(propertyMeta.getSensitive());
+        propertyVar.setObjectName(propertyMeta.getObjectName());
+        propertyVar.setPackageName(propertyMeta.getPackageName());
+        propertyVar.setObjectPropertyMetaId(propertyMeta.getId());
+
+        return propertyVar;
+    }
+    
+    private Object tryCalculatePropertyDataValueObject(CoreObjectPropertyMeta propertyMeta, CoreObjectVar parentObjectVar,
+            CoreObjectVarCalculationContext ctx, String rootDataId) {
+        //TODO
+        String dataType = propertyMeta.getDataType();
+        Object dataObjectValue = null;
+
+        if (isBasicDataType(dataType)) {
+            dataObjectValue = calculateBasicTypePropertyValue(propertyMeta, parentObjectVar, ctx);
+        } else if (isObjectDataType(dataType)) {
+            dataObjectValue = calculateObjectTypePropertyValue(propertyMeta, parentObjectVar, ctx);
+        } else if (isListDataType(dataType)) {
+            dataObjectValue = calculateListTypePropertyValue(propertyMeta, parentObjectVar, ctx);
+        }
+
+        return dataObjectValue;
     }
 
     private CoreObjectPropertyVar calculatePropertyVar(CoreObjectPropertyMeta propertyMeta,
