@@ -5,8 +5,8 @@ import java.util.List;
 import java.util.Map;
 
 public class EntityDataDelegate {
-    public static final String UNIQUE_IDENTIFIER = "id";
-    public static final String VISUAL_FIELD = "displayName";
+//    public static final String UNIQUE_IDENTIFIER = "id";
+//    public static final String VISUAL_FIELD = "displayName";
     private String id;
     private String displayName;
     private String queryAttrName;
