@@ -34,6 +34,7 @@ import com.webank.wecube.platform.core.repository.workflow.TaskNodeInstInfoMappe
 import com.webank.wecube.platform.core.repository.workflow.TaskNodeParamMapper;
 import com.webank.wecube.platform.core.service.dme.EntityOperationRootCondition;
 import com.webank.wecube.platform.core.service.dme.StandardEntityOperationService;
+import com.webank.wecube.platform.core.utils.Constants;
 import com.webank.wecube.platform.workflow.commons.LocalIdGenerator;
 
 @Service
@@ -73,7 +74,7 @@ public class PluginParamObjectVarCalculator extends AbstractPluginParamObjectSer
     public List<CoreObjectVar> calculateCoreObjectVarList(CoreObjectMeta objectMeta,
             CoreObjectVarCalculationContext ctx) {
 
-        List<CoreObjectVar> rootObjectVars = doCalculateCoreObjectVarList(objectMeta, null, ctx);
+        List<CoreObjectVar> rootObjectVars = doCalculateCoreObjectVarList(objectMeta, null, ctx, null);
 
         if (rootObjectVars != null) {
             for (CoreObjectVar rootObjectVar : rootObjectVars) {
@@ -100,10 +101,91 @@ public class PluginParamObjectVarCalculator extends AbstractPluginParamObjectSer
         return rootObjectVar;
     }
 
-    private List<CoreObjectVar> doCalculateCoreObjectVarList(CoreObjectMeta objectMeta, CoreObjectVar parentObjectVar,
-            CoreObjectVarCalculationContext ctx) {
+    protected List<CoreObjectVar> doCalculateCoreObjectVarList(CoreObjectMeta objectMeta, CoreObjectVar parentObjectVar,
+            CoreObjectVarCalculationContext ctx, String rootEntityDataId) {
+        String objectMetaExpr = objectMeta.getMapExpr();
+        if (StringUtils.isBlank(objectMetaExpr)) {
+            if (checkIfHasEntityMapping(objectMeta)) {
+                String errMsg = "The object meta expression is blank but has to calculate entity mapping data.";
+                log.error(errMsg);
+                throw new WecubeCoreException(errMsg);
+            } else {
+                return tryCalculateCoreObjectVarListFromNoneEntityMapping(objectMeta, parentObjectVar, ctx,
+                        rootEntityDataId);
+            }
+        }
+
+        return tryCalculateCoreObjectVarListFromEntityMapping(objectMeta, parentObjectVar, ctx, rootEntityDataId);
+    }
+
+    private List<CoreObjectVar> tryCalculateCoreObjectVarListFromEntityMapping(CoreObjectMeta objectMeta,
+            CoreObjectVar parentObjectVar, CoreObjectVarCalculationContext ctx, String rootEntityDataId) {
+        String objectMetaExpr = objectMeta.getMapExpr();
+        EntityOperationRootCondition condition = new EntityOperationRootCondition(objectMetaExpr, rootEntityDataId);
+
+        List<Map<String, Object>> objectMetaExprQueryResultDataMaps = entityOperationService
+                .queryAttributeValuesOfLeafNode(condition, ctx.getExternalCacheMap());
+
+        if (objectMetaExprQueryResultDataMaps == null || objectMetaExprQueryResultDataMaps.isEmpty()) {
+            return Collections.emptyList();
+        }
+        List<CoreObjectVar> coreObjectVars = new ArrayList<>();
+
+        List<String> objectMetaBoundDataIds = new ArrayList<>();
+        for (Map<String, Object> boundDataMap : objectMetaExprQueryResultDataMaps) {
+            String boundDataId = (String) boundDataMap.get(Constants.UNIQUE_IDENTIFIER);
+            if (StringUtils.isBlank(boundDataId)) {
+                log.info("Cannot get data id from entity data:{}", boundDataMap);
+                continue;
+            }
+
+            objectMetaBoundDataIds.add(boundDataId);
+        }
+
+        for (String boundDataId : objectMetaBoundDataIds) {
+            CoreObjectVar objectVar = new CoreObjectVar();
+            objectVar.setName(objectMeta.getName());
+            objectVar.setObjectMeta(objectMeta);
+            objectVar.setObjectMetaId(objectMeta.getId());
+            objectVar.setPackageName(objectMeta.getPackageName());
+            
+            if(parentObjectVar != null){
+                objectVar.setParentObjectName(parentObjectVar.getName());
+                objectVar.setParentObjectVarId(parentObjectVar.getId());
+                
+            }
+            coreObjectVars.add(objectVar);
+            
+            List<CoreObjectPropertyMeta> propertyMetas = objectMeta.getPropertyMetas();
+            for (CoreObjectPropertyMeta propertyMeta : propertyMetas) {
+                //TODO
+                CoreObjectPropertyVar propertyVar = calculatePropertyVar(propertyMeta, objectVar, ctx);
+                propertyVar.setId(LocalIdGenerator.generateId(PREFIX_PROPERTY_VAR_ID));
+                propertyVar.setObjectMetaId(objectVar.getObjectMetaId());
+
+                propertyVar.setObjectPropertyMetaId(propertyMeta.getId());
+                propertyVar.setPropertyMeta(propertyMeta);
+                propertyVar.setObjectVar(objectVar);
+                propertyVar.setObjectVarId(objectVar.getId());
+                propertyVar.setObjectName(objectMeta.getName());
+                propertyVar.setPackageName(objectMeta.getPackageName());
+
+                objectVar.addPropertyVar(propertyVar);
+            }
+            
+        }
+        return coreObjectVars;
+    }
+
+    private List<CoreObjectVar> tryCalculateCoreObjectVarListFromNoneEntityMapping(CoreObjectMeta objectMeta,
+            CoreObjectVar parentObjectVar, CoreObjectVarCalculationContext ctx, String rootEntityDataId) {
         // TODO
         return null;
+    }
+
+    private boolean checkIfHasEntityMapping(CoreObjectMeta objectMeta) {
+        // TODO
+        return true;
     }
 
     private CoreObjectVar doCalculateCoreObjectVar(CoreObjectMeta objectMeta, CoreObjectVar parentObjectVar,
