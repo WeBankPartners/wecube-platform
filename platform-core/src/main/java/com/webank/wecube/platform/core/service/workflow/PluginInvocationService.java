@@ -373,7 +373,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
                 objDataMap);
 
         Map<String, Object> resultMap = entityOperationService.create(packageName, entityName, objDataMap);
-        String newDataEntityId = (String) resultMap.get(EntityDataDelegate.UNIQUE_IDENTIFIER);
+        String newDataEntityId = (String) resultMap.get(Constants.UNIQUE_IDENTIFIER);
         if (StringUtils.isBlank(newDataEntityId)) {
             log.warn("Entity created but there is not identity returned.{} {} {}", packageName, entityName, objDataMap);
             return;
@@ -2369,7 +2369,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
         } else {
             if (verifyIfHasNormalEntityMappingExcludeAssign(rootDemOutputParamAttrs)) {
                 Map<String, Object> resultMap = entityOperationService.create(packageName, entityName, objDataMap);
-                rootEntityId = (String) resultMap.get(EntityDataDelegate.UNIQUE_IDENTIFIER);
+                rootEntityId = (String) resultMap.get(Constants.UNIQUE_IDENTIFIER);
                 if (StringUtils.isBlank(rootEntityId)) {
                     log.warn("Entity created but there is not identity returned.{} {} {}", packageName, entityName,
                             objDataMap);

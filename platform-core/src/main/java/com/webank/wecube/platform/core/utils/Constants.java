@@ -41,4 +41,7 @@ public class Constants {
     
     public static final String MAPPING_TYPE_NOT_AVAILABLE = "N/A";
     public static final String MAPPING_TYPE_CMDB_CI_TYPE = "CMDB_CI_TYPE";
+    
+    public static final String UNIQUE_IDENTIFIER = "id";
+    public static final String VISUAL_FIELD = "displayName";
 }
