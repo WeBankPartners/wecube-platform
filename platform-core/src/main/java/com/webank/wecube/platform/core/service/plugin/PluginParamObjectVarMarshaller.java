@@ -106,14 +106,15 @@ public class PluginParamObjectVarMarshaller extends AbstractPluginParamObjectSer
 
         log.info("data value object for {} : {}", propertyMeta.getName(), dataValueObject);
 
-        String dataValue = convertPropertyValueToString(propertyMeta, dataValueObject);
-        propertyVar.setDataValueObject(dataValueObject);
-        propertyVar.setDataValue(dataValue);
-        propertyVar.setPropertyMeta(propertyMeta);
-        propertyVar.setSensitive(propertyMeta.getSensitive());
-        propertyVar.setObjectName(propertyMeta.getObjectName());
-        propertyVar.setPackageName(propertyMeta.getPackageName());
-        propertyVar.setObjectPropertyMetaId(propertyMeta.getId());
+        //TODO
+//        String dataValue = convertPropertyValueToString(propertyMeta, dataValueObject);
+//        propertyVar.setDataValueObject(dataValueObject);
+//        propertyVar.setDataValue(dataValue);
+//        propertyVar.setPropertyMeta(propertyMeta);
+//        propertyVar.setSensitive(propertyMeta.getSensitive());
+//        propertyVar.setObjectName(propertyMeta.getObjectName());
+//        propertyVar.setPackageName(propertyMeta.getPackageName());
+//        propertyVar.setObjectPropertyMetaId(propertyMeta.getId());
 
         return propertyVar;
     }

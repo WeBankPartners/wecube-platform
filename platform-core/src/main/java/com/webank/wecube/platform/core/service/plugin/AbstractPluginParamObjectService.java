@@ -117,31 +117,36 @@ public abstract class AbstractPluginParamObjectService {
     }
 
     @SuppressWarnings("unchecked")
-    protected String convertPropertyValueToString(CoreObjectPropertyMeta propertyMeta, Object dataValueObject) {
-        if (dataValueObject == null) {
+    protected String convertPropertyValueToString(CoreObjectPropertyMeta propertyMeta, List<Object> dataValueObjects) {
+        if (dataValueObjects == null) {
             return null;
         }
+        
+        //TODO
 
         String dataType = propertyMeta.getDataType();
         if (isBasicDataType(dataType)) {
             //TODO
-            return dataValueObject.toString();
+            return null;
         }
 
 
         if (isObjectDataType(dataType)) {
-            CoreObjectVar objVar = (CoreObjectVar) dataValueObject;
-            return objVar.getId();
+//            CoreObjectVar objVar = (CoreObjectVar) dataValueObject;
+//            return objVar.getId();
+            return null;
         }
 
         if (isListDataType(dataType)) {
-            List<CoreObjectListVar> listVars = (List<CoreObjectListVar>) dataValueObject;
-            StringBuilder sb = new StringBuilder();
-            for (CoreObjectListVar v : listVars) {
-                sb.append(v.getId()).append(",");
-            }
-
-            return sb.toString();
+            //TODO
+//            List<CoreObjectListVar> listVars = (List<CoreObjectListVar>) dataValueObject;
+//            StringBuilder sb = new StringBuilder();
+//            for (CoreObjectListVar v : listVars) {
+//                sb.append(v.getId()).append(",");
+//            }
+//
+//            return sb.toString();
+            return null;
         }
 
         return null;
