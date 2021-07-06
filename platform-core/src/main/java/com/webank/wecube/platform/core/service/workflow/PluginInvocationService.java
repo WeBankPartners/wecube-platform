@@ -535,7 +535,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
             }
 
             if (MAPPING_TYPE_CONSTANT.equalsIgnoreCase(mappingType)) {
-                handleConstantMapping(mappingType, taskNodeDefEntity, paramName, objectVals, isFieldRequired);
+                handleConstantMapping(mappingType, taskNodeDefEntity, paramName, objectVals, isFieldRequired, param);
             }
 
             if (MAPPING_TYPE_CONTEXT.equals(mappingType)) {
@@ -1182,7 +1182,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
                 }
 
                 if (MAPPING_TYPE_CONSTANT.equalsIgnoreCase(mappingType)) {
-                    handleConstantMapping(mappingType, taskNodeDefEntity, paramName, objectVals, isFieldRequired);
+                    handleConstantMapping(mappingType, taskNodeDefEntity, paramName, objectVals, isFieldRequired, param);
                 }
 
                 inputAttr.addValues(objectVals);
@@ -1320,7 +1320,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
                 }
 
                 if (MAPPING_TYPE_CONSTANT.equalsIgnoreCase(mappingType)) {
-                    handleConstantMapping(mappingType, taskNodeDefEntity, paramName, objectVals, isFieldRequired);
+                    handleConstantMapping(mappingType, taskNodeDefEntity, paramName, objectVals, isFieldRequired, param);
                 }
 
                 // #2226
@@ -1826,10 +1826,16 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
     }
 
     private void handleConstantMapping(String mappingType, TaskNodeDefInfoEntity taskNodeDefEntity, String paramName,
-            List<Object> objectVals, boolean fieldRequired) {
+            List<Object> objectVals, boolean fieldRequired, PluginConfigInterfaceParameters param) {
         if (!MAPPING_TYPE_CONSTANT.equals(mappingType)) {
             return;
         }
+        
+        if(StringUtils.isNoneBlank(param.getMappingValue())){
+            objectVals.add(param.getMappingValue());
+            return;
+        }
+        
         String curTaskNodeDefId = taskNodeDefEntity.getId();
         TaskNodeParamEntity nodeParamEntity = taskNodeParamRepository
                 .selectOneByTaskNodeDefIdAndParamName(curTaskNodeDefId, paramName);
