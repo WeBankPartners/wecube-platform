@@ -1324,7 +1324,6 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
                 }
 
                 // #2226
-                // TODO
                 if (MAPPING_TYPE_OBJECT.equalsIgnoreCase(mappingType)) {
                     handleObjectMapping(mappingType, param, entityDataId, objectVals, externalCacheMap,
                             procDefInfoEntity, procInstEntity, nodeObjectBinding.getFullEntityDataId(),
@@ -1347,7 +1346,6 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
             List<Object> objectVals, Map<Object, Object> cacheMap, ProcDefInfoEntity procDefInfo,
             ProcInstInfoEntity procInstInfo, String rootEntityFullDataId, String rootEntityTypeId,
             TaskNodeDefInfoEntity taskNodeDefInfo, TaskNodeInstInfoEntity taskNodeInstInfo) {
-        // TODO
         // #2226
         if (!MAPPING_TYPE_OBJECT.equals(mappingType)) {
             return;
@@ -1365,7 +1363,6 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 
         CoreObjectMeta objectMeta = param.getObjectMeta();
 
-        // TODO
         // store objects here
         List<CoreObjectVar> objectVars = pluginParamObjectVarCalculator.calculateCoreObjectVarList(objectMeta, calCtx,
                 param.getMappingEntityExpression());
