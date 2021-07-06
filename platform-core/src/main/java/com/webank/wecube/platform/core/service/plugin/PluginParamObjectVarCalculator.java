@@ -72,9 +72,10 @@ public class PluginParamObjectVarCalculator extends AbstractPluginParamObjectSer
      * @return
      */
     public List<CoreObjectVar> calculateCoreObjectVarList(CoreObjectMeta objectMeta,
-            CoreObjectVarCalculationContext ctx) {
+            CoreObjectVarCalculationContext ctx, String objectMetaExpr) {
 
-        List<CoreObjectVar> rootObjectVars = doCalculateCoreObjectVarList(objectMeta, null, ctx, null);
+        List<CoreObjectVar> rootObjectVars = doCalculateCoreObjectVarList(objectMeta, null, ctx,
+                ctx.getRootEntityDataId(), objectMetaExpr);
 
         // // TODO
         // if (rootObjectVars != null) {
@@ -105,25 +106,31 @@ public class PluginParamObjectVarCalculator extends AbstractPluginParamObjectSer
     // }
 
     protected List<CoreObjectVar> doCalculateCoreObjectVarList(CoreObjectMeta objectMeta, CoreObjectVar parentObjectVar,
-            CoreObjectVarCalculationContext ctx, String rootEntityDataId) {
-        String objectMetaExpr = objectMeta.getMapExpr();
+            CoreObjectVarCalculationContext ctx, String rootEntityDataId, String objectMetaExpr) {
+        // String objectMetaExpr = objectMeta.getMapExpr();
         if (StringUtils.isBlank(objectMetaExpr)) {
             if (checkIfHasEntityMappingProperty(objectMeta)) {
                 String errMsg = "The object meta expression is blank but has to calculate entity mapping data.";
                 log.error(errMsg);
                 throw new WecubeCoreException(errMsg);
             } else {
+                log.info(
+                        "The expression of object {} is blank and try to calculate object value from none entity strategy.",
+                        objectMeta.getName());
                 return tryCalculateCoreObjectVarListFromNoneEntityMapping(objectMeta, parentObjectVar, ctx,
                         rootEntityDataId);
             }
         } else {
-            return tryCalculateCoreObjectVarListFromEntityMapping(objectMeta, parentObjectVar, ctx, rootEntityDataId);
+            log.info("To calculate object: {} with expression: {} and root data id: {}", objectMeta.getName(),
+                    objectMetaExpr, rootEntityDataId);
+            return tryCalculateCoreObjectVarListFromEntityMapping(objectMeta, parentObjectVar, ctx, rootEntityDataId, objectMetaExpr);
         }
     }
 
     private List<CoreObjectVar> tryCalculateCoreObjectVarListFromEntityMapping(CoreObjectMeta objectMeta,
-            CoreObjectVar parentObjectVar, CoreObjectVarCalculationContext ctx, String rootEntityDataId) {
-        String objectMetaExpr = objectMeta.getMapExpr();
+            CoreObjectVar parentObjectVar, CoreObjectVarCalculationContext ctx, String rootEntityDataId,
+            String objectMetaExpr) {
+//        String objectMetaExpr = objectMeta.getMapExpr();
         EntityOperationRootCondition condition = new EntityOperationRootCondition(objectMetaExpr, rootEntityDataId);
 
         List<Map<String, Object>> objectMetaExprQueryResultDataMaps = entityOperationService
@@ -179,6 +186,44 @@ public class PluginParamObjectVarCalculator extends AbstractPluginParamObjectSer
         return coreObjectVars;
     }
 
+    private List<Object> tryCalculatePropertyDataValueObject(CoreObjectPropertyMeta propertyMeta,
+            CoreObjectVar parentObjectVar, CoreObjectVarCalculationContext ctx, String rootDataId) {
+        String dataType = propertyMeta.getDataType();
+        List<Object> dataObjectValues = new ArrayList<>();
+
+        if (isBasicDataType(dataType)) {
+            List<Object> propertyResultValues = tryCalculateBasicTypePropertyValue(propertyMeta, parentObjectVar, ctx,
+                    rootDataId);
+            if (propertyResultValues != null) {
+                dataObjectValues.addAll(propertyResultValues);
+            }
+        } else if (isObjectDataType(dataType)) {
+            CoreObjectMeta refObjectMeta = propertyMeta.getRefObjectMeta();
+            List<CoreObjectVar> refObjectVars = doCalculateCoreObjectVarList(refObjectMeta, parentObjectVar, ctx,
+                    rootDataId, propertyMeta.getMapExpr());
+
+            if (refObjectVars == null || refObjectVars.isEmpty()) {
+                // do nothing
+            } else {
+                if (refObjectVars.size() > 1) {
+                    String errMsg = String.format("object {} property {} required {} but total {} objects got.",
+                            propertyMeta.getObjectName(), propertyMeta.getName(), dataType, refObjectVars.size());
+                    throw new WecubeCoreException(errMsg);
+                }
+
+                dataObjectValues.add(refObjectVars.get(0));
+            }
+        } else if (isListDataType(dataType)) {
+            List<Object> propertyResultValues = tryCalculateListTypePropertyValue(propertyMeta, parentObjectVar, ctx,
+                    rootDataId);
+            if (propertyResultValues != null) {
+                dataObjectValues.addAll(propertyResultValues);
+            }
+        }
+
+        return dataObjectValues;
+    }
+
     private List<CoreObjectVar> tryCalculateCoreObjectVarListFromNoneEntityMapping(CoreObjectMeta objectMeta,
             CoreObjectVar parentObjectVar, CoreObjectVarCalculationContext ctx, String rootEntityDataId) {
         // TODO
@@ -190,41 +235,44 @@ public class PluginParamObjectVarCalculator extends AbstractPluginParamObjectSer
         return true;
     }
 
-//    private CoreObjectVar doCalculateCoreObjectVar(CoreObjectMeta objectMeta, CoreObjectVar parentObjectVar,
-//            CoreObjectVarCalculationContext ctx) {
-//        if (objectMeta == null) {
-//            return null;
-//        }
-//        CoreObjectVar objectVar = new CoreObjectVar();
-//        objectVar.setId(LocalIdGenerator.generateId(PREFIX_OBJECT_VAR_ID));
-//        objectVar.setName(objectMeta.getName());
-//        objectVar.setObjectMeta(objectMeta);
-//        objectVar.setObjectMetaId(objectMeta.getId());
-//        objectVar.setPackageName(objectMeta.getPackageName());
-//
-//        if (parentObjectVar != null) {
-//            objectVar.setParentObjectVarId(parentObjectVar.getId());
-//            objectVar.setParentObjectName(parentObjectVar.getName());
-//        }
-//
-//        List<CoreObjectPropertyMeta> propertyMetas = objectMeta.getPropertyMetas();
-//        for (CoreObjectPropertyMeta propertyMeta : propertyMetas) {
-//            CoreObjectPropertyVar propertyVar = calculatePropertyVar(propertyMeta, objectVar, ctx);
-//            propertyVar.setId(LocalIdGenerator.generateId(PREFIX_PROPERTY_VAR_ID));
-//            propertyVar.setObjectMetaId(objectVar.getObjectMetaId());
-//
-//            propertyVar.setObjectPropertyMetaId(propertyMeta.getId());
-//            propertyVar.setPropertyMeta(propertyMeta);
-//            propertyVar.setObjectVar(objectVar);
-//            propertyVar.setObjectVarId(objectVar.getId());
-//            propertyVar.setObjectName(objectMeta.getName());
-//            propertyVar.setPackageName(objectMeta.getPackageName());
-//
-//            objectVar.addPropertyVar(propertyVar);
-//        }
-//
-//        return objectVar;
-//    }
+    // private CoreObjectVar doCalculateCoreObjectVar(CoreObjectMeta objectMeta,
+    // CoreObjectVar parentObjectVar,
+    // CoreObjectVarCalculationContext ctx) {
+    // if (objectMeta == null) {
+    // return null;
+    // }
+    // CoreObjectVar objectVar = new CoreObjectVar();
+    // objectVar.setId(LocalIdGenerator.generateId(PREFIX_OBJECT_VAR_ID));
+    // objectVar.setName(objectMeta.getName());
+    // objectVar.setObjectMeta(objectMeta);
+    // objectVar.setObjectMetaId(objectMeta.getId());
+    // objectVar.setPackageName(objectMeta.getPackageName());
+    //
+    // if (parentObjectVar != null) {
+    // objectVar.setParentObjectVarId(parentObjectVar.getId());
+    // objectVar.setParentObjectName(parentObjectVar.getName());
+    // }
+    //
+    // List<CoreObjectPropertyMeta> propertyMetas =
+    // objectMeta.getPropertyMetas();
+    // for (CoreObjectPropertyMeta propertyMeta : propertyMetas) {
+    // CoreObjectPropertyVar propertyVar = calculatePropertyVar(propertyMeta,
+    // objectVar, ctx);
+    // propertyVar.setId(LocalIdGenerator.generateId(PREFIX_PROPERTY_VAR_ID));
+    // propertyVar.setObjectMetaId(objectVar.getObjectMetaId());
+    //
+    // propertyVar.setObjectPropertyMetaId(propertyMeta.getId());
+    // propertyVar.setPropertyMeta(propertyMeta);
+    // propertyVar.setObjectVar(objectVar);
+    // propertyVar.setObjectVarId(objectVar.getId());
+    // propertyVar.setObjectName(objectMeta.getName());
+    // propertyVar.setPackageName(objectMeta.getPackageName());
+    //
+    // objectVar.addPropertyVar(propertyVar);
+    // }
+    //
+    // return objectVar;
+    // }
 
     private CoreObjectPropertyVar tryCalculatePropertyVar(CoreObjectPropertyMeta propertyMeta,
             CoreObjectVar parentObjectVar, CoreObjectVarCalculationContext ctx, String rootDataId) {
@@ -259,74 +307,51 @@ public class PluginParamObjectVarCalculator extends AbstractPluginParamObjectSer
         return null;
     }
 
-    private List<Object> tryCalculatePropertyDataValueObject(CoreObjectPropertyMeta propertyMeta,
-            CoreObjectVar parentObjectVar, CoreObjectVarCalculationContext ctx, String rootDataId) {
-        String dataType = propertyMeta.getDataType();
-        List<Object> dataObjectValues = new ArrayList<>();
+    // private CoreObjectPropertyVar calculatePropertyVar(CoreObjectPropertyMeta
+    // propertyMeta,
+    // CoreObjectVar parentObjectVar, CoreObjectVarCalculationContext ctx) {
+    // CoreObjectPropertyVar propertyVar = new CoreObjectPropertyVar();
+    // propertyVar.setId(LocalIdGenerator.generateId(PREFIX_PROPERTY_VAR_ID));
+    // propertyVar.setName(propertyMeta.getName());
+    // propertyVar.setDataType(propertyMeta.getDataType());
+    //
+    // Object dataValueObject = calculatePropertyDataValueObject(propertyMeta,
+    // parentObjectVar, ctx);
+    //
+    // log.info("data value object for {} : {}", propertyMeta.getName(),
+    // dataValueObject);
+    // String dataValue = convertPropertyValueToString(propertyMeta,
+    // dataValueObject);
+    // propertyVar.setDataValueObject(dataValueObject);
+    // propertyVar.setDataValue(dataValue);
+    // propertyVar.setPropertyMeta(propertyMeta);
+    // propertyVar.setSensitive(propertyMeta.getSensitive());
+    // propertyVar.setObjectName(propertyMeta.getObjectName());
+    // propertyVar.setPackageName(propertyMeta.getPackageName());
+    // propertyVar.setObjectPropertyMetaId(propertyMeta.getId());
+    //
+    // return propertyVar;
+    // }
 
-        if (isBasicDataType(dataType)) {
-            List<Object> propertyResultValues = tryCalculateBasicTypePropertyValue(propertyMeta, parentObjectVar, ctx,
-                    rootDataId);
-            if (propertyResultValues != null) {
-                dataObjectValues.addAll(propertyResultValues);
-            }
-        } else if (isObjectDataType(dataType)) {
-            CoreObjectMeta refObjectMeta = propertyMeta.getRefObjectMeta();
-            List<CoreObjectVar> refObjectVars = doCalculateCoreObjectVarList(refObjectMeta, parentObjectVar, ctx,
-                    rootDataId);
-
-            if (dataObjectValues != null) {
-                for (CoreObjectVar refObjectVar : refObjectVars) {
-                    dataObjectValues.add(refObjectVar);
-                }
-            }
-        } else if (isListDataType(dataType)) {
-            List<Object> propertyResultValues = tryCalculateListTypePropertyValue(propertyMeta, parentObjectVar, ctx, rootDataId);
-            if (propertyResultValues != null) {
-                dataObjectValues.addAll(propertyResultValues);
-            }
-        }
-
-        return dataObjectValues;
-    }
-
-//    private CoreObjectPropertyVar calculatePropertyVar(CoreObjectPropertyMeta propertyMeta,
-//            CoreObjectVar parentObjectVar, CoreObjectVarCalculationContext ctx) {
-//        CoreObjectPropertyVar propertyVar = new CoreObjectPropertyVar();
-//        propertyVar.setId(LocalIdGenerator.generateId(PREFIX_PROPERTY_VAR_ID));
-//        propertyVar.setName(propertyMeta.getName());
-//        propertyVar.setDataType(propertyMeta.getDataType());
-//
-//        Object dataValueObject = calculatePropertyDataValueObject(propertyMeta, parentObjectVar, ctx);
-//
-//        log.info("data value object for {} : {}", propertyMeta.getName(), dataValueObject);
-//        String dataValue = convertPropertyValueToString(propertyMeta, dataValueObject);
-//        propertyVar.setDataValueObject(dataValueObject);
-//        propertyVar.setDataValue(dataValue);
-//        propertyVar.setPropertyMeta(propertyMeta);
-//        propertyVar.setSensitive(propertyMeta.getSensitive());
-//        propertyVar.setObjectName(propertyMeta.getObjectName());
-//        propertyVar.setPackageName(propertyMeta.getPackageName());
-//        propertyVar.setObjectPropertyMetaId(propertyMeta.getId());
-//
-//        return propertyVar;
-//    }
-
-//    private Object calculatePropertyDataValueObject(CoreObjectPropertyMeta propertyMeta, CoreObjectVar parentObjectVar,
-//            CoreObjectVarCalculationContext ctx, String rootDataId) {
-//        String dataType = propertyMeta.getDataType();
-//        Object dataObjectValue = null;
-//
-//        if (isBasicDataType(dataType)) {
-//            dataObjectValue = calculateBasicTypePropertyValue(propertyMeta, parentObjectVar, ctx, rootDataId);
-//        } else if (isObjectDataType(dataType)) {
-//            dataObjectValue = calculateObjectTypePropertyValue(propertyMeta, parentObjectVar, ctx);
-//        } else if (isListDataType(dataType)) {
-//            dataObjectValue = calculateListTypePropertyValue(propertyMeta, parentObjectVar, ctx);
-//        }
-//
-//        return dataObjectValue;
-//    }
+    // private Object calculatePropertyDataValueObject(CoreObjectPropertyMeta
+    // propertyMeta, CoreObjectVar parentObjectVar,
+    // CoreObjectVarCalculationContext ctx, String rootDataId) {
+    // String dataType = propertyMeta.getDataType();
+    // Object dataObjectValue = null;
+    //
+    // if (isBasicDataType(dataType)) {
+    // dataObjectValue = calculateBasicTypePropertyValue(propertyMeta,
+    // parentObjectVar, ctx, rootDataId);
+    // } else if (isObjectDataType(dataType)) {
+    // dataObjectValue = calculateObjectTypePropertyValue(propertyMeta,
+    // parentObjectVar, ctx);
+    // } else if (isListDataType(dataType)) {
+    // dataObjectValue = calculateListTypePropertyValue(propertyMeta,
+    // parentObjectVar, ctx);
+    // }
+    //
+    // return dataObjectValue;
+    // }
 
     private List<Object> tryCalculateBasicTypePropertyValue(CoreObjectPropertyMeta propertyMeta,
             CoreObjectVar parentObjectVar, CoreObjectVarCalculationContext ctx, String rootDataId) {
@@ -585,51 +610,60 @@ public class PluginParamObjectVarCalculator extends AbstractPluginParamObjectSer
         return resultObjectValues;
     }
 
-    private List<CoreObjectVar> calculateObjectTypePropertyValue(CoreObjectPropertyMeta propertyMeta,
-            CoreObjectVar parentObjectVar, CoreObjectVarCalculationContext ctx, String rootDataId) {
-        CoreObjectMeta refObjectMeta = propertyMeta.getRefObjectMeta();
-        List<CoreObjectVar> refObjectVars = doCalculateCoreObjectVarList(refObjectMeta, parentObjectVar, ctx,
-                rootDataId);
-        return refObjectVars;
-    }
+    // private List<CoreObjectVar>
+    // calculateObjectTypePropertyValue(CoreObjectPropertyMeta propertyMeta,
+    // CoreObjectVar parentObjectVar, CoreObjectVarCalculationContext ctx,
+    // String rootDataId) {
+    // CoreObjectMeta refObjectMeta = propertyMeta.getRefObjectMeta();
+    // List<CoreObjectVar> refObjectVars =
+    // doCalculateCoreObjectVarList(refObjectMeta, parentObjectVar, ctx,
+    // rootDataId);
+    // return refObjectVars;
+    // }
 
-//    private List<String> calListStringVars(CoreObjectPropertyMeta propertyMeta, CoreObjectVarCalculationContext ctx) {
-//        List<String> rawObjectValues = new ArrayList<>();
-//
-//        if (propertyMeta.isEntityMapping()) {
-//            List<Object> valueObjects = calculateBasicTypePropertyValueListFromEntity(propertyMeta, null, ctx);
-//            if (valueObjects != null) {
-//                for (Object valueObject : valueObjects) {
-//                    String valueObjectStr = String.valueOf(valueObject);
-//                    rawObjectValues.add(valueObjectStr);
-//                }
-//            }
-//        } else if (propertyMeta.isConstantMapping()) {
-//            Object constantVal = calculateBasicTypePropertyValueFromConstant(propertyMeta, null, ctx);
-//            if (constantVal != null) {
-//                rawObjectValues.add(String.valueOf(constantVal));
-//            }
-//        } else if (propertyMeta.isContextMapping()) {
-//
-//            List<Object> contextVals = calculateBasicTypePropertyValueListFromContext(propertyMeta, null, ctx);
-//            if (contextVals != null) {
-//                for (Object valueObject : contextVals) {
-//                    String valueObjectStr = String.valueOf(valueObject);
-//                    rawObjectValues.add(valueObjectStr);
-//                }
-//            }
-//        } else if (propertyMeta.isSystemVariableMapping()) {
-//            Object sysVal = calculateBasicTypePropertyValueFromSystemVariable(propertyMeta, null, ctx);
-//            if (sysVal != null) {
-//                String sysValStr = String.valueOf(sysVal);
-//                rawObjectValues.add(sysValStr);
-//            }
-//        } else {
-//            // do nothing
-//        }
-//
-//        return rawObjectValues;
-//    }
+    // private List<String> calListStringVars(CoreObjectPropertyMeta
+    // propertyMeta, CoreObjectVarCalculationContext ctx) {
+    // List<String> rawObjectValues = new ArrayList<>();
+    //
+    // if (propertyMeta.isEntityMapping()) {
+    // List<Object> valueObjects =
+    // calculateBasicTypePropertyValueListFromEntity(propertyMeta, null, ctx);
+    // if (valueObjects != null) {
+    // for (Object valueObject : valueObjects) {
+    // String valueObjectStr = String.valueOf(valueObject);
+    // rawObjectValues.add(valueObjectStr);
+    // }
+    // }
+    // } else if (propertyMeta.isConstantMapping()) {
+    // Object constantVal =
+    // calculateBasicTypePropertyValueFromConstant(propertyMeta, null, ctx);
+    // if (constantVal != null) {
+    // rawObjectValues.add(String.valueOf(constantVal));
+    // }
+    // } else if (propertyMeta.isContextMapping()) {
+    //
+    // List<Object> contextVals =
+    // calculateBasicTypePropertyValueListFromContext(propertyMeta, null, ctx);
+    // if (contextVals != null) {
+    // for (Object valueObject : contextVals) {
+    // String valueObjectStr = String.valueOf(valueObject);
+    // rawObjectValues.add(valueObjectStr);
+    // }
+    // }
+    // } else if (propertyMeta.isSystemVariableMapping()) {
+    // Object sysVal =
+    // calculateBasicTypePropertyValueFromSystemVariable(propertyMeta, null,
+    // ctx);
+    // if (sysVal != null) {
+    // String sysValStr = String.valueOf(sysVal);
+    // rawObjectValues.add(sysValStr);
+    // }
+    // } else {
+    // // do nothing
+    // }
+    //
+    // return rawObjectValues;
+    // }
 
     protected Integer convertObjectToInteger(Object val) {
         if (val == null) {
@@ -647,47 +681,53 @@ public class PluginParamObjectVarCalculator extends AbstractPluginParamObjectSer
         throw new UnsupportedOperationException();
     }
 
-//    private List<Integer> calculateListNumberVars(CoreObjectPropertyMeta propertyMeta,
-//            CoreObjectVarCalculationContext ctx) {
-//        List<Integer> rawObjectValues = new ArrayList<>();
-//
-//        if (propertyMeta.isEntityMapping()) {
-//            List<Object> valueObjects = calculateBasicTypePropertyValueListFromEntity(propertyMeta, null, ctx);
-//            if (valueObjects != null) {
-//                for (Object valueObject : valueObjects) {
-//                    Integer valueObjectInt = convertObjectToInteger(valueObject);
-//                    rawObjectValues.add(valueObjectInt);
-//                }
-//            }
-//        } else if (propertyMeta.isConstantMapping()) {
-//
-//            Object constantVal = calculateBasicTypePropertyValueFromConstant(propertyMeta, null, ctx);
-//            if (constantVal != null) {
-//                rawObjectValues.add(convertObjectToInteger(constantVal));
-//            }
-//        } else if (propertyMeta.isContextMapping()) {
-//            List<Object> contextVals = calculateBasicTypePropertyValueListFromContext(propertyMeta, null, ctx);
-//            if (contextVals != null) {
-//                for (Object valueObject : contextVals) {
-//                    String valueObjectStr = String.valueOf(valueObject);
-//                    rawObjectValues.add(convertObjectToInteger(valueObjectStr));
-//                }
-//            }
-//        } else if (propertyMeta.isSystemVariableMapping()) {
-//            Object sysVal = calculateBasicTypePropertyValueFromSystemVariable(propertyMeta, null, ctx);
-//            if (sysVal != null) {
-//                Integer sysValInt = convertObjectToInteger(sysVal);
-//                rawObjectValues.add(sysValInt);
-//            }
-//        } else {
-//            // do nothing
-//        }
-//
-//        return rawObjectValues;
-//    }
+    // private List<Integer> calculateListNumberVars(CoreObjectPropertyMeta
+    // propertyMeta,
+    // CoreObjectVarCalculationContext ctx) {
+    // List<Integer> rawObjectValues = new ArrayList<>();
+    //
+    // if (propertyMeta.isEntityMapping()) {
+    // List<Object> valueObjects =
+    // calculateBasicTypePropertyValueListFromEntity(propertyMeta, null, ctx);
+    // if (valueObjects != null) {
+    // for (Object valueObject : valueObjects) {
+    // Integer valueObjectInt = convertObjectToInteger(valueObject);
+    // rawObjectValues.add(valueObjectInt);
+    // }
+    // }
+    // } else if (propertyMeta.isConstantMapping()) {
+    //
+    // Object constantVal =
+    // calculateBasicTypePropertyValueFromConstant(propertyMeta, null, ctx);
+    // if (constantVal != null) {
+    // rawObjectValues.add(convertObjectToInteger(constantVal));
+    // }
+    // } else if (propertyMeta.isContextMapping()) {
+    // List<Object> contextVals =
+    // calculateBasicTypePropertyValueListFromContext(propertyMeta, null, ctx);
+    // if (contextVals != null) {
+    // for (Object valueObject : contextVals) {
+    // String valueObjectStr = String.valueOf(valueObject);
+    // rawObjectValues.add(convertObjectToInteger(valueObjectStr));
+    // }
+    // }
+    // } else if (propertyMeta.isSystemVariableMapping()) {
+    // Object sysVal =
+    // calculateBasicTypePropertyValueFromSystemVariable(propertyMeta, null,
+    // ctx);
+    // if (sysVal != null) {
+    // Integer sysValInt = convertObjectToInteger(sysVal);
+    // rawObjectValues.add(sysValInt);
+    // }
+    // } else {
+    // // do nothing
+    // }
+    //
+    // return rawObjectValues;
+    // }
 
     /**
-     * data type: list ref type:string, int,object
+     * data type: list ref type:string, int, object
      * 
      * @param propertyMeta
      * @param parentObjectVar
@@ -699,21 +739,21 @@ public class PluginParamObjectVarCalculator extends AbstractPluginParamObjectSer
         if (!isListDataType(propertyMeta.getDataType())) {
             return null;// throw exception here?
         }
-        
+
         List<Object> dataObjectValues = new ArrayList<>();
-        
-        if(isBasicDataType(propertyMeta.getRefType())){
+
+        if (isBasicDataType(propertyMeta.getRefType())) {
             List<Object> propertyResultValues = tryCalculateBasicTypePropertyValue(propertyMeta, parentObjectVar, ctx,
                     rootDataId);
             if (propertyResultValues != null) {
                 dataObjectValues.addAll(propertyResultValues);
             }
         }
-        
-        if(isObjectDataType(propertyMeta.getRefType())){
+
+        if (isObjectDataType(propertyMeta.getRefType())) {
             CoreObjectMeta refObjectMeta = propertyMeta.getRefObjectMeta();
             List<CoreObjectVar> refObjectVars = doCalculateCoreObjectVarList(refObjectMeta, parentObjectVar, ctx,
-                    rootDataId);
+                    rootDataId, propertyMeta.getMapExpr());
 
             if (dataObjectValues != null) {
                 for (CoreObjectVar refObjectVar : refObjectVars) {
@@ -721,95 +761,100 @@ public class PluginParamObjectVarCalculator extends AbstractPluginParamObjectSer
                 }
             }
         }
-        
+
         return dataObjectValues;
 
-//        if (isStringDataType(propertyMeta.getRefType())) {
-//            List<String> rawObjectValues = calListStringVars(propertyMeta, ctx);
-//
-//            List<CoreObjectListVar> stringListVars = new ArrayList<>();
-//            for (String rawObject : rawObjectValues) {
-//                CoreObjectListVar stringListVar = new CoreObjectListVar();
-//                stringListVar.setId(LocalIdGenerator.generateId(PREFIX_LIST_VAR_ID));
-//                stringListVar.setDataType(propertyMeta.getRefType());
-//                String dataValue = rawObject;
-//
-//                stringListVar.setDataValue(dataValue);
-//                stringListVar.setRawObjectValue(rawObject);
-//                stringListVar.setSensitive(propertyMeta.getSensitive());
-//                stringListVar.setObjectPropertyMeta(propertyMeta);
-//
-//                stringListVars.add(stringListVar);
-//            }
-//
-//            return stringListVars;
-//        } else if (isNumberDataType(propertyMeta.getRefType())) {
-//            List<Integer> rawObjectValues = calculateListNumberVars(propertyMeta, ctx);
-//
-//            List<CoreObjectListVar> numberListVars = new ArrayList<>();
-//            for (Integer rawObject : rawObjectValues) {
-//                CoreObjectListVar numberListVar = new CoreObjectListVar();
-//                numberListVar.setId(LocalIdGenerator.generateId(PREFIX_LIST_VAR_ID));
-//                numberListVar.setDataType(propertyMeta.getRefType());
-//                String dataValue = String.valueOf(rawObject);
-//
-//                numberListVar.setDataValue(dataValue);
-//                numberListVar.setRawObjectValue(rawObject);
-//                numberListVar.setSensitive(propertyMeta.getSensitive());
-//                numberListVar.setObjectPropertyMeta(propertyMeta);
-//
-//                numberListVars.add(numberListVar);
-//            }
-//
-//            return numberListVars;
-//        } else if (isObjectDataType(propertyMeta.getRefType())) {
-//            List<CoreObjectVar> rawObjectValues = calObjectTypePropertyAsListResult(propertyMeta, parentObjectVar, ctx);
-//
-//            List<CoreObjectListVar> objectListVars = new ArrayList<>();
-//            for (CoreObjectVar objectVar : rawObjectValues) {
-//                CoreObjectListVar objectListVar = new CoreObjectListVar();
-//                objectListVar.setId(LocalIdGenerator.generateId(PREFIX_LIST_VAR_ID));
-//                objectListVar.setDataType(propertyMeta.getRefType());
-//
-//                String dataValue = objectVar.getId();
-//
-//                objectListVar.setDataValue(dataValue);
-//                objectListVar.setRawObjectValue(objectVar);
-//                objectListVar.setSensitive(propertyMeta.getSensitive());
-//                objectListVar.setObjectPropertyMeta(propertyMeta);
-//
-//                objectListVars.add(objectListVar);
-//            }
-//
-//            return objectListVars;
-//        } else {
-//            return null;
-//        }
+        // if (isStringDataType(propertyMeta.getRefType())) {
+        // List<String> rawObjectValues = calListStringVars(propertyMeta, ctx);
+        //
+        // List<CoreObjectListVar> stringListVars = new ArrayList<>();
+        // for (String rawObject : rawObjectValues) {
+        // CoreObjectListVar stringListVar = new CoreObjectListVar();
+        // stringListVar.setId(LocalIdGenerator.generateId(PREFIX_LIST_VAR_ID));
+        // stringListVar.setDataType(propertyMeta.getRefType());
+        // String dataValue = rawObject;
+        //
+        // stringListVar.setDataValue(dataValue);
+        // stringListVar.setRawObjectValue(rawObject);
+        // stringListVar.setSensitive(propertyMeta.getSensitive());
+        // stringListVar.setObjectPropertyMeta(propertyMeta);
+        //
+        // stringListVars.add(stringListVar);
+        // }
+        //
+        // return stringListVars;
+        // } else if (isNumberDataType(propertyMeta.getRefType())) {
+        // List<Integer> rawObjectValues = calculateListNumberVars(propertyMeta,
+        // ctx);
+        //
+        // List<CoreObjectListVar> numberListVars = new ArrayList<>();
+        // for (Integer rawObject : rawObjectValues) {
+        // CoreObjectListVar numberListVar = new CoreObjectListVar();
+        // numberListVar.setId(LocalIdGenerator.generateId(PREFIX_LIST_VAR_ID));
+        // numberListVar.setDataType(propertyMeta.getRefType());
+        // String dataValue = String.valueOf(rawObject);
+        //
+        // numberListVar.setDataValue(dataValue);
+        // numberListVar.setRawObjectValue(rawObject);
+        // numberListVar.setSensitive(propertyMeta.getSensitive());
+        // numberListVar.setObjectPropertyMeta(propertyMeta);
+        //
+        // numberListVars.add(numberListVar);
+        // }
+        //
+        // return numberListVars;
+        // } else if (isObjectDataType(propertyMeta.getRefType())) {
+        // List<CoreObjectVar> rawObjectValues =
+        // calObjectTypePropertyAsListResult(propertyMeta, parentObjectVar,
+        // ctx);
+        //
+        // List<CoreObjectListVar> objectListVars = new ArrayList<>();
+        // for (CoreObjectVar objectVar : rawObjectValues) {
+        // CoreObjectListVar objectListVar = new CoreObjectListVar();
+        // objectListVar.setId(LocalIdGenerator.generateId(PREFIX_LIST_VAR_ID));
+        // objectListVar.setDataType(propertyMeta.getRefType());
+        //
+        // String dataValue = objectVar.getId();
+        //
+        // objectListVar.setDataValue(dataValue);
+        // objectListVar.setRawObjectValue(objectVar);
+        // objectListVar.setSensitive(propertyMeta.getSensitive());
+        // objectListVar.setObjectPropertyMeta(propertyMeta);
+        //
+        // objectListVars.add(objectListVar);
+        // }
+        //
+        // return objectListVars;
+        // } else {
+        // return null;
+        // }
     }
 
-//    private List<CoreObjectPropertyVar> calBasicTypeAsListPropertyVars(CoreObjectPropertyMeta propertyMeta,
-//            CoreObjectVarCalculationContext ctx) {
-//        List<CoreObjectPropertyVar> listPropertyVars = new ArrayList<>();
-//
-//        List<Object> listObjects = calculateBasicTypePropertyValueAsListResult(propertyMeta, null, ctx);
-//        for (Object listObject : listObjects) {
-//            CoreObjectPropertyVar propertyVar = new CoreObjectPropertyVar();
-//            propertyVar.setId(LocalIdGenerator.generateId(PREFIX_PROPERTY_VAR_ID));
-//            propertyVar.setDataType(propertyMeta.getDataType());
-//            propertyVar.setDataValue(String.valueOf(listObject));
-//            propertyVar.setName(propertyMeta.getName());
-//            propertyVar.setPropertyMeta(propertyMeta);
-//            propertyVar.setObjectPropertyMetaId(propertyMeta.getId());
-//            propertyVar.setDataValueObject(listObject);
-//            propertyVar.setObjectName(propertyMeta.getObjectName());
-//            propertyVar.setPackageName(propertyMeta.getPackageName());
-//            propertyVar.setSensitive(propertyMeta.getSensitive());
-//
-//            listPropertyVars.add(propertyVar);
-//        }
-//
-//        return listPropertyVars;
-//    }
+    // private List<CoreObjectPropertyVar>
+    // calBasicTypeAsListPropertyVars(CoreObjectPropertyMeta propertyMeta,
+    // CoreObjectVarCalculationContext ctx) {
+    // List<CoreObjectPropertyVar> listPropertyVars = new ArrayList<>();
+    //
+    // List<Object> listObjects =
+    // calculateBasicTypePropertyValueAsListResult(propertyMeta, null, ctx);
+    // for (Object listObject : listObjects) {
+    // CoreObjectPropertyVar propertyVar = new CoreObjectPropertyVar();
+    // propertyVar.setId(LocalIdGenerator.generateId(PREFIX_PROPERTY_VAR_ID));
+    // propertyVar.setDataType(propertyMeta.getDataType());
+    // propertyVar.setDataValue(String.valueOf(listObject));
+    // propertyVar.setName(propertyMeta.getName());
+    // propertyVar.setPropertyMeta(propertyMeta);
+    // propertyVar.setObjectPropertyMetaId(propertyMeta.getId());
+    // propertyVar.setDataValueObject(listObject);
+    // propertyVar.setObjectName(propertyMeta.getObjectName());
+    // propertyVar.setPackageName(propertyMeta.getPackageName());
+    // propertyVar.setSensitive(propertyMeta.getSensitive());
+    //
+    // listPropertyVars.add(propertyVar);
+    // }
+    //
+    // return listPropertyVars;
+    // }
 
     /**
      * data type: list ref type: string, int, object
@@ -819,93 +864,100 @@ public class PluginParamObjectVarCalculator extends AbstractPluginParamObjectSer
      * @param ctx
      * @return
      */
-//    private List<CoreObjectPropertyVar> calculateListPropertyMetaAsListPropertyVarResult(
-//            CoreObjectPropertyMeta propertyMeta, CoreObjectVar parentObjectVar, CoreObjectVarCalculationContext ctx) {
-//        log.debug("calculate list property meta as list property vars for :{}", propertyMeta.getName());
-//        String refType = propertyMeta.getRefType();
-//
-//        // refType = string, int
-//        if (isBasicDataType(refType)) {
-//            List<Object> objectValues = calculateBasicTypePropertyValueAsListResult(propertyMeta, parentObjectVar, ctx);
-//
-//            List<CoreObjectPropertyVar> listPropertyVars = new ArrayList<>();
-//
-//            List<CoreObjectListVar> basicListVars = new ArrayList<>();
-//            for (Object rawObject : objectValues) {
-//                CoreObjectListVar basicListVar = new CoreObjectListVar();
-//                basicListVar.setId(LocalIdGenerator.generateId(PREFIX_LIST_VAR_ID));
-//                basicListVar.setDataType(propertyMeta.getRefType());
-//                String dataValue = String.valueOf(rawObject);
-//
-//                basicListVar.setDataValue(dataValue);
-//                basicListVar.setRawObjectValue(rawObject);
-//                basicListVar.setSensitive(propertyMeta.getSensitive());
-//                basicListVar.setObjectPropertyMeta(propertyMeta);
-//
-//                basicListVars.add(basicListVar);
-//            }
-//
-//            for (CoreObjectListVar basicListVar : basicListVars) {
-//                CoreObjectPropertyVar propertyVar = new CoreObjectPropertyVar();
-//                propertyVar.setId(LocalIdGenerator.generateId(PREFIX_PROPERTY_VAR_ID));
-//                propertyVar.setDataType(propertyMeta.getDataType());
-//                propertyVar.setDataValue(basicListVar.getId());
-//                propertyVar.setName(propertyMeta.getName());
-//                propertyVar.setPropertyMeta(propertyMeta);
-//                propertyVar.setDataValueObject(basicListVars);
-//                propertyVar.setObjectName(propertyMeta.getObjectName());
-//                propertyVar.setPackageName(propertyMeta.getPackageName());
-//                propertyVar.setObjectPropertyMetaId(propertyMeta.getId());
-//                propertyVar.setSensitive(propertyMeta.getSensitive());
-//                listPropertyVars.add(propertyVar);
-//            }
-//
-//            return listPropertyVars;
-//
-//        }
-//
-//        if (isObjectDataType(refType)) {
-//            CoreObjectMeta refObjectMeta = propertyMeta.getRefObjectMeta();
-//            List<CoreObjectVar> objectVars = calculateObjectMetaAsObjectVarListResult(refObjectMeta, parentObjectVar,
-//                    ctx);
-//
-//            List<CoreObjectPropertyVar> listPropertyVars = new ArrayList<>();
-//
-//            List<CoreObjectListVar> basicListVars = new ArrayList<>();
-//            for (CoreObjectVar rawObject : objectVars) {
-//                CoreObjectListVar basicListVar = new CoreObjectListVar();
-//                basicListVar.setId(LocalIdGenerator.generateId(PREFIX_LIST_VAR_ID));
-//                basicListVar.setDataType(propertyMeta.getRefType());
-//                String dataValue = rawObject.getId();
-//
-//                basicListVar.setDataValue(dataValue);
-//                basicListVar.setRawObjectValue(rawObject);
-//                basicListVar.setSensitive(propertyMeta.getSensitive());
-//                basicListVar.setObjectPropertyMeta(propertyMeta);
-//
-//                basicListVars.add(basicListVar);
-//            }
-//
-//            for (CoreObjectListVar basicListVar : basicListVars) {
-//                CoreObjectPropertyVar propertyVar = new CoreObjectPropertyVar();
-//                propertyVar.setId(LocalIdGenerator.generateId(PREFIX_PROPERTY_VAR_ID));
-//                propertyVar.setDataType(propertyMeta.getDataType());
-//                // propertyVar.setDataValue(convertCoreObjectListVarsToString(basicListVars));
-//                propertyVar.setDataValue(basicListVar.getId());
-//                propertyVar.setName(propertyMeta.getName());
-//                propertyVar.setPropertyMeta(propertyMeta);
-//                propertyVar.setDataValueObject(basicListVars);
-//                propertyVar.setObjectName(propertyMeta.getObjectName());
-//                propertyVar.setPackageName(propertyMeta.getPackageName());
-//                propertyVar.setObjectPropertyMetaId(propertyMeta.getId());
-//                propertyVar.setSensitive(propertyMeta.getSensitive());
-//                listPropertyVars.add(propertyVar);
-//            }
-//
-//            return listPropertyVars;
-//        }
-//        throw new UnsupportedOperationException();
-//    }
+    // private List<CoreObjectPropertyVar>
+    // calculateListPropertyMetaAsListPropertyVarResult(
+    // CoreObjectPropertyMeta propertyMeta, CoreObjectVar parentObjectVar,
+    // CoreObjectVarCalculationContext ctx) {
+    // log.debug("calculate list property meta as list property vars for :{}",
+    // propertyMeta.getName());
+    // String refType = propertyMeta.getRefType();
+    //
+    // // refType = string, int
+    // if (isBasicDataType(refType)) {
+    // List<Object> objectValues =
+    // calculateBasicTypePropertyValueAsListResult(propertyMeta,
+    // parentObjectVar, ctx);
+    //
+    // List<CoreObjectPropertyVar> listPropertyVars = new ArrayList<>();
+    //
+    // List<CoreObjectListVar> basicListVars = new ArrayList<>();
+    // for (Object rawObject : objectValues) {
+    // CoreObjectListVar basicListVar = new CoreObjectListVar();
+    // basicListVar.setId(LocalIdGenerator.generateId(PREFIX_LIST_VAR_ID));
+    // basicListVar.setDataType(propertyMeta.getRefType());
+    // String dataValue = String.valueOf(rawObject);
+    //
+    // basicListVar.setDataValue(dataValue);
+    // basicListVar.setRawObjectValue(rawObject);
+    // basicListVar.setSensitive(propertyMeta.getSensitive());
+    // basicListVar.setObjectPropertyMeta(propertyMeta);
+    //
+    // basicListVars.add(basicListVar);
+    // }
+    //
+    // for (CoreObjectListVar basicListVar : basicListVars) {
+    // CoreObjectPropertyVar propertyVar = new CoreObjectPropertyVar();
+    // propertyVar.setId(LocalIdGenerator.generateId(PREFIX_PROPERTY_VAR_ID));
+    // propertyVar.setDataType(propertyMeta.getDataType());
+    // propertyVar.setDataValue(basicListVar.getId());
+    // propertyVar.setName(propertyMeta.getName());
+    // propertyVar.setPropertyMeta(propertyMeta);
+    // propertyVar.setDataValueObject(basicListVars);
+    // propertyVar.setObjectName(propertyMeta.getObjectName());
+    // propertyVar.setPackageName(propertyMeta.getPackageName());
+    // propertyVar.setObjectPropertyMetaId(propertyMeta.getId());
+    // propertyVar.setSensitive(propertyMeta.getSensitive());
+    // listPropertyVars.add(propertyVar);
+    // }
+    //
+    // return listPropertyVars;
+    //
+    // }
+    //
+    // if (isObjectDataType(refType)) {
+    // CoreObjectMeta refObjectMeta = propertyMeta.getRefObjectMeta();
+    // List<CoreObjectVar> objectVars =
+    // calculateObjectMetaAsObjectVarListResult(refObjectMeta, parentObjectVar,
+    // ctx);
+    //
+    // List<CoreObjectPropertyVar> listPropertyVars = new ArrayList<>();
+    //
+    // List<CoreObjectListVar> basicListVars = new ArrayList<>();
+    // for (CoreObjectVar rawObject : objectVars) {
+    // CoreObjectListVar basicListVar = new CoreObjectListVar();
+    // basicListVar.setId(LocalIdGenerator.generateId(PREFIX_LIST_VAR_ID));
+    // basicListVar.setDataType(propertyMeta.getRefType());
+    // String dataValue = rawObject.getId();
+    //
+    // basicListVar.setDataValue(dataValue);
+    // basicListVar.setRawObjectValue(rawObject);
+    // basicListVar.setSensitive(propertyMeta.getSensitive());
+    // basicListVar.setObjectPropertyMeta(propertyMeta);
+    //
+    // basicListVars.add(basicListVar);
+    // }
+    //
+    // for (CoreObjectListVar basicListVar : basicListVars) {
+    // CoreObjectPropertyVar propertyVar = new CoreObjectPropertyVar();
+    // propertyVar.setId(LocalIdGenerator.generateId(PREFIX_PROPERTY_VAR_ID));
+    // propertyVar.setDataType(propertyMeta.getDataType());
+    // //
+    // propertyVar.setDataValue(convertCoreObjectListVarsToString(basicListVars));
+    // propertyVar.setDataValue(basicListVar.getId());
+    // propertyVar.setName(propertyMeta.getName());
+    // propertyVar.setPropertyMeta(propertyMeta);
+    // propertyVar.setDataValueObject(basicListVars);
+    // propertyVar.setObjectName(propertyMeta.getObjectName());
+    // propertyVar.setPackageName(propertyMeta.getPackageName());
+    // propertyVar.setObjectPropertyMetaId(propertyMeta.getId());
+    // propertyVar.setSensitive(propertyMeta.getSensitive());
+    // listPropertyVars.add(propertyVar);
+    // }
+    //
+    // return listPropertyVars;
+    // }
+    // throw new UnsupportedOperationException();
+    // }
 
     // private List<CoreObjectPropertyVar>
     // calObjectPropertyMetaAsListPropertyVars(CoreObjectPropertyMeta
