@@ -22,20 +22,19 @@ public abstract class AbstractPluginParamObjectService {
     public static final String PREFIX_PROPERTY_VAR_ID = "PV";
 
     public static final String PREFIX_LIST_VAR_ID = "EV";
-    
 
     @Autowired
     protected CoreObjectMetaMapper coreObjectMetaMapper;
 
     @Autowired
     protected CoreObjectPropertyMetaMapper coreObjectPropertyMetaMapper;
-    
+
     @Autowired
     protected CoreObjectVarMapper coreObjectVarMapper;
-    
+
     @Autowired
     protected CoreObjectPropertyVarMapper coreObjectPropertyVarMapper;
-    
+
     @Autowired
     protected CoreObjectListVarMapper coreObjectListVarMapper;
 
@@ -102,17 +101,17 @@ public abstract class AbstractPluginParamObjectService {
 
         return Integer.parseInt(obj.toString());
     }
-    
-    protected Object convertStringToBasicPropertyValue(String dataType, Object dataValueObject){
-        if(isStringDataType(dataType)){
+
+    protected Object convertStringToBasicPropertyValue(String dataType, Object dataValueObject) {
+        if (isStringDataType(dataType)) {
             return dataValueObject;
         }
-        
-        if(isNumberDataType(dataType)){
+
+        if (isNumberDataType(dataType)) {
             Integer number = unmarshalNumber(dataValueObject);
             return number;
         }
-        
+
         return null;
     }
 
@@ -124,9 +123,8 @@ public abstract class AbstractPluginParamObjectService {
 
         String dataType = propertyMeta.getDataType();
         if (isBasicDataType(dataType)) {
-            return dataValueObject.toString();
+            return String.valueOf(dataValueObject);
         }
-
 
         if (isObjectDataType(dataType)) {
             CoreObjectVar objVar = (CoreObjectVar) dataValueObject;
@@ -134,18 +132,50 @@ public abstract class AbstractPluginParamObjectService {
         }
 
         if (isListDataType(dataType)) {
-            List<CoreObjectListVar> listVars = (List<CoreObjectListVar>) dataValueObject;
-            StringBuilder sb = new StringBuilder();
-            for (CoreObjectListVar v : listVars) {
-                sb.append(v.getId()).append(",");
+            String refType = propertyMeta.getRefType();
+            if (isBasicDataType(refType)) {
+                StringBuilder sb = new StringBuilder();
+                List<Object> objects = (List<Object>) dataValueObject;
+                for (Object obj : objects) {
+                    sb.append(String.valueOf(obj)).append(",");
+                }
+
+                return sb.toString();
             }
 
-            return sb.toString();
+            if (isBasicDataType(refType)) {
+                List<CoreObjectVar> listVars = (List<CoreObjectVar>) dataValueObject;
+                StringBuilder sb = new StringBuilder();
+                for (CoreObjectVar v : listVars) {
+                    sb.append(v.getId()).append(",");
+                }
+                
+                return sb.toString();
+            }
+           
         }
 
         return null;
     }
-    
-    
+
+    protected String assembleValueList(List<Object> retDataValues) {
+        StringBuilder sb = new StringBuilder();
+        boolean isFirst = true;
+        sb.append("[");
+
+        for (Object dv : retDataValues) {
+            if (!isFirst) {
+                sb.append(",");
+            } else {
+                isFirst = false;
+            }
+
+            sb.append(dv == null ? "" : dv);
+        }
+
+        sb.append("]");
+
+        return sb.toString();
+    }
 
 }
