@@ -238,45 +238,44 @@ public class PluginParamObjectVarStorage extends AbstractPluginParamObjectServic
         }
     }
 
-    @SuppressWarnings("unchecked")
     private void storeListCorePropertyVar(CoreObjectPropertyVar propertyVar, CoreObjectVar parentObjectVar) {
         propertyVar.setCreatedBy(WorkflowConstants.DEFAULT_USER);
         propertyVar.setCreatedTime(new Date());
 
         coreObjectPropertyVarMapper.insert(propertyVar);
 
-        List<CoreObjectListVar> listVars = (List<CoreObjectListVar>) propertyVar.getDataValueObject();
-
-        if (listVars == null || listVars.isEmpty()) {
-            log.debug("there is not list vars to store for property {}", propertyVar.getId());
-            return;
-        }
-
-        for (CoreObjectListVar listVar : listVars) {
-            storeCoreObjectListVar(listVar, propertyVar);
-        }
+//        List<CoreObjectListVar> listVars = (List<CoreObjectListVar>) propertyVar.getDataValueObject();
+//
+//        if (listVars == null || listVars.isEmpty()) {
+//            log.debug("there is not list vars to store for property {}", propertyVar.getId());
+//            return;
+//        }
+//
+//        for (CoreObjectListVar listVar : listVars) {
+//            storeCoreObjectListVar(listVar, propertyVar);
+//        }
     }
 
-    private void storeCoreObjectListVar(CoreObjectListVar listVar, CoreObjectPropertyVar propertyVar) {
-        listVar.setCreatedBy(WorkflowConstants.DEFAULT_USER);
-        listVar.setCreatedTime(new Date());
-        coreObjectListVarMapper.insert(listVar);
-
-        if (isBasicDataType(listVar.getDataType())) {
-            return;
-        }
-
-        if (isListDataType(listVar.getDataType())) {
-            //
-            log.debug("such data type {} is not currently supported.", listVar.getDataType());
-            return;
-        }
-
-        if (isObjectDataType(listVar.getDataType())) {
-            CoreObjectVar objectVar = (CoreObjectVar) listVar.getRawObjectValue();
-            storeCoreObjectVar(objectVar);
-        }
-    }
+//    private void storeCoreObjectListVar(CoreObjectListVar listVar, CoreObjectPropertyVar propertyVar) {
+//        listVar.setCreatedBy(WorkflowConstants.DEFAULT_USER);
+//        listVar.setCreatedTime(new Date());
+//        coreObjectListVarMapper.insert(listVar);
+//
+//        if (isBasicDataType(listVar.getDataType())) {
+//            return;
+//        }
+//
+//        if (isListDataType(listVar.getDataType())) {
+//            //
+//            log.debug("such data type {} is not currently supported.", listVar.getDataType());
+//            return;
+//        }
+//
+//        if (isObjectDataType(listVar.getDataType())) {
+//            CoreObjectVar objectVar = (CoreObjectVar) listVar.getRawObjectValue();
+//            storeCoreObjectVar(objectVar);
+//        }
+//    }
 
     private void storeObjectCorePropertyVar(CoreObjectPropertyVar propertyVar, CoreObjectVar parentObjectVar) {
 

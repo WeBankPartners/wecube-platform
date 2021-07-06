@@ -418,13 +418,13 @@ public class PluginConfigMgmtService extends AbstractPluginMgmtService {
         }
 
         String packageName = pluginPackage.getName();
-        if (StringUtils.isBlank(param.getMappingEntityExpression())) {
+        if (StringUtils.isBlank(param.getMappingValue())) {
             log.info("object name value is blank for {}", param.getId());
             return null;
         }
 
         String configId = pluginConfig.getId();
-        String objectName = param.getMappingEntityExpression();
+        String objectName = param.getMappingValue();
         CoreObjectMeta objectMeta = pluginParamObjectMetaStorage.fetchAssembledCoreObjectMeta(packageName, objectName,
                 configId);
         if (objectMeta == null) {

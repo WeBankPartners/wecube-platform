@@ -14,6 +14,7 @@ import org.springframework.web.client.RestTemplate;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
+import com.webank.wecube.platform.core.utils.Constants;
 
 public class StandardEntityOperationRestClient {
     private static final Logger log = LoggerFactory.getLogger(StandardEntityOperationRestClient.class);
@@ -178,7 +179,7 @@ public class StandardEntityOperationRestClient {
         for (EntityDataRecord record : records) {
             Map<String, Object> paramMap = new HashMap<>();
             if (StringUtils.isNoneBlank(record.getId())) {
-                paramMap.put(EntityDataDelegate.UNIQUE_IDENTIFIER, record.getId());
+                paramMap.put(Constants.UNIQUE_IDENTIFIER, record.getId());
             }
             if (record.getAttrs() != null) {
                 for (EntityDataAttr attr : record.getAttrs()) {

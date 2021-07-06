@@ -18,6 +18,7 @@ import java.util.Set;
 import java.util.UUID;
 
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -48,7 +49,6 @@ import com.webank.wecube.platform.core.model.workflow.PluginInvocationCommand;
 import com.webank.wecube.platform.core.model.workflow.PluginInvocationResult;
 import com.webank.wecube.platform.core.model.workflow.WorkflowInstCreationContext;
 import com.webank.wecube.platform.core.service.dme.EntityDataAttr;
-import com.webank.wecube.platform.core.service.dme.EntityDataDelegate;
 import com.webank.wecube.platform.core.service.dme.EntityDataRecord;
 import com.webank.wecube.platform.core.service.dme.EntityOperationRootCondition;
 import com.webank.wecube.platform.core.service.dme.EntityQueryExprNodeInfo;
@@ -59,6 +59,7 @@ import com.webank.wecube.platform.core.service.dme.StandardEntityOperationRespon
 import com.webank.wecube.platform.core.service.dme.StandardEntityOperationRestClient;
 import com.webank.wecube.platform.core.service.plugin.CoreObjectVarCalculationContext;
 import com.webank.wecube.platform.core.service.plugin.PluginParamObject;
+import com.webank.wecube.platform.core.service.plugin.PluginParamObjectVarStorage;
 import com.webank.wecube.platform.core.service.workflow.PluginInvocationProcessor.PluginInterfaceInvocationContext;
 import com.webank.wecube.platform.core.service.workflow.PluginInvocationProcessor.PluginInterfaceInvocationResult;
 import com.webank.wecube.platform.core.service.workflow.PluginInvocationProcessor.PluginInvocationOperation;
@@ -80,6 +81,9 @@ import com.webank.wecube.platform.workflow.commons.LocalIdGenerator;
  */
 @Service
 public class PluginInvocationService extends AbstractPluginInvocationService {
+
+    @Autowired
+    protected PluginParamObjectVarStorage pluginParamObjectVarStorageService;
 
     /**
      * 
@@ -373,7 +377,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
                 objDataMap);
 
         Map<String, Object> resultMap = entityOperationService.create(packageName, entityName, objDataMap);
-        String newDataEntityId = (String) resultMap.get(EntityDataDelegate.UNIQUE_IDENTIFIER);
+        String newDataEntityId = (String) resultMap.get(Constants.UNIQUE_IDENTIFIER);
         if (StringUtils.isBlank(newDataEntityId)) {
             log.warn("Entity created but there is not identity returned.{} {} {}", packageName, entityName, objDataMap);
             return;
@@ -1319,8 +1323,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
                     handleConstantMapping(mappingType, taskNodeDefEntity, paramName, objectVals, isFieldRequired);
                 }
 
-                //#2226
-                //TODO
+                // #2226
                 if (MAPPING_TYPE_OBJECT.equalsIgnoreCase(mappingType)) {
                     handleObjectMapping(mappingType, param, entityDataId, objectVals, externalCacheMap,
                             procDefInfoEntity, procInstEntity, nodeObjectBinding.getFullEntityDataId(),
@@ -1343,8 +1346,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
             List<Object> objectVals, Map<Object, Object> cacheMap, ProcDefInfoEntity procDefInfo,
             ProcInstInfoEntity procInstInfo, String rootEntityFullDataId, String rootEntityTypeId,
             TaskNodeDefInfoEntity taskNodeDefInfo, TaskNodeInstInfoEntity taskNodeInstInfo) {
-        //TODO 
-        //#2226
+        // #2226
         if (!MAPPING_TYPE_OBJECT.equals(mappingType)) {
             return;
         }
@@ -1360,17 +1362,47 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
         calCtx.setTaskNodeInstInfo(taskNodeInstInfo);
 
         CoreObjectMeta objectMeta = param.getObjectMeta();
-        
-        //TODO
-        CoreObjectVar objectVar = pluginParamObjectVarCalculator.calculateCoreObjectVar(objectMeta, calCtx);
 
-        PluginParamObject paramObject = pluginParamObjectVarAssembleService.marshalPluginParamObject(objectVar, calCtx);
+        // store objects here
+        List<CoreObjectVar> objectVars = pluginParamObjectVarCalculator.calculateCoreObjectVarList(objectMeta, calCtx,
+                param.getMappingEntityExpression());
 
-        if (paramObject != null) {
-            objectVals.add(paramObject);
+        if (objectVars == null || objectVars.isEmpty()) {
+            log.info("Got empty object values for : {}", objectMeta.getName());
+            return;
         }
 
-        return;
+        if (Constants.DATA_TYPE_LIST.equalsIgnoreCase(param.getDataType())) {
+            for (CoreObjectVar objectVar : objectVars) {
+                PluginParamObject paramObject = pluginParamObjectVarAssembleService.marshalPluginParamObject(objectVar,
+                        calCtx);
+                objectVals.add(paramObject);
+
+                pluginParamObjectVarStorageService.storeCoreObjectVar(objectVar);
+            }
+
+            return;
+        } else {
+
+            if (objectVars.size() > 1) {
+                String errMsg = String.format("Required data type {} but {} objects returned.", param.getDataType(),
+                        objectVars.size());
+                log.error(errMsg);
+
+                throw new WecubeCoreException(errMsg);
+            }
+
+            CoreObjectVar objectVar = objectVars.get(0);
+
+            PluginParamObject paramObject = pluginParamObjectVarAssembleService.marshalPluginParamObject(objectVar,
+                    calCtx);
+
+            objectVals.add(paramObject);
+
+            pluginParamObjectVarStorageService.storeCoreObjectVar(objectVar);
+
+            return;
+        }
     }
 
     private void handleEntityMapping(String mappingType, PluginConfigInterfaceParameters param, String entityDataId,
@@ -2018,7 +2050,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 
                 taskNodeExecParamRepository.insert(e);
 
-                //TODO
+                // TODO
                 inputMap.put(attr.getName(), attr.getExpectedValue());
             }
 
@@ -2035,8 +2067,8 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
             return null;
         }
 
-        //TODO
-        //#2226
+        // TODO
+        // #2226
         String dataValue = attr.getExpectedValue().toString();
         if (attr.isSensitive()) {
             dataValue = tryEncodeParamDataValue(dataValue);
@@ -2369,7 +2401,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
         } else {
             if (verifyIfHasNormalEntityMappingExcludeAssign(rootDemOutputParamAttrs)) {
                 Map<String, Object> resultMap = entityOperationService.create(packageName, entityName, objDataMap);
-                rootEntityId = (String) resultMap.get(EntityDataDelegate.UNIQUE_IDENTIFIER);
+                rootEntityId = (String) resultMap.get(Constants.UNIQUE_IDENTIFIER);
                 if (StringUtils.isBlank(rootEntityId)) {
                     log.warn("Entity created but there is not identity returned.{} {} {}", packageName, entityName,
                             objDataMap);

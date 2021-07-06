@@ -28,6 +28,7 @@ import com.webank.wecube.platform.core.service.dme.EntityQueryExpressionParser;
 import com.webank.wecube.platform.core.service.dme.EntityQueryFilter;
 import com.webank.wecube.platform.core.service.dme.EntityQueryLinkNode;
 import com.webank.wecube.platform.core.service.dme.StandardEntityOperationRestClient;
+import com.webank.wecube.platform.core.utils.Constants;
 
 @Service
 public class RootlessExpressionServiceImpl implements RootlessExpressionService {
@@ -85,9 +86,9 @@ public class RootlessExpressionServiceImpl implements RootlessExpressionService 
                 Map<String, Object> record = new HashMap<String, Object>();
                 record.putAll(delegate.getEntityData());
 
-                if (!addedIds.contains(record.get(EntityDataDelegate.UNIQUE_IDENTIFIER))) {
+                if (!addedIds.contains(record.get(Constants.UNIQUE_IDENTIFIER))) {
                     results.add(record);
-                    addedIds.add((String) record.get(EntityDataDelegate.UNIQUE_IDENTIFIER));
+                    addedIds.add((String) record.get(Constants.UNIQUE_IDENTIFIER));
                 }
             }
 
