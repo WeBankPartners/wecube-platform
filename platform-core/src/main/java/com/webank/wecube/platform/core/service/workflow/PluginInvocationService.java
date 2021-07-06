@@ -1191,8 +1191,6 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
             }
         }
 
-        // inputParamObjs.add(inputObj);
-
         return inputParamObjs;
     }
 
