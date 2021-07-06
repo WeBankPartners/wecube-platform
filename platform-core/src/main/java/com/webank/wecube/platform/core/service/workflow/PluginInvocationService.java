@@ -1367,7 +1367,8 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 
         // TODO
         // store objects here
-        List<CoreObjectVar> objectVars = pluginParamObjectVarCalculator.calculateCoreObjectVarList(objectMeta, calCtx);
+        List<CoreObjectVar> objectVars = pluginParamObjectVarCalculator.calculateCoreObjectVarList(objectMeta, calCtx,
+                param.getMappingEntityExpression());
 
         if (objectVars == null || objectVars.isEmpty()) {
             log.info("Got empty object values for : {}", objectMeta.getName());
@@ -1400,7 +1401,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
                     calCtx);
 
             objectVals.add(paramObject);
-            
+
             pluginParamObjectVarStorageService.storeCoreObjectVar(objectVar);
 
             return;
