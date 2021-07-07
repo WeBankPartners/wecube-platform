@@ -138,6 +138,7 @@ public class WorkflowDataService extends AbstractWorkflowService{
             d.setEntityDisplayName(e.getEntityDataName());
             d.setEntityTypeId(e.getEntityTypeId());
             d.setBound(e.getBindFlag());
+            d.setConfirmToken(e.getConfirmToken());
             d.setNodeDefId(e.getNodeDefId());
             d.setNodeInstId(e.getTaskNodeInstId());
             d.setProcInstId(e.getProcInstId());
@@ -226,11 +227,12 @@ public class WorkflowDataService extends AbstractWorkflowService{
                 throw new WecubeCoreException(errMsg);
             }
 
-            if (bindInfoDto.getBound().equals(bindEntity.getBindFlag())) {
-                continue;
-            }
+//            if (bindInfoDto.getBound().equals(bindEntity.getBindFlag())) {
+//                continue;
+//            }
 
             bindEntity.setBindFlag(bindInfoDto.getBound());
+            bindEntity.setConfirmToken(bindInfoDto.getConfirmToken());
 
             procExecBindingMapper.updateByPrimaryKey(bindEntity);
         }
