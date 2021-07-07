@@ -33,6 +33,23 @@
         </encoder>
     </appender>
     
+    <appender name="rollingSqlFile"
+        class="ch.qos.logback.core.rolling.RollingFileAppender">
+        
+        <File>${logPath}/wecube-core-sql.log</File>
+        <rollingPolicy
+            class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <FileNamePattern>${logPath}/${logFile}-%d{yyyyMMdd}.log
+            </FileNamePattern>
+            <MaxHistory>30</MaxHistory>
+        </rollingPolicy>
+        <encoder>
+            <Pattern><![CDATA[%d{yyyy-MM-dd HH:mm:ss} %thread %-5level %-48logger{48} %msg%n]]>
+            </Pattern>
+            <charset>UTF-8</charset>
+        </encoder>
+    </appender>
+    
     <appender name="accessRollingFile"
         class="ch.qos.logback.core.rolling.RollingFileAppender">
         
@@ -57,7 +74,7 @@
     
     <logger name="com.webank.wecube.platform.core.repository" level="debug" 
         additivity="false"> 
-        <appender-ref ref="rollingFile" /> 
+        <appender-ref ref="rollingSqlFile" /> 
     </logger>
     
     <logger name="access" level="info" 
