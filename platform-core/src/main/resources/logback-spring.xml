@@ -39,7 +39,7 @@
         <File>${logPath}/wecube-core-sql.log</File>
         <rollingPolicy
             class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-            <FileNamePattern>${logPath}/${logFile}-%d{yyyyMMdd}.log
+            <FileNamePattern>${logPath}/wecube-core-sql-%d{yyyyMMdd}.log
             </FileNamePattern>
             <MaxHistory>30</MaxHistory>
         </rollingPolicy>
