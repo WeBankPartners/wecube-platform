@@ -1,0 +1,1 @@
+ALTER TABLE `core_ru_proc_exec_binding` ADD COLUMN `confirm_token` VARCHAR(45) NULL;
