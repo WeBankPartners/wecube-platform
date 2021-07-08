@@ -2,8 +2,11 @@ package com.webank.wecube.platform.core.model.workflow;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
+import com.webank.wecube.platform.core.service.plugin.PluginParamObject;
 import com.webank.wecube.platform.core.utils.Constants;
+import com.webank.wecube.platform.core.utils.JsonUtils;
 
 public class InputParamAttr {
 
@@ -75,7 +78,18 @@ public class InputParamAttr {
         }
         
         if(Constants.DATA_TYPE_LIST.equalsIgnoreCase(type)){
-            return values;
+            List<Object> clonedListValues = new ArrayList<>();
+            for(Object val : values){
+                if(val instanceof PluginParamObject){
+                    PluginParamObject objVal = (PluginParamObject)val;
+                    PluginParamObject clonedObjVal = PluginParamObject.wipeOffObjectIdAndClone(objVal);
+                    clonedListValues.add(clonedObjVal);
+                }else{
+                    clonedListValues.add(val);
+                }
+            }
+            
+            return clonedListValues;
         }
 
         if (values.size() == 1) {
@@ -86,10 +100,14 @@ public class InputParamAttr {
             
             if(Constants.DATA_TYPE_STRING.equalsIgnoreCase(type)) {
                 //TODO
-                return String.valueOf(val);
+                return JsonUtils.toJsonString(val);
             }
             
-            //TODO omit plugin object id and name here once map
+            if(val instanceof PluginParamObject){
+                PluginParamObject objVal = (PluginParamObject)val;
+                return PluginParamObject.wipeOffObjectIdAndClone(objVal);
+            }
+            
             return val;
         }
 
@@ -143,18 +161,33 @@ public class InputParamAttr {
             if (v == null) {
                 return String.valueOf(determineEmptyValue());
             }
-            //TODO
+            
+            if( (v instanceof PluginParamObject ) || (v instanceof Map) || (v instanceof List)){
+                return JsonUtils.toJsonString(v);
+            }
+            
             return String.valueOf(v);
         }
 
         StringBuilder sb = new StringBuilder();
         for (Object v : values) {
 
-            //TODO
-            sb.append(v == null ? String.valueOf(determineEmptyValue()) : String.valueOf(v)).append(",");
+            sb.append(v == null ? String.valueOf(determineEmptyValue()) : getValuesAsString(v)).append(",");
         }
 
         return sb.toString();
+    }
+    
+    public String getValuesAsString(Object v){
+        if (v == null) {
+            return null;
+        }
+        
+        if( (v instanceof PluginParamObject ) || (v instanceof Map) || (v instanceof List)){
+            return JsonUtils.toJsonString(v);
+        }
+        
+        return String.valueOf(v);
     }
 
     public boolean isSensitive() {
