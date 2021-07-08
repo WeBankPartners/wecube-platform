@@ -154,6 +154,36 @@ public class CoreObjectMeta {
     public void setMapExpr(String mapExpr) {
         this.mapExpr = mapExpr;
     }
+
+    @Override
+    public String toString() {
+        StringBuilder builder = new StringBuilder();
+        builder.append("[id=");
+        builder.append(id);
+        builder.append(", name=");
+        builder.append(name);
+        builder.append(", packageName=");
+        builder.append(packageName);
+        builder.append(", source=");
+        builder.append(source);
+        builder.append(", latestSource=");
+        builder.append(latestSource);
+        builder.append(", createdBy=");
+        builder.append(createdBy);
+        builder.append(", createdTime=");
+        builder.append(createdTime);
+        builder.append(", updatedBy=");
+        builder.append(updatedBy);
+        builder.append(", updatedTime=");
+        builder.append(updatedTime);
+        builder.append(", configId=");
+        builder.append(configId);
+        builder.append(", mapExpr=");
+        builder.append(mapExpr);
+        builder.append("]");
+        return builder.toString();
+    }
+    
     
     
 }

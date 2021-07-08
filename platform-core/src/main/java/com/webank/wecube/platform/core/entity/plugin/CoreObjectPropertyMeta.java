@@ -219,4 +219,47 @@ public class CoreObjectPropertyMeta {
         this.configId = configId;
     }
 
+    @Override
+    public String toString() {
+        StringBuilder builder = new StringBuilder();
+        builder.append("[id=");
+        builder.append(id);
+        builder.append(", name=");
+        builder.append(name);
+        builder.append(", dataType=");
+        builder.append(dataType);
+        builder.append(", refType=");
+        builder.append(refType);
+        builder.append(", refName=");
+        builder.append(refName);
+        builder.append(", mapType=");
+        builder.append(mapType);
+        builder.append(", mapExpr=");
+        builder.append(mapExpr);
+        builder.append(", objectMetaId=");
+        builder.append(objectMetaId);
+        builder.append(", objectName=");
+        builder.append(objectName);
+        builder.append(", packageName=");
+        builder.append(packageName);
+        builder.append(", source=");
+        builder.append(source);
+        builder.append(", createdBy=");
+        builder.append(createdBy);
+        builder.append(", createdTime=");
+        builder.append(createdTime);
+        builder.append(", updatedBy=");
+        builder.append(updatedBy);
+        builder.append(", updatedTime=");
+        builder.append(updatedTime);
+        builder.append(", sensitive=");
+        builder.append(sensitive);
+        builder.append(", configId=");
+        builder.append(configId);
+        builder.append("]");
+        return builder.toString();
+    }
+    
+    
+
 }
