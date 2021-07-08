@@ -178,7 +178,7 @@ public class PluginParamObjectVarCalculator extends AbstractPluginParamObjectSer
         } else if (isObjectDataType(dataType)) {
             CoreObjectMeta refObjectMeta = propertyMeta.getRefObjectMeta();
             if (refObjectMeta == null) {
-                String errMsg = String.format("Cannot get reference object meta for {}:{} but object type is {}",
+                String errMsg = String.format("Cannot get reference object meta for [%s]:[%s] but object type is [%s]",
                         propertyMeta.getObjectName(), propertyMeta.getName(), dataType);
                 log.error(errMsg);
                 throw new WecubeCoreException(errMsg);
@@ -190,7 +190,7 @@ public class PluginParamObjectVarCalculator extends AbstractPluginParamObjectSer
                 // do nothing
             } else {
                 if (refObjectVars.size() > 1) {
-                    String errMsg = String.format("object {} property {} required {} but total {} objects got.",
+                    String errMsg = String.format("object [%s] property [%s] required [%s] but total [%s] objects got.",
                             propertyMeta.getObjectName(), propertyMeta.getName(), dataType, refObjectVars.size());
                     throw new WecubeCoreException(errMsg);
                 }
