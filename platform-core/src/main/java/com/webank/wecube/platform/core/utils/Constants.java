@@ -44,4 +44,7 @@ public class Constants {
     
     public static final String UNIQUE_IDENTIFIER = "id";
     public static final String VISUAL_FIELD = "displayName";
+    
+    public static final String CORE_OBJECT_ID_KEY = "coreObjectId";
+    public static final String CORE_OBJECT_NAME_KEY = "coreObjectName";
 }
