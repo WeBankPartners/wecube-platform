@@ -172,13 +172,13 @@ public class InputParamAttr {
         StringBuilder sb = new StringBuilder();
         for (Object v : values) {
 
-            sb.append(v == null ? String.valueOf(determineEmptyValue()) : getValuesAsString(v)).append(",");
+            sb.append(v == null ? String.valueOf(determineEmptyValue()) : convertToString(v)).append(",");
         }
 
         return sb.toString();
     }
     
-    public String getValuesAsString(Object v){
+    public static String convertToString(Object v){
         if (v == null) {
             return null;
         }

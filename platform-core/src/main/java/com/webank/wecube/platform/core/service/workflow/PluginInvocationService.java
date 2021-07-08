@@ -2095,14 +2095,14 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
             return null;
         }
 
-        // TODO
         // #2226
-        String dataValue = attr.getExpectedValue().toString();
+        Object dataValue = attr.getExpectedValue();
+        String dataValueStr = InputParamAttr.convertToString(dataValue);
         if (attr.isSensitive()) {
-            dataValue = tryEncodeParamDataValue(dataValue);
+            dataValueStr = tryEncodeParamDataValue(dataValueStr);
         }
 
-        return dataValue;
+        return dataValueStr;
     }
 
     private PluginInstances retrieveAvailablePluginInstance(PluginConfigInterfaces itf) {
