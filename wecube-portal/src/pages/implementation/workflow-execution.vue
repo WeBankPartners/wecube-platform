@@ -330,7 +330,7 @@
         <span class="confirm-msg">{{ $t('confirm_to_exect') }}</span>
       </div>
       <div style="max-height: 390px;overflow: auto;">
-        <pre style="margin-left: 44px;">{{ this.confirmModal.message }}</pre>
+        <pre style="margin-left: 44px;margin-top: 22px;">{{ this.confirmModal.message }}</pre>
       </div>
       <div slot="footer">
         <span style="margin-left:30px;color:#ed4014;float: left;text-align:left">
@@ -1599,6 +1599,7 @@ export default {
       const { status, data } = await getNodeContext(nodeInfo.procInstId, nodeInfo.id)
       if (status === 'OK') {
         this.confirmModal.message = data.errorMessage
+        this.confirmModal.check = false
         this.confirmModal.isShowConfirmModal = true
         this.confirmModal.requestBody = nodeInfo
       }

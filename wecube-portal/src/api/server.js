@@ -5,6 +5,9 @@ export const getMyMenus = () => req.get('/platform/v1/my-menus')
 
 // flow
 export const saveFlow = data => req.post('/platform/v1/process/definitions/deploy', data)
+export const confirmSaveFlow = (continueToken, data) => {
+  return req.post(`/platform/v1/process/definitions/deploy?continue_token=${continueToken}`, data)
+}
 export const saveFlowDraft = data => req.post('/platform/v1/process/definitions/draft', data)
 export const getAllFlow = (isIncludeDraft = true) => {
   return isIncludeDraft
