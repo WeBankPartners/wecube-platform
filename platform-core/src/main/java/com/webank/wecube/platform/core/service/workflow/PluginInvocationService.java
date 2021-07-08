@@ -535,7 +535,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
             }
 
             if (MAPPING_TYPE_CONSTANT.equalsIgnoreCase(mappingType)) {
-                handleConstantMapping(mappingType, taskNodeDefEntity, paramName, objectVals, isFieldRequired);
+                handleConstantMapping(mappingType, taskNodeDefEntity, paramName, objectVals, isFieldRequired, param);
             }
 
             if (MAPPING_TYPE_CONTEXT.equals(mappingType)) {
@@ -1182,7 +1182,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
                 }
 
                 if (MAPPING_TYPE_CONSTANT.equalsIgnoreCase(mappingType)) {
-                    handleConstantMapping(mappingType, taskNodeDefEntity, paramName, objectVals, isFieldRequired);
+                    handleConstantMapping(mappingType, taskNodeDefEntity, paramName, objectVals, isFieldRequired, param);
                 }
 
                 inputAttr.addValues(objectVals);
@@ -1190,8 +1190,6 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
                 inputObj.addAttrs(inputAttr);
             }
         }
-
-        // inputParamObjs.add(inputObj);
 
         return inputParamObjs;
     }
@@ -1287,6 +1285,10 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
             inputObj.setEntityTypeId(nodeObjectBinding.getEntityTypeId());
             inputObj.setEntityDataId(nodeObjectBinding.getEntityDataId());
             inputObj.setFullEntityDataId(nodeObjectBinding.getFullEntityDataId());
+            
+            if(StringUtils.isNoneBlank(nodeObjectBinding.getConfirmToken())){
+                inputObj.setConfirmToken(nodeObjectBinding.getConfirmToken());
+            }
 
             for (PluginConfigInterfaceParameters param : configInterfaceInputParams) {
                 String paramName = param.getName();
@@ -1320,7 +1322,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
                 }
 
                 if (MAPPING_TYPE_CONSTANT.equalsIgnoreCase(mappingType)) {
-                    handleConstantMapping(mappingType, taskNodeDefEntity, paramName, objectVals, isFieldRequired);
+                    handleConstantMapping(mappingType, taskNodeDefEntity, paramName, objectVals, isFieldRequired, param);
                 }
 
                 // #2226
@@ -1826,10 +1828,16 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
     }
 
     private void handleConstantMapping(String mappingType, TaskNodeDefInfoEntity taskNodeDefEntity, String paramName,
-            List<Object> objectVals, boolean fieldRequired) {
+            List<Object> objectVals, boolean fieldRequired, PluginConfigInterfaceParameters param) {
         if (!MAPPING_TYPE_CONSTANT.equals(mappingType)) {
             return;
         }
+        
+        if(StringUtils.isNoneBlank(param.getMappingValue())){
+            objectVals.add(param.getMappingValue());
+            return;
+        }
+        
         String curTaskNodeDefId = taskNodeDefEntity.getId();
         TaskNodeParamEntity nodeParamEntity = taskNodeParamRepository
                 .selectOneByTaskNodeDefIdAndParamName(curTaskNodeDefId, paramName);
@@ -2029,6 +2037,26 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
             p.setIsSensitive(false);
 
             taskNodeExecParamRepository.insert(p);
+            
+            if(StringUtils.isNoneBlank(ipo.getConfirmToken())){
+                inputMap.put(CONFIRM_TOKEN_KEY, ipo.getConfirmToken());
+                TaskNodeExecParamEntity confirmTokenParam = new TaskNodeExecParamEntity();
+                confirmTokenParam.setReqId(requestId);
+                confirmTokenParam.setParamName(CONFIRM_TOKEN_KEY);
+                confirmTokenParam.setParamType(TaskNodeExecParamEntity.PARAM_TYPE_REQUEST);
+                confirmTokenParam.setParamDataType(DATA_TYPE_STRING);
+                confirmTokenParam.setObjId(sObjectId);
+                confirmTokenParam.setParamDataValue(ipo.getConfirmToken());
+                confirmTokenParam.setEntityDataId(entityDataId);
+                confirmTokenParam.setEntityTypeId(entityTypeId);
+                // 2169
+                confirmTokenParam.setFullEntityDataId(fullEntityDataId);
+                confirmTokenParam.setCreatedBy(WorkflowConstants.DEFAULT_USER);
+                confirmTokenParam.setCreatedTime(new Date());
+                confirmTokenParam.setIsSensitive(false);
+
+                taskNodeExecParamRepository.insert(confirmTokenParam);
+            }
 
             inputMap.put(INPUT_PARAMETER_KEY_OPERATOR, operator);
 
