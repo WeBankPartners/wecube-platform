@@ -2078,7 +2078,6 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 
                 taskNodeExecParamRepository.insert(e);
 
-                // TODO
                 inputMap.put(attr.getName(), attr.getExpectedValue());
             }
 

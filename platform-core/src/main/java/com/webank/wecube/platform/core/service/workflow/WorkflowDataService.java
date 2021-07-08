@@ -1,5 +1,6 @@
 package com.webank.wecube.platform.core.service.workflow;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -59,6 +60,7 @@ import com.webank.wecube.platform.core.service.dme.EntityTreeNodesOverview;
 import com.webank.wecube.platform.core.service.dme.StandardEntityDataNode;
 import com.webank.wecube.platform.core.service.dme.StandardEntityOperationService;
 import com.webank.wecube.platform.core.service.plugin.PluginConfigMgmtService;
+import com.webank.wecube.platform.core.utils.JsonUtils;
 
 /**
  * 
@@ -945,6 +947,20 @@ public class WorkflowDataService extends AbstractWorkflowService{
         return respParamEntity.getIsSensitive();
 
     }
+    
+    private Object jsonToObject(String json){
+        if(StringUtils.isBlank(json)){
+            return null;
+        }
+        
+        try {
+            Object obj = JsonUtils.toObject(json, Object.class);
+            return obj;
+        } catch (IOException e) {
+            log.info("exceptions while convert string to json.", e);
+            return json;
+        }
+    }
 
     //#2169
     private List<RequestObjectDto> calculateRequestObjectDtos(List<TaskNodeExecParamEntity> requestParamEntities,
@@ -975,7 +991,8 @@ public class WorkflowDataService extends AbstractWorkflowService{
                     paramObjectDto.setCallbackParameter(reqParam.getParamDataValue());
                 } else {
 //                    RequestParamAttrDto attrDto = new RequestParamAttrDto(reqParam.getParamName(), attrValue);
-                    paramObjectDto.addParamAttr(reqParam.getParamName(), attrValue);
+                    Object objAttrValue = jsonToObject(attrValue);
+                    paramObjectDto.addParamAttr(reqParam.getParamName(), objAttrValue);
                 }
             }
         }
