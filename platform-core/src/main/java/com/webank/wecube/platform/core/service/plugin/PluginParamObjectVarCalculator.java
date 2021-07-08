@@ -81,6 +81,7 @@ public class PluginParamObjectVarCalculator extends AbstractPluginParamObjectSer
 
     protected List<CoreObjectVar> doCalculateCoreObjectVarList(CoreObjectMeta objectMeta, CoreObjectVar parentObjectVar,
             CoreObjectVarCalculationContext ctx, String rootEntityDataId, String objectMetaExpr) {
+        log.info("start to calculate object values for:{} {} {}", objectMeta, rootEntityDataId, objectMetaExpr);
         // String objectMetaExpr = objectMeta.getMapExpr();
         if (StringUtils.isBlank(objectMetaExpr)) {
             if (checkIfHasEntityMappingProperty(objectMeta)) {
@@ -164,6 +165,7 @@ public class PluginParamObjectVarCalculator extends AbstractPluginParamObjectSer
 
     private List<Object> tryCalculatePropertyDataValueObject(CoreObjectPropertyMeta propertyMeta,
             CoreObjectVar parentObjectVar, CoreObjectVarCalculationContext ctx, String rootDataId) {
+        log.info("start to calculate property data value for:{}  {}", propertyMeta, rootDataId);
         String dataType = propertyMeta.getDataType();
         List<Object> dataObjectValues = new ArrayList<>();
 
@@ -175,6 +177,12 @@ public class PluginParamObjectVarCalculator extends AbstractPluginParamObjectSer
             }
         } else if (isObjectDataType(dataType)) {
             CoreObjectMeta refObjectMeta = propertyMeta.getRefObjectMeta();
+            if (refObjectMeta == null) {
+                String errMsg = String.format("Cannot get reference object meta for {}:{} but object type is {}",
+                        propertyMeta.getObjectName(), propertyMeta.getName(), dataType);
+                log.error(errMsg);
+                throw new WecubeCoreException(errMsg);
+            }
             List<CoreObjectVar> refObjectVars = doCalculateCoreObjectVarList(refObjectMeta, parentObjectVar, ctx,
                     rootDataId, propertyMeta.getMapExpr());
 
