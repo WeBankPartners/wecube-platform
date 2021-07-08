@@ -128,6 +128,7 @@ public class PluginParamObjectVarCalculator extends AbstractPluginParamObjectSer
 
         for (String boundDataId : objectMetaBoundDataIds) {
             CoreObjectVar objectVar = new CoreObjectVar();
+            objectVar.setId(LocalIdGenerator.generateId(PREFIX_OBJECT_VAR_ID));
             objectVar.setName(objectMeta.getName());
             objectVar.setObjectMeta(objectMeta);
             objectVar.setObjectMetaId(objectMeta.getId());
@@ -203,6 +204,7 @@ public class PluginParamObjectVarCalculator extends AbstractPluginParamObjectSer
             CoreObjectVar parentObjectVar, CoreObjectVarCalculationContext ctx, String rootEntityDataId) {
         List<CoreObjectVar> coreObjectVars = new ArrayList<>();
         CoreObjectVar objectVar = new CoreObjectVar();
+        objectVar.setId(LocalIdGenerator.generateId(PREFIX_OBJECT_VAR_ID));
         objectVar.setName(objectMeta.getName());
         objectVar.setObjectMeta(objectMeta);
         objectVar.setObjectMetaId(objectMeta.getId());
