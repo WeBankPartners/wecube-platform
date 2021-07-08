@@ -175,6 +175,12 @@ public class PluginConfigMgmtService extends AbstractPluginMgmtService {
         for (PluginConfigInterfaceParameterDto paramDto : inputParameters) {
             if (Constants.MAPPING_TYPE_CONTEXT.equalsIgnoreCase(paramDto.getMappingType())
                     || Constants.MAPPING_TYPE_CONSTANT.equalsIgnoreCase(paramDto.getMappingType())) {
+                
+                if (Constants.MAPPING_TYPE_CONSTANT.equalsIgnoreCase(paramDto.getMappingType())
+                        && StringUtils.isNoneBlank(paramDto.getMappingValue())) {
+                    continue;
+                }
+                
                 PluginConfigInterfaceParameterDto configParamDto = new PluginConfigInterfaceParameterDto();
                 configParamDto.setId(paramDto.getId());
                 configParamDto.setDataType(paramDto.getDataType());
@@ -217,6 +223,11 @@ public class PluginConfigMgmtService extends AbstractPluginMgmtService {
         for (CoreObjectPropertyMetaDto propMetaDto : propertyMetas) {
             if (Constants.MAPPING_TYPE_CONTEXT.equalsIgnoreCase(propMetaDto.getMappingType())
                     || Constants.MAPPING_TYPE_CONSTANT.equalsIgnoreCase(propMetaDto.getMappingType())) {
+
+                if (Constants.MAPPING_TYPE_CONSTANT.equalsIgnoreCase(propMetaDto.getMappingType())
+                        && StringUtils.isNoneBlank(propMetaDto.getMappingEntityExpression())) {
+                    continue;
+                }
                 PluginConfigInterfaceParameterDto propMetaParamDto = new PluginConfigInterfaceParameterDto();
                 propMetaParamDto.setId(propMetaDto.getId());
                 propMetaParamDto.setDataType(propMetaDto.getDataType());
@@ -227,6 +238,7 @@ public class PluginConfigMgmtService extends AbstractPluginMgmtService {
                 propMetaParamDto.setRequired("Y");
                 propMetaParamDto.setSensitiveData(propMetaDto.getSensitiveData());
                 propMetaParamDto.setType(Constants.TYPE_INPUT);
+                propMetaParamDto.setMappingValue(propMetaDto.getMappingEntityExpression());
 
                 objectConfigParamDtos.add(propMetaParamDto);
             } else {
@@ -378,8 +390,7 @@ public class PluginConfigMgmtService extends AbstractPluginMgmtService {
         }
 
         List<PluginConfigInterfaceParameters> outputParamEntities = pluginConfigInterfaceParametersMapper
-                .selectAllByConfigInterfaceAndParamType(intfEntity.getId(),
-                        Constants.TYPE_OUTPUT);
+                .selectAllByConfigInterfaceAndParamType(intfEntity.getId(), Constants.TYPE_OUTPUT);
 
         if (outputParamEntities != null) {
             for (PluginConfigInterfaceParameters outputParam : outputParamEntities) {
@@ -636,13 +647,11 @@ public class PluginConfigMgmtService extends AbstractPluginMgmtService {
         if (intfEntities != null) {
             for (PluginConfigInterfaces intfEntity : intfEntities) {
                 List<PluginConfigInterfaceParameters> inputParamEntities = pluginConfigInterfaceParametersMapper
-                        .selectAllByConfigInterfaceAndParamType(intfEntity.getId(),
-                                Constants.TYPE_INPUT);
+                        .selectAllByConfigInterfaceAndParamType(intfEntity.getId(), Constants.TYPE_INPUT);
                 intfEntity.setInputParameters(inputParamEntities);
 
                 List<PluginConfigInterfaceParameters> outputParamEntities = pluginConfigInterfaceParametersMapper
-                        .selectAllByConfigInterfaceAndParamType(intfEntity.getId(),
-                                Constants.TYPE_OUTPUT);
+                        .selectAllByConfigInterfaceAndParamType(intfEntity.getId(), Constants.TYPE_OUTPUT);
 
                 intfEntity.setOutputParameters(outputParamEntities);
 
@@ -808,13 +817,11 @@ public class PluginConfigMgmtService extends AbstractPluginMgmtService {
         if (intfEntities != null) {
             for (PluginConfigInterfaces intfEntity : intfEntities) {
                 List<PluginConfigInterfaceParameters> inputParamEntities = pluginConfigInterfaceParametersMapper
-                        .selectAllByConfigInterfaceAndParamType(intfEntity.getId(),
-                                Constants.TYPE_INPUT);
+                        .selectAllByConfigInterfaceAndParamType(intfEntity.getId(), Constants.TYPE_INPUT);
                 intfEntity.setInputParameters(inputParamEntities);
 
                 List<PluginConfigInterfaceParameters> outputParamEntities = pluginConfigInterfaceParametersMapper
-                        .selectAllByConfigInterfaceAndParamType(intfEntity.getId(),
-                                Constants.TYPE_OUTPUT);
+                        .selectAllByConfigInterfaceAndParamType(intfEntity.getId(), Constants.TYPE_OUTPUT);
 
                 intfEntity.setOutputParameters(outputParamEntities);
 
@@ -861,11 +868,11 @@ public class PluginConfigMgmtService extends AbstractPluginMgmtService {
         if (inputParameterDtos != null) {
             for (PluginConfigInterfaceParameterDto paramDto : inputParameterDtos) {
                 if (StringUtils.isBlank(paramDto.getId())) {
-                    buildPluginConfigInterfaceParameters(Constants.TYPE_INPUT, paramDto,
-                            pluginPackage, pluginConfigEntity, intfEntity);
+                    buildPluginConfigInterfaceParameters(Constants.TYPE_INPUT, paramDto, pluginPackage,
+                            pluginConfigEntity, intfEntity);
                 } else {
-                    updatePluginConfigInterfaceParameters(Constants.TYPE_INPUT, paramDto,
-                            pluginPackage, pluginConfigEntity, intfEntity);
+                    updatePluginConfigInterfaceParameters(Constants.TYPE_INPUT, paramDto, pluginPackage,
+                            pluginConfigEntity, intfEntity);
                 }
             }
 
@@ -876,11 +883,11 @@ public class PluginConfigMgmtService extends AbstractPluginMgmtService {
         if (outputParameterDtos != null) {
             for (PluginConfigInterfaceParameterDto paramDto : outputParameterDtos) {
                 if (StringUtils.isBlank(paramDto.getId())) {
-                    buildPluginConfigInterfaceParameters(Constants.TYPE_OUTPUT, paramDto,
-                            pluginPackage, pluginConfigEntity, intfEntity);
+                    buildPluginConfigInterfaceParameters(Constants.TYPE_OUTPUT, paramDto, pluginPackage,
+                            pluginConfigEntity, intfEntity);
                 } else {
-                    updatePluginConfigInterfaceParameters(Constants.TYPE_OUTPUT, paramDto,
-                            pluginPackage, pluginConfigEntity, intfEntity);
+                    updatePluginConfigInterfaceParameters(Constants.TYPE_OUTPUT, paramDto, pluginPackage,
+                            pluginConfigEntity, intfEntity);
                 }
             }
 
