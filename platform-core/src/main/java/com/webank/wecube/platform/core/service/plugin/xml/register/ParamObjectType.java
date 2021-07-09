@@ -46,6 +46,9 @@ public class ParamObjectType {
     protected List<ParamPropertyType> property;
     @XmlAttribute(name = "name", required = true)
     protected String name;
+    
+    @XmlAttribute(name = "mapExpr", required = false)
+    protected String mapExpr;
 
     /**
      * Gets the value of the property property.
@@ -86,5 +89,17 @@ public class ParamObjectType {
     public void setName(String value) {
         this.name = value;
     }
+
+
+    public String getMapExpr() {
+        return mapExpr;
+    }
+
+
+    public void setMapExpr(String mapExpr) {
+        this.mapExpr = mapExpr;
+    }
+    
+    
 
 }
