@@ -39,7 +39,7 @@ public class PluginParamObjectVarMarshaller extends AbstractPluginParamObjectSer
      * @param ctx
      * @return
      */
-    public CoreObjectVar unmarshalPluginParamObject(Map<String,Object> paramObject, CoreObjectMeta objectMeta,
+    public CoreObjectVar unmarshalPluginParamObject(Map<String, Object> paramObject, CoreObjectMeta objectMeta,
             CoreObjectVarCalculationContext ctx) {
         if (paramObject == null) {
             log.debug("param object to unmarshal is null.");
@@ -61,7 +61,7 @@ public class PluginParamObjectVarMarshaller extends AbstractPluginParamObjectSer
 
     }
 
-    public CoreObjectVar doUnmarshalPluginParamObject(Map<String,Object> paramObject, CoreObjectMeta objectMeta,
+    public CoreObjectVar doUnmarshalPluginParamObject(Map<String, Object> paramObject, CoreObjectMeta objectMeta,
             CoreObjectVarCalculationContext ctx) {
         CoreObjectVar rootObjectVar = new CoreObjectVar();
         rootObjectVar.setId(LocalIdGenerator.generateId(PREFIX_OBJECT_VAR_ID));
@@ -101,11 +101,11 @@ public class PluginParamObjectVarMarshaller extends AbstractPluginParamObjectSer
         propertyVar.setId(LocalIdGenerator.generateId(PREFIX_PROPERTY_VAR_ID));
         propertyVar.setName(propertyMeta.getName());
         propertyVar.setDataType(propertyMeta.getDataType());
-        
+
         Object dataValueObject = unmarshalDataValueObject(propertyValueObject, propertyMeta, ctx);
-        
+
         log.info("data value object for {} : {}", propertyMeta.getName(), dataValueObject);
-        
+
         String dataValue = convertPropertyValueToString(propertyMeta, dataValueObject);
         propertyVar.setDataValueObject(dataValueObject);
         propertyVar.setDataValue(dataValue);
@@ -140,75 +140,45 @@ public class PluginParamObjectVarMarshaller extends AbstractPluginParamObjectSer
     }
 
     @SuppressWarnings("unchecked")
-    private List<CoreObjectListVar> unmarshalListPropertyValue(Object propertyValueObject,
-            CoreObjectPropertyMeta propertyMeta, CoreObjectVarCalculationContext ctx) {
+    private List<Object> unmarshalListPropertyValue(Object propertyValueObject, CoreObjectPropertyMeta propertyMeta,
+            CoreObjectVarCalculationContext ctx) {
         if (propertyValueObject == null) {
             return null;
         }
+
+        List<Object> rawValues = new ArrayList<>();
         if (isStringDataType(propertyMeta.getRefType())) {
-            List<String> rawObjectValues = (List<String>) propertyValueObject;
+            List<String> rawStringValues = (List<String>) propertyValueObject;
 
-            List<CoreObjectListVar> stringListVars = new ArrayList<>();
-            for (String rawObject : rawObjectValues) {
-                CoreObjectListVar stringListVar = new CoreObjectListVar();
-                stringListVar.setId(LocalIdGenerator.generateId(PREFIX_LIST_VAR_ID));
-                stringListVar.setDataType(propertyMeta.getRefType());
-                String dataValue = rawObject;
+            for (String rawStringValue : rawStringValues) {
 
-                stringListVar.setDataValue(dataValue);
-                stringListVar.setRawObjectValue(rawObject);
-                stringListVar.setSensitive(propertyMeta.getSensitive());
-                stringListVar.setObjectPropertyMeta(propertyMeta);
-
-                stringListVars.add(stringListVar);
+                rawValues.add(rawStringValue);
             }
 
-            return stringListVars;
+            return rawValues;
         }
 
         if (isNumberDataType(propertyMeta.getRefType())) {
-            List<Integer> rawObjectValues = unmarshalNumbers(propertyValueObject);
+            List<Integer> rawIntegerValues = unmarshalNumbers(propertyValueObject);
 
-            List<CoreObjectListVar> numberListVars = new ArrayList<>();
-            for (Integer rawObject : rawObjectValues) {
-                CoreObjectListVar numberListVar = new CoreObjectListVar();
-                numberListVar.setId(LocalIdGenerator.generateId(PREFIX_LIST_VAR_ID));
-                numberListVar.setDataType(propertyMeta.getRefType());
-                String dataValue = String.valueOf(rawObject);
-
-                numberListVar.setDataValue(dataValue);
-                numberListVar.setRawObjectValue(rawObject);
-                numberListVar.setSensitive(propertyMeta.getSensitive());
-                numberListVar.setObjectPropertyMeta(propertyMeta);
-
-                numberListVars.add(numberListVar);
+            for (Integer rawIntegerValue : rawIntegerValues) {
+                rawValues.add(rawIntegerValue);
             }
 
-            return numberListVars;
+            return rawValues;
         }
 
         if (isObjectDataType(propertyMeta.getRefType())) {
             List<CoreObjectVar> rawObjectValues = unmarshalObjectMetaPropertyAsListResult(propertyValueObject,
                     propertyMeta, ctx);
+            for (CoreObjectVar rawObjectValue : rawObjectValues) {
 
-            List<CoreObjectListVar> objectListVars = new ArrayList<>();
-            for (CoreObjectVar objectVar : rawObjectValues) {
-                CoreObjectListVar objectListVar = new CoreObjectListVar();
-                objectListVar.setId(LocalIdGenerator.generateId(PREFIX_LIST_VAR_ID));
-                objectListVar.setDataType(propertyMeta.getRefType());
-
-                String dataValue = objectVar.getId();
-
-                objectListVar.setDataValue(dataValue);
-                objectListVar.setRawObjectValue(objectVar);
-                objectListVar.setSensitive(propertyMeta.getSensitive());
-                objectListVar.setObjectPropertyMeta(propertyMeta);
-
-                objectListVars.add(objectListVar);
+                rawValues.add(rawObjectValue);
             }
 
-            return objectListVars;
+            return rawValues;
         }
+
         return null;
     }
 
@@ -234,16 +204,15 @@ public class PluginParamObjectVarMarshaller extends AbstractPluginParamObjectSer
                     List.class.getName());
             return null;
         }
-        
-        List<Object> objs = (List<Object>)propertyValueObject;
-        
+
+        List<Object> objs = (List<Object>) propertyValueObject;
+
         List<CoreObjectVar> rawObjectValues = new ArrayList<>();
-        
-        for(Object obj : objs){
-            Map<String,Object> paramObject = (Map<String,Object>)obj;
-            CoreObjectVar objVar = doUnmarshalPluginParamObject( paramObject,  objectMeta,
-                     ctx);
-            
+
+        for (Object obj : objs) {
+            Map<String, Object> paramObject = (Map<String, Object>) obj;
+            CoreObjectVar objVar = doUnmarshalPluginParamObject(paramObject, objectMeta, ctx);
+
             rawObjectValues.add(objVar);
         }
 
@@ -257,7 +226,7 @@ public class PluginParamObjectVarMarshaller extends AbstractPluginParamObjectSer
             return null;
         }
 
-        Map<String,Object> paramObject = (Map<String,Object>) propertyValueObject;
+        Map<String, Object> paramObject = (Map<String, Object>) propertyValueObject;
         if (isObjectDataType(propertyMeta.getDataType())) {
             CoreObjectMeta refObjectMeta = propertyMeta.getRefObjectMeta();
             CoreObjectVar refObjectVar = doUnmarshalPluginParamObject(paramObject, refObjectMeta, ctx);
@@ -300,12 +269,13 @@ public class PluginParamObjectVarMarshaller extends AbstractPluginParamObjectSer
             CoreObjectVarCalculationContext ctx) {
         PluginParamObject paramObject = new PluginParamObject();
 
-        // paramObject.setProperty("pluginObjectId", objectVar.getId());
-        // paramObject.setProperty("pluginObjectName", objectVar.getName());
         List<CoreObjectPropertyVar> propertyVars = objectVar.getPropertyVars();
         if (propertyVars == null || propertyVars.isEmpty()) {
             return paramObject;
         }
+
+        paramObject.setProperty("coreObjectId", objectVar.getId());
+        paramObject.setProperty("coreObjectName", objectVar.getName());
 
         for (CoreObjectPropertyVar propertyVar : propertyVars) {
             String dataType = propertyVar.getDataType();

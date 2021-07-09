@@ -13,8 +13,10 @@ public class PluginConfigInterfaceParameterDto {
     private String mappingSystemVariableName;
     private String required;
     private String sensitiveData;
-    
+
     private String description;
+
+    private String mappingValue;
 
     private CoreObjectMetaDto refObjectMeta;
 
@@ -118,7 +120,13 @@ public class PluginConfigInterfaceParameterDto {
     public void setDescription(String description) {
         this.description = description;
     }
-    
-    
+
+    public String getMappingValue() {
+        return mappingValue;
+    }
+
+    public void setMappingValue(String mappingValue) {
+        this.mappingValue = mappingValue;
+    }
 
 }
