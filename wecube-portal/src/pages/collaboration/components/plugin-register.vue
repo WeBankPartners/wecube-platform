@@ -66,7 +66,6 @@
               </FormItem>
             </Col>
             <Col span="15" v-if="hidePanal" offset="1">
-              {{ selectedEntityType }}
               <FormItem :label="$t('target_type')">
                 <span @click="getAllDataModels">
                   <FilterRules
