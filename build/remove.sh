@@ -1,8 +1,8 @@
 #!/bin/bash
 
-if [[ -n `docker ps -a|grep -E 'wecube-plugins|service-mgmt|monitor|artifacts'|awk '{print $1}'` ]]
+if [[ -n `docker ps -a|grep -E 'wecube-plugins|service-mgmt|wecmdb|monitor|artifacts'|awk '{print $1}'` ]]
 then
-  docker rm -f `docker ps -a|grep -E 'wecube-plugins|service-mgmt|monitor|artifacts'|awk '{print $1}'`
+  docker rm -f `docker ps -a|grep -E 'wecube-plugins|service-mgmt|wecmdb|monitor|artifacts'|awk '{print $1}'`
 fi
 if [[ -n `docker images|grep -E 'wecube-plugins|wecmdb|monitor|service-mgmt|artifacts'|awk '{print $1":"$2}'` ]]
 then
