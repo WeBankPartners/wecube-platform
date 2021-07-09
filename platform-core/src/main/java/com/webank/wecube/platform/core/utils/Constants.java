@@ -17,8 +17,10 @@ public class Constants {
     public static final String MAPPING_TYPE_SYSTEM_VARIABLE = "system_variable";
     public static final String MAPPING_TYPE_CONSTANT = "constant";
     public static final String MAPPING_TYPE_OBJECT = "object";
+    public static final String MAPPING_TYPE_ASSIGN = "assign";
 
     public static final String FIELD_REQUIRED = "Y";
+    public static final String FIELD_NOT_REQUIRED = "N";
     public static final String ASYNC_SERVICE_SYMBOL = "Y";
 
     public static final String DATA_TYPE_STRING = "string";
@@ -27,16 +29,22 @@ public class Constants {
     public static final String DATA_TYPE_LIST = "list";
     public static final String DATA_TYPE_OBJECT = "object";
 
-//    public static final String MAP_TYPE_ENTITY = "entity";
-//    public static final String MAP_TYPE_CONTEXT = "context";
-//    public static final String MAP_TYPE_CONSTANT = "constant";
-//    public static final String MAP_TYPE_SYSTEM_VARIABLE = "system_variable";
-
-
     public static final String DEFAULT_VALUE_DATA_TYPE_STRING = "";
     public static final int DEFAULT_VALUE_DATA_TYPE_NUMBER = 0;
     public static final String CALLBACK_PARAMETER_KEY = "callbackParameter";
 
     public static final String RESULT_CODE_OK = "0";
     public static final String RESULT_CODE_ERROR = "1";
+    
+    public static final String TYPE_INPUT = "INPUT";
+    public static final String TYPE_OUTPUT = "OUTPUT";
+    
+    public static final String MAPPING_TYPE_NOT_AVAILABLE = "N/A";
+    public static final String MAPPING_TYPE_CMDB_CI_TYPE = "CMDB_CI_TYPE";
+    
+    public static final String UNIQUE_IDENTIFIER = "id";
+    public static final String VISUAL_FIELD = "displayName";
+    
+    public static final String CORE_OBJECT_ID_KEY = "coreObjectId";
+    public static final String CORE_OBJECT_NAME_KEY = "coreObjectName";
 }
