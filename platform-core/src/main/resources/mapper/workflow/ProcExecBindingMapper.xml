@@ -28,6 +28,8 @@
         <result column="bind_flag" jdbcType="CHAR" property="bindFlag" />
         <result column="full_data_id" jdbcType="VARCHAR"
             property="fullEntityDataId" />
+        <result column="confirm_token" jdbcType="VARCHAR"
+            property="confirmToken" />
     </resultMap>
     <sql id="Base_Column_List">
         id, created_by, created_time, updated_by, updated_time,
@@ -35,7 +37,7 @@
         entity_id, node_def_id,
         proc_def_id, proc_inst_id,
         task_node_inst_id, entity_data_id, entity_type_id,
-        entity_data_name,bind_flag,full_data_id
+        entity_data_name,bind_flag,full_data_id,confirm_token
     </sql>
     <select id="selectByPrimaryKey" parameterType="java.lang.Integer"
         resultMap="BaseResultMap">
@@ -59,7 +61,7 @@
         task_node_inst_id, entity_data_id,
         entity_type_id,
         entity_data_name,
-        bind_flag,full_data_id)
+        bind_flag,full_data_id,confirm_token)
         values (#{id,jdbcType=INTEGER},
         #{createdBy,jdbcType=VARCHAR},
         #{createdTime,jdbcType=TIMESTAMP},
@@ -73,7 +75,8 @@
         #{entityTypeId,jdbcType=VARCHAR},
         #{entityDataName,jdbcType=VARCHAR},
         #{bindFlag,jdbcType=CHAR},
-        #{fullEntityDataId,jdbcType=VARCHAR})
+        #{fullEntityDataId,jdbcType=VARCHAR},
+        #{confirmToken,jdbcType=VARCHAR})
     </insert>
     <insert id="insertSelective" useGeneratedKeys="true"
         keyProperty="id"
@@ -128,6 +131,9 @@
             <if test="fullEntityDataId != null">
                 full_data_id,
             </if>
+            <if test="confirmToken != null">
+                confirm_token,
+            </if>
         </trim>
         <trim prefix="values (" suffix=")" suffixOverrides=",">
             <if test="id != null">
@@ -177,6 +183,9 @@
             </if>
             <if test="fullEntityDataId != null">
                 #{fullEntityDataId,jdbcType=VARCHAR},
+            </if>
+            <if test="confirmToken != null">
+                #{confirmToken,jdbcType=VARCHAR},
             </if>
         </trim>
     </insert>
@@ -237,6 +246,10 @@
                 full_data_id =
                 #{fullEntityDataId,jdbcType=VARCHAR},
             </if>
+            <if test="confirmToken != null">
+                confirm_token =
+                #{confirmToken,jdbcType=VARCHAR},
+            </if>
         </set>
         where id = #{id,jdbcType=INTEGER}
     </update>
@@ -272,7 +285,9 @@
         bind_flag =
         #{bindFlag,jdbcType=VARCHAR},
         full_data_id =
-        #{fullEntityDataId,jdbcType=VARCHAR}
+        #{fullEntityDataId,jdbcType=VARCHAR},
+        confirm_token =
+        #{confirmToken,jdbcType=VARCHAR}
         where id =
         #{id,jdbcType=INTEGER}
     </update>

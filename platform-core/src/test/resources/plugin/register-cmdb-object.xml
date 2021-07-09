@@ -109,7 +109,7 @@
 
     <!-- 7.插件列表 - 描述插件包中单个插件的输入和输出 -->
     <paramObjects>
-        <paramObject name="k8sObjA">
+        <paramObject name="k8sObjA" mapExpr="wecmdb:instances">
             <property name="attrA" dataType="string" refType="string"
                 mapType="entity" mapExpr="wecmdb:instances" />
             <property name="attrB" dataType="list" refType="string"
@@ -117,7 +117,7 @@
             <property name="attrC" dataType="list" refType="string"
                 mapType="constant" mapExpr="" />
         </paramObject>
-        <paramObject name="k8sObjB">
+        <paramObject name="k8sObjB" mapExpr="wecmdb:instances">
             <property name="attrA" dataType="object" refType="object"
                 refName="k8sObjA" mapType="" mapExpr="" />
             <property name="attrB" dataType="list" refType="object"
@@ -127,7 +127,7 @@
             <property name="attrD" dataType="list" refType="string"
                 refName="" mapType="entity" mapExpr="wecmdb:instances" />
         </paramObject>
-        <paramObject name="k8sObjC">
+        <paramObject name="k8sObjC" mapExpr="wecmdb:instances">
             <property name="attrA" dataType="string" refType="string"
                 mapType="entity" mapExpr="wecmdb:instances" />
             <property name="attrB" dataType="list" refType="string"
@@ -136,7 +136,7 @@
                 mapType="constant" mapExpr="" />
         </paramObject>
         
-        <paramObject name="k8sObjD">
+        <paramObject name="k8sObjD" mapExpr="wecmdb:instances">
             <property name="attrA" dataType="string" refType="string" refName=""
                 mapType="entity" mapExpr="wecmdb:instances" />
             <property name="attrB" dataType="list" refType="string" refName=""
@@ -151,8 +151,8 @@
             <interface action="create" path="/k8s/service/create"
                 filterRule="">
                 <inputParameters>
-                    <parameter datatype="string" required="Y"
-                        sensitiveData="N" mappingType="constant">entity-name
+                    <parameter datatype="list" required="Y"
+                        sensitiveData="N" mappingEntityExpression='k8sObjA'>entity-name
                     </parameter>
                     <parameter datatype="object" required="Y"
                         sensitiveData="N" mappingType="object"
