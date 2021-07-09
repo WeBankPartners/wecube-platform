@@ -21,6 +21,7 @@ public class TaskNodeInstObjectBindInfoDto {
     private String entityStatus;
 
     private String bound;// "Y"-bound,default;"N"-unbound;
+    private String confirmToken;
 
     public Integer getProcInstId() {
         return procInstId;
@@ -116,6 +117,14 @@ public class TaskNodeInstObjectBindInfoDto {
 
     public void setEntityStatus(String entityStatus) {
         this.entityStatus = entityStatus;
+    }
+
+    public String getConfirmToken() {
+        return confirmToken;
+    }
+
+    public void setConfirmToken(String confirmToken) {
+        this.confirmToken = confirmToken;
     }
 
 }
