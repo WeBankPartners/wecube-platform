@@ -2,19 +2,25 @@ package com.webank.wecube.platform.core.model.workflow;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+
+import com.webank.wecube.platform.core.service.plugin.PluginParamObject;
+import com.webank.wecube.platform.core.utils.Constants;
+import com.webank.wecube.platform.core.utils.JsonUtils;
 
 public class InputParamAttr {
 
-    public static final String DATA_TYPE_STRING = "string";
-    public static final String DATA_TYPE_NUMBER = "number";
+//    public static final String DATA_TYPE_STRING = "string";
+//    public static final String DATA_TYPE_NUMBER = "number";
+//    public static final String DATA_TYPE_LIST = "list";
 
-    public static final String DEFAULT_VALUE_DATA_TYPE_STRING = "";
-    public static final int DEFAULT_VALUE_DATA_TYPE_NUMBER = 0;
+//    public static final String DEFAULT_VALUE_DATA_TYPE_STRING = "";
+//    public static final int DEFAULT_VALUE_DATA_TYPE_NUMBER = 0;
 
-    private String name;
+    private String name; //parameter name
     private String type; // string, number, object
-    private String mapType; // entity, context, constant
-    private List<Object> values = new ArrayList<>();
+    private String mapType; // entity, context, constant, object
+    private List<Object> values = new ArrayList<>(); //raw object values
     private boolean sensitive;
 
     public String getName() {
@@ -66,8 +72,24 @@ public class InputParamAttr {
     }
 
     public Object getExpectedValue() {
+        //#2226
         if (values == null || values.isEmpty()) {
             return determineEmptyValue();
+        }
+        
+        if(Constants.DATA_TYPE_LIST.equalsIgnoreCase(type)){
+            List<Object> clonedListValues = new ArrayList<>();
+            for(Object val : values){
+                if(val instanceof PluginParamObject){
+                    PluginParamObject objVal = (PluginParamObject)val;
+                    PluginParamObject clonedObjVal = PluginParamObject.wipeOffObjectIdAndClone(objVal);
+                    clonedListValues.add(clonedObjVal);
+                }else{
+                    clonedListValues.add(val);
+                }
+            }
+            
+            return clonedListValues;
         }
 
         if (values.size() == 1) {
@@ -76,14 +98,20 @@ public class InputParamAttr {
                 return val;
             }
             
-            if(DATA_TYPE_STRING.equalsIgnoreCase(type)) {
-                return String.valueOf(val);
+            if(Constants.DATA_TYPE_STRING.equalsIgnoreCase(type)) {
+                //TODO
+                return JsonUtils.toJsonString(val);
+            }
+            
+            if(val instanceof PluginParamObject){
+                PluginParamObject objVal = (PluginParamObject)val;
+                return PluginParamObject.wipeOffObjectIdAndClone(objVal);
             }
             
             return val;
         }
 
-        if (DATA_TYPE_STRING.equalsIgnoreCase(type)) {
+        if (Constants.DATA_TYPE_STRING.equalsIgnoreCase(type)) {
             return assembleValueList(values);
         }
 
@@ -102,6 +130,7 @@ public class InputParamAttr {
                 isFirst = false;
             }
 
+            //TODO
             sb.append(dv == null ? "" : dv);
         }
 
@@ -111,15 +140,15 @@ public class InputParamAttr {
     }
 
     private Object determineEmptyValue() {
-        if (DATA_TYPE_STRING.equalsIgnoreCase(type)) {
-            return DEFAULT_VALUE_DATA_TYPE_STRING;
+        if (Constants.DATA_TYPE_STRING.equalsIgnoreCase(type)) {
+            return Constants.DEFAULT_VALUE_DATA_TYPE_STRING;
         }
 
-        if (DATA_TYPE_NUMBER.equalsIgnoreCase(type)) {
-            return DEFAULT_VALUE_DATA_TYPE_NUMBER;
+        if (Constants.DATA_TYPE_NUMBER.equalsIgnoreCase(type)) {
+            return Constants.DEFAULT_VALUE_DATA_TYPE_NUMBER;
         }
 
-        return DEFAULT_VALUE_DATA_TYPE_STRING;
+        return Constants.DEFAULT_VALUE_DATA_TYPE_STRING;
     }
 
     public String getValuesAsString() {
@@ -132,16 +161,33 @@ public class InputParamAttr {
             if (v == null) {
                 return String.valueOf(determineEmptyValue());
             }
+            
+            if( (v instanceof PluginParamObject ) || (v instanceof Map) || (v instanceof List)){
+                return JsonUtils.toJsonString(v);
+            }
+            
             return String.valueOf(v);
         }
 
         StringBuilder sb = new StringBuilder();
         for (Object v : values) {
 
-            sb.append(v == null ? String.valueOf(determineEmptyValue()) : String.valueOf(v)).append(",");
+            sb.append(v == null ? String.valueOf(determineEmptyValue()) : convertToString(v)).append(",");
         }
 
         return sb.toString();
+    }
+    
+    public static String convertToString(Object v){
+        if (v == null) {
+            return null;
+        }
+        
+        if( (v instanceof PluginParamObject ) || (v instanceof Map) || (v instanceof List)){
+            return JsonUtils.toJsonString(v);
+        }
+        
+        return String.valueOf(v);
     }
 
     public boolean isSensitive() {
