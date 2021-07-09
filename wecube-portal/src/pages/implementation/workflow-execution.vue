@@ -245,7 +245,6 @@
       @on-ok="retryTargetModelConfirm"
     >
       <Input v-model="retryTableFilterParam" placeholder="displayName filter" style="width: 300px;margin-bottom:8px;" />
-      {{ retryCatchNodeTableList.length }}
       <Table
         border
         ref="selection"
@@ -470,7 +469,11 @@ export default {
         },
         {
           title: 'Status',
-          key: 'entityStatus'
+          key: 'status'
+        },
+        {
+          title: 'Message',
+          key: 'message'
         }
       ],
       targetModelColums: [
@@ -701,9 +704,9 @@ export default {
       this.retryTartetModels.forEach(d => {
         const f = this.retryCatchNodeTableList.find(c => c.id === d.id)
         if (f) {
-          tem.push({ ...d, bound: 'Y' })
+          tem.push({ ...d, bound: 'Y', confirmToken: f.confirmToken })
         } else {
-          tem.push({ ...d, bound: 'N' })
+          tem.push({ ...d, bound: 'N', confirmToken: f.confirmToken })
         }
       })
       const payload = {
@@ -1609,18 +1612,50 @@ export default {
       this.executeRetry(this.confirmModal.requestBody, 'retry')
     },
     async getTaskNodeInstanceExecBindings (payload) {
+      const erroInfo = await this.getErrorLog(this.currentFailedNodeID)
       const { status, data } = await getTaskNodeInstanceExecBindings(payload)
       if (status === 'OK') {
         this.retryTartetModels = data
         this.retryCatchNodeTableList = JSON.parse(JSON.stringify(data))
-        this.retryTartetModels.forEach(tm => {
+        this.retryCatchNodeTableList.forEach((tm, index) => {
           tm._checked = false
+          const find = erroInfo.find(info => info.id === tm.entityDataId)
+          let retryTartetModelsSingle = this.retryTartetModels[index]
+          if (find) {
+            if (find.errorCode === '-1') {
+              tm.confirmToken = 'Y'
+              retryTartetModelsSingle.status = 'Confirm'
+            }
+            if (find.errorCode === '1') {
+              tm.confirmToken = ''
+              retryTartetModelsSingle.status = 'Error'
+            }
+            retryTartetModelsSingle.message = find.errorMessage
+          } else {
+            tm.confirmToken = ''
+            retryTartetModelsSingle.status = ''
+            retryTartetModelsSingle.message = ''
+          }
           this.retryCatchNodeTableList.forEach(cn => {
-            if (tm.id === cn.id && tm.bound === 'Y') {
+            if (tm.id === cn.id && tm.bound === 'Y' && tm.confirmToken === '') {
               tm._checked = true
             }
           })
         })
+      }
+    },
+    async getErrorLog (id) {
+      const found = this.flowData.flowNodes.find(_ => _.nodeId === id)
+      const { status, data } = await getNodeContext(found.procInstId, found.id)
+      if (status === 'OK') {
+        const errorInfo = data.requestObjects.map(item => {
+          return {
+            id: item.callbackParameter,
+            errorMessage: item.outputs[0].errorMessage,
+            errorCode: item.outputs[0].errorCode
+          }
+        })
+        return errorInfo
       }
     },
     bindFlowEvent () {
