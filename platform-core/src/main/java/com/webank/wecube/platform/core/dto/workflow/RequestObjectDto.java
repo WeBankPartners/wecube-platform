@@ -7,8 +7,8 @@ import java.util.Map;
 
 public class RequestObjectDto {
     private String callbackParameter;
-    private List<Map<String, String>> inputs = new ArrayList<>();
-    private List<Map<String, String>> outputs = new ArrayList<>();
+    private List<Map<String, Object>> inputs = new ArrayList<>();
+    private List<Map<String, Object>> outputs = new ArrayList<>();
 
     public String getCallbackParameter() {
         return callbackParameter;
@@ -18,34 +18,34 @@ public class RequestObjectDto {
         this.callbackParameter = callbackParameter;
     }
 
-    public List<Map<String, String>> getInputs() {
+    public List<Map<String, Object>> getInputs() {
         return inputs;
     }
 
-    public void setInputs(List<Map<String, String>> inputs) {
+    public void setInputs(List<Map<String, Object>> inputs) {
         this.inputs = inputs;
     }
 
-    public List<Map<String, String>> getOutputs() {
+    public List<Map<String, Object>> getOutputs() {
         return outputs;
     }
 
-    public void setOutputs(List<Map<String, String>> outputs) {
+    public void setOutputs(List<Map<String, Object>> outputs) {
         this.outputs = outputs;
     }
 
-    public void addInput(Map<String, String> dtoMap) {
+    public void addInput(Map<String, Object> dtoMap) {
         this.inputs.add(dtoMap);
     }
 
-    public void addOutput(Map<String, String> dtoMap) {
+    public void addOutput(Map<String, Object> dtoMap) {
         this.outputs.add(dtoMap);
     }
 
     public static class RequestParamObjectDto {
         private String objectId;
         private String callbackParameter;
-        private Map<String, String> paramAttrs = new HashMap<>();
+        private Map<String, Object> paramAttrs = new HashMap<>();
 
         public String getObjectId() {
             return objectId;
@@ -63,16 +63,16 @@ public class RequestObjectDto {
             this.callbackParameter = callbackParameter;
         }
 
-        public Map<String, String> getParamAttrs() {
+        public Map<String, Object> getParamAttrs() {
             return paramAttrs;
         }
 
-        public void setParamAttrs(Map<String, String> paramAttrs) {
+        public void setParamAttrs(Map<String, Object> paramAttrs) {
             this.paramAttrs = paramAttrs;
         }
 
-        public void addParamAttr(String paramName, String paramValAsStr) {
-            this.paramAttrs.put(paramName, paramValAsStr);
+        public void addParamAttr(String paramName, Object paramVal) {
+            this.paramAttrs.put(paramName, paramVal);
         }
 
     }
