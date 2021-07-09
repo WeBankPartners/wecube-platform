@@ -1,5 +1,6 @@
 package com.webank.wecube.platform.core.service.workflow;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -59,6 +60,7 @@ import com.webank.wecube.platform.core.service.dme.EntityTreeNodesOverview;
 import com.webank.wecube.platform.core.service.dme.StandardEntityDataNode;
 import com.webank.wecube.platform.core.service.dme.StandardEntityOperationService;
 import com.webank.wecube.platform.core.service.plugin.PluginConfigMgmtService;
+import com.webank.wecube.platform.core.utils.JsonUtils;
 
 /**
  * 
@@ -138,6 +140,7 @@ public class WorkflowDataService extends AbstractWorkflowService{
             d.setEntityDisplayName(e.getEntityDataName());
             d.setEntityTypeId(e.getEntityTypeId());
             d.setBound(e.getBindFlag());
+            d.setConfirmToken(e.getConfirmToken());
             d.setNodeDefId(e.getNodeDefId());
             d.setNodeInstId(e.getTaskNodeInstId());
             d.setProcInstId(e.getProcInstId());
@@ -226,11 +229,12 @@ public class WorkflowDataService extends AbstractWorkflowService{
                 throw new WecubeCoreException(errMsg);
             }
 
-            if (bindInfoDto.getBound().equals(bindEntity.getBindFlag())) {
-                continue;
-            }
+//            if (bindInfoDto.getBound().equals(bindEntity.getBindFlag())) {
+//                continue;
+//            }
 
             bindEntity.setBindFlag(bindInfoDto.getBound());
+            bindEntity.setConfirmToken(bindInfoDto.getConfirmToken());
 
             procExecBindingMapper.updateByPrimaryKey(bindEntity);
         }
@@ -489,6 +493,8 @@ public class WorkflowDataService extends AbstractWorkflowService{
             throw new WecubeCoreException("3188", String.format("Invalid node instance id: %s", nodeInstId),
                     nodeInstId);
         }
+        
+        TaskNodeDefInfoEntity nodeDefInfoEntity = taskNodeDefInfoRepository.selectByPrimaryKey(nodeEntity.getNodeDefId());
 
         TaskNodeExecContextDto result = new TaskNodeExecContextDto();
         result.setNodeDefId(nodeEntity.getNodeDefId());
@@ -497,6 +503,11 @@ public class WorkflowDataService extends AbstractWorkflowService{
         result.setNodeName(nodeEntity.getNodeName());
         result.setNodeType(nodeEntity.getNodeType());
         result.setErrorMessage(nodeEntity.getErrMsg());
+        
+        if(nodeDefInfoEntity != null) {
+            result.setNodeExpression(nodeDefInfoEntity.getRoutineExp());
+            result.setPluginInfo(nodeDefInfoEntity.getServiceId());
+        }
 
         List<TaskNodeExecRequestEntity> requestEntities = taskNodeExecRequestRepository
                 .selectCurrentEntityByNodeInstId(nodeEntity.getId());
@@ -936,6 +947,20 @@ public class WorkflowDataService extends AbstractWorkflowService{
         return respParamEntity.getIsSensitive();
 
     }
+    
+    private Object jsonToObject(String json){
+        if(StringUtils.isBlank(json)){
+            return null;
+        }
+        
+        try {
+            Object obj = JsonUtils.toObject(json, Object.class);
+            return obj;
+        } catch (IOException e) {
+            log.info("exceptions while convert string to json.", e);
+            return json;
+        }
+    }
 
     //#2169
     private List<RequestObjectDto> calculateRequestObjectDtos(List<TaskNodeExecParamEntity> requestParamEntities,
@@ -966,7 +991,8 @@ public class WorkflowDataService extends AbstractWorkflowService{
                     paramObjectDto.setCallbackParameter(reqParam.getParamDataValue());
                 } else {
 //                    RequestParamAttrDto attrDto = new RequestParamAttrDto(reqParam.getParamName(), attrValue);
-                    paramObjectDto.addParamAttr(reqParam.getParamName(), attrValue);
+                    Object objAttrValue = jsonToObject(attrValue);
+                    paramObjectDto.addParamAttr(reqParam.getParamName(), objAttrValue);
                 }
             }
         }

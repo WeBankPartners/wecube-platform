@@ -9,6 +9,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
+import com.webank.wecube.platform.core.utils.Constants;
+
 /**
  * 
  * @author gavinli
@@ -357,7 +359,7 @@ public class StandardEntityQueryExecutor implements EntityQueryExecutor {
             EntityQueryLinkNode previousLinkNode, EntityDataDelegate prevEntityDataDelegate, String queryAttrValueStr) {
         EntityQuerySpecification querySpec = new EntityQuerySpecification();
         EntityQueryCriteria criteria = new EntityQueryCriteria();
-        criteria.setAttrName(EntityDataDelegate.UNIQUE_IDENTIFIER);
+        criteria.setAttrName(Constants.UNIQUE_IDENTIFIER);
         criteria.setCondition(queryAttrValueStr.trim());
 
         if (exprNodeInfo.getAdditionalFilters() != null) {
@@ -387,7 +389,7 @@ public class StandardEntityQueryExecutor implements EntityQueryExecutor {
         EntityQueryCriteria criteria = null;
         if (ctx.getOriginalEntityData() != null && ctx.getOriginalEntityData().trim().length() > 0) {
             criteria = new EntityQueryCriteria();
-            criteria.setAttrName(EntityDataDelegate.UNIQUE_IDENTIFIER);
+            criteria.setAttrName(Constants.UNIQUE_IDENTIFIER);
             criteria.setCondition(ctx.getOriginalEntityData());
         }
 
@@ -499,8 +501,8 @@ public class StandardEntityQueryExecutor implements EntityQueryExecutor {
             Map<String, Object> recordMap, EntityQueryLinkNode linkNode) {
         EntityDataDelegate entity = new EntityDataDelegate();
         entity.setEntityData(recordMap);
-        entity.setDisplayName((String) recordMap.get(EntityDataDelegate.VISUAL_FIELD));
-        entity.setId((String) recordMap.get(EntityDataDelegate.UNIQUE_IDENTIFIER));
+        entity.setDisplayName((String) recordMap.get(Constants.VISUAL_FIELD));
+        entity.setId((String) recordMap.get(Constants.UNIQUE_IDENTIFIER));
         entity.setPackageName(linkNode.getExprNodeInfo().getPackageName());
         entity.setEntityName(linkNode.getExprNodeInfo().getEntityName());
 

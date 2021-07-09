@@ -24,9 +24,12 @@ public class PluginConfigInputParameterType {
     protected String required;
     @XmlAttribute(name = "sensitiveData")
     protected String sensitiveData;
-    
+
     @XmlAttribute(name = "description")
     protected String description;
+    
+    @XmlAttribute(name = "mappingValue")
+    protected String mappingValue;
 
     public String getValue() {
         return value;
@@ -91,5 +94,14 @@ public class PluginConfigInputParameterType {
     public void setDescription(String description) {
         this.description = description;
     }
+
+    public String getMappingValue() {
+        return mappingValue;
+    }
+
+    public void setMappingValue(String mappingValue) {
+        this.mappingValue = mappingValue;
+    }
+    
     
 }

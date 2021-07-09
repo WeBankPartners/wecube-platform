@@ -1,9 +1,11 @@
 package com.webank.wecube.platform.core.service.workflow;
 
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -17,13 +19,16 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.util.DigestUtils;
 
 import com.webank.wecube.platform.core.commons.AuthenticationContextHolder;
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
+import com.webank.wecube.platform.core.dto.workflow.ContinueTokenInfoDto;
 import com.webank.wecube.platform.core.dto.workflow.FlowNodeDefDto;
 import com.webank.wecube.platform.core.dto.workflow.ProcDefInfoDto;
 import com.webank.wecube.platform.core.dto.workflow.ProcDefOutlineDto;
 import com.webank.wecube.platform.core.dto.workflow.ProcRoleDto;
+import com.webank.wecube.platform.core.dto.workflow.ProcessDeploymentResultDto;
 import com.webank.wecube.platform.core.dto.workflow.TaskNodeDefBriefDto;
 import com.webank.wecube.platform.core.dto.workflow.TaskNodeDefInfoDto;
 import com.webank.wecube.platform.core.dto.workflow.TaskNodeDefParamDto;
@@ -589,7 +594,7 @@ public class WorkflowProcDefService extends AbstractWorkflowProcDefService {
         tryClearAbandonedParamInfos(draftEntity, draftNodeEntity, reusedDraftParamEntities);
     }
 
-    public ProcDefOutlineDto deployProcessDefinition(ProcDefInfoDto procDefInfoDto) {
+    public ProcessDeploymentResultDto deployProcessDefinition(ProcDefInfoDto procDefInfoDto, String continueToken) {
 
         validateTaskInfos(procDefInfoDto);
 
@@ -601,10 +606,220 @@ public class WorkflowProcDefService extends AbstractWorkflowProcDefService {
         List<ProcDefInfoEntity> existingProcDefs = processDefInfoRepo
                 .selectAllDeployedProcDefsByProcDefName(procDefName);
         if (existingProcDefs != null && !existingProcDefs.isEmpty()) {
-            log.warn("such process definition name already exists,procDefName={}", procDefName);
+            return tryPerformExistingProcessDeployment(existingProcDefs.get(0), procDefInfoDto, continueToken);
+        }
+
+        return tryPerformNewProcessDeployment(procDefInfoDto);
+
+    }
+
+    protected ProcessDeploymentResultDto tryPerformExistingProcessDeployment(ProcDefInfoEntity existingProcDef,
+            ProcDefInfoDto procDefInfoDto, String continueToken) {
+        // #2222
+        log.info("such process definition name already exists,procDefName={}", procDefInfoDto.getProcDefName());
+        if (StringUtils.isNoneBlank(continueToken)) {
+            return tryPerformConditionalProcessDeploymentEdition(existingProcDef, procDefInfoDto, continueToken);
+        }
+
+        if (!verifyConditionalProcessDeploymentEdition(existingProcDef, procDefInfoDto)) {
+            log.error("Process definition name should NOT duplicated.procDefName={}", procDefInfoDto.getProcDefName());
             throw new WecubeCoreException("3209", "Process definition name should NOT duplicated.");
         }
 
+        String newContinueToken = buildProcessDeploymentContinueToken(procDefInfoDto);
+        String message = "Such process already had been deployed before,please confirm to proceed deployment.";
+        ProcessDeploymentResultDto resultDto = new ProcessDeploymentResultDto();
+        resultDto.setStatus(ProcessDeploymentResultDto.STATUS_CONFIRM);
+        resultDto.setMessage(message);
+        ContinueTokenInfoDto continueTokenInfo = new ContinueTokenInfoDto();
+        continueTokenInfo.setContinueToken(newContinueToken);
+        resultDto.setContinueToken(continueTokenInfo);
+
+        return resultDto;
+    }
+
+    private boolean verifyConditionalProcessDeploymentEdition(ProcDefInfoEntity existingProcDef,
+            ProcDefInfoDto procDefInfoDto) {
+        if (!Objects.equals(existingProcDef.getId(), procDefInfoDto.getProcDefId())) {
+            return false;
+        }
+
+        if (!Objects.equals(existingProcDef.getProcDefName(), procDefInfoDto.getProcDefName())) {
+            return false;
+        }
+
+        List<TaskNodeDefInfoEntity> taskNodeDefEntities = taskNodeDefInfoRepo
+                .selectAllByProcDefId(existingProcDef.getId());
+        int existingNodeSize = (taskNodeDefEntities == null ? 0 : taskNodeDefEntities.size());
+        int newNodeSize = procDefInfoDto.getTaskNodeInfos() == null ? 0 : procDefInfoDto.getTaskNodeInfos().size();
+        if (newNodeSize != existingNodeSize) {
+            return false;
+        }
+
+        return verifyConditionalProcessDeploymentEdition(taskNodeDefEntities, procDefInfoDto.getTaskNodeInfos());
+    }
+
+    private boolean verifyConditionalProcessDeploymentEdition(List<TaskNodeDefInfoEntity> taskNodeDefEntities,
+            List<TaskNodeDefInfoDto> taskNodeInfos) {
+        if (taskNodeDefEntities == null || taskNodeInfos == null) {
+            return false;
+        }
+
+        if (taskNodeDefEntities.size() != taskNodeInfos.size()) {
+            return false;
+        }
+
+        Map<String, TaskNodeDefInfoDto> idAndTaskNodeDefInfoDtos = new HashMap<>();
+        for (TaskNodeDefInfoDto nodeInfoDto : taskNodeInfos) {
+            if (StringUtils.isBlank(nodeInfoDto.getNodeId()) || StringUtils.isBlank(nodeInfoDto.getNodeDefId())) {
+                return false;
+            }
+            idAndTaskNodeDefInfoDtos.put(nodeInfoDto.getNodeId(), nodeInfoDto);
+        }
+
+        for (TaskNodeDefInfoEntity e : taskNodeDefEntities) {
+            TaskNodeDefInfoDto nodeInfoDto = idAndTaskNodeDefInfoDtos.get(e.getNodeId());
+
+            if (nodeInfoDto == null) {
+                return false;
+            }
+
+            if (!verifyConditionalProcessDeploymentEdition(e, nodeInfoDto)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private boolean verifyConditionalProcessDeploymentEdition(TaskNodeDefInfoEntity taskNodeDefEntity,
+            TaskNodeDefInfoDto taskNodeInfo) {
+        if (!Objects.equals(taskNodeDefEntity.getId(), taskNodeInfo.getNodeDefId())) {
+            return false;
+        }
+
+        if (!Objects.equals(taskNodeDefEntity.getNodeId(), taskNodeInfo.getNodeId())) {
+            return false;
+        }
+
+        if (!Objects.equals(taskNodeDefEntity.getRoutineExp(), taskNodeInfo.getRoutineExpression())) {
+            return false;
+        }
+
+        if (!Objects.equals(taskNodeDefEntity.getServiceId(), taskNodeInfo.getServiceId())) {
+            return false;
+        }
+
+        return true;
+    }
+
+    private ProcessDeploymentResultDto tryPerformConditionalProcessDeploymentEdition(ProcDefInfoEntity existingProcDef,
+            ProcDefInfoDto procDefInfoDto, String continueToken) {
+        if (!verifyProcessDeploymentContinueToken(procDefInfoDto, continueToken)) {
+            throw new WecubeCoreException("Invalid continue token provided.");
+        }
+
+        List<TaskNodeDefInfoDto> taskNodeInfos = procDefInfoDto.getTaskNodeInfos();
+        if (taskNodeInfos == null || taskNodeInfos.isEmpty()) {
+            throw new WecubeCoreException("Invalid task nodes provided.");
+        }
+
+        Map<String, TaskNodeDefInfoDto> idAndTaskNodeDefInfoDtos = new HashMap<>();
+        for (TaskNodeDefInfoDto nodeDefInfoDto : taskNodeInfos) {
+            idAndTaskNodeDefInfoDtos.put(nodeDefInfoDto.getNodeDefId(), nodeDefInfoDto);
+        }
+
+        List<TaskNodeDefInfoEntity> taskNodeDefEntities = taskNodeDefInfoRepo
+                .selectAllByProcDefId(existingProcDef.getId());
+
+        for (TaskNodeDefInfoEntity nodeInfoEntity : taskNodeDefEntities) {
+            TaskNodeDefInfoDto nodeDefInfoDto = idAndTaskNodeDefInfoDtos.get(nodeInfoEntity.getId());
+            if (nodeDefInfoDto == null) {
+                continue;
+            }
+
+            tryPerformConditionalProcessDeploymentEdition(nodeInfoEntity, nodeDefInfoDto);
+        }
+
+        ProcessDeploymentResultDto resultDto = new ProcessDeploymentResultDto();
+        resultDto.setStatus(ProcessDeploymentResultDto.STATUS_OK);
+        resultDto.setMessage("success");
+
+        ProcDefOutlineDto outlineDto = getProcessDefinitionOutline(existingProcDef.getId());
+        resultDto.setResult(outlineDto);
+        return resultDto;
+    }
+
+    private void tryPerformConditionalProcessDeploymentEdition(TaskNodeDefInfoEntity nodeInfoEntity,
+            TaskNodeDefInfoDto nodeDefInfoDto) {
+        List<TaskNodeDefParamDto> paramInfoDtos = nodeDefInfoDto.getParamInfos();
+        if (paramInfoDtos == null || paramInfoDtos.isEmpty()) {
+            return;
+        }
+
+        for (TaskNodeDefParamDto paramDto : paramInfoDtos) {
+            if (StringUtils.isBlank(paramDto.getParamName())) {
+                continue;
+            }
+            
+            if(StringUtils.isBlank(paramDto.getNodeId())){
+                continue;
+            }
+
+            TaskNodeParamEntity paramEntity = taskNodeParamRepo
+                    .selectOneByTaskNodeDefIdAndParamName(nodeInfoEntity.getId(), paramDto.getParamName());
+            
+            if(paramEntity == null){
+                paramEntity = new TaskNodeParamEntity();
+                paramEntity.setId(LocalIdGenerator.generateId());
+                paramEntity.setNodeId(paramDto.getNodeId());
+                paramEntity.setBindNodeId(paramDto.getBindNodeId());
+                paramEntity.setBindParamName(paramDto.getBindParamName());
+                paramEntity.setBindParamType(paramDto.getBindParamType());
+                paramEntity.setParamName(paramDto.getParamName());
+                paramEntity.setProcDefId(nodeInfoEntity.getProcDefId());
+                paramEntity.setStatus(TaskNodeParamEntity.DEPLOYED_STATUS);
+                paramEntity.setTaskNodeDefId(nodeInfoEntity.getId());
+                paramEntity.setUpdatedTime(new Date());
+                paramEntity.setUpdatedBy(AuthenticationContextHolder.getCurrentUsername());
+                paramEntity.setCreatedBy(AuthenticationContextHolder.getCurrentUsername());
+                paramEntity.setCreatedTime(new Date());
+                paramEntity.setBindType(paramDto.getBindType());
+                paramEntity.setBindVal(paramDto.getBindValue());
+                
+                taskNodeParamRepo.insert(paramEntity);
+            }else{
+                paramEntity.setBindNodeId(paramDto.getBindNodeId());
+                paramEntity.setBindParamName(paramDto.getBindParamName());
+                paramEntity.setBindParamType(paramDto.getBindParamType());
+                paramEntity.setUpdatedTime(new Date());
+                paramEntity.setUpdatedBy(AuthenticationContextHolder.getCurrentUsername());
+                paramEntity.setBindType(paramDto.getBindType());
+                paramEntity.setBindVal(paramDto.getBindValue());
+                
+                taskNodeParamRepo.updateByPrimaryKeySelective(paramEntity);
+            }
+        }
+    }
+    
+
+    private String buildProcessDeploymentContinueToken(ProcDefInfoDto procDefInfoDto) {
+        StringBuilder data = new StringBuilder();
+        String seperator = ":";
+        data.append(procDefInfoDto.getClass().getName()).append(seperator);
+        data.append(procDefInfoDto.getProcDefKey()).append(seperator);
+        data.append(procDefInfoDto.getProcDefName()).append(seperator);
+
+        String md5 = DigestUtils.md5DigestAsHex(data.toString().getBytes(Charset.forName("UTF-8")));
+        return md5;
+    }
+
+    private boolean verifyProcessDeploymentContinueToken(ProcDefInfoDto procDefInfoDto, String inputContinueToken) {
+        String genContinueToken = buildProcessDeploymentContinueToken(procDefInfoDto);
+
+        return genContinueToken.equals(inputContinueToken);
+    }
+
+    protected ProcessDeploymentResultDto tryPerformNewProcessDeployment(ProcDefInfoDto procDefInfoDto) {
         String originalId = procDefInfoDto.getProcDefId();
 
         Date currTime = new Date();
@@ -655,8 +870,13 @@ public class WorkflowProcDefService extends AbstractWorkflowProcDefService {
 
         ProcDefOutline procDefOutline = workflowEngineService.getProcDefOutline(procDef);
 
-        return postDeployProcessDefinition(procDefEntity, procDef, procDefOutline);
+        ProcDefOutlineDto outlineDto = postDeployProcessDefinition(procDefEntity, procDef, procDefOutline);
 
+        ProcessDeploymentResultDto processDeploymentResultDto = new ProcessDeploymentResultDto();
+        processDeploymentResultDto.setResult(outlineDto);
+        processDeploymentResultDto.setStatus(ProcessDeploymentResultDto.STATUS_OK);
+
+        return processDeploymentResultDto;
     }
 
     private PluginConfigInterfaces retrievePluginConfigInterface(TaskNodeDefInfoDto taskNodeDefDto, String nodeId) {

@@ -6,7 +6,7 @@
           <!-- @click="hide(itemIndex)" -->
           <Form :label-width="80">
             <Row>
-              <Col span="3">
+              <Col span="2">
                 <FormItem :label="$t('params_name')">
                   <span v-if="objItem.required === 'Y'" style="color:red;vertical-align: text-bottom;">*</span>
                   <Tooltip content="">
@@ -20,7 +20,7 @@
                   </Tooltip>
                 </FormItem>
               </Col>
-              <Col span="3" offset="1">
+              <Col span="2" offset="1">
                 <FormItem :label="$t('data_type')">
                   <span>{{ objItem.dataType }}</span>
                 </FormItem>
@@ -57,7 +57,7 @@
               </Col>
               <Col span="8" offset="1">
                 <FormItem :label="$t('attribute')">
-                  <FilterRules
+                  <FilterRulesRef
                     v-if="objItem.mappingType === 'entity'"
                     :disabled="status === 'ENABLED'"
                     v-model="objItem.mappingEntityExpression"
@@ -66,7 +66,7 @@
                     :needNativeAttr="true"
                     :needAttr="true"
                     :rootEntityFirst="true"
-                  ></FilterRules>
+                  ></FilterRulesRef>
                   <Select
                     filterable
                     v-if="objItem.mappingType === 'system_variable'"
@@ -83,6 +83,21 @@
                     >
                   </Select>
                   <span v-if="objItem.mappingType === 'context' || objItem.mappingType === 'constant'">N/A</span>
+
+                  <span v-if="objItem.mappingType === 'object'">
+                    <div style="width: 50%;display:inline-block;vertical-align: top;">
+                      <FilterRulesRef
+                        v-model="objItem.mappingEntityExpression"
+                        :disabled="status === 'ENABLED'"
+                        :allDataModelsWithAttrs="allEntityType"
+                        :rootEntity="clearedEntityType"
+                        :needNativeAttr="true"
+                        :needAttr="true"
+                        :rootEntityFirst="true"
+                      ></FilterRulesRef>
+                    </div>
+                    <Button type="primary" size="small">{{ $t('configuration') }}</Button>
+                  </span>
                 </FormItem>
               </Col>
             </Row>
@@ -107,7 +122,7 @@
 </template>
 
 <script>
-import FilterRules from '../../components/filter-rules.vue'
+import FilterRulesRef from '../../components/filter-rules-ref.vue'
 export default {
   name: 'recursive',
   data () {
@@ -150,7 +165,7 @@ export default {
     }
   },
   components: {
-    FilterRules
+    FilterRulesRef
   }
 }
 </script>

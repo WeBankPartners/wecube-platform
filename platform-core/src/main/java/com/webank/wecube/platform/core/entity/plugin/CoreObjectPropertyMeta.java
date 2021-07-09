@@ -6,15 +6,6 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.webank.wecube.platform.core.utils.Constants;
 
 public class CoreObjectPropertyMeta {
-    // public static final String DATA_TYPE_STRING = "string";
-    // public static final String DATA_TYPE_NUMBER = "number";
-    // public static final String DATA_TYPE_LIST = "list";
-    // public static final String DATA_TYPE_OBJECT = "object";
-    //
-    // public static final String MAP_TYPE_ENTITY = "entity";
-    // public static final String MAP_TYPE_CONTEXT = "context";
-    // public static final String MAP_TYPE_CONSTANT = "constant";
-    // public static final String MAP_TYPE_SYSTEM_VARIABLE = "system_variable";
 
     private String id;
 
@@ -28,7 +19,7 @@ public class CoreObjectPropertyMeta {
 
     private String mapType;
 
-    private String mapExpr;// entity,systemVariable
+    private String mapExpr;// entity,systemVariable, constant
 
     private String objectMetaId;
 
@@ -227,5 +218,48 @@ public class CoreObjectPropertyMeta {
     public void setConfigId(String configId) {
         this.configId = configId;
     }
+
+    @Override
+    public String toString() {
+        StringBuilder builder = new StringBuilder();
+        builder.append("[id=");
+        builder.append(id);
+        builder.append(", name=");
+        builder.append(name);
+        builder.append(", dataType=");
+        builder.append(dataType);
+        builder.append(", refType=");
+        builder.append(refType);
+        builder.append(", refName=");
+        builder.append(refName);
+        builder.append(", mapType=");
+        builder.append(mapType);
+        builder.append(", mapExpr=");
+        builder.append(mapExpr);
+        builder.append(", objectMetaId=");
+        builder.append(objectMetaId);
+        builder.append(", objectName=");
+        builder.append(objectName);
+        builder.append(", packageName=");
+        builder.append(packageName);
+        builder.append(", source=");
+        builder.append(source);
+        builder.append(", createdBy=");
+        builder.append(createdBy);
+        builder.append(", createdTime=");
+        builder.append(createdTime);
+        builder.append(", updatedBy=");
+        builder.append(updatedBy);
+        builder.append(", updatedTime=");
+        builder.append(updatedTime);
+        builder.append(", sensitive=");
+        builder.append(sensitive);
+        builder.append(", configId=");
+        builder.append(configId);
+        builder.append("]");
+        return builder.toString();
+    }
+    
+    
 
 }

@@ -53,6 +53,9 @@ public class ParamObjectType {
 
     @XmlAttribute(name = "latestSource", required = false)
     private String latestSource;
+    
+    @XmlAttribute(name = "mapExpr", required = false)
+    private String mapExpr;
 
     protected List<ParamPropertyType> property;
     /**
@@ -112,5 +115,15 @@ public class ParamObjectType {
     public void setLatestSource(String latestSource) {
         this.latestSource = latestSource;
     }
+
+    public String getMapExpr() {
+        return mapExpr;
+    }
+
+    public void setMapExpr(String mapExpr) {
+        this.mapExpr = mapExpr;
+    }
+    
+    
 
 }

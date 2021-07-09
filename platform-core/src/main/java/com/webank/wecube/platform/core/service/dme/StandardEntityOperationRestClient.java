@@ -13,6 +13,8 @@ import org.springframework.web.client.RestTemplate;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.webank.wecube.platform.core.commons.WecubeCoreException;
+import com.webank.wecube.platform.core.utils.Constants;
 
 public class StandardEntityOperationRestClient {
     private static final Logger log = LoggerFactory.getLogger(StandardEntityOperationRestClient.class);
@@ -91,6 +93,27 @@ public class StandardEntityOperationRestClient {
         StandardEntityOperationResponseDto result = getRestTemplate().postForObject(requestUri, requestBody,
                 StandardEntityOperationResponseDto.class);
         log.debug("RECEIVE UPDATE post [{}] url={},result={}", timeMilliSeconds, requestUri.toString(), result);
+        if(!StandardEntityOperationResponseDto.STATUS_OK.equalsIgnoreCase(result.getStatus())) {
+            log.error("update failed with error:{} {}", result.getStatus(), result.getMessage());
+            throw new WecubeCoreException(result.getMessage());
+        }
+        return result;
+    }
+    
+    public StandardEntityOperationResponseDto updateData(EntityRouteDescription entityDef,List<Map<String, Object>> recordsToUpdate) {
+        URI requestUri = buildStandardOperationUri(entityDef, getUpdateUriTemplate());
+
+        long timeMilliSeconds = System.currentTimeMillis();
+        log.info("SEND UPDATE post [{}] url={}, request={}", timeMilliSeconds, requestUri.toString(),
+                toJson(recordsToUpdate));
+        StandardEntityOperationResponseDto result = getRestTemplate().postForObject(requestUri, recordsToUpdate,
+                StandardEntityOperationResponseDto.class);
+        log.debug("RECEIVE UPDATE post [{}] url={},result={}", timeMilliSeconds, requestUri.toString(), result);
+        
+        if(!StandardEntityOperationResponseDto.STATUS_OK.equalsIgnoreCase(result.getStatus())) {
+            log.error("update failed with error:{} {}", result.getStatus(), result.getMessage());
+            throw new WecubeCoreException(result.getMessage());
+        }
         return result;
     }
 
@@ -156,7 +179,7 @@ public class StandardEntityOperationRestClient {
         for (EntityDataRecord record : records) {
             Map<String, Object> paramMap = new HashMap<>();
             if (StringUtils.isNoneBlank(record.getId())) {
-                paramMap.put(EntityDataDelegate.UNIQUE_IDENTIFIER, record.getId());
+                paramMap.put(Constants.UNIQUE_IDENTIFIER, record.getId());
             }
             if (record.getAttrs() != null) {
                 for (EntityDataAttr attr : record.getAttrs()) {

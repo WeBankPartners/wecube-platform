@@ -144,7 +144,7 @@
   "repeat_prompt": "此任务节点已成功执行，重复执行可能带来不确定结果，是否仍需重复执行？",
   "retry": "马上重试",
   "skip": "跳过节点",
-  "partial_retry": "错误重试",
+  "partial_retry": "节点重试",
   "data_selection": "反选数据",
   "dangerous_confirm": "高危确认",
   "dangerous_confirm_tip": "我已知悉以上扫描出的高危操作并评估过所有的风险，确认继续执行并承担所带来的后果。",
@@ -470,5 +470,6 @@
   "resource": "资源",
   "resource_instance": "资源实例",
   "locate_rules_warning": "定位规则需以对象类型为起始点",
-  "ip_address": "IP地址"
+  "ip_address": "IP地址",
+  "plugin_const_params_warning": "常量配置不能为空"
 }
