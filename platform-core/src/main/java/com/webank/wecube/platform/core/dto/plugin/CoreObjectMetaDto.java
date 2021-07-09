@@ -13,9 +13,11 @@ public class CoreObjectMetaDto {
     private String source;
 
     private String latestSource;
-    
+
     private String configId;
-    
+
+    private String mappingEntityExpression;
+
     private List<CoreObjectPropertyMetaDto> propertyMetas = new ArrayList<>();
 
     public String getId() {
@@ -65,16 +67,16 @@ public class CoreObjectMetaDto {
     public void setPropertyMetas(List<CoreObjectPropertyMetaDto> propertyMetas) {
         this.propertyMetas = propertyMetas;
     }
-    
-    public void addPropertyMeta(CoreObjectPropertyMetaDto propertyMetaDto){
-        if(propertyMetaDto == null){
+
+    public void addPropertyMeta(CoreObjectPropertyMetaDto propertyMetaDto) {
+        if (propertyMetaDto == null) {
             return;
         }
-        
-        if(this.propertyMetas == null){
+
+        if (this.propertyMetas == null) {
             this.propertyMetas = new ArrayList<>();
         }
-        
+
         this.propertyMetas.add(propertyMetaDto);
     }
 
@@ -85,7 +87,13 @@ public class CoreObjectMetaDto {
     public void setConfigId(String configId) {
         this.configId = configId;
     }
-    
-    
+
+    public String getMappingEntityExpression() {
+        return mappingEntityExpression;
+    }
+
+    public void setMappingEntityExpression(String mappingEntityExpression) {
+        this.mappingEntityExpression = mappingEntityExpression;
+    }
 
 }
