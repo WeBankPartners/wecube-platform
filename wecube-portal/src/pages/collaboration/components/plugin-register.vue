@@ -282,7 +282,20 @@
                       </Select>
                       <span v-if="param.mappingType === 'context' || param.mappingType === 'constant'">N/A</span>
                       <span v-if="param.mappingType === 'object'">
-                        <Button type="primary" size="small" @click="showObjectConfig(param)">配置</Button>
+                        <div style="width: 50%;display:inline-block;vertical-align: top;">
+                          <FilterRulesRef
+                            v-model="param.mappingEntityExpression"
+                            :disabled="currentPluginObj.status === 'ENABLED'"
+                            :allDataModelsWithAttrs="allEntityType"
+                            :rootEntity="clearedEntityType"
+                            :needNativeAttr="true"
+                            :needAttr="true"
+                            :rootEntityFirst="true"
+                          ></FilterRulesRef>
+                        </div>
+                        <Button type="primary" size="small" @click="showObjectConfig(param)">{{
+                          $t('configuration')
+                        }}</Button>
                       </span>
                     </FormItem>
                   </Col>
@@ -369,7 +382,7 @@
                       <FormItem :label-width="0">
                         <span v-if="outPut.required === 'Y'" style="color:red;vertical-align: text-bottom;">*</span>
                         <Input
-                          v-model="outPut.mappingSystemVariableName"
+                          v-model="outPut.mappingValue"
                           :disabled="currentPluginObj.status === 'ENABLED'"
                           placeholder="value"
                         />
@@ -457,7 +470,7 @@
         ref="objectTree"
         increment="0"
         :treeData="objectModal.treeData"
-        :clearedEntityType="clearedEntityType"
+        :clearedEntityType="objectRootEntity"
         :allEntityType="allEntityType"
         :status="currentPluginObj.status"
       ></recursive>
@@ -545,7 +558,8 @@ export default {
           label: 'N'
         }
       ],
-      clearedEntityType: ''
+      clearedEntityType: '',
+      objectRootEntity: '' // object类型外层表达式根
     }
   },
   components: {
@@ -618,6 +632,13 @@ export default {
     // 'inputParameters', param, index
     async showObjectConfig (originData) {
       let datax = JSON.parse(JSON.stringify(originData))
+      if (!originData.refObjectMeta) {
+        this.$Notice.error({
+          title: 'Error',
+          desc: 'Error'
+        })
+      }
+      this.getObjectRoot(datax.mappingEntityExpression)
       const { status, data } = await getPluginRegisterObjectType(originData.refObjectMeta.id)
       if (status === 'OK') {
         datax.refObjectMeta = data
@@ -628,8 +649,24 @@ export default {
       // this.objectModal.treeData = JSON.parse(JSON.stringify(originData))
       this.objectModal.showObjectConfigModal = true
     },
+    getObjectRoot (expression) {
+      // A --- '>' B -- '~'
+      const lastIndexOfA = expression.lastIndexOf('>')
+      const lastIndexOfB = expression.lastIndexOf('~')
+      // 以 '>' 分割
+      if (lastIndexOfA >= lastIndexOfB) {
+        this.objectRootEntity = expression.split('>').pop()
+      } else {
+        // 以 '~' 分割
+        this.objectRootEntity = expression
+          .split('~')
+          .pop()
+          .split(')')
+          .pop()
+      }
+    },
     managementExpression (mappingEntityExpression, rootEntity) {
-      if (mappingEntityExpression.includes(rootEntity)) {
+      if (mappingEntityExpression && mappingEntityExpression.includes(rootEntity)) {
         return mappingEntityExpression
       } else {
         return rootEntity
@@ -655,7 +692,7 @@ export default {
     },
     addOutputParams () {
       const assginOutput = this.currentInter.outputParameters.filter(item => item.mappingType === 'assign')
-      const res = assginOutput.every(item => item.name !== '' && item.mappingSystemVariableName !== '')
+      const res = assginOutput.every(item => item.name !== '' && item.mappingValue !== '')
       if (!res) {
         this.$Notice.warning({
           title: 'Warning',
@@ -669,7 +706,7 @@ export default {
         description: '',
         id: '',
         mappingEntityExpression: '',
-        mappingSystemVariableName: '',
+        mappingValue: '',
         mappingType: 'assign',
         name: '',
         pluginConfigInterfaceId: outputParametersSingle.pluginConfigInterfaceId,
@@ -679,9 +716,22 @@ export default {
         type: 'OUTPUT'
       })
     },
+    managementObjectExpression (mappingEntityExpression, rootEntity) {
+      if (mappingEntityExpression && mappingEntityExpression.includes(rootEntity)) {
+        return mappingEntityExpression
+      } else {
+        return this.selectedEntityType
+      }
+    },
     // refObjectMeta。id pluginConfigId
     showParamsModal (val, index, currentPluginObj) {
       this.currentInter = val
+      this.currentInter.inputParameters.forEach(item => {
+        item.mappingEntityExpression = this.managementObjectExpression(
+          item.mappingEntityExpression,
+          this.selectedEntityType
+        )
+      })
       this.objectModal.pluginConfigId = val.pluginConfigId
       this.currentInterIndex = index
       this.currentServiceName = val.serviceName
