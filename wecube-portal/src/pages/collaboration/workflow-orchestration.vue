@@ -283,6 +283,22 @@
         <Button type="primary" @click="confirmRole">{{ $t('bc_confirm') }}</Button>
       </div>
     </Modal>
+    <Modal v-model="confirmModal.isShowConfirmModal" width="900">
+      <div>
+        <Icon :size="28" :color="'#f90'" type="md-help-circle" />
+        <span class="confirm-msg">{{ $t('confirm_to_exect') }}</span>
+      </div>
+      <div style="max-height: 400px;overflow-y: auto;">
+        <pre style="margin-left: 44px;margin-top: 22px;">{{ this.confirmModal.message }}</pre>
+      </div>
+      <div slot="footer">
+        <span style="margin-left:30px;color:#ed4014;float: left;text-align:left">
+          <Checkbox v-model="confirmModal.check">{{ $t('dangerous_confirm_tip') }}</Checkbox>
+        </span>
+        <Button type="text" @click="confirmModal.isShowConfirmModal = false">{{ $t('bc_cancel') }}</Button>
+        <Button type="warning" :disabled="!confirmModal.check" @click="confirmSaveFlow">{{ $t('bc_confirm') }}</Button>
+      </div>
+    </Modal>
   </div>
 </template>
 <script>
@@ -311,6 +327,7 @@ import xml2js from 'xml2js'
 import {
   getAllFlow,
   saveFlow,
+  confirmSaveFlow,
   saveFlowDraft,
   getFlowDetailByID,
   getFlowNodes,
@@ -448,7 +465,16 @@ export default {
       ],
       currentflowsNodes: [],
       currentFlow: null,
-      cacheFlowInfo: null // 缓存流程数据，供节点数据展示时使用
+      cacheFlowInfo: null, // 缓存流程数据，供节点数据展示时使用
+
+      confirmModal: {
+        isShowConfirmModal: false,
+        check: false,
+        continueToken: '',
+        message: '',
+        requestBody: '',
+        func: ''
+      }
     }
   },
   watch: {
@@ -856,10 +882,33 @@ export default {
               _this.selectedFlow = data.data.procDefId
               _this.temporaryFlow = data.data.procDefId
             }
+            if (data && data.status === 'CONFIRM') {
+              _this.confirmModal.continueToken = data.data.continueToken
+              _this.confirmModal.check = false
+              _this.confirmModal.message = data.message
+              _this.confirmModal.requestBody = payload
+              _this.confirmModal.func = 'test'
+              _this.confirmModal.isShowConfirmModal = true
+            }
           })
         }
         _this.show = false
         _this.isFormDataChange = false
+      })
+    },
+    confirmSaveFlow () {
+      confirmSaveFlow(this.confirmModal.continueToken, this.confirmModal.requestBody).then(data => {
+        this.isSaving = false
+        if (data && data.status === 'OK') {
+          this.$Notice.success({
+            title: 'Success',
+            desc: data.message
+          })
+          this.confirmModal.isShowConfirmModal = false
+          this.getAllFlows(true)
+          this.selectedFlow = data.data.procDefId
+          this.temporaryFlow = data.data.procDefId
+        }
       })
     },
     savePluginConfig (ref) {
