@@ -5,7 +5,6 @@
 // Generated on: 2020.11.09 at 03:29:54 PM CST 
 //
 
-
 package com.webank.wecube.platform.core.service.plugin.xml.register;
 
 import javax.xml.bind.annotation.XmlAccessType;
@@ -14,11 +13,13 @@ import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlType;
 import javax.xml.bind.annotation.XmlValue;
 
-
 /**
- * <p>Java class for inputParameterType complex type.
+ * <p>
+ * Java class for inputParameterType complex type.
  * 
- * <p>The following schema fragment specifies the expected content contained within this class.
+ * <p>
+ * The following schema fragment specifies the expected content contained within
+ * this class.
  * 
  * <pre>
  * &lt;complexType name="inputParameterType">
@@ -38,9 +39,7 @@ import javax.xml.bind.annotation.XmlValue;
  * 
  */
 @XmlAccessorType(XmlAccessType.FIELD)
-@XmlType(name = "inputParameterType", propOrder = {
-    "value"
-})
+@XmlType(name = "inputParameterType", propOrder = { "value" })
 public class InputParameterType {
 
     @XmlValue
@@ -60,13 +59,14 @@ public class InputParameterType {
     @XmlAttribute(name = "description")
     protected String description;
 
+    @XmlAttribute(name = "mappingValue")
+    protected String mappingValue;
+
     /**
      * Gets the value of the value property.
      * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
+     * @return possible object is {@link String }
+     * 
      */
     public String getValue() {
         return value;
@@ -76,9 +76,8 @@ public class InputParameterType {
      * Sets the value of the value property.
      * 
      * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
+     *            allowed object is {@link String }
+     * 
      */
     public void setValue(String value) {
         this.value = value;
@@ -87,10 +86,8 @@ public class InputParameterType {
     /**
      * Gets the value of the datatype property.
      * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
+     * @return possible object is {@link String }
+     * 
      */
     public String getDatatype() {
         return datatype;
@@ -100,9 +97,8 @@ public class InputParameterType {
      * Sets the value of the datatype property.
      * 
      * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
+     *            allowed object is {@link String }
+     * 
      */
     public void setDatatype(String value) {
         this.datatype = value;
@@ -111,10 +107,8 @@ public class InputParameterType {
     /**
      * Gets the value of the mappingType property.
      * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
+     * @return possible object is {@link String }
+     * 
      */
     public String getMappingType() {
         return mappingType;
@@ -124,9 +118,8 @@ public class InputParameterType {
      * Sets the value of the mappingType property.
      * 
      * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
+     *            allowed object is {@link String }
+     * 
      */
     public void setMappingType(String value) {
         this.mappingType = value;
@@ -135,10 +128,8 @@ public class InputParameterType {
     /**
      * Gets the value of the mappingSystemVariableName property.
      * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
+     * @return possible object is {@link String }
+     * 
      */
     public String getMappingSystemVariableName() {
         return mappingSystemVariableName;
@@ -148,9 +139,8 @@ public class InputParameterType {
      * Sets the value of the mappingSystemVariableName property.
      * 
      * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
+     *            allowed object is {@link String }
+     * 
      */
     public void setMappingSystemVariableName(String value) {
         this.mappingSystemVariableName = value;
@@ -159,10 +149,8 @@ public class InputParameterType {
     /**
      * Gets the value of the required property.
      * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
+     * @return possible object is {@link String }
+     * 
      */
     public String getRequired() {
         return required;
@@ -172,9 +160,8 @@ public class InputParameterType {
      * Sets the value of the required property.
      * 
      * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
+     *            allowed object is {@link String }
+     * 
      */
     public void setRequired(String value) {
         this.required = value;
@@ -183,10 +170,8 @@ public class InputParameterType {
     /**
      * Gets the value of the mappingEntityExpression property.
      * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
+     * @return possible object is {@link String }
+     * 
      */
     public String getMappingEntityExpression() {
         return mappingEntityExpression;
@@ -196,9 +181,8 @@ public class InputParameterType {
      * Sets the value of the mappingEntityExpression property.
      * 
      * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
+     *            allowed object is {@link String }
+     * 
      */
     public void setMappingEntityExpression(String value) {
         this.mappingEntityExpression = value;
@@ -207,10 +191,8 @@ public class InputParameterType {
     /**
      * Gets the value of the sensitiveData property.
      * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
+     * @return possible object is {@link String }
+     * 
      */
     public String getSensitiveData() {
         if (sensitiveData == null) {
@@ -224,9 +206,8 @@ public class InputParameterType {
      * Sets the value of the sensitiveData property.
      * 
      * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
+     *            allowed object is {@link String }
+     * 
      */
     public void setSensitiveData(String value) {
         this.sensitiveData = value;
@@ -239,7 +220,13 @@ public class InputParameterType {
     public void setDescription(String description) {
         this.description = description;
     }
-    
-    
+
+    public String getMappingValue() {
+        return mappingValue;
+    }
+
+    public void setMappingValue(String mappingValue) {
+        this.mappingValue = mappingValue;
+    }
 
 }
