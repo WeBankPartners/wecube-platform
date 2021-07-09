@@ -12,6 +12,8 @@ public class InputParamObject {
     private String entityDataId;
 
     private String fullEntityDataId;
+    
+    private String confirmToken;
 
     private List<String> attrNames = new ArrayList<>();
 
@@ -73,5 +75,15 @@ public class InputParamObject {
     public void setFullEntityDataId(String fullEntityDataId) {
         this.fullEntityDataId = fullEntityDataId;
     }
+
+    public String getConfirmToken() {
+        return confirmToken;
+    }
+
+    public void setConfirmToken(String confirmToken) {
+        this.confirmToken = confirmToken;
+    }
+    
+    
 
 }
