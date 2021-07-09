@@ -54,6 +54,7 @@ import com.webank.wecube.platform.workflow.WorkflowConstants;
 public abstract class AbstractPluginInvocationService extends AbstractWorkflowService {
 
     protected static final String CALLBACK_PARAMETER_KEY = "callbackParameter";
+    protected static final String CONFIRM_TOKEN_KEY = "confirmToken";
     protected static final String INPUT_PARAMETER_KEY_OPERATOR = "operator";
 
     protected static final String RESULT_CODE_OK = "0";
