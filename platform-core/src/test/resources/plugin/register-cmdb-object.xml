@@ -5,7 +5,8 @@
 
     <!-- 1.依赖分析 - 描述运行本插件包需要的其他插件包 -->
     <packageDependencies>
-        <packageDependency name="platform" version="v2.5.0" />
+        <packageDependency name="platform"
+            version="v2.5.0" />
     </packageDependencies>
 
     <!-- 2.菜单注入 - 描述运行本插件包需要注入的菜单 -->
@@ -13,8 +14,9 @@
         <menu code='MENU_DESIGNING_CI_DATA_ENQUIRY' cat='DESIGNING'
             displayName="CI Data Enquery" localDisplayName="CI数据查询">/wecmdb/designing/ci-data-enquiry
         </menu>
-        <menu code='MENU_DESIGNING_CI_DATA_MANAGEMENT' cat='DESIGNING'
-            displayName="CI Data Management" localDisplayName="CI数据管理">/wecmdb/designing/ci-data-management
+        <menu code='MENU_DESIGNING_CI_DATA_MANAGEMENT'
+            cat='DESIGNING' displayName="CI Data Management"
+            localDisplayName="CI数据管理">/wecmdb/designing/ci-data-management
         </menu>
         <menu code='MENU_DESIGNING_CI_INTEGRATED_QUERY_EXECUTION'
             cat='DESIGNING' displayName="Report Enquery"
@@ -32,29 +34,35 @@
             displayName="Resource View - Resource Management"
             localDisplayName="资源视图-资源管理">/wecmdb/view-management/idc-resource-planning
         </menu>
-        <menu code='MENU_APPLICATION_ARCHITECTURE_DESIGN' cat='DESIGNING'
+        <menu code='MENU_APPLICATION_ARCHITECTURE_DESIGN'
+            cat='DESIGNING'
             displayName="APP View - Architecture Designing"
             localDisplayName="应用视图-架构设计">/wecmdb/view-management/application-architecture-design
         </menu>
-        <menu code='MENU_APPLICATION_ARCHITECTURE_QUERY' cat='DESIGNING'
+        <menu code='MENU_APPLICATION_ARCHITECTURE_QUERY'
+            cat='DESIGNING'
             displayName="APP View - Architecture Enquery"
             localDisplayName="应用视图-架构查询">/wecmdb/view-management/application-architecture-query
         </menu>
-        <menu code='MENU_APPLICATION_DEPLOYMENT_DESIGN' cat='DESIGNING'
-            displayName="APP View - Deploy Management" localDisplayName="应用视图-部署管理">
+        <menu code='MENU_APPLICATION_DEPLOYMENT_DESIGN'
+            cat='DESIGNING' displayName="APP View - Deploy Management"
+            localDisplayName="应用视图-部署管理">
             /wecmdb/view-management/application-deployment-design
         </menu>
         <menu code='MENU_ADMIN_CMDB_MODEL_MANAGEMENT' cat='ADMIN'
             displayName="CMDB Modeling" localDisplayName="CMDB模型管理">/wecmdb/admin/cmdb-model-management
         </menu>
-        <menu code='MENU_CMDB_ADMIN_BASE_DATA_MANAGEMENT' cat='ADMIN'
-            displayName="CMDB Base Datas" localDisplayName="CMDB基础数据管理">/wecmdb/admin/base-data-management
+        <menu code='MENU_CMDB_ADMIN_BASE_DATA_MANAGEMENT'
+            cat='ADMIN' displayName="CMDB Base Datas"
+            localDisplayName="CMDB基础数据管理">/wecmdb/admin/base-data-management
         </menu>
         <menu code='MENU_ADMIN_PERMISSION_MANAGEMENT' cat='ADMIN'
-            displayName="CMDB Data Permissions" localDisplayName="CMDB数据权限管理">/wecmdb/admin/permission-management
+            displayName="CMDB Data Permissions"
+            localDisplayName="CMDB数据权限管理">/wecmdb/admin/permission-management
         </menu>
-        <menu code='MENU_ADMIN_QUERY_LOG' cat='ADMIN' displayName="CMDB Logs"
-            localDisplayName="CMDB日志查询">/wecmdb/admin/query-log</menu>
+        <menu code='MENU_ADMIN_QUERY_LOG' cat='ADMIN'
+            displayName="CMDB Logs" localDisplayName="CMDB日志查询">/wecmdb/admin/query-log
+        </menu>
     </menus>
 
     <!-- 3.数据模型 - 描述本插件包的数据模型,并且描述和Framework数据模型的关系 -->
@@ -65,10 +73,10 @@
     <systemParameters>
         <systemParameter name="WECMDB_APP_SYSTEM"
             scopeType="global" defaultValue="app_system" />
-        <systemParameter name="WECMDB_SUBSYS" scopeType="global"
-            defaultValue="subsys" />
-        <systemParameter name="WECMDB_UNIT" scopeType="global"
-            defaultValue="unit" />
+        <systemParameter name="WECMDB_SUBSYS"
+            scopeType="global" defaultValue="subsys" />
+        <systemParameter name="WECMDB_UNIT"
+            scopeType="global" defaultValue="unit" />
         <systemParameter name="WECMDB_DATA_CENTER"
             scopeType="global" defaultValue="data_center" />
         <systemParameter name="WECMDB_NETWORK_ZONE"
@@ -81,9 +89,11 @@
     <authorities>
         <authority systemRoleName="SUPER_ADMIN">
             <menu code="MENU_DESIGNING_CI_DATA_ENQUIRY" />
-            <menu code="MENU_DESIGNING_CI_INTEGRATED_QUERY_EXECUTION" />
+            <menu
+                code="MENU_DESIGNING_CI_INTEGRATED_QUERY_EXECUTION" />
             <menu code="MENU_DESIGNING_CI_DATA_MANAGEMENT" />
-            <menu code="MENU_DESIGNING_CI_INTEGRATED_QUERY_MANAGEMENT" />
+            <menu
+                code="MENU_DESIGNING_CI_INTEGRATED_QUERY_MANAGEMENT" />
             <menu code="MENU_IDC_PLANNING_DESIGN" />
             <menu code="MENU_IDC_RESOURCE_PLANNING" />
             <menu code="MENU_APPLICATION_ARCHITECTURE_DESIGN" />
@@ -109,54 +119,66 @@
 
     <!-- 7.插件列表 - 描述插件包中单个插件的输入和输出 -->
     <paramObjects>
-        <paramObject name="k8sObjA" mapExpr="wecmdb:instances">
-            <property name="attrA" dataType="string" refType="string"
-                mapType="entity" mapExpr="wecmdb:instances" />
-            <property name="attrB" dataType="list" refType="string"
-                mapType="entity" mapExpr="wecmdb:instances" />
-            <property name="attrC" dataType="list" refType="string"
-                mapType="constant" mapExpr="" />
+        <paramObject name="k8sObjA"
+            mapExpr="wecmdb:instances">
+            <property name="attrA" dataType="string"
+                multiple="N" mapType="entity" mapExpr="wecmdb:instances" />
+            <property name="attrB" dataType="string"
+                multiple="Y" mapType="entity" mapExpr="wecmdb:instances" />
+            <property name="attrC" dataType="string"
+                multiple="Y" mapType="constant" mapExpr="" />
         </paramObject>
-        <paramObject name="k8sObjB" mapExpr="wecmdb:instances">
-            <property name="attrA" dataType="object" refType="object"
-                refName="k8sObjA" mapType="" mapExpr="" />
-            <property name="attrB" dataType="list" refType="object"
-                refName="k8sObjA" mapType="" mapExpr="" />
-            <property name="attrC" dataType="string" refType=""
-                mapType="entity" mapExpr="wecmdb:instances" />
-            <property name="attrD" dataType="list" refType="string"
-                refName="" mapType="entity" mapExpr="wecmdb:instances" />
+        <paramObject name="k8sObjB"
+            mapExpr="wecmdb:instances">
+            <property name="attrA" dataType="object"
+                refObjectName="k8sObjA" multiple="N" mapType=""
+                mapExpr="" />
+            <property name="attrB" dataType="object"
+                refObjectName="k8sObjA" multiple="Y" mapType=""
+                mapExpr="" />
+            <property name="attrC" dataType="string"
+                multiple="N" mapType="entity" mapExpr="wecmdb:instances" />
+            <property name="attrD" dataType="string"
+                multiple="Y" mapType="entity" mapExpr="wecmdb:instances" />
         </paramObject>
-        <paramObject name="k8sObjC" mapExpr="wecmdb:instances">
-            <property name="attrA" dataType="string" refType="string"
-                mapType="entity" mapExpr="wecmdb:instances" />
-            <property name="attrB" dataType="list" refType="string"
-                mapType="entity" mapExpr="wecmdb:instances" />
-            <property name="attrC" dataType="number" refType="number"
-                mapType="constant" mapExpr="" />
+        <paramObject name="k8sObjC"
+            mapExpr="wecmdb:instances">
+            <property name="attrA" dataType="string"
+                multiple="N" mapType="entity" mapExpr="wecmdb:instances" />
+            <property name="attrB" dataType="string"
+                multiple="Y" mapType="entity" mapExpr="wecmdb:instances" />
+            <property name="attrC" dataType="number"
+                multiple="N" mapType="constant" mapExpr="" />
         </paramObject>
-        
-        <paramObject name="k8sObjD" mapExpr="wecmdb:instances">
-            <property name="attrA" dataType="string" refType="string" refName=""
-                mapType="entity" mapExpr="wecmdb:instances" />
-            <property name="attrB" dataType="list" refType="string" refName=""
-                mapType="entity" mapExpr="wecmdb:instances" />
-            <property name="attrC" dataType="list" refType="object" refName="k8sObjC"
-                mapType="entity" mapExpr="wecmdb:instances" />
+
+        <paramObject name="k8sObjD"
+            mapExpr="wecmdb:instances">
+            <property name="attrA" dataType="string"
+                multiple="N" mapType="entity" mapExpr="wecmdb:instances" />
+            <property name="attrB" dataType="string"
+                multiple="Y" mapType="entity" mapExpr="wecmdb:instances" />
+            <property name="attrC" dataType="object"
+                refObjectName="k8sObjC" multiple="Y" mapType="entity"
+                mapExpr="wecmdb:instances" />
         </paramObject>
     </paramObjects>
     <plugins>
         <plugin name="k8s-service-create" targetPackage=""
             targetEntity="" registerName="" targetEntityFilterRule="">
-            <interface action="create" path="/k8s/service/create"
-                filterRule="">
+            <interface action="create"
+                path="/k8s/service/create" filterRule="">
                 <inputParameters>
-                    <parameter datatype="list" required="Y"
-                        sensitiveData="N" mappingEntityExpression='k8sObjA'>entity-name
+                    <parameter datatype="object"
+                        refObjectName="k8sObjA" multiple="Y"
+                        required="Y" mappingType="entity"
+                        sensitiveData="N"
+                        mappingEntityExpression="wecmdb:instances">entity-name
                     </parameter>
-                    <parameter datatype="object" required="Y"
-                        sensitiveData="N" mappingType="object"
-                        mappingEntityExpression='k8sObjA'>cidata</parameter>
+                    <parameter datatype="object"
+                        refObjectName="k8sObjA" multiple="N"
+                        required="Y" sensitiveData="N"
+                        mappingType="context"
+                        mappingEntityExpression="">cidata</parameter>
                 </inputParameters>
                 <outputParameters>
                     <parameter datatype="string"
