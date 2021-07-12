@@ -5,6 +5,7 @@ import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 
+import com.webank.wecube.platform.core.commons.WecubeCoreException;
 import com.webank.wecube.platform.core.entity.plugin.CoreObjectListVar;
 import com.webank.wecube.platform.core.entity.plugin.CoreObjectPropertyMeta;
 import com.webank.wecube.platform.core.entity.plugin.CoreObjectVar;
@@ -46,8 +47,8 @@ public abstract class AbstractPluginParamObjectService {
         return Constants.DATA_TYPE_NUMBER.equals(dataType);
     }
 
-    protected boolean isListDataType(String dataType) {
-        return Constants.DATA_TYPE_LIST.equals(dataType);
+    protected boolean isMultipleData(String multipleFlag) {
+        return Constants.DATA_MULTIPLE.equals(multipleFlag);
     }
 
     protected boolean isObjectDataType(String dataType) {
@@ -121,19 +122,11 @@ public abstract class AbstractPluginParamObjectService {
             return null;
         }
 
+        String multipleFlag = propertyMeta.getMultiple();
+
         String dataType = propertyMeta.getDataType();
-        if (isBasicDataType(dataType)) {
-            return String.valueOf(dataValueObject);
-        }
-
-        if (isObjectDataType(dataType)) {
-            CoreObjectVar objVar = (CoreObjectVar) dataValueObject;
-            return objVar.getId();
-        }
-
-        if (isListDataType(dataType)) {
-            String refType = propertyMeta.getRefType();
-            if (isBasicDataType(refType)) {
+        if (isMultipleData(multipleFlag)) {
+            if (isBasicDataType(dataType)) {
                 StringBuilder sb = new StringBuilder();
                 List<Object> objects = (List<Object>) dataValueObject;
                 for (Object obj : objects) {
@@ -143,19 +136,27 @@ public abstract class AbstractPluginParamObjectService {
                 return sb.toString();
             }
 
-            if (isBasicDataType(refType)) {
+            if (isObjectDataType(dataType)) {
                 List<CoreObjectVar> listVars = (List<CoreObjectVar>) dataValueObject;
                 StringBuilder sb = new StringBuilder();
                 for (CoreObjectVar v : listVars) {
                     sb.append(v.getId()).append(",");
                 }
-                
+
                 return sb.toString();
             }
-           
+        } else {
+            if (isBasicDataType(dataType)) {
+                return String.valueOf(dataValueObject);
+            }
+
+            if (isObjectDataType(dataType)) {
+                CoreObjectVar objVar = (CoreObjectVar) dataValueObject;
+                return objVar.getId();
+            }
         }
 
-        return null;
+        throw new WecubeCoreException("Unsupported data type :" + dataType);
     }
 
     protected String assembleValueList(List<Object> retDataValues) {
