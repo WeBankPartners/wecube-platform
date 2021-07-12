@@ -13,9 +13,9 @@ public class CoreObjectPropertyMeta {
 
     private String dataType;
 
-    private String refType;
+    private String multiple;
 
-    private String refName;
+    private String refObjectName;
 
     private String mapType;
 
@@ -69,14 +69,6 @@ public class CoreObjectPropertyMeta {
 
     public void setDataType(String dataType) {
         this.dataType = dataType == null ? null : dataType.trim();
-    }
-
-    public String getRefType() {
-        return refType;
-    }
-
-    public void setRefType(String refType) {
-        this.refType = refType == null ? null : refType.trim();
     }
 
     public String getMapType() {
@@ -167,14 +159,6 @@ public class CoreObjectPropertyMeta {
         this.sensitive = sensitive;
     }
 
-    public String getRefName() {
-        return refName;
-    }
-
-    public void setRefName(String refName) {
-        this.refName = refName;
-    }
-
     public CoreObjectMeta getObjectMeta() {
         return objectMeta;
     }
@@ -219,6 +203,22 @@ public class CoreObjectPropertyMeta {
         this.configId = configId;
     }
 
+    public String getMultiple() {
+        return multiple;
+    }
+
+    public void setMultiple(String multiple) {
+        this.multiple = multiple;
+    }
+
+    public String getRefObjectName() {
+        return refObjectName;
+    }
+
+    public void setRefObjectName(String refObjectName) {
+        this.refObjectName = refObjectName;
+    }
+
     @Override
     public String toString() {
         StringBuilder builder = new StringBuilder();
@@ -228,10 +228,10 @@ public class CoreObjectPropertyMeta {
         builder.append(name);
         builder.append(", dataType=");
         builder.append(dataType);
-        builder.append(", refType=");
-        builder.append(refType);
-        builder.append(", refName=");
-        builder.append(refName);
+        builder.append(", multiple=");
+        builder.append(multiple);
+        builder.append(", refObjectName=");
+        builder.append(refObjectName);
         builder.append(", mapType=");
         builder.append(mapType);
         builder.append(", mapExpr=");
@@ -244,14 +244,6 @@ public class CoreObjectPropertyMeta {
         builder.append(packageName);
         builder.append(", source=");
         builder.append(source);
-        builder.append(", createdBy=");
-        builder.append(createdBy);
-        builder.append(", createdTime=");
-        builder.append(createdTime);
-        builder.append(", updatedBy=");
-        builder.append(updatedBy);
-        builder.append(", updatedTime=");
-        builder.append(updatedTime);
         builder.append(", sensitive=");
         builder.append(sensitive);
         builder.append(", configId=");
@@ -259,7 +251,5 @@ public class CoreObjectPropertyMeta {
         builder.append("]");
         return builder.toString();
     }
-    
-    
 
 }
