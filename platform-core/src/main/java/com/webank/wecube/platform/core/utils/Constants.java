@@ -22,11 +22,11 @@ public class Constants {
     public static final String FIELD_REQUIRED = "Y";
     public static final String FIELD_NOT_REQUIRED = "N";
     public static final String ASYNC_SERVICE_SYMBOL = "Y";
+    public static final String DATA_MULTIPLE = "Y";
+    public static final String DATA_NOT_MULTIPLE = "N";
 
     public static final String DATA_TYPE_STRING = "string";
     public static final String DATA_TYPE_NUMBER = "number";
-    
-    public static final String DATA_TYPE_LIST = "list";
     public static final String DATA_TYPE_OBJECT = "object";
 
     public static final String DEFAULT_VALUE_DATA_TYPE_STRING = "";
