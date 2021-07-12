@@ -1374,7 +1374,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
             return;
         }
 
-        if (Constants.DATA_TYPE_LIST.equalsIgnoreCase(param.getDataType())) {
+        if (Constants.DATA_MULTIPLE.equalsIgnoreCase(param.getMultiple())) {
             for (CoreObjectVar objectVar : objectVars) {
                 PluginParamObject paramObject = pluginParamObjectVarAssembleService.marshalPluginParamObject(objectVar,
                         calCtx);
