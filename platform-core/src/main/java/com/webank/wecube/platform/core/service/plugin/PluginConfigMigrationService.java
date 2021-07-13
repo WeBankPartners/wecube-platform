@@ -283,8 +283,8 @@ public class PluginConfigMigrationService {
         xmlParamPropertyType.setDataType(objectPropertyMeta.getDataType());
         xmlParamPropertyType.setMapExpr(objectPropertyMeta.getMapExpr());
         xmlParamPropertyType.setMapType(objectPropertyMeta.getMapType());
-        xmlParamPropertyType.setRefName(objectPropertyMeta.getRefName());
-        xmlParamPropertyType.setRefType(objectPropertyMeta.getRefType());
+        xmlParamPropertyType.setRefObjectName(objectPropertyMeta.getRefObjectName());
+        xmlParamPropertyType.setMultiple(objectPropertyMeta.getMultiple());
 
         String sensitiveData = null;
         if (objectPropertyMeta.getSensitive() == null) {
@@ -364,6 +364,8 @@ public class PluginConfigMigrationService {
         xmlParam.setDescription(outputParameter.getDescription());
         xmlParam.setMappingSystemVariableName(outputParameter.getMappingSystemVariableName());
         xmlParam.setMappingValue(outputParameter.getMappingValue());
+        xmlParam.setMultiple(outputParameter.getMultiple());
+        xmlParam.setRefObjectName(outputParameter.getRefObjectName());
 
         return xmlParam;
     }
@@ -379,6 +381,9 @@ public class PluginConfigMigrationService {
         xmlParam.setValue(inputParameter.getName());
         xmlParam.setDescription(inputParameter.getDescription());
         xmlParam.setMappingValue(inputParameter.getMappingValue());
+        
+        xmlParam.setMultiple(inputParameter.getMultiple());
+        xmlParam.setRefObjectName(inputParameter.getRefObjectName());
 
         return xmlParam;
     }
@@ -683,8 +688,8 @@ public class PluginConfigMigrationService {
             propertyMeta.setObjectName(objectMeta.getName());
             propertyMeta.setObjectMetaId(objectMeta.getId());
             propertyMeta.setPackageName(objectMeta.getPackageName());
-            propertyMeta.setRefName(xmlPropertyMeta.getRefName());
-            propertyMeta.setRefType(xmlPropertyMeta.getRefType());
+            propertyMeta.setRefObjectName(xmlPropertyMeta.getRefObjectName());
+            propertyMeta.setMultiple(xmlPropertyMeta.getMultiple());
             boolean sensitive = false;
             if ("Y".equalsIgnoreCase(xmlPropertyMeta.getSensitiveData())) {
                 sensitive = true;
@@ -987,8 +992,8 @@ public class PluginConfigMigrationService {
                 propertyMeta.setObjectName(objectMeta.getName());
                 propertyMeta.setObjectMetaId(objectMeta.getId());
                 propertyMeta.setPackageName(objectMeta.getPackageName());
-                propertyMeta.setRefName(xmlPropertyMeta.getRefName());
-                propertyMeta.setRefType(xmlPropertyMeta.getRefType());
+                propertyMeta.setRefObjectName(xmlPropertyMeta.getRefObjectName());
+                propertyMeta.setMultiple(xmlPropertyMeta.getMultiple());
                 boolean sensitive = false;
                 if ("Y".equalsIgnoreCase(xmlPropertyMeta.getSensitiveData())) {
                     sensitive = true;
@@ -1004,8 +1009,8 @@ public class PluginConfigMigrationService {
                 propertyMeta.setDataType(xmlPropertyMeta.getDataType());
                 propertyMeta.setMapExpr(xmlPropertyMeta.getMapExpr());
                 propertyMeta.setMapType(xmlPropertyMeta.getMapType());
-                propertyMeta.setRefName(xmlPropertyMeta.getRefName());
-                propertyMeta.setRefType(xmlPropertyMeta.getRefType());
+                propertyMeta.setRefObjectName(xmlPropertyMeta.getRefObjectName());
+                propertyMeta.setMultiple(xmlPropertyMeta.getMultiple());
                 boolean sensitive = false;
                 if ("Y".equalsIgnoreCase(xmlPropertyMeta.getSensitiveData())) {
                     sensitive = true;
@@ -1223,6 +1228,8 @@ public class PluginConfigMigrationService {
         param.setMappingType(xmlInputParam.getMappingType());
         param.setSensitiveData(xmlInputParam.getSensitiveData());
         param.setMappingValue(xmlInputParam.getMappingValue());
+        param.setRefObjectName(xmlInputParam.getRefObjectName());
+        param.setMultiple(xmlInputParam.getMultiple());
         
         if (defInputParam == null) {
             param.setRequired(Constants.FIELD_NOT_REQUIRED);
@@ -1250,6 +1257,8 @@ public class PluginConfigMigrationService {
         param.setSensitiveData(xmlOutputParam.getSensitiveData());
         param.setMappingSystemVariableName(xmlOutputParam.getMappingSystemVariableName());
         param.setMappingValue(xmlOutputParam.getMappingValue());
+        param.setMultiple(xmlOutputParam.getMultiple());
+        param.setRefObjectName(xmlOutputParam.getRefObjectName());
         
         pluginConfigInterfaceParametersMapper.insert(param);
 
