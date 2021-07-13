@@ -10,17 +10,11 @@ import com.webank.wecube.platform.core.utils.JsonUtils;
 
 public class InputParamAttr {
 
-//    public static final String DATA_TYPE_STRING = "string";
-//    public static final String DATA_TYPE_NUMBER = "number";
-//    public static final String DATA_TYPE_LIST = "list";
-
-//    public static final String DEFAULT_VALUE_DATA_TYPE_STRING = "";
-//    public static final int DEFAULT_VALUE_DATA_TYPE_NUMBER = 0;
-
-    private String name; //parameter name
+    private String name; // parameter name
     private String type; // string, number, object
+    private String multiple;
     private String mapType; // entity, context, constant, object
-    private List<Object> values = new ArrayList<>(); //raw object values
+    private List<Object> values = new ArrayList<>(); // raw object values
     private boolean sensitive;
 
     public String getName() {
@@ -72,50 +66,55 @@ public class InputParamAttr {
     }
 
     public Object getExpectedValue() {
-        //#2226
-        if (values == null || values.isEmpty()) {
-            return determineEmptyValue();
-        }
-        
-        if(Constants.DATA_TYPE_LIST.equalsIgnoreCase(type)){
+        // #2226
+
+        if (isMultiple()) {
             List<Object> clonedListValues = new ArrayList<>();
-            for(Object val : values){
-                if(val instanceof PluginParamObject){
-                    PluginParamObject objVal = (PluginParamObject)val;
+            if (values == null || values.isEmpty()) {
+                return clonedListValues;
+            }
+
+            for (Object val : values) {
+                if (val instanceof PluginParamObject) {
+                    PluginParamObject objVal = (PluginParamObject) val;
                     PluginParamObject clonedObjVal = PluginParamObject.wipeOffObjectIdAndClone(objVal);
                     clonedListValues.add(clonedObjVal);
-                }else{
+                } else {
                     clonedListValues.add(val);
                 }
             }
-            
-            return clonedListValues;
-        }
 
-        if (values.size() == 1) {
-            Object val = values.get(0);
-            if(val == null) {
+            return clonedListValues;
+        } else {
+
+            if (values == null || values.isEmpty()) {
+                return determineBasicEmptyValue();
+            }
+
+            if (values.size() == 1) {
+                Object val = values.get(0);
+                if (val == null) {
+                    return val;
+                }
+
+                if (Constants.DATA_TYPE_STRING.equalsIgnoreCase(type)) {
+                    return JsonUtils.toJsonString(val);
+                }
+
+                if (val instanceof PluginParamObject) {
+                    PluginParamObject objVal = (PluginParamObject) val;
+                    return PluginParamObject.wipeOffObjectIdAndClone(objVal);
+                }
+
                 return val;
             }
-            
-            if(Constants.DATA_TYPE_STRING.equalsIgnoreCase(type)) {
-                //TODO
-                return JsonUtils.toJsonString(val);
-            }
-            
-            if(val instanceof PluginParamObject){
-                PluginParamObject objVal = (PluginParamObject)val;
-                return PluginParamObject.wipeOffObjectIdAndClone(objVal);
-            }
-            
-            return val;
-        }
 
-        if (Constants.DATA_TYPE_STRING.equalsIgnoreCase(type)) {
-            return assembleValueList(values);
-        }
+            if (Constants.DATA_TYPE_STRING.equalsIgnoreCase(type)) {
+                return assembleValueList(values);
+            }
 
-        return values;
+            return values;
+        }
     }
 
     protected String assembleValueList(List<Object> retDataValues) {
@@ -130,7 +129,7 @@ public class InputParamAttr {
                 isFirst = false;
             }
 
-            //TODO
+            // TODO
             sb.append(dv == null ? "" : dv);
         }
 
@@ -139,7 +138,7 @@ public class InputParamAttr {
         return sb.toString();
     }
 
-    private Object determineEmptyValue() {
+    private Object determineBasicEmptyValue() {
         if (Constants.DATA_TYPE_STRING.equalsIgnoreCase(type)) {
             return Constants.DEFAULT_VALUE_DATA_TYPE_STRING;
         }
@@ -153,40 +152,40 @@ public class InputParamAttr {
 
     public String getValuesAsString() {
         if (values == null || values.isEmpty()) {
-            return String.valueOf(determineEmptyValue());
+            return String.valueOf(determineBasicEmptyValue());
         }
 
         if (values.size() == 1) {
             Object v = values.get(0);
             if (v == null) {
-                return String.valueOf(determineEmptyValue());
+                return String.valueOf(determineBasicEmptyValue());
             }
-            
-            if( (v instanceof PluginParamObject ) || (v instanceof Map) || (v instanceof List)){
+
+            if ((v instanceof PluginParamObject) || (v instanceof Map) || (v instanceof List)) {
                 return JsonUtils.toJsonString(v);
             }
-            
+
             return String.valueOf(v);
         }
 
         StringBuilder sb = new StringBuilder();
         for (Object v : values) {
 
-            sb.append(v == null ? String.valueOf(determineEmptyValue()) : convertToString(v)).append(",");
+            sb.append(v == null ? String.valueOf(determineBasicEmptyValue()) : convertToString(v)).append(",");
         }
 
         return sb.toString();
     }
-    
-    public static String convertToString(Object v){
+
+    public static String convertToString(Object v) {
         if (v == null) {
             return null;
         }
-        
-        if( (v instanceof PluginParamObject ) || (v instanceof Map) || (v instanceof List)){
+
+        if ((v instanceof PluginParamObject) || (v instanceof Map) || (v instanceof List)) {
             return JsonUtils.toJsonString(v);
         }
-        
+
         return String.valueOf(v);
     }
 
@@ -196,6 +195,18 @@ public class InputParamAttr {
 
     public void setSensitive(boolean sensitive) {
         this.sensitive = sensitive;
+    }
+
+    public String getMultiple() {
+        return multiple;
+    }
+
+    public void setMultiple(String multiple) {
+        this.multiple = multiple;
+    }
+
+    public boolean isMultiple() {
+        return Constants.DATA_MULTIPLE.equalsIgnoreCase(multiple);
     }
 
 }
