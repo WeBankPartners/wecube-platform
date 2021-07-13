@@ -169,39 +169,43 @@ public class PluginParamObjectVarCalculator extends AbstractPluginParamObjectSer
         String dataType = propertyMeta.getDataType();
         List<Object> dataObjectValues = new ArrayList<>();
 
-        if (isBasicDataType(dataType)) {
-            List<Object> propertyResultValues = tryCalculateBasicTypePropertyValue(propertyMeta, parentObjectVar, ctx,
-                    rootDataId);
-            if (propertyResultValues != null) {
-                dataObjectValues.addAll(propertyResultValues);
-            }
-        } else if (isObjectDataType(dataType)) {
-            CoreObjectMeta refObjectMeta = propertyMeta.getRefObjectMeta();
-            if (refObjectMeta == null) {
-                String errMsg = String.format("Cannot get reference object meta for [%s]:[%s] but object type is [%s]",
-                        propertyMeta.getObjectName(), propertyMeta.getName(), dataType);
-                log.error(errMsg);
-                throw new WecubeCoreException(errMsg);
-            }
-            List<CoreObjectVar> refObjectVars = doCalculateCoreObjectVarList(refObjectMeta, parentObjectVar, ctx,
-                    rootDataId, propertyMeta.getMapExpr());
-
-            if (refObjectVars == null || refObjectVars.isEmpty()) {
-                // do nothing
-            } else {
-                if (refObjectVars.size() > 1) {
-                    String errMsg = String.format("object [%s] property [%s] required [%s] but total [%s] objects got.",
-                            propertyMeta.getObjectName(), propertyMeta.getName(), dataType, refObjectVars.size());
-                    throw new WecubeCoreException(errMsg);
-                }
-
-                dataObjectValues.add(refObjectVars.get(0));
-            }
-        } else if (isListDataType(dataType)) {
+        if (propertyMeta.isMultipleData()) {
             List<Object> propertyResultValues = tryCalculateListTypePropertyValue(propertyMeta, parentObjectVar, ctx,
                     rootDataId);
             if (propertyResultValues != null) {
                 dataObjectValues.addAll(propertyResultValues);
+            }
+        } else {
+            if (isBasicDataType(dataType)) {
+                List<Object> propertyResultValues = tryCalculateBasicTypePropertyValue(propertyMeta, parentObjectVar,
+                        ctx, rootDataId);
+                if (propertyResultValues != null) {
+                    dataObjectValues.addAll(propertyResultValues);
+                }
+            } else if (isObjectDataType(dataType)) {
+                CoreObjectMeta refObjectMeta = propertyMeta.getRefObjectMeta();
+                if (refObjectMeta == null) {
+                    String errMsg = String.format(
+                            "Cannot get reference object meta for [%s]:[%s] but object type is [%s]",
+                            propertyMeta.getObjectName(), propertyMeta.getName(), dataType);
+                    log.error(errMsg);
+                    throw new WecubeCoreException(errMsg);
+                }
+                List<CoreObjectVar> refObjectVars = doCalculateCoreObjectVarList(refObjectMeta, parentObjectVar, ctx,
+                        rootDataId, propertyMeta.getMapExpr());
+
+                if (refObjectVars == null || refObjectVars.isEmpty()) {
+                    // do nothing
+                } else {
+                    if (refObjectVars.size() > 1) {
+                        String errMsg = String.format(
+                                "object [%s] property [%s] required [%s] but total [%s] objects got.",
+                                propertyMeta.getObjectName(), propertyMeta.getName(), dataType, refObjectVars.size());
+                        throw new WecubeCoreException(errMsg);
+                    }
+
+                    dataObjectValues.add(refObjectVars.get(0));
+                }
             }
         }
 
@@ -294,27 +298,28 @@ public class PluginParamObjectVarCalculator extends AbstractPluginParamObjectSer
             return null;
         }
         String dataType = propertyMeta.getDataType();
-        if (isListDataType(dataType)) {
+        if (propertyMeta.isMultipleData()) {
+            return dataValueObjects;
+        } else {
+            if (isObjectDataType(dataType)) {
+                return dataValueObjects.get(0);
+            }
+
+            if (isBasicDataType(dataType)) {
+                if (dataValueObjects.size() == 1) {
+                    return dataValueObjects.get(0);
+                } else {
+                    if (isStringDataType(dataType)) {
+                        return assembleValueList(dataValueObjects);
+                    } else {
+                        return dataValueObjects;
+                    }
+                }
+            }
+
             return dataValueObjects;
         }
 
-        if (isObjectDataType(dataType)) {
-            return dataValueObjects.get(0);
-        }
-
-        if (isBasicDataType(dataType)) {
-            if (dataValueObjects.size() == 1) {
-                return dataValueObjects.get(0);
-            } else {
-                if (isStringDataType(dataType)) {
-                    return assembleValueList(dataValueObjects);
-                } else {
-                    return dataValueObjects;
-                }
-            }
-        }
-
-        return dataValueObjects;
     }
 
     private List<Object> tryCalculateBasicTypePropertyValue(CoreObjectPropertyMeta propertyMeta,
@@ -507,13 +512,13 @@ public class PluginParamObjectVarCalculator extends AbstractPluginParamObjectSer
      */
     private List<Object> tryCalculateListTypePropertyValue(CoreObjectPropertyMeta propertyMeta,
             CoreObjectVar parentObjectVar, CoreObjectVarCalculationContext ctx, String rootDataId) {
-        if (!isListDataType(propertyMeta.getDataType())) {
+        if (!propertyMeta.isMultipleData()) {
             return null;// throw exception here?
         }
 
         List<Object> dataObjectValues = new ArrayList<>();
 
-        if (isBasicDataType(propertyMeta.getRefType())) {
+        if (isBasicDataType(propertyMeta.getDataType())) {
             List<Object> propertyResultValues = tryCalculateBasicTypePropertyValue(propertyMeta, parentObjectVar, ctx,
                     rootDataId);
             if (propertyResultValues != null) {
@@ -521,7 +526,7 @@ public class PluginParamObjectVarCalculator extends AbstractPluginParamObjectSer
             }
         }
 
-        if (isObjectDataType(propertyMeta.getRefType())) {
+        if (isObjectDataType(propertyMeta.getDataType())) {
             CoreObjectMeta refObjectMeta = propertyMeta.getRefObjectMeta();
             List<CoreObjectVar> refObjectVars = doCalculateCoreObjectVarList(refObjectMeta, parentObjectVar, ctx,
                     rootDataId, propertyMeta.getMapExpr());

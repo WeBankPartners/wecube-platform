@@ -126,14 +126,18 @@ public class PluginParamObjectVarMarshaller extends AbstractPluginParamObjectSer
         String dataType = propertyMeta.getDataType();
         Object dataObjectValue = null;
 
-        if (isStringDataType(dataType)) {
-            dataObjectValue = unmarshalStringPropertyValue(propertyValueObject, propertyMeta, ctx);
-        } else if (isNumberDataType(dataType)) {
-            dataObjectValue = unmarshalNumberPropertyValue(propertyValueObject, propertyMeta, ctx);
-        } else if (isObjectDataType(dataType)) {
-            dataObjectValue = unmarshalObjectPropertyValue(propertyValueObject, propertyMeta, ctx);
-        } else if (isListDataType(dataType)) {
+        if (propertyMeta.isMultipleData()) {
             dataObjectValue = unmarshalListPropertyValue(propertyValueObject, propertyMeta, ctx);
+        } else {
+            if (isStringDataType(dataType)) {
+                dataObjectValue = unmarshalStringPropertyValue(propertyValueObject, propertyMeta, ctx);
+            } else if (isNumberDataType(dataType)) {
+                dataObjectValue = unmarshalNumberPropertyValue(propertyValueObject, propertyMeta, ctx);
+            } else if (isObjectDataType(dataType)) {
+                dataObjectValue = unmarshalObjectPropertyValue(propertyValueObject, propertyMeta, ctx);
+            } else {
+                // do nothing
+            }
         }
 
         return dataObjectValue;
@@ -147,7 +151,7 @@ public class PluginParamObjectVarMarshaller extends AbstractPluginParamObjectSer
         }
 
         List<Object> rawValues = new ArrayList<>();
-        if (isStringDataType(propertyMeta.getRefType())) {
+        if (isStringDataType(propertyMeta.getDataType())) {
             List<String> rawStringValues = (List<String>) propertyValueObject;
 
             for (String rawStringValue : rawStringValues) {
@@ -158,7 +162,7 @@ public class PluginParamObjectVarMarshaller extends AbstractPluginParamObjectSer
             return rawValues;
         }
 
-        if (isNumberDataType(propertyMeta.getRefType())) {
+        if (isNumberDataType(propertyMeta.getDataType())) {
             List<Integer> rawIntegerValues = unmarshalNumbers(propertyValueObject);
 
             for (Integer rawIntegerValue : rawIntegerValues) {
@@ -168,7 +172,7 @@ public class PluginParamObjectVarMarshaller extends AbstractPluginParamObjectSer
             return rawValues;
         }
 
-        if (isObjectDataType(propertyMeta.getRefType())) {
+        if (isObjectDataType(propertyMeta.getDataType())) {
             List<CoreObjectVar> rawObjectValues = unmarshalObjectMetaPropertyAsListResult(propertyValueObject,
                     propertyMeta, ctx);
             for (CoreObjectVar rawObjectValue : rawObjectValues) {
@@ -280,24 +284,26 @@ public class PluginParamObjectVarMarshaller extends AbstractPluginParamObjectSer
         for (CoreObjectPropertyVar propertyVar : propertyVars) {
             String dataType = propertyVar.getDataType();
             log.debug("assemble object={},propertyName={}", objectVar.getName(), propertyVar.getName());
-            if (isStringDataType(dataType)) {
-                paramObject.setProperty(propertyVar.getName(), propertyVar.getDataValue());
-            }
-
-            if (isNumberDataType(dataType)) {
-                paramObject.setProperty(propertyVar.getName(), Integer.parseInt(propertyVar.getDataValue()));
-            }
-
-            if (isObjectDataType(dataType)) {
-                PluginParamObject propertyParamObject = doAssemblePluginParamObject(
-                        (CoreObjectVar) propertyVar.getDataValueObject(), ctx);
-                paramObject.setProperty(propertyVar.getName(), propertyParamObject);
-            }
-
-            if (isListDataType(dataType)) {
+            CoreObjectPropertyMeta propertyMeta = propertyVar.getPropertyMeta();
+            if (propertyMeta.isMultipleData()) {
                 List<Object> listPropertyVars = assembleListPropertyVars(propertyVar, ctx);
                 paramObject.setProperty(propertyVar.getName(), listPropertyVars);
+            } else {
+                if (isStringDataType(dataType)) {
+                    paramObject.setProperty(propertyVar.getName(), propertyVar.getDataValue());
+                }
+
+                if (isNumberDataType(dataType)) {
+                    paramObject.setProperty(propertyVar.getName(), Integer.parseInt(propertyVar.getDataValue()));
+                }
+
+                if (isObjectDataType(dataType)) {
+                    PluginParamObject propertyParamObject = doAssemblePluginParamObject(
+                            (CoreObjectVar) propertyVar.getDataValueObject(), ctx);
+                    paramObject.setProperty(propertyVar.getName(), propertyParamObject);
+                }
             }
+
         }
 
         return paramObject;
@@ -311,11 +317,11 @@ public class PluginParamObjectVarMarshaller extends AbstractPluginParamObjectSer
             return null;
         }
         CoreObjectPropertyMeta propertyMeta = propertyVar.getPropertyMeta();
-        String refType = propertyMeta.getRefType();
+        String dataType = propertyMeta.getDataType();
 
         log.debug("assemble {} {} {} {}", propertyMeta.getObjectMeta().getName(), propertyVar.getName(),
-                propertyVar.getDataType(), refType);
-        if (isStringDataType(refType)) {
+                propertyVar.getDataType(), dataType);
+        if (isStringDataType(dataType)) {
             List<Object> stringListValues = new ArrayList<>();
             log.debug("assemble string: {} {}", propertyVar.getDataValueObject().getClass().getName(),
                     propertyVar.getDataValueObject());
@@ -327,7 +333,7 @@ public class PluginParamObjectVarMarshaller extends AbstractPluginParamObjectSer
             return stringListValues;
         }
 
-        if (isNumberDataType(refType)) {
+        if (isNumberDataType(dataType)) {
             List<Object> numberListValues = new ArrayList<>();
             log.debug("assemble number: {} {}", propertyVar.getDataValueObject().getClass().getSimpleName(),
                     propertyVar.getDataValueObject());
@@ -339,7 +345,7 @@ public class PluginParamObjectVarMarshaller extends AbstractPluginParamObjectSer
             return numberListValues;
         }
 
-        if (isObjectDataType(refType)) {
+        if (isObjectDataType(dataType)) {
             List<Object> objectListValues = new ArrayList<>();
             List<CoreObjectListVar> objectListValueObjects = (List<CoreObjectListVar>) propertyVar.getDataValueObject();
             for (CoreObjectListVar listVar : objectListValueObjects) {
