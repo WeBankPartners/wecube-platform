@@ -520,6 +520,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
             List<Object> objectVals = new ArrayList<Object>();
             //
             inputAttr.setMapType(mappingType);
+            inputAttr.setMultiple(param.getMultiple());
             boolean isFieldRequired = isFieldRequired(param.getRequired());
 
             if (PARAM_NAME_TASK_FORM_INPUT.equals(param.getName())) {
@@ -1176,6 +1177,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
                 List<Object> objectVals = new ArrayList<Object>();
                 //
                 inputAttr.setMapType(mappingType);
+                inputAttr.setMultiple(param.getMultiple());
 
                 if (MAPPING_TYPE_SYSTEM_VARIABLE.equalsIgnoreCase(mappingType)) {
                     handleSystemMapping(mappingType, param, paramName, objectVals);
@@ -1307,6 +1309,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
                 //
                 String mappingType = param.getMappingType();
                 inputAttr.setMapType(mappingType);
+                inputAttr.setMultiple(param.getMultiple());
 
                 if (MAPPING_TYPE_ENTITY.equalsIgnoreCase(mappingType)) {
                     handleEntityMapping(mappingType, param, entityDataId, objectVals, externalCacheMap);
