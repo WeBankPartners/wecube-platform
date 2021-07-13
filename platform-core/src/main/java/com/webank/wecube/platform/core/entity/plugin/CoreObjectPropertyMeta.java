@@ -218,6 +218,10 @@ public class CoreObjectPropertyMeta {
     public void setRefObjectName(String refObjectName) {
         this.refObjectName = refObjectName;
     }
+    
+    public boolean isMultipleData(){
+        return Constants.DATA_MULTIPLE.equalsIgnoreCase(multiple);
+    }
 
     @Override
     public String toString() {
