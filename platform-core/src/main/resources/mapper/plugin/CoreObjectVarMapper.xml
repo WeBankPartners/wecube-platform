@@ -34,17 +34,17 @@
         parameterType="java.lang.String">
         select
         <include refid="Base_Column_List" />
-        from plugin_object_var
+        from core_object_var
         where id = #{id,jdbcType=VARCHAR}
     </select>
     <delete id="deleteByPrimaryKey" parameterType="java.lang.String">
         delete from
-        plugin_object_var
+        core_object_var
         where id = #{id,jdbcType=VARCHAR}
     </delete>
     <insert id="insert"
         parameterType="com.webank.wecube.platform.core.entity.plugin.CoreObjectVar">
-        insert into plugin_object_var (id, object_meta_id,
+        insert into core_object_var (id, object_meta_id,
         name,
         package_name, created_by, created_time,
         updated_by,
@@ -63,7 +63,7 @@
     </insert>
     <insert id="insertSelective"
         parameterType="com.webank.wecube.platform.core.entity.plugin.CoreObjectVar">
-        insert into plugin_object_var
+        insert into core_object_var
         <trim prefix="(" suffix=")" suffixOverrides=",">
             <if test="id != null">
                 id,
@@ -131,7 +131,7 @@
     </insert>
     <update id="updateByPrimaryKeySelective"
         parameterType="com.webank.wecube.platform.core.entity.plugin.CoreObjectVar">
-        update plugin_object_var
+        update core_object_var
         <set>
             <if test="objectMetaId != null">
                 object_meta_id =
@@ -170,7 +170,7 @@
     </update>
     <update id="updateByPrimaryKey"
         parameterType="com.webank.wecube.platform.core.entity.plugin.CoreObjectVar">
-        update plugin_object_var
+        update core_object_var
         set object_meta_id =
         #{objectMetaId,jdbcType=VARCHAR},
         name =
