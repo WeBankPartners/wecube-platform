@@ -99,7 +99,14 @@ public class InputParamAttr {
             }
             
             if(Constants.DATA_TYPE_STRING.equalsIgnoreCase(type)) {
-                //TODO
+                if(val instanceof String){
+                    return (String)val;
+                }
+                
+                if(val instanceof Integer){
+                    return String.valueOf(val);
+                }
+                
                 return JsonUtils.toJsonString(val);
             }
             
@@ -181,6 +188,10 @@ public class InputParamAttr {
     public static String convertToString(Object v){
         if (v == null) {
             return null;
+        }
+        
+        if(v instanceof String){
+            return (String)v;
         }
         
         if( (v instanceof PluginParamObject ) || (v instanceof Map) || (v instanceof List)){
