@@ -438,6 +438,7 @@ public class WorkflowProcDefService extends AbstractWorkflowProcDefService {
             draftNodeEntity.setTaskCategory(nodeDto.getTaskCategory());
             draftNodeEntity.setPreCheck(nodeDto.getPreCheck());
             draftNodeEntity.setDynamicBind(nodeDto.getDynamicBind());
+            draftNodeEntity.setPrevCtxNodeIds(nodeDto.getPrevCtxNodeIds());
 
             taskNodeDefInfoRepo.updateByPrimaryKeySelective(draftNodeEntity);
 
@@ -988,6 +989,7 @@ public class WorkflowProcDefService extends AbstractWorkflowProcDefService {
         nodeEntity.setTaskCategory(nodeDto.getTaskCategory());
         nodeEntity.setPreCheck(nodeDto.getPreCheck());
         nodeEntity.setDynamicBind(nodeDto.getDynamicBind());
+        nodeEntity.setPrevCtxNodeIds(nodeDto.getPrevCtxNodeIds());
 
         return nodeEntity;
     }
