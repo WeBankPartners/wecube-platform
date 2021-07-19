@@ -9,3 +9,4 @@ ALTER TABLE `plugin_object_property_var` RENAME TO `core_object_property_var`;
 ALTER TABLE `plugin_object_var` RENAME TO `core_object_var`;
 
 ALTER TABLE `core_re_task_node_def_info` ADD COLUMN `prev_ctx_node_ids` VARCHAR(255) COLLATE utf8_bin DEFAULT NULL;
+ALTER TABLE `core_re_proc_def_info` ADD COLUMN `tags` VARCHAR(255) NULL;
