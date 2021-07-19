@@ -158,6 +158,7 @@ public class WorkflowProcDefService extends AbstractWorkflowProcDefService {
         result.setRootEntity(procDefEntity.getRootEntity());
         result.setStatus(procDefEntity.getStatus());
         result.setExcludeMode(procDefEntity.getExcludeMode());
+        result.setTags(procDefEntity.getTags());
 
         List<TaskNodeDefInfoEntity> nodeEntities = taskNodeDefInfoRepo.selectAllByProcDefId(procDefEntity.getId());
 
@@ -320,6 +321,7 @@ public class WorkflowProcDefService extends AbstractWorkflowProcDefService {
         draftEntity.setUpdatedTime(currTime);
         draftEntity.setUpdatedBy(currUser);
         draftEntity.setExcludeMode(procDefDto.getExcludeMode());
+        draftEntity.setTags(procDefDto.getTags());
 
         processDefInfoRepo.updateByPrimaryKeySelective(draftEntity);
         // Save ProcRoleBindingEntity
@@ -333,6 +335,7 @@ public class WorkflowProcDefService extends AbstractWorkflowProcDefService {
         procDefResult.setRootEntity(draftEntity.getRootEntity());
         procDefResult.setStatus(draftEntity.getStatus());
         procDefResult.setExcludeMode(draftEntity.getExcludeMode());
+        procDefResult.setTags(draftEntity.getTags());
 
         processDraftTaskNodeInfos(procDefDto, draftEntity, procDefResult, currTime);
 
@@ -844,6 +847,7 @@ public class WorkflowProcDefService extends AbstractWorkflowProcDefService {
         procDefEntity.setUpdatedBy(AuthenticationContextHolder.getCurrentUsername());
         procDefEntity.setUpdatedTime(currTime);
         procDefEntity.setExcludeMode(procDefInfoDto.getExcludeMode());
+        procDefEntity.setTags(procDefInfoDto.getTags());
 
         processDefInfoRepo.insert(procDefEntity);
         // Save ProcRoleBindingEntity
@@ -1062,6 +1066,7 @@ public class WorkflowProcDefService extends AbstractWorkflowProcDefService {
         result.setRootEntity(procDefEntity.getRootEntity());
         result.setStatus(procDefEntity.getStatus());
         result.setExcludeMode(procDefEntity.getExcludeMode());
+        result.setTags(procDefEntity.getTags());
 
         List<TaskNodeParamEntity> nodeParamEntities = taskNodeParamRepo.selectAllByProcDefId(procDefEntity.getId());
         List<TaskNodeDefInfoEntity> nodeEntities = taskNodeDefInfoRepo.selectAllByProcDefId(procDefEntity.getId());
