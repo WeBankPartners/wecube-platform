@@ -796,14 +796,17 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 
         PluginConfigInterfaces pluginConfigInterface = retrievePluginConfigInterface(taskNodeDefEntity,
                 cmd.getNodeId());
+        
+        List<InputParamObject> inputParamObjs = new ArrayList<>();
 
-        List<InputParamObject> inputParamObjs = calculateInputParamObjects(procDefInfoEntity, procInstEntity,
-                taskNodeInstEntity, taskNodeDefEntity, nodeObjectBindings, pluginConfigInterface, externalCacheMap);
-
-        if ((inputParamObjs == null || inputParamObjs.isEmpty())
-                && (nodeObjectBindings == null || nodeObjectBindings.isEmpty())) {
-            inputParamObjs = tryCalculateInputParamObjectsFromSystem(procInstEntity, taskNodeInstEntity,
+        //TODO 
+        //#2233
+        if(nodeObjectBindings == null || nodeObjectBindings.isEmpty()) {
+            inputParamObjs = tryCalculateInputParamObjectsWithoutBindings(procInstEntity, taskNodeInstEntity,
                     taskNodeDefEntity, pluginConfigInterface);
+        }else {
+            inputParamObjs = tryCalculateInputParamObjectsWithBindings(procDefInfoEntity, procInstEntity,
+                    taskNodeInstEntity, taskNodeDefEntity, nodeObjectBindings, pluginConfigInterface, externalCacheMap);
         }
 
         PluginInterfaceInvocationContext ctx = new PluginInterfaceInvocationContext() //
@@ -1115,7 +1118,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 
     }
 
-    private List<InputParamObject> tryCalculateInputParamObjectsFromSystem(ProcInstInfoEntity procInstEntity,
+    private List<InputParamObject> tryCalculateInputParamObjectsWithoutBindings(ProcInstInfoEntity procInstEntity,
             TaskNodeInstInfoEntity taskNodeInstEntity, TaskNodeDefInfoEntity taskNodeDefEntity,
             PluginConfigInterfaces pluginConfigInterface) {
 
@@ -1123,9 +1126,11 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
                 "Did not get input parameter objects and try to calculate input parameter objects from system for taskNodeInstId={}",
                 taskNodeInstEntity.getId());
 
+        //TODO 
+        //#2233
         List<PluginConfigInterfaceParameters> configInterfaceInputParams = pluginConfigInterface.getInputParameters();
 
-        if (!checkIfCouldCalculateFromSystem(configInterfaceInputParams)) {
+        if (!checkIfCouldCalculateFromNoneEntity(configInterfaceInputParams)) {
             return new ArrayList<>();
         }
 
@@ -1196,7 +1201,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
         return inputParamObjs;
     }
 
-    private boolean checkIfCouldCalculateFromSystem(List<PluginConfigInterfaceParameters> configInterfaceInputParams) {
+    private boolean checkIfCouldCalculateFromNoneEntity(List<PluginConfigInterfaceParameters> configInterfaceInputParams) {
         if (configInterfaceInputParams == null || configInterfaceInputParams.isEmpty()) {
             return false;
         }
@@ -1272,7 +1277,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
         ctx.setInterfacePath(interfacePath);
     }
 
-    private List<InputParamObject> calculateInputParamObjects(ProcDefInfoEntity procDefInfoEntity,
+    private List<InputParamObject> tryCalculateInputParamObjectsWithBindings(ProcDefInfoEntity procDefInfoEntity,
             ProcInstInfoEntity procInstEntity, TaskNodeInstInfoEntity taskNodeInstEntity,
             TaskNodeDefInfoEntity taskNodeDefEntity, List<ProcExecBindingEntity> nodeObjectBindings,
             PluginConfigInterfaces pluginConfigInterface, Map<Object, Object> externalCacheMap) {
