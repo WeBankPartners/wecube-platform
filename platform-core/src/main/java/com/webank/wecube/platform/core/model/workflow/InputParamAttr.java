@@ -90,7 +90,7 @@ public class InputParamAttr {
             if (values == null || values.isEmpty()) {
                 return determineBasicEmptyValue();
             }
-
+            
             if (values.size() == 1) {
                 Object val = values.get(0);
                 if (val == null) {
@@ -98,6 +98,14 @@ public class InputParamAttr {
                 }
 
                 if (Constants.DATA_TYPE_STRING.equalsIgnoreCase(type)) {
+                    if(val instanceof String){
+                        return (String)val;
+                    }
+                    
+                    if(val instanceof Integer){
+                        return String.valueOf(val);
+                    }
+                    
                     return JsonUtils.toJsonString(val);
                 }
 
@@ -181,8 +189,12 @@ public class InputParamAttr {
         if (v == null) {
             return null;
         }
-
-        if ((v instanceof PluginParamObject) || (v instanceof Map) || (v instanceof List)) {
+        
+        if(v instanceof String){
+            return (String)v;
+        }
+        
+        if( (v instanceof PluginParamObject ) || (v instanceof Map) || (v instanceof List)){
             return JsonUtils.toJsonString(v);
         }
 
