@@ -16,6 +16,8 @@ public abstract class BaseProcDefDto {
     private String createdTime;
 
     private String excludeMode;
+    
+    private String tags;
 
     private Map<String, List<String>> permissionToRole;
 
@@ -98,5 +100,15 @@ public abstract class BaseProcDefDto {
     public void setExcludeMode(String excludeMode) {
         this.excludeMode = excludeMode;
     }
+
+    public String getTags() {
+        return tags;
+    }
+
+    public void setTags(String tags) {
+        this.tags = tags;
+    }
+    
+    
 
 }
