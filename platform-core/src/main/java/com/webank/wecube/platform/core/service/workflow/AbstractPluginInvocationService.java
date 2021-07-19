@@ -318,6 +318,7 @@ public abstract class AbstractPluginInvocationService extends AbstractWorkflowSe
         return val;
     }
 
+    //TODO consider data type where from string data value
     protected Object fromString(String val, String sType) {
         if (DATA_TYPE_STRING.equals(sType)) {
             return val;
