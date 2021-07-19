@@ -194,6 +194,7 @@ public class InputParamAttr {
             return (String)v;
         }
         
+        //TODO add prefix of type
         if( (v instanceof PluginParamObject ) || (v instanceof Map) || (v instanceof List)){
             return JsonUtils.toJsonString(v);
         }
