@@ -115,42 +115,6 @@
                         </Select>
                       </FormItem>
                     </Col>
-                    <Col span="16">
-                      <FormItem prop="routineExpression">
-                        <label slot="label"
-                          >{{ $t('locate_rules') }}
-                          <span class="requires-tip">*</span>
-                        </label>
-                        <FilterRules
-                          :needAttr="true"
-                          ref="filterRules"
-                          v-model="pluginForm.routineExpression"
-                          @change="filterRuleChanged"
-                          :allDataModelsWithAttrs="allEntityType"
-                        ></FilterRules>
-                      </FormItem>
-                    </Col>
-                  </Row>
-                  <Row>
-                    <Col span="8">
-                      <FormItem prop="serviceName">
-                        <label slot="label"
-                          >{{ $t('plugin') }}
-                          <span class="requires-tip">*</span>
-                        </label>
-                        <Select
-                          filterable
-                          clearable
-                          v-model="pluginForm.serviceId"
-                          @on-open-change="getPlugin"
-                          @on-change="changePluginInterfaceList"
-                        >
-                          <Option v-for="(item, index) in filteredPlugins" :value="item.serviceName" :key="index">{{
-                            item.serviceDisplayName
-                          }}</Option>
-                        </Select>
-                      </FormItem>
-                    </Col>
                     <Col span="8">
                       <FormItem prop="timeoutExpression">
                         <label slot="label"
@@ -171,6 +135,21 @@
                     </Col>
                   </Row>
                   <Row>
+                    <Col span="16">
+                      <FormItem prop="routineExpression">
+                        <label slot="label"
+                          >{{ $t('locate_rules') }}
+                          <span class="requires-tip">*</span>
+                        </label>
+                        <FilterRules
+                          :needAttr="true"
+                          ref="filterRules"
+                          v-model="pluginForm.routineExpression"
+                          @change="filterRuleChanged"
+                          :allDataModelsWithAttrs="allEntityType"
+                        ></FilterRules>
+                      </FormItem>
+                    </Col>
                     <Col span="8">
                       <FormItem prop="dynamicBind">
                         <label slot="label"
@@ -179,6 +158,27 @@
                         </label>
                         <Select v-model="pluginForm.dynamicBind" @on-change="editFormdata">
                           <Option v-for="item in yOn" :value="item" :key="item">{{ item }}</Option>
+                        </Select>
+                      </FormItem>
+                    </Col>
+                  </Row>
+                  <Row>
+                    <Col span="16">
+                      <FormItem prop="serviceName">
+                        <label slot="label"
+                          >{{ $t('plugin') }}
+                          <span class="requires-tip">*</span>
+                        </label>
+                        <Select
+                          filterable
+                          clearable
+                          v-model="pluginForm.serviceId"
+                          @on-open-change="getPlugin"
+                          @on-change="changePluginInterfaceList"
+                        >
+                          <Option v-for="(item, index) in filteredPlugins" :value="item.serviceName" :key="index">{{
+                            item.serviceDisplayName
+                          }}</Option>
                         </Select>
                       </FormItem>
                     </Col>
