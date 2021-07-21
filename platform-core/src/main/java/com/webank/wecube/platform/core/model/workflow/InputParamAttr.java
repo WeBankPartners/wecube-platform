@@ -12,7 +12,7 @@ import com.webank.wecube.platform.core.utils.JsonUtils;
 public class InputParamAttr {
 
     private String name; // parameter name
-    private String type; // string, number, object
+    private String dataType; // string, number, object
     private String multiple;
     private String mapType; // entity, context, constant, object
     private List<Object> values = new ArrayList<>(); // raw object values
@@ -27,12 +27,12 @@ public class InputParamAttr {
         this.name = name;
     }
 
-    public String getType() {
-        return type;
+    public String getDataType() {
+        return dataType;
     }
 
-    public void setType(String type) {
-        this.type = type;
+    public void setDataType(String dataType) {
+        this.dataType = dataType;
     }
 
     public List<Object> getValues() {
@@ -99,7 +99,7 @@ public class InputParamAttr {
                     return val;
                 }
 
-                if (Constants.DATA_TYPE_STRING.equalsIgnoreCase(type)) {
+                if (Constants.DATA_TYPE_STRING.equalsIgnoreCase(dataType)) {
                     if(val instanceof String){
                         return (String)val;
                     }
@@ -119,7 +119,7 @@ public class InputParamAttr {
                 return val;
             }
 
-            if (Constants.DATA_TYPE_STRING.equalsIgnoreCase(type)) {
+            if (Constants.DATA_TYPE_STRING.equalsIgnoreCase(dataType)) {
                 return assembleValueList(values);
             }
 
@@ -149,11 +149,11 @@ public class InputParamAttr {
     }
 
     private Object determineBasicEmptyValue() {
-        if (Constants.DATA_TYPE_STRING.equalsIgnoreCase(type)) {
+        if (Constants.DATA_TYPE_STRING.equalsIgnoreCase(dataType)) {
             return Constants.DEFAULT_VALUE_DATA_TYPE_STRING;
         }
 
-        if (Constants.DATA_TYPE_NUMBER.equalsIgnoreCase(type)) {
+        if (Constants.DATA_TYPE_NUMBER.equalsIgnoreCase(dataType)) {
             return Constants.DEFAULT_VALUE_DATA_TYPE_NUMBER;
         }
 

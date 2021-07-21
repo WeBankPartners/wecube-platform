@@ -42,6 +42,7 @@ import com.webank.wecube.platform.core.entity.workflow.TaskNodeExecParamEntity;
 import com.webank.wecube.platform.core.entity.workflow.TaskNodeExecRequestEntity;
 import com.webank.wecube.platform.core.entity.workflow.TaskNodeInstInfoEntity;
 import com.webank.wecube.platform.core.entity.workflow.TaskNodeParamEntity;
+import com.webank.wecube.platform.core.model.workflow.ContextCalculationParam;
 import com.webank.wecube.platform.core.model.workflow.DmeOutputParamAttr;
 import com.webank.wecube.platform.core.model.workflow.InputParamAttr;
 import com.webank.wecube.platform.core.model.workflow.InputParamObject;
@@ -520,7 +521,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 
             InputParamAttr inputAttr = new InputParamAttr();
             inputAttr.setName(paramName);
-            inputAttr.setType(paramType);
+            inputAttr.setDataType(paramType);
             inputAttr.setSensitive(IS_SENSITIVE_ATTR.equalsIgnoreCase(param.getSensitiveData()));
             inputAttr.setParamDef(param);
 
@@ -808,7 +809,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 
         if (nodeObjectBindings == null || nodeObjectBindings.isEmpty()) {
             // #2233
-            inputParamObjs = tryCalculateInputParamObjectsWithoutBindings(procInstEntity, taskNodeInstEntity,
+            inputParamObjs = tryCalculateInputParamObjectsWithoutBindings(procDefInfoEntity,procInstEntity, taskNodeInstEntity,
                     taskNodeDefEntity, pluginConfigInterface);
         } else {
             inputParamObjs = tryCalculateInputParamObjectsWithBindings(procDefInfoEntity, procInstEntity,
@@ -984,7 +985,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
     }
 
     // TODO
-    private List<InputParamObject> tryCalculateContextMappingInputParamsObjects(ProcInstInfoEntity procInstEntity,
+    private List<InputParamObject> tryCalculateContextMappingInputParamsObjects(ProcDefInfoEntity procDefEntity,ProcInstInfoEntity procInstEntity,
             TaskNodeInstInfoEntity currTaskNodeInstEntity, TaskNodeDefInfoEntity currTaskNodeDefEntity,
             PluginConfigInterfaces pluginConfigInterface,
             Map<String, PluginConfigInterfaceParameters> contextConfigInterfaceInputParams) {
@@ -1002,12 +1003,25 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 
         String[] prevCtxNodeIds = prevCtxNodeIdsStr.split(",");
         
-        //TODO
+        // TODO
         //calculate the root bindings
+        List<ContextCalculationParam> contextCalculationParamList = new ArrayList<>();
 
         for (PluginConfigInterfaceParameters param : contextConfigInterfaceInputParams.values()) {
+            
             String paramName = param.getName();
-            String paramType = param.getDataType();
+            String paramDataType = param.getDataType();
+            
+            ContextCalculationParam contextCalculationParam = new ContextCalculationParam();
+            contextCalculationParam.setParam(param);
+            contextCalculationParam.setParamName(paramName);
+            contextCalculationParam.setParamDataType(paramDataType);
+            contextCalculationParam.setProcDefInfoEntity(procDefEntity);
+            contextCalculationParam.setProcInstEntity(procInstEntity);
+            contextCalculationParam.setCurrTaskNodeDefEntity(currTaskNodeDefEntity);
+            contextCalculationParam.setCurrTaskNodeInstEntity(currTaskNodeInstEntity);
+            
+            //TODO
             TaskNodeParamEntity nodeParamEntity = taskNodeParamRepository
                     .selectOneByTaskNodeDefIdAndParamName(curTaskNodeDefId, paramName);
 
@@ -1107,7 +1121,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 
                     InputParamAttr inputAttr = new InputParamAttr();
                     inputAttr.setName(paramName);
-                    inputAttr.setType(paramType);
+                    inputAttr.setDataType(paramDataType);
                     inputAttr.addValueObjects(retDataValue);
                     inputAttr.setSensitive(IS_SENSITIVE_ATTR.equalsIgnoreCase(param.getSensitiveData()));
                     inputAttr.setParamDef(param);
@@ -1129,7 +1143,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 
                     InputParamAttr inputAttr = new InputParamAttr();
                     inputAttr.setName(paramName);
-                    inputAttr.setType(paramType);
+                    inputAttr.setDataType(paramDataType);
                     inputAttr.addValueObjects(retDataValues.get(index));
                     inputAttr.setSensitive(IS_SENSITIVE_ATTR.equalsIgnoreCase(param.getSensitiveData()));
                     inputAttr.setParamDef(param);
@@ -1145,7 +1159,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 
     }
 
-    private List<InputParamObject> tryCalculateInputParamObjectsWithoutBindings(ProcInstInfoEntity procInstEntity,
+    private List<InputParamObject> tryCalculateInputParamObjectsWithoutBindings(ProcDefInfoEntity procDefEntity,ProcInstInfoEntity procInstEntity,
             TaskNodeInstInfoEntity taskNodeInstEntity, TaskNodeDefInfoEntity taskNodeDefEntity,
             PluginConfigInterfaces pluginConfigInterface) {
 
@@ -1170,7 +1184,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 
         if (!contextConfigInterfaceInputParams.isEmpty()) {
             // #2233
-            inputParamObjs = tryCalculateContextMappingInputParamsObjects(procInstEntity, taskNodeInstEntity,
+            inputParamObjs = tryCalculateContextMappingInputParamsObjects(procDefEntity, procInstEntity, taskNodeInstEntity,
                     taskNodeDefEntity, pluginConfigInterface, contextConfigInterfaceInputParams);
         }
 
@@ -1200,7 +1214,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 
                 InputParamAttr inputAttr = new InputParamAttr();
                 inputAttr.setName(paramName);
-                inputAttr.setType(paramType);
+                inputAttr.setDataType(paramType);
                 inputAttr.setSensitive(IS_SENSITIVE_ATTR.equalsIgnoreCase(param.getSensitiveData()));
                 inputAttr.setParamDef(param);
 
@@ -1342,7 +1356,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 
                 InputParamAttr inputAttr = new InputParamAttr();
                 inputAttr.setName(paramName);
-                inputAttr.setType(paramType);
+                inputAttr.setDataType(paramType);
                 inputAttr.setSensitive(IS_SENSITIVE_ATTR.equalsIgnoreCase(param.getSensitiveData()));
                 inputAttr.setParamDef(param);
 
@@ -2118,7 +2132,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
                 e.setReqId(requestId);
                 e.setParamName(attr.getName());
                 e.setParamType(TaskNodeExecParamEntity.PARAM_TYPE_REQUEST);
-                e.setParamDataType(attr.getType());
+                e.setParamDataType(attr.getDataType());
                 e.setObjId(sObjectId);
                 e.setParamDataValue(tryCalculateParamDataValue(attr));
                 e.setEntityDataId(entityDataId);
