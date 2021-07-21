@@ -453,6 +453,11 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
         List<InputParamObject> inputParamObjs = calculateInputParamObjectsForUserTask(procInstEntity,
                 taskNodeInstEntity, procDefInfoEntity, taskNodeDefEntity, cmd, pluginConfigInterface,
                 nodeObjectBindings);
+        
+        int reqObjectAmount = 0;
+        if(inputParamObjs != null) {
+            reqObjectAmount = inputParamObjs.size();
+        }
 
         PluginInterfaceInvocationContext ctx = new PluginInterfaceInvocationContext() //
                 .withNodeObjectBindings(nodeObjectBindings) //
@@ -460,7 +465,8 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
                 .withProcInstEntity(procInstEntity) //
                 .withTaskNodeInstEntity(taskNodeInstEntity)//
                 .withTaskNodeDefEntity(taskNodeDefEntity)//
-                .withPluginInvocationCommand(cmd);
+                .withPluginInvocationCommand(cmd)//
+                .withReqObjectAmount(reqObjectAmount);
 
         parsePluginInstance(ctx);
 
@@ -808,6 +814,11 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
             inputParamObjs = tryCalculateInputParamObjectsWithBindings(procDefInfoEntity, procInstEntity,
                     taskNodeInstEntity, taskNodeDefEntity, nodeObjectBindings, pluginConfigInterface, externalCacheMap);
         }
+        
+        int reqObjectAmount = 0;
+        if(inputParamObjs != null) {
+            reqObjectAmount = inputParamObjs.size();
+        }
 
         PluginInterfaceInvocationContext ctx = new PluginInterfaceInvocationContext() //
                 .withNodeObjectBindings(nodeObjectBindings) //
@@ -815,7 +826,8 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
                 .withProcInstEntity(procInstEntity) //
                 .withTaskNodeInstEntity(taskNodeInstEntity)//
                 .withTaskNodeDefEntity(taskNodeDefEntity)//
-                .withPluginInvocationCommand(cmd);
+                .withPluginInvocationCommand(cmd)//
+                .withReqObjectAmount(reqObjectAmount);
 
         parsePluginInstance(ctx);
 
@@ -989,6 +1001,9 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
         }
 
         String[] prevCtxNodeIds = prevCtxNodeIdsStr.split(",");
+        
+        //TODO
+        //calculate the root bindings
 
         for (PluginConfigInterfaceParameters param : contextConfigInterfaceInputParams.values()) {
             String paramName = param.getName();
@@ -1269,6 +1284,14 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
         requestEntity.setCreatedTime(new Date());
         requestEntity.setIsCurrent(true);
         requestEntity.setIsCompleted(false);
+        
+        List<ProcExecBindingEntity> nodeObjectBindings = ctx.getNodeObjectBindings();
+        if(nodeObjectBindings == null || nodeObjectBindings.isEmpty()) {
+            requestEntity.setContextData("Y");
+        }else {
+            requestEntity.setContextData("N");
+        }
+        requestEntity.setReqObjectAmount(ctx.getReqObjectAmount());
 
         taskNodeExecRequestRepository.insert(requestEntity);
 
