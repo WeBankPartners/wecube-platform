@@ -43,6 +43,7 @@ import com.webank.wecube.platform.core.entity.workflow.TaskNodeExecRequestEntity
 import com.webank.wecube.platform.core.entity.workflow.TaskNodeInstInfoEntity;
 import com.webank.wecube.platform.core.entity.workflow.TaskNodeParamEntity;
 import com.webank.wecube.platform.core.model.workflow.ContextCalculationParam;
+import com.webank.wecube.platform.core.model.workflow.ContextCalculationParamCollection;
 import com.webank.wecube.platform.core.model.workflow.DmeOutputParamAttr;
 import com.webank.wecube.platform.core.model.workflow.InputParamAttr;
 import com.webank.wecube.platform.core.model.workflow.InputParamObject;
@@ -992,20 +993,25 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
         log.info("try to calculate input parameter objects from context for taskNodeInstId={}",
                 currTaskNodeInstEntity.getId());
         String curTaskNodeDefId = currTaskNodeDefEntity.getId();
-        List<InputParamObject> paramObjects = new ArrayList<>();
-
-        String prevCtxNodeIdsStr = currTaskNodeDefEntity.getPrevCtxNodeIds();
-        if (StringUtils.isBlank(prevCtxNodeIdsStr)) {
-            log.info("previous context node configuration is blank for node:{}-{}", currTaskNodeDefEntity.getId(),
-                    currTaskNodeDefEntity.getNodeName());
-            return paramObjects;
-        }
-
-        String[] prevCtxNodeIds = prevCtxNodeIdsStr.split(",");
+//        List<InputParamObject> paramObjects = new ArrayList<>();
+//
+//        String prevCtxNodeIdsStr = currTaskNodeDefEntity.getPrevCtxNodeIds();
+//        if (StringUtils.isBlank(prevCtxNodeIdsStr)) {
+//            log.info("previous context node configuration is blank for node:{}-{}", currTaskNodeDefEntity.getId(),
+//                    currTaskNodeDefEntity.getNodeName());
+//            return paramObjects;
+//        }
+//
+//        String[] prevCtxNodeIds = prevCtxNodeIdsStr.split(",");
         
         // TODO
         //calculate the root bindings
-        List<ContextCalculationParam> contextCalculationParamList = new ArrayList<>();
+        ContextCalculationParamCollection contextCalculationParamCollection = new ContextCalculationParamCollection();
+        contextCalculationParamCollection.setProcDefInfoEntity(procDefEntity);
+        contextCalculationParamCollection.setProcInstEntity(procInstEntity);
+        contextCalculationParamCollection.setCurrTaskNodeDefEntity(currTaskNodeDefEntity);
+        contextCalculationParamCollection.setCurrTaskNodeInstEntity(currTaskNodeInstEntity);
+        contextCalculationParamCollection.setPluginConfigInterface(pluginConfigInterface);
 
         for (PluginConfigInterfaceParameters param : contextConfigInterfaceInputParams.values()) {
             
@@ -1020,7 +1026,9 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
             contextCalculationParam.setProcInstEntity(procInstEntity);
             contextCalculationParam.setCurrTaskNodeDefEntity(currTaskNodeDefEntity);
             contextCalculationParam.setCurrTaskNodeInstEntity(currTaskNodeInstEntity);
+            contextCalculationParam.setPluginConfigInterface(pluginConfigInterface);
             
+            contextCalculationParamCollection.addContextCalculationParam(contextCalculationParam);
             //TODO
             TaskNodeParamEntity nodeParamEntity = taskNodeParamRepository
                     .selectOneByTaskNodeDefIdAndParamName(curTaskNodeDefId, paramName);
@@ -1030,68 +1038,57 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
                         curTaskNodeDefId);
 
                 if (Constants.FIELD_REQUIRED.equalsIgnoreCase(param.getRequired())) {
-
-                    log.error("Task node parameter entity does not exist for {} {}", curTaskNodeDefId, paramName);
-                    // throw new WecubeCoreException("3170", "Task node
-                    // parameter entity does not exist.");
-                    continue;
+                    log.info("Task node parameter entity does not exist for {} {}", curTaskNodeDefId, paramName);
                 } else {
                     log.info("Task node parameter entity does not exist for {} {} but field not required.",
                             curTaskNodeDefId, paramName);
-                    continue;
                 }
+                
+                continue;
             }
+            
+            contextCalculationParam.setNodeParamEntity(nodeParamEntity);
 
             String bindNodeId = nodeParamEntity.getBindNodeId();
             String bindParamType = nodeParamEntity.getBindParamType();
             String bindParamName = nodeParamEntity.getBindParamName();
 
             // get by procInstId and nodeId
-            TaskNodeInstInfoEntity bindNodeInstEntity = taskNodeInstInfoRepository
+            TaskNodeInstInfoEntity boundNodeInstEntity = taskNodeInstInfoRepository
                     .selectOneByProcInstIdAndNodeId(procInstEntity.getId(), bindNodeId);
 
-            if (bindNodeInstEntity == null) {
+            if (boundNodeInstEntity == null) {
                 log.error("Bound node instance entity does not exist for {} {}", procInstEntity.getId(), bindNodeId);
                 throw new WecubeCoreException("3171", "Bound node instance entity does not exist.");
             }
+            
+            contextCalculationParam.setBoundNodeInstEntity(boundNodeInstEntity);
+            TaskNodeDefInfoEntity boundNodeDefEntity = taskNodeDefInfoRepository.selectByPrimaryKey(boundNodeInstEntity.getNodeDefId());
+            contextCalculationParam.setBoundNodeDefEntity(boundNodeDefEntity);
 
-            List<TaskNodeExecRequestEntity> requestEntities = taskNodeExecRequestRepository
-                    .selectCurrentEntityByNodeInstId(bindNodeInstEntity.getId());
+            List<TaskNodeExecRequestEntity> boundRequestEntities = taskNodeExecRequestRepository
+                    .selectCurrentEntityByNodeInstId(boundNodeInstEntity.getId());
 
-            if (requestEntities == null || requestEntities.isEmpty()) {
-                log.error("cannot find request entity for {}", bindNodeInstEntity.getId());
-                // throw new WecubeCoreException("3172", "Bound request entity
-                // does not exist.");
+            if (boundRequestEntities == null || boundRequestEntities.isEmpty()) {
+                log.info("cannot find request entity for {}", boundNodeInstEntity.getId());
                 continue;
             }
 
-            if (requestEntities.size() > 1) {
-                log.warn("duplicated request entity found for {} ", bindNodeInstEntity.getId());
-                // throw new WecubeCoreException("3173", "Duplicated request
-                // entity
-                // found.");
+            if (boundRequestEntities.size() > 1) {
+                log.warn("duplicated request entity found for {} ", boundNodeInstEntity.getId());
             }
 
-            TaskNodeExecRequestEntity requestEntity = requestEntities.get(0);
+            TaskNodeExecRequestEntity boundRequestEntity = boundRequestEntities.get(0);
+            contextCalculationParam.setBoundNodeRequestEntity(boundRequestEntity);
 
-            // TaskNodeDefInfoEntity bindNodeDefInfoEntity =
-            // taskNodeDefInfoRepository
-            // .selectByPrimaryKey(bindNodeInstEntity.getNodeDefId());
-
-            List<TaskNodeExecParamEntity> execParamEntities = taskNodeExecParamRepository
-                    .selectAllByRequestIdAndParamNameAndParamType(requestEntity.getReqId(), bindParamName,
+            List<TaskNodeExecParamEntity> boundExecParamEntities = taskNodeExecParamRepository
+                    .selectAllByRequestIdAndParamNameAndParamType(boundRequestEntity.getReqId(), bindParamName,
                             bindParamType);
 
-            if (execParamEntities == null || execParamEntities.isEmpty()) {
+            if (boundExecParamEntities == null || boundExecParamEntities.isEmpty()) {
                 if (FIELD_REQUIRED.equals(param.getRequired())) {
-                    log.warn("parameter entity does not exist but such plugin parameter is mandatory for {} {}",
+                    log.info("parameter entity does not exist but such plugin parameter is mandatory for {} {}",
                             bindParamName, bindParamType);
-                    // throw new WecubeCoreException("3174",
-                    // String.format(
-                    // "parameter entity does not exist but such plugin
-                    // parameter is mandatory for {%s} {%s}",
-                    // bindParamName, bindParamType),
-                    // bindParamName, bindParamType);
                     continue;
                 } else {
                     log.info("parameter entity does not exist but such plugin parameter is not mandatory for {} {}",
@@ -1099,64 +1096,82 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
                     continue;
                 }
             }
+            
+            contextCalculationParam.getBoundExecParamEntities().addAll(boundExecParamEntities);
 
-            List<Object> retDataValues = new ArrayList<>();
-
-            for (TaskNodeExecParamEntity e : execParamEntities) {
-                String paramDataValue = e.getParamDataValue();
-                if (e.getIsSensitive() != null && e.getIsSensitive() == true) {
-                    paramDataValue = tryDecodeParamDataValue(paramDataValue);
-                }
-                retDataValues.add(fromString(e.getParamDataValue(), e.getParamDataType()));
-            }
-
-            if (paramObjects.isEmpty()) {
-                for (Object retDataValue : retDataValues) {
-                    InputParamObject inputObj = new InputParamObject();
-
-                    inputObj.setEntityTypeId("TaskNode");
-                    inputObj.setEntityDataId(
-                            String.format("%s-%s", CALLBACK_PARAMETER_SYSTEM_PREFIX, LocalIdGenerator.generateId()));
-                    inputObj.addAttrNames(paramName);
-
-                    InputParamAttr inputAttr = new InputParamAttr();
-                    inputAttr.setName(paramName);
-                    inputAttr.setDataType(paramDataType);
-                    inputAttr.addValueObjects(retDataValue);
-                    inputAttr.setSensitive(IS_SENSITIVE_ATTR.equalsIgnoreCase(param.getSensitiveData()));
-                    inputAttr.setParamDef(param);
-
-                    inputObj.addAttrs(inputAttr);
-
-                    paramObjects.add(inputObj);
-                }
-            } else {
-                if (retDataValues.size() != paramObjects.size()) {
-                    log.error("Unknown how to calculate context input parameter for {}",
-                            currTaskNodeInstEntity.getId());
-                    throw new WecubeCoreException("Unknown how to calculate context input parameter.");
-                }
-
-                for (int index = 0; index < retDataValues.size(); index++) {
-                    InputParamObject inputObj = paramObjects.get(index);
-                    inputObj.addAttrNames(paramName);
-
-                    InputParamAttr inputAttr = new InputParamAttr();
-                    inputAttr.setName(paramName);
-                    inputAttr.setDataType(paramDataType);
-                    inputAttr.addValueObjects(retDataValues.get(index));
-                    inputAttr.setSensitive(IS_SENSITIVE_ATTR.equalsIgnoreCase(param.getSensitiveData()));
-                    inputAttr.setParamDef(param);
-                    inputAttr.setMultiple(param.getMultiple());
-
-                    inputObj.addAttrs(inputAttr);
-                }
-            }
-
+//            List<Object> retDataValues = new ArrayList<>();
+//
+//            for (TaskNodeExecParamEntity e : boundExecParamEntities) {
+//                String paramDataValue = e.getParamDataValue();
+//                if (e.getIsSensitive() != null && e.getIsSensitive() == true) {
+//                    paramDataValue = tryDecodeParamDataValue(paramDataValue);
+//                }
+//                retDataValues.add(fromString(e.getParamDataValue(), e.getParamDataType()));
+//            }
+//
+//            if (paramObjects.isEmpty()) {
+//                for (Object retDataValue : retDataValues) {
+//                    InputParamObject inputObj = new InputParamObject();
+//
+//                    inputObj.setEntityTypeId("TaskNode");
+//                    inputObj.setEntityDataId(
+//                            String.format("%s-%s", CALLBACK_PARAMETER_SYSTEM_PREFIX, LocalIdGenerator.generateId()));
+//                    inputObj.addAttrNames(paramName);
+//
+//                    InputParamAttr inputAttr = new InputParamAttr();
+//                    inputAttr.setName(paramName);
+//                    inputAttr.setDataType(paramDataType);
+//                    inputAttr.addValueObjects(retDataValue);
+//                    inputAttr.setSensitive(IS_SENSITIVE_ATTR.equalsIgnoreCase(param.getSensitiveData()));
+//                    inputAttr.setParamDef(param);
+//
+//                    inputObj.addAttrs(inputAttr);
+//
+//                    paramObjects.add(inputObj);
+//                }
+//            } else {
+//                if (retDataValues.size() != paramObjects.size()) {
+//                    log.error("Unknown how to calculate context input parameter for {}",
+//                            currTaskNodeInstEntity.getId());
+//                    throw new WecubeCoreException("Unknown how to calculate context input parameter.");
+//                }
+//
+//                for (int index = 0; index < retDataValues.size(); index++) {
+//                    InputParamObject inputObj = paramObjects.get(index);
+//                    inputObj.addAttrNames(paramName);
+//
+//                    InputParamAttr inputAttr = new InputParamAttr();
+//                    inputAttr.setName(paramName);
+//                    inputAttr.setDataType(paramDataType);
+//                    inputAttr.addValueObjects(retDataValues.get(index));
+//                    inputAttr.setSensitive(IS_SENSITIVE_ATTR.equalsIgnoreCase(param.getSensitiveData()));
+//                    inputAttr.setParamDef(param);
+//                    inputAttr.setMultiple(param.getMultiple());
+//
+//                    inputObj.addAttrs(inputAttr);
+//                }
+//            }
+//
         }
 
+        List<InputParamObject> paramObjects = tryCalculateContextMappingInputParamsObjects(contextCalculationParamCollection);
         return paramObjects;
 
+    }
+    
+    private List<InputParamObject> tryCalculateContextMappingInputParamsObjects(ContextCalculationParamCollection contextCalculationParamCollection){
+        //TODO
+        List<InputParamObject> paramObjects = new ArrayList<>();
+
+        String prevCtxNodeIdsStr = contextCalculationParamCollection.getCurrTaskNodeDefEntity().getPrevCtxNodeIds();
+        if (StringUtils.isBlank(prevCtxNodeIdsStr)) {
+            log.info("previous context node configuration is blank for node:{}-{}", contextCalculationParamCollection.getCurrTaskNodeDefEntity().getId(),
+                    contextCalculationParamCollection.getCurrTaskNodeDefEntity().getNodeName());
+            return paramObjects;
+        }
+
+        String[] prevCtxNodeIds = prevCtxNodeIdsStr.split(",");
+        return paramObjects;
     }
 
     private List<InputParamObject> tryCalculateInputParamObjectsWithoutBindings(ProcDefInfoEntity procDefEntity,ProcInstInfoEntity procInstEntity,
