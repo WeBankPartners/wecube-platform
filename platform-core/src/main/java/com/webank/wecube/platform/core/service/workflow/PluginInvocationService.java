@@ -709,7 +709,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
                     if (attrValueDto != null) {
                         taskFormItemValueDto.setAttrValue(attrValueDto.getDataValue());
                     } else {
-                        // TODO fetch form cmdb
+                        //fetch form cmdb?
                     }
                 }
 
@@ -746,7 +746,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
                 }
                 nodeBindObjectIds.add(bindId);
             }
-            // TODO to tidy entity name here
+            // to tidy entity name here?
         }
 
         return nodeBindObjectIds;
@@ -799,9 +799,8 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
         
         List<InputParamObject> inputParamObjs = new ArrayList<>();
 
-        //TODO 
-        //#2233
         if(nodeObjectBindings == null || nodeObjectBindings.isEmpty()) {
+            //#2233
             inputParamObjs = tryCalculateInputParamObjectsWithoutBindings(procInstEntity, taskNodeInstEntity,
                     taskNodeDefEntity, pluginConfigInterface);
         }else {
@@ -971,15 +970,22 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 
     }
 
-    private List<InputParamObject> tryCalculateInputParamObjectsFromContext(ProcInstInfoEntity procInstEntity,
+    //TODO
+    private List<InputParamObject> tryCalculateContextMappingInputParamsObjects(ProcInstInfoEntity procInstEntity,
             TaskNodeInstInfoEntity currTaskNodeInstEntity, TaskNodeDefInfoEntity currTaskNodeDefEntity,
             PluginConfigInterfaces pluginConfigInterface,
             Map<String, PluginConfigInterfaceParameters> contextConfigInterfaceInputParams) {
         log.info("try to calculate input parameter objects from context for taskNodeInstId={}",
                 currTaskNodeInstEntity.getId());
         String curTaskNodeDefId = currTaskNodeDefEntity.getId();
-
         List<InputParamObject> paramObjects = new ArrayList<>();
+        
+        String prevCtxNodeIds = currTaskNodeDefEntity.getPrevCtxNodeIds();
+        if(StringUtils.isBlank(prevCtxNodeIds)) {
+            log.info("previous context node configuration is blank for node:{}-{}", currTaskNodeDefEntity.getId(),currTaskNodeDefEntity.getNodeName());
+            return paramObjects;
+        }
+
 
         for (PluginConfigInterfaceParameters param : contextConfigInterfaceInputParams.values()) {
             String paramName = param.getName();
@@ -1126,8 +1132,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
                 "Did not get input parameter objects and try to calculate input parameter objects from system for taskNodeInstId={}",
                 taskNodeInstEntity.getId());
 
-        //TODO 
-        //#2233
+        
         List<PluginConfigInterfaceParameters> configInterfaceInputParams = pluginConfigInterface.getInputParameters();
 
         if (!checkIfCouldCalculateFromNoneEntity(configInterfaceInputParams)) {
@@ -1144,7 +1149,8 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
         List<InputParamObject> inputParamObjs = null;
 
         if (!contextConfigInterfaceInputParams.isEmpty()) {
-            inputParamObjs = tryCalculateInputParamObjectsFromContext(procInstEntity, taskNodeInstEntity,
+          //#2233
+            inputParamObjs = tryCalculateContextMappingInputParamsObjects(procInstEntity, taskNodeInstEntity,
                     taskNodeDefEntity, pluginConfigInterface, contextConfigInterfaceInputParams);
         }
 
@@ -1705,8 +1711,6 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
             return retDataValues;
         }
 
-        //TODO
-        //#2233
         String currTaskNodeRoutineExp = currTaskNodeDefEntity.getRoutineExp();
         String bindTaskNodeRoutineExp = bindNodeDefInfoEntity.getRoutineExp();
 
@@ -2535,7 +2539,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
                 && PLUGIN_RESULT_CODE_PARTIALLY_FAIL.equalsIgnoreCase(errorCodeOfSingleRecord)) {
             log.info("such request is partially failed for request:{} and {}:{}", ctx.getRequestId(),
                     CALLBACK_PARAMETER_KEY, nodeEntityId);
-            // TODO to store status
+            // to store status?
             return;
         }
 
