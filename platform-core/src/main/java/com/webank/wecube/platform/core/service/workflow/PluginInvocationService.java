@@ -1326,9 +1326,9 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
         
         List<ProcExecBindingEntity> nodeObjectBindings = ctx.getNodeObjectBindings();
         if(nodeObjectBindings == null || nodeObjectBindings.isEmpty()) {
-            requestEntity.setContextData("Y");
+            requestEntity.setContextDataFlag("Y");
         }else {
-            requestEntity.setContextData("N");
+            requestEntity.setContextDataFlag("N");
         }
         requestEntity.setReqObjectAmount(ctx.getReqObjectAmount());
 

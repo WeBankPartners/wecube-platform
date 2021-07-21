@@ -42,7 +42,7 @@ public class TaskNodeExecRequestEntity  {
     private String procInstKernelKey;
     
   //#2233
-    private String contextData;
+    private String contextDataFlag;
   //#2233
     private Integer reqObjectAmount;
   //#2233
@@ -200,12 +200,12 @@ public class TaskNodeExecRequestEntity  {
         this.procInstKernelKey = procInstKernelKey;
     }
 
-    public String getContextData() {
-        return contextData;
+    public String getContextDataFlag() {
+        return contextDataFlag;
     }
 
-    public void setContextData(String contextData) {
-        this.contextData = contextData;
+    public void setContextDataFlag(String contextDataFlag) {
+        this.contextDataFlag = contextDataFlag;
     }
 
     public Integer getReqObjectAmount() {
