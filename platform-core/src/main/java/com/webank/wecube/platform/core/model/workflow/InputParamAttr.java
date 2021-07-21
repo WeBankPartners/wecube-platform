@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import com.webank.wecube.platform.core.entity.plugin.PluginConfigInterfaceParameters;
 import com.webank.wecube.platform.core.service.plugin.PluginParamObject;
 import com.webank.wecube.platform.core.utils.Constants;
 import com.webank.wecube.platform.core.utils.JsonUtils;
@@ -16,6 +17,7 @@ public class InputParamAttr {
     private String mapType; // entity, context, constant, object
     private List<Object> values = new ArrayList<>(); // raw object values
     private boolean sensitive;
+    private PluginConfigInterfaceParameters paramDef;
 
     public String getName() {
         return name;
@@ -221,5 +223,15 @@ public class InputParamAttr {
     public boolean isMultiple() {
         return Constants.DATA_MULTIPLE.equalsIgnoreCase(multiple);
     }
+
+    public PluginConfigInterfaceParameters getParamDef() {
+        return paramDef;
+    }
+
+    public void setParamDef(PluginConfigInterfaceParameters paramDef) {
+        this.paramDef = paramDef;
+    }
+    
+    
 
 }

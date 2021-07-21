@@ -516,6 +516,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
             inputAttr.setName(paramName);
             inputAttr.setType(paramType);
             inputAttr.setSensitive(IS_SENSITIVE_ATTR.equalsIgnoreCase(param.getSensitiveData()));
+            inputAttr.setParamDef(param);
 
             List<Object> objectVals = new ArrayList<Object>();
             //
@@ -709,7 +710,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
                     if (attrValueDto != null) {
                         taskFormItemValueDto.setAttrValue(attrValueDto.getDataValue());
                     } else {
-                        //fetch form cmdb?
+                        // fetch form cmdb?
                     }
                 }
 
@@ -796,14 +797,14 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 
         PluginConfigInterfaces pluginConfigInterface = retrievePluginConfigInterface(taskNodeDefEntity,
                 cmd.getNodeId());
-        
+
         List<InputParamObject> inputParamObjs = new ArrayList<>();
 
-        if(nodeObjectBindings == null || nodeObjectBindings.isEmpty()) {
-            //#2233
+        if (nodeObjectBindings == null || nodeObjectBindings.isEmpty()) {
+            // #2233
             inputParamObjs = tryCalculateInputParamObjectsWithoutBindings(procInstEntity, taskNodeInstEntity,
                     taskNodeDefEntity, pluginConfigInterface);
-        }else {
+        } else {
             inputParamObjs = tryCalculateInputParamObjectsWithBindings(procDefInfoEntity, procInstEntity,
                     taskNodeInstEntity, taskNodeDefEntity, nodeObjectBindings, pluginConfigInterface, externalCacheMap);
         }
@@ -970,7 +971,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 
     }
 
-    //TODO
+    // TODO
     private List<InputParamObject> tryCalculateContextMappingInputParamsObjects(ProcInstInfoEntity procInstEntity,
             TaskNodeInstInfoEntity currTaskNodeInstEntity, TaskNodeDefInfoEntity currTaskNodeDefEntity,
             PluginConfigInterfaces pluginConfigInterface,
@@ -979,13 +980,15 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
                 currTaskNodeInstEntity.getId());
         String curTaskNodeDefId = currTaskNodeDefEntity.getId();
         List<InputParamObject> paramObjects = new ArrayList<>();
-        
-        String prevCtxNodeIds = currTaskNodeDefEntity.getPrevCtxNodeIds();
-        if(StringUtils.isBlank(prevCtxNodeIds)) {
-            log.info("previous context node configuration is blank for node:{}-{}", currTaskNodeDefEntity.getId(),currTaskNodeDefEntity.getNodeName());
+
+        String prevCtxNodeIdsStr = currTaskNodeDefEntity.getPrevCtxNodeIds();
+        if (StringUtils.isBlank(prevCtxNodeIdsStr)) {
+            log.info("previous context node configuration is blank for node:{}-{}", currTaskNodeDefEntity.getId(),
+                    currTaskNodeDefEntity.getNodeName());
             return paramObjects;
         }
 
+        String[] prevCtxNodeIds = prevCtxNodeIdsStr.split(",");
 
         for (PluginConfigInterfaceParameters param : contextConfigInterfaceInputParams.values()) {
             String paramName = param.getName();
@@ -1092,6 +1095,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
                     inputAttr.setType(paramType);
                     inputAttr.addValueObjects(retDataValue);
                     inputAttr.setSensitive(IS_SENSITIVE_ATTR.equalsIgnoreCase(param.getSensitiveData()));
+                    inputAttr.setParamDef(param);
 
                     inputObj.addAttrs(inputAttr);
 
@@ -1113,6 +1117,8 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
                     inputAttr.setType(paramType);
                     inputAttr.addValueObjects(retDataValues.get(index));
                     inputAttr.setSensitive(IS_SENSITIVE_ATTR.equalsIgnoreCase(param.getSensitiveData()));
+                    inputAttr.setParamDef(param);
+                    inputAttr.setMultiple(param.getMultiple());
 
                     inputObj.addAttrs(inputAttr);
                 }
@@ -1132,7 +1138,6 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
                 "Did not get input parameter objects and try to calculate input parameter objects from system for taskNodeInstId={}",
                 taskNodeInstEntity.getId());
 
-        
         List<PluginConfigInterfaceParameters> configInterfaceInputParams = pluginConfigInterface.getInputParameters();
 
         if (!checkIfCouldCalculateFromNoneEntity(configInterfaceInputParams)) {
@@ -1149,7 +1154,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
         List<InputParamObject> inputParamObjs = null;
 
         if (!contextConfigInterfaceInputParams.isEmpty()) {
-          //#2233
+            // #2233
             inputParamObjs = tryCalculateContextMappingInputParamsObjects(procInstEntity, taskNodeInstEntity,
                     taskNodeDefEntity, pluginConfigInterface, contextConfigInterfaceInputParams);
         }
@@ -1182,6 +1187,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
                 inputAttr.setName(paramName);
                 inputAttr.setType(paramType);
                 inputAttr.setSensitive(IS_SENSITIVE_ATTR.equalsIgnoreCase(param.getSensitiveData()));
+                inputAttr.setParamDef(param);
 
                 boolean isFieldRequired = isFieldRequired(param.getRequired());
 
@@ -1195,7 +1201,8 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
                 }
 
                 if (MAPPING_TYPE_CONSTANT.equalsIgnoreCase(mappingType)) {
-                    handleConstantMapping(mappingType, taskNodeDefEntity, paramName, objectVals, isFieldRequired, param);
+                    handleConstantMapping(mappingType, taskNodeDefEntity, paramName, objectVals, isFieldRequired,
+                            param);
                 }
 
                 inputAttr.addValues(objectVals);
@@ -1207,7 +1214,8 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
         return inputParamObjs;
     }
 
-    private boolean checkIfCouldCalculateFromNoneEntity(List<PluginConfigInterfaceParameters> configInterfaceInputParams) {
+    private boolean checkIfCouldCalculateFromNoneEntity(
+            List<PluginConfigInterfaceParameters> configInterfaceInputParams) {
         if (configInterfaceInputParams == null || configInterfaceInputParams.isEmpty()) {
             return false;
         }
@@ -1298,8 +1306,8 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
             inputObj.setEntityTypeId(nodeObjectBinding.getEntityTypeId());
             inputObj.setEntityDataId(nodeObjectBinding.getEntityDataId());
             inputObj.setFullEntityDataId(nodeObjectBinding.getFullEntityDataId());
-            
-            if(StringUtils.isNoneBlank(nodeObjectBinding.getConfirmToken())){
+
+            if (StringUtils.isNoneBlank(nodeObjectBinding.getConfirmToken())) {
                 inputObj.setConfirmToken(nodeObjectBinding.getConfirmToken());
             }
 
@@ -1313,6 +1321,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
                 inputAttr.setName(paramName);
                 inputAttr.setType(paramType);
                 inputAttr.setSensitive(IS_SENSITIVE_ATTR.equalsIgnoreCase(param.getSensitiveData()));
+                inputAttr.setParamDef(param);
 
                 boolean isFieldRequired = isFieldRequired(param.getRequired());
 
@@ -1336,7 +1345,8 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
                 }
 
                 if (MAPPING_TYPE_CONSTANT.equalsIgnoreCase(mappingType)) {
-                    handleConstantMapping(mappingType, taskNodeDefEntity, paramName, objectVals, isFieldRequired, param);
+                    handleConstantMapping(mappingType, taskNodeDefEntity, paramName, objectVals, isFieldRequired,
+                            param);
                 }
 
                 // #2226
@@ -1846,12 +1856,12 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
         if (!MAPPING_TYPE_CONSTANT.equals(mappingType)) {
             return;
         }
-        
-        if(StringUtils.isNoneBlank(param.getMappingValue())){
+
+        if (StringUtils.isNoneBlank(param.getMappingValue())) {
             objectVals.add(param.getMappingValue());
             return;
         }
-        
+
         String curTaskNodeDefId = taskNodeDefEntity.getId();
         TaskNodeParamEntity nodeParamEntity = taskNodeParamRepository
                 .selectOneByTaskNodeDefIdAndParamName(curTaskNodeDefId, paramName);
@@ -2030,11 +2040,12 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
             String sObjectId = String.valueOf(objectId);
             String entityTypeId = ipo.getEntityTypeId();
             String entityDataId = ipo.getEntityDataId();
+            String callbackId = entityDataId;
             // #2169
             String fullEntityDataId = ipo.getFullEntityDataId();
 
             Map<String, Object> inputMap = new HashMap<String, Object>();
-            inputMap.put(CALLBACK_PARAMETER_KEY, entityDataId);
+            inputMap.put(CALLBACK_PARAMETER_KEY, callbackId);
             TaskNodeExecParamEntity p = new TaskNodeExecParamEntity();
             p.setReqId(requestId);
             p.setParamName(CALLBACK_PARAMETER_KEY);
@@ -2049,10 +2060,15 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
             p.setCreatedBy(WorkflowConstants.DEFAULT_USER);
             p.setCreatedTime(new Date());
             p.setIsSensitive(false);
+            // #2233
+            p.setCallbackId(callbackId);
+            p.setMappingType(null);
+            p.setMultiple(Constants.DATA_NOT_MULTIPLE);
+            p.setParamDefId(null);
 
             taskNodeExecParamRepository.insert(p);
-            
-            if(StringUtils.isNoneBlank(ipo.getConfirmToken())){
+
+            if (StringUtils.isNoneBlank(ipo.getConfirmToken())) {
                 inputMap.put(CONFIRM_TOKEN_KEY, ipo.getConfirmToken());
                 TaskNodeExecParamEntity confirmTokenParam = new TaskNodeExecParamEntity();
                 confirmTokenParam.setReqId(requestId);
@@ -2089,6 +2105,13 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
                 e.setCreatedTime(new Date());
 
                 e.setIsSensitive(attr.isSensitive());
+
+                e.setCallbackId(callbackId);
+                e.setMultiple(attr.getMultiple());
+                if (attr.getParamDef() != null) {
+                    e.setMappingType(attr.getParamDef().getMappingType());
+                    e.setParamDefId(attr.getParamDef().getId());
+                }
 
                 taskNodeExecParamRepository.insert(e);
 
@@ -2283,6 +2306,12 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
             paramEntity.setCreatedBy(WorkflowConstants.DEFAULT_USER);
             paramEntity.setCreatedTime(new Date());
 
+            // #2233
+            paramEntity.setCallbackId(callbackParameter);
+            paramEntity.setMappingType(null);
+            paramEntity.setMultiple(Constants.DATA_NOT_MULTIPLE);
+            paramEntity.setParamDefId(null);
+
             taskNodeExecParamRepository.insert(paramEntity);
         }
 
@@ -2322,6 +2351,14 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
             paramEntity.setIsSensitive(isSensitiveData);
             paramEntity.setCreatedBy(WorkflowConstants.DEFAULT_USER);
             paramEntity.setCreatedTime(new Date());
+
+            // #2233
+            paramEntity.setCallbackId(callbackParameter);
+            if (p != null) {
+                paramEntity.setMultiple(p.getMultiple());
+                paramEntity.setMappingType(p.getMappingType());
+                paramEntity.setParamDefId(p.getId());
+            }
 
             taskNodeExecParamRepository.insert(paramEntity);
         }
