@@ -42,6 +42,7 @@ import com.webank.wecube.platform.core.entity.workflow.TaskNodeExecParamEntity;
 import com.webank.wecube.platform.core.entity.workflow.TaskNodeExecRequestEntity;
 import com.webank.wecube.platform.core.entity.workflow.TaskNodeInstInfoEntity;
 import com.webank.wecube.platform.core.entity.workflow.TaskNodeParamEntity;
+import com.webank.wecube.platform.core.model.workflow.BoundTaskNodeExecParamWrapper;
 import com.webank.wecube.platform.core.model.workflow.ContextCalculationParam;
 import com.webank.wecube.platform.core.model.workflow.ContextCalculationParamCollection;
 import com.webank.wecube.platform.core.model.workflow.DmeOutputParamAttr;
@@ -1097,8 +1098,17 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
                 }
             }
             
-            contextCalculationParam.getBoundExecParamEntities().addAll(boundExecParamEntities);
-
+            for(TaskNodeExecParamEntity boundExecParamEntity : boundExecParamEntities) {
+                BoundTaskNodeExecParamWrapper boundTaskNodeExecParamWrapper = new BoundTaskNodeExecParamWrapper();
+                boundTaskNodeExecParamWrapper.setBoundTaskNodeExecParamEntity(boundExecParamEntity);
+                if(StringUtils.isNoneBlank(boundExecParamEntity.getParamDefId())) {
+                    PluginConfigInterfaceParameters boundParamDef = pluginConfigInterfaceParametersMapper.selectByPrimaryKey(boundExecParamEntity.getParamDefId());
+                    boundTaskNodeExecParamWrapper.setBoundParam(boundParamDef);
+                }
+                
+                contextCalculationParam.getBoundExecParamWrappers().add(boundTaskNodeExecParamWrapper);
+            }
+            
 //            List<Object> retDataValues = new ArrayList<>();
 //
 //            for (TaskNodeExecParamEntity e : boundExecParamEntities) {

@@ -27,6 +27,7 @@ import com.webank.wecube.platform.core.entity.workflow.TaskNodeInstInfoEntity;
 import com.webank.wecube.platform.core.model.workflow.PluginInvocationCommand;
 import com.webank.wecube.platform.core.model.workflow.WorkflowInstCreationContext;
 import com.webank.wecube.platform.core.model.workflow.WorkflowNotifyEvent;
+import com.webank.wecube.platform.core.repository.plugin.PluginConfigInterfaceParametersMapper;
 import com.webank.wecube.platform.core.repository.workflow.ExtraTaskMapper;
 import com.webank.wecube.platform.core.repository.workflow.ProcDefInfoMapper;
 import com.webank.wecube.platform.core.repository.workflow.ProcExecBindingMapper;
@@ -163,6 +164,9 @@ public abstract class AbstractPluginInvocationService extends AbstractWorkflowSe
 
     @Autowired
     protected PluginParamObjectVarMarshaller pluginParamObjectVarAssembleService;
+    
+    @Autowired
+    protected PluginConfigInterfaceParametersMapper pluginConfigInterfaceParametersMapper;
 
     protected ObjectMapper objectMapper = new ObjectMapper();
 
