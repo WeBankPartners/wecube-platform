@@ -8,7 +8,6 @@ import com.webank.wecube.platform.core.entity.plugin.PluginConfigInterfaces;
 import com.webank.wecube.platform.core.entity.workflow.ProcDefInfoEntity;
 import com.webank.wecube.platform.core.entity.workflow.ProcInstInfoEntity;
 import com.webank.wecube.platform.core.entity.workflow.TaskNodeDefInfoEntity;
-import com.webank.wecube.platform.core.entity.workflow.TaskNodeExecParamEntity;
 import com.webank.wecube.platform.core.entity.workflow.TaskNodeExecRequestEntity;
 import com.webank.wecube.platform.core.entity.workflow.TaskNodeInstInfoEntity;
 import com.webank.wecube.platform.core.entity.workflow.TaskNodeParamEntity;
@@ -26,7 +25,9 @@ public class ContextCalculationParam {
     private TaskNodeInstInfoEntity boundNodeInstEntity;
     private TaskNodeDefInfoEntity boundNodeDefEntity;
     private TaskNodeExecRequestEntity boundNodeRequestEntity;
-    private List<TaskNodeExecParamEntity> boundExecParamEntities = new ArrayList<>();
+    private List<BoundTaskNodeExecParamWrapper> boundExecParamWrappers = new ArrayList<>();
+    
+    
 
     public String getParamName() {
         return paramName;
@@ -116,12 +117,12 @@ public class ContextCalculationParam {
         this.boundNodeRequestEntity = boundNodeRequestEntity;
     }
 
-    public List<TaskNodeExecParamEntity> getBoundExecParamEntities() {
-        return boundExecParamEntities;
+    public List<BoundTaskNodeExecParamWrapper> getBoundExecParamWrappers() {
+        return boundExecParamWrappers;
     }
 
-    public void setBoundExecParamEntities(List<TaskNodeExecParamEntity> boundExecParamEntities) {
-        this.boundExecParamEntities = boundExecParamEntities;
+    public void setBoundExecParamWrappers(List<BoundTaskNodeExecParamWrapper> boundExecParamWrappers) {
+        this.boundExecParamWrappers = boundExecParamWrappers;
     }
 
     public ProcDefInfoEntity getProcDefInfoEntity() {
