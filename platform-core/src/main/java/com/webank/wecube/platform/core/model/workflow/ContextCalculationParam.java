@@ -28,7 +28,7 @@ public class ContextCalculationParam {
     private TaskNodeExecRequestEntity boundNodeRequestEntity;
     private List<BoundTaskNodeExecParamWrapper> boundExecParamWrappers = new ArrayList<>();
     
-    
+    private boolean calculated = false;
 
     public String getParamName() {
         return paramName;
@@ -132,6 +132,14 @@ public class ContextCalculationParam {
 
     public void setProcDefInfoEntity(ProcDefInfoEntity procDefInfoEntity) {
         this.procDefInfoEntity = procDefInfoEntity;
+    }
+    
+    public boolean isCalculated() {
+        return calculated;
+    }
+
+    public void setCalculated(boolean calculated) {
+        this.calculated = calculated;
     }
 
     public boolean isMandatory() {
