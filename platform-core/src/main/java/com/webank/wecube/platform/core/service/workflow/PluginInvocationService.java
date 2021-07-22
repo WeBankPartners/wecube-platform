@@ -986,7 +986,6 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 
     }
 
-    // TODO
     private List<InputParamObject> tryCalculateContextMappingInputParamsObjects(ProcDefInfoEntity procDefEntity,ProcInstInfoEntity procInstEntity,
             TaskNodeInstInfoEntity currTaskNodeInstEntity, TaskNodeDefInfoEntity currTaskNodeDefEntity,
             PluginConfigInterfaces pluginConfigInterface,
@@ -994,19 +993,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
         log.info("try to calculate input parameter objects from context for taskNodeInstId={}",
                 currTaskNodeInstEntity.getId());
         String curTaskNodeDefId = currTaskNodeDefEntity.getId();
-//        List<InputParamObject> paramObjects = new ArrayList<>();
-//
-//        String prevCtxNodeIdsStr = currTaskNodeDefEntity.getPrevCtxNodeIds();
-//        if (StringUtils.isBlank(prevCtxNodeIdsStr)) {
-//            log.info("previous context node configuration is blank for node:{}-{}", currTaskNodeDefEntity.getId(),
-//                    currTaskNodeDefEntity.getNodeName());
-//            return paramObjects;
-//        }
-//
-//        String[] prevCtxNodeIds = prevCtxNodeIdsStr.split(",");
         
-        // TODO
-        //calculate the root bindings
         ContextCalculationParamCollection contextCalculationParamCollection = new ContextCalculationParamCollection();
         contextCalculationParamCollection.setProcDefInfoEntity(procDefEntity);
         contextCalculationParamCollection.setProcInstEntity(procInstEntity);
@@ -1030,7 +1017,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
             contextCalculationParam.setPluginConfigInterface(pluginConfigInterface);
             
             contextCalculationParamCollection.addContextCalculationParam(contextCalculationParam);
-            //TODO
+            
             TaskNodeParamEntity nodeParamEntity = taskNodeParamRepository
                     .selectOneByTaskNodeDefIdAndParamName(curTaskNodeDefId, paramName);
 
@@ -1076,7 +1063,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
             }
 
             if (boundRequestEntities.size() > 1) {
-                log.warn("duplicated request entity found for {} ", boundNodeInstEntity.getId());
+                log.warn("duplicated request entity found for {}, total {} requests found.", boundNodeInstEntity.getId(), boundRequestEntities.size());
             }
 
             TaskNodeExecRequestEntity boundRequestEntity = boundRequestEntities.get(0);
@@ -1090,12 +1077,11 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
                 if (FIELD_REQUIRED.equals(param.getRequired())) {
                     log.info("parameter entity does not exist but such plugin parameter is mandatory for {} {}",
                             bindParamName, bindParamType);
-                    continue;
                 } else {
                     log.info("parameter entity does not exist but such plugin parameter is not mandatory for {} {}",
                             bindParamName, bindParamType);
-                    continue;
                 }
+                continue;
             }
             
             for(TaskNodeExecParamEntity boundExecParamEntity : boundExecParamEntities) {
