@@ -11,6 +11,7 @@ import com.webank.wecube.platform.core.entity.workflow.TaskNodeDefInfoEntity;
 import com.webank.wecube.platform.core.entity.workflow.TaskNodeExecRequestEntity;
 import com.webank.wecube.platform.core.entity.workflow.TaskNodeInstInfoEntity;
 import com.webank.wecube.platform.core.entity.workflow.TaskNodeParamEntity;
+import com.webank.wecube.platform.core.utils.Constants;
 
 public class ContextCalculationParam {
     private String paramName;
@@ -133,5 +134,11 @@ public class ContextCalculationParam {
         this.procDefInfoEntity = procDefInfoEntity;
     }
 
-    
+    public boolean isMandatory() {
+        if(param == null) {
+            return false;
+        }
+        
+        return Constants.FIELD_REQUIRED.equalsIgnoreCase(param.getRequired());
+    }
 }
