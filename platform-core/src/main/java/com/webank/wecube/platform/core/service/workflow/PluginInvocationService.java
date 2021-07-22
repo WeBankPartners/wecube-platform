@@ -1156,18 +1156,44 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
     }
     
     private List<InputParamObject> tryCalculateContextMappingInputParamsObjects(ContextCalculationParamCollection contextCalculationParamCollection){
-        //TODO
         List<InputParamObject> paramObjects = new ArrayList<>();
 
         String prevCtxNodeIdsStr = contextCalculationParamCollection.getCurrTaskNodeDefEntity().getPrevCtxNodeIds();
         if (StringUtils.isBlank(prevCtxNodeIdsStr)) {
             log.info("previous context node configuration is blank for node:{}-{}", contextCalculationParamCollection.getCurrTaskNodeDefEntity().getId(),
                     contextCalculationParamCollection.getCurrTaskNodeDefEntity().getNodeName());
-            return paramObjects;
+            if(contextCalculationParamCollection.hasMandatoryContextParam()) {
+                String errMsg = String.format("Previous context node configuration is blank for node:{}-{}", contextCalculationParamCollection.getCurrTaskNodeDefEntity().getId(),
+                    contextCalculationParamCollection.getCurrTaskNodeDefEntity().getNodeName());
+                log.error(errMsg);
+                throw new WecubeCoreException(errMsg);
+            }else {
+                return paramObjects;
+            }
+            
         }
 
-        String[] prevCtxNodeIds = prevCtxNodeIdsStr.split(",");
+        String[] prevCtxNodeIds = prevCtxNodeIdsStr.trim().split(",");
+        int prevCtxNodesSize = prevCtxNodeIds.length;
+        
+        if(prevCtxNodesSize == 1) {
+            String prevCtxNodeId = prevCtxNodeIds[0];
+            paramObjects = tryCalCtxMapInputParamsObjectsWithSinglePrevNode(contextCalculationParamCollection,prevCtxNodeId);
+        }else {
+            paramObjects = tryCalCtxMapInputParamsObjectsWithMultiPrevNodes(contextCalculationParamCollection,prevCtxNodeIds);
+        }
+        
         return paramObjects;
+    }
+    
+    private List<InputParamObject> tryCalCtxMapInputParamsObjectsWithSinglePrevNode(ContextCalculationParamCollection contextCalculationParamCollection, String prevCtxNodeId){
+        //TODO
+        return null;
+    }
+    
+    private List<InputParamObject> tryCalCtxMapInputParamsObjectsWithMultiPrevNodes(ContextCalculationParamCollection contextCalculationParamCollection, String[] prevCtxNodeIds){
+        //TODO
+        return null;
     }
 
     private List<InputParamObject> tryCalculateInputParamObjectsWithoutBindings(ProcDefInfoEntity procDefEntity,ProcInstInfoEntity procInstEntity,
