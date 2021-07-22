@@ -69,4 +69,18 @@ public class ContextCalculationParamCollection {
     public void addContextCalculationParam(ContextCalculationParam contextCalculationParam) {
         this.contextCalculationParams.add(contextCalculationParam);
     }
+    
+    public boolean hasMandatoryContextParam() {
+        if(contextCalculationParams.isEmpty()) {
+            return false;
+        }
+        
+        for(ContextCalculationParam p :contextCalculationParams) {
+            if(p.isMandatory()) {
+                return true;
+            }
+        }
+        
+        return false;
+    }
 }
