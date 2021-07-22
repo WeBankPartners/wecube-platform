@@ -1170,7 +1170,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
                     contextCalculationParamCollection.getCurrTaskNodeDefEntity().getId(),
                     contextCalculationParamCollection.getCurrTaskNodeDefEntity().getNodeName());
             if (contextCalculationParamCollection.hasMandatoryContextParam()) {
-                String errMsg = String.format("Previous context node configuration is blank for node:{}-{}",
+                String errMsg = String.format("Previous context node configuration is blank for node:%s-%s",
                         contextCalculationParamCollection.getCurrTaskNodeDefEntity().getId(),
                         contextCalculationParamCollection.getCurrTaskNodeDefEntity().getNodeName());
                 log.error(errMsg);
@@ -1198,6 +1198,42 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 
     private List<InputParamObject> tryCalCtxMapInputParamsObjectsWithSinglePrevNode(
             ContextCalculationParamCollection contextCalculationParamCollection, String prevCtxNodeId) {
+        // TODO
+        ProcDefInfoEntity procDefInfo = contextCalculationParamCollection.getProcDefInfoEntity();
+        ProcInstInfoEntity procInstInfo = contextCalculationParamCollection.getProcInstEntity();
+        TaskNodeInstInfoEntity currTaskNodeInstInfo = contextCalculationParamCollection.getCurrTaskNodeInstEntity();
+        TaskNodeDefInfoEntity currTaskNodeDefInfo = contextCalculationParamCollection.getCurrTaskNodeDefEntity();
+
+        log.info(
+                "Try to calculate context mapping parameter for [process:{},node:{},node instance:{}] with single previous context node:{}",
+                procDefInfo.getId(), currTaskNodeDefInfo.getId(), currTaskNodeInstInfo.getId(), prevCtxNodeId);
+
+        TaskNodeInstInfoEntity prevCtxTaskNodeInstInfo = taskNodeInstInfoRepository
+                .selectOneByProcInstIdAndNodeId(procInstInfo.getId(), prevCtxNodeId);
+        if (prevCtxTaskNodeInstInfo == null) {
+            String errMsg = String.format("Previous context task node instance does not exist currently with ID:%s",
+                    prevCtxNodeId);
+            log.error(errMsg);
+            throw new WecubeCoreException(errMsg);
+        }
+
+        List<InputParamObject> paramObjects = new ArrayList<>();
+        List<ProcExecBindingEntity> prevCtxTaskNodeInstBindings = procExecBindingMapper
+                .selectAllBoundTaskNodeBindings(procInstInfo.getId(), prevCtxTaskNodeInstInfo.getId());
+        if (prevCtxTaskNodeInstBindings == null || prevCtxTaskNodeInstBindings.isEmpty()) {
+            return paramObjects;
+        }
+        
+        List<ContextCalculationParam> contextCalculationParams = contextCalculationParamCollection.getContextCalculationParams();
+        for(ProcExecBindingEntity prevCtxTaskNodeBinding : prevCtxTaskNodeInstBindings) {
+            InputParamObject paramObject = new InputParamObject();
+            paramObject.setEntityDataId(prevCtxTaskNodeBinding.getEntityId());//?
+            paramObject.setEntityTypeId(prevCtxTaskNodeBinding.getEntityTypeId());//?
+            paramObject.setFullEntityDataId(prevCtxTaskNodeBinding.getFullEntityDataId());//?
+            
+            //TODO
+        }
+
         // TODO
         return null;
     }
@@ -1306,11 +1342,11 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
             if (MAPPING_TYPE_ENTITY.equalsIgnoreCase(c.getMappingType())) {
                 return false;
             }
-            
+
             CoreObjectMeta refObjectMeta = c.getObjectMeta();
-            if(refObjectMeta != null) {
+            if (refObjectMeta != null) {
                 log.info("Object type parameter:{}-{}", c.getName(), refObjectMeta.getName());
-                if(!determineContextCalculationPossibility(refObjectMeta)) {
+                if (!determineContextCalculationPossibility(refObjectMeta)) {
                     return false;
                 }
             }
@@ -1318,28 +1354,28 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 
         return true;
     }
-    
+
     private boolean determineContextCalculationPossibility(CoreObjectMeta targetObjectMeta) {
         log.info("determine context calculation possibility for object meta:{}", targetObjectMeta.getName());
         List<CoreObjectPropertyMeta> propertyMetas = targetObjectMeta.getPropertyMetas();
-        if(propertyMetas == null || propertyMetas.isEmpty()) {
+        if (propertyMetas == null || propertyMetas.isEmpty()) {
             return true;
         }
-        
-        for(CoreObjectPropertyMeta propertyMeta : propertyMetas) {
+
+        for (CoreObjectPropertyMeta propertyMeta : propertyMetas) {
             if (MAPPING_TYPE_ENTITY.equalsIgnoreCase(propertyMeta.getMapType())) {
                 return false;
             }
-            
+
             CoreObjectMeta refObjectMeta = propertyMeta.getRefObjectMeta();
-            if(refObjectMeta != null) {
+            if (refObjectMeta != null) {
                 log.info("Object type property:{}-{}", propertyMeta.getName(), refObjectMeta.getName());
-                if(!determineContextCalculationPossibility(refObjectMeta)) {
+                if (!determineContextCalculationPossibility(refObjectMeta)) {
                     return false;
                 }
             }
         }
-        
+
         return true;
     }
 
@@ -1528,7 +1564,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
         } else {
 
             if (objectVars.size() > 1) {
-                String errMsg = String.format("Required data type {} but {} objects returned.", param.getDataType(),
+                String errMsg = String.format("Required data type %s but %s objects returned.", param.getDataType(),
                         objectVars.size());
                 log.error(errMsg);
 
@@ -1822,7 +1858,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
             return retDataValues.get(0);
         }
 
-        if (DATA_TYPE_STRING.equalsIgnoreCase(paramType)) {
+        if (Constants.DATA_TYPE_STRING.equalsIgnoreCase(paramType)) {
             return assembleValueList(retDataValues);
         } else {
             return retDataValues;
@@ -2167,7 +2203,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
             p.setReqId(requestId);
             p.setParamName(CALLBACK_PARAMETER_KEY);
             p.setParamType(TaskNodeExecParamEntity.PARAM_TYPE_REQUEST);
-            p.setParamDataType(DATA_TYPE_STRING);
+            p.setParamDataType(Constants.DATA_TYPE_STRING);
             p.setObjId(sObjectId);
             p.setParamDataValue(entityDataId);
             p.setEntityDataId(entityDataId);
@@ -2191,7 +2227,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
                 confirmTokenParam.setReqId(requestId);
                 confirmTokenParam.setParamName(CONFIRM_TOKEN_KEY);
                 confirmTokenParam.setParamType(TaskNodeExecParamEntity.PARAM_TYPE_REQUEST);
-                confirmTokenParam.setParamDataType(DATA_TYPE_STRING);
+                confirmTokenParam.setParamDataType(Constants.DATA_TYPE_STRING);
                 confirmTokenParam.setObjId(sObjectId);
                 confirmTokenParam.setParamDataValue(ipo.getConfirmToken());
                 confirmTokenParam.setEntityDataId(entityDataId);
@@ -2416,7 +2452,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
             paramEntity.setObjId(objectId);
             paramEntity.setParamType(TaskNodeExecParamEntity.PARAM_TYPE_RESPONSE);
             paramEntity.setParamName(CALLBACK_PARAMETER_KEY);
-            paramEntity.setParamDataType(DATA_TYPE_STRING);
+            paramEntity.setParamDataType(Constants.DATA_TYPE_STRING);
             paramEntity.setParamDataValue(callbackParameter);
             paramEntity.setReqId(requestId);
             paramEntity.setIsSensitive(false);
@@ -2442,7 +2478,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
             String paramDataType = null;
             boolean isSensitiveData = false;
             if (p == null) {
-                paramDataType = DATA_TYPE_STRING;
+                paramDataType = Constants.DATA_TYPE_STRING;
             } else {
                 paramDataType = p.getDataType();
                 isSensitiveData = (IS_SENSITIVE_ATTR.equalsIgnoreCase(p.getSensitiveData()));
