@@ -19,6 +19,7 @@ public class Constants {
     public static final String MAPPING_TYPE_OBJECT = "object";
     public static final String MAPPING_TYPE_ASSIGN = "assign";
 
+    public static final String STRING_BOOL_YES = "Y";
     public static final String FIELD_REQUIRED = "Y";
     public static final String FIELD_NOT_REQUIRED = "N";
     public static final String ASYNC_SERVICE_SYMBOL = "Y";
