@@ -1198,7 +1198,6 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 
     private List<InputParamObject> tryCalCtxMapInputParamsObjectsWithSinglePrevNode(
             ContextCalculationParamCollection contextCalculationParamCollection, String prevCtxNodeId) {
-        // TODO
         ProcDefInfoEntity procDefInfo = contextCalculationParamCollection.getProcDefInfoEntity();
         ProcInstInfoEntity procInstInfo = contextCalculationParamCollection.getProcInstEntity();
         TaskNodeInstInfoEntity currTaskNodeInstInfo = contextCalculationParamCollection.getCurrTaskNodeInstEntity();
@@ -1231,10 +1230,75 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
             paramObject.setEntityTypeId(prevCtxTaskNodeBinding.getEntityTypeId());//?
             paramObject.setFullEntityDataId(prevCtxTaskNodeBinding.getFullEntityDataId());//?
             
-            //TODO
+            for(ContextCalculationParam contextCalculationParam: contextCalculationParams) {
+                String attrName = contextCalculationParam.getParamName();
+                
+                paramObject.addAttrNames(attrName);
+                InputParamAttr paramAttr = tryCalInputParamAttrWithBinding(prevCtxTaskNodeBinding, contextCalculationParam);
+                if(paramAttr != null) {
+                    paramObject.addAttrs(paramAttr);
+                }
+                
+            }
+            
+            paramObjects.add(paramObject);
         }
 
-        // TODO
+        return paramObjects;
+    }
+    
+    private InputParamAttr tryCalInputParamAttrWithBinding(ProcExecBindingEntity prevCtxTaskNodeBinding, ContextCalculationParam contextCalculationParam) {
+        String attrName = contextCalculationParam.getParamName();
+        String paramDataType = contextCalculationParam.getParamDataType();
+        PluginConfigInterfaceParameters paramDef = contextCalculationParam.getParam();
+        String multiple = paramDef.getMultiple();
+        String required = paramDef.getRequired();
+        InputParamAttr paramAttr = new InputParamAttr();
+        paramAttr.setName(attrName);
+        paramAttr.setDataType(paramDataType);
+        paramAttr.setMultiple(multiple);
+        paramAttr.setParamDef(paramDef);
+        paramAttr.setSensitive(Constants.DATA_SENSITIVE.equalsIgnoreCase(paramDef.getSensitiveData()));
+        
+        boolean isMultiple = Constants.DATA_MULTIPLE.equalsIgnoreCase(multiple);
+        boolean isMandatory = Constants.FIELD_REQUIRED.equalsIgnoreCase(required);
+        List<Object> objectValues = tryCalInputParamAttrValueWithBinding(prevCtxTaskNodeBinding, contextCalculationParam);
+        
+        if(objectValues == null || objectValues.isEmpty()) {
+            if(isMandatory) {
+                String errMsg = String.format("The value is empty but field is mandatory for parameter:%s", attrName);
+                log.error(errMsg);
+                throw new WecubeCoreException(errMsg);
+            }else {
+                paramAttr.setValues(new ArrayList<Object>());
+            }
+            
+            return paramAttr;
+        }
+        
+        if(isMultiple) {
+            paramAttr.setValues(objectValues);
+            return paramAttr;
+        }
+        
+        if( (objectValues.size() > 1) && (!isMultiple) ){
+            String errMsg = String.format("Total:%s object values found but field:%s is not multiple.", objectValues.size(), attrName);
+            log.error(errMsg);
+            throw new WecubeCoreException(errMsg);
+        }else {
+            paramAttr.setValues(objectValues);
+        }
+        
+        return paramAttr;
+    }
+    
+    private List<Object> tryCalInputParamAttrValueWithBinding(ProcExecBindingEntity prevCtxTaskNodeBinding, ContextCalculationParam contextCalculationParam){
+        List<BoundTaskNodeExecParamWrapper> boundExecParamWrappers = contextCalculationParam.getBoundExecParamWrappers();
+        if(boundExecParamWrappers == null || boundExecParamWrappers.isEmpty()) {
+            return new ArrayList<>();
+        }
+        //TODO
+        
         return null;
     }
 
