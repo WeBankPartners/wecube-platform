@@ -974,11 +974,8 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
             taskNodeBinding.setNodeDefId(taskNodeDef.getId());
             taskNodeBinding.setTaskNodeInstId(taskNodeInstEntity.getId());
             taskNodeBinding.setEntityDataName(String.valueOf(tn.getDisplayName()));
-            // taskNodeBinding.setOrderedNo(f.getOrderedNo());
             taskNodeBinding.setCreatedBy(WorkflowConstants.DEFAULT_USER);
             taskNodeBinding.setCreatedTime(new Date());
-
-            // procExecBindingRepository.insert(taskNodeBinding);
 
             entities.add(taskNodeBinding);
         }
@@ -1367,55 +1364,107 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 
     private List<InputParamObject> tryCalCtxMapInputParamsObjectsWithMultiPrevNodes(
             ContextCalculationParamCollection contextCalculationParamCollection, String[] prevCtxNodeIds) {
-        
+
         // TODO
-        
+
         ProcDefInfoEntity procDefInfo = contextCalculationParamCollection.getProcDefInfoEntity();
         List<TaskNodeDefInfoEntity> prevCtxTaskNodeDefInfos = new ArrayList<>();
         for (String prevCtxNodeId : prevCtxNodeIds) {
-            TaskNodeDefInfoEntity prevCtxTaskNodeDefInfo = taskNodeDefInfoRepository.selectOneWithProcessIdAndNodeIdAndStatus(procDefInfo.getId(), prevCtxNodeId, TaskNodeDefInfoEntity.DEPLOYED_STATUS);
-            if(prevCtxTaskNodeDefInfo != null) {
+            TaskNodeDefInfoEntity prevCtxTaskNodeDefInfo = taskNodeDefInfoRepository
+                    .selectOneWithProcessIdAndNodeIdAndStatus(procDefInfo.getId(), prevCtxNodeId,
+                            TaskNodeDefInfoEntity.DEPLOYED_STATUS);
+            if (prevCtxTaskNodeDefInfo != null) {
                 prevCtxTaskNodeDefInfos.add(prevCtxTaskNodeDefInfo);
             }
         }
-        
+
         List<InputParamObject> paramObjects = new ArrayList<>();
-        
+
         TaskNodeDefInfoEntity determinedPrevCtxTaskNodeInfo = tryDeterminePrevCtxTaskNodeInfo(prevCtxTaskNodeDefInfos);
-        //represents the relationship between nodes
-        if(determinedPrevCtxTaskNodeInfo != null) {
-            paramObjects = tryCalCtxMapInputParamsObjectsWithRelatedMultiPrevNodes(contextCalculationParamCollection,determinedPrevCtxTaskNodeInfo);
-        }else {
+        // represents the relationship between nodes
+        if (determinedPrevCtxTaskNodeInfo != null) {
+            paramObjects = tryCalCtxMapInputParamsObjectsWithRelatedMultiPrevNodes(contextCalculationParamCollection,
+                    determinedPrevCtxTaskNodeInfo);
+        } else {
             paramObjects = tryCalCtxMapInputParamsObjectsWithUnrelatedMultiPrevNodes(contextCalculationParamCollection);
         }
 
         return paramObjects;
     }
-    
+
+    /**
+     * 
+     * @param contextCalculationParamCollection
+     * @param determinedPrevCtxTaskNodeInfo
+     * @return
+     */
     private List<InputParamObject> tryCalCtxMapInputParamsObjectsWithRelatedMultiPrevNodes(
-            ContextCalculationParamCollection contextCalculationParamCollection,TaskNodeDefInfoEntity determinedPrevCtxTaskNodeInfo){
-        //TODO
+            ContextCalculationParamCollection contextCalculationParamCollection,
+            TaskNodeDefInfoEntity determinedPrevCtxTaskNodeInfo) {
+        // TODO
         log.info("try to calculate parameter objects with related multiple previous nodes.");
-        
+
         return null;
     }
-    
+
+    /**
+     * 
+     * @param contextCalculationParamCollection
+     * @return
+     */
     private List<InputParamObject> tryCalCtxMapInputParamsObjectsWithUnrelatedMultiPrevNodes(
-            ContextCalculationParamCollection contextCalculationParamCollection){
-        //TODO
+            ContextCalculationParamCollection contextCalculationParamCollection) {
+        // TODO
         log.info("try to calculate parameter objects with unrelated multiple previous nodes.");
-        
+
         return null;
     }
-    
+
     private TaskNodeDefInfoEntity tryDeterminePrevCtxTaskNodeInfo(List<TaskNodeDefInfoEntity> prevCtxTaskNodeDefInfos) {
-        if(prevCtxTaskNodeDefInfos == null || prevCtxTaskNodeDefInfos.isEmpty()) {
+        if (prevCtxTaskNodeDefInfos == null || prevCtxTaskNodeDefInfos.isEmpty()) {
             return null;
         }
+        log.info("try to determine previous context task node from total {} task nodes.",
+                prevCtxTaskNodeDefInfos.size());
         
-        //TODO
+        TaskNodeDefInfoEntity shortestExprNodeDefInfo = null;
+        int shortestExprSize = 0;
+        for(TaskNodeDefInfoEntity nodeDef : prevCtxTaskNodeDefInfos) {
+            List<EntityQueryExprNodeInfo> exprNodeInfos = entityQueryExpressionParser.parse(nodeDef.getRoutineExp());
+            if(exprNodeInfos == null || exprNodeInfos.isEmpty()) {
+                continue;
+            }
+            if(shortestExprSize <= 0) {
+                shortestExprSize = exprNodeInfos.size();
+                shortestExprNodeDefInfo = nodeDef;
+            }
+            
+            if(exprNodeInfos.size() < shortestExprSize) {
+                shortestExprSize = exprNodeInfos.size();
+                shortestExprNodeDefInfo = nodeDef;
+            }
+        }
         
-        return null;
+        String shortestNodeDefExp = shortestExprNodeDefInfo.getRoutineExp();
+        
+        boolean related = true;
+        for(TaskNodeDefInfoEntity nodeDef : prevCtxTaskNodeDefInfos) {
+            if(shortestExprNodeDefInfo.getNodeId().equals(nodeDef.getNodeId())) {
+                continue;
+            }
+            String expr = nodeDef.getRoutineExp();
+            if(!expr.startsWith(shortestNodeDefExp)) {
+                log.info("Unrelated expressions found:{} {}", shortestNodeDefExp, expr);
+                related = false;
+                break;
+            }
+        }
+        
+        if(related) {
+            return shortestExprNodeDefInfo;
+        }else {
+            return null;
+        }
     }
 
     private List<InputParamObject> tryCalculateInputParamObjectsWithoutBindings(ProcDefInfoEntity procDefEntity,
