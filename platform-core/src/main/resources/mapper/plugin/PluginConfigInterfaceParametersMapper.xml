@@ -91,7 +91,7 @@
         #{sensitiveData,jdbcType=VARCHAR},
         #{description,jdbcType=VARCHAR},
         #{mappingValue,jdbcType=VARCHAR},
-        #{refObjectName,jdbcType=VARCHAR}
+        #{refObjectName,jdbcType=VARCHAR},
         #{multiple,jdbcType=VARCHAR}
         )
     </insert>
