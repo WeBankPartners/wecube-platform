@@ -1159,6 +1159,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
             throw new WecubeCoreException(errMsg);
         }
 
+        //TODO
         List<InputParamObject> paramObjects = new ArrayList<>();
         List<ProcExecBindingEntity> prevCtxTaskNodeInstBindings = procExecBindingMapper
                 .selectAllBoundTaskNodeBindings(procInstInfo.getId(), prevCtxTaskNodeInstInfo.getId());
@@ -1403,8 +1404,54 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
             TaskNodeDefInfoEntity determinedPrevCtxTaskNodeInfo) {
         // TODO
         log.info("try to calculate parameter objects with related multiple previous nodes.");
+        ProcInstInfoEntity procInstInfo = contextCalculationParamCollection.getProcInstEntity();
+        
+        String prevCtxNodeId = determinedPrevCtxTaskNodeInfo.getNodeId();
+        TaskNodeInstInfoEntity prevCtxTaskNodeInstInfo = taskNodeInstInfoRepository
+                .selectOneByProcInstIdAndNodeId(procInstInfo.getId(), determinedPrevCtxTaskNodeInfo.getNodeId());
+        if (prevCtxTaskNodeInstInfo == null) {
+            String errMsg = String.format("Previous context task node instance does not exist currently with ID:%s",
+                    prevCtxNodeId);
+            log.error(errMsg);
+            throw new WecubeCoreException(errMsg);
+        }
+        
+        List<InputParamObject> paramObjects = new ArrayList<>();
+        List<ProcExecBindingEntity> prevCtxTaskNodeInstBindings = procExecBindingMapper
+                .selectAllBoundTaskNodeBindings(procInstInfo.getId(), prevCtxTaskNodeInstInfo.getId());
+        if (prevCtxTaskNodeInstBindings == null || prevCtxTaskNodeInstBindings.isEmpty()) {
+            return paramObjects;
+        }
+        
+        if (prevCtxTaskNodeInstBindings == null || prevCtxTaskNodeInstBindings.isEmpty()) {
+            return paramObjects;
+        }
 
-        return null;
+        List<ContextCalculationParam> contextCalculationParams = contextCalculationParamCollection
+                .getContextCalculationParams();
+        for (ProcExecBindingEntity prevCtxTaskNodeBinding : prevCtxTaskNodeInstBindings) {
+            InputParamObject paramObject = new InputParamObject();
+            paramObject.setEntityDataId(prevCtxTaskNodeBinding.getEntityId());// ?
+            paramObject.setEntityTypeId(prevCtxTaskNodeBinding.getEntityTypeId());// ?
+            paramObject.setFullEntityDataId(prevCtxTaskNodeBinding.getFullEntityDataId());// ?
+
+            for (ContextCalculationParam contextCalculationParam : contextCalculationParams) {
+                String attrName = contextCalculationParam.getParamName();
+
+                paramObject.addAttrNames(attrName);
+                InputParamAttr paramAttr = tryCalInputParamAttrWithBinding(prevCtxTaskNodeBinding,
+                        contextCalculationParam);
+                if (paramAttr != null) {
+                    paramObject.addAttrs(paramAttr);
+                }
+
+            }
+
+            paramObjects.add(paramObject);
+        }
+
+        return paramObjects;
+
     }
 
     /**
