@@ -472,5 +472,9 @@
   "resource_instance": "Resource Instance",
   "locate_rules_warning": "Locate Rules Needs To Start With Entity Type",
   "ip_address": "IP Address",
-  "plugin_const_params_warning": "Constant Configuration Cannot Be Empty"
+  "plugin_const_params_warning": "Constant Configuration Cannot Be Empty",
+  "context_parameters": "Context Parameters",
+  "constant_parameters": "Constant Parameters",
+  "root_task_node": "Root Task Node",
+  "tag": "Tag"
 }
