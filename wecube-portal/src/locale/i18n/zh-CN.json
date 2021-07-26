@@ -471,5 +471,9 @@
   "resource_instance": "资源实例",
   "locate_rules_warning": "定位规则需以对象类型为起始点",
   "ip_address": "IP地址",
-  "plugin_const_params_warning": "常量配置不能为空"
+  "plugin_const_params_warning": "常量配置不能为空",
+  "context_parameters": "上下文参数",
+  "constant_parameters": "静态参数",
+  "root_task_node": "根任务节点",
+  "tag": "标签"
 }
