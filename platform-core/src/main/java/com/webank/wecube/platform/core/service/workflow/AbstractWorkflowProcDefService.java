@@ -141,7 +141,7 @@ public class AbstractWorkflowProcDefService extends AbstractWorkflowService{
         tdto.setTaskCategory(e.getTaskCategory());
         tdto.setPreCheck(e.getPreCheck());
         tdto.setDynamicBind(e.getDynamicBind());
-        tdto.setPrevCtxNodeIds(e.getPrevCtxNodeIds());
+        tdto.setPrevCtxNodeIds(e.getPrevCtxNodeIds()==null?"":e.getPrevCtxNodeIds());
 
         return tdto;
     }
