@@ -51,6 +51,7 @@ import com.webank.wecube.platform.core.model.workflow.InputParamAttr;
 import com.webank.wecube.platform.core.model.workflow.InputParamObject;
 import com.webank.wecube.platform.core.model.workflow.PluginInvocationCommand;
 import com.webank.wecube.platform.core.model.workflow.PluginInvocationResult;
+import com.webank.wecube.platform.core.model.workflow.ProcExecBindingKeyLink;
 import com.webank.wecube.platform.core.model.workflow.WorkflowInstCreationContext;
 import com.webank.wecube.platform.core.service.dme.EntityDataAttr;
 import com.webank.wecube.platform.core.service.dme.EntityDataRecord;
@@ -1366,7 +1367,12 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
     private List<InputParamObject> tryCalCtxMapInputParamsObjectsWithMultiPrevNodes(
             ContextCalculationParamCollection contextCalculationParamCollection, String[] prevCtxNodeIds) {
 
+        ProcInstInfoEntity procInstInfo = contextCalculationParamCollection.getProcInstEntity();
         // TODO
+        List<ProcExecBindingKeyLink> procExecBindingKeyLinks = new ArrayList<>();
+        for(String prevCtxNodeId : prevCtxNodeIds) {
+            
+        }
 
         ProcDefInfoEntity procDefInfo = contextCalculationParamCollection.getProcDefInfoEntity();
         List<TaskNodeDefInfoEntity> prevCtxTaskNodeDefInfos = new ArrayList<>();
