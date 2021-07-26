@@ -29,7 +29,7 @@ public class TaskNodeDefInfoDto extends BaseNodeDefDto {
 
     private String dynamicBind;
 
-    private String prevCtxNodeIds;
+    private String prevCtxNodeIds = "";
 
     private List<TaskNodeDefParamDto> paramInfos = new ArrayList<>();
 
