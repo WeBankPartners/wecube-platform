@@ -800,6 +800,7 @@ public class PluginPackageMgmtService extends AbstractPluginMgmtService {
         
         dto.setDescription(entity.getDescription());
         dto.setMappingValue(entity.getMappingValue());
+        dto.setMultiple(entity.getMultiple());
         
         return dto;
     }
