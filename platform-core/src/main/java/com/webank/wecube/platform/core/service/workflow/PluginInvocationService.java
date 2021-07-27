@@ -1006,7 +1006,6 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
             String paramName = param.getName();
             String paramDataType = param.getDataType();
 
-           
             ContextCalculationParam contextCalculationParam = new ContextCalculationParam();
             contextCalculationParam.setParam(param);
             contextCalculationParam.setParamName(paramName);
@@ -1018,7 +1017,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
             contextCalculationParam.setPluginConfigInterface(pluginConfigInterface);
 
             contextCalculationParamCollection.addContextCalculationParam(contextCalculationParam);
-            
+
             if (isObjectDataType(paramDataType)) {
                 log.info("Parameter:{} is object type.", paramName);
                 continue;
@@ -1190,9 +1189,11 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
                 paramObject.addAttrNames(attrName);
                 InputParamAttr paramAttr = null;
                 if (isObjectDataType(paramDataType)) {
-                    paramAttr = tryCalObjectInputParamAttrWithPrevBinding(prevCtxTaskNodeBinding, contextCalculationParam);
+                    paramAttr = tryCalObjectInputParamAttrWithPrevBinding(prevCtxTaskNodeBinding,
+                            contextCalculationParam);
                 } else {
-                    paramAttr = tryCalBasicInputParamAttrWithPrevBinding(prevCtxTaskNodeBinding, contextCalculationParam);
+                    paramAttr = tryCalBasicInputParamAttrWithPrevBinding(prevCtxTaskNodeBinding,
+                            contextCalculationParam);
                 }
 
                 if (paramAttr != null) {
@@ -1207,23 +1208,28 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
         return paramObjects;
     }
 
+    /**
+     * 
+     * @param prevCtxTaskNodeBinding
+     * @param contextCalculationParam
+     * @return
+     */
     private InputParamAttr tryCalObjectInputParamAttrWithPrevBinding(ProcExecBindingEntity prevCtxTaskNodeBinding,
             ContextCalculationParam contextCalculationParam) {
-        // TODO
-        // FIXME
         String attrName = contextCalculationParam.getParamName();
         String paramDataType = contextCalculationParam.getParamDataType();
-        
+
         PluginConfigInterfaceParameters paramDef = contextCalculationParam.getParam();
         CoreObjectMeta refObjectMeta = paramDef.getObjectMeta();
-        
-        if(refObjectMeta == null) {
-            String errMsg = String.format("Data type of parameter:%s is object but there is not object meta provided.", contextCalculationParam.getParamName());
+
+        if (refObjectMeta == null) {
+            String errMsg = String.format("Data type of parameter:%s is object but there is not object meta provided.",
+                    contextCalculationParam.getParamName());
             log.error(errMsg);
-            
+
             throw new WecubeCoreException(errMsg);
         }
-        
+
         String multiple = paramDef.getMultiple();
         String required = paramDef.getRequired();
         InputParamAttr paramAttr = new InputParamAttr();
@@ -1232,19 +1238,61 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
         paramAttr.setMultiple(multiple);
         paramAttr.setParamDef(paramDef);
         paramAttr.setSensitive(Constants.DATA_SENSITIVE.equalsIgnoreCase(paramDef.getSensitiveData()));
-        
+
         boolean isMultiple = Constants.DATA_MULTIPLE.equalsIgnoreCase(multiple);
         boolean isMandatory = Constants.FIELD_REQUIRED.equalsIgnoreCase(required);
         
-        //TODO
-        return null;
-    }
-    
-    private List<CoreObjectVar> tryCalObjectInputParamAttrValueWithPrevBinding(ProcExecBindingEntity prevCtxTaskNodeBinding,
-            ContextCalculationParam contextCalculationParam, boolean isMultiple){
+        List<CoreObjectVar> objectVars = pluginParamObjectVarCalculator.calculateCoreObjectVarsFromContext(
+                 prevCtxTaskNodeBinding,  contextCalculationParam,
+                 isMultiple);
+
+        if (objectVars == null || objectVars.isEmpty()) {
+            String errMsg = String.format("Got empty object values for : %s", contextCalculationParam.getParamName());
+            log.info(errMsg);
+            if(isMandatory) {
+                throw new WecubeCoreException(errMsg);
+            }
+            return paramAttr;
+        }
         
-        //TODO
-        return null;
+        CoreObjectVarCalculationContext calCtx = new CoreObjectVarCalculationContext();
+
+        if (isMultiple) {
+            List<Object> objectVals = new ArrayList<>();
+            for (CoreObjectVar objectVar : objectVars) {
+                PluginParamObject paramObject = pluginParamObjectVarAssembleService.marshalPluginParamObject(objectVar,
+                        calCtx);
+                objectVals.add(paramObject);
+
+                pluginParamObjectVarStorageService.storeCoreObjectVar(objectVar);
+            }
+
+            paramAttr.setValues(objectVals);
+            return paramAttr;
+        } else {
+
+            if (objectVars.size() > 1) {
+                String errMsg = String.format("Required data type %s but %s objects returned.", paramDataType,
+                        objectVars.size());
+                log.error(errMsg);
+
+                throw new WecubeCoreException(errMsg);
+            }
+
+            List<Object> objectVals = new ArrayList<>();
+            CoreObjectVar objectVar = objectVars.get(0);
+
+            PluginParamObject paramObject = pluginParamObjectVarAssembleService.marshalPluginParamObject(objectVar,
+                    calCtx);
+
+            objectVals.add(paramObject);
+
+            pluginParamObjectVarStorageService.storeCoreObjectVar(objectVar);
+
+            paramAttr.setValues(objectVals);
+            return paramAttr;
+        }
+
     }
 
     private InputParamAttr tryCalBasicInputParamAttrWithPrevBinding(ProcExecBindingEntity prevCtxTaskNodeBinding,
@@ -1485,21 +1533,20 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 
     private InputParamAttr tryCalObjectInputParamAttrWithProcExecBindingKeyLink(
             ProcExecBindingKeyLink procExecBindingKeyLink, ContextCalculationParam contextCalculationParam) {
-        // TODO
-        // FIXME
         String attrName = contextCalculationParam.getParamName();
         String paramDataType = contextCalculationParam.getParamDataType();
-        
+
         PluginConfigInterfaceParameters paramDef = contextCalculationParam.getParam();
         CoreObjectMeta refObjectMeta = paramDef.getObjectMeta();
-        
-        if(refObjectMeta == null) {
-            String errMsg = String.format("Data type of parameter:%s is object but there is not object meta provided.", contextCalculationParam.getParamName());
+
+        if (refObjectMeta == null) {
+            String errMsg = String.format("Data type of parameter:%s is object but there is not object meta provided.",
+                    contextCalculationParam.getParamName());
             log.error(errMsg);
-            
+
             throw new WecubeCoreException(errMsg);
         }
-        
+
         String multiple = paramDef.getMultiple();
         String required = paramDef.getRequired();
         InputParamAttr paramAttr = new InputParamAttr();
@@ -1508,20 +1555,61 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
         paramAttr.setMultiple(multiple);
         paramAttr.setParamDef(paramDef);
         paramAttr.setSensitive(Constants.DATA_SENSITIVE.equalsIgnoreCase(paramDef.getSensitiveData()));
-        
+
         boolean isMultiple = Constants.DATA_MULTIPLE.equalsIgnoreCase(multiple);
         boolean isMandatory = Constants.FIELD_REQUIRED.equalsIgnoreCase(required);
         
-        
+        List<CoreObjectVar> objectVars = pluginParamObjectVarCalculator.calculateCoreObjectVarsFromContext(
+                 procExecBindingKeyLink,  contextCalculationParam,
+                 isMultiple);
 
-        return null;
-    }
-    
-    private List<CoreObjectVar> tryCalObjectInputParamAttrValueWithProcExecBindingKeyLink(
-            ProcExecBindingKeyLink procExecBindingKeyLink, ContextCalculationParam contextCalculationParam, boolean isMultiple){
-        //TODO
-        
-        return null;
+       if (objectVars == null || objectVars.isEmpty()) {
+           String errMsg = String.format("Got empty object values for : %s", contextCalculationParam.getParamName());
+           log.info(errMsg);
+           if(isMandatory) {
+               throw new WecubeCoreException(errMsg);
+           }
+           return paramAttr;
+       }
+       
+       CoreObjectVarCalculationContext calCtx = new CoreObjectVarCalculationContext();
+
+       if (isMultiple) {
+           List<Object> objectVals = new ArrayList<>();
+           for (CoreObjectVar objectVar : objectVars) {
+               PluginParamObject paramObject = pluginParamObjectVarAssembleService.marshalPluginParamObject(objectVar,
+                       calCtx);
+               objectVals.add(paramObject);
+
+               pluginParamObjectVarStorageService.storeCoreObjectVar(objectVar);
+           }
+
+           paramAttr.setValues(objectVals);
+           return paramAttr;
+       } else {
+
+           if (objectVars.size() > 1) {
+               String errMsg = String.format("Required data type %s but %s objects returned.", paramDataType,
+                       objectVars.size());
+               log.error(errMsg);
+
+               throw new WecubeCoreException(errMsg);
+           }
+
+           List<Object> objectVals = new ArrayList<>();
+           CoreObjectVar objectVar = objectVars.get(0);
+
+           PluginParamObject paramObject = pluginParamObjectVarAssembleService.marshalPluginParamObject(objectVar,
+                   calCtx);
+
+           objectVals.add(paramObject);
+
+           pluginParamObjectVarStorageService.storeCoreObjectVar(objectVar);
+
+           paramAttr.setValues(objectVals);
+           return paramAttr;
+       }
+
     }
 
     private InputParamAttr tryCalBasicInputParamAttrWithProcExecBindingKeyLink(
