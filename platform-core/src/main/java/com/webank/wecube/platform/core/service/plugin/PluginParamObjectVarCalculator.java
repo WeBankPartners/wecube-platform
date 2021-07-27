@@ -169,6 +169,7 @@ public class PluginParamObjectVarCalculator extends AbstractPluginParamObjectSer
         String dataType = propertyMeta.getDataType();
         List<Object> dataObjectValues = new ArrayList<>();
 
+        //TODO
         if (propertyMeta.isMultipleData()) {
             List<Object> propertyResultValues = tryCalculateListTypePropertyValue(propertyMeta, parentObjectVar, ctx,
                     rootDataId);
@@ -176,11 +177,23 @@ public class PluginParamObjectVarCalculator extends AbstractPluginParamObjectSer
                 dataObjectValues.addAll(propertyResultValues);
             }
         } else {
+            //TODO
             if (isBasicDataType(dataType)) {
                 List<Object> propertyResultValues = tryCalculateBasicTypePropertyValue(propertyMeta, parentObjectVar,
                         ctx, rootDataId);
-                if (propertyResultValues != null) {
-                    dataObjectValues.addAll(propertyResultValues);
+                
+                if(propertyResultValues == null || propertyResultValues.isEmpty()) {
+                    
+                }else {
+                    if(propertyResultValues.size() > 1) {
+                        String errMsg = String.format(
+                                "object [%s] property [%s] required [%s] but total [%s] objects got.",propertyMeta.getObjectName(), propertyMeta.getName(), dataType, propertyResultValues.size());
+                        
+                        log.error(errMsg);
+                        
+                        throw new WecubeCoreException(errMsg);
+                    }
+                    dataObjectValues.add(propertyResultValues.get(0));
                 }
             } else if (isObjectDataType(dataType)) {
                 CoreObjectMeta refObjectMeta = propertyMeta.getRefObjectMeta();
