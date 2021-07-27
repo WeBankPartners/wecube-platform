@@ -18,11 +18,7 @@ import com.webank.wecube.platform.core.utils.Constants;
 
 public abstract class AbstractPluginParamObjectService {
 
-    public static final String PREFIX_OBJECT_VAR_ID = "OV";
-
-    public static final String PREFIX_PROPERTY_VAR_ID = "PV";
-
-    public static final String PREFIX_LIST_VAR_ID = "EV";
+    
 
     @Autowired
     protected CoreObjectMetaMapper coreObjectMetaMapper;
