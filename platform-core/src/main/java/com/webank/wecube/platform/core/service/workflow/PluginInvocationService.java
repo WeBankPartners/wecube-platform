@@ -1189,8 +1189,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
                 paramObject.addAttrNames(attrName);
                 InputParamAttr paramAttr = null;
                 if (isObjectDataType(paramDataType)) {
-                    // TODO
-                    // FIXME
+                    paramAttr = tryCalObjectInputParamAttrWithBinding(prevCtxTaskNodeBinding, contextCalculationParam);
                 } else {
                     paramAttr = tryCalBasicInputParamAttrWithBinding(prevCtxTaskNodeBinding, contextCalculationParam);
                 }
@@ -1205,6 +1204,13 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
         }
 
         return paramObjects;
+    }
+
+    private InputParamAttr tryCalObjectInputParamAttrWithBinding(ProcExecBindingEntity prevCtxTaskNodeBinding,
+            ContextCalculationParam contextCalculationParam) {
+        // TODO
+        // FIXME
+        return null;
     }
 
     private InputParamAttr tryCalBasicInputParamAttrWithBinding(ProcExecBindingEntity prevCtxTaskNodeBinding,
@@ -1420,17 +1426,17 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
                 String paramDataType = contextCalculationParam.getParamDataType();
 
                 paramObject.addAttrNames(attrName);
-                
+
                 InputParamAttr paramAttr = null;
-                
-                if(isObjectDataType(paramDataType)) {
-                    //TODO
-                    //FIXME
-                }else {
-                    paramAttr = tryCalInputParamAttrWithProcExecBindingKeyLink(procExecBindingKeyLink,
+
+                if (isObjectDataType(paramDataType)) {
+                    paramAttr = tryCalObjectInputParamAttrWithProcExecBindingKeyLink(procExecBindingKeyLink,
+                            contextCalculationParam);
+                } else {
+                    paramAttr = tryCalBasicInputParamAttrWithProcExecBindingKeyLink(procExecBindingKeyLink,
                             contextCalculationParam);
                 }
-                
+
                 if (paramAttr != null) {
                     paramObject.addAttrs(paramAttr);
                 }
@@ -1443,8 +1449,16 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
         return paramObjects;
     }
 
-    private InputParamAttr tryCalInputParamAttrWithProcExecBindingKeyLink(ProcExecBindingKeyLink procExecBindingKeyLink,
-            ContextCalculationParam contextCalculationParam) {
+    private InputParamAttr tryCalObjectInputParamAttrWithProcExecBindingKeyLink(
+            ProcExecBindingKeyLink procExecBindingKeyLink, ContextCalculationParam contextCalculationParam) {
+        // TODO
+        // FIXME
+
+        return null;
+    }
+
+    private InputParamAttr tryCalBasicInputParamAttrWithProcExecBindingKeyLink(
+            ProcExecBindingKeyLink procExecBindingKeyLink, ContextCalculationParam contextCalculationParam) {
         String attrName = contextCalculationParam.getParamName();
         String paramDataType = contextCalculationParam.getParamDataType();
         PluginConfigInterfaceParameters paramDef = contextCalculationParam.getParam();
