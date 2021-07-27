@@ -51,4 +51,8 @@ public class Constants {
     
     public static final String CORE_OBJECT_ID_KEY = "coreObjectId";
     public static final String CORE_OBJECT_NAME_KEY = "coreObjectName";
+    
+    public static final String PREFIX_OBJECT_VAR_ID = "OV";
+    public static final String PREFIX_PROPERTY_VAR_ID = "PV";
+    public static final String PREFIX_LIST_VAR_ID = "EV";
 }
