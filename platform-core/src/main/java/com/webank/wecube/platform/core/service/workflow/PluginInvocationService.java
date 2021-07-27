@@ -1001,10 +1001,15 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
         contextCalculationParamCollection.setCurrTaskNodeInstEntity(currTaskNodeInstEntity);
         contextCalculationParamCollection.setPluginConfigInterface(pluginConfigInterface);
 
+        // TODO object supported here??
         for (PluginConfigInterfaceParameters param : contextConfigInterfaceInputParams.values()) {
 
             String paramName = param.getName();
             String paramDataType = param.getDataType();
+
+            if (isObjectDataType(paramDataType)) {
+                log.info("Parameter:{} is object type.", paramName);
+            }
 
             ContextCalculationParam contextCalculationParam = new ContextCalculationParam();
             contextCalculationParam.setParam(param);
@@ -1161,7 +1166,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
             throw new WecubeCoreException(errMsg);
         }
 
-        //check parent context node here??
+        // check parent context node here??
         List<InputParamObject> paramObjects = new ArrayList<>();
         List<ProcExecBindingEntity> prevCtxTaskNodeInstBindings = procExecBindingMapper
                 .selectAllBoundTaskNodeBindings(procInstInfo.getId(), prevCtxTaskNodeInstInfo.getId());
@@ -1179,10 +1184,17 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 
             for (ContextCalculationParam contextCalculationParam : contextCalculationParams) {
                 String attrName = contextCalculationParam.getParamName();
+                String paramDataType = contextCalculationParam.getParamDataType();
 
                 paramObject.addAttrNames(attrName);
-                InputParamAttr paramAttr = tryCalInputParamAttrWithBinding(prevCtxTaskNodeBinding,
-                        contextCalculationParam);
+                InputParamAttr paramAttr = null;
+                if (isObjectDataType(paramDataType)) {
+                    // TODO
+                    // FIXME
+                } else {
+                    paramAttr = tryCalBasicInputParamAttrWithBinding(prevCtxTaskNodeBinding, contextCalculationParam);
+                }
+
                 if (paramAttr != null) {
                     paramObject.addAttrs(paramAttr);
                 }
@@ -1195,7 +1207,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
         return paramObjects;
     }
 
-    private InputParamAttr tryCalInputParamAttrWithBinding(ProcExecBindingEntity prevCtxTaskNodeBinding,
+    private InputParamAttr tryCalBasicInputParamAttrWithBinding(ProcExecBindingEntity prevCtxTaskNodeBinding,
             ContextCalculationParam contextCalculationParam) {
         String attrName = contextCalculationParam.getParamName();
         String paramDataType = contextCalculationParam.getParamDataType();
@@ -1375,8 +1387,9 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
                     .selectOneByProcInstIdAndNodeId(procInstInfo.getId(), prevCtxNodeId);
             List<ProcExecBindingEntity> procExecBindings = procExecBindingMapper
                     .selectAllBoundTaskNodeBindings(procInstInfo.getId(), prevCtxTaskNodeInstInfo.getId());
-            
-            procExecBindingKeyLinks = propagateProcExecBindingKeyLinks(procExecBindingKeyLinks, procExecBindings, prevCtxNodeId);
+
+            procExecBindingKeyLinks = propagateProcExecBindingKeyLinks(procExecBindingKeyLinks, procExecBindings,
+                    prevCtxNodeId);
         }
 
         ProcDefInfoEntity procDefInfo = contextCalculationParamCollection.getProcDefInfoEntity();
@@ -1391,22 +1404,33 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
         }
 
         List<InputParamObject> paramObjects = new ArrayList<>();
-        
+
         List<ContextCalculationParam> contextCalculationParams = contextCalculationParamCollection
                 .getContextCalculationParams();
         for (ProcExecBindingKeyLink procExecBindingKeyLink : procExecBindingKeyLinks) {
             InputParamObject paramObject = new InputParamObject();
             paramObject.setEntityTypeId("TaskNode");
-            String entityDataId = String.format("%s-%s", CALLBACK_PARAMETER_SYSTEM_PREFIX, LocalIdGenerator.generateId());
-            paramObject.setEntityDataId(entityDataId);//?
+            String entityDataId = String.format("%s-%s", CALLBACK_PARAMETER_SYSTEM_PREFIX,
+                    LocalIdGenerator.generateId());
+            paramObject.setEntityDataId(entityDataId);// ?
             paramObject.setFullEntityDataId(entityDataId);// ?
 
             for (ContextCalculationParam contextCalculationParam : contextCalculationParams) {
                 String attrName = contextCalculationParam.getParamName();
+                String paramDataType = contextCalculationParam.getParamDataType();
 
                 paramObject.addAttrNames(attrName);
-                InputParamAttr paramAttr = tryCalInputParamAttrWithProcExecBindingKeyLink(procExecBindingKeyLink,
-                        contextCalculationParam);
+                
+                InputParamAttr paramAttr = null;
+                
+                if(isObjectDataType(paramDataType)) {
+                    //TODO
+                    //FIXME
+                }else {
+                    paramAttr = tryCalInputParamAttrWithProcExecBindingKeyLink(procExecBindingKeyLink,
+                            contextCalculationParam);
+                }
+                
                 if (paramAttr != null) {
                     paramObject.addAttrs(paramAttr);
                 }
@@ -1415,10 +1439,10 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 
             paramObjects.add(paramObject);
         }
-        
+
         return paramObjects;
     }
-    
+
     private InputParamAttr tryCalInputParamAttrWithProcExecBindingKeyLink(ProcExecBindingKeyLink procExecBindingKeyLink,
             ContextCalculationParam contextCalculationParam) {
         String attrName = contextCalculationParam.getParamName();
@@ -1466,9 +1490,9 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 
         return paramAttr;
     }
-    
-    private List<Object> tryCalInputParamAttrValueWithProcExecBindingKeyLink(ProcExecBindingKeyLink procExecBindingKeyLink,
-            ContextCalculationParam contextCalculationParam){
+
+    private List<Object> tryCalInputParamAttrValueWithProcExecBindingKeyLink(
+            ProcExecBindingKeyLink procExecBindingKeyLink, ContextCalculationParam contextCalculationParam) {
         List<BoundTaskNodeExecParamWrapper> boundExecParamWrappers = contextCalculationParam
                 .getBoundExecParamWrappers();
         if (boundExecParamWrappers == null || boundExecParamWrappers.isEmpty()) {
@@ -1488,7 +1512,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
                 continue;
             }
 
-            if (matchBoundTaskNodeExecParamWrapper(wrapper,procExecBindingKeyLink)) {
+            if (matchBoundTaskNodeExecParamWrapper(wrapper, procExecBindingKeyLink)) {
                 Object paramDataValue = parseStringParamDataValueToObject(wrapper);
                 if (paramDataValue != null) {
                     objectValues.add(paramDataValue);
@@ -1498,26 +1522,27 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 
         return objectValues;
     }
-    
-    private boolean matchBoundTaskNodeExecParamWrapper(BoundTaskNodeExecParamWrapper wrapper,ProcExecBindingKeyLink procExecBindingKeyLink) {
+
+    private boolean matchBoundTaskNodeExecParamWrapper(BoundTaskNodeExecParamWrapper wrapper,
+            ProcExecBindingKeyLink procExecBindingKeyLink) {
         List<ProcExecBindingKey> procExecBindingKeys = procExecBindingKeyLink.getProcExecBindingKeys();
-        if(procExecBindingKeys == null || procExecBindingKeys.isEmpty()) {
+        if (procExecBindingKeys == null || procExecBindingKeys.isEmpty()) {
             return false;
         }
-        
+
         TaskNodeExecParamEntity boundTaskNodeExecParamEntity = wrapper.getBoundTaskNodeExecParamEntity();
         String targetFullDataId = boundTaskNodeExecParamEntity.getFullEntityDataId();
-        for(ProcExecBindingKey procExecBindingKey : procExecBindingKeys) {
+        for (ProcExecBindingKey procExecBindingKey : procExecBindingKeys) {
             ProcExecBindingEntity procExecBinding = procExecBindingKey.getProcExecBinding();
-            if(procExecBinding == null) {
+            if (procExecBinding == null) {
                 continue;
             }
             String bindingFullDataId = procExecBinding.getFullEntityDataId();
-            if(StringUtils.isBlank(bindingFullDataId)) {
+            if (StringUtils.isBlank(bindingFullDataId)) {
                 continue;
             }
-            
-            if(targetFullDataId.startsWith(bindingFullDataId)) {
+
+            if (targetFullDataId.startsWith(bindingFullDataId)) {
                 return true;
             }
         }
@@ -1527,18 +1552,18 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
     private List<ProcExecBindingKeyLink> propagateProcExecBindingKeyLinks(
             List<ProcExecBindingKeyLink> originProcExecBindingKeyLinks,
             List<ProcExecBindingEntity> tailProcExecBindingKeys, String ctxNodeId) {
-        if(tailProcExecBindingKeys == null || tailProcExecBindingKeys.isEmpty()) {
-            
-            for(ProcExecBindingKeyLink originProcExecBindingKeyLink : originProcExecBindingKeyLinks) {
+        if (tailProcExecBindingKeys == null || tailProcExecBindingKeys.isEmpty()) {
+
+            for (ProcExecBindingKeyLink originProcExecBindingKeyLink : originProcExecBindingKeyLinks) {
                 ProcExecBindingKey bindingKey = new ProcExecBindingKey();
                 bindingKey.setTaskNodeId(ctxNodeId);
-                
+
                 originProcExecBindingKeyLink.addProcExecBindingKey(bindingKey);
             }
-            
+
             return originProcExecBindingKeyLinks;
         }
-        
+
         List<ProcExecBindingKeyLink> retProcExecBindingKeyLinks = new ArrayList<>();
         for (ProcExecBindingEntity tailProcExecBinding : tailProcExecBindingKeys) {
             if (originProcExecBindingKeyLinks.isEmpty()) {
@@ -1546,7 +1571,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
                 ProcExecBindingKey bindingKey = new ProcExecBindingKey();
                 bindingKey.setTaskNodeId(ctxNodeId);
                 bindingKey.setProcExecBinding(tailProcExecBinding);
-                
+
                 newLink.addProcExecBindingKey(bindingKey);
 
                 retProcExecBindingKeyLinks.add(newLink);
@@ -1554,11 +1579,11 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
                 for (ProcExecBindingKeyLink originLink : originProcExecBindingKeyLinks) {
                     ProcExecBindingKeyLink newLink = new ProcExecBindingKeyLink();
                     newLink.getProcExecBindingKeys().addAll(originLink.getProcExecBindingKeys());
-                    
+
                     ProcExecBindingKey bindingKey = new ProcExecBindingKey();
                     bindingKey.setTaskNodeId(ctxNodeId);
                     bindingKey.setProcExecBinding(tailProcExecBinding);
-                    
+
                     newLink.addProcExecBindingKey(bindingKey);
 
                     retProcExecBindingKeyLinks.add(newLink);
