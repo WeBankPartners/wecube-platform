@@ -193,6 +193,7 @@ public class PluginConfigMgmtService extends AbstractPluginMgmtService {
                 configParamDto.setSensitiveData(paramDto.getSensitiveData());
                 configParamDto.setType(paramDto.getType());
                 configParamDto.setMappingValue(paramDto.getMappingValue());
+                configParamDto.setMultiple(paramDto.getMultiple());
 
                 intfDto.addConfigurableInputParameter(configParamDto);
             } else {
@@ -239,6 +240,7 @@ public class PluginConfigMgmtService extends AbstractPluginMgmtService {
                 propMetaParamDto.setSensitiveData(propMetaDto.getSensitiveData());
                 propMetaParamDto.setType(Constants.TYPE_INPUT);
                 propMetaParamDto.setMappingValue(propMetaDto.getMappingEntityExpression());
+                propMetaParamDto.setMultiple(propMetaDto.getMultiple());
 
                 objectConfigParamDtos.add(propMetaParamDto);
             } else {
@@ -1065,6 +1067,7 @@ public class PluginConfigMgmtService extends AbstractPluginMgmtService {
 
         paramEntity.setSensitiveData(paramDto.getSensitiveData());
         paramEntity.setMappingValue(paramDto.getMappingValue());
+        paramEntity.setMultiple(paramDto.getMultiple());
 
         pluginConfigInterfaceParametersMapper.updateByPrimaryKey(paramEntity);
 
