@@ -28,6 +28,7 @@ import com.webank.wecube.platform.core.entity.workflow.TaskNodeExecRequestEntity
 import com.webank.wecube.platform.core.entity.workflow.TaskNodeInstInfoEntity;
 import com.webank.wecube.platform.core.entity.workflow.TaskNodeParamEntity;
 import com.webank.wecube.platform.core.model.workflow.ContextCalculationParam;
+import com.webank.wecube.platform.core.model.workflow.ProcExecBindingKey;
 import com.webank.wecube.platform.core.model.workflow.ProcExecBindingKeyLink;
 import com.webank.wecube.platform.core.repository.workflow.TaskNodeDefInfoMapper;
 import com.webank.wecube.platform.core.repository.workflow.TaskNodeExecParamMapper;
@@ -93,9 +94,38 @@ public class PluginParamObjectVarCalculator extends AbstractPluginParamObjectSer
     public List<CoreObjectVar> calculateCoreObjectVarsFromContext(
             ProcExecBindingKeyLink procExecBindingKeyLink, ContextCalculationParam contextCalculationParam,
             boolean isMultiple){
-        //TODO
         
-        return null;
+        PluginConfigInterfaceParameters paramDef = contextCalculationParam.getParam();
+        CoreObjectMeta objectMeta = paramDef.getObjectMeta();
+        CoreObjectVar objectVar = new CoreObjectVar();
+        objectVar.setId(LocalIdGenerator.generateId(Constants.PREFIX_OBJECT_VAR_ID));
+        objectVar.setName(objectMeta.getName());
+        objectVar.setObjectMeta(objectMeta);
+        objectVar.setObjectMetaId(objectMeta.getId());
+        objectVar.setPackageName(objectMeta.getPackageName());
+
+        List<CoreObjectPropertyMeta> propertyMetas = objectMeta.getPropertyMetas();
+        for (CoreObjectPropertyMeta propertyMeta : propertyMetas) {
+            CoreObjectPropertyVar propertyVar = tryCalObjectPropertyValueWithProcExecBindingKeyLink(propertyMeta, objectVar,
+                    procExecBindingKeyLink, contextCalculationParam);
+            propertyVar.setId(LocalIdGenerator.generateId(Constants.PREFIX_PROPERTY_VAR_ID));
+            propertyVar.setObjectMetaId(objectVar.getObjectMetaId());
+
+            propertyVar.setObjectPropertyMetaId(propertyMeta.getId());
+            propertyVar.setPropertyMeta(propertyMeta);
+            propertyVar.setObjectVar(objectVar);
+            propertyVar.setObjectVarId(objectVar.getId());
+            propertyVar.setObjectName(objectMeta.getName());
+            propertyVar.setPackageName(objectMeta.getPackageName());
+
+            objectVar.addPropertyVar(propertyVar);
+        }
+        
+        List<CoreObjectVar> objectVars = new ArrayList<>();
+        objectVars.add(objectVar);
+
+        return objectVars;
+        
     }
     
    /**
@@ -110,7 +140,6 @@ public class PluginParamObjectVarCalculator extends AbstractPluginParamObjectSer
             boolean isMultiple){
         PluginConfigInterfaceParameters paramDef = contextCalculationParam.getParam();
         CoreObjectMeta objectMeta = paramDef.getObjectMeta();
-        // TODO
         CoreObjectVar objectVar = new CoreObjectVar();
         objectVar.setId(LocalIdGenerator.generateId(Constants.PREFIX_OBJECT_VAR_ID));
         objectVar.setName(objectMeta.getName());
@@ -139,38 +168,277 @@ public class PluginParamObjectVarCalculator extends AbstractPluginParamObjectSer
         objectVars.add(objectVar);
 
         return objectVars;
-        //TODO
         
+    }
+    
+    private CoreObjectPropertyVar tryCalObjectPropertyValueWithProcExecBindingKeyLink(CoreObjectPropertyMeta propertyMeta,
+            CoreObjectVar parentObjectVar, ProcExecBindingKeyLink procExecBindingKeyLink,
+            ContextCalculationParam contextCalculationParam) {
+        
+        CoreObjectPropertyVar propertyVar = new CoreObjectPropertyVar();
+        propertyVar.setId(LocalIdGenerator.generateId(Constants.PREFIX_PROPERTY_VAR_ID));
+        propertyVar.setName(propertyMeta.getName());
+        propertyVar.setDataType(propertyMeta.getDataType());
+
+        List<Object> rawDataValueObjects = tryCalculateRawPropertyDataValueObjectWithProcExecBindingKeyLink(  propertyMeta,
+                 parentObjectVar,  procExecBindingKeyLink,
+                 contextCalculationParam);
+
+        Object dataValueObject = determineObjectDataValue(propertyMeta, rawDataValueObjects);
+
+        log.info("data value object for {} : {}", propertyMeta.getName(), dataValueObject);
+        String dataValue = convertPropertyValueToString(propertyMeta, dataValueObject);
+        propertyVar.setDataValueObject(dataValueObject);
+        propertyVar.setDataValue(dataValue);
+        propertyVar.setPropertyMeta(propertyMeta);
+        propertyVar.setSensitive(propertyMeta.getSensitive());
+        propertyVar.setObjectName(propertyMeta.getObjectName());
+        propertyVar.setPackageName(propertyMeta.getPackageName());
+        propertyVar.setObjectPropertyMetaId(propertyMeta.getId());
+
+        return propertyVar;
     }
     
     private CoreObjectPropertyVar tryCalObjectPropertyValueWithPrevBinding(CoreObjectPropertyMeta propertyMeta,
             CoreObjectVar parentObjectVar, ProcExecBindingEntity prevCtxTaskNodeBinding,
             ContextCalculationParam contextCalculationParam) {
 
-//        CoreObjectPropertyVar propertyVar = new CoreObjectPropertyVar();
-//        propertyVar.setId(LocalIdGenerator.generateId(Constants.PREFIX_PROPERTY_VAR_ID));
-//        propertyVar.setName(propertyMeta.getName());
-//        propertyVar.setDataType(propertyMeta.getDataType());
-//
-//        List<Object> rawDataValueObjects = tryCalculatePropertyDataValueObject(propertyMeta, parentObjectVar, ctx,
-//                rootDataId);
-//
-//        Object dataValueObject = determineObjectDataValue(propertyMeta, rawDataValueObjects);
-//
-//        log.info("data value object for {} : {}", propertyMeta.getName(), dataValueObject);
-//        String dataValue = convertPropertyValueToString(propertyMeta, dataValueObject);
-//        propertyVar.setDataValueObject(dataValueObject);
-//        propertyVar.setDataValue(dataValue);
-//        propertyVar.setPropertyMeta(propertyMeta);
-//        propertyVar.setSensitive(propertyMeta.getSensitive());
-//        propertyVar.setObjectName(propertyMeta.getObjectName());
-//        propertyVar.setPackageName(propertyMeta.getPackageName());
-//        propertyVar.setObjectPropertyMetaId(propertyMeta.getId());
+        CoreObjectPropertyVar propertyVar = new CoreObjectPropertyVar();
+        propertyVar.setId(LocalIdGenerator.generateId(Constants.PREFIX_PROPERTY_VAR_ID));
+        propertyVar.setName(propertyMeta.getName());
+        propertyVar.setDataType(propertyMeta.getDataType());
 
-//        return propertyVar;
+        List<Object> rawDataValueObjects = tryCalculateRawPropertyDataValueObjectWithPrevBinding( propertyMeta,
+                 parentObjectVar,  prevCtxTaskNodeBinding,
+                 contextCalculationParam);
+
+        Object dataValueObject = determineObjectDataValue(propertyMeta, rawDataValueObjects);
+
+        log.info("data value object for {} : {}", propertyMeta.getName(), dataValueObject);
+        String dataValue = convertPropertyValueToString(propertyMeta, dataValueObject);
+        propertyVar.setDataValueObject(dataValueObject);
+        propertyVar.setDataValue(dataValue);
+        propertyVar.setPropertyMeta(propertyMeta);
+        propertyVar.setSensitive(propertyMeta.getSensitive());
+        propertyVar.setObjectName(propertyMeta.getObjectName());
+        propertyVar.setPackageName(propertyMeta.getPackageName());
+        propertyVar.setObjectPropertyMetaId(propertyMeta.getId());
+
+        return propertyVar;
         
-        //TODO
+    }
+    
+    private List<Object> tryCalculateRawPropertyDataValueObjectWithProcExecBindingKeyLink(CoreObjectPropertyMeta propertyMeta,
+            CoreObjectVar parentObjectVar, ProcExecBindingKeyLink procExecBindingKeyLink,
+            ContextCalculationParam contextCalculationParam){
+        String propertyDataType = propertyMeta.getDataType();
+        if(isObjectDataType(propertyDataType)) {
+            //not supported currently
+            return new ArrayList<>();
+        }
+        
+        if(propertyMeta.isConstantMapping()) {
+            return calculateBasicTypePropertyValueFromConstant(propertyMeta, parentObjectVar, null);
+        }
+        
+        if(propertyMeta.isSystemVariableMapping()) {
+            return calculateBasicTypePropertyValueFromSystemVariable(propertyMeta, parentObjectVar, null);
+        }
+        
+        if(propertyMeta.isContextMapping()) {
+            return calBasicTypePropertyValueFromContextWithProcExecBindingKeyLink( propertyMeta,
+                     parentObjectVar,  procExecBindingKeyLink,
+                     contextCalculationParam);
+        }
+        
         return null;
+    }
+    
+    private List<Object> tryCalculateRawPropertyDataValueObjectWithPrevBinding(CoreObjectPropertyMeta propertyMeta,
+            CoreObjectVar parentObjectVar, ProcExecBindingEntity prevCtxTaskNodeBinding,
+            ContextCalculationParam contextCalculationParam){
+        
+        String propertyDataType = propertyMeta.getDataType();
+        if(isObjectDataType(propertyDataType)) {
+            //not supported currently
+            return new ArrayList<>();
+        }
+        
+        if(propertyMeta.isConstantMapping()) {
+            return calculateBasicTypePropertyValueFromConstant(propertyMeta, parentObjectVar, null);
+        }
+        
+        if(propertyMeta.isSystemVariableMapping()) {
+            return calculateBasicTypePropertyValueFromSystemVariable(propertyMeta, parentObjectVar, null);
+        }
+        
+        if(propertyMeta.isContextMapping()) {
+            return calBasicTypePropertyValueFromContextWithPrevBinding( propertyMeta,
+                     parentObjectVar,  prevCtxTaskNodeBinding,
+                     contextCalculationParam);
+        }
+        
+        return null;
+    }
+    
+    private List<Object> calBasicTypePropertyValueFromContextWithProcExecBindingKeyLink(CoreObjectPropertyMeta propertyMeta,
+            CoreObjectVar parentObjectVar, ProcExecBindingKeyLink procExecBindingKeyLink,
+            ContextCalculationParam contextCalculationParam){
+        List<Object> resultObjectValues = new ArrayList<>();
+
+        TaskNodeDefInfoEntity currTaskNodeDefInfo = contextCalculationParam.getCurrTaskNodeDefEntity();
+        String curTaskNodeDefId = currTaskNodeDefInfo.getId();
+        String paramName = propertyMeta.getName();
+        TaskNodeParamEntity nodeParamEntity = taskNodeParamRepository
+                .selectOneByTaskNodeDefIdAndParamName(curTaskNodeDefId, paramName);
+
+        if (nodeParamEntity == null) {
+            return resultObjectValues;
+        }
+
+        String boundNodeId = nodeParamEntity.getBindNodeId();
+        String boundParamType = nodeParamEntity.getBindParamType();
+        String boundParamName = nodeParamEntity.getBindParamName();
+
+        ProcInstInfoEntity procInstInfo = contextCalculationParam.getProcInstEntity();
+
+        // get by procInstId and nodeId
+        TaskNodeInstInfoEntity boundNodeInstEntity = taskNodeInstInfoRepository
+                .selectOneByProcInstIdAndNodeId(procInstInfo.getId(), boundNodeId);
+
+        if (boundNodeInstEntity == null) {
+            log.error("Bound node instance entity does not exist for {} {}", procInstInfo.getId(), boundNodeId);
+            throw new WecubeCoreException("3171", "Bound node instance entity does not exist.");
+        }
+
+        List<TaskNodeExecRequestEntity> requestEntities = taskNodeExecRequestRepository
+                .selectCurrentEntityByNodeInstId(boundNodeInstEntity.getId());
+
+        if (requestEntities == null || requestEntities.isEmpty()) {
+            log.error("cannot find request entity for {}", boundNodeInstEntity.getId());
+            throw new WecubeCoreException("3172", "Bound request entity does not exist.");
+        }
+
+        if (requestEntities.size() > 1) {
+            log.warn("duplicated request entity found for {} ", boundNodeInstEntity.getId());
+        }
+
+        TaskNodeExecRequestEntity requestEntity = requestEntities.get(0);
+
+        List<TaskNodeExecParamEntity> execParamEntities = taskNodeExecParamRepository
+                .selectAllByRequestIdAndParamNameAndParamType(requestEntity.getReqId(), boundParamName, boundParamType);
+
+        if (execParamEntities == null || execParamEntities.isEmpty()) {
+            return resultObjectValues;
+        }
+        
+        for (TaskNodeExecParamEntity param : execParamEntities) {
+            String targetFullDataId = param.getFullEntityDataId();
+            if(StringUtils.isBlank(targetFullDataId)) {
+                log.info("Unknown full entity data ID of param:{}", param.getId());
+                continue;
+            }
+            
+            if (matchBoundTaskNodeExecParam(param, procExecBindingKeyLink)) {
+                resultObjectValues.add(param.getParamDataValue());
+            }
+        }
+
+        return resultObjectValues;
+        
+    }
+    
+    private boolean matchBoundTaskNodeExecParam(TaskNodeExecParamEntity boundTaskNodeExecParamEntity,
+            ProcExecBindingKeyLink procExecBindingKeyLink) {
+        List<ProcExecBindingKey> procExecBindingKeys = procExecBindingKeyLink.getProcExecBindingKeys();
+        if (procExecBindingKeys == null || procExecBindingKeys.isEmpty()) {
+            return false;
+        }
+
+        String targetFullDataId = boundTaskNodeExecParamEntity.getFullEntityDataId();
+        for (ProcExecBindingKey procExecBindingKey : procExecBindingKeys) {
+            ProcExecBindingEntity procExecBinding = procExecBindingKey.getProcExecBinding();
+            if (procExecBinding == null) {
+                continue;
+            }
+            String bindingFullDataId = procExecBinding.getFullEntityDataId();
+            if (StringUtils.isBlank(bindingFullDataId)) {
+                continue;
+            }
+
+            if (targetFullDataId.startsWith(bindingFullDataId)) {
+                return true;
+            }
+        }
+        return false;
+    }
+    
+    private List<Object> calBasicTypePropertyValueFromContextWithPrevBinding(CoreObjectPropertyMeta propertyMeta,
+            CoreObjectVar parentObjectVar, ProcExecBindingEntity prevCtxTaskNodeBinding,
+            ContextCalculationParam contextCalculationParam){
+        
+        List<Object> resultObjectValues = new ArrayList<>();
+
+        TaskNodeDefInfoEntity currTaskNodeDefInfo = contextCalculationParam.getCurrTaskNodeDefEntity();
+        String curTaskNodeDefId = currTaskNodeDefInfo.getId();
+        String paramName = propertyMeta.getName();
+        TaskNodeParamEntity nodeParamEntity = taskNodeParamRepository
+                .selectOneByTaskNodeDefIdAndParamName(curTaskNodeDefId, paramName);
+
+        if (nodeParamEntity == null) {
+            return resultObjectValues;
+        }
+
+        String boundNodeId = nodeParamEntity.getBindNodeId();
+        String boundParamType = nodeParamEntity.getBindParamType();
+        String boundParamName = nodeParamEntity.getBindParamName();
+
+        ProcInstInfoEntity procInstInfo = contextCalculationParam.getProcInstEntity();
+
+        // get by procInstId and nodeId
+        TaskNodeInstInfoEntity boundNodeInstEntity = taskNodeInstInfoRepository
+                .selectOneByProcInstIdAndNodeId(procInstInfo.getId(), boundNodeId);
+
+        if (boundNodeInstEntity == null) {
+            log.error("Bound node instance entity does not exist for {} {}", procInstInfo.getId(), boundNodeId);
+            throw new WecubeCoreException("3171", "Bound node instance entity does not exist.");
+        }
+
+        List<TaskNodeExecRequestEntity> requestEntities = taskNodeExecRequestRepository
+                .selectCurrentEntityByNodeInstId(boundNodeInstEntity.getId());
+
+        if (requestEntities == null || requestEntities.isEmpty()) {
+            log.error("cannot find request entity for {}", boundNodeInstEntity.getId());
+            throw new WecubeCoreException("3172", "Bound request entity does not exist.");
+        }
+
+        if (requestEntities.size() > 1) {
+            log.warn("duplicated request entity found for {} ", boundNodeInstEntity.getId());
+        }
+
+        TaskNodeExecRequestEntity requestEntity = requestEntities.get(0);
+
+        List<TaskNodeExecParamEntity> execParamEntities = taskNodeExecParamRepository
+                .selectAllByRequestIdAndParamNameAndParamType(requestEntity.getReqId(), boundParamName, boundParamType);
+
+        if (execParamEntities == null || execParamEntities.isEmpty()) {
+            return resultObjectValues;
+        }
+        
+        String prevCtxDataId = prevCtxTaskNodeBinding.getFullEntityDataId();
+
+        for (TaskNodeExecParamEntity param : execParamEntities) {
+            String targetFullDataId = param.getFullEntityDataId();
+            if(StringUtils.isBlank(targetFullDataId)) {
+                continue;
+            }
+            
+            if(targetFullDataId.startsWith(prevCtxDataId)) {
+                resultObjectValues.add(param.getParamDataValue());
+            }
+        }
+
+        return resultObjectValues;
     }
 
 
