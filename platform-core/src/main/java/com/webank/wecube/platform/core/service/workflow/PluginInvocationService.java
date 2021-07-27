@@ -1421,7 +1421,6 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
     
     private InputParamAttr tryCalInputParamAttrWithProcExecBindingKeyLink(ProcExecBindingKeyLink procExecBindingKeyLink,
             ContextCalculationParam contextCalculationParam) {
-        //TODO
         String attrName = contextCalculationParam.getParamName();
         String paramDataType = contextCalculationParam.getParamDataType();
         PluginConfigInterfaceParameters paramDef = contextCalculationParam.getParam();
@@ -1470,7 +1469,6 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
     
     private List<Object> tryCalInputParamAttrValueWithProcExecBindingKeyLink(ProcExecBindingKeyLink procExecBindingKeyLink,
             ContextCalculationParam contextCalculationParam){
-        //TODO
         List<BoundTaskNodeExecParamWrapper> boundExecParamWrappers = contextCalculationParam
                 .getBoundExecParamWrappers();
         if (boundExecParamWrappers == null || boundExecParamWrappers.isEmpty()) {
@@ -1502,7 +1500,27 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
     }
     
     private boolean matchBoundTaskNodeExecParamWrapper(BoundTaskNodeExecParamWrapper wrapper,ProcExecBindingKeyLink procExecBindingKeyLink) {
-        //TODO
+        List<ProcExecBindingKey> procExecBindingKeys = procExecBindingKeyLink.getProcExecBindingKeys();
+        if(procExecBindingKeys == null || procExecBindingKeys.isEmpty()) {
+            return false;
+        }
+        
+        TaskNodeExecParamEntity boundTaskNodeExecParamEntity = wrapper.getBoundTaskNodeExecParamEntity();
+        String targetFullDataId = boundTaskNodeExecParamEntity.getFullEntityDataId();
+        for(ProcExecBindingKey procExecBindingKey : procExecBindingKeys) {
+            ProcExecBindingEntity procExecBinding = procExecBindingKey.getProcExecBinding();
+            if(procExecBinding == null) {
+                continue;
+            }
+            String bindingFullDataId = procExecBinding.getFullEntityDataId();
+            if(StringUtils.isBlank(bindingFullDataId)) {
+                continue;
+            }
+            
+            if(targetFullDataId.startsWith(bindingFullDataId)) {
+                return true;
+            }
+        }
         return false;
     }
 
