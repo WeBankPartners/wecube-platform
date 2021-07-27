@@ -51,6 +51,7 @@ import com.webank.wecube.platform.core.model.workflow.InputParamAttr;
 import com.webank.wecube.platform.core.model.workflow.InputParamObject;
 import com.webank.wecube.platform.core.model.workflow.PluginInvocationCommand;
 import com.webank.wecube.platform.core.model.workflow.PluginInvocationResult;
+import com.webank.wecube.platform.core.model.workflow.ProcExecBindingKey;
 import com.webank.wecube.platform.core.model.workflow.ProcExecBindingKeyLink;
 import com.webank.wecube.platform.core.model.workflow.WorkflowInstCreationContext;
 import com.webank.wecube.platform.core.service.dme.EntityDataAttr;
@@ -1160,7 +1161,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
             throw new WecubeCoreException(errMsg);
         }
 
-        //TODO
+        //check parent context node here??
         List<InputParamObject> paramObjects = new ArrayList<>();
         List<ProcExecBindingEntity> prevCtxTaskNodeInstBindings = procExecBindingMapper
                 .selectAllBoundTaskNodeBindings(procInstInfo.getId(), prevCtxTaskNodeInstInfo.getId());
@@ -1368,10 +1369,14 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
             ContextCalculationParamCollection contextCalculationParamCollection, String[] prevCtxNodeIds) {
 
         ProcInstInfoEntity procInstInfo = contextCalculationParamCollection.getProcInstEntity();
-        // TODO
         List<ProcExecBindingKeyLink> procExecBindingKeyLinks = new ArrayList<>();
-        for(String prevCtxNodeId : prevCtxNodeIds) {
+        for (String prevCtxNodeId : prevCtxNodeIds) {
+            TaskNodeInstInfoEntity prevCtxTaskNodeInstInfo = taskNodeInstInfoRepository
+                    .selectOneByProcInstIdAndNodeId(procInstInfo.getId(), prevCtxNodeId);
+            List<ProcExecBindingEntity> procExecBindings = procExecBindingMapper
+                    .selectAllBoundTaskNodeBindings(procInstInfo.getId(), prevCtxTaskNodeInstInfo.getId());
             
+            procExecBindingKeyLinks = propagateProcExecBindingKeyLinks(procExecBindingKeyLinks, procExecBindings, prevCtxNodeId);
         }
 
         ProcDefInfoEntity procDefInfo = contextCalculationParamCollection.getProcDefInfoEntity();
@@ -1387,9 +1392,163 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 
         List<InputParamObject> paramObjects = new ArrayList<>();
         
-        //TODO
+        List<ContextCalculationParam> contextCalculationParams = contextCalculationParamCollection
+                .getContextCalculationParams();
+        for (ProcExecBindingKeyLink procExecBindingKeyLink : procExecBindingKeyLinks) {
+            InputParamObject paramObject = new InputParamObject();
+            paramObject.setEntityTypeId("TaskNode");
+            String entityDataId = String.format("%s-%s", CALLBACK_PARAMETER_SYSTEM_PREFIX, LocalIdGenerator.generateId());
+            paramObject.setEntityDataId(entityDataId);//?
+            paramObject.setFullEntityDataId(entityDataId);// ?
 
+            for (ContextCalculationParam contextCalculationParam : contextCalculationParams) {
+                String attrName = contextCalculationParam.getParamName();
+
+                paramObject.addAttrNames(attrName);
+                InputParamAttr paramAttr = tryCalInputParamAttrWithProcExecBindingKeyLink(procExecBindingKeyLink,
+                        contextCalculationParam);
+                if (paramAttr != null) {
+                    paramObject.addAttrs(paramAttr);
+                }
+
+            }
+
+            paramObjects.add(paramObject);
+        }
+        
         return paramObjects;
+    }
+    
+    private InputParamAttr tryCalInputParamAttrWithProcExecBindingKeyLink(ProcExecBindingKeyLink procExecBindingKeyLink,
+            ContextCalculationParam contextCalculationParam) {
+        //TODO
+        String attrName = contextCalculationParam.getParamName();
+        String paramDataType = contextCalculationParam.getParamDataType();
+        PluginConfigInterfaceParameters paramDef = contextCalculationParam.getParam();
+        String multiple = paramDef.getMultiple();
+        String required = paramDef.getRequired();
+        InputParamAttr paramAttr = new InputParamAttr();
+        paramAttr.setName(attrName);
+        paramAttr.setDataType(paramDataType);
+        paramAttr.setMultiple(multiple);
+        paramAttr.setParamDef(paramDef);
+        paramAttr.setSensitive(Constants.DATA_SENSITIVE.equalsIgnoreCase(paramDef.getSensitiveData()));
+
+        boolean isMultiple = Constants.DATA_MULTIPLE.equalsIgnoreCase(multiple);
+        boolean isMandatory = Constants.FIELD_REQUIRED.equalsIgnoreCase(required);
+        List<Object> objectValues = tryCalInputParamAttrValueWithProcExecBindingKeyLink(procExecBindingKeyLink,
+                contextCalculationParam);
+
+        if (objectValues == null || objectValues.isEmpty()) {
+            if (isMandatory) {
+                String errMsg = String.format("The value is empty but field is mandatory for parameter:%s", attrName);
+                log.error(errMsg);
+                throw new WecubeCoreException(errMsg);
+            } else {
+                paramAttr.setValues(new ArrayList<Object>());
+            }
+
+            return paramAttr;
+        }
+
+        if (isMultiple) {
+            paramAttr.setValues(objectValues);
+            return paramAttr;
+        }
+
+        if ((objectValues.size() > 1) && (!isMultiple)) {
+            String errMsg = String.format("Total:%s object values found but field:%s is not multiple.",
+                    objectValues.size(), attrName);
+            log.error(errMsg);
+            throw new WecubeCoreException(errMsg);
+        } else {
+            paramAttr.setValues(objectValues);
+        }
+
+        return paramAttr;
+    }
+    
+    private List<Object> tryCalInputParamAttrValueWithProcExecBindingKeyLink(ProcExecBindingKeyLink procExecBindingKeyLink,
+            ContextCalculationParam contextCalculationParam){
+        //TODO
+        List<BoundTaskNodeExecParamWrapper> boundExecParamWrappers = contextCalculationParam
+                .getBoundExecParamWrappers();
+        if (boundExecParamWrappers == null || boundExecParamWrappers.isEmpty()) {
+            return new ArrayList<>();
+        }
+
+        List<Object> objectValues = new ArrayList<>();
+        for (BoundTaskNodeExecParamWrapper wrapper : boundExecParamWrappers) {
+            TaskNodeExecParamEntity boundTaskNodeExecParamEntity = wrapper.getBoundTaskNodeExecParamEntity();
+            if (boundTaskNodeExecParamEntity == null) {
+                continue;
+            }
+
+            String targetFullEntityDataId = boundTaskNodeExecParamEntity.getFullEntityDataId();
+            if (StringUtils.isBlank(targetFullEntityDataId)) {
+                log.info("Unknown full entity data ID of param:{}", boundTaskNodeExecParamEntity.getId());
+                continue;
+            }
+
+            if (matchBoundTaskNodeExecParamWrapper(wrapper,procExecBindingKeyLink)) {
+                Object paramDataValue = parseStringParamDataValueToObject(wrapper);
+                if (paramDataValue != null) {
+                    objectValues.add(paramDataValue);
+                }
+            }
+        }
+
+        return objectValues;
+    }
+    
+    private boolean matchBoundTaskNodeExecParamWrapper(BoundTaskNodeExecParamWrapper wrapper,ProcExecBindingKeyLink procExecBindingKeyLink) {
+        //TODO
+        return false;
+    }
+
+    private List<ProcExecBindingKeyLink> propagateProcExecBindingKeyLinks(
+            List<ProcExecBindingKeyLink> originProcExecBindingKeyLinks,
+            List<ProcExecBindingEntity> tailProcExecBindingKeys, String ctxNodeId) {
+        if(tailProcExecBindingKeys == null || tailProcExecBindingKeys.isEmpty()) {
+            
+            for(ProcExecBindingKeyLink originProcExecBindingKeyLink : originProcExecBindingKeyLinks) {
+                ProcExecBindingKey bindingKey = new ProcExecBindingKey();
+                bindingKey.setTaskNodeId(ctxNodeId);
+                
+                originProcExecBindingKeyLink.addProcExecBindingKey(bindingKey);
+            }
+            
+            return originProcExecBindingKeyLinks;
+        }
+        
+        List<ProcExecBindingKeyLink> retProcExecBindingKeyLinks = new ArrayList<>();
+        for (ProcExecBindingEntity tailProcExecBinding : tailProcExecBindingKeys) {
+            if (originProcExecBindingKeyLinks.isEmpty()) {
+                ProcExecBindingKeyLink newLink = new ProcExecBindingKeyLink();
+                ProcExecBindingKey bindingKey = new ProcExecBindingKey();
+                bindingKey.setTaskNodeId(ctxNodeId);
+                bindingKey.setProcExecBinding(tailProcExecBinding);
+                
+                newLink.addProcExecBindingKey(bindingKey);
+
+                retProcExecBindingKeyLinks.add(newLink);
+            } else {
+                for (ProcExecBindingKeyLink originLink : originProcExecBindingKeyLinks) {
+                    ProcExecBindingKeyLink newLink = new ProcExecBindingKeyLink();
+                    newLink.getProcExecBindingKeys().addAll(originLink.getProcExecBindingKeys());
+                    
+                    ProcExecBindingKey bindingKey = new ProcExecBindingKey();
+                    bindingKey.setTaskNodeId(ctxNodeId);
+                    bindingKey.setProcExecBinding(tailProcExecBinding);
+                    
+                    newLink.addProcExecBindingKey(bindingKey);
+
+                    retProcExecBindingKeyLinks.add(newLink);
+                }
+            }
+        }
+
+        return retProcExecBindingKeyLinks;
     }
 
     private List<InputParamObject> tryCalculateInputParamObjectsWithoutBindings(ProcDefInfoEntity procDefEntity,
