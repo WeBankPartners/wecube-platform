@@ -13,6 +13,7 @@ import com.webank.wecube.platform.core.entity.plugin.CoreObjectMeta;
 import com.webank.wecube.platform.core.entity.plugin.CoreObjectPropertyMeta;
 import com.webank.wecube.platform.core.entity.plugin.CoreObjectPropertyVar;
 import com.webank.wecube.platform.core.entity.plugin.CoreObjectVar;
+import com.webank.wecube.platform.core.utils.Constants;
 import com.webank.wecube.platform.workflow.commons.LocalIdGenerator;
 
 @Service
@@ -64,7 +65,7 @@ public class PluginParamObjectVarMarshaller extends AbstractPluginParamObjectSer
     public CoreObjectVar doUnmarshalPluginParamObject(Map<String, Object> paramObject, CoreObjectMeta objectMeta,
             CoreObjectVarCalculationContext ctx) {
         CoreObjectVar rootObjectVar = new CoreObjectVar();
-        rootObjectVar.setId(LocalIdGenerator.generateId(PREFIX_OBJECT_VAR_ID));
+        rootObjectVar.setId(LocalIdGenerator.generateId(Constants.PREFIX_OBJECT_VAR_ID));
         rootObjectVar.setName(objectMeta.getName());
         rootObjectVar.setObjectMeta(objectMeta);
         rootObjectVar.setObjectMetaId(objectMeta.getId());
@@ -79,7 +80,7 @@ public class PluginParamObjectVarMarshaller extends AbstractPluginParamObjectSer
             Object propertyValueObject = paramObject.get(propertyMeta.getName());
 
             CoreObjectPropertyVar propertyVar = unmarshalPropertyVar(propertyValueObject, propertyMeta, ctx);
-            propertyVar.setId(LocalIdGenerator.generateId(PREFIX_PROPERTY_VAR_ID));
+            propertyVar.setId(LocalIdGenerator.generateId(Constants.PREFIX_PROPERTY_VAR_ID));
             propertyVar.setObjectMetaId(rootObjectVar.getObjectMetaId());
 
             propertyVar.setObjectPropertyMetaId(propertyMeta.getId());
@@ -98,7 +99,7 @@ public class PluginParamObjectVarMarshaller extends AbstractPluginParamObjectSer
     private CoreObjectPropertyVar unmarshalPropertyVar(Object propertyValueObject, CoreObjectPropertyMeta propertyMeta,
             CoreObjectVarCalculationContext ctx) {
         CoreObjectPropertyVar propertyVar = new CoreObjectPropertyVar();
-        propertyVar.setId(LocalIdGenerator.generateId(PREFIX_PROPERTY_VAR_ID));
+        propertyVar.setId(LocalIdGenerator.generateId(Constants.PREFIX_PROPERTY_VAR_ID));
         propertyVar.setName(propertyMeta.getName());
         propertyVar.setDataType(propertyMeta.getDataType());
 

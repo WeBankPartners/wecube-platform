@@ -18,13 +18,17 @@ import com.webank.wecube.platform.core.entity.plugin.CoreObjectMeta;
 import com.webank.wecube.platform.core.entity.plugin.CoreObjectPropertyMeta;
 import com.webank.wecube.platform.core.entity.plugin.CoreObjectPropertyVar;
 import com.webank.wecube.platform.core.entity.plugin.CoreObjectVar;
+import com.webank.wecube.platform.core.entity.plugin.PluginConfigInterfaceParameters;
 import com.webank.wecube.platform.core.entity.plugin.SystemVariables;
+import com.webank.wecube.platform.core.entity.workflow.ProcExecBindingEntity;
 import com.webank.wecube.platform.core.entity.workflow.ProcInstInfoEntity;
 import com.webank.wecube.platform.core.entity.workflow.TaskNodeDefInfoEntity;
 import com.webank.wecube.platform.core.entity.workflow.TaskNodeExecParamEntity;
 import com.webank.wecube.platform.core.entity.workflow.TaskNodeExecRequestEntity;
 import com.webank.wecube.platform.core.entity.workflow.TaskNodeInstInfoEntity;
 import com.webank.wecube.platform.core.entity.workflow.TaskNodeParamEntity;
+import com.webank.wecube.platform.core.model.workflow.ContextCalculationParam;
+import com.webank.wecube.platform.core.model.workflow.ProcExecBindingKeyLink;
 import com.webank.wecube.platform.core.repository.workflow.TaskNodeDefInfoMapper;
 import com.webank.wecube.platform.core.repository.workflow.TaskNodeExecParamMapper;
 import com.webank.wecube.platform.core.repository.workflow.TaskNodeExecRequestMapper;
@@ -78,6 +82,97 @@ public class PluginParamObjectVarCalculator extends AbstractPluginParamObjectSer
         return rootObjectVars;
 
     }
+    
+    /**
+     * 
+     * @param procExecBindingKeyLink
+     * @param contextCalculationParam
+     * @param isMultiple
+     * @return
+     */
+    public List<CoreObjectVar> calculateCoreObjectVarsFromContext(
+            ProcExecBindingKeyLink procExecBindingKeyLink, ContextCalculationParam contextCalculationParam,
+            boolean isMultiple){
+        //TODO
+        
+        return null;
+    }
+    
+   /**
+    * 
+    * @param prevCtxTaskNodeBinding
+    * @param contextCalculationParam
+    * @param isMultiple
+    * @return
+    */
+    public List<CoreObjectVar> calculateCoreObjectVarsFromContext(
+            ProcExecBindingEntity prevCtxTaskNodeBinding, ContextCalculationParam contextCalculationParam,
+            boolean isMultiple){
+        PluginConfigInterfaceParameters paramDef = contextCalculationParam.getParam();
+        CoreObjectMeta objectMeta = paramDef.getObjectMeta();
+        // TODO
+        CoreObjectVar objectVar = new CoreObjectVar();
+        objectVar.setId(LocalIdGenerator.generateId(Constants.PREFIX_OBJECT_VAR_ID));
+        objectVar.setName(objectMeta.getName());
+        objectVar.setObjectMeta(objectMeta);
+        objectVar.setObjectMetaId(objectMeta.getId());
+        objectVar.setPackageName(objectMeta.getPackageName());
+
+        List<CoreObjectPropertyMeta> propertyMetas = objectMeta.getPropertyMetas();
+        for (CoreObjectPropertyMeta propertyMeta : propertyMetas) {
+            CoreObjectPropertyVar propertyVar = tryCalObjectPropertyValueWithPrevBinding(propertyMeta, objectVar,
+                    prevCtxTaskNodeBinding, contextCalculationParam);
+            propertyVar.setId(LocalIdGenerator.generateId(Constants.PREFIX_PROPERTY_VAR_ID));
+            propertyVar.setObjectMetaId(objectVar.getObjectMetaId());
+
+            propertyVar.setObjectPropertyMetaId(propertyMeta.getId());
+            propertyVar.setPropertyMeta(propertyMeta);
+            propertyVar.setObjectVar(objectVar);
+            propertyVar.setObjectVarId(objectVar.getId());
+            propertyVar.setObjectName(objectMeta.getName());
+            propertyVar.setPackageName(objectMeta.getPackageName());
+
+            objectVar.addPropertyVar(propertyVar);
+        }
+        
+        List<CoreObjectVar> objectVars = new ArrayList<>();
+        objectVars.add(objectVar);
+
+        return objectVars;
+        //TODO
+        
+    }
+    
+    private CoreObjectPropertyVar tryCalObjectPropertyValueWithPrevBinding(CoreObjectPropertyMeta propertyMeta,
+            CoreObjectVar parentObjectVar, ProcExecBindingEntity prevCtxTaskNodeBinding,
+            ContextCalculationParam contextCalculationParam) {
+
+//        CoreObjectPropertyVar propertyVar = new CoreObjectPropertyVar();
+//        propertyVar.setId(LocalIdGenerator.generateId(Constants.PREFIX_PROPERTY_VAR_ID));
+//        propertyVar.setName(propertyMeta.getName());
+//        propertyVar.setDataType(propertyMeta.getDataType());
+//
+//        List<Object> rawDataValueObjects = tryCalculatePropertyDataValueObject(propertyMeta, parentObjectVar, ctx,
+//                rootDataId);
+//
+//        Object dataValueObject = determineObjectDataValue(propertyMeta, rawDataValueObjects);
+//
+//        log.info("data value object for {} : {}", propertyMeta.getName(), dataValueObject);
+//        String dataValue = convertPropertyValueToString(propertyMeta, dataValueObject);
+//        propertyVar.setDataValueObject(dataValueObject);
+//        propertyVar.setDataValue(dataValue);
+//        propertyVar.setPropertyMeta(propertyMeta);
+//        propertyVar.setSensitive(propertyMeta.getSensitive());
+//        propertyVar.setObjectName(propertyMeta.getObjectName());
+//        propertyVar.setPackageName(propertyMeta.getPackageName());
+//        propertyVar.setObjectPropertyMetaId(propertyMeta.getId());
+
+//        return propertyVar;
+        
+        //TODO
+        return null;
+    }
+
 
     protected List<CoreObjectVar> doCalculateCoreObjectVarList(CoreObjectMeta objectMeta, CoreObjectVar parentObjectVar,
             CoreObjectVarCalculationContext ctx, String rootEntityDataId, String objectMetaExpr) {
@@ -129,7 +224,7 @@ public class PluginParamObjectVarCalculator extends AbstractPluginParamObjectSer
 
         for (String boundDataId : objectMetaBoundDataIds) {
             CoreObjectVar objectVar = new CoreObjectVar();
-            objectVar.setId(LocalIdGenerator.generateId(PREFIX_OBJECT_VAR_ID));
+            objectVar.setId(LocalIdGenerator.generateId(Constants.PREFIX_OBJECT_VAR_ID));
             objectVar.setName(objectMeta.getName());
             objectVar.setObjectMeta(objectMeta);
             objectVar.setObjectMetaId(objectMeta.getId());
@@ -146,7 +241,7 @@ public class PluginParamObjectVarCalculator extends AbstractPluginParamObjectSer
             for (CoreObjectPropertyMeta propertyMeta : propertyMetas) {
                 CoreObjectPropertyVar propertyVar = tryCalculatePropertyValue(propertyMeta, objectVar, ctx,
                         boundDataId);
-                propertyVar.setId(LocalIdGenerator.generateId(PREFIX_PROPERTY_VAR_ID));
+                propertyVar.setId(LocalIdGenerator.generateId(Constants.PREFIX_PROPERTY_VAR_ID));
                 propertyVar.setObjectMetaId(objectVar.getObjectMetaId());
 
                 propertyVar.setObjectPropertyMetaId(propertyMeta.getId());
@@ -229,7 +324,7 @@ public class PluginParamObjectVarCalculator extends AbstractPluginParamObjectSer
             CoreObjectVar parentObjectVar, CoreObjectVarCalculationContext ctx, String rootEntityDataId) {
         List<CoreObjectVar> coreObjectVars = new ArrayList<>();
         CoreObjectVar objectVar = new CoreObjectVar();
-        objectVar.setId(LocalIdGenerator.generateId(PREFIX_OBJECT_VAR_ID));
+        objectVar.setId(LocalIdGenerator.generateId(Constants.PREFIX_OBJECT_VAR_ID));
         objectVar.setName(objectMeta.getName());
         objectVar.setObjectMeta(objectMeta);
         objectVar.setObjectMetaId(objectMeta.getId());
@@ -245,7 +340,7 @@ public class PluginParamObjectVarCalculator extends AbstractPluginParamObjectSer
         List<CoreObjectPropertyMeta> propertyMetas = objectMeta.getPropertyMetas();
         for (CoreObjectPropertyMeta propertyMeta : propertyMetas) {
             CoreObjectPropertyVar propertyVar = tryCalculatePropertyValue(propertyMeta, objectVar, ctx, null);
-            propertyVar.setId(LocalIdGenerator.generateId(PREFIX_PROPERTY_VAR_ID));
+            propertyVar.setId(LocalIdGenerator.generateId(Constants.PREFIX_PROPERTY_VAR_ID));
             propertyVar.setObjectMetaId(objectVar.getObjectMetaId());
 
             propertyVar.setObjectPropertyMetaId(propertyMeta.getId());
@@ -280,7 +375,7 @@ public class PluginParamObjectVarCalculator extends AbstractPluginParamObjectSer
             CoreObjectVar parentObjectVar, CoreObjectVarCalculationContext ctx, String rootDataId) {
 
         CoreObjectPropertyVar propertyVar = new CoreObjectPropertyVar();
-        propertyVar.setId(LocalIdGenerator.generateId(PREFIX_PROPERTY_VAR_ID));
+        propertyVar.setId(LocalIdGenerator.generateId(Constants.PREFIX_PROPERTY_VAR_ID));
         propertyVar.setName(propertyMeta.getName());
         propertyVar.setDataType(propertyMeta.getDataType());
 
