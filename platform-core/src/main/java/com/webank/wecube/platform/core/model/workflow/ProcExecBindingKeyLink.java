@@ -3,21 +3,19 @@ package com.webank.wecube.platform.core.model.workflow;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.webank.wecube.platform.core.entity.workflow.ProcExecBindingEntity;
-
 public class ProcExecBindingKeyLink {
 
-    private List<ProcExecBindingEntity> procExecBindingKeys = new ArrayList<>();
+    private List<ProcExecBindingKey> procExecBindingKeys = new ArrayList<>();
 
-    public List<ProcExecBindingEntity> getProcExecBindingKeys() {
+    public List<ProcExecBindingKey> getProcExecBindingKeys() {
         return procExecBindingKeys;
     }
 
-    public void setProcExecBindingKeys(List<ProcExecBindingEntity> procExecBindingKeys) {
+    public void setProcExecBindingKeys(List<ProcExecBindingKey> procExecBindingKeys) {
         this.procExecBindingKeys = procExecBindingKeys;
     }
     
-    public void addProcExecBindingKey(ProcExecBindingEntity procExecBindingKey) {
+    public void addProcExecBindingKey(ProcExecBindingKey procExecBindingKey) {
         this.procExecBindingKeys.add(procExecBindingKey);
     }
 }
