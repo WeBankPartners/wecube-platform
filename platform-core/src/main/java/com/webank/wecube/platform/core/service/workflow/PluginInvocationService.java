@@ -1001,16 +1001,12 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
         contextCalculationParamCollection.setCurrTaskNodeInstEntity(currTaskNodeInstEntity);
         contextCalculationParamCollection.setPluginConfigInterface(pluginConfigInterface);
 
-        // TODO object supported here??
         for (PluginConfigInterfaceParameters param : contextConfigInterfaceInputParams.values()) {
 
             String paramName = param.getName();
             String paramDataType = param.getDataType();
 
-            if (isObjectDataType(paramDataType)) {
-                log.info("Parameter:{} is object type.", paramName);
-            }
-
+           
             ContextCalculationParam contextCalculationParam = new ContextCalculationParam();
             contextCalculationParam.setParam(param);
             contextCalculationParam.setParamName(paramName);
@@ -1022,12 +1018,17 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
             contextCalculationParam.setPluginConfigInterface(pluginConfigInterface);
 
             contextCalculationParamCollection.addContextCalculationParam(contextCalculationParam);
+            
+            if (isObjectDataType(paramDataType)) {
+                log.info("Parameter:{} is object type.", paramName);
+                continue;
+            }
 
             TaskNodeParamEntity nodeParamEntity = taskNodeParamRepository
                     .selectOneByTaskNodeDefIdAndParamName(curTaskNodeDefId, paramName);
 
             if (nodeParamEntity == null) {
-                log.error("mapping type is {} but node parameter entity is null for {}", MAPPING_TYPE_CONTEXT,
+                log.info("mapping type is {} but node parameter entity is null for {}", MAPPING_TYPE_CONTEXT,
                         curTaskNodeDefId);
 
                 if (Constants.FIELD_REQUIRED.equalsIgnoreCase(param.getRequired())) {
@@ -1189,9 +1190,9 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
                 paramObject.addAttrNames(attrName);
                 InputParamAttr paramAttr = null;
                 if (isObjectDataType(paramDataType)) {
-                    paramAttr = tryCalObjectInputParamAttrWithBinding(prevCtxTaskNodeBinding, contextCalculationParam);
+                    paramAttr = tryCalObjectInputParamAttrWithPrevBinding(prevCtxTaskNodeBinding, contextCalculationParam);
                 } else {
-                    paramAttr = tryCalBasicInputParamAttrWithBinding(prevCtxTaskNodeBinding, contextCalculationParam);
+                    paramAttr = tryCalBasicInputParamAttrWithPrevBinding(prevCtxTaskNodeBinding, contextCalculationParam);
                 }
 
                 if (paramAttr != null) {
@@ -1206,14 +1207,47 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
         return paramObjects;
     }
 
-    private InputParamAttr tryCalObjectInputParamAttrWithBinding(ProcExecBindingEntity prevCtxTaskNodeBinding,
+    private InputParamAttr tryCalObjectInputParamAttrWithPrevBinding(ProcExecBindingEntity prevCtxTaskNodeBinding,
             ContextCalculationParam contextCalculationParam) {
         // TODO
         // FIXME
+        String attrName = contextCalculationParam.getParamName();
+        String paramDataType = contextCalculationParam.getParamDataType();
+        
+        PluginConfigInterfaceParameters paramDef = contextCalculationParam.getParam();
+        CoreObjectMeta refObjectMeta = paramDef.getObjectMeta();
+        
+        if(refObjectMeta == null) {
+            String errMsg = String.format("Data type of parameter:%s is object but there is not object meta provided.", contextCalculationParam.getParamName());
+            log.error(errMsg);
+            
+            throw new WecubeCoreException(errMsg);
+        }
+        
+        String multiple = paramDef.getMultiple();
+        String required = paramDef.getRequired();
+        InputParamAttr paramAttr = new InputParamAttr();
+        paramAttr.setName(attrName);
+        paramAttr.setDataType(paramDataType);
+        paramAttr.setMultiple(multiple);
+        paramAttr.setParamDef(paramDef);
+        paramAttr.setSensitive(Constants.DATA_SENSITIVE.equalsIgnoreCase(paramDef.getSensitiveData()));
+        
+        boolean isMultiple = Constants.DATA_MULTIPLE.equalsIgnoreCase(multiple);
+        boolean isMandatory = Constants.FIELD_REQUIRED.equalsIgnoreCase(required);
+        
+        //TODO
+        return null;
+    }
+    
+    private List<CoreObjectVar> tryCalObjectInputParamAttrValueWithPrevBinding(ProcExecBindingEntity prevCtxTaskNodeBinding,
+            ContextCalculationParam contextCalculationParam, boolean isMultiple){
+        
+        //TODO
         return null;
     }
 
-    private InputParamAttr tryCalBasicInputParamAttrWithBinding(ProcExecBindingEntity prevCtxTaskNodeBinding,
+    private InputParamAttr tryCalBasicInputParamAttrWithPrevBinding(ProcExecBindingEntity prevCtxTaskNodeBinding,
             ContextCalculationParam contextCalculationParam) {
         String attrName = contextCalculationParam.getParamName();
         String paramDataType = contextCalculationParam.getParamDataType();
@@ -1229,7 +1263,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 
         boolean isMultiple = Constants.DATA_MULTIPLE.equalsIgnoreCase(multiple);
         boolean isMandatory = Constants.FIELD_REQUIRED.equalsIgnoreCase(required);
-        List<Object> objectValues = tryCalInputParamAttrValueWithBinding(prevCtxTaskNodeBinding,
+        List<Object> objectValues = tryCalInputParamAttrValueWithPrevBinding(prevCtxTaskNodeBinding,
                 contextCalculationParam);
 
         if (objectValues == null || objectValues.isEmpty()) {
@@ -1261,7 +1295,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
         return paramAttr;
     }
 
-    private List<Object> tryCalInputParamAttrValueWithBinding(ProcExecBindingEntity prevCtxTaskNodeBinding,
+    private List<Object> tryCalInputParamAttrValueWithPrevBinding(ProcExecBindingEntity prevCtxTaskNodeBinding,
             ContextCalculationParam contextCalculationParam) {
         List<BoundTaskNodeExecParamWrapper> boundExecParamWrappers = contextCalculationParam
                 .getBoundExecParamWrappers();
@@ -1453,7 +1487,40 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
             ProcExecBindingKeyLink procExecBindingKeyLink, ContextCalculationParam contextCalculationParam) {
         // TODO
         // FIXME
+        String attrName = contextCalculationParam.getParamName();
+        String paramDataType = contextCalculationParam.getParamDataType();
+        
+        PluginConfigInterfaceParameters paramDef = contextCalculationParam.getParam();
+        CoreObjectMeta refObjectMeta = paramDef.getObjectMeta();
+        
+        if(refObjectMeta == null) {
+            String errMsg = String.format("Data type of parameter:%s is object but there is not object meta provided.", contextCalculationParam.getParamName());
+            log.error(errMsg);
+            
+            throw new WecubeCoreException(errMsg);
+        }
+        
+        String multiple = paramDef.getMultiple();
+        String required = paramDef.getRequired();
+        InputParamAttr paramAttr = new InputParamAttr();
+        paramAttr.setName(attrName);
+        paramAttr.setDataType(paramDataType);
+        paramAttr.setMultiple(multiple);
+        paramAttr.setParamDef(paramDef);
+        paramAttr.setSensitive(Constants.DATA_SENSITIVE.equalsIgnoreCase(paramDef.getSensitiveData()));
+        
+        boolean isMultiple = Constants.DATA_MULTIPLE.equalsIgnoreCase(multiple);
+        boolean isMandatory = Constants.FIELD_REQUIRED.equalsIgnoreCase(required);
+        
+        
 
+        return null;
+    }
+    
+    private List<CoreObjectVar> tryCalObjectInputParamAttrValueWithProcExecBindingKeyLink(
+            ProcExecBindingKeyLink procExecBindingKeyLink, ContextCalculationParam contextCalculationParam, boolean isMultiple){
+        //TODO
+        
         return null;
     }
 
