@@ -1,10 +1,9 @@
 package com.webank.wecube.platform.core.dto.plugin;
 
-public class PluginCertificationDto {
-    private String id;
+public class PluginCertificationExportDto {
     private String plugin;
     private String lpk;
-    private String encryptData;
+    private String data;
     private String signature;
     private String description;
 
@@ -24,12 +23,12 @@ public class PluginCertificationDto {
         this.lpk = lpk;
     }
 
-    public String getEncryptData() {
-        return encryptData;
+    public String getData() {
+        return data;
     }
 
-    public void setEncryptData(String encryptData) {
-        this.encryptData = encryptData;
+    public void setData(String data) {
+        this.data = data;
     }
 
     public String getSignature() {
@@ -48,25 +47,15 @@ public class PluginCertificationDto {
         this.description = description;
     }
 
-    public String getId() {
-        return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
-    }
-
     @Override
     public String toString() {
         StringBuilder builder = new StringBuilder();
-        builder.append("[id=");
-        builder.append(id);
-        builder.append(", plugin=");
+        builder.append("[plugin=");
         builder.append(plugin);
         builder.append(", lpk=");
         builder.append(lpk);
-        builder.append(", encryptData=");
-        builder.append(encryptData);
+        builder.append(", data=");
+        builder.append(data);
         builder.append(", signature=");
         builder.append(signature);
         builder.append(", description=");
@@ -74,5 +63,4 @@ public class PluginCertificationDto {
         builder.append("]");
         return builder.toString();
     }
-
 }

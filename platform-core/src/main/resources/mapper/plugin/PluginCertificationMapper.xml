@@ -1,0 +1,269 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper
+    namespace="com.webank.wecube.platform.core.repository.plugin.PluginCertificationMapper">
+    <resultMap id="BaseResultMap"
+        type="com.webank.wecube.platform.core.entity.plugin.PluginCertification">
+        <id column="id" jdbcType="VARCHAR" property="id" />
+        <result column="created_by" jdbcType="VARCHAR" property="createdBy" />
+        <result column="created_time" jdbcType="TIMESTAMP"
+            property="createdTime" />
+        <result column="updated_by" jdbcType="VARCHAR" property="updatedBy" />
+        <result column="updated_time" jdbcType="TIMESTAMP"
+            property="updatedTime" />
+        <result column="data_id" jdbcType="VARCHAR" property="dataId" />
+        <result column="display_name" jdbcType="VARCHAR"
+            property="displayName" />
+        <result column="entity_name" jdbcType="VARCHAR" property="entityName" />
+        <result column="g_node_id" jdbcType="VARCHAR" property="graphNodeId" />
+        <result column="pkg_name" jdbcType="VARCHAR" property="pkgName" />
+        <result column="proc_inst_id" jdbcType="INTEGER"
+            property="procInstId" />
+        <result column="proc_sess_id" jdbcType="VARCHAR"
+            property="procSessId" />
+        <result column="prev_ids" jdbcType="LONGVARCHAR"
+            property="prevIds" />
+        <result column="succ_ids" jdbcType="LONGVARCHAR"
+            property="succIds" />
+        <result column="full_data_id" jdbcType="VARCHAR" property="fullDataId" />
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id, created_by, created_time, updated_by, updated_time,
+        data_id,
+        display_name, entity_name,
+        g_node_id, pkg_name,
+        proc_inst_id, proc_sess_id,
+        prev_ids, succ_ids, full_data_id
+    </sql>
+
+    <select id="selectByPrimaryKey" parameterType="java.lang.Integer"
+        resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List" />
+        from core_ru_graph_node
+        where id = #{id,jdbcType=INTEGER}
+    </select>
+    <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer">
+        delete from
+        core_ru_graph_node
+        where id = #{id,jdbcType=INTEGER}
+    </delete>
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id"
+        parameterType="com.webank.wecube.platform.core.entity.workflow.GraphNodeEntity">
+        insert into core_ru_graph_node (id, created_by,
+        created_time,
+        updated_by, updated_time, data_id,
+        display_name,
+        entity_name, g_node_id,
+        pkg_name, proc_inst_id, proc_sess_id,
+        prev_ids, succ_ids, full_data_id)
+        values (#{id,jdbcType=INTEGER},
+        #{createdBy,jdbcType=VARCHAR},
+        #{createdTime,jdbcType=TIMESTAMP},
+        #{updatedBy,jdbcType=VARCHAR},
+        #{updatedTime,jdbcType=TIMESTAMP}, #{dataId,jdbcType=VARCHAR},
+        #{displayName,jdbcType=VARCHAR}, #{entityName,jdbcType=VARCHAR},
+        #{graphNodeId,jdbcType=VARCHAR},
+        #{pkgName,jdbcType=VARCHAR},
+        #{procInstId,jdbcType=INTEGER}, #{procSessId,jdbcType=VARCHAR},
+        #{prevIds,jdbcType=LONGVARCHAR},
+        #{succIds,jdbcType=LONGVARCHAR},
+        #{fullDataId,jdbcType=VARCHAR})
+    </insert>
+    <insert id="insertSelective"
+        useGeneratedKeys="true" keyProperty="id"
+        parameterType="com.webank.wecube.platform.core.entity.workflow.GraphNodeEntity">
+        insert into core_ru_graph_node
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="createdBy != null">
+                created_by,
+            </if>
+            <if test="createdTime != null">
+                created_time,
+            </if>
+            <if test="updatedBy != null">
+                updated_by,
+            </if>
+            <if test="updatedTime != null">
+                updated_time,
+            </if>
+            <if test="dataId != null">
+                data_id,
+            </if>
+            <if test="displayName != null">
+                display_name,
+            </if>
+            <if test="entityName != null">
+                entity_name,
+            </if>
+            <if test="graphNodeId != null">
+                g_node_id,
+            </if>
+            <if test="pkgName != null">
+                pkg_name,
+            </if>
+            <if test="procInstId != null">
+                proc_inst_id,
+            </if>
+            <if test="procSessId != null">
+                proc_sess_id,
+            </if>
+            <if test="prevIds != null">
+                prev_ids,
+            </if>
+            <if test="succIds != null">
+                succ_ids,
+            </if>
+             <if test="fullDataId != null">
+                full_data_id,
+            </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="createdBy != null">
+                #{createdBy,jdbcType=VARCHAR},
+            </if>
+            <if test="createdTime != null">
+                #{createdTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="updatedBy != null">
+                #{updatedBy,jdbcType=VARCHAR},
+            </if>
+            <if test="updatedTime != null">
+                #{updatedTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="dataId != null">
+                #{dataId,jdbcType=VARCHAR},
+            </if>
+            <if test="displayName != null">
+                #{displayName,jdbcType=VARCHAR},
+            </if>
+            <if test="entityName != null">
+                #{entityName,jdbcType=VARCHAR},
+            </if>
+            <if test="graphNodeId != null">
+                #{graphNodeId,jdbcType=VARCHAR},
+            </if>
+            <if test="pkgName != null">
+                #{pkgName,jdbcType=VARCHAR},
+            </if>
+            <if test="procInstId != null">
+                #{procInstId,jdbcType=INTEGER},
+            </if>
+            <if test="procSessId != null">
+                #{procSessId,jdbcType=VARCHAR},
+            </if>
+            <if test="prevIds != null">
+                #{prevIds,jdbcType=LONGVARCHAR},
+            </if>
+            <if test="succIds != null">
+                #{succIds,jdbcType=LONGVARCHAR},
+            </if>
+            <if test="fullDataId != null">
+                #{fullDataId,jdbcType=VARCHAR},
+            </if>
+        </trim>
+    </insert>
+    <update id="updateByPrimaryKeySelective"
+        parameterType="com.webank.wecube.platform.core.entity.workflow.GraphNodeEntity">
+        update core_ru_graph_node
+        <set>
+            <if test="createdBy != null">
+                created_by = #{createdBy,jdbcType=VARCHAR},
+            </if>
+            <if test="createdTime != null">
+                created_time =
+                #{createdTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="updatedBy != null">
+                updated_by = #{updatedBy,jdbcType=VARCHAR},
+            </if>
+            <if test="updatedTime != null">
+                updated_time =
+                #{updatedTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="dataId != null">
+                data_id = #{dataId,jdbcType=VARCHAR},
+            </if>
+            <if test="displayName != null">
+                display_name = #{displayName,jdbcType=VARCHAR},
+            </if>
+            <if test="entityName != null">
+                entity_name = #{entityName,jdbcType=VARCHAR},
+            </if>
+            <if test="graphNodeId != null">
+                g_node_id = #{graphNodeId,jdbcType=VARCHAR},
+            </if>
+            <if test="pkgName != null">
+                pkg_name = #{pkgName,jdbcType=VARCHAR},
+            </if>
+            <if test="procInstId != null">
+                proc_inst_id = #{procInstId,jdbcType=INTEGER},
+            </if>
+            <if test="procSessId != null">
+                proc_sess_id = #{procSessId,jdbcType=VARCHAR},
+            </if>
+            <if test="prevIds != null">
+                prev_ids = #{prevIds,jdbcType=LONGVARCHAR},
+            </if>
+            <if test="succIds != null">
+                succ_ids = #{succIds,jdbcType=LONGVARCHAR},
+            </if>
+            <if test="fullDataId != null">
+                full_data_id = #{fullDataId,jdbcType=VARCHAR},
+            </if>
+        </set>
+        where id = #{id,jdbcType=INTEGER}
+    </update>
+
+    <update id="updateByPrimaryKey"
+        parameterType="com.webank.wecube.platform.core.entity.workflow.GraphNodeEntity">
+        update core_ru_graph_node
+        set created_by =
+        #{createdBy,jdbcType=VARCHAR},
+        created_time =
+        #{createdTime,jdbcType=TIMESTAMP},
+        updated_by =
+        #{updatedBy,jdbcType=VARCHAR},
+        updated_time =
+        #{updatedTime,jdbcType=TIMESTAMP},
+        data_id =
+        #{dataId,jdbcType=VARCHAR},
+        display_name =
+        #{displayName,jdbcType=VARCHAR},
+        entity_name =
+        #{entityName,jdbcType=VARCHAR},
+        g_node_id =
+        #{graphNodeId,jdbcType=VARCHAR},
+        pkg_name =
+        #{pkgName,jdbcType=VARCHAR},
+        proc_inst_id =
+        #{procInstId,jdbcType=INTEGER},
+        proc_sess_id =
+        #{procSessId,jdbcType=VARCHAR},
+        prev_ids =
+        #{prevIds,jdbcType=LONGVARCHAR},
+        succ_ids =
+        #{succIds,jdbcType=LONGVARCHAR},
+        full_data_id =
+        #{fullDataId,jdbcType=INTEGER}
+        where id = #{id,jdbcType=INTEGER}
+    </update>
+
+    <select id="selectAllPluginCertifications" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List" />
+        from core_ru_graph_node
+        where proc_sess_id =
+        #{processSessionId,jdbcType=INTEGER}
+    </select>
+
+    <select id="selectPluginCertificationByPlugin" parameterType="java.lang.Integer"
+        resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List" />
+        from core_ru_graph_node
+        where proc_inst_id =
+        #{procInstId,jdbcType=INTEGER}
+    </select>
+</mapper>
