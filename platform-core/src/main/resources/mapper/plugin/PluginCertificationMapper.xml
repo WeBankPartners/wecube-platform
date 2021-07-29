@@ -11,70 +11,68 @@
         <result column="updated_by" jdbcType="VARCHAR" property="updatedBy" />
         <result column="updated_time" jdbcType="TIMESTAMP"
             property="updatedTime" />
-        <result column="data_id" jdbcType="VARCHAR" property="dataId" />
-        <result column="display_name" jdbcType="VARCHAR"
-            property="displayName" />
-        <result column="entity_name" jdbcType="VARCHAR" property="entityName" />
-        <result column="g_node_id" jdbcType="VARCHAR" property="graphNodeId" />
-        <result column="pkg_name" jdbcType="VARCHAR" property="pkgName" />
-        <result column="proc_inst_id" jdbcType="INTEGER"
-            property="procInstId" />
-        <result column="proc_sess_id" jdbcType="VARCHAR"
-            property="procSessId" />
-        <result column="prev_ids" jdbcType="LONGVARCHAR"
-            property="prevIds" />
-        <result column="succ_ids" jdbcType="LONGVARCHAR"
-            property="succIds" />
-        <result column="full_data_id" jdbcType="VARCHAR" property="fullDataId" />
+        <result column="plugin" jdbcType="VARCHAR" property="plugin" />
+        <result column="lpk" jdbcType="VARCHAR" property="lpk" />
+        <result column="encrypt_data" jdbcType="VARCHAR" property="encryptData" />
+        <result column="signature" jdbcType="VARCHAR" property="signature" />
+        <result column="description" jdbcType="VARCHAR" property="description" />
     </resultMap>
-
+    
     <sql id="Base_Column_List">
-        id, created_by, created_time, updated_by, updated_time,
-        data_id,
-        display_name, entity_name,
-        g_node_id, pkg_name,
-        proc_inst_id, proc_sess_id,
-        prev_ids, succ_ids, full_data_id
+        id, 
+        created_by, 
+        created_time, 
+        updated_by, 
+        updated_time,
+        plugin,
+        lpk, 
+        encrypt_data,
+        signature, 
+        description
     </sql>
 
-    <select id="selectByPrimaryKey" parameterType="java.lang.Integer"
+    <select id="selectByPrimaryKey" parameterType="java.lang.String"
         resultMap="BaseResultMap">
         select
         <include refid="Base_Column_List" />
-        from core_ru_graph_node
-        where id = #{id,jdbcType=INTEGER}
+        from plugin_certification
+        where id = #{id,jdbcType=VARCHAR}
     </select>
-    <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer">
+    <delete id="deleteByPrimaryKey" parameterType="java.lang.String">
         delete from
-        core_ru_graph_node
-        where id = #{id,jdbcType=INTEGER}
+        plugin_certification
+        where id = #{id,jdbcType=VARCHAR}
     </delete>
-    <insert id="insert" useGeneratedKeys="true" keyProperty="id"
-        parameterType="com.webank.wecube.platform.core.entity.workflow.GraphNodeEntity">
-        insert into core_ru_graph_node (id, created_by,
-        created_time,
-        updated_by, updated_time, data_id,
-        display_name,
-        entity_name, g_node_id,
-        pkg_name, proc_inst_id, proc_sess_id,
-        prev_ids, succ_ids, full_data_id)
-        values (#{id,jdbcType=INTEGER},
+    <insert id="insert"
+        parameterType="com.webank.wecube.platform.core.entity.plugin.PluginCertification">
+        insert into plugin_certification (
+        id, 
+        created_by, 
+        created_time, 
+        updated_by, 
+        updated_time,
+        plugin,
+        lpk, 
+        encrypt_data,
+        signature, 
+        description
+        )
+        values (
+        #{id,jdbcType=VARCHAR},
         #{createdBy,jdbcType=VARCHAR},
         #{createdTime,jdbcType=TIMESTAMP},
         #{updatedBy,jdbcType=VARCHAR},
-        #{updatedTime,jdbcType=TIMESTAMP}, #{dataId,jdbcType=VARCHAR},
-        #{displayName,jdbcType=VARCHAR}, #{entityName,jdbcType=VARCHAR},
-        #{graphNodeId,jdbcType=VARCHAR},
-        #{pkgName,jdbcType=VARCHAR},
-        #{procInstId,jdbcType=INTEGER}, #{procSessId,jdbcType=VARCHAR},
-        #{prevIds,jdbcType=LONGVARCHAR},
-        #{succIds,jdbcType=LONGVARCHAR},
-        #{fullDataId,jdbcType=VARCHAR})
+        #{updatedTime,jdbcType=TIMESTAMP}, 
+        #{plugin,jdbcType=VARCHAR},
+        #{lpk,jdbcType=VARCHAR}, 
+        #{encryptData,jdbcType=VARCHAR},
+        #{signature,jdbcType=VARCHAR},
+        #{description,jdbcType=VARCHAR}
+        )
     </insert>
     <insert id="insertSelective"
-        useGeneratedKeys="true" keyProperty="id"
-        parameterType="com.webank.wecube.platform.core.entity.workflow.GraphNodeEntity">
-        insert into core_ru_graph_node
+        parameterType="com.webank.wecube.platform.core.entity.plugin.PluginCertification">
+        insert into plugin_certification
         <trim prefix="(" suffix=")" suffixOverrides=",">
             <if test="createdBy != null">
                 created_by,
@@ -88,35 +86,20 @@
             <if test="updatedTime != null">
                 updated_time,
             </if>
-            <if test="dataId != null">
-                data_id,
+            <if test="plugin != null">
+                plugin,
             </if>
-            <if test="displayName != null">
-                display_name,
+            <if test="lpk != null">
+                lpk,
             </if>
-            <if test="entityName != null">
-                entity_name,
+            <if test="encryptData != null">
+                encrypt_data,
             </if>
-            <if test="graphNodeId != null">
-                g_node_id,
+            <if test="signature != null">
+                signature,
             </if>
-            <if test="pkgName != null">
-                pkg_name,
-            </if>
-            <if test="procInstId != null">
-                proc_inst_id,
-            </if>
-            <if test="procSessId != null">
-                proc_sess_id,
-            </if>
-            <if test="prevIds != null">
-                prev_ids,
-            </if>
-            <if test="succIds != null">
-                succ_ids,
-            </if>
-             <if test="fullDataId != null">
-                full_data_id,
+            <if test="description != null">
+                description,
             </if>
         </trim>
         <trim prefix="values (" suffix=")" suffixOverrides=",">
@@ -132,41 +115,26 @@
             <if test="updatedTime != null">
                 #{updatedTime,jdbcType=TIMESTAMP},
             </if>
-            <if test="dataId != null">
-                #{dataId,jdbcType=VARCHAR},
+            <if test="plugin != null">
+                #{plugin,jdbcType=VARCHAR},
             </if>
-            <if test="displayName != null">
-                #{displayName,jdbcType=VARCHAR},
+            <if test="lpk != null">
+                #{lpk,jdbcType=VARCHAR},
             </if>
-            <if test="entityName != null">
-                #{entityName,jdbcType=VARCHAR},
+            <if test="encryptData != null">
+                #{encryptData,jdbcType=VARCHAR},
             </if>
-            <if test="graphNodeId != null">
-                #{graphNodeId,jdbcType=VARCHAR},
+            <if test="signature != null">
+                #{signature,jdbcType=VARCHAR},
             </if>
-            <if test="pkgName != null">
-                #{pkgName,jdbcType=VARCHAR},
-            </if>
-            <if test="procInstId != null">
-                #{procInstId,jdbcType=INTEGER},
-            </if>
-            <if test="procSessId != null">
-                #{procSessId,jdbcType=VARCHAR},
-            </if>
-            <if test="prevIds != null">
-                #{prevIds,jdbcType=LONGVARCHAR},
-            </if>
-            <if test="succIds != null">
-                #{succIds,jdbcType=LONGVARCHAR},
-            </if>
-            <if test="fullDataId != null">
-                #{fullDataId,jdbcType=VARCHAR},
+            <if test="description != null">
+                #{description,jdbcType=VARCHAR},
             </if>
         </trim>
     </insert>
     <update id="updateByPrimaryKeySelective"
-        parameterType="com.webank.wecube.platform.core.entity.workflow.GraphNodeEntity">
-        update core_ru_graph_node
+        parameterType="com.webank.wecube.platform.core.entity.plugin.PluginCertification">
+        update plugin_certification
         <set>
             <if test="createdBy != null">
                 created_by = #{createdBy,jdbcType=VARCHAR},
@@ -182,43 +150,28 @@
                 updated_time =
                 #{updatedTime,jdbcType=TIMESTAMP},
             </if>
-            <if test="dataId != null">
-                data_id = #{dataId,jdbcType=VARCHAR},
+            <if test="plugin != null">
+                plugin = #{plugin,jdbcType=VARCHAR},
             </if>
-            <if test="displayName != null">
-                display_name = #{displayName,jdbcType=VARCHAR},
+            <if test="lpk != null">
+                lpk = #{lpk,jdbcType=VARCHAR},
             </if>
-            <if test="entityName != null">
-                entity_name = #{entityName,jdbcType=VARCHAR},
+            <if test="encryptData != null">
+                encrypt_data = #{encryptData,jdbcType=VARCHAR},
             </if>
-            <if test="graphNodeId != null">
-                g_node_id = #{graphNodeId,jdbcType=VARCHAR},
+            <if test="signature != null">
+                signature = #{signature,jdbcType=VARCHAR},
             </if>
-            <if test="pkgName != null">
-                pkg_name = #{pkgName,jdbcType=VARCHAR},
-            </if>
-            <if test="procInstId != null">
-                proc_inst_id = #{procInstId,jdbcType=INTEGER},
-            </if>
-            <if test="procSessId != null">
-                proc_sess_id = #{procSessId,jdbcType=VARCHAR},
-            </if>
-            <if test="prevIds != null">
-                prev_ids = #{prevIds,jdbcType=LONGVARCHAR},
-            </if>
-            <if test="succIds != null">
-                succ_ids = #{succIds,jdbcType=LONGVARCHAR},
-            </if>
-            <if test="fullDataId != null">
-                full_data_id = #{fullDataId,jdbcType=VARCHAR},
+            <if test="description != null">
+                description = #{description,jdbcType=VARCHAR},
             </if>
         </set>
-        where id = #{id,jdbcType=INTEGER}
+        where id = #{id,jdbcType=VARCHAR}
     </update>
 
     <update id="updateByPrimaryKey"
-        parameterType="com.webank.wecube.platform.core.entity.workflow.GraphNodeEntity">
-        update core_ru_graph_node
+        parameterType="com.webank.wecube.platform.core.entity.plugin.PluginCertification">
+        update plugin_certification
         set created_by =
         #{createdBy,jdbcType=VARCHAR},
         created_time =
@@ -227,43 +180,32 @@
         #{updatedBy,jdbcType=VARCHAR},
         updated_time =
         #{updatedTime,jdbcType=TIMESTAMP},
-        data_id =
-        #{dataId,jdbcType=VARCHAR},
-        display_name =
-        #{displayName,jdbcType=VARCHAR},
-        entity_name =
-        #{entityName,jdbcType=VARCHAR},
-        g_node_id =
-        #{graphNodeId,jdbcType=VARCHAR},
-        pkg_name =
-        #{pkgName,jdbcType=VARCHAR},
-        proc_inst_id =
-        #{procInstId,jdbcType=INTEGER},
-        proc_sess_id =
-        #{procSessId,jdbcType=VARCHAR},
-        prev_ids =
-        #{prevIds,jdbcType=LONGVARCHAR},
-        succ_ids =
-        #{succIds,jdbcType=LONGVARCHAR},
-        full_data_id =
-        #{fullDataId,jdbcType=INTEGER}
-        where id = #{id,jdbcType=INTEGER}
+        plugin =
+        #{plugin,jdbcType=VARCHAR},
+        lpk =
+        #{lpk,jdbcType=VARCHAR},
+        encrypt_data =
+        #{encryptData,jdbcType=VARCHAR},
+        signature =
+        #{signature,jdbcType=VARCHAR},
+        description =
+        #{description,jdbcType=VARCHAR}
+        where id = #{id,jdbcType=VARCHAR}
     </update>
 
     <select id="selectAllPluginCertifications" resultMap="BaseResultMap">
         select
         <include refid="Base_Column_List" />
-        from core_ru_graph_node
-        where proc_sess_id =
-        #{processSessionId,jdbcType=INTEGER}
+        from plugin_certification
+        LIMIT 300
     </select>
 
-    <select id="selectPluginCertificationByPlugin" parameterType="java.lang.Integer"
+    <select id="selectPluginCertificationByPlugin" parameterType="java.lang.String"
         resultMap="BaseResultMap">
         select
         <include refid="Base_Column_List" />
-        from core_ru_graph_node
-        where proc_inst_id =
-        #{procInstId,jdbcType=INTEGER}
+        from plugin_certification
+        where plugin =
+        #{plugin,jdbcType=VARCHAR}
     </select>
 </mapper>
