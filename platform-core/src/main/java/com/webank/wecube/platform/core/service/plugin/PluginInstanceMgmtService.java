@@ -17,6 +17,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.TimeZone;
+import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -38,6 +39,7 @@ import com.webank.wecube.platform.core.dto.plugin.PluginInstanceDto;
 import com.webank.wecube.platform.core.dto.plugin.QueryRequestDto;
 import com.webank.wecube.platform.core.dto.plugin.ResourceItemDto;
 import com.webank.wecube.platform.core.dto.plugin.ResourceServerDto;
+import com.webank.wecube.platform.core.entity.plugin.PluginCertification;
 import com.webank.wecube.platform.core.entity.plugin.PluginInstances;
 import com.webank.wecube.platform.core.entity.plugin.PluginMysqlInstances;
 import com.webank.wecube.platform.core.entity.plugin.PluginPackageRuntimeResourcesDocker;
@@ -48,6 +50,7 @@ import com.webank.wecube.platform.core.entity.plugin.ResourceItem;
 import com.webank.wecube.platform.core.entity.plugin.ResourceServer;
 import com.webank.wecube.platform.core.entity.plugin.SystemVariables;
 import com.webank.wecube.platform.core.propenc.RsaEncryptor;
+import com.webank.wecube.platform.core.repository.plugin.PluginCertificationMapper;
 import com.webank.wecube.platform.core.repository.plugin.PluginInstancesMapper;
 import com.webank.wecube.platform.core.repository.plugin.PluginMysqlInstancesMapper;
 import com.webank.wecube.platform.core.repository.plugin.PluginPackageRuntimeResourcesDockerMapper;
@@ -121,16 +124,19 @@ public class PluginInstanceMgmtService extends AbstractPluginMgmtService {
 
     @Autowired
     private PluginPackageMenuStatusListener pluginPackageMenuStatusListener;
-    
+
     @Autowired
     private AuthServerRestClient authServerRestClient;
+
+    @Autowired
+    private PluginCertificationMapper pluginCertificationMapper;
 
     public void removePluginInstanceById(String instanceId) throws Exception {
         log.info("Removing plugin instance,instanceId: {}", instanceId);
         PluginInstances pluginInstanceEntity = pluginInstancesMapper.selectByPrimaryKey(instanceId);
         if (pluginInstanceEntity == null) {
             log.info("The plugin instance {} does not exist.", instanceId);
-            throw new WecubeCoreException("3272","Remove plugin package instance failed.");
+            throw new WecubeCoreException("3272", "Remove plugin package instance failed.");
         }
         ResourceItemDto removeDockerInstanceDto = new ResourceItemDto();
         removeDockerInstanceDto.setName(pluginInstanceEntity.getContainerName());
@@ -140,12 +146,12 @@ public class PluginInstanceMgmtService extends AbstractPluginMgmtService {
             resourceManagementService.deleteItems(Lists.newArrayList(removeDockerInstanceDto));
         } catch (Exception e) {
             log.error("Failed to remove docker resource items.", e);
-            throw new WecubeCoreException("3321", "Failed to remove docker resource items.",e.getMessage());
+            throw new WecubeCoreException("3321", "Failed to remove docker resource items.", e.getMessage());
         }
 
         pluginPackageMenuStatusListener.preRemove(pluginInstanceEntity);
         pluginInstancesMapper.deleteByPrimaryKey(instanceId);
-        
+
         log.info("Plugin instance {} was removed.", instanceId);
     }
 
@@ -186,16 +192,16 @@ public class PluginInstanceMgmtService extends AbstractPluginMgmtService {
         pluginInstanceEntity.setPackageId(pluginPackage.getId());
         pluginInstanceEntity.setPluginPackage(pluginPackage);
 
-        //1. try to create mysql schema
+        // 1. try to create mysql schema
 
         LocalDatabaseInfo dbInfo = handleCreateDatabase(mysqlInfoSet, pluginPackage);
         if (dbInfo != null) {
             pluginInstanceEntity.setPluginMysqlInstanceResourceId(dbInfo.getResourceItemId());
         }
 
-        //2. try to create s3 bucket
+        // 2. try to create s3 bucket
         String s3BucketResourceId = handleCreateS3Bucket(s3InfoSet, pluginPackage);
-        if (s3BucketResourceId != null){
+        if (s3BucketResourceId != null) {
             pluginInstanceEntity.setS3bucketResourceId(s3BucketResourceId);
         }
 
@@ -229,19 +235,19 @@ public class PluginInstanceMgmtService extends AbstractPluginMgmtService {
                     .replace("{{DB_USER}}", dbInfo.getUser()) //
                     .replace("{{DB_PWD}}", tryEncryptPasswordAsPluginEnv(password));
         }
-        
+
         SimpleSubSystemDto subSystemAs = tryRegisterSubSystem(pluginPackage);
-        if(subSystemAs != null){
+        if (subSystemAs != null) {
             envVariablesString = envVariablesString.replace("{{SUB_SYSTEM_CODE}}", subSystemAs.getSystemCode()) //
                     .replace("{{SUB_SYSTEM_KEY}}", subSystemAs.getApikey());
         }
-        
+
         log.info("before replace envVariablesString=" + envVariablesString);
         envVariablesString = replaceJwtSigningKey(envVariablesString);
         envVariablesString = replaceSystemVariablesForEnvVariables(pluginPackage.getName(), envVariablesString);
         envVariablesString = appendTimeZoneToPluginEnv(envVariablesString);
+        envVariablesString = appendPluginCertificationInfo(envVariablesString, pluginPackage, subSystemAs);
         log.info("after replace envVariablesString=" + envVariablesString);
-        
 
         createContainerParameters.setEnvVariableParameters(envVariablesString.isEmpty() ? "" : envVariablesString);
 
@@ -274,21 +280,73 @@ public class PluginInstanceMgmtService extends AbstractPluginMgmtService {
             log.error("Launch instance has done, but register routing information is failed, please check");
         }
     }
-    
-    private String appendTimeZoneToPluginEnv(String envVariablesString){
+
+    private String appendPluginCertificationInfo(String envVariablesString, PluginPackages pluginPackage,
+            SimpleSubSystemDto subSystemAsDto) {
+        String plugin = pluginPackage.getName();
+        PluginCertification pluginCertification = pluginCertificationMapper.selectPluginCertificationByPlugin(plugin);
+
+        if (pluginCertification == null) {
+            log.info("There is not plugin certification found for plugin:{}", plugin);
+            return envVariablesString;
+        }
+
+        if (subSystemAsDto == null) {
+            log.error("Failed to fetch information of plugin:{}", plugin);
+            throw new WecubeCoreException("Failed to fetch subsystem information for plugin:" + plugin);
+        }
+
+        if (StringUtils.isBlank(subSystemAsDto.getPubKey())) {
+            String errMsg = String.format("Cannot get public key to encrypt plugin certification for plugin:%s",
+                    plugin);
+            log.error(errMsg);
+            throw new WecubeCoreException(errMsg);
+        }
+
+        String aesKey = UUID.randomUUID().toString().replace("-", "").substring(0, 16);
+        String rsaEncryptedAesKey = RsaEncryptor.encodeBase64String(
+                RsaEncryptor.encryptByPublicKey(aesKey.getBytes(Charset.forName("UTF-8")), subSystemAsDto.getPubKey()));
+
+        String lpk = pluginCertification.getLpk();
+        String encryptData = pluginCertification.getEncryptData();
+        String signature = pluginCertification.getSignature();
+
+        String aesEncryptedLpk = "";
+        if (StringUtils.isNoneBlank(lpk)) {
+            aesEncryptedLpk = EncryptionUtils.encryptWithAesCbc(lpk, aesKey);
+        }
+
+        String aesEncryptedData = "";
+        if (StringUtils.isNoneBlank(encryptData)) {
+            aesEncryptedData = EncryptionUtils.encryptWithAesCbc(encryptData, aesKey);
+        }
+
+        String aesEncryptedSignature = "";
+        if (StringUtils.isNoneBlank(signature)) {
+            aesEncryptedSignature = EncryptionUtils.encryptWithAesCbc(signature, aesKey);
+        }
+
+        // LICENSE_PK & LICENSE_DATA & LICENSE_SIGNATURE & LICENSE_CODE
+        String certEnv = String.format("LICENSE_PK=%s\\,LICENSE_DATA=%s\\,LICENSE_SIGNATURE=%s\\,LICENSE_CODE=%s",
+                aesEncryptedLpk, aesEncryptedData, aesEncryptedSignature, rsaEncryptedAesKey);
+
+        return envVariablesString + String.format("\\,%s", certEnv);
+    }
+
+    private String appendTimeZoneToPluginEnv(String envVariablesString) {
         String tz = System.getenv("TZ");
-        if(StringUtils.isBlank(tz)){
+        if (StringUtils.isBlank(tz)) {
             tz = TimeZone.getDefault().getID();
         }
-        
-        if(StringUtils.isBlank(envVariablesString)){
+
+        if (StringUtils.isBlank(envVariablesString)) {
             return String.format("TZ=%s", tz);
-        }else{
-            return envVariablesString+String.format("\\,TZ=%s", tz);
+        } else {
+            return envVariablesString + String.format("\\,TZ=%s", tz);
         }
     }
-    
-    private SimpleSubSystemDto tryRegisterSubSystem(PluginPackages pluginPackage){
+
+    private SimpleSubSystemDto tryRegisterSubSystem(PluginPackages pluginPackage) {
         log.info("About to register sub system infomation for {}", pluginPackage.getName());
         SimpleSubSystemDto subSystemReq = new SimpleSubSystemDto();
         String subSystemCode = String.format("SYS_%s", pluginPackage.getName().toUpperCase());
@@ -297,12 +355,11 @@ public class PluginInstanceMgmtService extends AbstractPluginMgmtService {
         subSystemReq.setActive(true);
         subSystemReq.setBlocked(false);
         subSystemReq.setDescription(String.format("Plugin %s registered from platform.", pluginPackage.getName()));
-        
-        
+
         SimpleSubSystemDto subSystemAs = authServerRestClient.registerSimpleSubSystem(subSystemReq);
         log.info("Finished to register sub system infomation for {}:{}", pluginPackage.getName(), subSystemAs);
         return subSystemAs;
-        
+
     }
 
     private GatewayResponse registerRoute(String name, String host, String port) {
@@ -737,8 +794,8 @@ public class PluginInstanceMgmtService extends AbstractPluginMgmtService {
             latestVersion = pluginPackage.getVersion();
         }
 
-        log.info("try to upgrade databaase, latest version {} and current version {}, need to upgrade.",
-                latestVersion, pluginPackage.getVersion());
+        log.info("try to upgrade databaase, latest version {} and current version {}, need to upgrade.", latestVersion,
+                pluginPackage.getVersion());
 
         try {
             log.info("try to perform database upgrade for {} {}", pluginPackage.getName(), pluginPackage.getVersion());
