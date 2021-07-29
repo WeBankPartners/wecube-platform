@@ -19,3 +19,19 @@ ALTER TABLE `core_ru_task_node_exec_param` ADD COLUMN `callback_id` VARCHAR(60) 
 ALTER TABLE `core_ru_task_node_exec_req` ADD COLUMN `context_data_flag` VARCHAR(45) NULL;
 ALTER TABLE `core_ru_task_node_exec_req` ADD COLUMN `req_object_amount` INT NULL;
 ALTER TABLE `core_ru_task_node_exec_req` ADD COLUMN `resp_object_amount` INT NULL;
+
+CREATE TABLE `plugin_certification` (
+  `id` VARCHAR(60) NOT NULL,
+  `created_by` VARCHAR(45) NULL,
+  `created_time` DATETIME NULL,
+  `updated_by` VARCHAR(45) NULL,
+  `updated_time` DATETIME NULL,
+  `plugin` VARCHAR(45) NULL,
+  `lpk` VARCHAR(1024) NULL,
+  `encrypt_data` VARCHAR(1024) NULL,
+  `signature` VARCHAR(1024) NULL,
+  `description` VARCHAR(300) NULL,
+  PRIMARY KEY (`id`))
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8
+COLLATE = utf8_bin;
