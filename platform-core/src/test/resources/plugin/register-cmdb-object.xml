@@ -170,7 +170,7 @@
                 <inputParameters>
                     <parameter datatype="object"
                         refObjectName="k8sObjA" multiple="Y"
-                        required="Y" mappingType="entity"
+                        required="Y" mappingType="context"
                         sensitiveData="N"
                         mappingEntityExpression="wecmdb:instances">entity-name
                     </parameter>
