@@ -69,16 +69,14 @@ public class WorkflowProcessDefinitionController {
     private ObjectMapper objectMapper = new ObjectMapper();
 
     @PostMapping("/process/definitions/deploy")
-    public CommonResponseDto deployProcessDefinition(@RequestBody ProcDefInfoDto requestDto,
-            @RequestParam(value = "continue_token", required = false) String continueToken) {
+    public CommonResponseDto deployProcessDefinition(@RequestBody ProcDefInfoDto requestDto) {
         if (log.isDebugEnabled()) {
-            log.debug("deploy process:procDefKey={},procDefName={},rootEntity={}, continueToken={}",
-                    requestDto.getProcDefKey(), requestDto.getProcDefName(), requestDto.getRootEntity(), continueToken);
+            log.debug("deploy process:procDefKey={},procDefName={},rootEntity={}",
+                    requestDto.getProcDefKey(), requestDto.getProcDefName(), requestDto.getRootEntity());
         }
 
         // #2222
-        ProcessDeploymentResultDto resultDto = workflowProcDefDeploymentService.deployProcessDefinition(requestDto,
-                continueToken);
+        ProcessDeploymentResultDto resultDto = workflowProcDefDeploymentService.deployProcessDefinition(requestDto);
         if (resultDto.isConfirm()) {
             CommonResponseDto respDto = new CommonResponseDto();
             respDto.setStatus(resultDto.getStatus());
