@@ -23,6 +23,7 @@ import com.webank.wecube.platform.core.dto.workflow.FlowNodeDefDto;
 import com.webank.wecube.platform.core.dto.workflow.ProcDefInfoDto;
 import com.webank.wecube.platform.core.dto.workflow.ProcDefOutlineDto;
 import com.webank.wecube.platform.core.dto.workflow.ProcessDeploymentResultDto;
+import com.webank.wecube.platform.core.dto.workflow.ProcessDraftResultDto;
 import com.webank.wecube.platform.core.dto.workflow.TaskNodeDefInfoDto;
 import com.webank.wecube.platform.core.dto.workflow.TaskNodeDefParamDto;
 import com.webank.wecube.platform.core.entity.plugin.PluginConfigInterfaces;
@@ -52,61 +53,10 @@ public class WorkflowProcDefDeploymentService extends AbstractWorkflowProcDefSer
      * @param procDefDto
      * @return
      */
-    public ProcDefInfoDto draftProcessDefinition(ProcDefInfoDto procDefDto) {
-        String originalId = procDefDto.getProcDefId();
-
-        Date currTime = new Date();
-        String currUser = AuthenticationContextHolder.getCurrentUsername();
-
-        ProcDefInfoEntity draftEntity = null;
-        if (!StringUtils.isBlank(originalId)) {
-            ProcDefInfoEntity entity = processDefInfoRepo.selectByPrimaryKey(originalId);
-            if (entity != null) {
-                if (ProcDefInfoEntity.DRAFT_STATUS.equals(entity.getStatus())) {
-                    draftEntity = entity;
-                }
-            } else {
-                log.warn("Invalid process definition id:{}", originalId);
-                throw new WecubeCoreException("3207", "Invalid process definition id");
-            }
-        }
-
-        if (draftEntity == null) {
-            draftEntity = new ProcDefInfoEntity();
-            draftEntity.setId(LocalIdGenerator.generateId());
-            draftEntity.setStatus(ProcDefInfoEntity.DRAFT_STATUS);
-            draftEntity.setCreatedBy(currUser);
-            draftEntity.setCreatedTime(currTime);
-
-            processDefInfoRepo.insert(draftEntity);
-        }
-
-        draftEntity.setProcDefData(procDefDto.getProcDefData());
-        draftEntity.setProcDefKey(procDefDto.getProcDefKey());
-        draftEntity.setProcDefName(procDefDto.getProcDefName());
-        draftEntity.setRootEntity(procDefDto.getRootEntity());
-        draftEntity.setUpdatedTime(currTime);
-        draftEntity.setUpdatedBy(currUser);
-        draftEntity.setExcludeMode(procDefDto.getExcludeMode());
-        draftEntity.setTags(procDefDto.getTags());
-
-        processDefInfoRepo.updateByPrimaryKeySelective(draftEntity);
-        // Save ProcRoleBindingEntity
-        this.saveProcRoleBinding(draftEntity.getId(), procDefDto);
-
-        ProcDefInfoDto procDefResult = new ProcDefInfoDto();
-        procDefResult.setProcDefId(draftEntity.getId());
-        procDefResult.setProcDefData(draftEntity.getProcDefData());
-        procDefResult.setProcDefKey(draftEntity.getProcDefKey());
-        procDefResult.setProcDefName(draftEntity.getProcDefName());
-        procDefResult.setRootEntity(draftEntity.getRootEntity());
-        procDefResult.setStatus(draftEntity.getStatus());
-        procDefResult.setExcludeMode(draftEntity.getExcludeMode());
-        procDefResult.setTags(draftEntity.getTags());
-
-        processDraftTaskNodeInfos(procDefDto, draftEntity, procDefResult, currTime);
-
-        return procDefResult;
+    public ProcessDraftResultDto draftProcessDefinition(ProcDefInfoDto procDefDto, String continueToken) {
+        
+        
+        return doDraftProcessDefinition(procDefDto, continueToken);
     }
 
     /**
@@ -133,6 +83,66 @@ public class WorkflowProcDefDeploymentService extends AbstractWorkflowProcDefSer
         return tryPerformNewProcessDeployment(procDefInfoDto);
 
     }
+    
+     private ProcessDraftResultDto doDraftProcessDefinition(ProcDefInfoDto procDefDto, String continueToken) {
+         String originalId = procDefDto.getProcDefId();
+
+         Date currTime = new Date();
+         String currUser = AuthenticationContextHolder.getCurrentUsername();
+
+         ProcDefInfoEntity draftEntity = null;
+         if (!StringUtils.isBlank(originalId)) {
+             ProcDefInfoEntity entity = processDefInfoRepo.selectByPrimaryKey(originalId);
+             if (entity != null) {
+                 if (ProcDefInfoEntity.DRAFT_STATUS.equals(entity.getStatus())) {
+                     draftEntity = entity;
+                 }
+             } else {
+                 log.warn("Invalid process definition id:{}", originalId);
+                 throw new WecubeCoreException("3207", "Invalid process definition id");
+             }
+         }
+
+         if (draftEntity == null) {
+             draftEntity = new ProcDefInfoEntity();
+             draftEntity.setId(LocalIdGenerator.generateId());
+             draftEntity.setStatus(ProcDefInfoEntity.DRAFT_STATUS);
+             draftEntity.setCreatedBy(currUser);
+             draftEntity.setCreatedTime(currTime);
+
+             processDefInfoRepo.insert(draftEntity);
+         }
+
+         draftEntity.setProcDefData(procDefDto.getProcDefData());
+         draftEntity.setProcDefKey(procDefDto.getProcDefKey());
+         draftEntity.setProcDefName(procDefDto.getProcDefName());
+         draftEntity.setRootEntity(procDefDto.getRootEntity());
+         draftEntity.setUpdatedTime(currTime);
+         draftEntity.setUpdatedBy(currUser);
+         draftEntity.setExcludeMode(procDefDto.getExcludeMode());
+         draftEntity.setTags(procDefDto.getTags());
+
+         processDefInfoRepo.updateByPrimaryKeySelective(draftEntity);
+         // Save ProcRoleBindingEntity
+         this.saveProcRoleBinding(draftEntity.getId(), procDefDto);
+
+         ProcDefInfoDto procDefResult = new ProcDefInfoDto();
+         procDefResult.setProcDefId(draftEntity.getId());
+         procDefResult.setProcDefData(draftEntity.getProcDefData());
+         procDefResult.setProcDefKey(draftEntity.getProcDefKey());
+         procDefResult.setProcDefName(draftEntity.getProcDefName());
+         procDefResult.setRootEntity(draftEntity.getRootEntity());
+         procDefResult.setStatus(draftEntity.getStatus());
+         procDefResult.setExcludeMode(draftEntity.getExcludeMode());
+         procDefResult.setTags(draftEntity.getTags());
+
+         processDraftTaskNodeInfos(procDefDto, draftEntity, procDefResult, currTime);
+
+         
+         ProcessDraftResultDto processDraftResultDto = new ProcessDraftResultDto();
+         processDraftResultDto.setResult(procDefResult);
+         return processDraftResultDto;
+     }
     
     private void processDraftTaskNodeInfos(ProcDefInfoDto procDefDto, ProcDefInfoEntity draftEntity,
             ProcDefInfoDto procDefResult, Date currTime) {
