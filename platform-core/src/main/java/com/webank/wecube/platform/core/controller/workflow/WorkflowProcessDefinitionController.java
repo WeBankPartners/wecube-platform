@@ -41,6 +41,7 @@ import com.webank.wecube.platform.core.dto.workflow.ProcessDeploymentResultDto;
 import com.webank.wecube.platform.core.dto.workflow.TaskNodeDefBriefDto;
 import com.webank.wecube.platform.core.service.workflow.ProcessRoleServiceImpl;
 import com.webank.wecube.platform.core.service.workflow.WorkflowDataService;
+import com.webank.wecube.platform.core.service.workflow.WorkflowProcDefDeploymentService;
 import com.webank.wecube.platform.core.service.workflow.WorkflowProcDefMigrationService;
 import com.webank.wecube.platform.core.service.workflow.WorkflowProcDefService;
 
@@ -60,6 +61,9 @@ public class WorkflowProcessDefinitionController {
 
     @Autowired
     private ProcessRoleServiceImpl processRoleService;
+    
+    @Autowired
+    private WorkflowProcDefDeploymentService workflowProcDefDeploymentService;
 
     private ObjectMapper objectMapper = new ObjectMapper();
 
@@ -72,7 +76,7 @@ public class WorkflowProcessDefinitionController {
         }
 
         // #2222
-        ProcessDeploymentResultDto resultDto = procDefService.deployProcessDefinition(requestDto, continueToken);
+        ProcessDeploymentResultDto resultDto = workflowProcDefDeploymentService.deployProcessDefinition(requestDto, continueToken);
         if (resultDto.isConfirm()) {
             CommonResponseDto respDto = new CommonResponseDto();
             respDto.setStatus(resultDto.getStatus());
@@ -92,7 +96,7 @@ public class WorkflowProcessDefinitionController {
                     requestDto.getProcDefName(), requestDto.getRootEntity());
         }
 
-        ProcDefInfoDto result = procDefService.draftProcessDefinition(requestDto);
+        ProcDefInfoDto result = workflowProcDefDeploymentService.draftProcessDefinition(requestDto);
         return CommonResponseDto.okayWithData(result);
     }
 
