@@ -16,9 +16,13 @@ import com.webank.wecube.platform.core.entity.workflow.ProcDefInfoEntity;
 import com.webank.wecube.platform.core.entity.workflow.ProcRoleBindingEntity;
 import com.webank.wecube.platform.core.entity.workflow.TaskNodeDefInfoEntity;
 import com.webank.wecube.platform.core.entity.workflow.TaskNodeParamEntity;
+import com.webank.wecube.platform.core.repository.plugin.PluginConfigRolesMapper;
 import com.webank.wecube.platform.core.repository.workflow.ProcDefInfoMapper;
 import com.webank.wecube.platform.core.repository.workflow.TaskNodeDefInfoMapper;
 import com.webank.wecube.platform.core.repository.workflow.TaskNodeParamMapper;
+import com.webank.wecube.platform.core.service.plugin.PluginConfigMgmtService;
+import com.webank.wecube.platform.workflow.model.ProcDefOutline;
+import com.webank.wecube.platform.workflow.model.ProcFlowNode;
 
 public class AbstractWorkflowProcDefService extends AbstractWorkflowService{
 
@@ -35,6 +39,15 @@ public class AbstractWorkflowProcDefService extends AbstractWorkflowService{
     
     @Autowired
     protected ProcessRoleServiceImpl processRoleService;
+    
+    @Autowired
+    protected WorkflowEngineService workflowEngineService;
+
+    @Autowired
+    protected PluginConfigMgmtService pluginConfigMgmtService;
+
+    @Autowired
+    protected PluginConfigRolesMapper pluginAuthRepository;
     
     protected ProcDefInfoDto procDefInfoDtoFromEntity(ProcDefInfoEntity procDefEntity) {
         ProcDefInfoDto result = new ProcDefInfoDto();
@@ -158,5 +171,43 @@ public class AbstractWorkflowProcDefService extends AbstractWorkflowService{
         pdto.setBindValue(tnpe.getBindVal());
 
         return pdto;
+    }
+    
+    protected String marshalNodeIds(List<ProcFlowNode> flowNodes) {
+        if (flowNodes == null || flowNodes.isEmpty()) {
+            return "";
+        }
+        StringBuilder sb = new StringBuilder();
+        for (ProcFlowNode f : flowNodes) {
+            sb.append(f.getId()).append(NODE_IDS_DELIMITER);
+        }
+
+        return sb.toString();
+    }
+    
+    protected TaskNodeParamEntity findTaskNodeParamEntityFromListById(List<TaskNodeParamEntity> reusedDraftParamEntities,
+            String id) {
+        for (TaskNodeParamEntity entity : reusedDraftParamEntities) {
+            if (entity.getId().equals(id)) {
+                return entity;
+            }
+        }
+
+        return null;
+    }
+    
+    protected ProcFlowNode tryFindoutStartEventNode(ProcDefOutline procDefOutline) {
+        List<ProcFlowNode> flowNodes = procDefOutline.getFlowNodes();
+        if (flowNodes == null || flowNodes.isEmpty()) {
+            return null;
+        }
+
+        for (ProcFlowNode node : flowNodes) {
+            if ("startEvent".equals(node.getNodeType())) {
+                return node;
+            }
+        }
+
+        return null;
     }
 }
