@@ -1,5 +1,6 @@
 package com.webank.wecube.platform.core.service.workflow;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -8,8 +9,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import com.webank.wecube.platform.core.commons.AuthenticationContextHolder;
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
+import com.webank.wecube.platform.core.dto.workflow.FlowNodeDefDto;
 import com.webank.wecube.platform.core.dto.workflow.ProcDefInfoDto;
+import com.webank.wecube.platform.core.dto.workflow.ProcDefOutlineDto;
 import com.webank.wecube.platform.core.dto.workflow.TaskNodeDefInfoDto;
 import com.webank.wecube.platform.core.dto.workflow.TaskNodeDefParamDto;
 import com.webank.wecube.platform.core.entity.workflow.ProcDefInfoEntity;
@@ -21,6 +25,7 @@ import com.webank.wecube.platform.core.repository.workflow.ProcDefInfoMapper;
 import com.webank.wecube.platform.core.repository.workflow.TaskNodeDefInfoMapper;
 import com.webank.wecube.platform.core.repository.workflow.TaskNodeParamMapper;
 import com.webank.wecube.platform.core.service.plugin.PluginConfigMgmtService;
+import com.webank.wecube.platform.workflow.commons.LocalIdGenerator;
 import com.webank.wecube.platform.workflow.model.ProcDefOutline;
 import com.webank.wecube.platform.workflow.model.ProcFlowNode;
 
@@ -48,6 +53,44 @@ public class AbstractWorkflowProcDefService extends AbstractWorkflowService{
 
     @Autowired
     protected PluginConfigRolesMapper pluginAuthRepository;
+    
+    /**
+     * 
+     * @param procDefId
+     * @return
+     */
+    public ProcDefOutlineDto getProcessDefinitionOutline(String procDefId) {
+        if (StringUtils.isBlank(procDefId)) {
+            throw new WecubeCoreException("3206", "Process definition ID is blank.");
+        }
+
+        ProcDefInfoEntity procDefEntity = processDefInfoRepo.selectByPrimaryKey(procDefId);
+        if (procDefEntity == null) {
+            log.debug("cannot find process def with id {}", procDefId);
+            return null;
+        }
+
+        ProcDefOutlineDto result = new ProcDefOutlineDto();
+
+        result.setProcDefId(procDefEntity.getId());
+        result.setProcDefKey(procDefEntity.getProcDefKey());
+        result.setProcDefName(procDefEntity.getProcDefName());
+        result.setProcDefVersion(String.valueOf(procDefEntity.getProcDefVer()));
+        result.setRootEntity(procDefEntity.getRootEntity());
+        result.setStatus(procDefEntity.getStatus());
+        result.setExcludeMode(procDefEntity.getExcludeMode());
+        result.setTags(procDefEntity.getTags());
+
+        List<TaskNodeDefInfoEntity> nodeEntities = taskNodeDefInfoRepo.selectAllByProcDefId(procDefEntity.getId());
+
+        for (TaskNodeDefInfoEntity nodeEntity : nodeEntities) {
+            FlowNodeDefDto fDto = flowNodeDefDtoFromEntity(nodeEntity);
+
+            result.addFlowNodes(fDto);
+        }
+
+        return result;
+    }
     
     protected ProcDefInfoDto procDefInfoDtoFromEntity(ProcDefInfoEntity procDefEntity) {
         ProcDefInfoDto result = new ProcDefInfoDto();
@@ -205,6 +248,91 @@ public class AbstractWorkflowProcDefService extends AbstractWorkflowService{
         for (ProcFlowNode node : flowNodes) {
             if ("startEvent".equals(node.getNodeType())) {
                 return node;
+            }
+        }
+
+        return null;
+    }
+    
+    protected String deduceTaskNodeName(TaskNodeDefInfoEntity nodeEntity) {
+        if (!StringUtils.isBlank(nodeEntity.getNodeName())) {
+            return nodeEntity.getNodeName();
+        }
+
+        if (NODE_START_EVENT.equals(nodeEntity.getNodeType())) {
+            return "S";
+        }
+
+        if (NODE_END_EVENT.equals(nodeEntity.getNodeType())) {
+            return "E";
+        }
+
+        if (NODE_EXCLUSIVE_GATEWAY.equals(nodeEntity.getNodeType())) {
+            return "X";
+        }
+
+        return "";
+    }
+    
+    protected FlowNodeDefDto flowNodeDefDtoFromEntity(TaskNodeDefInfoEntity nodeEntity) {
+        FlowNodeDefDto fDto = new FlowNodeDefDto();
+        fDto.setProcDefId(nodeEntity.getProcDefId());
+        fDto.setProcDefKey(nodeEntity.getProcDefKey());
+        fDto.setNodeId(nodeEntity.getNodeId());
+        fDto.setNodeName(deduceTaskNodeName(nodeEntity));
+        fDto.setNodeType(nodeEntity.getNodeType());
+
+        fDto.setNodeDefId(nodeEntity.getId());
+        fDto.setStatus(nodeEntity.getStatus());
+        fDto.setOrderedNo(nodeEntity.getOrderedNo());
+        fDto.setRoutineExpression(nodeEntity.getRoutineExp());
+        fDto.setServiceId(nodeEntity.getServiceId());
+        fDto.setDynamicBind(nodeEntity.getDynamicBind());
+
+        List<String> previousNodeIds = unmarshalNodeIds(nodeEntity.getPrevNodeIds());
+        previousNodeIds.forEach(n -> fDto.addPreviousNodeIds(n));
+
+        List<String> succeedingNodeIds = unmarshalNodeIds(nodeEntity.getSucceedNodeIds());
+
+        succeedingNodeIds.forEach(n -> fDto.addSucceedingNodeIds(n));
+
+        return fDto;
+    }
+    
+    protected TaskNodeDefInfoEntity buildDeployNewTaskNodeDefInfoEntity(TaskNodeDefInfoDto nodeDto,
+            ProcDefInfoEntity procDefEntity, Date currTime) {
+        TaskNodeDefInfoEntity nodeEntity = new TaskNodeDefInfoEntity();
+        nodeEntity.setId(LocalIdGenerator.generateId());
+        nodeEntity.setDescription(nodeDto.getDescription());
+        nodeEntity.setNodeId(nodeDto.getNodeId());
+        nodeEntity.setNodeName(nodeDto.getNodeName());
+        nodeEntity.setProcDefId(procDefEntity.getId());
+        nodeEntity.setProcDefKey(nodeDto.getProcDefKey());
+        nodeEntity.setRoutineExp(nodeDto.getRoutineExpression());
+        nodeEntity.setRoutineRaw(nodeDto.getRoutineRaw());
+        nodeEntity.setServiceId(nodeDto.getServiceId());
+        nodeEntity.setServiceName(nodeDto.getServiceName());
+        nodeEntity.setStatus(TaskNodeDefInfoEntity.PREDEPLOY_STATUS);
+        nodeEntity.setUpdatedTime(currTime);
+        nodeEntity.setUpdatedBy(AuthenticationContextHolder.getCurrentUsername());
+        nodeEntity.setCreatedBy(AuthenticationContextHolder.getCurrentUsername());
+        nodeEntity.setCreatedTime(currTime);
+        nodeEntity.setTimeoutExp(nodeDto.getTimeoutExpression());
+        nodeEntity.setTaskCategory(nodeDto.getTaskCategory());
+        nodeEntity.setPreCheck(nodeDto.getPreCheck());
+        nodeEntity.setDynamicBind(nodeDto.getDynamicBind());
+        nodeEntity.setPrevCtxNodeIds(nodeDto.getPrevCtxNodeIds());
+
+        return nodeEntity;
+    }
+    
+    protected TaskNodeDefInfoEntity findNodeEntityByNodeId(List<TaskNodeDefInfoEntity> nodeEntities, String nodeId) {
+        if (nodeEntities == null) {
+            return null;
+        }
+        for (TaskNodeDefInfoEntity entity : nodeEntities) {
+            if (nodeId.equals(entity.getNodeId())) {
+                return entity;
             }
         }
 
