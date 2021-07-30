@@ -38,6 +38,7 @@ import com.webank.wecube.platform.core.dto.workflow.ProcDefOutlineDto;
 import com.webank.wecube.platform.core.dto.workflow.ProcRoleRequestDto;
 import com.webank.wecube.platform.core.dto.workflow.ProcessDataPreviewDto;
 import com.webank.wecube.platform.core.dto.workflow.ProcessDeploymentResultDto;
+import com.webank.wecube.platform.core.dto.workflow.ProcessDraftResultDto;
 import com.webank.wecube.platform.core.dto.workflow.TaskNodeDefBriefDto;
 import com.webank.wecube.platform.core.service.workflow.ProcessRoleServiceImpl;
 import com.webank.wecube.platform.core.service.workflow.WorkflowDataService;
@@ -61,7 +62,7 @@ public class WorkflowProcessDefinitionController {
 
     @Autowired
     private ProcessRoleServiceImpl processRoleService;
-    
+
     @Autowired
     private WorkflowProcDefDeploymentService workflowProcDefDeploymentService;
 
@@ -76,7 +77,8 @@ public class WorkflowProcessDefinitionController {
         }
 
         // #2222
-        ProcessDeploymentResultDto resultDto = workflowProcDefDeploymentService.deployProcessDefinition(requestDto, continueToken);
+        ProcessDeploymentResultDto resultDto = workflowProcDefDeploymentService.deployProcessDefinition(requestDto,
+                continueToken);
         if (resultDto.isConfirm()) {
             CommonResponseDto respDto = new CommonResponseDto();
             respDto.setStatus(resultDto.getStatus());
@@ -90,14 +92,25 @@ public class WorkflowProcessDefinitionController {
     }
 
     @PostMapping("/process/definitions/draft")
-    public CommonResponseDto draftProcessDefinition(@RequestBody ProcDefInfoDto requestDto) {
+    public CommonResponseDto draftProcessDefinition(@RequestBody ProcDefInfoDto requestDto,
+            @RequestParam(value = "continue_token", required = false) String continueToken) {
         if (log.isDebugEnabled()) {
             log.debug("draft process:procDefKey={},procDefName={},rootEntity={}", requestDto.getProcDefKey(),
                     requestDto.getProcDefName(), requestDto.getRootEntity());
         }
+        
+        ProcessDraftResultDto resultDto = workflowProcDefDeploymentService.draftProcessDefinition(requestDto, continueToken);
 
-        ProcDefInfoDto result = workflowProcDefDeploymentService.draftProcessDefinition(requestDto);
-        return CommonResponseDto.okayWithData(result);
+        if (resultDto.isConfirm()) {
+            CommonResponseDto respDto = new CommonResponseDto();
+            respDto.setStatus(resultDto.getStatus());
+            respDto.setData(resultDto.getContinueToken());
+            respDto.setMessage(resultDto.getMessage());
+
+            return respDto;
+        } else {
+            return CommonResponseDto.okayWithData(resultDto.getResult());
+        }
     }
 
     @GetMapping("/process/definitions")
