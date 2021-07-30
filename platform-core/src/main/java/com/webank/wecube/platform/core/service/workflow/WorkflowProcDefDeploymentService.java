@@ -47,15 +47,50 @@ import com.webank.wecube.platform.workflow.parse.BpmnCustomizationException;
 public class WorkflowProcDefDeploymentService extends AbstractWorkflowProcDefService {
 
     private static final Logger log = LoggerFactory.getLogger(WorkflowProcDefDeploymentService.class);
-    
+
     /**
      * 
      * @param procDefDto
      * @return
      */
     public ProcessDraftResultDto draftProcessDefinition(ProcDefInfoDto procDefDto, String continueToken) {
-        
-        
+        String procDefId = procDefDto.getProcDefId();
+        String status = procDefDto.getStatus();
+        String procDefName = procDefDto.getProcDefName();
+        ProcDefInfoEntity existProcDef = processDefInfoRepo.selectByPrimaryKey(procDefId);
+
+        if (StringUtils.isBlank(procDefId)) {
+            return doDraftProcessDefinition(procDefDto, continueToken);
+        }
+
+        if (!ProcDefInfoEntity.DEPLOYED_STATUS.equals(status)) {
+            return doDraftProcessDefinition(procDefDto, continueToken);
+        }
+
+        if (existProcDef == null) {
+            return doDraftProcessDefinition(procDefDto, continueToken);
+        }
+
+        if (ProcDefInfoEntity.DEPLOYED_STATUS.equals(status) && (existProcDef != null)
+                && existProcDef.getProcDefName().equals(procDefName) && StringUtils.isNoneBlank(continueToken)) {
+            ProcessDraftResultDto resultDto = tryPerformConditionalProcessDeploymentEdition(existProcDef, procDefDto,
+                    continueToken);
+            return resultDto;
+        }
+
+        if (StringUtils.isBlank(continueToken) && verifyConditionalProcessDeploymentEdition(existProcDef, procDefDto)) {
+            String newContinueToken = buildProcessDeploymentContinueToken(procDefDto);
+            String message = "Such process already had been deployed before,please confirm to proceed deployment.";
+            ProcessDraftResultDto resultDto = new ProcessDraftResultDto();
+            resultDto.setStatus(ProcessDraftResultDto.STATUS_CONFIRM);
+            resultDto.setMessage(message);
+            ContinueTokenInfoDto continueTokenInfo = new ContinueTokenInfoDto();
+            continueTokenInfo.setContinueToken(newContinueToken);
+            resultDto.setContinueToken(continueTokenInfo);
+
+            return resultDto;
+        }
+
         return doDraftProcessDefinition(procDefDto, continueToken);
     }
 
@@ -65,7 +100,7 @@ public class WorkflowProcDefDeploymentService extends AbstractWorkflowProcDefSer
      * @param continueToken
      * @return
      */
-    public ProcessDeploymentResultDto deployProcessDefinition(ProcDefInfoDto procDefInfoDto, String continueToken) {
+    public ProcessDeploymentResultDto deployProcessDefinition(ProcDefInfoDto procDefInfoDto) {
 
         validateTaskInfos(procDefInfoDto);
 
@@ -77,73 +112,73 @@ public class WorkflowProcDefDeploymentService extends AbstractWorkflowProcDefSer
         List<ProcDefInfoEntity> existingProcDefs = processDefInfoRepo
                 .selectAllDeployedProcDefsByProcDefName(procDefName);
         if (existingProcDefs != null && !existingProcDefs.isEmpty()) {
-            return tryPerformExistingProcessDeployment(existingProcDefs.get(0), procDefInfoDto, continueToken);
+            log.error("Process definition name should NOT duplicated.procDefName={}", procDefInfoDto.getProcDefName());
+            throw new WecubeCoreException("3209", "Process definition name should NOT duplicated.");
         }
 
         return tryPerformNewProcessDeployment(procDefInfoDto);
 
     }
-    
-     private ProcessDraftResultDto doDraftProcessDefinition(ProcDefInfoDto procDefDto, String continueToken) {
-         String originalId = procDefDto.getProcDefId();
 
-         Date currTime = new Date();
-         String currUser = AuthenticationContextHolder.getCurrentUsername();
+    private ProcessDraftResultDto doDraftProcessDefinition(ProcDefInfoDto procDefDto, String continueToken) {
+        String originalId = procDefDto.getProcDefId();
 
-         ProcDefInfoEntity draftEntity = null;
-         if (!StringUtils.isBlank(originalId)) {
-             ProcDefInfoEntity entity = processDefInfoRepo.selectByPrimaryKey(originalId);
-             if (entity != null) {
-                 if (ProcDefInfoEntity.DRAFT_STATUS.equals(entity.getStatus())) {
-                     draftEntity = entity;
-                 }
-             } else {
-                 log.warn("Invalid process definition id:{}", originalId);
-                 throw new WecubeCoreException("3207", "Invalid process definition id");
-             }
-         }
+        Date currTime = new Date();
+        String currUser = AuthenticationContextHolder.getCurrentUsername();
 
-         if (draftEntity == null) {
-             draftEntity = new ProcDefInfoEntity();
-             draftEntity.setId(LocalIdGenerator.generateId());
-             draftEntity.setStatus(ProcDefInfoEntity.DRAFT_STATUS);
-             draftEntity.setCreatedBy(currUser);
-             draftEntity.setCreatedTime(currTime);
+        ProcDefInfoEntity draftEntity = null;
+        if (!StringUtils.isBlank(originalId)) {
+            ProcDefInfoEntity entity = processDefInfoRepo.selectByPrimaryKey(originalId);
+            if (entity != null) {
+                if (ProcDefInfoEntity.DRAFT_STATUS.equals(entity.getStatus())) {
+                    draftEntity = entity;
+                }
+            } else {
+                log.warn("Invalid process definition id:{}", originalId);
+                throw new WecubeCoreException("3207", "Invalid process definition id");
+            }
+        }
 
-             processDefInfoRepo.insert(draftEntity);
-         }
+        if (draftEntity == null) {
+            draftEntity = new ProcDefInfoEntity();
+            draftEntity.setId(LocalIdGenerator.generateId());
+            draftEntity.setStatus(ProcDefInfoEntity.DRAFT_STATUS);
+            draftEntity.setCreatedBy(currUser);
+            draftEntity.setCreatedTime(currTime);
 
-         draftEntity.setProcDefData(procDefDto.getProcDefData());
-         draftEntity.setProcDefKey(procDefDto.getProcDefKey());
-         draftEntity.setProcDefName(procDefDto.getProcDefName());
-         draftEntity.setRootEntity(procDefDto.getRootEntity());
-         draftEntity.setUpdatedTime(currTime);
-         draftEntity.setUpdatedBy(currUser);
-         draftEntity.setExcludeMode(procDefDto.getExcludeMode());
-         draftEntity.setTags(procDefDto.getTags());
+            processDefInfoRepo.insert(draftEntity);
+        }
 
-         processDefInfoRepo.updateByPrimaryKeySelective(draftEntity);
-         // Save ProcRoleBindingEntity
-         this.saveProcRoleBinding(draftEntity.getId(), procDefDto);
+        draftEntity.setProcDefData(procDefDto.getProcDefData());
+        draftEntity.setProcDefKey(procDefDto.getProcDefKey());
+        draftEntity.setProcDefName(procDefDto.getProcDefName());
+        draftEntity.setRootEntity(procDefDto.getRootEntity());
+        draftEntity.setUpdatedTime(currTime);
+        draftEntity.setUpdatedBy(currUser);
+        draftEntity.setExcludeMode(procDefDto.getExcludeMode());
+        draftEntity.setTags(procDefDto.getTags());
 
-         ProcDefInfoDto procDefResult = new ProcDefInfoDto();
-         procDefResult.setProcDefId(draftEntity.getId());
-         procDefResult.setProcDefData(draftEntity.getProcDefData());
-         procDefResult.setProcDefKey(draftEntity.getProcDefKey());
-         procDefResult.setProcDefName(draftEntity.getProcDefName());
-         procDefResult.setRootEntity(draftEntity.getRootEntity());
-         procDefResult.setStatus(draftEntity.getStatus());
-         procDefResult.setExcludeMode(draftEntity.getExcludeMode());
-         procDefResult.setTags(draftEntity.getTags());
+        processDefInfoRepo.updateByPrimaryKeySelective(draftEntity);
+        // Save ProcRoleBindingEntity
+        this.saveProcRoleBinding(draftEntity.getId(), procDefDto);
 
-         processDraftTaskNodeInfos(procDefDto, draftEntity, procDefResult, currTime);
+        ProcDefInfoDto procDefResult = new ProcDefInfoDto();
+        procDefResult.setProcDefId(draftEntity.getId());
+        procDefResult.setProcDefData(draftEntity.getProcDefData());
+        procDefResult.setProcDefKey(draftEntity.getProcDefKey());
+        procDefResult.setProcDefName(draftEntity.getProcDefName());
+        procDefResult.setRootEntity(draftEntity.getRootEntity());
+        procDefResult.setStatus(draftEntity.getStatus());
+        procDefResult.setExcludeMode(draftEntity.getExcludeMode());
+        procDefResult.setTags(draftEntity.getTags());
 
-         
-         ProcessDraftResultDto processDraftResultDto = new ProcessDraftResultDto();
-         processDraftResultDto.setResult(procDefResult);
-         return processDraftResultDto;
-     }
-    
+        processDraftTaskNodeInfos(procDefDto, draftEntity, procDefResult, currTime);
+
+        ProcessDraftResultDto processDraftResultDto = new ProcessDraftResultDto();
+        processDraftResultDto.setResult(procDefResult);
+        return processDraftResultDto;
+    }
+
     private void processDraftTaskNodeInfos(ProcDefInfoDto procDefDto, ProcDefInfoEntity draftEntity,
             ProcDefInfoDto procDefResult, Date currTime) {
         ProcDefOutline procDefOutline = workflowEngineService
@@ -260,7 +295,7 @@ public class WorkflowProcDefDeploymentService extends AbstractWorkflowProcDefSer
             }
         }
     }
-    
+
     private void processDraftParamInfos(TaskNodeDefInfoDto nodeDto, ProcDefInfoEntity draftEntity,
             TaskNodeDefInfoEntity draftNodeEntity, Date currTime) {
         if (nodeDto.getParamInfos() == null || nodeDto.getParamInfos().isEmpty()) {
@@ -311,7 +346,7 @@ public class WorkflowProcDefDeploymentService extends AbstractWorkflowProcDefSer
 
         tryClearAbandonedParamInfos(draftEntity, draftNodeEntity, reusedDraftParamEntities);
     }
-    
+
     private void tryClearAllParamInfos(ProcDefInfoEntity draftEntity, TaskNodeDefInfoEntity draftNodeEntity) {
         List<TaskNodeParamEntity> existParamEntities = taskNodeParamRepo
                 .selectAllDraftByProcDefIdAndTaskNodeDefId(draftEntity.getId(), draftNodeEntity.getId());
@@ -337,7 +372,7 @@ public class WorkflowProcDefDeploymentService extends AbstractWorkflowProcDefSer
             taskNodeParamRepo.deleteByPrimaryKey(dbParamEntity.getId());
         }
     }
-    
+
     private TaskNodeDefInfoEntity tryFindDraftNodeEntity(String nodeOid, String procDefId, String nodeId) {
         TaskNodeDefInfoEntity draftNodeEntity = null;
         if (!StringUtils.isBlank(nodeOid)) {
@@ -373,7 +408,7 @@ public class WorkflowProcDefDeploymentService extends AbstractWorkflowProcDefSer
 
         taskNodeDefInfoRepo.deleteByPrimaryKey(draftNodeEntity.getId());
     }
-    
+
     private void validateTaskInfos(ProcDefInfoDto procDefInfoDto) {
         if (procDefInfoDto.getTaskNodeInfos() == null) {
             return;
@@ -408,7 +443,7 @@ public class WorkflowProcDefDeploymentService extends AbstractWorkflowProcDefSer
             validateTaskNodePluginPermission(nodeDto, mgmtRoleNames);
         }
     }
-    
+
     private void validateTaskNodePluginPermission(TaskNodeDefInfoDto nodeDto, List<String> mgmtRoleNames) {
         PluginConfigInterfaces intf = retrievePluginConfigInterface(nodeDto, nodeDto.getNodeId());
         PluginConfigs pluginConfig = intf.getPluginConfig();
@@ -436,7 +471,7 @@ public class WorkflowProcDefDeploymentService extends AbstractWorkflowProcDefSer
                 pluginConfig.getId());
         throw new WecubeCoreException("3219", "Lack of permission to deploy process.");
     }
-    
+
     private PluginConfigInterfaces retrievePluginConfigInterface(TaskNodeDefInfoDto taskNodeDefDto, String nodeId) {
 
         String serviceId = taskNodeDefDto.getServiceId();
@@ -460,7 +495,7 @@ public class WorkflowProcDefDeploymentService extends AbstractWorkflowProcDefSer
 
         return pluginConfigInterface;
     }
-    
+
     private ProcessDeploymentResultDto tryPerformNewProcessDeployment(ProcDefInfoDto procDefInfoDto) {
         String originalId = procDefInfoDto.getProcDefId();
 
@@ -521,7 +556,7 @@ public class WorkflowProcDefDeploymentService extends AbstractWorkflowProcDefSer
 
         return processDeploymentResultDto;
     }
-    
+
     private void processDeployTaskNodeInfos(ProcDefInfoDto procDefInfoDto, ProcDefInfoEntity procDefEntity,
             Date currTime) {
         if (procDefInfoDto.getTaskNodeInfos() != null) {
@@ -656,7 +691,7 @@ public class WorkflowProcDefDeploymentService extends AbstractWorkflowProcDefSer
 
         return result;
     }
-    
+
     private TaskNodeParamEntity buildDeployNewTaskNodeParamEntity(TaskNodeDefParamDto paramDto,
             TaskNodeDefInfoDto nodeDto, ProcDefInfoEntity procDefEntity, TaskNodeDefInfoEntity nodeEntity,
             Date currTime) {
@@ -680,17 +715,13 @@ public class WorkflowProcDefDeploymentService extends AbstractWorkflowProcDefSer
         return paramEntity;
     }
 
-    
-
-    
-
     private void handleDeployFailure(ProcDefInfoEntity procEntity) {
         if (procEntity == null) {
             return;
         }
         purgeProcessDefInfoEntity(procEntity);
     }
-    
+
     private void purgeProcessDefInfoEntity(ProcDefInfoEntity procEntity) {
         List<TaskNodeParamEntity> nodeParamEntities = taskNodeParamRepo.selectAllByProcDefId(procEntity.getId());
         List<TaskNodeDefInfoEntity> nodeEntities = taskNodeDefInfoRepo.selectAllByProcDefId(procEntity.getId());
@@ -709,32 +740,32 @@ public class WorkflowProcDefDeploymentService extends AbstractWorkflowProcDefSer
 
         processDefInfoRepo.deleteByPrimaryKey(procEntity.getId());
     }
-    
-    private ProcessDeploymentResultDto tryPerformExistingProcessDeployment(ProcDefInfoEntity existingProcDef,
-            ProcDefInfoDto procDefInfoDto, String continueToken) {
-        // #2222
-        log.info("such process definition name already exists,procDefName={}", procDefInfoDto.getProcDefName());
-        if (StringUtils.isNoneBlank(continueToken)) {
-            return tryPerformConditionalProcessDeploymentEdition(existingProcDef, procDefInfoDto, continueToken);
-        }
 
-        if (!verifyConditionalProcessDeploymentEdition(existingProcDef, procDefInfoDto)) {
-            log.error("Process definition name should NOT duplicated.procDefName={}", procDefInfoDto.getProcDefName());
-            throw new WecubeCoreException("3209", "Process definition name should NOT duplicated.");
-        }
+//    private ProcessDeploymentResultDto tryPerformExistingProcessDeployment(ProcDefInfoEntity existingProcDef,
+//            ProcDefInfoDto procDefInfoDto, String continueToken) {
+//        // #2222
+//        log.info("such process definition name already exists,procDefName={}", procDefInfoDto.getProcDefName());
+//        if (StringUtils.isNoneBlank(continueToken)) {
+//            return tryPerformConditionalProcessDeploymentEdition(existingProcDef, procDefInfoDto, continueToken);
+//        }
+//
+//        if (!verifyConditionalProcessDeploymentEdition(existingProcDef, procDefInfoDto)) {
+//            log.error("Process definition name should NOT duplicated.procDefName={}", procDefInfoDto.getProcDefName());
+//            throw new WecubeCoreException("3209", "Process definition name should NOT duplicated.");
+//        }
+//
+//        String newContinueToken = buildProcessDeploymentContinueToken(procDefInfoDto);
+//        String message = "Such process already had been deployed before,please confirm to proceed deployment.";
+//        ProcessDeploymentResultDto resultDto = new ProcessDeploymentResultDto();
+//        resultDto.setStatus(ProcessDeploymentResultDto.STATUS_CONFIRM);
+//        resultDto.setMessage(message);
+//        ContinueTokenInfoDto continueTokenInfo = new ContinueTokenInfoDto();
+//        continueTokenInfo.setContinueToken(newContinueToken);
+//        resultDto.setContinueToken(continueTokenInfo);
+//
+//        return resultDto;
+//    }
 
-        String newContinueToken = buildProcessDeploymentContinueToken(procDefInfoDto);
-        String message = "Such process already had been deployed before,please confirm to proceed deployment.";
-        ProcessDeploymentResultDto resultDto = new ProcessDeploymentResultDto();
-        resultDto.setStatus(ProcessDeploymentResultDto.STATUS_CONFIRM);
-        resultDto.setMessage(message);
-        ContinueTokenInfoDto continueTokenInfo = new ContinueTokenInfoDto();
-        continueTokenInfo.setContinueToken(newContinueToken);
-        resultDto.setContinueToken(continueTokenInfo);
-
-        return resultDto;
-    }
-    
     private boolean verifyConditionalProcessDeploymentEdition(ProcDefInfoEntity existingProcDef,
             ProcDefInfoDto procDefInfoDto) {
         if (!Objects.equals(existingProcDef.getId(), procDefInfoDto.getProcDefId())) {
@@ -742,6 +773,10 @@ public class WorkflowProcDefDeploymentService extends AbstractWorkflowProcDefSer
         }
 
         if (!Objects.equals(existingProcDef.getProcDefName(), procDefInfoDto.getProcDefName())) {
+            return false;
+        }
+
+        if (!ProcDefInfoEntity.DEPLOYED_STATUS.equals(existingProcDef.getStatus())) {
             return false;
         }
 
@@ -755,7 +790,7 @@ public class WorkflowProcDefDeploymentService extends AbstractWorkflowProcDefSer
 
         return verifyConditionalProcessDeploymentEdition(taskNodeDefEntities, procDefInfoDto.getTaskNodeInfos());
     }
-    
+
     private boolean verifyConditionalProcessDeploymentEdition(List<TaskNodeDefInfoEntity> taskNodeDefEntities,
             List<TaskNodeDefInfoDto> taskNodeInfos) {
         if (taskNodeDefEntities == null || taskNodeInfos == null) {
@@ -809,7 +844,7 @@ public class WorkflowProcDefDeploymentService extends AbstractWorkflowProcDefSer
         return true;
     }
 
-    private ProcessDeploymentResultDto tryPerformConditionalProcessDeploymentEdition(ProcDefInfoEntity existingProcDef,
+    private ProcessDraftResultDto tryPerformConditionalProcessDeploymentEdition(ProcDefInfoEntity existingProcDef,
             ProcDefInfoDto procDefInfoDto, String continueToken) {
         if (!verifyProcessDeploymentContinueToken(procDefInfoDto, continueToken)) {
             throw new WecubeCoreException("Invalid continue token provided.");
@@ -837,12 +872,11 @@ public class WorkflowProcDefDeploymentService extends AbstractWorkflowProcDefSer
             tryPerformConditionalProcessDeploymentEdition(nodeInfoEntity, nodeDefInfoDto);
         }
 
-        ProcessDeploymentResultDto resultDto = new ProcessDeploymentResultDto();
-        resultDto.setStatus(ProcessDeploymentResultDto.STATUS_OK);
+        ProcessDraftResultDto resultDto = new ProcessDraftResultDto();
+        resultDto.setStatus(ProcessDraftResultDto.STATUS_OK);
         resultDto.setMessage("success");
 
-        ProcDefOutlineDto outlineDto = getProcessDefinitionOutline(existingProcDef.getId());
-        resultDto.setResult(outlineDto);
+        resultDto.setResult(procDefInfoDto);
         return resultDto;
     }
 
@@ -897,7 +931,7 @@ public class WorkflowProcDefDeploymentService extends AbstractWorkflowProcDefSer
             }
         }
     }
-    
+
     private String buildProcessDeploymentContinueToken(ProcDefInfoDto procDefInfoDto) {
         StringBuilder data = new StringBuilder();
         String seperator = ":";
