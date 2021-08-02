@@ -471,5 +471,7 @@
   "resource_instance": "资源实例",
   "locate_rules_warning": "定位规则需以对象类型为起始点",
   "ip_address": "IP地址",
-  "plugin_const_params_warning": "常量配置不能为空"
+  "plugin_const_params_warning": "常量配置不能为空",
+  "encrypt_data": "加密数据",
+  "signature": "签名"
 }
