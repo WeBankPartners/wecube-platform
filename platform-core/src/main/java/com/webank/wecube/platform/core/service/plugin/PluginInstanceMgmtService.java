@@ -284,6 +284,7 @@ public class PluginInstanceMgmtService extends AbstractPluginMgmtService {
     private String appendPluginCertificationInfo(String envVariablesString, PluginPackages pluginPackage,
             SimpleSubSystemDto subSystemAsDto) {
         String plugin = pluginPackage.getName();
+        log.info("About to append plugin certification for {}", plugin);
         PluginCertification pluginCertification = pluginCertificationMapper.selectPluginCertificationByPlugin(plugin);
 
         if (pluginCertification == null) {
@@ -330,6 +331,7 @@ public class PluginInstanceMgmtService extends AbstractPluginMgmtService {
         String certEnv = String.format("LICENSE_PK=%s\\,LICENSE_DATA=%s\\,LICENSE_SIGNATURE=%s\\,LICENSE_CODE=%s",
                 aesEncryptedLpk, aesEncryptedData, aesEncryptedSignature, rsaEncryptedAesKey);
 
+        log.info("Appended certification:{}", certEnv);
         return envVariablesString + String.format("\\,%s", certEnv);
     }
 
