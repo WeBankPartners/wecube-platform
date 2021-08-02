@@ -476,5 +476,6 @@
   "context_parameters": "Context Parameters",
   "constant_parameters": "Constant Parameters",
   "root_task_node": "Root Task Node",
-  "tag": "Tag"
+  "tag": "Tag",
+  "core_multiple": "Multiple"
 }
