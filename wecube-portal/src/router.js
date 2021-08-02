@@ -41,6 +41,11 @@ let router = new Router({
           component: () => import('@/pages/admin/resources/index')
         },
         {
+          path: '/admin/certifition',
+          name: 'certifition',
+          component: () => import('@/pages/admin/plugin-certifition')
+        },
+        {
           path: '/admin/user-role-management',
           name: 'userRoleManagement',
           component: () => import('@/pages/admin/user-role-management')
