@@ -11,11 +11,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.webank.wecube.platform.core.commons.ApplicationProperties.ResourceProperties;
+import com.webank.wecube.platform.core.commons.WecubeCoreException;
 import com.webank.wecube.platform.core.dto.plugin.QueryRequestDto;
 import com.webank.wecube.platform.core.dto.plugin.QueryResponse;
 import com.webank.wecube.platform.core.dto.plugin.ResourceItemDto;
 import com.webank.wecube.platform.core.dto.plugin.ResourceServerDto;
-import com.webank.wecube.platform.core.commons.WecubeCoreException;
+import com.webank.wecube.platform.core.dto.plugin.ResourceServerProductSerialDto;
 import com.webank.wecube.platform.core.entity.plugin.ResourceItem;
 import com.webank.wecube.platform.core.entity.plugin.ResourceServer;
 import com.webank.wecube.platform.core.repository.plugin.ResourceItemMapper;
@@ -43,6 +44,13 @@ public class ResourceManagementService {
 
     @Autowired
     private PluginPageableDataService pluginPageableDataService;
+    
+    public ResourceServerProductSerialDto retrieveResourceServerProductSerial(String resourceServerId){
+        //TODO
+        ResourceServerProductSerialDto dto = new ResourceServerProductSerialDto();
+        dto.setProductSerial("product serial");
+        return dto;
+    }
 
     public QueryResponse<ResourceServerDto> retrieveServers(QueryRequestDto queryRequest) {
 
