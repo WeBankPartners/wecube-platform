@@ -172,6 +172,9 @@
           <Col span="2" offset="0" style="text-align: center;">
             <strong style="font-size:15px;">{{ $t('data_type') }}</strong>
           </Col>
+          <Col span="1" style="margin-left:60px" offset="0">
+            <strong style="font-size:15px;">{{ $t('core_multiple') }}</strong>
+          </Col>
           <Col span="1" style="margin-left:45px" offset="0">
             <strong style="font-size:15px;">{{ $t('sensitive') }}</strong>
           </Col>
@@ -180,7 +183,7 @@
               {{ $t('attribute_type') }}
             </strong>
           </Col>
-          <Col span="11" style="margin-left:100px" offset="0">
+          <Col span="10" style="margin-left:100px" offset="1">
             <strong style="font-size:15px;">{{ $t('attribute') }}</strong>
           </Col>
         </Row>
@@ -216,6 +219,20 @@
                   <Col span="1" offset="0">
                     <FormItem :label-width="0">
                       <Select
+                        v-model="param.multiple"
+                        filterable
+                        style="width:50px"
+                        :disabled="currentPluginObj.status === 'ENABLED'"
+                      >
+                        <Option v-for="item in sensitiveData" :value="item.value" :key="item.value">{{
+                          item.label
+                        }}</Option>
+                      </Select>
+                    </FormItem>
+                  </Col>
+                  <Col span="1" offset="1">
+                    <FormItem :label-width="0">
+                      <Select
                         v-model="param.sensitiveData"
                         filterable
                         style="width:50px"
@@ -235,15 +252,13 @@
                         v-model="param.mappingType"
                         @on-change="mappingTypeChange($event, param)"
                       >
-                        <Option value="context" key="context">context</Option>
-                        <Option value="system_variable" key="system_variable">system_variable</Option>
-                        <Option value="entity" key="entity">entity</Option>
-                        <Option value="constant" key="constant">constant</Option>
-                        <Option value="object" key="object">object</Option>
+                        <Option v-for="item in mappingTypeOptions" :value="item.value" :key="item.key">{{
+                          item.value
+                        }}</Option>
                       </Select>
                     </FormItem>
                   </Col>
-                  <Col span="13" offset="1">
+                  <Col span="11" offset="1">
                     <FormItem :label-width="0">
                       <!-- <FilterRules
                         v-if="param.mappingType === 'entity'"
@@ -335,6 +350,20 @@
                     <Col span="1" offset="0">
                       <FormItem :label-width="0">
                         <Select
+                          v-model="outPut.multiple"
+                          filterable
+                          style="width:50px"
+                          :disabled="currentPluginObj.status === 'ENABLED'"
+                        >
+                          <Option v-for="item in sensitiveData" :value="item.value" :key="item.value">{{
+                            item.label
+                          }}</Option>
+                        </Select>
+                      </FormItem>
+                    </Col>
+                    <Col span="1" offset="1">
+                      <FormItem :label-width="0">
+                        <Select
                           filterable
                           v-model="outPut.sensitiveData"
                           style="width:50px"
@@ -354,7 +383,7 @@
                         </Select>
                       </FormItem>
                     </Col>
-                    <Col span="13" offset="1">
+                    <Col span="11" offset="1">
                       <FormItem :label-width="0">
                         <FilterRulesRef
                           v-if="outPut.mappingType === 'entity'"
@@ -388,7 +417,7 @@
                         />
                       </FormItem>
                     </Col>
-                    <Col span="13" offset="1">
+                    <Col span="12" offset="1">
                       <FormItem :label-width="0">
                         <FilterRulesRef
                           v-model="outPut.mappingEntityExpression"
@@ -548,6 +577,12 @@ export default {
       selectedEntityType: '',
       form: {},
       allSystemVariables: [],
+      mappingTypeOptions: [
+        { label: 'context', value: 'context' },
+        { label: 'system_variable', value: 'system_variable' },
+        { label: 'entity', value: 'entity' },
+        { label: 'constant', value: 'constant' }
+      ],
       sensitiveData: [
         {
           value: 'Y',
@@ -725,7 +760,175 @@ export default {
     },
     // refObjectMeta。id pluginConfigId
     showParamsModal (val, index, currentPluginObj) {
+      // console.log(JSON.stringify(val))
       this.currentInter = val
+      // this.currentInter = {
+      //   'id': 'sBYaqeS93A5M',
+      //   'pluginConfigId': 'sBYaqeR93A4r',
+      //   'action': 'apply',
+      //   'serviceName': 'kubernetes/deployment(deployment01)/apply',
+      //   'serviceDisplayName': 'kubernetes/deployment(deployment01)/apply',
+      //   'path': '/kubernetes/v1/deployments/apply',
+      //   'httpMethod': 'POST',
+      //   'isAsyncProcessing': 'N',
+      //   'filterRule': '',
+      //   'description': null,
+      //   'inputParameters': [
+      //     {
+      //       'id': 'sBYaqeU93A9U',
+      //       'pluginConfigInterfaceId': 'sBYaqeS93A5M',
+      //       'type': 'INPUT',
+      //       'name': 'images',
+      //       'dataType': 'list',
+      //       'mappingType': 'object',
+      //       'mappingEntityExpression': 'wecmdb:unit_design~(unit_design)wecmdb:deploy_package',
+      //       'mappingSystemVariableName': null,
+      //       'required': 'Y',
+      //       'sensitiveData': 'N',
+      //       'description': null,
+      //       'mappingValue': 'deploymentImage',
+      //       'multiple': null,
+      //       'refObjectName': null,
+      //       'refObjectMeta': {
+      //         'id': 'sBYaqeV93AaP',
+      //         'name': 'deploymentImage',
+      //         'packageName': 'kubernetes',
+      //         'source': null,
+      //         'latestSource': null,
+      //         'configId': 'sBYaqeR93A4r',
+      //         'mappingEntityExpression': null,
+      //         'propertyMetas': [
+      //           {
+      //             'id': 'sBYaqeW93Ab8',
+      //             'name': 'name',
+      //             'dataType': 'string',
+      //             'multiple': null,
+      //             'refObjectName': '',
+      //             'mappingType': 'entity',
+      //             'mappingEntityExpression': 'wecmdb:deploy_package.key_name',
+      //             'objectMetaId': 'sBYaqeV93AaP',
+      //             'objectName': 'deploymentImage',
+      //             'packageName': 'kubernetes',
+      //             'source': 'v0.1.0',
+      //             'sensitiveData': 'N',
+      //             'configId': 'sBYaqeR93A4r',
+      //             'refObjectMeta': null
+      //           },
+      //           {
+      //             'id': 'sBYaqeX93Ac7',
+      //             'name': 'ports',
+      //             'dataType': 'string',
+      //             'multiple': null,
+      //             'refObjectName': '',
+      //             'mappingType': 'entity',
+      //             'mappingEntityExpression': 'wecmdb:deploy_package.code',
+      //             'objectMetaId': 'sBYaqeV93AaP',
+      //             'objectName': 'deploymentImage',
+      //             'packageName': 'kubernetes',
+      //             'source': 'v0.1.0',
+      //             'sensitiveData': 'N',
+      //             'configId': 'sBYaqeR93A4r',
+      //             'refObjectMeta': null
+      //           }
+      //         ]
+      //       }
+      //     },
+      //     {
+      //       'id': 'sBYaqfe93Ak2',
+      //       'pluginConfigInterfaceId': 'sBYaqeS93A5M',
+      //       'type': 'INPUT',
+      //       'name': 'envs',
+      //       'dataType': 'list',
+      //       'mappingType': 'object',
+      //       'mappingEntityExpression': 'wecmdb:unit_design~(unit_design)wecmdb:static_diff_conf_value',
+      //       'mappingSystemVariableName': null,
+      //       'required': 'N',
+      //       'sensitiveData': 'N',
+      //       'description': null,
+      //       'mappingValue': 'deploymentEnv',
+      //       'multiple': null,
+      //       'refObjectName': null,
+      //       'refObjectMeta': {
+      //         'id': 'sBYaqff93AlR',
+      //         'name': 'deploymentEnv',
+      //         'packageName': 'kubernetes',
+      //         'source': null,
+      //         'latestSource': null,
+      //         'configId': 'sBYaqeR93A4r',
+      //         'mappingEntityExpression': null,
+      //         'propertyMetas': [
+      //           {
+      //             'id': 'sBYaqfg93Ami',
+      //             'name': 'name',
+      //             'dataType': 'string',
+      //             'multiple': null,
+      //             'refObjectName': '',
+      //             'mappingType': 'entity',
+      //             'mappingEntityExpression': 'wecmdb:static_diff_conf_value.code',
+      //             'objectMetaId': 'sBYaqff93AlR',
+      //             'objectName': 'deploymentEnv',
+      //             'packageName': 'kubernetes',
+      //             'source': 'v0.1.0',
+      //             'sensitiveData': 'N',
+      //             'configId': 'sBYaqeR93A4r',
+      //             'refObjectMeta': null
+      //           },
+      //           {
+      //             'id': 'sBYaqfh93Anh',
+      //             'name': 'value',
+      //             'dataType': 'string',
+      //             'multiple': null,
+      //             'refObjectName': '',
+      //             'mappingType': 'entity',
+      //             'mappingEntityExpression': 'wecmdb:static_diff_conf_value.static_value',
+      //             'objectMetaId': 'sBYaqff93AlR',
+      //             'objectName': 'deploymentEnv',
+      //             'packageName': 'kubernetes',
+      //             'source': 'v0.1.0',
+      //             'sensitiveData': 'N',
+      //             'configId': 'sBYaqeR93A4r',
+      //             'refObjectMeta': null
+      //           },
+      //           {
+      //             'id': 'sBYaqfh93AoJ',
+      //             'name': 'valueFrom',
+      //             'dataType': 'string',
+      //             'multiple': null,
+      //             'refObjectName': '',
+      //             'mappingType': 'constant',
+      //             'mappingEntityExpression': '',
+      //             'objectMetaId': 'sBYaqff93AlR',
+      //             'objectName': 'deploymentEnv',
+      //             'packageName': 'kubernetes',
+      //             'source': 'v0.1.0',
+      //             'sensitiveData': 'N',
+      //             'configId': 'sBYaqeR93A4r',
+      //             'refObjectMeta': null
+      //           },
+      //           {
+      //             'id': 'sBYaqfi93ApT',
+      //             'name': 'valueRef',
+      //             'dataType': 'string',
+      //             'multiple': null,
+      //             'refObjectName': 'commonTag',
+      //             'mappingType': 'constant',
+      //             'mappingEntityExpression': 'wecmdb:static_diff_conf_value',
+      //             'objectMetaId': 'sBYaqff93AlR',
+      //             'objectName': 'deploymentEnv',
+      //             'packageName': 'kubernetes',
+      //             'source': 'v0.1.0',
+      //             'sensitiveData': 'N',
+      //             'configId': 'sBYaqeR93A4r',
+      //             'refObjectMeta': null
+      //           }
+      //         ]
+      //       }
+      //     }
+      //   ],
+      //   'outputParameters': [],
+      //   'configurableInputParameters': []
+      // }
+      // console.log(this.currentInter)
       this.currentInter.inputParameters.forEach(item => {
         item.mappingEntityExpression = this.managementObjectExpression(
           item.mappingEntityExpression,
