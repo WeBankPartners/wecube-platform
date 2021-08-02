@@ -18,6 +18,7 @@ import com.webank.wecube.platform.core.dto.plugin.CommonResponseDto;
 import com.webank.wecube.platform.core.dto.plugin.QueryRequestDto;
 import com.webank.wecube.platform.core.dto.plugin.ResourceItemDto;
 import com.webank.wecube.platform.core.dto.plugin.ResourceServerDto;
+import com.webank.wecube.platform.core.dto.plugin.ResourceServerProductSerialDto;
 import com.webank.wecube.platform.core.service.resource.ResourceItemStatus;
 import com.webank.wecube.platform.core.service.resource.ResourceItemType;
 import com.webank.wecube.platform.core.service.resource.ResourceManagementService;
@@ -30,6 +31,13 @@ public class ResourceManagementController {
 
     @Autowired
     private ResourceManagementService resourceService;
+    
+    @GetMapping("/servers/{id}/product-serial")
+    @PreAuthorize("hasAnyAuthority('ADMIN_RESOURCES_MANAGEMENT','SUB_SYSTEM')")
+    public CommonResponseDto retrieveResourceServerProductSerial(String resourceServerId) {
+        ResourceServerProductSerialDto dto = resourceService.retrieveResourceServerProductSerial(resourceServerId);
+        return okayWithData(dto);
+    }
 
     @PostMapping("/servers/retrieve")
     @PreAuthorize("hasAnyAuthority('ADMIN_RESOURCES_MANAGEMENT','SUB_SYSTEM')")
