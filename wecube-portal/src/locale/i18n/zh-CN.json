@@ -475,5 +475,6 @@
   "context_parameters": "上下文参数",
   "constant_parameters": "静态参数",
   "root_task_node": "根任务节点",
-  "tag": "标签"
+  "tag": "标签",
+  "core_multiple": "多选"
 }
