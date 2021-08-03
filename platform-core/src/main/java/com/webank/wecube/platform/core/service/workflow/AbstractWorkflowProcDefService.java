@@ -306,6 +306,7 @@ public class AbstractWorkflowProcDefService extends AbstractWorkflowService{
         nodeEntity.setDescription(nodeDto.getDescription());
         nodeEntity.setNodeId(nodeDto.getNodeId());
         nodeEntity.setNodeName(nodeDto.getNodeName());
+        nodeEntity.setNodeType(nodeDto.getNodeType());
         nodeEntity.setProcDefId(procDefEntity.getId());
         nodeEntity.setProcDefKey(nodeDto.getProcDefKey());
         nodeEntity.setRoutineExp(nodeDto.getRoutineExpression());
