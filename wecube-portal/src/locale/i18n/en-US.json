@@ -477,5 +477,9 @@
   "signature": "Signature",
   "compare": "Compare",
   "product_serial": "Product Serial",
-  "product_serial_tip": "This feature is only available in docker"
+  "product_serial_tip": "This feature is only available in docker",
+  "context_parameters": "Context Parameters",
+  "constant_parameters": "Constant Parameters",
+  "root_task_node": "Root Task Node",
+  "tag": "Tag"
 }
