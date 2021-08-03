@@ -280,6 +280,8 @@ public class PluginInvocationProcessor {
         private TaskNodeExecRequestEntity taskNodeExecRequestEntity;
         private TaskNodeDefInfoEntity taskNodeDefEntity;
         private PluginInvocationCommand pluginInvocationCommand;
+        private int reqObjectAmount = 0;
+        private int respObjectAmount = 0;
 
         public ProcInstInfoEntity getProcInstEntity() {
             return procInstEntity;
@@ -411,6 +413,32 @@ public class PluginInvocationProcessor {
             return this;
         }
 
+        public int getReqObjectAmount() {
+            return reqObjectAmount;
+        }
+
+        public void setReqObjectAmount(int reqObjectAmount) {
+            this.reqObjectAmount = reqObjectAmount;
+        }
+
+        public int getRespObjectAmount() {
+            return respObjectAmount;
+        }
+
+        public void setRespObjectAmount(int respObjectAmount) {
+            this.respObjectAmount = respObjectAmount;
+        }
+        
+        public PluginInterfaceInvocationContext withReqObjectAmount(int reqObjectAmount) {
+            this.reqObjectAmount = reqObjectAmount;
+            return this;
+        }
+        
+        public PluginInterfaceInvocationContext withRespObjectAmount(int respObjectAmount) {
+            this.respObjectAmount = respObjectAmount;
+            return this;
+        }
+
     }
 
     public static class PluginInterfaceInvocationResult {
@@ -463,6 +491,8 @@ public class PluginInvocationProcessor {
         public void setResultCode(String resultCode) {
             this.resultCode = resultCode;
         }
+        
+        
     }
 
 }

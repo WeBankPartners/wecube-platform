@@ -23,6 +23,10 @@
             jdbcType="VARCHAR" />
         <result column="mapping_val" property="mappingValue"
             jdbcType="VARCHAR" />
+        <result column="ref_object_name" property="refObjectName"
+            jdbcType="VARCHAR" />
+        <result column="multiple" property="multiple"
+            jdbcType="VARCHAR" />
     </resultMap>
     <sql id="Base_Column_List">
         id, 
@@ -36,7 +40,9 @@
         required, 
         sensitive_data,
         description,
-        mapping_val
+        mapping_val,
+        ref_object_name,
+        multiple
     </sql>
     <select id="selectByPrimaryKey" resultMap="BaseResultMap"
         parameterType="java.lang.String">
@@ -67,7 +73,9 @@
         required, 
         sensitive_data,
         description,
-        mapping_val
+        mapping_val,
+        ref_object_name,
+        multiple
         )
         values
         (
@@ -82,7 +90,9 @@
         #{required,jdbcType=VARCHAR}, 
         #{sensitiveData,jdbcType=VARCHAR},
         #{description,jdbcType=VARCHAR},
-        #{mappingValue,jdbcType=VARCHAR}
+        #{mappingValue,jdbcType=VARCHAR},
+        #{refObjectName,jdbcType=VARCHAR},
+        #{multiple,jdbcType=VARCHAR}
         )
     </insert>
     <insert id="insertSelective"
@@ -125,6 +135,12 @@
             <if test="mappingValue != null">
                 mapping_val,
             </if>
+            <if test="refObjectName != null">
+                ref_object_name,
+            </if>
+            <if test="multiple != null">
+                multiple,
+            </if>
         </trim>
         <trim prefix="values (" suffix=")" suffixOverrides=",">
             <if test="id != null">
@@ -162,6 +178,12 @@
             </if>
             <if test="mappingValue != null">
                 #{mappingValue,jdbcType=VARCHAR},
+            </if>
+            <if test="refObjectName != null">
+                #{refObjectName,jdbcType=VARCHAR},
+            </if>
+            <if test="multiple != null">
+                #{multiple,jdbcType=VARCHAR},
             </if>
         </trim>
     </insert>
@@ -208,6 +230,14 @@
                 mapping_val =
                 #{mappingValue,jdbcType=VARCHAR},
             </if>
+            <if test="refObjectName != null">
+                ref_object_name =
+                #{refObjectName,jdbcType=VARCHAR},
+            </if>
+            <if test="multiple != null">
+                multiple =
+                #{multiple,jdbcType=VARCHAR},
+            </if>
         </set>
         where id = #{id,jdbcType=VARCHAR}
     </update>
@@ -234,7 +264,11 @@
         description =
         #{description,jdbcType=VARCHAR},
         mapping_val =
-        #{mappingValue,jdbcType=VARCHAR}
+        #{mappingValue,jdbcType=VARCHAR},
+        ref_object_name =
+        #{refObjectName,jdbcType=VARCHAR},
+        multiple =
+        #{multiple,jdbcType=VARCHAR}
         where id =
         #{id,jdbcType=VARCHAR}
     </update>
