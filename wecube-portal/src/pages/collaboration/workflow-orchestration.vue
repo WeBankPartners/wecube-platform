@@ -327,7 +327,7 @@ import xml2js from 'xml2js'
 import {
   getAllFlow,
   saveFlow,
-  confirmSaveFlow,
+  confirmSaveFlowDraft,
   saveFlowDraft,
   getFlowDetailByID,
   getFlowNodes,
@@ -837,6 +837,7 @@ export default {
         })
         if (!xml) return
         const xmlString = xml.replace(/[\r\n]/g, '')
+        console.log(_this.currentFlow)
         let payload = {
           permissionToRole: {
             MGMT: _this.mgmtRolesKeyToFlow,
@@ -848,7 +849,7 @@ export default {
           procDefKey: isDraft ? (_this.currentFlow && _this.currentFlow.procDefKey) || '' : _this.newFlowID,
           procDefName: processName,
           rootEntity: _this.currentSelectedEntity,
-          status: isDraft ? (_this.currentFlow && _this.currentFlow.procDefKey) || '' : '',
+          status: isDraft ? (_this.currentFlow && _this.currentFlow.status) || '' : '',
           taskNodeInfos: [..._this.serviceTaskBindInfos]
         }
         if (isDraft) {
@@ -867,6 +868,14 @@ export default {
               _this.selectedFlow = data.data.procDefId
               _this.getFlowXml(data.data.procDefId)
               _this.temporaryFlow = data.data.procDefId
+            }
+            if (data && data.status === 'CONFIRM') {
+              _this.confirmModal.continueToken = data.data.continueToken
+              _this.confirmModal.check = false
+              _this.confirmModal.message = data.message
+              _this.confirmModal.requestBody = payload
+              _this.confirmModal.func = 'test'
+              _this.confirmModal.isShowConfirmModal = true
             }
           })
         } else {
@@ -897,7 +906,7 @@ export default {
       })
     },
     confirmSaveFlow () {
-      confirmSaveFlow(this.confirmModal.continueToken, this.confirmModal.requestBody).then(data => {
+      confirmSaveFlowDraft(this.confirmModal.continueToken, this.confirmModal.requestBody).then(data => {
         this.isSaving = false
         if (data && data.status === 'OK') {
           this.$Notice.success({
