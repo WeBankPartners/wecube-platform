@@ -68,10 +68,10 @@ public class PluginParamObjectMetaStorage extends AbstractPluginParamObjectServi
         }
 
         for (CoreObjectPropertyMeta propertyMetaEntity : propertyMetaEntities) {
-            if (Constants.DATA_TYPE_OBJECT.equals(propertyMetaEntity.getRefType())) {
+            if (Constants.DATA_TYPE_OBJECT.equals(propertyMetaEntity.getDataType())) {
 
                 CoreObjectMeta refObjectMetaEntity = doFetchAssembledCoreObjectMeta(objectMetaEntity.getPackageName(),
-                        propertyMetaEntity.getRefName(), cachedObjectMetaList, configId);
+                        propertyMetaEntity.getRefObjectName(), cachedObjectMetaList, configId);
                 propertyMetaEntity.setRefObjectMeta(refObjectMetaEntity);
             }
 
@@ -104,10 +104,10 @@ public class PluginParamObjectMetaStorage extends AbstractPluginParamObjectServi
         }
 
         for (CoreObjectPropertyMeta propertyMetaEntity : propertyMetaEntities) {
-            if (Constants.DATA_TYPE_OBJECT.equals(propertyMetaEntity.getRefType())) {
+            if (Constants.DATA_TYPE_OBJECT.equals(propertyMetaEntity.getDataType())) {
 
                 CoreObjectMeta refObjectMetaEntity = doFetchAssembledCoreObjectMeta(packageName,
-                        propertyMetaEntity.getRefName(), cachedObjectMetaList, configId);
+                        propertyMetaEntity.getRefObjectName(), cachedObjectMetaList, configId);
                 propertyMetaEntity.setRefObjectMeta(refObjectMetaEntity);
             }
 
@@ -172,8 +172,8 @@ public class PluginParamObjectMetaStorage extends AbstractPluginParamObjectServi
             propertyMeta.setObjectMetaId(coreObjectMeta.getId());
             propertyMeta.setObjectName(propertyMetaDto.getObjectName());
             propertyMeta.setPackageName(propertyMetaDto.getPackageName());
-            propertyMeta.setRefName(propertyMetaDto.getRefName());
-            propertyMeta.setRefType(propertyMetaDto.getRefType());
+            propertyMeta.setRefObjectName(propertyMetaDto.getRefObjectName());
+            propertyMeta.setMultiple(propertyMetaDto.getMultiple());
             boolean sensitive = false;
             if (CoreObjectPropertyMetaDto.SENSITIVE_YES.equals(propertyMetaDto.getSensitiveData())) {
                 sensitive = true;
@@ -232,6 +232,7 @@ public class PluginParamObjectMetaStorage extends AbstractPluginParamObjectServi
             propertyMeta.setMapType(propertyMetaDto.getMappingType());
             propertyMeta.setMapExpr(propertyMetaDto.getMappingEntityExpression());
             propertyMeta.setDataType(propertyMetaDto.getDataType());
+            propertyMeta.setMultiple(propertyMetaDto.getMultiple());
 
             boolean sensitive = false;
             if (CoreObjectPropertyMetaDto.SENSITIVE_YES.equals(propertyMetaDto.getSensitiveData())) {

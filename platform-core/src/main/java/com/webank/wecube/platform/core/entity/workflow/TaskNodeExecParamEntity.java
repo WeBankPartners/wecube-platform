@@ -43,6 +43,15 @@ public class TaskNodeExecParamEntity{
     private Boolean isSensitive;
     
     private String fullEntityDataId;
+    
+    //#2233
+    private String multiple;
+  //#2233
+    private String paramDefId;
+  //#2233
+    private String callbackId;
+  //#2233
+    private String mappingType;
 
     public Integer getId() {
         return id;
@@ -171,4 +180,38 @@ public class TaskNodeExecParamEntity{
     public void setFullEntityDataId(String fullEntityDataId) {
         this.fullEntityDataId = fullEntityDataId;
     }
+
+    public String getMultiple() {
+        return multiple;
+    }
+
+    public void setMultiple(String multiple) {
+        this.multiple = multiple;
+    }
+
+    public String getParamDefId() {
+        return paramDefId;
+    }
+
+    public void setParamDefId(String paramDefId) {
+        this.paramDefId = paramDefId;
+    }
+
+    public String getCallbackId() {
+        return callbackId;
+    }
+
+    public void setCallbackId(String callbackId) {
+        this.callbackId = callbackId;
+    }
+
+    public String getMappingType() {
+        return mappingType;
+    }
+
+    public void setMappingType(String mappingType) {
+        this.mappingType = mappingType;
+    }
+    
+    
 }
