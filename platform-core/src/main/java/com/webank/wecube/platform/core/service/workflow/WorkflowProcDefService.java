@@ -140,7 +140,7 @@ public class WorkflowProcDefService extends AbstractWorkflowProcDefService {
      * @param permission
      * @return
      */
-    public List<ProcDefInfoDto> getProcessDefinitions(boolean includeDraftProcDef, String permission) {
+    public List<ProcDefInfoDto> getProcessDefinitions(boolean includeDraftProcDef, String permission, String tags) {
         List<String> currentUserRoleNameList = new ArrayList<>(
                 Objects.requireNonNull(AuthenticationContextHolder.getCurrentUserRoles()));
 
@@ -153,6 +153,16 @@ public class WorkflowProcDefService extends AbstractWorkflowProcDefService {
             procRoleDtoList = processRoleService.retrieveAllProcessByRoles(currentUserRoleNameList);
         }
         Set<ProcRoleDto> procRoleDtoSet = new HashSet<>(procRoleDtoList);
+        
+        List<String> tagList = new ArrayList<String>();
+        if(StringUtils.isNoneBlank(tags)) {
+            String [] tagsParts = tags.trim().split(",");
+            for(String tagsPart : tagsParts) {
+                if(StringUtils.isNoneBlank(tagsPart)) {
+                    tagList.add(tagsPart.trim());
+                }
+            }
+        }
 
         // check if there is includeDraftProcDef specified
         List<ProcDefInfoEntity> procDefEntities = new ArrayList<>();
@@ -176,7 +186,23 @@ public class WorkflowProcDefService extends AbstractWorkflowProcDefService {
         }
 
         List<ProcDefInfoDto> procDefInfoDtos = new ArrayList<>();
+        for(ProcDefInfoEntity e : procDefEntities) {
+            if(!tagList.isEmpty()) {
+                if(StringUtils.isNoneBlank(e.getTags())) {
+                    for(String tag : tagList) {
+                        if(tag.equalsIgnoreCase(e.getTags())) {
+                            ProcDefInfoDto dto = procDefInfoDtoFromEntity(e);
+                            procDefInfoDtos.add(dto);
+                        }
+                    }
+                }
+            }else {
+                ProcDefInfoDto dto = procDefInfoDtoFromEntity(e);
+                procDefInfoDtos.add(dto);
+            }
+        }
         procDefEntities.forEach(e -> {
+            
             ProcDefInfoDto dto = procDefInfoDtoFromEntity(e);
             procDefInfoDtos.add(dto);
 
