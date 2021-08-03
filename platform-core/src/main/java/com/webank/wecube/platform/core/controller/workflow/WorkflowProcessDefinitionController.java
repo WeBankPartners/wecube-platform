@@ -71,8 +71,8 @@ public class WorkflowProcessDefinitionController {
     @PostMapping("/process/definitions/deploy")
     public CommonResponseDto deployProcessDefinition(@RequestBody ProcDefInfoDto requestDto) {
         if (log.isDebugEnabled()) {
-            log.debug("deploy process:procDefKey={},procDefName={},rootEntity={}",
-                    requestDto.getProcDefKey(), requestDto.getProcDefName(), requestDto.getRootEntity());
+            log.debug("deploy process:procDefKey={},procDefName={},rootEntity={}", requestDto.getProcDefKey(),
+                    requestDto.getProcDefName(), requestDto.getRootEntity());
         }
 
         // #2222
@@ -96,8 +96,9 @@ public class WorkflowProcessDefinitionController {
             log.debug("draft process:procDefKey={},procDefName={},rootEntity={}", requestDto.getProcDefKey(),
                     requestDto.getProcDefName(), requestDto.getRootEntity());
         }
-        
-        ProcessDraftResultDto resultDto = workflowProcDefDeploymentService.draftProcessDefinition(requestDto, continueToken);
+
+        ProcessDraftResultDto resultDto = workflowProcDefDeploymentService.draftProcessDefinition(requestDto,
+                continueToken);
 
         if (resultDto.isConfirm()) {
             CommonResponseDto respDto = new CommonResponseDto();
@@ -114,9 +115,10 @@ public class WorkflowProcessDefinitionController {
     @GetMapping("/process/definitions")
     public CommonResponseDto getProcessDefinitions(
             @RequestParam(name = "includeDraft", required = false, defaultValue = "1") int includeDraft,
-            @RequestParam(name = "permission", required = false, defaultValue = "") String permission) {
+            @RequestParam(name = "permission", required = false, defaultValue = "") String permission,
+            @RequestParam(name = "tags", required = false) String tags) {
         boolean includeDraftProcDef = (includeDraft == 1);
-        List<ProcDefInfoDto> result = procDefService.getProcessDefinitions(includeDraftProcDef, permission);
+        List<ProcDefInfoDto> result = procDefService.getProcessDefinitions(includeDraftProcDef, permission, tags);
         return CommonResponseDto.okayWithData(result);
     }
 
