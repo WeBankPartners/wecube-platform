@@ -1,26 +1,21 @@
 <template>
   <div class=" ">
-    <Form inline>
-      <!-- <FormItem prop="user">
-        <Input type="text" v-model="name" style="width:300px" :placeholder="$t('t_name')"> </Input>
-      </FormItem> -->
-      <FormItem>
-        <Upload
-          ref="uploadButton"
-          show-upload-list
-          accept=".welic"
-          name="uploadFile"
-          :on-success="onImportProcessDefinitionSuccess"
-          :on-error="onImportProcessDefinitionError"
-          action="platform/v1/plugin-certifications/import"
-          :headers="headers"
-        >
-          <Button style="float: right;margin-right:4px" type="primary" @click="getHeaders">{{
-            $t('import_flow')
-          }}</Button>
-        </Upload>
-      </FormItem>
-    </Form>
+    <div>
+      <Upload
+        ref="uploadButton"
+        show-upload-list
+        accept=".welic"
+        name="uploadFile"
+        :on-success="onImportSuccess"
+        :on-error="onImportError"
+        action="platform/v1/plugin-certifications/import"
+        :headers="headers"
+      >
+        <Button style="float: right;margin-right:4px" type="primary" @click="getHeaders">{{
+          $t('import_flow')
+        }}</Button>
+      </Upload>
+    </div>
     <Table border :columns="tableColumns" :data="tableData"></Table>
   </div>
 </template>
@@ -28,7 +23,7 @@
 <script>
 import axios from 'axios'
 import { setCookie, getCookie } from '@/pages//util/cookie'
-import { getCertification, deleteCertification, exportCertification } from '@/api/server'
+import { getCertification, deleteCertification } from '@/api/server'
 export default {
   name: '',
   data () {
@@ -113,7 +108,55 @@ export default {
       }
     },
     export (row) {
-      exportCertification(row.id)
+      const accessToken = getCookie('accessToken')
+      axios({
+        method: 'GET',
+        url: `platform/v1/plugin-certifications/${row.id}/export`,
+        headers: {
+          Authorization: 'Bearer ' + accessToken
+        },
+        responseType: 'blob'
+      })
+        .then(response => {
+          if (response.status < 400) {
+            let content = response.data
+            const contentDispositionHeader = response.headers['content-disposition']
+            let filename = 'file'
+            if (contentDispositionHeader) {
+              filename = contentDispositionHeader
+                .split(';')
+                .find(x => ~x.indexOf('filename'))
+                .split('=')[1]
+            }
+            if (filename === null || filename === undefined || filename === '') {
+              filename = 'file'
+            } else {
+              filename = decodeURI(filename)
+            }
+            let blob = content
+            if ('msSaveOrOpenBlob' in navigator) {
+              window.navigator.msSaveOrOpenBlob(blob, filename)
+            } else {
+              if ('download' in document.createElement('a')) {
+                // 非IE下载
+                let elink = document.createElement('a')
+                elink.download = filename
+                elink.style.display = 'none'
+                elink.href = URL.createObjectURL(blob)
+                document.body.appendChild(elink)
+                elink.click()
+                URL.revokeObjectURL(elink.href) // 释放URL 对象
+                document.body.removeChild(elink)
+              } else {
+                // IE10+下载
+                navigator.msSaveOrOpenBlob(blob, filename)
+              }
+            }
+          }
+        })
+        .catch(() => {
+          this.$Message.warning('Error')
+        })
     },
     remove (row) {
       this.$Modal.confirm({
@@ -145,7 +188,6 @@ export default {
               Authorization: 'Bearer ' + getCookie('refreshToken')
             }
           })
-          console.log(1)
           refreshRequest.then(
             res => {
               setCookie(res.data.data)
@@ -160,8 +202,7 @@ export default {
           )
         } else {
           this.setUploadActionHeader()
-          console.log(2)
-          this.$refs.uploadButton.handleClick()
+          // this.$refs.uploadButton.handleClick()
         }
       } else {
         window.location.href = window.location.origin + window.location.pathname + '#/login'
@@ -172,7 +213,7 @@ export default {
         Authorization: 'Bearer ' + getCookie('accessToken')
       }
     },
-    onImportProcessDefinitionSuccess (response) {
+    onImportSuccess (response) {
       if (response.status === 'OK') {
         this.$Notice.success({
           title: 'Success',
@@ -186,7 +227,7 @@ export default {
         })
       }
     },
-    onImportProcessDefinitionError (file) {
+    onImportError (file) {
       this.$Notice.error({
         title: 'Error',
         desc: file.message || ''
