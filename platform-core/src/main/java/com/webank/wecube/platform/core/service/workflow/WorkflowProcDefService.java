@@ -84,6 +84,41 @@ public class WorkflowProcDefService extends AbstractWorkflowProcDefService {
 
         processDefInfoRepo.deleteByPrimaryKey(procDef.getId());
     }
+    
+    /**
+     * 
+     * @param procDefId
+     * @return
+     */
+    public List<TaskNodeDefBriefDto> getRootContextTaskNodes(String procDefId,String taskNodeId,String prevCtxNodeIds) {
+        List<TaskNodeDefBriefDto> result = new ArrayList<>();
+        List<TaskNodeDefInfoEntity> nodeEntities = taskNodeDefInfoRepo.selectAllByProcDefId(procDefId);
+        if (nodeEntities == null || nodeEntities.isEmpty()) {
+            return result;
+        }
+
+        // #1993
+        nodeEntities.forEach(e -> {
+            if (TaskNodeDefInfoEntity.NODE_TYPE_SUBPROCESS.equalsIgnoreCase(e.getNodeType())
+                    || TaskNodeDefInfoEntity.NODE_TYPE_SERVICE_TASK.equalsIgnoreCase(e.getNodeType())
+                    || TaskNodeDefInfoEntity.NODE_TYPE_START_EVENT.equalsIgnoreCase(e.getNodeType())
+                    || StringUtils.isBlank(e.getNodeType())) {
+                TaskNodeDefBriefDto d = new TaskNodeDefBriefDto();
+                d.setNodeDefId(e.getId());
+                d.setNodeId(e.getNodeId());
+                d.setNodeName(e.getNodeName());
+                d.setNodeType(e.getNodeType());
+                d.setProcDefId(e.getProcDefId());
+                d.setServiceId(e.getServiceId());
+                d.setServiceName(e.getServiceName());
+
+                result.add(d);
+            }
+        });
+
+        return result;
+
+    }
 
     /**
      * 
