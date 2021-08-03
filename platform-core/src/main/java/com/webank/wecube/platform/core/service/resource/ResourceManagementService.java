@@ -84,6 +84,7 @@ public class ResourceManagementService {
         dto.setPort(existResourceServer.getPort());
         dto.setPurpose(existResourceServer.getPurpose());
         dto.setStatus(existResourceServer.getStatus());
+        dto.setName(existResourceServer.getName());
         return dto;
     }
 
