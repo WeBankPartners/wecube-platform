@@ -6,6 +6,8 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,6 +23,7 @@ import com.webank.wecube.platform.core.entity.plugin.ResourceItem;
 import com.webank.wecube.platform.core.entity.plugin.ResourceServer;
 import com.webank.wecube.platform.core.repository.plugin.ResourceItemMapper;
 import com.webank.wecube.platform.core.repository.plugin.ResourceServerMapper;
+import com.webank.wecube.platform.core.service.cmder.ssh2.CommandService;
 import com.webank.wecube.platform.core.service.plugin.PluginPageableDataService;
 import com.webank.wecube.platform.core.utils.EncryptionUtils;
 import com.webank.wecube.platform.core.utils.JsonUtils;
@@ -28,6 +31,7 @@ import com.webank.wecube.platform.workflow.commons.LocalIdGenerator;
 
 @Service
 public class ResourceManagementService {
+    private static final Logger log = LoggerFactory.getLogger(ResourceManagementService.class);
     public static final String PASSWORD_ENCRYPT_AES_PREFIX = "{AES}";
 
     @Autowired
@@ -44,11 +48,42 @@ public class ResourceManagementService {
 
     @Autowired
     private PluginPageableDataService pluginPageableDataService;
-    
-    public ResourceServerProductSerialDto retrieveResourceServerProductSerial(String resourceServerId){
-        //TODO
+
+    @Autowired
+    private CommandService commandService;
+
+    public ResourceServerProductSerialDto retrieveResourceServerProductSerial(String resourceServerId) {
+        if (StringUtils.isBlank(resourceServerId)) {
+            return null;
+        }
+
+        ResourceServer existResourceServer = resourceServerRepository.selectByPrimaryKey(resourceServerId);
+        if (existResourceServer == null) {
+            throw new WecubeCoreException("Such resource server does not exist with id:" + resourceServerId);
+        }
+
+        String host = existResourceServer.getHost();
+        String password = decryptPassword(existResourceServer);
+        String user = existResourceServer.getLoginUsername();
+        int port = Integer.parseInt(existResourceServer.getPort());
+
+        String productSerial = "";
+        String cmd = "cat /sys/class/dmi/id/product_serial";
+
+        try {
+            productSerial = commandService.runAtRemote(host, user, password, port, cmd);
+        } catch (Exception e) {
+            log.error("errors whilw running remote command:{}", cmd);
+        }
+
         ResourceServerProductSerialDto dto = new ResourceServerProductSerialDto();
-        dto.setProductSerial("product serial");
+        dto.setProductSerial(productSerial);
+        dto.setHost(existResourceServer.getHost());
+        dto.setId(existResourceServer.getId());
+        dto.setLoginUsername(existResourceServer.getLoginUsername());
+        dto.setPort(existResourceServer.getPort());
+        dto.setPurpose(existResourceServer.getPurpose());
+        dto.setStatus(existResourceServer.getStatus());
         return dto;
     }
 
@@ -71,6 +106,21 @@ public class ResourceManagementService {
 
     }
 
+    private String decryptPassword(ResourceServer s) {
+        String password = s.getLoginPassword();
+        if (StringUtils.isBlank(password)) {
+            return null;
+        }
+        if (password.startsWith(ResourceManagementService.PASSWORD_ENCRYPT_AES_PREFIX)) {
+            password = password.substring(ResourceManagementService.PASSWORD_ENCRYPT_AES_PREFIX.length());
+        }
+
+        String plainPassword = EncryptionUtils.decryptWithAes(password, resourceProperties.getPasswordEncryptionSeed(),
+                s.getName());
+
+        return plainPassword;
+    }
+
     private ResourceServerDto buildResourceServerDto(ResourceServer e) {
         ResourceServerDto dto = ResourceServerDto.fromDomain(e);
         return dto;
@@ -83,7 +133,7 @@ public class ResourceManagementService {
 
         List<ResourceItemDto> resultDataList = new ArrayList<>();
         for (ResourceItem e : pageInfo.getList()) {
-            if(StringUtils.isNoneBlank(e.getResourceServerId())) {
+            if (StringUtils.isNoneBlank(e.getResourceServerId())) {
                 ResourceServer resourceServer = resourceServerRepository.selectByPrimaryKey(e.getResourceServerId());
                 e.setResourceServer(resourceServer);
             }
