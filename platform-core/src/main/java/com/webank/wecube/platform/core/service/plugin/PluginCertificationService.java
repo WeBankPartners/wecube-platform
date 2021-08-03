@@ -80,6 +80,7 @@ public class PluginCertificationService {
             entity.setLpk(pluginCertificationExportDto.getLpk());
             entity.setSignature(pluginCertificationExportDto.getSignature());
             entity.setDescription(pluginCertificationExportDto.getDescription());
+            entity.setPlugin(pluginCertificationExportDto.getPlugin());
 
             pluginCertificationMapper.insert(entity);
         } else {
