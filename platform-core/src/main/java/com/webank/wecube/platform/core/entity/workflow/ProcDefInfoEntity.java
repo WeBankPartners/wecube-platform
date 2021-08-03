@@ -56,6 +56,8 @@ public class ProcDefInfoEntity {
     private String procDefData;
 
     private String excludeMode;
+    
+    private String tags;
 
     public String getId() {
         return id;
@@ -208,5 +210,15 @@ public class ProcDefInfoEntity {
     public void setExcludeMode(String excludeMode) {
         this.excludeMode = excludeMode;
     }
+
+    public String getTags() {
+        return tags;
+    }
+
+    public void setTags(String tags) {
+        this.tags = tags;
+    }
+    
+    
 
 }
