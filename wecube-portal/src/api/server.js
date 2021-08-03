@@ -9,6 +9,8 @@ export const confirmSaveFlow = (continueToken, data) => {
   return req.post(`/platform/v1/process/definitions/deploy?continue_token=${continueToken}`, data)
 }
 export const saveFlowDraft = data => req.post('/platform/v1/process/definitions/draft', data)
+export const confirmSaveFlowDraft = (continueToken, data) =>
+  req.post(`/platform/v1/process/definitions/draft?continue_token=${continueToken}`, data)
 export const getAllFlow = (isIncludeDraft = true) => {
   return isIncludeDraft
     ? req.get('/platform/v1/process/definitions?permission=MGMT')
