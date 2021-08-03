@@ -473,5 +473,7 @@
   "ip_address": "IP地址",
   "plugin_const_params_warning": "常量配置不能为空",
   "encrypt_data": "加密数据",
-  "signature": "签名"
+  "signature": "签名",
+  "product_serial": "序列号",
+  "product_serial_tip": "该功能仅docker类型可用"
 }

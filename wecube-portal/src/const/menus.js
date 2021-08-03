@@ -65,10 +65,10 @@ export const MENUS = [
     link: '/admin/resources'
   },
   {
-    code: 'ADMIN_CERTIFITION',
+    code: 'ADMIN_CERTIFICATION',
     cnName: '授权管理',
-    enName: 'Certifition',
-    link: '/admin/certifition'
+    enName: 'Certification',
+    link: '/admin/certification'
   },
   {
     code: 'IMPLEMENTATION_WORKFLOW_EXECUTION',

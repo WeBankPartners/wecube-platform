@@ -179,3 +179,5 @@ export const getCertification = () => req.get(`platform/v1/plugin-certifications
 export const deleteCertification = id => req.delete(`platform/v1/plugin-certifications/${id}`)
 export const exportCertification = id => req.get(`platform/v1/plugin-certifications/${id}/export`)
 export const importCertification = () => req.post(`platform/v1/plugin-certifications/import`)
+
+export const productSerial = id => req.get(`platform/resource/servers/${id}/product-serial`)
