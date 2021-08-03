@@ -193,6 +193,7 @@ public class PluginConfigMgmtService extends AbstractPluginMgmtService {
                 configParamDto.setSensitiveData(paramDto.getSensitiveData());
                 configParamDto.setType(paramDto.getType());
                 configParamDto.setMappingValue(paramDto.getMappingValue());
+                configParamDto.setMultiple(paramDto.getMultiple());
 
                 intfDto.addConfigurableInputParameter(configParamDto);
             } else {
@@ -239,6 +240,7 @@ public class PluginConfigMgmtService extends AbstractPluginMgmtService {
                 propMetaParamDto.setSensitiveData(propMetaDto.getSensitiveData());
                 propMetaParamDto.setType(Constants.TYPE_INPUT);
                 propMetaParamDto.setMappingValue(propMetaDto.getMappingEntityExpression());
+                propMetaParamDto.setMultiple(propMetaDto.getMultiple());
 
                 objectConfigParamDtos.add(propMetaParamDto);
             } else {
@@ -1065,6 +1067,7 @@ public class PluginConfigMgmtService extends AbstractPluginMgmtService {
 
         paramEntity.setSensitiveData(paramDto.getSensitiveData());
         paramEntity.setMappingValue(paramDto.getMappingValue());
+        paramEntity.setMultiple(paramDto.getMultiple());
 
         pluginConfigInterfaceParametersMapper.updateByPrimaryKey(paramEntity);
 
@@ -1089,6 +1092,8 @@ public class PluginConfigMgmtService extends AbstractPluginMgmtService {
         paramEntity.setSensitiveData(paramDto.getSensitiveData());
         paramEntity.setDescription(paramDto.getDescription());
         paramEntity.setMappingValue(paramDto.getMappingValue());
+        paramEntity.setMultiple(paramDto.getMultiple());
+        paramEntity.setRefObjectName(paramDto.getRefObjectName());
 
         pluginConfigInterfaceParametersMapper.insert(paramEntity);
 
@@ -1187,13 +1192,13 @@ public class PluginConfigMgmtService extends AbstractPluginMgmtService {
         propertyMetaDto.setObjectMetaId(propertyMeta.getObjectMetaId());
         propertyMetaDto.setObjectName(propertyMeta.getObjectName());
         propertyMetaDto.setPackageName(propertyMeta.getPackageName());
-        propertyMetaDto.setRefName(propertyMeta.getRefName());
+        propertyMetaDto.setRefObjectName(propertyMeta.getRefObjectName());
         propertyMetaDto.setConfigId(propertyMeta.getConfigId());
         if (propertyMeta.getRefObjectMeta() != null) {
             CoreObjectMetaDto refObjectMetaDto = tryBuildCoreObjectMetaDtoWithEntity(propertyMeta.getRefObjectMeta());
             propertyMetaDto.setRefObjectMeta(refObjectMetaDto);
         }
-        propertyMetaDto.setRefType(propertyMeta.getRefType());
+        propertyMetaDto.setMultiple(propertyMeta.getMultiple());
         propertyMetaDto.setSensitiveData(convertBooleanToString(propertyMeta.getSensitive()));
         propertyMetaDto.setSource(propertyMeta.getSource());
 
@@ -1241,6 +1246,9 @@ public class PluginConfigMgmtService extends AbstractPluginMgmtService {
         dto.setSensitiveData(entity.getSensitiveData());
         dto.setDescription(entity.getDescription());
         dto.setMappingValue(entity.getMappingValue());
+        
+        dto.setMultiple(entity.getMultiple());
+        dto.setRefObjectName(entity.getRefObjectName());
         return dto;
     }
 
