@@ -35,9 +35,6 @@ public class ResourceManagementController {
     @GetMapping("/servers/{id}/product-serial")
     @PreAuthorize("hasAnyAuthority('ADMIN_RESOURCES_MANAGEMENT','SUB_SYSTEM')")
     public CommonResponseDto retrieveResourceServerProductSerial(String resourceServerId) {
-        
-        
-        
         ResourceServerProductSerialDto dto = resourceService.retrieveResourceServerProductSerial(resourceServerId);
         return okayWithData(dto);
     }
