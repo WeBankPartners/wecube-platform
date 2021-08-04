@@ -2,6 +2,8 @@ package com.webank.wecube.platform.core.utils;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.util.UUID;
+
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,17 +17,18 @@ public class EncryptionUtilsTest extends DatabaseBasedTest {
 
     @Autowired
     private ResourceProperties resourceProperties;
-
+    
     @Test
     public void encryptPasswordTest() {
         String password = "qq123456";
-        String additionalSalt = "mysqlHost";
-        String encryptedPassword = EncryptionUtils.encryptWithAes(password,
-                resourceProperties.getPasswordEncryptionSeed(), additionalSalt);
-        log.info("encryptedPassword: " + encryptedPassword);
+        String additionalSalt = UUID.randomUUID().toString().replace("-", "").substring(0, 16);
+        String encryptedPassword = EncryptionUtils.encryptWithAesCbc(password,
+                additionalSalt);
+        
+        assertThat(encryptedPassword).isNotNull();
 
-        assertThat(EncryptionUtils.decryptWithAes(encryptedPassword, resourceProperties.getPasswordEncryptionSeed(),
-                additionalSalt)).isEqualTo(password);
+        String decryptedPassword = EncryptionUtils.decryptWithAesCbc(encryptedPassword, additionalSalt);
+        assertThat(decryptedPassword).isEqualTo(password);
     }
 
     @Test
