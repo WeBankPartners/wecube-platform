@@ -717,7 +717,6 @@ public class PluginPackageDataModelService {
                     continue;
                 }
 
-                // TODO
                 PluginPackageEntities referencedEntity = pickoutPluginPackageEntitiesById(pluginPackageEntitiesList,
                         referencedAttrEntity.getEntityId());
 
@@ -793,6 +792,14 @@ public class PluginPackageDataModelService {
         attrDto.setRefAttributeName(attrEntity.getRefAttr());
         attrDto.setRefEntityName(attrEntity.getRefEntity());
         attrDto.setRefPackageName(attrEntity.getRefPackage());
+        
+        attrDto.setMultiple(attrEntity.getMultiple());
+        String mandatoryStr = null;
+        Boolean mandatory = attrEntity.getMandatory();
+        if(mandatory != null) {
+            mandatoryStr = mandatory?"Y":"N";
+        }
+        attrDto.setMandatory(mandatoryStr);
 
         return attrDto;
     }
@@ -828,6 +835,13 @@ public class PluginPackageDataModelService {
             attrDto.setRefAttributeName(attrEntity.getRefAttr());
             attrDto.setRefEntityName(attrEntity.getRefEntity());
             attrDto.setRefPackageName(attrEntity.getRefPackage());
+            attrDto.setMultiple(attrEntity.getMultiple());
+            String mandatoryStr = null;
+            Boolean mandatory = attrEntity.getMandatory();
+            if(mandatory != null) {
+                mandatoryStr = mandatory?"Y":"N";
+            }
+            attrDto.setMandatory(mandatoryStr);
 
             entityDto.getAttributes().add(attrDto);
         }
@@ -940,6 +954,14 @@ public class PluginPackageDataModelService {
         if (StringUtils.isNoneBlank(attrDto.getRefAttributeName())) {
             attrEntity.setRefAttr(attrDto.getRefAttributeName());
         }
+        
+        attrEntity.setMultiple(attrDto.getMultiple());
+        boolean mandatory = false;
+        if("Y".equalsIgnoreCase(attrDto.getRequired())) {
+            mandatory = true;
+        }
+        
+        attrEntity.setMandatory(mandatory);
 
         pluginPackageAttributesMapper.insert(attrEntity);
 

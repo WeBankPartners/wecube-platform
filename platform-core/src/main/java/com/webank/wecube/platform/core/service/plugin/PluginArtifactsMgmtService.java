@@ -732,11 +732,19 @@ public class PluginArtifactsMgmtService extends AbstractPluginMgmtService {
                 attributeEntity.setRefAttr(xmlAttribute.getRef());
                 attributeEntity.setRefPackage(refPackage);
                 attributeEntity.setRefEntity(xmlAttribute.getRefEntity());
+                
+                boolean mandatory = false;
+                if("Y".equalsIgnoreCase(xmlAttribute.getRequired())) {
+                    mandatory = true;
+                }
+                
+                attributeEntity.setMandatory(mandatory);
+                String multiple = "N";
+                if(StringUtils.isNoneBlank(xmlAttribute.getMultiple())) {
+                    multiple = xmlAttribute.getMultiple().trim();
+                }
 
-                // String referenceId =
-                // calAttributeReference(pluginPackageEntity, dataModelEntity,
-                // entity, xmlAttribute);
-                // attributeEntity.setReferenceId(referenceId);
+                attributeEntity.setMultiple(multiple);
 
                 pluginPackageAttributesMapper.insert(attributeEntity);
 
