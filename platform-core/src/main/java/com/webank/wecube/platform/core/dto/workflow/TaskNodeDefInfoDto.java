@@ -3,7 +3,7 @@ package com.webank.wecube.platform.core.dto.workflow;
 import java.util.ArrayList;
 import java.util.List;
 
-public class TaskNodeDefInfoDto extends BaseNodeDefDto{
+public class TaskNodeDefInfoDto extends BaseNodeDefDto {
     private String nodeDefId;
     private String procDefKey;
     private String procDefId;
@@ -19,14 +19,17 @@ public class TaskNodeDefInfoDto extends BaseNodeDefDto{
     private String timeoutExpression;
 
     private String status;
-    
+
     private String orderedNo;
-    
-    private String taskCategory; //SUTN-user task,SSTN-service task,SDTN-data operation task
-    
+
+    private String taskCategory; // SUTN-user task,SSTN-service task,SDTN-data
+                                 // operation task
+
     private String preCheck;
-    
+
     private String dynamicBind;
+
+    private String prevCtxNodeIds = "";
 
     private List<TaskNodeDefParamDto> paramInfos = new ArrayList<>();
 
@@ -109,7 +112,7 @@ public class TaskNodeDefInfoDto extends BaseNodeDefDto{
     public void setStatus(String status) {
         this.status = status;
     }
-    
+
     public String getTaskCategory() {
         return taskCategory;
     }
@@ -126,17 +129,15 @@ public class TaskNodeDefInfoDto extends BaseNodeDefDto{
         this.paramInfos = paramInfos;
     }
 
-   
-    public void addParamInfos(TaskNodeDefParamDto...paramInfos){
-        for(TaskNodeDefParamDto d : paramInfos){
-            if(d == null){
+    public void addParamInfos(TaskNodeDefParamDto... paramInfos) {
+        for (TaskNodeDefParamDto d : paramInfos) {
+            if (d == null) {
                 continue;
             }
-            
+
             this.paramInfos.add(d);
         }
     }
-    
 
     public String getOrderedNo() {
         return orderedNo;
@@ -145,9 +146,7 @@ public class TaskNodeDefInfoDto extends BaseNodeDefDto{
     public void setOrderedNo(String orderedNo) {
         this.orderedNo = orderedNo;
     }
-    
-    
-    
+
     @Override
     public String toString() {
         return "TaskNodeDefInfoDto [nodeDefId=" + nodeDefId + ", processDefKey=" + procDefKey + ", processDefId="
@@ -172,4 +171,13 @@ public class TaskNodeDefInfoDto extends BaseNodeDefDto{
     public void setDynamicBind(String dynamicBind) {
         this.dynamicBind = dynamicBind;
     }
+
+    public String getPrevCtxNodeIds() {
+        return prevCtxNodeIds;
+    }
+
+    public void setPrevCtxNodeIds(String prevCtxNodeIds) {
+        this.prevCtxNodeIds = prevCtxNodeIds;
+    }
+
 }

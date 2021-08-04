@@ -34,6 +34,10 @@ export const getParamsInfosByFlowIdAndNodeId = (flowId, nodeId) =>
   req.get(`platform/v1/process/definitions/${flowId}/tasknodes/${nodeId}`)
 
 export const getFlowNodes = flowId => req.get(`platform/v1/process/definitions/${flowId}/tasknodes/briefs`)
+export const getContextParametersNodes = (flowId, taskNodeId, prevCtxNodeIds) =>
+  req.get(
+    `/platform/v1/process/definitions/${flowId}/root-context-nodes/briefs?taskNodeId=${taskNodeId}&prevCtxNodeIds=${prevCtxNodeIds}`
+  )
 
 export const getAllDataModels = () => req.get(`platform/v1/models`)
 
