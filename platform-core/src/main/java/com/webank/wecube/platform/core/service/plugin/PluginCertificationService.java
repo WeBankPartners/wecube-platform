@@ -110,7 +110,7 @@ public class PluginCertificationService {
         dto.setCreatedBy(e.getCreatedBy());
         dto.setCreatedTime(DateUtils.dateToString(e.getCreatedTime()));
         dto.setUpdatedBy(e.getUpdatedBy());
-        dto.setUpdatedTime(DateUtils.dateToString(e.getCreatedTime()));
+        dto.setUpdatedTime(DateUtils.dateToString(e.getUpdatedTime()));
 
         return dto;
     }
