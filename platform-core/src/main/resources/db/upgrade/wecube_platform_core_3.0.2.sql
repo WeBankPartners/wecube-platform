@@ -20,6 +20,8 @@ ALTER TABLE `core_ru_task_node_exec_req` ADD COLUMN `context_data_flag` VARCHAR(
 ALTER TABLE `core_ru_task_node_exec_req` ADD COLUMN `req_object_amount` INT NULL;
 ALTER TABLE `core_ru_task_node_exec_req` ADD COLUMN `resp_object_amount` INT NULL;
 
+ALTER TABLE `plugin_package_attributes` ADD COLUMN `multiple` VARCHAR(6) NULL DEFAULT 'N';
+
 CREATE TABLE `plugin_certification` (
   `id` VARCHAR(60) NOT NULL,
   `created_by` VARCHAR(45) NULL,
