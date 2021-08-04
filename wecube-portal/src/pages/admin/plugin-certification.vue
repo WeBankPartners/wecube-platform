@@ -35,18 +35,6 @@ export default {
           key: 'plugin'
         },
         {
-          title: this.$t('signature'),
-          key: 'signature'
-        },
-        {
-          title: this.$t('lpk'),
-          key: 'lpk'
-        },
-        {
-          title: this.$t('encrypt_data'),
-          key: 'encryptData'
-        },
-        {
           title: this.$t('description'),
           key: 'description'
         },
