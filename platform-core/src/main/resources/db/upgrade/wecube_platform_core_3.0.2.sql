@@ -29,10 +29,10 @@ CREATE TABLE `plugin_certification` (
   `updated_by` VARCHAR(45) NULL,
   `updated_time` DATETIME NULL,
   `plugin` VARCHAR(45) NULL,
-  `lpk` VARCHAR(1024) NULL,
-  `encrypt_data` VARCHAR(1024) NULL,
-  `signature` VARCHAR(1024) NULL,
-  `description` VARCHAR(300) NULL,
+  `lpk` TEXT NULL DEFAULT NULL,
+  `encrypt_data` TEXT NULL DEFAULT NULL,
+  `signature` TEXT NULL DEFAULT NULL,
+  `description` TEXT NULL DEFAULT NULL,
   PRIMARY KEY (`id`))
 ENGINE = InnoDB
 DEFAULT CHARACTER SET = utf8
