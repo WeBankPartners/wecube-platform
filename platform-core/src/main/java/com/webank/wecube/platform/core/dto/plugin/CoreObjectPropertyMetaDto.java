@@ -11,9 +11,9 @@ public class CoreObjectPropertyMetaDto {
 
     private String dataType;
 
-    private String refType;
+    private String multiple;
 
-    private String refName;
+    private String refObjectName;
 
     private String mappingType;
 
@@ -55,22 +55,6 @@ public class CoreObjectPropertyMetaDto {
 
     public void setDataType(String dataType) {
         this.dataType = dataType;
-    }
-
-    public String getRefType() {
-        return refType;
-    }
-
-    public void setRefType(String refType) {
-        this.refType = refType;
-    }
-
-    public String getRefName() {
-        return refName;
-    }
-
-    public void setRefName(String refName) {
-        this.refName = refName;
     }
 
     public String getObjectMetaId() {
@@ -143,6 +127,22 @@ public class CoreObjectPropertyMetaDto {
 
     public void setConfigId(String configId) {
         this.configId = configId;
+    }
+
+    public String getMultiple() {
+        return multiple;
+    }
+
+    public void setMultiple(String multiple) {
+        this.multiple = multiple;
+    }
+
+    public String getRefObjectName() {
+        return refObjectName;
+    }
+
+    public void setRefObjectName(String refObjectName) {
+        this.refObjectName = refObjectName;
     }
 
 }

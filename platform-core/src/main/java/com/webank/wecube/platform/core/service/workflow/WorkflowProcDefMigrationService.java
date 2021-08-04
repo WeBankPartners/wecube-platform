@@ -202,6 +202,7 @@ public class WorkflowProcDefMigrationService extends AbstractWorkflowProcDefServ
         draftNodeEntity.setCreatedTime(currTime);
         draftNodeEntity.setPreCheck(nodeDto.getPreCheck());
         draftNodeEntity.setDynamicBind(nodeDto.getDynamicBind());
+        draftNodeEntity.setPrevCtxNodeIds(nodeDto.getPrevCtxNodeIds());
 
         return draftNodeEntity;
     }

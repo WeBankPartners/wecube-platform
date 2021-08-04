@@ -40,6 +40,13 @@ public class TaskNodeExecRequestEntity  {
     private String procInstKernelId;
 
     private String procInstKernelKey;
+    
+  //#2233
+    private String contextDataFlag;
+  //#2233
+    private Integer reqObjectAmount;
+  //#2233
+    private Integer respObjectAmount;
 
     public String getReqId() {
         return reqId;
@@ -193,6 +200,29 @@ public class TaskNodeExecRequestEntity  {
         this.procInstKernelKey = procInstKernelKey;
     }
 
-    
+    public String getContextDataFlag() {
+        return contextDataFlag;
+    }
 
+    public void setContextDataFlag(String contextDataFlag) {
+        this.contextDataFlag = contextDataFlag;
+    }
+
+    public Integer getReqObjectAmount() {
+        return reqObjectAmount;
+    }
+
+    public void setReqObjectAmount(Integer reqObjectAmount) {
+        this.reqObjectAmount = reqObjectAmount;
+    }
+
+    public Integer getRespObjectAmount() {
+        return respObjectAmount;
+    }
+
+    public void setRespObjectAmount(Integer respObjectAmount) {
+        this.respObjectAmount = respObjectAmount;
+    }
+
+    
 }

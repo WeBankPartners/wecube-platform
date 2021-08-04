@@ -27,6 +27,7 @@ import com.webank.wecube.platform.core.entity.workflow.TaskNodeInstInfoEntity;
 import com.webank.wecube.platform.core.model.workflow.PluginInvocationCommand;
 import com.webank.wecube.platform.core.model.workflow.WorkflowInstCreationContext;
 import com.webank.wecube.platform.core.model.workflow.WorkflowNotifyEvent;
+import com.webank.wecube.platform.core.repository.plugin.PluginConfigInterfaceParametersMapper;
 import com.webank.wecube.platform.core.repository.workflow.ExtraTaskMapper;
 import com.webank.wecube.platform.core.repository.workflow.ProcDefInfoMapper;
 import com.webank.wecube.platform.core.repository.workflow.ProcExecBindingMapper;
@@ -64,8 +65,8 @@ public abstract class AbstractPluginInvocationService extends AbstractWorkflowSe
     protected static final String PLUGIN_RESULT_CODE_PARTIALLY_FAIL = "1";
     protected static final String PLUGIN_RESULT_CODE_PARTIALLY_KEY = "errorCode";
 
-    protected static final String DATA_TYPE_STRING = "string";
-    protected static final String DATA_TYPE_NUMBER = "number";
+//    protected static final String DATA_TYPE_STRING = "string";
+//    protected static final String DATA_TYPE_NUMBER = "number";
 
     protected static final String DEFAULT_VALUE_DATA_TYPE_STRING = "";
     protected static final int DEFAULT_VALUE_DATA_TYPE_NUMBER = 0;
@@ -163,6 +164,9 @@ public abstract class AbstractPluginInvocationService extends AbstractWorkflowSe
 
     @Autowired
     protected PluginParamObjectVarMarshaller pluginParamObjectVarAssembleService;
+    
+    @Autowired
+    protected PluginConfigInterfaceParametersMapper pluginConfigInterfaceParametersMapper;
 
     protected ObjectMapper objectMapper = new ObjectMapper();
 
@@ -294,11 +298,11 @@ public abstract class AbstractPluginInvocationService extends AbstractWorkflowSe
         if (val == null) {
             return null;
         }
-        if (val instanceof String && DATA_TYPE_STRING.equals(sType)) {
+        if (val instanceof String && Constants.DATA_TYPE_STRING.equals(sType)) {
             return (String) val;
         }
 
-        if (val instanceof Integer && DATA_TYPE_NUMBER.equals(sType)) {
+        if (val instanceof Integer && Constants.DATA_TYPE_NUMBER.equals(sType)) {
             return String.valueOf(val);
         }
 
@@ -318,8 +322,9 @@ public abstract class AbstractPluginInvocationService extends AbstractWorkflowSe
         return val;
     }
 
+    //TODO consider data type where from string data value
     protected Object fromString(String val, String sType) {
-        if (DATA_TYPE_STRING.equals(sType)) {
+        if (Constants.DATA_TYPE_STRING.equals(sType)) {
             return val;
         }
 
@@ -327,7 +332,7 @@ public abstract class AbstractPluginInvocationService extends AbstractWorkflowSe
             return null;
         }
 
-        if (DATA_TYPE_NUMBER.equals(sType)) {
+        if (Constants.DATA_TYPE_NUMBER.equals(sType)) {
             return Integer.parseInt(val);
         }
 
