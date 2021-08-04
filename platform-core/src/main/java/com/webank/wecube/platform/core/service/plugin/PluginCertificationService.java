@@ -16,6 +16,7 @@ import com.webank.wecube.platform.core.dto.plugin.PluginCertificationDto;
 import com.webank.wecube.platform.core.dto.plugin.PluginCertificationExportDto;
 import com.webank.wecube.platform.core.entity.plugin.PluginCertification;
 import com.webank.wecube.platform.core.repository.plugin.PluginCertificationMapper;
+import com.webank.wecube.platform.core.utils.DateUtils;
 import com.webank.wecube.platform.workflow.commons.LocalIdGenerator;
 
 @Service
@@ -101,11 +102,15 @@ public class PluginCertificationService {
     private PluginCertificationDto buildPluginCertificationDto(PluginCertification e) {
         PluginCertificationDto dto = new PluginCertificationDto();
         dto.setDescription(e.getDescription());
-        dto.setEncryptData(e.getEncryptData());
+//        dto.setEncryptData(e.getEncryptData());
         dto.setId(e.getId());
-        dto.setLpk(e.getLpk());
+//        dto.setLpk(e.getLpk());
         dto.setPlugin(e.getPlugin());
-        dto.setSignature(e.getSignature());
+//        dto.setSignature(e.getSignature());
+        dto.setCreatedBy(e.getCreatedBy());
+        dto.setCreatedTime(DateUtils.dateToString(e.getCreatedTime()));
+        dto.setUpdatedBy(e.getUpdatedBy());
+        dto.setUpdatedTime(DateUtils.dateToString(e.getCreatedTime()));
 
         return dto;
     }
