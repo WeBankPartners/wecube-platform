@@ -48,10 +48,10 @@ public class ParamPropertyType {
     protected String name;
     @XmlAttribute(name = "dataType", required = true)
     protected String dataType;
-    @XmlAttribute(name = "refType")
-    protected String refType;
-    @XmlAttribute(name = "refName")
-    protected String refName;
+    @XmlAttribute(name = "multiple")
+    protected String multiple;
+    @XmlAttribute(name = "refObjectName")
+    protected String refObjectName;
     @XmlAttribute(name = "mapType")
     protected String mapType;
     @XmlAttribute(name = "mapExpr")
@@ -123,27 +123,6 @@ public class ParamPropertyType {
     }
 
     /**
-     * Gets the value of the refType property.
-     * 
-     * @return possible object is {@link String }
-     * 
-     */
-    public String getRefType() {
-        return refType;
-    }
-
-    /**
-     * Sets the value of the refType property.
-     * 
-     * @param value
-     *            allowed object is {@link String }
-     * 
-     */
-    public void setRefType(String value) {
-        this.refType = value;
-    }
-
-    /**
      * Gets the value of the mapType property.
      * 
      * @return possible object is {@link String }
@@ -210,12 +189,19 @@ public class ParamPropertyType {
         this.sensitiveData = value;
     }
 
-    public String getRefName() {
-        return refName;
+    public String getMultiple() {
+        return multiple;
     }
 
-    public void setRefName(String refName) {
-        this.refName = refName;
+    public void setMultiple(String multiple) {
+        this.multiple = multiple;
     }
 
+    public String getRefObjectName() {
+        return refObjectName;
+    }
+
+    public void setRefObjectName(String refObjectName) {
+        this.refObjectName = refObjectName;
+    }
 }
