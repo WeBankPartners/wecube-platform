@@ -20,6 +20,8 @@ public class PluginPackageAttributes {
     private String refEntity;
     
     private String refAttr;
+    
+    private String multiple;
 
     private transient PluginPackageEntities pluginPackageEntities;
 
@@ -121,5 +123,12 @@ public class PluginPackageAttributes {
         this.mandatory = mandatory;
     }
 
-    
+    public String getMultiple() {
+        return multiple;
+    }
+
+    public void setMultiple(String multiple) {
+        this.multiple = multiple;
+    }
+
 }
