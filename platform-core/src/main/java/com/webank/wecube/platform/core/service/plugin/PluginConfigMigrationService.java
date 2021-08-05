@@ -62,6 +62,8 @@ import com.webank.wecube.platform.workflow.commons.LocalIdGenerator;
 @Service
 public class PluginConfigMigrationService {
     private static final Logger log = LoggerFactory.getLogger(PluginConfigMigrationService.class);
+    public static final String DEFAULT_TARGET_ENTITY_FILTER_RULE = "";
+    public static final String DEFAULT_FILTER_RULE_FOR_INTERFACE = "";
     @Autowired
     private PluginPackagesMapper pluginPackagesMapper;
     @Autowired
@@ -889,7 +891,11 @@ public class PluginConfigMigrationService {
         com.webank.wecube.platform.core.service.plugin.xml.register.ParamPropertyType regProperty = new com.webank.wecube.platform.core.service.plugin.xml.register.ParamPropertyType();
         regProperty.setDataType(xmlProperty.getDataType());
         regProperty.setMapExpr(xmlProperty.getMapExpr());
-        regProperty.setMapType(xmlProperty.getMapType());
+        String mapType = xmlProperty.getMapType();
+        if(StringUtils.isBlank(mapType)) {
+            mapType = Constants.MAPPING_TYPE_CONSTANT;
+        }
+        regProperty.setMapType(mapType);
         regProperty.setMultiple(xmlProperty.getMultiple());
         regProperty.setName(xmlProperty.getName());
         regProperty.setRefObjectName(xmlProperty.getRefObjectName());
@@ -902,10 +908,10 @@ public class PluginConfigMigrationService {
     private void tryCreateOrUpdatePluginConfigDefinitions(PluginPackages pluginPackage,
             PluginPackageType xmlPluginPackage, Map<String, PluginConfigs> nameAndPluginConfigDefs,
             List<PluginConfigType> xmlPluginConfigList) {
-        if (nameAndPluginConfigDefs == null || nameAndPluginConfigDefs.isEmpty()) {
-            log.info("There is not plugin configuration definition for {}", pluginPackage.getName());
-            return;
-        }
+//        if (nameAndPluginConfigDefs == null || nameAndPluginConfigDefs.isEmpty()) {
+//            log.info("There is not plugin configuration definition for {}", pluginPackage.getName());
+//            return;
+//        }
         List<PluginConfigType> xmlPluginConfigDefs = new ArrayList<>();
         for (PluginConfigType xmlPluginConfig : xmlPluginConfigList) {
             if (StringUtils.isBlank(xmlPluginConfig.getName())) {
@@ -987,10 +993,32 @@ public class PluginConfigMigrationService {
         intf.setId(LocalIdGenerator.generateId());
         intf.setPluginConfigId(pluginConfig.getId());
         intf.setPath(xmlIntf.getPath());
+        
+        String filterRule = xmlIntf.getFilterRule();
+        if (StringUtils.isBlank(filterRule)) {
+            filterRule = DEFAULT_FILTER_RULE_FOR_INTERFACE;
+        }
+        intf.setFilterRule(filterRule);
+
+        String httpMethod = xmlIntf.getHttpMethod();
+        if (StringUtils.isBlank(httpMethod)) {
+            httpMethod = "POST";
+        }
+        intf.setHttpMethod(httpMethod);
+        String asyncProcessing = xmlIntf.getIsAsyncProcessing();
+        if (StringUtils.isBlank(asyncProcessing)) {
+            asyncProcessing = PluginConfigInterfaces.DEFAULT_IS_ASYNC_PROCESSING_VALUE;
+        }
+        intf.setIsAsyncProcessing(asyncProcessing);
+        intf.setPath(xmlIntf.getPath());
+
+        String interfaceType = xmlIntf.getType();
+        if (StringUtils.isBlank(interfaceType)) {
+            interfaceType = PluginConfigInterfaces.DEFAULT_INTERFACE_TYPE;
+        }
 
         intf.setAction(xmlIntf.getAction());
-        intf.setFilterRule(xmlIntf.getFilterRule());
-        intf.setHttpMethod(xmlIntf.getHttpMethod());
+        
         intf.setIsAsyncProcessing(xmlIntf.getIsAsyncProcessing());
 
         intf.setType(xmlIntf.getType());

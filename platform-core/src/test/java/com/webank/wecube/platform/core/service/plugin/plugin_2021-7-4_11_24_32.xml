@@ -1,0 +1,1221 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<package name="weterraform" version="v0.4.0.6">
+	<paramObjects>
+		<paramObject name="apply_input_listeners">
+			<property name="listener_name" dataType="string" multiple="N" required="Y" sensitiveData="N"></property>
+			<property name="listener_port" dataType="int" multiple="N" required="Y" sensitiveData="N"></property>
+			<property name="listener_protocol" dataType="string" multiple="N" required="Y" sensitiveData="N"></property>
+		</paramObject>
+		<paramObject name="query_output_listeners">
+			<property name="listener_protocol" dataType="string" multiple="N" required="Y" sensitiveData="N"></property>
+			<property name="listener_port" dataType="int" multiple="N" required="Y" sensitiveData="N"></property>
+			<property name="listener_name" dataType="string" multiple="N" required="Y" sensitiveData="N"></property>
+		</paramObject>
+		<paramObject name="apply_input_targets">
+			<property name="instance_id" dataType="string" multiple="N" required="Y" sensitiveData="N"></property>
+			<property name="port" dataType="string" multiple="N" required="Y" sensitiveData="N"></property>
+			<property name="weight" dataType="string" multiple="N" required="Y" sensitiveData="N"></property>
+		</paramObject>
+		<paramObject name="query_output_targets">
+			<property name="instance_id" dataType="string" multiple="N" required="Y" sensitiveData="N"></property>
+			<property name="port" dataType="string" multiple="N" required="Y" sensitiveData="N"></property>
+			<property name="weight" dataType="string" multiple="N" required="Y" sensitiveData="N"></property>
+			<property name="backend_id" dataType="string" multiple="N" required="Y" sensitiveData="N"></property>
+		</paramObject>
+	</paramObjects>
+	<plugins>
+		<plugin name="ccn" targetPackage="" targetEntity="" registerName="" targetEntityFilterRule="">
+			<interface action="apply" path="/weterraform/api/v1/terraform/ccn/apply" filterRule="">
+				<inputParameters>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">asset_id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">charge_type</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">name</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">provider_info</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">region_id</parameter>
+					<parameter datatype="object" required="Y" sensitiveData="N" mappingType="" multiple="N">tags</parameter>
+				</inputParameters>
+				<outputParameters>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">asset_id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">id</parameter>
+				</outputParameters>
+			</interface>
+			<interface action="destroy" path="/weterraform/api/v1/terraform/ccn/destroy" filterRule="">
+				<inputParameters>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">provider_info</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">region_id</parameter>
+				</inputParameters>
+				<outputParameters>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">id</parameter>
+				</outputParameters>
+			</interface>
+			<interface action="query" path="/weterraform/api/v1/terraform/ccn/query" filterRule="">
+				<inputParameters>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">asset_id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">provider_info</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">region_id</parameter>
+				</inputParameters>
+				<outputParameters>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">asset_id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">name</parameter>
+					<parameter datatype="object" required="Y" sensitiveData="N" mappingType="" multiple="N">tags</parameter>
+				</outputParameters>
+			</interface>
+		</plugin>
+		<plugin name="ccn_attach" targetPackage="" targetEntity="" registerName="" targetEntityFilterRule="">
+			<interface action="apply" path="/weterraform/api/v1/terraform/ccn_attach/apply" filterRule="">
+				<inputParameters>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">asset_id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">ccn_id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">ccn_owner_id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">instance_id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">instance_region_id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">instance_type</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">provider_info</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">region_id</parameter>
+				</inputParameters>
+				<outputParameters>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">asset_id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">id</parameter>
+				</outputParameters>
+			</interface>
+			<interface action="destroy" path="/weterraform/api/v1/terraform/ccn_attach/destroy" filterRule="">
+				<inputParameters>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">provider_info</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">region_id</parameter>
+				</inputParameters>
+				<outputParameters>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">id</parameter>
+				</outputParameters>
+			</interface>
+			<interface action="query" path="/weterraform/api/v1/terraform/ccn_attach/query" filterRule="">
+				<inputParameters>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">asset_id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">ccn_id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">provider_info</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">region_id</parameter>
+				</inputParameters>
+				<outputParameters>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">asset_id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">ccn_id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">instance_id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">instance_type</parameter>
+				</outputParameters>
+			</interface>
+		</plugin>
+		<plugin name="clb" targetPackage="" targetEntity="" registerName="" targetEntityFilterRule="">
+			<interface action="apply" path="/weterraform/api/v1/terraform/clb/apply" filterRule="">
+				<inputParameters>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="Y">app_security_group_ids</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">asset_id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="Y">base_security_group_ids</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">instance_type</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">name</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">network_charge_type</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">network_type</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">provider_info</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">region_id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">resource_group_id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">subnet_id</parameter>
+					<parameter datatype="object" required="Y" sensitiveData="N" mappingType="" multiple="N">tags</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">vpc_id</parameter>
+				</inputParameters>
+				<outputParameters>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">asset_id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">ip_address</parameter>
+				</outputParameters>
+			</interface>
+			<interface action="destroy" path="/weterraform/api/v1/terraform/clb/destroy" filterRule="">
+				<inputParameters>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">provider_info</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">region_id</parameter>
+				</inputParameters>
+				<outputParameters>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">id</parameter>
+				</outputParameters>
+			</interface>
+			<interface action="query" path="/weterraform/api/v1/terraform/clb/query" filterRule="">
+				<inputParameters>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">asset_id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">provider_info</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">region_id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">subnet_id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">vpc_id</parameter>
+				</inputParameters>
+				<outputParameters>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">asset_id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">instance_type</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">ip_address</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">name</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">network_charge_type</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">network_type</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">resource_group_id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="Y">security_group_ids</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">subnet_id</parameter>
+					<parameter datatype="object" required="Y" sensitiveData="N" mappingType="" multiple="N">tags</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">vpc_id</parameter>
+				</outputParameters>
+			</interface>
+		</plugin>
+		<plugin name="clb2" targetPackage="" targetEntity="" registerName="" targetEntityFilterRule="">
+			<interface action="apply" path="/weterraform/api/v1/terraform/clb2/apply" filterRule="">
+				<inputParameters>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="Y">app_security_group_ids</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">asset_id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="Y">base_security_group_ids</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">id</parameter>
+					<parameter datatype="object" required="Y" sensitiveData="N" mappingType="" multiple="Y" refObjectName="apply_input_listeners">listeners</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">name</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">network_charge_type</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">network_type</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">provider_info</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">region_id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">subnet_id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">vpc_id</parameter>
+				</inputParameters>
+				<outputParameters>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">asset_id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">id</parameter>
+				</outputParameters>
+			</interface>
+			<interface action="destroy" path="/weterraform/api/v1/terraform/clb2/destroy" filterRule="">
+				<inputParameters>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">provider_info</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">region_id</parameter>
+				</inputParameters>
+				<outputParameters>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">id</parameter>
+				</outputParameters>
+			</interface>
+			<interface action="query" path="/weterraform/api/v1/terraform/clb2/query" filterRule="">
+				<inputParameters>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">asset_id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">provider_info</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">region_id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">subnet_id</parameter>
+				</inputParameters>
+				<outputParameters>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">asset_id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">id</parameter>
+					<parameter datatype="object" required="Y" sensitiveData="N" mappingType="" multiple="Y" refObjectName="query_output_listeners">listeners</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">name</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">network_type</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">subnet_id</parameter>
+				</outputParameters>
+			</interface>
+		</plugin>
+		<plugin name="clb_listener" targetPackage="" targetEntity="" registerName="" targetEntityFilterRule="">
+			<interface action="apply" path="/weterraform/api/v1/terraform/clb_listener/apply" filterRule="">
+				<inputParameters>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">asset_id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">clb_id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">name</parameter>
+					<parameter datatype="int" required="Y" sensitiveData="N" mappingType="" multiple="N">port</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">protocol</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">provider_info</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">region_id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">target_group_id</parameter>
+				</inputParameters>
+				<outputParameters>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">asset_id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">id</parameter>
+				</outputParameters>
+			</interface>
+			<interface action="destroy" path="/weterraform/api/v1/terraform/clb_listener/destroy" filterRule="">
+				<inputParameters>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">provider_info</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">region_id</parameter>
+				</inputParameters>
+				<outputParameters>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">id</parameter>
+				</outputParameters>
+			</interface>
+			<interface action="query" path="/weterraform/api/v1/terraform/clb_listener/query" filterRule="">
+				<inputParameters>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">asset_id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">clb_id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">provider_info</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">region_id</parameter>
+				</inputParameters>
+				<outputParameters>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">asset_id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">clb_id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">name</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">port</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">protocol</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">target_group_id</parameter>
+				</outputParameters>
+			</interface>
+		</plugin>
+		<plugin name="clb_rule_forward" targetPackage="" targetEntity="" registerName="" targetEntityFilterRule="">
+			<interface action="apply" path="/weterraform/api/v1/terraform/clb_rule_forward/apply" filterRule="">
+				<inputParameters>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">asset_id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">clb_id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">clb_listener_id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">domain</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">health_check_http_path</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">protocol</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">provider_info</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">region_id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">rule_path</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">target_group_id</parameter>
+				</inputParameters>
+				<outputParameters>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">asset_id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">id</parameter>
+				</outputParameters>
+			</interface>
+			<interface action="destroy" path="/weterraform/api/v1/terraform/clb_rule_forward/destroy" filterRule="">
+				<inputParameters>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">provider_info</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">region_id</parameter>
+				</inputParameters>
+				<outputParameters>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">id</parameter>
+				</outputParameters>
+			</interface>
+			<interface action="query" path="/weterraform/api/v1/terraform/clb_rule_forward/query" filterRule="">
+				<inputParameters>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">asset_id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">clb_listener_id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">provider_info</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">region_id</parameter>
+				</inputParameters>
+				<outputParameters>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">asset_id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">clb_id</parameter>
+					<parameter datatype="" required="Y" sensitiveData="N" mappingType="" multiple="N">clb_listener_id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">domain</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">health_check_http_path</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">port</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">protocol</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">rule_path</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">target_group_id</parameter>
+				</outputParameters>
+			</interface>
+		</plugin>
+		<plugin name="clb_target_group" targetPackage="" targetEntity="" registerName="" targetEntityFilterRule="">
+			<interface action="apply" path="/weterraform/api/v1/terraform/clb_target_group/apply" filterRule="">
+				<inputParameters>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">asset_id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">clb_id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">name</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">provider_info</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">region_id</parameter>
+					<parameter datatype="object" required="Y" sensitiveData="N" mappingType="" multiple="Y" refObjectName="apply_input_targets">targets</parameter>
+				</inputParameters>
+				<outputParameters>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">asset_id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">id</parameter>
+				</outputParameters>
+			</interface>
+			<interface action="destroy" path="/weterraform/api/v1/terraform/clb_target_group/destroy" filterRule="">
+				<inputParameters>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">provider_info</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">region_id</parameter>
+				</inputParameters>
+				<outputParameters>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">id</parameter>
+				</outputParameters>
+			</interface>
+			<interface action="query" path="/weterraform/api/v1/terraform/clb_target_group/query" filterRule="">
+				<inputParameters>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">asset_id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">clb_id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">provider_info</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">region_id</parameter>
+				</inputParameters>
+				<outputParameters>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">asset_id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">name</parameter>
+					<parameter datatype="object" required="Y" sensitiveData="N" mappingType="" multiple="N" refObjectName="query_output_targets">targets</parameter>
+				</outputParameters>
+			</interface>
+		</plugin>
+		<plugin name="cos_bucket" targetPackage="" targetEntity="" registerName="" targetEntityFilterRule="">
+			<interface action="apply" path="/weterraform/api/v1/terraform/cos_bucket/apply" filterRule="">
+				<inputParameters>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">acl</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">asset_id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">name</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">provider_info</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">region_id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">resource_group_id</parameter>
+					<parameter datatype="object" required="Y" sensitiveData="N" mappingType="" multiple="N">tags</parameter>
+				</inputParameters>
+				<outputParameters>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">asset_id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">cos_bucket_url</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">id</parameter>
+				</outputParameters>
+			</interface>
+			<interface action="destroy" path="/weterraform/api/v1/terraform/cos_bucket/destroy" filterRule="">
+				<inputParameters>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">provider_info</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">region_id</parameter>
+				</inputParameters>
+				<outputParameters>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">id</parameter>
+				</outputParameters>
+			</interface>
+			<interface action="query" path="/weterraform/api/v1/terraform/cos_bucket/query" filterRule="">
+				<inputParameters>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">asset_id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">name</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">provider_info</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">region_id</parameter>
+				</inputParameters>
+				<outputParameters>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">acl</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">asset_id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">cos_bucket_url</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">name</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">resource_group_id</parameter>
+					<parameter datatype="object" required="Y" sensitiveData="N" mappingType="" multiple="N">tags</parameter>
+				</outputParameters>
+			</interface>
+		</plugin>
+		<plugin name="cos_user" targetPackage="" targetEntity="" registerName="" targetEntityFilterRule="">
+			<interface action="apply" path="/weterraform/api/v1/terraform/cos_user/apply" filterRule="">
+				<inputParameters>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">api</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">asset_id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">console</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">cos_bucket_id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">document</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">name</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">provider_info</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">region_id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">remark</parameter>
+				</inputParameters>
+				<outputParameters>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">asset_id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">secret_id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">secret_key</parameter>
+				</outputParameters>
+			</interface>
+			<interface action="destroy" path="/weterraform/api/v1/terraform/cos_user/destroy" filterRule="">
+				<inputParameters>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">provider_info</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">region_id</parameter>
+				</inputParameters>
+				<outputParameters>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">id</parameter>
+				</outputParameters>
+			</interface>
+			<interface action="query" path="/weterraform/api/v1/terraform/cos_user/query" filterRule="">
+				<inputParameters>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">asset_id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">provider_info</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">region_id</parameter>
+				</inputParameters>
+				<outputParameters>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">asset_id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">id</parameter>
+				</outputParameters>
+			</interface>
+		</plugin>
+		<plugin name="cvm" targetPackage="" targetEntity="" registerName="" targetEntityFilterRule="">
+			<interface action="apply" path="/weterraform/api/v1/terraform/cvm/apply" filterRule="">
+				<inputParameters>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="Y">app_security_group_ids</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">asset_id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="Y">basic_security_group_ids</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">host_name</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">instance_charge_type</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">instance_image</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">instance_name</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">instance_type</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">ip_address</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">password</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">provider_info</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">region_id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">resource_group_id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">subnet_id</parameter>
+					<parameter datatype="int" required="Y" sensitiveData="N" mappingType="" multiple="N">system_disk_size</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">system_disk_type</parameter>
+					<parameter datatype="object" required="Y" sensitiveData="N" mappingType="" multiple="N">tags</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">vpc_id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">zone_id</parameter>
+				</inputParameters>
+				<outputParameters>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">asset_id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">ip_address</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">password</parameter>
+				</outputParameters>
+			</interface>
+			<interface action="destroy" path="/weterraform/api/v1/terraform/cvm/destroy" filterRule="">
+				<inputParameters>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">provider_info</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">region_id</parameter>
+				</inputParameters>
+				<outputParameters>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">id</parameter>
+				</outputParameters>
+			</interface>
+			<interface action="query" path="/weterraform/api/v1/terraform/cvm/query" filterRule="">
+				<inputParameters>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">asset_id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">provider_info</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">region_id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">subnet_id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">vpc_id</parameter>
+				</inputParameters>
+				<outputParameters>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">asset_id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">host_name</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">instance_charge_type</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">instance_image</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">instance_name</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">instance_type</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">ip_address</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">resource_group_id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="Y">security_group_ids</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">subnet_id</parameter>
+					<parameter datatype="int" required="Y" sensitiveData="N" mappingType="" multiple="N">system_disk_size</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">system_disk_type</parameter>
+					<parameter datatype="object" required="Y" sensitiveData="N" mappingType="" multiple="N">tags</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">zone_id</parameter>
+				</outputParameters>
+			</interface>
+		</plugin>
+		<plugin name="disk" targetPackage="" targetEntity="" registerName="" targetEntityFilterRule="">
+			<interface action="apply" path="/weterraform/api/v1/terraform/disk/apply" filterRule="">
+				<inputParameters>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">asset_id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">attach_instance_id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">charge_type</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">encrypted</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">name</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">provider_info</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">region_id</parameter>
+					<parameter datatype="int" required="Y" sensitiveData="N" mappingType="" multiple="N">size</parameter>
+					<parameter datatype="object" required="Y" sensitiveData="N" mappingType="" multiple="N">tags</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">type</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">zone_id</parameter>
+				</inputParameters>
+				<outputParameters>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">asset_id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">id</parameter>
+				</outputParameters>
+			</interface>
+			<interface action="destroy" path="/weterraform/api/v1/terraform/disk/destroy" filterRule="">
+				<inputParameters>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">provider_info</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">region_id</parameter>
+				</inputParameters>
+				<outputParameters>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">id</parameter>
+				</outputParameters>
+			</interface>
+			<interface action="query" path="/weterraform/api/v1/terraform/disk/query" filterRule="">
+				<inputParameters>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">asset_id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">attach_instance_id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">provider_info</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">region_id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">zone_id</parameter>
+				</inputParameters>
+				<outputParameters>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">asset_id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">attach_instance_id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">charge_type</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">encrypted</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">name</parameter>
+					<parameter datatype="int" required="Y" sensitiveData="N" mappingType="" multiple="N">size</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">tags</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">type</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">zone_id</parameter>
+				</outputParameters>
+			</interface>
+		</plugin>
+		<plugin name="eip" targetPackage="" targetEntity="" registerName="" targetEntityFilterRule="">
+			<interface action="apply" path="/weterraform/api/v1/terraform/eip/apply" filterRule="">
+				<inputParameters>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">asset_id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">bandwidth</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">name</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">network_charge_type</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">provider_info</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">region_id</parameter>
+					<parameter datatype="object" required="Y" sensitiveData="N" mappingType="" multiple="N">tags</parameter>
+				</inputParameters>
+				<outputParameters>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">asset_id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">public_ip</parameter>
+				</outputParameters>
+			</interface>
+			<interface action="destroy" path="/weterraform/api/v1/terraform/eip/destroy" filterRule="">
+				<inputParameters>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">provider_info</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">region_id</parameter>
+				</inputParameters>
+				<outputParameters>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">id</parameter>
+				</outputParameters>
+			</interface>
+			<interface action="query" path="/weterraform/api/v1/terraform/eip/query" filterRule="">
+				<inputParameters>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">asset_id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">provider_info</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">public_ip</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">region_id</parameter>
+				</inputParameters>
+				<outputParameters>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">asset_id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">bandwidth</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">name</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">network_charge_type</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">public_ip</parameter>
+					<parameter datatype="object" required="Y" sensitiveData="N" mappingType="" multiple="N">tags</parameter>
+				</outputParameters>
+			</interface>
+		</plugin>
+		<plugin name="mysql" targetPackage="" targetEntity="" registerName="" targetEntityFilterRule="">
+			<interface action="apply" path="/weterraform/api/v1/terraform/mysql/apply" filterRule="">
+				<inputParameters>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="Y">app_security_group_ids</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">asset_id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="Y">base_security_group_ids</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">charge_type</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">cluster_mode</parameter>
+					<parameter datatype="int" required="Y" sensitiveData="N" mappingType="" multiple="N">disk_size</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">engine_version</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">instance_name</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">instance_type</parameter>
+					<parameter datatype="string" required="N" sensitiveData="N" mappingType="" multiple="N">ip_address</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="Y" mappingType="" multiple="N">password</parameter>
+					<parameter datatype="int" required="Y" sensitiveData="N" mappingType="" multiple="N">port</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">provider_info</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">region_id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">resource_group_id</parameter>
+					<parameter datatype="string" required="N" sensitiveData="N" mappingType="" multiple="N">slave1_zone_id</parameter>
+					<parameter datatype="string" required="N" sensitiveData="N" mappingType="" multiple="N">slave2_zone_id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">subnet_id</parameter>
+					<parameter datatype="object" required="Y" sensitiveData="N" mappingType="" multiple="N">tags</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">vpc_id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">zone_id</parameter>
+				</inputParameters>
+				<outputParameters>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">asset_id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">ip_adsress</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">password</parameter>
+				</outputParameters>
+			</interface>
+			<interface action="destroy" path="/weterraform/api/v1/terraform/mysql/destroy" filterRule="">
+				<inputParameters>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">provider_info</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">region_id</parameter>
+				</inputParameters>
+				<outputParameters>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">id</parameter>
+				</outputParameters>
+			</interface>
+			<interface action="query" path="/weterraform/api/v1/terraform/mysql/query" filterRule="">
+				<inputParameters>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">asset_id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">provider_info</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">region_id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">subnet_id</parameter>
+				</inputParameters>
+				<outputParameters>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">asset_id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">charge_type</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">cluster_mode</parameter>
+					<parameter datatype="int" required="Y" sensitiveData="N" mappingType="" multiple="N">disk_size</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">engine_version</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">instance_name</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">instance_type</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">ip_address</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">port</parameter>
+					<parameter datatype="" required="Y" sensitiveData="N" mappingType="" multiple="N">resource_group_id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">security_group_ids</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">slave1_zone_id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">slave2_zone_id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">subnet_id</parameter>
+					<parameter datatype="object" required="Y" sensitiveData="N" mappingType="" multiple="N">tags</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">vpc_id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">zone_id</parameter>
+				</outputParameters>
+			</interface>
+		</plugin>
+		<plugin name="nat_gateway" targetPackage="" targetEntity="" registerName="" targetEntityFilterRule="">
+			<interface action="apply" path="/weterraform/api/v1/terraform/nat_gateway/apply" filterRule="">
+				<inputParameters>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">asset_id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="Y">eip_ids</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">name</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">provider_info</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">region_id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">subnet_id</parameter>
+					<parameter datatype="object" required="Y" sensitiveData="N" mappingType="" multiple="N">tags</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">vpc_id</parameter>
+				</inputParameters>
+				<outputParameters>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">asset_id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">id</parameter>
+				</outputParameters>
+			</interface>
+			<interface action="destroy" path="/weterraform/api/v1/terraform/nat_gateway/destroy" filterRule="">
+				<inputParameters>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">provider_info</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">region_id</parameter>
+				</inputParameters>
+				<outputParameters>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">id</parameter>
+				</outputParameters>
+			</interface>
+			<interface action="query" path="/weterraform/api/v1/terraform/nat_gateway/query" filterRule="">
+				<inputParameters>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">asset_id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">provider_info</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">region_id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">vpc_id</parameter>
+				</inputParameters>
+				<outputParameters>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">asset_id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="Y">eip_ids</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">name</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">subnet_id</parameter>
+					<parameter datatype="object" required="Y" sensitiveData="N" mappingType="" multiple="N">tags</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">vpc_id</parameter>
+				</outputParameters>
+			</interface>
+		</plugin>
+		<plugin name="redis" targetPackage="" targetEntity="" registerName="" targetEntityFilterRule="">
+			<interface action="apply" path="/weterraform/api/v1/terraform/redis/apply" filterRule="">
+				<inputParameters>
+					<parameter datatype="string" required="N" sensitiveData="N" mappingType="" multiple="Y">app_security_group_id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">asset_id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="Y">base_security_group_id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">charge_type</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">instance_type</parameter>
+					<parameter datatype="string" required="N" sensitiveData="N" mappingType="" multiple="N">ip_address</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">name</parameter>
+					<parameter datatype="string" required="N" sensitiveData="Y" mappingType="" multiple="N">password</parameter>
+					<parameter datatype="string" required="N" sensitiveData="N" mappingType="" multiple="N">port</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">provider_info</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">region_id</parameter>
+					<parameter datatype="string" required="N" sensitiveData="N" mappingType="" multiple="N">resource_group_id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">subnet_id</parameter>
+					<parameter datatype="object" required="Y" sensitiveData="N" mappingType="" multiple="N">tags</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">zone_id</parameter>
+				</inputParameters>
+				<outputParameters>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">asset_id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">ip_address</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="Y" mappingType="" multiple="N">password</parameter>
+				</outputParameters>
+			</interface>
+			<interface action="destroy" path="/weterraform/api/v1/terraform/redis/destroy" filterRule="">
+				<inputParameters>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">provider_info</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">region_id</parameter>
+				</inputParameters>
+				<outputParameters>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">id</parameter>
+				</outputParameters>
+			</interface>
+			<interface action="query" path="/weterraform/api/v1/terraform/redis/query" filterRule="">
+				<inputParameters>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">asset_id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">provider_info</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">region_id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">subnet_id</parameter>
+				</inputParameters>
+				<outputParameters>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">asset_id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">instance_charge_type</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">instance_type</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">ip_address</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">name</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">port</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">resourcce_group_id</parameter>
+					<parameter datatype="string" required="N" sensitiveData="N" mappingType="" multiple="Y">security_group_id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">subnet_id</parameter>
+					<parameter datatype="object" required="N" sensitiveData="N" mappingType="" multiple="N">tags</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">zone_id</parameter>
+				</outputParameters>
+			</interface>
+		</plugin>
+		<plugin name="region" targetPackage="" targetEntity="" registerName="" targetEntityFilterRule="">
+			<interface action="apply" path="/weterraform/api/v1/terraform/region/apply" filterRule="">
+				<inputParameters>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">asset_id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">provider_info</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">region_id</parameter>
+				</inputParameters>
+				<outputParameters>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">asset_id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">id</parameter>
+				</outputParameters>
+			</interface>
+			<interface action="destroy" path="/weterraform/api/v1/terraform/region/destroy" filterRule="">
+				<inputParameters>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">provider_info</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">region_id</parameter>
+				</inputParameters>
+				<outputParameters>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">id</parameter>
+				</outputParameters>
+			</interface>
+		</plugin>
+		<plugin name="resource_group" targetPackage="" targetEntity="" registerName="" targetEntityFilterRule="">
+			<interface action="apply" path="/weterraform/api/v1/terraform/resource_group/apply" filterRule="">
+				<inputParameters>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">asset_id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">name</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">provider_info</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">region_id</parameter>
+				</inputParameters>
+				<outputParameters>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">asset_id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">id</parameter>
+				</outputParameters>
+			</interface>
+			<interface action="destroy" path="/weterraform/api/v1/terraform/resource_group/destroy" filterRule="">
+				<inputParameters>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">provider_info</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">region_id</parameter>
+				</inputParameters>
+				<outputParameters>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">id</parameter>
+				</outputParameters>
+			</interface>
+			<interface action="query" path="/weterraform/api/v1/terraform/resource_group/query" filterRule="">
+				<inputParameters>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">asset_id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">provider_info</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">region_id</parameter>
+				</inputParameters>
+				<outputParameters>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">asset_id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">name</parameter>
+				</outputParameters>
+			</interface>
+		</plugin>
+		<plugin name="route_rule" targetPackage="" targetEntity="" registerName="" targetEntityFilterRule="">
+			<interface action="apply" path="/weterraform/api/v1/terraform/route_rule/apply" filterRule="">
+				<inputParameters>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">asset_id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">destination_cidr</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">next_hop_id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">next_hop_type</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">provider_info</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">region_id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">route_table_id</parameter>
+				</inputParameters>
+				<outputParameters>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">asset_id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">id</parameter>
+				</outputParameters>
+			</interface>
+			<interface action="destroy" path="/weterraform/api/v1/terraform/route_rule/destroy" filterRule="">
+				<inputParameters>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">provider_info</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">region_id</parameter>
+				</inputParameters>
+				<outputParameters>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">id</parameter>
+				</outputParameters>
+			</interface>
+			<interface action="query" path="/weterraform/api/v1/terraform/route_rule/query" filterRule="">
+				<inputParameters>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">asset_id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">provider_info</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">region_id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">route_table_id</parameter>
+				</inputParameters>
+				<outputParameters>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">asset_id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">destination_cidr</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">next_hop_id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">next_hop_type</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">route_table_id</parameter>
+				</outputParameters>
+			</interface>
+		</plugin>
+		<plugin name="route_table" targetPackage="" targetEntity="" registerName="" targetEntityFilterRule="">
+			<interface action="apply" path="/weterraform/api/v1/terraform/route_table/apply" filterRule="">
+				<inputParameters>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">asset_id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">name</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">provider_info</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">region_id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">resource_group_id</parameter>
+					<parameter datatype="object" required="Y" sensitiveData="N" mappingType="" multiple="N">tags</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">vpc_id</parameter>
+				</inputParameters>
+				<outputParameters>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">asset_id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">id</parameter>
+				</outputParameters>
+			</interface>
+			<interface action="destroy" path="/weterraform/api/v1/terraform/route_table/destroy" filterRule="">
+				<inputParameters>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">provider_info</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">region_id</parameter>
+				</inputParameters>
+				<outputParameters>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">id</parameter>
+				</outputParameters>
+			</interface>
+			<interface action="query" path="/weterraform/api/v1/terraform/route_table/query" filterRule="">
+				<inputParameters>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">asset_id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">provider_info</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">region_id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">vpc_id</parameter>
+				</inputParameters>
+				<outputParameters>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">asset_id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">name</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">resource_group_id</parameter>
+					<parameter datatype="object" required="Y" sensitiveData="N" mappingType="" multiple="N">tags</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">vpc_id</parameter>
+				</outputParameters>
+			</interface>
+		</plugin>
+		<plugin name="security_group" targetPackage="" targetEntity="" registerName="" targetEntityFilterRule="">
+			<interface action="apply" path="/weterraform/api/v1/terraform/security_group/apply" filterRule="">
+				<inputParameters>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">asset_id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">name</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">provider_info</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">region_id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">resource_group_id</parameter>
+					<parameter datatype="object" required="Y" sensitiveData="N" mappingType="" multiple="N">tags</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">vpc_id</parameter>
+				</inputParameters>
+				<outputParameters>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">asset_id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">id</parameter>
+				</outputParameters>
+			</interface>
+			<interface action="destroy" path="/weterraform/api/v1/terraform/security_group/destroy" filterRule="">
+				<inputParameters>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">provider_info</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">region_id</parameter>
+				</inputParameters>
+				<outputParameters>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">id</parameter>
+				</outputParameters>
+			</interface>
+			<interface action="query" path="/weterraform/api/v1/terraform/security_group/query" filterRule="">
+				<inputParameters>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">asset_id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">provider_info</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">region_id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">vpc_id</parameter>
+				</inputParameters>
+				<outputParameters>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">asset_id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">name</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">resource_group_id</parameter>
+					<parameter datatype="object" required="Y" sensitiveData="N" mappingType="" multiple="N">tags</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">vpc_id</parameter>
+				</outputParameters>
+			</interface>
+		</plugin>
+		<plugin name="security_rule" targetPackage="" targetEntity="" registerName="" targetEntityFilterRule="">
+			<interface action="apply" path="/weterraform/api/v1/terraform/security_rule/apply" filterRule="">
+				<inputParameters>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">asset_id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">cidr</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">description</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">policy</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">port_range</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">protocol</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">provider_info</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">region_id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">security_group_id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">source_security_group_id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">source_type</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">type</parameter>
+				</inputParameters>
+				<outputParameters>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">asset_id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">id</parameter>
+				</outputParameters>
+			</interface>
+			<interface action="destroy" path="/weterraform/api/v1/terraform/security_rule/destroy" filterRule="">
+				<inputParameters>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">provider_info</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">region_id</parameter>
+				</inputParameters>
+				<outputParameters>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">id</parameter>
+				</outputParameters>
+			</interface>
+			<interface action="query" path="/weterraform/api/v1/terraform/security_rule/query" filterRule="">
+				<inputParameters>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">asset_id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">provider_info</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">region_id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">security_group_id</parameter>
+				</inputParameters>
+				<outputParameters>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">asset_id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">cidr</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">description</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">policy</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">port_range</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">protocol</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">security_group_id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">source_security_group_id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">type</parameter>
+				</outputParameters>
+			</interface>
+		</plugin>
+		<plugin name="subnet" targetPackage="" targetEntity="" registerName="" targetEntityFilterRule="">
+			<interface action="apply" path="/weterraform/api/v1/terraform/subnet/apply" filterRule="">
+				<inputParameters>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">asset_id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">cidr</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">name</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">provider_info</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">region_id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">route_table_id</parameter>
+					<parameter datatype="object" required="Y" sensitiveData="N" mappingType="" multiple="N">tags</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">vpc_id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">zone_id</parameter>
+				</inputParameters>
+				<outputParameters>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">asset_id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">id</parameter>
+				</outputParameters>
+			</interface>
+			<interface action="destroy" path="/weterraform/api/v1/terraform/subnet/destroy" filterRule="">
+				<inputParameters>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">provider_info</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">region_id</parameter>
+				</inputParameters>
+				<outputParameters>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">id</parameter>
+				</outputParameters>
+			</interface>
+			<interface action="query" path="/weterraform/api/v1/terraform/subnet/query" filterRule="">
+				<inputParameters>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">asset_id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">provider_info</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">region_id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">vpc_id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">zone_id</parameter>
+				</inputParameters>
+				<outputParameters>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">asset_id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">cidr</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">name</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">route_table_id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">tags</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">vpc_id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">zone_id</parameter>
+				</outputParameters>
+			</interface>
+		</plugin>
+		<plugin name="vpc" targetPackage="" targetEntity="" registerName="" targetEntityFilterRule="">
+			<interface action="apply" path="/weterraform/api/v1/terraform/vpc/apply" filterRule="">
+				<inputParameters>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">asset_id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">cidr</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">name</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">provider_info</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">region_id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">resource_group_id</parameter>
+					<parameter datatype="object" required="Y" sensitiveData="N" mappingType="" multiple="N">tags</parameter>
+				</inputParameters>
+				<outputParameters>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">asset_id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">id</parameter>
+				</outputParameters>
+			</interface>
+			<interface action="destroy" path="/weterraform/api/v1/terraform/vpc/destroy" filterRule="">
+				<inputParameters>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">provider_info</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">region_id</parameter>
+				</inputParameters>
+				<outputParameters>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">id</parameter>
+				</outputParameters>
+			</interface>
+			<interface action="query" path="/weterraform/api/v1/terraform/vpc/query" filterRule="">
+				<inputParameters>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">asset_id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">provider_info</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">region_id</parameter>
+				</inputParameters>
+				<outputParameters>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">asset_id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">cidr</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">name</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">region_id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">resource_group_id</parameter>
+					<parameter datatype="object" required="Y" sensitiveData="N" mappingType="" multiple="N">tags</parameter>
+				</outputParameters>
+			</interface>
+		</plugin>
+		<plugin name="vpc_peer" targetPackage="" targetEntity="" registerName="" targetEntityFilterRule="">
+			<interface action="apply" path="/weterraform/api/v1/terraform/vpc_peer/apply" filterRule="">
+				<inputParameters>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">asset_id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">name</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">peer_vpc_owner_id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">provider_info</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">region_id</parameter>
+					<parameter datatype="object" required="Y" sensitiveData="N" mappingType="" multiple="N">tags</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">vpc_id</parameter>
+				</inputParameters>
+				<outputParameters>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">asset_id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">id</parameter>
+				</outputParameters>
+			</interface>
+			<interface action="destroy" path="/weterraform/api/v1/terraform/vpc_peer/destroy" filterRule="">
+				<inputParameters>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">provider_info</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">region_id</parameter>
+				</inputParameters>
+				<outputParameters>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">id</parameter>
+				</outputParameters>
+			</interface>
+			<interface action="query" path="/weterraform/api/v1/terraform/vpc_peer/query" filterRule="">
+				<inputParameters>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">asset_id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">provider_info</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">region_id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">vpc_id</parameter>
+				</inputParameters>
+				<outputParameters>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">asset_id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">name</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">peer_vpc_id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">peer_vpc_owner_id</parameter>
+					<parameter datatype="object" required="Y" sensitiveData="N" mappingType="" multiple="N">tags</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">vpc_id</parameter>
+				</outputParameters>
+			</interface>
+		</plugin>
+		<plugin name="zone" targetPackage="" targetEntity="" registerName="" targetEntityFilterRule="">
+			<interface action="apply" path="/weterraform/api/v1/terraform/zone/apply" filterRule="">
+				<inputParameters>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">asset_id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">provider_info</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">region_id</parameter>
+				</inputParameters>
+				<outputParameters>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">asset_id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">id</parameter>
+				</outputParameters>
+			</interface>
+			<interface action="destroy" path="/weterraform/api/v1/terraform/zone/destroy" filterRule="">
+				<inputParameters>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">id</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">provider_info</parameter>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">region_id</parameter>
+				</inputParameters>
+				<outputParameters>
+					<parameter datatype="string" required="Y" sensitiveData="N" mappingType="" multiple="N">id</parameter>
+				</outputParameters>
+			</interface>
+		</plugin>
+	</plugins>
+</package>
