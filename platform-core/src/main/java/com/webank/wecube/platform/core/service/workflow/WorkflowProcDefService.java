@@ -88,6 +88,96 @@ public class WorkflowProcDefService extends AbstractWorkflowProcDefService {
     /**
      * 
      * @param procDefId
+     * @param taskNodeId
+     * @param prevCtxNodeIds
+     * @return
+     */
+    public List<TaskNodeDefBriefDto> getRootContextTaskNodes(String procDefId, String taskNodeId,
+            String prevCtxNodeIds) {
+        List<TaskNodeDefBriefDto> result = new ArrayList<>();
+        if (StringUtils.isBlank(procDefId)) {
+            return result;
+        }
+        List<TaskNodeDefInfoEntity> nodeEntities = taskNodeDefInfoRepo.selectAllByProcDefId(procDefId);
+        if (nodeEntities == null || nodeEntities.isEmpty()) {
+            return result;
+        }
+
+        List<TaskNodeDefInfoEntity> filteredNodeEntities = new ArrayList<>();
+        if (StringUtils.isBlank(prevCtxNodeIds)) {
+            nodeEntities.forEach(e -> {
+                if (TaskNodeDefInfoEntity.NODE_TYPE_START_EVENT.equalsIgnoreCase(e.getNodeType())
+                        || StringUtils.isBlank(e.getNodeType())) {
+                    filteredNodeEntities.add(e);
+                }
+            });
+        } else {
+            filterTaskNodeInfosByRootContext(prevCtxNodeIds, filteredNodeEntities, nodeEntities);
+        }
+
+        // #1993
+        filteredNodeEntities.forEach(e -> {
+            if (TaskNodeDefInfoEntity.NODE_TYPE_SUBPROCESS.equalsIgnoreCase(e.getNodeType())
+                    || TaskNodeDefInfoEntity.NODE_TYPE_SERVICE_TASK.equalsIgnoreCase(e.getNodeType())
+                    || TaskNodeDefInfoEntity.NODE_TYPE_START_EVENT.equalsIgnoreCase(e.getNodeType())
+                    || StringUtils.isBlank(e.getNodeType())) {
+                TaskNodeDefBriefDto d = new TaskNodeDefBriefDto();
+                d.setNodeDefId(e.getId());
+                d.setNodeId(e.getNodeId());
+                d.setNodeName(e.getNodeName());
+                d.setNodeType(e.getNodeType());
+                d.setProcDefId(e.getProcDefId());
+                d.setServiceId(e.getServiceId());
+                d.setServiceName(e.getServiceName());
+
+                result.add(d);
+            }
+        });
+
+        return result;
+
+    }
+
+    private void filterTaskNodeInfosByRootContext(String prevCtxNodeIds,
+            List<TaskNodeDefInfoEntity> filteredNodeEntities, List<TaskNodeDefInfoEntity> nodeEntities) {
+        String[] prevCtxNodeIdsParts = prevCtxNodeIds.trim().split(",");
+        for (String prevCtxNodeIdsPart : prevCtxNodeIdsParts) {
+            TaskNodeDefInfoEntity nodeDefInfo = pickoutByNodeId(prevCtxNodeIdsPart, filteredNodeEntities);
+            if (nodeDefInfo == null) {
+                nodeDefInfo = pickoutByNodeId(prevCtxNodeIdsPart, nodeEntities);
+                if (nodeDefInfo != null) {
+                    filteredNodeEntities.add(nodeDefInfo);
+                }
+            } else {
+                // means exist already
+            }
+
+            if (nodeDefInfo != null) {
+                String supPrevCtxNodeIds = nodeDefInfo.getPrevCtxNodeIds();
+                if (StringUtils.isNoneBlank(supPrevCtxNodeIds)) {
+                    filterTaskNodeInfosByRootContext(supPrevCtxNodeIds, filteredNodeEntities, nodeEntities);
+                }
+            }
+        }
+    }
+
+    private TaskNodeDefInfoEntity pickoutByNodeId(String nodeId, List<TaskNodeDefInfoEntity> nodeEntities) {
+        if (nodeEntities == null || nodeEntities.isEmpty()) {
+            return null;
+        }
+
+        for (TaskNodeDefInfoEntity n : nodeEntities) {
+            if (nodeId.equals(n.getNodeId())) {
+                return n;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * 
+     * @param procDefId
      * @return
      */
     public List<TaskNodeDefBriefDto> getTaskNodeBriefs(String procDefId) {
@@ -140,7 +230,7 @@ public class WorkflowProcDefService extends AbstractWorkflowProcDefService {
      * @param permission
      * @return
      */
-    public List<ProcDefInfoDto> getProcessDefinitions(boolean includeDraftProcDef, String permission) {
+    public List<ProcDefInfoDto> getProcessDefinitions(boolean includeDraftProcDef, String permission, String tags) {
         List<String> currentUserRoleNameList = new ArrayList<>(
                 Objects.requireNonNull(AuthenticationContextHolder.getCurrentUserRoles()));
 
@@ -153,6 +243,16 @@ public class WorkflowProcDefService extends AbstractWorkflowProcDefService {
             procRoleDtoList = processRoleService.retrieveAllProcessByRoles(currentUserRoleNameList);
         }
         Set<ProcRoleDto> procRoleDtoSet = new HashSet<>(procRoleDtoList);
+
+        List<String> tagList = new ArrayList<String>();
+        if (StringUtils.isNoneBlank(tags)) {
+            String[] tagsParts = tags.trim().split(",");
+            for (String tagsPart : tagsParts) {
+                if (StringUtils.isNoneBlank(tagsPart)) {
+                    tagList.add(tagsPart.trim());
+                }
+            }
+        }
 
         // check if there is includeDraftProcDef specified
         List<ProcDefInfoEntity> procDefEntities = new ArrayList<>();
@@ -176,7 +276,23 @@ public class WorkflowProcDefService extends AbstractWorkflowProcDefService {
         }
 
         List<ProcDefInfoDto> procDefInfoDtos = new ArrayList<>();
+        for (ProcDefInfoEntity e : procDefEntities) {
+            if (!tagList.isEmpty()) {
+                if (StringUtils.isNoneBlank(e.getTags())) {
+                    for (String tag : tagList) {
+                        if (tag.equalsIgnoreCase(e.getTags())) {
+                            ProcDefInfoDto dto = procDefInfoDtoFromEntity(e);
+                            procDefInfoDtos.add(dto);
+                        }
+                    }
+                }
+            } else {
+                ProcDefInfoDto dto = procDefInfoDtoFromEntity(e);
+                procDefInfoDtos.add(dto);
+            }
+        }
         procDefEntities.forEach(e -> {
+
             ProcDefInfoDto dto = procDefInfoDtoFromEntity(e);
             procDefInfoDtos.add(dto);
 

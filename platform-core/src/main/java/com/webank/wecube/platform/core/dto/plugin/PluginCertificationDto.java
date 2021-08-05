@@ -7,6 +7,11 @@ public class PluginCertificationDto {
     private String encryptData;
     private String signature;
     private String description;
+    
+    private String createdTime;
+    private String createdBy;
+    private String updatedTime;
+    private String updatedBy;
 
     public String getPlugin() {
         return plugin;
@@ -54,6 +59,38 @@ public class PluginCertificationDto {
 
     public void setId(String id) {
         this.id = id;
+    }
+    
+    public String getCreatedTime() {
+        return createdTime;
+    }
+
+    public void setCreatedTime(String createdTime) {
+        this.createdTime = createdTime;
+    }
+
+    public String getCreatedBy() {
+        return createdBy;
+    }
+
+    public void setCreatedBy(String createdBy) {
+        this.createdBy = createdBy;
+    }
+
+    public String getUpdatedTime() {
+        return updatedTime;
+    }
+
+    public void setUpdatedTime(String updatedTime) {
+        this.updatedTime = updatedTime;
+    }
+
+    public String getUpdatedBy() {
+        return updatedBy;
+    }
+
+    public void setUpdatedBy(String updatedBy) {
+        this.updatedBy = updatedBy;
     }
 
     @Override

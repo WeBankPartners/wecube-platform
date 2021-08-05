@@ -10,6 +10,8 @@ public class DynamicEntityAttributeDto {
     private String refPackageName;
     private String refEntityName;
     private String refAttributeName;
+    private String required;
+    private String multiple;
 
     public String getId() {
         return id;
@@ -83,4 +85,20 @@ public class DynamicEntityAttributeDto {
         this.refAttributeName = refAttributeName;
     }
 
+    public String getRequired() {
+        return required;
+    }
+
+    public void setRequired(String required) {
+        this.required = required;
+    }
+
+    public String getMultiple() {
+        return multiple;
+    }
+
+    public void setMultiple(String multiple) {
+        this.multiple = multiple;
+    }
+    
 }
