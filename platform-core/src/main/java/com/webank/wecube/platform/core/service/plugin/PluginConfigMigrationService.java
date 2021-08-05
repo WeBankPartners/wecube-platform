@@ -35,6 +35,7 @@ import com.webank.wecube.platform.core.repository.plugin.PluginConfigsMapper;
 import com.webank.wecube.platform.core.repository.plugin.PluginPackagesMapper;
 import com.webank.wecube.platform.core.repository.plugin.SystemVariablesMapper;
 import com.webank.wecube.platform.core.service.plugin.xmltype.ParamObjectType;
+import com.webank.wecube.platform.core.service.plugin.xmltype.ParamObjectsType;
 import com.webank.wecube.platform.core.service.plugin.xmltype.ParamPropertyType;
 import com.webank.wecube.platform.core.service.plugin.xmltype.PluginConfigInputParameterType;
 import com.webank.wecube.platform.core.service.plugin.xmltype.PluginConfigInputParametersType;
@@ -82,6 +83,9 @@ public class PluginConfigMigrationService {
 
     @Autowired
     protected CoreObjectPropertyMetaMapper coreObjectPropertyMetaMapper;
+    
+    @Autowired
+    private PluginParamObjectMetaRegister pluginParamObjectSupportService;
 
     /**
      * 
@@ -708,6 +712,8 @@ public class PluginConfigMigrationService {
         return role;
     }
 
+    
+
     private void tryCreatePluginConfigRoleBinds(PluginConfigType xmlPluginConfig, PluginConfigs savedPluginConfig) {
         PluginRoleBindingsType xmlRoleBinds = xmlPluginConfig.getRoleBinds();
         if (xmlRoleBinds == null || xmlRoleBinds.getRoleBind().isEmpty()) {
@@ -812,7 +818,8 @@ public class PluginConfigMigrationService {
         if (pluginPackage.getVersion().equalsIgnoreCase(xmlPackageVersion)) {
             log.info("The version from XML matches and try to update plugin configuration definition for {} {} {}",
                     pluginPackage.getId(), pluginPackage.getName(), pluginPackage.getVersion());
-            tryUpdatePluginConfigDefinitions(pluginPackage, xmlPluginPackage, nameAndPluginConfigDefs,
+            
+            tryCreateOrUpdatePluginConfigDefinitions(pluginPackage, xmlPluginPackage, nameAndPluginConfigDefs,
                     xmlPluginConfigList);
         }
 
@@ -837,8 +844,64 @@ public class PluginConfigMigrationService {
                 pluginPackage.getVersion(), xmlPluginPackage.getName(), xmlPluginPackage.getVersion());
     }
 
-    private void tryUpdatePluginConfigDefinitions(PluginPackages pluginPackage, PluginPackageType xmlPluginPackage,
-            Map<String, PluginConfigs> nameAndPluginConfigDefs, List<PluginConfigType> xmlPluginConfigList) {
+    private void tryProcessParamObjectDefinitions(PluginPackages pluginPackage, PluginPackageType xmlPluginPackage,String configId) {
+        ParamObjectsType xmlParamObjects = xmlPluginPackage.getParamObjects();
+        if (xmlParamObjects == null) {
+            return;
+        }
+
+        List<ParamObjectType> xmlParamObjectList = xmlParamObjects.getParamObject();
+        if (xmlParamObjectList == null || xmlParamObjectList.isEmpty()) {
+            return;
+        }
+
+        com.webank.wecube.platform.core.service.plugin.xml.register.ParamObjectsType regParamObjectsType = convertRegParamObjectsType(xmlParamObjects);
+        pluginParamObjectSupportService.registerParamObjects(regParamObjectsType, pluginPackage.getName(), pluginPackage.getVersion(), configId);
+    }
+    
+    private com.webank.wecube.platform.core.service.plugin.xml.register.ParamObjectsType convertRegParamObjectsType(ParamObjectsType xmlParamObjects){
+        com.webank.wecube.platform.core.service.plugin.xml.register.ParamObjectsType regParamObjectsType = new com.webank.wecube.platform.core.service.plugin.xml.register.ParamObjectsType();
+        
+        List<ParamObjectType> xmlParamObjectList = xmlParamObjects.getParamObject();
+        for(ParamObjectType xmlParamObject : xmlParamObjectList) {
+        com.webank.wecube.platform.core.service.plugin.xml.register.ParamObjectType regParamObjectType = convertParamObjectType(xmlParamObject);
+        regParamObjectsType.getParamObject().add(regParamObjectType);
+        }
+        
+        
+        return regParamObjectsType;
+    }
+    
+    private com.webank.wecube.platform.core.service.plugin.xml.register.ParamObjectType convertParamObjectType(ParamObjectType xmlParamObject){
+        com.webank.wecube.platform.core.service.plugin.xml.register.ParamObjectType regParamObjectType = new com.webank.wecube.platform.core.service.plugin.xml.register.ParamObjectType();
+        regParamObjectType.setName(xmlParamObject.getName());
+        regParamObjectType.setMapExpr(xmlParamObject.getMapExpr());
+        
+        for(ParamPropertyType xmlProperty : xmlParamObject.getProperty()) {
+            com.webank.wecube.platform.core.service.plugin.xml.register.ParamPropertyType regProperty = convertParamPropertyType(xmlProperty);
+            regParamObjectType.getProperty().add(regProperty);
+        }
+        
+        return regParamObjectType;
+    }
+    
+    private com.webank.wecube.platform.core.service.plugin.xml.register.ParamPropertyType convertParamPropertyType(ParamPropertyType xmlProperty){
+        com.webank.wecube.platform.core.service.plugin.xml.register.ParamPropertyType regProperty = new com.webank.wecube.platform.core.service.plugin.xml.register.ParamPropertyType();
+        regProperty.setDataType(xmlProperty.getDataType());
+        regProperty.setMapExpr(xmlProperty.getMapExpr());
+        regProperty.setMapType(xmlProperty.getMapType());
+        regProperty.setMultiple(xmlProperty.getMultiple());
+        regProperty.setName(xmlProperty.getName());
+        regProperty.setRefObjectName(xmlProperty.getRefObjectName());
+        regProperty.setSensitiveData(xmlProperty.getSensitiveData());
+        regProperty.setValue(xmlProperty.getValue());
+        
+        return regProperty;
+    }
+
+    private void tryCreateOrUpdatePluginConfigDefinitions(PluginPackages pluginPackage,
+            PluginPackageType xmlPluginPackage, Map<String, PluginConfigs> nameAndPluginConfigDefs,
+            List<PluginConfigType> xmlPluginConfigList) {
         if (nameAndPluginConfigDefs == null || nameAndPluginConfigDefs.isEmpty()) {
             log.info("There is not plugin configuration definition for {}", pluginPackage.getName());
             return;
@@ -860,21 +923,179 @@ public class PluginConfigMigrationService {
 
         log.info("Total {} XML plugin configuration definitions found for {}", xmlPluginConfigDefs.size(),
                 pluginPackage.getName());
-        
-        for(PluginConfigType xmlPluginConfigDef : xmlPluginConfigDefs) {
+
+        for (PluginConfigType xmlPluginConfigDef : xmlPluginConfigDefs) {
             PluginConfigs dbPluginConfigDef = nameAndPluginConfigDefs.get(xmlPluginConfigDef.getName());
-            if(dbPluginConfigDef == null) {
-                continue;
+            if (dbPluginConfigDef == null) {
+                dbPluginConfigDef = tryCreateSinglePluginConfigDefinition(pluginPackage, xmlPluginPackage,
+                        xmlPluginConfigDef);
+                nameAndPluginConfigDefs.put(dbPluginConfigDef.getName(), dbPluginConfigDef);
+            } else {
+
+                tryUpdateSinglePluginConfigDefinition(pluginPackage, xmlPluginPackage, dbPluginConfigDef,
+                        xmlPluginConfigDef);
             }
             
-            tryUpdateSinglePluginConfigDefinitions( pluginPackage,  xmlPluginPackage,
-                     dbPluginConfigDef,  xmlPluginConfigDef);
+            tryProcessParamObjectDefinitions(pluginPackage, xmlPluginPackage, dbPluginConfigDef.getId());
         }
     }
-    
-    private void tryUpdateSinglePluginConfigDefinitions(PluginPackages pluginPackage, PluginPackageType xmlPluginPackage,
+
+    private PluginConfigs tryCreateSinglePluginConfigDefinition(PluginPackages pluginPackage,
+            PluginPackageType xmlPluginPackage, PluginConfigType xmlPluginConfigDef) {
+
+        PluginConfigs pluginConfig = new PluginConfigs();
+        pluginConfig.setId(LocalIdGenerator.generateId());
+        pluginConfig.setName(xmlPluginConfigDef.getName());
+        pluginConfig.setRegisterName(xmlPluginConfigDef.getRegisterName());
+        pluginConfig.setStatus(PluginConfigs.ENABLED);
+        pluginConfig.setTargetEntity(xmlPluginConfigDef.getTargetEntity());
+        pluginConfig.setTargetEntityFilterRule(xmlPluginConfigDef.getTargetEntityFilterRule());
+        pluginConfig.setTargetPackage(xmlPluginConfigDef.getTargetPackage());
+        pluginConfig.setPluginPackageId(pluginPackage.getId());
+
+        pluginConfigsMapper.insert(pluginConfig);
+
+        List<PluginConfigInterfaceType> xmlPluginInterfaceList = xmlPluginConfigDef.getPluginInterface();
+
+        List<PluginConfigInterfaces> createdInterfaces = new ArrayList<PluginConfigInterfaces>();
+
+        if (xmlPluginInterfaceList == null || xmlPluginInterfaceList.isEmpty()) {
+            return pluginConfig;
+        }
+
+        for (PluginConfigInterfaceType xmlDefIntf : xmlPluginInterfaceList) {
+            if (StringUtils.isBlank(xmlDefIntf.getAction())) {
+                log.info("The action is blank for {}:{}", xmlPluginConfigDef.getName(), xmlDefIntf.getPath());
+                continue;
+            }
+
+            PluginConfigInterfaces intf = tryCreatePluginConfigInterfaceDefinition(pluginPackage, pluginConfig,
+                    xmlDefIntf);
+            createdInterfaces.add(intf);
+        }
+
+        pluginConfig.setInterfaces(createdInterfaces);
+
+//        tryCreatePluginConfigDefinitionRoleBinds(xmlPluginConfigDef, pluginConfig);
+
+        return pluginConfig;
+    }
+
+    private PluginConfigInterfaces tryCreatePluginConfigInterfaceDefinition(PluginPackages pluginPackage,
+            PluginConfigs pluginConfig, PluginConfigInterfaceType xmlIntf) {
+        PluginConfigInterfaces intf = new PluginConfigInterfaces();
+        intf.setId(LocalIdGenerator.generateId());
+        intf.setPluginConfigId(pluginConfig.getId());
+        intf.setPath(xmlIntf.getPath());
+
+        intf.setAction(xmlIntf.getAction());
+        intf.setFilterRule(xmlIntf.getFilterRule());
+        intf.setHttpMethod(xmlIntf.getHttpMethod());
+        intf.setIsAsyncProcessing(xmlIntf.getIsAsyncProcessing());
+
+        intf.setType(xmlIntf.getType());
+        intf.setDescription(xmlIntf.getDescription());
+
+        intf.setServiceDisplayName(intf.generateServiceName(pluginPackage, pluginConfig));
+        intf.setServiceName(intf.generateServiceName(pluginPackage, pluginConfig));
+
+        pluginConfigInterfacesMapper.insert(intf);
+
+        PluginConfigInputParametersType xmlInputParametersType = xmlIntf.getInputParameters();
+        List<PluginConfigInputParameterType> xmlInputParameters = null;
+        if (xmlInputParametersType != null) {
+            xmlInputParameters = xmlInputParametersType.getParameter();
+        }
+        List<PluginConfigInterfaceParameters> inputParameters = new ArrayList<>();
+        if (xmlInputParameters != null) {
+            for (PluginConfigInputParameterType xmlInputParam : xmlInputParameters) {
+                if (StringUtils.isBlank(xmlInputParam.getValue())) {
+                    continue;
+                }
+
+                PluginConfigInterfaceParameters inputParam = tryCreateInputParameterDefinition(intf, xmlInputParam);
+
+                inputParameters.add(inputParam);
+            }
+        }
+
+        intf.setInputParameters(inputParameters);
+
+        PluginConfigOutputParametersType xmlOutputParametersType = xmlIntf.getOutputParameters();
+        List<PluginConfigOutputParameterType> xmlOutputParameters = null;
+        if (xmlOutputParametersType != null) {
+            xmlOutputParameters = xmlOutputParametersType.getParameter();
+        }
+        List<PluginConfigInterfaceParameters> outputParameters = new ArrayList<>();
+
+        if (xmlOutputParameters != null) {
+            for (PluginConfigOutputParameterType xmlOutputParam : xmlOutputParameters) {
+                if (StringUtils.isBlank(xmlOutputParam.getValue())) {
+                    continue;
+                }
+                PluginConfigInterfaceParameters outputParam = tryCreateOutputParameterDefinition(intf, xmlOutputParam);
+                outputParameters.add(outputParam);
+            }
+        }
+
+        intf.setOutputParameters(outputParameters);
+
+        pluginConfigInterfacesMapper.updateByPrimaryKeySelective(intf);
+
+        return intf;
+    }
+
+    private PluginConfigInterfaceParameters tryCreateOutputParameterDefinition(PluginConfigInterfaces intf,
+            PluginConfigOutputParameterType xmlOutputParam) {
+        PluginConfigInterfaceParameters param = new PluginConfigInterfaceParameters();
+        param.setId(LocalIdGenerator.generateId());
+        param.setName(xmlOutputParam.getValue());
+        param.setDataType(xmlOutputParam.getDatatype());
+        param.setType(Constants.TYPE_OUTPUT);
+        param.setPluginConfigInterfaceId(intf.getId());
+        param.setDescription(xmlOutputParam.getDescription());
+        param.setMappingEntityExpression(xmlOutputParam.getMappingEntityExpression());
+        param.setMappingType(xmlOutputParam.getMappingType());
+        param.setSensitiveData(xmlOutputParam.getSensitiveData());
+        param.setMappingSystemVariableName(xmlOutputParam.getMappingSystemVariableName());
+        param.setMappingValue(xmlOutputParam.getMappingValue());
+        param.setMultiple(xmlOutputParam.getMultiple());
+        param.setRefObjectName(xmlOutputParam.getRefObjectName());
+
+        pluginConfigInterfaceParametersMapper.insert(param);
+
+        return param;
+    }
+
+    private PluginConfigInterfaceParameters tryCreateInputParameterDefinition(PluginConfigInterfaces intf,
+            PluginConfigInputParameterType xmlInputParam) {
+        PluginConfigInterfaceParameters param = new PluginConfigInterfaceParameters();
+
+        param.setId(LocalIdGenerator.generateId());
+        param.setName(xmlInputParam.getValue());
+        param.setDataType(xmlInputParam.getDatatype());
+        param.setType(Constants.TYPE_INPUT);
+        param.setPluginConfigInterfaceId(intf.getId());
+        param.setDescription(xmlInputParam.getDescription());
+        param.setMappingEntityExpression(xmlInputParam.getMappingEntityExpression());
+        param.setMappingSystemVariableName(xmlInputParam.getMappingSystemVariableName());
+        param.setMappingType(xmlInputParam.getMappingType());
+        param.setSensitiveData(xmlInputParam.getSensitiveData());
+        param.setMappingValue(xmlInputParam.getMappingValue());
+        param.setRefObjectName(xmlInputParam.getRefObjectName());
+        param.setMultiple(xmlInputParam.getMultiple());
+
+        param.setRequired(xmlInputParam.getRequired());
+
+        pluginConfigInterfaceParametersMapper.insert(param);
+
+        return param;
+
+    }
+
+    private void tryUpdateSinglePluginConfigDefinition(PluginPackages pluginPackage, PluginPackageType xmlPluginPackage,
             PluginConfigs dbPluginConfigDef, PluginConfigType xmlPluginConfigDef) {
-        
+
         List<PluginConfigInterfaceType> xmlIntfList = xmlPluginConfigDef.getPluginInterface();
         if (xmlIntfList == null || xmlIntfList.isEmpty()) {
             return;
@@ -892,10 +1113,13 @@ public class PluginConfigMigrationService {
             if (toUpdateIntf == null) {
                 log.info("interface doesnot exist and try to create one,{} {}", dbPluginConfigDef.getId(),
                         xmlIntf.getAction());
-               
+
+                
+                toUpdateIntf = tryCreatePluginConfigInterfaceDefinition( pluginPackage,
+                        dbPluginConfigDef,  xmlIntf);
+
             } else {
-                log.info("interface exists and try to update,{} {}", dbPluginConfigDef.getId(),
-                        xmlIntf.getAction());
+                log.info("interface exists and try to update,{} {}", dbPluginConfigDef.getId(), xmlIntf.getAction());
                 tryUpdatePluginConfigInterface(pluginPackage, dbPluginConfigDef, toUpdateIntf, xmlIntf);
             }
         }
