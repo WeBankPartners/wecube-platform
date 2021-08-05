@@ -83,6 +83,8 @@ public class PluginInstanceMgmtService extends AbstractPluginMgmtService {
 
     private static final int PLUGIN_DEFAULT_START_PORT = 20000;
     private static final int PLUGIN_DEFAULT_END_PORT = 30000;
+    
+    private static final String INIT_VECTOR = "encriptionVector";
 
     @Autowired
     private ResourceManagementService resourceManagementService;
@@ -305,12 +307,15 @@ public class PluginInstanceMgmtService extends AbstractPluginMgmtService {
         }
 
         String aesKey = UUID.randomUUID().toString().replace("-", "").substring(0, 16);
+        String initVector = INIT_VECTOR;
+        String licenseCode = aesKey+initVector;
         String rsaEncryptedAesKey = RsaEncryptor.encodeBase64String(
-                RsaEncryptor.encryptByPublicKey(aesKey.getBytes(Charset.forName("UTF-8")), subSystemAsDto.getPubKey()));
+                RsaEncryptor.encryptByPublicKey(licenseCode.getBytes(Charset.forName("UTF-8")), subSystemAsDto.getPubKey()));
 
         String lpk = pluginCertification.getLpk();
         String encryptData = pluginCertification.getEncryptData();
         String signature = pluginCertification.getSignature();
+        
 
         String aesEncryptedLpk = "";
         if (StringUtils.isNoneBlank(lpk)) {
