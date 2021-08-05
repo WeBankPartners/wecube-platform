@@ -25,6 +25,15 @@
                   <span>{{ objItem.dataType }}</span>
                 </FormItem>
               </Col>
+              <Col span="3" offset="0">
+                <FormItem :label="$t('core_multiple')">
+                  <Select v-model="objItem.multiple" :disabled="status === 'ENABLED'" filterable style="width:150px">
+                    <Option v-for="item in sensitiveData" :value="item.value" :key="item.value">{{
+                      item.label
+                    }}</Option>
+                  </Select>
+                </FormItem>
+              </Col>
               <Col span="3" offset="1">
                 <FormItem :label="$t('sensitive')">
                   <Select
@@ -55,7 +64,7 @@
                   </Select>
                 </FormItem>
               </Col>
-              <Col span="8" offset="1">
+              <Col span="8" offset="0">
                 <FormItem :label="$t('attribute')">
                   <FilterRulesRef
                     v-if="objItem.mappingType === 'entity'"
