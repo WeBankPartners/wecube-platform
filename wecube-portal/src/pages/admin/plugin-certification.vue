@@ -32,11 +32,25 @@ export default {
       tableColumns: [
         {
           title: this.$t('plugin'),
+          width: 200,
           key: 'plugin'
         },
         {
           title: this.$t('description'),
-          key: 'description'
+          key: 'description',
+          render: (h, params) => {
+            return h('pre', {}, params.row.description)
+          }
+        },
+        {
+          title: this.$t('table_created_date'),
+          width: 200,
+          key: 'createdTime'
+        },
+        {
+          title: this.$t('table_updated_date'),
+          width: 200,
+          key: 'updatedTime'
         },
         {
           title: this.$t('table_action'),
