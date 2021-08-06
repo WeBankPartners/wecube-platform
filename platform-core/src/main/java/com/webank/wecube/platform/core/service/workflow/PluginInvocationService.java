@@ -32,6 +32,7 @@ import com.webank.wecube.platform.core.entity.plugin.PluginConfigInterfaceParame
 import com.webank.wecube.platform.core.entity.plugin.PluginConfigInterfaces;
 import com.webank.wecube.platform.core.entity.plugin.PluginConfigs;
 import com.webank.wecube.platform.core.entity.plugin.PluginInstances;
+import com.webank.wecube.platform.core.entity.plugin.PluginPackageAttributes;
 import com.webank.wecube.platform.core.entity.plugin.PluginPackages;
 import com.webank.wecube.platform.core.entity.plugin.SystemVariables;
 import com.webank.wecube.platform.core.entity.workflow.ExtraTaskEntity;
@@ -65,6 +66,7 @@ import com.webank.wecube.platform.core.service.dme.StandardEntityDataNode;
 import com.webank.wecube.platform.core.service.dme.StandardEntityOperationResponseDto;
 import com.webank.wecube.platform.core.service.dme.StandardEntityOperationRestClient;
 import com.webank.wecube.platform.core.service.plugin.CoreObjectVarCalculationContext;
+import com.webank.wecube.platform.core.service.plugin.PluginPackageDataModelService;
 import com.webank.wecube.platform.core.service.plugin.PluginParamObject;
 import com.webank.wecube.platform.core.service.plugin.PluginParamObjectVarStorage;
 import com.webank.wecube.platform.core.service.workflow.PluginInvocationProcessor.PluginInterfaceInvocationContext;
@@ -92,6 +94,9 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 
     @Autowired
     protected PluginParamObjectVarStorage pluginParamObjectVarStorageService;
+    
+    @Autowired
+    protected PluginPackageDataModelService pluginPackageDataModelService;
 
     /**
      * 
@@ -3099,23 +3104,32 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 
             if (retVal == null) {
                 log.info("returned value is null for {} {}", ctx.getRequestId(), paramName);
-                continue;
+//                continue;
             }
 
-            if (retVal instanceof String) {
-                if (StringUtils.isBlank((String) retVal)) {
-                    continue;
-                }
-            }
-
-            DmeOutputParamAttr outputParamAttr = new DmeOutputParamAttr();
             List<EntityQueryExprNodeInfo> exprNodeInfos = entityQueryExpressionParser.parse(paramExpr);
+            
+            if(exprNodeInfos == null || exprNodeInfos.isEmpty()) {
+                String errMsg = String.format("Unknown how to update entity attribute due to invalid expression:%s", paramExpr);
+                log.error(errMsg);
+                throw new WecubeCoreException(errMsg);
+            }
+            
+            EntityQueryExprNodeInfo leafExprNodeInfo = exprNodeInfos.get(exprNodeInfos.size() - 1);
+            String targetPackageName = leafExprNodeInfo.getPackageName();
+            String targetEntityName = leafExprNodeInfo.getEntityName();
+            String targetAttrName = leafExprNodeInfo.getQueryAttrName();
+            
+            PluginPackageAttributes targetAttrDefinition = getTargetPluginPackageAttributes( targetPackageName,  targetEntityName,  targetAttrName);
+            Object finalRetVal = validateAndConvert(targetAttrDefinition, retVal);
+            
+            DmeOutputParamAttr outputParamAttr = new DmeOutputParamAttr();
             outputParamAttr.setExprNodeInfos(exprNodeInfos);
             outputParamAttr.setInterf(pci);
             outputParamAttr.setInterfParam(pciParam);
             outputParamAttr.setParamExpr(paramExpr);
             outputParamAttr.setParamName(paramName);
-            outputParamAttr.setRetVal(retVal);
+            outputParamAttr.setRetVal(finalRetVal);
 
             allDmeOutputParamAttrs.add(outputParamAttr);
             if (outputParamAttr.isRootEntityAttr()) {
@@ -3138,8 +3152,14 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
             attr.setProcessed(true);
             EntityQueryExprNodeInfo exprNodeNodeInfo = attr.getExprNodeInfos().get(0);
 
-            if ("id".equalsIgnoreCase(exprNodeNodeInfo.getQueryAttrName())) {
-                idAttrDef = attr;
+            if ("id".equalsIgnoreCase(exprNodeNodeInfo.getQueryAttrName()) && (attr.getRetVal() != null)) {
+                if(attr.getRetVal() instanceof String) {
+                    if(StringUtils.isNoneBlank((String)attr.getRetVal())){
+                        idAttrDef = attr;
+                    }
+                }else {
+                    idAttrDef = attr;
+                }
             }
             objDataMap.put(exprNodeNodeInfo.getQueryAttrName(), attr.getRetVal());
         }
@@ -3182,6 +3202,8 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
                 this.entityOperationService.update(condition, attr.getRetVal(), null);
             } catch (Exception e) {
                 log.warn("Exceptions while updating entity.But still keep going to update.", e);
+                String errMsg = String.format("Failed to update entity data with {} {} caused by:{}", attr.getParamExpr(), rootEntityId, e.getMessage());
+                throw new WecubeCoreException(errMsg);
             }
         }
     }
@@ -3213,25 +3235,76 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 
             if (retVal == null) {
                 log.info("returned value is null for {} {}", ctx.getRequestId(), paramName);
-                continue;
+//                continue;
             }
 
-            if (retVal instanceof String) {
-                if (StringUtils.isBlank((String) retVal)) {
-                    continue;
-                }
+//            if (retVal instanceof String) {
+//                if (StringUtils.isBlank((String) retVal)) {
+//                    continue;
+//                }
+//            }
+            
+            List<EntityQueryExprNodeInfo> exprNodeInfos = entityQueryExpressionParser.parse(paramExpr);
+            if(exprNodeInfos == null || exprNodeInfos.isEmpty()) {
+                String errMsg = String.format("Unknown how to update entity attribute due to invalid expression:%s", paramExpr);
+                log.error(errMsg);
+                throw new WecubeCoreException(errMsg);
             }
+            
+            EntityQueryExprNodeInfo leafExprNodeInfo = exprNodeInfos.get(exprNodeInfos.size() - 1);
+            String targetPackageName = leafExprNodeInfo.getPackageName();
+            String targetEntityName = leafExprNodeInfo.getEntityName();
+            String targetAttrName = leafExprNodeInfo.getQueryAttrName();
+            
+            PluginPackageAttributes targetAttrDefinition = getTargetPluginPackageAttributes( targetPackageName,  targetEntityName,  targetAttrName);
+            Object finalRetVal = validateAndConvert(targetAttrDefinition, retVal);
 
             EntityOperationRootCondition condition = new EntityOperationRootCondition(paramExpr, nodeEntityId);
 
             try {
-                this.entityOperationService.update(condition, retVal, null);
+                this.entityOperationService.update(condition, finalRetVal, null);
             } catch (Exception e) {
                 log.warn("Exceptions while updating entity.But still keep going to update.", e);
+                String errMsg = String.format("Failed to update entity data with {} {} caused by:{}", paramExpr, nodeEntityId, e.getMessage());
+                throw new WecubeCoreException(errMsg);
             }
 
         }
 
+    }
+    
+    private Object validateAndConvert(PluginPackageAttributes targetAttrDefinition, Object retVal) {
+        if(targetAttrDefinition == null) {
+            return retVal;
+        }
+        
+        boolean isMultiple = Constants.DATA_MULTIPLE.equalsIgnoreCase(targetAttrDefinition.getMultiple());
+        if(isMultiple) {
+            if(retVal == null) {
+                return new ArrayList<Object>();
+            }else {
+                if(retVal instanceof List) {
+                    return retVal;
+                }else {
+                    List<Object> finalRetVal = new ArrayList<>();
+                    finalRetVal.add(retVal);
+                    return finalRetVal;
+                }
+            }
+        }else {
+            if(retVal != null && (retVal instanceof List)) {
+                String errMsg = String.format("Data type does not match required:%s but %s", targetAttrDefinition.getDataType(), "list");
+                log.error(errMsg);
+                throw new WecubeCoreException(errMsg);
+            }
+            
+            return retVal;
+        }
+    }
+    
+    private PluginPackageAttributes getTargetPluginPackageAttributes(String targetPackageName, String targetEntityName, String targetAttrName) {
+        PluginPackageAttributes attr = pluginPackageDataModelService.tryFetchLatestAvailablePluginPackageAttributes(targetPackageName, targetEntityName, targetAttrName);
+        return attr;
     }
 
     private void handleSingleOutputMap(PluginInterfaceInvocationResult pluginInvocationResult,
