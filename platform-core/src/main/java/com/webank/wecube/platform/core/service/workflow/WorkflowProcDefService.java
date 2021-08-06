@@ -264,11 +264,15 @@ public class WorkflowProcDefService extends AbstractWorkflowProcDefService {
                 if (includeDraftProcDef) {
                     if (ProcDefInfoEntity.DEPLOYED_STATUS.equals(processFoundById.getStatus())
                             || ProcDefInfoEntity.DRAFT_STATUS.equals(processFoundById.getStatus())) {
-                        procDefEntities.add(processFoundById);
+                        if (!checkIfContains(procDefEntities, processFoundById)) {
+                            procDefEntities.add(processFoundById);
+                        }
                     }
                 } else {
                     if (ProcDefInfoEntity.DEPLOYED_STATUS.equals(processFoundById.getStatus())) {
-                        procDefEntities.add(processFoundById);
+                        if (!checkIfContains(procDefEntities, processFoundById)) {
+                            procDefEntities.add(processFoundById);
+                        }
                     }
                 }
 
@@ -291,12 +295,6 @@ public class WorkflowProcDefService extends AbstractWorkflowProcDefService {
                 procDefInfoDtos.add(dto);
             }
         }
-        procDefEntities.forEach(e -> {
-
-            ProcDefInfoDto dto = procDefInfoDtoFromEntity(e);
-            procDefInfoDtos.add(dto);
-
-        });
 
         Collections.sort(procDefInfoDtos, new Comparator<ProcDefInfoDto>() {
 
@@ -314,6 +312,16 @@ public class WorkflowProcDefService extends AbstractWorkflowProcDefService {
 
         });
         return procDefInfoDtos;
+    }
+
+    private boolean checkIfContains(List<ProcDefInfoEntity> procDefEntities, ProcDefInfoEntity processEntity) {
+        for (ProcDefInfoEntity e : procDefEntities) {
+            if (e.getId().equals(processEntity.getId())) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
 }
