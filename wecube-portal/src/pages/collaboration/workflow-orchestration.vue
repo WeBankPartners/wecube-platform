@@ -343,11 +343,8 @@
         <pre style="margin-left: 44px;margin-top: 22px;">{{ this.confirmModal.message }}</pre>
       </div>
       <div slot="footer">
-        <span style="margin-left:30px;color:#ed4014;float: left;text-align:left">
-          <Checkbox v-model="confirmModal.check">{{ $t('dangerous_confirm_tip') }}</Checkbox>
-        </span>
         <Button type="text" @click="confirmModal.isShowConfirmModal = false">{{ $t('bc_cancel') }}</Button>
-        <Button type="warning" :disabled="!confirmModal.check" @click="confirmSaveFlow">{{ $t('bc_confirm') }}</Button>
+        <Button type="warning" @click="confirmSaveFlow">{{ $t('bc_confirm') }}</Button>
       </div>
     </Modal>
   </div>
