@@ -1,14 +1,14 @@
 <template>
   <div>
     <Row style="margin-bottom:8px">
-      <Col span="5" style="margin-right: 15px">
+      <Col span="4" style="margin-right: 10px">
         <span style="margin-right: 10px">{{ $t('flow_name') }}</span>
         <Select
           clearable
           @on-clear="currentFlow.tags = ''"
           @on-change="currentFlow.tags = ''"
           v-model="selectedFlow"
-          style="width: 60%"
+          style="width: 65%"
           @on-open-change="getAllFlows"
           filterable
         >
@@ -40,17 +40,18 @@
           </Option>
         </Select>
       </Col>
-      <Col span="5" style="margin-right: 15px">
+      <Col span="7" style="margin-right: 10px">
         <span style="margin-right: 10px">{{ $t('instance_type') }}</span>
-        <div style="width:60%;display: inline-block;vertical-align: middle;">
+        <div style="width:80%;display: inline-block;vertical-align: middle;">
           <FilterRules
             @change="onEntitySelect"
             v-model="currentSelectedEntity"
             :allDataModelsWithAttrs="allEntityType"
+            style="width:100%"
           ></FilterRules>
         </div>
       </Col>
-      <Col span="3" style="margin-right: 15px">
+      <Col span="3" style="">
         <span style="margin-right: 10px">{{ $t('tag') }}</span>
         <div style="width:60%;display: inline-block;vertical-align: middle;">
           <Input v-model="currentFlow.tags" />
