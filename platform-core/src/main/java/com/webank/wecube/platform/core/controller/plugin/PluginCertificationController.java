@@ -19,6 +19,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -47,6 +48,7 @@ public class PluginCertificationController {
     private ObjectMapper objectMapper = new ObjectMapper();
 
     @GetMapping("/plugin-certifications")
+    @PreAuthorize("hasAnyAuthority('ADMIN_CERTIFICATION','SUB_SYSTEM')")
     public CommonResponseDto getAllPluginCertifications() {
         List<PluginCertificationDto> resultDtos = pluginCertificationService.getAllPluginCertifications();
 
@@ -54,6 +56,7 @@ public class PluginCertificationController {
     }
 
     @DeleteMapping("/plugin-certifications/{id}")
+    @PreAuthorize("hasAnyAuthority('ADMIN_CERTIFICATION','SUB_SYSTEM')")
     public CommonResponseDto removePluginCertification(@PathVariable("id") String id) {
         log.info("About to remove plugin certification by ID:{}", id);
         pluginCertificationService.removePluginCertification(id);
@@ -61,6 +64,7 @@ public class PluginCertificationController {
     }
 
     @GetMapping(value = "/plugin-certifications/{id}/export", produces = { MediaType.ALL_VALUE })
+    @PreAuthorize("hasAnyAuthority('ADMIN_CERTIFICATION','SUB_SYSTEM')")
     public ResponseEntity<byte[]> exportPluginCertification(@PathVariable("id") String id) {
         log.info("About to export plugin certification of ID:{}", id);
         PluginCertificationExportDto exportDto = pluginCertificationService.exportPluginCertification(id);
@@ -84,6 +88,7 @@ public class PluginCertificationController {
     }
 
     @PostMapping(value = "/plugin-certifications/import", consumes = { MediaType.MULTIPART_FORM_DATA_VALUE })
+    @PreAuthorize("hasAnyAuthority('ADMIN_CERTIFICATION','SUB_SYSTEM')")
     public CommonResponseDto importPluginCertification(@RequestParam("uploadFile") MultipartFile file,
             HttpServletRequest request) {
         if (file == null || file.getSize() <= 0) {
