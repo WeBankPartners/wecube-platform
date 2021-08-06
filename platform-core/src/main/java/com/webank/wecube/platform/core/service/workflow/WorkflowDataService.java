@@ -949,8 +949,9 @@ public class WorkflowDataService extends AbstractWorkflowService{
     }
     
     private Object jsonToObject(String json){
+        
         if(StringUtils.isBlank(json)){
-            return null;
+            return json;
         }
         
         try {
