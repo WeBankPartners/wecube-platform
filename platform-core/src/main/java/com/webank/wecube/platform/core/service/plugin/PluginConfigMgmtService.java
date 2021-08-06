@@ -769,11 +769,11 @@ public class PluginConfigMgmtService extends AbstractPluginMgmtService {
             pluginConfigEntity.setTargetPackage(pluginPackage.getName());
         }
 
-        if (StringUtils.isNotBlank(pluginConfigDto.getTargetEntity())) {
+        if (pluginConfigDto.getTargetEntity() != null) {
             pluginConfigEntity.setTargetEntity(pluginConfigDto.getTargetEntity());
         }
 
-        if (StringUtils.isNotBlank(pluginConfigDto.getFilterRule())) {
+        if (pluginConfigDto.getFilterRule() != null) {
             pluginConfigEntity.setTargetEntityFilterRule(pluginConfigDto.getFilterRule());
         }
         pluginConfigEntity.setRegisterName(pluginConfigDto.getRegisterName());
