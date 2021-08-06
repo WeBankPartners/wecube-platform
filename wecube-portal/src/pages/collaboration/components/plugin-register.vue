@@ -295,7 +295,14 @@
                           >{{ item.name }}</Option
                         >
                       </Select>
-                      <span v-if="param.mappingType === 'context' || param.mappingType === 'constant'">N/A</span>
+                      <span v-if="param.mappingType === 'context'">N/A</span>
+                      <span v-if="param.mappingType === 'constant'">
+                        <Input
+                          v-model="param.mappingValue"
+                          placeholder=""
+                          :disabled="currentPluginObj.status === 'ENABLED'"
+                        />
+                      </span>
                       <span v-if="param.mappingType === 'object'">
                         <div style="width: 50%;display:inline-block;vertical-align: top;">
                           <FilterRulesRef
