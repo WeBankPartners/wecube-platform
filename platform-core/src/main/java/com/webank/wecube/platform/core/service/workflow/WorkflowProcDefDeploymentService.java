@@ -892,9 +892,9 @@ public class WorkflowProcDefDeploymentService extends AbstractWorkflowProcDefSer
                 continue;
             }
 
-            if (StringUtils.isBlank(paramDto.getNodeId())) {
-                continue;
-            }
+//            if (StringUtils.isBlank(paramDto.getNodeId())) {
+//                continue;
+//            }
 
             TaskNodeParamEntity paramEntity = taskNodeParamRepo
                     .selectOneByTaskNodeDefIdAndParamName(nodeInfoEntity.getId(), paramDto.getParamName());
@@ -902,7 +902,7 @@ public class WorkflowProcDefDeploymentService extends AbstractWorkflowProcDefSer
             if (paramEntity == null) {
                 paramEntity = new TaskNodeParamEntity();
                 paramEntity.setId(LocalIdGenerator.generateId());
-                paramEntity.setNodeId(paramDto.getNodeId());
+                paramEntity.setNodeId(nodeDefInfoDto.getNodeId());
                 paramEntity.setBindNodeId(paramDto.getBindNodeId());
                 paramEntity.setBindParamName(paramDto.getBindParamName());
                 paramEntity.setBindParamType(paramDto.getBindParamType());
