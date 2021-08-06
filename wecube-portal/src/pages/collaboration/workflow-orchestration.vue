@@ -13,9 +13,9 @@
           filterable
         >
           <Option
-            v-for="item in allFlows"
+            v-for="(item, index) in allFlows"
             :value="item.procDefId"
-            :key="item.procDefId"
+            :key="index"
             :label="(item.procDefName || 'Null') + ' ' + item.createdTime + (item.status === 'draft' ? '*' : '')"
           >
             <span>{{
@@ -1061,7 +1061,9 @@ export default {
               this.prepareDefaultPluginForm()
           )
         )
-        this.pluginForm.prevCtxNodeIds = (this.pluginForm.prevCtxNodeIds || '').split(',')
+        if (!Array.isArray(this.pluginForm.prevCtxNodeIds)) {
+          this.pluginForm.prevCtxNodeIds = (this.pluginForm.prevCtxNodeIds || '').split(',')
+        }
         this.pluginForm.dynamicBind = this.pluginForm.dynamicBind || 'N'
         this.pluginForm.preCheck = this.pluginForm.preCheck || 'N'
         // 实体类型条件不带入节点中
