@@ -8,7 +8,7 @@
           @on-clear="currentFlow.tags = ''"
           @on-change="currentFlow.tags = ''"
           v-model="selectedFlow"
-          style="width: 77%"
+          style="width: 60%"
           @on-open-change="getAllFlows"
           filterable
         >
@@ -42,7 +42,7 @@
       </Col>
       <Col span="5" style="margin-right: 15px">
         <span style="margin-right: 10px">{{ $t('instance_type') }}</span>
-        <div style="width:75%;display: inline-block;vertical-align: middle;">
+        <div style="width:60%;display: inline-block;vertical-align: middle;">
           <FilterRules
             @change="onEntitySelect"
             v-model="currentSelectedEntity"
@@ -52,7 +52,7 @@
       </Col>
       <Col span="3" style="margin-right: 15px">
         <span style="margin-right: 10px">{{ $t('tag') }}</span>
-        <div style="display: inline-block;vertical-align: middle;">
+        <div style="width:60%;display: inline-block;vertical-align: middle;">
           <Input v-model="currentFlow.tags" />
         </div>
       </Col>
