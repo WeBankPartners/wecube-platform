@@ -270,7 +270,7 @@
                         :needAttr="true"
                         :rootEntityFirst="true"
                       ></FilterRules> -->
-                      <FilterRulesRef
+                      <!-- <FilterRulesRef
                         v-if="param.mappingType === 'entity'"
                         v-model="param.mappingEntityExpression"
                         :disabled="currentPluginObj.status === 'ENABLED'"
@@ -279,7 +279,7 @@
                         :needNativeAttr="true"
                         :needAttr="true"
                         :rootEntityFirst="true"
-                      ></FilterRulesRef>
+                      ></FilterRulesRef> -->
                       <Select
                         filterable
                         v-if="param.mappingType === 'system_variable'"
@@ -303,7 +303,7 @@
                           :disabled="currentPluginObj.status === 'ENABLED'"
                         />
                       </span>
-                      <span v-if="param.mappingType === 'object'">
+                      <span v-if="param.mappingType === 'entity'">
                         <div style="width: 50%;display:inline-block;vertical-align: top;">
                           <FilterRulesRef
                             v-model="param.mappingEntityExpression"
@@ -315,9 +315,13 @@
                             :rootEntityFirst="true"
                           ></FilterRulesRef>
                         </div>
-                        <Button type="primary" size="small" @click="showObjectConfig(param)">{{
-                          $t('configuration')
-                        }}</Button>
+                        <Button
+                          v-if="param.dataType === 'object'"
+                          type="primary"
+                          size="small"
+                          @click="showObjectConfig(param)"
+                          >{{ $t('configuration') }}</Button
+                        >
                       </span>
                     </FormItem>
                   </Col>
