@@ -182,6 +182,20 @@ public class PluginPackageDataModelService {
             return latestDataModelEntity;
         }
     }
+    
+    /**
+     * 
+     * @param packageName
+     * @param entityName
+     * @param attrName
+     * @return
+     */
+    public PluginPackageAttributes tryFetchLatestAvailablePluginPackageAttributes(String packageName,String entityName, String attrName) {
+        PluginPackageAttributes latestRefAttr = pluginPackageAttributesMapper
+                .selectLatestAttributeByPackageAndEntityAndAttr(packageName, entityName, attrName);
+        
+        return latestRefAttr;
+    }
 
    
 
