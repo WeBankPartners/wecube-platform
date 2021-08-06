@@ -1636,9 +1636,9 @@ export default {
             retryTartetModelsSingle.status = ''
             retryTartetModelsSingle.message = ''
           }
-          this.retryCatchNodeTableList.forEach(cn => {
+          this.retryTartetModels.forEach(cn => {
             if (tm.id === cn.id && tm.bound === 'Y' && tm.confirmToken === '') {
-              tm._checked = true
+              cn._checked = true
             }
           })
         })
