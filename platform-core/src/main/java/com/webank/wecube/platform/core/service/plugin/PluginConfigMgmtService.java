@@ -384,7 +384,7 @@ public class PluginConfigMgmtService extends AbstractPluginMgmtService {
                 inputParam.setPluginConfigInterface(intfEntity);
                 intfEntity.addInputParameters(inputParam);
 
-                if (Constants.DATA_TYPE_OBJECT.equals(inputParam.getMappingType())) {
+                if (Constants.DATA_TYPE_OBJECT.equals(inputParam.getDataType())) {
                     CoreObjectMeta objectMeta = tryFetchEnrichCoreObjectMeta(inputParam);
                     inputParam.setObjectMeta(objectMeta);
                 }
@@ -400,7 +400,7 @@ public class PluginConfigMgmtService extends AbstractPluginMgmtService {
                 outputParam.setPluginConfigInterface(intfEntity);
                 intfEntity.addOutputParameters(outputParam);
 
-                if (Constants.DATA_TYPE_OBJECT.equals(outputParam.getMappingType())) {
+                if (Constants.DATA_TYPE_OBJECT.equals(outputParam.getDataType())) {
                     CoreObjectMeta objectMeta = tryFetchEnrichCoreObjectMeta(outputParam);
                     outputParam.setObjectMeta(objectMeta);
                 }
@@ -1459,7 +1459,7 @@ public class PluginConfigMgmtService extends AbstractPluginMgmtService {
     }
 
     private boolean isObjectParameter(PluginConfigInterfaceParameters paramEntity) {
-        if (Constants.DATA_TYPE_OBJECT.equals(paramEntity.getMappingType())) {
+        if (Constants.DATA_TYPE_OBJECT.equals(paramEntity.getDataType())) {
             return true;
         }
 
