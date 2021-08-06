@@ -708,16 +708,25 @@ export default {
       }
     },
     selectedEntityTypeChangeHandler (val) {
+      const findIndex = val.indexOf('{')
+      if (findIndex === -1) {
+        this.currentPluginObj.filterRule = ''
+      } else {
+        const rule = val.substring(findIndex, val.length)
+        this.currentPluginObj.filterRule = rule
+      }
       const rootEntity = val.split('{')[0]
       this.currentPluginObj.interfaces.forEach(_ => {
         _.inputParameters.forEach(i => {
           if (i.mappingType === 'entity') {
-            i.mappingEntityExpression = this.managementExpression(i.mappingEntityExpression, rootEntity)
+            const tmp = this.managementExpression(i.mappingEntityExpression, rootEntity)
+            i.mappingEntityExpression = tmp
           }
         })
         _.outputParameters.forEach(o => {
           if (o.mappingType === 'entity') {
-            o.mappingEntityExpression = this.managementExpression(o.mappingEntityExpression, rootEntity)
+            const tmp = this.managementExpression(o.mappingEntityExpression, rootEntity)
+            o.mappingEntityExpression = tmp
           }
         })
       })
@@ -760,181 +769,13 @@ export default {
     },
     // refObjectMeta。id pluginConfigId
     showParamsModal (val, index, currentPluginObj) {
-      // console.log(JSON.stringify(val))
       this.currentInter = val
-      // this.currentInter = {
-      //   'id': 'sBYaqeS93A5M',
-      //   'pluginConfigId': 'sBYaqeR93A4r',
-      //   'action': 'apply',
-      //   'serviceName': 'kubernetes/deployment(deployment01)/apply',
-      //   'serviceDisplayName': 'kubernetes/deployment(deployment01)/apply',
-      //   'path': '/kubernetes/v1/deployments/apply',
-      //   'httpMethod': 'POST',
-      //   'isAsyncProcessing': 'N',
-      //   'filterRule': '',
-      //   'description': null,
-      //   'inputParameters': [
-      //     {
-      //       'id': 'sBYaqeU93A9U',
-      //       'pluginConfigInterfaceId': 'sBYaqeS93A5M',
-      //       'type': 'INPUT',
-      //       'name': 'images',
-      //       'dataType': 'list',
-      //       'mappingType': 'object',
-      //       'mappingEntityExpression': 'wecmdb:unit_design~(unit_design)wecmdb:deploy_package',
-      //       'mappingSystemVariableName': null,
-      //       'required': 'Y',
-      //       'sensitiveData': 'N',
-      //       'description': null,
-      //       'mappingValue': 'deploymentImage',
-      //       'multiple': null,
-      //       'refObjectName': null,
-      //       'refObjectMeta': {
-      //         'id': 'sBYaqeV93AaP',
-      //         'name': 'deploymentImage',
-      //         'packageName': 'kubernetes',
-      //         'source': null,
-      //         'latestSource': null,
-      //         'configId': 'sBYaqeR93A4r',
-      //         'mappingEntityExpression': null,
-      //         'propertyMetas': [
-      //           {
-      //             'id': 'sBYaqeW93Ab8',
-      //             'name': 'name',
-      //             'dataType': 'string',
-      //             'multiple': null,
-      //             'refObjectName': '',
-      //             'mappingType': 'entity',
-      //             'mappingEntityExpression': 'wecmdb:deploy_package.key_name',
-      //             'objectMetaId': 'sBYaqeV93AaP',
-      //             'objectName': 'deploymentImage',
-      //             'packageName': 'kubernetes',
-      //             'source': 'v0.1.0',
-      //             'sensitiveData': 'N',
-      //             'configId': 'sBYaqeR93A4r',
-      //             'refObjectMeta': null
-      //           },
-      //           {
-      //             'id': 'sBYaqeX93Ac7',
-      //             'name': 'ports',
-      //             'dataType': 'string',
-      //             'multiple': null,
-      //             'refObjectName': '',
-      //             'mappingType': 'entity',
-      //             'mappingEntityExpression': 'wecmdb:deploy_package.code',
-      //             'objectMetaId': 'sBYaqeV93AaP',
-      //             'objectName': 'deploymentImage',
-      //             'packageName': 'kubernetes',
-      //             'source': 'v0.1.0',
-      //             'sensitiveData': 'N',
-      //             'configId': 'sBYaqeR93A4r',
-      //             'refObjectMeta': null
-      //           }
-      //         ]
-      //       }
-      //     },
-      //     {
-      //       'id': 'sBYaqfe93Ak2',
-      //       'pluginConfigInterfaceId': 'sBYaqeS93A5M',
-      //       'type': 'INPUT',
-      //       'name': 'envs',
-      //       'dataType': 'list',
-      //       'mappingType': 'object',
-      //       'mappingEntityExpression': 'wecmdb:unit_design~(unit_design)wecmdb:static_diff_conf_value',
-      //       'mappingSystemVariableName': null,
-      //       'required': 'N',
-      //       'sensitiveData': 'N',
-      //       'description': null,
-      //       'mappingValue': 'deploymentEnv',
-      //       'multiple': null,
-      //       'refObjectName': null,
-      //       'refObjectMeta': {
-      //         'id': 'sBYaqff93AlR',
-      //         'name': 'deploymentEnv',
-      //         'packageName': 'kubernetes',
-      //         'source': null,
-      //         'latestSource': null,
-      //         'configId': 'sBYaqeR93A4r',
-      //         'mappingEntityExpression': null,
-      //         'propertyMetas': [
-      //           {
-      //             'id': 'sBYaqfg93Ami',
-      //             'name': 'name',
-      //             'dataType': 'string',
-      //             'multiple': null,
-      //             'refObjectName': '',
-      //             'mappingType': 'entity',
-      //             'mappingEntityExpression': 'wecmdb:static_diff_conf_value.code',
-      //             'objectMetaId': 'sBYaqff93AlR',
-      //             'objectName': 'deploymentEnv',
-      //             'packageName': 'kubernetes',
-      //             'source': 'v0.1.0',
-      //             'sensitiveData': 'N',
-      //             'configId': 'sBYaqeR93A4r',
-      //             'refObjectMeta': null
-      //           },
-      //           {
-      //             'id': 'sBYaqfh93Anh',
-      //             'name': 'value',
-      //             'dataType': 'string',
-      //             'multiple': null,
-      //             'refObjectName': '',
-      //             'mappingType': 'entity',
-      //             'mappingEntityExpression': 'wecmdb:static_diff_conf_value.static_value',
-      //             'objectMetaId': 'sBYaqff93AlR',
-      //             'objectName': 'deploymentEnv',
-      //             'packageName': 'kubernetes',
-      //             'source': 'v0.1.0',
-      //             'sensitiveData': 'N',
-      //             'configId': 'sBYaqeR93A4r',
-      //             'refObjectMeta': null
-      //           },
-      //           {
-      //             'id': 'sBYaqfh93AoJ',
-      //             'name': 'valueFrom',
-      //             'dataType': 'string',
-      //             'multiple': null,
-      //             'refObjectName': '',
-      //             'mappingType': 'constant',
-      //             'mappingEntityExpression': '',
-      //             'objectMetaId': 'sBYaqff93AlR',
-      //             'objectName': 'deploymentEnv',
-      //             'packageName': 'kubernetes',
-      //             'source': 'v0.1.0',
-      //             'sensitiveData': 'N',
-      //             'configId': 'sBYaqeR93A4r',
-      //             'refObjectMeta': null
-      //           },
-      //           {
-      //             'id': 'sBYaqfi93ApT',
-      //             'name': 'valueRef',
-      //             'dataType': 'string',
-      //             'multiple': null,
-      //             'refObjectName': 'commonTag',
-      //             'mappingType': 'constant',
-      //             'mappingEntityExpression': 'wecmdb:static_diff_conf_value',
-      //             'objectMetaId': 'sBYaqff93AlR',
-      //             'objectName': 'deploymentEnv',
-      //             'packageName': 'kubernetes',
-      //             'source': 'v0.1.0',
-      //             'sensitiveData': 'N',
-      //             'configId': 'sBYaqeR93A4r',
-      //             'refObjectMeta': null
-      //           }
-      //         ]
-      //       }
-      //     }
-      //   ],
-      //   'outputParameters': [],
-      //   'configurableInputParameters': []
-      // }
-      // console.log(this.currentInter)
-      this.currentInter.inputParameters.forEach(item => {
-        item.mappingEntityExpression = this.managementObjectExpression(
-          item.mappingEntityExpression,
-          this.selectedEntityType
-        )
-      })
+      // this.currentInter.inputParameters.forEach(item => {
+      //   item.mappingEntityExpression = this.managementObjectExpression(
+      //     item.mappingEntityExpression,
+      //     this.selectedEntityType
+      //   )
+      // })
       this.objectModal.pluginConfigId = val.pluginConfigId
       this.currentInterIndex = index
       this.currentServiceName = val.serviceName
@@ -1307,10 +1148,10 @@ export default {
             filterRule: _.filterRule ? _.filterRule : ''
           }
         })
+        this.currentPluginObj = currentConfig
+        this.selectedEntityType = currentConfig.targetEntityWithFilterRule
+        this.registerName = this.currentPluginObj.registerName
       }
-      this.currentPluginObj = currentConfig
-      this.selectedEntityType = currentConfig.targetEntityWithFilterRule
-      this.registerName = this.currentPluginObj.registerName
       this.hidePanal = true
       this.isLoading = false
     },

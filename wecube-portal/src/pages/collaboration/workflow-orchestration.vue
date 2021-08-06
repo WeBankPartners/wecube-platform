@@ -902,7 +902,6 @@ export default {
         })
         if (!xml) return
         const xmlString = xml.replace(/[\r\n]/g, '')
-        console.log(_this.currentFlow)
         let payload = {
           permissionToRole: {
             MGMT: _this.mgmtRolesKeyToFlow,
@@ -918,7 +917,6 @@ export default {
           status: isDraft ? (_this.currentFlow && _this.currentFlow.status) || '' : '',
           taskNodeInfos: [..._this.serviceTaskBindInfos]
         }
-        console.log(payload)
         if (isDraft) {
           const selectedFlowData = _this.allFlows.find(_ => {
             return _.procDefId === _this.selectedFlow
@@ -1021,7 +1019,6 @@ export default {
           prevCtxNodeIds: this.pluginForm.prevCtxNodeIds.join(',') || ''
         })
       }
-      console.log(this.serviceTaskBindInfos)
       this.saveDiagram(true)
     },
     checkSaveParams (pluginFormCopy) {
@@ -1065,7 +1062,6 @@ export default {
           )
         )
         this.pluginForm.prevCtxNodeIds = (this.pluginForm.prevCtxNodeIds || '').split(',')
-        console.log(this.pluginForm)
         this.pluginForm.dynamicBind = this.pluginForm.dynamicBind || 'N'
         this.pluginForm.preCheck = this.pluginForm.preCheck || 'N'
         // 实体类型条件不带入节点中
