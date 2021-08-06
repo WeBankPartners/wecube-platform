@@ -8,6 +8,7 @@ import static com.webank.wecube.platform.core.utils.Constants.MAPPING_TYPE_ENTIT
 import static com.webank.wecube.platform.core.utils.Constants.MAPPING_TYPE_OBJECT;
 import static com.webank.wecube.platform.core.utils.Constants.MAPPING_TYPE_SYSTEM_VARIABLE;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -77,6 +78,7 @@ import com.webank.wecube.platform.core.support.plugin.dto.TaskFormItemValueDto;
 import com.webank.wecube.platform.core.support.plugin.dto.TaskFormMetaDto;
 import com.webank.wecube.platform.core.support.plugin.dto.TaskFormValueDto;
 import com.webank.wecube.platform.core.utils.Constants;
+import com.webank.wecube.platform.core.utils.JsonUtils;
 import com.webank.wecube.platform.workflow.WorkflowConstants;
 import com.webank.wecube.platform.workflow.commons.LocalIdGenerator;
 
@@ -1427,10 +1429,16 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
             }
         } else if (isObjectDataType(paramDataType)) {
 //            PluginConfigInterfaceParameters boundParamDef = paramWrapper.getBoundParam();
-            // TODO
-            if (isMultiple) {
-
+            try {
+                return JsonUtils.toObject(paramDataValueStr, Object.class);
+            } catch (IOException e) {
+                log.error("", e);
+                throw new WecubeCoreException(e.getMessage());
             }
+            // TODO
+//            if (isMultiple) {
+//
+//            }
         }
 
         throw new WecubeCoreException("Unknown parameter data type of parameter : " + paramInfo.getParamName());
