@@ -3333,6 +3333,12 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
             // to store status?
             return;
         }
+        
+        if(!PLUGIN_RESULT_CODE_OK.equalsIgnoreCase(errorCodeOfSingleRecord)) {
+            log.info("such request is not successful for request:{} and {}:{}", ctx.getRequestId(),
+                    CALLBACK_PARAMETER_KEY, nodeEntityId);
+            return;
+        }
 
         // #2169
         if (StringUtils.isBlank(nodeEntityId) || verifySystemCallbackParameterKeyValue(nodeEntityId)) {
