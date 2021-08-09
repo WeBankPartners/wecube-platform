@@ -80,7 +80,9 @@ public class InputParamAttr {
                 if (val instanceof PluginParamObject) {
                     PluginParamObject objVal = (PluginParamObject) val;
                     PluginParamObject clonedObjVal = PluginParamObject.wipeOffObjectIdAndClone(objVal);
-                    clonedListValues.add(clonedObjVal);
+                    if (clonedObjVal != null) {
+                        clonedListValues.add(clonedObjVal);
+                    }
                 } else {
                     if (val != null) {
                         clonedListValues.add(val);
