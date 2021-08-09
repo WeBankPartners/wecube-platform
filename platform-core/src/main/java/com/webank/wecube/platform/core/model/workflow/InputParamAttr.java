@@ -82,7 +82,9 @@ public class InputParamAttr {
                     PluginParamObject clonedObjVal = PluginParamObject.wipeOffObjectIdAndClone(objVal);
                     clonedListValues.add(clonedObjVal);
                 } else {
-                    clonedListValues.add(val);
+                    if (val != null) {
+                        clonedListValues.add(val);
+                    }
                 }
             }
 
@@ -92,7 +94,7 @@ public class InputParamAttr {
             if (values == null || values.isEmpty()) {
                 return determineBasicEmptyValue();
             }
-            
+
             if (values.size() == 1) {
                 Object val = values.get(0);
                 if (val == null) {
@@ -100,14 +102,14 @@ public class InputParamAttr {
                 }
 
                 if (Constants.DATA_TYPE_STRING.equalsIgnoreCase(dataType)) {
-                    if(val instanceof String){
-                        return (String)val;
+                    if (val instanceof String) {
+                        return (String) val;
                     }
-                    
-                    if(val instanceof Integer){
+
+                    if (val instanceof Integer) {
                         return String.valueOf(val);
                     }
-                    
+
                     return JsonUtils.toJsonString(val);
                 }
 
@@ -191,13 +193,13 @@ public class InputParamAttr {
         if (v == null) {
             return null;
         }
-        
-        if(v instanceof String){
-            return (String)v;
+
+        if (v instanceof String) {
+            return (String) v;
         }
-        
-        //TODO add prefix of type
-        if( (v instanceof PluginParamObject ) || (v instanceof Map) || (v instanceof List)){
+
+        // TODO add prefix of type
+        if ((v instanceof PluginParamObject) || (v instanceof Map) || (v instanceof List)) {
             return JsonUtils.toJsonString(v);
         }
 
@@ -231,7 +233,5 @@ public class InputParamAttr {
     public void setParamDef(PluginConfigInterfaceParameters paramDef) {
         this.paramDef = paramDef;
     }
-    
-    
 
 }
