@@ -77,6 +77,11 @@
         <appender-ref ref="rollingSqlFile" /> 
     </logger>
     
+    <logger name="com.webank.wecube.platform.workflow.repository" level="debug" 
+        additivity="false"> 
+        <appender-ref ref="rollingSqlFile" /> 
+    </logger>
+    
     <logger name="access" level="info" 
         additivity="false"> 
         <appender-ref ref="accessRollingFile" /> 
