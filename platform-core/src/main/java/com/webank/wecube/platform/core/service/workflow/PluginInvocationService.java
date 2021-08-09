@@ -1185,7 +1185,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
                 .getContextCalculationParams();
         for (ProcExecBindingEntity prevCtxTaskNodeBinding : prevCtxTaskNodeInstBindings) {
             InputParamObject paramObject = new InputParamObject();
-            paramObject.setEntityDataId(prevCtxTaskNodeBinding.getEntityId());// ?
+            paramObject.setEntityDataId(prevCtxTaskNodeBinding.getEntityDataId());// ?
             paramObject.setEntityTypeId(prevCtxTaskNodeBinding.getEntityTypeId());// ?
             paramObject.setFullEntityDataId(prevCtxTaskNodeBinding.getFullEntityDataId());// ?
 
@@ -3210,6 +3210,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 
     private void tryHandleSingleOutputMapOnceEntityUpdate(PluginInterfaceInvocationResult pluginInvocationResult,
             PluginInterfaceInvocationContext ctx, Map<String, Object> outputParameterMap, String nodeEntityId) {
+        log.info("About to update single output map for {}:{}", nodeEntityId, outputParameterMap);
         PluginConfigInterfaces pci = ctx.getPluginConfigInterface();
         List<PluginConfigInterfaceParameters> outputParameters = pci.getOutputParameters();
         for (PluginConfigInterfaceParameters pciParam : outputParameters) {
@@ -3265,7 +3266,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
                 this.entityOperationService.update(condition, finalRetVal, null);
             } catch (Exception e) {
                 log.warn("Exceptions while updating entity.But still keep going to update.", e);
-                String errMsg = String.format("Failed to update entity data with {} {} caused by:{}", paramExpr, nodeEntityId, e.getMessage());
+                String errMsg = String.format("Failed to update entity data with [%s] [%s] caused by:%s", paramExpr, nodeEntityId, e.getMessage());
                 throw new WecubeCoreException(errMsg);
             }
 
@@ -3330,6 +3331,12 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
             log.info("such request is partially failed for request:{} and {}:{}", ctx.getRequestId(),
                     CALLBACK_PARAMETER_KEY, nodeEntityId);
             // to store status?
+            return;
+        }
+        
+        if(!PLUGIN_RESULT_CODE_OK.equalsIgnoreCase(errorCodeOfSingleRecord)) {
+            log.info("such request is not successful for request:{} and {}:{}", ctx.getRequestId(),
+                    CALLBACK_PARAMETER_KEY, nodeEntityId);
             return;
         }
 
