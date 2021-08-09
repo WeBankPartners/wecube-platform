@@ -48,7 +48,9 @@ public class EntityQueryLinkNode {
         }
 
         for (EntityDataDelegate delegate : this.getEntityDataDelegates()) {
-            attrValues.add(delegate.getQueryAttrValue());
+            if (delegate.getQueryAttrValue() != null) {
+                attrValues.add(delegate.getQueryAttrValue());
+            }
         }
 
         return attrValues;

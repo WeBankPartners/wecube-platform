@@ -545,6 +545,15 @@ public class PluginPackageMgmtService extends AbstractPluginMgmtService {
         }
 
         resultDtos.addAll(nameAndConfigMap.values());
+        
+        Collections.sort(resultDtos, new Comparator<PluginConfigGroupByNameDto>() {
+
+            @Override
+            public int compare(PluginConfigGroupByNameDto o1, PluginConfigGroupByNameDto o2) {
+                return o1.getPluginConfigName().compareTo(o2.getPluginConfigName());
+            }
+            
+        });
         return resultDtos;
     }
 
