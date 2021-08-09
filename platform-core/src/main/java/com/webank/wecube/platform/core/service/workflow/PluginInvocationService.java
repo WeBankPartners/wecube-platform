@@ -1185,7 +1185,9 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
                 .getContextCalculationParams();
         for (ProcExecBindingEntity prevCtxTaskNodeBinding : prevCtxTaskNodeInstBindings) {
             InputParamObject paramObject = new InputParamObject();
-            paramObject.setEntityDataId(prevCtxTaskNodeBinding.getEntityDataId());// ?
+            String newEntityDataId = String.format("%s-%s", CALLBACK_PARAMETER_SYSTEM_PREFIX,
+                    prevCtxTaskNodeBinding.getEntityDataId()); //?
+            paramObject.setEntityDataId(newEntityDataId);// ?
             paramObject.setEntityTypeId(prevCtxTaskNodeBinding.getEntityTypeId());// ?
             paramObject.setFullEntityDataId(prevCtxTaskNodeBinding.getFullEntityDataId());// ?
 
