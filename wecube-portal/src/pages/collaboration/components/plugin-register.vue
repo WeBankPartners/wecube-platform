@@ -428,7 +428,7 @@
                         />
                       </FormItem>
                     </Col>
-                    <!-- <Col span="12" offset="1">
+                    <Col span="11" offset="1">
                       <FormItem :label-width="0">
                         <FilterRulesRef
                           v-model="outPut.mappingEntityExpression"
@@ -441,7 +441,7 @@
                         ></FilterRulesRef>
                         <span v-if="outPut.mappingType === 'context'">N/A</span>
                       </FormItem>
-                    </Col> -->
+                    </Col>
                   </template>
                 </Row>
               </Col>
