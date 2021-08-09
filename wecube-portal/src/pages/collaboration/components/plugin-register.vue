@@ -418,7 +418,7 @@
                         <Input v-model="outPut.name" placeholder="key" :disabled="outPut.id !== ''" />
                       </FormItem>
                     </Col>
-                    <Col span="4" offset="1">
+                    <Col span="6" offset="1">
                       <FormItem :label-width="0">
                         <span v-if="outPut.required === 'Y'" style="color:red;vertical-align: text-bottom;">*</span>
                         <Input
@@ -428,7 +428,7 @@
                         />
                       </FormItem>
                     </Col>
-                    <Col span="12" offset="1">
+                    <!-- <Col span="12" offset="1">
                       <FormItem :label-width="0">
                         <FilterRulesRef
                           v-model="outPut.mappingEntityExpression"
@@ -441,7 +441,7 @@
                         ></FilterRulesRef>
                         <span v-if="outPut.mappingType === 'context'">N/A</span>
                       </FormItem>
-                    </Col>
+                    </Col> -->
                   </template>
                 </Row>
               </Col>
