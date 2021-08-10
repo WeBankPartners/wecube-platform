@@ -1665,8 +1665,8 @@ export default {
         const errorInfo = data.requestObjects.map(item => {
           return {
             id: item.callbackParameter,
-            errorMessage: item.outputs[0].errorMessage,
-            errorCode: item.outputs[0].errorCode
+            errorMessage: (item.outputs[0] && item.outputs[0].errorMessage) || '',
+            errorCode: (item.outputs[0] && item.outputs[0].errorCode) || ''
           }
         })
         return errorInfo
