@@ -337,6 +337,7 @@ public class BatchExecutionService {
 
         Map<String, Object> pluginInputParamMap = new HashMap<String, Object>();
 
+        //TODO to support object and multiple
         for (ExecutionJobParameters parameter : exeJob.getParameters()) {
             if (DATA_TYPE_STRING.equals(parameter.getDataType())
                     || MAPPING_TYPE_SYSTEM_VARIABLE.equals(parameter.getMappingEntityExpression())) {
@@ -564,7 +565,7 @@ public class BatchExecutionService {
                     || MAPPING_TYPE_SYSTEM_VARIABLE.equals(parameter.getMappingEntityExpression())) {
                 String paramValue = parameter.getValue();
                 if (parameter.getParameterDefinition() != null
-                        && "Y".equalsIgnoreCase(parameter.getParameterDefinition().getSensitiveData())) {
+                        && Constants.DATA_SENSITIVE.equalsIgnoreCase(parameter.getParameterDefinition().getSensitiveData())) {
                     paramValue = tryDecryptParamValue(paramValue);
                 }
                 pluginInputParamMap.put(parameter.getName(), paramValue);
