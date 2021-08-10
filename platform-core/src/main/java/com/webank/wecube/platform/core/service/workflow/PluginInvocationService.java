@@ -2058,7 +2058,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
             ProcInstInfoEntity procInstInfo, String rootEntityFullDataId, String rootEntityTypeId,
             TaskNodeDefInfoEntity taskNodeDefInfo, TaskNodeInstInfoEntity taskNodeInstInfo) {
         // #2226
-        if (!MAPPING_TYPE_OBJECT.equals(mappingType)) {
+        if (!MAPPING_TYPE_OBJECT.equals(param.getDataType())) {
             return;
         }
 
