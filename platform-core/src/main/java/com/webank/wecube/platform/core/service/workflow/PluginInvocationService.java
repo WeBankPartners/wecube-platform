@@ -2015,31 +2015,34 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
                 String mappingType = param.getMappingType();
                 inputAttr.setMapType(mappingType);
                 inputAttr.setMultiple(param.getMultiple());
-
-                if (MAPPING_TYPE_ENTITY.equalsIgnoreCase(mappingType)) {
-                    handleEntityMapping(mappingType, param, entityDataId, objectVals, externalCacheMap);
-                }
-
-                if (MAPPING_TYPE_CONTEXT.equalsIgnoreCase(mappingType)) {
-                    handleContextMapping(mappingType, taskNodeDefEntity, paramName, procInstEntity, param, paramType,
-                            nodeObjectBinding, objectVals);
-                }
-
-                if (MAPPING_TYPE_SYSTEM_VARIABLE.equalsIgnoreCase(mappingType)) {
-                    handleSystemMapping(mappingType, param, paramName, objectVals);
-                }
-
-                if (MAPPING_TYPE_CONSTANT.equalsIgnoreCase(mappingType)) {
-                    handleConstantMapping(mappingType, taskNodeDefEntity, paramName, objectVals, isFieldRequired,
-                            param);
-                }
-
-                // #2226
-                if (MAPPING_TYPE_OBJECT.equalsIgnoreCase(mappingType)) {
+                
+                String dataType = param.getDataType();
+                
+                if(MAPPING_TYPE_OBJECT.equalsIgnoreCase(dataType)){
                     handleObjectMapping(mappingType, param, entityDataId, objectVals, externalCacheMap,
                             procDefInfoEntity, procInstEntity, nodeObjectBinding.getFullEntityDataId(),
                             nodeObjectBinding.getEntityTypeId(), taskNodeDefEntity, taskNodeInstEntity);
+                }else{
+                    if (MAPPING_TYPE_ENTITY.equalsIgnoreCase(mappingType)) {
+                        handleEntityMapping(mappingType, param, entityDataId, objectVals, externalCacheMap);
+                    }
+
+                    if (MAPPING_TYPE_CONTEXT.equalsIgnoreCase(mappingType)) {
+                        handleContextMapping(mappingType, taskNodeDefEntity, paramName, procInstEntity, param, paramType,
+                                nodeObjectBinding, objectVals);
+                    }
+
+                    if (MAPPING_TYPE_SYSTEM_VARIABLE.equalsIgnoreCase(mappingType)) {
+                        handleSystemMapping(mappingType, param, paramName, objectVals);
+                    }
+
+                    if (MAPPING_TYPE_CONSTANT.equalsIgnoreCase(mappingType)) {
+                        handleConstantMapping(mappingType, taskNodeDefEntity, paramName, objectVals, isFieldRequired,
+                                param);
+                    }
                 }
+
+                // #2226
 
                 inputAttr.addValues(objectVals);
 
