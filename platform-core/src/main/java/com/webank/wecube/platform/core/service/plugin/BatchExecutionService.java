@@ -342,7 +342,7 @@ public class BatchExecutionService {
                     || MAPPING_TYPE_SYSTEM_VARIABLE.equals(parameter.getMappingEntityExpression())) {
                 String paramValue = parameter.getValue();
                 if (parameter.getParameterDefinition() != null
-                        && "Y".equalsIgnoreCase(parameter.getParameterDefinition().getSensitiveData())) {
+                        && Constants.DATA_SENSITIVE.equalsIgnoreCase(parameter.getParameterDefinition().getSensitiveData())) {
                     paramValue = tryDecryptParamValue(paramValue);
                 }
                 pluginInputParamMap.put(parameter.getName(), paramValue);
@@ -463,7 +463,7 @@ public class BatchExecutionService {
             if (inputParameterDefinition.getInputParameterValue() != null) {
 
                 String paramValue = inputParameterDefinition.getInputParameterValue().toString();
-                if ("Y".equalsIgnoreCase(interfaceParameter.getSensitiveData())) {
+                if (Constants.DATA_SENSITIVE.equalsIgnoreCase(interfaceParameter.getSensitiveData())) {
                     paramValue = tryEncryptParamValue(paramValue);
                 }
                 ExecutionJobParameters executionJobParameter = new ExecutionJobParameters(interfaceParameter.getName(),
@@ -770,7 +770,7 @@ public class BatchExecutionService {
 
             // #2046
             if (parameter.getParameterDefinition() != null
-                    && "Y".equalsIgnoreCase(parameter.getParameterDefinition().getSensitiveData())) {
+                    && Constants.DATA_SENSITIVE.equalsIgnoreCase(parameter.getParameterDefinition().getSensitiveData())) {
                 sVal = tryEncryptParamValue(sVal);
             }
             parameter.setValue(sVal);
@@ -801,11 +801,12 @@ public class BatchExecutionService {
                     criteria.getEntityIdentity());
         }
 
+        //TODO to support list and object data type
         if (attrValsPerExpr != null && (!attrValsPerExpr.isEmpty())) {
             // #2046
             String paramValue = attrValsPerExpr.get(0) == null ? null : attrValsPerExpr.get(0).toString();
             if (parameter.getParameterDefinition() != null
-                    && "Y".equalsIgnoreCase(parameter.getParameterDefinition().getSensitiveData())) {
+                    && Constants.DATA_SENSITIVE.equalsIgnoreCase(parameter.getParameterDefinition().getSensitiveData())) {
                 paramValue = tryEncryptParamValue(paramValue);
             }
             parameter.setValue(paramValue);
