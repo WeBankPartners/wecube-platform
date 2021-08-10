@@ -42,3 +42,6 @@ delete from `menu_items` where id = 'ADMIN_CERTIFICATION';
 delete from `role_menu` where id = 'sEZloDCk2Cpb';
 INSERT INTO `menu_items` (`id`,`parent_code`,`code`,`source`,`description`,`local_display_name`,`menu_order`) VALUES ('ADMIN_CERTIFICATION','ADMIN','ADMIN_CERTIFICATION','SYSTEM',NULL,'授权管理',17);
 INSERT INTO `role_menu` (`id`,`role_name`,`menu_code`) VALUES ('sEZloDCk2Cpb','SUPER_ADMIN','ADMIN_CERTIFICATION');
+
+ALTER TABLE `execution_job_parameters` ADD COLUMN `ref_object_name` VARCHAR(10) NULL;
+ALTER TABLE `execution_job_parameters` ADD COLUMN `multiple` VARCHAR(10) NULL;
