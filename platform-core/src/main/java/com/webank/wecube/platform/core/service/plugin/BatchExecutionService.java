@@ -458,6 +458,7 @@ public class BatchExecutionService {
         for (InputParameterDefinition inputParameterDefinition : inputParameterDefinitions) {
             PluginConfigInterfaceParameterDto interfaceParameter = inputParameterDefinition.getInputParameter();
 
+            //TODO to support object and multiple
             if (inputParameterDefinition.getInputParameterValue() != null) {
 
                 String paramValue = inputParameterDefinition.getInputParameterValue().toString();
