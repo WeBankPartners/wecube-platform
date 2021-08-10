@@ -549,6 +549,7 @@ public class BatchExecutionService {
                     exeJob.getPrepareException().getMessage());
         }
 
+        //TODO to support object and list
         Map<String, Object> pluginInputParamMap = new HashMap<String, Object>();
 
         for (ExecutionJobParameters parameter : exeJob.getParameters()) {
@@ -678,6 +679,8 @@ public class BatchExecutionService {
                 log.info("returned value is null for {} {}", exeJob.getId(), paramName);
                 continue;
             }
+            
+            //TODO try to convert to list once necessary
 
             EntityOperationRootCondition condition = new EntityOperationRootCondition(paramExpr, rootEntityId);
 
@@ -708,6 +711,7 @@ public class BatchExecutionService {
         PluginPackages pluginPackageEntity = pluginConfigEntity.getPluginPackage();
         String pluginPackageName = pluginPackageEntity.getName();
 
+        //TODO to support object and list
         for (ExecutionJobParameters param : exeJob.getParameters()) {
             String mappingType = param.getMappingType();
             if (MAPPING_TYPE_ENTITY.equals(mappingType)) {
@@ -779,7 +783,7 @@ public class BatchExecutionService {
         List<Object> attrValsPerExpr = standardEntityOperationService.queryAttributeValues(criteria,
                 userJwtSsoTokenRestTemplate, null);
 
-        if ((attrValsPerExpr == null || attrValsPerExpr.size() == 0)
+        if ((attrValsPerExpr == null || attrValsPerExpr.isEmpty())
                 && FIELD_REQUIRED.equals(parameter.getRequired())) {
             String errorMessage = String.format(
                     "returned empty data while fetch the mandatory input parameter[%s] with expression[%s] and root entity ID[%s]",
