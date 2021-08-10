@@ -22,6 +22,14 @@ public class ExecutionJobParameters {
     private String constantValue;
 
     private String value;
+    
+    //#2233
+    private String multiple;
+    
+    //#2233
+    private String refObjectName;
+    
+    private transient Object rawValue;
 
     private transient ExecutionJobs executionJob;
 
@@ -138,5 +146,31 @@ public class ExecutionJobParameters {
     public void setParameterDefinition(PluginConfigInterfaceParameterDto parameterDefinition) {
         this.parameterDefinition = parameterDefinition;
     }
+
+    public String getMultiple() {
+        return multiple;
+    }
+
+    public void setMultiple(String multiple) {
+        this.multiple = multiple;
+    }
+
+    public String getRefObjectName() {
+        return refObjectName;
+    }
+
+    public void setRefObjectName(String refObjectName) {
+        this.refObjectName = refObjectName;
+    }
+
+    public Object getRawValue() {
+        return rawValue;
+    }
+
+    public void setRawValue(Object rawValue) {
+        this.rawValue = rawValue;
+    }
+    
+    
 
 }
