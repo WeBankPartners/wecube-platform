@@ -19,14 +19,18 @@ public class Constants {
     public static final String MAPPING_TYPE_OBJECT = "object";
     public static final String MAPPING_TYPE_ASSIGN = "assign";
 
+    public static final String STRING_BOOL_YES = "Y";
     public static final String FIELD_REQUIRED = "Y";
     public static final String FIELD_NOT_REQUIRED = "N";
     public static final String ASYNC_SERVICE_SYMBOL = "Y";
+    public static final String DATA_MULTIPLE = "Y";
+    public static final String DATA_NOT_MULTIPLE = "N";
+    
+    public static final String DATA_SENSITIVE = "Y";
+    public static final String DATA_NOT_SENSITIVE = "N";
 
     public static final String DATA_TYPE_STRING = "string";
     public static final String DATA_TYPE_NUMBER = "number";
-    
-    public static final String DATA_TYPE_LIST = "list";
     public static final String DATA_TYPE_OBJECT = "object";
 
     public static final String DEFAULT_VALUE_DATA_TYPE_STRING = "";
@@ -47,4 +51,8 @@ public class Constants {
     
     public static final String CORE_OBJECT_ID_KEY = "coreObjectId";
     public static final String CORE_OBJECT_NAME_KEY = "coreObjectName";
+    
+    public static final String PREFIX_OBJECT_VAR_ID = "OV";
+    public static final String PREFIX_PROPERTY_VAR_ID = "PV";
+    public static final String PREFIX_LIST_VAR_ID = "EV";
 }
