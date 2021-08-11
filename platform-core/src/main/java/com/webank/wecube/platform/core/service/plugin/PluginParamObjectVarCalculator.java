@@ -67,6 +67,30 @@ public class PluginParamObjectVarCalculator extends AbstractPluginParamObjectSer
 
     @Autowired
     protected TaskNodeExecParamMapper taskNodeExecParamRepository;
+    
+    /**
+     * 
+     * @param objectMeta
+     * @param ctx
+     * @param objectMetaExpr
+     * @return
+     */
+    public List<Object> calculateRawObjectVarList(CoreObjectMeta objectMeta,
+            CoreObjectVarCalculationContext ctx, String objectMetaExpr){
+        EntityOperationRootCondition condition = new EntityOperationRootCondition(objectMetaExpr, ctx.getRootEntityDataId());
+
+        List<Map<String, Object>> objectMetaExprQueryResultDataMaps = entityOperationService
+                .queryAttributeValuesOfLeafNode(condition, ctx.getExternalCacheMap());
+        
+        List<Object> objectVals = new ArrayList<>();
+        if(objectMetaExprQueryResultDataMaps != null) {
+            for(Map<String, Object> objectMetaExprQueryResultDataMap : objectMetaExprQueryResultDataMaps) {
+                objectVals.add(objectMetaExprQueryResultDataMap);
+            }
+        }
+        
+        return objectVals;
+    }
 
     /**
      * 
@@ -76,6 +100,13 @@ public class PluginParamObjectVarCalculator extends AbstractPluginParamObjectSer
      */
     public List<CoreObjectVar> calculateCoreObjectVarList(CoreObjectMeta objectMeta,
             CoreObjectVarCalculationContext ctx, String objectMetaExpr) {
+        
+        if(objectMeta == null) {
+            String errMsg = String.format("Object metadata is null to calculate object value for :%s", ctx.getRootEntityDataId());
+            log.error(errMsg);
+            
+            throw new WecubeCoreException(errMsg);
+        }
 
         List<CoreObjectVar> rootObjectVars = doCalculateCoreObjectVarList(objectMeta, null, ctx,
                 ctx.getRootEntityDataId(), objectMetaExpr);
