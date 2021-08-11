@@ -1,13 +1,21 @@
 <template>
   <div>
     <Row style="margin-bottom:8px">
-      <Col span="7" style="margin-right: 15px">
+      <Col span="4" style="margin-right: 10px">
         <span style="margin-right: 10px">{{ $t('flow_name') }}</span>
-        <Select clearable v-model="selectedFlow" style="width: 77%" @on-open-change="getAllFlows" filterable>
+        <Select
+          clearable
+          @on-clear="currentFlow.tags = ''"
+          @on-change="currentFlow.tags = ''"
+          v-model="selectedFlow"
+          style="width: 65%"
+          @on-open-change="getAllFlows"
+          filterable
+        >
           <Option
-            v-for="item in allFlows"
+            v-for="(item, index) in allFlows"
             :value="item.procDefId"
-            :key="item.procDefId"
+            :key="index"
             :label="(item.procDefName || 'Null') + ' ' + item.createdTime + (item.status === 'draft' ? '*' : '')"
           >
             <span>{{
@@ -32,14 +40,21 @@
           </Option>
         </Select>
       </Col>
-      <Col span="6" style="margin-right: 15px">
+      <Col span="7" style="margin-right: 10px">
         <span style="margin-right: 10px">{{ $t('instance_type') }}</span>
-        <div style="width:75%;display: inline-block;vertical-align: middle;">
+        <div style="width:80%;display: inline-block;vertical-align: middle;">
           <FilterRules
             @change="onEntitySelect"
             v-model="currentSelectedEntity"
             :allDataModelsWithAttrs="allEntityType"
+            style="width:100%"
           ></FilterRules>
+        </div>
+      </Col>
+      <Col span="3" style="">
+        <span style="margin-right: 10px">{{ $t('tag') }}</span>
+        <div style="width:60%;display: inline-block;vertical-align: middle;">
+          <Input v-model="currentFlow.tags" />
         </div>
       </Col>
       <Checkbox style="margin-right: 25px" border :disabled="!selectedFlow && !isAdd" v-model="excludeMode">{{
@@ -115,42 +130,6 @@
                         </Select>
                       </FormItem>
                     </Col>
-                    <Col span="16">
-                      <FormItem prop="routineExpression">
-                        <label slot="label"
-                          >{{ $t('locate_rules') }}
-                          <span class="requires-tip">*</span>
-                        </label>
-                        <FilterRules
-                          :needAttr="true"
-                          ref="filterRules"
-                          v-model="pluginForm.routineExpression"
-                          @change="filterRuleChanged"
-                          :allDataModelsWithAttrs="allEntityType"
-                        ></FilterRules>
-                      </FormItem>
-                    </Col>
-                  </Row>
-                  <Row>
-                    <Col span="8">
-                      <FormItem prop="serviceName">
-                        <label slot="label"
-                          >{{ $t('plugin') }}
-                          <span class="requires-tip">*</span>
-                        </label>
-                        <Select
-                          filterable
-                          clearable
-                          v-model="pluginForm.serviceId"
-                          @on-open-change="getPlugin"
-                          @on-change="changePluginInterfaceList"
-                        >
-                          <Option v-for="(item, index) in filteredPlugins" :value="item.serviceName" :key="index">{{
-                            item.serviceDisplayName
-                          }}</Option>
-                        </Select>
-                      </FormItem>
-                    </Col>
                     <Col span="8">
                       <FormItem prop="timeoutExpression">
                         <label slot="label"
@@ -171,6 +150,21 @@
                     </Col>
                   </Row>
                   <Row>
+                    <Col span="16">
+                      <FormItem prop="routineExpression">
+                        <label slot="label"
+                          >{{ $t('locate_rules') }}
+                          <span class="requires-tip">*</span>
+                        </label>
+                        <FilterRules
+                          :needAttr="true"
+                          ref="filterRules"
+                          v-model="pluginForm.routineExpression"
+                          @change="filterRuleChanged"
+                          :allDataModelsWithAttrs="allEntityType"
+                        ></FilterRules>
+                      </FormItem>
+                    </Col>
                     <Col span="8">
                       <FormItem prop="dynamicBind">
                         <label slot="label"
@@ -179,6 +173,27 @@
                         </label>
                         <Select v-model="pluginForm.dynamicBind" @on-change="editFormdata">
                           <Option v-for="item in yOn" :value="item" :key="item">{{ item }}</Option>
+                        </Select>
+                      </FormItem>
+                    </Col>
+                  </Row>
+                  <Row>
+                    <Col span="16">
+                      <FormItem prop="serviceName">
+                        <label slot="label"
+                          >{{ $t('plugin') }}
+                          <span class="requires-tip">*</span>
+                        </label>
+                        <Select
+                          filterable
+                          clearable
+                          v-model="pluginForm.serviceId"
+                          @on-open-change="getPlugin"
+                          @on-change="changePluginInterfaceList"
+                        >
+                          <Option v-for="(item, index) in filteredPlugins" :value="item.serviceName" :key="index">{{
+                            item.serviceDisplayName
+                          }}</Option>
                         </Select>
                       </FormItem>
                     </Col>
@@ -195,53 +210,90 @@
                     </Col>
                   </Row>
                 </template>
-                <div v-if="pluginForm.paramInfos.length" class="node-operate-plugin-config">
-                  <FormItem
-                    :label="item.paramName"
-                    :prop="item.paramName"
-                    v-for="(item, index) in pluginForm.paramInfos"
-                    :key="index"
-                  >
-                    <label slot="label" v-if="item.required === 'Y'"
-                      >{{ item.paramName }}
-                      <span class="requires-tip">*</span>
-                    </label>
-                    <Select
-                      filterable
-                      clearable
-                      v-model="item.bindNodeId"
-                      style="width:30%"
-                      v-if="item.bindType === 'context'"
-                      @on-change="onParamsNodeChange(index)"
-                      @on-open-change="getFlowsNodes"
-                    >
-                      <Option v-for="(i, index) in currentflowsNodes" :value="i.nodeId" :key="index">{{
-                        i.nodeName
-                      }}</Option>
-                    </Select>
-                    <Select
-                      v-model="item.bindParamType"
-                      filterable
-                      v-if="item.bindType === 'context'"
-                      style="width:30%"
-                      @on-change="onParamsNodeChange(index)"
-                    >
-                      <Option v-for="i in paramsTypes" :value="i.value" :key="i.value">{{ i.label }}</Option>
-                    </Select>
-                    <Select
-                      filterable
-                      v-if="item.bindType === 'context'"
-                      v-model="item.bindParamName"
-                      style="width:30%"
-                      @on-change="editFormdata"
-                    >
-                      <Option v-for="i in item.currentParamNames" :value="i.name" :key="i.name">{{ i.name }}</Option>
-                    </Select>
-                    <label v-if="item.bindType === 'context' && item.required === 'Y'">
-                      <span class="requires-tip">*</span>
-                    </label>
-                    <Input v-if="item.bindType === 'constant'" v-model="item.bindValue" @on-change="editFormdata" />
-                  </FormItem>
+                <!-- <div v-if="pluginForm.paramInfos.length" class="node-operate-plugin-config"> -->
+                <div class="node-operate-plugin-config">
+                  <Tabs value="name1">
+                    <TabPane :label="$t('context_parameters')" name="name1">
+                      <FormItem :label="$t('root_task_node')">
+                        <Select
+                          filterable
+                          clearable
+                          multiple
+                          v-model="pluginForm.prevCtxNodeIds"
+                          style="width:84%"
+                          @on-open-change="getFlowsNodes"
+                          @on-change="getContextParametersNodes"
+                        >
+                          <Option v-for="(i, index) in currentflowsNodes" :value="i.nodeId" :key="index">{{
+                            i.nodeName
+                          }}</Option>
+                        </Select>
+                      </FormItem>
+                      <FormItem
+                        :label="item.paramName"
+                        :prop="item.paramName"
+                        v-for="(item, index) in pluginForm.paramInfos"
+                        v-if="item.bindType === 'context'"
+                        :key="index"
+                      >
+                        <template v-if="item.bindType === 'context'">
+                          <label slot="label" v-if="item.required === 'Y'"
+                            >{{ item.paramName }}
+                            <span class="requires-tip">*</span>
+                          </label>
+                          <Select
+                            filterable
+                            clearable
+                            v-model="item.bindNodeId"
+                            style="width:30%"
+                            @on-change="onParamsNodeChange(index)"
+                          >
+                            <!-- @on-open-change="getFlowsNodes" -->
+                            <Option v-for="(i, index) in contextParametersNodes" :value="i.nodeId" :key="index">{{
+                              i.nodeName
+                            }}</Option>
+                          </Select>
+                          <Select
+                            v-model="item.bindParamType"
+                            filterable
+                            style="width:30%"
+                            @on-change="onParamsNodeChange(index)"
+                          >
+                            <Option v-for="i in paramsTypes" :value="i.value" :key="i.value">{{ i.label }}</Option>
+                          </Select>
+                          <Select filterable v-model="item.bindParamName" style="width:30%" @on-change="editFormdata">
+                            <Option v-for="i in item.currentParamNames" :value="i.name" :key="i.name">{{
+                              i.name
+                            }}</Option>
+                          </Select>
+                          <label v-if="item.required === 'Y'">
+                            <span class="requires-tip">*</span>
+                          </label>
+                        </template>
+                      </FormItem>
+                    </TabPane>
+                    <TabPane :label="$t('constant_parameters')" name="name2">
+                      <FormItem
+                        :label="item.paramName"
+                        :prop="item.paramName"
+                        v-for="(item, index) in pluginForm.paramInfos"
+                        v-if="item.bindType === 'constant'"
+                        :key="index"
+                      >
+                        <template v-if="item.bindType === 'constant'">
+                          <label slot="label" v-if="item.required === 'Y'"
+                            >{{ item.paramName }}
+                            <span class="requires-tip">*</span>
+                          </label>
+                          <Input
+                            v-if="item.bindType === 'constant'"
+                            v-model="item.bindValue"
+                            @on-change="editFormdata"
+                          />
+                        </template>
+                      </FormItem>
+                    </TabPane>
+                  </Tabs>
                 </div>
               </Form>
               <div class="node-operate-area-save-btn">
@@ -292,11 +344,8 @@
         <pre style="margin-left: 44px;margin-top: 22px;">{{ this.confirmModal.message }}</pre>
       </div>
       <div slot="footer">
-        <span style="margin-left:30px;color:#ed4014;float: left;text-align:left">
-          <Checkbox v-model="confirmModal.check">{{ $t('dangerous_confirm_tip') }}</Checkbox>
-        </span>
         <Button type="text" @click="confirmModal.isShowConfirmModal = false">{{ $t('bc_cancel') }}</Button>
-        <Button type="warning" :disabled="!confirmModal.check" @click="confirmSaveFlow">{{ $t('bc_confirm') }}</Button>
+        <Button type="warning" @click="confirmSaveFlow">{{ $t('bc_confirm') }}</Button>
       </div>
     </Modal>
   </div>
@@ -326,8 +375,9 @@ import CustomContextPad from '../util/CustomContextPad'
 import xml2js from 'xml2js'
 import {
   getAllFlow,
+  getContextParametersNodes,
   saveFlow,
-  confirmSaveFlow,
+  confirmSaveFlowDraft,
   saveFlowDraft,
   getFlowDetailByID,
   getFlowNodes,
@@ -411,6 +461,7 @@ export default {
         nodeType: '',
         orderedNo: '',
         paramInfos: [],
+        prevCtxNodeIds: [],
         preCheck: 'N',
         procDefId: '',
         procDefKey: '',
@@ -422,6 +473,7 @@ export default {
         taskCategory: 'SSTN',
         timeoutExpression: '30'
       },
+      contextParametersNodes: [],
       serviceTaskBindInfos: [],
       // allPlugins: [],
       filteredPlugins: [],
@@ -464,7 +516,7 @@ export default {
         { value: 'OUTPUT', label: this.$t('output') }
       ],
       currentflowsNodes: [],
-      currentFlow: null,
+      currentFlow: { tags: '' },
       cacheFlowInfo: null, // 缓存流程数据，供节点数据展示时使用
 
       confirmModal: {
@@ -530,6 +582,17 @@ export default {
     this.setCss('top-pane', 'bottom: 0;')
   },
   methods: {
+    async getContextParametersNodes () {
+      this.contextParametersNodes = []
+      let { status, data } = await getContextParametersNodes(
+        this.currentFlow.procDefId,
+        this.currentNode.id,
+        this.pluginForm.prevCtxNodeIds
+      )
+      if (status === 'OK') {
+        this.contextParametersNodes = data
+      }
+    },
     // 节点定位规则变化检测
     filterRuleChanged () {
       this.isFormDataChange = true
@@ -842,13 +905,14 @@ export default {
             MGMT: _this.mgmtRolesKeyToFlow,
             USE: _this.useRolesKeyToFlow
           },
+          tags: _this.currentFlow.tags,
           excludeMode: _this.excludeMode === true ? 'Y' : 'N',
           procDefData: xmlString,
           procDefId: (_this.currentFlow && _this.currentFlow.procDefId) || '',
           procDefKey: isDraft ? (_this.currentFlow && _this.currentFlow.procDefKey) || '' : _this.newFlowID,
           procDefName: processName,
           rootEntity: _this.currentSelectedEntity,
-          status: isDraft ? (_this.currentFlow && _this.currentFlow.procDefKey) || '' : '',
+          status: isDraft ? (_this.currentFlow && _this.currentFlow.status) || '' : '',
           taskNodeInfos: [..._this.serviceTaskBindInfos]
         }
         if (isDraft) {
@@ -867,6 +931,14 @@ export default {
               _this.selectedFlow = data.data.procDefId
               _this.getFlowXml(data.data.procDefId)
               _this.temporaryFlow = data.data.procDefId
+            }
+            if (data && data.status === 'CONFIRM') {
+              _this.confirmModal.continueToken = data.data.continueToken
+              _this.confirmModal.check = false
+              _this.confirmModal.message = data.message
+              _this.confirmModal.requestBody = payload
+              _this.confirmModal.func = 'test'
+              _this.confirmModal.isShowConfirmModal = true
             }
           })
         } else {
@@ -897,7 +969,7 @@ export default {
       })
     },
     confirmSaveFlow () {
-      confirmSaveFlow(this.confirmModal.continueToken, this.confirmModal.requestBody).then(data => {
+      confirmSaveFlowDraft(this.confirmModal.continueToken, this.confirmModal.requestBody).then(data => {
         this.isSaving = false
         if (data && data.status === 'OK') {
           this.$Notice.success({
@@ -908,6 +980,7 @@ export default {
           this.getAllFlows(true)
           this.selectedFlow = data.data.procDefId
           this.temporaryFlow = data.data.procDefId
+          this.getFlowXml(this.selectedFlow)
         }
       })
     },
@@ -941,7 +1014,8 @@ export default {
           nodeName: this.currentNode.name,
           serviceName: (found && found.serviceName) || '',
           routineRaw: pluginFormCopy.routineExpression,
-          taskCategory: pluginFormCopy.taskCategory
+          taskCategory: pluginFormCopy.taskCategory,
+          prevCtxNodeIds: this.pluginForm.prevCtxNodeIds.join(',') || ''
         })
       }
       this.saveDiagram(true)
@@ -986,6 +1060,9 @@ export default {
               this.prepareDefaultPluginForm()
           )
         )
+        if (!Array.isArray(this.pluginForm.prevCtxNodeIds)) {
+          this.pluginForm.prevCtxNodeIds = (this.pluginForm.prevCtxNodeIds || '').split(',')
+        }
         this.pluginForm.dynamicBind = this.pluginForm.dynamicBind || 'N'
         this.pluginForm.preCheck = this.pluginForm.preCheck || 'N'
         // 实体类型条件不带入节点中
@@ -1041,6 +1118,7 @@ export default {
       }
     },
     async getParamsOptionsByNode (index) {
+      // currentParamNames
       const found = this.currentflowsNodes.find(_ => _.nodeId === this.pluginForm.paramInfos[index].bindNodeId)
       if (!this.currentFlow || !found) return
       let { status, data } = await getParamsInfosByFlowIdAndNodeId(this.currentFlow.procDefId, found.nodeDefId)

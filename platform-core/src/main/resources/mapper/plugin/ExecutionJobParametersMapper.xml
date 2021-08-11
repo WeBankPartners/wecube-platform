@@ -19,12 +19,14 @@
         <result column="constant_value" property="constantValue"
             jdbcType="VARCHAR" />
         <result column="value" property="value" jdbcType="VARCHAR" />
+        <result column="multiple" property="multiple" jdbcType="VARCHAR" />
+        <result column="ref_object_name" property="refObjectName" jdbcType="VARCHAR" />
     </resultMap>
 
     <sql id="Base_Column_List">
         id, execution_job_id, name, data_type, mapping_type,
         mapping_entity_expression, mapping_system_variable_name,
-        required, constant_value, value
+        required, constant_value, value, multiple, ref_object_name
     </sql>
 
     <select id="selectByPrimaryKey" resultMap="BaseResultMap"
@@ -41,22 +43,34 @@
     </delete>
     <insert id="insert" useGeneratedKeys="true" keyProperty="id"
         parameterType="com.webank.wecube.platform.core.entity.plugin.ExecutionJobParameters">
-        insert into execution_job_parameters (id,
+        insert into execution_job_parameters (
+        id,
         execution_job_id,
         name,
-        data_type, mapping_type,
+        data_type, 
+        mapping_type,
         mapping_entity_expression,
         mapping_system_variable_name,
-        required, constant_value,
-        value)
-        values (#{id,jdbcType=INTEGER},
+        required, 
+        constant_value,
+        value,
+        multiple, 
+        ref_object_name
+        )
+        values (
+        #{id,jdbcType=INTEGER},
         #{executionJobId,jdbcType=INTEGER},
         #{name,jdbcType=VARCHAR},
-        #{dataType,jdbcType=VARCHAR}, #{mappingType,jdbcType=VARCHAR},
+        #{dataType,jdbcType=VARCHAR}, 
+        #{mappingType,jdbcType=VARCHAR},
         #{mappingEntityExpression,jdbcType=VARCHAR},
         #{mappingSystemVariableName,jdbcType=VARCHAR},
-        #{required,jdbcType=VARCHAR}, #{constantValue,jdbcType=VARCHAR},
-        #{value,jdbcType=VARCHAR})
+        #{required,jdbcType=VARCHAR}, 
+        #{constantValue,jdbcType=VARCHAR},
+        #{value,jdbcType=VARCHAR},
+        #{multiple,jdbcType=VARCHAR},
+        #{refObjectName,jdbcType=VARCHAR}
+        )
     </insert>
     <insert id="insertSelective" useGeneratedKeys="true"
         keyProperty="id"
@@ -93,6 +107,12 @@
             <if test="value != null">
                 value,
             </if>
+            <if test="multiple != null">
+                multiple,
+            </if>
+            <if test="refObjectName != null">
+                ref_object_name,
+            </if>
         </trim>
         <trim prefix="values (" suffix=")" suffixOverrides=",">
             <if test="id != null">
@@ -124,6 +144,12 @@
             </if>
             <if test="value != null">
                 #{value,jdbcType=VARCHAR},
+            </if>
+            <if test="multiple != null">
+                #{multiple,jdbcType=VARCHAR},
+            </if>
+            <if test="refObjectName != null">
+                #{refObjectName,jdbcType=VARCHAR},
             </if>
         </trim>
     </insert>
@@ -163,6 +189,12 @@
             <if test="value != null">
                 value = #{value,jdbcType=VARCHAR},
             </if>
+            <if test="multiple != null">
+                multiple = #{multiple,jdbcType=VARCHAR},
+            </if>
+            <if test="refObjectName != null">
+                ref_object_name = #{refObjectName,jdbcType=VARCHAR},
+            </if>
         </set>
         where id = #{id,jdbcType=INTEGER}
     </update>
@@ -186,7 +218,11 @@
         constant_value =
         #{constantValue,jdbcType=VARCHAR},
         value =
-        #{value,jdbcType=VARCHAR}
+        #{value,jdbcType=VARCHAR},
+        multiple =
+        #{multiple,jdbcType=VARCHAR},
+        ref_object_name =
+        #{refObjectName,jdbcType=VARCHAR}
         where id = #{id,jdbcType=INTEGER}
     </update>
 </mapper>

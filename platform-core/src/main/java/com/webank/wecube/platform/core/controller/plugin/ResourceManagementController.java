@@ -8,6 +8,7 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -18,6 +19,7 @@ import com.webank.wecube.platform.core.dto.plugin.CommonResponseDto;
 import com.webank.wecube.platform.core.dto.plugin.QueryRequestDto;
 import com.webank.wecube.platform.core.dto.plugin.ResourceItemDto;
 import com.webank.wecube.platform.core.dto.plugin.ResourceServerDto;
+import com.webank.wecube.platform.core.dto.plugin.ResourceServerProductSerialDto;
 import com.webank.wecube.platform.core.service.resource.ResourceItemStatus;
 import com.webank.wecube.platform.core.service.resource.ResourceItemType;
 import com.webank.wecube.platform.core.service.resource.ResourceManagementService;
@@ -30,6 +32,13 @@ public class ResourceManagementController {
 
     @Autowired
     private ResourceManagementService resourceService;
+    
+    @GetMapping("/servers/{id}/product-serial")
+    @PreAuthorize("hasAnyAuthority('ADMIN_RESOURCES_MANAGEMENT','SUB_SYSTEM')")
+    public CommonResponseDto retrieveResourceServerProductSerial(@PathVariable(value = "id") String resourceServerId) {
+        ResourceServerProductSerialDto dto = resourceService.retrieveResourceServerProductSerial(resourceServerId);
+        return okayWithData(dto);
+    }
 
     @PostMapping("/servers/retrieve")
     @PreAuthorize("hasAnyAuthority('ADMIN_RESOURCES_MANAGEMENT','SUB_SYSTEM')")

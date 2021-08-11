@@ -102,6 +102,14 @@ public class ExpressionServiceImpl implements ExpressionService {
         dto.setRefAttributeName(attr.getRefAttr());
         dto.setRefEntityName(attr.getRefEntity());
         dto.setRefPackageName(attr.getRefPackage());
+        
+        dto.setMultiple(attr.getMultiple());
+        String mandatoryStr = null;
+        Boolean mandatory = attr.getMandatory();
+        if(mandatory != null) {
+            mandatoryStr = mandatory?"Y":"N";
+        }
+        dto.setMandatory(mandatoryStr);
 
         return dto;
     }

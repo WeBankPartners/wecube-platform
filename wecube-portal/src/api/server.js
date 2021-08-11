@@ -9,6 +9,8 @@ export const confirmSaveFlow = (continueToken, data) => {
   return req.post(`/platform/v1/process/definitions/deploy?continue_token=${continueToken}`, data)
 }
 export const saveFlowDraft = data => req.post('/platform/v1/process/definitions/draft', data)
+export const confirmSaveFlowDraft = (continueToken, data) =>
+  req.post(`/platform/v1/process/definitions/draft?continue_token=${continueToken}`, data)
 export const getAllFlow = (isIncludeDraft = true) => {
   return isIncludeDraft
     ? req.get('/platform/v1/process/definitions?permission=MGMT')
@@ -18,7 +20,9 @@ export const getFlowDetailByID = id => req.get(`/platform/v1/process/definitions
 export const getFlowOutlineByID = id => req.get(`/platform/v1/process/definitions/${id}/outline`)
 
 export const getTargetOptions = (pkgName, entityName) =>
-  req.get(`platform/v1/packages/${pkgName}/entities/${entityName}/retrieve`)
+  req.post(`/${pkgName}/entities/${entityName}/query`, {
+    additionalFilters: []
+  })
 export const getTreePreviewData = (flowId, targetId) =>
   req.get(`platform/v1/process/definitions/${flowId}/preview/entities/${targetId}`)
 export const createFlowInstance = data => req.post(`platform/v1/process/instances`, data)
@@ -32,6 +36,10 @@ export const getParamsInfosByFlowIdAndNodeId = (flowId, nodeId) =>
   req.get(`platform/v1/process/definitions/${flowId}/tasknodes/${nodeId}`)
 
 export const getFlowNodes = flowId => req.get(`platform/v1/process/definitions/${flowId}/tasknodes/briefs`)
+export const getContextParametersNodes = (flowId, taskNodeId, prevCtxNodeIds) =>
+  req.get(
+    `/platform/v1/process/definitions/${flowId}/root-context-nodes/briefs?taskNodeId=${taskNodeId}&prevCtxNodeIds=${prevCtxNodeIds}`
+  )
 
 export const getAllDataModels = () => req.get(`platform/v1/models`)
 
@@ -174,3 +182,10 @@ export const updateTaskNodeInstanceExecBindings = data =>
 export const getPluginRegisterObjectType = objectMetaId => req.get(`platform/v1/plugins/objectmetas/id/${objectMetaId}`)
 export const updatePluginRegisterObjectType = (pluginConfigId, objectMetaId, data) =>
   req.post(`platform/v1/plugins/configs/${pluginConfigId}/interfaces/objectmetas/${objectMetaId}`, data)
+
+export const getCertification = () => req.get(`platform/v1/plugin-certifications`)
+export const deleteCertification = id => req.delete(`platform/v1/plugin-certifications/${id}`)
+export const exportCertification = id => req.get(`platform/v1/plugin-certifications/${id}/export`)
+export const importCertification = () => req.post(`platform/v1/plugin-certifications/import`)
+
+export const productSerial = id => req.get(`platform/resource/servers/${id}/product-serial`)

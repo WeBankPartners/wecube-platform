@@ -28,6 +28,12 @@ public class PluginConfigOutputParameterType {
     @XmlAttribute(name = "mappingValue")
     protected String mappingValue;
 
+    @XmlAttribute(name = "multiple")
+    protected String multiple;
+
+    @XmlAttribute(name = "refObjectName")
+    protected String refObjectName;
+
     public String getValue() {
         return value;
     }
@@ -90,6 +96,22 @@ public class PluginConfigOutputParameterType {
 
     public void setMappingValue(String mappingValue) {
         this.mappingValue = mappingValue;
+    }
+
+    public String getMultiple() {
+        return multiple;
+    }
+
+    public void setMultiple(String multiple) {
+        this.multiple = multiple;
+    }
+
+    public String getRefObjectName() {
+        return refObjectName;
+    }
+
+    public void setRefObjectName(String refObjectName) {
+        this.refObjectName = refObjectName;
     }
 
 }

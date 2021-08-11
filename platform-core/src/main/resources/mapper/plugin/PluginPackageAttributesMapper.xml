@@ -18,14 +18,15 @@
             jdbcType="VARCHAR" />
         <result column="ref_attr" property="refAttr" jdbcType="VARCHAR" />
         <result column="mandatory" property="mandatory" jdbcType="BIT" />
+        <result column="multiple" property="multiple" jdbcType="VARCHAR" />
     </resultMap>
     <sql id="Base_Column_List">
         id, entity_id, reference_id, name, description,
-        data_type,ref_package,ref_entity,ref_attr,mandatory
+        data_type,ref_package,ref_entity,ref_attr,mandatory,multiple
     </sql>
     <sql id="Base_Column_List_T1">
         t1.id, t1.entity_id, t1.reference_id, t1.name, t1.description,
-        t1.data_type,t1.ref_package,t1.ref_entity,t1.ref_attr,t1.mandatory
+        t1.data_type,t1.ref_package,t1.ref_entity,t1.ref_attr,t1.mandatory,t1.multiple
     </sql>
     <select id="selectByPrimaryKey" resultMap="BaseResultMap"
         parameterType="java.lang.String">
@@ -52,7 +53,8 @@
         ref_package,
         ref_entity,
         ref_attr,
-        mandatory
+        mandatory,
+        multiple
         )
         values
         (
@@ -65,7 +67,8 @@
         #{refPackage,jdbcType=VARCHAR},
         #{refEntity,jdbcType=VARCHAR},
         #{refAttr,jdbcType=VARCHAR},
-        #{mandatory,jdbcType=VARCHAR}
+        #{mandatory,jdbcType=VARCHAR},
+        #{multiple,jdbcType=VARCHAR}
         )
     </insert>
     <insert id="insertSelective"
@@ -102,6 +105,9 @@
             <if test="mandatory != null">
                 mandatory,
             </if>
+            <if test="multiple != null">
+                multiple,
+            </if>
         </trim>
         <trim prefix="values (" suffix=")" suffixOverrides=",">
             <if test="id != null">
@@ -133,6 +139,9 @@
             </if>
             <if test="mandatory != null">
                 #{mandatory,jdbcType=BIT},
+            </if>
+            <if test="multiple != null">
+                #{multiple,jdbcType=VARCHAR},
             </if>
         </trim>
     </insert>
@@ -167,6 +176,9 @@
             <if test="mandatory != null">
                 mandatory = #{mandatory,jdbcType=BIT},
             </if>
+            <if test="multiple != null">
+                multiple = #{multiple,jdbcType=VARCHAR},
+            </if>
         </set>
         where id = #{id,jdbcType=VARCHAR}
     </update>
@@ -187,7 +199,9 @@
         #{refEntity,jdbcType=VARCHAR},
         ref_attr =
         #{refAttr,jdbcType=VARCHAR},
-        mandatory = #{mandatory,jdbcType=BIT}
+        mandatory = #{mandatory,jdbcType=BIT},
+        multiple =
+        #{multiple,jdbcType=VARCHAR}
         where id = #{id,jdbcType=VARCHAR}
     </update>
 

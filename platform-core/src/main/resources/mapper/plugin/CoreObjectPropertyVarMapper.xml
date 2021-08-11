@@ -49,17 +49,17 @@
         parameterType="java.lang.String">
         select
         <include refid="Base_Column_List" />
-        from plugin_object_property_var
+        from core_object_property_var
         where id = #{id,jdbcType=VARCHAR}
     </select>
     <delete id="deleteByPrimaryKey" parameterType="java.lang.String">
         delete from
-        plugin_object_property_var
+        core_object_property_var
         where id = #{id,jdbcType=VARCHAR}
     </delete>
     <insert id="insert"
         parameterType="com.webank.wecube.platform.core.entity.plugin.CoreObjectPropertyVar">
-        insert into plugin_object_property_var (id, name,
+        insert into core_object_property_var (id, name,
         data_type,
         object_property_meta_id, object_meta_id,
         object_var_id,
@@ -88,7 +88,7 @@
     </insert>
     <insert id="insertSelective"
         parameterType="com.webank.wecube.platform.core.entity.plugin.CoreObjectPropertyVar">
-        insert into plugin_object_property_var
+        insert into core_object_property_var
         <trim prefix="(" suffix=")" suffixOverrides=",">
             <if test="id != null">
                 id,
@@ -198,7 +198,7 @@
     </insert>
     <update id="updateByPrimaryKeySelective"
         parameterType="com.webank.wecube.platform.core.entity.plugin.CoreObjectPropertyVar">
-        update plugin_object_property_var
+        update core_object_property_var
         <set>
             <if test="name != null">
                 name = #{name,jdbcType=VARCHAR},
@@ -257,7 +257,7 @@
     </update>
     <update id="updateByPrimaryKey"
         parameterType="com.webank.wecube.platform.core.entity.plugin.CoreObjectPropertyVar">
-        update plugin_object_property_var
+        update core_object_property_var
         set name =
         #{name,jdbcType=VARCHAR},
         data_type =
@@ -297,7 +297,7 @@
         parameterType="java.lang.String">
         select
         <include refid="Base_Column_List" />
-        from plugin_object_property_var
+        from core_object_property_var
         where object_var_id =
         #{objectVarId,jdbcType=VARCHAR}
     </select>

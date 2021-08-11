@@ -41,19 +41,37 @@
         <result column="dynamic_bind" jdbcType="VARCHAR"
             property="dynamicBind" />
         <result column="pre_check" jdbcType="VARCHAR" property="preCheck" />
+        <result column="prev_ctx_node_ids" jdbcType="VARCHAR" property="prevCtxNodeIds" />
     </resultMap>
     <sql id="Base_Column_List">
-        id, created_by, created_time, updated_by, updated_time,
-        active, rev,
-        status, description,
-        node_id, node_name, node_type,
-        ordered_no, prev_node_ids, proc_def_id,
+        id, 
+        created_by, 
+        created_time, 
+        updated_by, 
+        updated_time,
+        active, 
+        rev,
+        status, 
+        description,
+        node_id, 
+        node_name, 
+        node_type,
+        ordered_no, 
+        prev_node_ids, 
+        proc_def_id,
         proc_def_kernel_id,
-        proc_def_key, proc_def_ver, routine_exp, routine_raw,
-        service_id, service_name,
+        proc_def_key, 
+        proc_def_ver, 
+        routine_exp, 
+        routine_raw,
+        service_id, 
+        service_name,
         succeed_node_ids,
         timeout_exp,
-        task_category,dynamic_bind,pre_check
+        task_category,
+        dynamic_bind,
+        pre_check,
+        prev_ctx_node_ids
     </sql>
     <select id="selectByPrimaryKey" parameterType="java.lang.String"
         resultMap="BaseResultMap">
@@ -69,40 +87,66 @@
     </delete>
     <insert id="insert"
         parameterType="com.webank.wecube.platform.core.entity.workflow.TaskNodeDefInfoEntity">
-        insert into core_re_task_node_def_info (id,
-        created_by, created_time,
-        updated_by, updated_time, active,
+        insert into core_re_task_node_def_info (
+        id,
+        created_by, 
+        created_time,
+        updated_by, 
+        updated_time, 
+        active,
         rev,
-        status, description,
-        node_id, node_name, node_type,
+        status, 
+        description,
+        node_id, 
+        node_name, 
+        node_type,
         ordered_no,
-        prev_node_ids, proc_def_id,
-        proc_def_kernel_id, proc_def_key,
+        prev_node_ids, 
+        proc_def_id,
+        proc_def_kernel_id, 
+        proc_def_key,
         proc_def_ver,
-        routine_exp, routine_raw, service_id,
+        routine_exp, 
+        routine_raw, 
+        service_id,
         service_name,
-        succeed_node_ids, timeout_exp,
-        task_category,dynamic_bind,pre_check)
+        succeed_node_ids, 
+        timeout_exp,
+        task_category,
+        dynamic_bind,
+        pre_check,
+        prev_ctx_node_ids
+        )
         values
-        (#{id,jdbcType=VARCHAR}, #{createdBy,jdbcType=VARCHAR},
+        (#{id,jdbcType=VARCHAR}, 
+        #{createdBy,jdbcType=VARCHAR},
         #{createdTime,jdbcType=TIMESTAMP},
         #{updatedBy,jdbcType=VARCHAR},
-        #{updatedTime,jdbcType=TIMESTAMP}, #{active,jdbcType=BIT},
-        #{rev,jdbcType=INTEGER}, #{status,jdbcType=VARCHAR},
+        #{updatedTime,jdbcType=TIMESTAMP}, 
+        #{active,jdbcType=BIT},
+        #{rev,jdbcType=INTEGER}, 
+        #{status,jdbcType=VARCHAR},
         #{description,jdbcType=VARCHAR},
         #{nodeId,jdbcType=VARCHAR},
-        #{nodeName,jdbcType=VARCHAR}, #{nodeType,jdbcType=VARCHAR},
-        #{orderedNo,jdbcType=VARCHAR}, #{prevNodeIds,jdbcType=VARCHAR},
+        #{nodeName,jdbcType=VARCHAR}, 
+        #{nodeType,jdbcType=VARCHAR},
+        #{orderedNo,jdbcType=VARCHAR}, 
+        #{prevNodeIds,jdbcType=VARCHAR},
         #{procDefId,jdbcType=VARCHAR},
         #{procDefKernelId,jdbcType=VARCHAR},
-        #{procDefKey,jdbcType=VARCHAR}, #{procDefVer,jdbcType=INTEGER},
-        #{routineExp,jdbcType=VARCHAR}, #{routineRaw,jdbcType=VARCHAR},
+        #{procDefKey,jdbcType=VARCHAR}, 
+        #{procDefVer,jdbcType=INTEGER},
+        #{routineExp,jdbcType=VARCHAR}, 
+        #{routineRaw,jdbcType=VARCHAR},
         #{serviceId,jdbcType=VARCHAR},
         #{serviceName,jdbcType=VARCHAR},
         #{succeedNodeIds,jdbcType=VARCHAR},
         #{timeoutExp,jdbcType=VARCHAR},
-        #{taskCategory,jdbcType=VARCHAR},#{dynamicBind,jdbcType=VARCHAR},
-        #{preCheck,jdbcType=VARCHAR})
+        #{taskCategory,jdbcType=VARCHAR},
+        #{dynamicBind,jdbcType=VARCHAR},
+        #{preCheck,jdbcType=VARCHAR},
+        #{prevCtxNodeIds,jdbcType=VARCHAR}
+        )
     </insert>
     <insert id="insertSelective"
         parameterType="com.webank.wecube.platform.core.entity.workflow.TaskNodeDefInfoEntity">
@@ -189,6 +233,9 @@
             <if test="preCheck != null">
                 pre_check,
             </if>
+            <if test="prevCtxNodeIds != null">
+                prev_ctx_node_ids,
+            </if>
         </trim>
         <trim prefix="values (" suffix=")" suffixOverrides=",">
             <if test="id != null">
@@ -271,6 +318,9 @@
             </if>
             <if test="preCheck != null">
                 #{preCheck,jdbcType=VARCHAR},
+            </if>
+            <if test="prevCtxNodeIds != null">
+                #{prevCtxNodeIds,jdbcType=VARCHAR},
             </if>
         </trim>
     </insert>
@@ -361,6 +411,9 @@
             <if test="preCheck != null">
                 pre_check = #{preCheck,jdbcType=VARCHAR},
             </if>
+            <if test="prevCtxNodeIds != null">
+                prev_ctx_node_ids = #{prevCtxNodeIds,jdbcType=VARCHAR},
+            </if>
         </set>
         where id = #{id,jdbcType=VARCHAR}
     </update>
@@ -417,7 +470,9 @@
         dynamic_bind =
         #{dynamicBind,jdbcType=VARCHAR},
         pre_check =
-        #{preCheck,jdbcType=VARCHAR}
+        #{preCheck,jdbcType=VARCHAR},
+        prev_ctx_node_ids =
+        #{prevCtxNodeIds,jdbcType=VARCHAR}
         where id = #{id,jdbcType=VARCHAR}
     </update>
 

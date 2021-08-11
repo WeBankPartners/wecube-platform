@@ -21,6 +21,8 @@ public class ProcDefInfoExportImportDto {
     private Map<String, List<Long>> permissionToRole;
 
     private List<TaskNodeDefInfoDto> taskNodeInfos = new ArrayList<>();
+    
+    private String tags;
 
     public String getProcDefId() {
         return procDefId;
@@ -121,5 +123,15 @@ public class ProcDefInfoExportImportDto {
     public void setExcludeMode(String excludeMode) {
         this.excludeMode = excludeMode;
     }
+
+    public String getTags() {
+        return tags;
+    }
+
+    public void setTags(String tags) {
+        this.tags = tags;
+    }
+    
+    
 
 }

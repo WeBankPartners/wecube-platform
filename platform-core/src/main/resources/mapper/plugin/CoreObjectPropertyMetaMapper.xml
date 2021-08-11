@@ -7,7 +7,7 @@
         <id column="id" property="id" jdbcType="VARCHAR" />
         <result column="name" property="name" jdbcType="VARCHAR" />
         <result column="data_type" property="dataType" jdbcType="VARCHAR" />
-        <result column="ref_type" property="refType" jdbcType="VARCHAR" />
+        <result column="multiple" property="multiple" jdbcType="VARCHAR" />
         <result column="map_type" property="mapType" jdbcType="VARCHAR" />
         <result column="map_expr" property="mapExpr" jdbcType="VARCHAR" />
         <result column="object_meta_id" property="objectMetaId"
@@ -27,7 +27,7 @@
             jdbcType="TIMESTAMP" />
         <result column="is_sensitive" property="sensitive"
             jdbcType="BIT" />
-        <result column="ref_name" property="refName" jdbcType="VARCHAR" />
+        <result column="ref_object_name" property="refObjectName" jdbcType="VARCHAR" />
         <result column="config_id" property="configId"
             jdbcType="VARCHAR" />
     </resultMap>
@@ -35,7 +35,7 @@
         id, 
         name, 
         data_type, 
-        ref_type, 
+        multiple, 
         map_type, 
         map_expr,
         object_meta_id,
@@ -47,7 +47,7 @@
         updated_by, 
         updated_time, 
         is_sensitive,
-        ref_name,
+        ref_object_name,
         config_id
     </sql>
     <select id="selectByPrimaryKey" resultMap="BaseResultMap"
@@ -68,7 +68,7 @@
         id, 
         name,
         data_type,
-        ref_type, 
+        multiple, 
         map_type, 
         map_expr,
         object_meta_id,
@@ -80,14 +80,14 @@
         updated_by, 
         updated_time, 
         is_sensitive,
-        ref_name,
+        ref_object_name,
         config_id
         )
         values
         (#{id,jdbcType=VARCHAR}, 
         #{name,jdbcType=VARCHAR},
         #{dataType,jdbcType=VARCHAR},
-        #{refType,jdbcType=VARCHAR},
+        #{multiple,jdbcType=VARCHAR},
         #{mapType,jdbcType=VARCHAR}, 
         #{mapExpr,jdbcType=VARCHAR},
         #{objectMetaId,jdbcType=VARCHAR},
@@ -99,7 +99,7 @@
         #{updatedBy,jdbcType=VARCHAR},
         #{updatedTime,jdbcType=TIMESTAMP},
         #{sensitive,jdbcType=BIT},
-        #{refName,jdbcType=VARCHAR},
+        #{refObjectName,jdbcType=VARCHAR},
         #{configId,jdbcType=VARCHAR}
         )
     </insert>
@@ -116,8 +116,8 @@
             <if test="dataType != null">
                 data_type,
             </if>
-            <if test="refType != null">
-                ref_type,
+            <if test="multiple != null">
+                multiple,
             </if>
             <if test="mapType != null">
                 map_type,
@@ -152,8 +152,8 @@
             <if test="sensitive != null">
                 is_sensitive,
             </if>
-            <if test="refName != null">
-                ref_name,
+            <if test="refObjectName != null">
+                ref_object_name,
             </if>
             <if test="configId != null">
                 config_id,
@@ -169,8 +169,8 @@
             <if test="dataType != null">
                 #{dataType,jdbcType=VARCHAR},
             </if>
-            <if test="refType != null">
-                #{refType,jdbcType=VARCHAR},
+            <if test="multiple != null">
+                #{multiple,jdbcType=VARCHAR},
             </if>
             <if test="mapType != null">
                 #{mapType,jdbcType=VARCHAR},
@@ -205,8 +205,8 @@
             <if test="sensitive != null">
                 #{sensitive,jdbcType=BIT},
             </if>
-            <if test="refName != null">
-                #{refName,jdbcType=VARCHAR},
+            <if test="refObjectName != null">
+                #{refObjectName,jdbcType=VARCHAR},
             </if>
             <if test="configId != null">
                 #{configId,jdbcType=VARCHAR},
@@ -223,8 +223,8 @@
             <if test="dataType != null">
                 data_type = #{dataType,jdbcType=VARCHAR},
             </if>
-            <if test="refType != null">
-                ref_type = #{refType,jdbcType=VARCHAR},
+            <if test="multiple != null">
+                multiple = #{multiple,jdbcType=VARCHAR},
             </if>
             <if test="mapType != null">
                 map_type = #{mapType,jdbcType=VARCHAR},
@@ -262,8 +262,8 @@
             <if test="sensitive != null">
                 is_sensitive = #{sensitive,jdbcType=BIT},
             </if>
-            <if test="refName != null">
-                ref_name = #{refName,jdbcType=VARCHAR},
+            <if test="refObjectName != null">
+                ref_object_name = #{refObjectName,jdbcType=VARCHAR},
             </if>
             <if test="configId != null">
                 config_id = #{configId,jdbcType=VARCHAR},
@@ -278,8 +278,8 @@
         #{name,jdbcType=VARCHAR},
         data_type =
         #{dataType,jdbcType=VARCHAR},
-        ref_type =
-        #{refType,jdbcType=VARCHAR},
+        multiple =
+        #{multiple,jdbcType=VARCHAR},
         map_type =
         #{mapType,jdbcType=VARCHAR},
         map_expr =
@@ -302,7 +302,7 @@
         #{updatedTime,jdbcType=TIMESTAMP},
         is_sensitive =
         #{sensitive,jdbcType=BIT},
-        ref_name = #{refName,jdbcType=VARCHAR},
+        ref_object_name = #{refObjectName,jdbcType=VARCHAR},
         config_id = #{configId,jdbcType=VARCHAR}
         where id = #{id,jdbcType=VARCHAR}
     </update>

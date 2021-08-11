@@ -1,0 +1,211 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper
+    namespace="com.webank.wecube.platform.core.repository.plugin.PluginCertificationMapper">
+    <resultMap id="BaseResultMap"
+        type="com.webank.wecube.platform.core.entity.plugin.PluginCertification">
+        <id column="id" jdbcType="VARCHAR" property="id" />
+        <result column="created_by" jdbcType="VARCHAR" property="createdBy" />
+        <result column="created_time" jdbcType="TIMESTAMP"
+            property="createdTime" />
+        <result column="updated_by" jdbcType="VARCHAR" property="updatedBy" />
+        <result column="updated_time" jdbcType="TIMESTAMP"
+            property="updatedTime" />
+        <result column="plugin" jdbcType="VARCHAR" property="plugin" />
+        <result column="lpk" jdbcType="VARCHAR" property="lpk" />
+        <result column="encrypt_data" jdbcType="VARCHAR" property="encryptData" />
+        <result column="signature" jdbcType="VARCHAR" property="signature" />
+        <result column="description" jdbcType="VARCHAR" property="description" />
+    </resultMap>
+    
+    <sql id="Base_Column_List">
+        id, 
+        created_by, 
+        created_time, 
+        updated_by, 
+        updated_time,
+        plugin,
+        lpk, 
+        encrypt_data,
+        signature, 
+        description
+    </sql>
+
+    <select id="selectByPrimaryKey" parameterType="java.lang.String"
+        resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List" />
+        from plugin_certification
+        where id = #{id,jdbcType=VARCHAR}
+    </select>
+    <delete id="deleteByPrimaryKey" parameterType="java.lang.String">
+        delete from
+        plugin_certification
+        where id = #{id,jdbcType=VARCHAR}
+    </delete>
+    <insert id="insert"
+        parameterType="com.webank.wecube.platform.core.entity.plugin.PluginCertification">
+        insert into plugin_certification (
+        id, 
+        created_by, 
+        created_time, 
+        updated_by, 
+        updated_time,
+        plugin,
+        lpk, 
+        encrypt_data,
+        signature, 
+        description
+        )
+        values (
+        #{id,jdbcType=VARCHAR},
+        #{createdBy,jdbcType=VARCHAR},
+        #{createdTime,jdbcType=TIMESTAMP},
+        #{updatedBy,jdbcType=VARCHAR},
+        #{updatedTime,jdbcType=TIMESTAMP}, 
+        #{plugin,jdbcType=VARCHAR},
+        #{lpk,jdbcType=VARCHAR}, 
+        #{encryptData,jdbcType=VARCHAR},
+        #{signature,jdbcType=VARCHAR},
+        #{description,jdbcType=VARCHAR}
+        )
+    </insert>
+    <insert id="insertSelective"
+        parameterType="com.webank.wecube.platform.core.entity.plugin.PluginCertification">
+        insert into plugin_certification
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="createdBy != null">
+                created_by,
+            </if>
+            <if test="createdTime != null">
+                created_time,
+            </if>
+            <if test="updatedBy != null">
+                updated_by,
+            </if>
+            <if test="updatedTime != null">
+                updated_time,
+            </if>
+            <if test="plugin != null">
+                plugin,
+            </if>
+            <if test="lpk != null">
+                lpk,
+            </if>
+            <if test="encryptData != null">
+                encrypt_data,
+            </if>
+            <if test="signature != null">
+                signature,
+            </if>
+            <if test="description != null">
+                description,
+            </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="createdBy != null">
+                #{createdBy,jdbcType=VARCHAR},
+            </if>
+            <if test="createdTime != null">
+                #{createdTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="updatedBy != null">
+                #{updatedBy,jdbcType=VARCHAR},
+            </if>
+            <if test="updatedTime != null">
+                #{updatedTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="plugin != null">
+                #{plugin,jdbcType=VARCHAR},
+            </if>
+            <if test="lpk != null">
+                #{lpk,jdbcType=VARCHAR},
+            </if>
+            <if test="encryptData != null">
+                #{encryptData,jdbcType=VARCHAR},
+            </if>
+            <if test="signature != null">
+                #{signature,jdbcType=VARCHAR},
+            </if>
+            <if test="description != null">
+                #{description,jdbcType=VARCHAR},
+            </if>
+        </trim>
+    </insert>
+    <update id="updateByPrimaryKeySelective"
+        parameterType="com.webank.wecube.platform.core.entity.plugin.PluginCertification">
+        update plugin_certification
+        <set>
+            <if test="createdBy != null">
+                created_by = #{createdBy,jdbcType=VARCHAR},
+            </if>
+            <if test="createdTime != null">
+                created_time =
+                #{createdTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="updatedBy != null">
+                updated_by = #{updatedBy,jdbcType=VARCHAR},
+            </if>
+            <if test="updatedTime != null">
+                updated_time =
+                #{updatedTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="plugin != null">
+                plugin = #{plugin,jdbcType=VARCHAR},
+            </if>
+            <if test="lpk != null">
+                lpk = #{lpk,jdbcType=VARCHAR},
+            </if>
+            <if test="encryptData != null">
+                encrypt_data = #{encryptData,jdbcType=VARCHAR},
+            </if>
+            <if test="signature != null">
+                signature = #{signature,jdbcType=VARCHAR},
+            </if>
+            <if test="description != null">
+                description = #{description,jdbcType=VARCHAR},
+            </if>
+        </set>
+        where id = #{id,jdbcType=VARCHAR}
+    </update>
+
+    <update id="updateByPrimaryKey"
+        parameterType="com.webank.wecube.platform.core.entity.plugin.PluginCertification">
+        update plugin_certification
+        set created_by =
+        #{createdBy,jdbcType=VARCHAR},
+        created_time =
+        #{createdTime,jdbcType=TIMESTAMP},
+        updated_by =
+        #{updatedBy,jdbcType=VARCHAR},
+        updated_time =
+        #{updatedTime,jdbcType=TIMESTAMP},
+        plugin =
+        #{plugin,jdbcType=VARCHAR},
+        lpk =
+        #{lpk,jdbcType=VARCHAR},
+        encrypt_data =
+        #{encryptData,jdbcType=VARCHAR},
+        signature =
+        #{signature,jdbcType=VARCHAR},
+        description =
+        #{description,jdbcType=VARCHAR}
+        where id = #{id,jdbcType=VARCHAR}
+    </update>
+
+    <select id="selectAllPluginCertifications" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List" />
+        from plugin_certification
+        LIMIT 300
+    </select>
+
+    <select id="selectPluginCertificationByPlugin" parameterType="java.lang.String"
+        resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List" />
+        from plugin_certification
+        where plugin =
+        #{plugin,jdbcType=VARCHAR}
+    </select>
+</mapper>

@@ -2,7 +2,7 @@
   <WeTable
     :tableData="tableData"
     :tableOuterActions="outerActions"
-    :tableInnerActions="null"
+    :tableInnerActions="innerActions"
     :tableColumns="tableColumns"
     :pagination="pagination"
     @actionFun="actionFun"
@@ -22,6 +22,7 @@ import {
   retrieveServers,
   createServers,
   updateServers,
+  productSerial,
   deleteServers
 } from '@/api/server.js'
 import { outerActions } from '@/const/actions.js'
@@ -57,6 +58,19 @@ export default {
         total: 0
       },
       outerActions,
+      innerActions: [
+        {
+          label: this.$t('product_serial'),
+          actionType: 'product_serial',
+          operationMultiple: 'yes',
+          operation_en: 'product_serial',
+          props: {
+            type: 'primary',
+            disabled: false,
+            size: 'small'
+          }
+        }
+      ],
       tableData: [],
       tableColumns: [
         {
@@ -229,8 +243,27 @@ export default {
       this.pagination.pageSize = size
       this.queryData()
     },
+    async productSerial (data) {
+      if (data.type !== 'docker') {
+        this.$Notice.warning({
+          title: 'Warning',
+          desc: this.$t('product_serial_tip')
+        })
+        return
+      }
+      const res = await productSerial(data.id)
+      if (res.status === 'OK') {
+        this.$Modal.info({
+          title: this.$t('product_serial'),
+          content: (res.data && res.data.productSerial) || 'null'
+        })
+      }
+    },
     actionFun (type, data) {
       switch (type) {
+        case 'product_serial':
+          this.productSerial(data)
+          break
         case 'add':
           this.addHandler()
           break

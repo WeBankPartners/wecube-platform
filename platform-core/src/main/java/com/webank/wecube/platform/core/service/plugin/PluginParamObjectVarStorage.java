@@ -10,6 +10,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.webank.wecube.platform.core.commons.WecubeCoreException;
 import com.webank.wecube.platform.core.entity.plugin.CoreObjectListVar;
 import com.webank.wecube.platform.core.entity.plugin.CoreObjectMeta;
 import com.webank.wecube.platform.core.entity.plugin.CoreObjectPropertyMeta;
@@ -88,8 +89,8 @@ public class PluginParamObjectVarStorage extends AbstractPluginParamObjectServic
     private void assembleCoreObjectVar(CoreObjectVar objectVar) {
         if (objectVar.getObjectMeta() == null) {
             CoreObjectMeta objectMeta = coreObjectMetaMapper.selectByPrimaryKey(objectVar.getObjectMetaId());
-            CoreObjectMeta assembledObjectMeta = pluginParamObjectMetaStorage
-                    .fetchAssembledCoreObjectMeta(objectMeta.getPackageName(), objectMeta.getName(), objectMeta.getConfigId());
+            CoreObjectMeta assembledObjectMeta = pluginParamObjectMetaStorage.fetchAssembledCoreObjectMeta(
+                    objectMeta.getPackageName(), objectMeta.getName(), objectMeta.getConfigId());
             objectVar.setObjectMeta(assembledObjectMeta);
         }
 
@@ -140,19 +141,22 @@ public class PluginParamObjectVarStorage extends AbstractPluginParamObjectServic
 
     private Object fetchDataValueObject(CoreObjectPropertyVar propertyVar, CoreObjectPropertyMeta propertyMeta) {
         String dataType = propertyMeta.getDataType();
-        if (isBasicDataType(dataType)) {
-            return convertStringToBasicPropertyValue(dataType, propertyVar.getDataValue());
-        }
-
-        if (isListDataType(dataType)) {
+        if (propertyMeta.isMultipleData()) {
             return fetchListPropertyVarAsCoreObjectListVars(propertyVar, propertyMeta);
+        } else {
+            if (isBasicDataType(dataType)) {
+                return convertStringToBasicPropertyValue(dataType, propertyVar.getDataValue());
+            }
+
+            if (isObjectDataType(dataType)) {
+                return fetchObjectPropertyVarAsCoreObjectVar(propertyVar, propertyMeta);
+            }
+
+            String errMsg = String.format("Unsupported data type:%s", dataType);
+            log.error(errMsg);
+            throw new WecubeCoreException(errMsg);
         }
 
-        if (isObjectDataType(dataType)) {
-            return fetchObjectPropertyVarAsCoreObjectVar(propertyVar, propertyMeta);
-        }
-
-        return null;
     }
 
     private CoreObjectVar fetchObjectPropertyVarAsCoreObjectVar(CoreObjectPropertyVar propertyVar,
@@ -188,20 +192,20 @@ public class PluginParamObjectVarStorage extends AbstractPluginParamObjectServic
         Object rawObjectValue = fetchListVarRawObjectValue(listVar, propertyVar, propertyMeta);
         listVar.setRawObjectValue(rawObjectValue);
     }
-    
+
     private Object fetchListVarRawObjectValue(CoreObjectListVar listVar, CoreObjectPropertyVar propertyVar,
-            CoreObjectPropertyMeta propertyMeta){
+            CoreObjectPropertyMeta propertyMeta) {
         String dataType = listVar.getDataType();
-        if(isBasicDataType(dataType)){
-            return convertStringToBasicPropertyValue(dataType,listVar.getDataValue());
+        if (isBasicDataType(dataType)) {
+            return convertStringToBasicPropertyValue(dataType, listVar.getDataValue());
         }
-        
-        if(isObjectDataType(dataType)){
+
+        if (isObjectDataType(dataType)) {
             CoreObjectMeta refObjectMeta = propertyMeta.getRefObjectMeta();
             CoreObjectVar objectVar = doFetchCoreObjectVar(listVar.getDataValue(), refObjectMeta);
             return objectVar;
         }
-        
+
         return null;
     }
 
@@ -229,53 +233,11 @@ public class PluginParamObjectVarStorage extends AbstractPluginParamObjectServic
             return;
         }
 
-        if (isListDataType(propertyVar.getDataType())) {
-            storeListCorePropertyVar(propertyVar, objectVar);
-        }
-
         if (isObjectDataType(propertyVar.getDataType())) {
             storeObjectCorePropertyVar(propertyVar, objectVar);
         }
     }
 
-    private void storeListCorePropertyVar(CoreObjectPropertyVar propertyVar, CoreObjectVar parentObjectVar) {
-        propertyVar.setCreatedBy(WorkflowConstants.DEFAULT_USER);
-        propertyVar.setCreatedTime(new Date());
-
-        coreObjectPropertyVarMapper.insert(propertyVar);
-
-//        List<CoreObjectListVar> listVars = (List<CoreObjectListVar>) propertyVar.getDataValueObject();
-//
-//        if (listVars == null || listVars.isEmpty()) {
-//            log.debug("there is not list vars to store for property {}", propertyVar.getId());
-//            return;
-//        }
-//
-//        for (CoreObjectListVar listVar : listVars) {
-//            storeCoreObjectListVar(listVar, propertyVar);
-//        }
-    }
-
-//    private void storeCoreObjectListVar(CoreObjectListVar listVar, CoreObjectPropertyVar propertyVar) {
-//        listVar.setCreatedBy(WorkflowConstants.DEFAULT_USER);
-//        listVar.setCreatedTime(new Date());
-//        coreObjectListVarMapper.insert(listVar);
-//
-//        if (isBasicDataType(listVar.getDataType())) {
-//            return;
-//        }
-//
-//        if (isListDataType(listVar.getDataType())) {
-//            //
-//            log.debug("such data type {} is not currently supported.", listVar.getDataType());
-//            return;
-//        }
-//
-//        if (isObjectDataType(listVar.getDataType())) {
-//            CoreObjectVar objectVar = (CoreObjectVar) listVar.getRawObjectValue();
-//            storeCoreObjectVar(objectVar);
-//        }
-//    }
 
     private void storeObjectCorePropertyVar(CoreObjectPropertyVar propertyVar, CoreObjectVar parentObjectVar) {
 

@@ -17,6 +17,9 @@ public class PluginConfigInterfaceParameterDto {
     private String description;
 
     private String mappingValue;
+    
+    private String multiple;
+    private String refObjectName;
 
     private CoreObjectMetaDto refObjectMeta;
 
@@ -128,5 +131,23 @@ public class PluginConfigInterfaceParameterDto {
     public void setMappingValue(String mappingValue) {
         this.mappingValue = mappingValue;
     }
+
+    public String getMultiple() {
+        return multiple;
+    }
+
+    public void setMultiple(String multiple) {
+        this.multiple = multiple;
+    }
+
+    public String getRefObjectName() {
+        return refObjectName;
+    }
+
+    public void setRefObjectName(String refObjectName) {
+        this.refObjectName = refObjectName;
+    }
+    
+    
 
 }

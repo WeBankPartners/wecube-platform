@@ -71,6 +71,8 @@ public class TaskNodeDefInfoEntity {
     private String dynamicBind;
 
     private String preCheck;
+    
+    private String prevCtxNodeIds;
 
     public String getId() {
         return id;
@@ -287,5 +289,15 @@ public class TaskNodeDefInfoEntity {
     public void setPreCheck(String preCheck) {
         this.preCheck = preCheck;
     }
+
+    public String getPrevCtxNodeIds() {
+        return prevCtxNodeIds;
+    }
+
+    public void setPrevCtxNodeIds(String prevCtxNodeIds) {
+        this.prevCtxNodeIds = prevCtxNodeIds;
+    }
+    
+    
 
 }

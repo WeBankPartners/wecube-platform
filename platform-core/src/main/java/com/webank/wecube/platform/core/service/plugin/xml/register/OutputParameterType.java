@@ -56,6 +56,12 @@ public class OutputParameterType {
 
     @XmlAttribute(name = "mappingValue")
     protected String mappingValue;
+    
+    @XmlAttribute(name = "refObjectName")
+    protected String refObjectName;
+    
+    @XmlAttribute(name = "multiple")
+    protected String multiple;
 
     /**
      * Gets the value of the value property.
@@ -181,5 +187,23 @@ public class OutputParameterType {
     public void setMappingValue(String mappingValue) {
         this.mappingValue = mappingValue;
     }
+
+    public String getRefObjectName() {
+        return refObjectName;
+    }
+
+    public void setRefObjectName(String refObjectName) {
+        this.refObjectName = refObjectName;
+    }
+
+    public String getMultiple() {
+        return multiple;
+    }
+
+    public void setMultiple(String multiple) {
+        this.multiple = multiple;
+    }
+    
+    
 
 }

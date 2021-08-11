@@ -27,6 +27,7 @@ import com.webank.wecube.platform.core.support.plugin.dto.DynamicEntityValueDto;
 import com.webank.wecube.platform.core.support.plugin.dto.TaskFormDataEntityDto;
 import com.webank.wecube.platform.core.support.plugin.dto.TaskFormItemValueDto;
 import com.webank.wecube.platform.core.support.plugin.dto.TaskFormValueDto;
+import com.webank.wecube.platform.core.utils.Constants;
 import com.webank.wecube.platform.workflow.WorkflowConstants;
 
 /**
@@ -414,7 +415,7 @@ public class AsyncPluginInvocationService extends AbstractPluginInvocationServic
         String errorCodeOfSingleRecord = (String) outputParameterMap.get(PLUGIN_RESULT_CODE_PARTIALLY_KEY);
         if (StringUtils.isNotBlank(errorCodeOfSingleRecord)
                 && PLUGIN_RESULT_CODE_PARTIALLY_FAIL.equalsIgnoreCase(errorCodeOfSingleRecord)) {
-            log.info("such request is partially failed for request:{} and {}:{}", ctx.getRequestId(),
+            log.info("Such request is partially failed for request:{} and {}:{}", ctx.getRequestId(),
                     CALLBACK_PARAMETER_KEY, nodeEntityId);
 
             // TODO to store status
@@ -495,7 +496,7 @@ public class AsyncPluginInvocationService extends AbstractPluginInvocationServic
             String paramDataType = null;
             boolean isSensitiveData = false;
             if (p == null) {
-                paramDataType = DATA_TYPE_STRING;
+                paramDataType = Constants.DATA_TYPE_STRING;
             } else {
                 paramDataType = p.getDataType();
                 isSensitiveData = (IS_SENSITIVE_ATTR.equalsIgnoreCase(p.getSensitiveData()));

@@ -16,6 +16,12 @@
             <FormItem prop="propertyName" label="description">
               <span>{{ attr.description }}</span>
             </FormItem>
+            <FormItem prop="propertyName" label="mandatory">
+              <span>{{ attr.mandatory }}</span>
+            </FormItem>
+            <FormItem prop="propertyName" label="multiple">
+              <span>{{ attr.multiple }}</span>
+            </FormItem>
             <FormItem v-if="attr.dataType === 'ref'" prop="propertyName" label="refEntityName">
               <span>{{ `[${attr.refPackageName}]${attr.refEntityName}.${attr.refAttributeName}` }}</span>
             </FormItem>
