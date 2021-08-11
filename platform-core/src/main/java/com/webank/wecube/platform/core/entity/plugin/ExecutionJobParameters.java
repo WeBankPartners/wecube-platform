@@ -22,10 +22,22 @@ public class ExecutionJobParameters {
     private String constantValue;
 
     private String value;
+    
+    //#2233
+    private String multiple;
+    
+    //#2233
+    private String refObjectName;
+    
+    private transient Object rawValue;
 
     private transient ExecutionJobs executionJob;
 
     private transient PluginConfigInterfaceParameterDto parameterDefinition;
+    
+    private transient CoreObjectMeta refObjectMeta;
+    
+    private transient PluginConfigInterfaces pluginConfigInterfaces;
 
     public ExecutionJobParameters() {
 
@@ -138,5 +150,47 @@ public class ExecutionJobParameters {
     public void setParameterDefinition(PluginConfigInterfaceParameterDto parameterDefinition) {
         this.parameterDefinition = parameterDefinition;
     }
+
+    public String getMultiple() {
+        return multiple;
+    }
+
+    public void setMultiple(String multiple) {
+        this.multiple = multiple;
+    }
+
+    public String getRefObjectName() {
+        return refObjectName;
+    }
+
+    public void setRefObjectName(String refObjectName) {
+        this.refObjectName = refObjectName;
+    }
+
+    public Object getRawValue() {
+        return rawValue;
+    }
+
+    public void setRawValue(Object rawValue) {
+        this.rawValue = rawValue;
+    }
+
+    public CoreObjectMeta getRefObjectMeta() {
+        return refObjectMeta;
+    }
+
+    public void setRefObjectMeta(CoreObjectMeta refObjectMeta) {
+        this.refObjectMeta = refObjectMeta;
+    }
+
+    public PluginConfigInterfaces getPluginConfigInterfaces() {
+        return pluginConfigInterfaces;
+    }
+
+    public void setPluginConfigInterfaces(PluginConfigInterfaces pluginConfigInterfaces) {
+        this.pluginConfigInterfaces = pluginConfigInterfaces;
+    }
+    
+    
 
 }
