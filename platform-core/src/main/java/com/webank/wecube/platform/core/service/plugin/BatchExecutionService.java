@@ -45,6 +45,7 @@ import com.webank.wecube.platform.core.dto.plugin.PluginConfigInterfaceParameter
 import com.webank.wecube.platform.core.dto.plugin.ResourceDataDto;
 import com.webank.wecube.platform.core.entity.plugin.BatchExecutionJobs;
 import com.webank.wecube.platform.core.entity.plugin.CoreObjectMeta;
+import com.webank.wecube.platform.core.entity.plugin.CoreObjectVar;
 import com.webank.wecube.platform.core.entity.plugin.ExecutionJobParameters;
 import com.webank.wecube.platform.core.entity.plugin.ExecutionJobs;
 import com.webank.wecube.platform.core.entity.plugin.PluginConfigInterfaceParameters;
@@ -812,7 +813,61 @@ public class BatchExecutionService {
 
     private void calculateInputParamValueFromObject(ExecutionJobs executionJob, ExecutionJobParameters parameter,
             String pluginPackageName) {
-        // TODO
+        CoreObjectVarCalculationContext calCtx = new CoreObjectVarCalculationContext();
+        calCtx.setExternalCacheMap(null);
+        calCtx.setProcDefInfo(null);
+        calCtx.setProcInstInfo(null);
+        calCtx.setRootEntityDataId(executionJob.getRootEntityId());
+        calCtx.setRootEntityFullDataId(null);
+        calCtx.setRootEntityTypeId(null);
+        calCtx.setTaskNodeDefInfo(null);
+        calCtx.setTaskNodeInstInfo(null);
+
+        CoreObjectMeta objectMeta = parameter.getRefObjectMeta();
+
+        // store objects here
+        List<CoreObjectVar> objectVars = pluginParamObjectVarCalculator.calculateCoreObjectVarList(objectMeta, calCtx,
+                parameter.getMappingEntityExpression());
+
+        if (objectVars == null || objectVars.isEmpty()) {
+            log.info("Got empty object values for : {}", objectMeta.getName());
+            return;
+        }
+        
+        List<Object> objectVals = new ArrayList<>();
+        //TODO
+
+        if (Constants.DATA_MULTIPLE.equalsIgnoreCase(parameter.getMultiple())) {
+            for (CoreObjectVar objectVar : objectVars) {
+                PluginParamObject paramObject = pluginParamObjectVarAssembleService.marshalPluginParamObject(objectVar,
+                        calCtx);
+                objectVals.add(paramObject);
+
+                pluginParamObjectVarStorageService.storeCoreObjectVar(objectVar);
+            }
+
+            return;
+        } else {
+
+            if (objectVars.size() > 1) {
+                String errMsg = String.format("Required data type %s but %s objects returned.", parameter.getDataType(),
+                        objectVars.size());
+                log.error(errMsg);
+
+                throw new WecubeCoreException(errMsg);
+            }
+
+            CoreObjectVar objectVar = objectVars.get(0);
+
+            PluginParamObject paramObject = pluginParamObjectVarAssembleService.marshalPluginParamObject(objectVar,
+                    calCtx);
+
+            objectVals.add(paramObject);
+
+            pluginParamObjectVarStorageService.storeCoreObjectVar(objectVar);
+
+            return;
+        }
     }
 
     private void calculateInputParamValueFromSystemVariable(ExecutionJobs executionJob,
