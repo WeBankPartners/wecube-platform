@@ -2082,12 +2082,38 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
                 return;
             }
             
-            List<Object> rawObjectVals = pluginParamObjectVarCalculator.calculateRawObjectVarList(objectMeta, calCtx, param.getMappingEntityExpression());
-            if (Constants.DATA_MULTIPLE.equalsIgnoreCase(param.getMultiple())) {
-                objectVals.addAll(rawObjectVals);
+            String entityAttrName = null;
+            List<EntityQueryExprNodeInfo> currExprNodeInfos = this.entityQueryExpressionParser
+                    .parse(param.getMappingEntityExpression());
+            if(currExprNodeInfos == null || currExprNodeInfos.isEmpty()) {
+                //nothing
             }else {
-                if(!rawObjectVals.isEmpty()) {
-                    objectVals.add(rawObjectVals.get(0));
+                EntityQueryExprNodeInfo leafNode = currExprNodeInfos.get(currExprNodeInfos.size() - 1);
+                entityAttrName = leafNode.getQueryAttrName();
+            }
+            List<Map<String, Object>> rawObjectMapVals = pluginParamObjectVarCalculator.calculateRawObjectVarList(objectMeta, calCtx, param.getMappingEntityExpression());
+            if (Constants.DATA_MULTIPLE.equalsIgnoreCase(param.getMultiple())) {
+                for(Map<String, Object> recordMap : rawObjectMapVals) {
+                    if(StringUtils.isBlank(entityAttrName)) {
+                        objectVals.add(recordMap);
+                    }else {
+                        Object objVal = recordMap.get(entityAttrName);
+                        if(objVal != null) {
+                            objectVals.add(objVal);
+                        }
+                    }
+                }
+            }else {
+                if(!rawObjectMapVals.isEmpty()) {
+                    Map<String, Object> recordMap = rawObjectMapVals.get(0);
+                    if(StringUtils.isBlank(entityAttrName)) {
+                        objectVals.add(recordMap);
+                    }else {
+                        Object objVal = recordMap.get(entityAttrName);
+                        if(objVal != null) {
+                            objectVals.add(objVal);
+                        }
+                    }
                 }
             }
             
