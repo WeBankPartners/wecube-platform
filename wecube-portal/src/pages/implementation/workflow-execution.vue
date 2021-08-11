@@ -1645,6 +1645,9 @@ export default {
       const { status, data } = await getTaskNodeInstanceExecBindings(payload)
       if (status === 'OK') {
         this.retryTartetModels = data
+        this.retryTartetModels.forEach(item => {
+          item._checked = false
+        })
         this.retryCatchNodeTableList = JSON.parse(JSON.stringify(data))
         this.retryCatchNodeTableList.forEach((tm, index) => {
           tm._checked = false
@@ -1658,6 +1661,10 @@ export default {
             if (find.errorCode === '1') {
               tm.confirmToken = ''
               retryTartetModelsSingle.status = 'Error'
+            }
+            if (find.errorCode === '0') {
+              tm.confirmToken = ''
+              retryTartetModelsSingle.status = ''
             }
             retryTartetModelsSingle.message = find.errorMessage
           } else {
