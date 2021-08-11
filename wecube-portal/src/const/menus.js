@@ -65,6 +65,12 @@ export const MENUS = [
     link: '/admin/resources'
   },
   {
+    code: 'ADMIN_CERTIFICATION',
+    cnName: '授权管理',
+    enName: 'Certification',
+    link: '/admin/certification'
+  },
+  {
     code: 'IMPLEMENTATION_WORKFLOW_EXECUTION',
     cnName: '编排执行',
     enName: 'Workflow Execution',

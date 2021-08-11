@@ -7,15 +7,17 @@ import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
 
+
 @XmlRootElement(name = "package", namespace = "")
 @XmlAccessorType(XmlAccessType.FIELD)
-@XmlType(name = "packageType", propOrder = { "name", "version", "plugins", "systemParameters" })
+@XmlType(name = "packageType", propOrder = { "name", "version", "paramObjects", "plugins", "systemParameters" })
 public class PluginPackageType {
     @XmlAttribute(name = "name")
     protected String name;
     @XmlAttribute(name = "version")
     protected String version;
-
+    @XmlElement(name = "paramObjects", required = false)
+    protected ParamObjectsType paramObjects;
     @XmlElement(name = "plugins", required = false)
     protected PluginConfigsType plugins;
     @XmlElement(name = "systemParameters", required = false)
@@ -53,4 +55,13 @@ public class PluginPackageType {
         this.systemParameters = systemParameters;
     }
 
+    public ParamObjectsType getParamObjects() {
+        return paramObjects;
+    }
+
+    public void setParamObjects(ParamObjectsType paramObjects) {
+        this.paramObjects = paramObjects;
+    }
+
+    
 }
