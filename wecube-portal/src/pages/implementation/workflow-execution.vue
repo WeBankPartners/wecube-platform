@@ -473,7 +473,22 @@ export default {
         },
         {
           title: 'Message',
-          key: 'message'
+          key: 'message',
+          render: (h, params) => {
+            let data = {
+              props: {
+                content: params.row.message || '',
+                delay: '500',
+                placement: 'right',
+                'max-width': '350'
+              }
+            }
+            return (
+              <Tooltip {...data}>
+                <div style="text-overflow: ellipsis;overflow: hidden;white-space: nowrap;">{params.row.message}</div>
+              </Tooltip>
+            )
+          }
         }
       ],
       targetModelColums: [
@@ -703,11 +718,14 @@ export default {
       let tem = []
       this.retryTartetModels.forEach(d => {
         const f = this.retryCatchNodeTableList.find(c => c.id === d.id)
-        if (f) {
-          tem.push({ ...d, bound: 'Y', confirmToken: f.confirmToken })
-        } else {
-          tem.push({ ...d, bound: 'N', confirmToken: f.confirmToken })
-        }
+        tem.push({ ...d, bound: f.bound, confirmToken: f.confirmToken })
+        // if (typeof (f) !== 'undefined') {
+        //   console.log(1)
+        //   tem.push({ ...d, bound: 'Y', confirmToken: f.confirmToken })
+        // } else {
+        //   console.log(2)
+        //   tem.push({ ...d, bound: 'N', confirmToken: '' })
+        // }
       })
       const payload = {
         nodeInstId: found.id,
@@ -782,37 +800,48 @@ export default {
       }
     },
     retrySingleSelect (selection, row) {
-      this.retryCatchNodeTableList = this.retryCatchNodeTableList.concat(row)
+      let find = this.retryCatchNodeTableList.find(item => item.id === row.id)
+      find.bound = 'Y'
+      // console.log(selection, row, this.retryCatchNodeTableList)
+      // this.retryCatchNodeTableList = this.retryCatchNodeTableList.concat(row)
     },
     retrySingleCancel (selection, row) {
-      const index = this.retryCatchNodeTableList.findIndex(cn => {
+      let find = this.retryCatchNodeTableList.find(cn => {
         return cn.id === row.id
       })
-      this.retryCatchNodeTableList.splice(index, 1)
+      // const find = this.retryCatchNodeTableList.find(item => item.id === row.id)
+      find.bound = 'N'
+      // this.retryCatchNodeTableList.splice(index, 1)
     },
     retrySelectAll (selection) {
-      let temp = []
-      this.retryCatchNodeTableList.forEach(cntl => {
-        temp.push(cntl.id)
+      this.retryCatchNodeTableList.forEach(item => {
+        item.bound = 'Y'
       })
-      selection.forEach(se => {
-        if (!temp.includes(se.id)) {
-          this.retryCatchNodeTableList.push(se)
-        }
-      })
+      // let temp = []
+      // this.retryCatchNodeTableList.forEach(cntl => {
+      //   temp.push(cntl.id)
+      // })
+      // selection.forEach(se => {
+      //   if (!temp.includes(se.id)) {
+      //     this.retryCatchNodeTableList.push(se)
+      //   }
+      // })
     },
     retrySelectAllCancel () {
-      let temp = []
-      this.retryTartetModels.forEach(tm => {
-        temp.push(tm.id)
+      this.retryCatchNodeTableList.forEach(item => {
+        item.bound = 'N'
       })
-      if (this.retryTableFilterParam) {
-        this.retryCatchNodeTableList = this.retryCatchNodeTableList.filter(item => {
-          return !temp.includes(item.id)
-        })
-      } else {
-        this.retryCatchNodeTableList = []
-      }
+      // let temp = []
+      // this.retryTartetModels.forEach(tm => {
+      //   temp.push(tm.id)
+      // })
+      // if (this.retryTableFilterParam) {
+      //   this.retryCatchNodeTableList = this.retryCatchNodeTableList.filter(item => {
+      //     return !temp.includes(item.id)
+      //   })
+      // } else {
+      //   this.retryCatchNodeTableList = []
+      // }
     },
     allFlowNodesSingleSelect (selection, row) {
       this.selectedFlowNodesModelData = this.selectedFlowNodesModelData.concat(row)
@@ -1616,6 +1645,9 @@ export default {
       const { status, data } = await getTaskNodeInstanceExecBindings(payload)
       if (status === 'OK') {
         this.retryTartetModels = data
+        this.retryTartetModels.forEach(item => {
+          item._checked = false
+        })
         this.retryCatchNodeTableList = JSON.parse(JSON.stringify(data))
         this.retryCatchNodeTableList.forEach((tm, index) => {
           tm._checked = false
@@ -1630,15 +1662,19 @@ export default {
               tm.confirmToken = ''
               retryTartetModelsSingle.status = 'Error'
             }
+            if (find.errorCode === '0') {
+              tm.confirmToken = ''
+              retryTartetModelsSingle.status = ''
+            }
             retryTartetModelsSingle.message = find.errorMessage
           } else {
             tm.confirmToken = ''
             retryTartetModelsSingle.status = ''
             retryTartetModelsSingle.message = ''
           }
-          this.retryCatchNodeTableList.forEach(cn => {
+          this.retryTartetModels.forEach(cn => {
             if (tm.id === cn.id && tm.bound === 'Y' && tm.confirmToken === '') {
-              tm._checked = true
+              cn._checked = true
             }
           })
         })
@@ -1651,8 +1687,8 @@ export default {
         const errorInfo = data.requestObjects.map(item => {
           return {
             id: item.callbackParameter,
-            errorMessage: item.outputs[0].errorMessage,
-            errorCode: item.outputs[0].errorCode
+            errorMessage: (item.outputs[0] && item.outputs[0].errorMessage) || '',
+            errorCode: (item.outputs[0] && item.outputs[0].errorCode) || ''
           }
         })
         return errorInfo

@@ -60,6 +60,12 @@ public class AttributeType {
     protected String refEntity;
     @XmlAttribute(name = "ref")
     protected String ref;
+    
+    @XmlAttribute(name = "required")
+    protected String required;
+    
+    @XmlAttribute(name = "multiple")
+    protected String multiple;
 
     /**
      * Gets the value of the value property.
@@ -253,4 +259,19 @@ public class AttributeType {
         this.ref = value;
     }
 
+    public String getMultiple() {
+        return multiple;
+    }
+
+    public void setMultiple(String multiple) {
+        this.multiple = multiple;
+    }
+
+    public String getRequired() {
+        return required;
+    }
+
+    public void setRequired(String required) {
+        this.required = required;
+    }
 }

@@ -8,6 +8,7 @@ import static com.webank.wecube.platform.core.utils.Constants.MAPPING_TYPE_ENTIT
 import static com.webank.wecube.platform.core.utils.Constants.MAPPING_TYPE_OBJECT;
 import static com.webank.wecube.platform.core.utils.Constants.MAPPING_TYPE_SYSTEM_VARIABLE;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -25,11 +26,13 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
 import com.webank.wecube.platform.core.dto.plugin.ItsDangerConfirmResultDto;
 import com.webank.wecube.platform.core.entity.plugin.CoreObjectMeta;
+import com.webank.wecube.platform.core.entity.plugin.CoreObjectPropertyMeta;
 import com.webank.wecube.platform.core.entity.plugin.CoreObjectVar;
 import com.webank.wecube.platform.core.entity.plugin.PluginConfigInterfaceParameters;
 import com.webank.wecube.platform.core.entity.plugin.PluginConfigInterfaces;
 import com.webank.wecube.platform.core.entity.plugin.PluginConfigs;
 import com.webank.wecube.platform.core.entity.plugin.PluginInstances;
+import com.webank.wecube.platform.core.entity.plugin.PluginPackageAttributes;
 import com.webank.wecube.platform.core.entity.plugin.PluginPackages;
 import com.webank.wecube.platform.core.entity.plugin.SystemVariables;
 import com.webank.wecube.platform.core.entity.workflow.ExtraTaskEntity;
@@ -42,11 +45,16 @@ import com.webank.wecube.platform.core.entity.workflow.TaskNodeExecParamEntity;
 import com.webank.wecube.platform.core.entity.workflow.TaskNodeExecRequestEntity;
 import com.webank.wecube.platform.core.entity.workflow.TaskNodeInstInfoEntity;
 import com.webank.wecube.platform.core.entity.workflow.TaskNodeParamEntity;
+import com.webank.wecube.platform.core.model.workflow.BoundTaskNodeExecParamWrapper;
+import com.webank.wecube.platform.core.model.workflow.ContextCalculationParam;
+import com.webank.wecube.platform.core.model.workflow.ContextCalculationParamCollection;
 import com.webank.wecube.platform.core.model.workflow.DmeOutputParamAttr;
 import com.webank.wecube.platform.core.model.workflow.InputParamAttr;
 import com.webank.wecube.platform.core.model.workflow.InputParamObject;
 import com.webank.wecube.platform.core.model.workflow.PluginInvocationCommand;
 import com.webank.wecube.platform.core.model.workflow.PluginInvocationResult;
+import com.webank.wecube.platform.core.model.workflow.ProcExecBindingKey;
+import com.webank.wecube.platform.core.model.workflow.ProcExecBindingKeyLink;
 import com.webank.wecube.platform.core.model.workflow.WorkflowInstCreationContext;
 import com.webank.wecube.platform.core.service.dme.EntityDataAttr;
 import com.webank.wecube.platform.core.service.dme.EntityDataRecord;
@@ -58,6 +66,7 @@ import com.webank.wecube.platform.core.service.dme.StandardEntityDataNode;
 import com.webank.wecube.platform.core.service.dme.StandardEntityOperationResponseDto;
 import com.webank.wecube.platform.core.service.dme.StandardEntityOperationRestClient;
 import com.webank.wecube.platform.core.service.plugin.CoreObjectVarCalculationContext;
+import com.webank.wecube.platform.core.service.plugin.PluginPackageDataModelService;
 import com.webank.wecube.platform.core.service.plugin.PluginParamObject;
 import com.webank.wecube.platform.core.service.plugin.PluginParamObjectVarStorage;
 import com.webank.wecube.platform.core.service.workflow.PluginInvocationProcessor.PluginInterfaceInvocationContext;
@@ -71,6 +80,7 @@ import com.webank.wecube.platform.core.support.plugin.dto.TaskFormItemValueDto;
 import com.webank.wecube.platform.core.support.plugin.dto.TaskFormMetaDto;
 import com.webank.wecube.platform.core.support.plugin.dto.TaskFormValueDto;
 import com.webank.wecube.platform.core.utils.Constants;
+import com.webank.wecube.platform.core.utils.JsonUtils;
 import com.webank.wecube.platform.workflow.WorkflowConstants;
 import com.webank.wecube.platform.workflow.commons.LocalIdGenerator;
 
@@ -84,6 +94,9 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 
     @Autowired
     protected PluginParamObjectVarStorage pluginParamObjectVarStorageService;
+
+    @Autowired
+    protected PluginPackageDataModelService pluginPackageDataModelService;
 
     /**
      * 
@@ -140,22 +153,32 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
             return;
         }
 
-        PluginInvocationResult result = new PluginInvocationResult()
-                .parsePluginInvocationCommand(ctx.getPluginInvocationCommand());
+        
         try {
+            
             handleResultData(pluginInvocationResult, ctx, resultData);
+            PluginInvocationResult result = new PluginInvocationResult()
+                    .parsePluginInvocationCommand(ctx.getPluginInvocationCommand());
             result.setResultCode(RESULT_CODE_OK);
             pluginInvocationResultService.responsePluginInterfaceInvocation(result);
             handlePluginInterfaceInvocationSuccess(pluginInvocationResult, ctx);
 
             return;
         } catch (Exception e) {
-            log.warn("result data handling failed", e);
+            PluginInvocationResult result = new PluginInvocationResult()
+                    .parsePluginInvocationCommand(ctx.getPluginInvocationCommand());
+            String errMsg = String.format("result data handling failed :{}", ctx.getPluginInvocationCommand());
+            log.warn(errMsg, e);
             result.setResultCode(RESULT_CODE_ERR);
-            pluginInvocationResultService.responsePluginInterfaceInvocation(result);
-            String errMsg = e.getMessage() == null ? "error" : trimWithMaxLength(e.getMessage());
-            handlePluginInterfaceInvocationFailure(pluginInvocationResult, ctx, "5002",
-                    "result data handling failed:" + errMsg);
+
+            try {
+                pluginInvocationResultService.responsePluginInterfaceInvocation(result);
+                String pluginErrMsg = (e.getMessage() == null ? "error" : trimWithMaxLength(e.getMessage()));
+                handlePluginInterfaceInvocationFailure(pluginInvocationResult, ctx, "5002",
+                        "result data handling failed:" + pluginErrMsg);
+            } catch (Exception e1) {
+                log.error("errors while process plugin result.{} ", ctx.getPluginInvocationCommand(), e1);
+            }
         }
 
         return;
@@ -454,13 +477,19 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
                 taskNodeInstEntity, procDefInfoEntity, taskNodeDefEntity, cmd, pluginConfigInterface,
                 nodeObjectBindings);
 
+        int reqObjectAmount = 0;
+        if (inputParamObjs != null) {
+            reqObjectAmount = inputParamObjs.size();
+        }
+
         PluginInterfaceInvocationContext ctx = new PluginInterfaceInvocationContext() //
                 .withNodeObjectBindings(nodeObjectBindings) //
                 .withPluginConfigInterface(pluginConfigInterface) //
                 .withProcInstEntity(procInstEntity) //
                 .withTaskNodeInstEntity(taskNodeInstEntity)//
                 .withTaskNodeDefEntity(taskNodeDefEntity)//
-                .withPluginInvocationCommand(cmd);
+                .withPluginInvocationCommand(cmd)//
+                .withReqObjectAmount(reqObjectAmount);
 
         parsePluginInstance(ctx);
 
@@ -514,12 +543,14 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 
             InputParamAttr inputAttr = new InputParamAttr();
             inputAttr.setName(paramName);
-            inputAttr.setType(paramType);
+            inputAttr.setDataType(paramType);
             inputAttr.setSensitive(IS_SENSITIVE_ATTR.equalsIgnoreCase(param.getSensitiveData()));
+            inputAttr.setParamDef(param);
 
             List<Object> objectVals = new ArrayList<Object>();
             //
             inputAttr.setMapType(mappingType);
+            inputAttr.setMultiple(param.getMultiple());
             boolean isFieldRequired = isFieldRequired(param.getRequired());
 
             if (PARAM_NAME_TASK_FORM_INPUT.equals(param.getName())) {
@@ -708,7 +739,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
                     if (attrValueDto != null) {
                         taskFormItemValueDto.setAttrValue(attrValueDto.getDataValue());
                     } else {
-                        // TODO fetch form cmdb
+                        // fetch form cmdb?
                     }
                 }
 
@@ -745,7 +776,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
                 }
                 nodeBindObjectIds.add(bindId);
             }
-            // TODO to tidy entity name here
+            // to tidy entity name here?
         }
 
         return nodeBindObjectIds;
@@ -796,13 +827,20 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
         PluginConfigInterfaces pluginConfigInterface = retrievePluginConfigInterface(taskNodeDefEntity,
                 cmd.getNodeId());
 
-        List<InputParamObject> inputParamObjs = calculateInputParamObjects(procDefInfoEntity, procInstEntity,
-                taskNodeInstEntity, taskNodeDefEntity, nodeObjectBindings, pluginConfigInterface, externalCacheMap);
+        List<InputParamObject> inputParamObjs = new ArrayList<>();
 
-        if ((inputParamObjs == null || inputParamObjs.isEmpty())
-                && (nodeObjectBindings == null || nodeObjectBindings.isEmpty())) {
-            inputParamObjs = tryCalculateInputParamObjectsFromSystem(procInstEntity, taskNodeInstEntity,
-                    taskNodeDefEntity, pluginConfigInterface);
+        if (nodeObjectBindings == null || nodeObjectBindings.isEmpty()) {
+            // #2233
+            inputParamObjs = tryCalculateInputParamObjectsWithoutBindings(procDefInfoEntity, procInstEntity,
+                    taskNodeInstEntity, taskNodeDefEntity, pluginConfigInterface);
+        } else {
+            inputParamObjs = tryCalculateInputParamObjectsWithBindings(procDefInfoEntity, procInstEntity,
+                    taskNodeInstEntity, taskNodeDefEntity, nodeObjectBindings, pluginConfigInterface, externalCacheMap);
+        }
+
+        int reqObjectAmount = 0;
+        if (inputParamObjs != null) {
+            reqObjectAmount = inputParamObjs.size();
         }
 
         PluginInterfaceInvocationContext ctx = new PluginInterfaceInvocationContext() //
@@ -811,7 +849,8 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
                 .withProcInstEntity(procInstEntity) //
                 .withTaskNodeInstEntity(taskNodeInstEntity)//
                 .withTaskNodeDefEntity(taskNodeDefEntity)//
-                .withPluginInvocationCommand(cmd);
+                .withPluginInvocationCommand(cmd)//
+                .withReqObjectAmount(reqObjectAmount);
 
         parsePluginInstance(ctx);
 
@@ -954,11 +993,8 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
             taskNodeBinding.setNodeDefId(taskNodeDef.getId());
             taskNodeBinding.setTaskNodeInstId(taskNodeInstEntity.getId());
             taskNodeBinding.setEntityDataName(String.valueOf(tn.getDisplayName()));
-            // taskNodeBinding.setOrderedNo(f.getOrderedNo());
             taskNodeBinding.setCreatedBy(WorkflowConstants.DEFAULT_USER);
             taskNodeBinding.setCreatedTime(new Date());
-
-            // procExecBindingRepository.insert(taskNodeBinding);
 
             entities.add(taskNodeBinding);
         }
@@ -967,156 +1003,792 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 
     }
 
-    private List<InputParamObject> tryCalculateInputParamObjectsFromContext(ProcInstInfoEntity procInstEntity,
-            TaskNodeInstInfoEntity currTaskNodeInstEntity, TaskNodeDefInfoEntity currTaskNodeDefEntity,
-            PluginConfigInterfaces pluginConfigInterface,
+    private List<InputParamObject> tryCalculateContextMappingInputParamsObjects(ProcDefInfoEntity procDefEntity,
+            ProcInstInfoEntity procInstEntity, TaskNodeInstInfoEntity currTaskNodeInstEntity,
+            TaskNodeDefInfoEntity currTaskNodeDefEntity, PluginConfigInterfaces pluginConfigInterface,
             Map<String, PluginConfigInterfaceParameters> contextConfigInterfaceInputParams) {
         log.info("try to calculate input parameter objects from context for taskNodeInstId={}",
                 currTaskNodeInstEntity.getId());
         String curTaskNodeDefId = currTaskNodeDefEntity.getId();
 
-        List<InputParamObject> paramObjects = new ArrayList<>();
+        ContextCalculationParamCollection contextCalculationParamCollection = new ContextCalculationParamCollection();
+        contextCalculationParamCollection.setProcDefInfoEntity(procDefEntity);
+        contextCalculationParamCollection.setProcInstEntity(procInstEntity);
+        contextCalculationParamCollection.setCurrTaskNodeDefEntity(currTaskNodeDefEntity);
+        contextCalculationParamCollection.setCurrTaskNodeInstEntity(currTaskNodeInstEntity);
+        contextCalculationParamCollection.setPluginConfigInterface(pluginConfigInterface);
 
         for (PluginConfigInterfaceParameters param : contextConfigInterfaceInputParams.values()) {
+
             String paramName = param.getName();
-            String paramType = param.getDataType();
+            String paramDataType = param.getDataType();
+
+            ContextCalculationParam contextCalculationParam = new ContextCalculationParam();
+            contextCalculationParam.setParam(param);
+            contextCalculationParam.setParamName(paramName);
+            contextCalculationParam.setParamDataType(paramDataType);
+            contextCalculationParam.setProcDefInfoEntity(procDefEntity);
+            contextCalculationParam.setProcInstEntity(procInstEntity);
+            contextCalculationParam.setCurrTaskNodeDefEntity(currTaskNodeDefEntity);
+            contextCalculationParam.setCurrTaskNodeInstEntity(currTaskNodeInstEntity);
+            contextCalculationParam.setPluginConfigInterface(pluginConfigInterface);
+
+            contextCalculationParamCollection.addContextCalculationParam(contextCalculationParam);
+
+            if (isObjectDataType(paramDataType)) {
+                log.info("Parameter:{} is object type.", paramName);
+                continue;
+            }
+
             TaskNodeParamEntity nodeParamEntity = taskNodeParamRepository
                     .selectOneByTaskNodeDefIdAndParamName(curTaskNodeDefId, paramName);
 
             if (nodeParamEntity == null) {
-                log.error("mapping type is {} but node parameter entity is null for {}", MAPPING_TYPE_CONTEXT,
+                log.info("mapping type is {} but node parameter entity is null for {}", MAPPING_TYPE_CONTEXT,
                         curTaskNodeDefId);
 
                 if (Constants.FIELD_REQUIRED.equalsIgnoreCase(param.getRequired())) {
-
-                    log.error("Task node parameter entity does not exist for {} {}", curTaskNodeDefId, paramName);
-                    // throw new WecubeCoreException("3170", "Task node
-                    // parameter entity does not exist.");
-                    continue;
+                    log.info("Task node parameter entity does not exist for {} {}", curTaskNodeDefId, paramName);
                 } else {
                     log.info("Task node parameter entity does not exist for {} {} but field not required.",
                             curTaskNodeDefId, paramName);
-                    continue;
                 }
+
+                continue;
             }
+
+            contextCalculationParam.setNodeParamEntity(nodeParamEntity);
 
             String bindNodeId = nodeParamEntity.getBindNodeId();
             String bindParamType = nodeParamEntity.getBindParamType();
             String bindParamName = nodeParamEntity.getBindParamName();
 
             // get by procInstId and nodeId
-            TaskNodeInstInfoEntity bindNodeInstEntity = taskNodeInstInfoRepository
+            TaskNodeInstInfoEntity boundNodeInstEntity = taskNodeInstInfoRepository
                     .selectOneByProcInstIdAndNodeId(procInstEntity.getId(), bindNodeId);
 
-            if (bindNodeInstEntity == null) {
+            if (boundNodeInstEntity == null) {
                 log.error("Bound node instance entity does not exist for {} {}", procInstEntity.getId(), bindNodeId);
                 throw new WecubeCoreException("3171", "Bound node instance entity does not exist.");
             }
 
-            List<TaskNodeExecRequestEntity> requestEntities = taskNodeExecRequestRepository
-                    .selectCurrentEntityByNodeInstId(bindNodeInstEntity.getId());
+            contextCalculationParam.setBoundNodeInstEntity(boundNodeInstEntity);
+            TaskNodeDefInfoEntity boundNodeDefEntity = taskNodeDefInfoRepository
+                    .selectByPrimaryKey(boundNodeInstEntity.getNodeDefId());
+            contextCalculationParam.setBoundNodeDefEntity(boundNodeDefEntity);
 
-            if (requestEntities == null || requestEntities.isEmpty()) {
-                log.error("cannot find request entity for {}", bindNodeInstEntity.getId());
-                // throw new WecubeCoreException("3172", "Bound request entity
-                // does not exist.");
+            List<TaskNodeExecRequestEntity> boundRequestEntities = taskNodeExecRequestRepository
+                    .selectCurrentEntityByNodeInstId(boundNodeInstEntity.getId());
+
+            if (boundRequestEntities == null || boundRequestEntities.isEmpty()) {
+                log.info("cannot find request entity for {}", boundNodeInstEntity.getId());
                 continue;
             }
 
-            if (requestEntities.size() > 1) {
-                log.warn("duplicated request entity found for {} ", bindNodeInstEntity.getId());
-                // throw new WecubeCoreException("3173", "Duplicated request
-                // entity
-                // found.");
+            if (boundRequestEntities.size() > 1) {
+                log.warn("duplicated request entity found for {}, total {} requests found.",
+                        boundNodeInstEntity.getId(), boundRequestEntities.size());
             }
 
-            TaskNodeExecRequestEntity requestEntity = requestEntities.get(0);
+            TaskNodeExecRequestEntity boundRequestEntity = boundRequestEntities.get(0);
+            contextCalculationParam.setBoundNodeRequestEntity(boundRequestEntity);
 
-            // TaskNodeDefInfoEntity bindNodeDefInfoEntity =
-            // taskNodeDefInfoRepository
-            // .selectByPrimaryKey(bindNodeInstEntity.getNodeDefId());
-
-            List<TaskNodeExecParamEntity> execParamEntities = taskNodeExecParamRepository
-                    .selectAllByRequestIdAndParamNameAndParamType(requestEntity.getReqId(), bindParamName,
+            List<TaskNodeExecParamEntity> boundExecParamEntities = taskNodeExecParamRepository
+                    .selectAllByRequestIdAndParamNameAndParamType(boundRequestEntity.getReqId(), bindParamName,
                             bindParamType);
 
-            if (execParamEntities == null || execParamEntities.isEmpty()) {
+            if (boundExecParamEntities == null || boundExecParamEntities.isEmpty()) {
                 if (FIELD_REQUIRED.equals(param.getRequired())) {
-                    log.warn("parameter entity does not exist but such plugin parameter is mandatory for {} {}",
+                    log.info("parameter entity does not exist but such plugin parameter is mandatory for {} {}",
                             bindParamName, bindParamType);
-                    // throw new WecubeCoreException("3174",
-                    // String.format(
-                    // "parameter entity does not exist but such plugin
-                    // parameter is mandatory for {%s} {%s}",
-                    // bindParamName, bindParamType),
-                    // bindParamName, bindParamType);
-                    continue;
                 } else {
                     log.info("parameter entity does not exist but such plugin parameter is not mandatory for {} {}",
                             bindParamName, bindParamType);
-                    continue;
                 }
+                continue;
             }
 
-            List<Object> retDataValues = new ArrayList<>();
-
-            for (TaskNodeExecParamEntity e : execParamEntities) {
-                String paramDataValue = e.getParamDataValue();
-                if (e.getIsSensitive() != null && e.getIsSensitive() == true) {
-                    paramDataValue = tryDecodeParamDataValue(paramDataValue);
+            for (TaskNodeExecParamEntity boundExecParamEntity : boundExecParamEntities) {
+                BoundTaskNodeExecParamWrapper boundTaskNodeExecParamWrapper = new BoundTaskNodeExecParamWrapper();
+                boundTaskNodeExecParamWrapper.setBoundTaskNodeExecParamEntity(boundExecParamEntity);
+                if (StringUtils.isNoneBlank(boundExecParamEntity.getParamDefId())) {
+                    PluginConfigInterfaceParameters boundParamDef = pluginConfigInterfaceParametersMapper
+                            .selectByPrimaryKey(boundExecParamEntity.getParamDefId());
+                    boundTaskNodeExecParamWrapper.setBoundParam(boundParamDef);
                 }
-                retDataValues.add(fromString(e.getParamDataValue(), e.getParamDataType()));
+
+                contextCalculationParam.getBoundExecParamWrappers().add(boundTaskNodeExecParamWrapper);
             }
-
-            if (paramObjects.isEmpty()) {
-                for (Object retDataValue : retDataValues) {
-                    InputParamObject inputObj = new InputParamObject();
-
-                    inputObj.setEntityTypeId("TaskNode");
-                    inputObj.setEntityDataId(
-                            String.format("%s-%s", CALLBACK_PARAMETER_SYSTEM_PREFIX, LocalIdGenerator.generateId()));
-                    inputObj.addAttrNames(paramName);
-
-                    InputParamAttr inputAttr = new InputParamAttr();
-                    inputAttr.setName(paramName);
-                    inputAttr.setType(paramType);
-                    inputAttr.addValueObjects(retDataValue);
-                    inputAttr.setSensitive(IS_SENSITIVE_ATTR.equalsIgnoreCase(param.getSensitiveData()));
-
-                    inputObj.addAttrs(inputAttr);
-
-                    paramObjects.add(inputObj);
-                }
-            } else {
-                if (retDataValues.size() != paramObjects.size()) {
-                    log.error("Unknown how to calculate context input parameter for {}",
-                            currTaskNodeInstEntity.getId());
-                    throw new WecubeCoreException("Unknown how to calculate context input parameter.");
-                }
-
-                for (int index = 0; index < retDataValues.size(); index++) {
-                    InputParamObject inputObj = paramObjects.get(index);
-                    inputObj.addAttrNames(paramName);
-
-                    InputParamAttr inputAttr = new InputParamAttr();
-                    inputAttr.setName(paramName);
-                    inputAttr.setType(paramType);
-                    inputAttr.addValueObjects(retDataValues.get(index));
-                    inputAttr.setSensitive(IS_SENSITIVE_ATTR.equalsIgnoreCase(param.getSensitiveData()));
-
-                    inputObj.addAttrs(inputAttr);
-                }
-            }
-
         }
 
+        List<InputParamObject> paramObjects = tryCalculateContextMappingInputParamsObjects(
+                contextCalculationParamCollection);
         return paramObjects;
 
     }
 
-    private List<InputParamObject> tryCalculateInputParamObjectsFromSystem(ProcInstInfoEntity procInstEntity,
-            TaskNodeInstInfoEntity taskNodeInstEntity, TaskNodeDefInfoEntity taskNodeDefEntity,
-            PluginConfigInterfaces pluginConfigInterface) {
+    private List<InputParamObject> tryCalculateContextMappingInputParamsObjects(
+            ContextCalculationParamCollection contextCalculationParamCollection) {
+        List<InputParamObject> paramObjects = new ArrayList<>();
+
+        String prevCtxNodeIdsStr = contextCalculationParamCollection.getCurrTaskNodeDefEntity().getPrevCtxNodeIds();
+        if (StringUtils.isBlank(prevCtxNodeIdsStr)) {
+            log.info("previous context node configuration is blank for node:{}-{}",
+                    contextCalculationParamCollection.getCurrTaskNodeDefEntity().getId(),
+                    contextCalculationParamCollection.getCurrTaskNodeDefEntity().getNodeName());
+            if (contextCalculationParamCollection.hasMandatoryContextParam()) {
+                String errMsg = String.format("Previous context node configuration is blank for node:%s-%s",
+                        contextCalculationParamCollection.getCurrTaskNodeDefEntity().getId(),
+                        contextCalculationParamCollection.getCurrTaskNodeDefEntity().getNodeName());
+                log.error(errMsg);
+                throw new WecubeCoreException(errMsg);
+            } else {
+                return paramObjects;
+            }
+
+        }
+
+        String[] prevCtxNodeIds = prevCtxNodeIdsStr.trim().split(",");
+        int prevCtxNodesSize = prevCtxNodeIds.length;
+
+        if (prevCtxNodesSize == 1) {
+            String prevCtxNodeId = prevCtxNodeIds[0];
+            paramObjects = tryCalCtxMapInputParamsObjectsWithSinglePrevNode(contextCalculationParamCollection,
+                    prevCtxNodeId);
+        } else {
+            paramObjects = tryCalCtxMapInputParamsObjectsWithMultiPrevNodes(contextCalculationParamCollection,
+                    prevCtxNodeIds);
+        }
+
+        return paramObjects;
+    }
+
+    private List<InputParamObject> tryCalCtxMapInputParamsObjectsWithSinglePrevNode(
+            ContextCalculationParamCollection contextCalculationParamCollection, String prevCtxNodeId) {
+        ProcDefInfoEntity procDefInfo = contextCalculationParamCollection.getProcDefInfoEntity();
+        ProcInstInfoEntity procInstInfo = contextCalculationParamCollection.getProcInstEntity();
+        TaskNodeInstInfoEntity currTaskNodeInstInfo = contextCalculationParamCollection.getCurrTaskNodeInstEntity();
+        TaskNodeDefInfoEntity currTaskNodeDefInfo = contextCalculationParamCollection.getCurrTaskNodeDefEntity();
+
+        log.info(
+                "Try to calculate context mapping parameter for [process:{},node:{},node instance:{}] with single previous context node:{}",
+                procDefInfo.getId(), currTaskNodeDefInfo.getId(), currTaskNodeInstInfo.getId(), prevCtxNodeId);
+
+        TaskNodeInstInfoEntity prevCtxTaskNodeInstInfo = taskNodeInstInfoRepository
+                .selectOneByProcInstIdAndNodeId(procInstInfo.getId(), prevCtxNodeId);
+        if (prevCtxTaskNodeInstInfo == null) {
+            String errMsg = String.format("Previous context task node instance does not exist currently with ID:%s",
+                    prevCtxNodeId);
+            log.error(errMsg);
+            throw new WecubeCoreException(errMsg);
+        }
+
+        // check parent context node here??
+        List<InputParamObject> paramObjects = new ArrayList<>();
+        List<ProcExecBindingEntity> prevCtxTaskNodeInstBindings = procExecBindingMapper
+                .selectAllBoundTaskNodeBindings(procInstInfo.getId(), prevCtxTaskNodeInstInfo.getId());
+        if (prevCtxTaskNodeInstBindings == null || prevCtxTaskNodeInstBindings.isEmpty()) {
+            return paramObjects;
+        }
+
+        List<ContextCalculationParam> contextCalculationParams = contextCalculationParamCollection
+                .getContextCalculationParams();
+        for (ProcExecBindingEntity prevCtxTaskNodeBinding : prevCtxTaskNodeInstBindings) {
+            InputParamObject paramObject = new InputParamObject();
+            String newEntityDataId = String.format("%s-%s", CALLBACK_PARAMETER_SYSTEM_PREFIX,
+                    prevCtxTaskNodeBinding.getEntityDataId()); // ?
+            paramObject.setEntityDataId(newEntityDataId);// ?
+            paramObject.setEntityTypeId(prevCtxTaskNodeBinding.getEntityTypeId());// ?
+            paramObject.setFullEntityDataId(prevCtxTaskNodeBinding.getFullEntityDataId());// ?
+
+            for (ContextCalculationParam contextCalculationParam : contextCalculationParams) {
+                String attrName = contextCalculationParam.getParamName();
+                String paramDataType = contextCalculationParam.getParamDataType();
+
+                paramObject.addAttrNames(attrName);
+                InputParamAttr paramAttr = null;
+                if (isObjectDataType(paramDataType)) {
+                    paramAttr = tryCalObjectInputParamAttrWithPrevBinding(prevCtxTaskNodeBinding,
+                            contextCalculationParam);
+                } else {
+                    paramAttr = tryCalBasicInputParamAttrWithPrevBinding(prevCtxTaskNodeBinding,
+                            contextCalculationParam);
+                }
+
+                if (paramAttr != null) {
+                    paramObject.addAttrs(paramAttr);
+                }
+
+            }
+
+            paramObjects.add(paramObject);
+        }
+
+        return paramObjects;
+    }
+
+    /**
+     * 
+     * @param prevCtxTaskNodeBinding
+     * @param contextCalculationParam
+     * @return
+     */
+    private InputParamAttr tryCalObjectInputParamAttrWithPrevBinding(ProcExecBindingEntity prevCtxTaskNodeBinding,
+            ContextCalculationParam contextCalculationParam) {
+        String attrName = contextCalculationParam.getParamName();
+        String paramDataType = contextCalculationParam.getParamDataType();
+
+        PluginConfigInterfaceParameters paramDef = contextCalculationParam.getParam();
+        CoreObjectMeta refObjectMeta = paramDef.getObjectMeta();
+
+        if (refObjectMeta == null) {
+            String errMsg = String.format("Data type of parameter:%s is object but there is not object meta provided.",
+                    contextCalculationParam.getParamName());
+            log.error(errMsg);
+
+            throw new WecubeCoreException(errMsg);
+        }
+
+        String multiple = paramDef.getMultiple();
+        String required = paramDef.getRequired();
+        InputParamAttr paramAttr = new InputParamAttr();
+        paramAttr.setName(attrName);
+        paramAttr.setDataType(paramDataType);
+        paramAttr.setMultiple(multiple);
+        paramAttr.setParamDef(paramDef);
+        paramAttr.setSensitive(Constants.DATA_SENSITIVE.equalsIgnoreCase(paramDef.getSensitiveData()));
+
+        boolean isMultiple = Constants.DATA_MULTIPLE.equalsIgnoreCase(multiple);
+        boolean isMandatory = Constants.FIELD_REQUIRED.equalsIgnoreCase(required);
+
+        List<CoreObjectVar> objectVars = pluginParamObjectVarCalculator
+                .calculateCoreObjectVarsFromContext(prevCtxTaskNodeBinding, contextCalculationParam, isMultiple);
+
+        if (objectVars == null || objectVars.isEmpty()) {
+            String errMsg = String.format("Got empty object values for : %s", contextCalculationParam.getParamName());
+            log.info(errMsg);
+            if (isMandatory) {
+                throw new WecubeCoreException(errMsg);
+            }
+            return paramAttr;
+        }
+
+        CoreObjectVarCalculationContext calCtx = new CoreObjectVarCalculationContext();
+
+        if (isMultiple) {
+            List<Object> objectVals = new ArrayList<>();
+            for (CoreObjectVar objectVar : objectVars) {
+                PluginParamObject paramObject = pluginParamObjectVarAssembleService.marshalPluginParamObject(objectVar,
+                        calCtx);
+                objectVals.add(paramObject);
+
+                pluginParamObjectVarStorageService.storeCoreObjectVar(objectVar);
+            }
+
+            paramAttr.setValues(objectVals);
+            return paramAttr;
+        } else {
+
+            if (objectVars.size() > 1) {
+                String errMsg = String.format("Required data type %s but %s objects returned.", paramDataType,
+                        objectVars.size());
+                log.error(errMsg);
+
+                throw new WecubeCoreException(errMsg);
+            }
+
+            List<Object> objectVals = new ArrayList<>();
+            CoreObjectVar objectVar = objectVars.get(0);
+
+            PluginParamObject paramObject = pluginParamObjectVarAssembleService.marshalPluginParamObject(objectVar,
+                    calCtx);
+
+            objectVals.add(paramObject);
+
+            pluginParamObjectVarStorageService.storeCoreObjectVar(objectVar);
+
+            paramAttr.setValues(objectVals);
+            return paramAttr;
+        }
+
+    }
+
+    private InputParamAttr tryCalBasicInputParamAttrWithPrevBinding(ProcExecBindingEntity prevCtxTaskNodeBinding,
+            ContextCalculationParam contextCalculationParam) {
+        String attrName = contextCalculationParam.getParamName();
+        String paramDataType = contextCalculationParam.getParamDataType();
+        PluginConfigInterfaceParameters paramDef = contextCalculationParam.getParam();
+        String multiple = paramDef.getMultiple();
+        String required = paramDef.getRequired();
+        InputParamAttr paramAttr = new InputParamAttr();
+        paramAttr.setName(attrName);
+        paramAttr.setDataType(paramDataType);
+        paramAttr.setMultiple(multiple);
+        paramAttr.setParamDef(paramDef);
+        paramAttr.setSensitive(Constants.DATA_SENSITIVE.equalsIgnoreCase(paramDef.getSensitiveData()));
+
+        boolean isMultiple = Constants.DATA_MULTIPLE.equalsIgnoreCase(multiple);
+        boolean isMandatory = Constants.FIELD_REQUIRED.equalsIgnoreCase(required);
+        List<Object> objectValues = tryCalInputParamAttrValueWithPrevBinding(prevCtxTaskNodeBinding,
+                contextCalculationParam);
+
+        if (objectValues == null || objectValues.isEmpty()) {
+            if (isMandatory) {
+                String errMsg = String.format("The value is empty but field is mandatory for parameter:%s", attrName);
+                log.error(errMsg);
+                throw new WecubeCoreException(errMsg);
+            } else {
+                paramAttr.setValues(new ArrayList<Object>());
+            }
+
+            return paramAttr;
+        }
+
+        if (isMultiple) {
+            paramAttr.setValues(objectValues);
+            return paramAttr;
+        }
+
+        if ((objectValues.size() > 1) && (!isMultiple)) {
+            String errMsg = String.format("Total:%s object values found but field:%s is not multiple.",
+                    objectValues.size(), attrName);
+            log.error(errMsg);
+            throw new WecubeCoreException(errMsg);
+        } else {
+            paramAttr.setValues(objectValues);
+        }
+
+        return paramAttr;
+    }
+
+    private List<Object> tryCalInputParamAttrValueWithPrevBinding(ProcExecBindingEntity prevCtxTaskNodeBinding,
+            ContextCalculationParam contextCalculationParam) {
+        List<BoundTaskNodeExecParamWrapper> boundExecParamWrappers = contextCalculationParam
+                .getBoundExecParamWrappers();
+        if (boundExecParamWrappers == null || boundExecParamWrappers.isEmpty()) {
+            return new ArrayList<>();
+        }
+
+        String fullEntityDataIdOfPrevBinding = prevCtxTaskNodeBinding.getFullEntityDataId();
+        if (StringUtils.isBlank(fullEntityDataIdOfPrevBinding)) {
+            String errMsg = String.format("Unknown full entity data id of binding:{}", prevCtxTaskNodeBinding.getId());
+            log.error(errMsg);
+            throw new WecubeCoreException(errMsg);
+        }
+        List<Object> objectValues = new ArrayList<>();
+        for (BoundTaskNodeExecParamWrapper wrapper : boundExecParamWrappers) {
+            TaskNodeExecParamEntity boundTaskNodeExecParamEntity = wrapper.getBoundTaskNodeExecParamEntity();
+            if (boundTaskNodeExecParamEntity == null) {
+                continue;
+            }
+
+            String targetFullEntityDataId = boundTaskNodeExecParamEntity.getFullEntityDataId();
+            if (StringUtils.isBlank(targetFullEntityDataId)) {
+                log.info("Unknown full entity data ID of param:{}", boundTaskNodeExecParamEntity.getId());
+                continue;
+            }
+
+            if (targetFullEntityDataId.startsWith(fullEntityDataIdOfPrevBinding)) {
+                Object paramDataValue = parseStringParamDataValueToObject(wrapper);
+                if (paramDataValue != null) {
+                    objectValues.add(paramDataValue);
+                }
+            }
+        }
+
+        return objectValues;
+    }
+
+    private Object parseStringParamDataValueToObject(BoundTaskNodeExecParamWrapper paramWrapper) {
+        TaskNodeExecParamEntity paramInfo = paramWrapper.getBoundTaskNodeExecParamEntity();
+        String paramDataType = paramInfo.getParamDataType();
+        String paramDataValueStr = paramInfo.getParamDataValue();
+
+        boolean isMultiple = Constants.DATA_MULTIPLE.equalsIgnoreCase(paramInfo.getMultiple());
+        boolean isSensitive = unpackBoolean(paramInfo.getIsSensitive());
+
+        if (StringUtils.isBlank(paramDataValueStr)) {
+            return null;
+        }
+
+        if (isSensitive) {
+            paramDataValueStr = tryDecodeParamDataValue(paramDataValueStr);
+        }
+
+        if (isBasicDataType(paramDataType)) {
+            if (isMultiple) {
+                List<Object> basicParamObjectValues = new ArrayList<>();
+                String[] paramDataValueStrParts = paramDataValueStr.split(",");
+                for (String paramDataValueStrPart : paramDataValueStrParts) {
+                    if (Constants.DATA_TYPE_STRING.equalsIgnoreCase(paramDataType)) {
+                        basicParamObjectValues.add(paramDataValueStrPart);
+                    }
+
+                    if (Constants.DATA_TYPE_NUMBER.equalsIgnoreCase(paramDataType)) {
+                        Integer val = Integer.parseInt(paramDataValueStrPart);
+                        basicParamObjectValues.add(val);
+                    }
+                }
+
+                return basicParamObjectValues;
+            } else {
+                Object basicParamObjectValue = null;
+                if (Constants.DATA_TYPE_STRING.equalsIgnoreCase(paramDataType)) {
+                    basicParamObjectValue = paramDataValueStr;
+                }
+
+                if (Constants.DATA_TYPE_NUMBER.equalsIgnoreCase(paramDataType)) {
+                    basicParamObjectValue = Integer.parseInt(paramDataValueStr);
+                }
+
+                return basicParamObjectValue;
+            }
+        } else if (isObjectDataType(paramDataType)) {
+//            PluginConfigInterfaceParameters boundParamDef = paramWrapper.getBoundParam();
+            try {
+                return JsonUtils.toObject(paramDataValueStr, Object.class);
+            } catch (IOException e) {
+                log.error("", e);
+                throw new WecubeCoreException(e.getMessage());
+            }
+            // TODO
+//            if (isMultiple) {
+//
+//            }
+        }
+
+        throw new WecubeCoreException("Unknown parameter data type of parameter : " + paramInfo.getParamName());
+    }
+
+    private boolean unpackBoolean(Boolean b) {
+        if (b == null) {
+            return false;
+        }
+
+        return b;
+    }
+
+    private boolean isObjectDataType(String dataType) {
+        if (StringUtils.isBlank(dataType)) {
+            throw new IllegalArgumentException();
+        }
+
+        return Constants.DATA_TYPE_OBJECT.equalsIgnoreCase(dataType);
+    }
+
+    private boolean isBasicDataType(String dataType) {
+        if (StringUtils.isBlank(dataType)) {
+            throw new IllegalArgumentException();
+        }
+
+        if (Constants.DATA_TYPE_STRING.equalsIgnoreCase(dataType)
+                || Constants.DATA_TYPE_NUMBER.equalsIgnoreCase(dataType)) {
+            return true;
+        }
+
+        return false;
+    }
+
+    private List<InputParamObject> tryCalCtxMapInputParamsObjectsWithMultiPrevNodes(
+            ContextCalculationParamCollection contextCalculationParamCollection, String[] prevCtxNodeIds) {
+
+        ProcInstInfoEntity procInstInfo = contextCalculationParamCollection.getProcInstEntity();
+        List<ProcExecBindingKeyLink> procExecBindingKeyLinks = new ArrayList<>();
+        for (String prevCtxNodeId : prevCtxNodeIds) {
+            TaskNodeInstInfoEntity prevCtxTaskNodeInstInfo = taskNodeInstInfoRepository
+                    .selectOneByProcInstIdAndNodeId(procInstInfo.getId(), prevCtxNodeId);
+            List<ProcExecBindingEntity> procExecBindings = procExecBindingMapper
+                    .selectAllBoundTaskNodeBindings(procInstInfo.getId(), prevCtxTaskNodeInstInfo.getId());
+
+            procExecBindingKeyLinks = propagateProcExecBindingKeyLinks(procExecBindingKeyLinks, procExecBindings,
+                    prevCtxNodeId);
+        }
+
+        ProcDefInfoEntity procDefInfo = contextCalculationParamCollection.getProcDefInfoEntity();
+        List<TaskNodeDefInfoEntity> prevCtxTaskNodeDefInfos = new ArrayList<>();
+        for (String prevCtxNodeId : prevCtxNodeIds) {
+            TaskNodeDefInfoEntity prevCtxTaskNodeDefInfo = taskNodeDefInfoRepository
+                    .selectOneWithProcessIdAndNodeIdAndStatus(procDefInfo.getId(), prevCtxNodeId,
+                            TaskNodeDefInfoEntity.DEPLOYED_STATUS);
+            if (prevCtxTaskNodeDefInfo != null) {
+                prevCtxTaskNodeDefInfos.add(prevCtxTaskNodeDefInfo);
+            }
+        }
+
+        List<InputParamObject> paramObjects = new ArrayList<>();
+
+        List<ContextCalculationParam> contextCalculationParams = contextCalculationParamCollection
+                .getContextCalculationParams();
+        for (ProcExecBindingKeyLink procExecBindingKeyLink : procExecBindingKeyLinks) {
+            InputParamObject paramObject = new InputParamObject();
+            paramObject.setEntityTypeId("TaskNode");
+            String entityDataId = String.format("%s-%s", CALLBACK_PARAMETER_SYSTEM_PREFIX,
+                    LocalIdGenerator.generateId());
+            paramObject.setEntityDataId(entityDataId);// ?
+            paramObject.setFullEntityDataId(entityDataId);// ?
+
+            for (ContextCalculationParam contextCalculationParam : contextCalculationParams) {
+                String attrName = contextCalculationParam.getParamName();
+                String paramDataType = contextCalculationParam.getParamDataType();
+
+                paramObject.addAttrNames(attrName);
+
+                InputParamAttr paramAttr = null;
+
+                if (isObjectDataType(paramDataType)) {
+                    paramAttr = tryCalObjectInputParamAttrWithProcExecBindingKeyLink(procExecBindingKeyLink,
+                            contextCalculationParam);
+                } else {
+                    paramAttr = tryCalBasicInputParamAttrWithProcExecBindingKeyLink(procExecBindingKeyLink,
+                            contextCalculationParam);
+                }
+
+                if (paramAttr != null) {
+                    paramObject.addAttrs(paramAttr);
+                }
+
+            }
+
+            paramObjects.add(paramObject);
+        }
+
+        return paramObjects;
+    }
+
+    private InputParamAttr tryCalObjectInputParamAttrWithProcExecBindingKeyLink(
+            ProcExecBindingKeyLink procExecBindingKeyLink, ContextCalculationParam contextCalculationParam) {
+        String attrName = contextCalculationParam.getParamName();
+        String paramDataType = contextCalculationParam.getParamDataType();
+
+        PluginConfigInterfaceParameters paramDef = contextCalculationParam.getParam();
+        CoreObjectMeta refObjectMeta = paramDef.getObjectMeta();
+
+        if (refObjectMeta == null) {
+            String errMsg = String.format("Data type of parameter:%s is object but there is not object meta provided.",
+                    contextCalculationParam.getParamName());
+            log.error(errMsg);
+
+            throw new WecubeCoreException(errMsg);
+        }
+
+        String multiple = paramDef.getMultiple();
+        String required = paramDef.getRequired();
+        InputParamAttr paramAttr = new InputParamAttr();
+        paramAttr.setName(attrName);
+        paramAttr.setDataType(paramDataType);
+        paramAttr.setMultiple(multiple);
+        paramAttr.setParamDef(paramDef);
+        paramAttr.setSensitive(Constants.DATA_SENSITIVE.equalsIgnoreCase(paramDef.getSensitiveData()));
+
+        boolean isMultiple = Constants.DATA_MULTIPLE.equalsIgnoreCase(multiple);
+        boolean isMandatory = Constants.FIELD_REQUIRED.equalsIgnoreCase(required);
+
+        List<CoreObjectVar> objectVars = pluginParamObjectVarCalculator
+                .calculateCoreObjectVarsFromContext(procExecBindingKeyLink, contextCalculationParam, isMultiple);
+
+        if (objectVars == null || objectVars.isEmpty()) {
+            String errMsg = String.format("Got empty object values for : %s", contextCalculationParam.getParamName());
+            log.info(errMsg);
+            if (isMandatory) {
+                throw new WecubeCoreException(errMsg);
+            }
+            return paramAttr;
+        }
+
+        CoreObjectVarCalculationContext calCtx = new CoreObjectVarCalculationContext();
+
+        if (isMultiple) {
+            List<Object> objectVals = new ArrayList<>();
+            for (CoreObjectVar objectVar : objectVars) {
+                PluginParamObject paramObject = pluginParamObjectVarAssembleService.marshalPluginParamObject(objectVar,
+                        calCtx);
+                objectVals.add(paramObject);
+
+                pluginParamObjectVarStorageService.storeCoreObjectVar(objectVar);
+            }
+
+            paramAttr.setValues(objectVals);
+            return paramAttr;
+        } else {
+
+            if (objectVars.size() > 1) {
+                String errMsg = String.format("Required data type %s but %s objects returned.", paramDataType,
+                        objectVars.size());
+                log.error(errMsg);
+
+                throw new WecubeCoreException(errMsg);
+            }
+
+            List<Object> objectVals = new ArrayList<>();
+            CoreObjectVar objectVar = objectVars.get(0);
+
+            PluginParamObject paramObject = pluginParamObjectVarAssembleService.marshalPluginParamObject(objectVar,
+                    calCtx);
+
+            objectVals.add(paramObject);
+
+            pluginParamObjectVarStorageService.storeCoreObjectVar(objectVar);
+
+            paramAttr.setValues(objectVals);
+            return paramAttr;
+        }
+
+    }
+
+    private InputParamAttr tryCalBasicInputParamAttrWithProcExecBindingKeyLink(
+            ProcExecBindingKeyLink procExecBindingKeyLink, ContextCalculationParam contextCalculationParam) {
+        String attrName = contextCalculationParam.getParamName();
+        String paramDataType = contextCalculationParam.getParamDataType();
+        PluginConfigInterfaceParameters paramDef = contextCalculationParam.getParam();
+        String multiple = paramDef.getMultiple();
+        String required = paramDef.getRequired();
+        InputParamAttr paramAttr = new InputParamAttr();
+        paramAttr.setName(attrName);
+        paramAttr.setDataType(paramDataType);
+        paramAttr.setMultiple(multiple);
+        paramAttr.setParamDef(paramDef);
+        paramAttr.setSensitive(Constants.DATA_SENSITIVE.equalsIgnoreCase(paramDef.getSensitiveData()));
+
+        boolean isMultiple = Constants.DATA_MULTIPLE.equalsIgnoreCase(multiple);
+        boolean isMandatory = Constants.FIELD_REQUIRED.equalsIgnoreCase(required);
+        List<Object> objectValues = tryCalInputParamAttrValueWithProcExecBindingKeyLink(procExecBindingKeyLink,
+                contextCalculationParam);
+
+        if (objectValues == null || objectValues.isEmpty()) {
+            if (isMandatory) {
+                String errMsg = String.format("The value is empty but field is mandatory for parameter:%s", attrName);
+                log.error(errMsg);
+                throw new WecubeCoreException(errMsg);
+            } else {
+                paramAttr.setValues(new ArrayList<Object>());
+            }
+
+            return paramAttr;
+        }
+
+        if (isMultiple) {
+            paramAttr.setValues(objectValues);
+            return paramAttr;
+        }
+
+        if ((objectValues.size() > 1) && (!isMultiple)) {
+            String errMsg = String.format("Total:%s object values found but field:%s is not multiple.",
+                    objectValues.size(), attrName);
+            log.error(errMsg);
+            throw new WecubeCoreException(errMsg);
+        } else {
+            paramAttr.setValues(objectValues);
+        }
+
+        return paramAttr;
+    }
+
+    private List<Object> tryCalInputParamAttrValueWithProcExecBindingKeyLink(
+            ProcExecBindingKeyLink procExecBindingKeyLink, ContextCalculationParam contextCalculationParam) {
+        List<BoundTaskNodeExecParamWrapper> boundExecParamWrappers = contextCalculationParam
+                .getBoundExecParamWrappers();
+        if (boundExecParamWrappers == null || boundExecParamWrappers.isEmpty()) {
+            return new ArrayList<>();
+        }
+
+        List<Object> objectValues = new ArrayList<>();
+        for (BoundTaskNodeExecParamWrapper wrapper : boundExecParamWrappers) {
+            TaskNodeExecParamEntity boundTaskNodeExecParamEntity = wrapper.getBoundTaskNodeExecParamEntity();
+            if (boundTaskNodeExecParamEntity == null) {
+                continue;
+            }
+
+            String targetFullEntityDataId = boundTaskNodeExecParamEntity.getFullEntityDataId();
+            if (StringUtils.isBlank(targetFullEntityDataId)) {
+                log.info("Unknown full entity data ID of param:{}", boundTaskNodeExecParamEntity.getId());
+                continue;
+            }
+
+            if (matchBoundTaskNodeExecParamWrapper(wrapper, procExecBindingKeyLink)) {
+                Object paramDataValue = parseStringParamDataValueToObject(wrapper);
+                if (paramDataValue != null) {
+                    objectValues.add(paramDataValue);
+                }
+            }
+        }
+
+        return objectValues;
+    }
+
+    private boolean matchBoundTaskNodeExecParamWrapper(BoundTaskNodeExecParamWrapper wrapper,
+            ProcExecBindingKeyLink procExecBindingKeyLink) {
+        List<ProcExecBindingKey> procExecBindingKeys = procExecBindingKeyLink.getProcExecBindingKeys();
+        if (procExecBindingKeys == null || procExecBindingKeys.isEmpty()) {
+            return false;
+        }
+
+        TaskNodeExecParamEntity boundTaskNodeExecParamEntity = wrapper.getBoundTaskNodeExecParamEntity();
+        String targetFullDataId = boundTaskNodeExecParamEntity.getFullEntityDataId();
+        for (ProcExecBindingKey procExecBindingKey : procExecBindingKeys) {
+            ProcExecBindingEntity procExecBinding = procExecBindingKey.getProcExecBinding();
+            if (procExecBinding == null) {
+                continue;
+            }
+            String bindingFullDataId = procExecBinding.getFullEntityDataId();
+            if (StringUtils.isBlank(bindingFullDataId)) {
+                continue;
+            }
+
+            if (targetFullDataId.startsWith(bindingFullDataId)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private List<ProcExecBindingKeyLink> propagateProcExecBindingKeyLinks(
+            List<ProcExecBindingKeyLink> originProcExecBindingKeyLinks,
+            List<ProcExecBindingEntity> tailProcExecBindingKeys, String ctxNodeId) {
+        if (tailProcExecBindingKeys == null || tailProcExecBindingKeys.isEmpty()) {
+
+            for (ProcExecBindingKeyLink originProcExecBindingKeyLink : originProcExecBindingKeyLinks) {
+                ProcExecBindingKey bindingKey = new ProcExecBindingKey();
+                bindingKey.setTaskNodeId(ctxNodeId);
+
+                originProcExecBindingKeyLink.addProcExecBindingKey(bindingKey);
+            }
+
+            return originProcExecBindingKeyLinks;
+        }
+
+        List<ProcExecBindingKeyLink> retProcExecBindingKeyLinks = new ArrayList<>();
+        for (ProcExecBindingEntity tailProcExecBinding : tailProcExecBindingKeys) {
+            if (originProcExecBindingKeyLinks.isEmpty()) {
+                ProcExecBindingKeyLink newLink = new ProcExecBindingKeyLink();
+                ProcExecBindingKey bindingKey = new ProcExecBindingKey();
+                bindingKey.setTaskNodeId(ctxNodeId);
+                bindingKey.setProcExecBinding(tailProcExecBinding);
+
+                newLink.addProcExecBindingKey(bindingKey);
+
+                retProcExecBindingKeyLinks.add(newLink);
+            } else {
+                for (ProcExecBindingKeyLink originLink : originProcExecBindingKeyLinks) {
+                    ProcExecBindingKeyLink newLink = new ProcExecBindingKeyLink();
+                    newLink.getProcExecBindingKeys().addAll(originLink.getProcExecBindingKeys());
+
+                    ProcExecBindingKey bindingKey = new ProcExecBindingKey();
+                    bindingKey.setTaskNodeId(ctxNodeId);
+                    bindingKey.setProcExecBinding(tailProcExecBinding);
+
+                    newLink.addProcExecBindingKey(bindingKey);
+
+                    retProcExecBindingKeyLinks.add(newLink);
+                }
+            }
+        }
+
+        return retProcExecBindingKeyLinks;
+    }
+
+    private List<InputParamObject> tryCalculateInputParamObjectsWithoutBindings(ProcDefInfoEntity procDefEntity,
+            ProcInstInfoEntity procInstEntity, TaskNodeInstInfoEntity taskNodeInstEntity,
+            TaskNodeDefInfoEntity taskNodeDefEntity, PluginConfigInterfaces pluginConfigInterface) {
 
         log.info(
                 "Did not get input parameter objects and try to calculate input parameter objects from system for taskNodeInstId={}",
@@ -1124,7 +1796,9 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 
         List<PluginConfigInterfaceParameters> configInterfaceInputParams = pluginConfigInterface.getInputParameters();
 
-        if (!checkIfCouldCalculateFromSystem(configInterfaceInputParams)) {
+        if (!determineContextCalculationPossibility(configInterfaceInputParams)) {
+            log.info("Such node {}:{} does not have binding and context calculation is impossible.",
+                    taskNodeDefEntity.getNodeId(), taskNodeDefEntity.getNodeName());
             return new ArrayList<>();
         }
 
@@ -1138,8 +1812,9 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
         List<InputParamObject> inputParamObjs = null;
 
         if (!contextConfigInterfaceInputParams.isEmpty()) {
-            inputParamObjs = tryCalculateInputParamObjectsFromContext(procInstEntity, taskNodeInstEntity,
-                    taskNodeDefEntity, pluginConfigInterface, contextConfigInterfaceInputParams);
+            // #2233
+            inputParamObjs = tryCalculateContextMappingInputParamsObjects(procDefEntity, procInstEntity,
+                    taskNodeInstEntity, taskNodeDefEntity, pluginConfigInterface, contextConfigInterfaceInputParams);
         }
 
         if (inputParamObjs == null || inputParamObjs.isEmpty()) {
@@ -1168,21 +1843,24 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 
                 InputParamAttr inputAttr = new InputParamAttr();
                 inputAttr.setName(paramName);
-                inputAttr.setType(paramType);
+                inputAttr.setDataType(paramType);
                 inputAttr.setSensitive(IS_SENSITIVE_ATTR.equalsIgnoreCase(param.getSensitiveData()));
+                inputAttr.setParamDef(param);
 
                 boolean isFieldRequired = isFieldRequired(param.getRequired());
 
                 List<Object> objectVals = new ArrayList<Object>();
                 //
                 inputAttr.setMapType(mappingType);
+                inputAttr.setMultiple(param.getMultiple());
 
                 if (MAPPING_TYPE_SYSTEM_VARIABLE.equalsIgnoreCase(mappingType)) {
                     handleSystemMapping(mappingType, param, paramName, objectVals);
                 }
 
                 if (MAPPING_TYPE_CONSTANT.equalsIgnoreCase(mappingType)) {
-                    handleConstantMapping(mappingType, taskNodeDefEntity, paramName, objectVals, isFieldRequired, param);
+                    handleConstantMapping(mappingType, taskNodeDefEntity, paramName, objectVals, isFieldRequired,
+                            param);
                 }
 
                 inputAttr.addValues(objectVals);
@@ -1194,19 +1872,49 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
         return inputParamObjs;
     }
 
-    private boolean checkIfCouldCalculateFromSystem(List<PluginConfigInterfaceParameters> configInterfaceInputParams) {
+    private boolean determineContextCalculationPossibility(
+            List<PluginConfigInterfaceParameters> configInterfaceInputParams) {
         if (configInterfaceInputParams == null || configInterfaceInputParams.isEmpty()) {
             return false;
         }
 
         // #2169
+        // #2233
         for (PluginConfigInterfaceParameters c : configInterfaceInputParams) {
-            if ((MAPPING_TYPE_SYSTEM_VARIABLE.equalsIgnoreCase(c.getMappingType()))
-                    || (MAPPING_TYPE_CONSTANT.equalsIgnoreCase(c.getMappingType()))
-                    || (MAPPING_TYPE_CONTEXT.equalsIgnoreCase(c.getMappingType()))) {
-                continue;
-            } else {
+            if (MAPPING_TYPE_ENTITY.equalsIgnoreCase(c.getMappingType())) {
                 return false;
+            }
+
+            CoreObjectMeta refObjectMeta = c.getObjectMeta();
+            if (refObjectMeta != null) {
+                log.info("Object type parameter:{}-{}", c.getName(), refObjectMeta.getName());
+                if (!determineContextCalculationPossibility(refObjectMeta)) {
+                    return false;
+                }
+            }
+        }
+
+        return true;
+    }
+
+    private boolean determineContextCalculationPossibility(CoreObjectMeta targetObjectMeta) {
+        log.info("determine context calculation possibility for object meta:{}", targetObjectMeta.getName());
+        List<CoreObjectPropertyMeta> propertyMetas = targetObjectMeta.getPropertyMetas();
+        if (propertyMetas == null || propertyMetas.isEmpty()) {
+            return true;
+        }
+
+        for (CoreObjectPropertyMeta propertyMeta : propertyMetas) {
+            if (MAPPING_TYPE_ENTITY.equalsIgnoreCase(propertyMeta.getMapType())) {
+                return false;
+            }
+
+            CoreObjectMeta refObjectMeta = propertyMeta.getRefObjectMeta();
+            if (refObjectMeta != null) {
+                log.info("Object type property:{}-{}", propertyMeta.getName(), refObjectMeta.getName());
+                if (!determineContextCalculationPossibility(refObjectMeta)) {
+                    return false;
+                }
             }
         }
 
@@ -1249,6 +1957,14 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
         requestEntity.setIsCurrent(true);
         requestEntity.setIsCompleted(false);
 
+        List<ProcExecBindingEntity> nodeObjectBindings = ctx.getNodeObjectBindings();
+        if (nodeObjectBindings == null || nodeObjectBindings.isEmpty()) {
+            requestEntity.setContextDataFlag("Y");
+        } else {
+            requestEntity.setContextDataFlag("N");
+        }
+        requestEntity.setReqObjectAmount(ctx.getReqObjectAmount());
+
         taskNodeExecRequestRepository.insert(requestEntity);
 
         ctx.withTaskNodeExecRequestEntity(requestEntity);
@@ -1270,7 +1986,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
         ctx.setInterfacePath(interfacePath);
     }
 
-    private List<InputParamObject> calculateInputParamObjects(ProcDefInfoEntity procDefInfoEntity,
+    private List<InputParamObject> tryCalculateInputParamObjectsWithBindings(ProcDefInfoEntity procDefInfoEntity,
             ProcInstInfoEntity procInstEntity, TaskNodeInstInfoEntity taskNodeInstEntity,
             TaskNodeDefInfoEntity taskNodeDefEntity, List<ProcExecBindingEntity> nodeObjectBindings,
             PluginConfigInterfaces pluginConfigInterface, Map<Object, Object> externalCacheMap) {
@@ -1285,8 +2001,8 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
             inputObj.setEntityTypeId(nodeObjectBinding.getEntityTypeId());
             inputObj.setEntityDataId(nodeObjectBinding.getEntityDataId());
             inputObj.setFullEntityDataId(nodeObjectBinding.getFullEntityDataId());
-            
-            if(StringUtils.isNoneBlank(nodeObjectBinding.getConfirmToken())){
+
+            if (StringUtils.isNoneBlank(nodeObjectBinding.getConfirmToken())) {
                 inputObj.setConfirmToken(nodeObjectBinding.getConfirmToken());
             }
 
@@ -1298,8 +2014,9 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 
                 InputParamAttr inputAttr = new InputParamAttr();
                 inputAttr.setName(paramName);
-                inputAttr.setType(paramType);
+                inputAttr.setDataType(paramType);
                 inputAttr.setSensitive(IS_SENSITIVE_ATTR.equalsIgnoreCase(param.getSensitiveData()));
+                inputAttr.setParamDef(param);
 
                 boolean isFieldRequired = isFieldRequired(param.getRequired());
 
@@ -1307,30 +2024,35 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
                 //
                 String mappingType = param.getMappingType();
                 inputAttr.setMapType(mappingType);
+                inputAttr.setMultiple(param.getMultiple());
 
-                if (MAPPING_TYPE_ENTITY.equalsIgnoreCase(mappingType)) {
-                    handleEntityMapping(mappingType, param, entityDataId, objectVals, externalCacheMap);
-                }
+                String dataType = param.getDataType();
 
-                if (MAPPING_TYPE_CONTEXT.equalsIgnoreCase(mappingType)) {
-                    handleContextMapping(mappingType, taskNodeDefEntity, paramName, procInstEntity, param, paramType,
-                            nodeObjectBinding, objectVals);
-                }
-
-                if (MAPPING_TYPE_SYSTEM_VARIABLE.equalsIgnoreCase(mappingType)) {
-                    handleSystemMapping(mappingType, param, paramName, objectVals);
-                }
-
-                if (MAPPING_TYPE_CONSTANT.equalsIgnoreCase(mappingType)) {
-                    handleConstantMapping(mappingType, taskNodeDefEntity, paramName, objectVals, isFieldRequired, param);
-                }
-
-                // #2226
-                if (MAPPING_TYPE_OBJECT.equalsIgnoreCase(mappingType)) {
+                if (MAPPING_TYPE_OBJECT.equalsIgnoreCase(dataType)) {
                     handleObjectMapping(mappingType, param, entityDataId, objectVals, externalCacheMap,
                             procDefInfoEntity, procInstEntity, nodeObjectBinding.getFullEntityDataId(),
                             nodeObjectBinding.getEntityTypeId(), taskNodeDefEntity, taskNodeInstEntity);
+                } else {
+                    if (MAPPING_TYPE_ENTITY.equalsIgnoreCase(mappingType)) {
+                        handleEntityMapping(mappingType, param, entityDataId, objectVals, externalCacheMap);
+                    }
+
+                    if (MAPPING_TYPE_CONTEXT.equalsIgnoreCase(mappingType)) {
+                        handleContextMapping(mappingType, taskNodeDefEntity, paramName, procInstEntity, param,
+                                paramType, nodeObjectBinding, objectVals);
+                    }
+
+                    if (MAPPING_TYPE_SYSTEM_VARIABLE.equalsIgnoreCase(mappingType)) {
+                        handleSystemMapping(mappingType, param, paramName, objectVals);
+                    }
+
+                    if (MAPPING_TYPE_CONSTANT.equalsIgnoreCase(mappingType)) {
+                        handleConstantMapping(mappingType, taskNodeDefEntity, paramName, objectVals, isFieldRequired,
+                                param);
+                    }
                 }
+
+                // #2226
 
                 inputAttr.addValues(objectVals);
 
@@ -1349,7 +2071,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
             ProcInstInfoEntity procInstInfo, String rootEntityFullDataId, String rootEntityTypeId,
             TaskNodeDefInfoEntity taskNodeDefInfo, TaskNodeInstInfoEntity taskNodeInstInfo) {
         // #2226
-        if (!MAPPING_TYPE_OBJECT.equals(mappingType)) {
+        if (!MAPPING_TYPE_OBJECT.equals(param.getDataType())) {
             return;
         }
 
@@ -1365,6 +2087,51 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 
         CoreObjectMeta objectMeta = param.getObjectMeta();
 
+        if (objectMeta == null) {
+            if (StringUtils.isBlank(param.getMappingEntityExpression())
+                    || param.getMappingEntityExpression().endsWith(".NONE")) {
+                return;
+            }
+
+            String entityAttrName = null;
+            List<EntityQueryExprNodeInfo> currExprNodeInfos = this.entityQueryExpressionParser
+                    .parse(param.getMappingEntityExpression());
+            if (currExprNodeInfos == null || currExprNodeInfos.isEmpty()) {
+                // nothing
+            } else {
+                EntityQueryExprNodeInfo leafNode = currExprNodeInfos.get(currExprNodeInfos.size() - 1);
+                entityAttrName = leafNode.getQueryAttrName();
+            }
+            List<Map<String, Object>> rawObjectMapVals = pluginParamObjectVarCalculator
+                    .calculateRawObjectVarList(objectMeta, calCtx, param.getMappingEntityExpression());
+            if (Constants.DATA_MULTIPLE.equalsIgnoreCase(param.getMultiple())) {
+                for (Map<String, Object> recordMap : rawObjectMapVals) {
+                    if (StringUtils.isBlank(entityAttrName)) {
+                        objectVals.add(recordMap);
+                    } else {
+                        Object objVal = recordMap.get(entityAttrName);
+                        if (objVal != null) {
+                            objectVals.add(objVal);
+                        }
+                    }
+                }
+            } else {
+                if (!rawObjectMapVals.isEmpty()) {
+                    Map<String, Object> recordMap = rawObjectMapVals.get(0);
+                    if (StringUtils.isBlank(entityAttrName)) {
+                        objectVals.add(recordMap);
+                    } else {
+                        Object objVal = recordMap.get(entityAttrName);
+                        if (objVal != null) {
+                            objectVals.add(objVal);
+                        }
+                    }
+                }
+            }
+
+            return;
+        }
+
         // store objects here
         List<CoreObjectVar> objectVars = pluginParamObjectVarCalculator.calculateCoreObjectVarList(objectMeta, calCtx,
                 param.getMappingEntityExpression());
@@ -1374,7 +2141,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
             return;
         }
 
-        if (Constants.DATA_TYPE_LIST.equalsIgnoreCase(param.getDataType())) {
+        if (Constants.DATA_MULTIPLE.equalsIgnoreCase(param.getMultiple())) {
             for (CoreObjectVar objectVar : objectVars) {
                 PluginParamObject paramObject = pluginParamObjectVarAssembleService.marshalPluginParamObject(objectVar,
                         calCtx);
@@ -1387,7 +2154,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
         } else {
 
             if (objectVars.size() > 1) {
-                String errMsg = String.format("Required data type {} but {} objects returned.", param.getDataType(),
+                String errMsg = String.format("Required data type %s but %s objects returned.", param.getDataType(),
                         objectVars.size());
                 log.error(errMsg);
 
@@ -1681,7 +2448,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
             return retDataValues.get(0);
         }
 
-        if (DATA_TYPE_STRING.equalsIgnoreCase(paramType)) {
+        if (Constants.DATA_TYPE_STRING.equalsIgnoreCase(paramType)) {
             return assembleValueList(retDataValues);
         } else {
             return retDataValues;
@@ -1832,12 +2599,12 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
         if (!MAPPING_TYPE_CONSTANT.equals(mappingType)) {
             return;
         }
-        
-        if(StringUtils.isNoneBlank(param.getMappingValue())){
+
+        if (StringUtils.isNoneBlank(param.getMappingValue())) {
             objectVals.add(param.getMappingValue());
             return;
         }
-        
+
         String curTaskNodeDefId = taskNodeDefEntity.getId();
         TaskNodeParamEntity nodeParamEntity = taskNodeParamRepository
                 .selectOneByTaskNodeDefIdAndParamName(curTaskNodeDefId, paramName);
@@ -2016,16 +2783,17 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
             String sObjectId = String.valueOf(objectId);
             String entityTypeId = ipo.getEntityTypeId();
             String entityDataId = ipo.getEntityDataId();
+            String callbackId = entityDataId;
             // #2169
             String fullEntityDataId = ipo.getFullEntityDataId();
 
             Map<String, Object> inputMap = new HashMap<String, Object>();
-            inputMap.put(CALLBACK_PARAMETER_KEY, entityDataId);
+            inputMap.put(CALLBACK_PARAMETER_KEY, callbackId);
             TaskNodeExecParamEntity p = new TaskNodeExecParamEntity();
             p.setReqId(requestId);
             p.setParamName(CALLBACK_PARAMETER_KEY);
             p.setParamType(TaskNodeExecParamEntity.PARAM_TYPE_REQUEST);
-            p.setParamDataType(DATA_TYPE_STRING);
+            p.setParamDataType(Constants.DATA_TYPE_STRING);
             p.setObjId(sObjectId);
             p.setParamDataValue(entityDataId);
             p.setEntityDataId(entityDataId);
@@ -2035,16 +2803,21 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
             p.setCreatedBy(WorkflowConstants.DEFAULT_USER);
             p.setCreatedTime(new Date());
             p.setIsSensitive(false);
+            // #2233
+            p.setCallbackId(callbackId);
+            p.setMappingType(null);
+            p.setMultiple(Constants.DATA_NOT_MULTIPLE);
+            p.setParamDefId(null);
 
             taskNodeExecParamRepository.insert(p);
-            
-            if(StringUtils.isNoneBlank(ipo.getConfirmToken())){
+
+            if (StringUtils.isNoneBlank(ipo.getConfirmToken())) {
                 inputMap.put(CONFIRM_TOKEN_KEY, ipo.getConfirmToken());
                 TaskNodeExecParamEntity confirmTokenParam = new TaskNodeExecParamEntity();
                 confirmTokenParam.setReqId(requestId);
                 confirmTokenParam.setParamName(CONFIRM_TOKEN_KEY);
                 confirmTokenParam.setParamType(TaskNodeExecParamEntity.PARAM_TYPE_REQUEST);
-                confirmTokenParam.setParamDataType(DATA_TYPE_STRING);
+                confirmTokenParam.setParamDataType(Constants.DATA_TYPE_STRING);
                 confirmTokenParam.setObjId(sObjectId);
                 confirmTokenParam.setParamDataValue(ipo.getConfirmToken());
                 confirmTokenParam.setEntityDataId(entityDataId);
@@ -2065,7 +2838,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
                 e.setReqId(requestId);
                 e.setParamName(attr.getName());
                 e.setParamType(TaskNodeExecParamEntity.PARAM_TYPE_REQUEST);
-                e.setParamDataType(attr.getType());
+                e.setParamDataType(attr.getDataType());
                 e.setObjId(sObjectId);
                 e.setParamDataValue(tryCalculateParamDataValue(attr));
                 e.setEntityDataId(entityDataId);
@@ -2075,6 +2848,13 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
                 e.setCreatedTime(new Date());
 
                 e.setIsSensitive(attr.isSensitive());
+
+                e.setCallbackId(callbackId);
+                e.setMultiple(attr.getMultiple());
+                if (attr.getParamDef() != null) {
+                    e.setMappingType(attr.getParamDef().getMappingType());
+                    e.setParamDefId(attr.getParamDef().getId());
+                }
 
                 taskNodeExecParamRepository.insert(e);
 
@@ -2186,20 +2966,22 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
             try {
                 handleSingleOutputMap(pluginInvocationResult, ctx, outputParameterMap);
             } catch (Exception e) {
-                String errMsg = String.format("handling output errors:%s %s", outputParameterMap, e.getMessage());
+                String errMsg = String.format("handling output errors:%s %s :%s", outputParameterMap, e.getMessage(),
+                        ctx.getPluginInvocationCommand());
                 log.error(errMsg);
-                except = new WecubeCoreException(e.getMessage());
+                except = e;
             }
         }
 
         if (except != null) {
-            log.error("failed to process output parameters for {}", ctx.getPluginConfigInterface().getServiceName());
+            log.error("failed to process output parameters for {} :{}", ctx.getPluginConfigInterface().getServiceName(),
+                    ctx.getPluginInvocationCommand());
             throw new WecubeCoreException("Handling output result errors:" + except.getMessage());
         }
 
-        if (log.isDebugEnabled()) {
-            log.debug("finished processing {} output parameters for {}", outputParameterMaps.size(),
-                    ctx.getPluginConfigInterface().getServiceName());
+        if (log.isInfoEnabled()) {
+            log.info("finished processing {} output parameters for {} :{}", outputParameterMaps.size(),
+                    ctx.getPluginConfigInterface().getServiceName(), ctx.getPluginInvocationCommand());
         }
 
         return;
@@ -2262,12 +3044,18 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
             paramEntity.setObjId(objectId);
             paramEntity.setParamType(TaskNodeExecParamEntity.PARAM_TYPE_RESPONSE);
             paramEntity.setParamName(CALLBACK_PARAMETER_KEY);
-            paramEntity.setParamDataType(DATA_TYPE_STRING);
+            paramEntity.setParamDataType(Constants.DATA_TYPE_STRING);
             paramEntity.setParamDataValue(callbackParameter);
             paramEntity.setReqId(requestId);
             paramEntity.setIsSensitive(false);
             paramEntity.setCreatedBy(WorkflowConstants.DEFAULT_USER);
             paramEntity.setCreatedTime(new Date());
+
+            // #2233
+            paramEntity.setCallbackId(callbackParameter);
+            paramEntity.setMappingType(null);
+            paramEntity.setMultiple(Constants.DATA_NOT_MULTIPLE);
+            paramEntity.setParamDefId(null);
 
             taskNodeExecParamRepository.insert(paramEntity);
         }
@@ -2282,7 +3070,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
             String paramDataType = null;
             boolean isSensitiveData = false;
             if (p == null) {
-                paramDataType = DATA_TYPE_STRING;
+                paramDataType = Constants.DATA_TYPE_STRING;
             } else {
                 paramDataType = p.getDataType();
                 isSensitiveData = (IS_SENSITIVE_ATTR.equalsIgnoreCase(p.getSensitiveData()));
@@ -2308,6 +3096,14 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
             paramEntity.setIsSensitive(isSensitiveData);
             paramEntity.setCreatedBy(WorkflowConstants.DEFAULT_USER);
             paramEntity.setCreatedTime(new Date());
+
+            // #2233
+            paramEntity.setCallbackId(callbackParameter);
+            if (p != null) {
+                paramEntity.setMultiple(p.getMultiple());
+                paramEntity.setMappingType(p.getMappingType());
+                paramEntity.setParamDefId(p.getId());
+            }
 
             taskNodeExecParamRepository.insert(paramEntity);
         }
@@ -2368,23 +3164,34 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 
             if (retVal == null) {
                 log.info("returned value is null for {} {}", ctx.getRequestId(), paramName);
-                continue;
+//                continue;
             }
 
-            if (retVal instanceof String) {
-                if (StringUtils.isBlank((String) retVal)) {
-                    continue;
-                }
+            List<EntityQueryExprNodeInfo> exprNodeInfos = entityQueryExpressionParser.parse(paramExpr);
+
+            if (exprNodeInfos == null || exprNodeInfos.isEmpty()) {
+                String errMsg = String.format("Unknown how to update entity attribute due to invalid expression:%s",
+                        paramExpr);
+                log.error(errMsg);
+                throw new WecubeCoreException(errMsg);
             }
+
+            EntityQueryExprNodeInfo leafExprNodeInfo = exprNodeInfos.get(exprNodeInfos.size() - 1);
+            String targetPackageName = leafExprNodeInfo.getPackageName();
+            String targetEntityName = leafExprNodeInfo.getEntityName();
+            String targetAttrName = leafExprNodeInfo.getQueryAttrName();
+
+            PluginPackageAttributes targetAttrDefinition = getTargetPluginPackageAttributes(targetPackageName,
+                    targetEntityName, targetAttrName);
+            Object finalRetVal = validateAndConvert(targetAttrDefinition, retVal);
 
             DmeOutputParamAttr outputParamAttr = new DmeOutputParamAttr();
-            List<EntityQueryExprNodeInfo> exprNodeInfos = entityQueryExpressionParser.parse(paramExpr);
             outputParamAttr.setExprNodeInfos(exprNodeInfos);
             outputParamAttr.setInterf(pci);
             outputParamAttr.setInterfParam(pciParam);
             outputParamAttr.setParamExpr(paramExpr);
             outputParamAttr.setParamName(paramName);
-            outputParamAttr.setRetVal(retVal);
+            outputParamAttr.setRetVal(finalRetVal);
 
             allDmeOutputParamAttrs.add(outputParamAttr);
             if (outputParamAttr.isRootEntityAttr()) {
@@ -2407,8 +3214,21 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
             attr.setProcessed(true);
             EntityQueryExprNodeInfo exprNodeNodeInfo = attr.getExprNodeInfos().get(0);
 
-            if ("id".equalsIgnoreCase(exprNodeNodeInfo.getQueryAttrName())) {
-                idAttrDef = attr;
+            if ("id".equalsIgnoreCase(exprNodeNodeInfo.getQueryAttrName()) && (attr.getRetVal() != null)) {
+                if (attr.getRetVal() instanceof String) {
+                    if (StringUtils.isNoneBlank((String) attr.getRetVal())) {
+                        idAttrDef = attr;
+                    }
+                } else {
+                    idAttrDef = attr;
+                }
+            }
+            if (StringUtils.isBlank(exprNodeNodeInfo.getQueryAttrName())) {
+                String errMsg = String.format(
+                        "Invalid expression due to unknown attribute name of CI for paramter [%s], expression [%s]",
+                        attr.getParamName(), attr.getParamExpr());
+                log.error(errMsg);
+                throw new WecubeCoreException(errMsg);
             }
             objDataMap.put(exprNodeNodeInfo.getQueryAttrName(), attr.getRetVal());
         }
@@ -2451,12 +3271,16 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
                 this.entityOperationService.update(condition, attr.getRetVal(), null);
             } catch (Exception e) {
                 log.warn("Exceptions while updating entity.But still keep going to update.", e);
+                String errMsg = String.format("Failed to update entity data with {} {} caused by:{}",
+                        attr.getParamExpr(), rootEntityId, e.getMessage());
+                throw new WecubeCoreException(errMsg);
             }
         }
     }
 
     private void tryHandleSingleOutputMapOnceEntityUpdate(PluginInterfaceInvocationResult pluginInvocationResult,
             PluginInterfaceInvocationContext ctx, Map<String, Object> outputParameterMap, String nodeEntityId) {
+        log.info("About to update single output map for {}:{}", nodeEntityId, outputParameterMap);
         PluginConfigInterfaces pci = ctx.getPluginConfigInterface();
         List<PluginConfigInterfaceParameters> outputParameters = pci.getOutputParameters();
         for (PluginConfigInterfaceParameters pciParam : outputParameters) {
@@ -2482,25 +3306,82 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 
             if (retVal == null) {
                 log.info("returned value is null for {} {}", ctx.getRequestId(), paramName);
-                continue;
+//                continue;
             }
 
-            if (retVal instanceof String) {
-                if (StringUtils.isBlank((String) retVal)) {
-                    continue;
-                }
+//            if (retVal instanceof String) {
+//                if (StringUtils.isBlank((String) retVal)) {
+//                    continue;
+//                }
+//            }
+
+            List<EntityQueryExprNodeInfo> exprNodeInfos = entityQueryExpressionParser.parse(paramExpr);
+            if (exprNodeInfos == null || exprNodeInfos.isEmpty()) {
+                String errMsg = String.format("Unknown how to update entity attribute due to invalid expression:%s",
+                        paramExpr);
+                log.error(errMsg);
+                throw new WecubeCoreException(errMsg);
             }
+
+            EntityQueryExprNodeInfo leafExprNodeInfo = exprNodeInfos.get(exprNodeInfos.size() - 1);
+            String targetPackageName = leafExprNodeInfo.getPackageName();
+            String targetEntityName = leafExprNodeInfo.getEntityName();
+            String targetAttrName = leafExprNodeInfo.getQueryAttrName();
+
+            PluginPackageAttributes targetAttrDefinition = getTargetPluginPackageAttributes(targetPackageName,
+                    targetEntityName, targetAttrName);
+            Object finalRetVal = validateAndConvert(targetAttrDefinition, retVal);
 
             EntityOperationRootCondition condition = new EntityOperationRootCondition(paramExpr, nodeEntityId);
 
             try {
-                this.entityOperationService.update(condition, retVal, null);
+                this.entityOperationService.update(condition, finalRetVal, null);
             } catch (Exception e) {
                 log.warn("Exceptions while updating entity.But still keep going to update.", e);
+                String errMsg = String.format("Failed to update entity data with [%s] [%s] caused by:%s", paramExpr,
+                        nodeEntityId, e.getMessage());
+                throw new WecubeCoreException(errMsg);
             }
 
         }
 
+    }
+
+    private Object validateAndConvert(PluginPackageAttributes targetAttrDefinition, Object retVal) {
+        if (targetAttrDefinition == null) {
+            return retVal;
+        }
+
+        boolean isMultiple = Constants.DATA_MULTIPLE.equalsIgnoreCase(targetAttrDefinition.getMultiple());
+        if (isMultiple) {
+            if (retVal == null) {
+                return new ArrayList<Object>();
+            } else {
+                if (retVal instanceof List) {
+                    return retVal;
+                } else {
+                    List<Object> finalRetVal = new ArrayList<>();
+                    finalRetVal.add(retVal);
+                    return finalRetVal;
+                }
+            }
+        } else {
+            if (retVal != null && (retVal instanceof List)) {
+                String errMsg = String.format("Data type does not match required:%s but %s",
+                        targetAttrDefinition.getDataType(), "list");
+                log.error(errMsg);
+                throw new WecubeCoreException(errMsg);
+            }
+
+            return retVal;
+        }
+    }
+
+    private PluginPackageAttributes getTargetPluginPackageAttributes(String targetPackageName, String targetEntityName,
+            String targetAttrName) {
+        PluginPackageAttributes attr = pluginPackageDataModelService
+                .tryFetchLatestAvailablePluginPackageAttributes(targetPackageName, targetEntityName, targetAttrName);
+        return attr;
     }
 
     private void handleSingleOutputMap(PluginInterfaceInvocationResult pluginInvocationResult,
@@ -2525,7 +3406,13 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
                 && PLUGIN_RESULT_CODE_PARTIALLY_FAIL.equalsIgnoreCase(errorCodeOfSingleRecord)) {
             log.info("such request is partially failed for request:{} and {}:{}", ctx.getRequestId(),
                     CALLBACK_PARAMETER_KEY, nodeEntityId);
-            // TODO to store status
+            // to store status?
+            return;
+        }
+
+        if (!PLUGIN_RESULT_CODE_OK.equalsIgnoreCase(errorCodeOfSingleRecord)) {
+            log.info("such request is not successful for request:{} and {}:{}", ctx.getRequestId(),
+                    CALLBACK_PARAMETER_KEY, nodeEntityId);
             return;
         }
 
