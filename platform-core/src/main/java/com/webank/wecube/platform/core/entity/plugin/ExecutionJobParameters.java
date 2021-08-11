@@ -34,6 +34,10 @@ public class ExecutionJobParameters {
     private transient ExecutionJobs executionJob;
 
     private transient PluginConfigInterfaceParameterDto parameterDefinition;
+    
+    private transient CoreObjectMeta refObjectMeta;
+    
+    private transient PluginConfigInterfaces pluginConfigInterfaces;
 
     public ExecutionJobParameters() {
 
@@ -169,6 +173,22 @@ public class ExecutionJobParameters {
 
     public void setRawValue(Object rawValue) {
         this.rawValue = rawValue;
+    }
+
+    public CoreObjectMeta getRefObjectMeta() {
+        return refObjectMeta;
+    }
+
+    public void setRefObjectMeta(CoreObjectMeta refObjectMeta) {
+        this.refObjectMeta = refObjectMeta;
+    }
+
+    public PluginConfigInterfaces getPluginConfigInterfaces() {
+        return pluginConfigInterfaces;
+    }
+
+    public void setPluginConfigInterfaces(PluginConfigInterfaces pluginConfigInterfaces) {
+        this.pluginConfigInterfaces = pluginConfigInterfaces;
     }
     
     

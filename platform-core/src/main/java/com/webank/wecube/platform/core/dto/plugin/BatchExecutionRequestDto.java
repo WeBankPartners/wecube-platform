@@ -7,7 +7,7 @@ public class BatchExecutionRequestDto {
     private PluginConfigInterfaceDto pluginConfigInterface;
     private String packageName;
     private String entityName;
-    private List<InputParameterDefinition> inputParameterDefinitions;
+    private List<InputParameterDefinitionDto> inputParameterDefinitions;
     private BusinessKeyAttributeDto businessKeyAttribute;
     private List<ResourceDataDto> resourceDatas;
 
@@ -38,11 +38,11 @@ public class BatchExecutionRequestDto {
         this.entityName = entityName;
     }
 
-    public List<InputParameterDefinition> getInputParameterDefinitions() {
+    public List<InputParameterDefinitionDto> getInputParameterDefinitions() {
         return inputParameterDefinitions;
     }
 
-    public void setInputParameterDefinitions(List<InputParameterDefinition> inputParameterDefinitions) {
+    public void setInputParameterDefinitions(List<InputParameterDefinitionDto> inputParameterDefinitions) {
         this.inputParameterDefinitions = inputParameterDefinitions;
     }
 

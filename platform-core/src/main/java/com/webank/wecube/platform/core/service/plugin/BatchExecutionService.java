@@ -38,12 +38,13 @@ import com.webank.wecube.platform.core.commons.WecubeCoreException;
 import com.webank.wecube.platform.core.dto.plugin.BatchExecutionRequestDto;
 import com.webank.wecube.platform.core.dto.plugin.BatchExecutionResultDto;
 import com.webank.wecube.platform.core.dto.plugin.ExecutionJobResponseDto;
-import com.webank.wecube.platform.core.dto.plugin.InputParameterDefinition;
+import com.webank.wecube.platform.core.dto.plugin.InputParameterDefinitionDto;
 import com.webank.wecube.platform.core.dto.plugin.ItsDangerConfirmResultDto;
 import com.webank.wecube.platform.core.dto.plugin.ItsDangerConfirmResultDto.ItsDangerTokenInfoDto;
 import com.webank.wecube.platform.core.dto.plugin.PluginConfigInterfaceParameterDto;
 import com.webank.wecube.platform.core.dto.plugin.ResourceDataDto;
 import com.webank.wecube.platform.core.entity.plugin.BatchExecutionJobs;
+import com.webank.wecube.platform.core.entity.plugin.CoreObjectMeta;
 import com.webank.wecube.platform.core.entity.plugin.ExecutionJobParameters;
 import com.webank.wecube.platform.core.entity.plugin.ExecutionJobs;
 import com.webank.wecube.platform.core.entity.plugin.PluginConfigInterfaceParameters;
@@ -122,6 +123,18 @@ public class BatchExecutionService {
 
     @Autowired
     private PluginInstancesMapper pluginInstancesMapper;
+
+    @Autowired
+    private PluginParamObjectMetaStorage pluginParamObjectMetaStorage;
+
+    @Autowired
+    protected PluginParamObjectVarStorage pluginParamObjectVarStorageService;
+
+    @Autowired
+    protected PluginParamObjectVarCalculator pluginParamObjectVarCalculator;
+
+    @Autowired
+    protected PluginParamObjectVarMarshaller pluginParamObjectVarAssembleService;
 
     private ObjectMapper objectMapper = new ObjectMapper().setSerializationInclusion(JsonInclude.Include.NON_NULL);
 
@@ -337,13 +350,13 @@ public class BatchExecutionService {
 
         Map<String, Object> pluginInputParamMap = new HashMap<String, Object>();
 
-        //TODO to support object and multiple
+        // TODO to support object and multiple
         for (ExecutionJobParameters parameter : exeJob.getParameters()) {
             if (DATA_TYPE_STRING.equals(parameter.getDataType())
                     || MAPPING_TYPE_SYSTEM_VARIABLE.equals(parameter.getMappingEntityExpression())) {
                 String paramValue = parameter.getValue();
-                if (parameter.getParameterDefinition() != null
-                        && Constants.DATA_SENSITIVE.equalsIgnoreCase(parameter.getParameterDefinition().getSensitiveData())) {
+                if (parameter.getParameterDefinition() != null && Constants.DATA_SENSITIVE
+                        .equalsIgnoreCase(parameter.getParameterDefinition().getSensitiveData())) {
                     paramValue = tryDecryptParamValue(paramValue);
                 }
                 pluginInputParamMap.put(parameter.getName(), paramValue);
@@ -393,11 +406,11 @@ public class BatchExecutionService {
         return md5;
     }
 
-    private void verifyParameters(List<InputParameterDefinition> inputParameterDefinitions) {
+    private void verifyParameters(List<InputParameterDefinitionDto> inputParameterDefinitions) {
         if (inputParameterDefinitions == null) {
             return;
         }
-        for (InputParameterDefinition inputParameterDefinition : inputParameterDefinitions) {
+        for (InputParameterDefinitionDto inputParameterDefinition : inputParameterDefinitions) {
             PluginConfigInterfaceParameterDto inputParameter = inputParameterDefinition.getInputParameter();
             if (FIELD_REQUIRED.equalsIgnoreCase(inputParameter.getRequired())
                     && MAPPING_TYPE_CONTEXT.equalsIgnoreCase(inputParameter.getMappingType())) {
@@ -450,58 +463,119 @@ public class BatchExecutionService {
     private void postProcessBatchExecutionJob(BatchExecutionJobs batchExeJob) {
         batchExeJob.setCompleteTimestamp(new Timestamp(System.currentTimeMillis()));
 
-        // TODO
         batchExecutionJobsMapper.updateByPrimaryKeySelective(batchExeJob);
     }
 
     private List<ExecutionJobParameters> transFromInputParameterDefinitionToExecutionJobParameter(
-            List<InputParameterDefinition> inputParameterDefinitions, ExecutionJobs executionJob) {
+            List<InputParameterDefinitionDto> inputParameterDefinitionDtos, ExecutionJobs executionJob) {
+
+        PluginConfigInterfaces pluginConfigInterfaces = tryFetchEnrichedPluginConfigInterfaces(
+                executionJob.getPluginConfigInterfaceId());
         List<ExecutionJobParameters> executionJobParametersList = new ArrayList<ExecutionJobParameters>();
-        for (InputParameterDefinition inputParameterDefinition : inputParameterDefinitions) {
-            PluginConfigInterfaceParameterDto interfaceParameter = inputParameterDefinition.getInputParameter();
+        for (InputParameterDefinitionDto inputParameterDefinitionDto : inputParameterDefinitionDtos) {
+            PluginConfigInterfaceParameterDto interfaceParameterDto = inputParameterDefinitionDto.getInputParameter();
 
-            // TODO to support object and multiple
-            if (inputParameterDefinition.getInputParameterValue() != null) {
+            // support object and multiple
+            if (inputParameterDefinitionDto.getInputParameterValue() != null) {
 
-                String paramValue = inputParameterDefinition.getInputParameterValue().toString();
-                if (Constants.DATA_SENSITIVE.equalsIgnoreCase(interfaceParameter.getSensitiveData())) {
+                String paramValue = inputParameterDefinitionDto.getInputParameterValue().toString();
+                if (Constants.DATA_SENSITIVE.equalsIgnoreCase(interfaceParameterDto.getSensitiveData())) {
                     paramValue = tryEncryptParamValue(paramValue);
                 }
-                ExecutionJobParameters executionJobParameter = new ExecutionJobParameters(interfaceParameter.getName(),
-                        interfaceParameter.getDataType(), interfaceParameter.getMappingType(),
-                        interfaceParameter.getMappingEntityExpression(),
-                        interfaceParameter.getMappingSystemVariableName(), interfaceParameter.getRequired(),
+                ExecutionJobParameters executionJobParameter = new ExecutionJobParameters(
+                        interfaceParameterDto.getName(), interfaceParameterDto.getDataType(),
+                        interfaceParameterDto.getMappingType(), interfaceParameterDto.getMappingEntityExpression(),
+                        interfaceParameterDto.getMappingSystemVariableName(), interfaceParameterDto.getRequired(),
                         paramValue);
                 executionJobParameter.setExecutionJob(executionJob);
                 executionJobParameter.setExecutionJobId(executionJob.getId());
                 // #2233
-                executionJobParameter.setMultiple(interfaceParameter.getMultiple());
-                executionJobParameter.setRefObjectName(interfaceParameter.getRefObjectName());
+                executionJobParameter.setMultiple(interfaceParameterDto.getMultiple());
+                executionJobParameter.setRefObjectName(interfaceParameterDto.getRefObjectName());
                 executionJobParametersList.add(executionJobParameter);
 
-                executionJobParameter.setParameterDefinition(interfaceParameter);
+                executionJobParameter.setParameterDefinition(interfaceParameterDto);
+
+                executionJobParameter.setPluginConfigInterfaces(pluginConfigInterfaces);
+
+                if (Constants.DATA_TYPE_OBJECT.equalsIgnoreCase(executionJobParameter.getDataType())
+                        && StringUtils.isNoneBlank(executionJobParameter.getRefObjectName())) {
+                    CoreObjectMeta refObjectMeta = tryFetchEnrichCoreObjectMeta(executionJobParameter);
+                    if (refObjectMeta != null) {
+                        executionJobParameter.setRefObjectMeta(refObjectMeta);
+                    }
+                }
 
                 executionJobParametersMapper.insert(executionJobParameter);
             } else {
-                ExecutionJobParameters executionJobParameter = new ExecutionJobParameters(interfaceParameter.getName(),
-                        interfaceParameter.getDataType(), interfaceParameter.getMappingType(),
-                        interfaceParameter.getMappingEntityExpression(),
-                        interfaceParameter.getMappingSystemVariableName(), interfaceParameter.getRequired(), null);
+                ExecutionJobParameters executionJobParameter = new ExecutionJobParameters(
+                        interfaceParameterDto.getName(), interfaceParameterDto.getDataType(),
+                        interfaceParameterDto.getMappingType(), interfaceParameterDto.getMappingEntityExpression(),
+                        interfaceParameterDto.getMappingSystemVariableName(), interfaceParameterDto.getRequired(),
+                        null);
                 executionJobParameter.setExecutionJobId(executionJob.getId());
                 executionJobParameter.setExecutionJob(executionJob);
                 executionJobParametersList.add(executionJobParameter);
 
                 // #2233
-                executionJobParameter.setMultiple(interfaceParameter.getMultiple());
-                executionJobParameter.setRefObjectName(interfaceParameter.getRefObjectName());
+                executionJobParameter.setMultiple(interfaceParameterDto.getMultiple());
+                executionJobParameter.setRefObjectName(interfaceParameterDto.getRefObjectName());
 
-                executionJobParameter.setParameterDefinition(interfaceParameter);
+                executionJobParameter.setParameterDefinition(interfaceParameterDto);
+                executionJobParameter.setPluginConfigInterfaces(pluginConfigInterfaces);
+
+                if (Constants.DATA_TYPE_OBJECT.equalsIgnoreCase(executionJobParameter.getDataType())
+                        && StringUtils.isNoneBlank(executionJobParameter.getRefObjectName())) {
+                    CoreObjectMeta refObjectMeta = tryFetchEnrichCoreObjectMeta(executionJobParameter);
+                    if (refObjectMeta != null) {
+                        executionJobParameter.setRefObjectMeta(refObjectMeta);
+                    }
+                }
 
                 executionJobParametersMapper.insert(executionJobParameter);
             }
 
         }
         return executionJobParametersList;
+    }
+
+    protected CoreObjectMeta tryFetchEnrichCoreObjectMeta(ExecutionJobParameters param) {
+
+        PluginConfigInterfaces intfDef = param.getPluginConfigInterfaces();
+        if (intfDef == null) {
+            log.debug("Cannot find plugin config interface for {}", param.getId());
+            return null;
+        }
+
+        PluginConfigs pluginConfig = intfDef.getPluginConfig();
+        if (pluginConfig == null) {
+            log.debug("Cannot find plugin config for {}", intfDef.getId());
+            return null;
+        }
+
+        PluginPackages pluginPackage = pluginConfig.getPluginPackage();
+        if (pluginPackage == null) {
+            log.debug("cannot find plugin package for {}", pluginConfig.getId());
+            return null;
+        }
+
+        String packageName = pluginPackage.getName();
+        if (StringUtils.isBlank(param.getRefObjectName())) {
+            log.info("object name value is blank for {}", param.getId());
+            return null;
+        }
+
+        String configId = pluginConfig.getId();
+        String objectName = param.getRefObjectName();
+        CoreObjectMeta objectMeta = pluginParamObjectMetaStorage.fetchAssembledCoreObjectMeta(packageName, objectName,
+                configId);
+        if (objectMeta == null) {
+            log.info("Cannot fetch core object meta for interface param:{},and packge:{},objectName:{}", param.getId(),
+                    packageName, objectName);
+            return null;
+        }
+
+        return objectMeta;
     }
 
     private String tryEncryptParamValue(String paramValue) {
@@ -564,8 +638,8 @@ public class BatchExecutionService {
             if (DATA_TYPE_STRING.equals(parameter.getDataType())
                     || MAPPING_TYPE_SYSTEM_VARIABLE.equals(parameter.getMappingEntityExpression())) {
                 String paramValue = parameter.getValue();
-                if (parameter.getParameterDefinition() != null
-                        && Constants.DATA_SENSITIVE.equalsIgnoreCase(parameter.getParameterDefinition().getSensitiveData())) {
+                if (parameter.getParameterDefinition() != null && Constants.DATA_SENSITIVE
+                        .equalsIgnoreCase(parameter.getParameterDefinition().getSensitiveData())) {
                     paramValue = tryDecryptParamValue(paramValue);
                 }
                 pluginInputParamMap.put(parameter.getName(), paramValue);
@@ -717,20 +791,28 @@ public class BatchExecutionService {
         PluginPackages pluginPackageEntity = pluginConfigEntity.getPluginPackage();
         String pluginPackageName = pluginPackageEntity.getName();
 
-        // TODO to support object and list
         for (ExecutionJobParameters param : exeJob.getParameters()) {
             String mappingType = param.getMappingType();
-            if (MAPPING_TYPE_ENTITY.equals(mappingType)) {
-                calculateInputParamValueFromExpr(exeJob, param);
+            String dataType = param.getDataType();
+            if (Constants.DATA_TYPE_OBJECT.equalsIgnoreCase(dataType)) {
+                calculateInputParamValueFromObject(exeJob, param, pluginPackageName);
+            } else {
+                if (MAPPING_TYPE_ENTITY.equals(mappingType)) {
+                    calculateInputParamValueFromExpr(exeJob, param);
+                }
+
+                if (MAPPING_TYPE_SYSTEM_VARIABLE.equals(mappingType)) {
+                    calculateInputParamValueFromSystemVariable(exeJob, param, pluginPackageName);
+                }
             }
 
-            if (MAPPING_TYPE_SYSTEM_VARIABLE.equals(mappingType)) {
-                calculateInputParamValueFromSystemVariable(exeJob, param, pluginPackageName);
-            }
-
-            // TODO to support constant mapping
         }
         return;
+    }
+
+    private void calculateInputParamValueFromObject(ExecutionJobs executionJob, ExecutionJobParameters parameter,
+            String pluginPackageName) {
+        // TODO
     }
 
     private void calculateInputParamValueFromSystemVariable(ExecutionJobs executionJob,
@@ -770,8 +852,8 @@ public class BatchExecutionService {
             }
 
             // #2046
-            if (parameter.getParameterDefinition() != null
-                    && Constants.DATA_SENSITIVE.equalsIgnoreCase(parameter.getParameterDefinition().getSensitiveData())) {
+            if (parameter.getParameterDefinition() != null && Constants.DATA_SENSITIVE
+                    .equalsIgnoreCase(parameter.getParameterDefinition().getSensitiveData())) {
                 sVal = tryEncryptParamValue(sVal);
             }
             parameter.setValue(sVal);
@@ -802,12 +884,12 @@ public class BatchExecutionService {
                     criteria.getEntityIdentity());
         }
 
-        //TODO to support list and object data type
+        // TODO to support list and object data type
         if (attrValsPerExpr != null && (!attrValsPerExpr.isEmpty())) {
             // #2046
             String paramValue = attrValsPerExpr.get(0) == null ? null : attrValsPerExpr.get(0).toString();
-            if (parameter.getParameterDefinition() != null
-                    && Constants.DATA_SENSITIVE.equalsIgnoreCase(parameter.getParameterDefinition().getSensitiveData())) {
+            if (parameter.getParameterDefinition() != null && Constants.DATA_SENSITIVE
+                    .equalsIgnoreCase(parameter.getParameterDefinition().getSensitiveData())) {
                 paramValue = tryEncryptParamValue(paramValue);
             }
             parameter.setValue(paramValue);
