@@ -125,6 +125,11 @@ public class StandardEntityQueryExecutor implements EntityQueryExecutor {
     public void executeUpdate(EntityOperationContext ctx, Object valueToUpdate) {
         List<EntityDataDelegate> entitiesToUpdate = executeQueryLeafEntity(ctx);
         List<EntityDataRecord> entityDataRecordsToUpdate = buildEntityDataRecords(entitiesToUpdate, valueToUpdate);
+        
+        if(entityDataRecordsToUpdate == null || entityDataRecordsToUpdate.isEmpty()) {
+            log.info("Empty entity data records to update.");
+            return;
+        }
 
         EntityQueryLinkNode leafLinkNode = ctx.getTailEntityQueryLinkNode();
         EntityQueryExprNodeInfo nodeInfo = leafLinkNode.getExprNodeInfo();
@@ -209,6 +214,8 @@ public class StandardEntityQueryExecutor implements EntityQueryExecutor {
 
             dataRecords.add(record);
         }
+        
+        log.info("Total {} records to update.", dataRecords.size());
 
         return dataRecords;
     }

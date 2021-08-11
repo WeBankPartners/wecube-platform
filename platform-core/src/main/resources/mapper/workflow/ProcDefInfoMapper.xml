@@ -30,6 +30,8 @@
         <result column="owner_grp" jdbcType="VARCHAR" property="ownerGrp" />
         <result column="exclude_mode" jdbcType="VARCHAR"
             property="excludeMode" />
+        <result column="tags" jdbcType="VARCHAR"
+            property="tags" />
     </resultMap>
     <resultMap extends="BaseResultMap" id="ResultMapWithBLOBs"
         type="com.webank.wecube.platform.core.entity.workflow.ProcDefInfoEntity">
@@ -37,13 +39,25 @@
             property="procDefData" />
     </resultMap>
     <sql id="Base_Column_List">
-        id, created_by, created_time, updated_by, updated_time,
-        active, rev,
-        status, proc_def_data_fmt,
+        id, 
+        created_by, 
+        created_time, 
+        updated_by, 
+        updated_time,
+        active, 
+        rev,
+        status, 
+        proc_def_data_fmt,
         proc_def_kernel_id,
-        proc_def_key, proc_def_name, proc_def_ver, root_entity,
+        proc_def_key, 
+        proc_def_name, 
+        proc_def_ver, 
+        root_entity,
         is_deleted,
-        owner, owner_grp, exclude_mode
+        owner, 
+        owner_grp, 
+        exclude_mode,
+        tags
     </sql>
     <sql id="Blob_Column_List">
         proc_def_data
@@ -64,16 +78,27 @@
     </delete>
     <insert id="insert"
         parameterType="com.webank.wecube.platform.core.entity.workflow.ProcDefInfoEntity">
-        insert into core_re_proc_def_info (id, created_by,
+        insert into core_re_proc_def_info (
+        id, 
+        created_by,
         created_time,
-        updated_by, updated_time, active,
-        rev, status,
+        updated_by, 
+        updated_time, 
+        active,
+        rev, 
+        status,
         proc_def_data_fmt,
-        proc_def_kernel_id, proc_def_key,
+        proc_def_kernel_id, 
+        proc_def_key,
         proc_def_name,
-        proc_def_ver, root_entity, is_deleted,
+        proc_def_ver, 
+        root_entity, 
+        is_deleted,
         owner,
-        owner_grp, exclude_mode, proc_def_data
+        owner_grp, 
+        exclude_mode,
+        tags, 
+        proc_def_data
         )
         values
         (#{id,jdbcType=VARCHAR},
@@ -90,6 +115,7 @@
         #{owner,jdbcType=VARCHAR},
         #{ownerGrp,jdbcType=VARCHAR},
         #{excludeMode,jdbcType=VARCHAR},
+        #{tags,jdbcType=VARCHAR},
         #{procDefData,jdbcType=LONGVARCHAR}
         )
     </insert>
@@ -151,6 +177,9 @@
             <if test="excludeMode != null">
                 exclude_mode,
             </if>
+            <if test="tags != null">
+                tags,
+            </if>
             <if test="procDefData != null">
                 proc_def_data,
             </if>
@@ -209,6 +238,9 @@
             </if>
             <if test="excludeMode != null">
                 #{excludeMode,jdbcType=VARCHAR},
+            </if>
+            <if test="tags != null">
+                #{tags,jdbcType=VARCHAR},
             </if>
             <if test="procDefData != null">
                 #{procDefData,jdbcType=LONGVARCHAR},
@@ -274,6 +306,9 @@
             <if test="excludeMode != null">
                 exclude_mode = #{excludeMode,jdbcType=VARCHAR},
             </if>
+            <if test="tags != null">
+                tags = #{tags,jdbcType=VARCHAR},
+            </if>
             <if test="procDefData != null">
                 proc_def_data =
                 #{procDefData,jdbcType=LONGVARCHAR},
@@ -316,6 +351,8 @@
         owner_grp = #{ownerGrp,jdbcType=VARCHAR},
         exclude_mode =
         #{excludeMode,jdbcType=VARCHAR},
+        tags =
+        #{tags,jdbcType=VARCHAR},
         proc_def_data =
         #{procDefData,jdbcType=LONGVARCHAR}
         where id =

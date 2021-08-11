@@ -21,23 +21,32 @@ public class CommandService {
     public void runAtLocal(String command) throws Exception {
         String returnString = "";
         Process pro = null;
+        BufferedReader input = null;
+        PrintWriter output = null;
         Runtime runTime = Runtime.getRuntime();
         if (runTime == null) {
-            throw new WecubeCoreException("3220","Create runtime false!");
+            throw new WecubeCoreException("3220", "Create runtime false!");
         }
         try {
             pro = runTime.exec(command);
-            BufferedReader input = new BufferedReader(new InputStreamReader(pro.getInputStream()));
-            PrintWriter output = new PrintWriter(new OutputStreamWriter(pro.getOutputStream()));
+            input = new BufferedReader(new InputStreamReader(pro.getInputStream()));
+            output = new PrintWriter(new OutputStreamWriter(pro.getOutputStream()));
             String line;
             while ((line = input.readLine()) != null) {
                 returnString = returnString + line + "\n";
             }
-            input.close();
-            output.close();
-            pro.destroy();
         } catch (IOException e) {
             log.error("Execute '{}' command failed.{}", command, e);
+        } finally {
+            if (input != null) {
+                input.close();
+            }
+            if (output != null) {
+                output.close();
+            }
+            if (pro != null) {
+                pro.destroy();
+            }
         }
         log.info("Execute '{}' command successful", command);
     }
@@ -52,14 +61,19 @@ public class CommandService {
 
         RemoteCommand cmd = new SimpleRemoteCommand(command);
         PooledRemoteCommandExecutor executor = new PooledRemoteCommandExecutor();
-        executor.init(config);
+        try {
+            executor.init(config);
 
-        String result = executor.execute(cmd);
+            String result = executor.execute(cmd);
 
-        executor.destroy();
+            log.info("result is: " + result);
+            return result;
+        } finally {
+            if (executor != null) {
+                executor.destroy();
+            }
 
-        log.info("result is: " + result);
-        return result;
+        }
     }
 
     public String runAtRemoteHasReturn(String host, String user, String password, Integer port, String command)
@@ -80,7 +94,7 @@ public class CommandService {
 
         log.info("result is: " + result);
         if (result == "" || result.isEmpty()) {
-            throw new WecubeCoreException("3221","return is empty, please check !");
+            throw new WecubeCoreException("3221", "return is empty, please check !");
         } else {
             return result;
         }

@@ -18,6 +18,8 @@ public class SimpleSubSystemDto implements Serializable {
     private String apikey;
     private boolean active;
     private boolean blocked;
+    
+    private String pubKey;
 
     public String getName() {
         return name;
@@ -95,5 +97,15 @@ public class SimpleSubSystemDto implements Serializable {
         builder.append("]");
         return builder.toString();
     }
+
+    public String getPubKey() {
+        return pubKey;
+    }
+
+    public void setPubKey(String pubKey) {
+        this.pubKey = pubKey;
+    }
+    
+    
 
 }

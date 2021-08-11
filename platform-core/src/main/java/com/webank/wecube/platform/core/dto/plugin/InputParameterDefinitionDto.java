@@ -1,6 +1,6 @@
 package com.webank.wecube.platform.core.dto.plugin;
 
-public class InputParameterDefinition {
+public class InputParameterDefinitionDto {
     public static final String DATA_TYPE_STRING = "string";
     public static final String DATA_TYPE_NUMBER = "number";
 

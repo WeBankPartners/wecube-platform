@@ -172,6 +172,9 @@
           <Col span="2" offset="0" style="text-align: center;">
             <strong style="font-size:15px;">{{ $t('data_type') }}</strong>
           </Col>
+          <Col span="1" style="margin-left:60px" offset="0">
+            <strong style="font-size:15px;">{{ $t('core_multiple') }}</strong>
+          </Col>
           <Col span="1" style="margin-left:45px" offset="0">
             <strong style="font-size:15px;">{{ $t('sensitive') }}</strong>
           </Col>
@@ -180,7 +183,7 @@
               {{ $t('attribute_type') }}
             </strong>
           </Col>
-          <Col span="11" style="margin-left:100px" offset="0">
+          <Col span="10" style="margin-left:100px" offset="1">
             <strong style="font-size:15px;">{{ $t('attribute') }}</strong>
           </Col>
         </Row>
@@ -216,6 +219,20 @@
                   <Col span="1" offset="0">
                     <FormItem :label-width="0">
                       <Select
+                        v-model="param.multiple"
+                        filterable
+                        style="width:50px"
+                        :disabled="currentPluginObj.status === 'ENABLED'"
+                      >
+                        <Option v-for="item in sensitiveData" :value="item.value" :key="item.value">{{
+                          item.label
+                        }}</Option>
+                      </Select>
+                    </FormItem>
+                  </Col>
+                  <Col span="1" offset="1">
+                    <FormItem :label-width="0">
+                      <Select
                         v-model="param.sensitiveData"
                         filterable
                         style="width:50px"
@@ -235,15 +252,13 @@
                         v-model="param.mappingType"
                         @on-change="mappingTypeChange($event, param)"
                       >
-                        <Option value="context" key="context">context</Option>
-                        <Option value="system_variable" key="system_variable">system_variable</Option>
-                        <Option value="entity" key="entity">entity</Option>
-                        <Option value="constant" key="constant">constant</Option>
-                        <Option value="object" key="object">object</Option>
+                        <Option v-for="item in mappingTypeOptions" :value="item.value" :key="item.key">{{
+                          item.value
+                        }}</Option>
                       </Select>
                     </FormItem>
                   </Col>
-                  <Col span="13" offset="1">
+                  <Col span="11" offset="1">
                     <FormItem :label-width="0">
                       <!-- <FilterRules
                         v-if="param.mappingType === 'entity'"
@@ -255,7 +270,7 @@
                         :needAttr="true"
                         :rootEntityFirst="true"
                       ></FilterRules> -->
-                      <FilterRulesRef
+                      <!-- <FilterRulesRef
                         v-if="param.mappingType === 'entity'"
                         v-model="param.mappingEntityExpression"
                         :disabled="currentPluginObj.status === 'ENABLED'"
@@ -264,7 +279,7 @@
                         :needNativeAttr="true"
                         :needAttr="true"
                         :rootEntityFirst="true"
-                      ></FilterRulesRef>
+                      ></FilterRulesRef> -->
                       <Select
                         filterable
                         v-if="param.mappingType === 'system_variable'"
@@ -280,8 +295,15 @@
                           >{{ item.name }}</Option
                         >
                       </Select>
-                      <span v-if="param.mappingType === 'context' || param.mappingType === 'constant'">N/A</span>
-                      <span v-if="param.mappingType === 'object'">
+                      <span v-if="param.mappingType === 'context'">N/A</span>
+                      <span v-if="param.mappingType === 'constant'">
+                        <Input
+                          v-model="param.mappingValue"
+                          placeholder=""
+                          :disabled="currentPluginObj.status === 'ENABLED'"
+                        />
+                      </span>
+                      <span v-if="param.mappingType === 'entity'">
                         <div style="width: 50%;display:inline-block;vertical-align: top;">
                           <FilterRulesRef
                             v-model="param.mappingEntityExpression"
@@ -293,9 +315,13 @@
                             :rootEntityFirst="true"
                           ></FilterRulesRef>
                         </div>
-                        <Button type="primary" size="small" @click="showObjectConfig(param)">{{
-                          $t('configuration')
-                        }}</Button>
+                        <Button
+                          v-if="param.dataType === 'object' && param.refObjectMeta"
+                          type="primary"
+                          size="small"
+                          @click="showObjectConfig(param)"
+                          >{{ $t('configuration') }}</Button
+                        >
                       </span>
                     </FormItem>
                   </Col>
@@ -335,6 +361,20 @@
                     <Col span="1" offset="0">
                       <FormItem :label-width="0">
                         <Select
+                          v-model="outPut.multiple"
+                          filterable
+                          style="width:50px"
+                          :disabled="currentPluginObj.status === 'ENABLED'"
+                        >
+                          <Option v-for="item in sensitiveData" :value="item.value" :key="item.value">{{
+                            item.label
+                          }}</Option>
+                        </Select>
+                      </FormItem>
+                    </Col>
+                    <Col span="1" offset="1">
+                      <FormItem :label-width="0">
+                        <Select
                           filterable
                           v-model="outPut.sensitiveData"
                           style="width:50px"
@@ -354,7 +394,7 @@
                         </Select>
                       </FormItem>
                     </Col>
-                    <Col span="13" offset="1">
+                    <Col span="11" offset="1">
                       <FormItem :label-width="0">
                         <FilterRulesRef
                           v-if="outPut.mappingType === 'entity'"
@@ -378,7 +418,7 @@
                         <Input v-model="outPut.name" placeholder="key" :disabled="outPut.id !== ''" />
                       </FormItem>
                     </Col>
-                    <Col span="4" offset="1">
+                    <Col span="6" offset="1">
                       <FormItem :label-width="0">
                         <span v-if="outPut.required === 'Y'" style="color:red;vertical-align: text-bottom;">*</span>
                         <Input
@@ -388,7 +428,7 @@
                         />
                       </FormItem>
                     </Col>
-                    <Col span="13" offset="1">
+                    <Col span="11" offset="1">
                       <FormItem :label-width="0">
                         <FilterRulesRef
                           v-model="outPut.mappingEntityExpression"
@@ -548,6 +588,12 @@ export default {
       selectedEntityType: '',
       form: {},
       allSystemVariables: [],
+      mappingTypeOptions: [
+        { label: 'context', value: 'context' },
+        { label: 'system_variable', value: 'system_variable' },
+        { label: 'entity', value: 'entity' },
+        { label: 'constant', value: 'constant' }
+      ],
       sensitiveData: [
         {
           value: 'Y',
@@ -632,6 +678,7 @@ export default {
     // 'inputParameters', param, index
     async showObjectConfig (originData) {
       let datax = JSON.parse(JSON.stringify(originData))
+      console.log(originData)
       if (!originData.refObjectMeta) {
         this.$Notice.error({
           title: 'Error',
@@ -673,16 +720,25 @@ export default {
       }
     },
     selectedEntityTypeChangeHandler (val) {
+      const findIndex = val.indexOf('{')
+      if (findIndex === -1) {
+        this.currentPluginObj.filterRule = ''
+      } else {
+        const rule = val.substring(findIndex, val.length)
+        this.currentPluginObj.filterRule = rule
+      }
       const rootEntity = val.split('{')[0]
       this.currentPluginObj.interfaces.forEach(_ => {
         _.inputParameters.forEach(i => {
           if (i.mappingType === 'entity') {
-            i.mappingEntityExpression = this.managementExpression(i.mappingEntityExpression, rootEntity)
+            const tmp = this.managementExpression(i.mappingEntityExpression, rootEntity)
+            i.mappingEntityExpression = tmp
           }
         })
         _.outputParameters.forEach(o => {
           if (o.mappingType === 'entity') {
-            o.mappingEntityExpression = this.managementExpression(o.mappingEntityExpression, rootEntity)
+            const tmp = this.managementExpression(o.mappingEntityExpression, rootEntity)
+            o.mappingEntityExpression = tmp
           }
         })
       })
@@ -726,12 +782,12 @@ export default {
     // refObjectMeta。id pluginConfigId
     showParamsModal (val, index, currentPluginObj) {
       this.currentInter = val
-      this.currentInter.inputParameters.forEach(item => {
-        item.mappingEntityExpression = this.managementObjectExpression(
-          item.mappingEntityExpression,
-          this.selectedEntityType
-        )
-      })
+      // this.currentInter.inputParameters.forEach(item => {
+      //   item.mappingEntityExpression = this.managementObjectExpression(
+      //     item.mappingEntityExpression,
+      //     this.selectedEntityType
+      //   )
+      // })
       this.objectModal.pluginConfigId = val.pluginConfigId
       this.currentInterIndex = index
       this.currentServiceName = val.serviceName
@@ -1104,10 +1160,10 @@ export default {
             filterRule: _.filterRule ? _.filterRule : ''
           }
         })
+        this.currentPluginObj = currentConfig
+        this.selectedEntityType = currentConfig.targetEntityWithFilterRule
+        this.registerName = this.currentPluginObj.registerName
       }
-      this.currentPluginObj = currentConfig
-      this.selectedEntityType = currentConfig.targetEntityWithFilterRule
-      this.registerName = this.currentPluginObj.registerName
       this.hidePanal = true
       this.isLoading = false
     },

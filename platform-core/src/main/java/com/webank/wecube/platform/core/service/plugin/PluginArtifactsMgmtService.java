@@ -125,6 +125,7 @@ public class PluginArtifactsMgmtService extends AbstractPluginMgmtService {
     public static final String DEFAULT_SENSITIVE_DATA = "N";
     public static final String DEFAULT_TARGET_ENTITY_FILTER_RULE = "";
     public static final String DEFAULT_FILTER_RULE_FOR_INTERFACE = "";
+    public static final String DEFAULT_MULTIPLE = "N";
 
     private static final String DEFAULT_USER = "sys";
 
@@ -731,11 +732,19 @@ public class PluginArtifactsMgmtService extends AbstractPluginMgmtService {
                 attributeEntity.setRefAttr(xmlAttribute.getRef());
                 attributeEntity.setRefPackage(refPackage);
                 attributeEntity.setRefEntity(xmlAttribute.getRefEntity());
+                
+                boolean mandatory = false;
+                if("Y".equalsIgnoreCase(xmlAttribute.getRequired())) {
+                    mandatory = true;
+                }
+                
+                attributeEntity.setMandatory(mandatory);
+                String multiple = "N";
+                if(StringUtils.isNoneBlank(xmlAttribute.getMultiple())) {
+                    multiple = xmlAttribute.getMultiple().trim();
+                }
 
-                // String referenceId =
-                // calAttributeReference(pluginPackageEntity, dataModelEntity,
-                // entity, xmlAttribute);
-                // attributeEntity.setReferenceId(referenceId);
+                attributeEntity.setMultiple(multiple);
 
                 pluginPackageAttributesMapper.insert(attributeEntity);
 
@@ -944,6 +953,13 @@ public class PluginArtifactsMgmtService extends AbstractPluginMgmtService {
             paramEntity.setMappingValue(xmlParameter.getMappingValue());
             paramEntity.setPluginConfigInterface(intfEntity);
             paramEntity.setPluginConfigInterfaceId(intfEntity.getId());
+            
+            String multiple = xmlParameter.getMultiple();
+            if(StringUtils.isBlank(multiple)) {
+                multiple = DEFAULT_MULTIPLE;
+            }
+            paramEntity.setMultiple(multiple);
+            paramEntity.setRefObjectName(xmlParameter.getRefObjectName());
 
             String sensitiveData = xmlParameter.getSensitiveData();
             if (StringUtils.isBlank(sensitiveData)) {
@@ -981,6 +997,13 @@ public class PluginArtifactsMgmtService extends AbstractPluginMgmtService {
             paramEntity.setPluginConfigInterfaceId(intfEntity.getId());
             paramEntity.setDescription(xmlParameter.getDescription());
             paramEntity.setMappingValue(xmlParameter.getMappingValue());
+            
+            String multiple = xmlParameter.getMultiple();
+            if(StringUtils.isBlank(multiple)) {
+                multiple = DEFAULT_MULTIPLE;
+            }
+            paramEntity.setMultiple(multiple);
+            paramEntity.setRefObjectName(xmlParameter.getRefObjectName());
             String required = xmlParameter.getRequired();
             if (StringUtils.isBlank(required)) {
                 required = DEFAULT_REQUIRED;

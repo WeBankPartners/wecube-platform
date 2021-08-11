@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang3.StringUtils;
 
 import com.google.common.collect.Lists;
@@ -33,6 +34,14 @@ public class StringUtilsEx {
     public static List<String> splitByComma(String ipsString) {
         String[] ips = ipsString.split(",");
         return Lists.newArrayList(ips);
+    }
+    
+    public static String encodeBase64String(byte[] data) {
+        return Base64.encodeBase64String(data);
+    }
+
+    public static byte[] decodeBase64(String base64String) {
+        return Base64.decodeBase64(base64String);
     }
 
 }
