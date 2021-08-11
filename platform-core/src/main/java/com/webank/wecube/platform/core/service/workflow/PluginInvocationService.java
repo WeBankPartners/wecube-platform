@@ -2076,6 +2076,24 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
         calCtx.setTaskNodeInstInfo(taskNodeInstInfo);
 
         CoreObjectMeta objectMeta = param.getObjectMeta();
+        
+        if(objectMeta == null) {
+            if(StringUtils.isBlank(param.getMappingEntityExpression()) || param.getMappingEntityExpression().endsWith(".NONE")) {
+                return;
+            }
+            
+            List<Object> rawObjectVals = pluginParamObjectVarCalculator.calculateRawObjectVarList(objectMeta, calCtx, param.getMappingEntityExpression());
+            if (Constants.DATA_MULTIPLE.equalsIgnoreCase(param.getMultiple())) {
+                objectVals.addAll(rawObjectVals);
+            }else {
+                if(!rawObjectVals.isEmpty()) {
+                    objectVals.add(rawObjectVals.get(0));
+                }
+            }
+            
+            return;
+        }
+        
 
         // store objects here
         List<CoreObjectVar> objectVars = pluginParamObjectVarCalculator.calculateCoreObjectVarList(objectMeta, calCtx,
