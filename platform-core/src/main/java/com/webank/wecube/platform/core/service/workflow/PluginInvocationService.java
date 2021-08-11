@@ -2078,6 +2078,10 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
         CoreObjectMeta objectMeta = param.getObjectMeta();
         
         if(objectMeta == null) {
+            if(StringUtils.isBlank(param.getMappingEntityExpression()) || param.getMappingEntityExpression().endsWith(".NONE")) {
+                return;
+            }
+            
             List<Object> rawObjectVals = pluginParamObjectVarCalculator.calculateRawObjectVarList(objectMeta, calCtx, param.getMappingEntityExpression());
             if (Constants.DATA_MULTIPLE.equalsIgnoreCase(param.getMultiple())) {
                 objectVals.addAll(rawObjectVals);
