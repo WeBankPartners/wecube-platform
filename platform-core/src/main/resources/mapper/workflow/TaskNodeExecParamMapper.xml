@@ -28,6 +28,14 @@
         <result column="is_sensitive" jdbcType="BIT" property="isSensitive" />
         <result column="full_data_id" jdbcType="VARCHAR"
             property="fullEntityDataId" />
+        <result column="multiple" jdbcType="VARCHAR"
+            property="multiple" />
+        <result column="param_def_id" jdbcType="VARCHAR"
+            property="paramDefId" />
+        <result column="mapping_type" jdbcType="VARCHAR"
+            property="mappingType" />
+        <result column="callback_id" jdbcType="VARCHAR"
+            property="callbackId" />
     </resultMap>
     <sql id="Base_Column_List">
         id, 
@@ -45,7 +53,11 @@
         entity_data_id,
         entity_type_id,
         is_sensitive,
-        full_data_id
+        full_data_id,
+        multiple,
+        param_def_id,
+        mapping_type,
+        callback_id
     </sql>
     <select id="selectByPrimaryKey" parameterType="java.lang.Integer"
         resultMap="BaseResultMap">
@@ -77,9 +89,14 @@
         entity_data_id, 
         entity_type_id,
         is_sensitive,
-        full_data_id
+        full_data_id,
+        multiple,
+        param_def_id,
+        mapping_type,
+        callback_id
         )
-        values (#{id,jdbcType=INTEGER},
+        values (
+        #{id,jdbcType=INTEGER},
         #{createdBy,jdbcType=VARCHAR},
         #{createdTime,jdbcType=TIMESTAMP},
         #{updatedBy,jdbcType=VARCHAR},
@@ -94,7 +111,11 @@
         #{entityDataId,jdbcType=VARCHAR},
         #{entityTypeId,jdbcType=VARCHAR}, 
         #{isSensitive,jdbcType=BIT},
-        #{fullEntityDataId,jdbcType=VARCHAR}
+        #{fullEntityDataId,jdbcType=VARCHAR},
+        #{multiple,jdbcType=VARCHAR},
+        #{paramDefId,jdbcType=VARCHAR},
+        #{mappingType,jdbcType=VARCHAR},
+        #{callbackId,jdbcType=VARCHAR}
         )
     </insert>
     <insert id="insertSelective" useGeneratedKeys="true"
@@ -150,6 +171,18 @@
             <if test="fullEntityDataId != null">
                 full_data_id,
             </if>
+            <if test="multiple != null">
+                multiple,
+            </if>
+            <if test="paramDefId != null">
+                param_def_id,
+            </if>
+            <if test="mappingType != null">
+                mapping_type,
+            </if>
+            <if test="callbackId != null">
+                callback_id,
+            </if>
         </trim>
         <trim prefix="values (" suffix=")" suffixOverrides=",">
             <if test="id != null">
@@ -199,6 +232,18 @@
             </if>
             <if test="fullEntityDataId != null">
                 #{fullEntityDataId,jdbcType=VARCHAR},
+            </if>
+            <if test="multiple != null">
+                #{multiple,jdbcType=VARCHAR},
+            </if>
+            <if test="paramDefId != null">
+                #{paramDefId,jdbcType=VARCHAR},
+            </if>
+            <if test="mappingType != null">
+                #{mappingType,jdbcType=VARCHAR},
+            </if>
+            <if test="callbackId != null">
+                #{callbackId,jdbcType=VARCHAR},
             </if>
         </trim>
     </insert>
@@ -259,6 +304,22 @@
                 full_data_id =
                 #{fullEntityDataId,jdbcType=VARCHAR},
             </if>
+            <if test="multiple != null">
+                multiple =
+                #{multiple,jdbcType=VARCHAR},
+            </if>
+            <if test="paramDefId != null">
+                param_def_id =
+                #{paramDefId,jdbcType=VARCHAR},
+            </if>
+            <if test="mappingType != null">
+                mapping_type =
+                #{mappingType,jdbcType=VARCHAR},
+            </if>
+            <if test="callbackId != null">
+                callback_id =
+                #{callbackId,jdbcType=VARCHAR},
+            </if>
         </set>
         where id = #{id,jdbcType=INTEGER}
     </update>
@@ -294,7 +355,15 @@
         is_sensitive =
         #{isSensitive,jdbcType=BIT},
         full_data_id =
-        #{fullEntityDataId,jdbcType=VARCHAR}
+        #{fullEntityDataId,jdbcType=VARCHAR},
+        multiple =
+        #{multiple,jdbcType=VARCHAR},
+        param_def_id =
+        #{paramDefId,jdbcType=VARCHAR},
+        mapping_type =
+        #{mappingType,jdbcType=VARCHAR},
+        callback_id =
+        #{callbackId,jdbcType=VARCHAR}
         where id = #{id,jdbcType=INTEGER}
     </update>
 
