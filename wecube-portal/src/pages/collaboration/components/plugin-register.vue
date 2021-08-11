@@ -316,7 +316,7 @@
                           ></FilterRulesRef>
                         </div>
                         <Button
-                          v-if="param.dataType === 'object'"
+                          v-if="param.dataType === 'object' && param.refObjectMeta"
                           type="primary"
                           size="small"
                           @click="showObjectConfig(param)"
@@ -678,6 +678,7 @@ export default {
     // 'inputParameters', param, index
     async showObjectConfig (originData) {
       let datax = JSON.parse(JSON.stringify(originData))
+      console.log(originData)
       if (!originData.refObjectMeta) {
         this.$Notice.error({
           title: 'Error',
