@@ -14,6 +14,7 @@ import com.webank.wecube.platform.core.entity.plugin.CoreObjectPropertyMeta;
 import com.webank.wecube.platform.core.service.plugin.xml.register.ParamObjectType;
 import com.webank.wecube.platform.core.service.plugin.xml.register.ParamObjectsType;
 import com.webank.wecube.platform.core.service.plugin.xml.register.ParamPropertyType;
+import com.webank.wecube.platform.core.utils.Constants;
 import com.webank.wecube.platform.workflow.commons.LocalIdGenerator;
 
 @Service
@@ -99,19 +100,30 @@ public class PluginParamObjectMetaRegister extends AbstractPluginParamObjectServ
                 propertyMetaEntity.setObjectMetaId(objectMetaEntity.getId());
                 propertyMetaEntity.setObjectName(objectMetaEntity.getName());
                 propertyMetaEntity.setPackageName(objectMetaEntity.getPackageName());
-                propertyMetaEntity.setRefType(xmlPropertyType.getRefType());
-                propertyMetaEntity.setRefName(xmlPropertyType.getRefName());
+                propertyMetaEntity.setMultiple(calculateDataMultiple(xmlPropertyType.getMultiple()));
+                propertyMetaEntity.setRefObjectName(xmlPropertyType.getRefObjectName());
                 propertyMetaEntity.setSource(packageVersion);
 
-                boolean sensitive = false;
-                if (StringUtils.isNoneBlank(xmlPropertyType.getSensitiveData())) {
-                    if ("Y".equalsIgnoreCase(xmlPropertyType.getSensitiveData())) {
-                        sensitive = true;
-                    }
-                }
-                propertyMetaEntity.setSensitive(sensitive);
+                propertyMetaEntity.setSensitive(calculateDataSensitive(xmlPropertyType.getSensitiveData()));
 
                 coreObjectPropertyMetaMapper.insert(propertyMetaEntity);
+            }else {
+                propertyMeta.setUpdatedTime(new Date());
+                propertyMeta.setUpdatedBy(AuthenticationContextHolder.getCurrentUsername());
+                propertyMeta.setDataType(xmlPropertyType.getDataType());
+                propertyMeta.setMapExpr(xmlPropertyType.getMapExpr());
+                propertyMeta.setMapType(xmlPropertyType.getMapType());
+                propertyMeta.setName(xmlPropertyType.getName());
+                propertyMeta.setObjectMetaId(objectMetaEntity.getId());
+                propertyMeta.setObjectName(objectMetaEntity.getName());
+                propertyMeta.setPackageName(objectMetaEntity.getPackageName());
+                propertyMeta.setMultiple(calculateDataMultiple(xmlPropertyType.getMultiple()));
+                propertyMeta.setRefObjectName(xmlPropertyType.getRefObjectName());
+                propertyMeta.setSource(packageVersion);
+
+                propertyMeta.setSensitive(calculateDataSensitive(xmlPropertyType.getSensitiveData()));
+                
+                coreObjectPropertyMetaMapper.updateByPrimaryKeySelective(propertyMeta);
             }
         }
 
@@ -166,22 +178,34 @@ public class PluginParamObjectMetaRegister extends AbstractPluginParamObjectServ
             propertyMetaEntity.setObjectMetaId(objectMetaEntity.getId());
             propertyMetaEntity.setObjectName(objectMetaEntity.getName());
             propertyMetaEntity.setPackageName(objectMetaEntity.getPackageName());
-            propertyMetaEntity.setRefType(xmlProperty.getRefType());
-            propertyMetaEntity.setRefName(xmlProperty.getRefName());
+            
+            propertyMetaEntity.setMultiple(calculateDataMultiple(xmlProperty.getMultiple()));
+            propertyMetaEntity.setRefObjectName(xmlProperty.getRefObjectName());
             propertyMetaEntity.setSource(packageVersion);
             propertyMetaEntity.setConfigId(configId);
 
-            boolean sensitive = false;
-            if (StringUtils.isNoneBlank(xmlProperty.getSensitiveData())) {
-                if ("Y".equalsIgnoreCase(xmlProperty.getSensitiveData())) {
-                    sensitive = true;
-                }
-            }
-            propertyMetaEntity.setSensitive(sensitive);
+           
+            propertyMetaEntity.setSensitive(calculateDataSensitive(xmlProperty.getSensitiveData()));
 
             coreObjectPropertyMetaMapper.insert(propertyMetaEntity);
         }
 
+    }
+    
+    private String calculateDataMultiple(String multipleFlag) {
+        if(StringUtils.isBlank(multipleFlag)) {
+            return Constants.DATA_NOT_MULTIPLE;
+        }
+        
+        if(Constants.DATA_MULTIPLE.equalsIgnoreCase(multipleFlag)) {
+            return Constants.DATA_MULTIPLE;
+        }
+        
+        return Constants.DATA_NOT_MULTIPLE;
+    }
+    
+    private boolean calculateDataSensitive(String sensitiveDataFlag) {
+        return Constants.DATA_SENSITIVE.equalsIgnoreCase(sensitiveDataFlag);
     }
 
 }

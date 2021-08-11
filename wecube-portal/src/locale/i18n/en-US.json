@@ -472,5 +472,15 @@
   "resource_instance": "Resource Instance",
   "locate_rules_warning": "Locate Rules Needs To Start With Entity Type",
   "ip_address": "IP Address",
-  "plugin_const_params_warning": "Constant Configuration Cannot Be Empty"
+  "plugin_const_params_warning": "Constant Configuration Cannot Be Empty",
+  "encrypt_data": "Encrypt Data",
+  "signature": "Signature",
+  "compare": "Compare",
+  "product_serial": "Product Serial",
+  "product_serial_tip": "This feature is only available in docker",
+  "context_parameters": "Context Parameters",
+  "constant_parameters": "Constant Parameters",
+  "root_task_node": "Root Task Node",
+  "tag": "Tag",
+  "core_multiple": "Multiple"
 }
