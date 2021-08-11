@@ -75,21 +75,23 @@ public class PluginParamObjectVarCalculator extends AbstractPluginParamObjectSer
      * @param objectMetaExpr
      * @return
      */
-    public List<Object> calculateRawObjectVarList(CoreObjectMeta objectMeta,
+    public List<Map<String, Object>> calculateRawObjectVarList(CoreObjectMeta objectMeta,
             CoreObjectVarCalculationContext ctx, String objectMetaExpr){
         EntityOperationRootCondition condition = new EntityOperationRootCondition(objectMetaExpr, ctx.getRootEntityDataId());
+        
+        List<Map<String, Object>> retMap = new ArrayList<>();
 
         List<Map<String, Object>> objectMetaExprQueryResultDataMaps = entityOperationService
                 .queryAttributeValuesOfLeafNode(condition, ctx.getExternalCacheMap());
         
-        List<Object> objectVals = new ArrayList<>();
+//        List<Object> objectVals = new ArrayList<>();
         if(objectMetaExprQueryResultDataMaps != null) {
             for(Map<String, Object> objectMetaExprQueryResultDataMap : objectMetaExprQueryResultDataMaps) {
-                objectVals.add(objectMetaExprQueryResultDataMap);
+                retMap.add(objectMetaExprQueryResultDataMap);
             }
         }
         
-        return objectVals;
+        return retMap;
     }
 
     /**
@@ -593,9 +595,15 @@ public class PluginParamObjectVarCalculator extends AbstractPluginParamObjectSer
                     String errMsg = String.format(
                             "Cannot get reference object meta for [%s]:[%s] but object type is [%s]",
                             propertyMeta.getObjectName(), propertyMeta.getName(), dataType);
-                    log.error(errMsg);
+                    log.info(errMsg);
+                    
+                    if(StringUtils.isBlank(propertyMeta.getMapExpr()) || propertyMeta.getMapExpr().endsWith(".NONE")) {
+                        return dataObjectValues;
+                    }
+                    
+                    //TODO
                     throw new WecubeCoreException(errMsg);
-                }
+                }else {
                 List<CoreObjectVar> refObjectVars = doCalculateCoreObjectVarList(refObjectMeta, parentObjectVar, ctx,
                         rootDataId, propertyMeta.getMapExpr());
 
@@ -610,6 +618,7 @@ public class PluginParamObjectVarCalculator extends AbstractPluginParamObjectSer
                     }
 
                     dataObjectValues.add(refObjectVars.get(0));
+                }
                 }
             }
         }
