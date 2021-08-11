@@ -319,6 +319,7 @@ public class SubSystemManagementService {
         dto.setName(subSystem.getName());
         dto.setSystemCode(subSystem.getSystemCode());
         dto.setApikey(subSystem.getApiKey());
+        dto.setPubKey(subSystem.getPubApiKey());
 
         return dto;
     }
