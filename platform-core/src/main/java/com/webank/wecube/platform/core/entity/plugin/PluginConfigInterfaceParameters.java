@@ -25,6 +25,10 @@ public class PluginConfigInterfaceParameters {
     private String description;
     
     private String mappingValue;
+    
+    private String refObjectName;
+    
+    private String multiple;
 
     private transient PluginConfigInterfaces pluginConfigInterface;
 
@@ -140,6 +144,22 @@ public class PluginConfigInterfaceParameters {
 
     public void setMappingValue(String mappingValue) {
         this.mappingValue = mappingValue;
+    }
+
+    public String getRefObjectName() {
+        return refObjectName;
+    }
+
+    public void setRefObjectName(String refObjectName) {
+        this.refObjectName = refObjectName;
+    }
+
+    public String getMultiple() {
+        return multiple;
+    }
+
+    public void setMultiple(String multiple) {
+        this.multiple = multiple;
     }
     
     
