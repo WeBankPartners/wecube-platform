@@ -473,7 +473,22 @@ export default {
         },
         {
           title: 'Message',
-          key: 'message'
+          key: 'message',
+          render: (h, params) => {
+            let data = {
+              props: {
+                content: params.row.message || '',
+                delay: '500',
+                placement: 'right',
+                'max-width': '350'
+              }
+            }
+            return (
+              <Tooltip {...data}>
+                <div style="text-overflow: ellipsis;overflow: hidden;white-space: nowrap;">{params.row.message}</div>
+              </Tooltip>
+            )
+          }
         }
       ],
       targetModelColums: [
