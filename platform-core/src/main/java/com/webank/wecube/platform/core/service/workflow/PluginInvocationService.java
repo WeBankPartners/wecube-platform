@@ -153,22 +153,32 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
             return;
         }
 
-        PluginInvocationResult result = new PluginInvocationResult()
-                .parsePluginInvocationCommand(ctx.getPluginInvocationCommand());
+        
         try {
+            
             handleResultData(pluginInvocationResult, ctx, resultData);
+            PluginInvocationResult result = new PluginInvocationResult()
+                    .parsePluginInvocationCommand(ctx.getPluginInvocationCommand());
             result.setResultCode(RESULT_CODE_OK);
             pluginInvocationResultService.responsePluginInterfaceInvocation(result);
             handlePluginInterfaceInvocationSuccess(pluginInvocationResult, ctx);
 
             return;
         } catch (Exception e) {
-            log.warn("result data handling failed", e);
+            PluginInvocationResult result = new PluginInvocationResult()
+                    .parsePluginInvocationCommand(ctx.getPluginInvocationCommand());
+            String errMsg = String.format("result data handling failed :{}", ctx.getPluginInvocationCommand());
+            log.warn(errMsg, e);
             result.setResultCode(RESULT_CODE_ERR);
-            pluginInvocationResultService.responsePluginInterfaceInvocation(result);
-            String errMsg = e.getMessage() == null ? "error" : trimWithMaxLength(e.getMessage());
-            handlePluginInterfaceInvocationFailure(pluginInvocationResult, ctx, "5002",
-                    "result data handling failed:" + errMsg);
+
+            try {
+                pluginInvocationResultService.responsePluginInterfaceInvocation(result);
+                String pluginErrMsg = (e.getMessage() == null ? "error" : trimWithMaxLength(e.getMessage()));
+                handlePluginInterfaceInvocationFailure(pluginInvocationResult, ctx, "5002",
+                        "result data handling failed:" + pluginErrMsg);
+            } catch (Exception e1) {
+                log.error("errors while process plugin result.{} ", ctx.getPluginInvocationCommand(), e1);
+            }
         }
 
         return;
@@ -2015,21 +2025,21 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
                 String mappingType = param.getMappingType();
                 inputAttr.setMapType(mappingType);
                 inputAttr.setMultiple(param.getMultiple());
-                
+
                 String dataType = param.getDataType();
-                
-                if(MAPPING_TYPE_OBJECT.equalsIgnoreCase(dataType)){
+
+                if (MAPPING_TYPE_OBJECT.equalsIgnoreCase(dataType)) {
                     handleObjectMapping(mappingType, param, entityDataId, objectVals, externalCacheMap,
                             procDefInfoEntity, procInstEntity, nodeObjectBinding.getFullEntityDataId(),
                             nodeObjectBinding.getEntityTypeId(), taskNodeDefEntity, taskNodeInstEntity);
-                }else{
+                } else {
                     if (MAPPING_TYPE_ENTITY.equalsIgnoreCase(mappingType)) {
                         handleEntityMapping(mappingType, param, entityDataId, objectVals, externalCacheMap);
                     }
 
                     if (MAPPING_TYPE_CONTEXT.equalsIgnoreCase(mappingType)) {
-                        handleContextMapping(mappingType, taskNodeDefEntity, paramName, procInstEntity, param, paramType,
-                                nodeObjectBinding, objectVals);
+                        handleContextMapping(mappingType, taskNodeDefEntity, paramName, procInstEntity, param,
+                                paramType, nodeObjectBinding, objectVals);
                     }
 
                     if (MAPPING_TYPE_SYSTEM_VARIABLE.equalsIgnoreCase(mappingType)) {
@@ -2076,50 +2086,51 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
         calCtx.setTaskNodeInstInfo(taskNodeInstInfo);
 
         CoreObjectMeta objectMeta = param.getObjectMeta();
-        
-        if(objectMeta == null) {
-            if(StringUtils.isBlank(param.getMappingEntityExpression()) || param.getMappingEntityExpression().endsWith(".NONE")) {
+
+        if (objectMeta == null) {
+            if (StringUtils.isBlank(param.getMappingEntityExpression())
+                    || param.getMappingEntityExpression().endsWith(".NONE")) {
                 return;
             }
-            
+
             String entityAttrName = null;
             List<EntityQueryExprNodeInfo> currExprNodeInfos = this.entityQueryExpressionParser
                     .parse(param.getMappingEntityExpression());
-            if(currExprNodeInfos == null || currExprNodeInfos.isEmpty()) {
-                //nothing
-            }else {
+            if (currExprNodeInfos == null || currExprNodeInfos.isEmpty()) {
+                // nothing
+            } else {
                 EntityQueryExprNodeInfo leafNode = currExprNodeInfos.get(currExprNodeInfos.size() - 1);
                 entityAttrName = leafNode.getQueryAttrName();
             }
-            List<Map<String, Object>> rawObjectMapVals = pluginParamObjectVarCalculator.calculateRawObjectVarList(objectMeta, calCtx, param.getMappingEntityExpression());
+            List<Map<String, Object>> rawObjectMapVals = pluginParamObjectVarCalculator
+                    .calculateRawObjectVarList(objectMeta, calCtx, param.getMappingEntityExpression());
             if (Constants.DATA_MULTIPLE.equalsIgnoreCase(param.getMultiple())) {
-                for(Map<String, Object> recordMap : rawObjectMapVals) {
-                    if(StringUtils.isBlank(entityAttrName)) {
+                for (Map<String, Object> recordMap : rawObjectMapVals) {
+                    if (StringUtils.isBlank(entityAttrName)) {
                         objectVals.add(recordMap);
-                    }else {
+                    } else {
                         Object objVal = recordMap.get(entityAttrName);
-                        if(objVal != null) {
+                        if (objVal != null) {
                             objectVals.add(objVal);
                         }
                     }
                 }
-            }else {
-                if(!rawObjectMapVals.isEmpty()) {
+            } else {
+                if (!rawObjectMapVals.isEmpty()) {
                     Map<String, Object> recordMap = rawObjectMapVals.get(0);
-                    if(StringUtils.isBlank(entityAttrName)) {
+                    if (StringUtils.isBlank(entityAttrName)) {
                         objectVals.add(recordMap);
-                    }else {
+                    } else {
                         Object objVal = recordMap.get(entityAttrName);
-                        if(objVal != null) {
+                        if (objVal != null) {
                             objectVals.add(objVal);
                         }
                     }
                 }
             }
-            
+
             return;
         }
-        
 
         // store objects here
         List<CoreObjectVar> objectVars = pluginParamObjectVarCalculator.calculateCoreObjectVarList(objectMeta, calCtx,
@@ -2955,20 +2966,22 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
             try {
                 handleSingleOutputMap(pluginInvocationResult, ctx, outputParameterMap);
             } catch (Exception e) {
-                String errMsg = String.format("handling output errors:%s %s", outputParameterMap, e.getMessage());
+                String errMsg = String.format("handling output errors:%s %s :%s", outputParameterMap, e.getMessage(),
+                        ctx.getPluginInvocationCommand());
                 log.error(errMsg);
-                except = new WecubeCoreException(e.getMessage());
+                except = e;
             }
         }
 
         if (except != null) {
-            log.error("failed to process output parameters for {}", ctx.getPluginConfigInterface().getServiceName());
+            log.error("failed to process output parameters for {} :{}", ctx.getPluginConfigInterface().getServiceName(),
+                    ctx.getPluginInvocationCommand());
             throw new WecubeCoreException("Handling output result errors:" + except.getMessage());
         }
 
-        if (log.isDebugEnabled()) {
-            log.debug("finished processing {} output parameters for {}", outputParameterMaps.size(),
-                    ctx.getPluginConfigInterface().getServiceName());
+        if (log.isInfoEnabled()) {
+            log.info("finished processing {} output parameters for {} :{}", outputParameterMaps.size(),
+                    ctx.getPluginConfigInterface().getServiceName(), ctx.getPluginInvocationCommand());
         }
 
         return;
