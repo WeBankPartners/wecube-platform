@@ -1445,23 +1445,23 @@ public class PluginConfigMigrationService {
         intf.setPluginConfigId(pluginConfig.getId());
         intf.setPath(defIntf.getPath());
 
-        if (xmlIntf != null) {
-            intf.setAction(xmlIntf.getAction());
-            intf.setFilterRule(xmlIntf.getFilterRule());
-            intf.setHttpMethod(xmlIntf.getHttpMethod());
-            intf.setIsAsyncProcessing(xmlIntf.getIsAsyncProcessing());
+//        if (xmlIntf != null) {
+        intf.setAction(xmlIntf.getAction());
+        intf.setFilterRule(xmlIntf.getFilterRule());
+        intf.setHttpMethod(xmlIntf.getHttpMethod());
+        intf.setIsAsyncProcessing(xmlIntf.getIsAsyncProcessing());
 
-            intf.setType(xmlIntf.getType());
-            intf.setDescription(xmlIntf.getDescription());
-        } else {
-            intf.setAction(defIntf.getAction());
-            intf.setFilterRule(defIntf.getFilterRule());
-            intf.setHttpMethod(defIntf.getHttpMethod());
-            intf.setIsAsyncProcessing(defIntf.getIsAsyncProcessing());
-
-            intf.setType(defIntf.getType());
-            intf.setDescription(defIntf.getDescription());
-        }
+        intf.setType(xmlIntf.getType());
+        intf.setDescription(xmlIntf.getDescription());
+//        } else {
+//            intf.setAction(defIntf.getAction());
+//            intf.setFilterRule(defIntf.getFilterRule());
+//            intf.setHttpMethod(defIntf.getHttpMethod());
+//            intf.setIsAsyncProcessing(defIntf.getIsAsyncProcessing());
+//
+//            intf.setType(defIntf.getType());
+//            intf.setDescription(defIntf.getDescription());
+//        }
         intf.setServiceDisplayName(intf.generateServiceName(pluginPackage, pluginConfig));
         intf.setServiceName(intf.generateServiceName(pluginPackage, pluginConfig));
 
