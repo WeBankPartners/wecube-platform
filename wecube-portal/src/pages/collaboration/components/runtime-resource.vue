@@ -3,21 +3,21 @@
     <Collapse :value="[1, 2, 3]">
       <Panel name="1">
         <span style="font-size: 12px">{{ $t('runtime_container') }}</span>
-        <p slot="content" v-for="(item, index) in data.docker" :key="index">
-          <highlight-code lang="json">{{ item }}</highlight-code>
-        </p>
+        <div slot="content" v-for="(item, index) in data.docker" :key="index">
+          <pre>{{ JSON.stringify(item, null, 4) }}</pre>
+        </div>
       </Panel>
       <Panel name="2">
         <span style="font-size: 12px">{{ $t('database') }}</span>
-        <p slot="content" v-for="(item, index) in data.mysql" :key="index">
-          <highlight-code lang="json">{{ item }}</highlight-code>
-        </p>
+        <div slot="content" v-for="(item, index) in data.mysql" :key="index">
+          <pre>{{ JSON.stringify(item, null, 4) }}</pre>
+        </div>
       </Panel>
       <Panel name="3">
         <span style="font-size: 12px">{{ $t('storage_service') }}</span>
-        <p slot="content" v-for="(item, index) in data.s3" :key="index">
-          <highlight-code lang="json">{{ item }}</highlight-code>
-        </p>
+        <div slot="content" v-for="(item, index) in data.s3" :key="index">
+          <pre>{{ JSON.stringify(item, null, 4) }}</pre>
+        </div>
       </Panel>
     </Collapse>
   </div>
