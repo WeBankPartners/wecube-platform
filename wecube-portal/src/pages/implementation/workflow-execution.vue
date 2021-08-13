@@ -317,12 +317,6 @@
         v-html="nodeDetail"
       ></div>
     </Modal>
-    <div id="model_graph_detail">
-      <highlight-code lang="json">{{ modelNodeDetail }}</highlight-code>
-    </div>
-    <div id="flow_graph_detail">
-      <highlight-code lang="json">{{ flowNodeDetail }}</highlight-code>
-    </div>
     <Modal v-model="confirmModal.isShowConfirmModal" width="1000">
       <div>
         <Icon :size="28" :color="'#f90'" type="md-help-circle" />
@@ -558,8 +552,6 @@ export default {
       nodeDetailResponseHeader: null,
       currentFailedNodeID: '',
       timer: null,
-      modelNodeDetail: {},
-      flowNodeDetail: {},
       modelDetailTimer: null,
       flowNodesBindings: [],
       flowDetailTimer: null,
@@ -1276,13 +1268,11 @@ export default {
       this.graph.graphviz.transition().renderDot(nodesString)
       // .on('end', this.setFontSizeForText)
       removeEvent('.model text', 'mouseenter', this.modelGraphMouseenterHandler)
-      removeEvent('.model text', 'mouseleave', this.modelGraphMouseleaveHandler)
       removeEvent('.model text', 'click', this.modelGraphClickHandler)
       removeEvent('#graph svg', 'click', this.resetcurrentModelNodeRefs)
       addEvent('.model text', 'click', this.modelGraphClickHandler)
       addEvent('#graph svg', 'click', this.resetcurrentModelNodeRefs)
       addEvent('.model text', 'mouseenter', this.modelGraphMouseenterHandler)
-      addEvent('.model text', 'mouseleave', this.modelGraphMouseleaveHandler)
     },
     setFontSizeForText () {
       const nondes = d3.selectAll('#graph svg g .node')._groups[0]
@@ -1333,18 +1323,6 @@ export default {
         this.nodeDetailFullscreen = false
         this.tableMaxHeight = 250
       }, 1300)
-    },
-    modelDetailEnterHandler (e) {
-      let modelDetail = document.getElementById('model_graph_detail')
-      modelDetail.style.display = 'block'
-    },
-    modelDetailLeaveHandler (e) {
-      let modelDetail = document.getElementById('model_graph_detail')
-      modelDetail.style.display = 'none'
-    },
-    modelGraphMouseleaveHandler (e) {
-      clearTimeout(this.modelDetailTimer)
-      this.modelDetailLeaveHandler(e)
     },
     ResetFlow () {
       if (this.flowGraph.graphviz) {
@@ -1705,15 +1683,7 @@ export default {
         addEvent('.flow', 'click', this.flowNodesClickHandler)
       } else {
         removeEvent('.flow', 'click', this.flowNodesClickHandler)
-        // removeEvent('.flow text', 'mouseenter', this.flowGraphMouseenterHandler)
-        removeEvent('.flow text', 'mouseleave', this.flowGraphLeaveHandler)
-        // addEvent('.flow text', 'mouseenter', this.flowGraphMouseenterHandler)
-        addEvent('.flow text', 'mouseleave', this.flowGraphLeaveHandler)
       }
-    },
-    flowGraphLeaveHandler (e) {
-      clearTimeout(this.flowDetailTimer)
-      this.flowDetailLeaveHandler()
     },
     flowGraphMouseenterHandler (id) {
       // Task_0f9a25l
@@ -1750,14 +1720,6 @@ export default {
         }
       }
       return obj
-    },
-    flowDetailEnterHandler (e) {
-      let modelDetail = document.getElementById('flow_graph_detail')
-      modelDetail.style.display = 'block'
-    },
-    flowDetailLeaveHandler (e) {
-      let modelDetail = document.getElementById('flow_graph_detail')
-      modelDetail.style.display = 'none'
     },
     flowNodesClickHandler (e) {
       e.preventDefault()
@@ -1882,24 +1844,6 @@ body {
   margin: 5px 6px 0 0;
 }
 .graph-container {
-  overflow: auto;
-}
-#model_graph_detail {
-  display: none;
-  width: 600px;
-  position: absolute;
-  background-color: white;
-  padding: 5px 5px;
-  box-shadow: 0 0 5px grey;
-  overflow: auto;
-}
-#flow_graph_detail {
-  display: none;
-  width: 600px;
-  position: absolute;
-  background-color: white;
-  padding: 5px 5px;
-  box-shadow: 0 0 5px grey;
   overflow: auto;
 }
 .header-icon {
