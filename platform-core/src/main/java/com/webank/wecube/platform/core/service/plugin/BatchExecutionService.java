@@ -63,6 +63,8 @@ import com.webank.wecube.platform.core.repository.plugin.PluginConfigsMapper;
 import com.webank.wecube.platform.core.repository.plugin.PluginInstancesMapper;
 import com.webank.wecube.platform.core.repository.plugin.PluginPackagesMapper;
 import com.webank.wecube.platform.core.service.dme.EntityOperationRootCondition;
+import com.webank.wecube.platform.core.service.dme.EntityQueryExprNodeInfo;
+import com.webank.wecube.platform.core.service.dme.EntityQueryExpressionParser;
 import com.webank.wecube.platform.core.service.dme.StandardEntityOperationService;
 import com.webank.wecube.platform.core.service.workflow.SimpleEncryptionService;
 import com.webank.wecube.platform.core.support.itsdanger.ItsDanerResultDataInfoDto;
@@ -136,6 +138,9 @@ public class BatchExecutionService {
 
     @Autowired
     protected PluginParamObjectVarMarshaller pluginParamObjectVarAssembleService;
+    
+    @Autowired
+    protected EntityQueryExpressionParser entityQueryExpressionParser;
 
     private ObjectMapper objectMapper = new ObjectMapper().setSerializationInclusion(JsonInclude.Include.NON_NULL);
 
@@ -153,12 +158,16 @@ public class BatchExecutionService {
     private BatchExecutionResultDto doHandleBatchExecutionJob(BatchExecutionRequestDto batchExecutionRequest,
             String continueToken) throws IOException {
         verifyParameters(batchExecutionRequest.getInputParameterDefinitions());
-        BatchExecutionJobs batchExeJob = saveToDb(batchExecutionRequest);
+
+        PluginConfigInterfaces pluginConfigInterfaces = tryFetchEnrichedPluginConfigInterfaces(
+                batchExecutionRequest.getPluginConfigInterface().getId());
+
+        BatchExecutionJobs batchExeJob = saveToDb(batchExecutionRequest, pluginConfigInterfaces);
 
         List<BatchExecutionContext> ctxes = new ArrayList<>();
 
         for (ExecutionJobs exeJob : batchExeJob.getJobs()) {
-            BatchExecutionContext ctx = prepareExecutionContext(exeJob);
+            BatchExecutionContext ctx = prepareExecutionContext(exeJob, pluginConfigInterfaces);
             ctxes.add(ctx);
         }
 
@@ -316,7 +325,8 @@ public class BatchExecutionService {
 
     }
 
-    private BatchExecutionContext prepareExecutionContext(ExecutionJobs exeJob) {
+    private BatchExecutionContext prepareExecutionContext(ExecutionJobs exeJob,
+            PluginConfigInterfaces pluginConfigInterfaces) {
         BatchExecutionContext ctx = new BatchExecutionContext();
         ctx.setExeJob(exeJob);
         if (exeJob == null) {
@@ -327,8 +337,8 @@ public class BatchExecutionService {
                     exeJob.getRootEntityId());
         }
 
-        PluginConfigInterfaces pluginConfigInterfaces = tryFetchEnrichedPluginConfigInterfaces(
-                exeJob.getPluginConfigInterfaceId());
+//        PluginConfigInterfaces pluginConfigInterfaces = tryFetchEnrichedPluginConfigInterfaces(
+//                exeJob.getPluginConfigInterfaceId());
         if (pluginConfigInterfaces == null) {
             String errorMessage = String.format("Can not found plugin config interface[%s]",
                     exeJob.getPluginConfigInterfaceId());
@@ -424,7 +434,8 @@ public class BatchExecutionService {
         }
     }
 
-    private BatchExecutionJobs saveToDb(BatchExecutionRequestDto batchExeRequest) {
+    private BatchExecutionJobs saveToDb(BatchExecutionRequestDto batchExeRequest,
+            PluginConfigInterfaces pluginConfigInterfaces) {
         BatchExecutionJobs batchExeJobEntity = new BatchExecutionJobs();
         batchExeJobEntity.setId(LocalIdGenerator.generateId());
         batchExeJobEntity.setCreateTimestamp(new Date());
@@ -450,7 +461,7 @@ public class BatchExecutionService {
             executionJobsMapper.insert(exeJobEntity);
 
             List<ExecutionJobParameters> parametersList = transFromInputParameterDefinitionToExecutionJobParameter(
-                    batchExeRequest.getInputParameterDefinitions(), exeJobEntity);
+                    batchExeRequest.getInputParameterDefinitions(), exeJobEntity, pluginConfigInterfaces);
             exeJobEntity.setParameters(parametersList);
             exeJobEntity.setBatchExecutionJob(batchExeJobEntity);
             exeJobsEntities.add(exeJobEntity);
@@ -468,10 +479,9 @@ public class BatchExecutionService {
     }
 
     private List<ExecutionJobParameters> transFromInputParameterDefinitionToExecutionJobParameter(
-            List<InputParameterDefinitionDto> inputParameterDefinitionDtos, ExecutionJobs executionJob) {
+            List<InputParameterDefinitionDto> inputParameterDefinitionDtos, ExecutionJobs executionJob,
+            PluginConfigInterfaces pluginConfigInterfaces) {
 
-        PluginConfigInterfaces pluginConfigInterfaces = tryFetchEnrichedPluginConfigInterfaces(
-                executionJob.getPluginConfigInterfaceId());
         List<ExecutionJobParameters> executionJobParametersList = new ArrayList<ExecutionJobParameters>();
         for (InputParameterDefinitionDto inputParameterDefinitionDto : inputParameterDefinitionDtos) {
             PluginConfigInterfaceParameterDto interfaceParameterDto = inputParameterDefinitionDto.getInputParameter();
@@ -824,6 +834,62 @@ public class BatchExecutionService {
         calCtx.setTaskNodeInstInfo(null);
 
         CoreObjectMeta objectMeta = parameter.getRefObjectMeta();
+        
+        if (objectMeta == null) {
+            if (StringUtils.isBlank(parameter.getMappingEntityExpression())
+                    || parameter.getMappingEntityExpression().endsWith(".NONE")) {
+                return;
+            }
+
+            String entityAttrName = null;
+            List<EntityQueryExprNodeInfo> currExprNodeInfos = this.entityQueryExpressionParser
+                    .parse(parameter.getMappingEntityExpression());
+            if (currExprNodeInfos == null || currExprNodeInfos.isEmpty()) {
+                // nothing
+            } else {
+                EntityQueryExprNodeInfo leafNode = currExprNodeInfos.get(currExprNodeInfos.size() - 1);
+                entityAttrName = leafNode.getQueryAttrName();
+            }
+            List<Map<String, Object>> rawObjectMapVals = pluginParamObjectVarCalculator
+                    .calculateRawObjectVarList(objectMeta, calCtx, parameter.getMappingEntityExpression());
+            if (isMultiple(parameter.getMultiple())) {
+                List<Object> objectVals = new ArrayList<>();
+                for (Map<String, Object> recordMap : rawObjectMapVals) {
+                    if (StringUtils.isBlank(entityAttrName)) {
+                        objectVals.add(recordMap);
+                    } else {
+                        Object objVal = recordMap.get(entityAttrName);
+                        if (objVal != null) {
+                            objectVals.add(objVal);
+                        }
+                    }
+                }
+                
+                String paramValue = JsonUtils.toJsonString(objectVals);
+                parameter.setValue(paramValue);
+                parameter.setRawValue(objectVals);
+                
+            } else {
+                if (!rawObjectMapVals.isEmpty()) {
+                    Map<String, Object> recordMap = rawObjectMapVals.get(0);
+                    if (StringUtils.isBlank(entityAttrName)) {
+                        String paramValue = JsonUtils.toJsonString(recordMap);
+                        parameter.setValue(paramValue);
+                        parameter.setRawValue(recordMap);
+                    } else {
+                        Object objVal = recordMap.get(entityAttrName);
+                        if (objVal != null) {
+                            String paramValue = objVal.toString();
+                            parameter.setValue(paramValue);
+                            parameter.setRawValue(objVal);
+                        }
+                    }
+                }
+                
+            }
+            
+            return;
+        }
 
         // store objects here
         List<CoreObjectVar> objectVars = pluginParamObjectVarCalculator.calculateCoreObjectVarList(objectMeta, calCtx,
@@ -833,11 +899,9 @@ public class BatchExecutionService {
             log.info("Got empty object values for : {}", objectMeta.getName());
             return;
         }
-        
-        List<Object> objectVals = new ArrayList<>();
-        //TODO
 
-        if (Constants.DATA_MULTIPLE.equalsIgnoreCase(parameter.getMultiple())) {
+        if (isMultiple(parameter.getMultiple())) {
+            List<Object> objectVals = new ArrayList<>();
             for (CoreObjectVar objectVar : objectVars) {
                 PluginParamObject paramObject = pluginParamObjectVarAssembleService.marshalPluginParamObject(objectVar,
                         calCtx);
@@ -845,6 +909,10 @@ public class BatchExecutionService {
 
                 pluginParamObjectVarStorageService.storeCoreObjectVar(objectVar);
             }
+            
+            String paramValue = JsonUtils.toJsonString(objectVals);
+            parameter.setValue(paramValue);
+            parameter.setRawValue(objectVals);
 
             return;
         } else {
@@ -862,9 +930,11 @@ public class BatchExecutionService {
             PluginParamObject paramObject = pluginParamObjectVarAssembleService.marshalPluginParamObject(objectVar,
                     calCtx);
 
-            objectVals.add(paramObject);
-
             pluginParamObjectVarStorageService.storeCoreObjectVar(objectVar);
+            
+            String paramValue = JsonUtils.toJsonString(paramObject);
+            parameter.setValue(paramValue);
+            parameter.setRawValue(paramObject);
 
             return;
         }
@@ -909,9 +979,11 @@ public class BatchExecutionService {
             // #2046
             if (parameter.getParameterDefinition() != null && Constants.DATA_SENSITIVE
                     .equalsIgnoreCase(parameter.getParameterDefinition().getSensitiveData())) {
-                sVal = tryEncryptParamValue(sVal);
+                String cipheredVal = tryEncryptParamValue(sVal);
+                parameter.setValue(cipheredVal);
+            }else {
+                parameter.setValue(sVal);
             }
-            parameter.setValue(sVal);
         }
     }
 
@@ -928,26 +1000,54 @@ public class BatchExecutionService {
         List<Object> attrValsPerExpr = standardEntityOperationService.queryAttributeValues(criteria,
                 userJwtSsoTokenRestTemplate, null);
 
-        if ((attrValsPerExpr == null || attrValsPerExpr.isEmpty()) && FIELD_REQUIRED.equals(parameter.getRequired())) {
-            String errorMessage = String.format(
-                    "returned empty data while fetch the mandatory input parameter[%s] with expression[%s] and root entity ID[%s]",
-                    parameter.getName(), mappingEntityExpression, criteria.getEntityIdentity());
-            log.error(errorMessage);
-            executionJob.setErrorWithMessage(errorMessage);
-            executionJob.setPrepareException(new WecubeCoreException(errorMessage));
-            throw new WecubeCoreException("3004", errorMessage, parameter.getName(), mappingEntityExpression,
-                    criteria.getEntityIdentity());
+        if (attrValsPerExpr == null || attrValsPerExpr.isEmpty()) {
+            if (FIELD_REQUIRED.equals(parameter.getRequired())) {
+                String errorMessage = String.format(
+                        "returned empty data while fetch the mandatory input parameter[%s] with expression[%s] and root entity ID[%s]",
+                        parameter.getName(), mappingEntityExpression, criteria.getEntityIdentity());
+                log.error(errorMessage);
+                executionJob.setErrorWithMessage(errorMessage);
+                executionJob.setPrepareException(new WecubeCoreException(errorMessage));
+                throw new WecubeCoreException("3004", errorMessage, parameter.getName(), mappingEntityExpression,
+                        criteria.getEntityIdentity());
+            } else {
+                if (isMultiple(parameter.getMultiple())) {
+                    List<Object> rawParamValue = new ArrayList<>();
+                    parameter.setValue(JsonUtils.toJsonString(rawParamValue));
+                    parameter.setRawValue(rawParamValue);
+
+                    return;
+                } else {
+                    parameter.setValue(null);
+                    parameter.setRawValue(null);
+
+                    return;
+                }
+            }
         }
 
-        // TODO to support list and object data type
-        if (attrValsPerExpr != null && (!attrValsPerExpr.isEmpty())) {
+        if (isMultiple(parameter.getMultiple())) {
+            String paramValue = JsonUtils.toJsonString(attrValsPerExpr);
+            parameter.setValue(paramValue);
+
+            parameter.setRawValue(attrValsPerExpr);
+        } else {
+
+            Object rawParamValue = attrValsPerExpr.get(0);
+
             // #2046
-            String paramValue = attrValsPerExpr.get(0) == null ? null : attrValsPerExpr.get(0).toString();
+            String paramValue = (rawParamValue == null ? null : rawParamValue.toString());
             if (parameter.getParameterDefinition() != null && Constants.DATA_SENSITIVE
                     .equalsIgnoreCase(parameter.getParameterDefinition().getSensitiveData())) {
                 paramValue = tryEncryptParamValue(paramValue);
             }
             parameter.setValue(paramValue);
+
+            parameter.setRawValue(rawParamValue);
         }
+    }
+
+    private boolean isMultiple(String multipleFlag) {
+        return Constants.DATA_MULTIPLE.equalsIgnoreCase(multipleFlag);
     }
 }
