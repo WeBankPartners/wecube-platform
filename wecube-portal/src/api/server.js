@@ -20,7 +20,9 @@ export const getFlowDetailByID = id => req.get(`/platform/v1/process/definitions
 export const getFlowOutlineByID = id => req.get(`/platform/v1/process/definitions/${id}/outline`)
 
 export const getTargetOptions = (pkgName, entityName) =>
-  req.get(`platform/v1/packages/${pkgName}/entities/${entityName}/retrieve`)
+  req.post(`/${pkgName}/entities/${entityName}/query`, {
+    additionalFilters: []
+  })
 export const getTreePreviewData = (flowId, targetId) =>
   req.get(`platform/v1/process/definitions/${flowId}/preview/entities/${targetId}`)
 export const createFlowInstance = data => req.post(`platform/v1/process/instances`, data)
