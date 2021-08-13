@@ -138,7 +138,7 @@ public class BatchExecutionService {
 
     @Autowired
     protected PluginParamObjectVarMarshaller pluginParamObjectVarAssembleService;
-    
+
     @Autowired
     protected EntityQueryExpressionParser entityQueryExpressionParser;
 
@@ -361,20 +361,8 @@ public class BatchExecutionService {
 
         Map<String, Object> pluginInputParamMap = new HashMap<String, Object>();
 
-        // TODO to support object and multiple
         for (ExecutionJobParameters parameter : exeJob.getParameters()) {
-            if (DATA_TYPE_STRING.equals(parameter.getDataType())
-                    || MAPPING_TYPE_SYSTEM_VARIABLE.equals(parameter.getMappingEntityExpression())) {
-                String paramValue = parameter.getValue();
-                if (parameter.getParameterDefinition() != null && Constants.DATA_SENSITIVE
-                        .equalsIgnoreCase(parameter.getParameterDefinition().getSensitiveData())) {
-                    paramValue = tryDecryptParamValue(paramValue);
-                }
-                pluginInputParamMap.put(parameter.getName(), paramValue);
-            }
-            if (DATA_TYPE_NUMBER.equals(parameter.getDataType())) {
-                pluginInputParamMap.put(parameter.getName(), Integer.valueOf(parameter.getValue()));
-            }
+            pluginInputParamMap.put(parameter.getName(), getExpectedValue(parameter));
         }
 
         pluginInputParamMap.put(CALLBACK_PARAMETER_KEY, exeJob.getRootEntityId());
@@ -642,22 +630,10 @@ public class BatchExecutionService {
                     exeJob.getPrepareException().getMessage());
         }
 
-        // TODO to support object and list
         Map<String, Object> pluginInputParamMap = new HashMap<String, Object>();
 
         for (ExecutionJobParameters parameter : exeJob.getParameters()) {
-            if (DATA_TYPE_STRING.equals(parameter.getDataType())
-                    || MAPPING_TYPE_SYSTEM_VARIABLE.equals(parameter.getMappingEntityExpression())) {
-                String paramValue = parameter.getValue();
-                if (parameter.getParameterDefinition() != null && Constants.DATA_SENSITIVE
-                        .equalsIgnoreCase(parameter.getParameterDefinition().getSensitiveData())) {
-                    paramValue = tryDecryptParamValue(paramValue);
-                }
-                pluginInputParamMap.put(parameter.getName(), paramValue);
-            }
-            if (DATA_TYPE_NUMBER.equals(parameter.getDataType())) {
-                pluginInputParamMap.put(parameter.getName(), Integer.valueOf(parameter.getValue()));
-            }
+            pluginInputParamMap.put(parameter.getName(), getExpectedValue(parameter));
         }
 
         pluginInputParamMap.put(CALLBACK_PARAMETER_KEY, exeJob.getRootEntityId());
@@ -697,6 +673,90 @@ public class BatchExecutionService {
         exeJob.setErrorCode(stationaryOutput.getErrorCode() == null ? RESULT_CODE_ERROR : RESULT_CODE_OK);
         exeJob.setErrorMessage(stationaryOutput.getErrorMessage());
         return responseData;
+    }
+
+    @SuppressWarnings("rawtypes")
+    public Object getExpectedValue(ExecutionJobParameters parameter) {
+        // #2226
+
+        if (isMultiple(parameter.getMultiple())) {
+            Object rawParamValue = parameter.getRawValue();
+            if (rawParamValue == null) {
+                return new ArrayList<>();
+            }
+
+            List<Object> clonedListValues = new ArrayList<>();
+
+            if (rawParamValue instanceof List) {
+
+                for (Object val : (List) rawParamValue) {
+                    if (val instanceof PluginParamObject) {
+                        PluginParamObject objVal = (PluginParamObject) val;
+                        PluginParamObject clonedObjVal = PluginParamObject.wipeOffObjectIdAndClone(objVal);
+                        if (clonedObjVal != null) {
+                            clonedListValues.add(clonedObjVal);
+                        }
+                    } else {
+                        clonedListValues.add(val);
+                    }
+                }
+            } else {
+                if (rawParamValue instanceof PluginParamObject) {
+                    PluginParamObject objVal = (PluginParamObject) rawParamValue;
+                    PluginParamObject clonedObjVal = PluginParamObject.wipeOffObjectIdAndClone(objVal);
+                    if (clonedObjVal != null) {
+                        clonedListValues.add(clonedObjVal);
+                    }
+                } else {
+                    clonedListValues.add(rawParamValue);
+                }
+            }
+
+            return clonedListValues;
+        } else {
+
+            if (isObjectDataType(parameter.getDataType())) {
+                Object rawParamValue = parameter.getRawValue();
+                if (rawParamValue == null) {
+                    return null;
+                }
+                if (rawParamValue instanceof PluginParamObject) {
+                    PluginParamObject objVal = (PluginParamObject) rawParamValue;
+                    PluginParamObject clonedObjVal = PluginParamObject.wipeOffObjectIdAndClone(objVal);
+
+                    return clonedObjVal;
+                } else {
+                    return rawParamValue;
+                }
+            } else {
+                String paramValue = parameter.getValue();
+
+                if (DATA_TYPE_STRING.equals(parameter.getDataType())) {
+                    if (paramValue == null) {
+                        return null;
+                    }
+
+                    if (parameter.getParameterDefinition() != null && Constants.DATA_SENSITIVE
+                            .equalsIgnoreCase(parameter.getParameterDefinition().getSensitiveData())) {
+                        paramValue = tryDecryptParamValue(paramValue);
+                    }
+
+                    return paramValue;
+                }
+
+                if (DATA_TYPE_NUMBER.equals(parameter.getDataType())) {
+                    if (paramValue == null) {
+                        return 0;
+                    }
+
+                    Integer retVal = Integer.valueOf(parameter.getValue());
+                    return retVal;
+                }
+
+                return paramValue;
+            }
+
+        }
     }
 
     @SuppressWarnings("unchecked")
@@ -771,8 +831,6 @@ public class BatchExecutionService {
                 continue;
             }
 
-            // TODO try to convert to list once necessary
-
             EntityOperationRootCondition condition = new EntityOperationRootCondition(paramExpr, rootEntityId);
 
             try {
@@ -834,7 +892,7 @@ public class BatchExecutionService {
         calCtx.setTaskNodeInstInfo(null);
 
         CoreObjectMeta objectMeta = parameter.getRefObjectMeta();
-        
+
         if (objectMeta == null) {
             if (StringUtils.isBlank(parameter.getMappingEntityExpression())
                     || parameter.getMappingEntityExpression().endsWith(".NONE")) {
@@ -864,11 +922,11 @@ public class BatchExecutionService {
                         }
                     }
                 }
-                
+
                 String paramValue = JsonUtils.toJsonString(objectVals);
                 parameter.setValue(paramValue);
                 parameter.setRawValue(objectVals);
-                
+
             } else {
                 if (!rawObjectMapVals.isEmpty()) {
                     Map<String, Object> recordMap = rawObjectMapVals.get(0);
@@ -885,9 +943,9 @@ public class BatchExecutionService {
                         }
                     }
                 }
-                
+
             }
-            
+
             return;
         }
 
@@ -909,7 +967,7 @@ public class BatchExecutionService {
 
                 pluginParamObjectVarStorageService.storeCoreObjectVar(objectVar);
             }
-            
+
             String paramValue = JsonUtils.toJsonString(objectVals);
             parameter.setValue(paramValue);
             parameter.setRawValue(objectVals);
@@ -931,7 +989,7 @@ public class BatchExecutionService {
                     calCtx);
 
             pluginParamObjectVarStorageService.storeCoreObjectVar(objectVar);
-            
+
             String paramValue = JsonUtils.toJsonString(paramObject);
             parameter.setValue(paramValue);
             parameter.setRawValue(paramObject);
@@ -981,7 +1039,7 @@ public class BatchExecutionService {
                     .equalsIgnoreCase(parameter.getParameterDefinition().getSensitiveData())) {
                 String cipheredVal = tryEncryptParamValue(sVal);
                 parameter.setValue(cipheredVal);
-            }else {
+            } else {
                 parameter.setValue(sVal);
             }
         }
@@ -1045,6 +1103,10 @@ public class BatchExecutionService {
 
             parameter.setRawValue(rawParamValue);
         }
+    }
+
+    private boolean isObjectDataType(String dataType) {
+        return Constants.DATA_TYPE_OBJECT.equalsIgnoreCase(dataType);
     }
 
     private boolean isMultiple(String multipleFlag) {
