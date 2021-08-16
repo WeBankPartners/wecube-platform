@@ -478,6 +478,7 @@
           :target-keys="mgmtRolesKey"
           :render-format="renderRoleNameForTransfer"
           @on-change="handleMgmtRoleTransferChange"
+          ref="mgmtRoles"
           filterable
         ></Transfer>
       </div>
@@ -490,6 +491,7 @@
           :target-keys="useRolesKey"
           :render-format="renderRoleNameForTransfer"
           @on-change="handleUseRoleTransferChange"
+          ref="useRoles"
           filterable
         ></Transfer>
       </div>
@@ -884,6 +886,8 @@ export default {
       })
       if (hasPermission) {
         this.configRoleManageModal = true
+        this.$refs.mgmtRoles.leftCheckedKeys = []
+        this.$refs.useRoles.leftCheckedKeys = []
         this.currentPluginForPermission = config
         this.isAddOrCopy = 'new'
       } else {
@@ -1131,6 +1135,8 @@ export default {
       this.mgmtRolesKey = []
       this.useRolesKey = []
       this.configRoleManageModal = true
+      this.$refs.mgmtRoles.leftCheckedKeys = []
+      this.$refs.useRoles.leftCheckedKeys = []
       this.hasNewSource = true
     },
     async exectCopyPluginConfigDto () {
@@ -1146,6 +1152,8 @@ export default {
       this.mgmtRolesKey = []
       this.useRolesKey = []
       this.configRoleManageModal = true
+      this.$refs.mgmtRoles.leftCheckedKeys = []
+      this.$refs.useRoles.leftCheckedKeys = []
       this.hasNewSource = true
     },
     async exectAddPluginConfigDto () {
