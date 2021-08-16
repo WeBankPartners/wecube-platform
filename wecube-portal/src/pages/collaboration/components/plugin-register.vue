@@ -962,11 +962,18 @@ export default {
       }
     },
     async pluginSave () {
+      if (this.selectedEntityType === '') {
+        this.$Notice.warning({
+          title: 'Warning',
+          desc: this.$t('target_type') + this.$t('required')
+        })
+        return
+      }
       if (this.registerName.length === 0) {
         this.$refs.registerName.focus()
         this.$Notice.warning({
           title: 'Warning',
-          desc: '输入注册名称'
+          desc: this.$t('regist_name') + this.$t('required')
         })
         return
       }
@@ -1003,6 +1010,13 @@ export default {
       }
     },
     async regist () {
+      if (this.selectedEntityType === '') {
+        this.$Notice.warning({
+          title: 'Warning',
+          desc: this.$t('target_type') + this.$t('required')
+        })
+        return
+      }
       if (this.hasNewSource) {
         this.currentPluginObj.permissionToRole.MGMT = this.mgmtRolesKey
         this.currentPluginObj.permissionToRole.USE = this.useRolesKey
