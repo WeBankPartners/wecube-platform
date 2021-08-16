@@ -464,6 +464,36 @@ public class BatchExecutionService {
         batchExeJob.setCompleteTimestamp(new Timestamp(System.currentTimeMillis()));
 
         batchExecutionJobsMapper.updateByPrimaryKeySelective(batchExeJob);
+        
+        List<ExecutionJobs> jobs = batchExeJob.getJobs();
+        if(jobs == null || jobs.isEmpty()) {
+            return;
+        }
+        
+        for(ExecutionJobs job : jobs) {
+            postProcessExecutionJobs(job);
+        }
+    }
+    
+    private void postProcessExecutionJobs(ExecutionJobs job) {
+        job.setCompleteTime(new Timestamp(System.currentTimeMillis()));
+        executionJobsMapper.updateByPrimaryKeySelective(job);
+        
+        List<ExecutionJobParameters> parameters = job.getParameters();
+        
+        if(parameters == null || parameters.isEmpty()) {
+            return;
+        }
+        
+        for(ExecutionJobParameters param : parameters) {
+            postProcessExecutionJobParameters(param);
+        }
+        
+    }
+    
+    private void postProcessExecutionJobParameters(ExecutionJobParameters param) {
+        
+        executionJobParametersMapper.updateByPrimaryKeySelective(param);
     }
 
     private List<ExecutionJobParameters> transFromInputParameterDefinitionToExecutionJobParameter(
