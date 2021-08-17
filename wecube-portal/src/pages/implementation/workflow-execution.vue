@@ -14,6 +14,7 @@
                 style="width:60%"
                 filterable
                 clearable
+                @on-open-change="getProcessInstances"
                 @on-clear="clearHistoryOrch"
               >
                 <Option
