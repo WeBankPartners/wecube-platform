@@ -186,6 +186,10 @@ public class BatchExecutionService {
         for (BatchExecutionContext ctx : ctxes) {
             ResultData<?> exeResult = null;
             ExecutionJobs exeJob = ctx.getExeJob();
+            String exeResultsKey = exeJob.getBusinessKey();
+            if(StringUtils.isBlank(exeResultsKey)) {
+                exeResultsKey = exeJob.getRootEntityId();
+            }
             try {
                 exeResult = performExecutionJob(exeJob);
                 if (exeResult == null) {
@@ -195,14 +199,14 @@ public class BatchExecutionService {
                         ExecutionJobResponseDto respDataObj = new ExecutionJobResponseDto(RESULT_CODE_ERROR,
                                 resultObject);
                         respDataObj.setRequestData(exeJob.getRequestData());
-                        exeResults.put(exeJob.getBusinessKey(), respDataObj);
+                        exeResults.put(exeResultsKey, respDataObj);
                     }
                 } else {
                     Object resultObject = exeResult.getOutputs().get(0);
                     String errorCode = exeJob.getErrorCode() == null ? RESULT_CODE_ERROR : exeJob.getErrorCode();
                     ExecutionJobResponseDto respDataObj = new ExecutionJobResponseDto(errorCode, resultObject);
                     respDataObj.setRequestData(exeJob.getRequestData());
-                    exeResults.put(exeJob.getBusinessKey(), respDataObj);
+                    exeResults.put(exeResultsKey, respDataObj);
                 }
             } catch (Exception e) {
                 log.error("errors to run execution job,{} {} {}, errorMsg:{} ", exeJob.getPackageName(),
@@ -211,8 +215,8 @@ public class BatchExecutionService {
                 Object resultObject = exeResult.getOutputs().get(0);
                 ExecutionJobResponseDto respDataObj = new ExecutionJobResponseDto(RESULT_CODE_ERROR, resultObject);
                 respDataObj.setRequestData(exeJob.getRequestData());
-                log.info("biz key:{}, respDataObj:{}", exeJob.getBusinessKey(), respDataObj);
-                exeResults.put(exeJob.getBusinessKey(), respDataObj);
+                log.info("biz key:{}, respDataObj:{}", exeResultsKey, respDataObj);
+                exeResults.put(exeResultsKey, respDataObj);
             }
 
         }
