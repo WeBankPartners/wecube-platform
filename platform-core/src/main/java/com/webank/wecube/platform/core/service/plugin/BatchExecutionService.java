@@ -188,7 +188,7 @@ public class BatchExecutionService {
                 exeResult = performExecutionJob(exeJob);
                 if (exeResult == null) {
                     if (exeJob.getPrepareException() != null) {
-                        exeResult = buildResultDataWithError(exeJob.getPrepareException().getMessage());
+                        exeResult = buildResultDataWithError(exeJob.getPrepareException().getMessage(), exeJob);
                         Object resultObject = exeResult.getOutputs().get(0);
                         ExecutionJobResponseDto respDataObj = new ExecutionJobResponseDto(RESULT_CODE_ERROR,
                                 resultObject);
@@ -205,7 +205,7 @@ public class BatchExecutionService {
             } catch (Exception e) {
                 log.error("errors to run execution job,{} {} {}, errorMsg:{} ", exeJob.getPackageName(),
                         exeJob.getEntityName(), exeJob.getRootEntityId(), e.getMessage());
-                exeResult = buildResultDataWithError(e.getMessage());
+                exeResult = buildResultDataWithError(e.getMessage(), exeJob);
                 Object resultObject = exeResult.getOutputs().get(0);
                 ExecutionJobResponseDto respDataObj = new ExecutionJobResponseDto(RESULT_CODE_ERROR, resultObject);
                 respDataObj.setRequestData(exeJob.getRequestData());
@@ -350,7 +350,7 @@ public class BatchExecutionService {
             log.error(errorMessage);
             exeJob.setErrorWithMessage(errorMessage);
 
-            ResultData<PluginResponseStationaryOutput> resultData = buildResultDataWithError(errorMessage);
+            ResultData<PluginResponseStationaryOutput> resultData = buildResultDataWithError(errorMessage, exeJob);
             ctx.setExeResult(resultData);
             return ctx;
         }
@@ -646,7 +646,7 @@ public class BatchExecutionService {
             log.error(errorMessage);
             exeJob.setErrorWithMessage(errorMessage);
 
-            return buildResultDataWithError(errorMessage);
+            return buildResultDataWithError(errorMessage, exeJob);
         }
 
         PluginConfigs pluginConfigEntity = pluginConfigsMapper
@@ -693,7 +693,7 @@ public class BatchExecutionService {
         } catch (Exception e) {
             log.error("errors while call plugin interface", e);
             exeJob.setErrorWithMessage(e.getMessage());
-            return buildResultDataWithError(e.getMessage());
+            return buildResultDataWithError(e.getMessage(), exeJob);
         }
         log.info("returnJsonString= " + responseData.toString());
         String returnJsonString = JsonUtils.toJsonString(responseData);
@@ -708,7 +708,7 @@ public class BatchExecutionService {
                     pluginConfigInterfaceEntity.getPath(), pluginInputParamMap);
             log.error(errorMessage);
             exeJob.setErrorWithMessage(errorMessage);
-            return buildResultDataWithError(errorMessage);
+            return buildResultDataWithError(errorMessage, exeJob);
         }
         PluginResponseStationaryOutput stationaryOutput = stationaryResultData.getOutputs().get(0);
         exeJob.setReturnJson(returnJsonString);
@@ -925,10 +925,10 @@ public class BatchExecutionService {
         return errorReultData;
     }
 
-    private ResultData<PluginResponseStationaryOutput> buildResultDataWithError(String errorMessage) {
+    private ResultData<PluginResponseStationaryOutput> buildResultDataWithError(String errorMessage, ExecutionJobs exeJob) {
         ResultData<PluginResponseStationaryOutput> errorReultData = new ResultData<PluginResponseStationaryOutput>();
         errorReultData.setOutputs(Lists.newArrayList(new PluginResponseStationaryOutput(
-                PluginResponseStationaryOutput.ERROR_CODE_FAILED, errorMessage, null)));
+                PluginResponseStationaryOutput.ERROR_CODE_FAILED, errorMessage, exeJob.getRootEntityId())));
         return errorReultData;
     }
 
