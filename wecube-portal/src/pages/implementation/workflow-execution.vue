@@ -14,7 +14,7 @@
                 style="width:60%"
                 filterable
                 clearable
-                @on-open-change="getProcessInstances"
+                @on-open-change="getProcessInstances(false)"
                 @on-clear="clearHistoryOrch"
               >
                 <Option
@@ -1001,7 +1001,6 @@ export default {
       this.allBindingsList = filter.concat(payload)
     },
     async getProcessInstances (isAfterCreate = false, createResponse = undefined) {
-      this.allFlowInstances = []
       let { status, data } = await getProcessInstances()
       if (status === 'OK') {
         this.allFlowInstances = data.sort((a, b) => {
