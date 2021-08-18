@@ -72,8 +72,10 @@ import com.webank.wecube.platform.core.support.itsdanger.ItsDangerCheckReqDto;
 import com.webank.wecube.platform.core.support.itsdanger.ItsDangerCheckRespDto;
 import com.webank.wecube.platform.core.support.itsdanger.ItsDangerInstanceInfoDto;
 import com.webank.wecube.platform.core.support.itsdanger.ItsDangerRestClient;
+import com.webank.wecube.platform.core.support.plugin.PluginRemoteCallException;
 import com.webank.wecube.platform.core.support.plugin.PluginServiceStub;
 import com.webank.wecube.platform.core.support.plugin.dto.PluginResponse.ResultData;
+import com.webank.wecube.platform.core.support.plugin.dto.PluginResponse;
 import com.webank.wecube.platform.core.support.plugin.dto.PluginResponseStationaryOutput;
 import com.webank.wecube.platform.core.utils.Constants;
 import com.webank.wecube.platform.core.utils.JsonUtils;
@@ -678,6 +680,10 @@ public class BatchExecutionService {
                     "RequestId-" + Long.toString(System.currentTimeMillis()));
 
             handleResultData(responseData, exeJob);
+            
+        }catch(PluginRemoteCallException e1) {
+            log.error("errors while call remote plugin interface.", e1);
+            return buildResultDataWithError(e1);
         } catch (Exception e) {
             log.error("errors while call plugin interface", e);
             exeJob.setErrorWithMessage(e.getMessage());
@@ -871,6 +877,46 @@ public class BatchExecutionService {
             }
 
         }
+    }
+    
+    @SuppressWarnings("unchecked")
+    private ResultData<PluginResponseStationaryOutput> buildResultDataWithError(PluginRemoteCallException e1) {
+        ResultData<PluginResponseStationaryOutput> errorReultData = new ResultData<PluginResponseStationaryOutput>();
+        PluginResponse<?> pluginResponse = e1.getPluginResponse();
+        if(pluginResponse == null) {
+            PluginResponseStationaryOutput errOut = new PluginResponseStationaryOutput(PluginResponseStationaryOutput.ERROR_CODE_FAILED, e1.getErrorMessage(), null);
+            List<PluginResponseStationaryOutput> outputs = Lists.newArrayList(errOut);
+            errorReultData.setOutputs(outputs);
+            
+            return errorReultData;
+        }
+        
+        List<?> resultData = pluginResponse.getOutputs();
+        if(resultData == null || resultData.isEmpty()) {
+            PluginResponseStationaryOutput errOut = new PluginResponseStationaryOutput(PluginResponseStationaryOutput.ERROR_CODE_FAILED, e1.getErrorMessage(), null);
+            List<PluginResponseStationaryOutput> outputs = Lists.newArrayList(errOut);
+            errorReultData.setOutputs(outputs);
+            
+            return errorReultData;
+        }
+        
+        List<PluginResponseStationaryOutput> outputs = new ArrayList<>();
+        for(Object resultObj : resultData) {
+            if(resultObj instanceof Map) {
+                Map<String,Object> resultMap = (Map<String,Object>)resultObj;
+                String errCode = (String) resultMap.get("errorCode");
+                String errorMessage = (String)resultMap.get("errorMessage");
+                String callbackParameter = (String)resultMap.get("callbackParameter");
+                
+                PluginResponseStationaryOutput errOut = new PluginResponseStationaryOutput(errCode, errorMessage, callbackParameter);
+                outputs.add(errOut);
+            }else {
+                PluginResponseStationaryOutput errOut = new PluginResponseStationaryOutput(PluginResponseStationaryOutput.ERROR_CODE_FAILED, e1.getErrorMessage(), null);
+                outputs.add(errOut);
+            }
+        }
+        errorReultData.setOutputs(outputs);
+        return errorReultData;
     }
 
     private ResultData<PluginResponseStationaryOutput> buildResultDataWithError(String errorMessage) {
