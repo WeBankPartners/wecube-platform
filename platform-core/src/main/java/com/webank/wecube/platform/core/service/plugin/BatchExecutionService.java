@@ -86,6 +86,8 @@ public class BatchExecutionService {
     private final Logger log = LoggerFactory.getLogger(this.getClass());
 
     public static final String PLUGIN_NAME_ITSDANGEROUS = "itsdangerous";
+    
+    protected static final String CONFIRM_TOKEN_KEY = "confirmToken";
 
     @Autowired
     private PluginServiceStub pluginServiceStub;
@@ -450,6 +452,8 @@ public class BatchExecutionService {
             exeJobEntity.setEntityName(batchExeRequest.getEntityName());
             exeJobEntity.setBusinessKey(resourceData.getBusinessKeyValue().toString());
             exeJobEntity.setBatchExecutionJobId(batchExeJobEntity.getId());
+            
+            exeJobEntity.setConfirmToken(resourceData.getConfirmToken());
 
             executionJobsMapper.insert(exeJobEntity);
 
@@ -672,6 +676,11 @@ public class BatchExecutionService {
         }
 
         pluginInputParamMap.put(CALLBACK_PARAMETER_KEY, exeJob.getRootEntityId());
+        
+        if(StringUtils.isNoneBlank(exeJob.getConfirmToken())) {
+            log.info("confirm token [{}] found for entity [{}].", exeJob.getConfirmToken(), exeJob.getRootEntityId());
+            pluginInputParamMap.put(CONFIRM_TOKEN_KEY, exeJob.getConfirmToken());
+        }
         
         exeJob.setRequestData(pluginInputParamMap);
 
