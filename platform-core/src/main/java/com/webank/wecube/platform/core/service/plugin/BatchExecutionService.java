@@ -689,7 +689,7 @@ public class BatchExecutionService {
         }catch(PluginRemoteCallException e1) {
             log.error("errors while call remote plugin interface.", e1);
             exeJob.setErrorWithMessage(e1.getMessage());
-            return buildResultDataWithError(e1);
+            return buildResultDataWithError(e1, exeJob);
         } catch (Exception e) {
             log.error("errors while call plugin interface", e);
             exeJob.setErrorWithMessage(e.getMessage());
@@ -886,11 +886,11 @@ public class BatchExecutionService {
     }
     
     @SuppressWarnings("unchecked")
-    private ResultData<PluginResponseStationaryOutput> buildResultDataWithError(PluginRemoteCallException e1) {
+    private ResultData<PluginResponseStationaryOutput> buildResultDataWithError(PluginRemoteCallException e1, ExecutionJobs exeJob) {
         ResultData<PluginResponseStationaryOutput> errorReultData = new ResultData<PluginResponseStationaryOutput>();
         PluginResponse<?> pluginResponse = e1.getPluginResponse();
         if(pluginResponse == null) {
-            PluginResponseStationaryOutput errOut = new PluginResponseStationaryOutput(PluginResponseStationaryOutput.ERROR_CODE_FAILED, e1.getErrorMessage(), null);
+            PluginResponseStationaryOutput errOut = new PluginResponseStationaryOutput(PluginResponseStationaryOutput.ERROR_CODE_FAILED, e1.getErrorMessage(), exeJob.getRootEntityId());
             List<PluginResponseStationaryOutput> outputs = Lists.newArrayList(errOut);
             errorReultData.setOutputs(outputs);
             
@@ -899,7 +899,7 @@ public class BatchExecutionService {
         
         List<?> resultData = pluginResponse.getOutputs();
         if(resultData == null || resultData.isEmpty()) {
-            PluginResponseStationaryOutput errOut = new PluginResponseStationaryOutput(PluginResponseStationaryOutput.ERROR_CODE_FAILED, e1.getErrorMessage(), null);
+            PluginResponseStationaryOutput errOut = new PluginResponseStationaryOutput(PluginResponseStationaryOutput.ERROR_CODE_FAILED, e1.getErrorMessage(), exeJob.getRootEntityId());
             List<PluginResponseStationaryOutput> outputs = Lists.newArrayList(errOut);
             errorReultData.setOutputs(outputs);
             
@@ -917,7 +917,7 @@ public class BatchExecutionService {
                 PluginResponseStationaryOutput errOut = new PluginResponseStationaryOutput(errCode, errorMessage, callbackParameter);
                 outputs.add(errOut);
             }else {
-                PluginResponseStationaryOutput errOut = new PluginResponseStationaryOutput(PluginResponseStationaryOutput.ERROR_CODE_FAILED, e1.getErrorMessage(), null);
+                PluginResponseStationaryOutput errOut = new PluginResponseStationaryOutput(PluginResponseStationaryOutput.ERROR_CODE_FAILED, e1.getErrorMessage(), exeJob.getRootEntityId());
                 outputs.add(errOut);
             }
         }
