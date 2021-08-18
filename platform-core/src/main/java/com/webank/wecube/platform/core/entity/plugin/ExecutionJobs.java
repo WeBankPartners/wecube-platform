@@ -40,6 +40,8 @@ public class ExecutionJobs {
     private transient Exception prepareException;
     
     private transient Object requestData;
+    
+    private transient String confirmToken;
 
     public String getErrorMessage() {
         return errorMessage;
@@ -185,6 +187,14 @@ public class ExecutionJobs {
 
     public void setRequestData(Object requestData) {
         this.requestData = requestData;
+    }
+
+    public String getConfirmToken() {
+        return confirmToken;
+    }
+
+    public void setConfirmToken(String confirmToken) {
+        this.confirmToken = confirmToken;
     }
     
     
