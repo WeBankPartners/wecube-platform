@@ -86,14 +86,16 @@
                 style="margin:4px;padding: 4px; border-bottom:1px solid #dcdee2;"
                 :key="index + inter.action"
               >
-                <Input
-                  :value="inter.action"
-                  :disabled="currentPluginObj.status === 'ENABLED'"
-                  @on-blur="actionBlurHandler($event, inter)"
-                  @click.stop.native="actionFocus($event)"
-                  style="width:200px"
-                  size="small"
-                />
+                <Tooltip :content="inter.description">
+                  <Input
+                    :value="inter.action"
+                    :disabled="currentPluginObj.status === 'ENABLED'"
+                    @on-blur="actionBlurHandler($event, inter)"
+                    @click.stop.native="actionFocus($event)"
+                    style="width:200px"
+                    size="small"
+                  />
+                </Tooltip>
                 <InterfaceFilterRule
                   v-model="inter.filterRule"
                   :disabled="currentPluginObj.status === 'ENABLED'"
