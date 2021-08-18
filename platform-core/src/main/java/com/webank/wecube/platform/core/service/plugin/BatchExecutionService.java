@@ -192,12 +192,14 @@ public class BatchExecutionService {
                         Object resultObject = exeResult.getOutputs().get(0);
                         ExecutionJobResponseDto respDataObj = new ExecutionJobResponseDto(RESULT_CODE_ERROR,
                                 resultObject);
+                        respDataObj.setRequestData(exeJob.getRequestData());
                         exeResults.put(exeJob.getBusinessKey(), respDataObj);
                     }
                 } else {
                     Object resultObject = exeResult.getOutputs().get(0);
                     String errorCode = exeJob.getErrorCode() == null ? RESULT_CODE_ERROR : exeJob.getErrorCode();
                     ExecutionJobResponseDto respDataObj = new ExecutionJobResponseDto(errorCode, resultObject);
+                    respDataObj.setRequestData(exeJob.getRequestData());
                     exeResults.put(exeJob.getBusinessKey(), respDataObj);
                 }
             } catch (Exception e) {
@@ -206,6 +208,7 @@ public class BatchExecutionService {
                 exeResult = buildResultDataWithError(e.getMessage());
                 Object resultObject = exeResult.getOutputs().get(0);
                 ExecutionJobResponseDto respDataObj = new ExecutionJobResponseDto(RESULT_CODE_ERROR, resultObject);
+                respDataObj.setRequestData(exeJob.getRequestData());
                 log.info("biz key:{}, respDataObj:{}", exeJob.getBusinessKey(), respDataObj);
                 exeResults.put(exeJob.getBusinessKey(), respDataObj);
             }
@@ -669,6 +672,8 @@ public class BatchExecutionService {
         }
 
         pluginInputParamMap.put(CALLBACK_PARAMETER_KEY, exeJob.getRootEntityId());
+        
+        exeJob.setRequestData(pluginInputParamMap);
 
         PluginInstances pluginInstance = pluginInstanceMgmtService
                 .getRunningPluginInstance(pluginPackagesEntity.getName());
@@ -683,6 +688,7 @@ public class BatchExecutionService {
             
         }catch(PluginRemoteCallException e1) {
             log.error("errors while call remote plugin interface.", e1);
+            exeJob.setErrorWithMessage(e1.getMessage());
             return buildResultDataWithError(e1);
         } catch (Exception e) {
             log.error("errors while call plugin interface", e);
