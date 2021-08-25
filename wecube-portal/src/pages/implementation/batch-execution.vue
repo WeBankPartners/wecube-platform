@@ -199,6 +199,14 @@
                     :key="keyIndex"
                   >
                     <span>{{ key }}</span>
+                    <Button
+                      @click="showInfo"
+                      style="float:right"
+                      type="primary"
+                      icon="ios-search"
+                      ghost
+                      size="small"
+                    ></Button>
                   </li>
                 </ul>
                 <p v-else>No Data</p>
@@ -460,6 +468,17 @@
         }}</Button>
       </div>
     </Modal>
+
+    <Modal v-model="dataDetail.isShow" :fullscreen="fullscreen" width="800" :mask-closable="false" footer-hide>
+      <p slot="header">
+        <span>requestBody</span>
+        <Icon v-if="!fullscreen" @click="fullscreen = true" class="header-icon" type="ios-expand" />
+        <Icon v-else @click="fullscreen = false" class="header-icon" type="ios-contract" />
+      </p>
+      <div :style="{ overflow: 'auto', 'max-height': fullscreen ? '' : '500px' }">
+        <pre>{{ dataDetail.data }}</pre>
+      </div>
+    </Modal>
   </div>
 </template>
 <script>
@@ -485,6 +504,13 @@ export default {
   name: '',
   data () {
     return {
+      MODALHEIGHT: 500,
+      fullscreen: false,
+      dataDetail: {
+        isShow: false,
+        data: {}
+      },
+
       btnLoading: false,
       operaModal: false,
 
@@ -597,16 +623,15 @@ export default {
       }
     }
   },
-  mounted () {},
+  mounted () {
+    this.MODALHEIGHT = document.body.scrollHeight - 200
+  },
   computed: {
     businessKeyContent: function () {
       if (this.activeResultKey && this.catchExecuteResult) {
         return this.catchExecuteResult[this.activeResultKey]
       }
     }
-    // seletedRowsNum: function () {
-    //   return this.seletedRows.length
-    // }
   },
   watch: {
     dataModelExpression: async function (val) {
@@ -685,6 +710,11 @@ export default {
     }
   },
   methods: {
+    showInfo () {
+      this.dataDetail.data = ''
+      this.dataDetail.isShow = true
+      this.dataDetail.data = this.executeHistory[0].requestBody
+    },
     singleSelect (selection, row) {
       this.seletedRows = this.seletedRows.concat(row)
     },
