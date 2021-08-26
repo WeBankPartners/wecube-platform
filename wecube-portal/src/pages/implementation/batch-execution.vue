@@ -192,13 +192,21 @@
                     :class="[
                       activeResultKey === key ? 'active-key' : '',
                       'business-key',
-                      catchExecuteResult[key].errorCode === '1' ? 'error-key' : '',
+                      keyStyle[catchExecuteResult[key].errorCode],
                       'clear-default-style'
                     ]"
                     v-for="(key, keyIndex) in catchFilterBusinessKeySet"
                     :key="keyIndex"
                   >
                     <span>{{ key }}</span>
+                    <Button
+                      @click="showInfo(key)"
+                      style="float:right"
+                      type="primary"
+                      icon="ios-search"
+                      ghost
+                      size="small"
+                    ></Button>
                   </li>
                 </ul>
                 <p v-else>No Data</p>
@@ -460,6 +468,17 @@
         }}</Button>
       </div>
     </Modal>
+
+    <Modal v-model="dataDetail.isShow" :fullscreen="fullscreen" width="800" :mask-closable="false" footer-hide>
+      <p slot="header">
+        <span>requestData</span>
+        <Icon v-if="!fullscreen" @click="fullscreen = true" class="header-icon" type="ios-expand" />
+        <Icon v-else @click="fullscreen = false" class="header-icon" type="ios-contract" />
+      </p>
+      <div :style="{ overflow: 'auto', 'max-height': fullscreen ? '' : '500px' }">
+        <pre>{{ dataDetail.data }}</pre>
+      </div>
+    </Modal>
   </div>
 </template>
 <script>
@@ -485,6 +504,17 @@ export default {
   name: '',
   data () {
     return {
+      MODALHEIGHT: 500,
+      fullscreen: false,
+      dataDetail: {
+        isShow: false,
+        data: {}
+      },
+      keyStyle: {
+        '-1': 'confirm-key',
+        '0': '',
+        '1': 'error-key'
+      },
       btnLoading: false,
       operaModal: false,
 
@@ -597,16 +627,15 @@ export default {
       }
     }
   },
-  mounted () {},
+  mounted () {
+    this.MODALHEIGHT = document.body.scrollHeight - 200
+  },
   computed: {
     businessKeyContent: function () {
       if (this.activeResultKey && this.catchExecuteResult) {
         return this.catchExecuteResult[this.activeResultKey]
       }
     }
-    // seletedRowsNum: function () {
-    //   return this.seletedRows.length
-    // }
   },
   watch: {
     dataModelExpression: async function (val) {
@@ -685,6 +714,11 @@ export default {
     }
   },
   methods: {
+    showInfo (key) {
+      this.dataDetail.data = ''
+      this.dataDetail.isShow = true
+      this.dataDetail.data = this.executeHistory[0].executeResult[key].requestData
+    },
     singleSelect (selection, row) {
       this.seletedRows = this.seletedRows.concat(row)
     },
@@ -837,6 +871,9 @@ export default {
           return
         }
         const { plugin, requestBody } = this.toBeCollectedParams
+        requestBody.resourceDatas.forEach(item => {
+          delete item.confirmToken
+        })
         let params = {
           collectionName: this.collectionName.trim(),
           permissionToRole: {
@@ -1241,7 +1278,6 @@ export default {
       })
 
       const { status, data, message } = await batchExecution(BATCH_EXECUTION_URL, requestBody)
-      // this.seletedRows = []
       if (status === 'OK') {
         this.manageExecutionResult(data, requestBody)
       }
@@ -1315,9 +1351,17 @@ export default {
         duration: 1
       })
       this.btnLoading = true
+      if (this.executeHistory.length > 0) {
+        requestBody.resourceDatas.forEach(resData => {
+          if (this.executeHistory[0].executeResult[resData.businessKeyValue].errorCode === '-1') {
+            resData.confirmToken = 'Y'
+          } else {
+            resData.confirmToken = 'N'
+          }
+        })
+      }
       const { status, data, message } = await batchExecution(BATCH_EXECUTION_URL, requestBody)
       this.btnLoading = false
-      // this.seletedRows = []
       if (status === 'OK') {
         this.manageExecutionResultAgain(data, requestBody)
       }
@@ -1570,6 +1614,9 @@ pre {
 }
 .error-key {
   color: red;
+}
+.confirm-key {
+  color: #2d8cf0;
 }
 </style>
 <style>
