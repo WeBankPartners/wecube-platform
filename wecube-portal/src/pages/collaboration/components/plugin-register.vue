@@ -682,7 +682,6 @@ export default {
     // 'inputParameters', param, index
     async showObjectConfig (originData) {
       let datax = JSON.parse(JSON.stringify(originData))
-      console.log(originData)
       if (!originData.refObjectMeta) {
         this.$Notice.error({
           title: 'Error',
