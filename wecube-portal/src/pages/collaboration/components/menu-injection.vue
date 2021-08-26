@@ -61,7 +61,6 @@ export default {
             })
           }
         })
-        console.log(allCats)
         this.menus = allCats.map(_ => {
           data.forEach(item => {
             if (item.category === '' + _.id && item.source !== 'SYSTEM') {
