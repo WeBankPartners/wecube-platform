@@ -712,13 +712,6 @@ export default {
       this.retryTartetModels.forEach(d => {
         const f = this.retryCatchNodeTableList.find(c => c.id === d.id)
         tem.push({ ...d, bound: f.bound, confirmToken: f.confirmToken })
-        // if (typeof (f) !== 'undefined') {
-        //   console.log(1)
-        //   tem.push({ ...d, bound: 'Y', confirmToken: f.confirmToken })
-        // } else {
-        //   console.log(2)
-        //   tem.push({ ...d, bound: 'N', confirmToken: '' })
-        // }
       })
       const payload = {
         nodeInstId: found.id,
@@ -795,46 +788,22 @@ export default {
     retrySingleSelect (selection, row) {
       let find = this.retryCatchNodeTableList.find(item => item.id === row.id)
       find.bound = 'Y'
-      // console.log(selection, row, this.retryCatchNodeTableList)
-      // this.retryCatchNodeTableList = this.retryCatchNodeTableList.concat(row)
     },
     retrySingleCancel (selection, row) {
       let find = this.retryCatchNodeTableList.find(cn => {
         return cn.id === row.id
       })
-      // const find = this.retryCatchNodeTableList.find(item => item.id === row.id)
       find.bound = 'N'
-      // this.retryCatchNodeTableList.splice(index, 1)
     },
     retrySelectAll (selection) {
       this.retryCatchNodeTableList.forEach(item => {
         item.bound = 'Y'
       })
-      // let temp = []
-      // this.retryCatchNodeTableList.forEach(cntl => {
-      //   temp.push(cntl.id)
-      // })
-      // selection.forEach(se => {
-      //   if (!temp.includes(se.id)) {
-      //     this.retryCatchNodeTableList.push(se)
-      //   }
-      // })
     },
     retrySelectAllCancel () {
       this.retryCatchNodeTableList.forEach(item => {
         item.bound = 'N'
       })
-      // let temp = []
-      // this.retryTartetModels.forEach(tm => {
-      //   temp.push(tm.id)
-      // })
-      // if (this.retryTableFilterParam) {
-      //   this.retryCatchNodeTableList = this.retryCatchNodeTableList.filter(item => {
-      //     return !temp.includes(item.id)
-      //   })
-      // } else {
-      //   this.retryCatchNodeTableList = []
-      // }
     },
     allFlowNodesSingleSelect (selection, row) {
       this.selectedFlowNodesModelData = this.selectedFlowNodesModelData.concat(row)
