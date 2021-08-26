@@ -186,7 +186,7 @@
               <Col span="6" class="excute-result excute-result-search">
                 <Input v-model="businessKey" placeholder="Filter instance" />
                 <p class="excute-result-search-title">{{ activeExecuteHistory.plugin.pluginName }}</p>
-                <ul v-if="activeExecuteHistory.filterBusinessKeySet.length" class="dispaly-instance-result">
+                <ul v-if="activeExecuteHistory.filterBusinessKeySet.length" class="display-instance-result">
                   <li
                     @click="changeActiveResultKey(key)"
                     :class="[
@@ -199,14 +199,6 @@
                     :key="keyIndex"
                   >
                     <span>{{ key }}</span>
-                    <Button
-                      @click="showInfo(key)"
-                      style="float:right"
-                      type="primary"
-                      icon="ios-search"
-                      ghost
-                      size="small"
-                    ></Button>
                   </li>
                 </ul>
                 <p v-else>No Data</p>
@@ -229,11 +221,18 @@
                     </Button>
                   </Col>
                 </Row>
+                <div v-if="hasResult">
+                  <a @click="showRequestData.isShow = !showRequestData.isShow">show requestData</a>
+                  <span v-if="showRequestData.isShow">
+                    <pre>{{ showRequestData.msg }}</pre>
+                    <Divider />
+                  </span>
+                </div>
                 <div>
                   <pre
-                    class="dispaly-result"
+                    class="display-result"
                     v-if="businessKeyContent"
-                  > <span v-html="formatResult(businessKeyContent.result)"></span></pre>
+                  ><span v-html="formatResult(businessKeyContent.result)"></span></pre>
                   <pre v-else> <span></span></pre>
                 </div>
               </Col>
@@ -468,17 +467,6 @@
         }}</Button>
       </div>
     </Modal>
-
-    <Modal v-model="dataDetail.isShow" :fullscreen="fullscreen" width="800" :mask-closable="false" footer-hide>
-      <p slot="header">
-        <span>requestData</span>
-        <Icon v-if="!fullscreen" @click="fullscreen = true" class="header-icon" type="ios-expand" />
-        <Icon v-else @click="fullscreen = false" class="header-icon" type="ios-contract" />
-      </p>
-      <div :style="{ overflow: 'auto', 'max-height': fullscreen ? '' : '500px' }">
-        <pre>{{ dataDetail.data }}</pre>
-      </div>
-    </Modal>
   </div>
 </template>
 <script>
@@ -504,11 +492,11 @@ export default {
   name: '',
   data () {
     return {
-      MODALHEIGHT: 500,
-      fullscreen: false,
-      dataDetail: {
+      hasResult: false,
+      showRequestData: {
         isShow: false,
-        data: {}
+        key: '',
+        msg: {}
       },
       keyStyle: {
         '-1': 'confirm-key',
@@ -714,11 +702,6 @@ export default {
     }
   },
   methods: {
-    showInfo (key) {
-      this.dataDetail.data = ''
-      this.dataDetail.isShow = true
-      this.dataDetail.data = this.executeHistory[0].executeResult[key].requestData
-    },
     singleSelect (selection, row) {
       this.seletedRows = this.seletedRows.concat(row)
     },
@@ -1207,11 +1190,6 @@ export default {
       if (status === 'OK') {
         this.filteredPlugins = data
       }
-
-      // const { status, data } = await getFilteredPluginInterfaceList(this.currentPackageName, this.currentEntityName)
-      // if (status === 'OK') {
-      //   this.filteredPlugins = data
-      // }
     },
     async excuteBatchAction () {
       let requestBody = {}
@@ -1335,6 +1313,12 @@ export default {
       return Current
     },
     async executeAgain () {
+      this.hasResult = false
+      this.showRequestData = {
+        isShow: false,
+        key: '',
+        msg: {}
+      }
       const inputParameterDefinitions = this.activeExecuteHistory.plugin.pluginParams.map(p => {
         const inputParameterValue =
           p.mappingType === 'constant' ? (p.dataType === 'number' ? Number(p.bindValue) : p.bindValue) : null
@@ -1409,6 +1393,12 @@ export default {
       this.displaySearchZone = false
       this.displayResultTableZone = false
       this.activeResultKey = key
+      this.hasResult = true
+      this.showRequestData = {
+        isShow: false,
+        key: key,
+        msg: this.executeHistory[0].executeResult[key].requestData
+      }
       this.selectedCollectionId = null
     },
     async changePlugin () {
@@ -1646,11 +1636,11 @@ pre {
   white-space: nowrap;
   width: 260px;
 }
-.dispaly-instance-result {
+.display-instance-result {
   height: calc(100vh - 320px);
   overflow-y: auto;
 }
-.dispaly-result {
+.display-result {
   height: calc(100vh - 300px);
   overflow-y: auto;
 }
