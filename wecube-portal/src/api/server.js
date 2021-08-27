@@ -6,15 +6,31 @@ export const getMyMenus = () => req.get('/platform/v1/my-menus')
 // flow
 export const saveFlow = data => req.post('/platform/v1/process/definitions/deploy', data)
 export const confirmSaveFlow = (continueToken, data) => {
-  return req.post(`/platform/v1/process/definitions/deploy?continue_token=${continueToken}`, data)
+  const params = {
+    continue_token: continueToken
+  }
+  return req.post(`/platform/v1/process/definitions/deploy`, data, { params })
 }
 export const saveFlowDraft = data => req.post('/platform/v1/process/definitions/draft', data)
-export const confirmSaveFlowDraft = (continueToken, data) =>
-  req.post(`/platform/v1/process/definitions/draft?continue_token=${continueToken}`, data)
+export const confirmSaveFlowDraft = (continueToken, data) => {
+  const params = {
+    continue_token: continueToken
+  }
+  return req.post(`/platform/v1/process/definitions/draft`, data, { params })
+}
 export const getAllFlow = (isIncludeDraft = true) => {
-  return isIncludeDraft
-    ? req.get('/platform/v1/process/definitions?permission=MGMT')
-    : req.get('/platform/v1/process/definitions?includeDraft=0&permission=USE')
+  let params = {}
+  if (isIncludeDraft) {
+    params = {
+      permission: 'MGMT'
+    }
+  } else {
+    params = {
+      includeDraft: 0,
+      permission: 'USE'
+    }
+  }
+  return req.get(`/platform/v1/process/definitions`, { params })
 }
 export const getFlowDetailByID = id => req.get(`/platform/v1/process/definitions/${id}/detail`)
 export const getFlowOutlineByID = id => req.get(`/platform/v1/process/definitions/${id}/outline`)
@@ -36,10 +52,13 @@ export const getParamsInfosByFlowIdAndNodeId = (flowId, nodeId) =>
   req.get(`platform/v1/process/definitions/${flowId}/tasknodes/${nodeId}`)
 
 export const getFlowNodes = flowId => req.get(`platform/v1/process/definitions/${flowId}/tasknodes/briefs`)
-export const getContextParametersNodes = (flowId, taskNodeId, prevCtxNodeIds) =>
-  req.get(
-    `/platform/v1/process/definitions/${flowId}/root-context-nodes/briefs?taskNodeId=${taskNodeId}&prevCtxNodeIds=${prevCtxNodeIds}`
-  )
+export const getContextParametersNodes = (flowId, taskNodeId, prevCtxNodeIds) => {
+  let params = {
+    taskNodeId: taskNodeId,
+    prevCtxNodeIds: prevCtxNodeIds.join(',')
+  }
+  return req.get(`/platform/v1/process/definitions/${flowId}/root-context-nodes/briefs`, { params })
+}
 
 export const getAllDataModels = () => req.get(`platform/v1/models`)
 
