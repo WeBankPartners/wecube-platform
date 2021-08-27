@@ -206,14 +206,6 @@
           :loading="btnLoading"
           >{{ $t('partial_retry') }}</Button
         >
-        <!-- <Button
-          type="info"
-          v-show="currentNodeStatus === 'Faulted' || currentNodeStatus === 'Timeouted'"
-          @click="workFlowActionHandler('retry')"
-          :loading="btnLoading"
-          style="margin-left: 10px"
-          >{{ $t('retry') }}</Button
-        > -->
         <Button
           type="warning"
           v-show="
@@ -227,7 +219,7 @@
         >
         <Button
           type="info"
-          v-show="['Faulted', 'Timeouted', 'Completed', 'Risky'].includes(currentNodeStatus)"
+          v-show="['InProgress', 'Faulted', 'Timeouted', 'Completed', 'Risky'].includes(currentNodeStatus)"
           @click="workFlowActionHandler('showlog')"
           style="margin-left: 10px"
           >{{ $t('show_log') }}</Button
@@ -428,6 +420,34 @@ export default {
         {
           title: 'DisplayName',
           key: 'displayName'
+        },
+        {
+          title: 'Action',
+          key: 'action',
+          width: 150,
+          align: 'center',
+          render: (h, params) => {
+            return h('div', [
+              h(
+                'Button',
+                {
+                  props: {
+                    type: 'primary',
+                    size: 'small'
+                  },
+                  style: {
+                    marginRight: '5px'
+                  },
+                  on: {
+                    click: () => {
+                      this.modelGraphMouseenterHandler(params.row)
+                    }
+                  }
+                },
+                'View'
+              )
+            ])
+          }
         }
       ],
       targetWithFlowModelColums: [
@@ -442,6 +462,34 @@ export default {
         {
           title: 'NodeName',
           slot: 'nodeTitle'
+        },
+        {
+          title: 'Action',
+          key: 'action',
+          width: 150,
+          align: 'center',
+          render: (h, params) => {
+            return h('div', [
+              h(
+                'Button',
+                {
+                  props: {
+                    type: 'primary',
+                    size: 'small'
+                  },
+                  style: {
+                    marginRight: '5px'
+                  },
+                  on: {
+                    click: () => {
+                      this.modelGraphMouseenterHandler(params.row)
+                    }
+                  }
+                },
+                'View'
+              )
+            ])
+          }
         }
       ],
       retryTargetModelColums: [
@@ -473,7 +521,7 @@ export default {
             let data = {
               props: {
                 content: params.row.message || '',
-                delay: '500',
+                delay: 500,
                 placement: 'right',
                 'max-width': '350'
               }
@@ -1236,12 +1284,10 @@ export default {
         '}'
       this.graph.graphviz.transition().renderDot(nodesString)
       // .on('end', this.setFontSizeForText)
-      removeEvent('.model text', 'mouseenter', this.modelGraphMouseenterHandler)
       removeEvent('.model text', 'click', this.modelGraphClickHandler)
       removeEvent('#graph svg', 'click', this.resetcurrentModelNodeRefs)
       addEvent('.model text', 'click', this.modelGraphClickHandler)
       addEvent('#graph svg', 'click', this.resetcurrentModelNodeRefs)
-      addEvent('.model text', 'mouseenter', this.modelGraphMouseenterHandler)
     },
     setFontSizeForText () {
       const nondes = d3.selectAll('#graph svg g .node')._groups[0]
@@ -1270,17 +1316,14 @@ export default {
         }
       }
     },
-    modelGraphMouseenterHandler (e) {
+    modelGraphMouseenterHandler (row) {
       clearTimeout(this.modelDetailTimer)
       this.modelDetailTimer = setTimeout(async () => {
-        const found = this.modelData.find(
-          _ => _.packageName + '_' + _.entityName + '_' + _.dataId === e.target.parentNode.id
-        )
-        this.nodeTitle = `${found.displayName}`
+        this.nodeTitle = `${row.displayName}`
         let params = {
-          additionalFilters: [{ attrName: 'id', op: 'eq', condition: found.dataId }]
+          additionalFilters: [{ attrName: 'id', op: 'eq', condition: row.dataId }]
         }
-        const { status, data } = await getModelNodeDetail(found.packageName, found.entityName, params)
+        const { status, data } = await getModelNodeDetail(row.packageName, row.entityName, params)
         if (status === 'OK') {
           this.nodeDetail = JSON.stringify(data)
             .split(',')
