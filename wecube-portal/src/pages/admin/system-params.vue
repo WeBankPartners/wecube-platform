@@ -22,6 +22,7 @@ import {
   updateSystemVariables,
   deleteSystemVariables,
   getResourceServerStatus,
+  getAllPluginPkgs,
   getVariableScope
 } from '@/api/server.js'
 import { outerActions } from '@/const/actions.js'
@@ -86,18 +87,7 @@ export default {
           component: 'WeSelect',
           inputType: 'select',
           placeholder: this.$t('table_scope'),
-          options: [
-            {
-              label: 'global',
-              value: 'global',
-              key: 'global'
-            },
-            {
-              label: 'plugin-package',
-              value: 'plugin-package',
-              key: 'plugin-package'
-            }
-          ]
+          options: []
         },
         {
           title: this.$t('table_source'),
@@ -123,6 +113,31 @@ export default {
     }
   },
   methods: {
+    async getPluginList () {
+      const { status, data } = await getAllPluginPkgs()
+      if (status === 'OK') {
+        const filterData = data.filter(d => d.status === 'REGISTERED')
+        let pluginSet = new Set()
+        let options = [
+          {
+            label: 'global',
+            value: 'global',
+            key: 'global'
+          }
+        ]
+        filterData.forEach(item => {
+          if (!pluginSet.has(item.name)) {
+            pluginSet.add(item.name)
+            options.push({
+              label: item.name,
+              value: item.name,
+              key: item.name
+            })
+          }
+        })
+        this.$set(this.tableColumns[3], 'options', options)
+      }
+    },
     async queryData () {
       this.payload.pageable.pageSize = this.pagination.pageSize
       this.payload.pageable.startIndex = (this.pagination.currentPage - 1) * this.pagination.pageSize
@@ -373,6 +388,7 @@ export default {
     this.getStatus()
     this.queryData()
     this.getScopeList()
+    this.getPluginList()
   }
 }
 </script>
