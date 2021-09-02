@@ -20,11 +20,11 @@ public class WorkflowStatisticsService {
         return null;
     }
     
-    public List<TaskNodeDefBriefDto> fetchWorkflowTasknodeInfos(){
+    public List<TaskNodeDefBriefDto> fetchWorkflowTasknodeInfos(List<String> procDefIds){
         return null;
     }
     
-    public List<TaskNodeDefObjectBindInfoDto> fetchWorkflowTasknodeBindings(){
+    public List<TaskNodeDefObjectBindInfoDto> fetchWorkflowTasknodeBindings(List<String> taskNodeIds){
         return null;
     }
     
