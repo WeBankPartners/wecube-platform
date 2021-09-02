@@ -1020,9 +1020,7 @@ export default {
     async getProcessInstances (isAfterCreate = false, createResponse = undefined) {
       let { status, data } = await getProcessInstances()
       if (status === 'OK') {
-        this.allFlowInstances = data.sort((a, b) => {
-          return b.id - a.id
-        })
+        this.allFlowInstances = data
         if (isAfterCreate) {
           this.selectedFlowInstance = createResponse.id
           this.processInstance()
