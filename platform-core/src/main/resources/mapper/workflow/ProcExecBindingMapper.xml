@@ -542,4 +542,16 @@
         t2.id !=
         #{procInstId,jdbcType=INTEGER}
     </select>
+    
+    <select id="selectAllBoundTaskNodeBindingsByNodeDef"
+        parameterType="java.lang.String" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List" />
+        from core_ru_proc_exec_binding
+        where node_def_id = #{nodeDefId,jdbcType=VARCHAR}
+        and bind_type = 'taskNode'
+        and
+        (bind_flag
+        != 'N' OR bind_flag IS NULL OR bind_flag = '')
+    </select>
 </mapper>
