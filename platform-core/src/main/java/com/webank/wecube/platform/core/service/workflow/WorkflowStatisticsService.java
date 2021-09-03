@@ -11,7 +11,10 @@ import org.springframework.stereotype.Service;
 import com.webank.wecube.platform.core.dto.workflow.ProcDefInfoDto;
 import com.webank.wecube.platform.core.dto.workflow.TaskNodeDefBriefDto;
 import com.webank.wecube.platform.core.dto.workflow.TaskNodeDefObjectBindInfoDto;
+import com.webank.wecube.platform.core.dto.workflow.WorkflowExecutionReportDetailDto;
+import com.webank.wecube.platform.core.dto.workflow.WorkflowExecutionReportDetailQueryDto;
 import com.webank.wecube.platform.core.dto.workflow.WorkflowExecutionReportItemDto;
+import com.webank.wecube.platform.core.dto.workflow.WorkflowExecutionReportQueryDto;
 import com.webank.wecube.platform.core.entity.workflow.ProcDefInfoEntity;
 import com.webank.wecube.platform.core.entity.workflow.ProcExecBindingEntity;
 import com.webank.wecube.platform.core.entity.workflow.TaskNodeDefInfoEntity;
@@ -162,13 +165,23 @@ public class WorkflowStatisticsService extends AbstractWorkflowProcDefService {
         return fetchWorkflowTasknodeBindings(taskNodeIds);
     }
 
-    public List<WorkflowExecutionReportItemDto> fetchWorkflowExecutionTasknodeReports() {
+    public List<WorkflowExecutionReportItemDto> fetchWorkflowExecutionTasknodeReports(WorkflowExecutionReportQueryDto queryDto) {
         // TODO
         return null;
     }
 
-    public List<WorkflowExecutionReportItemDto> fetchWorkflowExecutionPluginReports() {
+    public List<WorkflowExecutionReportItemDto> fetchWorkflowExecutionPluginReports(WorkflowExecutionReportQueryDto queryDto) {
         // TODO
+        return null;
+    }
+    
+    public List<WorkflowExecutionReportDetailDto> fetchWorkflowExecutionTasknodeReportDetails(WorkflowExecutionReportDetailQueryDto queryDto){
+        //TODO
+        return null;
+    }
+    
+    public List<WorkflowExecutionReportDetailDto> fetchWorkflowExecutionPluginReportDetails(WorkflowExecutionReportDetailQueryDto queryDto){
+        //TODO
         return null;
     }
 }
