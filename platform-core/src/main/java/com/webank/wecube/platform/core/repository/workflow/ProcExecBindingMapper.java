@@ -121,4 +121,7 @@ public interface ProcExecBindingMapper {
      */
     int countAllExclusiveBoundRunningProcInstancesWithoutProcInst(@Param("entityDataId") String entityDataId,
             @Param("procInstId") int procInstId);
+    
+    
+    List<ProcExecBindingEntity> selectAllBoundTaskNodeBindingsByNodeDef(@Param("nodeDefId") String nodeDefId);
 }
