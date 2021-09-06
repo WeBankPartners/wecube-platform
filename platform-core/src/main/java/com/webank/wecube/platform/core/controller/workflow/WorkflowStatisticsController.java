@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.webank.wecube.platform.core.dto.plugin.CommonResponseDto;
+import com.webank.wecube.platform.core.dto.plugin.QueryResponse;
 import com.webank.wecube.platform.core.dto.workflow.ProcDefInfoDto;
 import com.webank.wecube.platform.core.dto.workflow.TaskNodeDefBriefDto;
 import com.webank.wecube.platform.core.dto.workflow.TaskNodeDefObjectBindInfoDto;
@@ -90,8 +91,8 @@ public class WorkflowStatisticsController {
     @PostMapping("/statistics/process/definitions/executions/tasknodes/reports/query")
     public CommonResponseDto fetchWorkflowExecutionTasknodeReports(
             @RequestBody WorkflowExecutionReportQueryDto queryDto) {
-        List<WorkflowExecutionReportItemDto> items = workflowStatisticsService.fetchWorkflowExecutionTasknodeReports(queryDto);
-        return CommonResponseDto.okayWithData(items);
+        QueryResponse<WorkflowExecutionReportItemDto> itemsResponse = workflowStatisticsService.fetchWorkflowExecutionTasknodeReports(queryDto);
+        return CommonResponseDto.okayWithData(itemsResponse);
     }
 
     /**
@@ -102,8 +103,8 @@ public class WorkflowStatisticsController {
     @PostMapping("/statistics/process/definitions/executions/plugin/reports/query")
     public CommonResponseDto fetchWorkflowExecutionPluginReports(
             @RequestBody WorkflowExecutionReportQueryDto queryDto) {
-        List<WorkflowExecutionReportItemDto> items = workflowStatisticsService.fetchWorkflowExecutionPluginReports(queryDto);
-        return CommonResponseDto.okayWithData(items);
+        QueryResponse<WorkflowExecutionReportItemDto> itemsResponse = workflowStatisticsService.fetchWorkflowExecutionPluginReports(queryDto);
+        return CommonResponseDto.okayWithData(itemsResponse);
     }
 
     /**
