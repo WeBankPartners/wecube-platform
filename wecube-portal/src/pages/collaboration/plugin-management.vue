@@ -139,9 +139,11 @@
         <TabPane name="runtimeResources" :label="$t('runtime_resource')">
           <RuntimesResources v-if="currentTab === 'runtimeResources'" :pkgId="currentPlugin.id"></RuntimesResources>
         </TabPane>
-        <TabPane v-if="currentPlugin.status === 'UNREGISTERED'" name="confirm" :label="$t('confirm')">
+        <TabPane name="confirm" :label="$t('confirm')">
           <Button type="info" :disabled="isRegisted" @click="registPackage()">{{
-            $t('confirm_to_regist_plugin')
+            currentPlugin.status === 'UNREGISTERED'
+              ? $t('confirm_to_regist_plugin')
+              : $t('confirm_to_regist_plugin_again')
           }}</Button>
         </TabPane>
       </Tabs>
