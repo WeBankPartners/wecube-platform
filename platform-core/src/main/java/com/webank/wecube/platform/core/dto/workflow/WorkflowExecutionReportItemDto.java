@@ -87,4 +87,30 @@ public class WorkflowExecutionReportItemDto {
         this.successCount = successCount;
     }
 
+    @Override
+    public String toString() {
+        StringBuilder builder = new StringBuilder();
+        builder.append("[procDefId=");
+        builder.append(procDefId);
+        builder.append(", procDefName=");
+        builder.append(procDefName);
+        builder.append(", nodeDefId=");
+        builder.append(nodeDefId);
+        builder.append(", nodeDefName=");
+        builder.append(nodeDefName);
+        builder.append(", serviceId=");
+        builder.append(serviceId);
+        builder.append(", entityDataId=");
+        builder.append(entityDataId);
+        builder.append(", entityDataName=");
+        builder.append(entityDataName);
+        builder.append(", failureCount=");
+        builder.append(failureCount);
+        builder.append(", successCount=");
+        builder.append(successCount);
+        builder.append("]");
+        return builder.toString();
+    }
+
+    
 }

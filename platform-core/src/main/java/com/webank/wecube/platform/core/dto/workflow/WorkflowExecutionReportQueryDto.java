@@ -2,6 +2,8 @@ package com.webank.wecube.platform.core.dto.workflow;
 
 import java.util.List;
 
+import com.webank.wecube.platform.core.dto.plugin.PageableDto;
+
 public class WorkflowExecutionReportQueryDto {
     private String startDate;
     private String endDate;
@@ -11,6 +13,8 @@ public class WorkflowExecutionReportQueryDto {
     private List<String> serviceIds;
 
     private List<String> entityDataIds;
+    
+    protected PageableDto pageable = new PageableDto();
 
     public String getStartDate() {
         return startDate;
@@ -60,4 +64,13 @@ public class WorkflowExecutionReportQueryDto {
         this.entityDataIds = entityDataIds;
     }
 
+    public PageableDto getPageable() {
+        return pageable;
+    }
+
+    public void setPageable(PageableDto pageable) {
+        this.pageable = pageable;
+    }
+
+    
 }
