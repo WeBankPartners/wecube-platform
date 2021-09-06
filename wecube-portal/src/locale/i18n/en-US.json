@@ -297,7 +297,8 @@
   "status": "Status",
   "plugin_config_check": "Configuration",
   "service_regist": "Register",
-  "confirm_to_regist_plugin": "Confirm Regist Plugin Package",
+  "confirm_to_regist_plugin": "Regist Plugin Package",
+  "confirm_to_regist_plugin_again": "Regist Plugin Package Again",
   "is_show_decomissioned_pkg": "Decommissioned",
   "orchs": "Orchestrations",
   "query_orch": "Enquery",
@@ -482,5 +483,7 @@
   "constant_parameters": "Constant Parameters",
   "root_task_node": "Root Task Node",
   "tag": "Tag",
-  "core_multiple": "Multiple"
+  "core_multiple": "Multiple",
+  "regist_plugin_tip1": "1. Update the front-end file of this version of the plugin package to the front-end file used by the WeCube platform.",
+  "regist_plugin_tip2": "2. Update the system parameters of this version of the plugin package to the active state, and the system parameters of other versions of the plugin package to the inactive state."
 }
