@@ -483,5 +483,7 @@
   "constant_parameters": "Constant Parameters",
   "root_task_node": "Root Task Node",
   "tag": "Tag",
-  "core_multiple": "Multiple"
+  "core_multiple": "Multiple",
+  "regist_plugin_tip1": "1. Update the front-end file of this version of the plugin package to the front-end file used by the WeCube platform.",
+  "regist_plugin_tip2": "2. Update the system parameters of this version of the plugin package to the active state, and the system parameters of other versions of the plugin package to the inactive state."
 }
