@@ -6,6 +6,8 @@ import org.apache.ibatis.annotations.Param;
 import org.springframework.stereotype.Repository;
 
 import com.webank.wecube.platform.core.entity.workflow.ProcExecBindingEntity;
+import com.webank.wecube.platform.core.entity.workflow.ProcExecBindingPluginStatistics;
+import com.webank.wecube.platform.core.entity.workflow.ProcExecBindingTasknodeStatistics;
 
 @Repository
 public interface ProcExecBindingMapper {
@@ -121,7 +123,30 @@ public interface ProcExecBindingMapper {
      */
     int countAllExclusiveBoundRunningProcInstancesWithoutProcInst(@Param("entityDataId") String entityDataId,
             @Param("procInstId") int procInstId);
-    
-    
-    List<ProcExecBindingEntity> selectAllBoundTaskNodeBindingsByNodeDef(@Param("nodeDefId") String nodeDefId);
+
+    /**
+     * 
+     * @param nodeDefId
+     * @return
+     */
+    List<ProcExecBindingEntity> selectAllTaskNodeBindingsByNodeDef(@Param("nodeDefId") String nodeDefId);
+
+    /**
+     * 
+     * @param taskNodeIds
+     * @param entityDataIds
+     * @return
+     */
+    List<ProcExecBindingTasknodeStatistics> selectAllProcExecBindingTasknodeStatistics(
+            @Param("nodeDefIds") List<String> nodeDefIds, @Param("entityDataIds") List<String> entityDataIds);
+
+    /**
+     * 
+     * @param serviceIds
+     * @param entityDataIds
+     * @return
+     */
+    List<ProcExecBindingPluginStatistics> selectAllProcExecBindingPluginStatistics(
+            @Param("serviceIds") List<String> serviceIds, @Param("entityDataIds") List<String> entityDataIds);
+
 }
