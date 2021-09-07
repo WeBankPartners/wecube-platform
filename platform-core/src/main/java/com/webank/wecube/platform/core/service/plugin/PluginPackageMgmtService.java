@@ -1269,9 +1269,9 @@ public class PluginPackageMgmtService extends AbstractPluginMgmtService {
     }
 
     private void ensurePluginPackageIsAllowedToRegister(PluginPackages pluginPackage) {
-        if (!PluginPackages.UNREGISTERED.equalsIgnoreCase(pluginPackage.getStatus())) {
+        if (PluginPackages.DECOMMISSIONED.equalsIgnoreCase(pluginPackage.getStatus())) {
             String errorMessage = String.format(
-                    "Failed to register PluginPackage[%s/%s] as it is not in UNREGISTERED status [%s]",
+                    "Failed to register PluginPackage[%s/%s] as it is DECOMMISSIONED status [%s]",
                     pluginPackage.getName(), pluginPackage.getVersion(), pluginPackage.getStatus());
             log.error(errorMessage);
             throw new WecubeCoreException(errorMessage);
