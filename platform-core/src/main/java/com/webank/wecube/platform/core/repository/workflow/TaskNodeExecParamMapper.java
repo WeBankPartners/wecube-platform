@@ -72,4 +72,27 @@ public interface TaskNodeExecParamMapper {
     int countFailedTasknodeStatistics(@Param("nodeDefId") String nodeDefId, @Param("entityDataId") String entityDataId,
             @Param("startDate") Date startDate, @Param("endDate") Date endDate);
 
+    
+    /**
+     * 
+     * @param nodeDefId
+     * @param entityDataId
+     * @param startDate
+     * @param endDate
+     * @return
+     */
+    List<TaskNodeExecParamEntity> selectSuccessTasknodeStatistics(@Param("nodeDefId") String nodeDefId, @Param("entityDataId") String entityDataId,
+            @Param("startDate") Date startDate, @Param("endDate") Date endDate);
+    
+    
+    /**
+     * 
+     * @param nodeDefId
+     * @param entityDataId
+     * @param startDate
+     * @param endDate
+     * @return
+     */
+    List<TaskNodeExecParamEntity> selectFailedTasknodeStatistics(@Param("nodeDefId") String nodeDefId, @Param("entityDataId") String entityDataId,
+            @Param("startDate") Date startDate, @Param("endDate") Date endDate);
 }
