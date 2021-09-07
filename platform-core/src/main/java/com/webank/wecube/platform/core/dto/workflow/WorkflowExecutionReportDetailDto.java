@@ -18,6 +18,8 @@ public class WorkflowExecutionReportDetailDto {
 
     private String entityDataId;
     private String reqId;
+    
+    private String execDate;
 
     private List<TaskNodeExecParamDto> execParams = new ArrayList<>();
 
@@ -123,6 +125,14 @@ public class WorkflowExecutionReportDetailDto {
 
     public void setReqId(String reqId) {
         this.reqId = reqId;
+    }
+
+    public String getExecDate() {
+        return execDate;
+    }
+
+    public void setExecDate(String execDate) {
+        this.execDate = execDate;
     }
 
     
