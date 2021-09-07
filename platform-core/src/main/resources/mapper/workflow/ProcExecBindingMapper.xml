@@ -580,4 +580,39 @@
         AND 
             (t.bind_flag = 'Y' OR t.bind_flag IS NULL OR t.bind_flag = '')
     </select>
+    
+    <select id="selectAllProcExecBindingPluginStatistics"
+        resultType="com.webank.wecube.platform.core.entity.workflow.ProcExecBindingPluginStatistics">
+        SELECT DISTINCT
+            t2.service_id, t1.entity_data_id, t1.entity_data_name
+        FROM
+            core_ru_proc_exec_binding t1,
+            core_re_task_node_def_info t2
+        WHERE
+            t1.node_def_id IN (
+            SELECT 
+                DISTINCT t3.id
+            FROM
+                core_re_task_node_def_info t3
+            WHERE
+                t3.status != 'draft'
+            AND
+                t3.service_id IN 
+                <foreach item="serviceId" collection="serviceIds" separator=","
+                    open="(" close=")" index="">
+                    #{serviceId, jdbcType=VARCHAR}
+                </foreach>
+            )
+        AND t2.id = t1.node_def_id
+        <if test="entityDataIds != null and entityDataIds.size() != 0">
+        AND 
+            t1.entity_data_id IN 
+            <foreach item="entityDataId" collection="entityDataIds" separator=","
+            open="(" close=")" index="">
+                #{entityDataId, jdbcType=VARCHAR}
+            </foreach>
+        </if>
+        AND 
+            (t.bind_flag = 'Y' OR t.bind_flag IS NULL OR t.bind_flag = '')
+    </select>
 </mapper>
