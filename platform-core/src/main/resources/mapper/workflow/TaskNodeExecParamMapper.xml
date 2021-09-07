@@ -59,6 +59,28 @@
         mapping_type,
         callback_id
     </sql>
+    <sql id="Base_Column_List_2">
+        t1.id, 
+        t1.created_by, 
+        t1.created_time, 
+        t1.updated_by, 
+        t1.updated_time,
+        t1.obj_id,
+        t1.param_data_type,
+        t1.param_data_value, 
+        t1.param_name, 
+        t1.param_type,
+        t1.req_id, 
+        t1.root_entity_id, 
+        t1.entity_data_id,
+        t1.entity_type_id,
+        t1.is_sensitive,
+        t1.full_data_id,
+        t1.multiple,
+        t1.param_def_id,
+        t1.mapping_type,
+        t1.callback_id
+    </sql>
     <select id="selectByPrimaryKey" parameterType="java.lang.Integer"
         resultMap="BaseResultMap">
         select
@@ -434,6 +456,54 @@
         resultType="java.lang.Integer">
         SELECT 
             COUNT(1)
+        FROM
+            core_ru_task_node_exec_param t1,
+            core_ru_task_node_exec_req t2,
+            core_ru_task_node_inst_info t3
+        WHERE
+            t1.param_name = 'errorCode'
+        AND t1.param_type = 'OUTPUT'
+        AND t1.param_data_value != '0'
+        AND t1.entity_data_id = #{entityDataId,jdbcType=VARCHAR}
+        AND t1.req_id = t2.req_id
+        AND t2.node_inst_id = t3.id
+        AND t3.node_def_id = #{nodeDefId,jdbcType=VARCHAR}
+        <if test="startDate != null">
+                AND t1.created_time &gt;= #{startDate,jdbcType=TIMESTAMP}
+        </if>
+        <if test="endDate != null">
+                AND t1.created_time &lt;= #{endDate,jdbcType=TIMESTAMP}
+        </if>
+    </select>
+    
+    <select id="selectSuccessTasknodeStatistics"
+        resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List_2" />
+        FROM
+            core_ru_task_node_exec_param t1,
+            core_ru_task_node_exec_req t2,
+            core_ru_task_node_inst_info t3
+        WHERE
+            t1.param_name = 'errorCode'
+        AND t1.param_type = 'OUTPUT'
+        AND t1.param_data_value = '0'
+        AND t1.entity_data_id = #{entityDataId,jdbcType=VARCHAR}
+        AND t1.req_id = t2.req_id
+        AND t2.node_inst_id = t3.id
+        AND t3.node_def_id = #{nodeDefId,jdbcType=VARCHAR}
+        <if test="startDate != null">
+                AND t1.created_time &gt;= #{startDate,jdbcType=TIMESTAMP}
+        </if>
+        <if test="endDate != null">
+                AND t1.created_time &lt;= #{endDate,jdbcType=TIMESTAMP}
+        </if>
+    </select>
+    
+    <select id="selectFailedTasknodeStatistics"
+        resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List_2" />
         FROM
             core_ru_task_node_exec_param t1,
             core_ru_task_node_exec_req t2,
