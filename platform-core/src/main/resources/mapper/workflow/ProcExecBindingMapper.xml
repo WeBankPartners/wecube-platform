@@ -613,6 +613,6 @@
             </foreach>
         </if>
         AND 
-            (t.bind_flag = 'Y' OR t.bind_flag IS NULL OR t.bind_flag = '')
+            (t1.bind_flag = 'Y' OR t1.bind_flag IS NULL OR t1.bind_flag = '')
     </select>
 </mapper>
