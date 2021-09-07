@@ -4,6 +4,7 @@ public class ProcExecBindingPluginStatistics {
 
     private String serviceId;
     private String entityDataId;
+    private String entityDataName;
 
     public String getServiceId() {
         return serviceId;
@@ -21,4 +22,13 @@ public class ProcExecBindingPluginStatistics {
         this.entityDataId = entityDataId;
     }
 
+    public String getEntityDataName() {
+        return entityDataName;
+    }
+
+    public void setEntityDataName(String entityDataName) {
+        this.entityDataName = entityDataName;
+    }
+
+    
 }
