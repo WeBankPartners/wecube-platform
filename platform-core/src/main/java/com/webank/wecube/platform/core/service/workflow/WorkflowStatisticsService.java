@@ -20,6 +20,7 @@ import com.webank.wecube.platform.core.dto.plugin.QueryResponse;
 import com.webank.wecube.platform.core.dto.workflow.ProcDefInfoDto;
 import com.webank.wecube.platform.core.dto.workflow.TaskNodeDefBriefDto;
 import com.webank.wecube.platform.core.dto.workflow.TaskNodeDefObjectBindInfoDto;
+import com.webank.wecube.platform.core.dto.workflow.TaskNodeExecParamDto;
 import com.webank.wecube.platform.core.dto.workflow.WorkflowExecutionReportDetailDto;
 import com.webank.wecube.platform.core.dto.workflow.WorkflowExecutionReportDetailQueryDto;
 import com.webank.wecube.platform.core.dto.workflow.WorkflowExecutionReportItemDto;
@@ -27,9 +28,16 @@ import com.webank.wecube.platform.core.dto.workflow.WorkflowExecutionReportQuery
 import com.webank.wecube.platform.core.entity.workflow.ProcDefInfoEntity;
 import com.webank.wecube.platform.core.entity.workflow.ProcExecBindingEntity;
 import com.webank.wecube.platform.core.entity.workflow.ProcExecBindingTasknodeStatistics;
+import com.webank.wecube.platform.core.entity.workflow.ProcInstInfoEntity;
 import com.webank.wecube.platform.core.entity.workflow.TaskNodeDefInfoEntity;
+import com.webank.wecube.platform.core.entity.workflow.TaskNodeExecParamEntity;
+import com.webank.wecube.platform.core.entity.workflow.TaskNodeExecRequestEntity;
+import com.webank.wecube.platform.core.entity.workflow.TaskNodeInstInfoEntity;
 import com.webank.wecube.platform.core.repository.workflow.ProcExecBindingMapper;
+import com.webank.wecube.platform.core.repository.workflow.ProcInstInfoMapper;
 import com.webank.wecube.platform.core.repository.workflow.TaskNodeExecParamMapper;
+import com.webank.wecube.platform.core.repository.workflow.TaskNodeExecRequestMapper;
+import com.webank.wecube.platform.core.repository.workflow.TaskNodeInstInfoMapper;
 
 @Service
 public class WorkflowStatisticsService extends AbstractWorkflowProcDefService {
@@ -37,9 +45,18 @@ public class WorkflowStatisticsService extends AbstractWorkflowProcDefService {
 
     @Autowired
     protected ProcExecBindingMapper procExecBindingMapper;
-    
+
     @Autowired
     protected TaskNodeExecParamMapper taskNodeExecParamMapper;
+
+    @Autowired
+    protected TaskNodeExecRequestMapper taskNodeExecRequestMapper;
+
+    @Autowired
+    protected TaskNodeInstInfoMapper taskNodeInstInfoMapper;
+
+    @Autowired
+    protected ProcInstInfoMapper procInstInfoMapper;
 
     /**
      * 
@@ -177,92 +194,216 @@ public class WorkflowStatisticsService extends AbstractWorkflowProcDefService {
         }
 
         return fetchWorkflowTasknodeBindings(taskNodeIds);
-    }   
+    }
 
-    public QueryResponse<WorkflowExecutionReportItemDto> fetchWorkflowExecutionTasknodeReports(WorkflowExecutionReportQueryDto queryDto) {
+    /**
+     * 
+     * @param queryDto
+     * @return
+     */
+    public QueryResponse<WorkflowExecutionReportItemDto> fetchWorkflowExecutionTasknodeReports(
+            WorkflowExecutionReportQueryDto queryDto) {
         List<String> taskNodeIds = queryDto.getTaskNodeIds();
-        if(taskNodeIds == null || taskNodeIds.isEmpty()) {
+        if (taskNodeIds == null || taskNodeIds.isEmpty()) {
             throw new WecubeCoreException("Task nodes did not find and must provide.");
         }
-        
-        com.github.pagehelper.PageInfo<ProcExecBindingTasknodeStatistics> statisticsItemPageInfo = doFetchPageableProcExecBindingTasknodeStatistics(queryDto);
-        
+
+        com.github.pagehelper.PageInfo<ProcExecBindingTasknodeStatistics> statisticsItemPageInfo = doFetchPageableProcExecBindingTasknodeStatistics(
+                queryDto);
+
         List<ProcExecBindingTasknodeStatistics> statisticsItems = statisticsItemPageInfo.getList();
-        
+
         List<WorkflowExecutionReportItemDto> workflowExecutionReportItemDtos = new ArrayList<>();
-        
-        for(ProcExecBindingTasknodeStatistics statisticsItem : statisticsItems) {
-            WorkflowExecutionReportItemDto workflowExecutionReportItemDto = buildWorkflowExecutionReportItem(queryDto, statisticsItem);
+
+        for (ProcExecBindingTasknodeStatistics statisticsItem : statisticsItems) {
+            WorkflowExecutionReportItemDto workflowExecutionReportItemDto = buildWorkflowExecutionReportItem(queryDto,
+                    statisticsItem);
             workflowExecutionReportItemDtos.add(workflowExecutionReportItemDto);
         }
-        
-        
+
         com.webank.wecube.platform.core.dto.plugin.PageInfo localPageInfo = new com.webank.wecube.platform.core.dto.plugin.PageInfo();
         localPageInfo.setPageSize(statisticsItemPageInfo.getPageSize());
         localPageInfo.setTotalRows(Long.valueOf(statisticsItemPageInfo.getTotal()).intValue());
         localPageInfo.setStartIndex(statisticsItemPageInfo.getStartRow());
-        
-        QueryResponse<WorkflowExecutionReportItemDto> queryResponseDto = new QueryResponse<WorkflowExecutionReportItemDto>(localPageInfo, workflowExecutionReportItemDtos);
+
+        QueryResponse<WorkflowExecutionReportItemDto> queryResponseDto = new QueryResponse<WorkflowExecutionReportItemDto>(
+                localPageInfo, workflowExecutionReportItemDtos);
         return queryResponseDto;
     }
 
-    public QueryResponse<WorkflowExecutionReportItemDto> fetchWorkflowExecutionPluginReports(WorkflowExecutionReportQueryDto queryDto) {
+    /**
+     * 
+     * @param queryDto
+     * @return
+     */
+    public QueryResponse<WorkflowExecutionReportItemDto> fetchWorkflowExecutionPluginReports(
+            WorkflowExecutionReportQueryDto queryDto) {
         // TODO
         return null;
     }
-    
-    public List<WorkflowExecutionReportDetailDto> fetchWorkflowExecutionTasknodeReportDetails(WorkflowExecutionReportDetailQueryDto queryDto){
-        //TODO
+
+    /**
+     * 
+     * @param queryDto
+     * @return
+     */
+    public List<WorkflowExecutionReportDetailDto> fetchWorkflowExecutionTasknodeReportDetails(
+            WorkflowExecutionReportDetailQueryDto queryDto) {
+        List<WorkflowExecutionReportDetailDto> detailDtos = new ArrayList<>();
+        String nodeDefId = queryDto.getNodeDefId();
+
+        String entityDataId = queryDto.getEntityDataId();
+
+        String queryStatus = queryDto.getStatus();// Completed,Faulted
+
+        Date startDate = parseDate(queryDto.getStartDate());
+        Date endDate = parseDate(queryDto.getEndDate());
+
+        TaskNodeDefInfoEntity nodeDefInfo = taskNodeDefInfoRepo.selectByPrimaryKey(nodeDefId);
+        ProcDefInfoEntity procDefInfo = processDefInfoRepo.selectByPrimaryKey(nodeDefInfo.getProcDefId());
+
+        List<TaskNodeExecParamEntity> errorCodeParams = new ArrayList<>();
+        if (TaskNodeInstInfoEntity.COMPLETED_STATUS.equalsIgnoreCase(queryStatus)) {
+            errorCodeParams = taskNodeExecParamMapper.selectSuccessTasknodeStatistics(nodeDefId, entityDataId,
+                    startDate, endDate);
+        } else if (TaskNodeInstInfoEntity.FAULTED_STATUS.equalsIgnoreCase(queryStatus)) {
+            errorCodeParams = taskNodeExecParamMapper.selectFailedTasknodeStatistics(nodeDefId, entityDataId, startDate,
+                    endDate);
+        } else {
+            //
+        }
+
+        for (TaskNodeExecParamEntity errorCodeParam : errorCodeParams) {
+            WorkflowExecutionReportDetailDto detailDto = buildWorkflowExecutionReportDetail(queryDto, errorCodeParam,
+                    procDefInfo, nodeDefInfo);
+            detailDtos.add(detailDto);
+        }
+        return detailDtos;
+    }
+
+    /**
+     * 
+     * @param queryDto
+     * @return
+     */
+    public List<WorkflowExecutionReportDetailDto> fetchWorkflowExecutionPluginReportDetails(
+            WorkflowExecutionReportDetailQueryDto queryDto) {
+        // TODO
         return null;
     }
-    
-    public List<WorkflowExecutionReportDetailDto> fetchWorkflowExecutionPluginReportDetails(WorkflowExecutionReportDetailQueryDto queryDto){
-        //TODO
-        return null;
+
+    private WorkflowExecutionReportDetailDto buildWorkflowExecutionReportDetail(
+            WorkflowExecutionReportDetailQueryDto queryDto, TaskNodeExecParamEntity errorCodeParam,
+            ProcDefInfoEntity procDefInfo, TaskNodeDefInfoEntity nodeDefInfo) {
+        WorkflowExecutionReportDetailDto detailDto = new WorkflowExecutionReportDetailDto();
+
+        TaskNodeExecRequestEntity execReq = taskNodeExecRequestMapper.selectByPrimaryKey(errorCodeParam.getReqId());
+        TaskNodeInstInfoEntity nodeInstInfo = taskNodeInstInfoMapper.selectByPrimaryKey(execReq.getNodeInstId());
+
+        ProcInstInfoEntity procInstInfo = procInstInfoMapper.selectByPrimaryKey(nodeInstInfo.getProcInstId());
+
+        detailDto.setEntityDataId(queryDto.getEntityDataId());
+        detailDto.setNodeDefId(queryDto.getNodeDefId());
+        detailDto.setNodeDefName(nodeInstInfo.getNodeName());
+
+        String nodeExecDate = formatStatiticsDate(nodeInstInfo.getCreatedTime());
+        detailDto.setNodeExecDate(nodeExecDate);
+        detailDto.setNodeStatus(nodeInstInfo.getStatus());
+        detailDto.setProcDefId(procInstInfo.getProcDefId());
+        detailDto.setProcDefName(procInstInfo.getProcDefName());
+
+        String procExecDate = formatStatiticsDate(procInstInfo.getCreatedTime());
+        detailDto.setProcExecDate(procExecDate);
+        detailDto.setProcExecOper(procInstInfo.getOper());
+        detailDto.setProcStatus(procInstInfo.getStatus());
+        detailDto.setReqId(execReq.getReqId());
+
+        String execDate = formatStatiticsDate(errorCodeParam.getCreatedTime());
+        detailDto.setExecDate(execDate);
+
+        List<TaskNodeExecParamDto> execParamDtos = new ArrayList<>();
+        List<TaskNodeExecParamEntity> reqExecParamEntities = taskNodeExecParamMapper
+                .selectAllByRequestIdAndParamType(execReq.getReqId(), TaskNodeExecParamEntity.PARAM_TYPE_REQUEST);
+        for (TaskNodeExecParamEntity reqExecParam : reqExecParamEntities) {
+            TaskNodeExecParamDto dto = buildTaskNodeExecParamDto(reqExecParam);
+            execParamDtos.add(dto);
+        }
+
+        List<TaskNodeExecParamEntity> respExecParamEntities = taskNodeExecParamMapper
+                .selectAllByRequestIdAndParamType(execReq.getReqId(), TaskNodeExecParamEntity.PARAM_TYPE_RESPONSE);
+        for (TaskNodeExecParamEntity respExecParam : respExecParamEntities) {
+            TaskNodeExecParamDto dto = buildTaskNodeExecParamDto(respExecParam);
+            execParamDtos.add(dto);
+        }
+        return detailDto;
     }
     
-    private WorkflowExecutionReportItemDto buildWorkflowExecutionReportItem(WorkflowExecutionReportQueryDto queryDto, ProcExecBindingTasknodeStatistics statisticsItem) {
+    private String formatStatiticsDate(Date date) {
+        if(date == null) {
+            return null;
+        }
+        
+        String pattern = "yyyyMMdd  HH:mm";
+        DateFormat df = new SimpleDateFormat(pattern);
+        String sDate = df.format(date);
+        return sDate;
+    }
+
+    private TaskNodeExecParamDto buildTaskNodeExecParamDto(TaskNodeExecParamEntity e) {
+        TaskNodeExecParamDto dto = new TaskNodeExecParamDto();
+        dto.setRequestId(e.getReqId());
+        dto.setEntityDataId(e.getEntityDataId());
+        dto.setId(e.getId());
+        dto.setObjectId(e.getObjId());
+        dto.setParamDataType(e.getParamDataType());
+        dto.setParamDataValue(e.getParamDataValue());
+        dto.setParamName(e.getParamName());
+        dto.setParamType(e.getParamType());
+        return dto;
+    }
+
+    private WorkflowExecutionReportItemDto buildWorkflowExecutionReportItem(WorkflowExecutionReportQueryDto queryDto,
+            ProcExecBindingTasknodeStatistics statisticsItem) {
         WorkflowExecutionReportItemDto reportItemDto = new WorkflowExecutionReportItemDto();
         String nodeDefId = statisticsItem.getNodeDefId();
         String entityDataId = statisticsItem.getEntityDataId();
         reportItemDto.setEntityDataId(entityDataId);
         reportItemDto.setEntityDataName(statisticsItem.getEntityDataName());
         reportItemDto.setNodeDefId(nodeDefId);
-        
+
         TaskNodeDefInfoEntity nodeDefInfo = taskNodeDefInfoRepo.selectByPrimaryKey(nodeDefId);
         String procDefId = nodeDefInfo.getProcDefId();
-        
-        
+
         reportItemDto.setNodeDefName(nodeDefInfo.getNodeName());
-        
+
         ProcDefInfoEntity procDefInfo = processDefInfoRepo.selectByPrimaryKey(procDefId);
         reportItemDto.setProcDefId(procDefId);
         reportItemDto.setProcDefName(procDefInfo.getProcDefName());
-        
+
         String startDateStr = queryDto.getStartDate();
         String endDateStr = queryDto.getEndDate();
-        
+
         Date startDate = parseDate(startDateStr);
         Date endDate = parseDate(endDateStr);
-        
-        //TODO
-        
-        int succTimes = taskNodeExecParamMapper.countSuccessTasknodeStatistics(nodeDefId, entityDataId, startDate, endDate);
-        int failedTimes = taskNodeExecParamMapper.countFailedTasknodeStatistics(nodeDefId, entityDataId, startDate, endDate);
-        
+
+        int succTimes = taskNodeExecParamMapper.countSuccessTasknodeStatistics(nodeDefId, entityDataId, startDate,
+                endDate);
+        int failedTimes = taskNodeExecParamMapper.countFailedTasknodeStatistics(nodeDefId, entityDataId, startDate,
+                endDate);
+
         reportItemDto.setSuccessCount(succTimes);
         reportItemDto.setFailureCount(failedTimes);
-        //TODO
+        // TODO
         return reportItemDto;
     }
-    
+
     private Date parseDate(String dateStr) {
-        if(StringUtils.isBlank(dateStr)) {
+        if (StringUtils.isBlank(dateStr)) {
             return null;
         }
         String pattern = "yyyyMMdd";
         DateFormat df = new SimpleDateFormat(pattern);
-        
+
         try {
             Date date = df.parse(dateStr);
             return date;
@@ -270,15 +411,18 @@ public class WorkflowStatisticsService extends AbstractWorkflowProcDefService {
             return null;
         }
     }
-    
-    private com.github.pagehelper.PageInfo<ProcExecBindingTasknodeStatistics> doFetchPageableProcExecBindingTasknodeStatistics(WorkflowExecutionReportQueryDto queryDto){
+
+    private com.github.pagehelper.PageInfo<ProcExecBindingTasknodeStatistics> doFetchPageableProcExecBindingTasknodeStatistics(
+            WorkflowExecutionReportQueryDto queryDto) {
         PageableDto pageable = queryDto.getPageable();
         int pageNum = pageable.getStartIndex() / pageable.getPageSize() + 1;
         int pageSize = pageable.getPageSize();
         PageHelper.startPage(pageNum, pageSize);
-        List<ProcExecBindingTasknodeStatistics> items = procExecBindingMapper.selectAllProcExecBindingTasknodeStatistics(queryDto.getTaskNodeIds(), queryDto.getEntityDataIds());
-        
-        com.github.pagehelper.PageInfo<ProcExecBindingTasknodeStatistics> pageInfo = new com.github.pagehelper.PageInfo<ProcExecBindingTasknodeStatistics>(items);
+        List<ProcExecBindingTasknodeStatistics> items = procExecBindingMapper
+                .selectAllProcExecBindingTasknodeStatistics(queryDto.getTaskNodeIds(), queryDto.getEntityDataIds());
+
+        com.github.pagehelper.PageInfo<ProcExecBindingTasknodeStatistics> pageInfo = new com.github.pagehelper.PageInfo<ProcExecBindingTasknodeStatistics>(
+                items);
         return pageInfo;
     }
 }
