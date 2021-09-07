@@ -95,4 +95,50 @@ public interface TaskNodeExecParamMapper {
      */
     List<TaskNodeExecParamEntity> selectFailedTasknodeStatistics(@Param("nodeDefId") String nodeDefId, @Param("entityDataId") String entityDataId,
             @Param("startDate") Date startDate, @Param("endDate") Date endDate);
+    
+    /**
+     * 
+     * @param serviceId
+     * @param entityDataId
+     * @param startDate
+     * @param endDate
+     * @return
+     */
+    int countSuccessPluginStatistics(@Param("serviceId") String serviceId, @Param("entityDataId") String entityDataId,
+            @Param("startDate") Date startDate, @Param("endDate") Date endDate);
+
+    /**
+     * 
+     * @param serviceId
+     * @param entityDataId
+     * @param startDate
+     * @param endDate
+     * @return
+     */
+    int countFailedPluginStatistics(@Param("serviceId") String serviceId, @Param("entityDataId") String entityDataId,
+            @Param("startDate") Date startDate, @Param("endDate") Date endDate);
+    
+    
+    /**
+     * 
+     * @param serviceId
+     * @param entityDataId
+     * @param startDate
+     * @param endDate
+     * @return
+     */
+    List<TaskNodeExecParamEntity> selectSuccessPluginStatistics(@Param("serviceId") String serviceId, @Param("entityDataId") String entityDataId,
+            @Param("startDate") Date startDate, @Param("endDate") Date endDate);
+    
+    
+    /**
+     * 
+     * @param serviceId
+     * @param entityDataId
+     * @param startDate
+     * @param endDate
+     * @return
+     */
+    List<TaskNodeExecParamEntity> selectFailedPluginStatistics(@Param("serviceId") String serviceId, @Param("entityDataId") String entityDataId,
+            @Param("startDate") Date startDate, @Param("endDate") Date endDate);
 }
