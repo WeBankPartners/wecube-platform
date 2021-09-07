@@ -506,7 +506,7 @@ public class WorkflowStatisticsService extends AbstractWorkflowProcDefService {
         int pageSize = pageable.getPageSize();
         PageHelper.startPage(pageNum, pageSize);
         List<ProcExecBindingPluginStatistics> items = procExecBindingMapper
-                .selectAllProcExecBindingPluginStatistics(queryDto.getTaskNodeIds(), queryDto.getEntityDataIds());
+                .selectAllProcExecBindingPluginStatistics(queryDto.getServiceIds(), queryDto.getEntityDataIds());
 
         com.github.pagehelper.PageInfo<ProcExecBindingPluginStatistics> pageInfo = new com.github.pagehelper.PageInfo<ProcExecBindingPluginStatistics>(
                 items);
