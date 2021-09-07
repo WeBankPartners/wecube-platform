@@ -493,10 +493,10 @@
         AND t2.node_inst_id = t3.id
         AND t3.node_def_id = #{nodeDefId,jdbcType=VARCHAR}
         <if test="startDate != null">
-                AND t1.created_time &gt;= #{startDate,jdbcType=TIMESTAMP}
+        AND t1.created_time &gt;= #{startDate,jdbcType=TIMESTAMP}
         </if>
         <if test="endDate != null">
-                AND t1.created_time &lt;= #{endDate,jdbcType=TIMESTAMP}
+        AND t1.created_time &lt;= #{endDate,jdbcType=TIMESTAMP}
         </if>
     </select>
     
@@ -517,10 +517,138 @@
         AND t2.node_inst_id = t3.id
         AND t3.node_def_id = #{nodeDefId,jdbcType=VARCHAR}
         <if test="startDate != null">
-                AND t1.created_time &gt;= #{startDate,jdbcType=TIMESTAMP}
+        AND t1.created_time &gt;= #{startDate,jdbcType=TIMESTAMP}
         </if>
         <if test="endDate != null">
-                AND t1.created_time &lt;= #{endDate,jdbcType=TIMESTAMP}
+        AND t1.created_time &lt;= #{endDate,jdbcType=TIMESTAMP}
+        </if>
+    </select>
+    
+    <select id="countSuccessPluginStatistics"
+        resultType="java.lang.Integer">
+        SELECT 
+            COUNT(1)
+        FROM
+            core_ru_task_node_exec_param t1,
+            core_ru_task_node_exec_req t2,
+            core_ru_task_node_inst_info t3
+        WHERE
+            t1.param_name = 'errorCode'
+        AND t1.param_type = 'OUTPUT'
+        AND t1.param_data_value = '0'
+        AND t1.entity_data_id = #{entityDataId,jdbcType=VARCHAR}
+        AND t1.req_id = t2.req_id
+        AND t2.node_inst_id = t3.id
+        AND t3.node_def_id IN (
+            SELECT DISTINCT t4.id 
+            FROM 
+                core_re_task_node_def_info t4
+            WHERE
+                t4.status != 'draft'
+            AND
+                t4.service_id = #{serviceId,jdbcType=VARCHAR}
+        ) 
+        <if test="startDate != null">
+        AND t1.created_time &gt;= #{startDate,jdbcType=TIMESTAMP}
+        </if>
+        <if test="endDate != null">
+        AND t1.created_time &lt;= #{endDate,jdbcType=TIMESTAMP}
+        </if>
+    </select>
+    
+    <select id="countFailedPluginStatistics"
+        resultType="java.lang.Integer">
+        SELECT 
+            COUNT(1)
+        FROM
+            core_ru_task_node_exec_param t1,
+            core_ru_task_node_exec_req t2,
+            core_ru_task_node_inst_info t3
+        WHERE
+            t1.param_name = 'errorCode'
+        AND t1.param_type = 'OUTPUT'
+        AND t1.param_data_value != '0'
+        AND t1.entity_data_id = #{entityDataId,jdbcType=VARCHAR}
+        AND t1.req_id = t2.req_id
+        AND t2.node_inst_id = t3.id
+        AND t3.node_def_id IN (
+            SELECT DISTINCT t4.id 
+            FROM 
+                core_re_task_node_def_info t4
+            WHERE
+                t4.status != 'draft'
+            AND
+                t4.service_id = #{serviceId,jdbcType=VARCHAR}
+        ) 
+        <if test="startDate != null">
+        AND t1.created_time &gt;= #{startDate,jdbcType=TIMESTAMP}
+        </if>
+        <if test="endDate != null">
+        AND t1.created_time &lt;= #{endDate,jdbcType=TIMESTAMP}
+        </if>
+    </select>
+    
+    <select id="selectSuccessPluginStatistics"
+        resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List_2" />
+        FROM
+            core_ru_task_node_exec_param t1,
+            core_ru_task_node_exec_req t2,
+            core_ru_task_node_inst_info t3
+        WHERE
+            t1.param_name = 'errorCode'
+        AND t1.param_type = 'OUTPUT'
+        AND t1.param_data_value = '0'
+        AND t1.entity_data_id = #{entityDataId,jdbcType=VARCHAR}
+        AND t1.req_id = t2.req_id
+        AND t2.node_inst_id = t3.id
+        AND t3.node_def_id IN (
+            SELECT DISTINCT t4.id 
+            FROM 
+                core_re_task_node_def_info t4
+            WHERE
+                t4.status != 'draft'
+            AND
+                t4.service_id = #{serviceId,jdbcType=VARCHAR}
+        ) 
+        <if test="startDate != null">
+        AND t1.created_time &gt;= #{startDate,jdbcType=TIMESTAMP}
+        </if>
+        <if test="endDate != null">
+        AND t1.created_time &lt;= #{endDate,jdbcType=TIMESTAMP}
+        </if>
+    </select>
+    
+    <select id="selectFailedPluginStatistics"
+        resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List_2" />
+        FROM
+            core_ru_task_node_exec_param t1,
+            core_ru_task_node_exec_req t2,
+            core_ru_task_node_inst_info t3
+        WHERE
+            t1.param_name = 'errorCode'
+        AND t1.param_type = 'OUTPUT'
+        AND t1.param_data_value != '0'
+        AND t1.entity_data_id = #{entityDataId,jdbcType=VARCHAR}
+        AND t1.req_id = t2.req_id
+        AND t2.node_inst_id = t3.id
+        AND t3.node_def_id IN (
+            SELECT DISTINCT t4.id 
+            FROM 
+                core_re_task_node_def_info t4
+            WHERE
+                t4.status != 'draft'
+            AND
+                t4.service_id = #{serviceId,jdbcType=VARCHAR}
+        ) 
+        <if test="startDate != null">
+        AND t1.created_time &gt;= #{startDate,jdbcType=TIMESTAMP}
+        </if>
+        <if test="endDate != null">
+        AND t1.created_time &lt;= #{endDate,jdbcType=TIMESTAMP}
         </if>
     </select>
 </mapper>
