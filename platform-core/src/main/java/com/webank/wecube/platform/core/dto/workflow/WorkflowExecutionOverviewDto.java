@@ -57,4 +57,24 @@ public class WorkflowExecutionOverviewDto {
         this.totalFaultedInstances = totalFaultedInstances;
     }
 
+    @Override
+    public String toString() {
+        StringBuilder builder = new StringBuilder();
+        builder.append("[procDefId=");
+        builder.append(procDefId);
+        builder.append(", procDefName=");
+        builder.append(procDefName);
+        builder.append(", totalInstances=");
+        builder.append(totalInstances);
+        builder.append(", totalInProgressInstances=");
+        builder.append(totalInProgressInstances);
+        builder.append(", totalCompletedInstances=");
+        builder.append(totalCompletedInstances);
+        builder.append(", totalFaultedInstances=");
+        builder.append(totalFaultedInstances);
+        builder.append("]");
+        return builder.toString();
+    }
+
+    
 }
