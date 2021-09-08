@@ -14,6 +14,7 @@ import com.webank.wecube.platform.core.dto.plugin.QueryResponse;
 import com.webank.wecube.platform.core.dto.workflow.ProcDefInfoDto;
 import com.webank.wecube.platform.core.dto.workflow.TaskNodeDefBriefDto;
 import com.webank.wecube.platform.core.dto.workflow.TaskNodeDefObjectBindInfoDto;
+import com.webank.wecube.platform.core.dto.workflow.WorkflowExecutionOverviewDto;
 import com.webank.wecube.platform.core.dto.workflow.WorkflowExecutionReportDetailDto;
 import com.webank.wecube.platform.core.dto.workflow.WorkflowExecutionReportDetailQueryDto;
 import com.webank.wecube.platform.core.dto.workflow.WorkflowExecutionReportItemDto;
@@ -127,5 +128,15 @@ public class WorkflowStatisticsController {
     public CommonResponseDto fetchWorkflowExecutionPluginReportDetails(@RequestBody WorkflowExecutionReportDetailQueryDto queryDto) {
         List<WorkflowExecutionReportDetailDto> details  = workflowStatisticsService.fetchWorkflowExecutionPluginReportDetails(queryDto);
         return CommonResponseDto.okayWithData(details);
+    }
+    
+    /**
+     * 
+     * @return
+     */
+    @GetMapping("/statistics/process/definitions/executions/overviews")
+    public CommonResponseDto fetchWorkflowExecutionOverviews() {
+        List<WorkflowExecutionOverviewDto>  overviewDtos= workflowStatisticsService.fetchWorkflowExecutionOverviews();
+        return CommonResponseDto.okayWithData(overviewDtos);
     }
 }
