@@ -418,6 +418,8 @@ public class WorkflowStatisticsService extends AbstractWorkflowProcDefService {
             TaskNodeExecParamDto dto = buildTaskNodeExecParamDto(respExecParam);
             execParamDtos.add(dto);
         }
+        
+        detailDto.setExecParams(execParamDtos);
         return detailDto;
     }
 
