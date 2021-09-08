@@ -401,7 +401,7 @@ public class WorkflowStatisticsService extends AbstractWorkflowProcDefService {
             return null;
         }
 
-        String pattern = "yyyyMMdd  HH:mm";
+        String pattern = "yyyy-MM-dd HH:mm";
         DateFormat df = new SimpleDateFormat(pattern);
         String sDate = df.format(date);
         return sDate;
@@ -484,7 +484,7 @@ public class WorkflowStatisticsService extends AbstractWorkflowProcDefService {
         if (StringUtils.isBlank(dateStr)) {
             return null;
         }
-        String pattern = "yyyyMMdd";
+        String pattern = "yyyy-MM-dd HH:mm:ss";
         DateFormat df = new SimpleDateFormat(pattern);
 
         try {
