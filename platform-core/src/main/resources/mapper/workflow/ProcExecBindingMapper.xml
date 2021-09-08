@@ -545,7 +545,7 @@
     
     <select id="selectAllTaskNodeBindingsByNodeDef"
         parameterType="java.lang.String" resultMap="BaseResultMap">
-        select
+        select DISTINCT
         <include refid="Base_Column_List" />
         from core_ru_proc_exec_binding
         where node_def_id = #{nodeDefId,jdbcType=VARCHAR}
