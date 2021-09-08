@@ -93,5 +93,11 @@ export const MENUS = [
     cnName: '系统数据模型',
     enName: 'Data Model',
     link: '/admin/system-data-model'
+  },
+  {
+    code: 'ADMIN_SYSTEM_WORKFLOW_REPORT',
+    cnName: '编排执行历史',
+    enName: 'Workflow Report',
+    link: '/admin/workflow-report'
   }
 ]
