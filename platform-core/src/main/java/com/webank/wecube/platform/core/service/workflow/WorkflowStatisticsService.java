@@ -27,6 +27,7 @@ import com.webank.wecube.platform.core.dto.workflow.WorkflowExecutionReportDetai
 import com.webank.wecube.platform.core.dto.workflow.WorkflowExecutionReportItemDto;
 import com.webank.wecube.platform.core.dto.workflow.WorkflowExecutionReportQueryDto;
 import com.webank.wecube.platform.core.entity.workflow.ProcDefInfoEntity;
+import com.webank.wecube.platform.core.entity.workflow.ProcDefInfoOverviewEntity;
 import com.webank.wecube.platform.core.entity.workflow.ProcExecBindingEntity;
 import com.webank.wecube.platform.core.entity.workflow.ProcExecBindingPluginStatistics;
 import com.webank.wecube.platform.core.entity.workflow.ProcExecBindingTasknodeStatistics;
@@ -59,14 +60,38 @@ public class WorkflowStatisticsService extends AbstractWorkflowProcDefService {
 
     @Autowired
     protected ProcInstInfoMapper procInstInfoMapper;
-    
+
     /**
      * 
      * @return
      */
-    public List<WorkflowExecutionOverviewDto>  fetchWorkflowExecutionOverviews(){
-        //TODO
-        return null;
+    public List<WorkflowExecutionOverviewDto> fetchWorkflowExecutionOverviews() {
+        List<WorkflowExecutionOverviewDto> overviewDtos = new ArrayList<>();
+        List<ProcDefInfoOverviewEntity> overviewEntities = procInstInfoMapper.selectAllProcDefInfoOverviewEntities();
+        if (overviewEntities == null) {
+            return overviewDtos;
+        }
+
+        for (ProcDefInfoOverviewEntity entity : overviewEntities) {
+            WorkflowExecutionOverviewDto dto = new WorkflowExecutionOverviewDto();
+            dto.setProcDefId(entity.getProcDefId());
+            dto.setProcDefName(entity.getProcDefName());
+            dto.setTotalInstances(entity.getTotalInstances());
+
+            int totalInProgressInstances = procInstInfoMapper.countProcDefInfoOverviewEntities(entity.getProcDefId(),
+                    ProcInstInfoEntity.IN_PROGRESS_STATUS);
+            int totalCompletedInstances = procInstInfoMapper.countProcDefInfoOverviewEntities(entity.getProcDefId(),
+                    ProcInstInfoEntity.COMPLETED_STATUS);
+            int totalFaultedInstances = procInstInfoMapper.countProcDefInfoOverviewEntities(entity.getProcDefId(),
+                    ProcInstInfoEntity.INTERNALLY_TERMINATED_STATUS);
+
+            dto.setTotalInProgressInstances(totalInProgressInstances);
+            dto.setTotalCompletedInstances(totalCompletedInstances);
+            dto.setTotalFaultedInstances(totalFaultedInstances);
+
+            overviewDtos.add(dto);
+        }
+        return overviewDtos;
     }
 
     /**
