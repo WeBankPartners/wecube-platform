@@ -485,5 +485,11 @@
   "tag": "Tag",
   "core_multiple": "Multiple",
   "regist_plugin_tip1": "1. Update the front-end file of this version of the plugin package to the front-end file used by the WeCube platform.",
-  "regist_plugin_tip2": "2. Update the system parameters of this version of the plugin package to the active state, and the system parameters of other versions of the plugin package to the inactive state."
+  "regist_plugin_tip2": "2. Update the system parameters of this version of the plugin package to the active state, and the system parameters of other versions of the plugin package to the inactive state.",
+  "workflow_report_aspect": "Workflow",
+  "workflow_task_node_aspect": "Workflow Task Node",
+  "workflow_plugin_aspect": "Workflow Plugin",
+  "datetime_range": "Datetime Range",
+  "task_node": "Task Nodes",
+  "task_node_bindings ": "Tasknode Bindings"
 }

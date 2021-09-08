@@ -483,5 +483,11 @@
   "tag": "标签",
   "core_multiple": "多选",
   "regist_plugin_tip1": "1、更新此版本插件包前端文件为WeCube平台使用的前端文件。",
-  "regist_plugin_tip2": "2、更新此版本插件包的系统参数为active状态，其他版本的插件包系统参数为inactive状态。"
+  "regist_plugin_tip2": "2、更新此版本插件包的系统参数为active状态，其他版本的插件包系统参数为inactive状态。",
+  "workflow_report_aspect": "编排",
+  "workflow_task_node_aspect": "编排节点",
+  "workflow_plugin_aspect": "编排插件",
+  "datetime_range": "时间范围",
+  "task_node": "任务节点",
+  "task_node_bindings": "数据对象"
 }
