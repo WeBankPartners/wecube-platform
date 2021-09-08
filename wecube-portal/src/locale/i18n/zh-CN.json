@@ -489,5 +489,8 @@
   "workflow_plugin_aspect": "编排插件",
   "datetime_range": "时间范围",
   "task_node": "任务节点",
-  "task_node_bindings": "数据对象"
+  "task_node_bindings": "数据对象",
+  "display_number": "展示条数",
+  "failure_count": "失败次数",
+  "success_count": "成功次数"
 }
