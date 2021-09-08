@@ -208,3 +208,12 @@ export const exportCertification = id => req.get(`platform/v1/plugin-certificati
 export const importCertification = () => req.post(`platform/v1/plugin-certifications/import`)
 
 export const productSerial = id => req.get(`platform/resource/servers/${id}/product-serial`)
+
+export const getProcessList = () => req.get(`platform/v1/statistics/process/definitions`)
+export const getTasknodesList = data => req.post(`platform/v1/statistics/process/definitions/tasknodes/query`, data)
+export const getTasknodesBindings = data =>
+  req.post(`platform/v1/statistics/process/definitions/tasknodes/tasknode-bindings/query`, data)
+export const getTasknodesReport = data =>
+  req.post(`platform/v1/statistics/process/definitions/executions/tasknodes/reports/query`, data)
+export const getReportDetails = data =>
+  req.post(`platform/v1/statistics/process/definitions/executions/tasknodes/report-details/query`, data)
