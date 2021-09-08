@@ -491,5 +491,8 @@
   "workflow_plugin_aspect": "Workflow Plugin",
   "datetime_range": "Datetime Range",
   "task_node": "Task Nodes",
-  "task_node_bindings ": "Tasknode Bindings"
+  "task_node_bindings ": "Tasknode Bindings",
+  "display_number": "Search Number",
+  "failure_count": "Failure Count",
+  "success_count": "Success Count"
 }
