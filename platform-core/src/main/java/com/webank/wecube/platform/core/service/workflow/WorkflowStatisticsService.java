@@ -21,6 +21,7 @@ import com.webank.wecube.platform.core.dto.workflow.ProcDefInfoDto;
 import com.webank.wecube.platform.core.dto.workflow.TaskNodeDefBriefDto;
 import com.webank.wecube.platform.core.dto.workflow.TaskNodeDefObjectBindInfoDto;
 import com.webank.wecube.platform.core.dto.workflow.TaskNodeExecParamDto;
+import com.webank.wecube.platform.core.dto.workflow.WorkflowExecutionOverviewDto;
 import com.webank.wecube.platform.core.dto.workflow.WorkflowExecutionReportDetailDto;
 import com.webank.wecube.platform.core.dto.workflow.WorkflowExecutionReportDetailQueryDto;
 import com.webank.wecube.platform.core.dto.workflow.WorkflowExecutionReportItemDto;
@@ -58,6 +59,15 @@ public class WorkflowStatisticsService extends AbstractWorkflowProcDefService {
 
     @Autowired
     protected ProcInstInfoMapper procInstInfoMapper;
+    
+    /**
+     * 
+     * @return
+     */
+    public List<WorkflowExecutionOverviewDto>  fetchWorkflowExecutionOverviews(){
+        //TODO
+        return null;
+    }
 
     /**
      * 
