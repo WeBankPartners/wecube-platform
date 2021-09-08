@@ -543,7 +543,7 @@
         #{procInstId,jdbcType=INTEGER}
     </select>
     
-    <select id="selectAllBoundTaskNodeBindingsByNodeDef"
+    <select id="selectAllTaskNodeBindingsByNodeDef"
         parameterType="java.lang.String" resultMap="BaseResultMap">
         select
         <include refid="Base_Column_List" />
