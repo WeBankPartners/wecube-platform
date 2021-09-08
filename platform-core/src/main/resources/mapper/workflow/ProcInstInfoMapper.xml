@@ -327,5 +327,25 @@
         t1.id = #{id,jdbcType=INTEGER}
     </select>
 
+    <select id="selectAllProcDefInfoOverviewEntities" 
+        resultType="com.webank.wecube.platform.core.entity.workflow.ProcDefInfoOverviewEntity">
+        select
+        proc_def_id, proc_def_name, count(1) AS totalInstances
+        from core_ru_proc_inst_info
+        group by proc_def_id, proc_def_name
+        order by proc_def_name
+    </select>
+    
+    <select id="countProcDefInfoOverviewEntities"
+        resultType="java.lang.Integer">
+        select
+        count(1)
+        from core_ru_proc_inst_info
+        where proc_def_id =
+        #{procDefId,jdbcType=VARCHAR}
+        and
+        status =
+        #{status,jdbcType=VARCHAR}
+    </select>
 
 </mapper>
