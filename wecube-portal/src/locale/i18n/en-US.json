@@ -499,5 +499,7 @@
   "task_node_bindings ": "Tasknode Bindings",
   "display_number": "Search Number",
   "failure_count": "Failure Count",
-  "success_count": "Success Count"
+  "success_count": "Success Count",
+  "in_progress_count": "InProgress Count",
+  "count": "Count"
 }

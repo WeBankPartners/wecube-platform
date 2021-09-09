@@ -9,6 +9,7 @@
         {{ $t('plugin_regist') }}:
         <Select
           v-model="searchConfig.params.serviceIds"
+          :max-tag-count="2"
           multiple
           filterable
           @on-open-change="getPlugin"
@@ -22,6 +23,7 @@
         {{ $t('task_node_bindings') }}:
         <Select
           v-model="searchConfig.params.entityDataIds"
+          :max-tag-count="2"
           multiple
           filterable
           @on-open-change="getTasknodesBindings"
@@ -47,7 +49,7 @@
         <Button type="primary" :disabled="!disableBtn()" @click="getReport"> {{ $t('query') }}</Button>
       </div>
     </div>
-    <Table :columns="tableColumns" :max-height="MODALHEIGHT" :data="tableData"></Table>
+    <Table size="small" :columns="tableColumns" :max-height="MODALHEIGHT" :data="tableData"></Table>
     <ReportDetail ref="reportDetail"></ReportDetail>
   </div>
 </template>
@@ -180,7 +182,6 @@ export default {
       this.searchConfig.params.endDate = dateRange[1]
     },
     async getPlugin () {
-      console.log(23)
       const { status, data } = await getFlowExecutePluginList()
       if (status === 'OK') {
         this.searchConfig.pluginOptions = data
