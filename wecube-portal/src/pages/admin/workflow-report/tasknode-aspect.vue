@@ -68,11 +68,13 @@
         <Button type="primary" :disabled="!disableBtn()" @click="getReport"> {{ $t('query') }}</Button>
       </div>
     </div>
-    <Table :columns="tableColumns" :data="tableData"></Table>
+    <Table :columns="tableColumns" :max-height="MODALHEIGHT" :data="tableData"></Table>
+    <ReportDetail ref="reportDetail"></ReportDetail>
   </div>
 </template>
 
 <script>
+import ReportDetail from './show-report-detail'
 import {
   getProcessList,
   getTasknodesList,
@@ -84,6 +86,7 @@ export default {
   name: '',
   data () {
     return {
+      MODALHEIGHT: 0,
       searchParams: {},
       searchConfig: {
         params: {
@@ -94,7 +97,7 @@ export default {
           taskNodeIds: ['sCx5dtuB3n3D'],
           procDefIds: ['sCx5dtcB3mYW'],
           pageable: {
-            pageSize: 300,
+            pageSize: 100,
             startIndex: 0
           }
         },
@@ -170,6 +173,9 @@ export default {
       ]
     }
   },
+  mounted () {
+    this.MODALHEIGHT = document.body.scrollHeight - 300
+  },
   methods: {
     async getReportDetails (val, type) {
       const params = {
@@ -183,7 +189,7 @@ export default {
       }
       const { status, data } = await getReportDetails(params)
       if (status === 'OK') {
-        console.log(data)
+        this.$refs.reportDetail.initData(data)
       }
     },
     async getReport () {
@@ -232,7 +238,9 @@ export default {
     },
     changeTasknodesBindings () {}
   },
-  components: {}
+  components: {
+    ReportDetail
+  }
 }
 </script>
 
@@ -240,6 +248,7 @@ export default {
 .report-container {
   display: flex;
   flex-wrap: wrap;
+  margin-bottom: 32px;
 }
 .item {
   width: 270px;
