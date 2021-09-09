@@ -9,6 +9,7 @@
         {{ $t('flow_name') }}:
         <Select
           v-model="searchConfig.params.procDefIds"
+          :max-tag-count="2"
           multiple
           filterable
           @on-open-change="getProcess"
@@ -24,6 +25,7 @@
         {{ $t('task_node') }}:
         <Select
           v-model="searchConfig.params.taskNodeIds"
+          :max-tag-count="2"
           multiple
           filterable
           @on-open-change="getTasknodes"
@@ -43,6 +45,7 @@
         {{ $t('task_node_bindings') }}:
         <Select
           v-model="searchConfig.params.entityDataIds"
+          :max-tag-count="2"
           multiple
           filterable
           @on-open-change="getTasknodesBindings"
@@ -68,7 +71,7 @@
         <Button type="primary" :disabled="!disableBtn()" @click="getReport"> {{ $t('query') }}</Button>
       </div>
     </div>
-    <Table :columns="tableColumns" :max-height="MODALHEIGHT" :data="tableData"></Table>
+    <Table size="small" :columns="tableColumns" :max-height="MODALHEIGHT" :data="tableData"></Table>
     <ReportDetail ref="reportDetail"></ReportDetail>
   </div>
 </template>
