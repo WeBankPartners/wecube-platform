@@ -211,9 +211,18 @@ export const productSerial = id => req.get(`platform/resource/servers/${id}/prod
 
 export const getProcessList = () => req.get(`platform/v1/statistics/process/definitions`)
 export const getTasknodesList = data => req.post(`platform/v1/statistics/process/definitions/tasknodes/query`, data)
+export const getPluginTasknodesBindings = data =>
+  req.post(`platform/v1/statistics/process/definitions/service-ids/tasknode-bindings/query`, data)
 export const getTasknodesBindings = data =>
   req.post(`platform/v1/statistics/process/definitions/tasknodes/tasknode-bindings/query`, data)
 export const getTasknodesReport = data =>
   req.post(`platform/v1/statistics/process/definitions/executions/tasknodes/reports/query`, data)
 export const getReportDetails = data =>
   req.post(`platform/v1/statistics/process/definitions/executions/tasknodes/report-details/query`, data)
+export const getPluginReportDetails = data =>
+  req.post(`platform/v1/statistics/process/definitions/executions/plugin/report-details/query`, data)
+export const getPluginReport = data =>
+  req.post(`platform/v1/statistics/process/definitions/executions/plugin/reports/query`, data)
+export const getFlowExecutePluginList = () =>
+  req.get(`platform/v1/statistics/process/definitions/tasknodes/service-ids`)
+export const getFlowExecuteOverviews = () => req.get(`platform/v1/statistics/process/definitions/executions/overviews`)
