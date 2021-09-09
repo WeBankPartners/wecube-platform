@@ -1,6 +1,6 @@
 <template>
   <div class="">
-    <Tabs value="tasknodeAspect" type="card">
+    <Tabs value="pluginAspect" type="card">
       <TabPane :label="$t('workflow_report_aspect')" name="workflowAspect">
         <WorkflowAspect></WorkflowAspect>
       </TabPane>
