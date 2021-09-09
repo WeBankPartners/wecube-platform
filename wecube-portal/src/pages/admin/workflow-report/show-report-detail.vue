@@ -59,21 +59,6 @@ export default {
           key: 'title'
         }
       ]
-      let tmp = JSON.parse(JSON.stringify(data[0]))
-      tmp.procExecDate = 'xxxx-xx-xx xx:xx'
-      tmp.execParams[0].paramDataValue = '423564758'
-      data.push(tmp)
-
-      let tmp1 = JSON.parse(JSON.stringify(data[0]))
-      tmp1.procExecDate = 'xxxx-xx-xx xx:xx'
-      tmp1.execParams[0].paramDataValue = '423564758'
-      data.push(tmp1)
-
-      let tmp2 = JSON.parse(JSON.stringify(data[0]))
-      tmp2.procExecDate = 'xxxx-xx-xx xx:xx'
-      tmp2.execParams[0].paramDataValue = '423564758'
-      data.push(tmp2)
-
       data.forEach((d, index) => {
         this.detailTableColums.push({
           title: d.procExecDate,
