@@ -16,7 +16,23 @@
           type="ios-contract"
         />
       </p>
-      <div>
+      <div style="text-align: end">
+        <Poptip placement="bottom" width="200">
+          <Button type="primary" icon="ios-funnel-outline" ghost></Button>
+          <div class="api" slot="content">
+            <CheckboxGroup v-model="disabledGroup" @on-change="changeColumns">
+              <Checkbox
+                v-for="item in oriDetailTableColums"
+                :label="item.title"
+                style="display:block"
+                :disabled="item.disabled"
+                :key="item.key"
+              >
+                {{ item.title }}
+              </Checkbox>
+            </CheckboxGroup>
+          </div>
+        </Poptip>
         <Table :columns="detailTableColums" size="small" :max-height="MODALHEIGHT" :data="detailTableData"></Table>
       </div>
     </Modal>
@@ -32,38 +48,56 @@ export default {
       MODALHEIGHT: 200,
       fullscreen: false,
 
+      oriDetailTableColums: [],
       detailTableColums: [],
-      detailTableData: []
+      detailTableData: [],
+      disabledGroup: ['#', this.$t('params_type'), this.$t('params_name')]
     }
   },
   mounted () {
     this.MODALHEIGHT = document.body.scrollHeight - 200
   },
   methods: {
+    changeColumns () {
+      this.detailTableColums = this.oriDetailTableColums.filter(col => {
+        return this.disabledGroup.includes(col.title)
+      })
+    },
     initData (data) {
       this.detailTableData = []
-      this.detailTableColums = [
+      this.oriDetailTableColums = [
         {
+          key: '#',
+          title: '#',
           type: 'index',
           width: 60,
+          disabled: true,
+          isDisplay: true,
           align: 'center'
         },
         {
           title: this.$t('params_type'),
           width: 100,
+          disabled: true,
+          isDisplay: true,
           key: 'type'
         },
         {
           title: this.$t('params_name'),
           width: 200,
+          disabled: true,
+          isDisplay: true,
           key: 'title'
         }
       ]
       data.forEach((d, index) => {
-        this.detailTableColums.push({
+        this.disabledGroup.push(d.procExecDate)
+        this.oriDetailTableColums.push({
           title: d.procExecDate,
           tooltip: true,
           key: 'value' + index,
+          disabled: false,
+          isDisplay: true,
           other: d,
           renderHeader: (h, params) => {
             return (
@@ -108,6 +142,7 @@ export default {
           })
         }
       })
+      this.detailTableColums = JSON.parse(JSON.stringify(this.oriDetailTableColums))
       this.showModal = true
     }
   },
