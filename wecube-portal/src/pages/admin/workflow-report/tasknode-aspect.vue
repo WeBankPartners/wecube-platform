@@ -57,7 +57,7 @@
             v-for="(item, itemIndex) in searchConfig.tasknodeBindingOptions"
             :value="item.entityDataId"
             :key="item.entityDataId + itemIndex"
-            >{{ item.entityDisplayName }}</Option
+            >{{ item.entityDisplayName || item.entityDataId }}</Option
           >
         </Select>
       </div>
@@ -254,7 +254,7 @@ export default {
   margin-bottom: 32px;
 }
 .item {
-  width: 270px;
+  width: 290px;
   margin: 8px;
 }
 </style>

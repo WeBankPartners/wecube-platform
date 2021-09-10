@@ -499,5 +499,7 @@
   "failure_count": "失败数量",
   "success_count": "成功数量",
   "in_progress_count": "执行中数量",
-  "count": "总数"
+  "count": "总数",
+  "hide_same_parameters": "隐藏相同参数",
+  "highlight_different_parameters": "高亮不同参数"
 }

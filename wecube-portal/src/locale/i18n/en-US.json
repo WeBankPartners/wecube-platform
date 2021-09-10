@@ -501,5 +501,7 @@
   "failure_count": "Failure Count",
   "success_count": "Success Count",
   "in_progress_count": "InProgress Count",
-  "count": "Count"
+  "count": "Count",
+  "hide_same_parameters": "Hide Same Parameters",
+  "highlight_different_parameters": "Highlight Different Parameters"
 }
