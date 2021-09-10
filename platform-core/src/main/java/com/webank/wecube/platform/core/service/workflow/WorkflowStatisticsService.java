@@ -151,6 +151,9 @@ public class WorkflowStatisticsService extends AbstractWorkflowProcDefService {
             }
 
             for (TaskNodeDefInfoEntity nodeEntity : nodeEntities) {
+                if(!TaskNodeDefInfoEntity.NODE_TYPE_SUBPROCESS.equalsIgnoreCase(nodeEntity.getNodeType())) {
+                    continue;
+                }
                 TaskNodeDefBriefDto d = new TaskNodeDefBriefDto();
                 d.setNodeDefId(nodeEntity.getId());
                 d.setNodeId(nodeEntity.getNodeId());
