@@ -108,7 +108,7 @@ export default {
         filterCol.forEach(col => {
           set.add(row[col])
         })
-        if (set.size === this.filterCol.length) {
+        if (set.size === filterCol.length) {
           row.cellClassName = params
         }
       })
@@ -143,6 +143,7 @@ export default {
       })
     },
     initData (data) {
+      this.paramsGroup = []
       this.oriDetailTableData = []
       this.oriDetailTableColums = [
         {
@@ -224,6 +225,9 @@ export default {
       })
       this.detailTableColums = JSON.parse(JSON.stringify(this.oriDetailTableColums))
       this.detailTableData = JSON.parse(JSON.stringify(this.oriDetailTableData))
+      this.detailTableData.forEach(row => {
+        row.cellClassName = {}
+      })
       this.showModal = true
     }
   },
