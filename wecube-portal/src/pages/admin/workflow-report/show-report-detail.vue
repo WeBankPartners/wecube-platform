@@ -16,8 +16,36 @@
           type="ios-contract"
         />
       </p>
-      <div>
-        <Table :columns="detailTableColums" size="small" :max-height="MODALHEIGHT" :data="detailTableData"></Table>
+      <div style="text-align: end;">
+        <CheckboxGroup @on-change="changeParamsGroup" v-model="paramsGroup" style="display: initial;">
+          <Checkbox label="hideParams" value="hideSameParams">{{ $t('hide_same_parameters') }}</Checkbox>
+          <Checkbox label="highlightParams" value="highlightDiffParams">{{
+            $t('highlight_different_parameters')
+          }}</Checkbox>
+        </CheckboxGroup>
+        <Poptip placement="bottom" width="200">
+          <Button type="primary" size="small" icon="ios-funnel-outline" ghost></Button>
+          <div class="api" slot="content">
+            <CheckboxGroup v-model="disabledGroup" @on-change="changeColumns">
+              <Checkbox
+                v-for="item in oriDetailTableColums"
+                :label="item.title"
+                style="display:block"
+                :disabled="item.disabled"
+                :key="item.key"
+              >
+                {{ item.title }}
+              </Checkbox>
+            </CheckboxGroup>
+          </div>
+        </Poptip>
+        <Table
+          id="detailTable"
+          :columns="detailTableColums"
+          size="small"
+          :max-height="MODALHEIGHT"
+          :data="detailTableData"
+        ></Table>
       </div>
     </Modal>
   </div>
@@ -32,38 +60,124 @@ export default {
       MODALHEIGHT: 200,
       fullscreen: false,
 
+      oriDetailTableColums: [],
       detailTableColums: [],
-      detailTableData: []
+      oriDetailTableData: [],
+      detailTableData: [],
+      disabledGroup: ['#', this.$t('params_type'), this.$t('params_name')],
+      paramsGroup: [],
+      filterCol: []
     }
   },
   mounted () {
     this.MODALHEIGHT = document.body.scrollHeight - 200
+    document.getElementById('detailTable').classList.add('wer')
   },
   methods: {
-    initData (data) {
+    changeParamsGroup () {
+      this.detailTableData = JSON.parse(JSON.stringify(this.oriDetailTableData))
+      let filterCol = []
+      this.detailTableColums.forEach(col => {
+        if (!['#', 'type', 'title'].includes(col.key) && col.isDisplay === true) {
+          filterCol.push(col.key)
+        }
+      })
+      this.paramsGroup.forEach(item => {
+        if (item === 'hideParams') {
+          this.hideSameData(filterCol)
+        }
+        if (item === 'highlightParams') {
+          this.detailTableData.forEach(row => {
+            row.cellClassName = {}
+          })
+          this.filterColumns(filterCol)
+        }
+      })
+    },
+    filterColumns (filterCol) {
+      if (filterCol.length === 1) {
+        return
+      }
+      let params = {}
+      filterCol.forEach(col => {
+        params[col] = 'remark'
+      })
+      this.detailTableData.forEach(row => {
+        row.cellClassName = {}
+        let set = new Set()
+        filterCol.forEach(col => {
+          set.add(row[col])
+        })
+        if (set.size === this.filterCol.length) {
+          row.cellClassName = params
+        }
+      })
+    },
+    hideSameData (filterCol) {
       this.detailTableData = []
-      this.detailTableColums = [
+      if (filterCol.length === 1) {
+        this.detailTableData = JSON.parse(JSON.stringify(this.oriDetailTableData))
+      } else {
+        this.oriDetailTableData.forEach(row => {
+          let set = new Set()
+          this.filterCol.forEach(col => {
+            set.add(row[col])
+          })
+          if (set.size === filterCol.length) {
+            this.detailTableData.push(row)
+          }
+        })
+      }
+      this.detailTableData.forEach(row => {
+        row.cellClassName = {}
+      })
+    },
+    changeColumns () {
+      this.paramsGroup = []
+      this.detailTableData.forEach(row => {
+        row.cellClassName = {}
+      })
+      this.detailTableData = JSON.parse(JSON.stringify(this.oriDetailTableData))
+      this.detailTableColums = this.oriDetailTableColums.filter(col => {
+        return this.disabledGroup.includes(col.title)
+      })
+    },
+    initData (data) {
+      this.oriDetailTableData = []
+      this.oriDetailTableColums = [
         {
+          key: '#',
+          title: '#',
           type: 'index',
           width: 60,
+          disabled: true,
+          isDisplay: true,
           align: 'center'
         },
         {
           title: this.$t('params_type'),
           width: 100,
+          disabled: true,
+          isDisplay: true,
           key: 'type'
         },
         {
           title: this.$t('params_name'),
           width: 200,
+          disabled: true,
+          isDisplay: true,
           key: 'title'
         }
       ]
       data.forEach((d, index) => {
-        this.detailTableColums.push({
+        this.disabledGroup.push(d.procExecDate)
+        this.filterCol.push('value' + index)
+        this.oriDetailTableColums.push({
           title: d.procExecDate,
           tooltip: true,
           key: 'value' + index,
+          disabled: false,
+          isDisplay: true,
           other: d,
           renderHeader: (h, params) => {
             return (
@@ -93,21 +207,23 @@ export default {
             )
           }
         })
-        if (this.detailTableData.length === 0) {
+        if (this.oriDetailTableData.length === 0) {
           d.execParams.forEach(p => {
             let row = {}
             row.title = p.paramName
             row.type = p.paramType
             row['value' + index] = p.paramDataValue
-            this.detailTableData.push(row)
+            this.oriDetailTableData.push(row)
           })
         } else {
           d.execParams.forEach(p => {
-            let find = this.detailTableData.find(tp => tp.title === p.paramName && tp.type === p.paramType)
+            let find = this.oriDetailTableData.find(tp => tp.title === p.paramName && tp.type === p.paramType)
             find['value' + index] = p.paramDataValue
           })
         }
       })
+      this.detailTableColums = JSON.parse(JSON.stringify(this.oriDetailTableColums))
+      this.detailTableData = JSON.parse(JSON.stringify(this.oriDetailTableData))
       this.showModal = true
     }
   },
@@ -115,4 +231,9 @@ export default {
 }
 </script>
 
-<style scoped lang="scss"></style>
+<style>
+.remark {
+  background-color: green !important;
+  color: #fff;
+}
+</style>
