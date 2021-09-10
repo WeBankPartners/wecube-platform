@@ -5,7 +5,9 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -175,6 +177,8 @@ public class WorkflowStatisticsService extends AbstractWorkflowProcDefService {
             return bindObjectDtos;
         }
 
+        Map<String, TaskNodeDefObjectBindInfoDto> bindObjectMap = new HashMap<>();
+
         for (String taskNodeId : taskNodeIds) {
             TaskNodeDefInfoEntity taskNodeEntity = taskNodeDefInfoRepo.selectByPrimaryKey(taskNodeId);
             if (taskNodeEntity == null) {
@@ -193,14 +197,20 @@ public class WorkflowStatisticsService extends AbstractWorkflowProcDefService {
                 bindInfoDto.setBound(bindingEntity.getBindFlag());
                 bindInfoDto.setEntityDataId(bindingEntity.getEntityDataId());
                 bindInfoDto.setEntityTypeId(bindingEntity.getEntityTypeId());
-                bindInfoDto.setEntityDisplayName(bindingEntity.getEntityDataName());
+                String displayName = bindingEntity.getEntityDataName();
+                if (StringUtils.isBlank(displayName)) {
+                    displayName = bindingEntity.getEntityDataId();
+                }
+                bindInfoDto.setEntityDisplayName(displayName);
                 bindInfoDto.setNodeDefId(bindingEntity.getNodeDefId());
                 bindInfoDto.setOrderedNo("");
                 bindInfoDto.setFullEntityDataId(bindingEntity.getFullEntityDataId());
 
-                bindObjectDtos.add(bindInfoDto);
+                bindObjectMap.put(bindingEntity.getEntityDataId(), bindInfoDto);
             }
         }
+
+        bindObjectDtos.addAll(bindObjectMap.values());
 
         return bindObjectDtos;
     }
@@ -418,7 +428,7 @@ public class WorkflowStatisticsService extends AbstractWorkflowProcDefService {
             TaskNodeExecParamDto dto = buildTaskNodeExecParamDto(respExecParam);
             execParamDtos.add(dto);
         }
-        
+
         detailDto.setExecParams(execParamDtos);
         return detailDto;
     }
@@ -453,7 +463,11 @@ public class WorkflowStatisticsService extends AbstractWorkflowProcDefService {
         String nodeDefId = statisticsItem.getNodeDefId();
         String entityDataId = statisticsItem.getEntityDataId();
         reportItemDto.setEntityDataId(entityDataId);
-        reportItemDto.setEntityDataName(statisticsItem.getEntityDataName());
+        String entityDataName = statisticsItem.getEntityDataName();
+        if(StringUtils.isBlank(entityDataName)) {
+            entityDataName = entityDataId;
+        }
+        reportItemDto.setEntityDataName(entityDataName);
         reportItemDto.setNodeDefId(nodeDefId);
 
         TaskNodeDefInfoEntity nodeDefInfo = taskNodeDefInfoRepo.selectByPrimaryKey(nodeDefId);
@@ -488,7 +502,12 @@ public class WorkflowStatisticsService extends AbstractWorkflowProcDefService {
         String serviceId = statisticsItem.getServiceId();
         String entityDataId = statisticsItem.getEntityDataId();
         reportItemDto.setEntityDataId(entityDataId);
-        reportItemDto.setEntityDataName(statisticsItem.getEntityDataName());
+        
+        String entityDataName = statisticsItem.getEntityDataName();
+        if(StringUtils.isBlank(entityDataName)) {
+            entityDataName = entityDataId;
+        }
+        reportItemDto.setEntityDataName(entityDataName);
         reportItemDto.setServiceId(serviceId);
 
         String startDateStr = queryDto.getStartDate();
