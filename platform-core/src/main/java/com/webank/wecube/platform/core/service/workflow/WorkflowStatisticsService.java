@@ -23,7 +23,10 @@ import com.webank.wecube.platform.core.dto.workflow.ProcDefInfoDto;
 import com.webank.wecube.platform.core.dto.workflow.TaskNodeDefBriefDto;
 import com.webank.wecube.platform.core.dto.workflow.TaskNodeDefObjectBindInfoDto;
 import com.webank.wecube.platform.core.dto.workflow.TaskNodeExecParamDto;
+import com.webank.wecube.platform.core.dto.workflow.WorkflowExecutionOverviewDetailDto;
+import com.webank.wecube.platform.core.dto.workflow.WorkflowExecutionOverviewDetailQueryDto;
 import com.webank.wecube.platform.core.dto.workflow.WorkflowExecutionOverviewDto;
+import com.webank.wecube.platform.core.dto.workflow.WorkflowExecutionOverviewsQueryDto;
 import com.webank.wecube.platform.core.dto.workflow.WorkflowExecutionReportDetailDto;
 import com.webank.wecube.platform.core.dto.workflow.WorkflowExecutionReportDetailQueryDto;
 import com.webank.wecube.platform.core.dto.workflow.WorkflowExecutionReportItemDto;
@@ -65,11 +68,75 @@ public class WorkflowStatisticsService extends AbstractWorkflowProcDefService {
 
     /**
      * 
+     * @param queryDto
      * @return
      */
-    public List<WorkflowExecutionOverviewDto> fetchWorkflowExecutionOverviews() {
+    public List<WorkflowExecutionOverviewDetailDto> fetchWorkflowExecutionOverviewDetails(
+            WorkflowExecutionOverviewDetailQueryDto queryDto) {
+        Date startDate = parseDate(queryDto.getStartDate());
+        Date endDate = parseDate(queryDto.getEndDate());
+        List<ProcInstInfoEntity> procInstEntities = procInstInfoMapper
+                .selectProcDefInfoOverviewEntities(queryDto.getProcDefId(), queryDto.getStatus(), startDate, endDate);
+
+        List<WorkflowExecutionOverviewDetailDto> dtos = new ArrayList<>();
+        if (procInstEntities == null) {
+            return dtos;
+        }
+
+        for (ProcInstInfoEntity procInst : procInstEntities) {
+            WorkflowExecutionOverviewDetailDto dto = new WorkflowExecutionOverviewDetailDto();
+            String execEndDate = formatStatiticsDate(procInst.getUpdatedTime());
+            dto.setExecEndDate(execEndDate);
+            dto.setExecOper(procInst.getOper());
+            String execStartDate = formatStatiticsDate(procInst.getCreatedTime());
+            dto.setExecStartDate(execStartDate);
+            dto.setProcDefId(procInst.getProcDefId());
+            dto.setProcDefName(procInst.getProcDefName());
+            dto.setProcInstId(String.valueOf(procInst.getId()));
+            dto.setStatus(procInst.getStatus());
+
+            String rootEntityDataId = "";
+            String rootEntityDataName = "";
+
+            ProcExecBindingEntity procBinding = procExecBindingMapper.selectProcInstBindings(procInst.getId());
+            if (procBinding != null) {
+                rootEntityDataId = procBinding.getEntityDataId();
+                rootEntityDataName = procBinding.getEntityDataName();
+            }
+
+            if (StringUtils.isBlank(rootEntityDataName)) {
+                rootEntityDataName = rootEntityDataId;
+            }
+
+            dto.setRootEntityDataId(rootEntityDataId);
+            dto.setRootEntityDataName(rootEntityDataName);
+
+            dtos.add(dto);
+        }
+
+        return dtos;
+    }
+
+    /**
+     * 
+     * @return
+     */
+    public List<WorkflowExecutionOverviewDto> fetchWorkflowExecutionOverviews(
+            WorkflowExecutionOverviewsQueryDto queryDto) {
         List<WorkflowExecutionOverviewDto> overviewDtos = new ArrayList<>();
-        List<ProcDefInfoOverviewEntity> overviewEntities = procInstInfoMapper.selectAllProcDefInfoOverviewEntities();
+        List<ProcDefInfoOverviewEntity> overviewEntities = new ArrayList<>();
+
+        Date startDate = null;
+        Date endDate = null;
+        if (queryDto == null) {
+            overviewEntities = procInstInfoMapper.selectAllProcDefInfoOverviewEntities();
+        } else {
+            startDate = parseDate(queryDto.getStartDate());
+            endDate = parseDate(queryDto.getEndDate());
+            overviewEntities = procInstInfoMapper
+                    .selectAllProcDefInfoOverviewEntitiesByCriteria(queryDto.getProcDefNames(), startDate, endDate);
+        }
+
         if (overviewEntities == null) {
             return overviewDtos;
         }
@@ -81,11 +148,11 @@ public class WorkflowStatisticsService extends AbstractWorkflowProcDefService {
             dto.setTotalInstances(entity.getTotalInstances());
 
             int totalInProgressInstances = procInstInfoMapper.countProcDefInfoOverviewEntities(entity.getProcDefId(),
-                    ProcInstInfoEntity.IN_PROGRESS_STATUS);
+                    ProcInstInfoEntity.IN_PROGRESS_STATUS, startDate, endDate);
             int totalCompletedInstances = procInstInfoMapper.countProcDefInfoOverviewEntities(entity.getProcDefId(),
-                    ProcInstInfoEntity.COMPLETED_STATUS);
+                    ProcInstInfoEntity.COMPLETED_STATUS, startDate, endDate);
             int totalFaultedInstances = procInstInfoMapper.countProcDefInfoOverviewEntities(entity.getProcDefId(),
-                    ProcInstInfoEntity.INTERNALLY_TERMINATED_STATUS);
+                    ProcInstInfoEntity.INTERNALLY_TERMINATED_STATUS, startDate, endDate);
 
             dto.setTotalInProgressInstances(totalInProgressInstances);
             dto.setTotalCompletedInstances(totalCompletedInstances);
@@ -151,7 +218,7 @@ public class WorkflowStatisticsService extends AbstractWorkflowProcDefService {
             }
 
             for (TaskNodeDefInfoEntity nodeEntity : nodeEntities) {
-                if(!TaskNodeDefInfoEntity.NODE_TYPE_SUBPROCESS.equalsIgnoreCase(nodeEntity.getNodeType())) {
+                if (!TaskNodeDefInfoEntity.NODE_TYPE_SUBPROCESS.equalsIgnoreCase(nodeEntity.getNodeType())) {
                     continue;
                 }
                 TaskNodeDefBriefDto d = new TaskNodeDefBriefDto();
@@ -332,8 +399,10 @@ public class WorkflowStatisticsService extends AbstractWorkflowProcDefService {
         Date startDate = parseDate(queryDto.getStartDate());
         Date endDate = parseDate(queryDto.getEndDate());
 
-//        TaskNodeDefInfoEntity nodeDefInfo = taskNodeDefInfoRepo.selectByPrimaryKey(nodeDefId);
-//        ProcDefInfoEntity procDefInfo = processDefInfoRepo.selectByPrimaryKey(nodeDefInfo.getProcDefId());
+        // TaskNodeDefInfoEntity nodeDefInfo =
+        // taskNodeDefInfoRepo.selectByPrimaryKey(nodeDefId);
+        // ProcDefInfoEntity procDefInfo =
+        // processDefInfoRepo.selectByPrimaryKey(nodeDefInfo.getProcDefId());
 
         List<TaskNodeExecParamEntity> errorCodeParams = new ArrayList<>();
         if (TaskNodeInstInfoEntity.COMPLETED_STATUS.equalsIgnoreCase(queryStatus)) {
@@ -467,7 +536,7 @@ public class WorkflowStatisticsService extends AbstractWorkflowProcDefService {
         String entityDataId = statisticsItem.getEntityDataId();
         reportItemDto.setEntityDataId(entityDataId);
         String entityDataName = statisticsItem.getEntityDataName();
-        if(StringUtils.isBlank(entityDataName)) {
+        if (StringUtils.isBlank(entityDataName)) {
             entityDataName = entityDataId;
         }
         reportItemDto.setEntityDataName(entityDataName);
@@ -505,9 +574,9 @@ public class WorkflowStatisticsService extends AbstractWorkflowProcDefService {
         String serviceId = statisticsItem.getServiceId();
         String entityDataId = statisticsItem.getEntityDataId();
         reportItemDto.setEntityDataId(entityDataId);
-        
+
         String entityDataName = statisticsItem.getEntityDataName();
-        if(StringUtils.isBlank(entityDataName)) {
+        if (StringUtils.isBlank(entityDataName)) {
             entityDataName = entityDataId;
         }
         reportItemDto.setEntityDataName(entityDataName);
