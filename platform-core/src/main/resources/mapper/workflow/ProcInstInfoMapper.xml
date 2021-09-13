@@ -346,6 +346,54 @@
         and
         status =
         #{status,jdbcType=VARCHAR}
+        <if test="startDate != null">
+        AND created_time &gt;= #{startDate,jdbcType=TIMESTAMP}
+        </if>
+        <if test="endDate != null">
+        AND created_time &lt;= #{endDate,jdbcType=TIMESTAMP}
+        </if>
+    </select>
+    
+    <select id="selectProcDefInfoOverviewEntities"
+        resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List" />
+        from core_ru_proc_inst_info
+        where proc_def_id =
+        #{procDefId,jdbcType=VARCHAR}
+        and
+        status =
+        #{status,jdbcType=VARCHAR}
+        <if test="startDate != null">
+        AND created_time &gt;= #{startDate,jdbcType=TIMESTAMP}
+        </if>
+        <if test="endDate != null">
+        AND created_time &lt;= #{endDate,jdbcType=TIMESTAMP}
+        </if>
+    </select>
+    
+    <select id="selectAllProcDefInfoOverviewEntitiesByCriteria" 
+        resultType="com.webank.wecube.platform.core.entity.workflow.ProcDefInfoOverviewEntity">
+        select
+        proc_def_id, proc_def_name, count(1) AS totalInstances
+        from core_ru_proc_inst_info
+        where 1=1
+        <if test="startDate != null">
+        AND created_time &gt;= #{startDate,jdbcType=TIMESTAMP}
+        </if>
+        <if test="endDate != null">
+        AND created_time &lt;= #{endDate,jdbcType=TIMESTAMP}
+        </if>
+        <if test="procDefNames != null and procDefNames.size() != 0">
+        AND 
+            proc_def_name IN 
+            <foreach item="procDefName" collection="procDefNames" separator=","
+            open="(" close=")" index="">
+                #{procDefName, jdbcType=VARCHAR}
+            </foreach>
+        </if>
+        group by proc_def_id, proc_def_name
+        order by proc_def_name
     </select>
 
 </mapper>
