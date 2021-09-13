@@ -1,5 +1,6 @@
 package com.webank.wecube.platform.core.repository.workflow;
 
+import java.util.Date;
 import java.util.List;
 
 import org.apache.ibatis.annotations.Param;
@@ -70,5 +71,28 @@ public interface ProcInstInfoMapper {
      * @param status
      * @return
      */
-    int countProcDefInfoOverviewEntities(@Param("procDefId") String procDefId, @Param("status") String status);
+    int countProcDefInfoOverviewEntities(@Param("procDefId") String procDefId, @Param("status") String status,
+            @Param("startDate") Date startDate, @Param("endDate") Date endDate);
+    
+    /**
+     * 
+     * @param procDefId
+     * @param status
+     * @param startDate
+     * @param endDate
+     * @return
+     */
+    List<ProcInstInfoEntity> selectProcDefInfoOverviewEntities(@Param("procDefId") String procDefId, @Param("status") String status,
+            @Param("startDate") Date startDate, @Param("endDate") Date endDate);
+
+    /**
+     * 
+     * @param procDefNames
+     * @param startDate
+     * @param endDate
+     * @return
+     */
+    List<ProcDefInfoOverviewEntity> selectAllProcDefInfoOverviewEntitiesByCriteria(
+            @Param("procDefNames") List<String> procDefNames, @Param("startDate") Date startDate,
+            @Param("endDate") Date endDate);
 }
