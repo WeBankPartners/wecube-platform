@@ -14,7 +14,10 @@ import com.webank.wecube.platform.core.dto.plugin.QueryResponse;
 import com.webank.wecube.platform.core.dto.workflow.ProcDefInfoDto;
 import com.webank.wecube.platform.core.dto.workflow.TaskNodeDefBriefDto;
 import com.webank.wecube.platform.core.dto.workflow.TaskNodeDefObjectBindInfoDto;
+import com.webank.wecube.platform.core.dto.workflow.WorkflowExecutionOverviewDetailDto;
+import com.webank.wecube.platform.core.dto.workflow.WorkflowExecutionOverviewDetailQueryDto;
 import com.webank.wecube.platform.core.dto.workflow.WorkflowExecutionOverviewDto;
+import com.webank.wecube.platform.core.dto.workflow.WorkflowExecutionOverviewsQueryDto;
 import com.webank.wecube.platform.core.dto.workflow.WorkflowExecutionReportDetailDto;
 import com.webank.wecube.platform.core.dto.workflow.WorkflowExecutionReportDetailQueryDto;
 import com.webank.wecube.platform.core.dto.workflow.WorkflowExecutionReportItemDto;
@@ -70,7 +73,7 @@ public class WorkflowStatisticsController {
                 .fetchWorkflowTasknodeBindings(taskNodeIds);
         return CommonResponseDto.okayWithData(bindings);
     }
-    
+
     /**
      * 
      * @param taskNodeIds
@@ -79,8 +82,7 @@ public class WorkflowStatisticsController {
     @PostMapping("/statistics/process/definitions/service-ids/tasknode-bindings/query")
     public CommonResponseDto fetchWorkflowPluginBindings(@RequestBody List<String> serviceIds) {
 
-        List<TaskNodeDefObjectBindInfoDto> bindings = workflowStatisticsService
-                .fetchWorkflowPluginBindings(serviceIds);
+        List<TaskNodeDefObjectBindInfoDto> bindings = workflowStatisticsService.fetchWorkflowPluginBindings(serviceIds);
         return CommonResponseDto.okayWithData(bindings);
     }
 
@@ -92,7 +94,8 @@ public class WorkflowStatisticsController {
     @PostMapping("/statistics/process/definitions/executions/tasknodes/reports/query")
     public CommonResponseDto fetchWorkflowExecutionTasknodeReports(
             @RequestBody WorkflowExecutionReportQueryDto queryDto) {
-        QueryResponse<WorkflowExecutionReportItemDto> itemsResponse = workflowStatisticsService.fetchWorkflowExecutionTasknodeReports(queryDto);
+        QueryResponse<WorkflowExecutionReportItemDto> itemsResponse = workflowStatisticsService
+                .fetchWorkflowExecutionTasknodeReports(queryDto);
         return CommonResponseDto.okayWithData(itemsResponse);
     }
 
@@ -104,7 +107,8 @@ public class WorkflowStatisticsController {
     @PostMapping("/statistics/process/definitions/executions/plugin/reports/query")
     public CommonResponseDto fetchWorkflowExecutionPluginReports(
             @RequestBody WorkflowExecutionReportQueryDto queryDto) {
-        QueryResponse<WorkflowExecutionReportItemDto> itemsResponse = workflowStatisticsService.fetchWorkflowExecutionPluginReports(queryDto);
+        QueryResponse<WorkflowExecutionReportItemDto> itemsResponse = workflowStatisticsService
+                .fetchWorkflowExecutionPluginReports(queryDto);
         return CommonResponseDto.okayWithData(itemsResponse);
     }
 
@@ -114,29 +118,46 @@ public class WorkflowStatisticsController {
      * @return
      */
     @PostMapping("/statistics/process/definitions/executions/tasknodes/report-details/query")
-    public CommonResponseDto fetchWorkflowExecutionTasknodeReportDetails(@RequestBody WorkflowExecutionReportDetailQueryDto queryDto) {
-        List<WorkflowExecutionReportDetailDto> details = workflowStatisticsService.fetchWorkflowExecutionTasknodeReportDetails(queryDto);
+    public CommonResponseDto fetchWorkflowExecutionTasknodeReportDetails(
+            @RequestBody WorkflowExecutionReportDetailQueryDto queryDto) {
+        List<WorkflowExecutionReportDetailDto> details = workflowStatisticsService
+                .fetchWorkflowExecutionTasknodeReportDetails(queryDto);
         return CommonResponseDto.okayWithData(details);
     }
-    
+
     /**
      * 
      * @param queryDto
      * @return
      */
     @PostMapping("/statistics/process/definitions/executions/plugin/report-details/query")
-    public CommonResponseDto fetchWorkflowExecutionPluginReportDetails(@RequestBody WorkflowExecutionReportDetailQueryDto queryDto) {
-        List<WorkflowExecutionReportDetailDto> details  = workflowStatisticsService.fetchWorkflowExecutionPluginReportDetails(queryDto);
+    public CommonResponseDto fetchWorkflowExecutionPluginReportDetails(
+            @RequestBody WorkflowExecutionReportDetailQueryDto queryDto) {
+        List<WorkflowExecutionReportDetailDto> details = workflowStatisticsService
+                .fetchWorkflowExecutionPluginReportDetails(queryDto);
         return CommonResponseDto.okayWithData(details);
     }
-    
+
     /**
      * 
      * @return
      */
-    @GetMapping("/statistics/process/definitions/executions/overviews")
-    public CommonResponseDto fetchWorkflowExecutionOverviews() {
-        List<WorkflowExecutionOverviewDto>  overviewDtos= workflowStatisticsService.fetchWorkflowExecutionOverviews();
+    @PostMapping("/statistics/process/definitions/executions/overviews/query")
+    public CommonResponseDto fetchWorkflowExecutionOverviews(@RequestBody WorkflowExecutionOverviewsQueryDto queryDto) {
+        List<WorkflowExecutionOverviewDto> overviewDtos = workflowStatisticsService
+                .fetchWorkflowExecutionOverviews(queryDto);
+        return CommonResponseDto.okayWithData(overviewDtos);
+    }
+
+    /**
+     * 
+     * @return
+     */
+    @PostMapping("/statistics/process/definitions/executions/overviews/details/query")
+    public CommonResponseDto fetchWorkflowExecutionOverviewDetails(
+            @RequestBody WorkflowExecutionOverviewDetailQueryDto queryDto) {
+        List<WorkflowExecutionOverviewDetailDto> overviewDtos = workflowStatisticsService
+                .fetchWorkflowExecutionOverviewDetails(queryDto);
         return CommonResponseDto.okayWithData(overviewDtos);
     }
 }
