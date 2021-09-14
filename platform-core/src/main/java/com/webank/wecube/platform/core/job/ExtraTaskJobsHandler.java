@@ -17,18 +17,18 @@ public class ExtraTaskJobsHandler {
     
     @Scheduled(cron="0 */5 * * * ?")
     public void extractOutstandingExtraTasks(){
-        if(log.isInfoEnabled()){
-            log.info("scheduled extra task execution start...");
+        if(log.isDebugEnabled()){
+            log.debug("scheduled extra task execution start...");
         }
         
         try{
             extraTaskExecutor.execute();
         }catch(Exception e){
-            log.error("extra task processing errors", e);
+            log.info("extra task processing errors", e);
         }
         
-        if(log.isInfoEnabled()){
-            log.info("scheduled extra task execution end...");
+        if(log.isDebugEnabled()){
+            log.debug("scheduled extra task execution end...");
         }
     }
 
