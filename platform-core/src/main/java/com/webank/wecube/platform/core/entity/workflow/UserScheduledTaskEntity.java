@@ -12,7 +12,7 @@ public class UserScheduledTaskEntity {
 
     private String owner;
 
-    private String prodDefId;
+    private String procDefId;
     private String procDefName;
     private String entityDataId;
     private String entityDataName;
@@ -76,12 +76,12 @@ public class UserScheduledTaskEntity {
         this.owner = owner;
     }
 
-    public String getProdDefId() {
-        return prodDefId;
+    public String getProcDefId() {
+        return procDefId;
     }
 
-    public void setProdDefId(String prodDefId) {
-        this.prodDefId = prodDefId;
+    public void setProcDefId(String procDefId) {
+        this.procDefId = procDefId;
     }
 
     public String getProcDefName() {
