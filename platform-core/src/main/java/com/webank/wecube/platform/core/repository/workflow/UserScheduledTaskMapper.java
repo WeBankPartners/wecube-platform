@@ -1,5 +1,6 @@
 package com.webank.wecube.platform.core.repository.workflow;
 
+import org.apache.ibatis.annotations.Param;
 import org.springframework.stereotype.Repository;
 
 import com.webank.wecube.platform.core.entity.workflow.UserScheduledTaskEntity;
@@ -17,4 +18,12 @@ public interface UserScheduledTaskMapper {
     int updateByPrimaryKeySelective(UserScheduledTaskEntity record);
 
     int updateByPrimaryKey(UserScheduledTaskEntity record);
+    
+    /**
+     * 
+     * @param record
+     * @param expectedRev
+     * @return
+     */
+    int updateByPrimaryKeySelectiveCas(@Param("record") UserScheduledTaskEntity record, @Param("expectedRev") int expectedRev);
 }
