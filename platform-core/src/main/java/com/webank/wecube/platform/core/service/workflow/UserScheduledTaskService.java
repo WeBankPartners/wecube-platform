@@ -230,12 +230,47 @@ public class UserScheduledTaskService {
     }
 
     protected boolean determineExecution(UserScheduledTaskEntity userTask) {
-        // TODO
         // step 1 check if meets any execution
+        boolean meetExecution = false;
+        String scheduleMode = userTask.getScheduleMode();
+        if(StringUtils.isBlank(scheduleMode)){
+            return false;
+        }
+        
+        String status = userTask.getStatus();
+        if(!Constants.SCHEDULE_TASK_READY.equalsIgnoreCase(status)){
+            return false;
+        }
+        
+        if(Constants.SCHEDULE_MODE_MONTHLY.equalsIgnoreCase(scheduleMode)){
+            meetExecution = meetMonthlyExecution(userTask);
+        }else if(Constants.SCHEDULE_MODE_WEEKLY.equalsIgnoreCase(scheduleMode)){
+            meetExecution = meetWeeklyExecution(userTask);
+        }else if(Constants.SCHEDULE_MODE_DAILY.equalsIgnoreCase(scheduleMode)){
+            meetExecution = meetDailyExecution(userTask);
+        }else if(Constants.SCHEDULE_MODE_HOURLY.equalsIgnoreCase(scheduleMode)){
+            meetExecution = meetHourlyExecution(userTask);
+        }else{
+            //
+        }
+        
+        if(!meetExecution){
+            return false;
+        }
 
         // step 2 try to update status and lock
+        int expectedRev = userTask.getRev();
+        int newRev = expectedRev + 1;
+        userTask.setStatus(Constants.SCHEDULE_TASK_RUNNING);
+        userTask.setRev(newRev);
+        int updateResult = userScheduledTaskMapper.updateByPrimaryKeySelectiveCas(userTask, expectedRev);
+        if(updateResult > 0){
+            return true; 
+        }else{
+            log.info("Failed to get lock for user scheduled task:{}", userTask.getId());
+            return false;
+        }
 
-        return false;
     }
 
     protected boolean meetMonthlyExecution(UserScheduledTaskEntity userTask) {
