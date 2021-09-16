@@ -32,39 +32,39 @@ public class UserScheduledTaskService {
      * @return
      */
     public UserScheduledTaskDto createUserScheduledTask(UserScheduledTaskDto taskDto) {
-        if(taskDto == null){
+        if (taskDto == null) {
             return null;
         }
-        
+
         UserScheduledTaskEntity taskEntity = new UserScheduledTaskEntity();
         taskEntity.setId(LocalIdGenerator.generateId());
         taskEntity.setCreatedTime(new Date());
         taskEntity.setCreatedBy(AuthenticationContextHolder.getCurrentUsername());
-        
+
         String owner = taskDto.getOwner();
-        if(StringUtils.isBlank(owner)){
+        if (StringUtils.isBlank(owner)) {
             owner = AuthenticationContextHolder.getCurrentUsername();
         }
-        
+
         taskEntity.setOwner(owner);
-        
+
         taskEntity.setProcDefId(taskDto.getProcDefId());
         taskEntity.setProcDefName(taskDto.getProcDefName());
-        
+
         taskEntity.setEntityDataId(taskDto.getEntityDataId());
         taskEntity.setEntityDataName(taskDto.getEntityDataName());
-        
+
         taskEntity.setScheduleMode(taskDto.getScheduleMode());
-        
+
         String scheduleExpr = taskDto.getScheduleExpr();
         taskEntity.setScheduleExpr(scheduleExpr);
         taskEntity.setStatus(Constants.SCHEDULE_TASK_READY);
-        
+
         userScheduledTaskMapper.insert(taskEntity);
-        
+
         taskDto.setId(taskEntity.getId());
         taskDto.setOwner(owner);
-        
+
         return taskDto;
     }
 
@@ -74,21 +74,21 @@ public class UserScheduledTaskService {
      */
     @Transactional
     public void stopUserScheduledTasks(List<UserScheduledTaskDto> taskDtos) {
-        if(taskDtos == null || taskDtos.isEmpty()){
+        if (taskDtos == null || taskDtos.isEmpty()) {
             return;
         }
 
-        for(UserScheduledTaskDto taskDto : taskDtos){
+        for (UserScheduledTaskDto taskDto : taskDtos) {
             UserScheduledTaskEntity taskEntity = userScheduledTaskMapper.selectByPrimaryKey(taskDto.getId());
-            if(taskEntity == null){
+            if (taskEntity == null) {
                 continue;
             }
-            
+
             taskEntity.setUpdatedBy(AuthenticationContextHolder.getCurrentUsername());
             taskEntity.setUpdatedTime(new Date());
-            
+
             taskEntity.setStatus(Constants.SCHEDULE_TASK_STOPPED);
-            
+
             userScheduledTaskMapper.updateByPrimaryKeySelective(taskEntity);
         }
     }
@@ -110,24 +110,24 @@ public class UserScheduledTaskService {
      */
     @Transactional
     public List<UserScheduledTaskDto> updateUserSchecduledTasks(List<UserScheduledTaskDto> taskDtos) {
-        if(taskDtos == null || taskDtos.isEmpty()){
+        if (taskDtos == null || taskDtos.isEmpty()) {
             return null;
         }
-        
-        for(UserScheduledTaskDto taskDto : taskDtos){
+
+        for (UserScheduledTaskDto taskDto : taskDtos) {
             UserScheduledTaskEntity taskEntity = userScheduledTaskMapper.selectByPrimaryKey(taskDto.getId());
-            if(taskEntity == null){
+            if (taskEntity == null) {
                 continue;
             }
-            
+
             taskEntity.setUpdatedBy(AuthenticationContextHolder.getCurrentUsername());
             taskEntity.setUpdatedTime(new Date());
             taskEntity.setScheduleMode(taskDto.getScheduleMode());
             taskEntity.setScheduleExpr(taskDto.getScheduleExpr());
-            
+
             userScheduledTaskMapper.updateByPrimaryKeySelective(taskEntity);
         }
-        return null;
+        return taskDtos;
     }
 
     /**
@@ -136,21 +136,21 @@ public class UserScheduledTaskService {
      */
     @Transactional
     public void deleteUserSchecduledTasks(List<UserScheduledTaskDto> taskDtos) {
-        if(taskDtos == null || taskDtos.isEmpty()){
+        if (taskDtos == null || taskDtos.isEmpty()) {
             return;
         }
 
-        for(UserScheduledTaskDto taskDto : taskDtos){
+        for (UserScheduledTaskDto taskDto : taskDtos) {
             UserScheduledTaskEntity taskEntity = userScheduledTaskMapper.selectByPrimaryKey(taskDto.getId());
-            if(taskEntity == null){
+            if (taskEntity == null) {
                 continue;
             }
-            
+
             taskEntity.setUpdatedBy(AuthenticationContextHolder.getCurrentUsername());
             taskEntity.setUpdatedTime(new Date());
-            
+
             taskEntity.setStatus(Constants.SCHEDULE_TASK_DELETED);
-            
+
             userScheduledTaskMapper.updateByPrimaryKeySelective(taskEntity);
         }
     }
@@ -161,21 +161,21 @@ public class UserScheduledTaskService {
      */
     @Transactional
     public void resumeUserScheduledTasks(List<UserScheduledTaskDto> taskDtos) {
-        if(taskDtos == null || taskDtos.isEmpty()){
+        if (taskDtos == null || taskDtos.isEmpty()) {
             return;
         }
 
-        for(UserScheduledTaskDto taskDto : taskDtos){
+        for (UserScheduledTaskDto taskDto : taskDtos) {
             UserScheduledTaskEntity taskEntity = userScheduledTaskMapper.selectByPrimaryKey(taskDto.getId());
-            if(taskEntity == null){
+            if (taskEntity == null) {
                 continue;
             }
-            
+
             taskEntity.setUpdatedBy(AuthenticationContextHolder.getCurrentUsername());
             taskEntity.setUpdatedTime(new Date());
-            
+
             taskEntity.setStatus(Constants.SCHEDULE_TASK_READY);
-            
+
             userScheduledTaskMapper.updateByPrimaryKeySelective(taskEntity);
         }
     }
@@ -184,7 +184,44 @@ public class UserScheduledTaskService {
      * 
      */
     public void execute() {
+        if (log.isDebugEnabled()) {
+            log.debug("About to execute user scheduled tasks.");
+        }
 
+        try {
+            doExecute();
+        } catch (Exception e) {
+
+        }
+
+        if (log.isDebugEnabled()) {
+            log.debug("Finished executing user scheduled tasks.");
+        }
+    }
+
+    protected void doExecute() {
+
+        List<UserScheduledTaskEntity> outstandingTasks = scanReadyUserTasks();
+
+        if (outstandingTasks == null || outstandingTasks.isEmpty()) {
+            return;
+        }
+
+        for (UserScheduledTaskEntity outstandingTask : outstandingTasks) {
+            tryHandleSingleUserScheduledTask(outstandingTask);
+        }
+
+    }
+
+    protected void tryHandleSingleUserScheduledTask(UserScheduledTaskEntity outstandingTask){
+        boolean meetExecution = determineExecution(outstandingTask);
+        if(!meetExecution){
+            return;
+        }
+        
+        performExecution(outstandingTask);
+        
+        postPerformExecution(outstandingTask);
     }
 
     protected List<UserScheduledTaskEntity> scanReadyUserTasks() {
@@ -194,10 +231,38 @@ public class UserScheduledTaskService {
 
     protected boolean determineExecution(UserScheduledTaskEntity userTask) {
         // TODO
+        // step 1 check if meets any execution
+
+        // step 2 try to update status and lock
+
+        return false;
+    }
+
+    protected boolean meetMonthlyExecution(UserScheduledTaskEntity userTask) {
+        // TODO
+        return false;
+    }
+
+    protected boolean meetWeeklyExecution(UserScheduledTaskEntity userTask) {
+        // TODO
+        return false;
+    }
+
+    protected boolean meetDailyExecution(UserScheduledTaskEntity userTask) {
+        // TODO
+        return false;
+    }
+
+    protected boolean meetHourlyExecution(UserScheduledTaskEntity userTask) {
+        // TODO
         return false;
     }
 
     protected void performExecution(UserScheduledTaskEntity userTask) {
+        // TODO
+    }
+    
+    protected void postPerformExecution(UserScheduledTaskEntity userTask) {
         // TODO
     }
 }
