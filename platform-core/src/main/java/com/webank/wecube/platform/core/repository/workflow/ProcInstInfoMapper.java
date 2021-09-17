@@ -95,4 +95,28 @@ public interface ProcInstInfoMapper {
     List<ProcDefInfoOverviewEntity> selectAllProcDefInfoOverviewEntitiesByCriteria(
             @Param("procDefNames") List<String> procDefNames, @Param("startDate") Date startDate,
             @Param("endDate") Date endDate);
+    
+    /**
+     * 
+     * @param procDefId
+     * @param status
+     * @param startDate
+     * @param endDate
+     * @param procBatchKey
+     * @return
+     */
+    int countByProcBatchKey(@Param("procDefId") String procDefId, @Param("status") String status,
+            @Param("startDate") Date startDate, @Param("endDate") Date endDate, @Param("procBatchKey") String procBatchKey);
+    
+    /**
+     * 
+     * @param procDefId
+     * @param status
+     * @param startDate
+     * @param endDate
+     * @param procBatchKey
+     * @return
+     */
+    List<ProcInstInfoEntity> selectAllByProcBatchKey(@Param("procDefId") String procDefId, @Param("status") String status,
+            @Param("startDate") Date startDate, @Param("endDate") Date endDate, @Param("procBatchKey") String procBatchKey);
 }
