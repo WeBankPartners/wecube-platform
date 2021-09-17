@@ -1,5 +1,6 @@
 package com.webank.wecube.platform.core.service.workflow;
 
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
@@ -225,8 +226,8 @@ public class UserScheduledTaskService {
     }
 
     protected List<UserScheduledTaskEntity> scanReadyUserTasks() {
-        // TODO
-        return null;
+        List<UserScheduledTaskEntity> outstandingTasks = userScheduledTaskMapper.selectAllOutstandingTasks();
+        return outstandingTasks;
     }
 
     protected boolean determineExecution(UserScheduledTaskEntity userTask) {
@@ -261,6 +262,7 @@ public class UserScheduledTaskService {
         // step 2 try to update status and lock
         int expectedRev = userTask.getRev();
         int newRev = expectedRev + 1;
+        userTask.setExecStartTime(new Date());
         userTask.setStatus(Constants.SCHEDULE_TASK_RUNNING);
         userTask.setRev(newRev);
         int updateResult = userScheduledTaskMapper.updateByPrimaryKeySelectiveCas(userTask, expectedRev);
@@ -274,30 +276,226 @@ public class UserScheduledTaskService {
     }
 
     protected boolean meetMonthlyExecution(UserScheduledTaskEntity userTask) {
-        // TODO
+        if (!Constants.SCHEDULE_MODE_MONTHLY.equalsIgnoreCase(userTask.getScheduleMode())) {
+            return false;
+        }
+
+        if (StringUtils.isBlank(userTask.getScheduleExpr())) {
+            return false;
+        }
+
+        Date curDate = new Date();
+        Calendar curCal = Calendar.getInstance();
+        curCal.setTime(curDate);
+        int curYear = curCal.get(Calendar.YEAR);
+        int curMon = curCal.get(Calendar.MONTH);
+
+        // 1 check last execution time
+        Date lastExecTime = userTask.getExecStartTime();
+        if (lastExecTime != null) {
+            Calendar lastCal = Calendar.getInstance();
+            lastCal.setTime(lastExecTime);
+            int lastYear = lastCal.get(Calendar.YEAR);
+            int lastMon = lastCal.get(Calendar.MONTH);
+
+            if ((lastYear == curYear) && (lastMon == curMon)) {
+                return false;
+            }
+        }
+
+        // 2 check current time
+        String scheduleExpr = userTask.getScheduleExpr();
+        String[] scheduleExprParts = scheduleExpr.split(":");
+        int exprDayOfMonth = Integer.parseInt(scheduleExprParts[0]);
+        int exprHour = Integer.parseInt(scheduleExprParts[1]);
+        int exprMin = Integer.parseInt(scheduleExprParts[2]);
+        int exprSecond = Integer.parseInt(scheduleExprParts[3]);
+        Calendar exprCal = Calendar.getInstance();
+        exprCal.setTime(curDate);
+        exprCal.set(Calendar.DAY_OF_MONTH, exprDayOfMonth);
+        exprCal.set(Calendar.HOUR_OF_DAY, exprHour);
+        exprCal.set(Calendar.MINUTE, exprMin);
+        exprCal.set(Calendar.SECOND, exprSecond);
+        
+        if (curCal.compareTo(exprCal) >= 0) {
+            return true;
+        }
+
         return false;
     }
 
     protected boolean meetWeeklyExecution(UserScheduledTaskEntity userTask) {
-        // TODO
+        if (!Constants.SCHEDULE_MODE_WEEKLY.equalsIgnoreCase(userTask.getScheduleMode())) {
+            return false;
+        }
+
+        if (StringUtils.isBlank(userTask.getScheduleExpr())) {
+            return false;
+        }
+
+        Date curDate = new Date();
+        Calendar curCal = Calendar.getInstance();
+        curCal.setTime(curDate);
+        int curYear = curCal.get(Calendar.YEAR);
+        int curMon = curCal.get(Calendar.MONTH);
+        int currWeek = curCal.get(Calendar.WEEK_OF_YEAR);
+//        int curDay = curCal.get(Calendar.DAY_OF_MONTH);
+
+        // 1 check last execution time
+        Date lastExecTime = userTask.getExecStartTime();
+        if (lastExecTime != null) {
+            Calendar lastCal = Calendar.getInstance();
+            lastCal.setTime(lastExecTime);
+            int lastYear = lastCal.get(Calendar.YEAR);
+            int lastMon = lastCal.get(Calendar.MONTH);
+            int lastWeek = lastCal.get(Calendar.WEEK_OF_YEAR);
+
+            if ((lastYear == curYear) && (lastMon == curMon) && (lastWeek == currWeek)) {
+                return false;
+            }
+        }
+
+        // 2 check current time
+        String scheduleExpr = userTask.getScheduleExpr();
+        String[] scheduleExprParts = scheduleExpr.split(":");
+        int exprDayOfWeek = Integer.parseInt(scheduleExprParts[0]);
+        int exprHour = Integer.parseInt(scheduleExprParts[1]);
+        int exprMin = Integer.parseInt(scheduleExprParts[2]);
+        int exprSecond = Integer.parseInt(scheduleExprParts[3]);
+        Calendar exprCal = Calendar.getInstance();
+        exprCal.setTime(curDate);
+        exprCal.set(Calendar.DAY_OF_WEEK, exprDayOfWeek);
+        exprCal.set(Calendar.HOUR_OF_DAY, exprHour);
+        exprCal.set(Calendar.MINUTE, exprMin);
+        exprCal.set(Calendar.SECOND, exprSecond);
+
+        if (curCal.compareTo(exprCal) >= 0) {
+            return true;
+        }
+
         return false;
     }
 
     protected boolean meetDailyExecution(UserScheduledTaskEntity userTask) {
-        // TODO
+        if (!Constants.SCHEDULE_MODE_DAILY.equalsIgnoreCase(userTask.getScheduleMode())) {
+            return false;
+        }
+
+        if (StringUtils.isBlank(userTask.getScheduleExpr())) {
+            return false;
+        }
+
+        Date curDate = new Date();
+        Calendar curCal = Calendar.getInstance();
+        curCal.setTime(curDate);
+        int curYear = curCal.get(Calendar.YEAR);
+        int curMon = curCal.get(Calendar.MONTH);
+        int curDay = curCal.get(Calendar.DAY_OF_MONTH);
+
+        // 1 check last execution time
+        Date lastExecTime = userTask.getExecStartTime();
+        if (lastExecTime != null) {
+            Calendar lastCal = Calendar.getInstance();
+            lastCal.setTime(lastExecTime);
+            int lastYear = lastCal.get(Calendar.YEAR);
+            int lastMon = lastCal.get(Calendar.MONTH);
+            int lastDay = lastCal.get(Calendar.DAY_OF_MONTH);
+
+            if ((lastYear == curYear) && (lastMon == curMon) && (lastDay == curDay)) {
+                return false;
+            }
+        }
+
+        // 2 check current time
+        String scheduleExpr = userTask.getScheduleExpr();
+        String[] scheduleExprParts = scheduleExpr.split(":");
+        int exprHour = Integer.parseInt(scheduleExprParts[0]);
+        int exprMin = Integer.parseInt(scheduleExprParts[1]);
+        int exprSecond = Integer.parseInt(scheduleExprParts[2]);
+        Calendar exprCal = Calendar.getInstance();
+        exprCal.setTime(curDate);
+        exprCal.set(Calendar.HOUR_OF_DAY, exprHour);
+        exprCal.set(Calendar.MINUTE, exprMin);
+        exprCal.set(Calendar.SECOND, exprSecond);
+
+        if (curCal.compareTo(exprCal) >= 0) {
+            return true;
+        }
+
         return false;
     }
 
     protected boolean meetHourlyExecution(UserScheduledTaskEntity userTask) {
-        // TODO
+        if (!Constants.SCHEDULE_MODE_HOURLY.equalsIgnoreCase(userTask.getScheduleMode())) {
+            return false;
+        }
+
+        if (StringUtils.isBlank(userTask.getScheduleExpr())) {
+            return false;
+        }
+
+        Date curDate = new Date();
+        Calendar curCal = Calendar.getInstance();
+        curCal.setTime(curDate);
+        int curYear = curCal.get(Calendar.YEAR);
+        int curMon = curCal.get(Calendar.MONTH);
+        int curDay = curCal.get(Calendar.DAY_OF_MONTH);
+        int curHour = curCal.get(Calendar.HOUR_OF_DAY);
+        System.out.println(curYear + " " + curMon + " " + curDay + " " + curHour);
+
+        // 1 check last execution time
+        Date lastExecTime = userTask.getExecStartTime();
+        if (lastExecTime != null) {
+            Calendar lastCal = Calendar.getInstance();
+            lastCal.setTime(lastExecTime);
+            int lastYear = lastCal.get(Calendar.YEAR);
+            int lastMon = lastCal.get(Calendar.MONTH);
+            int lastDay = lastCal.get(Calendar.DAY_OF_MONTH);
+            int lastHour = lastCal.get(Calendar.HOUR_OF_DAY);
+
+            if ((lastYear == curYear) && (lastMon == curMon) && (lastDay == curDay) && (lastHour == curHour)) {
+                return false;
+            }
+        }
+
+        // 2 check current time
+        String scheduleExpr = userTask.getScheduleExpr();
+        String[] scheduleExprParts = scheduleExpr.split(":");
+        int exprMin = Integer.parseInt(scheduleExprParts[0]);
+        int exprSecond = Integer.parseInt(scheduleExprParts[1]);
+        Calendar exprCal = Calendar.getInstance();
+        exprCal.setTime(curDate);
+        exprCal.set(Calendar.MINUTE, exprMin);
+        exprCal.set(Calendar.SECOND, exprSecond);
+
+        if (curCal.compareTo(exprCal) >= 0) {
+            return true;
+        }
+
         return false;
     }
 
     protected void performExecution(UserScheduledTaskEntity userTask) {
         // TODO
+        log.info("try perform user scheduled task:{}", userTask.getId());
     }
     
     protected void postPerformExecution(UserScheduledTaskEntity userTask) {
-        // TODO
+        
+        int execTimes = userTask.getExecTimes();
+        int newExecTimes = execTimes + 1;
+        
+        int expectedRev = userTask.getRev();
+        int newRev = expectedRev - 1;
+        userTask.setExecEndTime(new Date());
+        userTask.setStatus(Constants.SCHEDULE_TASK_READY);
+        userTask.setRev(newRev);
+        userTask.setExecTimes(newExecTimes);
+        int updateResult = userScheduledTaskMapper.updateByPrimaryKeySelectiveCas(userTask, expectedRev);
+        if(updateResult > 0){
+            log.info("Post perform execution succeed:{}", userTask.getId());
+        }else{
+            log.info("Post perform execution succeed:{}", userTask.getId());
+        }
     }
 }
