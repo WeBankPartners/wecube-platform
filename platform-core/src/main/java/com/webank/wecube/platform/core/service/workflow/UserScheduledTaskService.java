@@ -12,6 +12,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.webank.wecube.platform.core.commons.AuthenticationContextHolder;
+import com.webank.wecube.platform.core.dto.workflow.ProcInstInfoDto;
+import com.webank.wecube.platform.core.dto.workflow.ProcessDataPreviewDto;
+import com.webank.wecube.platform.core.dto.workflow.StartProcInstRequestDto;
 import com.webank.wecube.platform.core.dto.workflow.UserScheduledTaskDto;
 import com.webank.wecube.platform.core.dto.workflow.UserScheduledTaskQueryDto;
 import com.webank.wecube.platform.core.entity.workflow.UserScheduledTaskEntity;
@@ -26,6 +29,12 @@ public class UserScheduledTaskService {
 
     @Autowired
     private UserScheduledTaskMapper userScheduledTaskMapper;
+
+    @Autowired
+    private WorkflowDataService workflowDataService;
+
+    @Autowired
+    private WorkflowProcInstService workflowProcInstService;
 
     /**
      * 
@@ -214,14 +223,14 @@ public class UserScheduledTaskService {
 
     }
 
-    protected void tryHandleSingleUserScheduledTask(UserScheduledTaskEntity outstandingTask){
+    protected void tryHandleSingleUserScheduledTask(UserScheduledTaskEntity outstandingTask) {
         boolean meetExecution = determineExecution(outstandingTask);
-        if(!meetExecution){
+        if (!meetExecution) {
             return;
         }
-        
+
         performExecution(outstandingTask);
-        
+
         postPerformExecution(outstandingTask);
     }
 
@@ -234,28 +243,28 @@ public class UserScheduledTaskService {
         // step 1 check if meets any execution
         boolean meetExecution = false;
         String scheduleMode = userTask.getScheduleMode();
-        if(StringUtils.isBlank(scheduleMode)){
+        if (StringUtils.isBlank(scheduleMode)) {
             return false;
         }
-        
+
         String status = userTask.getStatus();
-        if(!Constants.SCHEDULE_TASK_READY.equalsIgnoreCase(status)){
+        if (!Constants.SCHEDULE_TASK_READY.equalsIgnoreCase(status)) {
             return false;
         }
-        
-        if(Constants.SCHEDULE_MODE_MONTHLY.equalsIgnoreCase(scheduleMode)){
+
+        if (Constants.SCHEDULE_MODE_MONTHLY.equalsIgnoreCase(scheduleMode)) {
             meetExecution = meetMonthlyExecution(userTask);
-        }else if(Constants.SCHEDULE_MODE_WEEKLY.equalsIgnoreCase(scheduleMode)){
+        } else if (Constants.SCHEDULE_MODE_WEEKLY.equalsIgnoreCase(scheduleMode)) {
             meetExecution = meetWeeklyExecution(userTask);
-        }else if(Constants.SCHEDULE_MODE_DAILY.equalsIgnoreCase(scheduleMode)){
+        } else if (Constants.SCHEDULE_MODE_DAILY.equalsIgnoreCase(scheduleMode)) {
             meetExecution = meetDailyExecution(userTask);
-        }else if(Constants.SCHEDULE_MODE_HOURLY.equalsIgnoreCase(scheduleMode)){
+        } else if (Constants.SCHEDULE_MODE_HOURLY.equalsIgnoreCase(scheduleMode)) {
             meetExecution = meetHourlyExecution(userTask);
-        }else{
+        } else {
             //
         }
-        
-        if(!meetExecution){
+
+        if (!meetExecution) {
             return false;
         }
 
@@ -266,9 +275,9 @@ public class UserScheduledTaskService {
         userTask.setStatus(Constants.SCHEDULE_TASK_RUNNING);
         userTask.setRev(newRev);
         int updateResult = userScheduledTaskMapper.updateByPrimaryKeySelectiveCas(userTask, expectedRev);
-        if(updateResult > 0){
-            return true; 
-        }else{
+        if (updateResult > 0) {
+            return true;
+        } else {
             log.info("Failed to get lock for user scheduled task:{}", userTask.getId());
             return false;
         }
@@ -316,7 +325,7 @@ public class UserScheduledTaskService {
         exprCal.set(Calendar.HOUR_OF_DAY, exprHour);
         exprCal.set(Calendar.MINUTE, exprMin);
         exprCal.set(Calendar.SECOND, exprSecond);
-        
+
         if (curCal.compareTo(exprCal) >= 0) {
             return true;
         }
@@ -339,7 +348,7 @@ public class UserScheduledTaskService {
         int curYear = curCal.get(Calendar.YEAR);
         int curMon = curCal.get(Calendar.MONTH);
         int currWeek = curCal.get(Calendar.WEEK_OF_YEAR);
-//        int curDay = curCal.get(Calendar.DAY_OF_MONTH);
+        // int curDay = curCal.get(Calendar.DAY_OF_MONTH);
 
         // 1 check last execution time
         Date lastExecTime = userTask.getExecStartTime();
@@ -476,15 +485,30 @@ public class UserScheduledTaskService {
     }
 
     protected void performExecution(UserScheduledTaskEntity userTask) {
-        // TODO
         log.info("try perform user scheduled task:{}", userTask.getId());
+        String procDefId = userTask.getProcDefId();
+        String rootEntityDataId = userTask.getEntityDataId();
+        ProcessDataPreviewDto previewDto = workflowDataService.generateProcessDataPreview(procDefId, rootEntityDataId);
+
+        StartProcInstRequestDto startProcInstRequestDto = new StartProcInstRequestDto();
+        startProcInstRequestDto.setEntityDataId(rootEntityDataId);
+        startProcInstRequestDto.setEntityDisplayName(userTask.getEntityDataName());
+
+        String entityTypeId = null;//TODO
+        startProcInstRequestDto.setEntityTypeId(entityTypeId);
+        startProcInstRequestDto.setProcDefId(procDefId);
+        startProcInstRequestDto.setProcessSessionId(previewDto.getProcessSessionId());
+        startProcInstRequestDto.setProcBatchKey(userTask.getId());
+
+        ProcInstInfoDto procInstInfoDto = workflowProcInstService.createProcessInstance(startProcInstRequestDto);
+        log.info("Process created:{}", procInstInfoDto);
     }
-    
+
     protected void postPerformExecution(UserScheduledTaskEntity userTask) {
-        
+
         int execTimes = userTask.getExecTimes();
         int newExecTimes = execTimes + 1;
-        
+
         int expectedRev = userTask.getRev();
         int newRev = expectedRev - 1;
         userTask.setExecEndTime(new Date());
@@ -492,9 +516,9 @@ public class UserScheduledTaskService {
         userTask.setRev(newRev);
         userTask.setExecTimes(newExecTimes);
         int updateResult = userScheduledTaskMapper.updateByPrimaryKeySelectiveCas(userTask, expectedRev);
-        if(updateResult > 0){
+        if (updateResult > 0) {
             log.info("Post perform execution succeed:{}", userTask.getId());
-        }else{
+        } else {
             log.info("Post perform execution succeed:{}", userTask.getId());
         }
     }
