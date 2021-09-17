@@ -214,7 +214,14 @@ public class UserScheduledTaskService {
         List<UserScheduledTaskEntity> outstandingTasks = scanReadyUserTasks();
 
         if (outstandingTasks == null || outstandingTasks.isEmpty()) {
+            if(log.isDebugEnabled()){
+                log.debug("There is not outstanding user scheduled tasks to handle.");
+            }
             return;
+        }
+        
+        if(log.isDebugEnabled()){
+            log.debug("Total {} outstanding user scheduled tasks to handle.", outstandingTasks.size());
         }
 
         for (UserScheduledTaskEntity outstandingTask : outstandingTasks) {
