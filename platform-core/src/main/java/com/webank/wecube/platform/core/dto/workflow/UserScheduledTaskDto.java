@@ -14,6 +14,11 @@ public class UserScheduledTaskDto {
 
     private String scheduleMode;//
     private String scheduleExpr;
+    
+    private String createdTime;
+    
+    private int totalCompletedInstances;
+    private int totalFaultedInstances;
 
     public String getId() {
         return id;
@@ -87,4 +92,29 @@ public class UserScheduledTaskDto {
         this.scheduleExpr = scheduleExpr;
     }
 
+    public int getTotalCompletedInstances() {
+        return totalCompletedInstances;
+    }
+
+    public void setTotalCompletedInstances(int totalCompletedInstances) {
+        this.totalCompletedInstances = totalCompletedInstances;
+    }
+
+    public int getTotalFaultedInstances() {
+        return totalFaultedInstances;
+    }
+
+    public void setTotalFaultedInstances(int totalFaultedInstances) {
+        this.totalFaultedInstances = totalFaultedInstances;
+    }
+
+    public String getCreatedTime() {
+        return createdTime;
+    }
+
+    public void setCreatedTime(String createdTime) {
+        this.createdTime = createdTime;
+    }
+
+    
 }
