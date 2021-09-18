@@ -225,4 +225,5 @@ export const getPluginReport = data =>
   req.post(`platform/v1/statistics/process/definitions/executions/plugin/reports/query`, data)
 export const getFlowExecutePluginList = () =>
   req.get(`platform/v1/statistics/process/definitions/tasknodes/service-ids`)
-export const getFlowExecuteOverviews = () => req.get(`platform/v1/statistics/process/definitions/executions/overviews`)
+export const getFlowExecuteOverviews = data =>
+  req.post(`platform/v1/statistics/process/definitions/executions/overviews/query`, data)
