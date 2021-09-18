@@ -17,8 +17,8 @@ public class UserScheduledTaskHandler {
 
     @Scheduled(cron="*/10 * * * * ?")
     public void executeUserScheduledTasks(){
-        if(log.isDebugEnabled()){
-            log.debug("scheduled user task execution start...");
+        if(log.isTraceEnabled()){
+            log.trace("scheduled user task execution start...");
         }
         
         try{
@@ -27,8 +27,8 @@ public class UserScheduledTaskHandler {
             log.info("scheduled user task processing errors", e);
         }
         
-        if(log.isDebugEnabled()){
-            log.debug("scheduled user task execution end...");
+        if(log.isTraceEnabled()){
+            log.trace("scheduled user task execution end...");
         }
     }
 }

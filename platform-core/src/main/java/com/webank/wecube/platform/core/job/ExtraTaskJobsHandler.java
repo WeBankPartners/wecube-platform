@@ -17,8 +17,8 @@ public class ExtraTaskJobsHandler {
     
     @Scheduled(cron="0 */5 * * * ?")
     public void extractOutstandingExtraTasks(){
-        if(log.isDebugEnabled()){
-            log.debug("scheduled extra task execution start...");
+        if(log.isTraceEnabled()){
+            log.trace("scheduled extra task execution start...");
         }
         
         try{
@@ -27,8 +27,8 @@ public class ExtraTaskJobsHandler {
             log.info("extra task processing errors", e);
         }
         
-        if(log.isDebugEnabled()){
-            log.debug("scheduled extra task execution end...");
+        if(log.isTraceEnabled()){
+            log.trace("scheduled extra task execution end...");
         }
     }
 

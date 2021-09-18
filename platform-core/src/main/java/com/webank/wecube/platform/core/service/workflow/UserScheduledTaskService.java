@@ -301,18 +301,18 @@ public class UserScheduledTaskService {
      * 
      */
     public void execute() {
-        if (log.isDebugEnabled()) {
-            log.debug("About to execute user scheduled tasks.");
+        if (log.isTraceEnabled()) {
+            log.trace("About to execute user scheduled tasks.");
         }
 
         try {
             doExecute();
         } catch (Exception e) {
-
+            log.info("Errors while executing user scheduled tasks.", e);
         }
 
-        if (log.isDebugEnabled()) {
-            log.debug("Finished executing user scheduled tasks.");
+        if (log.isTraceEnabled()) {
+            log.trace("Finished executing user scheduled tasks.");
         }
     }
 
@@ -346,7 +346,8 @@ public class UserScheduledTaskService {
         try {
             performExecution(outstandingTask);
         } catch (Exception e) {
-            log.warn("Errors while perform execution.", e);
+            String errMsg = String.format("Errors while perform user scheduled task:%s", outstandingTask.getId());
+            log.info(errMsg, e);
         }
 
         postPerformExecution(outstandingTask);
@@ -640,9 +641,9 @@ public class UserScheduledTaskService {
         userTask.setExecTimes(newExecTimes);
         int updateResult = userScheduledTaskMapper.updateByPrimaryKeySelectiveCas(userTask, expectedRev);
         if (updateResult > 0) {
-            log.info("Post perform execution succeed:{}", userTask.getId());
+            log.debug("Post perform execution succeed:{}", userTask.getId());
         } else {
-            log.info("Post perform execution failed:{}", userTask.getId());
+            log.debug("Post perform execution failed:{}", userTask.getId());
         }
     }
 
