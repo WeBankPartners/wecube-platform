@@ -18,8 +18,8 @@ public class OperationEventJobsHandler {
     
     @Scheduled(cron="*/10 * * * * ?")
     public void extractOutstandingOperationEvents(){
-        if(log.isDebugEnabled()){
-            log.debug("scheduled execution start...");
+        if(log.isTraceEnabled()){
+            log.trace("scheduled execution start...");
         }
         
         try{
@@ -28,8 +28,8 @@ public class OperationEventJobsHandler {
             log.info("operation event processing errors", e);
         }
         
-        if(log.isDebugEnabled()){
-            log.debug("scheduled execution end...");
+        if(log.isTraceEnabled()){
+            log.trace("scheduled execution end...");
         }
     }
     
