@@ -1,5 +1,9 @@
 package com.webank.wecube.platform.core.service.workflow;
 
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
@@ -12,12 +16,17 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.webank.wecube.platform.core.commons.AuthenticationContextHolder;
+import com.webank.wecube.platform.core.commons.WecubeCoreException;
 import com.webank.wecube.platform.core.dto.workflow.ProcInstInfoDto;
 import com.webank.wecube.platform.core.dto.workflow.ProcessDataPreviewDto;
 import com.webank.wecube.platform.core.dto.workflow.StartProcInstRequestDto;
 import com.webank.wecube.platform.core.dto.workflow.UserScheduledTaskDto;
+import com.webank.wecube.platform.core.dto.workflow.UserScheduledTaskProcInstanceQueryDto;
+import com.webank.wecube.platform.core.dto.workflow.UserScheduledTaskProcessInstanceDto;
 import com.webank.wecube.platform.core.dto.workflow.UserScheduledTaskQueryDto;
+import com.webank.wecube.platform.core.entity.workflow.ProcInstInfoEntity;
 import com.webank.wecube.platform.core.entity.workflow.UserScheduledTaskEntity;
+import com.webank.wecube.platform.core.repository.workflow.ProcInstInfoMapper;
 import com.webank.wecube.platform.core.repository.workflow.UserScheduledTaskMapper;
 import com.webank.wecube.platform.core.utils.Constants;
 import com.webank.wecube.platform.workflow.commons.LocalIdGenerator;
@@ -29,6 +38,9 @@ public class UserScheduledTaskService {
 
     @Autowired
     private UserScheduledTaskMapper userScheduledTaskMapper;
+
+    @Autowired
+    private ProcInstInfoMapper procInstInfoMapper;
 
     @Autowired
     private WorkflowDataService workflowDataService;
@@ -108,9 +120,104 @@ public class UserScheduledTaskService {
      * @param queryDto
      * @return
      */
+    public List<UserScheduledTaskProcessInstanceDto> fetchUserScheduledTaskProcessInstances(
+            UserScheduledTaskProcInstanceQueryDto queryDto) {
+        List<UserScheduledTaskProcessInstanceDto> instDtos = new ArrayList<>();
+        if(queryDto == null) {
+            return instDtos;
+        }
+        
+        Date startTime = parseDate(queryDto.getStartTime());
+        Date endTime = parseDate(queryDto.getEndTime());
+
+        String procDefName = queryDto.getProcDefName();
+//        String entityDataId = queryDto.getEntityDataId();
+//        entityDataName = queryDto.getEntityDataName();
+
+//        String owner = queryDto.getOwner();
+        String procStatus = queryDto.getProcInstanceStatus();
+        String userTaskId = queryDto.getUserTaskId();
+        
+        List<ProcInstInfoEntity> procInsts = procInstInfoMapper.selectAllByProcBatchKey(procDefName, procStatus, startTime, endTime, userTaskId);
+        if(procInsts == null || procInsts.isEmpty()) {
+            return instDtos;
+        }
+        
+        for(ProcInstInfoEntity procInst : procInsts) {
+            UserScheduledTaskProcessInstanceDto dto = new UserScheduledTaskProcessInstanceDto();
+            dto.setExecTime(formatStatiticsDate(procInst.getCreatedTime()));
+            dto.setProcDefId(procInst.getProcDefId());
+            dto.setProcDefName(procInst.getProcDefName());
+            dto.setProcInstId(procInst.getId());
+            dto.setStatus(procInst.getStatus());
+            
+            instDtos.add(dto);
+        }
+
+        return instDtos;
+    }
+
+    /**
+     * 
+     * @param queryDto
+     * @return
+     */
     public List<UserScheduledTaskDto> fetchUserScheduledTasks(UserScheduledTaskQueryDto queryDto) {
-        // TODO
-        return null;
+        Date startTime = null;
+        Date endTime = null;
+
+        String procDefName = null;
+        String entityDataId = null;
+//        String entityDataName = null;
+
+        String owner = null;
+
+        if (queryDto != null) {
+            startTime = parseDate(queryDto.getStartTime());
+            endTime = parseDate(queryDto.getEndTime());
+
+            procDefName = queryDto.getProcDefName();
+            entityDataId = queryDto.getEntityDataId();
+//            entityDataName = queryDto.getEntityDataName();
+
+            owner = queryDto.getOwner();
+        }
+
+        List<UserScheduledTaskEntity> userTasks = userScheduledTaskMapper
+                .selectAllAvailableTasksWithFilters(procDefName, entityDataId, owner, startTime, endTime);
+
+        List<UserScheduledTaskDto> resultDtos = new ArrayList<>();
+        if (userTasks == null) {
+            return resultDtos;
+        }
+
+        for (UserScheduledTaskEntity userTask : userTasks) {
+            UserScheduledTaskDto taskDto = new UserScheduledTaskDto();
+            taskDto.setId(userTask.getId());
+            taskDto.setEntityDataId(userTask.getEntityDataId());
+            taskDto.setEntityDataName(userTask.getEntityDataName());
+            taskDto.setOwner(userTask.getOwner());
+            taskDto.setProcDefId(userTask.getProcDefId());
+            taskDto.setProcDefName(userTask.getProcDefName());
+            taskDto.setScheduleExpr(userTask.getScheduleExpr());
+            taskDto.setScheduleMode(userTask.getScheduleMode());
+            taskDto.setStatus(userTask.getStatus());
+
+            String createdTime = formatStatiticsDate(userTask.getCreatedTime());
+            taskDto.setCreatedTime(createdTime);
+
+            int totalCompletedInstances = countTriggeredProcInstances(procDefName, ProcInstInfoEntity.COMPLETED_STATUS,
+                    startTime, endTime, userTask.getId());
+            int totalFaultedInstances = countTriggeredProcInstances(procDefName,
+                    ProcInstInfoEntity.INTERNALLY_TERMINATED_STATUS, startTime, endTime, userTask.getId());
+
+            taskDto.setTotalCompletedInstances(totalCompletedInstances);
+            taskDto.setTotalFaultedInstances(totalFaultedInstances);
+
+            resultDtos.add(taskDto);
+        }
+
+        return resultDtos;
     }
 
     /**
@@ -214,13 +321,13 @@ public class UserScheduledTaskService {
         List<UserScheduledTaskEntity> outstandingTasks = scanReadyUserTasks();
 
         if (outstandingTasks == null || outstandingTasks.isEmpty()) {
-            if(log.isDebugEnabled()){
+            if (log.isDebugEnabled()) {
                 log.debug("There is not outstanding user scheduled tasks to handle.");
             }
             return;
         }
-        
-        if(log.isDebugEnabled()){
+
+        if (log.isDebugEnabled()) {
             log.debug("Total {} outstanding user scheduled tasks to handle.", outstandingTasks.size());
         }
 
@@ -236,7 +343,11 @@ public class UserScheduledTaskService {
             return;
         }
 
-        performExecution(outstandingTask);
+        try {
+            performExecution(outstandingTask);
+        } catch (Exception e) {
+            log.warn("Errors while perform execution.", e);
+        }
 
         postPerformExecution(outstandingTask);
     }
@@ -278,6 +389,9 @@ public class UserScheduledTaskService {
         // step 2 try to update status and lock
         int expectedRev = userTask.getRev();
         int newRev = expectedRev + 1;
+        if (newRev >= Integer.MAX_VALUE) {
+            newRev = 0;
+        }
         userTask.setExecStartTime(new Date());
         userTask.setStatus(Constants.SCHEDULE_TASK_RUNNING);
         userTask.setRev(newRev);
@@ -457,7 +571,6 @@ public class UserScheduledTaskService {
         int curMon = curCal.get(Calendar.MONTH);
         int curDay = curCal.get(Calendar.DAY_OF_MONTH);
         int curHour = curCal.get(Calendar.HOUR_OF_DAY);
-        System.out.println(curYear + " " + curMon + " " + curDay + " " + curHour);
 
         // 1 check last execution time
         Date lastExecTime = userTask.getExecStartTime();
@@ -501,7 +614,7 @@ public class UserScheduledTaskService {
         startProcInstRequestDto.setEntityDataId(rootEntityDataId);
         startProcInstRequestDto.setEntityDisplayName(userTask.getEntityDataName());
 
-        String entityTypeId = null;//TODO
+        String entityTypeId = null;// ?
         startProcInstRequestDto.setEntityTypeId(entityTypeId);
         startProcInstRequestDto.setProcDefId(procDefId);
         startProcInstRequestDto.setProcessSessionId(previewDto.getProcessSessionId());
@@ -517,7 +630,10 @@ public class UserScheduledTaskService {
         int newExecTimes = execTimes + 1;
 
         int expectedRev = userTask.getRev();
-        int newRev = expectedRev - 1;
+        int newRev = expectedRev + 1;
+        if (newRev >= Integer.MAX_VALUE) {
+            newRev = 0;
+        }
         userTask.setExecEndTime(new Date());
         userTask.setStatus(Constants.SCHEDULE_TASK_READY);
         userTask.setRev(newRev);
@@ -526,7 +642,42 @@ public class UserScheduledTaskService {
         if (updateResult > 0) {
             log.info("Post perform execution succeed:{}", userTask.getId());
         } else {
-            log.info("Post perform execution succeed:{}", userTask.getId());
+            log.info("Post perform execution failed:{}", userTask.getId());
         }
+    }
+
+    private Date parseDate(String dateStr) {
+        if (StringUtils.isBlank(dateStr)) {
+            return null;
+        }
+        String pattern = "yyyy-MM-dd HH:mm:ss";
+        DateFormat df = new SimpleDateFormat(pattern);
+
+        try {
+            Date date = df.parse(dateStr);
+            return date;
+        } catch (ParseException e) {
+            return null;
+        }
+    }
+
+    private String formatStatiticsDate(Date date) {
+        if (date == null) {
+            return null;
+        }
+
+        String pattern = "yyyy-MM-dd HH:mm:ss SSS";
+        DateFormat df = new SimpleDateFormat(pattern);
+        String sDate = df.format(date);
+        return sDate;
+    }
+
+    private int countTriggeredProcInstances(String procDefId, String status, Date startDate, Date endDate,
+            String procBatchKey) {
+        if (StringUtils.isBlank(procBatchKey)) {
+            throw new WecubeCoreException("Process batch key can not be blank.");
+        }
+        int count = procInstInfoMapper.countByProcBatchKey(procDefId, status, startDate, endDate, procBatchKey);
+        return count;
     }
 }

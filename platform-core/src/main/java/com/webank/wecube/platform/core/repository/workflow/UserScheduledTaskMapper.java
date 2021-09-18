@@ -1,5 +1,6 @@
 package com.webank.wecube.platform.core.repository.workflow;
 
+import java.util.Date;
 import java.util.List;
 
 import org.apache.ibatis.annotations.Param;
@@ -20,18 +21,32 @@ public interface UserScheduledTaskMapper {
     int updateByPrimaryKeySelective(UserScheduledTaskEntity record);
 
     int updateByPrimaryKey(UserScheduledTaskEntity record);
-    
+
     /**
      * 
      * @param record
      * @param expectedRev
      * @return
      */
-    int updateByPrimaryKeySelectiveCas(@Param("record") UserScheduledTaskEntity record, @Param("expectedRev") int expectedRev);
-    
+    int updateByPrimaryKeySelectiveCas(@Param("record") UserScheduledTaskEntity record,
+            @Param("expectedRev") int expectedRev);
+
     /**
      * 
      * @return
      */
     List<UserScheduledTaskEntity> selectAllOutstandingTasks();
+
+    /**
+     * 
+     * @param procDefName
+     * @param entityDataId
+     * @param owner
+     * @param startTime
+     * @param endTime
+     * @return
+     */
+    List<UserScheduledTaskEntity> selectAllAvailableTasksWithFilters(@Param("procDefName") String procDefName,
+            @Param("entityDataId") String entityDataId, @Param("owner") String owner,
+            @Param("startTime") Date startTime, @Param("endTime") Date endTime);
 }

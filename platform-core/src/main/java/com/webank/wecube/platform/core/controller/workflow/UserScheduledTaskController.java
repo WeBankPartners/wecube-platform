@@ -10,6 +10,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.webank.wecube.platform.core.dto.plugin.CommonResponseDto;
 import com.webank.wecube.platform.core.dto.workflow.UserScheduledTaskDto;
+import com.webank.wecube.platform.core.dto.workflow.UserScheduledTaskProcInstanceQueryDto;
+import com.webank.wecube.platform.core.dto.workflow.UserScheduledTaskProcessInstanceDto;
 import com.webank.wecube.platform.core.dto.workflow.UserScheduledTaskQueryDto;
 import com.webank.wecube.platform.core.service.workflow.UserScheduledTaskService;
 
@@ -51,6 +53,18 @@ public class UserScheduledTaskController {
     @PostMapping("/user-scheduled-tasks/query")
     public CommonResponseDto fetchUserScheduledTasks(@RequestBody UserScheduledTaskQueryDto queryDto) {
         List<UserScheduledTaskDto> taskDtos = userScheduledTaskService.fetchUserScheduledTasks(queryDto);
+        return CommonResponseDto.okayWithData(taskDtos);
+    }
+    
+    
+    /**
+     * 
+     * @param queryDto
+     * @return
+     */
+    @PostMapping("/user-scheduled-tasks/process-instances/query")
+    public CommonResponseDto fetchUserScheduledTaskProcessInstances(@RequestBody UserScheduledTaskProcInstanceQueryDto queryDto) {
+        List<UserScheduledTaskProcessInstanceDto> taskDtos = userScheduledTaskService.fetchUserScheduledTaskProcessInstances(queryDto);
         return CommonResponseDto.okayWithData(taskDtos);
     }
 

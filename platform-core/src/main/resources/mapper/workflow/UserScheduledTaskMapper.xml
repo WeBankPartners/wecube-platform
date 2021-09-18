@@ -232,4 +232,97 @@
       exec_times = #{execTimes,jdbcType=INTEGER}
     where id = #{id,jdbcType=VARCHAR}
   </update>
+  
+  
+  <update id="updateByPrimaryKeySelectiveCas" >
+    update core_user_scheduled_task
+    <set >
+      <if test="record.createdBy != null" >
+        created_by = #{record.createdBy,jdbcType=VARCHAR},
+      </if>
+      <if test="record.createdTime != null" >
+        created_time = #{record.createdTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="record.updatedBy != null" >
+        updated_by = #{record.updatedBy,jdbcType=VARCHAR},
+      </if>
+      <if test="record.updatedTime != null" >
+        updated_time = #{record.updatedTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="record.owner != null" >
+        owner = #{record.owner,jdbcType=VARCHAR},
+      </if>
+      <if test="record.procDefId != null" >
+        proc_def_id = #{record.procDefId,jdbcType=VARCHAR},
+      </if>
+      <if test="record.procDefName != null" >
+        proc_def_name = #{record.procDefName,jdbcType=VARCHAR},
+      </if>
+      <if test="record.entityDataId != null" >
+        entity_data_id = #{record.entityDataId,jdbcType=VARCHAR},
+      </if>
+      <if test="record.entityDataName != null" >
+        entity_data_name = #{record.entityDataName,jdbcType=VARCHAR},
+      </if>
+      <if test="record.status != null" >
+        status = #{record.status,jdbcType=VARCHAR},
+      </if>
+      <if test="record.scheduleMode != null" >
+        schedule_mode = #{record.scheduleMode,jdbcType=VARCHAR},
+      </if>
+      <if test="record.scheduleExpr != null" >
+        schedule_expr = #{record.scheduleExpr,jdbcType=VARCHAR},
+      </if>
+      <if test="record.rev != null" >
+        rev = #{record.rev,jdbcType=INTEGER},
+      </if>
+      <if test="record.execStartTime != null" >
+        exec_start_time = #{record.execStartTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="record.execEndTime != null" >
+        exec_end_time = #{record.execEndTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="record.execTimes != null" >
+        exec_times = #{record.execTimes,jdbcType=INTEGER},
+      </if>
+    </set>
+    where id = #{record.id,jdbcType=VARCHAR}
+    and
+    rev =
+        #{expectedRev,jdbcType=INTEGER}
+  </update>
+  
+  <select id="selectAllOutstandingTasks" resultMap="BaseResultMap" parameterType="java.lang.String" >
+    select 
+    <include refid="Base_Column_List" />
+    from core_user_scheduled_task
+    where 
+    status = 'Ready'
+    or status = 'Running'
+  </select>
+  
+  <select id="selectAllAvailableTasksWithFilters" resultMap="BaseResultMap">
+    select 
+    <include refid="Base_Column_List" />
+    from core_user_scheduled_task
+    where 
+    1 = 1
+    <if test="procDefName != null">
+    AND proc_def_name = #{procDefName,jdbcType=VARCHAR}
+    </if>
+    <if test="entityDataId != null">
+    AND entity_data_id = #{entityDataId,jdbcType=VARCHAR}
+    </if>
+    <if test="owner != null">
+    AND owner = #{owner,jdbcType=VARCHAR}
+    </if>
+    <if test="startDate != null">
+    AND created_time &gt;= #{startDate,jdbcType=TIMESTAMP}
+    </if>
+    <if test="endDate != null">
+    AND created_time &lt;= #{endDate,jdbcType=TIMESTAMP}
+    </if>
+    AND status != 'Deleted'
+    
+  </select>
 </mapper>
