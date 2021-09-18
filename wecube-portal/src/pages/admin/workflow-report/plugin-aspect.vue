@@ -70,10 +70,10 @@ export default {
       searchParams: {},
       searchConfig: {
         params: {
-          startDate: '2021-08-03 00:00:00',
-          endDate: '2021-09-08 00:00:00',
+          startDate: '',
+          endDate: '',
           entityDataIds: [],
-          serviceIds: ['notification/mail(alarm)/send'],
+          serviceIds: [''],
           pageable: {
             pageSize: 100,
             startIndex: 0
@@ -208,7 +208,7 @@ export default {
 .report-container {
   display: flex;
   flex-wrap: wrap;
-  margin-bottom: 32px;
+  margin-bottom: 16px;
 }
 .item {
   width: 290px;

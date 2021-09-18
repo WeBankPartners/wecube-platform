@@ -177,6 +177,7 @@ export default {
           title: d.procExecDate,
           tooltip: true,
           key: 'value' + index,
+          width: 550,
           disabled: false,
           isDisplay: true,
           other: d,

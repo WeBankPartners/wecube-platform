@@ -93,12 +93,12 @@ export default {
       searchParams: {},
       searchConfig: {
         params: {
-          startDate: '2021-08-03 00:00:00',
-          endDate: '2021-09-08 00:00:00',
+          startDate: '',
+          endDate: '',
           entityDataIds: [],
           serviceIds: [],
-          taskNodeIds: ['sCx5dtuB3n3D'],
-          procDefIds: ['sCx5dtcB3mYW'],
+          taskNodeIds: [],
+          procDefIds: [],
           pageable: {
             pageSize: 100,
             startIndex: 0
@@ -251,7 +251,7 @@ export default {
 .report-container {
   display: flex;
   flex-wrap: wrap;
-  margin-bottom: 32px;
+  margin-bottom: 16px;
 }
 .item {
   width: 290px;

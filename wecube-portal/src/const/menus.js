@@ -96,7 +96,7 @@ export const MENUS = [
   },
   {
     code: 'ADMIN_SYSTEM_WORKFLOW_REPORT',
-    cnName: '编排执行历史',
+    cnName: '编排执行报表',
     enName: 'Workflow Report',
     link: '/admin/workflow-report'
   }

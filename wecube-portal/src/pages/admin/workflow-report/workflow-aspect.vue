@@ -1,18 +1,60 @@
 <template>
   <div style="text-align: end;">
-    <Button type="primary" style="margin-bottom:16px;" @click="getFlowExecuteOverviews"> {{ $t('query') }}</Button>
+    <div class="report-container">
+      <div class="item">
+        {{ $t('datetime_range') }}:
+        <DatePicker type="datetimerange" format="yyyy-MM-dd HH:mm:ss" @on-change="getDate"></DatePicker>
+      </div>
+      <div class="item">
+        {{ $t('flow_name') }}:
+        <Select
+          v-model="searchConfig.params.procDefIds"
+          :max-tag-count="2"
+          multiple
+          filterable
+          @on-open-change="getProcess"
+          style="width:200px"
+        >
+          <Option v-for="item in searchConfig.processOptions" :value="item.procDefId" :key="item.procDefId">{{
+            item.procDefName
+          }}</Option>
+        </Select>
+      </div>
+      <div class="item">
+        {{ $t('display_number') }}:
+        <Select v-model="searchConfig.params.pageable.pageSize" filterable style="width:200px">
+          <Option v-for="item in searchConfig.displayNumberOptions" :value="item" :key="item">{{ item }}</Option>
+        </Select>
+      </div>
+      <div class="item">
+        <Button type="primary" :disabled="!disableBtn()" @click="getFlowExecuteOverviews"> {{ $t('query') }}</Button>
+      </div>
+    </div>
     <Table size="small" :columns="tableColumns" :max-height="MODALHEIGHT" :data="tableData"></Table>
   </div>
 </template>
 
 <script>
-import { getFlowExecuteOverviews } from '@/api/server.js'
+import { getFlowExecuteOverviews, getProcessList } from '@/api/server.js'
 export default {
   name: '',
   data () {
     return {
       MODALHEIGHT: 0,
       tableData: [],
+      searchConfig: {
+        params: {
+          startDate: '',
+          endDate: '',
+          procDefIds: [],
+          pageable: {
+            pageSize: 100,
+            startIndex: 0
+          }
+        },
+        processOptions: [],
+        displayNumberOptions: [100, 300, 500, 1000]
+      },
       tableColumns: [
         {
           type: 'index',
@@ -65,18 +107,44 @@ export default {
   },
   mounted () {
     this.MODALHEIGHT = document.body.scrollHeight - 300
-    this.getFlowExecuteOverviews()
   },
   methods: {
     async getFlowExecuteOverviews () {
-      const { status, data } = await getFlowExecuteOverviews()
+      const { status, data } = await getFlowExecuteOverviews(this.searchConfig.params)
       if (status === 'OK') {
         this.tableData = data
       }
+    },
+    async getProcess () {
+      const { status, data } = await getProcessList()
+      if (status === 'OK') {
+        this.searchConfig.processOptions = data
+      }
+    },
+    getDate (dateRange) {
+      this.searchConfig.params.startDate = dateRange[0]
+      this.searchConfig.params.endDate = dateRange[1]
+    },
+    disableBtn () {
+      return (
+        this.searchConfig.params.startDate !== '' &&
+        this.searchConfig.params.endDate !== '' &&
+        this.searchConfig.params.procDefIds.length !== 0
+      )
     }
   },
   components: {}
 }
 </script>
 
-<style scoped lang="scss"></style>
+<style scoped lang="scss">
+.report-container {
+  display: flex;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+.item {
+  width: 290px;
+  margin: 8px;
+}
+</style>
