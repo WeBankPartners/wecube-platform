@@ -409,5 +409,36 @@
         group by proc_def_id, proc_def_name
         order by proc_def_name
     </select>
+    
+    <select id="countByProcBatchKey" 
+        resultType="java.lang.Integer">
+        select
+        count(1)
+        from core_ru_proc_inst_info
+        where 1=1
+        and proc_def_name =
+        #{procDefName,jdbcType=VARCHAR}
+        and
+        status = #{status,jdbcType=VARCHAR}
+        and 
+        proc_batch_key =
+        #{procBatchKey,jdbcType=VARCHAR}
+    </select>
+    
+    <select id="selectAllByProcBatchKey" 
+        resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List" />
+        from core_ru_proc_inst_info
+        where 1=1
+        and proc_def_name =
+        #{procDefName,jdbcType=VARCHAR}
+        and
+        status = #{status,jdbcType=VARCHAR}
+        and 
+        proc_batch_key =
+        #{procBatchKey,jdbcType=VARCHAR}
+        order by proc_def_name
+    </select>
 
 </mapper>

@@ -105,7 +105,7 @@ public interface ProcInstInfoMapper {
      * @param procBatchKey
      * @return
      */
-    int countByProcBatchKey(@Param("procDefId") String procDefId, @Param("status") String status,
+    int countByProcBatchKey(@Param("procDefName") String procDefName, @Param("status") String status,
             @Param("startDate") Date startDate, @Param("endDate") Date endDate, @Param("procBatchKey") String procBatchKey);
     
     /**
@@ -117,6 +117,6 @@ public interface ProcInstInfoMapper {
      * @param procBatchKey
      * @return
      */
-    List<ProcInstInfoEntity> selectAllByProcBatchKey(@Param("procDefId") String procDefId, @Param("status") String status,
+    List<ProcInstInfoEntity> selectAllByProcBatchKey(@Param("procDefName") String procDefName, @Param("status") String status,
             @Param("startDate") Date startDate, @Param("endDate") Date endDate, @Param("procBatchKey") String procBatchKey);
 }
