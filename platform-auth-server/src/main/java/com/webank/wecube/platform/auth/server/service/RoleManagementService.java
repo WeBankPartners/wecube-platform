@@ -57,6 +57,28 @@ public class RoleManagementService {
 
         return convertToSimpleLocalRoleDto(existedRole);
     }
+    
+    public SimpleLocalRoleDto updateLocalRole(SimpleLocalRoleDto roleDto) {
+        Optional<SysRoleEntity> roleOpt = roleRepository.findById(roleDto.getId());
+        if (!roleOpt.isPresent()) {
+            String msg = String.format("Role ID [%s] does not exist.", roleDto.getId());
+            throw new AuthServerException("3006", msg, roleDto.getId());
+        }
+        
+        SysRoleEntity role = roleOpt.get();
+        
+        if(roleDto.getDisplayName() != null) {
+            role.setDisplayName(roleDto.getDisplayName());
+        }
+        
+        if(roleDto.getEmail() != null) {
+            role.setEmailAddress(roleDto.getEmail());
+        }
+        
+        roleRepository.saveAndFlush(role);
+        
+        return convertToSimpleLocalRoleDto(role);
+    }
 
     public SimpleLocalRoleDto registerLocalRole(SimpleLocalRoleDto roleDto) {
         validateSimpleLocalRoleDto(roleDto);
