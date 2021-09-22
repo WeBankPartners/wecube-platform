@@ -168,6 +168,7 @@ public class UserScheduledTaskService {
 
         String procDefName = null;
         String entityDataId = null;
+        String scheduleMode = null;
 //        String entityDataName = null;
 
         String owner = null;
@@ -181,10 +182,11 @@ public class UserScheduledTaskService {
 //            entityDataName = queryDto.getEntityDataName();
 
             owner = queryDto.getOwner();
+            scheduleMode = queryDto.getScheduleMode();
         }
 
         List<UserScheduledTaskEntity> userTasks = userScheduledTaskMapper
-                .selectAllAvailableTasksWithFilters(procDefName, entityDataId, owner, startTime, endTime);
+                .selectAllAvailableTasksWithFilters(procDefName, entityDataId, owner, scheduleMode, startTime, endTime);
 
         List<UserScheduledTaskDto> resultDtos = new ArrayList<>();
         if (userTasks == null) {
