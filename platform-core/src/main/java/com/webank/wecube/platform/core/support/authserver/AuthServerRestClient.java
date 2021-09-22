@@ -200,7 +200,6 @@ public class AuthServerRestClient extends AbstractAuthServerRestClient {
             throw new AuthServerClientException("The ID of role to register cannot be empty.");
         }
 
-        //TODO
         AsRoleDto result = postForObject(clientProperties.getPathUpdateLocalRole(), request,
                 new ParameterizedTypeReference<AuthServerRestResponseDto<AsRoleDto>>() {
                 });
