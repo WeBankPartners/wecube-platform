@@ -33,6 +33,12 @@ public class LocalRoleManagementController {
 		SimpleLocalRoleDto result = roleManagementService.registerLocalRole(roleDto);
 		return okayWithData(result);
 	}
+	
+	@PostMapping("/roles/update")
+    public CommonResponseDto updateLocalRole(@RequestBody SimpleLocalRoleDto roleDto) {
+        SimpleLocalRoleDto result = roleManagementService.updateLocalRole(roleDto);
+        return okayWithData(result);
+    }
 
 	@GetMapping("/roles")
 	public CommonResponseDto retrieveAllLocalRoles() {
