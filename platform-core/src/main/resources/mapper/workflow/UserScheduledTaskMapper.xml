@@ -316,6 +316,9 @@
     <if test="owner != null">
     AND owner = #{owner,jdbcType=VARCHAR}
     </if>
+    <if test="scheduleMode != null">
+    AND schedule_mode = #{scheduleMode,jdbcType=VARCHAR}
+    </if>
     <if test="startDate != null">
     AND created_time &gt;= #{startDate,jdbcType=TIMESTAMP}
     </if>
