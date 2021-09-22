@@ -151,12 +151,70 @@ public class UserManagementService {
     
     @Transactional
     public void configureUserWithRoles(String userId, List<SimpleLocalRoleDto> roleDtos) {
-        //TODO
+        if(roleDtos == null || roleDtos.isEmpty()) {
+            return;
+        }
+        Optional<SysUserEntity> userOpt = userRepository.findById(userId);
+        if(!userOpt.isPresent()) {
+            String errMsg = String.format("Such user with ID %s does not exist.", userId);
+            throw new AuthServerException("3024", errMsg, userId);
+        }
+        
+        SysUserEntity user = userOpt.get();
+        
+        for(SimpleLocalRoleDto roleDto : roleDtos) {
+            Optional<SysRoleEntity> roleOpt = roleRepository.findById(roleDto.getId());
+            if(!roleOpt.isPresent()) {
+                throw new AuthServerException("3012", "Such role entity does not exist.");
+            }
+            
+            SysRoleEntity role = roleOpt.get();
+            
+            UserRoleRsEntity userRole = userRoleRsRepository.findOneByUserIdAndRoleId(userId, role.getId());
+            if (userRole != null) {
+                log.info("such user role configuration already exist,userId={},roleId={}", userId, role.getId());
+                continue;
+            } else {
+                userRole = new UserRoleRsEntity();
+                userRole.setCreatedBy(AuthenticationContextHolder.getCurrentUsername());
+                userRole.setUserId(userId);
+                userRole.setUsername(user.getUsername());
+                userRole.setRoleId(role.getId());
+                userRole.setRoleName(role.getName());
+
+                userRoleRsRepository.save(userRole);
+            }
+        }
     }
     
     @Transactional
     public void revokeRolesFromUser(String userId, List<SimpleLocalRoleDto> roleDtos) {
-        //TODO
+        if(roleDtos == null || roleDtos.isEmpty()) {
+            return;
+        }
+        Optional<SysUserEntity> userOpt = userRepository.findById(userId);
+        if(!userOpt.isPresent()) {
+            String errMsg = String.format("Such user with ID %s does not exist.", userId);
+            throw new AuthServerException("3024", errMsg, userId);
+        }
+        
+        SysUserEntity user = userOpt.get();
+        
+        for (SimpleLocalRoleDto roleDto : roleDtos) {
+            UserRoleRsEntity userRole = userRoleRsRepository.findOneByUserIdAndRoleId(user.getId(), roleDto.getId());
+            if (userRole == null) {
+                continue;
+            }
+
+            if (userRole.isDeleted()) {
+                continue;
+            }
+
+            userRole.setDeleted(true);
+            userRole.setUpdatedBy(AuthenticationContextHolder.getCurrentUsername());
+            userRole.setUpdatedTime(new Date());
+            userRoleRsRepository.save(userRole);
+        }
     }
 
     @Transactional
