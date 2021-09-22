@@ -393,7 +393,7 @@ public class UserManagementServiceImpl implements UserManagementService {
         });
 
         try {
-            authServerRestClient.configureUserRolesById(roleId, asUsers);
+            authServerRestClient.configureRoleForUsers(roleId, asUsers);
         } catch (AuthServerClientException e) {
             log.error("errors to grant role to users", e);
             throw new WecubeCoreException(e.getErrorMessage());
@@ -420,7 +420,7 @@ public class UserManagementServiceImpl implements UserManagementService {
         });
 
         try {
-            authServerRestClient.revokeUserRolesById(roleId, asUsers);
+            authServerRestClient.revokeRoleFromUsers(roleId, asUsers);
         } catch (AuthServerClientException e) {
             log.error("errors to revoke role from users", e);
             throw new WecubeCoreException(e.getErrorMessage());
@@ -451,20 +451,86 @@ public class UserManagementServiceImpl implements UserManagementService {
 
     @Override
     public void grantRolesToUser(String userId, List<String> roleIds) {
-        // TODO Auto-generated method stub
+        if (StringUtils.isBlank(userId)) {
+            throw new WecubeCoreException("User ID cannot be blank.");
+        }
+
+        if (roleIds == null || roleIds.isEmpty()) {
+            return;
+        }
+
+        List<AsRoleDto> asRoles = new ArrayList<>();
+        roleIds.forEach(roleId -> {
+            AsRoleDto asRole = new AsRoleDto();
+            asRole.setId(roleId);
+            //
+            asRoles.add(asRole);
+        });
+
+        try {
+            authServerRestClient.configureRolesForUser(userId, asRoles);
+        } catch (AuthServerClientException e) {
+            log.error("Errors to grant roles to user", e);
+            throw new WecubeCoreException(e.getErrorMessage());
+        }
         
     }
 
     @Override
     public void revokeRolesFromUser(String userId, List<String> roleIds) {
-        // TODO Auto-generated method stub
-        
+        if (StringUtils.isBlank(userId)) {
+            throw new WecubeCoreException("User ID cannot be blank.");
+        }
+
+        if (roleIds == null || roleIds.isEmpty()) {
+            return;
+        }
+
+        List<AsRoleDto> asRoles = new ArrayList<>();
+        roleIds.forEach(roleId -> {
+            AsRoleDto asRole = new AsRoleDto();
+            asRole.setId(roleId);
+            //
+            asRoles.add(asRole);
+        });
+
+        try {
+            authServerRestClient.revokeRolesFromUser(userId, asRoles);
+        } catch (AuthServerClientException e) {
+            log.error("Errors to revoke roles from user.", e);
+            throw new WecubeCoreException(e.getErrorMessage());
+        }
     }
 
     @Override
     public RoleDto updateLocalRole(String roleId, RoleDto role) {
-        // TODO Auto-generated method stub
-        return null;
+        if (StringUtils.isBlank(roleId)) {
+            throw new WecubeCoreException("Role ID cannot be blank.");
+        }
+        
+        AsRoleDto asRoleDto = new AsRoleDto();
+        asRoleDto.setDisplayName(role.getDisplayName());
+        asRoleDto.setEmail(role.getEmail());
+        asRoleDto.setName(role.getName());
+        asRoleDto.setId(roleId);
+        
+        
+        try {
+            AsRoleDto result = authServerRestClient.updateLocalRole(asRoleDto);
+            RoleDto retRoleDto = new RoleDto();
+            if (result != null) {
+                retRoleDto.setDisplayName(result.getDisplayName());
+                retRoleDto.setEmail(result.getEmail());
+                retRoleDto.setId(result.getId());
+                retRoleDto.setName(result.getName());
+            }
+
+            return retRoleDto;
+        } catch (RestClientException e) {
+            log.error("Failed to update local role.", e);
+            throw new WecubeCoreException(e.getErrorMessage());
+        }
+
     }
 
 }

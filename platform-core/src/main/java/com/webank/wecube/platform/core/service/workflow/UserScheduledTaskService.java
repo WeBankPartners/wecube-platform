@@ -669,7 +669,7 @@ public class UserScheduledTaskService {
             return null;
         }
 
-        String pattern = "yyyy-MM-dd HH:mm:ss SSS";
+        String pattern = "yyyy-MM-dd HH:mm:ss";
         DateFormat df = new SimpleDateFormat(pattern);
         String sDate = df.format(date);
         return sDate;

@@ -105,8 +105,36 @@ public class AuthServerRestClient extends AbstractAuthServerRestClient {
                 new ParameterizedTypeReference<AuthServerRestResponseDto<Object>>() {
                 });
     }
+    
+    public void revokeRolesFromUser(String userId, List<AsRoleDto> roleDtos) {
+        if (StringUtils.isBlank(userId)) {
+            throw new IllegalArgumentException();
+        }
+        
+        if (roleDtos == null || roleDtos.isEmpty()) {
+            return;
+        }
+        
+        postForObject(clientProperties.getPathRevokeRolesFromUser(), roleDtos,
+                new ParameterizedTypeReference<AuthServerRestResponseDto<Object>>() {
+                }, userId);
+    }
+    
+    public void configureRolesForUser(String userId, List<AsRoleDto> roleDtos) {
+        if (StringUtils.isBlank(userId)) {
+            throw new IllegalArgumentException();
+        }
+        
+        if (roleDtos == null || roleDtos.isEmpty()) {
+            return;
+        }
+        
+        postForObject(clientProperties.getPathConfigureRolesForUser(), roleDtos,
+                new ParameterizedTypeReference<AuthServerRestResponseDto<Object>>() {
+                }, userId);
+    }
 
-    public void revokeUserRolesById(String roleId, List<AsUserDto> userDtos) {
+    public void revokeRoleFromUsers(String roleId, List<AsUserDto> userDtos) {
         if (StringUtils.isBlank(roleId)) {
             throw new IllegalArgumentException();
         }
@@ -115,12 +143,14 @@ public class AuthServerRestClient extends AbstractAuthServerRestClient {
             return;
         }
 
-        postForObject(clientProperties.getPathRevokeUserRolesById(), userDtos,
+        postForObject(clientProperties.getPathRevokeRoleFromUsers(), userDtos,
                 new ParameterizedTypeReference<AuthServerRestResponseDto<Object>>() {
                 }, roleId);
     }
+    
+    
 
-    public void configureUserRolesById(String roleId, List<AsUserDto> asUsers) {
+    public void configureRoleForUsers(String roleId, List<AsUserDto> asUsers) {
         if (StringUtils.isBlank(roleId)) {
             throw new IllegalArgumentException();
         }
@@ -129,7 +159,7 @@ public class AuthServerRestClient extends AbstractAuthServerRestClient {
             return;
         }
 
-        postForObject(clientProperties.getPathConfigureUserRolesById(), asUsers,
+        postForObject(clientProperties.getPathConfigureRoleForUsers(), asUsers,
                 new ParameterizedTypeReference<AuthServerRestResponseDto<Object>>() {
                 }, roleId);
     }
@@ -159,6 +189,22 @@ public class AuthServerRestClient extends AbstractAuthServerRestClient {
         }
 
         deleteObject(clientProperties.getPathDeleteLocalRoleByRoleId(), roleId);
+    }
+    
+    public AsRoleDto updateLocalRole(AsRoleDto request) {
+        if (request == null) {
+            throw new IllegalArgumentException();
+        }
+
+        if (StringUtils.isBlank(request.getId())) {
+            throw new AuthServerClientException("The ID of role to register cannot be empty.");
+        }
+
+        //TODO
+        AsRoleDto result = postForObject(clientProperties.getPathUpdateLocalRole(), request,
+                new ParameterizedTypeReference<AuthServerRestResponseDto<AsRoleDto>>() {
+                });
+        return result;
     }
 
     public AsRoleDto registerLocalRole(AsRoleDto request) {
