@@ -501,5 +501,12 @@
   "in_progress_count": "执行中数量",
   "count": "总数",
   "hide_same_parameters": "隐藏相同参数",
-  "highlight_different_parameters": "高亮不同参数"
+  "highlight_different_parameters": "高亮不同参数",
+  "timed_execution": "定时执行",
+  "set_up_person": "设置人",
+  "timing_type": "定时类型",
+  "schedule_expr": "定时设置",
+  "pause": "暂停",
+  "start_up": "启动",
+  "list": "列表"
 }
