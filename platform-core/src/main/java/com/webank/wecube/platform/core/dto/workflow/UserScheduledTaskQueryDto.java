@@ -7,6 +7,7 @@ public class UserScheduledTaskQueryDto {
     private String procDefName;
     private String entityDataId;
     private String entityDataName;
+    private String scheduleMode;
 
     private String owner;
 
@@ -58,4 +59,11 @@ public class UserScheduledTaskQueryDto {
         this.owner = owner;
     }
 
+    public String getScheduleMode() {
+        return scheduleMode;
+    }
+
+    public void setScheduleMode(String scheduleMode) {
+        this.scheduleMode = scheduleMode;
+    }    
 }

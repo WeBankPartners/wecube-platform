@@ -123,7 +123,7 @@ public class UserManagementService {
     
 
     @Transactional
-    public void revokeUserRolesById(String roleId, List<SimpleLocalUserDto> userDtos) {
+    public void revokeRoleFromUsers(String roleId, List<SimpleLocalUserDto> userDtos) {
         Optional<SysRoleEntity> roleOpt = roleRepository.findById(roleId);
         if (!roleOpt.isPresent()) {
             log.debug("revoking user roles error:such role entity does not exist, role id {}", roleId);
@@ -148,9 +148,19 @@ public class UserManagementService {
             userRoleRsRepository.save(userRole);
         }
     }
+    
+    @Transactional
+    public void configureUserWithRoles(String userId, List<SimpleLocalRoleDto> roleDtos) {
+        //TODO
+    }
+    
+    @Transactional
+    public void revokeRolesFromUser(String userId, List<SimpleLocalRoleDto> roleDtos) {
+        //TODO
+    }
 
     @Transactional
-    public void configureUserRolesById(String roleId, List<SimpleLocalUserDto> userDtos) {
+    public void configureRoleForUsers(String roleId, List<SimpleLocalUserDto> userDtos) {
         Optional<SysRoleEntity> roleOpt = roleRepository.findById(roleId);
         if (!roleOpt.isPresent()) {
             log.debug("configuring user with roles error:such role entity does not exist, role id {}", roleId);

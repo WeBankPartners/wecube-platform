@@ -449,4 +449,22 @@ public class UserManagementServiceImpl implements UserManagementService {
         }
     }
 
+    @Override
+    public void grantRolesToUser(String userId, List<String> roleIds) {
+        // TODO Auto-generated method stub
+        
+    }
+
+    @Override
+    public void revokeRolesFromUser(String userId, List<String> roleIds) {
+        // TODO Auto-generated method stub
+        
+    }
+
+    @Override
+    public RoleDto updateLocalRole(String roleId, RoleDto role) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
 }

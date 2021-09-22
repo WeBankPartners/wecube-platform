@@ -41,6 +41,13 @@ public class RoleManagementController {
         return CommonResponseDto.okayWithData(result);
 
     }
+    
+    @PostMapping("/roles/{role-id}/update")
+    public CommonResponseDto updateLocalRole(@PathVariable("role-id") String roleId, @RequestBody RoleDto roleDto) {
+        RoleDto result = userManagementService.updateLocalRole(roleId, roleDto);
+        return CommonResponseDto.okayWithData(result);
+
+    }
 
     @GetMapping("/roles/retrieve")
     public CommonResponseDto retrieveAllRoles() {
