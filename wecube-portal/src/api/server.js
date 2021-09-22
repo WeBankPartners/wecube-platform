@@ -227,3 +227,9 @@ export const getFlowExecutePluginList = () =>
   req.get(`platform/v1/statistics/process/definitions/tasknodes/service-ids`)
 export const getFlowExecuteOverviews = data =>
   req.post(`platform/v1/statistics/process/definitions/executions/overviews/query`, data)
+
+export const getUserScheduledTasks = data => req.post(`platform/v1/user-scheduled-tasks/query`, data)
+export const setUserScheduledTasks = data => req.post(`platform/v1/user-scheduled-tasks/create`, data)
+export const deleteUserScheduledTasks = data => req.post(`platform/v1/user-scheduled-tasks/delete`, data)
+export const resumeUserScheduledTasks = data => req.post(`platform/v1/user-scheduled-tasks/resume`, data)
+export const stopUserScheduledTasks = data => req.post(`platform/v1/user-scheduled-tasks/stop`, data)
