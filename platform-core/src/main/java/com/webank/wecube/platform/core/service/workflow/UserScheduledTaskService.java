@@ -501,6 +501,16 @@ public class UserScheduledTaskService {
         exprCal.set(Calendar.HOUR_OF_DAY, exprHour);
         exprCal.set(Calendar.MINUTE, exprMin);
         exprCal.set(Calendar.SECOND, exprSecond);
+        
+        Date createdDate = userTask.getCreatedTime();
+        if(createdDate != null) {
+            Calendar createdCal = Calendar.getInstance();
+            createdCal.setTime(createdDate);
+            
+            if(exprCal.compareTo(createdCal) < 0) {
+                return false;
+            }
+        }
 
         if (curCal.compareTo(exprCal) >= 0) {
             return true;
@@ -554,6 +564,16 @@ public class UserScheduledTaskService {
         exprCal.set(Calendar.HOUR_OF_DAY, exprHour);
         exprCal.set(Calendar.MINUTE, exprMin);
         exprCal.set(Calendar.SECOND, exprSecond);
+        
+        Date createdDate = userTask.getCreatedTime();
+        if(createdDate != null) {
+            Calendar createdCal = Calendar.getInstance();
+            createdCal.setTime(createdDate);
+            
+            if(exprCal.compareTo(createdCal) < 0) {
+                return false;
+            }
+        }
 
         if (curCal.compareTo(exprCal) >= 0) {
             return true;
@@ -603,6 +623,16 @@ public class UserScheduledTaskService {
         exprCal.set(Calendar.HOUR_OF_DAY, exprHour);
         exprCal.set(Calendar.MINUTE, exprMin);
         exprCal.set(Calendar.SECOND, exprSecond);
+        
+        Date createdDate = userTask.getCreatedTime();
+        if(createdDate != null) {
+            Calendar createdCal = Calendar.getInstance();
+            createdCal.setTime(createdDate);
+            
+            if(exprCal.compareTo(createdCal) < 0) {
+                return false;
+            }
+        }
 
         if (curCal.compareTo(exprCal) >= 0) {
             return true;
@@ -652,6 +682,16 @@ public class UserScheduledTaskService {
         exprCal.setTime(curDate);
         exprCal.set(Calendar.MINUTE, exprMin);
         exprCal.set(Calendar.SECOND, exprSecond);
+        
+        Date createdDate = userTask.getCreatedTime();
+        if(createdDate != null) {
+            Calendar createdCal = Calendar.getInstance();
+            createdCal.setTime(createdDate);
+            
+            if(exprCal.compareTo(createdCal) < 0) {
+                return false;
+            }
+        }
 
         if (curCal.compareTo(exprCal) >= 0) {
             return true;
