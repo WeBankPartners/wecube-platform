@@ -307,16 +307,16 @@
     from core_user_scheduled_task
     where 
     1 = 1
-    <if test="procDefName != null">
+    <if test="procDefName != null and procDefName != ''">
     AND proc_def_name = #{procDefName,jdbcType=VARCHAR}
     </if>
-    <if test="entityDataId != null">
+    <if test="entityDataId != null and entityDataId != ''">
     AND entity_data_id = #{entityDataId,jdbcType=VARCHAR}
     </if>
-    <if test="owner != null">
+    <if test="owner != null and owner != ''">
     AND owner = #{owner,jdbcType=VARCHAR}
     </if>
-    <if test="scheduleMode != null">
+    <if test="scheduleMode != null and scheduleMode != ''">
     AND schedule_mode = #{scheduleMode,jdbcType=VARCHAR}
     </if>
     <if test="startDate != null">
