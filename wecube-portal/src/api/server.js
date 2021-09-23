@@ -233,3 +233,5 @@ export const setUserScheduledTasks = data => req.post(`platform/v1/user-schedule
 export const deleteUserScheduledTasks = data => req.post(`platform/v1/user-scheduled-tasks/delete`, data)
 export const resumeUserScheduledTasks = data => req.post(`platform/v1/user-scheduled-tasks/resume`, data)
 export const stopUserScheduledTasks = data => req.post(`platform/v1/user-scheduled-tasks/stop`, data)
+export const getScheduledTasksByStatus = data =>
+  req.post(`platform/v1/user-scheduled-tasks/process-instances/query`, data)

@@ -510,5 +510,19 @@
   "schedule_expr": "Schedule Express",
   "pause": "Pause",
   "start_up": "Start Up",
-  "list": "List"
+  "list": "List",
+  "cycle": "Cycle",
+  "week": "Week",
+  "day": "Day",
+  "Mon": "Monday",
+  "Tue": "Tuesday",
+  "Wed": "Wednesday",
+  "Thu": "Thursday",
+  "Fri": "Friday",
+  "Sat": "Saturday",
+  "Sun": "Sunday",
+  "Hourly": "Hourly",
+  "Daily": "Daily",
+  "Weekly": "Weekly",
+  "Monthly": "Monthly"
 }
