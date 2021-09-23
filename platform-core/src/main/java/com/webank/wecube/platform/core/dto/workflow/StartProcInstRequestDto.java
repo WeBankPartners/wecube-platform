@@ -10,6 +10,8 @@ public class StartProcInstRequestDto {
     private String entityDisplayName;
     private String processSessionId;
     private String procBatchKey;
+    private String procInitUser;
+    
     private List<TaskNodeDefObjectBindInfoDto> taskNodeBinds = new ArrayList<>();
 
     public String getEntityDisplayName() {
@@ -90,6 +92,14 @@ public class StartProcInstRequestDto {
 
     public void setProcBatchKey(String procBatchKey) {
         this.procBatchKey = procBatchKey;
+    }
+
+    public String getProcInitUser() {
+        return procInitUser;
+    }
+
+    public void setProcInitUser(String procInitUser) {
+        this.procInitUser = procInitUser;
     }
 
 }
