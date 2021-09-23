@@ -11,7 +11,7 @@
       </div>
       <div class="item">
         {{ $t('timing_type') }}:
-        <Select v-model="searchConfig.params.scheduleMode" style="width: 70%">
+        <Select v-model="searchConfig.params.scheduleMode" clearable style="width: 70%">
           <Option v-for="item in searchConfig.timingTypeOptions" :value="item.value" :key="item.value">{{
             item.label
           }}</Option>
@@ -243,7 +243,6 @@ export default {
       }
       const { status, data } = await getScheduledTasksByStatus(params)
       if (status === 'OK') {
-        console.log(data)
         this.showModal = true
         this.detailTableData = data
       }
@@ -301,8 +300,14 @@ export default {
       })
     },
     async getUserScheduledTasks () {
-      console.log(this.searchConfig.params)
-      const { status, data } = await getUserScheduledTasks(this.searchConfig.params)
+      let params = JSON.parse(JSON.stringify(this.searchConfig.params))
+      const keys = Object.keys(params)
+      keys.forEach(key => {
+        if (params[key] === '') {
+          delete params[key]
+        }
+      })
+      const { status, data } = await getUserScheduledTasks(params)
       if (status === 'OK') {
         this.tableData = data
       }
