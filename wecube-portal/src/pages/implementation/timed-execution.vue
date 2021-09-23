@@ -101,8 +101,8 @@ export default {
       MODALHEIGHT: 0,
       searchConfig: {
         params: {
-          startDate: '2021-09-22 00:00:00',
-          endDate: '2021-09-01 00:00:00',
+          startTime: '',
+          endTime: '',
           owner: '',
           scheduleMode: ''
         },
@@ -313,8 +313,8 @@ export default {
       }
     },
     getDate (dateRange) {
-      this.searchConfig.params.startDate = dateRange[0]
-      this.searchConfig.params.endDate = dateRange[1]
+      this.searchConfig.params.startTime = dateRange[0]
+      this.searchConfig.params.endTime = dateRange[1]
     }
   },
   components: {}
