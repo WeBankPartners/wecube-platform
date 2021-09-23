@@ -769,12 +769,12 @@ public class UserScheduledTaskService {
         return sDate;
     }
 
-    private int countTriggeredProcInstances(String procDefId, String status, Date startDate, Date endDate,
+    private int countTriggeredProcInstances(String procDefName, String status, Date startDate, Date endDate,
             String procBatchKey) {
         if (StringUtils.isBlank(procBatchKey)) {
             throw new WecubeCoreException("Process batch key can not be blank.");
         }
-        int count = procInstInfoMapper.countByProcBatchKey(procDefId, status, startDate, endDate, procBatchKey);
+        int count = procInstInfoMapper.countByProcBatchKey(procDefName, status, startDate, endDate, procBatchKey);
         return count;
     }
     
