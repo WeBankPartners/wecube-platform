@@ -47,6 +47,6 @@ public interface UserScheduledTaskMapper {
      * @return
      */
     List<UserScheduledTaskEntity> selectAllAvailableTasksWithFilters(@Param("procDefName") String procDefName,
-            @Param("entityDataId") String entityDataId, @Param("owner") String owner,@Param("scheduleMode") String scheduleMode,
+            @Param("entityDataId") String entityDataId, @Param("owner") String owner, @Param("scheduleMode") String scheduleMode,
             @Param("startDate") Date startDate, @Param("endDate") Date endDate);
 }
