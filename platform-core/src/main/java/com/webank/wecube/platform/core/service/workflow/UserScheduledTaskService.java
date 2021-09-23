@@ -35,6 +35,9 @@ import com.webank.wecube.platform.workflow.commons.LocalIdGenerator;
 public class UserScheduledTaskService {
 
     private static final Logger log = LoggerFactory.getLogger(UserScheduledTaskService.class);
+    
+    public static final String PROCESS_INSTANECE_STATUS_SUCC = "S";
+    public static final String PROCESS_INSTANECE_STATUS_FAIL = "F";
 
     @Autowired
     private UserScheduledTaskMapper userScheduledTaskMapper;
@@ -130,17 +133,44 @@ public class UserScheduledTaskService {
         Date startTime = parseDate(queryDto.getStartTime());
         Date endTime = parseDate(queryDto.getEndTime());
 
-        String procDefName = queryDto.getProcDefName();
-//        String entityDataId = queryDto.getEntityDataId();
-//        entityDataName = queryDto.getEntityDataName();
-
-//        String owner = queryDto.getOwner();
         String procStatus = queryDto.getProcInstanceStatus();
         String userTaskId = queryDto.getUserTaskId();
         
-        List<ProcInstInfoEntity> procInsts = procInstInfoMapper.selectAllByProcBatchKey(procDefName, procStatus, startTime, endTime, userTaskId);
-        if(procInsts == null || procInsts.isEmpty()) {
-            return instDtos;
+        if(StringUtils.isBlank(userTaskId)) {
+            throw new WecubeCoreException("User task ID can not be blank to fetch task list.");
+        }
+        
+        UserScheduledTaskEntity task = userScheduledTaskMapper.selectByPrimaryKey(userTaskId);
+        if(task == null) {
+            String errMsg = String.format("Such user task with ID:%s does not exist.", userTaskId);
+            throw new WecubeCoreException(errMsg);
+        }
+        
+        List<ProcInstInfoEntity> procInsts = new ArrayList<>();
+        if(StringUtils.isBlank(procStatus)) {
+            List<ProcInstInfoEntity> succProcInsts = procInstInfoMapper.selectAllByProcBatchKey(task.getProcDefName(), ProcInstInfoEntity.COMPLETED_STATUS, startTime, endTime, task.getId());
+            if(succProcInsts != null) {
+                procInsts.addAll(succProcInsts);
+            }
+            
+            List<ProcInstInfoEntity> failedProcInsts = procInstInfoMapper.selectAllByProcBatchKey(task.getProcDefName(), ProcInstInfoEntity.INTERNALLY_TERMINATED_STATUS, startTime, endTime, task.getId());
+            if(failedProcInsts != null) {
+                procInsts.addAll(failedProcInsts);
+            }
+        }else {
+            if(PROCESS_INSTANECE_STATUS_SUCC.equalsIgnoreCase(procStatus)) {
+                List<ProcInstInfoEntity> succProcInsts = procInstInfoMapper.selectAllByProcBatchKey(task.getProcDefName(), ProcInstInfoEntity.COMPLETED_STATUS, startTime, endTime, task.getId());
+                if(succProcInsts != null) {
+                    procInsts.addAll(succProcInsts);
+                }
+            }
+            
+            if(PROCESS_INSTANECE_STATUS_FAIL.equalsIgnoreCase(procStatus)) {
+                List<ProcInstInfoEntity> failedProcInsts = procInstInfoMapper.selectAllByProcBatchKey(task.getProcDefName(), ProcInstInfoEntity.INTERNALLY_TERMINATED_STATUS, startTime, endTime, task.getId());
+                if(failedProcInsts != null) {
+                    procInsts.addAll(failedProcInsts);
+                }
+            }
         }
         
         for(ProcInstInfoEntity procInst : procInsts) {
