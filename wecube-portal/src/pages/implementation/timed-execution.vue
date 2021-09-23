@@ -11,7 +11,7 @@
       </div>
       <div class="item">
         {{ $t('timing_type') }}:
-        <Select v-model="searchConfig.params.serviceIds" style="width: 70%">
+        <Select v-model="searchConfig.params.scheduleMode" style="width: 70%">
           <Option v-for="item in searchConfig.timingTypeOptions" :value="item.value" :key="item.value">{{
             item.label
           }}</Option>
@@ -22,6 +22,24 @@
       </div>
     </div>
     <Table size="small" :columns="tableColumns" :max-height="MODALHEIGHT" :data="tableData"></Table>
+    <Modal v-model="showModal" :fullscreen="fullscreen" width="1000" footer-hide>
+      <p slot="header">
+        <span>{{ $t('details') }}</span>
+        <Icon
+          v-if="!fullscreen"
+          @click="fullscreen = true"
+          style="float: right;margin: 3px 40px 0 0 !important;"
+          type="ios-expand"
+        />
+        <Icon
+          v-else
+          @click="fullscreen = false"
+          style="float: right;margin: 3px 40px 0 0 !important;"
+          type="ios-contract"
+        />
+      </p>
+      <Table :columns="detailTableColums" size="small" :max-height="MODALHEIGHT" :data="detailTableData"></Table>
+    </Modal>
   </div>
 </template>
 
@@ -30,23 +48,69 @@ import {
   getUserScheduledTasks,
   deleteUserScheduledTasks,
   resumeUserScheduledTasks,
+  getScheduledTasksByStatus,
   stopUserScheduledTasks
 } from '@/api/server'
 export default {
   name: '',
   data () {
     return {
+      showModal: false,
+      fullscreen: false,
+      detailTableColums: [
+        {
+          type: 'index',
+          width: 60,
+          align: 'center'
+        },
+        {
+          title: this.$t('flow_name'),
+          key: 'procDefName'
+        },
+        {
+          title: this.$t('execute_date'),
+          key: 'execTime'
+        },
+        {
+          title: this.$t('status'),
+          key: 'status'
+        },
+        {
+          title: this.$t('table_action'),
+          key: 'action',
+          width: 100,
+          align: 'center',
+          render: (h, params) => {
+            return (
+              <div>
+                <Button
+                  onClick={() => this.jumpToHistory(params.row)}
+                  type="primary"
+                  size="small"
+                  style="margin-right: 5px"
+                >
+                  {this.$t('bc_history_record')}
+                </Button>
+              </div>
+            )
+          }
+        }
+      ],
+      detailTableData: [],
+
       MODALHEIGHT: 0,
       searchConfig: {
         params: {
           startDate: '2021-09-22 00:00:00',
-          endDate: '2021-09-01 00:00:00'
+          endDate: '2021-09-01 00:00:00',
+          owner: '',
+          scheduleMode: ''
         },
         timingTypeOptions: [
-          { label: 'Hourly', value: 'Hourly' },
-          { label: 'Daily', value: 'Daily' },
-          { label: 'Weekly', value: 'Weekly' },
-          { label: 'Monthly', value: 'Monthly' }
+          { label: this.$t('Hourly'), value: 'Hourly' },
+          { label: this.$t('Daily'), value: 'Daily' },
+          { label: this.$t('Weekly'), value: 'Weekly' },
+          { label: this.$t('Monthly'), value: 'Monthly' }
         ]
       },
       tableData: [],
@@ -98,7 +162,7 @@ export default {
                     size="small"
                     type="primary"
                     ghost
-                    // onClick={() => this.getPluginReportDetails(params.row, 'Faulted')}
+                    onClick={() => this.getDetails(params.row, 'F')}
                     icon="ios-search"
                   ></Button>
                 )}
@@ -120,7 +184,7 @@ export default {
                     size="small"
                     type="primary"
                     ghost
-                    // onClick={() => this.getPluginReportDetails(params.row, 'Completed')}
+                    onClick={() => this.getDetails(params.row, 'S')}
                     icon="ios-search"
                   ></Button>
                 )}
@@ -146,11 +210,16 @@ export default {
                     {this.$t('start_up')}
                   </Button>
                 )}
-                <Button type="primary" size="small" style="margin-right: 5px">
-                  {this.$t('list')}
-                </Button>
                 <Button onClick={() => this.remove(params.row)} type="error" size="small" style="margin-right: 5px">
                   {this.$t('delete')}
+                </Button>
+                <Button
+                  onClick={() => this.getDetails(params.row, '')}
+                  type="primary"
+                  size="small"
+                  style="margin-right: 5px"
+                >
+                  {this.$t('list')}
                 </Button>
               </div>
             )
@@ -164,6 +233,21 @@ export default {
     this.getUserScheduledTasks()
   },
   methods: {
+    jumpToHistory (row) {
+      this.$emit('jumpToHistory', row.procInstId)
+    },
+    async getDetails (row, rowStatus) {
+      const params = {
+        userTaskId: row.id,
+        procInstanceStatus: rowStatus
+      }
+      const { status, data } = await getScheduledTasksByStatus(params)
+      if (status === 'OK') {
+        console.log(data)
+        this.showModal = true
+        this.detailTableData = data
+      }
+    },
     async resume (row) {
       const params = [
         {
@@ -217,9 +301,9 @@ export default {
       })
     },
     async getUserScheduledTasks () {
+      console.log(this.searchConfig.params)
       const { status, data } = await getUserScheduledTasks(this.searchConfig.params)
       if (status === 'OK') {
-        console.log(data)
         this.tableData = data
       }
     },
