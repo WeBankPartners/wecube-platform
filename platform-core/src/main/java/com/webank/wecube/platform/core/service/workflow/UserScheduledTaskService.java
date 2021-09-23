@@ -60,6 +60,16 @@ public class UserScheduledTaskService {
         if (taskDto == null) {
             return null;
         }
+        
+        if(StringUtils.isBlank(taskDto.getScheduleMode())) {
+            throw new WecubeCoreException("Schedule mode can not be blank.");
+        }
+        
+        if(StringUtils.isBlank(taskDto.getScheduleExpr())) {
+            throw new WecubeCoreException("Schedule expression can not be blank.");
+        }
+        
+        validateScheduleExpr(taskDto.getScheduleMode(), taskDto.getScheduleExpr());
 
         UserScheduledTaskEntity taskEntity = new UserScheduledTaskEntity();
         taskEntity.setId(LocalIdGenerator.generateId());
@@ -148,15 +158,11 @@ public class UserScheduledTaskService {
         
         List<ProcInstInfoEntity> procInsts = new ArrayList<>();
         if(StringUtils.isBlank(procStatus)) {
-            List<ProcInstInfoEntity> succProcInsts = procInstInfoMapper.selectAllByProcBatchKey(task.getProcDefName(), ProcInstInfoEntity.COMPLETED_STATUS, startTime, endTime, task.getId());
-            if(succProcInsts != null) {
-                procInsts.addAll(succProcInsts);
+            List<ProcInstInfoEntity> allProcInsts = procInstInfoMapper.selectAllByProcBatchKey(task.getProcDefName(), null, startTime, endTime, task.getId());
+            if(allProcInsts != null) {
+                procInsts.addAll(allProcInsts);
             }
             
-            List<ProcInstInfoEntity> failedProcInsts = procInstInfoMapper.selectAllByProcBatchKey(task.getProcDefName(), ProcInstInfoEntity.INTERNALLY_TERMINATED_STATUS, startTime, endTime, task.getId());
-            if(failedProcInsts != null) {
-                procInsts.addAll(failedProcInsts);
-            }
         }else {
             if(PROCESS_INSTANECE_STATUS_SUCC.equalsIgnoreCase(procStatus)) {
                 List<ProcInstInfoEntity> succProcInsts = procInstInfoMapper.selectAllByProcBatchKey(task.getProcDefName(), ProcInstInfoEntity.COMPLETED_STATUS, startTime, endTime, task.getId());
@@ -268,6 +274,16 @@ public class UserScheduledTaskService {
             if (taskEntity == null) {
                 continue;
             }
+            
+            if(StringUtils.isBlank(taskDto.getScheduleMode())) {
+                throw new WecubeCoreException("Schedule mode can not be blank.");
+            }
+            
+            if(StringUtils.isBlank(taskDto.getScheduleExpr())) {
+                throw new WecubeCoreException("Schedule expression can not be blank.");
+            }
+            
+            validateScheduleExpr(taskDto.getScheduleMode(), taskDto.getScheduleExpr());
 
             taskEntity.setUpdatedBy(AuthenticationContextHolder.getCurrentUsername());
             taskEntity.setUpdatedTime(new Date());
@@ -364,7 +380,12 @@ public class UserScheduledTaskService {
         }
 
         for (UserScheduledTaskEntity outstandingTask : outstandingTasks) {
-            tryHandleSingleUserScheduledTask(outstandingTask);
+            try {
+                tryHandleSingleUserScheduledTask(outstandingTask);
+            }catch(Exception e) {
+                String errMsg = String.format("Errors while handle single user scheduled task:%s", outstandingTask.getId());
+                log.info(errMsg, e);
+            }
         }
 
     }
@@ -468,11 +489,12 @@ public class UserScheduledTaskService {
 
         // 2 check current time
         String scheduleExpr = userTask.getScheduleExpr();
-        String[] scheduleExprParts = scheduleExpr.split(":");
+        String[] scheduleExprParts = scheduleExpr.split(" ");
         int exprDayOfMonth = Integer.parseInt(scheduleExprParts[0]);
-        int exprHour = Integer.parseInt(scheduleExprParts[1]);
-        int exprMin = Integer.parseInt(scheduleExprParts[2]);
-        int exprSecond = Integer.parseInt(scheduleExprParts[3]);
+        String [] timeParts = scheduleExprParts[1].split(":");
+        int exprHour = Integer.parseInt(timeParts[0]);
+        int exprMin = Integer.parseInt(timeParts[1]);
+        int exprSecond = Integer.parseInt(timeParts[2]);
         Calendar exprCal = Calendar.getInstance();
         exprCal.setTime(curDate);
         exprCal.set(Calendar.DAY_OF_MONTH, exprDayOfMonth);
@@ -520,11 +542,12 @@ public class UserScheduledTaskService {
 
         // 2 check current time
         String scheduleExpr = userTask.getScheduleExpr();
-        String[] scheduleExprParts = scheduleExpr.split(":");
+        String[] scheduleExprParts = scheduleExpr.split(" ");
         int exprDayOfWeek = Integer.parseInt(scheduleExprParts[0]);
-        int exprHour = Integer.parseInt(scheduleExprParts[1]);
-        int exprMin = Integer.parseInt(scheduleExprParts[2]);
-        int exprSecond = Integer.parseInt(scheduleExprParts[3]);
+        String [] timeParts = scheduleExprParts[1].split(":");
+        int exprHour = Integer.parseInt(timeParts[0]);
+        int exprMin = Integer.parseInt(timeParts[1]);
+        int exprSecond = Integer.parseInt(timeParts[2]);
         Calendar exprCal = Calendar.getInstance();
         exprCal.setTime(curDate);
         exprCal.set(Calendar.DAY_OF_WEEK, exprDayOfWeek);
@@ -620,7 +643,6 @@ public class UserScheduledTaskService {
             }
         }
 
-        //TODO
         // 2 check current time
         String scheduleExpr = userTask.getScheduleExpr();
         String[] scheduleExprParts = scheduleExpr.split(":");
@@ -642,7 +664,7 @@ public class UserScheduledTaskService {
         log.info("try perform user scheduled task:{}", userTask.getId());
         String procDefId = userTask.getProcDefId();
         String rootEntityDataId = userTask.getEntityDataId();
-        ProcessDataPreviewDto previewDto = workflowDataService.generateProcessDataPreview(procDefId, rootEntityDataId);
+        ProcessDataPreviewDto previewDto = workflowDataService.generateProcessDataPreview(procDefId, rootEntityDataId, true);
 
         StartProcInstRequestDto startProcInstRequestDto = new StartProcInstRequestDto();
         startProcInstRequestDto.setEntityDataId(rootEntityDataId);
@@ -653,6 +675,7 @@ public class UserScheduledTaskService {
         startProcInstRequestDto.setProcDefId(procDefId);
         startProcInstRequestDto.setProcessSessionId(previewDto.getProcessSessionId());
         startProcInstRequestDto.setProcBatchKey(userTask.getId());
+        startProcInstRequestDto.setProcInitUser(userTask.getOwner());
 
         ProcInstInfoDto procInstInfoDto = workflowProcInstService.createProcessInstance(startProcInstRequestDto);
         log.info("Process created:{}", procInstInfoDto);
@@ -713,5 +736,30 @@ public class UserScheduledTaskService {
         }
         int count = procInstInfoMapper.countByProcBatchKey(procDefId, status, startDate, endDate, procBatchKey);
         return count;
+    }
+    
+    private void validateScheduleExpr(String scheduleMode, String scheduleExpr){
+        String monthlyExprPattern = "^\\d+\\s\\d+:\\d+:\\d+$";
+        String weeklyExprPattern = "^\\d+\\s\\d+:\\d+:\\d+$";
+        String dailyExprPattern = "^\\d+:\\d+:\\d+$";
+        String hourlyExprPattern = "^\\d+:\\d+$";
+        
+        boolean matches = false;
+        if (Constants.SCHEDULE_MODE_MONTHLY.equalsIgnoreCase(scheduleMode)) {
+            matches = scheduleExpr.matches(monthlyExprPattern);
+        } else if (Constants.SCHEDULE_MODE_WEEKLY.equalsIgnoreCase(scheduleMode)) {
+            matches = scheduleExpr.matches(weeklyExprPattern);
+        } else if (Constants.SCHEDULE_MODE_DAILY.equalsIgnoreCase(scheduleMode)) {
+            matches = scheduleExpr.matches(dailyExprPattern);
+        } else if (Constants.SCHEDULE_MODE_HOURLY.equalsIgnoreCase(scheduleMode)) {
+            matches = scheduleExpr.matches(hourlyExprPattern);
+        } else {
+            //
+        }
+        
+        if(!matches) {
+            String errMsg = String.format("Invalid schedule expression:%s and %s mode expression expected.", scheduleExpr, scheduleMode);
+            throw new WecubeCoreException(errMsg);
+        }
     }
 }

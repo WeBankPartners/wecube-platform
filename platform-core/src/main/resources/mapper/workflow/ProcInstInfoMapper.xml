@@ -418,8 +418,9 @@
         where 1=1
         and proc_def_name =
         #{procDefName,jdbcType=VARCHAR}
-        and
-        status = #{status,jdbcType=VARCHAR}
+        <if test="status != null">
+        AND status =#{status,jdbcType=VARCHAR}
+        </if>
         and 
         proc_batch_key =
         #{procBatchKey,jdbcType=VARCHAR}
@@ -433,12 +434,14 @@
         where 1=1
         and proc_def_name =
         #{procDefName,jdbcType=VARCHAR}
-        and
-        status = #{status,jdbcType=VARCHAR}
+        <if test="status != null">
+        AND status =#{status,jdbcType=VARCHAR}
+        </if>
         and 
         proc_batch_key =
         #{procBatchKey,jdbcType=VARCHAR}
         order by proc_def_name
+        LIMIT 500
     </select>
 
 </mapper>
