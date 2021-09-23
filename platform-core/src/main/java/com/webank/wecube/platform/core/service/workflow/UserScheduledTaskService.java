@@ -208,9 +208,9 @@ public class UserScheduledTaskService {
             String createdTime = formatStatiticsDate(userTask.getCreatedTime());
             taskDto.setCreatedTime(createdTime);
 
-            int totalCompletedInstances = countTriggeredProcInstances(procDefName, ProcInstInfoEntity.COMPLETED_STATUS,
+            int totalCompletedInstances = countTriggeredProcInstances(userTask.getProcDefName(), ProcInstInfoEntity.COMPLETED_STATUS,
                     startTime, endTime, userTask.getId());
-            int totalFaultedInstances = countTriggeredProcInstances(procDefName,
+            int totalFaultedInstances = countTriggeredProcInstances(userTask.getProcDefName(),
                     ProcInstInfoEntity.INTERNALLY_TERMINATED_STATUS, startTime, endTime, userTask.getId());
 
             taskDto.setTotalCompletedInstances(totalCompletedInstances);
@@ -590,6 +590,7 @@ public class UserScheduledTaskService {
             }
         }
 
+        //TODO
         // 2 check current time
         String scheduleExpr = userTask.getScheduleExpr();
         String[] scheduleExprParts = scheduleExpr.split(":");
