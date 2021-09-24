@@ -45,7 +45,7 @@
     <Modal v-model="timeConfig.isShow" :title="$t('timed_execution')">
       <Form :label-width="100" label-colon>
         <FormItem :label="$t('flow_name')">
-          <Select v-model="timeConfig.params.selectedFlowInstance" style="width:95%">
+          <Select v-model="timeConfig.params.selectedFlowInstance" filterable style="width:370px">
             <Option v-for="item in timeConfig.allFlowInstances" :key="item.id" :value="item.id">{{
               item.procInstName
             }}</Option>
@@ -55,7 +55,7 @@
           <Select
             v-model="timeConfig.params.scheduleMode"
             @on-change="timeConfig.params.time = '00:00:00'"
-            style="width:95%"
+            style="width:370px"
           >
             <Option v-for="item in timeConfig.scheduleModeOptions" :key="item.value" :value="item.value">{{
               item.label
@@ -66,7 +66,7 @@
           v-if="['Monthly', 'Weekly'].includes(timeConfig.params.scheduleMode)"
           :label="timeConfig.params.scheduleMode === 'Monthly' ? $t('day') : $t('week')"
         >
-          <Select v-model="timeConfig.params.cycle" style="width:96%">
+          <Select v-model="timeConfig.params.cycle" style="width:370px">
             <Option
               v-for="item in timeConfig.modeToValue[timeConfig.params.scheduleMode]"
               :key="item.value"
@@ -79,7 +79,7 @@
           <TimePicker
             :value="timeConfig.params.time"
             @on-change="changeTimePicker"
-            style="width: 355px"
+            style="width:370px"
             :disabled-hours="
               timeConfig.params.scheduleMode === 'Hourly'
                 ? [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23]
@@ -353,7 +353,6 @@ export default {
     async getProcessInstances () {
       let { status, data } = await getProcessInstances()
       if (status === 'OK') {
-        console.log(data)
         this.timeConfig.allFlowInstances = data.filter(item => item.status === 'Completed')
       }
     },
@@ -362,6 +361,7 @@ export default {
     },
     async saveTime () {
       const found = this.timeConfig.allFlowInstances.find(_ => _.id === this.timeConfig.params.selectedFlowInstance)
+      if (!found) return
       let scheduleExpr = ''
       if (['Hourly', 'Daily'].includes(this.timeConfig.params.scheduleMode)) {
         scheduleExpr = this.timeConfig.params.time
@@ -391,6 +391,7 @@ export default {
     },
     async setTimedExecution () {
       this.getProcessInstances()
+      this.timeConfig.params.selectedFlowInstance = ''
       this.timeConfig.params.scheduleMode = 'Monthly'
       this.timeConfig.params.time = '00:00:00'
       this.timeConfig.params.cycle = ''
@@ -398,7 +399,7 @@ export default {
     },
     exportData () {
       this.$refs.table.exportCsv({
-        filename: 'The original data'
+        filename: 'timed_execution'
       })
     },
     jumpToHistory (row) {
@@ -494,6 +495,9 @@ export default {
   display: flex;
   flex-wrap: wrap;
   // margin-bottom: 16px;
+}
+.ivu-form-item {
+  margin-bottom: 8px;
 }
 .item {
   width: 21%;
