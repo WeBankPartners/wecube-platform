@@ -524,5 +524,7 @@
   "Hourly": "Hourly",
   "Daily": "Daily",
   "Weekly": "Weekly",
-  "Monthly": "Monthly"
+  "Monthly": "Monthly",
+  "total": "Total",
+  "display": "Display"
 }
