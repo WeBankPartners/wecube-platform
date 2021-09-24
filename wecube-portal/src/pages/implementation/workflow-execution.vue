@@ -4,125 +4,136 @@
       <Tabs @on-click="tabChanged" :value="currentTab">
         <TabPane :label="$t('create_new_workflow_job')" name="create_new_workflow_job"></TabPane>
         <TabPane :label="$t('enquery_new_workflow_job')" name="enquery_new_workflow_job"></TabPane>
+        <TabPane :label="$t('timed_execution')" name="timed_execution"></TabPane>
       </Tabs>
-      <Row>
-        <Col span="24">
-          <Form label-position="left">
-            <FormItem v-if="isEnqueryPage" :label-width="100" :label="$t('orchs')">
-              <Select
-                v-model="selectedFlowInstance"
-                style="width:60%"
-                filterable
-                clearable
-                @on-open-change="getProcessInstances(false)"
-                @on-clear="clearHistoryOrch"
-              >
-                <Option
-                  v-for="item in allFlowInstances"
-                  :value="item.id"
-                  :key="item.id"
-                  :label="
-                    item.procInstName +
-                      ' ' +
-                      item.entityDisplayName +
-                      ' ' +
-                      (item.createdTime || '0000-00-00 00:00:00') +
-                      ' ' +
-                      (item.operator || 'operator')
-                  "
-                >
-                  <span>
-                    <span style="color:#2b85e4">{{ item.procInstName + ' ' }}</span>
-                    <span style="color:#515a6e">{{ item.entityDisplayName + ' ' }}</span>
-                    <span style="color:#ccc;padding-left:8px;float:right">{{ item.status }}</span>
-                    <span style="color:#ccc;float:right">{{ (item.createdTime || '0000-00-00 00:00:00') + ' ' }}</span>
-                    <span style="float:right;color:#515a6e;margin-right:20px">{{ item.operator || 'operator' }}</span>
-                  </span>
-                </Option>
-              </Select>
-              <Button type="info" @click="queryHandler">{{ $t('query_orch') }}</Button>
-              <Button :disabled="currentInstanceStatus || stopSuccess" type="warning" @click="stopHandler">{{
-                $t('stop_orch')
-              }}</Button>
-            </FormItem>
-            <Col v-if="!isEnqueryPage" span="7">
-              <FormItem :label-width="100" :label="$t('select_orch')">
+      <template v-if="currentTab === 'timed_execution'">
+        <TimedExecution @jumpToHistory="jumpToHistory"></TimedExecution>
+      </template>
+      <template v-else>
+        <Row>
+          <Col span="24">
+            <Form label-position="left">
+              <FormItem v-if="isEnqueryPage" :label-width="100" :label="$t('orchs')">
                 <Select
-                  label
-                  v-model="selectedFlow"
-                  :disabled="isEnqueryPage"
-                  @on-change="orchestrationSelectHandler"
-                  @on-open-change="getAllFlow"
+                  v-model="selectedFlowInstance"
+                  style="width:60%"
                   filterable
                   clearable
-                  @on-clear="clearFlow"
+                  @on-open-change="getProcessInstances(false)"
+                  @on-clear="clearHistoryOrch"
                 >
-                  <Option v-for="item in allFlows" :value="item.procDefId" :key="item.procDefId">{{
-                    item.procDefName + ' ' + item.createdTime
-                  }}</Option>
+                  <Option
+                    v-for="item in allFlowInstances"
+                    :value="item.id"
+                    :key="item.id"
+                    :label="
+                      item.procInstName +
+                        ' ' +
+                        item.entityDisplayName +
+                        ' ' +
+                        (item.createdTime || '0000-00-00 00:00:00') +
+                        ' ' +
+                        (item.operator || 'operator')
+                    "
+                  >
+                    <span>
+                      <span style="color:#2b85e4">{{ item.procInstName + ' ' }}</span>
+                      <span style="color:#515a6e">{{ item.entityDisplayName + ' ' }}</span>
+                      <span style="color:#ccc;padding-left:8px;float:right">{{ item.status }}</span>
+                      <span style="color:#ccc;float:right">{{
+                        (item.createdTime || '0000-00-00 00:00:00') + ' '
+                      }}</span>
+                      <span style="float:right;color:#515a6e;margin-right:20px">{{ item.operator || 'operator' }}</span>
+                    </span>
+                  </Option>
                 </Select>
+                <Button type="info" @click="queryHandler">{{ $t('query_orch') }}</Button>
+                <Button :disabled="currentInstanceStatus || stopSuccess" type="warning" @click="stopHandler">{{
+                  $t('stop_orch')
+                }}</Button>
+                <Button :disabled="canAbleToSetting" type="warning" @click="setTimedExecution">{{
+                  $t('timed_execution')
+                }}</Button>
               </FormItem>
-            </Col>
-            <Col v-if="!isEnqueryPage" span="12" offset="0">
-              <FormItem :label-width="100" :label="$t('target_object')">
-                <Select
-                  style="width:80%"
-                  label
-                  v-model="selectedTarget"
-                  :disabled="isEnqueryPage"
-                  @on-change="onTargetSelectHandler"
-                  @on-open-change="getTargetOptions"
-                  filterable
-                  clearable
-                  @on-clear="clearTarget"
-                >
-                  <Option v-for="item in allTarget" :value="item.id" :key="item.id">{{ item.displayName }}</Option>
-                </Select>
-                <Button
-                  :disabled="
-                    isExecuteActive || !showExcution || !this.selectedTarget || !this.selectedFlow || !isShowExect
-                  "
-                  :loading="btnLoading"
-                  type="info"
-                  @click="excutionFlow"
-                  >{{ $t('execute') }}</Button
-                >
-              </FormItem>
-            </Col>
-          </Form>
-        </Col>
-      </Row>
-      <Row>
-        <Row id="graphcontain">
-          <Col span="7" style="border-right:1px solid #d3cece; text-align: center;height:100%;position: relative;">
-            <div class="graph-container" id="flow" style="height:90%"></div>
-            <Button class="reset-button" size="small" @click="ResetFlow">ResetZoom</Button>
-            <Button
-              v-if="!isEnqueryPage && selectedFlow && selectedTarget && processSessionId.length > 0"
-              style="left:5px"
-              class="set-data-button"
-              icon="ios-grid"
-              size="small"
-              @click="setFlowDataForAllNodes"
-            ></Button>
-          </Col>
-          <Col span="17" style="text-align: center;text-align: center;height:100%; position: relative;">
-            <div class="graph-container" id="graph" style="height:90%"></div>
-            <Button class="reset-button" size="small" @click="ResetModel">ResetZoom</Button>
-            <Button
-              v-if="selectedFlow && selectedTarget && processSessionId.length > 0"
-              class="set-data-button"
-              icon="ios-grid"
-              size="small"
-              @click="showModelDataWithFlow"
-            ></Button>
-            <Spin size="large" fix v-show="isLoading">
-              <Icon type="ios-loading" size="44" class="spin-icon-load"></Icon>
-              <div>{{ $t('loading') }}</div>
-            </Spin>
+              <Col v-if="!isEnqueryPage" span="7">
+                <FormItem :label-width="100" :label="$t('select_orch')">
+                  <Select
+                    label
+                    v-model="selectedFlow"
+                    :disabled="isEnqueryPage"
+                    @on-change="orchestrationSelectHandler"
+                    @on-open-change="getAllFlow"
+                    filterable
+                    clearable
+                    @on-clear="clearFlow"
+                  >
+                    <Option v-for="item in allFlows" :value="item.procDefId" :key="item.procDefId">{{
+                      item.procDefName + ' ' + item.createdTime
+                    }}</Option>
+                  </Select>
+                </FormItem>
+              </Col>
+              <Col v-if="!isEnqueryPage" span="12" offset="0">
+                <FormItem :label-width="100" :label="$t('target_object')">
+                  <Select
+                    style="width:80%"
+                    label
+                    v-model="selectedTarget"
+                    :disabled="isEnqueryPage"
+                    @on-change="onTargetSelectHandler"
+                    @on-open-change="getTargetOptions"
+                    filterable
+                    clearable
+                    @on-clear="clearTarget"
+                  >
+                    <Option v-for="item in allTarget" :value="item.id" :key="item.id">{{ item.displayName }}</Option>
+                  </Select>
+                  <Button
+                    :disabled="
+                      isExecuteActive || !showExcution || !this.selectedTarget || !this.selectedFlow || !isShowExect
+                    "
+                    :loading="btnLoading"
+                    type="info"
+                    @click="excutionFlow"
+                    >{{ $t('execute') }}</Button
+                  >
+                </FormItem>
+              </Col>
+            </Form>
           </Col>
         </Row>
-      </Row>
+        <Row>
+          <Row id="graphcontain">
+            <Col span="7" style="border-right:1px solid #d3cece; text-align: center;height:100%;position: relative;">
+              <div class="graph-container" id="flow" style="height:90%"></div>
+              <Button class="reset-button" size="small" @click="ResetFlow">ResetZoom</Button>
+              <Button
+                v-if="!isEnqueryPage && selectedFlow && selectedTarget && processSessionId.length > 0"
+                style="left:5px"
+                class="set-data-button"
+                icon="ios-grid"
+                size="small"
+                @click="setFlowDataForAllNodes"
+              ></Button>
+            </Col>
+            <Col span="17" style="text-align: center;text-align: center;height:100%; position: relative;">
+              <div class="graph-container" id="graph" style="height:90%"></div>
+              <Button class="reset-button" size="small" @click="ResetModel">ResetZoom</Button>
+              <Button
+                v-if="selectedFlow && selectedTarget && processSessionId.length > 0"
+                class="set-data-button"
+                icon="ios-grid"
+                size="small"
+                @click="showModelDataWithFlow"
+              ></Button>
+              <Spin size="large" fix v-show="isLoading">
+                <Icon type="ios-loading" size="44" class="spin-icon-load"></Icon>
+                <div>{{ $t('loading') }}</div>
+              </Spin>
+            </Col>
+          </Row>
+        </Row>
+      </template>
     </Card>
     <Modal
       :title="$t('overview')"
@@ -328,6 +339,52 @@
         }}</Button>
       </div>
     </Modal>
+    <Modal v-model="timeConfig.isShow" :title="$t('timed_execution')">
+      <Form :label-width="100" label-colon>
+        <FormItem :label="$t('timing_type')">
+          <Select
+            v-model="timeConfig.params.scheduleMode"
+            @on-change="timeConfig.params.time = '00:00:00'"
+            style="width:95%"
+          >
+            <Option v-for="item in timeConfig.scheduleModeOptions" :key="item.value" :value="item.value">{{
+              item.label
+            }}</Option>
+          </Select>
+        </FormItem>
+        <FormItem
+          v-if="['Monthly', 'Weekly'].includes(timeConfig.params.scheduleMode)"
+          :label="timeConfig.params.scheduleMode === 'Monthly' ? $t('day') : $t('week')"
+        >
+          <Select v-model="timeConfig.params.cycle" style="width:95%">
+            <Option
+              v-for="item in timeConfig.modeToValue[timeConfig.params.scheduleMode]"
+              :key="item.value"
+              :value="item.value"
+              >{{ item.label }}</Option
+            >
+          </Select>
+        </FormItem>
+        <FormItem :label="$t('execute_date')">
+          <TimePicker
+            :value="timeConfig.params.time"
+            @on-change="changeTimePicker"
+            style="width: 355px"
+            :disabled-hours="
+              timeConfig.params.scheduleMode === 'Hourly'
+                ? [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23]
+                : []
+            "
+            :clearable="false"
+            format="HH:mm:ss"
+          ></TimePicker>
+        </FormItem>
+      </Form>
+      <div slot="footer">
+        <Button type="text" @click="timeConfig.isShow = false">{{ $t('bc_cancel') }}</Button>
+        <Button type="primary" @click="saveTime">{{ $t('save') }}</Button>
+      </div>
+    </Modal>
   </div>
 </template>
 <script>
@@ -350,12 +407,14 @@ import {
   getPreviewEntitiesByInstancesId,
   createWorkflowInstanceTerminationRequest,
   getTaskNodeInstanceExecBindings,
-  updateTaskNodeInstanceExecBindings
+  updateTaskNodeInstanceExecBindings,
+  setUserScheduledTasks
 } from '@/api/server'
 import * as d3 from 'd3-selection'
 // eslint-disable-next-line no-unused-vars
 import * as d3Graphviz from 'd3-graphviz'
 import { addEvent, removeEvent } from '../util/event.js'
+import TimedExecution from './timed-execution'
 export default {
   data () {
     return {
@@ -619,24 +678,77 @@ export default {
         requestBody: ''
       },
       currentInstanceStatusForNodeOperation: '', // 流程状态
-      currentInstanceStatus: true
+      currentInstanceStatus: true,
+
+      timeConfig: {
+        isShow: false,
+        params: {
+          scheduleMode: 'Monthly',
+          time: '00:00:00',
+          cycle: ''
+        },
+        scheduleModeOptions: [
+          { label: this.$t('Hourly'), value: 'Hourly' },
+          { label: this.$t('Daily'), value: 'Daily' },
+          { label: this.$t('Weekly'), value: 'Weekly' },
+          { label: this.$t('Monthly'), value: 'Monthly' }
+        ],
+        modeToValue: {
+          Monthly: [
+            { label: '1', value: 1 },
+            { label: '2', value: 2 },
+            { label: '3', value: 3 },
+            { label: '4', value: 4 },
+            { label: '5', value: 5 },
+            { label: '6', value: 6 },
+            { label: '7', value: 7 },
+            { label: '8', value: 8 },
+            { label: '9', value: 9 },
+            { label: '10', value: 10 },
+            { label: '11', value: 11 },
+            { label: '12', value: 12 },
+            { label: '13', value: 13 },
+            { label: '14', value: 14 },
+            { label: '15', value: 15 },
+            { label: '16', value: 16 },
+            { label: '17', value: 17 },
+            { label: '18', value: 18 },
+            { label: '19', value: 19 },
+            { label: '20', value: 20 },
+            { label: '21', value: 21 },
+            { label: '22', value: 22 },
+            { label: '23', value: 23 },
+            { label: '24', value: 24 },
+            { label: '25', value: 25 },
+            { label: '26', value: 26 },
+            { label: '27', value: 27 },
+            { label: '28', value: 28 },
+            { label: '29', value: 29 },
+            { label: '30', value: 30 },
+            { label: '31', value: 31 }
+          ],
+          Weekly: [
+            { label: this.$t('Mon'), value: 1 },
+            { label: this.$t('Tue'), value: 2 },
+            { label: this.$t('Wed'), value: 3 },
+            { label: this.$t('Thu'), value: 4 },
+            { label: this.$t('Fri'), value: 5 },
+            { label: this.$t('Sat'), value: 6 },
+            { label: this.$t('Sun'), value: 7 }
+          ]
+        }
+      }
     }
   },
+  components: { TimedExecution },
   computed: {
-    // currentInstanceStatus () {
-    //   if (!this.selectedFlowInstance) {
-    //     return true
-    //   }
-    //   if (this.selectedFlowInstance && this.selectedFlowInstance.length === 0) {
-    //     return true
-    //   }
-    //   const found = this.allFlowInstances.find(_ => _.id === this.selectedFlowInstance)
-    //   if (found && (found.status === 'Completed' || found.status === 'InternallyTerminated')) {
-    //     return true
-    //   } else {
-    //     return false
-    //   }
-    // },
+    canAbleToSetting () {
+      const found = this.allFlowInstances.find(_ => _.id === this.selectedFlowInstance)
+      if (found && found.status === 'Completed') {
+        return false
+      }
+      return true
+    },
     currentNodeStatus () {
       if (!this.flowData.flowNodes) {
         return ''
@@ -711,6 +823,50 @@ export default {
     clearInterval(this.timer)
   },
   methods: {
+    jumpToHistory (id) {
+      this.currentTab = 'enquery_new_workflow_job'
+      this.selectedFlowInstance = id
+      this.queryHistory()
+      this.queryHandler()
+    },
+    changeTimePicker (time) {
+      this.timeConfig.params.time = time
+    },
+    async saveTime () {
+      const found = this.allFlowInstances.find(_ => _.id === this.selectedFlowInstance)
+      let scheduleExpr = ''
+      if (['Hourly', 'Daily'].includes(this.timeConfig.params.scheduleMode)) {
+        scheduleExpr = this.timeConfig.params.time
+        if (this.timeConfig.params.scheduleMode === 'Hourly') {
+          scheduleExpr = this.timeConfig.params.time.substring(3)
+        }
+      } else {
+        scheduleExpr = this.timeConfig.params.cycle + ' ' + this.timeConfig.params.time
+      }
+      let params = {
+        scheduleMode: this.timeConfig.params.scheduleMode,
+        scheduleExpr: scheduleExpr,
+        procDefName: found.procInstName,
+        procDefId: found.procDefId,
+        entityDataName: found.entityDisplayName,
+        entityDataId: found.entityDataId
+      }
+      const { status } = await setUserScheduledTasks(params)
+      if (status === 'OK') {
+        this.$Notice.success({
+          title: 'Success',
+          desc: 'Success'
+        })
+        this.timeConfig.isShow = false
+        this.currentTab = 'timed_execution'
+      }
+    },
+    async setTimedExecution () {
+      this.timeConfig.params.scheduleMode = 'Monthly'
+      this.timeConfig.params.time = '00:00:00'
+      this.timeConfig.params.cycle = ''
+      this.timeConfig.isShow = true
+    },
     async stopHandler () {
       this.$Modal.confirm({
         title: this.$t('bc_confirm') + ' ' + this.$t('stop_orch'),
@@ -736,12 +892,17 @@ export default {
       })
     },
     tabChanged (v) {
+      this.selectedFlowInstance = ''
       // create_new_workflow_job   enquery_new_workflow_job
       this.currentTab = v
       if (v === 'create_new_workflow_job') {
         this.createHandler()
-      } else {
+      }
+      if (v === 'enquery_new_workflow_job') {
         this.queryHistory()
+      }
+      if (v === 'timed_execution') {
+        // this.queryHistory()
       }
     },
     async getDetail (row) {
