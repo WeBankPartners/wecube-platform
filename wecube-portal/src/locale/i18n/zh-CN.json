@@ -114,6 +114,7 @@
   "remove_user": "删除用户",
   "role": "角色",
   "add_role": "添加角色",
+  "edit_role_": "编辑角色",
   "menu": "菜单",
   "data": "数据",
   "details": "详情",
@@ -522,5 +523,7 @@
   "Hourly": "每小时",
   "Daily": "每天",
   "Weekly": "每周",
-  "Monthly": "每月"
+  "Monthly": "每月",
+  "total": "共",
+  "display": "显示"
 }
