@@ -388,26 +388,121 @@
     
     <select id="selectAllProcDefInfoOverviewEntitiesByCriteria" 
         resultType="com.webank.wecube.platform.core.entity.workflow.ProcDefInfoOverviewEntity">
-        select
-        proc_def_id, proc_def_name, count(1) AS totalInstances
-        from core_ru_proc_inst_info
-        where 1=1
-        <if test="startDate != null">
-        AND created_time &gt;= #{startDate,jdbcType=TIMESTAMP}
-        </if>
-        <if test="endDate != null">
-        AND created_time &lt;= #{endDate,jdbcType=TIMESTAMP}
-        </if>
-        <if test="procDefNames != null and procDefNames.size() != 0">
-        AND 
-            proc_def_name IN 
-            <foreach item="procDefName" collection="procDefNames" separator=","
-            open="(" close=")" index="">
-                #{procDefName, jdbcType=VARCHAR}
-            </foreach>
-        </if>
-        group by proc_def_id, proc_def_name
-        order by proc_def_name
+        SELECT DISTINCT
+            t0.proc_def_id AS procDefId,
+            t0.proc_def_name AS procDefName,
+            IFNULL(tmp1.totalInstances, 0) AS totalInstances,
+            IFNULL(tmp2.totalInProgressInstances, 0) AS totalInProgressInstances,
+            IFNULL(tmp3.totalCompletedInstances, 0) AS totalCompletedInstances,
+            IFNULL(tmp4.totalFaultedInstances, 0) AS totalFaultedInstances
+        FROM
+            core_ru_proc_inst_info t0
+                LEFT JOIN
+            (SELECT 
+                proc_def_id, COUNT(1) AS totalInstances
+            FROM
+                core_ru_proc_inst_info
+            WHERE 1=1
+                <if test="startDate != null">
+                AND created_time &gt;= #{startDate,jdbcType=TIMESTAMP}
+                </if>
+                <if test="endDate != null">
+                AND created_time &lt;= #{endDate,jdbcType=TIMESTAMP}
+                </if>
+                <if test="procDefNames != null and procDefNames.size() != 0">
+                AND 
+                proc_def_name IN 
+                    <foreach item="procDefName" collection="procDefNames" separator=","
+                    open="(" close=")" index="">
+                        #{procDefName, jdbcType=VARCHAR}
+                    </foreach>
+                </if>
+            GROUP BY proc_def_id) tmp1 ON tmp1.proc_def_id = t0.proc_def_id
+                LEFT JOIN
+            (SELECT 
+                proc_def_id, COUNT(1) AS totalInProgressInstances
+            FROM
+                core_ru_proc_inst_info
+            WHERE
+                status = 'InProgress'
+                <if test="startDate != null">
+                AND created_time &gt;= #{startDate,jdbcType=TIMESTAMP}
+                </if>
+                <if test="endDate != null">
+                AND created_time &lt;= #{endDate,jdbcType=TIMESTAMP}
+                </if>
+                <if test="procDefNames != null and procDefNames.size() != 0">
+                AND 
+                proc_def_name IN 
+                    <foreach item="procDefName" collection="procDefNames" separator=","
+                    open="(" close=")" index="">
+                        #{procDefName, jdbcType=VARCHAR}
+                    </foreach>
+                </if>
+            GROUP BY proc_def_id) tmp2 ON tmp2.proc_def_id = t0.proc_def_id
+                LEFT JOIN
+            (SELECT 
+                proc_def_id, COUNT(1) AS totalCompletedInstances
+            FROM
+                core_ru_proc_inst_info
+            WHERE
+                status = 'Completed'
+                <if test="startDate != null">
+                AND created_time &gt;= #{startDate,jdbcType=TIMESTAMP}
+                </if>
+                <if test="endDate != null">
+                AND created_time &lt;= #{endDate,jdbcType=TIMESTAMP}
+                </if>
+                <if test="procDefNames != null and procDefNames.size() != 0">
+                AND 
+                proc_def_name IN 
+                    <foreach item="procDefName" collection="procDefNames" separator=","
+                    open="(" close=")" index="">
+                        #{procDefName, jdbcType=VARCHAR}
+                    </foreach>
+                </if>
+            GROUP BY proc_def_id) tmp3 ON tmp3.proc_def_id = t0.proc_def_id
+                LEFT JOIN
+            (SELECT 
+                proc_def_id, COUNT(1) AS totalFaultedInstances
+            FROM
+                core_ru_proc_inst_info
+            WHERE
+                status = 'InternallyTerminated'
+                <if test="startDate != null">
+                AND created_time &gt;= #{startDate,jdbcType=TIMESTAMP}
+                </if>
+                <if test="endDate != null">
+                AND created_time &lt;= #{endDate,jdbcType=TIMESTAMP}
+                </if>
+                <if test="procDefNames != null and procDefNames.size() != 0">
+                AND 
+                proc_def_name IN 
+                    <foreach item="procDefName" collection="procDefNames" separator=","
+                    open="(" close=")" index="">
+                        #{procDefName, jdbcType=VARCHAR}
+                    </foreach>
+                </if>
+            GROUP BY proc_def_id) tmp4 ON tmp4.proc_def_id = t0.proc_def_id
+        WHERE
+            1 = 1
+            <if test="startDate != null">
+            AND t0.created_time &gt;= #{startDate,jdbcType=TIMESTAMP}
+            </if>
+            <if test="endDate != null">
+            AND t0.created_time &lt;= #{endDate,jdbcType=TIMESTAMP}
+            </if>
+            <if test="procDefNames != null and procDefNames.size() != 0">
+            AND 
+            t0.proc_def_name IN 
+                <foreach item="procDefName" collection="procDefNames" separator=","
+                open="(" close=")" index="">
+                    #{procDefName, jdbcType=VARCHAR}
+                </foreach>
+            </if>
+            <if test="sortField != null and sortField != ''">
+            ORDER BY #{sortField} #{sortType}
+            </if>
     </select>
     
     <select id="countByProcBatchKey" 
