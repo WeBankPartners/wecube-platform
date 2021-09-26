@@ -558,62 +558,178 @@
     
     <select id="selectAllProcExecBindingTasknodeStatistics"
         resultType="com.webank.wecube.platform.core.entity.workflow.ProcExecBindingTasknodeStatistics">
-        SELECT DISTINCT
-            t.node_def_id, t.entity_data_id, t.entity_data_name
+        SELECT DISTINCT DISTINCT
+            t0.proc_def_id AS procDefId,
+            procdef.proc_def_name AS procDefName,
+            t0.node_def_id AS nodeDefId,
+            nodedef.node_name AS nodeDefName,
+            t0.entity_data_id AS entityDataId,
+            t0.entity_data_name AS entityDataName,
+            IFNULL(tmp1.successCount, 0) AS successCount,
+            IFNULL(tmp2.failureCount, 0) AS failureCount
         FROM
-            core_ru_proc_exec_binding t
+            core_ru_proc_exec_binding t0
+                LEFT JOIN
+            (SELECT 
+                t3.node_def_id AS node_def_id,
+                    t1.entity_data_id AS entity_data_id,
+                    COUNT(1) AS successCount
+            FROM
+                core_ru_task_node_exec_param t1, 
+                core_ru_task_node_exec_req t2, 
+                core_ru_task_node_inst_info t3
+            WHERE
+                t1.param_name = 'errorCode'
+                    AND t1.param_type = 'OUTPUT'
+                    AND t1.param_data_value = '0'
+                    AND t1.req_id = t2.req_id
+                    AND t2.node_inst_id = t3.id
+                    <if test="startDate != null">
+                    AND t1.created_time &gt;= #{startDate,jdbcType=TIMESTAMP}
+                    </if>
+                    <if test="endDate != null">
+                    AND t1.created_time &lt;= #{endDate,jdbcType=TIMESTAMP}
+                    </if>
+            GROUP BY t3.node_def_id , t1.entity_data_id) tmp1 ON tmp1.node_def_id = t0.node_def_id
+                AND tmp1.entity_data_id = t0.entity_data_id
+                LEFT JOIN
+            (SELECT 
+                t3.node_def_id AS node_def_id,
+                    t1.entity_data_id AS entity_data_id,
+                    COUNT(1) AS failureCount
+            FROM
+                core_ru_task_node_exec_param t1, 
+                core_ru_task_node_exec_req t2, 
+                core_ru_task_node_inst_info t3
+            WHERE
+                t1.param_name = 'errorCode'
+                    AND t1.param_type = 'OUTPUT'
+                    AND t1.param_data_value != '0'
+                    AND t1.req_id = t2.req_id
+                    AND t2.node_inst_id = t3.id
+                    <if test="startDate != null">
+                    AND t1.created_time &gt;= #{startDate,jdbcType=TIMESTAMP}
+                    </if>
+                    <if test="endDate != null">
+                    AND t1.created_time &lt;= #{endDate,jdbcType=TIMESTAMP}
+                    </if>
+            GROUP BY t3.node_def_id , t1.entity_data_id) tmp2 ON tmp2.node_def_id = t0.node_def_id
+                AND tmp2.entity_data_id = t0.entity_data_id
+                JOIN
+            core_re_proc_def_info procdef ON procdef.id = t0.proc_def_id
+                JOIN
+            core_re_task_node_def_info nodedef ON nodedef.id = t0.node_def_id
         WHERE
-            t.bind_type = 'taskNode'
-        AND 
-            t.node_def_id IN 
+            t0.bind_type = 'taskNode'
+                AND (t0.bind_flag = 'Y'
+                OR t0.bind_flag IS NULL
+                OR t0.bind_flag = '')
+            AND 
+            t0.node_def_id IN 
             <foreach item="nodeDefId" collection="nodeDefIds" separator=","
             open="(" close=")" index="">
                 #{nodeDefId, jdbcType=VARCHAR}
             </foreach>
-        <if test="entityDataIds != null and entityDataIds.size() != 0">
-        AND 
-            t.entity_data_id IN 
-            <foreach item="entityDataId" collection="entityDataIds" separator=","
-            open="(" close=")" index="">
-                #{entityDataId, jdbcType=VARCHAR}
-            </foreach>
-        </if>
-        AND 
-            (t.bind_flag = 'Y' OR t.bind_flag IS NULL OR t.bind_flag = '')
+            <if test="entityDataIds != null and entityDataIds.size() != 0">
+            AND 
+                t0.entity_data_id IN 
+                <foreach item="entityDataId" collection="entityDataIds" separator=","
+                open="(" close=")" index="">
+                    #{entityDataId, jdbcType=VARCHAR}
+                </foreach>
+            </if>
+            <if test="sortField != null and sortField != ''">
+            ORDER BY #{sortField} #{sortType}
+            </if>
+        
     </select>
     
     <select id="selectAllProcExecBindingPluginStatistics"
         resultType="com.webank.wecube.platform.core.entity.workflow.ProcExecBindingPluginStatistics">
         SELECT DISTINCT
-            t2.service_id, t1.entity_data_id, t1.entity_data_name
+            tb2.service_id AS serviceId,
+            tb1.entity_data_id AS entityDataId,
+            tb1.entity_data_name AS entityDataName,
+            IFNULL(tmp1.successCount, 0) AS successCount,
+            IFNULL(tmp2.failureCount, 0) AS failureCount
         FROM
-            core_ru_proc_exec_binding t1,
-            core_re_task_node_def_info t2
-        WHERE
-            t1.node_def_id IN (
-            SELECT 
-                DISTINCT t3.id
+            core_ru_proc_exec_binding tb1
+                JOIN
+            core_re_task_node_def_info tb2 ON tb2.id = tb1.node_def_id
+                LEFT JOIN
+            (SELECT 
+                t4.service_id AS service_id,
+                    t1.entity_data_id AS entity_data_id,
+                    COUNT(1) AS successCount
             FROM
-                core_re_task_node_def_info t3
+                core_ru_task_node_exec_param t1, 
+                core_ru_task_node_exec_req t2, 
+                core_ru_task_node_inst_info t3, 
+                core_re_task_node_def_info t4
             WHERE
-                t3.status != 'draft'
+                t1.param_name = 'errorCode'
+                    AND t1.param_type = 'OUTPUT'
+                    AND t1.param_data_value = '0'
+                    AND t1.req_id = t2.req_id
+                    AND t2.node_inst_id = t3.id
+                    AND t3.node_def_id = t4.id
+                    AND t4.status != 'draft'
+                    <if test="startDate != null">
+                    AND t1.created_time &gt;= #{startDate,jdbcType=TIMESTAMP}
+                    </if>
+                    <if test="endDate != null">
+                    AND t1.created_time &lt;= #{endDate,jdbcType=TIMESTAMP}
+                    </if>
+            GROUP BY service_id , entity_data_id) tmp1 ON tmp1.service_id = tb2.service_id
+                AND tmp1.entity_data_id = tb1.entity_data_id
+                LEFT JOIN
+            (SELECT 
+                t4.service_id AS service_id,
+                    t1.entity_data_id AS entity_data_id,
+                    COUNT(1) AS failureCount
+            FROM
+                core_ru_task_node_exec_param t1, 
+                core_ru_task_node_exec_req t2, 
+                core_ru_task_node_inst_info t3, 
+                core_re_task_node_def_info t4
+            WHERE
+                t1.param_name = 'errorCode'
+                    AND t1.param_type = 'OUTPUT'
+                    AND t1.param_data_value != '0'
+                    AND t1.req_id = t2.req_id
+                    AND t2.node_inst_id = t3.id
+                    AND t3.node_def_id = t4.id
+                    AND t4.status != 'draft'
+                    <if test="startDate != null">
+                    AND t1.created_time &gt;= #{startDate,jdbcType=TIMESTAMP}
+                    </if>
+                    <if test="endDate != null">
+                    AND t1.created_time &lt;= #{endDate,jdbcType=TIMESTAMP}
+                    </if>
+            GROUP BY service_id , entity_data_id) tmp2 ON tmp2.service_id = tb2.service_id
+                AND tmp2.entity_data_id = tb1.entity_data_id
+        WHERE
+            1 = 1
+                AND (tb1.bind_flag = 'Y'
+                OR tb1.bind_flag IS NULL
+                OR tb1.bind_flag = '')
             AND
-                t3.service_id IN 
-                <foreach item="serviceId" collection="serviceIds" separator=","
+                tb2.service_id IN 
+            <foreach item="serviceId" collection="serviceIds" separator=","
                     open="(" close=")" index="">
                     #{serviceId, jdbcType=VARCHAR}
-                </foreach>
-            )
-        AND t2.id = t1.node_def_id
-        <if test="entityDataIds != null and entityDataIds.size() != 0">
-        AND 
-            t1.entity_data_id IN 
+            </foreach>
+            <if test="entityDataIds != null and entityDataIds.size() != 0">
+            AND 
+            tb1.entity_data_id IN 
             <foreach item="entityDataId" collection="entityDataIds" separator=","
             open="(" close=")" index="">
                 #{entityDataId, jdbcType=VARCHAR}
             </foreach>
-        </if>
-        AND 
-            (t1.bind_flag = 'Y' OR t1.bind_flag IS NULL OR t1.bind_flag = '')
+            </if>
+            <if test="sortField != null and sortField != ''">
+            ORDER BY #{sortField} #{sortType}
+            </if>
+        
     </select>
 </mapper>
