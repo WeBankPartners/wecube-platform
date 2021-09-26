@@ -49,7 +49,14 @@
         <Button type="primary" :disabled="!disableBtn()" @click="getReport"> {{ $t('query') }}</Button>
       </div>
     </div>
-    <Table size="small" :columns="tableColumns" :max-height="MODALHEIGHT" :data="tableData"></Table>
+    <div style="text-align: right">{{ $t('total') }}{{ totalRows }} {{ $t('display') }}{{ tableData.length }}</div>
+    <Table
+      @on-sort-change="sortTable"
+      size="small"
+      :columns="tableColumns"
+      :max-height="MODALHEIGHT"
+      :data="tableData"
+    ></Table>
     <ReportDetail ref="reportDetail"></ReportDetail>
   </div>
 </template>
@@ -77,12 +84,14 @@ export default {
           pageable: {
             pageSize: 100,
             startIndex: 0
-          }
+          },
+          sorting: {}
         },
         pluginOptions: [],
         tasknodeBindingOptions: [],
         displayNumberOptions: [100, 300, 500, 1000]
       },
+      totalRows: 0,
       tableData: [],
       tableColumns: [
         {
@@ -103,6 +112,7 @@ export default {
         },
         {
           title: this.$t('failure_count'),
+          sortable: 'custom',
           key: 'failureCount',
           render: (h, params) => {
             return (
@@ -124,6 +134,7 @@ export default {
         },
         {
           title: this.$t('success_count'),
+          sortable: 'custom',
           key: 'successCount',
           render: (h, params) => {
             return (
@@ -150,6 +161,15 @@ export default {
     this.MODALHEIGHT = document.body.scrollHeight - 300
   },
   methods: {
+    async sortTable (column) {
+      console.log(column)
+      this.searchConfig.params.sorting = { asc: column.order === 'asc', field: column.key }
+      const { status, data } = await getPluginReport(this.searchConfig.params)
+      if (status === 'OK') {
+        this.tableData = data.contents
+        this.totalRows = data.pageInfo.totalRows
+      }
+    },
     async getPluginReportDetails (val, type) {
       const params = {
         endDate: this.searchConfig.params.endDate,
@@ -165,9 +185,11 @@ export default {
       }
     },
     async getReport () {
+      this.searchConfig.params.sorting = {}
       const { status, data } = await getPluginReport(this.searchConfig.params)
       if (status === 'OK') {
         this.tableData = data.contents
+        this.totalRows = data.pageInfo.totalRows
       }
     },
     disableBtn () {
