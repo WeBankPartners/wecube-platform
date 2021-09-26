@@ -24,7 +24,10 @@
                 </span>
               </Tag>
               <Tooltip :content="$t('delete')">
-                <Button icon="md-trash" type="error" ghost size="small" @click="removeRole(item)"></Button>
+                <Button icon="md-trash" type="error" ghost size="small" @click="removeUser(item)"></Button>
+              </Tooltip>
+              <Tooltip :content="$t('role')">
+                <Button icon="ios-contacts" type="info" ghost size="small" @click="addRoleToUsers(item)"></Button>
               </Tooltip>
               <Tooltip :content="$t('reset_password')">
                 <Button
@@ -59,9 +62,21 @@
               >
                 <span :title="item.displayName">{{ item.name + '(' + item.displayName + ')' }}</span>
               </Tag>
-              <Button icon="ios-person" type="primary" ghost size="small" @click="openUserManageModal(item.id)">{{
-                $t('user')
-              }}</Button>
+              <Tooltip :content="$t('delete')">
+                <Button icon="md-trash" type="error" ghost size="small" @click="removeRole(item)"></Button>
+              </Tooltip>
+              <Tooltip :content="$t('edit')">
+                <Button icon="ios-create-outline" type="info" ghost size="small" @click="editRole(item)"></Button>
+              </Tooltip>
+              <Tooltip :content="$t('user')">
+                <Button
+                  icon="ios-person"
+                  type="primary"
+                  ghost
+                  size="small"
+                  @click="openUserManageModal(item.id)"
+                ></Button>
+              </Tooltip>
             </div>
           </div>
         </Card>
@@ -95,16 +110,21 @@
         </FormItem>
       </Form>
     </Modal>
-    <Modal v-model="addRoleModalVisible" :title="$t('add_role')" @on-ok="addRole" @on-cancel="cancel">
+    <Modal
+      v-model="addedRole.isShow"
+      :title="addedRole.isAdd ? $t('add_role') : $t('edit_role_')"
+      @on-ok="addRole"
+      @on-cancel="cancel"
+    >
       <Form class="validation-form" :model="addedRole" label-position="left" :label-width="100">
         <FormItem :label="$t('role')">
-          <Input v-model="addedRole.name" :placeholder="$t('please_input')" />
+          <Input v-model="addedRole.params.name" :placeholder="$t('please_input')" />
         </FormItem>
         <FormItem :label="$t('display_name')">
-          <Input v-model="addedRole.displayName" :placeholder="$t('please_input')" />
+          <Input v-model="addedRole.params.displayName" :placeholder="$t('please_input')" />
         </FormItem>
         <FormItem :label="$t('email')">
-          <Input v-model="addedRole.email" :placeholder="$t('please_input')" />
+          <Input v-model="addedRole.params.email" :placeholder="$t('please_input')" />
         </FormItem>
       </Form>
     </Modal>
@@ -130,6 +150,22 @@
         </FormItem>
       </Form>
     </Modal>
+    <Modal
+      v-model="addRoleToUser.isShow"
+      :title="$t('add_role')"
+      @on-ok="confirmAddRoleToUser"
+      @on-cancel="addRoleToUser.isShow = false"
+    >
+      <Form class="validation-form" label-position="left" :label-width="100">
+        <FormItem :label="$t('role')">
+          <Select v-model="addRoleToUser.params.roles" multiple filterable>
+            <Option v-for="item in addRoleToUser.allRoles" :value="item.id" :key="item.id">{{
+              item.displayName
+            }}</Option>
+          </Select>
+        </FormItem>
+      </Form>
+    </Modal>
   </div>
 </template>
 <script>
@@ -138,12 +174,15 @@ import {
   removeUser,
   getUserList,
   roleCreate,
+  deleteRole,
   getRoleList,
+  updateRole,
   getRolesByUserName,
   getUsersByRoleId,
   grantRolesForUser,
   revokeRolesForUser,
   getAllMenusList,
+  addRoleToUser,
   getMenusByUserName,
   getMenusByRoleId,
   updateRoleToMenusByRoleId,
@@ -154,6 +193,14 @@ import { MENUS } from '@/const/menus.js'
 export default {
   data () {
     return {
+      addRoleToUser: {
+        isShow: false,
+        params: {
+          id: '',
+          roles: []
+        },
+        allRoles: []
+      },
       showNewPassword: false,
       newPassword: '',
       currentRoleId: 0,
@@ -163,14 +210,22 @@ export default {
       addedUser: {
         authType: 'LOCAL'
       },
-      addedRole: {},
+      addedRole: {
+        isShow: false,
+        isAdd: false,
+        params: {
+          id: '',
+          name: '',
+          displayName: '',
+          email: ''
+        }
+      },
       addedRoleValue: '',
       transferTitles: [this.$t('unselected_user'), this.$t('selected_user')],
       transferStyle: { width: '300px' },
       usersKeyBySelectedRole: [],
       allUsersForTransfer: [],
       addUserModalVisible: false,
-      addRoleModalVisible: false,
       userManageModal: false,
       originMenus: [],
       menus: [],
@@ -178,7 +233,47 @@ export default {
     }
   },
   methods: {
+    async confirmAddRoleToUser () {
+      let { status } = await addRoleToUser(this.addRoleToUser.params.id, this.addRoleToUser.params.roles)
+      if (status === 'OK') {
+        this.$Notice.success({
+          title: 'Success',
+          desc: ''
+        })
+      }
+    },
+    async addRoleToUsers (item) {
+      this.addRoleToUser.params.id = item.id
+      let { status, data } = await getRolesByUserName(item.username)
+      if (status === 'OK') {
+        this.addRoleToUser.params.roles = data.map(d => d.id)
+      }
+      let res = await getRoleList()
+      if (res.status === 'OK') {
+        this.addRoleToUser.allRoles = res.data
+        this.addRoleToUser.isShow = true
+      }
+    },
     removeRole (item) {
+      this.$Modal.confirm({
+        title: this.$t('confirm_to_delete'),
+        'z-index': 1000000,
+        onOk: async () => {
+          let { status } = await deleteRole(item.id)
+          if (status === 'OK') {
+            this.$Notice.success({
+              title: 'Success',
+              desc: ''
+            })
+            // this.getAllUsers()
+            this.getAllRoles()
+            this.getAllMenus()
+          }
+        },
+        onCancel: () => {}
+      })
+    },
+    removeUser (item) {
       this.$Modal.confirm({
         title: this.$t('confirm_to_delete'),
         'z-index': 1000000,
@@ -448,14 +543,18 @@ export default {
       }
     },
     async addRole () {
-      if (!this.addedRole.name) {
+      if (!this.addedRole.params.name) {
         this.$Notice.warning({
           title: 'Warning',
           desc: this.$t('role_cannot_empty')
         })
         return
       }
-      let { status, message } = await roleCreate(this.addedRole)
+
+      const method = this.addedRole.isAdd
+        ? roleCreate(this.addedRole.params)
+        : updateRole(this.addedRole.params.id, this.addedRole.params)
+      let { status, message } = await method
       if (status === 'OK') {
         this.$Notice.success({
           title: 'success',
@@ -465,9 +564,21 @@ export default {
       }
     },
     openAddRoleModal () {
-      this.addRoleModalVisible = true
+      this.addedRole.isAdd = true
+      this.addedRole.params.name = ''
+      this.addedRole.params.displayName = ''
+      this.addedRole.params.email = ''
+      this.addedRole.isShow = true
+    },
+    editRole (item) {
+      this.addedRole.isAdd = false
+      this.addedRole.params = { ...item }
+      this.addedRole.isShow = true
     },
     openAddUserModal () {
+      this.addedUser.username = ''
+      this.addedUser.authType = 'LOCAL'
+      this.addedUser.password = ''
       this.addUserModalVisible = true
     },
     cancel () {}
@@ -480,6 +591,9 @@ export default {
 }
 </script>
 <style lang="scss" scoped>
+.ivu-form-item {
+  margin-bottom: 8px;
+}
 .ivu-card-head-inner,
 .ivu-card-head p {
   height: 30px;
