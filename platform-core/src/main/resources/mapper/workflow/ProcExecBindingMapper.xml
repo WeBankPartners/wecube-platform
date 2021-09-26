@@ -639,7 +639,7 @@
                 </foreach>
             </if>
             <if test="sortField != null and sortField != ''">
-            ORDER BY #{sortField} #{sortType}
+            ORDER BY ${sortField} ${sortType}
             </if>
         
     </select>
@@ -728,7 +728,7 @@
             </foreach>
             </if>
             <if test="sortField != null and sortField != ''">
-            ORDER BY #{sortField} #{sortType}
+            ORDER BY ${sortField} ${sortType}
             </if>
         
     </select>
