@@ -20,3 +20,9 @@ CREATE TABLE IF NOT EXISTS `core_user_scheduled_task` (
   `exec_times` INT NOT NULL DEFAULT 0,
   PRIMARY KEY (`id`)
   ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
+  
+INSERT INTO `menu_items` (`id`,`parent_code`,`code`,`source`,`description`,`local_display_name`,`menu_order`) 
+VALUES ('ADMIN_SYSTEM_WORKFLOW_REPORT','ADMIN','ADMIN_SYSTEM_WORKFLOW_REPORT','SYSTEM','','编排执行报表',18);
+
+INSERT INTO `role_menu` (`id`,`role_name`,`menu_code`) 
+VALUES ('sInz567m2BlS','SUPER_ADMIN','ADMIN_SYSTEM_WORKFLOW_REPORT');
