@@ -5,6 +5,9 @@ public class ProcExecBindingPluginStatistics {
     private String serviceId;
     private String entityDataId;
     private String entityDataName;
+    
+    private int failureCount;
+    private int successCount;
 
     public String getServiceId() {
         return serviceId;
@@ -28,6 +31,22 @@ public class ProcExecBindingPluginStatistics {
 
     public void setEntityDataName(String entityDataName) {
         this.entityDataName = entityDataName;
+    }
+
+    public int getFailureCount() {
+        return failureCount;
+    }
+
+    public void setFailureCount(int failureCount) {
+        this.failureCount = failureCount;
+    }
+
+    public int getSuccessCount() {
+        return successCount;
+    }
+
+    public void setSuccessCount(int successCount) {
+        this.successCount = successCount;
     }
 
     

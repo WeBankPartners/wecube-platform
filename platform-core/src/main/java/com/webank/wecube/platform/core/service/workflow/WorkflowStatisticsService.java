@@ -19,6 +19,7 @@ import com.github.pagehelper.PageHelper;
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
 import com.webank.wecube.platform.core.dto.plugin.PageableDto;
 import com.webank.wecube.platform.core.dto.plugin.QueryResponse;
+import com.webank.wecube.platform.core.dto.plugin.SortingDto;
 import com.webank.wecube.platform.core.dto.workflow.ProcDefInfoDto;
 import com.webank.wecube.platform.core.dto.workflow.TaskNodeDefBriefDto;
 import com.webank.wecube.platform.core.dto.workflow.TaskNodeDefObjectBindInfoDto;
@@ -128,14 +129,21 @@ public class WorkflowStatisticsService extends AbstractWorkflowProcDefService {
 
         Date startDate = null;
         Date endDate = null;
-        if (queryDto == null) {
-            overviewEntities = procInstInfoMapper.selectAllProcDefInfoOverviewEntities();
-        } else {
-            startDate = parseDate(queryDto.getStartDate());
-            endDate = parseDate(queryDto.getEndDate());
-            overviewEntities = procInstInfoMapper
-                    .selectAllProcDefInfoOverviewEntitiesByCriteria(queryDto.getProcDefNames(), startDate, endDate);
+        List<String> procDefNames = null;
+        startDate = parseDate(queryDto.getStartDate());
+        endDate = parseDate(queryDto.getEndDate());
+        procDefNames = queryDto.getProcDefNames();
+        
+        String sortField = null;
+        String sortType = null;
+        SortingDto sortDto = queryDto.getSorting();
+        if (sortDto != null) {
+            sortField = sortDto.getField();
+            sortType = (sortDto.getAsc() ? "ASC" : "DESC");
         }
+        
+        overviewEntities = procInstInfoMapper.selectAllProcDefInfoOverviewEntitiesByCriteria(procDefNames, startDate,
+                endDate, sortField, sortType);
 
         if (overviewEntities == null) {
             return overviewDtos;
@@ -147,16 +155,9 @@ public class WorkflowStatisticsService extends AbstractWorkflowProcDefService {
             dto.setProcDefName(entity.getProcDefName());
             dto.setTotalInstances(entity.getTotalInstances());
 
-            int totalInProgressInstances = procInstInfoMapper.countProcDefInfoOverviewEntities(entity.getProcDefId(),
-                    ProcInstInfoEntity.IN_PROGRESS_STATUS, startDate, endDate);
-            int totalCompletedInstances = procInstInfoMapper.countProcDefInfoOverviewEntities(entity.getProcDefId(),
-                    ProcInstInfoEntity.COMPLETED_STATUS, startDate, endDate);
-            int totalFaultedInstances = procInstInfoMapper.countProcDefInfoOverviewEntities(entity.getProcDefId(),
-                    ProcInstInfoEntity.INTERNALLY_TERMINATED_STATUS, startDate, endDate);
-
-            dto.setTotalInProgressInstances(totalInProgressInstances);
-            dto.setTotalCompletedInstances(totalCompletedInstances);
-            dto.setTotalFaultedInstances(totalFaultedInstances);
+            dto.setTotalInProgressInstances(entity.getTotalInProgressInstances());
+            dto.setTotalCompletedInstances(entity.getTotalCompletedInstances());
+            dto.setTotalFaultedInstances(entity.getTotalFaultedInstances());
 
             overviewDtos.add(dto);
         }
@@ -542,28 +543,12 @@ public class WorkflowStatisticsService extends AbstractWorkflowProcDefService {
         reportItemDto.setEntityDataName(entityDataName);
         reportItemDto.setNodeDefId(nodeDefId);
 
-        TaskNodeDefInfoEntity nodeDefInfo = taskNodeDefInfoRepo.selectByPrimaryKey(nodeDefId);
-        String procDefId = nodeDefInfo.getProcDefId();
+        reportItemDto.setNodeDefName(statisticsItem.getNodeDefName());
 
-        reportItemDto.setNodeDefName(nodeDefInfo.getNodeName());
+        reportItemDto.setProcDefName(statisticsItem.getProcDefName());
 
-        ProcDefInfoEntity procDefInfo = processDefInfoRepo.selectByPrimaryKey(procDefId);
-        reportItemDto.setProcDefId(procDefId);
-        reportItemDto.setProcDefName(procDefInfo.getProcDefName());
-
-        String startDateStr = queryDto.getStartDate();
-        String endDateStr = queryDto.getEndDate();
-
-        Date startDate = parseDate(startDateStr);
-        Date endDate = parseDate(endDateStr);
-
-        int succTimes = taskNodeExecParamMapper.countSuccessTasknodeStatistics(nodeDefId, entityDataId, startDate,
-                endDate);
-        int failedTimes = taskNodeExecParamMapper.countFailedTasknodeStatistics(nodeDefId, entityDataId, startDate,
-                endDate);
-
-        reportItemDto.setSuccessCount(succTimes);
-        reportItemDto.setFailureCount(failedTimes);
+        reportItemDto.setSuccessCount(statisticsItem.getSuccessCount());
+        reportItemDto.setFailureCount(statisticsItem.getFailureCount());
         return reportItemDto;
     }
 
@@ -582,19 +567,8 @@ public class WorkflowStatisticsService extends AbstractWorkflowProcDefService {
         reportItemDto.setEntityDataName(entityDataName);
         reportItemDto.setServiceId(serviceId);
 
-        String startDateStr = queryDto.getStartDate();
-        String endDateStr = queryDto.getEndDate();
-
-        Date startDate = parseDate(startDateStr);
-        Date endDate = parseDate(endDateStr);
-
-        int succTimes = taskNodeExecParamMapper.countSuccessPluginStatistics(serviceId, entityDataId, startDate,
-                endDate);
-        int failedTimes = taskNodeExecParamMapper.countFailedPluginStatistics(serviceId, entityDataId, startDate,
-                endDate);
-
-        reportItemDto.setSuccessCount(succTimes);
-        reportItemDto.setFailureCount(failedTimes);
+        reportItemDto.setSuccessCount(statisticsItem.getSuccessCount());
+        reportItemDto.setFailureCount(statisticsItem.getFailureCount());
         return reportItemDto;
     }
 
@@ -615,12 +589,27 @@ public class WorkflowStatisticsService extends AbstractWorkflowProcDefService {
 
     private com.github.pagehelper.PageInfo<ProcExecBindingTasknodeStatistics> doFetchPageableProcExecBindingTasknodeStatistics(
             WorkflowExecutionReportQueryDto queryDto) {
+        String startDateStr = queryDto.getStartDate();
+        String endDateStr = queryDto.getEndDate();
+
+        Date startDate = parseDate(startDateStr);
+        Date endDate = parseDate(endDateStr);
+
+        String sortField = null;
+        String sortType = null;
+        SortingDto sortDto = queryDto.getSorting();
+        if (sortDto != null) {
+            sortField = sortDto.getField();
+            sortType = (sortDto.getAsc() ? "ASC" : "DESC");
+        }
+
         PageableDto pageable = queryDto.getPageable();
         int pageNum = pageable.getStartIndex() / pageable.getPageSize() + 1;
         int pageSize = pageable.getPageSize();
         PageHelper.startPage(pageNum, pageSize);
         List<ProcExecBindingTasknodeStatistics> items = procExecBindingMapper
-                .selectAllProcExecBindingTasknodeStatistics(queryDto.getTaskNodeIds(), queryDto.getEntityDataIds());
+                .selectAllProcExecBindingTasknodeStatistics(queryDto.getTaskNodeIds(), queryDto.getEntityDataIds(),
+                        startDate, endDate, sortField, sortType);
 
         com.github.pagehelper.PageInfo<ProcExecBindingTasknodeStatistics> pageInfo = new com.github.pagehelper.PageInfo<ProcExecBindingTasknodeStatistics>(
                 items);
@@ -629,12 +618,27 @@ public class WorkflowStatisticsService extends AbstractWorkflowProcDefService {
 
     private com.github.pagehelper.PageInfo<ProcExecBindingPluginStatistics> doFetchPageableProcExecBindingPluginStatistics(
             WorkflowExecutionReportQueryDto queryDto) {
+
+        String startDateStr = queryDto.getStartDate();
+        String endDateStr = queryDto.getEndDate();
+
+        Date startDate = parseDate(startDateStr);
+        Date endDate = parseDate(endDateStr);
+
+        String sortField = null;
+        String sortType = null;
+        SortingDto sortDto = queryDto.getSorting();
+        if (sortDto != null) {
+            sortField = sortDto.getField();
+            sortType = (sortDto.getAsc() ? "ASC" : "DESC");
+        }
+
         PageableDto pageable = queryDto.getPageable();
         int pageNum = pageable.getStartIndex() / pageable.getPageSize() + 1;
         int pageSize = pageable.getPageSize();
         PageHelper.startPage(pageNum, pageSize);
-        List<ProcExecBindingPluginStatistics> items = procExecBindingMapper
-                .selectAllProcExecBindingPluginStatistics(queryDto.getServiceIds(), queryDto.getEntityDataIds());
+        List<ProcExecBindingPluginStatistics> items = procExecBindingMapper.selectAllProcExecBindingPluginStatistics(
+                queryDto.getServiceIds(), queryDto.getEntityDataIds(), startDate, endDate, sortField, sortType);
 
         com.github.pagehelper.PageInfo<ProcExecBindingPluginStatistics> pageInfo = new com.github.pagehelper.PageInfo<ProcExecBindingPluginStatistics>(
                 items);

@@ -1,5 +1,6 @@
 package com.webank.wecube.platform.core.repository.workflow;
 
+import java.util.Date;
 import java.util.List;
 
 import org.apache.ibatis.annotations.Param;
@@ -138,7 +139,9 @@ public interface ProcExecBindingMapper {
      * @return
      */
     List<ProcExecBindingTasknodeStatistics> selectAllProcExecBindingTasknodeStatistics(
-            @Param("nodeDefIds") List<String> nodeDefIds, @Param("entityDataIds") List<String> entityDataIds);
+            @Param("nodeDefIds") List<String> nodeDefIds, @Param("entityDataIds") List<String> entityDataIds,
+            @Param("startDate") Date startDate, @Param("endDate") Date endDate, @Param("sortField") String sortField,
+            @Param("sortType") String sortType);
 
     /**
      * 
@@ -147,6 +150,8 @@ public interface ProcExecBindingMapper {
      * @return
      */
     List<ProcExecBindingPluginStatistics> selectAllProcExecBindingPluginStatistics(
-            @Param("serviceIds") List<String> serviceIds, @Param("entityDataIds") List<String> entityDataIds);
+            @Param("serviceIds") List<String> serviceIds, @Param("entityDataIds") List<String> entityDataIds,
+            @Param("startDate") Date startDate, @Param("endDate") Date endDate, @Param("sortField") String sortField,
+            @Param("sortType") String sortType);
 
 }

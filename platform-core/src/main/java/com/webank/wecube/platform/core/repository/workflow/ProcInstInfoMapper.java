@@ -73,7 +73,7 @@ public interface ProcInstInfoMapper {
      */
     int countProcDefInfoOverviewEntities(@Param("procDefId") String procDefId, @Param("status") String status,
             @Param("startDate") Date startDate, @Param("endDate") Date endDate);
-    
+
     /**
      * 
      * @param procDefId
@@ -82,8 +82,8 @@ public interface ProcInstInfoMapper {
      * @param endDate
      * @return
      */
-    List<ProcInstInfoEntity> selectProcDefInfoOverviewEntities(@Param("procDefId") String procDefId, @Param("status") String status,
-            @Param("startDate") Date startDate, @Param("endDate") Date endDate);
+    List<ProcInstInfoEntity> selectProcDefInfoOverviewEntities(@Param("procDefId") String procDefId,
+            @Param("status") String status, @Param("startDate") Date startDate, @Param("endDate") Date endDate);
 
     /**
      * 
@@ -94,8 +94,8 @@ public interface ProcInstInfoMapper {
      */
     List<ProcDefInfoOverviewEntity> selectAllProcDefInfoOverviewEntitiesByCriteria(
             @Param("procDefNames") List<String> procDefNames, @Param("startDate") Date startDate,
-            @Param("endDate") Date endDate);
-    
+            @Param("endDate") Date endDate, @Param("sortField") String sortField, @Param("sortType") String sortType);
+
     /**
      * 
      * @param procDefId
@@ -106,8 +106,9 @@ public interface ProcInstInfoMapper {
      * @return
      */
     int countByProcBatchKey(@Param("procDefName") String procDefName, @Param("status") String status,
-            @Param("startDate") Date startDate, @Param("endDate") Date endDate, @Param("procBatchKey") String procBatchKey);
-    
+            @Param("startDate") Date startDate, @Param("endDate") Date endDate,
+            @Param("procBatchKey") String procBatchKey);
+
     /**
      * 
      * @param procDefId
@@ -117,6 +118,7 @@ public interface ProcInstInfoMapper {
      * @param procBatchKey
      * @return
      */
-    List<ProcInstInfoEntity> selectAllByProcBatchKey(@Param("procDefName") String procDefName, @Param("status") String status,
-            @Param("startDate") Date startDate, @Param("endDate") Date endDate, @Param("procBatchKey") String procBatchKey);
+    List<ProcInstInfoEntity> selectAllByProcBatchKey(@Param("procDefName") String procDefName,
+            @Param("status") String status, @Param("startDate") Date startDate, @Param("endDate") Date endDate,
+            @Param("procBatchKey") String procBatchKey);
 }
