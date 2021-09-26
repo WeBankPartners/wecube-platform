@@ -133,15 +133,17 @@ public class WorkflowStatisticsService extends AbstractWorkflowProcDefService {
         startDate = parseDate(queryDto.getStartDate());
         endDate = parseDate(queryDto.getEndDate());
         procDefNames = queryDto.getProcDefNames();
-        
+
         String sortField = null;
         String sortType = null;
         SortingDto sortDto = queryDto.getSorting();
         if (sortDto != null) {
-            sortField = sortDto.getField();
-            sortType = (sortDto.getAsc() ? "ASC" : "DESC");
+            if (StringUtils.isNoneBlank(sortDto.getField())) {
+                sortField = sortDto.getField();
+                sortType = (sortDto.getAsc() ? "ASC" : "DESC");
+            }
         }
-        
+
         overviewEntities = procInstInfoMapper.selectAllProcDefInfoOverviewEntitiesByCriteria(procDefNames, startDate,
                 endDate, sortField, sortType);
 
@@ -545,6 +547,7 @@ public class WorkflowStatisticsService extends AbstractWorkflowProcDefService {
 
         reportItemDto.setNodeDefName(statisticsItem.getNodeDefName());
 
+        reportItemDto.setProcDefId(statisticsItem.getProcDefId());
         reportItemDto.setProcDefName(statisticsItem.getProcDefName());
 
         reportItemDto.setSuccessCount(statisticsItem.getSuccessCount());
@@ -599,8 +602,10 @@ public class WorkflowStatisticsService extends AbstractWorkflowProcDefService {
         String sortType = null;
         SortingDto sortDto = queryDto.getSorting();
         if (sortDto != null) {
-            sortField = sortDto.getField();
-            sortType = (sortDto.getAsc() ? "ASC" : "DESC");
+            if (StringUtils.isNoneBlank(sortDto.getField())) {
+                sortField = sortDto.getField();
+                sortType = (sortDto.getAsc() ? "ASC" : "DESC");
+            }
         }
 
         PageableDto pageable = queryDto.getPageable();
@@ -629,8 +634,10 @@ public class WorkflowStatisticsService extends AbstractWorkflowProcDefService {
         String sortType = null;
         SortingDto sortDto = queryDto.getSorting();
         if (sortDto != null) {
-            sortField = sortDto.getField();
-            sortType = (sortDto.getAsc() ? "ASC" : "DESC");
+            if (StringUtils.isNoneBlank(sortDto.getField())) {
+                sortField = sortDto.getField();
+                sortType = (sortDto.getAsc() ? "ASC" : "DESC");
+            }
         }
 
         PageableDto pageable = queryDto.getPageable();
