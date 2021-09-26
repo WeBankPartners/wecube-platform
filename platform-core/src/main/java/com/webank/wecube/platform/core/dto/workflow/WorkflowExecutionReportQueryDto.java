@@ -3,6 +3,7 @@ package com.webank.wecube.platform.core.dto.workflow;
 import java.util.List;
 
 import com.webank.wecube.platform.core.dto.plugin.PageableDto;
+import com.webank.wecube.platform.core.dto.plugin.SortingDto;
 
 public class WorkflowExecutionReportQueryDto {
     private String startDate;
@@ -15,6 +16,8 @@ public class WorkflowExecutionReportQueryDto {
     private List<String> entityDataIds;
     
     protected PageableDto pageable = new PageableDto();
+    
+    protected SortingDto sorting;
 
     public String getStartDate() {
         return startDate;
@@ -70,6 +73,14 @@ public class WorkflowExecutionReportQueryDto {
 
     public void setPageable(PageableDto pageable) {
         this.pageable = pageable;
+    }
+
+    public SortingDto getSorting() {
+        return sorting;
+    }
+
+    public void setSorting(SortingDto sorting) {
+        this.sorting = sorting;
     }
 
     
