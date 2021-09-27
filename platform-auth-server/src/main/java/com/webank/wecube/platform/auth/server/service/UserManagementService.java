@@ -162,6 +162,13 @@ public class UserManagementService {
         
         SysUserEntity user = userOpt.get();
         
+        List<UserRoleRsEntity> existUserRoles = userRoleRsRepository.findAllByUserId(user.getId());
+        if(existUserRoles == null) {
+            existUserRoles = new ArrayList<>();
+        }
+        
+        List<UserRoleRsEntity> remainUserRoles = new ArrayList<>();
+        
         for(SimpleLocalRoleDto roleDto : roleDtos) {
             Optional<SysRoleEntity> roleOpt = roleRepository.findById(roleDto.getId());
             if(!roleOpt.isPresent()) {
@@ -184,7 +191,32 @@ public class UserManagementService {
 
                 userRoleRsRepository.save(userRole);
             }
+            
+            List<UserRoleRsEntity> foundUserRoles = findFromUserRoles(existUserRoles, role.getId());
+            remainUserRoles.addAll(foundUserRoles);
         }
+        
+        existUserRoles.removeAll(remainUserRoles);
+        
+        for(UserRoleRsEntity ur : existUserRoles) {
+            ur.setActive(false);
+            ur.setDeleted(true);
+            ur.setUpdatedBy(AuthenticationContextHolder.getCurrentUsername());
+            ur.setUpdatedTime(new Date());
+            
+            userRoleRsRepository.saveAndFlush(ur);
+        }
+    }
+    
+    private List<UserRoleRsEntity> findFromUserRoles(List<UserRoleRsEntity> existUserRoles, String roleId){
+        List<UserRoleRsEntity> remainUserRoles = new ArrayList<>();
+        for(UserRoleRsEntity ur : existUserRoles) {
+            if(roleId.equals(ur.getRoleId())) {
+                remainUserRoles.add(ur);
+            }
+        }
+        
+        return remainUserRoles;
     }
     
     @Transactional
