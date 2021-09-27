@@ -353,7 +353,6 @@ export default {
     async getProcessInstances () {
       let { status, data } = await getProcessInstances()
       if (status === 'OK') {
-        console.log(data)
         this.timeConfig.allFlowInstances = data.filter(item => item.status === 'Completed')
       }
     },

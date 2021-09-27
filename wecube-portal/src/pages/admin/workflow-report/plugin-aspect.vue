@@ -162,7 +162,6 @@ export default {
   },
   methods: {
     async sortTable (column) {
-      console.log(column)
       this.searchConfig.params.sorting = { asc: column.order === 'asc', field: column.key }
       const { status, data } = await getPluginReport(this.searchConfig.params)
       if (status === 'OK') {
