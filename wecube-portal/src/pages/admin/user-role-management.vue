@@ -117,7 +117,7 @@
       @on-cancel="cancel"
     >
       <Form class="validation-form" :model="addedRole" label-position="left" :label-width="100">
-        <FormItem :label="$t('role')">
+        <FormItem :label="$t('role')" v-if="addedRole.isAdd">
           <Input v-model="addedRole.params.name" :placeholder="$t('please_input')" />
         </FormItem>
         <FormItem :label="$t('display_name')">
