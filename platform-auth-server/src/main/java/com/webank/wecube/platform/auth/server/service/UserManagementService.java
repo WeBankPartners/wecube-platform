@@ -176,6 +176,8 @@ public class UserManagementService {
             }
             
             SysRoleEntity role = roleOpt.get();
+            List<UserRoleRsEntity> foundUserRoles = findFromUserRoles(existUserRoles, role.getId());
+            remainUserRoles.addAll(foundUserRoles);
             
             UserRoleRsEntity userRole = userRoleRsRepository.findOneByUserIdAndRoleId(userId, role.getId());
             if (userRole != null) {
@@ -192,8 +194,6 @@ public class UserManagementService {
                 userRoleRsRepository.save(userRole);
             }
             
-            List<UserRoleRsEntity> foundUserRoles = findFromUserRoles(existUserRoles, role.getId());
-            remainUserRoles.addAll(foundUserRoles);
         }
         
         existUserRoles.removeAll(remainUserRoles);
