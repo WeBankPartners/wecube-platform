@@ -197,6 +197,7 @@ export default {
         isShow: false,
         params: {
           id: '',
+          username: '',
           roles: []
         },
         allRoles: []
@@ -240,10 +241,11 @@ export default {
           title: 'Success',
           desc: ''
         })
+        this.handleUserClick(true, this.addRoleToUser.params.username)
       }
     },
     async addRoleToUsers (item) {
-      this.addRoleToUser.params.id = item.id
+      this.addRoleToUser.params = { ...item }
       let { status, data } = await getRolesByUserName(item.username)
       if (status === 'OK') {
         this.addRoleToUser.params.roles = data.map(d => d.id)
