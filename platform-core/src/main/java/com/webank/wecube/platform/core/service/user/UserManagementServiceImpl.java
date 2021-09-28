@@ -76,6 +76,7 @@ public class UserManagementServiceImpl implements UserManagementService {
             r.setEmail(asRole.getEmail());
             r.setId(asRole.getId());
             r.setName(asRole.getName());
+            r.setStatus(asRole.getStatus());
 
             return r;
         } catch (RestClientException e) {
@@ -234,6 +235,7 @@ public class UserManagementServiceImpl implements UserManagementService {
                 retRoleDto.setEmail(result.getEmail());
                 retRoleDto.setId(result.getId());
                 retRoleDto.setName(result.getName());
+                retRoleDto.setStatus(result.getStatus());
             }
 
             return retRoleDto;
@@ -244,10 +246,10 @@ public class UserManagementServiceImpl implements UserManagementService {
     }
 
     @Override
-    public List<RoleDto> retrieveAllRoles() {
+    public List<RoleDto> retrieveAllRoles(String requiredAll) {
         List<AsRoleDto> asRoles = null;
         try {
-            asRoles = authServerRestClient.retrieveAllRoles();
+            asRoles = authServerRestClient.retrieveAllRoles(requiredAll);
 
         } catch (RestClientException e) {
             log.error("retrieve all roles errors", e);
@@ -265,6 +267,7 @@ public class UserManagementServiceImpl implements UserManagementService {
             r.setEmail(ar.getEmail());
             r.setId(ar.getId());
             r.setName(ar.getName());
+            r.setStatus(ar.getStatus());
 
             roles.add(r);
         });
@@ -286,6 +289,7 @@ public class UserManagementServiceImpl implements UserManagementService {
             r.setEmail(asRole.getEmail());
             r.setId(asRole.getId());
             r.setName(asRole.getName());
+            r.setStatus(asRole.getStatus());
 
             return r;
         } catch (RestClientException e) {
@@ -513,7 +517,7 @@ public class UserManagementServiceImpl implements UserManagementService {
         asRoleDto.setEmail(role.getEmail());
         asRoleDto.setName(role.getName());
         asRoleDto.setId(roleId);
-        
+        asRoleDto.setStatus(role.getStatus());
         
         try {
             AsRoleDto result = authServerRestClient.updateLocalRole(asRoleDto);
@@ -523,6 +527,7 @@ public class UserManagementServiceImpl implements UserManagementService {
                 retRoleDto.setEmail(result.getEmail());
                 retRoleDto.setId(result.getId());
                 retRoleDto.setName(result.getName());
+                retRoleDto.setStatus(result.getStatus());
             }
 
             return retRoleDto;

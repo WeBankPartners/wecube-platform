@@ -321,6 +321,7 @@ public class UserManagementService {
             roleDto.setName(role.getName());
             roleDto.setDisplayName(role.getDisplayName());
             roleDto.setEmail(role.getEmailAddress());
+            roleDto.setStatus(role.getRoleDeletedStatus());
 
             roleDtos.add(roleDto);
         }
@@ -435,6 +436,7 @@ public class UserManagementService {
                         roleDto.setDisplayName(role.getDisplayName());
                         roleDto.setName(role.getName());
                         roleDto.setEmail(role.getEmailAddress());
+                        roleDto.setStatus(role.getRoleDeletedStatus());
 
                         userDto.addRoles(roleDto);
                     }
