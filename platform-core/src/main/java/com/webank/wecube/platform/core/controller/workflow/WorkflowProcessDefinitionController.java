@@ -181,7 +181,7 @@ public class WorkflowProcessDefinitionController {
     @GetMapping("/process/definitions/{proc-def-id}/preview/entities/{entity-data-id}")
     public CommonResponseDto getProcessDataPreview(@PathVariable("proc-def-id") String procDefId,
             @PathVariable("entity-data-id") String dataId) {
-        ProcessDataPreviewDto result = workflowDataService.generateProcessDataPreview(procDefId, dataId);
+        ProcessDataPreviewDto result = workflowDataService.generateProcessDataPreview(procDefId, dataId, false);
         return CommonResponseDto.okayWithData(result);
     }
 

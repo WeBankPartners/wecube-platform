@@ -791,13 +791,7 @@ export default {
       if (s) {
         const { data, status } = await getAllFlow()
         if (status === 'OK') {
-          let sortedResult = data.sort((a, b) => {
-            let s = a.createdTime.toLowerCase()
-            let t = b.createdTime.toLowerCase()
-            if (s > t) return -1
-            if (s < t) return 1
-          })
-          this.allFlows = sortedResult
+          this.allFlows = data
         }
       }
     },
