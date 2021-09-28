@@ -52,19 +52,11 @@
           </p>
           <div class="tagContainers">
             <div class="role-item" v-for="item in roles" :key="item.id">
-              <Tag
-                :name="item.id"
-                :color="item.color"
-                :checked="item.checked"
-                checkable
-                :fade="false"
-                @on-change="handleRoleClick"
-              >
-                <span :title="item.displayName">{{ item.name + '(' + item.displayName + ')' }}</span>
+              <Tag :name="item.id" :checked="item.checked" checkable :fade="false" @on-change="handleRoleClick">
+                <span :style="item.status === 'Deleted' ? 'color:#dcdee2' : ''" :title="item.displayName">{{
+                  item.name + '(' + item.displayName + ')'
+                }}</span>
               </Tag>
-              <Tooltip :content="$t('delete')">
-                <Button icon="md-trash" type="error" ghost size="small" @click="removeRole(item)"></Button>
-              </Tooltip>
               <Tooltip :content="$t('edit')">
                 <Button icon="ios-create-outline" type="info" ghost size="small" @click="editRole(item)"></Button>
               </Tooltip>
@@ -74,6 +66,7 @@
                   type="primary"
                   ghost
                   size="small"
+                  :disabled="item.status === 'Deleted'"
                   @click="openUserManageModal(item.id)"
                 ></Button>
               </Tooltip>
@@ -126,6 +119,9 @@
         <FormItem :label="$t('email')">
           <Input v-model="addedRole.params.email" :placeholder="$t('please_input')" />
         </FormItem>
+        <FormItem :label="$t('status')" v-if="!addedRole.isAdd">
+          <Checkbox v-model="addedRole.params.status">{{ $t('delete_role') }}</Checkbox>
+        </FormItem>
       </Form>
     </Modal>
     <Modal v-model="userManageModal" width="700" :title="$t('edit_user')">
@@ -174,7 +170,6 @@ import {
   removeUser,
   getUserList,
   roleCreate,
-  deleteRole,
   getRoleList,
   updateRole,
   getRolesByUserName,
@@ -218,7 +213,8 @@ export default {
           id: '',
           name: '',
           displayName: '',
-          email: ''
+          email: '',
+          status: false
         }
       },
       addedRoleValue: '',
@@ -234,6 +230,23 @@ export default {
     }
   },
   methods: {
+    compare (prop) {
+      return function (obj1, obj2) {
+        var val1 = obj1[prop]
+        var val2 = obj2[prop]
+        if (!isNaN(Number(val1)) && !isNaN(Number(val2))) {
+          val1 = Number(val1)
+          val2 = Number(val2)
+        }
+        if (val1 < val2) {
+          return -1
+        } else if (val1 > val2) {
+          return 1
+        } else {
+          return 0
+        }
+      }
+    },
     async confirmAddRoleToUser () {
       let { status } = await addRoleToUser(this.addRoleToUser.params.id, this.addRoleToUser.params.roles)
       if (status === 'OK') {
@@ -255,25 +268,6 @@ export default {
         this.addRoleToUser.allRoles = res.data
         this.addRoleToUser.isShow = true
       }
-    },
-    removeRole (item) {
-      this.$Modal.confirm({
-        title: this.$t('confirm_to_delete'),
-        'z-index': 1000000,
-        onOk: async () => {
-          let { status } = await deleteRole(item.id)
-          if (status === 'OK') {
-            this.$Notice.success({
-              title: 'Success',
-              desc: ''
-            })
-            // this.getAllUsers()
-            this.getAllRoles()
-            this.getAllMenus()
-          }
-        },
-        onCancel: () => {}
-      })
     },
     removeUser (item) {
       this.$Modal.confirm({
@@ -414,7 +408,8 @@ export default {
       }
     },
     async getAllRoles () {
-      let { status, data } = await getRoleList()
+      let params = { all: 'Y' }
+      let { status, data } = await getRoleList(params)
       if (status === 'OK') {
         this.roles = data.map(_ => {
           return {
@@ -423,6 +418,7 @@ export default {
             color: 'success'
           }
         })
+        this.roles.sort(this.compare('status')).reverse()
       }
     },
     async handleUserClick (checked, name) {
@@ -458,6 +454,8 @@ export default {
       }
     },
     async handleRoleClick (checked, id) {
+      const find = this.roles.filter(r => r.id === id)
+      if (find[0].status === 'Deleted') return
       this.currentRoleId = id
       this.roles.forEach(_ => {
         _.checked = false
@@ -552,7 +550,7 @@ export default {
         })
         return
       }
-
+      this.addedRole.params.status = this.addedRole.params.status ? 'Deleted' : 'NotDeleted'
       const method = this.addedRole.isAdd
         ? roleCreate(this.addedRole.params)
         : updateRole(this.addedRole.params.id, this.addedRole.params)
@@ -575,6 +573,11 @@ export default {
     editRole (item) {
       this.addedRole.isAdd = false
       this.addedRole.params = { ...item }
+      if (item.status === 'Deleted') {
+        this.addedRole.params.status = true
+      } else {
+        this.addedRole.params.status = false
+      }
       this.addedRole.isShow = true
     },
     openAddUserModal () {
@@ -593,6 +596,13 @@ export default {
 }
 </script>
 <style lang="scss" scoped>
+.xxx {
+  width: 80%;
+  display: inline-block;
+  border: 1px solid #d3d6d7;
+  padding: 2px;
+  margin: 2px;
+}
 .ivu-form-item {
   margin-bottom: 8px;
 }
