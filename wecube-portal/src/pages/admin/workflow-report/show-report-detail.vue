@@ -171,10 +171,10 @@ export default {
         }
       ]
       data.forEach((d, index) => {
-        this.disabledGroup.push(d.procExecDate)
+        this.disabledGroup.push(d.execDate)
         this.filterCol.push('value' + index)
         this.oriDetailTableColums.push({
-          title: d.procExecDate,
+          title: d.execDate,
           tooltip: true,
           key: 'value' + index,
           width: 550,
@@ -190,7 +190,7 @@ export default {
                     {this.$t('flow_name')}:{params.column.other.procDefName}
                   </p>
                   <p>
-                    {this.$t('execute_date')}:{params.column.other.procExecDate}
+                    {this.$t('execute_date')}:{params.column.other.execDate}
                   </p>
                   <p>
                     {this.$t('executor')}:{params.column.other.procExecOper}
