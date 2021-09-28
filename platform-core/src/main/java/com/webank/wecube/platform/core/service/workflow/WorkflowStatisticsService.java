@@ -129,10 +129,10 @@ public class WorkflowStatisticsService extends AbstractWorkflowProcDefService {
 
         Date startDate = null;
         Date endDate = null;
-        List<String> procDefNames = null;
+        List<String> procDefIds = null;
         startDate = parseDate(queryDto.getStartDate());
         endDate = parseDate(queryDto.getEndDate());
-        procDefNames = queryDto.getProcDefNames();
+        procDefIds = queryDto.getProcDefIds();
 
         String sortField = null;
         String sortType = null;
@@ -144,7 +144,7 @@ public class WorkflowStatisticsService extends AbstractWorkflowProcDefService {
             }
         }
 
-        overviewEntities = procInstInfoMapper.selectAllProcDefInfoOverviewEntitiesByCriteria(procDefNames, startDate,
+        overviewEntities = procInstInfoMapper.selectAllProcDefInfoOverviewEntitiesByCriteria(procDefIds, startDate,
                 endDate, sortField, sortType);
 
         if (overviewEntities == null) {
@@ -491,14 +491,14 @@ public class WorkflowStatisticsService extends AbstractWorkflowProcDefService {
 
         List<TaskNodeExecParamDto> execParamDtos = new ArrayList<>();
         List<TaskNodeExecParamEntity> reqExecParamEntities = taskNodeExecParamMapper
-                .selectAllByRequestIdAndParamType(execReq.getReqId(), TaskNodeExecParamEntity.PARAM_TYPE_REQUEST);
+                .selectAllByRequestIdAndParamTypeAndEntityDataId(execReq.getReqId(), TaskNodeExecParamEntity.PARAM_TYPE_REQUEST, queryDto.getEntityDataId());
         for (TaskNodeExecParamEntity reqExecParam : reqExecParamEntities) {
             TaskNodeExecParamDto dto = buildTaskNodeExecParamDto(reqExecParam);
             execParamDtos.add(dto);
         }
 
         List<TaskNodeExecParamEntity> respExecParamEntities = taskNodeExecParamMapper
-                .selectAllByRequestIdAndParamType(execReq.getReqId(), TaskNodeExecParamEntity.PARAM_TYPE_RESPONSE);
+                .selectAllByRequestIdAndParamTypeAndEntityDataId(execReq.getReqId(), TaskNodeExecParamEntity.PARAM_TYPE_RESPONSE, queryDto.getEntityDataId());
         for (TaskNodeExecParamEntity respExecParam : respExecParamEntities) {
             TaskNodeExecParamDto dto = buildTaskNodeExecParamDto(respExecParam);
             execParamDtos.add(dto);
