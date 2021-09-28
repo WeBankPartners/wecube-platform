@@ -93,7 +93,7 @@ public interface ProcInstInfoMapper {
      * @return
      */
     List<ProcDefInfoOverviewEntity> selectAllProcDefInfoOverviewEntitiesByCriteria(
-            @Param("procDefNames") List<String> procDefNames, @Param("startDate") Date startDate,
+            @Param("procDefIds") List<String> procDefIds, @Param("startDate") Date startDate,
             @Param("endDate") Date endDate, @Param("sortField") String sortField, @Param("sortType") String sortType);
 
     /**

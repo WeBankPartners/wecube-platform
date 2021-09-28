@@ -409,12 +409,12 @@
                 <if test="endDate != null">
                 AND created_time &lt;= #{endDate,jdbcType=TIMESTAMP}
                 </if>
-                <if test="procDefNames != null and procDefNames.size() != 0">
+                <if test="procDefIds != null and procDefIds.size() != 0">
                 AND 
-                proc_def_name IN 
-                    <foreach item="procDefName" collection="procDefNames" separator=","
+                proc_def_id IN 
+                    <foreach item="procDefId" collection="procDefIds" separator=","
                     open="(" close=")" index="">
-                        #{procDefName, jdbcType=VARCHAR}
+                        #{procDefId, jdbcType=VARCHAR}
                     </foreach>
                 </if>
             GROUP BY proc_def_id) tmp1 ON tmp1.proc_def_id = t0.proc_def_id
@@ -431,12 +431,12 @@
                 <if test="endDate != null">
                 AND created_time &lt;= #{endDate,jdbcType=TIMESTAMP}
                 </if>
-                <if test="procDefNames != null and procDefNames.size() != 0">
+                <if test="procDefIds != null and procDefIds.size() != 0">
                 AND 
-                proc_def_name IN 
-                    <foreach item="procDefName" collection="procDefNames" separator=","
+                proc_def_id IN 
+                    <foreach item="procDefId" collection="procDefIds" separator=","
                     open="(" close=")" index="">
-                        #{procDefName, jdbcType=VARCHAR}
+                        #{procDefId, jdbcType=VARCHAR}
                     </foreach>
                 </if>
             GROUP BY proc_def_id) tmp2 ON tmp2.proc_def_id = t0.proc_def_id
@@ -453,12 +453,12 @@
                 <if test="endDate != null">
                 AND created_time &lt;= #{endDate,jdbcType=TIMESTAMP}
                 </if>
-                <if test="procDefNames != null and procDefNames.size() != 0">
+                <if test="procDefIds != null and procDefIds.size() != 0">
                 AND 
-                proc_def_name IN 
-                    <foreach item="procDefName" collection="procDefNames" separator=","
+                proc_def_id IN 
+                    <foreach item="procDefId" collection="procDefIds" separator=","
                     open="(" close=")" index="">
-                        #{procDefName, jdbcType=VARCHAR}
+                        #{procDefId, jdbcType=VARCHAR}
                     </foreach>
                 </if>
             GROUP BY proc_def_id) tmp3 ON tmp3.proc_def_id = t0.proc_def_id
@@ -475,12 +475,12 @@
                 <if test="endDate != null">
                 AND created_time &lt;= #{endDate,jdbcType=TIMESTAMP}
                 </if>
-                <if test="procDefNames != null and procDefNames.size() != 0">
+                <if test="procDefIds != null and procDefIds.size() != 0">
                 AND 
-                proc_def_name IN 
-                    <foreach item="procDefName" collection="procDefNames" separator=","
+                proc_def_id IN 
+                    <foreach item="procDefId" collection="procDefIds" separator=","
                     open="(" close=")" index="">
-                        #{procDefName, jdbcType=VARCHAR}
+                        #{procDefId, jdbcType=VARCHAR}
                     </foreach>
                 </if>
             GROUP BY proc_def_id) tmp4 ON tmp4.proc_def_id = t0.proc_def_id
@@ -492,12 +492,12 @@
             <if test="endDate != null">
             AND t0.created_time &lt;= #{endDate,jdbcType=TIMESTAMP}
             </if>
-            <if test="procDefNames != null and procDefNames.size() != 0">
+            <if test="procDefIds != null and procDefIds.size() != 0">
             AND 
-            t0.proc_def_name IN 
-                <foreach item="procDefName" collection="procDefNames" separator=","
+            t0.proc_def_id IN 
+                <foreach item="procDefId" collection="procDefIds" separator=","
                 open="(" close=")" index="">
-                    #{procDefName, jdbcType=VARCHAR}
+                    #{procDefId, jdbcType=VARCHAR}
                 </foreach>
             </if>
             <if test="sortField != null and sortField != ''">
