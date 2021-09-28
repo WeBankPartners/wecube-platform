@@ -1,5 +1,5 @@
 <template>
-  <div style="text-align: end;">
+  <div>
     <div class="report-container">
       <div class="item">
         {{ $t('datetime_range') }}:
