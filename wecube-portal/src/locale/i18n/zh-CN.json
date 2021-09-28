@@ -525,5 +525,6 @@
   "Weekly": "每周",
   "Monthly": "每月",
   "total": "共",
-  "display": "显示"
+  "display": "显示",
+  "delete_role": "删除角色"
 }
