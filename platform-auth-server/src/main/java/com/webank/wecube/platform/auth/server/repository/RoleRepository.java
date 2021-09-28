@@ -12,6 +12,9 @@ public interface RoleRepository extends JpaRepository<SysRoleEntity, String> {
     @Query("select t from SysRoleEntity t where t.name = :name and t.deleted = false")
     SysRoleEntity findNotDeletedRoleByName(@Param("name") String name);
     
+    @Query("select t from SysRoleEntity t where t.name = :name")
+    List<SysRoleEntity> findAllRolesByName(@Param("name") String name);
+    
     @Query("select t from SysRoleEntity t where t.active = true and t.deleted = false")
     List<SysRoleEntity> findAllActiveRoles();
     
