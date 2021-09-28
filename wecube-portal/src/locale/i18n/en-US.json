@@ -527,5 +527,6 @@
   "Weekly": "Weekly",
   "Monthly": "Monthly",
   "total": "Total",
-  "display": "Display"
+  "display": "Display",
+  "delete_role": "Delete Role"
 }
