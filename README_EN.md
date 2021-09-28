@@ -27,7 +27,7 @@ WeCube is an open source, one-stop tool for architecture management and IT opera
 
 
 ## Demo
-[Live Demo](http://124.156.108.126:19090/) (user/password：admin/admin)
+[Live Demo](http://119.91.78.168:19090/) (user/password：admin/admin)
 
 > Note:
 >  1. Live Demo will reset on 2:00 - 4:00am every day. The environment is not available during the period, and all changes will be discarded.
