@@ -156,9 +156,9 @@ public class RoleManagementService {
     public SimpleLocalRoleDto registerLocalRole(SimpleLocalRoleDto roleDto) {
         validateSimpleLocalRoleDto(roleDto);
 
-        SysRoleEntity existedRole = roleRepository.findNotDeletedRoleByName(roleDto.getName());
+        List<SysRoleEntity> existedRoles = roleRepository.findAllRolesByName(roleDto.getName());
 
-        if (existedRole != null) {
+        if (existedRoles != null && !existedRoles.isEmpty()) {
             String msg = String.format("Role with name {%s} already existed.", roleDto.getName());
             throw new AuthServerException("3004", msg, roleDto.getName());
         }
