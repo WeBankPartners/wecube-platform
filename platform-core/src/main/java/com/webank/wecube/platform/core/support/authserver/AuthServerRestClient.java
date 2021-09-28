@@ -105,30 +105,30 @@ public class AuthServerRestClient extends AbstractAuthServerRestClient {
                 new ParameterizedTypeReference<AuthServerRestResponseDto<Object>>() {
                 });
     }
-    
+
     public void revokeRolesFromUser(String userId, List<AsRoleDto> roleDtos) {
         if (StringUtils.isBlank(userId)) {
             throw new IllegalArgumentException();
         }
-        
+
         if (roleDtos == null || roleDtos.isEmpty()) {
             return;
         }
-        
+
         postForObject(clientProperties.getPathRevokeRolesFromUser(), roleDtos,
                 new ParameterizedTypeReference<AuthServerRestResponseDto<Object>>() {
                 }, userId);
     }
-    
+
     public void configureRolesForUser(String userId, List<AsRoleDto> roleDtos) {
         if (StringUtils.isBlank(userId)) {
             throw new IllegalArgumentException();
         }
-        
+
         if (roleDtos == null || roleDtos.isEmpty()) {
             return;
         }
-        
+
         postForObject(clientProperties.getPathConfigureRolesForUser(), roleDtos,
                 new ParameterizedTypeReference<AuthServerRestResponseDto<Object>>() {
                 }, userId);
@@ -147,8 +147,6 @@ public class AuthServerRestClient extends AbstractAuthServerRestClient {
                 new ParameterizedTypeReference<AuthServerRestResponseDto<Object>>() {
                 }, roleId);
     }
-    
-    
 
     public void configureRoleForUsers(String roleId, List<AsUserDto> asUsers) {
         if (StringUtils.isBlank(roleId)) {
@@ -176,8 +174,13 @@ public class AuthServerRestClient extends AbstractAuthServerRestClient {
         return asUsers;
     }
 
-    public List<AsRoleDto> retrieveAllRoles() {
-        List<AsRoleDto> asRoles = getForObject(clientProperties.getPathRetrieveAllRoles(),
+    public List<AsRoleDto> retrieveAllRoles(String requiredAll) {
+        if (StringUtils.isBlank(requiredAll)) {
+            requiredAll = "N";
+        }
+
+        String path = clientProperties.getPathRetrieveAllRoles() + "?all=" + requiredAll;
+        List<AsRoleDto> asRoles = getForObject(path,
                 new ParameterizedTypeReference<AuthServerRestResponseDto<List<AsRoleDto>>>() {
                 });
         return asRoles;
@@ -190,7 +193,7 @@ public class AuthServerRestClient extends AbstractAuthServerRestClient {
 
         deleteObject(clientProperties.getPathDeleteLocalRoleByRoleId(), roleId);
     }
-    
+
     public AsRoleDto updateLocalRole(AsRoleDto request) {
         if (request == null) {
             throw new IllegalArgumentException();
