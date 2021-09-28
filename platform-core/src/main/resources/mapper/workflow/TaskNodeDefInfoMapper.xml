@@ -519,4 +519,24 @@
         and node_id =
         #{nodeId,jdbcType=VARCHAR}
     </select>
+    
+    <select id="selectAllBoundServices" resultType="java.lang.String">
+        select
+        DISTINCT service_id
+        from core_re_task_node_def_info
+        where service_id is not null
+        and service_id != ''
+        and status != 'draft'
+    </select>
+    
+    <select id="selectAllByServiceAndStatus" parameterType="java.lang.String"
+        resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List" />
+        from core_re_task_node_def_info
+        where service_id =
+        #{serviceId,jdbcType=VARCHAR}
+        and status =
+        #{status,jdbcType=VARCHAR}
+    </select>
 </mapper>

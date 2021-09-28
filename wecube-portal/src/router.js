@@ -51,6 +51,11 @@ let router = new Router({
           component: () => import('@/pages/admin/user-role-management')
         },
         {
+          path: '/admin/workflow-report',
+          name: 'workflowReport',
+          component: () => import('@/pages/admin/workflow-report/index')
+        },
+        {
           path: '/collaboration/plugin-management',
           name: 'pluginManage',
           component: () => import('@/pages/collaboration/plugin-management')

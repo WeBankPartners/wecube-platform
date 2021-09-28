@@ -123,7 +123,7 @@ public class UserManagementService {
     
 
     @Transactional
-    public void revokeUserRolesById(String roleId, List<SimpleLocalUserDto> userDtos) {
+    public void revokeRoleFromUsers(String roleId, List<SimpleLocalUserDto> userDtos) {
         Optional<SysRoleEntity> roleOpt = roleRepository.findById(roleId);
         if (!roleOpt.isPresent()) {
             log.debug("revoking user roles error:such role entity does not exist, role id {}", roleId);
@@ -148,9 +148,112 @@ public class UserManagementService {
             userRoleRsRepository.save(userRole);
         }
     }
+    
+    @Transactional
+    public void configureUserWithRoles(String userId, List<SimpleLocalRoleDto> roleDtos) {
+        if(roleDtos == null || roleDtos.isEmpty()) {
+            return;
+        }
+        Optional<SysUserEntity> userOpt = userRepository.findById(userId);
+        if(!userOpt.isPresent()) {
+            String errMsg = String.format("Such user with ID %s does not exist.", userId);
+            throw new AuthServerException("3024", errMsg, userId);
+        }
+        
+        SysUserEntity user = userOpt.get();
+        
+        List<UserRoleRsEntity> existUserRoles = userRoleRsRepository.findAllByUserId(user.getId());
+        if(existUserRoles == null) {
+            existUserRoles = new ArrayList<>();
+        }
+        
+        List<UserRoleRsEntity> remainUserRoles = new ArrayList<>();
+        
+        for(SimpleLocalRoleDto roleDto : roleDtos) {
+            Optional<SysRoleEntity> roleOpt = roleRepository.findById(roleDto.getId());
+            if(!roleOpt.isPresent()) {
+                throw new AuthServerException("3012", "Such role entity does not exist.");
+            }
+            
+            SysRoleEntity role = roleOpt.get();
+            if(role.isDeleted()) {
+                continue;
+            }
+            List<UserRoleRsEntity> foundUserRoles = findFromUserRoles(existUserRoles, role.getId());
+            remainUserRoles.addAll(foundUserRoles);
+            
+            UserRoleRsEntity userRole = userRoleRsRepository.findOneByUserIdAndRoleId(userId, role.getId());
+            if (userRole != null) {
+                log.info("such user role configuration already exist,userId={},roleId={}", userId, role.getId());
+                continue;
+            } else {
+                userRole = new UserRoleRsEntity();
+                userRole.setCreatedBy(AuthenticationContextHolder.getCurrentUsername());
+                userRole.setUserId(userId);
+                userRole.setUsername(user.getUsername());
+                userRole.setRoleId(role.getId());
+                userRole.setRoleName(role.getName());
+
+                userRoleRsRepository.save(userRole);
+            }
+            
+        }
+        
+        existUserRoles.removeAll(remainUserRoles);
+        
+        for(UserRoleRsEntity ur : existUserRoles) {
+            ur.setActive(false);
+            ur.setDeleted(true);
+            ur.setUpdatedBy(AuthenticationContextHolder.getCurrentUsername());
+            ur.setUpdatedTime(new Date());
+            
+            userRoleRsRepository.saveAndFlush(ur);
+        }
+    }
+    
+    private List<UserRoleRsEntity> findFromUserRoles(List<UserRoleRsEntity> existUserRoles, String roleId){
+        List<UserRoleRsEntity> remainUserRoles = new ArrayList<>();
+        for(UserRoleRsEntity ur : existUserRoles) {
+            if(roleId.equals(ur.getRoleId())) {
+                remainUserRoles.add(ur);
+            }
+        }
+        
+        return remainUserRoles;
+    }
+    
+    @Transactional
+    public void revokeRolesFromUser(String userId, List<SimpleLocalRoleDto> roleDtos) {
+        if(roleDtos == null || roleDtos.isEmpty()) {
+            return;
+        }
+        Optional<SysUserEntity> userOpt = userRepository.findById(userId);
+        if(!userOpt.isPresent()) {
+            String errMsg = String.format("Such user with ID %s does not exist.", userId);
+            throw new AuthServerException("3024", errMsg, userId);
+        }
+        
+        SysUserEntity user = userOpt.get();
+        
+        for (SimpleLocalRoleDto roleDto : roleDtos) {
+            UserRoleRsEntity userRole = userRoleRsRepository.findOneByUserIdAndRoleId(user.getId(), roleDto.getId());
+            if (userRole == null) {
+                continue;
+            }
+
+            if (userRole.isDeleted()) {
+                continue;
+            }
+
+            userRole.setDeleted(true);
+            userRole.setUpdatedBy(AuthenticationContextHolder.getCurrentUsername());
+            userRole.setUpdatedTime(new Date());
+            userRoleRsRepository.save(userRole);
+        }
+    }
 
     @Transactional
-    public void configureUserRolesById(String roleId, List<SimpleLocalUserDto> userDtos) {
+    public void configureRoleForUsers(String roleId, List<SimpleLocalUserDto> userDtos) {
         Optional<SysRoleEntity> roleOpt = roleRepository.findById(roleId);
         if (!roleOpt.isPresent()) {
             log.debug("configuring user with roles error:such role entity does not exist, role id {}", roleId);
@@ -158,6 +261,10 @@ public class UserManagementService {
         }
 
         SysRoleEntity role = roleOpt.get();
+        
+        if(role.isDeleted()) {
+            return;
+        }
 
         for (SimpleLocalUserDto userDto : userDtos) {
             Optional<SysUserEntity> userOpt = userRepository.findById(userDto.getId());
@@ -221,6 +328,7 @@ public class UserManagementService {
             roleDto.setName(role.getName());
             roleDto.setDisplayName(role.getDisplayName());
             roleDto.setEmail(role.getEmailAddress());
+            roleDto.setStatus(role.getRoleDeletedStatus());
 
             roleDtos.add(roleDto);
         }
@@ -335,6 +443,7 @@ public class UserManagementService {
                         roleDto.setDisplayName(role.getDisplayName());
                         roleDto.setName(role.getName());
                         roleDto.setEmail(role.getEmailAddress());
+                        roleDto.setStatus(role.getRoleDeletedStatus());
 
                         userDto.addRoles(roleDto);
                     }

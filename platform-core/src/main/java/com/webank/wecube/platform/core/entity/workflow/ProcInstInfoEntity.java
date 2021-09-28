@@ -39,9 +39,11 @@ public class ProcInstInfoEntity {
     private String procInstKernelId;
 
     private String procInstKey;
-    
+
+    private String procBatchKey;
+
     private transient List<TaskNodeInstInfoEntity> nodeInstInfos = new ArrayList<>();
-    
+
     private transient ProcExecBindingEntity procInstBindEntity;
 
     public String getProcInstKey() {
@@ -172,15 +174,24 @@ public class ProcInstInfoEntity {
         this.procInstBindEntity = procInstBindEntity;
     }
 
-    public void addNodeInstInfo(TaskNodeInstInfoEntity nodeInstInfo){
-        if(nodeInstInfo == null){
+    public void addNodeInstInfo(TaskNodeInstInfoEntity nodeInstInfo) {
+        if (nodeInstInfo == null) {
             return;
         }
-        
-        if(this.nodeInstInfos == null){
+
+        if (this.nodeInstInfos == null) {
             this.nodeInstInfos = new ArrayList<>();
         }
-        
+
         this.nodeInstInfos.add(nodeInstInfo);
     }
+
+    public String getProcBatchKey() {
+        return procBatchKey;
+    }
+
+    public void setProcBatchKey(String procBatchKey) {
+        this.procBatchKey = procBatchKey;
+    }
+
 }

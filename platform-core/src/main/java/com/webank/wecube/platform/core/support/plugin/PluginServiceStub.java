@@ -85,6 +85,7 @@ public class PluginServiceStub {
         if (pluginResponse == null) {
             throw new PluginRemoteCallException("Plugin call failure due to no response.");
         }
+        
         if (!PluginResponse.RESULT_CODE_OK.equalsIgnoreCase(pluginResponse.getResultCode())) {
             throw new PluginRemoteCallException("Plugin call error: " + pluginResponse.getResultMessage(),
                     pluginResponse);

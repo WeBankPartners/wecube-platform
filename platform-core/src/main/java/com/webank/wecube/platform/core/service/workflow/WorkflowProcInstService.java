@@ -421,6 +421,11 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
         String procInstKey = LocalIdGenerator.generateId();
 
         ProcInstInfoEntity procInstInfoEntity = tryBuildProcInstInfoEntity(procDefInfoEntity, procInstKey);
+        procInstInfoEntity.setProcBatchKey(requestDto.getProcBatchKey());
+        
+        if(StringUtils.isNoneBlank(requestDto.getProcInitUser())) {
+            procInstInfoEntity.setOper(requestDto.getProcInitUser());
+        }
 
         tryBuildProcInstProcExecBinding(rootEntityTypeId, rootEntityDataId, rootEntityDataName, procDefInfoEntity,
                 procInstInfoEntity);

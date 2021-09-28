@@ -55,4 +55,16 @@ public class Constants {
     public static final String PREFIX_OBJECT_VAR_ID = "OV";
     public static final String PREFIX_PROPERTY_VAR_ID = "PV";
     public static final String PREFIX_LIST_VAR_ID = "EV";
+    
+    //###User scheduled task
+    public static final String SCHEDULE_MODE_MONTHLY = "Monthly";
+    public static final String SCHEDULE_MODE_WEEKLY = "Weekly";
+    public static final String SCHEDULE_MODE_DAILY = "Daily";
+    public static final String SCHEDULE_MODE_HOURLY = "Hourly";
+    
+    public static final String SCHEDULE_TASK_NEW = "New";
+    public static final String SCHEDULE_TASK_READY = "Ready";
+    public static final String SCHEDULE_TASK_RUNNING = "Running";
+    public static final String SCHEDULE_TASK_STOPPED = "Stopped";
+    public static final String SCHEDULE_TASK_DELETED = "Deleted";
 }

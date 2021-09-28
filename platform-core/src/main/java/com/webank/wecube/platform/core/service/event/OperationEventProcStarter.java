@@ -65,7 +65,7 @@ public class OperationEventProcStarter {
         initDto.setProcDefId(procDefEntity.getId());
         
         log.info("try to generate process data preview for :{} {} {}", procDefEntity.getId(), entityTypeId, entityDataId);
-        ProcessDataPreviewDto processDataPreview = workflowDataService.generateProcessDataPreview(procDefEntity.getId(), entityDataId);
+        ProcessDataPreviewDto processDataPreview = workflowDataService.generateProcessDataPreview(procDefEntity.getId(), entityDataId, false);
         String processSessionId = processDataPreview.getProcessSessionId();
         initDto.setProcessSessionId(processSessionId);
         

@@ -429,4 +429,18 @@
         </foreach>
         AND t1.status = 'deployed'
     </select>
+    
+    <select id="selectAllProcDefsByStatus"
+        parameterType="java.lang.String" resultMap="ResultMapWithBLOBs">
+        select
+        <include refid="Base_Column_List" />
+        ,
+        <include refid="Blob_Column_List" />
+        from core_re_proc_def_info
+        where active = true
+        and is_deleted =
+        false
+        and status = #{status,jdbcType=VARCHAR}
+        order by proc_def_name,created_time DESC
+    </select>
 </mapper>

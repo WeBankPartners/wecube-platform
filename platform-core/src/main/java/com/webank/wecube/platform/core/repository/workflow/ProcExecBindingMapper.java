@@ -1,11 +1,14 @@
 package com.webank.wecube.platform.core.repository.workflow;
 
+import java.util.Date;
 import java.util.List;
 
 import org.apache.ibatis.annotations.Param;
 import org.springframework.stereotype.Repository;
 
 import com.webank.wecube.platform.core.entity.workflow.ProcExecBindingEntity;
+import com.webank.wecube.platform.core.entity.workflow.ProcExecBindingPluginStatistics;
+import com.webank.wecube.platform.core.entity.workflow.ProcExecBindingTasknodeStatistics;
 
 @Repository
 public interface ProcExecBindingMapper {
@@ -121,4 +124,34 @@ public interface ProcExecBindingMapper {
      */
     int countAllExclusiveBoundRunningProcInstancesWithoutProcInst(@Param("entityDataId") String entityDataId,
             @Param("procInstId") int procInstId);
+
+    /**
+     * 
+     * @param nodeDefId
+     * @return
+     */
+    List<ProcExecBindingEntity> selectAllTaskNodeBindingsByNodeDef(@Param("nodeDefId") String nodeDefId);
+
+    /**
+     * 
+     * @param taskNodeIds
+     * @param entityDataIds
+     * @return
+     */
+    List<ProcExecBindingTasknodeStatistics> selectAllProcExecBindingTasknodeStatistics(
+            @Param("nodeDefIds") List<String> nodeDefIds, @Param("entityDataIds") List<String> entityDataIds,
+            @Param("startDate") Date startDate, @Param("endDate") Date endDate, @Param("sortField") String sortField,
+            @Param("sortType") String sortType);
+
+    /**
+     * 
+     * @param serviceIds
+     * @param entityDataIds
+     * @return
+     */
+    List<ProcExecBindingPluginStatistics> selectAllProcExecBindingPluginStatistics(
+            @Param("serviceIds") List<String> serviceIds, @Param("entityDataIds") List<String> entityDataIds,
+            @Param("startDate") Date startDate, @Param("endDate") Date endDate, @Param("sortField") String sortField,
+            @Param("sortType") String sortType);
+
 }

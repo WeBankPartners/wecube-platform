@@ -38,6 +38,10 @@ public class ExecutionJobs {
     private transient List<ExecutionJobParameters> parameters = new ArrayList<>();
     
     private transient Exception prepareException;
+    
+    private transient Object requestData;
+    
+    private transient String confirmToken;
 
     public String getErrorMessage() {
         return errorMessage;
@@ -176,5 +180,22 @@ public class ExecutionJobs {
         this.errorMessage = errorMessage;
         this.returnJson = JsonUtils.toJsonString(this);
     }
+
+    public Object getRequestData() {
+        return requestData;
+    }
+
+    public void setRequestData(Object requestData) {
+        this.requestData = requestData;
+    }
+
+    public String getConfirmToken() {
+        return confirmToken;
+    }
+
+    public void setConfirmToken(String confirmToken) {
+        this.confirmToken = confirmToken;
+    }
+    
     
 }
