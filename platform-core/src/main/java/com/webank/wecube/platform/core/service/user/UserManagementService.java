@@ -25,7 +25,7 @@ public interface UserManagementService {
     
     RoleDto updateLocalRole(String roleId, RoleDto role);
 
-    List<RoleDto> retrieveAllRoles();
+    List<RoleDto> retrieveAllRoles(String requiredAll);
 
     RoleDto retrieveRoleById(String roleId);
     
