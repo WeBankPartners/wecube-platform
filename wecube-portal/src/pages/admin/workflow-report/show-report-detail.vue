@@ -25,7 +25,7 @@
         </CheckboxGroup>
         <Poptip placement="bottom" width="200">
           <Button type="primary" size="small" icon="ios-funnel-outline" ghost></Button>
-          <div class="api" slot="content">
+          <div class="api" slot="content" style="padding: 8px">
             <CheckboxGroup v-model="disabledGroup" @on-change="changeColumns">
               <Checkbox
                 v-for="item in oriDetailTableColums"
