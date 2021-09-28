@@ -138,11 +138,11 @@ public class RoleManagementService {
 
     private boolean convertRoleStatus(String status) {
         if (SysRoleEntity.STATUS_DELETED.equalsIgnoreCase(status)) {
-            return false;
+            return true;
         }
 
         if (SysRoleEntity.STATUS_NOT_DELETED.equalsIgnoreCase(status)) {
-            return true;
+            return false;
         }
 
         throw new AuthServerException("Unsupported role status:" + status);
