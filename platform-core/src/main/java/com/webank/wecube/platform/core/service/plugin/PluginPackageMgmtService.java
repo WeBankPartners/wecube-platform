@@ -1232,7 +1232,7 @@ public class PluginPackageMgmtService extends AbstractPluginMgmtService {
         if (pluginPackageAuthoritiesEntities == null || pluginPackageAuthoritiesEntities.isEmpty()) {
             return;
         }
-        List<RoleDto> roleDtos = userManagementService.retrieveAllRoles();
+        List<RoleDto> roleDtos = userManagementService.retrieveAllRoles(null);
         Set<String> existingRoleNames = new HashSet<>();
         if (roleDtos != null) {
             existingRoleNames = roleDtos.stream().map(roleDto -> roleDto.getName()).collect(Collectors.toSet());
