@@ -41,6 +41,16 @@ public interface TaskNodeExecParamMapper {
      */
     List<TaskNodeExecParamEntity> selectAllByRequestIdAndParamType(@Param("requestId") String requestId,
             @Param("paramType") String paramType);
+    
+    
+    /**
+     * 
+     * @param requestId
+     * @param paramType
+     * @return
+     */
+    List<TaskNodeExecParamEntity> selectAllByRequestIdAndParamTypeAndEntityDataId(@Param("requestId") String requestId,
+            @Param("paramType") String paramType, @Param("entityDataId") String entityDataId);
 
     /**
      * 

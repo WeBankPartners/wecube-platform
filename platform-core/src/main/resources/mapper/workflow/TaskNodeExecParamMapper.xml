@@ -412,6 +412,18 @@
         and param_type =
         #{paramType,jdbcType=VARCHAR}
     </select>
+    
+    <select id="selectAllByRequestIdAndParamTypeAndEntityDataId" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List" />
+        from core_ru_task_node_exec_param
+        where req_id =
+        #{requestId,jdbcType=VARCHAR}
+        and param_type =
+        #{paramType,jdbcType=VARCHAR}
+        and entity_data_id =
+        #{entityDataId,jdbcType=VARCHAR}
+    </select>
 
     <select id="selectOneByRequestIdAndParamTypeAndParamNameAndValue"
         resultMap="BaseResultMap">
