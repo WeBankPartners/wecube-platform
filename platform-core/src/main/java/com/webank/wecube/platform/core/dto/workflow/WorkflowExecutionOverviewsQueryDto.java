@@ -7,7 +7,7 @@ import com.webank.wecube.platform.core.dto.plugin.SortingDto;
 public class WorkflowExecutionOverviewsQueryDto {
     private String startDate;
     private String endDate;
-    private List<String> procDefNames;
+    private List<String> procDefIds;
     protected SortingDto sorting;
 
     public String getStartDate() {
@@ -25,13 +25,13 @@ public class WorkflowExecutionOverviewsQueryDto {
     public void setEndDate(String endDate) {
         this.endDate = endDate;
     }
-
-    public List<String> getProcDefNames() {
-        return procDefNames;
+    
+    public List<String> getProcDefIds() {
+        return procDefIds;
     }
 
-    public void setProcDefNames(List<String> procDefNames) {
-        this.procDefNames = procDefNames;
+    public void setProcDefIds(List<String> procDefIds) {
+        this.procDefIds = procDefIds;
     }
 
     public SortingDto getSorting() {
