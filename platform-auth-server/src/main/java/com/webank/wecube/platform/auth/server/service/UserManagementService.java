@@ -176,6 +176,9 @@ public class UserManagementService {
             }
             
             SysRoleEntity role = roleOpt.get();
+            if(role.isDeleted()) {
+                continue;
+            }
             List<UserRoleRsEntity> foundUserRoles = findFromUserRoles(existUserRoles, role.getId());
             remainUserRoles.addAll(foundUserRoles);
             
@@ -258,6 +261,10 @@ public class UserManagementService {
         }
 
         SysRoleEntity role = roleOpt.get();
+        
+        if(role.isDeleted()) {
+            return;
+        }
 
         for (SimpleLocalUserDto userDto : userDtos) {
             Optional<SysUserEntity> userOpt = userRepository.findById(userDto.getId());
