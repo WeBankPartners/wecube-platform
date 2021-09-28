@@ -1,6 +1,7 @@
 package com.webank.wecube.platform.auth.server.service;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -43,6 +44,11 @@ public class RoleManagementService {
     @Autowired
     private AuthorityRepository authorityRepository;
 
+    /**
+     * 
+     * @param roleName
+     * @return
+     */
     public SimpleLocalRoleDto retriveLocalRoleByRoleName(String roleName) {
         if (StringUtils.isBlank(roleName)) {
             throw new AuthServerException("3002", "Role name as input argument cannot be blank.");
@@ -57,29 +63,96 @@ public class RoleManagementService {
 
         return convertToSimpleLocalRoleDto(existedRole);
     }
-    
+
+    /**
+     * 
+     * @param roleDto
+     * @return
+     */
+    @Transactional
     public SimpleLocalRoleDto updateLocalRole(SimpleLocalRoleDto roleDto) {
         Optional<SysRoleEntity> roleOpt = roleRepository.findById(roleDto.getId());
         if (!roleOpt.isPresent()) {
             String msg = String.format("Role ID [%s] does not exist.", roleDto.getId());
             throw new AuthServerException("3006", msg, roleDto.getId());
         }
-        
+
         SysRoleEntity role = roleOpt.get();
-        
-        if(roleDto.getDisplayName() != null) {
+
+        if (roleDto.getDisplayName() != null) {
             role.setDisplayName(roleDto.getDisplayName());
         }
-        
-        if(roleDto.getEmail() != null) {
+
+        if (roleDto.getEmail() != null) {
             role.setEmailAddress(roleDto.getEmail());
         }
-        
+
+        String inputStatus = roleDto.getStatus();
+        if (validateRoleStatus(inputStatus)) {
+            boolean inputRoleDeletedStatus = convertRoleStatus(inputStatus);
+            boolean existRoleDeletedStatus = role.isDeleted();
+            if (inputRoleDeletedStatus != existRoleDeletedStatus) {
+
+                if (existRoleDeletedStatus == false) {
+                    // NotDeleted -> Deleted
+                    role.setDeleted(true);
+                    role.setActive(false);
+
+                    List<UserRoleRsEntity> userRoles = userRoleRsRepository.findAllByRoleId(role.getId());
+
+                    if (userRoles == null) {
+                        userRoles = Collections.emptyList();
+                    }
+
+                    for (UserRoleRsEntity userRole : userRoles) {
+                        userRole.setActive(false);
+                        userRole.setUpdatedBy(AuthenticationContextHolder.getCurrentUsername());
+                        userRole.setDeleted(true);
+                        userRole.setUpdatedTime(new Date());
+                        userRoleRsRepository.saveAndFlush(userRole);
+                    }
+                } else {
+                    // Deleted -> NotDeleted
+                    role.setDeleted(false);
+                    role.setActive(true);
+                }
+            }
+        }
+
         roleRepository.saveAndFlush(role);
-        
+
         return convertToSimpleLocalRoleDto(role);
     }
 
+    private boolean validateRoleStatus(String status) {
+        if (StringUtils.isBlank(status)) {
+            return false;
+        }
+        if (SysRoleEntity.STATUS_DELETED.equalsIgnoreCase(status)
+                || SysRoleEntity.STATUS_NOT_DELETED.equalsIgnoreCase(status)) {
+            return true;
+        }
+
+        return false;
+    }
+
+    private boolean convertRoleStatus(String status) {
+        if (SysRoleEntity.STATUS_DELETED.equalsIgnoreCase(status)) {
+            return false;
+        }
+
+        if (SysRoleEntity.STATUS_NOT_DELETED.equalsIgnoreCase(status)) {
+            return true;
+        }
+
+        throw new AuthServerException("Unsupported role status:" + status);
+    }
+
+    /**
+     * 
+     * @param roleDto
+     * @return
+     */
     public SimpleLocalRoleDto registerLocalRole(SimpleLocalRoleDto roleDto) {
         validateSimpleLocalRoleDto(roleDto);
 
@@ -96,28 +169,19 @@ public class RoleManagementService {
         return convertToSimpleLocalRoleDto(role);
     }
 
-    private SimpleLocalRoleDto convertToSimpleLocalRoleDto(SysRoleEntity role) {
-        SimpleLocalRoleDto dto = new SimpleLocalRoleDto();
-        dto.setId(role.getId());
-        dto.setEmail(role.getEmailAddress());
-        dto.setName(role.getName());
-        dto.setDisplayName(role.getDisplayName());
+    /**
+     * 
+     * @param requiredAll
+     * @return
+     */
+    public List<SimpleLocalRoleDto> retrieveAllLocalRoles(boolean requiredAll) {
 
-        return dto;
-    }
-
-    private SysRoleEntity buildSysRoleEntity(SimpleLocalRoleDto dto) {
-        SysRoleEntity role = new SysRoleEntity();
-        role.setCreatedBy(AuthenticationContextHolder.getCurrentUsername());
-        role.setDisplayName(dto.getDisplayName());
-        role.setName(dto.getName());
-        role.setEmailAddress(dto.getEmail());
-
-        return role;
-    }
-
-    public List<SimpleLocalRoleDto> retrieveAllLocalRoles() {
-        List<SysRoleEntity> roles = roleRepository.findAllActiveRoles();
+        List<SysRoleEntity> roles = null;
+        if (requiredAll) {
+            roles = roleRepository.findAllRoles();
+        } else {
+            roles = roleRepository.findAllActiveRoles();
+        }
         List<SimpleLocalRoleDto> result = new ArrayList<>();
 
         if (roles == null || roles.isEmpty()) {
@@ -166,6 +230,11 @@ public class RoleManagementService {
         }
     }
 
+    /**
+     * 
+     * @param roleId
+     * @return
+     */
     public SimpleLocalRoleDto retriveLocalRoleByRoleId(String roleId) {
         Optional<SysRoleEntity> roleEntityOptional = roleRepository.findById(roleId);
         if (!roleEntityOptional.isPresent()) {
@@ -176,18 +245,11 @@ public class RoleManagementService {
         return convertToSimpleLocalRoleDto(role);
     }
 
-    private void validateSimpleLocalRoleDto(SimpleLocalRoleDto roleDto) {
-        if (StringUtils.isBlank(roleDto.getName()) || StringUtils.isBlank(roleDto.getDisplayName())) {
-            throw new AuthServerException("3007", "Role name and display name should provide.");
-        }
-
-        if (StringUtils.isNotBlank(roleDto.getEmail())) {
-            if (!StringUtilsEx.isEmailValid(roleDto.getEmail())) {
-                throw new AuthServerException("3008", "Unexpected email address.");
-            }
-        }
-    }
-
+    /**
+     * 
+     * @param roleId
+     * @return
+     */
     public List<SimpleAuthorityDto> retrieveAllAuthoritiesByRoleId(String roleId) {
         List<SimpleAuthorityDto> result = new ArrayList<>();
         Optional<SysRoleEntity> roleOpt = roleRepository.findById(roleId);
@@ -462,6 +524,39 @@ public class RoleManagementService {
             roleAuthority.setUpdatedTime(new Date());
 
             roleAuthorityRsRepository.save(roleAuthority);
+        }
+    }
+
+    private SimpleLocalRoleDto convertToSimpleLocalRoleDto(SysRoleEntity role) {
+        SimpleLocalRoleDto dto = new SimpleLocalRoleDto();
+        dto.setId(role.getId());
+        dto.setEmail(role.getEmailAddress());
+        dto.setName(role.getName());
+        dto.setDisplayName(role.getDisplayName());
+        dto.setStatus(role.getRoleDeletedStatus());
+
+        return dto;
+    }
+
+    private SysRoleEntity buildSysRoleEntity(SimpleLocalRoleDto dto) {
+        SysRoleEntity role = new SysRoleEntity();
+        role.setCreatedBy(AuthenticationContextHolder.getCurrentUsername());
+        role.setDisplayName(dto.getDisplayName());
+        role.setName(dto.getName());
+        role.setEmailAddress(dto.getEmail());
+
+        return role;
+    }
+
+    private void validateSimpleLocalRoleDto(SimpleLocalRoleDto roleDto) {
+        if (StringUtils.isBlank(roleDto.getName()) || StringUtils.isBlank(roleDto.getDisplayName())) {
+            throw new AuthServerException("3007", "Role name and display name should provide.");
+        }
+
+        if (StringUtils.isNotBlank(roleDto.getEmail())) {
+            if (!StringUtilsEx.isEmailValid(roleDto.getEmail())) {
+                throw new AuthServerException("3008", "Unexpected email address.");
+            }
         }
     }
 }
