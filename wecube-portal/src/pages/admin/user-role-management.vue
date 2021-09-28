@@ -52,7 +52,14 @@
           </p>
           <div class="tagContainers">
             <div class="role-item" v-for="item in roles" :key="item.id">
-              <Tag :name="item.id" :checked="item.checked" checkable :fade="false" @on-change="handleRoleClick">
+              <Tag
+                :name="item.id"
+                :color="item.color"
+                :checked="item.checked"
+                checkable
+                :fade="false"
+                @on-change="handleRoleClick"
+              >
                 <span :style="item.status === 'Deleted' ? 'color:#dcdee2' : ''" :title="item.displayName">{{
                   item.name + '(' + item.displayName + ')'
                 }}</span>

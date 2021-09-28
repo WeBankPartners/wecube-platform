@@ -139,7 +139,7 @@ export default {
       })
       this.detailTableData = JSON.parse(JSON.stringify(this.oriDetailTableData))
       this.detailTableColums = this.oriDetailTableColums.filter(col => {
-        return this.disabledGroup.includes(col.title)
+        return this.disabledGroup.includes(col.key)
       })
     },
     initData (data) {
