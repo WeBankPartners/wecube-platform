@@ -243,6 +243,8 @@ public class WorkflowProcDefDeploymentService extends AbstractWorkflowProcDefSer
             draftNodeEntity.setPreCheck(nodeDto.getPreCheck());
             draftNodeEntity.setDynamicBind(nodeDto.getDynamicBind());
             draftNodeEntity.setPrevCtxNodeIds(nodeDto.getPrevCtxNodeIds());
+            
+            draftNodeEntity.setAssociatedNodeId(nodeDto.getAssociatedNodeId());
 
             taskNodeDefInfoRepo.updateByPrimaryKeySelective(draftNodeEntity);
 
@@ -441,6 +443,8 @@ public class WorkflowProcDefDeploymentService extends AbstractWorkflowProcDefSer
             }
 
             validateTaskNodePluginPermission(nodeDto, mgmtRoleNames);
+            
+            //TODO validate associated dynamic bindings
         }
     }
 

@@ -30,6 +30,8 @@ public class TaskNodeDefInfoDto extends BaseNodeDefDto {
     private String dynamicBind;
 
     private String prevCtxNodeIds = "";
+    
+    private String associatedNodeId;
 
     private List<TaskNodeDefParamDto> paramInfos = new ArrayList<>();
 
@@ -180,4 +182,13 @@ public class TaskNodeDefInfoDto extends BaseNodeDefDto {
         this.prevCtxNodeIds = prevCtxNodeIds;
     }
 
+    public String getAssociatedNodeId() {
+        return associatedNodeId;
+    }
+
+    public void setAssociatedNodeId(String associatedNodeId) {
+        this.associatedNodeId = associatedNodeId;
+    }
+
+    
 }
