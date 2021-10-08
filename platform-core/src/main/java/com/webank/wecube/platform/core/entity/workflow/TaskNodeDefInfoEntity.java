@@ -73,6 +73,8 @@ public class TaskNodeDefInfoEntity {
     private String preCheck;
     
     private String prevCtxNodeIds;
+    
+    private String associatedNodeId;
 
     public String getId() {
         return id;
@@ -297,7 +299,13 @@ public class TaskNodeDefInfoEntity {
     public void setPrevCtxNodeIds(String prevCtxNodeIds) {
         this.prevCtxNodeIds = prevCtxNodeIds;
     }
-    
-    
 
+    public String getAssociatedNodeId() {
+        return associatedNodeId;
+    }
+
+    public void setAssociatedNodeId(String associatedNodeId) {
+        this.associatedNodeId = associatedNodeId;
+    }
+    
 }

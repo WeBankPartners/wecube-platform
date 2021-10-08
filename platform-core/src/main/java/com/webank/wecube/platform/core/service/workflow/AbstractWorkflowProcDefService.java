@@ -198,6 +198,8 @@ public class AbstractWorkflowProcDefService extends AbstractWorkflowService{
         tdto.setPreCheck(e.getPreCheck());
         tdto.setDynamicBind(e.getDynamicBind());
         tdto.setPrevCtxNodeIds(e.getPrevCtxNodeIds()==null?"":e.getPrevCtxNodeIds());
+        
+        tdto.setAssociatedNodeId(e.getAssociatedNodeId());
 
         return tdto;
     }
@@ -323,6 +325,8 @@ public class AbstractWorkflowProcDefService extends AbstractWorkflowService{
         nodeEntity.setPreCheck(nodeDto.getPreCheck());
         nodeEntity.setDynamicBind(nodeDto.getDynamicBind());
         nodeEntity.setPrevCtxNodeIds(nodeDto.getPrevCtxNodeIds());
+        
+        nodeEntity.setAssociatedNodeId(nodeDto.getAssociatedNodeId());
 
         return nodeEntity;
     }
