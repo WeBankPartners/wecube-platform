@@ -55,4 +55,9 @@ public class Constants {
     public static final String PREFIX_OBJECT_VAR_ID = "OV";
     public static final String PREFIX_PROPERTY_VAR_ID = "PV";
     public static final String PREFIX_LIST_VAR_ID = "EV";
+    
+    public static final String TASK_CATEGORY_SSTN = "SSTN";
+    public static final String TASK_CATEGORY_SUTN = "SUTN";
+    public static final String TASK_CATEGORY_SDTN = "SDTN";
+    public static final String TASK_CATEGORY_SATN = "SATN";
 }
