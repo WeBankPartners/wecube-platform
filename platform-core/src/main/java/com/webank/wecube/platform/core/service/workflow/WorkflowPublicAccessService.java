@@ -122,7 +122,7 @@ public class WorkflowPublicAccessService {
      * @param rootEntityDataId
      * @return
      */
-    public ProcessDataPreviewDto calculateProcessDataPreview(String procDefId, String rootEntityDataId) {
+    public ProcessDataPreviewDto calculateProcessDataPreview(String procDefId, String rootEntityDataId, boolean needAddIntfFilters) {
         if (StringUtils.isBlank(procDefId) || StringUtils.isBlank(rootEntityDataId)) {
             throw new WecubeCoreException("3189", "Process definition ID or entity ID is not provided.");
         }
@@ -135,7 +135,7 @@ public class WorkflowPublicAccessService {
                     String.format("Such process definition {%s} does not exist.", procDefId), procDefId);
         }
 
-        ProcessDataPreviewDto previewDto = doCalculateProcessPreviewData(procDefOutline, rootEntityDataId, true);
+        ProcessDataPreviewDto previewDto = doCalculateProcessPreviewData(procDefOutline, rootEntityDataId, true, needAddIntfFilters);
 
         return previewDto;
     }
@@ -289,7 +289,7 @@ public class WorkflowPublicAccessService {
         resultDto.setProcDefKey(createdProcInstInfoDto.getProcDefKey());
         resultDto.setProcInstKey(createdProcInstInfoDto.getProcInstKey());
         resultDto.setStatus(createdProcInstInfoDto.getStatus());
-        
+
         WorkflowInstCreationContext ctx = buildWorkflowInstCreationContext(creationInfoDto);
 
         String jsonData = convertWorkflowInstCreationContextToJson(ctx);
@@ -339,7 +339,7 @@ public class WorkflowPublicAccessService {
                 ctx.addBinding(bindCtx);
             }
         }
-        
+
         return ctx;
     }
 
@@ -354,7 +354,7 @@ public class WorkflowPublicAccessService {
     }
 
     protected ProcessDataPreviewDto doCalculateProcessPreviewData(ProcDefOutlineDto outline, String dataId,
-            boolean needSaveTmp) {
+            boolean needSaveTmp, boolean needAddIntfFilters) {
         ProcessDataPreviewDto result = new ProcessDataPreviewDto();
 
         List<GraphNodeDto> hierarchicalEntityNodes = new ArrayList<>();
@@ -376,7 +376,7 @@ public class WorkflowPublicAccessService {
             }
 
             tryProcessSingleFlowNodeDefDto(f, hierarchicalEntityNodes, dataId, processSessionId, needSaveTmp,
-                    externalCacheMap);
+                    needAddIntfFilters, externalCacheMap);
         }
 
         StandardEntityOperationRestClient client = new StandardEntityOperationRestClient(userJwtSsoTokenRestTemplate);
@@ -436,7 +436,7 @@ public class WorkflowPublicAccessService {
         return recordMapList;
     }
 
-    private List<String> calculateDataModelExpressions(FlowNodeDefDto f) {
+    private List<String> calculateDataModelExpressions(FlowNodeDefDto f, boolean needAddIntfFilters) {
         if (StringUtils.isBlank(f.getRoutineExpression())) {
             return null;
         }
@@ -454,19 +454,30 @@ public class WorkflowPublicAccessService {
             return exprs;
         }
 
-        String additionalFilterRule = tryFindOutAdditionalFilterRule(f);
-        for (String exprPart : exprParts) {
-            if (StringUtils.isBlank(exprPart)) {
-                continue;
+        if (needAddIntfFilters) {
+            String additionalFilterRule = tryFindOutAdditionalFilterRule(f);
+            for (String exprPart : exprParts) {
+                if (StringUtils.isBlank(exprPart)) {
+                    continue;
+                }
+
+                String trimmedExprPart = exprPart.trim();
+
+                if (StringUtils.isNoneBlank(additionalFilterRule)) {
+                    trimmedExprPart = trimmedExprPart + additionalFilterRule.trim();
+                }
+
+                exprs.add(trimmedExprPart);
             }
+        } else {
+            for (String exprPart : exprParts) {
+                if (StringUtils.isBlank(exprPart)) {
+                    continue;
+                }
 
-            String trimmedExprPart = exprPart.trim();
-
-            if (StringUtils.isNoneBlank(additionalFilterRule)) {
-                trimmedExprPart = trimmedExprPart + additionalFilterRule.trim();
+                String trimmedExprPart = exprPart.trim();
+                exprs.add(trimmedExprPart);
             }
-
-            exprs.add(trimmedExprPart);
         }
 
         return exprs;
@@ -490,8 +501,9 @@ public class WorkflowPublicAccessService {
     }
 
     private void tryProcessSingleFlowNodeDefDto(FlowNodeDefDto f, List<GraphNodeDto> hierarchicalEntityNodes,
-            String dataId, String processSessionId, boolean needSaveTmp, Map<Object, Object> cacheMap) {
-        List<String> routineExprs = calculateDataModelExpressions(f);
+            String dataId, String processSessionId, boolean needSaveTmp, boolean needAddIntfFilters,
+            Map<Object, Object> cacheMap) {
+        List<String> routineExprs = calculateDataModelExpressions(f, needAddIntfFilters);
 
         if (routineExprs == null || routineExprs.isEmpty()) {
             log.info("the routine expression is blank for {} {}", f.getNodeDefId(), f.getNodeName());
