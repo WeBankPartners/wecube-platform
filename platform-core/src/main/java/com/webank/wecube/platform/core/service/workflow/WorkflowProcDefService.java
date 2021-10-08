@@ -84,6 +84,21 @@ public class WorkflowProcDefService extends AbstractWorkflowProcDefService {
 
         processDefInfoRepo.deleteByPrimaryKey(procDef.getId());
     }
+    
+    public List<TaskNodeDefBriefDto> getPreviousTaskNodes(String procDefId, String taskNodeId) {
+        List<TaskNodeDefBriefDto> result = new ArrayList<>();
+        if (StringUtils.isBlank(procDefId)) {
+            return result;
+        }
+        List<TaskNodeDefInfoEntity> nodeEntities = taskNodeDefInfoRepo.selectAllByProcDefId(procDefId);
+        if (nodeEntities == null || nodeEntities.isEmpty()) {
+            return result;
+        }
+        
+        //TODO
+        
+        return result;
+    }
 
     /**
      * 
