@@ -150,6 +150,50 @@
                     </Col>
                   </Row>
                   <Row>
+                    <Col span="8">
+                      <FormItem prop="dynamicBind">
+                        <label slot="label"
+                          >{{ $t('dynamic_bind') }}
+                          <span class="requires-tip">*</span>
+                        </label>
+                        <Select
+                          v-model="pluginForm.dynamicBind"
+                          filterable
+                          clearable
+                          @on-clear="clearDynamicBind"
+                          @on-change="changeDynamicBind"
+                        >
+                          <Option v-for="item in yOn" :value="item" :key="item">{{ item }}</Option>
+                        </Select>
+                      </FormItem>
+                    </Col>
+                    <Col span="8">
+                      <FormItem prop="associatedNodeId">
+                        <label slot="label">{{ $t('bind_node') }} </label>
+                        <Select
+                          v-model="pluginForm.associatedNodeId"
+                          @on-change="changeAssociatedNode"
+                          :disabled="pluginForm.dynamicBind !== 'Y'"
+                        >
+                          <Option v-for="(i, index) in currentflowsNodes" :value="i.nodeId" :key="index">{{
+                            i.nodeName
+                          }}</Option>
+                        </Select>
+                      </FormItem>
+                    </Col>
+                    <Col span="8">
+                      <FormItem prop="preCheck">
+                        <label slot="label"
+                          >{{ $t('pre_check') }}
+                          <span class="requires-tip">*</span>
+                        </label>
+                        <Select v-model="pluginForm.preCheck" @on-change="editFormdata">
+                          <Option v-for="item in yOn" :value="item" :key="item">{{ item }}</Option>
+                        </Select>
+                      </FormItem>
+                    </Col>
+                  </Row>
+                  <Row>
                     <Col span="16">
                       <FormItem prop="routineExpression">
                         <label slot="label"
@@ -159,6 +203,7 @@
                         <FilterRules
                           :needAttr="true"
                           ref="filterRules"
+                          :disabled="pluginForm.dynamicBind === 'Y' && pluginForm.associatedNodeId !== ''"
                           v-model="pluginForm.routineExpression"
                           @change="filterRuleChanged"
                           :allDataModelsWithAttrs="allEntityType"
@@ -166,19 +211,6 @@
                       </FormItem>
                     </Col>
                     <Col span="8">
-                      <FormItem prop="dynamicBind">
-                        <label slot="label"
-                          >{{ $t('dynamic_bind') }}
-                          <span class="requires-tip">*</span>
-                        </label>
-                        <Select v-model="pluginForm.dynamicBind" @on-change="editFormdata">
-                          <Option v-for="item in yOn" :value="item" :key="item">{{ item }}</Option>
-                        </Select>
-                      </FormItem>
-                    </Col>
-                  </Row>
-                  <Row>
-                    <Col span="16">
                       <FormItem prop="serviceName">
                         <label slot="label"
                           >{{ $t('plugin') }}
@@ -194,17 +226,6 @@
                           <Option v-for="(item, index) in filteredPlugins" :value="item.serviceName" :key="index">{{
                             item.serviceDisplayName
                           }}</Option>
-                        </Select>
-                      </FormItem>
-                    </Col>
-                    <Col span="8">
-                      <FormItem prop="preCheck">
-                        <label slot="label"
-                          >{{ $t('pre_check') }}
-                          <span class="requires-tip">*</span>
-                        </label>
-                        <Select v-model="pluginForm.preCheck" @on-change="editFormdata">
-                          <Option v-for="item in yOn" :value="item" :key="item">{{ item }}</Option>
                         </Select>
                       </FormItem>
                     </Col>
@@ -455,6 +476,7 @@ export default {
       defaultPluginForm: {
         description: '',
         dynamicBind: 'N',
+        associatedNodeId: '',
         nodeDefId: '',
         nodeId: '',
         nodeName: '',
@@ -582,6 +604,29 @@ export default {
     this.setCss('top-pane', 'bottom: 0;')
   },
   methods: {
+    changeAssociatedNode () {
+      if (this.cacheFlowInfo && this.cacheFlowInfo.taskNodeInfos) {
+        const activeNode = this.cacheFlowInfo.taskNodeInfos.find(n => this.pluginForm.associatedNodeId === n.nodeId)
+        this.pluginForm.routineExpression = (activeNode && activeNode.routineExpression) || ''
+        this.pluginForm.routineRaw = (activeNode && activeNode.routineExpression) || ''
+      } else {
+        this.pluginForm.routineExpression = ''
+        this.pluginForm.routineRaw = ''
+      }
+      this.pluginForm.serviceId = ''
+      this.pluginForm.serviceName = ''
+    },
+    clearDynamicBind () {
+      this.pluginForm.routineExpression = ''
+      this.pluginForm.routineRaw = ''
+      this.pluginForm.serviceId = ''
+      this.pluginForm.serviceName = ''
+      this.editFormdata()
+    },
+    changeDynamicBind () {
+      this.pluginForm.associatedNodeId = ''
+      this.editFormdata()
+    },
     async getContextParametersNodes () {
       this.contextParametersNodes = []
       let { status, data } = await getContextParametersNodes(
