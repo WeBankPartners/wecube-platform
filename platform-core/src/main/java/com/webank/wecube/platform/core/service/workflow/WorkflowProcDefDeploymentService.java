@@ -33,6 +33,7 @@ import com.webank.wecube.platform.core.entity.workflow.ProcDefInfoEntity;
 import com.webank.wecube.platform.core.entity.workflow.TaskNodeDefInfoEntity;
 import com.webank.wecube.platform.core.entity.workflow.TaskNodeParamEntity;
 import com.webank.wecube.platform.core.utils.CollectionUtils;
+import com.webank.wecube.platform.core.utils.Constants;
 import com.webank.wecube.platform.workflow.commons.LocalIdGenerator;
 import com.webank.wecube.platform.workflow.model.ProcDefOutline;
 import com.webank.wecube.platform.workflow.model.ProcFlowNode;
@@ -243,7 +244,7 @@ public class WorkflowProcDefDeploymentService extends AbstractWorkflowProcDefSer
             draftNodeEntity.setPreCheck(nodeDto.getPreCheck());
             draftNodeEntity.setDynamicBind(nodeDto.getDynamicBind());
             draftNodeEntity.setPrevCtxNodeIds(nodeDto.getPrevCtxNodeIds());
-            
+
             draftNodeEntity.setAssociatedNodeId(nodeDto.getAssociatedNodeId());
 
             taskNodeDefInfoRepo.updateByPrimaryKeySelective(draftNodeEntity);
@@ -443,9 +444,66 @@ public class WorkflowProcDefDeploymentService extends AbstractWorkflowProcDefSer
             }
 
             validateTaskNodePluginPermission(nodeDto, mgmtRoleNames);
-            
-            //TODO validate associated dynamic bindings
+
+            validateAssociatedDynamicBinding(nodeDto, procDefInfoDto.getTaskNodeInfos());
+
         }
+    }
+
+    private void validateAssociatedDynamicBinding(TaskNodeDefInfoDto nodeDto, List<TaskNodeDefInfoDto> taskNodeInfos) {
+        String dynamicBind = nodeDto.getDynamicBind();
+        if(StringUtils.isBlank(dynamicBind)) {
+            return;
+        }
+        
+        if(!Constants.DYNAMIC_BIND_YES.equalsIgnoreCase(dynamicBind)) {
+            return;
+        }
+        
+        String associatedNodeId = nodeDto.getAssociatedNodeId();
+        
+        if(StringUtils.isBlank(associatedNodeId)) {
+            return;
+        }
+        
+        TaskNodeDefInfoDto associatedNodeDto = tryFindoutTaskNodeDefByNodeId(taskNodeInfos, associatedNodeId);
+        
+        if(associatedNodeDto == null) {
+            String errMsg = String.format("Invalid associated node ID:%s", associatedNodeId);
+            throw new WecubeCoreException(errMsg);
+        }
+        
+        if(Constants.DYNAMIC_BIND_YES.equalsIgnoreCase(associatedNodeDto.getDynamicBind())) {
+            String errMsg = String.format("Invalid associated task node:%s due to dynamic node type.", associatedNodeDto.getNodeId());
+            throw new WecubeCoreException(errMsg);
+        }
+        
+        String associatedRoutineExpression = associatedNodeDto.getRoutineExpression();
+        if(StringUtils.isBlank(associatedRoutineExpression)) {
+            String errMsg = String.format("Invalid associated task node:%s due to blank routine expression.", associatedNodeDto.getNodeId());
+            throw new WecubeCoreException(errMsg);
+        }
+        
+        if(!associatedRoutineExpression.equals(nodeDto.getRoutineExpression())) {
+            String errMsg = String.format("Invalid association task node configuration:%s due to invalid routine expression.", nodeDto.getNodeId());
+            throw new WecubeCoreException(errMsg);
+        }
+        
+        return;
+    }
+    
+    private TaskNodeDefInfoDto tryFindoutTaskNodeDefByNodeId(List<TaskNodeDefInfoDto> taskNodeInfos, String nodeId) {
+        if(taskNodeInfos == null || taskNodeInfos.isEmpty()) {
+            return null;
+        }
+        
+        for(TaskNodeDefInfoDto nodeDefDto : taskNodeInfos) {
+            if(nodeId.equals(nodeDefDto.getNodeId())) {
+                return nodeDefDto;
+            }
+        }
+        
+        return null;
     }
 
     private void validateTaskNodePluginPermission(TaskNodeDefInfoDto nodeDto, List<String> mgmtRoleNames) {
