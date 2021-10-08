@@ -54,7 +54,8 @@ public class WorkflowPublicAccessController {
     @GetMapping("/public/process/definitions/{proc-def-id}/preview/entities/{entity-data-id}")
     public CommonResponseDto calculateProcessDataPreview(@PathVariable("proc-def-id") String procDefId,
             @PathVariable("entity-data-id") String dataId) {
-        ProcessDataPreviewDto result = workflowPublicAccessService.calculateProcessDataPreview(procDefId, dataId);
+        boolean needAddIntfFilters = false;
+        ProcessDataPreviewDto result = workflowPublicAccessService.calculateProcessDataPreview(procDefId, dataId, needAddIntfFilters);
         return CommonResponseDto.okayWithData(result);
     }
 }
