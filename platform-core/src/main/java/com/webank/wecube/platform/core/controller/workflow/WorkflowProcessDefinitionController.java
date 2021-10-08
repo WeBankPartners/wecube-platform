@@ -163,6 +163,14 @@ public class WorkflowProcessDefinitionController {
 
         return CommonResponseDto.okayWithData(result); 
     }
+    
+    @GetMapping("/process/definitions/{proc-def-id}/previous-nodes/briefs")
+    public CommonResponseDto getPreviousTaskNodes(@PathVariable("proc-def-id") String procDefId,
+            @RequestParam(name = "taskNodeId", required = true) String taskNodeId) {
+        List<TaskNodeDefBriefDto> result = procDefService.getPreviousTaskNodes( procDefId, taskNodeId);
+
+        return CommonResponseDto.okayWithData(result); 
+    }
 
     @GetMapping("/process/definitions/{proc-def-id}/tasknodes/briefs")
     public CommonResponseDto getTaskNodeBriefs(@PathVariable("proc-def-id") String procDefId) {
