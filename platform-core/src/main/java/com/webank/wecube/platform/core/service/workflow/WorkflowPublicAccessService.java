@@ -66,6 +66,7 @@ import com.webank.wecube.platform.core.support.plugin.dto.RegisteredEntityAttrDe
 import com.webank.wecube.platform.core.support.plugin.dto.RegisteredEntityDefDto;
 import com.webank.wecube.platform.core.support.plugin.dto.WorkflowDefInfoDto;
 import com.webank.wecube.platform.core.support.plugin.dto.WorkflowNodeDefInfoDto;
+import com.webank.wecube.platform.core.utils.Constants;
 import com.webank.wecube.platform.workflow.commons.LocalIdGenerator;
 
 @Service
@@ -369,7 +370,7 @@ public class WorkflowPublicAccessService {
                 continue;
             }
 
-            if (TaskNodeDefInfoEntity.DYNAMIC_BIND_YES.equalsIgnoreCase(f.getDynamicBind())) {
+            if (Constants.DYNAMIC_BIND_YES.equalsIgnoreCase(f.getDynamicBind())) {
                 log.info("task node {}-{} is dynamic binding node and no need to pre-bind.", f.getNodeDefId(),
                         f.getNodeName());
                 continue;

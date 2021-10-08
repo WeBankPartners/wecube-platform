@@ -60,6 +60,7 @@ import com.webank.wecube.platform.core.service.dme.EntityTreeNodesOverview;
 import com.webank.wecube.platform.core.service.dme.StandardEntityDataNode;
 import com.webank.wecube.platform.core.service.dme.StandardEntityOperationService;
 import com.webank.wecube.platform.core.service.plugin.PluginConfigMgmtService;
+import com.webank.wecube.platform.core.utils.Constants;
 import com.webank.wecube.platform.core.utils.JsonUtils;
 
 /**
@@ -723,7 +724,7 @@ public class WorkflowDataService extends AbstractWorkflowService{
                 continue;
             }
 
-            if (TaskNodeDefInfoEntity.DYNAMIC_BIND_YES.equalsIgnoreCase(f.getDynamicBind())) {
+            if (Constants.DYNAMIC_BIND_YES.equalsIgnoreCase(f.getDynamicBind())) {
                 log.info("task node {}-{} is dynamic binding node and no need to pre-bind.", f.getNodeDefId(),
                         f.getNodeName());
                 continue;

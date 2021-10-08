@@ -12,11 +12,7 @@ public class TaskNodeDefInfoEntity {
     public static final String NODE_TYPE_SUBPROCESS = "subProcess";
     public static final String NODE_TYPE_START_EVENT = "startEvent";
 
-    public static final String DYNAMIC_BIND_YES = "Y";
-    public static final String DYNAMIC_BIND_NO = "N";
-    
-    public static final String PRE_CHECK_YES = "Y";
-    public static final String PRE_CHECK_NO = "N";
+   
 
     private String id;
 

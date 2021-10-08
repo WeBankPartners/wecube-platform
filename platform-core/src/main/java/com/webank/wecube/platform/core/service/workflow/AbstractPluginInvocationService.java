@@ -432,7 +432,7 @@ public abstract class AbstractPluginInvocationService extends AbstractWorkflowSe
     }
 
     protected boolean isDynamicBindTaskNode(TaskNodeDefInfoEntity taskNodeDef) {
-        return TaskNodeDefInfoEntity.DYNAMIC_BIND_YES.equalsIgnoreCase(taskNodeDef.getDynamicBind());
+        return Constants.DYNAMIC_BIND_YES.equalsIgnoreCase(taskNodeDef.getDynamicBind());
     }
 
     protected boolean isBoundTaskNodeInst(TaskNodeInstInfoEntity taskNodeInst) {

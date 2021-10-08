@@ -27,7 +27,7 @@ public class TaskNodeDefInfoDto extends BaseNodeDefDto {
 
     private String preCheck;
 
-    private String dynamicBind;
+    private String dynamicBind;//Y,N
 
     private String prevCtxNodeIds = "";
     
