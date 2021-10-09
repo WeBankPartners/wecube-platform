@@ -2,6 +2,7 @@ package com.webank.wecube.platform.core.dto.plugin;
 
 public class ExecutionJobResponseDto {
     private String errorCode;
+    private Object requestData;
     private Object result;
 
     public String getErrorCode() {
@@ -40,6 +41,14 @@ public class ExecutionJobResponseDto {
 		builder.append("]");
 		return builder.toString();
 	}
+
+    public Object getRequestData() {
+        return requestData;
+    }
+
+    public void setRequestData(Object requestData) {
+        this.requestData = requestData;
+    }
 
     
 }
