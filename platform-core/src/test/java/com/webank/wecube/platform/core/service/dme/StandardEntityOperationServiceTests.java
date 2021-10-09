@@ -35,7 +35,7 @@ public class StandardEntityOperationServiceTests extends BaseSpringBootTest {
 
     StandardEntityOperationServiceTestsMockers mockers;
 
-    Map<Object, Object> externalCacheMap = new HashMap<>();
+    
 
     @Before
     public void setup() {
@@ -50,6 +50,7 @@ public class StandardEntityOperationServiceTests extends BaseSpringBootTest {
     @Test
     public void wecmdbMultipleRefToLinksWithOpToOnlyExpressionFetchShouldSucceed() {
         mockers.mockWecmdbMultipleRefToLinksWithOpToOnlyExpressionFetchShouldSucceed(server);
+        Map<Object, Object> externalCacheMap = new HashMap<>();
 
         List<Object> result = standardEntityOperationService.queryAttributeValues(new EntityOperationRootCondition(
                 "wecmdb:subsys.subsys_design>wecmdb:subsys_design.system_design>wecmdb:system_design.key_name",
@@ -60,8 +61,10 @@ public class StandardEntityOperationServiceTests extends BaseSpringBootTest {
         result = standardEntityOperationService.queryAttributeValues(new EntityOperationRootCondition(
                 "wecmdb:zone_link.zone1>wecmdb:zone.zone_design>wecmdb:zone_design.fixed_date", "0018_0000000002"),
                 externalCacheMap);
+
         Assert.assertNotNull(result);
 //        Assert.assertNull(result.get(0));
+
 
         server.verify();
     }
@@ -69,7 +72,7 @@ public class StandardEntityOperationServiceTests extends BaseSpringBootTest {
     @Test
     public void givenSignleLinkNodeWithFilterExpressionWhenFetchThenShouldSucceed() {
         mockers.mockSingleLinkNodeWithFilterExpressionServer(server);
-
+        Map<Object, Object> externalCacheMap = new HashMap<>();
         List<Map<String, Object>> result = standardEntityOperationService.queryAttributeValuesOfLeafNode(
                 new EntityOperationRootCondition("we-cmdb:system_design{attr1 eq 'ABC'}", null), externalCacheMap);
         Assert.assertNotNull(result);
@@ -88,7 +91,7 @@ public class StandardEntityOperationServiceTests extends BaseSpringBootTest {
     @Test
     public void givenPackageNameWithDashAndFwdNodeExpressionWhenFetchThenShouldSucceed() {
         mockers.mockPackageNameWithDashAndFwdNodeExpressionServer(server);
-
+        Map<Object, Object> externalCacheMap = new HashMap<>();
         List<Object> result = standardEntityOperationService.queryAttributeValues(
                 new EntityOperationRootCondition("we-cmdb:system_design.code", "0001_0000000001"), externalCacheMap);
         Assert.assertNotNull(result);
@@ -105,7 +108,7 @@ public class StandardEntityOperationServiceTests extends BaseSpringBootTest {
     @Test
     public void wecmdbFwdNodeExpressionFetchShouldSucceed() {
         mockers.mockFwdNodeExpressionServer(server);
-
+        Map<Object, Object> externalCacheMap = new HashMap<>();
         List<Object> result = standardEntityOperationService.queryAttributeValues(
                 new EntityOperationRootCondition("wecmdb:system_design.code", "0001_0000000001"), externalCacheMap);
         Assert.assertNotNull(result);
@@ -124,7 +127,7 @@ public class StandardEntityOperationServiceTests extends BaseSpringBootTest {
     @Test
     public void wecmdbFwdNodeExpressionFetchWithoutLastOpFetchShouldSucceed() {
         mockers.mockFwdNodeExpressionServer(server);
-
+        Map<Object, Object> externalCacheMap = new HashMap<>();
         final int WECMDB_SYSTEM_DESIGN_DATA_COLUMN_LENGTH = 12;
         List<Object> resultOne = standardEntityOperationService.queryAttributeValues(
                 new EntityOperationRootCondition("wecmdb:system_design", "0001_0000000001"), externalCacheMap);
@@ -145,7 +148,7 @@ public class StandardEntityOperationServiceTests extends BaseSpringBootTest {
     @Test
     public void wecmdbOneLinkWithOpToExpressionFetchShouldSucceed() {
         mockers.mockOneLinkWithOpToOnlyExpressionServer(server);
-
+        Map<Object, Object> externalCacheMap = new HashMap<>();
         List<Object> result = standardEntityOperationService.queryAttributeValues(new EntityOperationRootCondition(
                 "wecmdb:subsys_design.system_design>wecmdb:system_design.code", "0002_0000000006"), externalCacheMap);
         Assert.assertNotNull(result);
@@ -158,7 +161,7 @@ public class StandardEntityOperationServiceTests extends BaseSpringBootTest {
     @Test
     public void wecmdbOneLinkWithOpByExpressionFetchShouldSucceed() {
         mockers.mockOneLinkWithOpByOnlyExpressionServer(server);
-
+        Map<Object, Object> externalCacheMap = new HashMap<>();
         List<Object> result = standardEntityOperationService.queryAttributeValues(new EntityOperationRootCondition(
                 "wecmdb:subsys~(subsys)wecmdb:unit{attr1 eq '@@0001_1000222666@@abcDEF'}.fixed_date",
                 "0007_0000000001"), externalCacheMap);
@@ -183,7 +186,7 @@ public class StandardEntityOperationServiceTests extends BaseSpringBootTest {
     @Test
     public void wecmdbMultipleLinksWithOpToOnlyExpressionFetchShouldSucceed() {
         mockers.mockMultipleLinksWithOpToOnlyExpressionServer(server);
-
+        Map<Object, Object> externalCacheMap = new HashMap<>();
         List<Object> result = standardEntityOperationService.queryAttributeValues(new EntityOperationRootCondition(
                 "wecmdb:subsys.subsys_design>wecmdb:subsys_design.system_design>wecmdb:system_design.key_name",
                 "0007_0000000001"), externalCacheMap);
@@ -193,6 +196,7 @@ public class StandardEntityOperationServiceTests extends BaseSpringBootTest {
         result = standardEntityOperationService.queryAttributeValues(new EntityOperationRootCondition(
                 "wecmdb:zone_link.zone1>wecmdb:zone.zone_design>wecmdb:zone_design.fixed_date", "0018_0000000002"),
                 externalCacheMap);
+
         Assert.assertNotNull(result);
 //        Assert.assertNull(result.get(0));
 
@@ -202,7 +206,7 @@ public class StandardEntityOperationServiceTests extends BaseSpringBootTest {
     @Test
     public void wecmdbMultipleLinksWithOpByOnlyExpressionFetchShouldSucceed() {
         mockers.mockMultipleLinksWithOpByOnlyExpressionServer(server);
-
+        Map<Object, Object> externalCacheMap = new HashMap<>();
         List<Object> result = standardEntityOperationService.queryAttributeValues(
                 new EntityOperationRootCondition("wecmdb:subsys~(subsys)wecmdb:unit~(unit)wecmdb:running_instance.id",
                         "0007_0000000001"),
@@ -217,6 +221,7 @@ public class StandardEntityOperationServiceTests extends BaseSpringBootTest {
     @Test
     public void wecmdbMultipleLinksWithMixedOpExpressionFetchShouldSucceed() {
         mockers.mockMultipleLinksWithMixedOpExpressionServer(server);
+        Map<Object, Object> externalCacheMap = new HashMap<>();
         List<Object> result = standardEntityOperationService.queryAttributeValues(new EntityOperationRootCondition(
                 "wecmdb:subsys~(subsys)wecmdb:unit.unit_design>wecmdb:unit_design.subsys_design>wecmdb:subsys_design.key_name",
                 "0007_0000000001"), externalCacheMap);
@@ -240,6 +245,7 @@ public class StandardEntityOperationServiceTests extends BaseSpringBootTest {
     @Test
     public void wecmdbFwdNodeExpressionWriteBackShouldSucceed() {
         mockers.mockFwdNodeExpressionWriteBackServer(server);
+        Map<Object, Object> externalCacheMap = new HashMap<>();
         final Object WRITE_BACK_DATA = "Test";
         EntityOperationRootCondition expressionToRootData = new EntityOperationRootCondition(
                 "wecmdb:system_design.code", "0001_0000000001");
@@ -250,7 +256,7 @@ public class StandardEntityOperationServiceTests extends BaseSpringBootTest {
     @Test
     public void wecmdbFwdNodeExpressionGetPreviewTreeShouldSucceed() {
         mockers.mockFwdNodeExpressionServer(server);
-
+        Map<Object, Object> externalCacheMap = new HashMap<>();
         List<StandardEntityDataNode> treeNodeListOne = standardEntityOperationService.generatePreviewTree(
                 new EntityOperationRootCondition("wecmdb:system_design.code", "0001_0000000001"), externalCacheMap);
         assertNotNull(treeNodeListOne);
@@ -267,7 +273,7 @@ public class StandardEntityOperationServiceTests extends BaseSpringBootTest {
     @Test
     public void wecmdbOneLinkWithOpToExpressionGetPreviewTreeShouldSucceed() {
         mockers.mockOneLinkWithOpToOnlyExpressionServer(server);
-
+        Map<Object, Object> externalCacheMap = new HashMap<>();
         List<StandardEntityDataNode> treeNodeList = standardEntityOperationService.generatePreviewTree(
                 new EntityOperationRootCondition("wecmdb:subsys_design.system_design>wecmdb:system_design.code",
                         "0002_0000000006"),
@@ -281,7 +287,7 @@ public class StandardEntityOperationServiceTests extends BaseSpringBootTest {
     @Test
     public void wecmdbOneLinkWithOpByExpressionGetPreviewTreeShouldSucceed() {
         mockers.mockOneLinkWithOpByOnlyExpressionServer(server);
-
+        Map<Object, Object> externalCacheMap = new HashMap<>();
         List<StandardEntityDataNode> treeNodeListOne = standardEntityOperationService.generatePreviewTree(
                 new EntityOperationRootCondition("wecmdb:subsys~(subsys)wecmdb:unit.fixed_date", "0007_0000000001"),
                 externalCacheMap);
@@ -301,7 +307,7 @@ public class StandardEntityOperationServiceTests extends BaseSpringBootTest {
     @Test
     public void wecmdbMultipleLinksWithOpToOnlyExpressionGetPreviewTreeShouldSucceed() {
         mockers.mockMultipleLinksWithOpToOnlyExpressionServer(server);
-
+        Map<Object, Object> externalCacheMap = new HashMap<>();
         List<StandardEntityDataNode> treeNodeListOne = standardEntityOperationService
                 .generatePreviewTree(new EntityOperationRootCondition(
                         "wecmdb:subsys.subsys_design>wecmdb:subsys_design.system_design>wecmdb:system_design.key_name",
@@ -322,7 +328,7 @@ public class StandardEntityOperationServiceTests extends BaseSpringBootTest {
     @Test
     public void wecmdbMultipleLinksWithOpByOnlyExpressionGetPreviewTreeShouldSucceed() {
         mockers.mockMultipleLinksWithOpByOnlyExpressionServer(server);
-
+        Map<Object, Object> externalCacheMap = new HashMap<>();
         List<StandardEntityDataNode> treeNodeList = standardEntityOperationService.generatePreviewTree(
                 new EntityOperationRootCondition("wecmdb:subsys~(subsys)wecmdb:unit~(unit)wecmdb:running_instance.id",
                         "0007_0000000001"),
@@ -337,6 +343,7 @@ public class StandardEntityOperationServiceTests extends BaseSpringBootTest {
     public void wecmdbMultipleLinksWithMixedOpExpressionGetPreviewTreeShouldSucceed() {
         // mockMultipleLinksWithMixedOpExpressionServer(server);
         mockers.mockWecmdbMultipleLinksWithMixedOpExpressionGetPreviewTreeShouldSucceed(server);
+        Map<Object, Object> externalCacheMap = new HashMap<>();
         List<StandardEntityDataNode> treeNodeListOne = standardEntityOperationService
                 .generatePreviewTree(new EntityOperationRootCondition(
                         "wecmdb:subsys~(subsys)wecmdb:unit.unit_design>wecmdb:unit_design.subsys_design>wecmdb:subsys_design.key_name",
