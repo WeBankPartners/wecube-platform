@@ -63,6 +63,8 @@ import com.webank.wecube.platform.core.repository.plugin.PluginConfigsMapper;
 import com.webank.wecube.platform.core.repository.plugin.PluginInstancesMapper;
 import com.webank.wecube.platform.core.repository.plugin.PluginPackagesMapper;
 import com.webank.wecube.platform.core.service.dme.EntityOperationRootCondition;
+import com.webank.wecube.platform.core.service.dme.EntityQueryExprNodeInfo;
+import com.webank.wecube.platform.core.service.dme.EntityQueryExpressionParser;
 import com.webank.wecube.platform.core.service.dme.StandardEntityOperationService;
 import com.webank.wecube.platform.core.service.workflow.SimpleEncryptionService;
 import com.webank.wecube.platform.core.support.itsdanger.ItsDanerResultDataInfoDto;
@@ -70,8 +72,10 @@ import com.webank.wecube.platform.core.support.itsdanger.ItsDangerCheckReqDto;
 import com.webank.wecube.platform.core.support.itsdanger.ItsDangerCheckRespDto;
 import com.webank.wecube.platform.core.support.itsdanger.ItsDangerInstanceInfoDto;
 import com.webank.wecube.platform.core.support.itsdanger.ItsDangerRestClient;
+import com.webank.wecube.platform.core.support.plugin.PluginRemoteCallException;
 import com.webank.wecube.platform.core.support.plugin.PluginServiceStub;
 import com.webank.wecube.platform.core.support.plugin.dto.PluginResponse.ResultData;
+import com.webank.wecube.platform.core.support.plugin.dto.PluginResponse;
 import com.webank.wecube.platform.core.support.plugin.dto.PluginResponseStationaryOutput;
 import com.webank.wecube.platform.core.utils.Constants;
 import com.webank.wecube.platform.core.utils.JsonUtils;
@@ -82,6 +86,8 @@ public class BatchExecutionService {
     private final Logger log = LoggerFactory.getLogger(this.getClass());
 
     public static final String PLUGIN_NAME_ITSDANGEROUS = "itsdangerous";
+    
+    protected static final String CONFIRM_TOKEN_KEY = "confirmToken";
 
     @Autowired
     private PluginServiceStub pluginServiceStub;
@@ -137,6 +143,9 @@ public class BatchExecutionService {
     @Autowired
     protected PluginParamObjectVarMarshaller pluginParamObjectVarAssembleService;
 
+    @Autowired
+    protected EntityQueryExpressionParser entityQueryExpressionParser;
+
     private ObjectMapper objectMapper = new ObjectMapper().setSerializationInclusion(JsonInclude.Include.NON_NULL);
 
     @Transactional
@@ -153,12 +162,16 @@ public class BatchExecutionService {
     private BatchExecutionResultDto doHandleBatchExecutionJob(BatchExecutionRequestDto batchExecutionRequest,
             String continueToken) throws IOException {
         verifyParameters(batchExecutionRequest.getInputParameterDefinitions());
-        BatchExecutionJobs batchExeJob = saveToDb(batchExecutionRequest);
+
+        PluginConfigInterfaces pluginConfigInterfaces = tryFetchEnrichedPluginConfigInterfaces(
+                batchExecutionRequest.getPluginConfigInterface().getId());
+
+        BatchExecutionJobs batchExeJob = saveToDb(batchExecutionRequest, pluginConfigInterfaces);
 
         List<BatchExecutionContext> ctxes = new ArrayList<>();
 
         for (ExecutionJobs exeJob : batchExeJob.getJobs()) {
-            BatchExecutionContext ctx = prepareExecutionContext(exeJob);
+            BatchExecutionContext ctx = prepareExecutionContext(exeJob, pluginConfigInterfaces);
             ctxes.add(ctx);
         }
 
@@ -173,30 +186,37 @@ public class BatchExecutionService {
         for (BatchExecutionContext ctx : ctxes) {
             ResultData<?> exeResult = null;
             ExecutionJobs exeJob = ctx.getExeJob();
+            String exeResultsKey = exeJob.getBusinessKey();
+            if(StringUtils.isBlank(exeResultsKey)) {
+                exeResultsKey = exeJob.getRootEntityId();
+            }
             try {
                 exeResult = performExecutionJob(exeJob);
                 if (exeResult == null) {
                     if (exeJob.getPrepareException() != null) {
-                        exeResult = buildResultDataWithError(exeJob.getPrepareException().getMessage());
+                        exeResult = buildResultDataWithError(exeJob.getPrepareException().getMessage(), exeJob);
                         Object resultObject = exeResult.getOutputs().get(0);
                         ExecutionJobResponseDto respDataObj = new ExecutionJobResponseDto(RESULT_CODE_ERROR,
                                 resultObject);
-                        exeResults.put(exeJob.getBusinessKey(), respDataObj);
+                        respDataObj.setRequestData(exeJob.getRequestData());
+                        exeResults.put(exeResultsKey, respDataObj);
                     }
                 } else {
                     Object resultObject = exeResult.getOutputs().get(0);
                     String errorCode = exeJob.getErrorCode() == null ? RESULT_CODE_ERROR : exeJob.getErrorCode();
                     ExecutionJobResponseDto respDataObj = new ExecutionJobResponseDto(errorCode, resultObject);
-                    exeResults.put(exeJob.getBusinessKey(), respDataObj);
+                    respDataObj.setRequestData(exeJob.getRequestData());
+                    exeResults.put(exeResultsKey, respDataObj);
                 }
             } catch (Exception e) {
                 log.error("errors to run execution job,{} {} {}, errorMsg:{} ", exeJob.getPackageName(),
                         exeJob.getEntityName(), exeJob.getRootEntityId(), e.getMessage());
-                exeResult = buildResultDataWithError(e.getMessage());
+                exeResult = buildResultDataWithError(e.getMessage(), exeJob);
                 Object resultObject = exeResult.getOutputs().get(0);
                 ExecutionJobResponseDto respDataObj = new ExecutionJobResponseDto(RESULT_CODE_ERROR, resultObject);
-                log.info("biz key:{}, respDataObj:{}", exeJob.getBusinessKey(), respDataObj);
-                exeResults.put(exeJob.getBusinessKey(), respDataObj);
+                respDataObj.setRequestData(exeJob.getRequestData());
+                log.info("biz key:{}, respDataObj:{}", exeResultsKey, respDataObj);
+                exeResults.put(exeResultsKey, respDataObj);
             }
 
         }
@@ -316,7 +336,8 @@ public class BatchExecutionService {
 
     }
 
-    private BatchExecutionContext prepareExecutionContext(ExecutionJobs exeJob) {
+    private BatchExecutionContext prepareExecutionContext(ExecutionJobs exeJob,
+            PluginConfigInterfaces pluginConfigInterfaces) {
         BatchExecutionContext ctx = new BatchExecutionContext();
         ctx.setExeJob(exeJob);
         if (exeJob == null) {
@@ -327,15 +348,15 @@ public class BatchExecutionService {
                     exeJob.getRootEntityId());
         }
 
-        PluginConfigInterfaces pluginConfigInterfaces = tryFetchEnrichedPluginConfigInterfaces(
-                exeJob.getPluginConfigInterfaceId());
+//        PluginConfigInterfaces pluginConfigInterfaces = tryFetchEnrichedPluginConfigInterfaces(
+//                exeJob.getPluginConfigInterfaceId());
         if (pluginConfigInterfaces == null) {
             String errorMessage = String.format("Can not found plugin config interface[%s]",
                     exeJob.getPluginConfigInterfaceId());
             log.error(errorMessage);
             exeJob.setErrorWithMessage(errorMessage);
 
-            ResultData<PluginResponseStationaryOutput> resultData = buildResultDataWithError(errorMessage);
+            ResultData<PluginResponseStationaryOutput> resultData = buildResultDataWithError(errorMessage, exeJob);
             ctx.setExeResult(resultData);
             return ctx;
         }
@@ -351,20 +372,8 @@ public class BatchExecutionService {
 
         Map<String, Object> pluginInputParamMap = new HashMap<String, Object>();
 
-        // TODO to support object and multiple
         for (ExecutionJobParameters parameter : exeJob.getParameters()) {
-            if (DATA_TYPE_STRING.equals(parameter.getDataType())
-                    || MAPPING_TYPE_SYSTEM_VARIABLE.equals(parameter.getMappingEntityExpression())) {
-                String paramValue = parameter.getValue();
-                if (parameter.getParameterDefinition() != null && Constants.DATA_SENSITIVE
-                        .equalsIgnoreCase(parameter.getParameterDefinition().getSensitiveData())) {
-                    paramValue = tryDecryptParamValue(paramValue);
-                }
-                pluginInputParamMap.put(parameter.getName(), paramValue);
-            }
-            if (DATA_TYPE_NUMBER.equals(parameter.getDataType())) {
-                pluginInputParamMap.put(parameter.getName(), Integer.valueOf(parameter.getValue()));
-            }
+            pluginInputParamMap.put(parameter.getName(), getExpectedValue(parameter));
         }
 
         pluginInputParamMap.put(CALLBACK_PARAMETER_KEY, exeJob.getRootEntityId());
@@ -424,7 +433,8 @@ public class BatchExecutionService {
         }
     }
 
-    private BatchExecutionJobs saveToDb(BatchExecutionRequestDto batchExeRequest) {
+    private BatchExecutionJobs saveToDb(BatchExecutionRequestDto batchExeRequest,
+            PluginConfigInterfaces pluginConfigInterfaces) {
         BatchExecutionJobs batchExeJobEntity = new BatchExecutionJobs();
         batchExeJobEntity.setId(LocalIdGenerator.generateId());
         batchExeJobEntity.setCreateTimestamp(new Date());
@@ -446,11 +456,13 @@ public class BatchExecutionService {
             exeJobEntity.setEntityName(batchExeRequest.getEntityName());
             exeJobEntity.setBusinessKey(resourceData.getBusinessKeyValue().toString());
             exeJobEntity.setBatchExecutionJobId(batchExeJobEntity.getId());
+            
+            exeJobEntity.setConfirmToken(resourceData.getConfirmToken());
 
             executionJobsMapper.insert(exeJobEntity);
 
             List<ExecutionJobParameters> parametersList = transFromInputParameterDefinitionToExecutionJobParameter(
-                    batchExeRequest.getInputParameterDefinitions(), exeJobEntity);
+                    batchExeRequest.getInputParameterDefinitions(), exeJobEntity, pluginConfigInterfaces);
             exeJobEntity.setParameters(parametersList);
             exeJobEntity.setBatchExecutionJob(batchExeJobEntity);
             exeJobsEntities.add(exeJobEntity);
@@ -465,13 +477,42 @@ public class BatchExecutionService {
         batchExeJob.setCompleteTimestamp(new Timestamp(System.currentTimeMillis()));
 
         batchExecutionJobsMapper.updateByPrimaryKeySelective(batchExeJob);
+        
+        List<ExecutionJobs> jobs = batchExeJob.getJobs();
+        if(jobs == null || jobs.isEmpty()) {
+            return;
+        }
+        
+        for(ExecutionJobs job : jobs) {
+            postProcessExecutionJobs(job);
+        }
+    }
+    
+    private void postProcessExecutionJobs(ExecutionJobs job) {
+        job.setCompleteTime(new Timestamp(System.currentTimeMillis()));
+        executionJobsMapper.updateByPrimaryKeySelective(job);
+        
+        List<ExecutionJobParameters> parameters = job.getParameters();
+        
+        if(parameters == null || parameters.isEmpty()) {
+            return;
+        }
+        
+        for(ExecutionJobParameters param : parameters) {
+            postProcessExecutionJobParameters(param);
+        }
+        
+    }
+    
+    private void postProcessExecutionJobParameters(ExecutionJobParameters param) {
+        
+        executionJobParametersMapper.updateByPrimaryKeySelective(param);
     }
 
     private List<ExecutionJobParameters> transFromInputParameterDefinitionToExecutionJobParameter(
-            List<InputParameterDefinitionDto> inputParameterDefinitionDtos, ExecutionJobs executionJob) {
+            List<InputParameterDefinitionDto> inputParameterDefinitionDtos, ExecutionJobs executionJob,
+            PluginConfigInterfaces pluginConfigInterfaces) {
 
-        PluginConfigInterfaces pluginConfigInterfaces = tryFetchEnrichedPluginConfigInterfaces(
-                executionJob.getPluginConfigInterfaceId());
         List<ExecutionJobParameters> executionJobParametersList = new ArrayList<ExecutionJobParameters>();
         for (InputParameterDefinitionDto inputParameterDefinitionDto : inputParameterDefinitionDtos) {
             PluginConfigInterfaceParameterDto interfaceParameterDto = inputParameterDefinitionDto.getInputParameter();
@@ -613,7 +654,7 @@ public class BatchExecutionService {
             log.error(errorMessage);
             exeJob.setErrorWithMessage(errorMessage);
 
-            return buildResultDataWithError(errorMessage);
+            return buildResultDataWithError(errorMessage, exeJob);
         }
 
         PluginConfigs pluginConfigEntity = pluginConfigsMapper
@@ -632,25 +673,20 @@ public class BatchExecutionService {
                     exeJob.getPrepareException().getMessage());
         }
 
-        // TODO to support object and list
         Map<String, Object> pluginInputParamMap = new HashMap<String, Object>();
 
         for (ExecutionJobParameters parameter : exeJob.getParameters()) {
-            if (DATA_TYPE_STRING.equals(parameter.getDataType())
-                    || MAPPING_TYPE_SYSTEM_VARIABLE.equals(parameter.getMappingEntityExpression())) {
-                String paramValue = parameter.getValue();
-                if (parameter.getParameterDefinition() != null && Constants.DATA_SENSITIVE
-                        .equalsIgnoreCase(parameter.getParameterDefinition().getSensitiveData())) {
-                    paramValue = tryDecryptParamValue(paramValue);
-                }
-                pluginInputParamMap.put(parameter.getName(), paramValue);
-            }
-            if (DATA_TYPE_NUMBER.equals(parameter.getDataType())) {
-                pluginInputParamMap.put(parameter.getName(), Integer.valueOf(parameter.getValue()));
-            }
+            pluginInputParamMap.put(parameter.getName(), getExpectedValue(parameter));
         }
 
         pluginInputParamMap.put(CALLBACK_PARAMETER_KEY, exeJob.getRootEntityId());
+        
+        if(StringUtils.isNoneBlank(exeJob.getConfirmToken())) {
+            log.info("confirm token [{}] found for entity [{}].", exeJob.getConfirmToken(), exeJob.getRootEntityId());
+            pluginInputParamMap.put(CONFIRM_TOKEN_KEY, exeJob.getConfirmToken());
+        }
+        
+        exeJob.setRequestData(pluginInputParamMap);
 
         PluginInstances pluginInstance = pluginInstanceMgmtService
                 .getRunningPluginInstance(pluginPackagesEntity.getName());
@@ -662,10 +698,15 @@ public class BatchExecutionService {
                     "RequestId-" + Long.toString(System.currentTimeMillis()));
 
             handleResultData(responseData, exeJob);
+            
+        }catch(PluginRemoteCallException e1) {
+            log.error("errors while call remote plugin interface.", e1);
+            exeJob.setErrorWithMessage(e1.getMessage());
+            return buildResultDataWithError(e1, exeJob);
         } catch (Exception e) {
             log.error("errors while call plugin interface", e);
             exeJob.setErrorWithMessage(e.getMessage());
-            return buildResultDataWithError(e.getMessage());
+            return buildResultDataWithError(e.getMessage(), exeJob);
         }
         log.info("returnJsonString= " + responseData.toString());
         String returnJsonString = JsonUtils.toJsonString(responseData);
@@ -680,13 +721,97 @@ public class BatchExecutionService {
                     pluginConfigInterfaceEntity.getPath(), pluginInputParamMap);
             log.error(errorMessage);
             exeJob.setErrorWithMessage(errorMessage);
-            return buildResultDataWithError(errorMessage);
+            return buildResultDataWithError(errorMessage, exeJob);
         }
         PluginResponseStationaryOutput stationaryOutput = stationaryResultData.getOutputs().get(0);
         exeJob.setReturnJson(returnJsonString);
         exeJob.setErrorCode(stationaryOutput.getErrorCode() == null ? RESULT_CODE_ERROR : RESULT_CODE_OK);
         exeJob.setErrorMessage(stationaryOutput.getErrorMessage());
         return responseData;
+    }
+
+    @SuppressWarnings("rawtypes")
+    public Object getExpectedValue(ExecutionJobParameters parameter) {
+        // #2226
+
+        if (isMultiple(parameter.getMultiple())) {
+            Object rawParamValue = parameter.getRawValue();
+            if (rawParamValue == null) {
+                return new ArrayList<>();
+            }
+
+            List<Object> clonedListValues = new ArrayList<>();
+
+            if (rawParamValue instanceof List) {
+
+                for (Object val : (List) rawParamValue) {
+                    if (val instanceof PluginParamObject) {
+                        PluginParamObject objVal = (PluginParamObject) val;
+                        PluginParamObject clonedObjVal = PluginParamObject.wipeOffObjectIdAndClone(objVal);
+                        if (clonedObjVal != null) {
+                            clonedListValues.add(clonedObjVal);
+                        }
+                    } else {
+                        clonedListValues.add(val);
+                    }
+                }
+            } else {
+                if (rawParamValue instanceof PluginParamObject) {
+                    PluginParamObject objVal = (PluginParamObject) rawParamValue;
+                    PluginParamObject clonedObjVal = PluginParamObject.wipeOffObjectIdAndClone(objVal);
+                    if (clonedObjVal != null) {
+                        clonedListValues.add(clonedObjVal);
+                    }
+                } else {
+                    clonedListValues.add(rawParamValue);
+                }
+            }
+
+            return clonedListValues;
+        } else {
+
+            if (isObjectDataType(parameter.getDataType())) {
+                Object rawParamValue = parameter.getRawValue();
+                if (rawParamValue == null) {
+                    return null;
+                }
+                if (rawParamValue instanceof PluginParamObject) {
+                    PluginParamObject objVal = (PluginParamObject) rawParamValue;
+                    PluginParamObject clonedObjVal = PluginParamObject.wipeOffObjectIdAndClone(objVal);
+
+                    return clonedObjVal;
+                } else {
+                    return rawParamValue;
+                }
+            } else {
+                String paramValue = parameter.getValue();
+
+                if (DATA_TYPE_STRING.equals(parameter.getDataType())) {
+                    if (paramValue == null) {
+                        return null;
+                    }
+
+                    if (parameter.getParameterDefinition() != null && Constants.DATA_SENSITIVE
+                            .equalsIgnoreCase(parameter.getParameterDefinition().getSensitiveData())) {
+                        paramValue = tryDecryptParamValue(paramValue);
+                    }
+
+                    return paramValue;
+                }
+
+                if (DATA_TYPE_NUMBER.equals(parameter.getDataType())) {
+                    if (paramValue == null) {
+                        return 0;
+                    }
+
+                    Integer retVal = Integer.valueOf(parameter.getValue());
+                    return retVal;
+                }
+
+                return paramValue;
+            }
+
+        }
     }
 
     @SuppressWarnings("unchecked")
@@ -761,8 +886,6 @@ public class BatchExecutionService {
                 continue;
             }
 
-            // TODO try to convert to list once necessary
-
             EntityOperationRootCondition condition = new EntityOperationRootCondition(paramExpr, rootEntityId);
 
             try {
@@ -774,11 +897,51 @@ public class BatchExecutionService {
 
         }
     }
+    
+    @SuppressWarnings("unchecked")
+    private ResultData<PluginResponseStationaryOutput> buildResultDataWithError(PluginRemoteCallException e1, ExecutionJobs exeJob) {
+        ResultData<PluginResponseStationaryOutput> errorReultData = new ResultData<PluginResponseStationaryOutput>();
+        PluginResponse<?> pluginResponse = e1.getPluginResponse();
+        if(pluginResponse == null) {
+            PluginResponseStationaryOutput errOut = new PluginResponseStationaryOutput(PluginResponseStationaryOutput.ERROR_CODE_FAILED, e1.getErrorMessage(), exeJob.getRootEntityId());
+            List<PluginResponseStationaryOutput> outputs = Lists.newArrayList(errOut);
+            errorReultData.setOutputs(outputs);
+            
+            return errorReultData;
+        }
+        
+        List<?> resultData = pluginResponse.getOutputs();
+        if(resultData == null || resultData.isEmpty()) {
+            PluginResponseStationaryOutput errOut = new PluginResponseStationaryOutput(PluginResponseStationaryOutput.ERROR_CODE_FAILED, e1.getErrorMessage(), exeJob.getRootEntityId());
+            List<PluginResponseStationaryOutput> outputs = Lists.newArrayList(errOut);
+            errorReultData.setOutputs(outputs);
+            
+            return errorReultData;
+        }
+        
+        List<PluginResponseStationaryOutput> outputs = new ArrayList<>();
+        for(Object resultObj : resultData) {
+            if(resultObj instanceof Map) {
+                Map<String,Object> resultMap = (Map<String,Object>)resultObj;
+                String errCode = (String) resultMap.get("errorCode");
+                String errorMessage = (String)resultMap.get("errorMessage");
+                String callbackParameter = (String)resultMap.get("callbackParameter");
+                
+                PluginResponseStationaryOutput errOut = new PluginResponseStationaryOutput(errCode, errorMessage, callbackParameter);
+                outputs.add(errOut);
+            }else {
+                PluginResponseStationaryOutput errOut = new PluginResponseStationaryOutput(PluginResponseStationaryOutput.ERROR_CODE_FAILED, e1.getErrorMessage(), exeJob.getRootEntityId());
+                outputs.add(errOut);
+            }
+        }
+        errorReultData.setOutputs(outputs);
+        return errorReultData;
+    }
 
-    private ResultData<PluginResponseStationaryOutput> buildResultDataWithError(String errorMessage) {
+    private ResultData<PluginResponseStationaryOutput> buildResultDataWithError(String errorMessage, ExecutionJobs exeJob) {
         ResultData<PluginResponseStationaryOutput> errorReultData = new ResultData<PluginResponseStationaryOutput>();
         errorReultData.setOutputs(Lists.newArrayList(new PluginResponseStationaryOutput(
-                PluginResponseStationaryOutput.ERROR_CODE_FAILED, errorMessage, null)));
+                PluginResponseStationaryOutput.ERROR_CODE_FAILED, errorMessage, exeJob.getRootEntityId())));
         return errorReultData;
     }
 
@@ -825,6 +988,62 @@ public class BatchExecutionService {
 
         CoreObjectMeta objectMeta = parameter.getRefObjectMeta();
 
+        if (objectMeta == null) {
+            if (StringUtils.isBlank(parameter.getMappingEntityExpression())
+                    || parameter.getMappingEntityExpression().endsWith(".NONE")) {
+                return;
+            }
+
+            String entityAttrName = null;
+            List<EntityQueryExprNodeInfo> currExprNodeInfos = this.entityQueryExpressionParser
+                    .parse(parameter.getMappingEntityExpression());
+            if (currExprNodeInfos == null || currExprNodeInfos.isEmpty()) {
+                // nothing
+            } else {
+                EntityQueryExprNodeInfo leafNode = currExprNodeInfos.get(currExprNodeInfos.size() - 1);
+                entityAttrName = leafNode.getQueryAttrName();
+            }
+            List<Map<String, Object>> rawObjectMapVals = pluginParamObjectVarCalculator
+                    .calculateRawObjectVarList(objectMeta, calCtx, parameter.getMappingEntityExpression());
+            if (isMultiple(parameter.getMultiple())) {
+                List<Object> objectVals = new ArrayList<>();
+                for (Map<String, Object> recordMap : rawObjectMapVals) {
+                    if (StringUtils.isBlank(entityAttrName)) {
+                        objectVals.add(recordMap);
+                    } else {
+                        Object objVal = recordMap.get(entityAttrName);
+                        if (objVal != null) {
+                            objectVals.add(objVal);
+                        }
+                    }
+                }
+
+                String paramValue = JsonUtils.toJsonString(objectVals);
+                parameter.setValue(paramValue);
+                parameter.setRawValue(objectVals);
+
+            } else {
+                if (!rawObjectMapVals.isEmpty()) {
+                    Map<String, Object> recordMap = rawObjectMapVals.get(0);
+                    if (StringUtils.isBlank(entityAttrName)) {
+                        String paramValue = JsonUtils.toJsonString(recordMap);
+                        parameter.setValue(paramValue);
+                        parameter.setRawValue(recordMap);
+                    } else {
+                        Object objVal = recordMap.get(entityAttrName);
+                        if (objVal != null) {
+                            String paramValue = objVal.toString();
+                            parameter.setValue(paramValue);
+                            parameter.setRawValue(objVal);
+                        }
+                    }
+                }
+
+            }
+
+            return;
+        }
+
         // store objects here
         List<CoreObjectVar> objectVars = pluginParamObjectVarCalculator.calculateCoreObjectVarList(objectMeta, calCtx,
                 parameter.getMappingEntityExpression());
@@ -833,11 +1052,9 @@ public class BatchExecutionService {
             log.info("Got empty object values for : {}", objectMeta.getName());
             return;
         }
-        
-        List<Object> objectVals = new ArrayList<>();
-        //TODO
 
-        if (Constants.DATA_MULTIPLE.equalsIgnoreCase(parameter.getMultiple())) {
+        if (isMultiple(parameter.getMultiple())) {
+            List<Object> objectVals = new ArrayList<>();
             for (CoreObjectVar objectVar : objectVars) {
                 PluginParamObject paramObject = pluginParamObjectVarAssembleService.marshalPluginParamObject(objectVar,
                         calCtx);
@@ -845,6 +1062,10 @@ public class BatchExecutionService {
 
                 pluginParamObjectVarStorageService.storeCoreObjectVar(objectVar);
             }
+
+            String paramValue = JsonUtils.toJsonString(objectVals);
+            parameter.setValue(paramValue);
+            parameter.setRawValue(objectVals);
 
             return;
         } else {
@@ -862,9 +1083,11 @@ public class BatchExecutionService {
             PluginParamObject paramObject = pluginParamObjectVarAssembleService.marshalPluginParamObject(objectVar,
                     calCtx);
 
-            objectVals.add(paramObject);
-
             pluginParamObjectVarStorageService.storeCoreObjectVar(objectVar);
+
+            String paramValue = JsonUtils.toJsonString(paramObject);
+            parameter.setValue(paramValue);
+            parameter.setRawValue(paramObject);
 
             return;
         }
@@ -909,9 +1132,11 @@ public class BatchExecutionService {
             // #2046
             if (parameter.getParameterDefinition() != null && Constants.DATA_SENSITIVE
                     .equalsIgnoreCase(parameter.getParameterDefinition().getSensitiveData())) {
-                sVal = tryEncryptParamValue(sVal);
+                String cipheredVal = tryEncryptParamValue(sVal);
+                parameter.setValue(cipheredVal);
+            } else {
+                parameter.setValue(sVal);
             }
-            parameter.setValue(sVal);
         }
     }
 
@@ -928,26 +1153,58 @@ public class BatchExecutionService {
         List<Object> attrValsPerExpr = standardEntityOperationService.queryAttributeValues(criteria,
                 userJwtSsoTokenRestTemplate, null);
 
-        if ((attrValsPerExpr == null || attrValsPerExpr.isEmpty()) && FIELD_REQUIRED.equals(parameter.getRequired())) {
-            String errorMessage = String.format(
-                    "returned empty data while fetch the mandatory input parameter[%s] with expression[%s] and root entity ID[%s]",
-                    parameter.getName(), mappingEntityExpression, criteria.getEntityIdentity());
-            log.error(errorMessage);
-            executionJob.setErrorWithMessage(errorMessage);
-            executionJob.setPrepareException(new WecubeCoreException(errorMessage));
-            throw new WecubeCoreException("3004", errorMessage, parameter.getName(), mappingEntityExpression,
-                    criteria.getEntityIdentity());
+        if (attrValsPerExpr == null || attrValsPerExpr.isEmpty()) {
+            if (FIELD_REQUIRED.equals(parameter.getRequired())) {
+                String errorMessage = String.format(
+                        "returned empty data while fetch the mandatory input parameter[%s] with expression[%s] and root entity ID[%s]",
+                        parameter.getName(), mappingEntityExpression, criteria.getEntityIdentity());
+                log.error(errorMessage);
+                executionJob.setErrorWithMessage(errorMessage);
+                executionJob.setPrepareException(new WecubeCoreException(errorMessage));
+                throw new WecubeCoreException("3004", errorMessage, parameter.getName(), mappingEntityExpression,
+                        criteria.getEntityIdentity());
+            } else {
+                if (isMultiple(parameter.getMultiple())) {
+                    List<Object> rawParamValue = new ArrayList<>();
+                    parameter.setValue(JsonUtils.toJsonString(rawParamValue));
+                    parameter.setRawValue(rawParamValue);
+
+                    return;
+                } else {
+                    parameter.setValue(null);
+                    parameter.setRawValue(null);
+
+                    return;
+                }
+            }
         }
 
-        // TODO to support list and object data type
-        if (attrValsPerExpr != null && (!attrValsPerExpr.isEmpty())) {
+        if (isMultiple(parameter.getMultiple())) {
+            String paramValue = JsonUtils.toJsonString(attrValsPerExpr);
+            parameter.setValue(paramValue);
+
+            parameter.setRawValue(attrValsPerExpr);
+        } else {
+
+            Object rawParamValue = attrValsPerExpr.get(0);
+
             // #2046
-            String paramValue = attrValsPerExpr.get(0) == null ? null : attrValsPerExpr.get(0).toString();
+            String paramValue = (rawParamValue == null ? null : rawParamValue.toString());
             if (parameter.getParameterDefinition() != null && Constants.DATA_SENSITIVE
                     .equalsIgnoreCase(parameter.getParameterDefinition().getSensitiveData())) {
                 paramValue = tryEncryptParamValue(paramValue);
             }
             parameter.setValue(paramValue);
+
+            parameter.setRawValue(rawParamValue);
         }
+    }
+
+    private boolean isObjectDataType(String dataType) {
+        return Constants.DATA_TYPE_OBJECT.equalsIgnoreCase(dataType);
+    }
+
+    private boolean isMultiple(String multipleFlag) {
+        return Constants.DATA_MULTIPLE.equalsIgnoreCase(multipleFlag);
     }
 }

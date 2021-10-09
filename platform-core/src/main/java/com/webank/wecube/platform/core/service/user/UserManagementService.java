@@ -22,8 +22,10 @@ public interface UserManagementService {
     UserDto getUserByUserId(String userId);
 
     RoleDto registerLocalRole(RoleDto role);
+    
+    RoleDto updateLocalRole(String roleId, RoleDto role);
 
-    List<RoleDto> retrieveAllRoles();
+    List<RoleDto> retrieveAllRoles(String requiredAll);
 
     RoleDto retrieveRoleById(String roleId);
     
@@ -36,8 +38,12 @@ public interface UserManagementService {
     List<UserDto> getUsersByRoleId(String roleId);
 
     void grantRoleToUsers(String roleId, List<String> userIds);
+    
+    void grantRolesToUser(String userId, List<String> roleIds);
 
     void revokeRoleFromUsers(String roleId, List<String> userIds);
+    
+    void revokeRolesFromUser(String userId, List<String> roleIds);
 
     List<String> getRoleNamesByUsername(String username);
 

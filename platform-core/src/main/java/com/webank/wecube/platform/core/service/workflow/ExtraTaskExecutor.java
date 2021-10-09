@@ -34,8 +34,8 @@ public class ExtraTaskExecutor {
             return;
         }
 
-        if (log.isInfoEnabled()) {
-            log.info("total {} new tasks to execute.", outstandingTasks.size());
+        if (log.isDebugEnabled()) {
+            log.debug("total {} new tasks to execute.", outstandingTasks.size());
         }
 
         for (ExtraTaskEntity task : outstandingTasks) {
@@ -77,7 +77,8 @@ public class ExtraTaskExecutor {
                 taskNodeDynamicBindRetryProcessor.process(task);
             }
         } catch (Exception e) {
-            log.error("operation event process starting failed", e);
+            String errMsg = String.format("Operation event process starting failed,task:%s", task.getId());
+            log.info(errMsg, e);
             tryHandleFailedStart(task, e);
         }
     }

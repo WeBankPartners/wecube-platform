@@ -400,6 +400,8 @@ public class WorkflowPublicAccessService {
         EntityQueryCriteria c = new EntityQueryCriteria();
         c.setAttrName("id");
         c.setCondition(entityNode.getDataId());
+        
+        querySpec.setCriteria(c);
 
         StandardEntityOperationResponseDto respDto = client.query(entityRoute, querySpec);
         List<Map<String, Object>> results = extractEntityDataFromResponse(respDto.getData());

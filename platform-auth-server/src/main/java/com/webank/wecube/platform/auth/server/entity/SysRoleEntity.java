@@ -7,6 +7,9 @@ import javax.persistence.Table;
 @Entity
 @Table(name = "AUTH_SYS_ROLE")
 public class SysRoleEntity extends BaseStatusFeaturedEntity {
+    
+    public static final String STATUS_DELETED = "Deleted";
+    public static final String STATUS_NOT_DELETED = "NotDeleted";
 
     @Column(name = "NAME")
     private String name;
@@ -50,6 +53,14 @@ public class SysRoleEntity extends BaseStatusFeaturedEntity {
 
     public void setDescription(String description) {
         this.description = description;
+    }
+    
+    public String getRoleDeletedStatus() {
+        if(isDeleted()) {
+            return STATUS_DELETED;
+        }else {
+            return STATUS_NOT_DELETED;
+        }
     }
 
 }

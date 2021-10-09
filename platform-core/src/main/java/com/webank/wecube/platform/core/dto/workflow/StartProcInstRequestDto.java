@@ -9,17 +9,20 @@ public class StartProcInstRequestDto {
     private String entityDataId;
     private String entityDisplayName;
     private String processSessionId;
-    private List<TaskNodeDefObjectBindInfoDto> taskNodeBinds = new ArrayList<>();
+    private String procBatchKey;
+    private String procInitUser;
     
+    private List<TaskNodeDefObjectBindInfoDto> taskNodeBinds = new ArrayList<>();
+
     public String getEntityDisplayName() {
-		return entityDisplayName;
-	}
+        return entityDisplayName;
+    }
 
-	public void setEntityDisplayName(String entityDisplayName) {
-		this.entityDisplayName = entityDisplayName;
-	}
+    public void setEntityDisplayName(String entityDisplayName) {
+        this.entityDisplayName = entityDisplayName;
+    }
 
-	public String getProcDefId() {
+    public String getProcDefId() {
         return procDefId;
     }
 
@@ -50,38 +53,53 @@ public class StartProcInstRequestDto {
     public void setTaskNodeBinds(List<TaskNodeDefObjectBindInfoDto> taskNodeBinds) {
         this.taskNodeBinds = taskNodeBinds;
     }
-    
-    public StartProcInstRequestDto addAllTaskNodeDefObjectBindInfos(List<TaskNodeDefObjectBindInfoDto> dtos){
-        if(dtos == null){
+
+    public StartProcInstRequestDto addAllTaskNodeDefObjectBindInfos(List<TaskNodeDefObjectBindInfoDto> dtos) {
+        if (dtos == null) {
             return this;
         }
-        
-        for(TaskNodeDefObjectBindInfoDto dto : dtos){
-            if(dto != null){
+
+        for (TaskNodeDefObjectBindInfoDto dto : dtos) {
+            if (dto != null) {
                 this.taskNodeBinds.add(dto);
             }
         }
-        
+
         return this;
     }
-    
-    public StartProcInstRequestDto addTaskNodeDefObjectBindInfos(TaskNodeDefObjectBindInfoDto ...bindInfoDtos ){
-        for(TaskNodeDefObjectBindInfoDto dto : bindInfoDtos){
-            if(dto != null){
+
+    public StartProcInstRequestDto addTaskNodeDefObjectBindInfos(TaskNodeDefObjectBindInfoDto... bindInfoDtos) {
+        for (TaskNodeDefObjectBindInfoDto dto : bindInfoDtos) {
+            if (dto != null) {
                 this.taskNodeBinds.add(dto);
             }
         }
-        
+
         return this;
     }
 
-	public String getProcessSessionId() {
-		return processSessionId;
-	}
+    public String getProcessSessionId() {
+        return processSessionId;
+    }
 
-	public void setProcessSessionId(String processSessionId) {
-		this.processSessionId = processSessionId;
-	}
-    
-    
+    public void setProcessSessionId(String processSessionId) {
+        this.processSessionId = processSessionId;
+    }
+
+    public String getProcBatchKey() {
+        return procBatchKey;
+    }
+
+    public void setProcBatchKey(String procBatchKey) {
+        this.procBatchKey = procBatchKey;
+    }
+
+    public String getProcInitUser() {
+        return procInitUser;
+    }
+
+    public void setProcInitUser(String procInitUser) {
+        this.procInitUser = procInitUser;
+    }
+
 }

@@ -171,43 +171,6 @@ public class WorkflowProcDefService extends AbstractWorkflowProcDefService {
 
     }
 
-    private void filterTaskNodeInfosByRootContext(String prevCtxNodeIds,
-            List<TaskNodeDefInfoEntity> filteredNodeEntities, List<TaskNodeDefInfoEntity> nodeEntities) {
-        String[] prevCtxNodeIdsParts = prevCtxNodeIds.trim().split(",");
-        for (String prevCtxNodeIdsPart : prevCtxNodeIdsParts) {
-            TaskNodeDefInfoEntity nodeDefInfo = pickoutByNodeId(prevCtxNodeIdsPart, filteredNodeEntities);
-            if (nodeDefInfo == null) {
-                nodeDefInfo = pickoutByNodeId(prevCtxNodeIdsPart, nodeEntities);
-                if (nodeDefInfo != null) {
-                    filteredNodeEntities.add(nodeDefInfo);
-                }
-            } else {
-                // means exist already
-            }
-
-            if (nodeDefInfo != null) {
-                String supPrevCtxNodeIds = nodeDefInfo.getPrevCtxNodeIds();
-                if (StringUtils.isNoneBlank(supPrevCtxNodeIds)) {
-                    filterTaskNodeInfosByRootContext(supPrevCtxNodeIds, filteredNodeEntities, nodeEntities);
-                }
-            }
-        }
-    }
-
-    private TaskNodeDefInfoEntity pickoutByNodeId(String nodeId, List<TaskNodeDefInfoEntity> nodeEntities) {
-        if (nodeEntities == null || nodeEntities.isEmpty()) {
-            return null;
-        }
-
-        for (TaskNodeDefInfoEntity n : nodeEntities) {
-            if (nodeId.equals(n.getNodeId())) {
-                return n;
-            }
-        }
-
-        return null;
-    }
-
     /**
      * 
      * @param procDefId
@@ -355,6 +318,43 @@ public class WorkflowProcDefService extends AbstractWorkflowProcDefService {
         }
 
         return false;
+    }
+    
+    private void filterTaskNodeInfosByRootContext(String prevCtxNodeIds,
+            List<TaskNodeDefInfoEntity> filteredNodeEntities, List<TaskNodeDefInfoEntity> nodeEntities) {
+        String[] prevCtxNodeIdsParts = prevCtxNodeIds.trim().split(",");
+        for (String prevCtxNodeIdsPart : prevCtxNodeIdsParts) {
+            TaskNodeDefInfoEntity nodeDefInfo = pickoutByNodeId(prevCtxNodeIdsPart, filteredNodeEntities);
+            if (nodeDefInfo == null) {
+                nodeDefInfo = pickoutByNodeId(prevCtxNodeIdsPart, nodeEntities);
+                if (nodeDefInfo != null) {
+                    filteredNodeEntities.add(nodeDefInfo);
+                }
+            } else {
+                // means exist already
+            }
+
+            if (nodeDefInfo != null) {
+                String supPrevCtxNodeIds = nodeDefInfo.getPrevCtxNodeIds();
+                if (StringUtils.isNoneBlank(supPrevCtxNodeIds)) {
+                    filterTaskNodeInfosByRootContext(supPrevCtxNodeIds, filteredNodeEntities, nodeEntities);
+                }
+            }
+        }
+    }
+
+    private TaskNodeDefInfoEntity pickoutByNodeId(String nodeId, List<TaskNodeDefInfoEntity> nodeEntities) {
+        if (nodeEntities == null || nodeEntities.isEmpty()) {
+            return null;
+        }
+
+        for (TaskNodeDefInfoEntity n : nodeEntities) {
+            if (nodeId.equals(n.getNodeId())) {
+                return n;
+            }
+        }
+
+        return null;
     }
 
 }

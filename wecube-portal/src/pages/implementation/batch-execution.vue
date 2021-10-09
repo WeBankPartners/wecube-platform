@@ -186,13 +186,13 @@
               <Col span="6" class="excute-result excute-result-search">
                 <Input v-model="businessKey" placeholder="Filter instance" />
                 <p class="excute-result-search-title">{{ activeExecuteHistory.plugin.pluginName }}</p>
-                <ul v-if="activeExecuteHistory.filterBusinessKeySet.length" class="dispaly-instance-result">
+                <ul v-if="activeExecuteHistory.filterBusinessKeySet.length" class="display-instance-result">
                   <li
                     @click="changeActiveResultKey(key)"
                     :class="[
                       activeResultKey === key ? 'active-key' : '',
                       'business-key',
-                      catchExecuteResult[key].errorCode === '1' ? 'error-key' : '',
+                      keyStyle[catchExecuteResult[key].errorCode],
                       'clear-default-style'
                     ]"
                     v-for="(key, keyIndex) in catchFilterBusinessKeySet"
@@ -221,11 +221,18 @@
                     </Button>
                   </Col>
                 </Row>
+                <div v-if="hasResult">
+                  <a @click="showRequestData.isShow = !showRequestData.isShow">show requestData</a>
+                  <span v-if="showRequestData.isShow">
+                    <pre>{{ showRequestData.msg }}</pre>
+                    <Divider />
+                  </span>
+                </div>
                 <div>
                   <pre
-                    class="dispaly-result"
+                    class="display-result"
                     v-if="businessKeyContent"
-                  > <span v-html="formatResult(businessKeyContent.result)"></span></pre>
+                  ><span v-html="formatResult(businessKeyContent.result)"></span></pre>
                   <pre v-else> <span></span></pre>
                 </div>
               </Col>
@@ -485,6 +492,17 @@ export default {
   name: '',
   data () {
     return {
+      hasResult: false,
+      showRequestData: {
+        isShow: false,
+        key: '',
+        msg: {}
+      },
+      keyStyle: {
+        '-1': 'confirm-key',
+        '0': '',
+        '1': 'error-key'
+      },
       btnLoading: false,
       operaModal: false,
 
@@ -597,16 +615,15 @@ export default {
       }
     }
   },
-  mounted () {},
+  mounted () {
+    this.MODALHEIGHT = document.body.scrollHeight - 200
+  },
   computed: {
     businessKeyContent: function () {
       if (this.activeResultKey && this.catchExecuteResult) {
         return this.catchExecuteResult[this.activeResultKey]
       }
     }
-    // seletedRowsNum: function () {
-    //   return this.seletedRows.length
-    // }
   },
   watch: {
     dataModelExpression: async function (val) {
@@ -837,6 +854,9 @@ export default {
           return
         }
         const { plugin, requestBody } = this.toBeCollectedParams
+        requestBody.resourceDatas.forEach(item => {
+          delete item.confirmToken
+        })
         let params = {
           collectionName: this.collectionName.trim(),
           permissionToRole: {
@@ -1170,11 +1190,6 @@ export default {
       if (status === 'OK') {
         this.filteredPlugins = data
       }
-
-      // const { status, data } = await getFilteredPluginInterfaceList(this.currentPackageName, this.currentEntityName)
-      // if (status === 'OK') {
-      //   this.filteredPlugins = data
-      // }
     },
     async excuteBatchAction () {
       let requestBody = {}
@@ -1241,7 +1256,6 @@ export default {
       })
 
       const { status, data, message } = await batchExecution(BATCH_EXECUTION_URL, requestBody)
-      // this.seletedRows = []
       if (status === 'OK') {
         this.manageExecutionResult(data, requestBody)
       }
@@ -1299,6 +1313,12 @@ export default {
       return Current
     },
     async executeAgain () {
+      this.hasResult = false
+      this.showRequestData = {
+        isShow: false,
+        key: '',
+        msg: {}
+      }
       const inputParameterDefinitions = this.activeExecuteHistory.plugin.pluginParams.map(p => {
         const inputParameterValue =
           p.mappingType === 'constant' ? (p.dataType === 'number' ? Number(p.bindValue) : p.bindValue) : null
@@ -1315,9 +1335,17 @@ export default {
         duration: 1
       })
       this.btnLoading = true
+      if (this.executeHistory.length > 0) {
+        requestBody.resourceDatas.forEach(resData => {
+          if (this.executeHistory[0].executeResult[resData.businessKeyValue].errorCode === '-1') {
+            resData.confirmToken = 'Y'
+          } else {
+            resData.confirmToken = 'N'
+          }
+        })
+      }
       const { status, data, message } = await batchExecution(BATCH_EXECUTION_URL, requestBody)
       this.btnLoading = false
-      // this.seletedRows = []
       if (status === 'OK') {
         this.manageExecutionResultAgain(data, requestBody)
       }
@@ -1365,6 +1393,12 @@ export default {
       this.displaySearchZone = false
       this.displayResultTableZone = false
       this.activeResultKey = key
+      this.hasResult = true
+      this.showRequestData = {
+        isShow: false,
+        key: key,
+        msg: this.executeHistory[0].executeResult[key].requestData
+      }
       this.selectedCollectionId = null
     },
     async changePlugin () {
@@ -1571,6 +1605,9 @@ pre {
 .error-key {
   color: red;
 }
+.confirm-key {
+  color: #2d8cf0;
+}
 </style>
 <style>
 .ivu-card-body {
@@ -1599,11 +1636,11 @@ pre {
   white-space: nowrap;
   width: 260px;
 }
-.dispaly-instance-result {
+.display-instance-result {
   height: calc(100vh - 320px);
   overflow-y: auto;
 }
-.dispaly-result {
+.display-result {
   height: calc(100vh - 300px);
   overflow-y: auto;
 }
