@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.webank.wecube.platform.core.dto.plugin.CommonResponseDto;
@@ -42,9 +43,21 @@ public class RoleManagementController {
 
     }
 
+    @PostMapping("/roles/{role-id}/update")
+    public CommonResponseDto updateLocalRole(@PathVariable("role-id") String roleId, @RequestBody RoleDto roleDto) {
+        RoleDto result = userManagementService.updateLocalRole(roleId, roleDto);
+        return CommonResponseDto.okayWithData(result);
+
+    }
+
     @GetMapping("/roles/retrieve")
-    public CommonResponseDto retrieveAllRoles() {
-        List<RoleDto> result = userManagementService.retrieveAllRoles();
+    public CommonResponseDto retrieveAllRoles(
+            @RequestParam(name = "all", required = false, defaultValue = "N") String isAll) {
+        String requiredAll = "N";
+        if("Y".equalsIgnoreCase(isAll)) {
+            requiredAll = "Y";
+        }
+        List<RoleDto> result = userManagementService.retrieveAllRoles(requiredAll);
         return CommonResponseDto.okayWithData(result);
     }
 
