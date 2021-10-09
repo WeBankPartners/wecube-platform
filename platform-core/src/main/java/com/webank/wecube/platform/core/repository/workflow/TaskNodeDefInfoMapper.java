@@ -57,5 +57,18 @@ public interface TaskNodeDefInfoMapper {
     List<TaskNodeDefInfoEntity> selectAllByProcDefIdAndNodeId(@Param("procDefId") String procDefId,
             @Param("nodeId") String nodeId);
     
+    /**
+     * 
+     * @return
+     */
+    List<String> selectAllBoundServices();
     
+    /**
+     * 
+     * @param serviceId
+     * @param status
+     * @return
+     */
+    List<TaskNodeDefInfoEntity> selectAllByServiceAndStatus(@Param("serviceId") String serviceId,
+            @Param("status") String status);
 }
