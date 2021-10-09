@@ -69,7 +69,7 @@ import com.webank.wecube.platform.core.utils.JsonUtils;
  *
  */
 @Service
-public class WorkflowDataService extends AbstractWorkflowService{
+public class WorkflowDataService extends AbstractWorkflowService {
     private static final Logger log = LoggerFactory.getLogger(WorkflowDataService.class);
 
     public static final String MASKED_VALUE = "***MASK***";
@@ -118,6 +118,10 @@ public class WorkflowDataService extends AbstractWorkflowService{
     @Autowired
     @Qualifier("userJwtSsoTokenRestTemplate")
     protected RestTemplate userJwtSsoTokenRestTemplate;
+
+    @Autowired
+    @Qualifier(value = "jwtSsoRestTemplate")
+    protected RestTemplate jwtSsoRestTemplate;
 
     /**
      * 
@@ -494,8 +498,9 @@ public class WorkflowDataService extends AbstractWorkflowService{
             throw new WecubeCoreException("3188", String.format("Invalid node instance id: %s", nodeInstId),
                     nodeInstId);
         }
-        
-        TaskNodeDefInfoEntity nodeDefInfoEntity = taskNodeDefInfoRepository.selectByPrimaryKey(nodeEntity.getNodeDefId());
+
+        TaskNodeDefInfoEntity nodeDefInfoEntity = taskNodeDefInfoRepository
+                .selectByPrimaryKey(nodeEntity.getNodeDefId());
 
         TaskNodeExecContextDto result = new TaskNodeExecContextDto();
         result.setNodeDefId(nodeEntity.getNodeDefId());
@@ -504,8 +509,8 @@ public class WorkflowDataService extends AbstractWorkflowService{
         result.setNodeName(nodeEntity.getNodeName());
         result.setNodeType(nodeEntity.getNodeType());
         result.setErrorMessage(nodeEntity.getErrMsg());
-        
-        if(nodeDefInfoEntity != null) {
+
+        if (nodeDefInfoEntity != null) {
             result.setNodeExpression(nodeDefInfoEntity.getRoutineExp());
             result.setPluginInfo(nodeDefInfoEntity.getServiceId());
         }
@@ -588,7 +593,7 @@ public class WorkflowDataService extends AbstractWorkflowService{
      * @return
      */
     @Transactional
-    public ProcessDataPreviewDto generateProcessDataPreview(String procDefId, String dataId) {
+    public ProcessDataPreviewDto generateProcessDataPreview(String procDefId, String dataId, boolean useSystemToken) {
         if (StringUtils.isBlank(procDefId) || StringUtils.isBlank(dataId)) {
             throw new WecubeCoreException("3189", "Process definition ID or entity ID is not provided.");
         }
@@ -601,7 +606,7 @@ public class WorkflowDataService extends AbstractWorkflowService{
                     String.format("Such process definition {%s} does not exist.", procDefId), procDefId);
         }
 
-        ProcessDataPreviewDto previewDto = doFetchProcessPreviewData(procDefOutline, dataId, true);
+        ProcessDataPreviewDto previewDto = doFetchProcessPreviewData(procDefOutline, dataId, true, useSystemToken);
         saveProcessDataPreview(previewDto);
 
         return previewDto;
@@ -683,8 +688,8 @@ public class WorkflowDataService extends AbstractWorkflowService{
             entity.setProcSessId(previewDto.getProcessSessionId());
             entity.setCreatedBy(AuthenticationContextHolder.getCurrentUsername());
             entity.setCreatedTime(new Date());
-            
-            //#2169
+
+            // #2169
             entity.setFullDataId(gNode.getFullDataId());
 
             graphNodeRepository.insert(entity);
@@ -709,7 +714,7 @@ public class WorkflowDataService extends AbstractWorkflowService{
     }
 
     protected ProcessDataPreviewDto doFetchProcessPreviewData(ProcDefOutlineDto outline, String dataId,
-            boolean needSaveTmp) {
+            boolean needSaveTmp, boolean useSystemToken) {
         ProcessDataPreviewDto result = new ProcessDataPreviewDto();
 
         List<GraphNodeDto> hierarchicalEntityNodes = new ArrayList<>();
@@ -731,7 +736,7 @@ public class WorkflowDataService extends AbstractWorkflowService{
             }
 
             tryProcessSingleFlowNodeDef(f, hierarchicalEntityNodes, dataId, processSessionId, needSaveTmp,
-                    externalCacheMap);
+                    externalCacheMap, useSystemToken);
         }
 
         result.addAllEntityTreeNodes(hierarchicalEntityNodes);
@@ -765,7 +770,8 @@ public class WorkflowDataService extends AbstractWorkflowService{
     }
 
     private void tryProcessSingleFlowNodeDef(FlowNodeDefDto flowNode, List<GraphNodeDto> hierarchicalEntityNodes,
-            String dataId, String processSessionId, boolean needSaveTmp, Map<Object, Object> cacheMap) {
+            String dataId, String processSessionId, boolean needSaveTmp, Map<Object, Object> cacheMap,
+            boolean useSystemToken) {
         String routineExpr = calculateDataModelExpression(flowNode);
 
         if (StringUtils.isBlank(routineExpr)) {
@@ -777,9 +783,10 @@ public class WorkflowDataService extends AbstractWorkflowService{
                 flowNode.getNodeName(), routineExpr, dataId);
         EntityOperationRootCondition condition = new EntityOperationRootCondition(routineExpr, dataId);
         List<StandardEntityDataNode> nodes = null;
+        RestTemplate finalRestTemplate = (useSystemToken ? this.jwtSsoRestTemplate : this.userJwtSsoTokenRestTemplate);
         try {
             EntityTreeNodesOverview overview = standardEntityOperationService.generateEntityLinkOverview(condition,
-                    this.userJwtSsoTokenRestTemplate, cacheMap);
+                    finalRestTemplate, cacheMap);
             nodes = overview.getHierarchicalEntityNodes();
 
             if (needSaveTmp) {
@@ -789,7 +796,8 @@ public class WorkflowDataService extends AbstractWorkflowService{
             String errMsg = String.format("Errors while fetching data for node %s %s with expr %s and data id %s",
                     flowNode.getNodeDefId(), flowNode.getNodeName(), routineExpr, dataId);
             log.error(errMsg, e);
-            throw new WecubeCoreException("3191", errMsg, flowNode.getNodeDefId(), flowNode.getNodeName(), routineExpr, dataId);
+            throw new WecubeCoreException("3191", errMsg, flowNode.getNodeDefId(), flowNode.getNodeName(), routineExpr,
+                    dataId);
         }
 
         if (nodes == null || nodes.isEmpty()) {
@@ -812,7 +820,7 @@ public class WorkflowDataService extends AbstractWorkflowService{
                 currNode.setPackageName(tn.getPackageName());
                 currNode.setEntityName(tn.getEntityName());
                 currNode.setDisplayName(tn.getDisplayName());
-                //#2169
+                // #2169
                 currNode.setFullDataId(tn.getFullId());
 
                 addToResult(hierarchicalEntityNodes, currNode);
@@ -864,8 +872,8 @@ public class WorkflowDataService extends AbstractWorkflowService{
             taskNodeBinding.setOrderedNo(f.getOrderedNo());
             taskNodeBinding.setCreatedBy(AuthenticationContextHolder.getCurrentUsername());
             taskNodeBinding.setCreatedTime(new Date());
-            
-            //#2169 full data id
+
+            // #2169 full data id
             taskNodeBinding.setFullEntityDataId(tn.getFullId());
 
             procExecBindingTmpRepository.insert(taskNodeBinding);
@@ -897,7 +905,8 @@ public class WorkflowDataService extends AbstractWorkflowService{
             return expr;
         }
 
-        PluginConfigInterfaces pluginConfigIntf = pluginConfigMgmtService.getPluginConfigInterfaceByServiceName(flowNode.getServiceId());
+        PluginConfigInterfaces pluginConfigIntf = pluginConfigMgmtService
+                .getPluginConfigInterfaceByServiceName(flowNode.getServiceId());
         if (pluginConfigIntf == null) {
             return expr;
         }
@@ -948,13 +957,13 @@ public class WorkflowDataService extends AbstractWorkflowService{
         return respParamEntity.getIsSensitive();
 
     }
-    
-    private Object jsonToObject(String json){
-        
-        if(StringUtils.isBlank(json)){
+
+    private Object jsonToObject(String json) {
+
+        if (StringUtils.isBlank(json)) {
             return json;
         }
-        
+
         try {
             Object obj = JsonUtils.toObject(json, Object.class);
             return obj;
@@ -964,7 +973,7 @@ public class WorkflowDataService extends AbstractWorkflowService{
         }
     }
 
-    //#2169
+    // #2169
     private List<RequestObjectDto> calculateRequestObjectDtos(List<TaskNodeExecParamEntity> requestParamEntities,
             List<TaskNodeExecParamEntity> responseParamEntities) {
         List<RequestObjectDto> requestObjects = new ArrayList<>();
@@ -998,8 +1007,8 @@ public class WorkflowDataService extends AbstractWorkflowService{
                 }
             }
         }
-        
-        if(responseParamEntities != null){
+
+        if (responseParamEntities != null) {
             for (TaskNodeExecParamEntity param : responseParamEntities) {
                 RequestParamObjectDto paramObjectDto = respParamObjectsByObjectId.get(param.getObjId());
                 if (paramObjectDto == null) {
@@ -1023,42 +1032,42 @@ public class WorkflowDataService extends AbstractWorkflowService{
                 }
             }
         }
-        
-        Map<String, RequestObjectDto> requestObjectsByCallbackParameter = new HashMap<String,RequestObjectDto>();
-        
-        for(RequestParamObjectDto reqParamObjectDto : reqParamObjectsByObjectId.values()){
+
+        Map<String, RequestObjectDto> requestObjectsByCallbackParameter = new HashMap<String, RequestObjectDto>();
+
+        for (RequestParamObjectDto reqParamObjectDto : reqParamObjectsByObjectId.values()) {
             String callbackParameter = reqParamObjectDto.getCallbackParameter();
-            if(StringUtils.isBlank(callbackParameter)){
+            if (StringUtils.isBlank(callbackParameter)) {
                 continue;
             }
             RequestObjectDto objectDto = requestObjectsByCallbackParameter.get(callbackParameter);
-            if(objectDto == null){
+            if (objectDto == null) {
                 objectDto = new RequestObjectDto();
                 objectDto.setCallbackParameter(callbackParameter);
-                
+
                 requestObjectsByCallbackParameter.put(callbackParameter, objectDto);
             }
-            
+
             objectDto.addInput(reqParamObjectDto.getParamAttrs());
-            
+
         }
-        
-        for(RequestParamObjectDto respParamObjectDto : respParamObjectsByObjectId.values()){
+
+        for (RequestParamObjectDto respParamObjectDto : respParamObjectsByObjectId.values()) {
             String callbackParameter = respParamObjectDto.getCallbackParameter();
-            if(StringUtils.isBlank(callbackParameter)){
+            if (StringUtils.isBlank(callbackParameter)) {
                 continue;
             }
             RequestObjectDto objectDto = requestObjectsByCallbackParameter.get(callbackParameter);
-            if(objectDto == null){
+            if (objectDto == null) {
                 objectDto = new RequestObjectDto();
                 objectDto.setCallbackParameter(callbackParameter);
-                
+
                 requestObjectsByCallbackParameter.put(callbackParameter, objectDto);
             }
-            
+
             objectDto.addOutput(respParamObjectDto.getParamAttrs());
         }
-        
+
         requestObjects.addAll(requestObjectsByCallbackParameter.values());
 
         return requestObjects;
