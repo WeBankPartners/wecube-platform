@@ -1,7 +1,4 @@
 import Vue from 'vue'
-import VueHighlightJS from 'vue-highlight.js'
-import 'vue-highlight.js/lib/allLanguages'
-import 'highlight.js/styles/default.css'
 import App from './App.vue'
 import router from './router'
 
@@ -29,7 +26,6 @@ Vue.use(ViewUI, {
   locale
 })
 
-Vue.use(VueHighlightJS)
 window.request = req
 window.needReLoad = true
 window.routers = []

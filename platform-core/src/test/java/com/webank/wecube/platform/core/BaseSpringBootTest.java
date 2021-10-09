@@ -63,6 +63,8 @@ public abstract class BaseSpringBootTest {
             @Override
             public Date getExpireTime() {
                 return new Date(System.currentTimeMillis() + 5 * 60 * 1000);
+                
+                //
             }
 
             @Override
