@@ -56,6 +56,15 @@ public class Constants {
     public static final String PREFIX_PROPERTY_VAR_ID = "PV";
     public static final String PREFIX_LIST_VAR_ID = "EV";
     
+    public static final String TASK_CATEGORY_SSTN = "SSTN";
+    public static final String TASK_CATEGORY_SUTN = "SUTN";
+    public static final String TASK_CATEGORY_SDTN = "SDTN";
+    
+    public static final String DYNAMIC_BIND_YES = "Y";
+    public static final String DYNAMIC_BIND_NO = "N";
+    
+    public static final String PRE_CHECK_YES = "Y";
+    public static final String PRE_CHECK_NO = "N";
     //###User scheduled task
     public static final String SCHEDULE_MODE_MONTHLY = "Monthly";
     public static final String SCHEDULE_MODE_WEEKLY = "Weekly";

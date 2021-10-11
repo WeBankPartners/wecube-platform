@@ -420,19 +420,19 @@ public abstract class AbstractPluginInvocationService extends AbstractWorkflowSe
     }
 
     protected boolean isSystemAutomationTaskNode(TaskNodeDefInfoEntity taskNodeDefEntity) {
-        return TASK_CATEGORY_SSTN.equalsIgnoreCase(taskNodeDefEntity.getTaskCategory());
+        return Constants.TASK_CATEGORY_SSTN.equalsIgnoreCase(taskNodeDefEntity.getTaskCategory());
     }
 
     protected boolean isUserTaskNode(TaskNodeDefInfoEntity taskNodeDefEntity) {
-        return TASK_CATEGORY_SUTN.equalsIgnoreCase(taskNodeDefEntity.getTaskCategory());
+        return Constants.TASK_CATEGORY_SUTN.equalsIgnoreCase(taskNodeDefEntity.getTaskCategory());
     }
 
     protected boolean isDataOperationTaskNode(TaskNodeDefInfoEntity taskNodeDefEntity) {
-        return TASK_CATEGORY_SDTN.equalsIgnoreCase(taskNodeDefEntity.getTaskCategory());
+        return Constants.TASK_CATEGORY_SDTN.equalsIgnoreCase(taskNodeDefEntity.getTaskCategory());
     }
 
     protected boolean isDynamicBindTaskNode(TaskNodeDefInfoEntity taskNodeDef) {
-        return TaskNodeDefInfoEntity.DYNAMIC_BIND_YES.equalsIgnoreCase(taskNodeDef.getDynamicBind());
+        return Constants.DYNAMIC_BIND_YES.equalsIgnoreCase(taskNodeDef.getDynamicBind());
     }
 
     protected boolean isBoundTaskNodeInst(TaskNodeInstInfoEntity taskNodeInst) {
