@@ -23,13 +23,40 @@ public interface ProcDefInfoMapper {
 
     int updateByPrimaryKey(ProcDefInfoEntity record);
 
+    /**
+     * 
+     * @return
+     */
     List<ProcDefInfoEntity> selectAllDeployedOrDraftProcDefs();
 
+    /**
+     * 
+     * @param procDefName
+     * @return
+     */
     List<ProcDefInfoEntity> selectAllDeployedProcDefsByProcDefName(@Param("procDefName") String procDefName);
 
+    /**
+     * 
+     * @param procDefKey
+     * @param status
+     * @return
+     */
     List<ProcDefInfoEntity> selectAllDeployedProcDefsByProcDefKey(@Param("procDefKey") String procDefKey,
             @Param("status") String status);
     
+    /**
+     * 
+     * @param roleNames
+     * @return
+     */
     List<ProcDefAuthInfoQueryEntity> selectAllAuthorizedProcDefs(@Param("roleNames") Set<String> roleNames);
+    
+    /**
+     * 
+     * @param status
+     * @return
+     */
+    List<ProcDefInfoEntity> selectAllProcDefsByStatus(@Param("status") String status);
 
 }
