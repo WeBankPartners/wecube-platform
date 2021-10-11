@@ -163,4 +163,7 @@ html {
     }
   }
 }
+.ivu-form-item {
+  margin-bottom: 8px;
+}
 </style>
