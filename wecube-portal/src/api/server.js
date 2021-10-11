@@ -239,4 +239,4 @@ export const getScheduledTasksByStatus = data =>
   req.post(`platform/v1/user-scheduled-tasks/process-instances/query`, data)
 
 export const getAssociatedNodes = (procDefId, params) =>
-  req.get(`platform/v1/process/definitions/${procDefId}/previous-nodes/briefs`, params)
+  req.post(`platform/v1/process/definitions/${procDefId}/previous-nodes/briefs`, params)
