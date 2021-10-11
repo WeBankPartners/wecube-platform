@@ -83,4 +83,20 @@ public class UserManagementController {
         return CommonResponseDto.okayWithData(result);
     }
 
+    
+    @PostMapping("/users/{user-id}/roles/grant")
+    @PreAuthorize("hasAnyAuthority('SUPER_ADMIN')")
+    public CommonResponseDto grantRoleToUsers(@PathVariable(value = "user-id") String userId,
+            @RequestBody List<String> roleIds) {
+        userManagementService.grantRolesToUser(userId, roleIds);
+        return CommonResponseDto.okay();
+    }
+    
+    @DeleteMapping("/users/{user-id}/roles/revoke")
+    @PreAuthorize("hasAnyAuthority('SUPER_ADMIN')")
+    public CommonResponseDto revokeRolesFromUser(@PathVariable(value = "user-id") String userId,
+            @RequestBody List<String> roleIds) {
+        userManagementService.revokeRolesFromUser(userId, roleIds);
+        return CommonResponseDto.okay();
+    }
 }

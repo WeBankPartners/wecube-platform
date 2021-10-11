@@ -86,14 +86,16 @@
                 style="margin:4px;padding: 4px; border-bottom:1px solid #dcdee2;"
                 :key="index + inter.action"
               >
-                <Input
-                  :value="inter.action"
-                  :disabled="currentPluginObj.status === 'ENABLED'"
-                  @on-blur="actionBlurHandler($event, inter)"
-                  @click.stop.native="actionFocus($event)"
-                  style="width:200px"
-                  size="small"
-                />
+                <Tooltip :content="inter.description">
+                  <Input
+                    :value="inter.action"
+                    :disabled="currentPluginObj.status === 'ENABLED'"
+                    @on-blur="actionBlurHandler($event, inter)"
+                    @click.stop.native="actionFocus($event)"
+                    style="width:200px"
+                    size="small"
+                  />
+                </Tooltip>
                 <InterfaceFilterRule
                   v-model="inter.filterRule"
                   :disabled="currentPluginObj.status === 'ENABLED'"
@@ -478,6 +480,7 @@
           :target-keys="mgmtRolesKey"
           :render-format="renderRoleNameForTransfer"
           @on-change="handleMgmtRoleTransferChange"
+          ref="mgmtRoles"
           filterable
         ></Transfer>
       </div>
@@ -490,6 +493,7 @@
           :target-keys="useRolesKey"
           :render-format="renderRoleNameForTransfer"
           @on-change="handleUseRoleTransferChange"
+          ref="useRoles"
           filterable
         ></Transfer>
       </div>
@@ -678,7 +682,6 @@ export default {
     // 'inputParameters', param, index
     async showObjectConfig (originData) {
       let datax = JSON.parse(JSON.stringify(originData))
-      console.log(originData)
       if (!originData.refObjectMeta) {
         this.$Notice.error({
           title: 'Error',
@@ -884,6 +887,8 @@ export default {
       })
       if (hasPermission) {
         this.configRoleManageModal = true
+        this.$refs.mgmtRoles.leftCheckedKeys = []
+        this.$refs.useRoles.leftCheckedKeys = []
         this.currentPluginForPermission = config
         this.isAddOrCopy = 'new'
       } else {
@@ -962,11 +967,18 @@ export default {
       }
     },
     async pluginSave () {
+      if (this.selectedEntityType === '') {
+        this.$Notice.warning({
+          title: 'Warning',
+          desc: this.$t('target_type') + this.$t('required')
+        })
+        return
+      }
       if (this.registerName.length === 0) {
         this.$refs.registerName.focus()
         this.$Notice.warning({
           title: 'Warning',
-          desc: '输入注册名称'
+          desc: this.$t('regist_name') + this.$t('required')
         })
         return
       }
@@ -1003,6 +1015,13 @@ export default {
       }
     },
     async regist () {
+      if (this.selectedEntityType === '') {
+        this.$Notice.warning({
+          title: 'Warning',
+          desc: this.$t('target_type') + this.$t('required')
+        })
+        return
+      }
       if (this.hasNewSource) {
         this.currentPluginObj.permissionToRole.MGMT = this.mgmtRolesKey
         this.currentPluginObj.permissionToRole.USE = this.useRolesKey
@@ -1117,6 +1136,8 @@ export default {
       this.mgmtRolesKey = []
       this.useRolesKey = []
       this.configRoleManageModal = true
+      this.$refs.mgmtRoles.leftCheckedKeys = []
+      this.$refs.useRoles.leftCheckedKeys = []
       this.hasNewSource = true
     },
     async exectCopyPluginConfigDto () {
@@ -1132,6 +1153,8 @@ export default {
       this.mgmtRolesKey = []
       this.useRolesKey = []
       this.configRoleManageModal = true
+      this.$refs.mgmtRoles.leftCheckedKeys = []
+      this.$refs.useRoles.leftCheckedKeys = []
       this.hasNewSource = true
     },
     async exectAddPluginConfigDto () {

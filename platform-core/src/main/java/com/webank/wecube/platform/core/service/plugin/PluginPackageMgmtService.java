@@ -1232,7 +1232,7 @@ public class PluginPackageMgmtService extends AbstractPluginMgmtService {
         if (pluginPackageAuthoritiesEntities == null || pluginPackageAuthoritiesEntities.isEmpty()) {
             return;
         }
-        List<RoleDto> roleDtos = userManagementService.retrieveAllRoles();
+        List<RoleDto> roleDtos = userManagementService.retrieveAllRoles(null);
         Set<String> existingRoleNames = new HashSet<>();
         if (roleDtos != null) {
             existingRoleNames = roleDtos.stream().map(roleDto -> roleDto.getName()).collect(Collectors.toSet());
@@ -1269,9 +1269,9 @@ public class PluginPackageMgmtService extends AbstractPluginMgmtService {
     }
 
     private void ensurePluginPackageIsAllowedToRegister(PluginPackages pluginPackage) {
-        if (!PluginPackages.UNREGISTERED.equalsIgnoreCase(pluginPackage.getStatus())) {
+        if (PluginPackages.DECOMMISSIONED.equalsIgnoreCase(pluginPackage.getStatus())) {
             String errorMessage = String.format(
-                    "Failed to register PluginPackage[%s/%s] as it is not in UNREGISTERED status [%s]",
+                    "Failed to register PluginPackage[%s/%s] as it is DECOMMISSIONED status [%s]",
                     pluginPackage.getName(), pluginPackage.getVersion(), pluginPackage.getStatus());
             log.error(errorMessage);
             throw new WecubeCoreException(errorMessage);

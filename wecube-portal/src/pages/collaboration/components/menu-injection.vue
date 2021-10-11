@@ -1,6 +1,6 @@
 <template>
   <div>
-    <Col span="4" v-for="menuGroup in menus" :key="menuGroup.id">
+    <Col span="3" v-for="menuGroup in menus" :key="menuGroup.id">
       <List size="small">
         <h6 slot="header">{{ menuGroup.displayName }}</h6>
         <ListItem v-for="(menu, index) in menuGroup.children" :key="index" style="padding-right: 10px">
@@ -51,7 +51,7 @@ export default {
       if (status === 'OK') {
         let allCats = []
         data.forEach((_, index) => {
-          if (!_.category && _.code !== 'COLLABORATION' && _.code !== 'ADMIN') {
+          if (!_.category) {
             const found = MENUS.find(m => m.code === _.code)
             allCats.push({
               id: _.id,
@@ -61,7 +61,6 @@ export default {
             })
           }
         })
-
         this.menus = allCats.map(_ => {
           data.forEach(item => {
             if (item.category === '' + _.id && item.source !== 'SYSTEM') {

@@ -360,7 +360,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
                 procDefInfoEntity.getId(), procInstEntity.getId(), ProcExecContextEntity.CTX_TYPE_PROCESS);
 
         if (procExecContextEntities == null || procExecContextEntities.isEmpty()) {
-            log.info("Cannot find any process creation context infomation for {} {}", procDefInfoEntity.getId(),
+            log.info("Cannot find any process creation context information for {} {}", procDefInfoEntity.getId(),
                     procInstEntity.getId());
 
             return;
