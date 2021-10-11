@@ -158,8 +158,6 @@
                         </label>
                         <Select
                           v-model="pluginForm.dynamicBind"
-                          filterable
-                          clearable
                           @on-clear="clearDynamicBind"
                           @on-change="changeDynamicBind"
                         >
@@ -173,9 +171,10 @@
                         <Select
                           v-model="pluginForm.associatedNodeId"
                           @on-change="changeAssociatedNode"
+                          @on-open-change="getAssociatedNodes"
                           :disabled="pluginForm.dynamicBind !== 'Y'"
                         >
-                          <Option v-for="(i, index) in currentflowsNodes" :value="i.nodeId" :key="index">{{
+                          <Option v-for="(i, index) in associatedNodes" :value="i.nodeId" :key="index">{{
                             i.nodeName
                           }}</Option>
                         </Select>
@@ -396,6 +395,7 @@ import CustomContextPad from '../util/CustomContextPad'
 import xml2js from 'xml2js'
 import {
   getAllFlow,
+  getAssociatedNodes,
   getContextParametersNodes,
   saveFlow,
   confirmSaveFlowDraft,
@@ -548,7 +548,8 @@ export default {
         message: '',
         requestBody: '',
         func: ''
-      }
+      },
+      associatedNodes: [] // 节点的关联节点
     }
   },
   watch: {
@@ -604,11 +605,22 @@ export default {
     this.setCss('top-pane', 'bottom: 0;')
   },
   methods: {
+    async getAssociatedNodes () {
+      let params = {
+        params: {
+          taskNodeId: 'SubProcess_1xsg3hs'
+        }
+      }
+      let { status, data } = await getAssociatedNodes('sLuMOo192Bjn', params)
+      if (status === 'OK') {
+        this.associatedNodes = data
+      }
+    },
     changeAssociatedNode () {
       if (this.cacheFlowInfo && this.cacheFlowInfo.taskNodeInfos) {
         const activeNode = this.cacheFlowInfo.taskNodeInfos.find(n => this.pluginForm.associatedNodeId === n.nodeId)
-        this.pluginForm.routineExpression = (activeNode && activeNode.routineExpression) || ''
-        this.pluginForm.routineRaw = (activeNode && activeNode.routineExpression) || ''
+        this.pluginForm.routineExpression = (activeNode && activeNode.routineExpression) || this.currentSelectedEntity
+        this.pluginForm.routineRaw = (activeNode && activeNode.routineExpression) || this.currentSelectedEntity
       } else {
         this.pluginForm.routineExpression = ''
         this.pluginForm.routineRaw = ''
@@ -1113,7 +1125,7 @@ export default {
           this.pluginForm.routineExpression = rootEntity
         }
         // this.getPluginInterfaceList()
-
+        this.getAssociatedNodes()
         // get flow's params infos
         this.getFlowsNodes()
         await this.getFilteredPluginInterfaceList(this.pluginForm.routineExpression)

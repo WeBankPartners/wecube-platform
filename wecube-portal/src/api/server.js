@@ -237,3 +237,6 @@ export const resumeUserScheduledTasks = data => req.post(`platform/v1/user-sched
 export const stopUserScheduledTasks = data => req.post(`platform/v1/user-scheduled-tasks/stop`, data)
 export const getScheduledTasksByStatus = data =>
   req.post(`platform/v1/user-scheduled-tasks/process-instances/query`, data)
+
+export const getAssociatedNodes = (procDefId, params) =>
+  req.get(`platform/v1/process/definitions/${procDefId}/previous-nodes/briefs`, params)
