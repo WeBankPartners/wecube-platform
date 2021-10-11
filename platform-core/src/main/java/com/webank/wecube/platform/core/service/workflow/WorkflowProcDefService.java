@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 
 import com.webank.wecube.platform.core.commons.AuthenticationContextHolder;
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
+import com.webank.wecube.platform.core.dto.workflow.PreTaskNodesQueryDto;
 import com.webank.wecube.platform.core.dto.workflow.ProcDefInfoDto;
 import com.webank.wecube.platform.core.dto.workflow.ProcRoleDto;
 import com.webank.wecube.platform.core.dto.workflow.TaskNodeDefBriefDto;
@@ -85,7 +86,7 @@ public class WorkflowProcDefService extends AbstractWorkflowProcDefService {
         processDefInfoRepo.deleteByPrimaryKey(procDef.getId());
     }
     
-    public List<TaskNodeDefBriefDto> getPreviousTaskNodes(String procDefId, String taskNodeId) {
+    public List<TaskNodeDefBriefDto> getPreviousTaskNodes(String procDefId, PreTaskNodesQueryDto queryDto) {
         List<TaskNodeDefBriefDto> result = new ArrayList<>();
         if (StringUtils.isBlank(procDefId)) {
             return result;
