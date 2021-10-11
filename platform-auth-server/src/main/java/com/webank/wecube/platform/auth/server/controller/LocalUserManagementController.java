@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.webank.wecube.platform.auth.server.common.ApplicationConstants;
 import com.webank.wecube.platform.auth.server.dto.CommonResponseDto;
+import com.webank.wecube.platform.auth.server.dto.SimpleLocalRoleDto;
 import com.webank.wecube.platform.auth.server.dto.SimpleLocalUserDto;
 import com.webank.wecube.platform.auth.server.dto.SimpleLocalUserPassDto;
 import com.webank.wecube.platform.auth.server.service.UserManagementService;
@@ -82,16 +83,30 @@ public class LocalUserManagementController {
     }
 
     @PostMapping("/roles/{role-id}/users")
-    public CommonResponseDto configureUserRolesById(@PathVariable(value = "role-id") String roleId,
+    public CommonResponseDto configureRoleForUsers(@PathVariable(value = "role-id") String roleId,
                                                @RequestBody List<SimpleLocalUserDto> userDtos){
-        userManagementService.configureUserRolesById(roleId, userDtos);
+        userManagementService.configureRoleForUsers(roleId, userDtos);
+        return okay();
+    }
+    
+    @PostMapping("/users/{user-id}/roles")
+    public CommonResponseDto configureUserWithRoles(@PathVariable(value = "user-id") String userId,
+                                               @RequestBody List<SimpleLocalRoleDto> roleDtos){
+        userManagementService.configureUserWithRoles(userId, roleDtos);
         return okay();
     }
 
     @PostMapping("/roles/{role-id}/users/revoke")
-    public CommonResponseDto revokeUserRolesById(@PathVariable(value = "role-id") String roleId,
+    public CommonResponseDto revokeRoleFromUsers(@PathVariable(value = "role-id") String roleId,
                                                 @RequestBody List<SimpleLocalUserDto> userDtos){
-        userManagementService.revokeUserRolesById(roleId, userDtos);
+        userManagementService.revokeRoleFromUsers(roleId, userDtos);
+        return okay();
+    }
+    
+    @PostMapping("/users/{user-id}/roles/revoke")
+    public CommonResponseDto revokeRolesFromUser(@PathVariable(value = "user-id") String userId,
+                                                @RequestBody List<SimpleLocalRoleDto> roleDtos){
+        userManagementService.revokeRolesFromUser(userId, roleDtos);
         return okay();
     }
 }
