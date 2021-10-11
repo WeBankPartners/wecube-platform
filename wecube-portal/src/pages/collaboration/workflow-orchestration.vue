@@ -606,14 +606,20 @@ export default {
   },
   methods: {
     async getAssociatedNodes () {
+      let Xml = ''
+      this.bpmnModeler.saveXML({ format: true }, function (err, xml) {
+        console.log(err)
+        xml2js.parseString(xml, (errx, result) => {
+          Xml = xml
+        })
+      })
       let params = {
-        params: {
-          taskNodeId: 'SubProcess_1xsg3hs'
-        }
+        taskNodeId: this.currentNode.id,
+        procDefData: Xml.replace(/[\r\n]/g, '')
       }
-      let { status, data } = await getAssociatedNodes('sLuMOo192Bjn', params)
+      let { status, data } = await getAssociatedNodes(this.selectedFlow, params)
       if (status === 'OK') {
-        this.associatedNodes = data
+        this.associatedNodes = data.filter(d => ['startEvent', 'subProcess'].includes(d.nodeType))
       }
     },
     changeAssociatedNode () {
