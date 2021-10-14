@@ -172,6 +172,7 @@
                           v-model="pluginForm.associatedNodeId"
                           @on-change="changeAssociatedNode"
                           @on-open-change="getAssociatedNodes"
+                          clearable
                           :disabled="pluginForm.dynamicBind !== 'Y'"
                         >
                           <Option v-for="(i, index) in associatedNodes" :value="i.nodeId" :key="index">{{
