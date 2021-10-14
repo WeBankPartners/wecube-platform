@@ -8,6 +8,7 @@ public class DynamicEntityValueDto {
     private String packageName;
     private String entityName;
     private String entityDataId;// Existing data id,such as guid in cmdb.
+    private String entityDisplayName;
 
     private String fullEntityDataId;
     private String oid;// Equals to dataId once dataId presents,or a temporary
@@ -165,4 +166,11 @@ public class DynamicEntityValueDto {
         this.processed = processed;
     }
 
+    public String getEntityDisplayName() {
+        return entityDisplayName;
+    }
+
+    public void setEntityDisplayName(String entityDisplayName) {
+        this.entityDisplayName = entityDisplayName;
+    }
 }
