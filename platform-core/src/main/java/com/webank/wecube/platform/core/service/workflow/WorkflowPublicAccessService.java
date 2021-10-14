@@ -337,6 +337,7 @@ public class WorkflowPublicAccessService {
                 bindCtx.setNodeId(dynamicBindInfoDto.getNodeId());
                 bindCtx.setNodeDefId(dynamicBindInfoDto.getNodeDefId());
 
+                ctx.addEntity(entityValueDto);
                 ctx.addBinding(bindCtx);
             }
         }
