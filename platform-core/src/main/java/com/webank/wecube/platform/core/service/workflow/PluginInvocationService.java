@@ -331,7 +331,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
     protected void doInvokeDataOperationPluginInterface(ProcInstInfoEntity procInstEntity,
             TaskNodeInstInfoEntity taskNodeInstEntity, ProcDefInfoEntity procDefInfoEntity,
             TaskNodeDefInfoEntity taskNodeDefEntity, PluginInvocationCommand cmd) {
-
+//TODO
         List<ProcExecBindingEntity> nodeObjectBindings = retrieveProcExecBindingEntities(taskNodeInstEntity);
         if (nodeObjectBindings == null || nodeObjectBindings.isEmpty()) {
             log.info("There are not any task node object bindings found and skipped for task node:{}",
@@ -381,6 +381,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
             return;
         }
 
+        // TODO
         String packageName = entityValueDto.getPackageName();
         String entityName = entityValueDto.getEntityName();
 
@@ -427,6 +428,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
             return;
         }
 
+        // TODO
         String packageName = entityValueDto.getPackageName();
         String entityName = entityValueDto.getEntityName();
         EntityRouteDescription entityDef = entityDataRouteFactory.deduceEntityDescription(packageName, entityName);
@@ -946,17 +948,17 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
             String errMsg = String.format("Associated task node instance:%s does not exist.", associatedNodeId);
             throw new WecubeCoreException(errMsg);
         }
-        
+
         List<ProcExecBindingEntity> bindEntities = new ArrayList<>();
 
         List<ProcExecBindingEntity> bindingsOfAssociatedNode = procExecBindingMapper
                 .selectAllBoundTaskNodeBindings(procInstId, associatedNodeInstEntity.getId());
-        
-        if(bindingsOfAssociatedNode == null || bindingsOfAssociatedNode.isEmpty()) {
+
+        if (bindingsOfAssociatedNode == null || bindingsOfAssociatedNode.isEmpty()) {
             return bindEntities;
         }
-        
-        for(ProcExecBindingEntity assBinding : bindingsOfAssociatedNode) {
+
+        for (ProcExecBindingEntity assBinding : bindingsOfAssociatedNode) {
             ProcExecBindingEntity taskNodeBinding = new ProcExecBindingEntity();
             taskNodeBinding.setBindType(ProcExecBindingEntity.BIND_TYPE_TASK_NODE_INSTANCE);
             taskNodeBinding.setBindFlag(ProcExecBindingEntity.BIND_FLAG_YES);
@@ -973,7 +975,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 
             bindEntities.add(taskNodeBinding);
         }
-        
+
         return bindEntities;
     }
 
