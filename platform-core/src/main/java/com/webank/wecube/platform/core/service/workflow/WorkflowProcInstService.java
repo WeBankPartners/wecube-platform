@@ -425,6 +425,9 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
         
         if(StringUtils.isNoneBlank(requestDto.getProcInitUser())) {
             procInstInfoEntity.setOper(requestDto.getProcInitUser());
+            if(StringUtils.isBlank(procInstInfoEntity.getCreatedBy())) {
+                procInstInfoEntity.setCreatedBy(requestDto.getProcInitUser());
+            }
         }
 
         tryBuildProcInstProcExecBinding(rootEntityTypeId, rootEntityDataId, rootEntityDataName, procDefInfoEntity,
