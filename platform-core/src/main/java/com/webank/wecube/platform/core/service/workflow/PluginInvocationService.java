@@ -513,6 +513,22 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 
         pluginInvocationProcessor.process(operation);
     }
+    
+    private boolean isValidMappingTypeForUserTask(String mappingType) {
+        if(MAPPING_TYPE_SYSTEM_VARIABLE.equalsIgnoreCase(mappingType)) {
+            return true;
+        }
+        
+        if(MAPPING_TYPE_CONSTANT.equalsIgnoreCase(mappingType)) {
+            return true;
+        }
+        
+        if(MAPPING_TYPE_CONTEXT.equalsIgnoreCase(mappingType)) {
+            return true;
+        }
+        
+        return false;
+    }
 
     private List<InputParamObject> calculateInputParamObjectsForUserTask(ProcInstInfoEntity procInstEntity,
             TaskNodeInstInfoEntity taskNodeInstEntity, ProcDefInfoEntity procDefInfoEntity,
@@ -539,9 +555,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
             String paramType = param.getDataType();
             String mappingType = param.getMappingType();
 
-            if (!(MAPPING_TYPE_SYSTEM_VARIABLE.equalsIgnoreCase(mappingType)
-                    || MAPPING_TYPE_CONSTANT.equalsIgnoreCase(mappingType) 
-                    || MAPPING_TYPE_CONTEXT.equalsIgnoreCase(mappingType))) {
+            if (!isValidMappingTypeForUserTask(mappingType)) {
                 continue;
             }
 
