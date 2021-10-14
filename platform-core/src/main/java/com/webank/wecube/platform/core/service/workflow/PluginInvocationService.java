@@ -540,7 +540,8 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
             String mappingType = param.getMappingType();
 
             if (!(MAPPING_TYPE_SYSTEM_VARIABLE.equalsIgnoreCase(mappingType)
-                    || MAPPING_TYPE_CONSTANT.equalsIgnoreCase(mappingType))) {
+                    || MAPPING_TYPE_CONSTANT.equalsIgnoreCase(mappingType) 
+                    || MAPPING_TYPE_CONTEXT.equalsIgnoreCase(mappingType))) {
                 continue;
             }
 
