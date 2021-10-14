@@ -613,7 +613,7 @@ public class WorkflowPublicAccessService {
     private StartProcInstRequestDto calculateStartProcInstContext(DynamicWorkflowInstCreationInfoDto creationInfoDto) {
         StartProcInstRequestDto requestDto = new StartProcInstRequestDto();
         requestDto.setEntityDataId(creationInfoDto.getRootEntityValue().getEntityDataId());
-        requestDto.setEntityDisplayName(null);// TODO
+        requestDto.setEntityDisplayName(creationInfoDto.getRootEntityValue().getEntityDisplayName());
         requestDto.setEntityTypeId(creationInfoDto.getRootEntityValue().getPackageName() + ":"
                 + creationInfoDto.getRootEntityValue().getEntityName());
         requestDto.setProcDefId(creationInfoDto.getProcDefId());
@@ -637,11 +637,11 @@ public class WorkflowPublicAccessService {
                 } else {
                     bindDto.setEntityDataId(entityValueDto.getEntityDataId());
                 }
-                bindDto.setEntityDisplayName(null);
+                bindDto.setEntityDisplayName(entityValueDto.getEntityDisplayName());
                 bindDto.setEntityTypeId(entityValueDto.getPackageName() + ":" + entityValueDto.getEntityName());
                 bindDto.setNodeDefId(dynamicBindInfoDto.getNodeDefId());
                 bindDto.setOrderedNo("");// TODO
-                bindDto.setFullEntityDataId(null);// TODO
+                bindDto.setFullEntityDataId(entityValueDto.getFullEntityDataId());
 
                 taskNodeBinds.add(bindDto);
             }
