@@ -186,7 +186,7 @@
                           >{{ $t('pre_check') }}
                           <span class="requires-tip">*</span>
                         </label>
-                        <Select v-model="pluginForm.preCheck" @on-change="editFormdata">
+                        <Select v-model="pluginForm.preCheck" @on-change="editFormdata" clearable filterable>
                           <Option v-for="item in yOn" :value="item" :key="item">{{ item }}</Option>
                         </Select>
                       </FormItem>
