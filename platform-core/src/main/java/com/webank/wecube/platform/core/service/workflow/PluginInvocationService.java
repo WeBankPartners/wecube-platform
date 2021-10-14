@@ -331,7 +331,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
     protected void doInvokeDataOperationPluginInterface(ProcInstInfoEntity procInstEntity,
             TaskNodeInstInfoEntity taskNodeInstEntity, ProcDefInfoEntity procDefInfoEntity,
             TaskNodeDefInfoEntity taskNodeDefEntity, PluginInvocationCommand cmd) {
-//TODO
+        // TODO
         List<ProcExecBindingEntity> nodeObjectBindings = retrieveProcExecBindingEntities(taskNodeInstEntity);
         if (nodeObjectBindings == null || nodeObjectBindings.isEmpty()) {
             log.info("There are not any task node object bindings found and skipped for task node:{}",
@@ -400,20 +400,24 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
                 objDataMap);
 
         Map<String, Object> resultMap = entityOperationService.create(packageName, entityName, objDataMap);
-        String newDataEntityId = (String) resultMap.get(Constants.UNIQUE_IDENTIFIER);
-        if (StringUtils.isBlank(newDataEntityId)) {
+        String newEntityDataId = (String) resultMap.get(Constants.UNIQUE_IDENTIFIER);
+        if (StringUtils.isBlank(newEntityDataId)) {
             log.warn("Entity created but there is not identity returned.{} {} {}", packageName, entityName, objDataMap);
             return;
         }
 
+        String newEntityDataName = (String) resultMap.get(Constants.VISUAL_FIELD);
+
         // to refresh entity data id to dto
         if (StringUtils.isBlank(entityValueDto.getEntityDataId())) {
-            entityValueDto.setEntityDataId(newDataEntityId);
+            entityValueDto.setEntityDataId(newEntityDataId);
+            entityValueDto.setEntityDisplayName(newEntityDataName);
             entityValueDto.setEntityDataState("Created");
         }
 
         // refresh object binding
-        objectBinding.setEntityDataId(newDataEntityId);
+        objectBinding.setEntityDataId(newEntityDataId);
+        objectBinding.setEntityDataName(newEntityDataName);
         objectBinding.setUpdatedBy(WorkflowConstants.DEFAULT_USER);
         objectBinding.setUpdatedTime(new Date());
 
