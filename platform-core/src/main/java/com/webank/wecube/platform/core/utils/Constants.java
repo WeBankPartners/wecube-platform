@@ -76,4 +76,6 @@ public class Constants {
     public static final String SCHEDULE_TASK_RUNNING = "Running";
     public static final String SCHEDULE_TASK_STOPPED = "Stopped";
     public static final String SCHEDULE_TASK_DELETED = "Deleted";
+    
+    public static final String TEMPORARY_ENTITY_ID_PREFIX = "OID-";
 }
