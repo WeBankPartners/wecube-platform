@@ -967,7 +967,7 @@ public class WorkflowDataService extends AbstractWorkflowService {
         try {
             Object obj = JsonUtils.toObject(json, Object.class);
             return obj;
-        } catch (IOException e) {
+        } catch (Exception e) {
             log.info("exceptions while convert string to json.", e);
             return json;
         }
