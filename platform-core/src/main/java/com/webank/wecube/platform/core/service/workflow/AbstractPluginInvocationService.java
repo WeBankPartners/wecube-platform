@@ -19,6 +19,8 @@ import com.webank.wecube.platform.core.commons.ApplicationProperties;
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
 import com.webank.wecube.platform.core.entity.plugin.PluginConfigInterfaceParameters;
 import com.webank.wecube.platform.core.entity.plugin.PluginConfigInterfaces;
+import com.webank.wecube.platform.core.entity.plugin.PluginPackageAttributes;
+import com.webank.wecube.platform.core.entity.plugin.PluginPackageEntities;
 import com.webank.wecube.platform.core.entity.workflow.ProcExecBindingEntity;
 import com.webank.wecube.platform.core.entity.workflow.ProcExecContextEntity;
 import com.webank.wecube.platform.core.entity.workflow.ProcInstInfoEntity;
@@ -28,6 +30,8 @@ import com.webank.wecube.platform.core.model.workflow.PluginInvocationCommand;
 import com.webank.wecube.platform.core.model.workflow.WorkflowInstCreationContext;
 import com.webank.wecube.platform.core.model.workflow.WorkflowNotifyEvent;
 import com.webank.wecube.platform.core.repository.plugin.PluginConfigInterfaceParametersMapper;
+import com.webank.wecube.platform.core.repository.plugin.PluginPackageAttributesMapper;
+import com.webank.wecube.platform.core.repository.plugin.PluginPackageEntitiesMapper;
 import com.webank.wecube.platform.core.repository.workflow.ExtraTaskMapper;
 import com.webank.wecube.platform.core.repository.workflow.ProcDefInfoMapper;
 import com.webank.wecube.platform.core.repository.workflow.ProcExecBindingMapper;
@@ -65,9 +69,6 @@ public abstract class AbstractPluginInvocationService extends AbstractWorkflowSe
     protected static final String PLUGIN_RESULT_CODE_FAIL = "1";
     protected static final String PLUGIN_RESULT_CODE_PARTIALLY_FAIL = "1";
     protected static final String PLUGIN_RESULT_CODE_PARTIALLY_KEY = "errorCode";
-
-//    protected static final String DATA_TYPE_STRING = "string";
-//    protected static final String DATA_TYPE_NUMBER = "number";
 
     protected static final String DEFAULT_VALUE_DATA_TYPE_STRING = "";
     protected static final int DEFAULT_VALUE_DATA_TYPE_NUMBER = 0;
@@ -166,6 +167,12 @@ public abstract class AbstractPluginInvocationService extends AbstractWorkflowSe
     
     @Autowired
     protected PluginConfigInterfaceParametersMapper pluginConfigInterfaceParametersMapper;
+    
+    @Autowired
+    protected PluginPackageEntitiesMapper pluginPackageEntitiesMapper;
+    
+    @Autowired
+    protected PluginPackageAttributesMapper pluginPackageAttributesMapper;
 
     protected ObjectMapper objectMapper = new ObjectMapper();
 
@@ -321,7 +328,6 @@ public abstract class AbstractPluginInvocationService extends AbstractWorkflowSe
         return val;
     }
 
-    //TODO consider data type where from string data value
     protected Object fromString(String val, String sType) {
         if (Constants.DATA_TYPE_STRING.equals(sType)) {
             return val;
@@ -530,6 +536,37 @@ public abstract class AbstractPluginInvocationService extends AbstractWorkflowSe
 
     protected boolean isFieldRequired(String requiredFlag) {
         return Constants.FIELD_REQUIRED.equalsIgnoreCase(requiredFlag);
+    }
+    
+    protected PluginPackageEntities fetchEnrichedPluginPackageEntities(String packageName, String entityName) {
+        PluginPackageEntities entity = findLatestPluginPackageEntity(packageName, entityName);
+        if (entity == null) {
+            log.info("Cannot find entity with package name: {} and entity name: {}", packageName, entityName);
+            return null;
+        }
+
+        List<PluginPackageAttributes> attrs = findPluginPackageAttributesByEntityId(entity.getId());
+        if (attrs == null || attrs.isEmpty()) {
+            return entity;
+        }
+
+        for (PluginPackageAttributes attr : attrs) {
+            entity.getPluginPackageAttributes().add(attr);
+        }
+
+        return entity;
+    }
+    
+    private PluginPackageEntities findLatestPluginPackageEntity(String packageName, String entityName) {
+        PluginPackageEntities entity = this.pluginPackageEntitiesMapper
+                .selectLatestByPackageNameAndEntityName(packageName, entityName);
+
+        return entity;
+    }
+    
+    private List<PluginPackageAttributes> findPluginPackageAttributesByEntityId(String entityId) {
+        List<PluginPackageAttributes> attributes = this.pluginPackageAttributesMapper.selectAllByEntity(entityId);
+        return attributes;
     }
 
 }
