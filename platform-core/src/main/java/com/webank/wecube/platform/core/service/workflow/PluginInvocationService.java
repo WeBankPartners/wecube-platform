@@ -344,14 +344,15 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
             return;
         }
 
+        // TODO
         for (ProcExecBindingEntity objectBinding : nodeObjectBindings) {
 
             String bindDataId = objectBinding.getEntityDataId();
-            //TODO add entity check,checking entity state?
+            // TODO add entity check,checking entity state?
             if (bindDataId.startsWith(Constants.TEMPORARY_ENTITY_ID_PREFIX)) {
-                tryCreateNewEntityData(bindDataId, ctx, objectBinding, procInstEntity, taskNodeInstEntity);
+                tryProcessOidProcExecBinding(bindDataId, ctx, objectBinding, procInstEntity, taskNodeInstEntity);
             } else {
-                tryUpdateExistedEntityData(bindDataId, ctx);
+                tryProcessDataIdBinding(bindDataId, ctx);
             }
         }
 
@@ -373,13 +374,13 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
         procExecContextMapper.updateByPrimaryKeySelective(procExecContextEntity);
     }
 
-    private void tryCreateNewEntityData(String bindPrefixedEntityOid, WorkflowInstCreationContext ctx,
-            ProcExecBindingEntity objectBinding,ProcInstInfoEntity procInstEntity,
+    private void tryProcessOidProcExecBinding(String bindPrefixedEntityOid, WorkflowInstCreationContext ctx,
+            ProcExecBindingEntity objectBinding, ProcInstInfoEntity procInstEntity,
             TaskNodeInstInfoEntity taskNodeInstEntity) {
         String objectId = null;
-        if(bindPrefixedEntityOid.startsWith(Constants.TEMPORARY_ENTITY_ID_PREFIX)) {
+        if (bindPrefixedEntityOid.startsWith(Constants.TEMPORARY_ENTITY_ID_PREFIX)) {
             objectId = bindPrefixedEntityOid.substring(Constants.TEMPORARY_ENTITY_ID_PREFIX.length());
-        }else {
+        } else {
             objectId = bindPrefixedEntityOid;
         }
         DynamicEntityValueDto entityValueDto = ctx.findByOid(objectId);
@@ -387,11 +388,42 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
             log.info("Can not find such entity value from creation context with ID:{}", objectId);
             return;
         }
-        
-        if(StringUtils.isNoneBlank(entityValueDto.getEntityDataId())) {
-            //means exists in CMDB
-          //TODO 1) try update process instance binding
-            //TODO 2) try update all node bindings
+
+        if (StringUtils.isNoneBlank(entityValueDto.getEntityDataId())) {
+            // means exists in CMDB
+            // 1) try update process instance binding
+            // 2) try update all node bindings
+            String dataId = entityValueDto.getEntityDataId().trim();
+
+            ProcExecBindingEntity procInstBinding = procExecBindingMapper
+                    .selectProcInstBindings(procInstEntity.getId());
+            if (procInstBinding != null) {
+                if (bindPrefixedEntityOid.equals(procInstBinding.getEntityDataId())) {
+                    procInstBinding.setEntityDataId(dataId);
+                    procInstBinding.setEntityDataName(entityValueDto.getEntityDisplayName());
+                    procExecBindingMapper.updateByPrimaryKeySelective(procInstBinding);
+                }
+            }
+
+            List<ProcExecBindingEntity> bindings = procExecBindingMapper
+                    .selectAllTaskNodeBindingsByProcInstIdAndDataId(procInstEntity.getId(), bindPrefixedEntityOid);
+            if (bindings != null) {
+                for (ProcExecBindingEntity b : bindings) {
+                    if (objectBinding.getId().equals(b.getId())) {
+                        objectBinding.setEntityDataId(dataId);
+                        objectBinding.setEntityDataName(entityValueDto.getEntityDisplayName());
+                        procExecBindingMapper.updateByPrimaryKeySelective(objectBinding);
+                        continue;
+                    }
+
+                    b.setEntityDataId(dataId);
+                    b.setEntityDataName(entityValueDto.getEntityDisplayName());
+                    procExecBindingMapper.updateByPrimaryKeySelective(b);
+                }
+            }
+
+            return;
+
         }
 
         // TODO
@@ -434,13 +466,38 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
         objectBinding.setUpdatedBy(WorkflowConstants.DEFAULT_USER);
         objectBinding.setUpdatedTime(new Date());
 
-        //TODO 1) try update process instance binding
-        //TODO 2) try update all node bindings
+        //  1) try update process instance binding with oid
+        //  2) try update all node bindings with oid
         procExecBindingMapper.updateByPrimaryKeySelective(objectBinding);
+
+        String dataId = entityValueDto.getEntityDataId().trim();
+
+        ProcExecBindingEntity procInstBinding = procExecBindingMapper.selectProcInstBindings(procInstEntity.getId());
+        if (procInstBinding != null) {
+            if (bindPrefixedEntityOid.equals(procInstBinding.getEntityDataId())) {
+                procInstBinding.setEntityDataId(dataId);
+                procInstBinding.setEntityDataName(entityValueDto.getEntityDisplayName());
+                procExecBindingMapper.updateByPrimaryKeySelective(procInstBinding);
+            }
+        }
+
+        List<ProcExecBindingEntity> bindings = procExecBindingMapper
+                .selectAllTaskNodeBindingsByProcInstIdAndDataId(procInstEntity.getId(), bindPrefixedEntityOid);
+        if (bindings != null) {
+            for (ProcExecBindingEntity b : bindings) {
+                if (objectBinding.getId().equals(b.getId())) {
+                    continue;
+                }
+
+                b.setEntityDataId(dataId);
+                b.setEntityDataName(entityValueDto.getEntityDisplayName());
+                procExecBindingMapper.updateByPrimaryKeySelective(b);
+            }
+        }
 
     }
 
-    private void tryUpdateExistedEntityData(String bindDataId, WorkflowInstCreationContext ctx) {
+    private void tryProcessDataIdBinding(String bindDataId, WorkflowInstCreationContext ctx) {
         DynamicEntityValueDto entityValueDto = ctx.findByEntityDataIdOrOid(bindDataId);
         if (entityValueDto == null) {
             log.info("entity data value does not exist in creation context for object id:{}", bindDataId);
@@ -528,20 +585,20 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 
         pluginInvocationProcessor.process(operation);
     }
-    
+
     private boolean isValidMappingTypeForUserTask(String mappingType) {
-        if(MAPPING_TYPE_SYSTEM_VARIABLE.equalsIgnoreCase(mappingType)) {
+        if (MAPPING_TYPE_SYSTEM_VARIABLE.equalsIgnoreCase(mappingType)) {
             return true;
         }
-        
-        if(MAPPING_TYPE_CONSTANT.equalsIgnoreCase(mappingType)) {
+
+        if (MAPPING_TYPE_CONSTANT.equalsIgnoreCase(mappingType)) {
             return true;
         }
-        
-        if(MAPPING_TYPE_CONTEXT.equalsIgnoreCase(mappingType)) {
+
+        if (MAPPING_TYPE_CONTEXT.equalsIgnoreCase(mappingType)) {
             return true;
         }
-        
+
         return false;
     }
 
