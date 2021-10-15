@@ -368,9 +368,9 @@ public class AsyncPluginInvocationService extends AbstractPluginInvocationServic
             DynamicEntityAttrValueDto existingAttrValue = existingEntityValue.findAttrValue(attrName);
             if (existingAttrValue == null) {
                 existingAttrValue = new DynamicEntityAttrValueDto();
-                existingAttrValue.setAttrDefId(null);
+                existingAttrValue.setAttrDefId(null);//TODO ? try to get attribute definition from model
                 existingAttrValue.setAttrName(attrName);
-                existingAttrValue.setDataType(null);
+                existingAttrValue.setDataType(null); //TODO must valued
                 existingAttrValue.setDataValue(formItemValue.getAttrValue());
 
                 existingEntityValue.addAttrValue(existingAttrValue);
