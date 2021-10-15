@@ -557,6 +557,14 @@ public abstract class AbstractPluginInvocationService extends AbstractWorkflowSe
         return entity;
     }
     
+    protected PluginPackageAttributes fetchPluginPackageAttributes(PluginPackageEntities entityDef, String attrName) {
+        if(entityDef == null) {
+            return null;
+        }
+        
+        return entityDef.getPluginPackageAttributesByAttrName(attrName);
+    }
+    
     private PluginPackageEntities findLatestPluginPackageEntity(String packageName, String entityName) {
         PluginPackageEntities entity = this.pluginPackageEntitiesMapper
                 .selectLatestByPackageNameAndEntityName(packageName, entityName);
@@ -568,5 +576,7 @@ public abstract class AbstractPluginInvocationService extends AbstractWorkflowSe
         List<PluginPackageAttributes> attributes = this.pluginPackageAttributesMapper.selectAllByEntity(entityId);
         return attributes;
     }
+    
+    
 
 }
