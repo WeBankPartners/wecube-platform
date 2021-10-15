@@ -37,6 +37,7 @@ import org.springframework.stereotype.Service;
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
 import com.webank.wecube.platform.core.dto.workflow.ProcDefInfoDto;
 import com.webank.wecube.platform.core.dto.workflow.TaskNodeDefInfoDto;
+import com.webank.wecube.platform.core.utils.Constants;
 import com.webank.wecube.platform.workflow.WorkflowConstants;
 import com.webank.wecube.platform.workflow.entity.ProcessInstanceStatusEntity;
 import com.webank.wecube.platform.workflow.entity.ServiceNodeStatusEntity;
@@ -735,7 +736,8 @@ public class WorkflowEngineService {
             SubProcessAdditionalInfo info = new SubProcessAdditionalInfo();
             info.setSubProcessNodeId(dto.getNodeId());
             info.setSubProcessNodeName(dto.getNodeName());
-            info.setTimeoutExpression(convertIsoTimeFormat(dto.getTimeoutExpression()));
+            
+            info.setTimeoutExpression(convertIsoTimeFormat(dto));
 
             bpmnParseAttachment.addSubProcessAddtionalInfo(info);
         }
@@ -743,9 +745,14 @@ public class WorkflowEngineService {
         return bpmnParseAttachment;
     }
 
-    private String convertIsoTimeFormat(String timeoutExpression) {
+    private String convertIsoTimeFormat(TaskNodeDefInfoDto dto) {
+        String timeoutExpression = dto.getTimeoutExpression();
         if (StringUtils.isBlank(timeoutExpression)) {
             return timeoutExpression;
+        }
+        
+        if(Constants.TASK_CATEGORY_SUTN.equalsIgnoreCase(dto.getTaskCategory())) {
+            return "PT9999H";
         }
 
         return "PT" + timeoutExpression.trim() + "M";
