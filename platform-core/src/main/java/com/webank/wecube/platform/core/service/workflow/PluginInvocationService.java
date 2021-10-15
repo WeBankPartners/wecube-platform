@@ -349,7 +349,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
             String bindDataId = objectBinding.getEntityDataId();
             //TODO add entity check,checking entity state?
             if (bindDataId.startsWith(Constants.TEMPORARY_ENTITY_ID_PREFIX)) {
-                tryCreateNewEntityData(bindDataId, ctx, objectBinding);
+                tryCreateNewEntityData(bindDataId, ctx, objectBinding, procInstEntity, taskNodeInstEntity);
             } else {
                 tryUpdateExistedEntityData(bindDataId, ctx);
             }
@@ -373,13 +373,25 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
         procExecContextMapper.updateByPrimaryKeySelective(procExecContextEntity);
     }
 
-    private void tryCreateNewEntityData(String bindDataId, WorkflowInstCreationContext ctx,
-            ProcExecBindingEntity objectBinding) {
-        String objectId = bindDataId.substring(Constants.TEMPORARY_ENTITY_ID_PREFIX.length());
+    private void tryCreateNewEntityData(String bindPrefixedEntityOid, WorkflowInstCreationContext ctx,
+            ProcExecBindingEntity objectBinding,ProcInstInfoEntity procInstEntity,
+            TaskNodeInstInfoEntity taskNodeInstEntity) {
+        String objectId = null;
+        if(bindPrefixedEntityOid.startsWith(Constants.TEMPORARY_ENTITY_ID_PREFIX)) {
+            objectId = bindPrefixedEntityOid.substring(Constants.TEMPORARY_ENTITY_ID_PREFIX.length());
+        }else {
+            objectId = bindPrefixedEntityOid;
+        }
         DynamicEntityValueDto entityValueDto = ctx.findByOid(objectId);
         if (entityValueDto == null) {
             log.info("Can not find such entity value from creation context with ID:{}", objectId);
             return;
+        }
+        
+        if(StringUtils.isNoneBlank(entityValueDto.getEntityDataId())) {
+            //means exists in CMDB
+          //TODO 1) try update process instance binding
+            //TODO 2) try update all node bindings
         }
 
         // TODO
@@ -552,6 +564,9 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
         }
 
         InputParamObject inputObj = new InputParamObject();
+        inputObj.setEntityTypeId(null);
+        inputObj.setEntityDataId(null);
+        inputObj.setFullEntityDataId(null);
 
         for (PluginConfigInterfaceParameters param : intfInputParams) {
             String paramName = param.getName();
