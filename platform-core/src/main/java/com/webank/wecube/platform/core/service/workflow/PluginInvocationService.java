@@ -352,7 +352,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
             if (bindDataId.startsWith(Constants.TEMPORARY_ENTITY_ID_PREFIX)) {
                 tryProcessOidProcExecBinding(bindDataId, ctx, objectBinding, procInstEntity, taskNodeInstEntity);
             } else {
-                tryProcessDataIdBinding(bindDataId, ctx);
+                tryProcessDataIdProcExecBinding(bindDataId, ctx);
             }
         }
 
@@ -447,8 +447,9 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
         Map<String, Object> resultMap = entityOperationService.create(packageName, entityName, objDataMap);
         String newEntityDataId = (String) resultMap.get(Constants.UNIQUE_IDENTIFIER);
         if (StringUtils.isBlank(newEntityDataId)) {
+            String errMsg = String.format("Entity created but there is not identity returned for %s:%s", packageName, entityName);
             log.warn("Entity created but there is not identity returned.{} {} {}", packageName, entityName, objDataMap);
-            return;
+            throw new WecubeCoreException(errMsg);
         }
 
         String newEntityDataName = (String) resultMap.get(Constants.VISUAL_FIELD);
@@ -497,11 +498,12 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 
     }
 
-    private void tryProcessDataIdBinding(String bindDataId, WorkflowInstCreationContext ctx) {
-        DynamicEntityValueDto entityValueDto = ctx.findByEntityDataIdOrOid(bindDataId);
+    private void tryProcessDataIdProcExecBinding(String bindDataId, WorkflowInstCreationContext ctx) {
+        DynamicEntityValueDto entityValueDto = ctx.findByEntityDataId(bindDataId);
         if (entityValueDto == null) {
-            log.info("entity data value does not exist in creation context for object id:{}", bindDataId);
-            return;
+            String errMsg = String.format("Entity data value does not exist in creation context for object id:%s", bindDataId);
+            log.info(errMsg);
+            throw new WecubeCoreException(errMsg);
         }
 
         // TODO
