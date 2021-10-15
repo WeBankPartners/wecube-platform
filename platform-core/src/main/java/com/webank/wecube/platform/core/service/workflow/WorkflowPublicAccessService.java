@@ -613,7 +613,13 @@ public class WorkflowPublicAccessService {
 
     private StartProcInstRequestDto calculateStartProcInstContext(DynamicWorkflowInstCreationInfoDto creationInfoDto) {
         StartProcInstRequestDto requestDto = new StartProcInstRequestDto();
-        requestDto.setEntityDataId(creationInfoDto.getRootEntityValue().getEntityDataId());
+        //TODO to create once not exists
+        if(StringUtils.isBlank(creationInfoDto.getRootEntityValue().getEntityDataId())) {
+            //TODO
+            requestDto.setEntityDataId(Constants.TEMPORARY_ENTITY_ID_PREFIX + creationInfoDto.getRootEntityValue().getOid());
+        }else {
+            requestDto.setEntityDataId(creationInfoDto.getRootEntityValue().getEntityDataId());
+        }
         requestDto.setEntityDisplayName(creationInfoDto.getRootEntityValue().getEntityDisplayName());
         requestDto.setEntityTypeId(creationInfoDto.getRootEntityValue().getPackageName() + ":"
                 + creationInfoDto.getRootEntityValue().getEntityName());
@@ -634,7 +640,7 @@ public class WorkflowPublicAccessService {
                 TaskNodeDefObjectBindInfoDto bindDto = new TaskNodeDefObjectBindInfoDto();
                 bindDto.setBound(ProcExecBindingEntity.BIND_FLAG_YES);
                 if (StringUtils.isBlank(entityValueDto.getEntityDataId())) {
-                    bindDto.setEntityDataId("OID-" + entityValueDto.getOid());
+                    bindDto.setEntityDataId(Constants.TEMPORARY_ENTITY_ID_PREFIX + entityValueDto.getOid());
                 } else {
                     bindDto.setEntityDataId(entityValueDto.getEntityDataId());
                 }

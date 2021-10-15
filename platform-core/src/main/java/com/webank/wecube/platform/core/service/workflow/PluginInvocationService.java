@@ -347,7 +347,8 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
         for (ProcExecBindingEntity objectBinding : nodeObjectBindings) {
 
             String bindDataId = objectBinding.getEntityDataId();
-            if (bindDataId.startsWith(TEMPORARY_ENTITY_ID_PREFIX)) {
+            //TODO add entity check,checking entity state?
+            if (bindDataId.startsWith(Constants.TEMPORARY_ENTITY_ID_PREFIX)) {
                 tryCreateNewEntityData(bindDataId, ctx, objectBinding);
             } else {
                 tryUpdateExistedEntityData(bindDataId, ctx);
@@ -374,7 +375,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 
     private void tryCreateNewEntityData(String bindDataId, WorkflowInstCreationContext ctx,
             ProcExecBindingEntity objectBinding) {
-        String objectId = bindDataId.substring(TEMPORARY_ENTITY_ID_PREFIX.length());
+        String objectId = bindDataId.substring(Constants.TEMPORARY_ENTITY_ID_PREFIX.length());
         DynamicEntityValueDto entityValueDto = ctx.findByOid(objectId);
         if (entityValueDto == null) {
             log.info("Can not find such entity value from creation context with ID:{}", objectId);
@@ -421,6 +422,8 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
         objectBinding.setUpdatedBy(WorkflowConstants.DEFAULT_USER);
         objectBinding.setUpdatedTime(new Date());
 
+        //TODO 1) try update process instance binding
+        //TODO 2) try update all node bindings
         procExecBindingMapper.updateByPrimaryKeySelective(objectBinding);
 
     }
@@ -791,8 +794,8 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
             if (taskFormItemMeta.getPackageName().equals(entityTypeIdParts[0])
                     && taskFormItemMeta.getEntityName().equals(entityTypeIdParts[1])) {
                 String bindId = bindEntity.getEntityDataId();
-                if (bindId.startsWith(TEMPORARY_ENTITY_ID_PREFIX)) {
-                    bindId = bindId.substring(TEMPORARY_ENTITY_ID_PREFIX.length());
+                if (bindId.startsWith(Constants.TEMPORARY_ENTITY_ID_PREFIX)) {
+                    bindId = bindId.substring(Constants.TEMPORARY_ENTITY_ID_PREFIX.length());
                 }
                 nodeBindObjectIds.add(bindId);
             }
