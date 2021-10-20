@@ -47,6 +47,18 @@ export default {
       routineExpressionItem: []
     }
   },
+  watch: {
+    isBatch: {
+      handler (val) {
+        if (!this.isBatch) {
+          this.$nextTick(() => {
+            this.routineExpressionItem = [this.routineExpressionItem[0]]
+          })
+        }
+      },
+      immediate: true
+    }
+  },
   props: ['isBatch', 'allEntityType', 'routineExpression', 'rootEntity'],
   mounted () {
     this.changeRoutineExpressionItem(this.routineExpression)
