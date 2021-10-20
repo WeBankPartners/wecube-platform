@@ -452,57 +452,61 @@ public class WorkflowProcDefDeploymentService extends AbstractWorkflowProcDefSer
 
     private void validateAssociatedDynamicBinding(TaskNodeDefInfoDto nodeDto, List<TaskNodeDefInfoDto> taskNodeInfos) {
         String dynamicBind = nodeDto.getDynamicBind();
-        if(StringUtils.isBlank(dynamicBind)) {
+        if (StringUtils.isBlank(dynamicBind)) {
             return;
         }
-        
-        if(!Constants.DYNAMIC_BIND_YES.equalsIgnoreCase(dynamicBind)) {
+
+        if (!Constants.DYNAMIC_BIND_YES.equalsIgnoreCase(dynamicBind)) {
             return;
         }
-        
+
         String associatedNodeId = nodeDto.getAssociatedNodeId();
-        
-        if(StringUtils.isBlank(associatedNodeId)) {
+
+        if (StringUtils.isBlank(associatedNodeId)) {
             return;
         }
-        
+
         TaskNodeDefInfoDto associatedNodeDto = tryFindoutTaskNodeDefByNodeId(taskNodeInfos, associatedNodeId);
-        
-        if(associatedNodeDto == null) {
+
+        if (associatedNodeDto == null) {
             String errMsg = String.format("Invalid associated node ID:%s", associatedNodeId);
             throw new WecubeCoreException(errMsg);
         }
-        
-        if(Constants.DYNAMIC_BIND_YES.equalsIgnoreCase(associatedNodeDto.getDynamicBind())) {
-            String errMsg = String.format("Invalid associated task node:%s due to dynamic node type.", associatedNodeDto.getNodeId());
+
+        if (Constants.DYNAMIC_BIND_YES.equalsIgnoreCase(associatedNodeDto.getDynamicBind())) {
+            String errMsg = String.format("Invalid associated task node [%s:%s] due to dynamic node type.",
+                    associatedNodeDto.getNodeId(), associatedNodeDto.getNodeName());
             throw new WecubeCoreException(errMsg);
         }
-        
+
         String associatedRoutineExpression = associatedNodeDto.getRoutineExpression();
-        if(StringUtils.isBlank(associatedRoutineExpression)) {
-            String errMsg = String.format("Invalid associated task node:%s due to blank routine expression.", associatedNodeDto.getNodeId());
+        if (StringUtils.isBlank(associatedRoutineExpression)) {
+            String errMsg = String.format("Invalid associated task node [%s:%s] due to blank routine expression.",
+                    associatedNodeDto.getNodeId(), associatedNodeDto.getNodeName());
             throw new WecubeCoreException(errMsg);
         }
-        
-        if(!associatedRoutineExpression.equals(nodeDto.getRoutineExpression())) {
-            String errMsg = String.format("Invalid association task node configuration:%s due to invalid routine expression.", nodeDto.getNodeId());
+
+        if (!associatedRoutineExpression.equals(nodeDto.getRoutineExpression())) {
+            String errMsg = String.format(
+                    "Invalid association task node configuration [%s:%s] due to invalid routine expression.",
+                    nodeDto.getNodeId(), nodeDto.getNodeName());
             throw new WecubeCoreException(errMsg);
         }
-        
+
         return;
     }
-    
+
     private TaskNodeDefInfoDto tryFindoutTaskNodeDefByNodeId(List<TaskNodeDefInfoDto> taskNodeInfos, String nodeId) {
-        if(taskNodeInfos == null || taskNodeInfos.isEmpty()) {
+        if (taskNodeInfos == null || taskNodeInfos.isEmpty()) {
             return null;
         }
-        
-        for(TaskNodeDefInfoDto nodeDefDto : taskNodeInfos) {
-            if(nodeId.equals(nodeDefDto.getNodeId())) {
+
+        for (TaskNodeDefInfoDto nodeDefDto : taskNodeInfos) {
+            if (nodeId.equals(nodeDefDto.getNodeId())) {
                 return nodeDefDto;
             }
         }
-        
+
         return null;
     }
 
