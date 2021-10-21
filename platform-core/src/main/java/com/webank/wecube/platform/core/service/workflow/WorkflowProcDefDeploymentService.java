@@ -438,7 +438,7 @@ public class WorkflowProcDefDeploymentService extends AbstractWorkflowProcDefSer
                         String.format("Routine expression is blank for %s", nodeDto.getNodeId()), nodeDto.getNodeId());
             }
 
-            if (StringUtils.isBlank(nodeDto.getServiceId())) {
+            if (StringUtils.isBlank(nodeDto.getServiceId()) && !Constants.TASK_CATEGORY_SDTN.equalsIgnoreCase(nodeDto.getTaskCategory())) {
                 throw new WecubeCoreException("3216", String.format("Service ID is blank for %s", nodeDto.getNodeId()),
                         nodeDto.getNodeId());
             }
@@ -511,6 +511,10 @@ public class WorkflowProcDefDeploymentService extends AbstractWorkflowProcDefSer
     }
 
     private void validateTaskNodePluginPermission(TaskNodeDefInfoDto nodeDto, List<String> mgmtRoleNames) {
+        if(Constants.TASK_CATEGORY_SDTN.equalsIgnoreCase(nodeDto.getTaskCategory())) {
+            return;
+        }
+        
         PluginConfigInterfaces intf = retrievePluginConfigInterface(nodeDto, nodeDto.getNodeId());
         PluginConfigs pluginConfig = intf.getPluginConfig();
         if (pluginConfig == null) {

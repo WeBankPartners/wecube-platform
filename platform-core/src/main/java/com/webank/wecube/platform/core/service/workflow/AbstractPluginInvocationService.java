@@ -164,13 +164,13 @@ public abstract class AbstractPluginInvocationService extends AbstractWorkflowSe
 
     @Autowired
     protected PluginParamObjectVarMarshaller pluginParamObjectVarAssembleService;
-    
+
     @Autowired
     protected PluginConfigInterfaceParametersMapper pluginConfigInterfaceParametersMapper;
-    
+
     @Autowired
     protected PluginPackageEntitiesMapper pluginPackageEntitiesMapper;
-    
+
     @Autowired
     protected PluginPackageAttributesMapper pluginPackageAttributesMapper;
 
@@ -317,10 +317,10 @@ public abstract class AbstractPluginInvocationService extends AbstractWorkflowSe
     }
 
     protected String trimExceedParamValue(String val, int size) {
-        if(StringUtils.isBlank(val)){
+        if (StringUtils.isBlank(val)) {
             return val;
         }
-        
+
         if (val.length() > size) {
             return val.substring(0, size);
         }
@@ -424,7 +424,8 @@ public abstract class AbstractPluginInvocationService extends AbstractWorkflowSe
     }
 
     protected boolean isSystemAutomationTaskNode(TaskNodeDefInfoEntity taskNodeDefEntity) {
-        return Constants.TASK_CATEGORY_SSTN.equalsIgnoreCase(taskNodeDefEntity.getTaskCategory());
+        return StringUtils.isBlank(taskNodeDefEntity.getTaskCategory())
+                || Constants.TASK_CATEGORY_SSTN.equalsIgnoreCase(taskNodeDefEntity.getTaskCategory());
     }
 
     protected boolean isUserTaskNode(TaskNodeDefInfoEntity taskNodeDefEntity) {
@@ -537,7 +538,7 @@ public abstract class AbstractPluginInvocationService extends AbstractWorkflowSe
     protected boolean isFieldRequired(String requiredFlag) {
         return Constants.FIELD_REQUIRED.equalsIgnoreCase(requiredFlag);
     }
-    
+
     protected PluginPackageEntities fetchEnrichedPluginPackageEntities(String packageName, String entityName) {
         PluginPackageEntities entity = findLatestPluginPackageEntity(packageName, entityName);
         if (entity == null) {
@@ -556,27 +557,25 @@ public abstract class AbstractPluginInvocationService extends AbstractWorkflowSe
 
         return entity;
     }
-    
+
     protected PluginPackageAttributes fetchPluginPackageAttributes(PluginPackageEntities entityDef, String attrName) {
-        if(entityDef == null) {
+        if (entityDef == null) {
             return null;
         }
-        
+
         return entityDef.getPluginPackageAttributesByAttrName(attrName);
     }
-    
+
     private PluginPackageEntities findLatestPluginPackageEntity(String packageName, String entityName) {
         PluginPackageEntities entity = this.pluginPackageEntitiesMapper
                 .selectLatestByPackageNameAndEntityName(packageName, entityName);
 
         return entity;
     }
-    
+
     private List<PluginPackageAttributes> findPluginPackageAttributesByEntityId(String entityId) {
         List<PluginPackageAttributes> attributes = this.pluginPackageAttributesMapper.selectAllByEntity(entityId);
         return attributes;
     }
-    
-    
 
 }
