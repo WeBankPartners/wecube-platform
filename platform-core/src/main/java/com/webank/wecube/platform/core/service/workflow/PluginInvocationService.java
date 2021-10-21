@@ -313,13 +313,13 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 
         // to refactor using strategy mode
         if (isSystemAutomationTaskNode(taskNodeDefEntity)) {
-            doInvokeSystemAutomationPluginInterface(procInstEntity, taskNodeInstEntity, procDefInfoEntity,
+            doInvokeSystemAutomationPluginIntf(procInstEntity, taskNodeInstEntity, procDefInfoEntity,
                     taskNodeDefEntity, cmd);
         } else if (isUserTaskNode(taskNodeDefEntity)) {
-            doInvokeUserTaskPluginInterface(procInstEntity, taskNodeInstEntity, procDefInfoEntity, taskNodeDefEntity,
+            doInvokeUserTaskPluginIntf(procInstEntity, taskNodeInstEntity, procDefInfoEntity, taskNodeDefEntity,
                     cmd);
         } else if (isDataOperationTaskNode(taskNodeDefEntity)) {
-            doInvokeDataOperationPluginInterface(procInstEntity, taskNodeInstEntity, procDefInfoEntity,
+            doInvokeDataOperationPluginIntf(procInstEntity, taskNodeInstEntity, procDefInfoEntity,
                     taskNodeDefEntity, cmd);
         }
     }
@@ -328,10 +328,9 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
      * SDTN Handling data operation task node.
      * 
      */
-    protected void doInvokeDataOperationPluginInterface(ProcInstInfoEntity procInstEntity,
+    protected void doInvokeDataOperationPluginIntf(ProcInstInfoEntity procInstEntity,
             TaskNodeInstInfoEntity taskNodeInstEntity, ProcDefInfoEntity procDefInfoEntity,
             TaskNodeDefInfoEntity taskNodeDefEntity, PluginInvocationCommand cmd) {
-        // TODO
         List<ProcExecBindingEntity> nodeObjectBindings = retrieveProcExecBindingEntities(taskNodeInstEntity);
         if (nodeObjectBindings == null || nodeObjectBindings.isEmpty()) {
             log.info("There are not any task node object bindings found and skipped for task node:{}",
@@ -344,11 +343,11 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
             return;
         }
 
-        // TODO
+        //
         for (ProcExecBindingEntity objectBinding : nodeObjectBindings) {
 
             String bindDataId = objectBinding.getEntityDataId();
-            // TODO add entity check,checking entity state?
+            // add entity check,checking entity state?
             if (bindDataId.startsWith(Constants.TEMPORARY_ENTITY_ID_PREFIX)) {
                 tryProcessOidProcExecBinding(bindDataId, ctx, objectBinding, procInstEntity, taskNodeInstEntity);
             } else {
@@ -388,6 +387,22 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
             log.info("Can not find such entity value from creation context with ID:{}", objectId);
             return;
         }
+        
+        //try handle previous entities first
+        List<String> prevOids = entityValueDto.getPreviousOids();
+        Map<String,DynamicEntityValueDto> prevEntityValueMaps = new HashMap<>();
+        if(prevOids != null) {
+            for(String prevOid : prevOids ) {
+                DynamicEntityValueDto prevEntityValueDto = tryProcessOidEntityValueCreation( prevOid,  ctx,
+                         objectBinding,  procInstEntity,
+                         taskNodeInstEntity);
+                if(prevEntityValueDto != null) {
+                    prevEntityValueMaps.put(prevOid, prevEntityValueDto);
+                }else {
+                    //log.info("Failed to process previous entity:{}", prevOid);
+                }
+            }
+        }
 
         if (StringUtils.isNoneBlank(entityValueDto.getEntityDataId())) {
             // means exists in CMDB
@@ -426,17 +441,8 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 
         }
 
-        //try handle previous entities first
-        List<String> prevOids = entityValueDto.getPreviousOids();
-        if(prevOids != null) {
-            for(String prevOid : prevOids ) {
-                tryProcessOidEntityValueCreation( prevOid,  ctx,
-                         objectBinding,  procInstEntity,
-                         taskNodeInstEntity);
-            }
-        }
+       
         
-        // TODO
         String packageName = entityValueDto.getPackageName();
         String entityName = entityValueDto.getEntityName();
 
@@ -448,10 +454,21 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 
         Map<String, Object> objDataMap = new HashMap<String, Object>();
         for (DynamicEntityAttrValueDto attr : attrValues) {
-            objDataMap.put(attr.getAttrName(), attr.getDataValue());
+            if("ref".equalsIgnoreCase(attr.getDataType())) {
+                String refId = (String)attr.getDataValue();//multi ref?
+                DynamicEntityValueDto refEntityDataValueDto = ctx.findByOid(refId);
+                if(refEntityDataValueDto != null) {
+                    objDataMap.put(attr.getAttrName(), refEntityDataValueDto.getEntityDataId());
+                }else {
+                    objDataMap.put(attr.getAttrName(), attr.getDataValue());
+                }
+                
+            }else {
+                objDataMap.put(attr.getAttrName(), attr.getDataValue());
+            }
         }
 
-        log.info("try to create entity.{} {} {}", entityValueDto.getPackageName(), entityValueDto.getEntityName(),
+        log.info("try to create entity:{} {} {}", entityValueDto.getPackageName(), entityValueDto.getEntityName(),
                 objDataMap);
 
         Map<String, Object> resultMap = entityOperationService.create(packageName, entityName, objDataMap);
@@ -517,11 +534,6 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
             return null;
         }
         
-        if(StringUtils.isNoneBlank(entityValueDto.getEntityDataId())) {
-            log.info("try to create entity:{} but already exist.{}", entityValueDto.getEntityDataId(), entityValueDto);
-            return entityValueDto;
-        }
-        
         List<String> prevOids = entityValueDto.getPreviousOids();
         Map<String,DynamicEntityValueDto> prevEntityValueMaps = new HashMap<>();
         if(prevOids != null ) {
@@ -535,6 +547,11 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
                     log.info("Failed to process previous entity:{}", prevOid);
                 }
             }
+        }
+        
+        if(StringUtils.isNoneBlank(entityValueDto.getEntityDataId())) {
+            log.info("try to create entity:{} but already exist.{}", entityValueDto.getEntityDataId(), entityValueDto);
+            return entityValueDto;
         }
         
         String packageName = entityValueDto.getPackageName();
@@ -594,7 +611,6 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
             throw new WecubeCoreException(errMsg);
         }
 
-        // TODO
         String packageName = entityValueDto.getPackageName();
         String entityName = entityValueDto.getEntityName();
         EntityRouteDescription entityDef = entityDataRouteFactory.deduceEntityDescription(packageName, entityName);
@@ -632,7 +648,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
      * SUTN Handling user operation task node.
      * 
      */
-    protected void doInvokeUserTaskPluginInterface(ProcInstInfoEntity procInstEntity,
+    protected void doInvokeUserTaskPluginIntf(ProcInstInfoEntity procInstEntity,
             TaskNodeInstInfoEntity taskNodeInstEntity, ProcDefInfoEntity procDefInfoEntity,
             TaskNodeDefInfoEntity taskNodeDefEntity, PluginInvocationCommand cmd) {
 
@@ -971,7 +987,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
      * SSTN Handling system automation task node
      * 
      */
-    protected void doInvokeSystemAutomationPluginInterface(ProcInstInfoEntity procInstEntity,
+    protected void doInvokeSystemAutomationPluginIntf(ProcInstInfoEntity procInstEntity,
             TaskNodeInstInfoEntity taskNodeInstEntity, ProcDefInfoEntity procDefInfoEntity,
             TaskNodeDefInfoEntity taskNodeDefEntity, PluginInvocationCommand cmd) {
 
