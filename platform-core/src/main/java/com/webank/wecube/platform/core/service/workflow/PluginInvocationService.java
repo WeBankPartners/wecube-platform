@@ -942,7 +942,6 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
                 TaskFormDataEntityDto taskFormDataEntityDto = oidAndEntities.get(bindObjectId);
                 if (taskFormDataEntityDto == null) {
                     taskFormDataEntityDto = new TaskFormDataEntityDto();
-                    taskFormDataEntityDto.setOid(bindObjectId);
                     taskFormDataEntityDto.setEntityName(taskFormItemMeta.getEntityName());
                     taskFormDataEntityDto.setPackageName(taskFormItemMeta.getPackageName());
 
@@ -950,7 +949,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
                 }
 
                 TaskFormItemValueDto taskFormItemValueDto = new TaskFormItemValueDto();
-                taskFormItemValueDto.setOid(bindObjectId);
+                
                 taskFormItemValueDto.setAttrName(taskFormItemMeta.getAttrName());
                 taskFormItemValueDto.setPackageName(taskFormItemMeta.getPackageName());
                 taskFormItemValueDto.setEntityName(taskFormItemMeta.getEntityName());
@@ -959,6 +958,11 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
                 DynamicEntityValueDto dynamicEntityValueDto = ctx.findByEntityDataIdOrOid(bindObjectId);
 
                 if (dynamicEntityValueDto != null) {
+                    taskFormItemValueDto.setOid(dynamicEntityValueDto.getOid());
+                    taskFormItemValueDto.setEntityDataId(dynamicEntityValueDto.getEntityDataId());
+                    taskFormItemValueDto.setFullEntityDataId(dynamicEntityValueDto.getFullEntityDataId());
+                    
+                    taskFormDataEntityDto.setOid(dynamicEntityValueDto.getOid());
                     taskFormDataEntityDto.setEntityDataId(dynamicEntityValueDto.getEntityDataId());
                     taskFormDataEntityDto.setEntityDataState(dynamicEntityValueDto.getEntityDataState());
                     taskFormDataEntityDto.setBindFlag(dynamicEntityValueDto.getBindFlag());
