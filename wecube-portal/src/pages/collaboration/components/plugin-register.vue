@@ -970,7 +970,7 @@ export default {
       if (this.selectedEntityType === '') {
         this.$Notice.warning({
           title: 'Warning',
-          desc: this.$t('target_type') + this.$t('required')
+          desc: this.$t('target_type') + this.$t('empty')
         })
         // return
       }
@@ -1018,7 +1018,7 @@ export default {
       if (this.selectedEntityType === '') {
         this.$Notice.warning({
           title: 'Warning',
-          desc: this.$t('target_type') + this.$t('required')
+          desc: this.$t('target_type') + this.$t('empty')
         })
         // return
       }
