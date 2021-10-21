@@ -8,6 +8,7 @@
               :needAttr="true"
               ref="filterRules"
               style="height:44px"
+              @change="filterRuleChanged"
               v-model="express.routineExpression"
               :allDataModelsWithAttrs="allEntityType"
             >
@@ -64,6 +65,11 @@ export default {
     this.changeRoutineExpressionItem(this.routineExpression)
   },
   methods: {
+    filterRuleChanged (val) {
+      if (!this.isBatch) {
+        this.$emit('filterRuleChanged', val)
+      }
+    },
     changeRoutineExpressionItem (routineExpression) {
       this.routineExpressionItem = []
       if (routineExpression) {

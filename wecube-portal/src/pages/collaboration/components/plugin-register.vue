@@ -972,7 +972,7 @@ export default {
           title: 'Warning',
           desc: this.$t('target_type') + this.$t('required')
         })
-        return
+        // return
       }
       if (this.registerName.length === 0) {
         this.$refs.registerName.focus()
@@ -1020,7 +1020,7 @@ export default {
           title: 'Warning',
           desc: this.$t('target_type') + this.$t('required')
         })
-        return
+        // return
       }
       if (this.hasNewSource) {
         this.currentPluginObj.permissionToRole.MGMT = this.mgmtRolesKey
