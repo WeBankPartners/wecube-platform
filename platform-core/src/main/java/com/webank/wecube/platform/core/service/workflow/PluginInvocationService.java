@@ -426,6 +426,16 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 
         }
 
+        //try handle previous entities first
+        List<String> prevOids = entityValueDto.getPreviousOids();
+        if(prevOids != null) {
+            for(String prevOid : prevOids ) {
+                tryProcessOidEntityValueCreation( prevOid,  ctx,
+                         objectBinding,  procInstEntity,
+                         taskNodeInstEntity);
+            }
+        }
+        
         // TODO
         String packageName = entityValueDto.getPackageName();
         String entityName = entityValueDto.getEntityName();
@@ -496,6 +506,84 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
             }
         }
 
+    }
+    
+    private DynamicEntityValueDto tryProcessOidEntityValueCreation(String oidOfEntity, WorkflowInstCreationContext ctx,
+            ProcExecBindingEntity objectBinding, ProcInstInfoEntity procInstEntity,
+            TaskNodeInstInfoEntity taskNodeInstEntity) {
+        DynamicEntityValueDto entityValueDto = ctx.findByOid(oidOfEntity);
+        if (entityValueDto == null) {
+            log.info("Can not find such  entity value from creation context with OID:{}", oidOfEntity);
+            return null;
+        }
+        
+        if(StringUtils.isNoneBlank(entityValueDto.getEntityDataId())) {
+            log.info("try to create entity:{} but already exist.{}", entityValueDto.getEntityDataId(), entityValueDto);
+            return entityValueDto;
+        }
+        
+        List<String> prevOids = entityValueDto.getPreviousOids();
+        Map<String,DynamicEntityValueDto> prevEntityValueMaps = new HashMap<>();
+        if(prevOids != null ) {
+            for(String prevOid : prevOids) {
+                DynamicEntityValueDto prevEntityValueDto = tryProcessOidEntityValueCreation( prevOid,  ctx,
+                         objectBinding,  procInstEntity,
+                         taskNodeInstEntity);
+                if(prevEntityValueDto != null) {
+                    prevEntityValueMaps.put(prevOid, prevEntityValueDto);
+                }else {
+                    log.info("Failed to process previous entity:{}", prevOid);
+                }
+            }
+        }
+        
+        String packageName = entityValueDto.getPackageName();
+        String entityName = entityValueDto.getEntityName();
+
+        List<DynamicEntityAttrValueDto> attrValues = entityValueDto.getAttrValues();
+        if (attrValues == null || attrValues.isEmpty()) {
+            log.info("Attributes not assigned values for object :{}", oidOfEntity);
+            return null;
+        }
+
+        Map<String, Object> objDataMap = new HashMap<String, Object>();
+        for (DynamicEntityAttrValueDto attr : attrValues) {
+            if("ref".equalsIgnoreCase(attr.getDataType())) {
+                String refId = (String)attr.getDataValue();//multi ref?
+                DynamicEntityValueDto refEntityDataValueDto = ctx.findByOid(refId);
+                if(refEntityDataValueDto != null) {
+                    objDataMap.put(attr.getAttrName(), refEntityDataValueDto.getEntityDataId());
+                }else {
+                    objDataMap.put(attr.getAttrName(), attr.getDataValue());
+                }
+                
+            }else {
+                objDataMap.put(attr.getAttrName(), attr.getDataValue());
+            }
+        }
+
+        log.info("try to create entity.{} {} {}", entityValueDto.getPackageName(), entityValueDto.getEntityName(),
+                objDataMap);
+
+        Map<String, Object> resultMap = entityOperationService.create(packageName, entityName, objDataMap);
+        
+        String newEntityDataId = (String) resultMap.get(Constants.UNIQUE_IDENTIFIER);
+        if (StringUtils.isBlank(newEntityDataId)) {
+            String errMsg = String.format("Entity created but there is not identity returned for %s:%s", packageName, entityName);
+            log.warn("Entity created but there is not identity returned.{} {} {}", packageName, entityName, objDataMap);
+            throw new WecubeCoreException(errMsg);
+        }
+
+        String newEntityDataName = (String) resultMap.get(Constants.VISUAL_FIELD);
+
+        // to refresh entity data id to dto
+        if (StringUtils.isBlank(entityValueDto.getEntityDataId())) {
+            entityValueDto.setEntityDataId(newEntityDataId);
+            entityValueDto.setEntityDisplayName(newEntityDataName);
+            entityValueDto.setEntityDataState("Created");
+        }
+        
+        return entityValueDto;
     }
 
     private void tryProcessDataIdProcExecBinding(String bindDataId, WorkflowInstCreationContext ctx) {
@@ -624,7 +712,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 
         InputParamObject inputObj = new InputParamObject();
         inputObj.setEntityTypeId(null);
-        inputObj.setEntityDataId(null);
+        inputObj.setEntityDataId(LocalIdGenerator.generateId(Constants.TASK_CATEGORY_SUTN+"-"));
         inputObj.setFullEntityDataId(null);
 
         for (PluginConfigInterfaceParameters param : intfInputParams) {
