@@ -351,7 +351,8 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
             if (bindDataId.startsWith(Constants.TEMPORARY_ENTITY_ID_PREFIX)) {
                 tryProcessOidProcExecBinding(bindDataId, ctx, objectBinding, procInstEntity, taskNodeInstEntity);
             } else {
-                tryProcessDataIdProcExecBinding(bindDataId, ctx);
+                tryProcessDataIdProcExecBinding(bindDataId, ctx, objectBinding,  procInstEntity,
+                         taskNodeInstEntity);
             }
         }
 
@@ -603,12 +604,28 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
         return entityValueDto;
     }
 
-    private void tryProcessDataIdProcExecBinding(String bindDataId, WorkflowInstCreationContext ctx) {
+    private void tryProcessDataIdProcExecBinding(String bindDataId, WorkflowInstCreationContext ctx,ProcExecBindingEntity objectBinding, ProcInstInfoEntity procInstEntity,
+            TaskNodeInstInfoEntity taskNodeInstEntity) {
         DynamicEntityValueDto entityValueDto = ctx.findByEntityDataId(bindDataId);
         if (entityValueDto == null) {
             String errMsg = String.format("Entity data value does not exist in creation context for object id:%s", bindDataId);
             log.info(errMsg);
             throw new WecubeCoreException(errMsg);
+        }
+        
+        List<String> prevOids = entityValueDto.getPreviousOids();
+        Map<String,DynamicEntityValueDto> prevEntityValueMaps = new HashMap<>();
+        if(prevOids != null ) {
+            for(String prevOid : prevOids) {
+                DynamicEntityValueDto prevEntityValueDto = tryProcessOidEntityValueCreation( prevOid,  ctx,
+                         objectBinding,  procInstEntity,
+                         taskNodeInstEntity);
+                if(prevEntityValueDto != null) {
+                    prevEntityValueMaps.put(prevOid, prevEntityValueDto);
+                }else {
+                    log.info("Failed to process previous entity:{}", prevOid);
+                }
+            }
         }
 
         String packageName = entityValueDto.getPackageName();
@@ -626,7 +643,19 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
         for (DynamicEntityAttrValueDto attr : attrValues) {
             EntityDataAttr attrUpdate = new EntityDataAttr();
             attrUpdate.setAttrName(attr.getAttrName());
-            attrUpdate.setAttrValue(attr.getDataValue());
+            
+            if("ref".equalsIgnoreCase(attr.getDataType())) {
+                String refId = (String)attr.getDataValue();//multi ref?
+                DynamicEntityValueDto refEntityDataValueDto = ctx.findByOid(refId);
+                if(refEntityDataValueDto != null) {
+                    attrUpdate.setAttrValue(refEntityDataValueDto.getEntityDataId());
+                }else {
+                    attrUpdate.setAttrValue(attr.getDataValue());
+                }
+                
+            }else {
+                attrUpdate.setAttrValue(attr.getDataValue());
+            }
 
             recordToUpdate.addAttrs(attrUpdate);
         }
