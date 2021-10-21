@@ -211,6 +211,7 @@
                         <FilterRulesGroup
                           :isBatch="pluginForm.taskCategory === 'SDTN'"
                           ref="filterRulesGroup"
+                          @filterRuleChanged="singleFilterRuleChanged"
                           :routineExpression="pluginForm.routineExpression"
                           :allEntityType="allEntityType"
                         >
@@ -616,6 +617,9 @@ export default {
     this.setCss('top-pane', 'bottom: 0;')
   },
   methods: {
+    singleFilterRuleChanged (val) {
+      this.pluginForm.routineExpression = val
+    },
     changeTaskCategory (val) {
       this.pluginForm.serviceId = ''
       this.pluginForm.serviceName = ''
