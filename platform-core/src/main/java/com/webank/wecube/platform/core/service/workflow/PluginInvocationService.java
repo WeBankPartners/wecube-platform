@@ -712,7 +712,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 
         InputParamObject inputObj = new InputParamObject();
         inputObj.setEntityTypeId(null);
-        inputObj.setEntityDataId(null);
+        inputObj.setEntityDataId(LocalIdGenerator.generateId(Constants.TASK_CATEGORY_SUTN+"-"));
         inputObj.setFullEntityDataId(null);
 
         for (PluginConfigInterfaceParameters param : intfInputParams) {
