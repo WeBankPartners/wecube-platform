@@ -355,6 +355,7 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
             nd.setProcInstId(n.getProcInstId());
             nd.setProcInstKey(n.getProcInstKey());
             nd.setStatus(n.getStatus());
+            nd.setDescription(nodeDef.getDescription());
 
             procInstInfoResultDto.addTaskNodeInstances(nd);
         }

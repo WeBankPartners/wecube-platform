@@ -944,6 +944,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
                     taskFormDataEntityDto = new TaskFormDataEntityDto();
                     taskFormDataEntityDto.setEntityName(taskFormItemMeta.getEntityName());
                     taskFormDataEntityDto.setPackageName(taskFormItemMeta.getPackageName());
+                    taskFormDataEntityDto.setFormMetaId(taskFormMetaDto.getFormMetaId());
 
                     oidAndEntities.put(bindObjectId, taskFormDataEntityDto);
                 }
