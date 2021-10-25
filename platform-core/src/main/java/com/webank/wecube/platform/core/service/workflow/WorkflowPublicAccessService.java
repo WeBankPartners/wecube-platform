@@ -123,7 +123,8 @@ public class WorkflowPublicAccessService {
      * @param rootEntityDataId
      * @return
      */
-    public ProcessDataPreviewDto calculateProcessDataPreview(String procDefId, String rootEntityDataId, boolean needAddIntfFilters) {
+    public ProcessDataPreviewDto calculateProcessDataPreview(String procDefId, String rootEntityDataId,
+            boolean needAddIntfFilters) {
         if (StringUtils.isBlank(procDefId) || StringUtils.isBlank(rootEntityDataId)) {
             throw new WecubeCoreException("3189", "Process definition ID or entity ID is not provided.");
         }
@@ -136,7 +137,8 @@ public class WorkflowPublicAccessService {
                     String.format("Such process definition {%s} does not exist.", procDefId), procDefId);
         }
 
-        ProcessDataPreviewDto previewDto = doCalculateProcessPreviewData(procDefOutline, rootEntityDataId, true, needAddIntfFilters);
+        ProcessDataPreviewDto previewDto = doCalculateProcessPreviewData(procDefOutline, rootEntityDataId, true,
+                needAddIntfFilters);
 
         return previewDto;
     }
@@ -402,7 +404,7 @@ public class WorkflowPublicAccessService {
         EntityQueryCriteria c = new EntityQueryCriteria();
         c.setAttrName("id");
         c.setCondition(entityNode.getDataId());
-        
+
         querySpec.setCriteria(c);
 
         StandardEntityOperationResponseDto respDto = client.query(entityRoute, querySpec);
@@ -614,11 +616,10 @@ public class WorkflowPublicAccessService {
 
     private StartProcInstRequestDto calculateStartProcInstContext(DynamicWorkflowInstCreationInfoDto creationInfoDto) {
         StartProcInstRequestDto requestDto = new StartProcInstRequestDto();
-        //TODO to create once not exists
-        if(StringUtils.isBlank(creationInfoDto.getRootEntityValue().getEntityDataId())) {
-            //TODO
-            requestDto.setEntityDataId(Constants.TEMPORARY_ENTITY_ID_PREFIX + creationInfoDto.getRootEntityValue().getOid());
-        }else {
+        if (StringUtils.isBlank(creationInfoDto.getRootEntityValue().getEntityDataId())) {
+            requestDto.setEntityDataId(
+                    Constants.TEMPORARY_ENTITY_ID_PREFIX + creationInfoDto.getRootEntityValue().getOid());
+        } else {
             requestDto.setEntityDataId(creationInfoDto.getRootEntityValue().getEntityDataId());
         }
         requestDto.setEntityDisplayName(creationInfoDto.getRootEntityValue().getEntityDisplayName());
