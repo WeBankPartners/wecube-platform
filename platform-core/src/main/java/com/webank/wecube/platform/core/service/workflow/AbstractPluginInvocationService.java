@@ -175,6 +175,75 @@ public abstract class AbstractPluginInvocationService extends AbstractWorkflowSe
     protected PluginPackageAttributesMapper pluginPackageAttributesMapper;
 
     protected ObjectMapper objectMapper = new ObjectMapper();
+    
+    /**
+     * 
+     * @param cmd
+     */
+    public void handleProcessInstanceFaultedEndEvent(PluginInvocationCommand cmd) {
+        if (log.isInfoEnabled()) {
+            log.info("handle end event:{}", cmd);
+        }
+
+        Date currTime = new Date();
+
+        ProcInstInfoEntity procInstEntity = null;
+        int times = 0;
+
+        while (times < 20) {
+            procInstEntity = procInstInfoRepository.selectOneByProcInstKernelId(cmd.getProcInstId());
+            if (procInstEntity != null) {
+                break;
+            }
+
+            try {
+                Thread.sleep(300);
+            } catch (InterruptedException e) {
+                log.info("exceptions while handling end event.", e.getMessage());
+            }
+
+            times++;
+        }
+
+        if (procInstEntity == null) {
+            log.warn("Cannot find process instance entity currently for {}", cmd.getProcInstId());
+            return;
+        }
+
+        String oldProcInstStatus = procInstEntity.getStatus();
+        if (ProcInstInfoEntity.INTERNALLY_TERMINATED_STATUS.equalsIgnoreCase(procInstEntity.getStatus())) {
+            return;
+        }
+        procInstEntity.setUpdatedTime(currTime);
+        procInstEntity.setUpdatedBy(WorkflowConstants.DEFAULT_USER);
+        procInstEntity.setStatus(ProcInstInfoEntity.FAULTED_STATUS);
+        procInstInfoRepository.updateByPrimaryKeySelective(procInstEntity);
+        log.info("updated process instance {} from {} to {}", procInstEntity.getId(), oldProcInstStatus,
+                ProcInstInfoEntity.FAULTED_STATUS);
+
+        List<TaskNodeInstInfoEntity> nodeInstEntities = taskNodeInstInfoRepository
+                .selectAllByProcInstId(procInstEntity.getId());
+        List<TaskNodeDefInfoEntity> nodeDefEntities = taskNodeDefInfoRepository
+                .selectAllByProcDefId(procInstEntity.getProcDefId());
+
+        for (TaskNodeInstInfoEntity n : nodeInstEntities) {
+            if ("endEvent".equals(n.getNodeType()) && n.getNodeId().equals(cmd.getNodeId())) {
+                TaskNodeDefInfoEntity currNodeDefInfo = findExactTaskNodeDefInfoEntityWithNodeId(nodeDefEntities,
+                        n.getNodeId());
+                refreshStatusOfPreviousNodes(nodeInstEntities, currNodeDefInfo);
+                n.setUpdatedTime(currTime);
+                n.setUpdatedBy(WorkflowConstants.DEFAULT_USER);
+                n.setStatus(TaskNodeInstInfoEntity.COMPLETED_STATUS);
+
+                taskNodeInstInfoRepository.updateByPrimaryKeySelective(n);
+
+                log.debug("updated node {} to {}", n.getId(), TaskNodeInstInfoEntity.COMPLETED_STATUS);
+            }
+        }
+
+        workflowProcInstEndEventNotifier.notify(WorkflowNotifyEvent.PROCESS_INSTANCE_END, cmd, procInstEntity);
+
+    }
 
     /**
      * 

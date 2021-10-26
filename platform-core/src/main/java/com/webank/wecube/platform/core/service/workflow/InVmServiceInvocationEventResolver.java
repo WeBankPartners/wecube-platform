@@ -28,6 +28,10 @@ public class InVmServiceInvocationEventResolver implements ServiceInvocationEven
     protected void resolveProcessInstanceEndEvent(ServiceInvocationEvent event) {
         pluginInvocationService.handleProcessInstanceEndEvent(pluginInvocationCommand(event));
     }
+    
+    protected void resolveProcessInstanceFaultedEndEvent(ServiceInvocationEvent event) {
+        pluginInvocationService.handleProcessInstanceFaultedEndEvent(pluginInvocationCommand(event));
+    }
 
     protected void dispatch(ServiceInvocationEvent event) {
         if (ServiceInvocationEvent.EventType.SERVICE_INVOCATION == event.getEventType()) {

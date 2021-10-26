@@ -275,7 +275,8 @@ public class WorkflowEngineService {
 
         String processInstanceId = null;
         String processDefinitionId = null;
-        if (TraceStatus.Completed.equals(procInstStatusEntity.getStatus())) {
+        if (TraceStatus.Completed.equals(procInstStatusEntity.getStatus())
+                || TraceStatus.Faulted.equals(procInstStatusEntity.getStatus())) {
             processInstanceId = procInstStatusEntity.getProcInstId();
             processDefinitionId = procInstStatusEntity.getProcDefId();
         } else {
@@ -697,8 +698,8 @@ public class WorkflowEngineService {
             pfn = buildProcFlowNode(flowNode);
             outline.addFlowNodes(pfn);
         }
-        
-        if(previous != null){
+
+        if (previous != null) {
             pfn.addPreviousFlowNodes(previous);
         }
 
@@ -708,7 +709,7 @@ public class WorkflowEngineService {
             ProcFlowNode childPfn = outline.findFlowNode(fn.getId());
             if (childPfn == null) {
                 populateFlowNodes(outline, fn, pfn);
-            }else{
+            } else {
                 pfn.addSucceedingFlowNodes(childPfn);
             }
         }
@@ -736,7 +737,7 @@ public class WorkflowEngineService {
             SubProcessAdditionalInfo info = new SubProcessAdditionalInfo();
             info.setSubProcessNodeId(dto.getNodeId());
             info.setSubProcessNodeName(dto.getNodeName());
-            
+
             info.setTimeoutExpression(convertIsoTimeFormat(dto));
 
             bpmnParseAttachment.addSubProcessAddtionalInfo(info);
@@ -750,8 +751,8 @@ public class WorkflowEngineService {
         if (StringUtils.isBlank(timeoutExpression)) {
             return timeoutExpression;
         }
-        
-        if(Constants.TASK_CATEGORY_SUTN.equalsIgnoreCase(dto.getTaskCategory())) {
+
+        if (Constants.TASK_CATEGORY_SUTN.equalsIgnoreCase(dto.getTaskCategory())) {
             return "PT9999H";
         }
 
