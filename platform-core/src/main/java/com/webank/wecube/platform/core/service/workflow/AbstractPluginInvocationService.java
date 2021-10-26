@@ -182,7 +182,7 @@ public abstract class AbstractPluginInvocationService extends AbstractWorkflowSe
      */
     public void handleProcessInstanceFaultedEndEvent(PluginInvocationCommand cmd) {
         if (log.isInfoEnabled()) {
-            log.info("handle end event:{}", cmd);
+            log.info("handle faulted end event:{}", cmd);
         }
 
         Date currTime = new Date();
