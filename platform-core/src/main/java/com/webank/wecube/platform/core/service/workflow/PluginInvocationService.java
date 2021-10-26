@@ -2531,8 +2531,13 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
                 .selectOneByProcInstIdAndNodeId(procInstEntity.getId(), bindNodeId);
 
         if (bindNodeInstEntity == null) {
-            log.error("Bound node instance entity does not exist for {} {}", procInstEntity.getId(), bindNodeId);
-            throw new WecubeCoreException("3171", "Bound node instance entity does not exist.");
+            if(Constants.FIELD_REQUIRED.equalsIgnoreCase(param.getRequired())) {
+                log.error("Bound node instance entity does not exist for {} {}", procInstEntity.getId(), bindNodeId);
+                throw new WecubeCoreException("3171", "Bound node instance entity does not exist.");
+            }else {
+                log.debug("Bound node instance entity does not exist for {} {}", procInstEntity.getId(), bindNodeId);
+                return;
+            }
         }
 
         if (TaskNodeDefInfoEntity.NODE_TYPE_START_EVENT.equalsIgnoreCase(bindNodeInstEntity.getNodeType())) {
@@ -2579,8 +2584,13 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
                 .selectOneByProcInstIdAndNodeId(procInstEntity.getId(), bindNodeId);
 
         if (bindNodeInstEntity == null) {
-            log.error("Bound node instance entity does not exist for {} {}", procInstEntity.getId(), bindNodeId);
-            throw new WecubeCoreException("3171", "Bound node instance entity does not exist.");
+            if(Constants.FIELD_REQUIRED.equalsIgnoreCase(param.getRequired())) {
+                log.error("Bound node instance entity does not exist for {} {}", procInstEntity.getId(), bindNodeId);
+                throw new WecubeCoreException("3171", "Bound node instance entity does not exist.");
+            }else {
+                log.debug("Bound node instance entity does not exist for {} {}", procInstEntity.getId(), bindNodeId);
+                return;
+            }
         }
 
         if (TaskNodeDefInfoEntity.NODE_TYPE_START_EVENT.equalsIgnoreCase(bindNodeInstEntity.getNodeType())) {
