@@ -38,7 +38,9 @@ public class InVmServiceInvocationEventResolver implements ServiceInvocationEven
             doResolveServiceInvocationEvent(event);
         } else if (ServiceInvocationEvent.EventType.PROCESS_END_NOTIFICATION == event.getEventType()) {
             doSendProcessEndNotification(event);
-        } else {
+        } else if(ServiceInvocationEvent.EventType.PROCESS_FAULTED_END_NOTIFICATION == event.getEventType()){
+            doSendProcessFaultedEndNotification(event);
+        }else {
             doProcessUnkownTypeEvent(event);
         }
     }
@@ -46,6 +48,12 @@ public class InVmServiceInvocationEventResolver implements ServiceInvocationEven
     protected void doProcessUnkownTypeEvent(ServiceInvocationEvent event) {
         log.warn("unkown type event,event={}", event);
         // the event will be discarded
+    }
+    
+    protected void doSendProcessFaultedEndNotification(ServiceInvocationEvent event) {
+        log.debug("resolve process faulted end notification type event, event={}", event);
+
+        resolveProcessInstanceFaultedEndEvent(event);
     }
 
     protected void doSendProcessEndNotification(ServiceInvocationEvent event) {
