@@ -628,6 +628,12 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
             log.info(errMsg);
             throw new WecubeCoreException(errMsg);
         }
+        
+        if(StringUtils.isBlank(entityValueDto.getEntityDataId())) {
+            String errMsg = String.format("Entity data ID is invalid in creation context for object id:%s", bindDataId);
+            log.info(errMsg);
+            throw new WecubeCoreException(errMsg);
+        }
 
         List<String> prevOids = entityValueDto.getPreviousOids();
         Map<String, DynamicEntityValueDto> prevEntityValueMaps = new HashMap<>();
