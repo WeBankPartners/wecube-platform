@@ -689,14 +689,20 @@ public class WorkflowPublicAccessService {
         return registerEntities;
     }
 
-    private RegisteredEntityDefDto buildRegisteredEntityDefDto(String rootEntity) {
-        if (StringUtils.isBlank(rootEntity)) {
+    private RegisteredEntityDefDto buildRegisteredEntityDefDto(String rootEntityExpr) {
+        if (StringUtils.isBlank(rootEntityExpr)) {
             return null;
         }
+        
+        if(rootEntityExpr.indexOf("{") >= 0) {
+            rootEntityExpr = rootEntityExpr.substring(0, rootEntityExpr.indexOf("{"));
+        }
+        
+        rootEntityExpr = rootEntityExpr.trim();
 
-        String[] rootEntityParts = rootEntity.split(":");
+        String[] rootEntityParts = rootEntityExpr.split(":");
         if (rootEntityParts.length != 2) {
-            log.info("Abnormal root entity string : {}", rootEntity);
+            log.info("Abnormal root entity string : {}", rootEntityExpr);
             return null;
         }
 
