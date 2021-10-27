@@ -347,7 +347,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
             tryProcessProcExecBindings(ctx, nodeObjectBindings, procInstEntity, taskNodeInstEntity, procDefInfoEntity,
                     taskNodeDefEntity, cmd);
         } finally {
-            tryRefreshProcExecContext(ctx, procInstEntity, taskNodeInstEntity, procDefInfoEntity, taskNodeDefEntity,
+            tryPersistProcExecContext(ctx, procInstEntity, taskNodeInstEntity, procDefInfoEntity, taskNodeDefEntity,
                     cmd);
         }
 
@@ -369,7 +369,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
         }
     }
 
-    private void tryRefreshProcExecContext(WorkflowInstCreationContext ctx, ProcInstInfoEntity procInstEntity,
+    private void tryPersistProcExecContext(WorkflowInstCreationContext ctx, ProcInstInfoEntity procInstEntity,
             TaskNodeInstInfoEntity taskNodeInstEntity, ProcDefInfoEntity procDefInfoEntity,
             TaskNodeDefInfoEntity taskNodeDefEntity, PluginInvocationCommand cmd) {
         String ctxJson = convertWorkflowInstCreationContextToJson(ctx);
