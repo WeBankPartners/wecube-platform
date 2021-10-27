@@ -350,7 +350,22 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
             tryPersistProcExecContext(ctx, procInstEntity, taskNodeInstEntity, procDefInfoEntity, taskNodeDefEntity,
                     cmd);
         }
+        
+        updateTaskNodeInstInfoEntityCompleted(taskNodeInstEntity);
+    }
+    
+    private void updateTaskNodeInstInfoEntityCompleted(TaskNodeInstInfoEntity taskNodeInstEntity) {
+        if (taskNodeInstEntity == null) {
+            return;
+        }
+        log.debug("mark task node instance {} as {}", taskNodeInstEntity.getId(),
+                TaskNodeInstInfoEntity.COMPLETED_STATUS);
 
+        taskNodeInstEntity.setStatus(TaskNodeInstInfoEntity.COMPLETED_STATUS);
+        taskNodeInstEntity.setUpdatedTime(new Date());
+        taskNodeInstEntity.setUpdatedBy(WorkflowConstants.DEFAULT_USER);
+
+        taskNodeInstInfoRepository.updateByPrimaryKeySelective(taskNodeInstEntity);
     }
 
     private void tryProcessProcExecBindings(WorkflowInstCreationContext ctx,
