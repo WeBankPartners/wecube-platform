@@ -350,14 +350,19 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
             tryPersistProcExecContext(ctx, procInstEntity, taskNodeInstEntity, procDefInfoEntity, taskNodeDefEntity,
                     cmd);
         }
-        
-        updateTaskNodeInstInfoEntityCompleted(taskNodeInstEntity);
+
+        updateTaskNodeInstCompleted(taskNodeInstEntity, cmd);
     }
-    
-    private void updateTaskNodeInstInfoEntityCompleted(TaskNodeInstInfoEntity taskNodeInstEntity) {
+
+    private void updateTaskNodeInstCompleted(TaskNodeInstInfoEntity taskNodeInstEntity, PluginInvocationCommand cmd) {
         if (taskNodeInstEntity == null) {
             return;
         }
+
+        PluginInvocationResult result = new PluginInvocationResult().parsePluginInvocationCommand(cmd);
+        result.setResultCode(RESULT_CODE_OK);
+        pluginInvocationResultService.responsePluginInterfaceInvocation(result);
+
         log.debug("mark task node instance {} as {}", taskNodeInstEntity.getId(),
                 TaskNodeInstInfoEntity.COMPLETED_STATUS);
 
@@ -643,8 +648,8 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
             log.info(errMsg);
             throw new WecubeCoreException(errMsg);
         }
-        
-        if(StringUtils.isBlank(entityValueDto.getEntityDataId())) {
+
+        if (StringUtils.isBlank(entityValueDto.getEntityDataId())) {
             String errMsg = String.format("Entity data ID is invalid in creation context for object id:%s", bindDataId);
             log.info(errMsg);
             throw new WecubeCoreException(errMsg);
