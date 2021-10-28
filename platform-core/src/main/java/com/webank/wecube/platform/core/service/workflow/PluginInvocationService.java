@@ -3082,7 +3082,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
                     sb.append(",");
                 }
 
-                sb.append(n.getEntityDataId());
+                sb.append(n.getEntityDataId()).append("/").append(n.getEntityDataName());
             }
 
             String errMsg = String.format(
