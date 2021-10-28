@@ -21,14 +21,15 @@
         <result column="multiple" property="multiple" jdbcType="VARCHAR" />
         <result column="created_time" jdbcType="TIMESTAMP"
             property="createdTime" />
+        <result column="order_no" jdbcType="INTEGER" property="orderNo" />
     </resultMap>
     <sql id="Base_Column_List">
         id, entity_id, reference_id, name, description,
-        data_type,ref_package,ref_entity,ref_attr,mandatory,multiple,created_time
+        data_type,ref_package,ref_entity,ref_attr,mandatory,multiple,created_time,order_no
     </sql>
     <sql id="Base_Column_List_T1">
         t1.id, t1.entity_id, t1.reference_id, t1.name, t1.description,
-        t1.data_type,t1.ref_package,t1.ref_entity,t1.ref_attr,t1.mandatory,t1.multiple
+        t1.data_type,t1.ref_package,t1.ref_entity,t1.ref_attr,t1.mandatory,t1.multiple,t1.order_no
     </sql>
     <select id="selectByPrimaryKey" resultMap="BaseResultMap"
         parameterType="java.lang.String">
@@ -57,7 +58,8 @@
         ref_attr,
         mandatory,
         multiple,
-        created_time
+        created_time,
+        order_no
         )
         values
         (
@@ -72,7 +74,8 @@
         #{refAttr,jdbcType=VARCHAR},
         #{mandatory,jdbcType=VARCHAR},
         #{multiple,jdbcType=VARCHAR},
-        #{createdTime,jdbcType=TIMESTAMP}
+        #{createdTime,jdbcType=TIMESTAMP},
+        #{orderNo,jdbcType=INTEGER}
         )
     </insert>
     <insert id="insertSelective"
@@ -115,6 +118,9 @@
             <if test="createdTime != null">
                 created_time,
             </if>
+            <if test="orderNo != null">
+                order_no,
+            </if>
         </trim>
         <trim prefix="values (" suffix=")" suffixOverrides=",">
             <if test="id != null">
@@ -152,6 +158,9 @@
             </if>
             <if test="createdTime != null">
                 #{createdTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="orderNo != null">
+                #{orderNo,jdbcType=INTEGER},
             </if>
         </trim>
     </insert>
@@ -222,7 +231,7 @@
         from plugin_package_attributes
         where entity_id =
         #{entityId,jdbcType=VARCHAR}
-        order by created_time
+        order by order_no
     </select>
 
     <select id="selectAllReferences" resultMap="BaseResultMap"
@@ -264,6 +273,6 @@
             AND t3.name = #{entityName,jdbcType=VARCHAR}
             GROUP BY t3.package_name,t3.name
         )
-        order by t1.created_time
+        order by t1.order_no
     </select>
 </mapper>
