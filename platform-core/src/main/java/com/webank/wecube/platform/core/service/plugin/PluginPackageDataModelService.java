@@ -1,6 +1,7 @@
 package com.webank.wecube.platform.core.service.plugin;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -958,6 +959,7 @@ public class PluginPackageDataModelService {
 
         PluginPackageAttributes attrEntity = new PluginPackageAttributes();
         attrEntity.setId(LocalIdGenerator.generateId());
+        attrEntity.setCreatedTime(new Date());
         attrEntity.setDataType(attrDto.getDataType());
         attrEntity.setDescription(attrDto.getDescription());
         attrEntity.setEntityId(entitiesEntity.getId());
