@@ -1097,7 +1097,8 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
             }
 
         } else {
-            nodeObjectBindings = retrieveProcExecBindingEntities(taskNodeInstEntity);
+            nodeObjectBindings = retrieveSystemAutomationProcExecBindingEntities(taskNodeDefEntity, procInstEntity,
+                    taskNodeInstEntity, cmd, externalCacheMap);
         }
 
         PluginConfigInterfaces pluginConfigInterface = retrievePluginConfigInterface(taskNodeDefEntity,
@@ -1252,6 +1253,54 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
         }
 
         return bindEntities;
+    }
+
+    private List<ProcExecBindingEntity> calculateLatestTaskNodeExecBindings(TaskNodeDefInfoEntity taskNodeDefEntity,
+            ProcInstInfoEntity procInstEntity, TaskNodeInstInfoEntity taskNodeInstEntity, PluginInvocationCommand cmd,
+            Map<Object, Object> cacheMap) {
+        int procInstId = procInstEntity.getId();
+//        int nodeInstId = taskNodeInstEntity.getId();
+        List<ProcExecBindingEntity> entities = new ArrayList<>();
+
+        ProcExecBindingEntity procInstBinding = procExecBindingMapper.selectProcInstBindings(procInstId);
+        if (procInstBinding == null) {
+            log.info("cannot find process instance exec binding for {}", procInstId);
+            return entities;
+        }
+
+        String rootDataId = procInstBinding.getEntityDataId();
+
+        if (StringUtils.isBlank(rootDataId)) {
+            log.info("root data id is blank for process instance {}", procInstId);
+            return entities;
+        }
+        String routineExpr = calculateDataModelExpression(taskNodeDefEntity);
+
+        if (StringUtils.isBlank(routineExpr)) {
+            log.info("the routine expression is blank for {} {}", taskNodeDefEntity.getId(),
+                    taskNodeDefEntity.getNodeName());
+            return entities;
+        }
+
+        log.info("About to fetch data for node {} {} with expression {} and data id {}", taskNodeDefEntity.getId(),
+                taskNodeDefEntity.getNodeName(), routineExpr, rootDataId);
+        EntityOperationRootCondition condition = new EntityOperationRootCondition(routineExpr, rootDataId);
+        try {
+            EntityTreeNodesOverview overview = entityOperationService.generateEntityLinkOverview(condition, cacheMap);
+
+            List<ProcExecBindingEntity> boundEntities = calDynamicLeafNodeEntityNodesBindings(taskNodeDefEntity,
+                    procInstEntity, taskNodeInstEntity, overview.getLeafNodeEntityNodes());
+
+            log.info("DYNAMIC BINDING:total {} entities bound for {}-{}-{}", boundEntities.size(),
+                    taskNodeInstEntity.getNodeDefId(), taskNodeInstEntity.getNodeName(), taskNodeInstEntity.getId());
+            return boundEntities;
+        } catch (Exception e) {
+            String errMsg = String.format("Errors while fetching data for node %s %s with expr %s and data id %s",
+                    taskNodeDefEntity.getId(), taskNodeDefEntity.getNodeName(), routineExpr, rootDataId);
+            log.error(errMsg, e);
+            throw new WecubeCoreException("3191", errMsg, taskNodeDefEntity.getId(), taskNodeDefEntity.getNodeName(),
+                    routineExpr, rootDataId);
+        }
     }
 
     private List<ProcExecBindingEntity> dynamicCalculateTaskNodeExecBindingsFromCmdb(
@@ -2990,6 +3039,97 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
         }
 
         return pluginConfigInterface;
+    }
+
+    private List<ProcExecBindingEntity> retrieveSystemAutomationProcExecBindingEntities(
+            TaskNodeDefInfoEntity taskNodeDefEntity, ProcInstInfoEntity procInstEntity,
+            TaskNodeInstInfoEntity taskNodeInstEntity, PluginInvocationCommand cmd, Map<Object, Object> cacheMap) {
+        List<ProcExecBindingEntity> nodeObjectBindings = procExecBindingMapper
+                .selectAllBoundTaskNodeBindings(taskNodeInstEntity.getProcInstId(), taskNodeInstEntity.getId());
+
+        if (nodeObjectBindings == null) {
+            log.info("node object bindings is empty for {} {}", taskNodeInstEntity.getProcInstId(),
+                    taskNodeInstEntity.getId());
+            nodeObjectBindings = new ArrayList<>();
+        }
+
+        if (nodeObjectBindings.isEmpty()) {
+            return nodeObjectBindings;
+        }
+
+        if (isDynamicBindTaskNode(taskNodeDefEntity) && isBoundTaskNodeInst(taskNodeInstEntity)) {
+            return nodeObjectBindings;
+        }
+
+        List<ProcExecBindingEntity> latestNodeObjectBindings = calculateSystemAutomationTaskNodeExecBindings(
+                taskNodeDefEntity, procInstEntity, taskNodeInstEntity, cmd, cacheMap);
+
+        List<ProcExecBindingEntity> invalidNodeObjectBindings = new ArrayList<>();
+
+        for (ProcExecBindingEntity nodeObjectBinding : nodeObjectBindings) {
+            if (!containsInLatestNodeObjectBindings(nodeObjectBinding, latestNodeObjectBindings)) {
+                invalidNodeObjectBindings.add(nodeObjectBinding);
+            }
+        }
+
+        if (!invalidNodeObjectBindings.isEmpty()) {
+            StringBuilder sb = new StringBuilder();
+            boolean isFirst = true;
+            for (ProcExecBindingEntity n : invalidNodeObjectBindings) {
+                if (isFirst) {
+                    isFirst = false;
+                } else {
+                    sb.append(",");
+                }
+
+                sb.append(n.getEntityDataId());
+            }
+
+            String errMsg = String.format(
+                    "The following bindings are NOT appropriate as the entity states changed.[%s]", sb.toString());
+            throw new WecubeCoreException(errMsg);
+        }
+
+        return nodeObjectBindings;
+    }
+
+    private boolean containsInLatestNodeObjectBindings(ProcExecBindingEntity nodeObjectBinding,
+            List<ProcExecBindingEntity> latestNodeObjectBindings) {
+        if (latestNodeObjectBindings == null || latestNodeObjectBindings.isEmpty()) {
+            log.debug("latest node bindings is empty.");
+            return false;
+        }
+
+        if (StringUtils.isBlank(nodeObjectBinding.getEntityDataId())) {
+            return false;
+        }
+
+        for (ProcExecBindingEntity latestNodeObjectBinding : latestNodeObjectBindings) {
+
+            if (nodeObjectBinding.getEntityDataId().equals(latestNodeObjectBinding.getEntityDataId())) {
+                log.debug("entity data id :{} found", nodeObjectBinding.getEntityDataId());
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private List<ProcExecBindingEntity> calculateSystemAutomationTaskNodeExecBindings(
+            TaskNodeDefInfoEntity taskNodeDefEntity, ProcInstInfoEntity procInstEntity,
+            TaskNodeInstInfoEntity taskNodeInstEntity, PluginInvocationCommand cmd, Map<Object, Object> cacheMap) {
+
+        List<ProcExecBindingEntity> latestNodeObjectBindings =
+
+                calculateLatestTaskNodeExecBindings(taskNodeDefEntity, procInstEntity, taskNodeInstEntity, cmd,
+                        cacheMap);
+
+        if (latestNodeObjectBindings == null) {
+            latestNodeObjectBindings = new ArrayList<>();
+        }
+
+        return latestNodeObjectBindings;
+
     }
 
     private List<ProcExecBindingEntity> retrieveProcExecBindingEntities(TaskNodeInstInfoEntity taskNodeInstEntity) {
