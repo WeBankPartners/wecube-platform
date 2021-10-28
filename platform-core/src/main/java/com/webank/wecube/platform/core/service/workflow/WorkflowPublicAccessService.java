@@ -766,6 +766,7 @@ public class WorkflowPublicAccessService {
         attrDto.setRefPackageName(attr.getRefPackage());
 
         attrDto.setReferenceId(attr.getReferenceId());
+        attrDto.setOrderNo(String.valueOf(attr.getOrderNo()));
 
         return attrDto;
     }
