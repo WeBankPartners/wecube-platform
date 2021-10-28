@@ -861,6 +861,7 @@ public class PluginPackageDataModelService {
                 mandatoryStr = mandatory?"Y":"N";
             }
             attrDto.setMandatory(mandatoryStr);
+            attrDto.setOrderNo(String.valueOf(attrEntity.getOrderNo()));
 
             entityDto.getAttributes().add(attrDto);
         }
@@ -945,14 +946,16 @@ public class PluginPackageDataModelService {
             return;
         }
 
+        int orderNo = 0;
         for (DynamicEntityAttributeDto attrDto : attributeDtos) {
-            storeSingleDynamicEntityAttribute(newDataModelEntity, entitiesEntity, attrDto);
+            storeSingleDynamicEntityAttribute(newDataModelEntity, entitiesEntity, attrDto, orderNo);
+            orderNo++;
         }
 
     }
 
     private void storeSingleDynamicEntityAttribute(PluginPackageDataModel newDataModelEntity,
-            PluginPackageEntities entitiesEntity, DynamicEntityAttributeDto attrDto) {
+            PluginPackageEntities entitiesEntity, DynamicEntityAttributeDto attrDto,int orderNo) {
         if (attrDto == null) {
             return;
         }
@@ -960,6 +963,7 @@ public class PluginPackageDataModelService {
         PluginPackageAttributes attrEntity = new PluginPackageAttributes();
         attrEntity.setId(LocalIdGenerator.generateId());
         attrEntity.setCreatedTime(new Date());
+        attrEntity.setOrderNo(orderNo);
         attrEntity.setDataType(attrDto.getDataType());
         attrEntity.setDescription(attrDto.getDescription());
         attrEntity.setEntityId(entitiesEntity.getId());
