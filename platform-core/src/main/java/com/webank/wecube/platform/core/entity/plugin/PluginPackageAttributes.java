@@ -26,6 +26,7 @@ public class PluginPackageAttributes {
     private String multiple;
     
     private Date createdTime;
+    private Integer orderNo;
 
     private transient PluginPackageEntities pluginPackageEntities;
 
@@ -141,6 +142,14 @@ public class PluginPackageAttributes {
 
     public void setCreatedTime(Date createdTime) {
         this.createdTime = createdTime;
+    }
+
+    public Integer getOrderNo() {
+        return orderNo;
+    }
+
+    public void setOrderNo(Integer orderNo) {
+        this.orderNo = orderNo;
     }
 
     
