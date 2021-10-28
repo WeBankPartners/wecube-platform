@@ -44,6 +44,7 @@ import com.webank.wecube.platform.core.repository.plugin.PluginPackageAttributes
 import com.webank.wecube.platform.core.repository.plugin.PluginPackageDataModelMapper;
 import com.webank.wecube.platform.core.repository.plugin.PluginPackageEntitiesMapper;
 import com.webank.wecube.platform.core.repository.plugin.PluginPackagesMapper;
+import com.webank.wecube.platform.core.utils.JsonUtils;
 import com.webank.wecube.platform.workflow.commons.LocalIdGenerator;
 
 @Service
@@ -251,6 +252,9 @@ public class PluginPackageDataModelService {
         if (dynamicPluginPackageEntityDtos == null || dynamicPluginPackageEntityDtos.isEmpty()) {
             return dataModelDto;
         }
+        
+        log.debug("Dynamic data models:");
+        log.debug(JsonUtils.toJsonString(dynamicPluginPackageEntityDtos));
 
         int newDataModelVersion = dataModel.getVersion() + 1;
         PluginPackageDataModel newDataModelEntity = new PluginPackageDataModel();
