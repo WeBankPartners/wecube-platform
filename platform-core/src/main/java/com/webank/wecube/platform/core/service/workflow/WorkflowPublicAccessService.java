@@ -284,6 +284,8 @@ public class WorkflowPublicAccessService {
         if (creationInfoDto == null) {
             throw new WecubeCoreException("Workflow instance creation infomation must provide.");
         }
+        
+        validateDynamicWorkflowInstCreationInfo(creationInfoDto);
 
         StartProcInstRequestDto requestDto = calculateStartProcInstContext(creationInfoDto);
         ProcInstInfoDto createdProcInstInfoDto = workflowProcInstService.createProcessInstance(requestDto);
@@ -312,6 +314,18 @@ public class WorkflowPublicAccessService {
         procExecContextMapper.insert(contextEntity);
 
         return resultDto;
+    }
+
+    private void validateDynamicWorkflowInstCreationInfo(DynamicWorkflowInstCreationInfoDto creationInfoDto) {
+        if (creationInfoDto.getRootEntityValue() == null) {
+            throw new WecubeCoreException("Root entity must provide to initialize a new process instance.");
+        }
+        
+        if(StringUtils.isBlank(creationInfoDto.getRootEntityValue().getOid())) {
+            throw new WecubeCoreException("The OID of root entity must provide to initialize a new process instance.");
+        }
+        
+        return;
     }
 
     private WorkflowInstCreationContext buildWorkflowInstCreationContext(DynamicWorkflowInstCreationInfoDto dto) {
@@ -693,11 +707,11 @@ public class WorkflowPublicAccessService {
         if (StringUtils.isBlank(rootEntityExpr)) {
             return null;
         }
-        
-        if(rootEntityExpr.indexOf("{") >= 0) {
+
+        if (rootEntityExpr.indexOf("{") >= 0) {
             rootEntityExpr = rootEntityExpr.substring(0, rootEntityExpr.indexOf("{"));
         }
-        
+
         rootEntityExpr = rootEntityExpr.trim();
 
         String[] rootEntityParts = rootEntityExpr.split(":");
