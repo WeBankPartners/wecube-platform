@@ -721,6 +721,7 @@ public class PluginArtifactsMgmtService extends AbstractPluginMgmtService {
             for (AttributeType xmlAttribute : xmlAttributeList) {
                 PluginPackageAttributes attributeEntity = new PluginPackageAttributes();
                 attributeEntity.setId(LocalIdGenerator.generateId());
+                attributeEntity.setCreatedTime(new Date());
                 attributeEntity.setDataType(xmlAttribute.getDatatype());
                 attributeEntity.setDescription(xmlAttribute.getDescription());
                 attributeEntity.setEntityId(entity.getId());
