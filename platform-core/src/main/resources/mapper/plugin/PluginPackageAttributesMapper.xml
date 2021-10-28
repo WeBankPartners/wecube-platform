@@ -212,6 +212,7 @@
         from plugin_package_attributes
         where entity_id =
         #{entityId,jdbcType=VARCHAR}
+        order by id
     </select>
 
     <select id="selectAllReferences" resultMap="BaseResultMap"
@@ -253,5 +254,6 @@
             AND t3.name = #{entityName,jdbcType=VARCHAR}
             GROUP BY t3.package_name,t3.name
         )
+        order by t1.id
     </select>
 </mapper>
