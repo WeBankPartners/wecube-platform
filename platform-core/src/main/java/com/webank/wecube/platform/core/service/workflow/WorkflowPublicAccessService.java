@@ -123,7 +123,8 @@ public class WorkflowPublicAccessService {
      * @param rootEntityDataId
      * @return
      */
-    public ProcessDataPreviewDto calculateProcessDataPreview(String procDefId, String rootEntityDataId, boolean needAddIntfFilters) {
+    public ProcessDataPreviewDto calculateProcessDataPreview(String procDefId, String rootEntityDataId,
+            boolean needAddIntfFilters) {
         if (StringUtils.isBlank(procDefId) || StringUtils.isBlank(rootEntityDataId)) {
             throw new WecubeCoreException("3189", "Process definition ID or entity ID is not provided.");
         }
@@ -136,7 +137,8 @@ public class WorkflowPublicAccessService {
                     String.format("Such process definition {%s} does not exist.", procDefId), procDefId);
         }
 
-        ProcessDataPreviewDto previewDto = doCalculateProcessPreviewData(procDefOutline, rootEntityDataId, true, needAddIntfFilters);
+        ProcessDataPreviewDto previewDto = doCalculateProcessPreviewData(procDefOutline, rootEntityDataId, true,
+                needAddIntfFilters);
 
         return previewDto;
     }
@@ -259,6 +261,7 @@ public class WorkflowPublicAccessService {
 
             nodeDto.setRoutineExp(nodeDefInfo.getRoutineExp());
             nodeDto.setTaskCategory(nodeDefInfo.getTaskCategory());
+            nodeDto.setOrderedNo(nodeDefInfo.getOrderedNo());
 
             List<RegisteredEntityDefDto> boundEntities = buildTaskNodeBoundEntities(nodeDefInfo);
 
@@ -281,6 +284,8 @@ public class WorkflowPublicAccessService {
         if (creationInfoDto == null) {
             throw new WecubeCoreException("Workflow instance creation infomation must provide.");
         }
+        
+        validateDynamicWorkflowInstCreationInfo(creationInfoDto);
 
         StartProcInstRequestDto requestDto = calculateStartProcInstContext(creationInfoDto);
         ProcInstInfoDto createdProcInstInfoDto = workflowProcInstService.createProcessInstance(requestDto);
@@ -311,6 +316,18 @@ public class WorkflowPublicAccessService {
         return resultDto;
     }
 
+    private void validateDynamicWorkflowInstCreationInfo(DynamicWorkflowInstCreationInfoDto creationInfoDto) {
+        if (creationInfoDto.getRootEntityValue() == null) {
+            throw new WecubeCoreException("Root entity must provide to initialize a new process instance.");
+        }
+        
+        if(StringUtils.isBlank(creationInfoDto.getRootEntityValue().getOid())) {
+            throw new WecubeCoreException("The OID of root entity must provide to initialize a new process instance.");
+        }
+        
+        return;
+    }
+
     private WorkflowInstCreationContext buildWorkflowInstCreationContext(DynamicWorkflowInstCreationInfoDto dto) {
         WorkflowInstCreationContext ctx = new WorkflowInstCreationContext();
         ctx.setProcDefId(dto.getProcDefId());
@@ -337,6 +354,7 @@ public class WorkflowPublicAccessService {
                 bindCtx.setNodeId(dynamicBindInfoDto.getNodeId());
                 bindCtx.setNodeDefId(dynamicBindInfoDto.getNodeDefId());
 
+                ctx.addEntity(entityValueDto);
                 ctx.addBinding(bindCtx);
             }
         }
@@ -400,7 +418,7 @@ public class WorkflowPublicAccessService {
         EntityQueryCriteria c = new EntityQueryCriteria();
         c.setAttrName("id");
         c.setCondition(entityNode.getDataId());
-        
+
         querySpec.setCriteria(c);
 
         StandardEntityOperationResponseDto respDto = client.query(entityRoute, querySpec);
@@ -612,8 +630,13 @@ public class WorkflowPublicAccessService {
 
     private StartProcInstRequestDto calculateStartProcInstContext(DynamicWorkflowInstCreationInfoDto creationInfoDto) {
         StartProcInstRequestDto requestDto = new StartProcInstRequestDto();
-        requestDto.setEntityDataId(creationInfoDto.getRootEntityValue().getEntityDataId());
-        requestDto.setEntityDisplayName(null);// TODO
+        if (StringUtils.isBlank(creationInfoDto.getRootEntityValue().getEntityDataId())) {
+            requestDto.setEntityDataId(
+                    Constants.TEMPORARY_ENTITY_ID_PREFIX + creationInfoDto.getRootEntityValue().getOid());
+        } else {
+            requestDto.setEntityDataId(creationInfoDto.getRootEntityValue().getEntityDataId());
+        }
+        requestDto.setEntityDisplayName(creationInfoDto.getRootEntityValue().getEntityDisplayName());
         requestDto.setEntityTypeId(creationInfoDto.getRootEntityValue().getPackageName() + ":"
                 + creationInfoDto.getRootEntityValue().getEntityName());
         requestDto.setProcDefId(creationInfoDto.getProcDefId());
@@ -633,15 +656,15 @@ public class WorkflowPublicAccessService {
                 TaskNodeDefObjectBindInfoDto bindDto = new TaskNodeDefObjectBindInfoDto();
                 bindDto.setBound(ProcExecBindingEntity.BIND_FLAG_YES);
                 if (StringUtils.isBlank(entityValueDto.getEntityDataId())) {
-                    bindDto.setEntityDataId("OID-" + entityValueDto.getOid());
+                    bindDto.setEntityDataId(Constants.TEMPORARY_ENTITY_ID_PREFIX + entityValueDto.getOid());
                 } else {
                     bindDto.setEntityDataId(entityValueDto.getEntityDataId());
                 }
-                bindDto.setEntityDisplayName(null);
+                bindDto.setEntityDisplayName(entityValueDto.getEntityDisplayName());
                 bindDto.setEntityTypeId(entityValueDto.getPackageName() + ":" + entityValueDto.getEntityName());
                 bindDto.setNodeDefId(dynamicBindInfoDto.getNodeDefId());
                 bindDto.setOrderedNo("");// TODO
-                bindDto.setFullEntityDataId(null);// TODO
+                bindDto.setFullEntityDataId(entityValueDto.getFullEntityDataId());
 
                 taskNodeBinds.add(bindDto);
             }
@@ -680,14 +703,20 @@ public class WorkflowPublicAccessService {
         return registerEntities;
     }
 
-    private RegisteredEntityDefDto buildRegisteredEntityDefDto(String rootEntity) {
-        if (StringUtils.isBlank(rootEntity)) {
+    private RegisteredEntityDefDto buildRegisteredEntityDefDto(String rootEntityExpr) {
+        if (StringUtils.isBlank(rootEntityExpr)) {
             return null;
         }
 
-        String[] rootEntityParts = rootEntity.split(":");
+        if (rootEntityExpr.indexOf("{") >= 0) {
+            rootEntityExpr = rootEntityExpr.substring(0, rootEntityExpr.indexOf("{"));
+        }
+
+        rootEntityExpr = rootEntityExpr.trim();
+
+        String[] rootEntityParts = rootEntityExpr.split(":");
         if (rootEntityParts.length != 2) {
-            log.info("Abnormal root entity string : {}", rootEntity);
+            log.info("Abnormal root entity string : {}", rootEntityExpr);
             return null;
         }
 
@@ -737,6 +766,7 @@ public class WorkflowPublicAccessService {
         attrDto.setRefPackageName(attr.getRefPackage());
 
         attrDto.setReferenceId(attr.getReferenceId());
+        attrDto.setOrderNo(String.valueOf(attr.getOrderNo()));
 
         return attrDto;
     }

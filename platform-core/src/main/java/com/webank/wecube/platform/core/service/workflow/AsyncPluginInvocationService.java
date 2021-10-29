@@ -12,6 +12,8 @@ import com.webank.wecube.platform.core.commons.WecubeCoreException;
 import com.webank.wecube.platform.core.dto.workflow.PluginAsyncInvocationResultDto;
 import com.webank.wecube.platform.core.entity.plugin.PluginConfigInterfaceParameters;
 import com.webank.wecube.platform.core.entity.plugin.PluginConfigInterfaces;
+import com.webank.wecube.platform.core.entity.plugin.PluginPackageAttributes;
+import com.webank.wecube.platform.core.entity.plugin.PluginPackageEntities;
 import com.webank.wecube.platform.core.entity.workflow.ProcExecContextEntity;
 import com.webank.wecube.platform.core.entity.workflow.TaskNodeDefInfoEntity;
 import com.webank.wecube.platform.core.entity.workflow.TaskNodeExecParamEntity;
@@ -363,14 +365,28 @@ public class AsyncPluginInvocationService extends AbstractPluginInvocationServic
             return;
         }
 
+        PluginPackageEntities entityDef = fetchEnrichedPluginPackageEntities(existingEntityValue.getPackageName(),
+                existingEntityValue.getEntityName());
+        if (entityDef == null) {
+            log.info("Can not find entity definition:{}:{}", existingEntityValue.getPackageName(),
+                    existingEntityValue.getEntityName());
+        }
+
         for (TaskFormItemValueDto formItemValue : formItemValues) {
             String attrName = formItemValue.getAttrName();
             DynamicEntityAttrValueDto existingAttrValue = existingEntityValue.findAttrValue(attrName);
             if (existingAttrValue == null) {
+                PluginPackageAttributes attrDef = fetchPluginPackageAttributes(entityDef, attrName);
+                String attrDefId = null;
+                String dataType = null;
+                if (attrDef != null) {
+                    attrDefId = attrDef.getId();
+                    dataType = attrDef.getDataType();
+                }
                 existingAttrValue = new DynamicEntityAttrValueDto();
-                existingAttrValue.setAttrDefId(null);
+                existingAttrValue.setAttrDefId(attrDefId);
                 existingAttrValue.setAttrName(attrName);
-                existingAttrValue.setDataType(null);
+                existingAttrValue.setDataType(dataType);
                 existingAttrValue.setDataValue(formItemValue.getAttrValue());
 
                 existingEntityValue.addAttrValue(existingAttrValue);
