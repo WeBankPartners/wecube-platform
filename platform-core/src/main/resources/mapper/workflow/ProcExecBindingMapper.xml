@@ -732,4 +732,15 @@
             </if>
         
     </select>
+    
+    <select id="selectAllTaskNodeBindingsByProcInstIdAndDataId"
+        resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List" />
+        from core_ru_proc_exec_binding
+        where proc_inst_id =
+        #{procInstId,jdbcType=INTEGER}
+        and bind_type = 'taskNode'
+        and entity_data_id = #{entityDataId, jdbcType=VARCHAR}
+    </select>
 </mapper>
