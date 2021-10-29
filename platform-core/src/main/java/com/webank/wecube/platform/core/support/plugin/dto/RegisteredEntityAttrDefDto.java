@@ -12,6 +12,8 @@ public class RegisteredEntityAttrDefDto {
     private String refAttrName;
 
     private String referenceId;
+    
+    private String orderNo;
 
     public String getId() {
         return id;
@@ -83,6 +85,16 @@ public class RegisteredEntityAttrDefDto {
 
     public void setReferenceId(String referenceId) {
         this.referenceId = referenceId;
+    }
+    
+    
+
+    public String getOrderNo() {
+        return orderNo;
+    }
+
+    public void setOrderNo(String orderNo) {
+        this.orderNo = orderNo;
     }
 
     @Override
