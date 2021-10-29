@@ -409,6 +409,50 @@ public class PluginConfigMigrationService {
 
         return xmlIntf.getOutputParameters().getParameter();
     }
+    
+    private PluginConfigInterfaces tryUpdatePluginConfigInterfaceDefinition(PluginPackages pluginPackage,
+            PluginConfigs existPluginConfig, PluginConfigInterfaces toUpdateIntfDef, PluginConfigInterfaceType xmlIntf) {
+        if (xmlIntf == null) {
+            return toUpdateIntfDef;
+        }
+        
+        //TODO
+
+        toUpdateIntfDef.setFilterRule(xmlIntf.getFilterRule());
+
+        List<PluginConfigInputParameterType> xmlInputParameters = getXmlInputParameters(xmlIntf);
+
+        List<PluginConfigInterfaceParameters> inputParameters = pluginConfigInterfaceParametersMapper
+                .selectAllByConfigInterfaceAndParamType(toUpdateIntfDef.getId(), Constants.TYPE_INPUT);
+
+        for(PluginConfigInterfaceParameters inputParam : inputParameters) {
+            PluginConfigInputParameterType xmlInputParam = tryPickoutXmlInputParam(xmlInputParameters, inputParam.getName());
+            if(xmlInputParam != null) {
+                tryUpdatePluginConfigInterfaceInputParameter(existPluginConfig, toUpdateIntf, inputParam,
+                        xmlInputParam);
+            }
+        }
+
+        List<PluginConfigOutputParameterType> xmlOutputParameters = getXmlOutputParameters(xmlIntf);
+        List<PluginConfigInterfaceParameters> outputParameters = pluginConfigInterfaceParametersMapper
+                .selectAllByConfigInterfaceAndParamType(toUpdateIntf.getId(), Constants.TYPE_OUTPUT);
+
+        
+        for(PluginConfigInterfaceParameters outputParam : outputParameters) {
+            PluginConfigOutputParameterType xmlOutputParam = tryPickoutXmlOutputParam(xmlOutputParameters, outputParam.getName());
+            if(xmlOutputParam != null) {
+                tryUpdatePluginConfigInterfaceOutputParameter(existPluginConfig, toUpdateIntf, outputParam,
+                        xmlOutputParam);
+            }
+        }
+
+        toUpdateIntf.setServiceDisplayName(toUpdateIntf.generateServiceName(pluginPackage, existPluginConfig));
+        toUpdateIntf.setServiceName(toUpdateIntf.generateServiceName(pluginPackage, existPluginConfig));
+
+        pluginConfigInterfacesMapper.updateByPrimaryKeySelective(toUpdateIntf);
+
+        return toUpdateIntf;
+    }
 
     private PluginConfigInterfaces tryUpdatePluginConfigInterface(PluginPackages pluginPackage,
             PluginConfigs existPluginConfig, PluginConfigInterfaces toUpdateIntf, PluginConfigInterfaceType xmlIntf) {
@@ -1034,24 +1078,24 @@ public class PluginConfigMigrationService {
             return;
         }
 
-        List<PluginConfigInterfaces> toUpdateInterfaces = pluginConfigInterfacesMapper
+        List<PluginConfigInterfaces> toUpdateInterfaceDefs = pluginConfigInterfacesMapper
                 .selectAllByPluginConfig(dbPluginConfigDef.getId());
 
         for (PluginConfigInterfaceType xmlIntf : xmlIntfList) {
             if (StringUtils.isBlank(xmlIntf.getAction())) {
                 throw new WecubeCoreException("3235", "Action of interface cannot be blank.");
             }
-            PluginConfigInterfaces toUpdateIntf = pickoutPluginConfigInterface(toUpdateInterfaces, xmlIntf.getAction(),
+            PluginConfigInterfaces toUpdateIntfDef = pickoutPluginConfigInterface(toUpdateInterfaceDefs, xmlIntf.getAction(),
                     xmlIntf.getPath());
-            if (toUpdateIntf == null) {
+            if (toUpdateIntfDef == null) {
                 log.info("interface doesnot exist and try to create one,{} {}", dbPluginConfigDef.getId(),
                         xmlIntf.getAction());
 
-                toUpdateIntf = tryCreatePluginConfigInterfaceDefinition(pluginPackage, dbPluginConfigDef, xmlIntf);
+                toUpdateIntfDef = tryCreatePluginConfigInterfaceDefinition(pluginPackage, dbPluginConfigDef, xmlIntf);
 
             } else {
                 log.info("interface exists and try to update,{} {}", dbPluginConfigDef.getId(), xmlIntf.getAction());
-                tryUpdatePluginConfigInterface(pluginPackage, dbPluginConfigDef, toUpdateIntf, xmlIntf);
+                tryUpdatePluginConfigInterfaceDefinition(pluginPackage, dbPluginConfigDef, toUpdateIntfDef, xmlIntf);
             }
         }
     }
