@@ -12,7 +12,7 @@
     <artifactId>platform-core</artifactId>
 
     <properties>
-        <app.version>3.2.0</app.version>
+        <app.version>3.2.1</app.version>
     </properties>
 
     <dependencyManagement>
