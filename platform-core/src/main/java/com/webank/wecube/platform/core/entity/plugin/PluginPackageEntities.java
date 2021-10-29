@@ -3,6 +3,8 @@ package com.webank.wecube.platform.core.entity.plugin;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.commons.lang3.StringUtils;
+
 public class PluginPackageEntities {
     private String id;
 
@@ -92,6 +94,24 @@ public class PluginPackageEntities {
 
     public void setPluginPackageAttributes(List<PluginPackageAttributes> pluginPackageAttributes) {
         this.pluginPackageAttributes = pluginPackageAttributes;
+    }
+    
+    public PluginPackageAttributes getPluginPackageAttributesByAttrName(String attrName) {
+        if(StringUtils.isBlank(attrName)) {
+            return null;
+        }
+        
+        if(this.pluginPackageAttributes == null || this.pluginPackageAttributes.isEmpty()) {
+            return null;
+        }
+        
+        for(PluginPackageAttributes a : this.pluginPackageAttributes) {
+            if(attrName.equals(a.getName())) {
+                return a;
+            }
+        }
+        
+        return null;
     }
 
 }

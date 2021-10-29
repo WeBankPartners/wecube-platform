@@ -19,6 +19,8 @@ import com.webank.wecube.platform.core.commons.ApplicationProperties;
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
 import com.webank.wecube.platform.core.entity.plugin.PluginConfigInterfaceParameters;
 import com.webank.wecube.platform.core.entity.plugin.PluginConfigInterfaces;
+import com.webank.wecube.platform.core.entity.plugin.PluginPackageAttributes;
+import com.webank.wecube.platform.core.entity.plugin.PluginPackageEntities;
 import com.webank.wecube.platform.core.entity.workflow.ProcExecBindingEntity;
 import com.webank.wecube.platform.core.entity.workflow.ProcExecContextEntity;
 import com.webank.wecube.platform.core.entity.workflow.ProcInstInfoEntity;
@@ -28,6 +30,8 @@ import com.webank.wecube.platform.core.model.workflow.PluginInvocationCommand;
 import com.webank.wecube.platform.core.model.workflow.WorkflowInstCreationContext;
 import com.webank.wecube.platform.core.model.workflow.WorkflowNotifyEvent;
 import com.webank.wecube.platform.core.repository.plugin.PluginConfigInterfaceParametersMapper;
+import com.webank.wecube.platform.core.repository.plugin.PluginPackageAttributesMapper;
+import com.webank.wecube.platform.core.repository.plugin.PluginPackageEntitiesMapper;
 import com.webank.wecube.platform.core.repository.workflow.ExtraTaskMapper;
 import com.webank.wecube.platform.core.repository.workflow.ProcDefInfoMapper;
 import com.webank.wecube.platform.core.repository.workflow.ProcExecBindingMapper;
@@ -66,9 +70,6 @@ public abstract class AbstractPluginInvocationService extends AbstractWorkflowSe
     protected static final String PLUGIN_RESULT_CODE_PARTIALLY_FAIL = "1";
     protected static final String PLUGIN_RESULT_CODE_PARTIALLY_KEY = "errorCode";
 
-//    protected static final String DATA_TYPE_STRING = "string";
-//    protected static final String DATA_TYPE_NUMBER = "number";
-
     protected static final String DEFAULT_VALUE_DATA_TYPE_STRING = "";
     protected static final int DEFAULT_VALUE_DATA_TYPE_NUMBER = 0;
 
@@ -76,8 +77,6 @@ public abstract class AbstractPluginInvocationService extends AbstractWorkflowSe
 
     protected static final String PARAM_NAME_TASK_FORM_INPUT = "taskFormInput";
     protected static final String PARAM_NAME_TASK_FORM_OUTPUT = "taskFormOutput";
-
-    protected static final String TEMPORARY_ENTITY_ID_PREFIX = "OID-";
 
     protected final Logger log = LoggerFactory.getLogger(this.getClass());
 
@@ -165,11 +164,86 @@ public abstract class AbstractPluginInvocationService extends AbstractWorkflowSe
 
     @Autowired
     protected PluginParamObjectVarMarshaller pluginParamObjectVarAssembleService;
-    
+
     @Autowired
     protected PluginConfigInterfaceParametersMapper pluginConfigInterfaceParametersMapper;
 
+    @Autowired
+    protected PluginPackageEntitiesMapper pluginPackageEntitiesMapper;
+
+    @Autowired
+    protected PluginPackageAttributesMapper pluginPackageAttributesMapper;
+
     protected ObjectMapper objectMapper = new ObjectMapper();
+    
+    /**
+     * 
+     * @param cmd
+     */
+    public void handleProcessInstanceFaultedEndEvent(PluginInvocationCommand cmd) {
+        if (log.isInfoEnabled()) {
+            log.info("handle faulted end event:{}", cmd);
+        }
+
+        Date currTime = new Date();
+
+        ProcInstInfoEntity procInstEntity = null;
+        int times = 0;
+
+        while (times < 20) {
+            procInstEntity = procInstInfoRepository.selectOneByProcInstKernelId(cmd.getProcInstId());
+            if (procInstEntity != null) {
+                break;
+            }
+
+            try {
+                Thread.sleep(300);
+            } catch (InterruptedException e) {
+                log.info("exceptions while handling end event.", e.getMessage());
+            }
+
+            times++;
+        }
+
+        if (procInstEntity == null) {
+            log.warn("Cannot find process instance entity currently for {}", cmd.getProcInstId());
+            return;
+        }
+
+        String oldProcInstStatus = procInstEntity.getStatus();
+        if (ProcInstInfoEntity.INTERNALLY_TERMINATED_STATUS.equalsIgnoreCase(procInstEntity.getStatus())) {
+            return;
+        }
+        procInstEntity.setUpdatedTime(currTime);
+        procInstEntity.setUpdatedBy(WorkflowConstants.DEFAULT_USER);
+        procInstEntity.setStatus(ProcInstInfoEntity.FAULTED_STATUS);
+        procInstInfoRepository.updateByPrimaryKeySelective(procInstEntity);
+        log.info("updated process instance {} from {} to {}", procInstEntity.getId(), oldProcInstStatus,
+                ProcInstInfoEntity.FAULTED_STATUS);
+
+        List<TaskNodeInstInfoEntity> nodeInstEntities = taskNodeInstInfoRepository
+                .selectAllByProcInstId(procInstEntity.getId());
+        List<TaskNodeDefInfoEntity> nodeDefEntities = taskNodeDefInfoRepository
+                .selectAllByProcDefId(procInstEntity.getProcDefId());
+
+        for (TaskNodeInstInfoEntity n : nodeInstEntities) {
+            if ("endEvent".equals(n.getNodeType()) && n.getNodeId().equals(cmd.getNodeId())) {
+                TaskNodeDefInfoEntity currNodeDefInfo = findExactTaskNodeDefInfoEntityWithNodeId(nodeDefEntities,
+                        n.getNodeId());
+                refreshStatusOfPreviousNodes(nodeInstEntities, currNodeDefInfo);
+                n.setUpdatedTime(currTime);
+                n.setUpdatedBy(WorkflowConstants.DEFAULT_USER);
+                n.setStatus(TaskNodeInstInfoEntity.COMPLETED_STATUS);
+
+                taskNodeInstInfoRepository.updateByPrimaryKeySelective(n);
+
+                log.debug("updated node {} to {}", n.getId(), TaskNodeInstInfoEntity.COMPLETED_STATUS);
+            }
+        }
+
+        workflowProcInstEndEventNotifier.notify(WorkflowNotifyEvent.PROCESS_INSTANCE_END, cmd, procInstEntity);
+
+    }
 
     /**
      * 
@@ -312,10 +386,10 @@ public abstract class AbstractPluginInvocationService extends AbstractWorkflowSe
     }
 
     protected String trimExceedParamValue(String val, int size) {
-        if(StringUtils.isBlank(val)){
+        if (StringUtils.isBlank(val)) {
             return val;
         }
-        
+
         if (val.length() > size) {
             return val.substring(0, size);
         }
@@ -323,7 +397,6 @@ public abstract class AbstractPluginInvocationService extends AbstractWorkflowSe
         return val;
     }
 
-    //TODO consider data type where from string data value
     protected Object fromString(String val, String sType) {
         if (Constants.DATA_TYPE_STRING.equals(sType)) {
             return val;
@@ -420,7 +493,8 @@ public abstract class AbstractPluginInvocationService extends AbstractWorkflowSe
     }
 
     protected boolean isSystemAutomationTaskNode(TaskNodeDefInfoEntity taskNodeDefEntity) {
-        return Constants.TASK_CATEGORY_SSTN.equalsIgnoreCase(taskNodeDefEntity.getTaskCategory());
+        return StringUtils.isBlank(taskNodeDefEntity.getTaskCategory())
+                || Constants.TASK_CATEGORY_SSTN.equalsIgnoreCase(taskNodeDefEntity.getTaskCategory());
     }
 
     protected boolean isUserTaskNode(TaskNodeDefInfoEntity taskNodeDefEntity) {
@@ -532,6 +606,45 @@ public abstract class AbstractPluginInvocationService extends AbstractWorkflowSe
 
     protected boolean isFieldRequired(String requiredFlag) {
         return Constants.FIELD_REQUIRED.equalsIgnoreCase(requiredFlag);
+    }
+
+    protected PluginPackageEntities fetchEnrichedPluginPackageEntities(String packageName, String entityName) {
+        PluginPackageEntities entity = findLatestPluginPackageEntity(packageName, entityName);
+        if (entity == null) {
+            log.info("Cannot find entity with package name: {} and entity name: {}", packageName, entityName);
+            return null;
+        }
+
+        List<PluginPackageAttributes> attrs = findPluginPackageAttributesByEntityId(entity.getId());
+        if (attrs == null || attrs.isEmpty()) {
+            return entity;
+        }
+
+        for (PluginPackageAttributes attr : attrs) {
+            entity.getPluginPackageAttributes().add(attr);
+        }
+
+        return entity;
+    }
+
+    protected PluginPackageAttributes fetchPluginPackageAttributes(PluginPackageEntities entityDef, String attrName) {
+        if (entityDef == null) {
+            return null;
+        }
+
+        return entityDef.getPluginPackageAttributesByAttrName(attrName);
+    }
+
+    private PluginPackageEntities findLatestPluginPackageEntity(String packageName, String entityName) {
+        PluginPackageEntities entity = this.pluginPackageEntitiesMapper
+                .selectLatestByPackageNameAndEntityName(packageName, entityName);
+
+        return entity;
+    }
+
+    private List<PluginPackageAttributes> findPluginPackageAttributesByEntityId(String entityId) {
+        List<PluginPackageAttributes> attributes = this.pluginPackageAttributesMapper.selectAllByEntity(entityId);
+        return attributes;
     }
 
 }

@@ -1,6 +1,7 @@
 package com.webank.wecube.platform.core.service.plugin;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -44,6 +45,7 @@ import com.webank.wecube.platform.core.repository.plugin.PluginPackageAttributes
 import com.webank.wecube.platform.core.repository.plugin.PluginPackageDataModelMapper;
 import com.webank.wecube.platform.core.repository.plugin.PluginPackageEntitiesMapper;
 import com.webank.wecube.platform.core.repository.plugin.PluginPackagesMapper;
+import com.webank.wecube.platform.core.utils.JsonUtils;
 import com.webank.wecube.platform.workflow.commons.LocalIdGenerator;
 
 @Service
@@ -251,6 +253,9 @@ public class PluginPackageDataModelService {
         if (dynamicPluginPackageEntityDtos == null || dynamicPluginPackageEntityDtos.isEmpty()) {
             return dataModelDto;
         }
+        
+        log.debug("Dynamic data models:");
+        log.debug(JsonUtils.toJsonString(dynamicPluginPackageEntityDtos));
 
         int newDataModelVersion = dataModel.getVersion() + 1;
         PluginPackageDataModel newDataModelEntity = new PluginPackageDataModel();
@@ -856,6 +861,7 @@ public class PluginPackageDataModelService {
                 mandatoryStr = mandatory?"Y":"N";
             }
             attrDto.setMandatory(mandatoryStr);
+            attrDto.setOrderNo(String.valueOf(attrEntity.getOrderNo()));
 
             entityDto.getAttributes().add(attrDto);
         }
@@ -940,20 +946,24 @@ public class PluginPackageDataModelService {
             return;
         }
 
+        int orderNo = 0;
         for (DynamicEntityAttributeDto attrDto : attributeDtos) {
-            storeSingleDynamicEntityAttribute(newDataModelEntity, entitiesEntity, attrDto);
+            storeSingleDynamicEntityAttribute(newDataModelEntity, entitiesEntity, attrDto, orderNo);
+            orderNo++;
         }
 
     }
 
     private void storeSingleDynamicEntityAttribute(PluginPackageDataModel newDataModelEntity,
-            PluginPackageEntities entitiesEntity, DynamicEntityAttributeDto attrDto) {
+            PluginPackageEntities entitiesEntity, DynamicEntityAttributeDto attrDto,int orderNo) {
         if (attrDto == null) {
             return;
         }
 
         PluginPackageAttributes attrEntity = new PluginPackageAttributes();
         attrEntity.setId(LocalIdGenerator.generateId());
+        attrEntity.setCreatedTime(new Date());
+        attrEntity.setOrderNo(orderNo);
         attrEntity.setDataType(attrDto.getDataType());
         attrEntity.setDescription(attrDto.getDescription());
         attrEntity.setEntityId(entitiesEntity.getId());

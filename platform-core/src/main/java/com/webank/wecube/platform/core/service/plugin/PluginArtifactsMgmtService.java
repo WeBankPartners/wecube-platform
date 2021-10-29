@@ -718,9 +718,12 @@ public class PluginArtifactsMgmtService extends AbstractPluginMgmtService {
                 continue;
             }
 
+            int orderNo = 0;
             for (AttributeType xmlAttribute : xmlAttributeList) {
                 PluginPackageAttributes attributeEntity = new PluginPackageAttributes();
                 attributeEntity.setId(LocalIdGenerator.generateId());
+                attributeEntity.setCreatedTime(new Date());
+                attributeEntity.setOrderNo(orderNo);
                 attributeEntity.setDataType(xmlAttribute.getDatatype());
                 attributeEntity.setDescription(xmlAttribute.getDescription());
                 attributeEntity.setEntityId(entity.getId());
@@ -749,6 +752,8 @@ public class PluginArtifactsMgmtService extends AbstractPluginMgmtService {
                 pluginPackageAttributesMapper.insert(attributeEntity);
 
                 savedAttributes.add(attributeEntity);
+                
+                orderNo++;
             }
         }
 

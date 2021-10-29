@@ -50,11 +50,13 @@ public class ProcessInstanceEndListener implements ExecutionListener {
 
         if (hasErrorEndEvent(execution)) {
             logProcessInstanceError(procInstEntity, processInstanceStatusRepository);
+            sendProcessInstanceFaultedEndNotification(execution);
             return;
         }
 
         if (hasErrorVariable(execution)) {
             logProcessInstanceError(procInstEntity, processInstanceStatusRepository);
+            sendProcessInstanceFaultedEndNotification(execution);
             return;
         }
 
@@ -74,6 +76,24 @@ public class ProcessInstanceEndListener implements ExecutionListener {
         event.setEventSourceName(execution.getCurrentActivityName());
 
         event.setEventType(ServiceInvocationEvent.EventType.PROCESS_END_NOTIFICATION);
+
+        try {
+            QueueHolder.putServiceInvocationEvent(event);
+        } catch (Throwable e) {
+            log.warn("plugin invocation errors", e);
+            throw e;
+        }
+    }
+    
+    protected void sendProcessInstanceFaultedEndNotification(DelegateExecution execution) throws Exception {
+        ServiceInvocationEventImpl event = new ServiceInvocationEventImpl();
+        event.setBusinessKey(execution.getProcessBusinessKey());
+        event.setDefinitionId(execution.getProcessDefinitionId());
+        event.setInstanceId(execution.getProcessInstanceId());
+        event.setEventSourceId(execution.getCurrentActivityId());
+        event.setEventSourceName(execution.getCurrentActivityName());
+
+        event.setEventType(ServiceInvocationEvent.EventType.PROCESS_FAULTED_END_NOTIFICATION);
 
         try {
             QueueHolder.putServiceInvocationEvent(event);

@@ -18,6 +18,8 @@ public class FlowNodeDefDto extends BaseNodeDefDto {
     private String serviceId;
 
     private String dynamicBind;
+    
+    private String description;
 
     private List<String> previousNodeIds = new ArrayList<>();
     private List<String> succeedingNodeIds = new ArrayList<>();
@@ -173,4 +175,11 @@ public class FlowNodeDefDto extends BaseNodeDefDto {
         this.dynamicBind = dynamicBind;
     }
 
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }    
 }

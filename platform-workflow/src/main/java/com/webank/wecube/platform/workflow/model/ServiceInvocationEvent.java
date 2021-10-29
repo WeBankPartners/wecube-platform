@@ -39,10 +39,10 @@ public interface ServiceInvocationEvent {
     String getMsg();
 
     EventType getEventType();
-    
+
     List<String> getAllowedOptions();
 
     public enum EventType {
-        SERVICE_INVOCATION, SERVICE_INVOCATION_RESULT, PROCESS_END_NOTIFICATION;
+        SERVICE_INVOCATION, SERVICE_INVOCATION_RESULT, PROCESS_END_NOTIFICATION, PROCESS_FAULTED_END_NOTIFICATION;
     }
 }

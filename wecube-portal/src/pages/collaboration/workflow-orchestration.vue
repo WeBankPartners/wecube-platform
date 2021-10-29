@@ -123,7 +123,7 @@
                           >{{ $t('plugin_type') }}
                           <span class="requires-tip">*</span>
                         </label>
-                        <Select filterable v-model="pluginForm.taskCategory" @on-change="editFormdata">
+                        <Select filterable v-model="pluginForm.taskCategory" @on-change="changeTaskCategory">
                           <Option v-for="(item, index) in taskCategoryList" :value="item.value" :key="index">{{
                             item.label
                           }}</Option>
@@ -149,7 +149,7 @@
                       </FormItem>
                     </Col>
                   </Row>
-                  <Row>
+                  <Row v-if="pluginForm.taskCategory !== 'SDTN'">
                     <Col span="8">
                       <FormItem prop="dynamicBind">
                         <label slot="label"
@@ -158,8 +158,6 @@
                         </label>
                         <Select
                           v-model="pluginForm.dynamicBind"
-                          filterable
-                          clearable
                           @on-clear="clearDynamicBind"
                           @on-change="changeDynamicBind"
                         >
@@ -173,9 +171,11 @@
                         <Select
                           v-model="pluginForm.associatedNodeId"
                           @on-change="changeAssociatedNode"
+                          @on-open-change="getAssociatedNodes"
+                          clearable
                           :disabled="pluginForm.dynamicBind !== 'Y'"
                         >
-                          <Option v-for="(i, index) in currentflowsNodes" :value="i.nodeId" :key="index">{{
+                          <Option v-for="(i, index) in associatedNodes" :value="i.nodeId" :key="index">{{
                             i.nodeName
                           }}</Option>
                         </Select>
@@ -187,7 +187,7 @@
                           >{{ $t('pre_check') }}
                           <span class="requires-tip">*</span>
                         </label>
-                        <Select v-model="pluginForm.preCheck" @on-change="editFormdata">
+                        <Select v-model="pluginForm.preCheck" @on-change="editFormdata" clearable filterable>
                           <Option v-for="item in yOn" :value="item" :key="item">{{ item }}</Option>
                         </Select>
                       </FormItem>
@@ -200,17 +200,25 @@
                           >{{ $t('locate_rules') }}
                           <span class="requires-tip">*</span>
                         </label>
-                        <FilterRules
+                        <!-- <FilterRules
                           :needAttr="true"
                           ref="filterRules"
                           :disabled="pluginForm.dynamicBind === 'Y' && pluginForm.associatedNodeId !== ''"
                           v-model="pluginForm.routineExpression"
                           @change="filterRuleChanged"
                           :allDataModelsWithAttrs="allEntityType"
-                        ></FilterRules>
+                        ></FilterRules> -->
+                        <FilterRulesGroup
+                          :isBatch="pluginForm.taskCategory === 'SDTN'"
+                          ref="filterRulesGroup"
+                          @filterRuleChanged="singleFilterRuleChanged"
+                          :routineExpression="pluginForm.routineExpression"
+                          :allEntityType="allEntityType"
+                        >
+                        </FilterRulesGroup>
                       </FormItem>
                     </Col>
-                    <Col span="8">
+                    <Col span="8" v-if="pluginForm.taskCategory !== 'SDTN'">
                       <FormItem prop="serviceName">
                         <label slot="label"
                           >{{ $t('plugin') }}
@@ -232,7 +240,7 @@
                   </Row>
                 </template>
                 <!-- <div v-if="pluginForm.paramInfos.length" class="node-operate-plugin-config"> -->
-                <div class="node-operate-plugin-config">
+                <div v-if="pluginForm.taskCategory !== 'SDTN'" class="node-operate-plugin-config">
                   <Tabs value="name1">
                     <TabPane :label="$t('context_parameters')" name="name1">
                       <FormItem :label="$t('root_task_node')">
@@ -393,9 +401,11 @@ import FilterRules from '../components/filter-rules.vue'
 import axios from 'axios'
 import { setCookie, getCookie } from '../util/cookie'
 import CustomContextPad from '../util/CustomContextPad'
+import FilterRulesGroup from './components/filter-rules-group'
 import xml2js from 'xml2js'
 import {
   getAllFlow,
+  getAssociatedNodes,
   getContextParametersNodes,
   saveFlow,
   confirmSaveFlowDraft,
@@ -426,7 +436,8 @@ let contextPad = {
 export default {
   components: {
     PathExp,
-    FilterRules
+    FilterRules,
+    FilterRulesGroup
   },
   data () {
     return {
@@ -436,7 +447,8 @@ export default {
       show: false,
       taskCategoryList: [
         { value: 'SSTN', label: this.$t('sstn') },
-        { value: 'SUTN', label: this.$t('sutn') }
+        { value: 'SUTN', label: this.$t('sutn') },
+        { value: 'SDTN', label: this.$t('sdtn') }
       ],
       isSaving: false,
       headers: {},
@@ -548,7 +560,8 @@ export default {
         message: '',
         requestBody: '',
         func: ''
-      }
+      },
+      associatedNodes: [] // 节点的关联节点
     }
   },
   watch: {
@@ -604,11 +617,36 @@ export default {
     this.setCss('top-pane', 'bottom: 0;')
   },
   methods: {
+    singleFilterRuleChanged (val) {
+      this.pluginForm.routineExpression = val
+    },
+    changeTaskCategory (val) {
+      this.pluginForm.serviceId = ''
+      this.pluginForm.serviceName = ''
+      this.editFormdata()
+    },
+    async getAssociatedNodes () {
+      let Xml = ''
+      this.bpmnModeler.saveXML({ format: true }, function (err, xml) {
+        console.log(err)
+        xml2js.parseString(xml, (errx, result) => {
+          Xml = xml
+        })
+      })
+      let params = {
+        taskNodeId: this.currentNode.id,
+        procDefData: Xml.replace(/[\r\n]/g, '')
+      }
+      let { status, data } = await getAssociatedNodes(this.selectedFlow, params)
+      if (status === 'OK') {
+        this.associatedNodes = data.filter(d => ['startEvent', 'subProcess'].includes(d.nodeType))
+      }
+    },
     changeAssociatedNode () {
       if (this.cacheFlowInfo && this.cacheFlowInfo.taskNodeInfos) {
         const activeNode = this.cacheFlowInfo.taskNodeInfos.find(n => this.pluginForm.associatedNodeId === n.nodeId)
-        this.pluginForm.routineExpression = (activeNode && activeNode.routineExpression) || ''
-        this.pluginForm.routineRaw = (activeNode && activeNode.routineExpression) || ''
+        this.pluginForm.routineExpression = (activeNode && activeNode.routineExpression) || this.currentSelectedEntity
+        this.pluginForm.routineRaw = (activeNode && activeNode.routineExpression) || this.currentSelectedEntity
       } else {
         this.pluginForm.routineExpression = ''
         this.pluginForm.routineRaw = ''
@@ -1036,6 +1074,11 @@ export default {
 
       let found = this.filteredPlugins.find(_ => _.serviceName === this.pluginForm.serviceId)
 
+      const routineExpressionItem = this.$refs.filterRulesGroup.routineExpressionItem
+      this.pluginForm.routineExpression = routineExpressionItem.reduce((tmp, item, index) => {
+        return tmp + item.routineExpression + (index === routineExpressionItem.length - 1 ? '' : '#DME#')
+      }, '')
+
       let pluginFormCopy = JSON.parse(JSON.stringify(this.pluginForm))
       // 校验必填项，未选中节点跳过校验
       if (
@@ -1060,6 +1103,9 @@ export default {
       this.saveDiagram(true)
     },
     checkSaveParams (pluginFormCopy) {
+      if (pluginFormCopy.taskCategory === 'SDTN') {
+        return true
+      }
       if (!pluginFormCopy.routineExpression) {
         this.$Message.warning(this.$t('locate_rules') + ' ' + this.$t('required'))
         return false
@@ -1107,13 +1153,15 @@ export default {
         // 实体类型条件不带入节点中
         let rootEntity = this.currentSelectedEntity.split('{')[0]
         this.pluginForm.routineExpression = this.pluginForm.routineExpression || rootEntity
-        // eslint-disable-next-line no-useless-escape
-        const pathList = this.pluginForm.routineExpression.split(/[.~]+(?=[^\}]*(\{|$))/).filter(p => p.length > 1)
-        if (pathList[0].split('{')[0] !== rootEntity) {
-          this.pluginForm.routineExpression = rootEntity
+        if (!this.pluginForm.routineExpression.includes('#DME#')) {
+          // eslint-disable-next-line no-useless-escape
+          const pathList = this.pluginForm.routineExpression.split(/[.~]+(?=[^\}]*(\{|$))/).filter(p => p.length > 1)
+          if (pathList[0].split('{')[0] !== rootEntity) {
+            this.pluginForm.routineExpression = rootEntity
+          }
         }
         // this.getPluginInterfaceList()
-
+        this.getAssociatedNodes()
         // get flow's params infos
         this.getFlowsNodes()
         await this.getFilteredPluginInterfaceList(this.pluginForm.routineExpression)

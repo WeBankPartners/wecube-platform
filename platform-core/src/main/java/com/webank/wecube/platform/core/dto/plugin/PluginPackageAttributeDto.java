@@ -12,6 +12,7 @@ public class PluginPackageAttributeDto {
     private String refAttributeName;
     private String mandatory;
     private String multiple;
+    private String orderNo;
 
 
     public String getId() {
@@ -101,5 +102,14 @@ public class PluginPackageAttributeDto {
     public void setMultiple(String multiple) {
         this.multiple = multiple;
     }
+
+    public String getOrderNo() {
+        return orderNo;
+    }
+
+    public void setOrderNo(String orderNo) {
+        this.orderNo = orderNo;
+    }
+    
     
 }
