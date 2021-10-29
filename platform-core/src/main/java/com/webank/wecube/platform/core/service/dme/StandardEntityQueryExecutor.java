@@ -116,9 +116,9 @@ public class StandardEntityQueryExecutor implements EntityQueryExecutor {
             
         } else {
             log.error("Error status met {} with message {}", responseDto.getStatus(), responseDto.getMessage());
-            String msg = String.format("Errors met while creating data from %s due to status %s.",
-                    entityDef.getPackageName(), responseDto.getStatus());
-            throw new EntityOperationException("3309", msg, entityDef.getPackageName(), responseDto.getStatus());
+            String msg = String.format("Errors met while creating data from %s due to %s %s.",
+                    entityDef.getPackageName(), responseDto.getStatus(), responseDto.getMessage());
+            throw new EntityOperationException("3309", msg, entityDef.getPackageName(), responseDto.getStatus(), responseDto.getMessage());
         }
     }
 
