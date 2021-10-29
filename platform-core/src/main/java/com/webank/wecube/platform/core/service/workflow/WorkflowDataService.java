@@ -1,6 +1,5 @@
 package com.webank.wecube.platform.core.service.workflow;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -967,8 +966,8 @@ public class WorkflowDataService extends AbstractWorkflowService {
         try {
             Object obj = JsonUtils.toObject(json, Object.class);
             return obj;
-        } catch (IOException e) {
-            log.info("exceptions while convert string to json.", e);
+        } catch (Exception e) {
+            log.debug("exceptions while convert string to json.", e);
             return json;
         }
     }
