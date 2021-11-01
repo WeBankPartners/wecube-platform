@@ -797,21 +797,6 @@ export default {
       }
     },
     async getFilteredPluginInterfaceList (path) {
-      // 相同定位规则使用缓存数据
-      if (path === this.routineExpressionCache) {
-        return
-      }
-      // const lastSelectType = this.$refs.filterRules && this.$refs.filterRules.lastSelectType
-      // // 上下游节点不请求插件信息
-      // if (lastSelectType === 'up' || lastSelectType === 'down') {
-      //   this.$Notice.warning({
-      //     title: 'Warning',
-      //     desc: this.$t('obtain_plugin_warn')
-      //   })
-      //   this.pluginForm.serviceId = ''
-      //   this.filteredPlugins = []
-      //   return
-      // }
       let pkg = ''
       let entity = ''
       let payload = {}
@@ -843,6 +828,22 @@ export default {
           targetEntityFilterRule: ''
         }
       }
+      if (!this.pluginForm.taskCategory) {
+        this.$Notice.warning({
+          title: 'Warning',
+          desc: this.$t('please_choose') + ' ' + this.$t('plugin_type')
+        })
+        return
+      } else {
+        if (['SSTN'].includes(this.pluginForm.taskCategory) && payload.pkgName === '') {
+          this.$Notice.warning({
+            title: 'Warning',
+            desc: this.$t('please_choose') + ' ' + this.$t('locate_rules')
+          })
+          return
+        }
+      }
+      payload.taskCategory = this.pluginForm.taskCategory
       const { status, data } = await getPluginsByTargetEntityFilterRule(payload)
       if (status === 'OK') {
         this.filteredPlugins = data
@@ -1062,6 +1063,10 @@ export default {
       })
     },
     savePluginConfig (ref) {
+      if (!this.show) {
+        this.saveDiagram(true)
+        return
+      }
       let index = -1
       this.serviceTaskBindInfos.forEach((_, i) => {
         if (this.currentNode.id === _.nodeId) {
@@ -1073,7 +1078,6 @@ export default {
       }
 
       let found = this.filteredPlugins.find(_ => _.serviceName === this.pluginForm.serviceId)
-
       const routineExpressionItem = this.$refs.filterRulesGroup.routineExpressionItem
       this.pluginForm.routineExpression = routineExpressionItem.reduce((tmp, item, index) => {
         return tmp + item.routineExpression + (index === routineExpressionItem.length - 1 ? '' : '#DME#')
