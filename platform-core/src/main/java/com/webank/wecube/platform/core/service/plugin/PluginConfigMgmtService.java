@@ -125,6 +125,8 @@ public class PluginConfigMgmtService extends AbstractPluginMgmtService {
             return resultPluginConfigInterfaceDtos;
         }
 
+        String taskCategory = null;
+
         if (filterRuleDto == null) {
             List<PluginConfigInterfaceDto> tmpResultIntfDtos = doQueryAllEnabledPluginConfigInterface(targetPackageName,
                     targetEntityName);
@@ -132,6 +134,7 @@ public class PluginConfigMgmtService extends AbstractPluginMgmtService {
                 resultPluginConfigInterfaceDtos.addAll(tmpResultIntfDtos);
             }
         } else {
+            taskCategory = filterRuleDto.getTaskCategory();
             List<PluginConfigInterfaceDto> tmpResultIntfDtos = doQueryAllEnabledPluginConfigInterface(targetPackageName,
                     targetEntityName, filterRuleDto);
             if (tmpResultIntfDtos != null) {
@@ -144,7 +147,31 @@ public class PluginConfigMgmtService extends AbstractPluginMgmtService {
             resultPluginConfigInterfaceDtos.addAll(allIntfDtosWithEntityNameNull);
         }
 
-        Collections.sort(resultPluginConfigInterfaceDtos, new Comparator<PluginConfigInterfaceDto>() {
+        List<PluginConfigInterfaceDto> finalResultPluginConfigInterfaceDtos = new ArrayList<>();
+        if (StringUtils.isNoneBlank(taskCategory)) {
+            if (Constants.TASK_CATEGORY_SUTN.equalsIgnoreCase(taskCategory)) {
+                for (PluginConfigInterfaceDto interfDto : resultPluginConfigInterfaceDtos) {
+                    if (Constants.INTERFACE_TYPE_APPROVAL.equalsIgnoreCase(interfDto.getType())
+                            || Constants.INTERFACE_TYPE_DYNAMICFORM.equalsIgnoreCase(interfDto.getType())) {
+                        finalResultPluginConfigInterfaceDtos.add(interfDto);
+                    }
+                }
+            } else if (Constants.TASK_CATEGORY_SSTN.equalsIgnoreCase(taskCategory)) {
+                for (PluginConfigInterfaceDto interfDto : resultPluginConfigInterfaceDtos) {
+                    if (Constants.INTERFACE_TYPE_EXECUTION.equalsIgnoreCase(interfDto.getType())
+                            || StringUtils.isBlank(interfDto.getType())) {
+                        finalResultPluginConfigInterfaceDtos.add(interfDto);
+                    }
+                }
+            } else {
+                finalResultPluginConfigInterfaceDtos.addAll(resultPluginConfigInterfaceDtos);
+            }
+
+        }else {
+            finalResultPluginConfigInterfaceDtos.addAll(resultPluginConfigInterfaceDtos);
+        }
+
+        Collections.sort(finalResultPluginConfigInterfaceDtos, new Comparator<PluginConfigInterfaceDto>() {
 
             @Override
             public int compare(PluginConfigInterfaceDto o1, PluginConfigInterfaceDto o2) {
@@ -153,9 +180,9 @@ public class PluginConfigMgmtService extends AbstractPluginMgmtService {
 
         });
 
-        tryCalculateConfigurableInputParameters(resultPluginConfigInterfaceDtos);
+        tryCalculateConfigurableInputParameters(finalResultPluginConfigInterfaceDtos);
 
-        return resultPluginConfigInterfaceDtos;
+        return finalResultPluginConfigInterfaceDtos;
     }
 
     private void tryCalculateConfigurableInputParameters(
@@ -175,12 +202,12 @@ public class PluginConfigMgmtService extends AbstractPluginMgmtService {
         for (PluginConfigInterfaceParameterDto paramDto : inputParameters) {
             if (Constants.MAPPING_TYPE_CONTEXT.equalsIgnoreCase(paramDto.getMappingType())
                     || Constants.MAPPING_TYPE_CONSTANT.equalsIgnoreCase(paramDto.getMappingType())) {
-                
+
                 if (Constants.MAPPING_TYPE_CONSTANT.equalsIgnoreCase(paramDto.getMappingType())
                         && StringUtils.isNoneBlank(paramDto.getMappingValue())) {
                     continue;
                 }
-                
+
                 PluginConfigInterfaceParameterDto configParamDto = new PluginConfigInterfaceParameterDto();
                 configParamDto.setId(paramDto.getId());
                 configParamDto.setDataType(paramDto.getDataType());
@@ -1113,6 +1140,7 @@ public class PluginConfigMgmtService extends AbstractPluginMgmtService {
         dto.setIsAsyncProcessing(intfEntity.getIsAsyncProcessing());
         dto.setFilterRule(intfEntity.getFilterRule());
         dto.setDescription(intfEntity.getDescription());
+        dto.setType(intfEntity.getType());
 
         List<PluginConfigInterfaceParameters> inputParameterEntities = intfEntity.getInputParameters();
         if (inputParameterEntities != null) {
@@ -1246,7 +1274,7 @@ public class PluginConfigMgmtService extends AbstractPluginMgmtService {
         dto.setSensitiveData(entity.getSensitiveData());
         dto.setDescription(entity.getDescription());
         dto.setMappingValue(entity.getMappingValue());
-        
+
         dto.setMultiple(entity.getMultiple());
         dto.setRefObjectName(entity.getRefObjectName());
         return dto;
