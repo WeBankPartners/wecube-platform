@@ -529,5 +529,6 @@
   "Monthly": "Monthly",
   "total": "Total",
   "display": "Display",
-  "delete_role": "Delete Role"
+  "delete_role": "Delete Role",
+  "empty": " Is Empty"
 }
