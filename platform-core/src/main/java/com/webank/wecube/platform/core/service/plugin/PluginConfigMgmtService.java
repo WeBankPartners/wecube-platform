@@ -887,6 +887,7 @@ public class PluginConfigMgmtService extends AbstractPluginMgmtService {
         intfEntity.setHttpMethod(intfDto.getHttpMethod());
         intfEntity.setIsAsyncProcessing(intfDto.getIsAsyncProcessing());
         intfEntity.setPath(intfDto.getPath());
+        intfEntity.setType(intfDto.getType());
         intfEntity.setServiceDisplayName(intfEntity.generateServiceName(pluginPackage, pluginConfigEntity));
         intfEntity.setServiceName(intfEntity.generateServiceName(pluginPackage, pluginConfigEntity));
 
@@ -1013,6 +1014,7 @@ public class PluginConfigMgmtService extends AbstractPluginMgmtService {
         intfEntity.setDescription(intfDto.getDescription());
 
         // type ?
+        intfEntity.setType(intfDto.getType());
         intfEntity.setServiceName(intfEntity.generateServiceName(pluginPackage, pluginConfig));
         intfEntity.setServiceDisplayName(intfEntity.generateServiceName(pluginPackage, pluginConfig));
         intfEntity.setIsAsyncProcessing(intfDto.getIsAsyncProcessing());
