@@ -1013,8 +1013,12 @@ public class PluginConfigMgmtService extends AbstractPluginMgmtService {
         intfEntity.setFilterRule(intfDto.getFilterRule());
         intfEntity.setDescription(intfDto.getDescription());
 
+        String interfType = intfDto.getType();
+        if(StringUtils.isBlank(interfType)) {
+            interfType = PluginConfigInterfaces.DEFAULT_INTERFACE_TYPE;
+        }
         // type ?
-        intfEntity.setType(intfDto.getType());
+        intfEntity.setType(interfType);
         intfEntity.setServiceName(intfEntity.generateServiceName(pluginPackage, pluginConfig));
         intfEntity.setServiceDisplayName(intfEntity.generateServiceName(pluginPackage, pluginConfig));
         intfEntity.setIsAsyncProcessing(intfDto.getIsAsyncProcessing());
