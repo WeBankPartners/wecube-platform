@@ -784,7 +784,8 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
             PluginConfigInterfaces pluginConfigInterface, List<ProcExecBindingEntity> nodeObjectBindings) {
 
         String taskFormInputValue = "";
-        if (hasTaskFormInputParameter(pluginConfigInterface)) {
+        boolean isDynamicFormInterf = isDynamicFormInterf(pluginConfigInterface);
+        if (hasTaskFormInputParameter(pluginConfigInterface) && isDynamicFormInterf) {
             taskFormInputValue = tryCalculateTaskFormValueAsJson(procInstEntity, taskNodeInstEntity, procDefInfoEntity,
                     taskNodeDefEntity, cmd, pluginConfigInterface, nodeObjectBindings);
         }
@@ -824,7 +825,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
             inputAttr.setMultiple(param.getMultiple());
             boolean isFieldRequired = isFieldRequired(param.getRequired());
 
-            if (PARAM_NAME_TASK_FORM_INPUT.equals(param.getName())) {
+            if (PARAM_NAME_TASK_FORM_INPUT.equals(param.getName()) && isDynamicFormInterf) {
                 objectVals.add(taskFormInputValue);
                 inputAttr.addValues(objectVals);
 
