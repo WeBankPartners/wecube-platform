@@ -1148,7 +1148,11 @@ public class PluginConfigMigrationService {
 
         intf.setIsAsyncProcessing(xmlIntf.getIsAsyncProcessing());
 
-        intf.setType(xmlIntf.getType());
+        String interfType = xmlIntf.getType();
+        if(StringUtils.isBlank(interfType)) {
+            interfType = PluginConfigInterfaces.DEFAULT_INTERFACE_TYPE;
+        }
+        intf.setType(interfType);
         intf.setDescription(xmlIntf.getDescription());
 
         intf.setServiceDisplayName(intf.generateServiceName(pluginPackage, pluginConfig));
@@ -1573,7 +1577,11 @@ public class PluginConfigMigrationService {
         newIntf.setHttpMethod(xmlInterf.getHttpMethod());
         newIntf.setIsAsyncProcessing(xmlInterf.getIsAsyncProcessing());
 
-        newIntf.setType(xmlInterf.getType());
+        String interfType = xmlInterf.getType();
+        if(StringUtils.isBlank(interfType)) {
+            interfType = PluginConfigInterfaces.DEFAULT_INTERFACE_TYPE;
+        }
+        newIntf.setType(interfType);
         newIntf.setDescription(xmlInterf.getDescription());
         newIntf.setServiceDisplayName(newIntf.generateServiceName(pluginPackage, pluginConfig));
         newIntf.setServiceName(newIntf.generateServiceName(pluginPackage, pluginConfig));
