@@ -910,6 +910,31 @@ public class WorkflowProcDefDeploymentService extends AbstractWorkflowProcDefSer
         if (!Objects.equals(taskNodeDefEntity.getServiceId(), taskNodeInfo.getServiceId())) {
             return false;
         }
+        
+        if(!Objects.equals(taskNodeDefEntity.getDynamicBind(), taskNodeInfo.getDynamicBind())) {
+            return false;
+        }
+        
+        if(!Objects.equals(taskNodeDefEntity.getTaskCategory(), taskNodeInfo.getTaskCategory())) {
+            return false;
+        }
+        
+        if(!Objects.equals(taskNodeDefEntity.getPreCheck(), taskNodeInfo.getPreCheck())) {
+            return false;
+        }
+        
+        if(!Objects.equals(taskNodeDefEntity.getDynamicBind(), taskNodeInfo.getDynamicBind())) {
+            return false;
+        }
+        
+        if(!Objects.equals(taskNodeDefEntity.getPrevCtxNodeIds(), taskNodeInfo.getPrevCtxNodeIds())) {
+            return false;
+        }
+
+        if(!Objects.equals(taskNodeDefEntity.getAssociatedNodeId(), taskNodeInfo.getAssociatedNodeId())) {
+            return false;
+        }
+        
 
         return true;
     }

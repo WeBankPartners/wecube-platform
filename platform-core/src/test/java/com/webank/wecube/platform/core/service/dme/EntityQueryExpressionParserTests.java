@@ -100,6 +100,8 @@ public class EntityQueryExpressionParserTests {
 		Assert.assertEquals(EntityLinkType.REF_BY, queryNodeInfos.get(1).getEntityLinkType());
 		Assert.assertEquals("zone_design2", queryNodeInfos.get(1).getRefByAttrName());
 	}
+	
+	
 
 	@Test
 	public void testParseSingleExprNodeWithFilterExprShouldSucceed() {

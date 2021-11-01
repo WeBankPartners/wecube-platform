@@ -15,6 +15,8 @@ public class WorkflowNodeDefInfoDto {
 
     private String serviceId;
     private String serviceName;
+    
+    private String orderedNo;
 
     private List<RegisteredEntityDefDto> boundEntities;
 
@@ -126,5 +128,14 @@ public class WorkflowNodeDefInfoDto {
         this.boundEntities.add(boundEntity);
     }
 
+    public String getOrderedNo() {
+        return orderedNo;
+    }
+
+    public void setOrderedNo(String orderedNo) {
+        this.orderedNo = orderedNo;
+    }
+
+    
 
 }
