@@ -285,6 +285,9 @@ public class AsyncPluginInvocationService extends AbstractPluginInvocationServic
         if (outputParameters == null || outputParameters.isEmpty()) {
             return;
         }
+        if(!isDynamicFormInterf(intf)) {
+            return;
+        }
 
         boolean hasTaskFormOutputParam = false;
         for (PluginConfigInterfaceParameters outputParamDef : outputParameters) {
@@ -297,6 +300,7 @@ public class AsyncPluginInvocationService extends AbstractPluginInvocationServic
         if (!hasTaskFormOutputParam) {
             return;
         }
+        
 
         Object taskFormOutputValue = outputParameterMap.get(PARAM_NAME_TASK_FORM_OUTPUT);
         if (taskFormOutputValue == null) {
