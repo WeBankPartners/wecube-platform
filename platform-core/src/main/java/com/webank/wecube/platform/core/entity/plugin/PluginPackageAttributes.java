@@ -1,5 +1,7 @@
 package com.webank.wecube.platform.core.entity.plugin;
 
+import java.util.Date;
+
 public class PluginPackageAttributes {
     private String id;
 
@@ -22,6 +24,9 @@ public class PluginPackageAttributes {
     private String refAttr;
     
     private String multiple;
+    
+    private Date createdTime;
+    private Integer orderNo;
 
     private transient PluginPackageEntities pluginPackageEntities;
 
@@ -131,4 +136,21 @@ public class PluginPackageAttributes {
         this.multiple = multiple;
     }
 
+    public Date getCreatedTime() {
+        return createdTime;
+    }
+
+    public void setCreatedTime(Date createdTime) {
+        this.createdTime = createdTime;
+    }
+
+    public Integer getOrderNo() {
+        return orderNo;
+    }
+
+    public void setOrderNo(Integer orderNo) {
+        this.orderNo = orderNo;
+    }
+
+    
 }
