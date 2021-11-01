@@ -159,8 +159,7 @@ public class PluginConfigMgmtService extends AbstractPluginMgmtService {
                 }
             } else if (Constants.TASK_CATEGORY_SSTN.equalsIgnoreCase(taskCategory)) {
                 for (PluginConfigInterfaceDto interfDto : resultPluginConfigInterfaceDtos) {
-                    if (Constants.INTERFACE_TYPE_EXECUTION.equalsIgnoreCase(interfDto.getType())
-                            || StringUtils.isBlank(interfDto.getType())) {
+                    if (Constants.INTERFACE_TYPE_EXECUTION.equalsIgnoreCase(interfDto.getType())) {
                         finalResultPluginConfigInterfaceDtos.add(interfDto);
                     }
                 }
@@ -168,7 +167,7 @@ public class PluginConfigMgmtService extends AbstractPluginMgmtService {
                 finalResultPluginConfigInterfaceDtos.addAll(resultPluginConfigInterfaceDtos);
             }
 
-        }else {
+        } else {
             finalResultPluginConfigInterfaceDtos.addAll(resultPluginConfigInterfaceDtos);
         }
 
@@ -1017,7 +1016,7 @@ public class PluginConfigMgmtService extends AbstractPluginMgmtService {
         intfEntity.setDescription(intfDto.getDescription());
 
         String interfType = intfDto.getType();
-        if(StringUtils.isBlank(interfType)) {
+        if (StringUtils.isBlank(interfType)) {
             interfType = PluginConfigInterfaces.DEFAULT_INTERFACE_TYPE;
         }
         // type ?
