@@ -17,6 +17,7 @@ public class PluginConfigInterfaceDto {
     private String isAsyncProcessing;
     private String filterRule;
     private String description;
+    private String type;
     private List<PluginConfigInterfaceParameterDto> inputParameters;
     private List<PluginConfigInterfaceParameterDto> outputParameters;
 
@@ -144,4 +145,13 @@ public class PluginConfigInterfaceDto {
         this.description = description;
     }
 
+    public String getType() {
+        return type;
+    }
+
+    public void setType(String type) {
+        this.type = type;
+    }
+
+    
 }
