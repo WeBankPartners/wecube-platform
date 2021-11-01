@@ -828,6 +828,7 @@ export default {
           targetEntityFilterRule: ''
         }
       }
+      payload.taskCategory = this.pluginForm.taskCategory
       const { status, data } = await getPluginsByTargetEntityFilterRule(payload)
       if (status === 'OK') {
         this.filteredPlugins = data
