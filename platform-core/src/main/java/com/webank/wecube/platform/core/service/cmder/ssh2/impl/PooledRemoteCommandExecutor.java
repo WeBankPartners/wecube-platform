@@ -57,7 +57,7 @@ public class PooledRemoteCommandExecutor implements PoolableRemoteCommandExecuto
         } catch (IOException e) {
             LOGGER.error("failed to init executor", e);
             this.destroy();
-            throw new Exception("failed to init executor");
+            throw new Exception("failed to init executor:"+e.getMessage());
         }
     }
 
