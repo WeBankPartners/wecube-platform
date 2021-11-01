@@ -4,6 +4,8 @@ public class TargetEntityFilterRuleDto {
     private String targetEntityFilterRule;
     private String entityName;
     private String pkgName;
+    
+    private String taskCategory;
 
     public String getTargetEntityFilterRule() {
         return targetEntityFilterRule;
@@ -28,4 +30,14 @@ public class TargetEntityFilterRuleDto {
     public void setPkgName(String pkgName) {
         this.pkgName = pkgName;
     }
+
+    public String getTaskCategory() {
+        return taskCategory;
+    }
+
+    public void setTaskCategory(String taskCategory) {
+        this.taskCategory = taskCategory;
+    }
+    
+    
 }
