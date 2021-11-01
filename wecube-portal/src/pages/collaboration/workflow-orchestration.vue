@@ -828,7 +828,22 @@ export default {
           targetEntityFilterRule: ''
         }
       }
-      payload.taskCategory = this.pluginForm.taskCategory
+      if (!this.pluginForm.taskCategory) {
+        this.$Notice.warning({
+          title: 'Warning',
+          desc: this.$t('please_choose') + ' ' + this.$t('plugin_type')
+        })
+        return
+      } else {
+        if (['SSTN'].includes(this.pluginForm.taskCategory) && payload.pkgName === '') {
+          this.$Notice.warning({
+            title: 'Warning',
+            desc: this.$t('please_choose') + ' ' + this.$t('locate_rules')
+          })
+          return
+        }
+      }
+      // payload.taskCategory = this.pluginForm.taskCategory
       const { status, data } = await getPluginsByTargetEntityFilterRule(payload)
       if (status === 'OK') {
         this.filteredPlugins = data
