@@ -96,64 +96,6 @@ public class PluginConfigDto {
         return ReflectionToStringBuilder.toString(this);
     }
 
-//    public PluginConfig toDomain(PluginPackage pluginPackage) {
-//        PluginConfig pluginConfig = new PluginConfig();
-//        if (getId() != null) {
-//            pluginConfig.setId(getId());
-//        }
-//        pluginConfig.setPluginPackage(pluginPackage);
-//
-//        pluginConfig.setName(getName());
-//        if (StringUtils.isNotBlank(getTargetPackage())) {
-//            pluginConfig.setTargetPackage(getTargetPackage());
-//        } else {
-//            pluginConfig.setTargetPackage(pluginPackage.getName());
-//        }
-//
-//        if (StringUtils.isNotBlank(getTargetEntity())) {
-//            pluginConfig.setTargetEntity(getTargetEntity());
-//        }
-//
-//        if (StringUtils.isNotBlank(getFilterRule())) {
-//            pluginConfig.setTargetEntityFilterRule(getFilterRule());
-//        }
-//        pluginConfig.setRegisterName(getRegisterName());
-//        Set<PluginConfigInterface> pluginConfigInterfaces = newLinkedHashSet();
-//        if (null != getInterfaces() && getInterfaces().size() > 0) {
-//            getInterfaces().forEach(interfaceDto -> pluginConfigInterfaces.add(interfaceDto.toDomain(pluginConfig)));
-//        }
-//        pluginConfig.setInterfaces(pluginConfigInterfaces);
-//
-//        return pluginConfig;
-//    }
-
-//    public static PluginConfigDto fromDomain(PluginConfig entity) {
-//        PluginConfigDto dto = new PluginConfigDto();
-//        dto.setId(entity.getId());
-//        dto.setName(entity.getName());
-//        dto.setTargetEntityWithFilterRule(entity.getTargetEntityWithFilterRule());
-//        dto.setRegisterName(entity.getRegisterName());
-//        dto.setPluginPackageId(entity.getPluginPackage().getId());
-//        dto.setStatus(entity.getStatus().name());
-//        List<PluginConfigInterfaceDto> interfaces = newArrayList();
-//        if (null != entity.getInterfaces() && entity.getInterfaces().size() > 0) {
-//            entity.getInterfaces().forEach(pluginConfigInterface -> interfaces
-//                    .add(PluginConfigInterfaceDto.fromDomain(pluginConfigInterface)));
-//        }
-//        dto.setInterfaces(interfaces);
-//        return dto;
-//    }
-//
-//    public static PluginConfigDto fromDomainWithoutInterfaces(PluginConfig pluginConfig) {
-//        PluginConfigDto pluginConfigDto = new PluginConfigDto();
-//        pluginConfigDto.setId(pluginConfig.getId());
-//        pluginConfigDto.setName(pluginConfig.getName());
-//        pluginConfigDto.setTargetEntityWithFilterRule(pluginConfig.getTargetEntityWithFilterRule());
-//        pluginConfigDto.setRegisterName(pluginConfig.getRegisterName());
-//        pluginConfigDto.setPluginPackageId(pluginConfig.getPluginPackage().getId());
-//        pluginConfigDto.setStatus(pluginConfig.getStatus().name());
-//        return pluginConfigDto;
-//    }
 
     public String getRegisterName() {
         return registerName;
@@ -256,5 +198,7 @@ public class PluginConfigDto {
 
         return new TargetEntityWithFilterRule(packageString, entity, filterRule);
     }
+    
+    
 
 }

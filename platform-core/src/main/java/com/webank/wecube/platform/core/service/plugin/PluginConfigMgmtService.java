@@ -44,6 +44,7 @@ import com.webank.wecube.platform.core.repository.plugin.PluginPackageEntitiesMa
 import com.webank.wecube.platform.core.repository.plugin.PluginPackagesMapper;
 import com.webank.wecube.platform.core.utils.CollectionUtils;
 import com.webank.wecube.platform.core.utils.Constants;
+import com.webank.wecube.platform.core.utils.JsonUtils;
 import com.webank.wecube.platform.core.utils.VersionUtils;
 import com.webank.wecube.platform.workflow.commons.LocalIdGenerator;
 
@@ -652,6 +653,8 @@ public class PluginConfigMgmtService extends AbstractPluginMgmtService {
      */
     @Transactional
     public PluginConfigDto createOrUpdatePluginConfig(PluginConfigDto pluginConfigDto) {
+        log.debug("Create or update plugin config");
+        log.debug(JsonUtils.toJsonString(pluginConfigDto));
         validatePermission(pluginConfigDto.getPermissionToRole());
 
         PluginConfigDto resultPluginConfigDto = null;
