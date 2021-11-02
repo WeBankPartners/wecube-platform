@@ -468,6 +468,7 @@
   "dangerous_confirm": "Risky Confirmation",
   "dangerous_confirm_tip": "I HEREBY ACKNOWLEDGE THAT I AM AWARE OF THESE HIGH-RISK OPERATIONS DISCOVERED DURING SCANNING AND HAVE EVALUATED ALL THE RISKS, I CONFIRM TO CONTINUE THE EXECUTION AND BEAR THE CONSEQUENCES IT MAY CAUSE.",
   "dynamic_bind": "Dynamic Bind",
+  "bind_node": "Binded Node",
   "pre_check": "Its Dangerous",
   "required": "Required",
   "obtain_plugin_warn": "The positioning rule cannot obtain plugins, Please select the green node",
@@ -528,5 +529,6 @@
   "Monthly": "Monthly",
   "total": "Total",
   "display": "Display",
-  "delete_role": "Delete Role"
+  "delete_role": "Delete Role",
+  "empty": " Is Empty"
 }

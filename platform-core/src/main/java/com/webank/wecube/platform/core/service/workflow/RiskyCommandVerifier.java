@@ -20,6 +20,7 @@ import com.webank.wecube.platform.core.support.itsdanger.ItsDangerCheckReqDto;
 import com.webank.wecube.platform.core.support.itsdanger.ItsDangerCheckRespDto;
 import com.webank.wecube.platform.core.support.itsdanger.ItsDangerInstanceInfoDto;
 import com.webank.wecube.platform.core.support.itsdanger.ItsDangerRestClient;
+import com.webank.wecube.platform.core.utils.Constants;
 import com.webank.wecube.platform.workflow.WorkflowConstants;
 
 @Service
@@ -43,7 +44,7 @@ public class RiskyCommandVerifier extends AbstractPluginInvocationService{
             return false;
         }
 
-        if (!TaskNodeDefInfoEntity.PRE_CHECK_YES.equalsIgnoreCase(taskNodeDefEntity.getPreCheck())) {
+        if (!Constants.PRE_CHECK_YES.equalsIgnoreCase(taskNodeDefEntity.getPreCheck())) {
             log.debug("Task node {} is defined no need to perform high risk commands checking.",
                     taskNodeDefEntity.getId());
             return false;

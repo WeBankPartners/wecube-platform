@@ -32,6 +32,7 @@ import com.webank.wecube.platform.auth.client.encryption.StringUtilsEx;
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
 import com.webank.wecube.platform.core.dto.plugin.CommonResponseDto;
 import com.webank.wecube.platform.core.dto.workflow.InterfaceParameterDto;
+import com.webank.wecube.platform.core.dto.workflow.PreTaskNodesQueryDto;
 import com.webank.wecube.platform.core.dto.workflow.ProcDefInfoDto;
 import com.webank.wecube.platform.core.dto.workflow.ProcDefInfoExportImportDto;
 import com.webank.wecube.platform.core.dto.workflow.ProcDefOutlineDto;
@@ -160,6 +161,14 @@ public class WorkflowProcessDefinitionController {
             @RequestParam(name = "taskNodeId", required = true) String taskNodeId,
             @RequestParam(name = "prevCtxNodeIds", required = false) String prevCtxNodeIds) {
         List<TaskNodeDefBriefDto> result = procDefService.getRootContextTaskNodes( procDefId, taskNodeId, prevCtxNodeIds);
+
+        return CommonResponseDto.okayWithData(result); 
+    }
+    
+    @PostMapping("/process/definitions/{proc-def-id}/previous-nodes/briefs")
+    public CommonResponseDto getPreviousTaskNodes(@PathVariable("proc-def-id") String procDefId,
+            @RequestBody PreTaskNodesQueryDto queryDto) {
+        List<TaskNodeDefBriefDto> result = procDefService.getPreviousTaskNodes( procDefId, queryDto);
 
         return CommonResponseDto.okayWithData(result); 
     }
