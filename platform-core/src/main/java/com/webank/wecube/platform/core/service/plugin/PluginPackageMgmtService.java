@@ -1140,6 +1140,7 @@ public class PluginPackageMgmtService extends AbstractPluginMgmtService {
         deployPluginUiResourcesIfRequired(pluginPackageEntity);
 
         pluginPackageEntity.setStatus(PluginPackages.REGISTERED);
+        pluginPackageEntity.setUploadTimestamp(new Date());
         pluginPackagesMapper.updateByPrimaryKeySelective(pluginPackageEntity);
 
         PluginPackageInfoDto result = buildPluginPackageInfoDto(pluginPackageEntity);
