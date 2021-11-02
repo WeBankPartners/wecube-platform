@@ -638,6 +638,10 @@ public abstract class AbstractPluginInvocationService extends AbstractWorkflowSe
     protected boolean isDynamicFormInterf(PluginConfigInterfaces pluginConfigInterface) {
         return Constants.INTERFACE_TYPE_DYNAMICFORM.equalsIgnoreCase(pluginConfigInterface.getType());
     }
+    
+    protected boolean isApprovalInterf(PluginConfigInterfaces pluginConfigInterface) {
+        return Constants.INTERFACE_TYPE_APPROVAL.equalsIgnoreCase(pluginConfigInterface.getType());
+    }
 
     private PluginPackageEntities findLatestPluginPackageEntity(String packageName, String entityName) {
         PluginPackageEntities entity = this.pluginPackageEntitiesMapper
