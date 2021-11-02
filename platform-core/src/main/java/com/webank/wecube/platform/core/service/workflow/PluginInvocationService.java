@@ -491,7 +491,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
             if ("ref".equalsIgnoreCase(attr.getDataType())) {
                 String refId = (String) attr.getDataValue();// multi ref?
                 DynamicEntityValueDto refEntityDataValueDto = ctx.findByOid(refId);
-                if (refEntityDataValueDto != null) {
+                if (refEntityDataValueDto != null && StringUtils.isNoneBlank(refEntityDataValueDto.getEntityDataId())) {
                     objDataMap.put(attr.getAttrName(), refEntityDataValueDto.getEntityDataId());
                 } else {
                     objDataMap.put(attr.getAttrName(), attr.getDataValue());
@@ -688,7 +688,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
             if ("ref".equalsIgnoreCase(attr.getDataType())) {
                 String refId = (String) attr.getDataValue();// multi ref?
                 DynamicEntityValueDto refEntityDataValueDto = ctx.findByOid(refId);
-                if (refEntityDataValueDto != null) {
+                if (refEntityDataValueDto != null && StringUtils.isNoneBlank(refEntityDataValueDto.getEntityDataId())) {
                     attrUpdate.setAttrValue(refEntityDataValueDto.getEntityDataId());
                 } else {
                     attrUpdate.setAttrValue(attr.getDataValue());
