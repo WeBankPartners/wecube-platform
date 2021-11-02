@@ -12,11 +12,7 @@ public class TaskNodeDefInfoEntity {
     public static final String NODE_TYPE_SUBPROCESS = "subProcess";
     public static final String NODE_TYPE_START_EVENT = "startEvent";
 
-    public static final String DYNAMIC_BIND_YES = "Y";
-    public static final String DYNAMIC_BIND_NO = "N";
-    
-    public static final String PRE_CHECK_YES = "Y";
-    public static final String PRE_CHECK_NO = "N";
+   
 
     private String id;
 
@@ -73,6 +69,8 @@ public class TaskNodeDefInfoEntity {
     private String preCheck;
     
     private String prevCtxNodeIds;
+    
+    private String associatedNodeId;
 
     public String getId() {
         return id;
@@ -297,7 +295,13 @@ public class TaskNodeDefInfoEntity {
     public void setPrevCtxNodeIds(String prevCtxNodeIds) {
         this.prevCtxNodeIds = prevCtxNodeIds;
     }
-    
-    
 
+    public String getAssociatedNodeId() {
+        return associatedNodeId;
+    }
+
+    public void setAssociatedNodeId(String associatedNodeId) {
+        this.associatedNodeId = associatedNodeId;
+    }
+    
 }

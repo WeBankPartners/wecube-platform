@@ -13,6 +13,10 @@ public class RegisteredEntityAttrDefDto {
 
     private String referenceId;
 
+    private String orderNo;
+
+    private String multiple;
+
     public String getId() {
         return id;
     }
@@ -83,6 +87,22 @@ public class RegisteredEntityAttrDefDto {
 
     public void setReferenceId(String referenceId) {
         this.referenceId = referenceId;
+    }
+
+    public String getOrderNo() {
+        return orderNo;
+    }
+
+    public void setOrderNo(String orderNo) {
+        this.orderNo = orderNo;
+    }
+
+    public String getMultiple() {
+        return multiple;
+    }
+
+    public void setMultiple(String multiple) {
+        this.multiple = multiple;
     }
 
     @Override
