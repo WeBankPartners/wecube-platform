@@ -28,12 +28,14 @@
                     :key="item.id"
                     :label="
                       item.procInstName +
-                        ' ' +
+                        '  ' +
                         item.entityDisplayName +
-                        ' ' +
+                        '  ' +
+                        (item.operator || 'operator') +
+                        '  ' +
                         (item.createdTime || '0000-00-00 00:00:00') +
-                        ' ' +
-                        (item.operator || 'operator')
+                        '  ' +
+                        item.status
                     "
                   >
                     <span>
