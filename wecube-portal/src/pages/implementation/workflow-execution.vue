@@ -817,6 +817,10 @@ export default {
     }
   },
   mounted () {
+    const id = this.$route.query.id || ''
+    if (id !== '') {
+      this.jumpToHistory(id)
+    }
     this.getProcessInstances()
     this.getAllFlow()
     this.createHandler()
@@ -826,10 +830,13 @@ export default {
   },
   methods: {
     jumpToHistory (id) {
-      this.currentTab = 'enquery_new_workflow_job'
-      this.selectedFlowInstance = id
-      this.queryHistory()
-      this.queryHandler()
+      this.$nextTick(async () => {
+        await this.queryHistory()
+        await this.getProcessInstances()
+        this.currentTab = 'enquery_new_workflow_job'
+        this.selectedFlowInstance = Number(id)
+        this.queryHandler()
+      })
     },
     changeTimePicker (time) {
       this.timeConfig.params.time = time
