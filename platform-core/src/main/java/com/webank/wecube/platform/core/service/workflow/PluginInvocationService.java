@@ -695,22 +695,22 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 
         log.info("entity data updated successfully:{}", bindDataId);
     }
-    
+
     private Object tryCalRefAttrDataValue(DynamicEntityAttrValueDto attr, WorkflowInstCreationContext ctx) {
-        if(attr.getDataValue() == null) {
-            return  null;
+        if (attr.getDataValue() == null) {
+            return null;
         }
-        
-        if( !(attr.getDataValue() instanceof String) ) {
+
+        if (!(attr.getDataValue() instanceof String)) {
             return attr.getDataValue();
         }
-        
+
         String refIdsStr = (String) attr.getDataValue();// multi ref?
-        
-        String [] refIds = refIdsStr.split(",");
+
+        String[] refIds = refIdsStr.split(",");
         StringBuilder sb = new StringBuilder();
         boolean isFirst = true;
-        for(String refId : refIds) {
+        for (String refId : refIds) {
             DynamicEntityValueDto refEntityDataValueDto = ctx.findByOid(refId);
             String calRefId = null;
             if (refEntityDataValueDto != null && StringUtils.isNoneBlank(refEntityDataValueDto.getEntityDataId())) {
@@ -718,16 +718,16 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
             } else {
                 calRefId = refId;
             }
-            
-            if(isFirst) {
+
+            if (isFirst) {
                 isFirst = false;
-            }else {
+            } else {
                 sb.append(",");
             }
-            
+
             sb.append(calRefId);
         }
-        
+
         return sb.toString();
     }
 
@@ -743,9 +743,18 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
         PluginConfigInterfaces pluginConfigInterface = retrievePluginConfigInterface(taskNodeDefEntity,
                 cmd.getNodeId());
 
-        List<InputParamObject> inputParamObjs = calculateInputParamObjectsForUserTask(procInstEntity,
-                taskNodeInstEntity, procDefInfoEntity, taskNodeDefEntity, cmd, pluginConfigInterface,
-                nodeObjectBindings);
+        List<InputParamObject> inputParamObjs = null;
+        if (isDynamicFormInterf(pluginConfigInterface)) {
+
+            inputParamObjs = calculateInputParamObjectsForDynamicFormUserTask(procInstEntity, taskNodeInstEntity,
+                    procDefInfoEntity, taskNodeDefEntity, cmd, pluginConfigInterface, nodeObjectBindings);
+        } else if (isApprovalInterf(pluginConfigInterface)) {
+            inputParamObjs = calculateInputParamObjectsForApprovalUserTask(procInstEntity, taskNodeInstEntity,
+                    procDefInfoEntity, taskNodeDefEntity, cmd, pluginConfigInterface, nodeObjectBindings);
+        } else {
+            inputParamObjs = calculateInputParamObjectsForDefaultUserTask(procInstEntity, taskNodeInstEntity,
+                    procDefInfoEntity, taskNodeDefEntity, cmd, pluginConfigInterface, nodeObjectBindings);
+        }
 
         int reqObjectAmount = 0;
         if (inputParamObjs != null) {
@@ -795,7 +804,107 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
         return false;
     }
 
-    private List<InputParamObject> calculateInputParamObjectsForUserTask(ProcInstInfoEntity procInstEntity,
+    private List<InputParamObject> calculateInputParamObjectsForApprovalUserTask(ProcInstInfoEntity procInstEntity,
+            TaskNodeInstInfoEntity taskNodeInstEntity, ProcDefInfoEntity procDefInfoEntity,
+            TaskNodeDefInfoEntity taskNodeDefEntity, PluginInvocationCommand cmd,
+            PluginConfigInterfaces pluginConfigInterface, List<ProcExecBindingEntity> nodeObjectBindings) {
+
+        
+        Map<Object, Object> externalCacheMap = new HashMap<>();
+        
+        List<InputParamObject> inputParamObjs = new ArrayList<>();
+
+        if (nodeObjectBindings == null || nodeObjectBindings.isEmpty()) {
+            // #2233
+            inputParamObjs = tryCalculateInputParamObjectsWithoutBindings(procDefInfoEntity, procInstEntity,
+                    taskNodeInstEntity, taskNodeDefEntity, pluginConfigInterface);
+        } else {
+            inputParamObjs = tryCalculateInputParamObjectsWithBindings(procDefInfoEntity, procInstEntity,
+                    taskNodeInstEntity, taskNodeDefEntity, nodeObjectBindings, pluginConfigInterface, externalCacheMap);
+        }
+        
+        return inputParamObjs;
+    }
+
+    private List<InputParamObject> calculateInputParamObjectsForDefaultUserTask(ProcInstInfoEntity procInstEntity,
+            TaskNodeInstInfoEntity taskNodeInstEntity, ProcDefInfoEntity procDefInfoEntity,
+            TaskNodeDefInfoEntity taskNodeDefEntity, PluginInvocationCommand cmd,
+            PluginConfigInterfaces pluginConfigInterface, List<ProcExecBindingEntity> nodeObjectBindings) {
+
+        String taskFormInputValue = "";
+        boolean isDynamicFormInterf = isDynamicFormInterf(pluginConfigInterface);
+        if (hasTaskFormInputParameter(pluginConfigInterface) && isDynamicFormInterf) {
+            taskFormInputValue = tryCalculateTaskFormValueAsJson(procInstEntity, taskNodeInstEntity, procDefInfoEntity,
+                    taskNodeDefEntity, cmd, pluginConfigInterface, nodeObjectBindings);
+        }
+
+        List<InputParamObject> inputParamObjs = new ArrayList<>();
+
+        List<PluginConfigInterfaceParameters> intfInputParams = pluginConfigInterface.getInputParameters();
+        if (intfInputParams == null || intfInputParams.isEmpty()) {
+            return inputParamObjs;
+        }
+
+        InputParamObject inputObj = new InputParamObject();
+        inputObj.setEntityTypeId(null);
+        inputObj.setEntityDataId(LocalIdGenerator.generateId(Constants.TASK_CATEGORY_SUTN + "-"));
+        inputObj.setFullEntityDataId(null);
+
+        for (PluginConfigInterfaceParameters param : intfInputParams) {
+            String paramName = param.getName();
+            String paramType = param.getDataType();
+            String mappingType = param.getMappingType();
+
+            if (!isValidMappingTypeForUserTask(mappingType)) {
+                continue;
+            }
+
+            inputObj.addAttrNames(paramName);
+
+            InputParamAttr inputAttr = new InputParamAttr();
+            inputAttr.setName(paramName);
+            inputAttr.setDataType(paramType);
+            inputAttr.setSensitive(IS_SENSITIVE_ATTR.equalsIgnoreCase(param.getSensitiveData()));
+            inputAttr.setParamDef(param);
+
+            List<Object> objectVals = new ArrayList<Object>();
+            //
+            inputAttr.setMapType(mappingType);
+            inputAttr.setMultiple(param.getMultiple());
+            boolean isFieldRequired = isFieldRequired(param.getRequired());
+
+            if (PARAM_NAME_TASK_FORM_INPUT.equals(param.getName()) && isDynamicFormInterf) {
+                objectVals.add(taskFormInputValue);
+                inputAttr.addValues(objectVals);
+
+                inputObj.addAttrs(inputAttr);
+                continue;
+            }
+
+            if (MAPPING_TYPE_SYSTEM_VARIABLE.equalsIgnoreCase(mappingType)) {
+                handleSystemMapping(mappingType, param, paramName, objectVals);
+            }
+
+            if (MAPPING_TYPE_CONSTANT.equalsIgnoreCase(mappingType)) {
+                handleConstantMapping(mappingType, taskNodeDefEntity, paramName, objectVals, isFieldRequired, param);
+            }
+
+            if (MAPPING_TYPE_CONTEXT.equals(mappingType)) {
+                handleContextMappingForUserTask(mappingType, taskNodeDefEntity, paramName, procInstEntity, param,
+                        paramType, objectVals);
+            }
+
+            inputAttr.addValues(objectVals);
+
+            inputObj.addAttrs(inputAttr);
+        }
+
+        inputParamObjs.add(inputObj);
+
+        return inputParamObjs;
+    }
+
+    private List<InputParamObject> calculateInputParamObjectsForDynamicFormUserTask(ProcInstInfoEntity procInstEntity,
             TaskNodeInstInfoEntity taskNodeInstEntity, ProcDefInfoEntity procDefInfoEntity,
             TaskNodeDefInfoEntity taskNodeDefEntity, PluginInvocationCommand cmd,
             PluginConfigInterfaces pluginConfigInterface, List<ProcExecBindingEntity> nodeObjectBindings) {
