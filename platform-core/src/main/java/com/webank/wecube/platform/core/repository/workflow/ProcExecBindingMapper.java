@@ -154,4 +154,13 @@ public interface ProcExecBindingMapper {
             @Param("startDate") Date startDate, @Param("endDate") Date endDate, @Param("sortField") String sortField,
             @Param("sortType") String sortType);
 
+    /**
+     * 
+     * @param procInstId
+     * @param entityDataId
+     * @return
+     */
+    List<ProcExecBindingEntity> selectAllTaskNodeBindingsByProcInstIdAndDataId(@Param("procInstId") Integer procInstId,
+            @Param("entityDataId") String entityDataId);
+
 }

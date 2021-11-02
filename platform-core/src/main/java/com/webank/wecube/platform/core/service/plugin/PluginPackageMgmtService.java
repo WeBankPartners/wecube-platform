@@ -760,6 +760,7 @@ public class PluginPackageMgmtService extends AbstractPluginMgmtService {
         resultDto.setIsAsyncProcessing(intfEntity.getIsAsyncProcessing());
         resultDto.setFilterRule(intfEntity.getFilterRule());
         resultDto.setDescription(intfEntity.getDescription());
+        resultDto.setType(intfEntity.getType());
 
         List<PluginConfigInterfaceParameters> inputParamEntities = this.pluginConfigInterfaceParametersMapper
                 .selectAllByConfigInterfaceAndParamType(intfEntity.getId(), Constants.TYPE_INPUT);
@@ -1139,6 +1140,7 @@ public class PluginPackageMgmtService extends AbstractPluginMgmtService {
         deployPluginUiResourcesIfRequired(pluginPackageEntity);
 
         pluginPackageEntity.setStatus(PluginPackages.REGISTERED);
+        pluginPackageEntity.setUploadTimestamp(new Date());
         pluginPackagesMapper.updateByPrimaryKeySelective(pluginPackageEntity);
 
         PluginPackageInfoDto result = buildPluginPackageInfoDto(pluginPackageEntity);
@@ -1258,8 +1260,20 @@ public class PluginPackageMgmtService extends AbstractPluginMgmtService {
         if (allActivePluginPackageEntities == null || allActivePluginPackageEntities.isEmpty()) {
             return;
         }
-        if (allActivePluginPackageEntities.size() > 1) {
-            String activePackagesString = allActivePluginPackageEntities.stream()
+        
+        List<PluginPackages> activePluginPackageEntities = new ArrayList<>();
+        int count = 0;
+        for(PluginPackages p : allActivePluginPackageEntities) {
+            if(p.getId().equals(pluginPackage.getId())) {
+                continue;
+            }else {
+                count++;
+                activePluginPackageEntities.add(p);
+            }
+        }
+        
+        if (count > 2) {
+            String activePackagesString = activePluginPackageEntities.stream()
                     .map(it -> String.join(":", it.getName(), it.getVersion(), it.getStatus()))
                     .collect(Collectors.joining(","));
             String msg = String.format("Not allowed to register more packages. Current active packages: [%s]",

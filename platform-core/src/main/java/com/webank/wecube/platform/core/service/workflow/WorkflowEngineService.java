@@ -37,6 +37,7 @@ import org.springframework.stereotype.Service;
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
 import com.webank.wecube.platform.core.dto.workflow.ProcDefInfoDto;
 import com.webank.wecube.platform.core.dto.workflow.TaskNodeDefInfoDto;
+import com.webank.wecube.platform.core.utils.Constants;
 import com.webank.wecube.platform.workflow.WorkflowConstants;
 import com.webank.wecube.platform.workflow.entity.ProcessInstanceStatusEntity;
 import com.webank.wecube.platform.workflow.entity.ServiceNodeStatusEntity;
@@ -99,11 +100,11 @@ public class WorkflowEngineService {
     private List<String> statelessNodeTypes = Arrays.asList("startEvent", "endEvent", "exclusiveGateway",
             "parallelGateway");
 
-    public void deleteProcessInstance(String processInstanceId){
+    public void deleteProcessInstance(String processInstanceId) {
         String deleteReason = "Aborted by admin user";
         runtimeService.deleteProcessInstance(processInstanceId, deleteReason);
     }
-    
+
     public String getTaskNodeStatus(String procInstanceId, String nodeId) {
         ServiceNodeStatusEntity nodeStatusEntity = serviceNodeStatusRepository
                 .selectOneByProcInstanceIdAndNodeId(procInstanceId, nodeId);
@@ -274,7 +275,8 @@ public class WorkflowEngineService {
 
         String processInstanceId = null;
         String processDefinitionId = null;
-        if (TraceStatus.Completed.equals(procInstStatusEntity.getStatus())) {
+        if (TraceStatus.Completed.equals(procInstStatusEntity.getStatus())
+                || TraceStatus.Faulted.equals(procInstStatusEntity.getStatus())) {
             processInstanceId = procInstStatusEntity.getProcInstId();
             processDefinitionId = procInstStatusEntity.getProcDefId();
         } else {
@@ -622,7 +624,7 @@ public class WorkflowEngineService {
 
         StartEvent startEvent = startEvents.iterator().next();
 
-        populateFlowNodes(pdo, startEvent);
+        populateFlowNodes(pdo, startEvent, null);
 
         return pdo;
     }
@@ -676,36 +678,41 @@ public class WorkflowEngineService {
 
         StartEvent startEvent = startEvents.iterator().next();
 
-        populateFlowNodes(pdo, startEvent);
+        populateFlowNodes(pdo, startEvent, null);
 
         return pdo;
     }
 
-    protected void populateFlowNodes(ProcDefOutline outline, FlowNode flowNode) {
+    protected void populateFlowNodes(ProcDefOutline outline, FlowNode flowNode, ProcFlowNode previous) {
+        Collection<FlowNode> previousFlowNodes = flowNode.getPreviousNodes().list();
+
+        for (FlowNode fn : previousFlowNodes) {
+            ProcFlowNode childPfn = outline.findFlowNode(fn.getId());
+            if (childPfn == null) {
+                populateFlowNodes(outline, fn, null);
+            }
+        }
+
         ProcFlowNode pfn = outline.findFlowNode(flowNode.getId());
         if (pfn == null) {
             pfn = buildProcFlowNode(flowNode);
             outline.addFlowNodes(pfn);
         }
 
+        if (previous != null) {
+            pfn.addPreviousFlowNodes(previous);
+        }
+
         Collection<FlowNode> succeedingFlowNodes = flowNode.getSucceedingNodes().list();
 
         for (FlowNode fn : succeedingFlowNodes) {
             ProcFlowNode childPfn = outline.findFlowNode(fn.getId());
-            boolean needPopulateChild = false;
             if (childPfn == null) {
-                childPfn = buildProcFlowNode(fn);
-                outline.addFlowNodes(childPfn);
-                needPopulateChild = true;
-            }
-
-            pfn.addSucceedingFlowNodes(childPfn);
-
-            if (needPopulateChild) {
-                populateFlowNodes(outline, fn);
+                populateFlowNodes(outline, fn, pfn);
+            } else {
+                pfn.addSucceedingFlowNodes(childPfn);
             }
         }
-
     }
 
     protected ProcessDefinition getProcessDefinitionByProcId(String processDefinitionId) {
@@ -730,7 +737,8 @@ public class WorkflowEngineService {
             SubProcessAdditionalInfo info = new SubProcessAdditionalInfo();
             info.setSubProcessNodeId(dto.getNodeId());
             info.setSubProcessNodeName(dto.getNodeName());
-            info.setTimeoutExpression(convertIsoTimeFormat(dto.getTimeoutExpression()));
+
+            info.setTimeoutExpression(convertIsoTimeFormat(dto));
 
             bpmnParseAttachment.addSubProcessAddtionalInfo(info);
         }
@@ -738,9 +746,14 @@ public class WorkflowEngineService {
         return bpmnParseAttachment;
     }
 
-    private String convertIsoTimeFormat(String timeoutExpression) {
+    private String convertIsoTimeFormat(TaskNodeDefInfoDto dto) {
+        String timeoutExpression = dto.getTimeoutExpression();
         if (StringUtils.isBlank(timeoutExpression)) {
             return timeoutExpression;
+        }
+
+        if (Constants.TASK_CATEGORY_SUTN.equalsIgnoreCase(dto.getTaskCategory())) {
+            return "PT9999H";
         }
 
         return "PT" + timeoutExpression.trim() + "M";

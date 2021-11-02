@@ -71,6 +71,9 @@ public class WorkflowInstCreationContext implements Serializable {
     }
     
     public DynamicEntityValueDto findByEntityDataIdOrOid(String id){
+        if(StringUtils.isBlank(id)) {
+            return null;
+        }
         for(DynamicEntityValueDto e : entities){
             if(StringUtils.isNoneBlank(e.getEntityDataId()) && e.getEntityDataId().equals(id)){
                 return e;
@@ -84,7 +87,35 @@ public class WorkflowInstCreationContext implements Serializable {
         return null;
     }
     
+    /**
+     * 
+     * @param dataId
+     * @return
+     */
+    public DynamicEntityValueDto findByEntityDataId(String dataId) {
+        if(StringUtils.isBlank(dataId)) {
+            return null;
+        }
+        
+        for(DynamicEntityValueDto e : entities) {
+            if(dataId.equals(e.getEntityDataId())) {
+                return e;
+            }
+        }
+        
+        return null;
+    }
+    
+    /**
+     * 
+     * @param oid
+     * @return
+     */
     public DynamicEntityValueDto findByOid(String oid){
+        if(StringUtils.isBlank(oid)) {
+            return null;
+        }
+        
         for(DynamicEntityValueDto e : entities){
             if(e.getOid().equals(oid)){
                 return e;

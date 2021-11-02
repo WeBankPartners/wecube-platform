@@ -8,6 +8,7 @@
               :needAttr="true"
               ref="filterRules"
               style="height:44px"
+              @change="filterRuleChanged"
               v-model="express.routineExpression"
               :allDataModelsWithAttrs="allEntityType"
             >
@@ -47,11 +48,28 @@ export default {
       routineExpressionItem: []
     }
   },
+  watch: {
+    isBatch: {
+      handler (val) {
+        if (!this.isBatch) {
+          this.$nextTick(() => {
+            this.routineExpressionItem = [this.routineExpressionItem[0]]
+          })
+        }
+      },
+      immediate: true
+    }
+  },
   props: ['isBatch', 'allEntityType', 'routineExpression', 'rootEntity'],
   mounted () {
     this.changeRoutineExpressionItem(this.routineExpression)
   },
   methods: {
+    filterRuleChanged (val) {
+      if (!this.isBatch) {
+        this.$emit('filterRuleChanged', val)
+      }
+    },
     changeRoutineExpressionItem (routineExpression) {
       this.routineExpressionItem = []
       if (routineExpression) {

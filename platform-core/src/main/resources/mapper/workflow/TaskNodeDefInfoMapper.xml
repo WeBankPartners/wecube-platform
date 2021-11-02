@@ -42,6 +42,7 @@
             property="dynamicBind" />
         <result column="pre_check" jdbcType="VARCHAR" property="preCheck" />
         <result column="prev_ctx_node_ids" jdbcType="VARCHAR" property="prevCtxNodeIds" />
+        <result column="ass_node_id" jdbcType="VARCHAR" property="associatedNodeId" />
     </resultMap>
     <sql id="Base_Column_List">
         id, 
@@ -71,7 +72,8 @@
         task_category,
         dynamic_bind,
         pre_check,
-        prev_ctx_node_ids
+        prev_ctx_node_ids,
+        ass_node_id
     </sql>
     <select id="selectByPrimaryKey" parameterType="java.lang.String"
         resultMap="BaseResultMap">
@@ -115,7 +117,8 @@
         task_category,
         dynamic_bind,
         pre_check,
-        prev_ctx_node_ids
+        prev_ctx_node_ids,
+        ass_node_id
         )
         values
         (#{id,jdbcType=VARCHAR}, 
@@ -145,7 +148,8 @@
         #{taskCategory,jdbcType=VARCHAR},
         #{dynamicBind,jdbcType=VARCHAR},
         #{preCheck,jdbcType=VARCHAR},
-        #{prevCtxNodeIds,jdbcType=VARCHAR}
+        #{prevCtxNodeIds,jdbcType=VARCHAR},
+        #{associatedNodeId,jdbcType=VARCHAR}
         )
     </insert>
     <insert id="insertSelective"
@@ -236,6 +240,9 @@
             <if test="prevCtxNodeIds != null">
                 prev_ctx_node_ids,
             </if>
+            <if test="associatedNodeId != null">
+                ass_node_id,
+            </if>
         </trim>
         <trim prefix="values (" suffix=")" suffixOverrides=",">
             <if test="id != null">
@@ -321,6 +328,9 @@
             </if>
             <if test="prevCtxNodeIds != null">
                 #{prevCtxNodeIds,jdbcType=VARCHAR},
+            </if>
+            <if test="associatedNodeId != null">
+                #{associatedNodeId,jdbcType=VARCHAR},
             </if>
         </trim>
     </insert>
@@ -414,6 +424,9 @@
             <if test="prevCtxNodeIds != null">
                 prev_ctx_node_ids = #{prevCtxNodeIds,jdbcType=VARCHAR},
             </if>
+            <if test="associatedNodeId != null">
+                ass_node_id = #{associatedNodeId,jdbcType=VARCHAR},
+            </if>
         </set>
         where id = #{id,jdbcType=VARCHAR}
     </update>
@@ -472,7 +485,9 @@
         pre_check =
         #{preCheck,jdbcType=VARCHAR},
         prev_ctx_node_ids =
-        #{prevCtxNodeIds,jdbcType=VARCHAR}
+        #{prevCtxNodeIds,jdbcType=VARCHAR},
+        ass_node_id =
+        #{associatedNodeId,jdbcType=VARCHAR}
         where id = #{id,jdbcType=VARCHAR}
     </update>
 

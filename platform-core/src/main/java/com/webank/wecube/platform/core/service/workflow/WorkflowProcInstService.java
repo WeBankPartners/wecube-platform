@@ -355,6 +355,7 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
             nd.setProcInstId(n.getProcInstId());
             nd.setProcInstKey(n.getProcInstKey());
             nd.setStatus(n.getStatus());
+            nd.setDescription(nodeDef.getDescription());
 
             procInstInfoResultDto.addTaskNodeInstances(nd);
         }
@@ -425,6 +426,9 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
         
         if(StringUtils.isNoneBlank(requestDto.getProcInitUser())) {
             procInstInfoEntity.setOper(requestDto.getProcInitUser());
+            if(StringUtils.isBlank(procInstInfoEntity.getCreatedBy())) {
+                procInstInfoEntity.setCreatedBy(requestDto.getProcInitUser());
+            }
         }
 
         tryBuildProcInstProcExecBinding(rootEntityTypeId, rootEntityDataId, rootEntityDataName, procDefInfoEntity,
@@ -660,6 +664,7 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
         String butifiedRootEntityTypeId = butifyEntityTypeId(rootEntityTypeId);
         procInstBindEntity.setEntityTypeId(butifiedRootEntityTypeId);
         procInstBindEntity.setEntityDataId(rootEntityDataId);
+        procInstBindEntity.setEntityDataId(rootEntityDataId);
         procInstBindEntity.setEntityDataName(rootEntityDataName);
         procInstBindEntity.setProcDefId(procDefInfoEntity.getId());
         // procInstBindEntity.setProcInstId(procInstInfoEntity.getId());
@@ -727,6 +732,7 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
             nodeBindEntity.setTaskNodeInstId(taskNodeInstInfoEntity.getId());
             nodeBindEntity.setEntityTypeId(bindInfoDto.getEntityTypeId());
             nodeBindEntity.setEntityDataId(bindInfoDto.getEntityDataId());
+            nodeBindEntity.setEntityId(bindInfoDto.getEntityDataId());
             nodeBindEntity.setFullEntityDataId(bindInfoDto.getFullEntityDataId());
             nodeBindEntity.setEntityDataName(bindInfoDto.getEntityDisplayName());
             nodeBindEntity.setCreatedBy(AuthenticationContextHolder.getCurrentUsername());
