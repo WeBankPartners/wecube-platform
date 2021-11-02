@@ -489,14 +489,8 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
         Map<String, Object> objDataMap = new HashMap<String, Object>();
         for (DynamicEntityAttrValueDto attr : attrValues) {
             if ("ref".equalsIgnoreCase(attr.getDataType())) {
-                String refId = (String) attr.getDataValue();// multi ref?
-                DynamicEntityValueDto refEntityDataValueDto = ctx.findByOid(refId);
-                if (refEntityDataValueDto != null && StringUtils.isNoneBlank(refEntityDataValueDto.getEntityDataId())) {
-                    objDataMap.put(attr.getAttrName(), refEntityDataValueDto.getEntityDataId());
-                } else {
-                    objDataMap.put(attr.getAttrName(), attr.getDataValue());
-                }
-
+                Object refAttrDataValue = tryCalRefAttrDataValue(attr, ctx);
+                objDataMap.put(attr.getAttrName(), refAttrDataValue);
             } else {
                 objDataMap.put(attr.getAttrName(), attr.getDataValue());
             }
@@ -600,14 +594,8 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
         Map<String, Object> objDataMap = new HashMap<String, Object>();
         for (DynamicEntityAttrValueDto attr : attrValues) {
             if ("ref".equalsIgnoreCase(attr.getDataType())) {
-                String refId = (String) attr.getDataValue();// multi ref?
-                DynamicEntityValueDto refEntityDataValueDto = ctx.findByOid(refId);
-                if (refEntityDataValueDto != null) {
-                    objDataMap.put(attr.getAttrName(), refEntityDataValueDto.getEntityDataId());
-                } else {
-                    objDataMap.put(attr.getAttrName(), attr.getDataValue());
-                }
-
+                Object refAttrDataValue = tryCalRefAttrDataValue(attr, ctx);
+                objDataMap.put(attr.getAttrName(), refAttrDataValue);
             } else {
                 objDataMap.put(attr.getAttrName(), attr.getDataValue());
             }
@@ -686,14 +674,8 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
             attrUpdate.setAttrName(attr.getAttrName());
 
             if ("ref".equalsIgnoreCase(attr.getDataType())) {
-                String refId = (String) attr.getDataValue();// multi ref?
-                DynamicEntityValueDto refEntityDataValueDto = ctx.findByOid(refId);
-                if (refEntityDataValueDto != null && StringUtils.isNoneBlank(refEntityDataValueDto.getEntityDataId())) {
-                    attrUpdate.setAttrValue(refEntityDataValueDto.getEntityDataId());
-                } else {
-                    attrUpdate.setAttrValue(attr.getDataValue());
-                }
-
+                Object refAttrDataValue = tryCalRefAttrDataValue(attr, ctx);
+                attrUpdate.setAttrValue(refAttrDataValue);
             } else {
                 attrUpdate.setAttrValue(attr.getDataValue());
             }
@@ -712,6 +694,41 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
         }
 
         log.info("entity data updated successfully:{}", bindDataId);
+    }
+    
+    private Object tryCalRefAttrDataValue(DynamicEntityAttrValueDto attr, WorkflowInstCreationContext ctx) {
+        if(attr.getDataValue() == null) {
+            return  null;
+        }
+        
+        if( !(attr.getDataValue() instanceof String) ) {
+            return attr.getDataValue();
+        }
+        
+        String refIdsStr = (String) attr.getDataValue();// multi ref?
+        
+        String [] refIds = refIdsStr.split(",");
+        StringBuilder sb = new StringBuilder();
+        boolean isFirst = true;
+        for(String refId : refIds) {
+            DynamicEntityValueDto refEntityDataValueDto = ctx.findByOid(refId);
+            String calRefId = null;
+            if (refEntityDataValueDto != null && StringUtils.isNoneBlank(refEntityDataValueDto.getEntityDataId())) {
+                calRefId = refEntityDataValueDto.getEntityDataId();
+            } else {
+                calRefId = refId;
+            }
+            
+            if(isFirst) {
+                isFirst = false;
+            }else {
+                sb.append(",");
+            }
+            
+            sb.append(calRefId);
+        }
+        
+        return sb.toString();
     }
 
     /**
