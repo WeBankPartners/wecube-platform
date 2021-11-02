@@ -39,10 +39,22 @@ public abstract class AbstractWorkflowService {
     
     public static final String CALLBACK_PARAMETER_SYSTEM_PREFIX = "SYS-ENTITY";
     
-    protected static List<String> statelessNodeTypes = Arrays.asList(NODE_START_EVENT, NODE_END_EVENT, NODE_EXCLUSIVE_GATEWAY,
+    protected static List<String> STATELESS_NODE_TYPES = Arrays.asList(NODE_START_EVENT, NODE_END_EVENT, NODE_EXCLUSIVE_GATEWAY,
             NODE_PARALLEL_GATEWAY);
     
-    
+    protected boolean isStatelessNodeType(String nodeType) {
+        if(StringUtils.isBlank(nodeType)) {
+            return false;
+        }
+        
+        for(String statelessNodeType : STATELESS_NODE_TYPES) {
+            if(statelessNodeType.equalsIgnoreCase(nodeType)) {
+                return true;
+            }
+        }
+        
+        return false;
+    }
     
     protected List<String> unmarshalNodeIds(String nodeIdsAsString) {
         List<String> nodeIds = new ArrayList<>();
