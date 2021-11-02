@@ -768,6 +768,7 @@ public class WorkflowPublicAccessService {
 
         attrDto.setReferenceId(attr.getReferenceId());
         attrDto.setOrderNo(String.valueOf(attr.getOrderNo()));
+        attrDto.setMultiple(attr.getMultiple());
 
         return attrDto;
     }
