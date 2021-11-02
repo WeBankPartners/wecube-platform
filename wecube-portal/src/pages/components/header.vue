@@ -260,7 +260,6 @@ export default {
             }
           }
         })
-        console.log(JSON.stringify(this.menus))
         window.localStorage.setItem('wecube_cache_menus', JSON.stringify(this.menus))
         this.$emit('allMenus', this.menus)
         window.myMenus = this.menus
