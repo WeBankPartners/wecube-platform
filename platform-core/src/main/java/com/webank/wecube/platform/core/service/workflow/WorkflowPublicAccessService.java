@@ -262,6 +262,7 @@ public class WorkflowPublicAccessService {
             nodeDto.setRoutineExp(nodeDefInfo.getRoutineExp());
             nodeDto.setTaskCategory(nodeDefInfo.getTaskCategory());
             nodeDto.setOrderedNo(nodeDefInfo.getOrderedNo());
+            nodeDto.setDynamicBind(nodeDefInfo.getDynamicBind());
 
             List<RegisteredEntityDefDto> boundEntities = buildTaskNodeBoundEntities(nodeDefInfo);
 
