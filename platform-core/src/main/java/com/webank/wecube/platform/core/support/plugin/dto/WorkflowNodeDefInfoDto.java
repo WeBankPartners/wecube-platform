@@ -17,6 +17,8 @@ public class WorkflowNodeDefInfoDto {
     private String serviceName;
     
     private String orderedNo;
+    
+    private String dynamicBind;
 
     private List<RegisteredEntityDefDto> boundEntities;
 
@@ -134,6 +136,14 @@ public class WorkflowNodeDefInfoDto {
 
     public void setOrderedNo(String orderedNo) {
         this.orderedNo = orderedNo;
+    }
+
+    public String getDynamicBind() {
+        return dynamicBind;
+    }
+
+    public void setDynamicBind(String dynamicBind) {
+        this.dynamicBind = dynamicBind;
     }
 
     

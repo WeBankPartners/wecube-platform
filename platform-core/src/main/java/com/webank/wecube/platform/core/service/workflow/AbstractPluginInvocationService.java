@@ -323,7 +323,7 @@ public abstract class AbstractPluginInvocationService extends AbstractWorkflowSe
                     prevNodeId);
             log.debug("prevNodeInst:{} - {}", prevNodeInst, prevNodeId);
             if (prevNodeInst != null) {
-                if (statelessNodeTypes.contains(prevNodeInst.getNodeType())
+                if (STATELESS_NODE_TYPES.contains(prevNodeInst.getNodeType())
                         && !TaskNodeInstInfoEntity.COMPLETED_STATUS.equalsIgnoreCase(prevNodeInst.getStatus())) {
                     prevNodeInst.setUpdatedTime(new Date());
                     prevNodeInst.setUpdatedBy(WorkflowConstants.DEFAULT_USER);

@@ -236,16 +236,20 @@ public class WorkflowProcDefDeploymentService extends AbstractWorkflowProcDefSer
             if (!StringUtils.isBlank(nodeDto.getServiceId())) {
                 draftNodeEntity.setServiceId(nodeDto.getServiceId());
             }
-            draftNodeEntity.setServiceName(nodeDto.getServiceName());
-            draftNodeEntity.setTimeoutExp(nodeDto.getTimeoutExpression());
+
             draftNodeEntity.setUpdatedTime(currTime);
             draftNodeEntity.setUpdatedBy(currUser);
-            draftNodeEntity.setTaskCategory(nodeDto.getTaskCategory());
-            draftNodeEntity.setPreCheck(nodeDto.getPreCheck());
-            draftNodeEntity.setDynamicBind(nodeDto.getDynamicBind());
-            draftNodeEntity.setPrevCtxNodeIds(nodeDto.getPrevCtxNodeIds());
+            draftNodeEntity.setTimeoutExp(nodeDto.getTimeoutExpression());
 
-            draftNodeEntity.setAssociatedNodeId(nodeDto.getAssociatedNodeId());
+            if (!isStatelessNodeType(nodeDto.getNodeType())) {
+                draftNodeEntity.setServiceName(nodeDto.getServiceName());
+                draftNodeEntity.setTaskCategory(nodeDto.getTaskCategory());
+                draftNodeEntity.setPreCheck(nodeDto.getPreCheck());
+                draftNodeEntity.setDynamicBind(nodeDto.getDynamicBind());
+                draftNodeEntity.setPrevCtxNodeIds(nodeDto.getPrevCtxNodeIds());
+
+                draftNodeEntity.setAssociatedNodeId(nodeDto.getAssociatedNodeId());
+            }
 
             taskNodeDefInfoRepo.updateByPrimaryKeySelective(draftNodeEntity);
 
@@ -438,7 +442,8 @@ public class WorkflowProcDefDeploymentService extends AbstractWorkflowProcDefSer
                         String.format("Routine expression is blank for %s", nodeDto.getNodeId()), nodeDto.getNodeId());
             }
 
-            if (StringUtils.isBlank(nodeDto.getServiceId()) && !Constants.TASK_CATEGORY_SDTN.equalsIgnoreCase(nodeDto.getTaskCategory())) {
+            if (StringUtils.isBlank(nodeDto.getServiceId())
+                    && !Constants.TASK_CATEGORY_SDTN.equalsIgnoreCase(nodeDto.getTaskCategory())) {
                 throw new WecubeCoreException("3216", String.format("Service ID is blank for %s", nodeDto.getNodeId()),
                         nodeDto.getNodeId());
             }
@@ -511,10 +516,10 @@ public class WorkflowProcDefDeploymentService extends AbstractWorkflowProcDefSer
     }
 
     private void validateTaskNodePluginPermission(TaskNodeDefInfoDto nodeDto, List<String> mgmtRoleNames) {
-        if(Constants.TASK_CATEGORY_SDTN.equalsIgnoreCase(nodeDto.getTaskCategory())) {
+        if (Constants.TASK_CATEGORY_SDTN.equalsIgnoreCase(nodeDto.getTaskCategory())) {
             return;
         }
-        
+
         PluginConfigInterfaces intf = retrievePluginConfigInterface(nodeDto, nodeDto.getNodeId());
         PluginConfigs pluginConfig = intf.getPluginConfig();
         if (pluginConfig == null) {
@@ -910,31 +915,30 @@ public class WorkflowProcDefDeploymentService extends AbstractWorkflowProcDefSer
         if (!Objects.equals(taskNodeDefEntity.getServiceId(), taskNodeInfo.getServiceId())) {
             return false;
         }
-        
-        if(!Objects.equals(taskNodeDefEntity.getDynamicBind(), taskNodeInfo.getDynamicBind())) {
-            return false;
-        }
-        
-        if(!Objects.equals(taskNodeDefEntity.getTaskCategory(), taskNodeInfo.getTaskCategory())) {
-            return false;
-        }
-        
-        if(!Objects.equals(taskNodeDefEntity.getPreCheck(), taskNodeInfo.getPreCheck())) {
-            return false;
-        }
-        
-        if(!Objects.equals(taskNodeDefEntity.getDynamicBind(), taskNodeInfo.getDynamicBind())) {
-            return false;
-        }
-        
-        if(!Objects.equals(taskNodeDefEntity.getPrevCtxNodeIds(), taskNodeInfo.getPrevCtxNodeIds())) {
+
+        if (!Objects.equals(taskNodeDefEntity.getDynamicBind(), taskNodeInfo.getDynamicBind())) {
             return false;
         }
 
-        if(!Objects.equals(taskNodeDefEntity.getAssociatedNodeId(), taskNodeInfo.getAssociatedNodeId())) {
+        if (!Objects.equals(taskNodeDefEntity.getTaskCategory(), taskNodeInfo.getTaskCategory())) {
             return false;
         }
-        
+
+        if (!Objects.equals(taskNodeDefEntity.getPreCheck(), taskNodeInfo.getPreCheck())) {
+            return false;
+        }
+
+        if (!Objects.equals(taskNodeDefEntity.getDynamicBind(), taskNodeInfo.getDynamicBind())) {
+            return false;
+        }
+
+        if (!Objects.equals(taskNodeDefEntity.getPrevCtxNodeIds(), taskNodeInfo.getPrevCtxNodeIds())) {
+            return false;
+        }
+
+        if (!Objects.equals(taskNodeDefEntity.getAssociatedNodeId(), taskNodeInfo.getAssociatedNodeId())) {
+            return false;
+        }
 
         return true;
     }

@@ -44,6 +44,7 @@ import com.webank.wecube.platform.core.repository.plugin.PluginPackageEntitiesMa
 import com.webank.wecube.platform.core.repository.plugin.PluginPackagesMapper;
 import com.webank.wecube.platform.core.utils.CollectionUtils;
 import com.webank.wecube.platform.core.utils.Constants;
+import com.webank.wecube.platform.core.utils.JsonUtils;
 import com.webank.wecube.platform.core.utils.VersionUtils;
 import com.webank.wecube.platform.workflow.commons.LocalIdGenerator;
 
@@ -158,8 +159,7 @@ public class PluginConfigMgmtService extends AbstractPluginMgmtService {
                 }
             } else if (Constants.TASK_CATEGORY_SSTN.equalsIgnoreCase(taskCategory)) {
                 for (PluginConfigInterfaceDto interfDto : resultPluginConfigInterfaceDtos) {
-                    if (Constants.INTERFACE_TYPE_EXECUTION.equalsIgnoreCase(interfDto.getType())
-                            || StringUtils.isBlank(interfDto.getType())) {
+                    if (Constants.INTERFACE_TYPE_EXECUTION.equalsIgnoreCase(interfDto.getType())) {
                         finalResultPluginConfigInterfaceDtos.add(interfDto);
                     }
                 }
@@ -167,7 +167,7 @@ public class PluginConfigMgmtService extends AbstractPluginMgmtService {
                 finalResultPluginConfigInterfaceDtos.addAll(resultPluginConfigInterfaceDtos);
             }
 
-        }else {
+        } else {
             finalResultPluginConfigInterfaceDtos.addAll(resultPluginConfigInterfaceDtos);
         }
 
@@ -652,6 +652,8 @@ public class PluginConfigMgmtService extends AbstractPluginMgmtService {
      */
     @Transactional
     public PluginConfigDto createOrUpdatePluginConfig(PluginConfigDto pluginConfigDto) {
+        log.debug("Create or update plugin config");
+        log.debug(JsonUtils.toJsonString(pluginConfigDto));
         validatePermission(pluginConfigDto.getPermissionToRole());
 
         PluginConfigDto resultPluginConfigDto = null;
@@ -1014,7 +1016,7 @@ public class PluginConfigMgmtService extends AbstractPluginMgmtService {
         intfEntity.setDescription(intfDto.getDescription());
 
         String interfType = intfDto.getType();
-        if(StringUtils.isBlank(interfType)) {
+        if (StringUtils.isBlank(interfType)) {
             interfType = PluginConfigInterfaces.DEFAULT_INTERFACE_TYPE;
         }
         // type ?
