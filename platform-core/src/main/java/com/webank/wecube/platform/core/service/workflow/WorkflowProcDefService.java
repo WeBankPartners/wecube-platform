@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 
 import com.webank.wecube.platform.core.commons.AuthenticationContextHolder;
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
+import com.webank.wecube.platform.core.dto.workflow.PreTaskNodesQueryDto;
 import com.webank.wecube.platform.core.dto.workflow.ProcDefInfoDto;
 import com.webank.wecube.platform.core.dto.workflow.ProcRoleDto;
 import com.webank.wecube.platform.core.dto.workflow.TaskNodeDefBriefDto;
@@ -23,6 +24,8 @@ import com.webank.wecube.platform.core.entity.workflow.ProcDefInfoEntity;
 import com.webank.wecube.platform.core.entity.workflow.ProcRoleBindingEntity;
 import com.webank.wecube.platform.core.entity.workflow.TaskNodeDefInfoEntity;
 import com.webank.wecube.platform.core.entity.workflow.TaskNodeParamEntity;
+import com.webank.wecube.platform.workflow.model.ProcDefOutline;
+import com.webank.wecube.platform.workflow.model.ProcFlowNode;
 
 /**
  * 
@@ -83,6 +86,60 @@ public class WorkflowProcDefService extends AbstractWorkflowProcDefService {
         }
 
         processDefInfoRepo.deleteByPrimaryKey(procDef.getId());
+    }
+
+    public List<TaskNodeDefBriefDto> getPreviousTaskNodes(String procDefId, PreTaskNodesQueryDto queryDto) {
+        List<TaskNodeDefBriefDto> result = new ArrayList<>();
+        if (StringUtils.isBlank(procDefId)) {
+            return result;
+        }
+
+        String currNodeId = queryDto.getTaskNodeId();
+        ProcDefOutline procDefOutline = workflowEngineService.readProcDefOutlineFromXmlData(queryDto.getProcDefData());
+
+        ProcFlowNode currFlowNode = procDefOutline.findFlowNode(currNodeId);
+        if (currFlowNode == null) {
+            String errMsg = String.format("Illegal task node ID:%s, not exists.", currNodeId);
+            throw new WecubeCoreException(errMsg);
+        }
+
+        tryPopulatePreviousFlowNodes(currFlowNode, procDefOutline, procDefId, result);
+
+//        Collections.reverse(result);
+
+        return result;
+    }
+
+    private void tryPopulatePreviousFlowNodes(ProcFlowNode currFlowNode, ProcDefOutline procDefOutline,
+            String procDefId, List<TaskNodeDefBriefDto> resultDtos) {
+        List<ProcFlowNode> previousFlowNodes = currFlowNode.getPreviousFlowNodes();
+        if (previousFlowNodes == null || previousFlowNodes.isEmpty()) {
+            return;
+        }
+
+        for (ProcFlowNode fn : previousFlowNodes) {
+            tryPopulatePreviousFlowNodes(fn, procDefOutline, procDefId, resultDtos);
+            TaskNodeDefBriefDto fnDto = null;
+            for (TaskNodeDefBriefDto dto : resultDtos) {
+                if (dto.getNodeId().equals(fn.getId())) {
+                    fnDto = dto;
+                    break;
+                }
+            }
+
+            if (fnDto == null) {
+                TaskNodeDefBriefDto d = new TaskNodeDefBriefDto();
+                d.setNodeDefId(null);
+                d.setNodeId(fn.getId());
+                d.setNodeName(fn.getNodeName());
+                d.setNodeType(fn.getNodeType());
+                d.setProcDefId(procDefId);
+                d.setServiceId(null);
+                d.setServiceName(null);
+
+                resultDtos.add(d);
+            }
+        }
     }
 
     /**
@@ -286,7 +343,7 @@ public class WorkflowProcDefService extends AbstractWorkflowProcDefService {
 
         return false;
     }
-    
+
     private void filterTaskNodeInfosByRootContext(String prevCtxNodeIds,
             List<TaskNodeDefInfoEntity> filteredNodeEntities, List<TaskNodeDefInfoEntity> nodeEntities) {
         String[] prevCtxNodeIdsParts = prevCtxNodeIds.trim().split(",");

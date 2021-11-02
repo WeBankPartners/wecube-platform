@@ -208,6 +208,7 @@
         <xs:restriction base="xs:string">
           <xs:enumeration value="APPROVAL"/>
           <xs:enumeration value="EXECUTION"/>
+          <xs:enumeration value="DYNAMICFORM"/>
         </xs:restriction>
       </xs:simpleType>
     </xs:attribute>
