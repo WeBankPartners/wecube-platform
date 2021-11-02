@@ -153,9 +153,8 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
             return;
         }
 
-        
         try {
-            
+
             handleResultData(pluginInvocationResult, ctx, resultData);
             PluginInvocationResult result = new PluginInvocationResult()
                     .parsePluginInvocationCommand(ctx.getPluginInvocationCommand());
@@ -314,14 +313,13 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 
         // to refactor using strategy mode
         if (isSystemAutomationTaskNode(taskNodeDefEntity)) {
-            doInvokeSystemAutomationPluginInterface(procInstEntity, taskNodeInstEntity, procDefInfoEntity,
-                    taskNodeDefEntity, cmd);
-        } else if (isUserTaskNode(taskNodeDefEntity)) {
-            doInvokeUserTaskPluginInterface(procInstEntity, taskNodeInstEntity, procDefInfoEntity, taskNodeDefEntity,
+            doInvokeSystemAutomationPluginIntf(procInstEntity, taskNodeInstEntity, procDefInfoEntity, taskNodeDefEntity,
                     cmd);
+        } else if (isUserTaskNode(taskNodeDefEntity)) {
+            doInvokeUserTaskPluginIntf(procInstEntity, taskNodeInstEntity, procDefInfoEntity, taskNodeDefEntity, cmd);
         } else if (isDataOperationTaskNode(taskNodeDefEntity)) {
-            doInvokeDataOperationPluginInterface(procInstEntity, taskNodeInstEntity, procDefInfoEntity,
-                    taskNodeDefEntity, cmd);
+            doInvokeDataOperationPluginIntf(procInstEntity, taskNodeInstEntity, procDefInfoEntity, taskNodeDefEntity,
+                    cmd);
         }
     }
 
@@ -329,10 +327,9 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
      * SDTN Handling data operation task node.
      * 
      */
-    protected void doInvokeDataOperationPluginInterface(ProcInstInfoEntity procInstEntity,
+    protected void doInvokeDataOperationPluginIntf(ProcInstInfoEntity procInstEntity,
             TaskNodeInstInfoEntity taskNodeInstEntity, ProcDefInfoEntity procDefInfoEntity,
             TaskNodeDefInfoEntity taskNodeDefEntity, PluginInvocationCommand cmd) {
-
         List<ProcExecBindingEntity> nodeObjectBindings = retrieveProcExecBindingEntities(taskNodeInstEntity);
         if (nodeObjectBindings == null || nodeObjectBindings.isEmpty()) {
             log.info("There are not any task node object bindings found and skipped for task node:{}",
@@ -345,16 +342,56 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
             return;
         }
 
+        //
+        try {
+            tryProcessProcExecBindings(ctx, nodeObjectBindings, procInstEntity, taskNodeInstEntity, procDefInfoEntity,
+                    taskNodeDefEntity, cmd);
+        } finally {
+            tryPersistProcExecContext(ctx, procInstEntity, taskNodeInstEntity, procDefInfoEntity, taskNodeDefEntity,
+                    cmd);
+        }
+
+        updateTaskNodeInstCompleted(taskNodeInstEntity, cmd);
+    }
+
+    private void updateTaskNodeInstCompleted(TaskNodeInstInfoEntity taskNodeInstEntity, PluginInvocationCommand cmd) {
+        if (taskNodeInstEntity == null) {
+            return;
+        }
+
+        PluginInvocationResult result = new PluginInvocationResult().parsePluginInvocationCommand(cmd);
+        result.setResultCode(RESULT_CODE_OK);
+        pluginInvocationResultService.responsePluginInterfaceInvocation(result);
+
+        log.debug("mark task node instance {} as {}", taskNodeInstEntity.getId(),
+                TaskNodeInstInfoEntity.COMPLETED_STATUS);
+
+        taskNodeInstEntity.setStatus(TaskNodeInstInfoEntity.COMPLETED_STATUS);
+        taskNodeInstEntity.setUpdatedTime(new Date());
+        taskNodeInstEntity.setUpdatedBy(WorkflowConstants.DEFAULT_USER);
+
+        taskNodeInstInfoRepository.updateByPrimaryKeySelective(taskNodeInstEntity);
+    }
+
+    private void tryProcessProcExecBindings(WorkflowInstCreationContext ctx,
+            List<ProcExecBindingEntity> nodeObjectBindings, ProcInstInfoEntity procInstEntity,
+            TaskNodeInstInfoEntity taskNodeInstEntity, ProcDefInfoEntity procDefInfoEntity,
+            TaskNodeDefInfoEntity taskNodeDefEntity, PluginInvocationCommand cmd) {
         for (ProcExecBindingEntity objectBinding : nodeObjectBindings) {
 
             String bindDataId = objectBinding.getEntityDataId();
-            if (bindDataId.startsWith(TEMPORARY_ENTITY_ID_PREFIX)) {
-                tryCreateNewEntityData(bindDataId, ctx, objectBinding);
+            // add entity check,checking entity state?
+            if (bindDataId.startsWith(Constants.TEMPORARY_ENTITY_ID_PREFIX)) {
+                tryProcessOidProcExecBinding(bindDataId, ctx, objectBinding, procInstEntity, taskNodeInstEntity);
             } else {
-                tryUpdateExistedEntityData(bindDataId, ctx);
+                tryProcessDataIdProcExecBinding(bindDataId, ctx, objectBinding, procInstEntity, taskNodeInstEntity);
             }
         }
+    }
 
+    private void tryPersistProcExecContext(WorkflowInstCreationContext ctx, ProcInstInfoEntity procInstEntity,
+            TaskNodeInstInfoEntity taskNodeInstEntity, ProcDefInfoEntity procDefInfoEntity,
+            TaskNodeDefInfoEntity taskNodeDefEntity, PluginInvocationCommand cmd) {
         String ctxJson = convertWorkflowInstCreationContextToJson(ctx);
         List<ProcExecContextEntity> procExecContextEntities = this.procExecContextMapper.selectAllContextByCtxType(
                 procDefInfoEntity.getId(), procInstEntity.getId(), ProcExecContextEntity.CTX_TYPE_PROCESS);
@@ -373,13 +410,71 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
         procExecContextMapper.updateByPrimaryKeySelective(procExecContextEntity);
     }
 
-    private void tryCreateNewEntityData(String bindDataId, WorkflowInstCreationContext ctx,
-            ProcExecBindingEntity objectBinding) {
-        String objectId = bindDataId.substring(TEMPORARY_ENTITY_ID_PREFIX.length());
+    private void tryProcessOidProcExecBinding(String bindPrefixedEntityOid, WorkflowInstCreationContext ctx,
+            ProcExecBindingEntity objectBinding, ProcInstInfoEntity procInstEntity,
+            TaskNodeInstInfoEntity taskNodeInstEntity) {
+        String objectId = null;
+        if (bindPrefixedEntityOid.startsWith(Constants.TEMPORARY_ENTITY_ID_PREFIX)) {
+            objectId = bindPrefixedEntityOid.substring(Constants.TEMPORARY_ENTITY_ID_PREFIX.length());
+        } else {
+            objectId = bindPrefixedEntityOid;
+        }
         DynamicEntityValueDto entityValueDto = ctx.findByOid(objectId);
         if (entityValueDto == null) {
             log.info("Can not find such entity value from creation context with ID:{}", objectId);
             return;
+        }
+
+        // try handle previous entities first
+        List<String> prevOids = entityValueDto.getPreviousOids();
+        Map<String, DynamicEntityValueDto> prevEntityValueMaps = new HashMap<>();
+        if (prevOids != null) {
+            for (String prevOid : prevOids) {
+                DynamicEntityValueDto prevEntityValueDto = tryProcessOidEntityValueCreation(prevOid, ctx, objectBinding,
+                        procInstEntity, taskNodeInstEntity);
+                if (prevEntityValueDto != null) {
+                    prevEntityValueMaps.put(prevOid, prevEntityValueDto);
+                } else {
+                    // log.info("Failed to process previous entity:{}", prevOid);
+                }
+            }
+        }
+
+        if (StringUtils.isNoneBlank(entityValueDto.getEntityDataId())) {
+            // means exists in CMDB
+            // 1) try update process instance binding
+            // 2) try update all node bindings
+            String dataId = entityValueDto.getEntityDataId().trim();
+
+            ProcExecBindingEntity procInstBinding = procExecBindingMapper
+                    .selectProcInstBindings(procInstEntity.getId());
+            if (procInstBinding != null) {
+                if (bindPrefixedEntityOid.equals(procInstBinding.getEntityDataId())) {
+                    procInstBinding.setEntityDataId(dataId);
+                    procInstBinding.setEntityDataName(entityValueDto.getEntityDisplayName());
+                    procExecBindingMapper.updateByPrimaryKeySelective(procInstBinding);
+                }
+            }
+
+            List<ProcExecBindingEntity> bindings = procExecBindingMapper
+                    .selectAllTaskNodeBindingsByProcInstIdAndDataId(procInstEntity.getId(), bindPrefixedEntityOid);
+            if (bindings != null) {
+                for (ProcExecBindingEntity b : bindings) {
+                    if (objectBinding.getId().equals(b.getId())) {
+                        objectBinding.setEntityDataId(dataId);
+                        objectBinding.setEntityDataName(entityValueDto.getEntityDisplayName());
+                        procExecBindingMapper.updateByPrimaryKeySelective(objectBinding);
+                        continue;
+                    }
+
+                    b.setEntityDataId(dataId);
+                    b.setEntityDataName(entityValueDto.getEntityDisplayName());
+                    procExecBindingMapper.updateByPrimaryKeySelective(b);
+                }
+            }
+
+            return;
+
         }
 
         String packageName = entityValueDto.getPackageName();
@@ -393,39 +488,173 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 
         Map<String, Object> objDataMap = new HashMap<String, Object>();
         for (DynamicEntityAttrValueDto attr : attrValues) {
-            objDataMap.put(attr.getAttrName(), attr.getDataValue());
+            if ("ref".equalsIgnoreCase(attr.getDataType())) {
+                Object refAttrDataValue = tryCalRefAttrDataValue(attr, ctx);
+                objDataMap.put(attr.getAttrName(), refAttrDataValue);
+            } else {
+                objDataMap.put(attr.getAttrName(), attr.getDataValue());
+            }
+        }
+
+        log.info("try to create entity:{} {} {}", entityValueDto.getPackageName(), entityValueDto.getEntityName(),
+                objDataMap);
+
+        Map<String, Object> resultMap = entityOperationService.create(packageName, entityName, objDataMap);
+        String newEntityDataId = (String) resultMap.get(Constants.UNIQUE_IDENTIFIER);
+        if (StringUtils.isBlank(newEntityDataId)) {
+            String errMsg = String.format("Entity created but there is not identity returned for %s:%s", packageName,
+                    entityName);
+            log.warn("Entity created but there is not identity returned.{} {} {}", packageName, entityName, objDataMap);
+            throw new WecubeCoreException(errMsg);
+        }
+
+        String newEntityDataName = (String) resultMap.get(Constants.VISUAL_FIELD);
+
+        // to refresh entity data id to dto
+        if (StringUtils.isBlank(entityValueDto.getEntityDataId())) {
+            entityValueDto.setEntityDataId(newEntityDataId);
+            entityValueDto.setEntityDisplayName(newEntityDataName);
+            entityValueDto.setEntityDataState("Created");
+        }
+
+        // refresh object binding
+        objectBinding.setEntityDataId(newEntityDataId);
+        objectBinding.setEntityDataName(newEntityDataName);
+        objectBinding.setUpdatedBy(WorkflowConstants.DEFAULT_USER);
+        objectBinding.setUpdatedTime(new Date());
+
+        // 1) try update process instance binding with oid
+        // 2) try update all node bindings with oid
+        procExecBindingMapper.updateByPrimaryKeySelective(objectBinding);
+
+        String dataId = entityValueDto.getEntityDataId().trim();
+
+        ProcExecBindingEntity procInstBinding = procExecBindingMapper.selectProcInstBindings(procInstEntity.getId());
+        if (procInstBinding != null) {
+            if (bindPrefixedEntityOid.equals(procInstBinding.getEntityDataId())) {
+                procInstBinding.setEntityDataId(dataId);
+                procInstBinding.setEntityDataName(entityValueDto.getEntityDisplayName());
+                procExecBindingMapper.updateByPrimaryKeySelective(procInstBinding);
+            }
+        }
+
+        List<ProcExecBindingEntity> bindings = procExecBindingMapper
+                .selectAllTaskNodeBindingsByProcInstIdAndDataId(procInstEntity.getId(), bindPrefixedEntityOid);
+        if (bindings != null) {
+            for (ProcExecBindingEntity b : bindings) {
+                if (objectBinding.getId().equals(b.getId())) {
+                    continue;
+                }
+
+                b.setEntityDataId(dataId);
+                b.setEntityDataName(entityValueDto.getEntityDisplayName());
+                procExecBindingMapper.updateByPrimaryKeySelective(b);
+            }
+        }
+
+    }
+
+    private DynamicEntityValueDto tryProcessOidEntityValueCreation(String oidOfEntity, WorkflowInstCreationContext ctx,
+            ProcExecBindingEntity objectBinding, ProcInstInfoEntity procInstEntity,
+            TaskNodeInstInfoEntity taskNodeInstEntity) {
+        DynamicEntityValueDto entityValueDto = ctx.findByOid(oidOfEntity);
+        if (entityValueDto == null) {
+            log.info("Can not find such  entity value from creation context with OID:{}", oidOfEntity);
+            return null;
+        }
+
+        List<String> prevOids = entityValueDto.getPreviousOids();
+        Map<String, DynamicEntityValueDto> prevEntityValueMaps = new HashMap<>();
+        if (prevOids != null) {
+            for (String prevOid : prevOids) {
+                DynamicEntityValueDto prevEntityValueDto = tryProcessOidEntityValueCreation(prevOid, ctx, objectBinding,
+                        procInstEntity, taskNodeInstEntity);
+                if (prevEntityValueDto != null) {
+                    prevEntityValueMaps.put(prevOid, prevEntityValueDto);
+                } else {
+                    log.info("Failed to process previous entity:{}", prevOid);
+                }
+            }
+        }
+
+        if (StringUtils.isNoneBlank(entityValueDto.getEntityDataId())) {
+            log.info("try to create entity:{} but already exist.{}", entityValueDto.getEntityDataId(), entityValueDto);
+            return entityValueDto;
+        }
+
+        String packageName = entityValueDto.getPackageName();
+        String entityName = entityValueDto.getEntityName();
+
+        List<DynamicEntityAttrValueDto> attrValues = entityValueDto.getAttrValues();
+        if (attrValues == null || attrValues.isEmpty()) {
+            log.info("Attributes not assigned values for object :{}", oidOfEntity);
+            return null;
+        }
+
+        Map<String, Object> objDataMap = new HashMap<String, Object>();
+        for (DynamicEntityAttrValueDto attr : attrValues) {
+            if ("ref".equalsIgnoreCase(attr.getDataType())) {
+                Object refAttrDataValue = tryCalRefAttrDataValue(attr, ctx);
+                objDataMap.put(attr.getAttrName(), refAttrDataValue);
+            } else {
+                objDataMap.put(attr.getAttrName(), attr.getDataValue());
+            }
         }
 
         log.info("try to create entity.{} {} {}", entityValueDto.getPackageName(), entityValueDto.getEntityName(),
                 objDataMap);
 
         Map<String, Object> resultMap = entityOperationService.create(packageName, entityName, objDataMap);
-        String newDataEntityId = (String) resultMap.get(Constants.UNIQUE_IDENTIFIER);
-        if (StringUtils.isBlank(newDataEntityId)) {
+
+        String newEntityDataId = (String) resultMap.get(Constants.UNIQUE_IDENTIFIER);
+        if (StringUtils.isBlank(newEntityDataId)) {
+            String errMsg = String.format("Entity created but there is not identity returned for %s:%s", packageName,
+                    entityName);
             log.warn("Entity created but there is not identity returned.{} {} {}", packageName, entityName, objDataMap);
-            return;
+            throw new WecubeCoreException(errMsg);
         }
+
+        String newEntityDataName = (String) resultMap.get(Constants.VISUAL_FIELD);
 
         // to refresh entity data id to dto
         if (StringUtils.isBlank(entityValueDto.getEntityDataId())) {
-            entityValueDto.setEntityDataId(newDataEntityId);
+            entityValueDto.setEntityDataId(newEntityDataId);
+            entityValueDto.setEntityDisplayName(newEntityDataName);
             entityValueDto.setEntityDataState("Created");
         }
 
-        // refresh object binding
-        objectBinding.setEntityDataId(newDataEntityId);
-        objectBinding.setUpdatedBy(WorkflowConstants.DEFAULT_USER);
-        objectBinding.setUpdatedTime(new Date());
-
-        procExecBindingMapper.updateByPrimaryKeySelective(objectBinding);
-
+        return entityValueDto;
     }
 
-    private void tryUpdateExistedEntityData(String bindDataId, WorkflowInstCreationContext ctx) {
-        DynamicEntityValueDto entityValueDto = ctx.findByEntityDataIdOrOid(bindDataId);
+    private void tryProcessDataIdProcExecBinding(String bindDataId, WorkflowInstCreationContext ctx,
+            ProcExecBindingEntity objectBinding, ProcInstInfoEntity procInstEntity,
+            TaskNodeInstInfoEntity taskNodeInstEntity) {
+        DynamicEntityValueDto entityValueDto = ctx.findByEntityDataId(bindDataId);
         if (entityValueDto == null) {
-            log.info("entity data value does not exist in creation context for object id:{}", bindDataId);
-            return;
+            String errMsg = String.format("Entity data value does not exist in creation context for object id:%s",
+                    bindDataId);
+            log.info(errMsg);
+            throw new WecubeCoreException(errMsg);
+        }
+
+        if (StringUtils.isBlank(entityValueDto.getEntityDataId())) {
+            String errMsg = String.format("Entity data ID is invalid in creation context for object id:%s", bindDataId);
+            log.info(errMsg);
+            throw new WecubeCoreException(errMsg);
+        }
+
+        List<String> prevOids = entityValueDto.getPreviousOids();
+        Map<String, DynamicEntityValueDto> prevEntityValueMaps = new HashMap<>();
+        if (prevOids != null) {
+            for (String prevOid : prevOids) {
+                DynamicEntityValueDto prevEntityValueDto = tryProcessOidEntityValueCreation(prevOid, ctx, objectBinding,
+                        procInstEntity, taskNodeInstEntity);
+                if (prevEntityValueDto != null) {
+                    prevEntityValueMaps.put(prevOid, prevEntityValueDto);
+                } else {
+                    log.info("Failed to process previous entity:{}", prevOid);
+                }
+            }
         }
 
         String packageName = entityValueDto.getPackageName();
@@ -443,7 +672,13 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
         for (DynamicEntityAttrValueDto attr : attrValues) {
             EntityDataAttr attrUpdate = new EntityDataAttr();
             attrUpdate.setAttrName(attr.getAttrName());
-            attrUpdate.setAttrValue(attr.getDataValue());
+
+            if ("ref".equalsIgnoreCase(attr.getDataType())) {
+                Object refAttrDataValue = tryCalRefAttrDataValue(attr, ctx);
+                attrUpdate.setAttrValue(refAttrDataValue);
+            } else {
+                attrUpdate.setAttrValue(attr.getDataValue());
+            }
 
             recordToUpdate.addAttrs(attrUpdate);
         }
@@ -461,11 +696,46 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
         log.info("entity data updated successfully:{}", bindDataId);
     }
 
+    private Object tryCalRefAttrDataValue(DynamicEntityAttrValueDto attr, WorkflowInstCreationContext ctx) {
+        if (attr.getDataValue() == null) {
+            return null;
+        }
+
+        if (!(attr.getDataValue() instanceof String)) {
+            return attr.getDataValue();
+        }
+
+        String refIdsStr = (String) attr.getDataValue();// multi ref?
+
+        String[] refIds = refIdsStr.split(",");
+        StringBuilder sb = new StringBuilder();
+        boolean isFirst = true;
+        for (String refId : refIds) {
+            DynamicEntityValueDto refEntityDataValueDto = ctx.findByOid(refId);
+            String calRefId = null;
+            if (refEntityDataValueDto != null && StringUtils.isNoneBlank(refEntityDataValueDto.getEntityDataId())) {
+                calRefId = refEntityDataValueDto.getEntityDataId();
+            } else {
+                calRefId = refId;
+            }
+
+            if (isFirst) {
+                isFirst = false;
+            } else {
+                sb.append(",");
+            }
+
+            sb.append(calRefId);
+        }
+
+        return sb.toString();
+    }
+
     /**
      * SUTN Handling user operation task node.
      * 
      */
-    protected void doInvokeUserTaskPluginInterface(ProcInstInfoEntity procInstEntity,
+    protected void doInvokeUserTaskPluginIntf(ProcInstInfoEntity procInstEntity,
             TaskNodeInstInfoEntity taskNodeInstEntity, ProcDefInfoEntity procDefInfoEntity,
             TaskNodeDefInfoEntity taskNodeDefEntity, PluginInvocationCommand cmd) {
 
@@ -473,9 +743,18 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
         PluginConfigInterfaces pluginConfigInterface = retrievePluginConfigInterface(taskNodeDefEntity,
                 cmd.getNodeId());
 
-        List<InputParamObject> inputParamObjs = calculateInputParamObjectsForUserTask(procInstEntity,
-                taskNodeInstEntity, procDefInfoEntity, taskNodeDefEntity, cmd, pluginConfigInterface,
-                nodeObjectBindings);
+        List<InputParamObject> inputParamObjs = null;
+        if (isDynamicFormInterf(pluginConfigInterface)) {
+
+            inputParamObjs = calculateInputParamObjectsForDynamicFormUserTask(procInstEntity, taskNodeInstEntity,
+                    procDefInfoEntity, taskNodeDefEntity, cmd, pluginConfigInterface, nodeObjectBindings);
+        } else if (isApprovalInterf(pluginConfigInterface)) {
+            inputParamObjs = calculateInputParamObjectsForApprovalUserTask(procInstEntity, taskNodeInstEntity,
+                    procDefInfoEntity, taskNodeDefEntity, cmd, pluginConfigInterface, nodeObjectBindings);
+        } else {
+            inputParamObjs = calculateInputParamObjectsForDefaultUserTask(procInstEntity, taskNodeInstEntity,
+                    procDefInfoEntity, taskNodeDefEntity, cmd, pluginConfigInterface, nodeObjectBindings);
+        }
 
         int reqObjectAmount = 0;
         if (inputParamObjs != null) {
@@ -509,13 +788,52 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
         pluginInvocationProcessor.process(operation);
     }
 
-    private List<InputParamObject> calculateInputParamObjectsForUserTask(ProcInstInfoEntity procInstEntity,
+    private boolean isValidMappingTypeForUserTask(String mappingType) {
+        if (MAPPING_TYPE_SYSTEM_VARIABLE.equalsIgnoreCase(mappingType)) {
+            return true;
+        }
+
+        if (MAPPING_TYPE_CONSTANT.equalsIgnoreCase(mappingType)) {
+            return true;
+        }
+
+        if (MAPPING_TYPE_CONTEXT.equalsIgnoreCase(mappingType)) {
+            return true;
+        }
+
+        return false;
+    }
+
+    private List<InputParamObject> calculateInputParamObjectsForApprovalUserTask(ProcInstInfoEntity procInstEntity,
+            TaskNodeInstInfoEntity taskNodeInstEntity, ProcDefInfoEntity procDefInfoEntity,
+            TaskNodeDefInfoEntity taskNodeDefEntity, PluginInvocationCommand cmd,
+            PluginConfigInterfaces pluginConfigInterface, List<ProcExecBindingEntity> nodeObjectBindings) {
+
+        
+        Map<Object, Object> externalCacheMap = new HashMap<>();
+        
+        List<InputParamObject> inputParamObjs = new ArrayList<>();
+
+        if (nodeObjectBindings == null || nodeObjectBindings.isEmpty()) {
+            // #2233
+            inputParamObjs = tryCalculateInputParamObjectsWithoutBindings(procDefInfoEntity, procInstEntity,
+                    taskNodeInstEntity, taskNodeDefEntity, pluginConfigInterface);
+        } else {
+            inputParamObjs = tryCalculateInputParamObjectsWithBindings(procDefInfoEntity, procInstEntity,
+                    taskNodeInstEntity, taskNodeDefEntity, nodeObjectBindings, pluginConfigInterface, externalCacheMap);
+        }
+        
+        return inputParamObjs;
+    }
+
+    private List<InputParamObject> calculateInputParamObjectsForDefaultUserTask(ProcInstInfoEntity procInstEntity,
             TaskNodeInstInfoEntity taskNodeInstEntity, ProcDefInfoEntity procDefInfoEntity,
             TaskNodeDefInfoEntity taskNodeDefEntity, PluginInvocationCommand cmd,
             PluginConfigInterfaces pluginConfigInterface, List<ProcExecBindingEntity> nodeObjectBindings) {
 
         String taskFormInputValue = "";
-        if (hasTaskFormInputParameter(pluginConfigInterface)) {
+        boolean isDynamicFormInterf = isDynamicFormInterf(pluginConfigInterface);
+        if (hasTaskFormInputParameter(pluginConfigInterface) && isDynamicFormInterf) {
             taskFormInputValue = tryCalculateTaskFormValueAsJson(procInstEntity, taskNodeInstEntity, procDefInfoEntity,
                     taskNodeDefEntity, cmd, pluginConfigInterface, nodeObjectBindings);
         }
@@ -528,14 +846,16 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
         }
 
         InputParamObject inputObj = new InputParamObject();
+        inputObj.setEntityTypeId(null);
+        inputObj.setEntityDataId(LocalIdGenerator.generateId(Constants.TASK_CATEGORY_SUTN + "-"));
+        inputObj.setFullEntityDataId(null);
 
         for (PluginConfigInterfaceParameters param : intfInputParams) {
             String paramName = param.getName();
             String paramType = param.getDataType();
             String mappingType = param.getMappingType();
 
-            if (!(MAPPING_TYPE_SYSTEM_VARIABLE.equalsIgnoreCase(mappingType)
-                    || MAPPING_TYPE_CONSTANT.equalsIgnoreCase(mappingType))) {
+            if (!isValidMappingTypeForUserTask(mappingType)) {
                 continue;
             }
 
@@ -553,7 +873,85 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
             inputAttr.setMultiple(param.getMultiple());
             boolean isFieldRequired = isFieldRequired(param.getRequired());
 
-            if (PARAM_NAME_TASK_FORM_INPUT.equals(param.getName())) {
+            if (PARAM_NAME_TASK_FORM_INPUT.equals(param.getName()) && isDynamicFormInterf) {
+                objectVals.add(taskFormInputValue);
+                inputAttr.addValues(objectVals);
+
+                inputObj.addAttrs(inputAttr);
+                continue;
+            }
+
+            if (MAPPING_TYPE_SYSTEM_VARIABLE.equalsIgnoreCase(mappingType)) {
+                handleSystemMapping(mappingType, param, paramName, objectVals);
+            }
+
+            if (MAPPING_TYPE_CONSTANT.equalsIgnoreCase(mappingType)) {
+                handleConstantMapping(mappingType, taskNodeDefEntity, paramName, objectVals, isFieldRequired, param);
+            }
+
+            if (MAPPING_TYPE_CONTEXT.equals(mappingType)) {
+                handleContextMappingForUserTask(mappingType, taskNodeDefEntity, paramName, procInstEntity, param,
+                        paramType, objectVals);
+            }
+
+            inputAttr.addValues(objectVals);
+
+            inputObj.addAttrs(inputAttr);
+        }
+
+        inputParamObjs.add(inputObj);
+
+        return inputParamObjs;
+    }
+
+    private List<InputParamObject> calculateInputParamObjectsForDynamicFormUserTask(ProcInstInfoEntity procInstEntity,
+            TaskNodeInstInfoEntity taskNodeInstEntity, ProcDefInfoEntity procDefInfoEntity,
+            TaskNodeDefInfoEntity taskNodeDefEntity, PluginInvocationCommand cmd,
+            PluginConfigInterfaces pluginConfigInterface, List<ProcExecBindingEntity> nodeObjectBindings) {
+
+        String taskFormInputValue = "";
+        boolean isDynamicFormInterf = isDynamicFormInterf(pluginConfigInterface);
+        if (hasTaskFormInputParameter(pluginConfigInterface) && isDynamicFormInterf) {
+            taskFormInputValue = tryCalculateTaskFormValueAsJson(procInstEntity, taskNodeInstEntity, procDefInfoEntity,
+                    taskNodeDefEntity, cmd, pluginConfigInterface, nodeObjectBindings);
+        }
+
+        List<InputParamObject> inputParamObjs = new ArrayList<>();
+
+        List<PluginConfigInterfaceParameters> intfInputParams = pluginConfigInterface.getInputParameters();
+        if (intfInputParams == null || intfInputParams.isEmpty()) {
+            return inputParamObjs;
+        }
+
+        InputParamObject inputObj = new InputParamObject();
+        inputObj.setEntityTypeId(null);
+        inputObj.setEntityDataId(LocalIdGenerator.generateId(Constants.TASK_CATEGORY_SUTN + "-"));
+        inputObj.setFullEntityDataId(null);
+
+        for (PluginConfigInterfaceParameters param : intfInputParams) {
+            String paramName = param.getName();
+            String paramType = param.getDataType();
+            String mappingType = param.getMappingType();
+
+            if (!isValidMappingTypeForUserTask(mappingType)) {
+                continue;
+            }
+
+            inputObj.addAttrNames(paramName);
+
+            InputParamAttr inputAttr = new InputParamAttr();
+            inputAttr.setName(paramName);
+            inputAttr.setDataType(paramType);
+            inputAttr.setSensitive(IS_SENSITIVE_ATTR.equalsIgnoreCase(param.getSensitiveData()));
+            inputAttr.setParamDef(param);
+
+            List<Object> objectVals = new ArrayList<Object>();
+            //
+            inputAttr.setMapType(mappingType);
+            inputAttr.setMultiple(param.getMultiple());
+            boolean isFieldRequired = isFieldRequired(param.getRequired());
+
+            if (PARAM_NAME_TASK_FORM_INPUT.equals(param.getName()) && isDynamicFormInterf) {
                 objectVals.add(taskFormInputValue);
                 inputAttr.addValues(objectVals);
 
@@ -712,15 +1110,15 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
                 TaskFormDataEntityDto taskFormDataEntityDto = oidAndEntities.get(bindObjectId);
                 if (taskFormDataEntityDto == null) {
                     taskFormDataEntityDto = new TaskFormDataEntityDto();
-                    taskFormDataEntityDto.setOid(bindObjectId);
                     taskFormDataEntityDto.setEntityName(taskFormItemMeta.getEntityName());
                     taskFormDataEntityDto.setPackageName(taskFormItemMeta.getPackageName());
+                    taskFormDataEntityDto.setFormMetaId(taskFormMetaDto.getFormMetaId());
 
                     oidAndEntities.put(bindObjectId, taskFormDataEntityDto);
                 }
 
                 TaskFormItemValueDto taskFormItemValueDto = new TaskFormItemValueDto();
-                taskFormItemValueDto.setOid(bindObjectId);
+
                 taskFormItemValueDto.setAttrName(taskFormItemMeta.getAttrName());
                 taskFormItemValueDto.setPackageName(taskFormItemMeta.getPackageName());
                 taskFormItemValueDto.setEntityName(taskFormItemMeta.getEntityName());
@@ -729,6 +1127,11 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
                 DynamicEntityValueDto dynamicEntityValueDto = ctx.findByEntityDataIdOrOid(bindObjectId);
 
                 if (dynamicEntityValueDto != null) {
+                    taskFormItemValueDto.setOid(dynamicEntityValueDto.getOid());
+                    taskFormItemValueDto.setEntityDataId(dynamicEntityValueDto.getEntityDataId());
+                    taskFormItemValueDto.setFullEntityDataId(dynamicEntityValueDto.getFullEntityDataId());
+
+                    taskFormDataEntityDto.setOid(dynamicEntityValueDto.getOid());
                     taskFormDataEntityDto.setEntityDataId(dynamicEntityValueDto.getEntityDataId());
                     taskFormDataEntityDto.setEntityDataState(dynamicEntityValueDto.getEntityDataState());
                     taskFormDataEntityDto.setBindFlag(dynamicEntityValueDto.getBindFlag());
@@ -771,8 +1174,8 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
             if (taskFormItemMeta.getPackageName().equals(entityTypeIdParts[0])
                     && taskFormItemMeta.getEntityName().equals(entityTypeIdParts[1])) {
                 String bindId = bindEntity.getEntityDataId();
-                if (bindId.startsWith(TEMPORARY_ENTITY_ID_PREFIX)) {
-                    bindId = bindId.substring(TEMPORARY_ENTITY_ID_PREFIX.length());
+                if (bindId.startsWith(Constants.TEMPORARY_ENTITY_ID_PREFIX)) {
+                    bindId = bindId.substring(Constants.TEMPORARY_ENTITY_ID_PREFIX.length());
                 }
                 nodeBindObjectIds.add(bindId);
             }
@@ -786,7 +1189,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
      * SSTN Handling system automation task node
      * 
      */
-    protected void doInvokeSystemAutomationPluginInterface(ProcInstInfoEntity procInstEntity,
+    protected void doInvokeSystemAutomationPluginIntf(ProcInstInfoEntity procInstEntity,
             TaskNodeInstInfoEntity taskNodeInstEntity, ProcDefInfoEntity procDefInfoEntity,
             TaskNodeDefInfoEntity taskNodeDefEntity, PluginInvocationCommand cmd) {
 
@@ -821,7 +1224,8 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
             }
 
         } else {
-            nodeObjectBindings = retrieveProcExecBindingEntities(taskNodeInstEntity);
+            nodeObjectBindings = retrieveSystemAutomationProcExecBindingEntities(taskNodeDefEntity, procInstEntity,
+                    taskNodeInstEntity, cmd, externalCacheMap);
         }
 
         PluginConfigInterfaces pluginConfigInterface = retrievePluginConfigInterface(taskNodeDefEntity,
@@ -923,6 +1327,66 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
         int nodeInstId = taskNodeInstEntity.getId();
         procExecBindingMapper.deleteAllTaskNodeBindings(procInstId, nodeInstId);
 
+        String associatedNodeId = taskNodeDefEntity.getAssociatedNodeId();
+        if (StringUtils.isBlank(associatedNodeId)) {
+            return dynamicCalculateTaskNodeExecBindingsFromCmdb(taskNodeDefEntity, procInstEntity, taskNodeInstEntity,
+                    cmd, cacheMap);
+        } else {
+            return dynamicCalculateTaskNodeExecBindingsFromPreNode(taskNodeDefEntity, procInstEntity,
+                    taskNodeInstEntity, cmd, cacheMap);
+        }
+
+    }
+
+    private List<ProcExecBindingEntity> dynamicCalculateTaskNodeExecBindingsFromPreNode(
+            TaskNodeDefInfoEntity taskNodeDefEntity, ProcInstInfoEntity procInstEntity,
+            TaskNodeInstInfoEntity taskNodeInstEntity, PluginInvocationCommand cmd, Map<Object, Object> cacheMap) {
+        String associatedNodeId = taskNodeDefEntity.getAssociatedNodeId();
+        int procInstId = procInstEntity.getId();
+
+        TaskNodeInstInfoEntity associatedNodeInstEntity = taskNodeInstInfoRepository
+                .selectOneByProcInstIdAndNodeId(procInstEntity.getId(), associatedNodeId);
+
+        if (associatedNodeInstEntity == null) {
+            String errMsg = String.format("Associated task node instance:%s does not exist.", associatedNodeId);
+            throw new WecubeCoreException(errMsg);
+        }
+
+        List<ProcExecBindingEntity> bindEntities = new ArrayList<>();
+
+        List<ProcExecBindingEntity> bindingsOfAssociatedNode = procExecBindingMapper
+                .selectAllBoundTaskNodeBindings(procInstId, associatedNodeInstEntity.getId());
+
+        if (bindingsOfAssociatedNode == null || bindingsOfAssociatedNode.isEmpty()) {
+            return bindEntities;
+        }
+
+        for (ProcExecBindingEntity assBinding : bindingsOfAssociatedNode) {
+            ProcExecBindingEntity taskNodeBinding = new ProcExecBindingEntity();
+            taskNodeBinding.setBindType(ProcExecBindingEntity.BIND_TYPE_TASK_NODE_INSTANCE);
+            taskNodeBinding.setBindFlag(ProcExecBindingEntity.BIND_FLAG_YES);
+            taskNodeBinding.setProcDefId(taskNodeDefEntity.getProcDefId());
+            taskNodeBinding.setProcInstId(procInstEntity.getId());
+            taskNodeBinding.setEntityDataId(assBinding.getEntityDataId());
+            taskNodeBinding.setFullEntityDataId(assBinding.getFullEntityDataId());
+            taskNodeBinding.setEntityTypeId(assBinding.getEntityTypeId());
+            taskNodeBinding.setNodeDefId(taskNodeDefEntity.getId());
+            taskNodeBinding.setTaskNodeInstId(taskNodeInstEntity.getId());
+            taskNodeBinding.setEntityDataName(assBinding.getEntityDataName());
+            taskNodeBinding.setCreatedBy(WorkflowConstants.DEFAULT_USER);
+            taskNodeBinding.setCreatedTime(new Date());
+
+            bindEntities.add(taskNodeBinding);
+        }
+
+        return bindEntities;
+    }
+
+    private List<ProcExecBindingEntity> calculateLatestTaskNodeExecBindings(TaskNodeDefInfoEntity taskNodeDefEntity,
+            ProcInstInfoEntity procInstEntity, TaskNodeInstInfoEntity taskNodeInstEntity, PluginInvocationCommand cmd,
+            Map<Object, Object> cacheMap) {
+        int procInstId = procInstEntity.getId();
+//        int nodeInstId = taskNodeInstEntity.getId();
         List<ProcExecBindingEntity> entities = new ArrayList<>();
 
         ProcExecBindingEntity procInstBinding = procExecBindingMapper.selectProcInstBindings(procInstId);
@@ -964,7 +1428,54 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
             throw new WecubeCoreException("3191", errMsg, taskNodeDefEntity.getId(), taskNodeDefEntity.getNodeName(),
                     routineExpr, rootDataId);
         }
+    }
 
+    private List<ProcExecBindingEntity> dynamicCalculateTaskNodeExecBindingsFromCmdb(
+            TaskNodeDefInfoEntity taskNodeDefEntity, ProcInstInfoEntity procInstEntity,
+            TaskNodeInstInfoEntity taskNodeInstEntity, PluginInvocationCommand cmd, Map<Object, Object> cacheMap) {
+        int procInstId = procInstEntity.getId();
+//        int nodeInstId = taskNodeInstEntity.getId();
+        List<ProcExecBindingEntity> entities = new ArrayList<>();
+
+        ProcExecBindingEntity procInstBinding = procExecBindingMapper.selectProcInstBindings(procInstId);
+        if (procInstBinding == null) {
+            log.info("cannot find process instance exec binding for {}", procInstId);
+            return entities;
+        }
+
+        String rootDataId = procInstBinding.getEntityDataId();
+
+        if (StringUtils.isBlank(rootDataId)) {
+            log.info("root data id is blank for process instance {}", procInstId);
+            return entities;
+        }
+        String routineExpr = calculateDataModelExpression(taskNodeDefEntity);
+
+        if (StringUtils.isBlank(routineExpr)) {
+            log.info("the routine expression is blank for {} {}", taskNodeDefEntity.getId(),
+                    taskNodeDefEntity.getNodeName());
+            return entities;
+        }
+
+        log.info("About to fetch data for node {} {} with expression {} and data id {}", taskNodeDefEntity.getId(),
+                taskNodeDefEntity.getNodeName(), routineExpr, rootDataId);
+        EntityOperationRootCondition condition = new EntityOperationRootCondition(routineExpr, rootDataId);
+        try {
+            EntityTreeNodesOverview overview = entityOperationService.generateEntityLinkOverview(condition, cacheMap);
+
+            List<ProcExecBindingEntity> boundEntities = calDynamicLeafNodeEntityNodesBindings(taskNodeDefEntity,
+                    procInstEntity, taskNodeInstEntity, overview.getLeafNodeEntityNodes());
+
+            log.info("DYNAMIC BINDING:total {} entities bound for {}-{}-{}", boundEntities.size(),
+                    taskNodeInstEntity.getNodeDefId(), taskNodeInstEntity.getNodeName(), taskNodeInstEntity.getId());
+            return boundEntities;
+        } catch (Exception e) {
+            String errMsg = String.format("Errors while fetching data for node %s %s with expr %s and data id %s",
+                    taskNodeDefEntity.getId(), taskNodeDefEntity.getNodeName(), routineExpr, rootDataId);
+            log.error(errMsg, e);
+            throw new WecubeCoreException("3191", errMsg, taskNodeDefEntity.getId(), taskNodeDefEntity.getNodeName(),
+                    routineExpr, rootDataId);
+        }
     }
 
     private List<ProcExecBindingEntity> calDynamicLeafNodeEntityNodesBindings(TaskNodeDefInfoEntity taskNodeDef,
@@ -1451,7 +1962,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
                 log.error("", e);
                 throw new WecubeCoreException(e.getMessage());
             }
-            // TODO
+            // todo
 //            if (isMultiple) {
 //
 //            }
@@ -2237,8 +2748,13 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
                 .selectOneByProcInstIdAndNodeId(procInstEntity.getId(), bindNodeId);
 
         if (bindNodeInstEntity == null) {
-            log.error("Bound node instance entity does not exist for {} {}", procInstEntity.getId(), bindNodeId);
-            throw new WecubeCoreException("3171", "Bound node instance entity does not exist.");
+            if (Constants.FIELD_REQUIRED.equalsIgnoreCase(param.getRequired())) {
+                log.error("Bound node instance entity does not exist for {} {}", procInstEntity.getId(), bindNodeId);
+                throw new WecubeCoreException("3171", "Bound node instance entity does not exist.");
+            } else {
+                log.debug("Bound node instance entity does not exist for {} {}", procInstEntity.getId(), bindNodeId);
+                return;
+            }
         }
 
         if (TaskNodeDefInfoEntity.NODE_TYPE_START_EVENT.equalsIgnoreCase(bindNodeInstEntity.getNodeType())) {
@@ -2285,8 +2801,13 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
                 .selectOneByProcInstIdAndNodeId(procInstEntity.getId(), bindNodeId);
 
         if (bindNodeInstEntity == null) {
-            log.error("Bound node instance entity does not exist for {} {}", procInstEntity.getId(), bindNodeId);
-            throw new WecubeCoreException("3171", "Bound node instance entity does not exist.");
+            if (Constants.FIELD_REQUIRED.equalsIgnoreCase(param.getRequired())) {
+                log.error("Bound node instance entity does not exist for {} {}", procInstEntity.getId(), bindNodeId);
+                throw new WecubeCoreException("3171", "Bound node instance entity does not exist.");
+            } else {
+                log.debug("Bound node instance entity does not exist for {} {}", procInstEntity.getId(), bindNodeId);
+                return;
+            }
         }
 
         if (TaskNodeDefInfoEntity.NODE_TYPE_START_EVENT.equalsIgnoreCase(bindNodeInstEntity.getNodeType())) {
@@ -2645,6 +3166,97 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
         }
 
         return pluginConfigInterface;
+    }
+
+    private List<ProcExecBindingEntity> retrieveSystemAutomationProcExecBindingEntities(
+            TaskNodeDefInfoEntity taskNodeDefEntity, ProcInstInfoEntity procInstEntity,
+            TaskNodeInstInfoEntity taskNodeInstEntity, PluginInvocationCommand cmd, Map<Object, Object> cacheMap) {
+        List<ProcExecBindingEntity> nodeObjectBindings = procExecBindingMapper
+                .selectAllBoundTaskNodeBindings(taskNodeInstEntity.getProcInstId(), taskNodeInstEntity.getId());
+
+        if (nodeObjectBindings == null) {
+            log.info("node object bindings is empty for {} {}", taskNodeInstEntity.getProcInstId(),
+                    taskNodeInstEntity.getId());
+            nodeObjectBindings = new ArrayList<>();
+        }
+
+        if (nodeObjectBindings.isEmpty()) {
+            return nodeObjectBindings;
+        }
+
+        if (isDynamicBindTaskNode(taskNodeDefEntity) && isBoundTaskNodeInst(taskNodeInstEntity)) {
+            return nodeObjectBindings;
+        }
+
+        List<ProcExecBindingEntity> latestNodeObjectBindings = calculateSystemAutomationTaskNodeExecBindings(
+                taskNodeDefEntity, procInstEntity, taskNodeInstEntity, cmd, cacheMap);
+
+        List<ProcExecBindingEntity> invalidNodeObjectBindings = new ArrayList<>();
+
+        for (ProcExecBindingEntity nodeObjectBinding : nodeObjectBindings) {
+            if (!containsInLatestNodeObjectBindings(nodeObjectBinding, latestNodeObjectBindings)) {
+                invalidNodeObjectBindings.add(nodeObjectBinding);
+            }
+        }
+
+        if (!invalidNodeObjectBindings.isEmpty()) {
+            StringBuilder sb = new StringBuilder();
+            boolean isFirst = true;
+            for (ProcExecBindingEntity n : invalidNodeObjectBindings) {
+                if (isFirst) {
+                    isFirst = false;
+                } else {
+                    sb.append(",");
+                }
+
+                sb.append(n.getEntityDataId()).append("/").append(n.getEntityDataName());
+            }
+
+            String errMsg = String.format(
+                    "The following bindings are NOT appropriate as the entity states changed.[%s]", sb.toString());
+            throw new WecubeCoreException(errMsg);
+        }
+
+        return nodeObjectBindings;
+    }
+
+    private boolean containsInLatestNodeObjectBindings(ProcExecBindingEntity nodeObjectBinding,
+            List<ProcExecBindingEntity> latestNodeObjectBindings) {
+        if (latestNodeObjectBindings == null || latestNodeObjectBindings.isEmpty()) {
+            log.debug("latest node bindings is empty.");
+            return false;
+        }
+
+        if (StringUtils.isBlank(nodeObjectBinding.getEntityDataId())) {
+            return false;
+        }
+
+        for (ProcExecBindingEntity latestNodeObjectBinding : latestNodeObjectBindings) {
+
+            if (nodeObjectBinding.getEntityDataId().equals(latestNodeObjectBinding.getEntityDataId())) {
+                log.debug("entity data id :{} found", nodeObjectBinding.getEntityDataId());
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private List<ProcExecBindingEntity> calculateSystemAutomationTaskNodeExecBindings(
+            TaskNodeDefInfoEntity taskNodeDefEntity, ProcInstInfoEntity procInstEntity,
+            TaskNodeInstInfoEntity taskNodeInstEntity, PluginInvocationCommand cmd, Map<Object, Object> cacheMap) {
+
+        List<ProcExecBindingEntity> latestNodeObjectBindings =
+
+                calculateLatestTaskNodeExecBindings(taskNodeDefEntity, procInstEntity, taskNodeInstEntity, cmd,
+                        cacheMap);
+
+        if (latestNodeObjectBindings == null) {
+            latestNodeObjectBindings = new ArrayList<>();
+        }
+
+        return latestNodeObjectBindings;
+
     }
 
     private List<ProcExecBindingEntity> retrieveProcExecBindingEntities(TaskNodeInstInfoEntity taskNodeInstEntity) {
