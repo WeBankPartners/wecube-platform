@@ -67,6 +67,7 @@ import com.webank.wecube.platform.core.support.plugin.dto.RegisteredEntityDefDto
 import com.webank.wecube.platform.core.support.plugin.dto.WorkflowDefInfoDto;
 import com.webank.wecube.platform.core.support.plugin.dto.WorkflowNodeDefInfoDto;
 import com.webank.wecube.platform.core.utils.Constants;
+import com.webank.wecube.platform.core.utils.DateUtils;
 import com.webank.wecube.platform.workflow.commons.LocalIdGenerator;
 
 @Service
@@ -164,7 +165,7 @@ public class WorkflowPublicAccessService {
      * 
      * @return
      */
-    public List<WorkflowDefInfoDto> fetchLatestReleasedWorkflowDefs() {
+    public List<WorkflowDefInfoDto> fetchReleasedWorkflowDefs(boolean isLatest) {
         List<WorkflowDefInfoDto> procDefInfoDtos = new ArrayList<>();
         Set<String> currUserRoleNames = AuthenticationContextHolder.getCurrentUserRoles();
         if (currUserRoleNames == null || currUserRoleNames.isEmpty()) {
@@ -177,22 +178,13 @@ public class WorkflowPublicAccessService {
             return procDefInfoDtos;
         }
 
-        Map<String, ProcDefAuthInfoQueryEntity> latestProcDefInfos = new HashMap<>();
-        for (ProcDefAuthInfoQueryEntity e : procDefInfos) {
-            ProcDefAuthInfoQueryEntity last = latestProcDefInfos.get(e.getProcDefKey());
-            if (last == null) {
-                latestProcDefInfos.put(e.getProcDefKey(), e);
-                continue;
-            }
-
-            if (e.getProcDefVersion() > last.getProcDefVersion()) {
-                latestProcDefInfos.put(e.getProcDefKey(), e);
-            }
+        if (isLatest) {
+            procDefInfos = filterOutNoneLatestWorkflowDefs(procDefInfos);
         }
 
-        for (ProcDefAuthInfoQueryEntity e : latestProcDefInfos.values()) {
+        for (ProcDefAuthInfoQueryEntity e : procDefInfos) {
             WorkflowDefInfoDto dto = new WorkflowDefInfoDto();
-            dto.setCreatedTime("");
+            dto.setCreatedTime(DateUtils.dateToString(e.getCreatedTime()));
             dto.setProcDefId(e.getId());
             dto.setProcDefKey(e.getProcDefKey());
             dto.setProcDefName(e.getProcDefName());
@@ -285,7 +277,7 @@ public class WorkflowPublicAccessService {
         if (creationInfoDto == null) {
             throw new WecubeCoreException("Workflow instance creation infomation must provide.");
         }
-        
+
         validateDynamicWorkflowInstCreationInfo(creationInfoDto);
 
         StartProcInstRequestDto requestDto = calculateStartProcInstContext(creationInfoDto);
@@ -317,15 +309,35 @@ public class WorkflowPublicAccessService {
         return resultDto;
     }
 
+    private List<ProcDefAuthInfoQueryEntity> filterOutNoneLatestWorkflowDefs(
+            List<ProcDefAuthInfoQueryEntity> procDefInfos) {
+        Map<String, ProcDefAuthInfoQueryEntity> latestProcDefInfos = new HashMap<>();
+        for (ProcDefAuthInfoQueryEntity e : procDefInfos) {
+            ProcDefAuthInfoQueryEntity last = latestProcDefInfos.get(e.getProcDefKey());
+            if (last == null) {
+                latestProcDefInfos.put(e.getProcDefKey(), e);
+                continue;
+            }
+
+            if (e.getProcDefVersion() > last.getProcDefVersion()) {
+                latestProcDefInfos.put(e.getProcDefKey(), e);
+            }
+        }
+
+        List<ProcDefAuthInfoQueryEntity> latestProcDefInfoList = new ArrayList<>();
+        latestProcDefInfoList.addAll(latestProcDefInfos.values());
+        return latestProcDefInfoList;
+    }
+
     private void validateDynamicWorkflowInstCreationInfo(DynamicWorkflowInstCreationInfoDto creationInfoDto) {
         if (creationInfoDto.getRootEntityValue() == null) {
             throw new WecubeCoreException("Root entity must provide to initialize a new process instance.");
         }
-        
-        if(StringUtils.isBlank(creationInfoDto.getRootEntityValue().getOid())) {
+
+        if (StringUtils.isBlank(creationInfoDto.getRootEntityValue().getOid())) {
             throw new WecubeCoreException("The OID of root entity must provide to initialize a new process instance.");
         }
-        
+
         return;
     }
 
@@ -664,7 +676,7 @@ public class WorkflowPublicAccessService {
                 bindDto.setEntityDisplayName(entityValueDto.getEntityDisplayName());
                 bindDto.setEntityTypeId(entityValueDto.getPackageName() + ":" + entityValueDto.getEntityName());
                 bindDto.setNodeDefId(dynamicBindInfoDto.getNodeDefId());
-                bindDto.setOrderedNo("");// TODO
+                bindDto.setOrderedNo("");
                 bindDto.setFullEntityDataId(entityValueDto.getFullEntityDataId());
 
                 taskNodeBinds.add(bindDto);
