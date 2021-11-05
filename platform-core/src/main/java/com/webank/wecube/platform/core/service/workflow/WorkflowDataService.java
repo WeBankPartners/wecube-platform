@@ -312,7 +312,7 @@ public class WorkflowDataService extends AbstractWorkflowService {
         List<GraphNodeDto> gNodes = new ArrayList<>();
         for (DynamicEntityValueDto e : entities) {
             GraphNodeDto gNode = new GraphNodeDto();
-            gNode.setDataId(e.getOid());
+            gNode.setDataId(e.getEntityDataId());
             gNode.setDisplayName(e.getEntityDisplayName());
             gNode.setEntityName(e.getEntityName());
             gNode.setId(e.getOid());
