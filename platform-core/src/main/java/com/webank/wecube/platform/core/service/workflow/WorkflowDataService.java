@@ -1,5 +1,6 @@
 package com.webank.wecube.platform.core.service.workflow;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -20,6 +21,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.webank.wecube.platform.core.commons.AuthenticationContextHolder;
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
 import com.webank.wecube.platform.core.dto.workflow.FlowNodeDefDto;
@@ -38,16 +40,19 @@ import com.webank.wecube.platform.core.entity.workflow.GraphNodeEntity;
 import com.webank.wecube.platform.core.entity.workflow.ProcDefInfoEntity;
 import com.webank.wecube.platform.core.entity.workflow.ProcExecBindingEntity;
 import com.webank.wecube.platform.core.entity.workflow.ProcExecBindingTmpEntity;
+import com.webank.wecube.platform.core.entity.workflow.ProcExecContextEntity;
 import com.webank.wecube.platform.core.entity.workflow.ProcInstInfoEntity;
 import com.webank.wecube.platform.core.entity.workflow.ProcRoleBindingEntity;
 import com.webank.wecube.platform.core.entity.workflow.TaskNodeDefInfoEntity;
 import com.webank.wecube.platform.core.entity.workflow.TaskNodeExecParamEntity;
 import com.webank.wecube.platform.core.entity.workflow.TaskNodeExecRequestEntity;
 import com.webank.wecube.platform.core.entity.workflow.TaskNodeInstInfoEntity;
+import com.webank.wecube.platform.core.model.workflow.WorkflowInstCreationContext;
 import com.webank.wecube.platform.core.repository.workflow.GraphNodeMapper;
 import com.webank.wecube.platform.core.repository.workflow.ProcDefInfoMapper;
 import com.webank.wecube.platform.core.repository.workflow.ProcExecBindingMapper;
 import com.webank.wecube.platform.core.repository.workflow.ProcExecBindingTmpMapper;
+import com.webank.wecube.platform.core.repository.workflow.ProcExecContextMapper;
 import com.webank.wecube.platform.core.repository.workflow.ProcInstInfoMapper;
 import com.webank.wecube.platform.core.repository.workflow.ProcRoleBindingMapper;
 import com.webank.wecube.platform.core.repository.workflow.TaskNodeDefInfoMapper;
@@ -59,6 +64,7 @@ import com.webank.wecube.platform.core.service.dme.EntityTreeNodesOverview;
 import com.webank.wecube.platform.core.service.dme.StandardEntityDataNode;
 import com.webank.wecube.platform.core.service.dme.StandardEntityOperationService;
 import com.webank.wecube.platform.core.service.plugin.PluginConfigMgmtService;
+import com.webank.wecube.platform.core.support.plugin.dto.DynamicEntityValueDto;
 import com.webank.wecube.platform.core.utils.Constants;
 import com.webank.wecube.platform.core.utils.JsonUtils;
 
@@ -121,6 +127,11 @@ public class WorkflowDataService extends AbstractWorkflowService {
     @Autowired
     @Qualifier(value = "jwtSsoRestTemplate")
     protected RestTemplate jwtSsoRestTemplate;
+    
+    @Autowired
+    private ProcExecContextMapper procExecContextMapper;
+    
+    protected ObjectMapper objectMapper = new ObjectMapper();
 
     /**
      * 
@@ -251,10 +262,11 @@ public class WorkflowDataService extends AbstractWorkflowService {
      */
     public ProcessDataPreviewDto generateProcessDataPreviewForProcInstance(Integer procInstId) {
         List<GraphNodeEntity> gNodeEntities = graphNodeRepository.selectAllByProcInstId(procInstId);
-        ProcessDataPreviewDto result = new ProcessDataPreviewDto();
         if (gNodeEntities == null || gNodeEntities.isEmpty()) {
-            return result;
+            return tryGenProcessDataPreviewForUserTask(procInstId);
         }
+        
+        ProcessDataPreviewDto result = new ProcessDataPreviewDto();
 
         result.setProcessSessionId(gNodeEntities.get(0).getProcSessId());
 
@@ -275,6 +287,82 @@ public class WorkflowDataService extends AbstractWorkflowService {
         result.addAllEntityTreeNodes(gNodes);
 
         return result;
+    }
+    
+    private ProcessDataPreviewDto tryGenProcessDataPreviewForUserTask(Integer procInstId) {
+        
+        ProcInstInfoEntity procInstInfo = procInstInfoMapper.selectByPrimaryKey(procInstId);
+        if (procInstInfo == null) {
+            String errMsg = String.format("Such process instance with id [:%s] does not exist.", procInstId);
+            throw new WecubeCoreException("3197", errMsg, procInstId);
+        }
+        
+        WorkflowInstCreationContext ctx = tryFetchWorkflowInstCreationContext(procInstInfo);
+        ProcessDataPreviewDto result = new ProcessDataPreviewDto();
+        if(ctx == null) {
+            return result;
+        }
+        
+        List<DynamicEntityValueDto> entities = ctx.getEntities();
+        
+        if(entities == null || entities.isEmpty()) {
+            return result;
+        }
+        
+        List<GraphNodeDto> gNodes = new ArrayList<>();
+        for(DynamicEntityValueDto e : entities) {
+            GraphNodeDto gNode = new GraphNodeDto();
+            gNode.setDataId(e.getEntityDataId());
+            gNode.setDisplayName(e.getEntityDisplayName());
+            gNode.setEntityName(e.getEntityName());
+            gNode.setId(e.getOid());
+            gNode.setPackageName(e.getPackageName());
+            gNode.setPreviousIds(e.getPreviousOids());
+            gNode.setSucceedingIds(e.getSucceedingOids());
+
+            gNodes.add(gNode);
+        }
+        
+        result.addAllEntityTreeNodes(gNodes);
+
+        return result;
+        
+    }
+    
+    protected WorkflowInstCreationContext tryFetchWorkflowInstCreationContext(
+            ProcInstInfoEntity procInstInfo) {
+        List<ProcExecContextEntity> procExecContextEntities = this.procExecContextMapper.selectAllContextByCtxType(
+                procInstInfo.getProcDefId(), procInstInfo.getId(),
+                ProcExecContextEntity.CTX_TYPE_PROCESS);
+
+        if (procExecContextEntities == null || procExecContextEntities.isEmpty()) {
+
+            return null;
+        }
+
+        ProcExecContextEntity procExecContextEntity = procExecContextEntities.get(0);
+
+        String ctxJsonData = procExecContextEntity.getCtxData();
+
+        if (StringUtils.isBlank(ctxJsonData)) {
+            log.info("Context data is blank for {} {}", procInstInfo.getProcDefId(),
+                    procInstInfo.getId());
+            return null;
+        }
+
+        WorkflowInstCreationContext ctx = convertJsonToWorkflowInstCreationContext(ctxJsonData.trim());
+
+        return ctx;
+    }
+
+    protected WorkflowInstCreationContext convertJsonToWorkflowInstCreationContext(String ctxJsonData) {
+        try {
+            WorkflowInstCreationContext ctx = objectMapper.readValue(ctxJsonData, WorkflowInstCreationContext.class);
+            return ctx;
+        } catch (IOException e) {
+            log.error("Failed to read json value:" + ctxJsonData, e);
+            throw new WecubeCoreException("Failed to read JSON to object.");
+        }
     }
 
     /**
