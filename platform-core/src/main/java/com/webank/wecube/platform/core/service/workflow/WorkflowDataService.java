@@ -127,10 +127,10 @@ public class WorkflowDataService extends AbstractWorkflowService {
     @Autowired
     @Qualifier(value = "jwtSsoRestTemplate")
     protected RestTemplate jwtSsoRestTemplate;
-    
+
     @Autowired
     private ProcExecContextMapper procExecContextMapper;
-    
+
     protected ObjectMapper objectMapper = new ObjectMapper();
 
     /**
@@ -265,7 +265,7 @@ public class WorkflowDataService extends AbstractWorkflowService {
         if (gNodeEntities == null || gNodeEntities.isEmpty()) {
             return tryGenProcessDataPreviewForUserTask(procInstId);
         }
-        
+
         ProcessDataPreviewDto result = new ProcessDataPreviewDto();
 
         result.setProcessSessionId(gNodeEntities.get(0).getProcSessId());
@@ -288,52 +288,58 @@ public class WorkflowDataService extends AbstractWorkflowService {
 
         return result;
     }
-    
+
     private ProcessDataPreviewDto tryGenProcessDataPreviewForUserTask(Integer procInstId) {
-        
+
         ProcInstInfoEntity procInstInfo = procInstInfoMapper.selectByPrimaryKey(procInstId);
         if (procInstInfo == null) {
             String errMsg = String.format("Such process instance with id [:%s] does not exist.", procInstId);
             throw new WecubeCoreException("3197", errMsg, procInstId);
         }
-        
+
         WorkflowInstCreationContext ctx = tryFetchWorkflowInstCreationContext(procInstInfo);
         ProcessDataPreviewDto result = new ProcessDataPreviewDto();
-        if(ctx == null) {
+        if (ctx == null) {
             return result;
         }
-        
+
         List<DynamicEntityValueDto> entities = ctx.getEntities();
-        
-        if(entities == null || entities.isEmpty()) {
+
+        if (entities == null || entities.isEmpty()) {
             return result;
         }
-        
+
         List<GraphNodeDto> gNodes = new ArrayList<>();
-        for(DynamicEntityValueDto e : entities) {
+        for (DynamicEntityValueDto e : entities) {
             GraphNodeDto gNode = new GraphNodeDto();
             gNode.setDataId(e.getEntityDataId());
             gNode.setDisplayName(e.getEntityDisplayName());
             gNode.setEntityName(e.getEntityName());
             gNode.setId(e.getOid());
             gNode.setPackageName(e.getPackageName());
-            gNode.setPreviousIds(e.getPreviousOids());
-            gNode.setSucceedingIds(e.getSucceedingOids());
+            gNode.setPreviousIds(emptyListIfNull(e.getPreviousOids()));
+            gNode.setSucceedingIds(emptyListIfNull(e.getSucceedingOids()));
 
             gNodes.add(gNode);
         }
-        
+
         result.addAllEntityTreeNodes(gNodes);
 
         return result;
-        
+
     }
-    
-    protected WorkflowInstCreationContext tryFetchWorkflowInstCreationContext(
-            ProcInstInfoEntity procInstInfo) {
+
+    private List<String> emptyListIfNull(List<String> ids) {
+        if (ids == null) {
+            return new ArrayList<>();
+        }
+
+        return ids;
+    }
+
+    protected WorkflowInstCreationContext tryFetchWorkflowInstCreationContext(ProcInstInfoEntity procInstInfo) {
         List<ProcExecContextEntity> procExecContextEntities = this.procExecContextMapper.selectAllContextByCtxType(
-                procInstInfo.getProcDefId(), procInstInfo.getId(),
-                ProcExecContextEntity.CTX_TYPE_PROCESS);
+                procInstInfo.getProcDefId(), procInstInfo.getId(), ProcExecContextEntity.CTX_TYPE_PROCESS);
 
         if (procExecContextEntities == null || procExecContextEntities.isEmpty()) {
 
@@ -345,8 +351,7 @@ public class WorkflowDataService extends AbstractWorkflowService {
         String ctxJsonData = procExecContextEntity.getCtxData();
 
         if (StringUtils.isBlank(ctxJsonData)) {
-            log.info("Context data is blank for {} {}", procInstInfo.getProcDefId(),
-                    procInstInfo.getId());
+            log.info("Context data is blank for {} {}", procInstInfo.getProcDefId(), procInstInfo.getId());
             return null;
         }
 
