@@ -82,4 +82,6 @@ public class Constants {
     public static final String INTERFACE_TYPE_DYNAMICFORM = "DYNAMICFORM";
     
     public static final String TEMPORARY_ENTITY_ID_PREFIX = "OID-";
+    
+    public static final String DME_DELIMETER = "#DME#";
 }
