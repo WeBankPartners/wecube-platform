@@ -1020,8 +1020,11 @@ public class WorkflowDataService extends AbstractWorkflowService {
             return exprs;
         }
         
-        PluginConfigInterfaces pluginConfigIntf = pluginConfigMgmtService
-                .getPluginConfigInterfaceByServiceName(flowNode.getServiceId());
+        PluginConfigInterfaces pluginConfigIntf = null;
+        if(StringUtils.isNoneBlank(flowNode.getServiceId())) {
+            pluginConfigIntf = pluginConfigMgmtService
+                    .getPluginConfigInterfaceByServiceName(flowNode.getServiceId());
+        }
         
         for(String exprPart : exprParts) {
             String finalExprPart = exprPart;
