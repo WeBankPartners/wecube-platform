@@ -59,11 +59,11 @@ import com.webank.wecube.platform.core.service.dme.StandardEntityOperationRestCl
 import com.webank.wecube.platform.core.service.dme.StandardEntityOperationService;
 import com.webank.wecube.platform.core.service.plugin.PluginConfigMgmtService;
 import com.webank.wecube.platform.core.support.plugin.dto.DynamicEntityValueDto;
-import com.webank.wecube.platform.core.support.plugin.dto.DynamicTaskNodeBindInfoDto;
 import com.webank.wecube.platform.core.support.plugin.dto.DynamicWorkflowInstCreationInfoDto;
 import com.webank.wecube.platform.core.support.plugin.dto.DynamicWorkflowInstInfoDto;
 import com.webank.wecube.platform.core.support.plugin.dto.RegisteredEntityAttrDefDto;
 import com.webank.wecube.platform.core.support.plugin.dto.RegisteredEntityDefDto;
+import com.webank.wecube.platform.core.support.plugin.dto.TaskNodeBindInfoDto;
 import com.webank.wecube.platform.core.support.plugin.dto.WorkflowDefInfoDto;
 import com.webank.wecube.platform.core.support.plugin.dto.WorkflowNodeDefInfoDto;
 import com.webank.wecube.platform.core.utils.Constants;
@@ -330,46 +330,58 @@ public class WorkflowPublicAccessService {
     }
 
     private void validateDynamicWorkflowInstCreationInfo(DynamicWorkflowInstCreationInfoDto creationInfoDto) {
-        if (creationInfoDto.getRootEntityValue() == null) {
+        if (StringUtils.isBlank(creationInfoDto.getRootEntityOid())) {
             throw new WecubeCoreException("Root entity must provide to initialize a new process instance.");
-        }
-
-        if (StringUtils.isBlank(creationInfoDto.getRootEntityValue().getOid())) {
-            throw new WecubeCoreException("The OID of root entity must provide to initialize a new process instance.");
         }
 
         return;
     }
 
-    private WorkflowInstCreationContext buildWorkflowInstCreationContext(DynamicWorkflowInstCreationInfoDto dto) {
+    private WorkflowInstCreationContext buildWorkflowInstCreationContext(DynamicWorkflowInstCreationInfoDto reqCtxDto) {
         WorkflowInstCreationContext ctx = new WorkflowInstCreationContext();
-        ctx.setProcDefId(dto.getProcDefId());
-        ctx.setProcDefKey(dto.getProcDefKey());
-        ctx.setRootEntityOid(dto.getRootEntityValue().getOid());
-
-        ctx.addEntity(dto.getRootEntityValue());
-
-        List<DynamicTaskNodeBindInfoDto> taskNodeBindInfos = dto.getTaskNodeBindInfos();
-        if (taskNodeBindInfos == null) {
-            taskNodeBindInfos = new ArrayList<>();
+        ctx.setProcDefId(reqCtxDto.getProcDefId());
+        ctx.setProcDefKey(reqCtxDto.getProcDefKey());
+        String rootEntityOid = reqCtxDto.getRootEntityOid();
+        DynamicEntityValueDto rootEntityDataDto = reqCtxDto.findByOid(rootEntityOid);
+        if (rootEntityDataDto == null) {
+            throw new WecubeCoreException("Invalid bound root entity OID:" + rootEntityOid);
         }
-        for (DynamicTaskNodeBindInfoDto dynamicBindInfoDto : taskNodeBindInfos) {
-            List<DynamicEntityValueDto> boundEntityValues = dynamicBindInfoDto.getBoundEntityValues();
-            if (boundEntityValues == null || boundEntityValues.isEmpty()) {
+        ctx.setRootEntityOid(rootEntityOid);
+
+        if (reqCtxDto.getEntities() != null) {
+            for (DynamicEntityValueDto e : reqCtxDto.getEntities()) {
+
+                ctx.addEntity(e);
+            }
+        }
+
+        List<TaskNodeBindInfoDto> reqBindingDtos = reqCtxDto.getBindings();
+        if (reqBindingDtos == null) {
+            reqBindingDtos = new ArrayList<>();
+        }
+        for (TaskNodeBindInfoDto reqBindingDto : reqBindingDtos) {
+            if (reqBindingDto == null) {
                 continue;
             }
-
-            for (DynamicEntityValueDto entityValueDto : boundEntityValues) {
-                TaskNodeBindInfoContext bindCtx = new TaskNodeBindInfoContext();
-                bindCtx.setBindFlag(ProcExecBindingEntity.BIND_FLAG_YES);
-                bindCtx.setOid(entityValueDto.getOid());
-                bindCtx.setEntityDataId(entityValueDto.getEntityDataId());
-                bindCtx.setNodeId(dynamicBindInfoDto.getNodeId());
-                bindCtx.setNodeDefId(dynamicBindInfoDto.getNodeDefId());
-
-                ctx.addEntity(entityValueDto);
-                ctx.addBinding(bindCtx);
+            String boundEntityOid = reqBindingDto.getOid();
+            DynamicEntityValueDto boundEntityValueDto = ctx.findByOid(boundEntityOid);
+            if (boundEntityValueDto == null) {
+                throw new WecubeCoreException("Invalid bound entity OID:" + boundEntityOid);
             }
+
+            TaskNodeBindInfoContext bindCtx = new TaskNodeBindInfoContext();
+            if (StringUtils.isBlank(boundEntityValueDto.getBindFlag())) {
+                bindCtx.setBindFlag(ProcExecBindingEntity.BIND_FLAG_YES);
+            } else {
+                bindCtx.setBindFlag(boundEntityValueDto.getBindFlag());
+            }
+            bindCtx.setOid(boundEntityValueDto.getOid());
+            bindCtx.setEntityDataId(boundEntityValueDto.getEntityDataId());
+            bindCtx.setNodeId(reqBindingDto.getNodeId());
+            bindCtx.setNodeDefId(reqBindingDto.getNodeDefId());
+
+            ctx.addBinding(bindCtx);
+
         }
 
         return ctx;
@@ -643,44 +655,56 @@ public class WorkflowPublicAccessService {
 
     private StartProcInstRequestDto calculateStartProcInstContext(DynamicWorkflowInstCreationInfoDto creationInfoDto) {
         StartProcInstRequestDto requestDto = new StartProcInstRequestDto();
-        if (StringUtils.isBlank(creationInfoDto.getRootEntityValue().getEntityDataId())) {
-            requestDto.setEntityDataId(
-                    Constants.TEMPORARY_ENTITY_ID_PREFIX + creationInfoDto.getRootEntityValue().getOid());
-        } else {
-            requestDto.setEntityDataId(creationInfoDto.getRootEntityValue().getEntityDataId());
+        String rootEntityOid = creationInfoDto.getRootEntityOid();
+
+        DynamicEntityValueDto rootEntityValueDto = creationInfoDto.findByOid(rootEntityOid);
+        if (rootEntityValueDto == null) {
+            throw new WecubeCoreException("Invalid bound root entity OID:" + rootEntityOid);
         }
-        requestDto.setEntityDisplayName(creationInfoDto.getRootEntityValue().getEntityDisplayName());
-        requestDto.setEntityTypeId(creationInfoDto.getRootEntityValue().getPackageName() + ":"
-                + creationInfoDto.getRootEntityValue().getEntityName());
+
+        if (StringUtils.isBlank(rootEntityValueDto.getEntityDataId())) {
+            requestDto.setEntityDataId(Constants.TEMPORARY_ENTITY_ID_PREFIX + rootEntityValueDto.getOid());
+        } else {
+            requestDto.setEntityDataId(rootEntityValueDto.getEntityDataId());
+        }
+
+        requestDto.setEntityDisplayName(rootEntityValueDto.getEntityDisplayName());
+        requestDto.setEntityTypeId(rootEntityValueDto.getPackageName() + ":" + rootEntityValueDto.getEntityName());
         requestDto.setProcDefId(creationInfoDto.getProcDefId());
 
-        List<DynamicTaskNodeBindInfoDto> taskNodeBindInfos = creationInfoDto.getTaskNodeBindInfos();
+        List<TaskNodeBindInfoDto> taskNodeBindInfos = creationInfoDto.getBindings();
         if (taskNodeBindInfos == null) {
             taskNodeBindInfos = new ArrayList<>();
         }
         List<TaskNodeDefObjectBindInfoDto> taskNodeBinds = new ArrayList<>();
-        for (DynamicTaskNodeBindInfoDto dynamicBindInfoDto : taskNodeBindInfos) {
-            List<DynamicEntityValueDto> boundEntityValues = dynamicBindInfoDto.getBoundEntityValues();
-            if (boundEntityValues == null || boundEntityValues.isEmpty()) {
-                continue;
+        for (TaskNodeBindInfoDto dynamicBindInfoDto : taskNodeBindInfos) {
+            String bindEntityOid = dynamicBindInfoDto.getOid();
+            DynamicEntityValueDto entityValueDto = creationInfoDto.findByOid(bindEntityOid);
+
+            if (entityValueDto == null) {
+                throw new WecubeCoreException("Invalid bound entity OID:" + bindEntityOid);
             }
 
-            for (DynamicEntityValueDto entityValueDto : boundEntityValues) {
-                TaskNodeDefObjectBindInfoDto bindDto = new TaskNodeDefObjectBindInfoDto();
+            TaskNodeDefObjectBindInfoDto bindDto = new TaskNodeDefObjectBindInfoDto();
+
+            if (StringUtils.isBlank(dynamicBindInfoDto.getBindFlag())) {
                 bindDto.setBound(ProcExecBindingEntity.BIND_FLAG_YES);
-                if (StringUtils.isBlank(entityValueDto.getEntityDataId())) {
-                    bindDto.setEntityDataId(Constants.TEMPORARY_ENTITY_ID_PREFIX + entityValueDto.getOid());
-                } else {
-                    bindDto.setEntityDataId(entityValueDto.getEntityDataId());
-                }
-                bindDto.setEntityDisplayName(entityValueDto.getEntityDisplayName());
-                bindDto.setEntityTypeId(entityValueDto.getPackageName() + ":" + entityValueDto.getEntityName());
-                bindDto.setNodeDefId(dynamicBindInfoDto.getNodeDefId());
-                bindDto.setOrderedNo("");
-                bindDto.setFullEntityDataId(entityValueDto.getFullEntityDataId());
-
-                taskNodeBinds.add(bindDto);
+            } else {
+                bindDto.setBound(dynamicBindInfoDto.getBindFlag());
             }
+
+            if (StringUtils.isBlank(entityValueDto.getEntityDataId())) {
+                bindDto.setEntityDataId(Constants.TEMPORARY_ENTITY_ID_PREFIX + entityValueDto.getOid());
+            } else {
+                bindDto.setEntityDataId(entityValueDto.getEntityDataId());
+            }
+            bindDto.setEntityDisplayName(entityValueDto.getEntityDisplayName());
+            bindDto.setEntityTypeId(entityValueDto.getPackageName() + ":" + entityValueDto.getEntityName());
+            bindDto.setNodeDefId(dynamicBindInfoDto.getNodeDefId());
+            bindDto.setOrderedNo("");
+            bindDto.setFullEntityDataId(entityValueDto.getFullEntityDataId());
+
+            taskNodeBinds.add(bindDto);
         }
 
         requestDto.setTaskNodeBinds(taskNodeBinds);
