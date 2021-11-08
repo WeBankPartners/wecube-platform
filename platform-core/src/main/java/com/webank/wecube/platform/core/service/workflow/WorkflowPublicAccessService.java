@@ -74,7 +74,7 @@ import com.webank.wecube.platform.workflow.commons.LocalIdGenerator;
 public class WorkflowPublicAccessService {
     private static final Logger log = LoggerFactory.getLogger(WorkflowPublicAccessService.class);
 
-    private static final String DME_DELIMETER = "#DME#";
+    
 
     @Autowired
     private ProcDefInfoMapper procDefInfoRepository;
@@ -494,7 +494,7 @@ public class WorkflowPublicAccessService {
             return exprs;
         }
 
-        String[] exprParts = expr.split(DME_DELIMETER);
+        String[] exprParts = expr.split(Constants.DME_DELIMETER);
 
         if (exprParts == null || exprParts.length <= 0) {
             return exprs;
@@ -719,7 +719,7 @@ public class WorkflowPublicAccessService {
             return registerEntities;
         }
 
-        String[] exprParts = routineExp.split(DME_DELIMETER);
+        String[] exprParts = routineExp.split(Constants.DME_DELIMETER);
         for (String exprPart : exprParts) {
             if (StringUtils.isBlank(exprPart)) {
                 continue;

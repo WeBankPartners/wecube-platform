@@ -860,11 +860,27 @@ public class WorkflowDataService extends AbstractWorkflowService {
 
         return null;
     }
-
+    
     private void tryProcessSingleFlowNodeDef(FlowNodeDefDto flowNode, List<GraphNodeDto> hierarchicalEntityNodes,
             String dataId, String processSessionId, boolean needSaveTmp, Map<Object, Object> cacheMap,
             boolean useSystemToken) {
-        String routineExpr = calculateDataModelExpression(flowNode);
+        List<String> routineExprs = calculateDataModelExpressions(flowNode);
+
+        if (routineExprs == null || routineExprs.isEmpty()) {
+            log.info("the routine expression is blank for {} {}", flowNode.getNodeDefId(), flowNode.getNodeName());
+            return;
+        }
+
+        for (String routineExpr : routineExprs) {
+            tryProcessSingleFlowNodeDefAndExpression( flowNode,  hierarchicalEntityNodes,
+                     dataId,  processSessionId,  needSaveTmp,  cacheMap,
+                     useSystemToken, routineExpr);
+        }
+    }
+
+    private void tryProcessSingleFlowNodeDefAndExpression(FlowNodeDefDto flowNode, List<GraphNodeDto> hierarchicalEntityNodes,
+            String dataId, String processSessionId, boolean needSaveTmp, Map<Object, Object> cacheMap,
+            boolean useSystemToken, String routineExpr) {
 
         if (StringUtils.isBlank(routineExpr)) {
             log.info("the routine expression is blank for {} {}", flowNode.getNodeDefId(), flowNode.getNodeName());
@@ -986,28 +1002,43 @@ public class WorkflowDataService extends AbstractWorkflowService {
         return false;
     }
 
-    private String calculateDataModelExpression(FlowNodeDefDto flowNode) {
+    private List<String> calculateDataModelExpressions(FlowNodeDefDto flowNode) {
         if (StringUtils.isBlank(flowNode.getRoutineExpression())) {
             return null;
         }
 
         String expr = flowNode.getRoutineExpression();
-
-        if (StringUtils.isBlank(flowNode.getServiceId())) {
-            return expr;
+        List<String> exprs = new ArrayList<>();
+        
+        if (StringUtils.isBlank(expr)) {
+            return exprs;
         }
 
+        String[] exprParts = expr.split(Constants.DME_DELIMETER);
+
+        if (exprParts == null || exprParts.length <= 0) {
+            return exprs;
+        }
+        
         PluginConfigInterfaces pluginConfigIntf = pluginConfigMgmtService
                 .getPluginConfigInterfaceByServiceName(flowNode.getServiceId());
-        if (pluginConfigIntf == null) {
-            return expr;
+        
+        for(String exprPart : exprParts) {
+            String finalExprPart = exprPart;
+            if (pluginConfigIntf == null) {
+                exprs.add(finalExprPart);
+            }else {
+                if (StringUtils.isBlank(pluginConfigIntf.getFilterRule())) {
+                    exprs.add(finalExprPart);
+                }else {
+                    finalExprPart = finalExprPart + pluginConfigIntf.getFilterRule();
+                    exprs.add(finalExprPart);
+                }
+            }
         }
-
-        if (StringUtils.isBlank(pluginConfigIntf.getFilterRule())) {
-            return expr;
-        }
-
-        return expr + pluginConfigIntf.getFilterRule();
+        
+        return exprs;
+        
     }
 
     private void addToResult(List<GraphNodeDto> result, GraphNodeDto... nodes) {
