@@ -1385,7 +1385,7 @@ export default {
       let nodes = this.modelData.map((_, index) => {
         const nodeId = _.id
         // '-' 在viz.js中存在渲染问题
-        const nodeTitle = nodeId.replace(/-/g, '_')
+        const nodeTitle = '"' + nodeId.replace(/-/g, '_') + '"'
         let color = _.isHighlight ? '#5DB400' : 'black'
         // const isRecord = _.refFlowNodeIds.length > 0
         // const shape = isRecord ? 'ellipse' : 'ellipse'
@@ -1431,7 +1431,7 @@ export default {
             const nodeId = _.id
             let current = []
             current = _.succeedingIds.map(to => {
-              return nodeId + ' -> ' + to.replace(/:/g, '_')
+              return '"' + nodeId + '"' + ' -> ' + '"' + to + '"'
             })
             pathAry.push(current)
           }
@@ -1559,7 +1559,13 @@ export default {
             if (_.succeedingNodeIds.length > 0) {
               let current = []
               current = _.succeedingNodeIds.map(to => {
-                return _.nodeId + ' -> ' + `${to} [color="${excution ? statusColor[_.status] : 'black'}"]`
+                return (
+                  '"' +
+                  _.nodeId +
+                  '"' +
+                  ' -> ' +
+                  `${'"' + to + '"'} [color="${excution ? statusColor[_.status] : 'black'}"]`
+                )
               })
               pathAry.push(current)
             }
@@ -1629,7 +1635,7 @@ export default {
           taskNodeBinds: taskNodeBinds.map(_ => {
             const node = this.flowData.flowNodes.find(node => node.orderedNo === _.flowOrderNo)
             return {
-              entityDataId: _.id,
+              entityDataId: _.dataId,
               entityTypeId: this.flowData.rootEntity,
               nodeDefId: (node && node.nodeDefId) || '',
               orderedNo: _.flowOrderNo
@@ -1920,7 +1926,7 @@ export default {
           this.tartetModels = data.map(_ => {
             return {
               ..._,
-              ...this.modelData.find(j => j.id === _.entityDataId)
+              ...this.modelData.find(j => j.dataId === _.entityDataId)
             }
           })
         } else {
