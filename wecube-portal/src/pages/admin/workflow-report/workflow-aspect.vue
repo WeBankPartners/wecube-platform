@@ -2,16 +2,21 @@
   <div>
     <div class="report-container">
       <div class="item">
-        {{ $t('datetime_range') }}:
-        <DatePicker type="datetimerange" format="yyyy-MM-dd HH:mm:ss" @on-change="getDate"></DatePicker>
+        <DatePicker
+          type="datetimerange"
+          format="yyyy-MM-dd HH:mm:ss"
+          :placeholder="$t('datetime_range')"
+          style="width:300px"
+          @on-change="getDate"
+        ></DatePicker>
       </div>
       <div class="item">
-        {{ $t('flow_name') }}:
         <Select
           v-model="searchConfig.params.procDefIds"
           :max-tag-count="2"
           multiple
           filterable
+          :placeholder="$t('flow_name')"
           @on-open-change="getProcess"
           style="width:200px"
         >
@@ -21,8 +26,12 @@
         </Select>
       </div>
       <div class="item">
-        {{ $t('display_number') }}:
-        <Select v-model="searchConfig.params.pageable.pageSize" filterable style="width:200px">
+        <Select
+          v-model="searchConfig.params.pageable.pageSize"
+          filterable
+          :placeholder="$t('display_number')"
+          style="width:200px"
+        >
           <Option v-for="item in searchConfig.displayNumberOptions" :value="item" :key="item">{{ item }}</Option>
         </Select>
       </div>
@@ -110,8 +119,12 @@ export default {
   },
   methods: {
     async getFlowExecuteOverviews () {
-      const { status, data } = await getFlowExecuteOverviews(this.searchConfig.params)
+      const { status, data, message } = await getFlowExecuteOverviews(this.searchConfig.params)
       if (status === 'OK') {
+        this.$Notice.success({
+          title: 'Success',
+          desc: message
+        })
         this.tableData = data
       }
     },
@@ -144,7 +157,7 @@ export default {
   margin-bottom: 16px;
 }
 .item {
-  width: 290px;
+  // width: 290px;
   margin: 8px;
 }
 </style>
