@@ -2,16 +2,19 @@
   <div class="">
     <div class="report-container">
       <div class="item">
-        {{ $t('datetime_range') }}:
-        <DatePicker type="datetimerange" format="yyyy-MM-dd HH:mm:ss" @on-change="getDate"></DatePicker>
+        <DatePicker
+          type="datetimerange"
+          format="yyyy-MM-dd HH:mm:ss"
+          :placeholder="$t('datetime_range')"
+          style="width:300px"
+          @on-change="getDate"
+        ></DatePicker>
       </div>
       <div class="item">
-        {{ $t('flow_name') }}:
         <Select
           v-model="searchConfig.params.procDefIds"
-          :max-tag-count="2"
-          multiple
           filterable
+          :placeholder="$t('flow_name')"
           @on-open-change="getProcess"
           @on-change="changeProcess"
           style="width:200px"
@@ -22,15 +25,15 @@
         </Select>
       </div>
       <div class="item">
-        {{ $t('task_node') }}:
         <Select
           v-model="searchConfig.params.taskNodeIds"
           :max-tag-count="2"
           multiple
           filterable
+          :placeholder="$t('task_node')"
           @on-open-change="getTasknodes"
           @on-change="changeTasknodes"
-          :disabled="searchConfig.params.procDefIds.length === 0"
+          :disabled="searchConfig.params.procDefIds === ''"
           style="width:200px"
         >
           <Option
@@ -42,12 +45,12 @@
         </Select>
       </div>
       <div class="item">
-        {{ $t('task_node_bindings') }}:
         <Select
           v-model="searchConfig.params.entityDataIds"
           :max-tag-count="2"
           multiple
           filterable
+          :placeholder="$t('task_node_bindings')"
           @on-open-change="getTasknodesBindings"
           @on-change="changeTasknodesBindings"
           :disabled="searchConfig.params.taskNodeIds.length === 0"
@@ -63,7 +66,12 @@
       </div>
       <div class="item">
         {{ $t('display_number') }}:
-        <Select v-model="searchConfig.params.pageable.pageSize" filterable style="width:200px">
+        <Select
+          v-model="searchConfig.params.pageable.pageSize"
+          filterable
+          :placeholder="$t('task_node_bindings')"
+          style="width:200px"
+        >
           <Option v-for="item in searchConfig.displayNumberOptions" :value="item" :key="item">{{ item }}</Option>
         </Select>
       </div>
@@ -105,7 +113,7 @@ export default {
           entityDataIds: [],
           serviceIds: [],
           taskNodeIds: [],
-          procDefIds: [],
+          procDefIds: '',
           pageable: {
             pageSize: 100,
             startIndex: 0
@@ -215,8 +223,14 @@ export default {
       }
     },
     async getReport () {
-      const { status, data } = await getTasknodesReport(this.searchConfig.params)
+      let copyParams = JSON.parse(JSON.stringify(this.searchConfig.params))
+      copyParams.procDefIds = [copyParams.procDefIds]
+      const { status, data, message } = await getTasknodesReport(copyParams)
       if (status === 'OK') {
+        this.$Notice.success({
+          title: 'Success',
+          desc: message
+        })
         this.tableData = data.contents
       }
     },
@@ -226,7 +240,7 @@ export default {
         this.searchConfig.params.endDate !== '' &&
         this.searchConfig.params.taskNodeIds.length !== 0 &&
         this.searchConfig.params.taskNodeIds.length !== 0 &&
-        this.searchConfig.params.procDefIds.length !== 0
+        this.searchConfig.params.procDefIds !== ''
       )
     },
     getDate (dateRange) {
@@ -244,7 +258,7 @@ export default {
       this.searchConfig.params.entityDataIds = []
     },
     async getTasknodes () {
-      const { status, data } = await getTasknodesList(this.searchConfig.params.procDefIds)
+      const { status, data } = await getTasknodesList([this.searchConfig.params.procDefIds])
       if (status === 'OK') {
         this.searchConfig.tasknodeOptions = data
       }
@@ -273,7 +287,7 @@ export default {
   margin-bottom: 16px;
 }
 .item {
-  width: 290px;
+  // width: 290px;
   margin: 8px;
 }
 </style>
