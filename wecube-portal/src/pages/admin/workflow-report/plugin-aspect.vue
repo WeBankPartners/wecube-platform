@@ -2,16 +2,21 @@
   <div class="">
     <div class="report-container">
       <div class="item">
-        {{ $t('datetime_range') }}:
-        <DatePicker type="datetimerange" format="yyyy-MM-dd HH:mm:ss" @on-change="getDate"></DatePicker>
+        <DatePicker
+          type="datetimerange"
+          format="yyyy-MM-dd HH:mm:ss"
+          style="width:300px"
+          :placeholder="$t('datetime_range')"
+          @on-change="getDate"
+        ></DatePicker>
       </div>
       <div class="item">
-        {{ $t('plugin_regist') }}:
         <Select
           v-model="searchConfig.params.serviceIds"
           :max-tag-count="2"
           multiple
           filterable
+          :placeholder="$t('plugin_regist')"
           @on-open-change="getPlugin"
           @on-change="changePlugin"
           style="width:200px"
@@ -20,12 +25,12 @@
         </Select>
       </div>
       <div class="item">
-        {{ $t('task_node_bindings') }}:
         <Select
           v-model="searchConfig.params.entityDataIds"
           :max-tag-count="2"
           multiple
           filterable
+          :placeholder="$t('task_node_bindings')"
           @on-open-change="getTasknodesBindings"
           @on-change="changeTasknodesBindings"
           :disabled="searchConfig.params.serviceIds.length === 0"
@@ -40,8 +45,12 @@
         </Select>
       </div>
       <div class="item">
-        {{ $t('display_number') }}:
-        <Select v-model="searchConfig.params.pageable.pageSize" filterable style="width:200px">
+        <Select
+          v-model="searchConfig.params.pageable.pageSize"
+          :placeholder="$t('display_number')"
+          filterable
+          style="width:200px"
+        >
           <Option v-for="item in searchConfig.displayNumberOptions" :value="item" :key="item">{{ item }}</Option>
         </Select>
       </div>
@@ -185,8 +194,12 @@ export default {
     },
     async getReport () {
       this.searchConfig.params.sorting = {}
-      const { status, data } = await getPluginReport(this.searchConfig.params)
+      const { status, data, message } = await getPluginReport(this.searchConfig.params)
       if (status === 'OK') {
+        this.$Notice.success({
+          title: 'Success',
+          desc: message
+        })
         this.tableData = data.contents
         this.totalRows = data.pageInfo.totalRows
       }
@@ -232,7 +245,7 @@ export default {
   margin-bottom: 16px;
 }
 .item {
-  width: 290px;
+  // width: 290px;
   margin: 8px;
 }
 </style>
