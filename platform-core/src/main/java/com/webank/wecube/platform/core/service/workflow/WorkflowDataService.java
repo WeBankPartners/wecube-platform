@@ -495,7 +495,7 @@ public class WorkflowDataService extends AbstractWorkflowService {
                 if (existEntity != null) {
                     bindingsSelected.add(existEntity);
 
-                    existEntity.setIsBound(ProcExecBindingTmpEntity.BOUND);
+                    existEntity.setIsBound(Constants.BIND_FLAG_YES);
                     existEntity.setUpdatedBy(AuthenticationContextHolder.getCurrentUsername());
                     existEntity.setUpdatedTime(new Date());
 
@@ -511,7 +511,7 @@ public class WorkflowDataService extends AbstractWorkflowService {
                 continue;
             }
 
-            entity.setIsBound(ProcExecBindingTmpEntity.UNBOUND);
+            entity.setIsBound(Constants.BIND_FLAG_NO);
             entity.setUpdatedBy(AuthenticationContextHolder.getCurrentUsername());
             entity.setUpdatedTime(new Date());
 
@@ -792,7 +792,7 @@ public class WorkflowDataService extends AbstractWorkflowService {
             String processSessionId) {
         ProcExecBindingTmpEntity procInstBindingTmpEntity = new ProcExecBindingTmpEntity();
         procInstBindingTmpEntity.setBindType(ProcExecBindingTmpEntity.BIND_TYPE_PROC_INSTANCE);
-        procInstBindingTmpEntity.setIsBound(ProcExecBindingTmpEntity.BOUND);
+        procInstBindingTmpEntity.setIsBound(Constants.BIND_FLAG_YES);
         procInstBindingTmpEntity.setProcSessionId(processSessionId);
         procInstBindingTmpEntity.setProcDefId(outline.getProcDefId());
         procInstBindingTmpEntity.setEntityDataId(dataId);
@@ -970,7 +970,7 @@ public class WorkflowDataService extends AbstractWorkflowService {
 
             ProcExecBindingTmpEntity taskNodeBinding = new ProcExecBindingTmpEntity();
             taskNodeBinding.setBindType(ProcExecBindingTmpEntity.BIND_TYPE_TASK_NODE_INSTANCE);
-            taskNodeBinding.setIsBound(ProcExecBindingTmpEntity.BOUND);
+            taskNodeBinding.setIsBound(Constants.BIND_FLAG_YES);
             taskNodeBinding.setProcSessionId(processSessionId);
             taskNodeBinding.setProcDefId(f.getProcDefId());
             taskNodeBinding.setEntityDataId(String.valueOf(tn.getId()));

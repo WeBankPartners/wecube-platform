@@ -7,8 +7,8 @@ public class ProcExecBindingTmpEntity {
     public static final String BIND_TYPE_PROC_INSTANCE = "process";
     public static final String BIND_TYPE_TASK_NODE_INSTANCE = "taskNode";
 
-    public static final String BOUND = "Y";
-    public static final String UNBOUND = "N";
+//    public static final String BOUND = "Y";
+//    public static final String UNBOUND = "N";
 
     private Integer id;
 
