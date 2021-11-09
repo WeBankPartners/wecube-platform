@@ -1375,7 +1375,7 @@ export default {
       this.modelData.forEach(i => {
         i.refFlowNodeIds = []
         this.allBindingsList.forEach(j => {
-          if (j.entityDataId === i.dataId) {
+          if (j.entityDataId === i.id) {
             i.refFlowNodeIds.push(j.orderedNo)
           }
         })
@@ -1383,7 +1383,7 @@ export default {
     },
     renderModelGraph () {
       let nodes = this.modelData.map((_, index) => {
-        const nodeId = _.packageName + '_' + _.entityName + '_' + _.dataId
+        const nodeId = _.id
         // '-' 在viz.js中存在渲染问题
         const nodeTitle = nodeId.replace(/-/g, '_')
         let color = _.isHighlight ? '#5DB400' : 'black'
@@ -1415,7 +1415,7 @@ export default {
         if (completedNodesLen > 0 && completedNodesLen < refNodesLen) {
           fillcolor = '#3C83F8'
         }
-        const str = _.displayName || _.dataId
+        const str = _.displayName || _.id
         const refStr = _.refFlowNodeIds.toString().replace(/,/g, '/')
         // const len = refStr.length - _.displayName.length > 0 ? refStr.length : _.displayName.length
         const firstLabel = str.length > 30 ? `${str.slice(0, 1)}...${str.slice(-29)}` : str
@@ -1428,7 +1428,7 @@ export default {
 
         this.modelData.forEach(_ => {
           if (_.succeedingIds.length > 0) {
-            const nodeId = _.packageName + '_' + _.entityName + '_' + _.dataId
+            const nodeId = _.id
             let current = []
             current = _.succeedingIds.map(to => {
               return nodeId + ' -> ' + to.replace(/:/g, '_')
@@ -1629,7 +1629,7 @@ export default {
           taskNodeBinds: taskNodeBinds.map(_ => {
             const node = this.flowData.flowNodes.find(node => node.orderedNo === _.flowOrderNo)
             return {
-              entityDataId: _.dataId,
+              entityDataId: _.id,
               entityTypeId: this.flowData.rootEntity,
               nodeDefId: (node && node.nodeDefId) || '',
               orderedNo: _.flowOrderNo
@@ -1920,7 +1920,7 @@ export default {
           this.tartetModels = data.map(_ => {
             return {
               ..._,
-              ...this.modelData.find(j => j.dataId === _.entityDataId)
+              ...this.modelData.find(j => j.id === _.entityDataId)
             }
           })
         } else {
