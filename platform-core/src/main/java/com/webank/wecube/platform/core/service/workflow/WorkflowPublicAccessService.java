@@ -33,7 +33,6 @@ import com.webank.wecube.platform.core.entity.plugin.PluginPackageAttributes;
 import com.webank.wecube.platform.core.entity.plugin.PluginPackageEntities;
 import com.webank.wecube.platform.core.entity.workflow.ProcDefAuthInfoQueryEntity;
 import com.webank.wecube.platform.core.entity.workflow.ProcDefInfoEntity;
-import com.webank.wecube.platform.core.entity.workflow.ProcExecBindingEntity;
 import com.webank.wecube.platform.core.entity.workflow.ProcExecContextEntity;
 import com.webank.wecube.platform.core.entity.workflow.ProcRoleBindingEntity;
 import com.webank.wecube.platform.core.entity.workflow.TaskNodeDefInfoEntity;
@@ -371,7 +370,7 @@ public class WorkflowPublicAccessService {
 
             TaskNodeBindInfoContext bindCtx = new TaskNodeBindInfoContext();
             if (StringUtils.isBlank(boundEntityValueDto.getBindFlag())) {
-                bindCtx.setBindFlag(ProcExecBindingEntity.BIND_FLAG_YES);
+                bindCtx.setBindFlag(Constants.BIND_FLAG_YES);
             } else {
                 bindCtx.setBindFlag(boundEntityValueDto.getBindFlag());
             }
@@ -688,7 +687,7 @@ public class WorkflowPublicAccessService {
             TaskNodeDefObjectBindInfoDto bindDto = new TaskNodeDefObjectBindInfoDto();
 
             if (StringUtils.isBlank(dynamicBindInfoDto.getBindFlag())) {
-                bindDto.setBound(ProcExecBindingEntity.BIND_FLAG_YES);
+                bindDto.setBound(Constants.BIND_FLAG_YES);
             } else {
                 bindDto.setBound(dynamicBindInfoDto.getBindFlag());
             }
