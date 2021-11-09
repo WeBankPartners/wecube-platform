@@ -1635,7 +1635,7 @@ export default {
           taskNodeBinds: taskNodeBinds.map(_ => {
             const node = this.flowData.flowNodes.find(node => node.orderedNo === _.flowOrderNo)
             return {
-              entityDataId: _.id,
+              entityDataId: _.dataId,
               entityTypeId: this.flowData.rootEntity,
               nodeDefId: (node && node.nodeDefId) || '',
               orderedNo: _.flowOrderNo
@@ -1926,7 +1926,7 @@ export default {
           this.tartetModels = data.map(_ => {
             return {
               ..._,
-              ...this.modelData.find(j => j.id === _.entityDataId)
+              ...this.modelData.find(j => j.dataId === _.entityDataId)
             }
           })
         } else {
