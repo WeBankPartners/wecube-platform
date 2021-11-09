@@ -39,6 +39,7 @@ import com.webank.wecube.platform.core.repository.workflow.TaskNodeDefInfoMapper
 import com.webank.wecube.platform.core.repository.workflow.TaskNodeExecParamMapper;
 import com.webank.wecube.platform.core.repository.workflow.TaskNodeExecRequestMapper;
 import com.webank.wecube.platform.core.repository.workflow.TaskNodeInstInfoMapper;
+import com.webank.wecube.platform.core.utils.Constants;
 import com.webank.wecube.platform.workflow.commons.LocalIdGenerator;
 import com.webank.wecube.platform.workflow.model.ProcFlowNodeInst;
 import com.webank.wecube.platform.workflow.model.ProcInstOutline;
@@ -725,7 +726,11 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
             }
             ProcExecBindingEntity nodeBindEntity = new ProcExecBindingEntity();
             nodeBindEntity.setBindType(ProcExecBindingEntity.BIND_TYPE_TASK_NODE_INSTANCE);
-            nodeBindEntity.setBindFlag(ProcExecBindingEntity.BIND_FLAG_YES);
+            if(Constants.BIND_FLAG_NO.equalsIgnoreCase(bindInfoDto.getBound())) {
+                nodeBindEntity.setBindFlag(Constants.BIND_FLAG_NO);
+            }else {
+                nodeBindEntity.setBindFlag(Constants.BIND_FLAG_YES);
+            }
             nodeBindEntity.setProcInstId(procInstInfoEntity.getId());
             nodeBindEntity.setProcDefId(procDefId);
             nodeBindEntity.setNodeDefId(bindInfoDto.getNodeDefId());
@@ -931,7 +936,7 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
         }
 
         for (ProcExecBindingTmpEntity entity : sessionBindings) {
-            if (ProcExecBindingTmpEntity.BOUND.equalsIgnoreCase(entity.getIsBound())) {
+            if (Constants.BIND_FLAG_YES.equalsIgnoreCase(entity.getIsBound())) {
                 TaskNodeDefObjectBindInfoDto dto = new TaskNodeDefObjectBindInfoDto();
                 dto.setBound(entity.getIsBound());
                 dto.setEntityDataId(entity.getEntityDataId());
