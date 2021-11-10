@@ -29,10 +29,10 @@
             <CheckboxGroup v-model="disabledGroup" @on-change="changeColumns">
               <Checkbox
                 v-for="item in oriDetailTableColums"
-                :label="item.title"
+                :label="item.key"
                 style="display:block"
                 :disabled="item.disabled"
-                :key="item.key"
+                :key="item.key + item.title"
               >
                 {{ item.title }}
               </Checkbox>
@@ -64,7 +64,7 @@ export default {
       detailTableColums: [],
       oriDetailTableData: [],
       detailTableData: [],
-      disabledGroup: ['#', this.$t('params_type'), this.$t('params_name')],
+      disabledGroup: ['#', 'type', 'title'],
       paramsGroup: [],
       filterCol: []
     }
@@ -120,7 +120,7 @@ export default {
       } else {
         this.oriDetailTableData.forEach(row => {
           let set = new Set()
-          this.filterCol.forEach(col => {
+          filterCol.forEach(col => {
             set.add(row[col])
           })
           if (set.size === filterCol.length) {
@@ -143,6 +143,7 @@ export default {
       })
     },
     initData (data) {
+      this.disabledGroup = ['#', 'type', 'title']
       this.paramsGroup = []
       this.oriDetailTableData = []
       this.oriDetailTableColums = [
@@ -171,7 +172,7 @@ export default {
         }
       ]
       data.forEach((d, index) => {
-        this.disabledGroup.push(d.execDate)
+        this.disabledGroup.push('value' + index)
         this.filterCol.push('value' + index)
         this.oriDetailTableColums.push({
           title: d.execDate,

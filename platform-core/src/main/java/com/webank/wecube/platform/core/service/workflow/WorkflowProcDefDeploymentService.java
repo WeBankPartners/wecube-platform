@@ -58,6 +58,9 @@ public class WorkflowProcDefDeploymentService extends AbstractWorkflowProcDefSer
         String procDefId = procDefDto.getProcDefId();
         String status = procDefDto.getStatus();
         String procDefName = procDefDto.getProcDefName();
+        
+        validateDraftProcessDefinition(procDefDto);
+        
         ProcDefInfoEntity existProcDef = processDefInfoRepo.selectByPrimaryKey(procDefId);
 
         if (StringUtils.isBlank(procDefId)) {
@@ -119,6 +122,19 @@ public class WorkflowProcDefDeploymentService extends AbstractWorkflowProcDefSer
 
         return tryPerformNewProcessDeployment(procDefInfoDto);
 
+    }
+    
+    private void validateDraftProcessDefinition(ProcDefInfoDto procDefDto) {
+        
+        validateDraftProcessDefinitionPermission(procDefDto);
+    }
+    
+    private void validateDraftProcessDefinitionPermission(ProcDefInfoDto procDefDto) {
+        Map<String, List<String>> permissionToRoleMap = procDefDto.getPermissionToRole();
+
+        if (permissionToRoleMap == null || permissionToRoleMap.isEmpty()) {
+            throw new WecubeCoreException("3164", "There is no process to role with permission mapping found.");
+        }
     }
 
     private ProcessDraftResultDto doDraftProcessDefinition(ProcDefInfoDto procDefDto, String continueToken) {
