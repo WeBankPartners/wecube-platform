@@ -288,6 +288,34 @@ public class WorkflowDataService extends AbstractWorkflowService {
 
         return result;
     }
+    
+    /**
+     * 
+     * @param procInstInfo
+     * @return
+     */
+    public WorkflowInstCreationContext tryFetchWorkflowInstCreationContext(ProcInstInfoEntity procInstInfo) {
+        List<ProcExecContextEntity> procExecContextEntities = this.procExecContextMapper.selectAllContextByCtxType(
+                procInstInfo.getProcDefId(), procInstInfo.getId(), ProcExecContextEntity.CTX_TYPE_PROCESS);
+
+        if (procExecContextEntities == null || procExecContextEntities.isEmpty()) {
+
+            return null;
+        }
+
+        ProcExecContextEntity procExecContextEntity = procExecContextEntities.get(0);
+
+        String ctxJsonData = procExecContextEntity.getCtxData();
+
+        if (StringUtils.isBlank(ctxJsonData)) {
+            log.info("Context data is blank for {} {}", procInstInfo.getProcDefId(), procInstInfo.getId());
+            return null;
+        }
+
+        WorkflowInstCreationContext ctx = convertJsonToWorkflowInstCreationContext(ctxJsonData.trim());
+
+        return ctx;
+    }
 
     private ProcessDataPreviewDto tryGenProcessDataPreviewForUserTask(Integer procInstId) {
 
@@ -337,28 +365,7 @@ public class WorkflowDataService extends AbstractWorkflowService {
         return ids;
     }
 
-    protected WorkflowInstCreationContext tryFetchWorkflowInstCreationContext(ProcInstInfoEntity procInstInfo) {
-        List<ProcExecContextEntity> procExecContextEntities = this.procExecContextMapper.selectAllContextByCtxType(
-                procInstInfo.getProcDefId(), procInstInfo.getId(), ProcExecContextEntity.CTX_TYPE_PROCESS);
-
-        if (procExecContextEntities == null || procExecContextEntities.isEmpty()) {
-
-            return null;
-        }
-
-        ProcExecContextEntity procExecContextEntity = procExecContextEntities.get(0);
-
-        String ctxJsonData = procExecContextEntity.getCtxData();
-
-        if (StringUtils.isBlank(ctxJsonData)) {
-            log.info("Context data is blank for {} {}", procInstInfo.getProcDefId(), procInstInfo.getId());
-            return null;
-        }
-
-        WorkflowInstCreationContext ctx = convertJsonToWorkflowInstCreationContext(ctxJsonData.trim());
-
-        return ctx;
-    }
+    
 
     protected WorkflowInstCreationContext convertJsonToWorkflowInstCreationContext(String ctxJsonData) {
         try {
@@ -860,7 +867,7 @@ public class WorkflowDataService extends AbstractWorkflowService {
 
         return null;
     }
-    
+
     private void tryProcessSingleFlowNodeDef(FlowNodeDefDto flowNode, List<GraphNodeDto> hierarchicalEntityNodes,
             String dataId, String processSessionId, boolean needSaveTmp, Map<Object, Object> cacheMap,
             boolean useSystemToken) {
@@ -872,15 +879,14 @@ public class WorkflowDataService extends AbstractWorkflowService {
         }
 
         for (String routineExpr : routineExprs) {
-            tryProcessSingleFlowNodeDefAndExpression( flowNode,  hierarchicalEntityNodes,
-                     dataId,  processSessionId,  needSaveTmp,  cacheMap,
-                     useSystemToken, routineExpr);
+            tryProcessSingleFlowNodeDefAndExpression(flowNode, hierarchicalEntityNodes, dataId, processSessionId,
+                    needSaveTmp, cacheMap, useSystemToken, routineExpr);
         }
     }
 
-    private void tryProcessSingleFlowNodeDefAndExpression(FlowNodeDefDto flowNode, List<GraphNodeDto> hierarchicalEntityNodes,
-            String dataId, String processSessionId, boolean needSaveTmp, Map<Object, Object> cacheMap,
-            boolean useSystemToken, String routineExpr) {
+    private void tryProcessSingleFlowNodeDefAndExpression(FlowNodeDefDto flowNode,
+            List<GraphNodeDto> hierarchicalEntityNodes, String dataId, String processSessionId, boolean needSaveTmp,
+            Map<Object, Object> cacheMap, boolean useSystemToken, String routineExpr) {
 
         if (StringUtils.isBlank(routineExpr)) {
             log.info("the routine expression is blank for {} {}", flowNode.getNodeDefId(), flowNode.getNodeName());
@@ -1009,7 +1015,7 @@ public class WorkflowDataService extends AbstractWorkflowService {
 
         String expr = flowNode.getRoutineExpression();
         List<String> exprs = new ArrayList<>();
-        
+
         if (StringUtils.isBlank(expr)) {
             return exprs;
         }
@@ -1019,29 +1025,28 @@ public class WorkflowDataService extends AbstractWorkflowService {
         if (exprParts == null || exprParts.length <= 0) {
             return exprs;
         }
-        
+
         PluginConfigInterfaces pluginConfigIntf = null;
-        if(StringUtils.isNoneBlank(flowNode.getServiceId())) {
-            pluginConfigIntf = pluginConfigMgmtService
-                    .getPluginConfigInterfaceByServiceName(flowNode.getServiceId());
+        if (StringUtils.isNoneBlank(flowNode.getServiceId())) {
+            pluginConfigIntf = pluginConfigMgmtService.getPluginConfigInterfaceByServiceName(flowNode.getServiceId());
         }
-        
-        for(String exprPart : exprParts) {
+
+        for (String exprPart : exprParts) {
             String finalExprPart = exprPart;
             if (pluginConfigIntf == null) {
                 exprs.add(finalExprPart);
-            }else {
+            } else {
                 if (StringUtils.isBlank(pluginConfigIntf.getFilterRule())) {
                     exprs.add(finalExprPart);
-                }else {
+                } else {
                     finalExprPart = finalExprPart + pluginConfigIntf.getFilterRule();
                     exprs.add(finalExprPart);
                 }
             }
         }
-        
+
         return exprs;
-        
+
     }
 
     private void addToResult(List<GraphNodeDto> result, GraphNodeDto... nodes) {
