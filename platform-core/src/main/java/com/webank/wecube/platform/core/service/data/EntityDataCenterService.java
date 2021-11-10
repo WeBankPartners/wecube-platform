@@ -28,6 +28,7 @@ import com.webank.wecube.platform.core.service.dme.StandardEntityOperationRestCl
 import com.webank.wecube.platform.core.service.workflow.WorkflowDataService;
 import com.webank.wecube.platform.core.support.plugin.dto.DynamicEntityAttrValueDto;
 import com.webank.wecube.platform.core.support.plugin.dto.DynamicEntityValueDto;
+import com.webank.wecube.platform.core.utils.Constants;
 
 @Service
 public class EntityDataCenterService {
@@ -84,6 +85,10 @@ public class EntityDataCenterService {
         String targetEntityOid = (String) idFilterDto.getCondition();
         if (StringUtils.isBlank(targetEntityOid)) {
             return entityDataList;
+        }
+        
+        if(targetEntityOid.startsWith(Constants.TEMPORARY_ENTITY_ID_PREFIX)) {
+            targetEntityOid = targetEntityOid.substring(Constants.TEMPORARY_ENTITY_ID_PREFIX.length())
         }
 
         int procInstId = Integer.parseInt(procInstIdStr);
