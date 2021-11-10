@@ -88,7 +88,7 @@ public class EntityDataCenterService {
         }
         
         if(targetEntityOid.startsWith(Constants.TEMPORARY_ENTITY_ID_PREFIX)) {
-            targetEntityOid = targetEntityOid.substring(Constants.TEMPORARY_ENTITY_ID_PREFIX.length())
+            targetEntityOid = targetEntityOid.substring(Constants.TEMPORARY_ENTITY_ID_PREFIX.length());
         }
 
         int procInstId = Integer.parseInt(procInstIdStr);
