@@ -21,7 +21,7 @@ public class DataServiceController {
 
     @Autowired
     private NonExpressionServiceImpl nonExpressionService;
-
+    
     @PostMapping("/packages/{package-name}/entities/{entity-name}/create")
     public CommonResponseDto createEntity(@PathVariable("package-name") String packageName,
             @PathVariable("entity-name") String entityName, @RequestBody List<Map<String, Object>> request) {
