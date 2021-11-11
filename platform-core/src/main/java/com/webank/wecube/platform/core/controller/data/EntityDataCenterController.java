@@ -25,12 +25,10 @@ public class EntityDataCenterController {
     @PostMapping("/packages/{package-name}/entities/{entity-name}/query")
     public CommonResponseDto retrieveEntities(@PathVariable("package-name") String packageName,
             @PathVariable("entity-name") String entityName,
-            @RequestParam(name = "procInstId", required = false) String procInstId,
-            @RequestParam(name = "nodeInstId", required = false) String nodeInstId,
             @RequestBody EntityQuerySpecDto querySpecDto) {
 
         List<Map<String, Object>> entityDetails = entityDataCenterService.retieveEntities(packageName, entityName,
-                querySpecDto, procInstId, nodeInstId);
+                querySpecDto);
         return CommonResponseDto.okayWithData(entityDetails);
     }
 
