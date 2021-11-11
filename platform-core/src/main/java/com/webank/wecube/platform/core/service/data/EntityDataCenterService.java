@@ -53,7 +53,10 @@ public class EntityDataCenterService {
     protected PluginPackageDataModelService pluginPackageDataModelService;
 
     public List<Map<String, Object>> retieveEntities(String packageName, String entityName,
-            EntityQuerySpecDto querySpecDto, String procInstId, String nodeInstId) {
+            EntityQuerySpecDto querySpecDto) {
+        
+        String procInstId = querySpecDto.getProcInstId();
+        String nodeInstId = querySpecDto.getNodeInstId();
 
         List<Map<String, Object>> entityDataList = tryRetrieveEntitiesFromPlugin(packageName, entityName, querySpecDto);
 

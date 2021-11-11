@@ -20,6 +20,9 @@ public class EntityQuerySpecDto implements Serializable {
     private static final long serialVersionUID = -1185278060442250785L;
     private List<EntityQueryFilterDto> additionalFilters = new ArrayList<>();
 
+    private String procInstId;
+    private String nodeInstId;
+
     public List<EntityQueryFilterDto> getAdditionalFilters() {
         return additionalFilters;
     }
@@ -56,6 +59,22 @@ public class EntityQuerySpecDto implements Serializable {
         }
 
         return null;
+    }
+
+    public String getProcInstId() {
+        return procInstId;
+    }
+
+    public void setProcInstId(String procInstId) {
+        this.procInstId = procInstId;
+    }
+
+    public String getNodeInstId() {
+        return nodeInstId;
+    }
+
+    public void setNodeInstId(String nodeInstId) {
+        this.nodeInstId = nodeInstId;
     }
 
 }
