@@ -111,7 +111,7 @@ public class EntityDataCenterService {
             return entityDataList;
         }
 
-        DynamicEntityValueDto targetEntityValueDto = workflowInstCreationCtx.findByEntityDataId(targetEntityOid);
+        DynamicEntityValueDto targetEntityValueDto = workflowInstCreationCtx.findByOid(targetEntityOid);
         if (targetEntityValueDto == null) {
             return entityDataList;
         }
