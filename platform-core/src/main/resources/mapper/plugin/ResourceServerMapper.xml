@@ -25,6 +25,8 @@
             jdbcType="VARCHAR" />
         <result column="updated_date" property="updatedDate"
             jdbcType="TIMESTAMP" />
+        <result column="login_mode" property="loginMode" jdbcType="VARCHAR" />
+        <result column="ssh_key" property="sshKey" jdbcType="LONGVARCHAR" />
     </resultMap>
     <sql id="Example_Where_Clause">
         <where>
@@ -99,11 +101,21 @@
         </where>
     </sql>
     <sql id="Base_Column_List">
-        id, created_by, created_date, host, is_allocated,
+        id, 
+        created_by, 
+        created_date, 
+        host, 
+        is_allocated,
         login_password,
         login_username,
-        name, port, purpose, status, type,
-        updated_by, updated_date
+        name, port, 
+        purpose, 
+        status, 
+        type,
+        updated_by, 
+        updated_date,
+        login_mode,
+        ssh_key
     </sql>
     <select id="selectByExample" resultMap="BaseResultMap"
         parameterType="com.webank.wecube.platform.core.entity.plugin.ResourceServerExample">
@@ -142,24 +154,43 @@
     </delete>
     <insert id="insert"
         parameterType="com.webank.wecube.platform.core.entity.plugin.ResourceServer">
-        insert into resource_server (id, created_by,
+        insert into resource_server 
+        (
+        id, 
+        created_by,
         created_date,
-        host, is_allocated, login_password,
+        host, 
+        is_allocated, 
+        login_password,
         login_username,
-        name, port,
-        purpose, status, type,
-        updated_by, updated_date)
-        values (#{id,jdbcType=VARCHAR}, #{createdBy,jdbcType=VARCHAR},
+        name, 
+        port,
+        purpose, 
+        status, 
+        type,
+        updated_by, 
+        updated_date,
+        login_mode,
+        ssh_key
+        )
+        values (
+        #{id,jdbcType=VARCHAR}, 
+        #{createdBy,jdbcType=VARCHAR},
         #{createdDate,jdbcType=TIMESTAMP},
         #{host,jdbcType=VARCHAR},
         #{isAllocated,jdbcType=INTEGER},
         #{loginPassword,jdbcType=VARCHAR},
-        #{loginUsername,jdbcType=VARCHAR}, #{name,jdbcType=VARCHAR},
+        #{loginUsername,jdbcType=VARCHAR}, 
+        #{name,jdbcType=VARCHAR},
         #{port,jdbcType=VARCHAR},
         #{purpose,jdbcType=VARCHAR},
-        #{status,jdbcType=VARCHAR}, #{type,jdbcType=VARCHAR},
+        #{status,jdbcType=VARCHAR}, 
+        #{type,jdbcType=VARCHAR},
         #{updatedBy,jdbcType=VARCHAR},
-        #{updatedDate,jdbcType=TIMESTAMP})
+        #{updatedDate,jdbcType=TIMESTAMP},
+        #{loginMode,jdbcType=VARCHAR},
+        #{sshKey,jdbcType=LONGVARCHAR}
+        )
     </insert>
     <insert id="insertSelective"
         parameterType="com.webank.wecube.platform.core.entity.plugin.ResourceServer">
@@ -207,6 +238,12 @@
             <if test="updatedDate != null">
                 updated_date,
             </if>
+            <if test="loginMode != null">
+                login_mode,
+            </if>
+            <if test="sshKey != null">
+                ssh_key,
+            </if>
         </trim>
         <trim prefix="values (" suffix=")" suffixOverrides=",">
             <if test="id != null">
@@ -250,6 +287,12 @@
             </if>
             <if test="updatedDate != null">
                 #{updatedDate,jdbcType=TIMESTAMP},
+            </if>
+            <if test="loginMode != null">
+                #{loginMode,jdbcType=VARCHAR},
+            </if>
+            <if test="sshKey != null">
+                #{sshKey,jdbcType=LONGVARCHAR},
             </if>
         </trim>
     </insert>
@@ -306,6 +349,12 @@
             <if test="record.updatedDate != null">
                 updated_date = #{record.updatedDate,jdbcType=TIMESTAMP},
             </if>
+            <if test="record.loginMode != null">
+                login_mode = #{record.loginMode,jdbcType=VARCHAR},
+            </if>
+            <if test="record.sshKey != null">
+                ssh_key = #{record.sshKey,jdbcType=VARCHAR},
+            </if>
         </set>
         <if test="_parameter != null">
             <include refid="Update_By_Example_Where_Clause" />
@@ -326,7 +375,9 @@
         status = #{record.status,jdbcType=VARCHAR},
         type = #{record.type,jdbcType=VARCHAR},
         updated_by = #{record.updatedBy,jdbcType=VARCHAR},
-        updated_date = #{record.updatedDate,jdbcType=TIMESTAMP}
+        updated_date = #{record.updatedDate,jdbcType=TIMESTAMP},
+        login_mode = #{record.loginMode,jdbcType=VARCHAR},
+        ssh_key = #{record.sshKey,jdbcType=LONGVARCHAR}
         <if test="_parameter != null">
             <include refid="Update_By_Example_Where_Clause" />
         </if>
@@ -378,6 +429,12 @@
                 updated_date =
                 #{updatedDate,jdbcType=TIMESTAMP},
             </if>
+            <if test="loginMode != null">
+                login_mode = #{loginMode,jdbcType=VARCHAR},
+            </if>
+            <if test="sshKey != null">
+                ssh_key = #{sshKey,jdbcType=LONGVARCHAR},
+            </if>
         </set>
         where id = #{id,jdbcType=VARCHAR}
     </update>
@@ -405,27 +462,30 @@
         type = #{type,jdbcType=VARCHAR},
         updated_by = #{updatedBy,jdbcType=VARCHAR},
         updated_date =
-        #{updatedDate,jdbcType=TIMESTAMP}
+        #{updatedDate,jdbcType=TIMESTAMP},
+        login_mode = #{loginMode,jdbcType=VARCHAR},
+        ssh_key = #{sshKey,jdbcType=LONGVARCHAR}
         where id =
         #{id,jdbcType=VARCHAR}
     </update>
 
     <select id="selectAllByHostAndType" resultMap="BaseResultMap"
         parameterType="java.lang.String">
-        select
+        SELECT
         <include refid="Base_Column_List" />
-        from resource_server
-        where host = #{host,jdbcType=VARCHAR}
-        and
+        FROM resource_server
+        WHERE 
+        host = #{host,jdbcType=VARCHAR}
+        AND
         type = #{type,jdbcType=VARCHAR}
     </select>
 
     <select id="selectAllByType" resultMap="BaseResultMap"
         parameterType="java.lang.String">
-        select
+        SELECT
         <include refid="Base_Column_List" />
-        from resource_server
-        where
+        FROM resource_server
+        WHERE
         type = #{type,jdbcType=VARCHAR}
     </select>
 </mapper>
