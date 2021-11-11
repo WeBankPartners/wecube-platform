@@ -33,9 +33,9 @@ public class ResourceServer {
 
     private Date updatedDate;
 
-//    //
-//    private String loginMode;// PASSWD,KEY,PUBKEY
-//    private String sshKey;
+    //
+    private String loginMode;// PASSWD,KEY,PUBKEY
+    private String sshKey;
 
     private transient List<ResourceItem> resourceItems = new ArrayList<>();
 
@@ -159,20 +159,20 @@ public class ResourceServer {
         this.resourceItems = resourceItems;
     }
 
-//    public String getLoginMode() {
-//        return loginMode;
-//    }
-//
-//    public void setLoginMode(String loginMode) {
-//        this.loginMode = loginMode;
-//    }
-//
-//    public String getSshKey() {
-//        return sshKey;
-//    }
-//
-//    public void setSshKey(String sshKey) {
-//        this.sshKey = sshKey;
-//    }
+    public String getLoginMode() {
+        return loginMode;
+    }
+
+    public void setLoginMode(String loginMode) {
+        this.loginMode = loginMode;
+    }
+
+    public String getSshKey() {
+        return sshKey;
+    }
+
+    public void setSshKey(String sshKey) {
+        this.sshKey = sshKey;
+    }
 
 }
