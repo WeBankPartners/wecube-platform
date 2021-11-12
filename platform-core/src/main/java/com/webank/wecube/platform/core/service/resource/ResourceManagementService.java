@@ -24,6 +24,7 @@ import com.webank.wecube.platform.core.entity.plugin.ResourceServer;
 import com.webank.wecube.platform.core.repository.plugin.ResourceItemMapper;
 import com.webank.wecube.platform.core.repository.plugin.ResourceServerMapper;
 import com.webank.wecube.platform.core.service.cmder.ssh2.CommandService;
+import com.webank.wecube.platform.core.service.cmder.ssh2.RemoteCommandExecutorConfig;
 import com.webank.wecube.platform.core.service.plugin.PluginPageableDataService;
 import com.webank.wecube.platform.core.utils.Constants;
 import com.webank.wecube.platform.core.utils.EncryptionUtils;
@@ -69,13 +70,21 @@ public class ResourceManagementService {
         String password = decryptPassword(existResourceServer);
         String user = existResourceServer.getLoginUsername();
         int port = Integer.parseInt(existResourceServer.getPort());
+        String sshKey = decryptSshKey(existResourceServer);
 
         String productSerial = "";
         String cmd = "cat /sys/class/dmi/id/product_serial";
 
         try {
             //TODO
-            productSerial = commandService.runAtRemote(host, user, password, port, cmd);
+            RemoteCommandExecutorConfig sshConfig = new RemoteCommandExecutorConfig();
+            sshConfig.setAuthMode(existResourceServer.getLoginMode());
+            sshConfig.setPort(port);
+            sshConfig.setPsword(password);
+            sshConfig.setRemoteHost(host);
+            sshConfig.setUser(user);
+            sshConfig.setSshKey(sshKey);
+            productSerial = commandService.runAtRemote(sshConfig, cmd);
         } catch (Exception e) {
             log.error("errors while running remote command:{}", cmd);
         }
@@ -309,6 +318,18 @@ public class ResourceManagementService {
                         server.getName(), server.getPurpose());
             }
         });
+    }
+    
+    private String decryptSshKey(ResourceServer s) {
+        String sshKey = s.getSshKey();
+        if (StringUtils.isBlank(sshKey)) {
+            return sshKey;
+        }
+        
+        String plainSshKey = EncryptionUtils.decryptAesPrefixedStringForcely(sshKey, resourceProperties.getPasswordEncryptionSeed(),
+                s.getName());
+
+        return plainSshKey;
     }
 
     private String decryptPassword(ResourceServer s) {
