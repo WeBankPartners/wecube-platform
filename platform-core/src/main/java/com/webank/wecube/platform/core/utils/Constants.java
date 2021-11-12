@@ -87,4 +87,6 @@ public class Constants {
     
     public static final String BIND_FLAG_YES = "Y";
     public static final String BIND_FLAG_NO = "N";
+    
+    public static final String PASSWORD_ENCRYPT_AES_PREFIX = "{AES}";
 }
