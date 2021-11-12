@@ -7,6 +7,7 @@ import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 
 import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.lang3.StringUtils;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -51,6 +52,43 @@ public class EncryptionUtils {
         }
 
         return encrytedPassword;
+    }
+    
+    public static String decryptAesPrefixedStringOnly(String encryptedStr, String seed, String additionalSalt) {
+        if(StringUtils.isBlank(encryptedStr)) {
+            return encryptedStr;
+        }
+        
+        String toDecyptStr = encryptedStr;
+        
+        
+        if (!toDecyptStr.startsWith(Constants.PASSWORD_ENCRYPT_AES_PREFIX)) {
+            return toDecyptStr;
+        }
+        
+        toDecyptStr = toDecyptStr.substring(Constants.PASSWORD_ENCRYPT_AES_PREFIX.length());
+
+        String plainPassword = decryptWithAes(toDecyptStr, seed,
+                additionalSalt);
+        
+        return plainPassword;
+    }
+    
+    public static String decryptAesPrefixedStringForcely(String encryptedStr, String seed, String additionalSalt) {
+        if(StringUtils.isBlank(encryptedStr)) {
+            return encryptedStr;
+        }
+        
+        String toDecyptStr = encryptedStr;
+        
+        if (toDecyptStr.startsWith(Constants.PASSWORD_ENCRYPT_AES_PREFIX)) {
+            toDecyptStr = toDecyptStr.substring(Constants.PASSWORD_ENCRYPT_AES_PREFIX.length());
+        }
+
+        String plainPassword = decryptWithAes(toDecyptStr, seed,
+                additionalSalt);
+        
+        return plainPassword;
     }
 
     public static String decryptWithAes(String encryptedPassword, String seed, String additionalSalt) {
