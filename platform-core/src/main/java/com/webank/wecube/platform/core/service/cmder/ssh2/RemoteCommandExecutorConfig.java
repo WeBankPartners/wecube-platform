@@ -7,7 +7,6 @@ public class RemoteCommandExecutorConfig {
     private String psword;
     
     private String authMode;//PASSWD,KEY
-    private String sshKey;
 
     public String getRemoteHost() {
         return remoteHost;
@@ -48,15 +47,4 @@ public class RemoteCommandExecutorConfig {
     public void setAuthMode(String authMode) {
         this.authMode = authMode;
     }
-
-    public String getSshKey() {
-        return sshKey;
-    }
-
-    public void setSshKey(String sshKey) {
-        this.sshKey = sshKey;
-    }
-    
-    
-
 }
