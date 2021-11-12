@@ -26,7 +26,6 @@
         <result column="updated_date" property="updatedDate"
             jdbcType="TIMESTAMP" />
         <result column="login_mode" property="loginMode" jdbcType="VARCHAR" />
-        <result column="ssh_key" property="sshKey" jdbcType="LONGVARCHAR" />
     </resultMap>
     <sql id="Example_Where_Clause">
         <where>
@@ -114,8 +113,7 @@
         type,
         updated_by, 
         updated_date,
-        login_mode,
-        ssh_key
+        login_mode
     </sql>
     <select id="selectByExample" resultMap="BaseResultMap"
         parameterType="com.webank.wecube.platform.core.entity.plugin.ResourceServerExample">
@@ -170,8 +168,7 @@
         type,
         updated_by, 
         updated_date,
-        login_mode,
-        ssh_key
+        login_mode
         )
         values (
         #{id,jdbcType=VARCHAR}, 
@@ -188,8 +185,7 @@
         #{type,jdbcType=VARCHAR},
         #{updatedBy,jdbcType=VARCHAR},
         #{updatedDate,jdbcType=TIMESTAMP},
-        #{loginMode,jdbcType=VARCHAR},
-        #{sshKey,jdbcType=LONGVARCHAR}
+        #{loginMode,jdbcType=VARCHAR}
         )
     </insert>
     <insert id="insertSelective"
@@ -241,9 +237,6 @@
             <if test="loginMode != null">
                 login_mode,
             </if>
-            <if test="sshKey != null">
-                ssh_key,
-            </if>
         </trim>
         <trim prefix="values (" suffix=")" suffixOverrides=",">
             <if test="id != null">
@@ -290,9 +283,6 @@
             </if>
             <if test="loginMode != null">
                 #{loginMode,jdbcType=VARCHAR},
-            </if>
-            <if test="sshKey != null">
-                #{sshKey,jdbcType=LONGVARCHAR},
             </if>
         </trim>
     </insert>
@@ -352,9 +342,6 @@
             <if test="record.loginMode != null">
                 login_mode = #{record.loginMode,jdbcType=VARCHAR},
             </if>
-            <if test="record.sshKey != null">
-                ssh_key = #{record.sshKey,jdbcType=VARCHAR},
-            </if>
         </set>
         <if test="_parameter != null">
             <include refid="Update_By_Example_Where_Clause" />
@@ -376,8 +363,7 @@
         type = #{record.type,jdbcType=VARCHAR},
         updated_by = #{record.updatedBy,jdbcType=VARCHAR},
         updated_date = #{record.updatedDate,jdbcType=TIMESTAMP},
-        login_mode = #{record.loginMode,jdbcType=VARCHAR},
-        ssh_key = #{record.sshKey,jdbcType=LONGVARCHAR}
+        login_mode = #{record.loginMode,jdbcType=VARCHAR}
         <if test="_parameter != null">
             <include refid="Update_By_Example_Where_Clause" />
         </if>
@@ -432,16 +418,13 @@
             <if test="loginMode != null">
                 login_mode = #{loginMode,jdbcType=VARCHAR},
             </if>
-            <if test="sshKey != null">
-                ssh_key = #{sshKey,jdbcType=LONGVARCHAR},
-            </if>
         </set>
         where id = #{id,jdbcType=VARCHAR}
     </update>
     <update id="updateByPrimaryKey"
         parameterType="com.webank.wecube.platform.core.entity.plugin.ResourceServer">
-        update resource_server
-        set created_by =
+        UPDATE resource_server
+        SET created_by =
         #{createdBy,jdbcType=VARCHAR},
         created_date =
         #{createdDate,jdbcType=TIMESTAMP},
@@ -463,10 +446,8 @@
         updated_by = #{updatedBy,jdbcType=VARCHAR},
         updated_date =
         #{updatedDate,jdbcType=TIMESTAMP},
-        login_mode = #{loginMode,jdbcType=VARCHAR},
-        ssh_key = #{sshKey,jdbcType=LONGVARCHAR}
-        where id =
-        #{id,jdbcType=VARCHAR}
+        login_mode = #{loginMode,jdbcType=VARCHAR}
+        WHERE id = #{id,jdbcType=VARCHAR}
     </update>
 
     <select id="selectAllByHostAndType" resultMap="BaseResultMap"
