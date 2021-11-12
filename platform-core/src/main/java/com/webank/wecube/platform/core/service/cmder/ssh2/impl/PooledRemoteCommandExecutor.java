@@ -84,7 +84,7 @@ public class PooledRemoteCommandExecutor implements PoolableRemoteCommandExecuto
         if (!conn.isAuthenticationComplete()) {
             if (Constants.SSH_AUTH_MODE_KEY.equalsIgnoreCase(getConfig().getAuthMode())) {
                 isAuthenticated = conn.authenticateWithPublicKey(getConfig().getUser(),
-                        getConfig().getSshKey().toCharArray(), null);
+                        getConfig().getPsword().toCharArray(), null);
             } else {
                 isAuthenticated = conn.authenticateWithPassword(getConfig().getUser(), getConfig().getPsword());
             }
