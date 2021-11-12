@@ -68,6 +68,7 @@ import com.webank.wecube.platform.core.support.gateway.GatewayResponse;
 import com.webank.wecube.platform.core.support.gateway.GatewayServiceStub;
 import com.webank.wecube.platform.core.support.gateway.RegisterRouteItemsDto;
 import com.webank.wecube.platform.core.support.gateway.RouteItem;
+import com.webank.wecube.platform.core.utils.Constants;
 import com.webank.wecube.platform.core.utils.EncryptionUtils;
 import com.webank.wecube.platform.core.utils.JsonUtils;
 import com.webank.wecube.platform.core.utils.StringUtilsEx;
@@ -224,11 +225,7 @@ public class PluginInstanceMgmtService extends AbstractPluginMgmtService {
         if (mysqlInfoSet.size() != 0) {
 
             String password = dbInfo.getPassword();
-            if (password.startsWith(ResourceManagementService.PASSWORD_ENCRYPT_AES_PREFIX)) {
-                password = password.substring(ResourceManagementService.PASSWORD_ENCRYPT_AES_PREFIX.length());
-            }
-
-            password = EncryptionUtils.decryptWithAes(password, resourceProperties.getPasswordEncryptionSeed(),
+            password = EncryptionUtils.decryptAesPrefixedStringForcely(password, resourceProperties.getPasswordEncryptionSeed(),
                     dbInfo.getSchema());
 
             envVariablesString = envVariablesString.replace("{{DB_HOST}}", dbInfo.getHost()) //
@@ -402,11 +399,8 @@ public class PluginInstanceMgmtService extends AbstractPluginMgmtService {
         log.info("scp from local:{} to remote: {}", tmpFilePath, pluginProperties.getPluginDeployPath());
         try {
             String dbPassword = hostInfo.getLoginPassword();
-            if (dbPassword.startsWith(ResourceManagementService.PASSWORD_ENCRYPT_AES_PREFIX)) {
-                dbPassword = dbPassword.substring(ResourceManagementService.PASSWORD_ENCRYPT_AES_PREFIX.length());
-            }
 
-            String password = EncryptionUtils.decryptWithAes(dbPassword, resourceProperties.getPasswordEncryptionSeed(),
+            String password = EncryptionUtils.decryptAesPrefixedStringForcely(dbPassword, resourceProperties.getPasswordEncryptionSeed(),
                     hostInfo.getName());
             scpService.put(hostIp, Integer.valueOf(hostInfo.getPort()), hostInfo.getLoginUsername(), password,
                     tmpFilePath, pluginProperties.getPluginDeployPath());
@@ -422,11 +416,10 @@ public class PluginInstanceMgmtService extends AbstractPluginMgmtService {
         log.info("Run docker load command: " + loadCmd);
         try {
             String loginPassword = hostInfo.getLoginPassword();
-            if (loginPassword.startsWith(ResourceManagementService.PASSWORD_ENCRYPT_AES_PREFIX)) {
-                loginPassword = EncryptionUtils.decryptWithAes(
-                        loginPassword.substring(ResourceManagementService.PASSWORD_ENCRYPT_AES_PREFIX.length()),
-                        resourceProperties.getPasswordEncryptionSeed(), hostInfo.getName());
-            }
+            
+            loginPassword = EncryptionUtils.decryptAesPrefixedStringOnly(
+                    loginPassword,
+                    resourceProperties.getPasswordEncryptionSeed(), hostInfo.getName());
             commandService.runAtRemote(hostIp, hostInfo.getLoginUsername(), loginPassword,
                     Integer.valueOf(hostInfo.getPort()), loadCmd);
         } catch (Exception e) {
@@ -697,11 +690,8 @@ public class PluginInstanceMgmtService extends AbstractPluginMgmtService {
         s3Client.downFile(pluginProperties.getPluginPackageBucketName(), s3KeyName, initSqlPath);
 
         String password = mysqlInstance.getPassword();
-        if (password.startsWith(ResourceManagementService.PASSWORD_ENCRYPT_AES_PREFIX)) {
-            password = password.substring(ResourceManagementService.PASSWORD_ENCRYPT_AES_PREFIX.length());
-        }
 
-        password = EncryptionUtils.decryptWithAes(password, resourceProperties.getPasswordEncryptionSeed(),
+        password = EncryptionUtils.decryptAesPrefixedStringForcely(password, resourceProperties.getPasswordEncryptionSeed(),
                 mysqlInstance.getSchemaName());
 
         DriverManagerDataSource dataSource = new DriverManagerDataSource(
@@ -759,7 +749,7 @@ public class PluginInstanceMgmtService extends AbstractPluginMgmtService {
             log.info("Request parameters= " + createMysqlDto);
         }
 
-        dbPassword = ResourceManagementService.PASSWORD_ENCRYPT_AES_PREFIX + EncryptionUtils.encryptWithAes(dbPassword,
+        dbPassword = Constants.PASSWORD_ENCRYPT_AES_PREFIX + EncryptionUtils.encryptWithAes(dbPassword,
                 resourceProperties.getPasswordEncryptionSeed(), mysqlResourceInfo.getSchemaName());
 
         List<ResourceItemDto> result = resourceManagementService.createItems(Lists.newArrayList(createMysqlDto));
@@ -843,14 +833,9 @@ public class PluginInstanceMgmtService extends AbstractPluginMgmtService {
 
         s3Client.downFile(pluginProperties.getPluginPackageBucketName(), s3KeyName, initSqlPath);
 
-        // ResourceServerDomain dbServer =
-        // resourceItemRepository.findById(mysqlInstance.getResourceItemId()).get()
-        // .getResourceServer();
         String password = mysqlInstance.getPassword();
-        if (password.startsWith(ResourceManagementService.PASSWORD_ENCRYPT_AES_PREFIX)) {
-            password = password.substring(ResourceManagementService.PASSWORD_ENCRYPT_AES_PREFIX.length());
-        }
-        password = EncryptionUtils.decryptWithAes(password, resourceProperties.getPasswordEncryptionSeed(),
+       
+        password = EncryptionUtils.decryptAesPrefixedStringForcely(password, resourceProperties.getPasswordEncryptionSeed(),
                 mysqlInstance.getSchemaName());
         DriverManagerDataSource dataSource = new DriverManagerDataSource(
                 "jdbc:mysql://" + resourceServer.getHost() + ":" + resourceServer.getPort() + "/"

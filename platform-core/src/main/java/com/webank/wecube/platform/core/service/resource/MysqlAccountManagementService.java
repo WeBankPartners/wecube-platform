@@ -57,17 +57,12 @@ public class MysqlAccountManagementService implements ResourceItemService {
         DriverManagerDataSource dataSource = newDatasource(item);
         try (Connection connection = dataSource.getConnection(); Statement statement = connection.createStatement();) {
             log.info("password before decrypt={}", password);
-            String rawPassword = null;
-            if (password.startsWith(ResourceManagementService.PASSWORD_ENCRYPT_AES_PREFIX)) {
-                password = password.substring(ResourceManagementService.PASSWORD_ENCRYPT_AES_PREFIX.length());
-            }
-            
-            rawPassword = EncryptionUtils.decryptWithAes(
+            String plainPassword = EncryptionUtils.decryptAesPrefixedStringForcely(
                     password,
                     resourceProperties.getPasswordEncryptionSeed(), item.getName());
-            statement.executeUpdate(String.format("CREATE USER `%s` IDENTIFIED BY '%s'", username, rawPassword));
+            statement.executeUpdate(String.format("CREATE USER `%s` IDENTIFIED BY '%s'", username, plainPassword));
             statement.executeUpdate(String.format("GRANT ALL ON %s.* TO %s@'%%' IDENTIFIED BY '%s'", item.getName(),
-                    username, rawPassword));
+                    username, plainPassword));
         } catch (Exception e) {
             String errorMessage = String.format("Failed to create account [username = %s]", username);
             log.error(errorMessage, e);
@@ -92,11 +87,8 @@ public class MysqlAccountManagementService implements ResourceItemService {
         String password;
         try {
             String dbPassword = item.getResourceServer().getLoginPassword();
-            if (dbPassword.startsWith(ResourceManagementService.PASSWORD_ENCRYPT_AES_PREFIX)) {
-                dbPassword = dbPassword.substring(ResourceManagementService.PASSWORD_ENCRYPT_AES_PREFIX.length());
-            }
             
-            password = EncryptionUtils.decryptWithAes(
+            password = EncryptionUtils.decryptAesPrefixedStringForcely(
                     dbPassword,
                     resourceProperties.getPasswordEncryptionSeed(), item.getResourceServer().getName());
         } catch (Exception e) {
