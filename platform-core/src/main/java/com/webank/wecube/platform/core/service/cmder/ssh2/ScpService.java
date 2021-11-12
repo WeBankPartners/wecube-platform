@@ -8,6 +8,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
+import com.webank.wecube.platform.core.utils.Constants;
 
 import ch.ethz.ssh2.Connection;
 import ch.ethz.ssh2.SCPClient;
@@ -85,7 +86,18 @@ public class ScpService {
         }
     }
     
-    public void putWithPrivateKey(String ip, Integer port, String user, String privateKey, String localFile,
+    public void put(RemoteCommandExecutorConfig config,String localFile,
+            String remoteTargetDirectory) {
+        if(Constants.SSH_AUTH_MODE_KEY.equalsIgnoreCase(config.getAuthMode())) {
+            putWithPrivateKey(config.getRemoteHost(), config.getPort(), config.getUser(), config.getPsword(),  localFile,
+                     remoteTargetDirectory);
+        }else {
+            put(config.getRemoteHost(), config.getPort(), config.getUser(), config.getPsword(),  localFile,
+                     remoteTargetDirectory);
+        }
+    }
+    
+    private void putWithPrivateKey(String ip, Integer port, String user, String privateKey, String localFile,
             String remoteTargetDirectory) {
         Connection conn = new Connection(ip, port);
         try {
@@ -107,8 +119,10 @@ public class ScpService {
             conn.close();
         }
     }
+    
+    
 
-    public void put(String ip, Integer port, String user, String password, String localFile,
+    private void put(String ip, Integer port, String user, String password, String localFile,
             String remoteTargetDirectory) {
         Connection conn = new Connection(ip, port);
         try {

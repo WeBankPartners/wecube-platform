@@ -85,7 +85,7 @@ public class PluginInstanceMgmtService extends AbstractPluginMgmtService {
 
     private static final int PLUGIN_DEFAULT_START_PORT = 20000;
     private static final int PLUGIN_DEFAULT_END_PORT = 30000;
-    
+
     private static final String INIT_VECTOR = "encriptionVector";
 
     @Autowired
@@ -226,8 +226,8 @@ public class PluginInstanceMgmtService extends AbstractPluginMgmtService {
         if (mysqlInfoSet.size() != 0) {
 
             String password = dbInfo.getPassword();
-            password = EncryptionUtils.decryptAesPrefixedStringForcely(password, resourceProperties.getPasswordEncryptionSeed(),
-                    dbInfo.getSchema());
+            password = EncryptionUtils.decryptAesPrefixedStringForcely(password,
+                    resourceProperties.getPasswordEncryptionSeed(), dbInfo.getSchema());
 
             envVariablesString = envVariablesString.replace("{{DB_HOST}}", dbInfo.getHost()) //
                     .replace("{{DB_PORT}}", dbInfo.getPort()) //
@@ -306,14 +306,13 @@ public class PluginInstanceMgmtService extends AbstractPluginMgmtService {
 
         String aesKey = UUID.randomUUID().toString().replace("-", "").substring(0, 16);
         String initVector = INIT_VECTOR;
-        String licenseCode = aesKey+initVector;
-        String rsaEncryptedAesKey = RsaEncryptor.encodeBase64String(
-                RsaEncryptor.encryptByPublicKey(licenseCode.getBytes(Charset.forName("UTF-8")), subSystemAsDto.getPubKey()));
+        String licenseCode = aesKey + initVector;
+        String rsaEncryptedAesKey = RsaEncryptor.encodeBase64String(RsaEncryptor
+                .encryptByPublicKey(licenseCode.getBytes(Charset.forName("UTF-8")), subSystemAsDto.getPubKey()));
 
         String lpk = pluginCertification.getLpk();
         String encryptData = pluginCertification.getEncryptData();
         String signature = pluginCertification.getSignature();
-        
 
         String aesEncryptedLpk = "";
         if (StringUtils.isNoneBlank(lpk)) {
@@ -401,11 +400,17 @@ public class PluginInstanceMgmtService extends AbstractPluginMgmtService {
         try {
             String dbPassword = hostInfo.getLoginPassword();
 
-            String password = EncryptionUtils.decryptAesPrefixedStringForcely(dbPassword, resourceProperties.getPasswordEncryptionSeed(),
-                    hostInfo.getName());
-            //TODO ssh key
-            scpService.put(hostIp, Integer.valueOf(hostInfo.getPort()), hostInfo.getLoginUsername(), password,
-                    tmpFilePath, pluginProperties.getPluginDeployPath());
+            String password = EncryptionUtils.decryptAesPrefixedStringForcely(dbPassword,
+                    resourceProperties.getPasswordEncryptionSeed(), hostInfo.getName());
+
+            RemoteCommandExecutorConfig sshConfig = new RemoteCommandExecutorConfig();
+            sshConfig.setAuthMode(hostInfo.getLoginMode());
+            sshConfig.setPort(Integer.valueOf(hostInfo.getPort()));
+            sshConfig.setPsword(password);
+            sshConfig.setRemoteHost(hostIp);
+            sshConfig.setUser(hostInfo.getLoginUsername());
+
+            scpService.put(sshConfig, tmpFilePath, pluginProperties.getPluginDeployPath());
         } catch (Exception e) {
             log.error("Put file to remote host meet error", e);
             throw new WecubeCoreException("3085",
@@ -418,24 +423,17 @@ public class PluginInstanceMgmtService extends AbstractPluginMgmtService {
         log.info("Run docker load command: " + loadCmd);
         try {
             String loginPassword = hostInfo.getLoginPassword();
-            String sshKey = hostInfo.getSshKey();
-            
-            loginPassword = EncryptionUtils.decryptAesPrefixedStringOnly(
-                    loginPassword,
+
+            loginPassword = EncryptionUtils.decryptAesPrefixedStringOnly(loginPassword,
                     resourceProperties.getPasswordEncryptionSeed(), hostInfo.getName());
-            
-            sshKey = EncryptionUtils.decryptAesPrefixedStringOnly(
-                    sshKey,
-                    resourceProperties.getPasswordEncryptionSeed(), hostInfo.getName());
-            
+
             RemoteCommandExecutorConfig sshConfig = new RemoteCommandExecutorConfig();
             sshConfig.setAuthMode(hostInfo.getLoginMode());
             sshConfig.setPort(Integer.valueOf(hostInfo.getPort()));
             sshConfig.setPsword(loginPassword);
             sshConfig.setRemoteHost(hostIp);
             sshConfig.setUser(hostInfo.getLoginUsername());
-            sshConfig.setSshKey(sshKey);
-            
+
             commandService.runAtRemote(sshConfig, loadCmd);
         } catch (Exception e) {
             log.error("Run command [{}] meet error: {}", loadCmd, e.getMessage());
@@ -706,8 +704,8 @@ public class PluginInstanceMgmtService extends AbstractPluginMgmtService {
 
         String password = mysqlInstance.getPassword();
 
-        password = EncryptionUtils.decryptAesPrefixedStringForcely(password, resourceProperties.getPasswordEncryptionSeed(),
-                mysqlInstance.getSchemaName());
+        password = EncryptionUtils.decryptAesPrefixedStringForcely(password,
+                resourceProperties.getPasswordEncryptionSeed(), mysqlInstance.getSchemaName());
 
         DriverManagerDataSource dataSource = new DriverManagerDataSource(
                 "jdbc:mysql://" + dbServer.getHost() + ":" + dbServer.getPort() + "/" + mysqlInstance.getSchemaName()
@@ -849,9 +847,9 @@ public class PluginInstanceMgmtService extends AbstractPluginMgmtService {
         s3Client.downFile(pluginProperties.getPluginPackageBucketName(), s3KeyName, initSqlPath);
 
         String password = mysqlInstance.getPassword();
-       
-        password = EncryptionUtils.decryptAesPrefixedStringForcely(password, resourceProperties.getPasswordEncryptionSeed(),
-                mysqlInstance.getSchemaName());
+
+        password = EncryptionUtils.decryptAesPrefixedStringForcely(password,
+                resourceProperties.getPasswordEncryptionSeed(), mysqlInstance.getSchemaName());
         DriverManagerDataSource dataSource = new DriverManagerDataSource(
                 "jdbc:mysql://" + resourceServer.getHost() + ":" + resourceServer.getPort() + "/"
                         + mysqlInstance.getSchemaName() + "?characterEncoding=utf8&serverTimezone=UTC",

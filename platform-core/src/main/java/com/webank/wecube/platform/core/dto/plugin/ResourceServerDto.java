@@ -32,7 +32,6 @@ public class ResourceServerDto {
     private long updatedDate;
     
     private String loginMode;
-    private String sshKey;
     @JsonIgnore
     private List<ResourceItemDto> resourceItemDtos;
 
@@ -58,7 +57,7 @@ public class ResourceServerDto {
         resourceServerDto.setUpdatedBy(resourceServer.getUpdatedBy());
         resourceServerDto.setUpdatedDate(resourceServer.getUpdatedDate().getTime());
         resourceServerDto.setLoginMode(resourceServer.getLoginMode());
-        resourceServerDto.setSshKey(resourceServer.getSshKey());
+//        resourceServerDto.setSshKey(resourceServer.getSshKey());
         if (resourceServer.getResourceItems() != null) {
             resourceServerDto.setResourceItemDtos(
                     Lists.transform(resourceServer.getResourceItems(), x -> ResourceItemDto.fromDomain(x)));
@@ -118,9 +117,9 @@ public class ResourceServerDto {
             resourceServer.setLoginMode(resourceServerDto.getLoginMode());
         }
         
-        if(resourceServerDto.getSshKey() != null) {
-            resourceServer.setSshKey(resourceServerDto.getSshKey());
-        }
+//        if(resourceServerDto.getSshKey() != null) {
+//            resourceServer.setSshKey(resourceServerDto.getSshKey());
+//        }
 
         updateSystemFieldsWithDefaultValues(resourceServer);
 
@@ -286,13 +285,4 @@ public class ResourceServerDto {
         this.loginMode = loginMode;
     }
 
-    public String getSshKey() {
-        return sshKey;
-    }
-
-    public void setSshKey(String sshKey) {
-        this.sshKey = sshKey;
-    }
-    
-    
 }

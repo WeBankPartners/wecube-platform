@@ -70,20 +70,17 @@ public class ResourceManagementService {
         String password = decryptPassword(existResourceServer);
         String user = existResourceServer.getLoginUsername();
         int port = Integer.parseInt(existResourceServer.getPort());
-        String sshKey = decryptSshKey(existResourceServer);
 
         String productSerial = "";
         String cmd = "cat /sys/class/dmi/id/product_serial";
 
         try {
-            //TODO
             RemoteCommandExecutorConfig sshConfig = new RemoteCommandExecutorConfig();
             sshConfig.setAuthMode(existResourceServer.getLoginMode());
             sshConfig.setPort(port);
             sshConfig.setPsword(password);
             sshConfig.setRemoteHost(host);
             sshConfig.setUser(user);
-            sshConfig.setSshKey(sshKey);
             productSerial = commandService.runAtRemote(sshConfig, cmd);
         } catch (Exception e) {
             log.error("errors while running remote command:{}", cmd);
@@ -320,18 +317,6 @@ public class ResourceManagementService {
         });
     }
     
-    private String decryptSshKey(ResourceServer s) {
-        String sshKey = s.getSshKey();
-        if (StringUtils.isBlank(sshKey)) {
-            return sshKey;
-        }
-        
-        String plainSshKey = EncryptionUtils.decryptAesPrefixedStringForcely(sshKey, resourceProperties.getPasswordEncryptionSeed(),
-                s.getName());
-
-        return plainSshKey;
-    }
-
     private String decryptPassword(ResourceServer s) {
         String password = s.getLoginPassword();
         if (StringUtils.isBlank(password)) {
@@ -366,7 +351,7 @@ public class ResourceManagementService {
                 }
             }
             handleServerPasswordEncryption(dto);
-            handleServerSshKeyEncryption(dto);
+//            handleServerSshKeyEncryption(dto);
             ResourceServer domain = ResourceServerDto.toDomain(dto, existedServer);
 
             domains.add(domain);
@@ -386,17 +371,17 @@ public class ResourceManagementService {
         }
     }
 
-    private void handleServerSshKeyEncryption(ResourceServerDto dto) {
-        if (StringUtils.isNoneBlank(dto.getSshKey())) {
-            String sshKey = dto.getSshKey();
-            if (!sshKey.startsWith(Constants.PASSWORD_ENCRYPT_AES_PREFIX)) {
-                sshKey = EncryptionUtils.encryptWithAes(dto.getLoginPassword(),
-                        resourceProperties.getPasswordEncryptionSeed(), dto.getName());
-                sshKey = Constants.PASSWORD_ENCRYPT_AES_PREFIX + sshKey;
-            }
-            dto.setSshKey(sshKey);
-        }
-    }
+//    private void handleServerSshKeyEncryption(ResourceServerDto dto) {
+//        if (StringUtils.isNoneBlank(dto.getSshKey())) {
+//            String sshKey = dto.getSshKey();
+//            if (!sshKey.startsWith(Constants.PASSWORD_ENCRYPT_AES_PREFIX)) {
+//                sshKey = EncryptionUtils.encryptWithAes(dto.getLoginPassword(),
+//                        resourceProperties.getPasswordEncryptionSeed(), dto.getName());
+//                sshKey = Constants.PASSWORD_ENCRYPT_AES_PREFIX + sshKey;
+//            }
+//            dto.setSshKey(sshKey);
+//        }
+//    }
 
     private String generateMysqlDatabaseDefaultAccount(ResourceItemDto dto) {
         String defaultAdditionalProperties;

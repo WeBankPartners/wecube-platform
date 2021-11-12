@@ -35,7 +35,6 @@ public class ResourceServer {
 
     //
     private String loginMode;// PASSWD,KEY,PUBKEY
-    private String sshKey;
 
     private transient List<ResourceItem> resourceItems = new ArrayList<>();
 
@@ -165,14 +164,6 @@ public class ResourceServer {
 
     public void setLoginMode(String loginMode) {
         this.loginMode = loginMode;
-    }
-
-    public String getSshKey() {
-        return sshKey;
-    }
-
-    public void setSshKey(String sshKey) {
-        this.sshKey = sshKey;
     }
 
 }
