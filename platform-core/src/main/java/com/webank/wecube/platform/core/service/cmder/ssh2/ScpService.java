@@ -84,6 +84,29 @@ public class ScpService {
             connection.close();
         }
     }
+    
+    public void putWithPrivateKey(String ip, Integer port, String user, String privateKey, String localFile,
+            String remoteTargetDirectory) {
+        Connection conn = new Connection(ip, port);
+        try {
+            conn.connect();
+            boolean isconn = conn.authenticateWithPublicKey(user, privateKey.toCharArray(), null);
+            if (isconn) {
+                log.info("Connection is OK");
+                SCPClient scpClient = conn.createSCPClient();
+                log.info("scp local file [{}] to remote target directory [{}]", localFile, remoteTargetDirectory);
+                scpClient.put(localFile, remoteTargetDirectory, "7777");
+            } else {
+                log.info("User or password incorrect");
+                throw new WecubeCoreException("3222", "User or password incorrect");
+            }
+        } catch (Exception e) {
+            log.error("errors while putting file.", e);
+            throw new WecubeCoreException("3223", String.format("Run 'scp' command meet error: %s", e.getMessage()));
+        } finally {
+            conn.close();
+        }
+    }
 
     public void put(String ip, Integer port, String user, String password, String localFile,
             String remoteTargetDirectory) {
