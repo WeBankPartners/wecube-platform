@@ -68,6 +68,7 @@ import com.webank.wecube.platform.core.repository.plugin.PluginPackageRuntimeRes
 import com.webank.wecube.platform.core.repository.plugin.PluginPackageRuntimeResourcesMysqlMapper;
 import com.webank.wecube.platform.core.repository.plugin.PluginPackageRuntimeResourcesS3Mapper;
 import com.webank.wecube.platform.core.repository.plugin.PluginPackagesMapper;
+import com.webank.wecube.platform.core.service.cmder.ssh2.RemoteCommandExecutorConfig;
 import com.webank.wecube.platform.core.service.user.RoleMenuService;
 import com.webank.wecube.platform.core.support.authserver.AsAuthorityDto;
 import com.webank.wecube.platform.core.support.authserver.AsRoleAuthoritiesDto;
@@ -969,10 +970,18 @@ public class PluginPackageMgmtService extends AbstractPluginMgmtService {
             try {
                 List<String> staticResourceIps = StringUtilsEx
                         .splitByComma(pluginProperties.getStaticResourceServerIp());
+                
+                //TODO
                 for (String staticResourceIp : staticResourceIps) {
-                    commandService.runAtRemote(staticResourceIp, pluginProperties.getStaticResourceServerUser(),
-                            pluginProperties.getStaticResourceServerPassword(),
-                            pluginProperties.getStaticResourceServerPort(), mkdirCmd);
+                    RemoteCommandExecutorConfig sshConfig = new RemoteCommandExecutorConfig();
+                    sshConfig.setAuthMode(Constants.SSH_AUTH_MODE_PASSWORD);
+                    sshConfig.setPort(pluginProperties.getStaticResourceServerPort());
+                    sshConfig.setPsword(pluginProperties.getStaticResourceServerPassword());
+                    sshConfig.setRemoteHost(staticResourceIp);
+                    sshConfig.setUser(pluginProperties.getStaticResourceServerUser());
+                    sshConfig.setSshKey(null);
+                    
+                    commandService.runAtRemote(sshConfig, mkdirCmd);
                 }
             } catch (Exception e) {
                 log.error("errors while remove plugin resources:{}", remotePath, e);
@@ -1082,10 +1091,16 @@ public class PluginPackageMgmtService extends AbstractPluginMgmtService {
             if (!remotePath.equals("/") && !remotePath.equals(".")) {
                 String mkdirCmd = String.format("rm -rf %s && mkdir -p %s", remotePath, remotePath);
 
+                //TODO
                 try {
-                    commandService.runAtRemote(remoteIp, pluginProperties.getStaticResourceServerUser(),
-                            pluginProperties.getStaticResourceServerPassword(),
-                            pluginProperties.getStaticResourceServerPort(), mkdirCmd);
+                    RemoteCommandExecutorConfig sshConfig = new RemoteCommandExecutorConfig();
+                    sshConfig.setAuthMode(Constants.SSH_AUTH_MODE_PASSWORD);
+                    sshConfig.setPort(pluginProperties.getStaticResourceServerPort());
+                    sshConfig.setPsword(pluginProperties.getStaticResourceServerPassword());
+                    sshConfig.setRemoteHost(remoteIp);
+                    sshConfig.setUser(pluginProperties.getStaticResourceServerUser());
+                    sshConfig.setSshKey(null);
+                    commandService.runAtRemote(sshConfig, mkdirCmd);
                 } catch (Exception e) {
                     log.error("Run command [mkdir] meet error: ", e.getMessage());
                     throw new WecubeCoreException("3110",
@@ -1093,6 +1108,7 @@ public class PluginPackageMgmtService extends AbstractPluginMgmtService {
                 }
             }
 
+            //TODO sshKey
             // scp UI.zip to Static Resource Server
             try {
                 log.info("Scp files from {} to {}", tmpDownloadUiZipPath, remotePath);
@@ -1110,9 +1126,14 @@ public class PluginPackageMgmtService extends AbstractPluginMgmtService {
             String unzipCmd = String.format("cd %s && unzip %s", remotePath, pluginProperties.getUiFile());
             try {
                 log.info("To run ssh command at remote:{}", unzipCmd);
-                commandService.runAtRemote(remoteIp, pluginProperties.getStaticResourceServerUser(),
-                        pluginProperties.getStaticResourceServerPassword(),
-                        pluginProperties.getStaticResourceServerPort(), unzipCmd);
+                RemoteCommandExecutorConfig sshConfig = new RemoteCommandExecutorConfig();
+                sshConfig.setAuthMode(Constants.SSH_AUTH_MODE_PASSWORD);
+                sshConfig.setPort(pluginProperties.getStaticResourceServerPort());
+                sshConfig.setPsword(pluginProperties.getStaticResourceServerPassword());
+                sshConfig.setRemoteHost(remoteIp);
+                sshConfig.setUser(pluginProperties.getStaticResourceServerUser());
+                sshConfig.setSshKey(null);
+                commandService.runAtRemote(sshConfig, unzipCmd);
             } catch (Exception e) {
                 log.error("errors to remotely execute command :{}", unzipCmd, e);
                 log.error("Run command [unzip] meet error: ", e.getMessage());

@@ -59,6 +59,7 @@ import com.webank.wecube.platform.core.repository.plugin.PluginPackageRuntimeRes
 import com.webank.wecube.platform.core.repository.plugin.PluginPackagesMapper;
 import com.webank.wecube.platform.core.repository.plugin.ResourceItemMapper;
 import com.webank.wecube.platform.core.repository.plugin.ResourceServerMapper;
+import com.webank.wecube.platform.core.service.cmder.ssh2.RemoteCommandExecutorConfig;
 import com.webank.wecube.platform.core.service.resource.ResourceItemType;
 import com.webank.wecube.platform.core.service.resource.ResourceManagementService;
 import com.webank.wecube.platform.core.service.resource.ResourceServerType;
@@ -402,6 +403,7 @@ public class PluginInstanceMgmtService extends AbstractPluginMgmtService {
 
             String password = EncryptionUtils.decryptAesPrefixedStringForcely(dbPassword, resourceProperties.getPasswordEncryptionSeed(),
                     hostInfo.getName());
+            //TODO ssh key
             scpService.put(hostIp, Integer.valueOf(hostInfo.getPort()), hostInfo.getLoginUsername(), password,
                     tmpFilePath, pluginProperties.getPluginDeployPath());
         } catch (Exception e) {
@@ -416,12 +418,25 @@ public class PluginInstanceMgmtService extends AbstractPluginMgmtService {
         log.info("Run docker load command: " + loadCmd);
         try {
             String loginPassword = hostInfo.getLoginPassword();
+            String sshKey = hostInfo.getSshKey();
             
             loginPassword = EncryptionUtils.decryptAesPrefixedStringOnly(
                     loginPassword,
                     resourceProperties.getPasswordEncryptionSeed(), hostInfo.getName());
-            commandService.runAtRemote(hostIp, hostInfo.getLoginUsername(), loginPassword,
-                    Integer.valueOf(hostInfo.getPort()), loadCmd);
+            
+            sshKey = EncryptionUtils.decryptAesPrefixedStringOnly(
+                    sshKey,
+                    resourceProperties.getPasswordEncryptionSeed(), hostInfo.getName());
+            
+            RemoteCommandExecutorConfig sshConfig = new RemoteCommandExecutorConfig();
+            sshConfig.setAuthMode(hostInfo.getLoginMode());
+            sshConfig.setPort(Integer.valueOf(hostInfo.getPort()));
+            sshConfig.setPsword(loginPassword);
+            sshConfig.setRemoteHost(hostIp);
+            sshConfig.setUser(hostInfo.getLoginUsername());
+            sshConfig.setSshKey(sshKey);
+            
+            commandService.runAtRemote(sshConfig, loadCmd);
         } catch (Exception e) {
             log.error("Run command [{}] meet error: {}", loadCmd, e.getMessage());
             throw new WecubeCoreException("3086", String.format("Run remote command meet error: %s", e.getMessage()),
