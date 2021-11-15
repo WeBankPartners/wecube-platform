@@ -551,6 +551,8 @@ public class PluginInstanceMgmtService extends AbstractPluginMgmtService {
 
     private String handleCreateS3Bucket(List<PluginPackageRuntimeResourcesS3> s3ResourceInfoList,
             PluginPackages pluginPackage) {
+        
+        //TODO
         if (s3ResourceInfoList == null || s3ResourceInfoList.isEmpty()) {
             return null;
         }
@@ -564,6 +566,7 @@ public class PluginInstanceMgmtService extends AbstractPluginMgmtService {
 
         List<ResourceItem> s3BucketsItemEntities = resourceItemMapper
                 .selectAllByNameAndType(s3ResourceInfo.getBucketName(), ResourceItemType.S3_BUCKET.getCode());
+        //TODO
         if (s3BucketsItemEntities.size() > 0) {
             return s3BucketsItemEntities.get(0).getId();
         } else {
@@ -575,6 +578,7 @@ public class PluginInstanceMgmtService extends AbstractPluginMgmtService {
         return createPluginS3Bucket(s3ResourceInfo);
     }
 
+    //TODO
     private String createPluginS3Bucket(PluginPackageRuntimeResourcesS3 s3ResourceInfo) {
         QueryRequestDto queryRequest = QueryRequestDto.defaultQueryObject("type", ResourceServerType.S3.getCode());
         List<ResourceServerDto> s3Servers = resourceManagementService.retrieveServers(queryRequest).getContents();

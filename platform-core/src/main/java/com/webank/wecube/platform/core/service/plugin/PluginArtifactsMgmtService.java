@@ -651,6 +651,7 @@ public class PluginArtifactsMgmtService extends AbstractPluginMgmtService {
 
                 pluginPackageRuntimeResourcesS3Mapper.insert(s3Entity);
 
+                //TODO
                 pluginPackageEntity.getS3s().add(s3Entity);
             }
         }
