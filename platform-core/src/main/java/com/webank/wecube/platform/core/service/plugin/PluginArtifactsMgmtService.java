@@ -448,6 +448,7 @@ public class PluginArtifactsMgmtService extends AbstractPluginMgmtService {
         pluginPackagesMapper.insert(pluginPackageEntity);
 
         processPluginUiPackageFile(localFilePath, xmlPackage, pluginPackageEntity);
+        processS3BucketFiles(localFilePath, xmlPackage, pluginPackageEntity);
 
         // trySavePluginPackageResourceFiles(pluginPackageResourceFilesEntities);
 
@@ -477,6 +478,59 @@ public class PluginArtifactsMgmtService extends AbstractPluginMgmtService {
         result.setUiPackageIncluded(pluginPackageEntity.getUiPackageIncluded());
 
         return result;
+    }
+    
+    //TODO
+    protected void processS3BucketFiles(File localFilePath, PackageType xmlPackage, PluginPackages pluginPackageEntity) {
+        ResourceDependenciesType xmlResourceDependenciesType = xmlPackage.getResourceDependencies();
+        if(xmlResourceDependenciesType == null) {
+            return;
+        }
+        
+        List<S3Type> xmlS3List = xmlResourceDependenciesType.getS3();
+        if (xmlS3List != null) {
+            for (S3Type xmlS3 : xmlS3List) {
+                FileSetType xmlFileSet = xmlS3.getFileSet();
+                if(xmlFileSet == null) {
+                    continue;
+                }
+                
+                List<FileType> xmlFiles = xmlFileSet.getFile();
+                if(xmlFiles == null || xmlFiles.isEmpty()) {
+                    continue;
+                }
+                
+                for(FileType xmlFile : xmlFiles) {
+                    //TODO to tidy source path
+                    String sourcePath = xmlFile.getSource();
+                    if(StringUtils.isBlank(sourcePath)) {
+                        continue;
+                    }
+                    
+                    if(sourcePath.startsWith("/")) {
+                        sourcePath = sourcePath.substring(1);
+                    }
+                    File s3File = new File(localFilePath, sourcePath);
+                    log.debug("s3 file: {}", s3File.getAbsolutePath());
+                    String keyName = xmlPackage.getName() + "/" + xmlPackage.getVersion() + "/" + sourcePath;
+                    log.debug("keyName : {}", keyName);
+                    
+                    String s3FileUrl = s3Client.uploadFile(pluginProperties.getPluginPackageBucketName(), keyName,
+                            s3File);
+                    
+                    log.debug("s3FileUrl : {}", s3FileUrl);
+                }
+                
+            }
+        }
+        
+        //1 try check bucket if exists
+        
+        //2 try create or retrieve bucket
+        
+        //3 upload declared files
+        
+        //4 store in database
     }
 
     protected UploadPackageResultDto performUploadPackage(MultipartFile pluginPackageFile, File localFilePath) {
