@@ -56,6 +56,9 @@ import com.webank.wecube.platform.core.entity.plugin.PluginPackageRuntimeResourc
 import com.webank.wecube.platform.core.entity.plugin.PluginPackageRuntimeResourcesMysql;
 import com.webank.wecube.platform.core.entity.plugin.PluginPackageRuntimeResourcesS3;
 import com.webank.wecube.platform.core.entity.plugin.PluginPackages;
+import com.webank.wecube.platform.core.entity.plugin.ResourceS3AdditionalProperties;
+import com.webank.wecube.platform.core.entity.plugin.ResourceS3FileInfo;
+import com.webank.wecube.platform.core.entity.plugin.ResourceS3FileSetInfo;
 import com.webank.wecube.platform.core.entity.plugin.SystemVariables;
 import com.webank.wecube.platform.core.parser.PluginConfigXmlValidator;
 import com.webank.wecube.platform.core.parser.PluginPackageDataModelValidator;
@@ -84,6 +87,8 @@ import com.webank.wecube.platform.core.service.plugin.xml.register.AuthorityType
 import com.webank.wecube.platform.core.service.plugin.xml.register.DataModelType;
 import com.webank.wecube.platform.core.service.plugin.xml.register.DockerType;
 import com.webank.wecube.platform.core.service.plugin.xml.register.EntityType;
+import com.webank.wecube.platform.core.service.plugin.xml.register.FileSetType;
+import com.webank.wecube.platform.core.service.plugin.xml.register.FileType;
 import com.webank.wecube.platform.core.service.plugin.xml.register.InputParameterType;
 import com.webank.wecube.platform.core.service.plugin.xml.register.InputParametersType;
 import com.webank.wecube.platform.core.service.plugin.xml.register.InterfaceType;
@@ -107,6 +112,7 @@ import com.webank.wecube.platform.core.service.plugin.xml.register.SystemParamet
 import com.webank.wecube.platform.core.service.user.UserManagementService;
 import com.webank.wecube.platform.core.utils.Constants;
 import com.webank.wecube.platform.core.utils.JaxbUtils;
+import com.webank.wecube.platform.core.utils.JsonUtils;
 import com.webank.wecube.platform.core.utils.SystemUtils;
 import com.webank.wecube.platform.workflow.commons.LocalIdGenerator;
 
@@ -648,13 +654,46 @@ public class PluginArtifactsMgmtService extends AbstractPluginMgmtService {
                 s3Entity.setId(LocalIdGenerator.generateId());
                 s3Entity.setPluginPackageId(pluginPackageEntity.getId());
                 s3Entity.setBucketName(xmlS3.getBucketName());
+                
+                String additionalPropsStr = buildXmlAdditionalProperties(xmlS3);
+                
+                if(StringUtils.isNoneBlank(additionalPropsStr)) {
+                    s3Entity.setAdditionalProperties(additionalPropsStr);
+                }
 
                 pluginPackageRuntimeResourcesS3Mapper.insert(s3Entity);
 
-                //TODO
                 pluginPackageEntity.getS3s().add(s3Entity);
             }
         }
+    }
+    
+    private String buildXmlAdditionalProperties(S3Type xmlS3) {
+        FileSetType xmlFileSet = xmlS3.getFileSet();
+        
+        if(xmlFileSet == null) {
+            return null;
+        }
+        
+        ResourceS3FileSetInfo fileSetInfo = new ResourceS3FileSetInfo();
+        
+        ResourceS3AdditionalProperties additionalProps = new ResourceS3AdditionalProperties();
+        additionalProps.setFileSet(fileSetInfo);
+        
+        List<FileType> xmlFiles = xmlFileSet.getFile();
+        
+        if(xmlFiles != null) {
+            for(FileType xmlFile : xmlFiles) {
+                ResourceS3FileInfo fileInfo = new ResourceS3FileInfo();
+                fileInfo.setSource(xmlFile.getSource());
+                fileInfo.setToFile(xmlFile.getToFile());
+                
+                fileSetInfo.getFiles().add(fileInfo);
+            }
+        }
+        
+        String additionalPropsStr = JsonUtils.toJsonString(additionalProps);
+        return additionalPropsStr;
     }
 
     private void processDataModels(DataModelType xmlDataModel, PackageType xmlPackage,
