@@ -528,5 +528,7 @@
   "total": "共",
   "display": "显示",
   "delete_role": "删除角色",
-  "empty": "为空"
+  "empty": "为空",
+  "login_method": "登录方式",
+  "secret_key": "密钥"
 }

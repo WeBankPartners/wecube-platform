@@ -530,5 +530,7 @@
   "total": "Total",
   "display": "Display",
   "delete_role": "Delete Role",
-  "empty": " Is Empty"
+  "empty": " Is Empty",
+  "login_method": "Login Method",
+  "secret_key": "Secret Key"
 }
