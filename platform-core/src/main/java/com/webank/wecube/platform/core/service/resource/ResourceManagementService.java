@@ -24,7 +24,9 @@ import com.webank.wecube.platform.core.entity.plugin.ResourceServer;
 import com.webank.wecube.platform.core.repository.plugin.ResourceItemMapper;
 import com.webank.wecube.platform.core.repository.plugin.ResourceServerMapper;
 import com.webank.wecube.platform.core.service.cmder.ssh2.CommandService;
+import com.webank.wecube.platform.core.service.cmder.ssh2.RemoteCommandExecutorConfig;
 import com.webank.wecube.platform.core.service.plugin.PluginPageableDataService;
+import com.webank.wecube.platform.core.utils.Constants;
 import com.webank.wecube.platform.core.utils.EncryptionUtils;
 import com.webank.wecube.platform.core.utils.JsonUtils;
 import com.webank.wecube.platform.workflow.commons.LocalIdGenerator;
@@ -32,7 +34,6 @@ import com.webank.wecube.platform.workflow.commons.LocalIdGenerator;
 @Service
 public class ResourceManagementService {
     private static final Logger log = LoggerFactory.getLogger(ResourceManagementService.class);
-    public static final String PASSWORD_ENCRYPT_AES_PREFIX = "{AES}";
 
     @Autowired
     private ResourceServerMapper resourceServerRepository;
@@ -52,6 +53,9 @@ public class ResourceManagementService {
     @Autowired
     private CommandService commandService;
 
+    /**
+     * 
+     */
     public ResourceServerProductSerialDto retrieveResourceServerProductSerial(String resourceServerId) {
         if (StringUtils.isBlank(resourceServerId)) {
             return null;
@@ -71,9 +75,15 @@ public class ResourceManagementService {
         String cmd = "cat /sys/class/dmi/id/product_serial";
 
         try {
-            productSerial = commandService.runAtRemote(host, user, password, port, cmd);
+            RemoteCommandExecutorConfig sshConfig = new RemoteCommandExecutorConfig();
+            sshConfig.setAuthMode(existResourceServer.getLoginMode());
+            sshConfig.setPort(port);
+            sshConfig.setPsword(password);
+            sshConfig.setRemoteHost(host);
+            sshConfig.setUser(user);
+            productSerial = commandService.runAtRemote(sshConfig, cmd);
         } catch (Exception e) {
-            log.error("errors whilw running remote command:{}", cmd);
+            log.error("errors while running remote command:{}", cmd);
         }
 
         ResourceServerProductSerialDto dto = new ResourceServerProductSerialDto();
@@ -88,6 +98,11 @@ public class ResourceManagementService {
         return dto;
     }
 
+    /**
+     * 
+     * @param queryRequest
+     * @return
+     */
     public QueryResponse<ResourceServerDto> retrieveServers(QueryRequestDto queryRequest) {
 
         com.github.pagehelper.PageInfo<ResourceServer> pageInfo = pluginPageableDataService
@@ -107,26 +122,11 @@ public class ResourceManagementService {
 
     }
 
-    private String decryptPassword(ResourceServer s) {
-        String password = s.getLoginPassword();
-        if (StringUtils.isBlank(password)) {
-            return null;
-        }
-        if (password.startsWith(ResourceManagementService.PASSWORD_ENCRYPT_AES_PREFIX)) {
-            password = password.substring(ResourceManagementService.PASSWORD_ENCRYPT_AES_PREFIX.length());
-        }
-
-        String plainPassword = EncryptionUtils.decryptWithAes(password, resourceProperties.getPasswordEncryptionSeed(),
-                s.getName());
-
-        return plainPassword;
-    }
-
-    private ResourceServerDto buildResourceServerDto(ResourceServer e) {
-        ResourceServerDto dto = ResourceServerDto.fromDomain(e);
-        return dto;
-    }
-
+    /**
+     * 
+     * @param queryRequest
+     * @return
+     */
     public QueryResponse<ResourceItemDto> retrieveItems(QueryRequestDto queryRequest) {
 
         com.github.pagehelper.PageInfo<ResourceItem> pageInfo = pluginPageableDataService
@@ -149,20 +149,11 @@ public class ResourceManagementService {
         return new QueryResponse<>(respPageInfo, resultDataList);
     }
 
-    private ResourceItemDto buildResourceItemDto(ResourceItem e) {
-        ResourceItemDto dto = ResourceItemDto.fromDomain(e);
-        return dto;
-    }
-
-//    private QueryRequestDto applyDefaultSortingAsDesc(QueryRequestDto queryRequest) {
-//        if (queryRequest == null) {
-//            queryRequest = QueryRequestDto.defaultQueryObject().descendingSortBy("createdDate");
-//        } else if (queryRequest.getSorting() == null || queryRequest.getSorting().getField() == null) {
-//            queryRequest.setSorting(new SortingDto(false, "createdDate"));
-//        }
-//        return queryRequest;
-//    }
-
+    /**
+     * 
+     * @param resourceServers
+     * @return
+     */
     @Transactional
     public List<ResourceServerDto> createServers(List<ResourceServerDto> resourceServers) {
 
@@ -178,6 +169,11 @@ public class ResourceManagementService {
         return convertServerDomainToDto(savedDomains);
     }
 
+    /**
+     * 
+     * @param resourceServers
+     * @return
+     */
     @Transactional
     public List<ResourceServerDto> updateServers(List<ResourceServerDto> resourceServers) {
 
@@ -194,6 +190,10 @@ public class ResourceManagementService {
         return convertServerDomainToDto(savedDomains);
     }
 
+    /**
+     * 
+     * @param resourceServers
+     */
     @Transactional
     public void deleteServers(List<ResourceServerDto> resourceServers) {
         validateIfServersAreExists(resourceServers);
@@ -208,6 +208,87 @@ public class ResourceManagementService {
             }
         }
 
+    }
+
+    /**
+     * 
+     * @param resourceItems
+     * @return
+     */
+    @Transactional
+    public List<ResourceItemDto> createItems(List<ResourceItemDto> resourceItems) {
+        List<ResourceItem> convertedDomains = convertItemDtoToDomain(resourceItems);
+        for (ResourceItem item : convertedDomains) {
+            if (StringUtils.isBlank(item.getId())) {
+                item.setId(LocalIdGenerator.generateId());
+                resourceItemRepository.insert(item);
+            } else {
+                resourceItemRepository.updateByPrimaryKeySelective(item);
+            }
+        }
+        Iterable<ResourceItem> enrichedItems = enrichItemsFullInfo(convertedDomains);
+        resourceImplementationService.createItems(enrichedItems);
+        return convertItemDomainToDto(enrichedItems);
+    }
+
+    /**
+     * 
+     * @param resourceItems
+     * @return
+     */
+    @Transactional
+    public List<ResourceItemDto> updateItems(List<ResourceItemDto> resourceItems) {
+        validateIfItemsAreExists(resourceItems);
+        List<ResourceItem> convertedDomains = convertItemDtoToDomain(resourceItems);
+        for (ResourceItem item : convertedDomains) {
+            if (StringUtils.isBlank(item.getId())) {
+                item.setId(LocalIdGenerator.generateId());
+                resourceItemRepository.insert(item);
+            } else {
+                resourceItemRepository.updateByPrimaryKeySelective(item);
+            }
+        }
+        Iterable<ResourceItem> enrichedItems = enrichItemsFullInfo(convertedDomains);
+        resourceImplementationService.updateItems(enrichedItems);
+        return convertItemDomainToDto(enrichedItems);
+    }
+
+    /**
+     * 
+     * @param resourceItems
+     */
+    @Transactional
+    public void deleteItems(List<ResourceItemDto> resourceItems) {
+        validateIfItemsAreExists(resourceItems);
+        List<ResourceItem> enrichedItems = enrichItemsFullInfo(convertItemDtoToDomain(resourceItems));
+        // validateIfItemAllocated(enrichedItems);
+        resourceImplementationService.deleteItems(enrichedItems);
+
+        if (enrichedItems != null) {
+            for (ResourceItem item : enrichedItems) {
+                resourceItemRepository.deleteByPrimaryKey(item.getId());
+            }
+        }
+    }
+
+    private ResourceItemDto buildResourceItemDto(ResourceItem e) {
+        ResourceItemDto dto = ResourceItemDto.fromDomain(e);
+        return dto;
+    }
+
+    private void validateIfItemsAreExists(List<ResourceItemDto> resourceItems) {
+        for (ResourceItemDto item : resourceItems) {
+            if (StringUtils.isBlank(item.getId())) {
+                String errMsg = String.format("Can not find item with id [%s].", item.getId());
+                throw new WecubeCoreException("3018", errMsg, item.getId());
+            }
+
+            ResourceItem resourceItemEntity = resourceItemRepository.selectByPrimaryKey(item.getId());
+            if (resourceItemEntity == null) {
+                String errMsg = String.format("Can not find item with id [%s].", item.getId());
+                throw new WecubeCoreException("3018", errMsg, item.getId());
+            }
+        }
     }
 
     private void validateIfServersAreExists(List<ResourceServerDto> resourceServers) {
@@ -235,102 +316,23 @@ public class ResourceManagementService {
             }
         });
     }
-
-    @Transactional
-    public List<ResourceItemDto> createItems(List<ResourceItemDto> resourceItems) {
-        List<ResourceItem> convertedDomains = convertItemDtoToDomain(resourceItems);
-        for (ResourceItem item : convertedDomains) {
-            if (StringUtils.isBlank(item.getId())) {
-                item.setId(LocalIdGenerator.generateId());
-                resourceItemRepository.insert(item);
-            } else {
-                resourceItemRepository.updateByPrimaryKeySelective(item);
-            }
-        }
-        Iterable<ResourceItem> enrichedItems = enrichItemsFullInfo(convertedDomains);
-        resourceImplementationService.createItems(enrichedItems);
-        return convertItemDomainToDto(enrichedItems);
-    }
-
-    private List<ResourceItem> enrichItemsFullInfo(List<ResourceItem> items) {
-        List<ResourceItem> enrichedItems = new ArrayList<>();
-        for (ResourceItem item : items) {
-            if (item.getId() != null) {
-                ResourceItem enrichedItemOpt = resourceItemRepository.selectByPrimaryKey(item.getId());
-                if (enrichedItemOpt != null) {
-                    ResourceItem enrichedItem = enrichedItemOpt;
-                    enrichedItem.setResourceServer(getResourceServerById(enrichedItem.getResourceServerId()));
-                    enrichedItems.add(enrichedItem);
-                }
-            }
-        }
-        return enrichedItems;
-    }
-
-    private ResourceServer getResourceServerById(String resourceServerId) {
-        if (StringUtils.isBlank(resourceServerId)) {
+    
+    private String decryptPassword(ResourceServer s) {
+        String password = s.getLoginPassword();
+        if (StringUtils.isBlank(password)) {
             return null;
         }
-        ResourceServer enrichedServer = resourceServerRepository.selectByPrimaryKey(resourceServerId);
+        
+        String plainPassword = EncryptionUtils.decryptAesPrefixedStringForcely(password, resourceProperties.getPasswordEncryptionSeed(),
+                s.getName());
 
-        return enrichedServer;
+        return plainPassword;
     }
 
-    @Transactional
-    public List<ResourceItemDto> updateItems(List<ResourceItemDto> resourceItems) {
-        validateIfItemsAreExists(resourceItems);
-        List<ResourceItem> convertedDomains = convertItemDtoToDomain(resourceItems);
-        for (ResourceItem item : convertedDomains) {
-            if (StringUtils.isBlank(item.getId())) {
-                item.setId(LocalIdGenerator.generateId());
-                resourceItemRepository.insert(item);
-            } else {
-                resourceItemRepository.updateByPrimaryKeySelective(item);
-            }
-        }
-        Iterable<ResourceItem> enrichedItems = enrichItemsFullInfo(convertedDomains);
-        resourceImplementationService.updateItems(enrichedItems);
-        return convertItemDomainToDto(enrichedItems);
+    private ResourceServerDto buildResourceServerDto(ResourceServer e) {
+        ResourceServerDto dto = ResourceServerDto.fromDomain(e);
+        return dto;
     }
-
-    @Transactional
-    public void deleteItems(List<ResourceItemDto> resourceItems) {
-        validateIfItemsAreExists(resourceItems);
-        List<ResourceItem> enrichedItems = enrichItemsFullInfo(convertItemDtoToDomain(resourceItems));
-        // validateIfItemAllocated(enrichedItems);
-        resourceImplementationService.deleteItems(enrichedItems);
-
-        if (enrichedItems != null) {
-            for (ResourceItem item : enrichedItems) {
-                resourceItemRepository.deleteByPrimaryKey(item.getId());
-            }
-        }
-    }
-
-    private void validateIfItemsAreExists(List<ResourceItemDto> resourceItems) {
-        for (ResourceItemDto item : resourceItems) {
-            if (StringUtils.isBlank(item.getId())) {
-                String errMsg = String.format("Can not find item with id [%s].", item.getId());
-                throw new WecubeCoreException("3018", errMsg, item.getId());
-            }
-
-            ResourceItem resourceItemEntity = resourceItemRepository.selectByPrimaryKey(item.getId());
-            if (resourceItemEntity == null) {
-                String errMsg = String.format("Can not find item with id [%s].", item.getId());
-                throw new WecubeCoreException("3018", errMsg, item.getId());
-            }
-        }
-    }
-
-//    private void validateIfItemAllocated(Iterable<ResourceItem> items) {
-//        items.forEach(item -> {
-//            if (item.getIsAllocated() != null && item.getIsAllocated() == 1) {
-//                String msg = String.format("Can not delete resource item [%s] as it has been allocated for [%s].",
-//                        item.getName(), item.getPurpose());
-//                throw new WecubeCoreException("3019", msg, item.getName(), item.getPurpose());
-//            }
-//        });
-//    }
 
     private List<ResourceServerDto> convertServerDomainToDto(List<ResourceServer> savedDomains) {
         List<ResourceServerDto> dtos = new ArrayList<>();
@@ -349,6 +351,7 @@ public class ResourceManagementService {
                 }
             }
             handleServerPasswordEncryption(dto);
+//            handleServerSshKeyEncryption(dto);
             ResourceServer domain = ResourceServerDto.toDomain(dto, existedServer);
 
             domains.add(domain);
@@ -359,20 +362,32 @@ public class ResourceManagementService {
     private void handleServerPasswordEncryption(ResourceServerDto dto) {
         if (dto.getLoginPassword() != null) {
             String password = dto.getLoginPassword();
-            if (!password.startsWith(PASSWORD_ENCRYPT_AES_PREFIX)) {
+            if (!password.startsWith(Constants.PASSWORD_ENCRYPT_AES_PREFIX)) {
                 password = EncryptionUtils.encryptWithAes(dto.getLoginPassword(),
                         resourceProperties.getPasswordEncryptionSeed(), dto.getName());
-                password = PASSWORD_ENCRYPT_AES_PREFIX + password;
+                password = Constants.PASSWORD_ENCRYPT_AES_PREFIX + password;
             }
             dto.setLoginPassword(password);
         }
     }
 
+//    private void handleServerSshKeyEncryption(ResourceServerDto dto) {
+//        if (StringUtils.isNoneBlank(dto.getSshKey())) {
+//            String sshKey = dto.getSshKey();
+//            if (!sshKey.startsWith(Constants.PASSWORD_ENCRYPT_AES_PREFIX)) {
+//                sshKey = EncryptionUtils.encryptWithAes(dto.getLoginPassword(),
+//                        resourceProperties.getPasswordEncryptionSeed(), dto.getName());
+//                sshKey = Constants.PASSWORD_ENCRYPT_AES_PREFIX + sshKey;
+//            }
+//            dto.setSshKey(sshKey);
+//        }
+//    }
+
     private String generateMysqlDatabaseDefaultAccount(ResourceItemDto dto) {
         String defaultAdditionalProperties;
         String encryptedPassword = EncryptionUtils.encryptWithAes(dto.getName(),
                 resourceProperties.getPasswordEncryptionSeed(), dto.getName());
-        encryptedPassword = PASSWORD_ENCRYPT_AES_PREFIX + encryptedPassword;
+        encryptedPassword = Constants.PASSWORD_ENCRYPT_AES_PREFIX + encryptedPassword;
         Map<Object, Object> map = new HashMap<>();
         map.put("username", dto.getName());
         map.put("password", encryptedPassword);
@@ -392,10 +407,10 @@ public class ResourceManagementService {
             String password = additionalProperties.get("password");
             if (password != null) {
                 String encryptedPassword = null;
-                if (password.startsWith(PASSWORD_ENCRYPT_AES_PREFIX)) {
+                if (password.startsWith(Constants.PASSWORD_ENCRYPT_AES_PREFIX)) {
                     encryptedPassword = password;
                 } else {
-                    encryptedPassword = PASSWORD_ENCRYPT_AES_PREFIX + EncryptionUtils.encryptWithAes(password,
+                    encryptedPassword = Constants.PASSWORD_ENCRYPT_AES_PREFIX + EncryptionUtils.encryptWithAes(password,
                             resourceProperties.getPasswordEncryptionSeed(), dto.getName());
                 }
 
@@ -426,6 +441,30 @@ public class ResourceManagementService {
             domains.add(domain);
         });
         return domains;
+    }
+
+    private List<ResourceItem> enrichItemsFullInfo(List<ResourceItem> items) {
+        List<ResourceItem> enrichedItems = new ArrayList<>();
+        for (ResourceItem item : items) {
+            if (item.getId() != null) {
+                ResourceItem enrichedItemOpt = resourceItemRepository.selectByPrimaryKey(item.getId());
+                if (enrichedItemOpt != null) {
+                    ResourceItem enrichedItem = enrichedItemOpt;
+                    enrichedItem.setResourceServer(getResourceServerById(enrichedItem.getResourceServerId()));
+                    enrichedItems.add(enrichedItem);
+                }
+            }
+        }
+        return enrichedItems;
+    }
+
+    private ResourceServer getResourceServerById(String resourceServerId) {
+        if (StringUtils.isBlank(resourceServerId)) {
+            return null;
+        }
+        ResourceServer enrichedServer = resourceServerRepository.selectByPrimaryKey(resourceServerId);
+
+        return enrichedServer;
     }
 
 }

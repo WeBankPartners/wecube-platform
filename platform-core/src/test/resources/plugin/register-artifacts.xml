@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<package name="artifacts" version="{{VERSION}}"
+<package name="artifacts" version="v1.5.5.2"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:noNamespaceSchemaLocation="plugin-config-v2.xsd">
 
@@ -69,7 +69,12 @@
         ARTIFACTS_DIFF_CONF_EXTENSION={{ARTIFACTS_DIFF_CONF_EXTENSION}},ARTIFACTS_VARIABLE_EXPRESSION={{ARTIFACTS_VARIABLE_EXPRESSION}},
         WECUBE_GATEWAY_URL={{GATEWAY_URL}},WECUBE_JWT_SIGNING_KEY={{JWT_SIGNING_KEY}},ARTIFACTS_NEXUS_SORT_AS_STRING={{NEXUS_SORT_AS_STRING}},
         ARTIFACTS_LOCAL_NEXUS_CONNECTOR_PORT=5000,ARTIFACTS_NEXUS_CONNECTOR_PORT={{NEXUS_CONNECTOR_PORT}}"/>
-        <s3 bucketName="wecube-artifacts"/>
+        <s3 bucketName="wecube-artifacts">
+            <fileSet>
+                <file source="a.conf" toFile="a.conf"/>
+                <file source="b.conf" toFile="b.conf"/>
+            </fileSet>
+        </s3>
     </resourceDependencies>
 
     <!-- 7.插件列表 - 描述插件包中单个插件的输入和输出 -->
