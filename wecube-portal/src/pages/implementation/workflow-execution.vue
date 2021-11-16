@@ -110,7 +110,7 @@
               <div class="graph-container" id="flow" style="height:90%"></div>
               <Button class="reset-button" size="small" @click="ResetFlow">ResetZoom</Button>
               <Button
-                v-if="!isEnqueryPage && selectedFlow && selectedTarget && processSessionId.length > 0"
+                v-if="!isEnqueryPage && selectedFlow && selectedTarget"
                 style="left:5px"
                 class="set-data-button"
                 icon="ios-grid"
@@ -122,7 +122,7 @@
               <div class="graph-container" id="graph" style="height:90%"></div>
               <Button class="reset-button" size="small" @click="ResetModel">ResetZoom</Button>
               <Button
-                v-if="selectedFlow && selectedTarget && processSessionId.length > 0"
+                v-if="selectedFlow && selectedTarget"
                 class="set-data-button"
                 icon="ios-grid"
                 size="small"
@@ -1489,7 +1489,8 @@ export default {
       this.modelDetailTimer = setTimeout(async () => {
         this.nodeTitle = `${row.displayName}`
         let params = {
-          additionalFilters: [{ attrName: 'id', op: 'eq', condition: row.dataId }]
+          additionalFilters: [{ attrName: 'id', op: 'eq', condition: row.dataId || row.id }],
+          procInstId: this.selectedFlowInstance + ''
         }
         const { status, data } = await getModelNodeDetail(row.packageName, row.entityName, params)
         if (status === 'OK') {
