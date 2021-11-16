@@ -31,6 +31,7 @@ import org.springframework.jdbc.datasource.DriverManagerDataSource;
 import org.springframework.jdbc.datasource.init.ResourceDatabasePopulator;
 import org.springframework.stereotype.Service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
 import com.webank.wecube.platform.core.commons.ApplicationProperties.ResourceProperties;
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
@@ -47,6 +48,9 @@ import com.webank.wecube.platform.core.entity.plugin.PluginPackageRuntimeResourc
 import com.webank.wecube.platform.core.entity.plugin.PluginPackageRuntimeResourcesS3;
 import com.webank.wecube.platform.core.entity.plugin.PluginPackages;
 import com.webank.wecube.platform.core.entity.plugin.ResourceItem;
+import com.webank.wecube.platform.core.entity.plugin.ResourceS3AdditionalProperties;
+import com.webank.wecube.platform.core.entity.plugin.ResourceS3FileInfo;
+import com.webank.wecube.platform.core.entity.plugin.ResourceS3FileSetInfo;
 import com.webank.wecube.platform.core.entity.plugin.ResourceServer;
 import com.webank.wecube.platform.core.entity.plugin.SystemVariables;
 import com.webank.wecube.platform.core.propenc.RsaEncryptor;
@@ -63,6 +67,7 @@ import com.webank.wecube.platform.core.service.cmder.ssh2.RemoteCommandExecutorC
 import com.webank.wecube.platform.core.service.resource.ResourceItemType;
 import com.webank.wecube.platform.core.service.resource.ResourceManagementService;
 import com.webank.wecube.platform.core.service.resource.ResourceServerType;
+import com.webank.wecube.platform.core.support.RealS3Client;
 import com.webank.wecube.platform.core.support.authserver.AuthServerRestClient;
 import com.webank.wecube.platform.core.support.authserver.SimpleSubSystemDto;
 import com.webank.wecube.platform.core.support.gateway.GatewayResponse;
@@ -135,6 +140,8 @@ public class PluginInstanceMgmtService extends AbstractPluginMgmtService {
     @Autowired
     private PluginCertificationMapper pluginCertificationMapper;
 
+    private ObjectMapper objectMapper = new ObjectMapper();
+
     public void removePluginInstanceById(String instanceId) throws Exception {
         log.info("Removing plugin instance,instanceId: {}", instanceId);
         PluginInstances pluginInstanceEntity = pluginInstancesMapper.selectByPrimaryKey(instanceId);
@@ -204,9 +211,9 @@ public class PluginInstanceMgmtService extends AbstractPluginMgmtService {
         }
 
         // 2. try to create s3 bucket
-        String s3BucketResourceId = handleCreateS3Bucket(s3InfoSet, pluginPackage);
-        if (s3BucketResourceId != null) {
-            pluginInstanceEntity.setS3bucketResourceId(s3BucketResourceId);
+        ResourceItem s3BucketResourceItem = handleCreateS3Bucket(s3InfoSet, pluginPackage);
+        if (s3BucketResourceItem != null) {
+            pluginInstanceEntity.setS3bucketResourceId(s3BucketResourceItem.getId());
         }
 
         // 3. create docker instance
@@ -549,10 +556,10 @@ public class PluginInstanceMgmtService extends AbstractPluginMgmtService {
         return systemVariableService.variableReplacement(packageName, str);
     }
 
-    private String handleCreateS3Bucket(List<PluginPackageRuntimeResourcesS3> s3ResourceInfoList,
+    private ResourceItem handleCreateS3Bucket(List<PluginPackageRuntimeResourcesS3> s3ResourceInfoList,
             PluginPackages pluginPackage) {
-        
-        //TODO
+
+        // TODO
         if (s3ResourceInfoList == null || s3ResourceInfoList.isEmpty()) {
             return null;
         }
@@ -566,20 +573,120 @@ public class PluginInstanceMgmtService extends AbstractPluginMgmtService {
 
         List<ResourceItem> s3BucketsItemEntities = resourceItemMapper
                 .selectAllByNameAndType(s3ResourceInfo.getBucketName(), ResourceItemType.S3_BUCKET.getCode());
-        //TODO
+        // TODO
+        ResourceItem s3ResItem = null;
         if (s3BucketsItemEntities.size() > 0) {
-            return s3BucketsItemEntities.get(0).getId();
+            s3ResItem = s3BucketsItemEntities.get(0);
         } else {
-            return initS3BucketResource(s3ResourceInfo);
+            s3ResItem = initS3BucketResource(s3ResourceInfo);
+        }
+
+        ResourceServer resServer = resourceServerMapper.selectByPrimaryKey(s3ResItem.getResourceServerId());
+        s3ResItem.setResourceServer(resServer);
+
+        // TODO to process s3 files
+
+        processprocessS3BucketFiles(pluginPackage, s3ResourceInfo, s3ResItem, resServer);
+        return s3ResItem;
+    }
+
+    private void processprocessS3BucketFiles(PluginPackages pluginPackage,
+            PluginPackageRuntimeResourcesS3 s3ResourceInfo, ResourceItem s3ResItem, ResourceServer resServer) {
+        String additionalProperties = s3ResourceInfo.getAdditionalProperties();
+        if (StringUtils.isBlank(additionalProperties)) {
+            return;
+        }
+
+        ResourceS3AdditionalProperties additionalProps = convertFromJson(additionalProperties);
+
+        if (additionalProps == null) {
+            return;
+        }
+
+        ResourceS3FileSetInfo fileSet = additionalProps.getFileSet();
+
+        if (fileSet == null) {
+            return;
+        }
+
+        List<ResourceS3FileInfo> fileInfos = fileSet.getFiles();
+
+        if (fileInfos == null || fileInfos.isEmpty()) {
+            return;
+        }
+
+        for (ResourceS3FileInfo fileInfo : fileInfos) {
+            processprocessS3BucketFile(pluginPackage, s3ResourceInfo, s3ResItem, resServer, fileInfo);
         }
     }
 
-    private String initS3BucketResource(PluginPackageRuntimeResourcesS3 s3ResourceInfo) {
+    private void processprocessS3BucketFile(PluginPackages pluginPackage,
+            PluginPackageRuntimeResourcesS3 s3ResourceInfo, ResourceItem s3ResItem, ResourceServer resServer,
+            ResourceS3FileInfo fileInfo) {
+        log.debug("try to process:{}", fileInfo);
+
+        if (StringUtils.isBlank(fileInfo.getSource())) {
+            return;
+        }
+
+        if (StringUtils.isBlank(fileInfo.getToFile())) {
+            return;
+        }
+
+        String sourceFileName = stripLeadingSlash(fileInfo.getSource());
+        String toFileName = stripLeadingSlash(fileInfo.getToFile());
+
+        String tmpFolderName = new SimpleDateFormat("yyyyMMddHHmmssSSS").format(new Date());
+        String tmpFilePath = SystemUtils.getTempFolderPath() + tmpFolderName + "/" + sourceFileName;
+
+        String s3KeyName = pluginPackage.getName() + "/" + pluginPackage.getVersion() + "/" + sourceFileName;
+        log.info("Download plugin package from S3: {}", s3KeyName);
+
+        s3Client.downFile(pluginProperties.getPluginPackageBucketName(), s3KeyName, tmpFilePath);
+
+        File toUploadFile = new File(tmpFilePath);
+
+        log.debug("s3 file: {}", toUploadFile.getAbsolutePath());
+        String keyName = toFileName;
+        log.debug("keyName : {}", keyName);
+
+        String dbPassword = resServer.getLoginPassword();
+        String password = EncryptionUtils.decryptAesPrefixedStringForcely(dbPassword,
+                resourceProperties.getPasswordEncryptionSeed(), resServer.getName());
+
+        String endPoint = String.format("http://%s:%s", resServer.getHost(), resServer.getPort());
+        RealS3Client amazonS3Client = new RealS3Client(endPoint, resServer.getLoginUsername(), password);
+
+        String s3FileUrl = amazonS3Client.uploadFile(s3ResItem.getName(), keyName, toUploadFile);
+
+        log.debug("s3FileUrl : {}", s3FileUrl);
+    }
+
+    private String stripLeadingSlash(String s) {
+        if (s.startsWith("/")) {
+            return s.substring(1);
+        } else {
+            return s;
+        }
+    }
+
+    private ResourceS3AdditionalProperties convertFromJson(String json) {
+        try {
+            ResourceS3AdditionalProperties additionalProps = objectMapper.readValue(json,
+                    ResourceS3AdditionalProperties.class);
+            return additionalProps;
+        } catch (Exception e) {
+            log.error("Errors while reading json data.", e);
+            throw new WecubeCoreException(e.getMessage());
+        }
+    }
+
+    private ResourceItem initS3BucketResource(PluginPackageRuntimeResourcesS3 s3ResourceInfo) {
         return createPluginS3Bucket(s3ResourceInfo);
     }
 
-    //TODO
-    private String createPluginS3Bucket(PluginPackageRuntimeResourcesS3 s3ResourceInfo) {
+    // TODO
+    private ResourceItem createPluginS3Bucket(PluginPackageRuntimeResourcesS3 s3ResourceInfo) {
         QueryRequestDto queryRequest = QueryRequestDto.defaultQueryObject("type", ResourceServerType.S3.getCode());
         List<ResourceServerDto> s3Servers = resourceManagementService.retrieveServers(queryRequest).getContents();
         if (s3Servers.size() == 0) {
@@ -604,7 +711,10 @@ public class PluginInstanceMgmtService extends AbstractPluginMgmtService {
             return null;
         }
         log.info("S3 bucket creation has done...");
-        return resultResourceItemDtos.get(0).getId();
+
+        ResourceItemDto resItemDto = resultResourceItemDtos.get(0);
+        ResourceItem resItem = resourceItemMapper.selectByPrimaryKey(resItemDto.getId());
+        return resItem;
     }
 
     private LocalDatabaseInfo handleCreateDatabase(List<PluginPackageRuntimeResourcesMysql> mysqlInfoResourceEntities,
