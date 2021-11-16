@@ -123,6 +123,10 @@ public class EntityDataCenterService {
 
     protected Map<String, Object> convertDynamicEntityValueDto(DynamicEntityValueDto entityValueDto) {
         Map<String, Object> targetEntityValueAsMap = new HashMap<>();
+        targetEntityValueAsMap.put("id", entityValueDto.getOid());
+        targetEntityValueAsMap.put("dataId", entityValueDto.getEntityDataId());
+        targetEntityValueAsMap.put("displayName", entityValueDto.getEntityDisplayName());
+        
         List<DynamicEntityAttrValueDto> attrValues = entityValueDto.getAttrValues();
         if (attrValues == null || attrValues.isEmpty()) {
             return targetEntityValueAsMap;
