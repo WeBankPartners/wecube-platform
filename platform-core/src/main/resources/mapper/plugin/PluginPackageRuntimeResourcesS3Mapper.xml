@@ -9,9 +9,11 @@
             jdbcType="VARCHAR" />
         <result column="bucket_name" property="bucketName"
             jdbcType="VARCHAR" />
+        <result column="additional_properties" property="additionalProperties"
+            jdbcType="LONGVARCHAR" />
     </resultMap>
     <sql id="Base_Column_List">
-        id, plugin_package_id, bucket_name
+        id, plugin_package_id, bucket_name, additional_properties
     </sql>
     <select id="selectByPrimaryKey" resultMap="BaseResultMap"
         parameterType="java.lang.String">
@@ -26,11 +28,18 @@
     </delete>
     <insert id="insert"
         parameterType="com.webank.wecube.platform.core.entity.plugin.PluginPackageRuntimeResourcesS3">
-        insert into plugin_package_runtime_resources_s3 (id,
-        plugin_package_id, bucket_name
+        insert into plugin_package_runtime_resources_s3 
+        (id,
+        plugin_package_id, 
+        bucket_name,
+        additional_properties
         )
-        values (#{id,jdbcType=VARCHAR}, #{pluginPackageId,jdbcType=VARCHAR},
-        #{bucketName,jdbcType=VARCHAR}
+        values 
+        (
+        #{id,jdbcType=VARCHAR}, 
+        #{pluginPackageId,jdbcType=VARCHAR},
+        #{bucketName,jdbcType=VARCHAR},
+        #{additionalProperties,jdbcType=LONGVARCHAR}
         )
     </insert>
     <insert id="insertSelective"
@@ -46,6 +55,9 @@
             <if test="bucketName != null">
                 bucket_name,
             </if>
+            <if test="additionalProperties != null">
+                additional_properties,
+            </if>
         </trim>
         <trim prefix="values (" suffix=")" suffixOverrides=",">
             <if test="id != null">
@@ -56,6 +68,9 @@
             </if>
             <if test="bucketName != null">
                 #{bucketName,jdbcType=VARCHAR},
+            </if>
+            <if test="additionalProperties != null">
+                #{additionalProperties,jdbcType=LONGVARCHAR},
             </if>
         </trim>
     </insert>
@@ -69,14 +84,19 @@
             <if test="bucketName != null">
                 bucket_name = #{bucketName,jdbcType=VARCHAR},
             </if>
+            <if test="additionalProperties != null">
+                additional_properties = #{additionalProperties,jdbcType=LONGVARCHAR},
+            </if>
         </set>
         where id = #{id,jdbcType=VARCHAR}
     </update>
     <update id="updateByPrimaryKey"
         parameterType="com.webank.wecube.platform.core.entity.plugin.PluginPackageRuntimeResourcesS3">
         update plugin_package_runtime_resources_s3
-        set plugin_package_id = #{pluginPackageId,jdbcType=VARCHAR},
-        bucket_name = #{bucketName,jdbcType=VARCHAR}
+        set 
+        plugin_package_id = #{pluginPackageId,jdbcType=VARCHAR},
+        bucket_name = #{bucketName,jdbcType=VARCHAR},
+        additional_properties = #{additionalProperties,jdbcType=LONGVARCHAR}
         where id = #{id,jdbcType=VARCHAR}
     </update>
     
