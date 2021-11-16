@@ -145,6 +145,7 @@ public class PluginPackageMgmtService extends AbstractPluginMgmtService {
             if (latestVersionPluginPackagesEntity == null) {
                 latestVersionPluginPackagesEntity = lazyPluginPackage;
             } else {
+                //TODO take pro version into consider
                 String formerVersion = latestVersionPluginPackagesEntity.getVersion();
                 int compare = versionComparator.compare(lazyPluginPackage.getVersion(), formerVersion);
                 if (compare > 0) {
