@@ -92,4 +92,7 @@ public class Constants {
     
     public static final String SSH_AUTH_MODE_PASSWORD = "PASSWD";
     public static final String SSH_AUTH_MODE_KEY = "KEY";
+    
+    public static final String EDITION_ENTERPRISE = "enterprise";
+    public static final String EDITION_COMMUNITY = "community";
 }
