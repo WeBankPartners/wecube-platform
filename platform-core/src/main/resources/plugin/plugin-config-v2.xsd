@@ -301,5 +301,6 @@
     </xs:sequence>
     <xs:attribute type="xs:string" name="name"/>
     <xs:attribute type="xs:string" name="version"/>
+    <xs:attribute type="xs:string" name="edition"/>
   </xs:complexType>
 </xs:schema>
