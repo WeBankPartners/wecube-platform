@@ -1,5 +1,7 @@
 package com.webank.wecube.platform.core.entity.workflow;
 
+import java.util.Date;
+
 public class ProcDefAuthInfoQueryEntity {
     private String id;
     private String procDefKey;
@@ -7,6 +9,7 @@ public class ProcDefAuthInfoQueryEntity {
     private String rootEntity;
     private String status;
     private Integer procDefVersion;
+    private Date createdTime;
 
     public String getId() {
         return id;
@@ -55,5 +58,15 @@ public class ProcDefAuthInfoQueryEntity {
     public void setProcDefVersion(Integer procDefVersion) {
         this.procDefVersion = procDefVersion;
     }
+
+    public Date getCreatedTime() {
+        return createdTime;
+    }
+
+    public void setCreatedTime(Date createdTime) {
+        this.createdTime = createdTime;
+    }
+    
+    
 
 }

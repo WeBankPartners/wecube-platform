@@ -1364,7 +1364,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
         for (ProcExecBindingEntity assBinding : bindingsOfAssociatedNode) {
             ProcExecBindingEntity taskNodeBinding = new ProcExecBindingEntity();
             taskNodeBinding.setBindType(ProcExecBindingEntity.BIND_TYPE_TASK_NODE_INSTANCE);
-            taskNodeBinding.setBindFlag(ProcExecBindingEntity.BIND_FLAG_YES);
+            taskNodeBinding.setBindFlag(Constants.BIND_FLAG_YES);
             taskNodeBinding.setProcDefId(taskNodeDefEntity.getProcDefId());
             taskNodeBinding.setProcInstId(procInstEntity.getId());
             taskNodeBinding.setEntityDataId(assBinding.getEntityDataId());
@@ -1495,7 +1495,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 
             ProcExecBindingEntity taskNodeBinding = new ProcExecBindingEntity();
             taskNodeBinding.setBindType(ProcExecBindingEntity.BIND_TYPE_TASK_NODE_INSTANCE);
-            taskNodeBinding.setBindFlag(ProcExecBindingEntity.BIND_FLAG_YES);
+            taskNodeBinding.setBindFlag(Constants.BIND_FLAG_YES);
             taskNodeBinding.setProcDefId(taskNodeDef.getProcDefId());
             taskNodeBinding.setProcInstId(procInstEntity.getId());
             taskNodeBinding.setEntityDataId(tn.getId());
