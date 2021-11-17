@@ -70,6 +70,9 @@ public class PackageType {
     protected String name;
     @XmlAttribute(name = "version")
     protected String version;
+    
+    @XmlAttribute(name = "edition")
+    protected String edition;
     protected ParamObjectsType paramObjects;
 
     /**
@@ -294,6 +297,14 @@ public class PackageType {
 
     public void setParamObjects(ParamObjectsType paramObjects) {
         this.paramObjects = paramObjects;
+    }
+
+    public String getEdition() {
+        return edition;
+    }
+
+    public void setEdition(String edition) {
+        this.edition = edition;
     }
 
     

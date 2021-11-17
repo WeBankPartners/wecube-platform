@@ -445,6 +445,14 @@ public class PluginArtifactsMgmtService extends AbstractPluginMgmtService {
         pluginPackageEntity.setVersion(xmlPackage.getVersion());
         pluginPackageEntity.setStatus(PluginPackages.UNREGISTERED);
         pluginPackageEntity.setUploadTimestamp(new Date());
+        
+        String edition = xmlPackage.getEdition();
+        if(StringUtils.isBlank(edition)) {
+            edition = Constants.EDITION_COMMUNITY;
+        }
+        
+        pluginPackageEntity.setEdition(edition);
+        
         pluginPackagesMapper.insert(pluginPackageEntity);
 
         processPluginUiPackageFile(localFilePath, xmlPackage, pluginPackageEntity);
@@ -470,13 +478,18 @@ public class PluginArtifactsMgmtService extends AbstractPluginMgmtService {
 
 //        processParamObjects(xmlPackage.getParamObjects(), xmlPackage.getName(), xmlPackage.getVersion());
 
+        return buildUploadPackageResultDto(pluginPackageEntity);
+    }
+    
+    private UploadPackageResultDto buildUploadPackageResultDto(PluginPackages pluginPackageEntity) {
         UploadPackageResultDto result = new UploadPackageResultDto();
         result.setId(pluginPackageEntity.getId());
         result.setName(pluginPackageEntity.getName());
         result.setStatus(pluginPackageEntity.getStatus());
         result.setVersion(pluginPackageEntity.getVersion());
         result.setUiPackageIncluded(pluginPackageEntity.getUiPackageIncluded());
-
+        result.setEdition(pluginPackageEntity.getEdition());
+        
         return result;
     }
     

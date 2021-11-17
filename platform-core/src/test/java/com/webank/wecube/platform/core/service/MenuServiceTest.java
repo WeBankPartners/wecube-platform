@@ -17,6 +17,7 @@ import com.webank.wecube.platform.core.repository.plugin.MenuItemsMapper;
 import com.webank.wecube.platform.core.repository.plugin.PluginPackageMenusMapper;
 import com.webank.wecube.platform.core.repository.plugin.PluginPackagesMapper;
 import com.webank.wecube.platform.core.service.plugin.MenuService;
+import com.webank.wecube.platform.core.utils.Constants;
 import com.webank.wecube.platform.workflow.commons.LocalIdGenerator;
 
 public class MenuServiceTest extends DatabaseBasedTest {
@@ -123,6 +124,8 @@ public class MenuServiceTest extends DatabaseBasedTest {
         e.setUiPackageIncluded(uiPackageIncluded);
         e.setUploadTimestamp(uploadTimestamp);
         e.setVersion(version);
+        
+        e.setEdition(Constants.EDITION_COMMUNITY);
         
 
         return e;

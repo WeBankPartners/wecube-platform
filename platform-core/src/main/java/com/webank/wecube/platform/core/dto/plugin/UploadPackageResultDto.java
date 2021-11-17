@@ -12,6 +12,8 @@ public class UploadPackageResultDto {
     private String uploadTimestamp;
 
     private Boolean uiPackageIncluded;
+    
+    private String edition;
 
     public String getId() {
         return id;
@@ -61,4 +63,12 @@ public class UploadPackageResultDto {
         this.uiPackageIncluded = uiPackageIncluded;
     }
 
+    public String getEdition() {
+        return edition;
+    }
+
+    public void setEdition(String edition) {
+        this.edition = edition;
+    }
+    
 }
