@@ -1432,6 +1432,8 @@ public class PluginPackageMgmtService extends AbstractPluginMgmtService {
         dto.setUiPackageIncluded(entity.getUiPackageIncluded() == null ? false : entity.getUiPackageIncluded());
         dto.setUploadTimestamp(DateUtils.dateToString(entity.getUploadTimestamp()));
         dto.setVersion(entity.getVersion());
+        
+        dto.setEdition(entity.getEdition());
 
         return dto;
     }
