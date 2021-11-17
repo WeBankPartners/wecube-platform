@@ -214,6 +214,7 @@
                           @filterRuleChanged="singleFilterRuleChanged"
                           :routineExpression="pluginForm.routineExpression"
                           :allEntityType="allEntityType"
+                          :currentSelectedEntity="currentSelectedEntity"
                         >
                         </FilterRulesGroup>
                       </FormItem>
