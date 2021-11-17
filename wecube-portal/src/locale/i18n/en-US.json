@@ -532,5 +532,6 @@
   "delete_role": "Delete Role",
   "empty": " Is Empty",
   "login_method": "Login Method",
-  "secret_key": "Secret Key"
+  "secret_key": "Secret Key",
+  "select_cancel_all": "Select All OR Cancel All"
 }
