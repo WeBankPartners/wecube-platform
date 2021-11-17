@@ -3,13 +3,16 @@ package com.webank.wecube.platform.core.support.plugin.dto;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.commons.lang3.StringUtils;
+
 public class DynamicWorkflowInstCreationInfoDto {
     private String procDefId;
     private String procDefKey;
 
-    private DynamicEntityValueDto rootEntityValue;
+    private String rootEntityOid;
 
-    private List<DynamicTaskNodeBindInfoDto> taskNodeBindInfos = new ArrayList<>();
+    private List<DynamicEntityValueDto> entities = new ArrayList<>();
+    private List<TaskNodeBindInfoDto> bindings = new ArrayList<>();
 
     public String getProcDefId() {
         return procDefId;
@@ -27,20 +30,28 @@ public class DynamicWorkflowInstCreationInfoDto {
         this.procDefKey = procDefKey;
     }
 
-    public DynamicEntityValueDto getRootEntityValue() {
-        return rootEntityValue;
+    public String getRootEntityOid() {
+        return rootEntityOid;
     }
 
-    public void setRootEntityValue(DynamicEntityValueDto rootEntityValue) {
-        this.rootEntityValue = rootEntityValue;
+    public void setRootEntityOid(String rootEntityOid) {
+        this.rootEntityOid = rootEntityOid;
     }
 
-    public List<DynamicTaskNodeBindInfoDto> getTaskNodeBindInfos() {
-        return taskNodeBindInfos;
+    public List<DynamicEntityValueDto> getEntities() {
+        return entities;
     }
 
-    public void setTaskNodeBindInfos(List<DynamicTaskNodeBindInfoDto> taskNodeBindInfos) {
-        this.taskNodeBindInfos = taskNodeBindInfos;
+    public void setEntities(List<DynamicEntityValueDto> entities) {
+        this.entities = entities;
+    }
+
+    public List<TaskNodeBindInfoDto> getBindings() {
+        return bindings;
+    }
+
+    public void setBindings(List<TaskNodeBindInfoDto> bindings) {
+        this.bindings = bindings;
     }
 
     @Override
@@ -50,12 +61,31 @@ public class DynamicWorkflowInstCreationInfoDto {
         builder.append(procDefId);
         builder.append(", procDefKey=");
         builder.append(procDefKey);
-        builder.append(", rootEntityValue=");
-        builder.append(rootEntityValue);
-        builder.append(", taskNodeBindInfos=");
-        builder.append(taskNodeBindInfos);
+        builder.append(", rootEntityOid=");
+        builder.append(rootEntityOid);
+        builder.append(", entities=");
+        builder.append(entities);
+        builder.append(", bindings=");
+        builder.append(bindings);
         builder.append("]");
         return builder.toString();
     }
 
+    public DynamicEntityValueDto findByOid(String oid){
+        if(StringUtils.isBlank(oid)) {
+            return null;
+        }
+        
+        if(entities == null ) {
+            return null;
+        }
+        
+        for(DynamicEntityValueDto e : entities){
+            if(e.getOid().equals(oid)){
+                return e;
+            }
+        }
+        
+        return null;
+    }
 }
