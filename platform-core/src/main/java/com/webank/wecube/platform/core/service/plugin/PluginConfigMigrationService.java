@@ -1300,6 +1300,7 @@ public class PluginConfigMigrationService {
         sb.append("**PluginPackageID:").append(pluginPackage.getId()).append("\n");
         sb.append("**PluginName:").append(pluginPackage.getName()).append("\n");
         sb.append("**PluginVersion:").append(pluginPackage.getVersion()).append("\n");
+        sb.append("**Edition:").append(pluginPackage.getEdition()).append("\n");
 
         sb.append("\n-->");
 

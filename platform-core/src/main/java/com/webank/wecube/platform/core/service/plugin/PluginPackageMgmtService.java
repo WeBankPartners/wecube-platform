@@ -150,11 +150,30 @@ public class PluginPackageMgmtService extends AbstractPluginMgmtService {
                 int compare = versionComparator.compare(lazyPluginPackage.getVersion(), formerVersion);
                 if (compare > 0) {
                     latestVersionPluginPackagesEntity = lazyPluginPackage;
+                }else if(compare == 0) {
+                    int dateCompare = compareUploadTime(lazyPluginPackage, latestVersionPluginPackagesEntity);
+                    if(dateCompare > 0) {
+                        latestVersionPluginPackagesEntity = lazyPluginPackage;
+                    }
+                }else {
+                    //do nothing
                 }
             }
         }
 
         return latestVersionPluginPackagesEntity;
+    }
+    
+    private int compareUploadTime(PluginPackages current, PluginPackages last) {
+        if(current.getUploadTimestamp() == null) {
+            return -1;
+        }
+        
+        if(last.getUploadTimestamp() == null) {
+            return 1;
+        }
+        
+        return current.getUploadTimestamp().compareTo(last.getUploadTimestamp());
     }
 
     /**
