@@ -28,7 +28,7 @@ public interface PluginPackagesMapper {
      * @param version
      * @return
      */
-    int countByNameAndVersion(@Param("name") String name, @Param("version") String version);
+    int countByNameAndVersion(@Param("name") String name, @Param("version") String version,@Param("edition") String edition);
 
     /**
      * 
