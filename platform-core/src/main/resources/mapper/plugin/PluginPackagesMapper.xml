@@ -168,6 +168,8 @@
         #{name,jdbcType=VARCHAR}
         AND
         version = #{version,jdbcType=VARCHAR}
+        AND
+        edition = #{edition,jdbcType=VARCHAR}
     </select>
 
     <select id="selectAll" resultMap="BaseResultMap">
