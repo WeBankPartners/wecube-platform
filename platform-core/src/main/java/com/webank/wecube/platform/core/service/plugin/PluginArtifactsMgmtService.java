@@ -427,13 +427,18 @@ public class PluginArtifactsMgmtService extends AbstractPluginMgmtService {
         }
 
         PackageType xmlPackage = JaxbUtils.convertToObject(registerXmlDataAsStr, PackageType.class);
+        
+        String edition = xmlPackage.getEdition();
+        if(StringUtils.isBlank(edition)) {
+            edition = Constants.EDITION_COMMUNITY;
+        }
 
         pluginPackageValidator.validatePackage(xmlPackage);
         dataModelValidator.validateDataModel(xmlPackage.getDataModel());
 
-        if (isPluginPackageExists(xmlPackage.getName(), xmlPackage.getVersion())) {
-            String errMsg = String.format("Plugin package [name=%s, version=%s] exists.", xmlPackage.getName(),
-                    xmlPackage.getVersion());
+        if (isPluginPackageExists(xmlPackage.getName(), xmlPackage.getVersion(), edition)) {
+            String errMsg = String.format("Plugin package [name=%s, version=%s, edition=%s] exists.", xmlPackage.getName(),
+                    xmlPackage.getVersion(), edition);
             throw new WecubeCoreException("3115", errMsg, xmlPackage.getName(), xmlPackage.getVersion());
         }
 
@@ -446,10 +451,7 @@ public class PluginArtifactsMgmtService extends AbstractPluginMgmtService {
         pluginPackageEntity.setStatus(PluginPackages.UNREGISTERED);
         pluginPackageEntity.setUploadTimestamp(new Date());
         
-        String edition = xmlPackage.getEdition();
-        if(StringUtils.isBlank(edition)) {
-            edition = Constants.EDITION_COMMUNITY;
-        }
+        
         
         pluginPackageEntity.setEdition(edition);
         
@@ -1313,8 +1315,8 @@ public class PluginArtifactsMgmtService extends AbstractPluginMgmtService {
         log.info("Zip file has uploaded !");
     }
 
-    private boolean isPluginPackageExists(String name, String version) {
-        return (pluginPackagesMapper.countByNameAndVersion(name, version) > 0);
+    private boolean isPluginPackageExists(String name, String version, String edition) {
+        return (pluginPackagesMapper.countByNameAndVersion(name, version, edition) > 0);
     }
 
     private void checkLocalFilePath(File localFilePath) {
