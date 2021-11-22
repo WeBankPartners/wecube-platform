@@ -137,7 +137,7 @@
                 #{uiPackageIncluded,jdbcType=BIT},
             </if>
             <if test="edition != null">
-                status = #{edition,jdbcType=VARCHAR},
+                edition = #{edition,jdbcType=VARCHAR},
             </if>
         </set>
         where id = #{id,jdbcType=VARCHAR}
