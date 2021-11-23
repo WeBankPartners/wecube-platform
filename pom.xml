@@ -3,16 +3,18 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
+	<!--
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
         <version>2.1.3.RELEASE</version>
         <relativePath/>
     </parent>
+	-->
     <groupId>com.webank.wecube.platform</groupId>
     <artifactId>wecube-platform</artifactId>
     <packaging>pom</packaging>
-    <version>3.0-SNAPSHOT</version>
+    <version>3.2.1</version>
 
     <properties>
         <version.camunda>7.11.0-alpha5</version.camunda>
@@ -24,9 +26,9 @@
 
     <modules>
         <module>platform-workflow</module>
-	<module>platform-auth-client</module>
-	<module>platform-auth-server</module>
-	<module>platform-core</module>
-	<module>platform-gateway</module>
+		<module>platform-auth-client</module>
+		<module>platform-auth-server</module>
+		<module>platform-core</module>
+		<module>platform-gateway</module>
     </modules>
 </project>
