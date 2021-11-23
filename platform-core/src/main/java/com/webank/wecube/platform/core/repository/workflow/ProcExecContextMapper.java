@@ -2,6 +2,7 @@ package com.webank.wecube.platform.core.repository.workflow;
 
 import java.util.List;
 
+import org.apache.ibatis.annotations.Param;
 import org.springframework.stereotype.Repository;
 
 import com.webank.wecube.platform.core.entity.workflow.ProcExecContextEntity;
@@ -17,6 +18,7 @@ public interface ProcExecContextMapper {
 
     int updateByPrimaryKeySelective(ProcExecContextEntity record);
 
-    List<ProcExecContextEntity> selectAllContextByCtxType(String procDefId, Integer procInstId, String ctxType);
+    List<ProcExecContextEntity> selectAllContextByCtxType(@Param("procDefId") String procDefId,
+            @Param("procInstId") Integer procInstId, @Param("ctxType") String ctxType);
 
 }
