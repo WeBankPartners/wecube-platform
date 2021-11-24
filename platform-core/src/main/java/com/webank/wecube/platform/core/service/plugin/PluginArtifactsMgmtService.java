@@ -1291,7 +1291,21 @@ public class PluginArtifactsMgmtService extends AbstractPluginMgmtService {
             while (entries.hasMoreElements()) {
                 ZipEntry entry = (ZipEntry) entries.nextElement();
                 String zipEntryName = entry.getName();
-                if (entry.isDirectory() || !ACCEPTED_FILES.contains(zipEntryName)) {
+//                if (entry.isDirectory() || !ACCEPTED_FILES.contains(zipEntryName)) {
+//                    continue;
+//                }
+                
+                if(entry.isDirectory()) {
+                    File dirFile = new File(destFilePath, zipEntryName);
+                    if(!dirFile.exists()) {
+                        boolean mkDirRet = dirFile.mkdirs();
+                        if(mkDirRet) {
+                            log.info("Create new temporary file: {}", destFilePath + zipEntryName);
+                        }else {
+                            log.info("Failed to create new temporary file: {}", destFilePath + zipEntryName);
+                        }
+                    }
+                    
                     continue;
                 }
 
@@ -1312,7 +1326,7 @@ public class PluginArtifactsMgmtService extends AbstractPluginMgmtService {
             }
         }
 
-        log.info("Zip file has uploaded !");
+        log.info("Zip file has unzipped !");
     }
 
     private boolean isPluginPackageExists(String name, String version, String edition) {
