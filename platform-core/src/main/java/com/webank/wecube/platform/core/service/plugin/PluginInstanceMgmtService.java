@@ -64,6 +64,7 @@ import com.webank.wecube.platform.core.repository.plugin.PluginPackagesMapper;
 import com.webank.wecube.platform.core.repository.plugin.ResourceItemMapper;
 import com.webank.wecube.platform.core.repository.plugin.ResourceServerMapper;
 import com.webank.wecube.platform.core.service.cmder.ssh2.RemoteCommandExecutorConfig;
+import com.webank.wecube.platform.core.service.resource.MysqlDatabaseManagementService;
 import com.webank.wecube.platform.core.service.resource.ResourceItemType;
 import com.webank.wecube.platform.core.service.resource.ResourceManagementService;
 import com.webank.wecube.platform.core.service.resource.ResourceServerType;
@@ -139,6 +140,9 @@ public class PluginInstanceMgmtService extends AbstractPluginMgmtService {
 
     @Autowired
     private PluginCertificationMapper pluginCertificationMapper;
+
+    @Autowired
+    private MysqlDatabaseManagementService mysqlDatabaseManagementService;
 
     private ObjectMapper objectMapper = new ObjectMapper();
 
@@ -787,6 +791,7 @@ public class PluginInstanceMgmtService extends AbstractPluginMgmtService {
             ResourceItem resourceItemEntity = resourceItemMapper.selectByPrimaryKey(mysqlInstance.getResourceItemId());
             ResourceServer resourceServerEntity = resourceServerMapper
                     .selectByPrimaryKey(resourceItemEntity.getResourceServerId());
+            resourceItemEntity.setResourceServer(resourceServerEntity);
             // ResourceServerDomain dbServer =
             // resourceItemRepository.findById(mysqlInstance.getResourceItemId()).get()
             // .getResourceServer();
@@ -795,12 +800,26 @@ public class PluginInstanceMgmtService extends AbstractPluginMgmtService {
                     mysqlInstance.getPassword(), mysqlInstance.getId());
 
             // execute init.sql
-            tryInitMysqlDatabaseTables(resourceServerEntity, mysqlInstance, pluginPackage);
+            try {
+                tryInitMysqlDatabaseTables(resourceServerEntity, mysqlInstance, pluginPackage);
+            } catch (Exception e) {
+                tryRollbackMysqlDatabaseSchemaCreation(resourceItemEntity, mysqlInstance);
+                throw e;
+            }
             return dbInfo;
         } else {
             log.warn("mysql resources is empty for {}", pluginPackage.getName());
             return null;
         }
+    }
+
+    private void tryRollbackMysqlDatabaseSchemaCreation(ResourceItem resourceItem, PluginMysqlInstances mysqlInstance) {
+        try {
+            mysqlDatabaseManagementService.deleteItem(resourceItem);
+        } catch (Exception e1) {
+            log.error("Failed to rollback mysql database creation.", e1);
+        }
+        pluginMysqlInstancesMapper.deleteByPrimaryKey(mysqlInstance.getId());
     }
 
     // execute init.sql
