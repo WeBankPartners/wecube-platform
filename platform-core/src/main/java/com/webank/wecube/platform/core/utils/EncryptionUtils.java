@@ -81,6 +81,11 @@ public class EncryptionUtils {
         
         String toDecyptStr = encryptedStr;
         
+        if(toDecyptStr.startsWith(Constants.PASSWORD_ENCRYPT_RAW_PREFIX)) {
+            toDecyptStr = toDecyptStr.substring(Constants.PASSWORD_ENCRYPT_RAW_PREFIX.length());
+            return toDecyptStr;
+        }
+        
         if (toDecyptStr.startsWith(Constants.PASSWORD_ENCRYPT_AES_PREFIX)) {
             toDecyptStr = toDecyptStr.substring(Constants.PASSWORD_ENCRYPT_AES_PREFIX.length());
         }

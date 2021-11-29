@@ -88,4 +88,22 @@ public class S3BucketManagementService implements ResourceItemService {
     public ResourceItem updateItem(ResourceItem item) {
         throw new UnsupportedOperationException();
     }
+    
+    @Override
+    public boolean doesItemExist(ResourceItem item) {
+        String password = item.getResourceServer().getLoginPassword();
+
+        password = EncryptionUtils.decryptAesPrefixedStringForcely(password,
+                resourceProperties.getPasswordEncryptionSeed(), item.getResourceServer().getName());
+        AmazonS3 amazonS3 = newS3Client(item.getResourceServer().getHost(), item.getResourceServer().getPort(),
+                item.getResourceServer().getLoginUsername(), password);
+
+        try {
+            boolean exists = amazonS3.doesBucketExist(item.getName());
+            return exists;
+        } catch (Exception e) {
+            log.error("Failed to check S3 bucket.", e);
+            throw new WecubeCoreException("Failed to check S3 bucket:%s", e.getMessage());
+        }
+    }
 }

@@ -10,4 +10,6 @@ public interface ResourceItemService {
     ResourceItem updateItem(ResourceItem item);
 
     void deleteItem(ResourceItem item);
+    
+    boolean doesItemExist(ResourceItem item);
 }
