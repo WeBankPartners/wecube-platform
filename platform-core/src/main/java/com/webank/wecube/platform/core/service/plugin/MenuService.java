@@ -18,9 +18,11 @@ import com.webank.wecube.platform.core.commons.AuthenticationContextHolder;
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
 import com.webank.wecube.platform.core.dto.plugin.MenuItemDto;
 import com.webank.wecube.platform.core.entity.plugin.MenuItems;
+import com.webank.wecube.platform.core.entity.plugin.PluginInstances;
 import com.webank.wecube.platform.core.entity.plugin.PluginPackageMenus;
 import com.webank.wecube.platform.core.entity.plugin.PluginPackages;
 import com.webank.wecube.platform.core.repository.plugin.MenuItemsMapper;
+import com.webank.wecube.platform.core.repository.plugin.PluginInstancesMapper;
 import com.webank.wecube.platform.core.repository.plugin.PluginPackageMenusMapper;
 import com.webank.wecube.platform.core.service.user.RoleMenuService;
 
@@ -33,6 +35,9 @@ public class MenuService {
 
     @Autowired
     private PluginPackageMenusMapper pluginPackageMenusMapper;
+
+    @Autowired
+    private PluginInstancesMapper pluginInstancesMapper;
 
     @Autowired
     private RoleMenuService roleMenuService;
@@ -91,7 +96,7 @@ public class MenuService {
         resultMenuItemDtos.addAll(allSysMenusDtos);
 
         List<PluginPackageMenus> pluginPackageMenusEntities = calAvailablePluginPackgeMenus();
-        if(pluginPackageMenusEntities == null ){
+        if (pluginPackageMenusEntities == null) {
             return resultMenuItemDtos;
         }
         for (PluginPackageMenus pluginPackageMenuEntity : pluginPackageMenusEntities) {
@@ -133,6 +138,9 @@ public class MenuService {
                 }
 
                 for (PluginPackageMenus pluginPackageMenusEntity : assignedPluginPackageMenusEntities) {
+                    if (!hasRunningPluginInstances(pluginPackageMenusEntity)) {
+                        continue;
+                    }
                     MenuItemDto pluginPackageMenusDto = buildPackageMenuItemDto(pluginPackageMenusEntity);
                     menuItemsByAllMenuCodes.add(pluginPackageMenusDto);
                 }
@@ -142,6 +150,24 @@ public class MenuService {
         resultMenuItemDtos.addAll(menuItemsByAllMenuCodes);
         Collections.sort(resultMenuItemDtos);
         return resultMenuItemDtos;
+    }
+
+    private boolean hasRunningPluginInstances(PluginPackageMenus pluginPackageMenus) {
+        List<PluginInstances> instances = pluginInstancesMapper
+                .selectAllByPluginPackage(pluginPackageMenus.getPluginPackageId());
+        if (instances == null || instances.isEmpty()) {
+            return false;
+        }
+
+        boolean hasRunningInstance = false;
+        for (PluginInstances instance : instances) {
+            if (PluginInstances.CONTAINER_STATUS_RUNNING.equalsIgnoreCase(instance.getContainerStatus())) {
+                hasRunningInstance = true;
+                break;
+            }
+        }
+
+        return hasRunningInstance;
     }
 
     private Set<String> calAssignedMenuCodesByCurrentUser() {
