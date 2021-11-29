@@ -40,7 +40,13 @@ public class MysqlDatabaseManagementService implements ResourceItemService {
     public ResourceItem createItem(ResourceItem item) {
         DriverManagerDataSource dataSource = newDatasource(item);
         try (Connection connection = dataSource.getConnection(); Statement statement = connection.createStatement();) {
-            statement.executeUpdate(String.format("CREATE SCHEMA %s", item.getName()));
+            if(doesItemExist(item)) {
+                log.info("Such database schema already existed, name={}", item.getName());
+            }else {
+                statement.executeUpdate(String.format("CREATE SCHEMA %s", item.getName()));
+            }
+            
+            
             mysqlAccountManagementService.createItem(item);
         } catch (SQLException e) {
             String errorMessage = String.format("Failed to create schema [%s], meet error [%s].", item.getName(),
