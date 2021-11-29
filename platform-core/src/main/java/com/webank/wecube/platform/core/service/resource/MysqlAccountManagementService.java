@@ -57,7 +57,7 @@ public class MysqlAccountManagementService implements ResourceItemService {
 
         DriverManagerDataSource dataSource = newDatasource(item);
         try (Connection connection = dataSource.getConnection(); Statement statement = connection.createStatement();) {
-            log.info("password before decrypt={}", password);
+//            log.info("password before decrypt={}", password);
             String plainPassword = EncryptionUtils.decryptAesPrefixedStringForcely(
                     password,
                     resourceProperties.getPasswordEncryptionSeed(), item.getName());
