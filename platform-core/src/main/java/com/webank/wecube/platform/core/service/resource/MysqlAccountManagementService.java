@@ -1,6 +1,7 @@
 package com.webank.wecube.platform.core.service.resource;
 
 import java.sql.Connection;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Map;
@@ -35,10 +36,10 @@ public class MysqlAccountManagementService implements ResourceItemService {
         dataSource.setDriverClassName("com.mysql.cj.jdbc.Driver");
         if (Strings.isNullOrEmpty(database)) {
             dataSource.setUrl("jdbc:mysql://" + host + ":" + port
-                    + "?characterEncoding=utf8&serverTimezone=UTC&nullCatalogMeansCurrent=true");
+                    + "?characterEncoding=utf8&serverTimezone=UTC&nullCatalogMeansCurrent=true&useSSL=false");
         } else {
             dataSource.setUrl("jdbc:mysql://" + host + ":" + port + "/" + database
-                    + "?characterEncoding=utf8&serverTimezone=UTC&nullCatalogMeansCurrent=true");
+                    + "?characterEncoding=utf8&serverTimezone=UTC&nullCatalogMeansCurrent=true&useSSL=false");
         }
         dataSource.setUsername(username);
         dataSource.setPassword(password);
@@ -61,8 +62,8 @@ public class MysqlAccountManagementService implements ResourceItemService {
                     password,
                     resourceProperties.getPasswordEncryptionSeed(), item.getName());
             statement.executeUpdate(String.format("CREATE USER `%s` IDENTIFIED BY '%s'", username, plainPassword));
-            statement.executeUpdate(String.format("GRANT ALL ON %s.* TO %s@'%%' IDENTIFIED BY '%s'", item.getName(),
-                    username, plainPassword));
+            statement.executeUpdate(String.format("GRANT ALL ON %s.* TO '%s'@'%%'", item.getName(),
+                    username));
         } catch (Exception e) {
             String errorMessage = String.format("Failed to create account [username = %s]", username);
             log.error(errorMessage, e);
@@ -80,6 +81,25 @@ public class MysqlAccountManagementService implements ResourceItemService {
             String errorMessage = String.format("Failed to drop account [username = %s]", item.getName());
             log.error(errorMessage);
             throw new WecubeCoreException("3242", errorMessage, e);
+        }
+    }
+    
+    public boolean doesItemExist(ResourceItem item) {
+        DriverManagerDataSource dataSource = newDatasource(item);
+        try (Connection connection = dataSource.getConnection(); Statement statement = connection.createStatement();) {
+            int count = 0;
+            String countUserSql = String.format("select count(1) from mysql.user where user = '%s'", item.getName()); 
+            try(ResultSet rs = statement.executeQuery(countUserSql);){
+                if(rs.next()) {
+                    count = rs.getInt(1);
+                }
+            }
+            
+            return count > 0;
+        } catch (SQLException e) {
+            log.debug("Errors while checking account.", e);
+            String errorMessage = String.format("Failed to check account [username = %s] : %s", item.getName(), e.getMessage());
+            throw new WecubeCoreException(errorMessage);
         }
     }
 
