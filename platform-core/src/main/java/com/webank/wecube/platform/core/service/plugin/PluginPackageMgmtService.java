@@ -281,6 +281,8 @@ public class PluginPackageMgmtService extends AbstractPluginMgmtService {
 
         pluginPackageEntity.setStatus(PluginPackages.DECOMMISSIONED);
         pluginPackagesMapper.updateByPrimaryKeySelective(pluginPackageEntity);
+        
+        tryDeactiveMenus();
     }
 
     /**
@@ -1455,6 +1457,10 @@ public class PluginPackageMgmtService extends AbstractPluginMgmtService {
         dto.setEdition(entity.getEdition());
 
         return dto;
+    }
+    
+    private void tryDeactiveMenus() {
+        //TODO
     }
 
 }
