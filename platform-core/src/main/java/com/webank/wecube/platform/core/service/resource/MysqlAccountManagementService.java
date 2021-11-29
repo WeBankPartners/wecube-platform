@@ -61,6 +61,9 @@ public class MysqlAccountManagementService implements ResourceItemService {
             String plainPassword = EncryptionUtils.decryptAesPrefixedStringForcely(
                     password,
                     resourceProperties.getPasswordEncryptionSeed(), item.getName());
+            if(doesItemExist(item)) {
+                deleteItem(item);
+            }
             statement.executeUpdate(String.format("CREATE USER `%s` IDENTIFIED BY '%s'", username, plainPassword));
             statement.executeUpdate(String.format("GRANT ALL ON %s.* TO '%s'@'%%'", item.getName(),
                     username));
