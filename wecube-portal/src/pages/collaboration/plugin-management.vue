@@ -486,6 +486,15 @@ export default {
     }
   },
   methods: {
+    reloadPage () {
+      this.$Notice.info({
+        title: this.$t('notify'),
+        desc: this.$t('reload_notify')
+      })
+      setTimeout(() => {
+        document.location.reload()
+      }, 3000)
+    },
     modalChangeHandle (v) {
       if (!v) {
         this.cancelHandler()
@@ -608,6 +617,7 @@ export default {
         const index = this.availiableHostsWithPort.findIndex(item => item.port === port)
         this.availiableHostsWithPort.splice(index, 1)
         this.getAvailableInstancesByPackageId(this.currentPlugin.id)
+        this.reloadPage()
       }
     },
 
@@ -673,6 +683,7 @@ export default {
             })
             this.getAllPluginPkgs()
             this.swapPanel('')
+            this.reloadPage()
           }
         },
         onCancel: () => {}
@@ -776,6 +787,7 @@ export default {
       }
       this.isLoading = false
       this.getAvailableInstancesByPackageId(this.currentPlugin.id)
+      this.reloadPage()
     },
     async getAvailableInstancesByPackageId (id) {
       this.isLoading = true
