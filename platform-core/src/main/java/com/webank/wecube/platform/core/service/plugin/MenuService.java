@@ -95,7 +95,7 @@ public class MenuService {
 
         resultMenuItemDtos.addAll(allSysMenusDtos);
 
-        List<PluginPackageMenus> pluginPackageMenusEntities = calAvailablePluginPackgeMenus();
+        List<PluginPackageMenus> pluginPackageMenusEntities = calAvailablePluginPackageMenus();
         if (pluginPackageMenusEntities == null) {
             return resultMenuItemDtos;
         }
@@ -263,7 +263,7 @@ public class MenuService {
         return resultPluginPackageMenus;
     }
 
-    private List<PluginPackageMenus> calAvailablePluginPackgeMenus() {
+    private List<PluginPackageMenus> calAvailablePluginPackageMenus() {
         List<PluginPackageMenus> resultPluginPackageMenus = new ArrayList<>();
         List<String> pluginPackageActiveStatues = new ArrayList<String>();
         pluginPackageActiveStatues.addAll(PluginPackages.PLUGIN_PACKAGE_ACTIVE_STATUSES);
