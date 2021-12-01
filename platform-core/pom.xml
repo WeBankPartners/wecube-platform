@@ -142,7 +142,7 @@
         <dependency>
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-aws-context</artifactId>
-            <version>1.0.2.RELEASE</version>
+            <version>1.0.4.RELEASE</version>
         </dependency>
         <dependency>
             <groupId>com.amazonaws</groupId>
