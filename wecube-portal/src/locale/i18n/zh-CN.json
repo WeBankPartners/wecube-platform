@@ -531,5 +531,7 @@
   "empty": "为空",
   "login_method": "登录方式",
   "secret_key": "密钥",
-  "select_cancel_all": "全部选中或取消"
+  "select_cancel_all": "全部选中或取消",
+  "notify": "通知",
+  "reload_notify": "3S后刷新页面，以便重新加载资源"
 }
