@@ -550,6 +550,12 @@ public class PluginArtifactsMgmtService extends AbstractPluginMgmtService {
 
     protected UploadPackageResultDto performUploadPackage(MultipartFile pluginPackageFile, File localFilePath) {
         String pluginPackageFileName = pluginPackageFile.getName();
+        
+        if(!validateUploadFilename(pluginPackageFileName)){
+            log.info("Invalid upload filename:{}", pluginPackageFileName);
+            throw new WecubeCoreException("Invalid upload filename.");
+        }
+        
         if (!localFilePath.exists()) {
             if (localFilePath.mkdirs()) {
                 log.info("Create directory [{}] successful", localFilePath.getAbsolutePath());
@@ -559,6 +565,7 @@ public class PluginArtifactsMgmtService extends AbstractPluginMgmtService {
             }
         }
 
+        //TODO
         File dest = new File(localFilePath, "/" + pluginPackageFileName);
         try {
             log.info("new file location: {}, filename: {}, canonicalpath: {}, canonicalfilename: {}",
@@ -579,6 +586,18 @@ public class PluginArtifactsMgmtService extends AbstractPluginMgmtService {
         }
 
         return result;
+    }
+    
+    private boolean validateUploadFilename(String filename){
+        if(StringUtils.isBlank(filename)){
+            return false;
+        }
+        
+        if(filename.contains("\\") || filename.contains("/")){
+            return false;
+        }
+        
+        return true;
     }
 
     private void processParamObjects(ParamObjectsType xmlParamObjects, String packageName, String packageVersion, String configId) {
