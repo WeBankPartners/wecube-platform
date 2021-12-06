@@ -93,6 +93,8 @@ public class OperationEventManagementService {
             instantOperEventEntity.setUpdatedTime(new Date());
             instantOperEventEntity.setStatus(OperationEventEntity.STATUS_FAULTED);
             instantOperEventEntity.setPriority(-100);
+            
+            operationEventMapper.updateByPrimaryKeySelective(instantOperEventEntity);
             throw new WecubeCoreException("Failed to process instant operation event");
         }
 
