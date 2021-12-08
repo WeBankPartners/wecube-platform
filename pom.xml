@@ -14,7 +14,7 @@
     <groupId>com.webank.wecube.platform</groupId>
     <artifactId>wecube-platform</artifactId>
     <packaging>pom</packaging>
-    <version>3.2.1</version>
+    <version>3.2.2</version>
 
     <properties>
         <version.camunda>7.11.0-alpha5</version.camunda>
