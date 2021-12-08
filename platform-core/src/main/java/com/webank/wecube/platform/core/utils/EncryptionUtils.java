@@ -39,6 +39,9 @@ public class EncryptionUtils {
             raw = raw.substring(0, lastIndexOfTail);
         }
         
+        raw = raw.trim();
+        raw = raw.replaceAll(" ", "");
+        
         raw = leeding + "\n"+raw + "\n"+tail;
         
         return raw;
