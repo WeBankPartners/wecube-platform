@@ -18,6 +18,31 @@ import com.webank.wecube.platform.core.commons.WecubeCoreException;
 public class EncryptionUtils {
     private static final Logger log = LoggerFactory.getLogger(EncryptionUtils.class);
     private static final String INIT_VECTOR = "encriptionVector";
+    
+    public static String refineRsaKey(String raw) {
+        if(StringUtils.isBlank(raw)) {
+            return raw;
+        }
+        
+        raw = raw.trim();
+        raw = raw.replaceAll("\r|\n", "");
+        
+        String leeding = "-***REMOVED***----";
+        String tail = "-----END RSA PRIVATE KEY-----";
+        
+        if(raw.startsWith(leeding)) {
+            raw = raw.substring(leeding.length());
+        }
+        
+        int lastIndexOfTail = raw.lastIndexOf(tail);
+        if(lastIndexOfTail > 0) {
+            raw = raw.substring(0, lastIndexOfTail);
+        }
+        
+        raw = leeding + "\n"+raw + "\n"+tail;
+        
+        return raw;
+    }
 
     public static String generateKeyFromSeedAndSalt(String seed, String additionalSalt) {
         return String.format("%16s", DigestUtils.md5DigestAsHex((seed + additionalSalt).getBytes()).substring(0, 15));
