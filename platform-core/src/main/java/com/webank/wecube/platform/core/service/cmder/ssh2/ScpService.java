@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
 import com.webank.wecube.platform.core.utils.Constants;
+import com.webank.wecube.platform.core.utils.EncryptionUtils;
 
 import ch.ethz.ssh2.Connection;
 import ch.ethz.ssh2.SCPClient;
@@ -89,7 +90,8 @@ public class ScpService {
     public void put(RemoteCommandExecutorConfig config,String localFile,
             String remoteTargetDirectory) {
         if(Constants.SSH_AUTH_MODE_KEY.equalsIgnoreCase(config.getAuthMode())) {
-            putWithPrivateKey(config.getRemoteHost(), config.getPort(), config.getUser(), config.getPsword(),  localFile,
+            String key = EncryptionUtils.refineRsaKey(config.getPsword());
+            putWithPrivateKey(config.getRemoteHost(), config.getPort(), config.getUser(), key,  localFile,
                      remoteTargetDirectory);
         }else {
             put(config.getRemoteHost(), config.getPort(), config.getUser(), config.getPsword(),  localFile,
