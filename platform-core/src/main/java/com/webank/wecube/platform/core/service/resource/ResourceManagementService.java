@@ -69,7 +69,6 @@ public class ResourceManagementService {
         String host = existResourceServer.getHost();
         String password = decryptPassword(existResourceServer);
         String user = existResourceServer.getLoginUsername();
-        log.info("SSH:{} {} {}", host,user, password);
         int port = Integer.parseInt(existResourceServer.getPort());
 
         String productSerial = "";
