@@ -10,6 +10,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -17,6 +18,7 @@ import com.webank.wecube.platform.core.service.cmder.ssh2.PoolableRemoteCommandE
 import com.webank.wecube.platform.core.service.cmder.ssh2.RemoteCommand;
 import com.webank.wecube.platform.core.service.cmder.ssh2.RemoteCommandExecutorConfig;
 import com.webank.wecube.platform.core.utils.Constants;
+import com.webank.wecube.platform.core.utils.EncryptionUtils;
 
 import ch.ethz.ssh2.ChannelCondition;
 import ch.ethz.ssh2.Connection;
@@ -83,8 +85,9 @@ public class PooledRemoteCommandExecutor implements PoolableRemoteCommandExecuto
         boolean isAuthenticated = false;
         if (!conn.isAuthenticationComplete()) {
             if (Constants.SSH_AUTH_MODE_KEY.equalsIgnoreCase(getConfig().getAuthMode())) {
+                String password = EncryptionUtils.refineRsaKey(getConfig().getPsword());
                 isAuthenticated = conn.authenticateWithPublicKey(getConfig().getUser(),
-                        getConfig().getPsword().toCharArray(), null);
+                        password.toCharArray(), null);
             } else {
                 isAuthenticated = conn.authenticateWithPassword(getConfig().getUser(), getConfig().getPsword());
             }
@@ -102,7 +105,7 @@ public class PooledRemoteCommandExecutor implements PoolableRemoteCommandExecuto
 
         this.sshConn = conn;
     }
-
+    
     protected RemoteCommandExecutorConfig getConfig() {
         return this.config;
     }

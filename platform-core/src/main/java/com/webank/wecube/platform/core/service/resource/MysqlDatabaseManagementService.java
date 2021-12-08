@@ -30,7 +30,7 @@ public class MysqlDatabaseManagementService implements ResourceItemService {
         DriverManagerDataSource dataSource = new DriverManagerDataSource();
         dataSource.setDriverClassName("com.mysql.cj.jdbc.Driver");
         dataSource.setUrl(
-                "jdbc:mysql://" + host + ":" + port + "?characterEncoding=utf8&serverTimezone=UTC&useSSL=false");
+                "jdbc:mysql://" + host + ":" + port + "?characterEncoding=utf8&serverTimezone=UTC");
         dataSource.setUsername(username);
         dataSource.setPassword(password);
         return dataSource;
@@ -51,7 +51,7 @@ public class MysqlDatabaseManagementService implements ResourceItemService {
         } catch (SQLException e) {
             String errorMessage = String.format("Failed to create schema [%s], meet error [%s].", item.getName(),
                     e.getMessage());
-            log.error(errorMessage);
+            log.error(errorMessage, e);
             throw new WecubeCoreException("3244", errorMessage, item.getName(), e.getMessage());
         }
         return item;

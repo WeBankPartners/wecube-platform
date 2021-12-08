@@ -53,12 +53,6 @@ public class CommandService {
 
     public String runAtRemote(RemoteCommandExecutorConfig config, String command)
             throws Exception {
-//        RemoteCommandExecutorConfig config = new RemoteCommandExecutorConfig();
-//        config.setRemoteHost(host);
-//        config.setUser(user);
-//        config.setPsword(password);
-//        config.setPort(port);
-
         RemoteCommand cmd = new SimpleRemoteCommand(command);
         PooledRemoteCommandExecutor executor = new PooledRemoteCommandExecutor();
         try {
