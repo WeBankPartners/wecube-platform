@@ -127,7 +127,7 @@
           <Input v-model="addedRole.params.email" :placeholder="$t('please_input')" />
         </FormItem>
         <FormItem :label="$t('status')" v-if="!addedRole.isAdd">
-          <Checkbox v-model="addedRole.params.status">{{ $t('delete_role') }}</Checkbox>
+          <Checkbox v-model="addedRole.params.status">{{ $t('disable_role') }}</Checkbox>
         </FormItem>
       </Form>
     </Modal>

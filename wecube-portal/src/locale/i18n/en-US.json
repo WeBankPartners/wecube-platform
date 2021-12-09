@@ -529,7 +529,7 @@
   "Monthly": "Monthly",
   "total": "Total",
   "display": "Display",
-  "delete_role": "Delete Role",
+  "disable_role": "Disabled Role",
   "empty": " Is Empty",
   "login_method": "Login Method",
   "secret_key": "Secret Key",

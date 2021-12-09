@@ -527,7 +527,7 @@
   "Monthly": "每月",
   "total": "共",
   "display": "显示",
-  "delete_role": "删除角色",
+  "disable_role": "禁用角色",
   "empty": "为空",
   "login_method": "登录方式",
   "secret_key": "密钥",
