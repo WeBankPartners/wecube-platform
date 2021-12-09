@@ -3,20 +3,30 @@
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
-        <artifactId>wecube-platform</artifactId>
         <groupId>com.webank.wecube.platform</groupId>
-        <version>3.0-SNAPSHOT</version>
+        <artifactId>wecube-platform</artifactId>
+        <version>3.2.2</version>
+        <relativePath>../pom.xml</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>platform-core</artifactId>
 
     <properties>
-        <app.version>3.2.1</app.version>
+        <java.version>1.8</java.version>
+        <java.encoding>UTF-8</java.encoding>
+        <app.version>${project.version}</app.version>
     </properties>
 
     <dependencyManagement>
         <dependencies>
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-dependencies</artifactId>
+                <version>${sprinboot.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 
@@ -48,15 +58,15 @@
         </dependency>
 
         <dependency>
-            <groupId>com.webank.wecube.platform</groupId>
+            <groupId>${project.groupId}</groupId>
             <artifactId>platform-workflow</artifactId>
-            <version>3.0-SNAPSHOT</version>
+            <version>${project.version}</version>
         </dependency>
 
         <dependency>
-            <groupId>com.webank.wecube.platform</groupId>
+            <groupId>${project.groupId}</groupId>
             <artifactId>platform-auth-client</artifactId>
-            <version>3.0-SNAPSHOT</version>
+            <version>${project.version}</version>
         </dependency>
 
         <dependency>
@@ -93,7 +103,7 @@
         <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
-            <version>29.0-jre</version>
+            <version>30.1.1-android</version>
         </dependency>
         <dependency>
             <groupId>com.github.docker-java</groupId>
@@ -132,7 +142,7 @@
         <dependency>
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-aws-context</artifactId>
-            <version>1.0.2.RELEASE</version>
+            <version>1.0.4.RELEASE</version>
         </dependency>
         <dependency>
             <groupId>com.amazonaws</groupId>
@@ -148,7 +158,7 @@
         <dependency>
             <groupId>org.apache.poi</groupId>
             <artifactId>poi</artifactId>
-            <version>4.1.0</version>
+            <version>4.1.1</version>
         </dependency>
         <dependency>
             <groupId>com.h2database</groupId>
@@ -182,7 +192,6 @@
         <dependency>
             <groupId>javax.xml.bind</groupId>
             <artifactId>jaxb-api</artifactId>
-            <version>2.3.0</version>
         </dependency>
         <dependency>
             <groupId>com.sun.xml.bind</groupId>
@@ -202,12 +211,12 @@
         <dependency>
             <groupId>javax.xml.ws</groupId>
             <artifactId>jaxws-api</artifactId>
-            <version>2.2.8</version>
         </dependency>
 
     </dependencies>
 
     <build>
+        <finalName>platform-core</finalName>
         <resources>
             <resource>
                 <directory>src/main/resources</directory>
@@ -237,6 +246,23 @@
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>repackage</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <compilerVersion>${java.version}</compilerVersion>
+                    <source>${java.version}</source>
+                    <target>${java.version}</target>
+                    <encoding>${java.encoding}</encoding>
+                </configuration>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
