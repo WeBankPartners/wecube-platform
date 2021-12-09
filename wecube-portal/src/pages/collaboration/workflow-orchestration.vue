@@ -624,6 +624,7 @@ export default {
     },
     changeTaskCategory (val) {
       this.pluginForm.serviceId = ''
+      this.pluginForm.associatedNodeId = ''
       this.pluginForm.serviceName = ''
       this.editFormdata()
     },
