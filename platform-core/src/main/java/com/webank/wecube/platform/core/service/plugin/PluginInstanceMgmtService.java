@@ -31,6 +31,7 @@ import org.springframework.jdbc.datasource.DriverManagerDataSource;
 import org.springframework.jdbc.datasource.init.ResourceDatabasePopulator;
 import org.springframework.stereotype.Service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
 import com.webank.wecube.platform.core.commons.ApplicationProperties.ResourceProperties;
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
@@ -47,6 +48,9 @@ import com.webank.wecube.platform.core.entity.plugin.PluginPackageRuntimeResourc
 import com.webank.wecube.platform.core.entity.plugin.PluginPackageRuntimeResourcesS3;
 import com.webank.wecube.platform.core.entity.plugin.PluginPackages;
 import com.webank.wecube.platform.core.entity.plugin.ResourceItem;
+import com.webank.wecube.platform.core.entity.plugin.ResourceS3AdditionalProperties;
+import com.webank.wecube.platform.core.entity.plugin.ResourceS3FileInfo;
+import com.webank.wecube.platform.core.entity.plugin.ResourceS3FileSetInfo;
 import com.webank.wecube.platform.core.entity.plugin.ResourceServer;
 import com.webank.wecube.platform.core.entity.plugin.SystemVariables;
 import com.webank.wecube.platform.core.propenc.RsaEncryptor;
@@ -59,15 +63,19 @@ import com.webank.wecube.platform.core.repository.plugin.PluginPackageRuntimeRes
 import com.webank.wecube.platform.core.repository.plugin.PluginPackagesMapper;
 import com.webank.wecube.platform.core.repository.plugin.ResourceItemMapper;
 import com.webank.wecube.platform.core.repository.plugin.ResourceServerMapper;
+import com.webank.wecube.platform.core.service.cmder.ssh2.RemoteCommandExecutorConfig;
+import com.webank.wecube.platform.core.service.resource.MysqlDatabaseManagementService;
 import com.webank.wecube.platform.core.service.resource.ResourceItemType;
 import com.webank.wecube.platform.core.service.resource.ResourceManagementService;
 import com.webank.wecube.platform.core.service.resource.ResourceServerType;
+import com.webank.wecube.platform.core.support.RealS3Client;
 import com.webank.wecube.platform.core.support.authserver.AuthServerRestClient;
 import com.webank.wecube.platform.core.support.authserver.SimpleSubSystemDto;
 import com.webank.wecube.platform.core.support.gateway.GatewayResponse;
 import com.webank.wecube.platform.core.support.gateway.GatewayServiceStub;
 import com.webank.wecube.platform.core.support.gateway.RegisterRouteItemsDto;
 import com.webank.wecube.platform.core.support.gateway.RouteItem;
+import com.webank.wecube.platform.core.utils.Constants;
 import com.webank.wecube.platform.core.utils.EncryptionUtils;
 import com.webank.wecube.platform.core.utils.JsonUtils;
 import com.webank.wecube.platform.core.utils.StringUtilsEx;
@@ -83,7 +91,7 @@ public class PluginInstanceMgmtService extends AbstractPluginMgmtService {
 
     private static final int PLUGIN_DEFAULT_START_PORT = 20000;
     private static final int PLUGIN_DEFAULT_END_PORT = 30000;
-    
+
     private static final String INIT_VECTOR = "encriptionVector";
 
     @Autowired
@@ -132,6 +140,11 @@ public class PluginInstanceMgmtService extends AbstractPluginMgmtService {
 
     @Autowired
     private PluginCertificationMapper pluginCertificationMapper;
+
+    @Autowired
+    private MysqlDatabaseManagementService mysqlDatabaseManagementService;
+
+    private ObjectMapper objectMapper = new ObjectMapper();
 
     public void removePluginInstanceById(String instanceId) throws Exception {
         log.info("Removing plugin instance,instanceId: {}", instanceId);
@@ -202,9 +215,9 @@ public class PluginInstanceMgmtService extends AbstractPluginMgmtService {
         }
 
         // 2. try to create s3 bucket
-        String s3BucketResourceId = handleCreateS3Bucket(s3InfoSet, pluginPackage);
-        if (s3BucketResourceId != null) {
-            pluginInstanceEntity.setS3bucketResourceId(s3BucketResourceId);
+        ResourceItem s3BucketResourceItem = handleCreateS3Bucket(s3InfoSet, pluginPackage);
+        if (s3BucketResourceItem != null) {
+            pluginInstanceEntity.setS3bucketResourceId(s3BucketResourceItem.getId());
         }
 
         // 3. create docker instance
@@ -224,12 +237,8 @@ public class PluginInstanceMgmtService extends AbstractPluginMgmtService {
         if (mysqlInfoSet.size() != 0) {
 
             String password = dbInfo.getPassword();
-            if (password.startsWith(ResourceManagementService.PASSWORD_ENCRYPT_AES_PREFIX)) {
-                password = password.substring(ResourceManagementService.PASSWORD_ENCRYPT_AES_PREFIX.length());
-            }
-
-            password = EncryptionUtils.decryptWithAes(password, resourceProperties.getPasswordEncryptionSeed(),
-                    dbInfo.getSchema());
+            password = EncryptionUtils.decryptAesPrefixedStringForcely(password,
+                    resourceProperties.getPasswordEncryptionSeed(), dbInfo.getSchema());
 
             envVariablesString = envVariablesString.replace("{{DB_HOST}}", dbInfo.getHost()) //
                     .replace("{{DB_PORT}}", dbInfo.getPort()) //
@@ -308,14 +317,13 @@ public class PluginInstanceMgmtService extends AbstractPluginMgmtService {
 
         String aesKey = UUID.randomUUID().toString().replace("-", "").substring(0, 16);
         String initVector = INIT_VECTOR;
-        String licenseCode = aesKey+initVector;
-        String rsaEncryptedAesKey = RsaEncryptor.encodeBase64String(
-                RsaEncryptor.encryptByPublicKey(licenseCode.getBytes(Charset.forName("UTF-8")), subSystemAsDto.getPubKey()));
+        String licenseCode = aesKey + initVector;
+        String rsaEncryptedAesKey = RsaEncryptor.encodeBase64String(RsaEncryptor
+                .encryptByPublicKey(licenseCode.getBytes(Charset.forName("UTF-8")), subSystemAsDto.getPubKey()));
 
         String lpk = pluginCertification.getLpk();
         String encryptData = pluginCertification.getEncryptData();
         String signature = pluginCertification.getSignature();
-        
 
         String aesEncryptedLpk = "";
         if (StringUtils.isNoneBlank(lpk)) {
@@ -402,14 +410,18 @@ public class PluginInstanceMgmtService extends AbstractPluginMgmtService {
         log.info("scp from local:{} to remote: {}", tmpFilePath, pluginProperties.getPluginDeployPath());
         try {
             String dbPassword = hostInfo.getLoginPassword();
-            if (dbPassword.startsWith(ResourceManagementService.PASSWORD_ENCRYPT_AES_PREFIX)) {
-                dbPassword = dbPassword.substring(ResourceManagementService.PASSWORD_ENCRYPT_AES_PREFIX.length());
-            }
 
-            String password = EncryptionUtils.decryptWithAes(dbPassword, resourceProperties.getPasswordEncryptionSeed(),
-                    hostInfo.getName());
-            scpService.put(hostIp, Integer.valueOf(hostInfo.getPort()), hostInfo.getLoginUsername(), password,
-                    tmpFilePath, pluginProperties.getPluginDeployPath());
+            String password = EncryptionUtils.decryptAesPrefixedStringForcely(dbPassword,
+                    resourceProperties.getPasswordEncryptionSeed(), hostInfo.getName());
+
+            RemoteCommandExecutorConfig sshConfig = new RemoteCommandExecutorConfig();
+            sshConfig.setAuthMode(hostInfo.getLoginMode());
+            sshConfig.setPort(Integer.valueOf(hostInfo.getPort()));
+            sshConfig.setPsword(password);
+            sshConfig.setRemoteHost(hostIp);
+            sshConfig.setUser(hostInfo.getLoginUsername());
+
+            scpService.put(sshConfig, tmpFilePath, pluginProperties.getPluginDeployPath());
         } catch (Exception e) {
             log.error("Put file to remote host meet error", e);
             throw new WecubeCoreException("3085",
@@ -422,13 +434,18 @@ public class PluginInstanceMgmtService extends AbstractPluginMgmtService {
         log.info("Run docker load command: " + loadCmd);
         try {
             String loginPassword = hostInfo.getLoginPassword();
-            if (loginPassword.startsWith(ResourceManagementService.PASSWORD_ENCRYPT_AES_PREFIX)) {
-                loginPassword = EncryptionUtils.decryptWithAes(
-                        loginPassword.substring(ResourceManagementService.PASSWORD_ENCRYPT_AES_PREFIX.length()),
-                        resourceProperties.getPasswordEncryptionSeed(), hostInfo.getName());
-            }
-            commandService.runAtRemote(hostIp, hostInfo.getLoginUsername(), loginPassword,
-                    Integer.valueOf(hostInfo.getPort()), loadCmd);
+
+            loginPassword = EncryptionUtils.decryptAesPrefixedStringOnly(loginPassword,
+                    resourceProperties.getPasswordEncryptionSeed(), hostInfo.getName());
+
+            RemoteCommandExecutorConfig sshConfig = new RemoteCommandExecutorConfig();
+            sshConfig.setAuthMode(hostInfo.getLoginMode());
+            sshConfig.setPort(Integer.valueOf(hostInfo.getPort()));
+            sshConfig.setPsword(loginPassword);
+            sshConfig.setRemoteHost(hostIp);
+            sshConfig.setUser(hostInfo.getLoginUsername());
+
+            commandService.runAtRemote(sshConfig, loadCmd);
         } catch (Exception e) {
             log.error("Run command [{}] meet error: {}", loadCmd, e.getMessage());
             throw new WecubeCoreException("3086", String.format("Run remote command meet error: %s", e.getMessage()),
@@ -543,8 +560,10 @@ public class PluginInstanceMgmtService extends AbstractPluginMgmtService {
         return systemVariableService.variableReplacement(packageName, str);
     }
 
-    private String handleCreateS3Bucket(List<PluginPackageRuntimeResourcesS3> s3ResourceInfoList,
+    private ResourceItem handleCreateS3Bucket(List<PluginPackageRuntimeResourcesS3> s3ResourceInfoList,
             PluginPackages pluginPackage) {
+
+        // TODO
         if (s3ResourceInfoList == null || s3ResourceInfoList.isEmpty()) {
             return null;
         }
@@ -558,18 +577,120 @@ public class PluginInstanceMgmtService extends AbstractPluginMgmtService {
 
         List<ResourceItem> s3BucketsItemEntities = resourceItemMapper
                 .selectAllByNameAndType(s3ResourceInfo.getBucketName(), ResourceItemType.S3_BUCKET.getCode());
+        // TODO
+        ResourceItem s3ResItem = null;
         if (s3BucketsItemEntities.size() > 0) {
-            return s3BucketsItemEntities.get(0).getId();
+            s3ResItem = s3BucketsItemEntities.get(0);
         } else {
-            return initS3BucketResource(s3ResourceInfo);
+            s3ResItem = initS3BucketResource(s3ResourceInfo);
+        }
+
+        ResourceServer resServer = resourceServerMapper.selectByPrimaryKey(s3ResItem.getResourceServerId());
+        s3ResItem.setResourceServer(resServer);
+
+        // TODO to process s3 files
+
+        processprocessS3BucketFiles(pluginPackage, s3ResourceInfo, s3ResItem, resServer);
+        return s3ResItem;
+    }
+
+    private void processprocessS3BucketFiles(PluginPackages pluginPackage,
+            PluginPackageRuntimeResourcesS3 s3ResourceInfo, ResourceItem s3ResItem, ResourceServer resServer) {
+        String additionalProperties = s3ResourceInfo.getAdditionalProperties();
+        if (StringUtils.isBlank(additionalProperties)) {
+            return;
+        }
+
+        ResourceS3AdditionalProperties additionalProps = convertFromJson(additionalProperties);
+
+        if (additionalProps == null) {
+            return;
+        }
+
+        ResourceS3FileSetInfo fileSet = additionalProps.getFileSet();
+
+        if (fileSet == null) {
+            return;
+        }
+
+        List<ResourceS3FileInfo> fileInfos = fileSet.getFiles();
+
+        if (fileInfos == null || fileInfos.isEmpty()) {
+            return;
+        }
+
+        for (ResourceS3FileInfo fileInfo : fileInfos) {
+            processprocessS3BucketFile(pluginPackage, s3ResourceInfo, s3ResItem, resServer, fileInfo);
         }
     }
 
-    private String initS3BucketResource(PluginPackageRuntimeResourcesS3 s3ResourceInfo) {
+    private void processprocessS3BucketFile(PluginPackages pluginPackage,
+            PluginPackageRuntimeResourcesS3 s3ResourceInfo, ResourceItem s3ResItem, ResourceServer resServer,
+            ResourceS3FileInfo fileInfo) {
+        log.debug("try to process:{}", fileInfo);
+
+        if (StringUtils.isBlank(fileInfo.getSource())) {
+            return;
+        }
+
+        if (StringUtils.isBlank(fileInfo.getToFile())) {
+            return;
+        }
+
+        String sourceFileName = stripLeadingSlash(fileInfo.getSource());
+        String toFileName = stripLeadingSlash(fileInfo.getToFile());
+
+        String tmpFolderName = new SimpleDateFormat("yyyyMMddHHmmssSSS").format(new Date());
+        String tmpFilePath = SystemUtils.getTempFolderPath() + tmpFolderName + "/" + sourceFileName;
+
+        String s3KeyName = pluginPackage.getName() + "/" + pluginPackage.getVersion() + "/" + sourceFileName;
+        log.info("Download plugin package from S3: {}", s3KeyName);
+
+        s3Client.downFile(pluginProperties.getPluginPackageBucketName(), s3KeyName, tmpFilePath);
+
+        File toUploadFile = new File(tmpFilePath);
+
+        log.debug("s3 file: {}", toUploadFile.getAbsolutePath());
+        String keyName = toFileName;
+        log.debug("keyName : {}", keyName);
+
+        String dbPassword = resServer.getLoginPassword();
+        String password = EncryptionUtils.decryptAesPrefixedStringForcely(dbPassword,
+                resourceProperties.getPasswordEncryptionSeed(), resServer.getName());
+
+        String endPoint = String.format("http://%s:%s", resServer.getHost(), resServer.getPort());
+        RealS3Client amazonS3Client = new RealS3Client(endPoint, resServer.getLoginUsername(), password);
+
+        String s3FileUrl = amazonS3Client.uploadFile(s3ResItem.getName(), keyName, toUploadFile);
+
+        log.debug("s3FileUrl : {}", s3FileUrl);
+    }
+
+    private String stripLeadingSlash(String s) {
+        if (s.startsWith("/")) {
+            return s.substring(1);
+        } else {
+            return s;
+        }
+    }
+
+    private ResourceS3AdditionalProperties convertFromJson(String json) {
+        try {
+            ResourceS3AdditionalProperties additionalProps = objectMapper.readValue(json,
+                    ResourceS3AdditionalProperties.class);
+            return additionalProps;
+        } catch (Exception e) {
+            log.error("Errors while reading json data.", e);
+            throw new WecubeCoreException(e.getMessage());
+        }
+    }
+
+    private ResourceItem initS3BucketResource(PluginPackageRuntimeResourcesS3 s3ResourceInfo) {
         return createPluginS3Bucket(s3ResourceInfo);
     }
 
-    private String createPluginS3Bucket(PluginPackageRuntimeResourcesS3 s3ResourceInfo) {
+    // TODO
+    private ResourceItem createPluginS3Bucket(PluginPackageRuntimeResourcesS3 s3ResourceInfo) {
         QueryRequestDto queryRequest = QueryRequestDto.defaultQueryObject("type", ResourceServerType.S3.getCode());
         List<ResourceServerDto> s3Servers = resourceManagementService.retrieveServers(queryRequest).getContents();
         if (s3Servers.size() == 0) {
@@ -594,7 +715,10 @@ public class PluginInstanceMgmtService extends AbstractPluginMgmtService {
             return null;
         }
         log.info("S3 bucket creation has done...");
-        return resultResourceItemDtos.get(0).getId();
+
+        ResourceItemDto resItemDto = resultResourceItemDtos.get(0);
+        ResourceItem resItem = resourceItemMapper.selectByPrimaryKey(resItemDto.getId());
+        return resItem;
     }
 
     private LocalDatabaseInfo handleCreateDatabase(List<PluginPackageRuntimeResourcesMysql> mysqlInfoResourceEntities,
@@ -667,6 +791,7 @@ public class PluginInstanceMgmtService extends AbstractPluginMgmtService {
             ResourceItem resourceItemEntity = resourceItemMapper.selectByPrimaryKey(mysqlInstance.getResourceItemId());
             ResourceServer resourceServerEntity = resourceServerMapper
                     .selectByPrimaryKey(resourceItemEntity.getResourceServerId());
+            resourceItemEntity.setResourceServer(resourceServerEntity);
             // ResourceServerDomain dbServer =
             // resourceItemRepository.findById(mysqlInstance.getResourceItemId()).get()
             // .getResourceServer();
@@ -675,12 +800,26 @@ public class PluginInstanceMgmtService extends AbstractPluginMgmtService {
                     mysqlInstance.getPassword(), mysqlInstance.getId());
 
             // execute init.sql
-            tryInitMysqlDatabaseTables(resourceServerEntity, mysqlInstance, pluginPackage);
+            try {
+                tryInitMysqlDatabaseTables(resourceServerEntity, mysqlInstance, pluginPackage);
+            } catch (Exception e) {
+                tryRollbackMysqlDatabaseSchemaCreation(resourceItemEntity, mysqlInstance);
+                throw e;
+            }
             return dbInfo;
         } else {
             log.warn("mysql resources is empty for {}", pluginPackage.getName());
             return null;
         }
+    }
+
+    private void tryRollbackMysqlDatabaseSchemaCreation(ResourceItem resourceItem, PluginMysqlInstances mysqlInstance) {
+        try {
+            mysqlDatabaseManagementService.deleteItem(resourceItem);
+        } catch (Exception e1) {
+            log.error("Failed to rollback mysql database creation.", e1);
+        }
+        pluginMysqlInstancesMapper.deleteByPrimaryKey(mysqlInstance.getId());
     }
 
     // execute init.sql
@@ -697,12 +836,9 @@ public class PluginInstanceMgmtService extends AbstractPluginMgmtService {
         s3Client.downFile(pluginProperties.getPluginPackageBucketName(), s3KeyName, initSqlPath);
 
         String password = mysqlInstance.getPassword();
-        if (password.startsWith(ResourceManagementService.PASSWORD_ENCRYPT_AES_PREFIX)) {
-            password = password.substring(ResourceManagementService.PASSWORD_ENCRYPT_AES_PREFIX.length());
-        }
 
-        password = EncryptionUtils.decryptWithAes(password, resourceProperties.getPasswordEncryptionSeed(),
-                mysqlInstance.getSchemaName());
+        password = EncryptionUtils.decryptAesPrefixedStringForcely(password,
+                resourceProperties.getPasswordEncryptionSeed(), mysqlInstance.getSchemaName());
 
         DriverManagerDataSource dataSource = new DriverManagerDataSource(
                 "jdbc:mysql://" + dbServer.getHost() + ":" + dbServer.getPort() + "/" + mysqlInstance.getSchemaName()
@@ -759,7 +895,7 @@ public class PluginInstanceMgmtService extends AbstractPluginMgmtService {
             log.info("Request parameters= " + createMysqlDto);
         }
 
-        dbPassword = ResourceManagementService.PASSWORD_ENCRYPT_AES_PREFIX + EncryptionUtils.encryptWithAes(dbPassword,
+        dbPassword = Constants.PASSWORD_ENCRYPT_AES_PREFIX + EncryptionUtils.encryptWithAes(dbPassword,
                 resourceProperties.getPasswordEncryptionSeed(), mysqlResourceInfo.getSchemaName());
 
         List<ResourceItemDto> result = resourceManagementService.createItems(Lists.newArrayList(createMysqlDto));
@@ -843,15 +979,10 @@ public class PluginInstanceMgmtService extends AbstractPluginMgmtService {
 
         s3Client.downFile(pluginProperties.getPluginPackageBucketName(), s3KeyName, initSqlPath);
 
-        // ResourceServerDomain dbServer =
-        // resourceItemRepository.findById(mysqlInstance.getResourceItemId()).get()
-        // .getResourceServer();
         String password = mysqlInstance.getPassword();
-        if (password.startsWith(ResourceManagementService.PASSWORD_ENCRYPT_AES_PREFIX)) {
-            password = password.substring(ResourceManagementService.PASSWORD_ENCRYPT_AES_PREFIX.length());
-        }
-        password = EncryptionUtils.decryptWithAes(password, resourceProperties.getPasswordEncryptionSeed(),
-                mysqlInstance.getSchemaName());
+
+        password = EncryptionUtils.decryptAesPrefixedStringForcely(password,
+                resourceProperties.getPasswordEncryptionSeed(), mysqlInstance.getSchemaName());
         DriverManagerDataSource dataSource = new DriverManagerDataSource(
                 "jdbc:mysql://" + resourceServer.getHost() + ":" + resourceServer.getPort() + "/"
                         + mysqlInstance.getSchemaName() + "?characterEncoding=utf8&serverTimezone=UTC",
