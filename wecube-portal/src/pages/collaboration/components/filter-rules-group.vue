@@ -7,6 +7,7 @@
             <FilterRules
               :needAttr="true"
               ref="filterRules"
+              :disabled="disabled"
               style="height:44px"
               @change="filterRuleChanged"
               v-model="express.routineExpression"
@@ -60,7 +61,7 @@ export default {
       immediate: true
     }
   },
-  props: ['isBatch', 'allEntityType', 'routineExpression', 'currentSelectedEntity'],
+  props: ['isBatch', 'allEntityType', 'routineExpression', 'currentSelectedEntity', 'disabled'],
   mounted () {
     this.changeRoutineExpressionItem(this.routineExpression)
   },
