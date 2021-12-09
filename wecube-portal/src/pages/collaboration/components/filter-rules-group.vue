@@ -8,7 +8,7 @@
               :needAttr="true"
               ref="filterRules"
               :disabled="disabled"
-              style="height:44px"
+              style="height:35px"
               @change="filterRuleChanged"
               v-model="express.routineExpression"
               :allDataModelsWithAttrs="allEntityType"

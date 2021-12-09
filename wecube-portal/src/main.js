@@ -14,7 +14,8 @@ import WeTable from '../src/pages/components/table.js'
 import indexCom from './pages/index'
 import req from './api/base'
 import { getChildRouters } from './pages/util/router.js'
-
+const eventBus = new Vue()
+Vue.prototype.$eventBusP = eventBus
 Vue.component('WeSelect', WeSelect)
 Vue.component('WeTable', WeTable)
 Vue.config.productionTip = false
