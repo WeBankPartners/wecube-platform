@@ -212,6 +212,7 @@
                           :isBatch="pluginForm.taskCategory === 'SDTN'"
                           ref="filterRulesGroup"
                           @filterRuleChanged="singleFilterRuleChanged"
+                          :disabled="pluginForm.dynamicBind === 'Y' && pluginForm.associatedNodeId"
                           :routineExpression="pluginForm.routineExpression"
                           :allEntityType="allEntityType"
                           :currentSelectedEntity="currentSelectedEntity"
