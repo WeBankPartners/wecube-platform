@@ -37,22 +37,20 @@ public class S3BucketManagementService implements ResourceItemService {
     @Override
     public ResourceItem createItem(ResourceItem item) {
         String dbPassword = item.getResourceServer().getLoginPassword();
-        if (dbPassword.startsWith(ResourceManagementService.PASSWORD_ENCRYPT_AES_PREFIX)) {
-            dbPassword = dbPassword.substring(ResourceManagementService.PASSWORD_ENCRYPT_AES_PREFIX.length());
-        }
-        
-        String password = EncryptionUtils.decryptWithAes(
-                dbPassword,
+        String password = EncryptionUtils.decryptAesPrefixedStringForcely(dbPassword,
                 resourceProperties.getPasswordEncryptionSeed(), item.getResourceServer().getName());
         AmazonS3 amazonS3 = newS3Client(item.getResourceServer().getHost(), item.getResourceServer().getPort(),
                 item.getResourceServer().getLoginUsername(), password);
 
         if (amazonS3 != null) {
             if (amazonS3.doesBucketExist(item.getName())) {
-                throw new WecubeCoreException("3254",
-                        String.format("Can not create bucket [%s] : Bucket exists.", item.getName()), item.getName());
+                String msg = String.format("Can not create bucket [%s] : Bucket exists.", item.getName());
+//                throw new WecubeCoreException("3254",
+//                        String.format("Can not create bucket [%s] : Bucket exists.", item.getName()), item.getName());
+                log.info(msg);
+            } else {
+                amazonS3.createBucket(item.getName());
             }
-            amazonS3.createBucket(item.getName());
         }
         return item;
     }
@@ -60,12 +58,8 @@ public class S3BucketManagementService implements ResourceItemService {
     @Override
     public void deleteItem(ResourceItem item) {
         String password = item.getResourceServer().getLoginPassword();
-        if (password.startsWith(ResourceManagementService.PASSWORD_ENCRYPT_AES_PREFIX)) {
-            password = password.substring(ResourceManagementService.PASSWORD_ENCRYPT_AES_PREFIX.length());
-        }
-        
-        password = EncryptionUtils.decryptWithAes(
-                password,
+
+        password = EncryptionUtils.decryptAesPrefixedStringForcely(password,
                 resourceProperties.getPasswordEncryptionSeed(), item.getResourceServer().getName());
         AmazonS3 amazonS3 = newS3Client(item.getResourceServer().getHost(), item.getResourceServer().getPort(),
                 item.getResourceServer().getLoginUsername(), password);
@@ -94,5 +88,23 @@ public class S3BucketManagementService implements ResourceItemService {
     @Override
     public ResourceItem updateItem(ResourceItem item) {
         throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public boolean doesItemExist(ResourceItem item) {
+        String password = item.getResourceServer().getLoginPassword();
+
+        password = EncryptionUtils.decryptAesPrefixedStringForcely(password,
+                resourceProperties.getPasswordEncryptionSeed(), item.getResourceServer().getName());
+        AmazonS3 amazonS3 = newS3Client(item.getResourceServer().getHost(), item.getResourceServer().getPort(),
+                item.getResourceServer().getLoginUsername(), password);
+
+        try {
+            boolean exists = amazonS3.doesBucketExist(item.getName());
+            return exists;
+        } catch (Exception e) {
+            log.error("Failed to check S3 bucket.", e);
+            throw new WecubeCoreException("Failed to check S3 bucket:%s", e.getMessage());
+        }
     }
 }
