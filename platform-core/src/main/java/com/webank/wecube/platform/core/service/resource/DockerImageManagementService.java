@@ -69,5 +69,10 @@ public class DockerImageManagementService implements ResourceItemService {
         }
         dockerClient.removeImageCmd(imageName).exec();
     }
+    
+    @Override
+    public boolean doesItemExist(ResourceItem item) {
+        throw new UnsupportedOperationException();
+    }
 
 }
