@@ -3,6 +3,8 @@ package com.webank.wecube.platform.core.dto.plugin;
 import java.sql.Timestamp;
 import java.util.List;
 
+import org.apache.commons.lang3.StringUtils;
+
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
@@ -13,6 +15,7 @@ import com.webank.wecube.platform.core.entity.plugin.ResourceServer;
 import com.webank.wecube.platform.core.service.resource.ResourceItemStatus;
 import com.webank.wecube.platform.core.service.resource.ResourceServerStatus;
 import com.webank.wecube.platform.core.service.resource.ResourceServerType;
+import com.webank.wecube.platform.core.utils.Constants;
 
 @JsonInclude(Include.NON_NULL)
 public class ResourceServerDto {
@@ -113,14 +116,12 @@ public class ResourceServerDto {
             resourceServer.setStatus(resourceServerDto.getStatus());
         }
         
-        if(resourceServerDto.getLoginMode() != null) {
+        if(StringUtils.isNoneBlank(resourceServerDto.getLoginMode())) {
             resourceServer.setLoginMode(resourceServerDto.getLoginMode());
+        }else {
+            resourceServer.setLoginMode(Constants.SSH_AUTH_MODE_PASSWORD);
         }
         
-//        if(resourceServerDto.getSshKey() != null) {
-//            resourceServer.setSshKey(resourceServerDto.getSshKey());
-//        }
-
         updateSystemFieldsWithDefaultValues(resourceServer);
 
         return resourceServer;
