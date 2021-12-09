@@ -879,7 +879,6 @@ export default {
             })
           }
         })
-        console.log(this.configTree)
       }
     },
     renderRoleNameForTransfer (item) {

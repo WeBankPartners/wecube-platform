@@ -323,7 +323,6 @@ import {
   getPluginArtifactStatus,
   exportPluginXMLWithId
 } from '@/api/server.js'
-
 import DataModel from './components/data-model.vue'
 import DependencyAnalysis from './components/dependency-analysis.vue'
 import PluginRegister from './components/plugin-register.vue'
@@ -787,7 +786,10 @@ export default {
       }
       this.isLoading = false
       this.getAvailableInstancesByPackageId(this.currentPlugin.id)
-      this.reloadPage()
+      this.updateMenus()
+    },
+    updateMenus () {
+      this.$eventBusP.$emit('updateMenus')
     },
     async getAvailableInstancesByPackageId (id) {
       this.isLoading = true
