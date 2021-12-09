@@ -115,6 +115,8 @@ public class ApplicationProperties {
         private Integer staticResourceServerPort;
         private String staticResourceServerPath;
         private String baseMountPath;
+        private String staticResourceServerAuthMode;
+        private String staticResourceServerKeyPath;
 
         public String getPluginDeployPath() {
             return pluginDeployPath;
@@ -228,6 +230,22 @@ public class ApplicationProperties {
             this.baseMountPath = baseMountPath;
         }
 
+        public String getStaticResourceServerAuthMode() {
+            return staticResourceServerAuthMode;
+        }
+
+        public void setStaticResourceServerAuthMode(String staticResourceServerAuthMode) {
+            this.staticResourceServerAuthMode = staticResourceServerAuthMode;
+        }
+
+        public String getStaticResourceServerKeyPath() {
+            return staticResourceServerKeyPath;
+        }
+
+        public void setStaticResourceServerKeyPath(String staticResourceServerKeyPath) {
+            this.staticResourceServerKeyPath = staticResourceServerKeyPath;
+        }
+        
     }
 
     @ConfigurationProperties(prefix = "wecube.core.s3")
