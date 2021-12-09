@@ -30,32 +30,13 @@ public class ResourceServerDto {
     private long createdDate;
     private String updatedBy;
     private long updatedDate;
+    
+    private String loginMode;
     @JsonIgnore
     private List<ResourceItemDto> resourceItemDtos;
 
     public ResourceServerDto() {
         super();
-    }
-
-    public ResourceServerDto(String id, String name, String host, String port, String loginUsername,
-            String loginPassword, String type, Boolean isAllocated, String purpose, String status, String createdBy,
-            long createdDate, String updatedBy, long updatedDate, List<ResourceItemDto> resourceItemDtos) {
-        super();
-        this.id = id;
-        this.name = name;
-        this.host = host;
-        this.port = port;
-        this.loginUsername = loginUsername;
-        this.loginPassword = loginPassword;
-        this.type = type;
-        this.isAllocated = isAllocated;
-        this.purpose = purpose;
-        this.status = status;
-        this.createdBy = createdBy;
-        this.createdDate = createdDate;
-        this.updatedBy = updatedBy;
-        this.updatedDate = updatedDate;
-        this.resourceItemDtos = resourceItemDtos;
     }
 
     public static ResourceServerDto fromDomain(ResourceServer resourceServer) {
@@ -75,6 +56,8 @@ public class ResourceServerDto {
         resourceServerDto.setCreatedDate(resourceServer.getCreatedDate().getTime());
         resourceServerDto.setUpdatedBy(resourceServer.getUpdatedBy());
         resourceServerDto.setUpdatedDate(resourceServer.getUpdatedDate().getTime());
+        resourceServerDto.setLoginMode(resourceServer.getLoginMode());
+//        resourceServerDto.setSshKey(resourceServer.getSshKey());
         if (resourceServer.getResourceItems() != null) {
             resourceServerDto.setResourceItemDtos(
                     Lists.transform(resourceServer.getResourceItems(), x -> ResourceItemDto.fromDomain(x)));
@@ -129,6 +112,14 @@ public class ResourceServerDto {
             validateItemStatus(resourceServerDto.getStatus());
             resourceServer.setStatus(resourceServerDto.getStatus());
         }
+        
+        if(resourceServerDto.getLoginMode() != null) {
+            resourceServer.setLoginMode(resourceServerDto.getLoginMode());
+        }
+        
+//        if(resourceServerDto.getSshKey() != null) {
+//            resourceServer.setSshKey(resourceServerDto.getSshKey());
+//        }
 
         updateSystemFieldsWithDefaultValues(resourceServer);
 
@@ -285,4 +276,13 @@ public class ResourceServerDto {
     public void setResourceItemDtos(List<ResourceItemDto> resourceItemDtos) {
         this.resourceItemDtos = resourceItemDtos;
     }
+
+    public String getLoginMode() {
+        return loginMode;
+    }
+
+    public void setLoginMode(String loginMode) {
+        this.loginMode = loginMode;
+    }
+
 }

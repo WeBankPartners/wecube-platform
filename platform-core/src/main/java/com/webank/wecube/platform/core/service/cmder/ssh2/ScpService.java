@@ -8,6 +8,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
+import com.webank.wecube.platform.core.utils.Constants;
+import com.webank.wecube.platform.core.utils.EncryptionUtils;
 
 import ch.ethz.ssh2.Connection;
 import ch.ethz.ssh2.SCPClient;
@@ -84,8 +86,45 @@ public class ScpService {
             connection.close();
         }
     }
+    
+    public void put(RemoteCommandExecutorConfig config,String localFile,
+            String remoteTargetDirectory) {
+        if(Constants.SSH_AUTH_MODE_KEY.equalsIgnoreCase(config.getAuthMode())) {
+            String key = EncryptionUtils.refineRsaKey(config.getPsword());
+            putWithPrivateKey(config.getRemoteHost(), config.getPort(), config.getUser(), key,  localFile,
+                     remoteTargetDirectory);
+        }else {
+            put(config.getRemoteHost(), config.getPort(), config.getUser(), config.getPsword(),  localFile,
+                     remoteTargetDirectory);
+        }
+    }
+    
+    private void putWithPrivateKey(String ip, Integer port, String user, String privateKey, String localFile,
+            String remoteTargetDirectory) {
+        Connection conn = new Connection(ip, port);
+        try {
+            conn.connect();
+            boolean isconn = conn.authenticateWithPublicKey(user, privateKey.toCharArray(), null);
+            if (isconn) {
+                log.info("Connection is OK");
+                SCPClient scpClient = conn.createSCPClient();
+                log.info("scp local file [{}] to remote target directory [{}]", localFile, remoteTargetDirectory);
+                scpClient.put(localFile, remoteTargetDirectory, "7777");
+            } else {
+                log.info("User or password incorrect");
+                throw new WecubeCoreException("3222", "User or password incorrect");
+            }
+        } catch (Exception e) {
+            log.error("errors while putting file.", e);
+            throw new WecubeCoreException("3223", String.format("Run 'scp' command meet error: %s", e.getMessage()));
+        } finally {
+            conn.close();
+        }
+    }
+    
+    
 
-    public void put(String ip, Integer port, String user, String password, String localFile,
+    private void put(String ip, Integer port, String user, String password, String localFile,
             String remoteTargetDirectory) {
         Connection conn = new Connection(ip, port);
         try {
