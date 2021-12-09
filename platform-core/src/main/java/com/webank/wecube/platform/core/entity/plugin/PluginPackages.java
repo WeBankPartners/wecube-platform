@@ -26,6 +26,8 @@ public class PluginPackages {
     private Date uploadTimestamp;
 
     private Boolean uiPackageIncluded;
+    
+    private String edition;
 
     private transient List<PluginPackageDependencies> pluginPackageDependencies = new ArrayList<>();
     private transient List<PluginPackageAuthorities> pluginPackageAuthorities = new ArrayList<>();
@@ -136,5 +138,13 @@ public class PluginPackages {
     public static String buildSystemVariableSource(PluginPackages pluginPackageEntity) {
         String source = String.format("%s__%s", pluginPackageEntity.getName(), pluginPackageEntity.getVersion());
         return source;
+    }
+
+    public String getEdition() {
+        return edition;
+    }
+
+    public void setEdition(String edition) {
+        this.edition = edition;
     }
 }

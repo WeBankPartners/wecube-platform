@@ -60,7 +60,7 @@ export default {
       immediate: true
     }
   },
-  props: ['isBatch', 'allEntityType', 'routineExpression', 'rootEntity'],
+  props: ['isBatch', 'allEntityType', 'routineExpression', 'currentSelectedEntity'],
   mounted () {
     this.changeRoutineExpressionItem(this.routineExpression)
   },
@@ -82,7 +82,7 @@ export default {
     },
     addFilterRule () {
       this.routineExpressionItem.push({
-        routineExpression: this.rootEntity
+        routineExpression: this.currentSelectedEntity.split('{')[0]
       })
     },
     deleteFilterRule (index) {

@@ -242,4 +242,9 @@ public class DockerContainerManagementService implements ResourceItemService, Re
         }
         return item;
     }
+    
+    @Override
+    public boolean doesItemExist(ResourceItem item) {
+        throw new UnsupportedOperationException();
+    }
 }

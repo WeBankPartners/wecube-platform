@@ -460,6 +460,7 @@
       @on-ok="setConfigTreeHandler"
       @on-cancel="closeTreeModal"
     >
+      <Checkbox @on-change="selectOrCancelAll" border>{{ $t('select_cancel_all') }}</Checkbox>
       <div style="height:500px;overflow:auto">
         <Tree ref="configTree" :data="configTree" show-checkbox multiple></Tree>
       </div>
@@ -654,6 +655,26 @@ export default {
     }
   },
   methods: {
+    selectOrCancelAll (val) {
+      this.$nextTick(() => {
+        this.configTree.forEach(parent => {
+          if (!parent.disabled) {
+            parent.checked = val
+            parent.expand = false
+            if (parent.children.length > 0) {
+              parent.children.forEach(child => {
+                if (!child.disabled) {
+                  child.checked = val
+                }
+              })
+            }
+          }
+        })
+        this.configTree.forEach(parent => {
+          parent.expand = true
+        })
+      })
+    },
     cancelEdit () {
       this.objectModal = {
         showObjectConfigModal: false,
@@ -858,6 +879,7 @@ export default {
             })
           }
         })
+        console.log(this.configTree)
       }
     },
     renderRoleNameForTransfer (item) {

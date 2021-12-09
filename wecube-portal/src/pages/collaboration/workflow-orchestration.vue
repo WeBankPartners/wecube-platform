@@ -214,6 +214,7 @@
                           @filterRuleChanged="singleFilterRuleChanged"
                           :routineExpression="pluginForm.routineExpression"
                           :allEntityType="allEntityType"
+                          :currentSelectedEntity="currentSelectedEntity"
                         >
                         </FilterRulesGroup>
                       </FormItem>
@@ -651,8 +652,9 @@ export default {
         this.pluginForm.routineExpression = ''
         this.pluginForm.routineRaw = ''
       }
-      this.pluginForm.serviceId = ''
-      this.pluginForm.serviceName = ''
+      this.$refs.filterRulesGroup.changeRoutineExpressionItem(this.pluginForm.routineExpression)
+      // this.pluginForm.serviceId = ''
+      // this.pluginForm.serviceName = ''
     },
     clearDynamicBind () {
       this.pluginForm.routineExpression = ''

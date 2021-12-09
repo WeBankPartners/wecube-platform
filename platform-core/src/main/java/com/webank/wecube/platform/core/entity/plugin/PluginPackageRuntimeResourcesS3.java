@@ -6,6 +6,8 @@ public class PluginPackageRuntimeResourcesS3 {
     private String pluginPackageId;
 
     private String bucketName;
+    
+    private String additionalProperties;
 
     public String getId() {
         return id;
@@ -30,4 +32,14 @@ public class PluginPackageRuntimeResourcesS3 {
     public void setBucketName(String bucketName) {
         this.bucketName = bucketName == null ? null : bucketName.trim();
     }
+
+    public String getAdditionalProperties() {
+        return additionalProperties;
+    }
+
+    public void setAdditionalProperties(String additionalProperties) {
+        this.additionalProperties = additionalProperties;
+    }
+    
+    
 }

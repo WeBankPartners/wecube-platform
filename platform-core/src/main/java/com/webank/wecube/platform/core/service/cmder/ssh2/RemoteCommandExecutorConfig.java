@@ -5,6 +5,8 @@ public class RemoteCommandExecutorConfig {
     private int port;
     private String user;
     private String psword;
+    
+    private String authMode;//PASSWD,KEY
 
     public String getRemoteHost() {
         return remoteHost;
@@ -38,4 +40,11 @@ public class RemoteCommandExecutorConfig {
         this.port = port;
     }
 
+    public String getAuthMode() {
+        return authMode;
+    }
+
+    public void setAuthMode(String authMode) {
+        this.authMode = authMode;
+    }
 }

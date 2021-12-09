@@ -2,6 +2,7 @@ package com.webank.wecube.platform.core.service.plugin;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.Charset;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -68,6 +69,7 @@ import com.webank.wecube.platform.core.repository.plugin.PluginPackageRuntimeRes
 import com.webank.wecube.platform.core.repository.plugin.PluginPackageRuntimeResourcesMysqlMapper;
 import com.webank.wecube.platform.core.repository.plugin.PluginPackageRuntimeResourcesS3Mapper;
 import com.webank.wecube.platform.core.repository.plugin.PluginPackagesMapper;
+import com.webank.wecube.platform.core.service.cmder.ssh2.RemoteCommandExecutorConfig;
 import com.webank.wecube.platform.core.service.user.RoleMenuService;
 import com.webank.wecube.platform.core.support.authserver.AsAuthorityDto;
 import com.webank.wecube.platform.core.support.authserver.AsRoleAuthoritiesDto;
@@ -147,11 +149,30 @@ public class PluginPackageMgmtService extends AbstractPluginMgmtService {
                 int compare = versionComparator.compare(lazyPluginPackage.getVersion(), formerVersion);
                 if (compare > 0) {
                     latestVersionPluginPackagesEntity = lazyPluginPackage;
+                }else if(compare == 0) {
+                    int dateCompare = compareUploadTime(lazyPluginPackage, latestVersionPluginPackagesEntity);
+                    if(dateCompare > 0) {
+                        latestVersionPluginPackagesEntity = lazyPluginPackage;
+                    }
+                }else {
+                    //do nothing
                 }
             }
         }
 
         return latestVersionPluginPackagesEntity;
+    }
+    
+    private int compareUploadTime(PluginPackages current, PluginPackages last) {
+        if(current.getUploadTimestamp() == null) {
+            return -1;
+        }
+        
+        if(last.getUploadTimestamp() == null) {
+            return 1;
+        }
+        
+        return current.getUploadTimestamp().compareTo(last.getUploadTimestamp());
     }
 
     /**
@@ -259,6 +280,7 @@ public class PluginPackageMgmtService extends AbstractPluginMgmtService {
 
         pluginPackageEntity.setStatus(PluginPackages.DECOMMISSIONED);
         pluginPackagesMapper.updateByPrimaryKeySelective(pluginPackageEntity);
+        
     }
 
     /**
@@ -969,10 +991,27 @@ public class PluginPackageMgmtService extends AbstractPluginMgmtService {
             try {
                 List<String> staticResourceIps = StringUtilsEx
                         .splitByComma(pluginProperties.getStaticResourceServerIp());
+                
+                String authMode = pluginProperties.getStaticResourceServerAuthMode();
+                if(StringUtils.isBlank(authMode)) {
+                    authMode = Constants.SSH_AUTH_MODE_PASSWORD;
+                }
+                
+                String passwd = pluginProperties.getStaticResourceServerPassword();
+                
+                if(Constants.SSH_AUTH_MODE_KEY.equalsIgnoreCase(authMode)) {
+                    passwd = readStaticResourceRsaKey(pluginProperties.getStaticResourceServerKeyPath());
+                }
+                
                 for (String staticResourceIp : staticResourceIps) {
-                    commandService.runAtRemote(staticResourceIp, pluginProperties.getStaticResourceServerUser(),
-                            pluginProperties.getStaticResourceServerPassword(),
-                            pluginProperties.getStaticResourceServerPort(), mkdirCmd);
+                    RemoteCommandExecutorConfig sshConfig = new RemoteCommandExecutorConfig();
+                    sshConfig.setAuthMode(authMode);
+                    sshConfig.setPort(pluginProperties.getStaticResourceServerPort());
+                    sshConfig.setPsword(passwd);
+                    sshConfig.setRemoteHost(staticResourceIp);
+                    sshConfig.setUser(pluginProperties.getStaticResourceServerUser());
+                    
+                    commandService.runAtRemote(sshConfig, mkdirCmd);
                 }
             } catch (Exception e) {
                 log.error("errors while remove plugin resources:{}", remotePath, e);
@@ -980,6 +1019,15 @@ public class PluginPackageMgmtService extends AbstractPluginMgmtService {
                 throw new WecubeCoreException("3113", String.format("Run command [rm] meet error: %s", e.getMessage()),
                         e.getMessage());
             }
+        }
+    }
+    
+    private String readStaticResourceRsaKey(String path) {
+        try {
+            return FileUtils.readFileToString(new File(path), Charset.forName("UTF-8"));
+        } catch (IOException e) {
+            log.error("", e);
+            throw new WecubeCoreException(e.getMessage());
         }
     }
 
@@ -1075,17 +1123,34 @@ public class PluginPackageMgmtService extends AbstractPluginMgmtService {
 
         // get all static resource hosts
         List<String> staticResourceIps = StringUtilsEx.splitByComma(pluginProperties.getStaticResourceServerIp());
-
+        
+        
+        String authMode = pluginProperties.getStaticResourceServerAuthMode();
+        if(StringUtils.isBlank(authMode)) {
+            authMode = Constants.SSH_AUTH_MODE_PASSWORD;
+        }
+        
+        String passwd = pluginProperties.getStaticResourceServerPassword();
+        
+        if(Constants.SSH_AUTH_MODE_KEY.equalsIgnoreCase(authMode)) {
+            passwd = readStaticResourceRsaKey(pluginProperties.getStaticResourceServerKeyPath());
+        }
+        
         for (String remoteIp : staticResourceIps) {
+            
+            RemoteCommandExecutorConfig sshConfig = new RemoteCommandExecutorConfig();
+            sshConfig.setAuthMode(authMode);
+            sshConfig.setPort(pluginProperties.getStaticResourceServerPort());
+            sshConfig.setPsword(passwd);
+            sshConfig.setRemoteHost(remoteIp);
+            sshConfig.setUser(pluginProperties.getStaticResourceServerUser());
 
             // mkdir at remote host
             if (!remotePath.equals("/") && !remotePath.equals(".")) {
                 String mkdirCmd = String.format("rm -rf %s && mkdir -p %s", remotePath, remotePath);
 
                 try {
-                    commandService.runAtRemote(remoteIp, pluginProperties.getStaticResourceServerUser(),
-                            pluginProperties.getStaticResourceServerPassword(),
-                            pluginProperties.getStaticResourceServerPort(), mkdirCmd);
+                    commandService.runAtRemote(sshConfig, mkdirCmd);
                 } catch (Exception e) {
                     log.error("Run command [mkdir] meet error: ", e.getMessage());
                     throw new WecubeCoreException("3110",
@@ -1096,9 +1161,7 @@ public class PluginPackageMgmtService extends AbstractPluginMgmtService {
             // scp UI.zip to Static Resource Server
             try {
                 log.info("Scp files from {} to {}", tmpDownloadUiZipPath, remotePath);
-                scpService.put(remoteIp, pluginProperties.getStaticResourceServerPort(),
-                        pluginProperties.getStaticResourceServerUser(),
-                        pluginProperties.getStaticResourceServerPassword(), tmpDownloadUiZipPath, remotePath);
+                scpService.put(sshConfig, tmpDownloadUiZipPath, remotePath);
             } catch (Exception e) {
                 log.error("errors to remotely copy file to :{}", remoteIp, e);
                 throw new WecubeCoreException("3111",
@@ -1110,9 +1173,7 @@ public class PluginPackageMgmtService extends AbstractPluginMgmtService {
             String unzipCmd = String.format("cd %s && unzip %s", remotePath, pluginProperties.getUiFile());
             try {
                 log.info("To run ssh command at remote:{}", unzipCmd);
-                commandService.runAtRemote(remoteIp, pluginProperties.getStaticResourceServerUser(),
-                        pluginProperties.getStaticResourceServerPassword(),
-                        pluginProperties.getStaticResourceServerPort(), unzipCmd);
+                commandService.runAtRemote(sshConfig, unzipCmd);
             } catch (Exception e) {
                 log.error("errors to remotely execute command :{}", unzipCmd, e);
                 log.error("Run command [unzip] meet error: ", e.getMessage());
@@ -1390,8 +1451,11 @@ public class PluginPackageMgmtService extends AbstractPluginMgmtService {
         dto.setUiPackageIncluded(entity.getUiPackageIncluded() == null ? false : entity.getUiPackageIncluded());
         dto.setUploadTimestamp(DateUtils.dateToString(entity.getUploadTimestamp()));
         dto.setVersion(entity.getVersion());
+        
+        dto.setEdition(entity.getEdition());
 
         return dto;
     }
+    
 
 }

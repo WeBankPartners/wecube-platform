@@ -40,6 +40,18 @@ const booleanOptions = [
     key: 'false'
   }
 ]
+const loginMethodOptions = [
+  {
+    label: 'PASSWD',
+    value: 'PASSWD',
+    key: 'PASSWD'
+  },
+  {
+    label: 'KEY',
+    value: 'KEY',
+    key: 'KEY'
+  }
+]
 
 export default {
   data () {
@@ -117,11 +129,22 @@ export default {
           options: booleanOptions
         },
         {
+          title: this.$t('login_method'),
+          key: 'loginMode',
+          inputKey: 'loginMode',
+          searchSeqNo: 5,
+          displaySeqNo: 5,
+          component: 'WeSelect',
+          inputType: 'select',
+          placeholder: this.$t('login_method'),
+          options: loginMethodOptions
+        },
+        {
           title: this.$t('table_login_username'),
           key: 'loginUsername',
           inputKey: 'loginUsername',
-          searchSeqNo: 5,
-          displaySeqNo: 5,
+          searchSeqNo: 6,
+          displaySeqNo: 6,
           component: 'Input',
           inputType: 'text',
           placeholder: this.$t('table_login_username')
@@ -130,8 +153,8 @@ export default {
           title: this.$t('table_login_password'),
           key: 'loginPassword',
           inputKey: 'loginPassword',
-          searchSeqNo: 6,
-          displaySeqNo: 6,
+          searchSeqNo: 7,
+          displaySeqNo: 7,
           component: 'Input',
           inputType: 'text',
           placeholder: this.$t('table_login_password')
@@ -140,8 +163,8 @@ export default {
           title: this.$t('table_port'),
           key: 'port',
           inputKey: 'port',
-          searchSeqNo: 7,
-          displaySeqNo: 7,
+          searchSeqNo: 8,
+          displaySeqNo: 8,
           component: 'Input',
           inputType: 'text',
           placeholder: this.$t('table_port')
@@ -150,8 +173,8 @@ export default {
           title: this.$t('table_purpose'),
           key: 'purpose',
           inputKey: 'purpose',
-          searchSeqNo: 8,
-          displaySeqNo: 8,
+          searchSeqNo: 9,
+          displaySeqNo: 9,
           component: 'Input',
           inputType: 'text',
           placeholder: this.$t('table_purpose')
@@ -160,8 +183,8 @@ export default {
           title: this.$t('table_status'),
           key: 'status',
           inputKey: 'status',
-          searchSeqNo: 9,
-          displaySeqNo: 9,
+          searchSeqNo: 10,
+          displaySeqNo: 10,
           component: 'WeSelect',
           inputType: 'select',
           placeholder: this.$t('table_status')
@@ -170,8 +193,8 @@ export default {
           title: this.$t('table_type'),
           key: 'type',
           inputKey: 'type',
-          searchSeqNo: 10,
-          displaySeqNo: 10,
+          searchSeqNo: 11,
+          displaySeqNo: 11,
           component: 'WeSelect',
           inputType: 'select',
           placeholder: this.$t('table_type')
@@ -342,6 +365,7 @@ export default {
           name: addObj.name,
           port: addObj.port,
           purpose: addObj.purpose,
+          loginMode: addObj.loginMode,
           status: addObj.status,
           type: addObj.type
         }
@@ -366,6 +390,7 @@ export default {
             name: _.name,
             port: _.port,
             purpose: _.purpose,
+            loginMode: _.loginMode,
             status: _.status,
             type: _.type
           }
