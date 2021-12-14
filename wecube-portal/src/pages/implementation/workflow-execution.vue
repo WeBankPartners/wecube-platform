@@ -317,11 +317,10 @@
         <h5>requestObjects:</h5>
         <Table :columns="nodeDetailColumns" :max-height="tableMaxHeight" tooltip="true" :data="nodeDetailIO"></Table>
       </div>
-      <div
-        v-else
-        :style="[{ overflow: 'auto', margin: '0 6px 6px' }, fullscreenModalContentStyle]"
-        v-html="nodeDetail"
-      ></div>
+      <div v-else :style="[{ overflow: 'auto', margin: '0 6px 6px' }, fullscreenModalContentStyle]">
+        <!-- v-html="nodeDetail" -->
+        <json-viewer :value="nodeDetail" :expand-depth="5"></json-viewer>
+      </div>
     </Modal>
     <Modal v-model="confirmModal.isShowConfirmModal" width="1000">
       <div>
@@ -412,6 +411,7 @@ import {
   updateTaskNodeInstanceExecBindings,
   setUserScheduledTasks
 } from '@/api/server'
+import JsonViewer from 'vue-json-viewer'
 import * as d3 from 'd3-selection'
 // eslint-disable-next-line no-unused-vars
 import * as d3Graphviz from 'd3-graphviz'
@@ -742,7 +742,7 @@ export default {
       }
     }
   },
-  components: { TimedExecution },
+  components: { TimedExecution, JsonViewer },
   computed: {
     canAbleToSetting () {
       const found = this.allFlowInstances.find(_ => _.id === this.selectedFlowInstance)
@@ -1494,9 +1494,10 @@ export default {
         }
         const { status, data } = await getModelNodeDetail(row.packageName, row.entityName, params)
         if (status === 'OK') {
-          this.nodeDetail = JSON.stringify(data)
-            .split(',')
-            .join(',<br/>')
+          // this.nodeDetail = JSON.stringify(data)
+          //   .split(',')
+          //   .join(',<br/>')
+          this.nodeDetail = data
         }
         this.isTargetNodeDetail = true
         this.nodeDetailFullscreen = false
