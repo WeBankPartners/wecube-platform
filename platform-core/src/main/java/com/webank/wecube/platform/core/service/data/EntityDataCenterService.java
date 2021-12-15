@@ -229,7 +229,23 @@ public class EntityDataCenterService {
         }
         
         Map<String, Object> resultMap = resultMaps.get(0);
-        return resultMap;
+        
+        Map<String,Object> resultIdAndNameMap = new HashMap<>();
+        String dataId = (String) resultMap.get(Constants.UNIQUE_IDENTIFIER);
+        
+        String displayName = (String) resultMap.get(Constants.VISUAL_FIELD);
+        if(StringUtils.isNoneBlank(dataId)) {
+            
+            resultIdAndNameMap.put(Constants.UNIQUE_IDENTIFIER, dataId);
+        }else {
+            return resultIdAndNameMap;
+        }
+        
+        if(displayName != null) {
+            resultIdAndNameMap.put(Constants.VISUAL_FIELD, displayName);
+        }
+        
+        return resultIdAndNameMap;
     }
     
     protected List<Map<String, Object>> queryEntityData(String packageName, String entityName, String attrName,Object condition, StandardEntityOperationRestClient client){
@@ -293,7 +309,21 @@ public class EntityDataCenterService {
                 results.add(blankDataMap);
             }else {
                 for(Map<String, Object> dataMap : dataMaps) {
-                    results.add(dataMap);
+                    
+                    Map<String,Object> resultIdAndNameMap = new HashMap<>();
+                    String dataId = (String) dataMap.get(Constants.UNIQUE_IDENTIFIER);
+                    
+                    String displayName = (String) dataMap.get(Constants.VISUAL_FIELD);
+                    if(StringUtils.isNoneBlank(dataId)) {
+                        
+                        resultIdAndNameMap.put(Constants.UNIQUE_IDENTIFIER, dataId);
+                        
+                        if(displayName != null) {
+                            resultIdAndNameMap.put(Constants.VISUAL_FIELD, displayName);
+                        }
+                    }
+                    
+                    results.add(resultIdAndNameMap);
                 }
             }
         }
