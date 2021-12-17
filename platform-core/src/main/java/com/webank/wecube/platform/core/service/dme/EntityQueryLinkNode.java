@@ -1,6 +1,7 @@
 package com.webank.wecube.platform.core.service.dme;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
@@ -41,6 +42,7 @@ public class EntityQueryLinkNode {
         executor.performQuery(ctx, this);
     }
 
+    @SuppressWarnings({ "rawtypes", "unchecked" })
     public List<Object> extractFinalAttributeValues() {
         List<Object> attrValues = new ArrayList<>();
         if (!hasQueryAttribute()) {
@@ -49,7 +51,12 @@ public class EntityQueryLinkNode {
 
         for (EntityDataDelegate delegate : this.getEntityDataDelegates()) {
             if (delegate.getQueryAttrValue() != null) {
+                if(delegate.getQueryAttrValue() instanceof Collection) {
+                    Collection<Object> c = (Collection)delegate.getQueryAttrValue();
+                    attrValues.addAll(c);
+                }else {
                 attrValues.add(delegate.getQueryAttrValue());
+                }
             }
         }
 
