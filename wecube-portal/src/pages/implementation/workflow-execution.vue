@@ -16,7 +16,7 @@
               <FormItem v-if="isEnqueryPage" :label-width="100" :label="$t('orchs')">
                 <Select
                   v-model="selectedFlowInstance"
-                  style="width:60%"
+                  style="width: 60%"
                   filterable
                   clearable
                   @on-open-change="getProcessInstances(false)"
@@ -28,24 +28,26 @@
                     :key="item.id"
                     :label="
                       item.procInstName +
-                        '  ' +
-                        item.entityDisplayName +
-                        '  ' +
-                        (item.operator || 'operator') +
-                        '  ' +
-                        (item.createdTime || '0000-00-00 00:00:00') +
-                        '  ' +
-                        item.status
+                      '  ' +
+                      item.entityDisplayName +
+                      '  ' +
+                      (item.operator || 'operator') +
+                      '  ' +
+                      (item.createdTime || '0000-00-00 00:00:00') +
+                      '  ' +
+                      item.status
                     "
                   >
                     <span>
-                      <span style="color:#2b85e4">{{ item.procInstName + ' ' }}</span>
-                      <span style="color:#515a6e">{{ item.entityDisplayName + ' ' }}</span>
-                      <span style="color:#ccc;padding-left:8px;float:right">{{ item.status }}</span>
-                      <span style="color:#ccc;float:right">{{
+                      <span style="color: #2b85e4">{{ item.procInstName + ' ' }}</span>
+                      <span style="color: #515a6e">{{ item.entityDisplayName + ' ' }}</span>
+                      <span style="color: #ccc; padding-left: 8px; float: right">{{ item.status }}</span>
+                      <span style="color: #ccc; float: right">{{
                         (item.createdTime || '0000-00-00 00:00:00') + ' '
                       }}</span>
-                      <span style="float:right;color:#515a6e;margin-right:20px">{{ item.operator || 'operator' }}</span>
+                      <span style="float: right; color: #515a6e; margin-right: 20px">{{
+                        item.operator || 'operator'
+                      }}</span>
                     </span>
                   </Option>
                 </Select>
@@ -78,7 +80,7 @@
               <Col v-if="!isEnqueryPage" span="12" offset="0">
                 <FormItem :label-width="100" :label="$t('target_object')">
                   <Select
-                    style="width:80%"
+                    style="width: 80%"
                     label
                     v-model="selectedTarget"
                     :disabled="isEnqueryPage"
@@ -106,20 +108,20 @@
         </Row>
         <Row>
           <Row id="graphcontain">
-            <Col span="7" style="border-right:1px solid #d3cece; text-align: center;height:100%;position: relative;">
-              <div class="graph-container" id="flow" style="height:90%"></div>
+            <Col span="7" style="border-right: 1px solid #d3cece; text-align: center; height: 100%; position: relative">
+              <div class="graph-container" id="flow" style="height: 90%"></div>
               <Button class="reset-button" size="small" @click="ResetFlow">ResetZoom</Button>
               <Button
                 v-if="!isEnqueryPage && selectedFlow && selectedTarget"
-                style="left:5px"
+                style="left: 5px"
                 class="set-data-button"
                 icon="ios-grid"
                 size="small"
                 @click="setFlowDataForAllNodes"
               ></Button>
             </Col>
-            <Col span="17" style="text-align: center;text-align: center;height:100%; position: relative;">
-              <div class="graph-container" id="graph" style="height:90%"></div>
+            <Col span="17" style="text-align: center; text-align: center; height: 100%; position: relative">
+              <div class="graph-container" id="graph" style="height: 90%"></div>
               <Button class="reset-button" size="small" @click="ResetModel">ResetZoom</Button>
               <Button
                 v-if="selectedFlow && selectedTarget"
@@ -152,7 +154,7 @@
         :span-method="modelDataHandleSpan"
       >
         <template slot-scope="{ row, index }" slot="nodeTitle">
-          <div style="margin-bottom:5px" v-for="title in row.nodeTitle.split(';')" :key="title">
+          <div style="margin-bottom: 5px" v-for="title in row.nodeTitle.split(';')" :key="title">
             {{ title }}
           </div>
         </template>
@@ -189,9 +191,9 @@
       :mask-closable="false"
       :scrollable="true"
     >
-      <div class="workflowActionModal-container" style="text-align: center;margin-top: 20px;">
+      <div class="workflowActionModal-container" style="text-align: center; margin-top: 20px">
         <Button
-          style="background-color:#BF22E0;color:white"
+          style="background-color: #bf22e0; color: white"
           v-show="
             ['Risky'].includes(currentNodeStatus) && currentInstanceStatusForNodeOperation != 'InternallyTerminated'
           "
@@ -203,7 +205,7 @@
           type="primary"
           v-show="
             ['NotStarted', 'Risky'].includes(currentNodeStatus) &&
-              currentInstanceStatusForNodeOperation != 'InternallyTerminated'
+            currentInstanceStatusForNodeOperation != 'InternallyTerminated'
           "
           @click="workFlowActionHandler('dataSelection')"
           :loading="btnLoading"
@@ -213,7 +215,7 @@
           type="primary"
           v-show="
             ['Faulted', 'Timeouted'].includes(currentNodeStatus) &&
-              currentInstanceStatusForNodeOperation != 'InternallyTerminated'
+            currentInstanceStatusForNodeOperation != 'InternallyTerminated'
           "
           @click="workFlowActionHandler('partialRetry')"
           :loading="btnLoading"
@@ -223,7 +225,7 @@
           type="warning"
           v-show="
             ['Faulted', 'Timeouted', 'Risky'].includes(currentNodeStatus) &&
-              currentInstanceStatusForNodeOperation != 'InternallyTerminated'
+            currentInstanceStatusForNodeOperation != 'InternallyTerminated'
           "
           @click="workFlowActionHandler('skip')"
           :loading="btnLoading"
@@ -250,7 +252,11 @@
       width="50"
       @on-ok="retryTargetModelConfirm"
     >
-      <Input v-model="retryTableFilterParam" placeholder="displayName filter" style="width: 300px;margin-bottom:8px;" />
+      <Input
+        v-model="retryTableFilterParam"
+        placeholder="displayName filter"
+        style="width: 300px; margin-bottom: 8px"
+      />
       <Table
         border
         ref="selection"
@@ -275,7 +281,7 @@
       width="50"
       @on-ok="targetModelConfirm"
     >
-      <Input v-model="tableFilterParam" placeholder="displayName filter" style="width: 300px;margin-bottom:8px;" />
+      <Input v-model="tableFilterParam" placeholder="displayName filter" style="width: 300px; margin-bottom: 8px" />
       {{ catchNodeTableList.length }}
       <Table
         border
@@ -299,7 +305,7 @@
           >
             <Button type="warning" size="small">View</Button>
             <div slot="content">
-              <pre style="max-height: 500px;"><span>{{rowContent}}</span></pre>
+              <pre style="max-height: 500px"><span>{{rowContent}}</span></pre>
             </div>
           </Tooltip>
         </template>
@@ -327,11 +333,11 @@
         <Icon :size="28" :color="'#f90'" type="md-help-circle" />
         <span class="confirm-msg">{{ $t('confirm_to_exect') }}</span>
       </div>
-      <div style="max-height: 390px;overflow: auto;">
-        <pre style="margin-left: 44px;margin-top: 22px;">{{ this.confirmModal.message }}</pre>
+      <div style="max-height: 390px; overflow: auto">
+        <pre style="margin-left: 44px; margin-top: 22px">{{ this.confirmModal.message }}</pre>
       </div>
       <div slot="footer">
-        <span style="margin-left:30px;color:#ed4014;float: left;text-align:left">
+        <span style="margin-left: 30px; color: #ed4014; float: left; text-align: left">
           <Checkbox v-model="confirmModal.check">{{ $t('dangerous_confirm_tip') }}</Checkbox>
         </span>
         <Button type="text" @click="confirmModal.isShowConfirmModal = false">{{ $t('bc_cancel') }}</Button>
@@ -346,7 +352,7 @@
           <Select
             v-model="timeConfig.params.scheduleMode"
             @on-change="timeConfig.params.time = '00:00:00'"
-            style="width:95%"
+            style="width: 95%"
           >
             <Option v-for="item in timeConfig.scheduleModeOptions" :key="item.value" :value="item.value">{{
               item.label
@@ -357,7 +363,7 @@
           v-if="['Monthly', 'Weekly'].includes(timeConfig.params.scheduleMode)"
           :label="timeConfig.params.scheduleMode === 'Monthly' ? $t('day') : $t('week')"
         >
-          <Select v-model="timeConfig.params.cycle" style="width:95%">
+          <Select v-model="timeConfig.params.cycle" style="width: 95%">
             <Option
               v-for="item in timeConfig.modeToValue[timeConfig.params.scheduleMode]"
               :key="item.value"
@@ -625,9 +631,7 @@ export default {
           title: 'inputs',
           key: 'inputs',
           render: (h, params) => {
-            const strInput = JSON.stringify(params.row.inputs)
-              .split(',')
-              .join(',<br/>')
+            const strInput = JSON.stringify(params.row.inputs).split(',').join(',<br/>')
             return h(
               'div',
               {
@@ -643,9 +647,7 @@ export default {
           title: 'outputs',
           key: 'outputs',
           render: (h, params) => {
-            const strOutput = JSON.stringify(params.row.outputs)
-              .split(',')
-              .join(',<br/>')
+            const strOutput = JSON.stringify(params.row.outputs).split(',').join(',<br/>')
             return h(
               'div',
               {
@@ -1216,9 +1218,7 @@ export default {
       }
     },
     clearFlow () {
-      d3.select('#flow')
-        .selectAll('*')
-        .remove()
+      d3.select('#flow').selectAll('*').remove()
       this.clearTarget()
     },
     orchestrationSelectHandler () {
@@ -1244,12 +1244,8 @@ export default {
       this.stop()
       this.selectedFlow = ''
       this.selectedTarget = ''
-      d3.select('#flow')
-        .selectAll('*')
-        .remove()
-      d3.select('#graph')
-        .selectAll('*')
-        .remove()
+      d3.select('#flow').selectAll('*').remove()
+      d3.select('#graph').selectAll('*').remove()
     },
     getCurrentInstanceStatus () {
       const found = this.allFlowInstances.find(_ => _.id === this.selectedFlowInstance)
@@ -1319,9 +1315,7 @@ export default {
       this.isExecuteActive = false
       this.showExcution = false
       this.selectedTarget = ''
-      d3.select('#graph')
-        .selectAll('*')
-        .remove()
+      d3.select('#graph').selectAll('*').remove()
     },
     onTargetSelectHandler () {
       this.isShowExect = false
@@ -1436,10 +1430,7 @@ export default {
             pathAry.push(current)
           }
         })
-        return pathAry
-          .flat()
-          .toString()
-          .replace(/,/g, ';')
+        return pathAry.flat().toString().replace(/,/g, ';')
       }
       let nodesToString = Array.isArray(nodes) && nodes.length > 0 ? nodes.toString().replace(/,/g, ';') + ';' : ''
       let nodesString =
@@ -1541,8 +1532,9 @@ export default {
               // const className = _.status === 'Faulted' || _.status === 'Timeouted' ? 'retry' : 'normal'
               const className = 'retry'
               const isModelClick = this.currentModelNodeRefs.indexOf(_.orderedNo) > -1
-              return `${_.nodeId} [fixedsize=false label="${(_.orderedNo ? _.orderedNo + ' ' : '') +
-                _.nodeName}" class="flow ${className}" style="${excution || isModelClick ? 'filled' : 'none'}" color="${
+              return `${_.nodeId} [fixedsize=false label="${
+                (_.orderedNo ? _.orderedNo + ' ' : '') + _.nodeName
+              }" class="flow ${className}" style="${excution || isModelClick ? 'filled' : 'none'}" color="${
                 excution
                   ? statusColor[_.status]
                   : isModelClick
@@ -1572,10 +1564,7 @@ export default {
               pathAry.push(current)
             }
           })
-        return pathAry
-          .flat()
-          .toString()
-          .replace(/,/g, ';')
+        return pathAry.flat().toString().replace(/,/g, ';')
       }
       let nodesToString = Array.isArray(nodes) ? nodes.toString().replace(/,/g, ';') + ';' : ''
       let nodesString =
@@ -1823,12 +1812,13 @@ export default {
             if (find.errorCode === '-1') {
               tm.confirmToken = 'Y'
               retryTartetModelsSingle.status = 'Confirm'
-            }
-            if (find.errorCode === '1') {
+            } else if (find.errorCode === '1') {
               tm.confirmToken = ''
               retryTartetModelsSingle.status = 'Error'
-            }
-            if (find.errorCode === '0') {
+            } else if (find.errorCode === '0') {
+              tm.confirmToken = ''
+              retryTartetModelsSingle.status = ''
+            } else {
               tm.confirmToken = ''
               retryTartetModelsSingle.status = ''
             }
@@ -1962,10 +1952,7 @@ export default {
       const initEvent = () => {
         let graph
         graph = d3.select(`#graph`)
-        graph
-          .on('dblclick.zoom', null)
-          .on('wheel.zoom', null)
-          .on('mousewheel.zoom', null)
+        graph.on('dblclick.zoom', null).on('wheel.zoom', null).on('mousewheel.zoom', null)
         this.graph.graphviz = graph
           .graphviz()
           .fit(true)
