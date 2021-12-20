@@ -66,7 +66,12 @@
                     <span
                       :class="plugin.status !== 'DECOMMISSIONED' ? 'plugin-title' : 'decomissionedPkgName plugin-title'"
                     >
-                      {{ plugin.name + '_' + plugin.version }}
+                      {{
+                        plugin.name +
+                          '_' +
+                          plugin.version +
+                          (plugin.edition !== 'community' ? ' [ ' + plugin.edition + ' ]' : '')
+                      }}
                     </span>
                     <span style="float: right; margin-right: 10px">
                       <Tooltip :content="$t('configuration_import')">
