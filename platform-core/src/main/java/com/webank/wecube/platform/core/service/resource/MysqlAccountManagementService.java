@@ -1,6 +1,7 @@
 package com.webank.wecube.platform.core.service.resource;
 
 import java.sql.Connection;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Map;
@@ -56,18 +57,16 @@ public class MysqlAccountManagementService implements ResourceItemService {
 
         DriverManagerDataSource dataSource = newDatasource(item);
         try (Connection connection = dataSource.getConnection(); Statement statement = connection.createStatement();) {
-            log.info("password before decrypt={}", password);
-            String rawPassword = null;
-            if (password.startsWith(ResourceManagementService.PASSWORD_ENCRYPT_AES_PREFIX)) {
-                password = password.substring(ResourceManagementService.PASSWORD_ENCRYPT_AES_PREFIX.length());
-            }
-            
-            rawPassword = EncryptionUtils.decryptWithAes(
+//            log.info("password before decrypt={}", password);
+            String plainPassword = EncryptionUtils.decryptAesPrefixedStringForcely(
                     password,
                     resourceProperties.getPasswordEncryptionSeed(), item.getName());
-            statement.executeUpdate(String.format("CREATE USER `%s` IDENTIFIED BY '%s'", username, rawPassword));
-            statement.executeUpdate(String.format("GRANT ALL ON %s.* TO %s@'%%' IDENTIFIED BY '%s'", item.getName(),
-                    username, rawPassword));
+            if(doesItemExist(item)) {
+                deleteItem(item);
+            }
+            statement.executeUpdate(String.format("CREATE USER `%s` IDENTIFIED BY '%s'", username, plainPassword));
+            statement.executeUpdate(String.format("GRANT ALL ON %s.* TO '%s'@'%%'", item.getName(),
+                    username));
         } catch (Exception e) {
             String errorMessage = String.format("Failed to create account [username = %s]", username);
             log.error(errorMessage, e);
@@ -87,16 +86,32 @@ public class MysqlAccountManagementService implements ResourceItemService {
             throw new WecubeCoreException("3242", errorMessage, e);
         }
     }
+    
+    public boolean doesItemExist(ResourceItem item) {
+        DriverManagerDataSource dataSource = newDatasource(item);
+        try (Connection connection = dataSource.getConnection(); Statement statement = connection.createStatement();) {
+            int count = 0;
+            String countUserSql = String.format("select count(1) from mysql.user where user = '%s'", item.getName()); 
+            try(ResultSet rs = statement.executeQuery(countUserSql);){
+                if(rs.next()) {
+                    count = rs.getInt(1);
+                }
+            }
+            
+            return count > 0;
+        } catch (SQLException e) {
+            log.debug("Errors while checking account.", e);
+            String errorMessage = String.format("Failed to check account [username = %s] : %s", item.getName(), e.getMessage());
+            throw new WecubeCoreException(errorMessage);
+        }
+    }
 
     private DriverManagerDataSource newDatasource(ResourceItem item) {
         String password;
         try {
             String dbPassword = item.getResourceServer().getLoginPassword();
-            if (dbPassword.startsWith(ResourceManagementService.PASSWORD_ENCRYPT_AES_PREFIX)) {
-                dbPassword = dbPassword.substring(ResourceManagementService.PASSWORD_ENCRYPT_AES_PREFIX.length());
-            }
             
-            password = EncryptionUtils.decryptWithAes(
+            password = EncryptionUtils.decryptAesPrefixedStringForcely(
                     dbPassword,
                     resourceProperties.getPasswordEncryptionSeed(), item.getResourceServer().getName());
         } catch (Exception e) {
