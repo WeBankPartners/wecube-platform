@@ -33,6 +33,9 @@ public class ResourceServer {
 
     private Date updatedDate;
 
+    //
+    private String loginMode;// PASSWD,KEY,PUBKEY
+
     private transient List<ResourceItem> resourceItems = new ArrayList<>();
 
     public String getId() {
@@ -153,6 +156,14 @@ public class ResourceServer {
 
     public void setResourceItems(List<ResourceItem> resourceItems) {
         this.resourceItems = resourceItems;
+    }
+
+    public String getLoginMode() {
+        return loginMode;
+    }
+
+    public void setLoginMode(String loginMode) {
+        this.loginMode = loginMode;
     }
 
 }

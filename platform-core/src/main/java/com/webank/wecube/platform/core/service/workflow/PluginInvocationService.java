@@ -2445,7 +2445,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
             }
         }
 
-        String requestId = UUID.randomUUID().toString();
+        String requestId = UUID.randomUUID().toString().replace("-", "");
 
         TaskNodeInstInfoEntity taskNodeInstEntity = ctx.getTaskNodeInstEntity();
 
