@@ -207,6 +207,7 @@ export default {
       this.currentLanguage = lang
     },
     async getMyMenus () {
+      this.menus = []
       let { status, data } = await getMyMenus()
       if (status === 'OK') {
         data.forEach(_ => {
@@ -333,6 +334,9 @@ export default {
       this.getAllPluginPackageResourceFiles()
       window.needReLoad = false
     }
+    this.$eventBusP.$on('updateMenus', () => {
+      this.getMyMenus()
+    })
   }
 }
 </script>
