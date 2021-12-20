@@ -7,6 +7,7 @@ import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 
 import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.lang3.StringUtils;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,6 +18,34 @@ import com.webank.wecube.platform.core.commons.WecubeCoreException;
 public class EncryptionUtils {
     private static final Logger log = LoggerFactory.getLogger(EncryptionUtils.class);
     private static final String INIT_VECTOR = "encriptionVector";
+    
+    public static String refineRsaKey(String raw) {
+        if(StringUtils.isBlank(raw)) {
+            return raw;
+        }
+        
+        raw = raw.trim();
+        raw = raw.replaceAll("\r|\n", "");
+        
+        String leeding = "***REMOVED***----";
+        String tail = "-----END RSA PRIVATE KEY-----";
+        
+        if(raw.startsWith(leeding)) {
+            raw = raw.substring(leeding.length());
+        }
+        
+        int lastIndexOfTail = raw.lastIndexOf(tail);
+        if(lastIndexOfTail > 0) {
+            raw = raw.substring(0, lastIndexOfTail);
+        }
+        
+        raw = raw.trim();
+        raw = raw.replaceAll(" ", "");
+        
+        raw = leeding + "\n"+raw + "\n"+tail;
+        
+        return raw;
+    }
 
     public static String generateKeyFromSeedAndSalt(String seed, String additionalSalt) {
         return String.format("%16s", DigestUtils.md5DigestAsHex((seed + additionalSalt).getBytes()).substring(0, 15));
@@ -51,6 +80,48 @@ public class EncryptionUtils {
         }
 
         return encrytedPassword;
+    }
+    
+    public static String decryptAesPrefixedStringOnly(String encryptedStr, String seed, String additionalSalt) {
+        if(StringUtils.isBlank(encryptedStr)) {
+            return encryptedStr;
+        }
+        
+        String toDecyptStr = encryptedStr;
+        
+        
+        if (!toDecyptStr.startsWith(Constants.PASSWORD_ENCRYPT_AES_PREFIX)) {
+            return toDecyptStr;
+        }
+        
+        toDecyptStr = toDecyptStr.substring(Constants.PASSWORD_ENCRYPT_AES_PREFIX.length());
+
+        String plainPassword = decryptWithAes(toDecyptStr, seed,
+                additionalSalt);
+        
+        return plainPassword;
+    }
+    
+    public static String decryptAesPrefixedStringForcely(String encryptedStr, String seed, String additionalSalt) {
+        if(StringUtils.isBlank(encryptedStr)) {
+            return encryptedStr;
+        }
+        
+        String toDecyptStr = encryptedStr;
+        
+        if(toDecyptStr.startsWith(Constants.PASSWORD_ENCRYPT_RAW_PREFIX)) {
+            toDecyptStr = toDecyptStr.substring(Constants.PASSWORD_ENCRYPT_RAW_PREFIX.length());
+            return toDecyptStr;
+        }
+        
+        if (toDecyptStr.startsWith(Constants.PASSWORD_ENCRYPT_AES_PREFIX)) {
+            toDecyptStr = toDecyptStr.substring(Constants.PASSWORD_ENCRYPT_AES_PREFIX.length());
+        }
+
+        String plainPassword = decryptWithAes(toDecyptStr, seed,
+                additionalSalt);
+        
+        return plainPassword;
     }
 
     public static String decryptWithAes(String encryptedPassword, String seed, String additionalSalt) {
