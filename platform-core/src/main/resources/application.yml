@@ -70,12 +70,14 @@ wecube:
       ui-file: ui.zip
       init-db-sql: init.sql
       upgrade-db-sql: upgrade.sql
-      static-resource-server-ip: 127.0.0.1
-      static-resource-server-user: user
-      static-resource-server-password: password
-      static-resource-server-port: 22
-      static-resource-server-path: /root/app/ui-resources
+      static-resource-server-ip: ${STATIC_RESOURCE_SERVER_IP:127.0.0.1}
+      static-resource-server-user: ${STATIC_RESOURCE_SERVER_USER:user}
+      static-resource-server-password: ${STATIC_RESOURCE_SERVER_PASSWORD:password}
+      static-resource-server-port: ${STATIC_RESOURCE_SERVER_PORT:22}
+      static-resource-server-path: ${STATIC_RESOURCE_SERVER_PATH:/root/app/ui-resources}
       base-mount-path: /data
+      static-resource-server-auth-mode: ${STATIC_RESOURCE_SERVER_AUTH_MODE:PASSWD}
+      static-resource-server-key-path: ${STATIC_RESOURCE_SERVER_KEY_PATH:/root/docker/cert/id_rsa}
     s3:
       endpoint: http://s3-server:9000
       access-key: s3-access-key

@@ -212,8 +212,10 @@
                           :isBatch="pluginForm.taskCategory === 'SDTN'"
                           ref="filterRulesGroup"
                           @filterRuleChanged="singleFilterRuleChanged"
+                          :disabled="pluginForm.dynamicBind === 'Y' && pluginForm.associatedNodeId"
                           :routineExpression="pluginForm.routineExpression"
                           :allEntityType="allEntityType"
+                          :currentSelectedEntity="currentSelectedEntity"
                         >
                         </FilterRulesGroup>
                       </FormItem>
@@ -622,6 +624,7 @@ export default {
     },
     changeTaskCategory (val) {
       this.pluginForm.serviceId = ''
+      this.pluginForm.associatedNodeId = ''
       this.pluginForm.serviceName = ''
       this.editFormdata()
     },
@@ -651,8 +654,9 @@ export default {
         this.pluginForm.routineExpression = ''
         this.pluginForm.routineRaw = ''
       }
-      this.pluginForm.serviceId = ''
-      this.pluginForm.serviceName = ''
+      this.$refs.filterRulesGroup.changeRoutineExpressionItem(this.pluginForm.routineExpression)
+      // this.pluginForm.serviceId = ''
+      // this.pluginForm.serviceName = ''
     },
     clearDynamicBind () {
       this.pluginForm.routineExpression = ''
