@@ -87,4 +87,13 @@ public class Constants {
     
     public static final String BIND_FLAG_YES = "Y";
     public static final String BIND_FLAG_NO = "N";
+    
+    public static final String PASSWORD_ENCRYPT_AES_PREFIX = "{AES}";
+    public static final String PASSWORD_ENCRYPT_RAW_PREFIX = "{RAW}";
+    
+    public static final String SSH_AUTH_MODE_PASSWORD = "PASSWD";
+    public static final String SSH_AUTH_MODE_KEY = "KEY";
+    
+    public static final String EDITION_ENTERPRISE = "enterprise";
+    public static final String EDITION_COMMUNITY = "community";
 }

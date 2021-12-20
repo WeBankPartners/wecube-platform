@@ -12,15 +12,25 @@
             jdbcType="TIMESTAMP" />
         <result column="ui_package_included" property="uiPackageIncluded"
             jdbcType="BIT" />
+        <result column="edition" property="edition" jdbcType="VARCHAR" />
     </resultMap>
     <sql id="Base_Column_List">
-        id, name, version, status, upload_timestamp,
-        ui_package_included
+        id, 
+        name, 
+        version, 
+        status, 
+        upload_timestamp,
+        ui_package_included,
+        edition
     </sql>
     <sql id="Base_Column_List_T1">
-        t1.id, t1.name, t1.version, t1.status,
+        t1.id, 
+        t1.name, 
+        t1.version, 
+        t1.status,
         t1.upload_timestamp,
-        t1.ui_package_included
+        t1.ui_package_included,
+        t1.edition
     </sql>
     <select id="selectByPrimaryKey" resultMap="BaseResultMap"
         parameterType="java.lang.String">
@@ -36,15 +46,23 @@
     </delete>
     <insert id="insert"
         parameterType="com.webank.wecube.platform.core.entity.plugin.PluginPackages">
-        insert into plugin_packages (id, name, version,
-        status, upload_timestamp, ui_package_included
+        insert into plugin_packages (
+        id, 
+        name, 
+        version,
+        status, 
+        upload_timestamp, 
+        ui_package_included,
+        edition
         )
         values
-        (#{id,jdbcType=VARCHAR}, #{name,jdbcType=VARCHAR},
+        (#{id,jdbcType=VARCHAR}, 
+        #{name,jdbcType=VARCHAR},
         #{version,jdbcType=VARCHAR},
         #{status,jdbcType=VARCHAR},
         #{uploadTimestamp,jdbcType=TIMESTAMP},
-        #{uiPackageIncluded,jdbcType=BIT}
+        #{uiPackageIncluded,jdbcType=BIT},
+        #{edition,jdbcType=VARCHAR}
         )
     </insert>
     <insert id="insertSelective"
@@ -69,6 +87,9 @@
             <if test="uiPackageIncluded != null">
                 ui_package_included,
             </if>
+            <if test="edition != null">
+                edition,
+            </if>
         </trim>
         <trim prefix="values (" suffix=")" suffixOverrides=",">
             <if test="id != null">
@@ -88,6 +109,9 @@
             </if>
             <if test="uiPackageIncluded != null">
                 #{uiPackageIncluded,jdbcType=BIT},
+            </if>
+            <if test="edition != null">
+                #{edition,jdbcType=VARCHAR},
             </if>
         </trim>
     </insert>
@@ -112,6 +136,9 @@
                 ui_package_included =
                 #{uiPackageIncluded,jdbcType=BIT},
             </if>
+            <if test="edition != null">
+                edition = #{edition,jdbcType=VARCHAR},
+            </if>
         </set>
         where id = #{id,jdbcType=VARCHAR}
     </update>
@@ -125,7 +152,8 @@
         upload_timestamp =
         #{uploadTimestamp,jdbcType=TIMESTAMP},
         ui_package_included =
-        #{uiPackageIncluded,jdbcType=BIT}
+        #{uiPackageIncluded,jdbcType=BIT},
+        edition = #{edition,jdbcType=VARCHAR}
         where id =
         #{id,jdbcType=VARCHAR}
     </update>
@@ -140,6 +168,8 @@
         #{name,jdbcType=VARCHAR}
         AND
         version = #{version,jdbcType=VARCHAR}
+        AND
+        edition = #{edition,jdbcType=VARCHAR}
     </select>
 
     <select id="selectAll" resultMap="BaseResultMap">

@@ -7,7 +7,7 @@ CREATE TABLE `plugin_packages` (
     `status`                VARCHAR(20) NOT NULL default 'UNREGISTERED',
     `upload_timestamp`      timestamp default current_timestamp,
     `ui_package_included`   BIT default 0,
-    UNIQUE INDEX `name` (`name`, `version`)
+    `edition`               VARCHAR(20) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 ;
 
 drop table if exists plugin_package_dependencies;

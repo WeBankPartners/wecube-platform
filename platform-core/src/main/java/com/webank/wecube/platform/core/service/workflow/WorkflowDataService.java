@@ -244,10 +244,6 @@ public class WorkflowDataService extends AbstractWorkflowService {
                 throw new WecubeCoreException(errMsg);
             }
 
-//            if (bindInfoDto.getBound().equals(bindEntity.getBindFlag())) {
-//                continue;
-//            }
-
             bindEntity.setBindFlag(bindInfoDto.getBound());
             bindEntity.setConfirmToken(bindInfoDto.getConfirmToken());
 

@@ -29,7 +29,8 @@ public class MysqlDatabaseManagementService implements ResourceItemService {
     public DriverManagerDataSource newMysqlDatasource(String host, String port, String username, String password) {
         DriverManagerDataSource dataSource = new DriverManagerDataSource();
         dataSource.setDriverClassName("com.mysql.cj.jdbc.Driver");
-        dataSource.setUrl("jdbc:mysql://" + host + ":" + port + "?characterEncoding=utf8&serverTimezone=UTC");
+        dataSource.setUrl(
+                "jdbc:mysql://" + host + ":" + port + "?characterEncoding=utf8&serverTimezone=UTC");
         dataSource.setUsername(username);
         dataSource.setPassword(password);
         return dataSource;
@@ -39,12 +40,18 @@ public class MysqlDatabaseManagementService implements ResourceItemService {
     public ResourceItem createItem(ResourceItem item) {
         DriverManagerDataSource dataSource = newDatasource(item);
         try (Connection connection = dataSource.getConnection(); Statement statement = connection.createStatement();) {
-            statement.executeUpdate(String.format("CREATE SCHEMA %s", item.getName()));
+            if(doesItemExist(item)) {
+                log.info("Such database schema already existed, name={}", item.getName());
+            }else {
+                statement.executeUpdate(String.format("CREATE SCHEMA %s", item.getName()));
+            }
+            
+            
             mysqlAccountManagementService.createItem(item);
         } catch (SQLException e) {
             String errorMessage = String.format("Failed to create schema [%s], meet error [%s].", item.getName(),
                     e.getMessage());
-            log.error(errorMessage);
+            log.error(errorMessage, e);
             throw new WecubeCoreException("3244", errorMessage, item.getName(), e.getMessage());
         }
         return item;
@@ -52,12 +59,8 @@ public class MysqlDatabaseManagementService implements ResourceItemService {
 
     private DriverManagerDataSource newDatasource(ResourceItem item) {
         String password = item.getResourceServer().getLoginPassword();
-        if (password.startsWith(ResourceManagementService.PASSWORD_ENCRYPT_AES_PREFIX)) {
-            password = password.substring(ResourceManagementService.PASSWORD_ENCRYPT_AES_PREFIX.length());
-        }
-        
-        password = EncryptionUtils.decryptWithAes(
-                password,
+
+        password = EncryptionUtils.decryptAesPrefixedStringForcely(password,
                 resourceProperties.getPasswordEncryptionSeed(), item.getResourceServer().getName());
         DriverManagerDataSource dataSource = newMysqlDatasource(item.getResourceServer().getHost(),
                 item.getResourceServer().getPort(), item.getResourceServer().getLoginUsername(), password);
@@ -86,6 +89,42 @@ public class MysqlDatabaseManagementService implements ResourceItemService {
         }
     }
 
+    @Override
+    public boolean doesItemExist(ResourceItem item) {
+        DriverManagerDataSource dataSource = newDatasource(item);
+
+        try (Connection connection = dataSource.getConnection(); Statement statement = connection.createStatement();) {
+            int count = 0;
+            String countSchemaSql = String
+                    .format("SELECT count(1) FROM information_schema.SCHEMATA where SCHEMA_NAME='%s'", item.getName());
+
+            try (ResultSet rs = statement.executeQuery(countSchemaSql);) {
+                if (rs.next()) {
+                    count = rs.getInt(1);
+                }
+            }
+
+            return count > 0;
+
+        } catch (SQLException e) {
+            log.debug("Failed to check schema.", e);
+            String errorMessage = String.format("Failed to check schema [%s], meet error [%s].", item.getName(),
+                    e.getMessage());
+            log.error(errorMessage);
+            throw new WecubeCoreException(errorMessage);
+        }
+    }
+
+    @Override
+    public ResourceItem retrieveItem(ResourceItem item) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public ResourceItem updateItem(ResourceItem item) {
+        throw new UnsupportedOperationException();
+    }
+
     private boolean hasTables(Connection connection, String dbName) {
         boolean hasTable = false;
         try (Statement statement = connection.createStatement();
@@ -98,15 +137,5 @@ public class MysqlDatabaseManagementService implements ResourceItemService {
             throw new WecubeCoreException("3247", errorMessage, e.getMessage());
         }
         return hasTable;
-    }
-
-    @Override
-    public ResourceItem retrieveItem(ResourceItem item) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public ResourceItem updateItem(ResourceItem item) {
-        throw new UnsupportedOperationException();
     }
 }

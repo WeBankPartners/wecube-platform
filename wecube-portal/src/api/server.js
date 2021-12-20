@@ -124,8 +124,10 @@ export const getAllPluginPackageResourceFiles = () => req.get('/platform/v1/reso
 export const pullDynamicDataModel = name => req.get(`/platform/v1/models/package/${name}`)
 export const getRefByIdInfoByPackageNameAndEntityName = (pkgName, entityName) =>
   req.get(`/platform/v1/models/package/${pkgName}/entity/${entityName}/refById`)
+// export const getModelNodeDetail = (packageName, entityName, data) =>
+//   req.post(`/${packageName}/entities/${entityName}/query`, data)
 export const getModelNodeDetail = (packageName, entityName, data) =>
-  req.post(`/${packageName}/entities/${entityName}/query`, data)
+  req.post(`/platform/v1/packages/${packageName}/entities/${entityName}/query`, data)
 export const getNodeBindings = id => req.get(`/platform/v1/process/instances/${id}/tasknode-bindings`)
 export const getNodeContext = (procId, nodeId) =>
   req.get(`/platform/v1/process/instances/${procId}/tasknodes/${nodeId}/context`)

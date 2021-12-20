@@ -7,7 +7,8 @@
             <FilterRules
               :needAttr="true"
               ref="filterRules"
-              style="height:44px"
+              :disabled="disabled"
+              style="height:35px"
               @change="filterRuleChanged"
               v-model="express.routineExpression"
               :allDataModelsWithAttrs="allEntityType"
@@ -60,7 +61,7 @@ export default {
       immediate: true
     }
   },
-  props: ['isBatch', 'allEntityType', 'routineExpression', 'rootEntity'],
+  props: ['isBatch', 'allEntityType', 'routineExpression', 'currentSelectedEntity', 'disabled'],
   mounted () {
     this.changeRoutineExpressionItem(this.routineExpression)
   },
@@ -82,7 +83,7 @@ export default {
     },
     addFilterRule () {
       this.routineExpressionItem.push({
-        routineExpression: this.rootEntity
+        routineExpression: this.currentSelectedEntity.split('{')[0]
       })
     },
     deleteFilterRule (index) {

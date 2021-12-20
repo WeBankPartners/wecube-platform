@@ -12,6 +12,8 @@ public class PluginPackageInfoDto {
     private Boolean uiPackageIncluded;
 
     private String status;
+    
+    private String edition;
 
     public String getId() {
         return id;
@@ -60,5 +62,15 @@ public class PluginPackageInfoDto {
     public void setStatus(String status) {
         this.status = status;
     }
+
+    public String getEdition() {
+        return edition;
+    }
+
+    public void setEdition(String edition) {
+        this.edition = edition;
+    }
+    
+    
 
 }

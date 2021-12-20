@@ -56,6 +56,9 @@ import com.webank.wecube.platform.core.entity.plugin.PluginPackageRuntimeResourc
 import com.webank.wecube.platform.core.entity.plugin.PluginPackageRuntimeResourcesMysql;
 import com.webank.wecube.platform.core.entity.plugin.PluginPackageRuntimeResourcesS3;
 import com.webank.wecube.platform.core.entity.plugin.PluginPackages;
+import com.webank.wecube.platform.core.entity.plugin.ResourceS3AdditionalProperties;
+import com.webank.wecube.platform.core.entity.plugin.ResourceS3FileInfo;
+import com.webank.wecube.platform.core.entity.plugin.ResourceS3FileSetInfo;
 import com.webank.wecube.platform.core.entity.plugin.SystemVariables;
 import com.webank.wecube.platform.core.parser.PluginConfigXmlValidator;
 import com.webank.wecube.platform.core.parser.PluginPackageDataModelValidator;
@@ -84,6 +87,8 @@ import com.webank.wecube.platform.core.service.plugin.xml.register.AuthorityType
 import com.webank.wecube.platform.core.service.plugin.xml.register.DataModelType;
 import com.webank.wecube.platform.core.service.plugin.xml.register.DockerType;
 import com.webank.wecube.platform.core.service.plugin.xml.register.EntityType;
+import com.webank.wecube.platform.core.service.plugin.xml.register.FileSetType;
+import com.webank.wecube.platform.core.service.plugin.xml.register.FileType;
 import com.webank.wecube.platform.core.service.plugin.xml.register.InputParameterType;
 import com.webank.wecube.platform.core.service.plugin.xml.register.InputParametersType;
 import com.webank.wecube.platform.core.service.plugin.xml.register.InterfaceType;
@@ -107,6 +112,7 @@ import com.webank.wecube.platform.core.service.plugin.xml.register.SystemParamet
 import com.webank.wecube.platform.core.service.user.UserManagementService;
 import com.webank.wecube.platform.core.utils.Constants;
 import com.webank.wecube.platform.core.utils.JaxbUtils;
+import com.webank.wecube.platform.core.utils.JsonUtils;
 import com.webank.wecube.platform.core.utils.SystemUtils;
 import com.webank.wecube.platform.workflow.commons.LocalIdGenerator;
 
@@ -421,13 +427,18 @@ public class PluginArtifactsMgmtService extends AbstractPluginMgmtService {
         }
 
         PackageType xmlPackage = JaxbUtils.convertToObject(registerXmlDataAsStr, PackageType.class);
+        
+        String edition = xmlPackage.getEdition();
+        if(StringUtils.isBlank(edition)) {
+            edition = Constants.EDITION_COMMUNITY;
+        }
 
         pluginPackageValidator.validatePackage(xmlPackage);
         dataModelValidator.validateDataModel(xmlPackage.getDataModel());
 
-        if (isPluginPackageExists(xmlPackage.getName(), xmlPackage.getVersion())) {
-            String errMsg = String.format("Plugin package [name=%s, version=%s] exists.", xmlPackage.getName(),
-                    xmlPackage.getVersion());
+        if (isPluginPackageExists(xmlPackage.getName(), xmlPackage.getVersion(), edition)) {
+            String errMsg = String.format("Plugin package [name=%s, version=%s, edition=%s] exists.", xmlPackage.getName(),
+                    xmlPackage.getVersion(), edition);
             throw new WecubeCoreException("3115", errMsg, xmlPackage.getName(), xmlPackage.getVersion());
         }
 
@@ -439,9 +450,15 @@ public class PluginArtifactsMgmtService extends AbstractPluginMgmtService {
         pluginPackageEntity.setVersion(xmlPackage.getVersion());
         pluginPackageEntity.setStatus(PluginPackages.UNREGISTERED);
         pluginPackageEntity.setUploadTimestamp(new Date());
+        
+        
+        
+        pluginPackageEntity.setEdition(edition);
+        
         pluginPackagesMapper.insert(pluginPackageEntity);
 
         processPluginUiPackageFile(localFilePath, xmlPackage, pluginPackageEntity);
+        processS3BucketFiles(localFilePath, xmlPackage, pluginPackageEntity);
 
         // trySavePluginPackageResourceFiles(pluginPackageResourceFilesEntities);
 
@@ -463,18 +480,82 @@ public class PluginArtifactsMgmtService extends AbstractPluginMgmtService {
 
 //        processParamObjects(xmlPackage.getParamObjects(), xmlPackage.getName(), xmlPackage.getVersion());
 
+        return buildUploadPackageResultDto(pluginPackageEntity);
+    }
+    
+    private UploadPackageResultDto buildUploadPackageResultDto(PluginPackages pluginPackageEntity) {
         UploadPackageResultDto result = new UploadPackageResultDto();
         result.setId(pluginPackageEntity.getId());
         result.setName(pluginPackageEntity.getName());
         result.setStatus(pluginPackageEntity.getStatus());
         result.setVersion(pluginPackageEntity.getVersion());
         result.setUiPackageIncluded(pluginPackageEntity.getUiPackageIncluded());
-
+        result.setEdition(pluginPackageEntity.getEdition());
+        
         return result;
+    }
+    
+    //TODO
+    protected void processS3BucketFiles(File localFilePath, PackageType xmlPackage, PluginPackages pluginPackageEntity) {
+        ResourceDependenciesType xmlResourceDependenciesType = xmlPackage.getResourceDependencies();
+        if(xmlResourceDependenciesType == null) {
+            return;
+        }
+        
+        List<S3Type> xmlS3List = xmlResourceDependenciesType.getS3();
+        if (xmlS3List != null) {
+            for (S3Type xmlS3 : xmlS3List) {
+                FileSetType xmlFileSet = xmlS3.getFileSet();
+                if(xmlFileSet == null) {
+                    continue;
+                }
+                
+                List<FileType> xmlFiles = xmlFileSet.getFile();
+                if(xmlFiles == null || xmlFiles.isEmpty()) {
+                    continue;
+                }
+                
+                for(FileType xmlFile : xmlFiles) {
+                    //TODO to tidy source path
+                    String sourcePath = xmlFile.getSource();
+                    if(StringUtils.isBlank(sourcePath)) {
+                        continue;
+                    }
+                    
+                    if(sourcePath.startsWith("/")) {
+                        sourcePath = sourcePath.substring(1);
+                    }
+                    File s3File = new File(localFilePath, sourcePath);
+                    log.debug("s3 file: {}", s3File.getAbsolutePath());
+                    String keyName = xmlPackage.getName() + "/" + xmlPackage.getVersion() + "/" + sourcePath;
+                    log.debug("keyName : {}", keyName);
+                    
+                    String s3FileUrl = s3Client.uploadFile(pluginProperties.getPluginPackageBucketName(), keyName,
+                            s3File);
+                    
+                    log.debug("s3FileUrl : {}", s3FileUrl);
+                }
+                
+            }
+        }
+        
+        //1 try check bucket if exists
+        
+        //2 try create or retrieve bucket
+        
+        //3 upload declared files
+        
+        //4 store in database
     }
 
     protected UploadPackageResultDto performUploadPackage(MultipartFile pluginPackageFile, File localFilePath) {
         String pluginPackageFileName = pluginPackageFile.getName();
+        
+        if(!validateUploadFilename(pluginPackageFileName)){
+            log.info("Invalid upload filename:{}", pluginPackageFileName);
+            throw new WecubeCoreException("Invalid upload filename.");
+        }
+        
         if (!localFilePath.exists()) {
             if (localFilePath.mkdirs()) {
                 log.info("Create directory [{}] successful", localFilePath.getAbsolutePath());
@@ -484,6 +565,7 @@ public class PluginArtifactsMgmtService extends AbstractPluginMgmtService {
             }
         }
 
+        //TODO
         File dest = new File(localFilePath, "/" + pluginPackageFileName);
         try {
             log.info("new file location: {}, filename: {}, canonicalpath: {}, canonicalfilename: {}",
@@ -504,6 +586,18 @@ public class PluginArtifactsMgmtService extends AbstractPluginMgmtService {
         }
 
         return result;
+    }
+    
+    private boolean validateUploadFilename(String filename){
+        if(StringUtils.isBlank(filename)){
+            return false;
+        }
+        
+        if(filename.contains("\\") || filename.contains("/")){
+            return false;
+        }
+        
+        return true;
     }
 
     private void processParamObjects(ParamObjectsType xmlParamObjects, String packageName, String packageVersion, String configId) {
@@ -648,12 +742,46 @@ public class PluginArtifactsMgmtService extends AbstractPluginMgmtService {
                 s3Entity.setId(LocalIdGenerator.generateId());
                 s3Entity.setPluginPackageId(pluginPackageEntity.getId());
                 s3Entity.setBucketName(xmlS3.getBucketName());
+                
+                String additionalPropsStr = buildXmlAdditionalProperties(xmlS3);
+                
+                if(StringUtils.isNoneBlank(additionalPropsStr)) {
+                    s3Entity.setAdditionalProperties(additionalPropsStr);
+                }
 
                 pluginPackageRuntimeResourcesS3Mapper.insert(s3Entity);
 
                 pluginPackageEntity.getS3s().add(s3Entity);
             }
         }
+    }
+    
+    private String buildXmlAdditionalProperties(S3Type xmlS3) {
+        FileSetType xmlFileSet = xmlS3.getFileSet();
+        
+        if(xmlFileSet == null) {
+            return null;
+        }
+        
+        ResourceS3FileSetInfo fileSetInfo = new ResourceS3FileSetInfo();
+        
+        ResourceS3AdditionalProperties additionalProps = new ResourceS3AdditionalProperties();
+        additionalProps.setFileSet(fileSetInfo);
+        
+        List<FileType> xmlFiles = xmlFileSet.getFile();
+        
+        if(xmlFiles != null) {
+            for(FileType xmlFile : xmlFiles) {
+                ResourceS3FileInfo fileInfo = new ResourceS3FileInfo();
+                fileInfo.setSource(xmlFile.getSource());
+                fileInfo.setToFile(xmlFile.getToFile());
+                
+                fileSetInfo.getFiles().add(fileInfo);
+            }
+        }
+        
+        String additionalPropsStr = JsonUtils.toJsonString(additionalProps);
+        return additionalPropsStr;
     }
 
     private void processDataModels(DataModelType xmlDataModel, PackageType xmlPackage,
@@ -1182,7 +1310,21 @@ public class PluginArtifactsMgmtService extends AbstractPluginMgmtService {
             while (entries.hasMoreElements()) {
                 ZipEntry entry = (ZipEntry) entries.nextElement();
                 String zipEntryName = entry.getName();
-                if (entry.isDirectory() || !ACCEPTED_FILES.contains(zipEntryName)) {
+//                if (entry.isDirectory() || !ACCEPTED_FILES.contains(zipEntryName)) {
+//                    continue;
+//                }
+                
+                if(entry.isDirectory()) {
+                    File dirFile = new File(destFilePath, zipEntryName);
+                    if(!dirFile.exists()) {
+                        boolean mkDirRet = dirFile.mkdirs();
+                        if(mkDirRet) {
+                            log.info("Create new temporary file: {}", destFilePath + zipEntryName);
+                        }else {
+                            log.info("Failed to create new temporary file: {}", destFilePath + zipEntryName);
+                        }
+                    }
+                    
                     continue;
                 }
 
@@ -1203,11 +1345,11 @@ public class PluginArtifactsMgmtService extends AbstractPluginMgmtService {
             }
         }
 
-        log.info("Zip file has uploaded !");
+        log.info("Zip file has unzipped !");
     }
 
-    private boolean isPluginPackageExists(String name, String version) {
-        return (pluginPackagesMapper.countByNameAndVersion(name, version) > 0);
+    private boolean isPluginPackageExists(String name, String version, String edition) {
+        return (pluginPackagesMapper.countByNameAndVersion(name, version, edition) > 0);
     }
 
     private void checkLocalFilePath(File localFilePath) {
