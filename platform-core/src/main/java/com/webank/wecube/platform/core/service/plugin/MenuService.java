@@ -34,6 +34,9 @@ public class MenuService {
     @Autowired
     private PluginPackageMenusMapper pluginPackageMenusMapper;
 
+//    @Autowired
+//    private PluginInstancesMapper pluginInstancesMapper;
+
     @Autowired
     private RoleMenuService roleMenuService;
 
@@ -90,8 +93,8 @@ public class MenuService {
 
         resultMenuItemDtos.addAll(allSysMenusDtos);
 
-        List<PluginPackageMenus> pluginPackageMenusEntities = calAvailablePluginPackgeMenus();
-        if(pluginPackageMenusEntities == null ){
+        List<PluginPackageMenus> pluginPackageMenusEntities = calAvailablePluginPackageMenus();
+        if (pluginPackageMenusEntities == null) {
             return resultMenuItemDtos;
         }
         for (PluginPackageMenus pluginPackageMenuEntity : pluginPackageMenusEntities) {
@@ -133,6 +136,9 @@ public class MenuService {
                 }
 
                 for (PluginPackageMenus pluginPackageMenusEntity : assignedPluginPackageMenusEntities) {
+//                    if (!hasRunningPluginInstances(pluginPackageMenusEntity)) {
+//                        continue;
+//                    }
                     MenuItemDto pluginPackageMenusDto = buildPackageMenuItemDto(pluginPackageMenusEntity);
                     menuItemsByAllMenuCodes.add(pluginPackageMenusDto);
                 }
@@ -143,6 +149,24 @@ public class MenuService {
         Collections.sort(resultMenuItemDtos);
         return resultMenuItemDtos;
     }
+
+//    private boolean hasRunningPluginInstances(PluginPackageMenus pluginPackageMenus) {
+//        List<PluginInstances> instances = pluginInstancesMapper
+//                .selectAllByPluginPackage(pluginPackageMenus.getPluginPackageId());
+//        if (instances == null || instances.isEmpty()) {
+//            return false;
+//        }
+//
+//        boolean hasRunningInstance = false;
+//        for (PluginInstances instance : instances) {
+//            if (PluginInstances.CONTAINER_STATUS_RUNNING.equalsIgnoreCase(instance.getContainerStatus())) {
+//                hasRunningInstance = true;
+//                break;
+//            }
+//        }
+//
+//        return hasRunningInstance;
+//    }
 
     private Set<String> calAssignedMenuCodesByCurrentUser() {
         Set<String> currentUserRoles = AuthenticationContextHolder.getCurrentUserRoles();
@@ -237,7 +261,7 @@ public class MenuService {
         return resultPluginPackageMenus;
     }
 
-    private List<PluginPackageMenus> calAvailablePluginPackgeMenus() {
+    private List<PluginPackageMenus> calAvailablePluginPackageMenus() {
         List<PluginPackageMenus> resultPluginPackageMenus = new ArrayList<>();
         List<String> pluginPackageActiveStatues = new ArrayList<String>();
         pluginPackageActiveStatues.addAll(PluginPackages.PLUGIN_PACKAGE_ACTIVE_STATUSES);
