@@ -4,6 +4,7 @@ import java.util.Date;
 
 import javax.annotation.PostConstruct;
 
+import org.apache.commons.lang3.StringUtils;
 import org.camunda.bpm.engine.delegate.DelegateExecution;
 import org.camunda.bpm.engine.delegate.ExecutionListener;
 import org.camunda.bpm.engine.impl.persistence.entity.ExecutionEntity;
@@ -43,6 +44,14 @@ public class ProcessInstanceEndListener implements ExecutionListener {
                 .selectOneByProcInstanceId(execution.getId());
 
         if (procInstEntity == null) {
+            String parentId = execution.getParentId();
+            if(StringUtils.isNoneBlank(parentId)) {
+                procInstEntity = processInstanceStatusRepository
+                        .selectOneByProcInstanceId(parentId);
+            }
+        }
+        
+        if(procInstEntity == null) {
             log.warn("process instance status doesnt exist,procInstanceId={},procIntanceBizKey={}", execution.getId(),
                     execution.getProcessBusinessKey());
             throw new IllegalStateException("process instance status doesnt exist");
