@@ -161,6 +161,7 @@ public class StandardEntityQueryExecutor implements EntityQueryExecutor {
             linkNode.setPreviousNode(previousLinkNode);
             linkNode.setSucceedingNode(null);
 
+            //TODO #2314 to add data model definition
             previousLinkNode = linkNode;
         }
 
