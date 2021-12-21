@@ -5,6 +5,8 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
+import org.apache.commons.lang3.StringUtils;
+
 /**
  * 
  * @author gavin
@@ -83,7 +85,7 @@ public class EntityQueryLinkNode {
     public EntityQueryLinkNode addEntityDataDelegates(EntityDataDelegate... dataDelegates) {
         for (EntityDataDelegate d : dataDelegates) {
             if (d != null) {
-                if (d.getId() == null) {
+                if (StringUtils.isBlank(d.getId())) {
                     throw new RuntimeException("Entity data should contain ID.");
                 }
                 // if (contains(d)) {
