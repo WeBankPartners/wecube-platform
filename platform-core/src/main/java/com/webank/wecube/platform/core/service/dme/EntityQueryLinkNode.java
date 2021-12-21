@@ -49,6 +49,7 @@ public class EntityQueryLinkNode {
             return attrValues;
         }
 
+        //TODO #2314 to handle data model data type mapping
         for (EntityDataDelegate delegate : this.getEntityDataDelegates()) {
             if (delegate.getQueryAttrValue() != null) {
                 if(delegate.getQueryAttrValue() instanceof Collection) {
