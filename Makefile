@@ -136,7 +136,7 @@ deploy_demo: image
 	docker tag  platform-auth-server:$(version) $(tencent_cloud_docker_image_registry)/platform-auth-server:$(date)-$(version)
 	sed "s~{{WECUBE_DB_IMAGE_NAME}}~wecube-db:${date}-$(version)~g" build/wecube_core_mysql.tpl > wecube_core_mysql.yml
 	docker-compose -f wecube_core_mysql.yml up -d
-	sleep 5
+	sleep 30
 	sh build/deploy_generate_compose.sh $(env_config) $(date)-$(version)
 	sed -i "s~{{WECUBE_DB_IMAGE_NAME}}~wecube-db:${date}-$(version)~g" docker-compose.yml
 	sed -i "s~{{WECUBE_APP_IMAGE_VER}}~wecube-db:${date}-$(version)~g" docker-compose.yml
