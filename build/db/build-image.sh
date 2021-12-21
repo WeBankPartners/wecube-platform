@@ -7,7 +7,8 @@ fi
 cd `dirname $0`
 
 set -ex
-cp -r ../../platform-core/src/main/resources/database  database
+#cp -r ../../platform-core/src/main/resources/database  database
+mkdir -p database
 
 TEXT='use wecube;'
 
