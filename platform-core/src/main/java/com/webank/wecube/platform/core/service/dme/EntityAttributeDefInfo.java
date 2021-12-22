@@ -1,5 +1,7 @@
 package com.webank.wecube.platform.core.service.dme;
 
+import com.webank.wecube.platform.core.utils.Constants;
+
 public class EntityAttributeDefInfo {
     private String packageName;
     private String entityName;
@@ -90,6 +92,14 @@ public class EntityAttributeDefInfo {
 
     public void setOrderNo(String orderNo) {
         this.orderNo = orderNo;
+    }
+    
+    public boolean isMandatory() {
+        return Constants.DATA_MANDATORY_YES.equalsIgnoreCase(mandatory);
+    }
+    
+    public boolean isMultiple() {
+        return Constants.DATA_MULTIPLE.equalsIgnoreCase(multiple);
     }
 
 }
