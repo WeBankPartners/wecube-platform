@@ -19,6 +19,8 @@ public class EntityQueryLinkNode {
     private EntityQueryLinkNode succeedingNode;
 
     private EntityQueryExprNodeInfo exprNodeInfo;
+    
+    private EntityAttributeDefInfo attrDefInfo;
 
     private List<EntityDataDelegate> entityDataDelegates = new ArrayList<>();
 
@@ -166,5 +168,15 @@ public class EntityQueryLinkNode {
     public void setIndex(int index) {
         this.index = index;
     }
+
+    public EntityAttributeDefInfo getAttrDefInfo() {
+        return attrDefInfo;
+    }
+
+    public void setAttrDefInfo(EntityAttributeDefInfo attrDefInfo) {
+        this.attrDefInfo = attrDefInfo;
+    }
+    
+    
 
 }

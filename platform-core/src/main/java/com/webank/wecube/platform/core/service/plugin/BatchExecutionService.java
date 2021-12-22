@@ -1154,6 +1154,7 @@ public class BatchExecutionService {
                     mappingEntityExpression);
         }
 
+        //TODO #2314
         EntityOperationRootCondition criteria = new EntityOperationRootCondition(mappingEntityExpression,
                 executionJob.getRootEntityId());
 
