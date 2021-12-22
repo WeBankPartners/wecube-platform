@@ -7,6 +7,8 @@ import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
 
+import com.webank.wecube.platform.core.commons.WecubeCoreException;
+
 /**
  * 
  * @author gavin
@@ -19,7 +21,7 @@ public class EntityQueryLinkNode {
     private EntityQueryLinkNode succeedingNode;
 
     private EntityQueryExprNodeInfo exprNodeInfo;
-    
+
     private EntityAttributeDefInfo attrDefInfo;
 
     private List<EntityDataDelegate> entityDataDelegates = new ArrayList<>();
@@ -53,19 +55,34 @@ public class EntityQueryLinkNode {
             return attrValues;
         }
 
-        //TODO #2314 to handle data model data type mapping
         for (EntityDataDelegate delegate : this.getEntityDataDelegates()) {
             if (delegate.getQueryAttrValue() != null) {
-                if(delegate.getQueryAttrValue() instanceof Collection) {
-                    Collection<Object> c = (Collection)delegate.getQueryAttrValue();
+                if (delegate.getQueryAttrValue() instanceof Collection) {
+                    validateMultipleData();
+                    Collection<Object> c = (Collection) delegate.getQueryAttrValue();
                     attrValues.addAll(c);
-                }else {
-                attrValues.add(delegate.getQueryAttrValue());
+                } else {
+                    attrValues.add(delegate.getQueryAttrValue());
                 }
             }
         }
 
         return attrValues;
+    }
+
+    private void validateMultipleData() {
+        if (attrDefInfo == null) {
+            return;
+        }
+
+        if (attrDefInfo.isMultiple()) {
+            return;
+        } else {
+            String errMsg = String.format(
+                    "Attribute[%s:%s:%s] declaration is not multiple kind data but got a collection kind data from expression calculation.",
+                    attrDefInfo.getPackageName(), attrDefInfo.getEntityName(), attrDefInfo.getAttrName());
+            throw new WecubeCoreException(errMsg);
+        }
     }
 
     public boolean isHeadLinkNode() {
@@ -176,7 +193,5 @@ public class EntityQueryLinkNode {
     public void setAttrDefInfo(EntityAttributeDefInfo attrDefInfo) {
         this.attrDefInfo = attrDefInfo;
     }
-    
-    
 
 }
