@@ -1369,7 +1369,7 @@ export default {
       this.modelData.forEach(i => {
         i.refFlowNodeIds = []
         this.allBindingsList.forEach(j => {
-          if (j.entityDataId === i.id) {
+          if (j.entityTypeId + ':' + j.entityDataId === i.id) {
             i.refFlowNodeIds.push(j.orderedNo)
           }
         })
