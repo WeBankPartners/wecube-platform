@@ -7,7 +7,8 @@ fi
 cd `dirname $0`
 
 set -ex
-cp -r ../../platform-core/src/main/resources/database  database
+#cp -r ../../platform-core/src/main/resources/database  database
+mkdir -p database
 
 TEXT='use wecube;'
 
@@ -24,7 +25,7 @@ echo "SET NAMES utf8;" > ./database/000000_create_database.sql
 echo "create database wecube charset = utf8;" >> ./database/000000_create_database.sql
 
 # setup auth
-cp ../../platform-auth-server/src/main/resources/database/*  database
+#cp ../../platform-auth-server/src/main/resources/database/*  database
 
 TEXT='use auth;'
 
