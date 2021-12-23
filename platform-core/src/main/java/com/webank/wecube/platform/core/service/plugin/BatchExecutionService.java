@@ -1154,7 +1154,6 @@ public class BatchExecutionService {
                     mappingEntityExpression);
         }
 
-        //TODO #2314
         EntityOperationRootCondition criteria = new EntityOperationRootCondition(mappingEntityExpression,
                 executionJob.getRootEntityId());
 
@@ -1193,6 +1192,13 @@ public class BatchExecutionService {
 
             parameter.setRawValue(attrValsPerExpr);
         } else {
+
+            // #2314
+            if (attrValsPerExpr.size() > 1) {
+                String errMsg = String.format("Plugin claims single value but multiple values got for parameter[%s]",
+                        parameter.getName());
+                throw new WecubeCoreException(errMsg);
+            }
 
             Object rawParamValue = tryDetermineRawParamValue(attrValsPerExpr, parameter.getDataType());
 
