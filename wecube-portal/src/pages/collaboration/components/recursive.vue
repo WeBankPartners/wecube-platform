@@ -8,13 +8,13 @@
             <Row>
               <Col span="2">
                 <FormItem :label="$t('params_name')">
-                  <span v-if="objItem.required === 'Y'" style="color:red;vertical-align: text-bottom;">*</span>
+                  <span v-if="objItem.required === 'Y'" style="color: red; vertical-align: text-bottom">*</span>
                   <Tooltip content="">
                     <span
-                      style="display: inline-block;white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"
+                      style="display: inline-block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis"
                       >{{ objItem.name }}</span
                     >
-                    <div slot="content" style="white-space: normal;">
+                    <div slot="content" style="white-space: normal">
                       <span>{{ objItem.description }}</span>
                     </div>
                   </Tooltip>
@@ -27,7 +27,7 @@
               </Col>
               <Col span="3" offset="0">
                 <FormItem :label="$t('core_multiple')">
-                  <Select v-model="objItem.multiple" :disabled="status === 'ENABLED'" filterable style="width:150px">
+                  <Select v-model="objItem.multiple" :disabled="status === 'ENABLED'" filterable style="width: 150px">
                     <Option v-for="item in sensitiveData" :value="item.value" :key="item.value">{{
                       item.label
                     }}</Option>
@@ -40,7 +40,7 @@
                     v-model="objItem.sensitiveData"
                     :disabled="status === 'ENABLED'"
                     filterable
-                    style="width:150px"
+                    style="width: 150px"
                   >
                     <Option v-for="item in sensitiveData" :value="item.value" :key="item.value">{{
                       item.label
@@ -93,7 +93,7 @@
                   <span v-if="objItem.mappingType === 'context' || objItem.mappingType === 'constant'">N/A</span>
 
                   <span v-if="objItem.mappingType === 'entity'">
-                    <div style="width: 50%;display:inline-block;vertical-align: top;">
+                    <div style="width: 50%; display: inline-block; vertical-align: top">
                       <FilterRulesRef
                         v-model="objItem.mappingEntityExpression"
                         :disabled="status === 'ENABLED'"
@@ -179,7 +179,7 @@ export default {
 </script>
 
 <style scoped lang="scss">
-.test /deep/ .ivu-form-item {
+.test ::v-deep .ivu-form-item {
   margin-bottom: 0;
 }
 ul {
