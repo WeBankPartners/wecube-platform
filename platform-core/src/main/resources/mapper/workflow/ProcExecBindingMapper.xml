@@ -365,14 +365,16 @@
         core_ru_proc_inst_info t2
         WHERE
         t1.bind_type = 'taskNode'
-        AND t2.id
-        = t1.proc_inst_id
+        AND 
+        t2.id = t1.proc_inst_id
         AND
         t2.status != 'Completed'
-        AND t2.status !=
-        'InternallyTerminated'
-        AND t2.status !=
-        'NotStarted'
+        AND 
+        t2.status != 'InternallyTerminated'
+        AND
+        t2.status != 'Faulted'
+        AND 
+        t2.status != 'NotStarted'
         AND
         t1.entity_data_id =
         #{entityDataId,jdbcType=VARCHAR}
@@ -388,11 +390,14 @@
         t1.bind_type = 'taskNode'
         AND t2.id
         = t1.proc_inst_id
-        AND t2.status != 'Completed'
-        AND t2.status !=
-        'InternallyTerminated'
-        AND t2.status !=
-        'NotStarted'
+        AND 
+        t2.status != 'Completed'
+        AND 
+        t2.status != 'InternallyTerminated'
+        AND
+        t2.status != 'Faulted'
+        AND 
+        t2.status != 'NotStarted'
         AND
         t1.entity_data_id = #{entityDataId,jdbcType=VARCHAR}
     </select>
@@ -409,19 +414,20 @@
         t1.bind_type = 'taskNode'
         AND t2.id
         = t1.proc_inst_id
-        AND t2.status
-        != 'Completed'
-        AND t2.status !=
-        'InternallyTerminated'
+        AND 
+        t2.status != 'Completed'
+        AND 
+        t2.status != 'InternallyTerminated'
         AND
-        t2.status !=
-        'NotStarted'
+        t2.status != 'Faulted'
+        AND
+        t2.status != 'NotStarted'
         AND t3.id =
         t1.proc_def_id
         AND
         t3.exclude_mode = 'Y'
-        AND t1.entity_data_id =
-        #{entityDataId,jdbcType=VARCHAR}
+        AND 
+        t1.entity_data_id = #{entityDataId,jdbcType=VARCHAR}
     </select>
 
     <select id="countAllExclusiveBoundRunningProcInstances"
@@ -437,10 +443,12 @@
         = t1.proc_inst_id
         AND
         t2.status != 'Completed'
-        AND t2.status !=
-        'InternallyTerminated'
-        AND t2.status !=
-        'NotStarted'
+        AND 
+        t2.status != 'InternallyTerminated'
+        AND
+        t2.status != 'Faulted'
+        AND 
+        t2.status != 'NotStarted'
         AND t3.id =
         t1.proc_def_id
         AND
@@ -458,12 +466,16 @@
         core_ru_proc_inst_info t2
         WHERE
         t1.bind_type = 'taskNode'
-        AND t2.id = t1.proc_inst_id
+        AND 
+        t2.id = t1.proc_inst_id
         AND
         t2.status != 'Completed'
-        AND t2.status != 'InternallyTerminated'
-        AND t2.status !=
-        'NotStarted'
+        AND 
+        t2.status != 'InternallyTerminated'
+        AND
+        t2.status != 'Faulted'
+        AND 
+        t2.status != 'NotStarted'
         AND t1.entity_data_id =
         #{entityDataId,jdbcType=VARCHAR}
         AND
@@ -481,11 +493,14 @@
         t1.bind_type = 'taskNode'
         AND t2.id
         = t1.proc_inst_id
-        AND t2.status != 'Completed'
-        AND t2.status !=
-        'InternallyTerminated'
-        AND t2.status !=
-        'NotStarted'
+        AND 
+        t2.status != 'Completed'
+        AND 
+        t2.status != 'InternallyTerminated'
+        AND
+        t2.status != 'Faulted'
+        AND 
+        t2.status != 'NotStarted'
         AND
         t1.entity_data_id = #{entityDataId,jdbcType=VARCHAR}
         AND
@@ -503,11 +518,14 @@
         t1.bind_type = 'taskNode'
         AND t2.id
         = t1.proc_inst_id
-        AND t2.status != 'Completed'
-        AND t2.status !=
-        'InternallyTerminated'
-        AND t2.status !=
-        'NotStarted'
+        AND 
+        t2.status != 'Completed'
+        AND 
+        t2.status != 'InternallyTerminated'
+        AND
+        t2.status != 'Faulted'
+        AND 
+        t2.status != 'NotStarted'
         AND t3.id =
         t1.proc_def_id
         AND t3.exclude_mode = 'Y'
@@ -530,9 +548,12 @@
         AND t2.id = t1.proc_inst_id
         AND
         t2.status != 'Completed'
-        AND t2.status != 'InternallyTerminated'
-        AND t2.status !=
-        'NotStarted'
+        AND 
+        t2.status != 'InternallyTerminated'
+        AND
+        t2.status != 'Faulted'
+        AND 
+        t2.status != 'NotStarted'
         AND t3.id = t1.proc_def_id
         AND
         t3.exclude_mode = 'Y'
