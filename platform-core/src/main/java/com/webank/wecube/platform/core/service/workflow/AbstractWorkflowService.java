@@ -87,6 +87,11 @@ public abstract class AbstractWorkflowService {
         if (ProcInstInfoEntity.INTERNALLY_TERMINATED_STATUS.equalsIgnoreCase(procInst.getStatus())) {
             return true;
         }
+        
+        //#2317
+        if(ProcInstInfoEntity.FAULTED_STATUS.equalsIgnoreCase(procInst.getStatus())) {
+            return true;
+        }
 
         return false;
     }
