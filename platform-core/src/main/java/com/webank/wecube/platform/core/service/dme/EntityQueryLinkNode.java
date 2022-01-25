@@ -5,6 +5,10 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
+import org.apache.commons.lang3.StringUtils;
+
+import com.webank.wecube.platform.core.commons.WecubeCoreException;
+
 /**
  * 
  * @author gavin
@@ -17,6 +21,8 @@ public class EntityQueryLinkNode {
     private EntityQueryLinkNode succeedingNode;
 
     private EntityQueryExprNodeInfo exprNodeInfo;
+
+    private EntityAttributeDefInfo attrDefInfo;
 
     private List<EntityDataDelegate> entityDataDelegates = new ArrayList<>();
 
@@ -51,16 +57,32 @@ public class EntityQueryLinkNode {
 
         for (EntityDataDelegate delegate : this.getEntityDataDelegates()) {
             if (delegate.getQueryAttrValue() != null) {
-                if(delegate.getQueryAttrValue() instanceof Collection) {
-                    Collection<Object> c = (Collection)delegate.getQueryAttrValue();
+                if (delegate.getQueryAttrValue() instanceof Collection) {
+                    validateMultipleData();
+                    Collection<Object> c = (Collection) delegate.getQueryAttrValue();
                     attrValues.addAll(c);
-                }else {
-                attrValues.add(delegate.getQueryAttrValue());
+                } else {
+                    attrValues.add(delegate.getQueryAttrValue());
                 }
             }
         }
 
         return attrValues;
+    }
+
+    private void validateMultipleData() {
+        if (attrDefInfo == null) {
+            return;
+        }
+
+        if (attrDefInfo.isMultiple()) {
+            return;
+        } else {
+            String errMsg = String.format(
+                    "Attribute[%s:%s:%s] declaration is not multiple kind data but got a collection kind data from expression calculation.",
+                    attrDefInfo.getPackageName(), attrDefInfo.getEntityName(), attrDefInfo.getAttrName());
+            throw new WecubeCoreException(errMsg);
+        }
     }
 
     public boolean isHeadLinkNode() {
@@ -82,7 +104,7 @@ public class EntityQueryLinkNode {
     public EntityQueryLinkNode addEntityDataDelegates(EntityDataDelegate... dataDelegates) {
         for (EntityDataDelegate d : dataDelegates) {
             if (d != null) {
-                if (d.getId() == null) {
+                if (StringUtils.isBlank(d.getId())) {
                     throw new RuntimeException("Entity data should contain ID.");
                 }
                 // if (contains(d)) {
@@ -162,6 +184,14 @@ public class EntityQueryLinkNode {
 
     public void setIndex(int index) {
         this.index = index;
+    }
+
+    public EntityAttributeDefInfo getAttrDefInfo() {
+        return attrDefInfo;
+    }
+
+    public void setAttrDefInfo(EntityAttributeDefInfo attrDefInfo) {
+        this.attrDefInfo = attrDefInfo;
     }
 
 }
