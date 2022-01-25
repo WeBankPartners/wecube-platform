@@ -1249,7 +1249,7 @@ export default {
     },
     getCurrentInstanceStatus () {
       const found = this.allFlowInstances.find(_ => _.id === this.selectedFlowInstance)
-      if (found && (found.status === 'Completed' || found.status === 'InternallyTerminated')) {
+      if (found && ['Completed', 'InternallyTerminated', 'Faulted'].includes(found.status)) {
         this.currentInstanceStatus = true
       } else {
         this.currentInstanceStatus = false
