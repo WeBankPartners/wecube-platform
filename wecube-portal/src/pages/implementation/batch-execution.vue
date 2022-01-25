@@ -1,16 +1,16 @@
 <template>
   <div>
-    <Spin size="large" fix style="margin-top: 100px;" v-show="isLoading">
+    <Spin size="large" fix style="margin-top: 100px" v-show="isLoading">
       <Icon type="ios-loading" size="44" class="spin-icon-load"></Icon>
       <div>{{ $t('loading') }}</div>
     </Spin>
     <section class="execute-history">
       <Row>
         <Col span="5" :style="isShowHistoryMenu ? '' : 'display:none'" class="res-title">
-          <div style="height:88px;padding: 8px;border-bottom:1px solid #e8eaec">
+          <div style="height: 88px; padding: 8px; border-bottom: 1px solid #e8eaec">
             <Form label-position="top" label-colon>
               <FormItem>
-                <span slot="label" style="font-weight:500">{{ $t('bc_favorites_list') }}:</span>
+                <span slot="label" style="font-weight: 500">{{ $t('bc_favorites_list') }}:</span>
                 <Select
                   clearable
                   @on-clear="selectedCollectionId = null"
@@ -26,7 +26,7 @@
                     :label="item.collectionName"
                   >
                     <span>{{ item.collectionName }}</span>
-                    <span style="float:right">
+                    <span style="float: right">
                       <Button
                         icon="ios-trash"
                         type="error"
@@ -34,7 +34,7 @@
                         @click="showDeleteConfirm(item.favoritesId, item.collectionName)"
                       ></Button>
                     </span>
-                    <span style="float:right;margin-right: 10px">
+                    <span style="float: right; margin-right: 10px">
                       <Button
                         icon="ios-build"
                         type="primary"
@@ -85,7 +85,7 @@
                 <div slot="content">
                   <Tooltip :max-width="500">
                     <Icon type="ios-information-circle-outline" />
-                    <div slot="content" style="white-space: normal;">
+                    <div slot="content" style="white-space: normal">
                       <ul>
                         <li>{{ $t('bc_query_path') }}:{{ dataModelExpression }}</li>
                         <li v-for="(sp, spIndex) in activeExecuteHistory.requestBody.searchParameters" :key="spIndex">
@@ -103,7 +103,7 @@
                 <div slot="content">
                   <Tooltip>
                     <Icon type="ios-information-circle-outline" />
-                    <div slot="content" style="white-space: normal;">
+                    <div slot="content" style="white-space: normal">
                       <p
                         style="word-break: break-all"
                         :key="targetIndex"
@@ -127,7 +127,7 @@
                 <div slot="content">
                   <Tooltip>
                     <Icon type="ios-information-circle-outline" />
-                    <div slot="content" style="white-space: normal;">
+                    <div slot="content" style="white-space: normal">
                       {{ activeExecuteHistory.plugin.pluginName }}
                     </div>
                   </Tooltip>
@@ -145,7 +145,7 @@
                 <div slot="content">
                   <Tooltip :max-width="500">
                     <Icon type="ios-information-circle-outline" />
-                    <div slot="content" style="width:200px;white-space: normal;">
+                    <div slot="content" style="width: 200px; white-space: normal">
                       <ul>
                         <li v-for="(item, index) in activeExecuteHistory.plugin.pluginParams" :key="index">
                           <span v-if="item.mappingType === 'constant'"> {{ item.name }}: {{ item.bindValue }} </span>
@@ -250,7 +250,7 @@
       :closable="false"
       class="opera-modal"
     >
-      <div style="height:400px;">
+      <div style="height: 400px">
         <!-- 设置查询参数-开始 -->
         <section v-if="displaySearchZone" class="search">
           <Form :label-width="130" label-colon>
@@ -286,7 +286,7 @@
               </Select>
             </FormItem>
             <FormItem :label="$t('bc_query_condition')" class="tree-style">
-              <Row style="max-height: 150px;overflow-y:auto;border: 1px solid #dcdee2;">
+              <Row style="max-height: 150px; overflow-y: auto; border: 1px solid #dcdee2">
                 <Col span="12">
                   <div>
                     <Tree :data="allEntityAttr" @on-check-change="checkChange" show-checkbox multiple></Tree>
@@ -303,16 +303,16 @@
               </Row>
             </FormItem>
             <FormItem :label="$t('bc_query_condition')">
-              <div v-if="searchParameters.length" style="height: 100px;overflow-y: auto;">
+              <div v-if="searchParameters.length" style="height: 100px; overflow-y: auto">
                 <Row>
-                  <Col span="8" v-for="(sp, spIndex) in searchParameters" :key="spIndex" style="padding:0 8px">
+                  <Col span="8" v-for="(sp, spIndex) in searchParameters" :key="spIndex" style="padding: 0 8px">
                     <label class="search-params-label">
                       {{ sp.packageName }}-{{ sp.entityName }}.{{ sp.description }}:</label
                     >
                     <Input v-model="sp.value" />
                   </Col>
-                  <Col span="8" style="padding:0 8px">
-                    <label class="search-params-label" style="visibility: hidden;"
+                  <Col span="8" style="padding: 0 8px">
+                    <label class="search-params-label" style="visibility: hidden"
                       >defaultdefaultdefaultdefaultdefault</label
                     >
                     <Button @click="clearParametes">{{ $t('bc_clear_condition') }}</Button>
@@ -327,8 +327,8 @@
         <!-- 设置查询参数-结束 -->
 
         <!-- 选择执行对象-开始 -->
-        <section v-if="displayResultTableZone" class="search-result-table" style="margin-top:20px;">
-          <div style="margin-bottom:8px">
+        <section v-if="displayResultTableZone" class="search-result-table" style="margin-top: 20px">
+          <div style="margin-bottom: 8px">
             <Input v-model="filterTableParams" :placeholder="$t('enter_search_keywords')" style="width: 300px" />
             <Button @click="filterTableData" type="primary">{{ $t('search') }}</Button>
             Selected: {{ seletedRows.length }}
@@ -336,7 +336,7 @@
           <div class="we-table">
             <Card v-if="displayResultTableZone">
               <p slot="title">{{ $t('bc_search_result') }}：</p>
-              <div style="height: 300px;overflow-y:auto">
+              <div style="height: 300px; overflow-y: auto">
                 <Table
                   ref="currentRowTable"
                   @on-select="singleSelect"
@@ -364,7 +364,7 @@
                 }}</Option>
               </Select>
             </FormItem>
-            <div style="max-height:350px;overflow-y:auto">
+            <div style="max-height: 350px; overflow-y: auto">
               <template v-for="(item, index) in selectedPluginParams">
                 <FormItem :label="item.name" :key="index">
                   <Input v-if="item.mappingType === 'constant'" v-model="item.bindValue" />
@@ -417,9 +417,9 @@
       </div>
     </Modal>
     <Modal v-model="collectionRoleManageModal" width="700" :title="$t('bc_edit_role')" :mask-closable="false">
-      <div v-if="editCollectionName" style="margin-bottom:8px;">
-        <span style="font-weight: 500;">{{ $t('bc_name') }}：</span>
-        <Input v-model="collectionName" style="width:35%"></Input>
+      <div v-if="editCollectionName" style="margin-bottom: 8px">
+        <span style="font-weight: 500">{{ $t('bc_name') }}：</span>
+        <Input v-model="collectionName" style="width: 35%"></Input>
       </div>
       <div>
         <div class="role-transfer-title">{{ $t('mgmt_role') }}</div>
@@ -454,11 +454,11 @@
         <Icon :size="28" :color="'#f90'" type="md-help-circle" />
         <span class="confirm-msg">{{ $t('confirm_to_exect') }}</span>
       </div>
-      <div style="max-height: 400px;overflow-y: auto;">
-        <pre style="margin-left: 44px;margin-top: 22px;">{{ this.confirmModal.message }}</pre>
+      <div style="max-height: 400px; overflow-y: auto">
+        <pre style="margin-left: 44px; margin-top: 22px">{{ this.confirmModal.message }}</pre>
       </div>
       <div slot="footer">
-        <span style="margin-left:30px;color:#ed4014;float: left;text-align:left">
+        <span style="margin-left: 30px; color: #ed4014; float: left; text-align: left">
           <Checkbox v-model="confirmModal.check">{{ $t('dangerous_confirm_tip') }}</Checkbox>
         </span>
         <Button type="text" @click="confirmModal.isShowConfirmModal = false">{{ $t('bc_cancel') }}</Button>
@@ -500,8 +500,8 @@ export default {
       },
       keyStyle: {
         '-1': 'confirm-key',
-        '0': '',
-        '1': 'error-key'
+        0: '',
+        1: 'error-key'
       },
       btnLoading: false,
       operaModal: false,
@@ -1511,7 +1511,7 @@ export default {
 }
 </script>
 <style lang="scss" scoped>
-.opera-modal /deep/ .ivu-modal {
+.opera-modal ::v-deep .ivu-modal {
   top: 50px !important;
 }
 $border-config: 1px solid #e8eaec;
@@ -1568,7 +1568,7 @@ pre {
   margin-bottom: 0;
 }
 
-.we-table /deep/ .ivu-form-label-top {
+.we-table ::v-deep .ivu-form-label-top {
   display: none;
 }
 .excute-result {
