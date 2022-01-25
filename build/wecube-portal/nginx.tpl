@@ -33,6 +33,8 @@ http {
     keepalive_timeout     999999999s;
     proxy_read_timeout    180s;
     access_log            /var/log/nginx/access.log  main;
+    add_header "X-XSS-Protection" "1; mode=block";
+    add_header X-Frame-Options SAMEORIGIN;
 
     location = / {
       index index.html;
