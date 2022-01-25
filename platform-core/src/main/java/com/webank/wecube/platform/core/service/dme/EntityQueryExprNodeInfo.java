@@ -3,6 +3,8 @@ package com.webank.wecube.platform.core.service.dme;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.commons.lang3.StringUtils;
+
 public class EntityQueryExprNodeInfo {
     private String entityQueryNodeExpr;
     private String entityInfoExpr;
@@ -96,7 +98,7 @@ public class EntityQueryExprNodeInfo {
     }
     
     public boolean hasQueryAttribute(){
-        return this.getQueryAttrName() != null;
+        return StringUtils.isNoneBlank(this.getQueryAttrName());
     }
 
     public void setAdditionalFilters(List<EntityQueryFilter> additionalFilters) {
