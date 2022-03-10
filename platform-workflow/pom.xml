@@ -14,7 +14,7 @@
     <packaging>jar</packaging>
 
     <properties>
-        <version.camunda>7.11.0-alpha5</version.camunda>
+        <version.camunda>7.11.0</version.camunda>
         <java.version>1.8</java.version>
         <java.encoding>UTF-8</java.encoding>
         <maven-jar-plugin.version>3.1.1</maven-jar-plugin.version>
@@ -43,11 +43,17 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.apache.logging.log4j</groupId>
+                    <artifactId>log4j-api</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.camunda.bpm.springboot</groupId>
             <artifactId>camunda-bpm-spring-boot-starter</artifactId>
-            <version>3.3.0-alpha1</version>
+            <version>3.3.10</version>
         </dependency>
         
         <dependency>
