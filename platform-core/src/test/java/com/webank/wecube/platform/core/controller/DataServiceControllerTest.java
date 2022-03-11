@@ -5,6 +5,7 @@ import com.webank.wecube.platform.core.controller.plugin.DataServiceController;
 import com.webank.wecube.platform.core.dto.plugin.CommonResponseDto;
 
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -25,6 +26,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+@Ignore
 public class DataServiceControllerTest extends AbstractControllerTest {
     @Autowired
     @Qualifier(value = "jwtSsoRestTemplate")
