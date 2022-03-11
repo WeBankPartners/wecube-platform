@@ -11,6 +11,7 @@
 			<url>http://repo2.maven.org/maven2/</url>
 			<mirrorOf>central</mirrorOf>
 		</mirror>
+	-->
         <mirror>
             <id>nexus-tencentyun</id>
             <mirrorOf>*</mirrorOf>
@@ -23,7 +24,7 @@
             <name>aliyun maven</name>
             <url>http://maven.aliyun.com/nexus/content/groups/public/</url>
         </mirror>
-		-->
+		
     </mirrors>
 </settings>
 
