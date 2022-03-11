@@ -7,6 +7,7 @@ import java.util.List;
 
 import javax.script.ScriptException;
 
+import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
@@ -16,6 +17,7 @@ import org.springframework.jdbc.datasource.init.ResourceDatabasePopulator;
 import com.webank.wecube.platform.core.DatabaseBasedTest;
 import com.webank.wecube.platform.core.service.plugin.SystemVariableService;
 
+@Ignore
 public class SystemVariableServiceTest extends DatabaseBasedTest {
     @Autowired
     SystemVariableService systemVariableService;
