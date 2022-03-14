@@ -4,6 +4,14 @@
                       https://maven.apache.org/xsd/settings-1.0.0.xsd">
     <localRepository>/usr/src/mymaven/repository</localRepository>
     <mirrors>
+	<!--
+	    <mirror>
+			<id>repo2</id>
+			<name>Mirror from Maven Repo2</name>
+			<url>http://repo2.maven.org/maven2/</url>
+			<mirrorOf>central</mirrorOf>
+		</mirror>
+	-->
         <mirror>
             <id>nexus-tencentyun</id>
             <mirrorOf>*</mirrorOf>
@@ -16,6 +24,7 @@
             <name>aliyun maven</name>
             <url>http://maven.aliyun.com/nexus/content/groups/public/</url>
         </mirror>
+		
     </mirrors>
 </settings>
 
