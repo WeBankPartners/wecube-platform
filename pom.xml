@@ -20,7 +20,7 @@
         <version.camunda>7.11.0-alpha5</version.camunda>
         <java.version>1.8</java.version>
         <java.encoding>UTF-8</java.encoding>
-        <springboot.version>2.1.18.RELEASE</springboot.version>
+        <springboot.version>2.2.13.RELEASE</springboot.version>
         <maven-jar-plugin.version>3.1.1</maven-jar-plugin.version>
     </properties>
 
