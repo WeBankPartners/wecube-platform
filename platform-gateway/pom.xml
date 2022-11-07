@@ -75,6 +75,24 @@
 			</dependency>
             
             <dependency>
+                <groupId>org.springframework.cloud</groupId>
+                <artifactId>spring-cloud-starter</artifactId>
+                <version>2.2.2.RELEASE</version>
+            </dependency>
+            
+            <dependency>
+                <groupId>org.springframework.cloud</groupId>
+                <artifactId>spring-cloud-gateway-core</artifactId>
+                <version>2.2.2.RELEASE</version>
+            </dependency>
+            
+            <dependency>
+                <groupId>org.springframework.cloud</groupId>
+                <artifactId>spring-cloud-commons</artifactId>
+                <version>2.2.2.RELEASE</version>
+            </dependency>
+            
+            <dependency>
                 <groupId>org.springframework</groupId>
                 <artifactId>spring-core</artifactId>
                 <version>${spring-version}</version>
@@ -138,6 +156,10 @@
 	</dependencyManagement>
 
 	<dependencies>
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-commons</artifactId>
+        </dependency>
 		<dependency>
 			<groupId>org.springframework.cloud</groupId>
 			<artifactId>spring-cloud-starter-gateway</artifactId>
