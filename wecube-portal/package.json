@@ -32,7 +32,7 @@
     "view-design": "4.3.2",
     "vis": "^4.21.0",
     "vue": "^2.6.6",
-    "vue-i18n": "6.0.0",
+    "vue-i18n": "^5.0.3",
     "vue-json-viewer": "^2.2.20",
     "vue-router": "^3.0.1",
     "webpack": "^4.29.6",
