@@ -851,7 +851,7 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
         procInstInfoResultDto.setId(procEntity.getId());
         procInstInfoResultDto.setOperator(procEntity.getOper());
         procInstInfoResultDto.setProcDefId(procEntity.getProcDefId());
-        procInstInfoResultDto.setProcInstKey(procEntity.getProcDefKey());
+        procInstInfoResultDto.setProcInstKey(procEntity.getProcInstKey());
         procInstInfoResultDto.setStatus(procEntity.getStatus());
         procInstInfoResultDto.setEntityTypeId(entityTypeId);
         procInstInfoResultDto.setEntityDataId(entityDataId);
