@@ -314,6 +314,60 @@
         ORDER BY t1.created_time DESC LIMIT 500
     </select>
     
+    <select id="selectAllProcInstInfoByCriteria" parameterType="java.lang.String"
+        resultType="com.webank.wecube.platform.core.entity.workflow.ProcInstInfoQueryEntity">
+        SELECT distinct
+        t1.id AS id,
+        t1.created_time AS createdTime,
+        t1.oper AS operator,
+        t1.status AS status,
+        t1.proc_inst_key AS
+        procInstKey,
+        t1.proc_def_name AS procDefName,
+        t1.proc_def_id AS
+        procDefId,
+        t2.entity_data_id AS entityDataId,
+        t2.entity_type_id AS
+        entityTypeId,
+        t2.entity_data_name AS entityDataName
+        FROM
+        core_ru_proc_inst_info t1
+        LEFT JOIN
+        core_ru_proc_exec_binding t2
+        ON t1.id = t2.proc_inst_id
+        AND
+        t2.bind_type = 'process'
+        JOIN core_ru_proc_role_binding t3 ON
+        t1.proc_def_id = t3.proc_id
+        AND t3.role_name IN
+        <foreach item="roleName" collection="roleNames"
+            separator="," open="(" close=")" index="">
+            #{roleName,
+            jdbcType=VARCHAR}
+        </foreach>
+        AND
+        t3.permission = 'USE'
+        <if test="startTime != null">
+          AND t1.created_time &gt;= #{startTime,jdbcType=TIMESTAMP}
+        </if>
+        <if test="endTime != null">
+          AND t1.created_time &lt;= #{endTime,jdbcType=TIMESTAMP}
+        </if>
+        <if test="entityDataName != null">
+          AND t2.entity_data_name like #{entityDataName,jdbcType=VARCHAR}
+        </if>
+        <if test="procInstName != null">
+          AND t1.proc_def_name like #{procInstName,jdbcType=VARCHAR}
+        </if>
+        <if test="operator != null">
+          AND t1.oper like #{operator,jdbcType=VARCHAR}
+        </if>
+        <if test="status != null">
+          AND t1.status = #{status,jdbcType=VARCHAR}
+        </if>
+        ORDER BY t1.created_time DESC
+    </select>
+    
     <select id="selectQueryEntityByPrimaryKey" parameterType="java.lang.Integer"
         resultType="com.webank.wecube.platform.core.entity.workflow.ProcInstInfoQueryEntity">
         SELECT distinct
