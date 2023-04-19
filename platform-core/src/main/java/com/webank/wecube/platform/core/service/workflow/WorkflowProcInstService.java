@@ -1049,15 +1049,23 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
                 roleNames,
                 startDate,
                 endDate,
-                "%"+queryDto.getEntityDisplayName()+"%",
-                "%"+queryDto.getProcInstName()+"%",
-                "%"+queryDto.getOperator()+"%",
+                likeString(queryDto.getEntityDisplayName()),
+                likeString(queryDto.getProcInstName()),
+                likeString(queryDto.getOperator()),
                 queryDto.getStatus()
                 );
 
         com.github.pagehelper.PageInfo<ProcInstInfoQueryEntity> pageInfo = new com.github.pagehelper.PageInfo<ProcInstInfoQueryEntity>(
                 items);
         return pageInfo;
+    }
+    
+    private String likeString(String s){
+        if(StringUtils.isBlank(s)){
+            return null;
+        }
+        
+        return "%"+s.trim()+"%";
     }
     
     private Date parseDate(String dateStr) {
