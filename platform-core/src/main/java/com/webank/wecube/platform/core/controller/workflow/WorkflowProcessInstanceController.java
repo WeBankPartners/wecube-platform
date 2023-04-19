@@ -21,7 +21,6 @@ import com.webank.wecube.platform.core.dto.workflow.StartProcInstRequestDto;
 import com.webank.wecube.platform.core.dto.workflow.TaskNodeDefObjectBindInfoDto;
 import com.webank.wecube.platform.core.dto.workflow.TaskNodeExecContextDto;
 import com.webank.wecube.platform.core.dto.workflow.TaskNodeInstObjectBindInfoDto;
-import com.webank.wecube.platform.core.dto.workflow.WorkflowExecutionReportItemDto;
 import com.webank.wecube.platform.core.dto.workflow.WorkflowInstQueryDto;
 import com.webank.wecube.platform.core.service.workflow.WorkflowDataService;
 import com.webank.wecube.platform.core.service.workflow.WorkflowProcInstService;
@@ -64,7 +63,7 @@ public class WorkflowProcessInstanceController {
      * 
      * @return
      */
-    @PostMapping("/process/instances")
+    @PostMapping("/process/instancesWithPaging")
     public CommonResponseDto getPageableProcessInstances(@RequestBody WorkflowInstQueryDto queryDto) {
         
         QueryResponse<ProcInstInfoDto> itemsResponse = procInstService
