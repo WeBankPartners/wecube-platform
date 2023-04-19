@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.webank.wecube.platform.core.dto.plugin.CommonResponseDto;
+import com.webank.wecube.platform.core.dto.plugin.QueryResponse;
 import com.webank.wecube.platform.core.dto.workflow.ProcInstInfoDto;
 import com.webank.wecube.platform.core.dto.workflow.ProceedProcInstRequestDto;
 import com.webank.wecube.platform.core.dto.workflow.ProcessDataPreviewDto;
@@ -20,6 +21,8 @@ import com.webank.wecube.platform.core.dto.workflow.StartProcInstRequestDto;
 import com.webank.wecube.platform.core.dto.workflow.TaskNodeDefObjectBindInfoDto;
 import com.webank.wecube.platform.core.dto.workflow.TaskNodeExecContextDto;
 import com.webank.wecube.platform.core.dto.workflow.TaskNodeInstObjectBindInfoDto;
+import com.webank.wecube.platform.core.dto.workflow.WorkflowExecutionReportItemDto;
+import com.webank.wecube.platform.core.dto.workflow.WorkflowInstQueryDto;
 import com.webank.wecube.platform.core.service.workflow.WorkflowDataService;
 import com.webank.wecube.platform.core.service.workflow.WorkflowProcInstService;
 
@@ -54,6 +57,19 @@ public class WorkflowProcessInstanceController {
     public CommonResponseDto getProcessInstances() {
         List<ProcInstInfoDto> result = procInstService.getProcessInstances();
         return CommonResponseDto.okayWithData(result);
+    }
+    
+    /**
+     * Fetch page able process instances.
+     * 
+     * @return
+     */
+    @PostMapping("/process/instances")
+    public CommonResponseDto getPageableProcessInstances(@RequestBody WorkflowInstQueryDto queryDto) {
+        
+        QueryResponse<ProcInstInfoDto> itemsResponse = procInstService
+                .getPageableProcessInstances(queryDto);
+        return CommonResponseDto.okayWithData(itemsResponse);
     }
 
     /**
