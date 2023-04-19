@@ -1033,7 +1033,7 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
         return insts;
     }
     
-    private com.github.pagehelper.PageInfo<ProcInstInfoQueryEntity> queryPageableProcInstInfoByRoleNames(List<String> roleNames,WorkflowInstQueryDto queryDto) {
+    public com.github.pagehelper.PageInfo<ProcInstInfoQueryEntity> queryPageableProcInstInfoByRoleNames(List<String> roleNames,WorkflowInstQueryDto queryDto) {
         
         String startDateStr = queryDto.getStartTime();
         String endDateStr = queryDto.getEndTime();
