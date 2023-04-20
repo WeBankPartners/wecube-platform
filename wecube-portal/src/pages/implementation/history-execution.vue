@@ -3,23 +3,30 @@
     <div class="report-container">
       <div class="item">
         {{ $t('datetime_range') }}:
-        <DatePicker type="datetimerange" format="yyyy-MM-dd HH:mm:ss" @on-change="getDate"></DatePicker>
+        <DatePicker
+          type="datetimerange"
+          format="yyyy-MM-dd HH:mm:ss"
+          @on-change="getDate"
+          style="width: 60%"
+        ></DatePicker>
       </div>
       <div class="item">
         {{ $t('flow_name') }}:
-        <Input v-model="searchConfig.params.procInstName" style="width: 70%"></Input>
+        <Input v-model="searchConfig.params.procInstName" style="width: 60%"></Input>
       </div>
       <div class="item">
-        {{ $t('entity_name') }}:
-        <Input v-model="searchConfig.params.entityDisplayName" style="width: 70%"></Input>
+        {{ $t('target_object') }}:
+        <Input v-model="searchConfig.params.entityDisplayName" style="width: 60%"></Input>
       </div>
       <div class="item">
         {{ $t('executor') }}:
-        <Input v-model="searchConfig.params.operator" style="width: 80%"></Input>
+        <Select v-model="searchConfig.params.operator" filterable clearable style="width: 60%">
+          <Option v-for="item in users" :value="item" :key="item">{{ item }}</Option>
+        </Select>
       </div>
       <div class="item">
         {{ $t('status') }}:
-        <Select v-model="searchConfig.params.status" clearable style="width: 83%">
+        <Select v-model="searchConfig.params.status" clearable style="width: 60%">
           <Option v-for="item in statusOptions" :value="item" :key="item">{{ item }}</Option>
         </Select>
       </div>
@@ -43,7 +50,7 @@
 </template>
 
 <script>
-import { instancesWithPaging } from '@/api/server'
+import { instancesWithPaging, getUserList } from '@/api/server'
 export default {
   name: '',
   data () {
@@ -84,7 +91,7 @@ export default {
           key: 'procInstName'
         },
         {
-          title: this.$t('entity_name'),
+          title: this.$t('target_object'),
           key: 'entityDisplayName'
         },
         {
@@ -113,20 +120,28 @@ export default {
                   size="small"
                   style="margin-right: 5px"
                 >
-                  {this.$t('bc_history_record')}
+                  {this.$t('details')}
                 </Button>
               </div>
             )
           }
         }
-      ]
+      ],
+      users: []
     }
   },
   mounted () {
     this.MODALHEIGHT = document.body.scrollHeight - 300
     this.getProcessInstances()
+    this.getAllUsers()
   },
   methods: {
+    async getAllUsers () {
+      let { status, data } = await getUserList()
+      if (status === 'OK') {
+        this.users = data.map(_ => _.username)
+      }
+    },
     changePageSize (pageSize) {
       this.pageable.pageSize = pageSize
       this.getProcessInstances()
