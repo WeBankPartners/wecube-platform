@@ -535,5 +535,7 @@
   "secret_key": "Secret Key",
   "select_cancel_all": "Select All OR Cancel All",
   "notify": "Notify",
-  "reload_notify": "Refresh The Page After 3S To Reload Resources"
+  "reload_notify": "Refresh The Page After 3S To Reload Resources",
+  "execution_history": "Execution History",
+  "entity_name": "Entity Name"
 }
