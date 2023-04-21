@@ -2014,7 +2014,7 @@ export default {
 body {
   color: #e5f173; //#15a043;
 }
-.pages /deep/ .ivu-select-dropdown {
+.pages ::v-deep .ivu-select-dropdown {
   height: 500px !important;
 }
 .header-icon {
@@ -2029,7 +2029,7 @@ body {
 .model_target .ivu-modal-content-drag {
   right: 40px;
 }
-.pages /deep/ .ivu-card-body {
+.pages ::v-deep .ivu-card-body {
   padding: 8px;
 }
 .ivu-form-item {
