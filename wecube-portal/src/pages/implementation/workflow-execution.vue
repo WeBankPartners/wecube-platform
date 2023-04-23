@@ -3,11 +3,15 @@
     <Card dis-hover>
       <Tabs @on-click="tabChanged" :value="currentTab">
         <TabPane :label="$t('create_new_workflow_job')" name="create_new_workflow_job"></TabPane>
-        <TabPane :label="$t('enquery_new_workflow_job')" name="enquery_new_workflow_job"></TabPane>
+        <TabPane :label="$t('execution_history')" name="execution_history"></TabPane>
         <TabPane :label="$t('timed_execution')" name="timed_execution"></TabPane>
+        <TabPane :label="$t('bc_history_record')" name="enquery_new_workflow_job"></TabPane>
       </Tabs>
       <template v-if="currentTab === 'timed_execution'">
         <TimedExecution @jumpToHistory="jumpToHistory"></TimedExecution>
+      </template>
+      <template v-else-if="currentTab === 'execution_history'">
+        <HistoryExecution @jumpToHistory="jumpToHistory"></HistoryExecution>
       </template>
       <template v-else>
         <Row>
@@ -423,6 +427,7 @@ import * as d3 from 'd3-selection'
 import * as d3Graphviz from 'd3-graphviz'
 import { addEvent, removeEvent } from '../util/event.js'
 import TimedExecution from './timed-execution'
+import HistoryExecution from './history-execution'
 export default {
   data () {
     return {
@@ -744,7 +749,7 @@ export default {
       }
     }
   },
-  components: { TimedExecution, JsonViewer },
+  components: { TimedExecution, JsonViewer, HistoryExecution },
   computed: {
     canAbleToSetting () {
       const found = this.allFlowInstances.find(_ => _.id === this.selectedFlowInstance)
@@ -819,13 +824,13 @@ export default {
     }
   },
   mounted () {
-    const id = this.$route.query.id || ''
-    if (id !== '') {
-      this.jumpToHistory(id)
-    }
-    this.getProcessInstances()
-    this.getAllFlow()
-    this.createHandler()
+    // const id = this.$route.query.id || ''
+    // if (id !== '') {
+    //   this.jumpToHistory(id)
+    // }
+    // this.getProcessInstances()
+    // this.getAllFlow()
+    // this.createHandler()
   },
   destroyed () {
     clearInterval(this.timer)
@@ -833,7 +838,7 @@ export default {
   methods: {
     jumpToHistory (id) {
       this.$nextTick(async () => {
-        await this.queryHistory()
+        // await this.queryHistory()
         await this.getProcessInstances()
         this.currentTab = 'enquery_new_workflow_job'
         this.selectedFlowInstance = Number(id)
@@ -1441,6 +1446,7 @@ export default {
         nodesToString +
         genEdge() +
         '}'
+      this.reloadGraph()
       this.graph.graphviz.transition().renderDot(nodesString)
       // .on('end', this.setFontSizeForText)
       removeEvent('.model text', 'click', this.modelGraphClickHandler)
@@ -1946,6 +1952,21 @@ export default {
           })
         })
       })
+    },
+    reloadGraph () {
+      const graphEl = document.getElementById('graph')
+      const initEvent = () => {
+        let graph
+        graph = d3.select(`#graph`)
+        graph.on('dblclick.zoom', null).on('wheel.zoom', null).on('mousewheel.zoom', null)
+        this.graph.graphviz = graph
+          .graphviz()
+          .fit(true)
+          .zoom(true)
+          .height(graphEl.offsetHeight - 10)
+          .width(graphEl.offsetWidth - 10)
+      }
+      initEvent()
     },
     initModelGraph () {
       const graphEl = document.getElementById('graph')

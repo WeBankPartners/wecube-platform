@@ -179,6 +179,7 @@ public class DockerContainerManagementService implements ResourceItemService, Re
         if (!container.getState().equals("running")) {
             dockerClient.removeContainerCmd(containerName).exec();
         } else {
+            dockerClient.stopContainerCmd(containerName).exec();
             dockerClient.removeContainerCmd(containerName).withForce(true).exec();
         }
     }
