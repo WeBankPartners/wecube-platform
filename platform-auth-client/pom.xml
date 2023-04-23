@@ -18,7 +18,6 @@
         <java.encoding>UTF-8</java.encoding>
         <maven-jar-plugin.version>3.1.1</maven-jar-plugin.version>
         <jackson.version>2.13.4</jackson.version>
-        <spring-security.version>5.5.8</spring-security.version>
     </properties>
 
     <dependencyManagement>
@@ -44,27 +43,6 @@
                 <groupId>com.fasterxml.jackson.core</groupId>
                 <artifactId>jackson-core</artifactId>
                 <version>${jackson.version}</version>
-            </dependency>
-            
-            <dependency>
-                <groupId>org.springframework.security</groupId>
-                <artifactId>spring-security-config</artifactId>
-                <version>${spring-security.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.springframework.security</groupId>
-                <artifactId>spring-security-crypto</artifactId>
-                <version>${spring-security.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.springframework.security</groupId>
-                <artifactId>spring-security-web</artifactId>
-                <version>${spring-security.version}</version>
-            </dependency>            
-            <dependency>
-                <groupId>org.springframework.security</groupId>
-                <artifactId>spring-security-core</artifactId>
-                <version>${spring-security.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
