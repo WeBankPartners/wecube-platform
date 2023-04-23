@@ -1,12 +1,12 @@
 #!/bin/bash
 
-if [[ -n `docker ps -a|grep -E 'wecube-plugins|service-mgmt|wecmdb|monitor|artifacts'|awk '{print $1}'` ]]
+if [[ -n `docker ps -a|grep -v 'platform'|grep -v 'wecube-db'|grep -v 'wecube-portal'|grep -v 'wecube-minio'|awk '{print $1}'` ]]
 then
-  docker rm -f `docker ps -a|grep -E 'wecube-plugins|service-mgmt|wecmdb|monitor|artifacts'|awk '{print $1}'`
+  docker rm -f `docker ps -a|grep -v 'platform'|grep -v 'wecube-db'|grep -v 'wecube-portal'|grep -v 'wecube-minio'|awk '{print $1}'`
 fi
-if [[ -n `docker images|grep -E 'wecube-plugins|wecmdb|monitor|service-mgmt|artifacts'|awk '{print $1":"$2}'` ]]
+if [[ -n `docker images|grep -v 'platform'|grep -v 'wecube-db'|grep -v 'wecube-portal'|grep -v 'minio'|grep -v 'nginx'|grep -v 'mysql'|grep -v 'maven'|grep -v 'alpine'|awk '{print $1":"$2}'` ]]
 then
-  docker rmi `docker images|grep -E 'wecube-plugins|wecmdb|monitor|service-mgmt|artifacts'|awk '{print $1":"$2}'`
+  docker rmi `docker images|grep -v 'platform'|grep -v 'wecube-db'|grep -v 'wecube-portal'|grep -v 'minio'|grep -v 'nginx'|grep -v 'mysql'|grep -v 'maven'|grep -v 'alpine'|awk '{print $1":"$2}'`
 fi
 docker-compose -f docker-compose.yml down
 docker-compose -f wecube_core_mysql.yml down
