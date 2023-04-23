@@ -42,6 +42,7 @@ export const getTargetOptions = (pkgName, entityName) =>
 export const getTreePreviewData = (flowId, targetId) =>
   req.get(`platform/v1/process/definitions/${flowId}/preview/entities/${targetId}`)
 export const createFlowInstance = data => req.post(`platform/v1/process/instances`, data)
+export const instancesWithPaging = data => req.post(`platform/v1/process/instancesWithPaging`, data)
 export const getProcessInstances = () => req.get(`platform/v1/process/instances`)
 export const getProcessInstance = id => req.get(`platform/v1/process/instances/${id}`)
 
