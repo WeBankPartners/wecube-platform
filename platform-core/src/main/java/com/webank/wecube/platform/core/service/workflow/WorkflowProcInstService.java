@@ -1,5 +1,8 @@
 package com.webank.wecube.platform.core.service.workflow;
 
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
@@ -13,13 +16,17 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.github.pagehelper.PageHelper;
 import com.webank.wecube.platform.core.commons.AuthenticationContextHolder;
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
+import com.webank.wecube.platform.core.dto.plugin.PageableDto;
+import com.webank.wecube.platform.core.dto.plugin.QueryResponse;
 import com.webank.wecube.platform.core.dto.workflow.ProcInstInfoDto;
 import com.webank.wecube.platform.core.dto.workflow.ProceedProcInstRequestDto;
 import com.webank.wecube.platform.core.dto.workflow.StartProcInstRequestDto;
 import com.webank.wecube.platform.core.dto.workflow.TaskNodeDefObjectBindInfoDto;
 import com.webank.wecube.platform.core.dto.workflow.TaskNodeInstDto;
+import com.webank.wecube.platform.core.dto.workflow.WorkflowInstQueryDto;
 import com.webank.wecube.platform.core.entity.workflow.GraphNodeEntity;
 import com.webank.wecube.platform.core.entity.workflow.ProcDefInfoEntity;
 import com.webank.wecube.platform.core.entity.workflow.ProcExecBindingEntity;
@@ -260,6 +267,57 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
         return results;
     }
 
+    
+    /**
+     * 
+     * @return
+     */
+    public QueryResponse<ProcInstInfoDto> getPageableProcessInstances(WorkflowInstQueryDto queryDto) {
+
+        Set<String> logUserRoleNames = AuthenticationContextHolder.getCurrentUserRoles();
+        if (logUserRoleNames == null || logUserRoleNames.isEmpty()) {
+            return new QueryResponse<>();
+        }
+
+        List<String> roleNames = new ArrayList<String>();
+        for (String roleName : logUserRoleNames) {
+            roleNames.add(roleName);
+        }
+
+        com.github.pagehelper.PageInfo<ProcInstInfoQueryEntity> procInstPageInfo = queryPageableProcInstInfoByRoleNames(roleNames, queryDto);
+
+        List<ProcInstInfoQueryEntity> procInstInfoQueryEntities = procInstPageInfo.getList();
+
+        List<ProcInstInfoDto> results = new ArrayList<>();
+        for (ProcInstInfoQueryEntity e : procInstInfoQueryEntities) {
+            ProcInstInfoDto d = new ProcInstInfoDto();
+            d.setCreatedTime(formatDate(e.getCreatedTime()));
+            d.setId(e.getId());
+            d.setOperator(e.getOperator());
+            d.setProcDefId(e.getProcDefId());
+            d.setProcInstKey(e.getProcInstKey());
+            d.setStatus(e.getStatus());
+            d.setProcInstName(e.getProcDefName());
+            d.setProcInstKey(e.getProcInstKey());
+
+            d.setEntityDataId(e.getEntityDataId());
+            d.setEntityTypeId(e.getEntityTypeId());
+            d.setEntityDisplayName(e.getEntityDataName() == null ? e.getEntityDataId() : e.getEntityDataName());
+
+            results.add(d);
+        }
+        
+        com.webank.wecube.platform.core.dto.plugin.PageInfo localPageInfo = new com.webank.wecube.platform.core.dto.plugin.PageInfo();
+        localPageInfo.setPageSize(procInstPageInfo.getPageSize());
+        localPageInfo.setTotalRows(Long.valueOf(procInstPageInfo.getTotal()).intValue());
+        localPageInfo.setStartIndex(procInstPageInfo.getStartRow());
+
+        QueryResponse<ProcInstInfoDto> queryResponseDto = new QueryResponse<ProcInstInfoDto>(
+                localPageInfo, results);
+
+        return queryResponseDto;
+    }
+    
     /**
      * 
      * @param id
@@ -851,7 +909,7 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
         procInstInfoResultDto.setId(procEntity.getId());
         procInstInfoResultDto.setOperator(procEntity.getOper());
         procInstInfoResultDto.setProcDefId(procEntity.getProcDefId());
-        procInstInfoResultDto.setProcInstKey(procEntity.getProcDefKey());
+        procInstInfoResultDto.setProcInstKey(procEntity.getProcInstKey());
         procInstInfoResultDto.setStatus(procEntity.getStatus());
         procInstInfoResultDto.setEntityTypeId(entityTypeId);
         procInstInfoResultDto.setEntityDataId(entityDataId);
@@ -973,6 +1031,56 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
     private List<ProcInstInfoQueryEntity> queryProcInstInfoByRoleNames(List<String> roleNames) {
         List<ProcInstInfoQueryEntity> insts = procInstInfoMapper.selectAllByProcInstInfoByRoleNames(roleNames);
         return insts;
+    }
+    
+    public com.github.pagehelper.PageInfo<ProcInstInfoQueryEntity> queryPageableProcInstInfoByRoleNames(List<String> roleNames,WorkflowInstQueryDto queryDto) {
+        
+        String startDateStr = queryDto.getStartTime();
+        String endDateStr = queryDto.getEndTime();
+
+        Date startDate = parseDate(startDateStr);
+        Date endDate = parseDate(endDateStr);
+
+        PageableDto pageable = queryDto.getPageable();
+        int pageNum = pageable.getStartIndex() / pageable.getPageSize() + 1;
+        int pageSize = pageable.getPageSize();
+        PageHelper.startPage(pageNum, pageSize);
+        List<ProcInstInfoQueryEntity> items = procInstInfoMapper.selectAllProcInstInfoByCriteria(
+                roleNames,
+                startDate,
+                endDate,
+                likeString(queryDto.getEntityDisplayName()),
+                likeString(queryDto.getProcInstName()),
+                likeString(queryDto.getOperator()),
+                queryDto.getStatus()
+                );
+
+        com.github.pagehelper.PageInfo<ProcInstInfoQueryEntity> pageInfo = new com.github.pagehelper.PageInfo<ProcInstInfoQueryEntity>(
+                items);
+        return pageInfo;
+    }
+    
+    private String likeString(String s){
+        if(StringUtils.isBlank(s)){
+            return null;
+        }
+        
+        return "%"+s.trim()+"%";
+    }
+    
+    private Date parseDate(String dateStr) {
+        if (StringUtils.isBlank(dateStr)) {
+            return null;
+        }
+        String pattern = "yyyy-MM-dd HH:mm:ss";
+        DateFormat df = new SimpleDateFormat(pattern);
+
+        try {
+            Date date = df.parse(dateStr);
+            return date;
+        } catch (ParseException e) {
+            return null;
+        }
     }
 
     protected void refreshProcessInstanceStatus(ProcInstInfoEntity procInstEntity) {
