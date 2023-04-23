@@ -54,6 +54,21 @@ public interface ProcInstInfoMapper {
 
     /**
      * 
+     * @param roleNames
+     * @return
+     */
+    List<ProcInstInfoQueryEntity> selectAllProcInstInfoByCriteria(@Param("roleNames") List<String> roleNames,
+            @Param("startTime") Date startTime,
+            @Param("endTime") Date endTime,
+            @Param("entityDataName") String entityDataName,
+            @Param("procInstName") String procInstName,
+            @Param("operator") String operator,
+            @Param("status") String status
+            );
+    
+    
+    /**
+     * 
      * @param id
      * @return
      */

@@ -5,14 +5,29 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.util.UUID;
 
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.junit4.SpringRunner;
 
-import com.webank.wecube.platform.core.DatabaseBasedTest;
+import com.webank.wecube.platform.core.commons.ApplicationProperties;
+import com.webank.wecube.platform.core.commons.ApplicationProperties.PluginProperties;
 import com.webank.wecube.platform.core.commons.ApplicationProperties.ResourceProperties;
+import com.webank.wecube.platform.core.commons.ApplicationProperties.S3Properties;
 
-public class EncryptionUtilsTest extends DatabaseBasedTest {
+@SpringBootTest
+@RunWith(SpringRunner.class)
+@ActiveProfiles("test")
+@EnableConfigurationProperties({
+        ApplicationProperties.class,
+        PluginProperties.class,
+        S3Properties.class
+})
+public class EncryptionUtilsTest{
     private static final Logger log = LoggerFactory.getLogger(EncryptionUtilsTest.class);
 
     @Autowired
