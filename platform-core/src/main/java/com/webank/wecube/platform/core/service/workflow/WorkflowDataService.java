@@ -622,6 +622,10 @@ public class WorkflowDataService extends AbstractWorkflowService {
         result.setRequestId(requestEntity.getReqId());
         result.setErrorCode(requestEntity.getErrCode());
         result.setErrorMessage(requestEntity.getErrMsg());
+        
+        result.setBeginTime(formatDate(requestEntity.getCreatedTime()));
+        result.setEndTime(formatDate(requestEntity.getUpdatedTime()));
+        
 
         List<TaskNodeExecParamEntity> requestParamEntities = taskNodeExecParamRepository
                 .selectAllByRequestIdAndParamType(requestEntity.getReqId(), TaskNodeExecParamEntity.PARAM_TYPE_REQUEST);

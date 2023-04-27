@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import com.webank.wecube.platform.core.commons.WecubeCoreException;
 import com.webank.wecube.platform.core.entity.plugin.PluginConfigInterfaceParameters;
 import com.webank.wecube.platform.core.service.plugin.PluginParamObject;
 import com.webank.wecube.platform.core.utils.Constants;
@@ -13,7 +14,7 @@ public class InputParamAttr {
 
     private String name; // parameter name
     private String dataType; // string, number, object
-    private String multiple;
+    private String multiple; //Y, N
     private String mapType; // entity, context, constant, object
     private List<Object> values = new ArrayList<>(); // raw object values
     private boolean sensitive;
@@ -122,12 +123,16 @@ public class InputParamAttr {
 
                 return val;
             }
+            
+            String errMsg = String.format("Plugin claims single value but multiple values got for parameter[%s]", name);
+            throw new WecubeCoreException(errMsg);
 
-            if (Constants.DATA_TYPE_STRING.equalsIgnoreCase(dataType)) {
-                return assembleValueList(values);
-            }
+//            // #2314
+//            if (Constants.DATA_TYPE_STRING.equalsIgnoreCase(dataType)) {
+//                return assembleValueList(values);
+//            }
 
-            return values;
+//            return values;
         }
     }
 
@@ -143,7 +148,7 @@ public class InputParamAttr {
                 isFirst = false;
             }
 
-            // TODO
+            // todo
             sb.append(dv == null ? "" : dv);
         }
 
@@ -200,7 +205,7 @@ public class InputParamAttr {
             return (String) v;
         }
 
-        // TODO add prefix of type
+        // todo: add prefix of type
         if ((v instanceof PluginParamObject) || (v instanceof Map) || (v instanceof List)) {
             return JsonUtils.toJsonString(v);
         }

@@ -1,7 +1,10 @@
 package com.webank.wecube.platform.core.service.event;
 
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -14,7 +17,11 @@ import com.webank.wecube.platform.core.commons.WecubeCoreException;
 import com.webank.wecube.platform.core.dto.event.OperationEventDto;
 import com.webank.wecube.platform.core.dto.event.OperationEventResultDto;
 import com.webank.wecube.platform.core.entity.workflow.OperationEventEntity;
+import com.webank.wecube.platform.core.entity.workflow.ProcDefInfoEntity;
+import com.webank.wecube.platform.core.entity.workflow.ProcRoleBindingEntity;
 import com.webank.wecube.platform.core.repository.workflow.OperationEventMapper;
+import com.webank.wecube.platform.core.repository.workflow.ProcDefInfoMapper;
+import com.webank.wecube.platform.core.repository.workflow.ProcRoleBindingMapper;
 import com.webank.wecube.platform.workflow.WorkflowConstants;
 
 /**
@@ -34,6 +41,12 @@ public class OperationEventManagementService {
 
     @Autowired
     private OperationEventProcStarter operationEventProcStarter;
+    
+    @Autowired
+    private ProcDefInfoMapper processDefInfoRepository;
+    
+    @Autowired
+    private ProcRoleBindingMapper procRoleBindingMapper;
 
     /**
      * 
@@ -51,6 +64,8 @@ public class OperationEventManagementService {
             log.error("operation event already exists,eventSeqNo={}", eventSeqNo);
             throw new WecubeCoreException("3006", "Operation event already exists.");
         }
+        
+        validateOperKey(eventDto);
 
         OperationEventEntity newOperationEventEntity = new OperationEventEntity();
         newOperationEventEntity.setEventSeqNo(eventDto.getEventSeqNo());
@@ -80,6 +95,85 @@ public class OperationEventManagementService {
         }
 
         return fromOperationEventEntity(newOperationEventEntity);
+    }
+    
+    private void validateOperKey(OperationEventDto eventDto) {
+        if(eventDto == null) {
+            return;
+        }
+        
+        if(StringUtils.isBlank(eventDto.getOperationKey())) {
+            return;
+        }
+        String procDefKey = eventDto.getOperationKey();
+
+        ProcDefInfoEntity procDefEntity = findSuitableProcDefInfoEntityWithProcDefKey(procDefKey);
+        if (procDefEntity == null) {
+            log.error("such process is not available with procDefKey={}", procDefKey);
+            throw new WecubeCoreException("3225",String.format("Process definition key {%s} is NOT available.", procDefKey), procDefKey);
+        }
+        
+        
+        checkCurrentUserRole(procDefEntity.getId());
+    }
+    
+    private ProcDefInfoEntity findSuitableProcDefInfoEntityWithProcDefKey(String procDefKey) {
+        List<ProcDefInfoEntity> procDefEntities = processDefInfoRepository
+                .selectAllDeployedProcDefsByProcDefKey(procDefKey, ProcDefInfoEntity.DEPLOYED_STATUS);
+
+        if (procDefEntities == null || procDefEntities.isEmpty()) {
+            return null;
+        }
+
+        Collections.sort(procDefEntities, new Comparator<ProcDefInfoEntity>() {
+
+            @Override
+            public int compare(ProcDefInfoEntity o1, ProcDefInfoEntity o2) {
+                if (o1.getProcDefVer() == null && o2.getProcDefVer() == null) {
+                    return 0;
+                }
+
+                if (o1.getProcDefVer() == null && o2.getProcDefVer() != null) {
+                    return -1;
+                }
+
+                if (o1.getProcDefVer() != null && o2.getProcDefVer() == null) {
+                    return 1;
+                }
+
+                if (o1.getProcDefVer() == o2.getProcDefVer()) {
+                    return 0;
+                }
+
+                return o1.getProcDefVer() > o2.getProcDefVer() ? -1 : 1;
+            }
+
+        });
+
+        return procDefEntities.get(0);
+    }
+    
+    private void checkCurrentUserRole(String procDefId) {
+
+        Set<String> currRoleNames = AuthenticationContextHolder.getCurrentUserRoles();
+        if (currRoleNames == null || currRoleNames.isEmpty()) {
+            throw new WecubeCoreException("3144", "No access to this resource due to current user did not log in.");
+        }
+
+        List<ProcRoleBindingEntity> procRoleBindingEntities = procRoleBindingMapper
+                .selectDistinctProcIdByRolesAndPermissionIsUse(currRoleNames);
+        if (procRoleBindingEntities == null || procRoleBindingEntities.isEmpty()) {
+            throw new WecubeCoreException("3145", "No access to this resource due to permission not configured.");
+        }
+
+        for (ProcRoleBindingEntity e : procRoleBindingEntities) {
+            if (procDefId.equals(e.getProcId())) {
+                return;
+            }
+        }
+
+        throw new WecubeCoreException("3146", "No access to this resource due to none permission configuration found.");
+
     }
 
     private OperationEventResultDto handleInstantOperationEvent(OperationEventEntity instantOperEventEntity) {
