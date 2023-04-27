@@ -12,13 +12,16 @@ public class TaskNodeExecContextDto {
     private String nodeDefId;
     private Integer nodeInstId;
     private String nodeType;
-    
+
     private String nodeExpression;
     private String pluginInfo;
 
     private String requestId;
     private String errorCode;
     private String errorMessage;
+
+    private String beginTime;
+    private String endTime;
 
     private List<RequestObjectDto> requestObjects = new ArrayList<>();
 
@@ -117,7 +120,21 @@ public class TaskNodeExecContextDto {
     public void setPluginInfo(String pluginInfo) {
         this.pluginInfo = pluginInfo;
     }
-    
-    
+
+    public String getBeginTime() {
+        return beginTime;
+    }
+
+    public void setBeginTime(String beginTime) {
+        this.beginTime = beginTime;
+    }
+
+    public String getEndTime() {
+        return endTime;
+    }
+
+    public void setEndTime(String endTime) {
+        this.endTime = endTime;
+    }
 
 }
