@@ -96,4 +96,7 @@ public class Constants {
     
     public static final String EDITION_ENTERPRISE = "enterprise";
     public static final String EDITION_COMMUNITY = "community";
+    
+    public static final String DATA_MANDATORY_YES = "Y";
+    public static final String DATA_MANDATORY_NO = "N";
 }
