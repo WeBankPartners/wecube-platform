@@ -19,7 +19,7 @@
         <java.encoding>UTF-8</java.encoding>
         <spring-version>5.2.22.RELEASE</spring-version>
         <maven-jar-plugin.version>3.1.1</maven-jar-plugin.version>
-        <jackson.version>2.13.4</jackson.version>
+        <jackson.version>2.13.4.1</jackson.version>
     </properties>
 
     <dependencyManagement>
