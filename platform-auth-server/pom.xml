@@ -19,7 +19,7 @@
         <app.version>${project.version}</app.version>
         
         <springboot.version>2.2.13.RELEASE</springboot.version>
-        <spring-version>5.2.22.RELEASE</spring-version>
+        <spring-version>6.0.0</spring-version>
         <jackson.version>2.13.4</jackson.version>
     </properties>
 
