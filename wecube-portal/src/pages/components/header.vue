@@ -365,8 +365,6 @@ export default {
   }
   a {
     color: #404144;
-    display: flex;
-    align-items: center;
   }
   .menus {
     display: inline-block;
@@ -422,6 +420,15 @@ export default {
 
     .p-icon {
       margin-right: 6px;
+    }
+
+    .ivu-dropdown-rel {
+      display: flex;
+      align-items: center;
+      a {
+        display: flex;
+        align-items: center;
+      }
     }
   }
 }
