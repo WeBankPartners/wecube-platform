@@ -16,7 +16,7 @@
 		<java.version>1.8</java.version>
 		<java.encoding>UTF-8</java.encoding>
 		<app.version>${project.version}</app.version>
-        <springboot.version>2.2.13.RELEASE</springboot.version>
+        <springboot.version>2.5.14</springboot.version>
         <spring-version>5.2.22.RELEASE</spring-version>
         <jackson.version>2.13.4</jackson.version>
 	</properties>
@@ -46,70 +46,22 @@
                 <version>${jackson.version}</version>
             </dependency>
             
-             <dependency>
-                <groupId>org.springframework</groupId>
-                <artifactId>spring-core</artifactId>
-                <version>${spring-version}</version>
-            </dependency>
-            
-            <dependency>
-                <groupId>org.springframework</groupId>
-                <artifactId>spring-web</artifactId>
-                <version>${spring-version}</version>
-            </dependency>
-            
-            <dependency>
-                <groupId>org.springframework</groupId>
-                <artifactId>spring-tx</artifactId>
-                <version>${spring-version}</version>
-            </dependency>
-            
-            <dependency>
-                <groupId>org.springframework</groupId>
-                <artifactId>spring-context</artifactId>
-                <version>${spring-version}</version>
-            </dependency>
-            
-            <dependency>
-                <groupId>org.springframework</groupId>
-                <artifactId>spring-jdbc</artifactId>
-                <version>${spring-version}</version>
-            </dependency>
-            
-            <dependency>
-                <groupId>org.springframework</groupId>
-                <artifactId>spring-beans</artifactId>
-                <version>${spring-version}</version>
-            </dependency>
-            
-            <dependency>
-                <groupId>org.springframework</groupId>
-                <artifactId>spring-webmvc</artifactId>
-                <version>${spring-version}</version>
-            </dependency>
-            
-            <dependency>
-                <groupId>org.springframework</groupId>
-                <artifactId>spring-aop</artifactId>
-                <version>${spring-version}</version>
-            </dependency>
-            
-            <dependency>
-                <groupId>org.springframework</groupId>
-                <artifactId>spring-expression</artifactId>
-                <version>${spring-version}</version>
-            </dependency>
-            
             <dependency>
                 <groupId>org.yaml</groupId>
                 <artifactId>snakeyaml</artifactId>
-                <version>1.26</version>
+                <version>1.31</version>
             </dependency>
             
             <dependency>
                 <groupId>org.apache.commons</groupId>
                 <artifactId>commons-compress</artifactId>
                 <version>1.21</version>
+            </dependency>
+            
+            <dependency>
+                <groupId>org.apache.logging.log4j</groupId>
+                <artifactId>log4j-to-slf4j</artifactId>
+                <version>2.17.1</version>
             </dependency>
 
 		</dependencies>
@@ -131,6 +83,10 @@
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-security</artifactId>
 		</dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-validation</artifactId>
+        </dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-web</artifactId>
@@ -237,11 +193,13 @@
 			<artifactId>spring-boot-starter-test</artifactId>
 			<scope>test</scope>
 		</dependency>
+		<!-- 
 		<dependency>
 			<groupId>org.springframework.security</groupId>
 			<artifactId>spring-security-test</artifactId>
 			<scope>test</scope>
 		</dependency>
+		 -->
 		<dependency>
 			<groupId>org.springframework.cloud</groupId>
 			<artifactId>spring-cloud-aws-context</artifactId>
@@ -315,6 +273,13 @@
 			<groupId>javax.xml.ws</groupId>
 			<artifactId>jaxws-api</artifactId>
 		</dependency>
+        
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.13.2</version>
+            <scope>test</scope>
+        </dependency>
 
 	</dependencies>
 
