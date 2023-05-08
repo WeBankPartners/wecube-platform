@@ -5,10 +5,14 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.webank.wecube.platform.core.entity.plugin.PluginPackageAttributes;
+import com.webank.wecube.platform.core.service.plugin.PluginPackageDataModelService;
 import com.webank.wecube.platform.core.utils.Constants;
 
 /**
@@ -19,6 +23,9 @@ import com.webank.wecube.platform.core.utils.Constants;
 @Service("standardEntityQueryExecutor")
 public class StandardEntityQueryExecutor implements EntityQueryExecutor {
     private static final Logger log = LoggerFactory.getLogger(StandardEntityQueryExecutor.class);
+
+    @Autowired
+    private PluginPackageDataModelService dataModelService;
 
     @Override
     public EntityTreeNodesOverview generateEntityLinkOverview(EntityOperationContext ctx) {
@@ -39,8 +46,8 @@ public class StandardEntityQueryExecutor implements EntityQueryExecutor {
     private void pupolateTreeNodeWithLinkNode(List<StandardEntityDataNode> result, EntityQueryLinkNode linkNode) {
         for (EntityDataDelegate delegate : linkNode.getEntityDataDelegates()) {
 
-            StandardEntityDataNode currTreeNode = findTreeNode(result, delegate.getPackageName(), delegate.getEntityName(),
-                    delegate.getId());
+            StandardEntityDataNode currTreeNode = findTreeNode(result, delegate.getPackageName(),
+                    delegate.getEntityName(), delegate.getId());
             if (currTreeNode == null) {
                 currTreeNode = new StandardEntityDataNode();
                 currTreeNode.setId(delegate.getId());
@@ -91,7 +98,8 @@ public class StandardEntityQueryExecutor implements EntityQueryExecutor {
         }
     }
 
-    private StandardEntityDataNode findTreeNode(List<StandardEntityDataNode> nodes, String packageName, String entityName, String id) {
+    private StandardEntityDataNode findTreeNode(List<StandardEntityDataNode> nodes, String packageName,
+            String entityName, String id) {
         for (StandardEntityDataNode n : nodes) {
             if (n.getPackageName().equals(packageName) && n.getEntityName().equals(entityName)
                     && n.getId().equals(id)) {
@@ -101,32 +109,34 @@ public class StandardEntityQueryExecutor implements EntityQueryExecutor {
 
         return null;
     }
-    
-    public Map<String, Object> executeCreate(EntityOperationContext ctx, EntityRouteDescription entityDef, List<EntityDataRecord> recordsToCreate){
+
+    public Map<String, Object> executeCreate(EntityOperationContext ctx, EntityRouteDescription entityDef,
+            List<EntityDataRecord> recordsToCreate) {
         StandardEntityOperationRestClient restClient = ctx.getStandardEntityOperationRestClient();
         StandardEntityOperationResponseDto responseDto = restClient.create(entityDef, recordsToCreate);
-        
+
         if (StandardEntityOperationResponseDto.STATUS_OK.equalsIgnoreCase(responseDto.getStatus())) {
             List<Map<String, Object>> recordMapList = extractEntityDataFromResponse(responseDto.getData());
-            if(recordMapList == null || recordMapList.isEmpty()){
+            if (recordMapList == null || recordMapList.isEmpty()) {
                 return null;
             }
-            
+
             return recordMapList.get(0);
-            
+
         } else {
             log.error("Error status met {} with message {}", responseDto.getStatus(), responseDto.getMessage());
             String msg = String.format("Errors met while creating data from %s due to %s %s.",
                     entityDef.getPackageName(), responseDto.getStatus(), responseDto.getMessage());
-            throw new EntityOperationException("3309", msg, entityDef.getPackageName(), responseDto.getStatus(), responseDto.getMessage());
+            throw new EntityOperationException("3309", msg, entityDef.getPackageName(), responseDto.getStatus(),
+                    responseDto.getMessage());
         }
     }
 
     public void executeUpdate(EntityOperationContext ctx, Object valueToUpdate) {
         List<EntityDataDelegate> entitiesToUpdate = executeQueryLeafEntity(ctx);
         List<EntityDataRecord> entityDataRecordsToUpdate = buildEntityDataRecords(entitiesToUpdate, valueToUpdate);
-        
-        if(entityDataRecordsToUpdate == null || entityDataRecordsToUpdate.isEmpty()) {
+
+        if (entityDataRecordsToUpdate == null || entityDataRecordsToUpdate.isEmpty()) {
             log.info("Empty entity data records to update.");
             return;
         }
@@ -150,6 +160,9 @@ public class StandardEntityQueryExecutor implements EntityQueryExecutor {
         headLinkNode.setExprNodeInfo(nodeInfo);
         headLinkNode.setHead(true);
         headLinkNode.setPreviousNode(null);
+        if (nodeInfo.hasQueryAttribute()) {
+            headLinkNode.setAttrDefInfo(calculateAttrDefInfo(nodeInfo));
+        }
 
         EntityQueryLinkNode previousLinkNode = headLinkNode;
         for (int i = 1; i < exprNodeInfos.size(); i++) {
@@ -160,6 +173,10 @@ public class StandardEntityQueryExecutor implements EntityQueryExecutor {
             linkNode.setHead(false);
             linkNode.setPreviousNode(previousLinkNode);
             linkNode.setSucceedingNode(null);
+            
+            if (ni.hasQueryAttribute()) {
+                linkNode.setAttrDefInfo(calculateAttrDefInfo(ni));
+            }
 
             previousLinkNode = linkNode;
         }
@@ -190,6 +207,42 @@ public class StandardEntityQueryExecutor implements EntityQueryExecutor {
         doPerformQuery(ctx, linkNode, entityDef);
     }
 
+    protected EntityAttributeDefInfo calculateAttrDefInfo(EntityQueryExprNodeInfo nodeInfo) {
+        if (nodeInfo == null) {
+            return null;
+        }
+
+        String packageName = nodeInfo.getPackageName();
+        String entityName = nodeInfo.getEntityName();
+        String attrName = nodeInfo.getQueryAttrName();
+
+        if (StringUtils.isBlank(packageName) || StringUtils.isBlank(entityName) || StringUtils.isBlank(attrName)) {
+            return null;
+        }
+
+        PluginPackageAttributes latestAttrEntity = this.dataModelService
+                .tryFetchLatestAvailablePluginPackageAttributes(packageName, entityName, attrName);
+        if (latestAttrEntity == null) {
+            return null;
+        }
+
+        EntityAttributeDefInfo attrDef = new EntityAttributeDefInfo();
+        attrDef.setPackageName(packageName);
+        attrDef.setEntityName(entityName);
+        attrDef.setAttrName(attrName);
+        attrDef.setDataType(latestAttrEntity.getDataType());
+        attrDef.setMultiple(latestAttrEntity.getMultiple());
+
+        String mandatoryStr = Constants.DATA_MANDATORY_NO;
+        Boolean mandatory = latestAttrEntity.getMandatory();
+        if (mandatory != null) {
+            mandatoryStr = mandatory ? Constants.DATA_MANDATORY_YES : Constants.DATA_MANDATORY_NO;
+        }
+        attrDef.setMandatory(mandatoryStr);
+
+        return attrDef;
+    }
+
     protected List<EntityDataRecord> buildEntityDataRecords(List<EntityDataDelegate> entitiesToUpdate,
             Object valueToUpdate) {
         List<EntityDataRecord> dataRecords = new ArrayList<>();
@@ -214,7 +267,7 @@ public class StandardEntityQueryExecutor implements EntityQueryExecutor {
 
             dataRecords.add(record);
         }
-        
+
         log.info("Total {} records to update.", dataRecords.size());
 
         return dataRecords;
@@ -451,7 +504,7 @@ public class StandardEntityQueryExecutor implements EntityQueryExecutor {
         }
         StandardEntityQueryCacheKey key = new StandardEntityQueryCacheKey(entityDef, querySpec);
         StandardEntityQueryCacheData data = new StandardEntityQueryCacheData(recordMapList, System.currentTimeMillis());
-        
+
         externalCacheMap.put(key, data);
     }
 
@@ -463,22 +516,22 @@ public class StandardEntityQueryExecutor implements EntityQueryExecutor {
             log.debug("There is no external cache provided to search.");
             return null;
         }
-        
+
         StandardEntityQueryCacheKey key = new StandardEntityQueryCacheKey(entityDef, querySpec);
         Object objData = externalCacheMap.get(key);
-        if(objData == null){
+        if (objData == null) {
             return null;
         }
-        if(!(objData instanceof StandardEntityQueryCacheData)){
+        if (!(objData instanceof StandardEntityQueryCacheData)) {
             return null;
         }
-        StandardEntityQueryCacheData data = (StandardEntityQueryCacheData)objData;
+        StandardEntityQueryCacheData data = (StandardEntityQueryCacheData) objData;
         Object cachedObjData = data.getData();
-        if(cachedObjData == null){
+        if (cachedObjData == null) {
             return null;
         }
-        
-        return (List<Map<String, Object>>)cachedObjData;
+
+        return (List<Map<String, Object>>) cachedObjData;
     }
 
     protected List<Map<String, Object>> performEntityDataExtractionFromCachedResultData(EntityOperationContext ctx,
