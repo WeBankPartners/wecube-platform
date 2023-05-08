@@ -855,7 +855,7 @@ public class PluginPackageDataModelService {
             attrDto.setRefEntityName(attrEntity.getRefEntity());
             attrDto.setRefPackageName(attrEntity.getRefPackage());
             attrDto.setMultiple(attrEntity.getMultiple());
-            String mandatoryStr = null;
+            String mandatoryStr = "N";
             Boolean mandatory = attrEntity.getMandatory();
             if(mandatory != null) {
                 mandatoryStr = mandatory?"Y":"N";
