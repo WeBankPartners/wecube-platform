@@ -18,6 +18,7 @@
         <java.encoding>UTF-8</java.encoding>
         <maven-jar-plugin.version>3.1.1</maven-jar-plugin.version>
         <jackson.version>2.13.4</jackson.version>
+        <springboot.version>2.5.14</springboot.version>
     </properties>
 
     <dependencyManagement>
@@ -43,6 +44,12 @@
                 <groupId>com.fasterxml.jackson.core</groupId>
                 <artifactId>jackson-core</artifactId>
                 <version>${jackson.version}</version>
+            </dependency>
+            
+            <dependency>
+                <groupId>org.yaml</groupId>
+                <artifactId>snakeyaml</artifactId>
+                <version>1.31</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
