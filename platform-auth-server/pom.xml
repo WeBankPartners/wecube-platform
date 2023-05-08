@@ -6,7 +6,7 @@
     <parent>
         <groupId>com.webank.wecube.platform</groupId>
         <artifactId>wecube-platform</artifactId>
-        <version>3.2.2</version>
+        <version>3.2.3</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
     
@@ -18,9 +18,9 @@
         <maven-jar-plugin.version>3.1.1</maven-jar-plugin.version>
         <app.version>${project.version}</app.version>
         
-        <springboot.version>2.2.13.RELEASE</springboot.version>
-        <spring-version>5.2.22.RELEASE</spring-version>
+        <springboot.version>2.5.14</springboot.version>
         <jackson.version>2.13.4</jackson.version>
+        <spring-security.version>5.5.8</spring-security.version>
     </properties>
 
     <dependencyManagement>
@@ -50,57 +50,9 @@
             </dependency>
             
             <dependency>
-                <groupId>org.springframework</groupId>
-                <artifactId>spring-core</artifactId>
-                <version>${spring-version}</version>
-            </dependency>
-            
-            <dependency>
-                <groupId>org.springframework</groupId>
-                <artifactId>spring-web</artifactId>
-                <version>${spring-version}</version>
-            </dependency>
-            
-            <dependency>
-                <groupId>org.springframework</groupId>
-                <artifactId>spring-tx</artifactId>
-                <version>${spring-version}</version>
-            </dependency>
-            
-            <dependency>
-                <groupId>org.springframework</groupId>
-                <artifactId>spring-context</artifactId>
-                <version>${spring-version}</version>
-            </dependency>
-            
-            <dependency>
-                <groupId>org.springframework</groupId>
-                <artifactId>spring-jdbc</artifactId>
-                <version>${spring-version}</version>
-            </dependency>
-            
-            <dependency>
-                <groupId>org.springframework</groupId>
-                <artifactId>spring-beans</artifactId>
-                <version>${spring-version}</version>
-            </dependency>
-            
-            <dependency>
-                <groupId>org.springframework</groupId>
-                <artifactId>spring-webmvc</artifactId>
-                <version>${spring-version}</version>
-            </dependency>
-            
-            <dependency>
-                <groupId>org.springframework</groupId>
-                <artifactId>spring-aop</artifactId>
-                <version>${spring-version}</version>
-            </dependency>
-            
-            <dependency>
                 <groupId>org.yaml</groupId>
                 <artifactId>snakeyaml</artifactId>
-                <version>1.26</version>
+                <version>1.31</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
@@ -199,6 +151,13 @@
             <groupId>io.springfox</groupId>
             <artifactId>springfox-swagger-ui</artifactId>
             <version>2.9.2</version>
+        </dependency>
+        
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.13.2</version>
+            <scope>test</scope>
         </dependency>
 
         <dependency>
