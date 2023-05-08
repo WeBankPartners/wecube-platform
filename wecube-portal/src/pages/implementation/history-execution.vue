@@ -1,13 +1,13 @@
 <template>
   <div class=" ">
     <div class="report-container">
-      <div class="item">
+      <div class="item" style="width: 400px">
         {{ $t('datetime_range') }}:
         <DatePicker
           type="datetimerange"
           format="yyyy-MM-dd HH:mm:ss"
           @on-change="getDate"
-          style="width: 60%"
+          style="width: 300px"
         ></DatePicker>
       </div>
       <div class="item">
