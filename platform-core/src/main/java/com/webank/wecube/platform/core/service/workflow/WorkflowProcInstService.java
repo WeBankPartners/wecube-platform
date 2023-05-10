@@ -1051,13 +1051,21 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
                 endDate,
                 likeString(queryDto.getEntityDisplayName()),
                 likeString(queryDto.getProcInstName()),
-                likeString(queryDto.getOperator()),
+                trimString(queryDto.getOperator()),
                 queryDto.getStatus()
                 );
 
         com.github.pagehelper.PageInfo<ProcInstInfoQueryEntity> pageInfo = new com.github.pagehelper.PageInfo<ProcInstInfoQueryEntity>(
                 items);
         return pageInfo;
+    }
+    
+    private String trimString(String s) {
+    	if(StringUtils.isBlank(s)){
+            return null;
+        }
+        
+        return s.trim();
     }
     
     private String likeString(String s){
