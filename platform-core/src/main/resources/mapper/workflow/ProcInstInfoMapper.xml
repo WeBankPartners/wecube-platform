@@ -360,7 +360,7 @@
           AND t1.proc_def_name like #{procInstName,jdbcType=VARCHAR}
         </if>
         <if test="operator != null">
-          AND t1.oper like #{operator,jdbcType=VARCHAR}
+          AND t1.oper = #{operator,jdbcType=VARCHAR}
         </if>
         <if test="status != null">
           AND t1.status = #{status,jdbcType=VARCHAR}
