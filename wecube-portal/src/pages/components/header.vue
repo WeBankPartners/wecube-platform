@@ -3,12 +3,12 @@
     <Header>
       <div class="menus">
         <Menu mode="horizontal" theme="dark">
-          <div style="margin-right:20px;">
+          <div style="margin-right: 20px">
             <img src="../../assets/logo_WeCube.png" alt="LOGO" @click="goHome" class="img-logo" />
           </div>
 
           <div v-for="menu in menus" :key="menu.code">
-            <MenuItem v-if="menu.submenus.length < 1" :name="menu.title" style="cursor: not-allowed;">
+            <MenuItem v-if="menu.submenus.length < 1" :name="menu.title" style="cursor: not-allowed">
               {{ menu.title }}
             </MenuItem>
 
@@ -28,10 +28,8 @@
       <div class="header-right_container">
         <div class="profile">
           <Dropdown style="cursor: pointer">
-            <span style="color: white"
-              ><Icon style="margin-right:5px" size="16" type="ios-contact" />{{ username }}</span
-            >
-            <Icon :size="18" type="ios-arrow-down" color="white"></Icon>
+            <img class="p-icon" src="../../assets/icon/icon_usr.png" width="12" height="12" />{{ username }}
+            <Icon type="ios-arrow-down"></Icon>
             <DropdownMenu slot="list">
               <DropdownItem name="logout" to="/login">
                 <a @click="showChangePassword" style="width: 100%; display: block">
@@ -49,21 +47,28 @@
         <div class="language">
           <Dropdown>
             <a href="javascript:void(0)">
-              <Icon size="16" type="ios-globe" style="margin-right:5px; cursor: pointer" />
+              <img
+                class="p-icon"
+                v-if="currentLanguage === 'English'"
+                src="../../assets/icon/icon_lan_EN.png"
+                width="12"
+                height="12"
+              />
+              <img class="p-icon" v-else src="../../assets/icon/icon_lan_CN.png" width="12" height="12" />
               {{ currentLanguage }}
               <Icon type="ios-arrow-down"></Icon>
             </a>
             <DropdownMenu slot="list">
-              <DropdownItem v-for="(item, key) in language" :key="item.id" @click.native="changeLanguage(key)">{{
-                item
-              }}</DropdownItem>
+              <DropdownItem v-for="(item, key) in language" :key="item.id" @click.native="changeLanguage(key)">
+                {{ item }}
+              </DropdownItem>
             </DropdownMenu>
           </Dropdown>
         </div>
         <div class="language">
           <Dropdown>
             <a href="javascript:void(0)">
-              <Icon style="margin-right:5px" size="16" type="md-book" />
+              <img class="p-icon" src="../../assets/icon/icon_hlp.png" width="12" height="12" />
               {{ $t('help_docs') }}
               <Icon type="ios-arrow-down"></Icon>
             </a>
@@ -356,9 +361,10 @@ export default {
   .ivu-layout-header {
     height: 50px;
     line-height: 50px;
+    background: linear-gradient(90deg, #8bb8fa 0%, #e1ecfb 100%);
   }
   a {
-    color: white;
+    color: #404144;
   }
   .menus {
     display: inline-block;
@@ -369,21 +375,26 @@ export default {
       .ivu-menu-submenu {
         padding: 0 8px;
         font-size: 15px;
+        color: #404144;
       }
       .ivu-menu-item {
         font-size: 15px;
+        color: #404144;
       }
     }
+    .ivu-menu-dark {
+      background: transparent;
+    }
     .ivu-menu-dark.ivu-menu-horizontal .ivu-menu-submenu {
-      color: #fff;
+      color: #404144;
     }
     .ivu-menu-item-active,
     .ivu-menu-item:hover {
-      color: rgba(255, 255, 255, 0.7);
+      color: #116ef9;
     }
     .ivu-menu-dark.ivu-menu-horizontal .ivu-menu-submenu-active,
     .ivu-menu-dark.ivu-menu-horizontal .ivu-menu-submenu:hover {
-      color: #fff;
+      color: #116ef9;
     }
     .ivu-menu-drop-list {
       .ivu-menu-item-active,
@@ -404,7 +415,20 @@ export default {
       margin-left: 20px;
     }
     .version {
-      color: white;
+      color: #404144;
+    }
+
+    .p-icon {
+      margin-right: 6px;
+    }
+
+    .ivu-dropdown-rel {
+      display: flex;
+      align-items: center;
+      a {
+        display: flex;
+        align-items: center;
+      }
     }
   }
 }

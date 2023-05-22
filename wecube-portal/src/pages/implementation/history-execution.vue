@@ -1,13 +1,14 @@
 <template>
   <div class=" ">
     <div class="report-container">
-      <div class="item">
+      <div class="item" style="width: 400px">
         {{ $t('datetime_range') }}:
         <DatePicker
           type="datetimerange"
           format="yyyy-MM-dd HH:mm:ss"
+          v-model="time"
           @on-change="getDate"
-          style="width: 60%"
+          style="width: 320px"
         ></DatePicker>
       </div>
       <div class="item">
@@ -57,6 +58,7 @@ export default {
     return {
       MODALHEIGHT: 0,
       statusOptions: ['NotStarted', 'InProgress', 'Completed', 'Faulted', 'Timeouted', 'InternallyTerminated'],
+      time: ['', ''],
       pageable: {
         pageSize: 10,
         startIndex: 1,
@@ -176,7 +178,12 @@ export default {
     jumpToHistory (row) {
       this.$emit('jumpToHistory', row.id)
     },
-    getDate (dateRange) {
+    getDate (dateRange, type) {
+      if (type === 'date' && dateRange[1].slice(-8) === '00:00:00') {
+        // type类型判断等于date,是为了防止用户手动选时间为 00:00:00 时触发，变成 '23:59:59'
+        dateRange[1] = dateRange[1].slice(0, -8) + '23:59:59'
+      }
+      this.time = dateRange
       this.searchConfig.params.startTime = dateRange[0]
       this.searchConfig.params.endTime = dateRange[1]
     }
