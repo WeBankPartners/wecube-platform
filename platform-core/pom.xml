@@ -18,7 +18,7 @@
 		<app.version>${project.version}</app.version>
         <springboot.version>2.5.14</springboot.version>
         <spring-version>5.2.22.RELEASE</spring-version>
-        <jackson.version>2.13.4</jackson.version>
+        <jackson.version>2.13.4.1</jackson.version>
 	</properties>
 
 	<dependencyManagement>
