@@ -16,12 +16,26 @@ import org.springframework.stereotype.Service;
 public class EntityQueryExpressionParser {
     public static final String PKG_DELIMITER = ":";
     public static final String REG_ENTITY_ID = "@@\\w+@@";
+    public static final String DME_OPERATION_DELIMITER = "#DMEOP#";
     private Pattern entityIdPattern = Pattern.compile(REG_ENTITY_ID);
 
-    public List<EntityQueryExprNodeInfo> parse(String expr) {
+    public EntityQueryExpr parse(String rawExpr) {
     	
-    	if(StringUtils.isBlank(expr)) {
+    	if(StringUtils.isBlank(rawExpr)) {
     		throw new IllegalArgumentException("Expression to parse cannot be blank.");
+    	}
+    	
+    	String[] rawExprParts = rawExpr.trim().split(DME_OPERATION_DELIMITER);
+    	
+    	EntityQueryExpr entityQueryExpr = new EntityQueryExpr();
+    	entityQueryExpr.setRawExpr(rawExpr);
+    	
+    	String expr = null;
+    	if(rawExprParts.length >= 2) {
+    		expr = rawExprParts[0];
+    		entityQueryExpr.setExprOperation(rawExprParts[1]);
+    	}else {
+    		expr = rawExpr;
     	}
 
         String exprOpReg = String.format("[%s%s]", EntityLinkType.REF_TO.symbol(), EntityLinkType.REF_BY.symbol());
@@ -72,7 +86,9 @@ public class EntityQueryExpressionParser {
             parseEntityQueryNodeInfoDetails(singleNodeInfo, expr);
             queryNodeInfos.add(singleNodeInfo);
         }
-        return queryNodeInfos;
+        
+        entityQueryExpr.setExprNodeInfos(queryNodeInfos);
+        return entityQueryExpr;
     }
 
     protected void parseEntityQueryNodeInfoDetails(EntityQueryExprNodeInfo nodeInfo, String entityQueryNodeExpr) {
