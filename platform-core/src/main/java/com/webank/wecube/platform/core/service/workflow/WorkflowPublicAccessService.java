@@ -508,6 +508,7 @@ public class WorkflowPublicAccessService {
 
                 String trimmedExprPart = exprPart.trim();
 
+                //TODO:DMEOP
                 if (StringUtils.isNoneBlank(additionalFilterRule)) {
                     trimmedExprPart = trimmedExprPart + additionalFilterRule.trim();
                 }
