@@ -59,6 +59,7 @@ import com.webank.wecube.platform.core.model.workflow.WorkflowInstCreationContex
 import com.webank.wecube.platform.core.service.dme.EntityDataAttr;
 import com.webank.wecube.platform.core.service.dme.EntityDataRecord;
 import com.webank.wecube.platform.core.service.dme.EntityOperationRootCondition;
+import com.webank.wecube.platform.core.service.dme.EntityQueryExpr;
 import com.webank.wecube.platform.core.service.dme.EntityQueryExprNodeInfo;
 import com.webank.wecube.platform.core.service.dme.EntityRouteDescription;
 import com.webank.wecube.platform.core.service.dme.EntityTreeNodesOverview;
@@ -687,7 +688,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 
         StandardEntityOperationRestClient restClient = new StandardEntityOperationRestClient(jwtSsoRestTemplate);
 
-        StandardEntityOperationResponseDto resultDto = restClient.update(entityDef, recordsToUpdate);
+        StandardEntityOperationResponseDto resultDto = restClient.update(entityDef, recordsToUpdate, null);
         if (StandardEntityOperationResponseDto.STATUS_ERROR.equals(resultDto.getStatus())) {
             log.error("errors to update entity:{}", resultDto.getMessage());
             return;
@@ -3779,7 +3780,8 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 //                continue;
             }
 
-            List<EntityQueryExprNodeInfo> exprNodeInfos = entityQueryExpressionParser.parse(paramExpr).getExprNodeInfos();
+            EntityQueryExpr entityQueryExpr = entityQueryExpressionParser.parse(paramExpr);
+            List<EntityQueryExprNodeInfo> exprNodeInfos = entityQueryExpr.getExprNodeInfos();
 
             if (exprNodeInfos == null || exprNodeInfos.isEmpty()) {
                 String errMsg = String.format("Unknown how to update entity attribute due to invalid expression:%s",
@@ -3804,6 +3806,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
             outputParamAttr.setParamExpr(paramExpr);
             outputParamAttr.setParamName(paramName);
             outputParamAttr.setRetVal(finalRetVal);
+            outputParamAttr.setEntityQueryExpr(entityQueryExpr);
 
             allDmeOutputParamAttrs.add(outputParamAttr);
             if (outputParamAttr.isRootEntityAttr()) {
@@ -3855,7 +3858,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
                     this.jwtSsoRestTemplate);
             List<Map<String, Object>> objDataMaps = new ArrayList<>();
             objDataMaps.add(objDataMap);
-            restClient.updateData(entityDef, objDataMaps);
+            restClient.updateData(entityDef, objDataMaps, null);
 
         } else {
             if (verifyIfHasNormalEntityMappingExcludeAssign(rootDemOutputParamAttrs)) {
