@@ -2606,7 +2606,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 
             String entityAttrName = null;
             List<EntityQueryExprNodeInfo> currExprNodeInfos = this.entityQueryExpressionParser
-                    .parse(param.getMappingEntityExpression());
+                    .parse(param.getMappingEntityExpression()).getExprNodeInfos();
             if (currExprNodeInfos == null || currExprNodeInfos.isEmpty()) {
                 // nothing
             } else {
@@ -3021,9 +3021,9 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
         }
 
         List<EntityQueryExprNodeInfo> currExprNodeInfos = this.entityQueryExpressionParser
-                .parse(currTaskNodeRoutineExp);
+                .parse(currTaskNodeRoutineExp).getExprNodeInfos();
         List<EntityQueryExprNodeInfo> lastExprNodeInfos = this.entityQueryExpressionParser
-                .parse(bindTaskNodeRoutineExp);
+                .parse(bindTaskNodeRoutineExp).getExprNodeInfos();
 
         if (currExprNodeInfos == null || currExprNodeInfos.isEmpty()) {
             return true;
@@ -3779,7 +3779,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 //                continue;
             }
 
-            List<EntityQueryExprNodeInfo> exprNodeInfos = entityQueryExpressionParser.parse(paramExpr);
+            List<EntityQueryExprNodeInfo> exprNodeInfos = entityQueryExpressionParser.parse(paramExpr).getExprNodeInfos();
 
             if (exprNodeInfos == null || exprNodeInfos.isEmpty()) {
                 String errMsg = String.format("Unknown how to update entity attribute due to invalid expression:%s",
@@ -3927,7 +3927,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 //                }
 //            }
 
-            List<EntityQueryExprNodeInfo> exprNodeInfos = entityQueryExpressionParser.parse(paramExpr);
+            List<EntityQueryExprNodeInfo> exprNodeInfos = entityQueryExpressionParser.parse(paramExpr).getExprNodeInfos();
             if (exprNodeInfos == null || exprNodeInfos.isEmpty()) {
                 String errMsg = String.format("Unknown how to update entity attribute due to invalid expression:%s",
                         paramExpr);
