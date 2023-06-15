@@ -9,6 +9,10 @@ import java.util.Map;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestTemplate;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -83,15 +87,25 @@ public class StandardEntityOperationRestClient {
 
     // POST List<Map<String, Object>>
     public StandardEntityOperationResponseDto update(EntityRouteDescription entityDef,
-            List<EntityDataRecord> recordsToUpdate) {
+            List<EntityDataRecord> recordsToUpdate,Map<String,String> additionalRequestHeaders) {
         URI requestUri = buildStandardOperationUri(entityDef, getUpdateUriTemplate());
-
+        
         List<Map<String, Object>> requestBody = convertToMapList(recordsToUpdate);
+        
+        HttpHeaders headers = new HttpHeaders();
+        if(additionalRequestHeaders != null) {
+        	for(String headerKey : additionalRequestHeaders.keySet()) {
+        		headers.add(headerKey, additionalRequestHeaders.get(headerKey));
+        	}
+        }
+        
+        HttpEntity<List<Map<String, Object>>> requestEntity = new HttpEntity<>(requestBody, headers);
         long timeMilliSeconds = System.currentTimeMillis();
         log.info("SEND UPDATE post [{}] url={}, request={}", timeMilliSeconds, requestUri.toString(),
                 toJson(requestBody));
-        StandardEntityOperationResponseDto result = getRestTemplate().postForObject(requestUri, requestBody,
+        ResponseEntity<StandardEntityOperationResponseDto> respEntity  = getRestTemplate().exchange(requestUri, HttpMethod.POST, requestEntity,
                 StandardEntityOperationResponseDto.class);
+        StandardEntityOperationResponseDto result = respEntity.getBody();
         log.debug("RECEIVE UPDATE post [{}] url={},result={}", timeMilliSeconds, requestUri.toString(), result);
         if(!StandardEntityOperationResponseDto.STATUS_OK.equalsIgnoreCase(result.getStatus())) {
             log.error("update failed with error:{} {}", result.getStatus(), result.getMessage());
@@ -100,14 +114,25 @@ public class StandardEntityOperationRestClient {
         return result;
     }
     
-    public StandardEntityOperationResponseDto updateData(EntityRouteDescription entityDef,List<Map<String, Object>> recordsToUpdate) {
+    public StandardEntityOperationResponseDto updateData(EntityRouteDescription entityDef,List<Map<String, Object>> recordsToUpdate, Map<String,String> additionalRequestHeaders) {
         URI requestUri = buildStandardOperationUri(entityDef, getUpdateUriTemplate());
+        
+        HttpHeaders headers = new HttpHeaders();
+        if(additionalRequestHeaders != null) {
+        	for(String headerKey : additionalRequestHeaders.keySet()) {
+        		headers.add(headerKey, additionalRequestHeaders.get(headerKey));
+        	}
+        }
+        
+        HttpEntity<List<Map<String, Object>>> requestEntity = new HttpEntity<>(recordsToUpdate, headers);
 
         long timeMilliSeconds = System.currentTimeMillis();
         log.info("SEND UPDATE post [{}] url={}, request={}", timeMilliSeconds, requestUri.toString(),
                 toJson(recordsToUpdate));
-        StandardEntityOperationResponseDto result = getRestTemplate().postForObject(requestUri, recordsToUpdate,
+        ResponseEntity<StandardEntityOperationResponseDto> respEntity = getRestTemplate().exchange(requestUri, HttpMethod.POST, requestEntity,
                 StandardEntityOperationResponseDto.class);
+        
+        StandardEntityOperationResponseDto result = respEntity.getBody();
         log.debug("RECEIVE UPDATE post [{}] url={},result={}", timeMilliSeconds, requestUri.toString(), result);
         
         if(!StandardEntityOperationResponseDto.STATUS_OK.equalsIgnoreCase(result.getStatus())) {

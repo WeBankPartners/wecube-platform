@@ -170,6 +170,7 @@ public class StandardEntityOperationService {
         List<EntityQueryExprNodeInfo> exprNodeInfos = entityQueryExpr.getExprNodeInfos();
 
         EntityOperationContext ctx = new EntityOperationContext();
+        ctx.setEntityQueryExpr(entityQueryExpr);
         ctx.setEntityQueryExprNodeInfos(exprNodeInfos);
         ctx.setOriginalEntityLinkExpression(condition.getEntityLinkExpr());
         ctx.setOriginalEntityData(condition.getEntityIdentity());
