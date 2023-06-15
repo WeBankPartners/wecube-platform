@@ -46,7 +46,7 @@ public class ExpressionServiceImpl implements ExpressionService {
             log.info("Get all entities with expression:{}", dataModelExpression);
         }
 
-        List<EntityQueryExprNodeInfo> exprNodeInfos = entityQueryExpressionParser.parse(dataModelExpression);
+        List<EntityQueryExprNodeInfo> exprNodeInfos = entityQueryExpressionParser.parse(dataModelExpression).getExprNodeInfos();
         List<EntityDto> entityDtos = new ArrayList<EntityDto>();
 
         for (EntityQueryExprNodeInfo exprNodeInfo : exprNodeInfos) {
