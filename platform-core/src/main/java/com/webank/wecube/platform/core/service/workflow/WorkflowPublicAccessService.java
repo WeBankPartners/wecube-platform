@@ -726,7 +726,7 @@ public class WorkflowPublicAccessService {
             }
 
             String nodeExpr = exprPart.trim();
-            List<EntityQueryExprNodeInfo> exprNodeInfos = this.entityQueryExpressionParser.parse(nodeExpr);
+            List<EntityQueryExprNodeInfo> exprNodeInfos = this.entityQueryExpressionParser.parse(nodeExpr).getExprNodeInfos();
             if (exprNodeInfos == null || exprNodeInfos.isEmpty()) {
                 continue;
             }
