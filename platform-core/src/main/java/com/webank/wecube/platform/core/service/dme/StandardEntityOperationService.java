@@ -166,7 +166,8 @@ public class StandardEntityOperationService {
 
     protected EntityOperationContext buildEntityOperationContext(EntityOperationRootCondition condition,
             RestTemplate restTemplate, Map<Object, Object> externalCacheMap) {
-        List<EntityQueryExprNodeInfo> exprNodeInfos = entityQueryExpressionParser.parse(condition.getEntityLinkExpr());
+    	EntityQueryExpr entityQueryExpr = entityQueryExpressionParser.parse(condition.getEntityLinkExpr());
+        List<EntityQueryExprNodeInfo> exprNodeInfos = entityQueryExpr.getExprNodeInfos();
 
         EntityOperationContext ctx = new EntityOperationContext();
         ctx.setEntityQueryExprNodeInfos(exprNodeInfos);
