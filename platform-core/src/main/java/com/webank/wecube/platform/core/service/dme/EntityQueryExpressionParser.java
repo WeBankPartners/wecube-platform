@@ -7,6 +7,8 @@ import java.util.regex.Pattern;
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
+
+import com.webank.wecube.platform.core.utils.Constants;
 /**
  * 
  * @author gavin
@@ -16,7 +18,7 @@ import org.springframework.stereotype.Service;
 public class EntityQueryExpressionParser {
     public static final String PKG_DELIMITER = ":";
     public static final String REG_ENTITY_ID = "@@\\w+@@";
-    public static final String DME_OPERATION_DELIMITER = "#DMEOP#";
+    public static final String DME_OPERATION_DELIMITER = Constants.DME_OPERATION_DELIMETER;
     private Pattern entityIdPattern = Pattern.compile(REG_ENTITY_ID);
 
     public EntityQueryExpr parse(String rawExpr) {

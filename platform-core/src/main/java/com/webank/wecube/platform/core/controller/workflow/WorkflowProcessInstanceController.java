@@ -108,7 +108,7 @@ public class WorkflowProcessInstanceController {
      */
     @RequestMapping(path = "/process/instances/tasknodes/{node-def-id}/session/{process-session-id}/tasknode-bindings", method = {
             RequestMethod.POST, RequestMethod.PUT }, consumes = {
-                    MediaType.APPLICATION_JSON_UTF8_VALUE }, produces = { MediaType.APPLICATION_JSON_UTF8_VALUE })
+                    MediaType.APPLICATION_JSON_VALUE }, produces = { MediaType.APPLICATION_JSON_VALUE })
     public CommonResponseDto updateProcessInstanceExecBindingsOfSession(
             @PathVariable(name = "node-def-id") String nodeDefId,
             @PathVariable(name = "process-session-id") String processSessionId,
