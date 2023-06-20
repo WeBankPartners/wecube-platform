@@ -1,6 +1,6 @@
 <template>
   <div>
-    <Row style="margin-bottom:8px">
+    <Row style="margin-bottom: 8px">
       <Col span="4" style="margin-right: 10px">
         <span style="margin-right: 10px">{{ $t('flow_name') }}</span>
         <Select
@@ -21,7 +21,7 @@
             <span>{{
               (item.procDefName || 'Null') + ' ' + item.createdTime + (item.status === 'draft' ? '*' : '')
             }}</span>
-            <span style="float:right">
+            <span style="float: right">
               <Button
                 @click="
                   showDeleteConfirm(
@@ -34,7 +34,7 @@
                 size="small"
               ></Button>
             </span>
-            <span style="float:right;margin-right: 10px">
+            <span style="float: right; margin-right: 10px">
               <Button @click="setFlowPermission(item.procDefId)" icon="ios-person" type="primary" size="small"></Button>
             </span>
           </Option>
@@ -42,43 +42,45 @@
       </Col>
       <Col span="7" style="margin-right: 10px">
         <span style="margin-right: 10px">{{ $t('instance_type') }}</span>
-        <div style="width:80%;display: inline-block;vertical-align: middle;">
+        <div style="width: 80%; display: inline-block; vertical-align: middle">
           <FilterRules
             @change="onEntitySelect"
             v-model="currentSelectedEntity"
             :allDataModelsWithAttrs="allEntityType"
-            style="width:100%"
+            style="width: 100%"
           ></FilterRules>
         </div>
       </Col>
       <Col span="3" style="">
         <span style="margin-right: 10px">{{ $t('tag') }}</span>
-        <div style="width:60%;display: inline-block;vertical-align: middle;">
+        <div style="width: 60%; display: inline-block; vertical-align: middle">
           <Input v-model="currentFlow.tags" />
         </div>
       </Col>
       <Checkbox style="margin-right: 25px" border :disabled="!selectedFlow && !isAdd" v-model="excludeMode">{{
         $t('conflict_test')
       }}</Checkbox>
-      <Button style="margin-top: -1px;" type="info" :disabled="isSaving || !selectedFlow" @click="saveDiagram(false)">
+      <Button style="margin-top: -1px" type="info" :disabled="isSaving || !selectedFlow" @click="saveDiagram(false)">
         {{ $t('release_flow') }}
       </Button>
       <Button
         @click="setFlowPermission(selectedFlow)"
         :disabled="!selectedFlow"
-        style="margin-top: -1px;"
+        style="margin-top: -1px"
         type="primary"
       >
         {{ $t('permission_for_flow') }}
       </Button>
-      <Button :disabled="!selectedFlow" style="margin-top: -1px;" type="info" @click="exportProcessDefinition(false)">
+      <Button :disabled="!selectedFlow" style="margin-top: -1px" type="info" @click="exportProcessDefinition(false)">
         {{ $t('export_flow') }}
       </Button>
 
       <Button style="float: right" @click="createNewDiagram()" type="success">
         {{ $t('create') }}
       </Button>
-      <Button style="float: right;margin-right:4px" type="primary" @click="getHeaders">{{ $t('import_flow') }}</Button>
+      <Button style="float: right; margin-right: 4px" type="primary" @click="getHeaders">{{
+        $t('import_flow')
+      }}</Button>
 
       <Upload
         v-show="isShowUploadList"
@@ -91,7 +93,7 @@
         action="platform/v1/process/definitions/import"
         :headers="headers"
       >
-        <Button style="display:none">{{ $t('import_flow') }}</Button>
+        <Button style="display: none">{{ $t('import_flow') }}</Button>
       </Upload>
     </Row>
     <div v-show="showBpmn" class="split">
@@ -113,7 +115,7 @@
                 :model="pluginForm"
                 label-position="right"
                 :label-width="120"
-                style="margin-right:12px;padding-top: 16px;"
+                style="margin-right: 12px; padding-top: 16px"
               >
                 <template>
                   <Row>
@@ -251,7 +253,7 @@
                           clearable
                           multiple
                           v-model="pluginForm.prevCtxNodeIds"
-                          style="width:84%"
+                          style="width: 84%"
                           @on-open-change="getFlowsNodes"
                           @on-change="getContextParametersNodes"
                         >
@@ -276,7 +278,7 @@
                             filterable
                             clearable
                             v-model="item.bindNodeId"
-                            style="width:30%"
+                            style="width: 30%"
                             @on-change="onParamsNodeChange(index)"
                           >
                             <!-- @on-open-change="getFlowsNodes" -->
@@ -287,12 +289,12 @@
                           <Select
                             v-model="item.bindParamType"
                             filterable
-                            style="width:30%"
+                            style="width: 30%"
                             @on-change="onParamsNodeChange(index)"
                           >
                             <Option v-for="i in paramsTypes" :value="i.value" :key="i.value">{{ i.label }}</Option>
                           </Select>
-                          <Select filterable v-model="item.bindParamName" style="width:30%" @on-change="editFormdata">
+                          <Select filterable v-model="item.bindParamName" style="width: 30%" @on-change="editFormdata">
                             <Option v-for="i in item.currentParamNames" :value="i.name" :key="i.name">{{
                               i.name
                             }}</Option>
@@ -328,7 +330,7 @@
                 </div>
               </Form>
               <div class="node-operate-area-save-btn">
-                <Button type="primary" style="float:right" @click="savePluginConfig('pluginConfigForm')">{{
+                <Button type="primary" style="float: right" @click="savePluginConfig('pluginConfigForm')">{{
                   $t('save')
                 }}</Button>
               </div>
@@ -371,8 +373,8 @@
         <Icon :size="28" :color="'#f90'" type="md-help-circle" />
         <span class="confirm-msg">{{ $t('confirm_to_exect') }}</span>
       </div>
-      <div style="max-height: 400px;overflow-y: auto;">
-        <pre style="margin-left: 44px;margin-top: 22px;">{{ this.confirmModal.message }}</pre>
+      <div style="max-height: 400px; overflow-y: auto">
+        <pre style="margin-left: 44px; margin-top: 22px">{{ this.confirmModal.message }}</pre>
       </div>
       <div slot="footer">
         <Button type="text" @click="confirmModal.isShowConfirmModal = false">{{ $t('bc_cancel') }}</Button>
@@ -1084,9 +1086,14 @@ export default {
       let found = this.filteredPlugins.find(_ => _.serviceName === this.pluginForm.serviceId)
       const routineExpressionItem = this.$refs.filterRulesGroup.routineExpressionItem
       this.pluginForm.routineExpression = routineExpressionItem.reduce((tmp, item, index) => {
-        return tmp + item.routineExpression + (index === routineExpressionItem.length - 1 ? '' : '#DME#')
+        return (
+          tmp +
+          item.routineExpression +
+          '#DMEOP#' +
+          item.operate +
+          (index === routineExpressionItem.length - 1 ? '' : '#DME#')
+        )
       }, '')
-
       let pluginFormCopy = JSON.parse(JSON.stringify(this.pluginForm))
       // 校验必填项，未选中节点跳过校验
       if (

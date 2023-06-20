@@ -3,30 +3,33 @@
     <Row>
       <template v-for="(express, index) in routineExpressionItem">
         <div :key="express.routineExpression + index">
-          <Col :span="isBatch ? 21 : 24">
+          <Col :span="isBatch ? 19 : 22">
             <FilterRules
               :needAttr="true"
               ref="filterRules"
               :disabled="disabled"
-              style="height:35px"
+              style="height: 35px"
               @change="filterRuleChanged"
               v-model="express.routineExpression"
               :allDataModelsWithAttrs="allEntityType"
             >
             </FilterRules>
           </Col>
+          <Col span="2" v-if="isBatch">
+            <Input v-model="express.operate" placeholder="Operation" />
+          </Col>
           <Col span="3" v-if="isBatch">
             <template>
               <Button
                 ghost
                 type="primary"
-                style="vertical-align: top;margin-left:8px"
+                style="vertical-align: top; margin-left: 8px"
                 @click="addFilterRule"
                 icon="ios-add"
               ></Button>
               <Button
                 ghost
-                style="vertical-align: top;"
+                style="vertical-align: top"
                 @click="deleteFilterRule(index)"
                 v-if="routineExpressionItem.length > 1"
                 type="error"
@@ -75,15 +78,18 @@ export default {
       this.routineExpressionItem = []
       if (routineExpression) {
         routineExpression.split('#DME#').forEach(item => {
+          const itemSplit = item.split('#DMEOP#')
           this.routineExpressionItem.push({
-            routineExpression: item
+            routineExpression: itemSplit[0],
+            operate: itemSplit[1] || ''
           })
         })
       }
     },
     addFilterRule () {
       this.routineExpressionItem.push({
-        routineExpression: this.currentSelectedEntity.split('{')[0]
+        routineExpression: this.currentSelectedEntity.split('{')[0],
+        operate: ''
       })
     },
     deleteFilterRule (index) {
