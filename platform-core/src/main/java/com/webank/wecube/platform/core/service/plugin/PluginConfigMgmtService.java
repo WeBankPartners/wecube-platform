@@ -20,6 +20,7 @@ import com.webank.wecube.platform.core.commons.AuthenticationContextHolder;
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
 import com.webank.wecube.platform.core.dto.plugin.CoreObjectMetaDto;
 import com.webank.wecube.platform.core.dto.plugin.CoreObjectPropertyMetaDto;
+import com.webank.wecube.platform.core.dto.plugin.ParamMetadataQueryDto;
 import com.webank.wecube.platform.core.dto.plugin.PluginConfigDto;
 import com.webank.wecube.platform.core.dto.plugin.PluginConfigInterfaceDto;
 import com.webank.wecube.platform.core.dto.plugin.PluginConfigInterfaceParameterDto;
@@ -75,6 +76,16 @@ public class PluginConfigMgmtService extends AbstractPluginMgmtService {
 
     @Autowired
     private PluginParamObjectMetaStorage pluginParamObjectMetaStorage;
+    
+    /**
+     * 
+     * @param paramMetadataQueryDto
+     * @return
+     */
+    public PluginConfigInterfaceParameterDto queryPluginParamMetadata(ParamMetadataQueryDto paramMetadataQueryDto) {
+    	//TODO
+    	return null;
+    }
 
     /**
      * 
