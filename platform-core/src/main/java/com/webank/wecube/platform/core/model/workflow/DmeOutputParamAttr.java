@@ -4,6 +4,7 @@ import java.util.List;
 
 import com.webank.wecube.platform.core.entity.plugin.PluginConfigInterfaceParameters;
 import com.webank.wecube.platform.core.entity.plugin.PluginConfigInterfaces;
+import com.webank.wecube.platform.core.service.dme.EntityQueryExpr;
 import com.webank.wecube.platform.core.service.dme.EntityQueryExprNodeInfo;
 
 public class DmeOutputParamAttr {
@@ -14,6 +15,8 @@ public class DmeOutputParamAttr {
     private Object retVal;
     private boolean processed;
     private List<EntityQueryExprNodeInfo> exprNodeInfos;
+    private EntityQueryExpr entityQueryExpr;
+    
     public PluginConfigInterfaces getInterf() {
         return interf;
     }
@@ -64,5 +67,12 @@ public class DmeOutputParamAttr {
         
         return false;
     }
+	public EntityQueryExpr getEntityQueryExpr() {
+		return entityQueryExpr;
+	}
+	public void setEntityQueryExpr(EntityQueryExpr entityQueryExpr) {
+		this.entityQueryExpr = entityQueryExpr;
+	}
 
+    
 }

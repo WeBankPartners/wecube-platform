@@ -2,6 +2,7 @@ package com.webank.wecube.platform.core.service.dme;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -145,9 +146,15 @@ public class StandardEntityQueryExecutor implements EntityQueryExecutor {
         EntityQueryExprNodeInfo nodeInfo = leafLinkNode.getExprNodeInfo();
         EntityRouteDescription entityDef = ctx.getEntityDataRouteFactory()
                 .deduceEntityDescription(nodeInfo.getPackageName(), nodeInfo.getEntityName());
+        
+        Map<String,String> additionalRequestHeaders = new HashMap<>();
+        
+        if(ctx.getEntityQueryExpr()!= null && StringUtils.isNoneBlank(ctx.getEntityQueryExpr().getExprOperation())) {
+        	additionalRequestHeaders.put("operation", ctx.getEntityQueryExpr().getExprOperation());
+        }
 
         StandardEntityOperationRestClient restClient = ctx.getStandardEntityOperationRestClient();
-        restClient.update(entityDef, entityDataRecordsToUpdate);
+        restClient.update(entityDef, entityDataRecordsToUpdate, additionalRequestHeaders);
     }
 
     public EntityQueryLinkNode buildEntityQueryLinkNode(List<EntityQueryExprNodeInfo> exprNodeInfos) {

@@ -11,7 +11,7 @@ public class EntityQueryExpressionParserTests {
 	@Test
 	public void testParseSingleRootExpr() {
 		String inputExpr = "wecmdb:host_resource_instance{ip_address eq 'localhost'}";
-		List<EntityQueryExprNodeInfo> queryNodeInfos = parser.parse(inputExpr);
+		List<EntityQueryExprNodeInfo> queryNodeInfos = parser.parse(inputExpr).getExprNodeInfos();
 		Assert.assertNotNull(queryNodeInfos);
 		Assert.assertEquals(1, queryNodeInfos.size());
 		EntityQueryExprNodeInfo nodeInfo = queryNodeInfos.get(0);
@@ -27,7 +27,7 @@ public class EntityQueryExpressionParserTests {
 		String inputExpr = "wecmdb:subsys{att1 eq '@@0008_123456789@@eee'}{attr2 like 'AAA'}.subsys_design"
 				+ ">wecmdb:subsys_design.system_design" + ">wecmdb:system_design{attr2 like 'AAA'}.key_name";
 
-		List<EntityQueryExprNodeInfo> queryNodeInfos = parser.parse(inputExpr);
+		List<EntityQueryExprNodeInfo> queryNodeInfos = parser.parse(inputExpr).getExprNodeInfos();
 		Assert.assertNotNull(queryNodeInfos);
 		Assert.assertEquals(3, queryNodeInfos.size());
 		EntityQueryExprNodeInfo nodeInfo = queryNodeInfos.get(0);
@@ -69,7 +69,7 @@ public class EntityQueryExpressionParserTests {
 	public void testParseSingleExprNodeWithoutFilterExprShouldSucceed() {
 		String inputExpr = "we-cmdb:system_design";
 
-		List<EntityQueryExprNodeInfo> queryNodeInfos = parser.parse(inputExpr);
+		List<EntityQueryExprNodeInfo> queryNodeInfos = parser.parse(inputExpr).getExprNodeInfos();
 		Assert.assertNotNull(queryNodeInfos);
 		Assert.assertEquals(1, queryNodeInfos.size());
 		Assert.assertEquals("we-cmdb:system_design", queryNodeInfos.get(0).getEntityInfoExpr());
@@ -82,7 +82,7 @@ public class EntityQueryExpressionParserTests {
 		String inputExpr = "wecmdb:zone_design" + "~(zone_design2)wecmdb:zone_link_design"
 				+ "~(zone_link_design)wecmdb:zone_link.zone1" + ">wecmdb:zone";
 
-		List<EntityQueryExprNodeInfo> queryNodeInfos = parser.parse(inputExpr);
+		List<EntityQueryExprNodeInfo> queryNodeInfos = parser.parse(inputExpr).getExprNodeInfos();
 		Assert.assertNotNull(queryNodeInfos);
 		Assert.assertEquals(4, queryNodeInfos.size());
 		// 0
@@ -107,7 +107,7 @@ public class EntityQueryExpressionParserTests {
 	public void testParseSingleExprNodeWithFilterExprShouldSucceed() {
 		String inputExpr = "we-cmdb:system_design{att1 eq '@@0008_123456789@@eee'}";
 
-		List<EntityQueryExprNodeInfo> queryNodeInfos = parser.parse(inputExpr);
+		List<EntityQueryExprNodeInfo> queryNodeInfos = parser.parse(inputExpr).getExprNodeInfos();
 		Assert.assertNotNull(queryNodeInfos);
 		Assert.assertEquals(1, queryNodeInfos.size());
 
@@ -127,7 +127,7 @@ public class EntityQueryExpressionParserTests {
 				+ "~(zone_design2)wecmdb:zone_link_design{att1 like 'A'}" + "~(zone_link_design)wecmdb:zone_link.zone1"
 				+ ">wecmdb:zone";
 
-		List<EntityQueryExprNodeInfo> queryNodeInfos = parser.parse(inputExpr);
+		List<EntityQueryExprNodeInfo> queryNodeInfos = parser.parse(inputExpr).getExprNodeInfos();
 		Assert.assertNotNull(queryNodeInfos);
 		Assert.assertEquals(4, queryNodeInfos.size());
 		// 0
