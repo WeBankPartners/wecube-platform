@@ -1003,7 +1003,7 @@ public class BatchExecutionService {
 
             String entityAttrName = null;
             List<EntityQueryExprNodeInfo> currExprNodeInfos = this.entityQueryExpressionParser
-                    .parse(parameter.getMappingEntityExpression());
+                    .parse(parameter.getMappingEntityExpression()).getExprNodeInfos();
             if (currExprNodeInfos == null || currExprNodeInfos.isEmpty()) {
                 // nothing
             } else {
