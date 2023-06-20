@@ -15,7 +15,7 @@
             >
             </FilterRules>
           </Col>
-          <Col span="2">
+          <Col span="2" v-if="isBatch">
             <Input v-model="express.operate" placeholder="Operation" />
           </Col>
           <Col span="3" v-if="isBatch">
