@@ -83,7 +83,10 @@ public class Constants {
     
     public static final String TEMPORARY_ENTITY_ID_PREFIX = "OID-";
     
+    public static final String HTTP_HEADER_OPERATION = "x-operation";
+    
     public static final String DME_DELIMETER = "#DME#";
+    public static final String DME_OPERATION_DELIMETER = "#DMEOP#";
     
     public static final String BIND_FLAG_YES = "Y";
     public static final String BIND_FLAG_NO = "N";
