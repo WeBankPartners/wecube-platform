@@ -507,6 +507,11 @@ public class WorkflowPublicAccessService {
                 }
 
                 String trimmedExprPart = exprPart.trim();
+                
+                //DMEOP
+                if(trimmedExprPart.contains(Constants.DME_OPERATION_DELIMETER)) {
+                	trimmedExprPart = trimmedExprPart.substring(0, trimmedExprPart.indexOf(Constants.DME_OPERATION_DELIMETER));
+                }
 
                 if (StringUtils.isNoneBlank(additionalFilterRule)) {
                     trimmedExprPart = trimmedExprPart + additionalFilterRule.trim();
@@ -521,6 +526,9 @@ public class WorkflowPublicAccessService {
                 }
 
                 String trimmedExprPart = exprPart.trim();
+                if(trimmedExprPart.contains(Constants.DME_OPERATION_DELIMETER)) {
+                	trimmedExprPart = trimmedExprPart.substring(0, trimmedExprPart.indexOf(Constants.DME_OPERATION_DELIMETER));
+                }
                 exprs.add(trimmedExprPart);
             }
         }
@@ -725,7 +733,7 @@ public class WorkflowPublicAccessService {
             }
 
             String nodeExpr = exprPart.trim();
-            List<EntityQueryExprNodeInfo> exprNodeInfos = this.entityQueryExpressionParser.parse(nodeExpr);
+            List<EntityQueryExprNodeInfo> exprNodeInfos = this.entityQueryExpressionParser.parse(nodeExpr).getExprNodeInfos();
             if (exprNodeInfos == null || exprNodeInfos.isEmpty()) {
                 continue;
             }
