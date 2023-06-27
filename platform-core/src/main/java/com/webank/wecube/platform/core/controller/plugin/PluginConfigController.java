@@ -14,7 +14,9 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.webank.wecube.platform.core.dto.plugin.CommonResponseDto;
 import com.webank.wecube.platform.core.dto.plugin.CoreObjectMetaDto;
+import com.webank.wecube.platform.core.dto.plugin.ParamMetadataQueryDto;
 import com.webank.wecube.platform.core.dto.plugin.PluginConfigDto;
+import com.webank.wecube.platform.core.dto.plugin.PluginConfigInterfaceParameterDto;
 import com.webank.wecube.platform.core.dto.plugin.PluginConfigRoleRequestDto;
 import com.webank.wecube.platform.core.dto.plugin.TargetEntityFilterRuleDto;
 import com.webank.wecube.platform.core.service.plugin.PluginConfigMgmtService;
@@ -164,6 +166,14 @@ public class PluginConfigController {
             @RequestBody PluginConfigRoleRequestDto pluginConfigRoleRequestDto) {
         pluginConfigMgmtService.deletePluginConfigRoleBinding(pluginConfigId, pluginConfigRoleRequestDto);
         return CommonResponseDto.okay();
+    }
+    
+
+    @PostMapping("/plugins/configs/interfaces/param/metadata/query")
+    public CommonResponseDto queryPluginParamMetadata(
+            @RequestBody ParamMetadataQueryDto paramMetadataQueryDto) {
+    	PluginConfigInterfaceParameterDto result = pluginConfigMgmtService.queryPluginParamMetadata(paramMetadataQueryDto);
+        return CommonResponseDto.okayWithData(result);
     }
 
 }
