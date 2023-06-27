@@ -325,7 +325,7 @@
         <h5>Data:</h5>
         <pre style="margin: 0 6px 6px" v-html="nodeDetailResponseHeader"></pre>
         <h5>requestObjects:</h5>
-        <Table :columns="nodeDetailColumns" :max-height="tableMaxHeight" tooltip="true" :data="nodeDetailIO"></Table>
+        <Table :columns="nodeDetailColumns" :max-height="tableMaxHeight" tooltip="true" :data="nodeDetailIO"> </Table>
       </div>
       <div v-else :style="[{ overflow: 'auto', margin: '0 6px 6px' }, fullscreenModalContentStyle]">
         <!-- v-html="nodeDetail" -->
@@ -396,6 +396,20 @@
         <Button type="primary" @click="saveTime">{{ $t('save') }}</Button>
       </div>
     </Modal>
+
+    <Modal v-model="attrValue.isShow" :title="attrValue.attr">
+      <Form :label-width="120" label-colon>
+        <FormItem :label="$t('attribute_type')">
+          <Input v-model="attrValue.data.type" disabled />
+        </FormItem>
+        <FormItem :label="$t('attribute')">
+          <Input v-model="attrValue.data.value" disabled />
+        </FormItem>
+      </Form>
+      <div slot="footer">
+        <Button type="text" @click="attrValue.isShow = false">{{ $t('bc_cancel') }}</Button>
+      </div>
+    </Modal>
   </div>
 </template>
 <script>
@@ -419,7 +433,8 @@ import {
   createWorkflowInstanceTerminationRequest,
   getTaskNodeInstanceExecBindings,
   updateTaskNodeInstanceExecBindings,
-  setUserScheduledTasks
+  setUserScheduledTasks,
+  getMetaData
 } from '@/api/server'
 import JsonViewer from 'vue-json-viewer'
 import * as d3 from 'd3-selection'
@@ -431,6 +446,15 @@ import HistoryExecution from './history-execution'
 export default {
   data () {
     return {
+      // 属性值展示
+      attrValue: {
+        attr: '',
+        isShow: false,
+        data: {
+          type: '',
+          value: ''
+        }
+      },
       currentAction: '',
       allFlowNodesModelData: [],
       selectedFlowNodesModelData: [],
@@ -636,15 +660,28 @@ export default {
           title: 'inputs',
           key: 'inputs',
           render: (h, params) => {
-            const strInput = JSON.stringify(params.row.inputs).split(',').join(',<br/>')
-            return h(
-              'div',
-              {
-                domProps: {
-                  innerHTML: `<pre>${strInput}</pre>`
-                }
-              },
-              []
+            const jsonData = params.row.inputs
+            return (
+              <div style="white-space: nowrap; overflow: auto;">
+                [
+                {jsonData.map((data, index) => (
+                  <div key={index}>
+                    {'{'}
+                    {Object.entries(data).map(([key, value]) => (
+                      <div>
+                        <Icon
+                          type="md-search"
+                          onClick={() => this.handleClick(key, value)}
+                          style="cursor:pointer;color:#2d8cf0"
+                        />
+                        {key}: {value}
+                      </div>
+                    ))}
+                    {'},'}
+                  </div>
+                ))}
+                ]
+              </div>
             )
           }
         },
@@ -746,7 +783,8 @@ export default {
             { label: this.$t('Sun'), value: 7 }
           ]
         }
-      }
+      },
+      pluginInfo: ''
     }
   },
   components: { TimedExecution, JsonViewer, HistoryExecution },
@@ -836,6 +874,34 @@ export default {
     clearInterval(this.timer)
   },
   methods: {
+    async handleClick (key, value) {
+      this.attrValue.attr = key
+      const params = {
+        paramName: key,
+        serviceId: this.pluginInfo
+      }
+      let { status, data } = await getMetaData(params)
+      if (status === 'OK') {
+        this.attrValue.data.type = data.mappingType
+        switch (data.mappingType) {
+          case 'system_variable':
+            this.attrValue.data.value = data.mappingSystemVariableName
+            break
+          case 'context':
+            this.attrValue.data.value = 'N/A'
+            break
+          case 'constant':
+            this.attrValue.data.value = data.mappingValue
+            break
+          case 'entity':
+            this.attrValue.data.value = data.mappingEntityExpression
+            break
+          default:
+            this.attrValue.data.value = ''
+        }
+        this.attrValue.isShow = true
+      }
+    },
     jumpToHistory (id) {
       this.$nextTick(async () => {
         // await this.queryHistory()
@@ -1879,6 +1945,7 @@ export default {
         if (status === 'OK') {
           this.workflowActionModalVisible = false
           this.nodeDetailResponseHeader = JSON.parse(JSON.stringify(data))
+          this.pluginInfo = this.nodeDetailResponseHeader.pluginInfo
           delete this.nodeDetailResponseHeader.requestObjects
           this.nodeDetailResponseHeader = JSON.stringify(this.replaceParams(this.nodeDetailResponseHeader))
             .split(',')
@@ -1888,6 +1955,7 @@ export default {
             ro['outputs'] = this.replaceParams(ro['outputs'])
             return ro
           })
+          console.log(111, this.nodeDetailIO)
         }
         this.nodeDetailFullscreen = false
         this.isTargetNodeDetail = false
