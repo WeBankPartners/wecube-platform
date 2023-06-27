@@ -59,7 +59,9 @@ import com.webank.wecube.platform.core.model.workflow.WorkflowInstCreationContex
 import com.webank.wecube.platform.core.service.dme.EntityDataAttr;
 import com.webank.wecube.platform.core.service.dme.EntityDataRecord;
 import com.webank.wecube.platform.core.service.dme.EntityOperationRootCondition;
+import com.webank.wecube.platform.core.service.dme.EntityQueryExpr;
 import com.webank.wecube.platform.core.service.dme.EntityQueryExprNodeInfo;
+import com.webank.wecube.platform.core.service.dme.EntityQueryExpressionParser;
 import com.webank.wecube.platform.core.service.dme.EntityRouteDescription;
 import com.webank.wecube.platform.core.service.dme.EntityTreeNodesOverview;
 import com.webank.wecube.platform.core.service.dme.StandardEntityDataNode;
@@ -97,6 +99,9 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 
     @Autowired
     protected PluginPackageDataModelService pluginPackageDataModelService;
+    
+    @Autowired
+    protected EntityQueryExpressionParser entityQueryExpressionParser;
 
     /**
      * 
@@ -382,9 +387,9 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
             String bindDataId = objectBinding.getEntityDataId();
             // add entity check,checking entity state?
             if (bindDataId.startsWith(Constants.TEMPORARY_ENTITY_ID_PREFIX)) {
-                tryProcessOidProcExecBinding(bindDataId, ctx, objectBinding, procInstEntity, taskNodeInstEntity);
+                tryProcessOidProcExecBinding(bindDataId, ctx, objectBinding, procInstEntity, taskNodeInstEntity, taskNodeDefEntity);
             } else {
-                tryProcessDataIdProcExecBinding(bindDataId, ctx, objectBinding, procInstEntity, taskNodeInstEntity);
+                tryProcessDataIdProcExecBinding(bindDataId, ctx, objectBinding, procInstEntity, taskNodeInstEntity, taskNodeDefEntity);
             }
         }
     }
@@ -412,7 +417,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 
     private void tryProcessOidProcExecBinding(String bindPrefixedEntityOid, WorkflowInstCreationContext ctx,
             ProcExecBindingEntity objectBinding, ProcInstInfoEntity procInstEntity,
-            TaskNodeInstInfoEntity taskNodeInstEntity) {
+            TaskNodeInstInfoEntity taskNodeInstEntity, TaskNodeDefInfoEntity taskNodeDefEntity) {
         String objectId = null;
         if (bindPrefixedEntityOid.startsWith(Constants.TEMPORARY_ENTITY_ID_PREFIX)) {
             objectId = bindPrefixedEntityOid.substring(Constants.TEMPORARY_ENTITY_ID_PREFIX.length());
@@ -628,7 +633,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 
     private void tryProcessDataIdProcExecBinding(String bindDataId, WorkflowInstCreationContext ctx,
             ProcExecBindingEntity objectBinding, ProcInstInfoEntity procInstEntity,
-            TaskNodeInstInfoEntity taskNodeInstEntity) {
+            TaskNodeInstInfoEntity taskNodeInstEntity, TaskNodeDefInfoEntity taskNodeDefEntity) {
         DynamicEntityValueDto entityValueDto = ctx.findByEntityDataId(bindDataId);
         if (entityValueDto == null) {
             String errMsg = String.format("Entity data value does not exist in creation context for object id:%s",
@@ -686,14 +691,75 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
         recordsToUpdate.add(recordToUpdate);
 
         StandardEntityOperationRestClient restClient = new StandardEntityOperationRestClient(jwtSsoRestTemplate);
+        
+        String entityOperation = calculateEntityDataOperation(taskNodeDefEntity, entityDef.getPackageName(), entityDef.getEntityName());
+        
+        Map<String,String> additionalRequestHeaders = null;
+        
+        if(StringUtils.isNoneBlank(entityOperation)) {
+        	additionalRequestHeaders = new HashMap<>();
+        	additionalRequestHeaders.put(Constants.HTTP_HEADER_OPERATION, entityOperation);
+        }
 
-        StandardEntityOperationResponseDto resultDto = restClient.update(entityDef, recordsToUpdate);
+        StandardEntityOperationResponseDto resultDto = restClient.update(entityDef, recordsToUpdate, additionalRequestHeaders);
         if (StandardEntityOperationResponseDto.STATUS_ERROR.equals(resultDto.getStatus())) {
             log.error("errors to update entity:{}", resultDto.getMessage());
             return;
         }
 
         log.info("entity data updated successfully:{}", bindDataId);
+    }
+    
+    private String calculateEntityDataOperation(TaskNodeDefInfoEntity taskNodeDefEntity, String packageName, String entityName) {
+    	String routeExp = taskNodeDefEntity.getRoutineExp();
+    	if(StringUtils.isBlank(routeExp)) {
+    		return null;
+    	}
+    	
+    	List<EntityQueryExpr> entityQueryExprs = parseNodeRouteExp(routeExp);
+    	
+    	
+    	EntityQueryExpr entityQueryExpr = findoutEntityQueryExpr(packageName, entityName, entityQueryExprs);
+    	if(entityQueryExpr == null) {
+    		return null;
+    	}
+    	
+    	return entityQueryExpr.getExprOperation();
+    }
+    
+    private EntityQueryExpr findoutEntityQueryExpr(String packageName, String entityName, List<EntityQueryExpr> entityQueryExprs) {
+    	if(entityQueryExprs == null || entityQueryExprs.isEmpty()) {
+    		return null;
+    	}
+    	
+    	for(EntityQueryExpr entityQueryExpr : entityQueryExprs) {
+    		if(entityQueryExpr.getExprNodeInfos() == null || entityQueryExpr.getExprNodeInfos().isEmpty()) {
+    			continue;
+    		}
+    		
+    		
+    		EntityQueryExprNodeInfo leafNodeInfo = entityQueryExpr.getExprNodeInfos().get(entityQueryExpr.getExprNodeInfos().size() - 1);
+    		
+    		if(packageName.equals(leafNodeInfo.getPackageName()) && entityName.equals(leafNodeInfo.getEntityName())) {
+    			return entityQueryExpr;
+    		}
+    	}
+    	
+    	return null;
+    }
+    
+    private List<EntityQueryExpr> parseNodeRouteExp(String routeExp){
+    	String[] expParts = routeExp.split(Constants.DME_DELIMETER);
+    	
+    	List<EntityQueryExpr> entityQueryExprs = new ArrayList<>();
+    	for(String expPart : expParts) {
+    		EntityQueryExpr entityQueryExpr = entityQueryExpressionParser.parse(expPart);
+    		if(entityQueryExpr != null) {
+    			entityQueryExprs.add(entityQueryExpr);
+    		}
+    	}
+    	
+    	return entityQueryExprs;
     }
 
     private Object tryCalRefAttrDataValue(DynamicEntityAttrValueDto attr, WorkflowInstCreationContext ctx) {
@@ -2606,7 +2672,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 
             String entityAttrName = null;
             List<EntityQueryExprNodeInfo> currExprNodeInfos = this.entityQueryExpressionParser
-                    .parse(param.getMappingEntityExpression());
+                    .parse(param.getMappingEntityExpression()).getExprNodeInfos();
             if (currExprNodeInfos == null || currExprNodeInfos.isEmpty()) {
                 // nothing
             } else {
@@ -3021,9 +3087,9 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
         }
 
         List<EntityQueryExprNodeInfo> currExprNodeInfos = this.entityQueryExpressionParser
-                .parse(currTaskNodeRoutineExp);
+                .parse(currTaskNodeRoutineExp).getExprNodeInfos();
         List<EntityQueryExprNodeInfo> lastExprNodeInfos = this.entityQueryExpressionParser
-                .parse(bindTaskNodeRoutineExp);
+                .parse(bindTaskNodeRoutineExp).getExprNodeInfos();
 
         if (currExprNodeInfos == null || currExprNodeInfos.isEmpty()) {
             return true;
@@ -3779,7 +3845,8 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 //                continue;
             }
 
-            List<EntityQueryExprNodeInfo> exprNodeInfos = entityQueryExpressionParser.parse(paramExpr);
+            EntityQueryExpr entityQueryExpr = entityQueryExpressionParser.parse(paramExpr);
+            List<EntityQueryExprNodeInfo> exprNodeInfos = entityQueryExpr.getExprNodeInfos();
 
             if (exprNodeInfos == null || exprNodeInfos.isEmpty()) {
                 String errMsg = String.format("Unknown how to update entity attribute due to invalid expression:%s",
@@ -3804,6 +3871,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
             outputParamAttr.setParamExpr(paramExpr);
             outputParamAttr.setParamName(paramName);
             outputParamAttr.setRetVal(finalRetVal);
+            outputParamAttr.setEntityQueryExpr(entityQueryExpr);
 
             allDmeOutputParamAttrs.add(outputParamAttr);
             if (outputParamAttr.isRootEntityAttr()) {
@@ -3855,7 +3923,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
                     this.jwtSsoRestTemplate);
             List<Map<String, Object>> objDataMaps = new ArrayList<>();
             objDataMaps.add(objDataMap);
-            restClient.updateData(entityDef, objDataMaps);
+            restClient.updateData(entityDef, objDataMaps, null);
 
         } else {
             if (verifyIfHasNormalEntityMappingExcludeAssign(rootDemOutputParamAttrs)) {
@@ -3927,7 +3995,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 //                }
 //            }
 
-            List<EntityQueryExprNodeInfo> exprNodeInfos = entityQueryExpressionParser.parse(paramExpr);
+            List<EntityQueryExprNodeInfo> exprNodeInfos = entityQueryExpressionParser.parse(paramExpr).getExprNodeInfos();
             if (exprNodeInfos == null || exprNodeInfos.isEmpty()) {
                 String errMsg = String.format("Unknown how to update entity attribute due to invalid expression:%s",
                         paramExpr);
