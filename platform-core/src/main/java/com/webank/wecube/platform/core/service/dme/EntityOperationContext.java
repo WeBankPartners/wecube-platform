@@ -22,6 +22,8 @@ public class EntityOperationContext {
     protected EntityDataRouteFactory entityDataRouteFactory;
 
     protected Map<Object, Object> externalCacheMap;
+    
+    protected EntityQueryExpr entityQueryExpr;
 
     public EntityQueryLinkNode getHeadEntityQueryLinkNode() {
         return headEntityQueryLinkNode;
@@ -111,5 +113,13 @@ public class EntityOperationContext {
     public void setExternalCacheMap(Map<Object, Object> externalCacheMap) {
         this.externalCacheMap = externalCacheMap;
     }
+
+	public EntityQueryExpr getEntityQueryExpr() {
+		return entityQueryExpr;
+	}
+
+	public void setEntityQueryExpr(EntityQueryExpr entityQueryExpr) {
+		this.entityQueryExpr = entityQueryExpr;
+	}
 
 }
