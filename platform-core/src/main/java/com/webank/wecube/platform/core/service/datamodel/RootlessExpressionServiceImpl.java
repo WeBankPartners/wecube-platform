@@ -54,7 +54,7 @@ public class RootlessExpressionServiceImpl implements RootlessExpressionService 
             log.info("start to fetch data with filter:{}", dmeFilterDto);
         }
         List<EntityQueryExprNodeInfo> exprNodeInfos = entityQueryExpressionParser
-                .parse(dmeFilterDto.getDataModelExpression());
+                .parse(dmeFilterDto.getDataModelExpression()).getExprNodeInfos();
 
         enrichEntityQueryExprNodeInfos(exprNodeInfos, dmeFilterDto);
 
