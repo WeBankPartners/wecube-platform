@@ -35,6 +35,7 @@ http {
     access_log            /var/log/nginx/access.log  main;
     add_header "X-XSS-Protection" "1; mode=block";
     add_header X-Frame-Options SAMEORIGIN;
+    add_header Content-Security-Policy "font-src http:;";
 
     location = / {
       index index.html;
