@@ -400,14 +400,14 @@
     <Modal v-model="attrValue.isShow" :title="attrValue.attr">
       <Form :label-width="120" label-colon>
         <FormItem :label="$t('attribute_type')">
-          <Input v-model="attrValue.data.type" disabled />
+          <span>{{ attrValue.data.type }}</span>
         </FormItem>
         <FormItem :label="$t('attribute')">
-          <Input v-model="attrValue.data.value" disabled />
+          <span>{{ attrValue.data.value }}</span>
         </FormItem>
       </Form>
       <div slot="footer">
-        <Button type="text" @click="attrValue.isShow = false">{{ $t('bc_cancel') }}</Button>
+        <Button type="primary" @click="attrValue.isShow = false">{{ $t('bc_cancel') }}</Button>
       </div>
     </Modal>
   </div>
