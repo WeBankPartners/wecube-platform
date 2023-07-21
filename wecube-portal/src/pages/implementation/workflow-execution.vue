@@ -400,10 +400,10 @@
     <Modal v-model="attrValue.isShow" :title="attrValue.attr">
       <Form :label-width="120" label-colon>
         <FormItem :label="$t('attribute_type')">
-          <span>{{ attrValue.data.type }}</span>
+          <span style="word-break: break-word">{{ attrValue.data.type }}</span>
         </FormItem>
         <FormItem :label="$t('attribute')">
-          <span>{{ attrValue.data.value }}</span>
+          <span style="word-break: break-word">{{ attrValue.data.value }}</span>
         </FormItem>
       </Form>
       <div slot="footer">
