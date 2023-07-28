@@ -8,6 +8,8 @@ import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.boot.web.servlet.support.ErrorPageFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
+import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -47,7 +49,6 @@ public class AuthSecurityConfigurerAdapter implements WebMvcConfigurer {
 	@Autowired
 	protected AuthenticationRequestContextInterceptor authenticationRequestContextInterceptor;
 
-	@Autowired
 	protected AuthenticationManager authenticationManager;
 
 	protected String[] getAuthWhiteList() {
@@ -58,10 +59,23 @@ public class AuthSecurityConfigurerAdapter implements WebMvcConfigurer {
 		registry.addInterceptor(authenticationRequestContextInterceptor).excludePathPatterns("/v1/api/login",
 				"/v1/api/token");
 	}
+	
+	
+	
+	@Bean
+	public DaoAuthenticationProvider daoAuthenticationProvider()  throws Exception {
+		DaoAuthenticationProvider p = new DaoAuthenticationProvider();
+		p.setUserDetailsService(userDetailsService);
+		return p;
+	}
 
 	@Bean
 	public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 //		AuthenticationManager authenticationManager = http.getSharedObject(AuthenticationManager.class);
+		AuthenticationManagerBuilder authenticationManagerBuilder = http.getSharedObject(AuthenticationManagerBuilder.class);
+		authenticationManager = authenticationManagerBuilder.authenticationProvider(daoAuthenticationProvider()).build();
+		
+		http.authenticationManager(authenticationManager);
 		http //
 				.cors() //
 				.and() //

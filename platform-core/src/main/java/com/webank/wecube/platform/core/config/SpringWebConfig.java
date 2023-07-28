@@ -9,6 +9,7 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -67,7 +68,9 @@ public class SpringWebConfig implements WebMvcConfigurer {
 
 	@Bean
 	public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-		AuthenticationManager authenticationManager = http.getSharedObject(AuthenticationManager.class);
+		AuthenticationManagerBuilder authenticationManagerBuilder = http.getSharedObject(AuthenticationManagerBuilder.class);
+		AuthenticationManager authenticationManager = authenticationManagerBuilder.build();
+		http.authenticationManager(authenticationManager);
 		http.authorizeRequests() //
 				.antMatchers("/swagger-ui.html/**", "/swagger-resources/**").permitAll()//
 				.antMatchers("/webjars/**").permitAll() //
