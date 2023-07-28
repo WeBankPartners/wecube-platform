@@ -7,13 +7,13 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.boot.web.servlet.support.ErrorPageFilter;
 import org.springframework.context.annotation.Bean;
-import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
+import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.web.context.SecurityContextPersistenceFilter;
+import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.context.SecurityContextHolderFilter;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
@@ -34,7 +34,7 @@ import com.webank.wecube.platform.auth.server.service.LocalUserDetailsService;
  *
  */
 @EnableConfigurationProperties({ AuthServerProperties.class })
-public class AuthSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter implements WebMvcConfigurer {
+public class AuthSecurityConfigurerAdapter implements WebMvcConfigurer {
 
     protected Logger log = LoggerFactory.getLogger(this.getClass());
 
@@ -55,36 +55,69 @@ public class AuthSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter 
         registry.addInterceptor(authenticationRequestContextInterceptor).excludePathPatterns("/v1/api/login",
                 "/v1/api/token");
     }
-
-    protected void configure(HttpSecurity http) throws Exception {
-        http //
-                .cors() //
-                .and() //
-                .csrf() //
-                .disable() //
-                .sessionManagement() //
-                .sessionCreationPolicy(SessionCreationPolicy.STATELESS) //
-                .and() //
-                .securityContext() //
-                .securityContextRepository(new JwtSsoBasedSecurityContextRepository()) //
-                .and() //
-                .addFilterBefore(jwtSsoBasedLoginFilter(), SecurityContextPersistenceFilter.class) //
-                .addFilterBefore(new JwtSsoBasedRefreshTokenFilter(authenticationManager(), authServerProperties),
-                        SecurityContextPersistenceFilter.class) //
-                .addFilter(new JwtSsoBasedAuthenticationFilter(authenticationManager(), authServerProperties))//
-                .authorizeRequests() //
-                .antMatchers(getAuthWhiteList()) //
-                .permitAll() //
-                .anyRequest() //
-                .authenticated() //
-                .and() //
-                .exceptionHandling() //
-                .authenticationEntryPoint(new Http401AuthenticationEntryPoint()) //
-                .and() //
-                .exceptionHandling() //
-                .accessDeniedHandler(new Http403AccessDeniedHandler()); //
-
+    
+    @Bean
+	public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+		AuthenticationManager authenticationManager = http.getSharedObject(AuthenticationManager.class);
+		 http //
+         .cors() //
+         .and() //
+         .csrf() //
+         .disable() //
+         .sessionManagement() //
+         .sessionCreationPolicy(SessionCreationPolicy.STATELESS) //
+         .and() //
+         .securityContext() //
+         .securityContextRepository(new JwtSsoBasedSecurityContextRepository()) //
+         .and() //
+         .addFilterBefore(jwtSsoBasedLoginFilter(), SecurityContextHolderFilter.class) //
+         .addFilterBefore(new JwtSsoBasedRefreshTokenFilter(authenticationManager, authServerProperties),
+        		 SecurityContextHolderFilter.class) //
+         .addFilter(new JwtSsoBasedAuthenticationFilter(authenticationManager, authServerProperties))//
+         .authorizeRequests() //
+         .antMatchers(getAuthWhiteList()) //
+         .permitAll() //
+         .anyRequest() //
+         .authenticated() //
+         .and() //
+         .exceptionHandling() //
+         .authenticationEntryPoint(new Http401AuthenticationEntryPoint()) //
+         .and() //
+         .exceptionHandling() //
+         .accessDeniedHandler(new Http403AccessDeniedHandler()); //
+		 
+		 return http.build();
     }
+
+//    protected void configure(HttpSecurity http) throws Exception {
+//        http //
+//                .cors() //
+//                .and() //
+//                .csrf() //
+//                .disable() //
+//                .sessionManagement() //
+//                .sessionCreationPolicy(SessionCreationPolicy.STATELESS) //
+//                .and() //
+//                .securityContext() //
+//                .securityContextRepository(new JwtSsoBasedSecurityContextRepository()) //
+//                .and() //
+//                .addFilterBefore(jwtSsoBasedLoginFilter(), SecurityContextPersistenceFilter.class) //
+//                .addFilterBefore(new JwtSsoBasedRefreshTokenFilter(authenticationManager(), authServerProperties),
+//                        SecurityContextPersistenceFilter.class) //
+//                .addFilter(new JwtSsoBasedAuthenticationFilter(authenticationManager(), authServerProperties))//
+//                .authorizeRequests() //
+//                .antMatchers(getAuthWhiteList()) //
+//                .permitAll() //
+//                .anyRequest() //
+//                .authenticated() //
+//                .and() //
+//                .exceptionHandling() //
+//                .authenticationEntryPoint(new Http401AuthenticationEntryPoint()) //
+//                .and() //
+//                .exceptionHandling() //
+//                .accessDeniedHandler(new Http403AccessDeniedHandler()); //
+//
+//    }
 
     protected JwtSsoBasedLoginFilter jwtSsoBasedLoginFilter() throws Exception {
         JwtSsoBasedLoginFilter f = new JwtSsoBasedLoginFilter(authServerProperties);
@@ -104,10 +137,10 @@ public class AuthSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter 
         log.warn(sb.toString());
     }
 
-    @Override
-    protected void configure(AuthenticationManagerBuilder auth) throws Exception {
-        auth.userDetailsService(userDetailsService).passwordEncoder(passwordEncoder());
-    }
+//    @Override
+//    protected void configure(AuthenticationManagerBuilder auth) throws Exception {
+//        auth.userDetailsService(userDetailsService).passwordEncoder(passwordEncoder());
+//    }
 
     @Bean
     public PasswordEncoder passwordEncoder() {
