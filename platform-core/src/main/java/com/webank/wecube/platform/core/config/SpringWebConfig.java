@@ -49,6 +49,9 @@ public class SpringWebConfig implements WebMvcConfigurer {
 
 	@Autowired
 	private ApplicationProperties applicationProperties;
+	
+	@Autowired
+	private AuthenticationManager authenticationManager;
 
 	@Override
 	public void addResourceHandlers(ResourceHandlerRegistry registry) {
@@ -64,7 +67,7 @@ public class SpringWebConfig implements WebMvcConfigurer {
 
 	@Bean
 	public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-		AuthenticationManager authenticationManager = http.getSharedObject(AuthenticationManager.class);
+//		AuthenticationManager authenticationManager = http.getSharedObject(AuthenticationManager.class);
 		http.authorizeRequests() //
 				.antMatchers("/swagger-ui.html/**", "/swagger-resources/**").permitAll()//
 				.antMatchers("/webjars/**").permitAll() //
