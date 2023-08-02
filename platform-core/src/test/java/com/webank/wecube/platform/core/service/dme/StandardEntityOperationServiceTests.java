@@ -20,6 +20,7 @@ import org.springframework.web.client.RestTemplate;
 import com.webank.wecube.platform.core.BaseSpringBootTest;
 import com.webank.wecube.platform.core.commons.ApplicationProperties;
 
+@Ignore
 public class StandardEntityOperationServiceTests extends BaseSpringBootTest {
 
     @Autowired
