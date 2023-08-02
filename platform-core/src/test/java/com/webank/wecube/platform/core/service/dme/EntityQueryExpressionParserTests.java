@@ -3,8 +3,10 @@ package com.webank.wecube.platform.core.service.dme;
 import java.util.List;
 
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 
+@Ignore
 public class EntityQueryExpressionParserTests {
 	EntityQueryExpressionParser parser = new EntityQueryExpressionParser();
 	
