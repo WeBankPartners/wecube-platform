@@ -23,6 +23,9 @@ spring:
       hibernate:
          ddl-auto: none
          use-new-id-generator-mappings: false
+   mvc:
+      pathmatch:
+         matching-strategy: ANT_PATH_MATCHER
          
 platform:
    auth:

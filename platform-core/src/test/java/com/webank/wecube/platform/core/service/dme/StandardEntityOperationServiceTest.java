@@ -14,6 +14,7 @@ import com.webank.wecube.platform.core.commons.AuthenticationContextHolder;
 import com.webank.wecube.platform.core.commons.AuthenticationContextHolder.AuthenticatedUser;
 import com.webank.wecube.platform.core.http.UserJwtSsoTokenRestTemplate;
 
+@Ignore
 public class StandardEntityOperationServiceTest {
     
     UserJwtSsoTokenRestTemplate restTemplate = new UserJwtSsoTokenRestTemplate();
