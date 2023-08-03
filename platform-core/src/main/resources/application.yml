@@ -3,6 +3,8 @@ server:
   servlet:
     context-path: /platform
 spring:
+  main:
+    allow-circular-references: true
   profiles:
     active: dev
   messages:
