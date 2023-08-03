@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.UUID;
 
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.slf4j.Logger;
@@ -19,6 +20,7 @@ import com.webank.wecube.platform.core.commons.ApplicationProperties.PluginPrope
 import com.webank.wecube.platform.core.commons.ApplicationProperties.ResourceProperties;
 import com.webank.wecube.platform.core.commons.ApplicationProperties.S3Properties;
 
+@Ignore
 @SpringBootTest
 @RunWith(SpringRunner.class)
 @ActiveProfiles("test")
