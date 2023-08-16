@@ -1085,15 +1085,32 @@ export default {
 
       let found = this.filteredPlugins.find(_ => _.serviceName === this.pluginForm.serviceId)
       const routineExpressionItem = this.$refs.filterRulesGroup.routineExpressionItem
-      this.pluginForm.routineExpression = routineExpressionItem.reduce((tmp, item, index) => {
-        return (
-          tmp +
-          item.routineExpression +
-          '#DMEOP#' +
-          item.operate +
-          (index === routineExpressionItem.length - 1 ? '' : '#DME#')
-        )
-      }, '')
+      console.log(routineExpressionItem)
+      let res = []
+      routineExpressionItem.forEach(r => {
+        let tmp = ''
+        if (r.operate) {
+          tmp += r.routineExpression + '#DMEOP#' + r.operate
+        } else {
+          tmp += r.routineExpression
+        }
+        // eslint-disable-next-line no-unused-expressions
+        res.push(tmp)
+      })
+      this.pluginForm.routineExpression = res.join('#DME#')
+      // this.pluginForm.routineExpression = routineExpressionItem.reduce((tmp, item, index) => {
+      //   // let res = tmp + item.routineExpression
+      //   // if (item.operate) {
+      //   //   res += item.operate + (index === routineExpressionItem.length - 1 ? '' : '#DME#')
+      //   // }
+      //   return (
+      //     tmp +
+      //     item.routineExpression +
+      //     '#DMEOP#' +
+      //     item.operate +
+      //     (index === routineExpressionItem.length - 1 ? '' : '#DME#')
+      //   )
+      // }, '')
       let pluginFormCopy = JSON.parse(JSON.stringify(this.pluginForm))
       // 校验必填项，未选中节点跳过校验
       if (
