@@ -28,6 +28,7 @@ import com.google.common.collect.Lists;
 import com.webank.wecube.platform.core.commons.ApplicationProperties;
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
 import com.webank.wecube.platform.core.entity.plugin.ResourceItem;
+import com.webank.wecube.platform.core.entity.plugin.ResourceServer;
 import com.webank.wecube.platform.core.utils.JsonUtils;
 
 @Service
@@ -85,6 +86,12 @@ public class DockerContainerManagementService implements ResourceItemService, Re
 
         boolean hasPortBindings = false;
         boolean hasVolumeBindings = false;
+        
+        ResourceServer resourceServer = item.getResourceServer();
+        String resourceServerIpAddr = "";
+        if(resourceServer != null) {
+            resourceServerIpAddr = resourceServer.getHost();
+        }
 
         Ports portMappings = new Ports();
         if (portBindings.size() != 0) {
@@ -92,7 +99,14 @@ public class DockerContainerManagementService implements ResourceItemService, Re
                 String[] portArray = port.split(":");
                 ExposedPort exposedPort = ExposedPort.tcp(Integer.valueOf(portArray[1]));
                 exposedPorts.add(exposedPort);
-                portMappings.bind(exposedPort, Ports.Binding.bindPort(Integer.valueOf(portArray[0])));
+                
+                Ports.Binding b = null;
+                if(StringUtils.isBlank(resourceServerIpAddr)) {
+                    b = Ports.Binding.bindPort(Integer.valueOf(portArray[0]));
+                }else {
+                    b = Ports.Binding.bindIpAndPort(resourceServerIpAddr, Integer.valueOf(portArray[0]));
+                }
+                portMappings.bind(exposedPort, b);
                 hasPortBindings = true;
             }
         }
