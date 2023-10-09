@@ -63,7 +63,8 @@ public interface ProcInstInfoMapper {
             @Param("entityDataName") String entityDataName,
             @Param("procInstName") String procInstName,
             @Param("operator") String operator,
-            @Param("status") String status
+            @Param("status") String status,
+            @Param("id") Integer id
             );
     
     
