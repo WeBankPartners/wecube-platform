@@ -1052,7 +1052,8 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
                 likeString(queryDto.getEntityDisplayName()),
                 likeString(queryDto.getProcInstName()),
                 trimString(queryDto.getOperator()),
-                queryDto.getStatus()
+                queryDto.getStatus(),
+                queryDto.getId()
                 );
 
         com.github.pagehelper.PageInfo<ProcInstInfoQueryEntity> pageInfo = new com.github.pagehelper.PageInfo<ProcInstInfoQueryEntity>(
