@@ -365,6 +365,9 @@
         <if test="status != null">
           AND t1.status = #{status,jdbcType=VARCHAR}
         </if>
+        <if test="id != null">
+            AND t1.id = #{id,jdbcType=INTEGER}
+        </if>
         ORDER BY t1.created_time DESC
     </select>
     
