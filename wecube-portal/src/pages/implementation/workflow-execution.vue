@@ -434,7 +434,8 @@ import {
   getTaskNodeInstanceExecBindings,
   updateTaskNodeInstanceExecBindings,
   setUserScheduledTasks,
-  getMetaData
+  getMetaData,
+  instancesWithPaging
 } from '@/api/server'
 import JsonViewer from 'vue-json-viewer'
 import * as d3 from 'd3-selection'
@@ -484,6 +485,8 @@ export default {
       allTarget: [],
       currentFlowNodeId: '',
       selectedFlowInstance: '',
+      querySelectedFlowInstanceId: '',
+      querySelectedFlowInstanceRow: {},
       selectedFlow: '',
       selectedTarget: '',
       showExcution: true,
@@ -905,9 +908,10 @@ export default {
     jumpToHistory (id) {
       this.$nextTick(async () => {
         // await this.queryHistory()
+        this.querySelectedFlowInstanceId = id
         await this.getProcessInstances()
-        this.currentTab = 'enquery_new_workflow_job'
         this.selectedFlowInstance = Number(id)
+        this.currentTab = 'enquery_new_workflow_job'
         this.queryHandler()
       })
     },
@@ -1261,9 +1265,27 @@ export default {
       this.allBindingsList = filter.concat(payload)
     },
     async getProcessInstances (isAfterCreate = false, createResponse = undefined) {
+      if (this.querySelectedFlowInstanceId) {
+        const params = {
+          id: this.querySelectedFlowInstanceId,
+          pageable: {
+            startIndex: 1,
+            pageSize: 500
+          }
+        }
+        let { status, data } = await instancesWithPaging(params)
+        if (status === 'OK') {
+          this.querySelectedFlowInstanceRow = Array.isArray(data.contents) && data.contents[0]
+        }
+      }
       let { status, data } = await getProcessInstances()
       if (status === 'OK') {
         this.allFlowInstances = data
+        const flag = this.allFlowInstances.some(i => i.id === this.querySelectedFlowInstanceId)
+        // 如果传入的id不在500条数据之内，插入该条数据
+        if (!flag && this.querySelectedFlowInstanceRow.id) {
+          this.allFlowInstances.unshift(this.querySelectedFlowInstanceRow)
+        }
         if (isAfterCreate) {
           this.selectedFlowInstance = createResponse.id
           this.processInstance()
