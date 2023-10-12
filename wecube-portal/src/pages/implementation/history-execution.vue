@@ -13,7 +13,19 @@
       </div>
       <div class="item">
         {{ $t('flow_name') }}:
-        <Input v-model="searchConfig.params.procInstName" style="width: 60%"></Input>
+        <!-- <Input v-model="searchConfig.params.procInstName" style="width: 60%"></Input> -->
+        <Select
+          label
+          v-model="searchConfig.params.procInstName"
+          @on-open-change="getAllFlow"
+          filterable
+          clearable
+          style="width: 60%"
+        >
+          <Option v-for="item in allFlows" :value="item.procDefName" :key="item.procDefId">{{
+            item.procDefName
+          }}</Option>
+        </Select>
       </div>
       <div class="item">
         {{ $t('target_object') }}:
@@ -51,7 +63,7 @@
 </template>
 
 <script>
-import { instancesWithPaging, getUserList } from '@/api/server'
+import { instancesWithPaging, getUserList, getAllFlow } from '@/api/server'
 export default {
   name: '',
   data () {
@@ -81,6 +93,7 @@ export default {
           { label: this.$t('Monthly'), value: 'Monthly' }
         ]
       },
+      allFlows: [],
       tableData: [],
       tableColumns: [
         {
@@ -138,6 +151,17 @@ export default {
     this.getAllUsers()
   },
   methods: {
+    async getAllFlow () {
+      let { status, data } = await getAllFlow(false)
+      if (status === 'OK') {
+        this.allFlows = data.sort((a, b) => {
+          let s = a.createdTime.toLowerCase()
+          let t = b.createdTime.toLowerCase()
+          if (s > t) return -1
+          if (s < t) return 1
+        })
+      }
+    },
     async getAllUsers () {
       let { status, data } = await getUserList()
       if (status === 'OK') {
