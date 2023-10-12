@@ -63,8 +63,9 @@ public class WorkflowProcInstServiceTest {
         String procInstName = "111";
         String operator = "aa";
         String status = "IN";
+        Integer id = 123;
         List<ProcInstInfoQueryEntity> entities = mapper.selectAllProcInstInfoByCriteria(roleNames, startTime, endTime,
-                entityDataName, procInstName, operator, status);
+                entityDataName, procInstName, operator, status, id);
 
     }
 
