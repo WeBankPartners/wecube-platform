@@ -875,6 +875,7 @@ export default {
   },
   destroyed () {
     clearInterval(this.timer)
+    localStorage.removeItem('history-execution-search-params')
   },
   methods: {
     async handleClick (key, value) {
@@ -1977,7 +1978,6 @@ export default {
             ro['outputs'] = this.replaceParams(ro['outputs'])
             return ro
           })
-          console.log(111, this.nodeDetailIO)
         }
         this.nodeDetailFullscreen = false
         this.isTargetNodeDetail = false
