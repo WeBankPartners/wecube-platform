@@ -10,6 +10,7 @@ public class WorkflowInstQueryDto {
     private String endTime;
     private String status;
     private String operator;
+    private Integer id;
     
     protected PageableDto pageable = new PageableDto();
 
@@ -68,7 +69,12 @@ public class WorkflowInstQueryDto {
     public void setPageable(PageableDto pageable) {
         this.pageable = pageable;
     }
-    
-    
 
+    public Integer getId() {
+        return id;
+    }
+
+    public void setId(Integer id) {
+        this.id = id;
+    }
 }
