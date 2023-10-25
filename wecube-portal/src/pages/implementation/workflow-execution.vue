@@ -865,16 +865,17 @@ export default {
     }
   },
   mounted () {
-    // const id = this.$route.query.id || ''
-    // if (id !== '') {
-    //   this.jumpToHistory(id)
-    // }
+    const id = this.$route.query.id || ''
+    if (id) {
+      this.jumpToHistory(id)
+    }
     // this.getProcessInstances()
     // this.getAllFlow()
     // this.createHandler()
   },
   destroyed () {
     clearInterval(this.timer)
+    localStorage.removeItem('history-execution-search-params')
   },
   methods: {
     async handleClick (key, value) {
@@ -908,7 +909,7 @@ export default {
     jumpToHistory (id) {
       this.$nextTick(async () => {
         // await this.queryHistory()
-        this.querySelectedFlowInstanceId = id
+        this.querySelectedFlowInstanceId = Number(id)
         await this.getProcessInstances()
         this.selectedFlowInstance = Number(id)
         this.currentTab = 'enquery_new_workflow_job'
@@ -1977,7 +1978,6 @@ export default {
             ro['outputs'] = this.replaceParams(ro['outputs'])
             return ro
           })
-          console.log(111, this.nodeDetailIO)
         }
         this.nodeDetailFullscreen = false
         this.isTargetNodeDetail = false
