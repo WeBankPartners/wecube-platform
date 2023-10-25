@@ -1,13 +1,19 @@
 <template>
   <div class=" ">
     <div class="report-container">
-      <div class="item">
+      <div class="item" style="width: 400px">
         {{ $t('datetime_range') }}:
-        <DatePicker type="datetimerange" format="yyyy-MM-dd HH:mm:ss" @on-change="getDate"></DatePicker>
+        <DatePicker
+          type="datetimerange"
+          v-model="time"
+          format="yyyy-MM-dd HH:mm:ss"
+          @on-change="getDate"
+          style="width: 320px"
+        ></DatePicker>
       </div>
       <div class="item">
         {{ $t('set_up_person') }}:
-        <Input v-model="searchConfig.params.owner" style="width: 80%"></Input>
+        <Input v-model="searchConfig.params.owner" style="width: 80%" clearable></Input>
       </div>
       <div class="item">
         {{ $t('timing_type') }}:
@@ -30,13 +36,13 @@
         <Icon
           v-if="!fullscreen"
           @click="fullscreen = true"
-          style="float: right;margin: 3px 40px 0 0 !important;"
+          style="float: right; margin: 3px 40px 0 0 !important"
           type="ios-expand"
         />
         <Icon
           v-else
           @click="fullscreen = false"
-          style="float: right;margin: 3px 40px 0 0 !important;"
+          style="float: right; margin: 3px 40px 0 0 !important"
           type="ios-contract"
         />
       </p>
@@ -45,27 +51,27 @@
     <Modal v-model="timeConfig.isShow" :title="$t('timed_execution')">
       <Form :label-width="100" label-colon>
         <FormItem :label="$t('flow_name')">
-          <Select v-model="timeConfig.params.selectedFlowInstance" filterable style="width:370px">
+          <Select v-model="timeConfig.params.selectedFlowInstance" filterable style="width: 370px">
             <Option
               v-for="item in timeConfig.allFlowInstances"
               :value="item.id"
               :key="item.id"
               :label="
                 item.procInstName +
-                  ' ' +
-                  item.entityDisplayName +
-                  ' ' +
-                  (item.createdTime || '0000-00-00 00:00:00') +
-                  ' ' +
-                  (item.operator || 'operator')
+                ' ' +
+                item.entityDisplayName +
+                ' ' +
+                (item.createdTime || '0000-00-00 00:00:00') +
+                ' ' +
+                (item.operator || 'operator')
               "
             >
               <span>
-                <span style="color:#2b85e4">{{ item.procInstName + ' ' }}</span>
-                <span style="color:#515a6e">{{ item.entityDisplayName + ' ' }}</span>
-                <span style="color:#ccc;padding-left:8px;float:right">{{ item.status }}</span>
-                <span style="color:#ccc;float:right">{{ (item.createdTime || '0000-00-00 00:00:00') + ' ' }}</span>
-                <span style="float:right;color:#515a6e;margin-right:20px">{{ item.operator || 'operator' }}</span>
+                <span style="color: #2b85e4">{{ item.procInstName + ' ' }}</span>
+                <span style="color: #515a6e">{{ item.entityDisplayName + ' ' }}</span>
+                <span style="color: #ccc; padding-left: 8px; float: right">{{ item.status }}</span>
+                <span style="color: #ccc; float: right">{{ (item.createdTime || '0000-00-00 00:00:00') + ' ' }}</span>
+                <span style="float: right; color: #515a6e; margin-right: 20px">{{ item.operator || 'operator' }}</span>
               </span>
             </Option>
           </Select>
@@ -74,7 +80,7 @@
           <Select
             v-model="timeConfig.params.scheduleMode"
             @on-change="timeConfig.params.time = '00:00:00'"
-            style="width:370px"
+            style="width: 370px"
           >
             <Option v-for="item in timeConfig.scheduleModeOptions" :key="item.value" :value="item.value">{{
               item.label
@@ -85,7 +91,7 @@
           v-if="['Monthly', 'Weekly'].includes(timeConfig.params.scheduleMode)"
           :label="timeConfig.params.scheduleMode === 'Monthly' ? $t('day') : $t('week')"
         >
-          <Select v-model="timeConfig.params.cycle" style="width:370px">
+          <Select v-model="timeConfig.params.cycle" style="width: 370px">
             <Option
               v-for="item in timeConfig.modeToValue[timeConfig.params.scheduleMode]"
               :key="item.value"
@@ -98,7 +104,7 @@
           <TimePicker
             :value="timeConfig.params.time"
             @on-change="changeTimePicker"
-            style="width:370px"
+            style="width: 370px"
             :disabled-hours="
               timeConfig.params.scheduleMode === 'Hourly'
                 ? [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23]
@@ -175,6 +181,7 @@ export default {
       detailTableData: [],
 
       MODALHEIGHT: 0,
+      time: ['', ''],
       searchConfig: {
         params: {
           startTime: '',
@@ -365,8 +372,22 @@ export default {
     }
   },
   mounted () {
+    const catchParams = localStorage.getItem('timed-execution-search-params')
+    if (catchParams) {
+      const tmp = JSON.parse(catchParams)
+      this.time = [tmp.startTime || '', tmp.endTime || '']
+      this.searchConfig.params.startTime = tmp.startTime || ''
+      this.searchConfig.params.endTime = tmp.endTime || ''
+
+      this.searchConfig.params.scheduleMode = tmp.scheduleMode || ''
+      this.searchConfig.params.owner = tmp.owner || ''
+    }
     this.MODALHEIGHT = document.body.scrollHeight - 300
     this.getUserScheduledTasks()
+  },
+  beforeDestroy () {
+    const selectParams = JSON.stringify(this.searchConfig.params)
+    localStorage.setItem('timed-execution-search-params', selectParams)
   },
   methods: {
     async getProcessInstances () {

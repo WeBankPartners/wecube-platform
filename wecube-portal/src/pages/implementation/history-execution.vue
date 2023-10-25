@@ -13,11 +13,22 @@
       </div>
       <div class="item">
         {{ $t('flow_name') }}:
-        <Input v-model="searchConfig.params.procInstName" style="width: 60%"></Input>
+        <Select
+          label
+          v-model="searchConfig.params.procInstName"
+          @on-open-change="getFlows()"
+          filterable
+          clearable
+          style="width: 60%"
+        >
+          <Option v-for="item in allFlows" :value="item.procDefName" :key="item.procDefId">{{
+            item.procDefName
+          }}</Option>
+        </Select>
       </div>
       <div class="item">
         {{ $t('target_object') }}:
-        <Input v-model="searchConfig.params.entityDisplayName" style="width: 60%"></Input>
+        <Input v-model="searchConfig.params.entityDisplayName" style="width: 60%" clearable></Input>
       </div>
       <div class="item">
         {{ $t('executor') }}:
@@ -51,7 +62,7 @@
 </template>
 
 <script>
-import { instancesWithPaging, getUserList } from '@/api/server'
+import { instancesWithPaging, getUserList, getAllFlow } from '@/api/server'
 export default {
   name: '',
   data () {
@@ -81,6 +92,7 @@ export default {
           { label: this.$t('Monthly'), value: 'Monthly' }
         ]
       },
+      allFlows: [],
       tableData: [],
       tableColumns: [
         {
@@ -132,12 +144,41 @@ export default {
       users: []
     }
   },
-  mounted () {
+  async mounted () {
+    const cacheParams = localStorage.getItem('history-execution-search-params')
+    if (cacheParams) {
+      console.log(33)
+      await this.getFlows()
+      console.log(this.allFlows)
+      const tmp = JSON.parse(cacheParams)
+      this.time = [tmp.startTime || '', tmp.endTime || '']
+      this.searchConfig.params.startTime = tmp.startTime || ''
+      this.searchConfig.params.endTime = tmp.endTime || ''
+      this.searchConfig.params.procInstName = tmp.procInstName || ''
+      this.searchConfig.params.entityDisplayName = tmp.entityDisplayName || ''
+      this.searchConfig.params.operator = tmp.operator || ''
+      this.searchConfig.params.status = tmp.status || ''
+    }
     this.MODALHEIGHT = document.body.scrollHeight - 300
     this.getProcessInstances()
     this.getAllUsers()
   },
+  beforeDestroy () {
+    const selectParams = JSON.stringify(this.searchConfig.params)
+    localStorage.setItem('history-execution-search-params', selectParams)
+  },
   methods: {
+    async getFlows () {
+      let { status, data } = await getAllFlow(false)
+      if (status === 'OK') {
+        this.allFlows = data.sort((a, b) => {
+          let s = a.createdTime.toLowerCase()
+          let t = b.createdTime.toLowerCase()
+          if (s > t) return -1
+          if (s < t) return 1
+        })
+      }
+    },
     async getAllUsers () {
       let { status, data } = await getUserList()
       if (status === 'OK') {
