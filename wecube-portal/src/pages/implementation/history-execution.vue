@@ -62,7 +62,7 @@
 </template>
 
 <script>
-import { instancesWithPaging, getUserList, getAllFlow } from '@/api/server'
+import { instancesWithPaging, getUserList, getAllFlow, createWorkflowInstanceTerminationRequest } from '@/api/server'
 export default {
   name: '',
   data () {
@@ -130,12 +130,22 @@ export default {
               <div>
                 <Button
                   onClick={() => this.jumpToHistory(params.row)}
-                  type="warning"
+                  type="info"
                   size="small"
                   style="margin-right: 5px"
                 >
                   {this.$t('details')}
                 </Button>
+                {params.row.status === 'InProgress' && (
+                  <Button
+                    onClick={() => this.stopTask(params.row)}
+                    type="warning"
+                    size="small"
+                    style="margin-right: 5px"
+                  >
+                    {this.$t('终止')}
+                  </Button>
+                )}
               </div>
             )
           }
@@ -168,6 +178,28 @@ export default {
     localStorage.setItem('history-execution-search-params', selectParams)
   },
   methods: {
+    // 终止任务
+    stopTask (row) {
+      this.$Modal.confirm({
+        title: this.$t('bc_confirm') + ' ' + this.$t('stop_orch'),
+        'z-index': 1000000,
+        onOk: async () => {
+          const payload = {
+            procInstId: row.id,
+            procInstKey: row.procInstKey
+          }
+          const { status } = await createWorkflowInstanceTerminationRequest(payload)
+          if (status === 'OK') {
+            this.getProcessInstances()
+            this.$Notice.success({
+              title: 'Success',
+              desc: 'Success'
+            })
+          }
+        },
+        onCancel: () => {}
+      })
+    },
     async getFlows () {
       let { status, data } = await getAllFlow(false)
       if (status === 'OK') {
