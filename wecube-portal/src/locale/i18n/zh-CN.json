@@ -535,5 +535,6 @@
   "notify": "通知",
   "reload_notify": "3S后刷新页面，以便重新加载资源",
   "execution_history": "编排执行历史",
-  "entity_name": "实体名称"
+  "entity_name": "实体名称",
+  "no_detail_warning": "本条编排数据已过期，如有疑问请联系平台管理员"
 }

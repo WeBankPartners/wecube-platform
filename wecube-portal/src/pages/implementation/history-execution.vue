@@ -248,8 +248,26 @@ export default {
         this.pageable.startIndex = data.pageInfo.startIndex
       }
     },
-    jumpToHistory (row) {
-      this.$emit('jumpToHistory', row.id)
+    async jumpToHistory (row) {
+      const params = {
+        id: row.id,
+        pageable: {
+          startIndex: 1,
+          pageSize: 500
+        }
+      }
+      let { status, data } = await instancesWithPaging(params)
+      if (status === 'OK') {
+        const detail = Array.isArray(data.contents) && data.contents[0]
+        // 能获取到历史记录，跳转，否则给出提示
+        if (detail && detail.id) {
+          return this.$emit('jumpToHistory', row.id)
+        }
+      }
+      this.$Notice.warning({
+        title: '',
+        desc: this.$t('no_detail_warning')
+      })
     },
     getDate (dateRange, type) {
       if (type === 'date' && dateRange[1].slice(-8) === '00:00:00') {
