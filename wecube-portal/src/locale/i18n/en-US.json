@@ -537,5 +537,6 @@
   "notify": "Notify",
   "reload_notify": "Refresh The Page After 3S To Reload Resources",
   "execution_history": "Execution History",
-  "entity_name": "Entity Name"
+  "entity_name": "Entity Name",
+  "no_detail_warning": "This arrangement data has expired, if you have any questions, please contact the platform administrator"
 }
