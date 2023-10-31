@@ -4,7 +4,7 @@
       <Header ref="changeMneus" @allMenus="allMenus" />
     </div>
     <div class="content-container">
-      <Breadcrumb style="margin: 10px 0;" v-if="isShowBreadcrum">
+      <Breadcrumb style="margin: 10px 0" v-if="isShowBreadcrum">
         <BreadcrumbItem
           ><a @click="homePageClickHandler">{{ $t('home') }}</a></BreadcrumbItem
         >
@@ -153,9 +153,9 @@ html {
   }
 }
 // to show table x direction scroll bar
-.ivu-table-fixed-body {
-  height: auto !important;
-}
+// .ivu-table-fixed-body {
+//   height: auto !important;
+// }
 .ivu-notice-notice-with-desc {
   .ivu-notice-icon {
     .ivu-icon {
