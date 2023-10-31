@@ -62,7 +62,7 @@
 </template>
 
 <script>
-import { instancesWithPaging, getUserList, getAllFlow } from '@/api/server'
+import { instancesWithPaging, getUserList, getAllFlow, createWorkflowInstanceTerminationRequest } from '@/api/server'
 export default {
   name: '',
   data () {
@@ -130,12 +130,22 @@ export default {
               <div>
                 <Button
                   onClick={() => this.jumpToHistory(params.row)}
-                  type="warning"
+                  type="info"
                   size="small"
                   style="margin-right: 5px"
                 >
                   {this.$t('details')}
                 </Button>
+                {params.row.status === 'InProgress' && (
+                  <Button
+                    onClick={() => this.stopTask(params.row)}
+                    type="warning"
+                    size="small"
+                    style="margin-right: 5px"
+                  >
+                    {this.$t('终止')}
+                  </Button>
+                )}
               </div>
             )
           }
@@ -168,6 +178,28 @@ export default {
     localStorage.setItem('history-execution-search-params', selectParams)
   },
   methods: {
+    // 终止任务
+    stopTask (row) {
+      this.$Modal.confirm({
+        title: this.$t('bc_confirm') + ' ' + this.$t('stop_orch'),
+        'z-index': 1000000,
+        onOk: async () => {
+          const payload = {
+            procInstId: row.id,
+            procInstKey: row.procInstKey
+          }
+          const { status } = await createWorkflowInstanceTerminationRequest(payload)
+          if (status === 'OK') {
+            this.getProcessInstances()
+            this.$Notice.success({
+              title: 'Success',
+              desc: 'Success'
+            })
+          }
+        },
+        onCancel: () => {}
+      })
+    },
     async getFlows () {
       let { status, data } = await getAllFlow(false)
       if (status === 'OK') {
@@ -216,8 +248,26 @@ export default {
         this.pageable.startIndex = data.pageInfo.startIndex
       }
     },
-    jumpToHistory (row) {
-      this.$emit('jumpToHistory', row.id)
+    async jumpToHistory (row) {
+      const params = {
+        id: row.id,
+        pageable: {
+          startIndex: 1,
+          pageSize: 500
+        }
+      }
+      let { status, data } = await instancesWithPaging(params)
+      if (status === 'OK') {
+        const detail = Array.isArray(data.contents) && data.contents[0]
+        // 能获取到历史记录，跳转，否则给出提示
+        if (detail && detail.id) {
+          return this.$emit('jumpToHistory', row.id)
+        }
+      }
+      this.$Notice.warning({
+        title: '',
+        desc: this.$t('no_detail_warning')
+      })
     },
     getDate (dateRange, type) {
       if (type === 'date' && dateRange[1].slice(-8) === '00:00:00') {
