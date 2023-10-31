@@ -486,7 +486,7 @@ export default {
       currentFlowNodeId: '',
       selectedFlowInstance: '',
       querySelectedFlowInstanceId: '',
-      querySelectedFlowInstanceRow: {},
+      querySelectedFlowInstanceRow: null,
       selectedFlow: '',
       selectedTarget: '',
       showExcution: true,
@@ -1284,7 +1284,7 @@ export default {
         this.allFlowInstances = data
         const flag = this.allFlowInstances.some(i => i.id === this.querySelectedFlowInstanceId)
         // 如果传入的id不在500条数据之内，插入该条数据
-        if (!flag && this.querySelectedFlowInstanceRow.id) {
+        if (!flag && this.querySelectedFlowInstanceRow) {
           this.allFlowInstances.unshift(this.querySelectedFlowInstanceRow)
         }
         if (isAfterCreate) {
