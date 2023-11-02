@@ -906,12 +906,12 @@ export default {
         this.attrValue.isShow = true
       }
     },
-    jumpToHistory (id) {
-      this.$nextTick(async () => {
-        // await this.queryHistory()
-        this.querySelectedFlowInstanceId = Number(id)
-        await this.getProcessInstances()
-        this.selectedFlowInstance = Number(id)
+    async jumpToHistory (id) {
+      // await this.queryHistory()
+      this.querySelectedFlowInstanceId = Number(id)
+      await this.getProcessInstances()
+      this.selectedFlowInstance = Number(id)
+      this.$nextTick(() => {
         this.currentTab = 'enquery_new_workflow_job'
         this.queryHandler()
       })
