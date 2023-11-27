@@ -30,8 +30,8 @@ type LogConfig struct {
 }
 
 type RemoteServiceConfig struct {
-	PlatformMgmtAddress string `json:"platform_core_address"`
-	Timeout             int    `json:"timeout"`
+	RouteConfigAddress string `json:"route_config_address"`
+	Timeout            int    `json:"timeout"`
 }
 
 type GlobalConfig struct {
