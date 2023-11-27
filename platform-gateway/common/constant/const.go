@@ -1,3 +1,6 @@
 package constant
 
-const ()
+const (
+	DefaultHttpSuccessStatus = "0"
+	NotApplicableRemoteCall  = "NA"
+)
