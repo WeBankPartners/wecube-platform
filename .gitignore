@@ -38,3 +38,5 @@ bin/
 
 .DS_Store
 **/a.json
+
+platform-core/platform-core
