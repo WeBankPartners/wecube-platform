@@ -1,0 +1,88 @@
+1、主要分 插件、编排
+插件里又包含 菜单、插件注册、插件运行、插件配置、系统变量
+插件接口：
+-> 通用接口：
+1、查Platform版本号 GET /platform/v1/appinfo/version
+2、查用户菜单 GET  /platform/v1/my-menus
+3、资源状态枚举查询 - GET  /platform/resource/constants/resource-server-status 返回 active,inactive
+4、资源类型枚举查询 - GET  /platform/resource/constants/resource-server-types 返回 "s3", "mysql", "docker"
+
+一、插件界面
+1、插件列表查询 GET /platform/v1/packages
+2、插件配置 - 依赖分析 GET  /platform/v1/packages/sFiv110x2Bjc/dependencies
+3、插件配置 - 菜单注入 GET  /platform/v1/packages/sFiv110x2Bjc/menus
+4、插件配置 - 数据模型 GET  /platform/v1/packages/notification/models
+5、插件配置 - 系统参数 GET  /platform/v1/packages/sFiv110x2Bjc/system-parameters
+6、插件配置 - 权限设定 GET  /platform/v1/packages/sFiv110x2Bjc/authorities
+7、插件配置 - 运行资源 GET  /platform/v1/packages/sFiv110x2Bjc/runtime-resources
+8、插件配置 - 注册插件包 POST  /platform/v1/packages/register/sFiv110x2Bjc 
+9、运行管理 - 当前运行实例列表 GET  /platform/v1/packages/sFiv110x2Bjc/instances
+10、运行管理 - 可用容器主机查询 GET  /platform/v1/available-container-hosts
+11、运行管理 - 主机可用端口查询 GET  /platform/v1/hosts/***REMOVED***/next-available-port
+12、运行管理 - 插件实例创建 POST  /packages/{package-id}/hosts/{host-ip}/ports/{port}/instance/launch
+13、服务注册 - 当前插件服务配置查询 GET  /platform/v1/packages/sFiv110x2Bjc/plugin-configs
+14、服务注册 - 所有插件模型查询 GET  /platform/v1/models
+15、服务注册 - 所有系统参数查询 POST  /platform/v1/system-variables/retrieve
+16、服务注册 - 查询指定服务的接口详情 GET  /platform/v1/plugins/interfaces/sFivrjZx2BQ0
+17、服务注册 - 服务注销 POST  /platform/v1/plugins/disable/sFivrjZx2BQ0
+18、服务注册 - 服务配置保存 POST  /platform/v1/plugins
+19、服务注册 - 服务注册 POST  /platform/v1/plugins/enable/sFivrjZx2BQ0
+20、服务注册 - 批量注册查询 GET /platform/v1/packages/sFiv110x2Bjc/plugin-config-outlines
+21、服务注册 - 批量注册 POST  /platform/v1/packages/sFiv110x2Bjc/plugin-configs/enable-in-batch
+22、插件配置导入 - POST  /platform/v1/plugins/packages/import/tUTnlhqx2EGO  接收文件 xml-file
+23、插件配置导出 - GET   /platform/v1/plugins/packages/export/tVPEEVPx32T3  Content-Disposition: attachment;filename=register-config-taskman-20231120.xml  Content-Type: application/octet-stream
+24、插件配置删除 - POST  /packages/decommission/{package-id:.+}
+25、选择在线插件 - GET  /platform/v1/plugin-artifacts
+26、在线插件确认 - POST  /platform/v1/plugin-artifacts/pull-requests
+27、上传插件 - POST  /platform/v1/packages 接收文件 zip-file
+
+系统参数界面
+1、系统参数列表查询 - POST  /platform/v1/system-variables/retrieve  通用分页查询参数
+2、系统参数范围查询 - GET  /platform/v1/system-variables/constant/system-variable-scope 返回插件名列表
+
+资源管理界面
+1、资源列表查询 - POST  /platform/resource/servers/retrieve 通用分页查询参数
+2、资源实例类型枚举查询 - GET  /platform/resource/constants/resource-item-types
+3、资源实例状态枚举查询 - GET  /platform/resource/constants/resource-item-status
+4、资源实例列表查询 - POST  /platform/resource/items/retrieve  通用分页查询参数
+
+权限管理界面
+1、全量用户查询 - GET  /platform/v1/users/retrieve
+2、角色查询 - GET  /platform/v1/roles/retrieve  参数有 all=Y
+3、全量菜单查询 - GET  /platform/v1/all-menus
+4、用户菜单查询 - GET  /platform/v1/users/umadmin/menus
+5、用户角色查询 - GET  /platform/v1/users/umadmin/roles
+6、角色菜单查询 - GET  /platform/v1/roles/2c9280836f78a84b016f794cd6dd0001/menus
+7、角色用户查询 - GET  /platform/v1/roles/2c9280836f78a84b016f794cd6dd0001/users
+8、修改用户角色列表 - POST  /platform/v1/users/2c9380827665dfc8017669470b310000/roles/grant
+9、重置用户密码 - POST  /platform/v1/users/reset-password  {"username":"test"}
+10、删除用户 - DELETE  /platform/v1/users/2c9380827665dfc8017669470b310000/delete
+11、更新角色信息 - POST  /platform/v1/roles/2c9280836f78a84b016f795068870007/update
+12、角色增加用户 - POST /platform/v1/roles/2c9280836f78a84b016f794ff45e0006/users/grant  参数 [要增加的用户id]
+13、角色移除用户 - DELETE  /platform/v1/roles/2c9280836f78a84b016f794ff45e0006/users/revoke  参数 [要移除的用户id]
+14、更新角色菜单 - POST  /platform/v1/roles/2c9280836f78a84b016f794ff45e0006/menus 参数 [菜单id]
+15、用户所属角色查询 GET  /platform/v1/users/roles
+
+授权管理界面
+1、授权列表查询 - GET  /platform/v1/plugin-certifications
+2、授权文件导出 - GET  /platform/v1/plugin-certifications/sGuIbnpR2ERz/export  Content-Disposition:attachment;filename=cmdb-20231121.WeLic  Content-Type:application/octet-stream
+3、删除授权文件 - DELETE  /platform/v1/plugin-certifications/sGuIbnpR2ERz
+4、授权文件导入 - POST /platform/v1/plugin-certifications/import  接收文件 uploadFile
+
+批量执行
+
+任务编排
+1、编排列表查询 - GET  /platform/v1/process/definitions?permission=MGMT
+2、编排明细查询 - GET  /platform/v1/process/definitions/tI9PBizL2Y87/detail
+3、编排权限角色查询 - GET  /platform/v1/process/tI9PBizL2Y87/roles
+4、编排权限保存 - POST  /platform/v1/process/tI9PBizL2Y87/roles  {"permissionToRole":{"MGMT":["APP_ARC","SUPER_ADMIN","PRD_OPS","CMDB_ADMIN"],"USE":["PRD_OPS","SUPER_ADMIN","SUB_SYSTEM"]}}
+...
+
+编排执行
+
+编排执行报表
+
+
+
+
+
