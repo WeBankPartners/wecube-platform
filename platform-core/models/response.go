@@ -12,23 +12,14 @@ type ResponsePageData struct {
 }
 
 type ResponseJson struct {
-	StatusCode string      `json:"statusCode"`
-	Data       interface{} `json:"data"`
-}
-
-type ResponseErrorObj struct {
-	ErrorMessage string `json:"errorMessage"`
-}
-
-type ResponseErrorJson struct {
-	StatusCode    string      `json:"statusCode"`
-	StatusMessage string      `json:"statusMessage"`
-	Data          interface{} `json:"data"`
+	HttpResponseMeta
+	Data interface{} `json:"data"`
 }
 
 type HttpResponseMeta struct {
-	StatusCode    string `json:"statusCode"`
-	StatusMessage string `json:"statusMessage"`
+	Code    int    `json:"code"`
+	Status  string `json:"status"`
+	Message string `json:"message"`
 }
 
 type SysLogTable struct {
