@@ -7,7 +7,7 @@ import (
 )
 
 type RouteItemInfoDto struct {
-	Sontext        string `json:"sontext"`
+	Context        string `json:"context"`
 	HttpMethod     string `json:"httpMethod"`
 	Path           string `json:"path"`
 	HttpScheme     string `json:"httpScheme"`
