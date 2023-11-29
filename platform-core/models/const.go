@@ -20,6 +20,7 @@ const (
 	ContextAuth         = "auth"
 	ContextAuthorities  = "authorities"
 	ContextErrorCode    = "errorCode"
+	ContextErrorKey     = "errorKey"
 	ContextErrorMessage = "errorMessage"
 	ContextUserId       = "userId"
 
