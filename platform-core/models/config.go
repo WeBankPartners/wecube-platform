@@ -46,6 +46,7 @@ type AuthConfig struct {
 }
 
 type GlobalConfig struct {
+	Version         string            `json:"version"`
 	DefaultLanguage string            `json:"default_language"`
 	HttpServer      *HttpServerConfig `json:"http_server"`
 	Log             *LogConfig        `json:"log"`

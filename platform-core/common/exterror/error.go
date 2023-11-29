@@ -3,12 +3,14 @@ package exterror
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/WeBankPartners/wecube-platform/platform-core/models"
 	"io/ioutil"
 	"reflect"
 	"strings"
 )
 
 type CustomError struct {
+	Key           string        `json:"key"`           // 错误编码
 	PassEnable    bool          `json:"passEnable"`    // 透传其它服务报错，不用映射
 	Code          int           `json:"code"`          // 错误码
 	Message       string        `json:"message"`       // 错误信息模版
@@ -22,6 +24,7 @@ func (c CustomError) Error() string {
 
 type ErrorTemplate struct {
 	CodeMessageMap map[int]string `json:"-"`
+	CodeKeyMap     map[int]string `json:"-"`
 
 	Language string `json:"language"`
 	Success  string `json:"success"`
@@ -69,12 +72,14 @@ func InitErrorTemplateList(dirPath string, detailReturn bool) (err error) {
 		}
 		tmpErrorTemplate.Language = strings.Replace(v.Name(), ".json", "", -1)
 		tmpErrorTemplate.CodeMessageMap = make(map[int]string)
+		tmpErrorTemplate.CodeKeyMap = make(map[int]string)
 		tmpRt := reflect.TypeOf(tmpErrorTemplate)
 		tmpVt := reflect.ValueOf(tmpErrorTemplate)
 		for i := 0; i < tmpRt.NumField(); i++ {
 			if tmpRt.Field(i).Type.Name() == "CustomError" {
 				tmpC := tmpVt.Field(i).Interface().(CustomError)
 				tmpErrorTemplate.CodeMessageMap[tmpC.Code] = tmpC.Message
+				tmpErrorTemplate.CodeKeyMap[tmpC.Code] = tmpRt.Field(i).Tag.Get("json")
 			}
 		}
 		TemplateList = append(TemplateList, &tmpErrorTemplate)
@@ -98,10 +103,10 @@ func Catch(customErr CustomError, err error) CustomError {
 	return customErr
 }
 
-func GetErrorResult(headerLanguage string, err error, defaultErrorCode int) (errorCode int, errorMessage string) {
+func GetErrorResult(headerLanguage string, err error, defaultErrorCode int) (errorCode int, errorKey, errorMessage string) {
 	customErr, b := err.(CustomError)
 	if !b {
-		return defaultErrorCode, err.Error()
+		return defaultErrorCode, models.DefaultHttpErrorCode, err.Error()
 	} else {
 		errorCode = customErr.Code
 		if headerLanguage == "" || customErr.PassEnable {
@@ -121,6 +126,7 @@ func GetErrorResult(headerLanguage string, err error, defaultErrorCode int) (err
 				if template.Language == lang {
 					if message, exist := template.CodeMessageMap[errorCode]; exist {
 						errorMessage = buildErrMessage(message, customErr.MessageParams)
+						errorKey = template.CodeKeyMap[errorCode]
 					}
 					break
 				}

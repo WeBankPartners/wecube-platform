@@ -9,44 +9,36 @@ import (
 	"net/http"
 )
 
-func ReturnPageData(c *gin.Context, pageInfo models.PageInfo, contents interface{}) {
-	if contents == nil {
-		contents = []string{}
-	}
-	obj := models.ResponseJson{StatusCode: models.DefaultHttpSuccessCode, Data: models.ResponsePageData{PageInfo: pageInfo, Contents: contents}}
-	bodyBytes, _ := json.Marshal(obj)
-	c.Set(models.ContextResponseBody, string(bodyBytes))
-	c.JSON(http.StatusOK, obj)
-}
-
-func ReturnEmptyPageData(c *gin.Context) {
-	c.JSON(http.StatusOK, models.ResponseJson{StatusCode: models.DefaultHttpSuccessCode, Data: models.ResponsePageData{PageInfo: models.PageInfo{StartIndex: 0, PageSize: 0, TotalRows: 0}, Contents: []string{}}})
-}
-
 func ReturnData(c *gin.Context, data interface{}) {
-	if data == nil {
-		data = []string{}
+	returnObj := models.ResponseJson{HttpResponseMeta: models.HttpResponseMeta{Code: 0, Status: models.DefaultHttpSuccessCode}, Data: data}
+	if log.DebugEnable {
+		bodyBytes, _ := json.Marshal(returnObj)
+		c.Set(models.ContextResponseBody, string(bodyBytes))
 	}
-	obj := models.ResponseJson{StatusCode: models.DefaultHttpSuccessCode, Data: data}
-	bodyBytes, _ := json.Marshal(obj)
-	c.Set(models.ContextResponseBody, string(bodyBytes))
-	c.JSON(http.StatusOK, obj)
+	c.Set(models.ContextErrorCode, 0)
+	c.Set(models.ContextErrorKey, models.DefaultHttpSuccessCode)
+	c.JSON(http.StatusOK, returnObj)
 }
 
 func ReturnSuccess(c *gin.Context) {
-	c.Set(models.ContextResponseBody, "{\"statusCode\":\"OK\",\"data\":[]}")
-	c.JSON(http.StatusOK, models.ResponseJson{StatusCode: models.DefaultHttpSuccessCode, Data: []string{}})
+	ReturnData(c, nil)
 }
 
-func ReturnError(c *gin.Context, statusCode, statusMessage string, data interface{}) {
-	if data == nil {
-		data = []string{}
+func ReturnError(c *gin.Context, err error) {
+	errorCode, errorKey, errorMessage := exterror.GetErrorResult(c.GetHeader("Accept-Language"), err, -1)
+	if !exterror.IsBusinessErrorCode(errorCode) {
+		log.Logger.Error("systemError", log.Int("errorCode", errorCode), log.String("message", errorMessage), log.Error(err))
 	}
-	log.Logger.Error("Handle error", log.String("statusCode", statusCode), log.String("message", statusMessage))
-	obj := models.ResponseErrorJson{StatusCode: statusCode, StatusMessage: statusMessage, Data: data}
-	bodyBytes, _ := json.Marshal(obj)
-	c.Set(models.ContextResponseBody, string(bodyBytes))
-	c.JSON(http.StatusOK, obj)
+	log.Logger.Error("Return error", log.Int("errorCode", errorCode), log.String("message", errorMessage), log.Error(err))
+	returnObj := models.HttpResponseMeta{Code: errorCode, Status: errorKey, Message: errorMessage}
+	if log.DebugEnable {
+		bodyBytes, _ := json.Marshal(returnObj)
+		c.Set(models.ContextResponseBody, string(bodyBytes))
+	}
+	c.Set(models.ContextErrorKey, errorKey)
+	c.Set(models.ContextErrorCode, errorCode)
+	c.Set(models.ContextErrorMessage, errorMessage)
+	c.JSON(http.StatusOK, returnObj)
 }
 
 func InitHttpError() {
