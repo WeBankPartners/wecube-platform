@@ -1,8 +1,14 @@
 package service
 
 import (
+	"github.com/WeBankPartners/wecube-platform/platform-gateway/common/constant"
+	"github.com/WeBankPartners/wecube-platform/platform-gateway/common/log"
+	"github.com/WeBankPartners/wecube-platform/platform-gateway/service/remote_route_config"
+	"sync"
 	"time"
 )
+
+var dynamicRouteHolder DynamicRouteItemInfoHolder
 
 type HttpDestination struct {
 	Scheme           string
@@ -42,7 +48,16 @@ type MvcHttpMethodAndPathConfig struct {
 	Disabled             bool
 	Version              int
 	HttpDestinations     []*HttpDestination
-	MvcHttpMethodAndPath MvcHttpMethodAndPath
+	MvcHttpMethodAndPath *MvcHttpMethodAndPath
+}
+
+func CreateMvcHttpMethodAndPathConfig(mvcHttpMethodAndPath *MvcHttpMethodAndPath) *MvcHttpMethodAndPathConfig {
+	m := &MvcHttpMethodAndPathConfig{
+		MvcHttpMethodAndPath: mvcHttpMethodAndPath,
+		CreatedTime:          time.Now(),
+		LastModifiedTime:     time.Now(),
+	}
+	return m
 }
 
 func (m *MvcHttpMethodAndPathConfig) FindHttpDestination(criteria *HttpDestination) *HttpDestination {
@@ -98,6 +113,15 @@ func ArrayRemove[T *HttpDestination](arr1 []T, arr2 []T) []T {
 	return result
 }
 
+func (m *MvcHttpMethodAndPathConfig) SetVersion(version int) {
+	m.Version = version
+	m.SetLastModifiedTime()
+}
+
+func (m *MvcHttpMethodAndPathConfig) SetLastModifiedTime() {
+	m.LastModifiedTime = time.Now()
+}
+
 func (m *MvcHttpMethodAndPathConfig) CleanOutdatedHttpDestination() {
 	toRemove := make([]*HttpDestination, 0)
 	for _, d := range m.HttpDestinations {
@@ -110,5 +134,193 @@ func (m *MvcHttpMethodAndPathConfig) CleanOutdatedHttpDestination() {
 }
 
 type MvcContextRouteConfig struct {
-	context string
+	context                 string
+	mvcPathRouteConfigs     sync.Map
+	defaultHttpDestinations []*HttpDestination
+	createdTime             time.Time
+	lastModifiedTime        time.Time
+	disabled                bool
+	version                 int
+}
+
+func (c *MvcContextRouteConfig) SetVersion(version int) {
+	c.version = version
+	c.SetLastModifiedTime()
+}
+
+func (c *MvcContextRouteConfig) SetLastModifiedTime() {
+	c.lastModifiedTime = time.Now()
+}
+
+func (c *MvcContextRouteConfig) FindDefaultHttpDestination(criteria *HttpDestination) *HttpDestination {
+	if criteria == nil {
+		return nil
+	}
+
+	for _, h := range c.defaultHttpDestinations {
+		if h.Equals(criteria) {
+			return h
+		}
+	}
+	return nil
+}
+
+func (c *MvcContextRouteConfig) TryAddDefaultHttpDestination(httpDestination *HttpDestination) bool {
+	if httpDestination == nil {
+		return false
+	}
+
+	exist := c.FindDefaultHttpDestination(httpDestination)
+	if exist == nil {
+		exist = &HttpDestination{
+			Scheme: httpDestination.Scheme,
+			Host:   httpDestination.Host,
+			Port:   httpDestination.Port,
+		}
+		c.defaultHttpDestinations = append(c.defaultHttpDestinations, exist)
+	}
+
+	exist.SetWeight(httpDestination.Weight)
+	exist.SetVersion(httpDestination.Version)
+
+	c.SetLastModifiedTime()
+	return true
+}
+
+func (c *MvcContextRouteConfig) CleanOutdatedHttpDestinations() {
+	toRemoves := make([]*HttpDestination, 0)
+	for _, h := range c.defaultHttpDestinations {
+		if h.Version < c.version {
+			toRemoves = append(toRemoves, h)
+		}
+	}
+
+	c.defaultHttpDestinations = ArrayRemove(c.defaultHttpDestinations, toRemoves)
+	c.SetLastModifiedTime()
+}
+
+func (c *MvcContextRouteConfig) CleanOutdatedMvcPathRouteConfigs() {
+	outDatedConfigs := make([]*MvcHttpMethodAndPath, 0)
+
+	c.mvcPathRouteConfigs.Range(func(key, value interface{}) bool {
+		path := key.(*MvcHttpMethodAndPath)
+		config := value.(*MvcHttpMethodAndPathConfig)
+		if config.Version < c.version {
+			outDatedConfigs = append(outDatedConfigs, path)
+		}
+		return true // Return true to continue iterating, or false to stop
+	})
+
+	for _, path := range outDatedConfigs {
+		c.mvcPathRouteConfigs.Delete(path)
+	}
+	c.SetLastModifiedTime()
+}
+
+func (c *MvcContextRouteConfig) cleanOutdated() {
+	c.mvcPathRouteConfigs.Range(func(key, value interface{}) bool {
+		config := value.(*MvcHttpMethodAndPathConfig)
+		config.CleanOutdatedHttpDestination()
+		return true // Return true to continue iterating, or false to stop
+	})
+
+	c.CleanOutdatedHttpDestinations()
+	c.CleanOutdatedMvcPathRouteConfigs()
+}
+
+func (c *MvcContextRouteConfig) doAddMvcHttpMethodAndPathConfig(mvcHttpMethodAndPath *MvcHttpMethodAndPath,
+	httpDestination *HttpDestination) {
+	if mvcHttpMethodAndPath == nil || httpDestination == nil {
+		return
+	}
+	var existConfig *MvcHttpMethodAndPathConfig
+	val, _ := c.mvcPathRouteConfigs.Load(mvcHttpMethodAndPath)
+	if val == nil {
+		existConfig = CreateMvcHttpMethodAndPathConfig(mvcHttpMethodAndPath)
+		c.mvcPathRouteConfigs.Store(mvcHttpMethodAndPath, existConfig)
+	} else {
+		existConfig = val.(*MvcHttpMethodAndPathConfig)
+	}
+	existConfig.SetVersion(c.version)
+	existConfig.TryAddHttpDestination(httpDestination)
+	c.SetLastModifiedTime()
+}
+
+func (c *MvcContextRouteConfig) tryAddMvcHttpMethodAndPathConfig(mvcPath string, httpMethod string, httpDestination *HttpDestination) {
+	if len(mvcPath) == 0 || httpDestination == nil || len(httpMethod) == 0 {
+		return
+	}
+	mvcHttpMethodAndPath := &MvcHttpMethodAndPath{
+		HttpMethod: httpMethod,
+		Path:       mvcPath,
+	}
+	c.doAddMvcHttpMethodAndPathConfig(mvcHttpMethodAndPath, httpDestination)
+}
+
+func (c *MvcContextRouteConfig) tryAddMvcHttpMethodAndPathConfig2(mvcPath string, httpDestination *HttpDestination) {
+	if len(mvcPath) == 0 || httpDestination == nil {
+		return
+	}
+
+	for _, httpMethod := range constant.HttpMethods {
+		mvcHttpMethodAndPath := &MvcHttpMethodAndPath{
+			HttpMethod: httpMethod,
+			Path:       mvcPath,
+		}
+		c.doAddMvcHttpMethodAndPathConfig(mvcHttpMethodAndPath, httpDestination)
+	}
+}
+
+func (c *MvcContextRouteConfig) findByMvcHttpMethodAndPath(httpMethod string, path string) *MvcHttpMethodAndPathConfig {
+	if len(httpMethod) == 0 || len(path) == 0 {
+		return nil
+	}
+
+	val, _ := c.mvcPathRouteConfigs.Load(&MvcHttpMethodAndPath{
+		HttpMethod: httpMethod,
+		Path:       path,
+	})
+	if val != nil {
+		return val.(*MvcHttpMethodAndPathConfig)
+	} else {
+		return nil
+	}
+}
+
+func CreateMvcContextRouteConfig(context string) *MvcContextRouteConfig {
+	return &MvcContextRouteConfig{
+		context:          context,
+		createdTime:      time.Now(),
+		lastModifiedTime: time.Now(),
+	}
+}
+
+type DynamicRouteConfigurationService struct {
+	isDynamicRouteLoaded  bool
+	isDynamicRouteLoading bool
+	loadLock              sync.Mutex
+	refreshLock           sync.Mutex
+}
+
+func (s DynamicRouteConfigurationService) RefreshRoutes() {
+	if !s.isDynamicRouteLoaded {
+		return
+	}
+
+	s.refreshLock.Lock()
+	defer s.refreshLock.Unlock()
+
+}
+
+func (s DynamicRouteConfigurationService) doRefreshRoutes() {
+	log.Logger.Info("About to fetch route item")
+	routeItems, err := remote_route_config.FetchAllRouteItemsWithRestClient()
+	if err != nil {
+		log.Logger.Error("failed to fetch all route items", log.Error(err))
+		return
+	}
+}
+
+func (s DynamicRouteConfigurationService) handleRefreshRouteConfigInfoResponse() {
+
 }
