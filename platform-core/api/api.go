@@ -103,8 +103,8 @@ func recoverHandle(c *gin.Context, err interface{}) {
 	if err != nil {
 		errorMessage = err.(error).Error()
 	}
-	log.Logger.Error("Handle error", log.Int("errorCode", 1), log.String("message", errorMessage))
-	c.JSON(http.StatusInternalServerError, models.ResponseJson{StatusCode: models.DefaultHttpErrorCode})
+	log.Logger.Error("Handle recover error", log.Int("code", -2), log.String("message", errorMessage))
+	c.JSON(http.StatusInternalServerError, models.HttpResponseMeta{Code: -2, Status: models.DefaultHttpErrorCode})
 }
 
 // @Summary 健康检查
@@ -115,7 +115,7 @@ func recoverHandle(c *gin.Context, err interface{}) {
 // @Router /health-check [get]
 func healthCheck(c *gin.Context) {
 	if err := db.CheckDbConnection(); err != nil {
-		c.JSON(http.StatusInternalServerError, models.HttpResponseMeta{StatusCode: models.DefaultHttpErrorCode, StatusMessage: err.Error()})
+		c.JSON(http.StatusInternalServerError, models.HttpResponseMeta{Status: models.DefaultHttpErrorCode, Message: err.Error()})
 	} else {
 		middleware.ReturnSuccess(c)
 	}
