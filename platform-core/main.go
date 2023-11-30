@@ -10,7 +10,7 @@ import (
 )
 
 func main() {
-	configFile := flag.String("c", "conf/default.json", "config file path")
+	configFile := flag.String("c", "config/default.json", "config file path")
 	flag.Parse()
 	if initConfigMessage := models.InitConfig(*configFile); initConfigMessage != "" {
 		fmt.Printf("Init config file error,%s \n", initConfigMessage)
