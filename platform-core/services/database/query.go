@@ -1,10 +1,13 @@
 package database
 
 import (
+	"context"
 	"fmt"
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/db"
+	"github.com/WeBankPartners/wecube-platform/platform-core/common/log"
 	"github.com/WeBankPartners/wecube-platform/platform-core/models"
 	"reflect"
+	"strconv"
 	"strings"
 )
 
@@ -116,4 +119,25 @@ func getJsonToXormMap(input interface{}) (resultMap map[string]string, idKeyName
 		}
 	}
 	return resultMap, idKeyName
+}
+
+func queryCount(ctx context.Context, sql string, params ...interface{}) int {
+	resultMap := make(map[string]interface{})
+	_, err := db.MysqlEngine.Context(ctx).SQL(db.CombineDBSql("SELECT COUNT(1) FROM ( ", sql, " ) sub_query"), params...).Get(&resultMap)
+	if err != nil {
+		log.Logger.Error("Query sql count message fail", log.Error(err))
+		return 0
+	}
+	if countV, b := resultMap["COUNT(1)"]; b {
+		countIntV, _ := strconv.Atoi(fmt.Sprintf("%d", countV))
+		return countIntV
+	}
+	return 0
+}
+
+func transPageInfoToSQL(pageInfo models.PageInfo) (pageSql string, param []interface{}) {
+	pageSql = " LIMIT ?,? "
+	param = append(param, pageInfo.StartIndex)
+	param = append(param, (pageInfo.StartIndex+1)*pageInfo.PageSize)
+	return
 }
