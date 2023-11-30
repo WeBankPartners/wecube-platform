@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/WeBankPartners/go-common-lib/guid"
 	"github.com/WeBankPartners/wecube-platform/platform-core/api/middleware"
+	"github.com/WeBankPartners/wecube-platform/platform-core/api/v1/system"
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/db"
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/log"
 	"github.com/WeBankPartners/wecube-platform/platform-core/models"
@@ -32,6 +33,23 @@ func init() {
 	httpHandlerFuncList = append(httpHandlerFuncList,
 		// health check
 		&handlerFuncObj{Url: "/health-check", Method: "GET", HandlerFunc: healthCheck, ApiCode: "health"},
+		// system-variable
+		&handlerFuncObj{Url: "/system-variables/retrieve", Method: "POST", HandlerFunc: system.QuerySystemVariables, ApiCode: "query-system-variables"},
+		&handlerFuncObj{Url: "/system-variables/create", Method: "POST", HandlerFunc: system.CreateSystemVariable, ApiCode: "create-system-variables"},
+		&handlerFuncObj{Url: "/system-variables/update", Method: "POST", HandlerFunc: system.UpdateSystemVariable, ApiCode: "update-system-variables"},
+		&handlerFuncObj{Url: "/system-variables/delete", Method: "POST", HandlerFunc: system.DeleteSystemVariable, ApiCode: "delete-system-variables"},
+		// resource
+		&handlerFuncObj{Url: "/resource/constants/resource-server-status", Method: "GET", HandlerFunc: system.GetResourceServerStatus, ApiCode: "get-resource-server-status"},
+		&handlerFuncObj{Url: "/resource/constants/resource-server-types", Method: "GET", HandlerFunc: system.GetResourceServerTypes, ApiCode: "get-resource-server-types"},
+		&handlerFuncObj{Url: "/resource/constants/resource-item-status", Method: "GET", HandlerFunc: system.GetResourceItemStatus, ApiCode: "get-resource-item-status"},
+		&handlerFuncObj{Url: "/resource/constants/resource-item-types", Method: "GET", HandlerFunc: system.GetResourceItemTypes, ApiCode: "get-resource-item-types"},
+		&handlerFuncObj{Url: "/resource/servers/retrieve", Method: "POST", HandlerFunc: system.QueryResourceServer, ApiCode: "query-resource-server"},
+		&handlerFuncObj{Url: "/resource/items/retrieve", Method: "POST", HandlerFunc: system.QueryResourceItem, ApiCode: "query-resource-item"},
+		&handlerFuncObj{Url: "/resource/servers/create", Method: "POST", HandlerFunc: system.CreateResourceServer, ApiCode: "create-resource-server"},
+		&handlerFuncObj{Url: "/resource/servers/update", Method: "POST", HandlerFunc: system.UpdateResourceServer, ApiCode: "update-resource-server"},
+		&handlerFuncObj{Url: "/resource/servers/delete", Method: "POST", HandlerFunc: system.DeleteResourceServer, ApiCode: "delete-resource-server"},
+		&handlerFuncObj{Url: "/resource/servers/delete", Method: "POST", HandlerFunc: system.DeleteResourceServer, ApiCode: "delete-resource-server"},
+		&handlerFuncObj{Url: "/resource/servers/:resourceServerId/product-serial", Method: "GET", HandlerFunc: system.GetResourceServerSerialNum, ApiCode: "get-serial-num"},
 	)
 }
 
@@ -43,7 +61,7 @@ func InitHttpServer() {
 	// recover
 	r.Use(gin.CustomRecovery(recoverHandle))
 	// register handler func with auth
-	authRouter := r.Group(models.GlobalProjectName, middleware.AuthToken)
+	authRouter := r.Group(models.UrlPrefix, middleware.AuthToken)
 	for _, funcObj := range httpHandlerFuncList {
 		apiCodeMap[fmt.Sprintf("%s_%s", funcObj.Method, funcObj.Url)] = funcObj.ApiCode
 		handleFuncList := []gin.HandlerFunc{funcObj.HandlerFunc}

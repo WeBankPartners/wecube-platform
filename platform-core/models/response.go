@@ -17,7 +17,7 @@ type ResponseJson struct {
 }
 
 type HttpResponseMeta struct {
-	Code    int    `json:"code"`
+	Code    int    `json:"-"`
 	Status  string `json:"status"`
 	Message string `json:"message"`
 }

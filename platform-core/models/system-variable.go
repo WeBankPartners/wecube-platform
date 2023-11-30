@@ -1,12 +1,17 @@
 package models
 
 type SystemVariables struct {
-	Id           string `json:"Id" xorm:"id"`                      // 唯一标识
-	PackageName  string `json:"PackageName" xorm:"package_name"`   // 包名
-	Name         string `json:"Name" xorm:"name"`                  // 变量名
-	Value        string `json:"Value" xorm:"value"`                // 变量值
-	DefaultValue string `json:"DefaultValue" xorm:"default_value"` // 默认值
-	Scope        string `json:"Scope" xorm:"scope"`                // 作用范围
-	Source       string `json:"Source" xorm:"source"`              // 来源
-	Status       string `json:"Status" xorm:"status"`              // 状态
+	Id           string `json:"id" xorm:"id"`                      // 唯一标识
+	PackageName  string `json:"packageName" xorm:"package_name"`   // 包名
+	Name         string `json:"name" xorm:"name"`                  // 变量名
+	Value        string `json:"value" xorm:"value"`                // 变量值
+	DefaultValue string `json:"defaultValue" xorm:"default_value"` // 默认值
+	Scope        string `json:"scope" xorm:"scope"`                // 作用范围
+	Source       string `json:"source" xorm:"source"`              // 来源
+	Status       string `json:"status" xorm:"status"`              // 状态
+}
+
+type SystemVariablesListPageData struct {
+	PageInfo *PageInfo          `json:"pageInfo"` // 分页信息
+	Contents []*SystemVariables `json:"contents"` // 列表内容
 }

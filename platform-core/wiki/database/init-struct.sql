@@ -54,6 +54,7 @@ CREATE TABLE `menu_items` (
       `description` varchar(255) DEFAULT NULL COMMENT '描述',
       `local_display_name` varchar(255) DEFAULT NULL COMMENT '显示名',
       `menu_order` int(11) NOT NULL AUTO_INCREMENT COMMENT '菜单排序',
+      KEY (`menu_order`),
       PRIMARY KEY (`id`),
       UNIQUE KEY `uk_code` (`code`),
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
