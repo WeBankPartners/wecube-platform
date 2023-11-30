@@ -40,3 +40,4 @@ bin/
 **/a.json
 
 platform-core/platform-core
+platform-core/logs
