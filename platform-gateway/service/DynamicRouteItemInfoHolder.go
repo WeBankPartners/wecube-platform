@@ -1,7 +1,7 @@
 package service
 
 import (
-	"github.com/WeBankPartners/wecube-platform/platform-gateway/service/remote_route_config"
+	"github.com/WeBankPartners/wecube-platform/platform-gateway/model"
 	"strconv"
 	"sync"
 )
@@ -18,7 +18,8 @@ type DynamicRouteItemInfo struct {
 	Weight     int
 }
 
-func (d *DynamicRouteItemInfo) FromRemoteItem(dto remote_route_config.RouteItemInfoDto) {
+func ConvertRouteItem(dto *model.RouteItemInfoDto) *DynamicRouteItemInfo {
+	d := DynamicRouteItemInfo{}
 	d.Host = dto.Host
 	d.Path = dto.Path
 	d.HttpMethod = dto.HttpMethod
@@ -28,6 +29,7 @@ func (d *DynamicRouteItemInfo) FromRemoteItem(dto remote_route_config.RouteItemI
 	d.Port = port
 	weight, _ := strconv.Atoi(dto.Weight)
 	d.Weight = weight
+	return &d
 }
 
 type DynamicRouteItemInfoHolder struct {
@@ -172,4 +174,13 @@ func (h *DynamicRouteItemInfoHolder) getMvcContextRouteConfig(context string) *M
 		return val.(*MvcContextRouteConfig)
 	}
 	return nil
+}
+
+func (h *DynamicRouteItemInfoHolder) routeConfigs() []*MvcContextRouteConfig {
+	values := make([]*MvcContextRouteConfig, 0)
+	h.mvcContextRouteConfigs.Range(func(key, value interface{}) bool {
+		values = append(values, value.(*MvcContextRouteConfig))
+		return true // Return true to continue iterating, or false to stop
+	})
+	return values
 }
