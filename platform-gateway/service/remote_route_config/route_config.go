@@ -6,26 +6,13 @@ import (
 	"net/http"
 )
 
-type RouteItemInfoDto struct {
-	Context        string `json:"context"`
-	HttpMethod     string `json:"httpMethod"`
-	Path           string `json:"path"`
-	HttpScheme     string `json:"httpScheme"`
-	Host           string `json:"host"`
-	Port           string `json:"port"`
-	Weight         string `json:"weight"`
-	CreateTime     int    `json:"createTime"`
-	LastModifyTime int    `json:"lastModifyTime"`
-	Available      bool   `json:"available"`
-}
-
-func FetchAllRouteItemsWithRestClient() ([]RouteItemInfoDto, error) {
+func FetchAllRouteItemsWithRestClient() ([]*model.RouteItemInfoDto, error) {
 	log.Logger.Info("calling route config server to fetch all route items")
 	serviceDef := RemoteServiceInvoke{
 		Url:    model.Config.Remote.RouteConfigAddress,
 		Method: http.MethodGet,
 	}
-	var remoteResult []RouteItemInfoDto
+	var remoteResult []*model.RouteItemInfoDto
 	if err := Execute(serviceDef, nil, &remoteResult); err != nil {
 		log.Logger.Error("failed to route config server to fetch all route items", log.JsonObj("serviceDef", serviceDef))
 		return nil, err
