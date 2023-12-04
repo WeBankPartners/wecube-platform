@@ -1,14 +1,21 @@
 package service
 
 import (
+	"fmt"
+	"github.com/WeBankPartners/wecube-platform/platform-gateway/api/middleware"
 	"github.com/WeBankPartners/wecube-platform/platform-gateway/common/constant"
 	"github.com/WeBankPartners/wecube-platform/platform-gateway/common/log"
+	"github.com/WeBankPartners/wecube-platform/platform-gateway/model"
 	"github.com/WeBankPartners/wecube-platform/platform-gateway/service/remote_route_config"
+	"strconv"
 	"sync"
 	"time"
 )
 
-var dynamicRouteHolder DynamicRouteItemInfoHolder
+const ROUTE_ID_SUFFIX = "#1"
+
+var dynamicRouteHolderInstance DynamicRouteItemInfoHolder
+var dynamicRouteConfigServiceInstance DynamicRouteConfigurationService
 
 type HttpDestination struct {
 	Scheme           string
@@ -300,27 +307,122 @@ type DynamicRouteConfigurationService struct {
 	isDynamicRouteLoading bool
 	loadLock              sync.Mutex
 	refreshLock           sync.Mutex
+	loadedContexts        sync.Map
 }
 
-func (s DynamicRouteConfigurationService) RefreshRoutes() {
-	if !s.isDynamicRouteLoaded {
+func RefreshRoutes() {
+	if !dynamicRouteConfigServiceInstance.isDynamicRouteLoaded {
 		return
 	}
 
-	s.refreshLock.Lock()
-	defer s.refreshLock.Unlock()
+	dynamicRouteConfigServiceInstance.refreshLock.Lock()
+	defer dynamicRouteConfigServiceInstance.refreshLock.Unlock()
 
 }
 
-func (s DynamicRouteConfigurationService) doRefreshRoutes() {
+func doRefreshRoutes() {
 	log.Logger.Info("About to fetch route item")
 	routeItems, err := remote_route_config.FetchAllRouteItemsWithRestClient()
 	if err != nil {
 		log.Logger.Error("failed to fetch all route items", log.Error(err))
 		return
 	}
+	handleRefreshRouteConfigInfoResponse(routeItems)
 }
 
-func (s DynamicRouteConfigurationService) handleRefreshRouteConfigInfoResponse() {
+func refreshAllLoadedContexts() {
 
+}
+
+func initContextRouteConfigs() {
+	count := 0
+	//TODO
+	//refreshAllLoadedContexts();
+
+	contextRouteConfigs := dynamicRouteHolderInstance.routeConfigs()
+
+	for _, contextRouteConfig := range contextRouteConfigs {
+		_, ok := dynamicRouteConfigServiceInstance.loadedContexts.Load(contextRouteConfig.context + ROUTE_ID_SUFFIX)
+		if ok {
+			log.Logger.Debug("context route is already loaded ", log.String("context", contextRouteConfig.context))
+			continue
+		}
+
+		if initContextRouteConfig(contextRouteConfig) {
+			count++
+		}
+	}
+	log.Logger.Debug(fmt.Sprint("add %v route definitions", count))
+}
+
+func initContextRouteConfig(contextRouteConfig *MvcContextRouteConfig) bool {
+	defaultHttpDestinations := contextRouteConfig.defaultHttpDestinations
+	if len(defaultHttpDestinations) == 0 {
+		log.Logger.Warn("Cannot find default http destination for " + contextRouteConfig.context)
+		return false
+	}
+
+	targetHttpDestination := defaultHttpDestinations[0]
+
+	itemInfo := DynamicRouteItemInfo{
+		Context:    contextRouteConfig.context,
+		Host:       targetHttpDestination.Host,
+		Port:       targetHttpDestination.Port,
+		HttpScheme: targetHttpDestination.Scheme,
+	}
+	buildRouteDefinition(contextRouteConfig.context, &itemInfo)
+	return true
+}
+
+func buildRouteDefinition(context string, itemInfo *DynamicRouteItemInfo) {
+	urlStr := fmt.Sprintf("%s://%s:%d", itemInfo.HttpScheme, itemInfo.Host, itemInfo.Port)
+	redirectRule := middleware.RedirectRule{
+		Context:    itemInfo.Context,
+		TargetPath: urlStr,
+		HttpScheme: itemInfo.HttpScheme,
+		Host:       itemInfo.Host,
+		Port:       strconv.Itoa(itemInfo.Port),
+	}
+	middleware.AddRedirectRule(redirectRule)
+}
+
+func handleRefreshRouteConfigInfoResponse(routeItemDtos []*model.RouteItemInfoDto) {
+	routeItems := make([]*DynamicRouteItemInfo, len(routeItemDtos))
+	for i, remoteItem := range routeItemDtos {
+		routeItems[i] = ConvertRouteItem(remoteItem)
+	}
+
+	dynamicRouteHolderInstance.RefreshRoutes(routeItems)
+	initContextRouteConfigs()
+
+	outdatedMvcContextRouteConfigs := dynamicRouteHolderInstance.outdatedMvcContextRouteConfigs
+
+	for _, config := range outdatedMvcContextRouteConfigs {
+		contextRouteId := config.context + ROUTE_ID_SUFFIX
+		if _, ok := dynamicRouteConfigServiceInstance.loadedContexts.Load(contextRouteId); ok {
+			delete(contextRouteId)
+			log.Logger.Debug("outdated context route:" + contextRouteId)
+
+			dynamicRouteConfigServiceInstance.loadedContexts.Delete(contextRouteId)
+		}
+	}
+}
+
+func delete(id string) {
+
+}
+
+func ListAllContextRouteItems() []model.RouteItemInfoDto {
+	routeItems := make([]model.RouteItemInfoDto, 0)
+	redirectRules := middleware.GetAllRedirectRules()
+	for _, rrule := range redirectRules {
+		routeItem := model.RouteItemInfoDto{
+			Context:    rrule.Context,
+			HttpScheme: rrule.HttpScheme,
+			Host:       rrule.Host,
+			Port:       rrule.Port,
+		}
+		routeItems = append(routeItems, routeItem)
+	}
+	return routeItems
 }
