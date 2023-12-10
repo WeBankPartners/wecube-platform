@@ -39,6 +39,20 @@ type GlobalConfig struct {
 	Log      LogConfig           `json:"log"`
 	Database DatabaseConfig      `json:"database"`
 	Remote   RemoteServiceConfig `json:"remote_service"`
+	Auth     AuthConfig          `json:"auth"`
+}
+
+type AuthConfig struct {
+	PrivateKey string         `json:"private_key"`
+	PublicKey  string         `json:"public_key"`
+	JwtToken   JwtTokenConfig `json:"jwt_token"`
+}
+
+type JwtTokenConfig struct {
+	UserRefreshToken      int `json:"user_refresh_token"`
+	UserAccessToken       int `json:"user_access_token"`
+	SubSystemRefreshToken int `json:"sub_system_refresh_token"`
+	SubSystemAccessToken  int `json:"sub_system_access_token"`
 }
 
 var (
