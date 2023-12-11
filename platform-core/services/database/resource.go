@@ -73,3 +73,16 @@ func DeleteResourceServer(ctx context.Context, params []*models.ResourceServer) 
 	err = db.Transaction(actions, ctx)
 	return
 }
+
+func GetAvailableContainerHost() (availableHost []string, err error) {
+	var resourceServerRows []*models.ResourceServer
+	err = db.MysqlEngine.SQL("select host from resource_server where `type`='docker' and status='active'").Find(&resourceServerRows)
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
+		return
+	}
+	for _, v := range resourceServerRows {
+		availableHost = append(availableHost, v.Host)
+	}
+	return
+}
