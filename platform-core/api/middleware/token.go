@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/WeBankPartners/wecube-platform/platform-core/models"
 	"github.com/gin-gonic/gin"
+	"io"
 )
 
 func GetRequestUser(c *gin.Context) string {
@@ -42,4 +43,21 @@ func authRequest(c *gin.Context) error {
 	//c.Set(models.ContextUserId, authToken.User)
 	//c.Set(models.ContextRoles, authToken.Roles)
 	return nil
+}
+
+func ReadFormFile(c *gin.Context, fileKey string) (fileName string, fileBytes []byte, err error) {
+	file, getFileErr := c.FormFile(fileKey)
+	if getFileErr != nil {
+		err = getFileErr
+		return
+	}
+	fileName = file.Filename
+	fileHandler, openFileErr := file.Open()
+	if openFileErr != nil {
+		err = openFileErr
+		return
+	}
+	fileBytes, err = io.ReadAll(fileHandler)
+	fileHandler.Close()
+	return
 }
