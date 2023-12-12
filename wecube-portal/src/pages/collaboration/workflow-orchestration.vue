@@ -824,7 +824,7 @@ export default {
         }
         payload = {
           pkgName: pkg,
-          entityName: entity,
+          entityName: entity.split('#DMEOP#')[0],
           targetEntityFilterRule: index > 0 ? pathList[pathList.length - 1].slice(index) : ''
         }
       } else {
@@ -850,6 +850,7 @@ export default {
         }
       }
       payload.taskCategory = this.pluginForm.taskCategory
+      console.log(22, payload)
       const { status, data } = await getPluginsByTargetEntityFilterRule(payload)
       if (status === 'OK') {
         this.filteredPlugins = data
