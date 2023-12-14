@@ -37,7 +37,8 @@
     "vue-json-viewer": "^2.2.20",
     "vue-router": "^3.0.1",
     "webpack": "^4.29.6",
-    "xml2js": "^0.4.23"
+    "xml2js": "^0.4.23",
+    "@antv/g6": "^4.6.4"
   },
   "devDependencies": {
     "@babel/core": "^7.4.0",
