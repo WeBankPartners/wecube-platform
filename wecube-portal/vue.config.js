@@ -1,6 +1,6 @@
 const CompressionPlugin = require('compression-webpack-plugin')
 
-const baseURL = 'http://127.0.0.1:8080'
+const baseURL = 'http://106.52.160.142:19090/'
 
 module.exports = {
   devServer: {
@@ -19,12 +19,9 @@ module.exports = {
     const img = config.module.rule('images')
     img.uses.clear()
     // add the new one
-    img
-      .use('file-loader')
-      .loader('file-loader')
-      .options({
-        outputPath: 'img'
-      })
+    img.use('file-loader').loader('file-loader').options({
+      outputPath: 'img'
+    })
   },
   configureWebpack: config => {
     if (process.env.NODE_ENV === 'production') {
