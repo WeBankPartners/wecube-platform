@@ -1,8 +1,11 @@
 package plugin
 
 import (
+	"encoding/xml"
+	"fmt"
 	"github.com/WeBankPartners/wecube-platform/platform-core/api/middleware"
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/log"
+	"github.com/WeBankPartners/wecube-platform/platform-core/models"
 	"github.com/WeBankPartners/wecube-platform/platform-core/services/bash"
 	"github.com/WeBankPartners/wecube-platform/platform-core/services/database"
 	"github.com/gin-gonic/gin"
@@ -42,11 +45,80 @@ func UploadPackage(c *gin.Context) {
 			log.Logger.Error("Try to remove package upload tmp dir fail", log.String("tmpDir", tmpFileDir), log.Error(removeTmpDirErr))
 		}
 	}()
-
-	// 上传解压后的文件到s3
-
+	if err = bash.DecompressFile(tmpFilePath, ""); err != nil {
+		middleware.ReturnError(c, err)
+		return
+	}
+	packageFiles, readErr := bash.ListDirFiles(tmpFileDir)
+	if readErr != nil {
+		middleware.ReturnError(c, readErr)
+		return
+	}
 	// 解析xml文件
-
+	var registerFile, imageFile, uiFile, initSql, upgradeSql string
+	for _, v := range packageFiles {
+		if v == "register.xml" {
+			registerFile = v
+			continue
+		}
+		if v == "image.tar" {
+			imageFile = v
+			continue
+		}
+		if v == "ui.zip" {
+			uiFile = v
+			continue
+		}
+	}
+	if registerFile == "" || imageFile == "" {
+		middleware.ReturnError(c, fmt.Errorf("register xml and image tar can not empty"))
+		return
+	}
+	var registerConfig models.RegisterXML
+	registerConfigBytes, readRegisterConfigErr := os.ReadFile(fmt.Sprintf("%s/%s", tmpFileDir, registerFile))
+	if readRegisterConfigErr != nil {
+		middleware.ReturnError(c, fmt.Errorf("read register xml file fail,%s ", readRegisterConfigErr.Error()))
+		return
+	}
+	if err = xml.Unmarshal(registerConfigBytes, &registerConfig); err != nil {
+		middleware.ReturnError(c, fmt.Errorf("xml unmarshal regisger xml fail,%s ", err.Error()))
+		return
+	}
+	if registerConfig.ResourceDependencies.Mysql.InitFileName != "" {
+		initSql = registerConfig.ResourceDependencies.Mysql.InitFileName
+		upgradeSql = registerConfig.ResourceDependencies.Mysql.UpgradeFileName
+		if !bash.ListContains(packageFiles, initSql) {
+			middleware.ReturnError(c, fmt.Errorf("init sql file:%s can not find in package", initSql))
+			return
+		}
+		if !bash.ListContains(packageFiles, upgradeSql) {
+			upgradeSql = ""
+		}
+	}
+	// 上传解压后的文件到s3
+	s3Prefix := fmt.Sprintf("%s/%s/", registerConfig.Name, registerConfig.Version)
+	s3FileMap := make(map[string]string)
+	s3FileMap[fmt.Sprintf("%s/%s", tmpFileDir, registerFile)] = s3Prefix + registerFile
+	s3FileMap[fmt.Sprintf("%s/%s", tmpFileDir, imageFile)] = s3Prefix + imageFile
+	if uiFile != "" {
+		s3FileMap[fmt.Sprintf("%s/%s", tmpFileDir, uiFile)] = s3Prefix + uiFile
+	}
+	if initSql != "" {
+		s3FileMap[fmt.Sprintf("%s/%s", tmpFileDir, initSql)] = s3Prefix + initSql
+	}
+	if upgradeSql != "" {
+		s3FileMap[fmt.Sprintf("%s/%s", tmpFileDir, upgradeSql)] = s3Prefix + upgradeSql
+	}
+	if err = bash.UploadPluginPackage(models.Config.S3.PluginPackageBucket, s3FileMap); err != nil {
+		middleware.ReturnError(c, err)
+		return
+	}
+	if registerConfig.ResourceDependencies.S3.BucketName != "" {
+		if err = bash.MakeBucket(registerConfig.ResourceDependencies.S3.BucketName); err != nil {
+			middleware.ReturnError(c, err)
+			return
+		}
+	}
 	// 写数据库
 }
 
