@@ -35,5 +35,11 @@
     "password_seed": "",
     "expire_sec": 600,
     "fresh_token_expire": 3600
+  },
+  "s3": {
+    "server_address": "",
+    "access_key": "",
+    "secret_key": "",
+    "plugin_package_bucket": "wecube-plugin-package-bucket"
   }
 }
