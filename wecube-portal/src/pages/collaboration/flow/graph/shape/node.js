@@ -9,7 +9,7 @@ import defaultStyles from './defaultStyles'
 const { iconStyles, nodeStyles, anchorPointStyles, nodeLabelStyles } = defaultStyles
 
 function getStyle (options, cfg) {
-  return {
+  let xx = {
     ...cfg,
     // 自定义默认样式
     ...nodeStyles,
@@ -39,6 +39,7 @@ function getStyle (options, cfg) {
     // 锚点高亮样式
     anchorHotsoptStyles: cfg.anchorHotsoptStyles
   }
+  return xx
 }
 
 export default G6 => {
@@ -75,9 +76,8 @@ export default G6 => {
     {
       shapeType: 'circle',
       getShapeStyle (cfg) {
-        const r = cfg.style.r || 30
-
-        return getStyle.call(
+        const r = cfg.style.r || 24
+        const xx = getStyle.call(
           this,
           {
             r, // 半径
@@ -87,6 +87,7 @@ export default G6 => {
           },
           cfg
         )
+        return xx
       }
     },
     'base-node'
@@ -160,7 +161,7 @@ export default G6 => {
       },
       // 返回菱形的路径
       getPath (cfg) {
-        const size = cfg.style.size || [100, 100] // 如果没有 size 时的默认大小
+        const size = cfg.style.size || [70, 70] // 如果没有 size 时的默认大小
         const width = size[0]
         const height = size[1]
 

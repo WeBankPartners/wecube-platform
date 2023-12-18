@@ -79,6 +79,7 @@ import G6 from '@antv/g6'
 import registerFactory from './flow/graph/graph'
 import ItemPanel from './flow/ItemPanel.vue'
 import data from './flow/data.js'
+import { nodeDefaultAttr } from './flow/node-default-attr.js'
 
 // const registerFactory = require('../../../library/welabx-g6').default
 
@@ -176,29 +177,44 @@ export default {
         }
       })
       const minimap = new G6.Minimap({
-        size: [200, 100]
+        size: [200, 100],
+        minimapViewCfg: {
+          top: 10,
+          right: 10
+        }
       })
       const cfg = registerFactory(G6, {
-        width: window.innerWidth,
-        height: window.innerHeight,
+        width: window.innerWidth - 60,
+        height: window.innerHeight - 130,
         // renderer: 'svg',
         layout: {
           type: '' // 位置将固定
         },
         // 所有节点默认配置
+        // defaultNode: {
+        //   type: 'rect-node',
+        //   style: {
+        //     radius: 10,
+        //     width: 100,
+        //     height: 50,
+        //     cursor: 'move',
+        //     fill: '#ecf3ff'
+        //   },
+        //   labelCfg: {
+        //     position: 'bottom',
+        //     fontSize: 20,
+        //     style: {
+        //       color: 'red',
+        //       cursor: 'move'
+        //     }
+        //   }
+        // },
         defaultNode: {
-          type: 'rect-node',
-          style: {
-            radius: 10,
-            width: 100,
-            height: 50,
-            cursor: 'move',
-            fill: '#ecf3ff'
-          },
           labelCfg: {
-            fontSize: 20,
+            position: 'bottom', // 将标签显示在节点下方
             style: {
-              cursor: 'move'
+              color: 'red',
+              fill: 'red'
             }
           }
         },
@@ -274,7 +290,6 @@ export default {
     initGraphEvent () {
       this.graph.on('drop', e => {
         const { originalEvent } = e
-
         if (originalEvent.dataTransfer) {
           let transferData = originalEvent.dataTransfer.getData('dragComponent')
           console.log('准备新增节点：', transferData)
@@ -360,7 +375,6 @@ export default {
       })
 
       this.graph.on('before-node-removed', ({ target, callback }) => {
-        console.log(target)
         setTimeout(() => {
           // 确认提示
           // eslint-disable-next-line standard/no-callback-literal
@@ -422,19 +436,34 @@ export default {
     },
     // 添加节点
     addNode (transferData, { x, y }) {
-      const { label, shape, fill } = JSON.parse(transferData)
+      const { label, shape, fill, lineWidth, nodeType } = JSON.parse(transferData)
 
       const model = {
+        id: `id_${nodeType}_${Math.random().toString(36).substring(2, 8)}`,
         label,
-        // id:  Util.uniqueId(),
+        labelCfg: {
+          position: 'bottom',
+          offset: 10
+        },
         // 形状
         type: shape,
         style: {
-          fill: fill || '#ecf3ff'
+          fill: fill || '',
+          stroke: '#bbbbbb',
+          lineWidth: lineWidth || 1,
+          top: '100px'
         },
+        logoIcon: nodeDefaultAttr[nodeType].logoIcon,
         // 坐标
         x,
-        y
+        y,
+        // 自定义锚点数量和位置
+        anchorPoints: [
+          [0.5, 0],
+          [0, 0.5],
+          [0.5, 1],
+          [1, 0.5]
+        ]
       }
 
       this.graph.addItem('node', model)
