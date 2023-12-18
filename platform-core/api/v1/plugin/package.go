@@ -56,6 +56,7 @@ func UploadPackage(c *gin.Context) {
 	}
 	// 解析xml文件
 	var registerFile, imageFile, uiFile, initSql, upgradeSql string
+	withUi := false
 	for _, v := range packageFiles {
 		if v == "register.xml" {
 			registerFile = v
@@ -67,6 +68,7 @@ func UploadPackage(c *gin.Context) {
 		}
 		if v == "ui.zip" {
 			uiFile = v
+			withUi = true
 			continue
 		}
 	}
@@ -82,6 +84,15 @@ func UploadPackage(c *gin.Context) {
 	}
 	if err = xml.Unmarshal(registerConfigBytes, &registerConfig); err != nil {
 		middleware.ReturnError(c, fmt.Errorf("xml unmarshal regisger xml fail,%s ", err.Error()))
+		return
+	}
+	pluginPackageObj := models.PluginPackages{Name: registerConfig.Name, Version: registerConfig.Version}
+	if err = database.GetSimplePluginPackage(&pluginPackageObj, false); err != nil {
+		middleware.ReturnError(c, err)
+		return
+	}
+	if pluginPackageObj.Id != "" {
+		middleware.ReturnError(c, fmt.Errorf("plugin %s:%s already existed", registerConfig.Name, registerConfig.Version))
 		return
 	}
 	if registerConfig.ResourceDependencies.Mysql.InitFileName != "" {
@@ -120,6 +131,12 @@ func UploadPackage(c *gin.Context) {
 		}
 	}
 	// 写数据库
+	err = database.UploadPackage(&registerConfig, withUi, false)
+	if err != nil {
+		middleware.ReturnError(c, err)
+	} else {
+		middleware.ReturnSuccess(c)
+	}
 }
 
 func GetPluginDependencies(c *gin.Context) {
