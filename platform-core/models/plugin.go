@@ -1,6 +1,9 @@
 package models
 
-import "time"
+import (
+	"encoding/xml"
+	"time"
+)
 
 var (
 	PluginPackagesStatusMap  = map[int8]string{0: "UNREGISTERED", 1: "REGISTERED", 2: "DECOMMISSIONED"}
@@ -116,4 +119,124 @@ type PluginRuntimeResourceData struct {
 	Docker []*PluginPackageRuntimeResourcesDocker `json:"docker"`
 	Mysql  []*PluginPackageRuntimeResourcesMysql  `json:"mysql"`
 	S3     []*PluginPackageRuntimeResourcesS3     `json:"s3"`
+}
+
+type RegisterXML struct {
+	XMLName             xml.Name `xml:"package"`
+	Text                string   `xml:",chardata"`
+	Name                string   `xml:"name,attr"`
+	Version             string   `xml:"version,attr"`
+	PackageDependencies struct {
+		Text              string `xml:",chardata"`
+		PackageDependency []struct {
+			Text    string `xml:",chardata"`
+			Name    string `xml:"name,attr"`
+			Version string `xml:"version,attr"`
+		} `xml:"packageDependency"`
+	} `xml:"packageDependencies"`
+	Menus struct {
+		Text string `xml:",chardata"`
+		Menu []struct {
+			Text             string `xml:",chardata"`
+			Code             string `xml:"code,attr"`
+			Cat              string `xml:"cat,attr"`
+			DisplayName      string `xml:"displayName,attr"`
+			LocalDisplayName string `xml:"localDisplayName,attr"`
+		} `xml:"menu"`
+	} `xml:"menus"`
+	DataModel struct {
+		Text   string `xml:",chardata"`
+		Entity struct {
+			Text        string `xml:",chardata"`
+			Name        string `xml:"name,attr"`
+			DisplayName string `xml:"displayName,attr"`
+			Description string `xml:"description,attr"`
+			Attribute   []struct {
+				Text        string `xml:",chardata"`
+				Name        string `xml:"name,attr"`
+				Datatype    string `xml:"datatype,attr"`
+				Description string `xml:"description,attr"`
+			} `xml:"attribute"`
+		} `xml:"entity"`
+	} `xml:"dataModel"`
+	SystemParameters struct {
+		Text            string `xml:",chardata"`
+		SystemParameter []struct {
+			Text         string `xml:",chardata"`
+			Name         string `xml:"name,attr"`
+			ScopeType    string `xml:"scopeType,attr"`
+			DefaultValue string `xml:"defaultValue,attr"`
+		} `xml:"systemParameter"`
+	} `xml:"systemParameters"`
+	Authorities struct {
+		Text      string `xml:",chardata"`
+		Authority struct {
+			Text           string `xml:",chardata"`
+			SystemRoleName string `xml:"systemRoleName,attr"`
+			Menu           []struct {
+				Text string `xml:",chardata"`
+				Code string `xml:"code,attr"`
+			} `xml:"menu"`
+		} `xml:"authority"`
+	} `xml:"authorities"`
+	ResourceDependencies struct {
+		Text   string `xml:",chardata"`
+		Docker struct {
+			Text           string `xml:",chardata"`
+			ImageName      string `xml:"imageName,attr"`
+			ContainerName  string `xml:"containerName,attr"`
+			PortBindings   string `xml:"portBindings,attr"`
+			VolumeBindings string `xml:"volumeBindings,attr"`
+			EnvVariables   string `xml:"envVariables,attr"`
+		} `xml:"docker"`
+		Mysql struct {
+			Text            string `xml:",chardata"`
+			Schema          string `xml:"schema,attr"`
+			InitFileName    string `xml:"initFileName,attr"`
+			UpgradeFileName string `xml:"upgradeFileName,attr"`
+		} `xml:"mysql"`
+		S3 struct {
+			Text       string `xml:",chardata"`
+			BucketName string `xml:"bucketName,attr"`
+		} `xml:"s3"`
+	} `xml:"resourceDependencies"`
+	Plugins struct {
+		Text   string `xml:",chardata"`
+		Plugin []struct {
+			Text                   string `xml:",chardata"`
+			Name                   string `xml:"name,attr"`
+			TargetPackage          string `xml:"targetPackage,attr"`
+			TargetEntity           string `xml:"targetEntity,attr"`
+			RegisterName           string `xml:"registerName,attr"`
+			TargetEntityFilterRule string `xml:"targetEntityFilterRule,attr"`
+			Interface              []struct {
+				Text            string `xml:",chardata"`
+				Action          string `xml:"action,attr"`
+				Path            string `xml:"path,attr"`
+				FilterRule      string `xml:"filterRule,attr"`
+				InputParameters struct {
+					Text      string `xml:",chardata"`
+					Parameter []struct {
+						Text                      string `xml:",chardata"`
+						Datatype                  string `xml:"datatype,attr"`
+						Required                  string `xml:"required,attr"`
+						SensitiveData             string `xml:"sensitiveData,attr"`
+						MappingType               string `xml:"mappingType,attr"`
+						MappingEntityExpression   string `xml:"mappingEntityExpression,attr"`
+						MappingSystemVariableName string `xml:"mappingSystemVariableName,attr"`
+						Multiple                  string `xml:"multiple,attr"`
+					} `xml:"parameter"`
+				} `xml:"inputParameters"`
+				OutputParameters struct {
+					Text      string `xml:",chardata"`
+					Parameter []struct {
+						Text          string `xml:",chardata"`
+						Datatype      string `xml:"datatype,attr"`
+						SensitiveData string `xml:"sensitiveData,attr"`
+						MappingType   string `xml:"mappingType,attr"`
+					} `xml:"parameter"`
+				} `xml:"outputParameters"`
+			} `xml:"interface"`
+		} `xml:"plugin"`
+	} `xml:"plugins"`
 }
