@@ -1,22 +1,112 @@
 <template>
-  <div id="itemPanel" ref="itemPanel" :class="{ hidden: itemVisible }">
-    <i class="iconfont icon-h-drag" />
+  <div id="itemPanel" ref="itemPanel">
     <div class="icon-tool">
-      <i class="node circle" draggable="true" data-label="开始" data-shape="circle-node" fill="#eef5fe">开始</i>
-      <i class="node warning" draggable="true" data-label="警告" data-shape="rect-node" fill="#f8ecda">警告</i>
-      <i class="node end" draggable="true" data-label="结束" data-shape="rect-node" fill="#f9e3e2">结束</i>
-      <img
-        src="./icon/a.svg"
-        style="width: 60px; height: 60px"
+      <i
+        class="node circle-start"
         draggable="true"
-        data-label="圆形节点"
+        node-type="start"
+        data-label="开始"
         data-shape="circle-node"
-        class="node iconfont icon-circle"
+        fill="white"
+        line-width="1"
+        >开始</i
+      >
+      <i
+        class="node circle-end"
+        draggable="true"
+        node-type="end"
+        data-label="结束"
+        data-shape="circle-node"
+        fill="white"
+        line-width="3"
+        >结束</i
+      >
+      <i
+        class="node circle-end"
+        draggable="true"
+        node-type="abnormal"
+        data-label="异常"
+        data-shape="circle-node"
+        fill="white"
+        line-width="1"
+        >异常</i
+      >
+      <!-- <i class="node warning" draggable="true" data-label="警告" data-shape="rect-node" fill="#f8ecda">警告</i>
+      <i class="node end" draggable="true" data-label="结束" data-shape="rect-node" fill="#f9e3e2">结束</i> -->
+      <img
+        src="./icon/decision.svg"
+        style="width: 50px; height: 50px"
+        draggable="true"
+        node-type="decision"
+        data-label="判断"
+        data-shape="diamond-node"
+        class="node iconfont icon-diamond"
         alt=""
       />
-      <i draggable="true" data-label="圆形节点" data-shape="circle-node" class="node iconfont icon-circle" />
-      <i draggable="true" data-label="方形节点" data-shape="rect-node" class="node iconfont icon-rect" />
+      <img
+        src="./icon/converge.svg"
+        style="width: 50px; height: 50px"
+        draggable="true"
+        node-type="converge"
+        data-label="汇聚节点"
+        data-shape="rect-node"
+        class="node iconfont icon-rect"
+        alt=""
+      />
+      <img
+        src="./icon/human.svg"
+        style="width: 50px; height: 50px"
+        draggable="true"
+        node-type="human"
+        data-label="人工节点"
+        data-shape="rect-node"
+        class="node iconfont icon-rect"
+        alt=""
+      />
+      <img
+        src="./icon/automatic.svg"
+        style="width: 50px; height: 50px"
+        draggable="true"
+        node-type="automatic"
+        data-label="自动节点"
+        data-shape="rect-node"
+        class="node iconfont icon-rect"
+        alt=""
+      />
+      <img
+        src="./icon/data.svg"
+        style="width: 50px; height: 50px"
+        draggable="true"
+        node-type="data"
+        data-label="数据节点"
+        data-shape="rect-node"
+        class="node iconfont icon-rect"
+        alt=""
+      />
       <i
+        class="node circle-end"
+        draggable="true"
+        node-type="fixedTime"
+        data-label="固定时间"
+        data-shape="circle-node"
+        fill="white"
+        line-width="1"
+        >固定</i
+      >
+      <i
+        class="node circle-end"
+        draggable="true"
+        node-type="timeInterval"
+        data-label="时间间隔"
+        data-shape="circle-node"
+        fill="white"
+        line-width="1"
+        >间隔</i
+      >
+
+      <!-- <i draggable="true" data-label="圆形节点" data-shape="circle-node" class="node iconfont icon-circle" /> -->
+      <!-- <i draggable="true" data-label="方形节点" data-shape="rect-node" class="node iconfont icon-rect" /> -->
+      <!-- <i
         draggable="true"
         data-label="测试节点"
         data-shape="rect-node"
@@ -27,7 +117,7 @@
       <i draggable="true" data-label="菱形节点" data-shape="diamond-node" class="node iconfont icon-diamond" />
       <i draggable="true" data-label="对话框节点" data-shape="modelRect-node" class="node iconfont icon-model-rect" />
       <i class="split" />
-      <i draggable="true" class="gb-toggle-btn" @click="itemVisible = !itemVisible" />
+      <i draggable="true" class="gb-toggle-btn" @click="itemVisible = !itemVisible" /> -->
     </div>
   </div>
 </template>
@@ -48,14 +138,17 @@ export default {
         const shape = icon.getAttribute('data-shape')
         const label = icon.getAttribute('data-label')
         const fill = icon.getAttribute('fill')
-
+        const lineWidth = Number(icon.getAttribute('line-width'))
+        const nodeType = icon.getAttribute('node-type')
         /* 设置拖拽传输数据 */
         event.dataTransfer.setData(
           'dragComponent',
           JSON.stringify({
             label,
             shape,
-            fill
+            fill,
+            lineWidth,
+            nodeType
           })
         )
       })
@@ -82,29 +175,12 @@ export default {
   z-index: 10;
   width: 100px;
   background: #fff;
-  padding-top: 65px;
+  // padding-top: 65px;
   transition: transform 0.3s ease-in-out;
   box-shadow: 0 0 2px 0 rgba(0, 0, 0, 0.1);
 
   &.hidden {
     transform: translate(-100%, 0);
-  }
-
-  .icon-h-drag {
-    position: absolute;
-    top: 40px;
-    left: 0;
-    width: 100%;
-    height: 20px;
-    line-height: 20px;
-    font-size: 18px;
-    background: #f5f5f5;
-    text-align: center;
-    cursor: move;
-
-    &:hover {
-      background: #f1f1f1;
-    }
   }
 
   .gb-toggle-btn {
@@ -146,13 +222,20 @@ export default {
       margin-bottom: 10px;
       cursor: move;
     }
-    .circle {
-      height: 80px;
-      line-height: 80px;
+    .circle-start {
+      height: 50px;
+      width: 50px;
+      line-height: 50px;
       border-radius: 50%;
       border: 1px solid #ccc;
-      background: #eef5fe;
+      background: white;
     }
+    .circle-end {
+      @extend .circle-start;
+      border: 2px solid #ccc;
+      background: white;
+    }
+
     .warning {
       height: 40px;
       line-height: 40px;

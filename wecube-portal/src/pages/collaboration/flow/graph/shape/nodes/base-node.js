@@ -192,6 +192,7 @@ export default G6 => {
       /* 添加文本节点 */
       /* https://g6.antv.vision/zh/docs/manual/advanced/keyconcept/shape-and-properties/#%E6%96%87%E6%9C%AC-text */
       addLabel (cfg, group, attrs) {
+        console.log(77, attrs)
         const { label, labelCfg, labels } = attrs
         // 字体小于12时 svg会报错
         /* if (labelCfg && labelCfg.fontSize < 12) {
