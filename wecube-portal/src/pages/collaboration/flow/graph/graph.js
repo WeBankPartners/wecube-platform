@@ -10,7 +10,7 @@ export default (G6, config) => {
     {
       container: 'canvasPanel',
       width: window.innerWidth,
-      height: window.innerHeight,
+      height: window.innerHeight - 300,
       // renderer:       'svg',
       fitViewPadding: 20,
       animate: true,
