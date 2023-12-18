@@ -5,21 +5,24 @@ import (
 	"time"
 )
 
-var (
-	PluginPackagesStatusMap  = map[int8]string{0: "UNREGISTERED", 1: "REGISTERED", 2: "DECOMMISSIONED"}
-	PluginPackagesEditionMap = map[int8]string{0: "community", 1: "enterprise"}
+const (
+	PluginStatusUnRegistered   = "unregistered"
+	PluginStatusRegistered     = "registered"
+	PluginStatusDecommissioned = "decommissioned"
+	PluginEditionCommunity     = "community"
+	PluginEditionEnterprise    = "enterprise"
+	PluginParamTypeInput       = "INPUT"
+	PluginParamTypeOutput      = "OUTPUT"
 )
 
 type PluginPackages struct {
-	Id                string    `json:"id" xorm:"id"`           // 唯一标识
-	Name              string    `json:"name" xorm:"name"`       // 显示名
-	Version           string    `json:"version" xorm:"version"` // 版本
-	Status            int8      `json:"-" xorm:"status"`        // 状态->0(unregistered已上传未注册态)|1(registered注册态)|2(decommissioned注销态)
-	StatusString      string    `json:"status" json:"-"`
+	Id                string    `json:"id" xorm:"id"`                                 // 唯一标识
+	Name              string    `json:"name" xorm:"name"`                             // 显示名
+	Version           string    `json:"version" xorm:"version"`                       // 版本
+	Status            string    `json:"status" xorm:"status"`                         // 状态->0(unregistered已上传未注册态)|1(registered注册态)|2(decommissioned注销态)
 	UploadTimestamp   time.Time `json:"uploadTimestamp" xorm:"upload_timestamp"`      // 上传时间
 	UiPackageIncluded bool      `json:"uiPackageIncluded" xorm:"ui_package_included"` // 是否有ui->0(无)|1(有)
-	Edition           int8      `json:"-" xorm:"edition"`                             // 发行版本->0(community社区版)|1(enterprise企业版)
-	EditionString     string    `json:"edition" json:"-"`
+	Edition           string    `json:"edition" xorm:"edition"`                       // 发行版本->0(community社区版)|1(enterprise企业版)
 }
 
 type PluginInstances struct {
@@ -210,11 +213,15 @@ type RegisterXML struct {
 			RegisterName           string `xml:"registerName,attr"`
 			TargetEntityFilterRule string `xml:"targetEntityFilterRule,attr"`
 			Interface              []struct {
-				Text            string `xml:",chardata"`
-				Action          string `xml:"action,attr"`
-				Path            string `xml:"path,attr"`
-				FilterRule      string `xml:"filterRule,attr"`
-				InputParameters struct {
+				Text              string `xml:",chardata"`
+				Action            string `xml:"action,attr"`
+				Path              string `xml:"path,attr"`
+				FilterRule        string `xml:"filterRule,attr"`
+				HttpMethod        string `xml:"httpMethod,attr"`
+				IsAsyncProcessing string `xml:"isAsyncProcessing,attr"`
+				Type              string `xml:"type,attr"`
+				Description       string `xml:"description,attr"`
+				InputParameters   struct {
 					Text      string `xml:",chardata"`
 					Parameter []struct {
 						Text                      string `xml:",chardata"`
@@ -225,15 +232,25 @@ type RegisterXML struct {
 						MappingEntityExpression   string `xml:"mappingEntityExpression,attr"`
 						MappingSystemVariableName string `xml:"mappingSystemVariableName,attr"`
 						Multiple                  string `xml:"multiple,attr"`
+						Description               string `xml:"description,attr"`
+						MappingVal                string `xml:"mappingVal,attr"`
+						RefObjectName             string `xml:"refObjectName,attr"`
 					} `xml:"parameter"`
 				} `xml:"inputParameters"`
 				OutputParameters struct {
 					Text      string `xml:",chardata"`
 					Parameter []struct {
-						Text          string `xml:",chardata"`
-						Datatype      string `xml:"datatype,attr"`
-						SensitiveData string `xml:"sensitiveData,attr"`
-						MappingType   string `xml:"mappingType,attr"`
+						Text                      string `xml:",chardata"`
+						Datatype                  string `xml:"datatype,attr"`
+						Required                  string `xml:"required,attr"`
+						SensitiveData             string `xml:"sensitiveData,attr"`
+						MappingType               string `xml:"mappingType,attr"`
+						MappingEntityExpression   string `xml:"mappingEntityExpression,attr"`
+						MappingSystemVariableName string `xml:"mappingSystemVariableName,attr"`
+						Multiple                  string `xml:"multiple,attr"`
+						Description               string `xml:"description,attr"`
+						MappingVal                string `xml:"mappingVal,attr"`
+						RefObjectName             string `xml:"refObjectName,attr"`
 					} `xml:"parameter"`
 				} `xml:"outputParameters"`
 			} `xml:"interface"`

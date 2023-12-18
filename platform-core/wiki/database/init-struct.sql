@@ -71,10 +71,10 @@ CREATE TABLE `plugin_packages` (
    `id` varchar(64) NOT NULL COMMENT '唯一标识',
    `name` varchar(64) NOT NULL COMMENT '显示名',
    `version` varchar(32) NOT NULL COMMENT '版本',
-   `status` tinyint(4) NOT NULL DEFAULT 0 COMMENT '状态->0(UNREGISTERED已上传未注册态)|1(REGISTERED注册态)|2(DECOMMISSIONED注销态)',
+   `status` varchar(32) NOT NULL DEFAULT 'UNREGISTERED' COMMENT '状态->0(UNREGISTERED已上传未注册态)|1(REGISTERED注册态)|2(DECOMMISSIONED注销态)',
    `upload_timestamp` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '上传时间',
    `ui_package_included` tinyint(1) DEFAULT 0 COMMENT '是否有ui->0(无)|1(有)',
-   `edition` tinyint(4) NOT NULL DEFAULT 0 COMMENT '发行版本->0(community社区版)|1(enterprise企业版)',
+   `edition` varchar(32) NOT NULL DEFAULT 'community' COMMENT '发行版本->0(community社区版)|1(enterprise企业版)',
    KEY `k_plugin_packages_status`(`status`),
    PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
@@ -132,7 +132,7 @@ CREATE TABLE `plugin_mysql_instances` (
       `plugin_package_id` varchar(64) DEFAULT NULL COMMENT '插件',
       `resource_item_id` varchar(64) DEFAULT NULL COMMENT '资源实例id',
       `schema_name` varchar(64) DEFAULT NULL COMMENT '数据库名',
-      `status` tinyint(1) DEFAULT NULL COMMENT '状态->0(inactive)|1(active)',
+      `status` varchar(32) DEFAULT 'inactive' COMMENT '状态->0(inactive)|1(active)',
       `username` varchar(255) DEFAULT NULL COMMENT '用户名',
       `pre_version` varchar(64) DEFAULT NULL COMMENT '插件版本',
       `created_time` datetime DEFAULT NULL COMMENT '创建时间',
