@@ -3,9 +3,11 @@ package database
 import (
 	"context"
 	"fmt"
+	"github.com/WeBankPartners/go-common-lib/guid"
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/db"
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/exterror"
 	"github.com/WeBankPartners/wecube-platform/platform-core/models"
+	"time"
 )
 
 func GetPackages(ctx context.Context, allFlag bool) (result []*models.PluginPackages, err error) {
@@ -18,10 +20,6 @@ func GetPackages(ctx context.Context, allFlag bool) (result []*models.PluginPack
 	if err != nil {
 		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
 		return
-	}
-	for _, v := range result {
-		v.StatusString = models.PluginPackagesStatusMap[v.Status]
-		v.EditionString = models.PluginPackagesEditionMap[v.Edition]
 	}
 	return
 }
@@ -112,11 +110,95 @@ func GetPluginRuntimeResources(ctx context.Context, pluginPackageId string) (res
 	return
 }
 
-func UploadPackage(registerConfig *models.RegisterXML) (err error) {
-
+func UploadPackage(registerConfig *models.RegisterXML, withUi, enterprise bool) (err error) {
+	var actions []*db.ExecAction
+	pluginPackageId := "plugin_" + guid.CreateGuid()
+	nowTime := time.Now()
+	edition := models.PluginEditionCommunity
+	if enterprise {
+		edition = models.PluginEditionEnterprise
+	}
+	actions = append(actions, &db.ExecAction{Sql: "insert into plugin_packages ( id,name,`version`,status,upload_timestamp,ui_package_included,`edition` ) values (?,?,?,?,?,?,?)", Param: []interface{}{
+		pluginPackageId, registerConfig.Name, registerConfig.Version, models.PluginStatusUnRegistered, nowTime, withUi, edition}})
+	for _, pluginConfig := range registerConfig.Plugins.Plugin {
+		pluginConfigId := "p_config_" + guid.CreateGuid()
+		actions = append(actions, &db.ExecAction{Sql: "insert into plugin_configs (id,plugin_package_id,name,target_package,target_entity,target_entity_filter_rule,register_name,status) values (?,?,?,?,?,?,?,?)", Param: []interface{}{
+			pluginConfigId, pluginPackageId, pluginConfig.Name, pluginConfig.TargetPackage, pluginConfig.TargetEntity, pluginConfig.TargetEntityFilterRule, pluginConfig.RegisterName, "disable",
+		}})
+		for _, pluginConfigInterface := range pluginConfig.Interface {
+			pluginConfigInterfaceId := "p_conf_inf_" + guid.CreateGuid()
+			serviceName := fmt.Sprintf("%s/%s/%s", registerConfig.Name, pluginConfig.Name, pluginConfigInterface.Action)
+			httpMethod := pluginConfigInterface.HttpMethod
+			if httpMethod == "" {
+				httpMethod = "POST"
+			}
+			isAsyncProcessing := false
+			if pluginConfigInterface.IsAsyncProcessing == "Y" {
+				isAsyncProcessing = true
+			}
+			actions = append(actions, &db.ExecAction{Sql: "insert into plugin_config_interfaces (id,plugin_config_id,action,service_name,service_display_name,path,http_method,is_async_processing,type,filter_rule,description) values (?,?,?,?,?,?,?,?,?,?,?)", Param: []interface{}{
+				pluginConfigInterfaceId, pluginConfigId, pluginConfigInterface.Action, serviceName, serviceName, pluginConfigInterface.Path, httpMethod, isAsyncProcessing, pluginConfigInterface.Type, pluginConfigInterface.FilterRule, pluginConfigInterface.Description,
+			}})
+			for _, interfaceParam := range pluginConfigInterface.InputParameters.Parameter {
+				interfaceParamId := "p_conf_inf_param_" + guid.CreateGuid()
+				required, sensitive, multiple := false, false, false
+				if interfaceParam.Required == "Y" {
+					required = true
+				}
+				if interfaceParam.SensitiveData == "Y" {
+					sensitive = true
+				}
+				if interfaceParam.Multiple == "Y" {
+					multiple = true
+				}
+				actions = append(actions, &db.ExecAction{Sql: "insert into plugin_config_interface_parameters (id,plugin_config_interface_id,type,name,data_type,mapping_type,mapping_entity_expression,mapping_system_variable_name,required,sensitive_data,description,mapping_val,ref_object_name,multiple ) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?)", Param: []interface{}{
+					interfaceParamId, pluginConfigInterfaceId, models.PluginParamTypeInput, interfaceParam.Text, interfaceParam.Datatype, interfaceParam.MappingType, interfaceParam.MappingEntityExpression, interfaceParam.MappingSystemVariableName, required, sensitive, interfaceParam.Description, interfaceParam.MappingVal, interfaceParam.RefObjectName, multiple,
+				}})
+			}
+			for _, interfaceParam := range pluginConfigInterface.OutputParameters.Parameter {
+				interfaceParamId := "p_conf_inf_param_" + guid.CreateGuid()
+				required, sensitive, multiple := false, false, false
+				if interfaceParam.Required == "Y" {
+					required = true
+				}
+				if interfaceParam.SensitiveData == "Y" {
+					sensitive = true
+				}
+				if interfaceParam.Multiple == "Y" {
+					multiple = true
+				}
+				actions = append(actions, &db.ExecAction{Sql: "insert into plugin_config_interface_parameters (id,plugin_config_interface_id,type,name,data_type,mapping_type,mapping_entity_expression,mapping_system_variable_name,required,sensitive_data,description,mapping_val,ref_object_name,multiple ) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?)", Param: []interface{}{
+					interfaceParamId, pluginConfigInterfaceId, models.PluginParamTypeOutput, interfaceParam.Text, interfaceParam.Datatype, interfaceParam.MappingType, interfaceParam.MappingEntityExpression, interfaceParam.MappingSystemVariableName, required, sensitive, interfaceParam.Description, interfaceParam.MappingVal, interfaceParam.RefObjectName, multiple,
+				}})
+			}
+		}
+	}
+	// TODO systemVariable
+	err = db.Transaction(actions, db.NewDBCtx(fmt.Sprintf("upload_%s_%s", registerConfig.Name, registerConfig.Version)))
 	return
 }
 
-func GetSimplePluginPackage(packageName, version, edition string) {
-
+func GetSimplePluginPackage(param *models.PluginPackages, emptyCheck bool) (err error) {
+	var pluginPackagesRows []*models.PluginPackages
+	if param.Id != "" {
+		err = db.MysqlEngine.SQL("select * from plugin_packages where id=?", param.Id).Find(&pluginPackagesRows)
+	} else {
+		if param.Edition == "" {
+			err = db.MysqlEngine.SQL("select * from plugin_packages where name=? and `version`=?", param.Name, param.Version).Find(&pluginPackagesRows)
+		} else {
+			err = db.MysqlEngine.SQL("select * from plugin_packages where name=? and `version`=? and `edition`=?", param.Name, param.Version, param.Edition).Find(&pluginPackagesRows)
+		}
+	}
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
+	} else {
+		if len(pluginPackagesRows) == 0 {
+			if emptyCheck {
+				err = fmt.Errorf("can not find plugin packages with id:%s name:%s version:%s", param.Id, param.Name, param.Version)
+			}
+		} else {
+			param = pluginPackagesRows[0]
+		}
+	}
+	return
 }
