@@ -111,3 +111,12 @@ func GetPluginRuntimeResources(ctx context.Context, pluginPackageId string) (res
 	}
 	return
 }
+
+func UploadPackage(registerConfig *models.RegisterXML) (err error) {
+
+	return
+}
+
+func GetSimplePluginPackage(packageName, version, edition string) {
+
+}
