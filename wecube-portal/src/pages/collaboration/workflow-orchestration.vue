@@ -1,85 +1,23 @@
 <template>
   <div class="root">
-    <div @click="saveSvg">12343546terfsdg</div>
-    <!-- 左侧按钮 -->
-    <item-panel />
+    <FlowHeader></FlowHeader>
+    <div style="border: 2px solid #f9f9f9">
+      <!-- 左侧按钮 -->
+      <item-panel />
 
-    <!-- 挂载节点 -->
-    <div id="canvasPanel" ref="canvasPanel" @dragover.prevent />
-
-    <FlowDrawer ref="flowDrawerRef"></FlowDrawer>
-    <!-- 配置面板 -->
-    <!-- <div
-      id="configPanel"
-      :class="{ hidden: !configVisible }"
-    >
-      <i
-        class="gb-toggle-btn"
-        @click="configVisible = !configVisible"
-      />
-      <h2 class="panel-title">数据配置</h2>
-      <div class="config-data">
-        id: {{ config.id }}, data: {{ config.data }}
-      </div>
-      <h2 class="panel-title">节点样式配置</h2>
-      <div class="config-data">
-        <div class="config-item">
-          形状: <select>
-            <option
-              v-for="(item, index) in nodeShapes"
-              :key="index"
-              :value="item.shape"
-            >
-              {{ item.name }}
-            </option>
-          </select>
-        </div>
-        <div class="config-item">
-          背景色: <input :value="node.fill">
-        </div>
-        <div class="config-item">
-          边框虚线: <input :value="node.lineDash">
-        </div>
-        <div class="config-item">
-          边框颜色: <input :value="node.borderColor">
-        </div>
-        <div class="config-item">
-          宽: <input :value="node.width">px
-        </div>
-        <div class="config-item">
-          高: <input :value="node.height">px
-        </div>
-      </div>
-      <h2 class="panel-title">文字样式配置</h2>
-      <div class="config-data">
-        <div class="config-item">
-          文字: <input :value="label">
-        </div>
-        <div class="config-item">
-          字体大小: <input :value="labelCfg.fontSize">
-        </div>
-        <div class="config-item">
-          颜色: <input :value="labelCfg.style.fill">
-        </div>
-      </div>
-      <button @click="configVisible = false">取消</button>
-      <button
-        class="save"
-        @click="save"
-      >
-        保存
-      </button>
-    </div> -->
-    <div v-if="tooltip && !isMouseDown" class="g6-tooltip" :style="`top: ${top}px; left: ${left}px;`">
-      id: {{ tooltip }}
+      <!-- 挂载节点 -->
+      <div id="canvasPanel" ref="canvasPanel" @dragover.prevent />
+      <!-- 信息配置 -->
+      <FlowDrawer ref="flowDrawerRef"></FlowDrawer>
     </div>
   </div>
 </template>
 
 <script>
 import G6 from '@antv/g6'
+import FlowHeader from './flow/flow-header.vue'
 import registerFactory from './flow/graph/graph'
-import ItemPanel from './flow/ItemPanel.vue'
+import ItemPanel from './flow/item-panel.vue'
 import FlowDrawer from './flow/flow-drawer.vue'
 import data from './flow/data.js'
 import { nodeDefaultAttr } from './flow/node-default-attr.js'
@@ -88,6 +26,7 @@ import { nodeDefaultAttr } from './flow/node-default-attr.js'
 
 export default {
   components: {
+    FlowHeader,
     ItemPanel,
     FlowDrawer
   },
@@ -183,47 +122,19 @@ export default {
           }
         }
       })
-      const minimap = new G6.Minimap({
-        size: [200, 100],
-        minimapViewCfg: {
-          top: 10,
-          right: 10
-        }
-      })
+      // const minimap = new G6.Minimap({
+      //   size: [200, 100],
+      //   minimapViewCfg: {
+      //     top: 10,
+      //     right: 10
+      //   }
+      // })
       const cfg = registerFactory(G6, {
-        width: window.innerWidth - 60,
-        height: window.innerHeight - 130,
+        width: window.innerWidth - 70,
+        height: window.innerHeight - 160,
         // renderer: 'svg',
         layout: {
           type: '' // 位置将固定
-        },
-        // 所有节点默认配置
-        // defaultNode: {
-        //   type: 'rect-node',
-        //   style: {
-        //     radius: 10,
-        //     width: 100,
-        //     height: 50,
-        //     cursor: 'move',
-        //     fill: '#ecf3ff'
-        //   },
-        //   labelCfg: {
-        //     position: 'bottom',
-        //     fontSize: 20,
-        //     style: {
-        //       color: 'red',
-        //       cursor: 'move'
-        //     }
-        //   }
-        // },
-        defaultNode: {
-          labelCfg: {
-            position: 'bottom', // 将标签显示在节点下方
-            style: {
-              color: 'red',
-              fill: 'red'
-            }
-          }
         },
         // 所有边的默认配置
         defaultEdge: {
@@ -265,6 +176,7 @@ export default {
         modes: {
           // 支持的 behavior
           default: [
+            'zoom-canvas',
             'drag-canvas',
             'drag-shadow-node',
             'canvas-event',
@@ -283,7 +195,8 @@ export default {
             'active-edge'
           ]
         },
-        plugins: [menu, minimap, grid]
+        // plugins: [menu, minimap, grid]
+        plugins: [menu, grid]
         // ... 其他G6原生入参
       })
 
@@ -313,36 +226,35 @@ export default {
       })
 
       this.graph.on('after-node-selected', e => {
-        if (e && e.item) {
-          const model = e.item.get('model')
-
-          this.config = model
-          this.label = model.label
-          this.labelCfg = {
-            fontSize: model.labelCfg.fontSize,
-            style: {
-              fill: model.labelCfg.style.fill
-            }
-          }
-          this.node = {
-            fill: model.style.fill,
-            borderColor: model.style.stroke,
-            lineDash: model.style.lineDash || 'none',
-            width: model.style.width,
-            height: model.style.height,
-            shape: model.type
-          }
-          this.$refs.flowDrawerRef.openDrawer()
-        }
+        // if (e && e.item) {
+        //   const model = e.item.get('model')
+        //   this.config = model
+        //   this.label = model.label
+        //   this.labelCfg = {
+        //     fontSize: model.labelCfg.fontSize,
+        //     style: {
+        //       fill: model.labelCfg.style.fill
+        //     }
+        //   }
+        //   this.node = {
+        //     fill: model.style.fill,
+        //     borderColor: model.style.stroke,
+        //     lineDash: model.style.lineDash || 'none',
+        //     width: model.style.width,
+        //     height: model.style.height,
+        //     shape: model.type
+        //   }
+        //   this.$refs.flowDrawerRef.openDrawer()
+        // }
       })
-      this.graph.on('click', e => {
-        if (this.flowInfo.id === '') {
-          this.flowInfo.id = `id_flow__${Math.random().toString(36).substring(2, 8)}`
-          this.flowInfo.name = `name__${Math.random().toString(36).substring(2, 8)}`
-        }
-        this.$refs.flowDrawerRef.openDrawer('flow', this.flowInfo)
-        e.stopPropagation()
-      })
+      // this.graph.on('click', e => {
+      //   console.log(11, e)
+      //   if (this.flowInfo.id === '') {
+      //     this.flowInfo.id = `id_flow_${Math.random().toString(36).substring(2, 8)}`
+      //     this.flowInfo.name = `name_${Math.random().toString(36).substring(2, 8)}`
+      //   }
+      //   this.$refs.flowDrawerRef.openDrawer('flow', this.flowInfo)
+      // })
 
       this.graph.on('on-node-mouseenter', e => {
         if (e && e.item) {
@@ -442,6 +354,18 @@ export default {
           })
         }, 100)
       })
+      // 注册节点点击事件
+      this.graph.on('node:click', e => {
+        const model = e.item.get('model')
+        // 处理节点点击事件的逻辑
+        console.log('Node Clicked:', model)
+        this.$refs.flowDrawerRef.openDrawer('node', model)
+      })
+
+      // 注册画布点击事件
+      this.graph.on('canvas:click', e => {
+        console.log(22, e, e.item)
+      })
     },
     deleteNode (item) {
       this.graph.removeItem(item)
@@ -457,10 +381,6 @@ export default {
       const model = {
         id: `id_${nodeType}_${Math.random().toString(36).substring(2, 8)}`,
         label,
-        labelCfg: {
-          position: 'bottom',
-          offset: 10
-        },
         // 形状
         type: shape,
         style: {
