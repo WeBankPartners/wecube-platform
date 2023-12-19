@@ -23,8 +23,15 @@ func UploadPluginPackage(bucket string, fileMap map[string]string) (err error) {
 	return
 }
 
-func DownloadPackage() {
-
+func DownloadPackage(bucket, key, localFilePath string) (err error) {
+	minioClient, newErr := minio.New(models.Config.S3.ServerAddress, &minio.Options{Creds: credentials.NewStaticV4(models.Config.S3.AccessKey, models.Config.S3.SecretKey, "")})
+	if newErr != nil {
+		return fmt.Errorf("minio new client fail,%s ", newErr.Error())
+	}
+	if err = minioClient.FGetObject(context.Background(), bucket, key, localFilePath, minio.GetObjectOptions{Checksum: true}); err != nil {
+		err = fmt.Errorf("download s3 file %s to path:%s fail,%s ", key, localFilePath, err.Error())
+	}
+	return
 }
 
 func MakeBucket(bucket string) (err error) {
