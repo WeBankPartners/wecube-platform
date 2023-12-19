@@ -4,7 +4,9 @@
     <div style="border: 2px solid #f9f9f9">
       <!-- 左侧按钮 -->
       <item-panel />
-
+      <div class="floating-button">
+        <Button size="small" type="primary" @click="resetCanvas" sytle="position: fixed">Reset Zoom</Button>
+      </div>
       <!-- 挂载节点 -->
       <div id="canvasPanel" ref="canvasPanel" @dragover.prevent />
       <!-- 信息配置 -->
@@ -15,10 +17,10 @@
 
 <script>
 import G6 from '@antv/g6'
-import FlowHeader from './flow/flow-header.vue'
+import FlowHeader from '@/pages/collaboration/flow/flow-header.vue'
 import registerFactory from './flow/graph/graph'
 import ItemPanel from './flow/item-panel.vue'
-import FlowDrawer from './flow/flow-drawer.vue'
+import FlowDrawer from '@/pages/collaboration/flow/flow-drawer.vue'
 import data from './flow/data.js'
 import { nodeDefaultAttr } from './flow/node-default-attr.js'
 
@@ -99,6 +101,9 @@ export default {
     this.graph.destroy()
   },
   methods: {
+    resetCanvas () {
+      this.graph.zoomTo(1) // 缩放到原始大小
+    },
     createGraphic () {
       const vm = this
       const grid = new G6.Grid()
@@ -437,5 +442,12 @@ export default {
   right: 0;
   bottom: 0;
   background: #fff;
+}
+
+.floating-button {
+  z-index: 10;
+  position: fixed;
+  bottom: 30px; /* 调整按钮与底部的距离 */
+  left: 30px; /* 将按钮水平居中 */
 }
 </style>
