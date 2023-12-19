@@ -9,7 +9,7 @@ export default (G6, config) => {
   const options = Object.assign(
     {
       container: 'canvasPanel',
-      width: window.innerWidth,
+      width: window.innerWidth - 30,
       height: window.innerHeight - 300,
       // renderer:       'svg',
       fitViewPadding: 20,

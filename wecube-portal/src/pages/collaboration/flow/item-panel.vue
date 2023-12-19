@@ -169,11 +169,12 @@ export default {
 <style lang="scss">
 #itemPanel {
   position: absolute;
-  top: 100px;
-  left: 0;
+  top: 145px;
+  left: 32px;
   bottom: 0;
   z-index: 10;
   width: 100px;
+  height: 80%;
   background: #fff;
   // padding-top: 65px;
   transition: transform 0.3s ease-in-out;
