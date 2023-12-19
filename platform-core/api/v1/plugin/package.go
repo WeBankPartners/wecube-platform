@@ -203,6 +203,8 @@ func GetAvailableContainerHost(c *gin.Context) {
 }
 
 func RegisterPackage(c *gin.Context) {
+	//pluginPackageId := c.Param("pluginPackage")
+	// 依赖包检测
 	// 把s3上的ui.zip下下来放到本地
 
 	// 把ui.zip用ssh传到静态资源服务器上并解压
