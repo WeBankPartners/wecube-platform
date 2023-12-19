@@ -7,7 +7,9 @@ import (
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/db"
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/exterror"
 	"github.com/WeBankPartners/wecube-platform/platform-core/models"
+	"math"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -215,13 +217,16 @@ func UploadPackage(registerConfig *models.RegisterXML, withUi, enterprise bool) 
 		}
 	}
 	err = db.Transaction(actions, db.NewDBCtx(fmt.Sprintf("upload_%s_%s", registerConfig.Name, registerConfig.Version)))
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseExecuteError, err)
+	}
 	return
 }
 
 func getMaxDataModelVersion(packageName string) (maxV int, err error) {
 	queryResult, queryErr := db.MysqlEngine.QueryString("SELECT max(`version`) as ver FROM plugin_package_data_model WHERE package_name =? GROUP BY package_name")
 	if queryErr != nil {
-		err = fmt.Errorf("query data model max version fail,%s ", queryErr.Error())
+		err = exterror.Catch(exterror.New().DatabaseQueryError, fmt.Errorf("query data model max version fail,%s ", queryErr.Error()))
 		return
 	}
 	maxV, _ = strconv.Atoi(queryResult[0]["ver"])
@@ -253,6 +258,78 @@ func GetSimplePluginPackage(param *models.PluginPackages, emptyCheck bool) (err 
 	return
 }
 
-func CheckPluginPackageDependence() {
+func CheckPluginPackageDependence(pluginPackageId string) (ok bool, err error) {
+	var pluginPackageDepRows []*models.PluginPackageDependencies
+	err = db.MysqlEngine.SQL("select dependency_package_name,dependency_package_version from plugin_package_dependencies where plugin_package_id=?", pluginPackageId).Find(&pluginPackageDepRows)
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
+		return
+	}
+	if len(pluginPackageDepRows) == 0 {
+		return true, nil
+	}
+	var depPlatformVersion string
+	var depPluginVersionName []string
+	depPluginVersionMap := make(map[string]string)
+	for _, row := range pluginPackageDepRows {
+		if row.DependencyPackageName == "platform" {
+			depPlatformVersion = row.DependencyPackageVersion
+			continue
+		}
+		depPluginVersionMap[row.DependencyPackageName] = row.DependencyPackageVersion
+		depPluginVersionName = append(depPluginVersionName, row.DependencyPackageName)
+	}
+	if depPlatformVersion != "" {
+		if CompareVersion(depPlatformVersion, models.Config.Version) {
+			err = fmt.Errorf("platform version required %s > %s", depPlatformVersion, models.Config.Version)
+			return
+		}
+	}
+	if len(depPluginVersionName) == 0 {
+		return true, nil
+	}
+	var pluginPackageRows []*models.PluginPackages
+	filterSql, filterParams := db.CreateListParams(depPluginVersionName, "")
+	filterParams = append([]interface{}{models.PluginStatusRegistered}, filterParams...)
+	err = db.MysqlEngine.SQL("select name,`version` from plugin_packages where status=? and name in ("+filterSql+")", filterParams...).Find(&pluginPackageRows)
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
+		return
+	}
+	for _, row := range pluginPackageRows {
+		if v, b := depPluginVersionMap[row.Name]; b {
+			if CompareVersion(row.Version, v) {
+				delete(depPluginVersionMap, row.Name)
+			}
+		}
+	}
+	if len(depPluginVersionMap) == 0 {
+		return true, nil
+	}
+	var errorMessages []string
+	for k, v := range depPluginVersionMap {
+		errorMessages = append(errorMessages, fmt.Sprintf("depence %s:%s illegal", k, v))
+	}
+	err = fmt.Errorf(strings.Join(errorMessages, ","))
+	return
+}
 
+func CompareVersion(v1, v2 string) bool {
+	return parseVersionToNum(v1) > parseVersionToNum(v2)
+}
+
+func parseVersionToNum(input string) float64 {
+	if input == "" {
+		return 0
+	}
+	input = strings.ToLower(input)
+	if strings.HasPrefix(input, "v") {
+		input = input[1:]
+	}
+	var num float64
+	for i, v := range strings.Split(input, ".") {
+		intV, _ := strconv.Atoi(v)
+		num += float64(intV) * math.Pow(100, float64(4-i))
+	}
+	return num
 }
