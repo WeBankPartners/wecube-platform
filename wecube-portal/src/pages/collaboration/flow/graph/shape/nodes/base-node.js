@@ -237,7 +237,7 @@ export default G6 => {
             attrs: {
               text,
               x: 0,
-              y: 0,
+              y: 40,
               ...labelCfg,
               ...labelCfg.style
             },
