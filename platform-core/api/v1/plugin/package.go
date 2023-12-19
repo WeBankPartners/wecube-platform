@@ -4,6 +4,7 @@ import (
 	"encoding/xml"
 	"fmt"
 	"github.com/WeBankPartners/wecube-platform/platform-core/api/middleware"
+	"github.com/WeBankPartners/wecube-platform/platform-core/common/exterror"
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/log"
 	"github.com/WeBankPartners/wecube-platform/platform-core/models"
 	"github.com/WeBankPartners/wecube-platform/platform-core/services/bash"
@@ -203,11 +204,31 @@ func GetAvailableContainerHost(c *gin.Context) {
 }
 
 func RegisterPackage(c *gin.Context) {
-	//pluginPackageId := c.Param("pluginPackage")
+	pluginPackageId := c.Param("pluginPackage")
+	pluginPackageObj := models.PluginPackages{Id: pluginPackageId}
+	if err := database.GetSimplePluginPackage(&pluginPackageObj, true); err != nil {
+		middleware.ReturnError(c, err)
+		return
+	}
 	// 依赖包检测
+	depOk, err := database.CheckPluginPackageDependence(pluginPackageId)
+	if err != nil {
+		middleware.ReturnError(c, err)
+		return
+	}
+	if !depOk {
+		middleware.ReturnError(c, exterror.New().PluginDependencyIllegal)
+		return
+	}
 	// 把s3上的ui.zip下下来放到本地
+	if pluginPackageObj.UiPackageIncluded {
+		if err = bash.DownloadPackage(models.Config.S3.PluginPackageBucket, fmt.Sprintf("%s/%s/ui.zip", pluginPackageObj.Name, pluginPackageObj.Version), ""); err != nil {
+			middleware.ReturnError(c, err)
+			return
+		}
+		// 把ui.zip用ssh传到静态资源服务器上并解压，如果有两台服务器，则每台都要上传与解压
 
-	// 把ui.zip用ssh传到静态资源服务器上并解压
+	}
 
 	// 把对应插件版本的系统变量置为active
 }
