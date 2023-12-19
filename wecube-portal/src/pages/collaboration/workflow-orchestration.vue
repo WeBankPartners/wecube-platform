@@ -1,11 +1,13 @@
 <template>
   <div class="root">
+    <div @click="saveSvg">12343546terfsdg</div>
     <!-- 左侧按钮 -->
     <item-panel />
 
     <!-- 挂载节点 -->
     <div id="canvasPanel" ref="canvasPanel" @dragover.prevent />
 
+    <FlowDrawer ref="flowDrawerRef"></FlowDrawer>
     <!-- 配置面板 -->
     <!-- <div
       id="configPanel"
@@ -78,6 +80,7 @@
 import G6 from '@antv/g6'
 import registerFactory from './flow/graph/graph'
 import ItemPanel from './flow/ItemPanel.vue'
+import FlowDrawer from './flow/flow-drawer.vue'
 import data from './flow/data.js'
 import { nodeDefaultAttr } from './flow/node-default-attr.js'
 
@@ -85,10 +88,15 @@ import { nodeDefaultAttr } from './flow/node-default-attr.js'
 
 export default {
   components: {
-    ItemPanel
+    ItemPanel,
+    FlowDrawer
   },
   data () {
     return {
+      flowInfo: {
+        id: '',
+        name: ''
+      },
       mode: 'drag-shadow-node',
       graph: {},
       highLight: {
@@ -134,7 +142,6 @@ export default {
         }
       ],
       headVisible: false,
-      configVisible: false,
       isMouseDown: false,
       config: '',
       tooltip: '',
@@ -306,8 +313,6 @@ export default {
       })
 
       this.graph.on('after-node-selected', e => {
-        this.configVisible = !!e
-
         if (e && e.item) {
           const model = e.item.get('model')
 
@@ -327,7 +332,16 @@ export default {
             height: model.style.height,
             shape: model.type
           }
+          this.$refs.flowDrawerRef.openDrawer()
         }
+      })
+      this.graph.on('click', e => {
+        if (this.flowInfo.id === '') {
+          this.flowInfo.id = `id_flow__${Math.random().toString(36).substring(2, 8)}`
+          this.flowInfo.name = `name__${Math.random().toString(36).substring(2, 8)}`
+        }
+        this.$refs.flowDrawerRef.openDrawer('flow', this.flowInfo)
+        e.stopPropagation()
       })
 
       this.graph.on('on-node-mouseenter', e => {
@@ -389,8 +403,6 @@ export default {
       })
 
       this.graph.on('after-edge-selected', e => {
-        this.configVisible = !!e
-
         if (e && e.item) {
           this.config = e.item.get('model').id
 
@@ -437,7 +449,11 @@ export default {
     // 添加节点
     addNode (transferData, { x, y }) {
       const { label, shape, fill, lineWidth, nodeType } = JSON.parse(transferData)
-
+      const findStartNodeIndex = this.graph.save().nodes.findIndex(n => n.id.startsWith('id_start'))
+      if (nodeType === 'start' && findStartNodeIndex > -1) {
+        this.$Message.warning(this.$t('start_node_warning'))
+        return
+      }
       const model = {
         id: `id_${nodeType}_${Math.random().toString(36).substring(2, 8)}`,
         label,
@@ -465,12 +481,18 @@ export default {
           [1, 0.5]
         ]
       }
-
       this.graph.addItem('node', model)
     },
     save () {
       // eslint-disable-next-line no-alert
       window.alert('我觉得就算我不写你也会了')
+    },
+    saveSvg () {
+      const nodes = this.graph.save().nodes
+      const edges = this.graph.save().edges
+
+      console.log('Nodes:', nodes)
+      console.log('Edges:', edges)
     }
   }
 }
