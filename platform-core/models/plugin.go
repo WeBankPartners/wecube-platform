@@ -149,7 +149,7 @@ type RegisterXML struct {
 	} `xml:"menus"`
 	DataModel struct {
 		Text   string `xml:",chardata"`
-		Entity struct {
+		Entity []struct {
 			Text        string `xml:",chardata"`
 			Name        string `xml:"name,attr"`
 			DisplayName string `xml:"displayName,attr"`
@@ -256,4 +256,83 @@ type RegisterXML struct {
 			} `xml:"interface"`
 		} `xml:"plugin"`
 	} `xml:"plugins"`
+}
+
+type PluginConfigs struct {
+	Id                     string `json:"id" xorm:"id"`                                            // 唯一标识
+	PluginPackageId        string `json:"pluginPackageId" xorm:"plugin_package_id"`                // 插件
+	Name                   string `json:"name" xorm:"name"`                                        // 服务类型名称
+	TargetPackage          string `json:"targetPackage" xorm:"target_package"`                     // 目标类型包
+	TargetEntity           string `json:"targetEntity" xorm:"target_entity"`                       // 目标类型项
+	TargetEntityFilterRule string `json:"targetEntityFilterRule" xorm:"target_entity_filter_rule"` // 目标类型过滤规则
+	RegisterName           string `json:"registerName" xorm:"register_name"`                       // 服务注册名
+	Status                 string `json:"status" xorm:"status"`                                    // 状态
+}
+
+type PluginConfigInterfaces struct {
+	Id                 string `json:"id" xorm:"id"`                                   // 唯一标识
+	PluginConfigId     string `json:"pluginConfigId" xorm:"plugin_config_id"`         // 插件服务
+	Action             string `json:"action" xorm:"action"`                           // 接口
+	ServiceName        string `json:"serviceName" xorm:"service_name"`                // 服务名
+	ServiceDisplayName string `json:"serviceDisplayName" xorm:"service_display_name"` // 服务显示名
+	Path               string `json:"path" xorm:"path"`                               // 插件接口uri
+	HttpMethod         string `json:"httpMethod" xorm:"http_method"`                  // http请求方法
+	IsAsyncProcessing  bool   `json:"isAsyncProcessing" xorm:"is_async_processing"`   // 是否同步
+	Type               string `json:"type" xorm:"type"`                               // 服务类型->approval(审批),execution(执行),dynamicform(动态表单)
+	FilterRule         string `json:"filterRule" xorm:"filter_rule"`                  // 服务过滤规则
+	Description        string `json:"description" xorm:"description"`                 // 描述
+}
+
+type PluginConfigInterfaceParameters struct {
+	Id                        string `json:"id" xorm:"id"`                                                  // 唯一标识
+	PluginConfigInterfaceId   string `json:"pluginConfigInterfaceId" xorm:"plugin_config_interface_id"`     // 服务接口
+	Type                      string `json:"type" xorm:"type"`                                              // 类型->input(输入),output(输出)
+	Name                      string `json:"name" xorm:"name"`                                              // 接口属性名
+	DataType                  string `json:"dataType" xorm:"data_type"`                                     // 属性数据类型
+	MappingType               string `json:"mappingType" xorm:"mapping_type"`                               // 数据来源
+	MappingEntityExpression   string `json:"mappingEntityExpression" xorm:"mapping_entity_expression"`      // entity表达式
+	MappingSystemVariableName string `json:"mappingSystemVariableName" xorm:"mapping_system_variable_name"` // 系统参数
+	Required                  bool   `json:"required" xorm:"required"`                                      // 是否必填
+	SensitiveData             bool   `json:"sensitiveData" xorm:"sensitive_data"`                           // 是否敏感
+	Description               string `json:"description" xorm:"description"`                                // 描述
+	MappingVal                string `json:"mappingVal" xorm:"mapping_val"`                                 // 静态值
+	Multiple                  bool   `json:"multiple" xorm:"multiple"`                                      // 是否数组
+	RefObjectName             string `json:"refObjectName" xorm:"ref_object_name"`                          // 关联对象名
+}
+
+type PluginPackageDataModel struct {
+	Id           string    `json:"id" xorm:"id"`                      // 唯一标识
+	Version      int       `json:"version" xorm:"version"`            // 版本
+	PackageName  string    `json:"packageName" xorm:"package_name"`   // 包名
+	IsDynamic    bool      `json:"isDynamic" xorm:"is_dynamic"`       // 是否动态
+	UpdatePath   string    `json:"updatePath" xorm:"update_path"`     // 请求路径
+	UpdateMethod string    `json:"updateMethod" xorm:"update_method"` // 请求方法
+	UpdateSource string    `json:"updateSource" xorm:"update_source"` // 来源
+	UpdateTime   time.Time `json:"updateTime" xorm:"update_time"`     // 更新时间
+}
+
+type PluginPackageEntities struct {
+	Id               string `json:"id" xorm:"id"`                               // 唯一标识
+	DataModelId      string `json:"dataModelId" xorm:"data_model_id"`           // 所属数据模型
+	DataModelVersion int    `json:"dataModelVersion" xorm:"data_model_version"` // 版本
+	PackageName      string `json:"packageName" xorm:"package_name"`            // 包名
+	Name             string `json:"name" xorm:"name"`                           // 模型名
+	DisplayName      string `json:"displayName" xorm:"display_name"`            // 显示名
+	Description      string `json:"description" xorm:"description"`             // 描述
+}
+
+type PluginPackageAttributes struct {
+	Id          string    `json:"id" xorm:"id"`                    // 唯一标识
+	EntityId    string    `json:"entityId" xorm:"entity_id"`       // 所属数据模型ci项
+	ReferenceId string    `json:"referenceId" xorm:"reference_id"` // 关联数据模型
+	Name        string    `json:"name" xorm:"name"`                // 属性名
+	Description string    `json:"description" xorm:"description"`  // 描述
+	DataType    string    `json:"dataType" xorm:"data_type"`       // 属性数据类型
+	RefPackage  string    `json:"refPackage" xorm:"ref_package"`   // 关联包
+	RefEntity   string    `json:"refEntity" xorm:"ref_entity"`     // 关联ci项
+	RefAttr     string    `json:"refAttr" xorm:"ref_attr"`         // 关联属性
+	Mandatory   bool      `json:"mandatory" xorm:"mandatory"`      // 是否必填
+	Multiple    bool      `json:"multiple" xorm:"multiple"`        // 是否数组
+	CreatedTime time.Time `json:"createdTime" xorm:"created_time"` // 创建时间
+	OrderNo     int       `json:"orderNo" xorm:"order_no"`         // 排序
 }
