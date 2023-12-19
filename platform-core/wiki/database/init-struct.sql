@@ -71,10 +71,10 @@ CREATE TABLE `plugin_packages` (
    `id` varchar(64) NOT NULL COMMENT '唯一标识',
    `name` varchar(64) NOT NULL COMMENT '显示名',
    `version` varchar(32) NOT NULL COMMENT '版本',
-   `status` varchar(32) NOT NULL DEFAULT 'UNREGISTERED' COMMENT '状态->0(UNREGISTERED已上传未注册态)|1(REGISTERED注册态)|2(DECOMMISSIONED注销态)',
+   `status` varchar(32) NOT NULL DEFAULT 'UNREGISTERED' COMMENT '状态->UNREGISTERED(已上传未注册态)|REGISTERED(注册态)|DECOMMISSIONED(注销态)',
    `upload_timestamp` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '上传时间',
    `ui_package_included` tinyint(1) DEFAULT 0 COMMENT '是否有ui->0(无)|1(有)',
-   `edition` varchar(32) NOT NULL DEFAULT 'community' COMMENT '发行版本->0(community社区版)|1(enterprise企业版)',
+   `edition` varchar(32) NOT NULL DEFAULT 'community' COMMENT '发行版本->community(社区版)|enterprise(企业版)',
    KEY `k_plugin_packages_status`(`status`),
    PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
@@ -132,7 +132,7 @@ CREATE TABLE `plugin_mysql_instances` (
       `plugin_package_id` varchar(64) DEFAULT NULL COMMENT '插件',
       `resource_item_id` varchar(64) DEFAULT NULL COMMENT '资源实例id',
       `schema_name` varchar(64) DEFAULT NULL COMMENT '数据库名',
-      `status` varchar(32) DEFAULT 'inactive' COMMENT '状态->0(inactive)|1(active)',
+      `status` varchar(32) DEFAULT 'inactive' COMMENT '状态->inactive(未启用)|active(启用)',
       `username` varchar(255) DEFAULT NULL COMMENT '用户名',
       `pre_version` varchar(64) DEFAULT NULL COMMENT '插件版本',
       `created_time` datetime DEFAULT NULL COMMENT '创建时间',
@@ -180,8 +180,102 @@ CREATE TABLE `plugin_package_menus` (
     `local_display_name` varchar(255) NOT NULL COMMENT '本地语言显示名',
     `menu_order` int(11) NOT NULL AUTO_INCREMENT COMMENT '菜单排序',
     `path` varchar(255) NOT NULL COMMENT '前端请求路径',
-    `active` tinyint(1) DEFAULT 0 COMMENT '是否启用->0(不启用)|1(启用)',
+    `active` tinyint(1) DEFAULT 0 COMMENT '是否启用->0(未启用)|1(启用)',
     PRIMARY KEY (`id`),
     KEY `plugin_package_menu_order` (`menu_order`),
     CONSTRAINT `fk_plugin_menus_package` FOREIGN KEY (`plugin_package_id`) REFERENCES `plugin_packages` (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
+
+CREATE TABLE `plugin_configs` (
+      `id` varchar(64) NOT NULL COMMENT '唯一标识',
+      `plugin_package_id` varchar(64) NOT NULL COMMENT '插件',
+      `name` varchar(255) NOT NULL COMMENT '服务类型名称',
+      `target_package` varchar(64) DEFAULT NULL COMMENT '目标类型包',
+      `target_entity` varchar(255) DEFAULT NULL COMMENT '目标类型项',
+      `target_entity_filter_rule` varchar(2048) DEFAULT NULL COMMENT '目标类型过滤规则',
+      `register_name` varchar(255) DEFAULT NULL COMMENT '服务注册名',
+      `status` varchar(32) NOT NULL DEFAULT 'DISABLED' COMMENT '状态',
+      PRIMARY KEY (`id`),
+      CONSTRAINT `fk_plugin_config_package` FOREIGN KEY (`plugin_package_id`) REFERENCES `plugin_packages` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
+
+CREATE TABLE `plugin_config_interfaces` (
+        `id` varchar(64) NOT NULL COMMENT '唯一标识',
+        `plugin_config_id` varchar(64) NOT NULL COMMENT '插件服务',
+        `action` varchar(255) NOT NULL COMMENT '接口',
+        `service_name` varchar(255) NOT NULL COMMENT '服务名',
+        `service_display_name` varchar(255) NOT NULL COMMENT '服务显示名',
+        `path` varchar(255) NOT NULL COMMENT '插件接口uri',
+        `http_method` varchar(32) NOT NULL COMMENT 'http请求方法',
+        `is_async_processing` tinyint(1) DEFAULT 0 COMMENT '是否同步',
+        `type` varchar(32) DEFAULT 'EXECUTION' COMMENT '服务类型->APPROVAL(审批),EXECUTION(执行),DYNAMICFORM(动态表单)',
+        `filter_rule` varchar(2048) DEFAULT NULL COMMENT '服务过滤规则',
+        `description` varchar(255) DEFAULT NULL COMMENT '描述',
+        PRIMARY KEY (`id`),
+        CONSTRAINT `fk_plugin_interface_config` FOREIGN KEY (`plugin_config_id`) REFERENCES `plugin_configs` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
+
+CREATE TABLE `plugin_config_interface_parameters` (
+      `id` varchar(64) NOT NULL COMMENT '唯一标识',
+      `plugin_config_interface_id` varchar(64) NOT NULL COMMENT '服务接口',
+      `type` varchar(32) NOT NULL COMMENT '类型->INPUT(输入),OUTPUT(输出)',
+      `name` varchar(255) NOT NULL COMMENT '接口属性名',
+      `data_type` varchar(64) NOT NULL COMMENT '属性数据类型',
+      `mapping_type` varchar(64) DEFAULT NULL COMMENT '数据来源',
+      `mapping_entity_expression` varchar(2048) DEFAULT NULL COMMENT 'entity表达式',
+      `mapping_system_variable_name` varchar(255) DEFAULT NULL COMMENT '系统参数',
+      `required` tinyint(1) DEFAULT 0 COMMENT '是否必填',
+      `sensitive_data` tinyint(1) DEFAULT 0 COMMENT '是否敏感',
+      `description` varchar(255) DEFAULT NULL COMMENT '描述',
+      `mapping_val` varchar(255) DEFAULT NULL COMMENT '静态值',
+      `multiple` tinyint(1) DEFAULT 0 COMMENT '是否数组',
+      `ref_object_name` varchar(64) DEFAULT NULL COMMENT '关联对象名',
+      PRIMARY KEY (`id`),
+      CONSTRAINT `fk_plugin_param_interface` FOREIGN KEY (`plugin_config_interface_id`) REFERENCES `plugin_config_interfaces` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
+
+CREATE TABLE `plugin_package_data_model` (
+     `id` varchar(64) NOT NULL COMMENT '唯一标识',
+     `version` int(11) NOT NULL DEFAULT 0 COMMENT '版本',
+     `package_name` varchar(64) NOT NULL COMMENT '包名',
+     `is_dynamic` tinyint(1) DEFAULT 0 COMMENT '是否动态',
+     `update_path` varchar(255) DEFAULT '/data-model' COMMENT '请求路径',
+     `update_method` varchar(32) DEFAULT 'GET' COMMENT '请求方法',
+     `update_source` varchar(32) DEFAULT 'PLUGIN_PACKAGE' COMMENT '来源',
+     `update_time` datetime DEFAULT NULL COMMENT '更新时间',
+     PRIMARY KEY (`id`),
+     UNIQUE KEY `uk_plugin_package_data_model` (`package_name`,`version`),
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
+
+CREATE TABLE `plugin_package_entities` (
+       `id` varchar(64) NOT NULL COMMENT '唯一标识',
+       `data_model_id` varchar(64) NOT NULL COMMENT '所属数据模型',
+       `data_model_version` int(11) NOT NULL COMMENT '版本',
+       `package_name` varchar(64) NOT NULL COMMENT '包名',
+       `name` varchar(255) NOT NULL COMMENT '模型名',
+       `display_name` varchar(255) NOT NULL COMMENT '显示名',
+       `description` varchar(255) DEFAULT NULL COMMENT '描述',
+       PRIMARY KEY (`id`),
+       UNIQUE KEY `uk_plugin_entity_model_name` (`data_model_id`,`name`),
+       CONSTRAINT `fk_plugin_entity_model` FOREIGN KEY (`data_model_id`) REFERENCES `plugin_package_data_model` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
+
+CREATE TABLE `plugin_package_attributes` (
+     `id` varchar(64) NOT NULL COMMENT '唯一标识',
+     `entity_id` varchar(64) NOT NULL COMMENT '所属数据模型CI项',
+     `reference_id` varchar(64) DEFAULT NULL COMMENT '关联数据模型',
+     `name` varchar(255) NOT NULL COMMENT '属性名',
+     `description` varchar(255) DEFAULT NULL COMMENT '描述',
+     `data_type` varchar(64) NOT NULL COMMENT '属性数据类型',
+     `ref_package` varchar(64) DEFAULT NULL COMMENT '关联包',
+     `ref_entity` varchar(64) DEFAULT NULL COMMENT '关联CI项',
+     `ref_attr` varchar(64) DEFAULT NULL COMMENT '关联属性',
+     `mandatory` tinyint(1) DEFAULT 0 COMMENT '是否必填',
+     `multiple` tinyint(1) DEFAULT 0 COMMENT '是否数组',
+     `created_time` datetime DEFAULT NULL COMMENT '创建时间',
+     `order_no` int(11) DEFAULT 0 COMMENT '排序',
+     PRIMARY KEY (`id`),
+     UNIQUE KEY `uk_plugin_attr_entity_name` (`entity_id`,`name`),
+     CONSTRAINT `fk_plugin_attr_entity` FOREIGN KEY (`entity_id`) REFERENCES `plugin_package_entities` (`id`),
+     CONSTRAINT `fk_plugin_attr_ref` FOREIGN KEY (`reference_id`) REFERENCES `plugin_package_attributes` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
