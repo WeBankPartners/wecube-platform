@@ -23,6 +23,10 @@ func UploadPluginPackage(bucket string, fileMap map[string]string) (err error) {
 	return
 }
 
+func DownloadPackage() {
+
+}
+
 func MakeBucket(bucket string) (err error) {
 	minioClient, newErr := minio.New(models.Config.S3.ServerAddress, &minio.Options{Creds: credentials.NewStaticV4(models.Config.S3.AccessKey, models.Config.S3.SecretKey, "")})
 	if newErr != nil {

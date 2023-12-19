@@ -7,6 +7,7 @@ import (
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/db"
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/exterror"
 	"github.com/WeBankPartners/wecube-platform/platform-core/models"
+	"strconv"
 	"time"
 )
 
@@ -122,8 +123,8 @@ func UploadPackage(registerConfig *models.RegisterXML, withUi, enterprise bool) 
 		pluginPackageId, registerConfig.Name, registerConfig.Version, models.PluginStatusUnRegistered, nowTime, withUi, edition}})
 	for _, pluginConfig := range registerConfig.Plugins.Plugin {
 		pluginConfigId := "p_config_" + guid.CreateGuid()
-		actions = append(actions, &db.ExecAction{Sql: "insert into plugin_configs (id,plugin_package_id,name,target_package,target_entity,target_entity_filter_rule,register_name,status) values (?,?,?,?,?,?,?,?)", Param: []interface{}{
-			pluginConfigId, pluginPackageId, pluginConfig.Name, pluginConfig.TargetPackage, pluginConfig.TargetEntity, pluginConfig.TargetEntityFilterRule, pluginConfig.RegisterName, "disable",
+		actions = append(actions, &db.ExecAction{Sql: "insert into plugin_configs (id,plugin_package_id,name,target_package,target_entity,target_entity_filter_rule,register_name) values (?,?,?,?,?,?,?)", Param: []interface{}{
+			pluginConfigId, pluginPackageId, pluginConfig.Name, pluginConfig.TargetPackage, pluginConfig.TargetEntity, pluginConfig.TargetEntityFilterRule, pluginConfig.RegisterName,
 		}})
 		for _, pluginConfigInterface := range pluginConfig.Interface {
 			pluginConfigInterfaceId := "p_conf_inf_" + guid.CreateGuid()
@@ -173,8 +174,57 @@ func UploadPackage(registerConfig *models.RegisterXML, withUi, enterprise bool) 
 			}
 		}
 	}
-	// TODO systemVariable
+	variableSource := fmt.Sprintf("%s__%s", registerConfig.Name, registerConfig.Version)
+	for _, systemVariable := range registerConfig.SystemParameters.SystemParameter {
+		svId := "sys_var_" + guid.CreateGuid()
+		actions = append(actions, &db.ExecAction{Sql: "INSERT INTO system_variables (id,package_name,name,value,default_value,`scope`,source,status) VALUES (?,?,?,?,?,?,?,?)", Param: []interface{}{
+			svId, registerConfig.Name, systemVariable.Name, "", systemVariable.DefaultValue, systemVariable.ScopeType, variableSource, models.SystemVariableInactive,
+		}})
+	}
+	for _, dependence := range registerConfig.PackageDependencies.PackageDependency {
+		depId := "p_pkg_dep_" + guid.CreateGuid()
+		actions = append(actions, &db.ExecAction{Sql: "insert into plugin_package_dependencies (id,plugin_package_id,dependency_package_name,dependency_package_version) values (?,?,?,?)", Param: []interface{}{
+			depId, pluginPackageId, dependence.Name, dependence.Version,
+		}})
+	}
+	actions = append(actions, &db.ExecAction{Sql: "insert into plugin_package_runtime_resources_docker (id,plugin_package_id,image_name,container_name,port_bindings,volume_bindings,env_variables) values (?,?,?,?,?,?,?)", Param: []interface{}{
+		"p_res_docker_" + guid.CreateGuid(), pluginPackageId, registerConfig.ResourceDependencies.Docker.ImageName, registerConfig.ResourceDependencies.Docker.ContainerName, registerConfig.ResourceDependencies.Docker.PortBindings, registerConfig.ResourceDependencies.Docker.VolumeBindings, registerConfig.ResourceDependencies.Docker.EnvVariables,
+	}})
+	if len(registerConfig.DataModel.Entity) > 0 {
+		maxVersion, getVersionErr := getMaxDataModelVersion(registerConfig.Name)
+		if getVersionErr != nil {
+			err = getVersionErr
+			return
+		}
+		maxVersion = maxVersion + 1
+		for _, dataModel := range registerConfig.DataModel.Entity {
+			dmId := "p_model_" + guid.CreateGuid()
+			actions = append(actions, &db.ExecAction{Sql: "INSERT INTO plugin_package_data_model (id,`version`,package_name,is_dynamic,update_path,update_method,update_source,update_time) VALUES (?,?,?,?,?,?,?,?)", Param: []interface{}{
+				dmId, maxVersion, registerConfig.Name, 0, "/data-model", "GET", "PLUGIN_PACKAGE", nowTime,
+			}})
+			entityId := "p_mod_entity_" + guid.CreateGuid()
+			actions = append(actions, &db.ExecAction{Sql: "INSERT INTO plugin_package_entities (id,data_model_id,data_model_version,package_name,name,display_name,description) VALUES (?,?,?,?,?,?,?)", Param: []interface{}{
+				entityId, dmId, maxVersion, registerConfig.Name, dataModel.Name, dataModel.DisplayName, dataModel.Description,
+			}})
+			for attrIndex, attr := range dataModel.Attribute {
+				attrId := "p_mod_attr_" + guid.CreateGuid()
+				actions = append(actions, &db.ExecAction{Sql: "INSERT INTO plugin_package_attributes (id,entity_id,name,description,data_type,mandatory,multiple,created_time,order_no) values  (?,?,?,?,?,?,?,?,?)", Param: []interface{}{
+					attrId, entityId, attr.Name, attr.Description, attr.Datatype, 0, 0, nowTime, attrIndex,
+				}})
+			}
+		}
+	}
 	err = db.Transaction(actions, db.NewDBCtx(fmt.Sprintf("upload_%s_%s", registerConfig.Name, registerConfig.Version)))
+	return
+}
+
+func getMaxDataModelVersion(packageName string) (maxV int, err error) {
+	queryResult, queryErr := db.MysqlEngine.QueryString("SELECT max(`version`) as ver FROM plugin_package_data_model WHERE package_name =? GROUP BY package_name")
+	if queryErr != nil {
+		err = fmt.Errorf("query data model max version fail,%s ", queryErr.Error())
+		return
+	}
+	maxV, _ = strconv.Atoi(queryResult[0]["ver"])
 	return
 }
 
@@ -201,4 +251,8 @@ func GetSimplePluginPackage(param *models.PluginPackages, emptyCheck bool) (err 
 		}
 	}
 	return
+}
+
+func CheckPluginPackageDependence() {
+
 }
