@@ -222,7 +222,8 @@ func RegisterPackage(c *gin.Context) {
 	}
 	// 把s3上的ui.zip下下来放到本地
 	if pluginPackageObj.UiPackageIncluded {
-		if err = bash.DownloadPackage(models.Config.S3.PluginPackageBucket, fmt.Sprintf("%s/%s/ui.zip", pluginPackageObj.Name, pluginPackageObj.Version), ""); err != nil {
+		var uiFileLocalPath string
+		if uiFileLocalPath, err = bash.DownloadPackage(models.Config.S3.PluginPackageBucket, fmt.Sprintf("%s/%s/ui.zip", pluginPackageObj.Name, pluginPackageObj.Version)); err != nil {
 			middleware.ReturnError(c, err)
 			return
 		}
