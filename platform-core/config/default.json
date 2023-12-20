@@ -41,5 +41,12 @@
     "access_key": "",
     "secret_key": "",
     "plugin_package_bucket": "wecube-plugin-package-bucket"
+  },
+  "static_resource": {
+    "servers": "",
+    "user": "",
+    "password": "",
+    "port": "",
+    "path": ""
   }
 }

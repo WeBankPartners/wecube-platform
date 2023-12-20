@@ -6,6 +6,7 @@ import (
 	"github.com/WeBankPartners/wecube-platform/platform-core/models"
 	"github.com/minio/minio-go/v7"
 	"github.com/minio/minio-go/v7/pkg/credentials"
+	"strings"
 )
 
 func UploadPluginPackage(bucket string, fileMap map[string]string) (err error) {
@@ -23,13 +24,22 @@ func UploadPluginPackage(bucket string, fileMap map[string]string) (err error) {
 	return
 }
 
-func DownloadPackage(bucket, key, localFilePath string) (err error) {
+func DownloadPackage(bucket, key string) (tmpPath string, err error) {
+	var fileDir, fileName string
+	if fileDir, err = newTmpDir(); err != nil {
+		return
+	}
+	fileName = key
+	if lastIndex := strings.LastIndex(key, "/"); lastIndex >= 0 {
+		fileName = key[lastIndex+1:]
+	}
+	tmpPath = fmt.Sprintf("%s/%s", fileDir, fileName)
 	minioClient, newErr := minio.New(models.Config.S3.ServerAddress, &minio.Options{Creds: credentials.NewStaticV4(models.Config.S3.AccessKey, models.Config.S3.SecretKey, "")})
 	if newErr != nil {
-		return fmt.Errorf("minio new client fail,%s ", newErr.Error())
+		return tmpPath, fmt.Errorf("minio new client fail,%s ", newErr.Error())
 	}
-	if err = minioClient.FGetObject(context.Background(), bucket, key, localFilePath, minio.GetObjectOptions{Checksum: true}); err != nil {
-		err = fmt.Errorf("download s3 file %s to path:%s fail,%s ", key, localFilePath, err.Error())
+	if err = minioClient.FGetObject(context.Background(), bucket, key, tmpPath, minio.GetObjectOptions{Checksum: true}); err != nil {
+		err = fmt.Errorf("download s3 file %s to path:%s fail,%s ", key, tmpPath, err.Error())
 	}
 	return
 }

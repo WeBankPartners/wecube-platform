@@ -52,6 +52,14 @@ type S3Config struct {
 	PluginPackageBucket string `json:"pluginPackageBucket"`
 }
 
+type StaticResourceConfig struct {
+	Servers  string `json:"servers"`
+	User     string `json:"user"`
+	Password string `json:"password"`
+	Port     string `json:"port"`
+	Path     string `json:"path"`
+}
+
 type GlobalConfig struct {
 	Version         string            `json:"version"`
 	DefaultLanguage string            `json:"default_language"`
