@@ -2,10 +2,10 @@ package bash
 
 import (
 	"fmt"
+	"github.com/WeBankPartners/go-common-lib/guid"
 	"os"
 	"os/exec"
 	"strings"
-	"time"
 )
 
 func GetHostSerialNum(hostIp string) {
@@ -13,14 +13,20 @@ func GetHostSerialNum(hostIp string) {
 }
 
 func SaveTmpFile(fileName string, fileContent []byte) (filePath, fileDir string, err error) {
-	fileDir = fmt.Sprintf("/tmp/%d", time.Now().UnixNano())
-	if err = os.MkdirAll(fileDir, 0644); err != nil {
-		err = fmt.Errorf("make tmp dir fail,%s ", err.Error())
+	if fileDir, err = newTmpDir(); err != nil {
 		return
 	}
 	filePath = fmt.Sprintf("%s/%s", fileDir, fileName)
 	if err = os.WriteFile(filePath, fileContent, 0644); err != nil {
 		err = fmt.Errorf("write tmp file fail,%s ", err.Error())
+	}
+	return
+}
+
+func newTmpDir() (dirPath string, err error) {
+	fileDir := fmt.Sprintf("/tmp/%s", guid.CreateGuid())
+	if err = os.MkdirAll(fileDir, 0644); err != nil {
+		err = fmt.Errorf("make tmp dir fail,%s ", err.Error())
 	}
 	return
 }
