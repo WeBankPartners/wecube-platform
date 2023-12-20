@@ -1,14 +1,14 @@
 {
-  "version": "",
+  "version": "{{version}}",
   "default_language": "en",
   "http_server": {
-    "port": "",
+    "port": "{{http_port}}",
     "cross": false,
     "error_template_dir": "./config/i18n",
     "error_detail_return": true
   },
   "log": {
-    "level": "debug",
+    "level": "{{log_level}}",
     "log_dir": "logs",
     "access_log_enable": true,
     "db_log_enable": true,
@@ -20,11 +20,11 @@
     "format_json": false
   },
   "database": {
-    "server": "",
-    "port": "",
-    "user": "",
-    "password": "",
-    "database": "",
+    "server": "{{db_server}}",
+    "port": "{{db_port}}",
+    "user": "{{db_user}}",
+    "password": "{{db_pass}}",
+    "database": "{{db_database}}",
     "maxOpen": 200,
     "maxIdle": 50,
     "timeout": 60
