@@ -11,6 +11,7 @@ import (
 	"github.com/WeBankPartners/wecube-platform/platform-core/services/database"
 	"github.com/gin-gonic/gin"
 	"os"
+	"strconv"
 	"strings"
 )
 
@@ -88,7 +89,7 @@ func UploadPackage(c *gin.Context) {
 		return
 	}
 	pluginPackageObj := models.PluginPackages{Name: registerConfig.Name, Version: registerConfig.Version}
-	if err = database.GetSimplePluginPackage(&pluginPackageObj, false); err != nil {
+	if err = database.GetSimplePluginPackage(c, &pluginPackageObj, false); err != nil {
 		middleware.ReturnError(c, err)
 		return
 	}
@@ -132,7 +133,7 @@ func UploadPackage(c *gin.Context) {
 		}
 	}
 	// 写数据库
-	err = database.UploadPackage(&registerConfig, withUi, false)
+	err = database.UploadPackage(c, &registerConfig, withUi, false)
 	if err != nil {
 		middleware.ReturnError(c, err)
 	} else {
@@ -206,12 +207,12 @@ func GetAvailableContainerHost(c *gin.Context) {
 func RegisterPackage(c *gin.Context) {
 	pluginPackageId := c.Param("pluginPackage")
 	pluginPackageObj := models.PluginPackages{Id: pluginPackageId}
-	if err := database.GetSimplePluginPackage(&pluginPackageObj, true); err != nil {
+	if err := database.GetSimplePluginPackage(c, &pluginPackageObj, true); err != nil {
 		middleware.ReturnError(c, err)
 		return
 	}
 	// 依赖包检测
-	depOk, err := database.CheckPluginPackageDependence(pluginPackageId)
+	depOk, err := database.CheckPluginPackageDependence(c, pluginPackageId)
 	if err != nil {
 		middleware.ReturnError(c, err)
 		return
@@ -220,8 +221,8 @@ func RegisterPackage(c *gin.Context) {
 		middleware.ReturnError(c, exterror.New().PluginDependencyIllegal)
 		return
 	}
-	// 把s3上的ui.zip下下来放到本地
 	if pluginPackageObj.UiPackageIncluded {
+		// 把s3上的ui.zip下下来放到本地
 		var uiFileLocalPath string
 		if uiFileLocalPath, err = bash.DownloadPackage(models.Config.S3.PluginPackageBucket, fmt.Sprintf("%s/%s/ui.zip", pluginPackageObj.Name, pluginPackageObj.Version)); err != nil {
 			middleware.ReturnError(c, err)
@@ -252,15 +253,58 @@ func RegisterPackage(c *gin.Context) {
 }
 
 func GetHostAvailablePort(c *gin.Context) {
-	targetIp := c.Param("hostIp")
-	port, err := bash.GetRemoteHostAvailablePort(targetIp)
+	hostIP := c.Param("hostIp")
+	port, err := bash.GetRemoteHostAvailablePort(hostIP)
 	if err != nil {
 		middleware.ReturnError(c, err)
 	} else {
-		middleware.ReturnData(c, fmt.Sprintf("%d", port))
+		middleware.ReturnData(c, port)
 	}
 }
 
 func LaunchPlugin(c *gin.Context) {
+	pluginPackageId := c.Param("pluginPackage")
+	hostIp := c.Param("hostIp")
+	portValue := c.Param("port")
+	port, _ := strconv.Atoi(portValue)
+	if port < 20000 {
+		middleware.ReturnError(c, fmt.Errorf("param port %s illegal", portValue))
+		return
+	}
+	if running, err := database.CheckServerPortRunning(c, hostIp, port); err != nil {
+		middleware.ReturnError(c, err)
+		return
+	} else {
+		if running {
+			middleware.ReturnError(c, fmt.Errorf("server:%s port:%d already in running", hostIp, port))
+			return
+		}
+	}
+	pluginPackageObj := models.PluginPackages{Id: pluginPackageId}
+	if err := database.GetSimplePluginPackage(c, &pluginPackageObj, true); err != nil {
+		middleware.ReturnError(c, err)
+		return
+	}
+	// 先检查数据库脚本执行纪录的版本，如果执行过了就跳过下面数据库相关操作
+	// 如果连纪录都没有，可能是第一次要创建数据库
+	// 把s3上的init.sql下载来到本地
+	// 检查数据库脚本是否有更新
+	// 执行数据库脚本并更新纪录
+	dockerServer, getDockerServerErr := database.GetResourceServer(c, "docker", hostIp)
+	if getDockerServerErr != nil {
+		middleware.ReturnError(c, getDockerServerErr)
+		return
+	}
+	// 替换容器参数差异化变量
+	// 先检查目标机器上有没有相关版本容器镜像，如果有的话就跳过下面两个下载和传镜像的操作
+	// 把s3上的image.tar下载来到本地
+	// 把image.tar传到目标机器
+	// 去目标机器上docker run起来，或使用docker-compose
+	// 更新插件注册的菜单状态
 
+}
+
+func RemovePlugin(c *gin.Context) {
+	// 销毁容器
+	// 更新插件注册的菜单状态
 }
