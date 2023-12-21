@@ -64,6 +64,7 @@ func init() {
 		&handlerFuncObj{Url: "/available-container-hosts", Method: "GET", HandlerFunc: plugin.GetAvailableContainerHost, ApiCode: "get-available-host"},
 		&handlerFuncObj{Url: "/hosts/:hostIp/next-available-port", Method: "GET", HandlerFunc: plugin.GetHostAvailablePort, ApiCode: "get-available-port"},
 		&handlerFuncObj{Url: "/packages/:pluginPackage/hosts/:hostIp/ports/:port/instance/launch", Method: "POST", HandlerFunc: plugin.LaunchPlugin, ApiCode: "launch-plugin"},
+		&handlerFuncObj{Url: "/packages/instances/:pluginPackage/remove", Method: "DELETE", HandlerFunc: plugin.RemovePlugin, ApiCode: "remove-plugin"},
 	)
 }
 
@@ -106,7 +107,10 @@ func httpLogHandle() gin.HandlerFunc {
 		requestId := c.GetHeader(models.RequestIdHeader)
 		transactionId := c.GetHeader(models.TransactionIdHeader)
 		if requestId == "" {
-			requestId = guid.CreateGuid()
+			requestId = "req_" + guid.CreateGuid()
+		}
+		if transactionId == "" {
+			transactionId = "trans_" + guid.CreateGuid()
 		}
 		c.Set(models.RequestIdHeader, requestId)
 		c.Set(models.TransactionIdHeader, transactionId)
