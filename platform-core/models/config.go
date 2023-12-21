@@ -61,13 +61,14 @@ type StaticResourceConfig struct {
 }
 
 type GlobalConfig struct {
-	Version         string            `json:"version"`
-	DefaultLanguage string            `json:"default_language"`
-	HttpServer      *HttpServerConfig `json:"http_server"`
-	Log             *LogConfig        `json:"log"`
-	Database        *DatabaseConfig   `json:"database"`
-	Auth            *AuthConfig       `json:"auth"`
-	S3              *S3Config         `json:"s3"`
+	Version         string                `json:"version"`
+	DefaultLanguage string                `json:"default_language"`
+	HttpServer      *HttpServerConfig     `json:"http_server"`
+	Log             *LogConfig            `json:"log"`
+	Database        *DatabaseConfig       `json:"database"`
+	Auth            *AuthConfig           `json:"auth"`
+	S3              *S3Config             `json:"s3"`
+	StaticResource  *StaticResourceConfig `json:"static_resource"`
 }
 
 var (
