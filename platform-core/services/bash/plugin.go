@@ -55,7 +55,7 @@ func DecompressFile(filePath, targetDir string) error {
 			execCommand += " -d " + targetDir
 		}
 	}
-	_, execErr := exec.Command("/bin/sh", "-c", execCommand).Output()
+	_, execErr := exec.Command("/bin/bash", "-c", execCommand).Output()
 	if execErr != nil {
 		return fmt.Errorf("exec decompress file fail,command:%s,error:%s ", execCommand, execErr.Error())
 	}

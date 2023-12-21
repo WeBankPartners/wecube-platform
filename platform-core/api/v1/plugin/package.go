@@ -228,14 +228,37 @@ func RegisterPackage(c *gin.Context) {
 			return
 		}
 		// 把ui.zip用ssh传到静态资源服务器上并解压，如果有两台服务器，则每台都要上传与解压
-
+		targetPath := fmt.Sprintf("%s/%s/%s/ui.zip", models.Config.StaticResource.Path, pluginPackageObj.Name, pluginPackageObj.Version)
+		unzipCmd := fmt.Sprintf("cd %s/%s/%s && unzip -o ui.zip", models.Config.StaticResource.Path, pluginPackageObj.Name, pluginPackageObj.Version)
+		for _, staticServerIp := range strings.Split(models.Config.StaticResource.Servers, ",") {
+			if err = bash.RemoteSCP(staticServerIp, uiFileLocalPath, targetPath); err != nil {
+				break
+			}
+			if err = bash.RemoteSSHCommand(staticServerIp, unzipCmd); err != nil {
+				break
+			}
+		}
+		if err != nil {
+			middleware.ReturnError(c, err)
+			return
+		}
 	}
-
 	// 把对应插件版本的系统变量置为active
+	if err = database.ActivePluginSystemVariable(c, pluginPackageObj.Name, pluginPackageObj.Version); err != nil {
+		middleware.ReturnError(c, err)
+	} else {
+		middleware.ReturnSuccess(c)
+	}
 }
 
 func GetHostAvailablePort(c *gin.Context) {
-
+	targetIp := c.Param("hostIp")
+	port, err := bash.GetRemoteHostAvailablePort(targetIp)
+	if err != nil {
+		middleware.ReturnError(c, err)
+	} else {
+		middleware.ReturnData(c, fmt.Sprintf("%d", port))
+	}
 }
 
 func LaunchPlugin(c *gin.Context) {
