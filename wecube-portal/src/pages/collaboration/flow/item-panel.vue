@@ -1,7 +1,8 @@
 <template>
   <div id="itemPanel" ref="itemPanel">
     <div class="icon-tool">
-      <i
+      <img
+        src="./icon/start.svg"
         class="node circle-start"
         draggable="true"
         node-type="start"
@@ -9,9 +10,9 @@
         data-shape="circle-node"
         fill="white"
         line-width="1"
-        >开始</i
-      >
-      <i
+      />
+      <img
+        src="./icon/end.svg"
         class="node circle-end"
         draggable="true"
         node-type="end"
@@ -19,9 +20,9 @@
         data-shape="circle-node"
         fill="white"
         line-width="3"
-        >结束</i
-      >
-      <i
+      />
+      <img
+        src="./icon/lightning.svg"
         class="node circle-end"
         draggable="true"
         node-type="abnormal"
@@ -29,61 +30,61 @@
         data-shape="circle-node"
         fill="white"
         line-width="1"
-        >异常</i
-      >
+      />
       <!-- <i class="node warning" draggable="true" data-label="警告" data-shape="rect-node" fill="#f8ecda">警告</i>
       <i class="node end" draggable="true" data-label="结束" data-shape="rect-node" fill="#f9e3e2">结束</i> -->
       <img
         src="./icon/decision.svg"
-        style="width: 50px; height: 50px"
         draggable="true"
         node-type="decision"
         data-label="判断"
         data-shape="diamond-node"
+        fill="white"
         class="node iconfont icon-diamond"
         alt=""
       />
       <img
         src="./icon/converge.svg"
-        style="width: 50px; height: 50px"
         draggable="true"
         node-type="converge"
         data-label="汇聚节点"
         data-shape="rect-node"
+        fill="white"
         class="node iconfont icon-rect"
         alt=""
       />
       <img
         src="./icon/human.svg"
-        style="width: 50px; height: 50px"
         draggable="true"
         node-type="human"
         data-label="人工节点"
         data-shape="rect-node"
+        fill="white"
         class="node iconfont icon-rect"
         alt=""
       />
       <img
         src="./icon/automatic.svg"
-        style="width: 50px; height: 50px"
         draggable="true"
         node-type="automatic"
         data-label="自动节点"
         data-shape="rect-node"
+        fill="white"
         class="node iconfont icon-rect"
         alt=""
       />
       <img
         src="./icon/data.svg"
-        style="width: 50px; height: 50px"
         draggable="true"
         node-type="data"
         data-label="数据节点"
         data-shape="rect-node"
+        fill="white"
         class="node iconfont icon-rect"
         alt=""
       />
-      <i
+      <img
+        src="./icon/fixed-time.svg"
         class="node circle-end"
         draggable="true"
         node-type="fixedTime"
@@ -91,9 +92,9 @@
         data-shape="circle-node"
         fill="white"
         line-width="1"
-        >固定</i
-      >
-      <i
+      />
+      <img
+        src="./icon/time-interval.svg"
         class="node circle-end"
         draggable="true"
         node-type="timeInterval"
@@ -101,8 +102,7 @@
         data-shape="circle-node"
         fill="white"
         line-width="1"
-        >间隔</i
-      >
+      />
 
       <!-- <i draggable="true" data-label="圆形节点" data-shape="circle-node" class="node iconfont icon-circle" /> -->
       <!-- <i draggable="true" data-label="方形节点" data-shape="rect-node" class="node iconfont icon-rect" /> -->
@@ -219,7 +219,8 @@ export default {
       }
     }
     .node {
-      display: block;
+      width: 50px;
+      height: 50px;
       margin-bottom: 10px;
       cursor: move;
     }
@@ -227,14 +228,14 @@ export default {
       height: 50px;
       width: 50px;
       line-height: 50px;
-      border-radius: 50%;
-      border: 1px solid #ccc;
-      background: white;
+      // border-radius: 50%;
+      // border: 1px solid #ccc;
+      // background: white;
     }
     .circle-end {
       @extend .circle-start;
-      border: 2px solid #ccc;
-      background: white;
+      // border: 2px solid #ccc;
+      // background: white;
     }
 
     .warning {

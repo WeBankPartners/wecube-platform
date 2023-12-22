@@ -1,18 +1,36 @@
-import decisionIcon from './icon/x.svg'
-import abnormalIcon from './icon/lightning.svg'
-import timeIntervalIcon from './icon/time-interval.svg'
-import fixedTimeIcon from './icon/fixed-time.svg'
-import dataIcon from './icon/data.svg'
-import automaticIcon from './icon/automatic.svg'
-import humanIcon from './icon/human.svg'
-import convergeIcon from './icon/+.svg'
+import startIcon from './logo/start.svg'
+import endIcon from './logo/end.svg'
+import decisionIcon from './logo/x.svg'
+import abnormalIcon from './logo/lightning.svg'
+import timeIntervalIcon from './logo/time-interval.svg'
+import fixedTimeIcon from './logo/fixed-time.svg'
+import dataIcon from './logo/data.svg'
+import automaticIcon from './logo/automatic.svg'
+import humanIcon from './logo/human.svg'
+import convergeIcon from './logo/+.svg'
 
 const nodeDefaultAttr = {
   start: {
-    logoIcon: {}
+    logoIcon: {
+      show: true,
+      x: -12,
+      y: -12,
+      img: startIcon,
+      width: 24,
+      height: 24,
+      offset: 0
+    }
   },
   end: {
-    logoIcon: {}
+    logoIcon: {
+      show: true,
+      x: -12,
+      y: -12,
+      img: endIcon,
+      width: 24,
+      height: 24,
+      offset: 0
+    }
   },
   abnormal: {
     logoIcon: {
