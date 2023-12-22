@@ -61,3 +61,8 @@ func GetRemoteHostAvailablePort(targetIp string) (port int, err error) {
 	}
 	return
 }
+
+func CreatePluginDatabase(username string, mysqlResource *models.PluginPackageRuntimeResourcesMysql) (err error) {
+
+	return
+}
