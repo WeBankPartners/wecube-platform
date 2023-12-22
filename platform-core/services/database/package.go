@@ -6,8 +6,8 @@ import (
 	"github.com/WeBankPartners/go-common-lib/guid"
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/db"
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/exterror"
+	"github.com/WeBankPartners/wecube-platform/platform-core/common/tools"
 	"github.com/WeBankPartners/wecube-platform/platform-core/models"
-	"math"
 	"strconv"
 	"strings"
 	"time"
@@ -290,7 +290,7 @@ func CheckPluginPackageDependence(ctx context.Context, pluginPackageId string) (
 		depPluginVersionName = append(depPluginVersionName, row.DependencyPackageName)
 	}
 	if depPlatformVersion != "" {
-		if CompareVersion(depPlatformVersion, models.Config.Version) {
+		if tools.CompareVersion(depPlatformVersion, models.Config.Version) {
 			err = fmt.Errorf("platform version required %s > %s", depPlatformVersion, models.Config.Version)
 			return
 		}
@@ -308,7 +308,7 @@ func CheckPluginPackageDependence(ctx context.Context, pluginPackageId string) (
 	}
 	for _, row := range pluginPackageRows {
 		if v, b := depPluginVersionMap[row.Name]; b {
-			if CompareVersion(row.Version, v) {
+			if tools.CompareVersion(row.Version, v) {
 				delete(depPluginVersionMap, row.Name)
 			}
 		}
@@ -324,26 +324,6 @@ func CheckPluginPackageDependence(ctx context.Context, pluginPackageId string) (
 	return
 }
 
-func CompareVersion(v1, v2 string) bool {
-	return parseVersionToNum(v1) > parseVersionToNum(v2)
-}
-
-func parseVersionToNum(input string) float64 {
-	if input == "" {
-		return 0
-	}
-	input = strings.ToLower(input)
-	if strings.HasPrefix(input, "v") {
-		input = input[1:]
-	}
-	var num float64
-	for i, v := range strings.Split(input, ".") {
-		intV, _ := strconv.Atoi(v)
-		num += float64(intV) * math.Pow(100, float64(4-i))
-	}
-	return num
-}
-
 func GetResourceServer(ctx context.Context, serverType, serverIp string) (resourceServerObj *models.ResourceServer, err error) {
 	var resourceServerRows []*models.ResourceServer
 	err = db.MysqlEngine.Context(ctx).SQL("select id,host,is_allocated,login_password,login_username,name,port,login_mode from resource_server where `type`=? and host=? and status='active'", serverType, serverIp).Find(&resourceServerRows)
@@ -353,6 +333,10 @@ func GetResourceServer(ctx context.Context, serverType, serverIp string) (resour
 		if len(resourceServerRows) == 0 {
 			err = fmt.Errorf("can not find resource server with type:%s ip:%s ", serverType, serverIp)
 		} else {
+			if serverType == "mysql" && len(resourceServerRows) > 1 {
+				err = fmt.Errorf("get more then one mysql resouerce server,please make sure one")
+				return
+			}
 			resourceServerObj = resourceServerRows[0]
 		}
 	}
@@ -380,6 +364,15 @@ func GetPluginMysqlInstance(ctx context.Context, name string) (result *models.Pl
 		if len(mysqlInstanceRows) > 0 {
 			result = mysqlInstanceRows[0]
 		}
+	}
+	return
+}
+
+func NewPluginMysqlInstance(ctx context.Context, mysqlInstance *models.PluginMysqlInstances) (err error) {
+	_, err = db.MysqlEngine.Context(ctx).Exec("INSERT INTO plugin_mysql_instances (id,password,plugun_package_id,resource_item_id,schema_name,status,username,pre_version,created_time) values (?,?,?,?,?,?,?,?,?)",
+		mysqlInstance.Id, mysqlInstance.Password, mysqlInstance.PluginPackageId, mysqlInstance.ResourceItemId, mysqlInstance.SchemaName, "active", mysqlInstance.Username, "", time.Now())
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseExecuteError, err)
 	}
 	return
 }
