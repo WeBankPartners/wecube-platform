@@ -40,6 +40,8 @@ type ErrorTemplate struct {
 	DatabaseExecuteError    CustomError `json:"database_execute_error"`
 	// sever handle error
 	ServerHandleError CustomError `json:"server_handle_error"`
+
+	PluginDependencyIllegal CustomError `json:"plugin_dependency_illegal"`
 }
 
 var (
