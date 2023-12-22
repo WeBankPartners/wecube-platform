@@ -1,14 +1,14 @@
 <template>
   <div>
     <Row style="margin-bottom: 8px">
-      <Col span="4" style="margin-right: 10px">
+      <Col span="5" style="margin-right: 10px">
         <span style="margin-right: 10px">{{ $t('flow_name') }}</span>
         <Select
           clearable
           @on-clear="clearFlow"
           @on-change="currentFlow.tags = ''"
           v-model="selectedFlow"
-          style="width: 65%"
+          style="width: 75%"
           @on-open-change="getAllFlows"
           filterable
         >
@@ -40,7 +40,7 @@
           </Option>
         </Select>
       </Col>
-      <Col span="7" style="margin-right: 10px">
+      <Col span="6" style="margin-right: 10px">
         <span style="margin-right: 10px">{{ $t('instance_type') }}</span>
         <div style="width: 80%; display: inline-block; vertical-align: middle">
           <FilterRules
@@ -60,29 +60,23 @@
       <Checkbox style="margin-right: 25px" border :disabled="!selectedFlow && !isAdd" v-model="excludeMode">{{
         $t('conflict_test')
       }}</Checkbox>
-      <!-- <Button style="margin-top: -1px" type="info" :disabled="isSaving || !selectedFlow" @click="saveDiagram(false)">
+      <Button style="margin-top: -1px" type="info">
         {{ $t('release_flow') }}
       </Button>
-      <Button
-        @click="setFlowPermission(selectedFlow)"
-        :disabled="!selectedFlow"
-        style="margin-top: -1px"
-        type="primary"
-      >
+      <!-- @click="setFlowPermission(selectedFlow)" -->
+      <Button style="margin-top: -1px" type="primary">
         {{ $t('permission_for_flow') }}
       </Button>
-      <Button :disabled="!selectedFlow" style="margin-top: -1px" type="info" @click="exportProcessDefinition(false)">
+      <Button style="margin-top: -1px" type="info">
         {{ $t('export_flow') }}
       </Button>
 
-      <Button style="float: right" @click="createNewDiagram()" type="success">
+      <Button style="float: right" @click="createNewFlow()" type="success">
         {{ $t('create') }}
       </Button>
-      <Button style="float: right; margin-right: 4px" type="primary" @click="getHeaders">{{
-        $t('import_flow')
-      }}</Button>
+      <Button style="float: right; margin-right: 4px" type="primary">{{ $t('import_flow') }}</Button>
 
-      <Upload
+      <!-- <Upload
         v-show="isShowUploadList"
         ref="uploadButton"
         show-upload-list
@@ -96,15 +90,18 @@
         <Button style="display: none">{{ $t('import_flow') }}</Button>
       </Upload> -->
     </Row>
+    <FlowAuth ref="flowAuthRef" @sendAuth="setAuth"></FlowAuth>
   </div>
 </template>
 
 <script>
 import FilterRules from '@/pages/components/filter-rules.vue'
+import FlowAuth from '@/pages/collaboration/flow/flow-auth.vue'
 import { getAllFlow, getAllDataModels } from '@/api/server.js'
 export default {
   components: {
-    FilterRules
+    FilterRules,
+    FlowAuth
   },
   data () {
     return {
@@ -116,7 +113,9 @@ export default {
       },
       currentSelectedEntity: '', // 当前显示的根CI
       allEntityType: [], // 系统中所有根CI
-      excludeMode: true // 冲突检测
+      excludeMode: true, // 冲突检测
+      mgmtRolesKeyToFlow: ['SUPER_ADMIN', 'CMDB_ADMIN'],
+      useRolesKeyToFlow: ['CMDB_ADMIN', 'MONITOR_ADMIN']
     }
   },
   mounted () {
@@ -174,6 +173,18 @@ export default {
       this.currentSelectedEntity = ''
       this.currentFlow.tags = ''
       this.excludeMode = false
+    },
+    // 创建新编排
+    createNewFlow () {
+      // 1、清理现有配置
+
+      // 2、初始化部分新配置
+      // 3、启动权限配置
+      this.$refs.flowAuthRef.startAuth(this.mgmtRolesKeyToFlow, this.useRolesKeyToFlow)
+    },
+    setAuth (mgmtRolesKeyToFlow, useRolesKeyToFlow) {
+      this.mgmtRolesKeyToFlow = mgmtRolesKeyToFlow
+      this.useRolesKeyToFlow = useRolesKeyToFlow
     }
   }
 }
