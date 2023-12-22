@@ -156,8 +156,7 @@ const events = {
   'nodeState:selected' (value, group) {
     const node = group.getChildByIndex(0)
     const text = group.getChildByIndex(1)
-    const { activeStyle, defaultStyle } = getItemStyle.call(this, 'node', group, 'selected')
-
+    let { activeStyle, defaultStyle } = getItemStyle.call(this, 'node', group, 'selected')
     if (!activeStyle) return
 
     if (value) {
@@ -318,7 +317,6 @@ const events = {
     const path = group.getChildByIndex(0)
     const { endArrow, startArrow } = path.get('attrs')
     const { activeStyle, defaultStyle, originStyle } = getItemStyle.call(this, 'edge', group, 'selected')
-
     if (!activeStyle) return
     if (value) {
       if (activeStyle.animate === true) {
