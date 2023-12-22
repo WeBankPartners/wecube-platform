@@ -2,6 +2,8 @@ package db
 
 import "github.com/WeBankPartners/wecube-platform/platform-auth-server/model"
 
+var AuthorityRepositoryInstance AuthorityRepository
+
 type AuthorityRepository struct {
 }
 
@@ -22,6 +24,8 @@ func (AuthorityRepository) FindAllNotDeletedAuthorities() ([]*model.SysAuthority
 	}
 	return authorities, nil
 }
+
+var RoleAuthorityRsRepositoryInstance RoleAuthorityRsRepository
 
 type RoleAuthorityRsRepository struct {
 }
@@ -52,6 +56,8 @@ func (RoleAuthorityRsRepository) FindOneByRoleIdAndAuthorityCode(roleId, authori
 	}
 	return authority, nil
 }
+
+var RoleRepositoryInstance RoleRepository
 
 type RoleRepository struct {
 }
@@ -145,6 +151,8 @@ func (UserRepository) FindAllActiveUsers() ([]*model.SysUserEntity, error) {
 	}
 	return users, nil
 }
+
+var UserRoleRsRepositoryInstance UserRoleRsRepository
 
 type UserRoleRsRepository struct {
 }
