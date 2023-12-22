@@ -1,11 +1,15 @@
 package bash
 
 import (
+	"bytes"
 	"fmt"
 	"github.com/WeBankPartners/go-common-lib/guid"
+	"github.com/WeBankPartners/wecube-platform/platform-core/common/tools"
 	"os"
 	"os/exec"
+	"regexp"
 	"strings"
+	"time"
 )
 
 func GetHostSerialNum(hostIp string) {
@@ -16,6 +20,9 @@ func SaveTmpFile(fileName string, fileContent []byte) (filePath, fileDir string,
 	if fileDir, err = newTmpDir(); err != nil {
 		return
 	}
+	if fileName == "" {
+		fileName = "tmp_" + guid.CreateGuid()
+	}
 	filePath = fmt.Sprintf("%s/%s", fileDir, fileName)
 	if err = os.WriteFile(filePath, fileContent, 0644); err != nil {
 		err = fmt.Errorf("write tmp file fail,%s ", err.Error())
@@ -24,7 +31,7 @@ func SaveTmpFile(fileName string, fileContent []byte) (filePath, fileDir string,
 }
 
 func newTmpDir() (dirPath string, err error) {
-	fileDir := fmt.Sprintf("/tmp/%s", guid.CreateGuid())
+	fileDir := fmt.Sprintf("/tmp/%d", time.Now().UnixNano())
 	if err = os.MkdirAll(fileDir, 0644); err != nil {
 		err = fmt.Errorf("make tmp dir fail,%s ", err.Error())
 	}
@@ -85,4 +92,56 @@ func ListContains(inputList []string, target string) bool {
 		}
 	}
 	return existFlag
+}
+
+func BuildPluginUpgradeSqlFile(initSqlFile, upgradeSqlFile, currentVersion string) (outputFile string, err error) {
+	buff := new(bytes.Buffer)
+	re, _ := regexp.Compile("^#@(.*)-begin@;$")
+	if initSqlFile != "" {
+		fileBytes, readErr := os.ReadFile(initSqlFile)
+		if readErr != nil {
+			err = fmt.Errorf("read file error,%s ", err.Error())
+			return
+		}
+		startFlag := false
+		for _, v := range strings.Split(string(fileBytes), "\n") {
+			if !startFlag {
+				if matchList := re.FindStringSubmatch(strings.TrimSpace(v)); len(matchList) > 1 {
+					if tools.CompareVersion(matchList[1], currentVersion) {
+						startFlag = true
+					}
+				}
+				if !startFlag {
+					continue
+				}
+			}
+			buff.WriteString(strings.ReplaceAll(v, "\r", "") + "\n")
+		}
+	}
+	if upgradeSqlFile != "" {
+		fileBytes, readErr := os.ReadFile(upgradeSqlFile)
+		if readErr != nil {
+			err = fmt.Errorf("read file error,%s ", err.Error())
+			return
+		}
+		startFlag := false
+		for _, v := range strings.Split(string(fileBytes), "\n") {
+			if !startFlag {
+				if matchList := re.FindStringSubmatch(strings.TrimSpace(v)); len(matchList) > 1 {
+					if tools.CompareVersion(matchList[1], currentVersion) {
+						startFlag = true
+					}
+				}
+				if !startFlag {
+					continue
+				}
+			}
+			buff.WriteString(strings.ReplaceAll(v, "\r", "") + "\n")
+		}
+	}
+
+	if buff.Len() > 0 {
+		outputFile, _, err = SaveTmpFile(fmt.Sprintf("tmp_%s.sql", guid.CreateGuid()), buff.Bytes())
+	}
+	return
 }
