@@ -155,13 +155,16 @@ export default {
         // 覆盖全局样式
         nodeStateStyles: {
           'nodeState:default': {
-            opacity: 1
+            opacity: 1,
+            stroke: '#aab7c3'
           },
           'nodeState:hover': {
-            opacity: 0.8
+            opacity: 0.8,
+            stroke: '#1890FF'
           },
           'nodeState:selected': {
-            opacity: 0.9
+            opacity: 0.9,
+            stroke: '#1890FF'
           }
         },
         // 默认边不同状态下的样式集合
@@ -231,35 +234,27 @@ export default {
       })
 
       this.graph.on('after-node-selected', e => {
-        // if (e && e.item) {
-        //   const model = e.item.get('model')
-        //   this.config = model
-        //   this.label = model.label
-        //   this.labelCfg = {
-        //     fontSize: model.labelCfg.fontSize,
-        //     style: {
-        //       fill: model.labelCfg.style.fill
-        //     }
-        //   }
-        //   this.node = {
-        //     fill: model.style.fill,
-        //     borderColor: model.style.stroke,
-        //     lineDash: model.style.lineDash || 'none',
-        //     width: model.style.width,
-        //     height: model.style.height,
-        //     shape: model.type
-        //   }
-        //   this.$refs.flowDrawerRef.openDrawer()
-        // }
+        if (e && e.item) {
+          // const model = e.item.get('model')
+          // this.config = model
+          // this.label = model.label
+          // this.labelCfg = {
+          //   fontSize: model.labelCfg.fontSize,
+          //   style: {
+          //     fill: model.labelCfg.style.fill
+          //   }
+          // }
+          // this.node = {
+          //   fill: model.style.fill,
+          //   borderColor: model.style.stroke,
+          //   lineDash: model.style.lineDash || 'none',
+          //   width: model.style.width,
+          //   height: model.style.height,
+          //   shape: model.type
+          // }
+          // this.$refs.flowDrawerRef.openDrawer()
+        }
       })
-      // this.graph.on('click', e => {
-      //   console.log(11, e)
-      //   if (this.flowInfo.id === '') {
-      //     this.flowInfo.id = `id_flow_${Math.random().toString(36).substring(2, 8)}`
-      //     this.flowInfo.name = `name_${Math.random().toString(36).substring(2, 8)}`
-      //   }
-      //   this.$refs.flowDrawerRef.openDrawer('flow', this.flowInfo)
-      // })
 
       this.graph.on('on-node-mouseenter', e => {
         if (e && e.item) {
@@ -360,16 +355,60 @@ export default {
         }, 100)
       })
       // 注册节点点击事件
-      this.graph.on('node:click', e => {
-        const model = e.item.get('model')
+      // this.graph.on('node:click', e => {
+      //   const node = e.item
+      //   console.log(node)
+      //   // const model = e.item.get('model')
+      //   // 处理节点点击事件的逻辑
+      //   const selected = node.hasState('selected')
+      //   console.log(selected)
+      //   if (selected) {
+      //     this.graph.setItemState(node, 'selected', false)
+      //   } else {
+      //     this.graph.setItemState(node, 'selected', true)
+      //   }
+
+      //   // this.$refs.flowDrawerRef.openDrawer('node', model)
+      // })
+
+      // 注册边点击事件
+      this.graph.on('edge:click', e => {
+        const edge = e.item
+        const model = edge.get('model')
         // 处理节点点击事件的逻辑
-        console.log('Node Clicked:', model)
-        this.$refs.flowDrawerRef.openDrawer('node', model)
+        console.log('edge Clicked:', model)
+
+        const selected = edge.hasState('selected')
+        if (selected) {
+          this.graph.setItemState(edge, 'selected', false)
+        } else {
+          this.graph.setItemState(edge, 'selected', true)
+        }
+
+        // this.$refs.flowDrawerRef.openDrawer('node', model)
       })
 
       // 注册画布点击事件
-      this.graph.on('canvas:click', e => {
-        console.log(22, e, e.item)
+      this.graph.on('canvas:click', e => {})
+
+      this.graph.on('keydown', e => {
+        // Check if the delete key is pressed
+        if (e.code === 'Delete' || e.key === 'Delete' || e.key === 'Backspace') {
+          const selectedNodes = this.graph.findAllByState('node', 'selected')
+          const selectedEdges = this.graph.findAllByState('edge', 'selected')
+          // Remove selected nodes
+          selectedNodes.forEach(node => {
+            this.graph.removeItem(node)
+          })
+
+          // Remove selected edges
+          selectedEdges.forEach(edge => {
+            this.graph.removeItem(edge)
+          })
+
+          // Clear selected states
+          // this.graph.clearItemStates()
+        }
       })
     },
     deleteNode (item) {
