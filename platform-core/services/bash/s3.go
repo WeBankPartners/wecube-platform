@@ -24,7 +24,7 @@ func UploadPluginPackage(bucket string, fileMap map[string]string) (err error) {
 	return
 }
 
-func DownloadPackage(bucket, key string) (tmpPath string, err error) {
+func DownloadPackageFile(bucket, key string) (tmpPath string, err error) {
 	var fileDir, fileName string
 	if fileDir, err = newTmpDir(); err != nil {
 		return
