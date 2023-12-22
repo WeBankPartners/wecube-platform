@@ -1,6 +1,22 @@
 package model
 
+import "time"
+
+type BaseTraceableEntity struct {
+	Id          string    `xorm:"'ID' pk"`
+	CreatedBy   string    `xorm:"'CREATED_BY'"`
+	UpdatedBy   string    `xorm:"'UPDATED_BY'"`
+	CreatedTime time.Time `xorm:"'CREATED_TIME'"`
+	UpdatedTime time.Time `xorm:"'UPDATED_TIME'"`
+}
+
 type SysApiEntity struct {
+	Id          string    `xorm:"'ID' pk"`
+	CreatedBy   string    `xorm:"'CREATED_BY'"`
+	UpdatedBy   string    `xorm:"'UPDATED_BY'"`
+	CreatedTime time.Time `xorm:"'CREATED_TIME'"`
+	UpdatedTime time.Time `xorm:"'UPDATED_TIME'"`
+
 	Name       string `xorm:"'NAME'"`
 	ApiUrl     string `xorm:"'API_URL'"`
 	HttpMethod string `xorm:"'HTTP_METHOD'"`
@@ -8,6 +24,15 @@ type SysApiEntity struct {
 }
 
 type SysAuthorityEntity struct {
+	Id          string    `xorm:"'ID' pk"`
+	CreatedBy   string    `xorm:"'CREATED_BY'"`
+	UpdatedBy   string    `xorm:"'UPDATED_BY'"`
+	CreatedTime time.Time `xorm:"'CREATED_TIME'"`
+	UpdatedTime time.Time `xorm:"'UPDATED_TIME'"`
+
+	Active  bool `xorm:"'IS_ACTIVE'"`
+	Deleted bool `xorm:"'IS_DELETED'"`
+
 	Code        string `xorm:"'CODE'"`
 	DisplayName string `xorm:"'DISPLAY_NAME'"`
 	Scope       string `xorm:"'SCOPE'"`
@@ -15,6 +40,15 @@ type SysAuthorityEntity struct {
 }
 
 type RoleAuthorityRsEntity struct {
+	Id          string    `xorm:"'ID' pk"`
+	CreatedBy   string    `xorm:"'CREATED_BY'"`
+	UpdatedBy   string    `xorm:"'UPDATED_BY'"`
+	CreatedTime time.Time `xorm:"'CREATED_TIME'"`
+	UpdatedTime time.Time `xorm:"'UPDATED_TIME'"`
+
+	Active  bool `xorm:"'IS_ACTIVE'"`
+	Deleted bool `xorm:"'IS_DELETED'"`
+
 	RoleID        string `xorm:"'ROLE_ID'"`
 	RoleName      string `xorm:"'ROLE_NAME'"`
 	AuthorityID   string `xorm:"'AUTHORITY_ID'"`
@@ -22,13 +56,31 @@ type RoleAuthorityRsEntity struct {
 }
 
 type SysRoleEntity struct {
-	Name        string `xorm:"'NAME'"`
-	DisplayName string `xorm:"'DISPLAY_NAME'"`
-	EmailAddr   string `xorm:"'EMAIL_ADDR'"`
-	Description string `xorm:"'DESCRIPTION'"`
+	Id          string    `xorm:"'ID' pk"`
+	CreatedBy   string    `xorm:"'CREATED_BY'"`
+	UpdatedBy   string    `xorm:"'UPDATED_BY'"`
+	CreatedTime time.Time `xorm:"'CREATED_TIME'"`
+	UpdatedTime time.Time `xorm:"'UPDATED_TIME'"`
+
+	Active  bool `xorm:"'IS_ACTIVE'"`
+	Deleted bool `xorm:"'IS_DELETED'"`
+
+	Name         string `xorm:"'NAME'"`
+	DisplayName  string `xorm:"'DISPLAY_NAME'"`
+	EmailAddress string `xorm:"'EMAIL_ADDR'"`
+	Description  string `xorm:"'DESCRIPTION'"`
 }
 
 type SubSystemAuthorityRsEntity struct {
+	Id          string    `xorm:"'ID' pk"`
+	CreatedBy   string    `xorm:"'CREATED_BY'"`
+	UpdatedBy   string    `xorm:"'UPDATED_BY'"`
+	CreatedTime time.Time `xorm:"'CREATED_TIME'"`
+	UpdatedTime time.Time `xorm:"'UPDATED_TIME'"`
+
+	Active  bool `xorm:"'IS_ACTIVE'"`
+	Deleted bool `xorm:"'IS_DELETED'"`
+
 	SubSystemID   string `xorm:"'SUB_SYSTEM_ID'"`
 	SubSystemCode string `xorm:"'SUB_SYSTEM_CODE'"`
 	AuthorityID   string `xorm:"'AUTHORITY_ID'"`
@@ -36,6 +88,12 @@ type SubSystemAuthorityRsEntity struct {
 }
 
 type SysSubSystemEntity struct {
+	Id          string    `xorm:"'ID' pk"`
+	CreatedBy   string    `xorm:"'CREATED_BY'"`
+	UpdatedBy   string    `xorm:"'UPDATED_BY'"`
+	CreatedTime time.Time `xorm:"'CREATED_TIME'"`
+	UpdatedTime time.Time `xorm:"'UPDATED_TIME'"`
+
 	Name        string `xorm:"'NAME'"`
 	SystemCode  string `xorm:"'SYSTEM_CODE'"`
 	ApiKey      string `xorm:"'API_KEY'"`
@@ -46,6 +104,12 @@ type SysSubSystemEntity struct {
 }
 
 type SysUserEntity struct {
+	Id          string    `xorm:"'ID' pk"`
+	CreatedBy   string    `xorm:"'CREATED_BY'"`
+	UpdatedBy   string    `xorm:"'UPDATED_BY'"`
+	CreatedTime time.Time `xorm:"'CREATED_TIME'"`
+	UpdatedTime time.Time `xorm:"'UPDATED_TIME'"`
+
 	Username    string `xorm:"'USERNAME'"`
 	EnglishName string `xorm:"'ENGLISH_NAME'"`
 	LocalName   string `xorm:"'LOCAL_NAME'"`
@@ -63,6 +127,15 @@ type SysUserEntity struct {
 }
 
 type UserRoleRsEntity struct {
+	Id          string    `xorm:"'ID' pk"`
+	CreatedBy   string    `xorm:"'CREATED_BY'"`
+	UpdatedBy   string    `xorm:"'UPDATED_BY'"`
+	CreatedTime time.Time `xorm:"'CREATED_TIME'"`
+	UpdatedTime time.Time `xorm:"'UPDATED_TIME'"`
+
+	Active  bool `xorm:"'IS_ACTIVE'"`
+	Deleted bool `xorm:"'IS_DELETED'"`
+
 	UserId   string `xorm:"'USER_ID'"`
 	Username string `xorm:"'USERNAME'"`
 	RoleId   string `xorm:"'ROLE_ID'"`

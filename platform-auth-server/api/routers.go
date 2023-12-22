@@ -16,9 +16,9 @@ type handlerFuncObj struct {
 	LogOperation bool
 	PreHandle    func(c *gin.Context)
 	ApiCode      string
-	Authorities  []string
-	LogAction    bool
-	FeatureCode  string
+	//Authorities  []string
+	LogAction bool
+	//FeatureCode  string
 }
 
 var (
@@ -58,8 +58,10 @@ func NewRouter() *gin.Engine {
 }
 
 func init() {
-	httpHandlerFuncList = append(httpHandlerFuncList) // contract instance
-	//&handlerFuncObj{Url: "/scene/v1/health-check", Method: http.MethodGet, HandlerFunc: HealthCheck,
-	//	ApiCode: "HealthCheck", Authorities: []string{constant.NoAuthRequired}, FeatureCode: ""},
-
+	httpHandlerFuncList = append(httpHandlerFuncList, // contract instance
+		&handlerFuncObj{Url: "/v1/", Method: http.MethodPost, HandlerFunc: RegisterLocalAuthority,
+			ApiCode: "/authorities"},
+		&handlerFuncObj{Url: "/v1/", Method: http.MethodGet, HandlerFunc: RetrieveAllLocalAuthorities,
+			ApiCode: "/RetrieveAllLocalAuthorities"},
+	)
 }

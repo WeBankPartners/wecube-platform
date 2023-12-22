@@ -1,0 +1,5 @@
+{
+  "success": "Success",
+
+  "non_register_func_error": {"code": 9999, "message":"func is not supported"},
+}

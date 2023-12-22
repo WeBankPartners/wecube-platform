@@ -2,6 +2,8 @@ package utils
 
 import (
 	"math"
+	"regexp"
+	"strings"
 )
 
 func Contains(s []string, e string) bool {
@@ -67,4 +69,16 @@ func CheckDecimalPlaces(val float64, decimal int) bool {
 	roundedVal := RoundFloat(val, decimal)
 	diff := val - roundedVal
 	return diff == 0.0
+}
+
+func EqualsIgnoreCase(s1, s2 string) bool {
+	if strings.ToLower(s1) == strings.ToLower(s2) {
+		return true
+	}
+	return false
+}
+
+func IsEmailValid(email string) bool {
+	emailRegex := regexp.MustCompile(`^([\w-]+(?:\.[\w-]+)*)@((?:[\w-]+\.)*\w[\w-]{0,66})\.([a-z]{2,6}(?:\.[a-z]{2})?)$`)
+	return emailRegex.MatchString(email)
 }

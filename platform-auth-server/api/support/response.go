@@ -2,6 +2,7 @@ package support
 
 import (
 	"encoding/json"
+	"github.com/WeBankPartners/wecube-platform/platform-auth-server/common/exterror"
 	"github.com/WeBankPartners/wecube-platform/platform-auth-server/common/log"
 	"github.com/WeBankPartners/wecube-platform/platform-auth-server/model"
 	"net/http"
@@ -18,7 +19,7 @@ func ReturnData(c *gin.Context, data interface{}) {
 	c.JSON(http.StatusOK, obj)
 }
 
-/*func ReturnError(c *gin.Context, err error) {
+func ReturnError(c *gin.Context, err error) {
 	ReturnErrorWithHttpCode(c, err, http.StatusOK)
 }
 
@@ -34,7 +35,7 @@ func ReturnErrorWithHttpCode(c *gin.Context, err error, httpCode int) {
 	c.Set("responseBody", string(bodyBytes))
 	c.JSON(httpCode, errorResponse)
 }
-*/
+
 func ReturnSuccess(c *gin.Context) {
 	obj := model.ResponseWrap{Status: model.ResponseStatusOk, Message: model.ResponseMessageOk}
 	bodyBytes, _ := json.Marshal(obj)
