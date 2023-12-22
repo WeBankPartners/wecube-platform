@@ -1,5 +1,10 @@
 package models
 
+const (
+	SystemVariableInactive = "inactive"
+	SystemVariableActive   = "active"
+)
+
 type SystemVariables struct {
 	Id           string `json:"id" xorm:"id"`                      // 唯一标识
 	PackageName  string `json:"packageName" xorm:"package_name"`   // 包名
@@ -8,7 +13,7 @@ type SystemVariables struct {
 	DefaultValue string `json:"defaultValue" xorm:"default_value"` // 默认值
 	Scope        string `json:"scope" xorm:"scope"`                // 作用范围
 	Source       string `json:"source" xorm:"source"`              // 来源
-	Status       string `json:"status" xorm:"status"`              // 状态
+	Status       string `json:"status" xorm:"status"`              // 状态 -> active | inactive
 }
 
 type SystemVariablesListPageData struct {
