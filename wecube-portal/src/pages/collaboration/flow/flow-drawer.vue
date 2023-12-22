@@ -38,7 +38,6 @@ export default {
   methods: {
     openDrawer (type, data) {
       this.currentType = type
-      console.log(33)
       if (type === 'flow') {
         this.flowInfo = data
       }
