@@ -285,11 +285,27 @@ func LaunchPlugin(c *gin.Context) {
 		middleware.ReturnError(c, err)
 		return
 	}
-	// 先检查数据库脚本执行纪录的版本，如果执行过了就跳过下面数据库相关操作
-	// 如果连纪录都没有，可能是第一次要创建数据库
-	// 把s3上的init.sql下载来到本地
-	// 检查数据库脚本是否有更新
-	// 执行数据库脚本并更新纪录
+	resources, getResourceErr := database.GetPluginRuntimeResources(c, pluginPackageId)
+	if getResourceErr != nil {
+		middleware.ReturnError(c, getResourceErr)
+		return
+	}
+	if len(resources.Mysql) > 0 {
+		mysqlResource := resources.Mysql[0]
+		// 先检查数据库脚本执行纪录的版本，如果执行过了就跳过下面数据库相关操作
+		mysqlInstance, getMysqlInsErr := database.GetPluginMysqlInstance(c, pluginPackageObj.Name)
+		if getMysqlInsErr != nil {
+			middleware.ReturnError(c, getMysqlInsErr)
+			return
+		}
+		// 如果连纪录都没有，可能是第一次要创建数据库
+		if mysqlInstance == nil {
+			bash.CreatePluginDatabase(pluginPackageObj.Name, mysqlResource)
+		}
+		// 把s3上的init.sql下载来到本地
+		// 检查数据库脚本是否有更新
+		// 执行数据库脚本并更新纪录
+	}
 	dockerServer, getDockerServerErr := database.GetResourceServer(c, "docker", hostIp)
 	if getDockerServerErr != nil {
 		middleware.ReturnError(c, getDockerServerErr)
