@@ -3,6 +3,7 @@ package plugin
 import (
 	"encoding/xml"
 	"fmt"
+	"github.com/WeBankPartners/go-common-lib/guid"
 	"github.com/WeBankPartners/wecube-platform/platform-core/api/middleware"
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/exterror"
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/log"
@@ -224,7 +225,7 @@ func RegisterPackage(c *gin.Context) {
 	if pluginPackageObj.UiPackageIncluded {
 		// 把s3上的ui.zip下下来放到本地
 		var uiFileLocalPath string
-		if uiFileLocalPath, err = bash.DownloadPackage(models.Config.S3.PluginPackageBucket, fmt.Sprintf("%s/%s/ui.zip", pluginPackageObj.Name, pluginPackageObj.Version)); err != nil {
+		if uiFileLocalPath, err = bash.DownloadPackageFile(models.Config.S3.PluginPackageBucket, fmt.Sprintf("%s/%s/ui.zip", pluginPackageObj.Name, pluginPackageObj.Version)); err != nil {
 			middleware.ReturnError(c, err)
 			return
 		}
@@ -298,13 +299,62 @@ func LaunchPlugin(c *gin.Context) {
 			middleware.ReturnError(c, getMysqlInsErr)
 			return
 		}
-		// 如果连纪录都没有，可能是第一次要创建数据库
+		// 如果连纪录都没有，第一次要创建数据库
+		mysqlServer, getMysqlServerErr := database.GetResourceServer(c, "mysql", hostIp)
+		if getMysqlServerErr != nil {
+			middleware.ReturnError(c, getMysqlServerErr)
+			return
+		}
 		if mysqlInstance == nil {
-			bash.CreatePluginDatabase(pluginPackageObj.Name, mysqlResource)
+			if dbPass, err := bash.CreatePluginDatabase(c, pluginPackageObj.Name, mysqlResource, mysqlServer); err != nil {
+				middleware.ReturnError(c, err)
+				return
+			} else {
+				mysqlInstance = &models.PluginMysqlInstances{
+					Id:              "p_mysql_" + guid.CreateGuid(),
+					Password:        dbPass,
+					PluginPackageId: pluginPackageId,
+					ResourceItemId:  mysqlResource.Id,
+					SchemaName:      mysqlResource.SchemaName,
+					Username:        pluginPackageObj.Name,
+				}
+				if err = database.NewPluginMysqlInstance(c, mysqlInstance); err != nil {
+					middleware.ReturnError(c, err)
+					return
+				}
+			}
 		}
 		// 把s3上的init.sql下载来到本地
+		var intiSqlFile, upgradeSqlFile string
+		if mysqlResource.InitFileName != "" {
+			tmpFile, downloadErr := bash.DownloadPackageFile(models.Config.S3.PluginPackageBucket, fmt.Sprintf("%s/%s/%s", pluginPackageObj.Name, pluginPackageObj.Version, mysqlResource.InitFileName))
+			if downloadErr != nil {
+				middleware.ReturnError(c, downloadErr)
+				return
+			}
+			intiSqlFile = tmpFile
+		}
+		if mysqlResource.UpgradeFileName != "" {
+			tmpFile, downloadErr := bash.DownloadPackageFile(models.Config.S3.PluginPackageBucket, fmt.Sprintf("%s/%s/%s", pluginPackageObj.Name, pluginPackageObj.Version, mysqlResource.UpgradeFileName))
+			if downloadErr != nil {
+				middleware.ReturnError(c, downloadErr)
+				return
+			}
+			upgradeSqlFile = tmpFile
+		}
 		// 检查数据库脚本是否有更新
+		outputSqlFile, buildErr := bash.BuildPluginUpgradeSqlFile(intiSqlFile, upgradeSqlFile, mysqlInstance.PreVersion)
+		if buildErr != nil {
+			middleware.ReturnError(c, buildErr)
+			return
+		}
 		// 执行数据库脚本并更新纪录
+		if outputSqlFile != "" {
+			if err := bash.ExecPluginUpgradeSql(c, mysqlInstance, mysqlServer, outputSqlFile); err != nil {
+				middleware.ReturnError(c, err)
+				return
+			}
+		}
 	}
 	dockerServer, getDockerServerErr := database.GetResourceServer(c, "docker", hostIp)
 	if getDockerServerErr != nil {
