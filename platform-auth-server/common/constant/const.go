@@ -1,3 +1,5 @@
 package constant
 
-const ()
+const (
+	SCOPE_GLOBAL = "GLOBAL"
+)
