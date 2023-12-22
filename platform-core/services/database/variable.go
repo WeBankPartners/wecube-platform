@@ -2,6 +2,7 @@ package database
 
 import (
 	"context"
+	"fmt"
 	"github.com/WeBankPartners/go-common-lib/guid"
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/db"
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/exterror"
@@ -34,6 +35,9 @@ func CreateSystemVariables(ctx context.Context, params []*models.SystemVariables
 		}})
 	}
 	err = db.Transaction(actions, ctx)
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseExecuteError, err)
+	}
 	return
 }
 
@@ -45,6 +49,9 @@ func UpdateSystemVariables(ctx context.Context, params []*models.SystemVariables
 		}})
 	}
 	err = db.Transaction(actions, ctx)
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseExecuteError, err)
+	}
 	return
 }
 
@@ -54,5 +61,16 @@ func DeleteSystemVariables(ctx context.Context, params []*models.SystemVariables
 		actions = append(actions, &db.ExecAction{Sql: "delete from system_variables where id=?", Param: []interface{}{v.Id}})
 	}
 	err = db.Transaction(actions, ctx)
+	return
+}
+
+func ActivePluginSystemVariable(ctx context.Context, name, version string) (err error) {
+	var actions []*db.ExecAction
+	actions = append(actions, &db.ExecAction{Sql: "update system_variables set status='inactive' where package_name=? and status='active'", Param: []interface{}{name}})
+	actions = append(actions, &db.ExecAction{Sql: "update system_variables set status='active' where source=?", Param: []interface{}{fmt.Sprintf("%s__%s", name, version)}})
+	err = db.Transaction(actions, ctx)
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseExecuteError, err)
+	}
 	return
 }
