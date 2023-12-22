@@ -91,7 +91,6 @@ export default {
     },
     // 启动入口
     async startAuth (mgmtRolesKeyToFlow, useRolesKeyToFlow) {
-      console.log(123)
       this.mgmtRolesKeyToFlow = mgmtRolesKeyToFlow
       this.useRolesKeyToFlow = useRolesKeyToFlow
       await this.getRoleList()
