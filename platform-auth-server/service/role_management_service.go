@@ -1,7 +1,9 @@
 package service
 
 import (
+	"errors"
 	"fmt"
+	"github.com/WeBankPartners/wecube-platform/platform-auth-server/common/constant"
 	"github.com/WeBankPartners/wecube-platform/platform-auth-server/common/exterror"
 	"github.com/WeBankPartners/wecube-platform/platform-auth-server/common/log"
 	"github.com/WeBankPartners/wecube-platform/platform-auth-server/common/utils"
@@ -15,6 +17,8 @@ const (
 	StatusDeleted   = "Deleted"
 	StatusNoDeleted = "NotDeleted"
 )
+
+var RoleManagementServiceInstance RoleManagementService
 
 type RoleManagementService struct {
 }
@@ -354,4 +358,367 @@ func (RoleManagementService) RetrieveAllAuthoritiesByRoleId(roleId string) ([]*m
 	}
 
 	return result, nil
+}
+
+//@Transactional
+func (RoleManagementService) ConfigureRoleWithAuthorities(grantDto model.RoleAuthoritiesDto, curUser string) error {
+	session := db.Engine.NewSession()
+	session.Begin()
+	defer session.Close()
+
+	var role *model.SysRoleEntity
+	var err error
+
+	if len(grantDto.RoleId) > 0 {
+		_, err = session.ID(grantDto.RoleId).Get(&role)
+		if err != nil {
+			session.Rollback()
+			return err
+		}
+	}
+	if role == nil && len(grantDto.RoleName) > 0 {
+		if role, err = db.RoleRepositoryInstance.FindNotDeletedRoleByName(grantDto.RoleName); err != nil {
+			session.Rollback()
+			return err
+		}
+	}
+
+	if role == nil {
+		log.Logger.Debug(fmt.Sprintf("such role entity does not exist,role id %v, role name %v ", grantDto.RoleId,
+			grantDto.RoleName))
+		session.Rollback()
+		return exterror.Catch(exterror.New().AuthServer3009Error, nil)
+	}
+
+	for _, authorityDto := range grantDto.Authorities {
+		if len(authorityDto.ID) == 0 && len(authorityDto.Code) == 0 {
+			log.Logger.Debug("The ID and code of authority to configure is blank.")
+			session.Rollback()
+			return exterror.Catch(exterror.New().AuthServer3010Error, nil)
+		}
+
+		log.Logger.Info(fmt.Sprintf("configure role %v with authority %v-%v", role.Name, authorityDto.ID,
+			authorityDto.Code))
+
+		var authority *model.SysAuthorityEntity
+		if len(authorityDto.ID) > 0 {
+			existed := false
+			existed, err = session.ID(authorityDto.ID).Get(&authority)
+			if err != nil {
+				session.Rollback()
+				return err
+			}
+			if existed == false {
+				log.Logger.Debug(fmt.Sprintf("such authority entity does not exist,authority id %v", authorityDto.ID))
+				//msg := fmt.Sprintf("Authority with {%s} does not exist.", authorityDto.ID)
+				//throw new AuthServerException("3011", msg, authorityDto.getId());
+				session.Rollback()
+				return exterror.Catch(exterror.New().AuthServer3011Error.WithParam(authorityDto.ID), nil)
+			}
+
+		} else {
+			authority, err = db.AuthorityRepositoryInstance.FindNotDeletedOneByCode(authorityDto.Code)
+			if err != nil {
+				session.Rollback()
+				return err
+			}
+			if authority == nil {
+				scope := authorityDto.Scope
+				if len(scope) == 0 {
+					scope = constant.SCOPE_GLOBAL
+				}
+
+				displayName := authorityDto.DisplayName
+				if len(displayName) == 0 {
+					displayName = authorityDto.Code
+				}
+				authority = &model.SysAuthorityEntity{
+					Active:      true,
+					Code:        authorityDto.Code,
+					CreatedBy:   curUser,
+					Deleted:     false,
+					Scope:       scope,
+					Description: authorityDto.Description,
+					DisplayName: displayName,
+				}
+				session.Insert(authority)
+			}
+		}
+
+		roleAuthority, err := db.RoleAuthorityRsRepositoryInstance.FindOneByRoleIdAndAuthorityId(role.Id, authority.Id, session)
+		if err != nil {
+			session.Rollback()
+			return err
+		}
+
+		if roleAuthority != nil {
+			continue
+		}
+
+		roleAuthority = &model.RoleAuthorityRsEntity{
+			Active:        true,
+			AuthorityCode: authority.Code,
+			AuthorityID:   authority.Id,
+			CreatedBy:     curUser,
+			Deleted:       false,
+			RoleID:        role.Id,
+			RoleName:      role.Name,
+		}
+
+		session.Insert(roleAuthority)
+	}
+	session.Commit()
+	return nil
+}
+
+//@Transactional
+func (RoleManagementService) ConfigureRoleWithAuthoritiesById(roleId string, authorityDtos []model.SimpleAuthorityDto, curUser string) error {
+	session := db.Engine.NewSession()
+	session.Begin()
+	defer session.Close()
+
+	var err error
+	var role *model.SysRoleEntity
+	_, err = session.ID(roleId).Get(&role)
+	if err != nil {
+		session.Rollback()
+		return err
+	}
+
+	if role == nil {
+		session.Rollback()
+		return exterror.Catch(exterror.New().AuthServer3012Error, nil)
+	}
+
+	for _, authorityDto := range authorityDtos {
+		if len(authorityDto.ID) == 0 && len(authorityDto.Code) == 0 {
+			log.Logger.Debug("The ID and code of authority to configure is blank.")
+			session.Rollback()
+			return exterror.Catch(exterror.New().AuthServer3013Error, nil)
+		}
+
+		log.Logger.Info(fmt.Sprintf("configure role %v with authority %v-%v", role.Name, authorityDto.ID,
+			authorityDto.Code))
+
+		var authority *model.SysAuthorityEntity
+		if len(authorityDto.ID) > 0 {
+			_, err = session.ID(authorityDto.ID).Get(&authority)
+			if err != nil {
+				session.Rollback()
+				return err
+			}
+			if authority == nil {
+				session.Rollback()
+				log.Logger.Debug(fmt.Sprintf("such authority entity does not exist,authority id %v", authorityDto.ID))
+				return exterror.Catch(exterror.New().AuthServer3014Error.WithParam(authorityDto.ID), nil)
+				//throw new AuthServerException("3014", msg, authorityDto.getId());
+			}
+		} else {
+			authority, err = db.AuthorityRepositoryInstance.FindNotDeletedOneByCode(authorityDto.Code)
+			if err != nil {
+				session.Rollback()
+				return err
+			}
+			if authority == nil {
+				scope := authorityDto.Scope
+				if len(scope) == 0 {
+					scope = constant.SCOPE_GLOBAL
+				}
+				displayName := authorityDto.DisplayName
+				if len(displayName) == 0 {
+					displayName = authorityDto.Code
+				}
+
+				authority = &model.SysAuthorityEntity{
+					Active:      true,
+					Code:        authorityDto.Code,
+					CreatedBy:   curUser,
+					Deleted:     false,
+					Scope:       scope,
+					Description: authorityDto.Description,
+					DisplayName: displayName,
+				}
+				if result, err := session.Insert(authority); result == 0 || err != nil {
+					session.Rollback()
+					if err != nil {
+						log.Logger.Error("failed to insert authority", log.JsonObj("authority", authority), log.Error(err))
+					}
+					return errors.New("failed to insert authority")
+				}
+			}
+
+		}
+
+		roleAuthority, err := db.RoleAuthorityRsRepositoryInstance.FindOneByRoleIdAndAuthorityId(role.Id, authority.Id, session)
+		if err != nil {
+			log.Logger.Error("failed to query role authority rs")
+			session.Rollback()
+			return err
+		}
+
+		if roleAuthority != nil {
+			continue
+		}
+
+		roleAuthority = &model.RoleAuthorityRsEntity{
+			Active:        true,
+			AuthorityCode: authority.Code,
+			AuthorityID:   authority.Id,
+			CreatedBy:     curUser,
+			Deleted:       false,
+			RoleID:        role.Id,
+			RoleName:      role.Name,
+		}
+		if result, err := session.Insert(roleAuthority); result == 0 || err != nil {
+			session.Rollback()
+			if err != nil {
+				log.Logger.Error("failed to insert authority rs", log.JsonObj("roleAuthority", roleAuthority), log.Error(err))
+			}
+			return errors.New("failed to insert authority rs")
+		}
+	}
+	session.Commit()
+	return nil
+}
+
+//@Transactional
+func (RoleManagementService) RevokeRoleAuthorities(revocationDto model.RoleAuthoritiesDto, curUser string) error {
+	session := db.Engine.NewSession()
+	session.Begin()
+	defer session.Close()
+
+	var role *model.SysRoleEntity
+	var err error
+
+	if len(revocationDto.RoleId) > 0 {
+		_, err = session.ID(revocationDto.RoleId).Get(&role)
+		if err != nil {
+			session.Rollback()
+			return err
+		}
+
+	}
+
+	if role == nil && len(revocationDto.RoleName) > 0 {
+		role, err = db.RoleRepositoryInstance.FindNotDeletedRoleByName(revocationDto.RoleName)
+		if err != nil {
+			session.Rollback()
+			return err
+		}
+	}
+
+	if role == nil {
+		log.Logger.Debug(fmt.Sprintf("such role entity does not exist,role id %v, role name %v ", revocationDto.RoleId,
+			revocationDto.RoleName))
+		//throw new AuthServerException("3012", "Such role entity does not exist.");
+		session.Rollback()
+		return exterror.Catch(exterror.New().AuthServer3012Error, nil)
+	}
+
+	for _, authorityDto := range revocationDto.Authorities {
+		if len(authorityDto.ID) == 0 && len(authorityDto.Code) == 0 {
+			continue
+		}
+
+		var roleAuthority *model.RoleAuthorityRsEntity
+		if len(authorityDto.ID) == 0 {
+			roleAuthority, err = db.RoleAuthorityRsRepositoryInstance.FindOneByRoleIdAndAuthorityCode(role.Id, authorityDto.Code, session)
+			if err != nil {
+				log.Logger.Error("failed to query role authority rs", log.Error(err))
+				session.Rollback()
+				return err
+			}
+
+		} else {
+			roleAuthority, err = db.RoleAuthorityRsRepositoryInstance.FindOneByRoleIdAndAuthorityId(role.Id, authorityDto.ID, session)
+			if err != nil {
+				log.Logger.Error("failed to query role authority rs", log.Error(err))
+				session.Rollback()
+				return err
+			}
+		}
+
+		if roleAuthority == nil {
+			continue
+		}
+
+		roleAuthority.Active = false
+		roleAuthority.Deleted = true
+		roleAuthority.UpdatedBy = curUser
+		roleAuthority.UpdatedTime = time.Now()
+
+		if result, err := session.Update(roleAuthority); result == 0 || err != nil {
+			session.Rollback()
+			if err != nil {
+				log.Logger.Error("failed to update authority rs", log.JsonObj("roleAuthority", roleAuthority), log.Error(err))
+			}
+			return errors.New("failed to update authority rs")
+		}
+		//roleAuthorityRsRepository.save(roleAuthority)
+	}
+	session.Commit()
+	return nil
+}
+
+//@Transactional
+func (RoleManagementService) RevokeRoleAuthoritiesById(roleId string, authorityDtos []*model.SimpleAuthorityDto, curUser string) error {
+	session := db.Engine.NewSession()
+	session.Begin()
+	defer session.Close()
+
+	var err error
+	var role *model.SysRoleEntity
+	_, err = session.ID(roleId).Get(&role)
+	if err != nil {
+		session.Rollback()
+		return err
+	}
+
+	if role == nil {
+		session.Rollback()
+		return exterror.Catch(exterror.New().AuthServer3012Error, nil)
+	}
+
+	for _, authorityDto := range authorityDtos {
+		if len(authorityDto.ID) == 0 && len(authorityDto.Code) == 0 {
+			continue
+		}
+
+		var roleAuthority *model.RoleAuthorityRsEntity
+		if len(authorityDto.ID) == 0 {
+			roleAuthority, err = db.RoleAuthorityRsRepositoryInstance.FindOneByRoleIdAndAuthorityCode(role.Id, authorityDto.Code, session)
+			if err != nil {
+				log.Logger.Error("failed to query role authority rs", log.Error(err))
+				session.Rollback()
+				return err
+			}
+		} else {
+			roleAuthority, err = db.RoleAuthorityRsRepositoryInstance.FindOneByRoleIdAndAuthorityId(role.Id, authorityDto.ID, session)
+			if err != nil {
+				log.Logger.Error("failed to query role authority rs", log.Error(err))
+				session.Rollback()
+				return err
+			}
+		}
+
+		if roleAuthority == nil {
+			continue
+		}
+
+		roleAuthority.Active = false
+		roleAuthority.Deleted = true
+		roleAuthority.UpdatedBy = curUser
+		roleAuthority.UpdatedTime = time.Now()
+
+		if result, err := session.Update(roleAuthority); result == 0 || err != nil {
+			session.Rollback()
+			if err != nil {
+				log.Logger.Error("failed to update authority rs", log.JsonObj("roleAuthority", roleAuthority), log.Error(err))
+			}
+			return errors.New("failed to update authority rs")
+		}
+		//roleAuthorityRsRepository.save(roleAuthority);
+	}
+	session.Commit()
+	return nil
 }
