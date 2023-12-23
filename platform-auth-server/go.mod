@@ -6,6 +6,7 @@ require (
 	github.com/WeBankPartners/go-common-lib v1.0.38
 	github.com/gin-gonic/gin v1.8.1
 	github.com/go-sql-driver/mysql v1.7.0
+	github.com/golang-jwt/jwt v3.2.2+incompatible
 	go.uber.org/zap v1.23.0
 	xorm.io/core v0.7.3
 	xorm.io/xorm v1.3.4

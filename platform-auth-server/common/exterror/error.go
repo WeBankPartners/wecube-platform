@@ -10,6 +10,30 @@ import (
 	"github.com/WeBankPartners/wecube-platform/platform-auth-server/api/model"
 )
 
+type BadCredentialsError struct {
+	s string
+}
+
+func NewBadCredentialsError(text string) error {
+	return &BadCredentialsError{text}
+}
+
+func (e *BadCredentialsError) Error() string {
+	return e.s
+}
+
+type AuthServerError struct {
+	s string
+}
+
+func NewAuthServerError(text string) error {
+	return &AuthServerError{text}
+}
+
+func (e *AuthServerError) Error() string {
+	return e.s
+}
+
 type CustomError struct {
 	PassEnable    bool          `json:"passEnable"`    // 透传其它服务报错，不用映射
 	Code          int           `json:"code"`          // 错误码
@@ -49,6 +73,7 @@ type ErrorTemplate struct {
 	AuthServer3008Error CustomError `json:"server_handle_error"`
 	AuthServer3009Error CustomError `json:"server_handle_error"`
 	AuthServer3010Error CustomError `json:"server_handle_error"`
+	AuthServer3011Error CustomError `json:"server_handle_error"`
 	AuthServer3012Error CustomError `json:"server_handle_error"`
 	AuthServer3013Error CustomError `json:"server_handle_error"`
 	AuthServer3014Error CustomError `json:"server_handle_error"`
