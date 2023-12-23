@@ -12,6 +12,7 @@ import (
 	"github.com/WeBankPartners/wecube-platform/platform-core/services/database"
 	"github.com/gin-gonic/gin"
 	"os"
+	"regexp"
 	"strconv"
 	"strings"
 )
@@ -291,18 +292,21 @@ func LaunchPlugin(c *gin.Context) {
 		middleware.ReturnError(c, getResourceErr)
 		return
 	}
+	var mysqlInstance *models.PluginMysqlInstances
+	var mysqlServer *models.ResourceServer
 	if len(resources.Mysql) > 0 {
 		mysqlResource := resources.Mysql[0]
 		// 先检查数据库脚本执行纪录的版本，如果执行过了就跳过下面数据库相关操作
-		mysqlInstance, getMysqlInsErr := database.GetPluginMysqlInstance(c, pluginPackageObj.Name)
-		if getMysqlInsErr != nil {
-			middleware.ReturnError(c, getMysqlInsErr)
+		var resourceDbErr error
+		mysqlInstance, resourceDbErr = database.GetPluginMysqlInstance(c, pluginPackageObj.Name)
+		if resourceDbErr != nil {
+			middleware.ReturnError(c, resourceDbErr)
 			return
 		}
 		// 如果连纪录都没有，第一次要创建数据库
-		mysqlServer, getMysqlServerErr := database.GetResourceServer(c, "mysql", hostIp)
-		if getMysqlServerErr != nil {
-			middleware.ReturnError(c, getMysqlServerErr)
+		mysqlServer, resourceDbErr = database.GetResourceServer(c, "mysql", hostIp)
+		if resourceDbErr != nil {
+			middleware.ReturnError(c, resourceDbErr)
 			return
 		}
 		if mysqlInstance == nil {
@@ -356,10 +360,28 @@ func LaunchPlugin(c *gin.Context) {
 			}
 		}
 	}
-	dockerServer, getDockerServerErr := database.GetResourceServer(c, "docker", hostIp)
-	if getDockerServerErr != nil {
-		middleware.ReturnError(c, getDockerServerErr)
-		return
+	if len(resources.Docker) > 0 {
+		dockerResource := resources.Docker[0]
+		dockerServer, getDockerServerErr := database.GetResourceServer(c, "docker", hostIp)
+		if getDockerServerErr != nil {
+			middleware.ReturnError(c, getDockerServerErr)
+			return
+		}
+		envMap := make(map[string]string)
+		getEnvMap(dockerResource.PortBindings, envMap)
+		getEnvMap(dockerResource.VolumeBindings, envMap)
+		getEnvMap(dockerResource.EnvVariables, envMap)
+		envMap["ALLOCATE_PORT"] = portValue
+		envMap["BASE_MOUNT_PATH"] = models.Config.Plugin.BaseMountPath
+		if mysqlInstance != nil {
+			envMap["DB_SCHEMA"] = mysqlInstance.SchemaName
+			envMap["DB_USER"] = mysqlInstance.Username
+			envMap["DB_PWD"] = mysqlInstance.Password
+			if mysqlServer != nil {
+				envMap["DB_HOST"] = mysqlServer.Host
+				envMap["DB_PORT"] = mysqlServer.Port
+			}
+		}
 	}
 	// 替换容器参数差异化变量
 	// 先检查目标机器上有没有相关版本容器镜像，如果有的话就跳过下面两个下载和传镜像的操作
@@ -373,4 +395,16 @@ func LaunchPlugin(c *gin.Context) {
 func RemovePlugin(c *gin.Context) {
 	// 销毁容器
 	// 更新插件注册的菜单状态
+}
+
+func getEnvMap(input string, envMap map[string]string) {
+	re, _ := regexp.Compile(".*={{(.*)}}.*")
+	for _, v := range strings.Split(input, ",") {
+		for i, matchEnv := range re.FindStringSubmatch(v) {
+			if i == 0 {
+				continue
+			}
+			envMap[matchEnv] = ""
+		}
+	}
 }

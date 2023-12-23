@@ -48,5 +48,9 @@
     "password": "",
     "port": "",
     "path": ""
+  },
+  "plugin": {
+    "base_mount_path": "",
+    "deploy_path": ""
   }
 }
