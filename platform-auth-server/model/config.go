@@ -34,12 +34,28 @@ type RemoteServiceConfig struct {
 	Timeout             int    `json:"timeout"`
 }
 
+type Auth struct {
+	JwtPrivateKeyPath string `json:"jwt_private_key_path"`
+	JwtPublicKeyPath  string `json:"jwt_public_key_path"`
+	AccessTokenMins   int    `json:"access_token_mins"`
+	RefreshTokenHours int    `json:"refresh_token_hours"`
+	WebPrivateKeyPath string `json:"web_private_key_path"`
+	WebPublicKeyPath  string `json:"web_public_key_path"`
+}
+
+type UmAuth struct {
+	Address  string `json:"address"`
+	AppId    string `json:"appId"`
+	AppToken string `json:"appToken"`
+}
+
 type GlobalConfig struct {
-	Port     string              `json:"app_port"`
-	Log      LogConfig           `json:"log"`
-	Database DatabaseConfig      `json:"database"`
-	Remote   RemoteServiceConfig `json:"remote_service"`
-	Auth     AuthConfig          `json:"auth"`
+	Port     string         `json:"app_port"`
+	Log      LogConfig      `json:"log"`
+	Database DatabaseConfig `json:"database"`
+	//Remote   RemoteServiceConfig `json:"remote_service"`
+	//Auth AuthConfig `json:"auth"`
+	Auth Auth `json:"auth"`
 }
 
 type AuthConfig struct {
