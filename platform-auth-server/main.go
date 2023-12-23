@@ -6,6 +6,7 @@ import (
 	sw "github.com/WeBankPartners/wecube-platform/platform-auth-server/api"
 	"github.com/WeBankPartners/wecube-platform/platform-auth-server/common/log"
 	"github.com/WeBankPartners/wecube-platform/platform-auth-server/model"
+	"github.com/WeBankPartners/wecube-platform/platform-auth-server/service/jwt"
 )
 
 func main() {
@@ -27,6 +28,10 @@ func main() {
 		}
 	*/
 	log.Logger.Info("Server started")
+	if err := jwt.InitKey(); err != nil {
+		fmt.Printf("failed to init jwt key")
+		return
+	}
 
 	router := sw.NewRouter()
 	go router.Run(":" + model.Config.Port)

@@ -1,6 +1,9 @@
 package db
 
-import "github.com/WeBankPartners/wecube-platform/platform-auth-server/model"
+import (
+	"github.com/WeBankPartners/wecube-platform/platform-auth-server/model"
+	"xorm.io/xorm"
+)
 
 var AuthorityRepositoryInstance AuthorityRepository
 
@@ -39,18 +42,26 @@ func (RoleAuthorityRsRepository) FindAllConfiguredAuthoritiesByRoleId(roleId str
 	return authorities, nil
 }
 
-func (RoleAuthorityRsRepository) FindOneByRoleIdAndAuthorityId(roleId, authorityId string) (*model.RoleAuthorityRsEntity, error) {
+func (RoleAuthorityRsRepository) FindOneByRoleIdAndAuthorityId(roleId, authorityId string, session *xorm.Session) (*model.RoleAuthorityRsEntity, error) {
 	authority := &model.RoleAuthorityRsEntity{}
-	_, err := Engine.Where("role_id = ?", roleId).And("authority_id = ?", authorityId).And("deleted = ?", false).Get(authority)
+	if session == nil {
+		session := Engine.NewSession()
+		defer session.Close()
+	}
+	_, err := session.Where("role_id = ?", roleId).And("authority_id = ?", authorityId).And("deleted = ?", false).Get(authority)
 	if err != nil {
 		return nil, err
 	}
 	return authority, nil
 }
 
-func (RoleAuthorityRsRepository) FindOneByRoleIdAndAuthorityCode(roleId, authorityCode string) (*model.RoleAuthorityRsEntity, error) {
+func (RoleAuthorityRsRepository) FindOneByRoleIdAndAuthorityCode(roleId, authorityCode string, session *xorm.Session) (*model.RoleAuthorityRsEntity, error) {
 	authority := &model.RoleAuthorityRsEntity{}
-	_, err := Engine.Where("role_id = ?", roleId).And("authority_code = ?", authorityCode).And("deleted = ?", false).Get(authority)
+	if session == nil {
+		session := Engine.NewSession()
+		defer session.Close()
+	}
+	_, err := session.Where("role_id = ?", roleId).And("authority_code = ?", authorityCode).And("deleted = ?", false).Get(authority)
 	if err != nil {
 		return nil, err
 	}
@@ -98,6 +109,8 @@ func (RoleRepository) FindAllRoles() ([]*model.SysRoleEntity, error) {
 	return roles, nil
 }
 
+var SubSystemAuthorityRsRepositoryInstance SubSystemAuthorityRsRepository
+
 type SubSystemAuthorityRsRepository struct {
 }
 
@@ -109,6 +122,8 @@ func (SubSystemAuthorityRsRepository) FindAllBySubSystemId(subSystemId string) (
 	}
 	return authorities, nil
 }
+
+var SubSystemRepositoryInstance SubSystemRepository
 
 type SubSystemRepository struct {
 }
