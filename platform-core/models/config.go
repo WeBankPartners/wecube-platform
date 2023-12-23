@@ -60,6 +60,11 @@ type StaticResourceConfig struct {
 	Path     string `json:"path"`
 }
 
+type PluginConfig struct {
+	BaseMountPath string `json:"base_mount_path"`
+	DeployPath    string `json:"deploy_path"`
+}
+
 type GlobalConfig struct {
 	Version         string                `json:"version"`
 	DefaultLanguage string                `json:"default_language"`
@@ -69,6 +74,7 @@ type GlobalConfig struct {
 	Auth            *AuthConfig           `json:"auth"`
 	S3              *S3Config             `json:"s3"`
 	StaticResource  *StaticResourceConfig `json:"static_resource"`
+	Plugin          *PluginConfig         `json:"plugin"`
 }
 
 var (

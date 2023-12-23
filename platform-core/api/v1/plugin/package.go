@@ -3,6 +3,7 @@ package plugin
 import (
 	"encoding/xml"
 	"fmt"
+	"github.com/WeBankPartners/go-common-lib/guid"
 	"github.com/WeBankPartners/wecube-platform/platform-core/api/middleware"
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/exterror"
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/log"
@@ -11,6 +12,7 @@ import (
 	"github.com/WeBankPartners/wecube-platform/platform-core/services/database"
 	"github.com/gin-gonic/gin"
 	"os"
+	"regexp"
 	"strconv"
 	"strings"
 )
@@ -224,7 +226,7 @@ func RegisterPackage(c *gin.Context) {
 	if pluginPackageObj.UiPackageIncluded {
 		// 把s3上的ui.zip下下来放到本地
 		var uiFileLocalPath string
-		if uiFileLocalPath, err = bash.DownloadPackage(models.Config.S3.PluginPackageBucket, fmt.Sprintf("%s/%s/ui.zip", pluginPackageObj.Name, pluginPackageObj.Version)); err != nil {
+		if uiFileLocalPath, err = bash.DownloadPackageFile(models.Config.S3.PluginPackageBucket, fmt.Sprintf("%s/%s/ui.zip", pluginPackageObj.Name, pluginPackageObj.Version)); err != nil {
 			middleware.ReturnError(c, err)
 			return
 		}
@@ -290,26 +292,96 @@ func LaunchPlugin(c *gin.Context) {
 		middleware.ReturnError(c, getResourceErr)
 		return
 	}
+	var mysqlInstance *models.PluginMysqlInstances
+	var mysqlServer *models.ResourceServer
 	if len(resources.Mysql) > 0 {
 		mysqlResource := resources.Mysql[0]
 		// 先检查数据库脚本执行纪录的版本，如果执行过了就跳过下面数据库相关操作
-		mysqlInstance, getMysqlInsErr := database.GetPluginMysqlInstance(c, pluginPackageObj.Name)
-		if getMysqlInsErr != nil {
-			middleware.ReturnError(c, getMysqlInsErr)
+		var resourceDbErr error
+		mysqlInstance, resourceDbErr = database.GetPluginMysqlInstance(c, pluginPackageObj.Name)
+		if resourceDbErr != nil {
+			middleware.ReturnError(c, resourceDbErr)
 			return
 		}
-		// 如果连纪录都没有，可能是第一次要创建数据库
+		// 如果连纪录都没有，第一次要创建数据库
+		mysqlServer, resourceDbErr = database.GetResourceServer(c, "mysql", hostIp)
+		if resourceDbErr != nil {
+			middleware.ReturnError(c, resourceDbErr)
+			return
+		}
 		if mysqlInstance == nil {
-			bash.CreatePluginDatabase(pluginPackageObj.Name, mysqlResource)
+			if dbPass, err := bash.CreatePluginDatabase(c, pluginPackageObj.Name, mysqlResource, mysqlServer); err != nil {
+				middleware.ReturnError(c, err)
+				return
+			} else {
+				mysqlInstance = &models.PluginMysqlInstances{
+					Id:              "p_mysql_" + guid.CreateGuid(),
+					Password:        dbPass,
+					PluginPackageId: pluginPackageId,
+					ResourceItemId:  mysqlResource.Id,
+					SchemaName:      mysqlResource.SchemaName,
+					Username:        pluginPackageObj.Name,
+				}
+				if err = database.NewPluginMysqlInstance(c, mysqlInstance); err != nil {
+					middleware.ReturnError(c, err)
+					return
+				}
+			}
 		}
 		// 把s3上的init.sql下载来到本地
+		var intiSqlFile, upgradeSqlFile string
+		if mysqlResource.InitFileName != "" {
+			tmpFile, downloadErr := bash.DownloadPackageFile(models.Config.S3.PluginPackageBucket, fmt.Sprintf("%s/%s/%s", pluginPackageObj.Name, pluginPackageObj.Version, mysqlResource.InitFileName))
+			if downloadErr != nil {
+				middleware.ReturnError(c, downloadErr)
+				return
+			}
+			intiSqlFile = tmpFile
+		}
+		if mysqlResource.UpgradeFileName != "" {
+			tmpFile, downloadErr := bash.DownloadPackageFile(models.Config.S3.PluginPackageBucket, fmt.Sprintf("%s/%s/%s", pluginPackageObj.Name, pluginPackageObj.Version, mysqlResource.UpgradeFileName))
+			if downloadErr != nil {
+				middleware.ReturnError(c, downloadErr)
+				return
+			}
+			upgradeSqlFile = tmpFile
+		}
 		// 检查数据库脚本是否有更新
+		outputSqlFile, buildErr := bash.BuildPluginUpgradeSqlFile(intiSqlFile, upgradeSqlFile, mysqlInstance.PreVersion)
+		if buildErr != nil {
+			middleware.ReturnError(c, buildErr)
+			return
+		}
 		// 执行数据库脚本并更新纪录
+		if outputSqlFile != "" {
+			if err := bash.ExecPluginUpgradeSql(c, mysqlInstance, mysqlServer, outputSqlFile); err != nil {
+				middleware.ReturnError(c, err)
+				return
+			}
+		}
 	}
-	dockerServer, getDockerServerErr := database.GetResourceServer(c, "docker", hostIp)
-	if getDockerServerErr != nil {
-		middleware.ReturnError(c, getDockerServerErr)
-		return
+	if len(resources.Docker) > 0 {
+		dockerResource := resources.Docker[0]
+		dockerServer, getDockerServerErr := database.GetResourceServer(c, "docker", hostIp)
+		if getDockerServerErr != nil {
+			middleware.ReturnError(c, getDockerServerErr)
+			return
+		}
+		envMap := make(map[string]string)
+		getEnvMap(dockerResource.PortBindings, envMap)
+		getEnvMap(dockerResource.VolumeBindings, envMap)
+		getEnvMap(dockerResource.EnvVariables, envMap)
+		envMap["ALLOCATE_PORT"] = portValue
+		envMap["BASE_MOUNT_PATH"] = models.Config.Plugin.BaseMountPath
+		if mysqlInstance != nil {
+			envMap["DB_SCHEMA"] = mysqlInstance.SchemaName
+			envMap["DB_USER"] = mysqlInstance.Username
+			envMap["DB_PWD"] = mysqlInstance.Password
+			if mysqlServer != nil {
+				envMap["DB_HOST"] = mysqlServer.Host
+				envMap["DB_PORT"] = mysqlServer.Port
+			}
+		}
 	}
 	// 替换容器参数差异化变量
 	// 先检查目标机器上有没有相关版本容器镜像，如果有的话就跳过下面两个下载和传镜像的操作
@@ -323,4 +395,16 @@ func LaunchPlugin(c *gin.Context) {
 func RemovePlugin(c *gin.Context) {
 	// 销毁容器
 	// 更新插件注册的菜单状态
+}
+
+func getEnvMap(input string, envMap map[string]string) {
+	re, _ := regexp.Compile(".*={{(.*)}}.*")
+	for _, v := range strings.Split(input, ",") {
+		for i, matchEnv := range re.FindStringSubmatch(v) {
+			if i == 0 {
+				continue
+			}
+			envMap[matchEnv] = ""
+		}
+	}
 }

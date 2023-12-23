@@ -1,11 +1,15 @@
 package bash
 
 import (
+	"context"
+	"crypto/rand"
 	"fmt"
 	"github.com/WeBankPartners/wecube-platform/platform-core/models"
+	_ "github.com/go-sql-driver/mysql"
 	"os/exec"
 	"strconv"
 	"strings"
+	"xorm.io/xorm"
 )
 
 func RemoteSSHCommand(targetIp, command string) (err error) {
@@ -62,7 +66,55 @@ func GetRemoteHostAvailablePort(targetIp string) (port int, err error) {
 	return
 }
 
-func CreatePluginDatabase(username string, mysqlResource *models.PluginPackageRuntimeResourcesMysql) (err error) {
+func CreatePluginDatabase(ctx context.Context, username string, mysqlResource *models.PluginPackageRuntimeResourcesMysql, mysqlServer *models.ResourceServer) (password string, err error) {
+	connStr := fmt.Sprintf("%s:%s@%s(%s)?collation=utf8mb4_unicode_ci&allowNativePasswords=true",
+		mysqlServer.LoginUsername, mysqlServer.LoginPassword, "tcp", fmt.Sprintf("%s:%s", mysqlServer.Host, mysqlServer.Port))
+	engine, connectErr := xorm.NewEngine("mysql", connStr)
+	if connectErr != nil {
+		err = fmt.Errorf("try to connect to mysql resource server fail,%s ", connectErr.Error())
+		return
+	}
+	session := engine.NewSession().Context(ctx)
+	session.Begin()
+	defer session.Close()
+	if _, err = session.Exec(fmt.Sprintf("CREATE DATABASE %s", mysqlResource.SchemaName)); err != nil {
+		session.Rollback()
+		return
+	}
+	b := make([]byte, 16)
+	rand.Read(b)
+	password = fmt.Sprintf("%x", b[4:8])
+	if _, err = session.Exec(fmt.Sprintf("CREATE USER '%s'@'%%' IDENTIFIED BY '%s'", username, password)); err != nil {
+		session.Rollback()
+		return
+	}
+	if _, err = session.Exec(fmt.Sprintf("GRANT ALL PRIVILEGES ON %s.* TO '%s'@'%%'", mysqlResource.SchemaName, username)); err != nil {
+		session.Rollback()
+		return
+	}
+	if _, err = session.Exec("flush privileges"); err != nil {
+		session.Rollback()
+		return
+	}
+	session.Commit()
+	return
+}
 
+func ExecPluginUpgradeSql(ctx context.Context, mysqlInstance *models.PluginMysqlInstances, mysqlServer *models.ResourceServer, sqlFilePath string) (err error) {
+	connStr := fmt.Sprintf("%s:%s@%s(%s)/%s?collation=utf8mb4_unicode_ci&allowNativePasswords=true",
+		mysqlInstance.Username, mysqlInstance.Password, "tcp", fmt.Sprintf("%s:%s", mysqlServer.Host, mysqlServer.Port), mysqlInstance.SchemaName)
+	engine, connectErr := xorm.NewEngine("mysql", connStr)
+	if connectErr != nil {
+		err = fmt.Errorf("try to connect to mysql resource server fail,%s ", connectErr.Error())
+		return
+	}
+	session := engine.NewSession().Context(ctx)
+	session.Begin()
+	if _, err = session.Exec("source " + sqlFilePath); err != nil {
+		session.Rollback()
+	} else {
+		session.Commit()
+	}
+	session.Close()
 	return
 }
