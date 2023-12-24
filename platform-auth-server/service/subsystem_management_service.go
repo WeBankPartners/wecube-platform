@@ -262,3 +262,66 @@ func convertToSimpleSubSystemDto(subSystem *model.SysSubSystemEntity) *model.Sim
 		PubKey:      subSystem.PubApiKey,
 	}
 }
+
+func (SubSystemManagementService) retrieveSubSystemApikey(systemCode string) (*model.SimpleSubSystemDto, error) {
+	result := &model.SimpleSubSystemDto{}
+	if len(systemCode) == 0 {
+		return result, nil
+	}
+
+	subSystem, err := db.SubSystemRepositoryInstance.FindOneBySystemCode(systemCode)
+	if err != nil {
+		return nil, err
+	}
+
+	if subSystem == nil {
+		return result, nil
+	}
+
+	return &model.SimpleSubSystemDto{
+		ID:          subSystem.Id,
+		Active:      subSystem.IsActive,
+		Blocked:     subSystem.IsBlocked,
+		Description: subSystem.Description,
+		Name:        subSystem.Name,
+		SystemCode:  subSystem.SystemCode,
+		APIKey:      subSystem.ApiKey,
+	}, nil
+}
+
+func (SubSystemManagementService) retrieveSubSystemByName(name string, currUser *model.AuthenticatedUser) (*model.SimpleSubSystemDto, error) {
+	if err := validateStrictPermission(currUser); err != nil {
+		return nil, err
+	}
+	subSystem, err := db.SubSystemRepositoryInstance.FindOneBySystemName(name)
+	if err != nil {
+		return nil, err
+	}
+
+	if subSystem == nil {
+		return nil, nil
+	}
+
+	return convertToSimpleSubSystemDto(subSystem), nil
+}
+
+func (SubSystemManagementService) retrieveAllSubSystems(currUser *model.AuthenticatedUser) ([]*model.SimpleSubSystemDto, error) {
+	if err := validateStrictPermission(currUser); err != nil {
+		return nil, err
+	}
+	subSystems := make([]*model.SysSubSystemEntity, 0)
+	if err := db.Engine.Find(&subSystems); err != nil {
+		return nil, err
+	}
+
+	result := make([]*model.SimpleSubSystemDto, 0)
+	if len(subSystems) == 0 {
+		return nil, nil
+	}
+
+	for _, subSystem := range subSystems {
+		d := convertToSimpleSubSystemDto(subSystem)
+		result = append(result, d)
+	}
+	return result, nil
+}
