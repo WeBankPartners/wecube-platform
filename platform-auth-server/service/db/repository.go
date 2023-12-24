@@ -146,6 +146,8 @@ func (SubSystemRepository) FindOneBySystemName(name string) (*model.SysSubSystem
 	return subSystem, nil
 }
 
+var UserRepositoryInstance UserRepository
+
 type UserRepository struct {
 }
 
@@ -190,9 +192,14 @@ func (UserRoleRsRepository) FindAllByUserId(userId string) ([]*model.UserRoleRsE
 	return userRoleRsList, nil
 }
 
-func (UserRoleRsRepository) FindOneByUserIdAndRoleId(userId string, roleId string) (*model.UserRoleRsEntity, error) {
+func (UserRoleRsRepository) FindOneByUserIdAndRoleId(userId string, roleId string, session *xorm.Session) (*model.UserRoleRsEntity, error) {
+	if session == nil {
+		session := Engine.NewSession()
+		defer session.Close()
+	}
+
 	userRoleRs := &model.UserRoleRsEntity{}
-	_, err := Engine.Where("user_id = ?", userId).And("role_id = ?", roleId).And("deleted = ?", false).Get(userRoleRs)
+	_, err := session.Where("user_id = ?", userId).And("role_id = ?", roleId).And("deleted = ?", false).Get(userRoleRs)
 	if err != nil {
 		return nil, err
 	}
