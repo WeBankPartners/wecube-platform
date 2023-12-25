@@ -23,7 +23,7 @@ var SubSystemManagementServiceInstance SubSystemManagementService
 type SubSystemManagementService struct {
 }
 
-func (SubSystemManagementService) registerSubSystemAccessToken(subSystemDto *model.SubSystemTokenDto) (*model.SubSystemTokenDto, error) {
+func (SubSystemManagementService) RegisterSubSystemAccessToken(subSystemDto *model.SubSystemTokenDto) (*model.SubSystemTokenDto, error) {
 	result := &model.SubSystemTokenDto{
 		SystemCode: subSystemDto.SystemCode,
 	}
@@ -263,7 +263,7 @@ func convertToSimpleSubSystemDto(subSystem *model.SysSubSystemEntity) *model.Sim
 	}
 }
 
-func (SubSystemManagementService) retrieveSubSystemApikey(systemCode string) (*model.SimpleSubSystemDto, error) {
+func (SubSystemManagementService) RetrieveSubSystemApikey(systemCode string) (*model.SimpleSubSystemDto, error) {
 	result := &model.SimpleSubSystemDto{}
 	if len(systemCode) == 0 {
 		return result, nil
@@ -289,7 +289,7 @@ func (SubSystemManagementService) retrieveSubSystemApikey(systemCode string) (*m
 	}, nil
 }
 
-func (SubSystemManagementService) retrieveSubSystemByName(name string, currUser *model.AuthenticatedUser) (*model.SimpleSubSystemDto, error) {
+func (SubSystemManagementService) RetrieveSubSystemByName(name string, currUser *model.AuthenticatedUser) (*model.SimpleSubSystemDto, error) {
 	if err := validateStrictPermission(currUser); err != nil {
 		return nil, err
 	}
@@ -305,7 +305,7 @@ func (SubSystemManagementService) retrieveSubSystemByName(name string, currUser 
 	return convertToSimpleSubSystemDto(subSystem), nil
 }
 
-func (SubSystemManagementService) retrieveAllSubSystems(currUser *model.AuthenticatedUser) ([]*model.SimpleSubSystemDto, error) {
+func (SubSystemManagementService) RetrieveAllSubSystems(currUser *model.AuthenticatedUser) ([]*model.SimpleSubSystemDto, error) {
 	if err := validateStrictPermission(currUser); err != nil {
 		return nil, err
 	}

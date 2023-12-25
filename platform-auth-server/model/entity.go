@@ -2,6 +2,11 @@ package model
 
 import "time"
 
+const (
+	StatusDeleted    = "Deleted"
+	StatusNotDeleted = "NotDeleted"
+)
+
 type BaseTraceableEntity struct {
 	Id          string    `xorm:"'ID' pk"`
 	CreatedBy   string    `xorm:"'CREATED_BY'"`
@@ -69,6 +74,15 @@ type SysRoleEntity struct {
 	DisplayName  string `xorm:"'DISPLAY_NAME'"`
 	EmailAddress string `xorm:"'EMAIL_ADDR'"`
 	Description  string `xorm:"'DESCRIPTION'"`
+}
+
+func (s *SysRoleEntity) GetRoleDeletedStatus() string {
+	if s.Deleted {
+		return StatusDeleted
+	} else {
+		return StatusNotDeleted
+	}
+
 }
 
 type SubSystemAuthorityRsEntity struct {
