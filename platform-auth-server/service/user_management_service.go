@@ -20,7 +20,7 @@ var UserManagementServiceInstance UserManagementService
 type UserManagementService struct {
 }
 
-func (UserManagementService) ResetLocalUserPassword(userPassDto model.SimpleLocalUserPassDto) (string, error) {
+func (UserManagementService) ResetLocalUserPassword(userPassDto *model.SimpleLocalUserPassDto) (string, error) {
 	username := userPassDto.Username
 	if len(username) == 0 {
 		return "", exterror.NewAuthServerError("Username cannot be blank.")
@@ -38,7 +38,7 @@ func doResetLocalUserPassword(username string) (string, error) {
 	if user == nil {
 		log.Logger.Debug(fmt.Sprintf("Such user does not exist with username %v", username))
 		// msg := fmt.Sprintf("Failed to modify a none existed user with username {%s}.", username)
-		return "", exterror.Catch(exterror.New().AuthServer3021Error, nil)
+		return "", exterror.Catch(exterror.New().AuthServer3021Error.WithParam(username), nil)
 	}
 
 	if utils.EqualsIgnoreCase(constant.AuthSourceUm, user.AuthSource) {
@@ -429,6 +429,314 @@ func (UserManagementService) ConfigureRoleForUsers(roleId string, userDtos []*mo
 
 		}
 
+	}
+	session.Commit()
+	return nil
+}
+
+func (UserManagementService) GetLocalRolesByUsername(username string) ([]*model.SimpleLocalRoleDto, error) {
+	roleDtos := make([]*model.SimpleLocalRoleDto, 0)
+	if len(username) == 0 {
+		return nil, exterror.Catch(exterror.New().AuthServer3020Error, nil)
+	}
+	user, err := db.UserRepositoryInstance.FindNotDeletedUserByUsername(username)
+	if err != nil {
+		return nil, err
+	}
+
+	if user == nil {
+		return roleDtos, nil
+	}
+
+	userRoles, err := db.UserRoleRsRepositoryInstance.FindAllByUserId(user.Id)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(userRoles) == 0 {
+		return roleDtos, nil
+	}
+
+	for _, userRole := range userRoles {
+		var role *model.SysRoleEntity
+		_, err = db.Engine.ID(userRole.RoleId).Get(&role)
+		if err != nil {
+			return nil, err
+		}
+
+		if role == nil {
+			log.Logger.Debug(fmt.Sprintf("cannot find such role entity with role id %v", userRole.RoleId))
+			continue
+		}
+
+		if role.Deleted {
+			log.Logger.Debug(fmt.Sprintf("such role entity is deleted,role id %v", role.Id))
+			continue
+		}
+
+		roleDto := &model.SimpleLocalRoleDto{
+			ID:          role.Id,
+			Name:        role.Name,
+			DisplayName: role.DisplayName,
+			Email:       role.EmailAddress,
+			Status:      role.GetRoleDeletedStatus(),
+		}
+
+		roleDtos = append(roleDtos, roleDto)
+	}
+
+	return roleDtos, nil
+}
+
+func (UserManagementService) GetLocalUsersByRoleId(roleId string) ([]*model.SimpleLocalUserDto, error) {
+	result := make([]*model.SimpleLocalUserDto, 0)
+
+	userRoles, err := db.UserRoleRsRepositoryInstance.FindAllByRoleId(roleId)
+	if err != nil {
+		return nil, err
+	}
+	if len(userRoles) == 0 {
+		return result, nil
+	}
+
+	for _, userRole := range userRoles {
+		var user *model.SysUserEntity
+
+		if _, err := db.Engine.ID(userRole.UserId).Get(&user); err != nil {
+			log.Logger.Error(fmt.Sprintf("failed to get user:%v", userRole.UserId), log.Error(err))
+		}
+		if user == nil {
+			continue
+		}
+
+		userDto := convertToSimpleLocalUserDto(user)
+		result = append(result, userDto)
+	}
+
+	return result, nil
+}
+
+func (UserManagementService) RetireveLocalUserByUserid(userId string) (*model.SimpleLocalUserDto, error) {
+	var user *model.SysUserEntity
+
+	if _, err := db.Engine.ID(userId).Get(&user); err != nil {
+		log.Logger.Error(fmt.Sprintf("failed to get user:%v", userId), log.Error(err))
+	}
+
+	if user == nil {
+		log.Logger.Debug(fmt.Sprintf("Such user with ID %s does not exist.", userId))
+		return nil, exterror.Catch(exterror.New().AuthServer3024Error.WithParam(userId), nil)
+	}
+
+	if user.IsDeleted {
+		log.Logger.Debug(fmt.Sprintf("Such user with ID {} has already been deleted.", userId))
+		return nil, exterror.Catch(exterror.New().AuthServer3024Error.WithParam(userId), nil)
+	}
+
+	return convertToSimpleLocalUserDto(user), nil
+}
+
+func (UserManagementService) ModifyLocalUserInfomation(username string, userDto *model.SimpleLocalUserDto, curUser string) (*model.SimpleLocalUserDto, error) {
+	user, err := db.UserRepositoryInstance.FindNotDeletedUserByUsername(username)
+	if err != nil {
+		return nil, err
+	}
+	if user == nil {
+		log.Logger.Debug(fmt.Sprintf("Such user does not exist with username %v", username))
+		// msg := fmt.Sprintf("Failed to modify a none existed user with username {%s}.", username)
+		return nil, exterror.Catch(exterror.New().AuthServer3021Error.WithParam(username), nil)
+	}
+
+	if username != userDto.Username {
+		return nil, exterror.Catch(exterror.New().AuthServer3022Error, nil)
+	}
+
+	user.CellPhoneNo = userDto.CellPhoneNo
+	user.Department = userDto.Department
+	user.EmailAddr = userDto.EmailAddr
+	user.EnglishName = userDto.EnglishName
+	user.LocalName = userDto.NativeName
+	user.OfficeTelNo = userDto.OfficeTelNo
+	user.Title = userDto.Title
+	user.CellPhoneNo = userDto.CellPhoneNo
+	user.UpdatedBy = curUser
+	user.UpdatedTime = time.Now()
+
+	if affected, err := db.Engine.Update(user); affected == 0 || err != nil {
+		if err != nil {
+			log.Logger.Error(fmt.Sprintf("failed to update user:%v", user.Id), log.Error(err))
+		}
+		return nil, errors.New("failed to update user")
+	}
+	return convertToSimpleLocalUserDto(user), nil
+}
+
+func (UserManagementService) RegisterLocalUser(userDto *model.SimpleLocalUserDto, curUser string) (*model.SimpleLocalUserDto, error) {
+	if err := validateSimpleLocalUserDto(userDto); err != nil {
+		return nil, err
+	}
+
+	user, err := db.UserRepositoryInstance.FindNotDeletedUserByUsername(userDto.Username)
+	if err != nil {
+		return nil, err
+	}
+	if user != nil {
+
+		log.Logger.Info(fmt.Sprintf("such username {} to create has already existed.", userDto.Username))
+		return nil, exterror.Catch(exterror.New().AuthServer3023Error.WithParam(userDto.Username), nil)
+	}
+
+	userEntity, err := buildSysUserEntity(userDto, curUser)
+	if err != nil {
+		return nil, err
+	}
+	if cnt, err := db.Engine.Insert(userEntity); cnt == 0 || err != nil {
+		if err != nil {
+			log.Logger.Error("failed to insert user", log.Error(err))
+		}
+		return nil, errors.New("failed to inser user")
+	}
+	return convertToSimpleLocalUserDto(userEntity), nil
+}
+
+func validateSimpleLocalUserDto(userDto *model.SimpleLocalUserDto) error {
+
+	if len(userDto.Username) == 0 {
+		return exterror.Catch(exterror.New().AuthServer3025Error, nil)
+	}
+
+	authSource := constant.AuthSourceLocal
+	if len(userDto.AuthSource) > 0 {
+		authSource = userDto.AuthSource
+	}
+
+	if utils.EqualsIgnoreCase(constant.AuthSourceLocal, authSource) && len(userDto.Password) == 0 {
+		return exterror.Catch(exterror.New().AuthServer3026Error, nil)
+	}
+	return nil
+}
+
+func buildSysUserEntity(dto *model.SimpleLocalUserDto, curUser string) (*model.SysUserEntity, error) {
+	encodePassword(dto.Password)
+	encodedNewPassword, err := encodePassword(dto.Password)
+	if err != nil {
+		return nil, err
+	}
+
+	return &model.SysUserEntity{
+		Username:    dto.Username,
+		Password:    encodedNewPassword,
+		CreatedBy:   curUser,
+		Department:  dto.Department,
+		EmailAddr:   dto.EmailAddr,
+		Title:       dto.Title,
+		EnglishName: dto.EnglishName,
+		LocalName:   dto.NativeName,
+		CellPhoneNo: dto.CellPhoneNo,
+		OfficeTelNo: dto.OfficeTelNo,
+		AuthSource:  dto.AuthSource,
+		AuthContext: dto.AuthContext,
+	}, nil
+}
+
+func (UserManagementService) RetrieveAllActiveUsers() ([]*model.SimpleLocalUserDto, error) {
+	userEntities, err := db.UserRepositoryInstance.FindAllActiveUsers()
+	if err != nil {
+		return nil, err
+	}
+
+	result := make([]*model.SimpleLocalUserDto, 0)
+	if len(userEntities) == 0 {
+		return result, nil
+	}
+
+	for _, user := range userEntities {
+		userDto := convertToSimpleLocalUserDto(user)
+
+		userRoles, err := db.UserRoleRsRepositoryInstance.FindAllByUserId(user.Id)
+		if err != nil {
+			return nil, err
+		}
+		if len(userRoles) > 0 {
+			for _, userRole := range userRoles {
+
+				var role *model.SysRoleEntity
+				_, err = db.Engine.ID(userRole.RoleId).Get(&role)
+				if err != nil {
+					return nil, err
+				}
+
+				if role != nil {
+					roleDto := &model.SimpleLocalRoleDto{
+						ID:          role.Id,
+						DisplayName: role.DisplayName,
+						Name:        role.Name,
+						Email:       role.EmailAddress,
+						Status:      role.GetRoleDeletedStatus(),
+					}
+
+					userDto.AddRoles([]*model.SimpleLocalRoleDto{roleDto})
+				}
+				result = append(result, userDto)
+			}
+		}
+	}
+	return result, nil
+}
+
+//@Transactional
+func (UserManagementService) UnregisterLocalUser(userId string, curUser string) error {
+	session := db.Engine.NewSession()
+	session.Begin()
+	defer session.Close()
+
+	var user *model.SysUserEntity
+
+	if _, err := session.ID(userId).Get(&user); err != nil {
+		log.Logger.Error(fmt.Sprintf("failed to get user:%v", userId), log.Error(err))
+	}
+	if user == nil {
+		session.Rollback()
+		return exterror.Catch(exterror.New().AuthServer3024Error.WithParam(userId), nil)
+	}
+
+	if user.IsDeleted {
+		session.Rollback()
+		return exterror.Catch(exterror.New().AuthServer3024Error.WithParam(userId), nil)
+	}
+
+	user.IsActive = false
+	user.IsDeleted = true
+	user.UpdatedBy = curUser
+	user.UpdatedTime = time.Now()
+	if affected, err := session.Update(user); affected == 0 || err != nil {
+		if err != nil {
+			log.Logger.Error(fmt.Sprintf("failed to update user:%v", user.Id), log.Error(err))
+		}
+		return errors.New("failed to update user")
+	}
+
+	userRoles, err := db.UserRoleRsRepositoryInstance.FindAllByUserId(user.Id)
+	if err != nil {
+		session.Rollback()
+		return err
+	}
+
+	if userRoles != nil {
+		for _, userRole := range userRoles {
+			userRole.Active = false
+			userRole.Deleted = true
+			userRole.UpdatedBy = curUser
+			userRole.UpdatedTime = time.Now()
+
+			if affected, err := session.Update(userRole); affected == 0 || err != nil {
+				if err != nil {
+					log.Logger.Error(fmt.Sprintf("failed to update userRoleRs:%v", userRole.Id), log.Error(err))
+				}
+				session.Rollback()
+				return errors.New(fmt.Sprintf("failed to update userRoleRs:%v", userRole.Id))
+			}
+		}
 	}
 	session.Commit()
 	return nil

@@ -37,6 +37,7 @@ type RemoteServiceConfig struct {
 type Auth struct {
 	JwtPrivateKeyPath string `json:"jwt_private_key_path"`
 	JwtPublicKeyPath  string `json:"jwt_public_key_path"`
+	JwtPublicKeyBytes []byte `json:"-"`
 	AccessTokenMins   int    `json:"access_token_mins"`
 	RefreshTokenHours int    `json:"refresh_token_hours"`
 	WebPrivateKeyPath string `json:"web_private_key_path"`
@@ -55,7 +56,9 @@ type GlobalConfig struct {
 	Database DatabaseConfig `json:"database"`
 	//Remote   RemoteServiceConfig `json:"remote_service"`
 	//Auth AuthConfig `json:"auth"`
-	Auth Auth `json:"auth"`
+	Auth              Auth   `json:"auth"`
+	ErrorTemplateDir  string `json:"error_template_dir"`
+	ErrorDetailReturn bool   `json:"error_detail_return"`
 }
 
 type AuthConfig struct {

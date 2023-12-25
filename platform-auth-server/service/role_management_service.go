@@ -23,7 +23,7 @@ var RoleManagementServiceInstance RoleManagementService
 type RoleManagementService struct {
 }
 
-func (RoleManagementService) retrieveLocalRoleByRoleName(roleName string) (*model.SimpleLocalRoleDto, error) {
+func (RoleManagementService) RetrieveLocalRoleByRoleName(roleName string) (*model.SimpleLocalRoleDto, error) {
 	if len(roleName) == 0 {
 		return nil, exterror.Catch(exterror.New().AuthServer3002Error, nil)
 	}
@@ -34,7 +34,7 @@ func (RoleManagementService) retrieveLocalRoleByRoleName(roleName string) (*mode
 	}
 
 	if existedRole == nil {
-		return nil, exterror.Catch(exterror.New().AuthServer3003Error, nil)
+		return nil, exterror.Catch(exterror.New().AuthServer3003Error.WithParam(roleName), nil)
 	}
 	return convertToSimpleLocalRoleDto(existedRole), nil
 }
@@ -56,7 +56,7 @@ func convertToSimpleLocalRoleDto(role *model.SysRoleEntity) *model.SimpleLocalRo
 	}
 }
 
-func (RoleManagementService) UpdateLocalRole(roleDto model.SimpleLocalRoleDto, curUser string) (*model.SimpleLocalRoleDto, error) {
+func (RoleManagementService) UpdateLocalRole(roleDto *model.SimpleLocalRoleDto, curUser string) (*model.SimpleLocalRoleDto, error) {
 	var role *model.SysRoleEntity
 	session := db.Engine.NewSession()
 	session.Begin()
@@ -67,7 +67,7 @@ func (RoleManagementService) UpdateLocalRole(roleDto model.SimpleLocalRoleDto, c
 		return nil, err
 	}
 	if !existed {
-		return nil, exterror.Catch(exterror.New().AuthServer3006Error, nil)
+		return nil, exterror.Catch(exterror.New().AuthServer3006Error.WithParam(roleDto.ID), nil)
 	}
 
 	if len(roleDto.DisplayName) > 0 {
@@ -192,7 +192,7 @@ func (RoleManagementService) RegisterLocalRole(roleDto *model.SimpleLocalRoleDto
 	}
 
 	if len(existedRoles) > 0 {
-		return nil, exterror.Catch(exterror.New().AuthServer3004Error, nil)
+		return nil, exterror.Catch(exterror.New().AuthServer3004Error.WithParam(roleDto.Name), nil)
 	}
 
 	role := buildSysRoleEntity(roleDto, curUser)
@@ -251,7 +251,7 @@ func (RoleManagementService) UnregisterLocalRoleById(roleId string, curUser stri
 
 	if role.Deleted {
 		//throw new AuthServerException("3005", msg, roleId);
-		return exterror.Catch(exterror.New().AuthServer3005Error, nil)
+		return exterror.Catch(exterror.New().AuthServer3005Error.WithParam(roleId), nil)
 	}
 
 	role.Active = false
@@ -302,7 +302,7 @@ func (RoleManagementService) RetriveLocalRoleByRoleId(roleId string) (*model.Sim
 		return nil, err
 	}
 	if !existed {
-		return nil, exterror.Catch(exterror.New().AuthServer3006Error, nil)
+		return nil, exterror.Catch(exterror.New().AuthServer3006Error.WithParam(roleId), nil)
 	}
 
 	return convertToSimpleLocalRoleDto(role), nil
@@ -361,7 +361,7 @@ func (RoleManagementService) RetrieveAllAuthoritiesByRoleId(roleId string) ([]*m
 }
 
 //@Transactional
-func (RoleManagementService) ConfigureRoleWithAuthorities(grantDto model.RoleAuthoritiesDto, curUser string) error {
+func (RoleManagementService) ConfigureRoleWithAuthorities(grantDto *model.RoleAuthoritiesDto, curUser string) error {
 	session := db.Engine.NewSession()
 	session.Begin()
 	defer session.Close()
@@ -472,7 +472,7 @@ func (RoleManagementService) ConfigureRoleWithAuthorities(grantDto model.RoleAut
 }
 
 //@Transactional
-func (RoleManagementService) ConfigureRoleWithAuthoritiesById(roleId string, authorityDtos []model.SimpleAuthorityDto, curUser string) error {
+func (RoleManagementService) ConfigureRoleWithAuthoritiesById(roleId string, authorityDtos []*model.SimpleAuthorityDto, curUser string) error {
 	session := db.Engine.NewSession()
 	session.Begin()
 	defer session.Close()
@@ -582,7 +582,7 @@ func (RoleManagementService) ConfigureRoleWithAuthoritiesById(roleId string, aut
 }
 
 //@Transactional
-func (RoleManagementService) RevokeRoleAuthorities(revocationDto model.RoleAuthoritiesDto, curUser string) error {
+func (RoleManagementService) RevokeRoleAuthorities(revocationDto *model.RoleAuthoritiesDto, curUser string) error {
 	session := db.Engine.NewSession()
 	session.Begin()
 	defer session.Close()
