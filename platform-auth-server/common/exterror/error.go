@@ -62,33 +62,33 @@ type ErrorTemplate struct {
 	NonRegisterFuncError CustomError `json:"non_register_func_error"`
 
 	// ------------- business error -------------
-	AuthServer3000Error CustomError `json:"server_handle_error"`
-	AuthServer3001Error CustomError `json:"server_handle_error"`
-	AuthServer3002Error CustomError `json:"server_handle_error"`
-	AuthServer3003Error CustomError `json:"server_handle_error"`
-	AuthServer3004Error CustomError `json:"server_handle_error"`
-	AuthServer3005Error CustomError `json:"server_handle_error"`
-	AuthServer3006Error CustomError `json:"server_handle_error"`
-	AuthServer3007Error CustomError `json:"server_handle_error"`
-	AuthServer3008Error CustomError `json:"server_handle_error"`
-	AuthServer3009Error CustomError `json:"server_handle_error"`
-	AuthServer3010Error CustomError `json:"server_handle_error"`
-	AuthServer3011Error CustomError `json:"server_handle_error"`
-	AuthServer3012Error CustomError `json:"server_handle_error"`
-	AuthServer3013Error CustomError `json:"server_handle_error"`
-	AuthServer3014Error CustomError `json:"server_handle_error"`
-	AuthServer3015Error CustomError `json:"server_handle_error"`
-	AuthServer3016Error CustomError `json:"server_handle_error"`
-	AuthServer3017Error CustomError `json:"server_handle_error"`
-	AuthServer3018Error CustomError `json:"server_handle_error"`
-	AuthServer3019Error CustomError `json:"server_handle_error"`
-	AuthServer3020Error CustomError `json:"server_handle_error"`
-	AuthServer3021Error CustomError `json:"server_handle_error"`
-	AuthServer3022Error CustomError `json:"server_handle_error"`
-	AuthServer3023Error CustomError `json:"server_handle_error"`
-	AuthServer3024Error CustomError `json:"server_handle_error"`
-	AuthServer3025Error CustomError `json:"server_handle_error"`
-	AuthServer3026Error CustomError `json:"server_handle_error"`
+	AuthServer3000Error CustomError `json:"auth_server_3000_error"`
+	AuthServer3001Error CustomError `json:"auth_server_3001_error"`
+	AuthServer3002Error CustomError `json:"auth_server_3002_error"`
+	AuthServer3003Error CustomError `json:"auth_server_3003_error"`
+	AuthServer3004Error CustomError `json:"auth_server_3004_error"`
+	AuthServer3005Error CustomError `json:"auth_server_3005_error"`
+	AuthServer3006Error CustomError `json:"auth_server_3006_error"`
+	AuthServer3007Error CustomError `json:"auth_server_3007_error"`
+	AuthServer3008Error CustomError `json:"auth_server_3008_error"`
+	AuthServer3009Error CustomError `json:"auth_server_3009_error"`
+	AuthServer3010Error CustomError `json:"auth_server_3010_error"`
+	AuthServer3011Error CustomError `json:"auth_server_3011_error"`
+	AuthServer3012Error CustomError `json:"auth_server_3012_error"`
+	AuthServer3013Error CustomError `json:"auth_server_3013_error"`
+	AuthServer3014Error CustomError `json:"auth_server_3014_error"`
+	AuthServer3015Error CustomError `json:"auth_server_3015_error"`
+	AuthServer3016Error CustomError `json:"auth_server_3016_error"`
+	AuthServer3017Error CustomError `json:"auth_server_3017_error"`
+	AuthServer3018Error CustomError `json:"auth_server_3018_error"`
+	AuthServer3019Error CustomError `json:"auth_server_3019_error"`
+	AuthServer3020Error CustomError `json:"auth_server_3020_error"`
+	AuthServer3021Error CustomError `json:"auth_server_3021_error"`
+	AuthServer3022Error CustomError `json:"auth_server_3022_error"`
+	AuthServer3023Error CustomError `json:"auth_server_3023_error"`
+	AuthServer3024Error CustomError `json:"auth_server_3024_error"`
+	AuthServer3025Error CustomError `json:"auth_server_3025_error"`
+	AuthServer3026Error CustomError `json:"auth_server_3026_error"`
 }
 
 var (
