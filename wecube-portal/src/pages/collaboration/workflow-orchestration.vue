@@ -10,7 +10,7 @@
       <!-- 挂载节点 -->
       <div id="canvasPanel" ref="canvasPanel" @dragover.prevent />
       <!-- 信息配置 -->
-      <FlowDrawer ref="flowDrawerRef"></FlowDrawer>
+      <TtemInfo ref="itemInfoRef" @sendItemInfo="setItemInfo"></TtemInfo>
     </div>
   </div>
 </template>
@@ -19,8 +19,8 @@
 import G6 from '@antv/g6'
 import FlowHeader from '@/pages/collaboration/flow/flow-header.vue'
 import registerFactory from './flow/graph/graph'
-import ItemPanel from './flow/item-panel.vue'
-import FlowDrawer from '@/pages/collaboration/flow/flow-drawer.vue'
+import ItemPanel from '@/pages/collaboration/flow/item-panel.vue'
+import TtemInfo from '@/pages/collaboration/flow/item-info.vue'
 import data from './flow/data.js'
 import { nodeDefaultAttr } from './flow/node-default-attr.js'
 
@@ -30,7 +30,7 @@ export default {
   components: {
     FlowHeader,
     ItemPanel,
-    FlowDrawer
+    TtemInfo
   },
   data () {
     return {
@@ -235,7 +235,7 @@ export default {
 
       this.graph.on('after-node-selected', e => {
         if (e && e.item) {
-          // const model = e.item.get('model')
+          const model = e.item.get('model')
           // this.config = model
           // this.label = model.label
           // this.labelCfg = {
@@ -252,7 +252,8 @@ export default {
           //   height: model.style.height,
           //   shape: model.type
           // }
-          // this.$refs.flowDrawerRef.openDrawer()
+
+          this.$refs.itemInfoRef.showItemInfo('node', model)
         }
       })
 
@@ -343,49 +344,37 @@ export default {
       })
 
       this.graph.on('before-edge-add', ({ source, target, sourceAnchor, targetAnchor }) => {
+        const sourceId = source.get('id')
+        const targetId = target.get('id')
         setTimeout(() => {
           this.graph.addItem('edge', {
-            id: `${+new Date() + (Math.random() * 10000).toFixed(0)}`, // edge id
-            source: source.get('id'),
-            target: target.get('id'),
+            id: `id_edge_${Math.random().toString(36).substring(2, 8)}`, // edge id
+            source: sourceId,
+            target: targetId,
             sourceAnchor,
             targetAnchor
             // label:  'edge label',
           })
         }, 100)
       })
-      // 注册节点点击事件
-      // this.graph.on('node:click', e => {
-      //   const node = e.item
-      //   console.log(node)
-      //   // const model = e.item.get('model')
-      //   // 处理节点点击事件的逻辑
-      //   const selected = node.hasState('selected')
-      //   console.log(selected)
-      //   if (selected) {
-      //     this.graph.setItemState(node, 'selected', false)
-      //   } else {
-      //     this.graph.setItemState(node, 'selected', true)
-      //   }
-
-      //   // this.$refs.flowDrawerRef.openDrawer('node', model)
-      // })
 
       // 注册边点击事件
       this.graph.on('edge:click', e => {
         const edge = e.item
-        const model = edge.get('model')
-        // 处理节点点击事件的逻辑
-        console.log('edge Clicked:', model)
 
-        const selected = edge.hasState('selected')
-        if (selected) {
-          this.graph.setItemState(edge, 'selected', false)
-        } else {
-          this.graph.setItemState(edge, 'selected', true)
+        if (e && edge) {
+          const model = edge.get('model')
+          // 处理节点点击事件的逻辑
+          console.log('edge Clicked:', model)
+
+          const selected = edge.hasState('selected')
+          if (selected) {
+            this.graph.setItemState(edge, 'selected', false)
+          } else {
+            this.graph.setItemState(edge, 'selected', true)
+          }
+          this.$refs.itemInfoRef.showItemInfo('edge', model)
         }
-
-        // this.$refs.flowDrawerRef.openDrawer('node', model)
       })
 
       // 注册画布点击事件
@@ -438,18 +427,15 @@ export default {
         x,
         y,
         // 自定义锚点数量和位置
-        anchorPoints: [
-          [0.5, 0],
-          [0, 0.5],
-          [0.5, 1],
-          [1, 0.5]
-        ]
+        anchorPoints: nodeDefaultAttr[nodeType].anchorPoints
       }
       this.graph.addItem('node', model)
     },
-    save () {
+    setItemInfo (type, info) {
       // eslint-disable-next-line no-alert
-      window.alert('我觉得就算我不写你也会了')
+      const item = this.graph.findById(info.id)
+      console.log(11, item, info)
+      this.graph.updateItem(item, info)
     },
     saveSvg () {
       const nodes = this.graph.save().nodes

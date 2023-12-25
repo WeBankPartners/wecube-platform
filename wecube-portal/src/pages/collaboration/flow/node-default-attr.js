@@ -19,7 +19,13 @@ const nodeDefaultAttr = {
       width: 24,
       height: 24,
       offset: 0
-    }
+    },
+    anchorPoints: [
+      // [0.5, 0],
+      // [0, 0.5],
+      // [0.5, 1],
+      [1, 0.5]
+    ]
   },
   end: {
     logoIcon: {
@@ -30,7 +36,13 @@ const nodeDefaultAttr = {
       width: 24,
       height: 24,
       offset: 0
-    }
+    },
+    anchorPoints: [
+      // [0.5, 0],
+      [0, 0.5]
+      // [0.5, 1],
+      // [1, 0.5]
+    ]
   },
   abnormal: {
     logoIcon: {
@@ -41,7 +53,13 @@ const nodeDefaultAttr = {
       width: 24,
       height: 24,
       offset: 0
-    }
+    },
+    anchorPoints: [
+      // [0.5, 0],
+      [0, 0.5]
+      // [0.5, 1],
+      // [1, 0.5]
+    ]
   },
   decision: {
     logoIcon: {
@@ -52,7 +70,13 @@ const nodeDefaultAttr = {
       width: 24,
       height: 24,
       offset: 0
-    }
+    },
+    anchorPoints: [
+      // [0.5, 0],
+      [0, 0.5],
+      // [0.5, 1],
+      [1, 0.5]
+    ]
   },
   converge: {
     logoIcon: {
@@ -63,7 +87,13 @@ const nodeDefaultAttr = {
       width: 24,
       height: 24,
       offset: 0
-    }
+    },
+    anchorPoints: [
+      // [0.5, 0],
+      [0, 0.5],
+      // [0.5, 1],
+      [1, 0.5]
+    ]
   },
   human: {
     logoIcon: {
@@ -74,7 +104,13 @@ const nodeDefaultAttr = {
       width: 24,
       height: 24,
       offset: 0
-    }
+    },
+    anchorPoints: [
+      // [0.5, 0],
+      [0, 0.5],
+      // [0.5, 1],
+      [1, 0.5]
+    ]
   },
   automatic: {
     logoIcon: {
@@ -85,7 +121,13 @@ const nodeDefaultAttr = {
       width: 24,
       height: 24,
       offset: 0
-    }
+    },
+    anchorPoints: [
+      // [0.5, 0],
+      [0, 0.5],
+      // [0.5, 1],
+      [1, 0.5]
+    ]
   },
   data: {
     logoIcon: {
@@ -96,7 +138,13 @@ const nodeDefaultAttr = {
       width: 24,
       height: 24,
       offset: 0
-    }
+    },
+    anchorPoints: [
+      // [0.5, 0],
+      [0, 0.5],
+      // [0.5, 1],
+      [1, 0.5]
+    ]
   },
   fixedTime: {
     logoIcon: {
@@ -107,7 +155,13 @@ const nodeDefaultAttr = {
       width: 24,
       height: 24,
       offset: 0
-    }
+    },
+    anchorPoints: [
+      // [0.5, 0],
+      [0, 0.5],
+      // [0.5, 1],
+      [1, 0.5]
+    ]
   },
   timeInterval: {
     logoIcon: {
@@ -118,7 +172,13 @@ const nodeDefaultAttr = {
       width: 24,
       height: 24,
       offset: 0
-    }
+    },
+    anchorPoints: [
+      // [0.5, 0],
+      [0, 0.5],
+      // [0.5, 1],
+      [1, 0.5]
+    ]
   }
 }
 
