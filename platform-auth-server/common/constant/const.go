@@ -9,4 +9,9 @@ const (
 
 	AuthSourceUm    = "UM"
 	AuthSourceLocal = "LOCAL"
+
+	UrlPrefix           = ""
+	AuthorizationHeader = "Authorization"
+
+	Operator = "operator"
 )
