@@ -292,10 +292,24 @@ func LaunchPlugin(c *gin.Context) {
 		middleware.ReturnError(c, getResourceErr)
 		return
 	}
+	if len(resources.Docker) == 0 {
+		middleware.ReturnError(c, fmt.Errorf("plugin must contain docker resource"))
+		return
+	}
 	var mysqlInstance *models.PluginMysqlInstances
 	var mysqlServer *models.ResourceServer
+	pluginInstance := models.PluginInstances{
+		Id:              "p_docker_" + guid.CreateGuid(),
+		Host:            hostIp,
+		ContainerName:   fmt.Sprintf("%s-%s", pluginPackageObj.Name, pluginPackageObj.Version),
+		Port:            port,
+		ContainerStatus: "RUNNING",
+		PackageId:       pluginPackageId,
+		InstanceName:    pluginPackageObj.Name,
+	}
 	if len(resources.Mysql) > 0 {
 		mysqlResource := resources.Mysql[0]
+		pluginInstance.PluginMysqlInstanceResourceId = mysqlResource.Id
 		// 先检查数据库脚本执行纪录的版本，如果执行过了就跳过下面数据库相关操作
 		var resourceDbErr error
 		mysqlInstance, resourceDbErr = database.GetPluginMysqlInstance(c, pluginPackageObj.Name)
@@ -360,46 +374,113 @@ func LaunchPlugin(c *gin.Context) {
 			}
 		}
 	}
-	if len(resources.Docker) > 0 {
-		dockerResource := resources.Docker[0]
-		dockerServer, getDockerServerErr := database.GetResourceServer(c, "docker", hostIp)
-		if getDockerServerErr != nil {
-			middleware.ReturnError(c, getDockerServerErr)
-			return
-		}
-		envMap := make(map[string]string)
-		getEnvMap(dockerResource.PortBindings, envMap)
-		getEnvMap(dockerResource.VolumeBindings, envMap)
-		getEnvMap(dockerResource.EnvVariables, envMap)
-		envMap["ALLOCATE_PORT"] = portValue
-		envMap["BASE_MOUNT_PATH"] = models.Config.Plugin.BaseMountPath
-		if mysqlInstance != nil {
-			envMap["DB_SCHEMA"] = mysqlInstance.SchemaName
-			envMap["DB_USER"] = mysqlInstance.Username
-			envMap["DB_PWD"] = mysqlInstance.Password
-			if mysqlServer != nil {
-				envMap["DB_HOST"] = mysqlServer.Host
-				envMap["DB_PORT"] = mysqlServer.Port
-			}
+	dockerResource := resources.Docker[0]
+	pluginInstance.DockerInstanceResourceId = dockerResource.Id
+	dockerServer, getDockerServerErr := database.GetResourceServer(c, "docker", hostIp)
+	if getDockerServerErr != nil {
+		middleware.ReturnError(c, getDockerServerErr)
+		return
+	}
+	envMap := make(map[string]string)
+	portBindList := getEnvMap(dockerResource.PortBindings, envMap)
+	volumeBindList := getEnvMap(dockerResource.VolumeBindings, envMap)
+	envBindList := getEnvMap(dockerResource.EnvVariables, envMap)
+	envMap["ALLOCATE_PORT"] = portValue
+	envMap["BASE_MOUNT_PATH"] = models.Config.Plugin.BaseMountPath
+	if mysqlInstance != nil {
+		envMap["DB_SCHEMA"] = mysqlInstance.SchemaName
+		envMap["DB_USER"] = mysqlInstance.Username
+		envMap["DB_PWD"] = mysqlInstance.Password
+		if mysqlServer != nil {
+			envMap["DB_HOST"] = mysqlServer.Host
+			envMap["DB_PORT"] = mysqlServer.Port
 		}
 	}
 	// 替换容器参数差异化变量
+	replaceMap, err := database.BuildDockerEnvMap(c, envMap)
+	if err != nil {
+		middleware.ReturnError(c, err)
+		return
+	}
+	portBindList = replaceEnvMap(portBindList, replaceMap)
+	volumeBindList = replaceEnvMap(volumeBindList, replaceMap)
+	envBindList = replaceEnvMap(envBindList, replaceMap)
 	// 先检查目标机器上有没有相关版本容器镜像，如果有的话就跳过下面两个下载和传镜像的操作
-	// 把s3上的image.tar下载来到本地
+	// 把s3上的image.tar下载来到本地？可否直接让目标机器下载image.tar
+	tmpImageFile, downloadImageErr := bash.DownloadPackageFile(models.Config.S3.PluginPackageBucket, fmt.Sprintf("%s/%s/image.tar", pluginPackageObj.Name, pluginPackageObj.Version))
+	if downloadImageErr != nil {
+		middleware.ReturnError(c, downloadImageErr)
+		return
+	}
 	// 把image.tar传到目标机器
+	targetImagePath := fmt.Sprintf("%s/%s_%s_image.tar", models.Config.Plugin.DeployPath, pluginPackageObj.Name, pluginPackageObj.Version)
+	if err = bash.RemoteSCP(dockerServer.Host, tmpImageFile, targetImagePath); err != nil {
+		middleware.ReturnError(c, err)
+		return
+	}
+	if err = bash.RemoteSSHCommand(dockerServer.Host, fmt.Sprintf("docker load --input %s && rm -f %s", targetImagePath, targetImagePath)); err != nil {
+		middleware.ReturnError(c, err)
+		return
+	}
 	// 去目标机器上docker run起来，或使用docker-compose
-	// 更新插件注册的菜单状态
-
+	dockerCmd := fmt.Sprintf("docker run -d --name %s ", pluginInstance.ContainerName)
+	for _, v := range volumeBindList {
+		dockerCmd += fmt.Sprintf("--volume %s ", v)
+	}
+	for _, v := range portBindList {
+		dockerCmd += fmt.Sprintf("-p %s ", v)
+	}
+	for _, v := range envBindList {
+		dockerCmd += fmt.Sprintf("-e %s ", v)
+	}
+	dockerCmd += fmt.Sprintf(" %s:%s ", pluginPackageObj.Name, pluginPackageObj.Version)
+	if err = bash.RemoteSSHCommand(dockerServer.Host, dockerCmd); err != nil {
+		middleware.ReturnError(c, err)
+		return
+	}
+	// 更新插件注册的菜单状态和更新插件实例数据
+	if len(resources.S3) > 0 {
+		pluginInstance.S3bucketResourceId = resources.S3[0].Id
+	}
+	err = database.LaunchPlugin(c, &pluginInstance)
+	if err != nil {
+		middleware.ReturnError(c, err)
+	} else {
+		middleware.ReturnSuccess(c)
+	}
 }
 
 func RemovePlugin(c *gin.Context) {
+	pluginInstanceId := c.Param("pluginInstance")
+	pluginInstanceObj, err := database.GetPluginInstance(pluginInstanceId)
+	if err != nil {
+		middleware.ReturnError(c, err)
+		return
+	}
+	pluginPackageObj := models.PluginPackages{Id: pluginInstanceObj.PackageId}
+	if err = database.GetSimplePluginPackage(c, &pluginPackageObj, true); err != nil {
+		middleware.ReturnError(c, err)
+		return
+	}
 	// 销毁容器
-	// 更新插件注册的菜单状态
+	removeCmd := fmt.Sprintf("docker rm -f %s && docker rmi %s:%s", pluginInstanceObj.ContainerName, pluginPackageObj.Name, pluginPackageObj.Version)
+	if err = bash.RemoteSSHCommand(pluginInstanceObj.Host, removeCmd); err != nil {
+		middleware.ReturnError(c, err)
+		return
+	}
+	// 更新插件注册的菜单状态和更新插件实例数据
+	err = database.RemovePlugin(c, pluginPackageObj.Id, pluginInstanceId)
+	if err != nil {
+		middleware.ReturnError(c, err)
+	} else {
+		middleware.ReturnSuccess(c)
+	}
 }
 
-func getEnvMap(input string, envMap map[string]string) {
-	re, _ := regexp.Compile(".*={{(.*)}}.*")
-	for _, v := range strings.Split(input, ",") {
+func getEnvMap(input string, envMap map[string]string) (inputList []string) {
+	re, _ := regexp.Compile(".*{{(.*)}}.*")
+	inputList = strings.Split(input, ",")
+	for _, v := range inputList {
 		for i, matchEnv := range re.FindStringSubmatch(v) {
 			if i == 0 {
 				continue
@@ -407,4 +488,16 @@ func getEnvMap(input string, envMap map[string]string) {
 			envMap[matchEnv] = ""
 		}
 	}
+	return
+}
+
+func replaceEnvMap(inputList []string, replaceMap map[string]string) (outputList []string) {
+	for _, input := range inputList {
+		if strings.Contains(input, "{{") {
+			for k, v := range replaceMap {
+				outputList = append(outputList, strings.ReplaceAll(input, k, v))
+			}
+		}
+	}
+	return
 }
