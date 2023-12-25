@@ -310,12 +310,15 @@ export default G6 => {
         const group = node.get('group')
         const text = group.$getItem('node-text')
         const item = group.get('children')[0]
-
+        let labelCfgStyle = {}
+        if (model.labelCfg && model.labelCfg.style) {
+          labelCfgStyle = model.labelCfg.style
+        }
         // 更新文本内容
         text &&
           text.attr({
             text: model.label,
-            ...model.labelCfg.style
+            ...labelCfgStyle
           })
         // 更新节点属性
         if (attrs.type === 'diamond-node') {
