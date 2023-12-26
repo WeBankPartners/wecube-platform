@@ -114,8 +114,8 @@ export default {
       currentSelectedEntity: '', // 当前显示的根CI
       allEntityType: [], // 系统中所有根CI
       excludeMode: true, // 冲突检测
-      mgmtRolesKeyToFlow: ['SUPER_ADMIN', 'CMDB_ADMIN'],
-      useRolesKeyToFlow: ['CMDB_ADMIN', 'MONITOR_ADMIN']
+      mgmtRolesKeyToFlow: [],
+      useRolesKeyToFlow: []
     }
   },
   mounted () {
@@ -185,6 +185,7 @@ export default {
     setAuth (mgmtRolesKeyToFlow, useRolesKeyToFlow) {
       this.mgmtRolesKeyToFlow = mgmtRolesKeyToFlow
       this.useRolesKeyToFlow = useRolesKeyToFlow
+      this.$emit('canLoadGraph')
     }
   }
 }
