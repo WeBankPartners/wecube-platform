@@ -1,6 +1,7 @@
 <template>
   <div class="root">
-    <FlowHeader></FlowHeader>
+    <FlowHeader @canLoadGraph="startLoadGraph"></FlowHeader>
+    <!-- v-show="isShowGraph" -->
     <div style="border: 2px solid #f9f9f9">
       <!-- 左侧按钮 -->
       <item-panel />
@@ -34,6 +35,7 @@ export default {
   },
   data () {
     return {
+      isShowGraph: false,
       flowInfo: {
         id: '',
         name: ''
@@ -101,6 +103,10 @@ export default {
     this.graph.destroy()
   },
   methods: {
+    // 开始加载流程图
+    startLoadGraph () {
+      this.isShowGraph = true
+    },
     resetCanvas () {
       this.graph.zoomTo(1) // 缩放到原始大小
     },
@@ -378,7 +384,16 @@ export default {
       })
 
       // 注册画布点击事件
-      this.graph.on('canvas:click', e => {})
+      this.graph.on('canvas:click', e => {
+        const graph = e.item
+        console.log(22, graph)
+        // if (e && graph) {
+        this.$refs.itemInfoRef.showItemInfo('canvas', {
+          id: 'test',
+          label: 'AAA'
+        })
+        // }
+      })
 
       this.graph.on('keydown', e => {
         // Check if the delete key is pressed
@@ -405,7 +420,7 @@ export default {
     },
     // 添加节点
     addNode (transferData, { x, y }) {
-      const { label, shape, fill, lineWidth, nodeType } = JSON.parse(transferData)
+      const { label, shape, fill, lineWidth, nodeType, taskCategory } = JSON.parse(transferData)
       const findStartNodeIndex = this.graph.save().nodes.findIndex(n => n.id.startsWith('id_start'))
       if (nodeType === 'start' && findStartNodeIndex > -1) {
         this.$Message.warning(this.$t('start_node_warning'))
@@ -416,6 +431,8 @@ export default {
         label,
         // 形状
         type: shape,
+        nodeType, // 标记节点类型，后端需要的字段
+        taskCategory,
         style: {
           fill: fill || '',
           stroke: '#bbbbbb',
