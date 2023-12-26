@@ -34,6 +34,8 @@ func init() {
 	httpHandlerFuncList = append(httpHandlerFuncList,
 		// health check
 		&handlerFuncObj{Url: "/health-check", Method: "GET", HandlerFunc: healthCheck, ApiCode: "health"},
+		// base
+		&handlerFuncObj{Url: "/appinfo/version", Method: "GET", HandlerFunc: system.AppVersion, ApiCode: "get-version"},
 		// system-variable
 		&handlerFuncObj{Url: "/system-variables/retrieve", Method: "POST", HandlerFunc: system.QuerySystemVariables, ApiCode: "query-system-variables"},
 		&handlerFuncObj{Url: "/system-variables/create", Method: "POST", HandlerFunc: system.CreateSystemVariable, ApiCode: "create-system-variables"},
@@ -53,17 +55,29 @@ func init() {
 		// plugin
 		&handlerFuncObj{Url: "/packages", Method: "GET", HandlerFunc: plugin.GetPackages, ApiCode: "get-packages"},
 		&handlerFuncObj{Url: "/packages", Method: "POST", HandlerFunc: plugin.UploadPackage, ApiCode: "upload-packages"},
-		&handlerFuncObj{Url: "/packages/:pluginPackage/dependencies", Method: "GET", HandlerFunc: plugin.GetPluginDependencies, ApiCode: "get-plugin-dependencies"},
-		&handlerFuncObj{Url: "/packages/:pluginPackage/menus", Method: "GET", HandlerFunc: plugin.GetPluginMenus, ApiCode: "get-plugin-menus"},
-		&handlerFuncObj{Url: "/packages/:pluginPackage/models", Method: "GET", HandlerFunc: plugin.GetPluginModels, ApiCode: "get-plugin-models"},
-		&handlerFuncObj{Url: "/packages/:pluginPackage/system-parameters", Method: "GET", HandlerFunc: plugin.GetPluginSystemParameters, ApiCode: "get-plugin-system-parameters"},
-		&handlerFuncObj{Url: "/packages/:pluginPackage/authorities", Method: "GET", HandlerFunc: plugin.GetPluginAuthorities, ApiCode: "get-plugin-authorities"},
-		&handlerFuncObj{Url: "/packages/:pluginPackage/runtime-resource", Method: "GET", HandlerFunc: plugin.GetPluginRuntimeResources, ApiCode: "get-runtime-resource"},
-		&handlerFuncObj{Url: "/packages/register/:pluginPackage", Method: "POST", HandlerFunc: plugin.RegisterPackage, ApiCode: "register-package"},
+		&handlerFuncObj{Url: "/packages/:pluginPackageId/dependencies", Method: "GET", HandlerFunc: plugin.GetPluginDependencies, ApiCode: "get-plugin-dependencies"},
+		&handlerFuncObj{Url: "/packages/:pluginPackageId/menus", Method: "GET", HandlerFunc: plugin.GetPluginMenus, ApiCode: "get-plugin-menus"},
+		&handlerFuncObj{Url: "/packages/:pluginPackageId/models", Method: "GET", HandlerFunc: plugin.GetPluginModels, ApiCode: "get-plugin-models"},
+		&handlerFuncObj{Url: "/packages/:pluginPackageId/system-parameters", Method: "GET", HandlerFunc: plugin.GetPluginSystemParameters, ApiCode: "get-plugin-system-parameters"},
+		&handlerFuncObj{Url: "/packages/:pluginPackageId/authorities", Method: "GET", HandlerFunc: plugin.GetPluginAuthorities, ApiCode: "get-plugin-authorities"},
+		&handlerFuncObj{Url: "/packages/:pluginPackageId/runtime-resource", Method: "GET", HandlerFunc: plugin.GetPluginRuntimeResources, ApiCode: "get-runtime-resource"},
+		&handlerFuncObj{Url: "/packages/register/:pluginPackageId", Method: "POST", HandlerFunc: plugin.RegisterPackage, ApiCode: "register-package"},
 		&handlerFuncObj{Url: "/available-container-hosts", Method: "GET", HandlerFunc: plugin.GetAvailableContainerHost, ApiCode: "get-available-host"},
 		&handlerFuncObj{Url: "/hosts/:hostIp/next-available-port", Method: "GET", HandlerFunc: plugin.GetHostAvailablePort, ApiCode: "get-available-port"},
-		&handlerFuncObj{Url: "/packages/:pluginPackage/hosts/:hostIp/ports/:port/instance/launch", Method: "POST", HandlerFunc: plugin.LaunchPlugin, ApiCode: "launch-plugin"},
-		&handlerFuncObj{Url: "/packages/instances/:pluginInstance/remove", Method: "DELETE", HandlerFunc: plugin.RemovePlugin, ApiCode: "remove-plugin"},
+		&handlerFuncObj{Url: "/packages/:pluginPackageId/hosts/:hostIp/ports/:port/instance/launch", Method: "POST", HandlerFunc: plugin.LaunchPlugin, ApiCode: "launch-plugin"},
+		&handlerFuncObj{Url: "/packages/instances/:pluginPackageId/remove", Method: "DELETE", HandlerFunc: plugin.RemovePlugin, ApiCode: "remove-plugin"},
+		// plugin-config
+		&handlerFuncObj{Url: "/packages/:pluginPackageId/plugin-configs", Method: "GET", HandlerFunc: plugin.GetPluginConfigs, ApiCode: "get-plugin-configs"},
+		&handlerFuncObj{Url: "/plugins/interfaces/:pluginConfigId", Method: "GET", HandlerFunc: plugin.GetConfigInterfaces, ApiCode: "get-config-interface"},
+		&handlerFuncObj{Url: "/plugins/disable/:pluginConfigId", Method: "POST", HandlerFunc: plugin.DisablePluginConfig, ApiCode: "disable-plugin-config"},
+		&handlerFuncObj{Url: "/plugins/enable/:pluginConfigId", Method: "POST", HandlerFunc: plugin.EnablePluginConfig, ApiCode: "enable-plugin-configs"},
+		&handlerFuncObj{Url: "/plugins", Method: "POST", HandlerFunc: plugin.SavePluginConfig, ApiCode: "save-plugin-configs"},
+		&handlerFuncObj{Url: "/plugins/configs/:pluginConfigId", Method: "DELETE", HandlerFunc: plugin.DeletePluginConfig, ApiCode: "delete-plugin-configs"},
+		&handlerFuncObj{Url: "/packages/:pluginPackageId/plugin-config-outlines", Method: "GET", HandlerFunc: plugin.GetBatchPluginConfigs, ApiCode: "get-batch-plugin-configs"},
+		&handlerFuncObj{Url: "/packages/:pluginPackageId/plugin-configs/enable-in-batch", Method: "POST", HandlerFunc: plugin.BatchEnablePluginConfig, ApiCode: "batch-enable-plugin-configs"},
+		&handlerFuncObj{Url: "/plugins/packages/export/:pluginPackageId", Method: "GET", HandlerFunc: plugin.ExportPluginConfigs, ApiCode: "export-plugin-configs"},
+		&handlerFuncObj{Url: "/plugins/packages/import/:pluginPackageId", Method: "POST", HandlerFunc: plugin.ImportPluginConfigs, ApiCode: "import-plugin-configs"},
+		&handlerFuncObj{Url: "/packages/decommission/:pluginPackageId", Method: "POST", HandlerFunc: plugin.DeletePlugin, ApiCode: "delete-plugin"},
 	)
 }
 
