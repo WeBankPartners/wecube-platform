@@ -33,17 +33,43 @@
             <Option v-for="(i, index) in associatedNodes" :value="i.nodeId" :key="index">{{ i.nodeName }}</Option>
           </Select>
         </FormItem>
+        <FormItem :label="$t('pre_check')">
+          <Select v-model="itemCustomInfo.preCheck">
+            <Option v-for="item in yOn" :value="item" :key="item">{{ item }}</Option>
+          </Select>
+        </FormItem>
+        <FormItem :label="$t('locate_rules')">
+          <FilterRulesGroup
+            :isBatch="itemCustomInfo.taskCategory === 'SDTN'"
+            ref="filterRulesGroup"
+            @filterRuleChanged="singleFilterRuleChanged"
+            :disabled="itemCustomInfo.dynamicBind === 'Y' && itemCustomInfo.associatedNodeId"
+            :routineExpression="itemCustomInfo.routineExpression"
+            :allEntityType="allEntityType"
+            :currentSelectedEntity="currentSelectedEntity"
+          >
+          </FilterRulesGroup>
+        </FormItem>
+        <FormItem :label="$t('plugin')">
+          <Select v-model="itemCustomInfo.serviceId" @on-open-change="getPlugin" @on-change="changePluginInterfaceList">
+            <Option v-for="(item, index) in filteredPlugins" :value="item.serviceName" :key="index">{{
+              item.serviceDisplayName
+            }}</Option>
+          </Select>
+        </FormItem>
       </template>
       <Button @click="saveItem">保存</Button>
     </Form>
   </div>
 </template>
 <script>
-import { getAssociatedNodes } from '@/api/server.js'
+import { getAssociatedNodes, getAllDataModels } from '@/api/server.js'
+import FilterRulesGroup from '../components/filter-rules-group'
 export default {
   data () {
     return {
       currentType: '', // flow、node、edge
+      currentSelectedEntity: 'wecmdb:app_instance', // 流程图根
       itemCustomInfo: {
         procDefId: '', // 对应编排信息
         procDefKey: '', // 对应编排信息
@@ -55,7 +81,7 @@ export default {
         dynamicBind: 'N', // 动态绑定
         associatedNodeId: null, // 动态绑定关联节点id
         nodeType: '', // 节点类型，对应节点原始类型（start、end……）
-        routineExpression: null, // 对应节点中的定位规则
+        routineExpression: 'wecmdb:app_instance', // 对应节点中的定位规则
         routineRaw: null, // 还未知作用
         serviceId: null, // 选择的插件id
         serviceName: null, // 选择的插件名称
@@ -98,13 +124,23 @@ export default {
         }
       ],
       yOn: ['Y', 'N'],
-      associatedNodes: [] // 可选择的前序节点
+      associatedNodes: [], // 可选择的前序节点
+      allEntityType: [] // 所有模型
     }
+  },
+  components: {
+    FilterRulesGroup
+  },
+  mounted () {
+    this.getAllDataModels()
   },
   methods: {
     showItemInfo (type, data) {
       this.currentType = type
       this.itemCustomInfo = Object.assign(this.itemCustomInfo, data)
+      this.$nextTick(() => {
+        this.$refs.filterRulesGroup.changeRoutineExpressionItem(this.itemCustomInfo.routineExpression)
+      })
       console.log(22, this.itemCustomInfo, data)
     },
     saveItem () {
@@ -122,7 +158,26 @@ export default {
       }
     },
     // 更新关联节点的响应
-    changeAssociatedNode () {}
+    changeAssociatedNode () {},
+
+    // #region 定位规则
+
+    // 获取所有根数据
+    async getAllDataModels () {
+      let { data, status } = await getAllDataModels()
+      if (status === 'OK') {
+        this.allEntityType = data
+      }
+    },
+    // 定位规则回传
+    singleFilterRuleChanged (val) {
+      this.itemCustomInfo.routineExpression = val
+    },
+    // 获取可选插件
+    getPlugin () {
+      this.filteredPlugins = []
+    }
+    // #endregion
   }
 }
 </script>
