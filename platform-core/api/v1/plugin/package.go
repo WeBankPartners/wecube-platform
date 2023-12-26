@@ -17,6 +17,7 @@ import (
 	"strings"
 )
 
+// GetPackages 插件列表查询
 func GetPackages(c *gin.Context) {
 	allPackageFlag := strings.ToLower(c.Query("all"))
 	allFlag := false
@@ -31,6 +32,7 @@ func GetPackages(c *gin.Context) {
 	}
 }
 
+// UploadPackage 上传插件
 func UploadPackage(c *gin.Context) {
 	// 接收插件zip文件
 	fileName, fileBytes, err := middleware.ReadFormFile(c, "zip-file")
@@ -143,8 +145,9 @@ func UploadPackage(c *gin.Context) {
 	}
 }
 
+// GetPluginDependencies 插件配置 - 依赖分析
 func GetPluginDependencies(c *gin.Context) {
-	pluginPackageId := c.Param("pluginPackage")
+	pluginPackageId := c.Param("pluginPackageId")
 	result, err := database.GetPluginDependencies(c, pluginPackageId)
 	if err != nil {
 		middleware.ReturnError(c, err)
@@ -153,8 +156,9 @@ func GetPluginDependencies(c *gin.Context) {
 	}
 }
 
+// GetPluginMenus 插件配置 - 菜单注入
 func GetPluginMenus(c *gin.Context) {
-	pluginPackageId := c.Param("pluginPackage")
+	pluginPackageId := c.Param("pluginPackageId")
 	result, err := database.GetPluginMenus(c, pluginPackageId)
 	if err != nil {
 		middleware.ReturnError(c, err)
@@ -163,12 +167,9 @@ func GetPluginMenus(c *gin.Context) {
 	}
 }
 
-func GetPluginModels(c *gin.Context) {
-
-}
-
+// GetPluginSystemParameters 插件配置 - 系统参数
 func GetPluginSystemParameters(c *gin.Context) {
-	pluginPackageId := c.Param("pluginPackage")
+	pluginPackageId := c.Param("pluginPackageId")
 	result, err := database.GetPluginSystemParameters(c, pluginPackageId)
 	if err != nil {
 		middleware.ReturnError(c, err)
@@ -177,8 +178,9 @@ func GetPluginSystemParameters(c *gin.Context) {
 	}
 }
 
+// GetPluginAuthorities 插件配置 - 权限设定
 func GetPluginAuthorities(c *gin.Context) {
-	pluginPackageId := c.Param("pluginPackage")
+	pluginPackageId := c.Param("pluginPackageId")
 	result, err := database.GetPluginAuthorities(c, pluginPackageId)
 	if err != nil {
 		middleware.ReturnError(c, err)
@@ -187,8 +189,9 @@ func GetPluginAuthorities(c *gin.Context) {
 	}
 }
 
+// GetPluginRuntimeResources 插件配置 - 运行资源
 func GetPluginRuntimeResources(c *gin.Context) {
-	pluginPackageId := c.Param("pluginPackage")
+	pluginPackageId := c.Param("pluginPackageId")
 	result, err := database.GetPluginRuntimeResources(c, pluginPackageId)
 	if err != nil {
 		middleware.ReturnError(c, err)
@@ -197,6 +200,7 @@ func GetPluginRuntimeResources(c *gin.Context) {
 	}
 }
 
+// GetAvailableContainerHost 运行管理 - 可用容器主机查询
 func GetAvailableContainerHost(c *gin.Context) {
 	result, err := database.GetAvailableContainerHost()
 	if err != nil {
@@ -206,8 +210,9 @@ func GetAvailableContainerHost(c *gin.Context) {
 	}
 }
 
+// RegisterPackage 插件配置 - 注册插件包
 func RegisterPackage(c *gin.Context) {
-	pluginPackageId := c.Param("pluginPackage")
+	pluginPackageId := c.Param("pluginPackageId")
 	pluginPackageObj := models.PluginPackages{Id: pluginPackageId}
 	if err := database.GetSimplePluginPackage(c, &pluginPackageObj, true); err != nil {
 		middleware.ReturnError(c, err)
@@ -254,6 +259,7 @@ func RegisterPackage(c *gin.Context) {
 	}
 }
 
+// GetHostAvailablePort 运行管理 - 主机可用端口查询
 func GetHostAvailablePort(c *gin.Context) {
 	hostIP := c.Param("hostIp")
 	port, err := bash.GetRemoteHostAvailablePort(hostIP)
@@ -264,8 +270,9 @@ func GetHostAvailablePort(c *gin.Context) {
 	}
 }
 
+// LaunchPlugin 运行管理 - 插件实例创建
 func LaunchPlugin(c *gin.Context) {
-	pluginPackageId := c.Param("pluginPackage")
+	pluginPackageId := c.Param("pluginPackageId")
 	hostIp := c.Param("hostIp")
 	portValue := c.Param("port")
 	port, _ := strconv.Atoi(portValue)
@@ -450,6 +457,7 @@ func LaunchPlugin(c *gin.Context) {
 	}
 }
 
+// RemovePlugin 运行管理 - 插件实例销毁
 func RemovePlugin(c *gin.Context) {
 	pluginInstanceId := c.Param("pluginInstance")
 	pluginInstanceObj, err := database.GetPluginInstance(pluginInstanceId)
