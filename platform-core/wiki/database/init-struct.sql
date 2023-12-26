@@ -56,7 +56,7 @@ CREATE TABLE `menu_items` (
       `menu_order` int(11) NOT NULL AUTO_INCREMENT COMMENT '菜单排序',
       KEY (`menu_order`),
       PRIMARY KEY (`id`),
-      UNIQUE KEY `uk_code` (`code`),
+      UNIQUE KEY `uk_code` (`code`)
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
 
 CREATE TABLE `role_menu` (
@@ -244,7 +244,7 @@ CREATE TABLE `plugin_package_data_model` (
      `update_source` varchar(32) DEFAULT 'PLUGIN_PACKAGE' COMMENT '来源',
      `update_time` datetime DEFAULT NULL COMMENT '更新时间',
      PRIMARY KEY (`id`),
-     UNIQUE KEY `uk_plugin_package_data_model` (`package_name`,`version`),
+     UNIQUE KEY `uk_plugin_package_data_model` (`package_name`,`version`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
 
 CREATE TABLE `plugin_package_entities` (
@@ -252,7 +252,7 @@ CREATE TABLE `plugin_package_entities` (
        `data_model_id` varchar(64) NOT NULL COMMENT '所属数据模型',
        `data_model_version` int(11) NOT NULL COMMENT '版本',
        `package_name` varchar(64) NOT NULL COMMENT '包名',
-       `name` varchar(255) NOT NULL COMMENT '模型名',
+       `name` varchar(128) NOT NULL COMMENT '模型名',
        `display_name` varchar(255) NOT NULL COMMENT '显示名',
        `description` varchar(255) DEFAULT NULL COMMENT '描述',
        PRIMARY KEY (`id`),
@@ -264,7 +264,7 @@ CREATE TABLE `plugin_package_attributes` (
      `id` varchar(64) NOT NULL COMMENT '唯一标识',
      `entity_id` varchar(64) NOT NULL COMMENT '所属数据模型CI项',
      `reference_id` varchar(64) DEFAULT NULL COMMENT '关联数据模型',
-     `name` varchar(255) NOT NULL COMMENT '属性名',
+     `name` varchar(128) NOT NULL COMMENT '属性名',
      `description` varchar(255) DEFAULT NULL COMMENT '描述',
      `data_type` varchar(64) NOT NULL COMMENT '属性数据类型',
      `ref_package` varchar(64) DEFAULT NULL COMMENT '关联包',
