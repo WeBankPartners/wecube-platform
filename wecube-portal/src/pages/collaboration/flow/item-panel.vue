@@ -7,6 +7,7 @@
         draggable="true"
         node-type="start"
         data-label="开始"
+        task-category=""
         data-shape="circle-node"
         fill="white"
         line-width="1"
@@ -17,6 +18,7 @@
         draggable="true"
         node-type="end"
         data-label="结束"
+        task-category=""
         data-shape="circle-node"
         fill="white"
         line-width="3"
@@ -27,6 +29,7 @@
         draggable="true"
         node-type="abnormal"
         data-label="异常"
+        task-category=""
         data-shape="circle-node"
         fill="white"
         line-width="1"
@@ -38,6 +41,7 @@
         draggable="true"
         node-type="decision"
         data-label="判断"
+        task-category=""
         data-shape="diamond-node"
         fill="white"
         class="node iconfont icon-diamond"
@@ -48,6 +52,7 @@
         draggable="true"
         node-type="converge"
         data-label="汇聚节点"
+        task-category=""
         data-shape="rect-node"
         fill="white"
         class="node iconfont icon-rect"
@@ -58,6 +63,7 @@
         draggable="true"
         node-type="human"
         data-label="人工节点"
+        task-category="SUTN"
         data-shape="rect-node"
         fill="white"
         class="node iconfont icon-rect"
@@ -68,6 +74,7 @@
         draggable="true"
         node-type="automatic"
         data-label="自动节点"
+        task-category="SSTN"
         data-shape="rect-node"
         fill="white"
         class="node iconfont icon-rect"
@@ -78,6 +85,7 @@
         draggable="true"
         node-type="data"
         data-label="数据节点"
+        task-category="SDTN"
         data-shape="rect-node"
         fill="white"
         class="node iconfont icon-rect"
@@ -140,6 +148,8 @@ export default {
         const fill = icon.getAttribute('fill')
         const lineWidth = Number(icon.getAttribute('line-width'))
         const nodeType = icon.getAttribute('node-type')
+        const taskCategory = icon.getAttribute('task-category')
+
         /* 设置拖拽传输数据 */
         event.dataTransfer.setData(
           'dragComponent',
@@ -148,7 +158,8 @@ export default {
             shape,
             fill,
             lineWidth,
-            nodeType
+            nodeType,
+            taskCategory
           })
         )
       })
