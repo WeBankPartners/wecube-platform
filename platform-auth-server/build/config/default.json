@@ -35,5 +35,10 @@
     "address": "[#um_address]",
     "appId": "[#um_app_id]",
     "appToken": "[#um_app_token]"
+  },
+  "um_permission_upload": {
+    "systemId": "[#um_permission_system_id]",
+    "address": "[#um_permission_address]",
+    "cron_express": "[#um_permission_cron_express]"
   }
 }
