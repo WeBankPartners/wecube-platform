@@ -69,6 +69,7 @@ func init() {
 		// plugin-config
 		&handlerFuncObj{Url: "/packages/:pluginPackageId/plugin-configs", Method: "GET", HandlerFunc: plugin.GetPluginConfigs, ApiCode: "get-plugin-configs"},
 		&handlerFuncObj{Url: "/plugins/interfaces/:pluginConfigId", Method: "GET", HandlerFunc: plugin.GetConfigInterfaces, ApiCode: "get-config-interface"},
+		&handlerFuncObj{Url: "/plugins/roles/configs/:pluginConfigId", Method: "POST", HandlerFunc: plugin.UpdatePluginConfigRoles, ApiCode: "update-config-roles"},
 		&handlerFuncObj{Url: "/plugins/disable/:pluginConfigId", Method: "POST", HandlerFunc: plugin.DisablePluginConfig, ApiCode: "disable-plugin-config"},
 		&handlerFuncObj{Url: "/plugins/enable/:pluginConfigId", Method: "POST", HandlerFunc: plugin.EnablePluginConfig, ApiCode: "enable-plugin-configs"},
 		&handlerFuncObj{Url: "/plugins", Method: "POST", HandlerFunc: plugin.SavePluginConfig, ApiCode: "save-plugin-configs"},
