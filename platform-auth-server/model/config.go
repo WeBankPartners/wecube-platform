@@ -56,9 +56,11 @@ type GlobalConfig struct {
 	Database DatabaseConfig `json:"database"`
 	//Remote   RemoteServiceConfig `json:"remote_service"`
 	//Auth AuthConfig `json:"auth"`
-	Auth              Auth   `json:"auth"`
-	ErrorTemplateDir  string `json:"error_template_dir"`
-	ErrorDetailReturn bool   `json:"error_detail_return"`
+	UmAuth             UmAuth             `json:"umAuth"`
+	UmPermissionUpload UmPermissionUpload `json:"um_permission_upload"`
+	Auth               Auth               `json:"auth"`
+	ErrorTemplateDir   string             `json:"error_template_dir"`
+	ErrorDetailReturn  bool               `json:"error_detail_return"`
 }
 
 type AuthConfig struct {

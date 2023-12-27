@@ -2,8 +2,8 @@ package jwt
 
 import (
 	"crypto/rsa"
-	"encoding/json"
 	"errors"
+	"github.com/WeBankPartners/wecube-platform/platform-auth-server/common/constant"
 	"github.com/WeBankPartners/wecube-platform/platform-auth-server/common/log"
 	"github.com/WeBankPartners/wecube-platform/platform-auth-server/model"
 	"github.com/golang-jwt/jwt"
@@ -56,7 +56,7 @@ func BuildAccessToken(loginId string, authorities []string, clientType string, e
 		return nil, errors.New("failed to build refresh token")
 	}
 
-	authoritiesBytes, _ := json.Marshal(authorities)
+	//authoritiesBytes, _ := json.Marshal(authorities)
 	issueAt := time.Now().UTC().Unix()
 	exp := expireTime.UTC().Unix()
 	//exp := time.Now().Add(time.Minute * time.Duration(model.Config.Auth.AccessTokenMins)).UTC().Unix()
@@ -64,16 +64,17 @@ func BuildAccessToken(loginId string, authorities []string, clientType string, e
 		Subject:    loginId,
 		IssuedAt:   issueAt,
 		ExpiresAt:  exp,
-		Type:       model.TypeAccessToken,
+		Type:       constant.TypeAccessToken,
 		ClientType: clientType,
 		//Roles:      roles,
-		Authority: string(authoritiesBytes),
+		//Authority: string(authoritiesBytes),
+		Authorities: authorities,
 	})
 	if tokenString, err := token.SignedString(jwtPrivateKey); err == nil {
 		return &model.JwtTokenDto{
 			Expiration: strconv.Itoa(int(exp)),
 			Token:      tokenString,
-			TokenType:  model.TypeAccessToken,
+			TokenType:  constant.TypeAccessToken,
 		}, nil
 	} else {
 		log.Logger.Error("Failed to build access token", log.Error(err))
@@ -93,14 +94,14 @@ func buildRefreshToken(loginId, clientType string) (*model.JwtTokenDto, error) {
 		Subject:    loginId,
 		IssuedAt:   issueAt,
 		ExpiresAt:  exp,
-		Type:       model.TypeAccessToken,
+		Type:       constant.TypeAccessToken,
 		ClientType: clientType,
 	})
 	if tokenString, err := token.SignedString(jwtPrivateKey); err == nil {
 		return &model.JwtTokenDto{
 			Expiration: strconv.Itoa(int(exp)),
 			Token:      tokenString,
-			TokenType:  model.TypeAccessToken,
+			TokenType:  constant.TypeAccessToken,
 		}, nil
 	} else {
 		log.Logger.Error("Failed to build refresh token", log.Error(err))
