@@ -13,7 +13,7 @@ type ResourceServer struct {
 	Name          string    `json:"name" xorm:"name"`                    // 名称
 	Port          string    `json:"port" xorm:"port"`                    // 端口
 	Purpose       string    `json:"purpose" xorm:"purpose"`              // 描述
-	Status        bool      `json:"status" xorm:"status"`                // 状态,是否启用
+	Status        string    `json:"status" xorm:"status"`                // 状态,是否启用->inactive | active
 	Type          string    `json:"type" xorm:"type"`                    // 资源类型(docker,mysql,s3)
 	UpdatedBy     string    `json:"updatedBy" xorm:"updated_by"`         // 更新人
 	UpdatedDate   time.Time `json:"updatedDate" xorm:"updated_date"`     // 更新时间

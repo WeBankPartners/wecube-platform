@@ -28,5 +28,5 @@ const (
 )
 
 var (
-	UrlPrefix = fmt.Sprintf("/%s/v1", GlobalProjectName)
+	UrlPrefix = fmt.Sprintf("/%s", GlobalProjectName)
 )
