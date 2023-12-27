@@ -12,6 +12,15 @@ const (
 
 	UrlPrefix           = ""
 	AuthorizationHeader = "Authorization"
+	RefreshTokenHeader  = "Authorization-Info"
 
 	Operator = "operator"
+
+	ClientTypeUser      = "USER"
+	ClientTypeSubSystem = "SUB_SYSTEM"
+
+	TypeAccessToken  = "accessToken"
+	TypeRefreshToken = "refreshToken"
+
+	BearerTokenPrefix = "Bearer "
 )

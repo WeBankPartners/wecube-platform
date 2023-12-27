@@ -8,6 +8,7 @@ import (
 	"github.com/WeBankPartners/wecube-platform/platform-auth-server/common/exterror"
 	"github.com/WeBankPartners/wecube-platform/platform-auth-server/common/log"
 	"github.com/WeBankPartners/wecube-platform/platform-auth-server/model"
+	"github.com/WeBankPartners/wecube-platform/platform-auth-server/service"
 	"github.com/WeBankPartners/wecube-platform/platform-auth-server/service/jwt"
 )
 
@@ -35,6 +36,10 @@ func main() {
 	}
 	if err := middleware.InitAuth(); err != nil {
 		fmt.Printf("failed to init middleware auth")
+		return
+	}
+	if err := service.AuthServiceInstance.InitKey(); err != nil {
+		fmt.Printf("failed to init auth service key")
 		return
 	}
 
