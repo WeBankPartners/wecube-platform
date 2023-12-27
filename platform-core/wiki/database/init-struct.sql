@@ -176,6 +176,7 @@ CREATE TABLE `plugin_package_menus` (
     `plugin_package_id` varchar(64) NOT NULL COMMENT '插件',
     `code` varchar(64) NOT NULL COMMENT '编码',
     `category` varchar(64) NOT NULL COMMENT '目录',
+    `source` varchar(255) DEFAULT NULL COMMENT '来源',
     `display_name` varchar(255) NOT NULL COMMENT '英文显示名',
     `local_display_name` varchar(255) NOT NULL COMMENT '本地语言显示名',
     `menu_order` int(11) NOT NULL AUTO_INCREMENT COMMENT '菜单排序',
@@ -280,4 +281,18 @@ CREATE TABLE `plugin_package_attributes` (
      UNIQUE KEY `uk_plugin_attr_entity_name` (`entity_id`,`name`),
      CONSTRAINT `fk_plugin_attr_entity` FOREIGN KEY (`entity_id`) REFERENCES `plugin_package_entities` (`id`),
      CONSTRAINT `fk_plugin_attr_ref` FOREIGN KEY (`reference_id`) REFERENCES `plugin_package_attributes` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
+
+CREATE TABLE `plugin_config_roles` (
+   `id` varchar(64) NOT NULL COMMENT '唯一标识,crc(perm_type,plugin_cfg_id,role_id)',
+   `is_active` bit(1) DEFAULT NULL COMMENT '是否启用',
+   `perm_type` varchar(32) DEFAULT NULL COMMENT '权限类型->USE(使用) | MGMT(管理)',
+   `plugin_cfg_id` varchar(64) DEFAULT NULL COMMENT '服务配置id',
+   `role_id` varchar(64) DEFAULT NULL COMMENT '角色id',
+   `role_name` varchar(255) DEFAULT NULL COMMENT '角色名称',
+   `created_by` varchar(64) DEFAULT NULL COMMENT '创建人',
+   `created_time` datetime DEFAULT NULL COMMENT '创建时间',
+   `updated_by` varchar(64) DEFAULT NULL COMMENT '更新人',
+   `updated_time` datetime DEFAULT NULL COMMENT '更新时间',
+   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
