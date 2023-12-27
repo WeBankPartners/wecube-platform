@@ -47,9 +47,9 @@ type AuthConfig struct {
 
 type S3Config struct {
 	ServerAddress       string `json:"server_address"`
-	AccessKey           string `json:"accessKey"`
-	SecretKey           string `json:"secretKey"`
-	PluginPackageBucket string `json:"pluginPackageBucket"`
+	AccessKey           string `json:"access_key"`
+	SecretKey           string `json:"secret_key"`
+	PluginPackageBucket string `json:"plugin_package_bucket"`
 }
 
 type StaticResourceConfig struct {

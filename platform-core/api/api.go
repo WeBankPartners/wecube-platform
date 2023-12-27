@@ -13,6 +13,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"io"
 	"net/http"
+	"strings"
 	"time"
 )
 
@@ -92,6 +93,9 @@ func InitHttpServer() {
 	// register handler func with auth
 	authRouter := r.Group(models.UrlPrefix, middleware.AuthToken)
 	for _, funcObj := range httpHandlerFuncList {
+		if !strings.HasPrefix(funcObj.Url, "/resource/") {
+			funcObj.Url = "/v1" + funcObj.Url
+		}
 		apiCodeMap[fmt.Sprintf("%s_%s", funcObj.Method, funcObj.Url)] = funcObj.ApiCode
 		handleFuncList := []gin.HandlerFunc{funcObj.HandlerFunc}
 		if funcObj.PreHandle != nil {
