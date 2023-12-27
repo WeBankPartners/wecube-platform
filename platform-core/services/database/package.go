@@ -376,3 +376,87 @@ func NewPluginMysqlInstance(ctx context.Context, mysqlInstance *models.PluginMys
 	}
 	return
 }
+
+func BuildDockerEnvMap(ctx context.Context, envMap map[string]string) (replaceMap map[string]string, err error) {
+	if envMap == nil {
+		return nil, fmt.Errorf("illegal docker env map")
+	}
+	replaceMap = make(map[string]string)
+	var sysVarList []string
+	for k, v := range envMap {
+		if v == "" {
+			sysVarList = append(sysVarList, k)
+		}
+	}
+	defer func() {
+		for k, v := range envMap {
+			replaceMap[fmt.Sprintf("{{%s}}", k)] = v
+		}
+	}()
+	if len(sysVarList) > 0 {
+		var systemVariableRows []*models.SystemVariables
+		filterSql, filterParam := db.CreateListParams(sysVarList, "")
+		err = db.MysqlEngine.Context(ctx).SQL("select name,`value`,default_value from system_variables where status='active' and name in ("+filterSql+")", filterParam...).Find(&systemVariableRows)
+		if err != nil {
+			err = exterror.Catch(exterror.New().DatabaseQueryError, err)
+			return
+		}
+		for _, row := range systemVariableRows {
+			tmpV := row.Value
+			if tmpV == "" {
+				tmpV = row.DefaultValue
+			}
+			if tmpV != "" {
+				envMap[row.Name] = tmpV
+			}
+		}
+	}
+	for k, v := range envMap {
+		replaceMap[fmt.Sprintf("{{%s}}", k)] = v
+	}
+	return
+}
+
+func LaunchPlugin(ctx context.Context, pluginInstance *models.PluginInstances) (err error) {
+	var actions []*db.ExecAction
+	actions = append(actions, &db.ExecAction{Sql: "INSERT INTO plugin_instances (id,host,container_name,port,container_status,package_id,docker_instance_resource_id,instance_name,plugin_mysql_instance_resource_id,s3bucket_resource_id) values (?,?,?,?,?,?,?,?,?,?)", Param: []interface{}{
+		pluginInstance.Id, pluginInstance.Host, pluginInstance.ContainerName, pluginInstance.Port, pluginInstance.ContainerStatus, pluginInstance.PackageId, pluginInstance.DockerInstanceResourceId, pluginInstance.InstanceName, pluginInstance.PluginMysqlInstanceResourceId, pluginInstance.S3bucketResourceId,
+	}})
+	actions = append(actions, &db.ExecAction{Sql: "update plugin_package_menus set active=1 where plugin_package_id=?", Param: []interface{}{pluginInstance.PackageId}})
+	if err = db.Transaction(actions, ctx); err != nil {
+		err = exterror.Catch(exterror.New().DatabaseExecuteError, err)
+	}
+	return
+}
+
+func GetPluginInstance(pluginInstanceId string) (pluginInstance *models.PluginInstances, err error) {
+	var instanceRows []*models.PluginInstances
+	err = db.MysqlEngine.SQL("select * from plugin_instances where id=?", pluginInstanceId).Find(&instanceRows)
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
+	} else {
+		if len(instanceRows) == 0 {
+			err = fmt.Errorf("can not find plugin instance with id:%s ", pluginInstanceId)
+		} else {
+			pluginInstance = instanceRows[0]
+		}
+	}
+	return
+}
+
+func RemovePlugin(ctx context.Context, pluginPackageId, pluginInstanceId string) (err error) {
+	queryResult, queryErr := db.MysqlEngine.QueryString("select id from plugin_instances where package_id=?", pluginPackageId)
+	if queryErr != nil {
+		err = exterror.Catch(exterror.New().DatabaseQueryError, queryErr)
+		return
+	}
+	var actions []*db.ExecAction
+	actions = append(actions, &db.ExecAction{Sql: "delete from plugin_instances where id=?", Param: []interface{}{pluginInstanceId}})
+	if len(queryResult) == 1 {
+		actions = append(actions, &db.ExecAction{Sql: "update plugin_package_menus set active=0 where plugin_package_id=?", Param: []interface{}{pluginPackageId}})
+	}
+	if err = db.Transaction(actions, ctx); err != nil {
+		err = exterror.Catch(exterror.New().DatabaseExecuteError, err)
+	}
+	return
+}
