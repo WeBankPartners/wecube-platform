@@ -1,14 +1,35 @@
 package plugin
 
-import "github.com/gin-gonic/gin"
+import (
+	"github.com/WeBankPartners/wecube-platform/platform-core/api/middleware"
+	"github.com/WeBankPartners/wecube-platform/platform-core/services/database"
+	"github.com/gin-gonic/gin"
+)
 
 // GetPluginConfigs 服务注册 - 当前插件服务配置查询
 func GetPluginConfigs(c *gin.Context) {
-
+	pluginPackageId := c.Param("pluginPackageId")
+	result, err := database.GetPluginConfigs(c, pluginPackageId, middleware.GetRequestRoles(c))
+	if err != nil {
+		middleware.ReturnError(c, err)
+	} else {
+		middleware.ReturnData(c, result)
+	}
 }
 
 // GetConfigInterfaces 服务注册 - 查询指定服务的接口详情
 func GetConfigInterfaces(c *gin.Context) {
+	pluginPackageId := c.Param("pluginPackageId")
+	result, err := database.GetConfigInterfaces(c, pluginPackageId)
+	if err != nil {
+		middleware.ReturnError(c, err)
+	} else {
+		middleware.ReturnData(c, result)
+	}
+}
+
+// UpdatePluginConfigRoles 服务注册 - 配置服务管理使用权限
+func UpdatePluginConfigRoles(c *gin.Context) {
 
 }
 

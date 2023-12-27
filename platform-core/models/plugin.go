@@ -110,12 +110,12 @@ type PluginPackageMenus struct {
 	PluginPackageId  string `json:"pluginPackageId" xorm:"plugin_package_id"`   // 插件
 	Code             string `json:"code" xorm:"code"`                           // 编码
 	Category         string `json:"category" xorm:"category"`                   // 目录
+	Source           string `json:"source" xorm:"source"`                       // 来源
 	DisplayName      string `json:"displayName" xorm:"display_name"`            // 英文显示名
 	LocalDisplayName string `json:"localDisplayName" xorm:"local_display_name"` // 本地语言显示名
 	MenuOrder        int    `json:"menuOrder" xorm:"menu_order"`                // 菜单排序
 	Path             string `json:"path" xorm:"path"`                           // 前端请求路径
 	Active           bool   `json:"active" xorm:"active"`                       // 是否启用->0(不启用)|1(启用)
-	Source           string `json:"source" xorm:"-"`
 }
 
 type PluginRuntimeResourceData struct {
@@ -336,4 +336,17 @@ type PluginPackageAttributes struct {
 	IsArray     bool      `json:"isArray" xorm:"is_array"`         // 是否数组-新
 	CreatedTime time.Time `json:"createdTime" xorm:"created_time"` // 创建时间
 	OrderNo     int       `json:"orderNo" xorm:"order_no"`         // 排序
+}
+
+type PluginConfigRoles struct {
+	Id          string    `json:"id" xorm:"id"`                     // 唯一标识,crc(perm_type,plugin_cfg_id,role_id)
+	IsActive    bool      `json:"isActive" xorm:"is_active"`        // 是否启用
+	PermType    string    `json:"permType" xorm:"perm_type"`        // 权限类型->use(使用
+	PluginCfgId string    `json:"pluginCfgId" xorm:"plugin_cfg_id"` // 服务配置id
+	RoleId      string    `json:"roleId" xorm:"role_id"`            // 角色id
+	RoleName    string    `json:"roleName" xorm:"role_name"`        // 角色名称
+	CreatedBy   string    `json:"createdBy" xorm:"created_by"`      // 创建人
+	CreatedTime time.Time `json:"createdTime" xorm:"created_time"`  // 创建时间
+	UpdatedBy   string    `json:"updatedBy" xorm:"updated_by"`      // 更新人
+	UpdatedTime time.Time `json:"updatedTime" xorm:"updated_time"`  // 更新时间
 }
