@@ -18,27 +18,29 @@
               <Option v-for="(item, index) in timeSelection" :value="item.mins" :key="index">{{ item.label }} </Option>
             </Select>
           </FormItem>
-          <FormItem :label="$t('dynamic_bind')">
-            <Select v-model="itemCustomInfo.dynamicBind">
-              <Option v-for="item in yOn" :value="item" :key="item">{{ item }}</Option>
-            </Select>
-          </FormItem>
-          <FormItem :label="$t('bind_node')">
-            <Select
-              v-model="itemCustomInfo.associatedNodeId"
-              @on-change="changeAssociatedNode"
-              @on-open-change="getAssociatedNodes"
-              clearable
-              :disabled="itemCustomInfo.dynamicBind !== 'Y'"
-            >
-              <Option v-for="(i, index) in associatedNodes" :value="i.nodeId" :key="index">{{ i.nodeName }}</Option>
-            </Select>
-          </FormItem>
-          <FormItem :label="$t('pre_check')">
-            <Select v-model="itemCustomInfo.preCheck">
-              <Option v-for="item in yOn" :value="item" :key="item">{{ item }}</Option>
-            </Select>
-          </FormItem>
+          <template v-if="['human', 'automatic'].includes(itemCustomInfo.nodeType)">
+            <FormItem :label="$t('dynamic_bind')">
+              <Select v-model="itemCustomInfo.dynamicBind">
+                <Option v-for="item in yOn" :value="item" :key="item">{{ item }}</Option>
+              </Select>
+            </FormItem>
+            <FormItem :label="$t('bind_node')">
+              <Select
+                v-model="itemCustomInfo.associatedNodeId"
+                @on-change="changeAssociatedNode"
+                @on-open-change="getAssociatedNodes"
+                clearable
+                :disabled="itemCustomInfo.dynamicBind !== 'Y'"
+              >
+                <Option v-for="(i, index) in associatedNodes" :value="i.nodeId" :key="index">{{ i.nodeName }}</Option>
+              </Select>
+            </FormItem>
+            <FormItem :label="$t('pre_check')">
+              <Select v-model="itemCustomInfo.preCheck">
+                <Option v-for="item in yOn" :value="item" :key="item">{{ item }}</Option>
+              </Select>
+            </FormItem>
+          </template>
           <FormItem :label="$t('locate_rules')">
             <ItemFilterRulesGroup
               :isBatch="itemCustomInfo.taskCategory === 'SDTN'"
@@ -50,7 +52,11 @@
             >
             </ItemFilterRulesGroup>
           </FormItem>
-          <FormItem :label="$t('plugin')">
+          <FormItem
+            v-if="['human', 'automatic'].includes(itemCustomInfo.nodeType)"
+            :label="$t('plugin')"
+            style="margin-top: 8px"
+          >
             <Select
               v-model="itemCustomInfo.serviceId"
               @on-open-change="getPlugin"
@@ -70,29 +76,11 @@
 <script>
 import { getAssociatedNodes, getAllDataModels } from '@/api/server.js'
 import ItemFilterRulesGroup from './item-filter-rules-group.vue'
-const defaultNode = {
-  procDefId: '', // 对应编排信息
-  procDefKey: '', // 对应编排信息
-  id: '', // 节点id  nodeId  ----OK
-  label: '', // 节点名称 nodeName ----OK
-  taskCategory: '', // 节点类型，SSTN自动节点 SUTN人工节点 SDTN数据写入节点 ----OK
-  timeoutExpression: '30', // 超时时间 ----OK
-  description: null, // 描述说明  ----OK
-  dynamicBind: 'N', // 动态绑定
-  associatedNodeId: null, // 动态绑定关联节点id
-  nodeType: '', // 节点类型，对应节点原始类型（start、end……）
-  routineExpression: 'wecmdb:app_instance', // 对应节点中的定位规则
-  routineRaw: null, // 还未知作用
-  serviceId: null, // 选择的插件id
-  serviceName: null, // 选择的插件名称
-  preCheck: 'N', // 高危检测
-  paramInfos: [] // 存在插件注册处需要填写的字段
-}
 export default {
   data () {
     return {
       currentSelectedEntity: 'wecmdb:app_instance', // 流程图根
-      itemCustomInfo: JSON.parse(JSON.stringify(defaultNode)),
+      itemCustomInfo: {},
       // 超时时间选项
       timeSelection: [
         {
@@ -142,9 +130,27 @@ export default {
   },
   methods: {
     showItemInfo (data) {
-      console.log(11, defaultNode)
+      const defaultNode = {
+        procDefId: '', // 对应编排信息
+        procDefKey: '', // 对应编排信息
+        id: '', // 节点id  nodeId  ----OK
+        label: '', // 节点名称 nodeName ----OK
+        taskCategory: '', // 节点类型，SSTN自动节点 SUTN人工节点 SDTN数据写入节点 ----OK
+        timeoutExpression: '30', // 超时时间 ----OK
+        description: null, // 描述说明  ----OK
+        dynamicBind: 'N', // 动态绑定
+        associatedNodeId: null, // 动态绑定关联节点id
+        nodeType: '', // 节点类型，对应节点原始类型（start、end……）
+        routineExpression: 'wecmdb:app_instance', // 对应节点中的定位规则
+        routineRaw: null, // 还未知作用
+        serviceId: null, // 选择的插件id
+        serviceName: null, // 选择的插件名称
+        preCheck: 'N', // 高危检测
+        paramInfos: [] // 存在插件注册处需要填写的字段
+      }
       this.itemCustomInfo = JSON.parse(JSON.stringify(Object.assign(defaultNode, data)))
       this.$nextTick(() => {
+        console.log(33, this.itemCustomInfo.routineExpression)
         this.$refs.filterRulesGroupRef &&
           this.$refs.filterRulesGroupRef.changeRoutineExpressionItem(this.itemCustomInfo.routineExpression)
       })
@@ -208,7 +214,7 @@ export default {
   right: 32px;
   bottom: 0;
   z-index: 10;
-  width: 400px;
+  width: 500px;
   height: 86%;
   background: #f8f8f8;
   // padding-top: 65px;
