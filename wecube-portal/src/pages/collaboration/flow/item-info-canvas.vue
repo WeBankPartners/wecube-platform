@@ -39,7 +39,7 @@ export default {
   right: 32px;
   bottom: 0;
   z-index: 10;
-  width: 400px;
+  width: 500px;
   height: 86%;
   background: #f8f8f8;
   // padding-top: 65px;
