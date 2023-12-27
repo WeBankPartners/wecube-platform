@@ -41,11 +41,11 @@ func isStaticResource(targetIp string) bool {
 	return matchFlag
 }
 
-func GetRemoteHostAvailablePort(targetIp string) (port int, err error) {
-	commandString := fmt.Sprintf("sshpass -p '%s' ssh %s@%s -p %s 'netstat -ltnp|awk \"{print $4}\"|grep \":2\"'", models.Config.StaticResource.Password, models.Config.StaticResource.User, targetIp, models.Config.StaticResource.Port)
+func GetRemoteHostAvailablePort(resourceServer *models.ResourceServer) (port int, err error) {
+	commandString := fmt.Sprintf("sshpass -p '%s' ssh %s@%s -p %s 'netstat -ltnp|awk \"{print $4}\"|grep \":2\"'", resourceServer.LoginPassword, resourceServer.LoginUsername, resourceServer.Host, resourceServer.Port)
 	output, execErr := exec.Command("/bin/bash", "-c", commandString).Output()
 	if execErr != nil {
-		err = fmt.Errorf("run remote ssh command to get available port target %s fail,%s ", targetIp, execErr.Error())
+		err = fmt.Errorf("run remote ssh command to get available port target %s fail,%s ", resourceServer.Host, execErr.Error())
 		return
 	}
 	existPortLines := strings.Split(string(output), "\n")

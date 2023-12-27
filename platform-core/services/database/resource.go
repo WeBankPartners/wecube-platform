@@ -6,6 +6,7 @@ import (
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/db"
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/exterror"
 	"github.com/WeBankPartners/wecube-platform/platform-core/models"
+	"time"
 )
 
 func QueryResourceServer(ctx context.Context, param *models.QueryRequestParam) (result *models.ResourceServerListPageData, err error) {
@@ -44,10 +45,11 @@ func QueryResourceItem(ctx context.Context, param *models.QueryRequestParam) (re
 
 func CreateResourceServer(ctx context.Context, params []*models.ResourceServer) (err error) {
 	var actions []*db.ExecAction
+	nowTime := time.Now()
 	for _, v := range params {
 		v.Id = "rs_ser_" + guid.CreateGuid()
 		actions = append(actions, &db.ExecAction{Sql: "insert into resource_server (id,created_by,created_date,host,is_allocated,login_password,login_username,name,port,purpose,status,`type`,updated_by,updated_date,login_mode) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)", Param: []interface{}{
-			v.Id, v.CreatedBy, v.CreatedDate, v.Host, v.IsAllocated, v.LoginPassword, v.LoginUsername, v.Name, v.Port, v.Purpose, v.Status, v.Type, v.UpdatedBy, v.UpdatedDate, v.LoginMode,
+			v.Id, v.CreatedBy, nowTime, v.Host, v.IsAllocated, v.LoginPassword, v.LoginUsername, v.Name, v.Port, v.Purpose, v.Status, v.Type, v.UpdatedBy, nowTime, v.LoginMode,
 		}})
 	}
 	err = db.Transaction(actions, ctx)
@@ -56,9 +58,10 @@ func CreateResourceServer(ctx context.Context, params []*models.ResourceServer) 
 
 func UpdateResourceServer(ctx context.Context, params []*models.ResourceServer) (err error) {
 	var actions []*db.ExecAction
+	nowTime := time.Now()
 	for _, v := range params {
-		actions = append(actions, &db.ExecAction{Sql: "update resource_server set created_by=?,created_date=?,host=?,is_allocated=?,login_password=?,login_username=?,name=?,port=?,purpose=?,status=?,`type`=?,updated_by=?,updated_date=?,login_mode=? where id=?", Param: []interface{}{
-			v.CreatedBy, v.CreatedDate, v.Host, v.IsAllocated, v.LoginPassword, v.LoginUsername, v.Name, v.Port, v.Purpose, v.Status, v.Type, v.UpdatedBy, v.UpdatedDate, v.LoginMode, v.Id,
+		actions = append(actions, &db.ExecAction{Sql: "update resource_server set host=?,is_allocated=?,login_password=?,login_username=?,name=?,port=?,purpose=?,status=?,`type`=?,updated_by=?,updated_date=?,login_mode=? where id=?", Param: []interface{}{
+			v.Host, v.IsAllocated, v.LoginPassword, v.LoginUsername, v.Name, v.Port, v.Purpose, v.Status, v.Type, v.UpdatedBy, nowTime, v.LoginMode, v.Id,
 		}})
 	}
 	err = db.Transaction(actions, ctx)
@@ -84,5 +87,20 @@ func GetAvailableContainerHost() (availableHost []string, err error) {
 	for _, v := range resourceServerRows {
 		availableHost = append(availableHost, v.Host)
 	}
+	return
+}
+
+func GetResourceServerByIp(hostIp string) (resourceServer *models.ResourceServer, err error) {
+	var resourceServerRows []*models.ResourceServer
+	err = db.MysqlEngine.SQL("select id,is_allocated,login_password,login_username,login_mode,name,port,`type`,host from resource_server where host=?", hostIp).Find(&resourceServerRows)
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
+		return
+	}
+	if len(resourceServerRows) == 0 {
+		err = exterror.Catch(exterror.New().DatabaseQueryEmptyError, err)
+		return
+	}
+	resourceServer = resourceServerRows[0]
 	return
 }
