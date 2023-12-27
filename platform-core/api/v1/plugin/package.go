@@ -40,12 +40,14 @@ func UploadPackage(c *gin.Context) {
 		middleware.ReturnError(c, err)
 		return
 	}
+	log.Logger.Debug("zip-file", log.String("name", fileName), log.Int("len", len(fileBytes)))
 	// 解压插件zip包
 	var tmpFilePath, tmpFileDir string
 	if tmpFilePath, tmpFileDir, err = bash.SaveTmpFile(fileName, fileBytes); err != nil {
 		middleware.ReturnError(c, err)
 		return
 	}
+	log.Logger.Debug("tmpFile", log.String("tmpFilePath", tmpFilePath))
 	defer func() {
 		if removeTmpDirErr := os.RemoveAll(tmpFileDir); removeTmpDirErr != nil {
 			log.Logger.Error("Try to remove package upload tmp dir fail", log.String("tmpDir", tmpFileDir), log.Error(removeTmpDirErr))
@@ -262,9 +264,14 @@ func RegisterPackage(c *gin.Context) {
 // GetHostAvailablePort 运行管理 - 主机可用端口查询
 func GetHostAvailablePort(c *gin.Context) {
 	hostIP := c.Param("hostIp")
-	port, err := bash.GetRemoteHostAvailablePort(hostIP)
+	resourceServer, err := database.GetResourceServerByIp(hostIP)
 	if err != nil {
 		middleware.ReturnError(c, err)
+		return
+	}
+	port, getPortErr := bash.GetRemoteHostAvailablePort(resourceServer)
+	if getPortErr != nil {
+		middleware.ReturnError(c, getPortErr)
 	} else {
 		middleware.ReturnData(c, port)
 	}
