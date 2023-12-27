@@ -9,22 +9,15 @@ var (
 	ErrInvalidClaim = errors.New("invalid claim")
 )
 
-const (
-	TypeAccessToken  = "accessToken"
-	TypeRefreshToken = "refreshToken"
-
-	BearerTokenPrefix = "Bearer "
-)
-
 type AuthClaims struct {
-	Subject    string   `json:"sub"`
-	IssuedAt   int64    `json:"iat"`
-	ExpiresAt  int64    `json:"exp"`
-	Type       string   `json:"type"`
-	ClientType string   `json:"clientType"`
-	Roles      []string `json:"roles"`
-	//Authorities []string `json:"authorities"`
-	Authority string `json:"authority"`
+	Subject     string   `json:"sub"`
+	IssuedAt    int64    `json:"iat"`
+	ExpiresAt   int64    `json:"exp"`
+	Type        string   `json:"type"`
+	ClientType  string   `json:"clientType"`
+	Roles       []string `json:"roles"`
+	Authorities []string `json:"authorities"`
+	//Authority   string   `json:"authority"`
 	//Auth        []model.AggAuth `json:"auth"`
 	//LoginType string `json:"loginType"`
 	//AdminType string `json:"adminType"`
