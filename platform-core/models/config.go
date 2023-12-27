@@ -47,9 +47,9 @@ type AuthConfig struct {
 
 type S3Config struct {
 	ServerAddress       string `json:"server_address"`
-	AccessKey           string `json:"accessKey"`
-	SecretKey           string `json:"secretKey"`
-	PluginPackageBucket string `json:"pluginPackageBucket"`
+	AccessKey           string `json:"access_key"`
+	SecretKey           string `json:"secret_key"`
+	PluginPackageBucket string `json:"plugin_package_bucket"`
 }
 
 type StaticResourceConfig struct {
@@ -60,7 +60,7 @@ type StaticResourceConfig struct {
 	Path     string `json:"path"`
 }
 
-type PluginConfig struct {
+type PluginJsonConfig struct {
 	BaseMountPath string `json:"base_mount_path"`
 	DeployPath    string `json:"deploy_path"`
 }
@@ -74,7 +74,7 @@ type GlobalConfig struct {
 	Auth            *AuthConfig           `json:"auth"`
 	S3              *S3Config             `json:"s3"`
 	StaticResource  *StaticResourceConfig `json:"static_resource"`
-	Plugin          *PluginConfig         `json:"plugin"`
+	Plugin          *PluginJsonConfig     `json:"plugin"`
 }
 
 var (

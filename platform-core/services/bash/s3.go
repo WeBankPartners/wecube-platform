@@ -17,7 +17,7 @@ func UploadPluginPackage(bucket string, fileMap map[string]string) (err error) {
 	for k, v := range fileMap {
 		_, putErr := minioClient.FPutObject(context.Background(), bucket, v, k, minio.PutObjectOptions{ContentType: "application/octet-stream"})
 		if putErr != nil {
-			err = fmt.Errorf("upload file %s to s3 fail,%s ", k, putErr.Error())
+			err = fmt.Errorf("upload file %s to s3 %s fail,%s ", k, v, putErr.Error())
 			break
 		}
 	}
