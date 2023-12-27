@@ -30,8 +30,8 @@ func SaveTmpFile(fileName string, fileContent []byte) (filePath, fileDir string,
 	return
 }
 
-func newTmpDir() (dirPath string, err error) {
-	fileDir := fmt.Sprintf("/tmp/%d", time.Now().UnixNano())
+func newTmpDir() (fileDir string, err error) {
+	fileDir = fmt.Sprintf("/tmp/%d", time.Now().UnixNano())
 	if err = os.MkdirAll(fileDir, 0644); err != nil {
 		err = fmt.Errorf("make tmp dir fail,%s ", err.Error())
 	}
