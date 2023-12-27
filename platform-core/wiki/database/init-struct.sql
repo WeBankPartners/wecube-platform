@@ -21,7 +21,7 @@ CREATE TABLE `resource_server` (
    `name` varchar(255)  DEFAULT NULL COMMENT '名称',
    `port` varchar(32)  DEFAULT NULL COMMENT '端口',
    `purpose` varchar(255)  DEFAULT NULL COMMENT '描述',
-   `status` tinyint(1)  DEFAULT NULL COMMENT '状态,是否启用',
+   `status` varchar(32)  DEFAULT 'inactive' COMMENT '状态,是否启用->inactive | active',
    `type` varchar(32)  DEFAULT NULL COMMENT '资源类型(docker,mysql,s3)',
    `updated_by` varchar(64)  DEFAULT NULL COMMENT '更新人',
    `updated_date` datetime DEFAULT NULL COMMENT '更新时间',
