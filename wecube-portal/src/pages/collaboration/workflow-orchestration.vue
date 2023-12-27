@@ -11,7 +11,13 @@
       <!-- 挂载节点 -->
       <div id="canvasPanel" ref="canvasPanel" @dragover.prevent />
       <!-- 信息配置 -->
-      <TtemInfo ref="itemInfoRef" @sendItemInfo="setItemInfo"></TtemInfo>
+      <TtemInfoCanvas
+        v-show="itemInfoType === 'canvas'"
+        ref="itemInfoCanvasRef"
+        @sendItemInfo="setItemInfo"
+      ></TtemInfoCanvas>
+      <TtemInfoNode v-show="itemInfoType === 'node'" ref="itemInfoNodeRef" @sendItemInfo="setItemInfo"></TtemInfoNode>
+      <TtemInfoEdge v-show="itemInfoType === 'edge'" ref="itemInfoEdgeRef" @sendItemInfo="setItemInfo"></TtemInfoEdge>
     </div>
   </div>
 </template>
@@ -21,7 +27,9 @@ import G6 from '@antv/g6'
 import FlowHeader from '@/pages/collaboration/flow/flow-header.vue'
 import registerFactory from './flow/graph/graph'
 import ItemPanel from '@/pages/collaboration/flow/item-panel.vue'
-import TtemInfo from '@/pages/collaboration/flow/item-info.vue'
+import TtemInfoCanvas from '@/pages/collaboration/flow/item-info-canvas.vue'
+import TtemInfoEdge from '@/pages/collaboration/flow/item-info-edge.vue'
+import TtemInfoNode from '@/pages/collaboration/flow/item-info-node.vue'
 import data from './flow/data.js'
 import { nodeDefaultAttr } from './flow/node-default-attr.js'
 
@@ -31,14 +39,17 @@ export default {
   components: {
     FlowHeader,
     ItemPanel,
-    TtemInfo
+    TtemInfoCanvas,
+    TtemInfoNode,
+    TtemInfoEdge
   },
   data () {
     return {
       isShowGraph: false,
+      itemInfoType: '', // canvas、node、edge
       flowInfo: {
-        id: '',
-        name: ''
+        id: '123',
+        label: 'ABC'
       },
       mode: 'drag-shadow-node',
       graph: {},
@@ -97,6 +108,8 @@ export default {
     this.$nextTick(() => {
       this.createGraphic()
       this.initGraphEvent()
+      this.itemInfoType = 'canvas'
+      this.$refs.itemInfoCanvasRef.showItemInfo(this.flowInfo)
     })
   },
   beforeDestroy () {
@@ -258,8 +271,8 @@ export default {
           //   height: model.style.height,
           //   shape: model.type
           // }
-
-          this.$refs.itemInfoRef.showItemInfo('node', model)
+          this.itemInfoType = 'node'
+          this.$refs.itemInfoNodeRef.showItemInfo(model)
         }
       })
 
@@ -379,7 +392,8 @@ export default {
           } else {
             this.graph.setItemState(edge, 'selected', true)
           }
-          this.$refs.itemInfoRef.showItemInfo('edge', model)
+          this.itemInfoType = 'edge'
+          this.$refs.itemInfoEdgeRef.showItemInfo(model)
         }
       })
 
@@ -388,10 +402,8 @@ export default {
         const graph = e.item
         console.log(22, graph)
         // if (e && graph) {
-        this.$refs.itemInfoRef.showItemInfo('canvas', {
-          id: 'test',
-          label: 'AAA'
-        })
+        this.itemInfoType = 'canvas'
+        this.$refs.itemInfoCanvasRef.showItemInfo(this.flowInfo)
         // }
       })
 
@@ -412,6 +424,8 @@ export default {
 
           // Clear selected states
           // this.graph.clearItemStates()
+          this.itemInfoType = 'canvas'
+          this.$refs.itemInfoCanvasRef.showItemInfo(this.flowInfo)
         }
       })
     },
@@ -447,8 +461,13 @@ export default {
         anchorPoints: nodeDefaultAttr[nodeType].anchorPoints
       }
       this.graph.addItem('node', model)
+      console.log(44, model)
+      // this.$nextTick(() => {
+      this.itemInfoType = 'node'
+      this.$refs.itemInfoNodeRef.showItemInfo(model)
+      // })
     },
-    setItemInfo (type, info) {
+    setItemInfo (info) {
       // eslint-disable-next-line no-alert
       const item = this.graph.findById(info.id)
       console.log(11, item, info)

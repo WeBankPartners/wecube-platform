@@ -111,21 +111,6 @@
         fill="white"
         line-width="1"
       />
-
-      <!-- <i draggable="true" data-label="圆形节点" data-shape="circle-node" class="node iconfont icon-circle" /> -->
-      <!-- <i draggable="true" data-label="方形节点" data-shape="rect-node" class="node iconfont icon-rect" /> -->
-      <!-- <i
-        draggable="true"
-        data-label="测试节点"
-        data-shape="rect-node"
-        style="border: 1px solid red"
-        class="node iconfont icon-rect"
-      />
-      <i draggable="true" data-label="椭圆形节点" data-shape="ellipse-node" class="node iconfont icon-ellipse" />
-      <i draggable="true" data-label="菱形节点" data-shape="diamond-node" class="node iconfont icon-diamond" />
-      <i draggable="true" data-label="对话框节点" data-shape="modelRect-node" class="node iconfont icon-model-rect" />
-      <i class="split" />
-      <i draggable="true" class="gb-toggle-btn" @click="itemVisible = !itemVisible" /> -->
     </div>
   </div>
 </template>
