@@ -1,5 +1,6 @@
 <template>
   <div id="itemInfo">
+    <Icon class="hide-panal" type="md-exit" size="24" @click="hideItem" />
     <Form :label-width="80">
       canvas
       <FormItem label="ID">
@@ -28,6 +29,9 @@ export default {
     },
     saveItem () {
       this.$emit('sendItemInfo', this.itemCustomInfo)
+    },
+    hideItem () {
+      this.$emit('hideItemInfo')
     }
   }
 }
@@ -48,5 +52,9 @@ export default {
 }
 .ivu-form-item {
   margin-bottom: 0;
+}
+.hide-panal {
+  margin: 8px;
+  cursor: pointer;
 }
 </style>
