@@ -9,56 +9,60 @@
         <FormItem :label="$t('name')">
           <Input v-model="itemCustomInfo.label"></Input>
         </FormItem>
-        <template v-if="['human', 'automatic', 'data'].includes(itemCustomInfo.nodeType)">
+        <template
+          v-if="
+            itemCustomInfo.customAttrs && ['human', 'automatic', 'data'].includes(itemCustomInfo.customAttrs.nodeType)
+          "
+        >
           <FormItem :label="$t('description')">
-            <Input v-model="itemCustomInfo.description"></Input>
+            <Input v-model="itemCustomInfo.customAttrs.description"></Input>
           </FormItem>
           <FormItem :label="$t('timeout')">
-            <Select v-model="itemCustomInfo.timeoutExpression">
+            <Select v-model="itemCustomInfo.customAttrs.timeoutExpression">
               <Option v-for="(item, index) in timeSelection" :value="item.mins" :key="index">{{ item.label }} </Option>
             </Select>
           </FormItem>
-          <template v-if="['human', 'automatic'].includes(itemCustomInfo.nodeType)">
+          <template v-if="['human', 'automatic'].includes(itemCustomInfo.customAttrs.nodeType)">
             <FormItem :label="$t('dynamic_bind')">
-              <Select v-model="itemCustomInfo.dynamicBind">
+              <Select v-model="itemCustomInfo.customAttrs.dynamicBind">
                 <Option v-for="item in yOn" :value="item" :key="item">{{ item }}</Option>
               </Select>
             </FormItem>
             <FormItem :label="$t('bind_node')">
               <Select
-                v-model="itemCustomInfo.associatedNodeId"
+                v-model="itemCustomInfo.customAttrs.associatedNodeId"
                 @on-change="changeAssociatedNode"
                 @on-open-change="getAssociatedNodes"
                 clearable
-                :disabled="itemCustomInfo.dynamicBind !== 'Y'"
+                :disabled="itemCustomInfo.customAttrs.dynamicBind !== 'Y'"
               >
                 <Option v-for="(i, index) in associatedNodes" :value="i.nodeId" :key="index">{{ i.nodeName }}</Option>
               </Select>
             </FormItem>
             <FormItem :label="$t('pre_check')">
-              <Select v-model="itemCustomInfo.preCheck">
+              <Select v-model="itemCustomInfo.customAttrs.preCheck">
                 <Option v-for="item in yOn" :value="item" :key="item">{{ item }}</Option>
               </Select>
             </FormItem>
           </template>
           <FormItem :label="$t('locate_rules')">
             <ItemFilterRulesGroup
-              :isBatch="itemCustomInfo.taskCategory === 'SDTN'"
+              :isBatch="itemCustomInfo.customAttrs.taskCategory === 'SDTN'"
               ref="filterRulesGroupRef"
-              :disabled="itemCustomInfo.dynamicBind === 'Y' && itemCustomInfo.associatedNodeId"
-              :routineExpression="itemCustomInfo.routineExpression"
+              :disabled="itemCustomInfo.customAttrs.dynamicBind === 'Y' && itemCustomInfo.customAttrs.associatedNodeId"
+              :routineExpression="itemCustomInfo.customAttrs.routineExpression"
               :allEntityType="allEntityType"
               :currentSelectedEntity="currentSelectedEntity"
             >
             </ItemFilterRulesGroup>
           </FormItem>
           <FormItem
-            v-if="['human', 'automatic'].includes(itemCustomInfo.nodeType)"
+            v-if="['human', 'automatic'].includes(itemCustomInfo.customAttrs.nodeType)"
             :label="$t('plugin')"
             style="margin-top: 8px"
           >
             <Select
-              v-model="itemCustomInfo.serviceId"
+              v-model="itemCustomInfo.customAttrs.serviceId"
               @on-open-change="getPlugin"
               @on-change="changePluginInterfaceList"
             >
@@ -131,34 +135,41 @@ export default {
   methods: {
     showItemInfo (data) {
       const defaultNode = {
-        procDefId: '', // 对应编排信息
-        procDefKey: '', // 对应编排信息
         id: '', // 节点id  nodeId  ----OK
         label: '', // 节点名称 nodeName ----OK
-        taskCategory: '', // 节点类型，SSTN自动节点 SUTN人工节点 SDTN数据写入节点 ----OK
-        timeoutExpression: '30', // 超时时间 ----OK
-        description: null, // 描述说明  ----OK
-        dynamicBind: 'N', // 动态绑定
-        associatedNodeId: null, // 动态绑定关联节点id
-        nodeType: '', // 节点类型，对应节点原始类型（start、end……）
-        routineExpression: 'wecmdb:app_instance', // 对应节点中的定位规则
-        routineRaw: null, // 还未知作用
-        serviceId: null, // 选择的插件id
-        serviceName: null, // 选择的插件名称
-        preCheck: 'N', // 高危检测
-        paramInfos: [] // 存在插件注册处需要填写的字段
+        customAttrs: {
+          procDefId: '', // 对应编排信息
+          procDefKey: '', // 对应编排信息
+          taskCategory: '', // 节点类型，SSTN自动节点 SUTN人工节点 SDTN数据写入节点 ----OK
+          timeoutExpression: '30', // 超时时间 ----OK
+          description: null, // 描述说明  ----OK
+          dynamicBind: 'N', // 动态绑定
+          associatedNodeId: null, // 动态绑定关联节点id
+          nodeType: '', // 节点类型，对应节点原始类型（start、end……
+          routineExpression: 'wecmdb:app_instance', // 对应节点中的定位规则
+          routineRaw: null, // 还未知作用
+          serviceId: null, // 选择的插件id
+          serviceName: null, // 选择的插件名称
+          preCheck: 'N', // 高危检测
+          paramInfos: [] // 存在插件注册处需要填写的字段
+        }
       }
-      this.itemCustomInfo = JSON.parse(JSON.stringify(Object.assign(defaultNode, data)))
-      this.$nextTick(() => {
-        console.log(33, this.itemCustomInfo.routineExpression)
-        this.$refs.filterRulesGroupRef &&
-          this.$refs.filterRulesGroupRef.changeRoutineExpressionItem(this.itemCustomInfo.routineExpression)
+      const tmpData = JSON.parse(JSON.stringify(data))
+      const customAttrs = tmpData.customAttrs || []
+      delete tmpData.customAttrs
+      this.itemCustomInfo = JSON.parse(JSON.stringify(Object.assign(defaultNode, tmpData)))
+      const keys = Object.keys(customAttrs)
+      keys.forEach(k => {
+        this.itemCustomInfo.customAttrs[k] = customAttrs[k]
       })
-      console.log(22, this.itemCustomInfo, data)
+      // this.$nextTick(() => {
+      //   this.$refs.filterRulesGroupRef &&
+      //     this.$refs.filterRulesGroupRef.changeRoutineExpressionItem(this.itemCustomInfo.customAttrs.routineExpression)
+      // })
     },
     saveItem () {
       const routineExpressionItem = this.$refs.filterRulesGroupRef.routineExpressionItem
-      this.itemCustomInfo.routineExpression = routineExpressionItem.reduce((tmp, item, index) => {
+      this.itemCustomInfo.customAttrs.routineExpression = routineExpressionItem.reduce((tmp, item, index) => {
         return (
           tmp +
           item.routineExpression +
@@ -195,7 +206,7 @@ export default {
     // 定位规则回传
     singleFilterRuleChanged (val) {
       console.log(44, val)
-      this.itemCustomInfo.routineExpression = val
+      this.itemCustomInfo.customAttrs.routineExpression = val
     },
     // 获取可选插件
     getPlugin () {

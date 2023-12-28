@@ -445,8 +445,10 @@ export default {
         label,
         // 形状
         type: shape,
-        nodeType, // 标记节点类型，后端需要的字段
-        taskCategory,
+        customAttrs: {
+          nodeType, // 标记节点类型，后端需要的字段
+          taskCategory
+        },
         style: {
           fill: fill || '',
           stroke: '#bbbbbb',
@@ -461,16 +463,12 @@ export default {
         anchorPoints: nodeDefaultAttr[nodeType].anchorPoints
       }
       this.graph.addItem('node', model)
-      console.log(44, model)
-      // this.$nextTick(() => {
       this.itemInfoType = 'node'
       this.$refs.itemInfoNodeRef.showItemInfo(model)
-      // })
     },
     setItemInfo (info) {
       // eslint-disable-next-line no-alert
       const item = this.graph.findById(info.id)
-      console.log(11, item, info)
       this.graph.updateItem(item, info)
     },
     saveSvg () {
