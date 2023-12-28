@@ -11,13 +11,32 @@
       <!-- 挂载节点 -->
       <div id="canvasPanel" ref="canvasPanel" @dragover.prevent />
       <!-- 信息配置 -->
-      <TtemInfoCanvas
-        v-show="itemInfoType === 'canvas'"
-        ref="itemInfoCanvasRef"
-        @sendItemInfo="setItemInfo"
-      ></TtemInfoCanvas>
-      <TtemInfoNode v-show="itemInfoType === 'node'" ref="itemInfoNodeRef" @sendItemInfo="setItemInfo"></TtemInfoNode>
-      <TtemInfoEdge v-show="itemInfoType === 'edge'" ref="itemInfoEdgeRef" @sendItemInfo="setItemInfo"></TtemInfoEdge>
+      <Transition appear>
+        <ItemInfoCanvas
+          v-show="itemInfoType === 'canvas'"
+          ref="itemInfoCanvasRef"
+          @sendItemInfo="setItemInfo"
+          @hideItemInfo="() => (itemInfoType = '')"
+        ></ItemInfoCanvas>
+      </Transition>
+      <Transition appear>
+        <ItemInfoNode
+          v-show="itemInfoType === 'node'"
+          ref="itemInfoNodeRef"
+          @sendItemInfo="setItemInfo"
+          @hideItemInfo="() => (itemInfoType = '')"
+        >
+        </ItemInfoNode>
+      </Transition>
+      <Transition appear>
+        <ItemInfoEdge
+          v-show="itemInfoType === 'edge'"
+          ref="itemInfoEdgeRef"
+          @sendItemInfo="setItemInfo"
+          @hideItemInfo="() => (itemInfoType = '')"
+        >
+        </ItemInfoEdge>
+      </Transition>
     </div>
   </div>
 </template>
@@ -27,9 +46,9 @@ import G6 from '@antv/g6'
 import FlowHeader from '@/pages/collaboration/flow/flow-header.vue'
 import registerFactory from './flow/graph/graph'
 import ItemPanel from '@/pages/collaboration/flow/item-panel.vue'
-import TtemInfoCanvas from '@/pages/collaboration/flow/item-info-canvas.vue'
-import TtemInfoEdge from '@/pages/collaboration/flow/item-info-edge.vue'
-import TtemInfoNode from '@/pages/collaboration/flow/item-info-node.vue'
+import ItemInfoCanvas from '@/pages/collaboration/flow/item-info-canvas.vue'
+import ItemInfoEdge from '@/pages/collaboration/flow/item-info-edge.vue'
+import ItemInfoNode from '@/pages/collaboration/flow/item-info-node.vue'
 import data from './flow/data.js'
 import { nodeDefaultAttr } from './flow/node-default-attr.js'
 
@@ -39,9 +58,9 @@ export default {
   components: {
     FlowHeader,
     ItemPanel,
-    TtemInfoCanvas,
-    TtemInfoNode,
-    TtemInfoEdge
+    ItemInfoCanvas,
+    ItemInfoNode,
+    ItemInfoEdge
   },
   data () {
     return {
@@ -508,5 +527,15 @@ export default {
   position: fixed;
   bottom: 30px; /* 调整按钮与底部的距离 */
   left: 30px; /* 将按钮水平居中 */
+}
+
+.v-enter-active,
+.v-leave-active {
+  transition: opacity 3.5s ease;
+}
+
+.v-enter-from,
+.v-leave-to {
+  opacity: 0;
 }
 </style>
