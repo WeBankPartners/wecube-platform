@@ -288,6 +288,7 @@ func LaunchPlugin(c *gin.Context) {
 		return
 	}
 	if running, err := database.CheckServerPortRunning(c, hostIp, port); err != nil {
+		log.Logger.Error("check server port running fail", log.Error(err))
 		middleware.ReturnError(c, err)
 		return
 	} else {
@@ -298,11 +299,13 @@ func LaunchPlugin(c *gin.Context) {
 	}
 	pluginPackageObj := models.PluginPackages{Id: pluginPackageId}
 	if err := database.GetSimplePluginPackage(c, &pluginPackageObj, true); err != nil {
+		log.Logger.Error("GetSimplePluginPackage fail", log.Error(err))
 		middleware.ReturnError(c, err)
 		return
 	}
 	resources, getResourceErr := database.GetPluginRuntimeResources(c, pluginPackageId)
 	if getResourceErr != nil {
+		log.Logger.Error("GetPluginRuntimeResources fail", log.Error(getResourceErr))
 		middleware.ReturnError(c, getResourceErr)
 		return
 	}

@@ -344,12 +344,12 @@ func GetResourceServer(ctx context.Context, serverType, serverIp string) (resour
 }
 
 func CheckServerPortRunning(ctx context.Context, serverIp string, port int) (running bool, err error) {
-	var rowNum int64
-	if rowNum, err = db.MysqlEngine.Count("select id from plugin_instances where host=? and port=? and container_status='RUNNING'", serverIp, port); err != nil {
-		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
+	queryResult, queryErr := db.MysqlEngine.Context(ctx).QueryString("select id from plugin_instances where host=? and port=? and container_status='RUNNING'", serverIp, port)
+	if queryErr != nil {
+		err = exterror.Catch(exterror.New().DatabaseQueryError, queryErr)
 		return
 	}
-	if rowNum > 0 {
+	if len(queryResult) > 0 {
 		running = true
 	}
 	return
@@ -369,8 +369,8 @@ func GetPluginMysqlInstance(ctx context.Context, name string) (result *models.Pl
 }
 
 func NewPluginMysqlInstance(ctx context.Context, mysqlInstance *models.PluginMysqlInstances) (err error) {
-	_, err = db.MysqlEngine.Context(ctx).Exec("INSERT INTO plugin_mysql_instances (id,password,plugun_package_id,resource_item_id,schema_name,status,username,pre_version,created_time) values (?,?,?,?,?,?,?,?,?)",
-		mysqlInstance.Id, mysqlInstance.Password, mysqlInstance.PluginPackageId, mysqlInstance.ResourceItemId, mysqlInstance.SchemaName, "active", mysqlInstance.Username, "", time.Now())
+	_, err = db.MysqlEngine.Context(ctx).Exec("INSERT INTO plugin_mysql_instances (id,password,plugun_package_id,plugin_package_id,resource_item_id,schema_name,status,username,pre_version,created_time) values (?,?,?,?,?,?,?,?,?,?)",
+		mysqlInstance.Id, mysqlInstance.Password, mysqlInstance.PluginPackageId, mysqlInstance.PluginPackageId, mysqlInstance.ResourceItemId, mysqlInstance.SchemaName, "active", mysqlInstance.Username, "", time.Now())
 	if err != nil {
 		err = exterror.Catch(exterror.New().DatabaseExecuteError, err)
 	}

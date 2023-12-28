@@ -66,7 +66,8 @@ type PluginPackageRuntimeResourcesS3 struct {
 type PluginMysqlInstances struct {
 	Id              string    `json:"id" xorm:"id"`                             // 唯一标识
 	Password        string    `json:"password" xorm:"password"`                 // 密码
-	PluginPackageId string    `json:"pluginPackageId" xorm:"plugin_package_id"` // 插件
+	PlugunPackageId string    `json:"plugunPackageId" xorm:"plugun_package_id"` // 插件
+	PluginPackageId string    `json:"pluginPackageId" xorm:"plugin_package_id"` // 插件-新
 	ResourceItemId  string    `json:"resourceItemId" xorm:"resource_item_id"`   // 资源实例id
 	SchemaName      string    `json:"schemaName" xorm:"schema_name"`            // 数据库名
 	Status          bool      `json:"status" xorm:"status"`                     // 状态->0(inactive)|1(active)
