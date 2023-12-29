@@ -1547,9 +1547,9 @@ export default {
   background-color: rgb(226, 222, 222);
   margin-bottom: 5px;
 }
-.ivu-upload-select {
-  display: none !important;
-}
+// .ivu-upload-select {
+//   display: none !important;
+// }
 </style>
 <style scoped lang="scss">
 .split {
