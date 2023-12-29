@@ -985,6 +985,18 @@ export default {
         })
         if (!xml) return
         const xmlString = xml.replace(/[\r\n]/g, '')
+
+        _this.serviceTaskBindInfos.forEach(node => {
+          if (
+            node.taskCategory !== 'SDTN' &&
+            node.routineExpression !== null &&
+            node.routineExpression.endsWith('#DMEOP#')
+          ) {
+            node.routineExpression = node.routineExpression.replace(/#DMEOP#$/, '')
+            node.routineRaw = node.routineRaw.replace(/#DMEOP#$/, '')
+          }
+          return node
+        })
         let payload = {
           permissionToRole: {
             MGMT: _this.mgmtRolesKeyToFlow,
