@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/rand"
 	"fmt"
+	"github.com/WeBankPartners/wecube-platform/platform-core/common/log"
 	"github.com/WeBankPartners/wecube-platform/platform-core/models"
 	_ "github.com/go-sql-driver/mysql"
 	"os/exec"
@@ -67,7 +68,7 @@ func GetRemoteHostAvailablePort(resourceServer *models.ResourceServer) (port int
 }
 
 func CreatePluginDatabase(ctx context.Context, username string, mysqlResource *models.PluginPackageRuntimeResourcesMysql, mysqlServer *models.ResourceServer) (password string, err error) {
-	connStr := fmt.Sprintf("%s:%s@%s(%s)?collation=utf8mb4_unicode_ci&allowNativePasswords=true",
+	connStr := fmt.Sprintf("%s:%s@%s(%s)/?collation=utf8mb4_unicode_ci&allowNativePasswords=true",
 		mysqlServer.LoginUsername, mysqlServer.LoginPassword, "tcp", fmt.Sprintf("%s:%s", mysqlServer.Host, mysqlServer.Port))
 	engine, connectErr := xorm.NewEngine("mysql", connStr)
 	if connectErr != nil {
@@ -77,6 +78,24 @@ func CreatePluginDatabase(ctx context.Context, username string, mysqlResource *m
 	session := engine.NewSession().Context(ctx)
 	session.Begin()
 	defer session.Close()
+	queryResult, queryErr := session.QueryString("show databases")
+	if queryErr == nil {
+		existFlag := false
+		for _, v := range queryResult {
+			if v["Database"] == mysqlResource.SchemaName {
+				existFlag = true
+			}
+		}
+		if existFlag {
+			log.Logger.Info("CreatePluginDatabase break,database already exists", log.String("database", mysqlResource.SchemaName))
+			session.Commit()
+			return
+		}
+	} else {
+		err = fmt.Errorf("try to query database list fail,%s ", queryErr.Error())
+		session.Rollback()
+		return
+	}
 	if _, err = session.Exec(fmt.Sprintf("CREATE DATABASE %s", mysqlResource.SchemaName)); err != nil {
 		session.Rollback()
 		return
