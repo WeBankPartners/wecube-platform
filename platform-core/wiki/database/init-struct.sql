@@ -129,7 +129,8 @@ CREATE TABLE `plugin_package_runtime_resources_s3` (
 CREATE TABLE `plugin_mysql_instances` (
       `id` varchar(64) NOT NULL COMMENT '唯一标识',
       `password` varchar(255) DEFAULT NULL COMMENT '密码',
-      `plugin_package_id` varchar(64) DEFAULT NULL COMMENT '插件',
+      `plugun_package_id` varchar(64) DEFAULT NULL COMMENT '插件',
+      `plugin_package_id` varchar(64) DEFAULT NULL COMMENT '插件-新',
       `resource_item_id` varchar(64) DEFAULT NULL COMMENT '资源实例id',
       `schema_name` varchar(64) DEFAULT NULL COMMENT '数据库名',
       `status` varchar(32) DEFAULT 'inactive' COMMENT '状态->inactive(未启用)|active(启用)',
