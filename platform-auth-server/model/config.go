@@ -51,9 +51,10 @@ type UmAuth struct {
 }
 
 type GlobalConfig struct {
-	Port     string         `json:"app_port"`
-	Log      LogConfig      `json:"log"`
-	Database DatabaseConfig `json:"database"`
+	ServerAddress string         `json:"server_address"`
+	ServerPort    string         `json:"server_port"`
+	Log           LogConfig      `json:"log"`
+	Database      DatabaseConfig `json:"database"`
 	//Remote   RemoteServiceConfig `json:"remote_service"`
 	//Auth AuthConfig `json:"auth"`
 	UmAuth             UmAuth             `json:"umAuth"`
