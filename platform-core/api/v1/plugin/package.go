@@ -288,6 +288,7 @@ func LaunchPlugin(c *gin.Context) {
 		return
 	}
 	if running, err := database.CheckServerPortRunning(c, hostIp, port); err != nil {
+		log.Logger.Error("check server port running fail", log.Error(err))
 		middleware.ReturnError(c, err)
 		return
 	} else {
@@ -298,11 +299,14 @@ func LaunchPlugin(c *gin.Context) {
 	}
 	pluginPackageObj := models.PluginPackages{Id: pluginPackageId}
 	if err := database.GetSimplePluginPackage(c, &pluginPackageObj, true); err != nil {
+		log.Logger.Error("GetSimplePluginPackage fail", log.Error(err))
 		middleware.ReturnError(c, err)
 		return
 	}
+	log.Logger.Debug("pluginPackage", log.JsonObj("data", pluginPackageObj))
 	resources, getResourceErr := database.GetPluginRuntimeResources(c, pluginPackageId)
 	if getResourceErr != nil {
+		log.Logger.Error("GetPluginRuntimeResources fail", log.Error(getResourceErr))
 		middleware.ReturnError(c, getResourceErr)
 		return
 	}
@@ -310,6 +314,7 @@ func LaunchPlugin(c *gin.Context) {
 		middleware.ReturnError(c, fmt.Errorf("plugin must contain docker resource"))
 		return
 	}
+	operator := middleware.GetRequestUser(c)
 	var mysqlInstance *models.PluginMysqlInstances
 	var mysqlServer *models.ResourceServer
 	pluginInstance := models.PluginInstances{
@@ -350,7 +355,7 @@ func LaunchPlugin(c *gin.Context) {
 					SchemaName:      mysqlResource.SchemaName,
 					Username:        pluginPackageObj.Name,
 				}
-				if err = database.NewPluginMysqlInstance(c, mysqlInstance); err != nil {
+				if err = database.NewPluginMysqlInstance(c, mysqlServer, mysqlInstance, operator); err != nil {
 					middleware.ReturnError(c, err)
 					return
 				}
@@ -369,10 +374,10 @@ func LaunchPlugin(c *gin.Context) {
 		if mysqlResource.UpgradeFileName != "" {
 			tmpFile, downloadErr := bash.DownloadPackageFile(models.Config.S3.PluginPackageBucket, fmt.Sprintf("%s/%s/%s", pluginPackageObj.Name, pluginPackageObj.Version, mysqlResource.UpgradeFileName))
 			if downloadErr != nil {
-				middleware.ReturnError(c, downloadErr)
-				return
+				log.Logger.Warn("plugin have no upgrade sql", log.String("plugin", pluginPackageObj.Name), log.String("version", pluginPackageObj.Version))
+			} else {
+				upgradeSqlFile = tmpFile
 			}
-			upgradeSqlFile = tmpFile
 		}
 		// 检查数据库脚本是否有更新
 		outputSqlFile, buildErr := bash.BuildPluginUpgradeSqlFile(intiSqlFile, upgradeSqlFile, mysqlInstance.PreVersion)
