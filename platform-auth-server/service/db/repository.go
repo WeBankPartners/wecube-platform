@@ -12,16 +12,20 @@ type AuthorityRepository struct {
 
 func (AuthorityRepository) FindNotDeletedOneByCode(code string) (*model.SysAuthorityEntity, error) {
 	authority := &model.SysAuthorityEntity{}
-	_, err := Engine.Where("code = ?", code).And("deleted = ?", false).Get(authority)
+	found, err := Engine.Where("code = ?", code).And("is_deleted = ?", false).Get(authority)
 	if err != nil {
 		return nil, err
 	}
-	return authority, nil
+	if found {
+		return authority, nil
+	} else {
+		return nil, nil
+	}
 }
 
 func (AuthorityRepository) FindAllNotDeletedAuthorities() ([]*model.SysAuthorityEntity, error) {
 	var authorities []*model.SysAuthorityEntity
-	err := Engine.Where("deleted = ?", false).Find(&authorities)
+	err := Engine.Where("is_deleted = ?", false).Find(&authorities)
 	if err != nil {
 		return nil, err
 	}
@@ -35,7 +39,7 @@ type RoleAuthorityRsRepository struct {
 
 func (RoleAuthorityRsRepository) FindAllConfiguredAuthoritiesByRoleId(roleId string) ([]*model.RoleAuthorityRsEntity, error) {
 	var authorities []*model.RoleAuthorityRsEntity
-	err := Engine.Where("role_id = ?", roleId).And("deleted = ?", false).Find(&authorities)
+	err := Engine.Where("role_id = ?", roleId).And("is_deleted = ?", false).Find(&authorities)
 	if err != nil {
 		return nil, err
 	}
@@ -48,11 +52,15 @@ func (RoleAuthorityRsRepository) FindOneByRoleIdAndAuthorityId(roleId, authority
 		session := Engine.NewSession()
 		defer session.Close()
 	}
-	_, err := session.Where("role_id = ?", roleId).And("authority_id = ?", authorityId).And("deleted = ?", false).Get(authority)
+	found, err := session.Where("role_id = ?", roleId).And("authority_id = ?", authorityId).And("is_deleted = ?", false).Get(authority)
 	if err != nil {
 		return nil, err
 	}
-	return authority, nil
+	if found {
+		return authority, nil
+	} else {
+		return nil, nil
+	}
 }
 
 func (RoleAuthorityRsRepository) FindOneByRoleIdAndAuthorityCode(roleId, authorityCode string, session *xorm.Session) (*model.RoleAuthorityRsEntity, error) {
@@ -61,11 +69,16 @@ func (RoleAuthorityRsRepository) FindOneByRoleIdAndAuthorityCode(roleId, authori
 		session := Engine.NewSession()
 		defer session.Close()
 	}
-	_, err := session.Where("role_id = ?", roleId).And("authority_code = ?", authorityCode).And("deleted = ?", false).Get(authority)
+	found, err := session.Where("role_id = ?", roleId).And("authority_code = ?", authorityCode).And("is_deleted = ?", false).Get(authority)
 	if err != nil {
 		return nil, err
 	}
-	return authority, nil
+
+	if found {
+		return authority, nil
+	} else {
+		return nil, nil
+	}
 }
 
 var RoleRepositoryInstance RoleRepository
@@ -75,11 +88,15 @@ type RoleRepository struct {
 
 func (RoleRepository) FindNotDeletedRoleByName(name string) (*model.SysRoleEntity, error) {
 	role := &model.SysRoleEntity{}
-	_, err := Engine.Where("name = ?", name).And("deleted = ?", false).Get(role)
+	found, err := Engine.Where("name = ?", name).And("is_deleted = ?", false).Get(role)
 	if err != nil {
 		return nil, err
 	}
-	return role, nil
+	if found {
+		return role, nil
+	} else {
+		return nil, nil
+	}
 }
 
 func (RoleRepository) FindAllRolesByName(name string) ([]*model.SysRoleEntity, error) {
@@ -93,7 +110,7 @@ func (RoleRepository) FindAllRolesByName(name string) ([]*model.SysRoleEntity, e
 
 func (RoleRepository) FindAllActiveRoles() ([]*model.SysRoleEntity, error) {
 	var roles []*model.SysRoleEntity
-	err := Engine.Where("active = ?", true).And("deleted = ?", false).Find(&roles)
+	err := Engine.Where("is_active = ?", true).And("is_deleted = ?", false).Find(&roles)
 	if err != nil {
 		return nil, err
 	}
@@ -116,7 +133,7 @@ type SubSystemAuthorityRsRepository struct {
 
 func (SubSystemAuthorityRsRepository) FindAllBySubSystemId(subSystemId string) ([]*model.SubSystemAuthorityRsEntity, error) {
 	var authorities []*model.SubSystemAuthorityRsEntity
-	err := Engine.Where("sub_system_id = ?", subSystemId).And("deleted = ?", false).Find(&authorities)
+	err := Engine.Where("sub_system_id = ?", subSystemId).And("is_deleted = ?", false).Find(&authorities)
 	if err != nil {
 		return nil, err
 	}
@@ -130,20 +147,30 @@ type SubSystemRepository struct {
 
 func (SubSystemRepository) FindOneBySystemCode(systemCode string) (*model.SysSubSystemEntity, error) {
 	subSystem := &model.SysSubSystemEntity{}
-	_, err := Engine.Where("system_code = ?", systemCode).Get(subSystem)
+	found, err := Engine.Where("system_code = ?", systemCode).Get(subSystem)
 	if err != nil {
 		return nil, err
 	}
-	return subSystem, nil
+
+	if found {
+		return subSystem, nil
+	} else {
+		return nil, nil
+	}
 }
 
 func (SubSystemRepository) FindOneBySystemName(name string) (*model.SysSubSystemEntity, error) {
 	subSystem := &model.SysSubSystemEntity{}
-	_, err := Engine.Where("name = ?", name).Get(subSystem)
+	found, err := Engine.Where("name = ?", name).Get(subSystem)
 	if err != nil {
 		return nil, err
 	}
-	return subSystem, nil
+
+	if found {
+		return subSystem, nil
+	} else {
+		return nil, nil
+	}
 }
 
 var UserRepositoryInstance UserRepository
@@ -153,16 +180,21 @@ type UserRepository struct {
 
 func (UserRepository) FindNotDeletedUserByUsername(username string) (*model.SysUserEntity, error) {
 	user := &model.SysUserEntity{}
-	_, err := Engine.Where("username = ?", username).And("deleted = ?", false).Get(user)
+	found, err := Engine.Where("username = ?", username).And("is_deleted = ?", false).Get(user)
 	if err != nil {
 		return nil, err
 	}
-	return user, nil
+
+	if found {
+		return user, nil
+	} else {
+		return nil, nil
+	}
 }
 
 func (UserRepository) FindAllActiveUsers() ([]*model.SysUserEntity, error) {
 	var users []*model.SysUserEntity
-	err := Engine.Where("deleted = ?", false).And("active = ?", true).And("blocked = ?", false).Find(&users)
+	err := Engine.Where("is_deleted = ?", false).And("is_active = ?", true).And("is_blocked = ?", false).Find(&users)
 	if err != nil {
 		return nil, err
 	}
@@ -176,7 +208,7 @@ type UserRoleRsRepository struct {
 
 func (UserRoleRsRepository) FindAllByRoleId(roleId string) ([]*model.UserRoleRsEntity, error) {
 	var userRoleRsList []*model.UserRoleRsEntity
-	err := Engine.Where("role_id = ?", roleId).And("deleted = ?", false).Find(&userRoleRsList)
+	err := Engine.Where("role_id = ?", roleId).And("is_deleted = ?", false).Find(&userRoleRsList)
 	if err != nil {
 		return nil, err
 	}
@@ -185,7 +217,7 @@ func (UserRoleRsRepository) FindAllByRoleId(roleId string) ([]*model.UserRoleRsE
 
 func (UserRoleRsRepository) FindAllByUserId(userId string) ([]*model.UserRoleRsEntity, error) {
 	var userRoleRsList []*model.UserRoleRsEntity
-	err := Engine.Where("user_id = ?", userId).And("deleted = ?", false).Find(&userRoleRsList)
+	err := Engine.Where("user_id = ?", userId).And("is_deleted = ?", false).Find(&userRoleRsList)
 	if err != nil {
 		return nil, err
 	}
@@ -199,9 +231,14 @@ func (UserRoleRsRepository) FindOneByUserIdAndRoleId(userId string, roleId strin
 	}
 
 	userRoleRs := &model.UserRoleRsEntity{}
-	_, err := session.Where("user_id = ?", userId).And("role_id = ?", roleId).And("deleted = ?", false).Get(userRoleRs)
+	found, err := session.Where("user_id = ?", userId).And("role_id = ?", roleId).And("is_deleted = ?", false).Get(userRoleRs)
 	if err != nil {
 		return nil, err
 	}
-	return userRoleRs, nil
+
+	if found {
+		return userRoleRs, nil
+	} else {
+		return nil, nil
+	}
 }
