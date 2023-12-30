@@ -33,6 +33,8 @@ func (UserManagementService) ResetLocalUserPassword(userPassDto *model.SimpleLoc
 func doResetLocalUserPassword(username string) (string, error) {
 	user, err := db.UserRepositoryInstance.FindNotDeletedUserByUsername(username)
 	if err != nil {
+		log.Logger.Error("failed to find not deleted user by user name", log.String("user name", username),
+			log.Error(err))
 		return "", err
 	}
 	if user == nil {
@@ -49,6 +51,7 @@ func doResetLocalUserPassword(username string) (string, error) {
 
 	encodedNewPassword, err := encodePassword(ranPassword)
 	if err != nil {
+		log.Logger.Error("failed to encode password", log.Error(err))
 		return "", err
 	}
 	user.Password = encodedNewPassword
@@ -93,6 +96,8 @@ func (UserManagementService) ModifyLocalUserPassword(userPassDto *model.SimpleLo
 func doModifyLocalUserPassword(username, originalPassword, toChangePassword string) (*model.SimpleLocalUserDto, error) {
 	user, err := db.UserRepositoryInstance.FindNotDeletedUserByUsername(username)
 	if err != nil {
+		log.Logger.Error("failed to find not deleted user by user name", log.String("user name", username),
+			log.Error(err))
 		return nil, err
 	}
 	if user == nil {
@@ -119,7 +124,8 @@ func doModifyLocalUserPassword(username, originalPassword, toChangePassword stri
 	}
 	user.Password = encodedNewPassword
 
-	if affected, err := db.Engine.Update(user); affected == 0 || err != nil {
+	user.UpdatedTime = time.Now()
+	if affected, err := db.Engine.ID(user.Id).Update(user); affected == 0 || err != nil {
 		if err != nil {
 			log.Logger.Error(fmt.Sprintf("failed to update user:%v", user.Id), log.Error(err))
 		}
@@ -153,14 +159,14 @@ func (UserManagementService) RevokeRoleFromUsers(roleId string, userDtos []*mode
 	session.Begin()
 	defer session.Close()
 
-	var role *model.SysRoleEntity
-	_, err := session.ID(roleId).Get(&role)
+	role := &model.SysRoleEntity{}
+	found, err := session.ID(roleId).Get(role)
 	if err != nil {
 		session.Rollback()
 		return err
 	}
 
-	if role == nil {
+	if !found {
 		session.Rollback()
 		log.Logger.Debug(fmt.Sprintf("revoking user roles error:such role entity does not exist, role id %v", roleId))
 		return exterror.Catch(exterror.New().AuthServer3018Error.WithParam(roleId), nil)
@@ -169,6 +175,8 @@ func (UserManagementService) RevokeRoleFromUsers(roleId string, userDtos []*mode
 	for _, userDto := range userDtos {
 		userRole, err := db.UserRoleRsRepositoryInstance.FindOneByUserIdAndRoleId(userDto.ID, role.Id, session)
 		if err != nil {
+			log.Logger.Error("failed to find userRoleRs", log.String("userId", userDto.ID), log.String("roleId", role.Id),
+				log.Error(err))
 			session.Rollback()
 			return err
 		}
@@ -183,7 +191,7 @@ func (UserManagementService) RevokeRoleFromUsers(roleId string, userDtos []*mode
 		userRole.Deleted = true
 		userRole.UpdatedBy = curUser
 		userRole.UpdatedTime = time.Now()
-		if affected, err := session.Update(userRole); affected == 0 || err != nil {
+		if affected, err := session.ID(userRole.Id).UseBool().Update(userRole); affected == 0 || err != nil {
 			if err != nil {
 				log.Logger.Error(fmt.Sprintf("failed to update userRoleRs:%v", userRole.Id), log.Error(err))
 			}
@@ -204,18 +212,21 @@ func (UserManagementService) ConfigureUserWithRoles(userId string, roleDtos []*m
 	if len(roleDtos) == 0 {
 		return nil
 	}
-	var user *model.SysUserEntity
+	user := &model.SysUserEntity{}
 
-	if _, err := session.ID(userId).Get(&user); err != nil {
+	found, err := session.ID(userId).Get(user)
+	if err != nil {
 		log.Logger.Error(fmt.Sprintf("failed to get user:%v", userId), log.Error(err))
 	}
-	if user == nil {
+	if !found {
 		session.Rollback()
 		return exterror.Catch(exterror.New().AuthServer3024Error.WithParam(userId), nil)
 	}
 
 	existUserRoles, err := db.UserRoleRsRepositoryInstance.FindAllByUserId(user.Id)
 	if err != nil {
+		log.Logger.Error("failed to find UserRoleRs by userId", log.String("userId", user.Id),
+			log.Error(err))
 		session.Rollback()
 		return err
 	}
@@ -228,12 +239,14 @@ func (UserManagementService) ConfigureUserWithRoles(userId string, roleDtos []*m
 	remainUserRoles := make([]*model.UserRoleRsEntity, 0)
 
 	for _, roleDto := range roleDtos {
-		var role *model.SysRoleEntity
-		if _, err := session.ID(roleDto.ID).Get(&role); err != nil {
+		role := &model.SysRoleEntity{}
+		found, err := session.ID(roleDto.ID).Get(role)
+		if err != nil {
+			log.Logger.Error("failed to get role", log.String("roleId", roleDto.ID), log.Error(err))
 			session.Rollback()
 			return err
 		}
-		if role == nil {
+		if !found {
 			session.Rollback()
 			return exterror.Catch(exterror.New().AuthServer3012Error, nil)
 		}
@@ -249,6 +262,8 @@ func (UserManagementService) ConfigureUserWithRoles(userId string, roleDtos []*m
 
 		userRole, err := db.UserRoleRsRepositoryInstance.FindOneByUserIdAndRoleId(userId, role.Id, session)
 		if err != nil {
+			log.Logger.Error("failed to find UserRoleRs", log.String("userId", userId), log.String("roleId", role.Id),
+				log.Error(err))
 			session.Rollback()
 			return err
 		}
@@ -257,11 +272,14 @@ func (UserManagementService) ConfigureUserWithRoles(userId string, roleDtos []*m
 			continue
 		} else {
 			userRole := &model.UserRoleRsEntity{
+				Id:        utils.Uuid(),
 				CreatedBy: curUser,
 				UserId:    userId,
 				Username:  user.Username,
 				RoleId:    role.Id,
 				RoleName:  role.Name,
+				Active:    true,
+				Deleted:   false,
 			}
 			affected, err := session.Insert(userRole)
 			if err != nil || affected == 0 {
@@ -289,7 +307,7 @@ func (UserManagementService) ConfigureUserWithRoles(userId string, roleDtos []*m
 		ur.UpdatedBy = curUser
 		ur.UpdatedTime = time.Now()
 
-		affected, err := session.Update(ur)
+		affected, err := session.ID(ur.Id).UseBool().Update(ur)
 		if affected == 0 || err != nil {
 			if err != nil {
 				log.Logger.Error("failed to update userRole", log.Error(err))
@@ -324,14 +342,14 @@ func (UserManagementService) RevokeRolesFromUser(userId string, roleDtos []*mode
 		session.Rollback()
 		return nil
 	}
-	var user *model.SysUserEntity
-	_, err := session.ID(userId).Get(&user)
+	user := &model.SysUserEntity{}
+	found, err := session.ID(userId).Get(user)
 	if err != nil {
 		session.Rollback()
 		return err
 	}
 
-	if user == nil {
+	if !found {
 		session.Rollback()
 		return exterror.Catch(exterror.New().AuthServer3024Error.WithParam(userId), nil)
 	}
@@ -353,7 +371,7 @@ func (UserManagementService) RevokeRolesFromUser(userId string, roleDtos []*mode
 		userRole.Deleted = true
 		userRole.UpdatedBy = curUser
 		userRole.UpdatedTime = time.Now()
-		affected, err := session.Update(userRole)
+		affected, err := session.ID(userRole.Id).UseBool().Update(userRole)
 		if affected == 0 || err != nil {
 			if err != nil {
 				log.Logger.Error("failed to update userRole", log.Error(err))
@@ -372,14 +390,15 @@ func (UserManagementService) ConfigureRoleForUsers(roleId string, userDtos []*mo
 	session.Begin()
 	defer session.Close()
 
-	var role *model.SysRoleEntity
-	_, err := session.ID(roleId).Get(&role)
+	role := &model.SysRoleEntity{}
+	found, err := session.ID(roleId).Get(role)
 	if err != nil {
+		log.Logger.Error("failed to get role", log.String("roleId", roleId), log.Error(err))
 		session.Rollback()
 		return err
 	}
 
-	if role == nil {
+	if !found {
 		session.Rollback()
 		return exterror.Catch(exterror.New().AuthServer3012Error.WithParam(roleId), nil)
 	}
@@ -391,18 +410,21 @@ func (UserManagementService) ConfigureRoleForUsers(roleId string, userDtos []*mo
 
 	for _, userDto := range userDtos {
 
-		var user *model.SysUserEntity
+		user := &model.SysUserEntity{}
 
-		if _, err := session.ID(userDto.ID).Get(&user); err != nil {
+		found, err := session.ID(userDto.ID).Get(user)
+		if err != nil {
 			log.Logger.Error(fmt.Sprintf("failed to get user:%v", userDto.ID), log.Error(err))
 		}
-		if user == nil {
+		if !found {
 			session.Rollback()
 			return exterror.Catch(exterror.New().AuthServer3019Error.WithParam(userDto.ID), nil)
 		}
 
 		userRole, err := db.UserRoleRsRepositoryInstance.FindOneByUserIdAndRoleId(userDto.ID, roleId, session)
 		if err != nil {
+			log.Logger.Error("failed to find UserRoleRs", log.String("userId", userDto.ID), log.String("roleId", roleId),
+				log.Error(err))
 			session.Rollback()
 			return err
 		}
@@ -411,11 +433,14 @@ func (UserManagementService) ConfigureRoleForUsers(roleId string, userDtos []*mo
 			continue
 		} else {
 			userRole = &model.UserRoleRsEntity{
+				Id:        utils.Uuid(),
 				CreatedBy: curUser,
 				UserId:    userDto.ID,
 				Username:  user.Username,
 				RoleId:    roleId,
 				RoleName:  role.Name,
+				Active:    true,
+				Deleted:   false,
 			}
 
 			affected, err := session.Insert(userRole)
@@ -441,6 +466,8 @@ func (UserManagementService) GetLocalRolesByUsername(username string) ([]*model.
 	}
 	user, err := db.UserRepositoryInstance.FindNotDeletedUserByUsername(username)
 	if err != nil {
+		log.Logger.Error("failed to find not deleted user by username", log.String("username", username),
+			log.Error(err))
 		return nil, err
 	}
 
@@ -450,6 +477,7 @@ func (UserManagementService) GetLocalRolesByUsername(username string) ([]*model.
 
 	userRoles, err := db.UserRoleRsRepositoryInstance.FindAllByUserId(user.Id)
 	if err != nil {
+		log.Logger.Error("failed to find UserRoleRs", log.String("userId", user.Id), log.Error(err))
 		return nil, err
 	}
 
@@ -458,13 +486,15 @@ func (UserManagementService) GetLocalRolesByUsername(username string) ([]*model.
 	}
 
 	for _, userRole := range userRoles {
-		var role *model.SysRoleEntity
-		_, err = db.Engine.ID(userRole.RoleId).Get(&role)
+		role := &model.SysRoleEntity{}
+		found, err := db.Engine.ID(userRole.RoleId).Get(role)
 		if err != nil {
+			log.Logger.Error("failed to get role", log.String("roleId", userRole.RoleId),
+				log.Error(err))
 			return nil, err
 		}
 
-		if role == nil {
+		if !found {
 			log.Logger.Debug(fmt.Sprintf("cannot find such role entity with role id %v", userRole.RoleId))
 			continue
 		}
@@ -493,6 +523,8 @@ func (UserManagementService) GetLocalUsersByRoleId(roleId string) ([]*model.Simp
 
 	userRoles, err := db.UserRoleRsRepositoryInstance.FindAllByRoleId(roleId)
 	if err != nil {
+		log.Logger.Error("failed to find UserRoleRs", log.String("roleId", roleId),
+			log.Error(err))
 		return nil, err
 	}
 	if len(userRoles) == 0 {
@@ -500,12 +532,14 @@ func (UserManagementService) GetLocalUsersByRoleId(roleId string) ([]*model.Simp
 	}
 
 	for _, userRole := range userRoles {
-		var user *model.SysUserEntity
+		user := &model.SysUserEntity{}
 
-		if _, err := db.Engine.ID(userRole.UserId).Get(&user); err != nil {
+		found, err := db.Engine.ID(userRole.UserId).Get(user)
+		if err != nil {
 			log.Logger.Error(fmt.Sprintf("failed to get user:%v", userRole.UserId), log.Error(err))
+			return nil, err
 		}
-		if user == nil {
+		if !found {
 			continue
 		}
 
@@ -517,13 +551,15 @@ func (UserManagementService) GetLocalUsersByRoleId(roleId string) ([]*model.Simp
 }
 
 func (UserManagementService) RetireveLocalUserByUserid(userId string) (*model.SimpleLocalUserDto, error) {
-	var user *model.SysUserEntity
+	user := &model.SysUserEntity{}
 
-	if _, err := db.Engine.ID(userId).Get(&user); err != nil {
+	found, err := db.Engine.ID(userId).Get(user)
+	if err != nil {
 		log.Logger.Error(fmt.Sprintf("failed to get user:%v", userId), log.Error(err))
+		return nil, err
 	}
 
-	if user == nil {
+	if !found {
 		log.Logger.Debug(fmt.Sprintf("Such user with ID %s does not exist.", userId))
 		return nil, exterror.Catch(exterror.New().AuthServer3024Error.WithParam(userId), nil)
 	}
@@ -539,6 +575,8 @@ func (UserManagementService) RetireveLocalUserByUserid(userId string) (*model.Si
 func (UserManagementService) ModifyLocalUserInfomation(username string, userDto *model.SimpleLocalUserDto, curUser string) (*model.SimpleLocalUserDto, error) {
 	user, err := db.UserRepositoryInstance.FindNotDeletedUserByUsername(username)
 	if err != nil {
+		log.Logger.Error("failed to find not deleted user by username", log.String("username", username),
+			log.Error(err))
 		return nil, err
 	}
 	if user == nil {
@@ -562,7 +600,7 @@ func (UserManagementService) ModifyLocalUserInfomation(username string, userDto 
 	user.UpdatedBy = curUser
 	user.UpdatedTime = time.Now()
 
-	if affected, err := db.Engine.Update(user); affected == 0 || err != nil {
+	if affected, err := db.Engine.ID(user.Id).Update(user); affected == 0 || err != nil {
 		if err != nil {
 			log.Logger.Error(fmt.Sprintf("failed to update user:%v", user.Id), log.Error(err))
 		}
@@ -578,6 +616,8 @@ func (UserManagementService) RegisterLocalUser(userDto *model.SimpleLocalUserDto
 
 	user, err := db.UserRepositoryInstance.FindNotDeletedUserByUsername(userDto.Username)
 	if err != nil {
+		log.Logger.Error("failed to find not deleted user by username", log.String("username", userDto.Username),
+			log.Error(err))
 		return nil, err
 	}
 	if user != nil {
@@ -624,6 +664,7 @@ func buildSysUserEntity(dto *model.SimpleLocalUserDto, curUser string) (*model.S
 	}
 
 	return &model.SysUserEntity{
+		Id:          utils.Uuid(),
 		Username:    dto.Username,
 		Password:    encodedNewPassword,
 		CreatedBy:   curUser,
@@ -636,12 +677,16 @@ func buildSysUserEntity(dto *model.SimpleLocalUserDto, curUser string) (*model.S
 		OfficeTelNo: dto.OfficeTelNo,
 		AuthSource:  dto.AuthSource,
 		AuthContext: dto.AuthContext,
+		IsActive:    true,
+		IsDeleted:   false,
+		IsBlocked:   false,
 	}, nil
 }
 
 func (UserManagementService) RetrieveAllActiveUsers() ([]*model.SimpleLocalUserDto, error) {
 	userEntities, err := db.UserRepositoryInstance.FindAllActiveUsers()
 	if err != nil {
+		log.Logger.Error("failed to find all active users", log.Error(err))
 		return nil, err
 	}
 
@@ -655,18 +700,22 @@ func (UserManagementService) RetrieveAllActiveUsers() ([]*model.SimpleLocalUserD
 
 		userRoles, err := db.UserRoleRsRepositoryInstance.FindAllByUserId(user.Id)
 		if err != nil {
+			log.Logger.Error("failed to find all UserRoleRs", log.String("userId", user.Id),
+				log.Error(err))
 			return nil, err
 		}
 		if len(userRoles) > 0 {
 			for _, userRole := range userRoles {
 
-				var role *model.SysRoleEntity
-				_, err = db.Engine.ID(userRole.RoleId).Get(&role)
+				role := &model.SysRoleEntity{}
+				found, err := db.Engine.ID(userRole.RoleId).Get(role)
 				if err != nil {
+					log.Logger.Error("failed to get role", log.String("roleId", userRole.RoleId),
+						log.Error(err))
 					return nil, err
 				}
 
-				if role != nil {
+				if found {
 					roleDto := &model.SimpleLocalRoleDto{
 						ID:          role.Id,
 						DisplayName: role.DisplayName,
@@ -690,12 +739,14 @@ func (UserManagementService) UnregisterLocalUser(userId string, curUser string) 
 	session.Begin()
 	defer session.Close()
 
-	var user *model.SysUserEntity
+	user := &model.SysUserEntity{}
 
-	if _, err := session.ID(userId).Get(&user); err != nil {
+	found, err := session.ID(userId).Get(user)
+	if err != nil {
 		log.Logger.Error(fmt.Sprintf("failed to get user:%v", userId), log.Error(err))
+		return err
 	}
-	if user == nil {
+	if !found {
 		session.Rollback()
 		return exterror.Catch(exterror.New().AuthServer3024Error.WithParam(userId), nil)
 	}
@@ -709,7 +760,7 @@ func (UserManagementService) UnregisterLocalUser(userId string, curUser string) 
 	user.IsDeleted = true
 	user.UpdatedBy = curUser
 	user.UpdatedTime = time.Now()
-	if affected, err := session.Update(user); affected == 0 || err != nil {
+	if affected, err := session.ID(user.Id).UseBool().Update(user); affected == 0 || err != nil {
 		if err != nil {
 			log.Logger.Error(fmt.Sprintf("failed to update user:%v", user.Id), log.Error(err))
 		}
@@ -718,6 +769,8 @@ func (UserManagementService) UnregisterLocalUser(userId string, curUser string) 
 
 	userRoles, err := db.UserRoleRsRepositoryInstance.FindAllByUserId(user.Id)
 	if err != nil {
+		log.Logger.Error("failed to find UserRoleRs by userId", log.String("userId", user.Id),
+			log.Error(err))
 		session.Rollback()
 		return err
 	}
@@ -729,7 +782,7 @@ func (UserManagementService) UnregisterLocalUser(userId string, curUser string) 
 			userRole.UpdatedBy = curUser
 			userRole.UpdatedTime = time.Now()
 
-			if affected, err := session.Update(userRole); affected == 0 || err != nil {
+			if affected, err := session.ID(userRole.Id).UseBool().Update(userRole); affected == 0 || err != nil {
 				if err != nil {
 					log.Logger.Error(fmt.Sprintf("failed to update userRoleRs:%v", userRole.Id), log.Error(err))
 				}
