@@ -44,3 +44,8 @@ type ResourceItemListPageData struct {
 	PageInfo *PageInfo       `json:"pageInfo"` // 分页信息
 	Contents []*ResourceItem `json:"contents"` // 列表内容
 }
+
+type MysqlResourceItemProperties struct {
+	Username string `json:"username"`
+	Password string `json:"password"`
+}

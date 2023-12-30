@@ -28,8 +28,9 @@ func ReturnError(c *gin.Context, err error) {
 	errorCode, errorKey, errorMessage := exterror.GetErrorResult(c.GetHeader("Accept-Language"), err, -1)
 	if !exterror.IsBusinessErrorCode(errorCode) {
 		log.Logger.Error("systemError", log.Int("errorCode", errorCode), log.String("message", errorMessage), log.Error(err))
+	} else {
+		log.Logger.Error("businessError", log.Int("errorCode", errorCode), log.String("message", errorMessage), log.Error(err))
 	}
-	log.Logger.Error("Return error", log.Int("errorCode", errorCode), log.String("message", errorMessage), log.Error(err))
 	returnObj := models.HttpResponseMeta{Code: errorCode, Status: errorKey, Message: errorMessage}
 	if log.DebugEnable {
 		bodyBytes, _ := json.Marshal(returnObj)
