@@ -2,6 +2,7 @@ package database
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"github.com/WeBankPartners/go-common-lib/guid"
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/db"
@@ -262,7 +263,12 @@ func GetSimplePluginPackage(ctx context.Context, param *models.PluginPackages, e
 				err = fmt.Errorf("can not find plugin packages with id:%s name:%s version:%s", param.Id, param.Name, param.Version)
 			}
 		} else {
-			param = pluginPackagesRows[0]
+			param.Id = pluginPackagesRows[0].Id
+			param.Name = pluginPackagesRows[0].Name
+			param.Version = pluginPackagesRows[0].Version
+			param.Edition = pluginPackagesRows[0].Edition
+			param.Status = pluginPackagesRows[0].Status
+			param.UiPackageIncluded = pluginPackagesRows[0].UiPackageIncluded
 		}
 	}
 	return
@@ -344,12 +350,12 @@ func GetResourceServer(ctx context.Context, serverType, serverIp string) (resour
 }
 
 func CheckServerPortRunning(ctx context.Context, serverIp string, port int) (running bool, err error) {
-	var rowNum int64
-	if rowNum, err = db.MysqlEngine.Count("select id from plugin_instances where host=? and port=? and container_status='RUNNING'", serverIp, port); err != nil {
-		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
+	queryResult, queryErr := db.MysqlEngine.Context(ctx).QueryString("select id from plugin_instances where host=? and port=? and container_status='RUNNING'", serverIp, port)
+	if queryErr != nil {
+		err = exterror.Catch(exterror.New().DatabaseQueryError, queryErr)
 		return
 	}
-	if rowNum > 0 {
+	if len(queryResult) > 0 {
 		running = true
 	}
 	return
@@ -368,9 +374,19 @@ func GetPluginMysqlInstance(ctx context.Context, name string) (result *models.Pl
 	return
 }
 
-func NewPluginMysqlInstance(ctx context.Context, mysqlInstance *models.PluginMysqlInstances) (err error) {
-	_, err = db.MysqlEngine.Context(ctx).Exec("INSERT INTO plugin_mysql_instances (id,password,plugun_package_id,resource_item_id,schema_name,status,username,pre_version,created_time) values (?,?,?,?,?,?,?,?,?)",
-		mysqlInstance.Id, mysqlInstance.Password, mysqlInstance.PluginPackageId, mysqlInstance.ResourceItemId, mysqlInstance.SchemaName, "active", mysqlInstance.Username, "", time.Now())
+func NewPluginMysqlInstance(ctx context.Context, mysqlServer *models.ResourceServer, mysqlInstance *models.PluginMysqlInstances, operator string) (err error) {
+	var actions []*db.ExecAction
+	nowTime := time.Now()
+	properties := models.MysqlResourceItemProperties{Username: mysqlInstance.Username, Password: mysqlInstance.Password}
+	propertiesBytes, _ := json.Marshal(&properties)
+	resourceItemId := "rs_item_" + guid.CreateGuid()
+	actions = append(actions, &db.ExecAction{Sql: "INSERT INTO resource_item (id,additional_properties,created_by,created_date,is_allocated,name,purpose,resource_server_id,status,`type`,updated_by,updated_date) values (?,?,?,?,?,?,?,?,?,?,?,?)", Param: []interface{}{
+		resourceItemId, string(propertiesBytes), operator, nowTime, 1, mysqlInstance.SchemaName, fmt.Sprintf("Create MySQL database for plugin[%s]", mysqlInstance.SchemaName), mysqlServer.Id, "created", "mysql_database", operator, nowTime,
+	}})
+	actions = append(actions, &db.ExecAction{Sql: "INSERT INTO plugin_mysql_instances (id,password,plugun_package_id,plugin_package_id,resource_item_id,schema_name,status,username,pre_version,created_time) values (?,?,?,?,?,?,?,?,?,?)", Param: []interface{}{
+		mysqlInstance.Id, mysqlInstance.Password, mysqlInstance.PluginPackageId, mysqlInstance.PluginPackageId, resourceItemId, mysqlInstance.SchemaName, "active", mysqlInstance.Username, "", time.Now(),
+	}})
+	err = db.Transaction(actions, ctx)
 	if err != nil {
 		err = exterror.Catch(exterror.New().DatabaseExecuteError, err)
 	}
