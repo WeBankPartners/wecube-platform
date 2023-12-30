@@ -87,7 +87,7 @@ func (AuthService) Login(credential *model.CredentialDto) (*model.Authentication
 	}
 }
 
-func (AuthService) Refresh(refreshToken string) ([]model.Jwt, error) {
+func (AuthService) RefreshToken(refreshToken string) ([]model.Jwt, error) {
 	jwtToken, err := jwt.ParseWithClaims(refreshToken, &model.AuthClaims{}, func(token *jwt.Token) (interface{}, error) {
 		return jwtPublicKey, nil
 	})
@@ -109,7 +109,8 @@ func (AuthService) Refresh(refreshToken string) ([]model.Jwt, error) {
 	}
 	//	loginId := claim.Subject
 
-	return nil, nil
+	jwts := packJwtTokens(claim.Subject, []string{}, claim.Authorities, "")
+	return jwts, nil
 }
 
 func validateSubsystemClaimForRefresh(claim *model.AuthClaims) ([]model.Jwt, error) {
