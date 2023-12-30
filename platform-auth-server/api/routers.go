@@ -26,6 +26,8 @@ var (
 	apiCodeMap          = make(map[string]string)
 )
 
+const UrlPrefix = "/auth"
+
 // NewRouter returns a new router.
 func NewRouter() *gin.Engine {
 	//redirectRoutes := buildRedirectRoutes()
@@ -37,19 +39,20 @@ func NewRouter() *gin.Engine {
 	}
 	router.Use(gin.CustomRecovery(middleware.RecoverHandle))
 	//router.Use(middleware.AuthApi)
+	group := router.Group(UrlPrefix)
 
 	for _, funcObj := range httpHandlerFuncList {
 		switch funcObj.Method {
 		case http.MethodGet:
-			router.GET(funcObj.Url, funcObj.HandlerFunc)
+			group.GET(funcObj.Url, funcObj.HandlerFunc)
 		case http.MethodPost:
-			router.POST(funcObj.Url, funcObj.HandlerFunc)
+			group.POST(funcObj.Url, funcObj.HandlerFunc)
 		case http.MethodPut:
-			router.PUT(funcObj.Url, funcObj.HandlerFunc)
+			group.PUT(funcObj.Url, funcObj.HandlerFunc)
 		case http.MethodPatch:
-			router.PATCH(funcObj.Url, funcObj.HandlerFunc)
+			group.PATCH(funcObj.Url, funcObj.HandlerFunc)
 		case http.MethodDelete:
-			router.DELETE(funcObj.Url, funcObj.HandlerFunc)
+			group.DELETE(funcObj.Url, funcObj.HandlerFunc)
 		}
 		apiCodeMap[fmt.Sprintf("%s_%s", funcObj.Url, funcObj.Method)] = funcObj.ApiCode
 	}
@@ -61,7 +64,7 @@ func init() {
 	httpHandlerFuncList = append(httpHandlerFuncList, // contract instance
 		&handlerFuncObj{Url: "/v1/authorities", Method: http.MethodPost, HandlerFunc: RegisterLocalAuthority,
 			ApiCode: "RegisterLocalAuthority"},
-		&handlerFuncObj{Url: "/v1/RetrieveAllLocalAuthorities", Method: http.MethodGet, HandlerFunc: RetrieveAllLocalAuthorities,
+		&handlerFuncObj{Url: "/v1/authorities", Method: http.MethodGet, HandlerFunc: RetrieveAllLocalAuthorities,
 			ApiCode: "RetrieveAllLocalAuthorities"},
 
 		&handlerFuncObj{Url: "/v1/roles", Method: http.MethodPost, HandlerFunc: RegisterLocalRole,
@@ -111,10 +114,11 @@ func init() {
 			ApiCode: "UnregisterLocalUser"},
 		&handlerFuncObj{Url: "/v1/roles/:role-id/users", Method: http.MethodGet, HandlerFunc: GetUsersByRoleId,
 			ApiCode: "GetUsersByRoleId"},
-		&handlerFuncObj{Url: "/users/:username/roles", Method: http.MethodGet, HandlerFunc: GetRolesByUsername,
+		//TODO: /v1/users/:username/roles
+		&handlerFuncObj{Url: "/v1/users/roles-by-name/:username", Method: http.MethodGet, HandlerFunc: GetRolesByUsername,
 			ApiCode: "GetRolesByUsername"},
 		&handlerFuncObj{Url: "/v1/roles/:role-id/users", Method: http.MethodPost, HandlerFunc: ConfigureRoleForUsers,
-			ApiCode: "ModifyLocalUserInfomation"},
+			ApiCode: "ConfigureRoleForUsers"},
 		&handlerFuncObj{Url: "/v1/users/:user-id/roles", Method: http.MethodPost, HandlerFunc: ConfigureUserWithRoles,
 			ApiCode: "ConfigureUserWithRoles"},
 		&handlerFuncObj{Url: "/v1/roles/:role-id/users/revoke", Method: http.MethodPost, HandlerFunc: RevokeRoleFromUsers,
