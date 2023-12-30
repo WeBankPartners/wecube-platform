@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"github.com/google/uuid"
 	"math"
 	"regexp"
 	"strings"
@@ -81,4 +82,9 @@ func EqualsIgnoreCase(s1, s2 string) bool {
 func IsEmailValid(email string) bool {
 	emailRegex := regexp.MustCompile(`^([\w-]+(?:\.[\w-]+)*)@((?:[\w-]+\.)*\w[\w-]{0,66})\.([a-z]{2,6}(?:\.[a-z]{2})?)$`)
 	return emailRegex.MatchString(email)
+}
+
+func Uuid() string {
+	uuidWithHythen := uuid.New().String()
+	return strings.ReplaceAll(uuidWithHythen, "-", "")
 }
