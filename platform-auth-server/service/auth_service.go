@@ -324,7 +324,7 @@ func additionalAuthenticationChecks(user *model.SysUser, credential *model.Crede
 		result, _, err := api_um.UmAuthenticate(credential)
 		if err != nil {
 			errMsg := "failed to authenticate with token"
-			log.Logger.Error(errMsg)
+			log.Logger.Error(errMsg, log.Error(err))
 			rtErr := fmt.Errorf(errMsg)
 			return rtErr
 		}
@@ -342,6 +342,7 @@ func additionalAuthenticationChecks(user *model.SysUser, credential *model.Crede
 func checkAuthentication(user *model.SysUser, credential *model.CredentialDto) error {
 	presentedPassword := credential.Password
 	if err := bcrypt.CompareHashAndPassword([]byte(presentedPassword), []byte(user.Password)); err != nil {
+		log.Logger.Warn("failed to compare hash and password", log.Error(err))
 		return exterror.NewBadCredentialsError("Bad credential:bad password.")
 	}
 
