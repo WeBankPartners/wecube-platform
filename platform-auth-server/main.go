@@ -9,6 +9,7 @@ import (
 	"github.com/WeBankPartners/wecube-platform/platform-auth-server/common/log"
 	"github.com/WeBankPartners/wecube-platform/platform-auth-server/model"
 	"github.com/WeBankPartners/wecube-platform/platform-auth-server/service"
+	"github.com/WeBankPartners/wecube-platform/platform-auth-server/service/db"
 	"github.com/WeBankPartners/wecube-platform/platform-auth-server/service/jwt"
 )
 
@@ -42,8 +43,12 @@ func main() {
 		fmt.Printf("failed to init auth service key")
 		return
 	}
+	if initDbError := db.InitDatabase(); initDbError != nil {
+		log.Logger.Error("Init db connection error", log.Error(initDbError))
+		return
+	}
 
 	router := sw.NewRouter()
-	go router.Run(":" + model.Config.Port)
+	router.Run(":" + model.Config.ServerPort)
 
 }

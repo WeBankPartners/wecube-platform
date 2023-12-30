@@ -75,7 +75,7 @@ func tryAuthenticateSubSystem(subSystem *model.SubSystemTokenDto) (*model.JwtTok
 	systemCode := subSystem.SystemCode
 	subSystemInfo, err := SubSystemInfoDataServiceImplInstance.retrieveSysSubSystemInfoWithSystemCode(systemCode)
 	if err != nil {
-
+		return nil, err
 	}
 	if subSystemInfo == nil {
 		msg := fmt.Sprintf("Sub system %s does not exist.", systemCode)
@@ -170,6 +170,9 @@ func formatDate(dateTime time.Time) string {
 }
 
 func validateStrictPermission(currUser *model.AuthenticatedUser) error {
+	//TODO
+	return nil
+
 	if currUser == nil {
 		return exterror.NewAuthServerError("Lack of permission.")
 	}
@@ -205,12 +208,16 @@ func (SubSystemManagementService) RegisterSubSystem(subSystemDto *model.SimpleSu
 
 	subSystem, err := db.SubSystemRepositoryInstance.FindOneBySystemCode(subSystemDto.SystemCode)
 	if err != nil {
+		log.Logger.Error("failed to find SubSystem", log.String("systemCode", subSystemDto.SystemCode),
+			log.Error(err))
 		return nil, err
 	}
 
 	if subSystem == nil {
 		subSystem, err = db.SubSystemRepositoryInstance.FindOneBySystemName(subSystemDto.Name)
 		if err != nil {
+			log.Logger.Error("failed to find subSystem by system name", log.String("subsystem name", subSystemDto.Name),
+				log.Error(err))
 			return nil, err
 		}
 		//subSystem = subSystemRepository.findOneBySystemName(subSystemDto.getName());
@@ -225,11 +232,14 @@ func (SubSystemManagementService) RegisterSubSystem(subSystemDto *model.SimpleSu
 
 	keyPair, err := utils.InitAsymmetricKeyPair()
 	if err != nil {
+		log.Logger.Error("failed to init asymmetric key paire", log.Error(err))
 		return nil, err
 	}
 
 	subSystem = &model.SysSubSystemEntity{
-		CreatedBy:   currUser.Username,
+		Id: utils.Uuid(),
+		//TODO
+		//CreatedBy:   currUser.Username,
 		Description: subSystemDto.Description,
 		ApiKey:      keyPair.PrivateKey,
 		PubApiKey:   keyPair.PublicKey,
@@ -271,6 +281,8 @@ func (SubSystemManagementService) RetrieveSubSystemApikey(systemCode string) (*m
 
 	subSystem, err := db.SubSystemRepositoryInstance.FindOneBySystemCode(systemCode)
 	if err != nil {
+		log.Logger.Error("failed to find SubSystem by systemcode", log.String("systemcode", systemCode),
+			log.Error(err))
 		return nil, err
 	}
 
@@ -295,6 +307,8 @@ func (SubSystemManagementService) RetrieveSubSystemByName(name string, currUser 
 	}
 	subSystem, err := db.SubSystemRepositoryInstance.FindOneBySystemName(name)
 	if err != nil {
+		log.Logger.Error("failed to find Subsystem by system name", log.String("system name", name),
+			log.Error(err))
 		return nil, err
 	}
 
@@ -311,6 +325,7 @@ func (SubSystemManagementService) RetrieveAllSubSystems(currUser *model.Authenti
 	}
 	subSystems := make([]*model.SysSubSystemEntity, 0)
 	if err := db.Engine.Find(&subSystems); err != nil {
+		log.Logger.Error("failed to find subsystem", log.Error(err))
 		return nil, err
 	}
 

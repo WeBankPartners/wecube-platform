@@ -24,7 +24,7 @@ func InitLogger() {
 	}
 	Logger = logger.InitArchiveZapLogger(logger.LogConfig{
 		Name:             "server",
-		FilePath:         fmt.Sprintf("%s/scene-mgmt.log", baseLogDir),
+		FilePath:         fmt.Sprintf("%s/auth-server.log", baseLogDir),
 		LogLevel:         model.Config.Log.Level,
 		ArchiveMaxSize:   model.Config.Log.ArchiveMaxSize,
 		ArchiveMaxBackup: model.Config.Log.ArchiveMaxBackup,
@@ -34,7 +34,7 @@ func InitLogger() {
 	if model.Config.Log.AccessLogEnable {
 		AccessLogger = logger.InitArchiveZapLogger(logger.LogConfig{
 			Name:             "access",
-			FilePath:         fmt.Sprintf("%s/scene-mgmt-access.log", baseLogDir),
+			FilePath:         fmt.Sprintf("%s/auth-server-access.log", baseLogDir),
 			LogLevel:         model.Config.Log.Level,
 			ArchiveMaxSize:   model.Config.Log.ArchiveMaxSize,
 			ArchiveMaxBackup: model.Config.Log.ArchiveMaxBackup,
@@ -45,7 +45,7 @@ func InitLogger() {
 	if model.Config.Log.DbLogEnable {
 		DatabaseLogger = logger.InitArchiveZapLogger(logger.LogConfig{
 			Name:             "database",
-			FilePath:         fmt.Sprintf("%s/scene-mgmt-db.log", baseLogDir),
+			FilePath:         fmt.Sprintf("%s/auth-server-db.log", baseLogDir),
 			LogLevel:         model.Config.Log.Level,
 			ArchiveMaxSize:   model.Config.Log.ArchiveMaxSize,
 			ArchiveMaxBackup: model.Config.Log.ArchiveMaxBackup,
@@ -55,7 +55,7 @@ func InitLogger() {
 	}
 	MetricLogger = logger.InitMetricZapLogger(logger.LogConfig{
 		Name:             "metric",
-		FilePath:         fmt.Sprintf("%s/scene-mgmt-metric.log", baseLogDir),
+		FilePath:         fmt.Sprintf("%s/auth-server-metric.log", baseLogDir),
 		LogLevel:         model.Config.Log.Level,
 		ArchiveMaxSize:   model.Config.Log.ArchiveMaxSize,
 		ArchiveMaxBackup: model.Config.Log.ArchiveMaxBackup,

@@ -5,8 +5,10 @@ import (
 	"github.com/WeBankPartners/wecube-platform/platform-auth-server/common/constant"
 	"github.com/WeBankPartners/wecube-platform/platform-auth-server/common/exterror"
 	"github.com/WeBankPartners/wecube-platform/platform-auth-server/common/log"
+	"github.com/WeBankPartners/wecube-platform/platform-auth-server/common/utils"
 	"github.com/WeBankPartners/wecube-platform/platform-auth-server/model"
 	"github.com/WeBankPartners/wecube-platform/platform-auth-server/service/db"
+	"time"
 )
 
 var AuthorityManagementServiceInstance AuthorityManagementService
@@ -21,6 +23,7 @@ func (a AuthorityManagementService) RegisterLocalAuthority(authDto model.SimpleA
 
 	authority, err := db.AuthorityRepositoryInstance.FindNotDeletedOneByCode(authDto.Code)
 	if err != nil {
+		log.Logger.Warn("can not find not deleted auth by code", log.String("code", authDto.Code), log.Error(err))
 		return nil, err
 	}
 
@@ -36,6 +39,7 @@ func (a AuthorityManagementService) RegisterLocalAuthority(authDto model.SimpleA
 	}
 
 	authority = &model.SysAuthorityEntity{
+		Id:          utils.Uuid(),
 		Active:      true,
 		Code:        authDto.Code,
 		CreatedBy:   curUser,
@@ -43,6 +47,7 @@ func (a AuthorityManagementService) RegisterLocalAuthority(authDto model.SimpleA
 		Description: authDto.Description,
 		DisplayName: authDto.DisplayName,
 		Scope:       scope,
+		CreatedTime: time.Now(),
 	}
 	db.Engine.Insert(authority)
 
@@ -65,6 +70,7 @@ func (a AuthorityManagementService) RetrieveAllLocalAuthorities() ([]*model.Simp
 	result := make([]*model.SimpleAuthorityDto, 0)
 	authorities, err := db.AuthorityRepositoryInstance.FindAllNotDeletedAuthorities()
 	if err != nil {
+		log.Logger.Error("failed to find all not deleted auth", log.Error(err))
 		return nil, err
 	}
 	if len(authorities) == 0 {

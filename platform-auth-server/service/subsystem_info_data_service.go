@@ -22,6 +22,7 @@ func (SubSystemInfoDataServiceImpl) retrieveSysSubSystemInfoWithSystemCode(syste
 
 	subSystem, err := db.SubSystemRepositoryInstance.FindOneBySystemCode(systemCode)
 	if err != nil {
+		log.Logger.Error("failed to find by subsystem by systemcode", log.String("systemcode", systemCode), log.Error(err))
 		return nil, err
 	}
 
@@ -36,6 +37,8 @@ func (SubSystemInfoDataServiceImpl) retrieveSysSubSystemInfoWithSystemCode(syste
 
 	subSystemAuthorities, err := db.SubSystemAuthorityRsRepositoryInstance.FindAllBySubSystemId(subSystem.Id)
 	if err != nil {
+		log.Logger.Error("failed to find all SubSystemAuthorityRsEntity", log.String("subSystem id", subSystem.Id),
+			log.Error(err))
 		return nil, err
 	}
 
@@ -45,9 +48,11 @@ func (SubSystemInfoDataServiceImpl) retrieveSysSubSystemInfoWithSystemCode(syste
 				continue
 			}
 
-			var authority *model.SysAuthorityEntity
-			existed, err := db.Engine.ID(subSystemAuthority.AuthorityID).Get(&authority)
+			authority := &model.SysAuthorityEntity{}
+			existed, err := db.Engine.ID(subSystemAuthority.AuthorityID).Get(authority)
 			if err != nil {
+				log.Logger.Error("failed to get authority", log.String("authorityId", subSystemAuthority.AuthorityID),
+					log.Error(err))
 				return nil, err
 			}
 

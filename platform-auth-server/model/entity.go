@@ -28,6 +28,10 @@ type SysApiEntity struct {
 	SystemId   int64  `xorm:"'SYSTEM_ID'"`
 }
 
+func (SysApiEntity) TableName() string {
+	return "auth_sys_api"
+}
+
 type SysAuthorityEntity struct {
 	Id          string    `xorm:"'ID' pk"`
 	CreatedBy   string    `xorm:"'CREATED_BY'"`
@@ -42,6 +46,10 @@ type SysAuthorityEntity struct {
 	DisplayName string `xorm:"'DISPLAY_NAME'"`
 	Scope       string `xorm:"'SCOPE'"`
 	Description string `xorm:"'DESCRIPTION'"`
+}
+
+func (SysAuthorityEntity) TableName() string {
+	return "auth_sys_authority"
 }
 
 type RoleAuthorityRsEntity struct {
@@ -60,6 +68,10 @@ type RoleAuthorityRsEntity struct {
 	AuthorityCode string `xorm:"'AUTHORITY_CODE'"`
 }
 
+func (RoleAuthorityRsEntity) TableName() string {
+	return "auth_sys_role_authority"
+}
+
 type SysRoleEntity struct {
 	Id          string    `xorm:"'ID' pk"`
 	CreatedBy   string    `xorm:"'CREATED_BY'"`
@@ -74,6 +86,10 @@ type SysRoleEntity struct {
 	DisplayName  string `xorm:"'DISPLAY_NAME'"`
 	EmailAddress string `xorm:"'EMAIL_ADDR'"`
 	Description  string `xorm:"'DESCRIPTION'"`
+}
+
+func (SysRoleEntity) TableName() string {
+	return "auth_sys_role"
 }
 
 func (s *SysRoleEntity) GetRoleDeletedStatus() string {
@@ -101,6 +117,10 @@ type SubSystemAuthorityRsEntity struct {
 	AuthorityCode string `xorm:"'AUTHORITY_CODE'"`
 }
 
+func (SubSystemAuthorityRsEntity) TableName() string {
+	return "auth_sys_sub_system_authority"
+}
+
 type SysSubSystemEntity struct {
 	Id          string    `xorm:"'ID' pk"`
 	CreatedBy   string    `xorm:"'CREATED_BY'"`
@@ -115,6 +135,10 @@ type SysSubSystemEntity struct {
 	Description string `xorm:"'DESCRIPTION'"`
 	IsActive    bool   `xorm:"'IS_ACTIVE'"`
 	IsBlocked   bool   `xorm:"'IS_BLOCKED'"`
+}
+
+func (SysSubSystemEntity) TableName() string {
+	return "auth_sys_sub_system"
 }
 
 type SysUserEntity struct {
@@ -140,6 +164,10 @@ type SysUserEntity struct {
 	AuthContext string `xorm:"'AUTH_CTX'"`
 }
 
+func (SysUserEntity) TableName() string {
+	return "auth_sys_user"
+}
+
 type UserRoleRsEntity struct {
 	Id          string    `xorm:"'ID' pk"`
 	CreatedBy   string    `xorm:"'CREATED_BY'"`
@@ -154,4 +182,8 @@ type UserRoleRsEntity struct {
 	Username string `xorm:"'USERNAME'"`
 	RoleId   string `xorm:"'ROLE_ID'"`
 	RoleName string `xorm:"'ROLE_NAME'"`
+}
+
+func (UserRoleRsEntity) TableName() string {
+	return "auth_sys_user_role"
 }
