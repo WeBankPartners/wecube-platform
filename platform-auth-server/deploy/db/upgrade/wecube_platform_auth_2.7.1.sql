@@ -1,0 +1,1 @@
+update auth_sys_role set display_name = '后台系统', description = '用来作为WeCube组件间权限认证' where id = '8ab86ba0723a78fe01723a790ceb0000';
