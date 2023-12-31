@@ -3,6 +3,7 @@ package api
 import (
 	"fmt"
 	"github.com/WeBankPartners/wecube-platform/platform-auth-server/api/middleware"
+	"github.com/WeBankPartners/wecube-platform/platform-auth-server/common/constant"
 	"github.com/WeBankPartners/wecube-platform/platform-auth-server/model"
 	"net/http"
 
@@ -26,8 +27,6 @@ var (
 	apiCodeMap          = make(map[string]string)
 )
 
-const UrlPrefix = "/auth"
-
 // NewRouter returns a new router.
 func NewRouter() *gin.Engine {
 	//redirectRoutes := buildRedirectRoutes()
@@ -39,7 +38,8 @@ func NewRouter() *gin.Engine {
 	}
 	router.Use(gin.CustomRecovery(middleware.RecoverHandle))
 	//router.Use(middleware.AuthApi)
-	group := router.Group(UrlPrefix)
+	group := router.Group(constant.UrlPrefix)
+	group.Use(middleware.AuthApi)
 
 	for _, funcObj := range httpHandlerFuncList {
 		switch funcObj.Method {
@@ -62,6 +62,9 @@ func NewRouter() *gin.Engine {
 
 func init() {
 	httpHandlerFuncList = append(httpHandlerFuncList, // contract instance
+		&handlerFuncObj{Url: constant.UriLogin, Method: http.MethodPost, HandlerFunc: Login,
+			ApiCode: "Login"},
+
 		&handlerFuncObj{Url: "/v1/authorities", Method: http.MethodPost, HandlerFunc: RegisterLocalAuthority,
 			ApiCode: "RegisterLocalAuthority"},
 		&handlerFuncObj{Url: "/v1/authorities", Method: http.MethodGet, HandlerFunc: RetrieveAllLocalAuthorities,
