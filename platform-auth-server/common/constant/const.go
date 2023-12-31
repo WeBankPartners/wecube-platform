@@ -10,9 +10,11 @@ const (
 	AuthSourceUm    = "UM"
 	AuthSourceLocal = "LOCAL"
 
-	UrlPrefix           = ""
+	UrlPrefix           = "/auth"
 	AuthorizationHeader = "Authorization"
 	RefreshTokenHeader  = "Authorization-Info"
+	UriLogin            = "/v1/api/login"
+	UriHealthCheck      = "/v1/health-check"
 
 	Operator = "operator"
 
