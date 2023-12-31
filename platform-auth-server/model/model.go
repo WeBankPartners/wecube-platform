@@ -19,8 +19,8 @@ type SubSystemAuthenticationToken struct {
 }
 
 type AuthenticatedUser struct {
-	Username           string
-	Token              string
+	Username string
+	//Token              string
 	GrantedAuthorities []string
 }
 

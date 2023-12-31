@@ -16,6 +16,7 @@ import (
 
 const (
 	JwtTokenPrefix = "Bearer "
+	AuthClaim      = "authClaim"
 )
 
 func InitAuth() error {
@@ -39,24 +40,28 @@ func AuthApi(c *gin.Context) {
 		c.Abort()
 		return
 	}
-	//apiUri := c.Request.URL.Path[len(constant.UrlPrefix):]
 
-	authClaim, err := GetTokenData(c.GetHeader(constant.AuthorizationHeader), model.Config.Auth.JwtPublicKeyBytes)
-	if err != nil {
-		log.Logger.Warn("failed to validate jwt token", log.Error(err))
-		//support.ReturnErrorWithHttpCode(c, exterror.Catch(exterror.New().AuthManagerTokenError, err), http.StatusUnauthorized)
-		support.ReturnErrorWithHttpCode(c, errors.New("failed to validate jwt token"), http.StatusUnauthorized)
+	if c.Request.RequestURI == constant.UrlPrefix+constant.UriLogin {
+		c.Next()
+	} else {
+		//apiUri := c.Request.URL.Path[len(constant.UrlPrefix):]
+		authClaim, err := getTokenData(c.GetHeader(constant.AuthorizationHeader), model.Config.Auth.JwtPublicKeyBytes)
+		if err != nil {
+			log.Logger.Warn("failed to validate jwt token", log.Error(err))
+			//support.ReturnErrorWithHttpCode(c, exterror.Catch(exterror.New().AuthManagerTokenError, err), http.StatusUnauthorized)
+			support.ReturnErrorWithHttpCode(c, errors.New("failed to validate jwt token"), http.StatusUnauthorized)
 
-		c.Abort()
-		return
+			c.Abort()
+			return
+		}
+		//c.Set("needAuth", true)
+		c.Set(constant.Operator, fmt.Sprintf("%s", authClaim.Subject))
+		c.Set(AuthClaim, authClaim)
+		c.Next()
 	}
-	//c.Set("needAuth", true)
-	c.Set(constant.Operator, fmt.Sprintf("%s", authClaim.Subject))
-	//c.Set("auth", authClaim.Auth)
-	c.Next()
 }
 
-func GetTokenData(tokenString string, jwtPublicKeyBytes []byte) (authClaim *model.AuthClaims, err error) {
+func getTokenData(tokenString string, jwtPublicKeyBytes []byte) (authClaim *model.AuthClaims, err error) {
 	if strings.HasPrefix(tokenString, JwtTokenPrefix) {
 		tokenString = tokenString[7:]
 	}
@@ -87,7 +92,13 @@ func GetRequestUser(c *gin.Context) string {
 	return c.GetString(constant.Operator)
 }
 
-//TODO
 func GetAuthenticatedUser(c *gin.Context) *model.AuthenticatedUser {
+	if authClaim, existed := c.Get(AuthClaim); existed {
+		claim := authClaim.(*model.AuthClaims)
+		return &model.AuthenticatedUser{
+			Username:           claim.Subject,
+			GrantedAuthorities: claim.Authorities,
+		}
+	}
 	return nil
 }
