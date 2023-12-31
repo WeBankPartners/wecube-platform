@@ -170,8 +170,6 @@ func formatDate(dateTime time.Time) string {
 }
 
 func validateStrictPermission(currUser *model.AuthenticatedUser) error {
-	//TODO
-	return nil
 
 	if currUser == nil {
 		return exterror.NewAuthServerError("Lack of permission.")
