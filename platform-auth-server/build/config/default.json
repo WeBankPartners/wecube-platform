@@ -24,12 +24,10 @@
     "timeout": 60
   },
   "auth":{
-    "jwt_private_key_path":"[#admin_jwt_private_key_path]",
-    "jwt_public_key_path":"[#admin_jwt_public_key_path]",
+    "jwt_private_key_path":"[#jwt_private_key_path]",
+    "jwt_public_key_path":"[#jwt_public_key_path]",
     "access_token_mins":[#auth_access_token_mins],
     "refresh_token_hours":[#auth_refresh_token_hours],
-    "web_public_key_path":"[#web_public_key_path]",
-    "web_private_key_path":"[#web_private_key_path]"
   },
   "umAuth": {
     "address": "[#um_address]",
