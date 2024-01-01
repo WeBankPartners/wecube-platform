@@ -35,7 +35,7 @@ func NewRouter() *gin.Engine {
 		router.Use(middleware.HttpLogHandle())
 	}
 	router.Use(gin.CustomRecovery(middleware.RecoverHandle))
-	//router.Use(middleware.AuthApi)
+	router.Use(middleware.Redirect())
 
 	for _, funcObj := range httpHandlerFuncList {
 		switch funcObj.Method {
@@ -59,9 +59,13 @@ func NewRouter() *gin.Engine {
 func init() {
 	httpHandlerFuncList = append(httpHandlerFuncList,
 		&handlerFuncObj{Url: "/gateway/v1/route-items", Method: http.MethodPost, HandlerFunc: RefreshRoute,
-			ApiCode: "refresh-route"},
+			ApiCode: "RefreshRoute"},
 		&handlerFuncObj{Url: "/gateway/v1/route-items", Method: http.MethodGet, HandlerFunc: ListRouteItems,
-			ApiCode: "refresh-route"},
+			ApiCode: "ListRouteItems"},
+		&handlerFuncObj{Url: "/gateway/v1/loaded-routes", Method: http.MethodGet, HandlerFunc: ListLoadedRouteItems,
+			ApiCode: "ListLoadedRouteItems"},
+		&handlerFuncObj{Url: "/gateway/v1/route-items/:route-name", Method: http.MethodDelete, HandlerFunc: DeleteRouteItems,
+			ApiCode: "DeleteRouteItems"},
 	)
 
 }
