@@ -29,6 +29,6 @@ func main() {
 	log.Logger.Info("Server started")
 
 	router := sw.NewRouter()
-	go router.Run(":" + model.Config.Port)
+	router.Run(":" + model.Config.Port)
 
 }
