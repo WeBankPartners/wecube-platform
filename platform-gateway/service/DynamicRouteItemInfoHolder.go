@@ -36,12 +36,12 @@ type DynamicRouteItemInfoHolder struct {
 	mvcContextRouteConfigs         sync.Map
 	lastVersion                    int
 	currentVersion                 int
-	unreachableHttpDestinations    []*HttpDestination
+	unreachableHttpDestinations    []*model.HttpDestination
 	outdatedMvcContextRouteConfigs []*MvcContextRouteConfig
 }
 
 func (h DynamicRouteItemInfoHolder) Init() {
-	h.unreachableHttpDestinations = make([]*HttpDestination, 0)
+	h.unreachableHttpDestinations = make([]*model.HttpDestination, 0)
 	h.outdatedMvcContextRouteConfigs = make([]*MvcContextRouteConfig, 0)
 }
 
@@ -82,14 +82,14 @@ func (h *DynamicRouteItemInfoHolder) tryAddDynamicRouteItemInfo(item *DynamicRou
 	existConfig = val.(*MvcContextRouteConfig)
 	if !ok {
 		existConfig = &MvcContextRouteConfig{
-			context: item.Context,
+			Context: item.Context,
 		}
 		h.mvcContextRouteConfigs.Store(item.Context, existConfig)
 	}
 
 	existConfig.SetVersion(h.currentVersion)
 	if len(item.HttpMethod) == 0 && len(item.Path) == 0 {
-		existConfig.tryAddMvcHttpMethodAndPathConfig2(item.Path, &HttpDestination{
+		existConfig.tryAddMvcHttpMethodAndPathConfig2(item.Path, &model.HttpDestination{
 			Scheme: item.HttpScheme,
 			Host:   item.Host,
 			Port:   item.Port,
@@ -103,7 +103,7 @@ func (h *DynamicRouteItemInfoHolder) tryAddDynamicRouteItemInfo(item *DynamicRou
 	}
 
 	existConfig.tryAddMvcHttpMethodAndPathConfig(item.Path, item.HttpMethod,
-		&HttpDestination{
+		&model.HttpDestination{
 			Scheme: item.HttpScheme,
 			Host:   item.Host,
 			Port:   item.Port,
@@ -112,7 +112,7 @@ func (h *DynamicRouteItemInfoHolder) tryAddDynamicRouteItemInfo(item *DynamicRou
 }
 
 func (h *DynamicRouteItemInfoHolder) clearUnreachableHttpDestinations() {
-	h.unreachableHttpDestinations = make([]*HttpDestination, 0)
+	h.unreachableHttpDestinations = make([]*model.HttpDestination, 0)
 }
 
 func (h *DynamicRouteItemInfoHolder) cleanOutdatedMvcContextRouteConfigs() {
@@ -124,14 +124,14 @@ func (h *DynamicRouteItemInfoHolder) cleanMvcContextRouteConfigs() {
 		config := value.(*MvcContextRouteConfig)
 		config.cleanOutdated()
 
-		if config.version < h.currentVersion {
+		if config.Version < h.currentVersion {
 			h.outdatedMvcContextRouteConfigs = append(h.outdatedMvcContextRouteConfigs, config)
 		}
 		return true // Return true to continue iterating, or false to stop
 	})
 
 	for _, config := range h.outdatedMvcContextRouteConfigs {
-		h.mvcContextRouteConfigs.Delete(config.context)
+		h.mvcContextRouteConfigs.Delete(config.Context)
 	}
 }
 
@@ -155,13 +155,13 @@ func (h *DynamicRouteItemInfoHolder) findRoute(context, path, httpMethod string)
 	return ctxConfig.findByMvcHttpMethodAndPath(httpMethod, path)
 }
 
-func (h *DynamicRouteItemInfoHolder) findDefaultRoute(context, path, httpMethod string) []*HttpDestination {
+func (h *DynamicRouteItemInfoHolder) findDefaultRoute(context, path, httpMethod string) []*model.HttpDestination {
 	ctxConfig := h.findContextConfig(context, path, httpMethod)
 	if ctxConfig == nil {
-		return make([]*HttpDestination, 0)
+		return make([]*model.HttpDestination, 0)
 	}
 
-	return ctxConfig.defaultHttpDestinations
+	return ctxConfig.DefaultHttpDestinations
 
 }
 
@@ -176,7 +176,7 @@ func (h *DynamicRouteItemInfoHolder) getMvcContextRouteConfig(context string) *M
 	return nil
 }
 
-func (h *DynamicRouteItemInfoHolder) routeConfigs() []*MvcContextRouteConfig {
+func (h *DynamicRouteItemInfoHolder) RouteConfigs() []*MvcContextRouteConfig {
 	values := make([]*MvcContextRouteConfig, 0)
 	h.mvcContextRouteConfigs.Range(func(key, value interface{}) bool {
 		values = append(values, value.(*MvcContextRouteConfig))
