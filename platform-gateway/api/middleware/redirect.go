@@ -9,20 +9,22 @@ import (
 
 type RedirectRule struct {
 	Context string
+	Uri     string
 	//Method          string
 	TargetPath string
 	//TargetAddress string
 	//Name          string
 	//LogAction       bool
-	HttpScheme      string
-	Host            string
-	Port            string
-	RequestHandler  support.RequestHandlerFunc
-	ResponseHandler support.ResponseHandlerFunc
+	HttpScheme string
+	Host       string
+	Port       string
+	//RequestHandler  support.RequestHandlerFunc
+	//ResponseHandler support.ResponseHandlerFunc
 }
 
 //var redirectRuleMap map[string]*RedirectRule
 var redirectRuleMap sync.Map
+var lock sync.Mutex
 
 //var mapLock sync.Mutex
 
@@ -36,9 +38,9 @@ func Redirect() gin.HandlerFunc {
 			rule := val.(RedirectRule)
 			targetUrl := rule.TargetPath
 			invoke := support.RedirectInvoke{
-				TargetUrl:       targetUrl,
-				RequestHandler:  rule.RequestHandler,
-				ResponseHandler: rule.ResponseHandler,
+				TargetUrl: targetUrl,
+				//RequestHandler:  rule.RequestHandler,
+				//ResponseHandler: rule.ResponseHandler,
 			}
 			invoke.Do(c)
 		}
@@ -47,13 +49,22 @@ func Redirect() gin.HandlerFunc {
 }
 
 func AddRedirectRule(rule RedirectRule) {
-	key := BuildRequestKey(rule.Context)
+	key := BuildRequestKey(rule.Uri)
 	redirectRuleMap.Store(key, rule)
 }
 
-func RemoveRule(rule RedirectRule) {
-	key := BuildRequestKey(rule.Context)
-	redirectRuleMap.Delete(key)
+func RemoveRule(context string) {
+	lock.Lock()
+	defer lock.Unlock()
+
+	redirectRuleMap.Range(func(key, value interface{}) bool {
+		rule := value.(RedirectRule)
+		if context == rule.Context {
+			redirectRuleMap.Delete(key)
+		}
+		return true
+	})
+
 }
 
 func GetAllRedirectRules() []RedirectRule {
@@ -66,7 +77,7 @@ func GetAllRedirectRules() []RedirectRule {
 	return rules
 }
 
-func BuildRequestKey(context string) string {
+func BuildRequestKey(uri string) string {
 	//return fmt.Sprintf("%s_%s", path, method)
-	return fmt.Sprintf("/%s/**", context)
+	return fmt.Sprintf("/%s/**", uri)
 }
