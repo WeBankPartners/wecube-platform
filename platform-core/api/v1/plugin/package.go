@@ -7,6 +7,7 @@ import (
 	"github.com/WeBankPartners/wecube-platform/platform-core/api/middleware"
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/exterror"
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/log"
+	"github.com/WeBankPartners/wecube-platform/platform-core/common/tools"
 	"github.com/WeBankPartners/wecube-platform/platform-core/models"
 	"github.com/WeBankPartners/wecube-platform/platform-core/services/bash"
 	"github.com/WeBankPartners/wecube-platform/platform-core/services/database"
@@ -355,39 +356,46 @@ func LaunchPlugin(c *gin.Context) {
 					SchemaName:      mysqlResource.SchemaName,
 					Username:        pluginPackageObj.Name,
 				}
+				log.Logger.Debug("database pwd", log.String("pass", dbPass))
 				if err = database.NewPluginMysqlInstance(c, mysqlServer, mysqlInstance, operator); err != nil {
 					middleware.ReturnError(c, err)
 					return
 				}
 			}
 		}
-		// 把s3上的init.sql下载来到本地
-		var intiSqlFile, upgradeSqlFile string
-		if mysqlResource.InitFileName != "" {
-			tmpFile, downloadErr := bash.DownloadPackageFile(models.Config.S3.PluginPackageBucket, fmt.Sprintf("%s/%s/%s", pluginPackageObj.Name, pluginPackageObj.Version, mysqlResource.InitFileName))
-			if downloadErr != nil {
-				middleware.ReturnError(c, downloadErr)
+		if tools.CompareVersion(pluginPackageObj.Version, mysqlInstance.PreVersion) {
+			// 把s3上的init.sql下载来到本地
+			var intiSqlFile, upgradeSqlFile string
+			if mysqlResource.InitFileName != "" {
+				tmpFile, downloadErr := bash.DownloadPackageFile(models.Config.S3.PluginPackageBucket, fmt.Sprintf("%s/%s/%s", pluginPackageObj.Name, pluginPackageObj.Version, mysqlResource.InitFileName))
+				if downloadErr != nil {
+					middleware.ReturnError(c, downloadErr)
+					return
+				}
+				intiSqlFile = tmpFile
+			}
+			if mysqlResource.UpgradeFileName != "" {
+				tmpFile, downloadErr := bash.DownloadPackageFile(models.Config.S3.PluginPackageBucket, fmt.Sprintf("%s/%s/%s", pluginPackageObj.Name, pluginPackageObj.Version, mysqlResource.UpgradeFileName))
+				if downloadErr != nil {
+					log.Logger.Warn("plugin have no upgrade sql", log.String("plugin", pluginPackageObj.Name), log.String("version", pluginPackageObj.Version))
+				} else {
+					upgradeSqlFile = tmpFile
+				}
+			}
+			// 检查数据库脚本是否有更新
+			outputSqlFile, buildErr := bash.BuildPluginUpgradeSqlFile(intiSqlFile, upgradeSqlFile, mysqlInstance.PreVersion)
+			if buildErr != nil {
+				middleware.ReturnError(c, buildErr)
 				return
 			}
-			intiSqlFile = tmpFile
-		}
-		if mysqlResource.UpgradeFileName != "" {
-			tmpFile, downloadErr := bash.DownloadPackageFile(models.Config.S3.PluginPackageBucket, fmt.Sprintf("%s/%s/%s", pluginPackageObj.Name, pluginPackageObj.Version, mysqlResource.UpgradeFileName))
-			if downloadErr != nil {
-				log.Logger.Warn("plugin have no upgrade sql", log.String("plugin", pluginPackageObj.Name), log.String("version", pluginPackageObj.Version))
-			} else {
-				upgradeSqlFile = tmpFile
+			// 执行数据库脚本并更新纪录
+			if outputSqlFile != "" {
+				if err := bash.ExecPluginUpgradeSql(c, mysqlInstance, mysqlServer, outputSqlFile); err != nil {
+					middleware.ReturnError(c, err)
+					return
+				}
 			}
-		}
-		// 检查数据库脚本是否有更新
-		outputSqlFile, buildErr := bash.BuildPluginUpgradeSqlFile(intiSqlFile, upgradeSqlFile, mysqlInstance.PreVersion)
-		if buildErr != nil {
-			middleware.ReturnError(c, buildErr)
-			return
-		}
-		// 执行数据库脚本并更新纪录
-		if outputSqlFile != "" {
-			if err := bash.ExecPluginUpgradeSql(c, mysqlInstance, mysqlServer, outputSqlFile); err != nil {
+			if err := database.UpdatePluginMysqlInstancePreVersion(c, mysqlInstance.Id, pluginPackageObj.Version); err != nil {
 				middleware.ReturnError(c, err)
 				return
 			}
@@ -437,6 +445,7 @@ func LaunchPlugin(c *gin.Context) {
 		middleware.ReturnError(c, err)
 		return
 	}
+	log.Logger.Info("scp plugin image file", log.String("targetHost", dockerServer.Host), log.String("tmpFile", tmpImageFile), log.String("targetPath", targetImagePath))
 	if err = bash.RemoteSSHCommand(dockerServer.Host, fmt.Sprintf("docker load --input %s && rm -f %s", targetImagePath, targetImagePath)); err != nil {
 		middleware.ReturnError(c, err)
 		return
@@ -471,7 +480,7 @@ func LaunchPlugin(c *gin.Context) {
 
 // RemovePlugin 运行管理 - 插件实例销毁
 func RemovePlugin(c *gin.Context) {
-	pluginInstanceId := c.Param("pluginInstance")
+	pluginInstanceId := c.Param("pluginInstanceId")
 	pluginInstanceObj, err := database.GetPluginInstance(pluginInstanceId)
 	if err != nil {
 		middleware.ReturnError(c, err)
@@ -513,11 +522,23 @@ func getEnvMap(input string, envMap map[string]string) (inputList []string) {
 
 func replaceEnvMap(inputList []string, replaceMap map[string]string) (outputList []string) {
 	for _, input := range inputList {
+		inputV := input
 		if strings.Contains(input, "{{") {
 			for k, v := range replaceMap {
-				outputList = append(outputList, strings.ReplaceAll(input, k, v))
+				inputV = strings.ReplaceAll(inputV, k, v)
 			}
 		}
+		outputList = append(outputList, inputV)
 	}
 	return
+}
+
+func GetPluginRunningInstances(c *gin.Context) {
+	pluginPackageId := c.Param("pluginPackageId")
+	result, err := database.GetPluginRunningInstances(c, pluginPackageId)
+	if err != nil {
+		middleware.ReturnError(c, err)
+	} else {
+		middleware.ReturnData(c, result)
+	}
 }
