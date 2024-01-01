@@ -184,6 +184,12 @@ func UploadPackage(ctx context.Context, registerConfig *models.RegisterXML, with
 			svId, registerConfig.Name, systemVariable.Name, "", systemVariable.DefaultValue, systemVariable.ScopeType, variableSource, models.SystemVariableInactive,
 		}})
 	}
+	for _, pluginMenu := range registerConfig.Menus.Menu {
+		menuId := "p_menu_" + guid.CreateGuid()
+		actions = append(actions, &db.ExecAction{Sql: "insert into plugin_package_menus(id,plugin_package_id,code,category,display_name,local_display_name,`path`) values (?,?,?,?,?,?,?)", Param: []interface{}{
+			menuId, pluginPackageId, pluginMenu.Code, pluginMenu.Cat, pluginMenu.DisplayName, pluginMenu.LocalDisplayName, pluginMenu.Text,
+		}})
+	}
 	for _, dependence := range registerConfig.PackageDependencies.PackageDependency {
 		depId := "p_pkg_dep_" + guid.CreateGuid()
 		actions = append(actions, &db.ExecAction{Sql: "insert into plugin_package_dependencies (id,plugin_package_id,dependency_package_name,dependency_package_version) values (?,?,?,?)", Param: []interface{}{
@@ -393,6 +399,14 @@ func NewPluginMysqlInstance(ctx context.Context, mysqlServer *models.ResourceSer
 	return
 }
 
+func UpdatePluginMysqlInstancePreVersion(ctx context.Context, mysqlInstanceId, preVersion string) (err error) {
+	_, err = db.MysqlEngine.Context(ctx).Exec("update plugin_mysql_instances set pre_version=? where id=?", preVersion, mysqlInstanceId)
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseExecuteError, err)
+	}
+	return
+}
+
 func BuildDockerEnvMap(ctx context.Context, envMap map[string]string) (replaceMap map[string]string, err error) {
 	if envMap == nil {
 		return nil, fmt.Errorf("illegal docker env map")
@@ -435,9 +449,23 @@ func BuildDockerEnvMap(ctx context.Context, envMap map[string]string) (replaceMa
 
 func LaunchPlugin(ctx context.Context, pluginInstance *models.PluginInstances) (err error) {
 	var actions []*db.ExecAction
-	actions = append(actions, &db.ExecAction{Sql: "INSERT INTO plugin_instances (id,host,container_name,port,container_status,package_id,docker_instance_resource_id,instance_name,plugin_mysql_instance_resource_id,s3bucket_resource_id) values (?,?,?,?,?,?,?,?,?,?)", Param: []interface{}{
-		pluginInstance.Id, pluginInstance.Host, pluginInstance.ContainerName, pluginInstance.Port, pluginInstance.ContainerStatus, pluginInstance.PackageId, pluginInstance.DockerInstanceResourceId, pluginInstance.InstanceName, pluginInstance.PluginMysqlInstanceResourceId, pluginInstance.S3bucketResourceId,
-	}})
+	insertInsAction := &db.ExecAction{Sql: "INSERT INTO plugin_instances (id,host,container_name,port,container_status,package_id,docker_instance_resource_id,instance_name,plugin_mysql_instance_resource_id,s3bucket_resource_id) values (?,?,?,?,?,?,?,?,?,?)", Param: []interface{}{
+		pluginInstance.Id, pluginInstance.Host, pluginInstance.ContainerName, pluginInstance.Port, pluginInstance.ContainerStatus, pluginInstance.PackageId, pluginInstance.DockerInstanceResourceId, pluginInstance.InstanceName,
+	}}
+	if pluginInstance.PluginMysqlInstanceResourceId != "" {
+		insertInsAction.Param = append(insertInsAction.Param, pluginInstance.PluginMysqlInstanceResourceId)
+	} else {
+		insertInsAction.Param = append(insertInsAction.Param, nil)
+	}
+	if pluginInstance.S3bucketResourceId != "" {
+		insertInsAction.Param = append(insertInsAction.Param, pluginInstance.S3bucketResourceId)
+	} else {
+		insertInsAction.Param = append(insertInsAction.Param, nil)
+	}
+	actions = append(actions, insertInsAction)
+	//actions = append(actions, &db.ExecAction{Sql: "INSERT INTO plugin_instances (id,host,container_name,port,container_status,package_id,docker_instance_resource_id,instance_name,plugin_mysql_instance_resource_id,s3bucket_resource_id) values (?,?,?,?,?,?,?,?,?,?)", Param: []interface{}{
+	//	pluginInstance.Id, pluginInstance.Host, pluginInstance.ContainerName, pluginInstance.Port, pluginInstance.ContainerStatus, pluginInstance.PackageId, pluginInstance.DockerInstanceResourceId, pluginInstance.InstanceName, pluginInstance.PluginMysqlInstanceResourceId, pluginInstance.S3bucketResourceId,
+	//}})
 	actions = append(actions, &db.ExecAction{Sql: "update plugin_package_menus set active=1 where plugin_package_id=?", Param: []interface{}{pluginInstance.PackageId}})
 	if err = db.Transaction(actions, ctx); err != nil {
 		err = exterror.Catch(exterror.New().DatabaseExecuteError, err)
@@ -473,6 +501,15 @@ func RemovePlugin(ctx context.Context, pluginPackageId, pluginInstanceId string)
 	}
 	if err = db.Transaction(actions, ctx); err != nil {
 		err = exterror.Catch(exterror.New().DatabaseExecuteError, err)
+	}
+	return
+}
+
+func GetPluginRunningInstances(ctx context.Context, pluginPackageId string) (result []*models.PluginInstances, err error) {
+	result = []*models.PluginInstances{}
+	err = db.MysqlEngine.Context(ctx).SQL("select * from plugin_instances where package_id=?", pluginPackageId).Find(&result)
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
 	}
 	return
 }

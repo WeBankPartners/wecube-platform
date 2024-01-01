@@ -18,6 +18,7 @@ func RemoteSSHCommand(targetIp, command string) (err error) {
 	_, err = exec.Command("/bin/bash", "-c", commandString).Output()
 	if err != nil {
 		err = fmt.Errorf("run remote ssh command to target %s fail,%s ", targetIp, err.Error())
+		log.Logger.Debug("run remote ssh command fail", log.String("cmd", commandString), log.String("targetIp", targetIp))
 	}
 	return
 }
@@ -97,24 +98,32 @@ func CreatePluginDatabase(ctx context.Context, username string, mysqlResource *m
 		return
 	}
 	if _, err = session.Exec(fmt.Sprintf("CREATE DATABASE %s", mysqlResource.SchemaName)); err != nil {
+		log.Logger.Error("try to create plugin database fail", log.String("database", mysqlResource.SchemaName), log.Error(err))
 		session.Rollback()
 		return
 	}
+	log.Logger.Info("create plugin mysql database done", log.String("database", mysqlResource.SchemaName))
 	b := make([]byte, 16)
 	rand.Read(b)
 	password = fmt.Sprintf("%x", b[4:8])
 	if _, err = session.Exec(fmt.Sprintf("CREATE USER '%s'@'%%' IDENTIFIED BY '%s'", username, password)); err != nil {
+		log.Logger.Error("try to create plugin user fail,rollback", log.String("user", username), log.Error(err))
 		session.Rollback()
 		return
 	}
+	log.Logger.Info("create plugin mysql user done", log.String("user", username))
 	if _, err = session.Exec(fmt.Sprintf("GRANT ALL PRIVILEGES ON %s.* TO '%s'@'%%'", mysqlResource.SchemaName, username)); err != nil {
+		log.Logger.Error("try to grant plugin privileges to user fail,rollback", log.String("database", mysqlResource.SchemaName), log.String("user", username), log.Error(err))
 		session.Rollback()
 		return
 	}
+	log.Logger.Info("grant plugin mysql privileges done", log.String("database", mysqlResource.SchemaName), log.String("user", username))
 	if _, err = session.Exec("flush privileges"); err != nil {
+		log.Logger.Error("try to flush privileges fail,rollback", log.String("database", mysqlResource.SchemaName), log.String("user", username), log.Error(err))
 		session.Rollback()
 		return
 	}
+	log.Logger.Info("flush privileges done", log.String("database", mysqlResource.SchemaName), log.String("user", username))
 	session.Commit()
 	return
 }
@@ -129,7 +138,8 @@ func ExecPluginUpgradeSql(ctx context.Context, mysqlInstance *models.PluginMysql
 	}
 	session := engine.NewSession().Context(ctx)
 	session.Begin()
-	if _, err = session.Exec("source " + sqlFilePath); err != nil {
+	_, err = session.ImportFile(sqlFilePath)
+	if err != nil {
 		session.Rollback()
 	} else {
 		session.Commit()

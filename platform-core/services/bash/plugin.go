@@ -103,19 +103,24 @@ func BuildPluginUpgradeSqlFile(initSqlFile, upgradeSqlFile, currentVersion strin
 			err = fmt.Errorf("read file error,%s ", err.Error())
 			return
 		}
-		startFlag := false
-		for _, v := range strings.Split(string(fileBytes), "\n") {
-			if !startFlag {
-				if matchList := re.FindStringSubmatch(strings.TrimSpace(v)); len(matchList) > 1 {
-					if tools.CompareVersion(matchList[1], currentVersion) {
-						startFlag = true
+		if currentVersion == "" {
+			buff.Write(fileBytes)
+		} else {
+			startFlag := false
+			for _, v := range strings.Split(string(fileBytes), "\n") {
+				if !startFlag {
+					if matchList := re.FindStringSubmatch(strings.TrimSpace(v)); len(matchList) > 1 {
+						if tools.CompareVersion(matchList[1], currentVersion) {
+							startFlag = true
+						}
+					}
+					if !startFlag {
+						continue
 					}
 				}
-				if !startFlag {
-					continue
-				}
+				lineValue := strings.ReplaceAll(v, "\r", "")
+				buff.WriteString(lineValue + "\n")
 			}
-			buff.WriteString(strings.ReplaceAll(v, "\r", "") + "\n")
 		}
 	}
 	if upgradeSqlFile != "" {
