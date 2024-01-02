@@ -11,6 +11,7 @@ import (
 	"github.com/WeBankPartners/wecube-platform/platform-core/models"
 	"github.com/WeBankPartners/wecube-platform/platform-core/services/bash"
 	"github.com/WeBankPartners/wecube-platform/platform-core/services/database"
+	"github.com/WeBankPartners/wecube-platform/platform-core/services/remote"
 	"github.com/gin-gonic/gin"
 	"os"
 	"regexp"
@@ -423,6 +424,19 @@ func LaunchPlugin(c *gin.Context) {
 			envMap["DB_PORT"] = mysqlServer.Port
 		}
 	}
+	// 向auth server注册插件并返回插件认证的code和pubKey,插件会拿着这两个东西去获取插件专属的token来访问platform
+	subSystemCode, subSystemKey, registerAuthErr := remote.RegisterSubSystem(&pluginPackageObj)
+	if registerAuthErr != nil {
+		middleware.ReturnError(c, registerAuthErr)
+		return
+	}
+	envMap["SUB_SYSTEM_CODE"] = subSystemCode
+	envMap["SUB_SYSTEM_KEY"] = subSystemKey
+	// 企业版的认证信息环境变量
+	if err := buildPluginProCertification(envMap, &pluginPackageObj, subSystemKey); err != nil {
+		middleware.ReturnError(c, err)
+		return
+	}
 	// 替换容器参数差异化变量
 	replaceMap, err := database.BuildDockerEnvMap(c, envMap)
 	if err != nil {
@@ -541,4 +555,10 @@ func GetPluginRunningInstances(c *gin.Context) {
 	} else {
 		middleware.ReturnData(c, result)
 	}
+}
+
+// TODO
+func buildPluginProCertification(envMap map[string]string, pluginPackageObj *models.PluginPackages, subSystemKey string) (err error) {
+
+	return
 }
