@@ -487,9 +487,15 @@ func LaunchPlugin(c *gin.Context) {
 	err = database.LaunchPlugin(c, &pluginInstance)
 	if err != nil {
 		middleware.ReturnError(c, err)
-	} else {
-		middleware.ReturnSuccess(c)
+		return
 	}
+	// 向gateway注册插件路由
+	err = remote.RegisterPluginRoute(pluginPackageObj.Name, hostIp, portValue)
+	if err != nil {
+		middleware.ReturnError(c, err)
+		return
+	}
+	middleware.ReturnSuccess(c)
 }
 
 // RemovePlugin 运行管理 - 插件实例销毁
