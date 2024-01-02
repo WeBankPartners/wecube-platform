@@ -513,3 +513,26 @@ func GetPluginRunningInstances(ctx context.Context, pluginPackageId string) (res
 	}
 	return
 }
+
+// GetAllMenusByPackageStatus 根据包状态返回对应菜单列表
+func GetAllMenusByPackageStatus(ctx context.Context, statusArr []string) (result []*models.PluginPackageMenus, err error) {
+	err = db.MysqlEngine.Context(ctx).SQL("SELECT t1.id, t1.plugin_package_id,t1.code, t1.category,t1.source,t1.display_name,t1.local_display_name,t1.menu_order,t1.path," +
+		" t1.active FROM plugin_package_menus t1,plugin_packages t2 WHERE t1.plugin_package_id =t2.id and t2.status in (" + getInSQL(statusArr) + ")").Find(&result)
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
+		return
+	}
+	return
+}
+
+func getInSQL(status []string) string {
+	var sql string
+	for i := 0; i < len(status); i++ {
+		if i == len(status)-1 {
+			sql = sql + "'" + status[i] + "'"
+		} else {
+			sql = sql + "'" + status[i] + "',"
+		}
+	}
+	return sql
+}
