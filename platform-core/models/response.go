@@ -35,3 +35,15 @@ type SysLogTable struct {
 	DataKeyName string `json:"dataKeyName" xorm:"data_key_name"`
 	Response    string `json:"response" xorm:"response"`
 }
+
+type GetAllUserResponse struct {
+	Status  string                `json:"status"`
+	Message string                `json:"Message"`
+	Data    []*SimpleLocalUserDto `json:"data"`
+}
+
+type QueryRolesResponse struct {
+	Status  string                `json:"status"`
+	Message string                `json:"Message"`
+	Data    []*SimpleLocalRoleDto `json:"data"`
+}
