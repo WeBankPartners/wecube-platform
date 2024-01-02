@@ -1,6 +1,7 @@
 {
   "version": "{{version}}",
   "default_language": "en",
+  "password_private_key_path": "{{password_private_key_path}}",
   "http_server": {
     "port": "{{http_port}}",
     "cross": false,
@@ -31,26 +32,30 @@
   },
   "auth": {
     "enable": true,
-    "jwt_signing_key": "",
-    "password_seed": "",
-    "expire_sec": 600,
-    "fresh_token_expire": 3600
+    "url": "{{auth_server_url}}",
+    "access_token_expired_sec": "{{access_token_expired_sec}}",
+    "refresh_token_expired_sec": "{{refresh_token_expired_sec}}"
   },
   "s3": {
-    "server_address": "",
-    "access_key": "",
-    "secret_key": "",
+    "server_address": "{{s3_address}}",
+    "access_key": "{{s3_access_key}}",
+    "secret_key": "{{s3_secret_key}}",
     "plugin_package_bucket": "wecube-plugin-package-bucket"
   },
   "static_resource": {
-    "servers": "",
-    "user": "",
-    "password": "",
-    "port": "",
-    "path": ""
+    "servers": "{{static_resource_server_ips}}",
+    "user": "{{static_resource_server_user}}",
+    "password": "{{static_resource_server_password}}",
+    "port": "{{static_resource_server_port}}",
+    "path": "{{static_resource_server_path}}"
   },
   "plugin": {
-    "base_mount_path": "",
-    "deploy_path": ""
+    "base_mount_path": "{{plugin_base_mount_path}}",
+    "deploy_path": "{{plugin_deploy_path}}",
+    "password_pub_key_path": "{{plugin_password_pub_key_path}}"
+  },
+  "gateway": {
+    "url": "{{gateway_url}}",
+    "host_ports": "{{gateway_host_ports}}"
   }
 }

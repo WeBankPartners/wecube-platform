@@ -38,11 +38,10 @@ type DatabaseConfig struct {
 }
 
 type AuthConfig struct {
-	Enable           bool   `json:"enable"`
-	JwtSigningKey    string `json:"jwt_signing_key"`
-	PasswordSeed     string `json:"password_seed"`
-	ExpireSec        int64  `json:"expire_sec"`
-	FreshTokenExpire int64  `json:"fresh_token_expire"`
+	Enable                 bool   `json:"enable"`
+	Url                    string `json:"url"`
+	AccessTokenExpiredSec  string `json:"access_token_expired_sec"`
+	RefreshTokenExpiredSec string `json:"refresh_token_expired_sec"`
 }
 
 type S3Config struct {
@@ -61,20 +60,28 @@ type StaticResourceConfig struct {
 }
 
 type PluginJsonConfig struct {
-	BaseMountPath string `json:"base_mount_path"`
-	DeployPath    string `json:"deploy_path"`
+	BaseMountPath      string `json:"base_mount_path"`
+	DeployPath         string `json:"deploy_path"`
+	PasswordPubKeyPath string `json:"password_pub_key_path"`
+}
+
+type GatewayConfig struct {
+	Url       string `json:"url"`
+	HostPorts string `json:"host_ports"`
 }
 
 type GlobalConfig struct {
-	Version         string                `json:"version"`
-	DefaultLanguage string                `json:"default_language"`
-	HttpServer      *HttpServerConfig     `json:"http_server"`
-	Log             *LogConfig            `json:"log"`
-	Database        *DatabaseConfig       `json:"database"`
-	Auth            *AuthConfig           `json:"auth"`
-	S3              *S3Config             `json:"s3"`
-	StaticResource  *StaticResourceConfig `json:"static_resource"`
-	Plugin          *PluginJsonConfig     `json:"plugin"`
+	Version                string                `json:"version"`
+	DefaultLanguage        string                `json:"default_language"`
+	PasswordPrivateKeyPath string                `json:"password_private_key_path"`
+	HttpServer             *HttpServerConfig     `json:"http_server"`
+	Log                    *LogConfig            `json:"log"`
+	Database               *DatabaseConfig       `json:"database"`
+	Auth                   *AuthConfig           `json:"auth"`
+	S3                     *S3Config             `json:"s3"`
+	StaticResource         *StaticResourceConfig `json:"static_resource"`
+	Plugin                 *PluginJsonConfig     `json:"plugin"`
+	Gateway                *GatewayConfig        `json:"gateway"`
 }
 
 var (
