@@ -4,12 +4,13 @@ import (
 	"fmt"
 	"github.com/WeBankPartners/wecube-platform/platform-gateway/api/support"
 	"github.com/gin-gonic/gin"
+	"strings"
 	"sync"
 )
 
 type RedirectRule struct {
 	Context string
-	Uri     string
+	//Uri     string
 	//Method          string
 	TargetPath string
 	//TargetAddress string
@@ -32,11 +33,17 @@ var lock sync.Mutex
 
 func Redirect() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		requestKey := BuildRequestKey(c.Request.URL.Path)
+		uri := c.Request.URL.RequestURI()
+		uriParts := strings.Split(uri, "/")
+		context := ""
+		if len(uriParts) > 1 { // uriParts[0] is empty string
+			context = uriParts[1]
+		}
+		requestKey := BuildRequestKey(context)
 
 		if val, has := redirectRuleMap.Load(requestKey); has {
 			rule := val.(RedirectRule)
-			targetUrl := rule.TargetPath
+			targetUrl := rule.TargetPath + uri
 			invoke := support.RedirectInvoke{
 				TargetUrl: targetUrl,
 				//RequestHandler:  rule.RequestHandler,
@@ -49,7 +56,7 @@ func Redirect() gin.HandlerFunc {
 }
 
 func AddRedirectRule(rule RedirectRule) {
-	key := BuildRequestKey(rule.Uri)
+	key := BuildRequestKey(rule.Context)
 	redirectRuleMap.Store(key, rule)
 }
 
@@ -77,7 +84,7 @@ func GetAllRedirectRules() []RedirectRule {
 	return rules
 }
 
-func BuildRequestKey(uri string) string {
+func BuildRequestKey(context string) string {
 	//return fmt.Sprintf("%s_%s", path, method)
-	return fmt.Sprintf("/%s/**", uri)
+	return fmt.Sprintf("%s/**", context)
 }
