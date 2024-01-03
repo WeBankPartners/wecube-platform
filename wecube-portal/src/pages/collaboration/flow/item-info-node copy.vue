@@ -2,123 +2,80 @@
   <div id="itemInfo">
     <Icon class="hide-panal" type="md-exit" size="24" @click="hideItem" />
     <div class="panal-name">节点属性：</div>
-    <Collapse simple v-model="opendPanel">
-      <Panel name="1">
-        基础信息
-        <template slot="content">
-          <Form :label-width="80">
-            <FormItem label="ID">
-              <Input disabled v-model="itemCustomInfo.id"></Input>
-            </FormItem>
-            <FormItem :label="$t('name')">
-              <Input v-model="itemCustomInfo.label"></Input>
-            </FormItem>
-            <FormItem :label="$t('node_type')" v-if="itemCustomInfo.customAttrs.taskCategory">
-              <Input v-model="itemCustomInfo.customAttrs.taskCategory" disabled></Input>
-            </FormItem>
-          </Form>
-        </template>
-      </Panel>
-      <Panel
-        name="2"
-        v-if="
-          itemCustomInfo.customAttrs && ['human', 'automatic', 'data'].includes(itemCustomInfo.customAttrs.nodeType)
-        "
-      >
-        执行控制
-        <template slot="content">
-          <Form :label-width="80">
-            <FormItem :label="$t('timeout')">
-              <Select v-model="itemCustomInfo.customAttrs.timeoutExpression">
-                <Option v-for="(item, index) in timeSelection" :value="item.mins" :key="index"
-                  >{{ item.label }}
-                </Option>
+    <Form :label-width="80">
+      <template>
+        <FormItem label="ID">
+          <Input disabled v-model="itemCustomInfo.id"></Input>
+        </FormItem>
+        <FormItem :label="$t('name')">
+          <Input v-model="itemCustomInfo.label"></Input>
+        </FormItem>
+        <template
+          v-if="
+            itemCustomInfo.customAttrs && ['human', 'automatic', 'data'].includes(itemCustomInfo.customAttrs.nodeType)
+          "
+        >
+          <FormItem :label="$t('description')">
+            <Input v-model="itemCustomInfo.customAttrs.description"></Input>
+          </FormItem>
+          <FormItem :label="$t('timeout')">
+            <Select v-model="itemCustomInfo.customAttrs.timeoutExpression">
+              <Option v-for="(item, index) in timeSelection" :value="item.mins" :key="index">{{ item.label }} </Option>
+            </Select>
+          </FormItem>
+          <template v-if="['human', 'automatic'].includes(itemCustomInfo.customAttrs.nodeType)">
+            <FormItem :label="$t('dynamic_bind')">
+              <Select v-model="itemCustomInfo.customAttrs.dynamicBind">
+                <Option v-for="item in yOn" :value="item" :key="item">{{ item }}</Option>
               </Select>
             </FormItem>
-            <FormItem
-              :label="$t('pre_check')"
-              v-if="itemCustomInfo.customAttrs && !['data'].includes(itemCustomInfo.customAttrs.nodeType)"
-            >
-              <i-switch v-model="itemCustomInfo.customAttrs.preCheck" />
-            </FormItem>
-          </Form>
-        </template>
-      </Panel>
-      <Panel
-        name="3"
-        v-if="
-          itemCustomInfo.customAttrs && ['human', 'automatic', 'data'].includes(itemCustomInfo.customAttrs.nodeType)
-        "
-      >
-        数据绑定
-        <template slot="content">
-          <Form :label-width="80">
-            <FormItem
-              :label="$t('dynamic_bind')"
-              v-if="['human', 'automatic'].includes(itemCustomInfo.customAttrs.nodeType)"
-            >
-              <i-switch v-model="itemCustomInfo.customAttrs.dynamicBind" />
-            </FormItem>
-            <FormItem
-              :label="$t('bind_node')"
-              v-if="['human', 'automatic'].includes(itemCustomInfo.customAttrs.nodeType)"
-            >
+            <FormItem :label="$t('bind_node')">
               <Select
                 v-model="itemCustomInfo.customAttrs.associatedNodeId"
                 @on-change="changeAssociatedNode"
                 @on-open-change="getAssociatedNodes"
                 clearable
-                :disabled="!itemCustomInfo.customAttrs.dynamicBind"
+                :disabled="itemCustomInfo.customAttrs.dynamicBind !== 'Y'"
               >
                 <Option v-for="(i, index) in associatedNodes" :value="i.nodeId" :key="index">{{ i.nodeName }}</Option>
               </Select>
             </FormItem>
-            <FormItem :label="$t('locate_rules')">
-              <ItemFilterRulesGroup
-                :isBatch="itemCustomInfo.customAttrs.taskCategory === 'SDTN'"
-                ref="filterRulesGroupRef"
-                :disabled="
-                  itemCustomInfo.customAttrs.dynamicBind === 'Y' && itemCustomInfo.customAttrs.associatedNodeId
-                "
-                :routineExpression="itemCustomInfo.customAttrs.routineExpression"
-                :allEntityType="allEntityType"
-                :currentSelectedEntity="currentSelectedEntity"
-              >
-              </ItemFilterRulesGroup>
-            </FormItem>
-          </Form>
-        </template>
-      </Panel>
-      <Panel
-        name="4"
-        v-if="itemCustomInfo.customAttrs && ['human', 'automatic'].includes(itemCustomInfo.customAttrs.nodeType)"
-      >
-        调用插件服务
-        <template slot="content">
-          <Form :label-width="80">
-            <FormItem
-              v-if="['human', 'automatic'].includes(itemCustomInfo.customAttrs.nodeType)"
-              :label="$t('plugin')"
-              style="margin-top: 8px"
-            >
-              <Select
-                v-model="itemCustomInfo.customAttrs.serviceId"
-                @on-open-change="getPlugin"
-                @on-change="changePluginInterfaceList"
-              >
-                <Option v-for="(item, index) in filteredPlugins" :value="item.serviceName" :key="index">{{
-                  item.serviceDisplayName
-                }}</Option>
+            <FormItem :label="$t('pre_check')">
+              <Select v-model="itemCustomInfo.customAttrs.preCheck">
+                <Option v-for="item in yOn" :value="item" :key="item">{{ item }}</Option>
               </Select>
             </FormItem>
-          </Form>
+          </template>
+          <FormItem :label="$t('locate_rules')">
+            <ItemFilterRulesGroup
+              :isBatch="itemCustomInfo.customAttrs.taskCategory === 'SDTN'"
+              ref="filterRulesGroupRef"
+              :disabled="itemCustomInfo.customAttrs.dynamicBind === 'Y' && itemCustomInfo.customAttrs.associatedNodeId"
+              :routineExpression="itemCustomInfo.customAttrs.routineExpression"
+              :allEntityType="allEntityType"
+              :currentSelectedEntity="currentSelectedEntity"
+            >
+            </ItemFilterRulesGroup>
+          </FormItem>
+          <FormItem
+            v-if="['human', 'automatic'].includes(itemCustomInfo.customAttrs.nodeType)"
+            :label="$t('plugin')"
+            style="margin-top: 8px"
+          >
+            <Select
+              v-model="itemCustomInfo.customAttrs.serviceId"
+              @on-open-change="getPlugin"
+              @on-change="changePluginInterfaceList"
+            >
+              <Option v-for="(item, index) in filteredPlugins" :value="item.serviceName" :key="index">{{
+                item.serviceDisplayName
+              }}</Option>
+            </Select>
+          </FormItem>
         </template>
-      </Panel>
-    </Collapse>
-    <div style="position: fixed; bottom: 20px; right: 400px">
-      <Button @click="saveItem" type="primary">{{ $t('save') }}</Button>
-      <Button @click="hideItem">{{ $t('cancel') }}</Button>
-    </div>
+      </template>
+      <Button @click="saveItem" type="primary" style="float: right">保存</Button>
+    </Form>
   </div>
 </template>
 <script>
@@ -127,13 +84,8 @@ import ItemFilterRulesGroup from './item-filter-rules-group.vue'
 export default {
   data () {
     return {
-      opendPanel: ['1', '3', '4'],
       currentSelectedEntity: 'wecmdb:app_instance', // 流程图根
-      itemCustomInfo: {
-        customAttrs: {
-          taskCategory: ''
-        }
-      },
+      itemCustomInfo: {},
       // 超时时间选项
       timeSelection: [
         {
@@ -169,6 +121,7 @@ export default {
           label: '3 ' + this.$t('days')
         }
       ],
+      yOn: ['Y', 'N'],
       associatedNodes: [], // 可选择的前序节点
       allEntityType: [], // 所有模型
       filteredPlugins: [] // 可选择的插件函数，根据定位规则获取
@@ -191,14 +144,14 @@ export default {
           taskCategory: '', // 节点类型，SSTN自动节点 SUTN人工节点 SDTN数据写入节点 ----OK
           timeoutExpression: '30', // 超时时间 ----OK
           description: null, // 描述说明  ----OK
-          dynamicBind: false, // 动态绑定
+          dynamicBind: 'N', // 动态绑定
           associatedNodeId: null, // 动态绑定关联节点id
           nodeType: '', // 节点类型，对应节点原始类型（start、end……
           routineExpression: 'wecmdb:app_instance', // 对应节点中的定位规则
           routineRaw: null, // 还未知作用
           serviceId: null, // 选择的插件id
           serviceName: null, // 选择的插件名称
-          preCheck: true, // 高危检测
+          preCheck: 'N', // 高危检测
           paramInfos: [] // 存在插件注册处需要填写的字段
         }
       }
@@ -210,7 +163,6 @@ export default {
       keys.forEach(k => {
         this.itemCustomInfo.customAttrs[k] = customAttrs[k]
       })
-      console.log(11, this.itemCustomInfo)
       // this.$nextTick(() => {
       //   this.$refs.filterRulesGroupRef &&
       //     this.$refs.filterRulesGroupRef.changeRoutineExpressionItem(this.itemCustomInfo.customAttrs.routineExpression)
@@ -297,12 +249,5 @@ export default {
   padding-bottom: 4px;
   margin-bottom: 4px;
   border-bottom: 1px solid #e8eaec;
-}
-
-.ivu-collapse {
-  border: none !important;
-}
-.ivu-collapse > .ivu-collapse-item {
-  border-top: none !important;
 }
 </style>
