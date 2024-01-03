@@ -564,6 +564,7 @@ export default {
 }
 .filter_rules_contain {
   display: inline-block;
+  background: white;
 }
 
 .filter_rules_contain .ivu-poptip {

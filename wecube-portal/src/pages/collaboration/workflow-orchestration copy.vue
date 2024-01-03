@@ -1431,7 +1431,7 @@ export default {
   top: 0;
   width: 300px;
   min-height: 100%;
-  background: #f8f8f8;
+  background: white;
   overflow-y: auto;
 
   .bpp-properties-panel .entry-label {
