@@ -2,6 +2,7 @@ package utils
 
 import (
 	"math"
+	"strings"
 )
 
 func Contains(s []string, e string) bool {
@@ -67,4 +68,8 @@ func CheckDecimalPlaces(val float64, decimal int) bool {
 	roundedVal := RoundFloat(val, decimal)
 	diff := val - roundedVal
 	return diff == 0.0
+}
+
+func IsBlank(s string) bool {
+	return strings.TrimSpace(s) == ""
 }
