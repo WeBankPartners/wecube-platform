@@ -60,9 +60,10 @@ type StaticResourceConfig struct {
 }
 
 type PluginJsonConfig struct {
-	BaseMountPath      string `json:"base_mount_path"`
-	DeployPath         string `json:"deploy_path"`
-	PasswordPubKeyPath string `json:"password_pub_key_path"`
+	BaseMountPath        string `json:"base_mount_path"`
+	DeployPath           string `json:"deploy_path"`
+	PasswordPubKeyPath   string `json:"password_pub_key_path"`
+	ResourcePasswordSeed string `json:"resource_password_seed"`
 }
 
 type GatewayConfig struct {

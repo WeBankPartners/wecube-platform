@@ -52,7 +52,8 @@
   "plugin": {
     "base_mount_path": "{{plugin_base_mount_path}}",
     "deploy_path": "{{plugin_deploy_path}}",
-    "password_pub_key_path": "{{plugin_password_pub_key_path}}"
+    "password_pub_key_path": "{{plugin_password_pub_key_path}}",
+    "resource_password_seed": "{{resource_server_password_seed}}"
   },
   "gateway": {
     "url": "{{gateway_url}}",

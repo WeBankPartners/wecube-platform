@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/WeBankPartners/go-common-lib/guid"
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/db"
+	"github.com/WeBankPartners/wecube-platform/platform-core/common/encrypt"
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/exterror"
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/tools"
 	"github.com/WeBankPartners/wecube-platform/platform-core/models"
@@ -350,6 +351,9 @@ func GetResourceServer(ctx context.Context, serverType, serverIp string) (resour
 				return
 			}
 			resourceServerObj = resourceServerRows[0]
+			if strings.HasPrefix(resourceServerObj.LoginPassword, models.AESPrefix) {
+				resourceServerObj.LoginPassword, _ = encrypt.DecryptWithAesECB(resourceServerObj.LoginPassword, models.Config.Plugin.ResourcePasswordSeed, resourceServerObj.Name)
+			}
 		}
 	}
 	return
