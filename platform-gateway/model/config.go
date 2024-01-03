@@ -35,10 +35,11 @@ type RemoteServiceConfig struct {
 }
 
 type GlobalConfig struct {
-	Port     string              `json:"app_port"`
-	Log      LogConfig           `json:"log"`
-	Database DatabaseConfig      `json:"database"`
-	Remote   RemoteServiceConfig `json:"remote_service"`
+	ServerAddress string              `json:"server_address"`
+	ServerPort    string              `json:"server_port"`
+	Log           LogConfig           `json:"log"`
+	Database      DatabaseConfig      `json:"database"`
+	Remote        RemoteServiceConfig `json:"remote_service"`
 }
 
 var (

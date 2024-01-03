@@ -28,3 +28,15 @@ func (h *HttpDestination) SetWeight(weight int) {
 	h.Weight = weight
 	h.LastModifiedTime = time.Now().UTC().Unix()
 }
+
+type DynamicRouteItemInfo struct {
+	ItemId     string
+	Context    string
+	HttpMethod string
+	Path       string
+	HttpScheme string
+	Host       string
+	Port       int
+	Disabled   bool
+	Weight     int
+}

@@ -1,7 +1,7 @@
 package constant
 
 const (
-	DefaultHttpSuccessStatus = "0"
+	DefaultHttpSuccessStatus = "OK"
 	NotApplicableRemoteCall  = "NA"
 )
 

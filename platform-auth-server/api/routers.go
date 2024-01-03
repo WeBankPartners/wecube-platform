@@ -105,6 +105,8 @@ func init() {
 
 		&handlerFuncObj{Url: "/v1/users", Method: http.MethodPost, HandlerFunc: RegisterLocalUser,
 			ApiCode: "RegisterLocalUser"},
+		&handlerFuncObj{Url: "/v1/users/reset-password", Method: http.MethodPost, HandlerFunc: ResetLocalUserPassword,
+			ApiCode: "ResetLocalUserPassword"},
 		&handlerFuncObj{Url: "/v1/users/change-password", Method: http.MethodPost, HandlerFunc: ModifyLocalUserPassword,
 			ApiCode: "ModifyLocalUserPassword"},
 		&handlerFuncObj{Url: "/v1/users/usernames/:username", Method: http.MethodPost, HandlerFunc: ModifyLocalUserInfomation,

@@ -13,14 +13,7 @@
     "archive_max_day": 15,
     "compress": true
   },
-  "database": {
-    "server": "mywiki",
-    "port": "3306",
-    "user": "root",
-    "password": "Abcd1234",
-    "database": "wecube_authserver",
-    "maxOpen": 200,
-    "maxIdle": 50,
-    "timeout": 60
+  "remote_service": {
+    "route_config_address": "http://127.0.0.1:3000/api"
   }
 }
