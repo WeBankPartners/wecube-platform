@@ -12,6 +12,10 @@ import (
 func GetAllSysMenus(ctx context.Context) (result []*models.MenuItemDto, err error) {
 	var list []*models.MenuItems
 	err = db.MysqlEngine.Context(ctx).SQL("select * from menus_items").Find(&list)
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
+		return
+	}
 	for _, item := range list {
 		result = append(result, &models.MenuItemDto{
 			ID:               item.Id,
@@ -50,8 +54,8 @@ func CalAvailablePluginPackageMenus(ctx context.Context) (result []*models.Plugi
 }
 
 // GetMenuItemsByCode 根据code返回菜单
-func GetMenuItemsByCode(ctx context.Context, code string) (result *models.MenuItemDto, err error) {
-	var list []*models.MenuItemDto
+func GetMenuItemsByCode(ctx context.Context, code string) (result *models.MenuItems, err error) {
+	var list []*models.MenuItems
 	err = db.MysqlEngine.Context(ctx).SQL("select id,parent_code,code,source,description,local_display_name,menu_order from menu_items where code =?", code).Find(&list)
 	if err != nil {
 		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
@@ -100,4 +104,13 @@ func isBetterThanExistOne(menuEntityToCheck *models.PluginPackageMenus, existMen
 		return true
 	}
 	return false
+}
+
+func GetAllByRoleName(ctx context.Context, roleName string) (list []*models.RoleMenu, err error) {
+	err = db.MysqlEngine.Context(ctx).SQL("  select id,proc_id,role_id,role_name,permission from core_ru_proc_role_binding where role_name =?", roleName).Find(&list)
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
+		return
+	}
+	return
 }
