@@ -1,116 +1,157 @@
 <template>
   <div id="itemPanel" ref="itemPanel">
+    <div class="tool-component">组件库</div>
     <div class="icon-tool">
-      <img
-        src="./icon/start.svg"
-        class="node circle-start"
-        draggable="true"
-        node-type="start"
-        data-label="开始"
-        task-category=""
-        data-shape="circle-node"
-        fill="white"
-        line-width="1"
-      />
-      <img
-        src="./icon/end.svg"
-        class="node circle-end"
-        draggable="true"
-        node-type="end"
-        data-label="结束"
-        task-category=""
-        data-shape="circle-node"
-        fill="white"
-        line-width="3"
-      />
-      <img
-        src="./icon/lightning.svg"
-        class="node circle-end"
-        draggable="true"
-        node-type="abnormal"
-        data-label="异常"
-        task-category=""
-        data-shape="circle-node"
-        fill="white"
-        line-width="1"
-      />
-      <!-- <i class="node warning" draggable="true" data-label="警告" data-shape="rect-node" fill="#f8ecda">警告</i>
-      <i class="node end" draggable="true" data-label="结束" data-shape="rect-node" fill="#f9e3e2">结束</i> -->
-      <img
-        src="./icon/decision.svg"
-        draggable="true"
-        node-type="decision"
-        data-label="判断"
-        task-category=""
-        data-shape="diamond-node"
-        fill="white"
-        class="node iconfont icon-diamond"
-        alt=""
-      />
-      <img
-        src="./icon/converge.svg"
-        draggable="true"
-        node-type="converge"
-        data-label="汇聚节点"
-        task-category=""
-        data-shape="rect-node"
-        fill="white"
-        class="node iconfont icon-rect"
-        alt=""
-      />
-      <img
-        src="./icon/human.svg"
-        draggable="true"
-        node-type="human"
-        data-label="人工节点"
-        task-category="SUTN"
-        data-shape="rect-node"
-        fill="white"
-        class="node iconfont icon-rect"
-        alt=""
-      />
-      <img
-        src="./icon/automatic.svg"
-        draggable="true"
-        node-type="automatic"
-        data-label="自动节点"
-        task-category="SSTN"
-        data-shape="rect-node"
-        fill="white"
-        class="node iconfont icon-rect"
-        alt=""
-      />
-      <img
-        src="./icon/data.svg"
-        draggable="true"
-        node-type="data"
-        data-label="数据节点"
-        task-category="SDTN"
-        data-shape="rect-node"
-        fill="white"
-        class="node iconfont icon-rect"
-        alt=""
-      />
-      <img
-        src="./icon/fixed-time.svg"
-        class="node circle-end"
-        draggable="true"
-        node-type="fixedTime"
-        data-label="固定时间"
-        data-shape="circle-node"
-        fill="white"
-        line-width="1"
-      />
-      <img
-        src="./icon/time-interval.svg"
-        class="node circle-end"
-        draggable="true"
-        node-type="timeInterval"
-        data-label="时间间隔"
-        data-shape="circle-node"
-        fill="white"
-        line-width="1"
-      />
+      <Tooltip content="Right Center text" placement="right" :delay="1000">
+        <div
+          class="item-tool"
+          draggable="true"
+          node-type="start"
+          data-label="开始"
+          task-category=""
+          data-shape="circle-node"
+          fill="white"
+          line-width="1"
+        >
+          <img src="./icon/start.svg" class="item-tool-icon" draggable="false" />
+          <div class="item-tool-name">开始</div>
+        </div>
+      </Tooltip>
+      <Tooltip content="Right Center text" placement="right" :delay="1000">
+        <div
+          class="item-tool"
+          draggable="true"
+          node-type="end"
+          data-label="结束"
+          task-category=""
+          data-shape="circle-node"
+          fill="white"
+          line-width="1"
+        >
+          <img src="./icon/end.svg" class="item-tool-icon" draggable="false" />
+          <div class="item-tool-name">结束</div>
+        </div>
+      </Tooltip>
+      <Tooltip content="Right Center text" placement="right" :delay="1000">
+        <div
+          class="item-tool"
+          draggable="true"
+          node-type="abnormal"
+          data-label="异常"
+          task-category=""
+          data-shape="circle-node"
+          fill="white"
+          line-width="1"
+        >
+          <img src="./icon/lightning.svg" class="item-tool-icon" draggable="false" />
+          <div class="item-tool-name">异常</div>
+        </div>
+      </Tooltip>
+      <Tooltip content="Right Center text" placement="right" :delay="1000">
+        <div
+          class="item-tool"
+          draggable="true"
+          node-type="decision"
+          data-label="判断"
+          task-category=""
+          data-shape="diamond-node"
+          fill="white"
+          line-width="1"
+        >
+          <img src="./icon/decision.svg" class="item-tool-icon" draggable="false" />
+          <div class="item-tool-name">判断</div>
+        </div>
+      </Tooltip>
+      <Tooltip content="Right Center text" placement="right" :delay="1000">
+        <div
+          class="item-tool"
+          draggable="true"
+          node-type="converge"
+          data-label="汇聚节点"
+          task-category=""
+          data-shape="rect-node"
+          fill="white"
+          line-width="1"
+        >
+          <img src="./icon/converge.svg" class="item-tool-icon" draggable="false" />
+          <div class="item-tool-name">汇聚节点</div>
+        </div>
+      </Tooltip>
+      <Tooltip content="Right Center text" placement="right" :delay="1000">
+        <div
+          class="item-tool"
+          draggable="true"
+          node-type="human"
+          data-label="人工节点"
+          task-category="SUTN"
+          data-shape="rect-node"
+          fill="white"
+          line-width="1"
+        >
+          <img src="./icon/human.svg" class="item-tool-icon" draggable="false" />
+          <div class="item-tool-name">人工节点</div>
+        </div>
+      </Tooltip>
+      <Tooltip content="Right Center text" placement="right" :delay="1000">
+        <div
+          class="item-tool"
+          draggable="true"
+          node-type="automatic"
+          data-label="自动节点"
+          task-category="SSTN"
+          data-shape="rect-node"
+          fill="white"
+          line-width="1"
+        >
+          <img src="./icon/automatic.svg" class="item-tool-icon" draggable="false" />
+          <div class="item-tool-name">自动节点</div>
+        </div>
+      </Tooltip>
+      <Tooltip content="Right Center text" placement="right" :delay="1000">
+        <div
+          class="item-tool"
+          draggable="true"
+          node-type="data"
+          data-label="数据节点"
+          task-category="SDTN"
+          data-shape="rect-node"
+          fill="white"
+          line-width="1"
+        >
+          <img src="./icon/data.svg" class="item-tool-icon" draggable="false" />
+          <div class="item-tool-name">数据节点</div>
+        </div>
+      </Tooltip>
+      <Tooltip content="Right Center text" placement="right" :delay="1000">
+        <div
+          class="item-tool"
+          draggable="true"
+          node-type="fixedTime"
+          data-label="固定时间"
+          task-category=""
+          data-shape="rect-node"
+          fill="white"
+          line-width="1"
+        >
+          <img src="./icon/fixed-time.svg" class="item-tool-icon" draggable="false" />
+          <div class="item-tool-name">固定时间</div>
+        </div>
+      </Tooltip>
+      <Tooltip content="Right Center text" placement="right" :delay="1000">
+        <div
+          class="item-tool"
+          draggable="true"
+          node-type="timeInterval"
+          data-label="时间间隔"
+          task-category=""
+          data-shape="rect-node"
+          fill="white"
+          line-width="1"
+        >
+          <img src="./icon/time-interval.svg" class="item-tool-icon" draggable="false" />
+          <div class="item-tool-name">时间间隔</div>
+        </div>
+      </Tooltip>
     </div>
   </div>
 </template>
@@ -124,7 +165,7 @@ export default {
     }
   },
   mounted () {
-    const icons = [...this.$refs.itemPanel.querySelector('.icon-tool').querySelectorAll('.node')]
+    const icons = [...this.$refs.itemPanel.querySelectorAll('.item-tool')]
 
     icons.forEach(icon => {
       icon.addEventListener('dragstart', event => {
@@ -165,36 +206,20 @@ export default {
 <style lang="scss">
 #itemPanel {
   position: absolute;
-  top: 145px;
+  top: 137px;
   left: 32px;
   bottom: 0;
   z-index: 10;
-  width: 100px;
+  width: 72px;
   height: 80%;
   background: #fff;
+  text-align: center;
   // padding-top: 65px;
   transition: transform 0.3s ease-in-out;
   box-shadow: 0 0 2px 0 rgba(0, 0, 0, 0.1);
 
   &.hidden {
     transform: translate(-100%, 0);
-  }
-
-  .gb-toggle-btn {
-    width: 10px;
-    height: 20px;
-    top: 50%;
-    left: 100%;
-    border-radius: 0 10px 10px 0;
-    box-shadow: 2px 0 2px 0 rgba(0, 0, 0, 0.1);
-    transform: translate(0, -50%);
-  }
-
-  .split {
-    height: 1px;
-    display: block;
-    background: #e0e0e0;
-    margin: 5px 0;
   }
 
   .icon-tool {
@@ -215,8 +240,8 @@ export default {
       }
     }
     .node {
-      width: 50px;
-      height: 50px;
+      width: 32px;
+      height: 32px;
       margin-bottom: 10px;
       cursor: move;
     }
@@ -247,5 +272,26 @@ export default {
       background: #f9e3e2;
     }
   }
+}
+
+.item-tool {
+  background-color: #f0f0f0;
+  width: 52px;
+  height: 52px;
+  margin-bottom: 8px;
+  border-radius: 4px;
+  cursor: move;
+  .item-tool-icon {
+    width: 24px;
+    height: 24px;
+    margin: 6px 0 4px 0;
+  }
+  .item-tool-name {
+    font-size: 11px;
+  }
+}
+.tool-component {
+  padding: 6px 0;
+  border-bottom: 1px solid #e8eaec;
 }
 </style>
