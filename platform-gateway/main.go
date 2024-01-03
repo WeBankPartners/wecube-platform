@@ -6,6 +6,7 @@ import (
 	sw "github.com/WeBankPartners/wecube-platform/platform-gateway/api"
 	"github.com/WeBankPartners/wecube-platform/platform-gateway/common/log"
 	"github.com/WeBankPartners/wecube-platform/platform-gateway/model"
+	"github.com/WeBankPartners/wecube-platform/platform-gateway/service"
 )
 
 func main() {
@@ -26,9 +27,13 @@ func main() {
 			return
 		}
 	*/
+	if err := service.Init(); err != nil {
+		fmt.Printf("failed to init service:%s", err.Error())
+		return
+	}
 	log.Logger.Info("Server started")
 
 	router := sw.NewRouter()
-	router.Run(":" + model.Config.Port)
+	router.Run(model.Config.ServerAddress + ":" + model.Config.ServerPort)
 
 }
