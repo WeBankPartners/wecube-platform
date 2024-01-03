@@ -11,8 +11,11 @@
           <Input v-model="itemCustomInfo.label"></Input>
         </FormItem>
       </template>
-      <Button @click="saveItem" type="primary" style="float: right">保存</Button>
     </Form>
+    <div style="position: fixed; bottom: 20px; right: 400px">
+      <Button @click="saveItem" type="primary">{{ $t('save') }}</Button>
+      <Button @click="hideItem">{{ $t('cancel') }}</Button>
+    </div>
   </div>
 </template>
 <script>
@@ -42,13 +45,13 @@ export default {
 <style lang="scss" scoped>
 #itemInfo {
   position: fixed;
-  top: 145px;
+  top: 139px;
   right: 32px;
   bottom: 0;
   z-index: 10;
   width: 500px;
   height: 86%;
-  background: #f8f8f8;
+  background: white;
   // padding-top: 65px;
   transition: transform 0.3s ease-in-out;
   box-shadow: 0 0 2px 0 rgba(0, 0, 0, 0.1);
