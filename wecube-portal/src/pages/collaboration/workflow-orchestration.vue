@@ -2,7 +2,7 @@
   <div class="root">
     <FlowHeader @canLoadGraph="startLoadGraph"></FlowHeader>
     <!-- v-show="isShowGraph" -->
-    <div style="border: 2px solid #f9f9f9">
+    <div class="canvas-zone">
       <!-- 左侧按钮 -->
       <item-panel />
       <div class="floating-button">
@@ -459,6 +459,7 @@ export default {
         this.$Message.warning(this.$t('start_node_warning'))
         return
       }
+      console.log(label, shape, fill, lineWidth, nodeType, taskCategory)
       const model = {
         id: `id_${nodeType}_${Math.random().toString(36).substring(2, 8)}`,
         label,
@@ -525,8 +526,8 @@ export default {
 .floating-button {
   z-index: 10;
   position: fixed;
-  bottom: 30px; /* 调整按钮与底部的距离 */
-  left: 30px; /* 将按钮水平居中 */
+  bottom: 30px;
+  left: 28px;
 }
 
 .v-enter-active,
@@ -537,5 +538,10 @@ export default {
 .v-enter-from,
 .v-leave-to {
   opacity: 0;
+}
+
+.canvas-zone {
+  border: 2px solid #f9f9f9;
+  margin-top: 8px;
 }
 </style>

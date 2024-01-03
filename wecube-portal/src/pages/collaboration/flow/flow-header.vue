@@ -1,96 +1,27 @@
 <template>
-  <div>
-    <Row style="margin-bottom: 8px">
-      <Col span="5" style="margin-right: 10px">
-        <span style="margin-right: 10px">{{ $t('flow_name') }}</span>
-        <Select
-          clearable
-          @on-clear="clearFlow"
-          @on-change="currentFlow.tags = ''"
-          v-model="selectedFlow"
-          style="width: 75%"
-          @on-open-change="getAllFlows"
-          filterable
-        >
-          <Option
-            v-for="(item, index) in allFlows"
-            :value="item.procDefId"
-            :key="index"
-            :label="(item.procDefName || 'Null') + ' ' + item.createdTime + (item.status === 'draft' ? '*' : '')"
-          >
-            <span>{{
-              (item.procDefName || 'Null') + ' ' + item.createdTime + (item.status === 'draft' ? '*' : '')
-            }}</span>
-            <span style="float: right">
-              <Button
-                @click="
-                  showDeleteConfirm(
-                    item.procDefId,
-                    (item.procDefName || 'Null') + ' ' + item.createdTime + (item.status === 'draft' ? '*' : '')
-                  )
-                "
-                icon="ios-trash"
-                type="error"
-                size="small"
-              ></Button>
-            </span>
-            <span style="float: right; margin-right: 10px">
-              <Button @click="setFlowPermission(item.procDefId)" icon="ios-person" type="primary" size="small"></Button>
-            </span>
-          </Option>
-        </Select>
-      </Col>
-      <Col span="6" style="margin-right: 10px">
-        <span style="margin-right: 10px">{{ $t('instance_type') }}</span>
-        <div style="width: 80%; display: inline-block; vertical-align: middle">
-          <FilterRules
-            @change="onEntitySelect"
-            v-model="currentSelectedEntity"
-            :allDataModelsWithAttrs="allEntityType"
-            style="width: 100%"
-          ></FilterRules>
-        </div>
-      </Col>
-      <Col span="3" style="">
-        <span style="margin-right: 10px">{{ $t('tag') }}</span>
-        <div style="width: 60%; display: inline-block; vertical-align: middle">
-          <Input v-model="currentFlow.tags" />
-        </div>
-      </Col>
-      <Checkbox style="margin-right: 25px" border :disabled="!selectedFlow && !isAdd" v-model="excludeMode">{{
-        $t('conflict_test')
-      }}</Checkbox>
-      <Button style="margin-top: -1px" type="info">
+  <div style="display: flex; justify-content: space-between">
+    <div class="flow-name">
+      041_test_flow_normal
+      <Tag>v1</Tag>
+    </div>
+    <div>
+      <Button type="primary">
+        <Icon type="ios-paper-plane-outline" size="16"></Icon>
         {{ $t('release_flow') }}
       </Button>
-      <!-- @click="setFlowPermission(selectedFlow)" -->
-      <Button style="margin-top: -1px" type="primary">
-        {{ $t('permission_for_flow') }}
+      <Button type="success">
+        <Icon type="ios-download-outline" size="16"></Icon>
+        {{ $t('export') }}
       </Button>
-      <Button style="margin-top: -1px" type="info">
-        {{ $t('export_flow') }}
+      <Button type="info">
+        <Icon type="ios-person-outline" size="16"></Icon>
+        {{ $t('config_permission') }}
       </Button>
-
-      <Button style="float: right" @click="createNewFlow()" type="success">
-        {{ $t('create') }}
+      <Button type="error">
+        <Icon type="ios-trash-outline" size="16"></Icon>
+        {{ $t('delete') }}
       </Button>
-      <Button style="float: right; margin-right: 4px" type="primary">{{ $t('import_flow') }}</Button>
-
-      <!-- <Upload
-        v-show="isShowUploadList"
-        ref="uploadButton"
-        show-upload-list
-        accept=".pds"
-        name="uploadFile"
-        :on-success="onImportProcessDefinitionSuccess"
-        :on-error="onImportProcessDefinitionError"
-        action="platform/v1/process/definitions/import"
-        :headers="headers"
-      >
-        <Button style="display: none">{{ $t('import_flow') }}</Button>
-      </Upload> -->
-    </Row>
-    <FlowAuth ref="flowAuthRef" @sendAuth="setAuth"></FlowAuth>
+    </div>
   </div>
 </template>
 
@@ -191,4 +122,8 @@ export default {
 }
 </script>
 
-<style scoped lang="scss"></style>
+<style scoped lang="scss">
+.flow-name {
+  line-height: 32px;
+}
+</style>
