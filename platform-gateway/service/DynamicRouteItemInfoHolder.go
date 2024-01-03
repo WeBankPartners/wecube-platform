@@ -1,25 +1,14 @@
 package service
 
 import (
+	"github.com/WeBankPartners/wecube-platform/platform-gateway/common/utils"
 	"github.com/WeBankPartners/wecube-platform/platform-gateway/model"
 	"strconv"
 	"sync"
 )
 
-type DynamicRouteItemInfo struct {
-	ItemId     string
-	Context    string
-	HttpMethod string
-	Path       string
-	HttpScheme string
-	Host       string
-	Port       int
-	Disabled   bool
-	Weight     int
-}
-
-func ConvertRouteItem(dto *model.RouteItemInfoDto) *DynamicRouteItemInfo {
-	d := DynamicRouteItemInfo{}
+func ConvertRouteItem(dto *model.RouteItemInfoDto) *model.DynamicRouteItemInfo {
+	d := model.DynamicRouteItemInfo{}
 	d.Host = dto.Host
 	d.Path = dto.Path
 	d.HttpMethod = dto.HttpMethod
@@ -45,7 +34,7 @@ func (h DynamicRouteItemInfoHolder) Init() {
 	h.outdatedMvcContextRouteConfigs = make([]*MvcContextRouteConfig, 0)
 }
 
-func (h *DynamicRouteItemInfoHolder) RefreshRoutes(fullyDynamicRouteItemInfos []*DynamicRouteItemInfo) {
+func (h *DynamicRouteItemInfoHolder) RefreshRoutes(fullyDynamicRouteItemInfos []*model.DynamicRouteItemInfo) {
 	if len(fullyDynamicRouteItemInfos) == 0 {
 		return
 	}
@@ -76,11 +65,12 @@ func (h *DynamicRouteItemInfoHolder) increaseVersion() {
 	h.currentVersion = h.currentVersion + 1
 }
 
-func (h *DynamicRouteItemInfoHolder) tryAddDynamicRouteItemInfo(item *DynamicRouteItemInfo) {
+func (h *DynamicRouteItemInfoHolder) tryAddDynamicRouteItemInfo(item *model.DynamicRouteItemInfo) {
 	var existConfig *MvcContextRouteConfig
-	val, ok := h.mvcContextRouteConfigs.Load(item.Context)
-	existConfig = val.(*MvcContextRouteConfig)
-	if !ok {
+	val, _ := h.mvcContextRouteConfigs.Load(item.Context)
+	if val != nil {
+		existConfig = val.(*MvcContextRouteConfig)
+	} else {
 		existConfig = &MvcContextRouteConfig{
 			Context: item.Context,
 		}
@@ -88,7 +78,22 @@ func (h *DynamicRouteItemInfoHolder) tryAddDynamicRouteItemInfo(item *DynamicRou
 	}
 
 	existConfig.SetVersion(h.currentVersion)
-	if len(item.HttpMethod) == 0 && len(item.Path) == 0 {
+
+	if utils.IsBlank(item.HttpMethod) && utils.IsBlank(item.Path) {
+		existConfig.TryAddDefaultHttpDestination(&model.HttpDestination{
+			Scheme: item.HttpScheme,
+			Host:   item.Host,
+			Port:   item.Port,
+			Weight: item.Weight,
+		})
+		return
+	}
+
+	if utils.IsBlank(item.Path) {
+		return
+	}
+
+	if utils.IsBlank(item.HttpMethod) {
 		existConfig.tryAddMvcHttpMethodAndPathConfig2(item.Path, &model.HttpDestination{
 			Scheme: item.HttpScheme,
 			Host:   item.Host,
