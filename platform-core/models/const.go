@@ -25,6 +25,7 @@ const (
 	ContextUserId       = "userId"
 
 	JwtSignKey = "authJwtSecretKey"
+	AESPrefix  = "{AES}"
 )
 
 var (
