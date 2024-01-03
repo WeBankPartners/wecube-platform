@@ -131,6 +131,12 @@ type MenuItemDto struct {
 	Active           bool   `json:"active"`
 }
 
+type RoleMenuDto struct {
+	RoleId   string         `json:"roleId"`
+	RoleName string         `json:"roleName"`
+	MenuList []*MenuItemDto `json:"menuList"`
+}
+
 type MenuItemDtoSort []*MenuItemDto
 
 func (q MenuItemDtoSort) Len() int {
