@@ -3,6 +3,7 @@ package system
 import (
 	"fmt"
 	"github.com/WeBankPartners/wecube-platform/platform-core/api/middleware"
+	"github.com/WeBankPartners/wecube-platform/platform-core/common/exterror"
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/log"
 	"github.com/WeBankPartners/wecube-platform/platform-core/models"
 	"github.com/WeBankPartners/wecube-platform/platform-core/services/database"
@@ -100,6 +101,94 @@ func GetRolesByUsername(c *gin.Context) {
 		}
 	}
 	middleware.ReturnData(c, result)
+}
+
+// GetMenusByRoleId 返回角色菜单
+func GetMenusByRoleId(c *gin.Context) {
+	roleId := c.Param("role-id")
+	roleMenuDto, err := retrieveMenusByRoleId(c, roleId)
+	if err != nil {
+		middleware.ReturnError(c, err)
+		return
+	}
+	middleware.ReturnData(c, roleMenuDto)
+}
+
+// GetUsersByRoleId 查询角色用户
+func GetUsersByRoleId(c *gin.Context) {
+	var result []*models.UserDto
+	roleId := c.Param("role-id")
+	response, err := remote.GetUsersByRoleId(c, roleId)
+	if err != nil {
+		middleware.ReturnError(c, err)
+		return
+	}
+	if len(response.Data) > 0 {
+		for _, dto := range response.Data {
+			result = append(result, &models.UserDto{
+				ID:       dto.ID,
+				UserName: dto.Username,
+				Password: dto.Password,
+			})
+		}
+		middleware.ReturnData(c, result)
+	}
+}
+
+// GrantRoleToUsers 修改用户角色
+func GrantRoleToUsers(c *gin.Context) {
+	userId := c.Param("user-id")
+	var param models.GrantUserRoleParam
+	if err := c.ShouldBindJSON(&param); err != nil {
+		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, err))
+		return
+	}
+	err := remote.ConfigureUserWithRoles(c, userId, param.RoleIds)
+	if err != nil {
+		middleware.ReturnError(c, err)
+		return
+	}
+	middleware.ReturnSuccess(c)
+}
+
+// ResetUserPassword 重置用户密码
+func ResetUserPassword(c *gin.Context) {
+	var param models.UserPasswordResetParam
+	if err := c.ShouldBindJSON(&param); err != nil {
+		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, err))
+		return
+	}
+	response, err := remote.ResetLocalUserPassword(c, param)
+	if err != nil {
+		middleware.ReturnError(c, err)
+		return
+	}
+	if response.Status != "OK" {
+		err = fmt.Errorf(response.Message)
+		middleware.ReturnError(c, err)
+		return
+	}
+	middleware.ReturnData(c, response.Data)
+}
+
+// ChangeUserPassword 修改用户密码
+func ChangeUserPassword(c *gin.Context) {
+	var param models.UserPasswordChangeParam
+	if err := c.ShouldBindJSON(&param); err != nil {
+		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, err))
+		return
+	}
+	response, err := remote.ModifyLocalUserPassword(c, param, middleware.GetRequestUser(c))
+	if err != nil {
+		middleware.ReturnError(c, err)
+		return
+	}
+	if response.Status != "OK" {
+		err = fmt.Errorf(response.Message)
+		middleware.ReturnError(c, err)
+		return
+	}
+	middleware.ReturnData(c, response.Data)
 }
 
 func retrieveMenusByRoleId(c *gin.Context, roleId string) (roleMenuDto *models.RoleMenuDto, err error) {

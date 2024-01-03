@@ -36,7 +36,7 @@ type SysLogTable struct {
 	Response    string `json:"response" xorm:"response"`
 }
 
-type GetAllUserResponse struct {
+type QueryUserResponse struct {
 	Status  string                `json:"status"`
 	Message string                `json:"Message"`
 	Data    []*SimpleLocalUserDto `json:"data"`
@@ -46,4 +46,10 @@ type QueryRolesResponse struct {
 	Status  string                `json:"status"`
 	Message string                `json:"Message"`
 	Data    []*SimpleLocalRoleDto `json:"data"`
+}
+
+type RestUserPasswordResponse struct {
+	Status  string `json:"status"`
+	Message string `json:"Message"`
+	Data    string `json:"data"`
 }

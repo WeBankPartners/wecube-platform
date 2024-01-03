@@ -10,8 +10,21 @@ type MenuItems struct {
 	MenuOrder        int    `json:"menuOrder" xorm:"menu_order"`                // 菜单排序
 }
 
+type GrantUserRoleParam struct {
+	RoleIds []string `json:"roleIds"` // 角色列表
+}
+
 type RoleMenu struct {
 	Id       string `json:"id" xorm:"id"`              // 唯一标识
 	RoleName string `json:"roleName" xorm:"role_name"` // 角色
 	MenuCode string `json:"menuCode" xorm:"menu_code"` // 菜单编码
+}
+
+type UserPasswordResetParam struct {
+	Username string `json:"username"` //用户名
+}
+
+type UserPasswordChangeParam struct {
+	OriginalPassword string `json:"originalPassword"` // 原始密码
+	NewPassword      string `json:"newPassword"`      // 新密码
 }
