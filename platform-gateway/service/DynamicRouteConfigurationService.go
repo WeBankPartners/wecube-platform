@@ -5,9 +5,9 @@ import (
 	"github.com/WeBankPartners/wecube-platform/platform-gateway/api/middleware"
 	"github.com/WeBankPartners/wecube-platform/platform-gateway/common/constant"
 	"github.com/WeBankPartners/wecube-platform/platform-gateway/common/log"
+	"github.com/WeBankPartners/wecube-platform/platform-gateway/common/utils"
 	"github.com/WeBankPartners/wecube-platform/platform-gateway/model"
 	"github.com/WeBankPartners/wecube-platform/platform-gateway/service/remote_route_config"
-	"net/url"
 	"strconv"
 	"sync"
 	"time"
@@ -30,6 +30,10 @@ type MvcHttpMethodAndPathConfig struct {
 	Version              int
 	HttpDestinations     []*model.HttpDestination
 	MvcHttpMethodAndPath *MvcHttpMethodAndPath
+}
+
+func Init() error {
+	return DynamicRouteConfigurationServiceInstance.doLoadRoutes()
 }
 
 func CreateMvcHttpMethodAndPathConfig(mvcHttpMethodAndPath *MvcHttpMethodAndPath) *MvcHttpMethodAndPathConfig {
@@ -162,7 +166,7 @@ func (c *MvcContextRouteConfig) TryAddDefaultHttpDestination(httpDestination *mo
 	}
 
 	exist.SetWeight(httpDestination.Weight)
-	exist.SetVersion(httpDestination.Version)
+	exist.SetVersion(c.Version)
 
 	c.SetLastModifiedTime()
 	return true
@@ -299,10 +303,6 @@ func (d *DynamicRouteConfigurationService) DeleteRouteItem(routeContext string) 
 
 }
 
-func Init() {
-
-}
-
 /*func start() {
 	if transactionCompensateTicker != nil {
 		return
@@ -333,6 +333,19 @@ func (d *DynamicRouteConfigurationService) RefreshRoutes() {
 	defer DynamicRouteConfigurationServiceInstance.refreshLock.Unlock()
 
 	d.doRefreshRoutes()
+}
+
+func (d *DynamicRouteConfigurationService) doLoadRoutes() error {
+	log.Logger.Info("start to load routes...")
+
+	routeItems, err := remote_route_config.FetchAllRouteItemsWithRestClient()
+	if err != nil {
+		log.Logger.Error("failed to fetch all route items", log.Error(err))
+		return err
+	}
+	d.handleLoadRouteConfigInfoResponseDto(routeItems)
+
+	return nil
 }
 
 func (d *DynamicRouteConfigurationService) doRefreshRoutes() {
@@ -384,7 +397,7 @@ func initContextRouteConfig(contextRouteConfig *MvcContextRouteConfig) bool {
 
 	targetHttpDestination := defaultHttpDestinations[0]
 
-	itemInfo := DynamicRouteItemInfo{
+	itemInfo := model.DynamicRouteItemInfo{
 		Context:    contextRouteConfig.Context,
 		Host:       targetHttpDestination.Host,
 		Port:       targetHttpDestination.Port,
@@ -394,18 +407,18 @@ func initContextRouteConfig(contextRouteConfig *MvcContextRouteConfig) bool {
 	return true
 }
 
-func buildRouteDefinition(context string, itemInfo *DynamicRouteItemInfo) error {
+func buildRouteDefinition(context string, itemInfo *model.DynamicRouteItemInfo) error {
 	urlStr := fmt.Sprintf("%s://%s:%d", itemInfo.HttpScheme, itemInfo.Host, itemInfo.Port)
-	parsedURL, err := url.Parse(urlStr)
-	if err != nil {
-		log.Logger.Error("Error parsing URL:", log.Error(err))
-		return err
-	}
-	uri := parsedURL.RequestURI()
-
+	/*	parsedURL, err := url.Parse(urlStr)
+		if err != nil {
+			log.Logger.Error("Error parsing URL:", log.Error(err))
+			return err
+		}
+		uri := parsedURL.RequestURI()
+	*/
 	redirectRule := middleware.RedirectRule{
-		Context:    itemInfo.Context,
-		Uri:        uri,
+		Context: itemInfo.Context,
+		//Uri:        uri,
 		TargetPath: urlStr,
 		HttpScheme: itemInfo.HttpScheme,
 		Host:       itemInfo.Host,
@@ -415,8 +428,56 @@ func buildRouteDefinition(context string, itemInfo *DynamicRouteItemInfo) error 
 	return nil
 }
 
+func parseRouteConfigInfoResponse(routeItemInfoDtos []*model.RouteItemInfoDto) []*model.DynamicRouteItemInfo {
+
+	routeItemInfos := make([]*model.DynamicRouteItemInfo, 0)
+
+	for _, dto := range routeItemInfoDtos {
+		port := 0
+		if !utils.IsBlank(dto.Port) {
+			port, _ = strconv.Atoi(dto.Port)
+		}
+
+		weight := 0
+		if !utils.IsBlank(dto.Weight) {
+			weight, _ = strconv.Atoi(dto.Weight)
+		}
+
+		info := &model.DynamicRouteItemInfo{
+			Host:       dto.Host,
+			Path:       dto.Path,
+			HttpMethod: dto.HttpMethod,
+			HttpScheme: dto.HttpScheme,
+			Context:    dto.Context,
+			Port:       port,
+			Weight:     weight,
+		}
+
+		routeItemInfos = append(routeItemInfos, info)
+	}
+
+	return routeItemInfos
+}
+
+func (d *DynamicRouteConfigurationService) handleLoadRouteConfigInfoResponseDto(routeItemInfoDtos []*model.RouteItemInfoDto) {
+	d.loadLock.Lock()
+	defer d.loadLock.Unlock()
+
+	log.Logger.Debug(fmt.Sprintf("size:%v", len(routeItemInfoDtos)))
+
+	routeItemInfos := parseRouteConfigInfoResponse(routeItemInfoDtos)
+
+	DynamicRouteItemInfoHolderInstance.RefreshRoutes(routeItemInfos)
+	d.initContextRouteConfigs()
+
+	d.isDynamicRouteLoading = false
+	d.isDynamicRouteLoaded = true
+
+	log.Logger.Info(fmt.Sprintf("ROUTES loaded successfully, total size:%v", len(routeItemInfoDtos)))
+}
+
 func (d *DynamicRouteConfigurationService) handleRefreshRouteConfigInfoResponse(routeItemDtos []*model.RouteItemInfoDto) {
-	routeItems := make([]*DynamicRouteItemInfo, len(routeItemDtos))
+	routeItems := make([]*model.DynamicRouteItemInfo, len(routeItemDtos))
 	for i, remoteItem := range routeItemDtos {
 		routeItems[i] = ConvertRouteItem(remoteItem)
 	}
