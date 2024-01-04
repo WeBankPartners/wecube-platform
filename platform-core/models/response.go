@@ -37,19 +37,26 @@ type SysLogTable struct {
 }
 
 type QueryUserResponse struct {
-	Status  string                `json:"status"`
-	Message string                `json:"Message"`
-	Data    []*SimpleLocalUserDto `json:"data"`
+	HttpResponseMeta
+	Data []*SimpleLocalUserDto `json:"data"`
 }
 
 type QueryRolesResponse struct {
-	Status  string                `json:"status"`
-	Message string                `json:"Message"`
-	Data    []*SimpleLocalRoleDto `json:"data"`
+	HttpResponseMeta
+	Data []*SimpleLocalRoleDto `json:"data"`
+}
+
+type QuerySingleRolesResponse struct {
+	HttpResponseMeta
+	Data *SimpleLocalRoleDto `json:"data"`
+}
+
+type QuerySingleUserResponse struct {
+	HttpResponseMeta
+	Data *SimpleLocalUserDto `json:"data"`
 }
 
 type RestUserPasswordResponse struct {
-	Status  string `json:"status"`
-	Message string `json:"Message"`
-	Data    string `json:"data"`
+	HttpResponseMeta
+	Data string `json:"data"`
 }
