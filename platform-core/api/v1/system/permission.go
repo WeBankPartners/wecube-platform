@@ -1,6 +1,7 @@
 package system
 
 import (
+	"context"
 	"fmt"
 	"github.com/WeBankPartners/wecube-platform/platform-core/api/middleware"
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/exterror"
@@ -15,7 +16,7 @@ import (
 // GetAllUser 获取全量用户
 func GetAllUser(c *gin.Context) {
 	var list []models.UserDto
-	response, err := remote.RetrieveAllUsers(c)
+	response, err := remote.RetrieveAllUsers(c.GetHeader("Authorization"))
 	if err != nil {
 		middleware.ReturnError(c, err)
 		return
@@ -34,12 +35,12 @@ func QueryRoles(c *gin.Context) {
 	if requiredAll == "" {
 		requiredAll = "N"
 	}
-	response, err := remote.RetrieveAllLocalRoles(c, requiredAll)
+	response, err := remote.RetrieveAllLocalRoles(requiredAll, c.GetHeader("Authorization"))
 	if err != nil {
 		middleware.ReturnError(c, err)
 		return
 	}
-	middleware.ReturnData(c, response.Data)
+	middleware.Return(c, response)
 }
 
 // AllMenus 查询所有菜单
@@ -68,14 +69,15 @@ func AllMenus(c *gin.Context) {
 func GetMenusByUsername(c *gin.Context) {
 	var result []*models.RoleMenuDto
 	username := c.Param("username")
-	response, err := remote.GetRolesByUsername(c, username)
+	token := c.GetHeader("Authorization")
+	response, err := remote.GetRolesByUsername(username, token)
 	if err != nil {
 		middleware.ReturnError(c, err)
 		return
 	}
 	if len(response.Data) > 0 {
 		for _, item := range response.Data {
-			roleMenuDto, err := retrieveMenusByRoleId(c, item.ID)
+			roleMenuDto, err := retrieveMenusByRoleId(c, item.ID, token)
 			if err != nil {
 				middleware.ReturnError(c, err)
 				return
@@ -88,25 +90,19 @@ func GetMenusByUsername(c *gin.Context) {
 
 // GetRolesByUsername 根据用户名获取用户角色
 func GetRolesByUsername(c *gin.Context) {
-	var result []*models.SimpleLocalRoleDto
 	username := c.Param("username")
-	response, err := remote.GetRolesByUsername(c, username)
+	response, err := remote.GetRolesByUsername(username, c.GetHeader("Authorization"))
 	if err != nil {
 		middleware.ReturnError(c, err)
 		return
 	}
-	if len(response.Data) > 0 {
-		for _, item := range response.Data {
-			result = append(result, item)
-		}
-	}
-	middleware.ReturnData(c, result)
+	middleware.Return(c, response)
 }
 
 // GetMenusByRoleId 返回角色菜单
 func GetMenusByRoleId(c *gin.Context) {
 	roleId := c.Param("role-id")
-	roleMenuDto, err := retrieveMenusByRoleId(c, roleId)
+	roleMenuDto, err := retrieveMenusByRoleId(c, roleId, c.GetHeader("Authorization"))
 	if err != nil {
 		middleware.ReturnError(c, err)
 		return
@@ -118,7 +114,7 @@ func GetMenusByRoleId(c *gin.Context) {
 func GetUsersByRoleId(c *gin.Context) {
 	var result []*models.UserDto
 	roleId := c.Param("role-id")
-	response, err := remote.GetUsersByRoleId(c, roleId)
+	response, err := remote.GetUsersByRoleId(roleId, c.GetHeader("Authorization"))
 	if err != nil {
 		middleware.ReturnError(c, err)
 		return
@@ -143,7 +139,7 @@ func GrantRoleToUsers(c *gin.Context) {
 		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, err))
 		return
 	}
-	err := remote.ConfigureUserWithRoles(c, userId, param.RoleIds)
+	err := remote.ConfigureUserWithRoles(userId, c.GetHeader("Authorization"), param.RoleIds)
 	if err != nil {
 		middleware.ReturnError(c, err)
 		return
@@ -158,17 +154,12 @@ func ResetUserPassword(c *gin.Context) {
 		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, err))
 		return
 	}
-	response, err := remote.ResetLocalUserPassword(c, param)
+	response, err := remote.ResetLocalUserPassword(param, c.GetHeader("Authorization"))
 	if err != nil {
 		middleware.ReturnError(c, err)
 		return
 	}
-	if response.Status != "OK" {
-		err = fmt.Errorf(response.Message)
-		middleware.ReturnError(c, err)
-		return
-	}
-	middleware.ReturnData(c, response.Data)
+	middleware.Return(c, response)
 }
 
 // ChangeUserPassword 修改用户密码
@@ -178,32 +169,77 @@ func ChangeUserPassword(c *gin.Context) {
 		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, err))
 		return
 	}
-	response, err := remote.ModifyLocalUserPassword(c, param, middleware.GetRequestUser(c))
+	response, err := remote.ModifyLocalUserPassword(param, middleware.GetRequestUser(c), c.GetHeader("Authorization"))
 	if err != nil {
 		middleware.ReturnError(c, err)
 		return
 	}
-	if response.Status != "OK" {
-		err = fmt.Errorf(response.Message)
+	middleware.Return(c, response)
+}
+
+// DeleteUserByUserId 删除用户
+func DeleteUserByUserId(c *gin.Context) {
+	userId := c.Param("user-id")
+	token := c.GetHeader("Authorization")
+	response, err := remote.RetrieveUserByUserId(userId, token)
+	if err != nil {
 		middleware.ReturnError(c, err)
 		return
 	}
-	middleware.ReturnData(c, response.Data)
+	if response.Data == nil {
+		err = fmt.Errorf("not found user-id:%s", userId)
+		middleware.ReturnError(c, err)
+		return
+	}
+	if middleware.GetRequestUser(c) == response.Data.Username {
+		err = fmt.Errorf("cannot remove the account which belongs to the login user")
+		middleware.ReturnError(c, err)
+		return
+	}
+	// 删除用户
+	err = remote.UnregisterLocalUser(userId, userId)
+	if err != nil {
+		middleware.ReturnError(c, err)
+		return
+	}
+	middleware.ReturnSuccess(c)
 }
 
-func retrieveMenusByRoleId(c *gin.Context, roleId string) (roleMenuDto *models.RoleMenuDto, err error) {
+// UpdateRole 更新角色
+func UpdateRole(c *gin.Context) {
+	var param models.SimpleLocalRoleDto
+	roleId := c.Param("role-id")
+	if err := c.ShouldBindJSON(&param); err != nil {
+		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, err))
+		return
+	}
+	if roleId == "" {
+		err := fmt.Errorf("param roleId is empty")
+		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, err))
+		return
+	}
+	param.ID = roleId
+	response, err := remote.UpdateLocalRole(c.GetHeader("Authorization"), param)
+	if err != nil {
+		middleware.ReturnError(c, err)
+		return
+	}
+	middleware.Return(c, response)
+}
+
+func retrieveMenusByRoleId(ctx context.Context, roleId, userToken string) (roleMenuDto *models.RoleMenuDto, err error) {
 	var menuItemDtoList []*models.MenuItemDto
 	var roleRes models.QueryRolesResponse
 	var roleMenuEntities []*models.RoleMenu
 	var menuItemsEntity *models.MenuItems
 	var pluginPackageMenusEntities []*models.PluginPackageMenus
-	roleRes, err = remote.RetrieveRoleInfo(c, roleId)
+	roleRes, err = remote.RetrieveRoleInfo(roleId, userToken)
 	if err != nil {
 		return
 	}
 	if len(roleRes.Data) > 0 {
 		roleName := roleRes.Data[0].Name
-		roleMenuEntities, err = database.GetAllByRoleName(c, roleName)
+		roleMenuEntities, err = database.GetAllByRoleName(ctx, roleName)
 		if err != nil {
 			return
 		}
@@ -211,7 +247,7 @@ func retrieveMenusByRoleId(c *gin.Context, roleId string) (roleMenuDto *models.R
 		roleMenuDto.RoleName = roleName
 		for _, roleMenuEntity := range roleMenuEntities {
 			menuCode := roleMenuEntity.MenuCode
-			menuItemsEntity, err = database.GetMenuItemsByCode(c, menuCode)
+			menuItemsEntity, err = database.GetMenuItemsByCode(ctx, menuCode)
 			if err != nil {
 				return
 			}
@@ -219,13 +255,13 @@ func retrieveMenusByRoleId(c *gin.Context, roleId string) (roleMenuDto *models.R
 				log.Logger.Info(fmt.Sprintf("System menu was found.The menu code is:[%s]", menuCode))
 				menuItemDtoList = append(menuItemDtoList, buildMenuItemDto(menuItemsEntity))
 			} else {
-				pluginPackageMenusEntities, err = database.GetAllMenusByCodeAndPackageStatus(c, menuCode, []string{"REGISTERED", "RUNNING", "STOPPED"})
+				pluginPackageMenusEntities, err = database.GetAllMenusByCodeAndPackageStatus(ctx, menuCode, []string{"REGISTERED", "RUNNING", "STOPPED"})
 				if err != nil {
 					return
 				}
 				for _, pluginPackageMenusEntity := range pluginPackageMenusEntities {
 					log.Logger.Info(fmt.Sprintf("Plugin package menu was found.The menu code is:[%s]", menuCode))
-					dto := database.BuildPackageMenuItemDto(c, pluginPackageMenusEntity)
+					dto := database.BuildPackageMenuItemDto(ctx, pluginPackageMenusEntity)
 					if dto != nil {
 						menuItemDtoList = append(menuItemDtoList, dto)
 					}

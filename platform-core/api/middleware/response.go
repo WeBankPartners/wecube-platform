@@ -20,6 +20,16 @@ func ReturnData(c *gin.Context, data interface{}) {
 	c.JSON(http.StatusOK, returnObj)
 }
 
+func Return(c *gin.Context, response interface{}) {
+	if log.DebugEnable {
+		bodyBytes, _ := json.Marshal(response)
+		c.Set(models.ContextResponseBody, string(bodyBytes))
+	}
+	c.Set(models.ContextErrorCode, 0)
+	c.Set(models.ContextErrorKey, models.DefaultHttpSuccessCode)
+	c.JSON(http.StatusOK, response)
+}
+
 func ReturnSuccess(c *gin.Context) {
 	ReturnData(c, nil)
 }
