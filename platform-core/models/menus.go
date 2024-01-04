@@ -10,8 +10,16 @@ type MenuItems struct {
 	MenuOrder        int    `json:"menuOrder" xorm:"menu_order"`                // 菜单排序
 }
 
-type GrantUserRoleParam struct {
+type RoleIdsParam struct {
 	RoleIds []string `json:"roleIds"` // 角色列表
+}
+
+type UserIdsParam struct {
+	UserIds []string `json:"userIds"` // 用户列表
+}
+
+type MenuCodesParam struct {
+	MenuCodeList []string `json:"menuCodeList"` // 菜单code列表
 }
 
 type RoleMenu struct {
