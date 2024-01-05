@@ -1,8 +1,8 @@
 <template>
   <div id="itemInfo">
     <Icon class="hide-panal" type="md-exit" size="24" @click="hideItem" />
+    <div class="panal-name">连接属性：</div>
     <Form :label-width="80">
-      edge
       <template>
         <FormItem label="ID">
           <Input disabled v-model="itemCustomInfo.id"></Input>
@@ -60,7 +60,16 @@ export default {
   margin-bottom: 0;
 }
 .hide-panal {
-  margin: 8px;
+  position: fixed;
+  top: 400px;
+  right: 520px;
   cursor: pointer;
+}
+
+.panal-name {
+  padding: 12px;
+  margin-bottom: 4px;
+  border-bottom: 1px solid #e8eaec;
+  font-weight: bold;
 }
 </style>
