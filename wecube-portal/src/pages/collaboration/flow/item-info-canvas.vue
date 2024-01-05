@@ -31,7 +31,7 @@
         <Input v-model="itemCustomInfo.tags"></Input>
       </FormItem>
       <FormItem label="冲突检测">
-        <i-switch v-model="itemCustomInfo.excludeMode" />
+        <i-switch v-model="itemCustomInfo.conflictCheck" />
       </FormItem>
     </Form>
     <div style="position: fixed; bottom: 20px; right: 400px">
@@ -56,7 +56,7 @@ export default {
         useCase: '', // 使用场景
         authPlugins: [], // 授权插件列表
         tags: '',
-        excludeMode: true // 冲突检测
+        conflictCheck: true // 冲突检测
       },
       allEntityType: [], // 系统中所有根CI
       authPluginList: [
