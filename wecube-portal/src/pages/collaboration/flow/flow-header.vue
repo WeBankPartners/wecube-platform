@@ -44,7 +44,6 @@ export default {
       },
       currentSelectedEntity: '', // 当前显示的根CI
       allEntityType: [], // 系统中所有根CI
-      excludeMode: true, // 冲突检测
       mgmtRolesKeyToFlow: [],
       useRolesKeyToFlow: []
     }
@@ -103,7 +102,6 @@ export default {
     clearFlow () {
       this.currentSelectedEntity = ''
       this.currentFlow.tags = ''
-      this.excludeMode = false
     },
     // 创建新编排
     createNewFlow () {
