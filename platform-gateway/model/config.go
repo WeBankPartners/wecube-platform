@@ -34,12 +34,18 @@ type RemoteServiceConfig struct {
 	Timeout            int    `json:"timeout"`
 }
 
+type RedirectRoute struct {
+	Context    string `json:"context"`
+	TargetPath string `json:"target_path"`
+}
+
 type GlobalConfig struct {
-	ServerAddress string              `json:"server_address"`
-	ServerPort    string              `json:"server_port"`
-	Log           LogConfig           `json:"log"`
-	Database      DatabaseConfig      `json:"database"`
-	Remote        RemoteServiceConfig `json:"remote_service"`
+	ServerAddress  string              `json:"server_address"`
+	ServerPort     string              `json:"server_port"`
+	Log            LogConfig           `json:"log"`
+	Database       DatabaseConfig      `json:"database"`
+	Remote         RemoteServiceConfig `json:"remote_service"`
+	RedirectRoutes []RedirectRoute     `json:"redirect_routes"`
 }
 
 var (

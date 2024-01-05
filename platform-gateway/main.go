@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	sw "github.com/WeBankPartners/wecube-platform/platform-gateway/api"
+	"github.com/WeBankPartners/wecube-platform/platform-gateway/api/middleware"
 	"github.com/WeBankPartners/wecube-platform/platform-gateway/common/log"
 	"github.com/WeBankPartners/wecube-platform/platform-gateway/model"
 	"github.com/WeBankPartners/wecube-platform/platform-gateway/service"
@@ -18,15 +19,8 @@ func main() {
 	}
 
 	log.InitLogger()
-	/*	middleware.InitAuth()
-		middleware.InitRedirect()
-	*/
-	/*	err := exterror.InitErrorTemplateList(config.Config.ErrorTemplateDir, config.Config.ErrorDetailReturn)
-		if err != nil {
-			log.Logger.Error("Init error template list fail", log.Error(err))
-			return
-		}
-	*/
+	middleware.Init()
+
 	if err := service.Init(); err != nil {
 		fmt.Printf("failed to init service:%s", err.Error())
 		return

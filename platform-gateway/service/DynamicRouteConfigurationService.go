@@ -17,6 +17,13 @@ import (
 
 var DynamicRouteItemInfoHolderInstance = &DynamicRouteItemInfoHolder{}
 var DynamicRouteConfigurationServiceInstance = &DynamicRouteConfigurationService{}
+var loadRouteTicker *time.Ticker
+var refreshTicker *time.Ticker
+
+const (
+	retryIntervalOfSeconds   = 30
+	refreshIntervalOfMinutes = 1
+)
 
 type MvcHttpMethodAndPath struct {
 	HttpMethod string
@@ -33,7 +40,76 @@ type MvcHttpMethodAndPathConfig struct {
 }
 
 func Init() error {
-	return DynamicRouteConfigurationServiceInstance.doLoadRoutes()
+	if loadRouteTicker != nil {
+		return nil
+	}
+
+	loadRouteTicker = time.NewTicker(time.Duration(retryIntervalOfSeconds) * time.Second)
+	go func() {
+		for {
+			select {
+			case t := <-loadRouteTicker.C:
+				startTime := time.Now()
+				log.Logger.Debug("loading routers", log.String("ticker", fmt.Sprintf("%v", t)))
+				DynamicRouteConfigurationServiceInstance.loadRoutes()
+				log.Logger.Debug("end of loading routers", log.String("ticker", fmt.Sprintf("%v", t)),
+					log.Int64("cost_ms", time.Now().Sub(startTime).Milliseconds()))
+			}
+		}
+	}()
+	log.Logger.Info(fmt.Sprintf("loadRouterTicker is created (interval is %d secs)", retryIntervalOfSeconds))
+
+	refreshTicker = time.NewTicker(time.Duration(refreshIntervalOfMinutes) * time.Minute)
+	go func() {
+		for {
+			select {
+			case t := <-refreshTicker.C:
+				startTime := time.Now()
+				log.Logger.Debug("refreshing routers", log.String("ticker", fmt.Sprintf("%v", t)))
+				DynamicRouteConfigurationServiceInstance.RefreshRoutes()
+				log.Logger.Debug("end of refreshing routers", log.String("ticker", fmt.Sprintf("%v", t)),
+					log.Int64("cost_ms", time.Now().Sub(startTime).Milliseconds()))
+			}
+		}
+	}()
+	log.Logger.Info(fmt.Sprintf("refreshRouterTicker is created (interval is %d mins)", refreshIntervalOfMinutes))
+
+	//return DynamicRouteConfigurationServiceInstance.doLoadRoutes()
+	return nil
+}
+
+func (d *DynamicRouteConfigurationService) loadRoutes() {
+	log.Logger.Info("load routes  ------  ")
+	//sync.Mutex is not reentrant
+	/*	if !d.loadLock.TryLock() {
+			log.Logger.Debug("cannot acquire the lock.")
+			return
+		}
+		defer d.loadLock.Unlock()
+	*/
+	if d.isDynamicRouteLoaded {
+		log.Logger.Info(fmt.Sprintf("isDynamicRouteLoaded:%v", d.isDynamicRouteLoaded))
+
+		loadRouteTicker.Stop()
+		/*if (!loadDisposable.isDisposed()) {
+		  log.info("to dispose load tasks.");
+		  loadDisposable.dispose();
+		  }
+		*/
+		return
+	}
+
+	if d.isDynamicRouteLoading {
+		log.Logger.Info("Routes is loading ...")
+		return
+	}
+
+	log.Logger.Info("try to do load routes --- ")
+	if err := d.doLoadRoutes(); err != nil {
+		d.isDynamicRouteLoading = false
+		d.isDynamicRouteLoaded = false
+	}
+
 }
 
 func CreateMvcHttpMethodAndPathConfig(mvcHttpMethodAndPath *MvcHttpMethodAndPath) *MvcHttpMethodAndPathConfig {
@@ -297,33 +373,12 @@ func (d *DynamicRouteConfigurationService) DeleteRouteItem(routeContext string) 
 		return
 	}
 
-	middleware.RemoveRule(routeContext)
+	delete(routeContext)
 	d.loadedContexts.Delete(routeId)
 	log.Logger.Info(fmt.Sprintf("delete result:%v", routeId))
 
 }
 
-/*func start() {
-	if transactionCompensateTicker != nil {
-		return
-	}
-
-	transactionCompensateTicker = time.NewTicker(time.Duration(DefaultCompensateScanIntervalMin) * time.Minute)
-	go func() {
-		for {
-			select {
-			case t := <-transactionCompensateTicker.C:
-				startTime := time.Now()
-				log.Logger.Debug("begin of transaction compensation process", log.String("ticker", fmt.Sprintf("%v", t)))
-				processSuspendedTransactions()
-				log.Logger.Debug("end of transaction compensation process", log.String("ticker", fmt.Sprintf("%v", t)),
-					log.Int64("cost_ms", time.Now().Sub(startTime).Milliseconds()))
-			}
-		}
-	}()
-	log.Logger.Info(fmt.Sprintf("transactionCompensateTicker is created (interval is %d mins)", DefaultCompensateScanIntervalMin))
-}
-*/
 func (d *DynamicRouteConfigurationService) RefreshRoutes() {
 	if !DynamicRouteConfigurationServiceInstance.isDynamicRouteLoaded {
 		return
@@ -338,6 +393,10 @@ func (d *DynamicRouteConfigurationService) RefreshRoutes() {
 func (d *DynamicRouteConfigurationService) doLoadRoutes() error {
 	log.Logger.Info("start to load routes...")
 
+	d.loadLock.Lock()
+	defer d.loadLock.Unlock()
+
+	d.isDynamicRouteLoading = true
 	routeItems, err := remote_route_config.FetchAllRouteItemsWithRestClient()
 	if err != nil {
 		log.Logger.Error("failed to fetch all route items", log.Error(err))
@@ -370,7 +429,6 @@ func (d *DynamicRouteConfigurationService) refreshAllLoadedContexts() {
 
 func (d *DynamicRouteConfigurationService) initContextRouteConfigs() {
 	count := 0
-	d.refreshAllLoadedContexts()
 
 	contextRouteConfigs := DynamicRouteItemInfoHolderInstance.RouteConfigs()
 
@@ -385,7 +443,8 @@ func (d *DynamicRouteConfigurationService) initContextRouteConfigs() {
 			count++
 		}
 	}
-	log.Logger.Debug(fmt.Sprint("add %v route definitions", count))
+	d.refreshAllLoadedContexts()
+	log.Logger.Debug(fmt.Sprintf("add %v route definitions", count))
 }
 
 func initContextRouteConfig(contextRouteConfig *MvcContextRouteConfig) bool {
@@ -395,37 +454,24 @@ func initContextRouteConfig(contextRouteConfig *MvcContextRouteConfig) bool {
 		return false
 	}
 
-	targetHttpDestination := defaultHttpDestinations[0]
-
-	itemInfo := model.DynamicRouteItemInfo{
-		Context:    contextRouteConfig.Context,
-		Host:       targetHttpDestination.Host,
-		Port:       targetHttpDestination.Port,
-		HttpScheme: targetHttpDestination.Scheme,
-	}
-	buildRouteDefinition(contextRouteConfig.Context, &itemInfo)
+	buildRouteDefinition(contextRouteConfig.Context, defaultHttpDestinations)
 	return true
 }
 
-func buildRouteDefinition(context string, itemInfo *model.DynamicRouteItemInfo) error {
-	urlStr := fmt.Sprintf("%s://%s:%d", itemInfo.HttpScheme, itemInfo.Host, itemInfo.Port)
-	/*	parsedURL, err := url.Parse(urlStr)
-		if err != nil {
-			log.Logger.Error("Error parsing URL:", log.Error(err))
-			return err
+func buildRouteDefinition(context string, destinations []*model.HttpDestination) {
+	redirectRules := make([]middleware.RedirectRule, len(destinations))
+	for i, dest := range destinations {
+		urlStr := fmt.Sprintf("%s://%s:%d", dest.Scheme, dest.Host, dest.Port)
+		redirectRules[i] = middleware.RedirectRule{
+			Context: context,
+			//Uri:        uri,
+			TargetPath: urlStr,
+			HttpScheme: dest.Scheme,
+			Host:       dest.Host,
+			Port:       strconv.Itoa(dest.Port),
 		}
-		uri := parsedURL.RequestURI()
-	*/
-	redirectRule := middleware.RedirectRule{
-		Context: itemInfo.Context,
-		//Uri:        uri,
-		TargetPath: urlStr,
-		HttpScheme: itemInfo.HttpScheme,
-		Host:       itemInfo.Host,
-		Port:       strconv.Itoa(itemInfo.Port),
 	}
-	middleware.AddRedirectRule(redirectRule)
-	return nil
+	middleware.AddRedirectRule(context, redirectRules)
 }
 
 func parseRouteConfigInfoResponse(routeItemInfoDtos []*model.RouteItemInfoDto) []*model.DynamicRouteItemInfo {
@@ -460,9 +506,9 @@ func parseRouteConfigInfoResponse(routeItemInfoDtos []*model.RouteItemInfoDto) [
 }
 
 func (d *DynamicRouteConfigurationService) handleLoadRouteConfigInfoResponseDto(routeItemInfoDtos []*model.RouteItemInfoDto) {
-	d.loadLock.Lock()
-	defer d.loadLock.Unlock()
-
+	/*	d.loadLock.Lock()
+		defer d.loadLock.Unlock()
+	*/
 	log.Logger.Debug(fmt.Sprintf("size:%v", len(routeItemInfoDtos)))
 
 	routeItemInfos := parseRouteConfigInfoResponse(routeItemInfoDtos)
@@ -491,15 +537,15 @@ func (d *DynamicRouteConfigurationService) handleRefreshRouteConfigInfoResponse(
 		contextRouteId := config.Context //+ ROUTE_ID_SUFFIX
 		if _, ok := DynamicRouteConfigurationServiceInstance.loadedContexts.Load(contextRouteId); ok {
 			delete(contextRouteId)
-			log.Logger.Debug("outdated context route:" + contextRouteId)
+			log.Logger.Info("outdated context route:" + contextRouteId)
 
 			DynamicRouteConfigurationServiceInstance.loadedContexts.Delete(contextRouteId)
 		}
 	}
 }
 
-func delete(uri string) {
-
+func delete(context string) {
+	middleware.RemoveRule(context)
 }
 
 func ListAllContextRouteItems() []model.RouteItemInfoDto {
