@@ -27,7 +27,7 @@ let router = new Router({
         {
           path: '/collaboration/workflow-orchestration',
           name: 'flowManage',
-          component: () => import('@/pages/collaboration/workflow'),
+          component: () => import('@/pages/collaboration/workflow-orchestration-ori'),
           props: true
         },
         {
