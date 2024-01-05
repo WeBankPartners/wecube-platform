@@ -286,14 +286,17 @@ export default {
 }
 
 .hide-panal {
-  margin: 8px;
+  position: fixed;
+  top: 400px;
+  right: 520px;
   cursor: pointer;
 }
 
 .panal-name {
-  padding-bottom: 4px;
+  padding: 12px;
   margin-bottom: 4px;
   border-bottom: 1px solid #e8eaec;
+  font-weight: bold;
 }
 
 .ivu-collapse {
