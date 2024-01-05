@@ -87,6 +87,13 @@ func init() {
 		&handlerFuncObj{Url: "/roles/retrieve", Method: "GET", HandlerFunc: system.QueryRoles, ApiCode: "query-roles"},
 		&handlerFuncObj{Url: "/roles/:role-id/menus", Method: "GET", HandlerFunc: system.GetMenusByRoleId, ApiCode: "get-role-menu"},
 		&handlerFuncObj{Url: "/roles/:role-id/users", Method: "GET", HandlerFunc: system.GetUsersByRoleId, ApiCode: "get-role-user"},
+		&handlerFuncObj{Url: "/roles/:role-id/update", Method: "POST", HandlerFunc: system.UpdateRole, ApiCode: "update-role"},
+		// @todo 需要Super_admin权限才能调用接口
+		&handlerFuncObj{Url: "/roles/:role-id/users/grant", Method: "POST", HandlerFunc: system.GrantUserAddRoles, ApiCode: "grant-role-users"},
+		// @todo 需要Super_admin权限才能调用接口
+		&handlerFuncObj{Url: "/roles/:role-id/users/revoke", Method: "DELETE", HandlerFunc: system.RevokeRoleFromUsers, ApiCode: "revoke-role-users"},
+		// @todo 需要Super_admin权限才能调用接口
+		&handlerFuncObj{Url: "/roles/:role-id/menus", Method: "POST", HandlerFunc: system.UpdateRoleToMenusByRoleId, ApiCode: "update-role-menus"},
 		&handlerFuncObj{Url: "/all-menus", Method: "GET", HandlerFunc: system.AllMenus, ApiCode: "all-menus"},
 		&handlerFuncObj{Url: "/user/:username/menus", Method: "GET", HandlerFunc: system.GetMenusByUsername, ApiCode: "get-user-menus"},
 		&handlerFuncObj{Url: "/user/:username/roles", Method: "GET", HandlerFunc: system.GetRolesByUsername, ApiCode: "get-user-roles"},
@@ -95,6 +102,9 @@ func init() {
 		// @todo 需要Super_admin权限才能调用接口
 		&handlerFuncObj{Url: "/user/reset-password", Method: "POST", HandlerFunc: system.ResetUserPassword, ApiCode: "reset-user-password"},
 		&handlerFuncObj{Url: "/user/change-password", Method: "POST", HandlerFunc: system.ChangeUserPassword, ApiCode: "change-user-password"},
+		// @todo 需要Super_admin权限才能调用接口
+		&handlerFuncObj{Url: "/user/:user-id/delete", Method: "DELETE", HandlerFunc: system.DeleteUserByUserId, ApiCode: "delete-user"},
+		&handlerFuncObj{Url: "/users/roles", Method: "GET", HandlerFunc: system.GetRolesOfCurrentUser, ApiCode: "get-user-roles"},
 	)
 }
 
