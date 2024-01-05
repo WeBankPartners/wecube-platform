@@ -29,7 +29,7 @@
         <template slot="content">
           <Form :label-width="80">
             <FormItem :label="$t('timeout')">
-              <Select v-model="itemCustomInfo.customAttrs.timeoutExpression">
+              <Select v-model="itemCustomInfo.customAttrs.timeout">
                 <Option v-for="(item, index) in timeSelection" :value="item.mins" :key="index"
                   >{{ item.label }}
                 </Option>
@@ -39,7 +39,7 @@
               :label="$t('pre_check')"
               v-if="itemCustomInfo.customAttrs && !['data'].includes(itemCustomInfo.customAttrs.nodeType)"
             >
-              <i-switch v-model="itemCustomInfo.customAttrs.preCheck" />
+              <i-switch v-model="itemCustomInfo.customAttrs.riskCheck" />
             </FormItem>
           </Form>
         </template>
@@ -64,7 +64,7 @@
               v-if="['human', 'automatic'].includes(itemCustomInfo.customAttrs.nodeType)"
             >
               <Select
-                v-model="itemCustomInfo.customAttrs.associatedNodeId"
+                v-model="itemCustomInfo.customAttrs.bindNodeId"
                 @on-change="changeAssociatedNode"
                 @on-open-change="getAssociatedNodes"
                 clearable
@@ -77,9 +77,7 @@
               <ItemFilterRulesGroup
                 :isBatch="itemCustomInfo.customAttrs.taskCategory === 'SDTN'"
                 ref="filterRulesGroupRef"
-                :disabled="
-                  itemCustomInfo.customAttrs.dynamicBind === 'Y' && itemCustomInfo.customAttrs.associatedNodeId
-                "
+                :disabled="itemCustomInfo.customAttrs.dynamicBind && itemCustomInfo.customAttrs.bindNodeId"
                 :routineExpression="itemCustomInfo.customAttrs.routineExpression"
                 :allEntityType="allEntityType"
                 :currentSelectedEntity="currentSelectedEntity"
@@ -137,35 +135,35 @@ export default {
       // 超时时间选项
       timeSelection: [
         {
-          mins: '5',
+          mins: 5,
           label: '5 ' + this.$t('mins')
         },
         {
-          mins: '10',
+          mins: 10,
           label: '10 ' + this.$t('mins')
         },
         {
-          mins: '30',
+          mins: 30,
           label: '30 ' + this.$t('mins')
         },
         {
-          mins: '60',
+          mins: 60,
           label: '1 ' + this.$t('hours')
         },
         {
-          mins: '720',
+          mins: 720,
           label: '12 ' + this.$t('hours')
         },
         {
-          mins: '1440',
+          mins: 1440,
           label: '1 ' + this.$t('days')
         },
         {
-          mins: '2880',
+          mins: 2880,
           label: '2 ' + this.$t('days')
         },
         {
-          mins: '4320',
+          mins: 4320,
           label: '3 ' + this.$t('days')
         }
       ],
@@ -183,22 +181,21 @@ export default {
   methods: {
     showItemInfo (data) {
       const defaultNode = {
-        id: '', // 节点id  nodeId  ----OK
-        label: '', // 节点名称 nodeName ----OK
+        id: '', // 节点id  nodeId
+        label: '', // 节点名称 nodeName
         customAttrs: {
           procDefId: '', // 对应编排信息
           procDefKey: '', // 对应编排信息
-          taskCategory: '', // 节点类型，SSTN自动节点 SUTN人工节点 SDTN数据写入节点 ----OK
-          timeoutExpression: '30', // 超时时间 ----OK
-          description: null, // 描述说明  ----OK
+          timeout: 30, // 超时时间
+          description: null, // 描述说明
           dynamicBind: false, // 动态绑定
-          associatedNodeId: null, // 动态绑定关联节点id
+          bindNodeId: null, // 动态绑定关联节点id
           nodeType: '', // 节点类型，对应节点原始类型（start、end……
           routineExpression: 'wecmdb:app_instance', // 对应节点中的定位规则
           routineRaw: null, // 还未知作用
           serviceId: null, // 选择的插件id
           serviceName: null, // 选择的插件名称
-          preCheck: true, // 高危检测
+          riskCheck: true, // 高危检测
           paramInfos: [] // 存在插件注册处需要填写的字段
         }
       }

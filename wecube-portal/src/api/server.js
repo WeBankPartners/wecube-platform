@@ -53,10 +53,10 @@ export const getParamsInfosByFlowIdAndNodeId = (flowId, nodeId) =>
   req.get(`platform/v1/process/definitions/${flowId}/tasknodes/${nodeId}`)
 
 export const getFlowNodes = flowId => req.get(`platform/v1/process/definitions/${flowId}/tasknodes/briefs`)
-export const getContextParametersNodes = (flowId, taskNodeId, prevCtxNodeIds) => {
+export const getContextParametersNodes = (flowId, taskNodeId, contextParamNodes) => {
   let params = {
     taskNodeId: taskNodeId,
-    prevCtxNodeIds: prevCtxNodeIds.join(',')
+    contextParamNodes: contextParamNodes.join(',')
   }
   return req.get(`/platform/v1/process/definitions/${flowId}/root-context-nodes/briefs`, { params })
 }
