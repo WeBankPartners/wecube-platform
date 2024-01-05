@@ -8,7 +8,7 @@ const (
 
 type ResponseWrap struct {
 	Status  string      `json:"status"`
-	Message string      `json:"Message"`
+	Message string      `json:"message"`
 	Data    interface{} `json:"data"`
 }
 

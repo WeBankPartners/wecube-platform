@@ -120,7 +120,8 @@ func Execute(serviceInvoke RemoteServiceInvoke, reqBody interface{}, resultPtr i
 		}
 		return err
 	}
-	log.Logger.Info(fmt.Sprintf("response from remote %s system. HttpStatus: %s, Body: %+v", remoteSysName, resp.Status(), remoteResponse))
+	log.Logger.Info(fmt.Sprintf("response from remote %s system. HttpStatus: %s", remoteSysName, resp.Status()))
+	log.Logger.Debug(fmt.Sprintf("response Body: %+v", remoteResponse))
 	if resp.IsError() {
 		errStr := fmt.Sprintf("error http status from remote %s system: %s", remoteSysName, resp.Status())
 		log.Logger.Error(errStr)
