@@ -70,3 +70,28 @@ func HttpPostCommon(url, userToken string, postBytes []byte) (err error) {
 	}
 	return
 }
+
+// HttpDeleteCommon http Delete
+func HttpDeleteCommon(url, userToken string) (err error) {
+	req, newReqErr := http.NewRequest(http.MethodDelete, url, strings.NewReader(""))
+	if newReqErr != nil {
+		err = fmt.Errorf("Try to new http request fail,%s ", newReqErr.Error())
+		return
+	}
+	req.Header.Set("Authorization", userToken)
+	resp, respErr := http.DefaultClient.Do(req)
+	if respErr != nil {
+		err = fmt.Errorf("Try to do http request fail,%s ", respErr.Error())
+		return
+	}
+	respBytes, _ := io.ReadAll(resp.Body)
+	var response models.CommonGatewayResp
+	if err = json.Unmarshal(respBytes, &response); err != nil {
+		err = fmt.Errorf("json unmarhsal response body fail,%s ", err.Error())
+		return
+	}
+	if response.Status != "OK" {
+		err = fmt.Errorf(response.Message)
+	}
+	return
+}
