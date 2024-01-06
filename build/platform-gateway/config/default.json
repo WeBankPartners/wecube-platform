@@ -1,11 +1,11 @@
 {
-  "server_address": "127.0.0.1",
-  "server_port": "[#server_port]",
+  "server_address": "0.0.0.0",
+  "server_port": "8080",
   "error_template_dir":"config/i18n",
   "error_detail_return": true,
   "log": {
-    "level": "[#log_level]",
-    "log_dir": "logs",
+    "level": "[#LOG_LEVEL]",
+    "log_dir": "[#WECUBE_GATEWAY_LOG_PATH]",
     "access_log_enable": true,
     "db_log_enable": true,
     "archive_max_size": 64,
@@ -14,7 +14,7 @@
     "compress": true
   },
   "remote_service": {
-    "route_config_address": "http://[#WECUBE_CORE_HOST]:19100/platform/v1/route-items"
+    "route_config_address": "[#GATEWAY_ROUTE_CONFIG_SERVER][#GATEWAY_ROUTE_CONFIG_URI]"
   },
   "redirect_routes": [
     {
