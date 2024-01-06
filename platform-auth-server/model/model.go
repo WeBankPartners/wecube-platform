@@ -49,7 +49,7 @@ type AuthenticationResponse struct {
 }
 
 type Jwt struct {
-	Expiration int64 `json:"expiration,omitempty"`
+	Expiration string `json:"expiration,omitempty"`
 
 	Token string `json:"token,omitempty"`
 
