@@ -41,3 +41,6 @@ bin/
 
 platform-core/platform-core
 platform-core/logs
+
+platform-gateway/config
+platform-auth-server/config
