@@ -75,6 +75,7 @@ type GlobalConfig struct {
 	Version                string                `json:"version"`
 	DefaultLanguage        string                `json:"default_language"`
 	PasswordPrivateKeyPath string                `json:"password_private_key_path"`
+	HttpsEnable            string                `json:"https_enable"`
 	HttpServer             *HttpServerConfig     `json:"http_server"`
 	Log                    *LogConfig            `json:"log"`
 	Database               *DatabaseConfig       `json:"database"`
