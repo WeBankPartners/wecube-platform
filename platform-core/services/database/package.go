@@ -219,8 +219,8 @@ func UploadPackage(ctx context.Context, registerConfig *models.RegisterXML, with
 		maxVersion = maxVersion + 1
 		for _, dataModel := range registerConfig.DataModel.Entity {
 			dmId := "p_model_" + guid.CreateGuid()
-			actions = append(actions, &db.ExecAction{Sql: "INSERT INTO plugin_package_data_model (id,`version`,package_name,is_dynamic,update_path,update_method,update_source,update_time) VALUES (?,?,?,?,?,?,?,?)", Param: []interface{}{
-				dmId, maxVersion, registerConfig.Name, 0, "/data-model", "GET", "PLUGIN_PACKAGE", nowTime,
+			actions = append(actions, &db.ExecAction{Sql: "INSERT INTO plugin_package_data_model (id,`version`,package_name,is_dynamic,update_path,update_method,update_source,updated_time,update_time) VALUES (?,?,?,?,?,?,?,?,?)", Param: []interface{}{
+				dmId, maxVersion, registerConfig.Name, 0, "/data-model", "GET", "PLUGIN_PACKAGE", nowTime, nowTime.UnixMilli(),
 			}})
 			entityId := "p_mod_entity_" + guid.CreateGuid()
 			actions = append(actions, &db.ExecAction{Sql: "INSERT INTO plugin_package_entities (id,data_model_id,data_model_version,package_name,name,display_name,description) VALUES (?,?,?,?,?,?,?)", Param: []interface{}{
@@ -228,8 +228,14 @@ func UploadPackage(ctx context.Context, registerConfig *models.RegisterXML, with
 			}})
 			for attrIndex, attr := range dataModel.Attribute {
 				attrId := "p_mod_attr_" + guid.CreateGuid()
-				actions = append(actions, &db.ExecAction{Sql: "INSERT INTO plugin_package_attributes (id,entity_id,name,description,data_type,mandatory,multiple,created_time,order_no) values  (?,?,?,?,?,?,?,?,?)", Param: []interface{}{
-					attrId, entityId, attr.Name, attr.Description, attr.Datatype, 0, 0, nowTime, attrIndex,
+				tmpMultiple := false
+				if attr.Multiple == "Y" {
+					tmpMultiple = true
+				} else {
+					attr.Multiple = "N"
+				}
+				actions = append(actions, &db.ExecAction{Sql: "INSERT INTO plugin_package_attributes (id,entity_id,name,description,data_type,mandatory,multiple,is_array,created_time,order_no) values  (?,?,?,?,?,?,?,?,?,?)", Param: []interface{}{
+					attrId, entityId, attr.Name, attr.Description, attr.Datatype, 0, attr.Multiple, tmpMultiple, nowTime, attrIndex,
 				}})
 			}
 		}
