@@ -65,25 +65,27 @@ var (
 	umPermissionResp UmPermissionResp
 )
 
-func UmAppAuth() error {
+func UmAppAuth(umAuthContext model.UmAuthContext) error {
 	client := resty.New()
 	timeStamp := strconv.Itoa(int(time.Now().Unix()))
 
+	appToken := umAuthContext.Appname
 	nonce := strconv.Itoa(rand.Int()%90000 + 10000)
-	data := []byte(model.Config.UmAuth.AppId + nonce + timeStamp)
+	data := []byte(umAuthContext.Appid + nonce + timeStamp)
 	tmp := fmt.Sprintf("%x", md5.Sum(data))
-	sign := fmt.Sprintf("%x", md5.Sum([]byte(tmp+model.Config.UmAuth.AppToken)))
+	sign := fmt.Sprintf("%x", md5.Sum([]byte(tmp+appToken)))
 
+	reqDomain := fmt.Sprintf("http://%s:%d", umAuthContext.Host, umAuthContext.Port)
 	resp, err := client.R().
 		SetQueryParams(map[string]string{
-			"appid":     model.Config.UmAuth.AppId,
+			"appid":     umAuthContext.Appid,
 			"style":     "2",
 			"timeStamp": timeStamp,
 			"nonce":     nonce,
 			"sign":      sign,
 		}).
 		SetHeader("ContentType", "application/x-www-form-urlencoded;charset=UTF-8").
-		Get(model.Config.UmAuth.Address + "/um_service")
+		Get(reqDomain + "/um_service")
 
 	log.Logger.Debug("UM request:", log.String("url", resp.Request.URL))
 	if err != nil {
@@ -124,13 +126,30 @@ func generatePwd(loginId, loginPwd string) string {
 	return result.String()
 }
 
-func UmAuthenticate(credential *model.CredentialDto) (bool, string, error) {
+func convertUmAuthContext(authCtxMap map[string]string) model.UmAuthContext {
+	protocol := "http"
+	if val, ok := authCtxMap["protocol"]; ok {
+		protocol = val
+	}
+	port, _ := strconv.Atoi(authCtxMap["port"])
+
+	return model.UmAuthContext{
+		Protocol: protocol,
+		Host:     authCtxMap["host"],
+		Port:     port,
+		Appid:    authCtxMap["appid"],
+		Appname:  authCtxMap["appname"],
+	}
+}
+
+func UmAuthenticate(authCtxMap map[string]string, credential *model.CredentialDto) (bool, string, error) {
 	log.Logger.Debug("current umToken", log.JsonObj("umToken", umToken))
+	umAuthCtx := convertUmAuthContext(authCtxMap)
 	curTimeStamp := time.Now().Unix()
 	if umToken.ExpTime == 0 || umToken.ExpTime < curTimeStamp {
 		log.Logger.Info("need app authentication with UM in first.")
 		log.Logger.Debug("curTimeStamp:" + strconv.Itoa(int(curTimeStamp)))
-		if err := UmAppAuth(); err != nil {
+		if err := UmAppAuth(umAuthCtx); err != nil {
 			return false, "", errors.New("failed to authentication app with UM:" + err.Error())
 		}
 	}
@@ -140,20 +159,21 @@ func UmAuthenticate(credential *model.CredentialDto) (bool, string, error) {
 	tmp := generatePwd(credential.Username, credential.Password)
 	sign := fmt.Sprintf("%x", md5.Sum([]byte(credential.Username+tmp+timeStamp)))
 
+	reqDomain := fmt.Sprintf("http://%s:%d", umAuthCtx.Host, umAuthCtx.Port)
 	var umAuthResp UmAuthResponse
 	resp, err := client.R().
 		SetQueryParams(map[string]string{
 			"id": credential.Username,
 			//"userToken": credential.UserToken,
 			"sign":      sign,
-			"appid":     model.Config.UmAuth.AppId,
+			"appid":     umAuthCtx.Appid,
 			"timeStamp": timeStamp,
 			"style":     "5",
 			"auth":      umToken.Auth,
 			"token":     umToken.Token,
 		}).
 		SetHeader("ContentType", "application/x-www-form-urlencoded;charset=UTF-8").
-		Get(model.Config.UmAuth.Address + "/um_service")
+		Get(reqDomain + "/um_service")
 
 	log.Logger.Debug("UM user auth request:", log.String("url", resp.Request.URL))
 	if err != nil {
@@ -179,45 +199,6 @@ func UmAuthenticate(credential *model.CredentialDto) (bool, string, error) {
 	} else {
 		return false, umUserName, nil
 	}
-}
-
-func UmPermissionAuth() error {
-	client := resty.New()
-	timeStamp := strconv.Itoa(int(time.Now().Unix()))
-
-	nonce := strconv.Itoa(rand.Int()%90000 + 10000)
-	tmp := fmt.Sprintf("%x", md5.Sum([]byte(model.Config.UmAuth.AppId+nonce+timeStamp)))
-	sign := fmt.Sprintf("%x", md5.Sum([]byte(tmp+model.Config.UmAuth.AppToken)))
-	clientIp := getLocalIpAddress()
-
-	resp, err := client.R().
-		SetQueryParams(map[string]string{
-			"appid":     model.Config.UmAuth.AppId,
-			"style":     "2",
-			"timeStamp": timeStamp,
-			"nonce":     nonce,
-			"sign":      sign,
-			"clientIp":  clientIp,
-		}).
-		SetHeader("ContentType", "application/x-www-form-urlencoded;charset=UTF-8").
-		Get(model.Config.UmPermissionUpload.Address + "/umapp/umITSM/umPermissionInterface")
-
-	log.Logger.Debug("UM request:", log.String("url", resp.Request.URL))
-	if err != nil {
-		log.Logger.Error("failed to authenticate with um permission", log.Error(err))
-		return err
-	}
-	if resp.IsError() {
-		errStr := "error http status from um system: " + resp.Status()
-		return errors.New(errStr)
-	}
-	log.Logger.Debug("Got UM response:" + string(resp.Body()))
-
-	if err := json.Unmarshal(resp.Body(), &umPermissionResp); err != nil {
-		log.Logger.Error("failed to unmarshal um reponse.", log.Error(err))
-		return err
-	}
-	return nil
 }
 
 func getLocalIpAddress() string {
@@ -249,116 +230,4 @@ func getLocalIpAddress() string {
 		}
 	}
 	return ""
-}
-
-func UmRoleInfoUpload(roleInfos []UmRoleItem) (bool, error) {
-	client := resty.New()
-	if strings.ToLower(model.Config.Log.Level) == "debug" {
-		client.Debug = true
-	}
-
-	timeStamp := strconv.Itoa(int(time.Now().Unix()))
-
-	roles, err := json.Marshal(roleInfos)
-	if err != nil {
-		return false, err
-	}
-	body := map[string]string{
-		"roles": string(roles),
-	}
-	resp, err := client.R().
-		SetQueryParams(map[string]string{
-			"appid":     model.Config.UmAuth.AppId,
-			"style":     "imr",
-			"timeStamp": timeStamp,
-			"auth":      umPermissionResp.Auth,
-			"token":     umPermissionResp.Tok,
-		}).
-		SetHeader("ContentType", "application/x-www-form-urlencoded;charset=UTF-8").
-		SetBody(body).
-		Post(model.Config.UmPermissionUpload.Address + "/umapp/umITSM/full/import")
-
-	log.Logger.Debug("UM request:", log.String("url", resp.Request.URL))
-	if err != nil {
-		log.Logger.Error("failed to upload full role information", log.Error(err))
-		return false, err
-	}
-	if resp.IsError() {
-		errStr := "error http status from um system: " + resp.Status()
-		return false, errors.New(errStr)
-	}
-	log.Logger.Debug("Got UM response:" + string(resp.Body()))
-
-	resultMap := make(map[string]any)
-	if err := json.Unmarshal(resp.Body(), &resultMap); err != nil {
-		log.Logger.Error("failed to unmarshal um reponse.", log.Error(err))
-		return false, err
-	}
-	if codeVal, ok := resultMap["retCode"]; ok {
-		retCode := int(codeVal.(float64))
-		if retCode == 0 {
-			return true, nil
-		} else {
-			return false, nil
-		}
-	} else {
-		return false, errors.New("no retCode in um response")
-	}
-}
-
-func UmUserRoleUpload(userRoleInfo []UmUserRoleItem) (bool, error) {
-	client := resty.New()
-
-	if strings.ToLower(model.Config.Log.Level) == "debug" {
-		client.Debug = true
-	}
-
-	timeStamp := strconv.Itoa(int(time.Now().Unix()))
-
-	userRoles, err := json.Marshal(userRoleInfo)
-	if err != nil {
-		return false, err
-	}
-	body := map[string]string{
-		"userRoles": string(userRoles),
-	}
-
-	resp, err := client.R().
-		SetQueryParams(map[string]string{
-			"appid":     model.Config.UmAuth.AppId,
-			"style":     "imur",
-			"timeStamp": timeStamp,
-			"auth":      umPermissionResp.Auth,
-			"token":     umPermissionResp.Tok,
-		}).
-		SetHeader("ContentType", "application/x-www-form-urlencoded;charset=UTF-8").
-		SetBody(body).
-		Post(model.Config.UmPermissionUpload.Address + "/umapp/umITSM/full/import")
-
-	log.Logger.Debug("UM request:", log.String("url", resp.Request.URL))
-	if err != nil {
-		log.Logger.Error("failed to upload full user role data", log.Error(err))
-		return false, err
-	}
-	if resp.IsError() {
-		errStr := "error http status from um system: " + resp.Status()
-		return false, errors.New(errStr)
-	}
-	log.Logger.Debug("Got UM response:" + string(resp.Body()))
-
-	resultMap := make(map[string]any)
-	if err := json.Unmarshal(resp.Body(), &resultMap); err != nil {
-		log.Logger.Error("failed to unmarshal um reponse.", log.Error(err))
-		return false, err
-	}
-	if codeVal, ok := resultMap["retCode"]; ok {
-		retCode := int(codeVal.(float64))
-		if retCode == 0 {
-			return true, nil
-		} else {
-			return false, nil
-		}
-	} else {
-		return false, errors.New("no retCode in um response")
-	}
 }
