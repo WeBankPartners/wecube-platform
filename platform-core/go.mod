@@ -3,7 +3,7 @@ module github.com/WeBankPartners/wecube-platform/platform-core
 go 1.19
 
 require (
-	github.com/WeBankPartners/go-common-lib v1.1.2
+	github.com/WeBankPartners/go-common-lib v1.1.3
 	github.com/gin-gonic/gin v1.9.1
 	github.com/go-sql-driver/mysql v1.7.1
 	github.com/minio/minio-go/v7 v7.0.66

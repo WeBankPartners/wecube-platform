@@ -1,5 +1,6 @@
-# github.com/WeBankPartners/go-common-lib v1.1.2
+# github.com/WeBankPartners/go-common-lib v1.1.3
 ## explicit; go 1.17
+github.com/WeBankPartners/go-common-lib/cipher
 github.com/WeBankPartners/go-common-lib/guid
 github.com/WeBankPartners/go-common-lib/logger
 # github.com/bytedance/sonic v1.9.1

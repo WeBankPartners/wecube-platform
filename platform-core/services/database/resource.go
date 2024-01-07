@@ -51,7 +51,7 @@ func CreateResourceServer(ctx context.Context, params []*models.ResourceServer) 
 	for _, v := range params {
 		v.Id = "rs_ser_" + guid.CreateGuid()
 		if !strings.HasPrefix(v.LoginPassword, models.AESPrefix) {
-			enPwd, _ := encrypt.EncryptWithAesECB(v.LoginPassword, models.Config.Plugin.ResourcePasswordSeed, v.Name)
+			enPwd := encrypt.EncryptWithAesECB(v.LoginPassword, models.Config.Plugin.ResourcePasswordSeed, v.Name)
 			v.LoginPassword = models.AESPrefix + enPwd
 		}
 		actions = append(actions, &db.ExecAction{Sql: "insert into resource_server (id,created_by,created_date,host,is_allocated,login_password,login_username,name,port,purpose,status,`type`,updated_by,updated_date,login_mode) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)", Param: []interface{}{
@@ -67,7 +67,7 @@ func UpdateResourceServer(ctx context.Context, params []*models.ResourceServer) 
 	nowTime := time.Now()
 	for _, v := range params {
 		if !strings.HasPrefix(v.LoginPassword, models.AESPrefix) {
-			enPwd, _ := encrypt.EncryptWithAesECB(v.LoginPassword, models.Config.Plugin.ResourcePasswordSeed, v.Name)
+			enPwd := encrypt.EncryptWithAesECB(v.LoginPassword, models.Config.Plugin.ResourcePasswordSeed, v.Name)
 			v.LoginPassword = models.AESPrefix + enPwd
 		}
 		actions = append(actions, &db.ExecAction{Sql: "update resource_server set host=?,is_allocated=?,login_password=?,login_username=?,name=?,port=?,purpose=?,status=?,`type`=?,updated_by=?,updated_date=?,login_mode=? where id=?", Param: []interface{}{
