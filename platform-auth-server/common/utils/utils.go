@@ -88,3 +88,7 @@ func Uuid() string {
 	uuidWithHythen := uuid.New().String()
 	return strings.ReplaceAll(uuidWithHythen, "-", "")
 }
+
+func IsBlank(s string) bool {
+	return strings.TrimSpace(s) == ""
+}
