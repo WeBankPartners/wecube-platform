@@ -1,0 +1,32 @@
+{
+  "server_address": "0.0.0.0",
+  "server_port": "8080",
+  "error_template_dir":"config/i18n",
+  "error_detail_return": true,
+  "log": {
+    "level": "[#LOG_LEVEL]",
+    "log_dir": "logs",
+    "access_log_enable": true,
+    "db_log_enable": true,
+    "archive_max_size": 64,
+    "archive_max_backup": 10,
+    "archive_max_day": 15,
+    "compress": true
+  },
+  "database": {
+    "server": "[#MYSQL_SERVER_ADDR]",
+    "port": "[#MYSQL_SERVER_PORT]",
+    "user": "[#MYSQL_USER_NAME]",
+    "password": "[#MYSQL_USER_PASSWORD]",
+    "database": "[#MYSQL_SERVER_DATABASE_NAME]",
+    "maxOpen": 200,
+    "maxIdle": 50,
+    "timeout": 60
+  },
+  "auth":{
+    "jwt_private_key_path":"[#JWT_PRI_KEY_PATH]",
+    "jwt_public_key_path":"[#JWT_PUB_KEY_PATH]",
+    "access_token_mins":[#USER_ACCESS_TOKEN],
+    "refresh_token_mins":[#USER_REFRESH_TOKEN]
+  }
+}

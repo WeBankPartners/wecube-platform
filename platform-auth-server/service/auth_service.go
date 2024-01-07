@@ -319,7 +319,7 @@ func buildRefreshToken(loginId, userName string) (string, int64, error) {
 	}
 
 	issueAt := time.Now().UTC().Unix()
-	exp := time.Now().Add(time.Hour * time.Duration(model.Config.Auth.RefreshTokenHours)).UTC().Unix()
+	exp := time.Now().Add(time.Minute * time.Duration(model.Config.Auth.RefreshTokenMins)).UTC().Unix()
 	token := jwt.NewWithClaims(jwt.SigningMethodRS512, model.AuthClaims{
 		Subject:   loginId,
 		IssuedAt:  issueAt,
@@ -345,6 +345,18 @@ func createAuthenticationResponse(credential *model.CredentialDto, authorities [
 	}, nil
 }
 
+func parseUserAuthContext(authContext string) map[string]string {
+	keyValuePairs := strings.Split(authContext, ";")
+	kvMap := make(map[string]string)
+	for _, keyValuePair := range keyValuePairs {
+		keyValue := strings.Split(keyValuePair, "=")
+		if len(keyValue) == 2 {
+			kvMap[keyValue[0]] = keyValue[1]
+		}
+	}
+	return kvMap
+}
+
 func additionalAuthenticationChecks(user *model.SysUser, credential *model.CredentialDto) error {
 	authSource := user.AuthSource
 	if isBlank(authSource) {
@@ -354,10 +366,10 @@ func additionalAuthenticationChecks(user *model.SysUser, credential *model.Crede
 	if utils.EqualsIgnoreCase(constant.AuthSourceLocal, authSource) {
 		return checkAuthentication(user, credential)
 	}
-
+	authCtxMap := parseUserAuthContext(user.AuthContext)
 	if utils.EqualsIgnoreCase(constant.AuthSourceUm, authSource) {
 		//umAuthenticationChecker.checkAuthentication(user, authToken)
-		result, _, err := api_um.UmAuthenticate(credential)
+		result, _, err := api_um.UmAuthenticate(authCtxMap, credential)
 		if err != nil {
 			errMsg := "failed to authenticate with token"
 			log.Logger.Error(errMsg, log.Error(err))

@@ -68,3 +68,11 @@ type CompositeAuthority struct {
 	AuthorityType string
 	Authority     string
 }
+
+type UmAuthContext struct {
+	Protocol string
+	Host     string
+	Port     int
+	Appid    string
+	Appname  string
+}

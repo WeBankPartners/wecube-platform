@@ -64,6 +64,8 @@ func init() {
 	httpHandlerFuncList = append(httpHandlerFuncList, // contract instance
 		&handlerFuncObj{Url: constant.UriLogin, Method: http.MethodPost, HandlerFunc: Login,
 			ApiCode: "Login"},
+		&handlerFuncObj{Url: "/v1/api/token", Method: http.MethodGet, HandlerFunc: RefreshToken,
+			ApiCode: "RefreshToken"},
 
 		&handlerFuncObj{Url: "/v1/authorities", Method: http.MethodPost, HandlerFunc: RegisterLocalAuthority,
 			ApiCode: "RegisterLocalAuthority"},
