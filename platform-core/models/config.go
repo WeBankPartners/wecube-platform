@@ -2,6 +2,8 @@ package models
 
 import (
 	"encoding/json"
+	"fmt"
+	"github.com/WeBankPartners/go-common-lib/cipher"
 	"os"
 	"strings"
 )
@@ -60,10 +62,11 @@ type StaticResourceConfig struct {
 }
 
 type PluginJsonConfig struct {
-	BaseMountPath        string `json:"base_mount_path"`
-	DeployPath           string `json:"deploy_path"`
-	PasswordPubKeyPath   string `json:"password_pub_key_path"`
-	ResourcePasswordSeed string `json:"resource_password_seed"`
+	BaseMountPath         string `json:"base_mount_path"`
+	DeployPath            string `json:"deploy_path"`
+	PasswordPubKeyPath    string `json:"password_pub_key_path"`
+	PasswordPubKeyContent string `json:"-"`
+	ResourcePasswordSeed  string `json:"resource_password_seed"`
 }
 
 type GatewayConfig struct {
@@ -110,6 +113,37 @@ func InitConfig(configFile string) (errMessage string) {
 	if err != nil {
 		errMessage = "parse file to json fail," + err.Error()
 		return
+	}
+	if c.PasswordPrivateKeyPath != "" {
+		privateBytes, readPriErr := os.ReadFile(c.PasswordPrivateKeyPath)
+		if readPriErr == nil {
+			if c.Database.Password, err = cipher.DecryptRsa(c.Database.Password, string(privateBytes)); err != nil {
+				errMessage = "decrypt database password config fail," + err.Error()
+				return
+			}
+			if c.S3.SecretKey, err = cipher.DecryptRsa(c.S3.SecretKey, string(privateBytes)); err != nil {
+				errMessage = "decrypt s3 secretKey config fail," + err.Error()
+				return
+			}
+			if c.StaticResource.Password, err = cipher.DecryptRsa(c.StaticResource.Password, string(privateBytes)); err != nil {
+				errMessage = "decrypt static resource password config fail," + err.Error()
+				return
+			}
+			if c.Plugin.ResourcePasswordSeed, err = cipher.DecryptRsa(c.Plugin.ResourcePasswordSeed, string(privateBytes)); err != nil {
+				errMessage = "decrypt public resource password seed config fail," + err.Error()
+				return
+			}
+		} else {
+			fmt.Printf("raed private key:%s fail:%s ", c.PasswordPrivateKeyPath, readPriErr.Error())
+		}
+	}
+	if c.Plugin.PasswordPubKeyPath != "" {
+		publicBytes, readPubErr := os.ReadFile(c.PasswordPrivateKeyPath)
+		if readPubErr == nil {
+			c.Plugin.PasswordPubKeyContent = string(publicBytes)
+		} else {
+			fmt.Printf("raed public public key:%s fail:%s ", c.Plugin.PasswordPubKeyPath, readPubErr.Error())
+		}
 	}
 	Config = &c
 	return
