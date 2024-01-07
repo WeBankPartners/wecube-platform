@@ -3,6 +3,7 @@ package plugin
 import (
 	"encoding/xml"
 	"fmt"
+	"github.com/WeBankPartners/go-common-lib/cipher"
 	"github.com/WeBankPartners/go-common-lib/guid"
 	"github.com/WeBankPartners/wecube-platform/platform-core/api/middleware"
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/exterror"
@@ -418,7 +419,16 @@ func LaunchPlugin(c *gin.Context) {
 	if mysqlInstance != nil {
 		envMap["DB_SCHEMA"] = mysqlInstance.SchemaName
 		envMap["DB_USER"] = mysqlInstance.Username
-		envMap["DB_PWD"] = mysqlInstance.Password
+		if models.Config.Plugin.PasswordPubKeyContent != "" {
+			if encryptDBPwd, enErr := cipher.EncryptRsa(mysqlInstance.Password, models.Config.Plugin.PasswordPubKeyContent); enErr != nil {
+				log.Logger.Error("Try to encrypt plugin password fail", log.Error(enErr))
+				envMap["DB_PWD"] = mysqlInstance.Password
+			} else {
+				envMap["DB_PWD"] = encryptDBPwd
+			}
+		} else {
+			envMap["DB_PWD"] = mysqlInstance.Password
+		}
 		if mysqlServer != nil {
 			envMap["DB_HOST"] = mysqlServer.Host
 			envMap["DB_PORT"] = mysqlServer.Port
