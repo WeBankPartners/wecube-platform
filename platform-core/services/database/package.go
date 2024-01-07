@@ -358,7 +358,7 @@ func GetResourceServer(ctx context.Context, serverType, serverIp string) (resour
 			}
 			resourceServerObj = resourceServerRows[0]
 			if strings.HasPrefix(resourceServerObj.LoginPassword, models.AESPrefix) {
-				resourceServerObj.LoginPassword, _ = encrypt.DecryptWithAesECB(resourceServerObj.LoginPassword, models.Config.Plugin.ResourcePasswordSeed, resourceServerObj.Name)
+				resourceServerObj.LoginPassword = encrypt.DecryptWithAesECB(resourceServerObj.LoginPassword, models.Config.Plugin.ResourcePasswordSeed, resourceServerObj.Name)
 			}
 		}
 	}
