@@ -36,7 +36,7 @@ func setupTokenHeaders(jwtTokens []model.Jwt, c *gin.Context) {
 }
 
 func RefreshToken(c *gin.Context) {
-	bearerToken := c.Request.Header.Get(constant.RefreshTokenHeader)
+	bearerToken := c.Request.Header.Get(constant.AuthorizationHeader)
 	if len(bearerToken) == 0 || !strings.HasPrefix(bearerToken, constant.BearerTokenPrefix) {
 		support.ReturnError(c, errors.New("invalid request"))
 	} else {
