@@ -21,7 +21,7 @@ doc:
 wecube_docs_dirname=wecube-docs
 build_name=wecube-build
 auth_server_dir=$(shell pwd)/platform-auth-server
-
+auth_server_project_dir=$(shell basename "${auth_server_dir}")
 
 build:
 	# make sure dir exists, even if make doc failed/never exec before
@@ -35,7 +35,7 @@ build:
 build_auth_server:
 	rm -f platform-auth-server/platform-auth-server
 	chmod +x platform-auth-server/build/*.sh
-	docker run --rm -v $(auth_server_dir):/go/src/github.com/WeBankPartners/wecube-platform/$(auth_server_dir) --name build_$(auth_server_dir)_authserver golang:1.18.0 /bin/bash /go/src/github.com/WeBankPartners/wecube-platform/$(auth_server_dir)/build/build-server.sh
+	docker run --rm -v $(auth_server_dir):/go/src/github.com/WeBankPartners/wecube-platform/$(auth_server_project_dir) --name build_$(auth_server_dir)_authserver golang:1.18.0 /bin/bash /go/src/github.com/WeBankPartners/wecube-platform/$(auth_server_dir)/build/build-server.sh
 
 build_maven:
 	# make sure dir exists, even if make doc failed/never exec before
