@@ -160,6 +160,7 @@ type RegisterXML struct {
 				Name        string `xml:"name,attr"`
 				Datatype    string `xml:"datatype,attr"`
 				Description string `xml:"description,attr"`
+				Multiple    string `xml:"multiple,attr"`
 			} `xml:"attribute"`
 		} `xml:"entity"`
 	} `xml:"dataModel"`
