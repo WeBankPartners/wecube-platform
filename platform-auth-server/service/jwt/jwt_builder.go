@@ -89,7 +89,7 @@ func buildRefreshToken(loginId, clientType string) (*model.JwtTokenDto, error) {
 	}
 
 	issueAt := time.Now().UTC().Unix()
-	exp := time.Now().Add(time.Hour * time.Duration(model.Config.Auth.RefreshTokenHours)).UTC().Unix()
+	exp := time.Now().Add(time.Minute * time.Duration(model.Config.Auth.RefreshTokenMins)).UTC().Unix()
 	token := jwt.NewWithClaims(jwt.SigningMethodHS512, model.AuthClaims{
 		Subject:    loginId,
 		IssuedAt:   issueAt,
