@@ -1,6 +1,6 @@
 <template>
   <div id="itemInfo">
-    <Icon class="hide-panal" type="md-exit" size="24" @click="hideItem" />
+    <div class="hide-panal" @click="hideItem"></div>
     <div class="panal-name">节点属性：</div>
     <Collapse simple v-model="opendPanel">
       <Panel name="1">
@@ -285,13 +285,6 @@ export default {
   margin-bottom: 0;
 }
 
-.hide-panal {
-  position: fixed;
-  top: 400px;
-  right: 520px;
-  cursor: pointer;
-}
-
 .panal-name {
   padding: 12px;
   margin-bottom: 4px;
@@ -304,5 +297,22 @@ export default {
 }
 .ivu-collapse > .ivu-collapse-item {
   border-top: none !important;
+}
+
+.hide-panal {
+  width: 12px;
+  height: 22px;
+  border-radius: 10px 0 0 10px;
+  background-color: white;
+  border-top: 1px solid #0892ed80;
+  border-bottom: 1px solid #0892ed80;
+  border-left: 1px solid #0892ed80;
+  overflow: hidden;
+
+  position: fixed;
+  top: 400px;
+  right: 531px;
+  cursor: pointer;
+  box-shadow: 0 0 8px #0892ed80;
 }
 </style>
