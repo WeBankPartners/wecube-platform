@@ -297,3 +297,87 @@ CREATE TABLE `plugin_config_roles` (
    `updated_time` datetime DEFAULT NULL COMMENT '更新时间',
    PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
+
+CREATE TABLE `proc_def` (
+     `id` varchar(64) NOT NULL COMMENT '唯一标识',
+     `key` varchar(64) NOT NULL COMMENT '编排key',
+     `name` varchar(255) NOT NULL COMMENT '编排名称',
+     `root_entity` varchar(255) DEFAULT NULL COMMENT '根节点',
+     `status` varchar(32) NOT NULL COMMENT '状态',
+     `tags` varchar(255) DEFAULT NULL COMMENT '标签',
+     `for_plugin` varchar(255) DEFAULT NULL COMMENT '授权插件',
+     `scene` varchar(255) DEFAULT NULL COMMENT '使用场景',
+     `conflict_check` bit(1) DEFAULT 0 COMMENT '冲突检测',
+     `created_by` varchar(64) DEFAULT NULL COMMENT '创建人',
+     `created_time` datetime DEFAULT NULL COMMENT '创建时间',
+     `updated_by` varchar(64) DEFAULT NULL COMMENT '更新人',
+     `updated_time` datetime DEFAULT NULL COMMENT '更新时间',
+     PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
+
+CREATE TABLE `proc_def_node` (
+    `id` varchar(64) NOT NULL COMMENT '唯一标识',
+    `proc_def_id` varchar(64) NOT NULL COMMENT '编排id',
+    `name` varchar(64) NOT NULL COMMENT '节点名称',
+    `description` varchar(255) DEFAULT NULL COMMENT '节点描述',
+    `status` varchar(32) NOT NULL COMMENT '状态',
+    `node_type` varchar(64) NOT NULL COMMENT '节点类型',
+    `service_name` varchar(255) DEFAULT NULL COMMENT '插件服务名',
+    `dynamic_bind` bit(1) DEFAULT 0 COMMENT '是否动态绑定',
+    `bind_node_id` varchar(64) DEFAULT NULL COMMENT '动态绑定节点',
+    `risk_check` bit(1) DEFAULT 0 COMMENT '是否高危检测',
+    `routine_expression` varchar(1024) DEFAULT NULL COMMENT '定位规则',
+    `context_param_nodes` varchar(1024) DEFAULT NULL COMMENT '上下文参数节点',
+    `timeout` int(11) DEFAULT 30 COMMENT '超时时间分钟',
+    `ordered_no` int(11) DEFAULT 0 COMMENT '节点顺序',
+    `ui_style` text DEFAULT NULL COMMENT '前端样式',
+    `created_by` varchar(64) DEFAULT NULL COMMENT '创建人',
+    `created_time` datetime DEFAULT NULL COMMENT '创建时间',
+    `updated_by` varchar(64) DEFAULT NULL COMMENT '更新人',
+    `updated_time` datetime DEFAULT NULL COMMENT '更新时间',
+    PRIMARY KEY (`id`),
+    CONSTRAINT `fk_proc_def_node_def` FOREIGN KEY (`proc_def_id`) REFERENCES `proc_def` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
+
+CREATE TABLE `proc_def_node_param` (
+     `id` varchar(64) NOT NULL COMMENT '唯一标识',
+     `proc_def_node_id` varchar(64) NOT NULL COMMENT '编排节点id',
+     `name` varchar(255) NOT NULL COMMENT '参数名',
+     `bind_type` varchar(16) DEFAULT NULL COMMENT '参数类型->context(上下文) | constant(静态值)',
+     `value` varchar(255) DEFAULT NULL COMMENT '参数值',
+     `ctx_bind_node` varchar(64) DEFAULT NULL COMMENT '上下文节点',
+     `ctx_bind_type` varchar(16) DEFAULT NULL COMMENT '上下文出入参->input(入参) | output(出参)',
+     `ctx_bind_name` varchar(255) DEFAULT NULL COMMENT '上下文参数名',
+     PRIMARY KEY (`id`),
+     CONSTRAINT `fk_proc_def_param_node` FOREIGN KEY (`proc_def_node_id`) REFERENCES `proc_def_node` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
+
+CREATE TABLE `proc_def_node_link` (
+       `id` varchar(128) NOT NULL COMMENT '唯一标识(source__target)',
+       `source` varchar(64) NOT NULL COMMENT '源节点',
+       `target` varchar(64) NOT NULL COMMENT '目标节点',
+       `name` varchar(64) DEFAULT NULL COMMENT '连接名称',
+       `ui_style` text DEFAULT NULL COMMENT '前端样式',
+       PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
+
+CREATE TABLE `proc_def_permission` (
+       `id` varchar(64) NOT NULL COMMENT '唯一标识',
+       `proc_def_id` varchar(64) NOT NULL COMMENT '编排id',
+       `role_id` varchar(64) NOT NULL COMMENT '角色id',
+       `role_name` varchar(64) NOT NULL COMMENT '角色名称',
+       `permission` varchar(32) NOT NULL COMMENT '权限->MGMT(管理) | USE(使用)',
+       PRIMARY KEY (`id`),
+       CONSTRAINT `fk_proc_def_perm_def` FOREIGN KEY (`proc_def_id`) REFERENCES `proc_def` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
+
+CREATE TABLE `proc_def_collect` (
+        `id` varchar(64) NOT NULL COMMENT '唯一标识',
+        `proc_def_id` varchar(64) NOT NULL COMMENT '编排id',
+        `role_id` varchar(64) NOT NULL COMMENT '角色id',
+        `user_id` varchar(64) NOT NULL COMMENT '用户id',
+        `created_time` datetime DEFAULT NULL COMMENT '创建时间',
+        `updated_time` datetime DEFAULT NULL COMMENT '更新时间',
+        PRIMARY KEY (`id`),
+        CONSTRAINT `fk_proc_def_collect_def` FOREIGN KEY (`proc_def_id`) REFERENCES `proc_def` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
