@@ -31,6 +31,23 @@ type DataModelLeafEntity struct {
 	FilterRule  string `json:"filterRule"`
 }
 
+type EntityQueryParam struct {
+	Criteria          EntityQueryObj    `json:"criteria"`
+	AdditionalFilters []*EntityQueryObj `json:"additionalFilters"`
+}
+
+type EntityQueryObj struct {
+	AttrName  string      `json:"attrName"`
+	Op        string      `json:"op"`
+	Condition interface{} `json:"condition"`
+}
+
+type EntityResponse struct {
+	Status  string                   `json:"status"`
+	Message string                   `json:"message"`
+	Data    []map[string]interface{} `json:"data"`
+}
+
 type SyncDataModelResponse struct {
 	Status  string                 `json:"status"`
 	Message string                 `json:"message"`
