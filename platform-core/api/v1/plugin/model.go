@@ -46,7 +46,7 @@ func GetAllModels(c *gin.Context) {
 	}
 }
 
-// GetEntityModel 服务注册 - entity模型属性查询
+// GetEntityModel 服务注册 - entity模型查询
 func GetEntityModel(c *gin.Context) {
 	packageName := c.Param("packageName")
 	entityName := c.Param("entity")
@@ -54,11 +54,27 @@ func GetEntityModel(c *gin.Context) {
 		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, fmt.Errorf("packageName or eneity can not empty")))
 		return
 	}
-	result, err := database.GetEntityModel(c, packageName, entityName)
+	result, err := database.GetEntityModel(c, packageName, entityName, false)
 	if err != nil {
 		middleware.ReturnError(c, err)
 	} else {
 		middleware.ReturnData(c, result)
+	}
+}
+
+// GetEntityAttributes 批量执行 - entity模型属性查询
+func GetEntityAttributes(c *gin.Context) {
+	packageName := c.Param("packageName")
+	entityName := c.Param("entity")
+	if packageName == "" || entityName == "" {
+		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, fmt.Errorf("packageName or eneity can not empty")))
+		return
+	}
+	result, err := database.GetEntityModel(c, packageName, entityName, false)
+	if err != nil {
+		middleware.ReturnError(c, err)
+	} else {
+		middleware.ReturnData(c, result.Attributes)
 	}
 }
 
@@ -83,5 +99,24 @@ func SyncDynamicModels(c *gin.Context) {
 		middleware.ReturnError(c, queryErr)
 	} else {
 		middleware.ReturnData(c, result)
+	}
+}
+
+// QueryExpressionEntities 批量执行 - 表达式entity解析和属性查询
+func QueryExpressionEntities(c *gin.Context) {
+	var param models.QueryExpressionDataParam
+	if err := c.ShouldBindJSON(&param); err != nil {
+		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, err))
+		return
+	}
+
+}
+
+// QueryExpressionData 批量执行 - 表达式解析和数据查询
+func QueryExpressionData(c *gin.Context) {
+	var param models.QueryExpressionDataParam
+	if err := c.ShouldBindJSON(&param); err != nil {
+		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, err))
+		return
 	}
 }
