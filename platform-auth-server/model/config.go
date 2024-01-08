@@ -2,6 +2,8 @@ package model
 
 import (
 	"encoding/json"
+	"fmt"
+	"github.com/WeBankPartners/go-common-lib/cipher"
 	"io/ioutil"
 	"os"
 )
@@ -51,10 +53,11 @@ type UmAuth struct {
 }
 
 type GlobalConfig struct {
-	ServerAddress string         `json:"server_address"`
-	ServerPort    string         `json:"server_port"`
-	Log           LogConfig      `json:"log"`
-	Database      DatabaseConfig `json:"database"`
+	ServerAddress          string         `json:"server_address"`
+	ServerPort             string         `json:"server_port"`
+	Log                    LogConfig      `json:"log"`
+	PasswordPrivateKeyPath string         `json:"password_private_key_path"`
+	Database               DatabaseConfig `json:"database"`
 	//Remote   RemoteServiceConfig `json:"remote_service"`
 	//Auth AuthConfig `json:"auth"`
 	//UmAuth             UmAuth             `json:"umAuth"`
@@ -102,6 +105,19 @@ func InitConfig(configFile string) (errMessage string) {
 		errMessage = "parse file to json fail," + err.Error()
 		return
 	}
+
+	if c.PasswordPrivateKeyPath != "" {
+		privateBytes, readPriErr := os.ReadFile(c.PasswordPrivateKeyPath)
+		if readPriErr == nil {
+			if c.Database.Password, err = cipher.DecryptRsa(c.Database.Password, string(privateBytes)); err != nil {
+				errMessage = "decrypt database password config fail," + err.Error()
+				return
+			}
+		} else {
+			fmt.Printf("raed private key:%s fail:%s ", c.PasswordPrivateKeyPath, readPriErr.Error())
+		}
+	}
+
 	Config = &c
 	return
 }
