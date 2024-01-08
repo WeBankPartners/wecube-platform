@@ -6,6 +6,7 @@ type ProcDef struct {
 	Id            string    `json:"id" xorm:"id"`                        // 唯一标识
 	Key           string    `json:"key" xorm:"key"`                      // 编排key
 	Name          string    `json:"name" xorm:"name"`                    // 编排名称
+	Version       string    `json:"version" xorm:"version"`              // 版本
 	RootEntity    string    `json:"rootEntity" xorm:"root_entity"`       // 根节点
 	Status        string    `json:"status" xorm:"status"`                // 状态
 	Tags          string    `json:"tags" xorm:"tags"`                    // 标签
