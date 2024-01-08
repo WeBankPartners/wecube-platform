@@ -1,6 +1,7 @@
 #!/bin/bash
 
 sed -i "s~\[#LOG_LEVEL\]~$LOG_LEVEL~g" /app/platform-auth-server/config/default.json
+sed -i "s~\[#PASSWORD_PRIVATE_KEY_PATH\]~$PASSWORD_PRIVATE_KEY_PATH~g" /app/platform-auth-server/config/default.json
 
 sed -i "s~\[#MYSQL_SERVER_ADDR\]~$MYSQL_SERVER_ADDR~g" /app/platform-auth-server/config/default.json
 sed -i "s~\[#MYSQL_SERVER_PORT\]~$MYSQL_SERVER_PORT~g" /app/platform-auth-server/config/default.json
