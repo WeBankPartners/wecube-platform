@@ -302,6 +302,7 @@ CREATE TABLE `proc_def` (
      `id` varchar(64) NOT NULL COMMENT '唯一标识',
      `key` varchar(64) NOT NULL COMMENT '编排key',
      `name` varchar(255) NOT NULL COMMENT '编排名称',
+     `version` varchar(64) NOT NULL COMMENT '版本',
      `root_entity` varchar(255) DEFAULT NULL COMMENT '根节点',
      `status` varchar(32) NOT NULL COMMENT '状态',
      `tags` varchar(255) DEFAULT NULL COMMENT '标签',
