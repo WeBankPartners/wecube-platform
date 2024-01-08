@@ -92,7 +92,7 @@ func GetDataModels(ctx context.Context, pluginPackage string, withAttr bool) (re
 	return
 }
 
-func GetEntityModel(ctx context.Context, packageName, entityName string) (result *models.DataModelEntity, err error) {
+func GetEntityModel(ctx context.Context, packageName, entityName string, onlyAttr bool) (result *models.DataModelEntity, err error) {
 	var entityRows []*models.PluginPackageEntities
 	err = db.MysqlEngine.Context(ctx).SQL("select * from plugin_package_entities where package_name=? and name=? and data_model_id in (select id from plugin_package_data_model where concat(package_name,'_',`version`) in (select concat(package_name,'_',max(`version`)) from plugin_package_data_model group by package_name))", packageName, entityName).Find(&entityRows)
 	if err != nil {
@@ -111,6 +111,9 @@ func GetEntityModel(ctx context.Context, packageName, entityName string) (result
 		return
 	}
 	result.Attributes = entityAttrRows
+	if onlyAttr {
+		return
+	}
 	var refToEntityIds []string
 	var idAttr string
 	for _, attrObj := range entityAttrRows {

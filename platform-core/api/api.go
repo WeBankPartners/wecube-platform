@@ -84,7 +84,10 @@ func init() {
 		// model
 		&handlerFuncObj{Url: "/models", Method: "GET", HandlerFunc: plugin.GetAllModels, ApiCode: "get-all-models"},
 		&handlerFuncObj{Url: "/models/package/:packageName/entity/:entity", Method: "GET", HandlerFunc: plugin.GetEntityModel, ApiCode: "get-entity-model"},
+		&handlerFuncObj{Url: "/models/package/:packageName/entity/:entity/attributes", Method: "GET", HandlerFunc: plugin.GetEntityAttributes, ApiCode: "get-entity-attr"},
 		&handlerFuncObj{Url: "/models/package/:packageName", Method: "GET", HandlerFunc: plugin.SyncDynamicModels, ApiCode: "sync-entity-model"},
+		&handlerFuncObj{Url: "/data-model/dme/all-entities", Method: "POST", HandlerFunc: plugin.QueryExpressionEntities, ApiCode: "query-expr-entities"},
+		&handlerFuncObj{Url: "/data-model/dme/integrated-query", Method: "POST", HandlerFunc: plugin.QueryExpressionData, ApiCode: "query-expr-data"},
 
 		// permission
 		&handlerFuncObj{Url: "/user/retrieve", Method: "GET", HandlerFunc: system.GetAllUser, ApiCode: "get-all-user"},

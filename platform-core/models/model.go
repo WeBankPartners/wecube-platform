@@ -72,3 +72,21 @@ type SyncDataModelCiAttr struct {
 	Required         string `json:"required" xorm:"nullable"`
 	Multiple         string `json:"multiple"`
 }
+
+type QueryExpressionDataParam struct {
+	DataModelExpression string                       `json:"dataModelExpression"`
+	Filters             []*QueryExpressionDataFilter `json:"filters"`
+}
+
+type QueryExpressionDataFilter struct {
+	Index            int                              `json:"index"`
+	PackageName      string                           `json:"packageName"`
+	EntityName       string                           `json:"entityName"`
+	AttributeFilters []*QueryExpressionDataAttrFilter `json:"attributeFilters"`
+}
+
+type QueryExpressionDataAttrFilter struct {
+	Name     string `json:"name"`
+	Operator string `json:"operator"`
+	Value    string `json:"value"`
+}
