@@ -20,8 +20,12 @@ doc:
 
 wecube_docs_dirname=wecube-docs
 build_name=wecube-build
+
 auth_server_dir=$(shell pwd)/platform-auth-server
 auth_server_project_dir=$(shell basename "${auth_server_dir}")
+
+gateway_dir=$(shell pwd)/platform-gateway
+gateway_project_dir=$(shell basename "${gateway}")
 
 build:
 	# make sure dir exists, even if make doc failed/never exec before
@@ -37,6 +41,17 @@ build_auth_server:
 	chmod +x platform-auth-server/build/*.sh
 	docker run --rm -v $(auth_server_dir):/go/src/github.com/WeBankPartners/wecube-platform/$(auth_server_project_dir) --name build_$(auth_server_project_dir)_authserver golang:1.18.0 /bin/bash /go/src/github.com/WeBankPartners/wecube-platform/$(auth_server_project_dir)/build/build-server.sh
 
+image_auth_server:
+    docker build -t platform-auth-server:$(version) -f build/platform-auth-server/Dockerfile .
+
+build_gateway:
+	rm -f platform-gateway/platform-gateway
+	chmod +x platform-gateway/build/*.sh
+	docker run --rm -v $(gateway_dir):/go/src/github.com/WeBankPartners/wecube-platform/$(gateway_project_dir) --name build_$(gateway_project_dir)_authserver golang:1.18.0 /bin/bash /go/src/github.com/WeBankPartners/wecube-platform/$(gateway_project_dir)/build/build-server.sh
+
+image_gateway:
+    docker build -t platform-gateway:$(version) -f build/platform-gateway/Dockerfile .
+	
 build_maven:
 	# make sure dir exists, even if make doc failed/never exec before
 	mkdir -p $(wecube_docs_dirname)
