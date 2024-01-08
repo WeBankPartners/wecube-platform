@@ -18,16 +18,13 @@ build_core:
 image_core: build_core
 	docker build -t platform-core:$(version) platform-core/.
 
-auth_server_dir=$(shell pwd)/platform-auth-server
-auth_server_project_dir=$(shell basename "${auth_server_dir}")
-
 build_auth_server:
 	rm -f platform-auth-server/platform-auth-server
 	chmod +x platform-auth-server/build/*.sh
 	docker run --rm -v $(current_dir)/platform-auth-server:/go/src/github.com/WeBankPartners/wecube-platform/platform-auth-server --name build_platform-auth-server_authserver golang:1.18.0 /bin/bash /go/src/github.com/WeBankPartners/wecube-platform/platform-auth-server/build/build-server.sh
 
 image_auth_server: build_auth_server
-    docker build -t platform-auth-server:$(version) -f build/platform-auth-server/Dockerfile .
+	docker build -t platform-auth-server:$(version) -f build/platform-auth-server/Dockerfile .
 
 build_gateway:
 	rm -f platform-gateway/platform-gateway
@@ -35,5 +32,5 @@ build_gateway:
 	docker run --rm -v $(current_dir)/platform-gateway:/go/src/github.com/WeBankPartners/wecube-platform/platform-gateway --name build_platform-gateway_authserver golang:1.18.0 /bin/bash /go/src/github.com/WeBankPartners/wecube-platform/platform-gateway/build/build-server.sh
 
 image_gateway: build_gateway
-    docker build -t platform-gateway:$(version) -f build/platform-gateway/Dockerfile .
+	docker build -t platform-gateway:$(version) -f build/platform-gateway/Dockerfile .
 	
