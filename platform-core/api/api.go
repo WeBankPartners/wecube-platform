@@ -145,6 +145,8 @@ func InitHttpServer() {
 			break
 		}
 	}
+	r.GET(models.UrlPrefix+"/v1/route-items", system.GetRouteItems)
+	r.GET(models.UrlPrefix+"/v1/route-items/:name", system.GetRouteItems)
 	r.Run(":" + models.Config.HttpServer.Port)
 }
 
