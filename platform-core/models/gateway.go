@@ -22,9 +22,9 @@ type RouteItem struct {
 	HttpScheme string `json:"httpScheme"`
 	Host       string `json:"host"`
 	Port       string `json:"port"`
-	Path       string `json:"path"`
-	HttpMethod string `json:"httpMethod"`
-	Weight     string `json:"weight"`
+	Path       string `json:"path,omitempty"`
+	HttpMethod string `json:"httpMethod,omitempty"`
+	Weight     string `json:"weight,omitempty"`
 }
 
 type RouteInstanceQueryObj struct {
