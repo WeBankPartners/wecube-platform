@@ -13,7 +13,7 @@ import (
 
 // GetPluginModels 插件配置 - 数据模型
 func GetPluginModels(c *gin.Context) {
-	packageName := c.Param("packageName")
+	packageName := c.Param("pluginPackageId")
 	if packageName == "" {
 		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, fmt.Errorf("packageName can not empty")))
 		return

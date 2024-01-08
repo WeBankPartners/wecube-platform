@@ -58,7 +58,7 @@ func init() {
 		&handlerFuncObj{Url: "/packages", Method: "POST", HandlerFunc: plugin.UploadPackage, ApiCode: "upload-packages"},
 		&handlerFuncObj{Url: "/packages/:pluginPackageId/dependencies", Method: "GET", HandlerFunc: plugin.GetPluginDependencies, ApiCode: "get-plugin-dependencies"},
 		&handlerFuncObj{Url: "/packages/:pluginPackageId/menus", Method: "GET", HandlerFunc: plugin.GetPluginMenus, ApiCode: "get-plugin-menus"},
-		&handlerFuncObj{Url: "/packages/:packageName/models", Method: "GET", HandlerFunc: plugin.GetPluginModels, ApiCode: "get-plugin-models"},
+		&handlerFuncObj{Url: "/packages/:pluginPackageId/models", Method: "GET", HandlerFunc: plugin.GetPluginModels, ApiCode: "get-plugin-models"},
 		&handlerFuncObj{Url: "/packages/:pluginPackageId/system-parameters", Method: "GET", HandlerFunc: plugin.GetPluginSystemParameters, ApiCode: "get-plugin-system-parameters"},
 		&handlerFuncObj{Url: "/packages/:pluginPackageId/authorities", Method: "GET", HandlerFunc: plugin.GetPluginAuthorities, ApiCode: "get-plugin-authorities"},
 		&handlerFuncObj{Url: "/packages/:pluginPackageId/runtime-resources", Method: "GET", HandlerFunc: plugin.GetPluginRuntimeResources, ApiCode: "get-runtime-resource"},
