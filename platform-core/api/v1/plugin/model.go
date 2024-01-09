@@ -85,7 +85,7 @@ func SyncDynamicModels(c *gin.Context) {
 		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, fmt.Errorf("packageName can not empty")))
 		return
 	}
-	pluginModels, err := remote.GetPluginDataModels(packageName, c.GetHeader(models.AuthorizationHeader))
+	pluginModels, err := remote.GetPluginDataModels(c, packageName, c.GetHeader(models.AuthorizationHeader))
 	if err != nil {
 		middleware.ReturnError(c, err)
 		return
@@ -109,7 +109,25 @@ func QueryExpressionEntities(c *gin.Context) {
 		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, err))
 		return
 	}
-
+	exprList, err := remote.AnalyzeExpression(param.DataModelExpression)
+	if err != nil {
+		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, err))
+		return
+	}
+	result := []*models.ExpressionEntitiesRespObj{}
+	for _, exprObj := range exprList {
+		entityObj, queryErr := database.QueryExpressionEntityAttr(c, exprObj)
+		if queryErr != nil {
+			err = queryErr
+			break
+		}
+		result = append(result, entityObj)
+	}
+	if err != nil {
+		middleware.ReturnError(c, err)
+	} else {
+		middleware.ReturnData(c, result)
+	}
 }
 
 // QueryExpressionData 批量执行 - 表达式解析和数据查询
@@ -118,5 +136,16 @@ func QueryExpressionData(c *gin.Context) {
 	if err := c.ShouldBindJSON(&param); err != nil {
 		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, err))
 		return
+	}
+	exprList, err := remote.AnalyzeExpression(param.DataModelExpression)
+	if err != nil {
+		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, err))
+		return
+	}
+	result, queryErr := remote.QueryPluginData(c, exprList, param.Filters, c.GetHeader(models.AuthorizationHeader))
+	if queryErr != nil {
+		middleware.ReturnError(c, queryErr)
+	} else {
+		middleware.ReturnData(c, result)
 	}
 }
