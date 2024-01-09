@@ -100,27 +100,30 @@ type ProcessDefinitionParam struct {
 	AuthPlugins      []string         `json:"authPlugins"`      // 授权插件列表
 	Tags             string           `json:"tags"`             // 标签
 	ConflictCheck    bool             `json:"conflictCheck"`    // 冲突检测
+	Key              string           `json:"key"`              // 编排key
+	RootEntity       string           `json:"rootEntity"`       // 根节点
 	PermissionToRole PermissionToRole `json:"permissionToRole"` // 角色
 }
 
 // ProcessDefinitionTaskNodeParam 添加编排节点参数
 type ProcessDefinitionTaskNodeParam struct {
-	Name              string      `json:"name"`     // 节点名称
-	NodeType          string      `json:"nodeType"` // 节点类型
-	TaskCategory      string      `json:"taskCategory"`
-	ProcDefId         string      `json:"procDefId"`         // 编排定义id
-	ProcDefKey        string      `json:"procDefKey"`        // 编排定义key
-	Timeout           int         `json:"timeout"`           // 超时时间
-	Description       string      `json:"description"`       // 描述
-	DynamicBind       bool        `json:"dynamicBind"`       // 是否动态绑定
-	BindNodeId        string      `json:"bindNodeId"`        // 动态绑定节点
-	RoutineExpression string      `json:"routineExpression"` // 定位规则
-	RoutineRaw        string      `json:"routineRaw"`        //
-	ServiceId         string      `json:"serviceId"`         // 插件服务ID
-	ServiceName       string      `json:"serviceName"`       // 插件服务名
-	RiskCheck         bool        `json:"riskCheck"`         // 是否高危检测
-	ParamInfos        []string    `json:"ParamInfos"`        //
-	NodeAttrs         interface{} `json:"nodeAttrs"`         // 节点属性,前端使用,保存即可
+	Id                string              `json:"id"`                // 节点Id
+	Name              string              `json:"name"`              // 节点名称
+	NodeType          string              `json:"nodeType"`          // 节点类型
+	ProcDefId         string              `json:"procDefId"`         // 编排定义id
+	ProcDefKey        string              `json:"procDefKey"`        // 编排定义key
+	Timeout           int                 `json:"timeout"`           // 超时时间
+	Description       string              `json:"description"`       // 描述
+	DynamicBind       bool                `json:"dynamicBind"`       // 是否动态绑定
+	BindNodeId        string              `json:"bindNodeId"`        // 动态绑定节点
+	RoutineExpression string              `json:"routineExpression"` // 定位规则
+	ServiceId         string              `json:"serviceId"`         // 插件服务ID
+	ServiceName       string              `json:"serviceName"`       // 插件服务名
+	RiskCheck         bool                `json:"riskCheck"`         // 是否高危检测
+	ParamInfos        []*ProcDefNodeParam `json:"ParamInfos"`        // 节点参数
+	ContextParamNodes string              `json:"contextParamNodes"` // 上下文参数节点
+	OrderedNo         int                 `json:"orderedNo"`         // 节点顺序
+	NodeAttrs         interface{}         `json:"nodeAttrs"`         // 节点属性,前端使用,保存即可
 }
 
 // ProcessDefinitionDto  编排dto

@@ -115,9 +115,9 @@ func init() {
 		&handlerFuncObj{Url: "/users/roles", Method: "GET", HandlerFunc: system.GetRolesOfCurrentUser, ApiCode: "get-user-roles"},
 
 		// process manage
-		&handlerFuncObj{Url: "/process/definitions", Method: "POST", HandlerFunc: process.AddProcessDefinition, ApiCode: "add-process-definition"},
+		&handlerFuncObj{Url: "/process/definitions", Method: "POST", HandlerFunc: process.AddOrUpdateProcessDefinition, ApiCode: "add-update-process-definition"},
 		&handlerFuncObj{Url: "/process/definitions", Method: "GET", HandlerFunc: process.GetProcessDefinition, ApiCode: "get-process-definition"},
-		&handlerFuncObj{Url: "/process/definitions/taskNodes", Method: "POST", HandlerFunc: process.AddProcessDefinitionTaskNodes, ApiCode: "add-process-definition-tasknodes"},
+		&handlerFuncObj{Url: "/process/definitions/taskNodes", Method: "POST", HandlerFunc: process.AddOrUpdateProcessDefinitionTaskNodes, ApiCode: "add-update-process-definition-nodes"},
 	)
 }
 
