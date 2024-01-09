@@ -6,6 +6,7 @@ import (
 	"github.com/WeBankPartners/go-common-lib/guid"
 	"github.com/WeBankPartners/wecube-platform/platform-core/api/middleware"
 	"github.com/WeBankPartners/wecube-platform/platform-core/api/v1/plugin"
+	"github.com/WeBankPartners/wecube-platform/platform-core/api/v1/process"
 	"github.com/WeBankPartners/wecube-platform/platform-core/api/v1/system"
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/db"
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/log"
@@ -112,6 +113,11 @@ func init() {
 		// @todo 需要Super_admin权限才能调用接口
 		&handlerFuncObj{Url: "/user/:user-id/delete", Method: "DELETE", HandlerFunc: system.DeleteUserByUserId, ApiCode: "delete-user"},
 		&handlerFuncObj{Url: "/users/roles", Method: "GET", HandlerFunc: system.GetRolesOfCurrentUser, ApiCode: "get-user-roles"},
+
+		// process manage
+		&handlerFuncObj{Url: "/process/definitions", Method: "POST", HandlerFunc: process.AddProcessDefinition, ApiCode: "add-process-definition"},
+		&handlerFuncObj{Url: "/process/definitions", Method: "GET", HandlerFunc: process.GetProcessDefinition, ApiCode: "get-process-definition"},
+		&handlerFuncObj{Url: "/process/definitions/taskNodes", Method: "POST", HandlerFunc: process.AddProcessDefinitionTaskNodes, ApiCode: "add-process-definition-tasknodes"},
 	)
 }
 

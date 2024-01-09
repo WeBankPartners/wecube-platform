@@ -2,6 +2,19 @@ package models
 
 import "time"
 
+type ProcDefStatus string //定义编排定义状态
+type PermissionType string
+
+const (
+	Draft     ProcDefStatus  = "draft"     //草稿
+	Deployed  ProcDefStatus  = "deployed"  //部署状态
+	Deleted   ProcDefStatus  = "deleted"   //删除
+	Templated ProcDefStatus  = "template"  //模板
+	PreDeploy ProcDefStatus  = "predeploy" //预发布
+	MGMT      PermissionType = "MGMT"      //管理权限
+	USE       PermissionType = "USE"       //使用权限
+)
+
 type ProcDef struct {
 	Id            string    `json:"id" xorm:"id"`                        // 唯一标识
 	Key           string    `json:"key" xorm:"key"`                      // 编排key
@@ -75,4 +88,49 @@ type ProcDefCollect struct {
 	UserId      string    `json:"userId" xorm:"user_id"`           // 用户id
 	CreatedTime time.Time `json:"createdTime" xorm:"created_time"` // 创建时间
 	UpdatedTime time.Time `json:"updatedTime" xorm:"updated_time"` // 更新时间
+}
+
+// ProcessDefinitionParam 添加编排参数
+type ProcessDefinitionParam struct {
+	Id               string           `json:"id"`               // 唯一标识
+	Label            string           `json:"label"`            // 标签
+	Name             string           `json:"name"`             // 编排名称
+	Version          string           `json:"version"`          // 编排版本
+	UseCase          string           `json:"useCase"`          // 使用场景
+	AuthPlugins      []string         `json:"authPlugins"`      // 授权插件列表
+	Tags             string           `json:"tags"`             // 标签
+	ConflictCheck    bool             `json:"conflictCheck"`    // 冲突检测
+	PermissionToRole PermissionToRole `json:"permissionToRole"` // 角色
+}
+
+// ProcessDefinitionTaskNodeParam 添加编排节点参数
+type ProcessDefinitionTaskNodeParam struct {
+	Name              string      `json:"name"`     // 节点名称
+	NodeType          string      `json:"nodeType"` // 节点类型
+	TaskCategory      string      `json:"taskCategory"`
+	ProcDefId         string      `json:"procDefId"`         // 编排定义id
+	ProcDefKey        string      `json:"procDefKey"`        // 编排定义key
+	Timeout           int         `json:"timeout"`           // 超时时间
+	Description       string      `json:"description"`       // 描述
+	DynamicBind       bool        `json:"dynamicBind"`       // 是否动态绑定
+	BindNodeId        string      `json:"bindNodeId"`        // 动态绑定节点
+	RoutineExpression string      `json:"routineExpression"` // 定位规则
+	RoutineRaw        string      `json:"routineRaw"`        //
+	ServiceId         string      `json:"serviceId"`         // 插件服务ID
+	ServiceName       string      `json:"serviceName"`       // 插件服务名
+	RiskCheck         bool        `json:"riskCheck"`         // 是否高危检测
+	ParamInfos        []string    `json:"ParamInfos"`        //
+	NodeAttrs         interface{} `json:"nodeAttrs"`         // 节点属性,前端使用,保存即可
+}
+
+// ProcessDefinitionDto  编排dto
+type ProcessDefinitionDto struct {
+	ProcDef          *ProcDef         `json:"procDef"`          // 编排
+	PermissionToRole PermissionToRole `json:"permissionToRole"` // 角色
+	ProcDefNodeList  []*ProcDefNode   `json:"taskNodeInfos"`    // 编排节点集合
+}
+
+type PermissionToRole struct {
+	MGMT []string `json:"MGMT"` // 属主角色
+	USE  []string `json:"USE"`  // 使用角色
 }
