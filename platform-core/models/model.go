@@ -90,3 +90,25 @@ type QueryExpressionDataAttrFilter struct {
 	Operator string `json:"operator"`
 	Value    string `json:"value"`
 }
+
+type ExpressionObj struct {
+	Package         string    `json:"package"`
+	Entity          string    `json:"entity"`
+	LeftJoinColumn  string    `json:"leftJoinColumn"`
+	RightJoinColumn string    `json:"rightJoinColumn"`
+	ResultColumn    string    `json:"resultColumn"`
+	RefColumn       string    `json:"refColumn"`
+	Filters         []*Filter `json:"filters"`
+}
+
+type Filter struct {
+	Name     string `json:"name"`
+	Operator string `json:"operator"`
+	Value    string `json:"value"`
+}
+
+type ExpressionEntitiesRespObj struct {
+	PackageName string                     `json:"packageName"`
+	EntityName  string                     `json:"entityName"`
+	Attributes  []*PluginPackageAttributes `json:"attributes"`
+}

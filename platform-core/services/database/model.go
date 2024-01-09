@@ -244,3 +244,34 @@ func SyncPluginDataModels(ctx context.Context, packageName string, allModels []*
 	}
 	return
 }
+
+func getLatestPluginDataModel(ctx context.Context, packageName string) (pluginDataModel *models.PluginPackageDataModel, err error) {
+	var modelRows []*models.PluginPackageDataModel
+	err = db.MysqlEngine.Context(ctx).SQL("SELECT t1.id, t1.version, t1.package_name, t1.is_dynamic FROM plugin_package_data_model t1 WHERE t1.package_name = ? AND t1.version = ( SELECT max(t2.version) FROM plugin_package_data_model t2 WHERE t2.package_name = ? GROUP BY t2.package_name )", packageName, packageName).Find(&modelRows)
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
+		return
+	}
+	if len(modelRows) == 0 {
+		err = exterror.New().DatabaseQueryEmptyError
+	} else {
+		pluginDataModel = modelRows[0]
+	}
+	return
+}
+
+func QueryExpressionEntityAttr(ctx context.Context, exprObj *models.ExpressionObj) (result *models.ExpressionEntitiesRespObj, err error) {
+	pluginDataModel, getLatestModelErr := getLatestPluginDataModel(ctx, exprObj.Package)
+	if getLatestModelErr != nil {
+		err = getLatestModelErr
+		return
+	}
+	var attrRows []*models.PluginPackageAttributes
+	err = db.MysqlEngine.Context(ctx).SQL("select * from plugin_package_attributes where entity_id in (select id from plugin_package_entities where name =? and data_model_id=?)", exprObj.Entity, pluginDataModel.Id).Find(&attrRows)
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
+		return
+	}
+	result = &models.ExpressionEntitiesRespObj{PackageName: exprObj.Package, EntityName: exprObj.Entity, Attributes: attrRows}
+	return
+}
