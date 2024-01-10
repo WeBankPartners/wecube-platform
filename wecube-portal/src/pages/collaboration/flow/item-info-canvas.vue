@@ -2,32 +2,36 @@
   <div id="itemInfo">
     <div class="hide-panal" @click="hideItem"></div>
     <div class="panal-name">编排属性：</div>
-    <Form :label-width="80">
+    <Form :label-width="120" ref="formValidate" :model="itemCustomInfo" :rules="ruleValidate">
       <FormItem label="编排ID">
         <Input disabled v-model="itemCustomInfo.id"></Input>
       </FormItem>
-      <FormItem label="编排名称">
-        <Input v-model="itemCustomInfo.label"></Input>
+      <FormItem label="编排名称" prop="label">
+        <Input v-model="itemCustomInfo.label" style="width: 85%"></Input>
+        <span :style="nameLen > 16 ? 'color:red' : ''">{{ nameLen }}/16</span>
       </FormItem>
-      <FormItem label="操作对象">
+      <FormItem label="版本" prop="version">
+        <InputNumber :max="999" :min="1" v-model="itemCustomInfo.version" @on-change="versionChange"></InputNumber>
+      </FormItem>
+      <FormItem label="操作对象类型" prop="rootEntity">
         <FilterRules
           @change="onEntitySelect"
-          v-model="itemCustomInfo.currentSelectedEntity"
+          v-model="itemCustomInfo.rootEntity"
           :allDataModelsWithAttrs="allEntityType"
           style="width: 100%"
         ></FilterRules>
       </FormItem>
-      <FormItem label="授权插件">
+      <FormItem label="授权插件" prop="authPlugins" style="margin-top: 22px">
         <Select v-model="itemCustomInfo.authPlugins" multiple>
           <Option v-for="item in authPluginList" :value="item.value" :key="item.value">{{ item.label }} </Option>
         </Select>
       </FormItem>
-      <FormItem label="使用场景">
-        <Select v-model="itemCustomInfo.useCase" multiple>
-          <Option v-for="item in sceneList" :value="item.value" :key="item.value">{{ item.label }} </Option>
+      <FormItem label="使用场景" prop="useCase">
+        <Select v-model="itemCustomInfo.useCase">
+          <Option v-for="item in useCaseList" :value="item.value" :key="item.value">{{ item.label }} </Option>
         </Select>
       </FormItem>
-      <FormItem label="标签">
+      <FormItem label="标签" prop="tags">
         <Input v-model="itemCustomInfo.tags"></Input>
       </FormItem>
       <FormItem label="冲突检测">
@@ -51,12 +55,28 @@ export default {
     return {
       itemCustomInfo: {
         id: '',
-        label: '',
-        currentSelectedEntity: '', // 操作对象
-        useCase: '', // 使用场景
-        authPlugins: [], // 授权插件列表
-        tags: '',
-        conflictCheck: true // 冲突检测
+        label: '', // 编排名称
+        version: 1, // 版本
+        rootEntity: '', // 操作对象
+        useCase: '', // 使用场景，请求、发布、其他
+        authPlugins: [], // 授权插件列表，taskman/monitor
+        tags: '', // 标签
+        conflictCheck: true, // 冲突检测
+        permissionToRole: {
+          MGMT: [], // 属主角色
+          USE: [] // 使用角色
+        }
+      },
+      ruleValidate: {
+        label: [
+          { required: true, message: 'label cannot be empty', trigger: 'blur' },
+          { type: 'string', max: 16, message: 'label less than 17 words', trigger: 'blur' }
+        ],
+        authPlugins: [
+          { required: true, type: 'array', min: 1, message: 'authPlugins at least one hobby', trigger: 'change' }
+        ],
+        useCase: [{ required: true, message: 'useCase at least one hobby', trigger: 'change' }],
+        rootEntity: [{ required: true, message: 'rootEntity at least one hobby', trigger: 'change' }]
       },
       allEntityType: [], // 系统中所有根CI
       authPluginList: [
@@ -65,12 +85,17 @@ export default {
         { label: 'taskman', value: 'taskman' },
         { label: 'wecmdb', value: 'wecmdb' }
       ],
-      sceneList: [
+      useCaseList: [
         // 可使用场景列表
-        { label: 'monitor', value: 'monitor' },
-        { label: 'taskman', value: 'taskman' },
-        { label: 'wecmdb', value: 'wecmdb' }
+        { label: '请求', value: 'Request' },
+        { label: '发布', value: 'Release' },
+        { label: '其他', value: 'Other' }
       ]
+    }
+  },
+  computed: {
+    nameLen () {
+      return this.itemCustomInfo.label.length
     }
   },
   mounted () {
@@ -79,13 +104,47 @@ export default {
   },
   methods: {
     showItemInfo (data) {
+      const defaultNode = {
+        id: '',
+        label: '', // 编排名称
+        version: 1, // 版本
+        rootEntity: '', // 操作对象
+        useCase: '', // 使用场景，请求、发布、其他
+        authPlugins: [], // 授权插件列表，taskman/monitor
+        tags: '', // 标签
+        conflictCheck: true, // 冲突检测
+        permissionToRole: {
+          MGMT: [], // 属主角色
+          USE: [] // 使用角色
+        }
+      }
+      const tmpData = JSON.parse(JSON.stringify(data))
+      this.itemCustomInfo = JSON.parse(JSON.stringify(Object.assign(defaultNode, tmpData)))
+      const keys = Object.keys(defaultNode)
+      keys.forEach(k => {
+        this.itemCustomInfo[k] = tmpData[k]
+      })
       this.itemCustomInfo = data
     },
     saveItem () {
-      this.$emit('sendItemInfo', this.itemCustomInfo)
+      this.$refs['formValidate'].validate(valid => {
+        if (valid) {
+          console.log('执行画布保存功能！')
+        }
+      })
+      console.log('canvas:', this.itemCustomInfo)
+      // this.$emit('sendItemInfo', this.itemCustomInfo)
     },
     hideItem () {
-      this.$emit('hideItemInfo')
+      this.$Modal.confirm({
+        title: '放弃修改',
+        'z-index': 1000000,
+        onOk: async () => {
+          this.$refs['formValidate'].resetFields()
+          this.$emit('hideItemInfo')
+        },
+        onCancel: () => {}
+      })
     },
 
     async getAllDataModels () {
@@ -95,7 +154,13 @@ export default {
       }
     },
     onEntitySelect (v) {
-      this.itemCustomInfo.currentSelectedEntity = v || ''
+      this.itemCustomInfo.rootEntity = v || ''
+    },
+    // 解决选中清空数字输入框后显示空的问题
+    versionChange (version) {
+      if (version === null) {
+        this.itemCustomInfo.version = 1
+      }
     }
   }
 }
@@ -115,7 +180,7 @@ export default {
   box-shadow: 0 0 2px 0 rgba(0, 0, 0, 0.1);
 }
 .ivu-form-item {
-  margin-bottom: 0;
+  margin-bottom: 12px;
 }
 
 .panal-name {
