@@ -12,6 +12,7 @@
           data-shape="circle-node"
           fill="white"
           line-width="1"
+          stroke="#a1bd45"
         >
           <img src="./icon/start.svg" class="item-tool-icon" draggable="false" />
           <div class="item-tool-name">开始</div>
@@ -27,6 +28,7 @@
           data-shape="circle-node"
           fill="white"
           line-width="1"
+          stroke="#f36f84"
         >
           <img src="./icon/end.svg" class="item-tool-icon" draggable="false" />
           <div class="item-tool-name">结束</div>
@@ -42,6 +44,7 @@
           data-shape="circle-node"
           fill="white"
           line-width="1"
+          stroke="#f36f84"
         >
           <img src="./icon/lightning.svg" class="item-tool-icon" draggable="false" />
           <div class="item-tool-name">异常</div>
@@ -57,6 +60,7 @@
           data-shape="diamond-node"
           fill="white"
           line-width="1"
+          stroke="#c9c061"
         >
           <img src="./icon/decision.svg" class="item-tool-icon" draggable="false" />
           <div class="item-tool-name">判断</div>
@@ -72,6 +76,7 @@
           data-shape="rect-node"
           fill="white"
           line-width="1"
+          stroke="#c9c061"
         >
           <img src="./icon/converge.svg" class="item-tool-icon" draggable="false" />
           <div class="item-tool-name">汇聚节点</div>
@@ -87,6 +92,7 @@
           data-shape="rect-node"
           fill="white"
           line-width="1"
+          stroke="#8aaae1"
         >
           <img src="./icon/human.svg" class="item-tool-icon" draggable="false" />
           <div class="item-tool-name">人工节点</div>
@@ -102,6 +108,7 @@
           data-shape="rect-node"
           fill="white"
           line-width="1"
+          stroke="#8aaae1"
         >
           <img src="./icon/automatic.svg" class="item-tool-icon" draggable="false" />
           <div class="item-tool-name">自动节点</div>
@@ -117,6 +124,7 @@
           data-shape="rect-node"
           fill="white"
           line-width="1"
+          stroke="#8aaae1"
         >
           <img src="./icon/data.svg" class="item-tool-icon" draggable="false" />
           <div class="item-tool-name">数据节点</div>
@@ -132,6 +140,7 @@
           data-shape="rect-node"
           fill="white"
           line-width="1"
+          stroke="#cca0f2"
         >
           <img src="./icon/fixed-time.svg" class="item-tool-icon" draggable="false" />
           <div class="item-tool-name">固定时间</div>
@@ -147,6 +156,7 @@
           data-shape="rect-node"
           fill="white"
           line-width="1"
+          stroke="#60d0d8"
         >
           <img src="./icon/time-interval.svg" class="item-tool-icon" draggable="false" />
           <div class="item-tool-name">时间间隔</div>
@@ -175,6 +185,7 @@ export default {
         const lineWidth = Number(icon.getAttribute('line-width'))
         const nodeType = icon.getAttribute('node-type')
         const taskCategory = icon.getAttribute('task-category')
+        const stroke = icon.getAttribute('stroke')
 
         /* 设置拖拽传输数据 */
         event.dataTransfer.setData(
@@ -184,6 +195,7 @@ export default {
             shape,
             fill,
             lineWidth,
+            stroke,
             nodeType,
             taskCategory
           })
