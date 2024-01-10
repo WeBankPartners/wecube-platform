@@ -557,3 +557,15 @@ func getInSQL(status []string) string {
 	}
 	return sql
 }
+
+func GetPackageNames(ctx context.Context) (result []string, err error) {
+	queryRows, queryErr := db.MysqlEngine.Context(ctx).QueryString("select distinct name from plugin_packages")
+	if queryErr != nil {
+		err = exterror.Catch(exterror.New().DatabaseQueryError, queryErr)
+	} else {
+		for _, row := range queryRows {
+			result = append(result, row["name"])
+		}
+	}
+	return
+}
