@@ -578,3 +578,12 @@ func buildPluginProCertification(envMap map[string]string, pluginPackageObj *mod
 
 	return
 }
+
+func GetPackageNames(c *gin.Context) {
+	result, err := database.GetPackageNames(c)
+	if err != nil {
+		middleware.ReturnError(c, err)
+	} else {
+		middleware.ReturnData(c, result)
+	}
+}
