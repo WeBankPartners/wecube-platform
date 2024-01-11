@@ -23,7 +23,7 @@ func AddProcessDefinition(ctx context.Context, user string, param models.Process
 	now := time.Now()
 	draftEntity.Id = guid.CreateGuid()
 	draftEntity.Status = string(models.Draft)
-	draftEntity.Key = param.Key
+	draftEntity.Key = guid.CreateGuid()
 	draftEntity.Name = param.Name
 	draftEntity.Version = param.Version
 	draftEntity.Tags = param.Tags

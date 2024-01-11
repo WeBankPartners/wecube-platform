@@ -117,7 +117,7 @@ func init() {
 
 		// process manage
 		&handlerFuncObj{Url: "/process/definitions", Method: "POST", HandlerFunc: process.AddOrUpdateProcessDefinition, ApiCode: "add-update-process-definition"},
-		&handlerFuncObj{Url: "/process/definitions", Method: "GET", HandlerFunc: process.GetProcessDefinition, ApiCode: "get-process-definition"},
+		&handlerFuncObj{Url: "/process/definitions/:proc-def-id", Method: "GET", HandlerFunc: process.GetProcessDefinition, ApiCode: "get-process-definition"},
 		&handlerFuncObj{Url: "/process/definitions/taskNodes", Method: "POST", HandlerFunc: process.AddOrUpdateProcessDefinitionTaskNodes, ApiCode: "add-update-process-definition-nodes"},
 	)
 }
