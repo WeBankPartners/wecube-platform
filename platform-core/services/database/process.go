@@ -21,7 +21,7 @@ func AddProcessDefinition(ctx context.Context, user string, param models.Process
 		err = exterror.Catch(exterror.New().RequestParamValidateError, fmt.Errorf("request param err,permissionToRole is empty"))
 		return
 	}
-	now := time.Now().Local()
+	now := time.Now()
 	draftEntity.Id = guid.CreateGuid()
 	draftEntity.Status = string(models.Draft)
 	draftEntity.Key = guid.CreateGuid()
