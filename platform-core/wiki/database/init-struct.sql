@@ -7,7 +7,10 @@ CREATE TABLE `system_variables` (
     `scope` varchar(64) NOT NULL DEFAULT 'global' COMMENT '作用范围',
     `source` varchar(96) DEFAULT 'system' COMMENT '来源',
     `status` varchar(32) DEFAULT 'active' COMMENT '状态',
-    PRIMARY KEY (`id`)
+    PRIMARY KEY (`id`),
+    INDEX idx_sv_source(`source`),
+    INDEX idx_sv_name(`name`(188)),
+    INDEX idx_sv_status(`status`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
 
 CREATE TABLE `resource_server` (
@@ -63,7 +66,8 @@ CREATE TABLE `role_menu` (
      `id` varchar(128) NOT NULL COMMENT '唯一标识',
      `role_name` varchar(64) NOT NULL COMMENT '角色',
      `menu_code` varchar(64) NOT NULL COMMENT '菜单编码',
-     PRIMARY KEY (`id`)
+     PRIMARY KEY (`id`),
+     INDEX idx_role_menu_role(`role_name`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
 
 
@@ -75,8 +79,10 @@ CREATE TABLE `plugin_packages` (
    `upload_timestamp` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '上传时间',
    `ui_package_included` bit(1) DEFAULT b'0' COMMENT '是否有ui->0(无)|1(有)',
    `edition` varchar(32) NOT NULL DEFAULT 'community' COMMENT '发行版本->community(社区版)|enterprise(企业版)',
-   KEY `k_plugin_packages_status`(`status`),
-   PRIMARY KEY (`id`)
+   PRIMARY KEY (`id`),
+   INDEX `idx_plugin_packages_status`(`status`),
+   INDEX `idx_plugin_packages_name`(`name`),
+   INDEX `idx_plugin_packages_version`(`version`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
 
 CREATE TABLE `plugin_instances` (

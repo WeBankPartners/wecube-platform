@@ -33,8 +33,6 @@ func InitDatabase() error {
 	engine.SetMaxIdleConns(models.Config.Database.MaxIdle)
 	engine.SetMaxOpenConns(models.Config.Database.MaxOpen)
 	engine.SetConnMaxLifetime(time.Duration(models.Config.Database.Timeout) * time.Second)
-	engine.SetTZDatabase(time.UTC)
-	engine.SetTZLocation(time.UTC)
 	if models.Config.Log.DbLogEnable {
 		engine.SetLogger(&dbContextLogger{LogLevel: 1, ShowSql: true, Logger: log.DatabaseLogger})
 	}
