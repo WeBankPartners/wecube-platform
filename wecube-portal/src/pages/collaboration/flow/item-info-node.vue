@@ -11,7 +11,7 @@
               <Input disabled v-model="itemCustomInfo.id"></Input>
             </FormItem>
             <FormItem :label="$t('name')">
-              <Input v-model="itemCustomInfo.label"></Input>
+              <Input v-model="itemCustomInfo.label" @on-change="paramsChanged"></Input>
             </FormItem>
             <FormItem :label="$t('node_type')" v-if="itemCustomInfo.customAttrs.taskCategory">
               <Input v-model="itemCustomInfo.customAttrs.taskCategory" disabled></Input>
@@ -125,6 +125,7 @@ import ItemFilterRulesGroup from './item-filter-rules-group.vue'
 export default {
   data () {
     return {
+      isParmasChanged: false, // 参数变化标志位，控制右侧panel显示逻辑
       opendPanel: ['1', '3', '4'],
       currentSelectedEntity: 'wecmdb:app_instance', // 流程图根
       itemCustomInfo: {
@@ -226,8 +227,20 @@ export default {
       }, '')
       this.$emit('sendItemInfo', this.itemCustomInfo)
     },
+    panalStatus () {
+      return this.isParmasChanged
+    },
     hideItem () {
-      this.$emit('hideItemInfo')
+      if (this.isParmasChanged) {
+        this.$Modal.confirm({
+          title: '放弃修改',
+          'z-index': 1000000,
+          onOk: async () => {
+            this.$emit('hideItemInfo')
+          },
+          onCancel: () => {}
+        })
+      }
     },
     // 获取当前节点的前序节点
     async getAssociatedNodes () {
@@ -262,8 +275,12 @@ export default {
       this.filteredPlugins = []
     },
     // 改变插件时的响应
-    changePluginInterfaceList () {}
+    changePluginInterfaceList () {},
     // #endregion
+    // 监听参数变化
+    paramsChanged () {
+      this.isParmasChanged = true
+    }
   }
 }
 </script>

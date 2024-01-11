@@ -53,6 +53,11 @@ export const MENUS = [
     link: '/collaboration/workflow-orchestration'
   },
   {
+    code: 'COLLABORATION_WORKFLOW',
+    cnName: '编排列表',
+    link: '/collaboration/workflow'
+  },
+  {
     code: 'ADMIN_SYSTEM_PARAMS',
     cnName: '系统参数',
     enName: 'System Params',

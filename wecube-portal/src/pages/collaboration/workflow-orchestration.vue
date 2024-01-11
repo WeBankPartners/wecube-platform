@@ -272,6 +272,7 @@ export default {
       })
 
       this.graph.on('after-node-selected', e => {
+        if (this.isExecutionAllowed()) return
         if (e && e.item) {
           const model = e.item.get('model')
           // this.config = model
@@ -399,6 +400,7 @@ export default {
 
       // 注册边点击事件
       this.graph.on('edge:click', e => {
+        if (this.isExecutionAllowed()) return
         const edge = e.item
 
         if (e && edge) {
@@ -419,8 +421,9 @@ export default {
 
       // 注册画布点击事件
       this.graph.on('canvas:click', e => {
-        const graph = e.item
-        console.log(22, graph)
+        if (this.isExecutionAllowed()) return
+        // const graph = e.item
+        // console.log(22, graph)
         // if (e && graph) {
         this.itemInfoType = 'canvas'
         this.$refs.itemInfoCanvasRef.showItemInfo(this.flowInfo)
@@ -454,6 +457,7 @@ export default {
     },
     // 添加节点
     addNode (transferData, { x, y }) {
+      if (this.isExecutionAllowed()) return
       const { label, shape, fill, lineWidth, nodeType, taskCategory } = JSON.parse(transferData)
       const findStartNodeIndex = this.graph.save().nodes.findIndex(n => n.id.startsWith('id_start'))
       if (nodeType === 'start' && findStartNodeIndex > -1) {
@@ -498,6 +502,16 @@ export default {
 
       console.log('Nodes:', nodes)
       console.log('Edges:', edges)
+    },
+    isExecutionAllowed () {
+      const nodeToRef = {
+        canvas: 'itemInfoCanvasRef',
+        edge: 'itemInfoEdgeRef',
+        node: 'itemInfoNodeRef'
+      }
+      // eslint-disable-next-line no-unused-expressions
+      this.$refs[nodeToRef[this.itemInfoType]] && this.$refs[nodeToRef[this.itemInfoType]].hideItem()
+      return this.$refs[nodeToRef[this.itemInfoType]] && this.$refs[nodeToRef[this.itemInfoType]].panalStatus()
     }
   }
 }

@@ -8,7 +8,7 @@
           <Input disabled v-model="itemCustomInfo.id"></Input>
         </FormItem>
         <FormItem :label="$t('name')">
-          <Input v-model="itemCustomInfo.label"></Input>
+          <Input v-model="itemCustomInfo.label" @on-change="paramsChanged"></Input>
         </FormItem>
       </template>
     </Form>
@@ -22,6 +22,7 @@
 export default {
   data () {
     return {
+      isParmasChanged: false, // 参数变化标志位，控制右侧panel显示逻辑
       itemCustomInfo: {
         id: '',
         label: ''
@@ -30,14 +31,31 @@ export default {
   },
   methods: {
     showItemInfo (data) {
+      this.isParmasChanged = false
       this.itemCustomInfo.id = data.id
       this.itemCustomInfo.label = data.label
     },
     saveItem () {
       this.$emit('sendItemInfo', this.itemCustomInfo)
     },
+    panalStatus () {
+      return this.isParmasChanged
+    },
     hideItem () {
-      this.$emit('hideItemInfo')
+      if (this.isParmasChanged) {
+        this.$Modal.confirm({
+          title: '放弃修改',
+          'z-index': 1000000,
+          onOk: async () => {
+            this.$emit('hideItemInfo')
+          },
+          onCancel: () => {}
+        })
+      }
+    },
+    // 监听参数变化
+    paramsChanged () {
+      this.isParmasChanged = true
     }
   }
 }

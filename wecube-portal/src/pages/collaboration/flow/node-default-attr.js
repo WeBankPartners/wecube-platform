@@ -1,13 +1,13 @@
 import startIcon from './icon/start.svg'
 import endIcon from './icon/end.svg'
-import decisionIcon from './icon/x.svg'
+import decisionIcon from './icon/decision.svg'
 import abnormalIcon from './icon/lightning.svg'
 import timeIntervalIcon from './icon/time-interval.svg'
 import fixedTimeIcon from './icon/fixed-time.svg'
 import dataIcon from './icon/data.svg'
 import automaticIcon from './icon/automatic.svg'
 import humanIcon from './icon/human.svg'
-import convergeIcon from './icon/+.svg'
+import convergeIcon from './icon/converge.svg'
 
 const nodeDefaultAttr = {
   start: {
