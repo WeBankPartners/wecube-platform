@@ -3,13 +3,15 @@ package process
 import (
 	"encoding/json"
 	"fmt"
+	"strings"
+	"time"
+
+	"github.com/WeBankPartners/go-common-lib/guid"
 	"github.com/WeBankPartners/wecube-platform/platform-core/api/middleware"
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/exterror"
 	"github.com/WeBankPartners/wecube-platform/platform-core/models"
 	"github.com/WeBankPartners/wecube-platform/platform-core/services/database"
 	"github.com/gin-gonic/gin"
-	"strings"
-	"time"
 )
 
 // AddOrUpdateProcessDefinition 添加或者更新编排
@@ -26,7 +28,7 @@ func AddOrUpdateProcessDefinition(c *gin.Context) {
 	} else {
 		entity = &models.ProcDef{
 			Id:            param.Id,
-			Key:           param.Key,
+			Key:           guid.CreateGuid(),
 			Name:          param.Name,
 			Version:       param.Version,
 			RootEntity:    param.RootEntity,
