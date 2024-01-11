@@ -179,7 +179,7 @@ type PermissionToRole struct {
 }
 
 func ConvertProcDef2Dto(procDef *ProcDef) *ProcDefDto {
-	var authPlugins []string
+	var authPlugins = make([]string, 0)
 	if procDef == nil {
 		return nil
 	}

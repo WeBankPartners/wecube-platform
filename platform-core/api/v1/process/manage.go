@@ -42,7 +42,7 @@ func AddOrUpdateProcessDefinition(c *gin.Context) {
 			Scene:         param.UseCase,
 			ConflictCheck: param.ConflictCheck,
 			UpdatedBy:     middleware.GetRequestUser(c),
-			UpdatedTime:   time.Now().Local(),
+			UpdatedTime:   time.Now(),
 		}
 		err = database.UpdateProcDef(c, entity)
 	}
@@ -141,7 +141,7 @@ func AddOrUpdateProcessDefinitionTaskNodes(c *gin.Context) {
 }
 
 func convertParam2ProcDefNode(user string, param models.ProcessDefinitionTaskNodeParam) *models.ProcDefNode {
-	now := time.Now().Local()
+	now := time.Now()
 	byteArr, _ := json.Marshal(param.NodeAttrs)
 	node := &models.ProcDefNode{
 		Id:                param.Id,
