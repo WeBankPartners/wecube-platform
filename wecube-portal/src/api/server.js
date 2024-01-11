@@ -245,3 +245,5 @@ export const getAssociatedNodes = (procDefId, params) =>
   req.post(`platform/v1/process/definitions/${procDefId}/previous-nodes/briefs`, params)
 
 export const getMetaData = params => req.post(`platform/v1/plugins/configs/interfaces/param/metadata/query`, params)
+
+export const createFlow = data => req.post(`platform/v1/process/definitions`, data)

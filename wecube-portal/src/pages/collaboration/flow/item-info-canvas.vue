@@ -7,7 +7,7 @@
         <Input disabled v-model="itemCustomInfo.id"></Input>
       </FormItem>
       <FormItem label="编排名称" prop="label">
-        <Input v-model="itemCustomInfo.label" style="width: 85%"></Input>
+        <Input v-model="itemCustomInfo.label" style="width: 85%" @on-change="paramsChanged"></Input>
         <span :style="nameLen > 16 ? 'color:red' : ''">{{ nameLen }}/16</span>
       </FormItem>
       <FormItem label="版本" prop="version">
@@ -53,6 +53,7 @@ export default {
   },
   data () {
     return {
+      isParmasChanged: false, // 参数变化标志位，控制右侧panel显示逻辑
       itemCustomInfo: {
         id: '',
         label: '', // 编排名称
@@ -70,7 +71,7 @@ export default {
       ruleValidate: {
         label: [
           { required: true, message: 'label cannot be empty', trigger: 'blur' },
-          { type: 'string', max: 16, message: 'label less than 17 words', trigger: 'blur' }
+          { type: 'string', max: 16, message: 'Label cannot exceed 16 words.', trigger: 'blur' }
         ],
         authPlugins: [
           { required: true, type: 'array', min: 1, message: 'authPlugins at least one hobby', trigger: 'change' }
@@ -87,9 +88,9 @@ export default {
       ],
       useCaseList: [
         // 可使用场景列表
-        { label: '请求', value: 'Request' },
-        { label: '发布', value: 'Release' },
-        { label: '其他', value: 'Other' }
+        { label: '请求', value: 'request' },
+        { label: '发布', value: 'release' },
+        { label: '其他', value: 'other' }
       ]
     }
   },
@@ -135,16 +136,21 @@ export default {
       console.log('canvas:', this.itemCustomInfo)
       // this.$emit('sendItemInfo', this.itemCustomInfo)
     },
+    panalStatus () {
+      return this.isParmasChanged
+    },
     hideItem () {
-      this.$Modal.confirm({
-        title: '放弃修改',
-        'z-index': 1000000,
-        onOk: async () => {
-          this.$refs['formValidate'].resetFields()
-          this.$emit('hideItemInfo')
-        },
-        onCancel: () => {}
-      })
+      if (this.isParmasChanged) {
+        this.$Modal.confirm({
+          title: '放弃修改',
+          'z-index': 1000000,
+          onOk: async () => {
+            this.$refs['formValidate'].resetFields()
+            this.$emit('hideItemInfo')
+          },
+          onCancel: () => {}
+        })
+      }
     },
 
     async getAllDataModels () {
@@ -161,6 +167,10 @@ export default {
       if (version === null) {
         this.itemCustomInfo.version = 1
       }
+    },
+    // 监听参数变化
+    paramsChanged () {
+      this.isParmasChanged = true
     }
   }
 }

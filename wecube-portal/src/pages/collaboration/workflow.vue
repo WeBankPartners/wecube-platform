@@ -1,7 +1,7 @@
 <template>
   <div class="root">
     <div>
-      <Button type="success" class="btn-right">
+      <Button type="success" class="btn-right" @click="create">
         <Icon type="ios-add-circle-outline" size="16"></Icon>
         {{ $t('create') }}
       </Button>
@@ -26,9 +26,32 @@
 </template>
 
 <script>
+import { createFlow } from '@/api/server.js'
 export default {
   data () {
     return {}
+  },
+  methods: {
+    async create () {
+      const params = {
+        id: '',
+        name: '编排2401111105',
+        version: '1',
+        useCase: '',
+        authPlugins: [],
+        tags: '',
+        conflictCheck: false,
+        rootEntity: '',
+        permissionToRole: {
+          MGMT: ['SUPER_ADMIN', 'CMDB_ADMIN'],
+          USE: ['SUPER_ADMIN']
+        }
+      }
+      const { data, status } = await createFlow(params)
+      if (status === 'OK') {
+        console.log(11, data)
+      }
+    }
   }
 }
 </script>
