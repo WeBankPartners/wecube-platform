@@ -23,6 +23,11 @@ func AddOrUpdateProcessDefinition(c *gin.Context) {
 		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, err))
 		return
 	}
+	if param.Name == "" || param.Version == "" {
+		err = fmt.Errorf("name & version not empty")
+		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, err))
+		return
+	}
 	if param.Id == "" {
 		entity, err = database.AddProcessDefinition(c, middleware.GetRequestUser(c), param)
 	} else {
@@ -37,7 +42,7 @@ func AddOrUpdateProcessDefinition(c *gin.Context) {
 			Scene:         param.UseCase,
 			ConflictCheck: param.ConflictCheck,
 			UpdatedBy:     middleware.GetRequestUser(c),
-			UpdatedTime:   time.Now(),
+			UpdatedTime:   time.Now().Local(),
 		}
 		err = database.UpdateProcDef(c, entity)
 	}
@@ -45,19 +50,23 @@ func AddOrUpdateProcessDefinition(c *gin.Context) {
 		middleware.ReturnError(c, err)
 		return
 	}
-	middleware.ReturnData(c, entity)
+	middleware.ReturnData(c, models.ConvertProcDef2Dto(entity))
 }
 
 // GetProcessDefinition 获取编排
 func GetProcessDefinition(c *gin.Context) {
 	var procDefDto models.ProcessDefinitionDto
 	procDefId := c.Param("proc-def-id")
+	if procDefId == "" {
+		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, fmt.Errorf("proc-def-id is empty")))
+		return
+	}
 	procDef, err := database.GetProcessDefinition(c, procDefId)
 	if err != nil {
 		middleware.ReturnError(c, err)
 		return
 	}
-	procDefDto.ProcDef = procDef
+	procDefDto.ProcDef = models.ConvertProcDef2Dto(procDef)
 	list, err := database.GetProcDefPermissionByCondition(c, models.ProcDefPermission{ProcDefId: procDefId})
 	if err != nil {
 		middleware.ReturnError(c, err)
@@ -71,6 +80,11 @@ func GetProcessDefinition(c *gin.Context) {
 				procDefDto.PermissionToRole.USE = append(procDefDto.PermissionToRole.USE, procDefPermission.RoleName)
 			}
 		}
+	}
+	procDefDto.ProcDefNodeList, err = database.GetProcDefNodeByProcDefId(c, procDefId)
+	if err != nil {
+		middleware.ReturnError(c, err)
+		return
 	}
 	middleware.ReturnData(c, procDefDto)
 }
@@ -127,7 +141,7 @@ func AddOrUpdateProcessDefinitionTaskNodes(c *gin.Context) {
 }
 
 func convertParam2ProcDefNode(user string, param models.ProcessDefinitionTaskNodeParam) *models.ProcDefNode {
-	now := time.Now()
+	now := time.Now().Local()
 	byteArr, _ := json.Marshal(param.NodeAttrs)
 	node := &models.ProcDefNode{
 		Id:                param.Id,

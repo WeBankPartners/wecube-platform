@@ -1,6 +1,9 @@
 package models
 
-import "time"
+import (
+	"strings"
+	"time"
+)
 
 type ProcDefStatus string //定义编排定义状态
 type PermissionType string
@@ -109,7 +112,6 @@ type ProcessDefinitionTaskNodeParam struct {
 	Name              string              `json:"name"`              // 节点名称
 	NodeType          string              `json:"nodeType"`          // 节点类型
 	ProcDefId         string              `json:"procDefId"`         // 编排定义id
-	ProcDefKey        string              `json:"procDefKey"`        // 编排定义key
 	Timeout           int                 `json:"timeout"`           // 超时时间
 	Description       string              `json:"description"`       // 描述
 	DynamicBind       bool                `json:"dynamicBind"`       // 是否动态绑定
@@ -126,12 +128,108 @@ type ProcessDefinitionTaskNodeParam struct {
 
 // ProcessDefinitionDto  编排dto
 type ProcessDefinitionDto struct {
-	ProcDef          *ProcDef         `json:"procDef"`          // 编排
-	PermissionToRole PermissionToRole `json:"permissionToRole"` // 角色
-	ProcDefNodeList  []*ProcDefNode   `json:"taskNodeInfos"`    // 编排节点集合
+	ProcDef          *ProcDefDto       `json:"procDef"`          // 编排
+	PermissionToRole PermissionToRole  `json:"permissionToRole"` // 角色
+	ProcDefNodeList  []*ProcDefNodeDto `json:"taskNodeInfos"`    // 编排节点集合
+}
+
+type ProcDefDto struct {
+	Id            string   `json:"id"`            // 唯一标识
+	Key           string   `json:"key"`           // 编排key
+	Name          string   `json:"name"`          // 编排名称
+	Version       string   `json:"version"`       // 版本
+	RootEntity    string   `json:"rootEntity"`    // 根节点
+	Status        string   `json:"status"`        // 状态
+	Tags          string   `json:"tags"`          // 标签
+	AuthPlugins   []string `json:"authPlugins"`   // 授权插件
+	UseCase       string   `json:"scene"`         // 使用场景
+	ConflictCheck bool     `json:"conflictCheck"` // 冲突检测
+	CreatedBy     string   `json:"createdBy"`     // 创建人
+	CreatedTime   string   `json:"createdTime"`   // 创建时间
+	UpdatedBy     string   `json:"updatedBy"`     // 更新人
+	UpdatedTime   string   `json:"updatedTime"`   // 更新时间
+}
+
+type ProcDefNodeDto struct {
+	Id                string              `json:"id" `                // 唯一标识
+	ProcDefId         string              `json:"procDefId" `         // 编排id
+	Name              string              `json:"name" `              // 节点名称
+	Description       string              `json:"description"`        // 节点描述
+	Status            string              `json:"status"`             // 状态
+	NodeType          string              `json:"nodeType"`           // 节点类型
+	ServiceName       string              `json:"serviceName"`        // 插件服务名
+	DynamicBind       bool                `json:"dynamicBind" `       // 是否动态绑定
+	BindNodeId        string              `json:"bindNodeId" `        // 动态绑定节点
+	RiskCheck         bool                `json:"riskCheck" `         // 是否高危检测
+	RoutineExpression string              `json:"routineExpression" ` // 定位规则
+	ContextParamNodes string              `json:"contextParamNodes" ` // 上下文参数节点
+	Timeout           int                 `json:"timeout" `           // 超时时间分钟
+	OrderedNo         int                 `json:"orderedNo" `         // 节点顺序
+	UiStyle           string              `json:"uiStyle" `           // 前端样式
+	CreatedBy         string              `json:"createdBy" `         // 创建人
+	CreatedTime       string              `json:"createdTime" `       // 创建时间
+	UpdatedBy         string              `json:"updatedBy" `         // 更新人
+	UpdatedTime       string              `json:"updatedTime" `       // 更新时间
+	ParamInfos        []*ProcDefNodeParam `json:"ParamInfos"`         // 节点参数
 }
 
 type PermissionToRole struct {
 	MGMT []string `json:"MGMT"` // 属主角色
 	USE  []string `json:"USE"`  // 使用角色
+}
+
+func ConvertProcDef2Dto(procDef *ProcDef) *ProcDefDto {
+	var authPlugins []string
+	if procDef == nil {
+		return nil
+	}
+	if len(procDef.ForPlugin) > 0 {
+		authPlugins = strings.Split(procDef.ForPlugin, ",")
+	}
+	dto := &ProcDefDto{
+		Id:            procDef.Id,
+		Key:           procDef.Key,
+		Name:          procDef.Name,
+		Version:       procDef.Version,
+		RootEntity:    procDef.RootEntity,
+		Status:        procDef.Status,
+		Tags:          procDef.Tags,
+		AuthPlugins:   authPlugins,
+		UseCase:       procDef.Scene,
+		ConflictCheck: procDef.ConflictCheck,
+		CreatedBy:     procDef.CreatedBy,
+		CreatedTime:   procDef.CreatedTime.Format(DateTimeFormat),
+		UpdatedBy:     procDef.UpdatedBy,
+		UpdatedTime:   procDef.UpdatedTime.Format(DateTimeFormat),
+	}
+	return dto
+}
+
+func ConvertProcDefNode2Dto(procDefNode *ProcDefNode, list []*ProcDefNodeParam) *ProcDefNodeDto {
+	if procDefNode == nil {
+		return nil
+	}
+	dto := &ProcDefNodeDto{
+		Id:                procDefNode.Id,
+		ProcDefId:         procDefNode.ProcDefId,
+		Name:              procDefNode.Name,
+		Description:       procDefNode.Description,
+		Status:            procDefNode.Status,
+		NodeType:          procDefNode.NodeType,
+		ServiceName:       procDefNode.ServiceName,
+		DynamicBind:       procDefNode.DynamicBind,
+		BindNodeId:        procDefNode.BindNodeId,
+		RiskCheck:         procDefNode.RiskCheck,
+		RoutineExpression: procDefNode.RoutineExpression,
+		ContextParamNodes: procDefNode.ContextParamNodes,
+		Timeout:           procDefNode.Timeout,
+		OrderedNo:         procDefNode.OrderedNo,
+		UiStyle:           procDefNode.UiStyle,
+		CreatedBy:         procDefNode.CreatedBy,
+		CreatedTime:       procDefNode.CreatedTime.Format(time.DateTime),
+		UpdatedBy:         procDefNode.UpdatedBy,
+		UpdatedTime:       procDefNode.UpdatedTime.Format(time.DateTime),
+		ParamInfos:        list,
+	}
+	return dto
 }
