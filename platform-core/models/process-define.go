@@ -226,9 +226,9 @@ func ConvertProcDefNode2Dto(procDefNode *ProcDefNode, list []*ProcDefNodeParam) 
 		OrderedNo:         procDefNode.OrderedNo,
 		UiStyle:           procDefNode.UiStyle,
 		CreatedBy:         procDefNode.CreatedBy,
-		CreatedTime:       procDefNode.CreatedTime.Format(time.DateTime),
+		CreatedTime:       procDefNode.CreatedTime.Format(DateTimeFormat),
 		UpdatedBy:         procDefNode.UpdatedBy,
-		UpdatedTime:       procDefNode.UpdatedTime.Format(time.DateTime),
+		UpdatedTime:       procDefNode.UpdatedTime.Format(DateTimeFormat),
 		ParamInfos:        list,
 	}
 	return dto
