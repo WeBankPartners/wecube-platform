@@ -303,14 +303,15 @@ type PluginConfigInterfaceParameters struct {
 }
 
 type PluginPackageDataModel struct {
-	Id           string    `json:"id" xorm:"id"`                      // 唯一标识
-	Version      int       `json:"version" xorm:"version"`            // 版本
-	PackageName  string    `json:"packageName" xorm:"package_name"`   // 包名
-	IsDynamic    bool      `json:"isDynamic" xorm:"is_dynamic"`       // 是否动态
-	UpdatePath   string    `json:"updatePath" xorm:"update_path"`     // 请求路径
-	UpdateMethod string    `json:"updateMethod" xorm:"update_method"` // 请求方法
-	UpdateSource string    `json:"updateSource" xorm:"update_source"` // 来源
-	UpdateTime   time.Time `json:"updateTime" xorm:"update_time"`     // 更新时间
+	Id           string    `json:"id" xorm:"id"`                              // 唯一标识
+	Version      int       `json:"version" xorm:"version"`                    // 版本
+	PackageName  string    `json:"packageName" xorm:"package_name"`           // 包名
+	IsDynamic    bool      `json:"isDynamic" xorm:"is_dynamic"`               // 是否动态
+	UpdatePath   string    `json:"updatePath" xorm:"update_path"`             // 请求路径
+	UpdateMethod string    `json:"updateMethod" xorm:"update_method"`         // 请求方法
+	UpdateSource string    `json:"updateSource" xorm:"update_source"`         // 来源
+	UpdatedTime  time.Time `json:"updatedTime" xorm:"updated_time,omitempty"` // 更新时间
+	UpdateTime   int64     `json:"updateTime" xorm:"update_time"`             // 旧更新时间,毫秒时间戳
 }
 
 type PluginPackageEntities struct {
