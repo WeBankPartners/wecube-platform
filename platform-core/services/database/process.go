@@ -21,7 +21,7 @@ func AddProcessDefinition(ctx context.Context, user string, param models.Process
 		err = exterror.Catch(exterror.New().RequestParamValidateError, fmt.Errorf("request param err,permissionToRole is empty"))
 		return
 	}
-	now := time.Now()
+	now := time.Now().Local()
 	draftEntity.Id = guid.CreateGuid()
 	draftEntity.Status = string(models.Draft)
 	draftEntity.Key = guid.CreateGuid()
@@ -90,14 +90,36 @@ func GetProcDefNode(ctx context.Context, id string) (result *models.ProcDefNode,
 	return
 }
 
+func GetProcDefNodeByProcDefId(ctx context.Context, procDefId string) (result []*models.ProcDefNodeDto, err error) {
+	var list []*models.ProcDefNode
+	if procDefId == "" {
+		return
+	}
+	err = db.MysqlEngine.Context(ctx).SQL("select * from proc_def_node where proc_def_id = ?", procDefId).Find(&list)
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
+		return
+	}
+	for _, procDefNode := range list {
+		var nodeParamList []*models.ProcDefNodeParam
+		err = db.MysqlEngine.Context(ctx).SQL("select * from proc_def_node_param where proc_def_node_id = ?", procDefNode.Id).Find(&nodeParamList)
+		if err != nil {
+			err = exterror.Catch(exterror.New().DatabaseQueryError, err)
+			return
+		}
+		result = append(result, models.ConvertProcDefNode2Dto(procDefNode, nodeParamList))
+	}
+	return
+}
+
 // InsertProcDefNode 添加编排节点
 func InsertProcDefNode(ctx context.Context, node *models.ProcDefNode) (err error) {
 	var actions []*db.ExecAction
-	actions = append(actions, &db.ExecAction{Sql: "insert into  proc_def(id,proc_def_id,name,description,status,node_type,service_name," +
+	actions = append(actions, &db.ExecAction{Sql: "insert into  proc_def_node(id,proc_def_id,name,description,status,node_type,service_name," +
 		"dynamic_bind,bind_node_id,risk_check,routine_expression,context_param_nodes,timeout,ordered_no,ui_style,created_by,created_time," +
 		"updated_by,updated_time) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)", Param: []interface{}{node.Id, node.ProcDefId, node.Name, node.Description,
 		node.Status, node.NodeType, node.ServiceName, node.DynamicBind, node.BindNodeId, node.RiskCheck, node.RoutineExpression, node.ContextParamNodes,
-		node.Timeout, node.OrderedNo, node.UiStyle, node.CreatedBy, node.CreatedTime, node.UpdatedBy, node.UpdatedTime}})
+		node.Timeout, node.OrderedNo, node.UiStyle, node.CreatedBy, node.CreatedTime.Format(models.DateTimeFormat), node.UpdatedBy, node.UpdatedTime.Format(models.DateTimeFormat)}})
 	err = db.Transaction(actions, ctx)
 	if err != nil {
 		err = exterror.Catch(exterror.New().DatabaseExecuteError, err)
@@ -285,7 +307,7 @@ func transProcDefUpdateConditionToSQL(procDef *models.ProcDef) (sql string, para
 		params = append(params, procDef.UpdatedBy)
 	}
 	sql = sql + ",updated_time=?"
-	params = append(params, procDef.UpdatedTime)
+	params = append(params, procDef.UpdatedTime.Format(models.DateTimeFormat))
 	sql = " where id= ?"
 	params = append(params, procDef.Id)
 	return
@@ -351,7 +373,7 @@ func transProcDefNodeUpdateConditionToSQL(procDefNode *models.ProcDefNode) (sql 
 		params = append(params, procDefNode.UpdatedBy)
 	}
 	sql = sql + ",updated_time=?"
-	params = append(params, procDefNode.UpdatedTime)
+	params = append(params, procDefNode.UpdatedTime.Format(models.DateTimeFormat))
 	sql = " where id= ?"
 	params = append(params, procDefNode.Id)
 	return
