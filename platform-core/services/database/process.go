@@ -15,6 +15,7 @@ import (
 
 // AddProcessDefinition 添加编排
 func AddProcessDefinition(ctx context.Context, user string, param models.ProcessDefinitionParam) (draftEntity *models.ProcDef, err error) {
+	draftEntity = &models.ProcDef{}
 	// 1.权限参数校验
 	if len(param.PermissionToRole.USE) == 0 || len(param.PermissionToRole.MGMT) == 0 {
 		err = exterror.Catch(exterror.New().RequestParamValidateError, fmt.Errorf("request param err,permissionToRole is empty"))
@@ -137,7 +138,7 @@ func GetProcDefPermissionByCondition(ctx context.Context, permission models.Proc
 		sql = sql + " and permission = ?"
 		params = append(params, permission.Permission)
 	}
-	err = db.MysqlEngine.Context(ctx).SQL(sql, params).Find(&list)
+	err = db.MysqlEngine.Context(ctx).SQL(sql, params...).Find(&list)
 	if err != nil {
 		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
 		return
@@ -220,9 +221,9 @@ func saveProcDefPermission(ctx context.Context, procDefId, roleName, perm string
 
 func insertProcDef(ctx context.Context, procDef *models.ProcDef) (err error) {
 	var actions []*db.ExecAction
-	actions = append(actions, &db.ExecAction{Sql: "insert into  proc_def(id,key,name,version,root_entitiy,status,tags,for_plugin,scene," +
+	actions = append(actions, &db.ExecAction{Sql: "insert into  proc_def (id,`key`,name,`version`,root_entity,status,tags,for_plugin,scene," +
 		"conflict_check,created_by,created_time,updated_by,updated_time) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?)", Param: []interface{}{procDef.Id,
-		procDef.Key, procDef.Name, procDef.Version, procDef.RootEntity, procDef.Status, procDef.Status, procDef.Tags, procDef.ForPlugin, procDef.Scene,
+		procDef.Key, procDef.Name, procDef.Version, procDef.RootEntity, procDef.Status, procDef.Tags, procDef.ForPlugin, procDef.Scene,
 		procDef.ConflictCheck, procDef.CreatedBy, procDef.CreatedTime, procDef.UpdatedBy, procDef.UpdatedTime}})
 	err = db.Transaction(actions, ctx)
 	if err != nil {
@@ -234,7 +235,7 @@ func insertProcDef(ctx context.Context, procDef *models.ProcDef) (err error) {
 func insertProcDefPermission(ctx context.Context, permission models.ProcDefPermission) (err error) {
 	var actions []*db.ExecAction
 	actions = append(actions, &db.ExecAction{Sql: "insert into proc_def_permission(id,proc_def_id,role_id,role_name," +
-		"permission)values(?,?,?,?,?)", Param: []interface{}{permission.Id, permission.ProcDefId, permission.RoleId, permission.RoleName}})
+		"permission)values(?,?,?,?,?)", Param: []interface{}{permission.Id, permission.ProcDefId, permission.RoleId, permission.RoleName, permission.Permission}})
 	err = db.Transaction(actions, ctx)
 	if err != nil {
 		err = exterror.Catch(exterror.New().DatabaseExecuteError, err)
