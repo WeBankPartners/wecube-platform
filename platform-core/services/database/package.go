@@ -20,7 +20,7 @@ func GetPackages(ctx context.Context, allFlag bool) (result []*models.PluginPack
 	if allFlag {
 		err = db.MysqlEngine.Context(ctx).SQL("select * from plugin_packages").Find(&result)
 	} else {
-		err = db.MysqlEngine.Context(ctx).SQL("select * from plugin_packages where status in (0,1)").Find(&result)
+		err = db.MysqlEngine.Context(ctx).SQL("select * from plugin_packages where status in ('UNREGISTERED','REGISTERED')").Find(&result)
 	}
 	if err != nil {
 		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
