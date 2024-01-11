@@ -93,14 +93,12 @@ type ProcDefCollect struct {
 // ProcessDefinitionParam 添加编排参数
 type ProcessDefinitionParam struct {
 	Id               string           `json:"id"`               // 唯一标识
-	Label            string           `json:"label"`            // 标签
 	Name             string           `json:"name"`             // 编排名称
 	Version          string           `json:"version"`          // 编排版本
 	UseCase          string           `json:"useCase"`          // 使用场景
 	AuthPlugins      []string         `json:"authPlugins"`      // 授权插件列表
 	Tags             string           `json:"tags"`             // 标签
 	ConflictCheck    bool             `json:"conflictCheck"`    // 冲突检测
-	Key              string           `json:"key"`              // 编排key
 	RootEntity       string           `json:"rootEntity"`       // 根节点
 	PermissionToRole PermissionToRole `json:"permissionToRole"` // 角色
 }
