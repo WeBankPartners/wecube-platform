@@ -57,7 +57,7 @@ CREATE TABLE `menu_items` (
       `description` varchar(255) DEFAULT NULL COMMENT '描述',
       `local_display_name` varchar(255) DEFAULT NULL COMMENT '显示名',
       `menu_order` int(11) NOT NULL AUTO_INCREMENT COMMENT '菜单排序',
-      KEY (`menu_order`),
+      INDEX (`menu_order`),
       PRIMARY KEY (`id`),
       UNIQUE KEY `uk_code` (`code`)
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
@@ -190,7 +190,7 @@ CREATE TABLE `plugin_package_menus` (
     `path` varchar(255) NOT NULL COMMENT '前端请求路径',
     `active` bit(1) DEFAULT b'0' COMMENT '是否启用->0(未启用)|1(启用)',
     PRIMARY KEY (`id`),
-    KEY `plugin_package_menu_order` (`menu_order`),
+    INDEX `idx_plugin_package_menu_order` (`menu_order`),
     CONSTRAINT `fk_plugin_menus_package` FOREIGN KEY (`plugin_package_id`) REFERENCES `plugin_packages` (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
 
@@ -301,7 +301,8 @@ CREATE TABLE `plugin_config_roles` (
    `created_time` datetime DEFAULT NULL COMMENT '创建时间',
    `updated_by` varchar(64) DEFAULT NULL COMMENT '更新人',
    `updated_time` datetime DEFAULT NULL COMMENT '更新时间',
-   PRIMARY KEY (`id`)
+   PRIMARY KEY (`id`),
+   INDEX `idx_plugin_config_roles_cfg` (`plugin_cfg_id`),
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
 
 CREATE TABLE `proc_def` (
