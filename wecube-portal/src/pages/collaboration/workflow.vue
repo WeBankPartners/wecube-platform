@@ -26,7 +26,7 @@
 </template>
 
 <script>
-import { createFlow } from '@/api/server.js'
+import { flowMgmt } from '@/api/server.js'
 export default {
   data () {
     return {}
@@ -37,7 +37,7 @@ export default {
         id: '',
         name: '编排2401111105',
         version: '1',
-        useCase: '',
+        scene: '',
         authPlugins: [],
         tags: '',
         conflictCheck: false,
@@ -47,7 +47,7 @@ export default {
           USE: ['SUPER_ADMIN']
         }
       }
-      const { data, status } = await createFlow(params)
+      const { data, status } = await flowMgmt(params)
       if (status === 'OK') {
         console.log(11, data)
       }
