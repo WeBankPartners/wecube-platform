@@ -29,7 +29,7 @@ func AddProcessDefinition(ctx context.Context, user string, param models.Process
 	draftEntity.Version = param.Version
 	draftEntity.Tags = param.Tags
 	draftEntity.ForPlugin = strings.Join(param.AuthPlugins, ",")
-	draftEntity.Scene = param.UseCase
+	draftEntity.Scene = param.Scene
 	draftEntity.ConflictCheck = param.ConflictCheck
 	draftEntity.CreatedBy = user
 	draftEntity.CreatedTime = now
