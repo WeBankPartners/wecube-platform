@@ -15,7 +15,7 @@
         <ItemInfoCanvas
           v-show="itemInfoType === 'canvas'"
           ref="itemInfoCanvasRef"
-          @sendItemInfo="setItemInfo"
+          @sendItemInfo="setCanvasInfo"
           @hideItemInfo="() => (itemInfoType = '')"
         ></ItemInfoCanvas>
       </Transition>
@@ -51,7 +51,7 @@ import ItemInfoEdge from '@/pages/collaboration/flow/item-info-edge.vue'
 import ItemInfoNode from '@/pages/collaboration/flow/item-info-node.vue'
 import data from './flow/data.js'
 import { nodeDefaultAttr } from './flow/node-default-attr.js'
-
+import { getFlowById, flowMgmt } from '@/api/server.js'
 // const registerFactory = require('../../../library/welabx-g6').default
 
 export default {
@@ -64,12 +64,11 @@ export default {
   },
   data () {
     return {
+      demoFlowId: '60ea2f61db0236b2f1391',
+      // 60ea38f522478e4cbcf2d
+      // 60ea2f61db0236b2f1391
       isShowGraph: false,
       itemInfoType: '', // canvas、node、edge
-      flowInfo: {
-        id: '123',
-        label: 'ABC'
-      },
       mode: 'drag-shadow-node',
       graph: {},
       highLight: {
@@ -119,22 +118,41 @@ export default {
       config: '',
       tooltip: '',
       top: 0,
-      left: 0
+      left: 0,
+
+      procDef: {
+        // 仅列出两个基础信息
+        id: '',
+        label: '',
+        permissionToRole: {} // 授权信息
+      }, // 编排自身属性
+      taskNodeInfos: [] // 节点和边信息
     }
   },
-  mounted () {
+  async mounted () {
+    await this.getFlowInfo(this.demoFlowId)
     // 创建画布
     this.$nextTick(() => {
       this.createGraphic()
       this.initGraphEvent()
       this.itemInfoType = 'canvas'
-      this.$refs.itemInfoCanvasRef.showItemInfo(this.flowInfo)
+      console.log(1.0)
+      this.$refs.itemInfoCanvasRef.showItemInfo(this.procDef)
     })
   },
   beforeDestroy () {
     this.graph.destroy()
   },
   methods: {
+    async getFlowInfo (id) {
+      const { status, data } = await getFlowById(id)
+      if (status === 'OK') {
+        this.permissionToRole = data.permissionToRole
+        this.procDef = data.procDef
+        this.procDef.label = data.procDef.name || ''
+        this.procDef.permissionToRole = data.permissionToRole
+      }
+    },
     // 开始加载流程图
     startLoadGraph () {
       this.isShowGraph = true
@@ -292,6 +310,7 @@ export default {
           //   shape: model.type
           // }
           this.itemInfoType = 'node'
+          console.log(1.1)
           this.$refs.itemInfoNodeRef.showItemInfo(model)
         }
       })
@@ -387,7 +406,7 @@ export default {
         const targetId = target.get('id')
         setTimeout(() => {
           this.graph.addItem('edge', {
-            id: `id_edge_${Math.random().toString(36).substring(2, 8)}`, // edge id
+            id: `pdef_link_${this.uuid(16, 16)}`, // edge id
             source: sourceId,
             target: targetId,
             sourceAnchor,
@@ -415,42 +434,44 @@ export default {
             this.graph.setItemState(edge, 'selected', true)
           }
           this.itemInfoType = 'edge'
+          console.log(1.2)
           this.$refs.itemInfoEdgeRef.showItemInfo(model)
         }
       })
 
       // 注册画布点击事件
       this.graph.on('canvas:click', e => {
+        console.log(1)
         if (this.isExecutionAllowed()) return
         // const graph = e.item
         // console.log(22, graph)
         // if (e && graph) {
         this.itemInfoType = 'canvas'
-        this.$refs.itemInfoCanvasRef.showItemInfo(this.flowInfo)
+        console.log(2, this.procDef)
+        console.log(1.3)
+        this.$refs.itemInfoCanvasRef.showItemInfo(this.procDef)
         // }
       })
 
-      this.graph.on('keydown', e => {
-        // Check if the delete key is pressed
-        if (e.code === 'Delete' || e.key === 'Delete' || e.key === 'Backspace') {
-          const selectedNodes = this.graph.findAllByState('node', 'selected')
-          const selectedEdges = this.graph.findAllByState('edge', 'selected')
-          // Remove selected nodes
-          selectedNodes.forEach(node => {
-            this.graph.removeItem(node)
-          })
+      // this.graph.on('keydown', e => {
+      //   // Check if the delete key is pressed
+      //   if (e.code === 'Delete' || e.key === 'Delete' || e.key === 'Backspace') {
+      //     const selectedNodes = this.graph.findAllByState('node', 'selected')
+      //     const selectedEdges = this.graph.findAllByState('edge', 'selected')
+      //     // Remove selected nodes
+      //     selectedNodes.forEach(node => {
+      //       this.graph.removeItem(node)
+      //     })
 
-          // Remove selected edges
-          selectedEdges.forEach(edge => {
-            this.graph.removeItem(edge)
-          })
+      //     // Remove selected edges
+      //     selectedEdges.forEach(edge => {
+      //       this.graph.removeItem(edge)
+      //     })
 
-          // Clear selected states
-          // this.graph.clearItemStates()
-          this.itemInfoType = 'canvas'
-          this.$refs.itemInfoCanvasRef.showItemInfo(this.flowInfo)
-        }
-      })
+      //     // Clear selected states
+      //     // this.graph.clearItemStates()
+      //   }
+      // })
     },
     deleteNode (item) {
       this.graph.removeItem(item)
@@ -464,9 +485,8 @@ export default {
         this.$Message.warning(this.$t('start_node_warning'))
         return
       }
-      console.log(label, shape, fill, lineWidth, nodeType, taskCategory)
       const model = {
-        id: `id_${nodeType}_${Math.random().toString(36).substring(2, 8)}`,
+        id: `pdef_node_${this.uuid(16, 16)}`,
         label,
         // 形状
         type: shape,
@@ -489,7 +509,31 @@ export default {
       }
       this.graph.addItem('node', model)
       this.itemInfoType = 'node'
+      console.log(1.5)
       this.$refs.itemInfoNodeRef.showItemInfo(model)
+    },
+    uuid (len, radix) {
+      let chars = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz'.split('')
+      // eslint-disable-next-line one-var
+      let uuid = [],
+        i
+      radix = radix || chars.length
+
+      if (len) {
+        for (i = 0; i < len; i++) uuid[i] = chars[0 | (Math.random() * radix)]
+      } else {
+        var r
+        uuid[8] = uuid[13] = uuid[18] = uuid[23] = '-'
+        uuid[14] = '4'
+
+        for (i = 0; i < 36; i++) {
+          if (!uuid[i]) {
+            r = 0 | (Math.random() * 16)
+            uuid[i] = chars[i === 19 ? (r & 0x3) | 0x8 : r]
+          }
+        }
+      }
+      return uuid.join('')
     },
     setItemInfo (info) {
       // eslint-disable-next-line no-alert
@@ -512,7 +556,18 @@ export default {
       // eslint-disable-next-line no-unused-expressions
       this.$refs[nodeToRef[this.itemInfoType]] && this.$refs[nodeToRef[this.itemInfoType]].hideItem()
       return this.$refs[nodeToRef[this.itemInfoType]] && this.$refs[nodeToRef[this.itemInfoType]].panalStatus()
+    },
+    // #region 数据保存集合
+    // 保存编排整体信息
+    async setCanvasInfo (info) {
+      const { status } = await flowMgmt(info)
+      if (status === 'OK') {
+        this.itemInfoType = ''
+        this.$Message.success('save_successfully')
+        this.getFlowInfo(this.demoFlowId)
+      }
     }
+    // #endregion
   }
 }
 </script>
