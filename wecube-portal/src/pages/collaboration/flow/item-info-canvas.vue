@@ -7,7 +7,7 @@
         <Input disabled v-model="itemCustomInfo.id"></Input>
       </FormItem>
       <FormItem label="编排名称" prop="label">
-        <Input v-model="itemCustomInfo.label" style="width: 85%" @on-change="paramsChanged"></Input>
+        <Input v-model="itemCustomInfo.label" style="width: 85%" @on-change="versionChange"></Input>
         <span :style="nameLen > 16 ? 'color:red' : ''">{{ nameLen }}/16</span>
       </FormItem>
       <FormItem label="版本" prop="version">
@@ -26,16 +26,16 @@
           <Option v-for="item in authPluginList" :value="item.value" :key="item.value">{{ item.label }} </Option>
         </Select>
       </FormItem>
-      <FormItem label="使用场景" prop="useCase">
-        <Select v-model="itemCustomInfo.useCase">
-          <Option v-for="item in useCaseList" :value="item.value" :key="item.value">{{ item.label }} </Option>
+      <FormItem label="使用场景" prop="scene">
+        <Select v-model="itemCustomInfo.scene" @on-change="paramsChanged">
+          <Option v-for="item in sceneList" :value="item.value" :key="item.value">{{ item.label }} </Option>
         </Select>
       </FormItem>
       <FormItem label="标签" prop="tags">
-        <Input v-model="itemCustomInfo.tags"></Input>
+        <Input v-model="itemCustomInfo.tags" @on-change="paramsChanged"></Input>
       </FormItem>
       <FormItem label="冲突检测">
-        <i-switch v-model="itemCustomInfo.conflictCheck" />
+        <i-switch v-model="itemCustomInfo.conflictCheck" @on-change="paramsChanged" />
       </FormItem>
     </Form>
     <div style="position: fixed; bottom: 20px; right: 400px">
@@ -59,7 +59,7 @@ export default {
         label: '', // 编排名称
         version: 1, // 版本
         rootEntity: '', // 操作对象
-        useCase: '', // 使用场景，请求、发布、其他
+        scene: '', // 使用场景，请求、发布、其他
         authPlugins: [], // 授权插件列表，taskman/monitor
         tags: '', // 标签
         conflictCheck: true, // 冲突检测
@@ -76,7 +76,7 @@ export default {
         authPlugins: [
           { required: true, type: 'array', min: 1, message: 'authPlugins at least one hobby', trigger: 'change' }
         ],
-        useCase: [{ required: true, message: 'useCase at least one hobby', trigger: 'change' }],
+        scene: [{ required: true, message: 'scene at least one hobby', trigger: 'change' }],
         rootEntity: [{ required: true, message: 'rootEntity at least one hobby', trigger: 'change' }]
       },
       allEntityType: [], // 系统中所有根CI
@@ -86,7 +86,7 @@ export default {
         { label: 'taskman', value: 'taskman' },
         { label: 'wecmdb', value: 'wecmdb' }
       ],
-      useCaseList: [
+      sceneList: [
         // 可使用场景列表
         { label: '请求', value: 'request' },
         { label: '发布', value: 'release' },
@@ -99,18 +99,19 @@ export default {
       return this.itemCustomInfo.label.length
     }
   },
-  mounted () {
-    // 获取所有根CI类型
-    this.getAllDataModels()
-  },
+  mounted () {},
   methods: {
     showItemInfo (data) {
+      console.log(33)
+      this.isParmasChanged = false
+      // 获取所有根CI类型
+      this.getAllDataModels()
       const defaultNode = {
         id: '',
         label: '', // 编排名称
         version: 1, // 版本
         rootEntity: '', // 操作对象
-        useCase: '', // 使用场景，请求、发布、其他
+        scene: '', // 使用场景，请求、发布、其他
         authPlugins: [], // 授权插件列表，taskman/monitor
         tags: '', // 标签
         conflictCheck: true, // 冲突检测
@@ -125,16 +126,18 @@ export default {
       keys.forEach(k => {
         this.itemCustomInfo[k] = tmpData[k]
       })
-      this.itemCustomInfo = data
+      this.itemCustomInfo.version = Number(this.itemCustomInfo.version) || 1
     },
     saveItem () {
       this.$refs['formValidate'].validate(valid => {
         if (valid) {
-          console.log('执行画布保存功能！')
+          console.log('canvas:', this.itemCustomInfo)
+          let finalData = JSON.parse(JSON.stringify(this.itemCustomInfo))
+          finalData.version += ''
+          finalData.name = finalData.label
+          this.$emit('sendItemInfo', finalData)
         }
       })
-      console.log('canvas:', this.itemCustomInfo)
-      // this.$emit('sendItemInfo', this.itemCustomInfo)
     },
     panalStatus () {
       return this.isParmasChanged
@@ -142,7 +145,8 @@ export default {
     hideItem () {
       if (this.isParmasChanged) {
         this.$Modal.confirm({
-          title: '放弃修改',
+          title: this.$t('confirm_discarding_changes'),
+          content: this.$t('params_edit_confirm'),
           'z-index': 1000000,
           onOk: async () => {
             this.$refs['formValidate'].resetFields()
@@ -150,6 +154,8 @@ export default {
           },
           onCancel: () => {}
         })
+      } else {
+        this.$emit('hideItemInfo')
       }
     },
 
@@ -161,6 +167,7 @@ export default {
     },
     onEntitySelect (v) {
       this.itemCustomInfo.rootEntity = v || ''
+      this.isParmasChanged = true
     },
     // 解决选中清空数字输入框后显示空的问题
     versionChange (version) {
