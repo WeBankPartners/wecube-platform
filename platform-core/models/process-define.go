@@ -126,6 +126,15 @@ type ProcessDefinitionTaskNodeParam struct {
 	NodeAttrs         interface{}         `json:"nodeAttrs"`         // 节点属性,前端使用,保存即可
 }
 
+// ProcDefNodeLinkParam 编排节点线参数
+type ProcDefNodeLinkParam struct {
+	Id      string `json:"id"`      // Id
+	Name    string `json:"name"`    // 线名称
+	Source  string `json:"source"`  // 源
+	Target  string `json:"target"`  // 目标
+	UiStyle string `json:"uiStyle"` // 前端ui
+}
+
 // ProcessDefinitionDto  编排dto
 type ProcessDefinitionDto struct {
 	ProcDef          *ProcDefDto       `json:"procDef"`          // 编排
@@ -232,4 +241,14 @@ func ConvertProcDefNode2Dto(procDefNode *ProcDefNode, list []*ProcDefNodeParam) 
 		ParamInfos:        list,
 	}
 	return dto
+}
+
+func ConvertParam2ProcDefNodeLink(param ProcDefNodeLinkParam) *ProcDefNodeLink {
+	return &ProcDefNodeLink{
+		Id:      param.Id,
+		Source:  param.Source,
+		Target:  param.Target,
+		Name:    param.Name,
+		UiStyle: param.UiStyle,
+	}
 }
