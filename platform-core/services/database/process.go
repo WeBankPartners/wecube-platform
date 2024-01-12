@@ -64,8 +64,11 @@ func GetProcessDefinition(ctx context.Context, id string) (result *models.ProcDe
 
 func UpdateProcDef(ctx context.Context, procDef *models.ProcDef) (err error) {
 	var actions []*db.ExecAction
-	sql, params := transProcDefUpdateConditionToSQL(procDef)
-	actions = append(actions, &db.ExecAction{Sql: sql, Param: params})
+	//sql, params := transProcDefUpdateConditionToSQL(procDef)
+	//actions = append(actions, &db.ExecAction{Sql: sql, Param: params})
+	actions = append(actions, &db.ExecAction{Sql: "update proc_def set name=?,`version`=?,root_entity=?,tags=?,for_plugin=?,conflict_check=?,updated_by=?,updated_time=? where id=?", Param: []interface{}{
+		procDef.Name, procDef.Version, procDef.RootEntity, procDef.Tags, procDef.ForPlugin, procDef.ConflictCheck, procDef.UpdatedBy, procDef.UpdatedTime, procDef.Id,
+	}})
 	err = db.Transaction(actions, ctx)
 	if err != nil {
 		err = exterror.Catch(exterror.New().DatabaseExecuteError, err)
@@ -266,7 +269,8 @@ func insertProcDefPermission(ctx context.Context, permission models.ProcDefPermi
 }
 
 func transProcDefUpdateConditionToSQL(procDef *models.ProcDef) (sql string, params []interface{}) {
-	sql = "update proc_def set "
+	sql = "update proc_def set id=?"
+	params = append(params, procDef.Id)
 	if procDef.Key != "" {
 		sql = sql + ",`key`=?"
 		params = append(params, procDef.Key)
