@@ -66,8 +66,8 @@ func UpdateProcDef(ctx context.Context, procDef *models.ProcDef) (err error) {
 	var actions []*db.ExecAction
 	//sql, params := transProcDefUpdateConditionToSQL(procDef)
 	//actions = append(actions, &db.ExecAction{Sql: sql, Param: params})
-	actions = append(actions, &db.ExecAction{Sql: "update proc_def set name=?,`version`=?,root_entity=?,tags=?,for_plugin=?,conflict_check=?,updated_by=?,updated_time=? where id=?", Param: []interface{}{
-		procDef.Name, procDef.Version, procDef.RootEntity, procDef.Tags, procDef.ForPlugin, procDef.ConflictCheck, procDef.UpdatedBy, procDef.UpdatedTime, procDef.Id,
+	actions = append(actions, &db.ExecAction{Sql: "update proc_def set name=?,`version`=?,root_entity=?,tags=?,for_plugin=?,scene=?,conflict_check=?,updated_by=?,updated_time=? where id=?", Param: []interface{}{
+		procDef.Name, procDef.Version, procDef.RootEntity, procDef.Tags, procDef.ForPlugin, procDef.Scene, procDef.ConflictCheck, procDef.UpdatedBy, procDef.UpdatedTime, procDef.Id,
 	}})
 	err = db.Transaction(actions, ctx)
 	if err != nil {
