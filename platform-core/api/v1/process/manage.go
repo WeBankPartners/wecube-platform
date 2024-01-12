@@ -37,7 +37,7 @@ func AddOrUpdateProcessDefinition(c *gin.Context) {
 			RootEntity:    param.RootEntity,
 			Tags:          param.Tags,
 			ForPlugin:     strings.Join(param.AuthPlugins, ","),
-			Scene:         param.UseCase,
+			Scene:         param.Scene,
 			ConflictCheck: param.ConflictCheck,
 			UpdatedBy:     middleware.GetRequestUser(c),
 			UpdatedTime:   time.Now(),
