@@ -3,6 +3,7 @@
     <div class="flow-name">
       041_test_flow_normal
       <Tag>v1</Tag>
+      <Icon type="ios-nutrition"></Icon>
     </div>
     <div>
       <Button type="primary">

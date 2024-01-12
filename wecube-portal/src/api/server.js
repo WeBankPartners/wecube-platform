@@ -246,4 +246,6 @@ export const getAssociatedNodes = (procDefId, params) =>
 
 export const getMetaData = params => req.post(`platform/v1/plugins/configs/interfaces/param/metadata/query`, params)
 
-export const createFlow = data => req.post(`platform/v1/process/definitions`, data)
+export const flowMgmt = data => req.post(`platform/v1/process/definitions`, data)
+export const getFlowById = id => req.get(`platform/v1/process/definitions/${id}`)
+export const flowNodeMgmt = data => req.get(`platform/v1/process/definitions/taskNodes`, data)
