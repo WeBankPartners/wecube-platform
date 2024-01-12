@@ -93,6 +93,23 @@ func GetProcDefNode(ctx context.Context, id string) (result *models.ProcDefNode,
 	return
 }
 
+// GetProcDefNodeLink  获取编排线
+func GetProcDefNodeLink(ctx context.Context, id string) (result *models.ProcDefNodeLink, err error) {
+	if id == "" {
+		return
+	}
+	var list []*models.ProcDefNodeLink
+	err = db.MysqlEngine.Context(ctx).SQL("select * from proc_def_node_link where id = ?", id).Find(&list)
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
+		return
+	}
+	if len(list) > 0 {
+		result = list[0]
+	}
+	return
+}
+
 func GetProcDefNodeByProcDefId(ctx context.Context, procDefId string) (result []*models.ProcDefNodeDto, err error) {
 	var list []*models.ProcDefNode
 	if procDefId == "" {
@@ -111,6 +128,30 @@ func GetProcDefNodeByProcDefId(ctx context.Context, procDefId string) (result []
 			return
 		}
 		result = append(result, models.ConvertProcDefNode2Dto(procDefNode, nodeParamList))
+	}
+	return
+}
+
+// InsertProcDefNodeLink 添加编排节点线
+func InsertProcDefNodeLink(ctx context.Context, nodeLink *models.ProcDefNodeLink) (err error) {
+	var actions []*db.ExecAction
+	actions = append(actions, &db.ExecAction{Sql: "insert into  proc_def_node_link(id,source,target,name,ui_style) values(?,?,?,?,?)",
+		Param: []interface{}{nodeLink.Id, nodeLink.Source, nodeLink.Target, nodeLink.Name, nodeLink.UiStyle}})
+	err = db.Transaction(actions, ctx)
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseExecuteError, err)
+	}
+	return
+}
+
+// UpdateProcDefNodeLink 更新编排节点线
+func UpdateProcDefNodeLink(ctx context.Context, procDefNodeLink *models.ProcDefNodeLink) (err error) {
+	var actions []*db.ExecAction
+	sql, params := transProcDefNodeLinkUpdateConditionToSQL(procDefNodeLink)
+	actions = append(actions, &db.ExecAction{Sql: sql, Param: params})
+	err = db.Transaction(actions, ctx)
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseExecuteError, err)
 	}
 	return
 }
@@ -379,5 +420,29 @@ func transProcDefNodeUpdateConditionToSQL(procDefNode *models.ProcDefNode) (sql 
 	params = append(params, procDefNode.UpdatedTime.Format(models.DateTimeFormat))
 	sql = " where id= ?"
 	params = append(params, procDefNode.Id)
+	return
+}
+
+func transProcDefNodeLinkUpdateConditionToSQL(procDefNodeLink *models.ProcDefNodeLink) (sql string, params []interface{}) {
+	sql = "update proc_def set id=?"
+	params = append(params, procDefNodeLink.Id)
+	if procDefNodeLink.Source != "" {
+		sql = sql + ",source=?"
+		params = append(params, procDefNodeLink.Source)
+	}
+	if procDefNodeLink.Target != "" {
+		sql = sql + ",target=?"
+		params = append(params, procDefNodeLink.Target)
+	}
+	if procDefNodeLink.Name != "" {
+		sql = sql + ",name=?"
+		params = append(params, procDefNodeLink.Name)
+	}
+	if procDefNodeLink.UiStyle != "" {
+		sql = sql + ",ui_style=?"
+		params = append(params, procDefNodeLink.UiStyle)
+	}
+	sql = sql + " where id= ?"
+	params = append(params, procDefNodeLink.Id)
 	return
 }
