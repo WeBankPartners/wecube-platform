@@ -22,9 +22,9 @@ func AddProcessDefinition(ctx context.Context, user string, param models.Process
 		return
 	}
 	now := time.Now()
-	draftEntity.Id = guid.CreateGuid()
+	draftEntity.Id = "pdef_" + guid.CreateGuid()
 	draftEntity.Status = string(models.Draft)
-	draftEntity.Key = guid.CreateGuid()
+	draftEntity.Key = "pdef_key_" + guid.CreateGuid()
 	draftEntity.Name = param.Name
 	draftEntity.Version = param.Version
 	draftEntity.Tags = param.Tags
@@ -266,10 +266,9 @@ func insertProcDefPermission(ctx context.Context, permission models.ProcDefPermi
 }
 
 func transProcDefUpdateConditionToSQL(procDef *models.ProcDef) (sql string, params []interface{}) {
-	sql = "update proc_def set id = ?"
-	params = append(params, procDef.Id)
+	sql = "update proc_def set "
 	if procDef.Key != "" {
-		sql = sql + ",key=?"
+		sql = sql + ",`key`=?"
 		params = append(params, procDef.Key)
 	}
 	if procDef.Name != "" {
@@ -277,7 +276,7 @@ func transProcDefUpdateConditionToSQL(procDef *models.ProcDef) (sql string, para
 		params = append(params, procDef.Name)
 	}
 	if procDef.Version != "" {
-		sql = sql + ",version=?"
+		sql = sql + ",`version`=?"
 		params = append(params, procDef.Version)
 	}
 	if procDef.RootEntity != "" {
@@ -300,7 +299,7 @@ func transProcDefUpdateConditionToSQL(procDef *models.ProcDef) (sql string, para
 		sql = sql + ",scene=?"
 		params = append(params, procDef.Scene)
 	}
-	sql = sql + ",conflictCheck=?"
+	sql = sql + ",conflict_check=?"
 	params = append(params, procDef.ConflictCheck)
 	if procDef.UpdatedBy != "" {
 		sql = sql + ",updated_by=?"
