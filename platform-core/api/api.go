@@ -83,6 +83,8 @@ func init() {
 		&handlerFuncObj{Url: "/plugins/packages/export/:pluginPackageId", Method: "GET", HandlerFunc: plugin.ExportPluginConfigs, ApiCode: "export-plugin-configs"},
 		&handlerFuncObj{Url: "/plugins/packages/import/:pluginPackageId", Method: "POST", HandlerFunc: plugin.ImportPluginConfigs, ApiCode: "import-plugin-configs"},
 		&handlerFuncObj{Url: "/packages/decommission/:pluginPackageId", Method: "POST", HandlerFunc: plugin.DeletePlugin, ApiCode: "delete-plugin"},
+		&handlerFuncObj{Url: "/plugins/query-by-target-entity", Method: "POST", HandlerFunc: plugin.QueryPluginByTargetEntity, ApiCode: "query-plugin-by-target-entity"},
+
 		// model
 		&handlerFuncObj{Url: "/models", Method: "GET", HandlerFunc: plugin.GetAllModels, ApiCode: "get-all-models"},
 		&handlerFuncObj{Url: "/models/package/:packageName/entity/:entity", Method: "GET", HandlerFunc: plugin.GetEntityModel, ApiCode: "get-entity-model"},
@@ -119,6 +121,7 @@ func init() {
 		&handlerFuncObj{Url: "/process/definitions", Method: "POST", HandlerFunc: process.AddOrUpdateProcessDefinition, ApiCode: "add-update-process-definition"},
 		&handlerFuncObj{Url: "/process/definitions/:proc-def-id", Method: "GET", HandlerFunc: process.GetProcessDefinition, ApiCode: "get-process-definition"},
 		&handlerFuncObj{Url: "/process/definitions/taskNodes", Method: "POST", HandlerFunc: process.AddOrUpdateProcessDefinitionTaskNodes, ApiCode: "add-update-process-definition-nodes"},
+		&handlerFuncObj{Url: "/process/definitions/node/link", Method: "POST", HandlerFunc: process.AddOrUpdateProcDefNodeLink, ApiCode: "add-update-process-definition-node-link"},
 	)
 }
 

@@ -138,6 +138,37 @@ func AddOrUpdateProcessDefinitionTaskNodes(c *gin.Context) {
 	middleware.ReturnSuccess(c)
 }
 
+func AddOrUpdateProcDefNodeLink(c *gin.Context) {
+	var param models.ProcDefNodeLinkParam
+	var procDefNodeLink *models.ProcDefNodeLink
+	var err error
+
+	if err = c.ShouldBindJSON(&param); err != nil {
+		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, err))
+		return
+	}
+	if param.Id == "" {
+		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, fmt.Errorf("param id is empty")))
+		return
+	}
+	procDefNodeLink, err = database.GetProcDefNodeLink(c, param.Id)
+	if err != nil {
+		middleware.ReturnError(c, err)
+		return
+	}
+	newProcDefNodeLink := models.ConvertParam2ProcDefNodeLink(param)
+	if procDefNodeLink == nil {
+		err = database.InsertProcDefNodeLink(c, newProcDefNodeLink)
+	} else {
+		err = database.UpdateProcDefNodeLink(c, newProcDefNodeLink)
+	}
+	if err != nil {
+		middleware.ReturnError(c, err)
+		return
+	}
+	middleware.ReturnSuccess(c)
+}
+
 func convertParam2ProcDefNode(user string, param models.ProcessDefinitionTaskNodeParam) *models.ProcDefNode {
 	now := time.Now()
 	byteArr, _ := json.Marshal(param.NodeAttrs)

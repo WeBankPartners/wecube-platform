@@ -2,6 +2,7 @@ package models
 
 import (
 	"encoding/xml"
+	"strings"
 	"time"
 )
 
@@ -123,6 +124,28 @@ type PluginRuntimeResourceData struct {
 	Docker []*PluginPackageRuntimeResourcesDocker `json:"docker"`
 	Mysql  []*PluginPackageRuntimeResourcesMysql  `json:"mysql"`
 	S3     []*PluginPackageRuntimeResourcesS3     `json:"s3"`
+}
+
+type AuthLatestEnabledInterfaces struct {
+	Id                       string    `json:"id" xorm:"id"`                                   // 唯一标识
+	PluginConfigId           string    `json:"pluginConfigId" xorm:"plugin_config_id"`         // 插件服务
+	Action                   string    `json:"action" xorm:"action"`                           // 接口
+	ServiceName              string    `json:"serviceName" xorm:"service_name"`                // 服务名
+	ServiceDisplayName       string    `json:"serviceDisplayName" xorm:"service_display_name"` // 服务显示名
+	Path                     string    `json:"path" xorm:"path"`                               // 插件接口uri
+	HttpMethod               string    `json:"httpMethod" xorm:"http_method"`                  // http请求方法
+	IsAsyncProcessing        string    `json:"isAsyncProcessing" xorm:"is_async_processing"`   // 是否同步->Y(是) | N(否)
+	Type                     string    `json:"type" xorm:"type"`                               // 服务类型->approval(审批),execution(执行),dynamicform(动态表单)
+	FilterRule               string    `json:"filterRule" xorm:"filter_rule"`                  // 服务过滤规则
+	PluginConfigName         string    `json:"PluginConfigName" xorm:"plugin_config_name"`
+	PluginConfigRegisterName string    `json:"PluginConfigRegisterName" xorm:"plugin_config_register_name"`
+	PluginConfigTargetEntity string    `json:"pluginConfigTargetEntity" xorm:"plugin_config_target_entity""`
+	PluginConfigStatus       string    `json:"pluginConfigStatus" xorm:"plugin_config_status""`
+	PluginPackageId          string    `json:"pluginPackageId" xorm:"plugin_package_id""`
+	PluginPackageName        string    `json:"pluginPackageName" xorm:"plugin_package_name""`
+	PluginPackageStatus      string    `json:"pluginPackageStatus" xorm:"plugin_package_status""`
+	PluginPackageVersion     string    `json:"pluginPackageVersion" xorm:"plugin_package_version""`
+	UploadTimestamp          time.Time `json:"uploadTimestamp" xorm:"upload_timestamp""`
 }
 
 type RegisterXML struct {
@@ -261,45 +284,52 @@ type RegisterXML struct {
 }
 
 type PluginConfigs struct {
-	Id                     string `json:"id" xorm:"id"`                                            // 唯一标识
-	PluginPackageId        string `json:"pluginPackageId" xorm:"plugin_package_id"`                // 插件
-	Name                   string `json:"name" xorm:"name"`                                        // 服务类型名称
-	TargetPackage          string `json:"targetPackage" xorm:"target_package"`                     // 目标类型包
-	TargetEntity           string `json:"targetEntity" xorm:"target_entity"`                       // 目标类型项
-	TargetEntityFilterRule string `json:"targetEntityFilterRule" xorm:"target_entity_filter_rule"` // 目标类型过滤规则
-	RegisterName           string `json:"registerName" xorm:"register_name"`                       // 服务注册名
-	Status                 string `json:"status" xorm:"status"`                                    // 状态
+	Id                     string                    `json:"id" xorm:"id"`                                            // 唯一标识
+	PluginPackageId        string                    `json:"pluginPackageId" xorm:"plugin_package_id"`                // 插件
+	Name                   string                    `json:"name" xorm:"name"`                                        // 服务类型名称
+	TargetPackage          string                    `json:"targetPackage" xorm:"target_package"`                     // 目标类型包
+	TargetEntity           string                    `json:"targetEntity" xorm:"target_entity"`                       // 目标类型项
+	TargetEntityFilterRule string                    `json:"targetEntityFilterRule" xorm:"target_entity_filter_rule"` // 目标类型过滤规则
+	RegisterName           string                    `json:"registerName" xorm:"register_name"`                       // 服务注册名
+	Status                 string                    `json:"status" xorm:"status"`                                    // 状态
+	PluginPackages         *PluginPackages           `json:"pluginPackages" xorm:"-"`
+	Interfaces             []*PluginConfigInterfaces `json:"interfaces" xorm:"-"`
 }
 
 type PluginConfigInterfaces struct {
-	Id                 string `json:"id" xorm:"id"`                                   // 唯一标识
-	PluginConfigId     string `json:"pluginConfigId" xorm:"plugin_config_id"`         // 插件服务
-	Action             string `json:"action" xorm:"action"`                           // 接口
-	ServiceName        string `json:"serviceName" xorm:"service_name"`                // 服务名
-	ServiceDisplayName string `json:"serviceDisplayName" xorm:"service_display_name"` // 服务显示名
-	Path               string `json:"path" xorm:"path"`                               // 插件接口uri
-	HttpMethod         string `json:"httpMethod" xorm:"http_method"`                  // http请求方法
-	IsAsyncProcessing  string `json:"isAsyncProcessing" xorm:"is_async_processing"`   // 是否同步->Y(是) | N(否)
-	Type               string `json:"type" xorm:"type"`                               // 服务类型->approval(审批),execution(执行),dynamicform(动态表单)
-	FilterRule         string `json:"filterRule" xorm:"filter_rule"`                  // 服务过滤规则
-	Description        string `json:"description" xorm:"description"`                 // 描述
+	Id                 string                             `json:"id" xorm:"id"`                                   // 唯一标识
+	PluginConfigId     string                             `json:"pluginConfigId" xorm:"plugin_config_id"`         // 插件服务
+	Action             string                             `json:"action" xorm:"action"`                           // 接口
+	ServiceName        string                             `json:"serviceName" xorm:"service_name"`                // 服务名
+	ServiceDisplayName string                             `json:"serviceDisplayName" xorm:"service_display_name"` // 服务显示名
+	Path               string                             `json:"path" xorm:"path"`                               // 插件接口uri
+	HttpMethod         string                             `json:"httpMethod" xorm:"http_method"`                  // http请求方法
+	IsAsyncProcessing  string                             `json:"isAsyncProcessing" xorm:"is_async_processing"`   // 是否同步->Y(是) | N(否)
+	Type               string                             `json:"type" xorm:"type"`                               // 服务类型->approval(审批),execution(执行),dynamicform(动态表单)
+	FilterRule         string                             `json:"filterRule" xorm:"filter_rule"`                  // 服务过滤规则
+	Description        string                             `json:"description" xorm:"description"`                 // 描述
+	InputParameters    []*PluginConfigInterfaceParameters `json:"inputParameters" xorm:"-"`
+	OutputParameters   []*PluginConfigInterfaceParameters `json:"outputParameters" xorm:"-"`
+	PluginConfig       *PluginConfigs                     `json:"pluginConfig" xorm:"-"`
 }
 
 type PluginConfigInterfaceParameters struct {
-	Id                        string `json:"id" xorm:"id"`                                                  // 唯一标识
-	PluginConfigInterfaceId   string `json:"pluginConfigInterfaceId" xorm:"plugin_config_interface_id"`     // 服务接口
-	Type                      string `json:"type" xorm:"type"`                                              // 类型->input(输入),output(输出)
-	Name                      string `json:"name" xorm:"name"`                                              // 接口属性名
-	DataType                  string `json:"dataType" xorm:"data_type"`                                     // 属性数据类型
-	MappingType               string `json:"mappingType" xorm:"mapping_type"`                               // 数据来源
-	MappingEntityExpression   string `json:"mappingEntityExpression" xorm:"mapping_entity_expression"`      // entity表达式
-	MappingSystemVariableName string `json:"mappingSystemVariableName" xorm:"mapping_system_variable_name"` // 系统参数
-	Required                  string `json:"required" xorm:"required"`                                      // 是否必填->Y(是) | N(否)
-	SensitiveData             string `json:"sensitiveData" xorm:"sensitive_data"`                           // 是否敏感->Y(是) | N(否)
-	Description               string `json:"description" xorm:"description"`                                // 描述
-	MappingVal                string `json:"mappingVal" xorm:"mapping_val"`                                 // 静态值
-	Multiple                  string `json:"multiple" xorm:"multiple"`                                      // 是否数组->Y(是) | N(否)
-	RefObjectName             string `json:"refObjectName" xorm:"ref_object_name"`                          // 关联对象名
+	Id                        string                  `json:"id" xorm:"id"`                                                  // 唯一标识
+	PluginConfigInterfaceId   string                  `json:"pluginConfigInterfaceId" xorm:"plugin_config_interface_id"`     // 服务接口
+	Type                      string                  `json:"type" xorm:"type"`                                              // 类型->input(输入),output(输出)
+	Name                      string                  `json:"name" xorm:"name"`                                              // 接口属性名
+	DataType                  string                  `json:"dataType" xorm:"data_type"`                                     // 属性数据类型
+	MappingType               string                  `json:"mappingType" xorm:"mapping_type"`                               // 数据来源
+	MappingEntityExpression   string                  `json:"mappingEntityExpression" xorm:"mapping_entity_expression"`      // entity表达式
+	MappingSystemVariableName string                  `json:"mappingSystemVariableName" xorm:"mapping_system_variable_name"` // 系统参数
+	Required                  string                  `json:"required" xorm:"required"`                                      // 是否必填->Y(是) | N(否)
+	SensitiveData             string                  `json:"sensitiveData" xorm:"sensitive_data"`                           // 是否敏感->Y(是) | N(否)
+	Description               string                  `json:"description" xorm:"description"`                                // 描述
+	MappingVal                string                  `json:"mappingVal" xorm:"mapping_val"`                                 // 静态值
+	Multiple                  string                  `json:"multiple" xorm:"multiple"`                                      // 是否数组->Y(是) | N(否)
+	RefObjectName             string                  `json:"refObjectName" xorm:"ref_object_name"`                          // 关联对象名
+	PluginConfigInterface     *PluginConfigInterfaces `json:"pluginConfigInterface" xorm:"-"`
+	ObjectMeta                *CoreObjectMeta         `json:"objectMeta" xorm:"-"`
 }
 
 type PluginPackageDataModel struct {
@@ -352,4 +382,205 @@ type PluginConfigRoles struct {
 	CreatedTime time.Time `json:"createdTime" xorm:"created_time"`  // 创建时间
 	UpdatedBy   string    `json:"updatedBy" xorm:"updated_by"`      // 更新人
 	UpdatedTime time.Time `json:"updatedTime" xorm:"updated_time"`  // 更新时间
+}
+
+type CoreObjectMeta struct {
+	Id            string                    `json:"id" xorm:"id"`
+	Name          string                    `json:"name" xorm:"name"`
+	PackageName   string                    `json:"packageName" xorm:"package_name"`
+	Source        string                    `json:"source" xorm:"source"`
+	LatestSource  string                    `json:"latestSource" xorm:"latest_source"`
+	CreatedBy     string                    `json:"createdBy" xorm:"created_by"`
+	CreatedTime   time.Time                 `json:"createdTime" xorm:"created_time"`
+	UpdatedBy     string                    `json:"updatedBy" xorm:"updated_by"`
+	UpdatedTime   time.Time                 `json:"updatedTime" xorm:"updated_time"`
+	ConfigId      string                    `json:"configId" xorm:"config_id"`
+	MapExpr       string                    `json:"mapExpr" xorm:"map_expr"`
+	PropertyMetas []*CoreObjectPropertyMeta `json:"propertyMetas" xorm:"-"`
+}
+
+type CoreObjectPropertyMeta struct {
+	Id            string          `json:"id" xorm:"id"`
+	Name          string          `json:"name" xorm:"name"`
+	DataType      string          `json:"dataType" xorm:"data_type"`
+	Multiple      string          `json:"multiple" xorm:"multiple"`
+	RefObjectName string          `json:"refObjectName" xorm:"ref_object_name"`
+	MappingType   string          `json:"mappingType" xorm:"mapping_type"`
+	MapExpr       string          `json:"mapExpr" xorm:"map_expr"`
+	ObjectMetaId  string          `json:"objectMetaId" xorm:"object_meta_id"`
+	ObjectName    string          `json:"objectName" xorm:"object_name"`
+	PackageName   string          `json:"packageName" xorm:"package_name"`
+	Source        string          `json:"source" xorm:"source"`
+	CreatedBy     string          `json:"createdBy" xorm:"created_by"`
+	CreatedTime   time.Time       `json:"createdTime" xorm:"created_time"`
+	UpdatedBy     string          `json:"updatedBy" xorm:"updated_by"`
+	UpdatedTime   time.Time       `json:"updatedTime" xorm:"updated_time"`
+	Sensitive     bool            `json:"sensitive" xorm:"is_sensitive"`
+	ConfigId      string          `json:"configId" xorm:"config_id"`
+	ObjectMeta    *CoreObjectMeta `json:"objectMeta" xorm:"-"`
+	RefObjectMeta *CoreObjectMeta `json:"refObjectMeta" xorm:"-"`
+}
+
+// TargetEntityFilterRuleDto 目标对象过滤
+type TargetEntityFilterRuleDto struct {
+	TargetEntityFilterRule string `json:"targetEntityFilterRule"` // 对象过滤规则
+	EntityName             string `json:"entityName"`             // 实体名称
+	PkgName                string `json:"pkgName"`                // 包名称
+	TaskCategory           string `json:"taskCategory"`           // 任务分类
+}
+
+// PluginConfigInterfaceDto 插件配置dto
+type PluginConfigInterfaceDto struct {
+	Id                          string                               `json:"id"`
+	PluginConfigId              string                               `json:"pluginConfigId"` // 插件配置id
+	Action                      string                               `json:"action"`
+	ServiceName                 string                               `json:"serviceName"`
+	ServiceDisplayName          string                               `json:"serviceDisplayName"`
+	Path                        string                               `json:"path"`
+	HttpMethod                  string                               `json:"httpMethod"`
+	IsAsyncProcessing           string                               `json:"isAsyncProcessing"`
+	FilterRule                  string                               `json:"filterRule"`
+	Description                 string                               `json:"description"`
+	Type                        string                               `json:"type"`
+	InputParameters             []*PluginConfigInterfaceParameterDto `json:"inputParameters"`
+	OutputParameters            []*PluginConfigInterfaceParameterDto `json:"outputParameters"`
+	ConfigurableInputParameters []*PluginConfigInterfaceParameterDto `json:"configurableInputParameters"`
+}
+
+type AuthEnableInterfacesQueryDto struct {
+	TargetPackage          string   `json:"targetPackage"`
+	TargetEntity           string   `json:"targetEntity"`
+	PluginConfigStatus     string   `json:"pluginConfigStatus"`
+	PermissionType         string   `json:"permissionType"`
+	RoleNames              []string `json:"roleNames"`
+	PluginPackageStatuses  []string `json:"pluginPackageStatuses"`
+	TargetEntityFilterRule string   `json:"targetEntityFilterRule"`
+}
+
+type PluginConfigInterfaceParameterDto struct {
+	Id                        string             `json:"id"`
+	PluginConfigInterfaceId   string             `json:"pluginConfigInterfaceId"`
+	Type                      string             `json:"type"`
+	Name                      string             `json:"name"`
+	DataType                  string             `json:"dataType"`
+	MappingType               string             `json:"mappingType"`
+	MappingEntityExpression   string             `json:"mappingEntityExpression"`
+	MappingSystemVariableName string             `json:"mappingSystemVariableName"`
+	Required                  string             `json:"required"`
+	SensitiveData             string             `json:"sensitiveData"`
+	Description               string             `json:"description"`
+	MappingValue              string             `json:"mappingValue"`
+	Multiple                  string             `json:"multiple"`
+	RefObjectName             string             `json:"refObjectName"`
+	RefObjectMeta             *CoreObjectMetaDto `json:"refObjectMeta"`
+}
+
+type CoreObjectMetaDto struct {
+	Id                      string                       `json:"id"`
+	Name                    string                       `json:"name"`
+	PackageName             string                       `json:"packageName"`
+	Source                  string                       `json:"source"`
+	LatestSource            string                       `json:"LatestSource"`
+	ConfigId                string                       `json:"configId"`
+	MappingEntityExpression string                       `json:"mappingEntityExpression"`
+	PropertyMetas           []*CoreObjectPropertyMetaDto `json:"propertyMetas"`
+}
+
+type CoreObjectPropertyMetaDto struct {
+	Id                      string             `json:"id"`
+	Name                    string             `json:"name"`
+	DataType                string             `json:"dataType"`
+	Multiple                string             `json:"multiple"`
+	RefObjectName           string             `json:"refObjectName"`
+	MappingType             string             `json:"mappingType"`
+	MappingEntityExpression string             `json:"mappingEntityExpression"`
+	ObjectMetaId            string             `json:"objectMetaId"`
+	ObjectName              string             `json:"objectName"`
+	PackageName             string             `json:"packageName"`
+	Source                  string             `json:"source"`
+	SensitiveData           string             `json:"sensitiveData"`
+	ConfigId                string             `json:"configId"`
+	RefObjectMeta           *CoreObjectMetaDto `json:"refObjectMeta"`
+}
+
+type PluginConfigInterfaceDtoSort []*PluginConfigInterfaceDto
+
+func (q PluginConfigInterfaceDtoSort) Len() int {
+	return len(q)
+}
+
+func (q PluginConfigInterfaceDtoSort) Less(i, j int) bool {
+	t := strings.Compare(q[i].ServiceName, q[j].ServiceName)
+	if t < 0 {
+		return true
+	}
+	return false
+}
+
+func (q PluginConfigInterfaceDtoSort) Swap(i, j int) {
+	q[i], q[j] = q[j], q[i]
+}
+func ConvertPluginConfigInterfaceParameter2Dto(entity *PluginConfigInterfaceParameters) *PluginConfigInterfaceParameterDto {
+	return &PluginConfigInterfaceParameterDto{
+		Id:                        entity.Id,
+		PluginConfigInterfaceId:   entity.PluginConfigInterfaceId,
+		Type:                      entity.Type,
+		Name:                      entity.Name,
+		DataType:                  entity.DataType,
+		MappingType:               entity.MappingType,
+		MappingEntityExpression:   entity.MappingEntityExpression,
+		MappingSystemVariableName: entity.MappingSystemVariableName,
+		Required:                  entity.Required,
+		SensitiveData:             entity.SensitiveData,
+		Description:               entity.Description,
+		MappingValue:              entity.MappingVal,
+		Multiple:                  entity.Multiple,
+		RefObjectName:             entity.RefObjectName,
+	}
+}
+
+func ConvertCoreObjectPropertyMeta2Dto(propertyMeta *CoreObjectPropertyMeta) *CoreObjectPropertyMetaDto {
+	var sensitiveData = "N"
+	if propertyMeta.Sensitive {
+		sensitiveData = "Y"
+	}
+	dto := &CoreObjectPropertyMetaDto{
+		Id:                      propertyMeta.Id,
+		Name:                    propertyMeta.Name,
+		DataType:                propertyMeta.DataType,
+		Multiple:                propertyMeta.Multiple,
+		RefObjectName:           propertyMeta.RefObjectName,
+		MappingType:             propertyMeta.MappingType,
+		MappingEntityExpression: propertyMeta.MapExpr,
+		ObjectMetaId:            propertyMeta.ObjectMetaId,
+		ObjectName:              propertyMeta.ObjectName,
+		PackageName:             propertyMeta.PackageName,
+		Source:                  propertyMeta.Source,
+		SensitiveData:           sensitiveData,
+		ConfigId:                propertyMeta.ConfigId,
+	}
+	if propertyMeta.RefObjectMeta != nil {
+		dto.RefObjectMeta = ConvertCoreObjectMeta2Dto(propertyMeta.RefObjectMeta)
+	}
+	return dto
+}
+
+func ConvertCoreObjectMeta2Dto(objectMeta *CoreObjectMeta) *CoreObjectMetaDto {
+	dto := &CoreObjectMetaDto{
+		Id:                      objectMeta.Id,
+		Name:                    objectMeta.Name,
+		PackageName:             objectMeta.PackageName,
+		Source:                  objectMeta.Source,
+		LatestSource:            objectMeta.LatestSource,
+		ConfigId:                objectMeta.ConfigId,
+		MappingEntityExpression: objectMeta.MapExpr,
+		PropertyMetas:           make([]*CoreObjectPropertyMetaDto, 0),
+	}
+	if len(objectMeta.PropertyMetas) > 0 {
+		for _, propertyMeta := range objectMeta.PropertyMetas {
+			propertyMetaDto := ConvertCoreObjectPropertyMeta2Dto(propertyMeta)
+			dto.PropertyMetas = append(dto.PropertyMetas, propertyMetaDto)
+		}
+	}
+	return dto
 }
