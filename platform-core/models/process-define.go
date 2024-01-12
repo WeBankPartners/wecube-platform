@@ -98,7 +98,7 @@ type ProcessDefinitionParam struct {
 	Id               string           `json:"id"`               // 唯一标识
 	Name             string           `json:"name"`             // 编排名称
 	Version          string           `json:"version"`          // 编排版本
-	UseCase          string           `json:"useCase"`          // 使用场景
+	Scene            string           `json:"scene"`            // 使用场景
 	AuthPlugins      []string         `json:"authPlugins"`      // 授权插件列表
 	Tags             string           `json:"tags"`             // 标签
 	ConflictCheck    bool             `json:"conflictCheck"`    // 冲突检测
@@ -142,7 +142,7 @@ type ProcDefDto struct {
 	Status        string   `json:"status"`        // 状态
 	Tags          string   `json:"tags"`          // 标签
 	AuthPlugins   []string `json:"authPlugins"`   // 授权插件
-	UseCase       string   `json:"scene"`         // 使用场景
+	Scene         string   `json:"scene"`         // 使用场景
 	ConflictCheck bool     `json:"conflictCheck"` // 冲突检测
 	CreatedBy     string   `json:"createdBy"`     // 创建人
 	CreatedTime   string   `json:"createdTime"`   // 创建时间
@@ -195,7 +195,7 @@ func ConvertProcDef2Dto(procDef *ProcDef) *ProcDefDto {
 		Status:        procDef.Status,
 		Tags:          procDef.Tags,
 		AuthPlugins:   authPlugins,
-		UseCase:       procDef.Scene,
+		Scene:         procDef.Scene,
 		ConflictCheck: procDef.ConflictCheck,
 		CreatedBy:     procDef.CreatedBy,
 		CreatedTime:   procDef.CreatedTime.Format(DateTimeFormat),
