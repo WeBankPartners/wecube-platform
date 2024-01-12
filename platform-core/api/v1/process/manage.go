@@ -6,7 +6,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/WeBankPartners/go-common-lib/guid"
 	"github.com/WeBankPartners/wecube-platform/platform-core/api/middleware"
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/exterror"
 	"github.com/WeBankPartners/wecube-platform/platform-core/models"
@@ -33,7 +32,6 @@ func AddOrUpdateProcessDefinition(c *gin.Context) {
 	} else {
 		entity = &models.ProcDef{
 			Id:            param.Id,
-			Key:           guid.CreateGuid(),
 			Name:          param.Name,
 			Version:       param.Version,
 			RootEntity:    param.RootEntity,
