@@ -308,7 +308,7 @@ func transProcDefUpdateConditionToSQL(procDef *models.ProcDef) (sql string, para
 	}
 	sql = sql + ",updated_time=?"
 	params = append(params, procDef.UpdatedTime.Format(models.DateTimeFormat))
-	sql = " where id= ?"
+	sql = sql + " where id= ?"
 	params = append(params, procDef.Id)
 	return
 }
