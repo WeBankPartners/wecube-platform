@@ -293,7 +293,7 @@ func convertParam2ProcDefNode(user string, param models.ProcDefNodeDto) *models.
 	now := time.Now()
 	byteArr, _ := json.Marshal(param.NodeAttrs)
 	procDefNodeAttr := param.ProcDefNodeCustomAttrs
-	byteArr2, _ := json.Marshal(procDefNodeAttr.Config)
+	byteArr2, _ := json.Marshal(procDefNodeAttr.TimeConfig)
 	node := &models.ProcDefNode{
 		Id:                procDefNodeAttr.Id,
 		ProcDefId:         procDefNodeAttr.ProcDefId,
@@ -308,7 +308,7 @@ func convertParam2ProcDefNode(user string, param models.ProcDefNodeDto) *models.
 		RoutineExpression: procDefNodeAttr.RoutineExpression,
 		ContextParamNodes: procDefNodeAttr.ContextParamNodes,
 		Timeout:           procDefNodeAttr.Timeout,
-		Config:            string(byteArr2),
+		TimeConfig:        string(byteArr2),
 		OrderedNo:         procDefNodeAttr.OrderedNo,
 		UiStyle:           string(byteArr),
 		CreatedBy:         user,
