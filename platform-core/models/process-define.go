@@ -1,6 +1,7 @@
 package models
 
 import (
+	"encoding/json"
 	"strings"
 	"time"
 )
@@ -106,10 +107,16 @@ type ProcessDefinitionParam struct {
 	PermissionToRole PermissionToRole `json:"permissionToRole"` // 角色
 }
 
-// ProcessDefinitionTaskNodeParam 添加编排节点参数
-type ProcessDefinitionTaskNodeParam struct {
+// ProcDefNodeDto 编排节点dto
+type ProcDefNodeDto struct {
+	ProcDefNodeCustomAttrs *ProcDefNodeCustomAttrs `json:"customAttrs"` // 节点数据
+	NodeAttrs              interface{}             `json:"nodeAttrs"`   // 节点属性,前端使用,保存即可
+}
+
+type ProcDefNodeCustomAttrs struct {
 	Id                string              `json:"id"`                // 节点Id
 	Name              string              `json:"name"`              // 节点名称
+	Status            string              `json:"status"`            // 状态
 	NodeType          string              `json:"nodeType"`          // 节点类型
 	ProcDefId         string              `json:"procDefId"`         // 编排定义id
 	Timeout           int                 `json:"timeout"`           // 超时时间
@@ -123,16 +130,16 @@ type ProcessDefinitionTaskNodeParam struct {
 	ParamInfos        []*ProcDefNodeParam `json:"ParamInfos"`        // 节点参数
 	ContextParamNodes string              `json:"contextParamNodes"` // 上下文参数节点
 	OrderedNo         int                 `json:"orderedNo"`         // 节点顺序
-	NodeAttrs         interface{}         `json:"nodeAttrs"`         // 节点属性,前端使用,保存即可
+	CreatedBy         string              `json:"createdBy" `        // 创建人
+	CreatedTime       string              `json:"createdTime" `      // 创建时间
+	UpdatedBy         string              `json:"updatedBy" `        // 更新人
+	UpdatedTime       string              `json:"updatedTime" `      // 更新时间
 }
 
-// ProcDefNodeLinkParam 编排节点线参数
-type ProcDefNodeLinkParam struct {
-	Id      string `json:"id"`      // Id
-	Name    string `json:"name"`    // 线名称
-	Source  string `json:"source"`  // 源
-	Target  string `json:"target"`  // 目标
-	UiStyle string `json:"uiStyle"` // 前端ui
+// ProcDefNodeLinkDto 编排线
+type ProcDefNodeLinkDto struct {
+	ProcDefNodeLinkCustomAttrs *ProcDefNodeLinkCustomAttrs `json:"customAttrs"` // 节点数据
+	SelfAttrs                  interface{}                 `json:"selfAttrs"`   // 节点属性,前端使用,保存即可
 }
 
 // ProcessDefinitionDto  编排dto
@@ -140,6 +147,13 @@ type ProcessDefinitionDto struct {
 	ProcDef          *ProcDefDto       `json:"procDef"`          // 编排
 	PermissionToRole PermissionToRole  `json:"permissionToRole"` // 角色
 	ProcDefNodeList  []*ProcDefNodeDto `json:"taskNodeInfos"`    // 编排节点集合
+}
+
+type ProcDefNodeLinkCustomAttrs struct {
+	Id     string `json:"id"`     // Id
+	Name   string `json:"name"`   // 线名称
+	Source string `json:"source"` // 源
+	Target string `json:"target"` // 目标
 }
 
 type ProcDefDto struct {
@@ -157,29 +171,6 @@ type ProcDefDto struct {
 	CreatedTime   string   `json:"createdTime"`   // 创建时间
 	UpdatedBy     string   `json:"updatedBy"`     // 更新人
 	UpdatedTime   string   `json:"updatedTime"`   // 更新时间
-}
-
-type ProcDefNodeDto struct {
-	Id                string              `json:"id" `                // 唯一标识
-	ProcDefId         string              `json:"procDefId" `         // 编排id
-	Name              string              `json:"name" `              // 节点名称
-	Description       string              `json:"description"`        // 节点描述
-	Status            string              `json:"status"`             // 状态
-	NodeType          string              `json:"nodeType"`           // 节点类型
-	ServiceName       string              `json:"serviceName"`        // 插件服务名
-	DynamicBind       bool                `json:"dynamicBind" `       // 是否动态绑定
-	BindNodeId        string              `json:"bindNodeId" `        // 动态绑定节点
-	RiskCheck         bool                `json:"riskCheck" `         // 是否高危检测
-	RoutineExpression string              `json:"routineExpression" ` // 定位规则
-	ContextParamNodes string              `json:"contextParamNodes" ` // 上下文参数节点
-	Timeout           int                 `json:"timeout" `           // 超时时间分钟
-	OrderedNo         int                 `json:"orderedNo" `         // 节点顺序
-	UiStyle           string              `json:"uiStyle" `           // 前端样式
-	CreatedBy         string              `json:"createdBy" `         // 创建人
-	CreatedTime       string              `json:"createdTime" `       // 创建时间
-	UpdatedBy         string              `json:"updatedBy" `         // 更新人
-	UpdatedTime       string              `json:"updatedTime" `       // 更新时间
-	ParamInfos        []*ProcDefNodeParam `json:"ParamInfos"`         // 节点参数
 }
 
 type PermissionToRole struct {
@@ -219,36 +210,41 @@ func ConvertProcDefNode2Dto(procDefNode *ProcDefNode, list []*ProcDefNodeParam) 
 		return nil
 	}
 	dto := &ProcDefNodeDto{
-		Id:                procDefNode.Id,
-		ProcDefId:         procDefNode.ProcDefId,
-		Name:              procDefNode.Name,
-		Description:       procDefNode.Description,
-		Status:            procDefNode.Status,
-		NodeType:          procDefNode.NodeType,
-		ServiceName:       procDefNode.ServiceName,
-		DynamicBind:       procDefNode.DynamicBind,
-		BindNodeId:        procDefNode.BindNodeId,
-		RiskCheck:         procDefNode.RiskCheck,
-		RoutineExpression: procDefNode.RoutineExpression,
-		ContextParamNodes: procDefNode.ContextParamNodes,
-		Timeout:           procDefNode.Timeout,
-		OrderedNo:         procDefNode.OrderedNo,
-		UiStyle:           procDefNode.UiStyle,
-		CreatedBy:         procDefNode.CreatedBy,
-		CreatedTime:       procDefNode.CreatedTime.Format(DateTimeFormat),
-		UpdatedBy:         procDefNode.UpdatedBy,
-		UpdatedTime:       procDefNode.UpdatedTime.Format(DateTimeFormat),
-		ParamInfos:        list,
+		ProcDefNodeCustomAttrs: &ProcDefNodeCustomAttrs{
+			Id:                procDefNode.Id,
+			Name:              procDefNode.Name,
+			Status:            procDefNode.Status,
+			NodeType:          procDefNode.NodeType,
+			ProcDefId:         procDefNode.ProcDefId,
+			Timeout:           procDefNode.Timeout,
+			Description:       procDefNode.Description,
+			DynamicBind:       procDefNode.DynamicBind,
+			BindNodeId:        procDefNode.BindNodeId,
+			RoutineExpression: procDefNode.RoutineExpression,
+			ServiceId:         procDefNode.ServiceName,
+			ServiceName:       procDefNode.ServiceName,
+			RiskCheck:         procDefNode.RiskCheck,
+			ParamInfos:        list,
+			ContextParamNodes: procDefNode.ContextParamNodes,
+			OrderedNo:         procDefNode.OrderedNo,
+			CreatedBy:         procDefNode.CreatedBy,
+			CreatedTime:       procDefNode.CreatedTime.Format(DateTimeFormat),
+			UpdatedBy:         procDefNode.UpdatedBy,
+			UpdatedTime:       procDefNode.UpdatedTime.Format(DateTimeFormat),
+		},
+		NodeAttrs: procDefNode.UiStyle,
 	}
 	return dto
 }
 
-func ConvertParam2ProcDefNodeLink(param ProcDefNodeLinkParam) *ProcDefNodeLink {
+func ConvertParam2ProcDefNodeLink(param ProcDefNodeLinkDto) *ProcDefNodeLink {
+	byteArr, _ := json.Marshal(param.SelfAttrs)
+	nodeLinkAttr := param.ProcDefNodeLinkCustomAttrs
 	return &ProcDefNodeLink{
-		Id:      param.Id,
-		Source:  param.Source,
-		Target:  param.Target,
-		Name:    param.Name,
-		UiStyle: param.UiStyle,
+		Id:      nodeLinkAttr.Id,
+		Source:  nodeLinkAttr.Source,
+		Target:  nodeLinkAttr.Target,
+		Name:    nodeLinkAttr.Name,
+		UiStyle: string(byteArr),
 	}
 }
