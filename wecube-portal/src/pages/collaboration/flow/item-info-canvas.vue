@@ -102,7 +102,6 @@ export default {
   mounted () {},
   methods: {
     showItemInfo (data) {
-      console.log(33)
       this.isParmasChanged = false
       // 获取所有根CI类型
       this.getAllDataModels()
