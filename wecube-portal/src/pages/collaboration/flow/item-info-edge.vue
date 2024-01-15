@@ -36,7 +36,8 @@ export default {
       this.itemCustomInfo.label = data.label
     },
     saveItem () {
-      this.$emit('sendItemInfo', this.itemCustomInfo)
+      console.log(this.itemCustomInfo)
+      // this.$emit('sendItemInfo', this.itemCustomInfo)
     },
     panalStatus () {
       return this.isParmasChanged
