@@ -50,6 +50,7 @@ type ProcDefNode struct {
 	RoutineExpression string    `json:"routineExpression" xorm:"routine_expression"`  // 定位规则
 	ContextParamNodes string    `json:"contextParamNodes" xorm:"context_param_nodes"` // 上下文参数节点
 	Timeout           int       `json:"timeout" xorm:"timeout"`                       // 超时时间分钟
+	Config            string    `json:"config" xorm:"config"`                         // 节点配置
 	OrderedNo         int       `json:"orderedNo" xorm:"ordered_no"`                  // 节点顺序
 	UiStyle           string    `json:"uiStyle" xorm:"ui_style"`                      // 前端样式
 	CreatedBy         string    `json:"createdBy" xorm:"created_by"`                  // 创建人
@@ -135,6 +136,7 @@ type ProcDefNodeCustomAttrs struct {
 	RiskCheck         bool                `json:"riskCheck"`         // 是否高危检测
 	ParamInfos        []*ProcDefNodeParam `json:"ParamInfos"`        // 节点参数
 	ContextParamNodes string              `json:"contextParamNodes"` // 上下文参数节点
+	Config            string              `json:"config"`            // 节点配置
 	OrderedNo         int                 `json:"orderedNo"`         // 节点顺序
 	CreatedBy         string              `json:"createdBy" `        // 创建人
 	CreatedTime       string              `json:"createdTime" `      // 创建时间
@@ -232,6 +234,7 @@ func ConvertProcDefNode2Dto(procDefNode *ProcDefNode, list []*ProcDefNodeParam) 
 			RiskCheck:         procDefNode.RiskCheck,
 			ParamInfos:        list,
 			ContextParamNodes: procDefNode.ContextParamNodes,
+			Config:            procDefNode.Config,
 			OrderedNo:         procDefNode.OrderedNo,
 			CreatedBy:         procDefNode.CreatedBy,
 			CreatedTime:       procDefNode.CreatedTime.Format(DateTimeFormat),

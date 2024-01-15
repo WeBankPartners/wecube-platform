@@ -447,6 +447,21 @@ type PluginConfigInterfaceDto struct {
 	ConfigurableInputParameters []*PluginConfigInterfaceParameterDto `json:"configurableInputParameters"`
 }
 
+func (dto *PluginConfigInterfaceDto) AddConfigurableInputParameters(configurableInputParameter *PluginConfigInterfaceParameterDto) {
+	if configurableInputParameter == nil {
+		return
+	}
+	if len(dto.ConfigurableInputParameters) == 0 {
+		dto.ConfigurableInputParameters = make([]*PluginConfigInterfaceParameterDto, 0)
+	}
+	for _, parameter := range dto.ConfigurableInputParameters {
+		if parameter.Name == configurableInputParameter.Name {
+			return
+		}
+	}
+	dto.ConfigurableInputParameters = append(dto.ConfigurableInputParameters, configurableInputParameter)
+}
+
 type AuthEnableInterfacesQueryDto struct {
 	TargetPackage          string   `json:"targetPackage"`
 	TargetEntity           string   `json:"targetEntity"`
