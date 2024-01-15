@@ -132,15 +132,18 @@ func GetProcDefNodeByProcDefId(ctx context.Context, procDefId string) (result []
 	return
 }
 
-func GetProcDefNodeLinkBySource(ctx context.Context, source string) (result *models.ProcDefNodeLinkDto, err error) {
-	var list []*models.ProcDefNodeLink
-	err = db.MysqlEngine.Context(ctx).SQL("select * from proc_def_node_link where source = ?", source).Find(&list)
+func GetProcDefNodeLinkBySource(ctx context.Context, source string) (list []*models.ProcDefNodeLinkDto, err error) {
+	var nodeLinkList []*models.ProcDefNodeLink
+	list = make([]*models.ProcDefNodeLinkDto, 0)
+	err = db.MysqlEngine.Context(ctx).SQL("select * from proc_def_node_link where source = ?", source).Find(&nodeLinkList)
 	if err != nil {
 		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
 		return
 	}
-	if len(list) > 0 {
-		result = models.ConvertProcDefNodeLink2Dto(list[0])
+	if len(nodeLinkList) > 0 {
+		for _, nodeLink := range nodeLinkList {
+			list = append(list, models.ConvertProcDefNodeLink2Dto(nodeLink))
+		}
 	}
 	return
 }
@@ -173,10 +176,10 @@ func UpdateProcDefNodeLink(ctx context.Context, procDefNodeLink *models.ProcDefN
 func InsertProcDefNode(ctx context.Context, node *models.ProcDefNode) (err error) {
 	var actions []*db.ExecAction
 	actions = append(actions, &db.ExecAction{Sql: "insert into  proc_def_node(id,proc_def_id,name,description,status,node_type,service_name," +
-		"dynamic_bind,bind_node_id,risk_check,routine_expression,context_param_nodes,timeout,ordered_no,ui_style,created_by,created_time," +
-		"updated_by,updated_time) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)", Param: []interface{}{node.Id, node.ProcDefId, node.Name, node.Description,
+		"dynamic_bind,bind_node_id,risk_check,routine_expression,context_param_nodes,timeout,config,ordered_no,ui_style,created_by,created_time," +
+		"updated_by,updated_time) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)", Param: []interface{}{node.Id, node.ProcDefId, node.Name, node.Description,
 		node.Status, node.NodeType, node.ServiceName, node.DynamicBind, node.BindNodeId, node.RiskCheck, node.RoutineExpression, node.ContextParamNodes,
-		node.Timeout, node.OrderedNo, node.UiStyle, node.CreatedBy, node.CreatedTime.Format(models.DateTimeFormat), node.UpdatedBy, node.UpdatedTime.Format(models.DateTimeFormat)}})
+		node.Timeout, node.Config, node.OrderedNo, node.UiStyle, node.CreatedBy, node.CreatedTime.Format(models.DateTimeFormat), node.UpdatedBy, node.UpdatedTime.Format(models.DateTimeFormat)}})
 	err = db.Transaction(actions, ctx)
 	if err != nil {
 		err = exterror.Catch(exterror.New().DatabaseExecuteError, err)
@@ -418,6 +421,10 @@ func transProcDefNodeUpdateConditionToSQL(procDefNode *models.ProcDefNode) (sql 
 	if procDefNode.Timeout != 0 {
 		sql = sql + ",timeout=?"
 		params = append(params, procDefNode.Timeout)
+	}
+	if procDefNode.Config != "" {
+		sql = sql + ",config=?"
+		params = append(params, procDefNode.Config)
 	}
 	if procDefNode.OrderedNo != 0 {
 		sql = sql + ",ordered_no=?"

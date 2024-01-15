@@ -114,14 +114,6 @@ func QueryPluginByTargetEntity(c *gin.Context) {
 		if len(plugConfigInterfaceDtoList) > 0 {
 			resultPluginConfigInterfaceDtoList = append(resultPluginConfigInterfaceDtoList, plugConfigInterfaceDtoList...)
 		}
-		allPlugConfigInterfaceDtoList, err := database.QueryAllEnablePluginConfigInterface(c, roles)
-		if err != nil {
-			middleware.ReturnError(c, err)
-			return
-		}
-		if len(allPlugConfigInterfaceDtoList) > 0 {
-			resultPluginConfigInterfaceDtoList = append(resultPluginConfigInterfaceDtoList, allPlugConfigInterfaceDtoList...)
-		}
 		if strings.TrimSpace(param.TaskCategory) != "" {
 			if param.TaskCategory == "SUTN" {
 				for _, interfaceDto := range resultPluginConfigInterfaceDtoList {
@@ -149,7 +141,78 @@ func QueryPluginByTargetEntity(c *gin.Context) {
 }
 
 func tryCalculateConfigurableInputParameters(list []*models.PluginConfigInterfaceDto) {
+	for _, dto := range list {
+		inputParameters := dto.InputParameters
+		if len(inputParameters) == 0 {
+			return
+		}
+		for _, paramDto := range inputParameters {
+			if strings.EqualFold(paramDto.MappingType, "context") || strings.EqualFold(paramDto.MappingType, "constant") {
+				if strings.EqualFold(paramDto.MappingType, "constant") && strings.TrimSpace(paramDto.MappingValue) == "" {
+					continue
+				}
+				configParamDto := &models.PluginConfigInterfaceParameterDto{
+					Id:                        paramDto.Id,
+					PluginConfigInterfaceId:   paramDto.PluginConfigInterfaceId,
+					Type:                      paramDto.Type,
+					Name:                      paramDto.Name,
+					DataType:                  paramDto.DataType,
+					MappingType:               paramDto.MappingType,
+					MappingEntityExpression:   paramDto.MappingEntityExpression,
+					MappingSystemVariableName: paramDto.MappingSystemVariableName,
+					Required:                  paramDto.Required,
+					SensitiveData:             paramDto.SensitiveData,
+					Description:               paramDto.Description,
+					MappingValue:              paramDto.MappingValue,
+					Multiple:                  paramDto.Multiple,
+				}
+				dto.AddConfigurableInputParameters(configParamDto)
+			} else {
+				refObjectMeta := paramDto.RefObjectMeta
+				if refObjectMeta != nil && len(refObjectMeta.PropertyMetas) > 0 {
+					objectMetaConfigParamDtoList := tryCalculateConfigurableParameters(refObjectMeta)
+					if len(objectMetaConfigParamDtoList) > 0 {
+						for _, p := range objectMetaConfigParamDtoList {
+							dto.AddConfigurableInputParameters(p)
+						}
+					}
+				}
+			}
+		}
+	}
+}
 
+func tryCalculateConfigurableParameters(refObjectMeta *models.CoreObjectMetaDto) []*models.PluginConfigInterfaceParameterDto {
+	var objectConfigParamDtoList = make([]*models.PluginConfigInterfaceParameterDto, 0)
+	for _, propMetaDto := range refObjectMeta.PropertyMetas {
+		if strings.EqualFold(propMetaDto.MappingType, "context") || strings.EqualFold(propMetaDto.MappingType, "constant") {
+			if strings.EqualFold(propMetaDto.MappingType, "constant") && strings.TrimSpace(propMetaDto.MappingEntityExpression) == "" {
+				continue
+			}
+			propMetaParamDto := &models.PluginConfigInterfaceParameterDto{
+				Id:                      propMetaDto.Id,
+				PluginConfigInterfaceId: propMetaDto.DataType,
+				Type:                    "INPUT",
+				Name:                    propMetaDto.Name,
+				DataType:                propMetaDto.DataType,
+				MappingType:             propMetaDto.MappingType,
+				MappingEntityExpression: propMetaDto.MappingEntityExpression,
+				Required:                "Y",
+				SensitiveData:           propMetaDto.SensitiveData,
+				MappingValue:            propMetaDto.MappingEntityExpression,
+				Multiple:                propMetaDto.Multiple,
+			}
+			objectConfigParamDtoList = append(objectConfigParamDtoList, propMetaParamDto)
+		} else {
+			if propMetaDto.RefObjectMeta != nil {
+				pluginConfigInterfaceParameterDtoList := tryCalculateConfigurableParameters(propMetaDto.RefObjectMeta)
+				if len(pluginConfigInterfaceParameterDtoList) > 0 {
+					objectConfigParamDtoList = append(objectConfigParamDtoList, pluginConfigInterfaceParameterDtoList...)
+				}
+			}
+		}
+	}
+	return objectConfigParamDtoList
 }
 
 func isEmpty(param models.TargetEntityFilterRuleDto) bool {

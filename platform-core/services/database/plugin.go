@@ -15,6 +15,9 @@ func TryFetchLatestAvailableDataModelEntity(ctx context.Context, packageName str
 	var pluginPackageEntities []*models.PluginPackageEntities
 	var targetDataModel *models.PluginPackageDataModel
 	latestDataModelEntity, err = getLatestAvailableDataModelEntity(ctx, packageName)
+	if err != nil {
+		return
+	}
 	if latestDataModelEntity == nil {
 		return
 	}
@@ -39,14 +42,33 @@ func TryFetchLatestAvailableDataModelEntity(ctx context.Context, packageName str
 
 func QueryAllEnablePluginConfigInterfaceByCondition(ctx context.Context, param models.TargetEntityFilterRuleDto, roles []string) (plugConfigInterfaceDtoList []*models.PluginConfigInterfaceDto, err error) {
 	var authEnableInterfaceEntities []*models.AuthLatestEnabledInterfaces
-	var serviceNamedPluginConfigInterfacesMap = make(map[string]*models.AuthLatestEnabledInterfaces)
+	var allAuthEnableInterfaceEntities []*models.AuthLatestEnabledInterfaces
 	var filteredAuthEnabledInterfaceEntities = make([]*models.AuthLatestEnabledInterfaces, 0)
 	plugConfigInterfaceDtoList = make([]*models.PluginConfigInterfaceDto, 0)
+	// 根据模板条件查询
 	authEnableInterfaceEntities, err = getAllAuthEnableInterfacesByCondition(ctx, models.AuthEnableInterfacesQueryDto{TargetPackage: param.PkgName, TargetEntity: param.EntityName,
 		PluginConfigStatus: "ENABLED", PermissionType: "USE", RoleNames: roles, PluginPackageStatuses: []string{"REGISTERED", "RUNNING", "STOPPED"}, TargetEntityFilterRule: param.TargetEntityFilterRule})
 	if err != nil {
 		return
 	}
+	// 查询所有
+	allAuthEnableInterfaceEntities, err = getAllAuthEnabledInterfacesByNullTargetInfo(ctx, "ENABLED", "USE", roles, []string{"REGISTERED", "RUNNING", "STOPPED"})
+	if len(authEnableInterfaceEntities) > 0 {
+		authEnableInterfaceEntities = append(authEnableInterfaceEntities, allAuthEnableInterfaceEntities...)
+	}
+	filteredAuthEnabledInterfaceEntities = filterLatestPluginConfigInterfaces(authEnableInterfaceEntities)
+	if len(filteredAuthEnabledInterfaceEntities) > 0 {
+		for _, authInterfaceEntity := range filteredAuthEnabledInterfaceEntities {
+			configInterface := convertToPluginConfigInterfaces(ctx, authInterfaceEntity)
+			plugConfigInterfaceDtoList = append(plugConfigInterfaceDtoList, buildPluginConfigInterfaceDto(configInterface))
+		}
+	}
+	return
+}
+
+func filterLatestPluginConfigInterfaces(authEnableInterfaceEntities []*models.AuthLatestEnabledInterfaces) []*models.AuthLatestEnabledInterfaces {
+	var filteredAuthEnabledInterfaceEntities = make([]*models.AuthLatestEnabledInterfaces, 0)
+	var serviceNamedPluginConfigInterfacesMap = make(map[string]*models.AuthLatestEnabledInterfaces)
 	if len(authEnableInterfaceEntities) > 0 {
 		for _, entity := range authEnableInterfaceEntities {
 			serviceName := generateServiceName(entity)
@@ -65,17 +87,7 @@ func QueryAllEnablePluginConfigInterfaceByCondition(ctx context.Context, param m
 			filteredAuthEnabledInterfaceEntities = append(filteredAuthEnabledInterfaceEntities, interfacesEntities)
 		}
 	}
-	if len(filteredAuthEnabledInterfaceEntities) > 0 {
-		for _, authInterfaceEntity := range filteredAuthEnabledInterfaceEntities {
-			configInterface := convertToPluginConfigInterfaces(ctx, authInterfaceEntity)
-			plugConfigInterfaceDtoList = append(plugConfigInterfaceDtoList, buildPluginConfigInterfaceDto(configInterface))
-		}
-	}
-	return
-}
-
-func QueryAllEnablePluginConfigInterface(ctx context.Context, roles []string) (plugConfigInterfaceDtoList []*models.PluginConfigInterfaceDto, err error) {
-	return nil, nil
+	return filteredAuthEnabledInterfaceEntities
 }
 
 func convertToPluginConfigInterfaces(ctx context.Context, interfaces *models.AuthLatestEnabledInterfaces) *models.PluginConfigInterfaces {
@@ -310,8 +322,8 @@ func getLatestAvailableDataModelEntity(ctx context.Context, packageName string) 
 	}
 	var list []*models.PluginPackageDataModel
 	err = db.MysqlEngine.Context(ctx).SQL("SELECT t1.id, t1.version, t1.package_name,t1.is_dynamic, t1.update_path, t1.update_method,"+
-		"t1.update_source,t1.update_time FROM plugin_package_data_model t WHERE t1.package_name = ? AND t1.version = (SELECT max(t2.version) "+
-		"FROM plugin_package_data_model t2 WHERE t2.package_name = ? GROUP BY t2.package_name ", packageName, packageName).Find(&list)
+		"t1.update_source,t1.update_time FROM plugin_package_data_model t1 WHERE t1.package_name = ? AND t1.version = (SELECT max(t2.version) "+
+		"FROM plugin_package_data_model t2 WHERE t2.package_name = ? GROUP BY t2.package_name )", packageName, packageName).Find(&list)
 	if err != nil {
 		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
 		return
@@ -344,12 +356,8 @@ func getAllByDataModel(ctx context.Context, id string) (list []*models.PluginPac
 }
 
 func getAllAuthEnableInterfacesByCondition(ctx context.Context, interfacesQueryDto models.AuthEnableInterfacesQueryDto) (authEnableInterfaceEntities []*models.AuthLatestEnabledInterfaces, err error) {
-	var sql string
+	var sql = getAuthEnableInterfacesCommonQuerySQL()
 	var param []interface{}
-	sql = "SELECT DISTINCT t1.id AS id,t1.plugin_config_id,t1.action, t1.service_name,t1.service_display_name,t1.path,t1.http_method,t1.is_async_processing,t1.type," +
-		"t1.filter_rule,t2.name AS plugin_config_name,t2.register_name AS plugin_config_register_name,t2.target_entity AS plugin_config_target_entity,t2.status AS plugin_config_status," +
-		"t3.id AS plugin_package_id,t3.name AS plugin_package_name,t3.status AS plugin_package_status,t3.version AS plugin_package_version,t3.upload_timestamp FROM plugin_config_interfaces t1," +
-		"plugin_configs t2, plugin_packages t3,plugin_config_roles t4  WHERE  t1.plugin_config_id = t2.id "
 	if interfacesQueryDto.TargetEntityFilterRule == "" {
 		sql = sql + "AND (t2.target_entity_filter_rule IS NULL OR t2.target_entity_filter_rule = '') "
 	} else {
@@ -365,6 +373,29 @@ func getAllAuthEnableInterfacesByCondition(ctx context.Context, interfacesQueryD
 	}
 	if len(interfacesQueryDto.PluginPackageStatuses) > 0 {
 		statusFilterSql, statusFilterParam := createListParams(interfacesQueryDto.PluginPackageStatuses, "")
+		sql = sql + " AND t3.status IN (" + statusFilterSql + ")"
+		param = append(param, statusFilterParam...)
+	}
+	err = db.MysqlEngine.Context(ctx).SQL(sql, param...).Find(&authEnableInterfaceEntities)
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
+		return
+	}
+	return
+}
+
+func getAllAuthEnabledInterfacesByNullTargetInfo(ctx context.Context, pluginConfigStatus, permissionType string, roleNames, pluginPackageStatuses []string) (authEnableInterfaceEntities []*models.AuthLatestEnabledInterfaces, err error) {
+	var sql = getAuthEnableInterfacesCommonQuerySQL()
+	var param []interface{}
+	sql = sql + " AND t2.status = ? AND t2.plugin_package_id = t3.id AND ( t2.target_entity = '' OR t2.target_entity is null) AND t4.plugin_cfg_id = t2.id AND t4.perm_type =? "
+	param = append(param, []interface{}{pluginConfigStatus, permissionType}...)
+	if len(roleNames) > 0 {
+		userRolesFilterSql, userRolesFilterParam := createListParams(roleNames, "")
+		sql = sql + " AND t4.role_name IN (" + userRolesFilterSql + ")"
+		param = append(param, userRolesFilterParam...)
+	}
+	if len(pluginPackageStatuses) > 0 {
+		statusFilterSql, statusFilterParam := createListParams(pluginPackageStatuses, "")
 		sql = sql + " AND t3.status IN (" + statusFilterSql + ")"
 		param = append(param, statusFilterParam...)
 	}
@@ -411,4 +442,11 @@ func createListParams(inputList []string, prefix string) (specSql string, paramL
 		specSql = strings.Join(specList, ",")
 	}
 	return
+}
+
+func getAuthEnableInterfacesCommonQuerySQL() string {
+	return "SELECT DISTINCT t1.id AS id,t1.plugin_config_id,t1.action, t1.service_name,t1.service_display_name,t1.path,t1.http_method,t1.is_async_processing,t1.type," +
+		"t1.filter_rule,t2.name AS plugin_config_name,t2.register_name AS plugin_config_register_name,t2.target_entity AS plugin_config_target_entity,t2.status AS plugin_config_status," +
+		"t3.id AS plugin_package_id,t3.name AS plugin_package_name,t3.status AS plugin_package_status,t3.version AS plugin_package_version,t3.upload_timestamp FROM plugin_config_interfaces t1," +
+		"plugin_configs t2, plugin_packages t3,plugin_config_roles t4  WHERE  t1.plugin_config_id = t2.id "
 }
