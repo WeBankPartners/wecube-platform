@@ -2,7 +2,7 @@
   <div id="itemInfo">
     <div class="hide-panal" @click="hideItem"></div>
     <div class="panal-name">连接属性：</div>
-    <Form :label-width="80">
+    <Form :label-width="120">
       <template>
         <FormItem label="ID">
           <Input disabled v-model="itemCustomInfo.id"></Input>
@@ -23,21 +23,38 @@ export default {
   data () {
     return {
       isParmasChanged: false, // 参数变化标志位，控制右侧panel显示逻辑
+      needAddFirst: true,
       itemCustomInfo: {
-        id: '',
-        label: ''
+        // id: '',
+        // label: ''
       }
     }
   },
   methods: {
-    showItemInfo (data) {
+    showItemInfo (data, needAddFirst = false) {
+      this.needAddFirst = needAddFirst
+      delete data.sourceNode
+      delete data.targetNode
       this.isParmasChanged = false
-      this.itemCustomInfo.id = data.id
-      this.itemCustomInfo.label = data.label
+      this.itemCustomInfo = JSON.parse(JSON.stringify(data))
+      if (needAddFirst) {
+        this.saveItem()
+      }
     },
     saveItem () {
-      console.log(this.itemCustomInfo)
-      // this.$emit('sendItemInfo', this.itemCustomInfo)
+      let tmpData = JSON.parse(JSON.stringify(this.itemCustomInfo))
+      tmpData.name = tmpData.label
+
+      let finalData = {
+        customAttrs: {
+          id: tmpData.id,
+          name: tmpData.name,
+          source: tmpData.source,
+          target: tmpData.target
+        },
+        selfAttrs: tmpData
+      }
+      this.$emit('sendItemInfo', finalData, this.needAddFirst)
     },
     panalStatus () {
       return this.isParmasChanged

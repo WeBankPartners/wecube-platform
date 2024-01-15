@@ -126,6 +126,7 @@ export default {
   data () {
     return {
       isParmasChanged: false, // 参数变化标志位，控制右侧panel显示逻辑
+      needAddFirst: true,
       opendPanel: ['1', '3', '4'],
       currentSelectedEntity: 'wecmdb:app_instance', // 流程图根
       itemCustomInfo: {
@@ -186,7 +187,8 @@ export default {
     this.getAllDataModels()
   },
   methods: {
-    async showItemInfo (data) {
+    async showItemInfo (data, needAddFirst = false) {
+      this.needAddFirst = needAddFirst
       console.log(12, data)
       const defaultNode = {
         id: '', // 节点id  nodeId
@@ -215,20 +217,26 @@ export default {
       keys.forEach(k => {
         this.itemCustomInfo.customAttrs[k] = customAttrs[k]
       })
-      console.log(11, this.itemCustomInfo)
+      if (needAddFirst) {
+        this.saveItem()
+      }
     },
     saveItem () {
       if (['human', 'automatic', 'data'].includes(this.itemCustomInfo.customAttrs.nodeType)) {
-        const routineExpressionItem = this.$refs.filterRulesGroupRef.routineExpressionItem
-        this.itemCustomInfo.customAttrs.routineExpression = routineExpressionItem.reduce((tmp, item, index) => {
-          return (
-            tmp +
-            item.routineExpression +
-            '#DMEOP#' +
-            item.operate +
-            (index === routineExpressionItem.length - 1 ? '' : '#DME#')
-          )
-        }, '')
+        const routineExpressionItem =
+          this.$refs.filterRulesGroupRef && this.$refs.filterRulesGroupRef.routineExpressionItem
+        console.log(11, routineExpressionItem)
+        if (routineExpressionItem) {
+          this.itemCustomInfo.customAttrs.routineExpression = routineExpressionItem.reduce((tmp, item, index) => {
+            return (
+              tmp +
+              item.routineExpression +
+              '#DMEOP#' +
+              item.operate +
+              (index === routineExpressionItem.length - 1 ? '' : '#DME#')
+            )
+          }, '')
+        }
       }
 
       const tmp = JSON.parse(JSON.stringify(this.itemCustomInfo))
@@ -243,7 +251,7 @@ export default {
         customAttrs: customAttrs
       }
       console.log(44, finalData)
-      this.$emit('sendItemInfo', finalData)
+      this.$emit('sendItemInfo', finalData, this.needAddFirst)
     },
     panalStatus () {
       return this.isParmasChanged
@@ -258,6 +266,8 @@ export default {
           },
           onCancel: () => {}
         })
+      } else {
+        this.$emit('hideItemInfo')
       }
     },
     // 获取当前节点的前序节点
