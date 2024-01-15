@@ -94,13 +94,13 @@ func GetProcessDefinition(c *gin.Context) {
 	}
 	if len(nodes) > 0 {
 		for _, node := range nodes {
-			dto, err := database.GetProcDefNodeLinkBySource(c, node.ProcDefNodeCustomAttrs.Id)
+			dtoList, err := database.GetProcDefNodeLinkBySource(c, node.ProcDefNodeCustomAttrs.Id)
 			if err != nil {
 				middleware.ReturnError(c, err)
 				return
 			}
-			if dto != nil {
-				edges = append(edges, dto)
+			if dtoList != nil {
+				edges = append(edges, dtoList...)
 			}
 		}
 	}
@@ -292,6 +292,7 @@ func convertParam2ProcDefNode(user string, param models.ProcDefNodeDto) *models.
 		RoutineExpression: procDefNodeAttr.RoutineExpression,
 		ContextParamNodes: procDefNodeAttr.ContextParamNodes,
 		Timeout:           procDefNodeAttr.Timeout,
+		Config:            procDefNodeAttr.Config,
 		OrderedNo:         procDefNodeAttr.OrderedNo,
 		UiStyle:           string(byteArr),
 		CreatedBy:         user,
