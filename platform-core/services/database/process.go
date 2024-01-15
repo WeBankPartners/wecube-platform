@@ -315,18 +315,16 @@ func GetProcDefNodeParamByNodeId(ctx context.Context, nodeId string) (list []*mo
 
 func BatchAddProcDefPermission(ctx context.Context, procDefId string, permission models.PermissionToRole) (err error) {
 	var actions []*db.ExecAction
+	actions = append(actions, &db.ExecAction{Sql: "delete from proc_def_permission where proc_def_id= ? ",
+		Param: []interface{}{procDefId}})
 	if len(permission.USE) > 0 {
 		for _, roleName := range permission.USE {
-			actions = append(actions, &db.ExecAction{Sql: "delete from proc_def_permission where proc_def_id= ? and role_name=? and permission= ?",
-				Param: []interface{}{procDefId, roleName, string(models.USE)}})
 			actions = append(actions, &db.ExecAction{Sql: "insert into proc_def_permission(id,proc_def_id,role_id,role_name,permission)values(" +
 				"?,?,?,?,?)", Param: []interface{}{guid.CreateGuid(), procDefId, roleName, roleName, string(models.USE)}})
 		}
 	}
 	if len(permission.MGMT) > 0 {
 		for _, roleName := range permission.MGMT {
-			actions = append(actions, &db.ExecAction{Sql: "delete from proc_def_permission where proc_def_id= ? and role_name=? and permission= ?",
-				Param: []interface{}{procDefId, roleName, string(models.MGMT)}})
 			actions = append(actions, &db.ExecAction{Sql: "insert into proc_def_permission(id,proc_def_id,role_id,role_name,permission)values(" +
 				"?,?,?,?,?)", Param: []interface{}{guid.CreateGuid(), procDefId, roleName, roleName, string(models.MGMT)}})
 		}
