@@ -32,7 +32,7 @@
         <ItemInfoEdge
           v-show="itemInfoType === 'edge'"
           ref="itemInfoEdgeRef"
-          @sendItemInfo="setItemInfo"
+          @sendItemInfo="setEdgeInfo"
           @hideItemInfo="() => (itemInfoType = '')"
         >
         </ItemInfoEdge>
@@ -51,7 +51,7 @@ import ItemInfoEdge from '@/pages/collaboration/flow/item-info-edge.vue'
 import ItemInfoNode from '@/pages/collaboration/flow/item-info-node.vue'
 // import data from './flow/data.js'
 import { nodeDefaultAttr } from './flow/node-default-attr.js'
-import { getFlowById, flowMgmt, flowNodeMgmt } from '@/api/server.js'
+import { getFlowById, flowMgmt, flowNodeMgmt, flowEdgeMgmt, flowNodeDelete, flowEdgeDelete } from '@/api/server.js'
 // import { relativeTimeThreshold } from 'moment'
 // const registerFactory = require('../../../library/welabx-g6').default
 
@@ -147,6 +147,7 @@ export default {
     this.graph.destroy()
   },
   methods: {
+    // 画布属性展开
     openCanvasPanel () {
       this.itemInfoType = 'canvas'
       this.$refs.itemInfoCanvasRef.showItemInfo(this.procDef)
@@ -162,6 +163,7 @@ export default {
         this.mgmtNodesAndEdges(data.taskNodeInfos)
       }
     },
+    // 整理编排节点与边数据结构
     mgmtNodesAndEdges (info) {
       if (info.nodes && info.nodes.length > 0) {
         this.nodesAndDeges.nodes = info.nodes.map(n => {
@@ -172,6 +174,12 @@ export default {
         })
       }
       if (info.edges && info.edges.length > 0) {
+        this.nodesAndDeges.edges = info.edges.map(n => {
+          return {
+            ...JSON.parse(n.selfAttrs),
+            customAttrs: n.customAttrs
+          }
+        })
       }
     },
     resetCanvas () {
@@ -189,14 +197,19 @@ export default {
 
           outDiv.style.width = '80px'
           outDiv.style.cursor = 'pointer'
-          outDiv.innerHTML = '<p id="deleteNode">删除节点</p>'
+          outDiv.innerHTML = '<p id="deleteNode">删除</p>'
           return outDiv
         },
-        handleMenuClick (target, item) {
-          const { id } = target
+        async handleMenuClick (target, item) {
+          console.log(11, target, item._cfg.id)
 
-          if (id) {
-            vm[id](item)
+          const method = item._cfg.id.startsWith('pdef_node_') ? flowNodeDelete : flowEdgeDelete
+          const { status } = await method(item._cfg.id)
+          if (status === 'OK') {
+            const { id } = target
+            if (id) {
+              vm[id](item)
+            }
           }
         }
       })
@@ -310,22 +323,6 @@ export default {
         if (this.isExecutionAllowed()) return
         if (e && e.item) {
           const model = e.item.get('model')
-          // this.config = model
-          // this.label = model.label
-          // this.labelCfg = {
-          //   fontSize: model.labelCfg.fontSize,
-          //   style: {
-          //     fill: model.labelCfg.style.fill
-          //   }
-          // }
-          // this.node = {
-          //   fill: model.style.fill,
-          //   borderColor: model.style.stroke,
-          //   lineDash: model.style.lineDash || 'none',
-          //   width: model.style.width,
-          //   height: model.style.height,
-          //   shape: model.type
-          // }
           this.itemInfoType = 'node'
           this.$refs.itemInfoNodeRef.showItemInfo(model)
         }
@@ -421,23 +418,25 @@ export default {
         const sourceId = source.get('id')
         const targetId = target.get('id')
         setTimeout(() => {
-          this.graph.addItem('edge', {
+          const model = {
             id: `pdef_link_${this.uuid(16, 16)}`, // edge id
+            label: '',
             source: sourceId,
             target: targetId,
             sourceAnchor,
             targetAnchor
-            // label:  'edge label',
-          })
+          }
+          this.graph.addItem('edge', model)
+
+          this.itemInfoType = 'edge'
+          this.$refs.itemInfoEdgeRef.showItemInfo(model, true)
         }, 100)
-        console.log(this.graph.save().edges)
       })
 
       // 注册边点击事件
       this.graph.on('edge:click', e => {
         if (this.isExecutionAllowed()) return
         const edge = e.item
-
         if (e && edge) {
           const model = edge.get('model')
           // 处理节点点击事件的逻辑
@@ -524,7 +523,7 @@ export default {
       }
       this.graph.addItem('node', model)
       this.itemInfoType = 'node'
-      this.$refs.itemInfoNodeRef.showItemInfo(model)
+      this.$refs.itemInfoNodeRef.showItemInfo(model, true)
     },
     uuid (len, radix) {
       let chars = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz'.split('')
@@ -578,16 +577,34 @@ export default {
       const { status } = await flowMgmt(info)
       if (status === 'OK') {
         this.itemInfoType = ''
-        this.$Message.success('save_successfully')
+        this.$Message.success(this.$t('save_successfully'))
         this.getFlowInfo(this.demoFlowId)
       }
     },
     // 保存节点信息
-    async setNodeInfo (info) {
+    async setNodeInfo (info, needAddFirst) {
       const { status } = await flowNodeMgmt(info)
       if (status === 'OK') {
         this.itemInfoType = ''
-        this.$Message.success('save_successfully')
+        if (!needAddFirst) {
+          this.$Message.success(this.$t('save_successfully'))
+        }
+        const item = this.graph.findById(info.customAttrs.id)
+        const params = {
+          ...info.selfAttrs,
+          customAttrs: info.customAttrs
+        }
+        this.graph.updateItem(item, params)
+      }
+    },
+    // 保存边信息
+    async setEdgeInfo (info, needAddFirst) {
+      const { status } = await flowEdgeMgmt(info)
+      if (status === 'OK') {
+        this.itemInfoType = ''
+        if (!needAddFirst) {
+          this.$Message.success(this.$t('save_successfully'))
+        }
         const item = this.graph.findById(info.customAttrs.id)
         const params = {
           ...info.selfAttrs,
