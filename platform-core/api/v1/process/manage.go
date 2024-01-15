@@ -89,7 +89,7 @@ func GetProcessDefinition(c *gin.Context) {
 
 // AddOrUpdateProcessDefinitionTaskNodes 添加更新编排节点
 func AddOrUpdateProcessDefinitionTaskNodes(c *gin.Context) {
-	var param models.ProcessDefinitionTaskNodeParam
+	var param models.ProcDefNodeDto
 	var procDefNode *models.ProcDefNode
 	var err error
 
@@ -98,11 +98,11 @@ func AddOrUpdateProcessDefinitionTaskNodes(c *gin.Context) {
 		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, err))
 		return
 	}
-	if param.Id == "" {
+	if param.ProcDefNodeCustomAttrs == nil || param.ProcDefNodeCustomAttrs.Id == "" {
 		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, fmt.Errorf("param id is empty")))
 		return
 	}
-	procDefNode, err = database.GetProcDefNode(c, param.Id)
+	procDefNode, err = database.GetProcDefNode(c, param.ProcDefNodeCustomAttrs.Id)
 	if err != nil {
 		middleware.ReturnError(c, err)
 		return
@@ -121,8 +121,8 @@ func AddOrUpdateProcessDefinitionTaskNodes(c *gin.Context) {
 		return
 	}
 	// 处理节点参数,先删除然后插入
-	if len(param.ParamInfos) > 0 {
-		for _, info := range param.ParamInfos {
+	if len(param.ProcDefNodeCustomAttrs.ParamInfos) > 0 {
+		for _, info := range param.ProcDefNodeCustomAttrs.ParamInfos {
 			err = database.DeleteProcDefNodeParam(c, info.Id)
 			if err != nil {
 				middleware.ReturnError(c, err)
@@ -139,7 +139,7 @@ func AddOrUpdateProcessDefinitionTaskNodes(c *gin.Context) {
 }
 
 func AddOrUpdateProcDefNodeLink(c *gin.Context) {
-	var param models.ProcDefNodeLinkParam
+	var param models.ProcDefNodeLinkDto
 	var procDefNodeLink *models.ProcDefNodeLink
 	var err error
 
@@ -147,11 +147,11 @@ func AddOrUpdateProcDefNodeLink(c *gin.Context) {
 		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, err))
 		return
 	}
-	if param.Id == "" {
+	if param.ProcDefNodeLinkCustomAttrs == nil || param.ProcDefNodeLinkCustomAttrs.Id == "" {
 		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, fmt.Errorf("param id is empty")))
 		return
 	}
-	procDefNodeLink, err = database.GetProcDefNodeLink(c, param.Id)
+	procDefNodeLink, err = database.GetProcDefNodeLink(c, param.ProcDefNodeLinkCustomAttrs.Id)
 	if err != nil {
 		middleware.ReturnError(c, err)
 		return
@@ -169,24 +169,25 @@ func AddOrUpdateProcDefNodeLink(c *gin.Context) {
 	middleware.ReturnSuccess(c)
 }
 
-func convertParam2ProcDefNode(user string, param models.ProcessDefinitionTaskNodeParam) *models.ProcDefNode {
+func convertParam2ProcDefNode(user string, param models.ProcDefNodeDto) *models.ProcDefNode {
 	now := time.Now()
 	byteArr, _ := json.Marshal(param.NodeAttrs)
+	procDefNodeAttr := param.ProcDefNodeCustomAttrs
 	node := &models.ProcDefNode{
-		Id:                param.Id,
-		ProcDefId:         param.ProcDefId,
-		Name:              param.Name,
-		Description:       param.Description,
+		Id:                procDefNodeAttr.Id,
+		ProcDefId:         procDefNodeAttr.ProcDefId,
+		Name:              procDefNodeAttr.Name,
+		Description:       procDefNodeAttr.Description,
 		Status:            string(models.Draft),
-		NodeType:          param.NodeType,
-		ServiceName:       param.ServiceName,
-		DynamicBind:       param.DynamicBind,
-		BindNodeId:        param.BindNodeId,
-		RiskCheck:         param.RiskCheck,
-		RoutineExpression: param.RoutineExpression,
-		ContextParamNodes: param.ContextParamNodes,
-		Timeout:           param.Timeout,
-		OrderedNo:         param.OrderedNo,
+		NodeType:          procDefNodeAttr.NodeType,
+		ServiceName:       procDefNodeAttr.ServiceName,
+		DynamicBind:       procDefNodeAttr.DynamicBind,
+		BindNodeId:        procDefNodeAttr.BindNodeId,
+		RiskCheck:         procDefNodeAttr.RiskCheck,
+		RoutineExpression: procDefNodeAttr.RoutineExpression,
+		ContextParamNodes: procDefNodeAttr.ContextParamNodes,
+		Timeout:           procDefNodeAttr.Timeout,
+		OrderedNo:         procDefNodeAttr.OrderedNo,
 		UiStyle:           string(byteArr),
 		CreatedBy:         user,
 		CreatedTime:       now,
