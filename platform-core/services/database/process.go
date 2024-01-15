@@ -132,6 +132,19 @@ func GetProcDefNodeByProcDefId(ctx context.Context, procDefId string) (result []
 	return
 }
 
+func GetProcDefNodeLinkBySource(ctx context.Context, source string) (result *models.ProcDefNodeLinkDto, err error) {
+	var list []*models.ProcDefNodeLink
+	err = db.MysqlEngine.Context(ctx).SQL("select * from proc_def_node_link where source = ?", source).Find(&list)
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
+		return
+	}
+	if len(list) > 0 {
+		result = models.ConvertProcDefNodeLink2Dto(list[0])
+	}
+	return
+}
+
 // InsertProcDefNodeLink 添加编排节点线
 func InsertProcDefNodeLink(ctx context.Context, nodeLink *models.ProcDefNodeLink) (err error) {
 	var actions []*db.ExecAction
