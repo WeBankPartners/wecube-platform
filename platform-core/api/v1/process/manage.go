@@ -99,7 +99,9 @@ func GetProcessDefinition(c *gin.Context) {
 				middleware.ReturnError(c, err)
 				return
 			}
-			edges = append(edges, dto)
+			if dto != nil {
+				edges = append(edges, dto)
+			}
 		}
 	}
 	procDefDto.ProcDefNodeExtend = &models.ProcDefNodeExtendDto{
