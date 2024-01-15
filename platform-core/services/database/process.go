@@ -184,6 +184,46 @@ func InsertProcDefNode(ctx context.Context, node *models.ProcDefNode) (err error
 	return
 }
 
+func DeleteProcDefNode(ctx context.Context, nodeId string) (err error) {
+	var actions []*db.ExecAction
+	actions = append(actions, &db.ExecAction{Sql: "delete  from proc_def_node where id=?", Param: []interface{}{nodeId}})
+	err = db.Transaction(actions, ctx)
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseExecuteError, err)
+	}
+	return
+}
+
+func DeleteProcDefNodeParamByNodeId(ctx context.Context, nodeId string) (err error) {
+	var actions []*db.ExecAction
+	actions = append(actions, &db.ExecAction{Sql: "delete  from proc_def_node_param where proc_def_node_id=?", Param: []interface{}{nodeId}})
+	err = db.Transaction(actions, ctx)
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseExecuteError, err)
+	}
+	return
+}
+
+func DeleteProcDefNodeLinkByNode(ctx context.Context, nodeId string) (err error) {
+	var actions []*db.ExecAction
+	actions = append(actions, &db.ExecAction{Sql: "delete  from proc_def_node_link where source=? or target=?", Param: []interface{}{nodeId, nodeId}})
+	err = db.Transaction(actions, ctx)
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseExecuteError, err)
+	}
+	return
+}
+
+func DeleteProcDefNodeLinkById(ctx context.Context, id string) (err error) {
+	var actions []*db.ExecAction
+	actions = append(actions, &db.ExecAction{Sql: "delete  from proc_def_node_link where id= ?", Param: []interface{}{id}})
+	err = db.Transaction(actions, ctx)
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseExecuteError, err)
+	}
+	return
+}
+
 // UpdateProcDefNode 更新编排节点
 func UpdateProcDefNode(ctx context.Context, procDefNode *models.ProcDefNode) (err error) {
 	var actions []*db.ExecAction
@@ -322,56 +362,8 @@ func insertProcDefPermission(ctx context.Context, permission models.ProcDefPermi
 	return
 }
 
-func transProcDefUpdateConditionToSQL(procDef *models.ProcDef) (sql string, params []interface{}) {
-	sql = "update proc_def set id=?"
-	params = append(params, procDef.Id)
-	if procDef.Key != "" {
-		sql = sql + ",`key`=?"
-		params = append(params, procDef.Key)
-	}
-	if procDef.Name != "" {
-		sql = sql + ",name=?"
-		params = append(params, procDef.Name)
-	}
-	if procDef.Version != "" {
-		sql = sql + ",`version`=?"
-		params = append(params, procDef.Version)
-	}
-	if procDef.RootEntity != "" {
-		sql = sql + ",root_entity=?"
-		params = append(params, procDef.RootEntity)
-	}
-	if procDef.Status != "" {
-		sql = sql + ",status=?"
-		params = append(params, procDef.Status)
-	}
-	if procDef.Tags != "" {
-		sql = sql + ",tags=?"
-		params = append(params, procDef.Tags)
-	}
-	if procDef.ForPlugin != "" {
-		sql = sql + ",for_plugin=?"
-		params = append(params, procDef.ForPlugin)
-	}
-	if procDef.Scene != "" {
-		sql = sql + ",scene=?"
-		params = append(params, procDef.Scene)
-	}
-	sql = sql + ",conflict_check=?"
-	params = append(params, procDef.ConflictCheck)
-	if procDef.UpdatedBy != "" {
-		sql = sql + ",updated_by=?"
-		params = append(params, procDef.UpdatedBy)
-	}
-	sql = sql + ",updated_time=?"
-	params = append(params, procDef.UpdatedTime.Format(models.DateTimeFormat))
-	sql = sql + " where id= ?"
-	params = append(params, procDef.Id)
-	return
-}
-
 func transProcDefNodeUpdateConditionToSQL(procDefNode *models.ProcDefNode) (sql string, params []interface{}) {
-	sql = "update proc_def set id = ?"
+	sql = "update proc_def_node set id = ?"
 	params = append(params, procDefNode.Id)
 	if procDefNode.ProcDefId != "" {
 		sql = sql + ",proc_def_id=?"
@@ -403,14 +395,14 @@ func transProcDefNodeUpdateConditionToSQL(procDefNode *models.ProcDefNode) (sql 
 		sql = sql + ",bind_node_id=?"
 		params = append(params, procDefNode.BindNodeId)
 	}
-	sql = sql + ",riskCheck=?"
+	sql = sql + ",risk_check=?"
 	params = append(params, procDefNode.RiskCheck)
 	if procDefNode.RoutineExpression != "" {
-		sql = sql + ",routineExpression=?"
+		sql = sql + ",routine_expression=?"
 		params = append(params, procDefNode.RoutineExpression)
 	}
 	if procDefNode.ContextParamNodes != "" {
-		sql = sql + ",contextParamNodes=?"
+		sql = sql + ",context_param_nodes=?"
 		params = append(params, procDefNode.ContextParamNodes)
 	}
 	if procDefNode.Timeout != 0 {
@@ -422,7 +414,7 @@ func transProcDefNodeUpdateConditionToSQL(procDefNode *models.ProcDefNode) (sql 
 		params = append(params, procDefNode.OrderedNo)
 	}
 	if procDefNode.UiStyle != "" {
-		sql = sql + ",uiStyle=?"
+		sql = sql + ",ui_style=?"
 		params = append(params, procDefNode.UiStyle)
 	}
 	if procDefNode.UpdatedBy != "" {
@@ -431,7 +423,7 @@ func transProcDefNodeUpdateConditionToSQL(procDefNode *models.ProcDefNode) (sql 
 	}
 	sql = sql + ",updated_time=?"
 	params = append(params, procDefNode.UpdatedTime.Format(models.DateTimeFormat))
-	sql = " where id= ?"
+	sql = sql + " where id= ?"
 	params = append(params, procDefNode.Id)
 	return
 }
