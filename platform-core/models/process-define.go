@@ -110,7 +110,7 @@ type ProcessDefinitionParam struct {
 // ProcDefNodeDto 编排节点dto
 type ProcDefNodeDto struct {
 	ProcDefNodeCustomAttrs *ProcDefNodeCustomAttrs `json:"customAttrs"` // 节点数据
-	NodeAttrs              interface{}             `json:"nodeAttrs"`   // 节点属性,前端使用,保存即可
+	NodeAttrs              interface{}             `json:"selfAttrs"`   // 节点属性,前端使用,保存即可
 }
 
 type ProcDefNodeCustomAttrs struct {
