@@ -136,7 +136,7 @@ type ProcDefNodeCustomAttrs struct {
 	RiskCheck         bool                `json:"riskCheck"`         // 是否高危检测
 	ParamInfos        []*ProcDefNodeParam `json:"ParamInfos"`        // 节点参数
 	ContextParamNodes string              `json:"contextParamNodes"` // 上下文参数节点
-	TimeConfig        interface{}         `json:"time_config"`       // 节点配置
+	TimeConfig        interface{}         `json:"timeConfig"`        // 节点配置
 	OrderedNo         int                 `json:"orderedNo"`         // 节点顺序
 	CreatedBy         string              `json:"createdBy" `        // 创建人
 	CreatedTime       string              `json:"createdTime" `      // 创建时间
