@@ -113,6 +113,12 @@ type ProcDefNodeDto struct {
 	NodeAttrs              interface{}             `json:"selfAttrs"`   // 节点属性,前端使用,保存即可
 }
 
+// ProcDefNodeExtendDto node&link dto
+type ProcDefNodeExtendDto struct {
+	Nodes []*ProcDefNodeDto     `json:"nodes"` // 节点
+	Edges []*ProcDefNodeLinkDto `json:"edges"` // 线
+}
+
 type ProcDefNodeCustomAttrs struct {
 	Id                string              `json:"id"`                // 节点Id
 	Name              string              `json:"name"`              // 节点名称
@@ -144,9 +150,9 @@ type ProcDefNodeLinkDto struct {
 
 // ProcessDefinitionDto  编排dto
 type ProcessDefinitionDto struct {
-	ProcDef          *ProcDefDto       `json:"procDef"`          // 编排
-	PermissionToRole PermissionToRole  `json:"permissionToRole"` // 角色
-	ProcDefNodeList  []*ProcDefNodeDto `json:"taskNodeInfos"`    // 编排节点集合
+	ProcDef           *ProcDefDto           `json:"procDef"`          // 编排
+	PermissionToRole  PermissionToRole      `json:"permissionToRole"` // 角色
+	ProcDefNodeExtend *ProcDefNodeExtendDto `json:"taskNodeInfos"`    // 编排节点&线集合
 }
 
 type ProcDefNodeLinkCustomAttrs struct {
@@ -247,4 +253,17 @@ func ConvertParam2ProcDefNodeLink(param ProcDefNodeLinkDto) *ProcDefNodeLink {
 		Name:    nodeLinkAttr.Name,
 		UiStyle: string(byteArr),
 	}
+}
+
+func ConvertProcDefNodeLink2Dto(nodeLink *ProcDefNodeLink) *ProcDefNodeLinkDto {
+	dto := &ProcDefNodeLinkDto{
+		ProcDefNodeLinkCustomAttrs: &ProcDefNodeLinkCustomAttrs{
+			Id:     nodeLink.Id,
+			Name:   nodeLink.Name,
+			Source: nodeLink.Source,
+			Target: nodeLink.Target,
+		},
+		SelfAttrs: nodeLink.UiStyle,
+	}
+	return dto
 }

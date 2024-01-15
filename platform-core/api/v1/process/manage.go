@@ -53,7 +53,11 @@ func AddOrUpdateProcessDefinition(c *gin.Context) {
 
 // GetProcessDefinition 获取编排
 func GetProcessDefinition(c *gin.Context) {
-	var procDefDto models.ProcessDefinitionDto
+	procDefDto := &models.ProcessDefinitionDto{}
+	// 节点
+	var nodes []*models.ProcDefNodeDto
+	// 线
+	var edges []*models.ProcDefNodeLinkDto
 	procDefId := c.Param("proc-def-id")
 	if procDefId == "" {
 		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, fmt.Errorf("proc-def-id is empty")))
@@ -62,6 +66,10 @@ func GetProcessDefinition(c *gin.Context) {
 	procDef, err := database.GetProcessDefinition(c, procDefId)
 	if err != nil {
 		middleware.ReturnError(c, err)
+		return
+	}
+	if procDef == nil {
+		middleware.ReturnError(c, fmt.Errorf("proc-def-id is invalid"))
 		return
 	}
 	procDefDto.ProcDef = models.ConvertProcDef2Dto(procDef)
@@ -79,10 +87,24 @@ func GetProcessDefinition(c *gin.Context) {
 			}
 		}
 	}
-	procDefDto.ProcDefNodeList, err = database.GetProcDefNodeByProcDefId(c, procDefId)
+	nodes, err = database.GetProcDefNodeByProcDefId(c, procDefId)
 	if err != nil {
 		middleware.ReturnError(c, err)
 		return
+	}
+	if len(nodes) > 0 {
+		for _, node := range nodes {
+			dto, err := database.GetProcDefNodeLinkBySource(c, node.ProcDefNodeCustomAttrs.Id)
+			if err != nil {
+				middleware.ReturnError(c, err)
+				return
+			}
+			edges = append(edges, dto)
+		}
+	}
+	procDefDto.ProcDefNodeExtend = &models.ProcDefNodeExtendDto{
+		Nodes: nodes,
+		Edges: edges,
 	}
 	middleware.ReturnData(c, procDefDto)
 }
