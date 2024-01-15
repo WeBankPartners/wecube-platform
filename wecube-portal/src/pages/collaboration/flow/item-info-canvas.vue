@@ -23,7 +23,7 @@
       </FormItem>
       <FormItem label="授权插件" prop="authPlugins" style="margin-top: 22px">
         <Select v-model="itemCustomInfo.authPlugins" multiple>
-          <Option v-for="item in authPluginList" :value="item.value" :key="item.value">{{ item.label }} </Option>
+          <Option v-for="item in authPluginList" :value="item" :key="item">{{ item }} </Option>
         </Select>
       </FormItem>
       <FormItem label="使用场景" prop="scene">
@@ -46,7 +46,7 @@
 </template>
 <script>
 import FilterRules from '@/pages/components/filter-rules.vue'
-import { getAllDataModels } from '@/api/server.js'
+import { getAllDataModels, getPluginList } from '@/api/server.js'
 export default {
   components: {
     FilterRules
@@ -80,12 +80,7 @@ export default {
         rootEntity: [{ required: true, message: 'rootEntity at least one hobby', trigger: 'change' }]
       },
       allEntityType: [], // 系统中所有根CI
-      authPluginList: [
-        // 待授权插件列表
-        { label: 'monitor', value: 'monitor' },
-        { label: 'taskman', value: 'taskman' },
-        { label: 'wecmdb', value: 'wecmdb' }
-      ],
+      authPluginList: [], // 待授权插件列表
       sceneList: [
         // 可使用场景列表
         { label: '请求', value: 'request' },
@@ -101,10 +96,11 @@ export default {
   },
   mounted () {},
   methods: {
-    showItemInfo (data) {
+    async showItemInfo (data) {
       this.isParmasChanged = false
       // 获取所有根CI类型
       this.getAllDataModels()
+      await this.pluginList()
       const defaultNode = {
         id: '',
         label: '', // 编排名称
@@ -168,6 +164,15 @@ export default {
       this.itemCustomInfo.rootEntity = v || ''
       this.isParmasChanged = true
     },
+
+    // 获取所有根数据
+    async pluginList () {
+      let { data, status } = await getPluginList()
+      if (status === 'OK') {
+        this.authPluginList = data
+      }
+    },
+
     // 解决选中清空数字输入框后显示空的问题
     versionChange (version) {
       if (version === null) {

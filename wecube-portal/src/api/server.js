@@ -248,4 +248,5 @@ export const getMetaData = params => req.post(`platform/v1/plugins/configs/inter
 
 export const flowMgmt = data => req.post(`platform/v1/process/definitions`, data)
 export const getFlowById = id => req.get(`platform/v1/process/definitions/${id}`)
-export const flowNodeMgmt = data => req.get(`platform/v1/process/definitions/taskNodes`, data)
+export const flowNodeMgmt = data => req.post(`platform/v1/process/definitions/taskNodes`, data)
+export const getPluginList = () => req.get(`platform/v1/packages/name/list`)

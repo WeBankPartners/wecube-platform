@@ -6,11 +6,11 @@
       <Panel name="1">
         基础信息
         <template slot="content">
-          <Form :label-width="80">
+          <Form :label-width="120" ref="formValidate" :model="itemCustomInfo" :rules="baseRuleValidate">
             <FormItem label="ID">
               <Input disabled v-model="itemCustomInfo.id"></Input>
             </FormItem>
-            <FormItem :label="$t('name')">
+            <FormItem :label="$t('name')" prop="label">
               <Input v-model="itemCustomInfo.label" @on-change="paramsChanged"></Input>
             </FormItem>
             <FormItem :label="$t('node_type')" v-if="itemCustomInfo.customAttrs.taskCategory">
@@ -170,7 +170,13 @@ export default {
       ],
       associatedNodes: [], // 可选择的前序节点
       allEntityType: [], // 所有模型
-      filteredPlugins: [] // 可选择的插件函数，根据定位规则获取
+      filteredPlugins: [], // 可选择的插件函数，根据定位规则获取
+      baseRuleValidate: {
+        label: [
+          { required: true, message: 'label cannot be empty', trigger: 'blur' },
+          { type: 'string', max: 16, message: 'Label cannot exceed 16 words.', trigger: 'blur' }
+        ]
+      }
     }
   },
   components: {
@@ -180,7 +186,8 @@ export default {
     this.getAllDataModels()
   },
   methods: {
-    showItemInfo (data) {
+    async showItemInfo (data) {
+      console.log(12, data)
       const defaultNode = {
         id: '', // 节点id  nodeId
         label: '', // 节点名称 nodeName
@@ -209,23 +216,34 @@ export default {
         this.itemCustomInfo.customAttrs[k] = customAttrs[k]
       })
       console.log(11, this.itemCustomInfo)
-      // this.$nextTick(() => {
-      //   this.$refs.filterRulesGroupRef &&
-      //     this.$refs.filterRulesGroupRef.changeRoutineExpressionItem(this.itemCustomInfo.customAttrs.routineExpression)
-      // })
     },
     saveItem () {
-      const routineExpressionItem = this.$refs.filterRulesGroupRef.routineExpressionItem
-      this.itemCustomInfo.customAttrs.routineExpression = routineExpressionItem.reduce((tmp, item, index) => {
-        return (
-          tmp +
-          item.routineExpression +
-          '#DMEOP#' +
-          item.operate +
-          (index === routineExpressionItem.length - 1 ? '' : '#DME#')
-        )
-      }, '')
-      this.$emit('sendItemInfo', this.itemCustomInfo)
+      if (['human', 'automatic', 'data'].includes(this.itemCustomInfo.customAttrs.nodeType)) {
+        const routineExpressionItem = this.$refs.filterRulesGroupRef.routineExpressionItem
+        this.itemCustomInfo.customAttrs.routineExpression = routineExpressionItem.reduce((tmp, item, index) => {
+          return (
+            tmp +
+            item.routineExpression +
+            '#DMEOP#' +
+            item.operate +
+            (index === routineExpressionItem.length - 1 ? '' : '#DME#')
+          )
+        }, '')
+      }
+
+      const tmp = JSON.parse(JSON.stringify(this.itemCustomInfo))
+      let customAttrs = tmp.customAttrs
+      customAttrs.id = tmp.id
+      customAttrs.name = tmp.label
+      delete tmp.customAttrs
+      let selfAttrs = tmp
+
+      let finalData = {
+        selfAttrs: selfAttrs,
+        customAttrs: customAttrs
+      }
+      console.log(44, finalData)
+      this.$emit('sendItemInfo', finalData)
     },
     panalStatus () {
       return this.isParmasChanged
@@ -265,6 +283,7 @@ export default {
         this.allEntityType = data
       }
     },
+
     // 定位规则回传
     singleFilterRuleChanged (val) {
       console.log(44, val)
@@ -299,7 +318,7 @@ export default {
   box-shadow: 0 0 2px 0 rgba(0, 0, 0, 0.1);
 }
 .ivu-form-item {
-  margin-bottom: 0;
+  margin-bottom: 12px;
 }
 
 .panal-name {
