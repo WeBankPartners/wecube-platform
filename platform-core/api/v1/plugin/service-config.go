@@ -144,7 +144,12 @@ func QueryPluginByTargetEntity(c *gin.Context) {
 	}
 	// 排序
 	sort.Sort(models.PluginConfigInterfaceDtoSort(finalResultPluginConfigInterfaceDtoList))
+	tryCalculateConfigurableInputParameters(finalResultPluginConfigInterfaceDtoList)
 	middleware.ReturnData(c, finalResultPluginConfigInterfaceDtoList)
+}
+
+func tryCalculateConfigurableInputParameters(list []*models.PluginConfigInterfaceDto) {
+
 }
 
 func isEmpty(param models.TargetEntityFilterRuleDto) bool {
