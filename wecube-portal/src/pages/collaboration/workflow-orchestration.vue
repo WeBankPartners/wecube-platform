@@ -1,5 +1,6 @@
 <template>
   <div class="root">
+    <div @click="saveSvg">123123</div>
     <FlowHeader @canLoadGraph="startLoadGraph"></FlowHeader>
     <!-- v-show="isShowGraph" -->
     <div class="canvas-zone">
@@ -310,7 +311,6 @@ export default {
           //   shape: model.type
           // }
           this.itemInfoType = 'node'
-          console.log(1.1)
           this.$refs.itemInfoNodeRef.showItemInfo(model)
         }
       })
@@ -434,21 +434,17 @@ export default {
             this.graph.setItemState(edge, 'selected', true)
           }
           this.itemInfoType = 'edge'
-          console.log(1.2)
           this.$refs.itemInfoEdgeRef.showItemInfo(model)
         }
       })
 
       // 注册画布点击事件
       this.graph.on('canvas:click', e => {
-        console.log(1)
         if (this.isExecutionAllowed()) return
         // const graph = e.item
         // console.log(22, graph)
         // if (e && graph) {
         this.itemInfoType = 'canvas'
-        console.log(2, this.procDef)
-        console.log(1.3)
         this.$refs.itemInfoCanvasRef.showItemInfo(this.procDef)
         // }
       })
@@ -509,7 +505,6 @@ export default {
       }
       this.graph.addItem('node', model)
       this.itemInfoType = 'node'
-      console.log(1.5)
       this.$refs.itemInfoNodeRef.showItemInfo(model)
     },
     uuid (len, radix) {
