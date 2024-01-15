@@ -8,7 +8,7 @@ import (
 )
 
 const (
-	httpAuthServer = "http://localhost:9090"
+	httpAuthServer = "http://106.52.160.142:8002"
 	// pathRetrieveAllUserAccounts 查询所有用户
 	pathRetrieveAllUserAccounts = "/auth/v1/user"
 	// pathRetrieveAllRoles  查询所有角色
