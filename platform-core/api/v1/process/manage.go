@@ -30,6 +30,15 @@ func AddOrUpdateProcessDefinition(c *gin.Context) {
 	if param.Id == "" {
 		entity, err = database.AddProcessDefinition(c, middleware.GetRequestUser(c), param)
 	} else {
+		result, err := database.GetProcessDefinition(c, param.Id)
+		if err != nil {
+			middleware.ReturnError(c, err)
+			return
+		}
+		if result == nil {
+			middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, fmt.Errorf("param id is invalid")))
+			return
+		}
 		entity = &models.ProcDef{
 			Id:            param.Id,
 			Name:          param.Name,
@@ -44,6 +53,12 @@ func AddOrUpdateProcessDefinition(c *gin.Context) {
 		}
 		err = database.UpdateProcDef(c, entity)
 	}
+	if err != nil {
+		middleware.ReturnError(c, err)
+		return
+	}
+	// 新增删除角色
+	err = database.BatchAddProcDefPermission(c, entity.Id, param.PermissionToRole)
 	if err != nil {
 		middleware.ReturnError(c, err)
 		return
@@ -278,6 +293,7 @@ func convertParam2ProcDefNode(user string, param models.ProcDefNodeDto) *models.
 	now := time.Now()
 	byteArr, _ := json.Marshal(param.NodeAttrs)
 	procDefNodeAttr := param.ProcDefNodeCustomAttrs
+	byteArr2, _ := json.Marshal(procDefNodeAttr.Config)
 	node := &models.ProcDefNode{
 		Id:                procDefNodeAttr.Id,
 		ProcDefId:         procDefNodeAttr.ProcDefId,
@@ -292,7 +308,7 @@ func convertParam2ProcDefNode(user string, param models.ProcDefNodeDto) *models.
 		RoutineExpression: procDefNodeAttr.RoutineExpression,
 		ContextParamNodes: procDefNodeAttr.ContextParamNodes,
 		Timeout:           procDefNodeAttr.Timeout,
-		Config:            procDefNodeAttr.Config,
+		Config:            string(byteArr2),
 		OrderedNo:         procDefNodeAttr.OrderedNo,
 		UiStyle:           string(byteArr),
 		CreatedBy:         user,
