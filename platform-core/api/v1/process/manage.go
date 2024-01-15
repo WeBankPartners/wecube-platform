@@ -164,19 +164,25 @@ func AddOrUpdateProcessDefinitionTaskNodes(c *gin.Context) {
 
 // GetProcDefNode 获取编排节点
 func GetProcDefNode(c *gin.Context) {
-	/*	var err error
-		var procDefNode *models.ProcDefNode
-		nodeId := c.Param("node-id")
-		if nodeId == "" {
-			middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, fmt.Errorf("node-is is empty")))
-			return
-		}
-		procDefNode, err = database.GetProcDefNode(c, nodeId)
-		if err != nil {
-			middleware.ReturnError(c, err)
-			return
-		}*/
-	middleware.ReturnSuccess(c)
+	var err error
+	var procDefNode *models.ProcDefNode
+	var list []*models.ProcDefNodeParam
+	var nodeDto *models.ProcDefNodeDto
+	nodeId := c.Param("node-id")
+	if nodeId == "" {
+		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, fmt.Errorf("node-is is empty")))
+		return
+	}
+	procDefNode, err = database.GetProcDefNode(c, nodeId)
+	if err != nil {
+		middleware.ReturnError(c, err)
+		return
+	}
+	list, err = database.GetProcDefNodeParamByNodeId(c, nodeId)
+	if procDefNode != nil {
+		nodeDto = models.ConvertProcDefNode2Dto(procDefNode, list)
+	}
+	middleware.Return(c, nodeDto)
 }
 
 // DeleteProcDefNode 删除编排节点,同时需要删除线&节点参数

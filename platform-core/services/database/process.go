@@ -305,6 +305,16 @@ func GetProcDefNodeParam(ctx context.Context, id string) (result *models.ProcDef
 	return
 }
 
+// GetProcDefNodeParamByNodeId 根据节点获取编排节点参数
+func GetProcDefNodeParamByNodeId(ctx context.Context, nodeId string) (list []*models.ProcDefNodeParam, err error) {
+	err = db.MysqlEngine.Context(ctx).SQL("select * from proc_def_node_param where proc_def_nnode_id = ?", nodeId).Find(&list)
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
+		return
+	}
+	return
+}
+
 func batchAddProcDefPermission(ctx context.Context, procDefId string, permission models.PermissionToRole) (err error) {
 	if len(permission.USE) > 0 {
 		for _, roleName := range permission.USE {
@@ -429,7 +439,7 @@ func transProcDefNodeUpdateConditionToSQL(procDefNode *models.ProcDefNode) (sql 
 }
 
 func transProcDefNodeLinkUpdateConditionToSQL(procDefNodeLink *models.ProcDefNodeLink) (sql string, params []interface{}) {
-	sql = "update proc_def set id=?"
+	sql = "update proc_def_node_link set id=?"
 	params = append(params, procDefNodeLink.Id)
 	if procDefNodeLink.Source != "" {
 		sql = sql + ",source=?"
