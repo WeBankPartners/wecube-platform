@@ -138,7 +138,7 @@ func AddOrUpdateProcessDefinitionTaskNodes(c *gin.Context) {
 		node.Status = procDefNode.Status
 		node.CreatedBy = procDefNode.CreatedBy
 		node.CreatedTime = procDefNode.CreatedTime
-		err = database.UpdateProcDefNode(c, procDefNode)
+		err = database.UpdateProcDefNode(c, node)
 	}
 	if err != nil {
 		middleware.ReturnError(c, err)
