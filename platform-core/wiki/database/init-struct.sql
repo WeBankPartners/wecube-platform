@@ -338,6 +338,7 @@ CREATE TABLE `proc_def_node` (
     `context_param_nodes` varchar(1024) DEFAULT NULL COMMENT '上下文参数节点',
     `timeout` int(11) DEFAULT 30 COMMENT '超时时间分钟',
     `ordered_no` int(11) DEFAULT 0 COMMENT '节点顺序',
+    `time_config` varchar(1024) DEFAULT NULL COMMENT '时间节点配置',
     `ui_style` text DEFAULT NULL COMMENT '前端样式',
     `created_by` varchar(64) DEFAULT NULL COMMENT '创建人',
     `created_time` datetime DEFAULT NULL COMMENT '创建时间',
