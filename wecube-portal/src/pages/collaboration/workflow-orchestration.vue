@@ -1,7 +1,6 @@
 <template>
   <div class="root">
-    <div @click="saveSvg">123123</div>
-    <FlowHeader @canLoadGraph="startLoadGraph"></FlowHeader>
+    <FlowHeader @openCanvasPanel="openCanvasPanel" ref="headerInfoRef"></FlowHeader>
     <!-- v-show="isShowGraph" -->
     <div class="canvas-zone">
       <!-- 左侧按钮 -->
@@ -24,7 +23,7 @@
         <ItemInfoNode
           v-show="itemInfoType === 'node'"
           ref="itemInfoNodeRef"
-          @sendItemInfo="setItemInfo"
+          @sendItemInfo="setNodeInfo"
           @hideItemInfo="() => (itemInfoType = '')"
         >
         </ItemInfoNode>
@@ -50,9 +49,10 @@ import ItemPanel from '@/pages/collaboration/flow/item-panel.vue'
 import ItemInfoCanvas from '@/pages/collaboration/flow/item-info-canvas.vue'
 import ItemInfoEdge from '@/pages/collaboration/flow/item-info-edge.vue'
 import ItemInfoNode from '@/pages/collaboration/flow/item-info-node.vue'
-import data from './flow/data.js'
+// import data from './flow/data.js'
 import { nodeDefaultAttr } from './flow/node-default-attr.js'
-import { getFlowById, flowMgmt } from '@/api/server.js'
+import { getFlowById, flowMgmt, flowNodeMgmt } from '@/api/server.js'
+// import { relativeTimeThreshold } from 'moment'
 // const registerFactory = require('../../../library/welabx-g6').default
 
 export default {
@@ -127,7 +127,10 @@ export default {
         label: '',
         permissionToRole: {} // 授权信息
       }, // 编排自身属性
-      taskNodeInfos: [] // 节点和边信息
+      nodesAndDeges: {
+        nodes: [],
+        edges: []
+      } // 节点和边信息
     }
   },
   async mounted () {
@@ -136,15 +139,18 @@ export default {
     this.$nextTick(() => {
       this.createGraphic()
       this.initGraphEvent()
-      this.itemInfoType = 'canvas'
-      console.log(1.0)
-      this.$refs.itemInfoCanvasRef.showItemInfo(this.procDef)
+      this.openCanvasPanel()
+      this.$refs.headerInfoRef.showItemInfo(this.procDef)
     })
   },
   beforeDestroy () {
     this.graph.destroy()
   },
   methods: {
+    openCanvasPanel () {
+      this.itemInfoType = 'canvas'
+      this.$refs.itemInfoCanvasRef.showItemInfo(this.procDef)
+    },
     async getFlowInfo (id) {
       const { status, data } = await getFlowById(id)
       if (status === 'OK') {
@@ -152,11 +158,21 @@ export default {
         this.procDef = data.procDef
         this.procDef.label = data.procDef.name || ''
         this.procDef.permissionToRole = data.permissionToRole
+
+        this.mgmtNodesAndEdges(data.taskNodeInfos)
       }
     },
-    // 开始加载流程图
-    startLoadGraph () {
-      this.isShowGraph = true
+    mgmtNodesAndEdges (info) {
+      if (info.nodes && info.nodes.length > 0) {
+        this.nodesAndDeges.nodes = info.nodes.map(n => {
+          return {
+            ...JSON.parse(n.selfAttrs),
+            customAttrs: n.customAttrs
+          }
+        })
+      }
+      if (info.edges && info.edges.length > 0) {
+      }
     },
     resetCanvas () {
       this.graph.zoomTo(1) // 缩放到原始大小
@@ -266,7 +282,7 @@ export default {
       })
 
       this.graph = new G6.Graph(cfg)
-      this.graph.read(data) // 读取数据
+      this.graph.read(this.nodesAndDeges) // 读取数据
       // this.graph.paint() // 渲染到页面
       // this.graph.get('canvas').set('localRefresh', false) // 关闭局部渲染
       // this.graph.fitView()
@@ -481,12 +497,15 @@ export default {
         this.$Message.warning(this.$t('start_node_warning'))
         return
       }
+      console.log(23, this.procDef)
       const model = {
         id: `pdef_node_${this.uuid(16, 16)}`,
         label,
         // 形状
         type: shape,
         customAttrs: {
+          procDefId: this.procDef.id,
+          procDefKey: this.procDef.key,
           nodeType, // 标记节点类型，后端需要的字段
           taskCategory
         },
@@ -533,6 +552,7 @@ export default {
     setItemInfo (info) {
       // eslint-disable-next-line no-alert
       const item = this.graph.findById(info.id)
+      console.log(45, item, info)
       this.graph.updateItem(item, info)
     },
     saveSvg () {
@@ -560,6 +580,20 @@ export default {
         this.itemInfoType = ''
         this.$Message.success('save_successfully')
         this.getFlowInfo(this.demoFlowId)
+      }
+    },
+    // 保存节点信息
+    async setNodeInfo (info) {
+      const { status } = await flowNodeMgmt(info)
+      if (status === 'OK') {
+        this.itemInfoType = ''
+        this.$Message.success('save_successfully')
+        const item = this.graph.findById(info.customAttrs.id)
+        const params = {
+          ...info.selfAttrs,
+          customAttrs: info.customAttrs
+        }
+        this.graph.updateItem(item, params)
       }
     }
     // #endregion
