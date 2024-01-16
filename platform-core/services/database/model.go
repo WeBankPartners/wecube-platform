@@ -103,9 +103,9 @@ func GetEntityModel(ctx context.Context, packageName, entityName string, onlyAtt
 		err = exterror.New().DatabaseQueryEmptyError
 		return
 	}
-	result = &models.DataModelEntity{PluginPackageEntities: *entityRows[0]}
+	result = &models.DataModelEntity{PluginPackageEntities: *entityRows[0], Attributes: []*models.PluginPackageAttributes{}, ReferenceByEntityList: []*models.DataModelRefEntity{}, ReferenceToEntityList: []*models.DataModelRefEntity{}}
 	var entityAttrRows []*models.PluginPackageAttributes
-	err = db.MysqlEngine.Context(ctx).SQL("select * from plugin_package_attributes where entity_id=?", result.Id).Find(&entityAttrRows)
+	err = db.MysqlEngine.Context(ctx).SQL("select t1.*,t2.package_name from plugin_package_attributes t1 left join plugin_package_entities t2 on t1.entity_id=t2.id where t1.entity_id=?", result.Id).Find(&entityAttrRows)
 	if err != nil {
 		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
 		return
@@ -122,6 +122,11 @@ func GetEntityModel(ctx context.Context, packageName, entityName string, onlyAtt
 		}
 		if attrObj.Name == "id" {
 			idAttr = attrObj.Id
+		}
+		if attrObj.Mandatory {
+			attrObj.MandatoryString = "Y"
+		} else {
+			attrObj.MandatoryString = "N"
 		}
 	}
 	if len(refToEntityIds) > 0 {
@@ -144,7 +149,7 @@ func GetEntityModel(ctx context.Context, packageName, entityName string, onlyAtt
 	}
 	if idAttr != "" {
 		var refByEntityAttrRows []*models.PluginPackageAttributes
-		err = db.MysqlEngine.Context(ctx).SQL("select * from plugin_package_attributes where reference_id=?", idAttr).Find(&refByEntityAttrRows)
+		err = db.MysqlEngine.Context(ctx).SQL("select t1.*,t2.package_name from plugin_package_attributes t1 left join plugin_package_entities t2 on t1.entity_id=t2.id where t1.reference_id=?", idAttr).Find(&refByEntityAttrRows)
 		if err != nil {
 			err = exterror.Catch(exterror.New().DatabaseQueryError, err)
 			return
@@ -165,6 +170,11 @@ func GetEntityModel(ctx context.Context, packageName, entityName string, onlyAtt
 				tmpByEntity := models.DataModelRefEntity{PluginPackageEntities: *entityObj}
 				for _, attrObj := range refByEntityAttrRows {
 					if attrObj.EntityId == entityObj.Id {
+						if attrObj.Mandatory {
+							attrObj.MandatoryString = "Y"
+						} else {
+							attrObj.MandatoryString = "N"
+						}
 						tmpByEntity.RelatedAttribute = attrObj
 						break
 					}
