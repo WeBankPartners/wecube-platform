@@ -14,11 +14,11 @@
     "compress": true
   },
   "database": {
-    "server": "mywiki",
-    "port": "3306",
+    "server": "106.52.160.142",
+    "port": "13306",
     "user": "root",
-    "password": "Abcd1234",
-    "database": "wecube_authserver",
+    "password": "mF8PnUQ6dK3ppmrKPmGa",
+    "database": "smoke2_auth_server",
     "maxOpen": 200,
     "maxIdle": 50,
     "timeout": 60
@@ -27,7 +27,7 @@
     "jwt_private_key_path":"config/keys/auth_jwt_private.pem",
     "jwt_public_key_path":"config/keys/auth_jwt_public.pem",
     "access_token_mins":20,
-    "refresh_token_hours":20
+    "refresh_token_mins":20
   },
   "umAuth": {
     "address": "[#um_address]",
