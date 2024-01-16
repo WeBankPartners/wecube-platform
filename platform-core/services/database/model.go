@@ -149,26 +149,28 @@ func GetEntityModel(ctx context.Context, packageName, entityName string, onlyAtt
 			err = exterror.Catch(exterror.New().DatabaseQueryError, err)
 			return
 		}
-		var refByEntityIds []string
-		for _, row := range refByEntityAttrRows {
-			refByEntityIds = append(refByEntityIds, row.EntityId)
-		}
-		refFilterSql, refFilterParam := db.CreateListParams(refByEntityIds, "")
-		var refByEntityRows []*models.PluginPackageEntities
-		err = db.MysqlEngine.Context(ctx).SQL("select * from plugin_package_entities where id in ("+refFilterSql+")", refFilterParam...).Find(&refByEntityRows)
-		if err != nil {
-			err = exterror.Catch(exterror.New().DatabaseQueryError, err)
-			return
-		}
-		for _, entityObj := range refByEntityRows {
-			tmpByEntity := models.DataModelRefEntity{PluginPackageEntities: *entityObj}
-			for _, attrObj := range refByEntityAttrRows {
-				if attrObj.EntityId == entityObj.Id {
-					tmpByEntity.RelatedAttribute = attrObj
-					break
-				}
+		if len(refByEntityAttrRows) > 0 {
+			var refByEntityIds []string
+			for _, row := range refByEntityAttrRows {
+				refByEntityIds = append(refByEntityIds, row.EntityId)
 			}
-			result.ReferenceByEntityList = append(result.ReferenceByEntityList, &tmpByEntity)
+			refFilterSql, refFilterParam := db.CreateListParams(refByEntityIds, "")
+			var refByEntityRows []*models.PluginPackageEntities
+			err = db.MysqlEngine.Context(ctx).SQL("select * from plugin_package_entities where id in ("+refFilterSql+")", refFilterParam...).Find(&refByEntityRows)
+			if err != nil {
+				err = exterror.Catch(exterror.New().DatabaseQueryError, err)
+				return
+			}
+			for _, entityObj := range refByEntityRows {
+				tmpByEntity := models.DataModelRefEntity{PluginPackageEntities: *entityObj}
+				for _, attrObj := range refByEntityAttrRows {
+					if attrObj.EntityId == entityObj.Id {
+						tmpByEntity.RelatedAttribute = attrObj
+						break
+					}
+				}
+				result.ReferenceByEntityList = append(result.ReferenceByEntityList, &tmpByEntity)
+			}
 		}
 	}
 	result.LeafEntityList = &models.DataModelLeafEntityList{PackageName: result.PackageName, Name: result.Name, ReferenceByEntityList: []*models.DataModelLeafEntity{}, ReferenceToEntityList: []*models.DataModelLeafEntity{}}
