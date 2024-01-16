@@ -355,20 +355,22 @@ type PluginPackageEntities struct {
 }
 
 type PluginPackageAttributes struct {
-	Id          string    `json:"id" xorm:"id"`                    // 唯一标识
-	EntityId    string    `json:"entityId" xorm:"entity_id"`       // 所属数据模型ci项
-	ReferenceId string    `json:"referenceId" xorm:"reference_id"` // 关联数据模型
-	Name        string    `json:"name" xorm:"name"`                // 属性名
-	Description string    `json:"description" xorm:"description"`  // 描述
-	DataType    string    `json:"dataType" xorm:"data_type"`       // 属性数据类型
-	RefPackage  string    `json:"refPackage" xorm:"ref_package"`   // 关联包
-	RefEntity   string    `json:"refEntity" xorm:"ref_entity"`     // 关联ci项
-	RefAttr     string    `json:"refAttr" xorm:"ref_attr"`         // 关联属性
-	Mandatory   bool      `json:"mandatory" xorm:"mandatory"`      // 是否必填
-	Multiple    string    `json:"multiple" xorm:"multiple"`        // 是否数组
-	IsArray     bool      `json:"isArray" xorm:"is_array"`         // 是否数组-新
-	CreatedTime time.Time `json:"createdTime" xorm:"created_time"` // 创建时间
-	OrderNo     int       `json:"orderNo" xorm:"order_no"`         // 排序
+	Id              string    `json:"id" xorm:"id"`                      // 唯一标识
+	Package         string    `json:"packageName" xorm:"package_name"`   // 所属包
+	EntityId        string    `json:"entityId" xorm:"entity_id"`         // 所属数据模型ci项
+	ReferenceId     string    `json:"referenceId" xorm:"reference_id"`   // 关联数据模型
+	Name            string    `json:"name" xorm:"name"`                  // 属性名
+	Description     string    `json:"description" xorm:"description"`    // 描述
+	DataType        string    `json:"dataType" xorm:"data_type"`         // 属性数据类型
+	RefPackage      string    `json:"refPackageName" xorm:"ref_package"` // 关联包
+	RefEntity       string    `json:"refEntityName" xorm:"ref_entity"`   // 关联ci项
+	RefAttr         string    `json:"refAttributeName" xorm:"ref_attr"`  // 关联属性
+	Mandatory       bool      `json:"-" xorm:"mandatory"`                // 是否必填
+	MandatoryString string    `json:"mandatory" xorm:"-"`                // 是否必填
+	Multiple        string    `json:"multiple" xorm:"multiple"`          // 是否数组
+	IsArray         bool      `json:"isArray" xorm:"is_array"`           // 是否数组-新
+	CreatedTime     time.Time `json:"createdTime" xorm:"created_time"`   // 创建时间
+	OrderNo         int       `json:"orderNo" xorm:"order_no"`           // 排序
 }
 
 type PluginConfigRoles struct {
