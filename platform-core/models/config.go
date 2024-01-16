@@ -44,6 +44,7 @@ type AuthConfig struct {
 	Url                    string `json:"url"`
 	AccessTokenExpiredSec  string `json:"access_token_expired_sec"`
 	RefreshTokenExpiredSec string `json:"refresh_token_expired_sec"`
+	JwtSigningKey          string `json:"jwt_signing_key"`
 }
 
 type S3Config struct {
