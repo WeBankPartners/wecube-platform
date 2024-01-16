@@ -2,6 +2,7 @@ package middleware
 
 import (
 	"fmt"
+	"github.com/WeBankPartners/go-common-lib/token"
 	"github.com/WeBankPartners/wecube-platform/platform-core/models"
 	"github.com/gin-gonic/gin"
 	"io"
@@ -33,15 +34,15 @@ func authRequest(c *gin.Context) error {
 	if authHeader == "" {
 		return fmt.Errorf("Can not find Request Header Authorization ")
 	}
-	//authToken, err := token.DecodeJwtToken(authHeader, models.Config.Auth.JwtSigningKey)
-	//if err != nil {
-	//	return err
-	//}
-	//if authToken.User == "" {
-	//	return fmt.Errorf("Token content is illegal,main message is empty ")
-	//}
-	//c.Set(models.ContextUserId, authToken.User)
-	//c.Set(models.ContextRoles, authToken.Roles)
+	authToken, err := token.DecodeJwtToken(authHeader, models.Config.Auth.JwtSigningKey)
+	if err != nil {
+		return err
+	}
+	if authToken.User == "" {
+		return fmt.Errorf("Token content is illegal,main message is empty ")
+	}
+	c.Set(models.ContextUserId, authToken.User)
+	c.Set(models.ContextRoles, authToken.Roles)
 	return nil
 }
 
