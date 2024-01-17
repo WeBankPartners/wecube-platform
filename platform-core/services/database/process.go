@@ -119,9 +119,9 @@ func GetProcDefNode(ctx context.Context, procDefId, nodeId string) (result *mode
 }
 
 // GetProcDefNodeLink  获取编排线
-func GetProcDefNodeLink(ctx context.Context, nodeId string, linkId string) (result *models.ProcDefNodeLink, err error) {
+func GetProcDefNodeLink(ctx context.Context, procDefId string, linkId string) (result *models.ProcDefNodeLink, err error) {
 	var list []*models.ProcDefNodeLink
-	err = db.MysqlEngine.Context(ctx).SQL("select * from proc_def_node_link where source= ? and link_id = ?  ", nodeId, linkId).Find(&list)
+	err = db.MysqlEngine.Context(ctx).SQL("select * from proc_def_node_link where proc_def_id= ? and link_id = ?  ", procDefId, linkId).Find(&list)
 	if err != nil {
 		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
 		return
