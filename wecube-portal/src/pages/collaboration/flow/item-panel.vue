@@ -184,7 +184,6 @@ export default {
         const fill = icon.getAttribute('fill')
         const lineWidth = Number(icon.getAttribute('line-width'))
         const nodeType = icon.getAttribute('node-type')
-        const taskCategory = icon.getAttribute('task-category')
         const stroke = icon.getAttribute('stroke')
 
         /* 设置拖拽传输数据 */
@@ -196,8 +195,7 @@ export default {
             fill,
             lineWidth,
             stroke,
-            nodeType,
-            taskCategory
+            nodeType
           })
         )
       })
@@ -296,7 +294,7 @@ export default {
   .item-tool-icon {
     width: 24px;
     height: 24px;
-    margin: 6px 0 4px 0;
+    margin-top: 4px;
   }
   .item-tool-name {
     font-size: 11px;

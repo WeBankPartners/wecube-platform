@@ -541,5 +541,8 @@
   "no_detail_warning": "This arrangement data has expired, if you have any questions, please contact the platform administrator",
   "start_node_warning": "Can only contain one start node",
   "confirm_discarding_changes": "Confirm Discarding Changes",
-  "params_edit_confirm": "The data changes, if you choose to give up, the changed information will not be saved!"
+  "params_edit_confirm": "The data changes, if you choose to give up, the changed information will not be saved!",
+  "duration": "Duration",
+  "unit": "Unit",
+  "date": "Date"
 }
