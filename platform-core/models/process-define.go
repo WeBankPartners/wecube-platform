@@ -62,6 +62,7 @@ type ProcDefNode struct {
 type ProcDefNodeParam struct {
 	Id            string `json:"id" xorm:"id"`                          // 唯一标识
 	ProcDefNodeId string `json:"procDefNodeId" xorm:"proc_def_node_id"` // 编排节点id
+	ParamId       string `json:"paramId" xorm:"param_id"`               // 编排节点参数id
 	Name          string `json:"name" xorm:"name"`                      // 参数名
 	BindType      string `json:"bindType" xorm:"bind_type"`             // 参数类型->context(上下文) | constant(静态值)
 	Value         string `json:"value" xorm:"value"`                    // 参数值
@@ -137,6 +138,7 @@ type ProcDefIds struct {
 
 // ProcDefNodeDto 编排节点dto
 type ProcDefNodeDto struct {
+	ProcDefId              string                  `json:"procDefId"`   // 编排Id
 	ProcDefNodeCustomAttrs *ProcDefNodeCustomAttrs `json:"customAttrs"` // 节点数据
 	NodeAttrs              interface{}             `json:"selfAttrs"`   // 节点属性,前端使用,保存即可
 }
@@ -173,6 +175,7 @@ type ProcDefNodeCustomAttrs struct {
 
 // ProcDefNodeLinkDto 编排线
 type ProcDefNodeLinkDto struct {
+	ProcDefId                  string                      `json:"procDefId"`   // 编排Id
 	ProcDefNodeLinkCustomAttrs *ProcDefNodeLinkCustomAttrs `json:"customAttrs"` // 节点数据
 	SelfAttrs                  interface{}                 `json:"selfAttrs"`   // 节点属性,前端使用,保存即可
 }
