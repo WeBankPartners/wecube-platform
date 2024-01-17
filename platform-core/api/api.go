@@ -128,8 +128,7 @@ func init() {
 		&handlerFuncObj{Url: "/process/definitions/:proc-def-id/taskNodes/:node-id", Method: "DELETE", HandlerFunc: process.DeleteProcDefNode, ApiCode: "delete-process-definition-nodes"},
 		&handlerFuncObj{Url: "/process/definitions/:proc-def-id/taskNodes/:node-id", Method: "GET", HandlerFunc: process.GetProcDefNode, ApiCode: "get-process-definition-node"},
 		&handlerFuncObj{Url: "/process/definitions/link", Method: "POST", HandlerFunc: process.AddOrUpdateProcDefNodeLink, ApiCode: "add-update-process-definition-node-link"},
-		&handlerFuncObj{Url: "/process/definitions/link", Method: "GET", HandlerFunc: process.GetProcDefNodeLink, ApiCode: "get-process-definition-node-link"},
-		&handlerFuncObj{Url: "/process/definitions/link", Method: "DELETE", HandlerFunc: process.DeleteProcDefNodeLink, ApiCode: "delete-process-definition-node-link"},
+		&handlerFuncObj{Url: "/process/definitions/:proc-def-id/link/:node-link-id", Method: "DELETE", HandlerFunc: process.DeleteProcDefNodeLink, ApiCode: "delete-process-definition-node-link"},
 	)
 }
 
