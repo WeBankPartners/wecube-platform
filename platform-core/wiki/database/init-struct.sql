@@ -326,6 +326,7 @@ CREATE TABLE `proc_def` (
 CREATE TABLE `proc_def_node` (
     `id` varchar(64) NOT NULL COMMENT '唯一标识',
     `proc_def_id` varchar(64) NOT NULL COMMENT '编排id',
+    `node_id` varchar(64) default null COMMENT '前端节点id',
     `name` varchar(64) NOT NULL COMMENT '节点名称',
     `description` varchar(255) DEFAULT NULL COMMENT '节点描述',
     `status` varchar(32) NOT NULL COMMENT '状态',
@@ -351,18 +352,22 @@ CREATE TABLE `proc_def_node` (
 CREATE TABLE `proc_def_node_param` (
      `id` varchar(64) NOT NULL COMMENT '唯一标识',
      `proc_def_node_id` varchar(64) NOT NULL COMMENT '编排节点id',
+     `param_id` varchar(64) DEFAULT NULL COMMENT '关联参数配置id',
      `name` varchar(255) NOT NULL COMMENT '参数名',
      `bind_type` varchar(16) DEFAULT NULL COMMENT '参数类型->context(上下文) | constant(静态值)',
      `value` varchar(255) DEFAULT NULL COMMENT '参数值',
      `ctx_bind_node` varchar(64) DEFAULT NULL COMMENT '上下文节点',
      `ctx_bind_type` varchar(16) DEFAULT NULL COMMENT '上下文出入参->input(入参) | output(出参)',
      `ctx_bind_name` varchar(255) DEFAULT NULL COMMENT '上下文参数名',
+     `required` varchar(16) DEFAULT 'N' COMMENT '是否必填'
      PRIMARY KEY (`id`),
      CONSTRAINT `fk_proc_def_param_node` FOREIGN KEY (`proc_def_node_id`) REFERENCES `proc_def_node` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
 
 CREATE TABLE `proc_def_node_link` (
        `id` varchar(128) NOT NULL COMMENT '唯一标识(source__target)',
+       `proc_def_id` varchar(64) NOT NULL COMMENT '编排id',
+       `link_id` varchar(64) default null COMMENT '前端线id',
        `source` varchar(64) NOT NULL COMMENT '源节点',
        `target` varchar(64) NOT NULL COMMENT '目标节点',
        `name` varchar(64) DEFAULT NULL COMMENT '连接名称',
