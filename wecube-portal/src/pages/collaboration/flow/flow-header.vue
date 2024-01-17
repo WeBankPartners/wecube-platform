@@ -26,7 +26,7 @@
       </div>
     </div>
 
-    <FlowAuth ref="flowAuthRef"></FlowAuth>
+    <FlowAuth ref="flowAuthRef" @sendAuth="updateAuth"></FlowAuth>
   </div>
 </template>
 
@@ -38,9 +38,7 @@ export default {
   },
   data () {
     return {
-      itemCustomInfo: {},
-      mgmtRolesKeyToFlow: [],
-      useRolesKeyToFlow: []
+      itemCustomInfo: {}
     }
   },
   methods: {
@@ -66,16 +64,17 @@ export default {
         this.itemCustomInfo[k] = tmpData[k]
       })
       this.itemCustomInfo.version = Number(this.itemCustomInfo.version) || 1
-      console.log(12, this.itemCustomInfo)
     },
     // #region
     // 修改权限
     changePermission () {
-      console.log(4)
       this.$refs.flowAuthRef.startAuth(
         this.itemCustomInfo.permissionToRole.MGMT,
         this.itemCustomInfo.permissionToRole.USE
       )
+    },
+    updateAuth (mgmt, use) {
+      this.$emit('updateAuth', mgmt, use)
     },
     // #endregion
     openCanvasPanel () {
