@@ -37,9 +37,11 @@ type RemoteServiceConfig struct {
 }
 
 type Auth struct {
-	JwtPrivateKeyPath string `json:"jwt_private_key_path"`
-	JwtPublicKeyPath  string `json:"jwt_public_key_path"`
-	JwtPublicKeyBytes []byte `json:"-"`
+	//JwtPrivateKeyPath string `json:"jwt_private_key_path"`
+	//JwtPublicKeyPath  string `json:"jwt_public_key_path"`
+	SigningKey      string `json:"signing_key"`
+	SigningKeyBytes []byte `json:"-"`
+	//JwtPublicKeyBytes []byte `json:"-"`
 	AccessTokenMins   int    `json:"access_token_mins"`
 	RefreshTokenMins  int    `json:"refresh_token_mins"`
 	WebPrivateKeyPath string `json:"web_private_key_path"`

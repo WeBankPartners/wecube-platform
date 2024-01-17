@@ -1,23 +1,21 @@
 package jwt
 
 import (
-	"crypto/rsa"
 	"errors"
 	"github.com/WeBankPartners/wecube-platform/platform-auth-server/common/constant"
 	"github.com/WeBankPartners/wecube-platform/platform-auth-server/common/log"
 	"github.com/WeBankPartners/wecube-platform/platform-auth-server/model"
 	"github.com/golang-jwt/jwt"
-	"io/ioutil"
 	"strconv"
 	"time"
 )
 
-var (
+/*var (
 	jwtPrivateKey *rsa.PrivateKey
 	jwtPublicKey  *rsa.PublicKey
 )
-
-func InitKey() error {
+*/
+/*func InitKey() error {
 	var err error
 	var privateKeyBytes, pubKeyBytes []byte
 
@@ -49,13 +47,12 @@ func InitKey() error {
 
 	return nil
 }
-
+*/
 func BuildAccessToken(loginId string, authorities []string, clientType string, expireTime time.Time) (*model.JwtTokenDto, error) {
-	if jwtPrivateKey == nil {
-		log.Logger.Error("jwt private key is invalid")
+	if model.Config.Auth.SigningKeyBytes == nil {
+		log.Logger.Error("jwt key is invalid")
 		return nil, errors.New("failed to build refresh token")
 	}
-
 	//authoritiesBytes, _ := json.Marshal(authorities)
 	issueAt := time.Now().UTC().Unix()
 	exp := expireTime.UTC().Unix()
@@ -70,7 +67,7 @@ func BuildAccessToken(loginId string, authorities []string, clientType string, e
 		//Authority: string(authoritiesBytes),
 		Authorities: authorities,
 	})
-	if tokenString, err := token.SignedString(jwtPrivateKey); err == nil {
+	if tokenString, err := token.SignedString(model.Config.Auth.SigningKeyBytes); err == nil {
 		return &model.JwtTokenDto{
 			Expiration: strconv.Itoa(int(exp)),
 			Token:      tokenString,
@@ -83,13 +80,13 @@ func BuildAccessToken(loginId string, authorities []string, clientType string, e
 }
 
 func buildRefreshToken(loginId, clientType string) (*model.JwtTokenDto, error) {
-	if jwtPrivateKey == nil {
-		log.Logger.Error("jwt private key is invalid")
+	if model.Config.Auth.SigningKeyBytes == nil {
+		log.Logger.Error("jwt key is invalid")
 		return nil, errors.New("failed to build refresh token")
 	}
-
 	issueAt := time.Now().UTC().Unix()
 	exp := time.Now().Add(time.Minute * time.Duration(model.Config.Auth.RefreshTokenMins)).UTC().Unix()
+
 	token := jwt.NewWithClaims(jwt.SigningMethodHS512, model.AuthClaims{
 		Subject:    loginId,
 		IssuedAt:   issueAt,
@@ -97,7 +94,7 @@ func buildRefreshToken(loginId, clientType string) (*model.JwtTokenDto, error) {
 		Type:       constant.TypeAccessToken,
 		ClientType: clientType,
 	})
-	if tokenString, err := token.SignedString(jwtPrivateKey); err == nil {
+	if tokenString, err := token.SignedString(model.Config.Auth.SigningKeyBytes); err == nil {
 		return &model.JwtTokenDto{
 			Expiration: strconv.Itoa(int(exp)),
 			Token:      tokenString,
