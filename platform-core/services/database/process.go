@@ -189,8 +189,8 @@ func GetProcDefNodeLinkBySource(ctx context.Context, source string) (list []*mod
 // InsertProcDefNodeLink 添加编排节点线
 func InsertProcDefNodeLink(ctx context.Context, nodeLink *models.ProcDefNodeLink) (err error) {
 	var actions []*db.ExecAction
-	actions = append(actions, &db.ExecAction{Sql: "insert into  proc_def_node_link(id,source,target,name,ui_style) values(?,?,?,?,?)",
-		Param: []interface{}{nodeLink.Id, nodeLink.Source, nodeLink.Target, nodeLink.Name, nodeLink.UiStyle}})
+	actions = append(actions, &db.ExecAction{Sql: "insert into  proc_def_node_link(id,source,target,name,ui_style,link_id,proc_def_id) values(?,?,?,?,?,?,?)",
+		Param: []interface{}{nodeLink.Id, nodeLink.Source, nodeLink.Target, nodeLink.Name, nodeLink.UiStyle, nodeLink.LinkId, nodeLink.ProcDefId}})
 	err = db.Transaction(actions, ctx)
 	if err != nil {
 		err = exterror.Catch(exterror.New().DatabaseExecuteError, err)
@@ -509,6 +509,10 @@ func transProcDefNodeLinkUpdateConditionToSQL(procDefNodeLink *models.ProcDefNod
 	if procDefNodeLink.UiStyle != "" {
 		sql = sql + ",ui_style=?"
 		params = append(params, procDefNodeLink.UiStyle)
+	}
+	if procDefNodeLink.ProcDefId != "" {
+		sql = sql + ",proc_def_id=?"
+		params = append(params, procDefNodeLink.ProcDefId)
 	}
 	sql = sql + " where id= ?"
 	params = append(params, procDefNodeLink.Id)
