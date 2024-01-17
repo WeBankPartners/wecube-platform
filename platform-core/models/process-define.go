@@ -138,7 +138,6 @@ type ProcDefIds struct {
 
 // ProcDefNodeDto 编排节点dto
 type ProcDefNodeDto struct {
-	ProcDefId              string                  `json:"procDefId"`   // 编排Id
 	ProcDefNodeCustomAttrs *ProcDefNodeCustomAttrs `json:"customAttrs"` // 节点数据
 	NodeAttrs              interface{}             `json:"selfAttrs"`   // 节点属性,前端使用,保存即可
 }
@@ -178,6 +177,12 @@ type ProcDefNodeLinkDto struct {
 	ProcDefId                  string                      `json:"procDefId"`   // 编排Id
 	ProcDefNodeLinkCustomAttrs *ProcDefNodeLinkCustomAttrs `json:"customAttrs"` // 节点数据
 	SelfAttrs                  interface{}                 `json:"selfAttrs"`   // 节点属性,前端使用,保存即可
+}
+
+type ProcDefNodeLinkParam struct {
+	ProcDefId string `json:"procDefId"` // 编排Id
+	NodeId    string `json:"nodeId"`    // 节点id
+	LinkId    string `json:"linkId"`    // 线id
 }
 
 // ProcessDefinitionDto  编排dto
