@@ -235,6 +235,40 @@ func DeleteProcDef(ctx context.Context, procDefId string) (err error) {
 	return
 }
 
+// DeleteProcDefChain 删除编排链,包含节点，线，节点参数
+func DeleteProcDefChain(ctx context.Context, procDefId string) (err error) {
+	var nodeIds []string
+	nodeIds, err = getProcDefNodeIdsByProcDefId(ctx, procDefId)
+	var actions []*db.ExecAction
+	// 删除编排线
+	actions = append(actions, &db.ExecAction{Sql: "delete  from proc_def_node_link where proc_def_id=?", Param: []interface{}{procDefId}})
+	// 删除编排节点参数定义
+	if len(nodeIds) > 0 {
+		nodeIdsFilterSql, nodeIdsFilterParam := createListParams(nodeIds, "")
+		actions = append(actions, &db.ExecAction{Sql: "delete  from proc_def_node_param where proc_def_node_id in (" + nodeIdsFilterSql + ")", Param: nodeIdsFilterParam})
+	}
+	// 删除编排节点
+	actions = append(actions, &db.ExecAction{Sql: "delete  from proc_def_node where proc_def_id=?", Param: []interface{}{procDefId}})
+	// 删除权限表
+	actions = append(actions, &db.ExecAction{Sql: "delete  from proc_def_permission where proc_def_id=?", Param: []interface{}{procDefId}})
+	// 删除编排表
+	actions = append(actions, &db.ExecAction{Sql: "delete  from proc_def  where id=?", Param: []interface{}{procDefId}})
+	err = db.Transaction(actions, ctx)
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseExecuteError, err)
+	}
+	return
+}
+
+func getProcDefNodeIdsByProcDefId(ctx context.Context, procDefId string) (ids []string, err error) {
+	err = db.MysqlEngine.Context(ctx).SQL("select id from proc_def_node where proc_def_id = ?", procDefId).Find(&ids)
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
+		return
+	}
+	return
+}
+
 func DeleteProcDefNode(ctx context.Context, procDefId, nodeId string) (err error) {
 	var actions []*db.ExecAction
 	actions = append(actions, &db.ExecAction{Sql: "delete  from proc_def_node where proc_def_id=? and node_id=?", Param: []interface{}{procDefId, nodeId}})

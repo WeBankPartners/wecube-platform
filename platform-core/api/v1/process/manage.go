@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/WeBankPartners/wecube-platform/platform-core/common/log"
 	"sort"
 	"strconv"
 	"strings"
@@ -15,6 +16,20 @@ import (
 	"github.com/WeBankPartners/wecube-platform/platform-core/models"
 	"github.com/WeBankPartners/wecube-platform/platform-core/services/database"
 	"github.com/gin-gonic/gin"
+)
+
+const (
+	CONTEXT_NAME_PROC_DEF_NAME    string = "procDefName"
+	CONTEXT_NAME_PROC_DEF_KEY     string = "procDefKey"
+	CONTEXT_NAME_PROC_INST_NAME   string = "procInstName"
+	CONTEXT_NAME_ROOT_ENTITY_NAME string = "rootEntityName"
+	CONTEXT_NAME_ROOT_ENTITY_ID   string = "rootEntityId"
+	CONTEXT_NAME_PROC_INST_ID     string = "procInstId"
+	CONTEXT_NAME_PROC_INST_KEY    string = "procInstKey"
+	PLUGIN_DATA_TYPE_STRING       string = "string"
+	PLUGIN_DATA_TYPE_NUMBER       string = "number"
+	PLUGIN_PARAM_TYPE_INPUT       string = "INPUT"
+	PLUGIN_PARAM_TYPE_OUTPUT      string = "OUTPUT"
 )
 
 // AddOrUpdateProcessDefinition 添加或者更新编排
@@ -152,7 +167,8 @@ func BatchUpdateProcessDefinitionStatus(c *gin.Context) {
 	var param models.BatchUpdateProcDefStatusParam
 	var procDef *models.ProcDef
 	var err error
-	var finalUpdateProcDefList, finalDeleteProcDefList []*models.ProcDef
+	var user = middleware.GetRequestUser(c)
+	var draftProcDefList, deployProcDefList, disabledProcDefList []*models.ProcDef
 	if err = c.ShouldBindJSON(&param); err != nil {
 		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, err))
 		return
@@ -161,7 +177,7 @@ func BatchUpdateProcessDefinitionStatus(c *gin.Context) {
 		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, fmt.Errorf("procDefIds is empty")))
 		return
 	}
-	if param.Status != string(models.Disabled) && param.Status != string(models.Deployed) && param.Status != string(models.Deleted) {
+	if param.Status != string(models.Disabled) && param.Status != string(models.Enabled) && param.Status != string(models.Deleted) {
 		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, fmt.Errorf("status param is invalid")))
 		return
 	}
@@ -174,25 +190,44 @@ func BatchUpdateProcessDefinitionStatus(c *gin.Context) {
 		if procDef == nil {
 			continue
 		}
-		if procDef.Status == string(models.Draft) {
-			finalDeleteProcDefList = append(finalDeleteProcDefList, procDef)
-		} else if procDef.Status == string(models.Deployed) || procDef.Status == string(models.Disabled) {
-			finalUpdateProcDefList = append(finalUpdateProcDefList, procDef)
+		switch procDef.Status {
+		case string(models.Draft):
+			// 记录草稿态编排
+			draftProcDefList = append(draftProcDefList, procDef)
+		case string(models.Deployed):
+			// 记录发布态编排
+			deployProcDefList = append(deployProcDefList, procDef)
+		case string(models.Disabled):
+			// 记录禁用态编排
+			disabledProcDefList = append(disabledProcDefList, procDef)
 		}
 	}
 	switch param.Status {
 	case string(models.Deleted):
-		for _, procDef := range finalDeleteProcDefList {
-			err = database.DeleteProcDef(c, procDef.Id)
+		for _, procDef := range draftProcDefList {
+			// 删除编排
+			err = database.DeleteProcDefChain(c, procDef.Id)
 			if err != nil {
 				middleware.ReturnError(c, err)
 				return
 			}
 		}
-	default:
-		for _, procDef := range finalUpdateProcDefList {
-			// 节点状态改成待更新状态
-			procDef.Status = param.Status
+	case string(models.Disabled):
+		for _, procDef := range deployProcDefList {
+			procDef.Status = string(models.Disabled)
+			procDef.UpdatedBy = user
+			procDef.UpdatedTime = time.Now()
+			err = database.UpdateProcDefStatus(c, procDef)
+			if err != nil {
+				middleware.ReturnError(c, err)
+				return
+			}
+		}
+	case string(models.Enabled):
+		for _, procDef := range disabledProcDefList {
+			procDef.Status = string(models.Deployed)
+			procDef.UpdatedBy = user
+			procDef.UpdatedTime = time.Now()
 			err = database.UpdateProcDefStatus(c, procDef)
 			if err != nil {
 				middleware.ReturnError(c, err)
@@ -361,6 +396,53 @@ func GetProcDefNode(c *gin.Context) {
 	middleware.Return(c, nodeDto)
 }
 
+// GetProcDefNodeParameters 获取节点参数
+func GetProcDefNodeParameters(c *gin.Context) {
+	var interfaceParameterList []*models.InterfaceParameterDto
+	var pluginConfigInterfaces *models.PluginConfigInterfaces
+	var err error
+	var procDefNode *models.ProcDefNode
+	nodeId := c.Param("node-id")
+	procDefId := c.Param("proc-def-id")
+	if procDefId == "" || nodeId == "" {
+		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, fmt.Errorf("node-id or proc-def-id is empty")))
+		return
+	}
+	procDefNode, err = database.GetProcDefNode(c, procDefId, nodeId)
+	if err != nil {
+		middleware.ReturnError(c, err)
+		return
+	}
+	if procDefNode == nil {
+		middleware.Return(c, interfaceParameterList)
+		return
+	}
+
+	if procDefNode.NodeType == "startEvent" {
+		startEventParams := prepareNodeParameters()
+		interfaceParameterList = append(interfaceParameterList, startEventParams...)
+		middleware.Return(c, interfaceParameterList)
+	}
+	pluginConfigInterfaces, err = fetchLatestPluginConfigInterfacesByServiceName(c, procDefNode.ServiceName)
+	if err != nil {
+		middleware.Return(c, err)
+		return
+	}
+	if pluginConfigInterfaces != nil {
+		if len(pluginConfigInterfaces.InputParameters) > 0 {
+			for _, parameter := range pluginConfigInterfaces.InputParameters {
+				interfaceParameterList = append(interfaceParameterList, models.BuildInterfaceParameterDto(parameter))
+			}
+		}
+		if len(pluginConfigInterfaces.OutputParameters) > 0 {
+			for _, parameter := range pluginConfigInterfaces.OutputParameters {
+				interfaceParameterList = append(interfaceParameterList, models.BuildInterfaceParameterDto(parameter))
+			}
+		}
+	}
+	middleware.Return(c, interfaceParameterList)
+}
+
 // DeleteProcDefNode 删除编排节点,同时需要删除线&节点参数
 func DeleteProcDefNode(c *gin.Context) {
 	var err error
@@ -512,4 +594,135 @@ func convertParam2ProcDefNode(user string, param models.ProcDefNodeRequestParam)
 		UpdatedTime:       now,
 	}
 	return node
+}
+
+func prepareNodeParameters() []*models.InterfaceParameterDto {
+	predefineParams := make([]*models.InterfaceParameterDto, 0)
+
+	// 1
+	predefineParams = append(predefineParams, &models.InterfaceParameterDto{
+		Type:     PLUGIN_DATA_TYPE_STRING,
+		Name:     CONTEXT_NAME_PROC_DEF_NAME,
+		DataType: PLUGIN_PARAM_TYPE_INPUT,
+	})
+
+	// 2
+	predefineParams = append(predefineParams, &models.InterfaceParameterDto{
+		Type:     PLUGIN_DATA_TYPE_STRING,
+		Name:     CONTEXT_NAME_PROC_DEF_KEY,
+		DataType: PLUGIN_PARAM_TYPE_INPUT,
+	})
+	// 3
+	predefineParams = append(predefineParams, &models.InterfaceParameterDto{
+		Type:     PLUGIN_DATA_TYPE_STRING,
+		Name:     CONTEXT_NAME_PROC_INST_ID,
+		DataType: PLUGIN_PARAM_TYPE_INPUT,
+	})
+	// 4
+	predefineParams = append(predefineParams, &models.InterfaceParameterDto{
+		Type:     PLUGIN_DATA_TYPE_STRING,
+		Name:     CONTEXT_NAME_PROC_INST_KEY,
+		DataType: PLUGIN_PARAM_TYPE_INPUT,
+	})
+
+	// 5
+	predefineParams = append(predefineParams, &models.InterfaceParameterDto{
+		Type:     PLUGIN_DATA_TYPE_STRING,
+		Name:     CONTEXT_NAME_PROC_INST_NAME,
+		DataType: PLUGIN_PARAM_TYPE_INPUT,
+	})
+
+	// 6
+	predefineParams = append(predefineParams, &models.InterfaceParameterDto{
+		Type:     PLUGIN_DATA_TYPE_STRING,
+		Name:     CONTEXT_NAME_ROOT_ENTITY_NAME,
+		DataType: PLUGIN_PARAM_TYPE_INPUT,
+	})
+
+	// 7
+	predefineParams = append(predefineParams, &models.InterfaceParameterDto{
+		Type:     PLUGIN_DATA_TYPE_STRING,
+		Name:     CONTEXT_NAME_ROOT_ENTITY_ID,
+		DataType: PLUGIN_PARAM_TYPE_INPUT,
+	})
+
+	return predefineParams
+}
+
+func fetchLatestPluginConfigInterfacesByServiceName(ctx context.Context, serviceName string) (pluginConfigInterfaces *models.PluginConfigInterfaces, err error) {
+	var richInterfaceList []*models.RichPluginConfigInterfaces
+	richInterfaceList, err = database.GetAllByServiceNameAndConfigStatus(ctx, serviceName, "ENABLED")
+	if err != nil {
+		return
+	}
+	if len(richInterfaceList) == 0 {
+		err = fmt.Errorf("plguin interface not found for serviceName [%s]", serviceName)
+		return
+	}
+	// 版本排序
+	sort.Sort(models.RichPluginConfigInterfacesSort(richInterfaceList))
+	latestInterfaceEntity := richInterfaceList[len(richInterfaceList)-1]
+	return fetchRichPluginConfigInterfacesById(ctx, latestInterfaceEntity.PluginConfigId)
+}
+
+func fetchRichPluginConfigInterfacesById(ctx context.Context, interfaceId string) (resultInterface *models.PluginConfigInterfaces, err error) {
+	var pluginConfigInterface *models.PluginConfigInterfaces
+	var pluginConfig *models.PluginConfigs
+	var pluginPackage *models.PluginPackages
+	pluginConfigInterface, err = database.GetConfigInterfacesById(ctx, interfaceId)
+	if err != nil {
+		return
+	}
+	if pluginConfigInterface == nil {
+		return
+	}
+	pluginConfig, err = database.GetPluginConfigById(ctx, pluginConfigInterface.PluginConfigId)
+	if err != nil {
+		return
+	}
+	if pluginConfig != nil {
+		pluginConfigInterface.PluginConfig = pluginConfig
+		pluginPackage, err = database.GetPluginPackageById(ctx, pluginConfig.PluginPackageId)
+		if err != nil {
+			return
+		}
+		pluginConfig.PluginPackages = pluginPackage
+	}
+	resultInterface = enrichPluginConfigInterfaces(ctx, pluginConfigInterface)
+	return
+}
+
+func enrichPluginConfigInterfaces(ctx context.Context, configInterface *models.PluginConfigInterfaces) *models.PluginConfigInterfaces {
+	inputParamEntities, err := database.GetPluginConfigInterfaceParameters(ctx, configInterface.Id, "INPUT")
+	if err != nil {
+		log.Logger.Error("GetPluginConfigInterfaceParameters err", log.Error(err))
+		return nil
+	}
+	if len(inputParamEntities) > 0 {
+		for _, inputParam := range inputParamEntities {
+			inputParam.PluginConfigInterface = configInterface
+			configInterface.AddInputParameters(inputParam)
+			if inputParam.DataType == "object" {
+				objectMeta := database.TryFetchEnrichCoreObjectMeta(ctx, inputParam)
+				inputParam.ObjectMeta = objectMeta
+			}
+		}
+	}
+
+	outputParamEntities, err := database.GetPluginConfigInterfaceParameters(ctx, configInterface.Id, "OUTPUT")
+	if err != nil {
+		log.Logger.Error("GetPluginConfigInterfaceParameters err", log.Error(err))
+		return nil
+	}
+	if len(outputParamEntities) > 0 {
+		for _, outputParam := range outputParamEntities {
+			outputParam.PluginConfigInterface = configInterface
+			configInterface.AddInputParameters(outputParam)
+			if outputParam.DataType == "object" {
+				objectMeta := database.TryFetchEnrichCoreObjectMeta(ctx, outputParam)
+				outputParam.ObjectMeta = objectMeta
+			}
+		}
+	}
+	return configInterface
 }

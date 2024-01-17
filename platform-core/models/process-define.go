@@ -13,6 +13,7 @@ const (
 	Draft    ProcDefStatus  = "draft"    //草稿
 	Deployed ProcDefStatus  = "deployed" //部署状态
 	Disabled ProcDefStatus  = "disabled" //禁用
+	Enabled  ProcDefStatus  = "enabled"  //启用
 	Deleted  ProcDefStatus  = "deleted"  //删除
 	MGMT     PermissionType = "MGMT"     //管理权限
 	USE      PermissionType = "USE"      //使用权限
@@ -120,7 +121,7 @@ type CheckProcDefNameParam struct {
 
 type BatchUpdateProcDefStatusParam struct {
 	ProcDefIds []string `json:"procDefIds"` // 编排id列表
-	Status     string   `json:"status"`     // 更新状态 disabled 禁用 deleted 删除  deployed 部署状态
+	Status     string   `json:"status"`     // 更新状态 disabled 禁用 deleted 删除  enabled 部署状态
 }
 
 type BatchUpdateProcDefPermission struct {
@@ -203,6 +204,12 @@ type ProcDefNodeCustomAttrsDto struct {
 	CreatedTime       string              `json:"createdTime" `      // 创建时间
 	UpdatedBy         string              `json:"updatedBy" `        // 更新人
 	UpdatedTime       string              `json:"updatedTime" `      // 更新时间
+}
+
+type InterfaceParameterDto struct {
+	Type     string `json:"type"`     // 类型
+	Name     string `json:"name"`     // 名称
+	DataType string `json:"dataType"` // 数据类型
 }
 
 // ProcDefNodeLinkDto 编排线
@@ -363,4 +370,12 @@ func ConvertProcDefNodeLink2Dto(nodeLink *ProcDefNodeLink) *ProcDefNodeLinkDto {
 		SelfAttrs: nodeLink.UiStyle,
 	}
 	return dto
+}
+
+func BuildInterfaceParameterDto(p *PluginConfigInterfaceParameters) *InterfaceParameterDto {
+	return &InterfaceParameterDto{
+		Type:     p.Type,
+		Name:     p.Name,
+		DataType: p.DataType,
+	}
 }
