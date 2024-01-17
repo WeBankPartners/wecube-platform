@@ -1,6 +1,7 @@
 package service
 
 import (
+	"bytes"
 	"crypto/rsa"
 	"crypto/x509"
 	"encoding/base64"
@@ -22,9 +23,9 @@ import (
 )
 
 var (
-	jwtPrivateKey *rsa.PrivateKey
-	jwtPublicKey  *rsa.PublicKey
-
+	/*	jwtPrivateKey *rsa.PrivateKey
+		jwtPublicKey  *rsa.PublicKey
+	*/
 	ErrRefreshToken = errors.New("failed to refreshToken")
 )
 
@@ -36,34 +37,16 @@ type AuthService struct {
 }
 
 func (AuthService) InitKey() error {
-	var err error
-	var privateKeyBytes, pubKeyBytes []byte
-
-	log.Logger.Debug("loading auth jwt private key from file:" + model.Config.Auth.JwtPrivateKeyPath)
-	privateKeyBytes, err = ioutil.ReadFile(model.Config.Auth.JwtPrivateKeyPath)
+	signingKey := constant.DefaultJwtSigningKey
+	if len(model.Config.Auth.SigningKey) > 0 {
+		signingKey = model.Config.Auth.SigningKey
+	}
+	keyBytes, err := ioutil.ReadAll(base64.NewDecoder(base64.RawStdEncoding, bytes.NewBufferString(signingKey)))
 	if err != nil {
+		log.Logger.Error("Decode core token fail,base64 decode error", log.Error(err))
 		return err
 	}
-
-	jwtPrivateKey, err = jwt.ParseRSAPrivateKeyFromPEM(privateKeyBytes)
-	if err != nil {
-		log.Logger.Error("Failed to init auth private key: ", log.Error(err))
-		return errors.New("failed to init auth private key")
-	}
-	log.Logger.Info("loaded jwt private key successfully")
-
-	log.Logger.Debug("loading auth jwt public key from file:" + model.Config.Auth.JwtPublicKeyPath)
-	pubKeyBytes, err = ioutil.ReadFile(model.Config.Auth.JwtPublicKeyPath)
-	if err != nil {
-		return err
-	}
-	jwtPublicKey, err = jwt.ParseRSAPublicKeyFromPEM(pubKeyBytes)
-	if err != nil {
-		log.Logger.Error("Failed to init auth public key:", log.Error(err))
-		return errors.New("failed to init auth public key")
-	}
-	log.Logger.Info("loaded jwt public key successfully")
-
+	model.Config.Auth.SigningKeyBytes = keyBytes
 	return nil
 }
 
@@ -91,7 +74,7 @@ func (AuthService) Login(credential *model.CredentialDto) (*model.Authentication
 
 func (AuthService) RefreshToken(refreshToken string) ([]model.Jwt, error) {
 	jwtToken, err := jwt.ParseWithClaims(refreshToken, &model.AuthClaims{}, func(token *jwt.Token) (interface{}, error) {
-		return jwtPublicKey, nil
+		return model.Config.Auth.SigningKeyBytes, nil
 	})
 	if err != nil {
 		log.Logger.Error("Failed to refresh token:", log.Error(err))
@@ -284,14 +267,13 @@ func packJwtTokens(loginId string, roles []string, authorities []string, userNam
 }
 
 func buildAccessToken(loginId string, roles []string, authorities []string, userName string) (string, int64, error) {
-	if jwtPrivateKey == nil {
-		log.Logger.Error("jwt private key is invalid")
+	if model.Config.Auth.SigningKeyBytes == nil {
+		log.Logger.Error("jwt key is invalid")
 		return "", 0, errors.New("failed to build refresh token")
 	}
-
 	issueAt := time.Now().UTC().Unix()
 	exp := time.Now().Add(time.Minute * time.Duration(model.Config.Auth.AccessTokenMins)).UTC().Unix()
-	token := jwt.NewWithClaims(jwt.SigningMethodRS512, model.AuthClaims{
+	token := jwt.NewWithClaims(jwt.SigningMethodHS512, model.AuthClaims{
 		Subject:     loginId,
 		IssuedAt:    issueAt,
 		ExpiresAt:   exp,
@@ -303,7 +285,7 @@ func buildAccessToken(loginId string, roles []string, authorities []string, user
 				AdminType:   adminType,
 				UserName:    userName,
 		*/})
-	if tokenString, err := token.SignedString(jwtPrivateKey); err == nil {
+	if tokenString, err := token.SignedString(model.Config.Auth.SigningKeyBytes); err == nil {
 		return tokenString, exp, nil
 	} else {
 		log.Logger.Error("Failed to build access token", log.Error(err))
@@ -313,14 +295,14 @@ func buildAccessToken(loginId string, roles []string, authorities []string, user
 }
 
 func buildRefreshToken(loginId, userName string) (string, int64, error) {
-	if jwtPrivateKey == nil {
-		log.Logger.Error("jwt private key is invalid")
+	if model.Config.Auth.SigningKeyBytes == nil {
+		log.Logger.Error("jwt key is invalid")
 		return "", 0, errors.New("failed to build refresh token")
 	}
 
 	issueAt := time.Now().UTC().Unix()
 	exp := time.Now().Add(time.Minute * time.Duration(model.Config.Auth.RefreshTokenMins)).UTC().Unix()
-	token := jwt.NewWithClaims(jwt.SigningMethodRS512, model.AuthClaims{
+	token := jwt.NewWithClaims(jwt.SigningMethodHS512, model.AuthClaims{
 		Subject:   loginId,
 		IssuedAt:  issueAt,
 		ExpiresAt: exp,
@@ -329,7 +311,7 @@ func buildRefreshToken(loginId, userName string) (string, int64, error) {
 				AdminType: adminType,
 				UserName:  userName,
 		*/})
-	if tokenString, err := token.SignedString(jwtPrivateKey); err == nil {
+	if tokenString, err := token.SignedString(model.Config.Auth.SigningKeyBytes); err == nil {
 		return tokenString, exp, nil
 	} else {
 		log.Logger.Error("Failed to build refresh token", log.Error(err))
