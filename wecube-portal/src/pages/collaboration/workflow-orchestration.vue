@@ -66,8 +66,6 @@ export default {
   data () {
     return {
       demoFlowId: 'pdef_60f1e126f08c50d256735',
-      // 60ea38f522478e4cbcf2d
-      // 60ea2f61db0236b2f1391
       isShowGraph: false,
       itemInfoType: '', // canvas、node、edge
       mode: 'drag-shadow-node',
@@ -171,8 +169,10 @@ export default {
           if (customAttrs.timeConfig) {
             customAttrs.timeConfig = JSON.parse(customAttrs.timeConfig)
           }
+          let selfAttrs = JSON.parse(n.selfAttrs)
+          selfAttrs.logoIcon.img = ''
           return {
-            ...JSON.parse(n.selfAttrs),
+            ...selfAttrs,
             customAttrs: customAttrs
           }
         })
