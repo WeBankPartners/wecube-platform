@@ -10,13 +10,12 @@ type ProcDefStatus string //定义编排定义状态
 type PermissionType string
 
 const (
-	Draft     ProcDefStatus  = "draft"     //草稿
-	Deployed  ProcDefStatus  = "deployed"  //部署状态
-	Deleted   ProcDefStatus  = "deleted"   //删除
-	Templated ProcDefStatus  = "template"  //模板
-	PreDeploy ProcDefStatus  = "predeploy" //预发布
-	MGMT      PermissionType = "MGMT"      //管理权限
-	USE       PermissionType = "USE"       //使用权限
+	Draft    ProcDefStatus  = "draft"    //草稿
+	Deployed ProcDefStatus  = "deployed" //部署状态
+	Disabled ProcDefStatus  = "disabled" //禁用
+	Deleted  ProcDefStatus  = "deleted"  //删除
+	MGMT     PermissionType = "MGMT"     //管理权限
+	USE      PermissionType = "USE"      //使用权限
 )
 
 type ProcDef struct {
@@ -38,6 +37,7 @@ type ProcDef struct {
 
 type ProcDefNode struct {
 	Id                string    `json:"id" xorm:"id"`                                 // 唯一标识
+	NodeId            string    `json:"nodeId" xorm:"node_id"`                        // 前端nodeID
 	ProcDefId         string    `json:"procDefId" xorm:"proc_def_id"`                 // 编排id
 	Name              string    `json:"name" xorm:"name"`                             // 节点名称
 	Description       string    `json:"description" xorm:"description"`               // 节点描述
@@ -72,6 +72,7 @@ type ProcDefNodeParam struct {
 
 type ProcDefNodeLink struct {
 	Id      string `json:"id" xorm:"id"`            // 唯一标识(source__target)
+	LinkId  string `json:"LinkId" xorm:"link_id"`   // 前端线id
 	Source  string `json:"source" xorm:"source"`    // 源节点
 	Target  string `json:"target" xorm:"target"`    // 目标节点
 	Name    string `json:"name" xorm:"name"`        // 连接名称
@@ -98,6 +99,7 @@ type ProcDefCollect struct {
 // ProcessDefinitionParam 添加编排参数
 type ProcessDefinitionParam struct {
 	Id               string           `json:"id"`               // 唯一标识
+	Key              string           `json:"Key"`              // key
 	Name             string           `json:"name"`             // 编排名称
 	Version          string           `json:"version"`          // 编排版本
 	Scene            string           `json:"scene"`            // 使用场景
@@ -106,6 +108,31 @@ type ProcessDefinitionParam struct {
 	ConflictCheck    bool             `json:"conflictCheck"`    // 冲突检测
 	RootEntity       string           `json:"rootEntity"`       // 根节点
 	PermissionToRole PermissionToRole `json:"permissionToRole"` // 角色
+}
+
+type CheckProcDefNameParam struct {
+	Key  string `json:"Key"`  // key
+	Name string `json:"name"` // 编排名称
+}
+
+type BatchUpdateProcDefStatusParam struct {
+	ProcDefIds []string `json:"procDefIds"` // 编排id列表
+	Status     string   `json:"status"`     // 更新状态 disabled 禁用 deleted 删除  deployed 部署状态
+}
+
+type BatchUpdateProcDefPermission struct {
+	ProcDefIds       []string         `json:"procDefIds"`       // 编排id列表
+	PermissionToRole PermissionToRole `json:"permissionToRole"` // 角色
+}
+
+type ProcDefCondition struct {
+	Key  string `json:"Key"`  // key
+	Name string `json:"name"` // 编排名称
+}
+
+// ProcDefIds 编排ids
+type ProcDefIds struct {
+	ProcDefIds []string `json:"procDefIds"` // 编排id列表
 }
 
 // ProcDefNodeDto 编排节点dto
@@ -186,6 +213,24 @@ type PermissionToRole struct {
 	USE  []string `json:"USE"`  // 使用角色
 }
 
+type ProcDefSort []*ProcDef
+
+func (q ProcDefSort) Len() int {
+	return len(q)
+}
+
+func (q ProcDefSort) Less(i, j int) bool {
+	t := strings.Compare(q[i].Version, q[j].Version)
+	if t < 0 {
+		return true
+	}
+	return false
+}
+
+func (q ProcDefSort) Swap(i, j int) {
+	q[i], q[j] = q[j], q[i]
+}
+
 func ConvertProcDef2Dto(procDef *ProcDef) *ProcDefDto {
 	var authPlugins = make([]string, 0)
 	if procDef == nil {
@@ -219,7 +264,7 @@ func ConvertProcDefNode2Dto(procDefNode *ProcDefNode, list []*ProcDefNodeParam) 
 	}
 	dto := &ProcDefNodeDto{
 		ProcDefNodeCustomAttrs: &ProcDefNodeCustomAttrs{
-			Id:                procDefNode.Id,
+			Id:                procDefNode.NodeId,
 			Name:              procDefNode.Name,
 			Status:            procDefNode.Status,
 			NodeType:          procDefNode.NodeType,
@@ -250,7 +295,7 @@ func ConvertParam2ProcDefNodeLink(param ProcDefNodeLinkDto) *ProcDefNodeLink {
 	byteArr, _ := json.Marshal(param.SelfAttrs)
 	nodeLinkAttr := param.ProcDefNodeLinkCustomAttrs
 	return &ProcDefNodeLink{
-		Id:      nodeLinkAttr.Id,
+		LinkId:  nodeLinkAttr.Id,
 		Source:  nodeLinkAttr.Source,
 		Target:  nodeLinkAttr.Target,
 		Name:    nodeLinkAttr.Name,
@@ -261,7 +306,7 @@ func ConvertParam2ProcDefNodeLink(param ProcDefNodeLinkDto) *ProcDefNodeLink {
 func ConvertProcDefNodeLink2Dto(nodeLink *ProcDefNodeLink) *ProcDefNodeLinkDto {
 	dto := &ProcDefNodeLinkDto{
 		ProcDefNodeLinkCustomAttrs: &ProcDefNodeLinkCustomAttrs{
-			Id:     nodeLink.Id,
+			Id:     nodeLink.LinkId,
 			Name:   nodeLink.Name,
 			Source: nodeLink.Source,
 			Target: nodeLink.Target,
