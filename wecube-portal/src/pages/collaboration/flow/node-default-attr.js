@@ -1,21 +1,10 @@
-import startIcon from './icon/start.svg'
-import endIcon from './icon/end.svg'
-import decisionIcon from './icon/decision.svg'
-import abnormalIcon from './icon/lightning.svg'
-import timeIntervalIcon from './icon/time-interval.svg'
-import fixedTimeIcon from './icon/fixed-time.svg'
-import dataIcon from './icon/data.svg'
-import automaticIcon from './icon/automatic.svg'
-import humanIcon from './icon/human.svg'
-import convergeIcon from './icon/converge.svg'
-
 const nodeDefaultAttr = {
   start: {
     logoIcon: {
       show: true,
       x: -12,
       y: -12,
-      img: startIcon,
+      img: 'start',
       width: 24,
       height: 24,
       offset: 0
@@ -32,7 +21,7 @@ const nodeDefaultAttr = {
       show: true,
       x: -12,
       y: -12,
-      img: endIcon,
+      img: 'end',
       width: 24,
       height: 24,
       offset: 0
@@ -49,7 +38,7 @@ const nodeDefaultAttr = {
       show: true,
       x: -12,
       y: -12,
-      img: abnormalIcon,
+      img: 'abnormal',
       width: 24,
       height: 24,
       offset: 0
@@ -66,7 +55,7 @@ const nodeDefaultAttr = {
       show: true,
       x: -12,
       y: -12,
-      img: decisionIcon,
+      img: 'decision',
       width: 24,
       height: 24,
       offset: 0
@@ -83,7 +72,7 @@ const nodeDefaultAttr = {
       show: true,
       x: -12,
       y: -12,
-      img: convergeIcon,
+      img: 'converge',
       width: 24,
       height: 24,
       offset: 0
@@ -100,7 +89,7 @@ const nodeDefaultAttr = {
       show: true,
       x: -12,
       y: -12,
-      img: humanIcon,
+      img: 'human',
       width: 24,
       height: 24,
       offset: 0
@@ -117,7 +106,7 @@ const nodeDefaultAttr = {
       show: true,
       x: -12,
       y: -12,
-      img: automaticIcon,
+      img: 'automatic',
       width: 24,
       height: 24,
       offset: 0
@@ -134,7 +123,7 @@ const nodeDefaultAttr = {
       show: true,
       x: -12,
       y: -12,
-      img: dataIcon,
+      img: 'data',
       width: 24,
       height: 24,
       offset: 0
@@ -151,7 +140,7 @@ const nodeDefaultAttr = {
       show: true,
       x: -12,
       y: -12,
-      img: fixedTimeIcon,
+      img: 'fixedTime',
       width: 24,
       height: 24,
       offset: 0
@@ -168,7 +157,7 @@ const nodeDefaultAttr = {
       show: true,
       x: -12,
       y: -12,
-      img: timeIntervalIcon,
+      img: 'timeInterval',
       width: 24,
       height: 24,
       offset: 0
