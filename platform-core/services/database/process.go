@@ -63,6 +63,10 @@ func GetProcessDefinitionByCondition(ctx context.Context, condition models.ProcD
 		sql = sql + " and `key` = ?"
 		param = append(param, condition.Key)
 	}
+	if condition.Status != "" {
+		sql = sql + " and status = ?"
+		param = append(param, condition.Status)
+	}
 	err = db.MysqlEngine.Context(ctx).SQL(sql, param...).Find(&list)
 	if err != nil {
 		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
@@ -132,7 +136,7 @@ func GetProcDefNodeLink(ctx context.Context, procDefId string, linkId string) (r
 	return
 }
 
-func GetProcDefNodeByProcDefId(ctx context.Context, procDefId string) (result []*models.ProcDefNodeDto, err error) {
+func GetProcDefNodeByProcDefId(ctx context.Context, procDefId string) (result []*models.ProcDefNodeResultDto, err error) {
 	var list []*models.ProcDefNode
 	if procDefId == "" {
 		return

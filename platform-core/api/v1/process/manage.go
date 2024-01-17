@@ -83,7 +83,7 @@ func AddOrUpdateProcessDefinition(c *gin.Context) {
 func GetProcessDefinition(c *gin.Context) {
 	procDefDto := &models.ProcessDefinitionDto{}
 	// 节点
-	var nodes []*models.ProcDefNodeDto
+	var nodes []*models.ProcDefNodeResultDto
 	// 线
 	var edges []*models.ProcDefNodeLinkDto
 	procDefId := c.Param("proc-def-id")
@@ -101,6 +101,14 @@ func GetProcessDefinition(c *gin.Context) {
 		return
 	}
 	procDefDto.ProcDef = models.ConvertProcDef2Dto(procDef)
+	historyList, err := database.GetProcessDefinitionByCondition(c, models.ProcDefCondition{Key: procDef.Key, Name: procDef.Name})
+	if err != nil {
+		middleware.ReturnError(c, err)
+		return
+	}
+	if len(historyList) <= 1 {
+		procDefDto.ProcDef.EnableModifyName = true
+	}
 	list, err := database.GetProcDefPermissionByCondition(c, models.ProcDefPermission{ProcDefId: procDefId})
 	if err != nil {
 		middleware.ReturnError(c, err)
@@ -139,31 +147,6 @@ func GetProcessDefinition(c *gin.Context) {
 	middleware.ReturnData(c, procDefDto)
 }
 
-// CheckProcDefNameExist 判断编排名称是否存在
-func CheckProcDefNameExist(c *gin.Context) {
-	var param models.CheckProcDefNameParam
-	var err error
-	var procDefList []*models.ProcDef
-	if err = c.ShouldBindJSON(&param); err != nil {
-		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, err))
-		return
-	}
-	if param.Name == "" {
-		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, fmt.Errorf("param name is empty")))
-		return
-	}
-	procDefList, err = database.GetProcessDefinitionByCondition(c, models.ProcDefCondition{Key: param.Key, Name: param.Name})
-	if err != nil {
-		middleware.ReturnError(c, err)
-		return
-	}
-	if len(procDefList) > 0 {
-		middleware.ReturnData(c, "yes")
-		return
-	}
-	middleware.ReturnData(c, "no")
-}
-
 // BatchUpdateProcessDefinitionStatus 批量更新编排状态
 func BatchUpdateProcessDefinitionStatus(c *gin.Context) {
 	var param models.BatchUpdateProcDefStatusParam
@@ -178,7 +161,7 @@ func BatchUpdateProcessDefinitionStatus(c *gin.Context) {
 		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, fmt.Errorf("procDefIds is empty")))
 		return
 	}
-	if param.Status != string(models.Disabled) || param.Status != string(models.Deployed) || param.Status != string(models.Deleted) {
+	if param.Status != string(models.Disabled) && param.Status != string(models.Deployed) && param.Status != string(models.Deleted) {
 		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, fmt.Errorf("status param is invalid")))
 		return
 	}
@@ -299,7 +282,7 @@ func DeployProcessDefinition(c *gin.Context) {
 
 // AddOrUpdateProcDefTaskNodes 添加更新编排节点
 func AddOrUpdateProcDefTaskNodes(c *gin.Context) {
-	var param models.ProcDefNodeDto
+	var param models.ProcDefNodeRequestParam
 	var procDefNode *models.ProcDefNode
 	var err error
 
@@ -333,16 +316,27 @@ func AddOrUpdateProcDefTaskNodes(c *gin.Context) {
 		return
 	}
 	// 处理节点参数,先删除然后插入
-	if len(param.ProcDefNodeCustomAttrs.ParamInfos) > 0 {
+	if param.ProcDefNodeCustomAttrs.ParamInfos != nil {
 		for _, info := range param.ProcDefNodeCustomAttrs.ParamInfos {
-			err = database.DeleteProcDefNodeParam(c, node.Id, info.ParamId)
+			err = database.DeleteProcDefNodeParam(c, node.Id, info.Id)
 			if err != nil {
 				middleware.ReturnError(c, err)
 				return
 			}
 			info.Id = guid.CreateGuid()
-			info.ProcDefNodeId = node.Id
-			err = database.InsertProcDefNodeParam(c, info)
+			info.NodeId = node.Id
+			err = database.InsertProcDefNodeParam(c, &models.ProcDefNodeParam{
+				Id:            "",
+				ProcDefNodeId: "",
+				ParamId:       "",
+				Name:          "",
+				BindType:      "",
+				Value:         "",
+				CtxBindNode:   "",
+				CtxBindType:   "",
+				CtxBindName:   "",
+				Required:      "",
+			})
 			if err != nil {
 				middleware.ReturnError(c, err)
 				return
@@ -357,7 +351,7 @@ func GetProcDefNode(c *gin.Context) {
 	var err error
 	var procDefNode *models.ProcDefNode
 	var list []*models.ProcDefNodeParam
-	var nodeDto *models.ProcDefNodeDto
+	var nodeDto *models.ProcDefNodeResultDto
 	nodeId := c.Param("node-id")
 	procDefId := c.Param("proc-def-id")
 	if nodeId == "" || procDefId == "" {
@@ -542,7 +536,7 @@ func calcProcDefVersion(ctx context.Context, key string) string {
 	return fmt.Sprintf("v%d", version+1)
 }
 
-func convertParam2ProcDefNode(user string, param models.ProcDefNodeDto) *models.ProcDefNode {
+func convertParam2ProcDefNode(user string, param models.ProcDefNodeRequestParam) *models.ProcDefNode {
 	now := time.Now()
 	byteArr, _ := json.Marshal(param.NodeAttrs)
 	procDefNodeAttr := param.ProcDefNodeCustomAttrs

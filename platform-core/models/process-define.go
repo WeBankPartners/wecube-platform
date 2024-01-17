@@ -59,16 +59,28 @@ type ProcDefNode struct {
 	UpdatedTime       time.Time `json:"updatedTime" xorm:"updated_time"`              // 更新时间
 }
 
+type ProcDefNodeParamDto struct {
+	Id            string `json:"id"`
+	NodeId        string `json:"nodeId"`
+	ParamName     string `json:"paramName"`
+	BindNodeId    string `json:"bindNodeId"`
+	BindParamType string `json:"bindParamType"`
+	BindType      string `json:"bindType"`
+	BindValue     string `json:"bindValue"`
+	Required      string `json:"required"`
+}
+
 type ProcDefNodeParam struct {
-	Id            string `json:"id" xorm:"id"`                          // 唯一标识
-	ProcDefNodeId string `json:"procDefNodeId" xorm:"proc_def_node_id"` // 编排节点id
-	ParamId       string `json:"paramId" xorm:"param_id"`               // 编排节点参数id
-	Name          string `json:"name" xorm:"name"`                      // 参数名
-	BindType      string `json:"bindType" xorm:"bind_type"`             // 参数类型->context(上下文) | constant(静态值)
-	Value         string `json:"value" xorm:"value"`                    // 参数值
-	CtxBindNode   string `json:"ctxBindNode" xorm:"ctx_bind_node"`      // 上下文节点
-	CtxBindType   string `json:"ctxBindType" xorm:"ctx_bind_type"`      // 上下文出入参->input(入参) | output(出参)
-	CtxBindName   string `json:"ctxBindName" xorm:"ctx_bind_name"`      // 上下文参数名
+	Id            string `json:"-" xorm:"id"`                        // 唯一标识
+	ProcDefNodeId string `json:"nodeId" xorm:"proc_def_node_id"`     // 编排节点id
+	ParamId       string `json:"id" xorm:"param_id"`                 // 编排节点参数id
+	Name          string `json:"paramName" xorm:"name"`              // 参数名
+	BindType      string `json:"bindType" xorm:"bind_type"`          // 参数类型->context(上下文) | constant(静态值)
+	Value         string `json:"bindValue" xorm:"value"`             // 参数值
+	CtxBindNode   string `json:"bindNodeId" xorm:"ctx_bind_node"`    // 上下文节点
+	CtxBindType   string `json:"bindParamType" xorm:"ctx_bind_type"` // 上下文出入参->input(入参) | output(出参)
+	CtxBindName   string `json:"bindParamName" xorm:"ctx_bind_name"` // 上下文参数名
+	Required      string `json:"required" xorm:"required"`           // 是否必填
 }
 
 type ProcDefNodeLink struct {
@@ -128,8 +140,9 @@ type BatchUpdateProcDefPermission struct {
 }
 
 type ProcDefCondition struct {
-	Key  string `json:"Key"`  // key
-	Name string `json:"name"` // 编排名称
+	Key    string `json:"Key"`    // key
+	Name   string `json:"name"`   // 编排名称
+	Status string `json:"status"` // 状态
 }
 
 // ProcDefIds 编排ids
@@ -137,19 +150,49 @@ type ProcDefIds struct {
 	ProcDefIds []string `json:"procDefIds"` // 编排id列表
 }
 
-// ProcDefNodeDto 编排节点dto
-type ProcDefNodeDto struct {
+// ProcDefNodeResultDto 编排节点参数
+type ProcDefNodeResultDto struct {
+	ProcDefNodeCustomAttrs *ProcDefNodeCustomAttrsDto `json:"customAttrs"` // 节点数据
+	NodeAttrs              interface{}                `json:"selfAttrs"`   // 节点属性,前端使用,保存即可
+}
+
+// ProcDefNodeRequestParam 编排节点dto
+type ProcDefNodeRequestParam struct {
 	ProcDefNodeCustomAttrs *ProcDefNodeCustomAttrs `json:"customAttrs"` // 节点数据
 	NodeAttrs              interface{}             `json:"selfAttrs"`   // 节点属性,前端使用,保存即可
 }
 
 // ProcDefNodeExtendDto node&link dto
 type ProcDefNodeExtendDto struct {
-	Nodes []*ProcDefNodeDto     `json:"nodes"` // 节点
-	Edges []*ProcDefNodeLinkDto `json:"edges"` // 线
+	Nodes []*ProcDefNodeResultDto `json:"nodes"` // 节点
+	Edges []*ProcDefNodeLinkDto   `json:"edges"` // 线
 }
 
 type ProcDefNodeCustomAttrs struct {
+	Id                string                 `json:"id"`                // 节点Id
+	Name              string                 `json:"name"`              // 节点名称
+	Status            string                 `json:"status"`            // 状态
+	NodeType          string                 `json:"nodeType"`          // 节点类型
+	ProcDefId         string                 `json:"procDefId"`         // 编排定义id
+	Timeout           int                    `json:"timeout"`           // 超时时间
+	Description       string                 `json:"description"`       // 描述
+	DynamicBind       bool                   `json:"dynamicBind"`       // 是否动态绑定
+	BindNodeId        string                 `json:"bindNodeId"`        // 动态绑定节点
+	RoutineExpression string                 `json:"routineExpression"` // 定位规则
+	ServiceId         string                 `json:"serviceId"`         // 插件服务ID
+	ServiceName       string                 `json:"serviceName"`       // 插件服务名
+	RiskCheck         bool                   `json:"riskCheck"`         // 是否高危检测
+	ParamInfos        []*ProcDefNodeParamDto `json:"paramInfos"`        // 节点参数
+	ContextParamNodes string                 `json:"contextParamNodes"` // 上下文参数节点
+	TimeConfig        interface{}            `json:"timeConfig"`        // 节点配置
+	OrderedNo         int                    `json:"orderedNo"`         // 节点顺序
+	CreatedBy         string                 `json:"createdBy" `        // 创建人
+	CreatedTime       string                 `json:"createdTime" `      // 创建时间
+	UpdatedBy         string                 `json:"updatedBy" `        // 更新人
+	UpdatedTime       string                 `json:"updatedTime" `      // 更新时间
+}
+
+type ProcDefNodeCustomAttrsDto struct {
 	Id                string              `json:"id"`                // 节点Id
 	Name              string              `json:"name"`              // 节点名称
 	Status            string              `json:"status"`            // 状态
@@ -164,7 +207,7 @@ type ProcDefNodeCustomAttrs struct {
 	ServiceName       string              `json:"serviceName"`       // 插件服务名
 	RiskCheck         bool                `json:"riskCheck"`         // 是否高危检测
 	ParamInfos        []*ProcDefNodeParam `json:"ParamInfos"`        // 节点参数
-	ContextParamNodes string              `json:"contextParamNodes"` // 上下文参数节点
+	ContextParamNodes []string            `json:"contextParamNodes"` // 上下文参数节点
 	TimeConfig        interface{}         `json:"timeConfig"`        // 节点配置
 	OrderedNo         int                 `json:"orderedNo"`         // 节点顺序
 	CreatedBy         string              `json:"createdBy" `        // 创建人
@@ -201,20 +244,22 @@ type ProcDefNodeLinkCustomAttrs struct {
 }
 
 type ProcDefDto struct {
-	Id            string   `json:"id"`            // 唯一标识
-	Key           string   `json:"key"`           // 编排key
-	Name          string   `json:"name"`          // 编排名称
-	Version       string   `json:"version"`       // 版本
-	RootEntity    string   `json:"rootEntity"`    // 根节点
-	Status        string   `json:"status"`        // 状态
-	Tags          string   `json:"tags"`          // 标签
-	AuthPlugins   []string `json:"authPlugins"`   // 授权插件
-	Scene         string   `json:"scene"`         // 使用场景
-	ConflictCheck bool     `json:"conflictCheck"` // 冲突检测
-	CreatedBy     string   `json:"createdBy"`     // 创建人
-	CreatedTime   string   `json:"createdTime"`   // 创建时间
-	UpdatedBy     string   `json:"updatedBy"`     // 更新人
-	UpdatedTime   string   `json:"updatedTime"`   // 更新时间
+	Id               string   `json:"id"`               // 唯一标识
+	Key              string   `json:"key"`              // 编排key
+	Name             string   `json:"name"`             // 编排名称
+	Version          string   `json:"version"`          // 版本
+	RootEntity       string   `json:"rootEntity"`       // 根节点
+	Status           string   `json:"status"`           // 状态
+	Tags             string   `json:"tags"`             // 标签
+	AuthPlugins      []string `json:"authPlugins"`      // 授权插件
+	Scene            string   `json:"scene"`            // 使用场景
+	ConflictCheck    bool     `json:"conflictCheck"`    // 冲突检测
+	CreatedBy        string   `json:"createdBy"`        // 创建人
+	CreatedTime      string   `json:"createdTime"`      // 创建时间
+	UpdatedBy        string   `json:"updatedBy"`        // 更新人
+	UpdatedTime      string   `json:"updatedTime"`      // 更新时间
+	EnableCreated    bool     `json:"enableCreated"`    // 能否创建新版本
+	EnableModifyName bool     `json:"enableModifyName"` // 能否修改名称
 }
 
 type PermissionToRole struct {
@@ -267,12 +312,16 @@ func ConvertProcDef2Dto(procDef *ProcDef) *ProcDefDto {
 	return dto
 }
 
-func ConvertProcDefNode2Dto(procDefNode *ProcDefNode, list []*ProcDefNodeParam) *ProcDefNodeDto {
+func ConvertProcDefNode2Dto(procDefNode *ProcDefNode, list []*ProcDefNodeParam) *ProcDefNodeResultDto {
+	var contextParamNodes []string
 	if procDefNode == nil {
 		return nil
 	}
-	dto := &ProcDefNodeDto{
-		ProcDefNodeCustomAttrs: &ProcDefNodeCustomAttrs{
+	if procDefNode.ContextParamNodes != "" {
+		contextParamNodes = strings.Split(procDefNode.ContextParamNodes, ",")
+	}
+	dto := &ProcDefNodeResultDto{
+		ProcDefNodeCustomAttrs: &ProcDefNodeCustomAttrsDto{
 			Id:                procDefNode.NodeId,
 			Name:              procDefNode.Name,
 			Status:            procDefNode.Status,
@@ -287,7 +336,7 @@ func ConvertProcDefNode2Dto(procDefNode *ProcDefNode, list []*ProcDefNodeParam) 
 			ServiceName:       procDefNode.ServiceName,
 			RiskCheck:         procDefNode.RiskCheck,
 			ParamInfos:        list,
-			ContextParamNodes: procDefNode.ContextParamNodes,
+			ContextParamNodes: contextParamNodes,
 			TimeConfig:        procDefNode.TimeConfig,
 			OrderedNo:         procDefNode.OrderedNo,
 			CreatedBy:         procDefNode.CreatedBy,
