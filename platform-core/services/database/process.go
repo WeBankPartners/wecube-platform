@@ -118,10 +118,10 @@ func GetProcDefNode(ctx context.Context, procDefId, nodeId string) (result *mode
 	return
 }
 
-// GetProcDefNodeLinkByLinkId  获取编排线
-func GetProcDefNodeLinkByLinkId(ctx context.Context, id string) (result *models.ProcDefNodeLink, err error) {
+// GetProcDefNodeLink  获取编排线
+func GetProcDefNodeLink(ctx context.Context, nodeId string, linkId string) (result *models.ProcDefNodeLink, err error) {
 	var list []*models.ProcDefNodeLink
-	err = db.MysqlEngine.Context(ctx).SQL("select * from proc_def_node_link where link_id = ?", id).Find(&list)
+	err = db.MysqlEngine.Context(ctx).SQL("select * from proc_def_node_link where source= ? and link_id = ?  ", nodeId, linkId).Find(&list)
 	if err != nil {
 		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
 		return
@@ -150,6 +150,18 @@ func GetProcDefNodeByProcDefId(ctx context.Context, procDefId string) (result []
 			return
 		}
 		result = append(result, models.ConvertProcDefNode2Dto(procDefNode, nodeParamList))
+	}
+	return
+}
+func GetProcDefNodeById(ctx context.Context, id string) (result *models.ProcDefNode, err error) {
+	var list []*models.ProcDefNode
+	err = db.MysqlEngine.Context(ctx).SQL("select * from proc_def_node where id = ?", id).Find(&list)
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
+		return
+	}
+	if len(list) > 0 {
+		result = list[0]
 	}
 	return
 }
@@ -249,9 +261,9 @@ func DeleteProcDefNodeLinkByNode(ctx context.Context, nodeId string) (err error)
 	return
 }
 
-func DeleteProcDefNodeLinkByLinkId(ctx context.Context, id string) (err error) {
+func DeleteProcDefNodeLink(ctx context.Context, nodeId string, linkId string) (err error) {
 	var actions []*db.ExecAction
-	actions = append(actions, &db.ExecAction{Sql: "delete  from proc_def_node_link where link_id= ?", Param: []interface{}{id}})
+	actions = append(actions, &db.ExecAction{Sql: "delete  from proc_def_node_link where source=? and link_id= ?", Param: []interface{}{nodeId, linkId}})
 	err = db.Transaction(actions, ctx)
 	if err != nil {
 		err = exterror.Catch(exterror.New().DatabaseExecuteError, err)
@@ -312,11 +324,11 @@ func GetProcDefPermissionByCondition(ctx context.Context, permission models.Proc
 }
 
 // InsertProcDefNodeParam 添加编排节点参数
-func InsertProcDefNodeParam(ctx context.Context, node *models.ProcDefNodeParam) (err error) {
+func InsertProcDefNodeParam(ctx context.Context, nodeParam *models.ProcDefNodeParam) (err error) {
 	var actions []*db.ExecAction
 	actions = append(actions, &db.ExecAction{Sql: "insert into  proc_def_node_param(id,proc_def_node_id,param_id,name,bind_type," +
-		"value,ctx_bind_node,ctx_bind_type,ctx_bind_name) values (?,?,?,?,?,?,?,?,?)", Param: []interface{}{node.Id, node.ProcDefNodeId, node.ParamId,
-		node.Name, node.BindType, node.Value, node.CtxBindNode, node.CtxBindType, node.CtxBindName}})
+		"value,ctx_bind_node,ctx_bind_type,ctx_bind_name) values (?,?,?,?,?,?,?,?,?)", Param: []interface{}{nodeParam.Id, nodeParam.ProcDefNodeId, nodeParam.ParamId,
+		nodeParam.Name, nodeParam.BindType, nodeParam.Value, nodeParam.CtxBindNode, nodeParam.CtxBindType, nodeParam.CtxBindName}})
 	err = db.Transaction(actions, ctx)
 	if err != nil {
 		err = exterror.Catch(exterror.New().DatabaseExecuteError, err)
@@ -326,7 +338,7 @@ func InsertProcDefNodeParam(ctx context.Context, node *models.ProcDefNodeParam) 
 
 func DeleteProcDefNodeParam(ctx context.Context, procDefNodeId, paramId string) (err error) {
 	var actions []*db.ExecAction
-	actions = append(actions, &db.ExecAction{Sql: "delete from proc_def_node_param where proc_def_node_id=?,param_id=?", Param: []interface{}{procDefNodeId, paramId}})
+	actions = append(actions, &db.ExecAction{Sql: "delete from proc_def_node_param where proc_def_node_id=? and param_id=?", Param: []interface{}{procDefNodeId, paramId}})
 	err = db.Transaction(actions, ctx)
 	if err != nil {
 		err = exterror.Catch(exterror.New().DatabaseExecuteError, err)
@@ -386,9 +398,9 @@ func BatchAddProcDefPermission(ctx context.Context, procDefId string, permission
 
 func insertProcDef(ctx context.Context, procDef *models.ProcDef) (err error) {
 	var actions []*db.ExecAction
-	actions = append(actions, &db.ExecAction{Sql: "insert into  proc_def (id,`key`,name,`version`,root_entity,status,tags,for_plugin,scene," +
-		"conflict_check,created_by,created_time,updated_by,updated_time) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?)", Param: []interface{}{procDef.Id,
-		procDef.Key, procDef.Name, procDef.Version, procDef.RootEntity, procDef.Status, procDef.Tags, procDef.ForPlugin, procDef.Scene,
+	actions = append(actions, &db.ExecAction{Sql: "insert into  proc_def (id,`key`,name,root_entity,status,tags,for_plugin,scene," +
+		"conflict_check,created_by,created_time,updated_by,updated_time) values (?,?,?,?,?,?,?,?,?,?,?,?,?)", Param: []interface{}{procDef.Id,
+		procDef.Key, procDef.Name, procDef.RootEntity, procDef.Status, procDef.Tags, procDef.ForPlugin, procDef.Scene,
 		procDef.ConflictCheck, procDef.CreatedBy, procDef.CreatedTime.Format(models.DateTimeFormat), procDef.UpdatedBy, procDef.UpdatedTime.Format(models.DateTimeFormat)}})
 	err = db.Transaction(actions, ctx)
 	if err != nil {
