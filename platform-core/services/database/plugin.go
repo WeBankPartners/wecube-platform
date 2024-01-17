@@ -53,7 +53,7 @@ func QueryAllEnablePluginConfigInterfaceByCondition(ctx context.Context, param m
 	}
 	// 查询所有
 	allAuthEnableInterfaceEntities, err = getAllAuthEnabledInterfacesByNullTargetInfo(ctx, "ENABLED", "USE", roles, []string{"REGISTERED", "RUNNING", "STOPPED"})
-	if len(authEnableInterfaceEntities) > 0 {
+	if len(allAuthEnableInterfaceEntities) > 0 {
 		authEnableInterfaceEntities = append(authEnableInterfaceEntities, allAuthEnableInterfaceEntities...)
 	}
 	filteredAuthEnabledInterfaceEntities = filterLatestPluginConfigInterfaces(authEnableInterfaceEntities)
