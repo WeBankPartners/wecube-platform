@@ -428,7 +428,7 @@ type TargetEntityFilterRuleDto struct {
 	TargetEntityFilterRule string `json:"targetEntityFilterRule"` // 对象过滤规则
 	EntityName             string `json:"entityName"`             // 实体名称
 	PkgName                string `json:"pkgName"`                // 包名称
-	TaskCategory           string `json:"taskCategory"`           // 任务分类
+	NodeType               string `json:"nodeType"`               // 节点类型
 }
 
 // PluginConfigInterfaceDto 插件配置dto
