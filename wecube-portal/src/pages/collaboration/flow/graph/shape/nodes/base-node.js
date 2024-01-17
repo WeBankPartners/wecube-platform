@@ -7,9 +7,31 @@
 import itemEvents from './item-event'
 import anchorEvent from './anchor-event'
 import defaultStyles from '../defaultStyles'
+import startIcon from '../../../icon/start.svg'
+import endIcon from '../../../icon/end.svg'
+import decisionIcon from '../../../icon/decision.svg'
+import abnormalIcon from '../../../icon/lightning.svg'
+import timeIntervalIcon from '../../../icon/time-interval.svg'
+import fixedTimeIcon from '../../../icon/fixed-time.svg'
+import dataIcon from '../../../icon/data.svg'
+import automaticIcon from '../../../icon/automatic.svg'
+import humanIcon from '../../../icon/human.svg'
+import convergeIcon from '../../../icon/converge.svg'
 
 const { iconStyles, nodeStyles, anchorPointStyles, nodeLabelStyles } = defaultStyles
 
+const nodeTypeToImg = {
+  start: startIcon,
+  end: endIcon,
+  decision: decisionIcon,
+  abnormal: abnormalIcon,
+  timeInterval: timeIntervalIcon,
+  fixedTime: fixedTimeIcon,
+  data: dataIcon,
+  automatic: automaticIcon,
+  human: humanIcon,
+  converge: convergeIcon
+}
 function getStyle (options, cfg) {
   return {
     ...cfg,
@@ -65,9 +87,10 @@ export default G6 => {
       },
       // 绘制图标
       drawIcon (cfg, group, attrs) {
-        const { logoIcon, stateIcon } = attrs
+        const nodeType = cfg.customAttrs.nodeType
+        let { logoIcon, stateIcon } = attrs
+        logoIcon.img = nodeTypeToImg[nodeType]
         const icons = [logoIcon, stateIcon]
-
         icons.forEach(($item, index) => {
           if ($item) {
             const className = `${attrs.type}-${index === 0 ? 'logoIcon' : 'stateIcon'}`

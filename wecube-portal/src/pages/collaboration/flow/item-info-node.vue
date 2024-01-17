@@ -324,7 +324,6 @@ export default {
         this.itemCustomInfo.customAttrs[k] = customAttrs[k]
       })
       this.getPlugin()
-      console.log(88, this.itemCustomInfo)
       if (needAddFirst) {
         this.saveItem()
       }
@@ -352,7 +351,6 @@ export default {
       customAttrs.name = tmp.label
       delete tmp.customAttrs
       let selfAttrs = tmp
-
       let finalData = {
         selfAttrs: selfAttrs,
         customAttrs: customAttrs
@@ -595,12 +593,10 @@ export default {
             }
           })
         }
-        console.log(77, this.itemCustomInfo.customAttrs.paramInfos)
       }
     },
     // 获取插件函数列表
     async getFilteredPluginInterfaceList (path) {
-      console.log(3, this.itemCustomInfo.customAttrs.routineExpression)
       let pkg = ''
       let entity = ''
       let payload = {}
