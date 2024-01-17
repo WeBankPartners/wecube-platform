@@ -59,17 +59,6 @@ type ProcDefNode struct {
 	UpdatedTime       time.Time `json:"updatedTime" xorm:"updated_time"`              // 更新时间
 }
 
-type ProcDefNodeParamDto struct {
-	Id            string `json:"id"`
-	NodeId        string `json:"nodeId"`
-	ParamName     string `json:"paramName"`
-	BindNodeId    string `json:"bindNodeId"`
-	BindParamType string `json:"bindParamType"`
-	BindType      string `json:"bindType"`
-	BindValue     string `json:"bindValue"`
-	Required      string `json:"required"`
-}
-
 type ProcDefNodeParam struct {
 	Id            string `json:"-" xorm:"id"`                        // 唯一标识
 	ProcDefNodeId string `json:"nodeId" xorm:"proc_def_node_id"`     // 编排节点id
@@ -84,13 +73,13 @@ type ProcDefNodeParam struct {
 }
 
 type ProcDefNodeLink struct {
-	Id            string `json:"id" xorm:"id"`                          // 唯一标识(source__target)
-	ProcDefNodeId string `json:"procDefNodeId" xorm:"proc_def_node_id"` // 编排节点id
-	LinkId        string `json:"LinkId" xorm:"link_id"`                 // 前端线id
-	Source        string `json:"source" xorm:"source"`                  // 源节点
-	Target        string `json:"target" xorm:"target"`                  // 目标节点
-	Name          string `json:"name" xorm:"name"`                      // 连接名称
-	UiStyle       string `json:"uiStyle" xorm:"ui_style"`               // 前端样式
+	Id        string `json:"id" xorm:"id"`                 // 唯一标识(source__target)
+	ProcDefId string `json:"procDefId" xorm:"proc_def_id"` // 编排id
+	LinkId    string `json:"LinkId" xorm:"link_id"`        // 前端线id
+	Source    string `json:"source" xorm:"source"`         // 源节点
+	Target    string `json:"target" xorm:"target"`         // 目标节点
+	Name      string `json:"name" xorm:"name"`             // 连接名称
+	UiStyle   string `json:"uiStyle" xorm:"ui_style"`      // 前端样式
 }
 
 type ProcDefPermission struct {
@@ -169,27 +158,27 @@ type ProcDefNodeExtendDto struct {
 }
 
 type ProcDefNodeCustomAttrs struct {
-	Id                string                 `json:"id"`                // 节点Id
-	Name              string                 `json:"name"`              // 节点名称
-	Status            string                 `json:"status"`            // 状态
-	NodeType          string                 `json:"nodeType"`          // 节点类型
-	ProcDefId         string                 `json:"procDefId"`         // 编排定义id
-	Timeout           int                    `json:"timeout"`           // 超时时间
-	Description       string                 `json:"description"`       // 描述
-	DynamicBind       bool                   `json:"dynamicBind"`       // 是否动态绑定
-	BindNodeId        string                 `json:"bindNodeId"`        // 动态绑定节点
-	RoutineExpression string                 `json:"routineExpression"` // 定位规则
-	ServiceId         string                 `json:"serviceId"`         // 插件服务ID
-	ServiceName       string                 `json:"serviceName"`       // 插件服务名
-	RiskCheck         bool                   `json:"riskCheck"`         // 是否高危检测
-	ParamInfos        []*ProcDefNodeParamDto `json:"paramInfos"`        // 节点参数
-	ContextParamNodes string                 `json:"contextParamNodes"` // 上下文参数节点
-	TimeConfig        interface{}            `json:"timeConfig"`        // 节点配置
-	OrderedNo         int                    `json:"orderedNo"`         // 节点顺序
-	CreatedBy         string                 `json:"createdBy" `        // 创建人
-	CreatedTime       string                 `json:"createdTime" `      // 创建时间
-	UpdatedBy         string                 `json:"updatedBy" `        // 更新人
-	UpdatedTime       string                 `json:"updatedTime" `      // 更新时间
+	Id                string              `json:"id"`                // 节点Id
+	Name              string              `json:"name"`              // 节点名称
+	Status            string              `json:"status"`            // 状态
+	NodeType          string              `json:"nodeType"`          // 节点类型
+	ProcDefId         string              `json:"procDefId"`         // 编排定义id
+	Timeout           int                 `json:"timeout"`           // 超时时间
+	Description       string              `json:"description"`       // 描述
+	DynamicBind       bool                `json:"dynamicBind"`       // 是否动态绑定
+	BindNodeId        string              `json:"bindNodeId"`        // 动态绑定节点
+	RoutineExpression string              `json:"routineExpression"` // 定位规则
+	ServiceId         string              `json:"serviceId"`         // 插件服务ID
+	ServiceName       string              `json:"serviceName"`       // 插件服务名
+	RiskCheck         bool                `json:"riskCheck"`         // 是否高危检测
+	ParamInfos        []*ProcDefNodeParam `json:"paramInfos"`        // 节点参数
+	ContextParamNodes string              `json:"contextParamNodes"` // 上下文参数节点
+	TimeConfig        interface{}         `json:"timeConfig"`        // 节点配置
+	OrderedNo         int                 `json:"orderedNo"`         // 节点顺序
+	CreatedBy         string              `json:"createdBy" `        // 创建人
+	CreatedTime       string              `json:"createdTime" `      // 创建时间
+	UpdatedBy         string              `json:"updatedBy" `        // 更新人
+	UpdatedTime       string              `json:"updatedTime" `      // 更新时间
 }
 
 type ProcDefNodeCustomAttrsDto struct {
@@ -353,18 +342,18 @@ func ConvertParam2ProcDefNodeLink(param ProcDefNodeLinkDto) *ProcDefNodeLink {
 	byteArr, _ := json.Marshal(param.SelfAttrs)
 	nodeLinkAttr := param.ProcDefNodeLinkCustomAttrs
 	return &ProcDefNodeLink{
-		ProcDefNodeId: param.ProcDefId,
-		LinkId:        nodeLinkAttr.Id,
-		Source:        nodeLinkAttr.Source,
-		Target:        nodeLinkAttr.Target,
-		Name:          nodeLinkAttr.Name,
-		UiStyle:       string(byteArr),
+		ProcDefId: param.ProcDefId,
+		LinkId:    nodeLinkAttr.Id,
+		Source:    nodeLinkAttr.Source,
+		Target:    nodeLinkAttr.Target,
+		Name:      nodeLinkAttr.Name,
+		UiStyle:   string(byteArr),
 	}
 }
 
 func ConvertProcDefNodeLink2Dto(nodeLink *ProcDefNodeLink) *ProcDefNodeLinkDto {
 	dto := &ProcDefNodeLinkDto{
-		ProcDefId: nodeLink.ProcDefNodeId,
+		ProcDefId: nodeLink.ProcDefId,
 		ProcDefNodeLinkCustomAttrs: &ProcDefNodeLinkCustomAttrs{
 			Id:     nodeLink.LinkId,
 			Name:   nodeLink.Name,
