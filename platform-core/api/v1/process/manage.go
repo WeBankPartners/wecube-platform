@@ -438,7 +438,7 @@ func AddOrUpdateProcDefNodeLink(c *gin.Context) {
 		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, fmt.Errorf("sourceNode is empty")))
 		return
 	}
-	targetNode, err = database.GetProcDefNode(c, param.ProcDefId, param.ProcDefNodeLinkCustomAttrs.Source)
+	targetNode, err = database.GetProcDefNode(c, param.ProcDefId, param.ProcDefNodeLinkCustomAttrs.Target)
 	if err != nil {
 		middleware.ReturnError(c, err)
 		return
@@ -447,7 +447,7 @@ func AddOrUpdateProcDefNodeLink(c *gin.Context) {
 		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, fmt.Errorf("targetNode is empty")))
 		return
 	}
-	procDefNodeLink, err = database.GetProcDefNodeLink(c, sourceNode.Id, targetNode.Id)
+	procDefNodeLink, err = database.GetProcDefNodeLink(c, param.ProcDefId, param.ProcDefNodeLinkCustomAttrs.Id)
 	if err != nil {
 		middleware.ReturnError(c, err)
 		return
