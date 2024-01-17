@@ -126,7 +126,6 @@ export default {
     saveItem () {
       this.$refs['formValidate'].validate(valid => {
         if (valid) {
-          console.log('canvas:', this.itemCustomInfo)
           let finalData = JSON.parse(JSON.stringify(this.itemCustomInfo))
           finalData.version += ''
           finalData.name = finalData.label
