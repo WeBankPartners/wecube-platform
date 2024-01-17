@@ -97,6 +97,7 @@
               <ItemFilterRulesGroup
                 :isBatch="itemCustomInfo.customAttrs.nodeType === 'data'"
                 ref="filterRulesGroupRef"
+                @filterRuleChanged="singleFilterRuleChanged"
                 :disabled="itemCustomInfo.customAttrs.dynamicBind && itemCustomInfo.customAttrs.bindNodeId"
                 :routineExpression="itemCustomInfo.customAttrs.routineExpression"
                 :allEntityType="allEntityType"
@@ -119,17 +120,87 @@
               :label="$t('plugin')"
               style="margin-top: 8px"
             >
-              <Select
-                v-model="itemCustomInfo.customAttrs.serviceId"
-                @on-open-change="getPlugin"
-                @on-change="changePluginInterfaceList"
-              >
+              <Select v-model="itemCustomInfo.customAttrs.serviceId" @on-change="changePluginInterfaceList">
                 <Option v-for="(item, index) in filteredPlugins" :value="item.serviceName" :key="index">{{
                   item.serviceDisplayName
                 }}</Option>
               </Select>
             </FormItem>
           </Form>
+          <div v-if="itemCustomInfo.customAttrs.serviceId">
+            <span style="margin-right: 20px"> 参数设置 </span>
+            <Tabs type="card">
+              <TabPane label="上下文参数">
+                <div>
+                  <span>设置[填充值来源-节点]列表：</span>
+                  <Select
+                    v-model="itemCustomInfo.customAttrs.prevCtxNodeIds"
+                    multiple
+                    filterable
+                    style="width: 50%"
+                    @on-change="prevCtxNodeChange"
+                    @on-open-change="getFlowNodes"
+                  >
+                    <Option v-for="(item, index) in nodeList" :value="item.value" :key="index">{{ item.label }}</Option>
+                  </Select>
+                </div>
+                <div style="display: flex; justify-content: space-around; background: #dee3e8">
+                  <div>填入参数(key)</div>
+                  <div>填充值来源(value)</div>
+                </div>
+                <div style="background: #e5e9ee">
+                  <div style="width: 24%; display: inline-block">参数名</div>
+                  <div style="width: 25%; display: inline-block">节点</div>
+                  <div style="width: 22%; display: inline-block">参数类型</div>
+                  <div style="width: 25%; display: inline-block">参数名</div>
+                </div>
+                <div
+                  v-for="(item, itemIndex) in itemCustomInfo.customAttrs.paramInfos"
+                  :key="itemIndex"
+                  style="margin: 4px"
+                >
+                  <template v-if="item.bindType === 'context'">
+                    <div style="width: 24%; display: inline-block">{{ item.paramName }}</div>
+                    <div style="width: 25%; display: inline-block">
+                      <Select v-model="item.bindNodeId" filterable @on-change="onParamsNodeChange(itemIndex)">
+                        <Option v-for="(item, index) in canSelectNode" :value="item.value" :key="index">{{
+                          item.label
+                        }}</Option>
+                      </Select>
+                    </div>
+                    <div style="width: 22%; display: inline-block">
+                      <Select v-model="item.bindParamType" @on-change="onParamsNodeChange(itemIndex)">
+                        <Option v-for="i in paramsTypes" :value="i.value" :key="i.value">{{ i.label }}</Option>
+                      </Select>
+                    </div>
+                    <div style="width: 25%; display: inline-block">
+                      <Select filterable v-model="item.bindParamName">
+                        <Option v-for="i in item.currentParamNames" :value="i.name" :key="i.name">{{ i.name }}</Option>
+                      </Select>
+                    </div>
+                  </template>
+                </div>
+              </TabPane>
+              <TabPane label="静态参数">
+                <div style="background: #e5e9ee">
+                  <div style="width: 30%; display: inline-block">填入参数(key)</div>
+                  <div style="width: 68%; display: inline-block">填充值(value)</div>
+                </div>
+                <div
+                  v-for="(item, itemIndex) in itemCustomInfo.customAttrs.paramInfos"
+                  :key="itemIndex"
+                  style="margin: 4px"
+                >
+                  <template v-if="item.bindType === 'constant'">
+                    <div style="width: 30%; display: inline-block; text-align: right">{{ item.paramName }}：</div>
+                    <div style="width: 68%; display: inline-block">
+                      <Input v-model="item.bindValue" />
+                    </div>
+                  </template>
+                </div>
+              </TabPane>
+            </Tabs>
+          </div>
         </template>
       </Panel>
     </Collapse>
@@ -140,7 +211,7 @@
   </div>
 </template>
 <script>
-import { getAssociatedNodes, getAllDataModels } from '@/api/server.js'
+import { getAssociatedNodes, getAllDataModels, getPluginFunByRule, getFlowById } from '@/api/server.js'
 import ItemFilterRulesGroup from './item-filter-rules-group.vue'
 export default {
   data () {
@@ -148,9 +219,13 @@ export default {
       isParmasChanged: false, // 参数变化标志位，控制右侧panel显示逻辑
       needAddFirst: true,
       opendPanel: ['1', '3', '4'],
-      currentSelectedEntity: 'wecmdb:app_instance', // 流程图根
+      currentSelectedEntity: 'wecmdb:subsystem', // 流程图根
       itemCustomInfo: {
-        customAttrs: {}
+        customAttrs: {
+          serviceId: '',
+          prevCtxNodeIds: [], // 根任务节点
+          paramInfos: []
+        }
       },
       // 超时时间选项
       timeSelection: [
@@ -197,7 +272,13 @@ export default {
         ]
       },
       unitOptions: ['sec', 'min', 'hour', 'day'],
-      date: ''
+      date: '',
+      nodeList: [], // 编排中的所有节点，供上下文中绑定使用
+      canSelectNode: [], // 存储在上下文中可以选择使用的节点
+      paramsTypes: [
+        { value: 'INPUT', label: this.$t('input') },
+        { value: 'OUTPUT', label: this.$t('output') }
+      ]
     }
   },
   components: {
@@ -221,7 +302,7 @@ export default {
           dynamicBind: false, // 动态绑定
           bindNodeId: null, // 动态绑定关联节点id
           nodeType: '', // 节点类型，对应节点原始类型（start、end……
-          routineExpression: 'wecmdb:app_instance', // 对应节点中的定位规则
+          routineExpression: 'wecmdb:subsystem', // 对应节点中的定位规则
           routineRaw: null, // 还未知作用
           serviceId: null, // 选择的插件id
           serviceName: null, // 选择的插件名称
@@ -242,6 +323,8 @@ export default {
       keys.forEach(k => {
         this.itemCustomInfo.customAttrs[k] = customAttrs[k]
       })
+      this.getPlugin()
+      console.log(88, this.itemCustomInfo)
       if (needAddFirst) {
         this.saveItem()
       }
@@ -320,13 +403,12 @@ export default {
     // 定位规则回传
     singleFilterRuleChanged (val) {
       this.itemCustomInfo.customAttrs.routineExpression = val
+      this.getPlugin()
     },
     // 获取可选插件
     getPlugin () {
-      this.filteredPlugins = []
+      this.getFilteredPluginInterfaceList(this.itemCustomInfo.customAttrs.routineExpression)
     },
-    // 改变插件时的响应
-    changePluginInterfaceList () {},
     // #endregion
     // 监听参数变化
     paramsChanged () {
@@ -334,7 +416,324 @@ export default {
     },
     dateChange (dateStr) {
       this.itemCustomInfo.customAttrs.timeConfig.date = dateStr
+    },
+    // #region 上下文参数相关
+    // 改变插件时的响应
+    changePluginInterfaceList (plugin) {
+      if (plugin) {
+        // const findPluginDetail = this.filteredPlugins.find(p => p.serviceName === plugin)
+        // console.log(plugin, findPluginDetail)
+        const findPluginDetail = {
+          id: 'u16Qfy0Q44Y1',
+          pluginConfigId: 'u16QfxVQ44XE',
+          action: 'operation',
+          serviceName: 'wecmdb/ci-data(confirm)/operation',
+          serviceDisplayName: 'wecmdb/ci-data(confirm)/operation',
+          path: '/wecmdb/plugin/ci-data/operation',
+          httpMethod: 'POST',
+          isAsyncProcessing: 'N',
+          filterRule: '',
+          description: null,
+          type: 'EXECUTION',
+          inputParameters: [
+            {
+              id: 'u16Qfy2Q44ZG',
+              pluginConfigInterfaceId: 'u16Qfy0Q44Y1',
+              type: 'INPUT',
+              name: 'ciType',
+              dataType: 'string',
+              mappingType: 'constant',
+              mappingEntityExpression: '',
+              mappingSystemVariableName: null,
+              required: 'Y',
+              sensitiveData: 'N',
+              description: null,
+              mappingValue: null,
+              multiple: null,
+              refObjectName: null,
+              refObjectMeta: null
+            },
+            {
+              id: 'u16Qfy2Q4507',
+              pluginConfigInterfaceId: 'u16Qfy0Q44Y1',
+              type: 'INPUT',
+              name: 'operation',
+              dataType: 'string',
+              mappingType: 'system_variable',
+              mappingEntityExpression: '',
+              mappingSystemVariableName: 'WECMDB_CONFIRM',
+              required: 'Y',
+              sensitiveData: 'N',
+              description: null,
+              mappingValue: null,
+              multiple: null,
+              refObjectName: null,
+              refObjectMeta: null
+            },
+            {
+              id: 'u16Qfy3Q4516',
+              pluginConfigInterfaceId: 'u16Qfy0Q44Y1',
+              type: 'INPUT',
+              name: 'jsonData',
+              dataType: 'string',
+              mappingType: 'context',
+              mappingEntityExpression: '',
+              mappingSystemVariableName: null,
+              required: 'Y',
+              sensitiveData: 'N',
+              description: null,
+              mappingValue: null,
+              multiple: null,
+              refObjectName: null,
+              refObjectMeta: null
+            }
+          ],
+          outputParameters: [
+            {
+              id: 'u16Qfy4Q452t',
+              pluginConfigInterfaceId: 'u16Qfy0Q44Y1',
+              type: 'OUTPUT',
+              name: 'errorCode',
+              dataType: 'string',
+              mappingType: 'context',
+              mappingEntityExpression: null,
+              mappingSystemVariableName: null,
+              required: null,
+              sensitiveData: 'N',
+              description: null,
+              mappingValue: null,
+              multiple: null,
+              refObjectName: null,
+              refObjectMeta: null
+            },
+            {
+              id: 'u16Qfy5Q453X',
+              pluginConfigInterfaceId: 'u16Qfy0Q44Y1',
+              type: 'OUTPUT',
+              name: 'errorMessage',
+              dataType: 'string',
+              mappingType: 'context',
+              mappingEntityExpression: null,
+              mappingSystemVariableName: null,
+              required: null,
+              sensitiveData: 'N',
+              description: null,
+              mappingValue: null,
+              multiple: null,
+              refObjectName: null,
+              refObjectMeta: null
+            },
+            {
+              id: 'u16Qfy5Q454a',
+              pluginConfigInterfaceId: 'u16Qfy0Q44Y1',
+              type: 'OUTPUT',
+              name: 'guid',
+              dataType: 'string',
+              mappingType: 'context',
+              mappingEntityExpression: null,
+              mappingSystemVariableName: null,
+              required: null,
+              sensitiveData: 'N',
+              description: null,
+              mappingValue: null,
+              multiple: null,
+              refObjectName: null,
+              refObjectMeta: null
+            }
+          ],
+          configurableInputParameters: [
+            {
+              id: 'u16Qfy2Q44ZG',
+              pluginConfigInterfaceId: 'u16Qfy0Q44Y1',
+              type: 'INPUT',
+              name: 'ciType',
+              dataType: 'string',
+              mappingType: 'constant',
+              mappingEntityExpression: '',
+              mappingSystemVariableName: null,
+              required: 'Y',
+              sensitiveData: 'N',
+              description: null,
+              mappingValue: null,
+              multiple: null,
+              refObjectName: null,
+              refObjectMeta: null
+            },
+            {
+              id: 'u16Qfy3Q4516',
+              pluginConfigInterfaceId: 'u16Qfy0Q44Y1',
+              type: 'INPUT',
+              name: 'jsonData',
+              dataType: 'string',
+              mappingType: 'context',
+              mappingEntityExpression: '',
+              mappingSystemVariableName: null,
+              required: 'Y',
+              sensitiveData: 'N',
+              description: null,
+              mappingValue: null,
+              multiple: null,
+              refObjectName: null,
+              refObjectMeta: null
+            }
+          ]
+        }
+        this.itemCustomInfo.customAttrs.paramInfos = {}
+        if (findPluginDetail) {
+          let needParams = findPluginDetail.configurableInputParameters.filter(
+            _ => _.mappingType === 'context' || _.mappingType === 'constant'
+          )
+          this.itemCustomInfo.customAttrs.paramInfos = needParams.map(_ => {
+            return {
+              paramName: _.name,
+              bindNodeId: '',
+              bindParamType: 'INPUT',
+              bindParamName: '',
+              bindType: _.mappingType,
+              bindValue: '',
+              required: _.required
+            }
+          })
+        }
+        console.log(77, this.itemCustomInfo.customAttrs.paramInfos)
+      }
+    },
+    // 获取插件函数列表
+    async getFilteredPluginInterfaceList (path) {
+      console.log(3, this.itemCustomInfo.customAttrs.routineExpression)
+      let pkg = ''
+      let entity = ''
+      let payload = {}
+      this.filteredPlugins = []
+      if (path) {
+        // eslint-disable-next-line no-useless-escape
+        const pathList = path.split(/[.~]+(?=[^\}]*(\{|$))/).filter(p => p.length > 1)
+        const last = pathList[pathList.length - 1]
+        const index = pathList[pathList.length - 1].indexOf('{')
+        const isBy = last.indexOf(')')
+        const current = last.split(':')
+        const ruleIndex = current[1].indexOf('{')
+        if (isBy > 0) {
+          entity = ruleIndex > 0 ? current[1].slice(0, ruleIndex) : current[1]
+          pkg = current[0].split(')')[1]
+        } else {
+          entity = ruleIndex > 0 ? current[1].slice(0, ruleIndex) : current[1]
+          pkg = last.match(/[^>]+(?=:)/)[0]
+        }
+        payload = {
+          pkgName: pkg,
+          entityName: entity.split('#DMEOP#')[0],
+          targetEntityFilterRule: index > 0 ? pathList[pathList.length - 1].slice(index) : ''
+        }
+      } else {
+        payload = {
+          pkgName: '',
+          entityName: '',
+          targetEntityFilterRule: ''
+        }
+      }
+
+      payload.nodeType = this.itemCustomInfo.customAttrs.nodeType
+      const { status, data } = await getPluginFunByRule(payload)
+      if (status === 'OK') {
+        this.filteredPlugins = data
+      }
+      // this.routineExpressionCache = path
+    },
+    // 获取流程所有节点
+    async getFlowNodes (val) {
+      if (!val) return
+      const { status, data } = await getFlowById(this.itemCustomInfo.customAttrs.procDefId)
+      if (status === 'OK') {
+        let nodes = data.taskNodeInfos.nodes || []
+        this.nodeList = nodes.map(n => {
+          const customAttrs = n.customAttrs
+          return {
+            label: customAttrs.name,
+            value: customAttrs.id
+          }
+        })
+      }
+    },
+    // 设置被预选中的节点
+    prevCtxNodeChange (val) {
+      this.canSelectNode = this.nodeList.filter(n => val.includes(n.value))
+      console.log(val, this.canSelectNode)
+    },
+    // 改变节点及参数类型获取参数名
+    onParamsNodeChange (index) {
+      // this.editFormdata()
+      this.getParamsOptionsByNode(index)
+    },
+    async getParamsOptionsByNode (index) {
+      // currentParamNames
+      // if (!this.currentFlow || !found) return
+      // let { status, data } = await getParamsInfosByFlowIdAndNodeId(this.itemCustomInfo.customAttrs.procDefId, this.itemCustomInfo.id)
+      // if (status === 'OK') {
+      //   let res = data.filter(_ => _.type === this.pluginForm.paramInfos[index].bindParamType)
+      //   this.$set(this.pluginForm.paramInfos[index], 'currentParamNames', res)
+      // }
+      let data = [
+        {
+          type: 'INPUT',
+          name: 'guid',
+          dataType: 'string'
+        },
+        {
+          type: 'INPUT',
+          name: 'endpointType',
+          dataType: 'string'
+        },
+        {
+          type: 'INPUT',
+          name: 'endpoint',
+          dataType: 'string'
+        },
+        {
+          type: 'INPUT',
+          name: 'target',
+          dataType: 'string'
+        },
+        {
+          type: 'INPUT',
+          name: 'scriptContent',
+          dataType: 'string'
+        },
+        {
+          type: 'INPUT',
+          name: 'runAs',
+          dataType: 'string'
+        },
+        {
+          type: 'INPUT',
+          name: 'args',
+          dataType: 'string'
+        },
+        {
+          type: 'INPUT',
+          name: 'workDir',
+          dataType: 'string'
+        },
+        {
+          type: 'OUTPUT',
+          name: 'guid',
+          dataType: 'string'
+        },
+        {
+          type: 'OUTPUT',
+          name: 'errorCode',
+          dataType: 'string'
+        },
+        {
+          type: 'OUTPUT',
+          name: 'errorMessage',
+          dataType: 'string'
+        }
+      ]
+      let res = data.filter(_ => _.type === this.itemCustomInfo.customAttrs.paramInfos[index].bindParamType)
+      this.$set(this.itemCustomInfo.customAttrs.paramInfos[index], 'currentParamNames', res)
     }
+    // #endregion
   }
 }
 </script>
