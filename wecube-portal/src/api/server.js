@@ -249,4 +249,8 @@ export const getMetaData = params => req.post(`platform/v1/plugins/configs/inter
 export const flowMgmt = data => req.post(`platform/v1/process/definitions`, data)
 export const getFlowById = id => req.get(`platform/v1/process/definitions/${id}`)
 export const flowNodeMgmt = data => req.post(`platform/v1/process/definitions/taskNodes`, data)
+export const flowNodeDelete = id => req.delete(`platform/v1/process/definitions/taskNodes/${id}`)
+export const flowEdgeMgmt = data => req.post(`platform/v1/process/definitions/node/link`, data)
+export const flowEdgeDelete = id => req.delete(`platform/v1/process/definitions/node/link/${id}`)
 export const getPluginList = () => req.get(`platform/v1/packages/name/list`)
+export const getPluginFunByRule = data => req.post(`platform/v1/plugins/query-by-target-entity`, data)
