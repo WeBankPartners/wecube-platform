@@ -104,13 +104,10 @@ func UpdateProcDefStatusAndVersion(ctx context.Context, procDef *models.ProcDef)
 	return
 }
 
-// GetProcDefNodeByNodeId 获取编排节点
-func GetProcDefNodeByNodeId(ctx context.Context, id string) (result *models.ProcDefNode, err error) {
-	if id == "" {
-		return
-	}
+// GetProcDefNode 获取编排节点
+func GetProcDefNode(ctx context.Context, procDefId, nodeId string) (result *models.ProcDefNode, err error) {
 	var list []*models.ProcDefNode
-	err = db.MysqlEngine.Context(ctx).SQL("select * from proc_def_node where node_id = ?", id).Find(&list)
+	err = db.MysqlEngine.Context(ctx).SQL("select * from proc_def_node where proc_def_id = ? and node_id = ?", procDefId, nodeId).Find(&list)
 	if err != nil {
 		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
 		return
@@ -123,9 +120,6 @@ func GetProcDefNodeByNodeId(ctx context.Context, id string) (result *models.Proc
 
 // GetProcDefNodeLinkByLinkId  获取编排线
 func GetProcDefNodeLinkByLinkId(ctx context.Context, id string) (result *models.ProcDefNodeLink, err error) {
-	if id == "" {
-		return
-	}
 	var list []*models.ProcDefNodeLink
 	err = db.MysqlEngine.Context(ctx).SQL("select * from proc_def_node_link where link_id = ?", id).Find(&list)
 	if err != nil {
@@ -225,9 +219,9 @@ func DeleteProcDef(ctx context.Context, procDefId string) (err error) {
 	return
 }
 
-func DeleteProcDefNode(ctx context.Context, nodeId string) (err error) {
+func DeleteProcDefNode(ctx context.Context, procDefId, nodeId string) (err error) {
 	var actions []*db.ExecAction
-	actions = append(actions, &db.ExecAction{Sql: "delete  from proc_def_node where node_id=?", Param: []interface{}{nodeId}})
+	actions = append(actions, &db.ExecAction{Sql: "delete  from proc_def_node where proc_def_id=? and node_id=?", Param: []interface{}{procDefId, nodeId}})
 	err = db.Transaction(actions, ctx)
 	if err != nil {
 		err = exterror.Catch(exterror.New().DatabaseExecuteError, err)
@@ -320,8 +314,8 @@ func GetProcDefPermissionByCondition(ctx context.Context, permission models.Proc
 // InsertProcDefNodeParam 添加编排节点参数
 func InsertProcDefNodeParam(ctx context.Context, node *models.ProcDefNodeParam) (err error) {
 	var actions []*db.ExecAction
-	actions = append(actions, &db.ExecAction{Sql: "insert into  proc_def_node_param(id,proc_def_node_id,name,bind_type," +
-		"value,ctx_bind_node,ctx_bind_type,ctx_bind_name) values (?,?,?,?,?,?,?,?)", Param: []interface{}{node.Id, node.ProcDefNodeId,
+	actions = append(actions, &db.ExecAction{Sql: "insert into  proc_def_node_param(id,proc_def_node_id,param_id,name,bind_type," +
+		"value,ctx_bind_node,ctx_bind_type,ctx_bind_name) values (?,?,?,?,?,?,?,?,?)", Param: []interface{}{node.Id, node.ProcDefNodeId, node.ParamId,
 		node.Name, node.BindType, node.Value, node.CtxBindNode, node.CtxBindType, node.CtxBindName}})
 	err = db.Transaction(actions, ctx)
 	if err != nil {
@@ -330,9 +324,9 @@ func InsertProcDefNodeParam(ctx context.Context, node *models.ProcDefNodeParam) 
 	return
 }
 
-func DeleteProcDefNodeParam(ctx context.Context, id string) (err error) {
+func DeleteProcDefNodeParam(ctx context.Context, procDefNodeId, paramId string) (err error) {
 	var actions []*db.ExecAction
-	actions = append(actions, &db.ExecAction{Sql: "delete from proc_def_node_param where id=?", Param: []interface{}{id}})
+	actions = append(actions, &db.ExecAction{Sql: "delete from proc_def_node_param where proc_def_node_id=?,param_id=?", Param: []interface{}{procDefNodeId, paramId}})
 	err = db.Transaction(actions, ctx)
 	if err != nil {
 		err = exterror.Catch(exterror.New().DatabaseExecuteError, err)
