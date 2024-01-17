@@ -66,6 +66,19 @@ func QueryAllEnablePluginConfigInterfaceByCondition(ctx context.Context, param m
 	return
 }
 
+func GetAllByServiceNameAndConfigStatus(ctx context.Context, serviceName, status string) (list []*models.RichPluginConfigInterfaces, err error) {
+	err = db.MysqlEngine.Context(ctx).SQL("SELECT t1.id, t1.plugin_config_id,t1.action, t1.service_name,t1.service_display_name,t1.path,"+
+		"t1.http_method,t1.is_async_processing,t1.type,t1.filter_rule,t2.id AS plugin_config_id,t2.status AS plugin_config_status,"+
+		"t3.id AS plugin_package_id,t3.status AS plugin_package_status,t3.version AS plugin_package_version FROM plugin_config_interfaces t1,"+
+		"plugin_configs t2,plugin_packages t3 WHERE t1.plugin_config_id = t2.id AND t2.plugin_package_id = t3.id AND t2.status =? AND "+
+		"t1.service_name =?", status, serviceName).Find(&list)
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
+		return
+	}
+	return
+}
+
 func filterLatestPluginConfigInterfaces(authEnableInterfaceEntities []*models.AuthLatestEnabledInterfaces) []*models.AuthLatestEnabledInterfaces {
 	var filteredAuthEnabledInterfaceEntities = make([]*models.AuthLatestEnabledInterfaces, 0)
 	var serviceNamedPluginConfigInterfacesMap = make(map[string]*models.AuthLatestEnabledInterfaces)
@@ -124,7 +137,7 @@ func convertToPluginConfigInterfaces(ctx context.Context, interfaces *models.Aut
 		for _, paramEntity := range inputParameters {
 			paramEntity.PluginConfigInterface = configInterfaces
 			if paramEntity.DataType == "object" {
-				paramEntity.ObjectMeta = tryFetchEnrichCoreObjectMeta(ctx, paramEntity)
+				paramEntity.ObjectMeta = TryFetchEnrichCoreObjectMeta(ctx, paramEntity)
 			}
 		}
 	}
@@ -136,7 +149,7 @@ func convertToPluginConfigInterfaces(ctx context.Context, interfaces *models.Aut
 		for _, paramEntity := range outputParameters {
 			paramEntity.PluginConfigInterface = configInterfaces
 			if paramEntity.DataType == "object" {
-				paramEntity.ObjectMeta = tryFetchEnrichCoreObjectMeta(ctx, paramEntity)
+				paramEntity.ObjectMeta = TryFetchEnrichCoreObjectMeta(ctx, paramEntity)
 			}
 		}
 	}
@@ -145,7 +158,7 @@ func convertToPluginConfigInterfaces(ctx context.Context, interfaces *models.Aut
 	return configInterfaces
 }
 
-func tryFetchEnrichCoreObjectMeta(ctx context.Context, param *models.PluginConfigInterfaceParameters) *models.CoreObjectMeta {
+func TryFetchEnrichCoreObjectMeta(ctx context.Context, param *models.PluginConfigInterfaceParameters) *models.CoreObjectMeta {
 	pluginConfigInterface := param.PluginConfigInterface
 	if pluginConfigInterface == nil {
 		log.Logger.Info("Cannot find plugin_config_interface", log.String("id", param.Id))
