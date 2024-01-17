@@ -25,8 +25,7 @@
     "timeout": 60
   },
   "auth":{
-    "jwt_private_key_path":"[#JWT_PRI_KEY_PATH]",
-    "jwt_public_key_path":"[#JWT_PUB_KEY_PATH]",
+    "signing_key":"[#SIGNING_KEY]",
     "access_token_mins":[#USER_ACCESS_TOKEN],
     "refresh_token_mins":[#USER_REFRESH_TOKEN]
   }
