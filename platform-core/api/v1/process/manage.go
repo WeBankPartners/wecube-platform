@@ -297,8 +297,8 @@ func DeployProcessDefinition(c *gin.Context) {
 	middleware.ReturnSuccess(c)
 }
 
-// AddOrUpdateProcessDefinitionTaskNodes 添加更新编排节点
-func AddOrUpdateProcessDefinitionTaskNodes(c *gin.Context) {
+// AddOrUpdateProcDefTaskNodes 添加更新编排节点
+func AddOrUpdateProcDefTaskNodes(c *gin.Context) {
 	var param models.ProcDefNodeDto
 	var procDefNode *models.ProcDefNode
 	var err error
@@ -308,11 +308,11 @@ func AddOrUpdateProcessDefinitionTaskNodes(c *gin.Context) {
 		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, err))
 		return
 	}
-	if param.ProcDefId == "" || param.ProcDefNodeCustomAttrs == nil || param.ProcDefNodeCustomAttrs.Id == "" {
+	if param.ProcDefNodeCustomAttrs == nil || param.ProcDefNodeCustomAttrs.Id == "" || param.ProcDefNodeCustomAttrs.ProcDefId == "" {
 		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, fmt.Errorf("param procDefId or id is empty")))
 		return
 	}
-	procDefNode, err = database.GetProcDefNode(c, param.ProcDefId, param.ProcDefNodeCustomAttrs.Id)
+	procDefNode, err = database.GetProcDefNode(c, param.ProcDefNodeCustomAttrs.ProcDefId, param.ProcDefNodeCustomAttrs.Id)
 	if err != nil {
 		middleware.ReturnError(c, err)
 		return
@@ -335,12 +335,13 @@ func AddOrUpdateProcessDefinitionTaskNodes(c *gin.Context) {
 	// 处理节点参数,先删除然后插入
 	if len(param.ProcDefNodeCustomAttrs.ParamInfos) > 0 {
 		for _, info := range param.ProcDefNodeCustomAttrs.ParamInfos {
-			err = database.DeleteProcDefNodeParam(c, info.ProcDefNodeId, info.ParamId)
+			err = database.DeleteProcDefNodeParam(c, node.Id, info.ParamId)
 			if err != nil {
 				middleware.ReturnError(c, err)
 				return
 			}
 			info.Id = guid.CreateGuid()
+			info.ProcDefNodeId = node.Id
 			err = database.InsertProcDefNodeParam(c, info)
 			if err != nil {
 				middleware.ReturnError(c, err)
@@ -368,20 +369,32 @@ func GetProcDefNode(c *gin.Context) {
 		middleware.ReturnError(c, err)
 		return
 	}
-	list, err = database.GetProcDefNodeParamByNodeId(c, nodeId)
-	if procDefNode != nil {
-		nodeDto = models.ConvertProcDefNode2Dto(procDefNode, list)
+	if procDefNode == nil {
+		middleware.Return(c, nodeDto)
+		return
 	}
+	list, err = database.GetProcDefNodeParamByNodeId(c, procDefNode.Id)
+	nodeDto = models.ConvertProcDefNode2Dto(procDefNode, list)
 	middleware.Return(c, nodeDto)
 }
 
 // DeleteProcDefNode 删除编排节点,同时需要删除线&节点参数
 func DeleteProcDefNode(c *gin.Context) {
 	var err error
+	var procDefNode *models.ProcDefNode
 	nodeId := c.Param("node-id")
 	procDefId := c.Param("proc-def-id")
-	if nodeId == "" {
-		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, fmt.Errorf("node-id is empty")))
+	if nodeId == "" || procDefId == "" {
+		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, fmt.Errorf("node-id or proc-def-id is empty")))
+		return
+	}
+	procDefNode, err = database.GetProcDefNode(c, procDefId, nodeId)
+	if err != nil {
+		middleware.ReturnError(c, err)
+		return
+	}
+	if procDefNode == nil {
+		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, fmt.Errorf("not found procDefNode")))
 		return
 	}
 	err = database.DeleteProcDefNode(c, procDefId, nodeId)
@@ -389,12 +402,12 @@ func DeleteProcDefNode(c *gin.Context) {
 		middleware.ReturnError(c, err)
 		return
 	}
-	err = database.DeleteProcDefNodeLinkByNode(c, nodeId)
+	err = database.DeleteProcDefNodeLinkByNode(c, procDefNode.Id)
 	if err != nil {
 		middleware.ReturnError(c, err)
 		return
 	}
-	err = database.DeleteProcDefNodeParamByNodeId(c, nodeId)
+	err = database.DeleteProcDefNodeParamByNodeId(c, procDefNode.Id)
 	if err != nil {
 		middleware.ReturnError(c, err)
 		return
@@ -405,6 +418,7 @@ func DeleteProcDefNode(c *gin.Context) {
 func AddOrUpdateProcDefNodeLink(c *gin.Context) {
 	var param models.ProcDefNodeLinkDto
 	var procDefNodeLink *models.ProcDefNodeLink
+	var sourceNode, targetNode *models.ProcDefNode
 	var err error
 
 	if err = c.ShouldBindJSON(&param); err != nil {
@@ -415,11 +429,31 @@ func AddOrUpdateProcDefNodeLink(c *gin.Context) {
 		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, fmt.Errorf("param id is empty")))
 		return
 	}
-	procDefNodeLink, err = database.GetProcDefNodeLinkByLinkId(c, param.ProcDefNodeLinkCustomAttrs.Id)
+	sourceNode, err = database.GetProcDefNode(c, param.ProcDefId, param.ProcDefNodeLinkCustomAttrs.Source)
 	if err != nil {
 		middleware.ReturnError(c, err)
 		return
 	}
+	if sourceNode == nil {
+		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, fmt.Errorf("sourceNode is empty")))
+		return
+	}
+	targetNode, err = database.GetProcDefNode(c, param.ProcDefId, param.ProcDefNodeLinkCustomAttrs.Source)
+	if err != nil {
+		middleware.ReturnError(c, err)
+		return
+	}
+	if targetNode == nil {
+		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, fmt.Errorf("targetNode is empty")))
+		return
+	}
+	procDefNodeLink, err = database.GetProcDefNodeLink(c, sourceNode.Id, targetNode.Id)
+	if err != nil {
+		middleware.ReturnError(c, err)
+		return
+	}
+	param.ProcDefNodeLinkCustomAttrs.Source = sourceNode.Id
+	param.ProcDefNodeLinkCustomAttrs.Target = targetNode.NodeId
 	newProcDefNodeLink := models.ConvertParam2ProcDefNodeLink(param)
 	if procDefNodeLink == nil {
 		newProcDefNodeLink.Id = guid.CreateGuid()
@@ -437,29 +471,67 @@ func AddOrUpdateProcDefNodeLink(c *gin.Context) {
 
 func GetProcDefNodeLink(c *gin.Context) {
 	var dto *models.ProcDefNodeLinkDto
-	nodeLinkId := c.Param("node-link-id")
-	if nodeLinkId == "" {
-		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, fmt.Errorf("node-link-id is empty")))
+	var sourceNode, targetNode *models.ProcDefNode
+	var param models.ProcDefNodeLinkParam
+	var err error
+	if err = c.ShouldBindJSON(&param); err != nil {
+		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, err))
 		return
 	}
-	nodeLink, err := database.GetProcDefNodeLinkByLinkId(c, nodeLinkId)
+	if param.ProcDefId == "" || param.NodeId == "" || param.LinkId == "" {
+		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, fmt.Errorf("param is empty")))
+		return
+	}
+	sourceNode, err = database.GetProcDefNode(c, param.ProcDefId, param.NodeId)
+	if err != nil {
+		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, err))
+		return
+	}
+	if sourceNode == nil {
+		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, fmt.Errorf("procNode is null")))
+		return
+	}
+	nodeLink, err := database.GetProcDefNodeLink(c, sourceNode.Id, param.LinkId)
 	if err != nil {
 		middleware.ReturnError(c, err)
 		return
 	}
 	if nodeLink != nil {
+		targetNode, err = database.GetProcDefNodeById(c, nodeLink.Target)
+		if err != nil {
+			middleware.ReturnError(c, err)
+			return
+		}
+		if targetNode != nil {
+			nodeLink.Source = targetNode.NodeId
+		}
 		dto = models.ConvertProcDefNodeLink2Dto(nodeLink)
 	}
 	middleware.Return(c, dto)
 }
 
 func DeleteProcDefNodeLink(c *gin.Context) {
-	nodeId := c.Param("node-link-id")
-	if nodeId == "" {
-		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, fmt.Errorf("node-link-id is empty")))
+	var param models.ProcDefNodeLinkParam
+	var procNode *models.ProcDefNode
+	var err error
+	if err = c.ShouldBindJSON(&param); err != nil {
+		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, err))
 		return
 	}
-	err := database.DeleteProcDefNodeLinkByLinkId(c, nodeId)
+	if param.ProcDefId == "" || param.NodeId == "" || param.LinkId == "" {
+		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, fmt.Errorf("param is empty")))
+		return
+	}
+	procNode, err = database.GetProcDefNode(c, param.ProcDefId, param.NodeId)
+	if err != nil {
+		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, err))
+		return
+	}
+	if procNode == nil {
+		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, fmt.Errorf("procNode is null")))
+		return
+	}
+	err = database.DeleteProcDefNodeLink(c, procNode.Id, param.LinkId)
 	if err != nil {
 		middleware.ReturnError(c, err)
 		return
