@@ -13,9 +13,29 @@
             <FormItem :label="$t('name')" prop="label">
               <Input v-model="itemCustomInfo.label" @on-change="paramsChanged"></Input>
             </FormItem>
-            <FormItem :label="$t('node_type')" v-if="itemCustomInfo.customAttrs.taskCategory">
-              <Input v-model="itemCustomInfo.customAttrs.taskCategory" disabled></Input>
+            <FormItem :label="$t('node_type')">
+              <Input v-model="itemCustomInfo.customAttrs.nodeType" disabled></Input>
             </FormItem>
+            <template v-if="itemCustomInfo.customAttrs && itemCustomInfo.customAttrs.nodeType === 'fixedTime'">
+              <FormItem :label="$t('date')">
+                <DatePicker
+                  type="datetime"
+                  placeholder="Select date and time"
+                  v-model="itemCustomInfo.customAttrs.timeConfig.date"
+                  format="yyyy-MM-dd HH:mm:ss"
+                  @on-change="dateChange"
+                  style="width: 200px"
+                ></DatePicker>
+              </FormItem>
+            </template>
+            <template v-if="itemCustomInfo.customAttrs && itemCustomInfo.customAttrs.nodeType === 'timeInterval'">
+              <FormItem :label="$t('duration')">
+                <InputNumber :max="100" :min="0" v-model="itemCustomInfo.customAttrs.timeConfig.duration"></InputNumber>
+                <Select v-model="itemCustomInfo.customAttrs.timeConfig.unit" style="width: 100px">
+                  <Option v-for="item in unitOptions" :value="item" :key="item">{{ item }}</Option>
+                </Select>
+              </FormItem>
+            </template>
           </Form>
         </template>
       </Panel>
@@ -75,7 +95,7 @@
             </FormItem>
             <FormItem :label="$t('locate_rules')">
               <ItemFilterRulesGroup
-                :isBatch="itemCustomInfo.customAttrs.taskCategory === 'SDTN'"
+                :isBatch="itemCustomInfo.customAttrs.nodeType === 'data'"
                 ref="filterRulesGroupRef"
                 :disabled="itemCustomInfo.customAttrs.dynamicBind && itemCustomInfo.customAttrs.bindNodeId"
                 :routineExpression="itemCustomInfo.customAttrs.routineExpression"
@@ -130,9 +150,7 @@ export default {
       opendPanel: ['1', '3', '4'],
       currentSelectedEntity: 'wecmdb:app_instance', // 流程图根
       itemCustomInfo: {
-        customAttrs: {
-          taskCategory: ''
-        }
+        customAttrs: {}
       },
       // 超时时间选项
       timeSelection: [
@@ -177,7 +195,9 @@ export default {
           { required: true, message: 'label cannot be empty', trigger: 'blur' },
           { type: 'string', max: 16, message: 'Label cannot exceed 16 words.', trigger: 'blur' }
         ]
-      }
+      },
+      unitOptions: ['sec', 'min', 'hour', 'day'],
+      date: ''
     }
   },
   components: {
@@ -188,8 +208,8 @@ export default {
   },
   methods: {
     async showItemInfo (data, needAddFirst = false) {
+      this.isParmasChanged = false
       this.needAddFirst = needAddFirst
-      console.log(12, data)
       const defaultNode = {
         id: '', // 节点id  nodeId
         label: '', // 节点名称 nodeName
@@ -206,7 +226,12 @@ export default {
           serviceId: null, // 选择的插件id
           serviceName: null, // 选择的插件名称
           riskCheck: true, // 高危检测
-          paramInfos: [] // 存在插件注册处需要填写的字段
+          paramInfos: [], // 存在插件注册处需要填写的字段
+          timeConfig: {
+            duration: 0, // 时间间隔
+            unit: 'sec', // 时间间隔单位
+            date: '' // 固定时间
+          }
         }
       }
       const tmpData = JSON.parse(JSON.stringify(data))
@@ -225,7 +250,6 @@ export default {
       if (['human', 'automatic', 'data'].includes(this.itemCustomInfo.customAttrs.nodeType)) {
         const routineExpressionItem =
           this.$refs.filterRulesGroupRef && this.$refs.filterRulesGroupRef.routineExpressionItem
-        console.log(11, routineExpressionItem)
         if (routineExpressionItem) {
           this.itemCustomInfo.customAttrs.routineExpression = routineExpressionItem.reduce((tmp, item, index) => {
             return (
@@ -250,7 +274,6 @@ export default {
         selfAttrs: selfAttrs,
         customAttrs: customAttrs
       }
-      console.log(44, finalData)
       this.$emit('sendItemInfo', finalData, this.needAddFirst)
     },
     panalStatus () {
@@ -296,7 +319,6 @@ export default {
 
     // 定位规则回传
     singleFilterRuleChanged (val) {
-      console.log(44, val)
       this.itemCustomInfo.customAttrs.routineExpression = val
     },
     // 获取可选插件
@@ -309,6 +331,9 @@ export default {
     // 监听参数变化
     paramsChanged () {
       this.isParmasChanged = true
+    },
+    dateChange (dateStr) {
+      this.itemCustomInfo.customAttrs.timeConfig.date = dateStr
     }
   }
 }

@@ -26,7 +26,12 @@
         ></Transfer>
       </div>
       <div slot="footer">
-        <Button type="primary" @click="confirmRole">{{ $t('bc_confirm') }}</Button>
+        <Button
+          type="primary"
+          :disabled="mgmtRolesKeyToFlow.length === 0 || useRolesKeyToFlow.length === 0"
+          @click="confirmRole"
+          >{{ $t('bc_confirm') }}</Button
+        >
       </div>
     </Modal>
   </div>
@@ -62,20 +67,8 @@ export default {
       this.useRolesKeyToFlow = newTargetKeys
     },
     async confirmRole () {
-      console.log(this.mgmtRolesKeyToFlow)
-      console.log(this.useRolesKeyToFlow)
       this.$emit('sendAuth', this.mgmtRolesKeyToFlow, this.useRolesKeyToFlow)
       this.flowRoleManageModal = false
-      // if (this.mgmtRolesKeyToFlow.length) {
-      //   if (this.isAdd) {
-      //     this.flowRoleManageModal = false
-      //   } else {
-      //     this.updatePermission(this.currentSettingFlow)
-      //   }
-      // } else {
-      //   this.$Message.warning(this.$t('mgmt_role_warning'))
-      //   this.isAdd = false
-      // }
     },
     async getRoleList () {
       const { status, data } = await getRoleList()
@@ -91,7 +84,6 @@ export default {
     },
     // 启动入口
     async startAuth (mgmtRolesKeyToFlow, useRolesKeyToFlow) {
-      console.log(5)
       this.mgmtRolesKeyToFlow = mgmtRolesKeyToFlow
       this.useRolesKeyToFlow = useRolesKeyToFlow
       await this.getRoleList()

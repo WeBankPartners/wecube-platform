@@ -1,6 +1,6 @@
 <template>
   <div class="root">
-    <FlowHeader @openCanvasPanel="openCanvasPanel" ref="headerInfoRef"></FlowHeader>
+    <FlowHeader @openCanvasPanel="openCanvasPanel" @updateAuth="updateAuth" ref="headerInfoRef"></FlowHeader>
     <!-- v-show="isShowGraph" -->
     <div class="canvas-zone">
       <!-- 左侧按钮 -->
@@ -140,7 +140,6 @@ export default {
       this.createGraphic()
       this.initGraphEvent()
       this.openCanvasPanel()
-      this.$refs.headerInfoRef.showItemInfo(this.procDef)
     })
   },
   beforeDestroy () {
@@ -161,15 +160,20 @@ export default {
         this.procDef.permissionToRole = data.permissionToRole
 
         this.mgmtNodesAndEdges(data.taskNodeInfos)
+        this.$refs.headerInfoRef.showItemInfo(this.procDef)
       }
     },
     // 整理编排节点与边数据结构
     mgmtNodesAndEdges (info) {
       if (info.nodes && info.nodes.length > 0) {
         this.nodesAndDeges.nodes = info.nodes.map(n => {
+          let customAttrs = n.customAttrs
+          if (customAttrs.timeConfig) {
+            customAttrs.timeConfig = JSON.parse(customAttrs.timeConfig)
+          }
           return {
             ...JSON.parse(n.selfAttrs),
-            customAttrs: n.customAttrs
+            customAttrs: customAttrs
           }
         })
       }
@@ -201,8 +205,6 @@ export default {
           return outDiv
         },
         async handleMenuClick (target, item) {
-          console.log(11, target, item._cfg.id)
-
           const method = item._cfg.id.startsWith('pdef_node_') ? flowNodeDelete : flowEdgeDelete
           const { status } = await method(item._cfg.id)
           if (status === 'OK') {
@@ -240,18 +242,18 @@ export default {
         },
         // 覆盖全局样式
         nodeStateStyles: {
-          'nodeState:default': {
-            opacity: 1,
-            stroke: '#aab7c3'
-          },
-          'nodeState:hover': {
-            opacity: 0.8,
-            stroke: '#1890FF'
-          },
-          'nodeState:selected': {
-            opacity: 0.9,
-            stroke: '#1890FF'
-          }
+          // 'nodeState:default': {
+          //   opacity: 1,
+          //   stroke: '#aab7c3'
+          // },
+          // 'nodeState:hover': {
+          //   opacity: 0.8,
+          //   stroke: '#1890FF'
+          // },
+          // 'nodeState:selected': {
+          //   opacity: 0.9,
+          //   stroke: '#1890FF'
+          // }
         },
         // 默认边不同状态下的样式集合
         edgeStateStyles: {
@@ -317,6 +319,22 @@ export default {
         e.item.getOutEdges().forEach(edge => {
           edge.clearStates('edgeState')
         })
+
+        setTimeout(() => {
+          const id = e.item.get('model').id
+          const movedNode = this.graph.save().nodes.find(n => n.id === id)
+          const tmp = JSON.parse(JSON.stringify(movedNode))
+          let customAttrs = tmp.customAttrs
+          customAttrs.id = tmp.id
+          customAttrs.name = tmp.label
+          delete tmp.customAttrs
+          let selfAttrs = tmp
+          let finalData = {
+            selfAttrs: selfAttrs,
+            customAttrs: customAttrs
+          }
+          this.setNodeInfo(finalData, true)
+        }, 100)
       })
 
       this.graph.on('after-node-selected', e => {
@@ -456,33 +474,9 @@ export default {
       // 注册画布点击事件
       this.graph.on('canvas:click', e => {
         if (this.isExecutionAllowed()) return
-        // const graph = e.item
-        // console.log(22, graph)
-        // if (e && graph) {
         this.itemInfoType = 'canvas'
         this.$refs.itemInfoCanvasRef.showItemInfo(this.procDef)
-        // }
       })
-
-      // this.graph.on('keydown', e => {
-      //   // Check if the delete key is pressed
-      //   if (e.code === 'Delete' || e.key === 'Delete' || e.key === 'Backspace') {
-      //     const selectedNodes = this.graph.findAllByState('node', 'selected')
-      //     const selectedEdges = this.graph.findAllByState('edge', 'selected')
-      //     // Remove selected nodes
-      //     selectedNodes.forEach(node => {
-      //       this.graph.removeItem(node)
-      //     })
-
-      //     // Remove selected edges
-      //     selectedEdges.forEach(edge => {
-      //       this.graph.removeItem(edge)
-      //     })
-
-      //     // Clear selected states
-      //     // this.graph.clearItemStates()
-      //   }
-      // })
     },
     deleteNode (item) {
       this.graph.removeItem(item)
@@ -490,13 +484,12 @@ export default {
     // 添加节点
     addNode (transferData, { x, y }) {
       if (this.isExecutionAllowed()) return
-      const { label, shape, fill, lineWidth, nodeType, taskCategory } = JSON.parse(transferData)
+      const { label, shape, fill, lineWidth, nodeType, stroke } = JSON.parse(transferData)
       const findStartNodeIndex = this.graph.save().nodes.findIndex(n => n.id.startsWith('id_start'))
       if (nodeType === 'start' && findStartNodeIndex > -1) {
         this.$Message.warning(this.$t('start_node_warning'))
         return
       }
-      console.log(23, this.procDef)
       const model = {
         id: `pdef_node_${this.uuid(16, 16)}`,
         label,
@@ -506,11 +499,15 @@ export default {
           procDefId: this.procDef.id,
           procDefKey: this.procDef.key,
           nodeType, // 标记节点类型，后端需要的字段
-          taskCategory
+          timeConfig: {
+            duration: 0, // 时间间隔
+            unit: 'sec', // 时间间隔单位
+            date: '' // 固定时间
+          }
         },
         style: {
           fill: fill || '',
-          stroke: '#bbbbbb',
+          stroke: stroke,
           lineWidth: lineWidth || 1,
           top: '100px'
         },
@@ -548,12 +545,6 @@ export default {
       }
       return uuid.join('')
     },
-    setItemInfo (info) {
-      // eslint-disable-next-line no-alert
-      const item = this.graph.findById(info.id)
-      console.log(45, item, info)
-      this.graph.updateItem(item, info)
-    },
     saveSvg () {
       const nodes = this.graph.save().nodes
       const edges = this.graph.save().edges
@@ -575,6 +566,18 @@ export default {
     // 保存编排整体信息
     async setCanvasInfo (info) {
       const { status } = await flowMgmt(info)
+      if (status === 'OK') {
+        this.itemInfoType = ''
+        this.$Message.success(this.$t('save_successfully'))
+        this.getFlowInfo(this.demoFlowId)
+      }
+    },
+    async updateAuth (mgmt, use) {
+      let finalData = JSON.parse(JSON.stringify(this.procDef))
+      finalData.permissionToRole.MGMT = mgmt
+      finalData.permissionToRole.USE = use
+
+      const { status } = await flowMgmt(finalData)
       if (status === 'OK') {
         this.itemInfoType = ''
         this.$Message.success(this.$t('save_successfully'))
