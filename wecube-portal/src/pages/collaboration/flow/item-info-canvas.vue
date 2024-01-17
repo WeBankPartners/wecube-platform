@@ -11,7 +11,7 @@
         <span :style="nameLen > 16 ? 'color:red' : ''">{{ nameLen }}/16</span>
       </FormItem>
       <FormItem label="版本" prop="version">
-        <InputNumber :max="999" :min="1" v-model="itemCustomInfo.version" @on-change="versionChange"></InputNumber>
+        <InputNumber :min="1" disabled v-model="itemCustomInfo.version" @on-change="versionChange"></InputNumber>
       </FormItem>
       <FormItem label="操作对象类型" prop="rootEntity">
         <FilterRules
