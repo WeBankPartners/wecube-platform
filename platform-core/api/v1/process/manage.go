@@ -457,6 +457,7 @@ func AddOrUpdateProcDefNodeLink(c *gin.Context) {
 	newProcDefNodeLink := models.ConvertParam2ProcDefNodeLink(param)
 	if procDefNodeLink == nil {
 		newProcDefNodeLink.Id = guid.CreateGuid()
+		newProcDefNodeLink.ProcDefNodeId = param.ProcDefId
 		err = database.InsertProcDefNodeLink(c, newProcDefNodeLink)
 	} else {
 		newProcDefNodeLink.Id = procDefNodeLink.Id
@@ -511,27 +512,14 @@ func GetProcDefNodeLink(c *gin.Context) {
 }
 
 func DeleteProcDefNodeLink(c *gin.Context) {
-	var param models.ProcDefNodeLinkParam
-	var procNode *models.ProcDefNode
 	var err error
-	if err = c.ShouldBindJSON(&param); err != nil {
-		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, err))
+	procDefId := c.Param("proc-def-id")
+	linkId := c.Param("node-link-id")
+	if procDefId == "" || linkId == "" {
+		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, fmt.Errorf("procDefId or node-link-id is empty")))
 		return
 	}
-	if param.ProcDefId == "" || param.NodeId == "" || param.LinkId == "" {
-		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, fmt.Errorf("param is empty")))
-		return
-	}
-	procNode, err = database.GetProcDefNode(c, param.ProcDefId, param.NodeId)
-	if err != nil {
-		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, err))
-		return
-	}
-	if procNode == nil {
-		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, fmt.Errorf("procNode is null")))
-		return
-	}
-	err = database.DeleteProcDefNodeLink(c, procNode.Id, param.LinkId)
+	err = database.DeleteProcDefNodeLink(c, procDefId, linkId)
 	if err != nil {
 		middleware.ReturnError(c, err)
 		return

@@ -72,12 +72,13 @@ type ProcDefNodeParam struct {
 }
 
 type ProcDefNodeLink struct {
-	Id      string `json:"id" xorm:"id"`            // 唯一标识(source__target)
-	LinkId  string `json:"LinkId" xorm:"link_id"`   // 前端线id
-	Source  string `json:"source" xorm:"source"`    // 源节点
-	Target  string `json:"target" xorm:"target"`    // 目标节点
-	Name    string `json:"name" xorm:"name"`        // 连接名称
-	UiStyle string `json:"uiStyle" xorm:"ui_style"` // 前端样式
+	Id            string `json:"id" xorm:"id"`                          // 唯一标识(source__target)
+	ProcDefNodeId string `json:"procDefNodeId" xorm:"proc_def_node_id"` // 编排节点id
+	LinkId        string `json:"LinkId" xorm:"link_id"`                 // 前端线id
+	Source        string `json:"source" xorm:"source"`                  // 源节点
+	Target        string `json:"target" xorm:"target"`                  // 目标节点
+	Name          string `json:"name" xorm:"name"`                      // 连接名称
+	UiStyle       string `json:"uiStyle" xorm:"ui_style"`               // 前端样式
 }
 
 type ProcDefPermission struct {
@@ -303,16 +304,18 @@ func ConvertParam2ProcDefNodeLink(param ProcDefNodeLinkDto) *ProcDefNodeLink {
 	byteArr, _ := json.Marshal(param.SelfAttrs)
 	nodeLinkAttr := param.ProcDefNodeLinkCustomAttrs
 	return &ProcDefNodeLink{
-		LinkId:  nodeLinkAttr.Id,
-		Source:  nodeLinkAttr.Source,
-		Target:  nodeLinkAttr.Target,
-		Name:    nodeLinkAttr.Name,
-		UiStyle: string(byteArr),
+		ProcDefNodeId: param.ProcDefId,
+		LinkId:        nodeLinkAttr.Id,
+		Source:        nodeLinkAttr.Source,
+		Target:        nodeLinkAttr.Target,
+		Name:          nodeLinkAttr.Name,
+		UiStyle:       string(byteArr),
 	}
 }
 
 func ConvertProcDefNodeLink2Dto(nodeLink *ProcDefNodeLink) *ProcDefNodeLinkDto {
 	dto := &ProcDefNodeLinkDto{
+		ProcDefId: nodeLink.ProcDefNodeId,
 		ProcDefNodeLinkCustomAttrs: &ProcDefNodeLinkCustomAttrs{
 			Id:     nodeLink.LinkId,
 			Name:   nodeLink.Name,
