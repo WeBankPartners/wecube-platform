@@ -24,5 +24,6 @@ const (
 	TypeAccessToken  = "accessToken"
 	TypeRefreshToken = "refreshToken"
 
-	BearerTokenPrefix = "Bearer "
+	BearerTokenPrefix    = "Bearer "
+	DefaultJwtSigningKey = "Platform+Auth+Server+Secret"
 )
