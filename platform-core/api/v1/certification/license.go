@@ -87,9 +87,20 @@ func ImportCertification(c *gin.Context) {
 		middleware.ReturnError(c, err)
 		return
 	}
-	// 写数据库
+	// 检查是新增还是更新,写数据库
 	var cert *models.PluginCertification
-	cert, err = database.CreateCertification(c, lic, c.GetString(models.ContextUserId))
+	existCert, err := database.GetSingleCertificationByName(c, lic.Plugin)
+	if err != nil {
+		middleware.ReturnError(c, err)
+		return
+	}
+	if existCert != nil {
+		cert, err = database.UpdateCertification(c, existCert.Id, lic, c.GetString(models.ContextUserId))
+		cert.CreatedBy = existCert.CreatedBy
+		cert.CreatedTime = existCert.CreatedTime
+	} else {
+		cert, err = database.CreateCertification(c, lic, c.GetString(models.ContextUserId))
+	}
 	if err != nil {
 		middleware.ReturnError(c, err)
 	} else {
