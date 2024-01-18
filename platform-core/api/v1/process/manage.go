@@ -358,7 +358,7 @@ func DeployProcessDefinition(c *gin.Context) {
 		return
 	}
 	// 发布节点
-	err = database.UpdateProcDefNodeStatusByProcDefId(c, procDefId, string(models.Deployed))
+	err = database.UpdateProcDefNodeStatusByProcDefId(c, procDefId, string(models.Deployed), middleware.GetRequestUser(c))
 	if err != nil {
 		middleware.ReturnError(c, err)
 		return
@@ -450,9 +450,8 @@ func GetProcDefNode(c *gin.Context) {
 func GetProcDefNodePreorder(c *gin.Context) {
 	var err error
 	var procDefNode *models.ProcDefNode
-	var nodeDtoMap = make(map[string]*models.ProcDefNodeResultDto)
+	var nodeSimpleDtoMap = make(map[string]*models.ProcDefNodeSimpleDto)
 	var nodeLinkList []*models.ProcDefNodeLink
-	var nodeParams []*models.ProcDefNodeParam
 	var targetNodeRecordMap = make(map[string]bool)
 	var procDefNodeId string
 	nodeId := c.Param("node-id")
@@ -467,7 +466,7 @@ func GetProcDefNodePreorder(c *gin.Context) {
 		return
 	}
 	if procDefNode == nil {
-		middleware.Return(c, convertProcDefNodeResultDtoMap2Dto(nodeDtoMap))
+		middleware.ReturnData(c, convertProcDefNodeSimpleMap2Dto(nodeSimpleDtoMap))
 		return
 	}
 	targetNodeRecordMap[procDefNode.Id] = true
@@ -490,20 +489,19 @@ func GetProcDefNodePreorder(c *gin.Context) {
 		}
 		for _, link := range nodeLinkList {
 			// 根据线的 起点节点查询节点数据
-			procDefNode, err = database.GetProcDefNode(c, procDefId, link.Source)
+			procDefNode, err = database.GetProcDefNodeByIdAndProcDefId(c, procDefId, link.Source)
 			if err != nil {
 				middleware.ReturnError(c, err)
 				return
 			}
 			if procDefNode != nil {
-				nodeParams, err = database.GetProcDefNodeParamByNodeId(c, procDefNode.Id)
-				nodeDtoMap[procDefNode.Id] = models.ConvertProcDefNode2Dto(procDefNode, nodeParams)
+				nodeSimpleDtoMap[procDefNode.Id] = models.ConvertProcDefNode2SimpleDto(procDefNode)
 				// 将节点数据 放入到targetNodeRecordMap,后续继续递归
 				targetNodeRecordMap[procDefNode.Id] = true
 			}
 		}
 	}
-	middleware.Return(c, convertProcDefNodeResultDtoMap2Dto(nodeDtoMap))
+	middleware.ReturnData(c, convertProcDefNodeSimpleMap2Dto(nodeSimpleDtoMap))
 }
 
 // GetProcDefNodeParameters 获取节点参数
@@ -837,8 +835,8 @@ func enrichPluginConfigInterfaces(ctx context.Context, configInterface *models.P
 	return configInterface
 }
 
-func convertProcDefNodeResultDtoMap2Dto(hashMap map[string]*models.ProcDefNodeResultDto) []*models.ProcDefNodeResultDto {
-	var list = make([]*models.ProcDefNodeResultDto, 0)
+func convertProcDefNodeSimpleMap2Dto(hashMap map[string]*models.ProcDefNodeSimpleDto) []*models.ProcDefNodeSimpleDto {
+	var list = make([]*models.ProcDefNodeSimpleDto, 0)
 	if len(hashMap) > 0 {
 		for _, value := range hashMap {
 			list = append(list, value)

@@ -214,6 +214,20 @@ func GetProcDefNode(ctx context.Context, procDefId, nodeId string) (result *mode
 	return
 }
 
+// GetProcDefNodeByIdAndProcDefId 获取编排节点
+func GetProcDefNodeByIdAndProcDefId(ctx context.Context, procDefId, id string) (result *models.ProcDefNode, err error) {
+	var list []*models.ProcDefNode
+	err = db.MysqlEngine.Context(ctx).SQL("select * from proc_def_node where proc_def_id = ? and id = ?", procDefId, id).Find(&list)
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
+		return
+	}
+	if len(list) > 0 {
+		result = list[0]
+	}
+	return
+}
+
 // GetProcDefNodeLink  获取编排线
 func GetProcDefNodeLink(ctx context.Context, procDefId string, linkId string) (result *models.ProcDefNodeLink, err error) {
 	var list []*models.ProcDefNodeLink
@@ -239,7 +253,7 @@ func GetProcDefNodeLinkListByProcDefId(ctx context.Context, procDefId string) (l
 }
 
 func GetProcDefNodeLinkByProcDefIdAndTarget(ctx context.Context, procDefId string, target string) (list []*models.ProcDefNodeLink, err error) {
-	err = db.MysqlEngine.Context(ctx).SQL("select * from proc_def_node_link where proc_def_id= ? and target = ?  ", procDefId, target).Find(&list)
+	err = db.MysqlEngine.Context(ctx).SQL("select * from proc_def_node_link where proc_def_id= ? and target = ?", procDefId, target).Find(&list)
 	if err != nil {
 		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
 		return
@@ -446,9 +460,11 @@ func UpdateProcDefNode(ctx context.Context, procDefNode *models.ProcDefNode) (er
 }
 
 // UpdateProcDefNodeStatusByProcDefId 根据编排id更新编排节点状态
-func UpdateProcDefNodeStatusByProcDefId(ctx context.Context, procDefId, status string) (err error) {
+func UpdateProcDefNodeStatusByProcDefId(ctx context.Context, procDefId, status, updatedBy string) (err error) {
 	var actions []*db.ExecAction
-	actions = append(actions, &db.ExecAction{Sql: "update proc_def_node set status = ? where proc_def_id= ?", Param: []interface{}{status, procDefId}})
+	now := time.Now()
+	actions = append(actions, &db.ExecAction{Sql: "update proc_def_node set status = ?,updated_by=?,updated_time = ?" +
+		" where proc_def_id= ?", Param: []interface{}{status, updatedBy, now.Format(models.DateTimeFormat), procDefId}})
 	err = db.Transaction(actions, ctx)
 	if err != nil {
 		err = exterror.Catch(exterror.New().DatabaseExecuteError, err)
