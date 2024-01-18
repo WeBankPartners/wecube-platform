@@ -104,22 +104,21 @@ export default {
     },
     // 发布编排
     async releaseFlow () {
-      const { status, data } = await flowRelease(this.itemCustomInfo.id)
+      const { status } = await flowRelease(this.itemCustomInfo.id)
       if (status === 'OK') {
-        console.log(33, data)
         this.$Message.success(this.$t('release_flow') + this.$t('action_successful'))
+        this.$emit('updateFlowData', '')
       }
     },
     async changeStatus (statusCode, actionTip) {
-      console.log(this.itemCustomInfo)
       const params = {
         procDefIds: [this.itemCustomInfo.id],
         status: statusCode
       }
-      const { status, data } = await flowStatusChange(params)
+      const { status } = await flowStatusChange(params)
       if (status === 'OK') {
         this.$Message.success(this.$t(actionTip) + this.$t('action_successful'))
-        console.log(33, data)
+        this.$emit('updateFlowData', '')
       }
     }
   }
