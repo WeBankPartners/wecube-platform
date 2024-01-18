@@ -544,5 +544,8 @@
   "params_edit_confirm": "The data changes, if you choose to give up, the changed information will not be saved!",
   "duration": "Duration",
   "unit": "Unit",
-  "date": "Date"
+  "date": "Date",
+  "disable": "Disable",
+  "enable": "Enable",
+  "action_successful": " Action Successfully Completed"
 }
