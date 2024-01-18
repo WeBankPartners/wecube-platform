@@ -6,7 +6,7 @@ import (
 
 type WeLicense struct {
 	Plugin      string `json:"plugin"`      // 插件名称
-	PK          string `json:"pk" `         // 公钥
+	Lpk         string `json:"lpk"`         // 公钥
 	Data        string `json:"data"`        // 加密数据
 	Signature   string `json:"signature"`   // 数据签名
 	Description string `json:"description"` // License说明
