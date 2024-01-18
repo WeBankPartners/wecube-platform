@@ -199,7 +199,7 @@ func CopyProcessDefinition(c *gin.Context) {
 // QueryProcessDefinitionList 查询编排列表
 func QueryProcessDefinitionList(c *gin.Context) {
 	var param models.QueryProcessDefinitionParam
-	var list []*models.ProcDefDto
+	var list []*models.ProcDefQueryDto
 	var err error
 	if err = c.ShouldBindJSON(&param); err != nil {
 		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, err))
