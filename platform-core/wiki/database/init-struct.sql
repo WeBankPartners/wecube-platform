@@ -395,3 +395,67 @@ CREATE TABLE `proc_def_collect` (
         PRIMARY KEY (`id`),
         CONSTRAINT `fk_proc_def_collect_def` FOREIGN KEY (`proc_def_id`) REFERENCES `proc_def` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
+
+CREATE TABLE `batch_execution_jobs` (
+    `id` varchar(64) NOT NULL COMMENT '唯一标识',
+    `batch_execution_template_id` varchar(64) DEFAULT NULL COMMENT '模板id',
+    `creator` varchar(64) DEFAULT NULL COMMENT '创建者',
+    `create_timestamp` datetime DEFAULT NULL COMMENT '创建时间',
+    `complete_timestamp` datetime DEFAULT NULL COMMENT '完成时间',
+    PRIMARY KEY (`id`),
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
+
+CREATE TABLE `execution_jobs` (
+    `id` varchar(64) NOT NULL COMMENT '唯一标识',
+    `batch_execution_job_id` varchar(64) NOT NULL COMMENT '批量执行任务id',
+    `package_name` varchar(64) NOT NULL COMMENT '包名',
+    `entity_name` varchar(100) NOT NULL COMMENT '实体名',
+    `business_key` varchar(255) NOT NULL COMMENT '业务key',
+    `root_entity_id` varchar(64) NOT NULL COMMENT '根实体id',
+    `execute_time` datetime NOT NULL COMMENT '执行时间',
+    `complete_time` datetime NULL COMMENT '完成时间',
+    `error_code` varchar(1)  NULL COMMENT '错误码',
+    `error_message` text NULL COMMENT '错误信息',
+    `input_json` longtext NULL COMMENT '输入json',
+    `return_json` longtext NULL COMMENT '输出json',
+    `plugin_config_interface_id` varchar(64) NULL COMMENT '插件配置接口id',
+    PRIMARY KEY (`id`),
+    CONSTRAINT job_id_and_root_entity_id
+        UNIQUE (batch_execution_job_id, root_entity_id),
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
+
+CREATE TABLE `batch_execution_template` (
+    `id` varchar(64) NOT NULL COMMENT '唯一标识',
+    `name` varchar(255) NOT NULL COMMENT '名称',
+    `mgmt_permission` varchar(1024) NOT NULL COMMENT '属主权限',
+    `use_permission` varchar(1024) NOT NULL COMMENT '使用权限',
+    `status` varchar(255)  NOT NULL COMMENT '使用状态: 可使用、权限被移出',
+    `operate_object` varchar(512) NULL COMMENT '操作对象',
+    `plugin_service` varchar(512) NULL COMMENT '插件服务',
+    `config_data` mediumtext NULL COMMENT '配置数据',
+    `created_by` varchar(64) NULL COMMENT '创建者',
+    `created_time` datetime NULL COMMENT '创建时间',
+    `updated_by` varchar(64) NULL COMMENT '更新者',
+    `updated_time` datetime NULL COMMENT '更新时间',
+    PRIMARY KEY (`id`),
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
+
+CREATE TABLE `favorites` (
+    `id` varchar(64) NOT NULL COMMENT '唯一标识',
+    `collection_name` varchar(255) NOT NULL COMMENT '收藏名称',
+    `batch_execution_template_id` varchar(64) NOT NULL COMMENT '批量执行模板id',
+    `created_by` varchar(64) NOT NULL COMMENT '创建者',
+    `updated_by` varchar(64) NOT NULL COMMENT '更新者',
+    `created_time` datetime NOT NULL COMMENT '创建时间',
+    `updated_time` datetime NOT NULL COMMENT '更新时间',
+    PRIMARY KEY (`id`),
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
+
+CREATE TABLE `favorites_role` (
+  `id` varchar(64) NOT NULL COMMENT '唯一标识',
+  `favorites_id` varchar(64) NOT NULL COMMENT '收藏id',
+  `permission` varchar(64) NOT NULL COMMENT '权限->MGMT(管理) | USE(使用)',
+  `role_id` varchar(64) NOT NULL COMMENT '角色id',
+  `role_name` varchar(64) NOT NULL COMMENT '角色名',
+  PRIMARY KEY (`id`),
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
