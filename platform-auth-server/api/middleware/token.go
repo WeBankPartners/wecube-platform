@@ -81,7 +81,7 @@ func GetAuthenticatedUser(c *gin.Context) *model.AuthenticatedUser {
 		claim := authClaim.(*model.AuthClaims)
 		return &model.AuthenticatedUser{
 			Username:           claim.Subject,
-			GrantedAuthorities: claim.Authorities,
+			GrantedAuthorities: claim.Authority,
 		}
 	}
 	return nil

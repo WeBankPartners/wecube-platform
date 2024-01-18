@@ -65,7 +65,7 @@ func BuildAccessToken(loginId string, authorities []string, clientType string, e
 		ClientType: clientType,
 		//Roles:      roles,
 		//Authority: string(authoritiesBytes),
-		Authorities: authorities,
+		Authority: authorities,
 	})
 	if tokenString, err := token.SignedString(model.Config.Auth.SigningKeyBytes); err == nil {
 		return &model.JwtTokenDto{
