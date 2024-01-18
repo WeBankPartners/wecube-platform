@@ -2,26 +2,47 @@
   <div>
     <div style="display: flex; justify-content: space-between">
       <div class="flow-name" @click="openCanvasPanel">
-        {{ itemCustomInfo.name }}
+        <span style="vertical-align: middle">{{ itemCustomInfo.name }}</span>
         <Tag>v{{ itemCustomInfo.version }}</Tag>
-        <Icon type="ios-nutrition"></Icon>
+        <img src="../../../assets/icon/edit-black.png" style="width: 16px; vertical-align: middle" alt="" />
       </div>
       <div>
-        <Button type="primary">
+        <Button type="primary" v-if="['draft'].includes(itemCustomInfo.status)" @click="releaseFlow">
           <Icon type="ios-paper-plane-outline" size="16"></Icon>
           {{ $t('release_flow') }}
         </Button>
-        <Button type="success">
+        <Button type="success" v-if="['draft', 'deployed', 'disabled'].includes(itemCustomInfo.status)">
           <Icon type="ios-download-outline" size="16"></Icon>
           {{ $t('export') }}
         </Button>
-        <Button type="info" @click="changePermission">
+        <Button type="info" v-if="['draft', 'deployed'].includes(itemCustomInfo.status)" @click="changePermission">
           <Icon type="ios-person-outline" size="16"></Icon>
           {{ $t('config_permission') }}
         </Button>
-        <Button type="error">
+        <Button
+          type="error"
+          v-if="['draft'].includes(itemCustomInfo.status)"
+          @click="changeStatus('deleted', 'delete')"
+        >
           <Icon type="ios-trash-outline" size="16"></Icon>
           {{ $t('delete') }}
+        </Button>
+        {{ itemCustomInfo.status }}
+        <Button
+          type="error"
+          v-if="['deployed'].includes(itemCustomInfo.status)"
+          @click="changeStatus('disabled', 'disable')"
+        >
+          <img src="../../../assets/icon/disable.png" style="width: 16px; vertical-align: middle" alt="" />
+          {{ $t('disable') }}
+        </Button>
+        <Button
+          type="success"
+          v-if="['disabled'].includes(itemCustomInfo.status)"
+          @click="changeStatus('deployed', 'enable')"
+        >
+          <img src="../../../assets/icon/enable.png" style="width: 16px; vertical-align: middle" alt="" />
+          {{ $t('enable') }}
         </Button>
       </div>
     </div>
@@ -32,6 +53,7 @@
 
 <script>
 import FlowAuth from '@/pages/collaboration/flow/flow-auth.vue'
+import { flowStatusChange, flowRelease } from '@/api/server.js'
 export default {
   components: {
     FlowAuth
@@ -79,6 +101,26 @@ export default {
     // #endregion
     openCanvasPanel () {
       this.$emit('openCanvasPanel', '')
+    },
+    // 发布编排
+    async releaseFlow () {
+      const { status, data } = await flowRelease(this.itemCustomInfo.id)
+      if (status === 'OK') {
+        console.log(33, data)
+        this.$Message.success(this.$t('release_flow') + this.$t('action_successful'))
+      }
+    },
+    async changeStatus (statusCode, actionTip) {
+      console.log(this.itemCustomInfo)
+      const params = {
+        procDefIds: [this.itemCustomInfo.id],
+        status: statusCode
+      }
+      const { status, data } = await flowStatusChange(params)
+      if (status === 'OK') {
+        this.$Message.success(this.$t(actionTip) + this.$t('action_successful'))
+        console.log(33, data)
+      }
     }
   }
 }

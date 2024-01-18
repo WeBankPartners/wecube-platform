@@ -356,6 +356,7 @@ export default {
         customAttrs: customAttrs
       }
       this.$emit('sendItemInfo', finalData, this.needAddFirst)
+      this.needAddFirst = false
     },
     panalStatus () {
       return this.isParmasChanged

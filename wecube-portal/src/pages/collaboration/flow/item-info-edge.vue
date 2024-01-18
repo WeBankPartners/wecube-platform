@@ -55,6 +55,7 @@ export default {
         selfAttrs: tmpData
       }
       this.$emit('sendItemInfo', finalData, this.needAddFirst)
+      this.needAddFirst = false
     },
     panalStatus () {
       return this.isParmasChanged
@@ -93,7 +94,7 @@ export default {
   box-shadow: 0 0 2px 0 rgba(0, 0, 0, 0.1);
 }
 .ivu-form-item {
-  margin-bottom: 0;
+  margin-bottom: 12px;
 }
 
 .panal-name {
