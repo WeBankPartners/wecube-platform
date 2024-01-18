@@ -65,7 +65,9 @@ export default {
   },
   data () {
     return {
-      demoFlowId: 'pdef_60f1e126f08c50d256735',
+      demoFlowId: 'pdef_60f2fc1f5acfa58e852c8',
+      // pdef_60f2fc1f5acfa58e852c8
+      // pdef_60f1e126f08c50d256735
       isShowGraph: false,
       itemInfoType: '', // canvas、node、edge
       mode: 'drag-shadow-node',
@@ -206,7 +208,7 @@ export default {
         },
         async handleMenuClick (target, item) {
           const method = item._cfg.id.startsWith('pdef_node_') ? flowNodeDelete : flowEdgeDelete
-          const { status } = await method(item._cfg.id)
+          const { status } = await method(vm.procDef.id, item._cfg.id)
           if (status === 'OK') {
             const { id } = target
             if (id) {
@@ -588,9 +590,9 @@ export default {
     async setNodeInfo (info, needAddFirst) {
       const { status } = await flowNodeMgmt(info)
       if (status === 'OK') {
-        this.itemInfoType = ''
         if (!needAddFirst) {
           this.$Message.success(this.$t('save_successfully'))
+          this.itemInfoType = ''
         }
         const item = this.graph.findById(info.customAttrs.id)
         const params = {
@@ -602,11 +604,12 @@ export default {
     },
     // 保存边信息
     async setEdgeInfo (info, needAddFirst) {
+      info.procDefId = this.procDef.id
       const { status } = await flowEdgeMgmt(info)
       if (status === 'OK') {
-        this.itemInfoType = ''
         if (!needAddFirst) {
           this.$Message.success(this.$t('save_successfully'))
+          this.itemInfoType = ''
         }
         const item = this.graph.findById(info.customAttrs.id)
         const params = {
