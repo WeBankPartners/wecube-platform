@@ -45,8 +45,12 @@ func MarshalWeLicense(lic *models.WeLicense) (data []byte, err error) {
 	}
 	var compressedData bytes.Buffer
 	zipWriter := zlib.NewWriter(&compressedData)
-	defer zipWriter.Close()
 	_, errWrite := zipWriter.Write(jsonData)
+	if errWrite != nil {
+		err = errWrite
+		return
+	}
+	errWrite = zipWriter.Close()
 	if errWrite != nil {
 		err = errWrite
 		return
@@ -61,6 +65,11 @@ func GetCertifications(c *gin.Context) {
 	if err != nil {
 		middleware.ReturnError(c, err)
 	} else {
+		for _, r := range result {
+			r.Lpk = ""
+			r.Signature = ""
+			r.EncryptData = ""
+		}
 		middleware.ReturnData(c, result)
 	}
 }
@@ -100,7 +109,7 @@ func ExportCertification(c *gin.Context) {
 		}
 		exportData, err := MarshalWeLicense(&models.WeLicense{
 			Plugin:      result.Plugin,
-			PK:          result.Lpk,
+			Lpk:         result.Lpk,
 			Data:        result.EncryptData,
 			Signature:   result.Signature,
 			Description: result.Description,
