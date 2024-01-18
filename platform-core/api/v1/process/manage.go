@@ -180,7 +180,7 @@ func CopyProcessDefinition(c *gin.Context) {
 	}
 	// 编排没有相关性,则重新生成key
 	if association != "y" && association != "Y" {
-		procDef.Key = guid.CreateGuid()
+		procDef.Key = "pdef_key_" + guid.CreateGuid()
 		procDef.Name = procDef.Name + "(1)"
 	}
 	procDef.Version = ""

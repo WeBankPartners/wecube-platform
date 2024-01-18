@@ -47,7 +47,7 @@ func CopyProcessDefinition(ctx context.Context, procDef *models.ProcDef) (err er
 	var nodeList []*models.ProcDefNode
 	var linkList []*models.ProcDefNodeLink
 	var nodeParamList []*models.ProcDefNodeParam
-	var newProcDefId = guid.CreateGuid()
+	var newProcDefId = "pdef_" + guid.CreateGuid()
 	// 查询权限
 	permissionList, err = GetProcDefPermissionByCondition(ctx, models.ProcDefPermission{ProcDefId: procDef.Id})
 	if err != nil {
@@ -84,7 +84,7 @@ func CopyProcessDefinition(ctx context.Context, procDef *models.ProcDef) (err er
 			newNodeId := guid.CreateGuid()
 			actions = append(actions, &db.ExecAction{Sql: "insert into  proc_def_node(id,node_id,proc_def_id,name,description,status,node_type,service_name," +
 				"dynamic_bind,bind_node_id,risk_check,routine_expression,context_param_nodes,timeout,time_config,ordered_no,ui_style,created_by,created_time," +
-				"updated_by,updated_time) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)", Param: []interface{}{newNodeId, node.NodeId, node.ProcDefId, node.Name, node.Description,
+				"updated_by,updated_time) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)", Param: []interface{}{newNodeId, node.NodeId, newProcDefId, node.Name, node.Description,
 				models.Draft, node.NodeType, node.ServiceName, node.DynamicBind, node.BindNodeId, node.RiskCheck, node.RoutineExpression, node.ContextParamNodes,
 				node.Timeout, node.TimeConfig, node.OrderedNo, node.UiStyle, node.CreatedBy, node.CreatedTime.Format(models.DateTimeFormat), node.UpdatedBy, node.UpdatedTime.Format(models.DateTimeFormat)}})
 			nodeParamList, err = GetProcDefNodeParamByNodeId(ctx, node.Id)
