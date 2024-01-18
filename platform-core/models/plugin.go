@@ -582,7 +582,7 @@ func (q RichPluginConfigInterfacesSort) Len() int {
 }
 
 func (q RichPluginConfigInterfacesSort) Less(i, j int) bool {
-	return tools.CompareVersion(q[i].PluginPackageVersion, q[j].PluginPackageVersion)
+	return tools.CompareVersion(q[j].PluginPackageVersion, q[i].PluginPackageVersion)
 }
 
 func (q RichPluginConfigInterfacesSort) Swap(i, j int) {
