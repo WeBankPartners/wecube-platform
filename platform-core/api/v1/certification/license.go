@@ -45,8 +45,12 @@ func MarshalWeLicense(lic *models.WeLicense) (data []byte, err error) {
 	}
 	var compressedData bytes.Buffer
 	zipWriter := zlib.NewWriter(&compressedData)
-	defer zipWriter.Close()
 	_, errWrite := zipWriter.Write(jsonData)
+	if errWrite != nil {
+		err = errWrite
+		return
+	}
+	errWrite = zipWriter.Close()
 	if errWrite != nil {
 		err = errWrite
 		return
@@ -61,6 +65,11 @@ func GetCertifications(c *gin.Context) {
 	if err != nil {
 		middleware.ReturnError(c, err)
 	} else {
+		for _, r := range result {
+			r.Lpk = ""
+			r.Signature = ""
+			r.EncryptData = ""
+		}
 		middleware.ReturnData(c, result)
 	}
 }
@@ -78,9 +87,20 @@ func ImportCertification(c *gin.Context) {
 		middleware.ReturnError(c, err)
 		return
 	}
-	// 写数据库
+	// 检查是新增还是更新,写数据库
 	var cert *models.PluginCertification
-	cert, err = database.CreateCertification(c, lic, c.GetString(models.ContextUserId))
+	existCert, err := database.GetSingleCertificationByName(c, lic.Plugin)
+	if err != nil {
+		middleware.ReturnError(c, err)
+		return
+	}
+	if existCert != nil {
+		cert, err = database.UpdateCertification(c, existCert.Id, lic, c.GetString(models.ContextUserId))
+		cert.CreatedBy = existCert.CreatedBy
+		cert.CreatedTime = existCert.CreatedTime
+	} else {
+		cert, err = database.CreateCertification(c, lic, c.GetString(models.ContextUserId))
+	}
 	if err != nil {
 		middleware.ReturnError(c, err)
 	} else {
@@ -100,7 +120,7 @@ func ExportCertification(c *gin.Context) {
 		}
 		exportData, err := MarshalWeLicense(&models.WeLicense{
 			Plugin:      result.Plugin,
-			PK:          result.Lpk,
+			Lpk:         result.Lpk,
 			Data:        result.EncryptData,
 			Signature:   result.Signature,
 			Description: result.Description,
