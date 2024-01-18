@@ -105,34 +105,32 @@ func QueryPluginByTargetEntity(c *gin.Context) {
 		middleware.ReturnData(c, resultPluginConfigInterfaceDtoList)
 		return
 	}
-	if isEmpty(param) {
-		plugConfigInterfaceDtoList, err := database.QueryAllEnablePluginConfigInterfaceByCondition(c, param, roles)
-		if err != nil {
-			middleware.ReturnError(c, err)
-			return
-		}
-		if len(plugConfigInterfaceDtoList) > 0 {
-			resultPluginConfigInterfaceDtoList = append(resultPluginConfigInterfaceDtoList, plugConfigInterfaceDtoList...)
-		}
-		if strings.TrimSpace(param.TaskCategory) != "" {
-			if param.TaskCategory == "SUTN" {
-				for _, interfaceDto := range resultPluginConfigInterfaceDtoList {
-					if strings.EqualFold(interfaceDto.Type, "APPROVAL") || strings.EqualFold(interfaceDto.Type, "DYNAMICFORM") {
-						finalResultPluginConfigInterfaceDtoList = append(finalResultPluginConfigInterfaceDtoList, interfaceDto)
-					}
+	plugConfigInterfaceDtoList, err := database.QueryAllEnablePluginConfigInterfaceByCondition(c, param, roles)
+	if err != nil {
+		middleware.ReturnError(c, err)
+		return
+	}
+	if len(plugConfigInterfaceDtoList) > 0 {
+		resultPluginConfigInterfaceDtoList = append(resultPluginConfigInterfaceDtoList, plugConfigInterfaceDtoList...)
+	}
+	if strings.TrimSpace(param.NodeType) != "" {
+		if param.NodeType == "human" {
+			for _, interfaceDto := range resultPluginConfigInterfaceDtoList {
+				if strings.EqualFold(interfaceDto.Type, "APPROVAL") || strings.EqualFold(interfaceDto.Type, "DYNAMICFORM") {
+					finalResultPluginConfigInterfaceDtoList = append(finalResultPluginConfigInterfaceDtoList, interfaceDto)
 				}
-			} else if param.TaskCategory == "SSTN" {
-				for _, interfaceDto := range resultPluginConfigInterfaceDtoList {
-					if strings.EqualFold(interfaceDto.Type, "EXECUTION") {
-						finalResultPluginConfigInterfaceDtoList = append(finalResultPluginConfigInterfaceDtoList, interfaceDto)
-					}
+			}
+		} else if param.NodeType == "automatic" {
+			for _, interfaceDto := range resultPluginConfigInterfaceDtoList {
+				if strings.EqualFold(interfaceDto.Type, "EXECUTION") {
+					finalResultPluginConfigInterfaceDtoList = append(finalResultPluginConfigInterfaceDtoList, interfaceDto)
 				}
-			} else {
-				finalResultPluginConfigInterfaceDtoList = append(finalResultPluginConfigInterfaceDtoList, resultPluginConfigInterfaceDtoList...)
 			}
 		} else {
 			finalResultPluginConfigInterfaceDtoList = append(finalResultPluginConfigInterfaceDtoList, resultPluginConfigInterfaceDtoList...)
 		}
+	} else {
+		finalResultPluginConfigInterfaceDtoList = append(finalResultPluginConfigInterfaceDtoList, resultPluginConfigInterfaceDtoList...)
 	}
 	// 排序
 	sort.Sort(models.PluginConfigInterfaceDtoSort(finalResultPluginConfigInterfaceDtoList))
@@ -148,7 +146,7 @@ func tryCalculateConfigurableInputParameters(list []*models.PluginConfigInterfac
 		}
 		for _, paramDto := range inputParameters {
 			if strings.EqualFold(paramDto.MappingType, "context") || strings.EqualFold(paramDto.MappingType, "constant") {
-				if strings.EqualFold(paramDto.MappingType, "constant") && strings.TrimSpace(paramDto.MappingValue) == "" {
+				if strings.EqualFold(paramDto.MappingType, "constant") && strings.TrimSpace(paramDto.MappingValue) != "" {
 					continue
 				}
 				configParamDto := &models.PluginConfigInterfaceParameterDto{
@@ -213,11 +211,4 @@ func tryCalculateConfigurableParameters(refObjectMeta *models.CoreObjectMetaDto)
 		}
 	}
 	return objectConfigParamDtoList
-}
-
-func isEmpty(param models.TargetEntityFilterRuleDto) bool {
-	if param.PkgName == "" && param.EntityName == "" && param.TargetEntityFilterRule == "" || param.TaskCategory == "" {
-		return true
-	}
-	return false
 }
