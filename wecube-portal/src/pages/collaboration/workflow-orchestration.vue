@@ -1,6 +1,11 @@
 <template>
   <div class="root">
-    <FlowHeader @openCanvasPanel="openCanvasPanel" @updateAuth="updateAuth" ref="headerInfoRef"></FlowHeader>
+    <FlowHeader
+      @openCanvasPanel="openCanvasPanel"
+      @updateAuth="updateAuth"
+      @updateFlowData="updateFlowData"
+      ref="headerInfoRef"
+    ></FlowHeader>
     <!-- v-show="isShowGraph" -->
     <div class="canvas-zone">
       <!-- 左侧按钮 -->
@@ -65,7 +70,7 @@ export default {
   },
   data () {
     return {
-      demoFlowId: 'pdef_60f2fc1f5acfa58e852c8',
+      demoFlowId: 'pdef_60f1e126f08c50d256735',
       // pdef_60f2fc1f5acfa58e852c8
       // pdef_60f1e126f08c50d256735
       isShowGraph: false,
@@ -146,6 +151,10 @@ export default {
     this.graph.destroy()
   },
   methods: {
+    // 更新编排信息
+    updateFlowData () {
+      this.getFlowInfo(this.demoFlowId)
+    },
     // 画布属性展开
     openCanvasPanel () {
       this.itemInfoType = 'canvas'
