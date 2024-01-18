@@ -377,12 +377,10 @@ export default {
     },
     // 获取当前节点的前序节点
     async getAssociatedNodes () {
-      let params = {
-        taskNodeId: '',
-        procDefData: ''
-      }
-      let { status, data } = await getAssociatedNodes(params)
+      console.log(this.itemCustomInfo)
+      let { status, data } = await getAssociatedNodes(this.itemCustomInfo.customAttrs.procDefId, this.itemCustomInfo.id)
       if (status === 'OK') {
+        console.log(data)
         this.associatedNodes = data
       }
     },
