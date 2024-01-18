@@ -129,3 +129,55 @@ func GetConfigInterfaces(ctx context.Context, pluginPackageId string) (result []
 	}
 	return
 }
+
+func GetConfigInterfacesById(ctx context.Context, id string) (result *models.PluginConfigInterfaces, err error) {
+	var list []*models.PluginConfigInterfaces
+	err = db.MysqlEngine.Context(ctx).SQL("select id, plugin_config_id, action, service_name,service_display_name, path, http_method,"+
+		"is_async_processing,type, filter_rule,description from  plugin_config_interfaces where id= ?", id).Find(&list)
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
+		return
+	}
+	if len(list) > 0 {
+		result = list[0]
+	}
+	return
+}
+
+func GetPluginConfigById(ctx context.Context, id string) (result *models.PluginConfigs, err error) {
+	var list []*models.PluginConfigs
+	err = db.MysqlEngine.Context(ctx).SQL("select id,plugin_package_id, name, target_package,target_entity,"+
+		"target_entity_filter_rule,register_name,status from plugin_configs where id=?", id).Find(&list)
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
+		return
+	}
+	if len(list) > 0 {
+		result = list[0]
+	}
+	return
+}
+
+func GetPluginPackageById(ctx context.Context, id string) (result *models.PluginPackages, err error) {
+	var list []*models.PluginPackages
+	err = db.MysqlEngine.Context(ctx).SQL("select id,name,version,status,upload_timestamp,ui_package_included,edition from plugin_packages where id=?", id).Find(&list)
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
+		return
+	}
+	if len(list) > 0 {
+		result = list[0]
+	}
+	return
+}
+
+func GetPluginConfigInterfaceParameters(ctx context.Context, pluginConfigInterfaceId, parameterType string) (list []*models.PluginConfigInterfaceParameters, err error) {
+	err = db.MysqlEngine.Context(ctx).SQL(" select id,plugin_config_interface_id, type, name,data_type,mapping_type,mapping_entity_expression,"+
+		"mapping_system_variable_name,required,sensitive_data,description,mapping_val,ref_object_name,multiple from plugin_config_interface_parameters"+
+		" where plugin_config_interface_id = ? and type =?", pluginConfigInterfaceId, parameterType).Find(&list)
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
+		return
+	}
+	return
+}
