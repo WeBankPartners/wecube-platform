@@ -70,9 +70,9 @@ func CreateCertification(ctx context.Context, lic *models.WeLicense, userId stri
 		EncryptData: lic.Data,
 		Signature:   lic.Signature,
 		Description: lic.Description,
-		CreatedTime: time.Now(),
+		CreatedTime: time.Now().Format("2006-01-02 15:04:05"),
 		CreatedBy:   userId,
-		UpdatedTime: time.Now(),
+		UpdatedTime: time.Now().Format("2006-01-02 15:04:05"),
 		UpdatedBy:   userId,
 	}
 	_, err = session.Insert(cert)
