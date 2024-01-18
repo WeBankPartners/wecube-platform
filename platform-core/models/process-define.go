@@ -121,7 +121,16 @@ type CheckProcDefNameParam struct {
 
 type BatchUpdateProcDefStatusParam struct {
 	ProcDefIds []string `json:"procDefIds"` // 编排id列表
-	Status     string   `json:"status"`     // 更新状态 disabled 禁用 deleted 删除  enabled 部署状态
+	Status     string   `json:"status"`     // 更新状态 disabled 禁用 deleted 删除  enabled 启用
+}
+
+type QueryProcessDefinitionParam struct {
+	ProcDefId        string `json:"procDefId"`        // 编排Id
+	ProcDefName      string `json:"procDefName"`      // 编排名称
+	Plugin           string `json:"plugin"`           // 调用插件
+	UpdatedTimeStart string `json:"updatedTimeStart"` // 更新时间开始
+	UpdatedTimeEnd   string `json:"UpdatedTimeEnd"`   // 更新时间结束
+	Status           string `json:"status"`           // disabled 禁用 draft草稿 deployed 发布状态
 }
 
 type BatchUpdateProcDefPermission struct {
