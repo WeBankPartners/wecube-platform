@@ -196,7 +196,7 @@ func GetEntityModel(ctx context.Context, packageName, entityName string, onlyAtt
 	}
 	if len(refToFilters) > 0 {
 		var pluginConfigRows []*models.PluginConfigs
-		err = db.MysqlEngine.Context(ctx).SQL("select target_package,target_entity,target_entity_filter_rule from plugin_configs where status='ENABLED' and (" + strings.Join(refToFilters, " or ") + ")").Find(&pluginConfigRows)
+		err = db.MysqlEngine.Context(ctx).SQL("select distinct target_package,target_entity,target_entity_filter_rule from plugin_configs where status='ENABLED' and (" + strings.Join(refToFilters, " or ") + ")").Find(&pluginConfigRows)
 		if err != nil {
 			err = exterror.Catch(exterror.New().DatabaseQueryError, err)
 			return
@@ -207,7 +207,7 @@ func GetEntityModel(ctx context.Context, packageName, entityName string, onlyAtt
 	}
 	if len(refByFilters) > 0 {
 		var pluginConfigRows []*models.PluginConfigs
-		err = db.MysqlEngine.Context(ctx).SQL("select target_package,target_entity,target_entity_filter_rule from plugin_configs where status='ENABLED' and (" + strings.Join(refByFilters, " or ") + ")").Find(&pluginConfigRows)
+		err = db.MysqlEngine.Context(ctx).SQL("select distinct target_package,target_entity,target_entity_filter_rule from plugin_configs where status='ENABLED' and (" + strings.Join(refByFilters, " or ") + ")").Find(&pluginConfigRows)
 		if err != nil {
 			err = exterror.Catch(exterror.New().DatabaseQueryError, err)
 			return
