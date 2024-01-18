@@ -17,7 +17,7 @@ type handlerFuncObj struct {
 	LogOperation bool
 	PreHandle    func(c *gin.Context)
 	ApiCode      string
-	//Authorities  []string
+	//Authority  []string
 	LogAction bool
 	//FeatureCode  string
 }
