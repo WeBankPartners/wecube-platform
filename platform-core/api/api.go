@@ -3,8 +3,14 @@ package api
 import (
 	"bytes"
 	"fmt"
+	"io"
+	"net/http"
+	"strings"
+	"time"
+
 	"github.com/WeBankPartners/go-common-lib/guid"
 	"github.com/WeBankPartners/wecube-platform/platform-core/api/middleware"
+	"github.com/WeBankPartners/wecube-platform/platform-core/api/v1/certification"
 	"github.com/WeBankPartners/wecube-platform/platform-core/api/v1/plugin"
 	"github.com/WeBankPartners/wecube-platform/platform-core/api/v1/process"
 	"github.com/WeBankPartners/wecube-platform/platform-core/api/v1/system"
@@ -12,10 +18,6 @@ import (
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/log"
 	"github.com/WeBankPartners/wecube-platform/platform-core/models"
 	"github.com/gin-gonic/gin"
-	"io"
-	"net/http"
-	"strings"
-	"time"
 )
 
 type handlerFuncObj struct {
@@ -120,12 +122,24 @@ func init() {
 		// process manage
 		&handlerFuncObj{Url: "/process/definitions", Method: "POST", HandlerFunc: process.AddOrUpdateProcessDefinition, ApiCode: "add-update-process-definition"},
 		&handlerFuncObj{Url: "/process/definitions/:proc-def-id", Method: "GET", HandlerFunc: process.GetProcessDefinition, ApiCode: "get-process-definition"},
-		&handlerFuncObj{Url: "/process/definitions/taskNodes", Method: "POST", HandlerFunc: process.AddOrUpdateProcessDefinitionTaskNodes, ApiCode: "add-update-process-definition-nodes"},
-		&handlerFuncObj{Url: "/process/definitions/taskNodes/:node-id", Method: "DELETE", HandlerFunc: process.DeleteProcDefNode, ApiCode: "delete-process-definition-nodes"},
-		&handlerFuncObj{Url: "/process/definitions/taskNodes/:node-id", Method: "GET", HandlerFunc: process.GetProcDefNode, ApiCode: "get-process-definition-node"},
-		&handlerFuncObj{Url: "/process/definitions/node/link", Method: "POST", HandlerFunc: process.AddOrUpdateProcDefNodeLink, ApiCode: "add-update-process-definition-node-link"},
-		&handlerFuncObj{Url: "/process/definitions/node/link/:node-link-id", Method: "GET", HandlerFunc: process.GetProcDefNodeLink, ApiCode: "get-process-definition-node-link"},
-		&handlerFuncObj{Url: "/process/definitions/node/link/:node-link-id", Method: "DELETE", HandlerFunc: process.DeleteProcDefNodeLink, ApiCode: "delete-process-definition-node-link"},
+		&handlerFuncObj{Url: "/process/definitions/:proc-def-id/copy/:association", Method: "POST", HandlerFunc: process.CopyProcessDefinition, ApiCode: "copy-process-definition"},
+		&handlerFuncObj{Url: "/process/definitions/list", Method: "GET", HandlerFunc: process.QueryProcessDefinitionList, ApiCode: "process-definition-list"},
+		&handlerFuncObj{Url: "/process/definitions/status", Method: "POST", HandlerFunc: process.BatchUpdateProcessDefinitionStatus, ApiCode: "update-process-definition-status"},
+		&handlerFuncObj{Url: "/process/definitions/permission", Method: "POST", HandlerFunc: process.BatchUpdateProcessDefinitionPermission, ApiCode: "update-process-definition-permission"},
+		&handlerFuncObj{Url: "/process/definitions/deploy/:proc-def-id", Method: "POST", HandlerFunc: process.DeployProcessDefinition, ApiCode: "deploy-process-definition"},
+		&handlerFuncObj{Url: "/process/definitions/taskNodes", Method: "POST", HandlerFunc: process.AddOrUpdateProcDefTaskNodes, ApiCode: "add-update-process-definition-nodes"},
+		&handlerFuncObj{Url: "/process/definitions/:proc-def-id/taskNodes/:node-id", Method: "DELETE", HandlerFunc: process.DeleteProcDefNode, ApiCode: "delete-process-definition-nodes"},
+		&handlerFuncObj{Url: "/process/definitions/:proc-def-id/taskNodes/:node-id", Method: "GET", HandlerFunc: process.GetProcDefNode, ApiCode: "get-process-definition-node"},
+		&handlerFuncObj{Url: "/process/definitions/:proc-def-id/taskNodes/:node-id/preorder", Method: "GET", HandlerFunc: process.GetProcDefNodePreorder, ApiCode: "get-process-definition-node-preorder"},
+		&handlerFuncObj{Url: "/process/definitions/:proc-def-id/taskNodes/:node-id/parameters", Method: "GET", HandlerFunc: process.GetProcDefNodeParameters, ApiCode: "get-process-definition-node-parameters"},
+		&handlerFuncObj{Url: "/process/definitions/link", Method: "POST", HandlerFunc: process.AddOrUpdateProcDefNodeLink, ApiCode: "add-update-process-definition-node-link"},
+		&handlerFuncObj{Url: "/process/definitions/:proc-def-id/link/:node-link-id", Method: "DELETE", HandlerFunc: process.DeleteProcDefNodeLink, ApiCode: "delete-process-definition-node-link"},
+
+		// certification manager
+		&handlerFuncObj{Url: "/plugin-certifications", Method: "GET", HandlerFunc: certification.GetCertifications, ApiCode: "get-certifications"},
+		&handlerFuncObj{Url: "/plugin-certifications/:certId/export", Method: "GET", HandlerFunc: certification.ExportCertification, ApiCode: "export-certification"},
+		&handlerFuncObj{Url: "/plugin-certifications/import", Method: "POST", HandlerFunc: certification.ImportCertification, ApiCode: "import-certification"},
+		&handlerFuncObj{Url: "/plugin-certifications/:certId", Method: "DELETE", HandlerFunc: certification.DeleteCertification, ApiCode: "delete-certification"},
 	)
 }
 

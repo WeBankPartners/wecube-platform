@@ -4,6 +4,8 @@ import (
 	"encoding/xml"
 	"strings"
 	"time"
+
+	"github.com/WeBankPartners/wecube-platform/platform-core/common/tools"
 )
 
 const (
@@ -313,6 +315,41 @@ type PluginConfigInterfaces struct {
 	PluginConfig       *PluginConfigs                     `json:"pluginConfig" xorm:"-"`
 }
 
+func (p *PluginConfigInterfaces) AddInputParameters(inputParam *PluginConfigInterfaceParameters) {
+	if len(p.InputParameters) == 0 {
+		p.InputParameters = make([]*PluginConfigInterfaceParameters, 0)
+	}
+	p.InputParameters = append(p.InputParameters, inputParam)
+}
+
+func (p *PluginConfigInterfaces) AddOutputParameters(outputParam *PluginConfigInterfaceParameters) {
+	if len(p.OutputParameters) == 0 {
+		p.OutputParameters = make([]*PluginConfigInterfaceParameters, 0)
+	}
+	p.OutputParameters = append(p.OutputParameters, outputParam)
+}
+
+type RichPluginConfigInterfaces struct {
+	Id                   string                             `json:"id" xorm:"id"`                                   // 唯一标识
+	PluginConfigId       string                             `json:"pluginConfigId" xorm:"plugin_config_id"`         // 插件服务
+	Action               string                             `json:"action" xorm:"action"`                           // 接口
+	ServiceName          string                             `json:"serviceName" xorm:"service_name"`                // 服务名
+	ServiceDisplayName   string                             `json:"serviceDisplayName" xorm:"service_display_name"` // 服务显示名
+	Path                 string                             `json:"path" xorm:"path"`                               // 插件接口uri
+	HttpMethod           string                             `json:"httpMethod" xorm:"http_method"`                  // http请求方法
+	IsAsyncProcessing    string                             `json:"isAsyncProcessing" xorm:"is_async_processing"`   // 是否同步->Y(是) | N(否)
+	Type                 string                             `json:"type" xorm:"type"`                               // 服务类型->approval(审批),execution(执行),dynamicform(动态表单)
+	FilterRule           string                             `json:"filterRule" xorm:"filter_rule"`                  // 服务过滤规则
+	Description          string                             `json:"description" xorm:"description"`                 // 描述
+	PluginConfigStatus   string                             `json:"pluginConfigStatus" xorm:"plugin_config_status""`
+	PluginPackageId      string                             `json:"pluginPackageId" xorm:"plugin_package_id""`
+	PluginPackageStatus  string                             `json:"pluginPackageStatus" xorm:"plugin_package_status""`
+	PluginPackageVersion string                             `json:"pluginPackageVersion" xorm:"plugin_package_version""`
+	InputParameters      []*PluginConfigInterfaceParameters `json:"inputParameters" xorm:"-"`
+	OutputParameters     []*PluginConfigInterfaceParameters `json:"outputParameters" xorm:"-"`
+	PluginConfig         *PluginConfigs                     `json:"pluginConfig" xorm:"-"`
+}
+
 type PluginConfigInterfaceParameters struct {
 	Id                        string                  `json:"id" xorm:"id"`                                                  // 唯一标识
 	PluginConfigInterfaceId   string                  `json:"pluginConfigInterfaceId" xorm:"plugin_config_interface_id"`     // 服务接口
@@ -428,7 +465,7 @@ type TargetEntityFilterRuleDto struct {
 	TargetEntityFilterRule string `json:"targetEntityFilterRule"` // 对象过滤规则
 	EntityName             string `json:"entityName"`             // 实体名称
 	PkgName                string `json:"pkgName"`                // 包名称
-	TaskCategory           string `json:"taskCategory"`           // 任务分类
+	NodeType               string `json:"nodeType"`               // 节点类型
 }
 
 // PluginConfigInterfaceDto 插件配置dto
@@ -537,6 +574,21 @@ func (q PluginConfigInterfaceDtoSort) Less(i, j int) bool {
 func (q PluginConfigInterfaceDtoSort) Swap(i, j int) {
 	q[i], q[j] = q[j], q[i]
 }
+
+type RichPluginConfigInterfacesSort []*RichPluginConfigInterfaces
+
+func (q RichPluginConfigInterfacesSort) Len() int {
+	return len(q)
+}
+
+func (q RichPluginConfigInterfacesSort) Less(i, j int) bool {
+	return tools.CompareVersion(q[i].PluginPackageVersion, q[j].PluginPackageVersion)
+}
+
+func (q RichPluginConfigInterfacesSort) Swap(i, j int) {
+	q[i], q[j] = q[j], q[i]
+}
+
 func ConvertPluginConfigInterfaceParameter2Dto(entity *PluginConfigInterfaceParameters) *PluginConfigInterfaceParameterDto {
 	return &PluginConfigInterfaceParameterDto{
 		Id:                        entity.Id,
