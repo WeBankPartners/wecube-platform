@@ -87,3 +87,57 @@ func CreateCertification(ctx context.Context, lic *models.WeLicense, userId stri
 	}
 	return
 }
+
+func GetSingleCertificationByName(ctx context.Context, pluginName string) (result *models.PluginCertification, err error) {
+	result = &models.PluginCertification{}
+	var exists bool
+	exists, err = db.MysqlEngine.Context(ctx).Table(new(models.PluginCertification)).Where("plugin = ?", pluginName).Get(result)
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
+		return
+	}
+	if !exists {
+		result = nil
+		return
+	}
+	return
+}
+
+func UpdateCertification(ctx context.Context, certId string, lic *models.WeLicense, userId string) (cert *models.PluginCertification, err error) {
+	session := db.MysqlEngine.NewSession().Context(ctx)
+	defer session.Close()
+	err = session.Begin()
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseExecuteError, err)
+		return
+	}
+	updateData := make(map[string]interface{})
+	updatedTime := time.Now().Format("2006-01-02 15:04:05")
+	updateData["lpk"] = lic.Lpk
+	updateData["encrypt_data"] = lic.Data
+	updateData["signature"] = lic.Signature
+	updateData["description"] = lic.Description
+	updateData["updated_time"] = updatedTime
+	updateData["updated_by"] = userId
+	_, err = session.Table(new(models.PluginCertification)).Where("id = ?", certId).Update(updateData)
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseExecuteError, err)
+		return
+	}
+	err = session.Commit()
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseExecuteError, err)
+		return
+	}
+	cert = &models.PluginCertification{
+		Id:          certId,
+		Plugin:      lic.Plugin,
+		Lpk:         lic.Lpk,
+		EncryptData: lic.Data,
+		Signature:   lic.Signature,
+		Description: lic.Description,
+		UpdatedTime: updatedTime,
+		UpdatedBy:   userId,
+	}
+	return
+}
