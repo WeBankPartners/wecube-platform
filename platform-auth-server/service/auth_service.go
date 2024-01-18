@@ -94,7 +94,7 @@ func (AuthService) RefreshToken(refreshToken string) ([]model.Jwt, error) {
 	}
 	//	loginId := claim.Subject
 
-	jwts := packJwtTokens(claim.Subject, []string{}, claim.Authorities, "")
+	jwts := packJwtTokens(claim.Subject, []string{}, claim.Authority, "")
 	return jwts, nil
 }
 
@@ -274,12 +274,12 @@ func buildAccessToken(loginId string, roles []string, authorities []string, user
 	issueAt := time.Now().UTC().Unix()
 	exp := time.Now().Add(time.Minute * time.Duration(model.Config.Auth.AccessTokenMins)).UTC().Unix()
 	token := jwt.NewWithClaims(jwt.SigningMethodHS512, model.AuthClaims{
-		Subject:     loginId,
-		IssuedAt:    issueAt,
-		ExpiresAt:   exp,
-		Type:        constant.TypeAccessToken,
-		Roles:       roles,
-		Authorities: authorities,
+		Subject:   loginId,
+		IssuedAt:  issueAt,
+		ExpiresAt: exp,
+		Type:      constant.TypeAccessToken,
+		Roles:     roles,
+		Authority: authorities,
 		/*		LoginType:   loginType,
 				Auth:        aggAuths,
 				AdminType:   adminType,
