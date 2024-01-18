@@ -127,7 +127,6 @@ type BatchUpdateProcDefStatusParam struct {
 type QueryProcessDefinitionParam struct {
 	ProcDefId        string `json:"procDefId"`        // 编排Id
 	ProcDefName      string `json:"procDefName"`      // 编排名称
-	Plugin           string `json:"plugin"`           // 调用插件
 	UpdatedTimeStart string `json:"updatedTimeStart"` // 更新时间开始
 	UpdatedTimeEnd   string `json:"UpdatedTimeEnd"`   // 更新时间结束
 	Status           string `json:"status"`           // disabled 禁用 draft草稿 deployed 发布状态
@@ -153,6 +152,11 @@ type ProcDefIds struct {
 type ProcDefNodeResultDto struct {
 	ProcDefNodeCustomAttrs *ProcDefNodeCustomAttrsDto `json:"customAttrs"` // 节点数据
 	NodeAttrs              interface{}                `json:"selfAttrs"`   // 节点属性,前端使用,保存即可
+}
+
+type ProcDefNodeSimpleDto struct {
+	NodeId string `json:"nodeId"`   // 节点id
+	Name   string `json:"nodeName"` // 节点名称
 }
 
 // ProcDefNodeRequestParam 编排节点dto
@@ -267,6 +271,12 @@ type ProcDefDto struct {
 	EnableModifyName bool     `json:"enableModifyName"` // 能否修改名称
 }
 
+type ProcDefQueryDto struct {
+	ManageRole  string        `json:"manageRole"` //管理角色
+	Scene       string        `json:"scene"`      // 使用场景
+	ProcDefList []*ProcDefDto `json:"dataList"`   // 编排数据
+}
+
 type PermissionToRole struct {
 	MGMT []string `json:"MGMT"` // 属主角色
 	USE  []string `json:"USE"`  // 使用角色
@@ -379,6 +389,13 @@ func ConvertProcDefNodeLink2Dto(nodeLink *ProcDefNodeLink) *ProcDefNodeLinkDto {
 		SelfAttrs: nodeLink.UiStyle,
 	}
 	return dto
+}
+
+func ConvertProcDefNode2SimpleDto(procDefNode *ProcDefNode) *ProcDefNodeSimpleDto {
+	return &ProcDefNodeSimpleDto{
+		NodeId: procDefNode.NodeId,
+		Name:   procDefNode.Name,
+	}
 }
 
 func BuildInterfaceParameterDto(p *PluginConfigInterfaceParameters) *InterfaceParameterDto {
