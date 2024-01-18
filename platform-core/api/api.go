@@ -3,8 +3,14 @@ package api
 import (
 	"bytes"
 	"fmt"
+	"io"
+	"net/http"
+	"strings"
+	"time"
+
 	"github.com/WeBankPartners/go-common-lib/guid"
 	"github.com/WeBankPartners/wecube-platform/platform-core/api/middleware"
+	"github.com/WeBankPartners/wecube-platform/platform-core/api/v1/certification"
 	"github.com/WeBankPartners/wecube-platform/platform-core/api/v1/plugin"
 	"github.com/WeBankPartners/wecube-platform/platform-core/api/v1/process"
 	"github.com/WeBankPartners/wecube-platform/platform-core/api/v1/system"
@@ -12,10 +18,6 @@ import (
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/log"
 	"github.com/WeBankPartners/wecube-platform/platform-core/models"
 	"github.com/gin-gonic/gin"
-	"io"
-	"net/http"
-	"strings"
-	"time"
 )
 
 type handlerFuncObj struct {
@@ -129,6 +131,12 @@ func init() {
 		&handlerFuncObj{Url: "/process/definitions/:proc-def-id/taskNodes/:node-id", Method: "GET", HandlerFunc: process.GetProcDefNode, ApiCode: "get-process-definition-node"},
 		&handlerFuncObj{Url: "/process/definitions/link", Method: "POST", HandlerFunc: process.AddOrUpdateProcDefNodeLink, ApiCode: "add-update-process-definition-node-link"},
 		&handlerFuncObj{Url: "/process/definitions/:proc-def-id/link/:node-link-id", Method: "DELETE", HandlerFunc: process.DeleteProcDefNodeLink, ApiCode: "delete-process-definition-node-link"},
+
+		// certification manager
+		&handlerFuncObj{Url: "/plugin-certifications", Method: "GET", HandlerFunc: certification.GetCertifications, ApiCode: "get-certifications"},
+		&handlerFuncObj{Url: "/plugin-certifications/:certId/export", Method: "GET", HandlerFunc: certification.ExportCertification, ApiCode: "export-certification"},
+		&handlerFuncObj{Url: "/plugin-certifications/import", Method: "POST", HandlerFunc: certification.ImportCertification, ApiCode: "import-certification"},
+		&handlerFuncObj{Url: "/plugin-certifications/:certId", Method: "DELETE", HandlerFunc: certification.DeleteCertification, ApiCode: "delete-certification"},
 	)
 }
 
