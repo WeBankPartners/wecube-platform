@@ -22,7 +22,7 @@ func GetCertifications(ctx context.Context) (result []*models.PluginCertificatio
 func GetSingleCertification(ctx context.Context, certId string) (result *models.PluginCertification, err error) {
 	result = &models.PluginCertification{}
 	var exists bool
-	exists, err = db.MysqlEngine.Context(ctx).Table(new(models.PluginCertification)).Where("id = ?", certId).Get(&result)
+	exists, err = db.MysqlEngine.Context(ctx).Table(new(models.PluginCertification)).Where("id = ?", certId).Get(result)
 	if err != nil {
 		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
 		return
