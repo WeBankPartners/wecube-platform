@@ -19,17 +19,16 @@ import (
 )
 
 const (
-	CONTEXT_NAME_PROC_DEF_NAME    string = "procDefName"
-	CONTEXT_NAME_PROC_DEF_KEY     string = "procDefKey"
-	CONTEXT_NAME_PROC_INST_NAME   string = "procInstName"
-	CONTEXT_NAME_ROOT_ENTITY_NAME string = "rootEntityName"
-	CONTEXT_NAME_ROOT_ENTITY_ID   string = "rootEntityId"
-	CONTEXT_NAME_PROC_INST_ID     string = "procInstId"
-	CONTEXT_NAME_PROC_INST_KEY    string = "procInstKey"
-	PLUGIN_DATA_TYPE_STRING       string = "string"
-	PLUGIN_DATA_TYPE_NUMBER       string = "number"
-	PLUGIN_PARAM_TYPE_INPUT       string = "INPUT"
-	PLUGIN_PARAM_TYPE_OUTPUT      string = "OUTPUT"
+	ContextNameProcDefName    string = "procDefName"
+	ContextNameProcDefKey     string = "procDefKey"
+	ContextNameProcInstName   string = "procInstName"
+	ContextNameRootEntityName string = "rootEntityName"
+	ContextNameRootEntityId   string = "rootEntityId"
+	ContextNameProcInstId     string = "procInstId"
+	ContextNameProcInstKey    string = "procInstKey"
+	PluginDataTypeString      string = "string"
+	PluginParamTypeInput      string = "INPUT"
+	PluginParamTypeOutput     string = "OUTPUT"
 )
 
 // AddOrUpdateProcessDefinition 添加或者更新编排
@@ -143,16 +142,14 @@ func GetProcessDefinition(c *gin.Context) {
 		middleware.ReturnError(c, err)
 		return
 	}
-	if len(nodes) > 0 {
-		for _, node := range nodes {
-			dtoList, err := database.GetProcDefNodeLinkBySource(c, node.ProcDefNodeCustomAttrs.Id)
-			if err != nil {
-				middleware.ReturnError(c, err)
-				return
-			}
-			if dtoList != nil {
-				edges = append(edges, dtoList...)
-			}
+	linkList, err := database.GetProcDefNodeLinkListByProcDefId(c, procDefId)
+	if err != nil {
+		middleware.ReturnError(c, err)
+		return
+	}
+	if len(linkList) > 0 {
+		for _, link := range linkList {
+			edges = append(edges, models.ConvertProcDefNodeLink2Dto(link))
 		}
 	}
 	procDefDto.ProcDefNodeExtend = &models.ProcDefNodeExtendDto{
@@ -160,6 +157,60 @@ func GetProcessDefinition(c *gin.Context) {
 		Edges: edges,
 	}
 	middleware.ReturnData(c, procDefDto)
+}
+
+// CopyProcessDefinition 复制编排
+func CopyProcessDefinition(c *gin.Context) {
+	procDefId := c.Param("proc-def-id")
+	association := c.Param("association")
+	now := time.Now()
+	user := middleware.GetRequestUser(c)
+	if procDefId == "" || association == "" {
+		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, fmt.Errorf("proc-def-id or association is empty")))
+		return
+	}
+	procDef, err := database.GetProcessDefinition(c, procDefId)
+	if err != nil {
+		middleware.ReturnError(c, err)
+		return
+	}
+	if procDef == nil {
+		middleware.ReturnError(c, fmt.Errorf("proc-def-id is invalid"))
+		return
+	}
+	// 编排没有相关性,则重新生成key
+	if association != "y" && association != "Y" {
+		procDef.Key = guid.CreateGuid()
+		procDef.Name = procDef.Name + "(1)"
+	}
+	procDef.Version = ""
+	procDef.CreatedBy = user
+	procDef.CreatedTime = now
+	procDef.UpdatedBy = user
+	procDef.UpdatedTime = now
+	err = database.CopyProcessDefinition(c, procDef)
+	if err != nil {
+		middleware.ReturnError(c, err)
+		return
+	}
+	middleware.ReturnSuccess(c)
+}
+
+// QueryProcessDefinitionList 查询编排列表
+func QueryProcessDefinitionList(c *gin.Context) {
+	var param models.QueryProcessDefinitionParam
+	var list []*models.ProcDefDto
+	var err error
+	if err = c.ShouldBindJSON(&param); err != nil {
+		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, err))
+		return
+	}
+	list, err = database.QueryProcessDefinitionList(c, param)
+	if err != nil {
+		middleware.ReturnError(c, err)
+		return
+	}
+	middleware.ReturnData(c, list)
 }
 
 // BatchUpdateProcessDefinitionStatus 批量更新编排状态
@@ -396,6 +447,65 @@ func GetProcDefNode(c *gin.Context) {
 	middleware.Return(c, nodeDto)
 }
 
+func GetProcDefNodePreorder(c *gin.Context) {
+	var err error
+	var procDefNode *models.ProcDefNode
+	var nodeDtoMap = make(map[string]*models.ProcDefNodeResultDto)
+	var nodeLinkList []*models.ProcDefNodeLink
+	var nodeParams []*models.ProcDefNodeParam
+	var targetNodeRecordMap = make(map[string]bool)
+	var procDefNodeId string
+	nodeId := c.Param("node-id")
+	procDefId := c.Param("proc-def-id")
+	if nodeId == "" || procDefId == "" {
+		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, fmt.Errorf("node-is or procDefId is empty")))
+		return
+	}
+	procDefNode, err = database.GetProcDefNode(c, procDefId, nodeId)
+	if err != nil {
+		middleware.ReturnError(c, err)
+		return
+	}
+	if procDefNode == nil {
+		middleware.Return(c, convertProcDefNodeResultDtoMap2Dto(nodeDtoMap))
+		return
+	}
+	targetNodeRecordMap[procDefNode.Id] = true
+	for {
+		if len(targetNodeRecordMap) == 0 {
+			break
+		}
+		// 随机获取一个 nodeId
+		procDefNodeId = getMapRandomKey(targetNodeRecordMap)
+		// 查询 target 等于nodeId 的节点
+		nodeLinkList, err = database.GetProcDefNodeLinkByProcDefIdAndTarget(c, procDefId, procDefNodeId)
+		// 删除 targetNodeRecordMap 该nodeId
+		delete(targetNodeRecordMap, procDefNodeId)
+		if err != nil {
+			middleware.ReturnError(c, err)
+			return
+		}
+		if len(nodeLinkList) == 0 {
+			continue
+		}
+		for _, link := range nodeLinkList {
+			// 根据线的 起点节点查询节点数据
+			procDefNode, err = database.GetProcDefNode(c, procDefId, link.Source)
+			if err != nil {
+				middleware.ReturnError(c, err)
+				return
+			}
+			if procDefNode != nil {
+				nodeParams, err = database.GetProcDefNodeParamByNodeId(c, procDefNode.Id)
+				nodeDtoMap[procDefNode.Id] = models.ConvertProcDefNode2Dto(procDefNode, nodeParams)
+				// 将节点数据 放入到targetNodeRecordMap,后续继续递归
+				targetNodeRecordMap[procDefNode.Id] = true
+			}
+		}
+	}
+	middleware.Return(c, convertProcDefNodeResultDtoMap2Dto(nodeDtoMap))
+}
+
 // GetProcDefNodeParameters 获取节点参数
 func GetProcDefNodeParameters(c *gin.Context) {
 	var interfaceParameterList []*models.InterfaceParameterDto
@@ -601,49 +711,49 @@ func prepareNodeParameters() []*models.InterfaceParameterDto {
 
 	// 1
 	predefineParams = append(predefineParams, &models.InterfaceParameterDto{
-		Type:     PLUGIN_DATA_TYPE_STRING,
-		Name:     CONTEXT_NAME_PROC_DEF_NAME,
-		DataType: PLUGIN_PARAM_TYPE_INPUT,
+		Type:     PluginDataTypeString,
+		Name:     ContextNameProcDefName,
+		DataType: PluginParamTypeInput,
 	})
 
 	// 2
 	predefineParams = append(predefineParams, &models.InterfaceParameterDto{
-		Type:     PLUGIN_DATA_TYPE_STRING,
-		Name:     CONTEXT_NAME_PROC_DEF_KEY,
-		DataType: PLUGIN_PARAM_TYPE_INPUT,
+		Type:     PluginDataTypeString,
+		Name:     ContextNameProcDefKey,
+		DataType: PluginParamTypeInput,
 	})
 	// 3
 	predefineParams = append(predefineParams, &models.InterfaceParameterDto{
-		Type:     PLUGIN_DATA_TYPE_STRING,
-		Name:     CONTEXT_NAME_PROC_INST_ID,
-		DataType: PLUGIN_PARAM_TYPE_INPUT,
+		Type:     PluginDataTypeString,
+		Name:     ContextNameProcInstId,
+		DataType: PluginParamTypeInput,
 	})
 	// 4
 	predefineParams = append(predefineParams, &models.InterfaceParameterDto{
-		Type:     PLUGIN_DATA_TYPE_STRING,
-		Name:     CONTEXT_NAME_PROC_INST_KEY,
-		DataType: PLUGIN_PARAM_TYPE_INPUT,
+		Type:     PluginDataTypeString,
+		Name:     ContextNameProcInstKey,
+		DataType: PluginParamTypeInput,
 	})
 
 	// 5
 	predefineParams = append(predefineParams, &models.InterfaceParameterDto{
-		Type:     PLUGIN_DATA_TYPE_STRING,
-		Name:     CONTEXT_NAME_PROC_INST_NAME,
-		DataType: PLUGIN_PARAM_TYPE_INPUT,
+		Type:     PluginDataTypeString,
+		Name:     ContextNameProcInstName,
+		DataType: PluginParamTypeInput,
 	})
 
 	// 6
 	predefineParams = append(predefineParams, &models.InterfaceParameterDto{
-		Type:     PLUGIN_DATA_TYPE_STRING,
-		Name:     CONTEXT_NAME_ROOT_ENTITY_NAME,
-		DataType: PLUGIN_PARAM_TYPE_INPUT,
+		Type:     PluginDataTypeString,
+		Name:     ContextNameRootEntityName,
+		DataType: PluginParamTypeInput,
 	})
 
 	// 7
 	predefineParams = append(predefineParams, &models.InterfaceParameterDto{
-		Type:     PLUGIN_DATA_TYPE_STRING,
-		Name:     CONTEXT_NAME_ROOT_ENTITY_ID,
-		DataType: PLUGIN_PARAM_TYPE_INPUT,
+		Type:     PluginDataTypeString,
+		Name:     ContextNameRootEntityId,
+		DataType: PluginParamTypeInput,
 	})
 
 	return predefineParams
@@ -693,7 +803,7 @@ func fetchRichPluginConfigInterfacesById(ctx context.Context, interfaceId string
 }
 
 func enrichPluginConfigInterfaces(ctx context.Context, configInterface *models.PluginConfigInterfaces) *models.PluginConfigInterfaces {
-	inputParamEntities, err := database.GetPluginConfigInterfaceParameters(ctx, configInterface.Id, "INPUT")
+	inputParamEntities, err := database.GetPluginConfigInterfaceParameters(ctx, configInterface.Id, PluginParamTypeInput)
 	if err != nil {
 		log.Logger.Error("GetPluginConfigInterfaceParameters err", log.Error(err))
 		return nil
@@ -709,7 +819,7 @@ func enrichPluginConfigInterfaces(ctx context.Context, configInterface *models.P
 		}
 	}
 
-	outputParamEntities, err := database.GetPluginConfigInterfaceParameters(ctx, configInterface.Id, "OUTPUT")
+	outputParamEntities, err := database.GetPluginConfigInterfaceParameters(ctx, configInterface.Id, PluginParamTypeOutput)
 	if err != nil {
 		log.Logger.Error("GetPluginConfigInterfaceParameters err", log.Error(err))
 		return nil
@@ -725,4 +835,24 @@ func enrichPluginConfigInterfaces(ctx context.Context, configInterface *models.P
 		}
 	}
 	return configInterface
+}
+
+func convertProcDefNodeResultDtoMap2Dto(hashMap map[string]*models.ProcDefNodeResultDto) []*models.ProcDefNodeResultDto {
+	var list = make([]*models.ProcDefNodeResultDto, 0)
+	if len(hashMap) > 0 {
+		for _, value := range hashMap {
+			list = append(list, value)
+		}
+	}
+	return list
+}
+
+func getMapRandomKey(hashMap map[string]bool) string {
+	if len(hashMap) == 0 {
+		return ""
+	}
+	for key, _ := range hashMap {
+		return key
+	}
+	return ""
 }

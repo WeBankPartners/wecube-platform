@@ -11,6 +11,11 @@ import (
 	"github.com/WeBankPartners/wecube-platform/platform-core/models"
 )
 
+// QueryProcessDefinitionList 查询编排列表
+func QueryProcessDefinitionList(ctx context.Context, param models.QueryProcessDefinitionParam) (list []*models.ProcDefDto, err error) {
+	return
+}
+
 // AddProcessDefinition 添加编排
 func AddProcessDefinition(ctx context.Context, user string, param models.ProcessDefinitionParam) (draftEntity *models.ProcDef, err error) {
 	draftEntity = &models.ProcDef{}
@@ -31,6 +36,93 @@ func AddProcessDefinition(ctx context.Context, user string, param models.Process
 	err = insertProcDef(ctx, draftEntity)
 	if err != nil {
 		return
+	}
+	return
+}
+
+// CopyProcessDefinition 复制编排
+func CopyProcessDefinition(ctx context.Context, procDef *models.ProcDef) (err error) {
+	var actions []*db.ExecAction
+	var permissionList []*models.ProcDefPermission
+	var nodeList []*models.ProcDefNode
+	var linkList []*models.ProcDefNodeLink
+	var nodeParamList []*models.ProcDefNodeParam
+	var newProcDefId = guid.CreateGuid()
+	// 查询权限
+	permissionList, err = GetProcDefPermissionByCondition(ctx, models.ProcDefPermission{ProcDefId: procDef.Id})
+	if err != nil {
+		return
+	}
+	// 查询编排节点列表
+	nodeList, err = GetProcDefNodeModelByProcDefId(ctx, procDef.Id)
+	if err != nil {
+		return
+	}
+	// 获取编排线
+	linkList, err = GetProcDefNodeLinkListByProcDefId(ctx, procDef.Id)
+	if err != nil {
+		return
+	}
+
+	// 插入编排
+	actions = append(actions, &db.ExecAction{Sql: "insert into proc_def (id,`key`,name,root_entity,status,tags,for_plugin,scene," +
+		"conflict_check,created_by,created_time,updated_by,updated_time) values (?,?,?,?,?,?,?,?,?,?,?,?,?)", Param: []interface{}{newProcDefId,
+		procDef.Key, procDef.Name, procDef.RootEntity, models.Draft, procDef.Tags, procDef.ForPlugin, procDef.Scene,
+		procDef.ConflictCheck, procDef.CreatedBy, procDef.CreatedTime.Format(models.DateTimeFormat), procDef.UpdatedBy, procDef.UpdatedTime.Format(models.DateTimeFormat)}})
+
+	// 插入权限
+	if len(permissionList) > 0 {
+		for _, permission := range permissionList {
+			actions = append(actions, &db.ExecAction{Sql: "insert into proc_def_permission(id,proc_def_id,role_id,role_name,permission)values(" +
+				"?,?,?,?,?)", Param: []interface{}{guid.CreateGuid(), newProcDefId, permission.RoleId, permission.RoleName, permission.Permission}})
+		}
+	}
+
+	// 插入节点 & 节点参数 & 更新线集合中节点ID数据
+	if len(nodeList) > 0 {
+		for _, node := range nodeList {
+			newNodeId := guid.CreateGuid()
+			actions = append(actions, &db.ExecAction{Sql: "insert into  proc_def_node(id,node_id,proc_def_id,name,description,status,node_type,service_name," +
+				"dynamic_bind,bind_node_id,risk_check,routine_expression,context_param_nodes,timeout,time_config,ordered_no,ui_style,created_by,created_time," +
+				"updated_by,updated_time) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)", Param: []interface{}{newNodeId, node.NodeId, node.ProcDefId, node.Name, node.Description,
+				models.Draft, node.NodeType, node.ServiceName, node.DynamicBind, node.BindNodeId, node.RiskCheck, node.RoutineExpression, node.ContextParamNodes,
+				node.Timeout, node.TimeConfig, node.OrderedNo, node.UiStyle, node.CreatedBy, node.CreatedTime.Format(models.DateTimeFormat), node.UpdatedBy, node.UpdatedTime.Format(models.DateTimeFormat)}})
+			nodeParamList, err = GetProcDefNodeParamByNodeId(ctx, node.Id)
+			if err != nil {
+				return
+			}
+			if len(nodeParamList) > 0 {
+				for _, nodeParam := range nodeParamList {
+					actions = append(actions, &db.ExecAction{Sql: "insert into  proc_def_node_param(id,proc_def_node_id,param_id,name,bind_type," +
+						"value,ctx_bind_node,ctx_bind_type,ctx_bind_name) values (?,?,?,?,?,?,?,?,?)", Param: []interface{}{guid.CreateGuid(), newNodeId, nodeParam.ParamId,
+						nodeParam.Name, nodeParam.BindType, nodeParam.Value, nodeParam.CtxBindNode, nodeParam.CtxBindType, nodeParam.CtxBindName}})
+				}
+			}
+			// 遍历 线集合,找到以前老节点(包含source,target的老节点),更新成新的节点id
+			if len(linkList) > 0 {
+				for _, link := range linkList {
+					if link.Source == node.Id {
+						link.Source = newNodeId
+					}
+					if link.Target == node.Id {
+						link.Target = newNodeId
+					}
+				}
+			}
+		}
+	}
+
+	// 插入线
+	if len(linkList) > 0 {
+		for _, nodeLink := range linkList {
+			actions = append(actions, &db.ExecAction{Sql: "insert into  proc_def_node_link(id,source,target,name,ui_style,link_id,proc_def_id) values(?,?,?,?,?,?,?)",
+				Param: []interface{}{guid.CreateGuid(), nodeLink.Source, nodeLink.Target, nodeLink.Name, nodeLink.UiStyle, nodeLink.LinkId, newProcDefId}})
+		}
+	}
+
+	err = db.Transaction(actions, ctx)
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseExecuteError, err)
 	}
 	return
 }
@@ -136,6 +228,25 @@ func GetProcDefNodeLink(ctx context.Context, procDefId string, linkId string) (r
 	return
 }
 
+// GetProcDefNodeLinkListByProcDefId  根据编排id获取编排线列表
+func GetProcDefNodeLinkListByProcDefId(ctx context.Context, procDefId string) (list []*models.ProcDefNodeLink, err error) {
+	err = db.MysqlEngine.Context(ctx).SQL("select * from proc_def_node_link where proc_def_id= ? ", procDefId).Find(&list)
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
+		return
+	}
+	return
+}
+
+func GetProcDefNodeLinkByProcDefIdAndTarget(ctx context.Context, procDefId string, target string) (list []*models.ProcDefNodeLink, err error) {
+	err = db.MysqlEngine.Context(ctx).SQL("select * from proc_def_node_link where proc_def_id= ? and target = ?  ", procDefId, target).Find(&list)
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
+		return
+	}
+	return
+}
+
 func GetProcDefNodeByProcDefId(ctx context.Context, procDefId string) (result []*models.ProcDefNodeResultDto, err error) {
 	var list []*models.ProcDefNode
 	if procDefId == "" {
@@ -157,6 +268,19 @@ func GetProcDefNodeByProcDefId(ctx context.Context, procDefId string) (result []
 	}
 	return
 }
+
+func GetProcDefNodeModelByProcDefId(ctx context.Context, procDefId string) (list []*models.ProcDefNode, err error) {
+	if procDefId == "" {
+		return
+	}
+	err = db.MysqlEngine.Context(ctx).SQL("select * from proc_def_node where proc_def_id = ?", procDefId).Find(&list)
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
+		return
+	}
+	return
+}
+
 func GetProcDefNodeById(ctx context.Context, id string) (result *models.ProcDefNode, err error) {
 	var list []*models.ProcDefNode
 	err = db.MysqlEngine.Context(ctx).SQL("select * from proc_def_node where id = ?", id).Find(&list)
@@ -384,26 +508,9 @@ func DeleteProcDefNodeParam(ctx context.Context, procDefNodeId, paramId string) 
 	return
 }
 
-// GetProcDefNodeParam 获取编排节点参数
-func GetProcDefNodeParam(ctx context.Context, id string) (result *models.ProcDefNodeParam, err error) {
-	if id == "" {
-		return
-	}
-	var list []*models.ProcDefNodeParam
-	err = db.MysqlEngine.Context(ctx).SQL("select * from proc_def_node where id = ?", id).Find(&list)
-	if err != nil {
-		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
-		return
-	}
-	if len(list) > 0 {
-		result = list[0]
-	}
-	return
-}
-
 // GetProcDefNodeParamByNodeId 根据节点获取编排节点参数
 func GetProcDefNodeParamByNodeId(ctx context.Context, nodeId string) (list []*models.ProcDefNodeParam, err error) {
-	err = db.MysqlEngine.Context(ctx).SQL("select * from proc_def_node_param where proc_def_nnode_id = ?", nodeId).Find(&list)
+	err = db.MysqlEngine.Context(ctx).SQL("select * from proc_def_node_param where proc_def_node_id = ?", nodeId).Find(&list)
 	if err != nil {
 		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
 		return
