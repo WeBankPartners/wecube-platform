@@ -2,6 +2,7 @@ package database
 
 import (
 	"context"
+	"sort"
 	"strings"
 	"time"
 
@@ -12,7 +13,74 @@ import (
 )
 
 // QueryProcessDefinitionList 查询编排列表
-func QueryProcessDefinitionList(ctx context.Context, param models.QueryProcessDefinitionParam) (list []*models.ProcDefDto, err error) {
+func QueryProcessDefinitionList(ctx context.Context, param models.QueryProcessDefinitionParam) (list []*models.ProcDefQueryDto, err error) {
+	var procDefList, pList []*models.ProcDef
+	var permissionList []*models.ProcDefPermission
+	var roleProcDefMap = make(map[string]map[string][]*models.ProcDefDto)
+	var manageRoles, userRoles, allManageRoles []string
+	var enabledCreated bool
+	list = make([]*models.ProcDefQueryDto, 0)
+	where := transProcDefConditionToSQL(param)
+	procDefList, err = getProcessDefinitionByWhere(ctx, where)
+	if err != nil {
+		return
+	}
+	if len(procDefList) == 0 {
+		return
+	}
+	for _, procDef := range procDefList {
+		manageRoles = []string{}
+		userRoles = []string{}
+		permissionList, err = GetProcDefPermissionByCondition(ctx, models.ProcDefPermission{ProcDefId: procDef.Id})
+		if err != nil {
+			return
+		}
+		if procDef.Status == string(models.Deployed) {
+			pList, err = GetProcessDefinitionByCondition(ctx, models.ProcDefCondition{Key: procDef.Key, Status: string(models.Draft)})
+			if err != nil {
+				return
+			}
+			// 没有同 key并且 草稿态的编排,则可以新建编排
+			if len(pList) == 0 {
+				enabledCreated = true
+			}
+		}
+		for _, permission := range permissionList {
+			if permission.Permission == "MGMT" {
+				manageRoles = append(manageRoles, permission.RoleName)
+			} else if permission.Permission == "USE" {
+				userRoles = append(userRoles, permission.RoleName)
+			}
+		}
+		for _, manageRole := range manageRoles {
+			if _, ok := roleProcDefMap[manageRole]; !ok {
+				roleProcDefMap[manageRole] = make(map[string][]*models.ProcDefDto)
+				allManageRoles = append(allManageRoles, manageRole)
+			}
+			if _, ok := roleProcDefMap[manageRole][procDef.Scene]; !ok {
+				roleProcDefMap[manageRole][procDef.Scene] = make([]*models.ProcDefDto, 0)
+			}
+			roleProcDefMap[manageRole][procDef.Scene] = append(roleProcDefMap[manageRole][procDef.Scene], models.BuildProcDefDto(procDef, userRoles, enabledCreated))
+		}
+	}
+	// 角色排序
+	sort.Strings(allManageRoles)
+	for _, manageRole := range allManageRoles {
+		dataMap := roleProcDefMap[manageRole]
+		procDefQueryDto := &models.ProcDefQueryDto{
+			ManageRole: manageRole,
+			SceneData:  make([]*models.SceneData, 0),
+		}
+		for scene, data := range dataMap {
+			// 排序
+			sort.Sort(models.ProcDefDtoSort(data))
+			procDefQueryDto.SceneData = append(procDefQueryDto.SceneData, &models.SceneData{
+				Scene:       scene,
+				ProcDefList: data,
+			})
+		}
+		list = append(list, procDefQueryDto)
+	}
 	return
 }
 
@@ -140,6 +208,15 @@ func GetProcessDefinition(ctx context.Context, id string) (result *models.ProcDe
 	}
 	if len(list) > 0 {
 		result = list[0]
+	}
+	return
+}
+
+func getProcessDefinitionByWhere(ctx context.Context, where string) (list []*models.ProcDef, err error) {
+	err = db.MysqlEngine.Context(ctx).SQL("select * from proc_def " + where).Find(&list)
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
+		return
 	}
 	return
 }
@@ -673,5 +750,22 @@ func transProcDefNodeLinkUpdateConditionToSQL(procDefNodeLink *models.ProcDefNod
 	}
 	sql = sql + " where id= ?"
 	params = append(params, procDefNodeLink.Id)
+	return
+}
+
+func transProcDefConditionToSQL(param models.QueryProcessDefinitionParam) (where string) {
+	where = "where 1 = 1 "
+	if param.ProcDefId != "" {
+		where = where + " and ( id like '%" + param.ProcDefId + "%') "
+	}
+	if param.ProcDefName != "" {
+		where = where + " and ( name like '%" + param.ProcDefName + "%') "
+	}
+	if param.Status == string(models.Draft) || param.Status == string(models.Disabled) || param.Status == string(models.Deployed) {
+		where = where + " and status = '" + param.Status + "'"
+	}
+	if param.UpdatedTimeStart != "" && param.UpdatedTimeEnd != "" {
+		where = where + " and updated_time >= '" + param.UpdatedTimeStart + "' and updated_time <= '" + param.UpdatedTimeEnd + "'"
+	}
 	return
 }
