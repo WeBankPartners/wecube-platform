@@ -66,7 +66,7 @@ func CreateCertification(ctx context.Context, lic *models.WeLicense, userId stri
 	cert = &models.PluginCertification{
 		Id:          guid.CreateGuid(),
 		Plugin:      lic.Plugin,
-		Lpk:         lic.PK,
+		Lpk:         lic.Lpk,
 		EncryptData: lic.Data,
 		Signature:   lic.Signature,
 		Description: lic.Description,
