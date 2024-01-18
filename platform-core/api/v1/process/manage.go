@@ -771,7 +771,7 @@ func fetchLatestPluginConfigInterfacesByServiceName(ctx context.Context, service
 	// 版本排序
 	sort.Sort(models.RichPluginConfigInterfacesSort(richInterfaceList))
 	latestInterfaceEntity := richInterfaceList[len(richInterfaceList)-1]
-	return fetchRichPluginConfigInterfacesById(ctx, latestInterfaceEntity.PluginConfigId)
+	return fetchRichPluginConfigInterfacesById(ctx, latestInterfaceEntity.Id)
 }
 
 func fetchRichPluginConfigInterfacesById(ctx context.Context, interfaceId string) (resultInterface *models.PluginConfigInterfaces, err error) {
@@ -826,7 +826,7 @@ func enrichPluginConfigInterfaces(ctx context.Context, configInterface *models.P
 	if len(outputParamEntities) > 0 {
 		for _, outputParam := range outputParamEntities {
 			outputParam.PluginConfigInterface = configInterface
-			configInterface.AddInputParameters(outputParam)
+			configInterface.AddOutputParameters(outputParam)
 			if outputParam.DataType == "object" {
 				objectMeta := database.TryFetchEnrichCoreObjectMeta(ctx, outputParam)
 				outputParam.ObjectMeta = objectMeta
