@@ -186,7 +186,7 @@ type ProcDefNodeCustomAttrs struct {
 	ServiceName       string              `json:"serviceName"`       // 插件服务名
 	RiskCheck         bool                `json:"riskCheck"`         // 是否高危检测
 	ParamInfos        []*ProcDefNodeParam `json:"paramInfos"`        // 节点参数
-	ContextParamNodes string              `json:"contextParamNodes"` // 上下文参数节点
+	ContextParamNodes interface{}         `json:"contextParamNodes"` // 上下文参数节点
 	TimeConfig        interface{}         `json:"timeConfig"`        // 节点配置
 	OrderedNo         int                 `json:"orderedNo"`         // 节点顺序
 	CreatedBy         string              `json:"createdBy" `        // 创建人
@@ -209,7 +209,7 @@ type ProcDefNodeCustomAttrsDto struct {
 	ServiceId         string              `json:"serviceId"`         // 插件服务ID
 	ServiceName       string              `json:"serviceName"`       // 插件服务名
 	RiskCheck         bool                `json:"riskCheck"`         // 是否高危检测
-	ParamInfos        []*ProcDefNodeParam `json:"ParamInfos"`        // 节点参数
+	ParamInfos        []*ProcDefNodeParam `json:"paramInfos"`        // 节点参数
 	ContextParamNodes []string            `json:"contextParamNodes"` // 上下文参数节点
 	TimeConfig        interface{}         `json:"timeConfig"`        // 节点配置
 	OrderedNo         int                 `json:"orderedNo"`         // 节点顺序

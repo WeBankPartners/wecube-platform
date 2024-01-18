@@ -505,8 +505,8 @@ func GetProcDefPermissionByCondition(ctx context.Context, permission models.Proc
 func InsertProcDefNodeParam(ctx context.Context, nodeParam *models.ProcDefNodeParam) (err error) {
 	var actions []*db.ExecAction
 	actions = append(actions, &db.ExecAction{Sql: "insert into  proc_def_node_param(id,proc_def_node_id,param_id,name,bind_type," +
-		"value,ctx_bind_node,ctx_bind_type,ctx_bind_name) values (?,?,?,?,?,?,?,?,?)", Param: []interface{}{nodeParam.Id, nodeParam.ProcDefNodeId, nodeParam.ParamId,
-		nodeParam.Name, nodeParam.BindType, nodeParam.Value, nodeParam.CtxBindNode, nodeParam.CtxBindType, nodeParam.CtxBindName}})
+		"value,ctx_bind_node,ctx_bind_type,ctx_bind_name,required) values (?,?,?,?,?,?,?,?,?,?)", Param: []interface{}{nodeParam.Id, nodeParam.ProcDefNodeId, nodeParam.ParamId,
+		nodeParam.Name, nodeParam.BindType, nodeParam.Value, nodeParam.CtxBindNode, nodeParam.CtxBindType, nodeParam.CtxBindName, nodeParam.Required}})
 	err = db.Transaction(actions, ctx)
 	if err != nil {
 		err = exterror.Catch(exterror.New().DatabaseExecuteError, err)
@@ -514,9 +514,9 @@ func InsertProcDefNodeParam(ctx context.Context, nodeParam *models.ProcDefNodePa
 	return
 }
 
-func DeleteProcDefNodeParam(ctx context.Context, procDefNodeId, paramId string) (err error) {
+func DeleteProcDefNodeParam(ctx context.Context, procDefNodeId string) (err error) {
 	var actions []*db.ExecAction
-	actions = append(actions, &db.ExecAction{Sql: "delete from proc_def_node_param where proc_def_node_id=? and param_id=?", Param: []interface{}{procDefNodeId, paramId}})
+	actions = append(actions, &db.ExecAction{Sql: "delete from proc_def_node_param where proc_def_node_id=?", Param: []interface{}{procDefNodeId}})
 	err = db.Transaction(actions, ctx)
 	if err != nil {
 		err = exterror.Catch(exterror.New().DatabaseExecuteError, err)
