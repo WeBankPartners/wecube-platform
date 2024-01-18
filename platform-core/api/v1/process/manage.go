@@ -403,14 +403,14 @@ func AddOrUpdateProcDefTaskNodes(c *gin.Context) {
 	}
 	// 处理节点参数,先删除然后插入
 	if param.ProcDefNodeCustomAttrs.ParamInfos != nil {
+		err = database.DeleteProcDefNodeParam(c, node.ProcDefId)
+		if err != nil {
+			middleware.ReturnError(c, err)
+			return
+		}
 		for _, info := range param.ProcDefNodeCustomAttrs.ParamInfos {
-			err = database.DeleteProcDefNodeParam(c, node.ProcDefId, info.ParamId)
-			if err != nil {
-				middleware.ReturnError(c, err)
-				return
-			}
 			info.Id = guid.CreateGuid()
-			info.ParamId = node.Id
+			info.ProcDefNodeId = node.Id
 			err = database.InsertProcDefNodeParam(c, info)
 			if err != nil {
 				middleware.ReturnError(c, err)
@@ -522,18 +522,18 @@ func GetProcDefNodeParameters(c *gin.Context) {
 		return
 	}
 	if procDefNode == nil {
-		middleware.Return(c, interfaceParameterList)
+		middleware.ReturnData(c, interfaceParameterList)
 		return
 	}
 
-	if procDefNode.NodeType == "startEvent" {
+	if procDefNode.NodeType == "start" {
 		startEventParams := prepareNodeParameters()
 		interfaceParameterList = append(interfaceParameterList, startEventParams...)
-		middleware.Return(c, interfaceParameterList)
+		middleware.ReturnData(c, interfaceParameterList)
 	}
 	pluginConfigInterfaces, err = fetchLatestPluginConfigInterfacesByServiceName(c, procDefNode.ServiceName)
 	if err != nil {
-		middleware.Return(c, err)
+		middleware.ReturnData(c, err)
 		return
 	}
 	if pluginConfigInterfaces != nil {
@@ -548,7 +548,7 @@ func GetProcDefNodeParameters(c *gin.Context) {
 			}
 		}
 	}
-	middleware.Return(c, interfaceParameterList)
+	middleware.ReturnData(c, interfaceParameterList)
 }
 
 // DeleteProcDefNode 删除编排节点,同时需要删除线&节点参数
@@ -679,6 +679,7 @@ func convertParam2ProcDefNode(user string, param models.ProcDefNodeRequestParam)
 	byteArr, _ := json.Marshal(param.NodeAttrs)
 	procDefNodeAttr := param.ProcDefNodeCustomAttrs
 	byteArr2, _ := json.Marshal(procDefNodeAttr.TimeConfig)
+	byteArr3, _ := json.Marshal(procDefNodeAttr.ContextParamNodes)
 	node := &models.ProcDefNode{
 		NodeId:            procDefNodeAttr.Id,
 		ProcDefId:         procDefNodeAttr.ProcDefId,
@@ -691,7 +692,7 @@ func convertParam2ProcDefNode(user string, param models.ProcDefNodeRequestParam)
 		BindNodeId:        procDefNodeAttr.BindNodeId,
 		RiskCheck:         procDefNodeAttr.RiskCheck,
 		RoutineExpression: procDefNodeAttr.RoutineExpression,
-		ContextParamNodes: procDefNodeAttr.ContextParamNodes,
+		ContextParamNodes: string(byteArr3),
 		Timeout:           procDefNodeAttr.Timeout,
 		TimeConfig:        string(byteArr2),
 		OrderedNo:         procDefNodeAttr.OrderedNo,
