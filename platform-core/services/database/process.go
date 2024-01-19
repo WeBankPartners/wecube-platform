@@ -17,11 +17,14 @@ func QueryProcessDefinitionList(ctx context.Context, param models.QueryProcessDe
 	var procDefList, pList []*models.ProcDef
 	var permissionList []*models.ProcDefPermission
 	var roleProcDefMap = make(map[string]map[string][]*models.ProcDefDto)
+	var userRolesMap = convertArray2Map(param.UserRoles)
 	var manageRoles, userRoles, allManageRoles []string
 	var enabledCreated bool
+	var queryParam []interface{}
+	var where string
 	list = make([]*models.ProcDefQueryDto, 0)
-	where := transProcDefConditionToSQL(param)
-	procDefList, err = getProcessDefinitionByWhere(ctx, where)
+	where, queryParam = transProcDefConditionToSQL(param)
+	procDefList, err = getProcessDefinitionByWhere(ctx, where, queryParam)
 	if err != nil {
 		return
 	}
@@ -46,7 +49,7 @@ func QueryProcessDefinitionList(ctx context.Context, param models.QueryProcessDe
 			}
 		}
 		for _, permission := range permissionList {
-			if permission.Permission == "MGMT" {
+			if permission.Permission == "MGMT" && userRolesMap[permission.RoleName] {
 				manageRoles = append(manageRoles, permission.RoleName)
 			} else if permission.Permission == "USE" {
 				userRoles = append(userRoles, permission.RoleName)
@@ -212,8 +215,8 @@ func GetProcessDefinition(ctx context.Context, id string) (result *models.ProcDe
 	return
 }
 
-func getProcessDefinitionByWhere(ctx context.Context, where string) (list []*models.ProcDef, err error) {
-	err = db.MysqlEngine.Context(ctx).SQL("select * from proc_def " + where).Find(&list)
+func getProcessDefinitionByWhere(ctx context.Context, where string, queryParam []interface{}) (list []*models.ProcDef, err error) {
+	err = db.MysqlEngine.Context(ctx).SQL("select * from proc_def "+where, queryParam...).Find(&list)
 	if err != nil {
 		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
 		return
@@ -753,7 +756,7 @@ func transProcDefNodeLinkUpdateConditionToSQL(procDefNodeLink *models.ProcDefNod
 	return
 }
 
-func transProcDefConditionToSQL(param models.QueryProcessDefinitionParam) (where string) {
+func transProcDefConditionToSQL(param models.QueryProcessDefinitionParam) (where string, queryParam []interface{}) {
 	where = "where 1 = 1 "
 	if param.ProcDefId != "" {
 		where = where + " and ( id like '%" + param.ProcDefId + "%') "
@@ -762,10 +765,25 @@ func transProcDefConditionToSQL(param models.QueryProcessDefinitionParam) (where
 		where = where + " and ( name like '%" + param.ProcDefName + "%') "
 	}
 	if param.Status == string(models.Draft) || param.Status == string(models.Disabled) || param.Status == string(models.Deployed) {
-		where = where + " and status = '" + param.Status + "'"
+		where = where + " and status = ?"
+		queryParam = append(queryParam, param.Status)
 	}
 	if param.UpdatedTimeStart != "" && param.UpdatedTimeEnd != "" {
-		where = where + " and updated_time >= '" + param.UpdatedTimeStart + "' and updated_time <= '" + param.UpdatedTimeEnd + "'"
+		where = where + " and updated_time >= ? and updated_time <= ?"
+		queryParam = append(queryParam, []interface{}{param.UpdatedTimeStart, param.UpdatedTimeEnd}...)
+	}
+	if len(param.UserRoles) > 0 {
+		userRolesFilterSql, userRolesFilterParam := createListParams(param.UserRoles, "")
+		where = where + " and  id in (select proc_def_id from proc_def_permission where role_name in (" + userRolesFilterSql + ") and permission = 'MGMT')"
+		queryParam = append(queryParam, userRolesFilterParam...)
 	}
 	return
+}
+
+func convertArray2Map(roles []string) map[string]bool {
+	hashMap := make(map[string]bool)
+	for _, role := range roles {
+		hashMap[role] = true
+	}
+	return hashMap
 }
