@@ -43,6 +43,7 @@ func ReturnError(c *gin.Context, err error) {
 	} else {
 		log.Logger.Error("businessError", log.Int("errorCode", errorCode), log.String("message", errorMessage), log.Error(err))
 	}
+	errorKey = models.DefaultHttpErrorCode
 	returnObj := models.HttpResponseMeta{Code: errorCode, Status: errorKey, Message: errorMessage}
 	if log.DebugEnable {
 		bodyBytes, _ := json.Marshal(returnObj)
