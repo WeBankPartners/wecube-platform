@@ -26,6 +26,13 @@ const (
 
 	JwtSignKey = "authJwtSecretKey"
 	AESPrefix  = "{AES}"
+
+	// table name
+	TableNameBatchExecutionJobs     = "batch_execution_jobs"
+	TableNameExecutionJobs          = "execution_jobs"
+	TableNameBatchExecutionTemplate = "batch_execution_template"
+	TableNameFavorites              = "favorites"
+	TableNameFavoritesRole          = "favorites_role"
 )
 
 var (
