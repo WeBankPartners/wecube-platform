@@ -40,6 +40,7 @@ func init() {
 		&handlerFuncObj{Url: "/health-check", Method: "GET", HandlerFunc: healthCheck, ApiCode: "health"},
 		// base
 		&handlerFuncObj{Url: "/appinfo/version", Method: "GET", HandlerFunc: system.AppVersion, ApiCode: "get-version"},
+		&handlerFuncObj{Url: "/resource-files", Method: "GET", HandlerFunc: plugin.GetPluginResourceFiles, ApiCode: "get-resource-files"},
 		// system-variable
 		&handlerFuncObj{Url: "/system-variables/retrieve", Method: "POST", HandlerFunc: system.QuerySystemVariables, ApiCode: "query-system-variables"},
 		&handlerFuncObj{Url: "/system-variables/create", Method: "POST", HandlerFunc: system.CreateSystemVariable, ApiCode: "create-system-variables"},
