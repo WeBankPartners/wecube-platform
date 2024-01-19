@@ -14,7 +14,7 @@ import (
 
 // QueryProcessDefinitionList 查询编排列表
 func QueryProcessDefinitionList(ctx context.Context, param models.QueryProcessDefinitionParam) (list []*models.ProcDefQueryDto, err error) {
-	var procDefList, pList []*models.ProcDef
+	var procDefList, pList, filterProcDefList []*models.ProcDef
 	var permissionList []*models.ProcDefPermission
 	var roleProcDefMap = make(map[string]map[string][]*models.ProcDefDto)
 	var userRolesMap = convertArray2Map(param.UserRoles)
@@ -23,6 +23,7 @@ func QueryProcessDefinitionList(ctx context.Context, param models.QueryProcessDe
 	var queryParam []interface{}
 	var where string
 	list = make([]*models.ProcDefQueryDto, 0)
+	filterProcDefList = make([]*models.ProcDef, 0)
 	where, queryParam = transProcDefConditionToSQL(param)
 	procDefList, err = getProcessDefinitionByWhere(ctx, where, queryParam)
 	if err != nil {
@@ -31,7 +32,20 @@ func QueryProcessDefinitionList(ctx context.Context, param models.QueryProcessDe
 	if len(procDefList) == 0 {
 		return
 	}
-	for _, procDef := range procDefList {
+	// 通过授权插件过滤数据
+	if len(param.Plugins) > 0 {
+		for _, procDef := range procDefList {
+			for _, plugin := range param.Plugins {
+				if strings.Contains(procDef.ForPlugin, plugin) {
+					filterProcDefList = append(filterProcDefList, procDef)
+				}
+			}
+		}
+	} else {
+		filterProcDefList = procDefList
+	}
+
+	for _, procDef := range filterProcDefList {
 		manageRoles = []string{}
 		userRoles = []string{}
 		permissionList, err = GetProcDefPermissionByCondition(ctx, models.ProcDefPermission{ProcDefId: procDef.Id})
@@ -114,7 +128,46 @@ func AddProcessDefinition(ctx context.Context, user string, param models.Process
 }
 
 func CopyProcessDefinitionByDto(ctx context.Context, procDef *models.ProcessDefinitionDto) (newProcDefId string, err error) {
-	return
+	var permissionList []*models.ProcDefPermission
+	var nodeList []*models.ProcDefNode
+	var linkList []*models.ProcDefNodeLink
+	var nodeParamList []*models.ProcDefNodeParam
+	procDefModel := models.ConvertProcDefDto2Model(procDef.ProcDef)
+	if len(procDef.PermissionToRole.USE) > 0 {
+		for _, roleName := range procDef.PermissionToRole.USE {
+			permissionList = append(permissionList, &models.ProcDefPermission{
+				ProcDefId:  procDef.ProcDef.Id,
+				RoleId:     roleName,
+				RoleName:   roleName,
+				Permission: "USE",
+			})
+		}
+	}
+	if len(procDef.PermissionToRole.MGMT) > 0 {
+		for _, roleName := range procDef.PermissionToRole.MGMT {
+			permissionList = append(permissionList, &models.ProcDefPermission{
+				ProcDefId:  procDef.ProcDef.Id,
+				RoleId:     roleName,
+				RoleName:   roleName,
+				Permission: "MGMT",
+			})
+		}
+	}
+
+	if len(procDef.ProcDefNodeExtend.Nodes) > 0 {
+		/*for _, node := range procDef.ProcDefNodeExtend.Nodes {
+
+		}*/
+	}
+	if len(procDef.ProcDefNodeExtend.Edges) > 0 {
+		for _, link := range procDef.ProcDefNodeExtend.Edges {
+			if link != nil {
+				linkList = append(linkList, models.ConvertParam2ProcDefNodeLink(link))
+			}
+		}
+	}
+
+	return execCopyProcessDefinition(ctx, procDefModel, nodeList, linkList, nodeParamList, permissionList)
 }
 
 // CopyProcessDefinition 复制编排
