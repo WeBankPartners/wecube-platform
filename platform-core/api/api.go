@@ -98,6 +98,7 @@ func init() {
 		&handlerFuncObj{Url: "/data-model/dme/integrated-query", Method: "POST", HandlerFunc: plugin.QueryExpressionData, ApiCode: "query-expr-data"},
 
 		// permission
+		&handlerFuncObj{Url: "/my-menus", Method: "GET", HandlerFunc: system.GetMyMenuItems, ApiCode: "get-my-menu"},
 		&handlerFuncObj{Url: "/user/retrieve", Method: "GET", HandlerFunc: system.GetAllUser, ApiCode: "get-all-user"},
 		&handlerFuncObj{Url: "/roles/retrieve", Method: "GET", HandlerFunc: system.QueryRoles, ApiCode: "query-roles"},
 		&handlerFuncObj{Url: "/roles/:role-id/menus", Method: "GET", HandlerFunc: system.GetMenusByRoleId, ApiCode: "get-role-menu"},
