@@ -16,7 +16,7 @@ type AuthClaims struct {
 	Type       string   `json:"type"`
 	ClientType string   `json:"clientType"`
 	Roles      []string `json:"roles"`
-	Authority  []string `json:"authority"`
+	Authority  string   `json:"authority"`
 	//Authority   string   `json:"authority"`
 	//Auth        []model.AggAuth `json:"auth"`
 	//LoginType string `json:"loginType"`
