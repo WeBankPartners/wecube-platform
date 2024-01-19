@@ -155,9 +155,17 @@ func CopyProcessDefinitionByDto(ctx context.Context, procDef *models.ProcessDefi
 	}
 
 	if len(procDef.ProcDefNodeExtend.Nodes) > 0 {
-		/*for _, node := range procDef.ProcDefNodeExtend.Nodes {
-
-		}*/
+		for _, node := range procDef.ProcDefNodeExtend.Nodes {
+			if node != nil {
+				nodeModel, nodeParams := models.ConvertProcDefNodeResultDto2Model(node)
+				if nodeModel != nil {
+					nodeList = append(nodeList, nodeModel)
+				}
+				if len(nodeParamList) > 0 {
+					nodeParamList = append(nodeParamList, nodeParams...)
+				}
+			}
+		}
 	}
 	if len(procDef.ProcDefNodeExtend.Edges) > 0 {
 		for _, link := range procDef.ProcDefNodeExtend.Edges {
