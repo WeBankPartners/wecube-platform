@@ -172,7 +172,7 @@ func GetPluginPackageById(ctx context.Context, id string) (result *models.Plugin
 }
 
 func GetPluginConfigInterfaceParameters(ctx context.Context, pluginConfigInterfaceId, parameterType string) (list []*models.PluginConfigInterfaceParameters, err error) {
-	err = db.MysqlEngine.Context(ctx).SQL(" select id,plugin_config_interface_id, type, name,data_type,mapping_type,mapping_entity_expression,"+
+	err = db.MysqlEngine.Context(ctx).SQL("select id,plugin_config_interface_id, type, name,data_type,mapping_type,mapping_entity_expression,"+
 		"mapping_system_variable_name,required,sensitive_data,description,mapping_val,ref_object_name,multiple from plugin_config_interface_parameters"+
 		" where plugin_config_interface_id = ? and type =?", pluginConfigInterfaceId, parameterType).Find(&list)
 	if err != nil {

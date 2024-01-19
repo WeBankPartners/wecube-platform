@@ -10,6 +10,7 @@ import (
 
 	"github.com/WeBankPartners/go-common-lib/guid"
 	"github.com/WeBankPartners/wecube-platform/platform-core/api/middleware"
+	"github.com/WeBankPartners/wecube-platform/platform-core/api/v1/batch-execution"
 	"github.com/WeBankPartners/wecube-platform/platform-core/api/v1/certification"
 	"github.com/WeBankPartners/wecube-platform/platform-core/api/v1/plugin"
 	"github.com/WeBankPartners/wecube-platform/platform-core/api/v1/process"
@@ -40,6 +41,7 @@ func init() {
 		&handlerFuncObj{Url: "/health-check", Method: "GET", HandlerFunc: healthCheck, ApiCode: "health"},
 		// base
 		&handlerFuncObj{Url: "/appinfo/version", Method: "GET", HandlerFunc: system.AppVersion, ApiCode: "get-version"},
+		&handlerFuncObj{Url: "/resource-files", Method: "GET", HandlerFunc: plugin.GetPluginResourceFiles, ApiCode: "get-resource-files"},
 		// system-variable
 		&handlerFuncObj{Url: "/system-variables/retrieve", Method: "POST", HandlerFunc: system.QuerySystemVariables, ApiCode: "query-system-variables"},
 		&handlerFuncObj{Url: "/system-variables/create", Method: "POST", HandlerFunc: system.CreateSystemVariable, ApiCode: "create-system-variables"},
@@ -123,9 +125,11 @@ func init() {
 		&handlerFuncObj{Url: "/process/definitions", Method: "POST", HandlerFunc: process.AddOrUpdateProcessDefinition, ApiCode: "add-update-process-definition"},
 		&handlerFuncObj{Url: "/process/definitions/:proc-def-id", Method: "GET", HandlerFunc: process.GetProcessDefinition, ApiCode: "get-process-definition"},
 		&handlerFuncObj{Url: "/process/definitions/:proc-def-id/copy/:association", Method: "POST", HandlerFunc: process.CopyProcessDefinition, ApiCode: "copy-process-definition"},
-		&handlerFuncObj{Url: "/process/definitions/list", Method: "GET", HandlerFunc: process.QueryProcessDefinitionList, ApiCode: "process-definition-list"},
+		&handlerFuncObj{Url: "/process/definitions/list", Method: "POST", HandlerFunc: process.QueryProcessDefinitionList, ApiCode: "process-definition-list"},
 		&handlerFuncObj{Url: "/process/definitions/status", Method: "POST", HandlerFunc: process.BatchUpdateProcessDefinitionStatus, ApiCode: "update-process-definition-status"},
 		&handlerFuncObj{Url: "/process/definitions/permission", Method: "POST", HandlerFunc: process.BatchUpdateProcessDefinitionPermission, ApiCode: "update-process-definition-permission"},
+		&handlerFuncObj{Url: "/process/definitions/export", Method: "POST", HandlerFunc: process.ExportProcessDefinition, ApiCode: "process-definition-export"},
+		&handlerFuncObj{Url: "/process/definitions/import", Method: "POST", HandlerFunc: process.ImportProcessDefinition, ApiCode: "import-process-definition"},
 		&handlerFuncObj{Url: "/process/definitions/deploy/:proc-def-id", Method: "POST", HandlerFunc: process.DeployProcessDefinition, ApiCode: "deploy-process-definition"},
 		&handlerFuncObj{Url: "/process/definitions/taskNodes", Method: "POST", HandlerFunc: process.AddOrUpdateProcDefTaskNodes, ApiCode: "add-update-process-definition-nodes"},
 		&handlerFuncObj{Url: "/process/definitions/:proc-def-id/taskNodes/:node-id", Method: "DELETE", HandlerFunc: process.DeleteProcDefNode, ApiCode: "delete-process-definition-nodes"},
@@ -140,6 +144,10 @@ func init() {
 		&handlerFuncObj{Url: "/plugin-certifications/:certId/export", Method: "GET", HandlerFunc: certification.ExportCertification, ApiCode: "export-certification"},
 		&handlerFuncObj{Url: "/plugin-certifications/import", Method: "POST", HandlerFunc: certification.ImportCertification, ApiCode: "import-certification"},
 		&handlerFuncObj{Url: "/plugin-certifications/:certId", Method: "DELETE", HandlerFunc: certification.DeleteCertification, ApiCode: "delete-certification"},
+
+		// batch-execution
+		&handlerFuncObj{Url: "/batch-execution/favorites", Method: "POST", HandlerFunc: batch_execution.CreateOrUpdateFavorites, ApiCode: "create-update-batch-execution-favorites"},
+		&handlerFuncObj{Url: "/batch-execution/favorites/retrieve", Method: "POST", HandlerFunc: batch_execution.RetrieveFavorites, ApiCode: "retrieve-batch-execution-favorites"},
 	)
 }
 

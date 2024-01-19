@@ -569,3 +569,27 @@ func GetPackageNames(ctx context.Context) (result []string, err error) {
 	}
 	return
 }
+
+func UpdatePluginStaticResourceFiles(ctx context.Context, pluginPackageId string, inputs []*models.PluginPackageResourceFiles) (err error) {
+	var actions []*db.ExecAction
+	actions = append(actions, &db.ExecAction{Sql: "delete from plugin_package_resource_files where plugin_package_id=?", Param: []interface{}{pluginPackageId}})
+	for _, v := range inputs {
+		actions = append(actions, &db.ExecAction{Sql: "INSERT INTO plugin_package_resource_files (id,plugin_package_id,package_name,package_version,`source`,related_path) values (?,?,?,?,?,?)", Param: []interface{}{
+			"p_ui_" + guid.CreateGuid(), v.PluginPackageId, v.PackageName, v.PackageVersion, v.Source, v.RelatedPath,
+		}})
+	}
+	err = db.Transaction(actions, ctx)
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseExecuteError, err)
+	}
+	return
+}
+
+func GetPluginResourceFiles(ctx context.Context) (result []*models.PluginPackageResourceFiles, err error) {
+	result = []*models.PluginPackageResourceFiles{}
+	err = db.MysqlEngine.Context(ctx).SQL("select * from plugin_package_resource_files where plugin_package_id in (SELECT t1.id FROM plugin_packages t1 where t1.ui_package_included=1 and t1.status IN ('REGISTERED' ,'RUNNING', 'STOPPED') AND t1.upload_timestamp = (SELECT MAX(t2.upload_timestamp) FROM plugin_packages t2 WHERE t2.status IN ('REGISTERED' ,'RUNNING', 'STOPPED') AND t2.name = t1.name GROUP BY t2.name))").Find(&result)
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
+	}
+	return
+}

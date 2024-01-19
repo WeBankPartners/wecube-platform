@@ -2,6 +2,7 @@ package database
 
 import (
 	"context"
+	"sort"
 	"strings"
 	"time"
 
@@ -12,7 +13,77 @@ import (
 )
 
 // QueryProcessDefinitionList 查询编排列表
-func QueryProcessDefinitionList(ctx context.Context, param models.QueryProcessDefinitionParam) (list []*models.ProcDefDto, err error) {
+func QueryProcessDefinitionList(ctx context.Context, param models.QueryProcessDefinitionParam) (list []*models.ProcDefQueryDto, err error) {
+	var procDefList, pList []*models.ProcDef
+	var permissionList []*models.ProcDefPermission
+	var roleProcDefMap = make(map[string]map[string][]*models.ProcDefDto)
+	var userRolesMap = convertArray2Map(param.UserRoles)
+	var manageRoles, userRoles, allManageRoles []string
+	var enabledCreated bool
+	var queryParam []interface{}
+	var where string
+	list = make([]*models.ProcDefQueryDto, 0)
+	where, queryParam = transProcDefConditionToSQL(param)
+	procDefList, err = getProcessDefinitionByWhere(ctx, where, queryParam)
+	if err != nil {
+		return
+	}
+	if len(procDefList) == 0 {
+		return
+	}
+	for _, procDef := range procDefList {
+		manageRoles = []string{}
+		userRoles = []string{}
+		permissionList, err = GetProcDefPermissionByCondition(ctx, models.ProcDefPermission{ProcDefId: procDef.Id})
+		if err != nil {
+			return
+		}
+		if procDef.Status == string(models.Deployed) {
+			pList, err = GetProcessDefinitionByCondition(ctx, models.ProcDefCondition{Key: procDef.Key, Status: string(models.Draft)})
+			if err != nil {
+				return
+			}
+			// 没有同 key并且 草稿态的编排,则可以新建编排
+			if len(pList) == 0 {
+				enabledCreated = true
+			}
+		}
+		for _, permission := range permissionList {
+			if permission.Permission == "MGMT" && userRolesMap[permission.RoleName] {
+				manageRoles = append(manageRoles, permission.RoleName)
+			} else if permission.Permission == "USE" {
+				userRoles = append(userRoles, permission.RoleName)
+			}
+		}
+		for _, manageRole := range manageRoles {
+			if _, ok := roleProcDefMap[manageRole]; !ok {
+				roleProcDefMap[manageRole] = make(map[string][]*models.ProcDefDto)
+				allManageRoles = append(allManageRoles, manageRole)
+			}
+			if _, ok := roleProcDefMap[manageRole][procDef.Scene]; !ok {
+				roleProcDefMap[manageRole][procDef.Scene] = make([]*models.ProcDefDto, 0)
+			}
+			roleProcDefMap[manageRole][procDef.Scene] = append(roleProcDefMap[manageRole][procDef.Scene], models.BuildProcDefDto(procDef, userRoles, enabledCreated))
+		}
+	}
+	// 角色排序
+	sort.Strings(allManageRoles)
+	for _, manageRole := range allManageRoles {
+		dataMap := roleProcDefMap[manageRole]
+		procDefQueryDto := &models.ProcDefQueryDto{
+			ManageRole: manageRole,
+			SceneData:  make([]*models.SceneData, 0),
+		}
+		for scene, data := range dataMap {
+			// 排序
+			sort.Sort(models.ProcDefDtoSort(data))
+			procDefQueryDto.SceneData = append(procDefQueryDto.SceneData, &models.SceneData{
+				Scene:       scene,
+				ProcDefList: data,
+			})
+		}
+		list = append(list, procDefQueryDto)
+	}
 	return
 }
 
@@ -33,6 +104,8 @@ func AddProcessDefinition(ctx context.Context, user string, param models.Process
 	draftEntity.UpdatedBy = user
 	draftEntity.UpdatedTime = now
 	draftEntity.RootEntity = param.RootEntity
+	// 计算编排的版本
+	draftEntity.Version = "v1"
 	err = insertProcDef(ctx, draftEntity)
 	if err != nil {
 		return
@@ -40,14 +113,18 @@ func AddProcessDefinition(ctx context.Context, user string, param models.Process
 	return
 }
 
+func CopyProcessDefinitionByDto(ctx context.Context, procDef *models.ProcessDefinitionDto) (err error) {
+	return
+}
+
 // CopyProcessDefinition 复制编排
-func CopyProcessDefinition(ctx context.Context, procDef *models.ProcDef) (err error) {
+func CopyProcessDefinition(ctx context.Context, procDef *models.ProcDef) (newProcDefId string, err error) {
 	var actions []*db.ExecAction
 	var permissionList []*models.ProcDefPermission
 	var nodeList []*models.ProcDefNode
 	var linkList []*models.ProcDefNodeLink
 	var nodeParamList []*models.ProcDefNodeParam
-	var newProcDefId = "pdef_" + guid.CreateGuid()
+	newProcDefId = "pdef_" + guid.CreateGuid()
 	// 查询权限
 	permissionList, err = GetProcDefPermissionByCondition(ctx, models.ProcDefPermission{ProcDefId: procDef.Id})
 	if err != nil {
@@ -140,6 +217,25 @@ func GetProcessDefinition(ctx context.Context, id string) (result *models.ProcDe
 	}
 	if len(list) > 0 {
 		result = list[0]
+	}
+	return
+}
+
+func getProcessDefinitionByWhere(ctx context.Context, where string, queryParam []interface{}) (list []*models.ProcDef, err error) {
+	err = db.MysqlEngine.Context(ctx).SQL("select * from proc_def "+where, queryParam...).Find(&list)
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
+		return
+	}
+	return
+}
+
+func GetDeployedProcessDefinitionByIds(ctx context.Context, ids []string) (list []*models.ProcDef, err error) {
+	idsFilterSql, idsFilterParam := createListParams(ids, "")
+	err = db.MysqlEngine.Context(ctx).SQL("select * from proc_def where id in ("+idsFilterSql+") and status='deployed'", idsFilterParam...).Find(&list)
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
+		return
 	}
 	return
 }
@@ -295,31 +391,11 @@ func GetProcDefNodeModelByProcDefId(ctx context.Context, procDefId string) (list
 	return
 }
 
-func GetProcDefNodeById(ctx context.Context, id string) (result *models.ProcDefNode, err error) {
-	var list []*models.ProcDefNode
-	err = db.MysqlEngine.Context(ctx).SQL("select * from proc_def_node where id = ?", id).Find(&list)
+func GetSimpleProcDefNodeByProcDefId(ctx context.Context, procDefId string) (list []*models.ProcDefNode, err error) {
+	err = db.MysqlEngine.Context(ctx).SQL("select * from proc_def_node where proc_def_id = ?", procDefId).Find(&list)
 	if err != nil {
 		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
 		return
-	}
-	if len(list) > 0 {
-		result = list[0]
-	}
-	return
-}
-
-func GetProcDefNodeLinkBySource(ctx context.Context, source string) (list []*models.ProcDefNodeLinkDto, err error) {
-	var nodeLinkList []*models.ProcDefNodeLink
-	list = make([]*models.ProcDefNodeLinkDto, 0)
-	err = db.MysqlEngine.Context(ctx).SQL("select * from proc_def_node_link where source = ?", source).Find(&nodeLinkList)
-	if err != nil {
-		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
-		return
-	}
-	if len(nodeLinkList) > 0 {
-		for _, nodeLink := range nodeLinkList {
-			list = append(list, models.ConvertProcDefNodeLink2Dto(nodeLink))
-		}
 	}
 	return
 }
@@ -505,8 +581,8 @@ func GetProcDefPermissionByCondition(ctx context.Context, permission models.Proc
 func InsertProcDefNodeParam(ctx context.Context, nodeParam *models.ProcDefNodeParam) (err error) {
 	var actions []*db.ExecAction
 	actions = append(actions, &db.ExecAction{Sql: "insert into  proc_def_node_param(id,proc_def_node_id,param_id,name,bind_type," +
-		"value,ctx_bind_node,ctx_bind_type,ctx_bind_name) values (?,?,?,?,?,?,?,?,?)", Param: []interface{}{nodeParam.Id, nodeParam.ProcDefNodeId, nodeParam.ParamId,
-		nodeParam.Name, nodeParam.BindType, nodeParam.Value, nodeParam.CtxBindNode, nodeParam.CtxBindType, nodeParam.CtxBindName}})
+		"value,ctx_bind_node,ctx_bind_type,ctx_bind_name,required) values (?,?,?,?,?,?,?,?,?,?)", Param: []interface{}{nodeParam.Id, nodeParam.ProcDefNodeId, nodeParam.ParamId,
+		nodeParam.Name, nodeParam.BindType, nodeParam.Value, nodeParam.CtxBindNode, nodeParam.CtxBindType, nodeParam.CtxBindName, nodeParam.Required}})
 	err = db.Transaction(actions, ctx)
 	if err != nil {
 		err = exterror.Catch(exterror.New().DatabaseExecuteError, err)
@@ -514,9 +590,9 @@ func InsertProcDefNodeParam(ctx context.Context, nodeParam *models.ProcDefNodePa
 	return
 }
 
-func DeleteProcDefNodeParam(ctx context.Context, procDefNodeId, paramId string) (err error) {
+func DeleteProcDefNodeParam(ctx context.Context, procDefNodeId string) (err error) {
 	var actions []*db.ExecAction
-	actions = append(actions, &db.ExecAction{Sql: "delete from proc_def_node_param where proc_def_node_id=? and param_id=?", Param: []interface{}{procDefNodeId, paramId}})
+	actions = append(actions, &db.ExecAction{Sql: "delete from proc_def_node_param where proc_def_node_id=?", Param: []interface{}{procDefNodeId}})
 	err = db.Transaction(actions, ctx)
 	if err != nil {
 		err = exterror.Catch(exterror.New().DatabaseExecuteError, err)
@@ -674,4 +750,36 @@ func transProcDefNodeLinkUpdateConditionToSQL(procDefNodeLink *models.ProcDefNod
 	sql = sql + " where id= ?"
 	params = append(params, procDefNodeLink.Id)
 	return
+}
+
+func transProcDefConditionToSQL(param models.QueryProcessDefinitionParam) (where string, queryParam []interface{}) {
+	where = "where 1 = 1 "
+	if param.ProcDefId != "" {
+		where = where + " and ( id like '%" + param.ProcDefId + "%') "
+	}
+	if param.ProcDefName != "" {
+		where = where + " and ( name like '%" + param.ProcDefName + "%') "
+	}
+	if param.Status == string(models.Draft) || param.Status == string(models.Disabled) || param.Status == string(models.Deployed) {
+		where = where + " and status = ?"
+		queryParam = append(queryParam, param.Status)
+	}
+	if param.UpdatedTimeStart != "" && param.UpdatedTimeEnd != "" {
+		where = where + " and updated_time >= ? and updated_time <= ?"
+		queryParam = append(queryParam, []interface{}{param.UpdatedTimeStart, param.UpdatedTimeEnd}...)
+	}
+	if len(param.UserRoles) > 0 {
+		userRolesFilterSql, userRolesFilterParam := createListParams(param.UserRoles, "")
+		where = where + " and  id in (select proc_def_id from proc_def_permission where role_name in (" + userRolesFilterSql + ") and permission = 'MGMT')"
+		queryParam = append(queryParam, userRolesFilterParam...)
+	}
+	return
+}
+
+func convertArray2Map(roles []string) map[string]bool {
+	hashMap := make(map[string]bool)
+	for _, role := range roles {
+		hashMap[role] = true
+	}
+	return hashMap
 }
