@@ -4,6 +4,7 @@ import (
 	"errors"
 	"github.com/WeBankPartners/wecube-platform/platform-auth-server/common/constant"
 	"github.com/WeBankPartners/wecube-platform/platform-auth-server/common/log"
+	"github.com/WeBankPartners/wecube-platform/platform-auth-server/common/utils"
 	"github.com/WeBankPartners/wecube-platform/platform-auth-server/model"
 	"github.com/golang-jwt/jwt"
 	"strconv"
@@ -65,7 +66,7 @@ func BuildAccessToken(loginId string, authorities []string, clientType string, e
 		ClientType: clientType,
 		//Roles:      roles,
 		//Authority: string(authoritiesBytes),
-		Authority: authorities,
+		Authority: utils.BuildArrayString(authorities),
 	})
 	if tokenString, err := token.SignedString(model.Config.Auth.SigningKeyBytes); err == nil {
 		return &model.JwtTokenDto{
