@@ -127,7 +127,7 @@ func AddProcessDefinition(ctx context.Context, user string, param models.Process
 	return
 }
 
-func CopyProcessDefinitionByDto(ctx context.Context, procDef *models.ProcessDefinitionDto) (newProcDefId string, err error) {
+func CopyProcessDefinitionByDto(ctx context.Context, procDef *models.ProcessDefinitionDto, operator string) (newProcDefId string, err error) {
 	var permissionList []*models.ProcDefPermission
 	var nodeList []*models.ProcDefNode
 	var linkList []*models.ProcDefNodeLink
@@ -170,16 +170,16 @@ func CopyProcessDefinitionByDto(ctx context.Context, procDef *models.ProcessDefi
 	if len(procDef.ProcDefNodeExtend.Edges) > 0 {
 		for _, link := range procDef.ProcDefNodeExtend.Edges {
 			if link != nil {
-				linkList = append(linkList, models.ConvertParam2ProcDefNodeLink(link))
+				linkList = append(linkList, models.CovertNodeLinkDto2Model(link))
 			}
 		}
 	}
 
-	return execCopyProcessDefinition(ctx, procDefModel, nodeList, linkList, nodeParamList, permissionList)
+	return execCopyProcessDefinition(ctx, procDefModel, nodeList, linkList, nodeParamList, permissionList, operator)
 }
 
 // CopyProcessDefinition 复制编排
-func CopyProcessDefinition(ctx context.Context, procDef *models.ProcDef) (newProcDefId string, err error) {
+func CopyProcessDefinition(ctx context.Context, procDef *models.ProcDef, operator string) (newProcDefId string, err error) {
 	var permissionList []*models.ProcDefPermission
 	var nodeList []*models.ProcDefNode
 	var linkList []*models.ProcDefNodeLink
@@ -199,18 +199,19 @@ func CopyProcessDefinition(ctx context.Context, procDef *models.ProcDef) (newPro
 	if err != nil {
 		return
 	}
-	return execCopyProcessDefinition(ctx, procDef, nodeList, linkList, nodeParamList, permissionList)
+	return execCopyProcessDefinition(ctx, procDef, nodeList, linkList, nodeParamList, permissionList, operator)
 }
 
 func execCopyProcessDefinition(ctx context.Context, procDef *models.ProcDef, nodeList []*models.ProcDefNode,
-	linkList []*models.ProcDefNodeLink, nodeParamList []*models.ProcDefNodeParam, permissionList []*models.ProcDefPermission) (newProcDefId string, err error) {
+	linkList []*models.ProcDefNodeLink, nodeParamList []*models.ProcDefNodeParam, permissionList []*models.ProcDefPermission, operator string) (newProcDefId string, err error) {
 	newProcDefId = "pdef_" + guid.CreateGuid()
+	currTime := time.Now().Format(models.DateTimeFormat)
 	var actions []*db.ExecAction
 	// 插入编排
 	actions = append(actions, &db.ExecAction{Sql: "insert into proc_def (id,`key`,name,root_entity,status,tags,for_plugin,scene," +
-		"conflict_check,created_by,created_time,updated_by,updated_time) values (?,?,?,?,?,?,?,?,?,?,?,?,?)", Param: []interface{}{newProcDefId,
+		"conflict_check,created_by,version,created_time,updated_by,updated_time) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?)", Param: []interface{}{newProcDefId,
 		procDef.Key, procDef.Name, procDef.RootEntity, models.Draft, procDef.Tags, procDef.ForPlugin, procDef.Scene,
-		procDef.ConflictCheck, procDef.CreatedBy, procDef.CreatedTime.Format(models.DateTimeFormat), procDef.UpdatedBy, procDef.UpdatedTime.Format(models.DateTimeFormat)}})
+		procDef.ConflictCheck, operator, procDef.Version, currTime, operator, currTime}})
 
 	// 插入权限
 	if len(permissionList) > 0 {
@@ -228,7 +229,7 @@ func execCopyProcessDefinition(ctx context.Context, procDef *models.ProcDef, nod
 				"dynamic_bind,bind_node_id,risk_check,routine_expression,context_param_nodes,timeout,time_config,ordered_no,ui_style,created_by,created_time," +
 				"updated_by,updated_time) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)", Param: []interface{}{newNodeId, node.NodeId, newProcDefId, node.Name, node.Description,
 				models.Draft, node.NodeType, node.ServiceName, node.DynamicBind, node.BindNodeId, node.RiskCheck, node.RoutineExpression, node.ContextParamNodes,
-				node.Timeout, node.TimeConfig, node.OrderedNo, node.UiStyle, node.CreatedBy, node.CreatedTime.Format(models.DateTimeFormat), node.UpdatedBy, node.UpdatedTime.Format(models.DateTimeFormat)}})
+				node.Timeout, node.TimeConfig, node.OrderedNo, node.UiStyle, operator, currTime, node.UpdatedBy, currTime}})
 			nodeParamList, err = GetProcDefNodeParamByNodeId(ctx, node.Id)
 			if err != nil {
 				return
