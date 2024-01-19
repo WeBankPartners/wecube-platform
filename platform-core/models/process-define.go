@@ -127,6 +127,7 @@ type BatchUpdateProcDefStatusParam struct {
 type QueryProcessDefinitionParam struct {
 	ProcDefId        string   `json:"procDefId"`        // 编排Id
 	ProcDefName      string   `json:"procDefName"`      // 编排名称
+	Plugins          []string `json:"plugins"`          // 授权插件
 	UpdatedTimeStart string   `json:"updatedTimeStart"` // 更新时间开始
 	UpdatedTimeEnd   string   `json:"updatedTimeEnd"`   // 更新时间结束
 	Status           string   `json:"status"`           // disabled 禁用 draft草稿 deployed 发布状态
@@ -363,6 +364,34 @@ func ConvertProcDef2Dto(procDef *ProcDef) *ProcDefDto {
 	return dto
 }
 
+func ConvertProcDefDto2Model(dto *ProcDefDto) *ProcDef {
+	var authPlugins string
+	var createTime, updateTime time.Time
+	if dto.CreatedTime != "" {
+		createTime, _ = time.Parse(DateTimeFormat, dto.CreatedTime)
+		updateTime, _ = time.Parse(DateTimeFormat, dto.UpdatedTime)
+	}
+	if len(dto.AuthPlugins) > 0 {
+		authPlugins = strings.Join(dto.AuthPlugins, ",")
+	}
+	return &ProcDef{
+		Id:            dto.Id,
+		Key:           dto.Key,
+		Name:          dto.Name,
+		Version:       dto.Version,
+		RootEntity:    dto.RootEntity,
+		Status:        dto.Status,
+		Tags:          dto.Tags,
+		ForPlugin:     authPlugins,
+		Scene:         dto.Scene,
+		ConflictCheck: dto.ConflictCheck,
+		CreatedBy:     dto.CreatedBy,
+		CreatedTime:   createTime,
+		UpdatedBy:     dto.UpdatedBy,
+		UpdatedTime:   updateTime,
+	}
+}
+
 func ConvertProcDefNode2Dto(procDefNode *ProcDefNode, list []*ProcDefNodeParam) *ProcDefNodeResultDto {
 	var contextParamNodes []string
 	if procDefNode == nil {
@@ -400,7 +429,7 @@ func ConvertProcDefNode2Dto(procDefNode *ProcDefNode, list []*ProcDefNodeParam) 
 	return dto
 }
 
-func ConvertParam2ProcDefNodeLink(param ProcDefNodeLinkDto) *ProcDefNodeLink {
+func ConvertParam2ProcDefNodeLink(param *ProcDefNodeLinkDto) *ProcDefNodeLink {
 	byteArr, _ := json.Marshal(param.SelfAttrs)
 	nodeLinkAttr := param.ProcDefNodeLinkCustomAttrs
 	return &ProcDefNodeLink{
@@ -465,4 +494,38 @@ func BuildProcDefDto(procDef *ProcDef, userRoles []string, enableCreated bool) *
 		EnableCreated: enableCreated,
 		UseRoles:      userRoles,
 	}
+}
+
+func ConvertParam2ProcDefNode(user string, param ProcDefNodeRequestParam) *ProcDefNode {
+	var contextParamNodes string
+	now := time.Now()
+	byteArr, _ := json.Marshal(param.NodeAttrs)
+	procDefNodeAttr := param.ProcDefNodeCustomAttrs
+	byteArr2, _ := json.Marshal(procDefNodeAttr.TimeConfig)
+	if len(param.ProcDefNodeCustomAttrs.ContextParamNodes) > 0 {
+		contextParamNodes = strings.Join(param.ProcDefNodeCustomAttrs.ContextParamNodes, ",")
+	}
+	node := &ProcDefNode{
+		NodeId:            procDefNodeAttr.Id,
+		ProcDefId:         procDefNodeAttr.ProcDefId,
+		Name:              procDefNodeAttr.Name,
+		Description:       procDefNodeAttr.Description,
+		Status:            string(Draft),
+		NodeType:          procDefNodeAttr.NodeType,
+		ServiceName:       procDefNodeAttr.ServiceName,
+		DynamicBind:       procDefNodeAttr.DynamicBind,
+		BindNodeId:        procDefNodeAttr.BindNodeId,
+		RiskCheck:         procDefNodeAttr.RiskCheck,
+		RoutineExpression: procDefNodeAttr.RoutineExpression,
+		ContextParamNodes: contextParamNodes,
+		Timeout:           procDefNodeAttr.Timeout,
+		TimeConfig:        string(byteArr2),
+		OrderedNo:         procDefNodeAttr.OrderedNo,
+		UiStyle:           string(byteArr),
+		CreatedBy:         user,
+		CreatedTime:       now,
+		UpdatedBy:         user,
+		UpdatedTime:       now,
+	}
+	return node
 }
