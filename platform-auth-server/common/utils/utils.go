@@ -92,3 +92,7 @@ func Uuid() string {
 func IsBlank(s string) bool {
 	return strings.TrimSpace(s) == ""
 }
+
+func BuildArrayString(vals []string) string {
+	return "[" + strings.Join(vals, ",") + "]"
+}
