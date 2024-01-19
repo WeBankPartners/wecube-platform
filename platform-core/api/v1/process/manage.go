@@ -205,6 +205,7 @@ func QueryProcessDefinitionList(c *gin.Context) {
 		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, err))
 		return
 	}
+	param.UserRoles = middleware.GetRequestRoles(c)
 	list, err = database.QueryProcessDefinitionList(c, param)
 	if err != nil {
 		middleware.ReturnError(c, err)
@@ -675,11 +676,14 @@ func calcProcDefVersion(ctx context.Context, key string) string {
 }
 
 func convertParam2ProcDefNode(user string, param models.ProcDefNodeRequestParam) *models.ProcDefNode {
+	var contextParamNodes string
 	now := time.Now()
 	byteArr, _ := json.Marshal(param.NodeAttrs)
 	procDefNodeAttr := param.ProcDefNodeCustomAttrs
 	byteArr2, _ := json.Marshal(procDefNodeAttr.TimeConfig)
-	byteArr3, _ := json.Marshal(procDefNodeAttr.ContextParamNodes)
+	if len(param.ProcDefNodeCustomAttrs.ContextParamNodes) > 0 {
+		contextParamNodes = strings.Join(param.ProcDefNodeCustomAttrs.ContextParamNodes, ",")
+	}
 	node := &models.ProcDefNode{
 		NodeId:            procDefNodeAttr.Id,
 		ProcDefId:         procDefNodeAttr.ProcDefId,
@@ -692,7 +696,7 @@ func convertParam2ProcDefNode(user string, param models.ProcDefNodeRequestParam)
 		BindNodeId:        procDefNodeAttr.BindNodeId,
 		RiskCheck:         procDefNodeAttr.RiskCheck,
 		RoutineExpression: procDefNodeAttr.RoutineExpression,
-		ContextParamNodes: string(byteArr3),
+		ContextParamNodes: contextParamNodes,
 		Timeout:           procDefNodeAttr.Timeout,
 		TimeConfig:        string(byteArr2),
 		OrderedNo:         procDefNodeAttr.OrderedNo,

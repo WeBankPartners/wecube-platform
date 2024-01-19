@@ -125,11 +125,12 @@ type BatchUpdateProcDefStatusParam struct {
 }
 
 type QueryProcessDefinitionParam struct {
-	ProcDefId        string `json:"procDefId"`        // 编排Id
-	ProcDefName      string `json:"procDefName"`      // 编排名称
-	UpdatedTimeStart string `json:"updatedTimeStart"` // 更新时间开始
-	UpdatedTimeEnd   string `json:"updatedTimeEnd"`   // 更新时间结束
-	Status           string `json:"status"`           // disabled 禁用 draft草稿 deployed 发布状态
+	ProcDefId        string   `json:"procDefId"`        // 编排Id
+	ProcDefName      string   `json:"procDefName"`      // 编排名称
+	UpdatedTimeStart string   `json:"updatedTimeStart"` // 更新时间开始
+	UpdatedTimeEnd   string   `json:"updatedTimeEnd"`   // 更新时间结束
+	Status           string   `json:"status"`           // disabled 禁用 draft草稿 deployed 发布状态
+	UserRoles        []string // 用户角色
 }
 
 type BatchUpdateProcDefPermission struct {
@@ -186,7 +187,7 @@ type ProcDefNodeCustomAttrs struct {
 	ServiceName       string              `json:"serviceName"`       // 插件服务名
 	RiskCheck         bool                `json:"riskCheck"`         // 是否高危检测
 	ParamInfos        []*ProcDefNodeParam `json:"paramInfos"`        // 节点参数
-	ContextParamNodes interface{}         `json:"contextParamNodes"` // 上下文参数节点
+	ContextParamNodes []string            `json:"contextParamNodes"` // 上下文参数节点
 	TimeConfig        interface{}         `json:"timeConfig"`        // 节点配置
 	OrderedNo         int                 `json:"orderedNo"`         // 节点顺序
 	CreatedBy         string              `json:"createdBy" `        // 创建人
@@ -210,7 +211,7 @@ type ProcDefNodeCustomAttrsDto struct {
 	ServiceName       string              `json:"serviceName"`       // 插件服务名
 	RiskCheck         bool                `json:"riskCheck"`         // 是否高危检测
 	ParamInfos        []*ProcDefNodeParam `json:"paramInfos"`        // 节点参数
-	ContextParamNodes string              `json:"contextParamNodes"` // 上下文参数节点
+	ContextParamNodes []string            `json:"contextParamNodes"` // 上下文参数节点
 	TimeConfig        interface{}         `json:"timeConfig"`        // 节点配置
 	OrderedNo         int                 `json:"orderedNo"`         // 节点顺序
 	CreatedBy         string              `json:"createdBy" `        // 创建人
@@ -352,8 +353,12 @@ func ConvertProcDef2Dto(procDef *ProcDef) *ProcDefDto {
 }
 
 func ConvertProcDefNode2Dto(procDefNode *ProcDefNode, list []*ProcDefNodeParam) *ProcDefNodeResultDto {
+	var contextParamNodes []string
 	if procDefNode == nil {
 		return nil
+	}
+	if len(procDefNode.ContextParamNodes) > 0 {
+		contextParamNodes = strings.Split(procDefNode.ContextParamNodes, ",")
 	}
 	dto := &ProcDefNodeResultDto{
 		ProcDefNodeCustomAttrs: &ProcDefNodeCustomAttrsDto{
@@ -371,7 +376,7 @@ func ConvertProcDefNode2Dto(procDefNode *ProcDefNode, list []*ProcDefNodeParam) 
 			ServiceName:       procDefNode.ServiceName,
 			RiskCheck:         procDefNode.RiskCheck,
 			ParamInfos:        list,
-			ContextParamNodes: procDefNode.ContextParamNodes,
+			ContextParamNodes: contextParamNodes,
 			TimeConfig:        procDefNode.TimeConfig,
 			OrderedNo:         procDefNode.OrderedNo,
 			CreatedBy:         procDefNode.CreatedBy,
