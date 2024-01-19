@@ -914,10 +914,12 @@ func getMapRandomKey(hashMap map[string]bool) string {
 
 func processDefinitionImport(ctx context.Context, inputList []*models.ProcessDefinitionDto, operator string) (importResult *models.ImportResultDto, err error) {
 	var draftList, repeatNameList []*models.ProcDef
+	var versionExist bool
 	importResult = &models.ImportResultDto{
 		ResultList: make([]*models.ImportResultItemDto, 0),
 	}
 	for _, procDefDto := range inputList {
+		versionExist = false
 		if procDefDto.ProcDef == nil {
 			continue
 		}
@@ -935,20 +937,29 @@ func processDefinitionImport(ctx context.Context, inputList []*models.ProcessDef
 			continue
 		}
 		// 判断名称和版本是否重复
-		repeatNameList, err = database.GetProcessDefinitionByCondition(ctx, models.ProcDefCondition{Name: procDefDto.ProcDef.Name, Version: procDefDto.ProcDef.Version})
+		repeatNameList, err = database.GetProcessDefinitionByCondition(ctx, models.ProcDefCondition{Name: procDefDto.ProcDef.Name})
 		if err != nil {
 			return
 		}
+		// 重复的名称,将重复名称Key 给导入值
 		if len(repeatNameList) > 0 {
-			importResult.ResultList = append(importResult.ResultList, &models.ImportResultItemDto{
-				ProcDefName:    procDefDto.ProcDef.Name,
-				ProcDefVersion: procDefDto.ProcDef.Version,
-				Code:           2,
-			})
+			procDefDto.ProcDef.Key = repeatNameList[0].Key
+			for _, repeatProcDef := range repeatNameList {
+				if repeatProcDef.Version == procDefDto.ProcDef.Version {
+					versionExist = true
+					importResult.ResultList = append(importResult.ResultList, &models.ImportResultItemDto{
+						ProcDefName:    procDefDto.ProcDef.Name,
+						ProcDefVersion: procDefDto.ProcDef.Version,
+						Code:           2,
+					})
+					break
+				}
+			}
+		}
+		if versionExist {
 			continue
 		}
 		_, err = database.CopyProcessDefinitionByDto(ctx, procDefDto)
-
 		if err != nil {
 			importResult.ResultList = append(importResult.ResultList, &models.ImportResultItemDto{
 				ProcDefName:    procDefDto.ProcDef.Name,
