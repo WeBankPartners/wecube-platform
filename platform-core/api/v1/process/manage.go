@@ -403,7 +403,7 @@ func AddOrUpdateProcDefTaskNodes(c *gin.Context) {
 	}
 	// 处理节点参数,先删除然后插入
 	if param.ProcDefNodeCustomAttrs.ParamInfos != nil {
-		err = database.DeleteProcDefNodeParam(c, node.ProcDefId)
+		err = database.DeleteProcDefNodeParam(c, node.Id)
 		if err != nil {
 			middleware.ReturnError(c, err)
 			return
