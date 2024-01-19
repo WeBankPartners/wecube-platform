@@ -2,6 +2,7 @@ package models
 
 import (
 	"encoding/json"
+	"reflect"
 	"strings"
 	"time"
 )
@@ -397,10 +398,15 @@ func ConvertProcDefDto2Model(dto *ProcDefDto) *ProcDef {
 func ConvertProcDefNodeResultDto2Model(dto *ProcDefNodeResultDto) (node *ProcDefNode, list []*ProcDefNodeParam) {
 	var contextParamNodes string
 	var createTime, updateTime time.Time
+	var timeConfig, uiStyle string
 	if dto.ProcDefNodeCustomAttrs != nil {
 		attr := dto.ProcDefNodeCustomAttrs
-		byteArr, _ := json.Marshal(dto.NodeAttrs)
-		byteArr2, _ := json.Marshal(attr.TimeConfig)
+		if reflect.TypeOf(attr.TimeConfig).Name() == "string" {
+			timeConfig = attr.TimeConfig.(string)
+		}
+		if reflect.TypeOf(dto.NodeAttrs).Name() == "string" {
+			uiStyle = dto.NodeAttrs.(string)
+		}
 		if len(attr.ContextParamNodes) > 0 {
 			contextParamNodes = strings.Join(attr.ContextParamNodes, ",")
 		}
@@ -425,9 +431,9 @@ func ConvertProcDefNodeResultDto2Model(dto *ProcDefNodeResultDto) (node *ProcDef
 			RoutineExpression: attr.RoutineExpression,
 			ContextParamNodes: contextParamNodes,
 			Timeout:           attr.Timeout,
-			TimeConfig:        string(byteArr2),
+			TimeConfig:        timeConfig,
 			OrderedNo:         attr.OrderedNo,
-			UiStyle:           string(byteArr),
+			UiStyle:           uiStyle,
 			CreatedBy:         attr.CreatedBy,
 			CreatedTime:       createTime,
 			UpdatedBy:         attr.UpdatedBy,
@@ -487,6 +493,22 @@ func ConvertParam2ProcDefNodeLink(param *ProcDefNodeLinkDto) *ProcDefNodeLink {
 		Target:    nodeLinkAttr.Target,
 		Name:      nodeLinkAttr.Name,
 		UiStyle:   string(byteArr),
+	}
+}
+
+func CovertNodeLinkDto2Model(param *ProcDefNodeLinkDto) *ProcDefNodeLink {
+	var uiStyle string
+	if reflect.TypeOf(param.SelfAttrs).Name() == "string" {
+		uiStyle = param.SelfAttrs.(string)
+	}
+	nodeLinkAttr := param.ProcDefNodeLinkCustomAttrs
+	return &ProcDefNodeLink{
+		ProcDefId: param.ProcDefId,
+		LinkId:    nodeLinkAttr.Id,
+		Source:    nodeLinkAttr.Source,
+		Target:    nodeLinkAttr.Target,
+		Name:      nodeLinkAttr.Name,
+		UiStyle:   uiStyle,
 	}
 }
 
