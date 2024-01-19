@@ -1,11 +1,7 @@
 package certification
 
 import (
-	"bytes"
-	"compress/zlib"
-	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"net/http"
 	"time"
 
@@ -14,50 +10,6 @@ import (
 	"github.com/WeBankPartners/wecube-platform/platform-core/services/database"
 	"github.com/gin-gonic/gin"
 )
-
-func UnmarshalWeLicense(data []byte) (result *models.WeLicense, err error) {
-	zipReader, errReader := zlib.NewReader(bytes.NewReader(data))
-	if errReader != nil {
-		err = errReader
-		return
-	}
-	defer zipReader.Close()
-	// 读取解压缩后的数据
-	decompressedData, errRead := ioutil.ReadAll(zipReader)
-	if errRead != nil {
-		err = errRead
-		return
-	}
-	result = &models.WeLicense{}
-	errJson := json.Unmarshal(decompressedData, result)
-	if errJson != nil {
-		err = errJson
-		return
-	}
-	return
-}
-
-func MarshalWeLicense(lic *models.WeLicense) (data []byte, err error) {
-	jsonData, errJson := json.Marshal(lic)
-	if errJson != nil {
-		err = errJson
-		return
-	}
-	var compressedData bytes.Buffer
-	zipWriter := zlib.NewWriter(&compressedData)
-	_, errWrite := zipWriter.Write(jsonData)
-	if errWrite != nil {
-		err = errWrite
-		return
-	}
-	errWrite = zipWriter.Close()
-	if errWrite != nil {
-		err = errWrite
-		return
-	}
-	data = compressedData.Bytes()
-	return
-}
 
 // License列表查询
 func GetCertifications(c *gin.Context) {
@@ -82,7 +34,7 @@ func ImportCertification(c *gin.Context) {
 		middleware.ReturnError(c, err)
 		return
 	}
-	lic, err := UnmarshalWeLicense(fileBytes)
+	lic, err := database.UnmarshalWeLicense(fileBytes)
 	if err != nil {
 		middleware.ReturnError(c, err)
 		return
@@ -118,7 +70,7 @@ func ExportCertification(c *gin.Context) {
 		if result == nil {
 			middleware.ReturnError(c, fmt.Errorf("certification %d not found", certId))
 		}
-		exportData, err := MarshalWeLicense(&models.WeLicense{
+		exportData, err := database.MarshalWeLicense(&models.WeLicense{
 			Plugin:      result.Plugin,
 			Lpk:         result.Lpk,
 			Data:        result.EncryptData,
