@@ -432,7 +432,7 @@ func AddOrUpdateProcDefTaskNodes(c *gin.Context) {
 		middleware.ReturnError(c, err)
 		return
 	}
-	node := convertParam2ProcDefNode(user, param)
+	node := models.ConvertParam2ProcDefNode(user, param)
 	if procDefNode == nil {
 		node.Id = guid.CreateGuid()
 		err = database.InsertProcDefNode(c, node)
@@ -673,7 +673,7 @@ func AddOrUpdateProcDefNodeLink(c *gin.Context) {
 	}
 	param.ProcDefNodeLinkCustomAttrs.Source = sourceNode.Id
 	param.ProcDefNodeLinkCustomAttrs.Target = targetNode.Id
-	newProcDefNodeLink := models.ConvertParam2ProcDefNodeLink(param)
+	newProcDefNodeLink := models.ConvertParam2ProcDefNodeLink(&param)
 	if procDefNodeLink == nil {
 		newProcDefNodeLink.Id = guid.CreateGuid()
 		newProcDefNodeLink.ProcDefId = param.ProcDefId
@@ -703,40 +703,6 @@ func DeleteProcDefNodeLink(c *gin.Context) {
 		return
 	}
 	middleware.ReturnSuccess(c)
-}
-
-func convertParam2ProcDefNode(user string, param models.ProcDefNodeRequestParam) *models.ProcDefNode {
-	var contextParamNodes string
-	now := time.Now()
-	byteArr, _ := json.Marshal(param.NodeAttrs)
-	procDefNodeAttr := param.ProcDefNodeCustomAttrs
-	byteArr2, _ := json.Marshal(procDefNodeAttr.TimeConfig)
-	if len(param.ProcDefNodeCustomAttrs.ContextParamNodes) > 0 {
-		contextParamNodes = strings.Join(param.ProcDefNodeCustomAttrs.ContextParamNodes, ",")
-	}
-	node := &models.ProcDefNode{
-		NodeId:            procDefNodeAttr.Id,
-		ProcDefId:         procDefNodeAttr.ProcDefId,
-		Name:              procDefNodeAttr.Name,
-		Description:       procDefNodeAttr.Description,
-		Status:            string(models.Draft),
-		NodeType:          procDefNodeAttr.NodeType,
-		ServiceName:       procDefNodeAttr.ServiceName,
-		DynamicBind:       procDefNodeAttr.DynamicBind,
-		BindNodeId:        procDefNodeAttr.BindNodeId,
-		RiskCheck:         procDefNodeAttr.RiskCheck,
-		RoutineExpression: procDefNodeAttr.RoutineExpression,
-		ContextParamNodes: contextParamNodes,
-		Timeout:           procDefNodeAttr.Timeout,
-		TimeConfig:        string(byteArr2),
-		OrderedNo:         procDefNodeAttr.OrderedNo,
-		UiStyle:           string(byteArr),
-		CreatedBy:         user,
-		CreatedTime:       now,
-		UpdatedBy:         user,
-		UpdatedTime:       now,
-	}
-	return node
 }
 
 func prepareNodeParameters() []*models.InterfaceParameterDto {
