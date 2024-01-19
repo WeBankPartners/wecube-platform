@@ -139,9 +139,10 @@ type BatchUpdateProcDefPermission struct {
 }
 
 type ProcDefCondition struct {
-	Key    string `json:"Key"`    // key
-	Name   string `json:"name"`   // 编排名称
-	Status string `json:"status"` // 状态
+	Key     string `json:"Key"`     // key
+	Name    string `json:"name"`    // 编排名称
+	Status  string `json:"status"`  // 状态
+	Version string `json:"version"` // 版本
 }
 
 // ProcDefIds 编排ids
@@ -247,14 +248,13 @@ type ProcessDefinitionDto struct {
 }
 
 type ImportResultDto struct {
-	SuccessList []*ImportResultItemDto `json:"success"`
-	FailList    []*ImportResultItemDto `json:"fail"`
+	ResultList []*ImportResultItemDto `json:"resultList"`
 }
 
 type ImportResultItemDto struct {
 	ProcDefName    string `json:"procDefName"`    // 编排名称
 	ProcDefVersion string `json:"ProcDefVersion"` // 编排版本
-	Code           int    `json:"code"`           // 1表示编排已有草稿,不允许导入  2表示版本冲突  3表示服务报错
+	Code           int    `json:"code"`           // 0表示成功,1表示编排已有草稿,不允许导入  2表示版本冲突  3表示服务报错
 }
 
 type ProcDefNodeLinkCustomAttrs struct {
