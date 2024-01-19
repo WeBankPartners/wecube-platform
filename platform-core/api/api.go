@@ -10,6 +10,7 @@ import (
 
 	"github.com/WeBankPartners/go-common-lib/guid"
 	"github.com/WeBankPartners/wecube-platform/platform-core/api/middleware"
+	"github.com/WeBankPartners/wecube-platform/platform-core/api/v1/batch-execution"
 	"github.com/WeBankPartners/wecube-platform/platform-core/api/v1/certification"
 	"github.com/WeBankPartners/wecube-platform/platform-core/api/v1/plugin"
 	"github.com/WeBankPartners/wecube-platform/platform-core/api/v1/process"
@@ -141,6 +142,10 @@ func init() {
 		&handlerFuncObj{Url: "/plugin-certifications/:certId/export", Method: "GET", HandlerFunc: certification.ExportCertification, ApiCode: "export-certification"},
 		&handlerFuncObj{Url: "/plugin-certifications/import", Method: "POST", HandlerFunc: certification.ImportCertification, ApiCode: "import-certification"},
 		&handlerFuncObj{Url: "/plugin-certifications/:certId", Method: "DELETE", HandlerFunc: certification.DeleteCertification, ApiCode: "delete-certification"},
+
+		// batch-execution
+		&handlerFuncObj{Url: "/batch-execution/favorites", Method: "POST", HandlerFunc: batch_execution.CreateOrUpdateFavorites, ApiCode: "create-update-batch-execution-favorites"},
+		&handlerFuncObj{Url: "/batch-execution/favorites/retrieve", Method: "POST", HandlerFunc: batch_execution.RetrieveFavorites, ApiCode: "retrieve-batch-execution-favorites"},
 	)
 }
 

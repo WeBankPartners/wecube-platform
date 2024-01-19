@@ -2,7 +2,9 @@ package db
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
+	"reflect"
 	"strconv"
 	"strings"
 	"time"
@@ -183,4 +185,146 @@ func CheckDbConnection() (err error) {
 
 func NewDBCtx(transactionId string) context.Context {
 	return context.WithValue(context.Background(), DBTransactionId, transactionId)
+}
+
+func CombineDBQuery(input ...interface{}) string {
+	var buf strings.Builder
+	fmt.Fprint(&buf, input...)
+	return buf.String()
+}
+
+func NewNullString(s string) sql.NullString {
+	if len(s) == 0 {
+		return sql.NullString{}
+	}
+	return sql.NullString{
+		String: s,
+		Valid:  true,
+	}
+}
+
+func GetInsertTableExecAction(tableName string, data interface{}, transNullStr map[string]string) (action *ExecAction, err error) {
+	defer func() {
+		if r := recover(); r != nil {
+			err = fmt.Errorf("%v", r)
+		}
+	}()
+
+	execParams := []interface{}{}
+	columnStr := ""
+	valueStr := ""
+	t := reflect.TypeOf(data)
+	v := reflect.ValueOf(data)
+	for i := 0; i < t.NumField(); i++ {
+		if i > 0 {
+			columnStr += ","
+			valueStr += ","
+		}
+		// columnStr += t.Field(i).Tag.Get("xorm")
+		columnStr += "`" + t.Field(i).Tag.Get("xorm") + "`"
+		valueStr += "?"
+
+		if len(transNullStr) > 0 {
+			if _, ok := transNullStr[t.Field(i).Tag.Get("xorm")]; ok {
+				execParams = append(execParams, NewNullString(v.FieldByName(t.Field(i).Name).String()))
+			} else {
+				execParams = append(execParams, v.FieldByName(t.Field(i).Name).Interface())
+			}
+		} else {
+			execParams = append(execParams, v.FieldByName(t.Field(i).Name).Interface())
+		}
+	}
+	execSqlCmd := CombineDBQuery("INSERT INTO ", tableName, "(", columnStr, ") VALUE (", valueStr, ")")
+	action = &ExecAction{Sql: execSqlCmd, Param: execParams}
+	return
+}
+
+func GetUpdateTableExecActionV2(tableName string, primeKey string, primeKeyVal string, data interface{},
+	transNullStr map[string]string) (action *ExecAction, err error) {
+	defer func() {
+		if r := recover(); r != nil {
+			err = fmt.Errorf("%v", r)
+		}
+	}()
+
+	execParams := []interface{}{}
+	columnStr := ""
+	rType := reflect.TypeOf(data)
+	rVal := reflect.ValueOf(data)
+	n := rType.NumField()
+	tagName := "xorm"
+	isFirst := true
+
+	for i := 0; i < n; i++ {
+		fType := rType.Field(i)
+		fVal := rVal.Field(i)
+		fTag := fType.Tag.Get(tagName)
+
+		// skip nil properties (not going to be patched), skip unexported fields, skip fields to be skipped for SQL
+		if fVal.IsNil() || fType.PkgPath != "" || fTag == "-" {
+			continue
+		}
+
+		// if no tag is set, use the field name
+		if fTag == "" {
+			fTag = fType.Name
+		}
+
+		if !isFirst {
+			columnStr += ","
+		}
+		columnStr += "`" + fTag + "`"
+		columnStr += "=?"
+
+		var val reflect.Value
+		if fVal.Kind() == reflect.Ptr {
+			val = fVal.Elem()
+		} else {
+			val = fVal
+		}
+
+		/*
+			switch val.Kind() {
+			case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+				sqlPatch.Args = append(sqlPatch.Args, val.Int())
+			case reflect.String:
+				sqlPatch.Args = append(sqlPatch.Args, val.String())
+			case reflect.Bool:
+				if val.Bool() {
+					sqlPatch.Args = append(sqlPatch.Args, 1)
+				} else {
+					sqlPatch.Args = append(sqlPatch.Args, 0)
+				}
+			}
+		*/
+		if len(transNullStr) > 0 {
+			if _, ok := transNullStr[fTag]; ok {
+				execParams = append(execParams, NewNullString(val.String()))
+			} else {
+				execParams = append(execParams, val.Interface())
+			}
+		} else {
+			execParams = append(execParams, val.Interface())
+		}
+
+		isFirst = false
+	}
+	execSqlCmd := CombineDBQuery("UPDATE ", tableName, " SET ", columnStr, " WHERE ", primeKey, "=?")
+	execParams = append(execParams, primeKeyVal)
+	action = &ExecAction{Sql: execSqlCmd, Param: execParams}
+	return
+}
+
+func GetDeleteTableExecAction(tableName string, primeKey string, primeKeyVal string) (action *ExecAction, err error) {
+	defer func() {
+		if r := recover(); r != nil {
+			err = fmt.Errorf("%v", r)
+		}
+	}()
+
+	execParams := []interface{}{}
+	execSqlCmd := CombineDBQuery("DELETE FROM ", tableName, " WHERE ", primeKey, "=?")
+	execParams = append(execParams, primeKeyVal)
+	action = &ExecAction{Sql: execSqlCmd, Param: execParams}
+	return
 }
