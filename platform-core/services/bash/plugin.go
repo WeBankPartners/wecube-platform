@@ -38,8 +38,9 @@ func newTmpDir() (fileDir string, err error) {
 	return
 }
 
-func DecompressFile(filePath, targetDir string) error {
+func DecompressFile(filePath, targetDir string) (localDir string, err error) {
 	var fileDir, fileName, fileType, execCommand string
+	localDir = targetDir
 	if dirIndex := strings.LastIndex(filePath, "/"); dirIndex >= 0 {
 		fileDir = filePath[:dirIndex]
 		fileName = filePath[dirIndex+1:]
@@ -51,10 +52,14 @@ func DecompressFile(filePath, targetDir string) error {
 		fileType = tmpFp[lastPointIndex+1:]
 	}
 	if fileType == "" {
-		return fmt.Errorf("fileName: %s type illegal", fileName)
+		err = fmt.Errorf("fileName: %s type illegal", fileName)
+		return
 	}
 	if fileDir != "" {
 		execCommand = "cd " + fileDir + " && "
+		if localDir == "" {
+			localDir = fileDir
+		}
 	}
 	if fileType == "zip" {
 		execCommand += "unzip " + fileName
@@ -64,9 +69,9 @@ func DecompressFile(filePath, targetDir string) error {
 	}
 	_, execErr := exec.Command("/bin/bash", "-c", execCommand).Output()
 	if execErr != nil {
-		return fmt.Errorf("exec decompress file fail,command:%s,error:%s ", execCommand, execErr.Error())
+		err = fmt.Errorf("exec decompress file fail,command:%s,error:%s ", execCommand, execErr.Error())
 	}
-	return nil
+	return
 }
 
 func ListDirFiles(dirPath string) (result []string, err error) {
@@ -147,6 +152,29 @@ func BuildPluginUpgradeSqlFile(initSqlFile, upgradeSqlFile, currentVersion strin
 
 	if buff.Len() > 0 {
 		outputFile, _, err = SaveTmpFile(fmt.Sprintf("tmp_%s.sql", guid.CreateGuid()), buff.Bytes())
+	}
+	return
+}
+
+func ListDirAllFiles(targetDir string) (resultPaths []string, err error) {
+	dirEntries, readDirErr := os.ReadDir(targetDir)
+	if readDirErr != nil {
+		err = fmt.Errorf("read path %s fail,%s ", targetDir, readDirErr.Error())
+		return
+	}
+	for _, v := range dirEntries {
+		if v.IsDir() {
+			subResults, subErr := ListDirAllFiles(targetDir + "/" + v.Name())
+			if subErr != nil {
+				err = subErr
+				break
+			}
+			for _, subPath := range subResults {
+				resultPaths = append(resultPaths, subPath)
+			}
+		} else {
+			resultPaths = append(resultPaths, targetDir+"/"+v.Name())
+		}
 	}
 	return
 }
