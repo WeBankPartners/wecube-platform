@@ -5,6 +5,7 @@ import (
 	"crypto/rsa"
 	"crypto/x509"
 	"encoding/base64"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"github.com/WeBankPartners/wecube-platform/platform-auth-server/common/constant"
@@ -94,7 +95,10 @@ func (AuthService) RefreshToken(refreshToken string) ([]model.Jwt, error) {
 	}
 	//	loginId := claim.Subject
 
-	jwts := packJwtTokens(claim.Subject, []string{}, claim.Authority, "")
+	authorities := make([]string, 0)
+	json.Unmarshal([]byte(claim.Authority), &authorities)
+
+	jwts := packJwtTokens(claim.Subject, []string{}, authorities, "")
 	return jwts, nil
 }
 
@@ -279,7 +283,7 @@ func buildAccessToken(loginId string, roles []string, authorities []string, user
 		ExpiresAt: exp,
 		Type:      constant.TypeAccessToken,
 		Roles:     roles,
-		Authority: authorities,
+		Authority: utils.BuildArrayString(authorities),
 		/*		LoginType:   loginType,
 				Auth:        aggAuths,
 				AdminType:   adminType,
