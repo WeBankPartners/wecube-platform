@@ -112,6 +112,10 @@ func GeneratePluginEnv(subsystemPubKey, subsystemPriKey, pluginName string) (lic
 			err = fmt.Errorf("must provide public key or private key")
 			return
 		}
+		subsystemPubKey, err = tools.RSAExtractPubKey(subsystemPriKey)
+		if err != nil {
+			return
+		}
 	}
 	lic_code, err = tools.RSAEncrypt([]byte(oriLicCode), subsystemPubKey)
 	if err != nil {
