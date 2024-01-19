@@ -311,7 +311,7 @@ CREATE TABLE `proc_def` (
      `name` varchar(255) NOT NULL COMMENT '编排名称',
      `version` varchar(64) NOT NULL COMMENT '版本',
      `root_entity` varchar(255) DEFAULT NULL COMMENT '根节点',
-     `status` varchar(32) NOT NULL COMMENT '状态',
+     `status` varchar(32) NOT NULL COMMENT '状态->draft(草稿) | deployed(发布) |  disabled(禁用)',
      `tags` varchar(255) DEFAULT NULL COMMENT '标签',
      `for_plugin` varchar(255) DEFAULT NULL COMMENT '授权插件',
      `scene` varchar(255) DEFAULT NULL COMMENT '使用场景',
@@ -427,8 +427,6 @@ CREATE TABLE `execution_jobs` (
 CREATE TABLE `batch_execution_template` (
     `id` varchar(64) NOT NULL COMMENT '唯一标识',
     `name` varchar(255) NOT NULL COMMENT '名称',
-    `mgmt_permission` varchar(1024) NOT NULL COMMENT '属主权限',
-    `use_permission` varchar(1024) NOT NULL COMMENT '使用权限',
     `status` varchar(255)  NOT NULL COMMENT '使用状态: 可使用、权限被移出',
     `operate_object` varchar(512) NULL COMMENT '操作对象',
     `plugin_service` varchar(512) NULL COMMENT '插件服务',
