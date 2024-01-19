@@ -369,6 +369,8 @@ func ConvertProcDefDto2Model(dto *ProcDefDto) *ProcDef {
 	var createTime, updateTime time.Time
 	if dto.CreatedTime != "" {
 		createTime, _ = time.Parse(DateTimeFormat, dto.CreatedTime)
+	}
+	if dto.UpdatedTime != "" {
 		updateTime, _ = time.Parse(DateTimeFormat, dto.UpdatedTime)
 	}
 	if len(dto.AuthPlugins) > 0 {
@@ -390,6 +392,52 @@ func ConvertProcDefDto2Model(dto *ProcDefDto) *ProcDef {
 		UpdatedBy:     dto.UpdatedBy,
 		UpdatedTime:   updateTime,
 	}
+}
+
+func ConvertProcDefNodeResultDto2Model(dto *ProcDefNodeResultDto) (node *ProcDefNode, list []*ProcDefNodeParam) {
+	var contextParamNodes string
+	var createTime, updateTime time.Time
+	if dto.ProcDefNodeCustomAttrs != nil {
+		attr := dto.ProcDefNodeCustomAttrs
+		byteArr, _ := json.Marshal(dto.NodeAttrs)
+		byteArr2, _ := json.Marshal(attr.TimeConfig)
+		if len(attr.ContextParamNodes) > 0 {
+			contextParamNodes = strings.Join(attr.ContextParamNodes, ",")
+		}
+		if attr.CreatedTime != "" {
+			createTime, _ = time.Parse(DateTimeFormat, attr.CreatedTime)
+		}
+		if attr.UpdatedTime != "" {
+			updateTime, _ = time.Parse(DateTimeFormat, attr.UpdatedTime)
+		}
+		node = &ProcDefNode{
+			Id:                attr.Id,
+			NodeId:            attr.Id,
+			ProcDefId:         attr.ProcDefId,
+			Name:              attr.Name,
+			Description:       attr.Description,
+			Status:            attr.Status,
+			NodeType:          attr.NodeType,
+			ServiceName:       attr.ServiceName,
+			DynamicBind:       attr.DynamicBind,
+			BindNodeId:        attr.BindNodeId,
+			RiskCheck:         attr.RiskCheck,
+			RoutineExpression: attr.RoutineExpression,
+			ContextParamNodes: contextParamNodes,
+			Timeout:           attr.Timeout,
+			TimeConfig:        string(byteArr2),
+			OrderedNo:         attr.OrderedNo,
+			UiStyle:           string(byteArr),
+			CreatedBy:         attr.CreatedBy,
+			CreatedTime:       createTime,
+			UpdatedBy:         attr.UpdatedBy,
+			UpdatedTime:       updateTime,
+		}
+		if dto.ProcDefNodeCustomAttrs != nil {
+			list = dto.ProcDefNodeCustomAttrs.ParamInfos
+		}
+	}
+	return
 }
 
 func ConvertProcDefNode2Dto(procDefNode *ProcDefNode, list []*ProcDefNodeParam) *ProcDefNodeResultDto {
