@@ -113,14 +113,18 @@ func AddProcessDefinition(ctx context.Context, user string, param models.Process
 	return
 }
 
+func CopyProcessDefinitionByDto(ctx context.Context, procDef *models.ProcessDefinitionDto) (err error) {
+	return
+}
+
 // CopyProcessDefinition 复制编排
-func CopyProcessDefinition(ctx context.Context, procDef *models.ProcDef) (err error) {
+func CopyProcessDefinition(ctx context.Context, procDef *models.ProcDef) (newProcDefId string, err error) {
 	var actions []*db.ExecAction
 	var permissionList []*models.ProcDefPermission
 	var nodeList []*models.ProcDefNode
 	var linkList []*models.ProcDefNodeLink
 	var nodeParamList []*models.ProcDefNodeParam
-	var newProcDefId = "pdef_" + guid.CreateGuid()
+	newProcDefId = "pdef_" + guid.CreateGuid()
 	// 查询权限
 	permissionList, err = GetProcDefPermissionByCondition(ctx, models.ProcDefPermission{ProcDefId: procDef.Id})
 	if err != nil {
