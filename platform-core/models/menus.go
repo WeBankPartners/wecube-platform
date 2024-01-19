@@ -36,3 +36,24 @@ type UserPasswordChangeParam struct {
 	OriginalPassword string `json:"originalPassword"` // 原始密码
 	NewPassword      string `json:"newPassword"`      // 新密码
 }
+
+func ConvertMenuItems2Dto(menuItems []*MenuItems) []*MenuItemDto {
+	var result []*MenuItemDto
+	for _, item := range menuItems {
+		result = append(result, ConvertMenuItem2Dto(item))
+	}
+	return result
+}
+
+func ConvertMenuItem2Dto(item *MenuItems) *MenuItemDto {
+	return &MenuItemDto{
+		ID:               item.Id,
+		Category:         item.ParentCode,
+		Code:             item.Code,
+		Source:           item.Source,
+		MenuOrder:        item.MenuOrder,
+		DisplayName:      item.Description,
+		LocalDisplayName: item.LocalDisplayName,
+		Active:           true,
+	}
+}

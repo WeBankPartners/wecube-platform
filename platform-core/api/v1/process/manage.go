@@ -47,8 +47,8 @@ func AddOrUpdateProcessDefinition(c *gin.Context) {
 		return
 	}
 	// 1.权限参数校验
-	if len(param.PermissionToRole.USE) == 0 || len(param.PermissionToRole.MGMT) == 0 {
-		err = exterror.Catch(exterror.New().RequestParamValidateError, fmt.Errorf("request param err,permissionToRole is empty"))
+	if len(param.PermissionToRole.MGMT) == 0 {
+		err = exterror.Catch(exterror.New().RequestParamValidateError, fmt.Errorf("request param err,permissionToRole MGMT is empty"))
 		return
 	}
 	if param.Id == "" {
@@ -262,8 +262,8 @@ func BatchUpdateProcessDefinitionPermission(c *gin.Context) {
 		return
 	}
 	// 1.权限参数校验
-	if len(param.PermissionToRole.USE) == 0 || len(param.PermissionToRole.MGMT) == 0 {
-		err = exterror.Catch(exterror.New().RequestParamValidateError, fmt.Errorf("request param err,permissionToRole USE or MGMT is empty"))
+	if len(param.PermissionToRole.MGMT) == 0 {
+		err = exterror.Catch(exterror.New().RequestParamValidateError, fmt.Errorf("request param err,permissionToRole MGMT is empty"))
 		return
 	}
 	for _, procDefId := range param.ProcDefIds {
