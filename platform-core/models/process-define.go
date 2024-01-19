@@ -125,11 +125,12 @@ type BatchUpdateProcDefStatusParam struct {
 }
 
 type QueryProcessDefinitionParam struct {
-	ProcDefId        string `json:"procDefId"`        // 编排Id
-	ProcDefName      string `json:"procDefName"`      // 编排名称
-	UpdatedTimeStart string `json:"updatedTimeStart"` // 更新时间开始
-	UpdatedTimeEnd   string `json:"UpdatedTimeEnd"`   // 更新时间结束
-	Status           string `json:"status"`           // disabled 禁用 draft草稿 deployed 发布状态
+	ProcDefId        string   `json:"procDefId"`        // 编排Id
+	ProcDefName      string   `json:"procDefName"`      // 编排名称
+	UpdatedTimeStart string   `json:"updatedTimeStart"` // 更新时间开始
+	UpdatedTimeEnd   string   `json:"updatedTimeEnd"`   // 更新时间结束
+	Status           string   `json:"status"`           // disabled 禁用 draft草稿 deployed 发布状态
+	UserRoles        []string // 用户角色
 }
 
 type BatchUpdateProcDefPermission struct {
@@ -138,9 +139,10 @@ type BatchUpdateProcDefPermission struct {
 }
 
 type ProcDefCondition struct {
-	Key    string `json:"Key"`    // key
-	Name   string `json:"name"`   // 编排名称
-	Status string `json:"status"` // 状态
+	Key     string `json:"Key"`     // key
+	Name    string `json:"name"`    // 编排名称
+	Status  string `json:"status"`  // 状态
+	Version string `json:"version"` // 版本
 }
 
 // ProcDefIds 编排ids
@@ -186,7 +188,7 @@ type ProcDefNodeCustomAttrs struct {
 	ServiceName       string              `json:"serviceName"`       // 插件服务名
 	RiskCheck         bool                `json:"riskCheck"`         // 是否高危检测
 	ParamInfos        []*ProcDefNodeParam `json:"paramInfos"`        // 节点参数
-	ContextParamNodes string              `json:"contextParamNodes"` // 上下文参数节点
+	ContextParamNodes []string            `json:"contextParamNodes"` // 上下文参数节点
 	TimeConfig        interface{}         `json:"timeConfig"`        // 节点配置
 	OrderedNo         int                 `json:"orderedNo"`         // 节点顺序
 	CreatedBy         string              `json:"createdBy" `        // 创建人
@@ -209,7 +211,7 @@ type ProcDefNodeCustomAttrsDto struct {
 	ServiceId         string              `json:"serviceId"`         // 插件服务ID
 	ServiceName       string              `json:"serviceName"`       // 插件服务名
 	RiskCheck         bool                `json:"riskCheck"`         // 是否高危检测
-	ParamInfos        []*ProcDefNodeParam `json:"ParamInfos"`        // 节点参数
+	ParamInfos        []*ProcDefNodeParam `json:"paramInfos"`        // 节点参数
 	ContextParamNodes []string            `json:"contextParamNodes"` // 上下文参数节点
 	TimeConfig        interface{}         `json:"timeConfig"`        // 节点配置
 	OrderedNo         int                 `json:"orderedNo"`         // 节点顺序
@@ -245,6 +247,16 @@ type ProcessDefinitionDto struct {
 	ProcDefNodeExtend *ProcDefNodeExtendDto `json:"taskNodeInfos"`    // 编排节点&线集合
 }
 
+type ImportResultDto struct {
+	ResultList []*ImportResultItemDto `json:"resultList"`
+}
+
+type ImportResultItemDto struct {
+	ProcDefName    string `json:"procDefName"`    // 编排名称
+	ProcDefVersion string `json:"ProcDefVersion"` // 编排版本
+	Code           int    `json:"code"`           // 0表示成功,1表示编排已有草稿,不允许导入  2表示版本冲突  3表示服务报错
+}
+
 type ProcDefNodeLinkCustomAttrs struct {
 	Id     string `json:"id"`     // Id
 	Name   string `json:"name"`   // 线名称
@@ -269,12 +281,17 @@ type ProcDefDto struct {
 	UpdatedTime      string   `json:"updatedTime"`      // 更新时间
 	EnableCreated    bool     `json:"enableCreated"`    // 能否创建新版本
 	EnableModifyName bool     `json:"enableModifyName"` // 能否修改名称
+	UseRoles         []string `json:"userRoles"`        // 使用角色
 }
 
 type ProcDefQueryDto struct {
-	ManageRole  string        `json:"manageRole"` //管理角色
-	Scene       string        `json:"scene"`      // 使用场景
-	ProcDefList []*ProcDefDto `json:"dataList"`   // 编排数据
+	ManageRole string       `json:"manageRole"` //管理角色
+	SceneData  []*SceneData `json:"sceneData"`  // 场景数据
+}
+
+type SceneData struct {
+	Scene       string        `json:"scene"`    // 场景
+	ProcDefList []*ProcDefDto `json:"dataList"` // 编排列表
 }
 
 type PermissionToRole struct {
@@ -297,6 +314,25 @@ func (q ProcDefSort) Less(i, j int) bool {
 }
 
 func (q ProcDefSort) Swap(i, j int) {
+	q[i], q[j] = q[j], q[i]
+}
+
+type ProcDefDtoSort []*ProcDefDto
+
+func (q ProcDefDtoSort) Len() int {
+	return len(q)
+}
+
+func (q ProcDefDtoSort) Less(i, j int) bool {
+	t1, _ := time.Parse(DateTimeFormat, q[i].UpdatedTime)
+	t2, _ := time.Parse(DateTimeFormat, q[j].UpdatedTime)
+	if t1.Sub(t2).Seconds() >= 0 {
+		return false
+	}
+	return true
+}
+
+func (q ProcDefDtoSort) Swap(i, j int) {
 	q[i], q[j] = q[j], q[i]
 }
 
@@ -332,7 +368,7 @@ func ConvertProcDefNode2Dto(procDefNode *ProcDefNode, list []*ProcDefNodeParam) 
 	if procDefNode == nil {
 		return nil
 	}
-	if procDefNode.ContextParamNodes != "" {
+	if len(procDefNode.ContextParamNodes) > 0 {
 		contextParamNodes = strings.Split(procDefNode.ContextParamNodes, ",")
 	}
 	dto := &ProcDefNodeResultDto{
@@ -403,5 +439,30 @@ func BuildInterfaceParameterDto(p *PluginConfigInterfaceParameters) *InterfacePa
 		Type:     p.Type,
 		Name:     p.Name,
 		DataType: p.DataType,
+	}
+}
+
+func BuildProcDefDto(procDef *ProcDef, userRoles []string, enableCreated bool) *ProcDefDto {
+	var authPlugins = make([]string, 0)
+	if len(procDef.ForPlugin) > 0 {
+		authPlugins = strings.Split(procDef.ForPlugin, ",")
+	}
+	return &ProcDefDto{
+		Id:            procDef.Id,
+		Key:           procDef.Key,
+		Name:          procDef.Name,
+		Version:       procDef.Version,
+		RootEntity:    procDef.RootEntity,
+		Status:        procDef.Status,
+		Tags:          procDef.Tags,
+		AuthPlugins:   authPlugins,
+		Scene:         procDef.Scene,
+		ConflictCheck: procDef.ConflictCheck,
+		CreatedBy:     procDef.CreatedBy,
+		CreatedTime:   procDef.CreatedTime.Format(DateTimeFormat),
+		UpdatedBy:     procDef.UpdatedBy,
+		UpdatedTime:   procDef.UpdatedTime.Format(DateTimeFormat),
+		EnableCreated: enableCreated,
+		UseRoles:      userRoles,
 	}
 }
