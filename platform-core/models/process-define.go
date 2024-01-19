@@ -210,7 +210,7 @@ type ProcDefNodeCustomAttrsDto struct {
 	ServiceName       string              `json:"serviceName"`       // 插件服务名
 	RiskCheck         bool                `json:"riskCheck"`         // 是否高危检测
 	ParamInfos        []*ProcDefNodeParam `json:"paramInfos"`        // 节点参数
-	ContextParamNodes []string            `json:"contextParamNodes"` // 上下文参数节点
+	ContextParamNodes string              `json:"contextParamNodes"` // 上下文参数节点
 	TimeConfig        interface{}         `json:"timeConfig"`        // 节点配置
 	OrderedNo         int                 `json:"orderedNo"`         // 节点顺序
 	CreatedBy         string              `json:"createdBy" `        // 创建人
@@ -352,12 +352,8 @@ func ConvertProcDef2Dto(procDef *ProcDef) *ProcDefDto {
 }
 
 func ConvertProcDefNode2Dto(procDefNode *ProcDefNode, list []*ProcDefNodeParam) *ProcDefNodeResultDto {
-	var contextParamNodes []string
 	if procDefNode == nil {
 		return nil
-	}
-	if procDefNode.ContextParamNodes != "" {
-		contextParamNodes = strings.Split(procDefNode.ContextParamNodes, ",")
 	}
 	dto := &ProcDefNodeResultDto{
 		ProcDefNodeCustomAttrs: &ProcDefNodeCustomAttrsDto{
@@ -375,7 +371,7 @@ func ConvertProcDefNode2Dto(procDefNode *ProcDefNode, list []*ProcDefNodeParam) 
 			ServiceName:       procDefNode.ServiceName,
 			RiskCheck:         procDefNode.RiskCheck,
 			ParamInfos:        list,
-			ContextParamNodes: contextParamNodes,
+			ContextParamNodes: procDefNode.ContextParamNodes,
 			TimeConfig:        procDefNode.TimeConfig,
 			OrderedNo:         procDefNode.OrderedNo,
 			CreatedBy:         procDefNode.CreatedBy,
