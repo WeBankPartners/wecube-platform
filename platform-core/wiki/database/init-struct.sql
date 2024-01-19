@@ -427,8 +427,6 @@ CREATE TABLE `execution_jobs` (
 CREATE TABLE `batch_execution_template` (
     `id` varchar(64) NOT NULL COMMENT '唯一标识',
     `name` varchar(255) NOT NULL COMMENT '名称',
-    `mgmt_permission` varchar(1024) NOT NULL COMMENT '属主权限',
-    `use_permission` varchar(1024) NOT NULL COMMENT '使用权限',
     `status` varchar(255)  NOT NULL COMMENT '使用状态: 可使用、权限被移出',
     `operate_object` varchar(512) NULL COMMENT '操作对象',
     `plugin_service` varchar(512) NULL COMMENT '插件服务',
