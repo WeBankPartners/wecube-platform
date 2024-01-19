@@ -112,6 +112,7 @@ func GetProcessDefinition(c *gin.Context) {
 // CopyProcessDefinition 复制编排
 func CopyProcessDefinition(c *gin.Context) {
 	var pList []*models.ProcDef
+	var newProcDefId string
 	procDefId := c.Param("proc-def-id")
 	association := c.Param("association")
 	now := time.Now()
@@ -151,12 +152,12 @@ func CopyProcessDefinition(c *gin.Context) {
 	procDef.CreatedTime = now
 	procDef.UpdatedBy = user
 	procDef.UpdatedTime = now
-	err = database.CopyProcessDefinition(c, procDef)
+	newProcDefId, err = database.CopyProcessDefinition(c, procDef)
 	if err != nil {
 		middleware.ReturnError(c, err)
 		return
 	}
-	middleware.ReturnSuccess(c)
+	middleware.ReturnData(c, newProcDefId)
 }
 
 // QueryProcessDefinitionList 查询编排列表
@@ -331,7 +332,7 @@ func ExportProcessDefinition(c *gin.Context) {
 
 // ImportProcessDefinition 批量导入编排
 func ImportProcessDefinition(c *gin.Context) {
-	var resultList []*models.ImportResultDto
+	var importResult *models.ImportResultDto
 	file, err := c.FormFile("file")
 	if err != nil {
 		middleware.ReturnError(c, fmt.Errorf("Http read upload file fail:"+err.Error()))
@@ -358,11 +359,11 @@ func ImportProcessDefinition(c *gin.Context) {
 		middleware.ReturnError(c, fmt.Errorf("import data is empty"))
 		return
 	}
-	resultList, err = processDefinitionImport(c, paramList, middleware.GetRequestUser(c))
+	importResult, err = processDefinitionImport(c, paramList, middleware.GetRequestUser(c))
 	if err != nil {
 		middleware.ReturnError(c, err)
 	}
-	middleware.ReturnData(c, resultList)
+	middleware.ReturnData(c, importResult)
 	return
 }
 
@@ -945,11 +946,59 @@ func getMapRandomKey(hashMap map[string]bool) string {
 	return ""
 }
 
-func processDefinitionImport(ctx context.Context, inputList []*models.ProcessDefinitionDto, operator string) (importResult []*models.ImportResultDto, err error) {
-	/*importResult = make([]*models.ImportResultDto)
+func processDefinitionImport(ctx context.Context, inputList []*models.ProcessDefinitionDto, operator string) (importResult *models.ImportResultDto, err error) {
+	var draftList, repeatNameList []*models.ProcDef
+	importResult = &models.ImportResultDto{
+		ResultList: make([]*models.ImportResultItemDto, 0),
+	}
 	for _, procDefDto := range inputList {
-		database.GetProcessDefinitionByCondition(ctx, models.ProcDefCondition{Name: procDefDto.ProcDefNodeExtend})
-	}*/
+		if procDefDto.ProcDef == nil {
+			continue
+		}
+		draftList, err = database.GetProcessDefinitionByCondition(ctx, models.ProcDefCondition{Key: procDefDto.ProcDef.Key, Status: string(models.Draft)})
+		if err != nil {
+			return
+		}
+		// 已有草稿版本
+		if len(draftList) > 0 {
+			importResult.ResultList = append(importResult.ResultList, &models.ImportResultItemDto{
+				ProcDefName:    procDefDto.ProcDef.Name,
+				ProcDefVersion: procDefDto.ProcDef.Version,
+				Code:           1,
+			})
+			continue
+		}
+		// 判断名称和版本是否重复
+		repeatNameList, err = database.GetProcessDefinitionByCondition(ctx, models.ProcDefCondition{Name: procDefDto.ProcDef.Name, Version: procDefDto.ProcDef.Version})
+		if err != nil {
+			return
+		}
+		if len(repeatNameList) > 0 {
+			importResult.ResultList = append(importResult.ResultList, &models.ImportResultItemDto{
+				ProcDefName:    procDefDto.ProcDef.Name,
+				ProcDefVersion: procDefDto.ProcDef.Version,
+				Code:           2,
+			})
+			continue
+		}
+		err = database.CopyProcessDefinitionByDto(ctx, procDefDto)
+
+		if err != nil {
+			importResult.ResultList = append(importResult.ResultList, &models.ImportResultItemDto{
+				ProcDefName:    procDefDto.ProcDef.Name,
+				ProcDefVersion: procDefDto.ProcDef.Version,
+				Code:           3,
+			})
+			log.Logger.Error("CopyProcessDefinitionByDto err", log.Error(err))
+			// 单个编排操作err,err置为空, code=3已经表示服务器错误
+			err = nil
+		} else {
+			importResult.ResultList = append(importResult.ResultList, &models.ImportResultItemDto{
+				ProcDefName:    procDefDto.ProcDef.Name,
+				ProcDefVersion: procDefDto.ProcDef.Version,
+			})
+		}
+	}
 	return
 }
 
