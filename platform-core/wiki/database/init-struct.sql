@@ -311,7 +311,7 @@ CREATE TABLE `proc_def` (
      `name` varchar(255) NOT NULL COMMENT '编排名称',
      `version` varchar(64) NOT NULL COMMENT '版本',
      `root_entity` varchar(255) DEFAULT NULL COMMENT '根节点',
-     `status` varchar(32) NOT NULL COMMENT '状态',
+     `status` varchar(32) NOT NULL COMMENT '状态->draft(草稿) | deployed(发布) |  disabled(禁用)',
      `tags` varchar(255) DEFAULT NULL COMMENT '标签',
      `for_plugin` varchar(255) DEFAULT NULL COMMENT '授权插件',
      `scene` varchar(255) DEFAULT NULL COMMENT '使用场景',
