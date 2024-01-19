@@ -981,7 +981,7 @@ func processDefinitionImport(ctx context.Context, inputList []*models.ProcessDef
 			})
 			continue
 		}
-		err = database.CopyProcessDefinitionByDto(ctx, procDefDto)
+		_, err = database.CopyProcessDefinitionByDto(ctx, procDefDto)
 
 		if err != nil {
 			importResult.ResultList = append(importResult.ResultList, &models.ImportResultItemDto{
