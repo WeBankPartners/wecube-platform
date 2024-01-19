@@ -4,18 +4,19 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/WeBankPartners/go-common-lib/guid"
+	"github.com/WeBankPartners/wecube-platform/platform-core/api/middleware"
+	"github.com/WeBankPartners/wecube-platform/platform-core/common/exterror"
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/log"
+	"github.com/WeBankPartners/wecube-platform/platform-core/models"
+	"github.com/WeBankPartners/wecube-platform/platform-core/services/database"
+	"github.com/gin-gonic/gin"
+	"io/ioutil"
+	"net/http"
 	"sort"
 	"strconv"
 	"strings"
 	"time"
-
-	"github.com/WeBankPartners/go-common-lib/guid"
-	"github.com/WeBankPartners/wecube-platform/platform-core/api/middleware"
-	"github.com/WeBankPartners/wecube-platform/platform-core/common/exterror"
-	"github.com/WeBankPartners/wecube-platform/platform-core/models"
-	"github.com/WeBankPartners/wecube-platform/platform-core/services/database"
-	"github.com/gin-gonic/gin"
 )
 
 const (
@@ -95,72 +96,22 @@ func AddOrUpdateProcessDefinition(c *gin.Context) {
 
 // GetProcessDefinition 获取编排
 func GetProcessDefinition(c *gin.Context) {
-	procDefDto := &models.ProcessDefinitionDto{}
-	// 节点
-	var nodes []*models.ProcDefNodeResultDto
-	// 线
-	var edges []*models.ProcDefNodeLinkDto
 	procDefId := c.Param("proc-def-id")
 	if procDefId == "" {
 		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, fmt.Errorf("proc-def-id is empty")))
 		return
 	}
-	procDef, err := database.GetProcessDefinition(c, procDefId)
+	procDefDto, err := getProcDefDetailByProcDefId(c, procDefId)
 	if err != nil {
 		middleware.ReturnError(c, err)
 		return
-	}
-	if procDef == nil {
-		middleware.ReturnError(c, fmt.Errorf("proc-def-id is invalid"))
-		return
-	}
-	procDefDto.ProcDef = models.ConvertProcDef2Dto(procDef)
-	historyList, err := database.GetProcessDefinitionByCondition(c, models.ProcDefCondition{Key: procDef.Key, Name: procDef.Name})
-	if err != nil {
-		middleware.ReturnError(c, err)
-		return
-	}
-	if len(historyList) <= 1 {
-		procDefDto.ProcDef.EnableModifyName = true
-	}
-	list, err := database.GetProcDefPermissionByCondition(c, models.ProcDefPermission{ProcDefId: procDefId})
-	if err != nil {
-		middleware.ReturnError(c, err)
-		return
-	}
-	if len(list) > 0 {
-		for _, procDefPermission := range list {
-			if procDefPermission.Permission == string(models.MGMT) {
-				procDefDto.PermissionToRole.MGMT = append(procDefDto.PermissionToRole.MGMT, procDefPermission.RoleName)
-			} else if procDefPermission.Permission == string(models.USE) {
-				procDefDto.PermissionToRole.USE = append(procDefDto.PermissionToRole.USE, procDefPermission.RoleName)
-			}
-		}
-	}
-	nodes, err = database.GetProcDefNodeByProcDefId(c, procDefId)
-	if err != nil {
-		middleware.ReturnError(c, err)
-		return
-	}
-	linkList, err := database.GetProcDefNodeLinkListByProcDefId(c, procDefId)
-	if err != nil {
-		middleware.ReturnError(c, err)
-		return
-	}
-	if len(linkList) > 0 {
-		for _, link := range linkList {
-			edges = append(edges, models.ConvertProcDefNodeLink2Dto(link))
-		}
-	}
-	procDefDto.ProcDefNodeExtend = &models.ProcDefNodeExtendDto{
-		Nodes: nodes,
-		Edges: edges,
 	}
 	middleware.ReturnData(c, procDefDto)
 }
 
 // CopyProcessDefinition 复制编排
 func CopyProcessDefinition(c *gin.Context) {
+	var pList []*models.ProcDef
 	procDefId := c.Param("proc-def-id")
 	association := c.Param("association")
 	now := time.Now()
@@ -182,8 +133,20 @@ func CopyProcessDefinition(c *gin.Context) {
 	if association != "y" && association != "Y" {
 		procDef.Key = "pdef_key_" + guid.CreateGuid()
 		procDef.Name = procDef.Name + "(1)"
+		procDef.Version = "v1"
+	} else {
+		// 校验是否 已有 草稿态数据
+		pList, err = database.GetProcessDefinitionByCondition(c, models.ProcDefCondition{Key: procDef.Key, Status: string(models.Draft)})
+		if err != nil {
+			return
+		}
+		// 没有同 key并且 草稿态的编排,则可以新建编排
+		if len(pList) > 0 {
+			middleware.ReturnError(c, fmt.Errorf("this procDef exist draft data"))
+			return
+		}
+		procDef.Version = calcProcDefVersion(c, procDef.Key)
 	}
-	procDef.Version = ""
 	procDef.CreatedBy = user
 	procDef.CreatedTime = now
 	procDef.UpdatedBy = user
@@ -323,6 +286,84 @@ func BatchUpdateProcessDefinitionPermission(c *gin.Context) {
 			return
 		}
 	}
+	middleware.ReturnSuccess(c)
+}
+
+// ExportProcessDefinition 编排批量导出
+func ExportProcessDefinition(c *gin.Context) {
+	var param models.ProcDefIds
+	var resultList []*models.ProcessDefinitionDto
+	var procDefList []*models.ProcDef
+	var err error
+	if err = c.ShouldBindJSON(&param); err != nil {
+		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, err))
+		return
+	}
+	if len(param.ProcDefIds) == 0 {
+		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, fmt.Errorf("procDefIds is empty")))
+		return
+	}
+	procDefList, err = database.GetDeployedProcessDefinitionByIds(c, param.ProcDefIds)
+	if err != nil {
+		middleware.ReturnError(c, err)
+		return
+	}
+	if len(procDefList) == 0 {
+		middleware.ReturnError(c, fmt.Errorf("procDefIds is valid"))
+		return
+	}
+	for _, procDef := range procDefList {
+		procDefDto, err2 := getProcDefDetailByProcDefId(c, procDef.Id)
+		if err2 != nil {
+			middleware.ReturnError(c, err2)
+			return
+		}
+		resultList = append(resultList, procDefDto)
+	}
+	b, jsonErr := json.Marshal(resultList)
+	if jsonErr != nil {
+		middleware.ReturnError(c, fmt.Errorf("Export requestTemplate config fail, json marshal object error:%s ", jsonErr.Error()))
+		return
+	}
+	c.Writer.Header().Add("Content-Disposition", fmt.Sprintf("attachment; filename=%s_%s.json", "proc_def_"+guid.CreateGuid(), time.Now().Format("20060102150405")))
+	c.Data(http.StatusOK, "application/octet-stream", b)
+}
+
+// ImportProcessDefinition 批量导入编排
+func ImportProcessDefinition(c *gin.Context) {
+	var resultList []*models.ImportResultDto
+	file, err := c.FormFile("file")
+	if err != nil {
+		middleware.ReturnError(c, fmt.Errorf("Http read upload file fail:"+err.Error()))
+		return
+	}
+	f, err := file.Open()
+	if err != nil {
+		middleware.ReturnError(c, fmt.Errorf("File open error:"+err.Error()))
+		return
+	}
+	var paramList []*models.ProcessDefinitionDto
+	b, err := ioutil.ReadAll(f)
+	defer f.Close()
+	if err != nil {
+		middleware.ReturnError(c, fmt.Errorf("Read content fail error:"+err.Error()))
+		return
+	}
+	err = json.Unmarshal(b, &paramList)
+	if err != nil {
+		middleware.ReturnError(c, fmt.Errorf("Json unmarshal fail error:"+err.Error()))
+		return
+	}
+	if len(paramList) == 0 {
+		middleware.ReturnError(c, fmt.Errorf("import data is empty"))
+		return
+	}
+	resultList, err = processDefinitionImport(c, paramList, middleware.GetRequestUser(c))
+	if err != nil {
+		middleware.ReturnError(c, err)
+	}
+	middleware.ReturnData(c, resultList)
+	return
 }
 
 // DeployProcessDefinition 编排定义发布
@@ -346,12 +387,15 @@ func DeployProcessDefinition(c *gin.Context) {
 		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, fmt.Errorf("this procDef status is not draft")))
 		return
 	}
+	// 检查节点的合法性
+	if !checkProcDefNode(c, procDefId) {
+		middleware.ReturnError(c, fmt.Errorf("procDef start and end nodeType more than one"))
+		return
+	}
 	// @todo 计算编排节点顺序
 	procDef.Status = string(models.Deployed)
 	procDef.UpdatedBy = middleware.GetRequestUser(c)
 	procDef.UpdatedTime = time.Now()
-	// 计算编排的版本
-	procDef.Version = calcProcDefVersion(c, procDef.Key)
 	// 发布编排
 	err = database.UpdateProcDefStatusAndVersion(c, procDef)
 	if err != nil {
@@ -660,21 +704,6 @@ func DeleteProcDefNodeLink(c *gin.Context) {
 	middleware.ReturnSuccess(c)
 }
 
-// calcProcDefVersion 计算编排版本
-func calcProcDefVersion(ctx context.Context, key string) string {
-	var version int
-	list, err := database.GetProcessDefinitionByCondition(ctx, models.ProcDefCondition{Key: key})
-	if err != nil {
-		return ""
-	}
-	if len(list) == 1 && list[0].Version == "" {
-		return "v1"
-	}
-	sort.Sort(models.ProcDefSort(list))
-	version, _ = strconv.Atoi(list[len(list)-1].Version[1:])
-	return fmt.Sprintf("v%d", version+1)
-}
-
 func convertParam2ProcDefNode(user string, param models.ProcDefNodeRequestParam) *models.ProcDefNode {
 	var contextParamNodes string
 	now := time.Now()
@@ -840,6 +869,62 @@ func enrichPluginConfigInterfaces(ctx context.Context, configInterface *models.P
 	return configInterface
 }
 
+func getProcDefDetailByProcDefId(ctx context.Context, procDefId string) (procDefDto *models.ProcessDefinitionDto, err error) {
+	procDefDto = &models.ProcessDefinitionDto{}
+	// 节点
+	var nodes []*models.ProcDefNodeResultDto
+	// 线
+	var edges []*models.ProcDefNodeLinkDto
+
+	procDef, err := database.GetProcessDefinition(ctx, procDefId)
+	if err != nil {
+		return
+	}
+	if procDef == nil {
+		err = fmt.Errorf("procDefId is invalid")
+		return
+	}
+	procDefDto.ProcDef = models.ConvertProcDef2Dto(procDef)
+	historyList, err := database.GetProcessDefinitionByCondition(ctx, models.ProcDefCondition{Key: procDef.Key, Name: procDef.Name})
+	if err != nil {
+		return
+	}
+	if len(historyList) <= 1 {
+		procDefDto.ProcDef.EnableModifyName = true
+	}
+	list, err := database.GetProcDefPermissionByCondition(ctx, models.ProcDefPermission{ProcDefId: procDefId})
+	if err != nil {
+		return
+	}
+	if len(list) > 0 {
+		for _, procDefPermission := range list {
+			if procDefPermission.Permission == string(models.MGMT) {
+				procDefDto.PermissionToRole.MGMT = append(procDefDto.PermissionToRole.MGMT, procDefPermission.RoleName)
+			} else if procDefPermission.Permission == string(models.USE) {
+				procDefDto.PermissionToRole.USE = append(procDefDto.PermissionToRole.USE, procDefPermission.RoleName)
+			}
+		}
+	}
+	nodes, err = database.GetProcDefNodeByProcDefId(ctx, procDefId)
+	if err != nil {
+		return
+	}
+	linkList, err := database.GetProcDefNodeLinkListByProcDefId(ctx, procDefId)
+	if err != nil {
+		return
+	}
+	if len(linkList) > 0 {
+		for _, link := range linkList {
+			edges = append(edges, models.ConvertProcDefNodeLink2Dto(link))
+		}
+	}
+	procDefDto.ProcDefNodeExtend = &models.ProcDefNodeExtendDto{
+		Nodes: nodes,
+		Edges: edges,
+	}
+	return
+}
+
 func convertProcDefNodeSimpleMap2Dto(hashMap map[string]*models.ProcDefNodeSimpleDto) []*models.ProcDefNodeSimpleDto {
 	var list = make([]*models.ProcDefNodeSimpleDto, 0)
 	if len(hashMap) > 0 {
@@ -858,4 +943,50 @@ func getMapRandomKey(hashMap map[string]bool) string {
 		return key
 	}
 	return ""
+}
+
+func processDefinitionImport(ctx context.Context, inputList []*models.ProcessDefinitionDto, operator string) (importResult []*models.ImportResultDto, err error) {
+	/*importResult = make([]*models.ImportResultDto)
+	for _, procDefDto := range inputList {
+		database.GetProcessDefinitionByCondition(ctx, models.ProcDefCondition{Name: procDefDto.ProcDefNodeExtend})
+	}*/
+	return
+}
+
+// checkProcDefNode  一个编排只能有个一个开始节点和一个结束节点
+func checkProcDefNode(ctx context.Context, procDefId string) bool {
+	var startCount, endCount int
+	list, err := database.GetSimpleProcDefNodeByProcDefId(ctx, procDefId)
+	if err != nil {
+		return false
+	}
+	if len(list) == 0 {
+		return true
+	}
+	for _, node := range list {
+		if node.NodeType == "start" {
+			startCount++
+		} else if node.NodeType == "end" {
+			endCount++
+		}
+	}
+	if startCount > 1 || endCount > 1 {
+		return false
+	}
+	return true
+}
+
+// calcProcDefVersion 计算编排版本
+func calcProcDefVersion(ctx context.Context, key string) string {
+	var version int
+	list, err := database.GetProcessDefinitionByCondition(ctx, models.ProcDefCondition{Key: key})
+	if err != nil {
+		return ""
+	}
+	if len(list) == 1 && list[0].Version == "" {
+		return "v1"
+	}
+	sort.Sort(models.ProcDefSort(list))
+	version, _ = strconv.Atoi(list[len(list)-1].Version[1:])
+	return fmt.Sprintf("v%d", version+1)
 }

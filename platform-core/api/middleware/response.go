@@ -9,6 +9,8 @@ import (
 	"net/http"
 )
 
+const AcceptLanguageHeader = "Accept-Language"
+
 func ReturnData(c *gin.Context, data interface{}) {
 	returnObj := models.ResponseJson{HttpResponseMeta: models.HttpResponseMeta{Code: 0, Status: models.DefaultHttpSuccessCode}, Data: data}
 	if log.DebugEnable {

@@ -246,6 +246,17 @@ type ProcessDefinitionDto struct {
 	ProcDefNodeExtend *ProcDefNodeExtendDto `json:"taskNodeInfos"`    // 编排节点&线集合
 }
 
+type ImportResultDto struct {
+	SuccessList []*ImportResultItemDto `json:"success"`
+	FailList    []*ImportResultItemDto `json:"fail"`
+}
+
+type ImportResultItemDto struct {
+	ProcDefName    string `json:"procDefName"`    // 编排名称
+	ProcDefVersion string `json:"ProcDefVersion"` // 编排版本
+	Code           int    `json:"code"`           // 1表示编排已有草稿,不允许导入  2表示版本冲突  3表示服务报错
+}
+
 type ProcDefNodeLinkCustomAttrs struct {
 	Id     string `json:"id"`     // Id
 	Name   string `json:"name"`   // 线名称

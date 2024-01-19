@@ -128,6 +128,8 @@ func init() {
 		&handlerFuncObj{Url: "/process/definitions/list", Method: "POST", HandlerFunc: process.QueryProcessDefinitionList, ApiCode: "process-definition-list"},
 		&handlerFuncObj{Url: "/process/definitions/status", Method: "POST", HandlerFunc: process.BatchUpdateProcessDefinitionStatus, ApiCode: "update-process-definition-status"},
 		&handlerFuncObj{Url: "/process/definitions/permission", Method: "POST", HandlerFunc: process.BatchUpdateProcessDefinitionPermission, ApiCode: "update-process-definition-permission"},
+		&handlerFuncObj{Url: "/process/definitions/export", Method: "POST", HandlerFunc: process.ExportProcessDefinition, ApiCode: "process-definition-export"},
+		&handlerFuncObj{Url: "/process/definitions/import", Method: "POST", HandlerFunc: process.ImportProcessDefinition, ApiCode: "import-process-definition"},
 		&handlerFuncObj{Url: "/process/definitions/deploy/:proc-def-id", Method: "POST", HandlerFunc: process.DeployProcessDefinition, ApiCode: "deploy-process-definition"},
 		&handlerFuncObj{Url: "/process/definitions/taskNodes", Method: "POST", HandlerFunc: process.AddOrUpdateProcDefTaskNodes, ApiCode: "add-update-process-definition-nodes"},
 		&handlerFuncObj{Url: "/process/definitions/:proc-def-id/taskNodes/:node-id", Method: "DELETE", HandlerFunc: process.DeleteProcDefNode, ApiCode: "delete-process-definition-nodes"},

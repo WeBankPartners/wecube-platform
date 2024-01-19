@@ -104,6 +104,8 @@ func AddProcessDefinition(ctx context.Context, user string, param models.Process
 	draftEntity.UpdatedBy = user
 	draftEntity.UpdatedTime = now
 	draftEntity.RootEntity = param.RootEntity
+	// 计算编排的版本
+	draftEntity.Version = "v1"
 	err = insertProcDef(ctx, draftEntity)
 	if err != nil {
 		return
@@ -217,6 +219,16 @@ func GetProcessDefinition(ctx context.Context, id string) (result *models.ProcDe
 
 func getProcessDefinitionByWhere(ctx context.Context, where string, queryParam []interface{}) (list []*models.ProcDef, err error) {
 	err = db.MysqlEngine.Context(ctx).SQL("select * from proc_def "+where, queryParam...).Find(&list)
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
+		return
+	}
+	return
+}
+
+func GetDeployedProcessDefinitionByIds(ctx context.Context, ids []string) (list []*models.ProcDef, err error) {
+	idsFilterSql, idsFilterParam := createListParams(ids, "")
+	err = db.MysqlEngine.Context(ctx).SQL("select * from proc_def where id in ("+idsFilterSql+") and status='deployed'", idsFilterParam...).Find(&list)
 	if err != nil {
 		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
 		return
@@ -375,31 +387,11 @@ func GetProcDefNodeModelByProcDefId(ctx context.Context, procDefId string) (list
 	return
 }
 
-func GetProcDefNodeById(ctx context.Context, id string) (result *models.ProcDefNode, err error) {
-	var list []*models.ProcDefNode
-	err = db.MysqlEngine.Context(ctx).SQL("select * from proc_def_node where id = ?", id).Find(&list)
+func GetSimpleProcDefNodeByProcDefId(ctx context.Context, procDefId string) (list []*models.ProcDefNode, err error) {
+	err = db.MysqlEngine.Context(ctx).SQL("select * from proc_def_node where proc_def_id = ?", procDefId).Find(&list)
 	if err != nil {
 		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
 		return
-	}
-	if len(list) > 0 {
-		result = list[0]
-	}
-	return
-}
-
-func GetProcDefNodeLinkBySource(ctx context.Context, source string) (list []*models.ProcDefNodeLinkDto, err error) {
-	var nodeLinkList []*models.ProcDefNodeLink
-	list = make([]*models.ProcDefNodeLinkDto, 0)
-	err = db.MysqlEngine.Context(ctx).SQL("select * from proc_def_node_link where source = ?", source).Find(&nodeLinkList)
-	if err != nil {
-		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
-		return
-	}
-	if len(nodeLinkList) > 0 {
-		for _, nodeLink := range nodeLinkList {
-			list = append(list, models.ConvertProcDefNodeLink2Dto(nodeLink))
-		}
 	}
 	return
 }
