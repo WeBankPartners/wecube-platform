@@ -56,7 +56,7 @@ func UploadPackage(c *gin.Context) {
 			log.Logger.Error("Try to remove package upload tmp dir fail", log.String("tmpDir", tmpFileDir), log.Error(removeTmpDirErr))
 		}
 	}()
-	if err = bash.DecompressFile(tmpFilePath, ""); err != nil {
+	if _, err = bash.DecompressFile(tmpFilePath, ""); err != nil {
 		middleware.ReturnError(c, err)
 		return
 	}
@@ -235,8 +235,13 @@ func RegisterPackage(c *gin.Context) {
 	}
 	if pluginPackageObj.UiPackageIncluded {
 		// 把s3上的ui.zip下下来放到本地
-		var uiFileLocalPath string
+		var uiFileLocalPath, uiDir string
 		if uiFileLocalPath, err = bash.DownloadPackageFile(models.Config.S3.PluginPackageBucket, fmt.Sprintf("%s/%s/ui.zip", pluginPackageObj.Name, pluginPackageObj.Version)); err != nil {
+			middleware.ReturnError(c, err)
+			return
+		}
+		// 本地解压ui.zip
+		if uiDir, err = bash.DecompressFile(uiFileLocalPath, ""); err != nil {
 			middleware.ReturnError(c, err)
 			return
 		}
@@ -254,6 +259,30 @@ func RegisterPackage(c *gin.Context) {
 		if err != nil {
 			middleware.ReturnError(c, err)
 			return
+		}
+		// 把ui.zip里的静态文件读出来
+		var fileNameList []string
+		dirPrefix := uiDir + "/plugin"
+		fileNameList, err = bash.ListDirAllFiles(dirPrefix)
+		if err != nil {
+			middleware.ReturnError(c, err)
+			return
+		}
+		uiStaticPath := models.Config.StaticResource.Path
+		if pathIndex := strings.LastIndex(uiStaticPath, "/"); pathIndex >= 0 {
+			uiStaticPath = uiStaticPath[pathIndex:]
+		}
+		uiStaticPath = fmt.Sprintf("%s/%s/%s/plugin", uiStaticPath, pluginPackageObj.Name, pluginPackageObj.Version)
+		resourceFileList := []*models.PluginPackageResourceFiles{}
+		for _, v := range fileNameList {
+			tmpResourceObj := models.PluginPackageResourceFiles{PluginPackageId: pluginPackageId, PackageName: pluginPackageObj.Name, PackageVersion: pluginPackageObj.Version, Source: "ui.zip", RelatedPath: strings.ReplaceAll(v, dirPrefix, uiStaticPath)}
+			resourceFileList = append(resourceFileList, &tmpResourceObj)
+		}
+		if len(resourceFileList) > 0 {
+			if err = database.UpdatePluginStaticResourceFiles(c, pluginPackageId, resourceFileList); err != nil {
+				middleware.ReturnError(c, err)
+				return
+			}
 		}
 	}
 	// 把对应插件版本的系统变量置为active
@@ -581,6 +610,15 @@ func buildPluginProCertification(envMap map[string]string, pluginPackageObj *mod
 
 func GetPackageNames(c *gin.Context) {
 	result, err := database.GetPackageNames(c)
+	if err != nil {
+		middleware.ReturnError(c, err)
+	} else {
+		middleware.ReturnData(c, result)
+	}
+}
+
+func GetPluginResourceFiles(c *gin.Context) {
+	result, err := database.GetPluginResourceFiles(c)
 	if err != nil {
 		middleware.ReturnError(c, err)
 	} else {
