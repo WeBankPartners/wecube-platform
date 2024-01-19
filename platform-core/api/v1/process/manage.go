@@ -115,7 +115,6 @@ func CopyProcessDefinition(c *gin.Context) {
 	var newProcDefId string
 	procDefId := c.Param("proc-def-id")
 	association := c.Param("association")
-	now := time.Now()
 	user := middleware.GetRequestUser(c)
 	if procDefId == "" || association == "" {
 		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, fmt.Errorf("proc-def-id or association is empty")))
@@ -148,11 +147,7 @@ func CopyProcessDefinition(c *gin.Context) {
 		}
 		procDef.Version = calcProcDefVersion(c, procDef.Key)
 	}
-	procDef.CreatedBy = user
-	procDef.CreatedTime = now
-	procDef.UpdatedBy = user
-	procDef.UpdatedTime = now
-	newProcDefId, err = database.CopyProcessDefinition(c, procDef)
+	newProcDefId, err = database.CopyProcessDefinition(c, procDef, user)
 	if err != nil {
 		middleware.ReturnError(c, err)
 		return
@@ -310,7 +305,7 @@ func ExportProcessDefinition(c *gin.Context) {
 		return
 	}
 	if len(procDefList) == 0 {
-		middleware.ReturnError(c, fmt.Errorf("procDefIds is valid"))
+		middleware.ReturnError(c, fmt.Errorf("procDefIds need correct and deployed"))
 		return
 	}
 	for _, procDef := range procDefList {
@@ -959,7 +954,7 @@ func processDefinitionImport(ctx context.Context, inputList []*models.ProcessDef
 		if versionExist {
 			continue
 		}
-		_, err = database.CopyProcessDefinitionByDto(ctx, procDefDto)
+		_, err = database.CopyProcessDefinitionByDto(ctx, procDefDto, operator)
 		if err != nil {
 			importResult.ResultList = append(importResult.ResultList, &models.ImportResultItemDto{
 				ProcDefName:    procDefDto.ProcDef.Name,
