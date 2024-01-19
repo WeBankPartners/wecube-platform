@@ -113,18 +113,16 @@ func AddProcessDefinition(ctx context.Context, user string, param models.Process
 	return
 }
 
-func CopyProcessDefinitionByDto(ctx context.Context, procDef *models.ProcessDefinitionDto) (err error) {
+func CopyProcessDefinitionByDto(ctx context.Context, procDef *models.ProcessDefinitionDto) (newProcDefId string, err error) {
 	return
 }
 
 // CopyProcessDefinition 复制编排
 func CopyProcessDefinition(ctx context.Context, procDef *models.ProcDef) (newProcDefId string, err error) {
-	var actions []*db.ExecAction
 	var permissionList []*models.ProcDefPermission
 	var nodeList []*models.ProcDefNode
 	var linkList []*models.ProcDefNodeLink
 	var nodeParamList []*models.ProcDefNodeParam
-	newProcDefId = "pdef_" + guid.CreateGuid()
 	// 查询权限
 	permissionList, err = GetProcDefPermissionByCondition(ctx, models.ProcDefPermission{ProcDefId: procDef.Id})
 	if err != nil {
@@ -140,7 +138,13 @@ func CopyProcessDefinition(ctx context.Context, procDef *models.ProcDef) (newPro
 	if err != nil {
 		return
 	}
+	return execCopyProcessDefinition(ctx, procDef, nodeList, linkList, nodeParamList, permissionList)
+}
 
+func execCopyProcessDefinition(ctx context.Context, procDef *models.ProcDef, nodeList []*models.ProcDefNode,
+	linkList []*models.ProcDefNodeLink, nodeParamList []*models.ProcDefNodeParam, permissionList []*models.ProcDefPermission) (newProcDefId string, err error) {
+	newProcDefId = "pdef_" + guid.CreateGuid()
+	var actions []*db.ExecAction
 	// 插入编排
 	actions = append(actions, &db.ExecAction{Sql: "insert into proc_def (id,`key`,name,root_entity,status,tags,for_plugin,scene," +
 		"conflict_check,created_by,created_time,updated_by,updated_time) values (?,?,?,?,?,?,?,?,?,?,?,?,?)", Param: []interface{}{newProcDefId,
@@ -636,9 +640,9 @@ func BatchAddProcDefPermission(ctx context.Context, procDefId string, permission
 func insertProcDef(ctx context.Context, procDef *models.ProcDef) (err error) {
 	var actions []*db.ExecAction
 	actions = append(actions, &db.ExecAction{Sql: "insert into  proc_def (id,`key`,name,root_entity,status,tags,for_plugin,scene," +
-		"conflict_check,created_by,created_time,updated_by,updated_time) values (?,?,?,?,?,?,?,?,?,?,?,?,?)", Param: []interface{}{procDef.Id,
+		"conflict_check,version,created_by,created_time,updated_by,updated_time) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?)", Param: []interface{}{procDef.Id,
 		procDef.Key, procDef.Name, procDef.RootEntity, procDef.Status, procDef.Tags, procDef.ForPlugin, procDef.Scene,
-		procDef.ConflictCheck, procDef.CreatedBy, procDef.CreatedTime.Format(models.DateTimeFormat), procDef.UpdatedBy, procDef.UpdatedTime.Format(models.DateTimeFormat)}})
+		procDef.ConflictCheck, procDef.Version, procDef.CreatedBy, procDef.CreatedTime.Format(models.DateTimeFormat), procDef.UpdatedBy, procDef.UpdatedTime.Format(models.DateTimeFormat)}})
 	err = db.Transaction(actions, ctx)
 	if err != nil {
 		err = exterror.Catch(exterror.New().DatabaseExecuteError, err)
