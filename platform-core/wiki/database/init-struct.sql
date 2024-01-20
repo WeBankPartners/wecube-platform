@@ -396,18 +396,19 @@ CREATE TABLE `proc_def_collect` (
         CONSTRAINT `fk_proc_def_collect_def` FOREIGN KEY (`proc_def_id`) REFERENCES `proc_def` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
 
-CREATE TABLE `batch_execution_jobs` (
+CREATE TABLE `batch_execution` (
     `id` varchar(64) NOT NULL COMMENT '唯一标识',
     `batch_execution_template_id` varchar(64) DEFAULT NULL COMMENT '模板id',
-    `creator` varchar(64) DEFAULT NULL COMMENT '创建者',
-    `create_timestamp` datetime DEFAULT NULL COMMENT '创建时间',
-    `complete_timestamp` datetime DEFAULT NULL COMMENT '完成时间',
+    `created_by` varchar(64) NOT NULL COMMENT '创建者',
+    `updated_by` varchar(64) NULL COMMENT '更新者',
+    `created_time` datetime NOT NULL COMMENT '创建时间',
+    `updated_time` datetime NULL COMMENT '更新时间',
     PRIMARY KEY (`id`),
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
 
-CREATE TABLE `execution_jobs` (
+CREATE TABLE `batch_execution_jobs` (
     `id` varchar(64) NOT NULL COMMENT '唯一标识',
-    `batch_execution_job_id` varchar(64) NOT NULL COMMENT '批量执行任务id',
+    `batch_execution_id` varchar(64) NOT NULL COMMENT '批量执行任务id',
     `package_name` varchar(64) NOT NULL COMMENT '包名',
     `entity_name` varchar(100) NOT NULL COMMENT '实体名',
     `business_key` varchar(255) NOT NULL COMMENT '业务key',
@@ -420,8 +421,7 @@ CREATE TABLE `execution_jobs` (
     `return_json` longtext NULL COMMENT '输出json',
     `plugin_config_interface_id` varchar(64) NULL COMMENT '插件配置接口id',
     PRIMARY KEY (`id`),
-    CONSTRAINT job_id_and_root_entity_id
-        UNIQUE (batch_execution_job_id, root_entity_id),
+    UNIQUE KEY `job_id_and_root_entity_id` (`batch_execution_id`, `root_entity_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
 
 CREATE TABLE `batch_execution_template` (
@@ -438,22 +438,20 @@ CREATE TABLE `batch_execution_template` (
     PRIMARY KEY (`id`),
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
 
-CREATE TABLE `favorites` (
-    `id` varchar(64) NOT NULL COMMENT '唯一标识',
-    `collection_name` varchar(255) NOT NULL COMMENT '收藏名称',
-    `batch_execution_template_id` varchar(64) NOT NULL COMMENT '批量执行模板id',
-    `created_by` varchar(64) NOT NULL COMMENT '创建者',
-    `updated_by` varchar(64) NOT NULL COMMENT '更新者',
-    `created_time` datetime NOT NULL COMMENT '创建时间',
-    `updated_time` datetime NOT NULL COMMENT '更新时间',
-    PRIMARY KEY (`id`),
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
-
-CREATE TABLE `favorites_role` (
+CREATE TABLE `batch_execution_template_role` (
   `id` varchar(64) NOT NULL COMMENT '唯一标识',
-  `favorites_id` varchar(64) NOT NULL COMMENT '收藏id',
-  `permission` varchar(64) NOT NULL COMMENT '权限->MGMT(管理) | USE(使用)',
+  `batch_execution_template_id` varchar(64) NOT NULL COMMENT '批量执行模板id',
+  `permission` varchar(64) NOT NULL COMMENT '权限类型->MGMT(管理) | USE(使用)',
   `role_id` varchar(64) NOT NULL COMMENT '角色id',
   `role_name` varchar(64) NOT NULL COMMENT '角色名',
   PRIMARY KEY (`id`),
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
+
+CREATE TABLE `batch_execution_template_collect` (
+  `id` varchar(64) NOT NULL COMMENT '唯一标识',
+  `batch_execution_template_id` varchar(64) NOT NULL COMMENT '批量执行模板id',
+  `user_id` varchar(64) NOT NULL COMMENT '用户id',
+  `created_time` datetime DEFAULT NULL COMMENT '创建时间',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `user_id_batch_execution_template_id` (`user_id`, `batch_execution_template_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
