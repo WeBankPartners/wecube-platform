@@ -187,12 +187,6 @@ func NewDBCtx(transactionId string) context.Context {
 	return context.WithValue(context.Background(), DBTransactionId, transactionId)
 }
 
-func CombineDBQuery(input ...interface{}) string {
-	var buf strings.Builder
-	fmt.Fprint(&buf, input...)
-	return buf.String()
-}
-
 func NewNullString(s string) sql.NullString {
 	if len(s) == 0 {
 		return sql.NullString{}
@@ -234,7 +228,7 @@ func GetInsertTableExecAction(tableName string, data interface{}, transNullStr m
 			execParams = append(execParams, v.FieldByName(t.Field(i).Name).Interface())
 		}
 	}
-	execSqlCmd := CombineDBQuery("INSERT INTO ", tableName, "(", columnStr, ") VALUE (", valueStr, ")")
+	execSqlCmd := CombineDBSql("INSERT INTO ", tableName, "(", columnStr, ") VALUE (", valueStr, ")")
 	action = &ExecAction{Sql: execSqlCmd, Param: execParams}
 	return
 }
@@ -309,7 +303,7 @@ func GetUpdateTableExecActionV2(tableName string, primeKey string, primeKeyVal s
 
 		isFirst = false
 	}
-	execSqlCmd := CombineDBQuery("UPDATE ", tableName, " SET ", columnStr, " WHERE ", primeKey, "=?")
+	execSqlCmd := CombineDBSql("UPDATE ", tableName, " SET ", columnStr, " WHERE ", primeKey, "=?")
 	execParams = append(execParams, primeKeyVal)
 	action = &ExecAction{Sql: execSqlCmd, Param: execParams}
 	return
@@ -323,7 +317,7 @@ func GetDeleteTableExecAction(tableName string, primeKey string, primeKeyVal str
 	}()
 
 	execParams := []interface{}{}
-	execSqlCmd := CombineDBQuery("DELETE FROM ", tableName, " WHERE ", primeKey, "=?")
+	execSqlCmd := CombineDBSql("DELETE FROM ", tableName, " WHERE ", primeKey, "=?")
 	execParams = append(execParams, primeKeyVal)
 	action = &ExecAction{Sql: execSqlCmd, Param: execParams}
 	return
