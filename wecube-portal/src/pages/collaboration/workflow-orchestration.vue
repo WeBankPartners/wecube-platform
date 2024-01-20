@@ -139,6 +139,7 @@ export default {
     }
   },
   async mounted () {
+    this.demoFlowId = this.$route.query.flowId
     await this.getFlowInfo(this.demoFlowId)
     // 创建画布
     this.$nextTick(() => {

@@ -3,7 +3,7 @@ const nodeDefaultAttr = {
     logoIcon: {
       show: true,
       x: -12,
-      y: -12,
+      y: -14,
       img: 'start',
       width: 24,
       height: 24,
@@ -67,12 +67,29 @@ const nodeDefaultAttr = {
       [1, 0.5]
     ]
   },
-  converge: {
+  merge: {
     logoIcon: {
       show: true,
       x: -12,
       y: -12,
-      img: 'converge',
+      img: 'merge',
+      width: 24,
+      height: 24,
+      offset: 0
+    },
+    anchorPoints: [
+      // [0.5, 0],
+      [0, 0.5],
+      // [0.5, 1],
+      [1, 0.5]
+    ]
+  },
+  fork: {
+    logoIcon: {
+      show: true,
+      x: -12,
+      y: -12,
+      img: 'fork',
       width: 24,
       height: 24,
       offset: 0
@@ -87,8 +104,8 @@ const nodeDefaultAttr = {
   human: {
     logoIcon: {
       show: true,
-      x: -12,
-      y: -12,
+      x: -32,
+      y: -16,
       img: 'human',
       width: 24,
       height: 24,
@@ -104,8 +121,8 @@ const nodeDefaultAttr = {
   automatic: {
     logoIcon: {
       show: true,
-      x: -12,
-      y: -12,
+      x: -32,
+      y: -16,
       img: 'automatic',
       width: 24,
       height: 24,
@@ -121,8 +138,8 @@ const nodeDefaultAttr = {
   data: {
     logoIcon: {
       show: true,
-      x: -12,
-      y: -12,
+      x: -32,
+      y: -16,
       img: 'data',
       width: 24,
       height: 24,
@@ -135,14 +152,14 @@ const nodeDefaultAttr = {
       [1, 0.5]
     ]
   },
-  fixedTime: {
+  date: {
     logoIcon: {
       show: true,
-      x: -12,
-      y: -12,
-      img: 'fixedTime',
-      width: 24,
-      height: 24,
+      x: -18,
+      y: -18,
+      img: 'date',
+      width: 36,
+      height: 36,
       offset: 0
     },
     anchorPoints: [

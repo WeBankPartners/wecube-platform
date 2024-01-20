@@ -59,12 +59,14 @@
         v-model="searchParams.procDefId"
         placeholder="编排ID"
         style="width: 200px"
+        clearable
         @on-change="getFlowList"
       ></Input>
       <Input
         v-model="searchParams.procDefName"
         placeholder="编排名称"
         style="width: 200px"
+        clearable
         @on-change="getFlowList"
       ></Input>
       <Select
@@ -127,10 +129,22 @@
           <div class="w-header">
             <Icon size="28" type="ios-people" />
             <div class="title">{{ roleData.manageRole }}<span class="underline"></span></div>
-            <Icon v-if="expand" size="26" type="md-arrow-dropdown" style="cursor: pointer" />
-            <Icon v-else size="26" type="md-arrow-dropright" style="cursor: pointer" />
+            <Icon
+              v-if="!hideRoles.includes(roleDataIndex)"
+              size="26"
+              @click="changeRoleTableStatus(roleDataIndex, 'in')"
+              type="md-arrow-dropdown"
+              style="cursor: pointer"
+            />
+            <Icon
+              v-else
+              size="26"
+              @click="changeRoleTableStatus(roleDataIndex, 'out')"
+              type="md-arrow-dropright"
+              style="cursor: pointer"
+            />
           </div>
-          <div>
+          <div v-show="!hideRoles.includes(roleDataIndex)">
             <div v-for="(tableData, tableDataIndex) in roleData.sceneData" :key="tableDataIndex" class="sub-header">
               <div style="margin: 6px 0">
                 <Icon size="20" type="ios-folder" />
@@ -138,8 +152,9 @@
               </div>
               <div>
                 <Table
+                  class="hide-select-all"
                   size="small"
-                  :columns="tableColumn"
+                  :columns="mgmtColumns()"
                   :data="tableData.dataList"
                   @on-select-all="onSelectAll"
                   @on-select="onSelect"
@@ -183,6 +198,7 @@ export default {
         { label: this.$t('tw_recent_one_year'), value: 3 },
         { label: this.$t('tw_auto'), value: 4 }
       ],
+      hideRoles: [], // 在此出现的角色index将被隐藏
       authPluginList: [], // 待授权插件列表
       data: [],
       tableColumn: [
@@ -279,7 +295,7 @@ export default {
                     type="primary"
                     size="small"
                   >
-                    {this.$t('edit2')}
+                    {this.$t('复制编辑')}
                   </Button>
                 )}
               </div>
@@ -339,6 +355,7 @@ export default {
       this.searchParams.status = name
       this.selectedParams.ids = []
       this.selectedParams.names = []
+      this.hideRoles = []
       this.getFlowList()
     },
     // 重置参数
@@ -351,6 +368,7 @@ export default {
         UpdatedTimeEnd: '',
         status: 'deployed'
       }
+      this.hideRoles = []
       this.dateType = 1
       this.getFlowList()
     },
@@ -408,9 +426,13 @@ export default {
             USE: use
           }
         }
-        const { data, status } = await flowMgmt(params)
+        const { data, status, message } = await flowMgmt(params)
         if (status === 'OK') {
-          console.log(11, data)
+          this.$Notice.success({
+            title: 'Success',
+            desc: message
+          })
+          this.$router.push({ path: '/collaboration/workflow-orchestration', query: { flowId: data.id } })
         }
       }
     },
@@ -459,6 +481,7 @@ export default {
       console.log(11, status)
       if (status === 'draft') {
         console.log('转至详情')
+        this.$router.push({ path: '/collaboration/workflow-orchestration', query: { flowId: row.id } })
       }
       if (status === 'deployed') {
       }
@@ -467,15 +490,15 @@ export default {
     async copyToEditAction (row) {
       let { status, data } = await flowCopy(row.id, 'y')
       if (status === 'OK') {
-        console.log(11, data)
+        this.$router.push({ path: '/collaboration/workflow-orchestration', query: { flowId: data } })
       }
     },
     async copyAction (row) {
-      let { status, message } = await flowCopy(row.id, 'n')
+      let { status, message, data } = await flowCopy(row.id, 'n')
       if (status === 'OK') {
         this.$Notice.success({
           title: 'Success',
-          desc: message
+          desc: message + data
         })
         this.getFlowList()
         this.selectedParams.ids = []
@@ -490,16 +513,16 @@ export default {
       const cur = dayjs().format('YYYY-MM-DD')
       if (dateType === 1) {
         const pre = dayjs().subtract(3, 'month').format('YYYY-MM-DD')
-        this.searchParams.updatedTimeStart = pre
-        this.searchParams.UpdatedTimeEnd = cur
+        this.searchParams.updatedTimeStart = pre + ' 00:00:00'
+        this.searchParams.UpdatedTimeEnd = cur + ' 23:59:59'
       } else if (dateType === 2) {
         const pre = dayjs().subtract(6, 'month').format('YYYY-MM-DD')
-        this.searchParams.updatedTimeStart = pre
-        this.searchParams.UpdatedTimeEnd = cur
+        this.searchParams.updatedTimeStart = pre + ' 00:00:00'
+        this.searchParams.UpdatedTimeEnd = cur + ' 23:59:59'
       } else if (dateType === 3) {
         const pre = dayjs().subtract(1, 'year').format('YYYY-MM-DD')
-        this.searchParams.updatedTimeStart = pre
-        this.searchParams.UpdatedTimeEnd = cur
+        this.searchParams.updatedTimeStart = pre + ' 00:00:00'
+        this.searchParams.UpdatedTimeEnd = cur + ' 23:59:59'
       } else if (dateType === 4) {
         this.searchParams.updatedTimeStart = ''
         this.searchParams.UpdatedTimeEnd = ''
@@ -510,11 +533,35 @@ export default {
       this.searchParams.updatedTimeStart = dateArr[0]
       this.searchParams.UpdatedTimeEnd = dateArr[1]
       this.getFlowList()
+    },
+    // 控制角色下table的显示
+    changeRoleTableStatus (index, type) {
+      if (type === 'in') {
+        this.hideRoles.push(index)
+      } else if (type === 'out') {
+        const findIndex = this.hideRoles.findIndex(rIndex => rIndex === index)
+        this.hideRoles.splice(findIndex, 1)
+      }
+    },
+    mgmtColumns () {
+      if (this.searchParams.status !== 'disabled') {
+        return this.tableColumn
+      } else {
+        let customCol = JSON.parse(JSON.stringify(this.tableColumn))
+        customCol.pop()
+        return customCol
+      }
     }
   }
 }
 </script>
 
+<style lang="scss">
+// 屏蔽列表权限功能
+th.ivu-table-column-center div.ivu-table-cell {
+  display: none;
+}
+</style>
 <style lang="scss" scoped>
 .btn-right {
   margin-right: 10px;
@@ -562,10 +609,5 @@ export default {
     font-weight: bold;
     margin-left: 5px;
   }
-}
-
-// 屏蔽列表权限功能
-th.ivu-table-column-center div.ivu-table-cell {
-  display: none;
 }
 </style>
