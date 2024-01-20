@@ -20,6 +20,22 @@ const (
 	USE      PermissionType = "USE"      //使用权限
 )
 
+// ProcDefNodeType 编排节点类型
+type ProcDefNodeType string
+
+const (
+	ProcDefNodeTypeStart        ProcDefNodeType = "start"        //开始
+	ProcDefNodeTypeEnd          ProcDefNodeType = "end"          //结束
+	ProcDefNodeTypeAbnormal     ProcDefNodeType = "abnormal"     //异常
+	ProcDefNodeTypeDecision     ProcDefNodeType = "decision"     //开始
+	ProcDefNodeTypeFork         ProcDefNodeType = "fork"         //分流
+	ProcDefNodeTypeMerge        ProcDefNodeType = "merge"        //汇聚
+	ProcDefNodeTypeHuman        ProcDefNodeType = "human"        //人工节点
+	ProcDefNodeTypeAutomatic    ProcDefNodeType = "automatic"    //自动节点
+	ProcDefNodeTypeData         ProcDefNodeType = "data"         //数据节点
+	ProcDefNodeTypeTimeInterval ProcDefNodeType = "timeInterval" //时间间隔
+)
+
 type ProcDef struct {
 	Id            string    `json:"id" xorm:"id"`                        // 唯一标识
 	Key           string    `json:"key" xorm:"key"`                      // 编排key
