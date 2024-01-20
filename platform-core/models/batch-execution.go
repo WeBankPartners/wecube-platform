@@ -75,7 +75,12 @@ func (BatchExecutionTemplateCollect) TableName() string {
 	return "batch_execution_template_collect"
 }
 
-type CreateOrUpdateBatchExecTemplateReq struct {
+type BatchExecTemplateInfo struct {
 	BatchExecutionTemplate
-	PermissionToRole *PermissionToRole `json:"permissionToRole"`
+	PermissionToRole *PermissionToRole `json:"permissionToRole" xorm:"-"`
+}
+
+type BatchExecTemplatePageData struct {
+	PageInfo PageInfo                 `json:"pageInfo"`
+	Contents []*BatchExecTemplateInfo `json:"contents"`
 }

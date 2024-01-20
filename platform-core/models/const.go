@@ -36,6 +36,10 @@ const (
 
 	// batch execution
 	BatchExecTemplateStatusAvailable = "available"
+
+	// permission type
+	PermissionTypeMGMT = "MGMT"
+	PermissionTypeUSE  = "USE"
 )
 
 var (

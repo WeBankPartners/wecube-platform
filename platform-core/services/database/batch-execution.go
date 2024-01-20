@@ -12,7 +12,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func CreateOrUpdateBatchExecTemplate(c *gin.Context, reqParam *models.CreateOrUpdateBatchExecTemplateReq) (err error) {
+func CreateOrUpdateBatchExecTemplate(c *gin.Context, reqParam *models.BatchExecTemplateInfo) (err error) {
 	var actions []*db.ExecAction
 	now := time.Now()
 	if reqParam.Id == "" {
@@ -40,7 +40,7 @@ func CreateOrUpdateBatchExecTemplate(c *gin.Context, reqParam *models.CreateOrUp
 		// update
 		updateColumnStr := "`name`=?,`operate_object`=?,`plugin_service`=?,`config_data`=?,`updated_by`=?,`updated_time`=?"
 		action := &db.ExecAction{
-			Sql:   db.CombineDBQuery("UPDATE ", models.TableNameBatchExecTemplate, " SET ", updateColumnStr, " WHERE id=?"),
+			Sql:   db.CombineDBSql("UPDATE ", models.TableNameBatchExecTemplate, " SET ", updateColumnStr, " WHERE id=?"),
 			Param: []interface{}{reqParam.Name, reqParam.OperateObject, reqParam.PluginService, reqParam.ConfigData, middleware.GetRequestUser(c), now, reqParam.Id},
 		}
 		actions = append(actions, action)
@@ -49,7 +49,7 @@ func CreateOrUpdateBatchExecTemplate(c *gin.Context, reqParam *models.CreateOrUp
 	// update batchExecTemplateRole
 	// firstly delete original batchExecTemplateRole and then create new batchExecTemplateRole
 	action := &db.ExecAction{
-		Sql:   db.CombineDBQuery("DELETE FROM ", models.TableNameBatchExecTemplateRole, " WHERE batch_execution_template_id=?"),
+		Sql:   db.CombineDBSql("DELETE FROM ", models.TableNameBatchExecTemplateRole, " WHERE batch_execution_template_id=?"),
 		Param: []interface{}{batchExecTemplateId},
 	}
 	actions = append(actions, action)
@@ -62,7 +62,7 @@ func CreateOrUpdateBatchExecTemplate(c *gin.Context, reqParam *models.CreateOrUp
 			templateRoleDataList = append(templateRoleDataList, &models.BatchExecutionTemplateRole{
 				Id:                       guid.CreateGuid(),
 				BatchExecutionTemplateId: batchExecTemplateId,
-				Permission:               string(models.MGMT),
+				Permission:               models.PermissionTypeMGMT,
 				RoleName:                 roleName,
 			})
 		}
@@ -74,7 +74,7 @@ func CreateOrUpdateBatchExecTemplate(c *gin.Context, reqParam *models.CreateOrUp
 			templateRoleDataList = append(templateRoleDataList, &models.BatchExecutionTemplateRole{
 				Id:                       guid.CreateGuid(),
 				BatchExecutionTemplateId: batchExecTemplateId,
-				Permission:               string(models.USE),
+				Permission:               models.PermissionTypeUSE,
 				RoleName:                 roleName,
 			})
 		}
@@ -139,5 +139,125 @@ func CollectBatchExecTemplate(c *gin.Context, reqParam *models.BatchExecutionTem
 	if err != nil {
 		err = exterror.Catch(exterror.New().DatabaseExecuteError, err)
 	}
+	return
+}
+
+func RetrieveTemplate(c *gin.Context, reqParam *models.QueryRequestParam) (result *models.BatchExecTemplatePageData, err error) {
+	result = &models.BatchExecTemplatePageData{PageInfo: models.PageInfo{}, Contents: []*models.BatchExecTemplateInfo{}}
+	userRoles := middleware.GetRequestRoles(c)
+	userId := middleware.GetRequestUser(c)
+
+	var queryFilters []*models.QueryRequestFilterObj
+	var permissionTypes []string
+	isShowCollectTemplate := false
+	for _, filter := range reqParam.Filters {
+		if filter.Name == "permissionType" {
+			permissionTypes = append(permissionTypes, filter.Value.(string))
+			continue
+		}
+		if filter.Name == "isShowCollectTemplate" {
+			isShowCollectTemplate = filter.Value.(bool)
+			continue
+		}
+		queryFilters = append(queryFilters, &models.QueryRequestFilterObj{
+			Name:     filter.Name,
+			Operator: filter.Operator,
+			Value:    filter.Value,
+		})
+	}
+
+	// query collect templateId
+	var collectTemplateIds []string
+	if isShowCollectTemplate {
+		err = db.MysqlEngine.Context(c).Table(models.TableNameBatchExecTemplateCollect).
+			Where("user_id = ?", userId).
+			Cols("batch_execution_template_id").
+			Find(&collectTemplateIds)
+		if err != nil {
+			err = exterror.Catch(exterror.New().DatabaseQueryError, err)
+			return
+		}
+	}
+
+	// filter templateId by roleName (and permissionType)
+	var roleFilterTemplateIds []string
+	session := db.MysqlEngine.Context(c).Table(models.TableNameBatchExecTemplateRole).
+		In("role_name", userRoles).
+		Distinct("batch_execution_template_id")
+	if len(permissionTypes) > 0 {
+		session = session.In("permission", permissionTypes)
+	}
+	if len(collectTemplateIds) > 0 {
+		session = session.In("batch_execution_template_id", collectTemplateIds)
+	}
+	err = session.Find(&roleFilterTemplateIds)
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
+		return
+	}
+
+	reqParam.Filters = append(reqParam.Filters, &models.QueryRequestFilterObj{
+		Name:     "id",
+		Operator: "in",
+		Value:    roleFilterTemplateIds,
+	})
+
+	// filter template info
+	var templateData []*models.BatchExecTemplateInfo
+	filterSql, _, queryParam := transFiltersToSQL(reqParam, &models.TransFiltersParam{IsStruct: true, StructObj: models.BatchExecutionTemplate{}, PrimaryKey: "id"})
+	baseSql := db.CombineDBSql("SELECT * FROM ", models.TableNameBatchExecTemplate, " WHERE 1=1 ", filterSql)
+	baseCountSql := db.CombineDBSql("SELECT COUNT(*) FROM ", models.TableNameBatchExecTemplate, " WHERE 1=1 ", filterSql)
+	if reqParam.Paging {
+		var count int64
+		count, err = db.MysqlEngine.Context(c).Table(models.TableNameBatchExecTemplate).SQL(baseCountSql, queryParam...).Count()
+		if err != nil {
+			err = exterror.Catch(exterror.New().DatabaseQueryError, err)
+			return
+		}
+		result.PageInfo = models.PageInfo{StartIndex: reqParam.Pageable.StartIndex, PageSize: reqParam.Pageable.PageSize, TotalRows: int(count)}
+		pageSql, pageParam := transPageInfoToSQL(*reqParam.Pageable)
+		baseSql += pageSql
+		queryParam = append(queryParam, pageParam...)
+	}
+	err = db.MysqlEngine.Context(c).Table(models.TableNameBatchExecTemplate).SQL(baseSql, queryParam...).Find(&templateData)
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
+		return
+	}
+
+	// filter permission roles
+	var templateIds []string
+	for _, template := range templateData {
+		templateIds = append(templateIds, template.Id)
+	}
+
+	var templateRoleData []*models.BatchExecutionTemplateRole
+	err = db.MysqlEngine.Context(c).Table(models.TableNameBatchExecTemplateRole).
+		In("batch_execution_template_id", templateIds).
+		Find(&templateRoleData)
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
+		return
+	}
+
+	templateIdMapRoleInfo := make(map[string]*models.PermissionToRole)
+	for _, roleData := range templateRoleData {
+		if _, isExisted := templateIdMapRoleInfo[roleData.BatchExecutionTemplateId]; !isExisted {
+			templateIdMapRoleInfo[roleData.BatchExecutionTemplateId] = &models.PermissionToRole{}
+		}
+		if roleData.Permission == models.PermissionTypeMGMT {
+			templateIdMapRoleInfo[roleData.BatchExecutionTemplateId].MGMT = append(
+				templateIdMapRoleInfo[roleData.BatchExecutionTemplateId].MGMT, roleData.RoleName)
+		} else if roleData.Permission == models.PermissionTypeUSE {
+			templateIdMapRoleInfo[roleData.BatchExecutionTemplateId].USE = append(
+				templateIdMapRoleInfo[roleData.BatchExecutionTemplateId].USE, roleData.RoleName)
+		}
+	}
+
+	for _, template := range templateData {
+		template.PermissionToRole = templateIdMapRoleInfo[template.Id]
+	}
+
+	result.Contents = templateData
 	return
 }
