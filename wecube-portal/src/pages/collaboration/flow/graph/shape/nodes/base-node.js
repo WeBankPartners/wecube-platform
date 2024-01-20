@@ -10,13 +10,14 @@ import defaultStyles from '../defaultStyles'
 import startIcon from '../../../icon/start.svg'
 import endIcon from '../../../icon/end.svg'
 import decisionIcon from '../../../icon/decision.svg'
-import abnormalIcon from '../../../icon/lightning.svg'
-import timeIntervalIcon from '../../../icon/time-interval.svg'
-import fixedTimeIcon from '../../../icon/fixed-time.svg'
+import abnormalIcon from '../../../icon/abnormal.svg'
+import timeIntervalIcon from '../../../icon/timeInterval.svg'
+import dateIcon from '../../../icon/date.svg'
 import dataIcon from '../../../icon/data.svg'
 import automaticIcon from '../../../icon/automatic.svg'
 import humanIcon from '../../../icon/human.svg'
-import convergeIcon from '../../../icon/converge.svg'
+import mergeIcon from '../../../icon/merge.svg'
+import forkIcon from '../../../icon/fork.svg'
 
 const { iconStyles, nodeStyles, anchorPointStyles, nodeLabelStyles } = defaultStyles
 
@@ -26,11 +27,12 @@ const nodeTypeToImg = {
   decision: decisionIcon,
   abnormal: abnormalIcon,
   timeInterval: timeIntervalIcon,
-  fixedTime: fixedTimeIcon,
-  data: dataIcon,
+  date: dateIcon,
   automatic: automaticIcon,
   human: humanIcon,
-  converge: convergeIcon
+  merge: mergeIcon,
+  data: dataIcon,
+  fork: forkIcon
 }
 function getStyle (options, cfg) {
   return {

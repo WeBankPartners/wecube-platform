@@ -12,9 +12,14 @@
           data-shape="circle-node"
           fill="white"
           line-width="1"
-          stroke="#a1bd45"
+          stroke="#4ffa29"
         >
-          <img src="./icon/start.svg" class="item-tool-icon" draggable="false" />
+          <img
+            src="./icon/start.svg"
+            style="border: 1px solid #4ffa29; border-radius: 50%"
+            class="item-tool-icon"
+            draggable="false"
+          />
           <div class="item-tool-name">开始</div>
         </div>
       </Tooltip>
@@ -28,9 +33,14 @@
           data-shape="circle-node"
           fill="white"
           line-width="1"
-          stroke="#f36f84"
+          stroke="#58ade1"
         >
-          <img src="./icon/end.svg" class="item-tool-icon" draggable="false" />
+          <img
+            src="./icon/end.svg"
+            style="border: 1px solid #58ade1; border-radius: 50%"
+            class="item-tool-icon"
+            draggable="false"
+          />
           <div class="item-tool-name">结束</div>
         </div>
       </Tooltip>
@@ -46,7 +56,12 @@
           line-width="1"
           stroke="#f36f84"
         >
-          <img src="./icon/lightning.svg" class="item-tool-icon" draggable="false" />
+          <img
+            src="./icon/abnormal.svg"
+            style="border: 1px solid #f36f84; border-radius: 50%"
+            class="item-tool-icon"
+            draggable="false"
+          />
           <div class="item-tool-name">异常</div>
         </div>
       </Tooltip>
@@ -60,9 +75,11 @@
           data-shape="diamond-node"
           fill="white"
           line-width="1"
-          stroke="#c9c061"
+          stroke="#bbbbbb"
         >
-          <img src="./icon/decision.svg" class="item-tool-icon" draggable="false" />
+          <div class="diamond-border">
+            <img src="./icon/descision-panel.svg" class="item-tool-icon" draggable="false" />
+          </div>
           <div class="item-tool-name">判断</div>
         </div>
       </Tooltip>
@@ -70,16 +87,36 @@
         <div
           class="item-tool"
           draggable="true"
-          node-type="converge"
+          node-type="merge"
           data-label="汇聚节点"
           task-category=""
-          data-shape="rect-node"
+          data-shape="diamond-node"
           fill="white"
           line-width="1"
-          stroke="#c9c061"
+          stroke="#bbbbbb"
         >
-          <img src="./icon/converge.svg" class="item-tool-icon" draggable="false" />
+          <div class="diamond-border">
+            <img src="./icon/merge-panel.svg" class="item-tool-icon" draggable="false" />
+          </div>
           <div class="item-tool-name">汇聚节点</div>
+        </div>
+      </Tooltip>
+      <Tooltip content="Right Center text" placement="right" :delay="1000">
+        <div
+          class="item-tool"
+          draggable="true"
+          node-type="fork"
+          data-label="分流节点"
+          task-category=""
+          data-shape="diamond-node"
+          fill="white"
+          line-width="1"
+          stroke="#bbbbbb"
+        >
+          <div class="diamond-border">
+            <img src="./icon/fork-panel.svg" class="item-tool-icon" draggable="false" />
+          </div>
+          <div class="item-tool-name">分流节点</div>
         </div>
       </Tooltip>
       <Tooltip content="Right Center text" placement="right" :delay="1000">
@@ -92,9 +129,14 @@
           data-shape="rect-node"
           fill="white"
           line-width="1"
-          stroke="#8aaae1"
+          stroke="#bbbbbb"
         >
-          <img src="./icon/human.svg" class="item-tool-icon" draggable="false" />
+          <img
+            src="./icon/human.svg"
+            style="border: 1px solid #bbbbbb; width: 32px"
+            class="item-tool-icon"
+            draggable="false"
+          />
           <div class="item-tool-name">人工节点</div>
         </div>
       </Tooltip>
@@ -108,9 +150,14 @@
           data-shape="rect-node"
           fill="white"
           line-width="1"
-          stroke="#8aaae1"
+          stroke="#bbbbbb"
         >
-          <img src="./icon/automatic.svg" class="item-tool-icon" draggable="false" />
+          <img
+            src="./icon/automatic.svg"
+            style="border: 1px solid #bbbbbb; width: 32px"
+            class="item-tool-icon"
+            draggable="false"
+          />
           <div class="item-tool-name">自动节点</div>
         </div>
       </Tooltip>
@@ -124,9 +171,14 @@
           data-shape="rect-node"
           fill="white"
           line-width="1"
-          stroke="#8aaae1"
+          stroke="#bbbbbb"
         >
-          <img src="./icon/data.svg" class="item-tool-icon" draggable="false" />
+          <img
+            src="./icon/data.svg"
+            style="border: 1px solid #bbbbbb; width: 32px"
+            class="item-tool-icon"
+            draggable="false"
+          />
           <div class="item-tool-name">数据节点</div>
         </div>
       </Tooltip>
@@ -134,15 +186,20 @@
         <div
           class="item-tool"
           draggable="true"
-          node-type="fixedTime"
+          node-type="date"
           data-label="固定时间"
           task-category=""
-          data-shape="rect-node"
+          data-shape="circle-node"
           fill="white"
           line-width="1"
-          stroke="#cca0f2"
+          stroke="#bbbbbb"
         >
-          <img src="./icon/fixed-time.svg" class="item-tool-icon" draggable="false" />
+          <img
+            src="./icon/date.svg"
+            style="border: 1px solid #bbbbbb; border-radius: 50%"
+            class="item-tool-icon"
+            draggable="false"
+          />
           <div class="item-tool-name">固定时间</div>
         </div>
       </Tooltip>
@@ -153,12 +210,17 @@
           node-type="timeInterval"
           data-label="时间间隔"
           task-category=""
-          data-shape="rect-node"
+          data-shape="circle-node"
           fill="white"
           line-width="1"
-          stroke="#60d0d8"
+          stroke="#bbbbbb"
         >
-          <img src="./icon/time-interval.svg" class="item-tool-icon" draggable="false" />
+          <img
+            src="./icon/timeInterval.svg"
+            style="border: 1px solid #bbbbbb; border-radius: 50%"
+            class="item-tool-icon"
+            draggable="false"
+          />
           <div class="item-tool-name">时间间隔</div>
         </div>
       </Tooltip>
@@ -303,5 +365,28 @@ export default {
 .tool-component {
   padding: 6px 0;
   border-bottom: 1px solid #e8eaec;
+}
+
+.diamond-border {
+  position: relative;
+  width: 44px; /* 调整为你的图片尺寸 */
+  height: 44px; /* 调整为你的图片尺寸 */
+  overflow: hidden;
+  padding: 4px;
+}
+
+.diamond-border img {
+  display: block;
+  width: 100%;
+  height: auto;
+  transform: rotate(45deg);
+  transform-origin: 50% 50%;
+  position: absolute;
+  top: 16%;
+  left: 80%;
+  margin-top: -50%;
+  margin-left: -50%;
+  border: 1px solid #bbb;
+  padding: 3px;
 }
 </style>
