@@ -10,12 +10,12 @@
         <FormItem :label="$t('name')">
           <Input v-model="itemCustomInfo.label" @on-change="paramsChanged"></Input>
         </FormItem>
+        <div style="position: absolute; bottom: 20px; right: 280px; width: 200px">
+          <Button @click="saveItem" type="primary">{{ $t('save') }}</Button>
+          <Button @click="hideItem">{{ $t('cancel') }}</Button>
+        </div>
       </template>
     </Form>
-    <div style="position: fixed; bottom: 20px; right: 400px">
-      <Button @click="saveItem" type="primary">{{ $t('save') }}</Button>
-      <Button @click="hideItem">{{ $t('cancel') }}</Button>
-    </div>
   </div>
 </template>
 <script>
@@ -81,7 +81,7 @@ export default {
 </script>
 <style lang="scss" scoped>
 #itemInfo {
-  position: fixed;
+  position: absolute;
   top: 139px;
   right: 32px;
   bottom: 0;
@@ -92,6 +92,8 @@ export default {
   // padding-top: 65px;
   transition: transform 0.3s ease-in-out;
   box-shadow: 0 0 2px 0 rgba(0, 0, 0, 0.1);
+  overflow: auto;
+  height: calc(100vh - 160px);
 }
 .ivu-form-item {
   margin-bottom: 12px;
