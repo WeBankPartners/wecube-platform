@@ -504,12 +504,12 @@ func GetProcDefNode(c *gin.Context) {
 		return
 	}
 	if procDefNode == nil {
-		middleware.Return(c, nodeDto)
+		middleware.ReturnData(c, nodeDto)
 		return
 	}
 	list, err = database.GetProcDefNodeParamByNodeId(c, procDefNode.Id)
 	nodeDto = models.ConvertProcDefNode2Dto(procDefNode, list)
-	middleware.Return(c, nodeDto)
+	middleware.ReturnData(c, nodeDto)
 }
 
 func GetProcDefNodePreorder(c *gin.Context) {
