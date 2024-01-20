@@ -148,8 +148,9 @@ func init() {
 		&handlerFuncObj{Url: "/plugin-certifications/:certId", Method: "DELETE", HandlerFunc: certification.DeleteCertification, ApiCode: "delete-certification"},
 
 		// batch-execution
-		&handlerFuncObj{Url: "/batch-execution/favorites", Method: "POST", HandlerFunc: batch_execution.CreateOrUpdateFavorites, ApiCode: "create-update-batch-execution-favorites"},
-		&handlerFuncObj{Url: "/batch-execution/favorites/retrieve", Method: "POST", HandlerFunc: batch_execution.RetrieveFavorites, ApiCode: "retrieve-batch-execution-favorites"},
+		&handlerFuncObj{Url: "/batch-execution/templates", Method: "POST", HandlerFunc: batch_execution.CreateOrUpdateTemplate, ApiCode: "create-update-batch-execution-template"},
+		&handlerFuncObj{Url: "/batch-execution/templates/retrieve", Method: "POST", HandlerFunc: batch_execution.RetrieveTemplate, ApiCode: "retrieve-batch-execution-template"},
+		&handlerFuncObj{Url: "/batch-execution/templates/collect", Method: "POST", HandlerFunc: batch_execution.CollectTemplate, ApiCode: "collect-batch-execution-template"},
 	)
 }
 
