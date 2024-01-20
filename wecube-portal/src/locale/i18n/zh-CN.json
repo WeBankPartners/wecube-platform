@@ -545,5 +545,9 @@
   "date": "日期",
   "disable": "禁用",
   "enable": "启用",
-  "action_successful": " 执行成功"
+  "action_successful": " 执行成功",
+  "tw_recent_three_month": "近3个月",
+  "tw_recent_half_year": "近半年",
+  "tw_recent_one_year": "近一年",
+  "tw_auto": "自定义"
 }
