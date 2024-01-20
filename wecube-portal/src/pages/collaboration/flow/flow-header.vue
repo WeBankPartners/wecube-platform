@@ -27,7 +27,6 @@
           <Icon type="ios-trash-outline" size="16"></Icon>
           {{ $t('delete') }}
         </Button>
-        {{ itemCustomInfo.status }}
         <Button
           type="error"
           v-if="['deployed'].includes(itemCustomInfo.status)"
@@ -39,7 +38,7 @@
         <Button
           type="success"
           v-if="['disabled'].includes(itemCustomInfo.status)"
-          @click="changeStatus('deployed', 'enable')"
+          @click="changeStatus('enabled', 'enable')"
         >
           <img src="../../../assets/icon/enable.png" style="width: 16px; vertical-align: middle" alt="" />
           {{ $t('enable') }}
