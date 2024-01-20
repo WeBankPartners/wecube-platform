@@ -31,7 +31,7 @@
             <template v-if="itemCustomInfo.customAttrs && itemCustomInfo.customAttrs.nodeType === 'timeInterval'">
               <FormItem :label="$t('duration')">
                 <InputNumber :max="100" :min="0" v-model="itemCustomInfo.customAttrs.timeConfig.duration"></InputNumber>
-                <Select v-model="itemCustomInfo.customAttrs.timeConfig.unit" style="width: 100px">
+                <Select v-model="itemCustomInfo.customAttrs.timeConfig.unit" style="width: 100px" filterable>
                   <Option v-for="item in unitOptions" :value="item" :key="item">{{ item }}</Option>
                 </Select>
               </FormItem>
@@ -49,7 +49,7 @@
         <template slot="content">
           <Form :label-width="80">
             <FormItem :label="$t('timeout')">
-              <Select v-model="itemCustomInfo.customAttrs.timeout">
+              <Select v-model="itemCustomInfo.customAttrs.timeout" filterable>
                 <Option v-for="(item, index) in timeSelection" :value="item.mins" :key="index"
                   >{{ item.label }}
                 </Option>
@@ -77,7 +77,10 @@
               :label="$t('dynamic_bind')"
               v-if="['human', 'automatic'].includes(itemCustomInfo.customAttrs.nodeType)"
             >
-              <i-switch v-model="itemCustomInfo.customAttrs.dynamicBind" />
+              <i-switch
+                v-model="itemCustomInfo.customAttrs.dynamicBind"
+                @on-change="itemCustomInfo.customAttrs.bindNodeId = ''"
+              />
             </FormItem>
             <FormItem
               :label="$t('bind_node')"
@@ -88,6 +91,7 @@
                 @on-change="changeAssociatedNode"
                 @on-open-change="getAssociatedNodes"
                 clearable
+                filterable
                 :disabled="!itemCustomInfo.customAttrs.dynamicBind"
               >
                 <Option v-for="(i, index) in associatedNodes" :value="i.nodeId" :key="index">{{ i.nodeName }}</Option>
@@ -120,21 +124,25 @@
               :label="$t('plugin')"
               style="margin-top: 8px"
             >
-              <Select v-model="itemCustomInfo.customAttrs.serviceId" @on-change="changePluginInterfaceList">
+              <Select
+                v-model="itemCustomInfo.customAttrs.serviceName"
+                @on-change="changePluginInterfaceList"
+                filterable
+              >
                 <Option v-for="(item, index) in filteredPlugins" :value="item.serviceName" :key="index">{{
                   item.serviceDisplayName
                 }}</Option>
               </Select>
             </FormItem>
           </Form>
-          <div v-if="itemCustomInfo.customAttrs.serviceId">
+          <div v-if="itemCustomInfo.customAttrs.serviceName">
             <span style="margin-right: 20px"> 参数设置 </span>
             <Tabs type="card">
               <TabPane label="上下文参数">
                 <div>
                   <span>设置[填充值来源-节点]列表：</span>
                   <Select
-                    v-model="itemCustomInfo.customAttrs.prevCtxNodeIds"
+                    v-model="itemCustomInfo.customAttrs.contextParamNodes"
                     multiple
                     filterable
                     style="width: 50%"
@@ -169,7 +177,7 @@
                       </Select>
                     </div>
                     <div style="width: 22%; display: inline-block">
-                      <Select v-model="item.bindParamType" @on-change="onParamsNodeChange(itemIndex)">
+                      <Select v-model="item.bindParamType" @on-change="onParamsNodeChange(itemIndex)" filterable>
                         <Option v-for="i in paramsTypes" :value="i.value" :key="i.value">{{ i.label }}</Option>
                       </Select>
                     </div>
@@ -203,15 +211,15 @@
           </div>
         </template>
       </Panel>
+      <div style="position: absolute; bottom: 20px; right: 280px; width: 200px">
+        <Button @click="saveItem" type="primary">{{ $t('save') }}</Button>
+        <Button @click="hideItem">{{ $t('cancel') }}</Button>
+      </div>
     </Collapse>
-    <div style="position: fixed; bottom: 20px; right: 400px">
-      <Button @click="saveItem" type="primary">{{ $t('save') }}</Button>
-      <Button @click="hideItem">{{ $t('cancel') }}</Button>
-    </div>
   </div>
 </template>
 <script>
-import { getAssociatedNodes, getAllDataModels, getPluginFunByRule, getFlowById } from '@/api/server.js'
+import { getAssociatedNodes, getAllDataModels, getPluginFunByRule, getFlowById, getNodeParams } from '@/api/server.js'
 import ItemFilterRulesGroup from './item-filter-rules-group.vue'
 export default {
   data () {
@@ -222,8 +230,8 @@ export default {
       currentSelectedEntity: 'wecmdb:subsystem', // 流程图根
       itemCustomInfo: {
         customAttrs: {
-          serviceId: '',
-          prevCtxNodeIds: [], // 根任务节点
+          serviceName: '',
+          contextParamNodes: [], // 根任务节点
           paramInfos: []
         }
       },
@@ -304,7 +312,6 @@ export default {
           nodeType: '', // 节点类型，对应节点原始类型（start、end……
           routineExpression: 'wecmdb:subsystem', // 对应节点中的定位规则
           routineRaw: null, // 还未知作用
-          serviceId: null, // 选择的插件id
           serviceName: null, // 选择的插件名称
           riskCheck: true, // 高危检测
           paramInfos: [], // 存在插件注册处需要填写的字段
@@ -324,6 +331,9 @@ export default {
         this.itemCustomInfo.customAttrs[k] = customAttrs[k]
       })
       this.getPlugin()
+      this.getAssociatedNodes()
+      this.mgmtParamInfos()
+      console.log(this.itemCustomInfo)
       if (needAddFirst) {
         this.saveItem()
       }
@@ -377,10 +387,8 @@ export default {
     },
     // 获取当前节点的前序节点
     async getAssociatedNodes () {
-      console.log(this.itemCustomInfo)
       let { status, data } = await getAssociatedNodes(this.itemCustomInfo.customAttrs.procDefId, this.itemCustomInfo.id)
       if (status === 'OK') {
-        console.log(data)
         this.associatedNodes = data
       }
     },
@@ -641,13 +649,15 @@ export default {
       const { status, data } = await getFlowById(this.itemCustomInfo.customAttrs.procDefId)
       if (status === 'OK') {
         let nodes = data.taskNodeInfos.nodes || []
-        this.nodeList = nodes.map(n => {
-          const customAttrs = n.customAttrs
-          return {
-            label: customAttrs.name,
-            value: customAttrs.id
-          }
-        })
+        this.nodeList = nodes
+          .filter(node => node.customAttrs.id !== this.itemCustomInfo.id)
+          .map(n => {
+            const customAttrs = n.customAttrs
+            return {
+              label: customAttrs.name,
+              value: customAttrs.id
+            }
+          })
       }
     },
     // 设置被预选中的节点
@@ -663,70 +673,20 @@ export default {
     async getParamsOptionsByNode (index) {
       // currentParamNames
       // if (!this.currentFlow || !found) return
-      // let { status, data } = await getParamsInfosByFlowIdAndNodeId(this.itemCustomInfo.customAttrs.procDefId, this.itemCustomInfo.id)
-      // if (status === 'OK') {
-      //   let res = data.filter(_ => _.type === this.pluginForm.paramInfos[index].bindParamType)
-      //   this.$set(this.pluginForm.paramInfos[index], 'currentParamNames', res)
-      // }
-      let data = [
-        {
-          type: 'INPUT',
-          name: 'guid',
-          dataType: 'string'
-        },
-        {
-          type: 'INPUT',
-          name: 'endpointType',
-          dataType: 'string'
-        },
-        {
-          type: 'INPUT',
-          name: 'endpoint',
-          dataType: 'string'
-        },
-        {
-          type: 'INPUT',
-          name: 'target',
-          dataType: 'string'
-        },
-        {
-          type: 'INPUT',
-          name: 'scriptContent',
-          dataType: 'string'
-        },
-        {
-          type: 'INPUT',
-          name: 'runAs',
-          dataType: 'string'
-        },
-        {
-          type: 'INPUT',
-          name: 'args',
-          dataType: 'string'
-        },
-        {
-          type: 'INPUT',
-          name: 'workDir',
-          dataType: 'string'
-        },
-        {
-          type: 'OUTPUT',
-          name: 'guid',
-          dataType: 'string'
-        },
-        {
-          type: 'OUTPUT',
-          name: 'errorCode',
-          dataType: 'string'
-        },
-        {
-          type: 'OUTPUT',
-          name: 'errorMessage',
-          dataType: 'string'
+      let { status, data } = await getNodeParams(this.itemCustomInfo.customAttrs.procDefId, this.itemCustomInfo.id)
+      if (status === 'OK') {
+        let res = data.filter(_ => _.type === this.itemCustomInfo.customAttrs.paramInfos[index].bindParamType)
+        this.$set(this.itemCustomInfo.customAttrs.paramInfos[index], 'currentParamNames', res)
+      }
+    },
+    mgmtParamInfos () {
+      console.log(11, this.itemCustomInfo.customAttrs.paramInfos)
+      const paramInfos = this.itemCustomInfo.customAttrs.paramInfos
+      paramInfos.forEach((p, pIndex) => {
+        if (p.bindType === 'context') {
+          this.getParamsOptionsByNode(pIndex)
         }
-      ]
-      let res = data.filter(_ => _.type === this.itemCustomInfo.customAttrs.paramInfos[index].bindParamType)
-      this.$set(this.itemCustomInfo.customAttrs.paramInfos[index], 'currentParamNames', res)
+      })
     }
     // #endregion
   }
@@ -734,7 +694,7 @@ export default {
 </script>
 <style lang="scss" scoped>
 #itemInfo {
-  position: fixed;
+  position: absolute;
   top: 139px;
   right: 32px;
   bottom: 0;
@@ -745,6 +705,8 @@ export default {
   // padding-top: 65px;
   transition: transform 0.3s ease-in-out;
   box-shadow: 0 0 2px 0 rgba(0, 0, 0, 0.1);
+  overflow: auto;
+  height: calc(100vh - 160px);
 }
 .ivu-form-item {
   margin-bottom: 12px;
