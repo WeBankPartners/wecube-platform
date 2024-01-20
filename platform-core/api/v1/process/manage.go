@@ -407,6 +407,30 @@ func DeployProcessDefinition(c *gin.Context) {
 	middleware.ReturnSuccess(c)
 }
 
+// GetProcDefRootTaskNode  获取编排根任务节点
+func GetProcDefRootTaskNode(c *gin.Context) {
+	var result []*models.ProcDefNode
+	procDefId := c.Param("proc-def-id")
+	if procDefId == "" {
+		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, fmt.Errorf("proc-def-id is empty")))
+		return
+	}
+	list, err := database.GetProcDefNodeModelByProcDefId(c, procDefId)
+	if err != nil {
+		middleware.ReturnError(c, err)
+		return
+	}
+	if len(list) > 0 {
+		for _, node := range list {
+			if node.NodeType == string(models.ProcDefNodeTypeStart) || node.NodeType == string(models.ProcDefNodeTypeHuman) ||
+				node.NodeType == string(models.ProcDefNodeTypeAutomatic) || node.NodeType == string(models.ProcDefNodeTypeData) {
+				result = append(result, node)
+			}
+		}
+	}
+	middleware.ReturnData(c, result)
+}
+
 // AddOrUpdateProcDefTaskNodes 添加更新编排节点
 func AddOrUpdateProcDefTaskNodes(c *gin.Context) {
 	var param models.ProcDefNodeRequestParam
@@ -567,7 +591,7 @@ func GetProcDefNodeParameters(c *gin.Context) {
 		return
 	}
 
-	if procDefNode.NodeType == "start" {
+	if procDefNode.NodeType == string(models.ProcDefNodeTypeStart) {
 		startEventParams := prepareNodeParameters()
 		interfaceParameterList = append(interfaceParameterList, startEventParams...)
 		middleware.ReturnData(c, interfaceParameterList)
