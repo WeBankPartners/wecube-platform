@@ -2,31 +2,35 @@ package database
 
 import (
 	"fmt"
+	"time"
+
 	"github.com/WeBankPartners/go-common-lib/guid"
 	"github.com/WeBankPartners/wecube-platform/platform-core/api/middleware"
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/db"
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/exterror"
 	"github.com/WeBankPartners/wecube-platform/platform-core/models"
 	"github.com/gin-gonic/gin"
-	"time"
 )
 
-func CreateOrUpdateFavorites(c *gin.Context, reqParam *models.CreateOrUpdateFavoritesReq) (err error) {
-	actions := []*db.ExecAction{}
+func CreateOrUpdateBatchExecTemplate(c *gin.Context, reqParam *models.CreateOrUpdateBatchExecTemplateReq) (err error) {
+	var actions []*db.ExecAction
 	now := time.Now()
 	if reqParam.Id == "" {
 		// create
 		reqParam.Id = guid.CreateGuid()
-		favoritesData := &models.Favorites{
-			Id:                       reqParam.Id,
-			CollectionName:           reqParam.CollectionName,
-			BatchExecutionTemplateId: reqParam.BatchExecutionTemplateId,
-			CreatedBy:                middleware.GetRequestUser(c),
-			UpdatedBy:                "",
-			CreatedTime:              &now,
-			UpdatedTime:              &now,
+		templateData := &models.BatchExecutionTemplate{
+			Id:            reqParam.Id,
+			Name:          reqParam.Name,
+			Status:        models.BatchExecTemplateStatusAvailable,
+			OperateObject: reqParam.OperateObject,
+			PluginService: reqParam.PluginService,
+			ConfigData:    reqParam.ConfigData,
+			CreatedBy:     middleware.GetRequestUser(c),
+			UpdatedBy:     "",
+			CreatedTime:   &now,
+			UpdatedTime:   &now,
 		}
-		action, tmpErr := db.GetInsertTableExecAction(models.TableNameFavorites, *favoritesData, nil)
+		action, tmpErr := db.GetInsertTableExecAction(models.TableNameBatchExecTemplate, *templateData, nil)
 		if tmpErr != nil {
 			err = fmt.Errorf("get insert sql failed: %s", tmpErr.Error())
 			return
@@ -34,32 +38,32 @@ func CreateOrUpdateFavorites(c *gin.Context, reqParam *models.CreateOrUpdateFavo
 		actions = append(actions, action)
 	} else {
 		// update
-		updateColumnStr := "`collection_name`=?,`updated_by`=?,`updated_time`=?"
+		updateColumnStr := "`name`=?,`operate_object`=?,`plugin_service`=?,`config_data`=?,`updated_by`=?,`updated_time`=?"
 		action := &db.ExecAction{
-			Sql:   db.CombineDBQuery("UPDATE ", models.TableNameFavorites, " SET ", updateColumnStr, " WHERE id=?"),
-			Param: []interface{}{reqParam.CollectionName, middleware.GetRequestUser(c), now, reqParam.Id},
+			Sql:   db.CombineDBQuery("UPDATE ", models.TableNameBatchExecTemplate, " SET ", updateColumnStr, " WHERE id=?"),
+			Param: []interface{}{reqParam.Name, reqParam.OperateObject, reqParam.PluginService, reqParam.ConfigData, middleware.GetRequestUser(c), now, reqParam.Id},
 		}
 		actions = append(actions, action)
 	}
-	favoritsId := reqParam.Id
-	// update favoritesRole
-	// firstly delete original favoritesRole and then create new favoritesRole
+	batchExecTemplateId := reqParam.Id
+	// update batchExecTemplateRole
+	// firstly delete original batchExecTemplateRole and then create new batchExecTemplateRole
 	action := &db.ExecAction{
-		Sql:   db.CombineDBQuery("DELETE FROM ", models.TableNameFavoritesRole, " WHERE favorites_id=?"),
-		Param: []interface{}{favoritsId},
+		Sql:   db.CombineDBQuery("DELETE FROM ", models.TableNameBatchExecTemplateRole, " WHERE batch_execution_template_id=?"),
+		Param: []interface{}{batchExecTemplateId},
 	}
 	actions = append(actions, action)
 
-	var favoritsRoleDataList []*models.FavoritesRole
+	var templateRoleDataList []*models.BatchExecutionTemplateRole
 	mgmtRoleNameMap := make(map[string]struct{})
 	for _, roleName := range reqParam.PermissionToRole.MGMT {
 		if _, isExisted := mgmtRoleNameMap[roleName]; !isExisted {
 			mgmtRoleNameMap[roleName] = struct{}{}
-			favoritsRoleDataList = append(favoritsRoleDataList, &models.FavoritesRole{
-				Id:          guid.CreateGuid(),
-				FavoritesId: favoritsId,
-				Permission:  string(models.MGMT),
-				RoleName:    roleName,
+			templateRoleDataList = append(templateRoleDataList, &models.BatchExecutionTemplateRole{
+				Id:                       guid.CreateGuid(),
+				BatchExecutionTemplateId: batchExecTemplateId,
+				Permission:               string(models.MGMT),
+				RoleName:                 roleName,
 			})
 		}
 	}
@@ -67,22 +71,69 @@ func CreateOrUpdateFavorites(c *gin.Context, reqParam *models.CreateOrUpdateFavo
 	for _, roleName := range reqParam.PermissionToRole.USE {
 		if _, isExisted := useRoleNameMap[roleName]; !isExisted {
 			useRoleNameMap[roleName] = struct{}{}
-			favoritsRoleDataList = append(favoritsRoleDataList, &models.FavoritesRole{
-				Id:          guid.CreateGuid(),
-				FavoritesId: favoritsId,
-				Permission:  string(models.USE),
-				RoleName:    roleName,
+			templateRoleDataList = append(templateRoleDataList, &models.BatchExecutionTemplateRole{
+				Id:                       guid.CreateGuid(),
+				BatchExecutionTemplateId: batchExecTemplateId,
+				Permission:               string(models.USE),
+				RoleName:                 roleName,
 			})
 		}
 	}
-	for i := range favoritsRoleDataList {
-		action, tmpErr := db.GetInsertTableExecAction(models.TableNameFavoritesRole, *favoritsRoleDataList[i], nil)
+	for i := range templateRoleDataList {
+		action, tmpErr := db.GetInsertTableExecAction(models.TableNameBatchExecTemplateRole, *templateRoleDataList[i], nil)
 		if tmpErr != nil {
 			err = fmt.Errorf("get insert sql failed: %s", tmpErr.Error())
 			return
 		}
 		actions = append(actions, action)
 	}
+
+	err = db.Transaction(actions, c)
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseExecuteError, err)
+	}
+	return
+}
+
+func CollectBatchExecTemplate(c *gin.Context, reqParam *models.BatchExecutionTemplateCollect) (err error) {
+	reqParam.UserId = middleware.GetRequestUser(c)
+	// validate favoritesId
+	templateData := &models.BatchExecutionTemplate{}
+	var exists bool
+	exists, err = db.MysqlEngine.Context(c).Table(new(models.BatchExecutionTemplate)).
+		Where("id = ?", reqParam.BatchExecutionTemplateId).
+		Get(templateData)
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
+		return
+	}
+	if !exists {
+		err = fmt.Errorf("batchExecTemplateId: %s is invalid", reqParam.BatchExecutionTemplateId)
+		return
+	}
+
+	templateCollectData := &models.BatchExecutionTemplateCollect{}
+	exists, err = db.MysqlEngine.Context(c).Table(new(models.BatchExecutionTemplateCollect)).
+		Where("batch_execution_template_id = ? AND user_id = ?", reqParam.BatchExecutionTemplateId, reqParam.UserId).
+		Get(templateCollectData)
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
+		return
+	}
+	if exists {
+		return
+	}
+
+	now := time.Now()
+	reqParam.Id = guid.CreateGuid()
+	reqParam.CreatedTime = &now
+	var actions []*db.ExecAction
+	action, tmpErr := db.GetInsertTableExecAction(models.TableNameBatchExecTemplateCollect, *reqParam, nil)
+	if tmpErr != nil {
+		err = fmt.Errorf("get insert sql failed: %s", tmpErr.Error())
+		return
+	}
+	actions = append(actions, action)
 
 	err = db.Transaction(actions, c)
 	if err != nil {

@@ -28,11 +28,14 @@ const (
 	AESPrefix  = "{AES}"
 
 	// table name
-	TableNameBatchExecutionJobs     = "batch_execution_jobs"
-	TableNameExecutionJobs          = "execution_jobs"
-	TableNameBatchExecutionTemplate = "batch_execution_template"
-	TableNameFavorites              = "favorites"
-	TableNameFavoritesRole          = "favorites_role"
+	TableNameBatchExec                = "batch_execution"
+	TableNameBatchExecJobs            = "batch_execution_jobs"
+	TableNameBatchExecTemplate        = "batch_execution_template"
+	TableNameBatchExecTemplateRole    = "batch_execution_template_role"
+	TableNameBatchExecTemplateCollect = "batch_execution_template_collect"
+
+	// batch execution
+	BatchExecTemplateStatusAvailable = "available"
 )
 
 var (

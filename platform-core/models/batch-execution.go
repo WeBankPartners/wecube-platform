@@ -2,17 +2,22 @@ package models
 
 import "time"
 
-type BatchExecutionJobs struct {
+type BatchExecution struct {
 	Id                       string     `json:"id" xorm:"id"`                                                // 唯一标识
 	BatchExecutionTemplateId string     `json:"batchExecutionTemplateId" xorm:"batch_execution_template_id"` // 模板id
-	Creator                  string     `json:"creator" xorm:"creator"`                                      // 创建者
-	CreateTimestamp          *time.Time `json:"createTimestamp" xorm:"create_timestamp"`                     // 创建时间
-	CompleteTimestamp        *time.Time `json:"completeTimestamp" xorm:"complete_timestamp"`                 // 完成时间
+	CreatedBy                string     `json:"createdBy" xorm:"created_by"`                                 // 创建者
+	UpdatedBy                string     `json:"updatedBy" xorm:"updated_by"`                                 // 更新者
+	CreatedTime              *time.Time `json:"createdTime" xorm:"created_time"`                             // 创建时间
+	UpdatedTime              *time.Time `json:"updatedTime" xorm:"updated_time"`                             // 更新时间
 }
 
-type ExecutionJobs struct {
+func (BatchExecution) TableName() string {
+	return "batch_execution"
+}
+
+type BatchExecutionJobs struct {
 	Id                      string     `json:"id" xorm:"id"`                                              // 唯一标识
-	BatchExecutionJobId     string     `json:"batchExecutionJobId" xorm:"batch_execution_job_id"`         // 批量执行任务id
+	BatchExecutionId        string     `json:"batchExecutionId" xorm:"batch_execution_id"`                // 批量执行任务id
 	PackageName             string     `json:"packageName" xorm:"package_name"`                           // 包名
 	EntityName              string     `json:"entityName" xorm:"entity_name"`                             // 实体名
 	BusinessKey             string     `json:"businessKey" xorm:"business_key"`                           // 业务key
@@ -24,6 +29,10 @@ type ExecutionJobs struct {
 	InputJson               string     `json:"inputJson" xorm:"input_json"`                               // 输入json
 	ReturnJson              string     `json:"returnJson" xorm:"return_json"`                             // 输出json
 	PluginConfigInterfaceId string     `json:"pluginConfigInterfaceId" xorm:"plugin_config_interface_id"` // 插件配置接口id
+}
+
+func (BatchExecutionJobs) TableName() string {
+	return "batch_execution_jobs"
 }
 
 type BatchExecutionTemplate struct {
@@ -39,27 +48,34 @@ type BatchExecutionTemplate struct {
 	UpdatedTime   *time.Time `json:"updatedTime" xorm:"updated_time"`     // 更新时间
 }
 
-type Favorites struct {
+func (BatchExecutionTemplate) TableName() string {
+	return "batch_execution_template"
+}
+
+type BatchExecutionTemplateRole struct {
+	Id                       string `json:"id" xorm:"id"`                                                // 唯一标识
+	BatchExecutionTemplateId string `json:"batchExecutionTemplateId" xorm:"batch_execution_template_id"` // 批量执行模板id
+	Permission               string `json:"permission" xorm:"permission"`                                // 权限类型->MGMT(管理) | USE(使用)
+	RoleId                   string `json:"roleId" xorm:"role_id"`                                       // 角色id
+	RoleName                 string `json:"roleName" xorm:"role_name"`                                   // 角色名
+}
+
+func (BatchExecutionTemplateRole) TableName() string {
+	return "batch_execution_template_role"
+}
+
+type BatchExecutionTemplateCollect struct {
 	Id                       string     `json:"id" xorm:"id"`                                                // 唯一标识
-	CollectionName           string     `json:"collectionName" xorm:"collection_name"`                       // 收藏名称
 	BatchExecutionTemplateId string     `json:"batchExecutionTemplateId" xorm:"batch_execution_template_id"` // 批量执行模板id
-	CreatedBy                string     `json:"createdBy" xorm:"created_by"`                                 // 创建者
-	UpdatedBy                string     `json:"updatedBy" xorm:"updated_by"`                                 // 更新者
+	UserId                   string     `json:"userId" xorm:"user_id"`                                       // 用户id
 	CreatedTime              *time.Time `json:"createdTime" xorm:"created_time"`                             // 创建时间
-	UpdatedTime              *time.Time `json:"updatedTime" xorm:"updated_time"`                             // 更新时间
 }
 
-type FavoritesRole struct {
-	Id          string `json:"id" xorm:"id"`                    // 唯一标识
-	FavoritesId string `json:"favoritesId" xorm:"favorites_id"` // 收藏id
-	Permission  string `json:"permission" xorm:"permission"`    // 权限->MGMT(管理) | USE(使用)
-	RoleId      string `json:"roleId" xorm:"role_id"`           // 角色id
-	RoleName    string `json:"roleName" xorm:"role_name"`       // 角色名
+func (BatchExecutionTemplateCollect) TableName() string {
+	return "batch_execution_template_collect"
 }
 
-type CreateOrUpdateFavoritesReq struct {
-	Id                       string            `json:"id"`
-	CollectionName           string            `json:"collectionName"`
-	BatchExecutionTemplateId string            `json:"batchExecutionTemplateId"`
-	PermissionToRole         *PermissionToRole `json:"permissionToRole"`
+type CreateOrUpdateBatchExecTemplateReq struct {
+	BatchExecutionTemplate
+	PermissionToRole *PermissionToRole `json:"permissionToRole"`
 }
