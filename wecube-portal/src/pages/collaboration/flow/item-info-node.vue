@@ -147,9 +147,9 @@
                     filterable
                     style="width: 50%"
                     @on-change="prevCtxNodeChange"
-                    @on-open-change="getFlowNodes"
+                    @on-open-change="getRootNode"
                   >
-                    <Option v-for="(item, index) in nodeList" :value="item.value" :key="index">{{ item.label }}</Option>
+                    <Option v-for="item in nodeList" :value="item.nodeId" :key="item.nodeId">{{ item.name }}</Option>
                   </Select>
                 </div>
                 <div style="display: flex; justify-content: space-around; background: #dee3e8">
@@ -171,8 +171,8 @@
                     <div style="width: 24%; display: inline-block">{{ item.paramName }}</div>
                     <div style="width: 25%; display: inline-block">
                       <Select v-model="item.bindNodeId" filterable @on-change="onParamsNodeChange(itemIndex)">
-                        <Option v-for="(item, index) in canSelectNode" :value="item.value" :key="index">{{
-                          item.label
+                        <Option v-for="(item, index) in canSelectNode" :value="item.nodeId" :key="index">{{
+                          item.name
                         }}</Option>
                       </Select>
                     </div>
@@ -219,7 +219,7 @@
   </div>
 </template>
 <script>
-import { getAssociatedNodes, getAllDataModels, getPluginFunByRule, getFlowById, getNodeParams } from '@/api/server.js'
+import { getAssociatedNodes, getAllDataModels, getPluginFunByRule, getNodeParams, getSourceNode } from '@/api/server.js'
 import ItemFilterRulesGroup from './item-filter-rules-group.vue'
 export default {
   data () {
@@ -332,6 +332,7 @@ export default {
       })
       this.getPlugin()
       this.getAssociatedNodes()
+      this.getRootNode()
       this.mgmtParamInfos()
       console.log(this.itemCustomInfo)
       if (needAddFirst) {
@@ -643,27 +644,10 @@ export default {
       }
       // this.routineExpressionCache = path
     },
-    // 获取流程所有节点
-    async getFlowNodes (val) {
-      if (!val) return
-      const { status, data } = await getFlowById(this.itemCustomInfo.customAttrs.procDefId)
-      if (status === 'OK') {
-        let nodes = data.taskNodeInfos.nodes || []
-        this.nodeList = nodes
-          .filter(node => node.customAttrs.id !== this.itemCustomInfo.id)
-          .map(n => {
-            const customAttrs = n.customAttrs
-            return {
-              label: customAttrs.name,
-              value: customAttrs.id
-            }
-          })
-      }
-    },
     // 设置被预选中的节点
     prevCtxNodeChange (val) {
-      this.canSelectNode = this.nodeList.filter(n => val.includes(n.value))
-      console.log(val, this.canSelectNode)
+      this.canSelectNode = this.nodeList.filter(n => val.includes(n.nodeId))
+      console.log(33, val, this.canSelectNode)
     },
     // 改变节点及参数类型获取参数名
     onParamsNodeChange (index) {
@@ -687,6 +671,13 @@ export default {
           this.getParamsOptionsByNode(pIndex)
         }
       })
+    },
+    // 获取可选根节点
+    async getRootNode () {
+      let { status, data } = await getSourceNode(this.itemCustomInfo.customAttrs.procDefId)
+      if (status === 'OK') {
+        this.nodeList = (data || []).filter(r => r.nodeId !== this.itemCustomInfo.id)
+      }
     }
     // #endregion
   }

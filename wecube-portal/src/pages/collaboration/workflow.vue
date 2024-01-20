@@ -5,18 +5,29 @@
         <Icon type="ios-add-circle-outline" size="16"></Icon>
         {{ $t('create') }}
       </Button>
-      <Button type="info" class="btn-right">
-        <img src="../../assets/icon/export.png" class="btn-img" alt="" />
-        {{ $t('export_flow') }}
-      </Button>
-
+      <Upload
+        action="platform/v1/process/definitions/import"
+        :before-upload="handleUpload"
+        :show-upload-list="false"
+        with-credentials
+        :headers="headers"
+        :on-success="uploadSucess"
+        :on-error="uploadFailed"
+        style="display: inline-block"
+      >
+        <Button type="primary" class="btn-right">
+          <img src="../../assets/icon/import.png" class="btn-img" alt="" />
+          {{ $t('import_flow') }}
+        </Button>
+      </Upload>
       <Button
-        type="primary"
+        type="info"
         class="btn-right"
         v-if="['deployed'].includes(searchParams.status) && selectedParams.ids.length > 0"
+        @click="exportFlow"
       >
-        <img src="../../assets/icon/import.png" class="btn-img" alt="" />
-        {{ $t('import_flow') }}
+        <img src="../../assets/icon/export.png" class="btn-img" alt="" />
+        {{ $t('export_flow') }}
       </Button>
       <Button
         type="warning"
@@ -173,6 +184,8 @@
 </template>
 
 <script>
+import axios from 'axios'
+import { getCookie } from '@/pages/util/cookie'
 import { flowMgmt, getPluginList, flowList, flowBatchAuth, flowBatchChangeStatus, flowCopy } from '@/api/server.js'
 import FlowAuth from '@/pages/collaboration/flow/flow-auth.vue'
 import dayjs from 'dayjs'
@@ -307,10 +320,15 @@ export default {
         ids: [],
         // status: [],
         names: []
-      }
+      },
+      headers: {}
     }
   },
   mounted () {
+    const accessToken = getCookie('accessToken')
+    this.headers = {
+      Authorization: 'Bearer ' + accessToken
+    }
     this.handleDateTypeChange(1)
     this.getFlowList()
     this.pluginList()
@@ -551,6 +569,109 @@ export default {
         customCol.pop()
         return customCol
       }
+    },
+    handleUpload (file) {
+      if (!file.name.endsWith('.json')) {
+        this.$Notice.warning({
+          title: 'Warning',
+          desc: 'Must be a json file'
+        })
+        return false
+      }
+      return true
+    },
+    uploadFailed (val, response) {
+      this.$Notice.error({
+        title: 'Error',
+        desc: response.statusMessage
+      })
+    },
+    async uploadSucess (res) {
+      if (res.status === 'OK') {
+        let finalResult = {
+          0: [],
+          1: [],
+          2: []
+        }
+        res.data.resultList.forEach(r => {
+          finalResult[r.code].push(`${r.procDefName}${r.ProcDefVersion}`)
+        })
+        this.$Notice.success({
+          duration: 0,
+          title: this.$t('import_flow'),
+          desc: 'Successful',
+          render: h => {
+            const code0 = finalResult[0]
+            const code1 = finalResult[1]
+            const code2 = finalResult[2]
+            return (
+              <div>
+                {code0.length > 0 && (
+                  <div>
+                    <span>0:</span>
+                    <span>{JSON.stringify(code0)}</span>
+                  </div>
+                )}
+                {code1.length > 0 && (
+                  <div>
+                    <span>1:</span>
+                    <span>{JSON.stringify(code1)}</span>
+                  </div>
+                )}
+                {code2.length > 0 && (
+                  <div>
+                    <span>2:</span>
+                    <span>{JSON.stringify(code2)}</span>
+                  </div>
+                )}
+              </div>
+            )
+          }
+        })
+        this.getFlowList()
+      }
+    },
+    async exportFlow () {
+      const accessToken = getCookie('accessToken')
+      this.headers = {
+        Authorization: 'Bearer ' + accessToken
+      }
+      axios({
+        method: 'post',
+        url: `platform/v1/process/definitions/export`,
+        headers: this.headers,
+        data: {
+          procDefIds: this.selectedParams.ids
+        },
+        responseType: 'blob'
+      })
+        .then(response => {
+          if (response.status < 400) {
+            let fileName = `export_${dayjs().format('YYMMDDHHmmss')}.json`
+            let blob = new Blob([response.data])
+            if ('msSaveOrOpenBlob' in navigator) {
+              window.navigator.msSaveOrOpenBlob(blob, fileName)
+            } else {
+              if ('download' in document.createElement('a')) {
+                // 非IE下载
+                let elink = document.createElement('a')
+                elink.download = fileName
+                elink.style.display = 'none'
+                elink.href = URL.createObjectURL(blob)
+                document.body.appendChild(elink)
+                elink.click()
+                URL.revokeObjectURL(elink.href) // 释放URL 对象
+                document.body.removeChild(elink)
+              } else {
+                // IE10+下载
+                navigator.msSaveOrOpenBlob(blob, fileName)
+              }
+            }
+          }
+        })
+        .catch(() => {
+          this.$Message.warning('Error')
+        })
     }
   }
 }
