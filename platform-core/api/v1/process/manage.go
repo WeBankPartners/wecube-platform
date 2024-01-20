@@ -595,6 +595,7 @@ func GetProcDefNodeParameters(c *gin.Context) {
 		startEventParams := prepareNodeParameters()
 		interfaceParameterList = append(interfaceParameterList, startEventParams...)
 		middleware.ReturnData(c, interfaceParameterList)
+		return
 	}
 	if strings.TrimSpace(procDefNode.ServiceName) == "" {
 		middleware.ReturnError(c, fmt.Errorf("node:%s serviceName is empty", nodeId))
