@@ -261,3 +261,40 @@ func RetrieveTemplate(c *gin.Context, reqParam *models.QueryRequestParam) (resul
 	result.Contents = templateData
 	return
 }
+
+func GetTemplate(c *gin.Context, templateId string) (result *models.BatchExecTemplateInfo, err error) {
+	result = &models.BatchExecTemplateInfo{}
+
+	var templateData []*models.BatchExecTemplateInfo
+	err = db.MysqlEngine.Context(c).Table(models.TableNameBatchExecTemplate).
+		Where("id = ?", templateId).
+		Find(&templateData)
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
+		return
+	}
+	if len(templateData) == 0 {
+		err = fmt.Errorf("templateId: %s is invalid", templateId)
+		return
+	}
+
+	result = templateData[0]
+	// filter permission roles
+	var templateRoleData []*models.BatchExecutionTemplateRole
+	err = db.MysqlEngine.Context(c).Table(models.TableNameBatchExecTemplateRole).
+		In("batch_execution_template_id", result.Id).
+		Find(&templateRoleData)
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
+		return
+	}
+
+	for _, roleData := range templateRoleData {
+		if roleData.Permission == models.PermissionTypeMGMT {
+			result.PermissionToRole.MGMT = append(result.PermissionToRole.MGMT, roleData.RoleName)
+		} else if roleData.Permission == models.PermissionTypeUSE {
+			result.PermissionToRole.USE = append(result.PermissionToRole.USE, roleData.RoleName)
+		}
+	}
+	return
+}

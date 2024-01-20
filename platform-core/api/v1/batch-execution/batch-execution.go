@@ -92,3 +92,24 @@ func RetrieveTemplate(c *gin.Context) {
 	}
 	return
 }
+
+func GetTemplate(c *gin.Context) {
+	defer try.ExceptionStack(func(e interface{}, err interface{}) {
+		retErr := fmt.Errorf("%v", err)
+		middleware.ReturnError(c, exterror.Catch(exterror.New().ServerHandleError, retErr))
+		log.Logger.Error(e.(string))
+	})
+
+	templateId := c.Param("templateId")
+	if templateId == "" {
+		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, fmt.Errorf("templateId is empty")))
+		return
+	}
+	retData, err := database.GetTemplate(c, templateId)
+	if err != nil {
+		middleware.ReturnError(c, err)
+	} else {
+		middleware.ReturnData(c, retData)
+	}
+	return
+}
