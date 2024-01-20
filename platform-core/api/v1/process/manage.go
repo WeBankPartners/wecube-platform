@@ -596,6 +596,10 @@ func GetProcDefNodeParameters(c *gin.Context) {
 		interfaceParameterList = append(interfaceParameterList, startEventParams...)
 		middleware.ReturnData(c, interfaceParameterList)
 	}
+	if strings.TrimSpace(procDefNode.ServiceName) == "" {
+		middleware.ReturnError(c, fmt.Errorf("node:%s serviceName is empty", nodeId))
+		return
+	}
 	pluginConfigInterfaces, err = fetchLatestPluginConfigInterfacesByServiceName(c, procDefNode.ServiceName)
 	if err != nil {
 		middleware.ReturnData(c, err)
