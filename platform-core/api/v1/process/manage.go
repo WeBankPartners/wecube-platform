@@ -729,6 +729,25 @@ func DeleteProcDefNodeLink(c *gin.Context) {
 	middleware.ReturnSuccess(c)
 }
 
+func GetProcDefNodeLink(c *gin.Context) {
+	var dto *models.ProcDefNodeLinkDto
+	procDefId := c.Param("proc-def-id")
+	linkId := c.Param("node-link-id")
+	if procDefId == "" || linkId == "" {
+		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, fmt.Errorf("procDefId or node-link-id is empty")))
+		return
+	}
+	nodeLink, err := database.GetProcDefNodeLink(c, procDefId, linkId)
+	if err != nil {
+		middleware.ReturnError(c, err)
+		return
+	}
+	if nodeLink != nil {
+		dto = models.ConvertProcDefNodeLink2Dto(nodeLink)
+	}
+	middleware.ReturnData(c, dto)
+}
+
 func prepareNodeParameters() []*models.InterfaceParameterDto {
 	predefineParams := make([]*models.InterfaceParameterDto, 0)
 
