@@ -27,7 +27,7 @@ const (
 	ProcDefNodeTypeStart        ProcDefNodeType = "start"        //开始
 	ProcDefNodeTypeEnd          ProcDefNodeType = "end"          //结束
 	ProcDefNodeTypeAbnormal     ProcDefNodeType = "abnormal"     //异常
-	ProcDefNodeTypeDecision     ProcDefNodeType = "decision"     //开始
+	ProcDefNodeTypeDecision     ProcDefNodeType = "decision"     //判断
 	ProcDefNodeTypeFork         ProcDefNodeType = "fork"         //分流
 	ProcDefNodeTypeMerge        ProcDefNodeType = "merge"        //汇聚
 	ProcDefNodeTypeHuman        ProcDefNodeType = "human"        //人工节点
