@@ -23,7 +23,7 @@ func GetAllRootMenus(ctx context.Context) (result []*models.MenuItemDto, err err
 // GetAllSysMenus 查询所有系统菜单
 func GetAllSysMenus(ctx context.Context) (result []*models.MenuItemDto, err error) {
 	var list []*models.MenuItems
-	err = db.MysqlEngine.Context(ctx).SQL("select * from menus_items").Find(&list)
+	err = db.MysqlEngine.Context(ctx).SQL("select * from menu_items").Find(&list)
 	if err != nil {
 		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
 		return
@@ -91,7 +91,7 @@ func GetMenuItemsByCode(ctx context.Context, code string) (result *models.MenuIt
 }
 
 func BuildPackageMenuItemDto(ctx context.Context, menus *models.PluginPackageMenus) *models.MenuItemDto {
-	result, err := GetMenuItemsByCode(ctx, menus.Code)
+	result, err := GetMenuItemsByCode(ctx, menus.Category)
 	if err != nil {
 		log.Logger.Error("Cannot find system menu item by package menus category", log.String("category", menus.Category))
 		return nil

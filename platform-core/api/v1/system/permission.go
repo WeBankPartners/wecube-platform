@@ -3,6 +3,8 @@ package system
 import (
 	"context"
 	"fmt"
+	"sort"
+
 	"github.com/WeBankPartners/go-common-lib/guid"
 	"github.com/WeBankPartners/wecube-platform/platform-core/api/middleware"
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/exterror"
@@ -11,7 +13,6 @@ import (
 	"github.com/WeBankPartners/wecube-platform/platform-core/services/database"
 	"github.com/WeBankPartners/wecube-platform/platform-core/services/remote"
 	"github.com/gin-gonic/gin"
-	"sort"
 )
 
 // GetAllUser 获取全量用户
@@ -118,7 +119,7 @@ func GetMenusByRoleId(c *gin.Context) {
 
 // GetUsersByRoleId 查询角色用户
 func GetUsersByRoleId(c *gin.Context) {
-	var result []*models.UserDto
+	var result = make([]*models.UserDto, 0)
 	roleId := c.Param("role-id")
 	response, err := remote.GetUsersByRoleId(roleId, c.GetHeader("Authorization"))
 	if err != nil {
@@ -133,8 +134,8 @@ func GetUsersByRoleId(c *gin.Context) {
 				Password: dto.Password,
 			})
 		}
-		middleware.ReturnData(c, result)
 	}
+	middleware.ReturnData(c, result)
 }
 
 // GrantRoleToUsers 修改用户角色
@@ -297,8 +298,9 @@ func GetRolesOfCurrentUser(c *gin.Context) {
 }
 
 func retrieveMenusByRoleId(ctx context.Context, roleId, userToken string) (roleMenuDto *models.RoleMenuDto, err error) {
+	roleMenuDto = &models.RoleMenuDto{}
 	var menuItemDtoList []*models.MenuItemDto
-	var roleRes models.QueryRolesResponse
+	var roleRes models.QuerySingleRolesResponse
 	var roleMenuEntities []*models.RoleMenu
 	var menuItemsEntity *models.MenuItems
 	var pluginPackageMenusEntities []*models.PluginPackageMenus
@@ -306,39 +308,44 @@ func retrieveMenusByRoleId(ctx context.Context, roleId, userToken string) (roleM
 	if err != nil {
 		return
 	}
-	if len(roleRes.Data) > 0 {
-		roleName := roleRes.Data[0].Name
-		roleMenuEntities, err = database.GetAllByRoleName(ctx, roleName)
+	roleName := roleRes.Data.Name
+	roleMenuEntities, err = database.GetAllByRoleName(ctx, roleName)
+	if err != nil {
+		return
+	}
+	roleMenuDto.RoleId = roleId
+	roleMenuDto.RoleName = roleName
+	for _, roleMenuEntity := range roleMenuEntities {
+		menuCode := roleMenuEntity.MenuCode
+		menuItemsEntity, err = database.GetMenuItemsByCode(ctx, menuCode)
 		if err != nil {
 			return
 		}
-		roleMenuDto.RoleId = roleId
-		roleMenuDto.RoleName = roleName
-		for _, roleMenuEntity := range roleMenuEntities {
-			menuCode := roleMenuEntity.MenuCode
-			menuItemsEntity, err = database.GetMenuItemsByCode(ctx, menuCode)
+		if menuItemsEntity != nil && menuItemsEntity.Id != "" {
+			log.Logger.Info(fmt.Sprintf("System menu was found.The menu code is:[%s]", menuCode))
+			menuItemDtoList = append(menuItemDtoList, buildMenuItemDto(menuItemsEntity))
+		} else {
+			pluginPackageMenusEntities, err = database.GetAllMenusByCodeAndPackageStatus(ctx, menuCode, []string{"REGISTERED", "RUNNING", "STOPPED"})
 			if err != nil {
 				return
 			}
-			if menuItemsEntity != nil && menuItemsEntity.Id != "" {
-				log.Logger.Info(fmt.Sprintf("System menu was found.The menu code is:[%s]", menuCode))
-				menuItemDtoList = append(menuItemDtoList, buildMenuItemDto(menuItemsEntity))
-			} else {
-				pluginPackageMenusEntities, err = database.GetAllMenusByCodeAndPackageStatus(ctx, menuCode, []string{"REGISTERED", "RUNNING", "STOPPED"})
-				if err != nil {
-					return
-				}
-				for _, pluginPackageMenusEntity := range pluginPackageMenusEntities {
-					log.Logger.Info(fmt.Sprintf("Plugin package menu was found.The menu code is:[%s]", menuCode))
-					dto := database.BuildPackageMenuItemDto(ctx, pluginPackageMenusEntity)
-					if dto != nil {
-						menuItemDtoList = append(menuItemDtoList, dto)
-					}
+			for _, pluginPackageMenusEntity := range pluginPackageMenusEntities {
+				log.Logger.Info(fmt.Sprintf("Plugin package menu was found.The menu code is:[%s]", menuCode))
+				dto := database.BuildPackageMenuItemDto(ctx, pluginPackageMenusEntity)
+				if dto != nil {
+					menuItemDtoList = append(menuItemDtoList, dto)
 				}
 			}
 		}
 	}
 	roleMenuDto.MenuList = menuItemDtoList
+	// 菜单需要排序
+	if len(roleMenuDto.MenuList) == 0 {
+		// 空数据给默认值
+		roleMenuDto.MenuList = make([]*models.MenuItemDto, 0)
+	} else {
+		sort.Sort(models.MenuItemDtoSort(roleMenuDto.MenuList))
+	}
 	return
 }
 
@@ -374,47 +381,45 @@ func updateRoleToMenusByRoleId(ctx context.Context, roleId, userToken string, me
 	if err != nil {
 		return
 	}
-	if len(roleRes.Data) > 0 {
-		roleName = roleRes.Data[0].Name
-		roleMenuList, err = database.GetAllByRoleName(ctx, roleName)
-		if err != nil {
-			return
-		}
-		for _, menu := range roleMenuList {
-			if _, ok := menuCodeMap[menu.MenuCode]; !ok {
-				// 删除 roleMenu
-				err = database.DeleteRoleMenuById(ctx, menu.Id)
-				if err != nil {
-					return
-				}
-				authoritiesToRevoke = append(authoritiesToRevoke, &models.SimpleAuthorityDto{Code: menu.MenuCode})
-			}
-			currentMenuCodeMap[menu.MenuCode] = true
-		}
-		if len(authoritiesToRevoke) > 0 {
-			err = remote.RevokeRoleAuthoritiesById(roleId, userToken, authoritiesToRevoke)
+	roleName = roleRes.Data.Name
+	roleMenuList, err = database.GetAllByRoleName(ctx, roleName)
+	if err != nil {
+		return
+	}
+	for _, menu := range roleMenuList {
+		if _, ok := menuCodeMap[menu.MenuCode]; !ok {
+			// 删除 roleMenu
+			err = database.DeleteRoleMenuById(ctx, menu.Id)
 			if err != nil {
 				return
 			}
+			authoritiesToRevoke = append(authoritiesToRevoke, &models.SimpleAuthorityDto{Code: menu.MenuCode})
 		}
-		for code, _ := range menuCodeMap {
-			if _, ok := currentMenuCodeMap[code]; !ok {
-				log.Logger.Info(fmt.Sprintf("create menus:[%s]", code))
-				roleMenu := models.RoleMenu{
-					Id:       guid.CreateGuid(),
-					RoleName: code,
-					MenuCode: roleName,
-				}
-				err = database.AddRoleMenu(ctx, roleMenu)
-				if err != nil {
-					return
-				}
-				needAddAuthoritiesToGrantList = append(needAddAuthoritiesToGrantList, &models.SimpleAuthorityDto{Code: code})
+		currentMenuCodeMap[menu.MenuCode] = true
+	}
+	if len(authoritiesToRevoke) > 0 {
+		err = remote.RevokeRoleAuthoritiesById(roleId, userToken, authoritiesToRevoke)
+		if err != nil {
+			return
+		}
+	}
+	for code, _ := range menuCodeMap {
+		if _, ok := currentMenuCodeMap[code]; !ok {
+			log.Logger.Info(fmt.Sprintf("create menus:[%s]", code))
+			roleMenu := models.RoleMenu{
+				Id:       guid.CreateGuid(),
+				RoleName: code,
+				MenuCode: roleName,
 			}
+			err = database.AddRoleMenu(ctx, roleMenu)
+			if err != nil {
+				return
+			}
+			needAddAuthoritiesToGrantList = append(needAddAuthoritiesToGrantList, &models.SimpleAuthorityDto{Code: code})
 		}
-		if len(needAddAuthoritiesToGrantList) > 0 {
-			err = remote.ConfigureRoleWithAuthoritiesById(roleId, userToken, needAddAuthoritiesToGrantList)
-		}
+	}
+	if len(needAddAuthoritiesToGrantList) > 0 {
+		err = remote.ConfigureRoleWithAuthoritiesById(roleId, userToken, needAddAuthoritiesToGrantList)
 	}
 	return
 }
