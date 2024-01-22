@@ -268,3 +268,5 @@ export const flowCopy = (flowId, association) =>
 export const getSourceNode = flowId => req.get(`platform/v1/process/definitions/${flowId}/tasknodes/briefs`)
 export const flowExport = data => req.post(`platform/v1/process/definitions/export`, data)
 export const flowImport = data => req.post(`platform/v1/process/definitions/import`, data)
+export const getNodeDetailById = (flowId, nodeId) =>
+  req.get(`platform/v1/process/definitions/${flowId}/tasknodes/${nodeId}`)

@@ -310,7 +310,7 @@ export default {
           dynamicBind: false, // 动态绑定
           bindNodeId: null, // 动态绑定关联节点id
           nodeType: '', // 节点类型，对应节点原始类型（start、end……
-          routineExpression: 'wecmdb:subsystem', // 对应节点中的定位规则
+          routineExpression: '', // 对应节点中的定位规则
           routineRaw: null, // 还未知作用
           serviceName: null, // 选择的插件名称
           riskCheck: true, // 高危检测
@@ -427,163 +427,7 @@ export default {
     // 改变插件时的响应
     changePluginInterfaceList (plugin) {
       if (plugin) {
-        // const findPluginDetail = this.filteredPlugins.find(p => p.serviceName === plugin)
-        // console.log(plugin, findPluginDetail)
-        const findPluginDetail = {
-          id: 'u16Qfy0Q44Y1',
-          pluginConfigId: 'u16QfxVQ44XE',
-          action: 'operation',
-          serviceName: 'wecmdb/ci-data(confirm)/operation',
-          serviceDisplayName: 'wecmdb/ci-data(confirm)/operation',
-          path: '/wecmdb/plugin/ci-data/operation',
-          httpMethod: 'POST',
-          isAsyncProcessing: 'N',
-          filterRule: '',
-          description: null,
-          type: 'EXECUTION',
-          inputParameters: [
-            {
-              id: 'u16Qfy2Q44ZG',
-              pluginConfigInterfaceId: 'u16Qfy0Q44Y1',
-              type: 'INPUT',
-              name: 'ciType',
-              dataType: 'string',
-              mappingType: 'constant',
-              mappingEntityExpression: '',
-              mappingSystemVariableName: null,
-              required: 'Y',
-              sensitiveData: 'N',
-              description: null,
-              mappingValue: null,
-              multiple: null,
-              refObjectName: null,
-              refObjectMeta: null
-            },
-            {
-              id: 'u16Qfy2Q4507',
-              pluginConfigInterfaceId: 'u16Qfy0Q44Y1',
-              type: 'INPUT',
-              name: 'operation',
-              dataType: 'string',
-              mappingType: 'system_variable',
-              mappingEntityExpression: '',
-              mappingSystemVariableName: 'WECMDB_CONFIRM',
-              required: 'Y',
-              sensitiveData: 'N',
-              description: null,
-              mappingValue: null,
-              multiple: null,
-              refObjectName: null,
-              refObjectMeta: null
-            },
-            {
-              id: 'u16Qfy3Q4516',
-              pluginConfigInterfaceId: 'u16Qfy0Q44Y1',
-              type: 'INPUT',
-              name: 'jsonData',
-              dataType: 'string',
-              mappingType: 'context',
-              mappingEntityExpression: '',
-              mappingSystemVariableName: null,
-              required: 'Y',
-              sensitiveData: 'N',
-              description: null,
-              mappingValue: null,
-              multiple: null,
-              refObjectName: null,
-              refObjectMeta: null
-            }
-          ],
-          outputParameters: [
-            {
-              id: 'u16Qfy4Q452t',
-              pluginConfigInterfaceId: 'u16Qfy0Q44Y1',
-              type: 'OUTPUT',
-              name: 'errorCode',
-              dataType: 'string',
-              mappingType: 'context',
-              mappingEntityExpression: null,
-              mappingSystemVariableName: null,
-              required: null,
-              sensitiveData: 'N',
-              description: null,
-              mappingValue: null,
-              multiple: null,
-              refObjectName: null,
-              refObjectMeta: null
-            },
-            {
-              id: 'u16Qfy5Q453X',
-              pluginConfigInterfaceId: 'u16Qfy0Q44Y1',
-              type: 'OUTPUT',
-              name: 'errorMessage',
-              dataType: 'string',
-              mappingType: 'context',
-              mappingEntityExpression: null,
-              mappingSystemVariableName: null,
-              required: null,
-              sensitiveData: 'N',
-              description: null,
-              mappingValue: null,
-              multiple: null,
-              refObjectName: null,
-              refObjectMeta: null
-            },
-            {
-              id: 'u16Qfy5Q454a',
-              pluginConfigInterfaceId: 'u16Qfy0Q44Y1',
-              type: 'OUTPUT',
-              name: 'guid',
-              dataType: 'string',
-              mappingType: 'context',
-              mappingEntityExpression: null,
-              mappingSystemVariableName: null,
-              required: null,
-              sensitiveData: 'N',
-              description: null,
-              mappingValue: null,
-              multiple: null,
-              refObjectName: null,
-              refObjectMeta: null
-            }
-          ],
-          configurableInputParameters: [
-            {
-              id: 'u16Qfy2Q44ZG',
-              pluginConfigInterfaceId: 'u16Qfy0Q44Y1',
-              type: 'INPUT',
-              name: 'ciType',
-              dataType: 'string',
-              mappingType: 'constant',
-              mappingEntityExpression: '',
-              mappingSystemVariableName: null,
-              required: 'Y',
-              sensitiveData: 'N',
-              description: null,
-              mappingValue: null,
-              multiple: null,
-              refObjectName: null,
-              refObjectMeta: null
-            },
-            {
-              id: 'u16Qfy3Q4516',
-              pluginConfigInterfaceId: 'u16Qfy0Q44Y1',
-              type: 'INPUT',
-              name: 'jsonData',
-              dataType: 'string',
-              mappingType: 'context',
-              mappingEntityExpression: '',
-              mappingSystemVariableName: null,
-              required: 'Y',
-              sensitiveData: 'N',
-              description: null,
-              mappingValue: null,
-              multiple: null,
-              refObjectName: null,
-              refObjectMeta: null
-            }
-          ]
-        }
+        const findPluginDetail = this.filteredPlugins.find(p => p.serviceName === plugin)
         this.itemCustomInfo.customAttrs.paramInfos = {}
         if (findPluginDetail) {
           let needParams = findPluginDetail.configurableInputParameters.filter(
@@ -642,12 +486,10 @@ export default {
       if (status === 'OK') {
         this.filteredPlugins = data
       }
-      // this.routineExpressionCache = path
     },
     // 设置被预选中的节点
     prevCtxNodeChange (val) {
       this.canSelectNode = this.nodeList.filter(n => val.includes(n.nodeId))
-      console.log(33, val, this.canSelectNode)
     },
     // 改变节点及参数类型获取参数名
     onParamsNodeChange (index) {
@@ -664,13 +506,13 @@ export default {
       }
     },
     mgmtParamInfos () {
-      console.log(11, this.itemCustomInfo.customAttrs.paramInfos)
       const paramInfos = this.itemCustomInfo.customAttrs.paramInfos
-      paramInfos.forEach((p, pIndex) => {
-        if (p.bindType === 'context') {
-          this.getParamsOptionsByNode(pIndex)
-        }
-      })
+      paramInfos &&
+        paramInfos.forEach((p, pIndex) => {
+          if (p.bindType === 'context') {
+            this.getParamsOptionsByNode(pIndex)
+          }
+        })
     },
     // 获取可选根节点
     async getRootNode () {
