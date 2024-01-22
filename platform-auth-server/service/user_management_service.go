@@ -153,7 +153,7 @@ func convertToSimpleLocalUserDto(user *model.SysUserEntity) *model.SimpleLocalUs
 	}
 }
 
-//@Transactional
+// @Transactional
 func (UserManagementService) RevokeRoleFromUsers(roleId string, userDtos []*model.SimpleLocalUserDto, curUser string) error {
 	session := db.Engine.NewSession()
 	session.Begin()
@@ -203,7 +203,7 @@ func (UserManagementService) RevokeRoleFromUsers(roleId string, userDtos []*mode
 	return nil
 }
 
-//@Transactional
+// @Transactional
 func (UserManagementService) ConfigureUserWithRoles(userId string, roleDtos []*model.SimpleLocalRoleDto, curUser string) error {
 	session := db.Engine.NewSession()
 	session.Begin()
@@ -332,7 +332,7 @@ func findFromUserRoles(existUserRoles []*model.UserRoleRsEntity, roleId string) 
 	return remainUserRoles
 }
 
-//@Transactional
+// @Transactional
 func (UserManagementService) RevokeRolesFromUser(userId string, roleDtos []*model.SimpleLocalRoleDto, curUser string) error {
 	session := db.Engine.NewSession()
 	session.Begin()
@@ -384,7 +384,7 @@ func (UserManagementService) RevokeRolesFromUser(userId string, roleDtos []*mode
 	return nil
 }
 
-//@Transactional
+// @Transactional
 func (UserManagementService) ConfigureRoleForUsers(roleId string, userDtos []*model.SimpleLocalUserDto, curUser string) error {
 	session := db.Engine.NewSession()
 	session.Begin()
@@ -726,14 +726,14 @@ func (UserManagementService) RetrieveAllActiveUsers() ([]*model.SimpleLocalUserD
 
 					userDto.AddRoles([]*model.SimpleLocalRoleDto{roleDto})
 				}
-				result = append(result, userDto)
 			}
 		}
+		result = append(result, userDto)
 	}
 	return result, nil
 }
 
-//@Transactional
+// @Transactional
 func (UserManagementService) UnregisterLocalUser(userId string, curUser string) error {
 	session := db.Engine.NewSession()
 	session.Begin()
