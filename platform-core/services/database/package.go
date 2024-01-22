@@ -498,6 +498,21 @@ func GetPluginInstance(pluginInstanceId string) (pluginInstance *models.PluginIn
 	return
 }
 
+func GetPluginDockerRunningResource(dockerInstanceResourceId string) (pluginInstance *models.ResourceServer, err error) {
+	var resourceServerRows []*models.ResourceServer
+	err = db.MysqlEngine.SQL("select id,name,host,login_username,login_password,port,login_mode,is_allocated from resource_server where id in (select resource_server_id from resource_item where id=?)", dockerInstanceResourceId).Find(&resourceServerRows)
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
+		return
+	}
+	if len(resourceServerRows) == 0 {
+		err = exterror.Catch(exterror.New().DatabaseQueryEmptyError, fmt.Errorf("resource_server"))
+		return
+	}
+	pluginInstance = resourceServerRows[0]
+	return
+}
+
 func RemovePlugin(ctx context.Context, pluginPackageId, pluginInstanceId string) (err error) {
 	queryResult, queryErr := db.MysqlEngine.QueryString("select id from plugin_instances where package_id=?", pluginPackageId)
 	if queryErr != nil {
