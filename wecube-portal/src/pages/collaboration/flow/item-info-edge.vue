@@ -63,13 +63,16 @@ export default {
     hideItem () {
       if (this.isParmasChanged) {
         this.$Modal.confirm({
-          title: '放弃修改',
+          title: this.$t('confirm_discarding_changes') + 'edge',
+          content: this.$t('params_edit_confirm'),
           'z-index': 1000000,
           onOk: async () => {
             this.$emit('hideItemInfo')
           },
           onCancel: () => {}
         })
+      } else {
+        this.$emit('hideItemInfo')
       }
     },
     // 监听参数变化
