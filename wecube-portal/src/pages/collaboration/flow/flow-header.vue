@@ -19,14 +19,14 @@
           <Icon type="ios-person-outline" size="16"></Icon>
           {{ $t('config_permission') }}
         </Button>
-        <Button
+        <!-- <Button
           type="error"
           v-if="['draft'].includes(itemCustomInfo.status)"
           @click="changeStatus('deleted', 'delete')"
         >
           <Icon type="ios-trash-outline" size="16"></Icon>
           {{ $t('delete') }}
-        </Button>
+        </Button> -->
         <Button
           type="error"
           v-if="['deployed'].includes(itemCustomInfo.status)"

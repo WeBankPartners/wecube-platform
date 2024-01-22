@@ -10,13 +10,13 @@
         <Input
           v-model="itemCustomInfo.label"
           style="width: 85%"
-          @on-change="versionChange"
+          @on-change="paramsChanged"
           :disable="!itemCustomInfo.enableModifyName"
         ></Input>
         <span :style="nameLen > 30 ? 'color:red' : ''">{{ nameLen }}/30</span>
       </FormItem>
       <FormItem label="版本" prop="version">
-        <InputNumber :min="1" disabled v-model="itemCustomInfo.version" @on-change="versionChange"></InputNumber>
+        <InputNumber :min="1" disabled v-model="itemCustomInfo.version"></InputNumber>
       </FormItem>
       <FormItem label="操作对象类型" prop="rootEntity">
         <FilterRules
@@ -26,6 +26,7 @@
           style="width: 100%"
         ></FilterRules>
       </FormItem>
+      <!-- @on-change="paramsChanged" -->
       <FormItem label="授权插件" prop="authPlugins" style="margin-top: 22px">
         <Select v-model="itemCustomInfo.authPlugins" filterable multiple>
           <Option v-for="item in authPluginList" :value="item" :key="item">{{ item }} </Option>
@@ -144,7 +145,7 @@ export default {
     hideItem () {
       if (this.isParmasChanged) {
         this.$Modal.confirm({
-          title: this.$t('confirm_discarding_changes'),
+          title: this.$t('confirm_discarding_changes') + 'canvas',
           content: this.$t('params_edit_confirm'),
           'z-index': 1000000,
           onOk: async () => {
@@ -166,7 +167,7 @@ export default {
     },
     onEntitySelect (v) {
       this.itemCustomInfo.rootEntity = v || ''
-      this.isParmasChanged = true
+      this.paramsChanged()
     },
 
     // 获取插件列表
@@ -174,13 +175,6 @@ export default {
       let { data, status } = await getPluginList()
       if (status === 'OK') {
         this.authPluginList = data
-      }
-    },
-
-    // 解决选中清空数字输入框后显示空的问题
-    versionChange (version) {
-      if (version === null) {
-        this.itemCustomInfo.version = 1
       }
     },
     // 监听参数变化
