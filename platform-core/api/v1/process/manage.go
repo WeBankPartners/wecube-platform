@@ -384,8 +384,8 @@ func DeployProcessDefinition(c *gin.Context) {
 		return
 	}
 	// 检查节点的合法性
-	if !checkProcDefNode(c, procDefId) {
-		middleware.ReturnError(c, fmt.Errorf("procDef start and end nodeType more than one"))
+	if !checkDeployedProcDefNode(c, procDefId) {
+		middleware.ReturnError(c, fmt.Errorf("procDef deployed node check fail"))
 		return
 	}
 	// @todo 计算编排节点顺序
@@ -1022,25 +1022,92 @@ func processDefinitionImport(ctx context.Context, inputList []*models.ProcessDef
 	return
 }
 
-// checkProcDefNode  一个编排只能有个一个开始节点和一个结束节点
-func checkProcDefNode(ctx context.Context, procDefId string) bool {
-	var startCount, endCount int
-	list, err := database.GetSimpleProcDefNodeByProcDefId(ctx, procDefId)
+/*
+*
+checkDeployedProcDefNode
+发布的时候检测
+1、分流必须单进多出
+2、汇聚必须多进单出
+3、线的两边不能都是分流或汇聚
+4、除 分流、汇聚、判断 这三种节点外，其它所有节点必须有单进单出(开始和结束特殊)
+5、不能有环路
+6. 开始结束节点都不超过一个
+*/
+func checkDeployedProcDefNode(ctx context.Context, procDefId string) bool {
+	var startNodeCount, endNodeCount, inCount, outCount int
+	var list []*models.ProcDefNode
+	var linkList []*models.ProcDefNodeLink
+	var err error
+	var nodeTypeMap = make(map[string]string)
+	// 是否有单进单出
+	var hasSingleInOut bool
+	list, err = database.GetSimpleProcDefNodeByProcDefId(ctx, procDefId)
+	linkList, err = database.GetProcDefNodeLinkListByProcDefId(ctx, procDefId)
 	if err != nil {
 		return false
 	}
 	if len(list) == 0 {
 		return true
 	}
+
+	if len(linkList) == 0 {
+		linkList = make([]*models.ProcDefNodeLink, 0)
+	}
 	for _, node := range list {
-		if node.NodeType == "start" {
-			startCount++
-		} else if node.NodeType == "end" {
-			endCount++
+		inCount = 0
+		outCount = 0
+		nodeTypeMap[node.Id] = node.NodeType
+		for _, link := range linkList {
+			if link.Source == node.Id {
+				outCount++
+			} else if link.Target == node.Id {
+				inCount++
+			}
+		}
+		switch models.ProcDefNodeType(node.NodeType) {
+		case models.ProcDefNodeTypeStart:
+			startNodeCount++
+		case models.ProcDefNodeTypeEnd:
+			endNodeCount++
+		case models.ProcDefNodeTypeFork:
+			// 分流必须单进多出
+			if !(inCount == 1 && outCount > 1) {
+				log.Logger.Info("checkDeployedProcDefNode fail,fork node is invalid", log.String("procDefId", procDefId),
+					log.String("nodeId", node.NodeId))
+				return false
+			}
+		case models.ProcDefNodeTypeMerge:
+			// 汇聚必须多进单出
+			if !(inCount > 1 && outCount == 1) {
+				log.Logger.Info("checkDeployedProcDefNode fail,merge node is invalid", log.String("procDefId", procDefId),
+					log.String("nodeId", node.NodeId))
+				return false
+			}
+		case models.ProcDefNodeTypeDecision:
+		default:
+			if inCount == 1 && outCount == 1 {
+				hasSingleInOut = true
+			}
 		}
 	}
-	if startCount > 1 || endCount > 1 {
+	// 开始，结束节点都不超过1个
+	if startNodeCount > 1 || endNodeCount > 1 {
+		log.Logger.Info("checkDeployedProcDefNode fail,startNodeCount or  endNodeCount more than one", log.String("procDefId", procDefId))
 		return false
+	}
+	if !hasSingleInOut {
+		log.Logger.Info("checkDeployedProcDefNode fail,hasSingleInOut is false", log.String("procDefId", procDefId))
+		return false
+	}
+	// 线的两边不能都是分流或汇聚
+	for _, link := range linkList {
+		if v, ok := nodeTypeMap[link.Source]; ok {
+			if (v == string(models.ProcDefNodeTypeMerge) || v == string(models.ProcDefNodeTypeFork)) && v == nodeTypeMap[link.Target] {
+				log.Logger.Info("checkDeployedProcDefNode fail,link is invalid", log.String("procDefId", procDefId),
+					log.String("linkId", link.LinkId))
+				return false
+			}
+		}
 	}
 	return true
 }
