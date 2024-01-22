@@ -20,7 +20,7 @@ func GetRequestRoles(c *gin.Context) []string {
 func AuthToken(c *gin.Context) {
 	err := authRequest(c)
 	if err != nil {
-		ReturnError(c, exterror.Catch(exterror.New().RequestTokenValidateError, err))
+		ReturnAuthError(c, exterror.Catch(exterror.New().RequestTokenValidateError, err), c.GetHeader(models.AuthorizationHeader))
 		c.Abort()
 	} else {
 		c.Next()
