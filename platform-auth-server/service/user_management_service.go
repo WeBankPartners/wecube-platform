@@ -55,8 +55,7 @@ func doResetLocalUserPassword(username string) (string, error) {
 		return "", err
 	}
 	user.Password = encodedNewPassword
-
-	if cnt, err := db.Engine.Insert(user); cnt == 0 || err != nil {
+	if cnt, err := db.Engine.Update(user); cnt == 0 || err != nil {
 		if err != nil {
 			log.Logger.Error("failed to insert user", log.Error(err))
 		}
