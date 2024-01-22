@@ -4,7 +4,9 @@ import "time"
 
 type BatchExecution struct {
 	Id                       string     `json:"id" xorm:"id"`                                                // 唯一标识
+	Name                     string     `json:"name"`                                                        // 名称
 	BatchExecutionTemplateId string     `json:"batchExecutionTemplateId" xorm:"batch_execution_template_id"` // 模板id
+	ErrorCode                string     `json:"errorCode" xorm:"error_code"`                                 // 错误码, 0:成功, 1:失败
 	CreatedBy                string     `json:"createdBy" xorm:"created_by"`                                 // 创建者
 	UpdatedBy                string     `json:"updatedBy" xorm:"updated_by"`                                 // 更新者
 	CreatedTime              *time.Time `json:"createdTime" xorm:"created_time"`                             // 创建时间
@@ -24,7 +26,7 @@ type BatchExecutionJobs struct {
 	RootEntityId            string     `json:"rootEntityId" xorm:"root_entity_id"`                        // 根实体id
 	ExecuteTime             *time.Time `json:"executeTime" xorm:"execute_time"`                           // 执行时间
 	CompleteTime            *time.Time `json:"completeTime" xorm:"complete_time"`                         // 完成时间
-	ErrorCode               string     `json:"errorCode" xorm:"error_code"`                               // 错误码
+	ErrorCode               string     `json:"errorCode" xorm:"error_code"`                               // 错误码, 0:成功, 1:失败
 	ErrorMessage            string     `json:"errorMessage" xorm:"error_message"`                         // 错误信息
 	InputJson               string     `json:"inputJson" xorm:"input_json"`                               // 输入json
 	ReturnJson              string     `json:"returnJson" xorm:"return_json"`                             // 输出json
@@ -83,4 +85,19 @@ type BatchExecTemplateInfo struct {
 type BatchExecTemplatePageData struct {
 	PageInfo PageInfo                 `json:"pageInfo"`
 	Contents []*BatchExecTemplateInfo `json:"contents"`
+}
+
+type BatchExecListPageData struct {
+	PageInfo PageInfo          `json:"pageInfo"`
+	Contents []*BatchExecution `json:"contents"`
+}
+
+type BatchExecutionInfo struct {
+	BatchExecution
+	BatchExecutionJobs []*BatchExecutionJobs `json:"batchExecutionJobs" xorm:"-"`
+}
+
+type BatchExecJobsPageData struct {
+	PageInfo PageInfo              `json:"pageInfo"`
+	Contents []*BatchExecutionJobs `json:"contents"`
 }

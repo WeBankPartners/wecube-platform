@@ -298,3 +298,108 @@ func GetTemplate(c *gin.Context, templateId string) (result *models.BatchExecTem
 	}
 	return
 }
+
+func RetrieveBatchExec(c *gin.Context, reqParam *models.QueryRequestParam) (result *models.BatchExecListPageData, err error) {
+	result = &models.BatchExecListPageData{PageInfo: models.PageInfo{}, Contents: []*models.BatchExecution{}}
+
+	var batchExecData []*models.BatchExecution
+	filterSql, _, queryParam := transFiltersToSQL(reqParam, &models.TransFiltersParam{IsStruct: true, StructObj: models.BatchExecution{}, PrimaryKey: "id"})
+	baseSql := db.CombineDBSql("SELECT * FROM ", models.TableNameBatchExec, " WHERE 1=1 ", filterSql)
+	baseCountSql := db.CombineDBSql("SELECT COUNT(*) FROM ", models.TableNameBatchExec, " WHERE 1=1 ", filterSql)
+	if reqParam.Paging {
+		var count int64
+		count, err = db.MysqlEngine.Context(c).Table(models.TableNameBatchExec).SQL(baseCountSql, queryParam...).Count()
+		if err != nil {
+			err = exterror.Catch(exterror.New().DatabaseQueryError, err)
+			return
+		}
+		result.PageInfo = models.PageInfo{StartIndex: reqParam.Pageable.StartIndex, PageSize: reqParam.Pageable.PageSize, TotalRows: int(count)}
+		pageSql, pageParam := transPageInfoToSQL(*reqParam.Pageable)
+		baseSql += pageSql
+		queryParam = append(queryParam, pageParam...)
+	}
+	err = db.MysqlEngine.Context(c).Table(models.TableNameBatchExec).SQL(baseSql, queryParam...).Find(&batchExecData)
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
+		return
+	}
+
+	result.Contents = batchExecData
+	return
+}
+
+func GetBatchExec(c *gin.Context, batchExecId string) (result *models.BatchExecutionInfo, err error) {
+	result = &models.BatchExecutionInfo{}
+
+	// get batchExecution
+	var batchExecData []*models.BatchExecutionInfo
+	err = db.MysqlEngine.Context(c).Table(models.TableNameBatchExec).
+		Where("id = ?", batchExecId).
+		Find(&batchExecData)
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
+		return
+	}
+
+	if len(batchExecData) == 0 {
+		err = fmt.Errorf("batchExecId: %s is invalid", batchExecId)
+		return
+	}
+	result = batchExecData[0]
+
+	// get batchExecutionJobs
+	batchExecJobsQueryParam := &models.QueryRequestParam{
+		Filters: []*models.QueryRequestFilterObj{
+			&models.QueryRequestFilterObj{
+				Name:     "batch_execution_id",
+				Operator: "eq",
+				Value:    result.Id,
+			},
+		},
+		Sorting: []*models.QueryRequestSorting{
+			&models.QueryRequestSorting{
+				Field: "execute_time",
+				Asc:   false,
+			},
+			&models.QueryRequestSorting{
+				Field: "id",
+				Asc:   true,
+			},
+		},
+	}
+	batchExecutionJobsPageData, err := RetrieveBatchExecJobs(c, batchExecJobsQueryParam)
+	if err != nil {
+		return
+	}
+	result.BatchExecutionJobs = batchExecutionJobsPageData.Contents
+	return
+}
+
+func RetrieveBatchExecJobs(c *gin.Context, reqParam *models.QueryRequestParam) (result *models.BatchExecJobsPageData, err error) {
+	result = &models.BatchExecJobsPageData{PageInfo: models.PageInfo{}, Contents: []*models.BatchExecutionJobs{}}
+
+	var batchExecJobsData []*models.BatchExecutionJobs
+	filterSql, _, queryParam := transFiltersToSQL(reqParam, &models.TransFiltersParam{IsStruct: true, StructObj: models.BatchExecutionJobs{}, PrimaryKey: "id"})
+	baseSql := db.CombineDBSql("SELECT * FROM ", models.TableNameBatchExecJobs, " WHERE 1=1 ", filterSql)
+	baseCountSql := db.CombineDBSql("SELECT COUNT(*) FROM ", models.TableNameBatchExecJobs, " WHERE 1=1 ", filterSql)
+	if reqParam.Paging {
+		var count int64
+		count, err = db.MysqlEngine.Context(c).Table(models.TableNameBatchExecJobs).SQL(baseCountSql, queryParam...).Count()
+		if err != nil {
+			err = exterror.Catch(exterror.New().DatabaseQueryError, err)
+			return
+		}
+		result.PageInfo = models.PageInfo{StartIndex: reqParam.Pageable.StartIndex, PageSize: reqParam.Pageable.PageSize, TotalRows: int(count)}
+		pageSql, pageParam := transPageInfoToSQL(*reqParam.Pageable)
+		baseSql += pageSql
+		queryParam = append(queryParam, pageParam...)
+	}
+	err = db.MysqlEngine.Context(c).Table(models.TableNameBatchExecJobs).SQL(baseSql, queryParam...).Find(&batchExecJobsData)
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
+		return
+	}
+
+	result.Contents = batchExecJobsData
+	return
+}
