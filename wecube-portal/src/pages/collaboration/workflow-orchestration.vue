@@ -26,7 +26,7 @@
       </Transition>
       <Transition appear>
         <ItemInfoNode
-          v-show="itemInfoType === 'node'"
+          v-if="itemInfoType === 'node'"
           ref="itemInfoNodeRef"
           @sendItemInfo="setNodeInfo"
           @hideItemInfo="() => (itemInfoType = '')"
@@ -182,7 +182,7 @@ export default {
             customAttrs.timeConfig = JSON.parse(customAttrs.timeConfig)
           }
           let selfAttrs = JSON.parse(n.selfAttrs)
-          selfAttrs.logoIcon.img = ''
+          // selfAttrs.logoIcon.img = ''
           return {
             ...selfAttrs,
             customAttrs: customAttrs
@@ -228,6 +228,7 @@ export default {
                 if (id) {
                   vm[id](item)
                 }
+                vm.$refs.itemInfoCanvasRef.showItemInfo(vm.procDef)
               }
             },
             onCancel: () => {}
@@ -261,18 +262,18 @@ export default {
         },
         // 覆盖全局样式
         nodeStateStyles: {
-          // 'nodeState:default': {
-          //   opacity: 1,
-          //   stroke: '#aab7c3'
-          // },
-          // 'nodeState:hover': {
-          //   opacity: 0.8,
-          //   stroke: '#1890FF'
-          // },
-          // 'nodeState:selected': {
-          //   opacity: 0.9,
-          //   stroke: '#1890FF'
-          // }
+          'nodeState:default': {
+            opacity: 1,
+            stroke: '#aab7c3'
+          },
+          'nodeState:hover': {
+            opacity: 0.8,
+            stroke: '#1890FF'
+          },
+          'nodeState:selected': {
+            opacity: 0.9,
+            stroke: '#1890FF'
+          }
         },
         // 默认边不同状态下的样式集合
         edgeStateStyles: {
@@ -358,11 +359,17 @@ export default {
 
       this.graph.on('after-node-selected', e => {
         if (this.isExecutionAllowed()) return
-        if (e && e.item) {
-          const model = e.item.get('model')
-          this.itemInfoType = 'node'
-          this.$refs.itemInfoNodeRef.showItemInfo(model)
-        }
+        this.itemInfoType = ''
+        this.$nextTick(() => {
+          if (e && e.item) {
+            const model = e.item.get('model')
+            this.itemInfoType = 'node'
+            this.$nextTick(() => {
+              this.$refs.itemInfoNodeRef &&
+                this.$refs.itemInfoNodeRef.showItemInfo(model, false, this.procDef.rootEntity)
+            })
+          }
+        })
       })
 
       this.graph.on('on-node-mouseenter', e => {
@@ -492,9 +499,11 @@ export default {
 
       // 注册画布点击事件
       this.graph.on('canvas:click', e => {
-        if (this.isExecutionAllowed()) return
-        this.itemInfoType = 'canvas'
-        this.$refs.itemInfoCanvasRef.showItemInfo(this.procDef)
+        this.$nextTick(() => {
+          if (this.isExecutionAllowed()) return
+          this.itemInfoType = 'canvas'
+          this.$refs.itemInfoCanvasRef.showItemInfo(this.procDef)
+        })
       })
     },
     deleteNode (item) {
@@ -509,15 +518,27 @@ export default {
         this.$Message.warning(this.$t('start_node_warning'))
         return
       }
+      const id = `pdef_node_${this.uuid(16, 16)}`
       const model = {
-        id: `pdef_node_${this.uuid(16, 16)}`,
+        id,
         label,
         // 形状
         type: shape,
         customAttrs: {
-          procDefId: this.procDef.id,
-          procDefKey: this.procDef.key,
-          nodeType, // 标记节点类型，后端需要的字段
+          id,
+          name: label,
+          procDefId: this.procDef.id, // 对应编排信息
+          procDefKey: this.procDef.key, // 对应编排信息
+          timeout: 30, // 超时时间
+          description: null, // 描述说明
+          dynamicBind: false, // 动态绑定
+          bindNodeId: null, // 动态绑定关联节点id
+          nodeType, // 节点类型，对应节点原始类型（start、end……
+          routineExpression: '', // 对应节点中的定位规则
+          routineRaw: null, // 还未知作用
+          serviceName: null, // 选择的插件名称
+          riskCheck: true, // 高危检测
+          paramInfos: [], // 存在插件注册处需要填写的字段
           timeConfig: {
             duration: 0, // 时间间隔
             unit: 'sec', // 时间间隔单位
@@ -539,7 +560,9 @@ export default {
       }
       this.graph.addItem('node', model)
       this.itemInfoType = 'node'
-      this.$refs.itemInfoNodeRef.showItemInfo(model, true)
+      this.$nextTick(() => {
+        this.$refs.itemInfoNodeRef.showItemInfo(model, true, this.procDef.rootEntity)
+      })
     },
     uuid (len, radix) {
       let chars = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz'.split('')
