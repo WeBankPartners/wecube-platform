@@ -13,8 +13,8 @@ import (
 	"xorm.io/xorm"
 )
 
-func RemoteSSHCommand(targetIp, command string) (err error) {
-	commandString := fmt.Sprintf("sshpass -p '%s' ssh %s@%s -p %s '%s'", models.Config.StaticResource.Password, models.Config.StaticResource.User, targetIp, models.Config.StaticResource.Port, command)
+func RemoteSSHCommand(targetIp, user, pwd, port, command string) (err error) {
+	commandString := fmt.Sprintf("sshpass -p '%s' ssh %s@%s -p %s '%s'", pwd, user, targetIp, port, command)
 	_, err = exec.Command("/bin/bash", "-c", commandString).Output()
 	if err != nil {
 		err = fmt.Errorf("run remote ssh command to target %s fail,%s ", targetIp, err.Error())
@@ -23,24 +23,13 @@ func RemoteSSHCommand(targetIp, command string) (err error) {
 	return
 }
 
-func RemoteSCP(targetIp, localFile, targetPath string) (err error) {
-	commandString := fmt.Sprintf("sshpass -p '%s' scp -P %s %s %s@%s:%s", models.Config.StaticResource.Password, models.Config.StaticResource.Port, localFile, models.Config.StaticResource.User, targetIp, targetPath)
+func RemoteSCP(targetIp, user, pwd, port, localFile, targetPath string) (err error) {
+	commandString := fmt.Sprintf("sshpass -p '%s' scp -P %s %s %s@%s:%s", pwd, port, localFile, user, targetIp, targetPath)
 	_, err = exec.Command("/bin/bash", "-c", commandString).Output()
 	if err != nil {
 		err = fmt.Errorf("scp file %s to target %s fail,%s ", localFile, targetIp, err.Error())
 	}
 	return
-}
-
-func isStaticResource(targetIp string) bool {
-	matchFlag := false
-	for _, v := range strings.Split(models.Config.StaticResource.Servers, ",") {
-		if v == targetIp {
-			matchFlag = true
-			break
-		}
-	}
-	return matchFlag
 }
 
 func GetRemoteHostAvailablePort(resourceServer *models.ResourceServer) (port int, err error) {
