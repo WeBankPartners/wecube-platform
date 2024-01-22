@@ -10,7 +10,7 @@ import (
 const (
 	httpAuthServer = "http://106.52.160.142:8002"
 	// pathRetrieveAllUserAccounts 查询所有用户
-	pathRetrieveAllUserAccounts = "/auth/v1/user"
+	pathRetrieveAllUserAccounts = "/auth/v1/users"
 	// pathRetrieveAllRoles  查询所有角色
 	pathRetrieveAllRoles = "/auth/v1/roles?all=%s"
 	// pathRetrieveGrantedRolesByUsername 根据用户名查询角色
@@ -90,7 +90,7 @@ func GetRolesByUsername(username, userToken string) (response models.QueryRolesR
 }
 
 // RetrieveRoleInfo 根据roleId获取角色
-func RetrieveRoleInfo(roleId, userToken string) (response models.QueryRolesResponse, err error) {
+func RetrieveRoleInfo(roleId, userToken string) (response models.QuerySingleRolesResponse, err error) {
 	url := fmt.Sprintf(httpAuthServer+pathRetrieveRoleById, roleId)
 	byteArr, err := network.HttpGet(url, userToken)
 	if err != nil {
