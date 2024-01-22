@@ -18,7 +18,7 @@ func QueryProcessDefinitionList(ctx context.Context, param models.QueryProcessDe
 	var permissionList []*models.ProcDefPermission
 	var roleProcDefMap = make(map[string]map[string][]*models.ProcDefDto)
 	var userRolesMap = convertArray2Map(param.UserRoles)
-	var manageRoles, userRoles, allManageRoles []string
+	var manageRoles, userRoles, allManageRoles, sceneList []string
 	var enabledCreated bool
 	var queryParam []interface{}
 	var where string
@@ -83,12 +83,19 @@ func QueryProcessDefinitionList(ctx context.Context, param models.QueryProcessDe
 	// 角色排序
 	sort.Strings(allManageRoles)
 	for _, manageRole := range allManageRoles {
+		sceneList = []string{}
 		dataMap := roleProcDefMap[manageRole]
 		procDefQueryDto := &models.ProcDefQueryDto{
 			ManageRole: manageRole,
 			SceneData:  make([]*models.SceneData, 0),
 		}
-		for scene, data := range dataMap {
+		for scene, _ := range dataMap {
+			sceneList = append(sceneList, scene)
+		}
+		// 场景排序
+		sort.Strings(sceneList)
+		for _, scene := range sceneList {
+			data := dataMap[scene]
 			// 排序
 			sort.Sort(models.ProcDefDtoSort(data))
 			procDefQueryDto.SceneData = append(procDefQueryDto.SceneData, &models.SceneData{
