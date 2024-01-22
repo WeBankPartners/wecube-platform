@@ -3,6 +3,7 @@ package middleware
 import (
 	"fmt"
 	"github.com/WeBankPartners/go-common-lib/token"
+	"github.com/WeBankPartners/wecube-platform/platform-core/common/exterror"
 	"github.com/WeBankPartners/wecube-platform/platform-core/models"
 	"github.com/gin-gonic/gin"
 	"io"
@@ -19,7 +20,7 @@ func GetRequestRoles(c *gin.Context) []string {
 func AuthToken(c *gin.Context) {
 	err := authRequest(c)
 	if err != nil {
-		//ReturnTokenValidateError(c, err)
+		ReturnError(c, exterror.Catch(exterror.New().RequestTokenValidateError, err))
 		c.Abort()
 	} else {
 		c.Next()
