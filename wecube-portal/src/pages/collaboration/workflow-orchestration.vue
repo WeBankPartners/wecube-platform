@@ -217,14 +217,21 @@ export default {
           return outDiv
         },
         async handleMenuClick (target, item) {
-          const method = item._cfg.id.startsWith('pdef_node_') ? flowNodeDelete : flowEdgeDelete
-          const { status } = await method(vm.procDef.id, item._cfg.id)
-          if (status === 'OK') {
-            const { id } = target
-            if (id) {
-              vm[id](item)
-            }
-          }
+          vm.$Modal.confirm({
+            title: '删除',
+            content: '确认删除该元素吗？',
+            onOk: async () => {
+              const method = item._cfg.id.startsWith('pdef_node_') ? flowNodeDelete : flowEdgeDelete
+              const { status } = await method(vm.procDef.id, item._cfg.id)
+              if (status === 'OK') {
+                const { id } = target
+                if (id) {
+                  vm[id](item)
+                }
+              }
+            },
+            onCancel: () => {}
+          })
         }
       })
       // const minimap = new G6.Minimap({

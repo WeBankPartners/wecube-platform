@@ -434,7 +434,7 @@ export default {
           id: '',
           name: `编排_${dayjs().format('YYMMDDHHmmss')}`,
           version: '1',
-          scene: '',
+          scene: 'request',
           authPlugins: [],
           tags: '',
           conflictCheck: false,

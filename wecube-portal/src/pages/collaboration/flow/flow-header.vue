@@ -11,9 +11,9 @@
           <Icon type="ios-paper-plane-outline" size="16"></Icon>
           {{ $t('release_flow') }}
         </Button>
-        <Button type="success" v-if="['draft', 'deployed', 'disabled'].includes(itemCustomInfo.status)">
-          <Icon type="ios-download-outline" size="16"></Icon>
-          {{ $t('export') }}
+        <Button type="success" v-if="['deployed'].includes(itemCustomInfo.status)" @click="exportFlow">
+          <img src="../../../assets/icon/export.png" class="btn-img" alt="" />
+          {{ $t('export_flow') }}
         </Button>
         <Button type="info" v-if="['draft', 'deployed'].includes(itemCustomInfo.status)" @click="changePermission">
           <Icon type="ios-person-outline" size="16"></Icon>
@@ -51,8 +51,11 @@
 </template>
 
 <script>
+import axios from 'axios'
+import { getCookie } from '@/pages/util/cookie'
+import dayjs from 'dayjs'
 import FlowAuth from '@/pages/collaboration/flow/flow-auth.vue'
-import { flowStatusChange, flowRelease } from '@/api/server.js'
+import { flowBatchChangeStatus, flowRelease } from '@/api/server.js'
 export default {
   components: {
     FlowAuth
@@ -110,15 +113,83 @@ export default {
       }
     },
     async changeStatus (statusCode, actionTip) {
-      const params = {
-        procDefIds: [this.itemCustomInfo.id],
-        status: statusCode
+      const statusToTip = {
+        disabled: {
+          title: this.$t('disable'),
+          content: `确认禁用编排: [${this.itemCustomInfo.name}] 吗?`
+        },
+        deleted: {
+          title: this.$t('delete'),
+          content: `确认删除编排: [${this.itemCustomInfo.name}] 吗?`
+        },
+        enabled: {
+          title: this.$t('enable'),
+          content: `确认启用编排: [${this.itemCustomInfo.name}] 吗?`
+        }
       }
-      const { status } = await flowStatusChange(params)
-      if (status === 'OK') {
-        this.$Message.success(this.$t(actionTip) + this.$t('action_successful'))
-        this.$emit('updateFlowData', '')
+
+      this.$Modal.confirm({
+        title: statusToTip[statusCode].title,
+        content: statusToTip[statusCode].content,
+        onOk: async () => {
+          const data = {
+            procDefIds: [this.itemCustomInfo.id],
+            status: statusCode
+          }
+          let { status } = await flowBatchChangeStatus(data)
+          if (status === 'OK') {
+            this.$Message.success(this.$t(actionTip) + this.$t('action_successful'))
+            if (statusCode === 'deleted') {
+              this.$router.push({ path: '/collaboration/workflow' })
+            } else {
+              this.$emit('updateFlowData', '')
+            }
+          }
+        },
+        onCancel: () => {}
+      })
+    },
+    async exportFlow () {
+      const accessToken = getCookie('accessToken')
+      const headers = {
+        Authorization: 'Bearer ' + accessToken
       }
+      axios({
+        method: 'post',
+        url: `platform/v1/process/definitions/export`,
+        headers: headers,
+        data: {
+          procDefIds: this.itemCustomInfo.id
+        },
+        responseType: 'blob'
+      })
+        .then(response => {
+          if (response.status < 400) {
+            let fileName = `${this.itemCustomInfo.name}_${dayjs().format('YYMMDDHHmmss')}.json`
+            let blob = new Blob([response.data])
+            if ('msSaveOrOpenBlob' in navigator) {
+              window.navigator.msSaveOrOpenBlob(blob, fileName)
+            } else {
+              if ('download' in document.createElement('a')) {
+                // 非IE下载
+                let elink = document.createElement('a')
+                elink.download = fileName
+                elink.style.display = 'none'
+                elink.href = URL.createObjectURL(blob)
+                document.body.appendChild(elink)
+                elink.click()
+                URL.revokeObjectURL(elink.href) // 释放URL 对象
+                document.body.removeChild(elink)
+              } else {
+                // IE10+下载
+                navigator.msSaveOrOpenBlob(blob, fileName)
+              }
+            }
+          }
+        })
+        .catch(() => {
+          this.$Message.warning('Error')
+        })
     }
   }
 }
@@ -128,5 +199,10 @@ export default {
 .flow-name {
   line-height: 32px;
   cursor: pointer;
+}
+
+.btn-img {
+  width: 16px;
+  vertical-align: middle;
 }
 </style>
