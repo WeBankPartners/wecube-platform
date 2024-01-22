@@ -226,7 +226,6 @@ type ProcDefNodeCustomAttrsDto struct {
 	DynamicBind       bool                `json:"dynamicBind"`       // 是否动态绑定
 	BindNodeId        string              `json:"bindNodeId"`        // 动态绑定节点
 	RoutineExpression string              `json:"routineExpression"` // 定位规则
-	ServiceId         string              `json:"serviceId"`         // 插件服务ID
 	ServiceName       string              `json:"serviceName"`       // 插件服务名
 	RiskCheck         bool                `json:"riskCheck"`         // 是否高危检测
 	ParamInfos        []*ProcDefNodeParam `json:"paramInfos"`        // 节点参数
@@ -482,7 +481,6 @@ func ConvertProcDefNode2Dto(procDefNode *ProcDefNode, list []*ProcDefNodeParam) 
 			DynamicBind:       procDefNode.DynamicBind,
 			BindNodeId:        procDefNode.BindNodeId,
 			RoutineExpression: procDefNode.RoutineExpression,
-			ServiceId:         procDefNode.ServiceName,
 			ServiceName:       procDefNode.ServiceName,
 			RiskCheck:         procDefNode.RiskCheck,
 			ParamInfos:        list,
