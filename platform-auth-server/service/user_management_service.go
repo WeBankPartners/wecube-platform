@@ -54,12 +54,11 @@ func doResetLocalUserPassword(username string) (string, error) {
 		log.Logger.Error("failed to encode password", log.Error(err))
 		return "", err
 	}
-	user.Password = encodedNewPassword
-	if cnt, err := db.Engine.Update(user); cnt == 0 || err != nil {
+	if affected, err := db.Engine.ID(user.Id).Cols("password").Update(&model.SysUserEntity{Password: encodedNewPassword}); affected == 0 || err != nil {
 		if err != nil {
-			log.Logger.Error("failed to insert user", log.Error(err))
+			log.Logger.Error("failed to update user", log.Error(err))
 		}
-		return "", errors.New("failed to inser user")
+		return "", fmt.Errorf("failed to update user,err:%+v", err)
 	}
 
 	return ranPassword, nil
