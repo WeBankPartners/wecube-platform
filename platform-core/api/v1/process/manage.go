@@ -753,49 +753,49 @@ func prepareNodeParameters() []*models.InterfaceParameterDto {
 
 	// 1
 	predefineParams = append(predefineParams, &models.InterfaceParameterDto{
-		Type:     PluginDataTypeString,
+		Type:     PluginParamTypeInput,
 		Name:     ContextNameProcDefName,
-		DataType: PluginParamTypeInput,
+		DataType: PluginDataTypeString,
 	})
 
 	// 2
 	predefineParams = append(predefineParams, &models.InterfaceParameterDto{
-		Type:     PluginDataTypeString,
+		Type:     PluginParamTypeInput,
 		Name:     ContextNameProcDefKey,
-		DataType: PluginParamTypeInput,
+		DataType: PluginDataTypeString,
 	})
 	// 3
 	predefineParams = append(predefineParams, &models.InterfaceParameterDto{
-		Type:     PluginDataTypeString,
+		Type:     PluginParamTypeInput,
 		Name:     ContextNameProcInstId,
-		DataType: PluginParamTypeInput,
+		DataType: PluginDataTypeString,
 	})
 	// 4
 	predefineParams = append(predefineParams, &models.InterfaceParameterDto{
-		Type:     PluginDataTypeString,
+		Type:     PluginParamTypeInput,
 		Name:     ContextNameProcInstKey,
-		DataType: PluginParamTypeInput,
+		DataType: PluginDataTypeString,
 	})
 
 	// 5
 	predefineParams = append(predefineParams, &models.InterfaceParameterDto{
-		Type:     PluginDataTypeString,
+		Type:     PluginParamTypeInput,
 		Name:     ContextNameProcInstName,
-		DataType: PluginParamTypeInput,
+		DataType: PluginDataTypeString,
 	})
 
 	// 6
 	predefineParams = append(predefineParams, &models.InterfaceParameterDto{
-		Type:     PluginDataTypeString,
+		Type:     PluginParamTypeInput,
 		Name:     ContextNameRootEntityName,
-		DataType: PluginParamTypeInput,
+		DataType: PluginDataTypeString,
 	})
 
 	// 7
 	predefineParams = append(predefineParams, &models.InterfaceParameterDto{
-		Type:     PluginDataTypeString,
+		Type:     PluginParamTypeInput,
 		Name:     ContextNameRootEntityId,
-		DataType: PluginParamTypeInput,
+		DataType: PluginDataTypeString,
 	})
 
 	return predefineParams

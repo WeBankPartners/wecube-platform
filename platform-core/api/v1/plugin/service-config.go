@@ -114,13 +114,13 @@ func QueryPluginByTargetEntity(c *gin.Context) {
 		resultPluginConfigInterfaceDtoList = append(resultPluginConfigInterfaceDtoList, plugConfigInterfaceDtoList...)
 	}
 	if strings.TrimSpace(param.NodeType) != "" {
-		if param.NodeType == "human" {
+		if param.NodeType == string(models.ProcDefNodeTypeHuman) {
 			for _, interfaceDto := range resultPluginConfigInterfaceDtoList {
 				if strings.EqualFold(interfaceDto.Type, "APPROVAL") || strings.EqualFold(interfaceDto.Type, "DYNAMICFORM") {
 					finalResultPluginConfigInterfaceDtoList = append(finalResultPluginConfigInterfaceDtoList, interfaceDto)
 				}
 			}
-		} else if param.NodeType == "automatic" {
+		} else if param.NodeType == string(models.ProcDefNodeTypeAutomatic) {
 			for _, interfaceDto := range resultPluginConfigInterfaceDtoList {
 				if strings.EqualFold(interfaceDto.Type, "EXECUTION") {
 					finalResultPluginConfigInterfaceDtoList = append(finalResultPluginConfigInterfaceDtoList, interfaceDto)
