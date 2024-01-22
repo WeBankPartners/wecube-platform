@@ -141,12 +141,12 @@ func GetUsersByRoleId(c *gin.Context) {
 // GrantRoleToUsers 修改用户角色
 func GrantRoleToUsers(c *gin.Context) {
 	userId := c.Param("user-id")
-	var param models.RoleIdsParam
-	if err := c.ShouldBindJSON(&param); err != nil {
+	var roleIds []string
+	if err := c.ShouldBindJSON(&roleIds); err != nil {
 		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, err))
 		return
 	}
-	err := remote.ConfigureUserWithRoles(userId, c.GetHeader("Authorization"), param.RoleIds)
+	err := remote.ConfigureUserWithRoles(userId, c.GetHeader("Authorization"), roleIds)
 	if err != nil {
 		middleware.ReturnError(c, err)
 		return
