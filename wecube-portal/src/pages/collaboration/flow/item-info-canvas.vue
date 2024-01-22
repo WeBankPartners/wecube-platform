@@ -7,8 +7,13 @@
         <Input disabled v-model="itemCustomInfo.id"></Input>
       </FormItem>
       <FormItem label="编排名称" prop="label">
-        <Input v-model="itemCustomInfo.label" style="width: 85%" @on-change="versionChange"></Input>
-        <span :style="nameLen > 16 ? 'color:red' : ''">{{ nameLen }}/16</span>
+        <Input
+          v-model="itemCustomInfo.label"
+          style="width: 85%"
+          @on-change="versionChange"
+          :disable="!itemCustomInfo.enableModifyName"
+        ></Input>
+        <span :style="nameLen > 30 ? 'color:red' : ''">{{ nameLen }}/30</span>
       </FormItem>
       <FormItem label="版本" prop="version">
         <InputNumber :min="1" disabled v-model="itemCustomInfo.version" @on-change="versionChange"></InputNumber>
@@ -71,7 +76,7 @@ export default {
       ruleValidate: {
         label: [
           { required: true, message: 'label cannot be empty', trigger: 'blur' },
-          { type: 'string', max: 16, message: 'Label cannot exceed 16 words.', trigger: 'blur' }
+          { type: 'string', max: 30, message: 'Label cannot exceed 30 words.', trigger: 'blur' }
         ],
         authPlugins: [
           { required: true, type: 'array', min: 1, message: 'authPlugins at least one hobby', trigger: 'change' }
