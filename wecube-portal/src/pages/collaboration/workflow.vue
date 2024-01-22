@@ -23,7 +23,7 @@
       <Button
         type="info"
         class="btn-right"
-        v-if="['deployed'].includes(searchParams.status) && selectedParams.ids.length > 0"
+        :disabled="!(['deployed'].includes(searchParams.status) && selectedParams.ids.length > 0)"
         @click="exportFlow"
       >
         <img src="../../assets/icon/export.png" class="btn-img" alt="" />
@@ -33,7 +33,7 @@
         type="warning"
         class="btn-right"
         @click="batchAuth"
-        v-if="['deployed', 'draft'].includes(searchParams.status) && selectedParams.ids.length > 0"
+        :disabled="!(['deployed', 'draft'].includes(searchParams.status) && selectedParams.ids.length > 0)"
       >
         <Icon type="ios-person-outline" size="16"></Icon>
         {{ $t('config_permission') }}
@@ -42,14 +42,14 @@
         type="error"
         class="btn-right"
         @click="batchChangeStatus('deleted')"
-        v-if="['draft'].includes(searchParams.status) && selectedParams.ids.length > 0"
+        :disabled="!(['draft'].includes(searchParams.status) && selectedParams.ids.length > 0)"
       >
         <Icon type="ios-trash-outline" size="16"></Icon>
         {{ $t('delete') }}
       </Button>
       <Button
         type="error"
-        v-if="['deployed'].includes(searchParams.status) && selectedParams.ids.length > 0"
+        :disabled="!(['deployed'].includes(searchParams.status) && selectedParams.ids.length > 0)"
         @click="batchChangeStatus('disabled')"
       >
         <img src="../../assets/icon/disable.png" class="btn-img" />
@@ -308,7 +308,7 @@ export default {
                     type="primary"
                     size="small"
                   >
-                    {this.$t('复制编辑')}
+                    {this.$t('编辑')}
                   </Button>
                 )}
               </div>

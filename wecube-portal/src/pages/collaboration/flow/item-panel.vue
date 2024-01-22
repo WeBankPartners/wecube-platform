@@ -12,11 +12,11 @@
           data-shape="circle-node"
           fill="white"
           line-width="1"
-          stroke="#4ffa29"
+          stroke="#bbbbbb"
         >
           <img
             src="./icon/start.svg"
-            style="border: 1px solid #4ffa29; border-radius: 50%"
+            style="border: 1px solid #bbbbbb; border-radius: 50%"
             class="item-tool-icon"
             draggable="false"
           />
@@ -33,11 +33,11 @@
           data-shape="circle-node"
           fill="white"
           line-width="1"
-          stroke="#58ade1"
+          stroke="#bbbbbb"
         >
           <img
             src="./icon/end.svg"
-            style="border: 1px solid #58ade1; border-radius: 50%"
+            style="border: 1px solid #bbbbbb; border-radius: 50%"
             class="item-tool-icon"
             draggable="false"
           />
@@ -54,11 +54,11 @@
           data-shape="circle-node"
           fill="white"
           line-width="1"
-          stroke="#f36f84"
+          stroke="#bbbbbb"
         >
           <img
             src="./icon/abnormal.svg"
-            style="border: 1px solid #f36f84; border-radius: 50%"
+            style="border: 1px solid #bbbbbb; border-radius: 50%"
             class="item-tool-icon"
             draggable="false"
           />
@@ -80,7 +80,7 @@
           <div class="diamond-border">
             <img src="./icon/descision-panel.svg" class="item-tool-icon" draggable="false" />
           </div>
-          <div class="item-tool-name">判断</div>
+          <div class="diamond-item-tool-name">判断</div>
         </div>
       </Tooltip>
       <Tooltip content="Right Center text" placement="right" :delay="1000">
@@ -98,7 +98,7 @@
           <div class="diamond-border">
             <img src="./icon/merge-panel.svg" class="item-tool-icon" draggable="false" />
           </div>
-          <div class="item-tool-name">汇聚节点</div>
+          <div class="diamond-item-tool-name">汇聚节点</div>
         </div>
       </Tooltip>
       <Tooltip content="Right Center text" placement="right" :delay="1000">
@@ -116,7 +116,7 @@
           <div class="diamond-border">
             <img src="./icon/fork-panel.svg" class="item-tool-icon" draggable="false" />
           </div>
-          <div class="item-tool-name">分流节点</div>
+          <div class="diamond-item-tool-name">分流节点</div>
         </div>
       </Tooltip>
       <Tooltip content="Right Center text" placement="right" :delay="1000">
@@ -356,7 +356,7 @@ export default {
   .item-tool-icon {
     width: 24px;
     height: 24px;
-    margin-top: 4px;
+    margin-top: 8px;
   }
   .item-tool-name {
     font-size: 11px;
@@ -373,6 +373,7 @@ export default {
   height: 44px; /* 调整为你的图片尺寸 */
   overflow: hidden;
   padding: 4px;
+  bottom: 6px;
 }
 
 .diamond-border img {
@@ -388,5 +389,10 @@ export default {
   margin-left: -50%;
   border: 1px solid #bbb;
   padding: 3px;
+}
+.diamond-item-tool-name {
+  position: relative;
+  bottom: 8px;
+  font-size: 11px;
 }
 </style>
