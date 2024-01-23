@@ -398,7 +398,9 @@ CREATE TABLE `proc_def_collect` (
 
 CREATE TABLE `batch_execution` (
     `id` varchar(64) NOT NULL COMMENT '唯一标识',
+    `name` varchar(255) NOT NULL COMMENT '名称',
     `batch_execution_template_id` varchar(64) DEFAULT NULL COMMENT '模板id',
+    `error_code` varchar(1) NULL COMMENT '错误码, 0:成功, 1:失败',
     `created_by` varchar(64) NOT NULL COMMENT '创建者',
     `updated_by` varchar(64) NULL COMMENT '更新者',
     `created_time` datetime NOT NULL COMMENT '创建时间',
@@ -415,7 +417,7 @@ CREATE TABLE `batch_execution_jobs` (
     `root_entity_id` varchar(64) NOT NULL COMMENT '根实体id',
     `execute_time` datetime NOT NULL COMMENT '执行时间',
     `complete_time` datetime NULL COMMENT '完成时间',
-    `error_code` varchar(1)  NULL COMMENT '错误码',
+    `error_code` varchar(1) NULL COMMENT '错误码, 0:成功, 1:失败',
     `error_message` text NULL COMMENT '错误信息',
     `input_json` longtext NULL COMMENT '输入json',
     `return_json` longtext NULL COMMENT '输出json',
