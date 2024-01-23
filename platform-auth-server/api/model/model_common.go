@@ -1,16 +1,5 @@
 package model
 
-type ResponseWrap struct {
-
-	// Processing result code (return 0 if process successfully)
-	ErrorCode int `json:"errorCode"`
-
-	// Processing result description message.
-	ErrorMessage string `json:"errorMessage"`
-
-	Data interface{} `json:"data"`
-}
-
 type RequestHeader struct {
 	RequestId                string
 	TransactionId            string
