@@ -1,9 +1,8 @@
 package models
 
 const (
-	ResponseStatusOk    = "OK"
-	ResponseStatusError = "ERROR"
-	ResponseMessageOk   = "success"
+	AuthTypeLocal = "LOCAL"
+	AuthTypeUm    = "UM"
 )
 
 type ResponseWrap struct {

@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"sort"
+	"strings"
 
 	"github.com/WeBankPartners/go-common-lib/guid"
 	"github.com/WeBankPartners/wecube-platform/platform-core/api/middleware"
@@ -14,6 +15,62 @@ import (
 	"github.com/WeBankPartners/wecube-platform/platform-core/services/remote"
 	"github.com/gin-gonic/gin"
 )
+
+// CreateUser 添加用户
+func CreateUser(c *gin.Context) {
+	var param models.UserDto
+	var response models.QuerySingleUserResponse
+	var authContext string
+	var err error
+	if err = c.ShouldBindJSON(&param); err != nil {
+		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, err))
+		return
+	}
+	if strings.TrimSpace(param.UserName) == "" {
+		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, fmt.Errorf("name is empty")))
+		return
+	}
+
+	userDto := &models.SimpleLocalUserDto{
+		Username:   param.UserName,
+		Password:   param.Password,
+		AuthSource: param.AuthType,
+	}
+	if strings.TrimSpace(userDto.AuthSource) == "" {
+		userDto.AuthSource = models.AuthTypeLocal
+	}
+	// 计算 AuthContext
+	if userDto.AuthSource == models.AuthTypeUm {
+		authContext, err = tryCalculateUmAuthContext(c)
+		if err != nil {
+			middleware.ReturnError(c, err)
+			return
+		}
+		userDto.AuthContext = authContext
+	}
+	response, err = remote.RegisterLocalUser(userDto, c.GetHeader("Authorization"))
+	if err != nil {
+		middleware.ReturnError(c, err)
+		return
+	}
+	middleware.Return(c, response)
+}
+
+// CreateRole 创建角色
+func CreateRole(c *gin.Context) {
+	var param models.SimpleLocalRoleDto
+	var err error
+	if err = c.ShouldBindJSON(&param); err != nil {
+		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, err))
+		return
+	}
+	response, err := remote.RegisterLocalRole(&param, c.GetHeader("Authorization"))
+	if err != nil {
+		middleware.ReturnError(c, err)
+		return
+	}
+	middleware.Return(c, response)
+}
 
 // GetAllUser 获取全量用户
 func GetAllUser(c *gin.Context) {
@@ -157,12 +214,12 @@ func GrantRoleToUsers(c *gin.Context) {
 // GrantUserAddRoles 角色添加用户
 func GrantUserAddRoles(c *gin.Context) {
 	roleId := c.Param("role-id")
-	var param models.UserIdsParam
-	if err := c.ShouldBindJSON(&param); err != nil {
+	var userIds []string
+	if err := c.ShouldBindJSON(&userIds); err != nil {
 		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, err))
 		return
 	}
-	err := remote.ConfigureRoleForUsers(roleId, c.GetHeader("Authorization"), param.UserIds)
+	err := remote.ConfigureRoleForUsers(roleId, c.GetHeader("Authorization"), userIds)
 	if err != nil {
 		middleware.ReturnError(c, err)
 		return
@@ -214,13 +271,13 @@ func DeleteUserByUserId(c *gin.Context) {
 		middleware.ReturnError(c, err)
 		return
 	}
-	if middleware.GetRequestUser(c) == response.Data.Username {
+	if middleware.GetRequestUser(c) == response.Data.Name {
 		err = fmt.Errorf("cannot remove the account which belongs to the login user")
 		middleware.ReturnError(c, err)
 		return
 	}
 	// 删除用户
-	err = remote.UnregisterLocalUser(userId, userId)
+	err = remote.UnregisterLocalUser(userId, c.GetHeader("Authorization"))
 	if err != nil {
 		middleware.ReturnError(c, err)
 		return
@@ -253,8 +310,8 @@ func UpdateRole(c *gin.Context) {
 // RevokeRoleFromUsers 角色移除用户
 func RevokeRoleFromUsers(c *gin.Context) {
 	roleId := c.Param("role-id")
-	var param models.UserIdsParam
-	if err := c.ShouldBindJSON(&param); err != nil {
+	var userIds []string
+	if err := c.ShouldBindJSON(&userIds); err != nil {
 		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, err))
 		return
 	}
@@ -263,7 +320,7 @@ func RevokeRoleFromUsers(c *gin.Context) {
 		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, err))
 		return
 	}
-	err := remote.RevokeRoleFromUsers(roleId, c.GetHeader("Authorization"), param.UserIds)
+	err := remote.RevokeRoleFromUsers(roleId, c.GetHeader("Authorization"), userIds)
 	if err != nil {
 		middleware.ReturnError(c, err)
 		return
@@ -274,12 +331,12 @@ func RevokeRoleFromUsers(c *gin.Context) {
 // UpdateRoleToMenusByRoleId 更新角色菜单
 func UpdateRoleToMenusByRoleId(c *gin.Context) {
 	roleId := c.Param("role-id")
-	var param models.MenuCodesParam
-	if err := c.ShouldBindJSON(&param); err != nil {
+	var menuCodeList []string
+	if err := c.ShouldBindJSON(&menuCodeList); err != nil {
 		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, err))
 		return
 	}
-	err := updateRoleToMenusByRoleId(c, roleId, c.GetHeader("Authorization"), convertList2Map(param.MenuCodeList))
+	err := updateRoleToMenusByRoleId(c, roleId, c.GetHeader("Authorization"), convertList2Map(menuCodeList))
 	if err != nil {
 		middleware.ReturnError(c, err)
 		return
@@ -408,8 +465,8 @@ func updateRoleToMenusByRoleId(ctx context.Context, roleId, userToken string, me
 			log.Logger.Info(fmt.Sprintf("create menus:[%s]", code))
 			roleMenu := models.RoleMenu{
 				Id:       guid.CreateGuid(),
-				RoleName: code,
-				MenuCode: roleName,
+				RoleName: roleName,
+				MenuCode: code,
 			}
 			err = database.AddRoleMenu(ctx, roleMenu)
 			if err != nil {
@@ -420,6 +477,22 @@ func updateRoleToMenusByRoleId(ctx context.Context, roleId, userToken string, me
 	}
 	if len(needAddAuthoritiesToGrantList) > 0 {
 		err = remote.ConfigureRoleWithAuthoritiesById(roleId, userToken, needAddAuthoritiesToGrantList)
+	}
+	return
+}
+
+func tryCalculateUmAuthContext(ctx context.Context) (authContext string, err error) {
+	var list []*models.SystemVariables
+	condition := models.SystemVariablesQueryCondition{Name: models.SystemVariableUmContext, Scope: models.ScopeGlobal, Status: models.SystemVariableActive}
+	list, err = database.QuerySystemVariablesByCondition(ctx, condition)
+	if err != nil {
+		return
+	}
+	for _, variables := range list {
+		if strings.TrimSpace(variables.DefaultValue) != "" {
+			authContext = variables.DefaultValue
+			return
+		}
 	}
 	return
 }

@@ -655,6 +655,7 @@ func validateSimpleLocalUserDto(userDto *model.SimpleLocalUserDto) error {
 }
 
 func buildSysUserEntity(dto *model.SimpleLocalUserDto, curUser string) (*model.SysUserEntity, error) {
+	now := time.Now()
 	encodePassword(dto.Password)
 	encodedNewPassword, err := encodePassword(dto.Password)
 	if err != nil {
@@ -663,21 +664,24 @@ func buildSysUserEntity(dto *model.SimpleLocalUserDto, curUser string) (*model.S
 
 	return &model.SysUserEntity{
 		Id:          utils.Uuid(),
-		Username:    dto.Username,
-		Password:    encodedNewPassword,
 		CreatedBy:   curUser,
-		Department:  dto.Department,
-		EmailAddr:   dto.EmailAddr,
-		Title:       dto.Title,
+		UpdatedBy:   curUser,
+		CreatedTime: now,
+		UpdatedTime: now,
+		Username:    dto.Username,
 		EnglishName: dto.EnglishName,
 		LocalName:   dto.NativeName,
-		CellPhoneNo: dto.CellPhoneNo,
+		Department:  dto.Department,
+		Title:       dto.Title,
+		EmailAddr:   dto.EmailAddr,
 		OfficeTelNo: dto.OfficeTelNo,
+		CellPhoneNo: dto.CellPhoneNo,
+		Password:    encodedNewPassword,
+		IsActive:    true,
+		IsBlocked:   false,
+		IsDeleted:   false,
 		AuthSource:  dto.AuthSource,
 		AuthContext: dto.AuthContext,
-		IsActive:    true,
-		IsDeleted:   false,
-		IsBlocked:   false,
 	}, nil
 }
 

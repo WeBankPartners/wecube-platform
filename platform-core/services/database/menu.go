@@ -149,6 +149,10 @@ func DeleteRoleMenuById(ctx context.Context, id string) (err error) {
 	var actions []*db.ExecAction
 	actions = append(actions, &db.ExecAction{Sql: "delete from role_menu where id=?", Param: []interface{}{id}})
 	err = db.Transaction(actions, ctx)
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseExecuteError, err)
+		return
+	}
 	return
 }
 
@@ -157,5 +161,9 @@ func AddRoleMenu(ctx context.Context, menu models.RoleMenu) (err error) {
 	var actions []*db.ExecAction
 	actions = append(actions, &db.ExecAction{Sql: "insert into  role_menu(id,role_name,menu_code) values (?,?,?)", Param: []interface{}{menu.Id, menu.RoleName, menu.MenuCode}})
 	err = db.Transaction(actions, ctx)
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseExecuteError, err)
+		return
+	}
 	return
 }
