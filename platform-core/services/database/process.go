@@ -430,6 +430,15 @@ func GetProcDefNodeLinkByProcDefIdAndTarget(ctx context.Context, procDefId strin
 	return
 }
 
+func GetProcDefNodeLinkByProcDefIdAndSource(ctx context.Context, procDefId string, source string) (list []*models.ProcDefNodeLink, err error) {
+	err = db.MysqlEngine.Context(ctx).SQL("select * from proc_def_node_link where proc_def_id= ? and source = ?", procDefId, source).Find(&list)
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
+		return
+	}
+	return
+}
+
 func GetProcDefNodeByProcDefId(ctx context.Context, procDefId string) (result []*models.ProcDefNodeResultDto, err error) {
 	var list []*models.ProcDefNode
 	if procDefId == "" {
