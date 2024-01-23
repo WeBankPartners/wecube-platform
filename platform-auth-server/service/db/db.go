@@ -29,8 +29,6 @@ func InitDatabase() error {
 		log.Logger.Error("Init database connect fail", log.Error(err))
 		return err
 	}
-	engine.DatabaseTZ = time.UTC
-	engine.TZLocation = time.UTC
 	engine.SetMaxIdleConns(model.Config.Database.MaxIdle)
 	engine.SetMaxOpenConns(model.Config.Database.MaxOpen)
 	engine.SetConnMaxLifetime(time.Duration(model.Config.Database.Timeout) * time.Second)
@@ -187,9 +185,9 @@ func (d *dbContextLogger) IsShowSQL() bool {
 }
 
 /*
-func DBCtx(transactionId string) context.Context {
-	return context.WithValue(context.Background(), constant.TransactionId, transactionId)
-}
+	func DBCtx(transactionId string) context.Context {
+		return context.WithValue(context.Background(), constant.TransactionId, transactionId)
+	}
 */
 func CheckDbConnection() (err error) {
 	_, err = Engine.QueryString("select 1=1")

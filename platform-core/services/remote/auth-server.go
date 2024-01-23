@@ -3,12 +3,12 @@ package remote
 import (
 	"encoding/json"
 	"fmt"
+
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/network"
 	"github.com/WeBankPartners/wecube-platform/platform-core/models"
 )
 
 const (
-	httpAuthServer = "http://106.52.160.142:8002"
 	// pathRegisterLocalUser 注册用户
 	pathRegisterLocalUser = "/auth/v1/users"
 	// pathRetrieveAllUserAccounts 查询所有用户
@@ -54,7 +54,7 @@ func RegisterSubSystem(pluginPackageObj *models.PluginPackages) (subSystemCode, 
 func RegisterLocalUser(userDto *models.SimpleLocalUserDto, userToken string) (response models.QuerySingleUserResponse, err error) {
 	var byteArr []byte
 	postBytes, _ := json.Marshal(userDto)
-	byteArr, err = network.HttpPost(httpAuthServer+pathRegisterLocalUser, userToken, postBytes)
+	byteArr, err = network.HttpPost(models.Config.Auth.Url+pathRegisterLocalUser, userToken, postBytes)
 	if err != nil {
 		return
 	}
@@ -67,7 +67,7 @@ func RegisterLocalUser(userDto *models.SimpleLocalUserDto, userToken string) (re
 
 // RetrieveAllUsers 获取所有用户
 func RetrieveAllUsers(userToken string) (response models.QueryUserResponse, err error) {
-	byteArr, err := network.HttpGet(httpAuthServer+pathRetrieveAllUserAccounts, userToken)
+	byteArr, err := network.HttpGet(models.Config.Auth.Url+pathRetrieveAllUserAccounts, userToken)
 	if err != nil {
 		return
 	}
@@ -81,7 +81,7 @@ func RetrieveAllUsers(userToken string) (response models.QueryUserResponse, err 
 
 // RetrieveAllLocalRoles 查询所有角色
 func RetrieveAllLocalRoles(requiredAll, userToken string) (response models.QueryRolesResponse, err error) {
-	byteArr, err := network.HttpGet(fmt.Sprintf(httpAuthServer+pathRetrieveAllRoles, requiredAll), userToken)
+	byteArr, err := network.HttpGet(fmt.Sprintf(models.Config.Auth.Url+pathRetrieveAllRoles, requiredAll), userToken)
 	if err != nil {
 		return
 	}
@@ -95,7 +95,7 @@ func RetrieveAllLocalRoles(requiredAll, userToken string) (response models.Query
 
 // GetRolesByUsername 根据用户名获取角色
 func GetRolesByUsername(username, userToken string) (response models.QueryRolesResponse, err error) {
-	byteArr, err := network.HttpGet(fmt.Sprintf(httpAuthServer+pathRetrieveGrantedRolesByUsername, username), userToken)
+	byteArr, err := network.HttpGet(fmt.Sprintf(models.Config.Auth.Url+pathRetrieveGrantedRolesByUsername, username), userToken)
 	if err != nil {
 		return
 	}
@@ -109,7 +109,7 @@ func GetRolesByUsername(username, userToken string) (response models.QueryRolesR
 
 // RetrieveRoleInfo 根据roleId获取角色
 func RetrieveRoleInfo(roleId, userToken string) (response models.QuerySingleRolesResponse, err error) {
-	url := fmt.Sprintf(httpAuthServer+pathRetrieveRoleById, roleId)
+	url := fmt.Sprintf(models.Config.Auth.Url+pathRetrieveRoleById, roleId)
 	byteArr, err := network.HttpGet(url, userToken)
 	if err != nil {
 		return
@@ -124,7 +124,7 @@ func RetrieveRoleInfo(roleId, userToken string) (response models.QuerySingleRole
 
 // GetUsersByRoleId 返回角色用户列表
 func GetUsersByRoleId(roleId, userToken string) (response models.QueryUserResponse, err error) {
-	byteArr, err := network.HttpGet(fmt.Sprintf(httpAuthServer+pathRetrieveAllUsersBelongsToRoleId, roleId), userToken)
+	byteArr, err := network.HttpGet(fmt.Sprintf(models.Config.Auth.Url+pathRetrieveAllUsersBelongsToRoleId, roleId), userToken)
 	if err != nil {
 		return
 	}
@@ -143,7 +143,7 @@ func ConfigureUserWithRoles(userId, userToken string, rolesList []string) (err e
 		postParams = append(postParams, &models.SimpleLocalRoleDto{ID: role})
 	}
 	postBytes, _ := json.Marshal(postParams)
-	err = network.HttpPostCommon(fmt.Sprintf(httpAuthServer+pathConfigureRolesForUser, userId), userToken, postBytes)
+	err = network.HttpPostCommon(fmt.Sprintf(models.Config.Auth.Url+pathConfigureRolesForUser, userId), userToken, postBytes)
 	return
 }
 
@@ -156,7 +156,7 @@ func ModifyLocalUserPassword(param models.UserPasswordChangeParam, username, use
 		ChangedPassword:  param.NewPassword,
 	}
 	postBytes, _ := json.Marshal(userPassDto)
-	byteArr, err = network.HttpPost(httpAuthServer+pathUserChangePassword, userToken, postBytes)
+	byteArr, err = network.HttpPost(models.Config.Auth.Url+pathUserChangePassword, userToken, postBytes)
 	if err = json.Unmarshal(byteArr, &response); err != nil {
 		err = fmt.Errorf("json unmarhsal response body fail,%s ", err.Error())
 		return
@@ -169,7 +169,7 @@ func ResetLocalUserPassword(param models.UserPasswordResetParam, userToken strin
 	var byteArr []byte
 	userPassDto := &models.SimpleLocalUserPassDto{Username: param.Username}
 	postBytes, _ := json.Marshal(userPassDto)
-	byteArr, err = network.HttpPost(httpAuthServer+pathUserResetPassword, userToken, postBytes)
+	byteArr, err = network.HttpPost(models.Config.Auth.Url+pathUserResetPassword, userToken, postBytes)
 	if err = json.Unmarshal(byteArr, &response); err != nil {
 		err = fmt.Errorf("json unmarhsal response body fail,%s ", err.Error())
 		return
@@ -179,7 +179,7 @@ func ResetLocalUserPassword(param models.UserPasswordResetParam, userToken strin
 
 // RetrieveUserByUserId 获取用户信息
 func RetrieveUserByUserId(userId, userToken string) (response models.QuerySingleUserResponse, err error) {
-	byteArr, err := network.HttpGet(fmt.Sprintf(httpAuthServer+pathGetUserByUserId, userId), userToken)
+	byteArr, err := network.HttpGet(fmt.Sprintf(models.Config.Auth.Url+pathGetUserByUserId, userId), userToken)
 	if err != nil {
 		return
 	}
@@ -193,14 +193,14 @@ func RetrieveUserByUserId(userId, userToken string) (response models.QuerySingle
 
 // UnregisterLocalUser 删除用户
 func UnregisterLocalUser(userId, userToken string) error {
-	return network.HttpDeleteCommon(fmt.Sprintf(httpAuthServer+pathDeleteUserAccountByUserId, userId), userToken)
+	return network.HttpDeleteCommon(fmt.Sprintf(models.Config.Auth.Url+pathDeleteUserAccountByUserId, userId), userToken)
 }
 
 // UpdateLocalRole 更新角色
 func UpdateLocalRole(userToken string, param models.SimpleLocalRoleDto) (response models.QuerySingleRolesResponse, err error) {
 	var byteArr []byte
 	postBytes, _ := json.Marshal(param)
-	byteArr, err = network.HttpPost(httpAuthServer+pathUpdateLocalRole, userToken, postBytes)
+	byteArr, err = network.HttpPost(models.Config.Auth.Url+pathUpdateLocalRole, userToken, postBytes)
 	if err = json.Unmarshal(byteArr, &response); err != nil {
 		err = fmt.Errorf("json unmarhsal response body fail,%s ", err.Error())
 		return
@@ -215,7 +215,7 @@ func ConfigureRoleForUsers(userId, userToken string, userIdList []string) (err e
 		postParams = append(postParams, &models.SimpleLocalUserDto{ID: userId})
 	}
 	postBytes, _ := json.Marshal(postParams)
-	err = network.HttpPostCommon(fmt.Sprintf(httpAuthServer+pathConfigureRoleForUsers, userId), userToken, postBytes)
+	err = network.HttpPostCommon(fmt.Sprintf(models.Config.Auth.Url+pathConfigureRoleForUsers, userId), userToken, postBytes)
 	return
 }
 
@@ -226,27 +226,27 @@ func RevokeRoleFromUsers(roleId, userToken string, userIdList []string) (err err
 		postParams = append(postParams, &models.SimpleLocalUserDto{ID: userId})
 	}
 	postBytes, _ := json.Marshal(postParams)
-	err = network.HttpPostCommon(fmt.Sprintf(httpAuthServer+pathRevokeRoleFromUsers, roleId), userToken, postBytes)
+	err = network.HttpPostCommon(fmt.Sprintf(models.Config.Auth.Url+pathRevokeRoleFromUsers, roleId), userToken, postBytes)
 	return
 }
 
 // RevokeRoleAuthoritiesById 取消角色授权
 func RevokeRoleAuthoritiesById(roleId, userToken string, authoritiesToRevoke []*models.SimpleAuthorityDto) error {
 	postBytes, _ := json.Marshal(authoritiesToRevoke)
-	return network.HttpPostCommon(fmt.Sprintf(httpAuthServer+pathRevokeAuthoritiesFromRole, roleId), userToken, postBytes)
+	return network.HttpPostCommon(fmt.Sprintf(models.Config.Auth.Url+pathRevokeAuthoritiesFromRole, roleId), userToken, postBytes)
 }
 
 // ConfigureRoleWithAuthoritiesById 配置角色权限
 func ConfigureRoleWithAuthoritiesById(roleId, userToken string, authoritiesToGrantList []*models.SimpleAuthorityDto) error {
 	postBytes, _ := json.Marshal(authoritiesToGrantList)
-	return network.HttpPostCommon(fmt.Sprintf(httpAuthServer+pathConfigureRoleAuthorities, roleId), userToken, postBytes)
+	return network.HttpPostCommon(fmt.Sprintf(models.Config.Auth.Url+pathConfigureRoleAuthorities, roleId), userToken, postBytes)
 }
 
 // RegisterLocalRole 创建角色
 func RegisterLocalRole(roleDto *models.SimpleLocalRoleDto, userToken string) (response models.QuerySingleRolesResponse, err error) {
 	var byteArr []byte
 	postBytes, _ := json.Marshal(roleDto)
-	byteArr, err = network.HttpPost(httpAuthServer+pathRegisterLocalRole, userToken, postBytes)
+	byteArr, err = network.HttpPost(models.Config.Auth.Url+pathRegisterLocalRole, userToken, postBytes)
 	if err != nil {
 		return
 	}
