@@ -7,15 +7,19 @@
         <img src="../../../assets/icon/edit-black.png" style="width: 16px; vertical-align: middle" alt="" />
       </div>
       <div>
-        <Button type="primary" v-if="['draft'].includes(itemCustomInfo.status)" @click="releaseFlow">
+        <Button type="primary" :disabled="!['draft'].includes(itemCustomInfo.status)" @click="releaseFlow">
           <Icon type="ios-paper-plane-outline" size="16"></Icon>
           {{ $t('release_flow') }}
         </Button>
-        <Button type="success" v-if="['deployed'].includes(itemCustomInfo.status)" @click="exportFlow">
+        <Button type="success" :disabled="!['deployed'].includes(itemCustomInfo.status)" @click="exportFlow">
           <img src="../../../assets/icon/export.png" class="btn-img" alt="" />
           {{ $t('export_flow') }}
         </Button>
-        <Button type="info" v-if="['draft', 'deployed'].includes(itemCustomInfo.status)" @click="changePermission">
+        <Button
+          type="info"
+          :disabled="!['draft', 'deployed'].includes(itemCustomInfo.status)"
+          @click="changePermission"
+        >
           <Icon type="ios-person-outline" size="16"></Icon>
           {{ $t('config_permission') }}
         </Button>
@@ -29,7 +33,7 @@
         </Button> -->
         <Button
           type="error"
-          v-if="['deployed'].includes(itemCustomInfo.status)"
+          :disabled="!['deployed'].includes(itemCustomInfo.status)"
           @click="changeStatus('disabled', 'disable')"
         >
           <img src="../../../assets/icon/disable.png" style="width: 16px; vertical-align: middle" alt="" />
@@ -37,7 +41,7 @@
         </Button>
         <Button
           type="success"
-          v-if="['disabled'].includes(itemCustomInfo.status)"
+          :disabled="!['disabled'].includes(itemCustomInfo.status)"
           @click="changeStatus('enabled', 'enable')"
         >
           <img src="../../../assets/icon/enable.png" style="width: 16px; vertical-align: middle" alt="" />
