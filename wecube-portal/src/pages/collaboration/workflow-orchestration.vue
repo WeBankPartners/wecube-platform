@@ -1,5 +1,8 @@
 <template>
   <div class="root">
+    <div id="menu" :style="menuStyle" @click="removeItem">
+      <Icon type="ios-trash-outline" size="24" style="color: red"></Icon>
+    </div>
     <FlowHeader
       @openCanvasPanel="openCanvasPanel"
       @updateAuth="updateAuth"
@@ -21,7 +24,7 @@
           v-show="itemInfoType === 'canvas'"
           ref="itemInfoCanvasRef"
           @sendItemInfo="setCanvasInfo"
-          @hideItemInfo="() => (itemInfoType = '')"
+          @hideItemInfo="hideItemInfo"
         ></ItemInfoCanvas>
       </Transition>
       <Transition appear>
@@ -29,7 +32,7 @@
           v-if="itemInfoType === 'node'"
           ref="itemInfoNodeRef"
           @sendItemInfo="setNodeInfo"
-          @hideItemInfo="() => (itemInfoType = '')"
+          @hideItemInfo="hideItemInfo"
         >
         </ItemInfoNode>
       </Transition>
@@ -38,7 +41,7 @@
           v-show="itemInfoType === 'edge'"
           ref="itemInfoEdgeRef"
           @sendItemInfo="setEdgeInfo"
-          @hideItemInfo="() => (itemInfoType = '')"
+          @hideItemInfo="hideItemInfo"
         >
         </ItemInfoEdge>
       </Transition>
@@ -70,9 +73,16 @@ export default {
   },
   data () {
     return {
-      demoFlowId: 'pdef_60f1e126f08c50d256735',
-      // pdef_60f2fc1f5acfa58e852c8
-      // pdef_60f1e126f08c50d256735
+      menuStyle: {
+        // 元素删除功能入口
+        display: 'none',
+        position: 'absolute',
+        top: '100px',
+        left: '100px',
+        cursor: 'pointer'
+      },
+      canRemovedId: '',
+      demoFlowId: '',
       isShowGraph: false,
       itemInfoType: '', // canvas、node、edge
       mode: 'drag-shadow-node',
@@ -139,14 +149,18 @@ export default {
     }
   },
   async mounted () {
-    this.demoFlowId = this.$route.query.flowId
-    await this.getFlowInfo(this.demoFlowId)
-    // 创建画布
-    this.$nextTick(() => {
-      this.createGraphic()
-      this.initGraphEvent()
-      this.openCanvasPanel()
-    })
+    if (this.$route.query.flowId) {
+      this.demoFlowId = this.$route.query.flowId
+      await this.getFlowInfo(this.demoFlowId)
+      // 创建画布
+      this.$nextTick(() => {
+        this.createGraphic()
+        this.initGraphEvent()
+        this.openCanvasPanel()
+      })
+    } else {
+      this.$router.push({ path: '/collaboration/workflow' })
+    }
   },
   beforeDestroy () {
     this.graph.destroy()
@@ -202,46 +216,7 @@ export default {
       this.graph.zoomTo(1) // 缩放到原始大小
     },
     createGraphic () {
-      const vm = this
       const grid = new G6.Grid()
-      const menu = new G6.Menu({
-        offsetX: -20,
-        offsetY: -50,
-        itemTypes: ['node', 'edge'],
-        getContent (e) {
-          const outDiv = document.createElement('div')
-
-          outDiv.style.width = '80px'
-          outDiv.style.cursor = 'pointer'
-          outDiv.innerHTML = '<p id="deleteNode">删除</p>'
-          return outDiv
-        },
-        async handleMenuClick (target, item) {
-          vm.$Modal.confirm({
-            title: '删除',
-            content: '确认删除该元素吗？',
-            onOk: async () => {
-              const method = item._cfg.id.startsWith('pdef_node_') ? flowNodeDelete : flowEdgeDelete
-              const { status } = await method(vm.procDef.id, item._cfg.id)
-              if (status === 'OK') {
-                const { id } = target
-                if (id) {
-                  vm[id](item)
-                }
-                vm.$refs.itemInfoCanvasRef.showItemInfo(vm.procDef)
-              }
-            },
-            onCancel: () => {}
-          })
-        }
-      })
-      // const minimap = new G6.Minimap({
-      //   size: [200, 100],
-      //   minimapViewCfg: {
-      //     top: 10,
-      //     right: 10
-      //   }
-      // })
       const cfg = registerFactory(G6, {
         width: window.innerWidth - 70,
         height: window.innerHeight - 160,
@@ -264,7 +239,8 @@ export default {
         nodeStateStyles: {
           'nodeState:default': {
             opacity: 1,
-            stroke: '#aab7c3'
+            stroke: '#aab7c3',
+            fill: 'white'
           },
           'nodeState:hover': {
             opacity: 0.8,
@@ -272,7 +248,8 @@ export default {
           },
           'nodeState:selected': {
             opacity: 0.9,
-            stroke: '#1890FF'
+            stroke: '#1890FF',
+            fill: '#1890FF'
           }
         },
         // 默认边不同状态下的样式集合
@@ -312,7 +289,7 @@ export default {
           ]
         },
         // plugins: [menu, minimap, grid]
-        plugins: [menu, grid]
+        plugins: [grid]
         // ... 其他G6原生入参
       })
 
@@ -321,6 +298,23 @@ export default {
       // this.graph.paint() // 渲染到页面
       // this.graph.get('canvas').set('localRefresh', false) // 关闭局部渲染
       // this.graph.fitView()
+    },
+    removeItem () {
+      this.$Modal.confirm({
+        title: '删除',
+        content: '确认删除该元素吗？',
+        onOk: async () => {
+          const method = this.canRemovedId.startsWith('pdef_node_') ? flowNodeDelete : flowEdgeDelete
+          const { status } = await method(this.procDef.id, this.canRemovedId)
+          if (status === 'OK') {
+            const item = this.graph.findById(this.canRemovedId)
+            this.graph.removeItem(item)
+            this.menuStyle.display = 'none'
+            this.itemInfoType = ''
+          }
+        },
+        onCancel: () => {}
+      })
     },
     // 初始化图事件
     initGraphEvent () {
@@ -368,6 +362,11 @@ export default {
               this.$refs.itemInfoNodeRef &&
                 this.$refs.itemInfoNodeRef.showItemInfo(model, false, this.procDef.rootEntity)
             })
+            // 设置菜单位置
+            this.menuStyle.left = `${model.x + 50}px`
+            this.menuStyle.top = `${model.y + 100}px`
+            this.menuStyle.display = `block`
+            this.canRemovedId = model.id
           }
         })
       })
@@ -432,7 +431,8 @@ export default {
 
       this.graph.on('after-edge-selected', e => {
         if (e && e.item) {
-          this.config = e.item.get('model').id
+          const model = e.item.get('model')
+          this.config = model.id
 
           this.graph.updateItem(e.item, {
             // shape: 'line-edge',
@@ -441,6 +441,11 @@ export default {
               lineWidth: 2
             }
           })
+          // 设置菜单位置
+          this.menuStyle.left = `${model.x + 50}px`
+          this.menuStyle.top = `${model.y + 100}px`
+          this.menuStyle.display = `block`
+          this.canRemovedId = model.id
         }
       })
 
@@ -494,6 +499,12 @@ export default {
           }
           this.itemInfoType = 'edge'
           this.$refs.itemInfoEdgeRef.showItemInfo(model)
+
+          // 设置菜单位置
+          this.menuStyle.left = `${e.x + 50}px`
+          this.menuStyle.top = `${e.y + 120}px`
+          this.menuStyle.display = `block`
+          this.canRemovedId = model.id
         }
       })
 
@@ -534,7 +545,7 @@ export default {
           dynamicBind: false, // 动态绑定
           bindNodeId: null, // 动态绑定关联节点id
           nodeType, // 节点类型，对应节点原始类型（start、end……
-          routineExpression: '', // 对应节点中的定位规则
+          routineExpression: this.procDef.rootEntity, // 对应节点中的定位规则
           routineRaw: null, // 还未知作用
           serviceName: null, // 选择的插件名称
           riskCheck: true, // 高危检测
@@ -658,6 +669,10 @@ export default {
         }
         this.graph.updateItem(item, params)
       }
+    },
+    hideItemInfo () {
+      this.itemInfoType = ''
+      this.menuStyle.display = 'none'
     }
     // #endregion
   }
