@@ -182,14 +182,18 @@ func validateSimpleLocalRoleDto(roleDto *model.SimpleLocalRoleDto) error {
 }
 
 func buildSysRoleEntity(dto *model.SimpleLocalRoleDto, curUser string) *model.SysRoleEntity {
+	now := time.Now()
 	return &model.SysRoleEntity{
 		Id:           utils.Uuid(),
 		CreatedBy:    curUser,
-		DisplayName:  dto.DisplayName,
-		Name:         dto.Name,
-		EmailAddress: dto.Email,
+		UpdatedBy:    curUser,
+		CreatedTime:  now,
+		UpdatedTime:  now,
 		Active:       true,
 		Deleted:      false,
+		Name:         dto.Name,
+		DisplayName:  dto.DisplayName,
+		EmailAddress: dto.Email,
 	}
 }
 
@@ -247,7 +251,7 @@ func (RoleManagementService) RetrieveAllLocalRoles(requiredAll bool) ([]*model.S
 	return result, nil
 }
 
-//@Transactional
+// @Transactional
 func (RoleManagementService) UnregisterLocalRoleById(roleId string, curUser string) error {
 	session := db.Engine.NewSession()
 	session.Begin()
@@ -378,7 +382,7 @@ func (RoleManagementService) RetrieveAllAuthoritiesByRoleId(roleId string) ([]*m
 	return result, nil
 }
 
-//@Transactional
+// @Transactional
 func (RoleManagementService) ConfigureRoleWithAuthorities(grantDto *model.RoleAuthoritiesDto, curUser string) error {
 	session := db.Engine.NewSession()
 	session.Begin()
@@ -498,7 +502,7 @@ func (RoleManagementService) ConfigureRoleWithAuthorities(grantDto *model.RoleAu
 	return nil
 }
 
-//@Transactional
+// @Transactional
 func (RoleManagementService) ConfigureRoleWithAuthoritiesById(roleId string, authorityDtos []*model.SimpleAuthorityDto, curUser string) error {
 	session := db.Engine.NewSession()
 	session.Begin()
@@ -613,7 +617,7 @@ func (RoleManagementService) ConfigureRoleWithAuthoritiesById(roleId string, aut
 	return nil
 }
 
-//@Transactional
+// @Transactional
 func (RoleManagementService) RevokeRoleAuthorities(revocationDto *model.RoleAuthoritiesDto, curUser string) error {
 	session := db.Engine.NewSession()
 	session.Begin()
@@ -696,7 +700,7 @@ func (RoleManagementService) RevokeRoleAuthorities(revocationDto *model.RoleAuth
 	return nil
 }
 
-//@Transactional
+// @Transactional
 func (RoleManagementService) RevokeRoleAuthoritiesById(roleId string, authorityDtos []*model.SimpleAuthorityDto, curUser string) error {
 	session := db.Engine.NewSession()
 	session.Begin()
