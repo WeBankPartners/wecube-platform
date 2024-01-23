@@ -324,7 +324,6 @@ export default {
   },
   methods: {
     async showItemInfo (nodeData, needAddFirst = false, rootEntity) {
-      console.log(3)
       this.currentSelectedEntity = rootEntity
       this.needAddFirst = needAddFirst
       if (this.needAddFirst) {

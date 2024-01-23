@@ -57,9 +57,8 @@
       </Button>
       <Button
         type="success"
-        style="background-color: #5da782; border-color: #5da782"
         @click="batchChangeStatus('enabled')"
-        v-if="['disabled'].includes(searchParams.status) && selectedParams.ids.length > 0"
+        :disabled="!(['disabled'].includes(searchParams.status) && selectedParams.ids.length > 0)"
       >
         <img src="../../assets/icon/enable.png" class="btn-img" alt="" />
         {{ $t('enable') }}
