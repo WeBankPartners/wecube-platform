@@ -20,20 +20,12 @@ func main() {
 	}
 
 	log.InitLogger()
-	/*	middleware.InitAuth()
-		middleware.InitRedirect()
-	*/
 	err := exterror.InitErrorTemplateList(model.Config.ErrorTemplateDir, model.Config.ErrorDetailReturn)
 	if err != nil {
 		log.Logger.Error("Init error template list fail", log.Error(err))
 		return
 	}
 	log.Logger.Info("Server started")
-	/*	if err := jwt.InitKey(); err != nil {
-			fmt.Printf("failed to init jwt key")
-			return
-		}
-	*/
 	if err := service.AuthServiceInstance.InitKey(); err != nil {
 		fmt.Printf("failed to init auth service key")
 		return
