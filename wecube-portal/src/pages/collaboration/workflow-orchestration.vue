@@ -316,6 +316,26 @@ export default {
         onCancel: () => {}
       })
     },
+    // #region 流程数据校验
+    alreadyHasStart (nodeType) {
+      const findNode = this.nodesAndDeges.nodes.findIndex(node => node.customAttrs.nodeType === 'start')
+      if (findNode === -1) {
+        return false
+      } else {
+        this.$Message.warning('只能存在一个开始节点！')
+        return true
+      }
+    },
+    alreadyHasEnd (nodeType) {
+      const findNode = this.nodesAndDeges.nodes.findIndex(node => node.customAttrs.nodeType === 'end')
+      if (findNode === -1) {
+        return false
+      } else {
+        this.$Message.warning('只能存在一个结束节点！')
+        return true
+      }
+    },
+    // #endregion
     // 初始化图事件
     initGraphEvent () {
       this.graph.on('drop', e => {
@@ -323,6 +343,13 @@ export default {
         if (originalEvent.dataTransfer) {
           let transferData = originalEvent.dataTransfer.getData('dragComponent')
           console.log('准备新增节点：', transferData)
+          const { nodeType } = JSON.parse(transferData)
+          if (nodeType === 'start' && this.alreadyHasStart(nodeType)) {
+            return
+          }
+          if (nodeType === 'end' && this.alreadyHasEnd(nodeType)) {
+            return
+          }
           if (transferData) {
             this.addNode(transferData, e)
           }
@@ -466,6 +493,85 @@ export default {
       this.graph.on('before-edge-add', ({ source, target, sourceAnchor, targetAnchor }) => {
         const sourceId = source.get('id')
         const targetId = target.get('id')
+
+        const sourceNodeType = source.get('model').customAttrs.nodeType
+        const targertNodeType = target.get('model').customAttrs.nodeType
+        console.log(sourceNodeType, targertNodeType)
+        // 结束节点不能连出
+        if (sourceNodeType === 'end') {
+          this.$Message.warning('结束节点不能连出！')
+          return
+        }
+        // 异常节点不能连出
+        if (sourceNodeType === 'abnormal') {
+          this.$Message.warning('异常节点不能连出！')
+          return
+        }
+
+        if (sourceNodeType === 'start') {
+          const outEdges = source.getOutEdges()
+          // 开始节点只能连出一条
+          if (outEdges.length > 0) {
+            this.$Message.warning('开始节点只能有一个出口！')
+            return
+          }
+          // 开始节点不能直连汇聚节点
+          if (targertNodeType === 'merge') {
+            this.$Message.warning('开始节点不能直连汇聚节点！')
+            return
+          }
+          // 开始节点不能直连分流节点
+          if (targertNodeType === 'fork') {
+            this.$Message.warning('开始节点不能直连分流节点！')
+            return
+          }
+        }
+        // 结束节点只能连入
+        if (targertNodeType === 'end') {
+          const inEdges = target.getInEdges()
+          if (inEdges.length > 0) {
+            this.$Message.warning('结束节点只能有一个入口！')
+            return
+          }
+        }
+        // 开始节点不能连入
+        if (targertNodeType === 'start') {
+          this.$Message.warning('开始节点不能连入！')
+          return
+        }
+
+        // 异常节点只能连入
+        if (targertNodeType === 'abnormal') {
+          const inEdges = target.getInEdges()
+          if (inEdges.length > 0) {
+            this.$Message.warning('异常节点只能有一个入口！')
+            return
+          }
+        }
+        // 异常节点只能连入
+        if (targertNodeType === 'decision') {
+          if (!['data', 'human', 'automatic'].includes(sourceNodeType)) {
+            this.$Message.warning('判断节点只能被[数据节点，人工节点，自动化节点]连入！')
+            return
+          }
+        }
+
+        if (['data', 'human', 'automatic', 'date', 'timeInterval'].includes(sourceNodeType)) {
+          const outEdges = source.getOutEdges()
+          if (outEdges.length === 1) {
+            this.$Message.warning('该节点只能有一个出口！')
+            return
+          }
+        }
+
+        if (['data', 'human', 'automatic', 'date', 'timeInterval'].includes(targertNodeType)) {
+          const inEdges = target.getInEdges()
+          if (inEdges.length === 1) {
+            this.$Message.warning('该节点只能有一个入口！')
+            return
+          }
+        }
+
         setTimeout(() => {
           const model = {
             id: `pdef_link_${this.uuid(16, 16)}`, // edge id
