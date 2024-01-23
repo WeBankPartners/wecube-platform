@@ -496,7 +496,6 @@ export default {
     // 普通编辑直接跳转
     editAction (row) {
       const status = row.status
-      console.log(11, status)
       if (status === 'draft') {
         console.log('转至详情')
         this.$router.push({ path: '/collaboration/workflow-orchestration', query: { flowId: row.id } })
@@ -694,7 +693,7 @@ th.ivu-table-column-center div.ivu-table-cell {
 
 .table-zone {
   overflow: auto;
-  height: calc(100vh - 300px);
+  height: calc(100vh - 250px);
 }
 
 .w-header {

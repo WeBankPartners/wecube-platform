@@ -250,8 +250,7 @@ export const flowNodeMgmt = data => req.post(`platform/v1/process/definitions/ta
 export const flowNodeDelete = (flowId, nodeId) =>
   req.delete(`platform/v1/process/definitions/${flowId}/tasknodes/${nodeId}`)
 export const flowEdgeMgmt = data => req.post(`platform/v1/process/definitions/link`, data)
-export const flowEdgeDelete = (flowId, edgeId) =>
-  req.delete(`platform/v1/process/definitions/${flowId}/tasknodes/${edgeId}`)
+export const flowEdgeDelete = (flowId, edgeId) => req.delete(`platform/v1/process/definitions/${flowId}/link/${edgeId}`)
 export const getPluginList = () => req.get(`platform/v1/packages/name/list`)
 export const getPluginFunByRule = data => req.post(`platform/v1/plugins/query-by-target-entity`, data)
 export const flowStatusChange = data => req.post(`platform/v1/process/definitions/status`, data)

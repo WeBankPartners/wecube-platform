@@ -1,5 +1,6 @@
 <template>
   <div id="itemInfo">
+    <div class="hide-panal" @click="hideItem"></div>
     <div class="panal-name">节点属性：</div>
     <div class="panel-content">
       <Collapse simple v-model="opendPanel">
@@ -114,7 +115,7 @@
                   ref="filterRulesGroupRef"
                   @filterRuleChanged="singleFilterRuleChanged"
                   :disabled="itemCustomInfo.customAttrs.dynamicBind && itemCustomInfo.customAttrs.bindNodeId"
-                  :routineExpression="itemCustomInfo.customAttrs.routineExpression"
+                  :routineExpression="itemCustomInfo.customAttrs.routineExpression || routineExpression"
                   :allEntityType="allEntityType"
                   :currentSelectedEntity="currentSelectedEntity"
                 >
@@ -330,6 +331,7 @@ export default {
         let tmpData = JSON.parse(JSON.stringify(nodeData))
         let customAttrs = JSON.parse(JSON.stringify(tmpData.customAttrs || {}))
         // delete tmpData.customAttrs
+        customAttrs.routineExpression = rootEntity
         this.itemCustomInfo = {
           customAttrs,
           selfAttrs: tmpData
@@ -341,6 +343,9 @@ export default {
           this.itemCustomInfo = data
           this.itemCustomInfo.selfAttrs = JSON.parse(data.selfAttrs)
           this.itemCustomInfo.customAttrs.timeConfig = JSON.parse(data.customAttrs.timeConfig)
+          if (this.itemCustomInfo.customAttrs.routineExpression === '') {
+            this.itemCustomInfo.customAttrs.routineExpression = rootEntity
+          }
           this.getPlugin()
           this.getAssociatedNodes()
           this.getRootNode()

@@ -1,8 +1,8 @@
 <template>
   <div class=" ">
     <Row>
-      <template v-for="(express, index) in routineExpressionItem">
-        <div :key="express.routineExpression + index">
+      <template>
+        <div v-for="(express, index) in routineExpressionItem" :key="index">
           <Col :span="isBatch ? 16 : 22">
             <FilterRules
               :needAttr="true"
@@ -70,7 +70,7 @@ export default {
     },
     changeRoutineExpressionItem (routineExpression) {
       this.routineExpressionItem = []
-      if (routineExpression) {
+      if (routineExpression !== '') {
         routineExpression.split('#DME#').forEach(item => {
           const itemSplit = item.split('#DMEOP#')
           this.routineExpressionItem.push({
