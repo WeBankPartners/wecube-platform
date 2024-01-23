@@ -7,9 +7,10 @@ const (
 )
 
 type ResponseWrap struct {
-	Status  string      `json:"status"`
-	Message string      `json:"message"`
-	Data    interface{} `json:"data"`
+	ErrorCode int         `json:"-"`
+	Status    string      `json:"status"`
+	Message   string      `json:"message"`
+	Data      interface{} `json:"data"`
 }
 
 type CredentialDto struct {
