@@ -3,11 +3,10 @@ package exterror
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/WeBankPartners/wecube-platform/platform-auth-server/model"
 	"io/ioutil"
 	"reflect"
 	"strings"
-
-	"github.com/WeBankPartners/wecube-platform/platform-auth-server/api/model"
 )
 
 type BadCredentialsError struct {
@@ -152,6 +151,7 @@ func Catch(customErr CustomError, err error) CustomError {
 
 func GetErrorResult(headerLanguage string, err error) model.ResponseWrap {
 	var errorResponse model.ResponseWrap
+	var errorMessage string
 	customErr, b := err.(CustomError)
 	if !b {
 		customErr = Catch(New().ServerHandleError, err)
@@ -160,19 +160,18 @@ func GetErrorResult(headerLanguage string, err error) model.ResponseWrap {
 		customErr = Catch(New().ServerHandleError, err)
 	}
 	errorResponse = model.ResponseWrap{
-		ErrorCode:    customErr.Code,
-		ErrorMessage: buildErrMessage(customErr.Message, customErr.MessageParams),
-	}
-	if ErrorDetailReturn && customErr.DetailErr != nil {
-		errorResponse.Data = customErr.DetailErr.Error()
+		ErrorCode: customErr.Code,
+		Status:    model.ResponseStatusError,
 	}
 	if headerLanguage == "" || customErr.PassEnable {
+		errorMessage = buildErrMessage(customErr.Message, customErr.MessageParams)
+		if ErrorDetailReturn && customErr.DetailErr != nil {
+			errorMessage = fmt.Sprintf("%s (%s)", errorMessage, customErr.DetailErr.Error())
+		}
+		errorResponse.Message = errorMessage
 		return errorResponse
 	}
-	errorMessage := getTranslatedErrorMsg(headerLanguage, customErr)
-	if errorMessage != "" {
-		errorResponse.ErrorMessage = errorMessage
-	}
+	errorResponse.Message = getTranslatedErrorMsg(headerLanguage, customErr)
 	return errorResponse
 }
 
