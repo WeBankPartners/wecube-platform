@@ -1,8 +1,11 @@
 package models
 
 const (
-	SystemVariableInactive = "inactive"
-	SystemVariableActive   = "active"
+	SystemVariableInactive  = "inactive"
+	SystemVariableActive    = "active"
+	ScopeGlobal             = "global"
+	SourceSystem            = "system"
+	SystemVariableUmContext = "UM_AUTH_CONTEXT"
 )
 
 type SystemVariables struct {
@@ -19,4 +22,10 @@ type SystemVariables struct {
 type SystemVariablesListPageData struct {
 	PageInfo *PageInfo          `json:"pageInfo"` // 分页信息
 	Contents []*SystemVariables `json:"contents"` // 列表内容
+}
+
+type SystemVariablesQueryCondition struct {
+	Name   string `json:"name"`   // 变量名
+	Scope  string `json:"scope"`  // 作用范围
+	Status string `json:"status"` // 状态 -> active | inactive
 }
