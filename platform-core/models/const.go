@@ -29,7 +29,7 @@ const (
 
 	// table name
 	TableNameBatchExec                = "batch_execution"
-	TableNameBatchExecJobs            = "batch_execution_jobs"
+	TableNameBatchExecJobs            = "batch_exec_jobs"
 	TableNameBatchExecTemplate        = "batch_execution_template"
 	TableNameBatchExecTemplateRole    = "batch_execution_template_role"
 	TableNameBatchExecTemplateCollect = "batch_execution_template_collect"
