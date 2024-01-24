@@ -34,7 +34,7 @@ type BatchExecutionJobs struct {
 }
 
 func (BatchExecutionJobs) TableName() string {
-	return "batch_execution_jobs"
+	return "batch_exec_jobs"
 }
 
 type BatchExecutionTemplate struct {
