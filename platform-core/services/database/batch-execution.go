@@ -13,7 +13,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func CreateOrUpdateBatchExecTemplate(c *gin.Context, reqParam *models.BatchExecTemplateInfo) (result *models.BatchExecTemplateInfo, err error) {
+func CreateOrUpdateBatchExecTemplate(c *gin.Context, reqParam *models.BatchExecutionTemplate) (result *models.BatchExecutionTemplate, err error) {
 	var actions []*db.ExecAction
 	now := time.Now()
 	configDataStr := ""
@@ -101,12 +101,14 @@ func CreateOrUpdateBatchExecTemplate(c *gin.Context, reqParam *models.BatchExecT
 	err = db.Transaction(actions, c)
 	if err != nil {
 		err = exterror.Catch(exterror.New().DatabaseExecuteError, err)
+		return
 	}
 
 	// query batchExecTemplate info
 	result, err = GetTemplate(c, reqParam.Id)
 	if err != nil {
 		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
+		return
 	}
 	return
 }
@@ -159,7 +161,7 @@ func CollectBatchExecTemplate(c *gin.Context, reqParam *models.BatchExecutionTem
 }
 
 func RetrieveTemplate(c *gin.Context, reqParam *models.QueryRequestParam) (result *models.BatchExecTemplatePageData, err error) {
-	result = &models.BatchExecTemplatePageData{PageInfo: models.PageInfo{}, Contents: []*models.BatchExecTemplateInfo{}}
+	result = &models.BatchExecTemplatePageData{PageInfo: models.PageInfo{}, Contents: []*models.BatchExecutionTemplate{}}
 	userRoles := middleware.GetRequestRoles(c)
 	userId := middleware.GetRequestUser(c)
 
@@ -219,7 +221,7 @@ func RetrieveTemplate(c *gin.Context, reqParam *models.QueryRequestParam) (resul
 	})
 
 	// filter template info
-	var templateData []*models.BatchExecTemplateInfo
+	var templateData []*models.BatchExecutionTemplate
 	filterSql, _, queryParam := transFiltersToSQL(reqParam, &models.TransFiltersParam{IsStruct: true, StructObj: models.BatchExecutionTemplate{}, PrimaryKey: "id"})
 	baseSql := db.CombineDBSql("SELECT * FROM ", models.TableNameBatchExecTemplate, " WHERE 1=1 ", filterSql)
 	baseCountSql := db.CombineDBSql("SELECT COUNT(*) FROM ", models.TableNameBatchExecTemplate, " WHERE 1=1 ", filterSql)
@@ -288,10 +290,10 @@ func RetrieveTemplate(c *gin.Context, reqParam *models.QueryRequestParam) (resul
 	return
 }
 
-func GetTemplate(c *gin.Context, templateId string) (result *models.BatchExecTemplateInfo, err error) {
-	result = &models.BatchExecTemplateInfo{}
+func GetTemplate(c *gin.Context, templateId string) (result *models.BatchExecutionTemplate, err error) {
+	result = &models.BatchExecutionTemplate{}
 
-	var templateData []*models.BatchExecTemplateInfo
+	var templateData []*models.BatchExecutionTemplate
 	err = db.MysqlEngine.Context(c).Table(models.TableNameBatchExecTemplate).
 		Where("id = ?", templateId).
 		Find(&templateData)
@@ -324,6 +326,7 @@ func GetTemplate(c *gin.Context, templateId string) (result *models.BatchExecTem
 		return
 	}
 
+	result.PermissionToRole = &models.PermissionToRole{}
 	for _, roleData := range templateRoleData {
 		if roleData.Permission == models.PermissionTypeMGMT {
 			result.PermissionToRole.MGMT = append(result.PermissionToRole.MGMT, roleData.RoleName)
