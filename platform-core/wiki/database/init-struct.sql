@@ -408,7 +408,7 @@ CREATE TABLE `batch_execution` (
     PRIMARY KEY (`id`),
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
 
-CREATE TABLE `batch_execution_jobs` (
+CREATE TABLE `batch_exec_jobs` (
     `id` varchar(64) NOT NULL COMMENT '唯一标识',
     `batch_execution_id` varchar(64) NOT NULL COMMENT '批量执行任务id',
     `package_name` varchar(64) NOT NULL COMMENT '包名',
