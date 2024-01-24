@@ -405,7 +405,7 @@ CREATE TABLE `batch_execution` (
     `updated_by` varchar(64) NULL COMMENT '更新者',
     `created_time` datetime NOT NULL COMMENT '创建时间',
     `updated_time` datetime NULL COMMENT '更新时间',
-    PRIMARY KEY (`id`),
+    PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
 
 CREATE TABLE `batch_exec_jobs` (
@@ -437,7 +437,7 @@ CREATE TABLE `batch_execution_template` (
     `created_time` datetime NULL COMMENT '创建时间',
     `updated_by` varchar(64) NULL COMMENT '更新者',
     `updated_time` datetime NULL COMMENT '更新时间',
-    PRIMARY KEY (`id`),
+    PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
 
 CREATE TABLE `batch_execution_template_role` (
@@ -446,7 +446,7 @@ CREATE TABLE `batch_execution_template_role` (
   `permission` varchar(64) NOT NULL COMMENT '权限类型->MGMT(管理) | USE(使用)',
   `role_id` varchar(64) NOT NULL COMMENT '角色id',
   `role_name` varchar(64) NOT NULL COMMENT '角色名',
-  PRIMARY KEY (`id`),
+  PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
 
 CREATE TABLE `batch_execution_template_collect` (
