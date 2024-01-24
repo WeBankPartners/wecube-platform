@@ -30,12 +30,12 @@ func CreateOrUpdateTemplate(c *gin.Context) {
 		return
 	}
 
-	err = database.CreateOrUpdateBatchExecTemplate(c, &reqParam)
+	retData, err := database.CreateOrUpdateBatchExecTemplate(c, &reqParam)
 	if err != nil {
 		middleware.ReturnError(c, err)
-		return
+	} else {
+		middleware.ReturnData(c, retData)
 	}
-	middleware.ReturnSuccess(c)
 	return
 }
 
