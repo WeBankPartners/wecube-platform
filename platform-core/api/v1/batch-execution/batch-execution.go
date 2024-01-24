@@ -19,7 +19,7 @@ func CreateOrUpdateTemplate(c *gin.Context) {
 		log.Logger.Error(e.(string))
 	})
 
-	reqParam := models.BatchExecTemplateInfo{}
+	reqParam := models.BatchExecutionTemplate{}
 	var err error
 	if err = c.ShouldBindJSON(&reqParam); err != nil {
 		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, err))
@@ -30,12 +30,12 @@ func CreateOrUpdateTemplate(c *gin.Context) {
 		return
 	}
 
-	err = database.CreateOrUpdateBatchExecTemplate(c, &reqParam)
+	retData, err := database.CreateOrUpdateBatchExecTemplate(c, &reqParam)
 	if err != nil {
 		middleware.ReturnError(c, err)
-		return
+	} else {
+		middleware.ReturnData(c, retData)
 	}
-	middleware.ReturnSuccess(c)
 	return
 }
 
