@@ -175,13 +175,13 @@ type UserRoleRsEntity struct {
 	CreatedTime time.Time `xorm:"'CREATED_TIME'"`
 	UpdatedTime time.Time `xorm:"'UPDATED_TIME'"`
 
-	Active  bool `xorm:"'IS_ACTIVE'"`
-	Deleted bool `xorm:"'IS_DELETED'"`
-
-	UserId   string `xorm:"'USER_ID'"`
-	Username string `xorm:"'USERNAME'"`
-	RoleId   string `xorm:"'ROLE_ID'"`
-	RoleName string `xorm:"'ROLE_NAME'"`
+	Active    bool   `xorm:"'IS_ACTIVE'"`
+	Deleted   bool   `xorm:"'IS_DELETED'"`
+	AdminFlag bool   `xorm:"'IS_ADMIN'"`
+	UserId    string `xorm:"'USER_ID'"`
+	Username  string `xorm:"'USERNAME'"`
+	RoleId    string `xorm:"'ROLE_ID'"`
+	RoleName  string `xorm:"'ROLE_NAME'"`
 }
 
 func (UserRoleRsEntity) TableName() string {
