@@ -435,6 +435,7 @@ func GetProcDefRootTaskNode(c *gin.Context) {
 func AddOrUpdateProcDefTaskNodes(c *gin.Context) {
 	var param models.ProcDefNodeRequestParam
 	var procDefNode *models.ProcDefNode
+	var procDef *models.ProcDef
 	var err error
 
 	user := middleware.GetRequestUser(c)
@@ -444,6 +445,19 @@ func AddOrUpdateProcDefTaskNodes(c *gin.Context) {
 	}
 	if param.ProcDefNodeCustomAttrs == nil || param.ProcDefNodeCustomAttrs.Id == "" || param.ProcDefNodeCustomAttrs.ProcDefId == "" {
 		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, fmt.Errorf("param procDefId or id is empty")))
+		return
+	}
+	procDef, err = database.GetProcessDefinition(c, param.ProcDefNodeCustomAttrs.ProcDefId)
+	if err != nil {
+		middleware.ReturnError(c, err)
+		return
+	}
+	if procDef == nil {
+		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, fmt.Errorf("procDefId is invalid")))
+		return
+	}
+	if procDef.Status == string(models.Deployed) {
+		middleware.ReturnError(c, fmt.Errorf("procDefId:%s has deployed", procDef.Id))
 		return
 	}
 	procDefNode, err = database.GetProcDefNode(c, param.ProcDefNodeCustomAttrs.ProcDefId, param.ProcDefNodeCustomAttrs.Id)
