@@ -1,6 +1,7 @@
 package database
 
 import (
+	"encoding/json"
 	"fmt"
 	"time"
 
@@ -12,9 +13,18 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func CreateOrUpdateBatchExecTemplate(c *gin.Context, reqParam *models.BatchExecTemplateInfo) (err error) {
+func CreateOrUpdateBatchExecTemplate(c *gin.Context, reqParam *models.BatchExecutionTemplate) (result *models.BatchExecutionTemplate, err error) {
 	var actions []*db.ExecAction
 	now := time.Now()
+	configDataStr := ""
+	if reqParam.ConfigData != nil {
+		configDataByte, tmpErr := json.Marshal(*reqParam.ConfigData)
+		if tmpErr != nil {
+			err = fmt.Errorf("marshal reqParam.ConfigData error: %s", tmpErr.Error())
+			return
+		}
+		configDataStr = string(configDataByte)
+	}
 	if reqParam.Id == "" {
 		// create
 		reqParam.Id = guid.CreateGuid()
@@ -24,7 +34,7 @@ func CreateOrUpdateBatchExecTemplate(c *gin.Context, reqParam *models.BatchExecT
 			Status:        models.BatchExecTemplateStatusAvailable,
 			OperateObject: reqParam.OperateObject,
 			PluginService: reqParam.PluginService,
-			ConfigData:    reqParam.ConfigData,
+			ConfigDataStr: configDataStr,
 			CreatedBy:     middleware.GetRequestUser(c),
 			UpdatedBy:     "",
 			CreatedTime:   &now,
@@ -41,7 +51,7 @@ func CreateOrUpdateBatchExecTemplate(c *gin.Context, reqParam *models.BatchExecT
 		updateColumnStr := "`name`=?,`operate_object`=?,`plugin_service`=?,`config_data`=?,`updated_by`=?,`updated_time`=?"
 		action := &db.ExecAction{
 			Sql:   db.CombineDBSql("UPDATE ", models.TableNameBatchExecTemplate, " SET ", updateColumnStr, " WHERE id=?"),
-			Param: []interface{}{reqParam.Name, reqParam.OperateObject, reqParam.PluginService, reqParam.ConfigData, middleware.GetRequestUser(c), now, reqParam.Id},
+			Param: []interface{}{reqParam.Name, reqParam.OperateObject, reqParam.PluginService, configDataStr, middleware.GetRequestUser(c), now, reqParam.Id},
 		}
 		actions = append(actions, action)
 	}
@@ -91,6 +101,14 @@ func CreateOrUpdateBatchExecTemplate(c *gin.Context, reqParam *models.BatchExecT
 	err = db.Transaction(actions, c)
 	if err != nil {
 		err = exterror.Catch(exterror.New().DatabaseExecuteError, err)
+		return
+	}
+
+	// query batchExecTemplate info
+	result, err = GetTemplate(c, reqParam.Id)
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
+		return
 	}
 	return
 }
@@ -143,7 +161,7 @@ func CollectBatchExecTemplate(c *gin.Context, reqParam *models.BatchExecutionTem
 }
 
 func RetrieveTemplate(c *gin.Context, reqParam *models.QueryRequestParam) (result *models.BatchExecTemplatePageData, err error) {
-	result = &models.BatchExecTemplatePageData{PageInfo: models.PageInfo{}, Contents: []*models.BatchExecTemplateInfo{}}
+	result = &models.BatchExecTemplatePageData{PageInfo: models.PageInfo{}, Contents: []*models.BatchExecutionTemplate{}}
 	userRoles := middleware.GetRequestRoles(c)
 	userId := middleware.GetRequestUser(c)
 
@@ -203,7 +221,7 @@ func RetrieveTemplate(c *gin.Context, reqParam *models.QueryRequestParam) (resul
 	})
 
 	// filter template info
-	var templateData []*models.BatchExecTemplateInfo
+	var templateData []*models.BatchExecutionTemplate
 	filterSql, _, queryParam := transFiltersToSQL(reqParam, &models.TransFiltersParam{IsStruct: true, StructObj: models.BatchExecutionTemplate{}, PrimaryKey: "id"})
 	baseSql := db.CombineDBSql("SELECT * FROM ", models.TableNameBatchExecTemplate, " WHERE 1=1 ", filterSql)
 	baseCountSql := db.CombineDBSql("SELECT COUNT(*) FROM ", models.TableNameBatchExecTemplate, " WHERE 1=1 ", filterSql)
@@ -229,6 +247,16 @@ func RetrieveTemplate(c *gin.Context, reqParam *models.QueryRequestParam) (resul
 	var templateIds []string
 	for _, template := range templateData {
 		templateIds = append(templateIds, template.Id)
+
+		if template.ConfigDataStr != "" {
+			configData := models.BatchExecRun{}
+			err = json.Unmarshal([]byte(template.ConfigDataStr), &configData)
+			if err != nil {
+				err = fmt.Errorf("unmarshal templateId: %s configData error: %s", template.Id, err.Error())
+				return
+			}
+			template.ConfigData = &configData
+		}
 	}
 
 	var templateRoleData []*models.BatchExecutionTemplateRole
@@ -262,10 +290,10 @@ func RetrieveTemplate(c *gin.Context, reqParam *models.QueryRequestParam) (resul
 	return
 }
 
-func GetTemplate(c *gin.Context, templateId string) (result *models.BatchExecTemplateInfo, err error) {
-	result = &models.BatchExecTemplateInfo{}
+func GetTemplate(c *gin.Context, templateId string) (result *models.BatchExecutionTemplate, err error) {
+	result = &models.BatchExecutionTemplate{}
 
-	var templateData []*models.BatchExecTemplateInfo
+	var templateData []*models.BatchExecutionTemplate
 	err = db.MysqlEngine.Context(c).Table(models.TableNameBatchExecTemplate).
 		Where("id = ?", templateId).
 		Find(&templateData)
@@ -279,6 +307,15 @@ func GetTemplate(c *gin.Context, templateId string) (result *models.BatchExecTem
 	}
 
 	result = templateData[0]
+	if result.ConfigDataStr != "" {
+		configData := models.BatchExecRun{}
+		err = json.Unmarshal([]byte(result.ConfigDataStr), &configData)
+		if err != nil {
+			err = fmt.Errorf("unmarshal templateId: %s configData error: %s", result.Id, err.Error())
+			return
+		}
+		result.ConfigData = &configData
+	}
 	// filter permission roles
 	var templateRoleData []*models.BatchExecutionTemplateRole
 	err = db.MysqlEngine.Context(c).Table(models.TableNameBatchExecTemplateRole).
@@ -289,6 +326,7 @@ func GetTemplate(c *gin.Context, templateId string) (result *models.BatchExecTem
 		return
 	}
 
+	result.PermissionToRole = &models.PermissionToRole{}
 	for _, roleData := range templateRoleData {
 		if roleData.Permission == models.PermissionTypeMGMT {
 			result.PermissionToRole.MGMT = append(result.PermissionToRole.MGMT, roleData.RoleName)
