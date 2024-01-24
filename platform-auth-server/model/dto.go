@@ -66,22 +66,23 @@ type SimpleLocalRoleDto struct {
 }
 
 type SimpleLocalUserDto struct {
-	ID          string                `json:"id"`
-	Username    string                `json:"username"`
-	Password    string                `json:"password"`
-	NativeName  string                `json:"nativeName"`
-	Title       string                `json:"title"`
-	EmailAddr   string                `json:"emailAddr"`
-	OfficeTelNo string                `json:"officeTelNo"`
-	CellPhoneNo string                `json:"cellPhoneNo"`
-	Department  string                `json:"department"`
-	EnglishName string                `json:"englishName"`
-	Active      bool                  `json:"active"`
-	Blocked     bool                  `json:"blocked"`
-	Deleted     bool                  `json:"deleted"`
-	AuthSource  string                `json:"authSource"`
-	AuthContext string                `json:"authContext"`
-	Roles       []*SimpleLocalRoleDto `json:"roles"`
+	ID                string                `json:"id"`
+	Username          string                `json:"username"`
+	Password          string                `json:"password"`
+	NativeName        string                `json:"nativeName"`
+	Title             string                `json:"title"`
+	EmailAddr         string                `json:"emailAddr"`
+	OfficeTelNo       string                `json:"officeTelNo"`
+	CellPhoneNo       string                `json:"cellPhoneNo"`
+	Department        string                `json:"department"`
+	EnglishName       string                `json:"englishName"`
+	Active            bool                  `json:"active"`
+	Blocked           bool                  `json:"blocked"`
+	Deleted           bool                  `json:"deleted"`
+	AuthSource        string                `json:"authSource"`
+	AuthContext       string                `json:"authContext"`
+	Roles             []*SimpleLocalRoleDto `json:"roles"`
+	RoleAdministrator bool                  `json:"roleAdministrator"`
 }
 
 func (s *SimpleLocalUserDto) AddRoles(roles []*SimpleLocalRoleDto) {
@@ -111,4 +112,9 @@ type SubSystemTokenDto struct {
 	ExpireDate  string `json:"expireDate"`
 	CreateDate  string `json:"createDate"` // 20200515
 	Nonce       string `json:"nonce"`
+}
+
+type RoleAdministratorDto struct {
+	RoleId string `json:"roleId"`
+	UserId string `json:"userId"`
 }

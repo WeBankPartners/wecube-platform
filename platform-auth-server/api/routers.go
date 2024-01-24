@@ -132,5 +132,9 @@ func init() {
 			ApiCode: "RevokeRoleFromUsers"},
 		&handlerFuncObj{Url: "/v1/users/:user-id/roles/revoke", Method: http.MethodPost, HandlerFunc: RevokeRolesFromUser,
 			ApiCode: "RevokeRolesFromUser"},
+		&handlerFuncObj{Url: "/v1/roles/name/:role-name/administrator", Method: http.MethodGet, HandlerFunc: GetRoleAdministrator,
+			ApiCode: "GetRolesAdministrator"},
+		&handlerFuncObj{Url: "/v1/roles/administrator", Method: http.MethodPost, HandlerFunc: ConfigureRoleAdministrator,
+			ApiCode: "ConfigureRolesAdministrator"},
 	)
 }

@@ -14,11 +14,11 @@
     "compress": true
   },
   "database": {
-    "server": "",
-    "port": "",
-    "user": "",
-    "password": "",
-    "database": "",
+    "server": "106.52.160.142",
+    "port": "13306",
+    "user": "root",
+    "password": "mF8PnUQ6dK3ppmrKPmGa",
+    "database": "smoke2_auth_server",
     "maxOpen": 200,
     "maxIdle": 50,
     "timeout": 60

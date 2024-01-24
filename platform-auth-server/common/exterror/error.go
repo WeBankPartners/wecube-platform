@@ -88,6 +88,9 @@ type ErrorTemplate struct {
 	AuthServer3024Error CustomError `json:"auth_server_3024_error"`
 	AuthServer3025Error CustomError `json:"auth_server_3025_error"`
 	AuthServer3026Error CustomError `json:"auth_server_3026_error"`
+	AuthServer3027Error CustomError `json:"auth_server_3027_error"`
+	AuthServer3028Error CustomError `json:"auth_server_3028_error"`
+	AuthServer3029Error CustomError `json:"auth_server_3029_error"`
 }
 
 var (

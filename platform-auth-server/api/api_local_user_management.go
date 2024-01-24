@@ -42,8 +42,8 @@ func ModifyLocalUserPassword(c *gin.Context) {
 	}
 }
 
-//TODO
-//@PreAuthorize("hasAnyAuthority('SUPER_ADMIN')")
+// TODO
+// @PreAuthorize("hasAnyAuthority('SUPER_ADMIN')")
 func ResetLocalUserPassword(c *gin.Context) {
 	var userPassDto model.SimpleLocalUserPassDto
 	if err := c.ShouldBindJSON(&userPassDto); err != nil {
@@ -193,4 +193,31 @@ func RevokeRolesFromUser(c *gin.Context) {
 	} else {
 		support.ReturnSuccess(c)
 	}
+}
+
+// GetRoleAdministrator 获取角色管理员
+func GetRoleAdministrator(c *gin.Context) {
+	roleName := c.Param("role-name")
+	userDto, err := service.RoleManagementServiceInstance.GetRoleAdministrator(roleName)
+	if err != nil {
+		support.ReturnError(c, err)
+	} else {
+		support.ReturnData(c, userDto)
+	}
+}
+
+// ConfigureRoleAdministrator 配置角色管理员
+func ConfigureRoleAdministrator(c *gin.Context) {
+	var param model.RoleAdministratorDto
+	if err := c.ShouldBindJSON(&param); err != nil {
+		support.ReturnError(c, exterror.Catch(exterror.New().ServerHandleError, fmt.Errorf("invalid request: %s", err.Error())))
+		return
+	}
+	// 配置角色管理员
+	err := service.RoleManagementServiceInstance.ConfigureRoleAdministrator(param)
+	if err != nil {
+		support.ReturnError(c, err)
+		return
+	}
+	support.ReturnSuccess(c)
 }
