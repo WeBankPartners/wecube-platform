@@ -40,6 +40,84 @@ func (RoleManagementService) RetrieveLocalRoleByRoleName(roleName string) (*mode
 	return convertToSimpleLocalRoleDto(existedRole), nil
 }
 
+func (RoleManagementService) GetRoleAdministrator(roleName string) (*model.SimpleLocalUserDto, error) {
+	var userDto *model.SimpleLocalUserDto
+	if len(roleName) == 0 {
+		return nil, exterror.Catch(exterror.New().AuthServer3002Error, nil)
+	}
+
+	roleUserEntity, err := db.UserRoleRsRepositoryInstance.FindRoleAdministrator(roleName)
+	if err != nil {
+		log.Logger.Error("failed to find role administrator", log.String("name", roleName), log.Error(err))
+		return nil, err
+	}
+	if roleUserEntity == nil {
+		return nil, nil
+	}
+	userEntity, err := db.UserRepositoryInstance.FindNotDeletedUserByUsername(roleUserEntity.Username)
+	if err != nil {
+		log.Logger.Error("failed to find user by username", log.String("name", roleUserEntity.Username), log.Error(err))
+		return nil, err
+	}
+	userDto = convertToSimpleLocalUserDto(userEntity, true)
+	return userDto, nil
+}
+
+func (RoleManagementService) ConfigureRoleAdministrator(param model.RoleAdministratorDto) (err error) {
+	session := db.Engine.NewSession()
+	session.Begin()
+	defer session.Close()
+	var roleEntity *model.SysRoleEntity
+	var userRoleList []*model.UserRoleRsEntity
+	var exist bool
+	// 检查角色id
+	roleEntity, err = db.RoleRepositoryInstance.FindNotDeletedRolesById(param.RoleId)
+	if err != nil {
+		return
+	}
+	if roleEntity == nil {
+		err = exterror.Catch(exterror.New().AuthServer3006Error, nil)
+		return
+	}
+	userRoleList, err = db.UserRoleRsRepositoryInstance.FindAllByRoleId(param.RoleId)
+	if err != nil {
+		return
+	}
+	if len(userRoleList) == 0 {
+		err = exterror.Catch(exterror.New().AuthServer3028Error, nil)
+		return
+	}
+	for _, entity := range userRoleList {
+		if entity.UserId == param.UserId {
+			exist = true
+		}
+	}
+	if !exist {
+		err = exterror.Catch(exterror.New().AuthServer3029Error.WithParam(param.UserId), nil)
+		return
+	}
+	// 清空已有管理员数据
+	if _, err = session.Table(&model.UserRoleRsEntity{}).Where("role_id = ?", param.RoleId).UseBool().Cols(
+		"is_admin").Update(map[string]interface{}{"is_admin": false}); err != nil {
+		log.Logger.Error(fmt.Sprintf("failed to update user_role_table:%v", param.RoleId), log.Error(err))
+		session.Rollback()
+		return
+	}
+	// 设置角色管理员
+	if param.UserId != "" {
+		if _, err = session.Table(&model.UserRoleRsEntity{}).Where("role_id = ?", param.RoleId).And("user_id = ?",
+			param.UserId).UseBool().Update(map[string]interface{}{"is_admin": true}); err != nil {
+			if err != nil {
+				log.Logger.Error(fmt.Sprintf("failed to update user_role_table:%v", param.RoleId), log.Error(err))
+			}
+			session.Rollback()
+			return
+		}
+	}
+	err = session.Commit()
+	return
+}
+
 func convertToSimpleLocalRoleDto(role *model.SysRoleEntity) *model.SimpleLocalRoleDto {
 	status := ""
 	if role.Deleted {
