@@ -43,6 +43,10 @@ const (
 	pathConfigureRoleAuthorities = "/auth/v1/roles/%s/authorities"
 	// pathRegisterLocalRole 注册角色
 	pathRegisterLocalRole = "/auth/v1/roles"
+	// pathGetRoleAdministrator 获取角色管理员
+	pathGetRoleAdministrator = "/auth/v1/roles/name/%s/administrator"
+	// pathConfigureRoleAdministrator 配置角色管理员
+	pathConfigureRoleAdministrator = "/auth/v1/roles/administrator"
 )
 
 // TODO
@@ -255,4 +259,24 @@ func RegisterLocalRole(roleDto *models.SimpleLocalRoleDto, userToken string) (re
 		return
 	}
 	return
+}
+
+// GetRoleAdministrator 获取角色管理员
+func GetRoleAdministrator(roleName string, userToken string) (response models.QuerySingleUserResponse, err error) {
+	var byteArr []byte
+	byteArr, err = network.HttpGet(fmt.Sprintf(models.Config.Auth.Url+pathGetRoleAdministrator, roleName), userToken)
+	if err != nil {
+		return
+	}
+	if err = json.Unmarshal(byteArr, &response); err != nil {
+		err = fmt.Errorf("json unmarhsal response body fail,%s ", err.Error())
+		return
+	}
+	return
+}
+
+// ConfigureRoleAdministrator 配置角色管理员
+func ConfigureRoleAdministrator(dto *models.RoleAdministratorDto, userToken string) error {
+	postBytes, _ := json.Marshal(dto)
+	return network.HttpPostCommon(models.Config.Auth.Url+pathConfigureRoleAdministrator, userToken, postBytes)
 }
