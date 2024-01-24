@@ -186,9 +186,10 @@ func GetUsersByRoleId(c *gin.Context) {
 	if len(response.Data) > 0 {
 		for _, dto := range response.Data {
 			result = append(result, &models.UserDto{
-				ID:       dto.ID,
-				UserName: dto.Username,
-				Password: dto.Password,
+				ID:                dto.ID,
+				UserName:          dto.Username,
+				Password:          dto.Password,
+				RoleAdministrator: dto.RoleAdministrator,
 			})
 		}
 	}
@@ -271,7 +272,7 @@ func DeleteUserByUserId(c *gin.Context) {
 		middleware.ReturnError(c, err)
 		return
 	}
-	if middleware.GetRequestUser(c) == response.Data.Name {
+	if middleware.GetRequestUser(c) == response.Data.Username {
 		err = fmt.Errorf("cannot remove the account which belongs to the login user")
 		middleware.ReturnError(c, err)
 		return
@@ -352,6 +353,33 @@ func GetRolesOfCurrentUser(c *gin.Context) {
 		return
 	}
 	middleware.Return(c, response)
+}
+
+// GetRoleAdministrator 获取角色管理员
+func GetRoleAdministrator(c *gin.Context) {
+	roleName := c.Param("role-name")
+	response, err := remote.GetRoleAdministrator(roleName, c.GetHeader("Authorization"))
+	if err != nil {
+		middleware.ReturnError(c, err)
+		return
+	}
+	middleware.Return(c, response)
+}
+
+// ConfigureRoleAdministrator 配置角色管理员
+func ConfigureRoleAdministrator(c *gin.Context) {
+	var param models.RoleAdministratorDto
+	if err := c.ShouldBindJSON(&param); err != nil {
+		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, err))
+		return
+	}
+	// 配置角色管理员
+	err := remote.ConfigureRoleAdministrator(&models.RoleAdministratorDto{RoleId: param.RoleId, UserId: param.UserId}, c.GetHeader("Authorization"))
+	if err != nil {
+		middleware.ReturnError(c, err)
+		return
+	}
+	middleware.ReturnSuccess(c)
 }
 
 func retrieveMenusByRoleId(ctx context.Context, roleId, userToken string) (roleMenuDto *models.RoleMenuDto, err error) {

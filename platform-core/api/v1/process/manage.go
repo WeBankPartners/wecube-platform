@@ -456,8 +456,8 @@ func AddOrUpdateProcDefTaskNodes(c *gin.Context) {
 		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, fmt.Errorf("procDefId is invalid")))
 		return
 	}
-	if procDef.Status == string(models.Deployed) {
-		middleware.ReturnError(c, fmt.Errorf("procDefId:%s has deployed", procDef.Id))
+	if procDef.Status != string(models.Draft) {
+		middleware.ReturnError(c, fmt.Errorf("draft procDefId:%s can edit", procDef.Id))
 		return
 	}
 	procDefNode, err = database.GetProcDefNode(c, param.ProcDefNodeCustomAttrs.ProcDefId, param.ProcDefNodeCustomAttrs.Id)
