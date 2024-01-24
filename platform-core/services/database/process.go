@@ -46,6 +46,7 @@ func QueryProcessDefinitionList(ctx context.Context, param models.QueryProcessDe
 	}
 
 	for _, procDef := range filterProcDefList {
+		enabledCreated = false
 		manageRoles = []string{}
 		userRoles = []string{}
 		permissionList, err = GetProcDefPermissionByCondition(ctx, models.ProcDefPermission{ProcDefId: procDef.Id})
