@@ -193,6 +193,40 @@ func UncollectBatchExecTemplate(c *gin.Context, reqParam *models.BatchExecutionT
 	return
 }
 
+func CheckCollectBatchExecTemplate(c *gin.Context, reqParam *models.BatchExecutionTemplateCollect) (result *models.CheckBatchExecTemplateResp, err error) {
+	result = &models.CheckBatchExecTemplateResp{}
+	reqParam.UserId = middleware.GetRequestUser(c)
+	// validate batchExecTemplateId
+	templateData := &models.BatchExecutionTemplate{}
+	var exists bool
+	exists, err = db.MysqlEngine.Context(c).Table(new(models.BatchExecutionTemplate)).
+		Where("id = ?", reqParam.BatchExecutionTemplateId).
+		Get(templateData)
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
+		return
+	}
+	if !exists {
+		err = fmt.Errorf("batchExecTemplateId: %s is invalid", reqParam.BatchExecutionTemplateId)
+		return
+	}
+
+	templateCollectData := &models.BatchExecutionTemplateCollect{}
+	exists, err = db.MysqlEngine.Context(c).Table(new(models.BatchExecutionTemplateCollect)).
+		Where("batch_execution_template_id = ? AND user_id = ?", reqParam.BatchExecutionTemplateId, reqParam.UserId).
+		Get(templateCollectData)
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
+		return
+	}
+	if exists {
+		result.IsCollectTemplate = true
+	} else {
+		result.IsCollectTemplate = false
+	}
+	return
+}
+
 func RetrieveTemplate(c *gin.Context, reqParam *models.QueryRequestParam) (result *models.BatchExecTemplatePageData, err error) {
 	result = &models.BatchExecTemplatePageData{PageInfo: models.PageInfo{}, Contents: []*models.BatchExecutionTemplate{}}
 	userRoles := middleware.GetRequestRoles(c)
