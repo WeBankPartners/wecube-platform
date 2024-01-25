@@ -161,7 +161,7 @@ export default G6 => {
       },
       // 返回菱形的路径
       getPath (cfg) {
-        const size = cfg.style.size || [70, 70] // 如果没有 size 时的默认大小
+        const size = cfg.style.size || [50, 50] // 如果没有 size 时的默认大小
         const width = size[0]
         const height = size[1]
 
