@@ -79,6 +79,10 @@ func (BatchExecutionTemplateCollect) TableName() string {
 	return "batch_execution_template_collect"
 }
 
+type CheckBatchExecTemplateResp struct {
+	IsCollectTemplate bool `json:"isCollectTemplate"`
+}
+
 /*
 type BatchExecTemplateInfo struct {
 	BatchExecutionTemplate
