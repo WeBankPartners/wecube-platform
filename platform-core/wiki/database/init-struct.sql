@@ -398,15 +398,17 @@ CREATE TABLE `proc_def_collect` (
 
 CREATE TABLE `batch_execution` (
     `id` varchar(64) NOT NULL COMMENT '唯一标识',
+    `name` varchar(255) NOT NULL COMMENT '名称',
     `batch_execution_template_id` varchar(64) DEFAULT NULL COMMENT '模板id',
+    `error_code` varchar(1) NULL COMMENT '错误码, 0:成功, 1:失败',
     `created_by` varchar(64) NOT NULL COMMENT '创建者',
     `updated_by` varchar(64) NULL COMMENT '更新者',
     `created_time` datetime NOT NULL COMMENT '创建时间',
     `updated_time` datetime NULL COMMENT '更新时间',
-    PRIMARY KEY (`id`),
+    PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
 
-CREATE TABLE `batch_execution_jobs` (
+CREATE TABLE `batch_exec_jobs` (
     `id` varchar(64) NOT NULL COMMENT '唯一标识',
     `batch_execution_id` varchar(64) NOT NULL COMMENT '批量执行任务id',
     `package_name` varchar(64) NOT NULL COMMENT '包名',
@@ -415,7 +417,7 @@ CREATE TABLE `batch_execution_jobs` (
     `root_entity_id` varchar(64) NOT NULL COMMENT '根实体id',
     `execute_time` datetime NOT NULL COMMENT '执行时间',
     `complete_time` datetime NULL COMMENT '完成时间',
-    `error_code` varchar(1)  NULL COMMENT '错误码',
+    `error_code` varchar(1) NULL COMMENT '错误码, 0:成功, 1:失败',
     `error_message` text NULL COMMENT '错误信息',
     `input_json` longtext NULL COMMENT '输入json',
     `return_json` longtext NULL COMMENT '输出json',
@@ -435,7 +437,7 @@ CREATE TABLE `batch_execution_template` (
     `created_time` datetime NULL COMMENT '创建时间',
     `updated_by` varchar(64) NULL COMMENT '更新者',
     `updated_time` datetime NULL COMMENT '更新时间',
-    PRIMARY KEY (`id`),
+    PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
 
 CREATE TABLE `batch_execution_template_role` (
@@ -444,7 +446,7 @@ CREATE TABLE `batch_execution_template_role` (
   `permission` varchar(64) NOT NULL COMMENT '权限类型->MGMT(管理) | USE(使用)',
   `role_id` varchar(64) NOT NULL COMMENT '角色id',
   `role_name` varchar(64) NOT NULL COMMENT '角色名',
-  PRIMARY KEY (`id`),
+  PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
 
 CREATE TABLE `batch_execution_template_collect` (
