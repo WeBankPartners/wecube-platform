@@ -115,7 +115,7 @@ func CreateOrUpdateBatchExecTemplate(c *gin.Context, reqParam *models.BatchExecu
 
 func CollectBatchExecTemplate(c *gin.Context, reqParam *models.BatchExecutionTemplateCollect) (err error) {
 	reqParam.UserId = middleware.GetRequestUser(c)
-	// validate favoritesId
+	// validate batchExecTemplateId
 	templateData := &models.BatchExecutionTemplate{}
 	var exists bool
 	exists, err = db.MysqlEngine.Context(c).Table(new(models.BatchExecutionTemplate)).
@@ -150,6 +150,38 @@ func CollectBatchExecTemplate(c *gin.Context, reqParam *models.BatchExecutionTem
 	if tmpErr != nil {
 		err = fmt.Errorf("get insert sql failed: %s", tmpErr.Error())
 		return
+	}
+	actions = append(actions, action)
+
+	err = db.Transaction(actions, c)
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseExecuteError, err)
+		return
+	}
+	return
+}
+
+func UncollectBatchExecTemplate(c *gin.Context, reqParam *models.BatchExecutionTemplateCollect) (err error) {
+	reqParam.UserId = middleware.GetRequestUser(c)
+	// validate batchExecTemplateId
+	templateData := &models.BatchExecutionTemplate{}
+	var exists bool
+	exists, err = db.MysqlEngine.Context(c).Table(new(models.BatchExecutionTemplate)).
+		Where("id = ?", reqParam.BatchExecutionTemplateId).
+		Get(templateData)
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
+		return
+	}
+	if !exists {
+		err = fmt.Errorf("batchExecTemplateId: %s is invalid", reqParam.BatchExecutionTemplateId)
+		return
+	}
+
+	var actions []*db.ExecAction
+	action := &db.ExecAction{
+		Sql:   db.CombineDBSql("DELETE FROM ", models.TableNameBatchExecTemplateCollect, " WHERE batch_execution_template_id = ? AND user_id = ?"),
+		Param: []interface{}{reqParam.BatchExecutionTemplateId, reqParam.UserId},
 	}
 	actions = append(actions, action)
 
