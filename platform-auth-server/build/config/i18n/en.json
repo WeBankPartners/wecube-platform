@@ -29,5 +29,8 @@
   "auth_server_3023_error": {"code": 3023, "message":"User %s already exists."},
   "auth_server_3024_error": {"code": 3024, "message":"Such user with ID %s does not exist."},
   "auth_server_3025_error": {"code": 3025, "message":"Username cannot be blank."},
-  "auth_server_3026_error": {"code": 3026, "message":"Password cannot be blank."}
+  "auth_server_3026_error": {"code": 3026, "message":"Password cannot be blank."},
+  "auth_server_3027_error": {"code": 3027, "message":"User %s is this role administrator,please cancel administrator before delete."},
+  "auth_server_3028_error": {"code": 3028, "message":"this role configure user is empty."},
+  "auth_server_3029_error": {"code": 3029, "message":"User %s not belonging to this role"}
 }
