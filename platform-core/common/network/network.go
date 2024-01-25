@@ -11,13 +11,14 @@ import (
 )
 
 // HttpGet  Get请求
-func HttpGet(url, userToken string) (byteArr []byte, err error) {
+func HttpGet(url, userToken, language string) (byteArr []byte, err error) {
 	req, newReqErr := http.NewRequest(http.MethodGet, url, strings.NewReader(""))
 	if newReqErr != nil {
 		err = fmt.Errorf("Try to new http request fail,%s ", newReqErr.Error())
 		return
 	}
 	req.Header.Set("Authorization", userToken)
+	req.Header.Set("Accept-Language", language)
 	resp, respErr := http.DefaultClient.Do(req)
 	if respErr != nil {
 		err = fmt.Errorf("Try to do http request fail,%s ", respErr.Error())
@@ -29,13 +30,14 @@ func HttpGet(url, userToken string) (byteArr []byte, err error) {
 }
 
 // HttpPost Post请求,关注返回结果
-func HttpPost(url, userToken string, postBytes []byte) (byteArr []byte, err error) {
+func HttpPost(url, userToken, language string, postBytes []byte) (byteArr []byte, err error) {
 	req, reqErr := http.NewRequest(http.MethodPost, url, bytes.NewReader(postBytes))
 	if reqErr != nil {
 		err = fmt.Errorf("new http reqeust fail,%s ", reqErr.Error())
 		return
 	}
 	req.Header.Set("Authorization", userToken)
+	req.Header.Set("Accept-Language", language)
 	resp, respErr := http.DefaultClient.Do(req)
 	if respErr != nil {
 		err = fmt.Errorf("do http reqeust fail,%s ", reqErr.Error())
@@ -47,13 +49,14 @@ func HttpPost(url, userToken string, postBytes []byte) (byteArr []byte, err erro
 }
 
 // HttpPostCommon Post请求,通用返回处理
-func HttpPostCommon(url, userToken string, postBytes []byte) (err error) {
+func HttpPostCommon(url, userToken, language string, postBytes []byte) (err error) {
 	req, reqErr := http.NewRequest(http.MethodPost, url, bytes.NewReader(postBytes))
 	if reqErr != nil {
 		err = fmt.Errorf("new http reqeust fail,%s ", reqErr.Error())
 		return
 	}
 	req.Header.Set("Authorization", userToken)
+	req.Header.Set("Accept-Language", language)
 	resp, respErr := http.DefaultClient.Do(req)
 	if respErr != nil {
 		err = fmt.Errorf("do http reqeust fail,%s ", reqErr.Error())
@@ -72,13 +75,14 @@ func HttpPostCommon(url, userToken string, postBytes []byte) (err error) {
 }
 
 // HttpDeleteCommon http Delete
-func HttpDeleteCommon(url, userToken string) (err error) {
+func HttpDeleteCommon(url, userToken, language string) (err error) {
 	req, newReqErr := http.NewRequest(http.MethodDelete, url, strings.NewReader(""))
 	if newReqErr != nil {
 		err = fmt.Errorf("Try to new http request fail,%s ", newReqErr.Error())
 		return
 	}
 	req.Header.Set("Authorization", userToken)
+	req.Header.Set("Accept-Language", language)
 	resp, respErr := http.DefaultClient.Do(req)
 	if respErr != nil {
 		err = fmt.Errorf("Try to do http request fail,%s ", respErr.Error())
