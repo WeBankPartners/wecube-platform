@@ -115,7 +115,7 @@ func CreateOrUpdateBatchExecTemplate(c *gin.Context, reqParam *models.BatchExecu
 
 func CollectBatchExecTemplate(c *gin.Context, reqParam *models.BatchExecutionTemplateCollect) (err error) {
 	reqParam.UserId = middleware.GetRequestUser(c)
-	// validate favoritesId
+	// validate batchExecTemplateId
 	templateData := &models.BatchExecutionTemplate{}
 	var exists bool
 	exists, err = db.MysqlEngine.Context(c).Table(new(models.BatchExecutionTemplate)).
@@ -156,6 +156,73 @@ func CollectBatchExecTemplate(c *gin.Context, reqParam *models.BatchExecutionTem
 	err = db.Transaction(actions, c)
 	if err != nil {
 		err = exterror.Catch(exterror.New().DatabaseExecuteError, err)
+		return
+	}
+	return
+}
+
+func UncollectBatchExecTemplate(c *gin.Context, reqParam *models.BatchExecutionTemplateCollect) (err error) {
+	reqParam.UserId = middleware.GetRequestUser(c)
+	// validate batchExecTemplateId
+	templateData := &models.BatchExecutionTemplate{}
+	var exists bool
+	exists, err = db.MysqlEngine.Context(c).Table(new(models.BatchExecutionTemplate)).
+		Where("id = ?", reqParam.BatchExecutionTemplateId).
+		Get(templateData)
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
+		return
+	}
+	if !exists {
+		err = fmt.Errorf("batchExecTemplateId: %s is invalid", reqParam.BatchExecutionTemplateId)
+		return
+	}
+
+	var actions []*db.ExecAction
+	action := &db.ExecAction{
+		Sql:   db.CombineDBSql("DELETE FROM ", models.TableNameBatchExecTemplateCollect, " WHERE batch_execution_template_id = ? AND user_id = ?"),
+		Param: []interface{}{reqParam.BatchExecutionTemplateId, reqParam.UserId},
+	}
+	actions = append(actions, action)
+
+	err = db.Transaction(actions, c)
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseExecuteError, err)
+		return
+	}
+	return
+}
+
+func CheckCollectBatchExecTemplate(c *gin.Context, reqParam *models.BatchExecutionTemplateCollect) (result *models.CheckBatchExecTemplateResp, err error) {
+	result = &models.CheckBatchExecTemplateResp{}
+	reqParam.UserId = middleware.GetRequestUser(c)
+	// validate batchExecTemplateId
+	templateData := &models.BatchExecutionTemplate{}
+	var exists bool
+	exists, err = db.MysqlEngine.Context(c).Table(new(models.BatchExecutionTemplate)).
+		Where("id = ?", reqParam.BatchExecutionTemplateId).
+		Get(templateData)
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
+		return
+	}
+	if !exists {
+		err = fmt.Errorf("batchExecTemplateId: %s is invalid", reqParam.BatchExecutionTemplateId)
+		return
+	}
+
+	templateCollectData := &models.BatchExecutionTemplateCollect{}
+	exists, err = db.MysqlEngine.Context(c).Table(new(models.BatchExecutionTemplateCollect)).
+		Where("batch_execution_template_id = ? AND user_id = ?", reqParam.BatchExecutionTemplateId, reqParam.UserId).
+		Get(templateCollectData)
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
+		return
+	}
+	if exists {
+		result.IsCollectTemplate = true
+	} else {
+		result.IsCollectTemplate = false
 	}
 	return
 }
@@ -195,9 +262,12 @@ func RetrieveTemplate(c *gin.Context, reqParam *models.QueryRequestParam) (resul
 			err = exterror.Catch(exterror.New().DatabaseQueryError, err)
 			return
 		}
+		if len(collectTemplateIds) == 0 {
+			return
+		}
 	}
 
-	// filter templateId by roleName (and permissionType)
+	// query templateId by roleName (and permissionType)
 	var roleFilterTemplateIds []string
 	session := db.MysqlEngine.Context(c).Table(models.TableNameBatchExecTemplateRole).
 		In("role_name", userRoles).
@@ -213,6 +283,9 @@ func RetrieveTemplate(c *gin.Context, reqParam *models.QueryRequestParam) (resul
 		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
 		return
 	}
+	if len(roleFilterTemplateIds) == 0 {
+		return
+	}
 
 	reqParam.Filters = append(reqParam.Filters, &models.QueryRequestFilterObj{
 		Name:     "id",
@@ -220,7 +293,7 @@ func RetrieveTemplate(c *gin.Context, reqParam *models.QueryRequestParam) (resul
 		Value:    roleFilterTemplateIds,
 	})
 
-	// filter template info
+	// query template info
 	var templateData []*models.BatchExecutionTemplate
 	filterSql, _, queryParam := transFiltersToSQL(reqParam, &models.TransFiltersParam{IsStruct: true, StructObj: models.BatchExecutionTemplate{}, PrimaryKey: "id"})
 	baseSql := db.CombineDBSql("SELECT * FROM ", models.TableNameBatchExecTemplate, " WHERE 1=1 ", filterSql)
@@ -242,8 +315,11 @@ func RetrieveTemplate(c *gin.Context, reqParam *models.QueryRequestParam) (resul
 		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
 		return
 	}
+	if len(templateData) == 0 {
+		return
+	}
 
-	// filter permission roles
+	// query permission roles
 	var templateIds []string
 	for _, template := range templateData {
 		templateIds = append(templateIds, template.Id)
