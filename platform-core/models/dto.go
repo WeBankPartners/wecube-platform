@@ -1,9 +1,8 @@
 package models
 
 const (
-	ResponseStatusOk    = "OK"
-	ResponseStatusError = "ERROR"
-	ResponseMessageOk   = "success"
+	AuthTypeLocal = "LOCAL"
+	AuthTypeUm    = "UM"
 )
 
 type ResponseWrap struct {
@@ -65,22 +64,23 @@ type SimpleLocalRoleDto struct {
 }
 
 type SimpleLocalUserDto struct {
-	ID          string                `json:"id"`
-	Username    string                `json:"username"`
-	Password    string                `json:"password"`
-	NativeName  string                `json:"nativeName"`
-	Title       string                `json:"title"`
-	EmailAddr   string                `json:"emailAddr"`
-	OfficeTelNo string                `json:"officeTelNo"`
-	CellPhoneNo string                `json:"cellPhoneNo"`
-	Department  string                `json:"department"`
-	EnglishName string                `json:"englishName"`
-	Active      bool                  `json:"active"`
-	Blocked     bool                  `json:"blocked"`
-	Deleted     bool                  `json:"deleted"`
-	AuthSource  string                `json:"authSource"`
-	AuthContext string                `json:"authContext"`
-	Roles       []*SimpleLocalRoleDto `json:"roles"`
+	ID                string                `json:"id"`
+	Username          string                `json:"username"`
+	Password          string                `json:"password"`
+	NativeName        string                `json:"nativeName"`
+	Title             string                `json:"title"`
+	EmailAddr         string                `json:"emailAddr"`
+	OfficeTelNo       string                `json:"officeTelNo"`
+	CellPhoneNo       string                `json:"cellPhoneNo"`
+	Department        string                `json:"department"`
+	EnglishName       string                `json:"englishName"`
+	Active            bool                  `json:"active"`
+	Blocked           bool                  `json:"blocked"`
+	Deleted           bool                  `json:"deleted"`
+	AuthSource        string                `json:"authSource"`
+	AuthContext       string                `json:"authContext"`
+	Roles             []*SimpleLocalRoleDto `json:"roles"`
+	RoleAdministrator bool                  `json:"roleAdministrator"`
 }
 
 func (s *SimpleLocalUserDto) AddRoles(roles []*SimpleLocalRoleDto) {
@@ -113,10 +113,11 @@ type SubSystemTokenDto struct {
 }
 
 type UserDto struct {
-	ID       string `json:"id"`
-	UserName string `json:"username"`
-	Password string `json:"password"`
-	AuthType string `json:"authType"` // LOCAL,UM
+	ID                string `json:"id"`
+	UserName          string `json:"username"`
+	Password          string `json:"password"`
+	AuthType          string `json:"authType"` // LOCAL,UM
+	RoleAdministrator bool   `json:"roleAdministrator"`
 }
 
 type MenuItemDto struct {
@@ -129,6 +130,11 @@ type MenuItemDto struct {
 	LocalDisplayName string `json:"localDisplayName"`
 	Path             string `json:"path"`
 	Active           bool   `json:"active"`
+}
+
+type RoleAdministratorDto struct {
+	RoleId string `json:"roleId"`
+	UserId string `json:"userId"`
 }
 
 type RoleMenuDto struct {

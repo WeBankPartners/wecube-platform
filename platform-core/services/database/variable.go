@@ -27,6 +27,28 @@ func QuerySystemVariables(ctx context.Context, param *models.QueryRequestParam) 
 	return
 }
 
+func QuerySystemVariablesByCondition(ctx context.Context, condition models.SystemVariablesQueryCondition) (list []*models.SystemVariables, err error) {
+	var param []interface{}
+	sql := "select * from system_variables where 1= 1"
+	if condition.Name != "" {
+		sql = sql + " and name = ?"
+		param = append(param, condition.Name)
+	}
+	if condition.Status != "" {
+		sql = sql + " and status = ?"
+		param = append(param, condition.Status)
+	}
+	if condition.Scope != "" {
+		sql = sql + " and scope = ?"
+	}
+	err = db.MysqlEngine.Context(ctx).SQL(sql, param...).Find(&list)
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
+		return
+	}
+	return
+}
+
 func CreateSystemVariables(ctx context.Context, params []*models.SystemVariables) (err error) {
 	var actions []*db.ExecAction
 	for _, v := range params {

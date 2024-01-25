@@ -55,18 +55,15 @@ type UmAuth struct {
 }
 
 type GlobalConfig struct {
-	ServerAddress          string         `json:"server_address"`
-	ServerPort             string         `json:"server_port"`
-	Log                    LogConfig      `json:"log"`
-	PasswordPrivateKeyPath string         `json:"password_private_key_path"`
-	Database               DatabaseConfig `json:"database"`
-	//Remote   RemoteServiceConfig `json:"remote_service"`
-	//Auth AuthConfig `json:"auth"`
-	//UmAuth             UmAuth             `json:"umAuth"`
-	UmPermissionUpload UmPermissionUpload `json:"um_permission_upload"`
-	Auth               Auth               `json:"auth"`
-	ErrorTemplateDir   string             `json:"error_template_dir"`
-	ErrorDetailReturn  bool               `json:"error_detail_return"`
+	ServerAddress          string             `json:"server_address"`
+	ServerPort             string             `json:"server_port"`
+	Log                    LogConfig          `json:"log"`
+	PasswordPrivateKeyPath string             `json:"password_private_key_path"`
+	Database               DatabaseConfig     `json:"database"`
+	UmPermissionUpload     UmPermissionUpload `json:"um_permission_upload"`
+	Auth                   Auth               `json:"auth"`
+	ErrorTemplateDir       string             `json:"error_template_dir"`
+	ErrorDetailReturn      bool               `json:"error_detail_return"`
 }
 
 type AuthConfig struct {
