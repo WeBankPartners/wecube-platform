@@ -1,16 +1,51 @@
 {
   "success": "Success",
-  "request_param_validate_error": {"code": 10000001, "message":"Parameter validate fail"},
-  "request_read_body_error": {"code": 10000002, "message":"Failed to read request body data"},
-  "request_json_unmarshal_error": {"code": 10000003, "message":"Failed unmarshal request body in json"},
-  "request_token_validate_error": {"code": 10000004, "message":"Failed validate request token"},
-  "request_token_expire_error": {"code": 10000005, "message":"token expired"},
-
-  "database_query_error": {"code": 10000021, "message":"Failed to Query database fail"},
-  "database_query_empty_error": {"code": 10000022, "message":"Failed to get any rows with database query"},
-  "database_execute_error": {"code": 10000023, "message":"Failed to execute database sql"},
-
-  "server_handle_error": {"code": 10000031, "message":"Failed to handle request"},
-
-  "plugin_dependency_illegal": {"code": 20000001, "message":"Plugin dependency validate fail"}
+  "request_param_validate_error": {
+    "code": 10000001,
+    "message": "Parameter validate fail"
+  },
+  "request_read_body_error": {
+    "code": 10000002,
+    "message": "Failed to read request body data"
+  },
+  "request_json_unmarshal_error": {
+    "code": 10000003,
+    "message": "Failed unmarshal request body in json"
+  },
+  "request_token_validate_error": {
+    "code": 10000004,
+    "message": "Failed validate request token"
+  },
+  "request_token_expire_error": {
+    "code": 10000005,
+    "message": "token expired"
+  },
+  "database_query_error": {
+    "code": 10000021,
+    "message": "Failed to Query database fail"
+  },
+  "database_query_empty_error": {
+    "code": 10000022,
+    "message": "Failed to get any rows with database query"
+  },
+  "database_execute_error": {
+    "code": 10000023,
+    "message": "Failed to execute database sql"
+  },
+  "server_handle_error": {
+    "code": 10000031,
+    "message": "Failed to handle request"
+  },
+  "plugin_dependency_illegal": {
+    "code": 20000001,
+    "message": "Plugin dependency validate fail"
+  },
+  "proc_def_node_name_empty_error": {
+    "code": 20000002,
+    "message": "编排节点名称不能为空"
+  },
+  "proc_def_node_name_repeat_error": {
+    "code": 20000003,
+    "message": "编排节点名称重复"
+  }
 }

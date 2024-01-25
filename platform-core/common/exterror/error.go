@@ -39,9 +39,10 @@ type ErrorTemplate struct {
 	DatabaseQueryEmptyError CustomError `json:"database_query_empty_error"`
 	DatabaseExecuteError    CustomError `json:"database_execute_error"`
 	// sever handle error
-	ServerHandleError CustomError `json:"server_handle_error"`
-
-	PluginDependencyIllegal CustomError `json:"plugin_dependency_illegal"`
+	ServerHandleError          CustomError `json:"server_handle_error"`
+	PluginDependencyIllegal    CustomError `json:"plugin_dependency_illegal"`
+	ProcDefNodeNameEmptyError  CustomError `json:"proc_def_node_name_empty_error"`
+	ProcDefNodeNameRepeatError CustomError `json:"proc_def_node_name_repeat_error"`
 }
 
 var (
