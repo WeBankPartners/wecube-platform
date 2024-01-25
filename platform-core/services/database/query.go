@@ -138,6 +138,6 @@ func queryCount(ctx context.Context, sql string, params ...interface{}) int {
 func transPageInfoToSQL(pageInfo models.PageInfo) (pageSql string, param []interface{}) {
 	pageSql = " LIMIT ?,? "
 	param = append(param, pageInfo.StartIndex)
-	param = append(param, (pageInfo.StartIndex+1)*pageInfo.PageSize)
+	param = append(param, pageInfo.PageSize)
 	return
 }
