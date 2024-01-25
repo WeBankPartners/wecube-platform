@@ -9,13 +9,25 @@ import (
 )
 
 const (
-	PluginStatusUnRegistered   = "unregistered"
-	PluginStatusRegistered     = "registered"
-	PluginStatusDecommissioned = "decommissioned"
-	PluginEditionCommunity     = "community"
-	PluginEditionEnterprise    = "enterprise"
-	PluginParamTypeInput       = "INPUT"
-	PluginParamTypeOutput      = "OUTPUT"
+	PluginStatusUnRegistered    = "unregistered"
+	PluginStatusRegistered      = "registered"
+	PluginStatusDecommissioned  = "decommissioned"
+	PluginEditionCommunity      = "community"
+	PluginEditionEnterprise     = "enterprise"
+	PluginParamTypeInput        = "INPUT"
+	PluginParamTypeOutput       = "OUTPUT"
+	PluginParamMapTypeConstant  = "constant"
+	PluginParamMapTypeSystemVar = "system_variable"
+	PluginParamMapTypeContext   = "context"
+	PluginParamMapTypeEntity    = "entity"
+	PluginParamMapTypeObject    = "object"
+	PluginParamMapTypeAssign    = "assign" // 仅OUTPUT使用
+	PluginParamDataTypeObject   = "object"
+	PluginParamDataTypeList     = "list"
+	PluginParamDataTypeInt      = "int"
+	PluginParamDataTypeString   = "string"
+
+	PluginNameItsdangerous = "itsdangerous"
 )
 
 type PluginPackages struct {
@@ -356,7 +368,7 @@ type PluginConfigInterfaceParameters struct {
 	Type                      string                  `json:"type" xorm:"type"`                                              // 类型->input(输入),output(输出)
 	Name                      string                  `json:"name" xorm:"name"`                                              // 接口属性名
 	DataType                  string                  `json:"dataType" xorm:"data_type"`                                     // 属性数据类型
-	MappingType               string                  `json:"mappingType" xorm:"mapping_type"`                               // 数据来源
+	MappingType               string                  `json:"mappingType" xorm:"mapping_type"`                               // 数据来源(constance,entity,context,system_variable,object,assign)
 	MappingEntityExpression   string                  `json:"mappingEntityExpression" xorm:"mapping_entity_expression"`      // entity表达式
 	MappingSystemVariableName string                  `json:"mappingSystemVariableName" xorm:"mapping_system_variable_name"` // 系统参数
 	Required                  string                  `json:"required" xorm:"required"`                                      // 是否必填->Y(是) | N(否)
@@ -652,4 +664,15 @@ func ConvertCoreObjectMeta2Dto(objectMeta *CoreObjectMeta) *CoreObjectMetaDto {
 		}
 	}
 	return dto
+}
+
+type PluginInterfaceApiResult struct {
+	Code    int                           `json:"code"`    // 小于400是正常
+	Status  string                        `json:"status"`  // 正常时返回OK
+	Message string                        `json:"message"` // 错误消息
+	Data    *PluginInterfaceApiResultData `json:"data"`    // 数据
+}
+
+type PluginInterfaceApiResultData struct {
+	Outputs []map[string]interface{} `json:"outputs"`
 }
