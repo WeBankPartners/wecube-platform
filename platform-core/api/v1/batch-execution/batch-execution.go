@@ -19,7 +19,7 @@ func CreateOrUpdateTemplate(c *gin.Context) {
 		log.Logger.Error(e.(string))
 	})
 
-	reqParam := models.BatchExecTemplateInfo{}
+	reqParam := models.BatchExecutionTemplate{}
 	var err error
 	if err = c.ShouldBindJSON(&reqParam); err != nil {
 		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, err))
@@ -27,15 +27,16 @@ func CreateOrUpdateTemplate(c *gin.Context) {
 	}
 	if len(reqParam.PermissionToRole.MGMT) == 0 {
 		err = exterror.Catch(exterror.New().RequestParamValidateError, fmt.Errorf("request param err, MGMT permission role can not be empty"))
-		return
-	}
-
-	err = database.CreateOrUpdateBatchExecTemplate(c, &reqParam)
-	if err != nil {
 		middleware.ReturnError(c, err)
 		return
 	}
-	middleware.ReturnSuccess(c)
+
+	retData, err := database.CreateOrUpdateBatchExecTemplate(c, &reqParam)
+	if err != nil {
+		middleware.ReturnError(c, err)
+	} else {
+		middleware.ReturnData(c, retData)
+	}
 	return
 }
 
@@ -55,6 +56,7 @@ func CollectTemplate(c *gin.Context) {
 
 	if reqParam.BatchExecutionTemplateId == "" {
 		err = exterror.Catch(exterror.New().RequestParamValidateError, fmt.Errorf("request param err, batchExecutionTemplateId can not be empty"))
+		middleware.ReturnError(c, err)
 		return
 	}
 
@@ -102,10 +104,68 @@ func GetTemplate(c *gin.Context) {
 
 	templateId := c.Param("templateId")
 	if templateId == "" {
-		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, fmt.Errorf("templateId is empty")))
+		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, fmt.Errorf("templateId cannot be empty")))
 		return
 	}
 	retData, err := database.GetTemplate(c, templateId)
+	if err != nil {
+		middleware.ReturnError(c, err)
+	} else {
+		middleware.ReturnData(c, retData)
+	}
+	return
+}
+
+func RetrieveBatchExec(c *gin.Context) {
+	defer try.ExceptionStack(func(e interface{}, err interface{}) {
+		retErr := fmt.Errorf("%v", err)
+		middleware.ReturnError(c, exterror.Catch(exterror.New().ServerHandleError, retErr))
+		log.Logger.Error(e.(string))
+	})
+
+	var param models.QueryRequestParam
+	var err error
+	if err = c.ShouldBindJSON(&param); err != nil {
+		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, err))
+		return
+	}
+
+	userId := middleware.GetRequestUser(c)
+	param.Filters = append(param.Filters, &models.QueryRequestFilterObj{
+		Name:     "createdBy",
+		Operator: "eq",
+		Value:    userId,
+	})
+
+	if len(param.Sorting) == 0 {
+		param.Sorting = append(param.Sorting, &models.QueryRequestSorting{Field: "updatedTime", Asc: false})
+		param.Sorting = append(param.Sorting, &models.QueryRequestSorting{Field: "id", Asc: true})
+	}
+
+	retData, err := database.RetrieveBatchExec(c, &param)
+	if err != nil {
+		middleware.ReturnError(c, err)
+	} else {
+		middleware.ReturnData(c, retData)
+	}
+	return
+}
+
+func GetBatchExec(c *gin.Context) {
+	defer try.ExceptionStack(func(e interface{}, err interface{}) {
+		retErr := fmt.Errorf("%v", err)
+		middleware.ReturnError(c, exterror.Catch(exterror.New().ServerHandleError, retErr))
+		log.Logger.Error(e.(string))
+	})
+
+	var err error
+	batchExecId := c.Param("batchExecId")
+	if batchExecId == "" {
+		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, fmt.Errorf("batchExecId cannot be empty")))
+		return
+	}
+
+	retData, err := database.GetBatchExec(c, batchExecId)
 	if err != nil {
 		middleware.ReturnError(c, err)
 	} else {
