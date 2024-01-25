@@ -309,6 +309,10 @@ func ExportProcessDefinition(c *gin.Context) {
 		return
 	}
 	for _, procDef := range procDefList {
+		if procDef.Status == string(models.Draft) {
+			log.Logger.Info("procDef is draft", log.String("procDefId", procDef.Id))
+			continue
+		}
 		procDefDto, err2 := getProcDefDetailByProcDefId(c, procDef.Id)
 		if err2 != nil {
 			middleware.ReturnError(c, err2)
@@ -434,8 +438,10 @@ func GetProcDefRootTaskNode(c *gin.Context) {
 // AddOrUpdateProcDefTaskNodes 添加更新编排节点
 func AddOrUpdateProcDefTaskNodes(c *gin.Context) {
 	var param models.ProcDefNodeRequestParam
-	var procDefNode *models.ProcDefNode
 	var procDef *models.ProcDef
+	var procDefNodeList []*models.ProcDefNode
+	var procDefNode *models.ProcDefNode
+	var nameRepeat bool
 	var err error
 
 	user := middleware.GetRequestUser(c)
@@ -447,6 +453,12 @@ func AddOrUpdateProcDefTaskNodes(c *gin.Context) {
 		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, fmt.Errorf("param procDefId or id is empty")))
 		return
 	}
+	// 节点名称不能为空
+	if param.ProcDefNodeCustomAttrs.Name == "" {
+		middleware.ReturnError(c, exterror.Catch(exterror.New().ProcDefNodeNameEmptyError, nil))
+		return
+	}
+
 	procDef, err = database.GetProcessDefinition(c, param.ProcDefNodeCustomAttrs.ProcDefId)
 	if err != nil {
 		middleware.ReturnError(c, err)
@@ -460,9 +472,24 @@ func AddOrUpdateProcDefTaskNodes(c *gin.Context) {
 		middleware.ReturnError(c, fmt.Errorf("draft procDefId:%s can edit", procDef.Id))
 		return
 	}
-	procDefNode, err = database.GetProcDefNode(c, param.ProcDefNodeCustomAttrs.ProcDefId, param.ProcDefNodeCustomAttrs.Id)
+	procDefNodeList, err = database.GetProcDefNodeById(c, procDef.Id)
 	if err != nil {
 		middleware.ReturnError(c, err)
+		return
+	}
+	if len(procDefNodeList) > 0 {
+		for _, node := range procDefNodeList {
+			if node.NodeId == param.ProcDefNodeCustomAttrs.Id {
+				procDefNode = node
+			} else if param.ProcDefNodeCustomAttrs.Name == node.Name {
+				nameRepeat = true
+				break
+			}
+		}
+	}
+	// 节点名称不能重复
+	if nameRepeat {
+		middleware.ReturnError(c, exterror.Catch(exterror.New().ProcDefNodeNameRepeatError, nil))
 		return
 	}
 	node := models.ConvertParam2ProcDefNode(user, param)

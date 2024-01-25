@@ -148,6 +148,8 @@ type QueryProcessDefinitionParam struct {
 	UpdatedTimeStart string   `json:"updatedTimeStart"` // 更新时间开始
 	UpdatedTimeEnd   string   `json:"updatedTimeEnd"`   // 更新时间结束
 	Status           string   `json:"status"`           // disabled 禁用 draft草稿 deployed 发布状态
+	CreatedBy        string   `json:"createdBy"`        // 创建人
+	UpdatedBy        string   `json:"updatedBy"`        // 更新人
 	UserRoles        []string // 用户角色
 }
 
@@ -302,13 +304,8 @@ type ProcDefDto struct {
 }
 
 type ProcDefQueryDto struct {
-	ManageRole string       `json:"manageRole"` //管理角色
-	SceneData  []*SceneData `json:"sceneData"`  // 场景数据
-}
-
-type SceneData struct {
-	Scene       string        `json:"scene"`    // 场景
-	ProcDefList []*ProcDefDto `json:"dataList"` // 编排列表
+	ManageRole  string        `json:"manageRole"` //管理角色
+	ProcDefList []*ProcDefDto `json:"dataList"`   // 编排列表
 }
 
 type PermissionToRole struct {
