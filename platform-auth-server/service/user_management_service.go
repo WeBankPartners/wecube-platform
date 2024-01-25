@@ -185,12 +185,6 @@ func (UserManagementService) RevokeRoleFromUsers(roleId string, userDtos []*mode
 		if userRole.Deleted {
 			continue
 		}
-		// 角色配置当前用户为角色管理员,不允许删除
-		if userRole.AdminFlag {
-			err = exterror.Catch(exterror.New().AuthServer3027Error.WithParam(userRole.UserId), nil)
-			session.Rollback()
-			return err
-		}
 
 		userRole.Deleted = true
 		userRole.UpdatedBy = curUser
