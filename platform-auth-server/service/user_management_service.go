@@ -54,13 +54,11 @@ func doResetLocalUserPassword(username string) (string, error) {
 		log.Logger.Error("failed to encode password", log.Error(err))
 		return "", err
 	}
-	user.Password = encodedNewPassword
-
-	if cnt, err := db.Engine.Insert(user); cnt == 0 || err != nil {
+	if affected, err := db.Engine.ID(user.Id).Cols("password").Update(&model.SysUserEntity{Password: encodedNewPassword}); affected == 0 || err != nil {
 		if err != nil {
-			log.Logger.Error("failed to insert user", log.Error(err))
+			log.Logger.Error("failed to update user", log.Error(err))
 		}
-		return "", errors.New("failed to inser user")
+		return "", fmt.Errorf("failed to update user,err:%+v", err)
 	}
 
 	return ranPassword, nil
@@ -132,24 +130,25 @@ func doModifyLocalUserPassword(username, originalPassword, toChangePassword stri
 		return nil, errors.New("failed to update user")
 	}
 
-	return convertToSimpleLocalUserDto(user), nil
+	return convertToSimpleLocalUserDto(user, false), nil
 
 }
 
-func convertToSimpleLocalUserDto(user *model.SysUserEntity) *model.SimpleLocalUserDto {
+func convertToSimpleLocalUserDto(user *model.SysUserEntity, roleAdministrator bool) *model.SimpleLocalUserDto {
 	return &model.SimpleLocalUserDto{
-		ID:          user.Id,
-		Username:    user.Username,
-		Password:    "",
-		Department:  user.Department,
-		EmailAddr:   user.EmailAddr,
-		Title:       user.Title,
-		EnglishName: user.EnglishName,
-		NativeName:  user.LocalName,
-		CellPhoneNo: user.CellPhoneNo,
-		OfficeTelNo: user.OfficeTelNo,
-		Active:      user.IsActive,
-		Blocked:     user.IsBlocked,
+		ID:                user.Id,
+		Username:          user.Username,
+		Password:          "",
+		Department:        user.Department,
+		EmailAddr:         user.EmailAddr,
+		Title:             user.Title,
+		EnglishName:       user.EnglishName,
+		NativeName:        user.LocalName,
+		CellPhoneNo:       user.CellPhoneNo,
+		OfficeTelNo:       user.OfficeTelNo,
+		Active:            user.IsActive,
+		Blocked:           user.IsBlocked,
+		RoleAdministrator: roleAdministrator,
 	}
 }
 
@@ -186,6 +185,12 @@ func (UserManagementService) RevokeRoleFromUsers(roleId string, userDtos []*mode
 
 		if userRole.Deleted {
 			continue
+		}
+		// 角色配置当前用户为角色管理员,不允许删除
+		if userRole.AdminFlag {
+			err = exterror.Catch(exterror.New().AuthServer3027Error.WithParam(userRole.UserId), nil)
+			session.Rollback()
+			return err
 		}
 
 		userRole.Deleted = true
@@ -543,7 +548,7 @@ func (UserManagementService) GetLocalUsersByRoleId(roleId string) ([]*model.Simp
 			continue
 		}
 
-		userDto := convertToSimpleLocalUserDto(user)
+		userDto := convertToSimpleLocalUserDto(user, userRole.AdminFlag)
 		result = append(result, userDto)
 	}
 
@@ -569,7 +574,7 @@ func (UserManagementService) RetireveLocalUserByUserid(userId string) (*model.Si
 		return nil, exterror.Catch(exterror.New().AuthServer3024Error.WithParam(userId), nil)
 	}
 
-	return convertToSimpleLocalUserDto(user), nil
+	return convertToSimpleLocalUserDto(user, false), nil
 }
 
 func (UserManagementService) ModifyLocalUserInfomation(username string, userDto *model.SimpleLocalUserDto, curUser string) (*model.SimpleLocalUserDto, error) {
@@ -606,7 +611,7 @@ func (UserManagementService) ModifyLocalUserInfomation(username string, userDto 
 		}
 		return nil, errors.New("failed to update user")
 	}
-	return convertToSimpleLocalUserDto(user), nil
+	return convertToSimpleLocalUserDto(user, false), nil
 }
 
 func (UserManagementService) RegisterLocalUser(userDto *model.SimpleLocalUserDto, curUser string) (*model.SimpleLocalUserDto, error) {
@@ -636,7 +641,7 @@ func (UserManagementService) RegisterLocalUser(userDto *model.SimpleLocalUserDto
 		}
 		return nil, errors.New("failed to inser user")
 	}
-	return convertToSimpleLocalUserDto(userEntity), nil
+	return convertToSimpleLocalUserDto(userEntity, false), nil
 }
 
 func validateSimpleLocalUserDto(userDto *model.SimpleLocalUserDto) error {
@@ -657,6 +662,7 @@ func validateSimpleLocalUserDto(userDto *model.SimpleLocalUserDto) error {
 }
 
 func buildSysUserEntity(dto *model.SimpleLocalUserDto, curUser string) (*model.SysUserEntity, error) {
+	now := time.Now()
 	encodePassword(dto.Password)
 	encodedNewPassword, err := encodePassword(dto.Password)
 	if err != nil {
@@ -665,21 +671,24 @@ func buildSysUserEntity(dto *model.SimpleLocalUserDto, curUser string) (*model.S
 
 	return &model.SysUserEntity{
 		Id:          utils.Uuid(),
-		Username:    dto.Username,
-		Password:    encodedNewPassword,
 		CreatedBy:   curUser,
-		Department:  dto.Department,
-		EmailAddr:   dto.EmailAddr,
-		Title:       dto.Title,
+		UpdatedBy:   curUser,
+		CreatedTime: now,
+		UpdatedTime: now,
+		Username:    dto.Username,
 		EnglishName: dto.EnglishName,
 		LocalName:   dto.NativeName,
-		CellPhoneNo: dto.CellPhoneNo,
+		Department:  dto.Department,
+		Title:       dto.Title,
+		EmailAddr:   dto.EmailAddr,
 		OfficeTelNo: dto.OfficeTelNo,
+		CellPhoneNo: dto.CellPhoneNo,
+		Password:    encodedNewPassword,
+		IsActive:    true,
+		IsBlocked:   false,
+		IsDeleted:   false,
 		AuthSource:  dto.AuthSource,
 		AuthContext: dto.AuthContext,
-		IsActive:    true,
-		IsDeleted:   false,
-		IsBlocked:   false,
 	}, nil
 }
 
@@ -696,7 +705,7 @@ func (UserManagementService) RetrieveAllActiveUsers() ([]*model.SimpleLocalUserD
 	}
 
 	for _, user := range userEntities {
-		userDto := convertToSimpleLocalUserDto(user)
+		userDto := convertToSimpleLocalUserDto(user, false)
 
 		userRoles, err := db.UserRoleRsRepositoryInstance.FindAllByUserId(user.Id)
 		if err != nil {
