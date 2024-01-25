@@ -12,11 +12,11 @@
           data-shape="circle-node"
           fill="white"
           line-width="1"
-          stroke="#bbbbbb"
+          stroke="#303030"
         >
           <img
             src="./icon/start.svg"
-            style="border: 1px solid #bbbbbb; border-radius: 50%"
+            style="border: 1px solid #303030; border-radius: 50%"
             class="item-tool-icon"
             draggable="false"
           />
@@ -33,11 +33,11 @@
           data-shape="circle-node"
           fill="white"
           line-width="1"
-          stroke="#bbbbbb"
+          stroke="#303030"
         >
           <img
             src="./icon/end.svg"
-            style="border: 1px solid #bbbbbb; border-radius: 50%"
+            style="border: 1px solid #303030; border-radius: 50%"
             class="item-tool-icon"
             draggable="false"
           />
@@ -54,11 +54,11 @@
           data-shape="circle-node"
           fill="white"
           line-width="1"
-          stroke="#bbbbbb"
+          stroke="#303030"
         >
           <img
             src="./icon/abnormal.svg"
-            style="border: 1px solid #bbbbbb; border-radius: 50%"
+            style="border: 1px solid #303030; border-radius: 50%"
             class="item-tool-icon"
             draggable="false"
           />
@@ -75,30 +75,12 @@
           data-shape="diamond-node"
           fill="white"
           line-width="1"
-          stroke="#bbbbbb"
+          stroke="#303030"
         >
           <div class="diamond-border">
             <img src="./icon/descision-panel.svg" class="item-tool-icon" draggable="false" />
           </div>
           <div class="diamond-item-tool-name">判断</div>
-        </div>
-      </Tooltip>
-      <Tooltip content="Right Center text" placement="right" :delay="1000">
-        <div
-          class="item-tool"
-          draggable="true"
-          node-type="merge"
-          data-label="汇聚节点"
-          task-category=""
-          data-shape="diamond-node"
-          fill="white"
-          line-width="1"
-          stroke="#bbbbbb"
-        >
-          <div class="diamond-border">
-            <img src="./icon/merge-panel.svg" class="item-tool-icon" draggable="false" />
-          </div>
-          <div class="diamond-item-tool-name">汇聚节点</div>
         </div>
       </Tooltip>
       <Tooltip content="Right Center text" placement="right" :delay="1000">
@@ -111,12 +93,30 @@
           data-shape="diamond-node"
           fill="white"
           line-width="1"
-          stroke="#bbbbbb"
+          stroke="#303030"
         >
           <div class="diamond-border">
             <img src="./icon/fork-panel.svg" class="item-tool-icon" draggable="false" />
           </div>
           <div class="diamond-item-tool-name">分流节点</div>
+        </div>
+      </Tooltip>
+      <Tooltip content="Right Center text" placement="right" :delay="1000">
+        <div
+          class="item-tool"
+          draggable="true"
+          node-type="merge"
+          data-label="汇聚节点"
+          task-category=""
+          data-shape="diamond-node"
+          fill="white"
+          line-width="1"
+          stroke="#303030"
+        >
+          <div class="diamond-border">
+            <img src="./icon/merge-panel.svg" class="item-tool-icon" draggable="false" />
+          </div>
+          <div class="diamond-item-tool-name">汇聚节点</div>
         </div>
       </Tooltip>
       <Tooltip content="Right Center text" placement="right" :delay="1000">
@@ -129,11 +129,11 @@
           data-shape="rect-node"
           fill="white"
           line-width="1"
-          stroke="#bbbbbb"
+          stroke="#303030"
         >
           <img
             src="./icon/human.svg"
-            style="border: 1px solid #bbbbbb; width: 32px"
+            style="border: 1px solid #303030; width: 32px"
             class="item-tool-icon"
             draggable="false"
           />
@@ -150,11 +150,11 @@
           data-shape="rect-node"
           fill="white"
           line-width="1"
-          stroke="#bbbbbb"
+          stroke="#303030"
         >
           <img
             src="./icon/automatic.svg"
-            style="border: 1px solid #bbbbbb; width: 32px"
+            style="border: 1px solid #303030; width: 32px"
             class="item-tool-icon"
             draggable="false"
           />
@@ -171,11 +171,11 @@
           data-shape="rect-node"
           fill="white"
           line-width="1"
-          stroke="#bbbbbb"
+          stroke="#303030"
         >
           <img
             src="./icon/data.svg"
-            style="border: 1px solid #bbbbbb; width: 32px"
+            style="border: 1px solid #303030; width: 32px"
             class="item-tool-icon"
             draggable="false"
           />
@@ -192,11 +192,11 @@
           data-shape="circle-node"
           fill="white"
           line-width="1"
-          stroke="#bbbbbb"
+          stroke="#303030"
         >
           <img
             src="./icon/date.svg"
-            style="border: 1px solid #bbbbbb; border-radius: 50%"
+            style="border: 1px solid #303030; border-radius: 50%"
             class="item-tool-icon"
             draggable="false"
           />
@@ -213,11 +213,11 @@
           data-shape="circle-node"
           fill="white"
           line-width="1"
-          stroke="#bbbbbb"
+          stroke="#303030"
         >
           <img
             src="./icon/timeInterval.svg"
-            style="border: 1px solid #bbbbbb; border-radius: 50%"
+            style="border: 1px solid #303030; border-radius: 50%"
             class="item-tool-icon"
             draggable="false"
           />
@@ -387,7 +387,7 @@ export default {
   left: 80%;
   margin-top: -50%;
   margin-left: -50%;
-  border: 1px solid #bbb;
+  border: 1px solid #303030;
   padding: 3px;
 }
 .diamond-item-tool-name {
