@@ -2,7 +2,13 @@
   <div id="itemInfo">
     <div class="hide-panal" @click="hideItem"></div>
     <div class="panal-name">编排属性：</div>
-    <Form :label-width="120" ref="formValidate" :model="itemCustomInfo" :rules="ruleValidate">
+    <Form
+      :label-width="120"
+      ref="formValidate"
+      :model="itemCustomInfo"
+      :rules="ruleValidate"
+      style="padding-right: 12px"
+    >
       <FormItem label="编排ID">
         <Input disabled v-model="itemCustomInfo.id"></Input>
       </FormItem>
@@ -27,7 +33,7 @@
         ></FilterRules>
       </FormItem>
       <!-- @on-change="paramsChanged" -->
-      <FormItem label="授权插件" prop="authPlugins" style="margin-top: 22px">
+      <FormItem label="授权插件" style="margin-top: 22px">
         <Select v-model="itemCustomInfo.authPlugins" filterable multiple>
           <Option v-for="item in authPluginList" :value="item" :key="item">{{ item }} </Option>
         </Select>
@@ -78,9 +84,6 @@ export default {
         label: [
           { required: true, message: 'label cannot be empty', trigger: 'blur' },
           { type: 'string', max: 30, message: 'Label cannot exceed 30 words.', trigger: 'blur' }
-        ],
-        authPlugins: [
-          { required: true, type: 'array', min: 1, message: 'authPlugins at least one hobby', trigger: 'change' }
         ],
         scene: [{ required: true, message: 'scene at least one hobby', trigger: 'change' }],
         rootEntity: [{ required: true, message: 'rootEntity at least one hobby', trigger: 'change' }]

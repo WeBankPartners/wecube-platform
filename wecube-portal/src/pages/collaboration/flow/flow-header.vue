@@ -2,24 +2,21 @@
   <div>
     <div style="display: flex; justify-content: space-between">
       <div class="flow-name" @click="openCanvasPanel">
+        <img src="../flow/icon/back.png" style="width: 24px" @click.stop="backToFlowList" alt="" />
         <span style="vertical-align: middle">{{ itemCustomInfo.name }}</span>
         <Tag>v{{ itemCustomInfo.version }}</Tag>
         <img src="../../../assets/icon/edit-black.png" style="width: 16px; vertical-align: middle" alt="" />
       </div>
       <div>
-        <Button type="primary" :disabled="!['draft'].includes(itemCustomInfo.status)" @click="releaseFlow">
+        <Button type="primary" v-if="['draft'].includes(itemCustomInfo.status)" @click="releaseFlow">
           <Icon type="ios-paper-plane-outline" size="16"></Icon>
           {{ $t('release_flow') }}
         </Button>
-        <Button type="success" :disabled="!['deployed'].includes(itemCustomInfo.status)" @click="exportFlow">
+        <Button type="success" v-if="['deployed'].includes(itemCustomInfo.status)" @click="exportFlow">
           <img src="../../../assets/icon/export.png" class="btn-img" alt="" />
           {{ $t('export_flow') }}
         </Button>
-        <Button
-          type="info"
-          :disabled="!['draft', 'deployed'].includes(itemCustomInfo.status)"
-          @click="changePermission"
-        >
+        <Button type="info" v-if="['draft', 'deployed'].includes(itemCustomInfo.status)" @click="changePermission">
           <Icon type="ios-person-outline" size="16"></Icon>
           {{ $t('config_permission') }}
         </Button>
@@ -33,7 +30,7 @@
         </Button> -->
         <Button
           type="error"
-          :disabled="!['deployed'].includes(itemCustomInfo.status)"
+          v-if="['deployed'].includes(itemCustomInfo.status)"
           @click="changeStatus('disabled', 'disable')"
         >
           <img src="../../../assets/icon/disable.png" style="width: 16px; vertical-align: middle" alt="" />
@@ -41,7 +38,7 @@
         </Button>
         <Button
           type="success"
-          :disabled="!['disabled'].includes(itemCustomInfo.status)"
+          v-if="['disabled'].includes(itemCustomInfo.status)"
           @click="changeStatus('enabled', 'enable')"
         >
           <img src="../../../assets/icon/enable.png" style="width: 16px; vertical-align: middle" alt="" />
@@ -113,7 +110,8 @@ export default {
       const { status } = await flowRelease(this.itemCustomInfo.id)
       if (status === 'OK') {
         this.$Message.success(this.$t('release_flow') + this.$t('action_successful'))
-        this.$emit('updateFlowData', '')
+        // this.$emit('updateFlowData', '')
+        this.backToFlowList()
       }
     },
     async changeStatus (statusCode, actionTip) {
@@ -144,7 +142,7 @@ export default {
           if (status === 'OK') {
             this.$Message.success(this.$t(actionTip) + this.$t('action_successful'))
             if (statusCode === 'deleted') {
-              this.$router.push({ path: '/collaboration/workflow' })
+              this.backToFlowList()
             } else {
               this.$emit('updateFlowData', '')
             }
@@ -194,6 +192,9 @@ export default {
         .catch(() => {
           this.$Message.warning('Error')
         })
+    },
+    backToFlowList () {
+      this.$router.push({ path: '/collaboration/workflow' })
     }
   }
 }

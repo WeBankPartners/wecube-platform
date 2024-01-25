@@ -3,7 +3,7 @@
     <div class="hide-panal" @click="hideItem"></div>
     <div class="panal-name">节点属性：</div>
     <div class="panel-content">
-      <Collapse simple v-model="opendPanel">
+      <Collapse v-model="opendPanel">
         <Panel name="1">
           基础信息
           <template slot="content">
@@ -446,7 +446,7 @@ export default {
       this.paramsChanged()
       if (plugin) {
         const findPluginDetail = this.filteredPlugins.find(p => p.serviceName === plugin)
-        this.itemCustomInfo.customAttrs.paramInfos = {}
+        this.itemCustomInfo.customAttrs.paramInfos = []
         if (findPluginDetail) {
           let needParams = findPluginDetail.configurableInputParameters.filter(
             _ => _.mappingType === 'context' || _.mappingType === 'constant'

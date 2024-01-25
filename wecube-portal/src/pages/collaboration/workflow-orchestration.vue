@@ -230,7 +230,8 @@ export default {
           style: {
             radius: 5,
             offset: 15,
-            stroke: '#aab7c3',
+            stroke: '#303030',
+            lineWidth: 1,
             lineAppendWidth: 10, // 防止线太细没法点中
             endArrow: true
           }
@@ -239,31 +240,31 @@ export default {
         nodeStateStyles: {
           'nodeState:default': {
             opacity: 1,
-            stroke: '#aab7c3',
+            stroke: '#303030',
             fill: 'white'
           },
           'nodeState:hover': {
             opacity: 0.8,
-            stroke: '#1890FF'
+            stroke: '#303030'
           },
           'nodeState:selected': {
             opacity: 0.9,
-            stroke: '#1890FF',
+            stroke: '#303030',
             fill: '#1890FF'
           }
         },
         // 默认边不同状态下的样式集合
         edgeStateStyles: {
           'edgeState:default': {
-            stroke: '#aab7c3'
+            stroke: '#303030'
           },
-          'edgeState:selected': {
-            stroke: '#1890FF'
-          },
+          // 'edgeState:selected': {
+          //   stroke: '#1890FF'
+          // },
           'edgeState:hover': {
             animate: true,
             animationType: 'dash',
-            stroke: '#1890FF'
+            stroke: '#303030'
           }
         },
         modes: {

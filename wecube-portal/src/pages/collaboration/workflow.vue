@@ -42,6 +42,7 @@
         type="error"
         class="btn-right"
         @click="batchChangeStatus('deleted')"
+        v-if="['draft'].includes(searchParams.status)"
         :disabled="!(['draft'].includes(searchParams.status) && selectedParams.ids.length > 0)"
       >
         <Icon type="ios-trash-outline" size="16"></Icon>
@@ -49,6 +50,7 @@
       </Button>
       <Button
         type="error"
+        v-if="['deployed'].includes(searchParams.status)"
         :disabled="!(['deployed'].includes(searchParams.status) && selectedParams.ids.length > 0)"
         @click="batchChangeStatus('disabled')"
       >
@@ -58,6 +60,7 @@
       <Button
         type="success"
         @click="batchChangeStatus('enabled')"
+        v-if="['disabled'].includes(searchParams.status)"
         :disabled="!(['disabled'].includes(searchParams.status) && selectedParams.ids.length > 0)"
       >
         <img src="../../assets/icon/enable.png" class="btn-img" alt="" />
@@ -225,7 +228,14 @@ export default {
         },
         {
           title: '编排名称',
-          key: 'name'
+          key: 'name',
+          render: (h, params) => {
+            return (
+              <span>
+                {params.row.name}({params.row.version})
+              </span>
+            )
+          }
         },
         {
           title: '授权插件',
@@ -257,19 +267,27 @@ export default {
         },
         {
           title: '冲突检测',
-          key: 'conflictCheck'
+          key: 'conflictCheck',
+          width: 90,
+          render: (h, params) => {
+            const res = params.row.conflictCheck ? '是' : '否'
+            return <span>{res}</span>
+          }
         },
         {
           title: '创建人',
-          key: 'createdBy'
+          key: 'createdBy',
+          width: 90
         },
         {
           title: '更新人',
-          key: 'updatedBy'
+          key: 'updatedBy',
+          width: 90
         },
         {
           title: '更新时间',
-          key: 'updatedTime'
+          key: 'updatedTime',
+          width: 130
         },
         {
           title: '操作',
@@ -433,7 +451,7 @@ export default {
           id: '',
           name: `编排_${dayjs().format('YYMMDDHHmmss')}`,
           version: '1',
-          scene: 'request',
+          scene: 'other',
           authPlugins: [],
           tags: '',
           conflictCheck: false,
@@ -679,6 +697,9 @@ export default {
 // 屏蔽列表权限功能
 th.ivu-table-column-center div.ivu-table-cell {
   display: none;
+}
+.ivu-table-cell {
+  padding: 0 4px !important;
 }
 </style>
 <style lang="scss" scoped>

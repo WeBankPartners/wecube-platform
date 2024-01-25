@@ -46,7 +46,7 @@ export default (G6, cfg) => {
       const shape = group.addShape('path', {
         attrs: {
           path,
-          stroke: '#1890FF',
+          stroke: '#303030',
           endArrow: false,
           ...cfg.style,
           ...edgeStyle
