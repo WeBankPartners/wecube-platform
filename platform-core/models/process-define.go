@@ -344,7 +344,7 @@ func (q ProcDefDtoSort) Less(i, j int) bool {
 	t1, _ := time.Parse(DateTimeFormat, q[i].UpdatedTime)
 	t2, _ := time.Parse(DateTimeFormat, q[j].UpdatedTime)
 	if t1.Sub(t2).Seconds() >= 0 {
-		return false
+		return true
 	}
 	return true
 }
