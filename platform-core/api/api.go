@@ -99,7 +99,10 @@ func init() {
 
 		// permission
 		&handlerFuncObj{Url: "/my-menus", Method: "GET", HandlerFunc: system.GetMyMenuItems, ApiCode: "get-my-menu"},
-		&handlerFuncObj{Url: "/user/retrieve", Method: "GET", HandlerFunc: system.GetAllUser, ApiCode: "get-all-user"},
+		// @todo 需要Super_admin权限才能调用接口
+		&handlerFuncObj{Url: "/users/create", Method: "POST", HandlerFunc: system.CreateUser, ApiCode: "create-user"},
+		&handlerFuncObj{Url: "/users/retrieve", Method: "GET", HandlerFunc: system.GetAllUser, ApiCode: "get-all-user"},
+		&handlerFuncObj{Url: "/roles/create", Method: "POST", HandlerFunc: system.CreateRole, ApiCode: "create-roles"},
 		&handlerFuncObj{Url: "/roles/retrieve", Method: "GET", HandlerFunc: system.QueryRoles, ApiCode: "query-roles"},
 		&handlerFuncObj{Url: "/roles/:role-id/menus", Method: "GET", HandlerFunc: system.GetMenusByRoleId, ApiCode: "get-role-menu"},
 		&handlerFuncObj{Url: "/roles/:role-id/users", Method: "GET", HandlerFunc: system.GetUsersByRoleId, ApiCode: "get-role-user"},
@@ -111,16 +114,20 @@ func init() {
 		// @todo 需要Super_admin权限才能调用接口
 		&handlerFuncObj{Url: "/roles/:role-id/menus", Method: "POST", HandlerFunc: system.UpdateRoleToMenusByRoleId, ApiCode: "update-role-menus"},
 		&handlerFuncObj{Url: "/all-menus", Method: "GET", HandlerFunc: system.AllMenus, ApiCode: "all-menus"},
-		&handlerFuncObj{Url: "/user/:username/menus", Method: "GET", HandlerFunc: system.GetMenusByUsername, ApiCode: "get-user-menus"},
-		&handlerFuncObj{Url: "/user/:username/roles", Method: "GET", HandlerFunc: system.GetRolesByUsername, ApiCode: "get-user-roles"},
+		&handlerFuncObj{Url: "/users/:username/menus", Method: "GET", HandlerFunc: system.GetMenusByUsername, ApiCode: "get-user-menus"},
+		&handlerFuncObj{Url: "/users/:username/roles", Method: "GET", HandlerFunc: system.GetRolesByUsername, ApiCode: "get-user-roles"},
 		// @todo 需要Super_admin权限才能调用接口
-		&handlerFuncObj{Url: "/user/:user-id/roles/grant", Method: "POST", HandlerFunc: system.GrantRoleToUsers, ApiCode: "grant-user-roles"},
+		&handlerFuncObj{Url: "/users/:user-id/roles/grant", Method: "POST", HandlerFunc: system.GrantRoleToUsers, ApiCode: "grant-user-roles"},
 		// @todo 需要Super_admin权限才能调用接口
-		&handlerFuncObj{Url: "/user/reset-password", Method: "POST", HandlerFunc: system.ResetUserPassword, ApiCode: "reset-user-password"},
-		&handlerFuncObj{Url: "/user/change-password", Method: "POST", HandlerFunc: system.ChangeUserPassword, ApiCode: "change-user-password"},
+		&handlerFuncObj{Url: "/users/reset-password", Method: "POST", HandlerFunc: system.ResetUserPassword, ApiCode: "reset-user-password"},
+		&handlerFuncObj{Url: "/users/change-password", Method: "POST", HandlerFunc: system.ChangeUserPassword, ApiCode: "change-user-password"},
 		// @todo 需要Super_admin权限才能调用接口
-		&handlerFuncObj{Url: "/user/:user-id/delete", Method: "DELETE", HandlerFunc: system.DeleteUserByUserId, ApiCode: "delete-user"},
+		&handlerFuncObj{Url: "/users/:user-id/delete", Method: "DELETE", HandlerFunc: system.DeleteUserByUserId, ApiCode: "delete-user"},
 		&handlerFuncObj{Url: "/users/roles", Method: "GET", HandlerFunc: system.GetRolesOfCurrentUser, ApiCode: "get-user-roles"},
+		&handlerFuncObj{Url: "/roles/name/:role-name/administrator", Method: http.MethodGet, HandlerFunc: system.GetRoleAdministrator,
+			ApiCode: "get-roles-administrator"},
+		&handlerFuncObj{Url: "/roles/administrator", Method: http.MethodPost, HandlerFunc: system.ConfigureRoleAdministrator,
+			ApiCode: "configure-roles-administrator"},
 
 		// process manage
 		&handlerFuncObj{Url: "/process/definitions", Method: "POST", HandlerFunc: process.AddOrUpdateProcessDefinition, ApiCode: "add-update-process-definition"},
@@ -153,6 +160,9 @@ func init() {
 		&handlerFuncObj{Url: "/batch-execution/templates/list", Method: "POST", HandlerFunc: batch_execution.RetrieveTemplate, ApiCode: "retrieve-batch-execution-template"},
 		&handlerFuncObj{Url: "/batch-execution/templates/:templateId", Method: "GET", HandlerFunc: batch_execution.GetTemplate, ApiCode: "get-batch-execution-template"},
 		&handlerFuncObj{Url: "/batch-execution/templates/collect", Method: "POST", HandlerFunc: batch_execution.CollectTemplate, ApiCode: "collect-batch-execution-template"},
+		&handlerFuncObj{Url: "/batch-execution/list", Method: "POST", HandlerFunc: batch_execution.RetrieveBatchExec, ApiCode: "retrieve-batch-execution"},
+		&handlerFuncObj{Url: "/batch-execution/get/:batchExecId", Method: "POST", HandlerFunc: batch_execution.GetBatchExec, ApiCode: "get-batch-execution"},
+		// &handlerFuncObj{Url: "/batch-execution/job/run", Method: "POST", HandlerFunc: batch_execution.RunJob, ApiCode: "run-batch-execution-job"},
 	)
 }
 

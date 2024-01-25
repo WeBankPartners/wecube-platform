@@ -4,7 +4,9 @@ import "time"
 
 type BatchExecution struct {
 	Id                       string     `json:"id" xorm:"id"`                                                // 唯一标识
+	Name                     string     `json:"name"`                                                        // 名称
 	BatchExecutionTemplateId string     `json:"batchExecutionTemplateId" xorm:"batch_execution_template_id"` // 模板id
+	ErrorCode                string     `json:"errorCode" xorm:"error_code"`                                 // 错误码, 0:成功, 1:失败
 	CreatedBy                string     `json:"createdBy" xorm:"created_by"`                                 // 创建者
 	UpdatedBy                string     `json:"updatedBy" xorm:"updated_by"`                                 // 更新者
 	CreatedTime              *time.Time `json:"createdTime" xorm:"created_time"`                             // 创建时间
@@ -24,7 +26,7 @@ type BatchExecutionJobs struct {
 	RootEntityId            string     `json:"rootEntityId" xorm:"root_entity_id"`                        // 根实体id
 	ExecuteTime             *time.Time `json:"executeTime" xorm:"execute_time"`                           // 执行时间
 	CompleteTime            *time.Time `json:"completeTime" xorm:"complete_time"`                         // 完成时间
-	ErrorCode               string     `json:"errorCode" xorm:"error_code"`                               // 错误码
+	ErrorCode               string     `json:"errorCode" xorm:"error_code"`                               // 错误码, 0:成功, 1:失败
 	ErrorMessage            string     `json:"errorMessage" xorm:"error_message"`                         // 错误信息
 	InputJson               string     `json:"inputJson" xorm:"input_json"`                               // 输入json
 	ReturnJson              string     `json:"returnJson" xorm:"return_json"`                             // 输出json
@@ -32,20 +34,22 @@ type BatchExecutionJobs struct {
 }
 
 func (BatchExecutionJobs) TableName() string {
-	return "batch_execution_jobs"
+	return "batch_exec_jobs"
 }
 
 type BatchExecutionTemplate struct {
-	Id            string     `json:"id" xorm:"id"`                        // 唯一标识
-	Name          string     `json:"name" xorm:"name"`                    // 名称
-	Status        string     `json:"status" xorm:"status"`                // 使用状态
-	OperateObject string     `json:"operateObject" xorm:"operate_object"` // 操作对象
-	PluginService string     `json:"pluginService" xorm:"plugin_service"` // 插件服务
-	ConfigData    string     `json:"configData" xorm:"config_data"`       // 配置数据
-	CreatedBy     string     `json:"createdBy" xorm:"created_by"`         // 创建者
-	CreatedTime   *time.Time `json:"createdTime" xorm:"created_time"`     // 创建时间
-	UpdatedBy     string     `json:"updatedBy" xorm:"updated_by"`         // 更新者
-	UpdatedTime   *time.Time `json:"updatedTime" xorm:"updated_time"`     // 更新时间
+	Id               string            `json:"id" xorm:"id"`                        // 唯一标识
+	Name             string            `json:"name" xorm:"name"`                    // 名称
+	Status           string            `json:"status" xorm:"status"`                // 使用状态
+	OperateObject    string            `json:"operateObject" xorm:"operate_object"` // 操作对象
+	PluginService    string            `json:"pluginService" xorm:"plugin_service"` // 插件服务
+	ConfigDataStr    string            `json:"-" xorm:"config_data"`                // 配置数据
+	ConfigData       *BatchExecRun     `json:"configData" xorm:"-"`                 // 配置数据
+	CreatedBy        string            `json:"createdBy" xorm:"created_by"`         // 创建者
+	CreatedTime      *time.Time        `json:"createdTime" xorm:"created_time"`     // 创建时间
+	UpdatedBy        string            `json:"updatedBy" xorm:"updated_by"`         // 更新者
+	UpdatedTime      *time.Time        `json:"updatedTime" xorm:"updated_time"`     // 更新时间
+	PermissionToRole *PermissionToRole `json:"permissionToRole" xorm:"-"`           // 权限角色
 }
 
 func (BatchExecutionTemplate) TableName() string {
@@ -75,14 +79,53 @@ func (BatchExecutionTemplateCollect) TableName() string {
 	return "batch_execution_template_collect"
 }
 
+/*
 type BatchExecTemplateInfo struct {
 	BatchExecutionTemplate
 	PermissionToRole *PermissionToRole `json:"permissionToRole" xorm:"-"`
 }
+*/
 
 type BatchExecTemplatePageData struct {
-	PageInfo PageInfo                 `json:"pageInfo"`
-	Contents []*BatchExecTemplateInfo `json:"contents"`
+	PageInfo PageInfo                  `json:"pageInfo"`
+	Contents []*BatchExecutionTemplate `json:"contents"`
+}
+
+type BatchExecListPageData struct {
+	PageInfo PageInfo          `json:"pageInfo"`
+	Contents []*BatchExecution `json:"contents"`
+}
+
+type BatchExecutionInfo struct {
+	BatchExecution
+	BatchExecutionJobs []*BatchExecutionJobs `json:"batchExecutionJobs" xorm:"-"`
+}
+
+type BatchExecJobsPageData struct {
+	PageInfo PageInfo              `json:"pageInfo"`
+	Contents []*BatchExecutionJobs `json:"contents"`
+}
+
+type BatchExecRun struct {
+	PackageName               string                    `json:"packageName"`
+	EntityName                string                    `json:"entityName"`
+	DataModelExpression       string                    `json:"dataModelExpression"`
+	PrimatKeyAttr             string                    `json:"primatKeyAttr"`
+	SearchParameters          interface{}               `json:"searchParameters"`
+	PluginConfigInterface     *PluginConfigInterfaces   `json:"pluginConfigInterface"`
+	InputParameterDefinitions []*BatchExecInputParamDef `json:"inputParameterDefinitions"`
+	BusinessKeyAttribute      *PluginPackageAttributes  `json:"businessKeyAttribute"`
+	ResourceDatas             []*ResourceData           `json:"resourceDatas"`
+}
+
+type BatchExecInputParamDef struct {
+	InputParameter      *PluginConfigInterfaceParameters `json:"inputParameter"`
+	InputParameterValue string                           `json:"inputParameterValue"`
+}
+
+type ResourceData struct {
+	Id               string `json:"id"`
+	BusinessKeyValue string `json:"businessKeyValue"`
 }
 
 type BatchExecutionPluginExecParam struct {

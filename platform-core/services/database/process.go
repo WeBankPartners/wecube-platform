@@ -46,6 +46,7 @@ func QueryProcessDefinitionList(ctx context.Context, param models.QueryProcessDe
 	}
 
 	for _, procDef := range filterProcDefList {
+		enabledCreated = false
 		manageRoles = []string{}
 		userRoles = []string{}
 		permissionList, err = GetProcDefPermissionByCondition(ctx, models.ProcDefPermission{ProcDefId: procDef.Id})
@@ -423,6 +424,15 @@ func GetProcDefNodeLinkListByProcDefId(ctx context.Context, procDefId string) (l
 
 func GetProcDefNodeLinkByProcDefIdAndTarget(ctx context.Context, procDefId string, target string) (list []*models.ProcDefNodeLink, err error) {
 	err = db.MysqlEngine.Context(ctx).SQL("select * from proc_def_node_link where proc_def_id= ? and target = ?", procDefId, target).Find(&list)
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
+		return
+	}
+	return
+}
+
+func GetProcDefNodeLinkByProcDefIdAndSource(ctx context.Context, procDefId string, source string) (list []*models.ProcDefNodeLink, err error) {
+	err = db.MysqlEngine.Context(ctx).SQL("select * from proc_def_node_link where proc_def_id= ? and source = ?", procDefId, source).Find(&list)
 	if err != nil {
 		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
 		return

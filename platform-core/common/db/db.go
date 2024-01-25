@@ -209,7 +209,14 @@ func GetInsertTableExecAction(tableName string, data interface{}, transNullStr m
 	valueStr := ""
 	t := reflect.TypeOf(data)
 	v := reflect.ValueOf(data)
+	tagName := "xorm"
 	for i := 0; i < t.NumField(); i++ {
+		fType := t.Field(i)
+		fTag := fType.Tag.Get(tagName)
+		if fTag == "-" {
+			continue
+		}
+
 		if i > 0 {
 			columnStr += ","
 			valueStr += ","

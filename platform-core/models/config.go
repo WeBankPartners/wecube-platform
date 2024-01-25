@@ -55,7 +55,7 @@ type S3Config struct {
 }
 
 type StaticResourceConfig struct {
-	Servers  string `json:"servers"`
+	Server   string `json:"server"`
 	User     string `json:"user"`
 	Password string `json:"password"`
 	Port     string `json:"port"`
@@ -76,18 +76,18 @@ type GatewayConfig struct {
 }
 
 type GlobalConfig struct {
-	Version                string                `json:"version"`
-	DefaultLanguage        string                `json:"default_language"`
-	PasswordPrivateKeyPath string                `json:"password_private_key_path"`
-	HttpsEnable            string                `json:"https_enable"`
-	HttpServer             *HttpServerConfig     `json:"http_server"`
-	Log                    *LogConfig            `json:"log"`
-	Database               *DatabaseConfig       `json:"database"`
-	Auth                   *AuthConfig           `json:"auth"`
-	S3                     *S3Config             `json:"s3"`
-	StaticResource         *StaticResourceConfig `json:"static_resource"`
-	Plugin                 *PluginJsonConfig     `json:"plugin"`
-	Gateway                *GatewayConfig        `json:"gateway"`
+	Version                string                  `json:"version"`
+	DefaultLanguage        string                  `json:"default_language"`
+	PasswordPrivateKeyPath string                  `json:"password_private_key_path"`
+	HttpsEnable            string                  `json:"https_enable"`
+	HttpServer             *HttpServerConfig       `json:"http_server"`
+	Log                    *LogConfig              `json:"log"`
+	Database               *DatabaseConfig         `json:"database"`
+	Auth                   *AuthConfig             `json:"auth"`
+	S3                     *S3Config               `json:"s3"`
+	StaticResources        []*StaticResourceConfig `json:"static_resources"`
+	Plugin                 *PluginJsonConfig       `json:"plugin"`
+	Gateway                *GatewayConfig          `json:"gateway"`
 }
 
 var (
@@ -126,9 +126,11 @@ func InitConfig(configFile string) (errMessage string) {
 				errMessage = "decrypt s3 secretKey config fail," + err.Error()
 				return
 			}
-			if c.StaticResource.Password, err = cipher.DecryptRsa(c.StaticResource.Password, string(privateBytes)); err != nil {
-				errMessage = "decrypt static resource password config fail," + err.Error()
-				return
+			for i, staticResourceObj := range c.StaticResources {
+				if c.StaticResources[i].Password, err = cipher.DecryptRsa(staticResourceObj.Password, string(privateBytes)); err != nil {
+					errMessage = "decrypt static resource password config fail," + err.Error()
+					return
+				}
 			}
 			if c.Plugin.ResourcePasswordSeed, err = cipher.DecryptRsa(c.Plugin.ResourcePasswordSeed, string(privateBytes)); err != nil {
 				errMessage = "decrypt public resource password seed config fail," + err.Error()

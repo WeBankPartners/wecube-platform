@@ -385,7 +385,7 @@ type PluginPackageDataModel struct {
 	Id           string    `json:"id" xorm:"id"`                      // 唯一标识
 	Version      int       `json:"version" xorm:"version"`            // 版本
 	PackageName  string    `json:"packageName" xorm:"package_name"`   // 包名
-	IsDynamic    bool      `json:"isDynamic" xorm:"is_dynamic"`       // 是否动态
+	IsDynamic    bool      `json:"dynamic" xorm:"is_dynamic"`         // 是否动态
 	UpdatePath   string    `json:"updatePath" xorm:"update_path"`     // 请求路径
 	UpdateMethod string    `json:"updateMethod" xorm:"update_method"` // 请求方法
 	UpdateSource string    `json:"updateSource" xorm:"update_source"` // 来源

@@ -26,10 +26,10 @@ func ReturnError(c *gin.Context, err error) {
 func ReturnErrorWithHttpCode(c *gin.Context, err error, httpCode int) {
 	errorResponse := exterror.GetErrorResult(c.GetHeader("Accept-Language"), err)
 	if !exterror.IsBusinessErrorCode(errorResponse.ErrorCode) {
-		log.AccessLogger.Error("systemError", log.Int("errorCode", errorResponse.ErrorCode), log.String("message", errorResponse.ErrorMessage), log.Error(err))
-		log.Logger.Error("Return error", log.Int("errorCode", errorResponse.ErrorCode), log.String("message", errorResponse.ErrorMessage), log.Error(err))
+		log.AccessLogger.Error("systemError", log.Int("errorCode", errorResponse.ErrorCode), log.String("message", errorResponse.Message), log.Error(err))
+		log.Logger.Error("Return error", log.Int("errorCode", errorResponse.ErrorCode), log.String("message", errorResponse.Message), log.Error(err))
 	} else {
-		log.Logger.Warn("Return business error", log.Int("errorCode", errorResponse.ErrorCode), log.String("message", errorResponse.ErrorMessage), log.Error(err))
+		log.Logger.Warn("Return business error", log.Int("errorCode", errorResponse.ErrorCode), log.String("message", errorResponse.Message), log.Error(err))
 	}
 	bodyBytes, _ := json.Marshal(errorResponse)
 	c.Set("responseBody", string(bodyBytes))

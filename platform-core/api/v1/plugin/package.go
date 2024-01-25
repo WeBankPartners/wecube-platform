@@ -6,6 +6,7 @@ import (
 	"github.com/WeBankPartners/go-common-lib/cipher"
 	"github.com/WeBankPartners/go-common-lib/guid"
 	"github.com/WeBankPartners/wecube-platform/platform-core/api/middleware"
+	"github.com/WeBankPartners/wecube-platform/platform-core/common/encrypt"
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/exterror"
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/log"
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/tools"
@@ -234,6 +235,10 @@ func RegisterPackage(c *gin.Context) {
 		return
 	}
 	if pluginPackageObj.UiPackageIncluded {
+		if len(models.Config.StaticResources) == 0 {
+			middleware.ReturnError(c, fmt.Errorf("static resource config empty"))
+			return
+		}
 		// 把s3上的ui.zip下下来放到本地
 		var uiFileLocalPath, uiDir string
 		if uiFileLocalPath, err = bash.DownloadPackageFile(models.Config.S3.PluginPackageBucket, fmt.Sprintf("%s/%s/ui.zip", pluginPackageObj.Name, pluginPackageObj.Version)); err != nil {
@@ -246,19 +251,19 @@ func RegisterPackage(c *gin.Context) {
 			return
 		}
 		// 把ui.zip用ssh传到静态资源服务器上并解压，如果有两台服务器，则每台都要上传与解压
-		targetPath := fmt.Sprintf("%s/%s/%s/ui.zip", models.Config.StaticResource.Path, pluginPackageObj.Name, pluginPackageObj.Version)
-		unzipCmd := fmt.Sprintf("cd %s/%s/%s && unzip -o ui.zip", models.Config.StaticResource.Path, pluginPackageObj.Name, pluginPackageObj.Version)
-		for _, staticServerIp := range strings.Split(models.Config.StaticResource.Servers, ",") {
-			if err = bash.RemoteSCP(staticServerIp, uiFileLocalPath, targetPath); err != nil {
+		for _, staticResourceObj := range models.Config.StaticResources {
+			targetPath := fmt.Sprintf("%s/%s/%s/ui.zip", staticResourceObj.Path, pluginPackageObj.Name, pluginPackageObj.Version)
+			unzipCmd := fmt.Sprintf("cd %s/%s/%s && unzip -o ui.zip", staticResourceObj.Path, pluginPackageObj.Name, pluginPackageObj.Version)
+			if err = bash.RemoteSCP(staticResourceObj.Server, staticResourceObj.User, staticResourceObj.Password, staticResourceObj.Port, uiFileLocalPath, targetPath); err != nil {
 				break
 			}
-			if err = bash.RemoteSSHCommand(staticServerIp, unzipCmd); err != nil {
+			if err = bash.RemoteSSHCommand(staticResourceObj.Server, staticResourceObj.User, staticResourceObj.Password, staticResourceObj.Port, unzipCmd); err != nil {
 				break
 			}
-		}
-		if err != nil {
-			middleware.ReturnError(c, err)
-			return
+			if err != nil {
+				middleware.ReturnError(c, err)
+				return
+			}
 		}
 		// 把ui.zip里的静态文件读出来
 		var fileNameList []string
@@ -268,7 +273,7 @@ func RegisterPackage(c *gin.Context) {
 			middleware.ReturnError(c, err)
 			return
 		}
-		uiStaticPath := models.Config.StaticResource.Path
+		uiStaticPath := models.Config.StaticResources[0].Path
 		if pathIndex := strings.LastIndex(uiStaticPath, "/"); pathIndex >= 0 {
 			uiStaticPath = uiStaticPath[pathIndex:]
 		}
@@ -494,12 +499,12 @@ func LaunchPlugin(c *gin.Context) {
 	}
 	// 把image.tar传到目标机器
 	targetImagePath := fmt.Sprintf("%s/%s_%s_image.tar", models.Config.Plugin.DeployPath, pluginPackageObj.Name, pluginPackageObj.Version)
-	if err = bash.RemoteSCP(dockerServer.Host, tmpImageFile, targetImagePath); err != nil {
+	if err = bash.RemoteSCP(dockerServer.Host, dockerServer.LoginUsername, dockerServer.LoginPassword, dockerServer.Port, tmpImageFile, targetImagePath); err != nil {
 		middleware.ReturnError(c, err)
 		return
 	}
 	log.Logger.Info("scp plugin image file", log.String("targetHost", dockerServer.Host), log.String("tmpFile", tmpImageFile), log.String("targetPath", targetImagePath))
-	if err = bash.RemoteSSHCommand(dockerServer.Host, fmt.Sprintf("docker load --input %s && rm -f %s", targetImagePath, targetImagePath)); err != nil {
+	if err = bash.RemoteSSHCommand(dockerServer.Host, dockerServer.LoginUsername, dockerServer.LoginPassword, dockerServer.Port, fmt.Sprintf("docker load --input %s && rm -f %s", targetImagePath, targetImagePath)); err != nil {
 		middleware.ReturnError(c, err)
 		return
 	}
@@ -515,7 +520,7 @@ func LaunchPlugin(c *gin.Context) {
 		dockerCmd += fmt.Sprintf("-e %s ", v)
 	}
 	dockerCmd += fmt.Sprintf(" %s:%s ", pluginPackageObj.Name, pluginPackageObj.Version)
-	if err = bash.RemoteSSHCommand(dockerServer.Host, dockerCmd); err != nil {
+	if err = bash.RemoteSSHCommand(dockerServer.Host, dockerServer.LoginUsername, dockerServer.LoginPassword, dockerServer.Port, dockerCmd); err != nil {
 		middleware.ReturnError(c, err)
 		return
 	}
@@ -550,9 +555,18 @@ func RemovePlugin(c *gin.Context) {
 		middleware.ReturnError(c, err)
 		return
 	}
+	// 查询容器资源信息
+	resourceServer, getServerErr := database.GetPluginDockerRunningResource(pluginInstanceObj.DockerInstanceResourceId)
+	if getServerErr != nil {
+		middleware.ReturnError(c, getServerErr)
+		return
+	}
 	// 销毁容器
+	if strings.HasPrefix(resourceServer.LoginPassword, models.AESPrefix) {
+		resourceServer.LoginPassword = encrypt.DecryptWithAesECB(resourceServer.LoginPassword, models.Config.Plugin.ResourcePasswordSeed, resourceServer.Name)
+	}
 	removeCmd := fmt.Sprintf("docker rm -f %s && docker rmi %s:%s", pluginInstanceObj.ContainerName, pluginPackageObj.Name, pluginPackageObj.Version)
-	if err = bash.RemoteSSHCommand(pluginInstanceObj.Host, removeCmd); err != nil {
+	if err = bash.RemoteSSHCommand(resourceServer.Host, resourceServer.LoginUsername, resourceServer.LoginPassword, resourceServer.Port, removeCmd); err != nil {
 		middleware.ReturnError(c, err)
 		return
 	}

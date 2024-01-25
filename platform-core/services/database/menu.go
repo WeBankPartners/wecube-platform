@@ -23,7 +23,7 @@ func GetAllRootMenus(ctx context.Context) (result []*models.MenuItemDto, err err
 // GetAllSysMenus 查询所有系统菜单
 func GetAllSysMenus(ctx context.Context) (result []*models.MenuItemDto, err error) {
 	var list []*models.MenuItems
-	err = db.MysqlEngine.Context(ctx).SQL("select * from menus_items").Find(&list)
+	err = db.MysqlEngine.Context(ctx).SQL("select * from menu_items").Find(&list)
 	if err != nil {
 		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
 		return
@@ -91,7 +91,7 @@ func GetMenuItemsByCode(ctx context.Context, code string) (result *models.MenuIt
 }
 
 func BuildPackageMenuItemDto(ctx context.Context, menus *models.PluginPackageMenus) *models.MenuItemDto {
-	result, err := GetMenuItemsByCode(ctx, menus.Code)
+	result, err := GetMenuItemsByCode(ctx, menus.Category)
 	if err != nil {
 		log.Logger.Error("Cannot find system menu item by package menus category", log.String("category", menus.Category))
 		return nil
@@ -149,6 +149,10 @@ func DeleteRoleMenuById(ctx context.Context, id string) (err error) {
 	var actions []*db.ExecAction
 	actions = append(actions, &db.ExecAction{Sql: "delete from role_menu where id=?", Param: []interface{}{id}})
 	err = db.Transaction(actions, ctx)
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseExecuteError, err)
+		return
+	}
 	return
 }
 
@@ -157,5 +161,9 @@ func AddRoleMenu(ctx context.Context, menu models.RoleMenu) (err error) {
 	var actions []*db.ExecAction
 	actions = append(actions, &db.ExecAction{Sql: "insert into  role_menu(id,role_name,menu_code) values (?,?,?)", Param: []interface{}{menu.Id, menu.RoleName, menu.MenuCode}})
 	err = db.Transaction(actions, ctx)
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseExecuteError, err)
+		return
+	}
 	return
 }

@@ -51,6 +51,11 @@ type QuerySingleRolesResponse struct {
 	Data *SimpleLocalRoleDto `json:"data"`
 }
 
+type QuerySingleUserPassResponse struct {
+	HttpResponseMeta
+	Data *SimpleLocalUserPassDto `json:"data"`
+}
+
 type QuerySingleUserResponse struct {
 	HttpResponseMeta
 	Data *SimpleLocalUserDto `json:"data"`

@@ -384,7 +384,7 @@ func DeployProcessDefinition(c *gin.Context) {
 		return
 	}
 	// 检查节点的合法性
-	if !checkDeployedProcDefNode(c, procDefId) {
+	if !checkDeployedProcDef(c, procDefId) {
 		middleware.ReturnError(c, fmt.Errorf("procDef deployed node check fail"))
 		return
 	}
@@ -435,6 +435,7 @@ func GetProcDefRootTaskNode(c *gin.Context) {
 func AddOrUpdateProcDefTaskNodes(c *gin.Context) {
 	var param models.ProcDefNodeRequestParam
 	var procDefNode *models.ProcDefNode
+	var procDef *models.ProcDef
 	var err error
 
 	user := middleware.GetRequestUser(c)
@@ -444,6 +445,19 @@ func AddOrUpdateProcDefTaskNodes(c *gin.Context) {
 	}
 	if param.ProcDefNodeCustomAttrs == nil || param.ProcDefNodeCustomAttrs.Id == "" || param.ProcDefNodeCustomAttrs.ProcDefId == "" {
 		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, fmt.Errorf("param procDefId or id is empty")))
+		return
+	}
+	procDef, err = database.GetProcessDefinition(c, param.ProcDefNodeCustomAttrs.ProcDefId)
+	if err != nil {
+		middleware.ReturnError(c, err)
+		return
+	}
+	if procDef == nil {
+		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, fmt.Errorf("procDefId is invalid")))
+		return
+	}
+	if procDef.Status != string(models.Draft) {
+		middleware.ReturnError(c, fmt.Errorf("draft procDefId:%s can edit", procDef.Id))
 		return
 	}
 	procDefNode, err = database.GetProcDefNode(c, param.ProcDefNodeCustomAttrs.ProcDefId, param.ProcDefNodeCustomAttrs.Id)
@@ -1032,8 +1046,9 @@ checkDeployedProcDefNode
 4、除 分流、汇聚、判断 这三种节点外，其它所有节点必须有单进单出(开始和结束特殊)
 5、不能有环路
 6. 开始结束节点都不超过一个
+7. 判断节点出的线,必须有名字并且同一个判断节点的所有线的名字不能相同
 */
-func checkDeployedProcDefNode(ctx context.Context, procDefId string) bool {
+func checkDeployedProcDef(ctx context.Context, procDefId string) bool {
 	var startNodeCount, endNodeCount, inCount, outCount int
 	var list []*models.ProcDefNode
 	var linkList []*models.ProcDefNodeLink
@@ -1084,6 +1099,27 @@ func checkDeployedProcDefNode(ctx context.Context, procDefId string) bool {
 				return false
 			}
 		case models.ProcDefNodeTypeDecision:
+			nodeLinkList, err2 := database.GetProcDefNodeLinkByProcDefIdAndSource(ctx, procDefId, node.Id)
+			if err2 != nil {
+				return false
+			}
+			if len(nodeLinkList) > 0 {
+				var tempLinkNameMap = make(map[string]bool)
+				for _, link := range nodeLinkList {
+					if strings.TrimSpace(link.Name) == "" {
+						log.Logger.Info("checkDeployedProcDefNode fail,decision node has link name empty", log.String("procDefId", procDefId),
+							log.String("nodeId", node.NodeId), log.String("linkId", link.LinkId))
+						return false
+					}
+					if tempLinkNameMap[link.Name] {
+						log.Logger.Info("checkDeployedProcDefNode fail,decision node has link name the same", log.String("procDefId", procDefId),
+							log.String("nodeId", node.NodeId), log.String("linkId", link.LinkId))
+						return false
+					} else {
+						tempLinkNameMap[link.Name] = true
+					}
+				}
+			}
 		default:
 			if inCount == 1 && outCount == 1 {
 				hasSingleInOut = true

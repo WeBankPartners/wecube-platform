@@ -99,6 +99,19 @@ func (RoleRepository) FindNotDeletedRoleByName(name string) (*model.SysRoleEntit
 	}
 }
 
+func (RoleRepository) FindNotDeletedRolesById(roleId string) (*model.SysRoleEntity, error) {
+	role := &model.SysRoleEntity{}
+	found, err := Engine.Where("id = ?", roleId).And("is_deleted = ?", false).Get(role)
+	if err != nil {
+		return nil, err
+	}
+	if found {
+		return role, nil
+	} else {
+		return nil, nil
+	}
+}
+
 func (RoleRepository) FindAllRolesByName(name string) ([]*model.SysRoleEntity, error) {
 	var roles []*model.SysRoleEntity
 	err := Engine.Where("name = ?", name).Find(&roles)
@@ -238,6 +251,19 @@ func (UserRoleRsRepository) FindOneByUserIdAndRoleId(userId string, roleId strin
 
 	if found {
 		return userRoleRs, nil
+	} else {
+		return nil, nil
+	}
+}
+
+func (UserRoleRsRepository) FindRoleAdministrator(roleName string) (*model.UserRoleRsEntity, error) {
+	roleUserEntity := &model.UserRoleRsEntity{}
+	found, err := Engine.Where("role_name = ?", roleName).And("is_admin = ?", true).Get(roleUserEntity)
+	if err != nil {
+		return nil, err
+	}
+	if found {
+		return roleUserEntity, nil
 	} else {
 		return nil, nil
 	}
