@@ -27,6 +27,7 @@ func CreateOrUpdateTemplate(c *gin.Context) {
 	}
 	if len(reqParam.PermissionToRole.MGMT) == 0 {
 		err = exterror.Catch(exterror.New().RequestParamValidateError, fmt.Errorf("request param err, MGMT permission role can not be empty"))
+		middleware.ReturnError(c, err)
 		return
 	}
 
@@ -55,6 +56,7 @@ func CollectTemplate(c *gin.Context) {
 
 	if reqParam.BatchExecutionTemplateId == "" {
 		err = exterror.Catch(exterror.New().RequestParamValidateError, fmt.Errorf("request param err, batchExecutionTemplateId can not be empty"))
+		middleware.ReturnError(c, err)
 		return
 	}
 
