@@ -2,11 +2,12 @@ package database
 
 import (
 	"context"
+	"strings"
+
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/db"
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/exterror"
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/log"
 	"github.com/WeBankPartners/wecube-platform/platform-core/models"
-	"strings"
 )
 
 // TryFetchLatestAvailableDataModelEntity 尝试获取最新版本包插件
@@ -462,4 +463,35 @@ func getAuthEnableInterfacesCommonQuerySQL() string {
 		"t1.filter_rule,t2.name AS plugin_config_name,t2.register_name AS plugin_config_register_name,t2.target_entity AS plugin_config_target_entity,t2.status AS plugin_config_status," +
 		"t3.id AS plugin_package_id,t3.name AS plugin_package_name,t3.status AS plugin_package_status,t3.version AS plugin_package_version,t3.upload_timestamp FROM plugin_config_interfaces t1," +
 		"plugin_configs t2, plugin_packages t3,plugin_config_roles t4  WHERE  t1.plugin_config_id = t2.id "
+}
+
+func GetPluginConfigInterfaceById(id string) (result *models.PluginConfigInterfaces, err error) {
+	result = &models.PluginConfigInterfaces{}
+	found, errPCI := db.MysqlEngine.Table(new(models.PluginConfigInterfaces)).Where("id=?", id).Get(&result)
+	if errPCI != nil {
+		result = nil
+		err = err
+		return
+	}
+	if !found {
+		result = nil
+		return
+	}
+	inputParams := make([]*models.PluginConfigInterfaceParameters, 0)
+	err = db.MysqlEngine.Table(new(models.PluginConfigInterfaceParameters)).Where("plugin_config_interface_id=?", id).And("type=?", models.PluginParamTypeInput).Find(&inputParams)
+	if err != nil {
+		result = nil
+		err = err
+		return
+	}
+	outputParams := make([]*models.PluginConfigInterfaceParameters, 0)
+	err = db.MysqlEngine.Table(new(models.PluginConfigInterfaceParameters)).Where("plugin_config_interface_id=?", id).And("type=?", models.PluginParamTypeOutput).Find(&outputParams)
+	if err != nil {
+		result = nil
+		err = err
+		return
+	}
+	result.InputParameters = inputParams
+	result.InputParameters = outputParams
+	return
 }

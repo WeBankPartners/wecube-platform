@@ -3,6 +3,7 @@ package database
 import (
 	"context"
 	"fmt"
+
 	"github.com/WeBankPartners/go-common-lib/guid"
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/db"
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/exterror"
@@ -71,6 +72,23 @@ func ActivePluginSystemVariable(ctx context.Context, name, version string) (err 
 	err = db.Transaction(actions, ctx)
 	if err != nil {
 		err = exterror.Catch(exterror.New().DatabaseExecuteError, err)
+	}
+	return
+}
+
+func GetSystemVariable(ctx context.Context, name string) (result string, err error) {
+	variable := &models.SystemVariables{}
+	var found bool
+	found, err = db.MysqlEngine.Context(ctx).Table(variable).Where("name=?", name).And("status=?", "active").Get(variable)
+	if err != nil {
+		return result, exterror.Catch(exterror.New().DatabaseQueryError, err)
+	}
+	if !found {
+		return
+	}
+	result = variable.Value
+	if result == "" {
+		result = variable.DefaultValue
 	}
 	return
 }

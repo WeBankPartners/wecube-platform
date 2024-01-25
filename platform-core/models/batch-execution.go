@@ -84,3 +84,24 @@ type BatchExecTemplatePageData struct {
 	PageInfo PageInfo                 `json:"pageInfo"`
 	Contents []*BatchExecTemplateInfo `json:"contents"`
 }
+
+type BatchExecutionPluginExecParam struct {
+	Operator        string                                     `json:"operator"`
+	ServiceName     string                                     `json:"serviceName"`
+	ServicePath     string                                     `json:"servicePath"`
+	EntityType      string                                     `json:"entityType"`
+	EntityInstances []*BatchExecutionPluginExecEntityInstances `json:"entityInstances"`
+	InputParams     []BatchExecutionPluginExecInputParams      `json:"inputParams"`
+}
+
+type BatchExecutionPluginExecEntityInstances struct {
+	Id               string `json:"id"`
+	BusinessKeyValue string `json:"businessKeyValue"`
+}
+
+type BatchExecutionPluginExecInputParams map[string]interface{}
+
+type BatchExecutionPluginDefInputParams struct {
+	ParamId     string `json:"inputParamId"`
+	ParameValue string `json:"inputParamValue"`
+}
