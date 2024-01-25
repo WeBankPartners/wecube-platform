@@ -124,10 +124,6 @@ func init() {
 		// @todo 需要Super_admin权限才能调用接口
 		&handlerFuncObj{Url: "/users/:user-id/delete", Method: "DELETE", HandlerFunc: system.DeleteUserByUserId, ApiCode: "delete-user"},
 		&handlerFuncObj{Url: "/users/roles", Method: "GET", HandlerFunc: system.GetRolesOfCurrentUser, ApiCode: "get-user-roles"},
-		&handlerFuncObj{Url: "/roles/name/:role-name/administrator", Method: http.MethodGet, HandlerFunc: system.GetRoleAdministrator,
-			ApiCode: "get-roles-administrator"},
-		&handlerFuncObj{Url: "/roles/administrator", Method: http.MethodPost, HandlerFunc: system.ConfigureRoleAdministrator,
-			ApiCode: "configure-roles-administrator"},
 
 		// process manage
 		&handlerFuncObj{Url: "/process/definitions", Method: "POST", HandlerFunc: process.AddOrUpdateProcessDefinition, ApiCode: "add-update-process-definition"},

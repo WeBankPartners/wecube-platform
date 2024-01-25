@@ -64,6 +64,9 @@ func CreateRole(c *gin.Context) {
 		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, err))
 		return
 	}
+	if param.Administrator == "" {
+		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, fmt.Errorf("administrator not empty")))
+	}
 	response, err := remote.RegisterLocalRole(&param, c.GetHeader("Authorization"), c.GetHeader("Accept-Language"))
 	if err != nil {
 		middleware.ReturnError(c, err)
@@ -353,33 +356,6 @@ func GetRolesOfCurrentUser(c *gin.Context) {
 		return
 	}
 	middleware.Return(c, response)
-}
-
-// GetRoleAdministrator 获取角色管理员
-func GetRoleAdministrator(c *gin.Context) {
-	roleName := c.Param("role-name")
-	response, err := remote.GetRoleAdministrator(roleName, c.GetHeader("Authorization"), c.GetHeader("Accept-Language"))
-	if err != nil {
-		middleware.ReturnError(c, err)
-		return
-	}
-	middleware.Return(c, response)
-}
-
-// ConfigureRoleAdministrator 配置角色管理员
-func ConfigureRoleAdministrator(c *gin.Context) {
-	var param models.RoleAdministratorDto
-	if err := c.ShouldBindJSON(&param); err != nil {
-		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, err))
-		return
-	}
-	// 配置角色管理员
-	err := remote.ConfigureRoleAdministrator(&models.RoleAdministratorDto{RoleId: param.RoleId, UserId: param.UserId}, c.GetHeader("Authorization"), c.GetHeader("Accept-Language"))
-	if err != nil {
-		middleware.ReturnError(c, err)
-		return
-	}
-	middleware.ReturnSuccess(c)
 }
 
 func retrieveMenusByRoleId(ctx context.Context, roleId, userToken, language string) (roleMenuDto *models.RoleMenuDto, err error) {
