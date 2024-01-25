@@ -2,7 +2,7 @@
   <div id="itemInfo">
     <div class="hide-panal" @click="hideItem"></div>
     <div class="panal-name">连接属性：</div>
-    <Form :label-width="120">
+    <Form :label-width="120" style="padding-right: 12px">
       <template>
         <FormItem label="ID">
           <Input disabled v-model="itemCustomInfo.id"></Input>
