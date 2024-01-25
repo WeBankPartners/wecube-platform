@@ -82,10 +82,11 @@ type SysRoleEntity struct {
 	Active  bool `xorm:"'IS_ACTIVE'"`
 	Deleted bool `xorm:"'IS_DELETED'"`
 
-	Name         string `xorm:"'NAME'"`
-	DisplayName  string `xorm:"'DISPLAY_NAME'"`
-	EmailAddress string `xorm:"'EMAIL_ADDR'"`
-	Description  string `xorm:"'DESCRIPTION'"`
+	Name          string `xorm:"'NAME'"`
+	DisplayName   string `xorm:"'DISPLAY_NAME'"`
+	EmailAddress  string `xorm:"'EMAIL_ADDR'"`
+	Description   string `xorm:"'DESCRIPTION'"`
+	Administrator string `xorm:"'administrator'"`
 }
 
 func (SysRoleEntity) TableName() string {

@@ -130,25 +130,24 @@ func doModifyLocalUserPassword(username, originalPassword, toChangePassword stri
 		return nil, errors.New("failed to update user")
 	}
 
-	return convertToSimpleLocalUserDto(user, false), nil
+	return convertToSimpleLocalUserDto(user), nil
 
 }
 
-func convertToSimpleLocalUserDto(user *model.SysUserEntity, roleAdministrator bool) *model.SimpleLocalUserDto {
+func convertToSimpleLocalUserDto(user *model.SysUserEntity) *model.SimpleLocalUserDto {
 	return &model.SimpleLocalUserDto{
-		ID:                user.Id,
-		Username:          user.Username,
-		Password:          "",
-		Department:        user.Department,
-		EmailAddr:         user.EmailAddr,
-		Title:             user.Title,
-		EnglishName:       user.EnglishName,
-		NativeName:        user.LocalName,
-		CellPhoneNo:       user.CellPhoneNo,
-		OfficeTelNo:       user.OfficeTelNo,
-		Active:            user.IsActive,
-		Blocked:           user.IsBlocked,
-		RoleAdministrator: roleAdministrator,
+		ID:          user.Id,
+		Username:    user.Username,
+		Password:    "",
+		Department:  user.Department,
+		EmailAddr:   user.EmailAddr,
+		Title:       user.Title,
+		EnglishName: user.EnglishName,
+		NativeName:  user.LocalName,
+		CellPhoneNo: user.CellPhoneNo,
+		OfficeTelNo: user.OfficeTelNo,
+		Active:      user.IsActive,
+		Blocked:     user.IsBlocked,
 	}
 }
 
@@ -510,11 +509,12 @@ func (UserManagementService) GetLocalRolesByUsername(username string) ([]*model.
 		}
 
 		roleDto := &model.SimpleLocalRoleDto{
-			ID:          role.Id,
-			Name:        role.Name,
-			DisplayName: role.DisplayName,
-			Email:       role.EmailAddress,
-			Status:      role.GetRoleDeletedStatus(),
+			ID:            role.Id,
+			Name:          role.Name,
+			DisplayName:   role.DisplayName,
+			Email:         role.EmailAddress,
+			Status:        role.GetRoleDeletedStatus(),
+			Administrator: role.Administrator,
 		}
 
 		roleDtos = append(roleDtos, roleDto)
@@ -548,7 +548,7 @@ func (UserManagementService) GetLocalUsersByRoleId(roleId string) ([]*model.Simp
 			continue
 		}
 
-		userDto := convertToSimpleLocalUserDto(user, userRole.AdminFlag)
+		userDto := convertToSimpleLocalUserDto(user)
 		result = append(result, userDto)
 	}
 
@@ -574,7 +574,7 @@ func (UserManagementService) RetireveLocalUserByUserid(userId string) (*model.Si
 		return nil, exterror.Catch(exterror.New().AuthServer3024Error.WithParam(userId), nil)
 	}
 
-	return convertToSimpleLocalUserDto(user, false), nil
+	return convertToSimpleLocalUserDto(user), nil
 }
 
 func (UserManagementService) ModifyLocalUserInfomation(username string, userDto *model.SimpleLocalUserDto, curUser string) (*model.SimpleLocalUserDto, error) {
@@ -611,7 +611,7 @@ func (UserManagementService) ModifyLocalUserInfomation(username string, userDto 
 		}
 		return nil, errors.New("failed to update user")
 	}
-	return convertToSimpleLocalUserDto(user, false), nil
+	return convertToSimpleLocalUserDto(user), nil
 }
 
 func (UserManagementService) RegisterLocalUser(userDto *model.SimpleLocalUserDto, curUser string) (*model.SimpleLocalUserDto, error) {
@@ -641,7 +641,7 @@ func (UserManagementService) RegisterLocalUser(userDto *model.SimpleLocalUserDto
 		}
 		return nil, errors.New("failed to inser user")
 	}
-	return convertToSimpleLocalUserDto(userEntity, false), nil
+	return convertToSimpleLocalUserDto(userEntity), nil
 }
 
 func validateSimpleLocalUserDto(userDto *model.SimpleLocalUserDto) error {
@@ -705,7 +705,7 @@ func (UserManagementService) RetrieveAllActiveUsers() ([]*model.SimpleLocalUserD
 	}
 
 	for _, user := range userEntities {
-		userDto := convertToSimpleLocalUserDto(user, false)
+		userDto := convertToSimpleLocalUserDto(user)
 
 		userRoles, err := db.UserRoleRsRepositoryInstance.FindAllByUserId(user.Id)
 		if err != nil {
