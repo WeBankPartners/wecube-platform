@@ -69,6 +69,35 @@ func CollectTemplate(c *gin.Context) {
 	return
 }
 
+func UncollectTemplate(c *gin.Context) {
+	defer try.ExceptionStack(func(e interface{}, err interface{}) {
+		retErr := fmt.Errorf("%v", err)
+		middleware.ReturnError(c, exterror.Catch(exterror.New().ServerHandleError, retErr))
+		log.Logger.Error(e.(string))
+	})
+
+	reqParam := models.BatchExecutionTemplateCollect{}
+	var err error
+	if err = c.ShouldBindJSON(&reqParam); err != nil {
+		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, err))
+		return
+	}
+
+	if reqParam.BatchExecutionTemplateId == "" {
+		err = exterror.Catch(exterror.New().RequestParamValidateError, fmt.Errorf("request param err, batchExecutionTemplateId can not be empty"))
+		middleware.ReturnError(c, err)
+		return
+	}
+
+	err = database.UncollectBatchExecTemplate(c, &reqParam)
+	if err != nil {
+		middleware.ReturnError(c, err)
+		return
+	}
+	middleware.ReturnSuccess(c)
+	return
+}
+
 func RetrieveTemplate(c *gin.Context) {
 	defer try.ExceptionStack(func(e interface{}, err interface{}) {
 		retErr := fmt.Errorf("%v", err)
