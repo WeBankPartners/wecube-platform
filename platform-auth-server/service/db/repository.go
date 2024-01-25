@@ -255,16 +255,3 @@ func (UserRoleRsRepository) FindOneByUserIdAndRoleId(userId string, roleId strin
 		return nil, nil
 	}
 }
-
-func (UserRoleRsRepository) FindRoleAdministrator(roleName string) (*model.UserRoleRsEntity, error) {
-	roleUserEntity := &model.UserRoleRsEntity{}
-	found, err := Engine.Where("role_name = ?", roleName).And("is_admin = ?", true).Get(roleUserEntity)
-	if err != nil {
-		return nil, err
-	}
-	if found {
-		return roleUserEntity, nil
-	} else {
-		return nil, nil
-	}
-}
