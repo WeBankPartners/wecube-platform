@@ -442,11 +442,11 @@ func RetrieveBatchExec(c *gin.Context, reqParam *models.QueryRequestParam) (resu
 	return
 }
 
-func GetBatchExec(c *gin.Context, batchExecId string) (result *models.BatchExecutionInfo, err error) {
-	result = &models.BatchExecutionInfo{}
+func GetBatchExec(c *gin.Context, batchExecId string) (result *models.BatchExecution, err error) {
+	result = &models.BatchExecution{}
 
 	// get batchExecution
-	var batchExecData []*models.BatchExecutionInfo
+	var batchExecData []*models.BatchExecution
 	err = db.MysqlEngine.Context(c).Table(models.TableNameBatchExec).
 		Where("id = ?", batchExecId).
 		Find(&batchExecData)
