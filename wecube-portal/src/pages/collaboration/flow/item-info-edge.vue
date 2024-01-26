@@ -10,9 +10,13 @@
           <Input disabled v-model="itemCustomInfo.id"></Input>
         </FormItem>
         <FormItem :label="$t('name')">
-          <Input v-model="itemCustomInfo.label" @on-change="paramsChanged"></Input>
-          <span style="position: absolute; left: 320px; top: 2px">{{ itemCustomInfo.label.length }}/30</span>
-          <span v-if="itemCustomInfo.label.length > 30" style="color: red">名称不能大于30字符</span>
+          <Input v-model="itemCustomInfo.name" @on-change="paramsChanged"></Input>
+          <span style="position: absolute; left: 320px; top: 2px"
+            >{{ itemCustomInfo.name && itemCustomInfo.name.length }}/30</span
+          >
+          <span v-if="itemCustomInfo.name && itemCustomInfo.name.length > 30" style="color: red"
+            >名称不能大于30字符</span
+          >
         </FormItem>
         <div style="position: absolute; bottom: 20px; right: 280px; width: 200px">
           <Button @click="saveItem" type="primary">{{ $t('save') }}</Button>

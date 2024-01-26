@@ -352,13 +352,12 @@ export default G6 => {
               size: model.size
             }
           })
-
           item.attr({
             ...attrs,
             ...model.style,
             path,
-            width: model.size[0],
-            height: model.size[1]
+            width: model.size && model.size[0],
+            height: model.size && model.size[1]
           })
         } else {
           const logoIcon = group.get('children').find(x => x.cfg.className === `${attrs.type}-logoIcon`)

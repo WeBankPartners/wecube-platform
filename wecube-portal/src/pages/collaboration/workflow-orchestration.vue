@@ -627,15 +627,26 @@ export default {
     deleteNode (item) {
       this.graph.removeItem(item)
     },
+    nameCheck (label) {
+      const nodes = this.graph.save().nodes
+      const findIndex = nodes.findIndex(node => node.label === label)
+      if (findIndex > -1) {
+        return this.nameCheck(label + '1')
+      } else {
+        return label
+      }
+    },
     // 添加节点
     addNode (transferData, { x, y }) {
       if (this.isExecutionAllowed()) return
-      const { label, shape, fill, lineWidth, nodeType, stroke } = JSON.parse(transferData)
+      let { label, shape, fill, lineWidth, nodeType, stroke } = JSON.parse(transferData)
       const findStartNodeIndex = this.graph.save().nodes.findIndex(n => n.id.startsWith('id_start'))
       if (nodeType === 'start' && findStartNodeIndex > -1) {
         this.$Message.warning(this.$t('start_node_warning'))
         return
       }
+      label = this.nameCheck(label)
+      console.log(label)
       const id = `pdef_node_${this.uuid(16, 16)}`
       const model = {
         id,

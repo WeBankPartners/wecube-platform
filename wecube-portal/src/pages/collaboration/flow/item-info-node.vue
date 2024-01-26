@@ -16,9 +16,13 @@
               <FormItem :label="$t('name')" prop="name">
                 <Input v-model="itemCustomInfo.customAttrs.name" @on-change="paramsChanged"></Input>
                 <span style="position: absolute; left: 310px; top: 2px"
-                  >{{ itemCustomInfo.customAttrs.name.length }}/30</span
+                  >{{ itemCustomInfo.customAttrs.name && itemCustomInfo.customAttrs.name.length }}/30</span
                 >
-                <span v-if="itemCustomInfo.customAttrs.name.length > 30" style="color: red">名称不能大于30字符</span>
+                <span
+                  v-if="itemCustomInfo.customAttrs.name && itemCustomInfo.customAttrs.name.length > 30"
+                  style="color: red"
+                  >名称不能大于30字符</span
+                >
               </FormItem>
               <FormItem :label="$t('node_type')">
                 <Input v-model="itemCustomInfo.customAttrs.nodeType" disabled></Input>
@@ -317,11 +321,6 @@ export default {
   components: {
     ItemFilterRulesGroup
   },
-  computed: {
-    nameLen () {
-      return (this.itemCustomInfo.customAttrs.name || '').length
-    }
-  },
   mounted () {
     this.getAllDataModels()
   },
@@ -432,7 +431,8 @@ export default {
     },
     // 获取可选插件
     getPlugin () {
-      this.getFilteredPluginInterfaceList(this.itemCustomInfo.customAttrs.routineExpression)
+      console.log(123)
+      // this.getFilteredPluginInterfaceList(this.itemCustomInfo.customAttrs.routineExpression)
     },
     // #endregion
     // 监听参数变化
