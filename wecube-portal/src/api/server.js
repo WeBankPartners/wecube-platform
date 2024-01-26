@@ -172,8 +172,7 @@ export const getPluginConfigsByPackageId = packageId => req.get(`/platform/v1/pa
 export const getInterfacesByPluginConfigId = configId => req.get(`/platform/v1/plugins/interfaces/${configId}`)
 export const getEntityRefsByPkgNameAndEntityName = (pkgName, entityName) =>
   req.get(`/platform/v1/models/package/${pkgName}/entity/${entityName}`)
-export const getPluginsByTargetEntityFilterRule = data =>
-  req.post(`/platform/v1/plugins/interfaces/enabled/query-by-target-entity-filter-rule`, data)
+export const getPluginsByTargetEntityFilterRule = data => req.post(`/platform/v1/plugins/query-by-target-entity`, data)
 export const getDataByNodeDefIdAndProcessSessionId = (nodeDefId, ProcessSessionId) =>
   req.get(`/platform/v1/process/instances/tasknodes/${nodeDefId}/session/${ProcessSessionId}/tasknode-bindings`)
 export const setDataByNodeDefIdAndProcessSessionId = (nodeDefId, ProcessSessionId, data) =>
@@ -269,3 +268,13 @@ export const flowExport = data => req.post(`platform/v1/process/definitions/expo
 export const flowImport = data => req.post(`platform/v1/process/definitions/import`, data)
 export const getNodeDetailById = (flowId, nodeId) =>
   req.get(`platform/v1/process/definitions/${flowId}/tasknodes/${nodeId}`)
+// 批量执行重构
+// 保存模板
+export const saveBatchExecuteTemplate = data => req.post(`platform/v1/batch-execution/templates`, data)
+// 模板列表
+export const getBatchExecuteTemplateList = data => req.post(`/platform/v1/batch-execution/templates/list`, data)
+// 模板详情
+export const getBatchExecuteTemplateDetail = templateId =>
+  req.post(`/platform/v1/batch-execution/templates/${templateId}`)
+// 批量执行列表
+export const getBatchExecuteList = data => req.post(`/platform/v1/batch-execution/list`, data)
