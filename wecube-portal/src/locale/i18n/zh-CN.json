@@ -540,6 +540,7 @@
   "start_node_warning": "只能包含一个开始节点",
   "confirm_discarding_changes": "确认放弃改动",
   "params_edit_confirm": "数据发生变化，选择放弃则变化信息不会被保存！",
+
   "duration": "间隔",
   "unit": "单位",
   "date": "日期",
@@ -549,5 +550,6 @@
   "tw_recent_three_month": "近3个月",
   "tw_recent_half_year": "近半年",
   "tw_recent_one_year": "近一年",
-  "tw_auto": "自定义"
+  "tw_auto": "自定义",
+  "view": "查看"
 }
