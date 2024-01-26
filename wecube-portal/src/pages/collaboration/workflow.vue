@@ -71,14 +71,35 @@
       <Input
         v-model="searchParams.procDefId"
         placeholder="编排ID"
-        style="width: 200px"
+        class="search-item"
         clearable
         @on-change="getFlowList"
       ></Input>
       <Input
         v-model="searchParams.procDefName"
         placeholder="编排名称"
-        style="width: 200px"
+        class="search-item"
+        clearable
+        @on-change="getFlowList"
+      ></Input>
+      <Input
+        v-model="searchParams.createdBy"
+        placeholder="创建人"
+        class="search-item"
+        clearable
+        @on-change="getFlowList"
+      ></Input>
+      <Input
+        v-model="searchParams.updatedBy"
+        placeholder="更新人"
+        class="search-item"
+        clearable
+        @on-change="getFlowList"
+      ></Input>
+      <Input
+        v-model="searchParams.scene"
+        placeholder="分组"
+        class="search-item"
         clearable
         @on-change="getFlowList"
       ></Input>
@@ -86,7 +107,7 @@
         v-model="searchParams.plugins"
         filterable
         multiple
-        style="width: 200px"
+        class="search-item"
         placeholder="授权插件"
         :max-tag-count="1"
         @on-change="getFlowList"
@@ -198,7 +219,10 @@ export default {
         procDefName: '',
         plugins: [],
         updatedTimeStart: '',
-        UpdatedTimeEnd: '',
+        updatedTimeEnd: '',
+        createdBy: '',
+        updatedBy: '',
+        scene: '', // 分组
         status: 'deployed'
       },
       dateType: 1, // 控制时间显示
@@ -404,7 +428,10 @@ export default {
         procDefName: '',
         plugins: [],
         updatedTimeStart: '',
-        UpdatedTimeEnd: '',
+        updatedTimeEnd: '',
+        createdBy: '',
+        updatedBy: '',
+        scene: '', // 分组
         status: 'deployed'
       }
       this.hideRoles = []
@@ -552,24 +579,24 @@ export default {
       if (dateType === 1) {
         const pre = dayjs().subtract(3, 'month').format('YYYY-MM-DD')
         this.searchParams.updatedTimeStart = pre + ' 00:00:00'
-        this.searchParams.UpdatedTimeEnd = cur + ' 23:59:59'
+        this.searchParams.updatedTimeEnd = cur + ' 23:59:59'
       } else if (dateType === 2) {
         const pre = dayjs().subtract(6, 'month').format('YYYY-MM-DD')
         this.searchParams.updatedTimeStart = pre + ' 00:00:00'
-        this.searchParams.UpdatedTimeEnd = cur + ' 23:59:59'
+        this.searchParams.updatedTimeEnd = cur + ' 23:59:59'
       } else if (dateType === 3) {
         const pre = dayjs().subtract(1, 'year').format('YYYY-MM-DD')
         this.searchParams.updatedTimeStart = pre + ' 00:00:00'
-        this.searchParams.UpdatedTimeEnd = cur + ' 23:59:59'
+        this.searchParams.updatedTimeEnd = cur + ' 23:59:59'
       } else if (dateType === 4) {
         this.searchParams.updatedTimeStart = ''
-        this.searchParams.UpdatedTimeEnd = ''
+        this.searchParams.updatedTimeEnd = ''
       }
       this.getFlowList()
     },
     handleDateRange (dateArr) {
       this.searchParams.updatedTimeStart = dateArr[0]
-      this.searchParams.UpdatedTimeEnd = dateArr[1]
+      this.searchParams.updatedTimeEnd = dateArr[1]
       this.getFlowList()
     },
     // 控制角色下table的显示
@@ -707,6 +734,10 @@ th.ivu-table-column-center div.ivu-table-cell {
 }
 </style>
 <style lang="scss" scoped>
+.search-item {
+  width: 200px;
+  margin-right: 6px;
+}
 .btn-right {
   margin-right: 10px;
 }

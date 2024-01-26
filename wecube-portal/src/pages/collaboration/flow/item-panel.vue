@@ -100,6 +100,12 @@
           </div>
           <div class="diamond-item-tool-name">判断</div>
         </div>
+        <div slot="content">
+          <p>功能:判断人工节点的填表结果,根据结果走到不同路线</p>
+          <p>使用规范:</p>
+          <p>1.判断节点只能接在人工任务节点后面</p>
+          <p>2.支持一条入线两条出线</p>
+        </div>
       </Tooltip>
       <Tooltip content="Right Center text" placement="right" :delay="1000">
         <div
@@ -118,6 +124,12 @@
           </div>
           <div class="diamond-item-tool-name">分流节点</div>
         </div>
+        <div slot="content">
+          <p>功能:并行线路的起点,并行线路都完成才能走到汇聚节点</p>
+          <p>使用规范:</p>
+          <p>1.分支节点和汇聚节点配套使用</p>
+          <p>2.单进多出</p>
+        </div>
       </Tooltip>
       <Tooltip content="Right Center text" placement="right" :delay="1000">
         <div
@@ -135,6 +147,12 @@
             <img src="./icon/merge-panel.svg" class="item-tool-icon" draggable="false" />
           </div>
           <div class="diamond-item-tool-name">汇聚节点</div>
+        </div>
+        <div slot="content">
+          <p>功能:并行线路的终点,并行线路都完成才能走到汇聚节点</p>
+          <p>使用规范:</p>
+          <p>1.分支节点和汇聚节点配套使用</p>
+          <p>2.多进单出</p>
         </div>
       </Tooltip>
       <Tooltip content="Right Center text" placement="right" :delay="1000">
@@ -237,6 +255,11 @@
           />
           <div class="item-tool-name">固定时间</div>
         </div>
+        <div slot="content">
+          <p>功能:时间节点1,控制流程进行下一步的具体时间</p>
+          <p>使用规范:</p>
+          <p>1.支持设置未来的一个时刻,格式为年月日时分秒</p>
+        </div>
       </Tooltip>
       <Tooltip content="Right Center text" placement="right" :delay="1000">
         <div
@@ -257,6 +280,11 @@
             draggable="false"
           />
           <div class="item-tool-name">时间间隔</div>
+        </div>
+        <div slot="content">
+          <p>功能:时间节点2,控制流程进行下一步的间隔</p>
+          <p>使用规范:</p>
+          <p>1.支持选择一个时间段</p>
         </div>
       </Tooltip>
     </div>
