@@ -4,7 +4,7 @@
       <Header ref="changeMneus" @allMenus="allMenus" />
     </div>
     <div class="content-container">
-      <Breadcrumb style="margin: 10px 0" v-if="isShowBreadcrum">
+      <Breadcrumb :style="setBreadcrumbStyle" v-if="isShowBreadcrum">
         <BreadcrumbItem
           ><a @click="homePageClickHandler">{{ $t('home') }}</a></BreadcrumbItem
         >
@@ -28,7 +28,17 @@ export default {
       isShowBreadcrum: true,
       allMenusAry: [],
       parentBreadcrumb: '',
-      childBreadcrumb: ''
+      childBreadcrumb: '',
+      expandTaskmanMenu: true
+    }
+  },
+  computed: {
+    setBreadcrumbStyle () {
+      // 给taskman工作台侧边菜单栏适配样式
+      const showMargin = this.expandTaskmanMenu && this.$route.path.indexOf('taskman/workbench') > -1
+      return {
+        margin: showMargin ? '10px 0 10px 180px' : '10px 0'
+      }
     }
   },
   methods: {
@@ -68,10 +78,14 @@ export default {
     },
     homePageClickHandler () {
       window.needReLoad = false
-      this.$router.push('/homepage')
+      this.$router.push('/taskman/workbench')
     }
   },
   created () {
+    // 获取taskman侧边菜单栏展开收缩状态
+    this.$eventBusP.$on('expand-menu', val => {
+      this.expandTaskmanMenu = val
+    })
     this.setBreadcrumb()
   },
   watch: {
@@ -107,7 +121,7 @@ export default {
   display: block;
 }
 .content-container {
-  padding: 5px 30px;
+  padding: 0px 12px;
 }
 .ivu-breadcrumb {
   color: #515a6e;

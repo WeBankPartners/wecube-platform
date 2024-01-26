@@ -53,10 +53,10 @@ export const getParamsInfosByFlowIdAndNodeId = (flowId, nodeId) =>
   req.get(`platform/v1/process/definitions/${flowId}/tasknodes/${nodeId}`)
 
 export const getFlowNodes = flowId => req.get(`platform/v1/process/definitions/${flowId}/tasknodes/briefs`)
-export const getContextParametersNodes = (flowId, taskNodeId, prevCtxNodeIds) => {
+export const getContextParametersNodes = (flowId, taskNodeId, contextParamNodes) => {
   let params = {
     taskNodeId: taskNodeId,
-    prevCtxNodeIds: prevCtxNodeIds.join(',')
+    contextParamNodes: contextParamNodes.join(',')
   }
   return req.get(`/platform/v1/process/definitions/${flowId}/root-context-nodes/briefs`, { params })
 }
@@ -241,7 +241,31 @@ export const stopUserScheduledTasks = data => req.post(`platform/v1/user-schedul
 export const getScheduledTasksByStatus = data =>
   req.post(`platform/v1/user-scheduled-tasks/process-instances/query`, data)
 
-export const getAssociatedNodes = (procDefId, params) =>
-  req.post(`platform/v1/process/definitions/${procDefId}/previous-nodes/briefs`, params)
-
 export const getMetaData = params => req.post(`platform/v1/plugins/configs/interfaces/param/metadata/query`, params)
+
+export const flowList = data => req.post(`platform/v1/process/definitions/list`, data)
+export const flowMgmt = data => req.post(`platform/v1/process/definitions`, data)
+export const getFlowById = id => req.get(`platform/v1/process/definitions/${id}`)
+export const flowNodeMgmt = data => req.post(`platform/v1/process/definitions/tasknodes`, data)
+export const flowNodeDelete = (flowId, nodeId) =>
+  req.delete(`platform/v1/process/definitions/${flowId}/tasknodes/${nodeId}`)
+export const flowEdgeMgmt = data => req.post(`platform/v1/process/definitions/link`, data)
+export const flowEdgeDelete = (flowId, edgeId) => req.delete(`platform/v1/process/definitions/${flowId}/link/${edgeId}`)
+export const getPluginList = () => req.get(`platform/v1/packages/name/list`)
+export const getPluginFunByRule = data => req.post(`platform/v1/plugins/query-by-target-entity`, data)
+export const flowStatusChange = data => req.post(`platform/v1/process/definitions/status`, data)
+export const flowRelease = flowId => req.post(`platform/v1/process/definitions/deploy/${flowId}`, {})
+export const getAssociatedNodes = (flowId, nodeId) =>
+  req.get(`platform/v1/process/definitions/${flowId}/tasknodes/${nodeId}/preorder`)
+export const getNodeParams = (flowId, nodeId) =>
+  req.get(`platform/v1/process/definitions/${flowId}/tasknodes/${nodeId}/parameters`)
+
+export const flowBatchAuth = data => req.post(`platform/v1/process/definitions/permission`, data)
+export const flowBatchChangeStatus = data => req.post(`platform/v1/process/definitions/status`, data)
+export const flowCopy = (flowId, association) =>
+  req.post(`platform/v1/process/definitions/${flowId}/copy/${association}`, {})
+export const getSourceNode = flowId => req.get(`platform/v1/process/definitions/${flowId}/tasknodes/briefs`)
+export const flowExport = data => req.post(`platform/v1/process/definitions/export`, data)
+export const flowImport = data => req.post(`platform/v1/process/definitions/import`, data)
+export const getNodeDetailById = (flowId, nodeId) =>
+  req.get(`platform/v1/process/definitions/${flowId}/tasknodes/${nodeId}`)

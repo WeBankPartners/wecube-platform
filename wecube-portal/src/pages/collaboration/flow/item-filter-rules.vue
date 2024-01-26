@@ -564,7 +564,8 @@ export default {
 }
 .filter_rules_contain {
   display: inline-block;
-  background: white;
+  width: 100%;
+  // background: white;
 }
 
 .filter_rules_contain .ivu-poptip {
@@ -581,6 +582,7 @@ export default {
   padding-right: 10px;
   position: relative;
   min-height: 32px;
+  background: white;
   &:hover {
     border-color: rgb(39, 166, 240);
     cursor: pointer;
