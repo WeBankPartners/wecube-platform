@@ -551,5 +551,6 @@
   "tw_recent_three_month": "Last 3 Months",
   "tw_recent_half_year": "Last 6 Months",
   "tw_recent_one_year": "Last Year",
-  "tw_auto": "Custom"
+  "tw_auto": "Custom",
+  "view": "View"
 }
