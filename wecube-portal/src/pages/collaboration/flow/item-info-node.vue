@@ -1,6 +1,8 @@
 <template>
   <div id="itemInfo">
-    <div class="hide-panal" @click="hideItem"></div>
+    <div class="hide-panal" @click="hideItem">
+      <Icon type="ios-arrow-dropright" size="28" />
+    </div>
     <div class="panal-name">节点属性：</div>
     <div class="panel-content">
       <Collapse v-model="opendPanel">
@@ -12,11 +14,11 @@
                 <Input disabled v-model="itemCustomInfo.customAttrs.id"></Input>
               </FormItem>
               <FormItem :label="$t('name')" prop="name">
-                <Input v-model="itemCustomInfo.customAttrs.name" @on-change="paramsChanged" style="width: 85%"></Input>
-                <span :style="nameLen > 30 ? 'color:red' : ''">{{ nameLen }}/30</span>
-              </FormItem>
-              <FormItem v-if="nameLen > 30">
-                <span style="color: red">名称长度不能超过30个字符</span>
+                <Input v-model="itemCustomInfo.customAttrs.name" @on-change="paramsChanged"></Input>
+                <span style="position: absolute; left: 310px; top: 2px"
+                  >{{ itemCustomInfo.customAttrs.name.length }}/30</span
+                >
+                <span v-if="itemCustomInfo.customAttrs.name.length > 30" style="color: red">名称不能大于30字符</span>
               </FormItem>
               <FormItem :label="$t('node_type')">
                 <Input v-model="itemCustomInfo.customAttrs.nodeType" disabled></Input>
@@ -29,7 +31,7 @@
                     v-model="itemCustomInfo.customAttrs.timeConfig.date"
                     format="yyyy-MM-dd HH:mm:ss"
                     @on-change="dateChange"
-                    style="width: 200px"
+                    style="width: 100%"
                   ></DatePicker>
                 </FormItem>
               </template>
@@ -38,12 +40,13 @@
                   <InputNumber
                     :max="100"
                     :min="0"
+                    style="width: 49%"
                     v-model="itemCustomInfo.customAttrs.timeConfig.duration"
                     @on-change="paramsChanged"
                   ></InputNumber>
                   <Select
                     v-model="itemCustomInfo.customAttrs.timeConfig.unit"
-                    style="width: 100px"
+                    style="width: 49%"
                     filterable
                     @on-change="paramsChanged"
                   >
@@ -62,7 +65,7 @@
         >
           执行控制
           <template slot="content">
-            <Form :label-width="80">
+            <Form :label-width="120">
               <FormItem :label="$t('timeout')">
                 <Select v-model="itemCustomInfo.customAttrs.timeout" filterable @on-change="paramsChanged">
                   <Option v-for="(item, index) in timeSelection" :value="item.mins" :key="index"
@@ -87,7 +90,7 @@
         >
           数据绑定
           <template slot="content">
-            <Form :label-width="80">
+            <Form :label-width="120">
               <FormItem
                 :label="$t('dynamic_bind')"
                 v-if="['human', 'automatic'].includes(itemCustomInfo.customAttrs.nodeType)"
@@ -130,10 +133,10 @@
         >
           调用插件服务
           <template slot="content">
-            <Form :label-width="80">
+            <Form :label-width="120">
               <FormItem
                 v-if="['human', 'automatic'].includes(itemCustomInfo.customAttrs.nodeType)"
-                :label="$t('plugin')"
+                label="插件服务"
                 style="margin-top: 8px"
               >
                 <Select
@@ -164,9 +167,9 @@
                       <Option v-for="item in nodeList" :value="item.nodeId" :key="item.nodeId">{{ item.name }}</Option>
                     </Select>
                   </div>
-                  <div style="display: flex; justify-content: space-around; background: #dee3e8">
-                    <div>填入参数(key)</div>
-                    <div>填充值来源(value)</div>
+                  <div style="display: flex; background: #dee3e8">
+                    <div style="width: 25%">填入参数(key)</div>
+                    <div style="width: 72%">填充值来源(value)</div>
                   </div>
                   <div style="background: #e5e9ee">
                     <div style="width: 24%; display: inline-block">参数名</div>
@@ -248,7 +251,7 @@ export default {
     return {
       isParmasChanged: false, // 参数变化标志位，控制右侧panel显示逻辑
       needAddFirst: true,
-      opendPanel: ['1', '3', '4'],
+      opendPanel: ['1', '2', '3', '4'],
       currentSelectedEntity: '', // 流程图根
       itemCustomInfo: {
         customAttrs: {
@@ -592,19 +595,10 @@ export default {
 }
 
 .hide-panal {
-  width: 12px;
-  height: 22px;
-  border-radius: 10px 0 0 10px;
-  background-color: white;
-  border-top: 1px solid #0892ed80;
-  border-bottom: 1px solid #0892ed80;
-  border-left: 1px solid #0892ed80;
-  overflow: hidden;
-
   position: fixed;
   top: 400px;
-  right: 514px;
+  right: 500px;
+  color: #2db7f5;
   cursor: pointer;
-  box-shadow: 0 0 8px #0892ed80;
 }
 </style>

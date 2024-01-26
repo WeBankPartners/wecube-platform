@@ -2,7 +2,7 @@
   <div id="itemPanel" ref="itemPanel">
     <div class="tool-component">组件库</div>
     <div class="icon-tool">
-      <Tooltip content="Right Center text" placement="right" :delay="1000">
+      <Tooltip placement="right" :delay="1000">
         <div
           class="item-tool"
           draggable="true"
@@ -21,6 +21,12 @@
             draggable="false"
           />
           <div class="item-tool-name">开始</div>
+        </div>
+        <div slot="content">
+          <p>功能:事件节点1,标志编排开始</p>
+          <p>使用规范:</p>
+          <p>1.一个编排有且只有一个开始节点</p>
+          <p>2.只有一条出线.</p>
         </div>
       </Tooltip>
       <Tooltip content="Right Center text" placement="right" :delay="1000">
@@ -43,6 +49,12 @@
           />
           <div class="item-tool-name">结束</div>
         </div>
+        <div slot="content">
+          <p>功能:事件节点2,标志编排结束</p>
+          <p>使用规范:</p>
+          <p>1.一个编排有且只有一个结束节点</p>
+          <p>2.只有一条入线</p>
+        </div>
       </Tooltip>
       <Tooltip content="Right Center text" placement="right" :delay="1000">
         <div
@@ -63,6 +75,12 @@
             draggable="false"
           />
           <div class="item-tool-name">异常</div>
+        </div>
+        <div slot="content">
+          <p>功能:事件节点3,标志编排退出</p>
+          <p>使用规范:</p>
+          <p>1.一个编排可以有多个退出节点</p>
+          <p>2.只有一条入线</p>
         </div>
       </Tooltip>
       <Tooltip content="Right Center text" placement="right" :delay="1000">
@@ -133,11 +151,17 @@
         >
           <img
             src="./icon/human.svg"
-            style="border: 1px solid #303030; width: 32px"
+            style="border: 1px solid #303030; width: 37px; height: 28px"
             class="item-tool-icon"
             draggable="false"
           />
           <div class="item-tool-name">人工节点</div>
+        </div>
+        <div slot="content">
+          <p>功能:任务节点1,在[任务-工作台]自动创建一个人工任务</p>
+          <p>使用规范:</p>
+          <p>1.发布编排之后,可以在[任务-模版管理-筛选本编排-编辑-任务表单设置]中,配置同名的任务表单</p>
+          <p>2.如需要支持审批,请在后面接一个判断节点,任务表单会根据判断条件自动生成一个判断表单</p>
         </div>
       </Tooltip>
       <Tooltip content="Right Center text" placement="right" :delay="1000">
@@ -154,11 +178,17 @@
         >
           <img
             src="./icon/automatic.svg"
-            style="border: 1px solid #303030; width: 32px"
+            style="border: 1px solid #303030; width: 37px; height: 28px"
             class="item-tool-icon"
             draggable="false"
           />
           <div class="item-tool-name">自动节点</div>
+        </div>
+        <div slot="content">
+          <p>功能:任务节点2,将自动执行插件服务API</p>
+          <p>使用规范:</p>
+          <p>1.操作目标对象: 设置[3.数据绑定-对象定位规则]</p>
+          <p>2.操作使用API:选择[操作[协同-插件注册-某插件-服务注册-插件服务API],设置对应的入参,才能执行程序</p>
         </div>
       </Tooltip>
       <Tooltip content="Right Center text" placement="right" :delay="1000">
@@ -180,6 +210,11 @@
             draggable="false"
           />
           <div class="item-tool-name">数据节点</div>
+        </div>
+        <div slot="content">
+          <p>功能:任务节点3,执行WECMDB的数据写入</p>
+          <p>使用规范:</p>
+          <p>1.配置数据写入的目标对象和操作类型,WECMDB将自动写入数据,支持设置多个目标对象</p>
         </div>
       </Tooltip>
       <Tooltip content="Right Center text" placement="right" :delay="1000">

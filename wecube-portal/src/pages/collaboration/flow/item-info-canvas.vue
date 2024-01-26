@@ -1,6 +1,8 @@
 <template>
   <div id="itemInfo">
-    <div class="hide-panal" @click="hideItem"></div>
+    <div class="hide-panal" @click="hideItem">
+      <Icon type="ios-arrow-dropright" size="28" />
+    </div>
     <div class="panal-name">编排属性：</div>
     <Form
       :label-width="120"
@@ -12,19 +14,19 @@
       <FormItem label="编排ID">
         <Input disabled v-model="itemCustomInfo.id"></Input>
       </FormItem>
-      <FormItem label="编排名称" prop="label">
+      <FormItem label="编排名称">
         <Input
           v-model="itemCustomInfo.label"
-          style="width: 85%"
           @on-change="paramsChanged"
           :disable="!itemCustomInfo.enableModifyName"
         ></Input>
-        <span :style="nameLen > 30 ? 'color:red' : ''">{{ nameLen }}/30</span>
+        <span style="position: absolute; left: 320px; top: 2px">{{ itemCustomInfo.label.length }}/30</span>
+        <span v-if="itemCustomInfo.label.length > 30" style="color: red">编排名称不能大于30字符</span>
       </FormItem>
       <FormItem label="版本" prop="version">
-        <InputNumber :min="1" disabled v-model="itemCustomInfo.version"></InputNumber>
+        <InputNumber :min="1" disabled v-model="itemCustomInfo.version" style="width: 100%"></InputNumber>
       </FormItem>
-      <FormItem label="操作对象类型" prop="rootEntity">
+      <FormItem label="对象类型" prop="rootEntity">
         <FilterRules
           @change="onEntitySelect"
           v-model="itemCustomInfo.rootEntity"
@@ -38,16 +40,16 @@
           <Option v-for="item in authPluginList" :value="item" :key="item">{{ item }} </Option>
         </Select>
       </FormItem>
-      <FormItem label="使用场景" prop="scene">
-        <Select v-model="itemCustomInfo.scene" @on-change="paramsChanged" filterable>
-          <Option v-for="item in sceneList" :value="item.value" :key="item.value">{{ item.label }} </Option>
-        </Select>
-      </FormItem>
-      <FormItem label="标签" prop="tags">
-        <Input v-model="itemCustomInfo.tags" @on-change="paramsChanged"></Input>
+      <FormItem label="分组" prop="scene">
+        <Input v-model="itemCustomInfo.scene" @on-change="paramsChanged"></Input>
       </FormItem>
       <FormItem label="冲突检测">
         <i-switch v-model="itemCustomInfo.conflictCheck" @on-change="paramsChanged" />
+      </FormItem>
+      <FormItem label="描述">
+        <Input v-model="itemCustomInfo.tags" @on-change="paramsChanged" type="textarea" :rows="4"></Input>
+        <span style="position: relative; left: 320px; top: -28px">{{ itemCustomInfo.tags.length }}/200</span>
+        <span v-if="itemCustomInfo.tags.length > 200" style="color: red">描述不能大于200字符</span>
       </FormItem>
       <div style="position: absolute; bottom: 20px; right: 280px; width: 200px">
         <Button @click="saveItem" type="primary">{{ $t('save') }}</Button>
@@ -81,26 +83,10 @@ export default {
         }
       },
       ruleValidate: {
-        label: [
-          { required: true, message: 'label cannot be empty', trigger: 'blur' },
-          { type: 'string', max: 30, message: 'Label cannot exceed 30 words.', trigger: 'blur' }
-        ],
-        scene: [{ required: true, message: 'scene at least one hobby', trigger: 'change' }],
         rootEntity: [{ required: true, message: 'rootEntity at least one hobby', trigger: 'change' }]
       },
       allEntityType: [], // 系统中所有根CI
-      authPluginList: [], // 待授权插件列表
-      sceneList: [
-        // 可使用场景列表
-        { label: '请求', value: 'request' },
-        { label: '发布', value: 'release' },
-        { label: '其他', value: 'other' }
-      ]
-    }
-  },
-  computed: {
-    nameLen () {
-      return this.itemCustomInfo.label.length
+      authPluginList: [] // 待授权插件列表
     }
   },
   mounted () {},
@@ -215,19 +201,10 @@ export default {
 }
 
 .hide-panal {
-  width: 12px;
-  height: 22px;
-  border-radius: 10px 0 0 10px;
-  background-color: white;
-  border-top: 1px solid #0892ed80;
-  border-bottom: 1px solid #0892ed80;
-  border-left: 1px solid #0892ed80;
-  overflow: hidden;
-
   position: fixed;
   top: 400px;
-  right: 514px;
+  right: 500px;
+  color: #2db7f5;
   cursor: pointer;
-  box-shadow: 0 0 8px #0892ed80;
 }
 </style>
