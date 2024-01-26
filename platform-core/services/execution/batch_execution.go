@@ -1,4 +1,4 @@
-package plugin
+package execution
 
 import (
 	"context"
@@ -114,6 +114,7 @@ func BatchExecutionCallPluginService(ctx context.Context, operator, authToken, p
 	}
 	// 调用插件接口
 	result, err = remote.PluginInterfaceApi(ctx, authToken, pluginInterface)
+	// TODO: 处理output param(比如类型转换，assign)
 	return
 }
 
@@ -131,8 +132,8 @@ func normalizePluginInterfaceParamData(inputParamDef *models.PluginConfigInterfa
 	// 此时value可能是nil以外的任意值
 	var result interface{}
 	t := reflect.TypeOf(value)
+	// value的kind可能是[]{int, string, float, object}, int, string, float, object
 	if t.Kind() == reflect.Slice {
-		// 如果value是slice，multiple是N，则报错
 		if inputParamDef.Multiple == "Y" || inputParamDef.DataType == models.PluginParamDataTypeList {
 			// FIXME： 列表元素类型转换
 			result = value
@@ -141,70 +142,39 @@ func normalizePluginInterfaceParamData(inputParamDef *models.PluginConfigInterfa
 				return nil, fmt.Errorf("field:%s input data is empty list but required", inputParamDef.Name)
 			}
 			if t.Len() != 1 {
-				return nil, fmt.Errorf("field:%s input data is len=%d but trying to convert to single value", t.Len())
+				return nil, fmt.Errorf("field:%s input data len=%d but trying to convert to single value", t.Len())
 			}
 			tv := reflect.ValueOf(value)
-			value = tv.Index(0).Interface()
-			t = reflect.TypeOf(value)
 			// 列表转单值
+			valueToSingle := tv.Index(0).Interface()
+			tToSingle := reflect.TypeOf(valueToSingle)
 			if inputParamDef.DataType == models.PluginParamDataTypeInt {
-				// int转换
-				switch t.Kind() {
-				case reflect.Float64:
-					result = int(value.(float64))
-				case reflect.Float32:
-					result = int(value.(float32))
-				case reflect.Int:
-					result = int(value.(int))
-				case reflect.Int32:
-					result = int(value.(int32))
-				case reflect.Int64:
-					result = int(value.(int64))
-				case reflect.String:
-					rv, err := strconv.ParseInt(value.(string), 10, 64)
-					if err != nil {
-						return nil, err
-					}
-					result = int(rv)
-				default:
-					return nil, fmt.Errorf("field:%s can not convert %v to int", inputParamDef.Name, t)
+				convValue, err := convertToDatatypeInt(inputParamDef.Name, valueToSingle, tToSingle)
+				if err != nil {
+					return nil, err
 				}
 				// 转换为列表
 				if inputParamDef.Multiple == "Y" {
-					result = []interface{}{result}
+					result = []interface{}{convValue}
 				}
 			} else if inputParamDef.DataType == models.PluginParamDataTypeString {
-				// string转换
-				switch t.Kind() {
-				case reflect.Float64:
-					result = fmt.Sprintf("%f", value.(float64))
-				case reflect.Float32:
-					result = fmt.Sprintf("%f", value.(float32))
-				case reflect.Int:
-					result = fmt.Sprintf("%d", value.(int))
-				case reflect.Int32:
-					result = fmt.Sprintf("%d", value.(int32))
-				case reflect.Int64:
-					result = fmt.Sprintf("%d", value.(int64))
-				case reflect.String:
-					result = value
-				default:
-					return nil, fmt.Errorf("field:%s can not convert %v to int", inputParamDef.Name, t)
+				convValue, err := convertToDatatypeString(inputParamDef.Name, valueToSingle, tToSingle)
+				if err != nil {
+					return nil, err
 				}
 				// 转换为列表
 				if inputParamDef.Multiple == "Y" {
-					result = []interface{}{result}
+					result = []interface{}{convValue}
 				}
 			} else if inputParamDef.DataType == models.PluginParamDataTypeObject {
-				return nil, fmt.Errorf("field:%s can not convert %v to object", inputParamDef.Name, t)
+				return nil, fmt.Errorf("field:%s can not convert %v to object", inputParamDef.Name, tToSingle)
 			} else if inputParamDef.DataType == models.PluginParamDataTypeList {
-				return nil, fmt.Errorf("field:%s can not convert %v to list", inputParamDef.Name, t)
+				return nil, fmt.Errorf("field:%s can not convert %v to list", inputParamDef.Name, tToSingle)
 			}
 		}
-
 	} else if t.Kind() == reflect.Map {
 		// 如果value是map，datatype不是object，则报错
-		if inputParamDef.DataType == models.PluginParamDataTypeObject {
+		if inputParamDef.DataType != models.PluginParamDataTypeObject {
 			return nil, fmt.Errorf("field:%s input data is %v but datatype is %s", inputParamDef.Name, t, inputParamDef.DataType)
 		}
 		result = value
@@ -214,52 +184,22 @@ func normalizePluginInterfaceParamData(inputParamDef *models.PluginConfigInterfa
 		}
 	} else {
 		if inputParamDef.DataType == models.PluginParamDataTypeInt {
-			// int转换
-			switch t.Kind() {
-			case reflect.Float64:
-				result = int(value.(float64))
-			case reflect.Float32:
-				result = int(value.(float32))
-			case reflect.Int:
-				result = int(value.(int))
-			case reflect.Int32:
-				result = int(value.(int32))
-			case reflect.Int64:
-				result = int(value.(int64))
-			case reflect.String:
-				rv, err := strconv.ParseInt(value.(string), 10, 64)
-				if err != nil {
-					return nil, err
-				}
-				result = int(rv)
-			default:
-				return nil, fmt.Errorf("field:%s can not convert %v to int", inputParamDef.Name, t)
+			convValue, err := convertToDatatypeInt(inputParamDef.Name, value, t)
+			if err != nil {
+				return nil, err
 			}
 			// 转换为列表
 			if inputParamDef.Multiple == "Y" {
-				result = []interface{}{result}
+				result = []interface{}{convValue}
 			}
 		} else if inputParamDef.DataType == models.PluginParamDataTypeString {
-			// string转换
-			switch t.Kind() {
-			case reflect.Float64:
-				result = fmt.Sprintf("%f", value.(float64))
-			case reflect.Float32:
-				result = fmt.Sprintf("%f", value.(float32))
-			case reflect.Int:
-				result = fmt.Sprintf("%d", value.(int))
-			case reflect.Int32:
-				result = fmt.Sprintf("%d", value.(int32))
-			case reflect.Int64:
-				result = fmt.Sprintf("%d", value.(int64))
-			case reflect.String:
-				result = value
-			default:
-				return nil, fmt.Errorf("field:%s can not convert %v to int", inputParamDef.Name, t)
+			convValue, err := convertToDatatypeString(inputParamDef.Name, value, t)
+			if err != nil {
+				return nil, err
 			}
 			// 转换为列表
 			if inputParamDef.Multiple == "Y" {
-				result = []interface{}{result}
+				result = []interface{}{convValue}
 			}
 		} else if inputParamDef.DataType == models.PluginParamDataTypeObject {
 			return nil, fmt.Errorf("field:%s can not convert %v to object", inputParamDef.Name, t)
@@ -268,6 +208,52 @@ func normalizePluginInterfaceParamData(inputParamDef *models.PluginConfigInterfa
 		}
 	}
 	return result, nil
+}
+
+func convertToDatatypeInt(name string, value interface{}, valueType reflect.Type) (result int, err error) {
+	// int转换
+	switch valueType.Kind() {
+	case reflect.Float64:
+		result = int(value.(float64))
+	case reflect.Float32:
+		result = int(value.(float32))
+	case reflect.Int:
+		result = int(value.(int))
+	case reflect.Int32:
+		result = int(value.(int32))
+	case reflect.Int64:
+		result = int(value.(int64))
+	case reflect.String:
+		rv, errConv := strconv.ParseInt(value.(string), 10, 64)
+		if errConv != nil {
+			return 0, errConv
+		}
+		result = int(rv)
+	default:
+		return 0, fmt.Errorf("field:%s can not convert %v to int", name, valueType)
+	}
+	return
+}
+
+func convertToDatatypeString(name string, value interface{}, valueType reflect.Type) (result string, err error) {
+	// string转换
+	switch valueType.Kind() {
+	case reflect.Float64:
+		result = fmt.Sprintf("%f", value.(float64))
+	case reflect.Float32:
+		result = fmt.Sprintf("%f", value.(float32))
+	case reflect.Int:
+		result = fmt.Sprintf("%d", value.(int))
+	case reflect.Int32:
+		result = fmt.Sprintf("%d", value.(int32))
+	case reflect.Int64:
+		result = fmt.Sprintf("%d", value.(int64))
+	case reflect.String:
+		result = value.(string)
+	default:
+		return "", fmt.Errorf("field:%s can not convert %v to string", name, valueType)
+	}
+	return
 }
 
 func performDangerousCheck(ctx context.Context, pluginCallParam interface{}, continueToken string) (result *models.ItsdangerousCheckResultData, err error) {
