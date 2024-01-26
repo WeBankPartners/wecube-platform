@@ -601,7 +601,11 @@ func GetProcDefNodePreorder(c *gin.Context) {
 				return
 			}
 			if procDefNode != nil {
-				nodeSimpleDtoMap[procDefNode.Id] = models.ConvertProcDefNode2SimpleDto(procDefNode)
+				// 只需要统计 人工/自动/数据节点
+				if procDefNode.NodeType == string(models.ProcDefNodeTypeHuman) || procDefNode.NodeType == string(models.ProcDefNodeTypeAutomatic) ||
+					procDefNode.NodeType == string(models.ProcDefNodeTypeData) {
+					nodeSimpleDtoMap[procDefNode.Id] = models.ConvertProcDefNode2SimpleDto(procDefNode)
+				}
 				// 将节点数据 放入到targetNodeRecordMap,后续继续递归
 				targetNodeRecordMap[procDefNode.Id] = true
 			}

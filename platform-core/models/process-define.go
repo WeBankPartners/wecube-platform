@@ -177,8 +177,9 @@ type ProcDefNodeResultDto struct {
 }
 
 type ProcDefNodeSimpleDto struct {
-	NodeId string `json:"nodeId"`   // 节点id
-	Name   string `json:"nodeName"` // 节点名称
+	NodeId   string `json:"nodeId"`   // 节点id
+	Name     string `json:"nodeName"` // 节点名称
+	NodeType string
 }
 
 // ProcDefNodeRequestParam 编排节点dto

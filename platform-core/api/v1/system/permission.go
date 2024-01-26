@@ -66,6 +66,7 @@ func CreateRole(c *gin.Context) {
 	}
 	if param.Administrator == "" {
 		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, fmt.Errorf("administrator not empty")))
+		return
 	}
 	response, err := remote.RegisterLocalRole(&param, c.GetHeader("Authorization"), c.GetHeader("Accept-Language"))
 	if err != nil {
