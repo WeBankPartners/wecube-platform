@@ -1,9 +1,9 @@
 <template>
   <div class=" ">
     <Row>
-      <template v-for="(express, index) in routineExpressionItem">
-        <div :key="express.routineExpression + index">
-          <Col :span="isBatch ? 19 : 22">
+      <template>
+        <div v-for="(express, index) in routineExpressionItem" :key="index">
+          <Col :span="isBatch ? 16 : 22">
             <FilterRules
               :needAttr="true"
               ref="filterRules"
@@ -15,36 +15,30 @@
             >
             </FilterRules>
           </Col>
-          <Col span="2" v-if="isBatch">
+          <Col span="5" v-if="isBatch">
             <Input v-model="express.operate" placeholder="Operation" />
           </Col>
-          <Col span="3" v-if="isBatch">
-            <template>
-              <Button
-                ghost
-                type="primary"
-                style="vertical-align: top; margin-left: 8px"
-                @click="addFilterRule"
-                icon="ios-add"
-              ></Button>
-              <Button
-                ghost
-                style="vertical-align: top"
-                @click="deleteFilterRule(index)"
-                v-if="routineExpressionItem.length > 1"
-                type="error"
-                icon="ios-trash-outline"
-              ></Button>
-            </template>
+          <Col span="2" v-if="isBatch">
+            <Button
+              ghost
+              style="vertical-align: top"
+              @click="deleteFilterRule(index)"
+              v-if="routineExpressionItem.length > 1"
+              type="error"
+              icon="ios-trash-outline"
+            ></Button>
           </Col>
         </div>
       </template>
     </Row>
+    <div v-if="isBatch">
+      <Button ghost type="primary" style="" @click="addFilterRule" icon="ios-add"></Button>
+    </div>
   </div>
 </template>
 
 <script>
-import FilterRules from '../../components/filter-rules.vue'
+import FilterRules from './item-filter-rules.vue'
 export default {
   name: '',
   data () {
@@ -76,7 +70,7 @@ export default {
     },
     changeRoutineExpressionItem (routineExpression) {
       this.routineExpressionItem = []
-      if (routineExpression) {
+      if (routineExpression !== '') {
         routineExpression.split('#DME#').forEach(item => {
           const itemSplit = item.split('#DMEOP#')
           this.routineExpressionItem.push({
