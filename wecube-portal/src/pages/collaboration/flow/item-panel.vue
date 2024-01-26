@@ -279,7 +279,7 @@ export default {
 #itemPanel {
   position: absolute;
   top: 137px;
-  left: 32px;
+  left: 16px;
   bottom: 0;
   z-index: 10;
   width: 72px;
