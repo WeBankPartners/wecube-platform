@@ -18,19 +18,43 @@ build_core:
 image_core: build_core
 	docker build -t platform-core:$(version) platform-core/.
 
+push_core: image_core
+	docker tag  platform-core:$(version) $(tencent_cloud_docker_image_registry)/platform-core:$(date)-$(version)
+	docker push $(tencent_cloud_docker_image_registry)/platform-core:$(date)-$(version)
+
 build_auth_server:
 	rm -f platform-auth-server/platform-auth-server
 	chmod +x platform-auth-server/build/*.sh
-	docker run --rm -v $(current_dir)/platform-auth-server:/go/src/github.com/WeBankPartners/wecube-platform/platform-auth-server --name build_platform-auth-server_authserver golang:1.18.0 /bin/bash /go/src/github.com/WeBankPartners/wecube-platform/platform-auth-server/build/build-server.sh
+	docker run --rm -v $(current_dir)/platform-auth-server:/go/src/github.com/WeBankPartners/wecube-platform/platform-auth-server golang:1.19.1 /bin/bash /go/src/github.com/WeBankPartners/wecube-platform/platform-auth-server/build/build-server.sh
 
 image_auth_server: build_auth_server
-	docker build -t platform-auth-server:$(version) -f build/platform-auth-server/Dockerfile .
+	docker build -t platform-auth-server:$(version) platform-auth-server/.
+
+push_auth_server: image_auth_server
+	docker tag  platform-auth-server:$(version) $(tencent_cloud_docker_image_registry)/platform-auth-server:$(date)-$(version)
+	docker push $(tencent_cloud_docker_image_registry)/platform-auth-server:$(date)-$(version)
 
 build_gateway:
 	rm -f platform-gateway/platform-gateway
 	chmod +x platform-gateway/build/*.sh
-	docker run --rm -v $(current_dir)/platform-gateway:/go/src/github.com/WeBankPartners/wecube-platform/platform-gateway --name build_platform-gateway_authserver golang:1.18.0 /bin/bash /go/src/github.com/WeBankPartners/wecube-platform/platform-gateway/build/build-server.sh
+	docker run --rm -v $(current_dir)/platform-gateway:/go/src/github.com/WeBankPartners/wecube-platform/platform-gateway golang:1.19.1 /bin/bash /go/src/github.com/WeBankPartners/wecube-platform/platform-gateway/build/build-server.sh
 
 image_gateway: build_gateway
-	docker build -t platform-gateway:$(version) -f build/platform-gateway/Dockerfile .
-	
+	docker build -t platform-gateway:$(version) platform-gateway/.
+
+push_gateway: image_gateway
+	docker tag  platform-gateway:$(version) $(tencent_cloud_docker_image_registry)/platform-gateway:$(date)-$(version)
+	docker push $(tencent_cloud_docker_image_registry)/platform-gateway:$(date)-$(version)
+
+build_portal:
+	rm -rf wecube-portal/node
+	rm -rf wecube-portal/dist
+	chmod +x build/wecube-portal/*.sh
+	docker run --rm  -v $(current_dir):/home/node/app -w /home/node/app node:12.13.1 /bin/bash /home/node/app/build/wecube-portal/build-ui.sh
+
+image_portal: build_portal
+	docker build -t wecube-portal:$(version) -f build/wecube-portal/Dockerfile .
+
+push_portal: image_portal
+	docker tag  wecube-portal:$(version) $(tencent_cloud_docker_image_registry)/wecube-portal:$(date)-$(version)
+	docker push $(tencent_cloud_docker_image_registry)/wecube-portal:$(date)-$(version)
