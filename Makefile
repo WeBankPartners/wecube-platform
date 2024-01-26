@@ -19,7 +19,7 @@ image_core: build_core
 	docker build -t platform-core:$(version) platform-core/.
 
 push_core: image_core
-	docker tag  platform-core:$(version) $(tencent_cloud_docker_image_registry)/platform-core:$(date)-$(version)
+	docker tag  platform-core:$(version) $(tencent_cloud_docker_image_registry)/platform-core:$(version)
 	docker push $(tencent_cloud_docker_image_registry)/platform-core:$(version)
 
 build_auth_server:
@@ -31,7 +31,7 @@ image_auth_server: build_auth_server
 	docker build -t platform-auth-server:$(version) platform-auth-server/.
 
 push_auth_server: image_auth_server
-	docker tag  platform-auth-server:$(version) $(tencent_cloud_docker_image_registry)/platform-auth-server:$(date)-$(version)
+	docker tag  platform-auth-server:$(version) $(tencent_cloud_docker_image_registry)/platform-auth-server:$(version)
 	docker push $(tencent_cloud_docker_image_registry)/platform-auth-server:$(version)
 
 build_gateway:
@@ -43,7 +43,7 @@ image_gateway: build_gateway
 	docker build -t platform-gateway:$(version) platform-gateway/.
 
 push_gateway: image_gateway
-	docker tag  platform-gateway:$(version) $(tencent_cloud_docker_image_registry)/platform-gateway:$(date)-$(version)
+	docker tag  platform-gateway:$(version) $(tencent_cloud_docker_image_registry)/platform-gateway:$(version)
 	docker push $(tencent_cloud_docker_image_registry)/platform-gateway:$(version)
 
 build_portal:
@@ -56,5 +56,5 @@ image_portal: build_portal
 	docker build -t wecube-portal:$(version) -f build/wecube-portal/Dockerfile .
 
 push_portal: image_portal
-	docker tag  wecube-portal:$(version) $(tencent_cloud_docker_image_registry)/wecube-portal:$(date)-$(version)
+	docker tag  wecube-portal:$(version) $(tencent_cloud_docker_image_registry)/wecube-portal:$(version)
 	docker push $(tencent_cloud_docker_image_registry)/wecube-portal:$(version)
