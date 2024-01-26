@@ -9,7 +9,14 @@
       <Col :span="8">
         <Card :style="{ minHeight: maxHeight + 'px' }">
           <div class="title" slot="title">执行记录列表</div>
-          <Table size="small" :loading="loading" :columns="tableColumns" :data="tableData" width="100%"></Table>
+          <Table
+            size="small"
+            :loading="loading"
+            :columns="tableColumns"
+            :data="tableData"
+            width="100%"
+            @on-row-click="handleExecuteHistory"
+          ></Table>
           <div class="pagination">
             <Page
               :total="pagination.total"
@@ -27,7 +34,7 @@
       </Col>
       <Col :span="16">
         <!--批量执行结果-->
-        <ExecuteResult></ExecuteResult>
+        <ExecuteResult :id="rowId"></ExecuteResult>
       </Col>
     </Row>
   </div>
@@ -103,7 +110,7 @@ export default {
           align: 'center',
           render: (h, params) => {
             return (
-              <Tooltip content={'执行详情'} placement="top">
+              <Tooltip content={'查看完整输入输出'} placement="top">
                 <Button
                   size="small"
                   type="info"
@@ -120,6 +127,8 @@ export default {
         }
       ],
       loading: false,
+      historyList: [],
+      rowId: '',
       pagination: {
         total: 0,
         currentPage: 1,
@@ -196,11 +205,21 @@ export default {
       this.loading = false
       if (status === 'OK') {
         this.tableData = data.contents || []
+        this.rowId = data.contents[0].id
         this.pagination.total = data.pageInfo.totalRows
       }
     },
     // 执行详情
-    handleExecuteDetail (row) {}
+    // async handleExecuteDetail (row) {
+    //   const { status, data } = await batchExecuteHistory(row.id)
+    //   if (status === 'OK') {
+    //     this.historyList = data
+    //   }
+    // },
+    // 执行历史
+    async handleExecuteHistory (row) {
+      this.rowId = row.id
+    }
   }
 }
 </script>

@@ -11,11 +11,37 @@
       </div>
       <Table size="small" :columns="tableColumns" :data="tableData" width="100%"></Table>
     </Card>
+    <Drawer
+      title="输入输出"
+      v-model="visible"
+      width="800"
+      :mask-closable="true"
+      @on-close="handleCancel"
+      class="json-drawer"
+    >
+      <div class="content" :style="{ maxHeight: maxHeight + 'px' }">
+        <div style="margin: 10px 0">输入</div>
+        <JsonViewer :value="jsonData.input" :expand-depth="5" boxed copyable></JsonViewer>
+        <div style="margin: 10px 0">输出</div>
+        <JsonViewer :value="jsonData.output" :expand-depth="5" boxed copyable></JsonViewer>
+      </div>
+    </Drawer>
   </div>
 </template>
 
 <script>
+import JsonViewer from 'vue-json-viewer'
+import { batchExecuteHistory } from '@/api/server'
 export default {
+  components: {
+    JsonViewer
+  },
+  props: {
+    id: {
+      type: String,
+      default: ''
+    }
+  },
   data () {
     return {
       form: {
@@ -65,7 +91,19 @@ export default {
         }
       ],
       tableData: [],
-      maxHeight: 500
+      maxHeight: 500,
+      visible: false,
+      jsonData: {
+        input: {},
+        output: {}
+      }
+    }
+  },
+  watch: {
+    id (val) {
+      if (val) {
+        this.getList()
+      }
     }
   },
   mounted () {
@@ -73,7 +111,20 @@ export default {
   },
   methods: {
     handleQuery () {},
-    handleJsonDetail (row) {}
+    async getList () {
+      const { status, data } = await batchExecuteHistory(this.id)
+      if (status === 'OK') {
+        this.tableData = data.batchExecutionJobs || []
+      }
+    },
+    handleJsonDetail (row) {
+      this.visible = true
+      this.jsonData.input = JSON.parse(row.inputJson)
+      this.jsonData.output = JSON.parse(row.returnJson)
+    },
+    handleCancel () {
+      this.visible = false
+    }
   }
 }
 </script>
