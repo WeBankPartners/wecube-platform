@@ -1,1575 +1,831 @@
 <template>
-  <div>
-    <Row style="margin-bottom: 8px">
-      <Col span="4" style="margin-right: 10px">
-        <span style="margin-right: 10px">{{ $t('flow_name') }}</span>
-        <Select
-          clearable
-          @on-clear="currentFlow.tags = ''"
-          @on-change="currentFlow.tags = ''"
-          v-model="selectedFlow"
-          style="width: 65%"
-          @on-open-change="getAllFlows"
-          filterable
-        >
-          <Option
-            v-for="(item, index) in allFlows"
-            :value="item.procDefId"
-            :key="index"
-            :label="(item.procDefName || 'Null') + ' ' + item.createdTime + (item.status === 'draft' ? '*' : '')"
-          >
-            <span>{{
-              (item.procDefName || 'Null') + ' ' + item.createdTime + (item.status === 'draft' ? '*' : '')
-            }}</span>
-            <span style="float: right">
-              <Button
-                @click="
-                  showDeleteConfirm(
-                    item.procDefId,
-                    (item.procDefName || 'Null') + ' ' + item.createdTime + (item.status === 'draft' ? '*' : '')
-                  )
-                "
-                icon="ios-trash"
-                type="error"
-                size="small"
-              ></Button>
-            </span>
-            <span style="float: right; margin-right: 10px">
-              <Button @click="setFlowPermission(item.procDefId)" icon="ios-person" type="primary" size="small"></Button>
-            </span>
-          </Option>
-        </Select>
-      </Col>
-      <Col span="7" style="margin-right: 10px">
-        <span style="margin-right: 10px">{{ $t('instance_type') }}</span>
-        <div style="width: 80%; display: inline-block; vertical-align: middle">
-          <FilterRules
-            @change="onEntitySelect"
-            v-model="currentSelectedEntity"
-            :allDataModelsWithAttrs="allEntityType"
-            style="width: 100%"
-          ></FilterRules>
-        </div>
-      </Col>
-      <Col span="3" style="">
-        <span style="margin-right: 10px">{{ $t('tag') }}</span>
-        <div style="width: 60%; display: inline-block; vertical-align: middle">
-          <Input v-model="currentFlow.tags" />
-        </div>
-      </Col>
-      <Checkbox style="margin-right: 25px" border :disabled="!selectedFlow && !isAdd" v-model="excludeMode">{{
-        $t('conflict_test')
-      }}</Checkbox>
-      <Button style="margin-top: -1px" type="info" :disabled="isSaving || !selectedFlow" @click="saveDiagram(false)">
-        {{ $t('release_flow') }}
-      </Button>
-      <Button
-        @click="setFlowPermission(selectedFlow)"
-        :disabled="!selectedFlow"
-        style="margin-top: -1px"
-        type="primary"
-      >
-        {{ $t('permission_for_flow') }}
-      </Button>
-      <Button :disabled="!selectedFlow" style="margin-top: -1px" type="info" @click="exportProcessDefinition(false)">
-        {{ $t('export_flow') }}
-      </Button>
-
-      <Button style="float: right" @click="createNewDiagram()" type="success">
-        {{ $t('create') }}
-      </Button>
-      <Button style="float: right; margin-right: 4px" type="primary" @click="getHeaders">{{
-        $t('import_flow')
-      }}</Button>
-
-      <Upload
-        v-show="isShowUploadList"
-        ref="uploadButton"
-        show-upload-list
-        accept=".pds"
-        name="uploadFile"
-        :on-success="onImportProcessDefinitionSuccess"
-        :on-error="onImportProcessDefinitionError"
-        action="platform/v1/process/definitions/import"
-        :headers="headers"
-      >
-        <Button style="display: none">{{ $t('import_flow') }}</Button>
-      </Upload>
-    </Row>
-    <div v-show="showBpmn" class="split">
-      <Split v-model="splitPanal" mode="vertical">
-        <div slot="top" class="">
-          <div class="containers" ref="content">
-            <div class="canvas" ref="canvas"></div>
-
-            <div id="js-properties-panel" class="panel"></div>
-            <ul class="buttons">
-              <li>
-                <Button @click="resetZoom">Reset Zoom</Button>
-              </li>
-            </ul>
-            <div class="node-operate-area">
-              <Form
-                v-if="show"
-                ref="pluginConfigForm"
-                :model="pluginForm"
-                label-position="right"
-                :label-width="120"
-                style="margin-right: 12px; padding-top: 16px"
-              >
-                <template>
-                  <Row>
-                    <Col span="8">
-                      <FormItem prop="serviceName">
-                        <label slot="label"
-                          >{{ $t('plugin_type') }}
-                          <span class="requires-tip">*</span>
-                        </label>
-                        <Select filterable v-model="pluginForm.taskCategory" @on-change="changeTaskCategory">
-                          <Option v-for="(item, index) in taskCategoryList" :value="item.value" :key="index">{{
-                            item.label
-                          }}</Option>
-                        </Select>
-                      </FormItem>
-                    </Col>
-                    <Col span="8">
-                      <FormItem prop="timeoutExpression">
-                        <label slot="label"
-                          >{{ $t('timeout') }}
-                          <span class="requires-tip">*</span>
-                        </label>
-                        <Select v-model="pluginForm.timeoutExpression" @on-change="editFormdata">
-                          <Option v-for="(item, index) in timeSelection" :value="item.mins" :key="index"
-                            >{{ item.label }}
-                          </Option>
-                        </Select>
-                      </FormItem>
-                    </Col>
-                    <Col span="8">
-                      <FormItem :label="$t('description')" prop="description">
-                        <Input v-model="pluginForm.description" @on-change="editFormdata" />
-                      </FormItem>
-                    </Col>
-                  </Row>
-                  <Row v-if="pluginForm.taskCategory !== 'SDTN'">
-                    <Col span="8">
-                      <FormItem prop="dynamicBind">
-                        <label slot="label"
-                          >{{ $t('dynamic_bind') }}
-                          <span class="requires-tip">*</span>
-                        </label>
-                        <Select
-                          v-model="pluginForm.dynamicBind"
-                          @on-clear="clearDynamicBind"
-                          @on-change="changeDynamicBind"
-                        >
-                          <Option v-for="item in yOn" :value="item" :key="item">{{ item }}</Option>
-                        </Select>
-                      </FormItem>
-                    </Col>
-                    <Col span="8">
-                      <FormItem prop="associatedNodeId">
-                        <label slot="label">{{ $t('bind_node') }} </label>
-                        <Select
-                          v-model="pluginForm.associatedNodeId"
-                          @on-change="changeAssociatedNode"
-                          @on-open-change="getAssociatedNodes"
-                          clearable
-                          :disabled="pluginForm.dynamicBind !== 'Y'"
-                        >
-                          <Option v-for="(i, index) in associatedNodes" :value="i.nodeId" :key="index">{{
-                            i.nodeName
-                          }}</Option>
-                        </Select>
-                      </FormItem>
-                    </Col>
-                    <Col span="8">
-                      <FormItem prop="preCheck">
-                        <label slot="label"
-                          >{{ $t('pre_check') }}
-                          <span class="requires-tip">*</span>
-                        </label>
-                        <Select v-model="pluginForm.preCheck" @on-change="editFormdata" clearable filterable>
-                          <Option v-for="item in yOn" :value="item" :key="item">{{ item }}</Option>
-                        </Select>
-                      </FormItem>
-                    </Col>
-                  </Row>
-                  <Row>
-                    <Col span="16">
-                      <FormItem prop="routineExpression">
-                        <label slot="label"
-                          >{{ $t('locate_rules') }}
-                          <span class="requires-tip">*</span>
-                        </label>
-                        <!-- <FilterRules
-                          :needAttr="true"
-                          ref="filterRules"
-                          :disabled="pluginForm.dynamicBind === 'Y' && pluginForm.associatedNodeId !== ''"
-                          v-model="pluginForm.routineExpression"
-                          @change="filterRuleChanged"
-                          :allDataModelsWithAttrs="allEntityType"
-                        ></FilterRules> -->
-                        <FilterRulesGroup
-                          :isBatch="pluginForm.taskCategory === 'SDTN'"
-                          ref="filterRulesGroup"
-                          @filterRuleChanged="singleFilterRuleChanged"
-                          :disabled="pluginForm.dynamicBind === 'Y' && pluginForm.associatedNodeId"
-                          :routineExpression="pluginForm.routineExpression"
-                          :allEntityType="allEntityType"
-                          :currentSelectedEntity="currentSelectedEntity"
-                        >
-                        </FilterRulesGroup>
-                      </FormItem>
-                    </Col>
-                    <Col span="8" v-if="pluginForm.taskCategory !== 'SDTN'">
-                      <FormItem prop="serviceName">
-                        <label slot="label"
-                          >{{ $t('plugin') }}
-                          <span class="requires-tip">*</span>
-                        </label>
-                        <Select
-                          filterable
-                          clearable
-                          v-model="pluginForm.serviceId"
-                          @on-open-change="getPlugin"
-                          @on-change="changePluginInterfaceList"
-                        >
-                          <Option v-for="(item, index) in filteredPlugins" :value="item.serviceName" :key="index">{{
-                            item.serviceDisplayName
-                          }}</Option>
-                        </Select>
-                      </FormItem>
-                    </Col>
-                  </Row>
-                </template>
-                <!-- <div v-if="pluginForm.paramInfos.length" class="node-operate-plugin-config"> -->
-                <div v-if="pluginForm.taskCategory !== 'SDTN'" class="node-operate-plugin-config">
-                  <Tabs value="name1">
-                    <TabPane :label="$t('context_parameters')" name="name1">
-                      <FormItem :label="$t('root_task_node')">
-                        <Select
-                          filterable
-                          clearable
-                          multiple
-                          v-model="pluginForm.prevCtxNodeIds"
-                          style="width: 84%"
-                          @on-open-change="getFlowsNodes"
-                          @on-change="getContextParametersNodes"
-                        >
-                          <Option v-for="(i, index) in currentflowsNodes" :value="i.nodeId" :key="index">{{
-                            i.nodeName
-                          }}</Option>
-                        </Select>
-                      </FormItem>
-                      <FormItem
-                        :label="item.paramName"
-                        :prop="item.paramName"
-                        v-for="(item, index) in pluginForm.paramInfos"
-                        v-if="item.bindType === 'context'"
-                        :key="index"
-                      >
-                        <template v-if="item.bindType === 'context'">
-                          <label slot="label" v-if="item.required === 'Y'"
-                            >{{ item.paramName }}
-                            <span class="requires-tip">*</span>
-                          </label>
-                          <Select
-                            filterable
-                            clearable
-                            v-model="item.bindNodeId"
-                            style="width: 30%"
-                            @on-change="onParamsNodeChange(index)"
-                          >
-                            <!-- @on-open-change="getFlowsNodes" -->
-                            <Option v-for="(i, index) in contextParametersNodes" :value="i.nodeId" :key="index">{{
-                              i.nodeName
-                            }}</Option>
-                          </Select>
-                          <Select
-                            v-model="item.bindParamType"
-                            filterable
-                            style="width: 30%"
-                            @on-change="onParamsNodeChange(index)"
-                          >
-                            <Option v-for="i in paramsTypes" :value="i.value" :key="i.value">{{ i.label }}</Option>
-                          </Select>
-                          <Select filterable v-model="item.bindParamName" style="width: 30%" @on-change="editFormdata">
-                            <Option v-for="i in item.currentParamNames" :value="i.name" :key="i.name">{{
-                              i.name
-                            }}</Option>
-                          </Select>
-                          <label v-if="item.required === 'Y'">
-                            <span class="requires-tip">*</span>
-                          </label>
-                        </template>
-                      </FormItem>
-                    </TabPane>
-                    <TabPane :label="$t('constant_parameters')" name="name2">
-                      <FormItem
-                        :label="item.paramName"
-                        :prop="item.paramName"
-                        v-for="(item, index) in pluginForm.paramInfos"
-                        v-if="item.bindType === 'constant'"
-                        :key="index"
-                      >
-                        <template v-if="item.bindType === 'constant'">
-                          <label slot="label" v-if="item.required === 'Y'"
-                            >{{ item.paramName }}
-                            <span class="requires-tip">*</span>
-                          </label>
-                          <Input
-                            v-if="item.bindType === 'constant'"
-                            v-model="item.bindValue"
-                            @on-change="editFormdata"
-                          />
-                        </template>
-                      </FormItem>
-                    </TabPane>
-                  </Tabs>
-                </div>
-              </Form>
-              <div class="node-operate-area-save-btn">
-                <Button type="primary" style="float: right" @click="savePluginConfig('pluginConfigForm')">{{
-                  $t('save')
-                }}</Button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </Split>
+  <div class="root">
+    <div id="menu" :style="menuStyle" @click="removeItem">
+      <Icon type="ios-trash-outline" size="24" style="color: red"></Icon>
     </div>
-    <Modal v-model="flowRoleManageModal" width="700" :title="$t('edit_role')" :mask-closable="false">
-      <div>
-        <div class="role-transfer-title">{{ $t('mgmt_role') }}</div>
-        <Transfer
-          :titles="transferTitles"
-          :list-style="transferStyle"
-          :data="allRoles"
-          :target-keys="mgmtRolesKeyToFlow"
-          :render-format="renderRoleNameForTransfer"
-          @on-change="handleMgmtRoleTransferChange"
-          filterable
-        ></Transfer>
+    <FlowHeader
+      @openCanvasPanel="openCanvasPanel"
+      @updateAuth="updateAuth"
+      @updateFlowData="updateFlowData"
+      ref="headerInfoRef"
+    ></FlowHeader>
+    <!-- v-show="isShowGraph" -->
+    <div class="canvas-zone">
+      <!-- 左侧按钮 -->
+      <item-panel />
+      <div class="floating-button">
+        <Button size="small" type="primary" @click="resetCanvas" sytle="position: fixed">Reset Zoom</Button>
       </div>
-      <div style="margin-top: 30px">
-        <div class="role-transfer-title">{{ $t('use_role') }}</div>
-        <Transfer
-          :titles="transferTitles"
-          :list-style="transferStyle"
-          :data="allRolesBackUp"
-          :target-keys="useRolesKeyToFlow"
-          :render-format="renderRoleNameForTransfer"
-          @on-change="handleUseRoleTransferChange"
-          filterable
-        ></Transfer>
-      </div>
-      <div slot="footer">
-        <Button type="primary" @click="confirmRole">{{ $t('bc_confirm') }}</Button>
-      </div>
-    </Modal>
-    <Modal v-model="confirmModal.isShowConfirmModal" width="900">
-      <div>
-        <Icon :size="28" :color="'#f90'" type="md-help-circle" />
-        <span class="confirm-msg">{{ $t('confirm_to_exect') }}</span>
-      </div>
-      <div style="max-height: 400px; overflow-y: auto">
-        <pre style="margin-left: 44px; margin-top: 22px">{{ this.confirmModal.message }}</pre>
-      </div>
-      <div slot="footer">
-        <Button type="text" @click="confirmModal.isShowConfirmModal = false">{{ $t('bc_cancel') }}</Button>
-        <Button type="warning" @click="confirmSaveFlow">{{ $t('bc_confirm') }}</Button>
-      </div>
-    </Modal>
+      <!-- 挂载节点 -->
+      <div id="canvasPanel" ref="canvasPanel" @dragover.prevent />
+      <!-- 信息配置 -->
+      <Transition appear>
+        <ItemInfoCanvas
+          v-show="itemInfoType === 'canvas'"
+          ref="itemInfoCanvasRef"
+          @sendItemInfo="setCanvasInfo"
+          @hideItemInfo="hideItemInfo"
+        ></ItemInfoCanvas>
+      </Transition>
+      <Transition appear>
+        <ItemInfoNode
+          v-if="itemInfoType === 'node'"
+          ref="itemInfoNodeRef"
+          @sendItemInfo="setNodeInfo"
+          @hideItemInfo="hideItemInfo"
+        >
+        </ItemInfoNode>
+      </Transition>
+      <Transition appear>
+        <ItemInfoEdge
+          v-show="itemInfoType === 'edge'"
+          ref="itemInfoEdgeRef"
+          @sendItemInfo="setEdgeInfo"
+          @hideItemInfo="hideItemInfo"
+        >
+        </ItemInfoEdge>
+      </Transition>
+    </div>
   </div>
 </template>
+
 <script>
-import BpmnModeler from 'bpmn-js/lib/Modeler'
-import propertiesPanelModule from 'bpmn-js-properties-panel'
-import propertiesProviderModule from 'bpmn-js-properties-panel/lib/provider/camunda'
-
-import camundaModdleDescriptor from 'camunda-bpmn-moddle/resources/camunda'
-import customTranslate from '@/locale/flow-i18n/custom-translate'
-
-/* Left side toolbar and node edit style */
-import 'bpmn-js/dist/assets/diagram-js.css'
-import 'bpmn-js/dist/assets/bpmn-font/css/bpmn.css'
-import 'bpmn-js/dist/assets/bpmn-font/css/bpmn-codes.css'
-import 'bpmn-js/dist/assets/bpmn-font/css/bpmn-embedded.css'
-
-/* Right side toobar style */
-import 'bpmn-js-properties-panel/dist/assets/bpmn-js-properties-panel.css'
-
-import PathExp from '../components/path-exp.vue'
-import FilterRules from '../components/filter-rules.vue'
-import axios from 'axios'
-import { setCookie, getCookie } from '../util/cookie'
-import CustomContextPad from '../util/CustomContextPad'
-import FilterRulesGroup from './components/filter-rules-group'
-import xml2js from 'xml2js'
-import {
-  getAllFlow,
-  getAssociatedNodes,
-  getContextParametersNodes,
-  saveFlow,
-  confirmSaveFlowDraft,
-  saveFlowDraft,
-  getFlowDetailByID,
-  getFlowNodes,
-  getParamsInfosByFlowIdAndNodeId,
-  getAllDataModels,
-  removeProcessDefinition,
-  getPluginsByTargetEntityFilterRule,
-  exportProcessDefinitionWithId,
-  getRolesByCurrentUser,
-  getRoleList,
-  getPermissionByProcessId,
-  updateFlowPermission
-} from '@/api/server.js'
-
-function setCTM (node, m) {
-  var mstr = 'matrix(' + m.a + ',' + m.b + ',' + m.c + ',' + m.d + ',' + m.e + ',' + m.f + ')'
-  node.setAttribute('transform', mstr)
-}
-
-let contextPad = {
-  __init__: ['customContextPad'],
-  customContextPad: ['type', CustomContextPad]
-}
+import G6 from '@antv/g6'
+import FlowHeader from '@/pages/collaboration/flow/flow-header.vue'
+import registerFactory from './flow/graph/graph'
+import ItemPanel from '@/pages/collaboration/flow/item-panel.vue'
+import ItemInfoCanvas from '@/pages/collaboration/flow/item-info-canvas.vue'
+import ItemInfoEdge from '@/pages/collaboration/flow/item-info-edge.vue'
+import ItemInfoNode from '@/pages/collaboration/flow/item-info-node.vue'
+// import data from './flow/data.js'
+import { nodeDefaultAttr } from './flow/node-default-attr.js'
+import { getFlowById, flowMgmt, flowNodeMgmt, flowEdgeMgmt, flowNodeDelete, flowEdgeDelete } from '@/api/server.js'
+// import { relativeTimeThreshold } from 'moment'
+// const registerFactory = require('../../../library/welabx-g6').default
 
 export default {
   components: {
-    PathExp,
-    FilterRules,
-    FilterRulesGroup
+    FlowHeader,
+    ItemPanel,
+    ItemInfoCanvas,
+    ItemInfoNode,
+    ItemInfoEdge
   },
   data () {
     return {
-      excludeMode: false,
-      yOn: ['Y', 'N'],
-      splitPanal: 1,
-      show: false,
-      taskCategoryList: [
-        { value: 'SSTN', label: this.$t('sstn') },
-        { value: 'SUTN', label: this.$t('sutn') },
-        { value: 'SDTN', label: this.$t('sdtn') }
-      ],
-      isSaving: false,
-      headers: {},
-      isShowUploadList: false,
-      mgmtRolesKeyToFlow: [],
-      useRolesKeyToFlow: [],
-      currentUserRoles: [],
-      allRolesBackUp: [],
-      currentSettingFlow: '',
-      flowRoleManageModal: false,
-      isAdd: false,
-      transferTitles: [this.$t('unselected_role'), this.$t('selected_role')],
-      transferStyle: { width: '300px' },
-      newFlowID: '',
-      bpmnModeler: null,
-      container: null,
-      canvas: null,
-      processName: '',
-      currentNode: {
-        id: '',
-        name: '',
-        nodeDefId: ''
+      menuStyle: {
+        // 元素删除功能入口
+        display: 'none',
+        position: 'absolute',
+        top: '100px',
+        left: '100px',
+        cursor: 'pointer'
       },
-      additionalModules: [propertiesProviderModule, propertiesPanelModule, contextPad],
-      allFlows: [],
-      allEntityType: [],
-      selectedFlow: null,
-      selectedFlowData: '',
-      temporaryFlow: null,
-      currentSelectedEntity: '',
-      rootPkg: '',
-      rootEntity: '',
-      isFormDataChange: false, // 是否编辑过node数据
-      isFirstSelectNode: true,
-      pluginForm: {},
-      routineExpressionCache: '',
-      defaultPluginForm: {
-        description: '',
-        dynamicBind: 'N',
-        associatedNodeId: '',
-        nodeDefId: '',
-        nodeId: '',
-        nodeName: '',
-        nodeType: '',
-        orderedNo: '',
-        paramInfos: [],
-        prevCtxNodeIds: [],
-        preCheck: 'N',
-        procDefId: '',
-        procDefKey: '',
-        routineExpression: '',
-        routineRaw: '',
-        serviceId: '',
-        serviceName: '',
-        status: '',
-        taskCategory: 'SSTN',
-        timeoutExpression: '30'
+      canRemovedId: '',
+      demoFlowId: '',
+      isShowGraph: false,
+      itemInfoType: '', // canvas、node、edge
+      mode: 'drag-shadow-node',
+      graph: {},
+      highLight: {
+        undo: false,
+        redo: false
       },
-      contextParametersNodes: [],
-      serviceTaskBindInfos: [],
-      // allPlugins: [],
-      filteredPlugins: [],
-      timeSelection: [
+      // 保存线条样式
+      lineStyle: {
+        type: 'line',
+        width: 1
+      },
+      label: '',
+      labelCfg: {
+        fontSize: 12,
+        style: {
+          fill: '#fff'
+        }
+      },
+      node: {
+        fill: '',
+        lineDash: 'none',
+        borderColor: '',
+        width: 160,
+        height: 60,
+        shape: 'rect-node'
+      },
+      nodeShapes: [
         {
-          mins: '5',
-          label: '5 ' + this.$t('mins')
+          name: '矩形',
+          shape: 'rect-node'
         },
         {
-          mins: '10',
-          label: '10 ' + this.$t('mins')
+          name: '圆形',
+          shape: 'circle-node'
         },
         {
-          mins: '30',
-          label: '30 ' + this.$t('mins')
+          name: '椭圆',
+          shape: 'ellipise-node'
         },
         {
-          mins: '60',
-          label: '1 ' + this.$t('hours')
-        },
-        {
-          mins: '720',
-          label: '12 ' + this.$t('hours')
-        },
-        {
-          mins: '1440',
-          label: '1 ' + this.$t('days')
-        },
-        {
-          mins: '2880',
-          label: '2 ' + this.$t('days')
-        },
-        {
-          mins: '4320',
-          label: '3 ' + this.$t('days')
+          name: '菱形',
+          shape: 'diamond-node'
         }
       ],
-      paramsTypes: [
-        { value: 'INPUT', label: this.$t('input') },
-        { value: 'OUTPUT', label: this.$t('output') }
-      ],
-      currentflowsNodes: [],
-      currentFlow: { tags: '' },
-      cacheFlowInfo: null, // 缓存流程数据，供节点数据展示时使用
+      headVisible: false,
+      isMouseDown: false,
+      config: '',
+      tooltip: '',
+      top: 0,
+      left: 0,
 
-      confirmModal: {
-        isShowConfirmModal: false,
-        check: false,
-        continueToken: '',
-        message: '',
-        requestBody: '',
-        func: ''
-      },
-      associatedNodes: [] // 节点的关联节点
+      procDef: {
+        // 仅列出两个基础信息
+        id: '',
+        label: '',
+        permissionToRole: {} // 授权信息
+      }, // 编排自身属性
+      nodesAndDeges: {
+        nodes: [],
+        edges: []
+      } // 节点和边信息
     }
   },
-  watch: {
-    selectedFlow: {
-      handler (val, oldVal) {
-        this.isFormDataChange = false
-        this.currentSelectedEntity = ''
-        this.show = false
-        this.selectedFlowData = {}
-        if (val) {
-          this.selectedFlowData =
-            this.allFlows.find(_ => {
-              return _.procDefId === val
-            }) || {}
-          this.getFlowXml(val)
-          this.getPermissionByProcess(val)
-          this.pluginForm.paramInfos = []
-          this.currentflowsNodes = []
-        }
-      }
-    },
-    temporaryFlow: {
-      handler (val, oldVal) {
-        if (val) {
-          setTimeout(() => {
-            this.selectedFlow = val
-          }, 0)
-        }
-      }
+  async mounted () {
+    if (this.$route.query.flowId) {
+      this.demoFlowId = this.$route.query.flowId
+      await this.getFlowInfo(this.demoFlowId)
+      // 创建画布
+      this.$nextTick(() => {
+        this.createGraphic()
+        this.initGraphEvent()
+        this.openCanvasPanel()
+      })
+    } else {
+      this.$router.push({ path: '/collaboration/workflow' })
     }
   },
-  computed: {
-    allRoles () {
-      return this.isAdd ? this.currentUserRoles : this.allRolesBackUp
-    },
-    showBpmn () {
-      if (this.selectedFlow || this.isAdd) {
-        return true
-      } else {
-        return false
-      }
-    }
-  },
-  created () {
-    this.init()
-    this.getRoleList()
-    this.getRolesByCurrentUser()
-  },
-  mounted () {
-    this.initFlow()
-    this.setCss('ivu-split-trigger-con', 'display: none;')
-    this.setCss('bottom-pane', 'display: none;')
-    this.setCss('top-pane', 'bottom: 0;')
+  beforeDestroy () {
+    this.graph.destroy()
   },
   methods: {
-    singleFilterRuleChanged (val) {
-      this.pluginForm.routineExpression = val
+    // 更新编排信息
+    updateFlowData () {
+      this.getFlowInfo(this.demoFlowId)
     },
-    changeTaskCategory (val) {
-      this.pluginForm.serviceId = ''
-      this.pluginForm.associatedNodeId = ''
-      this.pluginForm.serviceName = ''
-      this.editFormdata()
+    // 画布属性展开
+    openCanvasPanel () {
+      this.itemInfoType = 'canvas'
+      this.$refs.itemInfoCanvasRef.showItemInfo(this.procDef)
     },
-    async getAssociatedNodes () {
-      let Xml = ''
-      this.bpmnModeler.saveXML({ format: true }, function (err, xml) {
-        console.log(err)
-        xml2js.parseString(xml, (errx, result) => {
-          Xml = xml
+    async getFlowInfo (id) {
+      const { status, data } = await getFlowById(id)
+      if (status === 'OK') {
+        this.permissionToRole = data.permissionToRole
+        this.procDef = data.procDef
+        this.procDef.label = data.procDef.name || ''
+        this.procDef.permissionToRole = data.permissionToRole
+
+        this.mgmtNodesAndEdges(data.taskNodeInfos)
+        this.$refs.headerInfoRef.showItemInfo(this.procDef)
+      }
+    },
+    // 整理编排节点与边数据结构
+    mgmtNodesAndEdges (info) {
+      if (info.nodes && info.nodes.length > 0) {
+        this.nodesAndDeges.nodes = info.nodes.map(n => {
+          let customAttrs = n.customAttrs
+          if (customAttrs.timeConfig) {
+            customAttrs.timeConfig = JSON.parse(customAttrs.timeConfig)
+          }
+          let selfAttrs = JSON.parse(n.selfAttrs)
+          // selfAttrs.logoIcon.img = ''
+          return {
+            ...selfAttrs,
+            customAttrs: customAttrs
+          }
         })
+      }
+      if (info.edges && info.edges.length > 0) {
+        this.nodesAndDeges.edges = info.edges.map(n => {
+          return {
+            ...JSON.parse(n.selfAttrs),
+            customAttrs: n.customAttrs
+          }
+        })
+      }
+    },
+    resetCanvas () {
+      this.graph.zoomTo(1) // 缩放到原始大小
+    },
+    createGraphic () {
+      const grid = new G6.Grid()
+      const cfg = registerFactory(G6, {
+        width: window.innerWidth - 70,
+        height: window.innerHeight - 160,
+        // renderer: 'svg',
+        layout: {
+          type: '' // 位置将固定
+        },
+        // 所有边的默认配置
+        defaultEdge: {
+          type: 'polyline-edge', // 扩展了内置边, 有边的事件
+          style: {
+            radius: 5,
+            offset: 15,
+            stroke: '#303030',
+            lineWidth: 1,
+            lineAppendWidth: 10, // 防止线太细没法点中
+            endArrow: true
+          }
+        },
+        // 覆盖全局样式
+        nodeStateStyles: {
+          'nodeState:default': {
+            opacity: 1,
+            stroke: '#303030',
+            fill: 'white'
+          },
+          'nodeState:hover': {
+            opacity: 0.8,
+            stroke: '#303030'
+          },
+          'nodeState:selected': {
+            opacity: 0.9,
+            stroke: '#303030',
+            fill: '#1890FF'
+          }
+        },
+        // 默认边不同状态下的样式集合
+        edgeStateStyles: {
+          'edgeState:default': {
+            stroke: '#303030'
+          },
+          // 'edgeState:selected': {
+          //   stroke: '#1890FF'
+          // },
+          'edgeState:hover': {
+            animate: true,
+            animationType: 'dash',
+            stroke: '#303030'
+          }
+        },
+        modes: {
+          // 支持的 behavior
+          default: [
+            'zoom-canvas',
+            'drag-canvas',
+            'drag-shadow-node',
+            'canvas-event',
+            'delete-item',
+            'select-node',
+            'hover-node',
+            'active-edge'
+          ],
+          originDrag: [
+            'drag-canvas',
+            'drag-node',
+            'canvas-event',
+            'delete-item',
+            'select-node',
+            'hover-node',
+            'active-edge'
+          ]
+        },
+        // plugins: [menu, minimap, grid]
+        plugins: [grid]
+        // ... 其他G6原生入参
       })
-      let params = {
-        taskNodeId: this.currentNode.id,
-        procDefData: Xml.replace(/[\r\n]/g, '')
-      }
-      let { status, data } = await getAssociatedNodes(this.selectedFlow, params)
-      if (status === 'OK') {
-        this.associatedNodes = data.filter(d => ['startEvent', 'subProcess'].includes(d.nodeType))
-      }
+
+      this.graph = new G6.Graph(cfg)
+      this.graph.read(this.nodesAndDeges) // 读取数据
+      // this.graph.paint() // 渲染到页面
+      // this.graph.get('canvas').set('localRefresh', false) // 关闭局部渲染
+      // this.graph.fitView()
     },
-    changeAssociatedNode () {
-      if (this.cacheFlowInfo && this.cacheFlowInfo.taskNodeInfos) {
-        const activeNode = this.cacheFlowInfo.taskNodeInfos.find(n => this.pluginForm.associatedNodeId === n.nodeId)
-        this.pluginForm.routineExpression = (activeNode && activeNode.routineExpression) || this.currentSelectedEntity
-        this.pluginForm.routineRaw = (activeNode && activeNode.routineExpression) || this.currentSelectedEntity
-      } else {
-        this.pluginForm.routineExpression = ''
-        this.pluginForm.routineRaw = ''
-      }
-      this.$refs.filterRulesGroup.changeRoutineExpressionItem(this.pluginForm.routineExpression)
-      // this.pluginForm.serviceId = ''
-      // this.pluginForm.serviceName = ''
-    },
-    clearDynamicBind () {
-      this.pluginForm.routineExpression = ''
-      this.pluginForm.routineRaw = ''
-      this.pluginForm.serviceId = ''
-      this.pluginForm.serviceName = ''
-      this.editFormdata()
-    },
-    changeDynamicBind () {
-      this.pluginForm.associatedNodeId = ''
-      this.editFormdata()
-    },
-    async getContextParametersNodes () {
-      this.contextParametersNodes = []
-      let { status, data } = await getContextParametersNodes(
-        this.currentFlow.procDefId,
-        this.currentNode.id,
-        this.pluginForm.prevCtxNodeIds
-      )
-      if (status === 'OK') {
-        this.contextParametersNodes = data
-      }
-    },
-    // 节点定位规则变化检测
-    filterRuleChanged () {
-      this.isFormDataChange = true
-    },
-    editFormdata () {
-      this.isFormDataChange = true
-    },
-    setCss (className, css) {
-      document.getElementsByClassName(className)[0].style.cssText = css
-    },
-    renderRoleNameForTransfer (item) {
-      return item.label
-    },
-    handleMgmtRoleTransferChange (newTargetKeys, direction, moveKeys) {
-      this.mgmtRolesKeyToFlow = newTargetKeys
-    },
-    handleUseRoleTransferChange (newTargetKeys, direction, moveKeys) {
-      this.useRolesKeyToFlow = newTargetKeys
-    },
-    async updateFlowPermission (proId, roleId, type) {
-      const payload = {
-        permission: type,
-        roleId: roleId
-      }
-      const { status, message } = await updateFlowPermission(proId, payload)
-      if (status === 'OK') {
-        this.$Notice.success({
-          title: 'Success',
-          desc: message
-        })
-      } else {
-        this.$Notice.error({
-          title: 'Fail',
-          desc: message
-        })
-      }
-    },
-    setFlowPermission (id) {
-      this.getPermissionByProcess(id)
-      this.flowRoleManageModal = true
-      this.currentSettingFlow = id
-      this.isAdd = false
-    },
-    async getPermissionByProcess (id) {
-      const { status, data } = await getPermissionByProcessId(id)
-      if (status === 'OK') {
-        this.mgmtRolesKeyToFlow = data.MGMT
-        this.useRolesKeyToFlow = data.USE
-      }
-    },
-    async confirmRole () {
-      if (this.mgmtRolesKeyToFlow.length) {
-        if (this.isAdd) {
-          this.flowRoleManageModal = false
-        } else {
-          this.updatePermission(this.currentSettingFlow)
-        }
-      } else {
-        this.$Message.warning(this.$t('mgmt_role_warning'))
-        this.isAdd = false
-      }
-    },
-    async updatePermission (id) {
-      const payload = {
-        permissionToRole: { MGMT: this.mgmtRolesKeyToFlow, USE: this.useRolesKeyToFlow }
-      }
-      const { status, message } = await updateFlowPermission(id, payload)
-      if (status === 'OK') {
-        this.$Notice.success({
-          title: 'Success',
-          desc: message
-        })
-        this.flowRoleManageModal = false
-      } else {
-        this.$Notice.error({
-          title: 'Fail',
-          desc: message
-        })
-      }
-    },
-    async getRoleList () {
-      const { status, data } = await getRoleList()
-      if (status === 'OK') {
-        this.allRolesBackUp = data.map(_ => {
-          return {
-            ..._,
-            key: _.name,
-            label: _.displayName
-          }
-        })
-      }
-    },
-    async getRolesByCurrentUser () {
-      const { status, data } = await getRolesByCurrentUser()
-      if (status === 'OK') {
-        this.currentUserRoles = data.map(_ => {
-          return {
-            ..._,
-            key: _.name,
-            label: _.displayName
-          }
-        })
-      }
-    },
-    init () {
-      this.getAllDataModels()
-      this.getAllFlows(true)
-      // this.getPluginInterfaceList()
-    },
-    async getAllDataModels () {
-      let { data, status } = await getAllDataModels()
-      if (status === 'OK') {
-        this.allEntityType = data
-      }
-    },
-    async getPlugin (status) {
-      if (status) {
-        await this.getFilteredPluginInterfaceList(this.pluginForm.routineExpression)
-      }
-    },
-    async getFilteredPluginInterfaceList (path) {
-      let pkg = ''
-      let entity = ''
-      let payload = {}
-      this.filteredPlugins = []
-      if (path) {
-        // eslint-disable-next-line no-useless-escape
-        const pathList = path.split(/[.~]+(?=[^\}]*(\{|$))/).filter(p => p.length > 1)
-        const last = pathList[pathList.length - 1]
-        const index = pathList[pathList.length - 1].indexOf('{')
-        const isBy = last.indexOf(')')
-        const current = last.split(':')
-        const ruleIndex = current[1].indexOf('{')
-        if (isBy > 0) {
-          entity = ruleIndex > 0 ? current[1].slice(0, ruleIndex) : current[1]
-          pkg = current[0].split(')')[1]
-        } else {
-          entity = ruleIndex > 0 ? current[1].slice(0, ruleIndex) : current[1]
-          pkg = last.match(/[^>]+(?=:)/)[0]
-        }
-        payload = {
-          pkgName: pkg,
-          entityName: entity,
-          targetEntityFilterRule: index > 0 ? pathList[pathList.length - 1].slice(index) : ''
-        }
-      } else {
-        payload = {
-          pkgName: '',
-          entityName: '',
-          targetEntityFilterRule: ''
-        }
-      }
-      if (!this.pluginForm.taskCategory) {
-        this.$Notice.warning({
-          title: 'Warning',
-          desc: this.$t('please_choose') + ' ' + this.$t('plugin_type')
-        })
-        return
-      } else {
-        if (['SSTN'].includes(this.pluginForm.taskCategory) && payload.pkgName === '') {
-          this.$Notice.warning({
-            title: 'Warning',
-            desc: this.$t('please_choose') + ' ' + this.$t('locate_rules')
-          })
-          return
-        }
-      }
-      payload.taskCategory = this.pluginForm.taskCategory
-      const { status, data } = await getPluginsByTargetEntityFilterRule(payload)
-      if (status === 'OK') {
-        this.filteredPlugins = data
-      }
-      this.routineExpressionCache = path
-    },
-    async changePluginInterfaceList (val) {
-      this.editFormdata()
-      let found = this.filteredPlugins.find(_ => _.serviceName === this.pluginForm.serviceId)
-      this.pluginForm.paramInfos = {}
-      if (found) {
-        let needParams = found.configurableInputParameters.filter(
-          _ => _.mappingType === 'context' || _.mappingType === 'constant'
-        )
-        this.pluginForm.paramInfos = needParams.map(_ => {
-          return {
-            paramName: _.name,
-            bindNodeId: '',
-            bindParamType: 'INPUT',
-            bindParamName: '',
-            bindType: _.mappingType,
-            bindValue: '',
-            required: _.required
-          }
-        })
-      }
-    },
-    async getAllFlows (s) {
-      if (s) {
-        const { data, status } = await getAllFlow()
-        if (status === 'OK') {
-          this.allFlows = data
-        }
-      }
-    },
-    showDeleteConfirm (id, name) {
+    removeItem () {
       this.$Modal.confirm({
-        title: this.$t('confirm_to_delete'),
-        content: name,
-        onOk: () => {
-          this.deleteFlow(id)
+        title: '删除',
+        content: '确认删除该元素吗？',
+        onOk: async () => {
+          const method = this.canRemovedId.startsWith('pdef_node_') ? flowNodeDelete : flowEdgeDelete
+          const { status } = await method(this.procDef.id, this.canRemovedId)
+          if (status === 'OK') {
+            const item = this.graph.findById(this.canRemovedId)
+            this.graph.removeItem(item)
+            this.menuStyle.display = 'none'
+            this.itemInfoType = ''
+          }
         },
         onCancel: () => {}
       })
     },
-    async deleteFlow (id) {
-      let { status, message } = await removeProcessDefinition(id)
-      if (status === 'OK') {
-        this.$Notice.success({
-          title: 'Success',
-          desc: message
-        })
-        this.getAllFlows(true)
-      }
-    },
-    onEntitySelect (v) {
-      this.currentSelectedEntity = v || ''
-      if (this.currentSelectedEntity.split('{')[0] !== this.pluginForm.routineExpression.split('{')[0]) {
-        if (this.serviceTaskBindInfos.length > 0) this.serviceTaskBindInfos = []
-        this.pluginForm = {
-          ...this.defaultPluginForm,
-          routineExpression: v
-        }
-        this.resetNodePluginConfig()
-      }
-    },
-    resetNodePluginConfig () {
-      if (this.currentFlow && this.currentFlow.taskNodeInfos) {
-        this.currentFlow.taskNodeInfos.forEach(_ => {
-          if (_.nodeId.indexOf('Task') > -1) {
-            Object.keys(_).forEach(key => {
-              _[key] = this.defaultPluginForm[key]
-            })
-          }
-        })
-      }
-    },
-    resetZoom () {
-      var canvas = this.bpmnModeler.get('canvas')
-      canvas._changeViewbox(function () {
-        setCTM(canvas._viewport, {
-          a: '1',
-          b: '0',
-          c: '0',
-          d: '1',
-          e: '0',
-          f: '0'
-        })
-      })
-    },
-    createNewDiagram () {
-      this.newFlowID = 'wecube' + Date.now()
-      this.isAdd = true
-      this.mgmtRolesKeyToFlow = []
-      this.useRolesKeyToFlow = []
-      this.currentSelectedEntity = ''
-      this.excludeMode = false
-      this.pluginForm = { ...this.defaultPluginForm }
-      this.currentFlow = {}
-      const bpmnXmlStr =
-        '<?xml version="1.0" encoding="UTF-8"?>\n' +
-        '<bpmn2:definitions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:bpmn2="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xsi:schemaLocation="http://www.omg.org/spec/BPMN/20100524/MODEL BPMN20.xsd" id="sample-diagram" targetNamespace="http://bpmn.io/schema/bpmn">\n' +
-        '  <bpmn2:process id="' +
-        this.newFlowID +
-        '" isExecutable="true">\n' +
-        '  </bpmn2:process>\n' +
-        '  <bpmndi:BPMNDiagram id="BPMNDiagram_1">\n' +
-        '    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="' +
-        this.newFlowID +
-        '">\n' +
-        '    </bpmndi:BPMNPlane>\n' +
-        '  </bpmndi:BPMNDiagram>\n' +
-        '</bpmn2:definitions>'
-      this.bpmnModeler.importXML(bpmnXmlStr, function (err) {
-        if (err) {
-          console.error(err)
-        }
-      })
-      this.$nextTick(() => {
-        this.selectedFlow = null
-      })
-      this.flowRoleManageModal = true
-    },
-    saveDiagram (isDraft) {
-      let _this = this
-      // eslint-disable-next-line handle-callback-err
-      this.bpmnModeler.saveXML({ format: true }, function (err, xml) {
-        let processName
-        xml2js.parseString(xml, (errx, result) => {
-          console.log(errx)
-          processName = result['bpmn2:definitions']['bpmn2:process'][0]['$']['name']
-        })
-        if (!xml) return
-        const xmlString = xml.replace(/[\r\n]/g, '')
-        let payload = {
-          permissionToRole: {
-            MGMT: _this.mgmtRolesKeyToFlow,
-            USE: _this.useRolesKeyToFlow
-          },
-          tags: _this.currentFlow.tags,
-          excludeMode: _this.excludeMode === true ? 'Y' : 'N',
-          procDefData: xmlString,
-          procDefId: (_this.currentFlow && _this.currentFlow.procDefId) || '',
-          procDefKey: isDraft ? (_this.currentFlow && _this.currentFlow.procDefKey) || '' : _this.newFlowID,
-          procDefName: processName,
-          rootEntity: _this.currentSelectedEntity,
-          status: isDraft ? (_this.currentFlow && _this.currentFlow.status) || '' : '',
-          taskNodeInfos: [..._this.serviceTaskBindInfos]
-        }
-        if (isDraft) {
-          const selectedFlowData = _this.allFlows.find(_ => {
-            return _.procDefId === _this.selectedFlow
-          })
-          payload.procDefName = processName || (selectedFlowData && selectedFlowData.procDefName) || 'default'
-          // payload.procDefName = _this.selectedFlowData.procDefName || 'default'
-          saveFlowDraft(payload).then(data => {
-            if (data && data.status === 'OK') {
-              _this.$Notice.success({
-                title: 'Success',
-                desc: data.message
-              })
-              _this.getAllFlows(true)
-              _this.selectedFlow = data.data.procDefId
-              _this.getFlowXml(data.data.procDefId)
-              _this.temporaryFlow = data.data.procDefId
-            }
-            if (data && data.status === 'CONFIRM') {
-              _this.confirmModal.continueToken = data.data.continueToken
-              _this.confirmModal.check = false
-              _this.confirmModal.message = data.message
-              _this.confirmModal.requestBody = payload
-              _this.confirmModal.func = 'test'
-              _this.confirmModal.isShowConfirmModal = true
-            }
-          })
-        } else {
-          _this.isSaving = true
-          saveFlow(payload).then(data => {
-            _this.isSaving = false
-            if (data && data.status === 'OK') {
-              _this.$Notice.success({
-                title: 'Success',
-                desc: data.message
-              })
-              _this.getAllFlows(true)
-              _this.selectedFlow = data.data.procDefId
-              _this.temporaryFlow = data.data.procDefId
-            }
-            if (data && data.status === 'CONFIRM') {
-              _this.confirmModal.continueToken = data.data.continueToken
-              _this.confirmModal.check = false
-              _this.confirmModal.message = data.message
-              _this.confirmModal.requestBody = payload
-              _this.confirmModal.func = 'test'
-              _this.confirmModal.isShowConfirmModal = true
-            }
-          })
-        }
-        _this.show = false
-        _this.isFormDataChange = false
-      })
-    },
-    confirmSaveFlow () {
-      confirmSaveFlowDraft(this.confirmModal.continueToken, this.confirmModal.requestBody).then(data => {
-        this.isSaving = false
-        if (data && data.status === 'OK') {
-          this.$Notice.success({
-            title: 'Success',
-            desc: data.message
-          })
-          this.confirmModal.isShowConfirmModal = false
-          this.getAllFlows(true)
-          this.selectedFlow = data.data.procDefId
-          this.temporaryFlow = data.data.procDefId
-          this.getFlowXml(this.selectedFlow)
-        }
-      })
-    },
-    savePluginConfig (ref) {
-      if (!this.show) {
-        this.saveDiagram(true)
-        return
-      }
-      let index = -1
-      this.serviceTaskBindInfos.forEach((_, i) => {
-        if (this.currentNode.id === _.nodeId) {
-          index = i
-        }
-      })
-      if (index > -1) {
-        this.serviceTaskBindInfos.splice(index, 1)
-      }
-
-      let found = this.filteredPlugins.find(_ => _.serviceName === this.pluginForm.serviceId)
-      const routineExpressionItem = this.$refs.filterRulesGroup.routineExpressionItem
-      this.pluginForm.routineExpression = routineExpressionItem.reduce((tmp, item, index) => {
-        return (
-          tmp +
-          item.routineExpression +
-          '#DMEOP#' +
-          item.operate +
-          (index === routineExpressionItem.length - 1 ? '' : '#DME#')
-        )
-      }, '')
-      let pluginFormCopy = JSON.parse(JSON.stringify(this.pluginForm))
-      // 校验必填项，未选中节点跳过校验
-      if (
-        this.currentNode.id &&
-        (this.currentNode.id.startsWith('SubProcess_') || this.currentNode.id.startsWith('Task_'))
-      ) {
-        const res = this.checkSaveParams(pluginFormCopy)
-        if (!res) return
-      }
-      if (this.currentNode.id) {
-        this.serviceTaskBindInfos.push({
-          ...pluginFormCopy,
-          nodeDefId: this.currentNode.nodeDefId,
-          nodeId: this.currentNode.id,
-          nodeName: this.currentNode.name,
-          serviceName: (found && found.serviceName) || '',
-          routineRaw: pluginFormCopy.routineExpression,
-          taskCategory: pluginFormCopy.taskCategory,
-          prevCtxNodeIds: this.pluginForm.prevCtxNodeIds.join(',') || ''
-        })
-      }
-      this.saveDiagram(true)
-    },
-    checkSaveParams (pluginFormCopy) {
-      if (pluginFormCopy.taskCategory === 'SDTN') {
+    // #region 流程数据校验
+    alreadyHasStart (nodeType) {
+      const findNode = this.nodesAndDeges.nodes.findIndex(node => node.customAttrs.nodeType === 'start')
+      if (findNode === -1) {
+        return false
+      } else {
+        this.$Message.warning('只能存在一个开始节点！')
         return true
       }
-      if (!pluginFormCopy.routineExpression) {
-        this.$Message.warning(this.$t('locate_rules') + ' ' + this.$t('required'))
-        return false
-      }
-      if (!pluginFormCopy.serviceId) {
-        this.$Message.warning(this.$t('plugin') + ' ' + this.$t('required'))
-        return false
-      }
-      let hasvalue = true
-      pluginFormCopy.paramInfos.forEach(item => {
-        if (
-          item.required === 'Y' &&
-          ((item.bindType === 'constant' && item.bindValue === '') ||
-            (item.bindType === 'context' && item.bindParamName === ''))
-        ) {
-          this.$Message.warning(item.paramName + ' ' + this.$t('required'))
-          hasvalue = false
-        }
-      })
-      if (!hasvalue) {
-        return false
-      }
-      return true
     },
-    async openPluginModal (e) {
-      if (!this.currentSelectedEntity) {
-        this.$Notice.warning({
-          title: 'Warning',
-          desc: this.$t('select_entity_first')
-        })
+    alreadyHasEnd (nodeType) {
+      const findNode = this.nodesAndDeges.nodes.findIndex(node => node.customAttrs.nodeType === 'end')
+      if (findNode === -1) {
+        return false
       } else {
-        this.pluginForm = JSON.parse(
-          JSON.stringify(
-            (this.cacheFlowInfo &&
-              this.cacheFlowInfo.taskNodeInfos &&
-              this.cacheFlowInfo.taskNodeInfos.find(_ => _.nodeId === this.currentNode.id)) ||
-              this.prepareDefaultPluginForm()
-          )
-        )
-        if (!Array.isArray(this.pluginForm.prevCtxNodeIds)) {
-          this.pluginForm.prevCtxNodeIds = (this.pluginForm.prevCtxNodeIds || '').split(',')
-        }
-        this.pluginForm.dynamicBind = this.pluginForm.dynamicBind || 'N'
-        this.pluginForm.preCheck = this.pluginForm.preCheck || 'N'
-        // 实体类型条件不带入节点中
-        let rootEntity = this.currentSelectedEntity.split('{')[0]
-        this.pluginForm.routineExpression = this.pluginForm.routineExpression || rootEntity
-        if (!this.pluginForm.routineExpression.includes('#DME#')) {
-          // eslint-disable-next-line no-useless-escape
-          const pathList = this.pluginForm.routineExpression.split(/[.~]+(?=[^\}]*(\{|$))/).filter(p => p.length > 1)
-          if (pathList[0].split('{')[0] !== rootEntity) {
-            this.pluginForm.routineExpression = rootEntity
+        this.$Message.warning('只能存在一个结束节点！')
+        return true
+      }
+    },
+    // #endregion
+    // 初始化图事件
+    initGraphEvent () {
+      this.graph.on('drop', e => {
+        const { originalEvent } = e
+        if (originalEvent.dataTransfer) {
+          let transferData = originalEvent.dataTransfer.getData('dragComponent')
+          console.log('准备新增节点：', transferData)
+          const { nodeType } = JSON.parse(transferData)
+          if (nodeType === 'start' && this.alreadyHasStart(nodeType)) {
+            return
+          }
+          if (nodeType === 'end' && this.alreadyHasEnd(nodeType)) {
+            return
+          }
+          if (transferData) {
+            this.addNode(transferData, e)
           }
         }
-        // this.getPluginInterfaceList()
-        this.getAssociatedNodes()
-        // get flow's params infos
-        this.getFlowsNodes()
-        await this.getFilteredPluginInterfaceList(this.pluginForm.routineExpression)
-        const nodeOrigin = this.filteredPlugins.find(item => item.serviceName === this.pluginForm.serviceName)
-        nodeOrigin &&
-          nodeOrigin.configurableInputParameters &&
-          this.pluginForm.paramInfos.forEach(pItem => {
-            nodeOrigin.configurableInputParameters.forEach(oItem => {
-              if (pItem.paramName === oItem.name) {
-                pItem.required = oItem.required
-              }
-            })
-          })
-        this.$nextTick(() => {
-          this.show = e.target.tagName === 'rect'
+      })
+
+      this.graph.on('node:drop', e => {
+        e.item.getOutEdges().forEach(edge => {
+          edge.clearStates('edgeState')
         })
-      }
+
+        setTimeout(() => {
+          const id = e.item.get('model').id
+          const movedNode = this.graph.save().nodes.find(n => n.id === id)
+          const tmp = JSON.parse(JSON.stringify(movedNode))
+          let customAttrs = tmp.customAttrs
+          customAttrs.id = tmp.id
+          customAttrs.name = tmp.label
+          delete tmp.customAttrs
+          let selfAttrs = tmp
+          let finalData = {
+            selfAttrs: selfAttrs,
+            customAttrs: customAttrs
+          }
+          this.setNodeInfo(finalData, true)
+        }, 100)
+      })
+
+      this.graph.on('after-node-selected', e => {
+        if (this.isExecutionAllowed()) return
+        this.itemInfoType = ''
+        this.$nextTick(() => {
+          if (e && e.item) {
+            const model = e.item.get('model')
+            this.itemInfoType = 'node'
+            this.$nextTick(() => {
+              this.$refs.itemInfoNodeRef &&
+                this.$refs.itemInfoNodeRef.showItemInfo(model, false, this.procDef.rootEntity)
+            })
+            // 设置菜单位置
+            this.menuStyle.left = `${model.x + 50}px`
+            this.menuStyle.top = `${model.y + 100}px`
+            this.menuStyle.display = `block`
+            this.canRemovedId = model.id
+          }
+        })
+      })
+
+      this.graph.on('on-node-mouseenter', e => {
+        if (e && e.item) {
+          e.item.getOutEdges().forEach(edge => {
+            edge.clearStates('edgeState')
+            edge.setState('edgeState', 'hover')
+          })
+        }
+      })
+
+      // 鼠标拖拽到画布外时特殊处理
+      this.graph.on('mousedown', e => {
+        this.isMouseDown = true
+      })
+      this.graph.on('mouseup', e => {
+        this.isMouseDown = false
+      })
+      this.graph.on('canvas:mouseleave', e => {
+        this.graph.getNodes().forEach(x => {
+          const group = x.getContainer()
+
+          group.clearAnchor()
+          x.clearStates('anchorActived')
+        })
+      })
+
+      this.graph.on('on-node-mousemove', e => {
+        if (e && e.item) {
+          this.tooltip = e.item.get('model').id
+          this.left = e.clientX + 40
+          this.top = e.clientY - 20
+        }
+      })
+
+      this.graph.on('on-node-mouseleave', e => {
+        if (e && e.item) {
+          this.tooltip = ''
+          if (e && e.item) {
+            e.item.getOutEdges().forEach(edge => {
+              edge.clearStates('edgeState')
+            })
+          }
+        }
+      })
+
+      this.graph.on('before-node-removed', ({ target, callback }) => {
+        setTimeout(() => {
+          // 确认提示
+          // eslint-disable-next-line standard/no-callback-literal
+          callback(true)
+        }, 1000)
+      })
+
+      this.graph.on('after-node-dblclick', e => {
+        if (e && e.item) {
+          console.log(e.item)
+        }
+      })
+
+      this.graph.on('after-edge-selected', e => {
+        if (e && e.item) {
+          const model = e.item.get('model')
+          this.config = model.id
+
+          this.graph.updateItem(e.item, {
+            // shape: 'line-edge',
+            style: {
+              radius: 10,
+              lineWidth: 2
+            }
+          })
+          // 设置菜单位置
+          this.menuStyle.left = `${model.x + 50}px`
+          this.menuStyle.top = `${model.y + 100}px`
+          this.menuStyle.display = `block`
+          this.canRemovedId = model.id
+        }
+      })
+
+      this.graph.on('on-edge-mousemove', e => {
+        if (e && e.item) {
+          this.tooltip = e.item.get('model').label
+          this.left = e.clientX + 40
+          this.top = e.clientY - 20
+        }
+      })
+
+      this.graph.on('on-edge-mouseleave', e => {
+        if (e && e.item) {
+          this.tooltip = ''
+        }
+      })
+
+      this.graph.on('before-edge-add', ({ source, target, sourceAnchor, targetAnchor }) => {
+        const sourceId = source.get('id')
+        const targetId = target.get('id')
+
+        const sourceNodeType = source.get('model').customAttrs.nodeType
+        const targertNodeType = target.get('model').customAttrs.nodeType
+        console.log(sourceNodeType, targertNodeType)
+        // 结束节点不能连出
+        if (sourceNodeType === 'end') {
+          this.$Message.warning('结束节点不能连出！')
+          return
+        }
+        // 异常节点不能连出
+        if (sourceNodeType === 'abnormal') {
+          this.$Message.warning('异常节点不能连出！')
+          return
+        }
+
+        if (sourceNodeType === 'start') {
+          const outEdges = source.getOutEdges()
+          // 开始节点只能连出一条
+          if (outEdges.length > 0) {
+            this.$Message.warning('开始节点只能有一个出口！')
+            return
+          }
+          // 开始节点不能直连汇聚节点
+          if (targertNodeType === 'merge') {
+            this.$Message.warning('开始节点不能直连汇聚节点！')
+            return
+          }
+          // 开始节点不能直连分流节点
+          if (targertNodeType === 'fork') {
+            this.$Message.warning('开始节点不能直连分流节点！')
+            return
+          }
+        }
+        // 结束节点只能连入
+        if (targertNodeType === 'end') {
+          const inEdges = target.getInEdges()
+          if (inEdges.length > 0) {
+            this.$Message.warning('结束节点只能有一个入口！')
+            return
+          }
+        }
+        // 开始节点不能连入
+        if (targertNodeType === 'start') {
+          this.$Message.warning('开始节点不能连入！')
+          return
+        }
+
+        // 异常节点只能连入
+        if (targertNodeType === 'abnormal') {
+          const inEdges = target.getInEdges()
+          if (inEdges.length > 0) {
+            this.$Message.warning('异常节点只能有一个入口！')
+            return
+          }
+        }
+        // 异常节点只能连入
+        if (targertNodeType === 'decision') {
+          if (!['data', 'human', 'automatic'].includes(sourceNodeType)) {
+            this.$Message.warning('判断节点只能被[数据节点，人工节点，自动化节点]连入！')
+            return
+          }
+        }
+
+        if (['data', 'human', 'automatic', 'date', 'timeInterval'].includes(sourceNodeType)) {
+          const outEdges = source.getOutEdges()
+          if (outEdges.length === 1) {
+            this.$Message.warning('该节点只能有一个出口！')
+            return
+          }
+        }
+
+        if (['data', 'human', 'automatic', 'date', 'timeInterval'].includes(targertNodeType)) {
+          const inEdges = target.getInEdges()
+          if (inEdges.length === 1) {
+            this.$Message.warning('该节点只能有一个入口！')
+            return
+          }
+        }
+
+        setTimeout(() => {
+          const model = {
+            id: `pdef_link_${this.uuid(16, 16)}`, // edge id
+            label: '',
+            source: sourceId,
+            target: targetId,
+            sourceAnchor,
+            targetAnchor
+          }
+          this.graph.addItem('edge', model)
+
+          this.itemInfoType = 'edge'
+          this.$refs.itemInfoEdgeRef.showItemInfo(model, true)
+        }, 100)
+      })
+
+      // 注册边点击事件
+      this.graph.on('edge:click', e => {
+        if (this.isExecutionAllowed()) return
+        const edge = e.item
+        if (e && edge) {
+          const model = edge.get('model')
+          // 处理节点点击事件的逻辑
+          console.log('edge Clicked:', model)
+
+          const selected = edge.hasState('selected')
+          if (selected) {
+            this.graph.setItemState(edge, 'selected', false)
+          } else {
+            this.graph.setItemState(edge, 'selected', true)
+          }
+          this.itemInfoType = 'edge'
+          this.$refs.itemInfoEdgeRef.showItemInfo(model)
+
+          // 设置菜单位置
+          this.menuStyle.left = `${e.x + 50}px`
+          this.menuStyle.top = `${e.y + 120}px`
+          this.menuStyle.display = `block`
+          this.canRemovedId = model.id
+        }
+      })
+
+      // 注册画布点击事件
+      this.graph.on('canvas:click', e => {
+        this.$nextTick(() => {
+          if (this.isExecutionAllowed()) return
+          this.itemInfoType = 'canvas'
+          this.$refs.itemInfoCanvasRef.showItemInfo(this.procDef)
+        })
+      })
     },
-    prepareDefaultPluginForm () {
-      let temp = JSON.parse(JSON.stringify(this.defaultPluginForm))
-      temp.routineExpression = this.currentSelectedEntity
-      return { ...temp }
+    deleteNode (item) {
+      this.graph.removeItem(item)
     },
-    onParamsNodeChange (index) {
-      // this.editFormdata()
-      this.getParamsOptionsByNode(index)
-    },
-    async getFlowsNodes () {
-      if (!this.currentFlow || !this.currentFlow.procDefId) {
-        this.currentflowsNodes = []
+    // 添加节点
+    addNode (transferData, { x, y }) {
+      if (this.isExecutionAllowed()) return
+      const { label, shape, fill, lineWidth, nodeType, stroke } = JSON.parse(transferData)
+      const findStartNodeIndex = this.graph.save().nodes.findIndex(n => n.id.startsWith('id_start'))
+      if (nodeType === 'start' && findStartNodeIndex > -1) {
+        this.$Message.warning(this.$t('start_node_warning'))
         return
       }
-      let { status, data } = await getFlowNodes(this.currentFlow.procDefId)
-      if (status === 'OK') {
-        this.currentflowsNodes = data.filter(_ => _.nodeId !== this.currentNode.id)
-        const found = data.find(i => i.nodeId === this.currentNode.id)
-        this.currentNode.nodeDefId = found ? found.nodeDefId : ''
-        this.pluginForm.paramInfos.forEach((_, index) => {
-          this.onParamsNodeChange(index)
-        })
-      }
-    },
-    async getParamsOptionsByNode (index) {
-      // currentParamNames
-      const found = this.currentflowsNodes.find(_ => _.nodeId === this.pluginForm.paramInfos[index].bindNodeId)
-      if (!this.currentFlow || !found) return
-      let { status, data } = await getParamsInfosByFlowIdAndNodeId(this.currentFlow.procDefId, found.nodeDefId)
-      if (status === 'OK') {
-        let res = data.filter(_ => _.type === this.pluginForm.paramInfos[index].bindParamType)
-        this.$set(this.pluginForm.paramInfos[index], 'currentParamNames', res)
-      }
-    },
-    bindCurrentNode (e) {
-      this.currentNode.id = e.target.parentNode.getAttribute('data-element-id')
-      let nodeName = ''
-      const previousSibling = e.target.previousSibling
-      if (previousSibling && previousSibling.children[1] && previousSibling.children[1].children) {
-        for (let i = 0; i < previousSibling.children[1].children.length; i++) {
-          nodeName += previousSibling.children[1].children[i].innerHTML || ''
-        }
-      }
-      this.currentNode.name = nodeName
-    },
-    async getFlowXml (id) {
-      if (!id) return
-      const { status, data } = await getFlowDetailByID(id)
-      if (status === 'OK') {
-        this.currentFlow = data
-        this.cacheFlowInfo = JSON.parse(JSON.stringify(data))
-        const _this = this
-        this.bpmnModeler.importXML(data ? data.procDefData : '', function (err) {
-          if (err) {
-            console.error(err)
+      const id = `pdef_node_${this.uuid(16, 16)}`
+      const model = {
+        id,
+        label,
+        // 形状
+        type: shape,
+        customAttrs: {
+          id,
+          name: label,
+          procDefId: this.procDef.id, // 对应编排信息
+          procDefKey: this.procDef.key, // 对应编排信息
+          timeout: 30, // 超时时间
+          description: null, // 描述说明
+          dynamicBind: false, // 动态绑定
+          bindNodeId: null, // 动态绑定关联节点id
+          nodeType, // 节点类型，对应节点原始类型（start、end……
+          routineExpression: this.procDef.rootEntity, // 对应节点中的定位规则
+          routineRaw: null, // 还未知作用
+          serviceName: null, // 选择的插件名称
+          riskCheck: true, // 高危检测
+          paramInfos: [], // 存在插件注册处需要填写的字段
+          timeConfig: {
+            duration: 0, // 时间间隔
+            unit: 'sec', // 时间间隔单位
+            date: '' // 固定时间
           }
-          _this.serviceTaskBindInfos = data.taskNodeInfos
-          _this.currentSelectedEntity = data.rootEntity || ''
-          _this.excludeMode = data.excludeMode === 'Y'
-          // _this.rootPkg = data.rootEntity.split(':')[0] || ''
-          // _this.rootEntity = data.rootEntity.split(':')[1].split('{')[0] || ''
-        })
-      }
-    },
-    nodeClicked (e) {
-      this.isFirstSelectNode = false
-      this.show = false
-      this.bindCurrentNode(e)
-      this.isShowSaveBtnOnly = false
-      if (
-        this.currentNode.id &&
-        (this.currentNode.id.startsWith('SubProcess_') || this.currentNode.id.startsWith('Task_'))
-      ) {
-        this.openPluginModal(e)
-      }
-    },
-    initFlow () {
-      this.isFirstSelectNode = true
-      this.container = this.$refs.content
-      const canvas = this.$refs.canvas
-      canvas.onmouseup = e => {
-        if (this.isFirstSelectNode) {
-          this.nodeClicked(e)
-        } else {
-          if (this.isFormDataChange) {
-            this.$Modal.confirm({
-              title: this.$t('confirm_to_delete'),
-              content: this.$t('node_params_edit_confirm'),
-              okText: this.$t('abandon'),
-              'z-index': 1000000,
-              onOk: () => {
-                this.isFormDataChange = false
-                this.show = false
-              },
-              onCancel: () => {
-                this.isFormDataChange = true
-              }
-            })
-          } else {
-            this.nodeClicked(e)
-          }
-        }
-      }
-      var customTranslateModule = {
-        translate: ['value', customTranslate]
-      }
-      if (this.$lang === 'zh-CN') {
-        this.additionalModules.push(customTranslateModule)
-      } else {
-        if (this.additionalModules.length > 3) {
-          this.additionalModules.pop()
-        }
-      }
-
-      this.bpmnModeler = new BpmnModeler({
-        container: canvas,
-        propertiesPanel: {
-          parent: '#js-properties-panel'
         },
-        additionalModules: this.additionalModules,
-
-        moddleExtensions: {
-          camunda: camundaModdleDescriptor
-        }
+        style: {
+          fill: fill || '',
+          stroke: stroke,
+          lineWidth: lineWidth || 1,
+          top: '100px'
+        },
+        logoIcon: nodeDefaultAttr[nodeType].logoIcon,
+        // 坐标
+        x,
+        y,
+        // 自定义锚点数量和位置
+        anchorPoints: nodeDefaultAttr[nodeType].anchorPoints
+      }
+      this.graph.addItem('node', model)
+      this.itemInfoType = 'node'
+      this.$nextTick(() => {
+        this.$refs.itemInfoNodeRef.showItemInfo(model, true, this.procDef.rootEntity)
       })
-      document.getElementsByClassName('djs-palette')[0].classList.remove('two-column')
     },
-    getHeaders () {
-      this.isShowUploadList = true
-      let refreshRequest = null
-      const currentTime = new Date().getTime()
-      const accessToken = getCookie('accessToken')
-      if (accessToken) {
-        const expiration = getCookie('accessTokenExpirationTime') * 1 - currentTime
-        if (expiration < 1 * 60 * 1000 && !refreshRequest) {
-          refreshRequest = axios.get('/auth/v1/api/token', {
-            headers: {
-              Authorization: 'Bearer ' + getCookie('refreshToken')
-            }
-          })
-          refreshRequest.then(
-            res => {
-              setCookie(res.data.data)
-              this.setUploadActionHeader()
-              this.$refs.uploadButton.handleClick()
-            },
-            // eslint-disable-next-line handle-callback-err
-            err => {
-              refreshRequest = null
-              window.location.href = window.location.origin + window.location.pathname + '#/login'
-            }
-          )
-        } else {
-          this.setUploadActionHeader()
-          this.$refs.uploadButton.handleClick()
+    uuid (len, radix) {
+      let chars = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz'.split('')
+      // eslint-disable-next-line one-var
+      let uuid = [],
+        i
+      radix = radix || chars.length
+
+      if (len) {
+        for (i = 0; i < len; i++) uuid[i] = chars[0 | (Math.random() * radix)]
+      } else {
+        var r
+        uuid[8] = uuid[13] = uuid[18] = uuid[23] = '-'
+        uuid[14] = '4'
+
+        for (i = 0; i < 36; i++) {
+          if (!uuid[i]) {
+            r = 0 | (Math.random() * 16)
+            uuid[i] = chars[i === 19 ? (r & 0x3) | 0x8 : r]
+          }
         }
-      } else {
-        window.location.href = window.location.origin + window.location.pathname + '#/login'
       }
+      return uuid.join('')
     },
-    setUploadActionHeader () {
-      this.headers = {
-        Authorization: 'Bearer ' + getCookie('accessToken')
-      }
-    },
-    exportProcessDefinition (isDraft) {
-      let procDefId = this.selectedFlow
-      if (procDefId == null || procDefId === 'undefined' || procDefId === '') {
-        this.$Notice.error({
-          title: 'Error',
-          desc: 'Must select a process to export.'
-        })
-        return false
-      }
+    saveSvg () {
+      const nodes = this.graph.save().nodes
+      const edges = this.graph.save().edges
 
-      exportProcessDefinitionWithId(procDefId)
+      console.log('Nodes:', nodes)
+      console.log('Edges:', edges)
     },
-    onImportProcessDefinitionSuccess (response, file, filelist) {
-      if (response.status === 'OK') {
-        this.$Notice.success({
-          title: 'Success',
-          desc: response.message || ''
-        })
-
-        this.getAllFlows(true)
-        this.selectedFlow = response.data.procDefId
-        this.temporaryFlow = response.data.procDefId
-      } else {
-        this.$Notice.warning({
-          title: 'Warning',
-          desc: response.message || ''
-        })
+    isExecutionAllowed () {
+      const nodeToRef = {
+        canvas: 'itemInfoCanvasRef',
+        edge: 'itemInfoEdgeRef',
+        node: 'itemInfoNodeRef'
+      }
+      // eslint-disable-next-line no-unused-expressions
+      this.$refs[nodeToRef[this.itemInfoType]] && this.$refs[nodeToRef[this.itemInfoType]].hideItem()
+      return this.$refs[nodeToRef[this.itemInfoType]] && this.$refs[nodeToRef[this.itemInfoType]].panalStatus()
+    },
+    // #region 数据保存集合
+    // 保存编排整体信息
+    async setCanvasInfo (info) {
+      const { status } = await flowMgmt(info)
+      if (status === 'OK') {
+        this.itemInfoType = ''
+        this.$Message.success(this.$t('save_successfully'))
+        this.getFlowInfo(this.demoFlowId)
       }
     },
-    onImportProcessDefinitionError (file) {
-      this.$Notice.error({
-        title: 'Error',
-        desc: file.message || ''
-      })
+    async updateAuth (mgmt, use) {
+      let finalData = JSON.parse(JSON.stringify(this.procDef))
+      finalData.permissionToRole.MGMT = mgmt
+      finalData.permissionToRole.USE = use
+
+      const { status } = await flowMgmt(finalData)
+      if (status === 'OK') {
+        this.itemInfoType = ''
+        this.$Message.success(this.$t('save_successfully'))
+        this.getFlowInfo(this.demoFlowId)
+      }
+    },
+    // 保存节点信息
+    async setNodeInfo (info, needAddFirst) {
+      const { status } = await flowNodeMgmt(info)
+      if (status === 'OK') {
+        if (!needAddFirst) {
+          this.$Message.success(this.$t('save_successfully'))
+          this.itemInfoType = ''
+        }
+        const item = this.graph.findById(info.customAttrs.id)
+        const params = {
+          ...info.selfAttrs,
+          customAttrs: info.customAttrs
+        }
+        this.graph.updateItem(item, params)
+      }
+    },
+    // 保存边信息
+    async setEdgeInfo (info, needAddFirst) {
+      info.procDefId = this.procDef.id
+      const { status } = await flowEdgeMgmt(info)
+      if (status === 'OK') {
+        if (!needAddFirst) {
+          this.$Message.success(this.$t('save_successfully'))
+          this.itemInfoType = ''
+        }
+        const item = this.graph.findById(info.customAttrs.id)
+        const params = {
+          ...info.selfAttrs,
+          customAttrs: info.customAttrs
+        }
+        this.graph.updateItem(item, params)
+      }
+    },
+    hideItemInfo () {
+      this.itemInfoType = ''
+      this.menuStyle.display = 'none'
     }
+    // #endregion
   }
 }
 </script>
 
 <style lang="scss">
-.requires-tip {
-  color: red;
-  vertical-align: middle;
+/* 提示框的样式 */
+.g6-tooltip {
+  position: fixed;
+  top: 0;
+  left: 0;
+  font-size: 12px;
+  color: #545454;
+  border-radius: 4px;
+  border: 1px solid #e2e2e2;
+  background-color: rgba(255, 255, 255, 0.9);
+  box-shadow: rgb(174, 174, 174) 0 0 10px;
+  padding: 10px 8px;
 }
-.containers {
-  position: absolute;
-  background-color: white;
-  width: 100%;
-  height: 100%;
-}
-.canvas {
-  width: 100%;
-  height: 100%;
-}
-
-#right_click_menu {
-  display: none;
-  width: 100px;
-  border: 1px solid gray;
-  position: absolute;
-  background-color: white;
-  padding: 5px 5px;
-  box-shadow: 0 0 5px grey;
-}
-.panel {
+.g6-minimap {
   position: absolute;
   right: 0;
-  top: 0;
-  width: 300px;
-  min-height: 100%;
-  background: #f8f8f8;
-  overflow-y: auto;
-
-  .bpp-properties-panel .entry-label {
-    border: black solid 1px;
-    border-radius: 5px;
-    background-color: white;
-    padding: 2px 7px;
-    font-style: normal;
-  }
-}
-.buttons {
-  position: absolute;
-  left: 44px;
-  bottom: 50px;
-  & > li {
-    display: inline-block;
-    margin: 5px;
-    & > a {
-      color: #999;
-      background: #eee;
-      cursor: not-allowed;
-      padding: 8px;
-      border: 1px solid #ccc;
-      &.active {
-        color: #333;
-        background: #fff;
-        cursor: pointer;
-      }
-    }
-  }
-}
-</style>
-<style lang="scss">
-.bjs-powered-by {
-  bottom: 50px !important;
-}
-// hide toolbar
-.bpmn-icon-data-object,
-.bpmn-icon-data-store,
-.bpmn-icon-subprocess-expanded,
-.bpmn-icon-task,
-.bpmn-icon-gateway-none,
-.bpmn-icon-intermediate-event-none,
-.bpmn-icon-participant {
-  display: none;
-}
-// control toolbar position
-.djs-palette {
-  left: -1px;
-  top: -1px;
-}
-
-// hide panal tab
-.bpp-properties-tabs-links .bpp-properties-tab-link {
-  display: none;
-}
-.bpp-properties-tabs-links .bpp-active {
-  display: inline-block;
-}
-
-// hide panal tab item
-[data-entry='process-is-executable'],
-[data-entry='initiator'],
-[data-group='documentation'],
-[data-group='historyConfiguration'],
-[data-group='jobConfiguration'],
-[data-group='externalTaskConfiguration'],
-[data-group='candidateStarterConfiguration'],
-[data-group='tasklist'],
-[data-group='details'] .group-label,
-[data-group='async'] {
-  display: none;
-}
-
-// hide node toolbar
-[data-id='replace-with-rule-task'],
-[data-id='replace-with-send-task'],
-[data-id='replace-with-receive-task'],
-[data-id='replace-with-manual-task'],
-[data-id='replace-with-script-task'],
-[data-id='replace-with-user-task'],
-[data-id='replace-with-transaction'] {
-  display: none;
-}
-
-[data-action='append.append-task'] {
-  display: none !important;
-}
-.ivu-transfer-list-body {
-  margin-top: 10px;
-}
-.role-transfer-title {
-  text-align: center;
-  font-size: 13px;
-  font-weight: 700;
-  background-color: rgb(226, 222, 222);
-  margin-bottom: 5px;
-}
-.ivu-upload-select {
-  display: none !important;
-}
-</style>
-<style scoped lang="scss">
-.split {
-  height: calc(100vh - 155px);
-  border: 1px solid #999;
-  // border-bottom: none;
-}
-.split-bottom {
-  position: relative;
-  background: white;
-  left: -1px;
-  margin-right: -2px;
-  border-right: 1px solid #999;
-  border-left: 1px solid #999;
-}
-.ivu-form-item {
-  margin-bottom: 0 !important;
-}
-.path-exp {
-  margin-bottom: 8px;
-  margin-top: 0 !important;
-}
-.btn-plugin-config {
-  float: right;
-  background: white;
-}
-</style>
-<style lange="scss" scoped>
-.node-operate-area {
-  border: 1px solid #dcdee2;
-  background: #fff;
-  padding: 8px 32px;
-  position: absolute;
   bottom: 0;
-  width: 100%;
+  background: #fff;
 }
-.node-operate-plugin-config {
-  max-height: 200px;
-  overflow-y: auto;
+
+.floating-button {
+  z-index: 10;
+  position: fixed;
+  bottom: 30px;
+  left: 28px;
+}
+
+.v-enter-active,
+.v-leave-active {
+  transition: opacity 3.5s ease;
+}
+
+.v-enter-from,
+.v-leave-to {
+  opacity: 0;
+}
+
+.canvas-zone {
+  border: 2px solid #f9f9f9;
+  margin-top: 8px;
 }
 </style>
