@@ -1,6 +1,8 @@
 <template>
   <div id="itemInfo">
-    <div class="hide-panal" @click="hideItem"></div>
+    <div class="hide-panal" @click="hideItem">
+      <Icon type="ios-arrow-dropright" size="28" />
+    </div>
     <div class="panal-name">连接属性：</div>
     <Form :label-width="120" style="padding-right: 12px">
       <template>
@@ -9,6 +11,8 @@
         </FormItem>
         <FormItem :label="$t('name')">
           <Input v-model="itemCustomInfo.label" @on-change="paramsChanged"></Input>
+          <span style="position: absolute; left: 320px; top: 2px">{{ itemCustomInfo.label.length }}/30</span>
+          <span v-if="itemCustomInfo.label.length > 30" style="color: red">名称不能大于30字符</span>
         </FormItem>
         <div style="position: absolute; bottom: 20px; right: 280px; width: 200px">
           <Button @click="saveItem" type="primary">{{ $t('save') }}</Button>
@@ -110,19 +114,10 @@ export default {
 }
 
 .hide-panal {
-  width: 12px;
-  height: 22px;
-  border-radius: 10px 0 0 10px;
-  background-color: white;
-  border-top: 1px solid #0892ed80;
-  border-bottom: 1px solid #0892ed80;
-  border-left: 1px solid #0892ed80;
-  overflow: hidden;
-
   position: fixed;
   top: 400px;
-  right: 514px;
+  right: 500px;
+  color: #2db7f5;
   cursor: pointer;
-  box-shadow: 0 0 8px #0892ed80;
 }
 </style>
