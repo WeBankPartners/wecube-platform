@@ -157,9 +157,7 @@ export default {
   async mounted () {
     const cacheParams = localStorage.getItem('history-execution-search-params')
     if (cacheParams) {
-      console.log(33)
       await this.getFlows()
-      console.log(this.allFlows)
       const tmp = JSON.parse(cacheParams)
       this.time = [tmp.startTime || '', tmp.endTime || '']
       this.searchConfig.params.startTime = tmp.startTime || ''
