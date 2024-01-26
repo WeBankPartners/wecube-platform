@@ -3,14 +3,15 @@ package models
 import "time"
 
 type BatchExecution struct {
-	Id                       string     `json:"id" xorm:"id"`                                                // 唯一标识
-	Name                     string     `json:"name"`                                                        // 名称
-	BatchExecutionTemplateId string     `json:"batchExecutionTemplateId" xorm:"batch_execution_template_id"` // 模板id
-	ErrorCode                string     `json:"errorCode" xorm:"error_code"`                                 // 错误码, 0:成功, 1:失败
-	CreatedBy                string     `json:"createdBy" xorm:"created_by"`                                 // 创建者
-	UpdatedBy                string     `json:"updatedBy" xorm:"updated_by"`                                 // 更新者
-	CreatedTime              *time.Time `json:"createdTime" xorm:"created_time"`                             // 创建时间
-	UpdatedTime              *time.Time `json:"updatedTime" xorm:"updated_time"`                             // 更新时间
+	Id                       string                `json:"id" xorm:"id"`                                                // 唯一标识
+	Name                     string                `json:"name"`                                                        // 名称
+	BatchExecutionTemplateId string                `json:"batchExecutionTemplateId" xorm:"batch_execution_template_id"` // 模板id
+	ErrorCode                string                `json:"errorCode" xorm:"error_code"`                                 // 错误码, 0:成功, 1:失败
+	CreatedBy                string                `json:"createdBy" xorm:"created_by"`                                 // 创建者
+	UpdatedBy                string                `json:"updatedBy" xorm:"updated_by"`                                 // 更新者
+	CreatedTime              *time.Time            `json:"createdTime" xorm:"created_time"`                             // 创建时间
+	UpdatedTime              *time.Time            `json:"updatedTime" xorm:"updated_time"`                             // 更新时间
+	BatchExecutionJobs       []*BatchExecutionJobs `json:"batchExecutionJobs" xorm:"-"`
 }
 
 func (BatchExecution) TableName() string {
@@ -100,10 +101,12 @@ type BatchExecListPageData struct {
 	Contents []*BatchExecution `json:"contents"`
 }
 
+/*
 type BatchExecutionInfo struct {
 	BatchExecution
 	BatchExecutionJobs []*BatchExecutionJobs `json:"batchExecutionJobs" xorm:"-"`
 }
+*/
 
 type BatchExecJobsPageData struct {
 	PageInfo PageInfo              `json:"pageInfo"`
