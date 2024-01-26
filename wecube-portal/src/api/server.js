@@ -278,3 +278,5 @@ export const getBatchExecuteTemplateDetail = templateId =>
   req.post(`/platform/v1/batch-execution/templates/${templateId}`)
 // 批量执行列表
 export const getBatchExecuteList = data => req.post(`/platform/v1/batch-execution/list`, data)
+// 批量执行历史
+export const batchExecuteHistory = id => req.get(`/platform/v1/batch-execution/${id}`)
