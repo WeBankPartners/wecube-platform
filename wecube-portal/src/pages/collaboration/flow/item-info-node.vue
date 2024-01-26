@@ -555,8 +555,8 @@ export default {
 <style lang="scss" scoped>
 #itemInfo {
   position: absolute;
-  top: 139px;
-  right: 32px;
+  top: 134px;
+  right: 13px;
   bottom: 0;
   z-index: 10;
   width: 500px;
@@ -603,7 +603,7 @@ export default {
 
   position: fixed;
   top: 400px;
-  right: 531px;
+  right: 514px;
   cursor: pointer;
   box-shadow: 0 0 8px #0892ed80;
 }
