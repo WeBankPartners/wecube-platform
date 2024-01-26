@@ -2,12 +2,16 @@
   <div>
     <div style="display: flex; justify-content: space-between">
       <div class="flow-name" @click="openCanvasPanel">
-        <img src="../flow/icon/back.png" style="width: 24px" @click.stop="backToFlowList" alt="" />
         <span style="vertical-align: middle">{{ itemCustomInfo.name }}</span>
         <Tag>v{{ itemCustomInfo.version }}</Tag>
         <img src="../../../assets/icon/edit-black.png" style="width: 16px; vertical-align: middle" alt="" />
       </div>
       <div>
+        <Button type="primary" ghost @click="backToFlowList">
+          <Icon type="ios-undo-outline" size="16"></Icon>
+          {{ $t('return') }}
+        </Button>
+
         <Button type="primary" v-if="['draft'].includes(itemCustomInfo.status)" @click="releaseFlow">
           <Icon type="ios-paper-plane-outline" size="16"></Icon>
           {{ $t('release_flow') }}

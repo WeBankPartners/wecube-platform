@@ -236,28 +236,43 @@ export default {
           title: '授权插件',
           key: 'authPlugins',
           render: (h, params) => {
-            return (
-              params.row.authPlugins &&
-              params.row.authPlugins.map(i => {
-                return <Tag>{i}</Tag>
-              })
-            )
+            if (params.row.authPlugins.length > 0) {
+              return (
+                params.row.authPlugins &&
+                params.row.authPlugins.map(i => {
+                  return <Tag>{i}</Tag>
+                })
+              )
+            } else {
+              return <span>-</span>
+            }
           }
         },
         {
           title: '操作对象类型',
-          key: 'rootEntity'
+          key: 'rootEntity',
+          render: (h, params) => {
+            if (params.row.rootEntity !== '') {
+              return <div>{params.row.rootEntity}</div>
+            } else {
+              return <span>-</span>
+            }
+          }
         },
         {
           title: '使用角色',
           key: 'rootEntity',
           render: (h, params) => {
-            return (
-              params.row.userRoles &&
-              params.row.userRoles.map(i => {
-                return <Tag>{i}</Tag>
-              })
-            )
+            if (params.row.authPlugins.length > 0) {
+              return (
+                params.row.userRoles &&
+                params.row.userRoles.map(i => {
+                  return <Tag>{i}</Tag>
+                })
+              )
+            } else {
+              return <span>-</span>
+            }
           }
         },
         {
