@@ -158,25 +158,17 @@
             />
           </div>
           <div v-show="!hideRoles.includes(roleDataIndex)">
-            <div v-for="(tableData, tableDataIndex) in roleData.sceneData" :key="tableDataIndex" class="sub-header">
-              <div style="margin: 6px 0">
-                <Icon size="20" type="ios-folder" />
-                <span class="title">{{ tableData.scene }}</span>
-              </div>
-              <div>
-                <Table
-                  class="hide-select-all"
-                  size="small"
-                  :columns="mgmtColumns()"
-                  :data="tableData.dataList"
-                  @on-select-all="onSelectAll"
-                  @on-select="onSelect"
-                  @on-select-cancel="cancelSelect"
-                  @on-selection-change="onSelectionChange"
-                  width="100%"
-                ></Table>
-              </div>
-            </div>
+            <Table
+              class="hide-select-all"
+              size="small"
+              :columns="mgmtColumns()"
+              :data="roleData.dataList"
+              @on-select-all="onSelectAll"
+              @on-select="onSelect"
+              @on-select-cancel="cancelSelect"
+              @on-selection-change="onSelectionChange"
+              width="100%"
+            ></Table>
           </div>
         </div>
       </div>
@@ -191,6 +183,9 @@ import { getCookie } from '@/pages/util/cookie'
 import { flowMgmt, getPluginList, flowList, flowBatchAuth, flowBatchChangeStatus, flowCopy } from '@/api/server.js'
 import FlowAuth from '@/pages/collaboration/flow/flow-auth.vue'
 import dayjs from 'dayjs'
+import eye from '@/assets/icon/eye.png'
+import copy from '@/assets/icon/copy.png'
+import edit from '@/assets/icon/edit-black.png'
 export default {
   components: {
     FlowAuth
@@ -292,41 +287,35 @@ export default {
         {
           title: '操作',
           key: 'action',
-          width: 150,
+          width: 100,
           align: 'left',
           render: (h, params) => {
             const status = params.row.status
             return (
-              <div style="text-align: left">
+              <div style="text-align: left; cursor: pointer;display: inline-flex;">
+                <Tooltip placement="top" content={this.$t('view')}>
+                  <img src={eye} style="width:18px;margin:0 4px;"></img>
+                </Tooltip>
                 {['deployed'].includes(status) && (
-                  <Button
-                    onClick={() => this.copyAction(params.row)}
-                    style="margin-left: 8px"
-                    type="primary"
-                    size="small"
-                  >
-                    {this.$t('copy')}
-                  </Button>
+                  <Tooltip placement="top" content={this.$t('copy')}>
+                    <img src={copy} style="width:18px;margin:0 4px;" onClick={() => this.copyAction(params.row)}>
+                      复制
+                    </img>
+                  </Tooltip>
                 )}
                 {['draft'].includes(status) && (
-                  <Button
-                    onClick={() => this.editAction(params.row)}
-                    style="margin-left: 8px"
-                    type="primary"
-                    size="small"
-                  >
-                    {this.$t('edit')}
-                  </Button>
+                  <Tooltip placement="top" content={this.$t('edit')}>
+                    <img src={edit} style="width:18px;margin:0 4px;" onClick={() => this.editAction(params.row)}>
+                      编辑
+                    </img>
+                  </Tooltip>
                 )}
                 {['deployed'].includes(status) && params.row.enableCreated && (
-                  <Button
-                    onClick={() => this.copyToEditAction(params.row)}
-                    style="margin-left: 8px"
-                    type="primary"
-                    size="small"
-                  >
-                    {this.$t('编辑')}
-                  </Button>
+                  <Tooltip placement="top" content={this.$t('edit')}>
+                    <img src={edit} style="width:18px;margin:0 4px;" onClick={() => this.copyToEditAction(params.row)}>
+                      复制
+                    </img>
+                  </Tooltip>
                 )}
               </div>
             )
