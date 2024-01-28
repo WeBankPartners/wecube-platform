@@ -431,8 +431,7 @@ export default {
     },
     // 获取可选插件
     getPlugin () {
-      console.log(123)
-      // this.getFilteredPluginInterfaceList(this.itemCustomInfo.customAttrs.routineExpression)
+      this.getFilteredPluginInterfaceList(this.itemCustomInfo.customAttrs.routineExpression)
     },
     // #endregion
     // 监听参数变化
