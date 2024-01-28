@@ -18,10 +18,12 @@ import automaticIcon from '../../../icon/automatic.svg'
 import humanIcon from '../../../icon/human.svg'
 import mergeIcon from '../../../icon/merge.svg'
 import forkIcon from '../../../icon/fork.svg'
+import deleteIcon from '../../../icon/delete.svg'
 
 const { iconStyles, nodeStyles, anchorPointStyles, nodeLabelStyles } = defaultStyles
 
 const nodeTypeToImg = {
+  delete: deleteIcon,
   start: startIcon,
   end: endIcon,
   decision: decisionIcon,
@@ -73,7 +75,6 @@ export default G6 => {
       getShapeStyle (cfg) {
         const width = cfg.style.width || 80
         const height = cfg.style.height || 40
-
         return getStyle.call(
           this,
           {
