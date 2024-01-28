@@ -258,9 +258,9 @@ export default {
           'edgeState:default': {
             stroke: '#303030'
           },
-          // 'edgeState:selected': {
-          //   stroke: '#1890FF'
-          // },
+          'edgeState:selected': {
+            stroke: '#1890FF'
+          },
           'edgeState:hover': {
             animate: true,
             animationType: 'dash',
@@ -312,6 +312,7 @@ export default {
             this.graph.removeItem(item)
             this.menuStyle.display = 'none'
             this.itemInfoType = ''
+            this.deleteRemoveNode()
           }
         },
         onCancel: () => {}
@@ -380,23 +381,33 @@ export default {
       })
 
       this.graph.on('after-node-selected', e => {
-        if (this.isExecutionAllowed()) return
-        this.itemInfoType = ''
-        this.$nextTick(() => {
-          if (e && e.item) {
-            const model = e.item.get('model')
-            this.itemInfoType = 'node'
-            this.$nextTick(() => {
-              this.$refs.itemInfoNodeRef &&
-                this.$refs.itemInfoNodeRef.showItemInfo(model, false, this.procDef.rootEntity)
-            })
-            // 设置菜单位置
-            this.menuStyle.left = `${model.x + 50}px`
-            this.menuStyle.top = `${model.y + 100}px`
-            this.menuStyle.display = `block`
-            this.canRemovedId = model.id
+        if (e && e.item) {
+          const model = e.item.get('model')
+          const nodeType = model.customAttrs.nodeType
+          if (nodeType === 'delete') {
+            this.removeItem()
+            return
           }
-        })
+          if (this.isExecutionAllowed()) return
+          this.itemInfoType = ''
+          this.$nextTick(() => {
+            if (e && e.item) {
+              const model = e.item.get('model')
+              this.itemInfoType = 'node'
+              this.$nextTick(() => {
+                this.$refs.itemInfoNodeRef &&
+                  this.$refs.itemInfoNodeRef.showItemInfo(model, false, this.procDef.rootEntity)
+              })
+              this.canRemovedId = model.id
+
+              const point = {
+                x: model.x + 40,
+                y: model.y - 20
+              }
+              this.addRemoveNode(point)
+            }
+          })
+        }
       })
 
       this.graph.on('on-node-mouseenter', e => {
@@ -469,10 +480,6 @@ export default {
               lineWidth: 2
             }
           })
-          // 设置菜单位置
-          this.menuStyle.left = `${model.x + 50}px`
-          this.menuStyle.top = `${model.y + 100}px`
-          this.menuStyle.display = `block`
           this.canRemovedId = model.id
         }
       })
@@ -591,32 +598,32 @@ export default {
 
       // 注册边点击事件
       this.graph.on('edge:click', e => {
+        this.deleteRemoveNode()
         if (this.isExecutionAllowed()) return
         const edge = e.item
         if (e && edge) {
           const model = edge.get('model')
           // 处理节点点击事件的逻辑
-          console.log('edge Clicked:', model)
-
-          const selected = edge.hasState('selected')
-          if (selected) {
-            this.graph.setItemState(edge, 'selected', false)
-          } else {
-            this.graph.setItemState(edge, 'selected', true)
+          const point = {
+            x: e.x,
+            y: e.y - 20
           }
+          this.addRemoveNode(point)
+
+          // const selected = edge.hasState('selected')
+          // if (selected) {
+          //   this.graph.setItemState(edge, 'selected', false)
+          // } else {
+          //   this.graph.setItemState(edge, 'selected', true)
+          // }
           this.itemInfoType = 'edge'
           this.$refs.itemInfoEdgeRef.showItemInfo(model)
-
-          // 设置菜单位置
-          this.menuStyle.left = `${e.x + 50}px`
-          this.menuStyle.top = `${e.y + 120}px`
-          this.menuStyle.display = `block`
-          this.canRemovedId = model.id
         }
       })
 
       // 注册画布点击事件
       this.graph.on('canvas:click', e => {
+        this.deleteRemoveNode()
         this.$nextTick(() => {
           if (this.isExecutionAllowed()) return
           this.itemInfoType = 'canvas'
@@ -646,7 +653,6 @@ export default {
         return
       }
       label = this.nameCheck(label)
-      console.log(label)
       const id = `pdef_node_${this.uuid(16, 16)}`
       const model = {
         id,
@@ -692,6 +698,43 @@ export default {
       this.$nextTick(() => {
         this.$refs.itemInfoNodeRef.showItemInfo(model, true, this.procDef.rootEntity)
       })
+    },
+    // 移除删除入口
+    deleteRemoveNode () {
+      const item = this.graph.findById('remove_node')
+      this.graph.removeItem(item)
+    },
+    // 选中节点或线时，为其添加删除入口
+    addRemoveNode ({ x, y }) {
+      const id = `remove_node`
+      const model = {
+        id,
+        label: '',
+        // 形状
+        type: 'circle-node',
+        style: {
+          fill: 'white',
+          stroke: 'red',
+          lineWidth: 1,
+          r: 16
+        },
+        logoIcon: {
+          show: true,
+          x: -10,
+          y: -10,
+          width: 18,
+          height: 18,
+          offset: 0
+        },
+        customAttrs: {
+          nodeType: 'delete'
+        },
+        anchorPoints: [],
+        // 坐标
+        x,
+        y
+      }
+      this.graph.addItem('node', model)
     },
     uuid (len, radix) {
       let chars = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz'.split('')
@@ -789,8 +832,13 @@ export default {
       }
     },
     hideItemInfo () {
+      this.deleteRemoveNode()
       this.itemInfoType = ''
       this.menuStyle.display = 'none'
+      if (this.canRemovedId) {
+        const item = this.graph.findById(this.canRemovedId)
+        this.graph.clearItemStates(item)
+      }
     }
     // #endregion
   }
