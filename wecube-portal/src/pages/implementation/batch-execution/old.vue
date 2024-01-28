@@ -1616,9 +1616,6 @@ pre {
 .ivu-form-item-label {
   margin-bottom: 4px !important;
 }
-.ivu-form-item {
-  margin-bottom: 0 !important;
-}
 .ivu-tree-children li {
   margin: 0 !important;
   line-height: 24px;
