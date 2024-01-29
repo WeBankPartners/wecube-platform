@@ -65,3 +65,8 @@ type RestUserPasswordResponse struct {
 	HttpResponseMeta
 	Data string `json:"data"`
 }
+
+type LoginResponse struct {
+	HttpResponseMeta
+	Data []JwtTokenDto `json:"data"`
+}
