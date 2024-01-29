@@ -138,13 +138,22 @@ type ResourceData struct {
 	BusinessKeyValue string `json:"businessKeyValue"`
 }
 
-type BatchExecutionPluginExecParam struct {
+type BatchExecutionItsdangerousExecParam struct {
 	Operator        string                                     `json:"operator"`
 	ServiceName     string                                     `json:"serviceName"`
 	ServicePath     string                                     `json:"servicePath"`
 	EntityType      string                                     `json:"entityType"`
 	EntityInstances []*BatchExecutionPluginExecEntityInstances `json:"entityInstances"`
 	InputParams     []BatchExecutionPluginExecInputParams      `json:"inputParams"`
+}
+
+type BatchExecutionPluginExecParam struct {
+	RequestId       string                                     `json:"requestId"`
+	Operator        string                                     `json:"operator"`
+	ServiceName     string                                     `json:"serviceName"`
+	ServicePath     string                                     `json:"servicePath"`
+	EntityInstances []*BatchExecutionPluginExecEntityInstances `json:"entityInstances"`
+	Inputs          []BatchExecutionPluginExecInputParams      `json:"inputs"`
 }
 
 type BatchExecutionPluginExecEntityInstances struct {

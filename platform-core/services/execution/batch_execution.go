@@ -51,7 +51,10 @@ func BatchExecutionCallPluginService(ctx context.Context, operator, authToken, p
 					err = fmt.Errorf("input param %s is map to %s, but variable name is empty", input.Name, input.MappingType)
 					return
 				}
-				database.GetSystemVariable(context.Background(), input.MappingSystemVariableName)
+				inputCalResult, err = database.GetSystemVariable(context.Background(), input.MappingSystemVariableName)
+				if err != nil {
+					return
+				}
 			case models.PluginParamMapTypeContext:
 				// TODO: 从上下文参数获取是否支持???
 				err = fmt.Errorf("input param %s is map to %s, which batch execution is not supported", input.Name, input.MappingType)
@@ -95,10 +98,10 @@ func BatchExecutionCallPluginService(ctx context.Context, operator, authToken, p
 				return
 			}
 		}
-		inputParamDatas = append(inputParamDatas)
+		inputParamDatas = append(inputParamDatas, inputParamData)
 	}
 	// 调用高危插件
-	pluginCallParam := &models.BatchExecutionPluginExecParam{
+	itsdangerousCallParam := &models.BatchExecutionItsdangerousExecParam{
 		Operator:        operator,
 		ServiceName:     pluginInterface.ServiceName,
 		ServicePath:     pluginInterface.ServiceDisplayName,
@@ -107,7 +110,9 @@ func BatchExecutionCallPluginService(ctx context.Context, operator, authToken, p
 		InputParams:     inputParamDatas,
 	}
 	// 需要有运行时的高危插件
-	dangerousResult, errDangerous := performDangerousCheck(ctx, pluginCallParam, continueToken)
+	// FIXME: 调用高危命令需要获取subsystem token
+	checkToken := authToken
+	dangerousResult, errDangerous := performDangerousCheck(ctx, itsdangerousCallParam, continueToken, checkToken)
 	if errDangerous != nil {
 		err = errDangerous
 		return
@@ -117,7 +122,15 @@ func BatchExecutionCallPluginService(ctx context.Context, operator, authToken, p
 		return
 	}
 	// 调用插件接口
-	result, err = remote.PluginInterfaceApi(ctx, authToken, pluginInterface)
+	pluginCallParam := &models.BatchExecutionPluginExecParam{
+		RequestId:       "",
+		Operator:        operator,
+		ServiceName:     pluginInterface.ServiceName,
+		ServicePath:     pluginInterface.ServiceDisplayName,
+		EntityInstances: entityInstances,
+		Inputs:          inputParamDatas,
+	}
+	result, err = remote.PluginInterfaceApi(ctx, authToken, pluginInterface, pluginCallParam)
 	// TODO: 处理output param(比如类型转换，assign)
 	return
 }
@@ -142,13 +155,13 @@ func normalizePluginInterfaceParamData(inputParamDef *models.PluginConfigInterfa
 			// FIXME： 列表元素类型转换
 			result = value
 		} else {
-			if t.Len() == 0 && inputParamDef.Required == "Y" {
+			tv := reflect.ValueOf(value)
+			if tv.Len() == 0 && inputParamDef.Required == "Y" {
 				return nil, fmt.Errorf("field:%s input data is empty list but required", inputParamDef.Name)
 			}
-			if t.Len() != 1 {
-				return nil, fmt.Errorf("field:%s input data len=%d but trying to convert to single value", t.Len())
+			if tv.Len() != 1 {
+				return nil, fmt.Errorf("field:%s input data len=%d but trying to convert to single value", inputParamDef.Name, tv.Len())
 			}
-			tv := reflect.ValueOf(value)
 			// 列表转单值
 			valueToSingle := tv.Index(0).Interface()
 			tToSingle := reflect.TypeOf(valueToSingle)
@@ -157,6 +170,7 @@ func normalizePluginInterfaceParamData(inputParamDef *models.PluginConfigInterfa
 				if err != nil {
 					return nil, err
 				}
+				result = convValue
 				// 转换为列表
 				if inputParamDef.Multiple == "Y" {
 					result = []interface{}{convValue}
@@ -166,6 +180,7 @@ func normalizePluginInterfaceParamData(inputParamDef *models.PluginConfigInterfa
 				if err != nil {
 					return nil, err
 				}
+				result = convValue
 				// 转换为列表
 				if inputParamDef.Multiple == "Y" {
 					result = []interface{}{convValue}
@@ -192,6 +207,7 @@ func normalizePluginInterfaceParamData(inputParamDef *models.PluginConfigInterfa
 			if err != nil {
 				return nil, err
 			}
+			result = convValue
 			// 转换为列表
 			if inputParamDef.Multiple == "Y" {
 				result = []interface{}{convValue}
@@ -201,6 +217,7 @@ func normalizePluginInterfaceParamData(inputParamDef *models.PluginConfigInterfa
 			if err != nil {
 				return nil, err
 			}
+			result = convValue
 			// 转换为列表
 			if inputParamDef.Multiple == "Y" {
 				result = []interface{}{convValue}
@@ -260,7 +277,7 @@ func convertToDatatypeString(name string, value interface{}, valueType reflect.T
 	return
 }
 
-func performDangerousCheck(ctx context.Context, pluginCallParam interface{}, continueToken string) (result *models.ItsdangerousCheckResultData, err error) {
+func performDangerousCheck(ctx context.Context, pluginCallParam interface{}, continueToken string, authToken string) (result *models.ItsdangerousCheckResultData, err error) {
 	// 是否有continueToken，有则跳过
 	if continueToken != "" {
 		return
@@ -272,9 +289,7 @@ func performDangerousCheck(ctx context.Context, pluginCallParam interface{}, con
 	} else if len(instances) == 0 {
 		return
 	}
-	// TODO: 调用高危命令需要获取subsystem token
-	token := ""
 	// 调用检查
-	result, err = remote.DangerousBatchCheck(ctx, token)
+	result, err = remote.DangerousBatchCheck(ctx, authToken)
 	return
 }

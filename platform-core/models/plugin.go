@@ -667,10 +667,9 @@ func ConvertCoreObjectMeta2Dto(objectMeta *CoreObjectMeta) *CoreObjectMetaDto {
 }
 
 type PluginInterfaceApiResult struct {
-	Code    int                           `json:"code"`    // 小于400是正常
-	Status  string                        `json:"status"`  // 正常时返回OK
-	Message string                        `json:"message"` // 错误消息
-	Data    *PluginInterfaceApiResultData `json:"data"`    // 数据
+	ResultCode    string                        `json:"resultCode"`    // 0是正常
+	ResultMessage string                        `json:"resultMessage"` // 正常时返回OK
+	Results       *PluginInterfaceApiResultData `json:"results"`       // 数据
 }
 
 type PluginInterfaceApiResultData struct {
