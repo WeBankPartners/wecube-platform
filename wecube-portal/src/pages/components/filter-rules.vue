@@ -24,7 +24,7 @@
       <div slot="content">
         <div v-show="!disabled" ref="filter_rules_path_options" class="filter_rules_path_options">
           <ul>
-            <li id="paste" style="margin-bottom: 5px;" v-if="pathList.length === 0">
+            <li id="paste" style="margin-bottom: 5px" v-if="pathList.length === 0">
               <input
                 class="paste_input"
                 v-model="pasteValue"
@@ -45,23 +45,23 @@
               {{ $t('add_filter_rule') }}
             </li>
             <li>
-              <Input prefix="ios-search" v-model="filterString" size="small" style="width:100%" />
+              <Input prefix="ios-search" v-model="filterString" size="small" style="width: 100%" />
             </li>
           </ul>
-          <hr style="margin-top:5px;" />
-          <div style="max-height: 145px;overflow: auto;margin-top:5px;">
+          <hr style="margin-top: 5px" />
+          <div style="max-height: 145px; overflow: auto; margin-top: 5px">
             <ul
               v-if="!needNativeAttr"
               v-for="opt in filterCurrentLeafOptiongs"
               :key="opt.pathExp + Math.random() * 1000"
             >
-              <li style="color:rgb(49, 104, 4)" @click="optClickHandler(opt, 'leaf')">{{ opt.pathExp }}</li>
+              <li style="color: rgb(49, 104, 4)" @click="optClickHandler(opt, 'leaf')">{{ opt.pathExp }}</li>
             </ul>
             <ul v-for="opt in filterCurrentRefOptiongs" :key="opt.pathExp + Math.random() * 1000">
-              <li style="color:rgb(64, 141, 218)" @click="optClickHandler(opt, 'up')">{{ opt.pathExp }}</li>
+              <li style="color: rgb(64, 141, 218)" @click="optClickHandler(opt, 'up')">{{ opt.pathExp }}</li>
             </ul>
             <ul v-for="opt in filterCurrentOptiongs" :key="opt.pathExp + Math.random() * 1000">
-              <li style="color:rgb(211, 82, 32)" @click="optClickHandler(opt, 'down')">{{ opt.pathExp }}</li>
+              <li style="color: rgb(211, 82, 32)" @click="optClickHandler(opt, 'down')">{{ opt.pathExp }}</li>
             </ul>
           </div>
         </div>
@@ -69,7 +69,7 @@
     </Poptip>
     <Modal v-model="modelVisable" :title="$t('filter_rule')" @on-ok="okHandler" @on-cancel="cancelHandler">
       <Row style="margin-bottom: 10px" v-for="(rule, index) in currentPathFilterRules" :key="index">
-        <Col span="1" style="margin-top: 4px;"
+        <Col span="1" style="margin-top: 4px"
           ><Button type="error" icon="ios-trash-outline" @click="deleteFilterRule(index)" size="small"></Button
         ></Col>
         <Col span="8" offset="1">
@@ -562,6 +562,11 @@ export default {
   max-height: 250px;
   overflow: auto;
 }
+.filter_rules_contain {
+  display: inline-block;
+  background: white;
+}
+
 .filter_rules_contain .ivu-poptip {
   width: 100%;
 }
