@@ -11,6 +11,7 @@ services:
     ports:
       - "[@HOSTIP]:[#http_port]:8000"
     environment:
+      - version={{version}}
       - log_level=[#log_level]
       - password_private_key_path=/app/platform-core/config/certs/[#wecube_private_key]
       - https_enable=[#https_enable]
