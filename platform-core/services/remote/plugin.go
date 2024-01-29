@@ -90,6 +90,7 @@ func AnalyzeExpression(express string) (result []*models.ExpressionObj, err erro
 	ciList = append(ciList, express[cursor:])
 	// analyze each ci segment
 	var expressionSqlList []*models.ExpressionObj
+	ciListLen := len(ciList)
 	for i, ci := range ciList {
 		eso := models.ExpressionObj{}
 		if strings.HasPrefix(ci, ">") {
@@ -127,6 +128,11 @@ func AnalyzeExpression(express string) (result []*models.ExpressionObj, err erro
 		}
 		if err != nil {
 			return
+		}
+		if ci[0] == 46 {
+			if i == ciListLen-1 {
+				eso.ResultColumn = ci[1:]
+			}
 		}
 		entitySplitList := strings.Split(eso.Entity, ":")
 		if len(entitySplitList) != 2 {
