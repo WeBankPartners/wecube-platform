@@ -210,11 +210,8 @@
 import axios from 'axios'
 import { getCookie } from '@/pages/util/cookie'
 import { flowMgmt, getPluginList, flowList, flowBatchAuth, flowBatchChangeStatus, flowCopy } from '@/api/server.js'
-import FlowAuth from '@/pages/collaboration/flow/flow-auth.vue'
+import FlowAuth from '@/pages/components/auth.vue'
 import dayjs from 'dayjs'
-import eye from '@/assets/icon/eye.png'
-import copy from '@/assets/icon/copy.png'
-import edit from '@/assets/icon/edit-black.png'
 export default {
   components: {
     FlowAuth
@@ -353,28 +350,51 @@ export default {
             const status = params.row.status
             return (
               <div style="text-align: left; cursor: pointer;display: inline-flex;">
-                <Tooltip placement="top" content={this.$t('view')}>
-                  <img src={eye} style="width:18px;margin:0 4px;" onClick={() => this.viewAction(params.row)}></img>
+                <Tooltip content={this.$t('view')} placement="top">
+                  <Button
+                    size="small"
+                    type="primary"
+                    onClick={() => this.viewAction(params.row)}
+                    style="margin-right:5px;"
+                  >
+                    <Icon type="md-eye" size="16"></Icon>
+                  </Button>
                 </Tooltip>
+
                 {['deployed'].includes(status) && (
-                  <Tooltip placement="top" content={this.$t('copy')}>
-                    <img src={copy} style="width:18px;margin:0 4px;" onClick={() => this.copyAction(params.row)}>
-                      复制
-                    </img>
+                  <Tooltip content={this.$t('copy')} placement="top">
+                    <Button
+                      size="small"
+                      type="success"
+                      onClick={() => this.copyAction(params.row)}
+                      style="margin-right:5px;"
+                    >
+                      <Icon type="md-copy" size="16"></Icon>
+                    </Button>
                   </Tooltip>
                 )}
                 {['draft'].includes(status) && (
-                  <Tooltip placement="top" content={this.$t('edit')}>
-                    <img src={edit} style="width:18px;margin:0 4px;" onClick={() => this.editAction(params.row)}>
-                      编辑
-                    </img>
+                  <Tooltip content={this.$t('edit')} placement="top">
+                    <Button
+                      size="small"
+                      type="success"
+                      onClick={() => this.editAction(params.row)}
+                      style="margin-right:5px;"
+                    >
+                      <Icon type="ios-create-outline" size="16"></Icon>
+                    </Button>
                   </Tooltip>
                 )}
                 {['deployed'].includes(status) && params.row.enableCreated && (
-                  <Tooltip placement="top" content={this.$t('edit')}>
-                    <img src={edit} style="width:18px;margin:0 4px;" onClick={() => this.copyToEditAction(params.row)}>
-                      复制
-                    </img>
+                  <Tooltip content={this.$t('edit')} placement="top">
+                    <Button
+                      size="small"
+                      type="success"
+                      onClick={() => this.copyToEditAction(params.row)}
+                      style="margin-right:5px;"
+                    >
+                      <Icon type="md-copy" size="16"></Icon>
+                    </Button>
                   </Tooltip>
                 )}
               </div>
@@ -554,9 +574,16 @@ export default {
               title: 'Success',
               desc: message
             })
-            this.getFlowList()
-            this.selectedParams.ids = []
-            this.selectedParams.names = []
+            this.$nextTick(() => {
+              if (state === 'disabled') {
+                this.searchParams.status = 'disabled'
+              } else if (state === 'enabled') {
+                this.searchParams.status = 'deployed'
+              }
+              this.getFlowList()
+              this.selectedParams.ids = []
+              this.selectedParams.names = []
+            })
           }
         },
         onCancel: () => {}

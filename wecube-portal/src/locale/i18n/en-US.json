@@ -553,5 +553,6 @@
   "tw_recent_one_year": "Last Year",
   "tw_auto": "Custom",
   "view": "View",
-  "role_admin": "Role Admin"
+  "role_admin": "Role Admin",
+  "chooseOne": "You can only choose one primary role."
 }

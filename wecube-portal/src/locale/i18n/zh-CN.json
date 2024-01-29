@@ -552,5 +552,6 @@
   "tw_recent_one_year": "近一年",
   "tw_auto": "自定义",
   "view": "查看",
-  "role_admin": "角色管理员"
+  "role_admin": "角色管理员",
+  "chooseOne": "只能选择一个属主角色"
 }

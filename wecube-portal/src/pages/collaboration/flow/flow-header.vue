@@ -6,47 +6,41 @@
         <Tag>v{{ itemCustomInfo.version }}</Tag>
         <img src="../../../assets/icon/edit-black.png" style="width: 16px; vertical-align: middle" alt="" />
       </div>
-      <Button type="primary" ghost @click="backToFlowList">
-        <Icon type="ios-undo-outline" size="16"></Icon>
-        {{ $t('return') }}
-      </Button>
-      <div v-if="editFlow !== 'false'">
-        <Button type="primary" v-if="['draft'].includes(itemCustomInfo.status)" @click="releaseFlow">
-          <Icon type="ios-paper-plane-outline" size="16"></Icon>
-          {{ $t('release_flow') }}
+      <div>
+        <Button type="primary" ghost @click="backToFlowList">
+          <Icon type="ios-undo-outline" size="16"></Icon>
+          {{ $t('return') }}
         </Button>
-        <Button type="success" v-if="['deployed'].includes(itemCustomInfo.status)" @click="exportFlow">
-          <img src="../../../assets/icon/export.png" class="btn-img" alt="" />
-          {{ $t('export_flow') }}{{ editFlow }}
-        </Button>
-        <Button type="info" v-if="['draft', 'deployed'].includes(itemCustomInfo.status)" @click="changePermission">
-          <Icon type="ios-person-outline" size="16"></Icon>
-          {{ $t('config_permission') }}
-        </Button>
-        <!-- <Button
-          type="error"
-          v-if="['draft'].includes(itemCustomInfo.status)"
-          @click="changeStatus('deleted', 'delete')"
-        >
-          <Icon type="ios-trash-outline" size="16"></Icon>
-          {{ $t('delete') }}
-        </Button> -->
-        <Button
-          type="error"
-          v-if="['deployed'].includes(itemCustomInfo.status)"
-          @click="changeStatus('disabled', 'disable')"
-        >
-          <img src="../../../assets/icon/disable.png" style="width: 16px; vertical-align: middle" alt="" />
-          {{ $t('disable') }}
-        </Button>
-        <Button
-          type="success"
-          v-if="['disabled'].includes(itemCustomInfo.status)"
-          @click="changeStatus('enabled', 'enable')"
-        >
-          <img src="../../../assets/icon/enable.png" style="width: 16px; vertical-align: middle" alt="" />
-          {{ $t('enable') }}
-        </Button>
+        <template v-if="editFlow !== 'false'">
+          <Button type="primary" v-if="['draft'].includes(itemCustomInfo.status)" @click="releaseFlow">
+            <Icon type="ios-paper-plane-outline" size="16"></Icon>
+            {{ $t('release_flow') }}
+          </Button>
+          <Button type="success" v-if="['deployed'].includes(itemCustomInfo.status)" @click="exportFlow">
+            <img src="../../../assets/icon/export.png" class="btn-img" alt="" />
+            {{ $t('export_flow') }}{{ editFlow }}
+          </Button>
+          <Button type="warning" v-if="['draft', 'deployed'].includes(itemCustomInfo.status)" @click="changePermission">
+            <Icon type="ios-person-outline" size="16"></Icon>
+            {{ $t('config_permission') }}
+          </Button>
+          <Button
+            type="error"
+            v-if="['deployed'].includes(itemCustomInfo.status)"
+            @click="changeStatus('disabled', 'disable')"
+          >
+            <img src="../../../assets/icon/disable.png" style="width: 16px; vertical-align: middle" alt="" />
+            {{ $t('disable') }}
+          </Button>
+          <Button
+            type="success"
+            v-if="['disabled'].includes(itemCustomInfo.status)"
+            @click="changeStatus('enabled', 'enable')"
+          >
+            <img src="../../../assets/icon/enable.png" style="width: 16px; vertical-align: middle" alt="" />
+            {{ $t('enable') }}
+          </Button>
+        </template>
       </div>
     </div>
 
@@ -58,7 +52,7 @@
 import axios from 'axios'
 import { getCookie } from '@/pages/util/cookie'
 import dayjs from 'dayjs'
-import FlowAuth from '@/pages/collaboration/flow/flow-auth.vue'
+import FlowAuth from '@/pages/components/auth.vue'
 import { flowBatchChangeStatus, flowRelease } from '@/api/server.js'
 export default {
   components: {
