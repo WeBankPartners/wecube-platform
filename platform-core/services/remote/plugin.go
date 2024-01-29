@@ -326,7 +326,7 @@ func DangerousBatchCheck(ctx context.Context, token string) (result *models.Itsd
 	return
 }
 
-func PluginInterfaceApi(ctx context.Context, token string, pluginInterface *models.PluginConfigInterfaces) (result *models.PluginInterfaceApiResultData, err error) {
+func PluginInterfaceApi(ctx context.Context, token string, pluginInterface *models.PluginConfigInterfaces, reqParam *models.BatchExecutionPluginExecParam) (result *models.PluginInterfaceApiResultData, err error) {
 	uri := fmt.Sprintf("%s%s", models.Config.Gateway.Url, pluginInterface.Path)
 	if models.Config.HttpsEnable == "true" {
 		uri = "https://" + uri
@@ -334,7 +334,13 @@ func PluginInterfaceApi(ctx context.Context, token string, pluginInterface *mode
 		uri = "http://" + uri
 	}
 	urlObj, _ := url.Parse(uri)
-	req, reqErr := http.NewRequest(pluginInterface.HttpMethod, urlObj.String(), nil)
+
+	var reqBodyReader io.Reader
+	if reqParam != nil {
+		reqBody, _ := json.Marshal(reqParam)
+		reqBodyReader = bytes.NewReader(reqBody)
+	}
+	req, reqErr := http.NewRequest(pluginInterface.HttpMethod, urlObj.String(), reqBodyReader)
 	if reqErr != nil {
 		err = fmt.Errorf("new request fail,%s ", reqErr.Error())
 		return
@@ -360,10 +366,10 @@ func PluginInterfaceApi(ctx context.Context, token string, pluginInterface *mode
 		err = fmt.Errorf("json unmarshal response body fail,%s ", err.Error())
 		return
 	}
-	if response.Status != models.DefaultHttpSuccessCode {
-		err = fmt.Errorf(response.Message)
+	if response.ResultCode != "0" {
+		err = fmt.Errorf(response.ResultMessage)
 		return
 	}
-	result = response.Data
+	result = response.Results
 	return
 }
