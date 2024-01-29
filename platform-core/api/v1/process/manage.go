@@ -521,7 +521,7 @@ func AddOrUpdateProcDefTaskNodes(c *gin.Context) {
 	}
 	// 节点名称不能重复
 	if nameRepeat {
-		middleware.ReturnError(c, exterror.Catch(exterror.New().ProcDefNodeNameRepeatError, nil))
+		middleware.ReturnError(c, exterror.Catch(exterror.New().ProcDefNodeNameRepeatError.WithParam(param.ProcDefNodeCustomAttrs.Name), nil))
 		return
 	}
 	node := models.ConvertParam2ProcDefNode(user, param)
@@ -1130,14 +1130,12 @@ func checkDeployedProcDef(ctx context.Context, procDefId string) error {
 	var err error
 	var nodeMap = make(map[string]*models.ProcDefNode)
 	var startNodeNameList, endNodeNameList []string
-	// 是否有单进单出
-	var hasSingleInOut bool
 	list, err = database.GetProcDefNodeById(ctx, procDefId)
 	if len(list) == 0 {
 		return exterror.Catch(exterror.New().ProcDefNode20000009Error, nil)
 	}
-	if checkProcDefNodeNameRepeat(list) {
-		return exterror.Catch(exterror.New().ProcDefNodeNameRepeatError, nil)
+	if repeatName := checkProcDefNodeNameRepeat(list); repeatName != "" {
+		return exterror.Catch(exterror.New().ProcDefNodeNameRepeatError.WithParam(repeatName), nil)
 	}
 	linkList, err = database.GetProcDefNodeLinkListByProcDefId(ctx, procDefId)
 	if err != nil {
@@ -1189,9 +1187,9 @@ func checkDeployedProcDef(ctx context.Context, procDefId string) error {
 				}
 			}
 		default:
-			//除 分流、汇聚、判断 这三种节点外，其它所有节点必须有单进单出(开始和结束特殊)
-			if inCount == 1 && outCount == 1 {
-				hasSingleInOut = true
+			// 任务3种节点、时间2种节点仅支持单进单出.
+			if inCount != 1 || outCount != 1 {
+				return exterror.Catch(exterror.New().ProcDefNode20000010Error.WithParam(node.Name), nil)
 			}
 		}
 	}
@@ -1200,9 +1198,6 @@ func checkDeployedProcDef(ctx context.Context, procDefId string) error {
 		startNodeName := strings.Join(startNodeNameList, ",")
 		endNodeName := strings.Join(endNodeNameList, ",")
 		return exterror.Catch(exterror.New().ProcDefNode20000007Error.WithParam(startNodeName, endNodeName), nil)
-	}
-	if !hasSingleInOut {
-		return exterror.Catch(exterror.New().ProcDefNode20000010Error, nil)
 	}
 	// 线的两边不能都是分流或汇聚
 	for _, link := range linkList {
@@ -1221,18 +1216,18 @@ func checkDeployedProcDef(ctx context.Context, procDefId string) error {
 }
 
 // checkProcDefNodeNameRepeat 判断节点名称是否重复
-func checkProcDefNodeNameRepeat(list []*models.ProcDefNode) bool {
+func checkProcDefNodeNameRepeat(list []*models.ProcDefNode) string {
 	var hashMap = make(map[string]bool)
 	if len(list) == 0 {
-		return false
+		return ""
 	}
 	for _, node := range list {
+		if hashMap[node.Name] {
+			return node.Name
+		}
 		hashMap[node.Name] = true
 	}
-	if len(list) == len(hashMap) {
-		return false
-	}
-	return true
+	return ""
 }
 
 // calcProcDefVersion 计算编排版本
