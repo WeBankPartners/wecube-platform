@@ -174,6 +174,27 @@ func GetTemplate(c *gin.Context) {
 	return
 }
 
+func DeleteTemplate(c *gin.Context) {
+	defer try.ExceptionStack(func(e interface{}, err interface{}) {
+		retErr := fmt.Errorf("%v", err)
+		middleware.ReturnError(c, exterror.Catch(exterror.New().ServerHandleError, retErr))
+		log.Logger.Error(e.(string))
+	})
+
+	templateId := c.Param("templateId")
+	if templateId == "" {
+		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, fmt.Errorf("templateId cannot be empty")))
+		return
+	}
+	err := database.DeleteTemplate(c, templateId)
+	if err != nil {
+		middleware.ReturnError(c, err)
+	} else {
+		middleware.ReturnSuccess(c)
+	}
+	return
+}
+
 func UpdateTemplatePermission(c *gin.Context) {
 	defer try.ExceptionStack(func(e interface{}, err interface{}) {
 		retErr := fmt.Errorf("%v", err)

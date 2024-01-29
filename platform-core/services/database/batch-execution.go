@@ -484,6 +484,51 @@ func GetTemplate(c *gin.Context, templateId string) (result *models.BatchExecuti
 	return
 }
 
+func DeleteTemplate(c *gin.Context, templateId string) (err error) {
+	var actions []*db.ExecAction
+	var templateData []*models.BatchExecutionTemplate
+	err = db.MysqlEngine.Context(c).Table(models.TableNameBatchExecTemplate).
+		Where("id = ?", templateId).
+		Find(&templateData)
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
+		return
+	}
+	if len(templateData) == 0 {
+		err = fmt.Errorf("templateId: %s is invalid", templateId)
+		return
+	}
+	templateInfo := templateData[0]
+
+	// delete batchExecTemplate
+	action := &db.ExecAction{
+		Sql:   db.CombineDBSql("DELETE FROM ", models.TableNameBatchExecTemplate, " WHERE id=?"),
+		Param: []interface{}{templateInfo.Id},
+	}
+	actions = append(actions, action)
+
+	// delete batchExecTemplateRole
+	action = &db.ExecAction{
+		Sql:   db.CombineDBSql("DELETE FROM ", models.TableNameBatchExecTemplateRole, " WHERE batch_execution_template_id=?"),
+		Param: []interface{}{templateInfo.Id},
+	}
+	actions = append(actions, action)
+
+	// delete batchExecTemplateCollect
+	action = &db.ExecAction{
+		Sql:   db.CombineDBSql("DELETE FROM ", models.TableNameBatchExecTemplateCollect, " WHERE batch_execution_template_id = ?"),
+		Param: []interface{}{templateInfo.Id},
+	}
+	actions = append(actions, action)
+
+	err = db.Transaction(actions, c)
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseExecuteError, err)
+		return
+	}
+	return
+}
+
 func UpdateTemplatePermission(c *gin.Context, reqParam *models.BatchExecutionTemplate) (result *models.BatchExecutionTemplate, err error) {
 	var actions []*db.ExecAction
 	now := time.Now()
