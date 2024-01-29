@@ -6,6 +6,7 @@ import (
 	"github.com/WeBankPartners/go-common-lib/guid"
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/db"
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/exterror"
+	"github.com/WeBankPartners/wecube-platform/platform-core/common/log"
 	"github.com/WeBankPartners/wecube-platform/platform-core/models"
 	"strings"
 	"time"
@@ -232,6 +233,8 @@ func SyncPluginDataModels(ctx context.Context, packageName string, allModels []*
 	actions = append(actions, &db.ExecAction{Sql: "INSERT INTO plugin_package_data_model (id,`version`,package_name,is_dynamic,update_path,update_method,update_source,updated_time,update_time) VALUES (?,?,?,?,?,?,?,?,?)", Param: []interface{}{
 		dmId, maxVersion, packageName, 1, "/data-model", "GET", "PLUGIN_PACKAGE", nowTime, nowTime.UnixMilli(),
 	}})
+	curEntityAttrMap := make(map[string]string)
+	refAttrMap := make(map[string]string)
 	for _, entity := range allModels {
 		entityId := "p_mod_entity_" + guid.CreateGuid()
 		actions = append(actions, &db.ExecAction{Sql: "INSERT INTO plugin_package_entities (id,data_model_id,data_model_version,package_name,name,display_name,description) VALUES (?,?,?,?,?,?,?)", Param: []interface{}{
@@ -239,20 +242,54 @@ func SyncPluginDataModels(ctx context.Context, packageName string, allModels []*
 		}})
 		for attrIndex, attr := range entity.Attributes {
 			attrId := "p_mod_attr_" + guid.CreateGuid()
+			curEntityAttrMap[fmt.Sprintf("%s^%s^%s", packageName, entity.Name, attr.Name)] = attrId
 			tmpMultiple := false
 			if attr.Multiple == "Y" {
 				tmpMultiple = true
 			} else {
 				attr.Multiple = "N"
 			}
-			actions = append(actions, &db.ExecAction{Sql: "INSERT INTO plugin_package_attributes (id,entity_id,name,description,data_type,mandatory,multiple,is_array,created_time,order_no) values  (?,?,?,?,?,?,?,?,?,?)", Param: []interface{}{
-				attrId, entityId, attr.Name, attr.Description, attr.DataType, 0, attr.Multiple, tmpMultiple, nowTime, attrIndex,
-			}})
+			if attr.DataType == "ref" {
+				actions = append(actions, &db.ExecAction{Sql: "INSERT INTO plugin_package_attributes (id,entity_id,name,description,data_type,ref_package,ref_entity,ref_attr,mandatory,multiple,is_array,created_time,order_no) values  (?,?,?,?,?,?,?,?,?,?,?,?,?)", Param: []interface{}{
+					attrId, entityId, attr.Name, attr.Description, attr.DataType, attr.RefPackageName, attr.RefEntityName, attr.RefAttributeName, 0, attr.Multiple, tmpMultiple, nowTime, attrIndex,
+				}})
+				refAttrMap[attrId] = fmt.Sprintf("%s^%s^%s", attr.RefPackageName, attr.RefEntityName, attr.RefAttributeName)
+			} else {
+				actions = append(actions, &db.ExecAction{Sql: "INSERT INTO plugin_package_attributes (id,entity_id,name,description,data_type,mandatory,multiple,is_array,created_time,order_no) values  (?,?,?,?,?,?,?,?,?,?)", Param: []interface{}{
+					attrId, entityId, attr.Name, attr.Description, attr.DataType, 0, attr.Multiple, tmpMultiple, nowTime, attrIndex,
+				}})
+			}
+		}
+	}
+	if len(refAttrMap) > 0 {
+		for k, v := range refAttrMap {
+			targetRefAttrId := curEntityAttrMap[v]
+			if targetRefAttrId == "" {
+				tmpVList := strings.Split(v, "^")
+				if len(tmpVList) == 3 {
+					targetRefAttrId = getLatestDataModelAttrId(ctx, tmpVList[0], tmpVList[1], tmpVList[2])
+				}
+			}
+			if targetRefAttrId != "" {
+				actions = append(actions, &db.ExecAction{Sql: "update plugin_package_attributes set reference_id=? where id=?", Param: []interface{}{targetRefAttrId, k}})
+			}
 		}
 	}
 	err = db.Transaction(actions, ctx)
 	if err != nil {
 		err = exterror.Catch(exterror.New().DatabaseExecuteError, err)
+	}
+	return
+}
+
+func getLatestDataModelAttrId(ctx context.Context, packageName, entityName, attrName string) (attrId string) {
+	queryResult, queryErr := db.MysqlEngine.Context(ctx).QueryString("select t1.id from plugin_package_attributes t1 left join plugin_package_entities t2 on t1.entity_id=t2.id where t2.package_name=? and t2.name=? and t1.name=? order by t2.data_model_version desc limit 1", packageName, entityName, attrName)
+	if queryErr != nil {
+		log.Logger.Error("getLatestDataModelAttrId fail", log.String("package", packageName), log.String("entity", entityName), log.String("attr", attrName), log.Error(queryErr))
+		return
+	}
+	if len(queryResult) > 0 {
+		attrId = queryResult[0]["id"]
 	}
 	return
 }
