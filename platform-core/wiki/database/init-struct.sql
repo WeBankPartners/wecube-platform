@@ -401,6 +401,7 @@ CREATE TABLE `batch_execution` (
     `name` varchar(255) NOT NULL COMMENT '名称',
     `batch_execution_template_id` varchar(64) DEFAULT NULL COMMENT '模板id',
     `error_code` varchar(1) NULL COMMENT '错误码, 0:成功, 1:失败',
+    `config_data` mediumtext NULL COMMENT '配置数据',
     `created_by` varchar(64) NOT NULL COMMENT '创建者',
     `updated_by` varchar(64) NULL COMMENT '更新者',
     `created_time` datetime NOT NULL COMMENT '创建时间',
