@@ -467,10 +467,10 @@ func getAuthEnableInterfacesCommonQuerySQL() string {
 
 func GetPluginConfigInterfaceById(id string) (result *models.PluginConfigInterfaces, err error) {
 	result = &models.PluginConfigInterfaces{}
-	found, errPCI := db.MysqlEngine.Table(new(models.PluginConfigInterfaces)).Where("id=?", id).Get(&result)
+	found, errPCI := db.MysqlEngine.Table(new(models.PluginConfigInterfaces)).Where("id=?", id).Get(result)
 	if errPCI != nil {
 		result = nil
-		err = err
+		err = errPCI
 		return
 	}
 	if !found {
@@ -481,14 +481,12 @@ func GetPluginConfigInterfaceById(id string) (result *models.PluginConfigInterfa
 	err = db.MysqlEngine.Table(new(models.PluginConfigInterfaceParameters)).Where("plugin_config_interface_id=?", id).And("type=?", models.PluginParamTypeInput).Find(&inputParams)
 	if err != nil {
 		result = nil
-		err = err
 		return
 	}
 	outputParams := make([]*models.PluginConfigInterfaceParameters, 0)
 	err = db.MysqlEngine.Table(new(models.PluginConfigInterfaceParameters)).Where("plugin_config_interface_id=?", id).And("type=?", models.PluginParamTypeOutput).Find(&outputParams)
 	if err != nil {
 		result = nil
-		err = err
 		return
 	}
 	result.InputParameters = inputParams

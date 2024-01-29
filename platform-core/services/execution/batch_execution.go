@@ -13,15 +13,19 @@ import (
 
 func BatchExecutionCallPluginService(ctx context.Context, operator, authToken, pluginInterfaceId string, entityType string,
 	entityInstances []*models.BatchExecutionPluginExecEntityInstances,
-	inputDefinitions []*models.BatchExecutionPluginDefInputParams, continueToken string) (result *models.PluginInterfaceApiResultData, dangerousCheckResult *models.ItsdangerousCheckResultData, err error) {
+	inputParamConstants []*models.BatchExecutionPluginDefInputParams, continueToken string) (result *models.PluginInterfaceApiResultData, dangerousCheckResult *models.ItsdangerousCheckResultData, err error) {
 	pluginInterface, errGet := database.GetPluginConfigInterfaceById(pluginInterfaceId)
 	if errGet != nil {
 		err = errGet
 		return
 	}
+	if pluginInterface == nil {
+		err = fmt.Errorf("invalid plugin interface %s", pluginInterfaceId)
+		return
+	}
 	inputDefinitionMap := make(map[string]string)
-	for _, inputDef := range inputDefinitions {
-		inputDefinitionMap[inputDef.ParamId] = inputDef.ParameValue
+	for _, inputConst := range inputParamConstants {
+		inputDefinitionMap[inputConst.ParamId] = inputConst.ParameValue
 	}
 	rootExprList, errAnalyze1 := remote.AnalyzeExpression(entityType)
 	if err != nil {
