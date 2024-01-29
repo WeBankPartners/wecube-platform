@@ -23,7 +23,12 @@ func QuerySystemVariables(c *gin.Context) {
 }
 
 func GetSystemVariableScope(c *gin.Context) {
-
+	result, err := database.GetSystemVariableScope()
+	if err != nil {
+		middleware.ReturnError(c, err)
+	} else {
+		middleware.ReturnData(c, result)
+	}
 }
 
 func CreateSystemVariable(c *gin.Context) {
