@@ -738,3 +738,42 @@ func RetrieveBatchExecJobs(c *gin.Context, reqParam *models.QueryRequestParam) (
 	result.Contents = batchExecJobsData
 	return
 }
+
+func InsertBatchExec(c *gin.Context, reqParam *models.BatchExecRun) (batchExecId string, err error) {
+	var actions []*db.ExecAction
+	now := time.Now()
+
+	configDataStr := ""
+	configDataByte, tmpErr := json.Marshal(*reqParam)
+	if tmpErr != nil {
+		err = fmt.Errorf("marshal reqParam error: %s", tmpErr.Error())
+		return
+	}
+	configDataStr = string(configDataByte)
+	// create
+	batchExecId = guid.CreateGuid()
+	batchExecData := &models.BatchExecution{
+		Id:                       batchExecId,
+		Name:                     reqParam.Name,
+		BatchExecutionTemplateId: reqParam.BatchExecutionTemplateId,
+		ErrorCode:                "2", // excuting
+		ConfigDataStr:            configDataStr,
+		CreatedBy:                middleware.GetRequestUser(c),
+		UpdatedBy:                "",
+		CreatedTime:              &now,
+		UpdatedTime:              &now,
+	}
+	action, tmpErr := db.GetInsertTableExecAction(models.TableNameBatchExec, *batchExecData, nil)
+	if tmpErr != nil {
+		err = fmt.Errorf("get insert sql failed: %s", tmpErr.Error())
+		return
+	}
+	actions = append(actions, action)
+
+	err = db.Transaction(actions, c)
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseExecuteError, err)
+		return
+	}
+	return
+}
