@@ -2,7 +2,7 @@
   <div id="itemPanel" ref="itemPanel">
     <div class="tool-component">组件库</div>
     <div class="icon-tool">
-      <Tooltip placement="right" :delay="1000">
+      <Tooltip :maxWidth="400" placement="right" :delay="1000">
         <div
           class="item-tool"
           draggable="true"
@@ -29,7 +29,7 @@
           <p>2.只有一条出线.</p>
         </div>
       </Tooltip>
-      <Tooltip content="Right Center text" placement="right" :delay="1000">
+      <Tooltip :maxWidth="400" placement="right" :delay="1000">
         <div
           class="item-tool"
           draggable="true"
@@ -56,7 +56,7 @@
           <p>2.只有一条入线</p>
         </div>
       </Tooltip>
-      <Tooltip content="Right Center text" placement="right" :delay="1000">
+      <Tooltip :maxWidth="400" placement="right" :delay="1000">
         <div
           class="item-tool"
           draggable="true"
@@ -83,7 +83,7 @@
           <p>2.只有一条入线</p>
         </div>
       </Tooltip>
-      <Tooltip content="Right Center text" placement="right" :delay="1000">
+      <Tooltip :maxWidth="400" placement="right" :delay="1000">
         <div
           class="item-tool"
           draggable="true"
@@ -107,7 +107,7 @@
           <p>2.支持一条入线两条出线</p>
         </div>
       </Tooltip>
-      <Tooltip content="Right Center text" placement="right" :delay="1000">
+      <Tooltip :maxWidth="400" placement="right" :delay="1000">
         <div
           class="item-tool"
           draggable="true"
@@ -131,7 +131,7 @@
           <p>2.单进多出</p>
         </div>
       </Tooltip>
-      <Tooltip content="Right Center text" placement="right" :delay="1000">
+      <Tooltip :maxWidth="400" placement="right" :delay="1000">
         <div
           class="item-tool"
           draggable="true"
@@ -155,7 +155,7 @@
           <p>2.多进单出</p>
         </div>
       </Tooltip>
-      <Tooltip content="Right Center text" placement="right" :delay="1000">
+      <Tooltip :maxWidth="400" placement="right" :delay="1000">
         <div
           class="item-tool"
           draggable="true"
@@ -182,7 +182,7 @@
           <p>2.如需要支持审批,请在后面接一个判断节点,任务表单会根据判断条件自动生成一个判断表单</p>
         </div>
       </Tooltip>
-      <Tooltip content="Right Center text" placement="right" :delay="1000">
+      <Tooltip :maxWidth="400" placement="right" :delay="1000">
         <div
           class="item-tool"
           draggable="true"
@@ -209,7 +209,7 @@
           <p>2.操作使用API:选择[操作[协同-插件注册-某插件-服务注册-插件服务API],设置对应的入参,才能执行程序</p>
         </div>
       </Tooltip>
-      <Tooltip content="Right Center text" placement="right" :delay="1000">
+      <Tooltip :maxWidth="400" placement="right" :delay="1000">
         <div
           class="item-tool"
           draggable="true"
@@ -235,7 +235,7 @@
           <p>1.配置数据写入的目标对象和操作类型,WECMDB将自动写入数据,支持设置多个目标对象</p>
         </div>
       </Tooltip>
-      <Tooltip content="Right Center text" placement="right" :delay="1000">
+      <Tooltip :maxWidth="400" placement="right" :delay="1000">
         <div
           class="item-tool"
           draggable="true"
@@ -261,7 +261,7 @@
           <p>1.支持设置未来的一个时刻,格式为年月日时分秒</p>
         </div>
       </Tooltip>
-      <Tooltip content="Right Center text" placement="right" :delay="1000">
+      <Tooltip :maxWidth="400" placement="right" :delay="1000">
         <div
           class="item-tool"
           draggable="true"
@@ -337,8 +337,12 @@ export default {
   }
 }
 </script>
-
 <style lang="scss">
+.ivu-tooltip-inner-with-width {
+  white-space: normal !important;
+}
+</style>
+<style lang="scss" scoped>
 #itemPanel {
   position: absolute;
   top: 137px;
