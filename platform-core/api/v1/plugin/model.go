@@ -24,10 +24,13 @@ func GetPluginModels(c *gin.Context) {
 		withAttr = false
 	}
 	result, err := database.GetDataModels(c, packageName, withAttr)
+	if len(result) == 0 {
+		result = append(result, &models.DataModel{})
+	}
 	if err != nil {
 		middleware.ReturnError(c, err)
 	} else {
-		middleware.ReturnData(c, result)
+		middleware.ReturnData(c, result[0])
 	}
 }
 
