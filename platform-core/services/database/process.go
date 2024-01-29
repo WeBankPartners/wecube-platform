@@ -16,9 +16,9 @@ import (
 func QueryProcessDefinitionList(ctx context.Context, param models.QueryProcessDefinitionParam) (list []*models.ProcDefQueryDto, err error) {
 	var procDefList, pList, filterProcDefList []*models.ProcDef
 	var permissionList []*models.ProcDefPermission
-	var roleProcDefMap = make(map[string]map[string][]*models.ProcDefDto)
+	var roleProcDefMap = make(map[string][]*models.ProcDefDto)
 	var userRolesMap = convertArray2Map(param.UserRoles)
-	var manageRoles, userRoles, allManageRoles, sceneList []string
+	var manageRoles, userRoles, allManageRoles []string
 	var enabledCreated bool
 	var queryParam []interface{}
 	var where string
@@ -72,39 +72,19 @@ func QueryProcessDefinitionList(ctx context.Context, param models.QueryProcessDe
 		}
 		for _, manageRole := range manageRoles {
 			if _, ok := roleProcDefMap[manageRole]; !ok {
-				roleProcDefMap[manageRole] = make(map[string][]*models.ProcDefDto)
+				roleProcDefMap[manageRole] = make([]*models.ProcDefDto, 0)
 				allManageRoles = append(allManageRoles, manageRole)
 			}
-			if _, ok := roleProcDefMap[manageRole][procDef.Scene]; !ok {
-				roleProcDefMap[manageRole][procDef.Scene] = make([]*models.ProcDefDto, 0)
-			}
-			roleProcDefMap[manageRole][procDef.Scene] = append(roleProcDefMap[manageRole][procDef.Scene], models.BuildProcDefDto(procDef, userRoles, enabledCreated))
+			roleProcDefMap[manageRole] = append(roleProcDefMap[manageRole], models.BuildProcDefDto(procDef, userRoles, enabledCreated))
 		}
 	}
 	// 角色排序
 	sort.Strings(allManageRoles)
 	for _, manageRole := range allManageRoles {
-		sceneList = []string{}
-		dataMap := roleProcDefMap[manageRole]
-		procDefQueryDto := &models.ProcDefQueryDto{
-			ManageRole: manageRole,
-			SceneData:  make([]*models.SceneData, 0),
-		}
-		for scene, _ := range dataMap {
-			sceneList = append(sceneList, scene)
-		}
-		// 场景排序
-		sort.Strings(sceneList)
-		for _, scene := range sceneList {
-			data := dataMap[scene]
-			// 排序
-			sort.Sort(models.ProcDefDtoSort(data))
-			procDefQueryDto.SceneData = append(procDefQueryDto.SceneData, &models.SceneData{
-				Scene:       scene,
-				ProcDefList: data,
-			})
-		}
-		list = append(list, procDefQueryDto)
+		dataList := roleProcDefMap[manageRole]
+		// 排序
+		sort.Sort(models.ProcDefDtoSort(dataList))
+		list = append(list, &models.ProcDefQueryDto{ManageRole: manageRole, ProcDefList: dataList})
 	}
 	return
 }
@@ -349,6 +329,27 @@ func UpdateProcDef(ctx context.Context, procDef *models.ProcDef) (err error) {
 	return
 }
 
+// UpdateProcDefAndNode 编排根节点改变,需要同时清除编排所有节点的 RoutineExpression、ServiceName、ParamInfos
+func UpdateProcDefAndNode(ctx context.Context, procDef *models.ProcDef, nodeList []*models.ProcDefNode) (err error) {
+	var actions []*db.ExecAction
+	// 更新编排表
+	actions = append(actions, &db.ExecAction{Sql: "update proc_def set name=?,`version`=?,root_entity=?,tags=?,for_plugin=?,scene=?," +
+		"conflict_check=?,updated_by=?,updated_time=? where id=?", Param: []interface{}{procDef.Name, procDef.Version, procDef.RootEntity,
+		procDef.Tags, procDef.ForPlugin, procDef.Scene, procDef.ConflictCheck, procDef.UpdatedBy, procDef.UpdatedTime, procDef.Id}})
+	// 更新节点表
+	actions = append(actions, &db.ExecAction{Sql: "update proc_def_node  set serveric_name = null,routine_expression = null where" +
+		" proc_def_id =?", Param: []interface{}{procDef.Id}})
+	for _, node := range nodeList {
+		// 删除节点参数表
+		actions = append(actions, &db.ExecAction{Sql: "delete from proc_def_node_param where proc_def_node_id = ?", Param: []interface{}{node.Id}})
+	}
+	err = db.Transaction(actions, ctx)
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseExecuteError, err)
+	}
+	return
+}
+
 func UpdateProcDefStatus(ctx context.Context, procDef *models.ProcDef) (err error) {
 	var actions []*db.ExecAction
 	actions = append(actions, &db.ExecAction{Sql: "update proc_def set status=?,updated_by=?,updated_time=? where id = ?", Param: []interface{}{
@@ -474,8 +475,9 @@ func GetProcDefNodeModelByProcDefId(ctx context.Context, procDefId string) (list
 	return
 }
 
-func GetSimpleProcDefNodeByProcDefId(ctx context.Context, procDefId string) (list []*models.ProcDefNode, err error) {
-	err = db.MysqlEngine.Context(ctx).SQL("select * from proc_def_node where proc_def_id = ?", procDefId).Find(&list)
+// GetProcDefNodeById 根据编排Id编排节点
+func GetProcDefNodeById(ctx context.Context, procDefId string) (list []*models.ProcDefNode, err error) {
+	err = db.MysqlEngine.Context(ctx).SQL("select * from proc_def_node where proc_def_id = ? ", procDefId).Find(&list)
 	if err != nil {
 		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
 		return
@@ -838,10 +840,10 @@ func transProcDefNodeLinkUpdateConditionToSQL(procDefNodeLink *models.ProcDefNod
 func transProcDefConditionToSQL(param models.QueryProcessDefinitionParam) (where string, queryParam []interface{}) {
 	where = "where 1 = 1 "
 	if param.ProcDefId != "" {
-		where = where + " and ( id like '%" + param.ProcDefId + "%') "
+		where = where + " and  id like '%" + param.ProcDefId + "%' "
 	}
 	if param.ProcDefName != "" {
-		where = where + " and ( name like '%" + param.ProcDefName + "%') "
+		where = where + " and  name like '%" + param.ProcDefName + "%' "
 	}
 	if param.Status == string(models.Draft) || param.Status == string(models.Disabled) || param.Status == string(models.Deployed) {
 		where = where + " and status = ?"
@@ -850,6 +852,15 @@ func transProcDefConditionToSQL(param models.QueryProcessDefinitionParam) (where
 	if param.UpdatedTimeStart != "" && param.UpdatedTimeEnd != "" {
 		where = where + " and updated_time >= ? and updated_time <= ?"
 		queryParam = append(queryParam, []interface{}{param.UpdatedTimeStart, param.UpdatedTimeEnd}...)
+	}
+	if param.CreatedBy != "" {
+		where = where + " and  created_by like '%" + param.CreatedBy + "%'"
+	}
+	if param.UpdatedBy != "" {
+		where = where + " and updated_by like '%" + param.UpdatedBy + "%'"
+	}
+	if param.Scene != "" {
+		where = where + " and scene like '%" + param.Scene + "%'"
 	}
 	if len(param.UserRoles) > 0 {
 		userRolesFilterSql, userRolesFilterParam := createListParams(param.UserRoles, "")
