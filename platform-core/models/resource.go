@@ -29,7 +29,7 @@ type ResourceItem struct {
 	IsAllocated          bool      `json:"isAllocated" xorm:"is_allocated"`                   // 是否分配
 	Name                 string    `json:"name" xorm:"name"`                                  // 名称
 	Purpose              string    `json:"purpose" xorm:"purpose"`                            // 描述
-	Status               int8      `json:"status" xorm:"status"`                              // 状态
+	Status               string    `json:"status" xorm:"status"`                              // 状态
 	Type                 string    `json:"type" xorm:"type"`                                  // 类型
 	UpdatedBy            string    `json:"updatedBy" xorm:"updated_by"`                       // 更新人
 	UpdatedDate          time.Time `json:"updatedDate" xorm:"updated_date"`                   // 更新时间
