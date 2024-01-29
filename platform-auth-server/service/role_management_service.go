@@ -130,7 +130,7 @@ func (RoleManagementService) UpdateLocalRole(roleDto *model.SimpleLocalRoleDto, 
 			}
 		}
 	}
-
+	role.Administrator = roleDto.Administrator
 	role.UpdatedBy = curUser
 	role.UpdatedTime = time.Now()
 	_, err = session.ID(role.Id).UseBool().Update(role)
