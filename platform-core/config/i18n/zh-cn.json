@@ -46,7 +46,7 @@
   },
   "proc_def_node_name_repeat_error": {
     "code": 20000003,
-    "message": "保存失败:同名节点已存在"
+    "message": "保存失败:同名节点: %s 已存在"
   },
   "proc_def_node_20000004_error": {
     "code": 20000004,
@@ -74,7 +74,7 @@
   },
   "proc_def_node_20000010_error": {
     "code": 20000010,
-    "message": "发布失败:任务节点、时间节点仅支持单进单出"
+    "message": "发布失败:任务节点、时间节点: %s仅支持单进单出"
   },
   "proc_def_import_low_version_error": {
     "code": 20000015,
