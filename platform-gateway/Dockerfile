@@ -1,7 +1,7 @@
-FROM ccr.ccs.tencentyun.com/webankpartners/alpine-base:v1.0
+FROM ccr.ccs.tencentyun.com/webankpartners/alpine-bash:v1
 LABEL maintainer = "Webank CTB Team"
 
-ENV BASE_HOME=/app/tradesys
+ENV BASE_HOME=/app/platform-gateway
 
 RUN mkdir -p $BASE_HOME $BASE_HOME/config $BASE_HOME/config/i18n $BASE_HOME/config/private_key $BASE_HOME/config/public_key
 

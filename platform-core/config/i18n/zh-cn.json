@@ -42,10 +42,38 @@
   },
   "proc_def_node_name_empty_error": {
     "code": 20000002,
-    "message": "编排节点名称不能为空"
+    "message": "保存失败:节点名字不能为空"
   },
   "proc_def_node_name_repeat_error": {
     "code": 20000003,
-    "message": "编排节点名称重复"
+    "message": "保存失败:同名节点已存在"
+  },
+  "proc_def_node_20000004_error": {
+    "code": 20000004,
+    "message": "发布失败:编排格式错误,[分流节点: %s]均须单进多出"
+  },
+  "proc_def_node_20000005_error": {
+    "code": 20000005,
+    "message": "发布失败:编排格式错误,[汇聚节点: %s]均须多进单出"
+  },
+  "proc_def_node_20000006_error": {
+    "code": 20000006,
+    "message": "发布失败:编排格式错误,[判断节点: %s]必须有分支,且名字不同"
+  },
+  "proc_def_node_20000007_error": {
+    "code": 20000007,
+    "message": "发布失败:编排格式错误,[开始节点: %s]、[结束节点: %s]均只能有1个"
+  },
+  "proc_def_node_20000008_error": {
+    "code": 20000008,
+    "message": "发布失败:编排格式错误,[分流节点: %s]和[汇聚节点: %s]不能直连"
+  },
+  "proc_def_node_20000009_error": {
+    "code": 20000009,
+    "message": "发布失败:编排节点不能为空"
+  },
+  "proc_def_node_20000010_error": {
+    "code": 20000010,
+    "message": "发布失败:任务节点、时间节点仅支持单进单出"
   }
 }
