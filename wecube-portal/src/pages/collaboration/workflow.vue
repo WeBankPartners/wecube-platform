@@ -13,6 +13,7 @@
         :headers="headers"
         :on-success="uploadSucess"
         :on-error="uploadFailed"
+        accept=".json"
         style="display: inline-block"
       >
         <Button type="primary" class="btn-right">
@@ -67,7 +68,7 @@
         {{ $t('enable') }}
       </Button>
     </div>
-    <div style="margin: 8px 0">
+    <div>
       <Input
         v-model="searchParams.procDefId"
         placeholder="编排ID"
@@ -78,6 +79,24 @@
       <Input
         v-model="searchParams.procDefName"
         placeholder="编排名称"
+        class="search-item"
+        clearable
+        @on-change="getFlowList"
+      ></Input>
+      <Select
+        v-model="searchParams.plugins"
+        filterable
+        multiple
+        class="search-item"
+        placeholder="授权插件"
+        :max-tag-count="1"
+        @on-change="getFlowList"
+      >
+        <Option v-for="item in authPluginList" :value="item" :key="item">{{ item }} </Option>
+      </Select>
+      <Input
+        v-model="searchParams.scene"
+        placeholder="分组"
         class="search-item"
         clearable
         @on-change="getFlowList"
@@ -96,58 +115,42 @@
         clearable
         @on-change="getFlowList"
       ></Input>
-      <Input
-        v-model="searchParams.scene"
-        placeholder="分组"
-        class="search-item"
-        clearable
-        @on-change="getFlowList"
-      ></Input>
-      <Select
-        v-model="searchParams.plugins"
-        filterable
-        multiple
-        class="search-item"
-        placeholder="授权插件"
-        :max-tag-count="1"
-        @on-change="getFlowList"
-      >
-        <Option v-for="item in authPluginList" :value="item" :key="item">{{ item }} </Option>
-      </Select>
-      <span>{{ $t('table_updated_date') }}:</span>
-      <RadioGroup
-        v-if="dateType !== 4"
-        v-model="dateType"
-        type="button"
-        size="small"
-        @on-change="handleDateTypeChange(dateType)"
-      >
-        <Radio v-for="(j, idx) in dateTypeList" :label="j.value" :key="idx" border>{{ j.label }}</Radio>
-      </RadioGroup>
-      <template v-else>
-        <DatePicker
-          @on-change="
-            val => {
-              handleDateRange(val)
-            }
-          "
-          type="daterange"
-          placement="bottom-end"
-          format="yyyy-MM-dd"
-          placeholder=""
-          style="width: 200px"
-        />
-        <Icon
-          size="18"
-          style="cursor: pointer"
-          type="md-close-circle"
-          @click="
-            dateType = 1
-            handleDateTypeChange(1)
-          "
-        />
-      </template>
-      <span style="float: right">
+      <div style="display: inline; width: 100%" class="search-item">
+        <span>{{ $t('table_updated_date') }}:</span>
+        <RadioGroup
+          v-if="dateType !== 4"
+          v-model="dateType"
+          type="button"
+          size="small"
+          @on-change="handleDateTypeChange(dateType)"
+        >
+          <Radio v-for="(j, idx) in dateTypeList" :label="j.value" :key="idx" border>{{ j.label }}</Radio>
+        </RadioGroup>
+        <template v-else>
+          <DatePicker
+            @on-change="
+              val => {
+                handleDateRange(val)
+              }
+            "
+            type="daterange"
+            placement="bottom-end"
+            format="yyyy-MM-dd"
+            placeholder=""
+            style="width: 200px"
+          />
+          <Icon
+            size="18"
+            style="cursor: pointer"
+            type="md-close-circle"
+            @click="
+              dateType = 1
+              handleDateTypeChange(1)
+            "
+          />
+        </template>
+      </div>
+      <span style="margin-top: 8px; margin-left: 36px">
         <Button @click="getFlowList" type="primary">{{ $t('search') }}</Button>
         <Button @click="handleReset" style="margin-left: 5px">{{ $t('reset') }}</Button>
       </span>
@@ -160,37 +163,42 @@
       </Tabs>
       <div class="table-zone">
         <div v-for="(roleData, roleDataIndex) in data" :key="roleDataIndex">
-          <div class="w-header">
-            <Icon size="28" type="ios-people" />
-            <div class="title">{{ roleData.manageRole }}<span class="underline"></span></div>
-            <Icon
-              v-if="!hideRoles.includes(roleDataIndex)"
-              size="26"
-              @click="changeRoleTableStatus(roleDataIndex, 'in')"
-              type="md-arrow-dropdown"
-              style="cursor: pointer"
-            />
-            <Icon
-              v-else
-              size="26"
-              @click="changeRoleTableStatus(roleDataIndex, 'out')"
-              type="md-arrow-dropright"
-              style="cursor: pointer"
-            />
-          </div>
-          <div v-show="!hideRoles.includes(roleDataIndex)">
-            <Table
-              class="hide-select-all"
-              size="small"
-              :columns="mgmtColumns()"
-              :data="roleData.dataList"
-              @on-select-all="onSelectAll"
-              @on-select="onSelect"
-              @on-select-cancel="cancelSelect"
-              @on-selection-change="onSelectionChange"
-              width="100%"
-            ></Table>
-          </div>
+          <Card>
+            <div class="w-header" slot="title">
+              <Icon size="28" type="ios-people" />
+              <div class="title">
+                {{ roleData.manageRole }}
+                <span class="underline"></span>
+              </div>
+              <Icon
+                v-if="!hideRoles.includes(roleDataIndex)"
+                size="26"
+                @click="changeRoleTableStatus(roleDataIndex, 'in')"
+                type="md-arrow-dropdown"
+                style="cursor: pointer"
+              />
+              <Icon
+                v-else
+                size="26"
+                @click="changeRoleTableStatus(roleDataIndex, 'out')"
+                type="md-arrow-dropright"
+                style="cursor: pointer"
+              />
+            </div>
+            <div v-show="!hideRoles.includes(roleDataIndex)">
+              <Table
+                class="hide-select-all"
+                size="small"
+                :columns="tableColumn"
+                :data="roleData.dataList"
+                @on-select-all="onSelectAll"
+                @on-select="onSelect"
+                @on-select-cancel="cancelSelect"
+                @on-selection-change="onSelectionChange"
+                width="100%"
+              ></Table>
+            </div>
+          </Card>
         </div>
       </div>
     </div>
@@ -202,11 +210,8 @@
 import axios from 'axios'
 import { getCookie } from '@/pages/util/cookie'
 import { flowMgmt, getPluginList, flowList, flowBatchAuth, flowBatchChangeStatus, flowCopy } from '@/api/server.js'
-import FlowAuth from '@/pages/collaboration/flow/flow-auth.vue'
+import FlowAuth from '@/pages/components/auth.vue'
 import dayjs from 'dayjs'
-import eye from '@/assets/icon/eye.png'
-import copy from '@/assets/icon/copy.png'
-import edit from '@/assets/icon/edit-black.png'
 export default {
   components: {
     FlowAuth
@@ -243,6 +248,7 @@ export default {
         },
         {
           title: '编排ID',
+          width: 180,
           key: 'id'
         },
         {
@@ -309,6 +315,18 @@ export default {
           }
         },
         {
+          title: '分组',
+          key: 'scene',
+          width: 90,
+          render: (h, params) => {
+            if (params.row.scene !== '') {
+              return <div>{params.row.scene}</div>
+            } else {
+              return <span>-</span>
+            }
+          }
+        },
+        {
           title: '创建人',
           key: 'createdBy',
           width: 90
@@ -332,28 +350,51 @@ export default {
             const status = params.row.status
             return (
               <div style="text-align: left; cursor: pointer;display: inline-flex;">
-                <Tooltip placement="top" content={this.$t('view')}>
-                  <img src={eye} style="width:18px;margin:0 4px;"></img>
+                <Tooltip content={this.$t('view')} placement="top">
+                  <Button
+                    size="small"
+                    type="primary"
+                    onClick={() => this.viewAction(params.row)}
+                    style="margin-right:5px;"
+                  >
+                    <Icon type="md-eye" size="16"></Icon>
+                  </Button>
                 </Tooltip>
+
                 {['deployed'].includes(status) && (
-                  <Tooltip placement="top" content={this.$t('copy')}>
-                    <img src={copy} style="width:18px;margin:0 4px;" onClick={() => this.copyAction(params.row)}>
-                      复制
-                    </img>
+                  <Tooltip content={this.$t('copy')} placement="top">
+                    <Button
+                      size="small"
+                      type="success"
+                      onClick={() => this.copyAction(params.row)}
+                      style="margin-right:5px;"
+                    >
+                      <Icon type="md-copy" size="16"></Icon>
+                    </Button>
                   </Tooltip>
                 )}
                 {['draft'].includes(status) && (
-                  <Tooltip placement="top" content={this.$t('edit')}>
-                    <img src={edit} style="width:18px;margin:0 4px;" onClick={() => this.editAction(params.row)}>
-                      编辑
-                    </img>
+                  <Tooltip content={this.$t('edit')} placement="top">
+                    <Button
+                      size="small"
+                      type="success"
+                      onClick={() => this.editAction(params.row)}
+                      style="margin-right:5px;"
+                    >
+                      <Icon type="ios-create-outline" size="16"></Icon>
+                    </Button>
                   </Tooltip>
                 )}
                 {['deployed'].includes(status) && params.row.enableCreated && (
-                  <Tooltip placement="top" content={this.$t('edit')}>
-                    <img src={edit} style="width:18px;margin:0 4px;" onClick={() => this.copyToEditAction(params.row)}>
-                      复制
-                    </img>
+                  <Tooltip content={this.$t('edit')} placement="top">
+                    <Button
+                      size="small"
+                      type="success"
+                      onClick={() => this.copyToEditAction(params.row)}
+                      style="margin-right:5px;"
+                    >
+                      <Icon type="md-copy" size="16"></Icon>
+                    </Button>
                   </Tooltip>
                 )}
               </div>
@@ -533,9 +574,16 @@ export default {
               title: 'Success',
               desc: message
             })
-            this.getFlowList()
-            this.selectedParams.ids = []
-            this.selectedParams.names = []
+            this.$nextTick(() => {
+              if (state === 'disabled') {
+                this.searchParams.status = 'disabled'
+              } else if (state === 'enabled') {
+                this.searchParams.status = 'deployed'
+              }
+              this.getFlowList()
+              this.selectedParams.ids = []
+              this.selectedParams.names = []
+            })
           }
         },
         onCancel: () => {}
@@ -565,10 +613,11 @@ export default {
           title: 'Success',
           desc: message + data
         })
-        this.getFlowList()
-        this.selectedParams.ids = []
-        this.selectedParams.names = []
+        this.$router.push({ path: '/collaboration/workflow-orchestration', query: { flowId: data } })
       }
+    },
+    viewAction (row) {
+      this.$router.push({ path: '/collaboration/workflow-orchestration', query: { flowId: row.id, editFlow: 'false' } })
     },
 
     // #endregion
@@ -606,15 +655,6 @@ export default {
       } else if (type === 'out') {
         const findIndex = this.hideRoles.findIndex(rIndex => rIndex === index)
         this.hideRoles.splice(findIndex, 1)
-      }
-    },
-    mgmtColumns () {
-      if (this.searchParams.status !== 'disabled') {
-        return this.tableColumn
-      } else {
-        let customCol = JSON.parse(JSON.stringify(this.tableColumn))
-        customCol.pop()
-        return customCol
       }
     },
     handleUpload (file) {
@@ -694,7 +734,11 @@ export default {
       })
         .then(response => {
           if (response.status < 400) {
+            const fileNameArr = response.headers['content-disposition'].split('filename=')
             let fileName = `export_${dayjs().format('YYMMDDHHmmss')}.json`
+            if (fileNameArr.length === 2) {
+              fileName = fileNameArr[1]
+            }
             let blob = new Blob([response.data])
             if ('msSaveOrOpenBlob' in navigator) {
               window.navigator.msSaveOrOpenBlob(blob, fileName)
@@ -737,6 +781,7 @@ th.ivu-table-column-center div.ivu-table-cell {
 .search-item {
   width: 200px;
   margin-right: 6px;
+  margin: 8px 6px 8px 0;
 }
 .btn-right {
   margin-right: 10px;
@@ -748,16 +793,14 @@ th.ivu-table-column-center div.ivu-table-cell {
 
 .table-zone {
   overflow: auto;
-  height: calc(100vh - 250px);
+  height: calc(100vh - 270px);
 }
-
 .w-header {
   display: flex;
   align-items: center;
   .title {
-    font-size: 15px;
-    font-weight: 500;
-    color: #282e38;
+    font-size: 16px;
+    font-weight: bold;
     margin: 0 10px;
     .underline {
       display: block;
@@ -765,24 +808,11 @@ th.ivu-table-column-center div.ivu-table-cell {
       margin-left: -6px;
       width: 100%;
       padding: 0 6px;
-      height: 10px;
+      height: 12px;
       border-radius: 12px;
       background-color: #c6eafe;
       box-sizing: content-box;
     }
-  }
-  .sub-title {
-    font-size: 15px;
-  }
-}
-.sub-header {
-  // display: flex;
-  // align-items: center;
-  margin-left: 12px;
-  .title {
-    font-size: 14px;
-    font-weight: bold;
-    margin-left: 5px;
   }
 }
 </style>
