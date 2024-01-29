@@ -117,15 +117,16 @@ type BatchExecJobsPageData struct {
 }
 
 type BatchExecRun struct {
-	PackageName               string                    `json:"packageName"`
-	EntityName                string                    `json:"entityName"`
-	DataModelExpression       string                    `json:"dataModelExpression"`
-	PrimatKeyAttr             string                    `json:"primatKeyAttr"`
-	SearchParameters          interface{}               `json:"searchParameters"`
-	PluginConfigInterface     *PluginConfigInterfaces   `json:"pluginConfigInterface"`
-	InputParameterDefinitions []*BatchExecInputParamDef `json:"inputParameterDefinitions"`
-	BusinessKeyAttribute      *PluginPackageAttributes  `json:"businessKeyAttribute"`
-	ResourceDatas             []*ResourceData           `json:"resourceDatas"`
+	PackageName                string                             `json:"packageName"`
+	EntityName                 string                             `json:"entityName"`
+	DataModelExpression        string                             `json:"dataModelExpression"`
+	PrimatKeyAttr              string                             `json:"primatKeyAttr"`
+	SearchParameters           interface{}                        `json:"searchParameters"`
+	PluginConfigInterface      *PluginConfigInterfaces            `json:"pluginConfigInterface"`
+	InputParameterDefinitions  []*BatchExecInputParamDef          `json:"inputParameterDefinitions"`
+	OutputParameterDefinitions []*PluginConfigInterfaceParameters `json:"outputParameterDefinitions"`
+	BusinessKeyAttribute       *PluginPackageAttributes           `json:"businessKeyAttribute"`
+	ResourceDatas              []*ResourceData                    `json:"resourceDatas"`
 }
 
 type BatchExecInputParamDef struct {
