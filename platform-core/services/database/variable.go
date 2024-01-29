@@ -114,3 +114,15 @@ func GetSystemVariable(ctx context.Context, name string) (result string, err err
 	}
 	return
 }
+
+func GetSystemVariableScope() (result []string, err error) {
+	queryResult, queryErr := db.MysqlEngine.QueryString("select distinct `scope` from system_variables")
+	if queryErr != nil {
+		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
+	} else {
+		for _, v := range queryResult {
+			result = append(result, v["scope"])
+		}
+	}
+	return
+}
