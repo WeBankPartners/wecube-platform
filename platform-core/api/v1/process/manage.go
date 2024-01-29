@@ -351,7 +351,7 @@ func ExportProcessDefinition(c *gin.Context) {
 		if strings.Contains(c.GetHeader(middleware.AcceptLanguageHeader), "zh-CN") {
 			fileName = fmt.Sprintf("prof_%s等%d个文件", fileName, len(procDefList))
 		} else {
-			fileName = fmt.Sprintf("prof_%s等%d个文件", fileName, len(procDefList))
+			fileName = fmt.Sprintf("prof_%set al. %d", fileName, len(procDefList))
 		}
 	}
 	b, jsonErr := json.Marshal(resultList)
