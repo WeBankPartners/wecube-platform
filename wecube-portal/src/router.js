@@ -25,6 +25,12 @@ let router = new Router({
           props: true
         },
         {
+          path: '/collaboration/workflow',
+          name: 'flow',
+          component: () => import('@/pages/collaboration/workflow'),
+          props: true
+        },
+        {
           path: '/collaboration/workflow-orchestration',
           name: 'flowManage',
           component: () => import('@/pages/collaboration/workflow-orchestration'),
@@ -68,7 +74,7 @@ let router = new Router({
         {
           path: '/implementation/batch-execution',
           name: 'batchExecution',
-          component: () => import('@/pages/implementation/batch-execution')
+          component: () => import('@/pages/implementation/batch-execution/index')
         },
         {
           path: '/admin/system-data-model',

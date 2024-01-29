@@ -538,5 +538,19 @@
   "reload_notify": "Refresh The Page After 3S To Reload Resources",
   "execution_history": "Execution History",
   "entity_name": "Entity Name",
-  "no_detail_warning": "This arrangement data has expired, if you have any questions, please contact the platform administrator"
+  "no_detail_warning": "This arrangement data has expired, if you have any questions, please contact the platform administrator",
+  "start_node_warning": "Can only contain one start node",
+  "confirm_discarding_changes": "Confirm Discarding Changes",
+  "params_edit_confirm": "The data changes, if you choose to give up, the changed information will not be saved!",
+  "duration": "Duration",
+  "unit": "Unit",
+  "date": "Date",
+  "disable": "Disable",
+  "enable": "Enable",
+  "action_successful": " Action Successfully Completed",
+  "tw_recent_three_month": "Last 3 Months",
+  "tw_recent_half_year": "Last 6 Months",
+  "tw_recent_one_year": "Last Year",
+  "tw_auto": "Custom",
+  "view": "View"
 }

@@ -47,6 +47,21 @@ func CreateOrUpdateBatchExecTemplate(c *gin.Context, reqParam *models.BatchExecu
 		}
 		actions = append(actions, action)
 	} else {
+		// check whether templateId is valid
+		templateData := &models.BatchExecutionTemplate{}
+		var exists bool
+		exists, err = db.MysqlEngine.Context(c).Table(new(models.BatchExecutionTemplate)).
+			Where("id = ?", reqParam.Id).
+			Get(templateData)
+		if err != nil {
+			err = exterror.Catch(exterror.New().DatabaseQueryError, err)
+			return
+		}
+		if !exists {
+			err = fmt.Errorf("batchExecTemplateId: %s is invalid", reqParam.Id)
+			return
+		}
+
 		// update
 		updateColumnStr := "`name`=?,`operate_object`=?,`plugin_service`=?,`config_data`=?,`updated_by`=?,`updated_time`=?"
 		action := &db.ExecAction{
@@ -362,7 +377,57 @@ func RetrieveTemplate(c *gin.Context, reqParam *models.QueryRequestParam) (resul
 		template.PermissionToRole = templateIdMapRoleInfo[template.Id]
 	}
 
+	// check is collect by userId
+	err = CheckIsCollected(c, templateData, userId)
+	if err != nil {
+		return
+	}
+
 	result.Contents = templateData
+	return
+}
+
+func CheckIsCollected(c *gin.Context, templateData []*models.BatchExecutionTemplate, userId string) (err error) {
+	if len(templateData) == 0 {
+		return
+	}
+
+	templateIdMap := make(map[string]bool)
+	for _, template := range templateData {
+		templateIdMap[template.Id] = false
+		template.IsCollected = false
+	}
+
+	templateIdList := make([]string, 0, len(templateIdMap))
+	for k := range templateIdMap {
+		templateIdList = append(templateIdList, k)
+	}
+
+	var collectData []*models.BatchExecutionTemplateCollect
+	err = db.MysqlEngine.Context(c).Table(models.TableNameBatchExecTemplateCollect).
+		Where("user_id = ?", userId).
+		In("batch_execution_template_id", templateIdList).
+		Find(&collectData)
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
+		return
+	}
+
+	if len(collectData) == 0 {
+		return
+	}
+
+	for _, collect := range collectData {
+		if _, isExisted := templateIdMap[collect.BatchExecutionTemplateId]; isExisted {
+			templateIdMap[collect.BatchExecutionTemplateId] = true
+		}
+	}
+
+	for _, template := range templateData {
+		if isCollected, isExisted := templateIdMap[template.Id]; isExisted {
+			template.IsCollected = isCollected
+		}
+	}
 	return
 }
 
@@ -410,6 +475,141 @@ func GetTemplate(c *gin.Context, templateId string) (result *models.BatchExecuti
 			result.PermissionToRole.USE = append(result.PermissionToRole.USE, roleData.RoleName)
 		}
 	}
+
+	// check is collect by userId
+	err = CheckIsCollected(c, []*models.BatchExecutionTemplate{result}, middleware.GetRequestUser(c))
+	if err != nil {
+		return
+	}
+	return
+}
+
+func DeleteTemplate(c *gin.Context, templateId string) (err error) {
+	var actions []*db.ExecAction
+	var templateData []*models.BatchExecutionTemplate
+	err = db.MysqlEngine.Context(c).Table(models.TableNameBatchExecTemplate).
+		Where("id = ?", templateId).
+		Find(&templateData)
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
+		return
+	}
+	if len(templateData) == 0 {
+		err = fmt.Errorf("templateId: %s is invalid", templateId)
+		return
+	}
+	templateInfo := templateData[0]
+
+	// delete batchExecTemplate
+	action := &db.ExecAction{
+		Sql:   db.CombineDBSql("DELETE FROM ", models.TableNameBatchExecTemplate, " WHERE id=?"),
+		Param: []interface{}{templateInfo.Id},
+	}
+	actions = append(actions, action)
+
+	// delete batchExecTemplateRole
+	action = &db.ExecAction{
+		Sql:   db.CombineDBSql("DELETE FROM ", models.TableNameBatchExecTemplateRole, " WHERE batch_execution_template_id=?"),
+		Param: []interface{}{templateInfo.Id},
+	}
+	actions = append(actions, action)
+
+	// delete batchExecTemplateCollect
+	action = &db.ExecAction{
+		Sql:   db.CombineDBSql("DELETE FROM ", models.TableNameBatchExecTemplateCollect, " WHERE batch_execution_template_id = ?"),
+		Param: []interface{}{templateInfo.Id},
+	}
+	actions = append(actions, action)
+
+	err = db.Transaction(actions, c)
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseExecuteError, err)
+		return
+	}
+	return
+}
+
+func UpdateTemplatePermission(c *gin.Context, reqParam *models.BatchExecutionTemplate) (result *models.BatchExecutionTemplate, err error) {
+	var actions []*db.ExecAction
+	now := time.Now()
+	// check whether templateId is valid
+	templateData := &models.BatchExecutionTemplate{}
+	var exists bool
+	exists, err = db.MysqlEngine.Context(c).Table(new(models.BatchExecutionTemplate)).
+		Where("id = ?", reqParam.Id).
+		Get(templateData)
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
+		return
+	}
+	if !exists {
+		err = fmt.Errorf("batchExecTemplateId: %s is invalid", reqParam.Id)
+		return
+	}
+
+	// update template updatedTime
+	updateColumnStr := "`updated_by`=?,`updated_time`=?"
+	action := &db.ExecAction{
+		Sql:   db.CombineDBSql("UPDATE ", models.TableNameBatchExecTemplate, " SET ", updateColumnStr, " WHERE id=?"),
+		Param: []interface{}{middleware.GetRequestUser(c), now, reqParam.Id},
+	}
+	actions = append(actions, action)
+
+	batchExecTemplateId := reqParam.Id
+	// update batchExecTemplateRole
+	// firstly delete original batchExecTemplateRole and then create new batchExecTemplateRole
+	action = &db.ExecAction{
+		Sql:   db.CombineDBSql("DELETE FROM ", models.TableNameBatchExecTemplateRole, " WHERE batch_execution_template_id=?"),
+		Param: []interface{}{batchExecTemplateId},
+	}
+	actions = append(actions, action)
+
+	var templateRoleDataList []*models.BatchExecutionTemplateRole
+	mgmtRoleNameMap := make(map[string]struct{})
+	for _, roleName := range reqParam.PermissionToRole.MGMT {
+		if _, isExisted := mgmtRoleNameMap[roleName]; !isExisted {
+			mgmtRoleNameMap[roleName] = struct{}{}
+			templateRoleDataList = append(templateRoleDataList, &models.BatchExecutionTemplateRole{
+				Id:                       guid.CreateGuid(),
+				BatchExecutionTemplateId: batchExecTemplateId,
+				Permission:               models.PermissionTypeMGMT,
+				RoleName:                 roleName,
+			})
+		}
+	}
+	useRoleNameMap := make(map[string]struct{})
+	for _, roleName := range reqParam.PermissionToRole.USE {
+		if _, isExisted := useRoleNameMap[roleName]; !isExisted {
+			useRoleNameMap[roleName] = struct{}{}
+			templateRoleDataList = append(templateRoleDataList, &models.BatchExecutionTemplateRole{
+				Id:                       guid.CreateGuid(),
+				BatchExecutionTemplateId: batchExecTemplateId,
+				Permission:               models.PermissionTypeUSE,
+				RoleName:                 roleName,
+			})
+		}
+	}
+	for i := range templateRoleDataList {
+		action, tmpErr := db.GetInsertTableExecAction(models.TableNameBatchExecTemplateRole, *templateRoleDataList[i], nil)
+		if tmpErr != nil {
+			err = fmt.Errorf("get insert sql failed: %s", tmpErr.Error())
+			return
+		}
+		actions = append(actions, action)
+	}
+
+	err = db.Transaction(actions, c)
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseExecuteError, err)
+		return
+	}
+
+	// query batchExecTemplate info
+	result, err = GetTemplate(c, reqParam.Id)
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
+		return
+	}
 	return
 }
 
@@ -438,15 +638,27 @@ func RetrieveBatchExec(c *gin.Context, reqParam *models.QueryRequestParam) (resu
 		return
 	}
 
+	for _, execData := range batchExecData {
+		if execData.ConfigDataStr != "" {
+			configData := models.BatchExecRun{}
+			err = json.Unmarshal([]byte(execData.ConfigDataStr), &configData)
+			if err != nil {
+				err = fmt.Errorf("unmarshal batchExec: %s configData error: %s", execData.Id, err.Error())
+				return
+			}
+			execData.ConfigData = &configData
+		}
+	}
+
 	result.Contents = batchExecData
 	return
 }
 
-func GetBatchExec(c *gin.Context, batchExecId string) (result *models.BatchExecutionInfo, err error) {
-	result = &models.BatchExecutionInfo{}
+func GetBatchExec(c *gin.Context, batchExecId string) (result *models.BatchExecution, err error) {
+	result = &models.BatchExecution{}
 
 	// get batchExecution
-	var batchExecData []*models.BatchExecutionInfo
+	var batchExecData []*models.BatchExecution
 	err = db.MysqlEngine.Context(c).Table(models.TableNameBatchExec).
 		Where("id = ?", batchExecId).
 		Find(&batchExecData)
@@ -460,6 +672,15 @@ func GetBatchExec(c *gin.Context, batchExecId string) (result *models.BatchExecu
 		return
 	}
 	result = batchExecData[0]
+	if result.ConfigDataStr != "" {
+		configData := models.BatchExecRun{}
+		err = json.Unmarshal([]byte(result.ConfigDataStr), &configData)
+		if err != nil {
+			err = fmt.Errorf("unmarshal batchExec: %s configData error: %s", result.Id, err.Error())
+			return
+		}
+		result.ConfigData = &configData
+	}
 
 	// get batchExecutionJobs
 	batchExecJobsQueryParam := &models.QueryRequestParam{
