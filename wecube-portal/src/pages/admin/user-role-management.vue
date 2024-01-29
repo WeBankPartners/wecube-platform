@@ -116,7 +116,7 @@
       @on-ok="addRole"
       @on-cancel="cancel"
     >
-      <Form class="validation-form" :model="addedRole" label-position="left" :label-width="100">
+      <Form :model="addedRole" label-position="left" :label-width="100">
         <FormItem :label="$t('role')" v-if="addedRole.isAdd">
           <Input v-model="addedRole.params.name" :placeholder="$t('please_input')" />
         </FormItem>
@@ -125,6 +125,11 @@
         </FormItem>
         <FormItem :label="$t('email')">
           <Input v-model="addedRole.params.email" :placeholder="$t('please_input')" />
+        </FormItem>
+        <FormItem :label="$t('role_admin')">
+          <Select v-model="addedRole.params.administrator" filterable>
+            <Option v-for="item in users" :value="item.id" :key="item.id">{{ item.username }}</Option>
+          </Select>
         </FormItem>
         <FormItem :label="$t('status')" v-if="!addedRole.isAdd">
           <Checkbox v-model="addedRole.params.status">{{ $t('disable_role') }}</Checkbox>
@@ -148,7 +153,7 @@
     <Modal v-model="showNewPassword" :title="$t('new_password')">
       <Form class="validation-form" label-position="left" :label-width="100">
         <FormItem :label="$t('new_password')">
-          <Input v-model="newPassword" :placeholder="$t('please_input')" style="width:300px" />
+          <Input v-model="newPassword" :placeholder="$t('please_input')" style="width: 300px" />
           <Icon @click="copyPassword" class="icon-copy" type="md-copy" />
         </FormItem>
       </Form>
@@ -221,6 +226,7 @@ export default {
           name: '',
           displayName: '',
           email: '',
+          administrator: '',
           status: false
         }
       },
@@ -557,6 +563,13 @@ export default {
         })
         return
       }
+      if (!this.addedRole.params.name) {
+        this.$Notice.warning({
+          title: 'Warning',
+          desc: this.$t('role_cannot_empty')
+        })
+        return
+      }
       this.addedRole.params.status = this.addedRole.params.status ? 'Deleted' : 'NotDeleted'
       const method = this.addedRole.isAdd
         ? roleCreate(this.addedRole.params)
@@ -575,6 +588,7 @@ export default {
       this.addedRole.params.name = ''
       this.addedRole.params.displayName = ''
       this.addedRole.params.email = ''
+      this.addedRole.params.administrator = ''
       this.addedRole.isShow = true
     },
     editRole (item) {

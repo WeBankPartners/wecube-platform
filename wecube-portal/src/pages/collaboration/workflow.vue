@@ -13,6 +13,7 @@
         :headers="headers"
         :on-success="uploadSucess"
         :on-error="uploadFailed"
+        accept=".json"
         style="display: inline-block"
       >
         <Button type="primary" class="btn-right">
@@ -67,7 +68,7 @@
         {{ $t('enable') }}
       </Button>
     </div>
-    <div style="margin: 8px 0">
+    <div>
       <Input
         v-model="searchParams.procDefId"
         placeholder="编排ID"
@@ -78,6 +79,24 @@
       <Input
         v-model="searchParams.procDefName"
         placeholder="编排名称"
+        class="search-item"
+        clearable
+        @on-change="getFlowList"
+      ></Input>
+      <Select
+        v-model="searchParams.plugins"
+        filterable
+        multiple
+        class="search-item"
+        placeholder="授权插件"
+        :max-tag-count="1"
+        @on-change="getFlowList"
+      >
+        <Option v-for="item in authPluginList" :value="item" :key="item">{{ item }} </Option>
+      </Select>
+      <Input
+        v-model="searchParams.scene"
+        placeholder="分组"
         class="search-item"
         clearable
         @on-change="getFlowList"
@@ -96,58 +115,42 @@
         clearable
         @on-change="getFlowList"
       ></Input>
-      <Input
-        v-model="searchParams.scene"
-        placeholder="分组"
-        class="search-item"
-        clearable
-        @on-change="getFlowList"
-      ></Input>
-      <Select
-        v-model="searchParams.plugins"
-        filterable
-        multiple
-        class="search-item"
-        placeholder="授权插件"
-        :max-tag-count="1"
-        @on-change="getFlowList"
-      >
-        <Option v-for="item in authPluginList" :value="item" :key="item">{{ item }} </Option>
-      </Select>
-      <span>{{ $t('table_updated_date') }}:</span>
-      <RadioGroup
-        v-if="dateType !== 4"
-        v-model="dateType"
-        type="button"
-        size="small"
-        @on-change="handleDateTypeChange(dateType)"
-      >
-        <Radio v-for="(j, idx) in dateTypeList" :label="j.value" :key="idx" border>{{ j.label }}</Radio>
-      </RadioGroup>
-      <template v-else>
-        <DatePicker
-          @on-change="
-            val => {
-              handleDateRange(val)
-            }
-          "
-          type="daterange"
-          placement="bottom-end"
-          format="yyyy-MM-dd"
-          placeholder=""
-          style="width: 200px"
-        />
-        <Icon
-          size="18"
-          style="cursor: pointer"
-          type="md-close-circle"
-          @click="
-            dateType = 1
-            handleDateTypeChange(1)
-          "
-        />
-      </template>
-      <span style="float: right">
+      <div style="display: inline; width: 100%" class="search-item">
+        <span>{{ $t('table_updated_date') }}:</span>
+        <RadioGroup
+          v-if="dateType !== 4"
+          v-model="dateType"
+          type="button"
+          size="small"
+          @on-change="handleDateTypeChange(dateType)"
+        >
+          <Radio v-for="(j, idx) in dateTypeList" :label="j.value" :key="idx" border>{{ j.label }}</Radio>
+        </RadioGroup>
+        <template v-else>
+          <DatePicker
+            @on-change="
+              val => {
+                handleDateRange(val)
+              }
+            "
+            type="daterange"
+            placement="bottom-end"
+            format="yyyy-MM-dd"
+            placeholder=""
+            style="width: 200px"
+          />
+          <Icon
+            size="18"
+            style="cursor: pointer"
+            type="md-close-circle"
+            @click="
+              dateType = 1
+              handleDateTypeChange(1)
+            "
+          />
+        </template>
+      </div>
+      <span style="margin-top: 8px; margin-left: 36px">
         <Button @click="getFlowList" type="primary">{{ $t('search') }}</Button>
         <Button @click="handleReset" style="margin-left: 5px">{{ $t('reset') }}</Button>
       </span>
@@ -160,37 +163,42 @@
       </Tabs>
       <div class="table-zone">
         <div v-for="(roleData, roleDataIndex) in data" :key="roleDataIndex">
-          <div class="w-header">
-            <Icon size="28" type="ios-people" />
-            <div class="title">{{ roleData.manageRole }}<span class="underline"></span></div>
-            <Icon
-              v-if="!hideRoles.includes(roleDataIndex)"
-              size="26"
-              @click="changeRoleTableStatus(roleDataIndex, 'in')"
-              type="md-arrow-dropdown"
-              style="cursor: pointer"
-            />
-            <Icon
-              v-else
-              size="26"
-              @click="changeRoleTableStatus(roleDataIndex, 'out')"
-              type="md-arrow-dropright"
-              style="cursor: pointer"
-            />
-          </div>
-          <div v-show="!hideRoles.includes(roleDataIndex)">
-            <Table
-              class="hide-select-all"
-              size="small"
-              :columns="mgmtColumns()"
-              :data="roleData.dataList"
-              @on-select-all="onSelectAll"
-              @on-select="onSelect"
-              @on-select-cancel="cancelSelect"
-              @on-selection-change="onSelectionChange"
-              width="100%"
-            ></Table>
-          </div>
+          <Card>
+            <div class="w-header" slot="title">
+              <Icon size="28" type="ios-people" />
+              <div class="title">
+                {{ roleData.manageRole }}
+                <span class="underline"></span>
+              </div>
+              <Icon
+                v-if="!hideRoles.includes(roleDataIndex)"
+                size="26"
+                @click="changeRoleTableStatus(roleDataIndex, 'in')"
+                type="md-arrow-dropdown"
+                style="cursor: pointer"
+              />
+              <Icon
+                v-else
+                size="26"
+                @click="changeRoleTableStatus(roleDataIndex, 'out')"
+                type="md-arrow-dropright"
+                style="cursor: pointer"
+              />
+            </div>
+            <div v-show="!hideRoles.includes(roleDataIndex)">
+              <Table
+                class="hide-select-all"
+                size="small"
+                :columns="mgmtColumns()"
+                :data="roleData.dataList"
+                @on-select-all="onSelectAll"
+                @on-select="onSelect"
+                @on-select-cancel="cancelSelect"
+                @on-selection-change="onSelectionChange"
+                width="100%"
+              ></Table>
+            </div>
+          </Card>
         </div>
       </div>
     </div>
@@ -243,6 +251,7 @@ export default {
         },
         {
           title: '编排ID',
+          width: 180,
           key: 'id'
         },
         {
@@ -306,6 +315,18 @@ export default {
           render: (h, params) => {
             const res = params.row.conflictCheck ? '是' : '否'
             return <span>{res}</span>
+          }
+        },
+        {
+          title: '分组',
+          key: 'scene',
+          width: 90,
+          render: (h, params) => {
+            if (params.row.scene !== '') {
+              return <div>{params.row.scene}</div>
+            } else {
+              return <span>-</span>
+            }
           }
         },
         {
@@ -737,6 +758,7 @@ th.ivu-table-column-center div.ivu-table-cell {
 .search-item {
   width: 200px;
   margin-right: 6px;
+  margin: 8px 6px 8px 0;
 }
 .btn-right {
   margin-right: 10px;
@@ -748,16 +770,14 @@ th.ivu-table-column-center div.ivu-table-cell {
 
 .table-zone {
   overflow: auto;
-  height: calc(100vh - 250px);
+  height: calc(100vh - 270px);
 }
-
 .w-header {
   display: flex;
   align-items: center;
   .title {
-    font-size: 15px;
-    font-weight: 500;
-    color: #282e38;
+    font-size: 16px;
+    font-weight: bold;
     margin: 0 10px;
     .underline {
       display: block;
@@ -765,24 +785,11 @@ th.ivu-table-column-center div.ivu-table-cell {
       margin-left: -6px;
       width: 100%;
       padding: 0 6px;
-      height: 10px;
+      height: 12px;
       border-radius: 12px;
       background-color: #c6eafe;
       box-sizing: content-box;
     }
-  }
-  .sub-title {
-    font-size: 15px;
-  }
-}
-.sub-header {
-  // display: flex;
-  // align-items: center;
-  margin-left: 12px;
-  .title {
-    font-size: 14px;
-    font-weight: bold;
-    margin-left: 5px;
   }
 }
 </style>
