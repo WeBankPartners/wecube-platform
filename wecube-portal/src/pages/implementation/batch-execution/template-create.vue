@@ -115,6 +115,8 @@
       <Button type="primary" :disabled="false" @click="handleSaveExcute">执行</Button>
       <Button type="primary" :disabled="false" @click="handleSaveTemplate" style="margin-left: 10px">保存模板</Button>
     </div>
+    <!--权限弹窗-->
+    <AuthDialog ref="auth-dialog" />
   </div>
 </template>
 
@@ -123,6 +125,7 @@ import HeaderTitle from './components/header-title.vue'
 import FilterRules from '../../components/filter-rules.vue'
 import ConditionTree from './components/condition-tree.vue'
 import EntityTable from './components/entity-table.vue'
+import AuthDialog from '../../components/flow-auth.vue'
 import {
   getAllDataModels,
   dmeAllEntities,
@@ -136,7 +139,8 @@ export default {
     HeaderTitle,
     FilterRules,
     ConditionTree,
-    EntityTable
+    EntityTable,
+    AuthDialog
   },
   data () {
     return {
