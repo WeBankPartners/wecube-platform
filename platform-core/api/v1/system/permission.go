@@ -48,7 +48,7 @@ func CreateUser(c *gin.Context) {
 		}
 		userDto.AuthContext = authContext
 	}
-	response, err = remote.RegisterLocalUser(userDto, c.GetHeader("Authorization"))
+	response, err = remote.RegisterLocalUser(userDto, c.GetHeader("Authorization"), c.GetHeader("Accept-Language"))
 	if err != nil {
 		middleware.ReturnError(c, err)
 		return
@@ -64,7 +64,11 @@ func CreateRole(c *gin.Context) {
 		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, err))
 		return
 	}
-	response, err := remote.RegisterLocalRole(&param, c.GetHeader("Authorization"))
+	if param.Administrator == "" {
+		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, fmt.Errorf("administrator not empty")))
+		return
+	}
+	response, err := remote.RegisterLocalRole(&param, c.GetHeader("Authorization"), c.GetHeader("Accept-Language"))
 	if err != nil {
 		middleware.ReturnError(c, err)
 		return
@@ -75,7 +79,7 @@ func CreateRole(c *gin.Context) {
 // GetAllUser 获取全量用户
 func GetAllUser(c *gin.Context) {
 	var list []models.UserDto
-	response, err := remote.RetrieveAllUsers(c.GetHeader("Authorization"))
+	response, err := remote.RetrieveAllUsers(c.GetHeader("Authorization"), c.GetHeader("Accept-Language"))
 	if err != nil {
 		middleware.ReturnError(c, err)
 		return
@@ -94,7 +98,7 @@ func QueryRoles(c *gin.Context) {
 	if requiredAll == "" {
 		requiredAll = "N"
 	}
-	response, err := remote.RetrieveAllLocalRoles(requiredAll, c.GetHeader("Authorization"))
+	response, err := remote.RetrieveAllLocalRoles(requiredAll, c.GetHeader("Authorization"), c.GetHeader("Accept-Language"))
 	if err != nil {
 		middleware.ReturnError(c, err)
 		return
@@ -129,7 +133,7 @@ func GetMenusByUsername(c *gin.Context) {
 	var result []*models.RoleMenuDto
 	username := c.Param("username")
 	token := c.GetHeader("Authorization")
-	response, err := remote.GetRolesByUsername(username, token)
+	response, err := remote.GetRolesByUsername(username, token, c.GetHeader("Accept-Language"))
 	if err != nil {
 		middleware.ReturnError(c, err)
 		return
@@ -141,7 +145,7 @@ func GetMenusByUsername(c *gin.Context) {
 	}
 	if len(response.Data) > 0 {
 		for _, item := range response.Data {
-			roleMenuDto, err := retrieveMenusByRoleId(c, item.ID, token)
+			roleMenuDto, err := retrieveMenusByRoleId(c, item.ID, token, c.GetHeader("Accept-Language"))
 			if err != nil {
 				middleware.ReturnError(c, err)
 				return
@@ -155,7 +159,7 @@ func GetMenusByUsername(c *gin.Context) {
 // GetRolesByUsername 根据用户名获取用户角色
 func GetRolesByUsername(c *gin.Context) {
 	username := c.Param("username")
-	response, err := remote.GetRolesByUsername(username, c.GetHeader("Authorization"))
+	response, err := remote.GetRolesByUsername(username, c.GetHeader("Authorization"), c.GetHeader("Accept-Language"))
 	if err != nil {
 		middleware.ReturnError(c, err)
 		return
@@ -166,7 +170,7 @@ func GetRolesByUsername(c *gin.Context) {
 // GetMenusByRoleId 返回角色菜单
 func GetMenusByRoleId(c *gin.Context) {
 	roleId := c.Param("role-id")
-	roleMenuDto, err := retrieveMenusByRoleId(c, roleId, c.GetHeader("Authorization"))
+	roleMenuDto, err := retrieveMenusByRoleId(c, roleId, c.GetHeader("Authorization"), c.GetHeader("Accept-Language"))
 	if err != nil {
 		middleware.ReturnError(c, err)
 		return
@@ -178,7 +182,7 @@ func GetMenusByRoleId(c *gin.Context) {
 func GetUsersByRoleId(c *gin.Context) {
 	var result = make([]*models.UserDto, 0)
 	roleId := c.Param("role-id")
-	response, err := remote.GetUsersByRoleId(roleId, c.GetHeader("Authorization"))
+	response, err := remote.GetUsersByRoleId(roleId, c.GetHeader("Authorization"), c.GetHeader("Accept-Language"))
 	if err != nil {
 		middleware.ReturnError(c, err)
 		return
@@ -204,7 +208,7 @@ func GrantRoleToUsers(c *gin.Context) {
 		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, err))
 		return
 	}
-	err := remote.ConfigureUserWithRoles(userId, c.GetHeader("Authorization"), roleIds)
+	err := remote.ConfigureUserWithRoles(userId, c.GetHeader("Authorization"), c.GetHeader("Accept-Language"), roleIds)
 	if err != nil {
 		middleware.ReturnError(c, err)
 		return
@@ -220,7 +224,7 @@ func GrantUserAddRoles(c *gin.Context) {
 		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, err))
 		return
 	}
-	err := remote.ConfigureRoleForUsers(roleId, c.GetHeader("Authorization"), userIds)
+	err := remote.ConfigureRoleForUsers(roleId, c.GetHeader("Authorization"), c.GetHeader("Accept-Language"), userIds)
 	if err != nil {
 		middleware.ReturnError(c, err)
 		return
@@ -235,7 +239,7 @@ func ResetUserPassword(c *gin.Context) {
 		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, err))
 		return
 	}
-	response, err := remote.ResetLocalUserPassword(param, c.GetHeader("Authorization"))
+	response, err := remote.ResetLocalUserPassword(param, c.GetHeader("Authorization"), c.GetHeader("Accept-Language"))
 	if err != nil {
 		middleware.ReturnError(c, err)
 		return
@@ -250,7 +254,7 @@ func ChangeUserPassword(c *gin.Context) {
 		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, err))
 		return
 	}
-	response, err := remote.ModifyLocalUserPassword(param, middleware.GetRequestUser(c), c.GetHeader("Authorization"))
+	response, err := remote.ModifyLocalUserPassword(param, middleware.GetRequestUser(c), c.GetHeader("Authorization"), c.GetHeader("Accept-Language"))
 	if err != nil {
 		middleware.ReturnError(c, err)
 		return
@@ -262,7 +266,7 @@ func ChangeUserPassword(c *gin.Context) {
 func DeleteUserByUserId(c *gin.Context) {
 	userId := c.Param("user-id")
 	token := c.GetHeader("Authorization")
-	response, err := remote.RetrieveUserByUserId(userId, token)
+	response, err := remote.RetrieveUserByUserId(userId, token, c.GetHeader("Accept-Language"))
 	if err != nil {
 		middleware.ReturnError(c, err)
 		return
@@ -278,7 +282,7 @@ func DeleteUserByUserId(c *gin.Context) {
 		return
 	}
 	// 删除用户
-	err = remote.UnregisterLocalUser(userId, c.GetHeader("Authorization"))
+	err = remote.UnregisterLocalUser(userId, c.GetHeader("Authorization"), c.GetHeader("Accept-Language"))
 	if err != nil {
 		middleware.ReturnError(c, err)
 		return
@@ -294,13 +298,13 @@ func UpdateRole(c *gin.Context) {
 		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, err))
 		return
 	}
-	if roleId == "" {
-		err := fmt.Errorf("param roleId is empty")
+	if roleId == "" || param.Administrator == "" {
+		err := fmt.Errorf("param roleId or administrator is empty")
 		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, err))
 		return
 	}
 	param.ID = roleId
-	response, err := remote.UpdateLocalRole(c.GetHeader("Authorization"), param)
+	response, err := remote.UpdateLocalRole(c.GetHeader("Authorization"), c.GetHeader("Accept-Language"), param)
 	if err != nil {
 		middleware.ReturnError(c, err)
 		return
@@ -321,7 +325,7 @@ func RevokeRoleFromUsers(c *gin.Context) {
 		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, err))
 		return
 	}
-	err := remote.RevokeRoleFromUsers(roleId, c.GetHeader("Authorization"), userIds)
+	err := remote.RevokeRoleFromUsers(roleId, c.GetHeader("Authorization"), c.GetHeader("Accept-Language"), userIds)
 	if err != nil {
 		middleware.ReturnError(c, err)
 		return
@@ -337,7 +341,7 @@ func UpdateRoleToMenusByRoleId(c *gin.Context) {
 		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, err))
 		return
 	}
-	err := updateRoleToMenusByRoleId(c, roleId, c.GetHeader("Authorization"), convertList2Map(menuCodeList))
+	err := updateRoleToMenusByRoleId(c, roleId, c.GetHeader("Authorization"), c.GetHeader("Accept-Language"), convertList2Map(menuCodeList))
 	if err != nil {
 		middleware.ReturnError(c, err)
 		return
@@ -347,7 +351,7 @@ func UpdateRoleToMenusByRoleId(c *gin.Context) {
 
 // GetRolesOfCurrentUser 获取当前用户的roles
 func GetRolesOfCurrentUser(c *gin.Context) {
-	response, err := remote.GetRolesByUsername(middleware.GetRequestUser(c), c.GetHeader("Authorization"))
+	response, err := remote.GetRolesByUsername(middleware.GetRequestUser(c), c.GetHeader("Authorization"), c.GetHeader("Accept-Language"))
 	if err != nil {
 		middleware.ReturnError(c, err)
 		return
@@ -355,41 +359,14 @@ func GetRolesOfCurrentUser(c *gin.Context) {
 	middleware.Return(c, response)
 }
 
-// GetRoleAdministrator 获取角色管理员
-func GetRoleAdministrator(c *gin.Context) {
-	roleName := c.Param("role-name")
-	response, err := remote.GetRoleAdministrator(roleName, c.GetHeader("Authorization"))
-	if err != nil {
-		middleware.ReturnError(c, err)
-		return
-	}
-	middleware.Return(c, response)
-}
-
-// ConfigureRoleAdministrator 配置角色管理员
-func ConfigureRoleAdministrator(c *gin.Context) {
-	var param models.RoleAdministratorDto
-	if err := c.ShouldBindJSON(&param); err != nil {
-		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, err))
-		return
-	}
-	// 配置角色管理员
-	err := remote.ConfigureRoleAdministrator(&models.RoleAdministratorDto{RoleId: param.RoleId, UserId: param.UserId}, c.GetHeader("Authorization"))
-	if err != nil {
-		middleware.ReturnError(c, err)
-		return
-	}
-	middleware.ReturnSuccess(c)
-}
-
-func retrieveMenusByRoleId(ctx context.Context, roleId, userToken string) (roleMenuDto *models.RoleMenuDto, err error) {
+func retrieveMenusByRoleId(ctx context.Context, roleId, userToken, language string) (roleMenuDto *models.RoleMenuDto, err error) {
 	roleMenuDto = &models.RoleMenuDto{}
 	var menuItemDtoList []*models.MenuItemDto
 	var roleRes models.QuerySingleRolesResponse
 	var roleMenuEntities []*models.RoleMenu
 	var menuItemsEntity *models.MenuItems
 	var pluginPackageMenusEntities []*models.PluginPackageMenus
-	roleRes, err = remote.RetrieveRoleInfo(roleId, userToken)
+	roleRes, err = remote.RetrieveRoleInfo(roleId, userToken, language)
 	if err != nil {
 		return
 	}
@@ -456,13 +433,13 @@ func buildMenuItemDto(entity *models.MenuItems) *models.MenuItemDto {
 	return dto
 }
 
-func updateRoleToMenusByRoleId(ctx context.Context, roleId, userToken string, menuCodeMap map[string]bool) (err error) {
+func updateRoleToMenusByRoleId(ctx context.Context, roleId, userToken, language string, menuCodeMap map[string]bool) (err error) {
 	var roleName string
 	var roleMenuList []*models.RoleMenu
 	var currentMenuCodeMap = make(map[string]bool)
 	var authoritiesToRevoke []*models.SimpleAuthorityDto
 	var needAddAuthoritiesToGrantList []*models.SimpleAuthorityDto
-	roleRes, err := remote.RetrieveRoleInfo(roleId, userToken)
+	roleRes, err := remote.RetrieveRoleInfo(roleId, userToken, language)
 	if err != nil {
 		return
 	}
@@ -483,7 +460,7 @@ func updateRoleToMenusByRoleId(ctx context.Context, roleId, userToken string, me
 		currentMenuCodeMap[menu.MenuCode] = true
 	}
 	if len(authoritiesToRevoke) > 0 {
-		err = remote.RevokeRoleAuthoritiesById(roleId, userToken, authoritiesToRevoke)
+		err = remote.RevokeRoleAuthoritiesById(roleId, userToken, language, authoritiesToRevoke)
 		if err != nil {
 			return
 		}
@@ -504,7 +481,7 @@ func updateRoleToMenusByRoleId(ctx context.Context, roleId, userToken string, me
 		}
 	}
 	if len(needAddAuthoritiesToGrantList) > 0 {
-		err = remote.ConfigureRoleWithAuthoritiesById(roleId, userToken, needAddAuthoritiesToGrantList)
+		err = remote.ConfigureRoleWithAuthoritiesById(roleId, userToken, language, needAddAuthoritiesToGrantList)
 	}
 	return
 }

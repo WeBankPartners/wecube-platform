@@ -102,4 +102,8 @@ export default {
 }
 </script>
 
-<style scoped lang="scss"></style>
+<style scoped lang="scss">
+.ivu-form-item-content {
+  background: white;
+}
+</style>

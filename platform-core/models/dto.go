@@ -56,11 +56,12 @@ type SimpleAuthorityDto struct {
 }
 
 type SimpleLocalRoleDto struct {
-	ID          string `json:"id"`
-	Name        string `json:"name"`
-	DisplayName string `json:"displayName"`
-	Email       string `json:"email"`
-	Status      string `json:"status"` // Deleted, NotDeleted
+	ID            string `json:"id"`
+	Name          string `json:"name"`
+	DisplayName   string `json:"displayName"`
+	Email         string `json:"email"`
+	Status        string `json:"status"`        // Deleted, NotDeleted
+	Administrator string `json:"administrator"` // 角色管理员
 }
 
 type SimpleLocalUserDto struct {

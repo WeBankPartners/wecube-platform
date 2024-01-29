@@ -148,6 +148,9 @@ type QueryProcessDefinitionParam struct {
 	UpdatedTimeStart string   `json:"updatedTimeStart"` // 更新时间开始
 	UpdatedTimeEnd   string   `json:"updatedTimeEnd"`   // 更新时间结束
 	Status           string   `json:"status"`           // disabled 禁用 draft草稿 deployed 发布状态
+	CreatedBy        string   `json:"createdBy"`        // 创建人
+	UpdatedBy        string   `json:"updatedBy"`        // 更新人
+	Scene            string   `json:"scene"`            // 使用场景
 	UserRoles        []string // 用户角色
 }
 
@@ -175,8 +178,9 @@ type ProcDefNodeResultDto struct {
 }
 
 type ProcDefNodeSimpleDto struct {
-	NodeId string `json:"nodeId"`   // 节点id
-	Name   string `json:"nodeName"` // 节点名称
+	NodeId   string `json:"nodeId"`   // 节点id
+	Name     string `json:"nodeName"` // 节点名称
+	NodeType string
 }
 
 // ProcDefNodeRequestParam 编排节点dto
@@ -272,6 +276,7 @@ type ImportResultItemDto struct {
 	ProcDefName    string `json:"procDefName"`    // 编排名称
 	ProcDefVersion string `json:"ProcDefVersion"` // 编排版本
 	Code           int    `json:"code"`           // 0表示成功,1表示编排已有草稿,不允许导入  2表示版本冲突  3表示服务报错
+	Message        string `json:"message"`        // 国际化词条
 }
 
 type ProcDefNodeLinkCustomAttrs struct {
@@ -302,13 +307,8 @@ type ProcDefDto struct {
 }
 
 type ProcDefQueryDto struct {
-	ManageRole string       `json:"manageRole"` //管理角色
-	SceneData  []*SceneData `json:"sceneData"`  // 场景数据
-}
-
-type SceneData struct {
-	Scene       string        `json:"scene"`    // 场景
-	ProcDefList []*ProcDefDto `json:"dataList"` // 编排列表
+	ManageRole  string        `json:"manageRole"` //管理角色
+	ProcDefList []*ProcDefDto `json:"dataList"`   // 编排列表
 }
 
 type PermissionToRole struct {
@@ -346,7 +346,7 @@ func (q ProcDefDtoSort) Less(i, j int) bool {
 	if t1.Sub(t2).Seconds() >= 0 {
 		return true
 	}
-	return true
+	return false
 }
 
 func (q ProcDefDtoSort) Swap(i, j int) {

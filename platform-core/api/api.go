@@ -47,6 +47,7 @@ func init() {
 		&handlerFuncObj{Url: "/system-variables/create", Method: "POST", HandlerFunc: system.CreateSystemVariable, ApiCode: "create-system-variables"},
 		&handlerFuncObj{Url: "/system-variables/update", Method: "POST", HandlerFunc: system.UpdateSystemVariable, ApiCode: "update-system-variables"},
 		&handlerFuncObj{Url: "/system-variables/delete", Method: "POST", HandlerFunc: system.DeleteSystemVariable, ApiCode: "delete-system-variables"},
+		&handlerFuncObj{Url: "/system-variables/constant/system-variable-scope", Method: "GET", HandlerFunc: system.GetSystemVariableScope, ApiCode: "get-system-variable-scope"},
 		// resource
 		&handlerFuncObj{Url: "/resource/constants/resource-server-status", Method: "GET", HandlerFunc: system.GetResourceServerStatus, ApiCode: "get-resource-server-status"},
 		&handlerFuncObj{Url: "/resource/constants/resource-server-types", Method: "GET", HandlerFunc: system.GetResourceServerTypes, ApiCode: "get-resource-server-types"},
@@ -124,10 +125,6 @@ func init() {
 		// @todo 需要Super_admin权限才能调用接口
 		&handlerFuncObj{Url: "/users/:user-id/delete", Method: "DELETE", HandlerFunc: system.DeleteUserByUserId, ApiCode: "delete-user"},
 		&handlerFuncObj{Url: "/users/roles", Method: "GET", HandlerFunc: system.GetRolesOfCurrentUser, ApiCode: "get-user-roles"},
-		&handlerFuncObj{Url: "/roles/name/:role-name/administrator", Method: http.MethodGet, HandlerFunc: system.GetRoleAdministrator,
-			ApiCode: "get-roles-administrator"},
-		&handlerFuncObj{Url: "/roles/administrator", Method: http.MethodPost, HandlerFunc: system.ConfigureRoleAdministrator,
-			ApiCode: "configure-roles-administrator"},
 
 		// process manage
 		&handlerFuncObj{Url: "/process/definitions", Method: "POST", HandlerFunc: process.AddOrUpdateProcessDefinition, ApiCode: "add-update-process-definition"},
@@ -159,9 +156,13 @@ func init() {
 		&handlerFuncObj{Url: "/batch-execution/templates", Method: "POST", HandlerFunc: batch_execution.CreateOrUpdateTemplate, ApiCode: "create-update-batch-execution-template"},
 		&handlerFuncObj{Url: "/batch-execution/templates/list", Method: "POST", HandlerFunc: batch_execution.RetrieveTemplate, ApiCode: "retrieve-batch-execution-template"},
 		&handlerFuncObj{Url: "/batch-execution/templates/:templateId", Method: "GET", HandlerFunc: batch_execution.GetTemplate, ApiCode: "get-batch-execution-template"},
+		&handlerFuncObj{Url: "/batch-execution/templates/:templateId", Method: "DELETE", HandlerFunc: batch_execution.DeleteTemplate, ApiCode: "delete-batch-execution-template"},
 		&handlerFuncObj{Url: "/batch-execution/templates/collect", Method: "POST", HandlerFunc: batch_execution.CollectTemplate, ApiCode: "collect-batch-execution-template"},
+		&handlerFuncObj{Url: "/batch-execution/templates/uncollect", Method: "POST", HandlerFunc: batch_execution.UncollectTemplate, ApiCode: "uncollect-batch-execution-template"},
+		&handlerFuncObj{Url: "/batch-execution/templates/collect/check", Method: "POST", HandlerFunc: batch_execution.CheckCollectTemplate, ApiCode: "check-collect-batch-execution-template"},
+		&handlerFuncObj{Url: "/batch-execution/templates/permission/update", Method: "POST", HandlerFunc: batch_execution.UpdateTemplatePermission, ApiCode: "update-batch-execution-template-permission"},
 		&handlerFuncObj{Url: "/batch-execution/list", Method: "POST", HandlerFunc: batch_execution.RetrieveBatchExec, ApiCode: "retrieve-batch-execution"},
-		&handlerFuncObj{Url: "/batch-execution/get/:batchExecId", Method: "POST", HandlerFunc: batch_execution.GetBatchExec, ApiCode: "get-batch-execution"},
+		&handlerFuncObj{Url: "/batch-execution/:batchExecId", Method: "GET", HandlerFunc: batch_execution.GetBatchExec, ApiCode: "get-batch-execution"},
 		// &handlerFuncObj{Url: "/batch-execution/job/run", Method: "POST", HandlerFunc: batch_execution.RunJob, ApiCode: "run-batch-execution-job"},
 	)
 }

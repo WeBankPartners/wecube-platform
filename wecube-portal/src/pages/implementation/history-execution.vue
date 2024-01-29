@@ -12,6 +12,10 @@
         ></DatePicker>
       </div>
       <div class="item">
+        ID:
+        <Input v-model="searchConfig.params.id" style="width: 60%" clearable></Input>
+      </div>
+      <div class="item">
         {{ $t('flow_name') }}:
         <Select
           label
@@ -78,6 +82,7 @@ export default {
       },
       searchConfig: {
         params: {
+          id: '',
           startTime: '',
           endTime: '',
           procInstName: '',
@@ -99,6 +104,11 @@ export default {
           type: 'index',
           width: 60,
           align: 'center'
+        },
+        {
+          title: 'ID',
+          width: 60,
+          key: 'id'
         },
         {
           title: this.$t('flow_name'),
@@ -157,11 +167,10 @@ export default {
   async mounted () {
     const cacheParams = localStorage.getItem('history-execution-search-params')
     if (cacheParams) {
-      console.log(33)
       await this.getFlows()
-      console.log(this.allFlows)
       const tmp = JSON.parse(cacheParams)
       this.time = [tmp.startTime || '', tmp.endTime || '']
+      this.searchConfig.params.id = tmp.id || ''
       this.searchConfig.params.startTime = tmp.startTime || ''
       this.searchConfig.params.endTime = tmp.endTime || ''
       this.searchConfig.params.procInstName = tmp.procInstName || ''
@@ -227,6 +236,7 @@ export default {
     },
     async getProcessInstances () {
       const params = {
+        id: this.searchConfig.params.id !== '' ? this.searchConfig.params.id : undefined,
         procInstName: this.searchConfig.params.procInstName !== '' ? this.searchConfig.params.procInstName : undefined,
         entityDisplayName:
           this.searchConfig.params.entityDisplayName !== '' ? this.searchConfig.params.entityDisplayName : undefined,
