@@ -52,8 +52,8 @@ build_portal:
 	chmod +x build/wecube-portal/*.sh
 	docker run --rm  -v $(current_dir):/home/node/app -w /home/node/app node:12.13.1 /bin/bash /home/node/app/build/wecube-portal/build-ui.sh
 
-# image_portal: build_portal
-#	docker build -t wecube-portal:$(version) -f build/wecube-portal/Dockerfile .
+image_portal: build_portal
+	docker build -t wecube-portal:$(version) -f build/wecube-portal/Dockerfile .
 
 push_portal: image_portal
 	docker tag  wecube-portal:$(version) $(tencent_cloud_docker_image_registry)/wecube-portal:$(version)
