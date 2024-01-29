@@ -32,7 +32,7 @@ func SaveTmpFile(fileName string, fileContent []byte) (filePath, fileDir string,
 
 func newTmpDir() (fileDir string, err error) {
 	fileDir = fmt.Sprintf("/tmp/%d", time.Now().UnixNano())
-	if err = os.MkdirAll(fileDir, 0644); err != nil {
+	if err = os.MkdirAll(fileDir, 0777); err != nil {
 		err = fmt.Errorf("make tmp dir fail,%s ", err.Error())
 	}
 	return
