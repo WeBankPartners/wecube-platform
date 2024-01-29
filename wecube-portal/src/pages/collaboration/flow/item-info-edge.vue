@@ -19,7 +19,7 @@
           >
         </FormItem>
         <div style="position: absolute; bottom: 20px; right: 280px; width: 200px">
-          <Button @click="saveItem" type="primary">{{ $t('save') }}</Button>
+          <Button v-if="editFlow !== 'false'" @click="saveItem" type="primary">{{ $t('save') }}</Button>
           <Button @click="hideItem">{{ $t('cancel') }}</Button>
         </div>
       </template>
@@ -30,6 +30,7 @@
 export default {
   data () {
     return {
+      editFlow: true, // 在查看时隐藏按钮
       isParmasChanged: false, // 参数变化标志位，控制右侧panel显示逻辑
       needAddFirst: true,
       itemCustomInfo: {
@@ -39,7 +40,8 @@ export default {
     }
   },
   methods: {
-    showItemInfo (data, needAddFirst = false) {
+    showItemInfo (data, needAddFirst = false, editFlow) {
+      this.editFlow = editFlow
       this.needAddFirst = needAddFirst
       delete data.sourceNode
       delete data.targetNode

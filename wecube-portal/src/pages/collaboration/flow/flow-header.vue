@@ -6,19 +6,18 @@
         <Tag>v{{ itemCustomInfo.version }}</Tag>
         <img src="../../../assets/icon/edit-black.png" style="width: 16px; vertical-align: middle" alt="" />
       </div>
-      <div>
-        <Button type="primary" ghost @click="backToFlowList">
-          <Icon type="ios-undo-outline" size="16"></Icon>
-          {{ $t('return') }}
-        </Button>
-
+      <Button type="primary" ghost @click="backToFlowList">
+        <Icon type="ios-undo-outline" size="16"></Icon>
+        {{ $t('return') }}
+      </Button>
+      <div v-if="editFlow !== 'false'">
         <Button type="primary" v-if="['draft'].includes(itemCustomInfo.status)" @click="releaseFlow">
           <Icon type="ios-paper-plane-outline" size="16"></Icon>
           {{ $t('release_flow') }}
         </Button>
         <Button type="success" v-if="['deployed'].includes(itemCustomInfo.status)" @click="exportFlow">
           <img src="../../../assets/icon/export.png" class="btn-img" alt="" />
-          {{ $t('export_flow') }}
+          {{ $t('export_flow') }}{{ editFlow }}
         </Button>
         <Button type="info" v-if="['draft', 'deployed'].includes(itemCustomInfo.status)" @click="changePermission">
           <Icon type="ios-person-outline" size="16"></Icon>
@@ -67,11 +66,13 @@ export default {
   },
   data () {
     return {
+      editFlow: true, // 在查看时隐藏按钮
       itemCustomInfo: {}
     }
   },
   methods: {
-    showItemInfo (data) {
+    showItemInfo (data, editFlow) {
+      this.editFlow = editFlow
       const defaultNode = {
         id: '',
         label: '', // 编排名称

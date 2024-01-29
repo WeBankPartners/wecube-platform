@@ -189,7 +189,7 @@
               <Table
                 class="hide-select-all"
                 size="small"
-                :columns="mgmtColumns()"
+                :columns="tableColumn"
                 :data="roleData.dataList"
                 @on-select-all="onSelectAll"
                 @on-select="onSelect"
@@ -354,7 +354,7 @@ export default {
             return (
               <div style="text-align: left; cursor: pointer;display: inline-flex;">
                 <Tooltip placement="top" content={this.$t('view')}>
-                  <img src={eye} style="width:18px;margin:0 4px;"></img>
+                  <img src={eye} style="width:18px;margin:0 4px;" onClick={() => this.viewAction(params.row)}></img>
                 </Tooltip>
                 {['deployed'].includes(status) && (
                   <Tooltip placement="top" content={this.$t('copy')}>
@@ -586,10 +586,11 @@ export default {
           title: 'Success',
           desc: message + data
         })
-        this.getFlowList()
-        this.selectedParams.ids = []
-        this.selectedParams.names = []
+        this.$router.push({ path: '/collaboration/workflow-orchestration', query: { flowId: data } })
       }
+    },
+    viewAction (row) {
+      this.$router.push({ path: '/collaboration/workflow-orchestration', query: { flowId: row.id, editFlow: 'false' } })
     },
 
     // #endregion
@@ -627,15 +628,6 @@ export default {
       } else if (type === 'out') {
         const findIndex = this.hideRoles.findIndex(rIndex => rIndex === index)
         this.hideRoles.splice(findIndex, 1)
-      }
-    },
-    mgmtColumns () {
-      if (this.searchParams.status !== 'disabled') {
-        return this.tableColumn
-      } else {
-        let customCol = JSON.parse(JSON.stringify(this.tableColumn))
-        customCol.pop()
-        return customCol
       }
     },
     handleUpload (file) {
@@ -715,7 +707,11 @@ export default {
       })
         .then(response => {
           if (response.status < 400) {
+            const fileNameArr = response.headers['content-disposition'].split('filename=')
             let fileName = `export_${dayjs().format('YYMMDDHHmmss')}.json`
+            if (fileNameArr.length === 2) {
+              fileName = fileNameArr[1]
+            }
             let blob = new Blob([response.data])
             if ('msSaveOrOpenBlob' in navigator) {
               window.navigator.msSaveOrOpenBlob(blob, fileName)
