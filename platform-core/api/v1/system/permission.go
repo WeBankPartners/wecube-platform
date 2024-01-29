@@ -298,8 +298,8 @@ func UpdateRole(c *gin.Context) {
 		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, err))
 		return
 	}
-	if roleId == "" {
-		err := fmt.Errorf("param roleId is empty")
+	if roleId == "" || param.Administrator == "" {
+		err := fmt.Errorf("param roleId or administrator is empty")
 		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, err))
 		return
 	}

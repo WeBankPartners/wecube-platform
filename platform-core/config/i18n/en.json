@@ -42,10 +42,38 @@
   },
   "proc_def_node_name_empty_error": {
     "code": 20000002,
-    "message": "编排节点名称不能为空"
+    "message": "Save Failed: Node name cannot be empty."
   },
   "proc_def_node_name_repeat_error": {
     "code": 20000003,
-    "message": "编排节点名称重复"
+    "message": "Save Failed: Node with the same name already exists."
+  },
+  "proc_def_node_20000004_error": {
+    "code": 20000004,
+    "message": "Publish Failed: Format error in process, [branch node: %s] must have multiple outgoing connections."
+  },
+  "proc_def_node_20000005_error": {
+    "code": 20000005,
+    "message": "Publish Failed: Format error in process, [converge node: %s] must have multiple incoming and single outgoing connection."
+  },
+  "proc_def_node_20000006_error": {
+    "code": 20000006,
+    "message": "Publish Failed: Format error in process, [decision node: %s] must have branches, and the names must be different."
+  },
+  "proc_def_node_20000007_error": {
+    "code": 20000007,
+    "message": "Publish Failed: Format error in process, [start node: %s] and [end node: %s] can only have 1 each."
+  },
+  "proc_def_node_20000008_error": {
+    "code": 20000008,
+    "message": "Publish Failed: Format error in process, [branch node: %s] or [converge node: %s] cannot directly connect branch node."
+  },
+  "proc_def_node_20000009_error": {
+    "code": 20000009,
+    "message": "Publish Failed: Format error in process,no nodes in the process"
+  },
+  "proc_def_node_20000010_error": {
+    "code": 20000010,
+    "message": "Publish Failed: Format error in process, [task nodes] and [time nodes] only support single in and single out"
   }
 }

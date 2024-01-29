@@ -36,6 +36,7 @@ const (
 func AddOrUpdateProcessDefinition(c *gin.Context) {
 	var param models.ProcessDefinitionParam
 	var entity *models.ProcDef
+	var nodeList []*models.ProcDefNode
 	var err error
 	if err := c.ShouldBindJSON(&param); err != nil {
 		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, err))
@@ -79,7 +80,17 @@ func AddOrUpdateProcessDefinition(c *gin.Context) {
 			UpdatedBy:     middleware.GetRequestUser(c),
 			UpdatedTime:   time.Now(),
 		}
-		err = database.UpdateProcDef(c, entity)
+		nodeList, err = database.GetProcDefNodeById(c, param.Id)
+		if err != nil {
+			middleware.ReturnError(c, err)
+			return
+		}
+		if result.RootEntity == param.RootEntity || len(nodeList) == 0 {
+			err = database.UpdateProcDef(c, entity)
+		} else {
+			// 编排根节点改变,需要同时清除编排所有节点的 RoutineExpression、ServiceName、ParamInfos
+			err = database.UpdateProcDefAndNode(c, entity, nodeList)
+		}
 	}
 	if err != nil {
 		middleware.ReturnError(c, err)
@@ -368,18 +379,18 @@ func ImportProcessDefinition(c *gin.Context) {
 
 // DeployProcessDefinition 编排定义发布
 func DeployProcessDefinition(c *gin.Context) {
+	var procDef *models.ProcDef
+	var err error
 	procDefId := c.Param("proc-def-id")
 	if procDefId == "" {
 		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, fmt.Errorf("proc-def-id is empty")))
 		return
 	}
-	procDef, err := database.GetProcessDefinition(c, procDefId)
-	if err != nil {
+	if procDef, err = database.GetProcessDefinition(c, procDefId); err != nil || procDef == nil {
+		if procDef == nil {
+			err = exterror.Catch(exterror.New().ServerHandleError, fmt.Errorf("proc-def-id is invalid"))
+		}
 		middleware.ReturnError(c, err)
-		return
-	}
-	if procDef == nil {
-		middleware.ReturnError(c, fmt.Errorf("proc-def-id is invalid"))
 		return
 	}
 	// 草稿态才能发布
@@ -388,8 +399,8 @@ func DeployProcessDefinition(c *gin.Context) {
 		return
 	}
 	// 检查节点的合法性
-	if !checkDeployedProcDef(c, procDefId) {
-		middleware.ReturnError(c, fmt.Errorf("procDef deployed node check fail"))
+	if err = checkDeployedProcDef(c, procDefId); err != nil {
+		middleware.ReturnError(c, err)
 		return
 	}
 	// @todo 计算编排节点顺序
@@ -397,14 +408,12 @@ func DeployProcessDefinition(c *gin.Context) {
 	procDef.UpdatedBy = middleware.GetRequestUser(c)
 	procDef.UpdatedTime = time.Now()
 	// 发布编排
-	err = database.UpdateProcDefStatusAndVersion(c, procDef)
-	if err != nil {
+	if err = database.UpdateProcDefStatusAndVersion(c, procDef); err != nil {
 		middleware.ReturnError(c, err)
 		return
 	}
 	// 发布节点
-	err = database.UpdateProcDefNodeStatusByProcDefId(c, procDefId, string(models.Deployed), middleware.GetRequestUser(c))
-	if err != nil {
+	if err = database.UpdateProcDefNodeStatusByProcDefId(c, procDefId, string(models.Deployed), middleware.GetRequestUser(c)); err != nil {
 		middleware.ReturnError(c, err)
 		return
 	}
@@ -1079,21 +1088,25 @@ checkDeployedProcDefNode
 6. 开始结束节点都不超过一个
 7. 判断节点出的线,必须有名字并且同一个判断节点的所有线的名字不能相同
 */
-func checkDeployedProcDef(ctx context.Context, procDefId string) bool {
-	var startNodeCount, endNodeCount, inCount, outCount int
+func checkDeployedProcDef(ctx context.Context, procDefId string) error {
+	var inCount, outCount int
 	var list []*models.ProcDefNode
 	var linkList []*models.ProcDefNodeLink
 	var err error
-	var nodeTypeMap = make(map[string]string)
+	var nodeMap = make(map[string]*models.ProcDefNode)
+	var startNodeNameList, endNodeNameList []string
 	// 是否有单进单出
 	var hasSingleInOut bool
-	list, err = database.GetSimpleProcDefNodeByProcDefId(ctx, procDefId)
+	list, err = database.GetProcDefNodeById(ctx, procDefId)
+	if len(list) == 0 {
+		return exterror.Catch(exterror.New().ProcDefNode20000009Error, nil)
+	}
+	if checkProcDefNodeNameRepeat(list) {
+		return exterror.Catch(exterror.New().ProcDefNodeNameRepeatError, nil)
+	}
 	linkList, err = database.GetProcDefNodeLinkListByProcDefId(ctx, procDefId)
 	if err != nil {
-		return false
-	}
-	if len(list) == 0 {
-		return true
+		return exterror.Catch(exterror.New().DatabaseQueryError, err)
 	}
 
 	if len(linkList) == 0 {
@@ -1102,7 +1115,7 @@ func checkDeployedProcDef(ctx context.Context, procDefId string) bool {
 	for _, node := range list {
 		inCount = 0
 		outCount = 0
-		nodeTypeMap[node.Id] = node.NodeType
+		nodeMap[node.Id] = node
 		for _, link := range linkList {
 			if link.Source == node.Id {
 				outCount++
@@ -1112,69 +1125,77 @@ func checkDeployedProcDef(ctx context.Context, procDefId string) bool {
 		}
 		switch models.ProcDefNodeType(node.NodeType) {
 		case models.ProcDefNodeTypeStart:
-			startNodeCount++
+			startNodeNameList = append(startNodeNameList, node.Name)
 		case models.ProcDefNodeTypeEnd:
-			endNodeCount++
+			endNodeNameList = append(endNodeNameList, node.Name)
 		case models.ProcDefNodeTypeFork:
 			// 分流必须单进多出
 			if !(inCount == 1 && outCount > 1) {
-				log.Logger.Info("checkDeployedProcDefNode fail,fork node is invalid", log.String("procDefId", procDefId),
-					log.String("nodeId", node.NodeId))
-				return false
+				return exterror.Catch(exterror.New().ProcDefNode20000004Error.WithParam(node.Name), nil)
 			}
 		case models.ProcDefNodeTypeMerge:
 			// 汇聚必须多进单出
 			if !(inCount > 1 && outCount == 1) {
-				log.Logger.Info("checkDeployedProcDefNode fail,merge node is invalid", log.String("procDefId", procDefId),
-					log.String("nodeId", node.NodeId))
-				return false
+				return exterror.Catch(exterror.New().ProcDefNode20000005Error.WithParam(node.Name), nil)
 			}
 		case models.ProcDefNodeTypeDecision:
+			//  判断节点出的线,必须有名字并且同一个判断节点的所有线的名字不能相同
+			var tempLinkNameMap = make(map[string]bool)
 			nodeLinkList, err2 := database.GetProcDefNodeLinkByProcDefIdAndSource(ctx, procDefId, node.Id)
 			if err2 != nil {
-				return false
+				return exterror.Catch(exterror.New().DatabaseQueryError, err2)
 			}
 			if len(nodeLinkList) > 0 {
-				var tempLinkNameMap = make(map[string]bool)
 				for _, link := range nodeLinkList {
-					if strings.TrimSpace(link.Name) == "" {
-						log.Logger.Info("checkDeployedProcDefNode fail,decision node has link name empty", log.String("procDefId", procDefId),
-							log.String("nodeId", node.NodeId), log.String("linkId", link.LinkId))
-						return false
+					if strings.TrimSpace(link.Name) == "" || tempLinkNameMap[link.Name] {
+						return exterror.Catch(exterror.New().ProcDefNode20000006Error.WithParam(node.Name), nil)
 					}
-					if tempLinkNameMap[link.Name] {
-						log.Logger.Info("checkDeployedProcDefNode fail,decision node has link name the same", log.String("procDefId", procDefId),
-							log.String("nodeId", node.NodeId), log.String("linkId", link.LinkId))
-						return false
-					} else {
-						tempLinkNameMap[link.Name] = true
-					}
+					tempLinkNameMap[link.Name] = true
 				}
 			}
 		default:
+			//除 分流、汇聚、判断 这三种节点外，其它所有节点必须有单进单出(开始和结束特殊)
 			if inCount == 1 && outCount == 1 {
 				hasSingleInOut = true
 			}
 		}
 	}
 	// 开始，结束节点都不超过1个
-	if startNodeCount > 1 || endNodeCount > 1 {
-		log.Logger.Info("checkDeployedProcDefNode fail,startNodeCount or  endNodeCount more than one", log.String("procDefId", procDefId))
-		return false
+	if len(startNodeNameList) > 1 || len(endNodeNameList) > 1 {
+		startNodeName := strings.Join(startNodeNameList, ",")
+		endNodeName := strings.Join(endNodeNameList, ",")
+		return exterror.Catch(exterror.New().ProcDefNode20000007Error.WithParam(startNodeName, endNodeName), nil)
 	}
 	if !hasSingleInOut {
-		log.Logger.Info("checkDeployedProcDefNode fail,hasSingleInOut is false", log.String("procDefId", procDefId))
-		return false
+		return exterror.Catch(exterror.New().ProcDefNode20000010Error, nil)
 	}
 	// 线的两边不能都是分流或汇聚
 	for _, link := range linkList {
-		if v, ok := nodeTypeMap[link.Source]; ok {
-			if (v == string(models.ProcDefNodeTypeMerge) || v == string(models.ProcDefNodeTypeFork)) && v == nodeTypeMap[link.Target] {
-				log.Logger.Info("checkDeployedProcDefNode fail,link is invalid", log.String("procDefId", procDefId),
-					log.String("linkId", link.LinkId))
-				return false
+		if v, ok := nodeMap[link.Source]; ok && nodeMap[link.Target] != nil {
+			if v.NodeType == string(models.ProcDefNodeTypeMerge) || v.NodeType == string(models.ProcDefNodeTypeFork) {
+				if v.NodeType == string(models.ProcDefNodeTypeMerge) && (nodeMap[link.Target] == v || nodeMap[link.Target].NodeType == string(models.ProcDefNodeTypeFork)) {
+					return exterror.Catch(exterror.New().ProcDefNode20000008Error.WithParam(nodeMap[link.Source].Name, nodeMap[link.Target].Name), nil)
+				}
+				if v.NodeType == string(models.ProcDefNodeTypeFork) && (nodeMap[link.Target] == v || nodeMap[link.Target].NodeType == string(models.ProcDefNodeTypeMerge)) {
+					return exterror.Catch(exterror.New().ProcDefNode20000008Error.WithParam(nodeMap[link.Source].Name, nodeMap[link.Target].Name), nil)
+				}
 			}
 		}
+	}
+	return nil
+}
+
+// checkProcDefNodeNameRepeat 判断节点名称是否重复
+func checkProcDefNodeNameRepeat(list []*models.ProcDefNode) bool {
+	var hashMap = make(map[string]bool)
+	if len(list) == 0 {
+		return false
+	}
+	for _, node := range list {
+		hashMap[node.Name] = true
+	}
+	if len(list) == len(hashMap) {
+		return false
 	}
 	return true
 }
