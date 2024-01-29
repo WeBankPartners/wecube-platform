@@ -44,3 +44,6 @@ platform-core/logs
 
 platform-gateway/config
 platform-auth-server/config
+
+platform-gateway/platform-gateway
+platform-auth-server/platform-auth-server
