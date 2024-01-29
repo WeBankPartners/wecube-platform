@@ -22,6 +22,11 @@ func (c CustomError) Error() string {
 	return c.Message
 }
 
+func (c CustomError) WithParam(params ...interface{}) CustomError {
+	c.MessageParams = params
+	return c
+}
+
 type ErrorTemplate struct {
 	CodeMessageMap map[int]string `json:"-"`
 	CodeKeyMap     map[int]string `json:"-"`
@@ -39,9 +44,17 @@ type ErrorTemplate struct {
 	DatabaseQueryEmptyError CustomError `json:"database_query_empty_error"`
 	DatabaseExecuteError    CustomError `json:"database_execute_error"`
 	// sever handle error
-	ServerHandleError CustomError `json:"server_handle_error"`
-
-	PluginDependencyIllegal CustomError `json:"plugin_dependency_illegal"`
+	ServerHandleError          CustomError `json:"server_handle_error"`
+	PluginDependencyIllegal    CustomError `json:"plugin_dependency_illegal"`
+	ProcDefNodeNameEmptyError  CustomError `json:"proc_def_node_name_empty_error"`
+	ProcDefNodeNameRepeatError CustomError `json:"proc_def_node_name_repeat_error"`
+	ProcDefNode20000004Error   CustomError `json:"proc_def_node_20000004_error"`
+	ProcDefNode20000005Error   CustomError `json:"proc_def_node_20000005_error"`
+	ProcDefNode20000006Error   CustomError `json:"proc_def_node_20000006_error"`
+	ProcDefNode20000007Error   CustomError `json:"proc_def_node_20000007_error"`
+	ProcDefNode20000008Error   CustomError `json:"proc_def_node_20000008_error"`
+	ProcDefNode20000009Error   CustomError `json:"proc_def_node_20000009_error"`
+	ProcDefNode20000010Error   CustomError `json:"proc_def_node_20000010_error"`
 }
 
 var (
