@@ -362,7 +362,57 @@ func RetrieveTemplate(c *gin.Context, reqParam *models.QueryRequestParam) (resul
 		template.PermissionToRole = templateIdMapRoleInfo[template.Id]
 	}
 
+	// check is collect by userId
+	err = CheckIsCollected(c, templateData, userId)
+	if err != nil {
+		return
+	}
+
 	result.Contents = templateData
+	return
+}
+
+func CheckIsCollected(c *gin.Context, templateData []*models.BatchExecutionTemplate, userId string) (err error) {
+	if len(templateData) == 0 {
+		return
+	}
+
+	templateIdMap := make(map[string]bool)
+	for _, template := range templateData {
+		templateIdMap[template.Id] = false
+		template.IsCollected = false
+	}
+
+	templateIdList := make([]string, 0, len(templateIdMap))
+	for k := range templateIdMap {
+		templateIdList = append(templateIdList, k)
+	}
+
+	var collectData []*models.BatchExecutionTemplateCollect
+	err = db.MysqlEngine.Context(c).Table(models.TableNameBatchExecTemplateCollect).
+		Where("user_id = ?", userId).
+		In("batch_execution_template_id", templateIdList).
+		Find(&collectData)
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
+		return
+	}
+
+	if len(collectData) == 0 {
+		return
+	}
+
+	for _, collect := range collectData {
+		if _, isExisted := templateIdMap[collect.BatchExecutionTemplateId]; isExisted {
+			templateIdMap[collect.BatchExecutionTemplateId] = true
+		}
+	}
+
+	for _, template := range templateData {
+		if isCollected, isExisted := templateIdMap[template.Id]; isExisted {
+			template.IsCollected = isCollected
+		}
+	}
 	return
 }
 
@@ -410,6 +460,12 @@ func GetTemplate(c *gin.Context, templateId string) (result *models.BatchExecuti
 			result.PermissionToRole.USE = append(result.PermissionToRole.USE, roleData.RoleName)
 		}
 	}
+
+	// check is collect by userId
+	err = CheckIsCollected(c, []*models.BatchExecutionTemplate{result}, middleware.GetRequestUser(c))
+	if err != nil {
+		return
+	}
 	return
 }
 
@@ -438,6 +494,18 @@ func RetrieveBatchExec(c *gin.Context, reqParam *models.QueryRequestParam) (resu
 		return
 	}
 
+	for _, execData := range batchExecData {
+		if execData.ConfigDataStr != "" {
+			configData := models.BatchExecRun{}
+			err = json.Unmarshal([]byte(execData.ConfigDataStr), &configData)
+			if err != nil {
+				err = fmt.Errorf("unmarshal batchExec: %s configData error: %s", execData.Id, err.Error())
+				return
+			}
+			execData.ConfigData = &configData
+		}
+	}
+
 	result.Contents = batchExecData
 	return
 }
@@ -460,6 +528,15 @@ func GetBatchExec(c *gin.Context, batchExecId string) (result *models.BatchExecu
 		return
 	}
 	result = batchExecData[0]
+	if result.ConfigDataStr != "" {
+		configData := models.BatchExecRun{}
+		err = json.Unmarshal([]byte(result.ConfigDataStr), &configData)
+		if err != nil {
+			err = fmt.Errorf("unmarshal batchExec: %s configData error: %s", result.Id, err.Error())
+			return
+		}
+		result.ConfigData = &configData
+	}
 
 	// get batchExecutionJobs
 	batchExecJobsQueryParam := &models.QueryRequestParam{
