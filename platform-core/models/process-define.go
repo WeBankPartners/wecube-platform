@@ -346,7 +346,7 @@ func (q ProcDefDtoSort) Less(i, j int) bool {
 	if t1.Sub(t2).Seconds() >= 0 {
 		return true
 	}
-	return true
+	return false
 }
 
 func (q ProcDefDtoSort) Swap(i, j int) {
