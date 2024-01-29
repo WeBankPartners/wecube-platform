@@ -490,6 +490,6 @@ func GetPluginConfigInterfaceById(id string) (result *models.PluginConfigInterfa
 		return
 	}
 	result.InputParameters = inputParams
-	result.InputParameters = outputParams
+	result.OutputParameters = outputParams
 	return
 }
