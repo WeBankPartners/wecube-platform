@@ -4,6 +4,13 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
+	"net/http"
+	"sort"
+	"strconv"
+	"strings"
+	"time"
+
 	"github.com/WeBankPartners/go-common-lib/guid"
 	"github.com/WeBankPartners/wecube-platform/platform-core/api/middleware"
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/exterror"
@@ -11,12 +18,6 @@ import (
 	"github.com/WeBankPartners/wecube-platform/platform-core/models"
 	"github.com/WeBankPartners/wecube-platform/platform-core/services/database"
 	"github.com/gin-gonic/gin"
-	"io/ioutil"
-	"net/http"
-	"sort"
-	"strconv"
-	"strings"
-	"time"
 )
 
 const (
@@ -32,12 +33,21 @@ const (
 	PluginParamTypeOutput     string = "OUTPUT"
 )
 
+var importFailMessageMap = map[int]string{
+	0: "导入成功",
+	1: "导入失败:[未发布]中已有一条同名编排正在修改,请删除该条草稿后重新导入",
+	2: "导入失败:导入版本低于当前环境已有编排,仅支持导入高版本",
+	3: "导入失败:请刷新页面,稍后重试",
+}
+
 // AddOrUpdateProcessDefinition 添加或者更新编排
 func AddOrUpdateProcessDefinition(c *gin.Context) {
 	var param models.ProcessDefinitionParam
 	var entity *models.ProcDef
+
 	var nodeList []*models.ProcDefNode
 	var err error
+	var result *models.ProcDef
 	if err := c.ShouldBindJSON(&param); err != nil {
 		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, err))
 		return
@@ -55,7 +65,7 @@ func AddOrUpdateProcessDefinition(c *gin.Context) {
 	if param.Id == "" {
 		entity, err = database.AddProcessDefinition(c, middleware.GetRequestUser(c), param)
 	} else {
-		result, err := database.GetProcessDefinition(c, param.Id)
+		result, err = database.GetProcessDefinition(c, param.Id)
 		if err != nil {
 			middleware.ReturnError(c, err)
 			return
@@ -302,6 +312,7 @@ func ExportProcessDefinition(c *gin.Context) {
 	var resultList []*models.ProcessDefinitionDto
 	var procDefList []*models.ProcDef
 	var err error
+	var fileName string
 	if err = c.ShouldBindJSON(&param); err != nil {
 		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, err))
 		return
@@ -319,7 +330,10 @@ func ExportProcessDefinition(c *gin.Context) {
 		middleware.ReturnError(c, fmt.Errorf("procDefIds need correct and deployed"))
 		return
 	}
-	for _, procDef := range procDefList {
+	for index, procDef := range procDefList {
+		if index == 0 {
+			fileName = procDef.Name
+		}
 		if procDef.Status == string(models.Draft) {
 			log.Logger.Info("procDef is draft", log.String("procDefId", procDef.Id))
 			continue
@@ -331,12 +345,21 @@ func ExportProcessDefinition(c *gin.Context) {
 		}
 		resultList = append(resultList, procDefDto)
 	}
+	if len(procDefList) == 1 {
+		fileName = "prof_" + fileName
+	} else {
+		if strings.Contains(c.GetHeader(middleware.AcceptLanguageHeader), "zh-CN") {
+			fileName = fmt.Sprintf("prof_%s等%d个文件", fileName, len(procDefList))
+		} else {
+			fileName = fmt.Sprintf("prof_%s等%d个文件", fileName, len(procDefList))
+		}
+	}
 	b, jsonErr := json.Marshal(resultList)
 	if jsonErr != nil {
 		middleware.ReturnError(c, fmt.Errorf("Export requestTemplate config fail, json marshal object error:%s ", jsonErr.Error()))
 		return
 	}
-	c.Writer.Header().Add("Content-Disposition", fmt.Sprintf("attachment; filename=%s_%s.json", "proc_def_"+guid.CreateGuid(), time.Now().Format("20060102150405")))
+	c.Writer.Header().Add("Content-Disposition", fmt.Sprintf("attachment; filename=%s.json", fileName))
 	c.Data(http.StatusOK, "application/octet-stream", b)
 }
 
@@ -369,7 +392,7 @@ func ImportProcessDefinition(c *gin.Context) {
 		middleware.ReturnError(c, fmt.Errorf("import data is empty"))
 		return
 	}
-	importResult, err = processDefinitionImport(c, paramList, middleware.GetRequestUser(c))
+	importResult, err = processDefinitionImport(c, paramList, middleware.GetRequestUser(c), c.GetHeader(middleware.AcceptLanguageHeader))
 	if err != nil {
 		middleware.ReturnError(c, err)
 	}
@@ -1009,8 +1032,9 @@ func getMapRandomKey(hashMap map[string]bool) string {
 	return ""
 }
 
-func processDefinitionImport(ctx context.Context, inputList []*models.ProcessDefinitionDto, operator string) (importResult *models.ImportResultDto, err error) {
+func processDefinitionImport(ctx context.Context, inputList []*models.ProcessDefinitionDto, operator, language string) (importResult *models.ImportResultDto, err error) {
 	var draftList, repeatNameList []*models.ProcDef
+	var newProcDefId string
 	var versionExist bool
 	importResult = &models.ImportResultDto{
 		ResultList: make([]*models.ImportResultItemDto, 0),
@@ -1030,6 +1054,7 @@ func processDefinitionImport(ctx context.Context, inputList []*models.ProcessDef
 				ProcDefName:    procDefDto.ProcDef.Name,
 				ProcDefVersion: procDefDto.ProcDef.Version,
 				Code:           1,
+				Message:        "Import Failed: already a draft with the same name in [Unpublished], please delete that draft and try importing again.",
 			})
 			continue
 		}
@@ -1048,6 +1073,7 @@ func processDefinitionImport(ctx context.Context, inputList []*models.ProcessDef
 						ProcDefName:    procDefDto.ProcDef.Name,
 						ProcDefVersion: procDefDto.ProcDef.Version,
 						Code:           2,
+						Message:        "Import Failed: The imported process version is lower than the current environment, only supports importing higher versions.",
 					})
 					break
 				}
@@ -1056,21 +1082,30 @@ func processDefinitionImport(ctx context.Context, inputList []*models.ProcessDef
 		if versionExist {
 			continue
 		}
-		_, err = database.CopyProcessDefinitionByDto(ctx, procDefDto, operator)
+		newProcDefId, err = database.CopyProcessDefinitionByDto(ctx, procDefDto, operator)
 		if err != nil {
 			importResult.ResultList = append(importResult.ResultList, &models.ImportResultItemDto{
+				ProcDefId:      newProcDefId,
 				ProcDefName:    procDefDto.ProcDef.Name,
 				ProcDefVersion: procDefDto.ProcDef.Version,
 				Code:           3,
+				Message:        "Import Failed: Please refresh the page and try again later.",
 			})
 			log.Logger.Error("CopyProcessDefinitionByDto err", log.Error(err))
 			// 单个编排操作err,err置为空, code=3已经表示服务器错误
 			err = nil
 		} else {
 			importResult.ResultList = append(importResult.ResultList, &models.ImportResultItemDto{
+				ProcDefId:      newProcDefId,
 				ProcDefName:    procDefDto.ProcDef.Name,
 				ProcDefVersion: procDefDto.ProcDef.Version,
+				Message:        "Import Success",
 			})
+		}
+	}
+	if strings.Contains(language, "zh-CN") {
+		for _, resultItem := range importResult.ResultList {
+			resultItem.Message = importFailMessageMap[resultItem.Code]
 		}
 	}
 	return
