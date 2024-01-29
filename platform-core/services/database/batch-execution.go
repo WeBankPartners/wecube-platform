@@ -47,6 +47,21 @@ func CreateOrUpdateBatchExecTemplate(c *gin.Context, reqParam *models.BatchExecu
 		}
 		actions = append(actions, action)
 	} else {
+		// check whether templateId is valid
+		templateData := &models.BatchExecutionTemplate{}
+		var exists bool
+		exists, err = db.MysqlEngine.Context(c).Table(new(models.BatchExecutionTemplate)).
+			Where("id = ?", reqParam.Id).
+			Get(templateData)
+		if err != nil {
+			err = exterror.Catch(exterror.New().DatabaseQueryError, err)
+			return
+		}
+		if !exists {
+			err = fmt.Errorf("batchExecTemplateId: %s is invalid", reqParam.Id)
+			return
+		}
+
 		// update
 		updateColumnStr := "`name`=?,`operate_object`=?,`plugin_service`=?,`config_data`=?,`updated_by`=?,`updated_time`=?"
 		action := &db.ExecAction{
@@ -464,6 +479,90 @@ func GetTemplate(c *gin.Context, templateId string) (result *models.BatchExecuti
 	// check is collect by userId
 	err = CheckIsCollected(c, []*models.BatchExecutionTemplate{result}, middleware.GetRequestUser(c))
 	if err != nil {
+		return
+	}
+	return
+}
+
+func UpdateTemplatePermission(c *gin.Context, reqParam *models.BatchExecutionTemplate) (result *models.BatchExecutionTemplate, err error) {
+	var actions []*db.ExecAction
+	now := time.Now()
+	// check whether templateId is valid
+	templateData := &models.BatchExecutionTemplate{}
+	var exists bool
+	exists, err = db.MysqlEngine.Context(c).Table(new(models.BatchExecutionTemplate)).
+		Where("id = ?", reqParam.Id).
+		Get(templateData)
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
+		return
+	}
+	if !exists {
+		err = fmt.Errorf("batchExecTemplateId: %s is invalid", reqParam.Id)
+		return
+	}
+
+	// update template updatedTime
+	updateColumnStr := "`updated_by`=?,`updated_time`=?"
+	action := &db.ExecAction{
+		Sql:   db.CombineDBSql("UPDATE ", models.TableNameBatchExecTemplate, " SET ", updateColumnStr, " WHERE id=?"),
+		Param: []interface{}{middleware.GetRequestUser(c), now, reqParam.Id},
+	}
+	actions = append(actions, action)
+
+	batchExecTemplateId := reqParam.Id
+	// update batchExecTemplateRole
+	// firstly delete original batchExecTemplateRole and then create new batchExecTemplateRole
+	action = &db.ExecAction{
+		Sql:   db.CombineDBSql("DELETE FROM ", models.TableNameBatchExecTemplateRole, " WHERE batch_execution_template_id=?"),
+		Param: []interface{}{batchExecTemplateId},
+	}
+	actions = append(actions, action)
+
+	var templateRoleDataList []*models.BatchExecutionTemplateRole
+	mgmtRoleNameMap := make(map[string]struct{})
+	for _, roleName := range reqParam.PermissionToRole.MGMT {
+		if _, isExisted := mgmtRoleNameMap[roleName]; !isExisted {
+			mgmtRoleNameMap[roleName] = struct{}{}
+			templateRoleDataList = append(templateRoleDataList, &models.BatchExecutionTemplateRole{
+				Id:                       guid.CreateGuid(),
+				BatchExecutionTemplateId: batchExecTemplateId,
+				Permission:               models.PermissionTypeMGMT,
+				RoleName:                 roleName,
+			})
+		}
+	}
+	useRoleNameMap := make(map[string]struct{})
+	for _, roleName := range reqParam.PermissionToRole.USE {
+		if _, isExisted := useRoleNameMap[roleName]; !isExisted {
+			useRoleNameMap[roleName] = struct{}{}
+			templateRoleDataList = append(templateRoleDataList, &models.BatchExecutionTemplateRole{
+				Id:                       guid.CreateGuid(),
+				BatchExecutionTemplateId: batchExecTemplateId,
+				Permission:               models.PermissionTypeUSE,
+				RoleName:                 roleName,
+			})
+		}
+	}
+	for i := range templateRoleDataList {
+		action, tmpErr := db.GetInsertTableExecAction(models.TableNameBatchExecTemplateRole, *templateRoleDataList[i], nil)
+		if tmpErr != nil {
+			err = fmt.Errorf("get insert sql failed: %s", tmpErr.Error())
+			return
+		}
+		actions = append(actions, action)
+	}
+
+	err = db.Transaction(actions, c)
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseExecuteError, err)
+		return
+	}
+
+	// query batchExecTemplate info
+	result, err = GetTemplate(c, reqParam.Id)
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
 		return
 	}
 	return
