@@ -329,6 +329,27 @@ func UpdateProcDef(ctx context.Context, procDef *models.ProcDef) (err error) {
 	return
 }
 
+// UpdateProcDefAndNode 编排根节点改变,需要同时清除编排所有节点的 RoutineExpression、ServiceName、ParamInfos
+func UpdateProcDefAndNode(ctx context.Context, procDef *models.ProcDef, nodeList []*models.ProcDefNode) (err error) {
+	var actions []*db.ExecAction
+	// 更新编排表
+	actions = append(actions, &db.ExecAction{Sql: "update proc_def set name=?,`version`=?,root_entity=?,tags=?,for_plugin=?,scene=?," +
+		"conflict_check=?,updated_by=?,updated_time=? where id=?", Param: []interface{}{procDef.Name, procDef.Version, procDef.RootEntity,
+		procDef.Tags, procDef.ForPlugin, procDef.Scene, procDef.ConflictCheck, procDef.UpdatedBy, procDef.UpdatedTime, procDef.Id}})
+	// 更新节点表
+	actions = append(actions, &db.ExecAction{Sql: "update proc_def_node  set serveric_name = null,routine_expression = null where" +
+		" proc_def_id =?", Param: []interface{}{procDef.Id}})
+	for _, node := range nodeList {
+		// 删除节点参数表
+		actions = append(actions, &db.ExecAction{Sql: "delete from proc_def_node_param where proc_def_node_id = ?", Param: []interface{}{node.Id}})
+	}
+	err = db.Transaction(actions, ctx)
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseExecuteError, err)
+	}
+	return
+}
+
 func UpdateProcDefStatus(ctx context.Context, procDef *models.ProcDef) (err error) {
 	var actions []*db.ExecAction
 	actions = append(actions, &db.ExecAction{Sql: "update proc_def set status=?,updated_by=?,updated_time=? where id = ?", Param: []interface{}{
@@ -360,16 +381,6 @@ func GetProcDefNode(ctx context.Context, procDefId, nodeId string) (result *mode
 	}
 	if len(list) > 0 {
 		result = list[0]
-	}
-	return
-}
-
-// GetProcDefNodeById 根据编排Id编排节点
-func GetProcDefNodeById(ctx context.Context, procDefId string) (list []*models.ProcDefNode, err error) {
-	err = db.MysqlEngine.Context(ctx).SQL("select * from proc_def_node where proc_def_id = ? ", procDefId).Find(&list)
-	if err != nil {
-		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
-		return
 	}
 	return
 }
@@ -464,8 +475,9 @@ func GetProcDefNodeModelByProcDefId(ctx context.Context, procDefId string) (list
 	return
 }
 
-func GetSimpleProcDefNodeByProcDefId(ctx context.Context, procDefId string) (list []*models.ProcDefNode, err error) {
-	err = db.MysqlEngine.Context(ctx).SQL("select * from proc_def_node where proc_def_id = ?", procDefId).Find(&list)
+// GetProcDefNodeById 根据编排Id编排节点
+func GetProcDefNodeById(ctx context.Context, procDefId string) (list []*models.ProcDefNode, err error) {
+	err = db.MysqlEngine.Context(ctx).SQL("select * from proc_def_node where proc_def_id = ? ", procDefId).Find(&list)
 	if err != nil {
 		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
 		return
@@ -828,10 +840,10 @@ func transProcDefNodeLinkUpdateConditionToSQL(procDefNodeLink *models.ProcDefNod
 func transProcDefConditionToSQL(param models.QueryProcessDefinitionParam) (where string, queryParam []interface{}) {
 	where = "where 1 = 1 "
 	if param.ProcDefId != "" {
-		where = where + " and ( id like '%" + param.ProcDefId + "%') "
+		where = where + " and  id like '%" + param.ProcDefId + "%' "
 	}
 	if param.ProcDefName != "" {
-		where = where + " and ( name like '%" + param.ProcDefName + "%') "
+		where = where + " and  name like '%" + param.ProcDefName + "%' "
 	}
 	if param.Status == string(models.Draft) || param.Status == string(models.Disabled) || param.Status == string(models.Deployed) {
 		where = where + " and status = ?"
@@ -842,10 +854,13 @@ func transProcDefConditionToSQL(param models.QueryProcessDefinitionParam) (where
 		queryParam = append(queryParam, []interface{}{param.UpdatedTimeStart, param.UpdatedTimeEnd}...)
 	}
 	if param.CreatedBy != "" {
-		where = where + " and ( created_by like '%" + param.CreatedBy + "%') "
+		where = where + " and  created_by like '%" + param.CreatedBy + "%'"
 	}
 	if param.UpdatedBy != "" {
-		where = where + " and ( updated_by like '%" + param.UpdatedBy + "%') "
+		where = where + " and updated_by like '%" + param.UpdatedBy + "%'"
+	}
+	if param.Scene != "" {
+		where = where + " and scene like '%" + param.Scene + "%'"
 	}
 	if len(param.UserRoles) > 0 {
 		userRolesFilterSql, userRolesFilterParam := createListParams(param.UserRoles, "")
