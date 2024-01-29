@@ -41,7 +41,7 @@ CREATE TABLE `resource_item` (
      `is_allocated` tinyint(1) DEFAULT NULL COMMENT '是否分配',
      `name` varchar(255)  DEFAULT NULL COMMENT '名称',
      `purpose` varchar(255)  DEFAULT NULL COMMENT '描述',
-     `status` tinyint(4)  DEFAULT NULL COMMENT '状态',
+     `status` varchar(32)  DEFAULT NULL COMMENT '状态',
      `type` varchar(64)  DEFAULT NULL COMMENT '类型',
      `updated_by` varchar(64)  DEFAULT NULL COMMENT '更新人',
      `updated_date` datetime DEFAULT NULL COMMENT '更新时间',
@@ -359,7 +359,7 @@ CREATE TABLE `proc_def_node_param` (
      `ctx_bind_node` varchar(64) DEFAULT NULL COMMENT '上下文节点',
      `ctx_bind_type` varchar(16) DEFAULT NULL COMMENT '上下文出入参->input(入参) | output(出参)',
      `ctx_bind_name` varchar(255) DEFAULT NULL COMMENT '上下文参数名',
-     `required` varchar(16) DEFAULT 'N' COMMENT '是否必填'
+     `required` varchar(16) DEFAULT 'N' COMMENT '是否必填',
      PRIMARY KEY (`id`),
      CONSTRAINT `fk_proc_def_param_node` FOREIGN KEY (`proc_def_node_id`) REFERENCES `proc_def_node` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
