@@ -7,6 +7,8 @@ type BatchExecution struct {
 	Name                     string                `json:"name"`                                                        // 名称
 	BatchExecutionTemplateId string                `json:"batchExecutionTemplateId" xorm:"batch_execution_template_id"` // 模板id
 	ErrorCode                string                `json:"errorCode" xorm:"error_code"`                                 // 错误码, 0:成功, 1:失败
+	ConfigDataStr            string                `json:"-" xorm:"config_data"`                                        // 配置数据
+	ConfigData               *BatchExecRun         `json:"configData" xorm:"-"`                                         // 配置数据
 	CreatedBy                string                `json:"createdBy" xorm:"created_by"`                                 // 创建者
 	UpdatedBy                string                `json:"updatedBy" xorm:"updated_by"`                                 // 更新者
 	CreatedTime              *time.Time            `json:"createdTime" xorm:"created_time"`                             // 创建时间
@@ -51,6 +53,7 @@ type BatchExecutionTemplate struct {
 	UpdatedBy        string            `json:"updatedBy" xorm:"updated_by"`         // 更新者
 	UpdatedTime      *time.Time        `json:"updatedTime" xorm:"updated_time"`     // 更新时间
 	PermissionToRole *PermissionToRole `json:"permissionToRole" xorm:"-"`           // 权限角色
+	IsCollected      bool              `json:"isCollected" xorm:"-"`                // 是否收藏
 }
 
 func (BatchExecutionTemplate) TableName() string {
