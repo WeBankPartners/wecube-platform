@@ -1,4 +1,4 @@
-FROM ccr.ccs.tencentyun.com/webankpartners/alpine-base:v1.0
+FROM ccr.ccs.tencentyun.com/webankpartners/alpine-bash:v1
 
 ENV BASE_HOME=/app/platform-auth-server
 
