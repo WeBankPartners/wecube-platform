@@ -158,6 +158,7 @@ func init() {
 		&handlerFuncObj{Url: "/batch-execution/templates/collect", Method: "POST", HandlerFunc: batch_execution.CollectTemplate, ApiCode: "collect-batch-execution-template"},
 		&handlerFuncObj{Url: "/batch-execution/templates/uncollect", Method: "POST", HandlerFunc: batch_execution.UncollectTemplate, ApiCode: "uncollect-batch-execution-template"},
 		&handlerFuncObj{Url: "/batch-execution/templates/collect/check", Method: "POST", HandlerFunc: batch_execution.CheckCollectTemplate, ApiCode: "check-collect-batch-execution-template"},
+		&handlerFuncObj{Url: "/batch-execution/templates/permission/update", Method: "POST", HandlerFunc: batch_execution.UpdateTemplatePermission, ApiCode: "update-batch-execution-template-permission"},
 		&handlerFuncObj{Url: "/batch-execution/list", Method: "POST", HandlerFunc: batch_execution.RetrieveBatchExec, ApiCode: "retrieve-batch-execution"},
 		&handlerFuncObj{Url: "/batch-execution/:batchExecId", Method: "GET", HandlerFunc: batch_execution.GetBatchExec, ApiCode: "get-batch-execution"},
 		// &handlerFuncObj{Url: "/batch-execution/job/run", Method: "POST", HandlerFunc: batch_execution.RunJob, ApiCode: "run-batch-execution-job"},
