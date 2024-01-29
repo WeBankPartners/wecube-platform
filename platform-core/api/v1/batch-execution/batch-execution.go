@@ -9,6 +9,7 @@ import (
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/try"
 	"github.com/WeBankPartners/wecube-platform/platform-core/models"
 	"github.com/WeBankPartners/wecube-platform/platform-core/services/database"
+	"github.com/WeBankPartners/wecube-platform/platform-core/services/execution"
 	"github.com/gin-gonic/gin"
 )
 
@@ -283,5 +284,94 @@ func GetBatchExec(c *gin.Context) {
 	} else {
 		middleware.ReturnData(c, retData)
 	}
+	return
+}
+
+func ValidateRunJobParams(reqParam *models.BatchExecRun) (err error) {
+	if reqParam.PluginConfigInterface == nil {
+		err = fmt.Errorf("reqParam.PluginConfigInterface can not be nil")
+		return
+	}
+	if reqParam.PluginConfigInterface.Id == "" {
+		err = fmt.Errorf("reqParam.PluginConfigInterface.Id can not be empty")
+		return
+	}
+	if reqParam.DataModelExpression == "" {
+		err = fmt.Errorf("reqParam.DataModelExpression can not be empty")
+		return
+	}
+	return
+}
+
+func RunJob(c *gin.Context) {
+	defer try.ExceptionStack(func(e interface{}, err interface{}) {
+		retErr := fmt.Errorf("%v", err)
+		middleware.ReturnError(c, exterror.Catch(exterror.New().ServerHandleError, retErr))
+		log.Logger.Error(e.(string))
+	})
+
+	reqParam := models.BatchExecRun{}
+	var err error
+	if err = c.ShouldBindJSON(&reqParam); err != nil {
+		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, err))
+		return
+	}
+
+	err = ValidateRunJobParams(&reqParam)
+	if err != nil {
+		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, err))
+		return
+	}
+
+	retData, err := doRunJob(c, &reqParam)
+	if err != nil {
+		middleware.ReturnError(c, err)
+	} else {
+		middleware.ReturnData(c, retData)
+	}
+	return
+}
+
+func doRunJob(c *gin.Context, reqParam *models.BatchExecRun) (result *models.BatchExecRunResp, err error) {
+	result = &models.BatchExecRunResp{}
+	operator := middleware.GetRequestUser(c)
+	authToken := c.GetHeader(models.AuthorizationHeader)
+	continueToken := c.GetHeader(models.ContinueTokenHeader)
+	pluginInterfaceId := reqParam.PluginConfigInterface.Id
+	entityType := reqParam.DataModelExpression
+
+	var entityInstances []*models.BatchExecutionPluginExecEntityInstances
+	for _, resourceData := range reqParam.ResourceDatas {
+		entityIns := &models.BatchExecutionPluginExecEntityInstances{
+			Id:               resourceData.Id,
+			BusinessKeyValue: resourceData.BusinessKeyValue,
+		}
+		entityInstances = append(entityInstances, entityIns)
+	}
+
+	var inputParamConstants []*models.BatchExecutionPluginDefInputParams
+	for _, inputParam := range reqParam.InputParameterDefinitions {
+		pluginDefInputParams := &models.BatchExecutionPluginDefInputParams{
+			ParamId:     inputParam.InputParameter.Id,
+			ParameValue: inputParam.InputParameterValue,
+		}
+		inputParamConstants = append(inputParamConstants, pluginDefInputParams)
+	}
+
+	// todo record run history
+	batchExecId, err := database.InsertBatchExec(c, reqParam)
+	if err != nil {
+		return
+	}
+	fmt.Sprintf("%s", batchExecId)
+
+	batchExecRunResult, dangerousCheckResult, err := execution.BatchExecutionCallPluginService(c, operator, authToken,
+		pluginInterfaceId, entityType, entityInstances, inputParamConstants, continueToken)
+	if err != nil {
+		// todo update run record
+		return
+	}
+	result.BatchExecRunResult = batchExecRunResult
+	result.DangerousCheckResult = dangerousCheckResult
 	return
 }

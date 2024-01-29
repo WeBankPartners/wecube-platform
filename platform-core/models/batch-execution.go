@@ -117,6 +117,8 @@ type BatchExecJobsPageData struct {
 }
 
 type BatchExecRun struct {
+	Name                      string                    `json:"name"`
+	BatchExecutionTemplateId  string                    `json:"batchExecutionTemplateId"`
 	PackageName               string                    `json:"packageName"`
 	EntityName                string                    `json:"entityName"`
 	DataModelExpression       string                    `json:"dataModelExpression"`
@@ -136,6 +138,11 @@ type BatchExecInputParamDef struct {
 type ResourceData struct {
 	Id               string `json:"id"`
 	BusinessKeyValue string `json:"businessKeyValue"`
+}
+
+type BatchExecRunResp struct {
+	BatchExecRunResult   *PluginInterfaceApiResultData `json:"batchExecRunResult"`
+	DangerousCheckResult *ItsdangerousCheckResultData  `json:"dangerousCheckResult"`
 }
 
 type BatchExecutionPluginExecParam struct {
