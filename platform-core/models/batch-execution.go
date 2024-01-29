@@ -9,6 +9,7 @@ type BatchExecution struct {
 	ErrorCode                string                `json:"errorCode" xorm:"error_code"`                                 // 错误码, 0:成功, 1:失败
 	ConfigDataStr            string                `json:"-" xorm:"config_data"`                                        // 配置数据
 	ConfigData               *BatchExecRun         `json:"configData" xorm:"-"`                                         // 配置数据
+	SourceData               string                `json:"sourceData" xorm:"source_data"`                               // 回显数据
 	CreatedBy                string                `json:"createdBy" xorm:"created_by"`                                 // 创建者
 	UpdatedBy                string                `json:"updatedBy" xorm:"updated_by"`                                 // 更新者
 	CreatedTime              *time.Time            `json:"createdTime" xorm:"created_time"`                             // 创建时间
@@ -48,6 +49,7 @@ type BatchExecutionTemplate struct {
 	PluginService    string            `json:"pluginService" xorm:"plugin_service"` // 插件服务
 	ConfigDataStr    string            `json:"-" xorm:"config_data"`                // 配置数据
 	ConfigData       *BatchExecRun     `json:"configData" xorm:"-"`                 // 配置数据
+	SourceData       string            `json:"sourceData" xorm:"source_data"`       // 回显数据
 	CreatedBy        string            `json:"createdBy" xorm:"created_by"`         // 创建者
 	CreatedTime      *time.Time        `json:"createdTime" xorm:"created_time"`     // 创建时间
 	UpdatedBy        string            `json:"updatedBy" xorm:"updated_by"`         // 更新者

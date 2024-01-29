@@ -52,7 +52,7 @@
         <span v-if="itemCustomInfo.tags.length > 200" style="color: red">描述不能大于200字符</span>
       </FormItem>
       <div style="position: absolute; bottom: 20px; right: 280px; width: 200px">
-        <Button @click="saveItem" type="primary">{{ $t('save') }}</Button>
+        <Button v-if="editFlow !== 'false'" @click="saveItem" type="primary">{{ $t('save') }}</Button>
         <Button @click="hideItem">{{ $t('cancel') }}</Button>
       </div>
     </Form>
@@ -67,6 +67,7 @@ export default {
   },
   data () {
     return {
+      editFlow: true, // 在查看时隐藏按钮
       isParmasChanged: false, // 参数变化标志位，控制右侧panel显示逻辑
       itemCustomInfo: {
         id: '',
@@ -91,7 +92,8 @@ export default {
   },
   mounted () {},
   methods: {
-    async showItemInfo (data) {
+    async showItemInfo (data, editFlow) {
+      this.editFlow = editFlow
       this.isParmasChanged = false
       // 获取所有根CI类型
       this.getAllDataModels()

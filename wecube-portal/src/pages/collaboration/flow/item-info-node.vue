@@ -235,7 +235,7 @@
       </Collapse>
     </div>
     <div style="position: absolute; bottom: 20px; right: 280px; width: 200px">
-      <Button @click="saveItem" type="primary">{{ $t('save') }}</Button>
+      <Button v-if="editFlow !== 'false'" @click="saveItem" type="primary">{{ $t('save') }}</Button>
       <Button @click="hideItem">{{ $t('cancel') }}</Button>
     </div>
   </div>
@@ -253,6 +253,7 @@ import ItemFilterRulesGroup from './item-filter-rules-group.vue'
 export default {
   data () {
     return {
+      editFlow: true, // 在查看时隐藏按钮
       isParmasChanged: false, // 参数变化标志位，控制右侧panel显示逻辑
       needAddFirst: true,
       opendPanel: ['1', '2', '3', '4'],
@@ -325,7 +326,8 @@ export default {
     this.getAllDataModels()
   },
   methods: {
-    async showItemInfo (nodeData, needAddFirst = false, rootEntity) {
+    async showItemInfo (nodeData, needAddFirst = false, rootEntity, editFlow) {
+      this.editFlow = editFlow
       this.currentSelectedEntity = rootEntity
       this.needAddFirst = needAddFirst
       if (this.needAddFirst) {

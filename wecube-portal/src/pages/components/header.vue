@@ -354,7 +354,7 @@ export default {
   cursor: pointer;
 }
 .ivu-layout-header {
-  padding: 0 30px;
+  padding: 0 20px;
 }
 .header {
   display: flex;
