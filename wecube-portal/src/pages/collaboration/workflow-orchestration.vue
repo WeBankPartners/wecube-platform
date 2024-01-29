@@ -1,8 +1,5 @@
 <template>
   <div class="root">
-    <div id="menu" :style="menuStyle" @click="removeItem">
-      <Icon type="ios-trash-outline" size="24" style="color: red"></Icon>
-    </div>
     <FlowHeader
       @openCanvasPanel="openCanvasPanel"
       @updateAuth="updateAuth"
@@ -73,14 +70,7 @@ export default {
   },
   data () {
     return {
-      menuStyle: {
-        // 元素删除功能入口
-        display: 'none',
-        position: 'absolute',
-        top: '100px',
-        left: '100px',
-        cursor: 'pointer'
-      },
+      editFlow: true, // 在查看时隐藏按钮
       canRemovedId: '',
       demoFlowId: '',
       isShowGraph: false,
@@ -151,6 +141,7 @@ export default {
   async mounted () {
     if (this.$route.query.flowId) {
       this.demoFlowId = this.$route.query.flowId
+      this.editFlow = this.$route.query.editFlow || true
       await this.getFlowInfo(this.demoFlowId)
       // 创建画布
       this.$nextTick(() => {
@@ -173,7 +164,7 @@ export default {
     // 画布属性展开
     openCanvasPanel () {
       this.itemInfoType = 'canvas'
-      this.$refs.itemInfoCanvasRef.showItemInfo(this.procDef)
+      this.$refs.itemInfoCanvasRef.showItemInfo(this.procDef, this.editFlow)
     },
     async getFlowInfo (id) {
       const { status, data } = await getFlowById(id)
@@ -184,7 +175,7 @@ export default {
         this.procDef.permissionToRole = data.permissionToRole
 
         this.mgmtNodesAndEdges(data.taskNodeInfos)
-        this.$refs.headerInfoRef.showItemInfo(this.procDef)
+        this.$refs.headerInfoRef.showItemInfo(this.procDef, this.editFlow)
       }
     },
     // 整理编排节点与边数据结构
@@ -310,7 +301,6 @@ export default {
           if (status === 'OK') {
             const item = this.graph.findById(this.canRemovedId)
             this.graph.removeItem(item)
-            this.menuStyle.display = 'none'
             this.itemInfoType = ''
             this.deleteRemoveNode()
           }
@@ -396,7 +386,7 @@ export default {
               this.itemInfoType = 'node'
               this.$nextTick(() => {
                 this.$refs.itemInfoNodeRef &&
-                  this.$refs.itemInfoNodeRef.showItemInfo(model, false, this.procDef.rootEntity)
+                  this.$refs.itemInfoNodeRef.showItemInfo(model, false, this.procDef.rootEntity, this.editFlow)
               })
               this.canRemovedId = model.id
 
@@ -504,7 +494,6 @@ export default {
 
         const sourceNodeType = source.get('model').customAttrs.nodeType
         const targertNodeType = target.get('model').customAttrs.nodeType
-        console.log(sourceNodeType, targertNodeType)
         // 结束节点不能连出
         if (sourceNodeType === 'end') {
           this.$Message.warning('结束节点不能连出！')
@@ -592,7 +581,7 @@ export default {
           this.graph.addItem('edge', model)
 
           this.itemInfoType = 'edge'
-          this.$refs.itemInfoEdgeRef.showItemInfo(model, true)
+          this.$refs.itemInfoEdgeRef.showItemInfo(model, true, this.editFlow)
         }, 100)
       })
 
@@ -617,7 +606,7 @@ export default {
           //   this.graph.setItemState(edge, 'selected', true)
           // }
           this.itemInfoType = 'edge'
-          this.$refs.itemInfoEdgeRef.showItemInfo(model)
+          this.$refs.itemInfoEdgeRef.showItemInfo(model, false, this.editFlow)
         }
       })
 
@@ -627,7 +616,7 @@ export default {
         this.$nextTick(() => {
           if (this.isExecutionAllowed()) return
           this.itemInfoType = 'canvas'
-          this.$refs.itemInfoCanvasRef.showItemInfo(this.procDef)
+          this.$refs.itemInfoCanvasRef.showItemInfo(this.procDef, this.editFlow)
         })
       })
     },
@@ -696,7 +685,7 @@ export default {
       this.graph.addItem('node', model)
       this.itemInfoType = 'node'
       this.$nextTick(() => {
-        this.$refs.itemInfoNodeRef.showItemInfo(model, true, this.procDef.rootEntity)
+        this.$refs.itemInfoNodeRef.showItemInfo(model, true, this.procDef.rootEntity, this.editFlow)
       })
     },
     // 移除删除入口
@@ -834,7 +823,6 @@ export default {
     hideItemInfo () {
       this.deleteRemoveNode()
       this.itemInfoType = ''
-      this.menuStyle.display = 'none'
       if (this.canRemovedId) {
         const item = this.graph.findById(this.canRemovedId)
         this.graph.clearItemStates(item)
