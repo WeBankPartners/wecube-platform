@@ -5,15 +5,16 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/WeBankPartners/go-common-lib/guid"
-	"github.com/WeBankPartners/wecube-platform/platform-core/common/log"
-	"github.com/WeBankPartners/wecube-platform/platform-core/models"
 	"io"
 	"net/http"
 	"net/url"
 	"reflect"
 	"strings"
 	"time"
+
+	"github.com/WeBankPartners/go-common-lib/guid"
+	"github.com/WeBankPartners/wecube-platform/platform-core/common/log"
+	"github.com/WeBankPartners/wecube-platform/platform-core/models"
 )
 
 func GetPluginDataModels(ctx context.Context, pluginName, token string) (result []*models.SyncDataModelCiType, err error) {
@@ -89,6 +90,7 @@ func AnalyzeExpression(express string) (result []*models.ExpressionObj, err erro
 	ciList = append(ciList, express[cursor:])
 	// analyze each ci segment
 	var expressionSqlList []*models.ExpressionObj
+	ciListLen := len(ciList)
 	for i, ci := range ciList {
 		eso := models.ExpressionObj{}
 		if strings.HasPrefix(ci, ">") {
@@ -126,6 +128,11 @@ func AnalyzeExpression(express string) (result []*models.ExpressionObj, err erro
 		}
 		if err != nil {
 			return
+		}
+		if ci[0] == 46 {
+			if i == ciListLen-1 {
+				eso.ResultColumn = ci[1:]
+			}
 		}
 		entitySplitList := strings.Split(eso.Entity, ":")
 		if len(entitySplitList) != 2 {
@@ -176,6 +183,22 @@ func QueryPluginData(ctx context.Context, exprList []*models.ExpressionObj, filt
 		result, err = requestPluginModelData(ctx, exprObj.Package, exprObj.Entity, token, tmpFilters)
 		if err != nil {
 			break
+		}
+	}
+	return
+}
+
+func ExtractExpressionResultColumn(exprList []*models.ExpressionObj, exprResult []map[string]interface{}) (result []interface{}) {
+	if len(exprResult) == 0 || len(exprList) == 0 {
+		return
+	}
+	expr := exprList[len(exprList)-1]
+	result = make([]interface{}, 0)
+	for _, r := range exprResult {
+		if v, ok := r[expr.ResultColumn]; ok {
+			result = append(result, v)
+		} else {
+			result = append(result, nil)
 		}
 	}
 	return
@@ -258,5 +281,95 @@ func getInterfaceStringList(input interface{}) (guidList []string) {
 			guidList = append(guidList, tmpV)
 		}
 	}
+	return
+}
+
+func DangerousBatchCheck(ctx context.Context, token string) (result *models.ItsdangerousCheckResultData, err error) {
+	uri := fmt.Sprintf("%s/%s/v1/batch_execution_detection", models.Config.Gateway.Url, models.PluginNameItsdangerous)
+	if models.Config.HttpsEnable == "true" {
+		uri = "https://" + uri
+	} else {
+		uri = "http://" + uri
+	}
+	urlObj, _ := url.Parse(uri)
+	req, reqErr := http.NewRequest(http.MethodPost, urlObj.String(), nil)
+	if reqErr != nil {
+		err = fmt.Errorf("new request fail,%s ", reqErr.Error())
+		return
+	}
+	reqId := "req_" + guid.CreateGuid()
+	transId := ctx.Value(models.TransactionIdHeader).(string)
+	req.Header.Set(models.RequestIdHeader, reqId)
+	req.Header.Set(models.TransactionIdHeader, transId)
+	req.Header.Set(models.AuthorizationHeader, token)
+	resp, respErr := http.DefaultClient.Do(req)
+	if respErr != nil {
+		err = fmt.Errorf("do request fail,%s ", respErr.Error())
+		return
+	}
+	var response models.ItsdangerousCheckResult
+	respBody, readBodyErr := io.ReadAll(resp.Body)
+	if readBodyErr != nil {
+		err = fmt.Errorf("read response body fail,%s ", readBodyErr.Error())
+		return
+	}
+	resp.Body.Close()
+	if err = json.Unmarshal(respBody, &response); err != nil {
+		err = fmt.Errorf("json unmarshal response body fail,%s ", err.Error())
+		return
+	}
+	if response.Status != models.DefaultHttpSuccessCode {
+		err = fmt.Errorf(response.Message)
+		return
+	}
+	result = response.Data
+	return
+}
+
+func PluginInterfaceApi(ctx context.Context, token string, pluginInterface *models.PluginConfigInterfaces, reqParam *models.BatchExecutionPluginExecParam) (result *models.PluginInterfaceApiResultData, err error) {
+	uri := fmt.Sprintf("%s%s", models.Config.Gateway.Url, pluginInterface.Path)
+	if models.Config.HttpsEnable == "true" {
+		uri = "https://" + uri
+	} else {
+		uri = "http://" + uri
+	}
+	urlObj, _ := url.Parse(uri)
+
+	var reqBodyReader io.Reader
+	if reqParam != nil {
+		reqBody, _ := json.Marshal(reqParam)
+		reqBodyReader = bytes.NewReader(reqBody)
+	}
+	req, reqErr := http.NewRequest(pluginInterface.HttpMethod, urlObj.String(), reqBodyReader)
+	if reqErr != nil {
+		err = fmt.Errorf("new request fail,%s ", reqErr.Error())
+		return
+	}
+	reqId := "req_" + guid.CreateGuid()
+	transId := ctx.Value(models.TransactionIdHeader).(string)
+	req.Header.Set(models.RequestIdHeader, reqId)
+	req.Header.Set(models.TransactionIdHeader, transId)
+	req.Header.Set(models.AuthorizationHeader, token)
+	resp, respErr := http.DefaultClient.Do(req)
+	if respErr != nil {
+		err = fmt.Errorf("do request fail,%s ", respErr.Error())
+		return
+	}
+	var response models.PluginInterfaceApiResult
+	respBody, readBodyErr := io.ReadAll(resp.Body)
+	if readBodyErr != nil {
+		err = fmt.Errorf("read response body fail,%s ", readBodyErr.Error())
+		return
+	}
+	resp.Body.Close()
+	if err = json.Unmarshal(respBody, &response); err != nil {
+		err = fmt.Errorf("json unmarshal response body fail,%s ", err.Error())
+		return
+	}
+	if response.ResultCode != "0" {
+		err = fmt.Errorf(response.ResultMessage)
+		return
+	}
+	result = response.Results
 	return
 }

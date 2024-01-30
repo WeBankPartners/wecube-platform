@@ -12,6 +12,7 @@ const (
 	RequestIdHeader        = "requestId"
 	DefaultHttpErrorCode   = "ERROR"
 	DefaultHttpSuccessCode = "OK"
+	ContinueTokenHeader    = "continueToken"
 	// context key
 	ContextRequestBody  = "requestBody"
 	ContextResponseBody = "responseBody"
@@ -36,6 +37,9 @@ const (
 
 	// batch execution
 	BatchExecTemplateStatusAvailable = "available"
+	BatchExecErrorCodeSucceed        = "0"
+	BatchExecErrorCodeFailed         = "1"
+	BatchExecErrorCodePending        = "2"
 
 	// permission type
 	PermissionTypeMGMT = "MGMT"
