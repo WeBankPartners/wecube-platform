@@ -146,6 +146,16 @@ func init() {
 		&handlerFuncObj{Url: "/process/definitions/:proc-def-id/link/:node-link-id", Method: "DELETE", HandlerFunc: process.DeleteProcDefNodeLink, ApiCode: "delete-process-definition-node-link"},
 		&handlerFuncObj{Url: "/process/definitions/:proc-def-id/link/:node-link-id", Method: "GET", HandlerFunc: process.GetProcDefNodeLink, ApiCode: "get-process-definition-node-link"},
 
+		// process runtime
+		&handlerFuncObj{Url: "/process/definitions", Method: "GET", HandlerFunc: process.ProcDefList, ApiCode: "list-process-def"},
+		&handlerFuncObj{Url: "/process/definitions/:procDefId/outline", Method: "GET", HandlerFunc: process.ProcDefOutline, ApiCode: "process-def-outline"},
+		&handlerFuncObj{Url: "/process/definitions/:procDefId/root-entities", Method: "GET", HandlerFunc: process.ProcDefRootEntities, ApiCode: "process-def-root-entity"},
+		&handlerFuncObj{Url: "/process/definitions/:procDefId/preview/entities/:entityDataId", Method: "GET", HandlerFunc: process.ProcDefPreview, ApiCode: "process-def-preview"},
+		&handlerFuncObj{Url: "/process/instances/tasknodes/session/:sessionId/tasknode-bindings", Method: "GET", HandlerFunc: process.ProcInsTaskNodeBindings, ApiCode: "process-ins-node-binding"},
+		&handlerFuncObj{Url: "/process/instances", Method: "POST", HandlerFunc: process.ProcInsStart, ApiCode: "process-ins-start"},
+		&handlerFuncObj{Url: "/process/instances", Method: "GET", HandlerFunc: process.ProcInsList, ApiCode: "process-ins-list"},
+		&handlerFuncObj{Url: "/process/instances/:procInstId", Method: "GET", HandlerFunc: process.ProcInsDetail, ApiCode: "process-ins-detail"},
+
 		// certification manager
 		&handlerFuncObj{Url: "/plugin-certifications", Method: "GET", HandlerFunc: certification.GetCertifications, ApiCode: "get-certifications"},
 		&handlerFuncObj{Url: "/plugin-certifications/:certId/export", Method: "GET", HandlerFunc: certification.ExportCertification, ApiCode: "export-certification"},
