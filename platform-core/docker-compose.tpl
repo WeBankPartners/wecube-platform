@@ -38,3 +38,4 @@ services:
       - resource_server_password_seed=[#resource_server_password_seed]
       - gateway_url=[#gateway_url]
       - gateway_host_ports=[#gateway_host_ports]
+      - sub_system_private_key=[#sub_system_private_key]
