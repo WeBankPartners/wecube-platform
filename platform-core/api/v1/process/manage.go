@@ -81,7 +81,6 @@ func AddOrUpdateProcessDefinition(c *gin.Context) {
 		entity = &models.ProcDef{
 			Id:            param.Id,
 			Name:          param.Name,
-			Version:       param.Version,
 			RootEntity:    param.RootEntity,
 			Tags:          param.Tags,
 			ForPlugin:     strings.Join(param.AuthPlugins, ","),
@@ -1108,6 +1107,7 @@ func processDefinitionImport(ctx context.Context, inputList []*models.ProcessDef
 			resultItem.Message = importFailMessageMap[resultItem.Code]
 		}
 	}
+	sort.Sort(models.ImportResultItemDtoSort(importResult.ResultList))
 	return
 }
 
