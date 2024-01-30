@@ -50,11 +50,6 @@ export const MENUS = [
     code: 'COLLABORATION_WORKFLOW_ORCHESTRATION',
     cnName: '任务编排',
     enName: 'Workflow Management',
-    link: '/collaboration/workflow-orchestration'
-  },
-  {
-    code: 'COLLABORATION_WORKFLOW',
-    cnName: '编排列表',
     link: '/collaboration/workflow'
   },
   {
