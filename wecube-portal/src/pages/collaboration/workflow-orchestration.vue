@@ -805,6 +805,11 @@ export default {
           customAttrs: info.customAttrs
         }
         this.graph.updateItem(item, params)
+        this.deleteRemoveNode()
+        if (this.canRemovedId) {
+          const item = this.graph.findById(this.canRemovedId)
+          this.graph.clearItemStates(item)
+        }
       }
     },
     // 保存边信息
