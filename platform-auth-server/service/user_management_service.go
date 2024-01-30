@@ -576,7 +576,8 @@ func (UserManagementService) RetireveLocalUserByUserid(userId string) (*model.Si
 		return nil, err
 	}
 	if len(sysRoleList) > 0 {
-		roleAdministrator = sysRoleList[0].Administrator
+		// 赋值角色名称
+		roleAdministrator = sysRoleList[0].Name
 	}
 	return convertToSimpleLocalUserDto(user, roleAdministrator), nil
 }
