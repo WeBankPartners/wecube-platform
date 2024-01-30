@@ -1,7 +1,9 @@
 package process
 
 import (
+	"github.com/WeBankPartners/wecube-platform/platform-core/api/middleware"
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/log"
+	"github.com/WeBankPartners/wecube-platform/platform-core/services/database"
 	"github.com/gin-gonic/gin"
 )
 
@@ -10,6 +12,12 @@ func ProcDefList(c *gin.Context) {
 	permission := c.Query("permission")     // USE | MGMT
 	tag := c.Query("tag")
 	log.Logger.Debug("procDefList", log.String("includeDraft", includeDraft), log.String(permission, "permission"), log.String("tag", tag))
+	result, err := database.ProcDefList(c, includeDraft, permission, tag, middleware.GetRequestRoles(c))
+	if err != nil {
+		middleware.ReturnError(c, err)
+	} else {
+		middleware.ReturnData(c, result)
+	}
 }
 
 func ProcDefOutline(c *gin.Context) {
