@@ -46,7 +46,7 @@
   },
   "proc_def_node_name_repeat_error": {
     "code": 20000003,
-    "message": "Save Failed: Node with the same name already exists."
+    "message": "Save Failed: Node with the same name: %s  already exists."
   },
   "proc_def_node_20000004_error": {
     "code": 20000004,
@@ -74,6 +74,18 @@
   },
   "proc_def_node_20000010_error": {
     "code": 20000010,
-    "message": "Publish Failed: Format error in process, [task nodes] and [time nodes] only support single in and single out"
+    "message": "Publish Failed: Format error in process, [task nodes] and [time nodes]: %s only support single in and single out"
+  },
+  "proc_def_import_low_version_error": {
+    "code": 20000015,
+    "message": "Import Failed: The imported process version is lower than the current environment, only supports importing higher versions."
+  },
+  "proc_def_import_draft_conflict_error": {
+    "code": 20000016,
+    "message": "Import Failed: already a draft with the same name in [Unpublished], please delete that draft and try importing again."
+  },
+  "proc_def_import_server_error": {
+    "code": 20000017,
+    "message": "Import Failed: Please refresh the page and try again later."
   }
 }
