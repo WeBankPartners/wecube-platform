@@ -13,17 +13,17 @@ func ProcDefList(c *gin.Context) {
 }
 
 func ProcDefOutline(c *gin.Context) {
-	procDefId := c.Param("procDefId")
+	procDefId := c.Param("proc-def-id")
 	log.Logger.Debug("ProcDefOutline", log.String("procDefId", procDefId))
 }
 
 func ProcDefRootEntities(c *gin.Context) {
-	procDefId := c.Param("procDefId")
+	procDefId := c.Param("proc-def-id")
 	log.Logger.Debug("ProcDefRootEntities", log.String("procDefId", procDefId))
 }
 
 func ProcDefPreview(c *gin.Context) {
-	procDefId := c.Param("procDefId")
+	procDefId := c.Param("proc-def-id")
 	entityDataId := c.Param("entityDataId")
 	log.Logger.Debug("ProcDefPreview", log.String("procDefId", procDefId), log.String("entityDataId", entityDataId))
 }
