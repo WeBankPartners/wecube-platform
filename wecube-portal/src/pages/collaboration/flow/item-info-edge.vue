@@ -19,7 +19,9 @@
           >
         </FormItem>
         <div style="position: absolute; bottom: 20px; right: 280px; width: 200px">
-          <Button @click="saveItem" type="primary">{{ $t('save') }}</Button>
+          <Button v-if="editFlow !== 'false'" :disabled="isSaveBtnActive()" @click="saveItem" type="primary">{{
+            $t('save')
+          }}</Button>
           <Button @click="hideItem">{{ $t('cancel') }}</Button>
         </div>
       </template>
@@ -30,6 +32,7 @@
 export default {
   data () {
     return {
+      editFlow: true, // 在查看时隐藏按钮
       isParmasChanged: false, // 参数变化标志位，控制右侧panel显示逻辑
       needAddFirst: true,
       itemCustomInfo: {
@@ -39,7 +42,8 @@ export default {
     }
   },
   methods: {
-    showItemInfo (data, needAddFirst = false) {
+    showItemInfo (data, needAddFirst = false, editFlow) {
+      this.editFlow = editFlow
       this.needAddFirst = needAddFirst
       delete data.sourceNode
       delete data.targetNode
@@ -51,8 +55,7 @@ export default {
     },
     saveItem () {
       let tmpData = JSON.parse(JSON.stringify(this.itemCustomInfo))
-      tmpData.name = tmpData.label
-
+      tmpData.label = tmpData.name
       let finalData = {
         customAttrs: {
           id: tmpData.id,
@@ -65,19 +68,30 @@ export default {
       this.$emit('sendItemInfo', finalData, this.needAddFirst)
       this.needAddFirst = false
     },
+    isSaveBtnActive () {
+      let res = false
+      if (this.itemCustomInfo.name && this.itemCustomInfo.name.length > 30) {
+        res = true
+      }
+      return res
+    },
     panalStatus () {
       return this.isParmasChanged
     },
     hideItem () {
       if (this.isParmasChanged) {
         this.$Modal.confirm({
-          title: this.$t('confirm_discarding_changes') + 'edge',
-          content: this.$t('params_edit_confirm'),
+          title: `${this.$t('confirm_discarding_changes')}`,
+          content: `${this.itemCustomInfo.name}:${this.$t('params_edit_confirm')}`,
           'z-index': 1000000,
+          okText: this.$t('save'),
+          cancelText: this.$t('abandon'),
           onOk: async () => {
-            this.$emit('hideItemInfo')
+            this.saveItem()
           },
-          onCancel: () => {}
+          onCancel: () => {
+            this.$emit('hideItemInfo')
+          }
         })
       } else {
         this.$emit('hideItemInfo')

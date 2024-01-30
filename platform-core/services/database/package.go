@@ -4,23 +4,24 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"strconv"
+	"strings"
+	"time"
+
 	"github.com/WeBankPartners/go-common-lib/guid"
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/db"
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/encrypt"
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/exterror"
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/tools"
 	"github.com/WeBankPartners/wecube-platform/platform-core/models"
-	"strconv"
-	"strings"
-	"time"
 )
 
 func GetPackages(ctx context.Context, allFlag bool) (result []*models.PluginPackages, err error) {
 	result = []*models.PluginPackages{}
 	if allFlag {
-		err = db.MysqlEngine.Context(ctx).SQL("select * from plugin_packages").Find(&result)
+		err = db.MysqlEngine.Context(ctx).SQL("select * from plugin_packages order by name,`version`").Find(&result)
 	} else {
-		err = db.MysqlEngine.Context(ctx).SQL("select * from plugin_packages where status in ('UNREGISTERED','REGISTERED')").Find(&result)
+		err = db.MysqlEngine.Context(ctx).SQL("select * from plugin_packages where status in ('UNREGISTERED','REGISTERED') order by name,`version`").Find(&result)
 	}
 	if err != nil {
 		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
@@ -29,29 +30,58 @@ func GetPackages(ctx context.Context, allFlag bool) (result []*models.PluginPack
 	return
 }
 
-func GetPluginDependencies(ctx context.Context, pluginPackageId string) (result []*models.PluginPackageDepObj, err error) {
+func GetPluginDependencies(ctx context.Context, pluginPackageId string) (result *models.PluginPackageDepObj, err error) {
+	var pluginPackageRows []*models.PluginPackages
+	err = db.MysqlEngine.Context(ctx).SQL("select name,`version` from plugin_packages where id=?", pluginPackageId).Find(&pluginPackageRows)
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
+		return
+	}
+	if len(pluginPackageRows) == 0 {
+		err = exterror.Catch(exterror.New().DatabaseQueryEmptyError, err)
+		return
+	}
+	result = &models.PluginPackageDepObj{PackageName: pluginPackageRows[0].Name, Version: pluginPackageRows[0].Version, Dependencies: []*models.PluginPackageDepObj{}}
 	var dependRows []*models.PluginPackageDependencies
 	err = db.MysqlEngine.Context(ctx).SQL("select dependency_package_name,dependency_package_version from plugin_package_dependencies where plugin_package_id=?", pluginPackageId).Find(&dependRows)
 	if err != nil {
 		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
 		return
 	}
-	result = []*models.PluginPackageDepObj{}
 	for _, v := range dependRows {
-		result = append(result, &models.PluginPackageDepObj{PackageName: v.DependencyPackageName, Version: v.DependencyPackageVersion})
+		result.Dependencies = append(result.Dependencies, &models.PluginPackageDepObj{PackageName: v.DependencyPackageName, Version: v.DependencyPackageVersion, Dependencies: []*models.PluginPackageDepObj{}})
 	}
 	return
 }
 
 func GetPluginMenus(ctx context.Context, pluginPackageId string) (result []*models.PluginPackageMenus, err error) {
-	result = []*models.PluginPackageMenus{}
-	err = db.MysqlEngine.Context(ctx).SQL("select id,plugin_package_id,code,display_name,local_display_name,menu_order from plugin_package_menus where plugin_package_id=?", pluginPackageId).Find(&result)
+	var menuItemRows []*models.MenuItems
+	err = db.MysqlEngine.SQL("select id, parent_code, code, `source`, description, local_display_name, menu_order from menu_items order by menu_order").Find(&menuItemRows)
 	if err != nil {
 		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
 		return
 	}
-	for _, v := range result {
+	for _, row := range menuItemRows {
+		result = append(result, &models.PluginPackageMenus{
+			Active:           true,
+			Category:         row.ParentCode,
+			Code:             row.Code,
+			DisplayName:      row.LocalDisplayName,
+			Id:               row.Id,
+			LocalDisplayName: row.LocalDisplayName,
+			MenuOrder:        row.MenuOrder,
+			Source:           row.Source,
+		})
+	}
+	var pluginMenus []*models.PluginPackageMenus
+	err = db.MysqlEngine.Context(ctx).SQL("select * from plugin_package_menus where plugin_package_id=?", pluginPackageId).Find(&pluginMenus)
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
+		return
+	}
+	for _, v := range pluginMenus {
 		v.Source = v.PluginPackageId
+		result = append(result, v)
 	}
 	return
 }
@@ -88,7 +118,7 @@ func getPluginPackageObj(ctx context.Context, pluginPackageId string) (pluginPac
 
 func GetPluginAuthorities(ctx context.Context, pluginPackageId string) (result []*models.PluginPackageAuthorities, err error) {
 	result = []*models.PluginPackageAuthorities{}
-	err = db.MysqlEngine.Context(ctx).SQL("select * from plugin_package_authorities where plugin_package_id=?", pluginPackageId).Find(&pluginPackageId)
+	err = db.MysqlEngine.Context(ctx).SQL("select * from plugin_package_authorities where plugin_package_id=?", pluginPackageId).Find(&result)
 	if err != nil {
 		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
 	}
@@ -248,7 +278,7 @@ func UploadPackage(ctx context.Context, registerConfig *models.RegisterXML, with
 }
 
 func getMaxDataModelVersion(packageName string) (maxV int, err error) {
-	queryResult, queryErr := db.MysqlEngine.QueryString("SELECT max(`version`) as ver FROM plugin_package_data_model WHERE package_name =? GROUP BY package_name")
+	queryResult, queryErr := db.MysqlEngine.QueryString("SELECT max(`version`) as ver FROM plugin_package_data_model WHERE package_name =? GROUP BY package_name", packageName)
 	if queryErr != nil {
 		err = exterror.Catch(exterror.New().DatabaseQueryError, fmt.Errorf("query data model max version fail,%s ", queryErr.Error()))
 		return
@@ -603,6 +633,26 @@ func UpdatePluginStaticResourceFiles(ctx context.Context, pluginPackageId string
 func GetPluginResourceFiles(ctx context.Context) (result []*models.PluginPackageResourceFiles, err error) {
 	result = []*models.PluginPackageResourceFiles{}
 	err = db.MysqlEngine.Context(ctx).SQL("select * from plugin_package_resource_files where plugin_package_id in (SELECT t1.id FROM plugin_packages t1 where t1.ui_package_included=1 and t1.status IN ('REGISTERED' ,'RUNNING', 'STOPPED') AND t1.upload_timestamp = (SELECT MAX(t2.upload_timestamp) FROM plugin_packages t2 WHERE t2.status IN ('REGISTERED' ,'RUNNING', 'STOPPED') AND t2.name = t1.name GROUP BY t2.name))").Find(&result)
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
+	}
+	return
+}
+
+func GetPluginRunningInstancesByName(ctx context.Context, pluginPackageName string) (result []*models.PluginInstances, err error) {
+	result = []*models.PluginInstances{}
+	sql := `select
+	pi2.*
+from
+	plugin_instances pi2
+left join plugin_packages pp on
+	pi2.package_id = pp.id
+where
+	pi2.container_status = 'RUNNING'
+	and pp.name = ?
+order by
+	pi2.id desc`
+	err = db.MysqlEngine.Context(ctx).SQL(sql, pluginPackageName).Find(&result)
 	if err != nil {
 		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
 	}
