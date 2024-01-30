@@ -35,6 +35,7 @@ func CreateOrUpdateBatchExecTemplate(c *gin.Context, reqParam *models.BatchExecu
 			OperateObject: reqParam.OperateObject,
 			PluginService: reqParam.PluginService,
 			ConfigDataStr: configDataStr,
+			SourceData:    reqParam.SourceData,
 			CreatedBy:     middleware.GetRequestUser(c),
 			UpdatedBy:     "",
 			CreatedTime:   &now,
@@ -63,10 +64,10 @@ func CreateOrUpdateBatchExecTemplate(c *gin.Context, reqParam *models.BatchExecu
 		}
 
 		// update
-		updateColumnStr := "`name`=?,`operate_object`=?,`plugin_service`=?,`config_data`=?,`updated_by`=?,`updated_time`=?"
+		updateColumnStr := "`name`=?,`operate_object`=?,`plugin_service`=?,`config_data`=?,`source_data`=?,`updated_by`=?,`updated_time`=?"
 		action := &db.ExecAction{
 			Sql:   db.CombineDBSql("UPDATE ", models.TableNameBatchExecTemplate, " SET ", updateColumnStr, " WHERE id=?"),
-			Param: []interface{}{reqParam.Name, reqParam.OperateObject, reqParam.PluginService, configDataStr, middleware.GetRequestUser(c), now, reqParam.Id},
+			Param: []interface{}{reqParam.Name, reqParam.OperateObject, reqParam.PluginService, configDataStr, reqParam.SourceData, middleware.GetRequestUser(c), now, reqParam.Id},
 		}
 		actions = append(actions, action)
 	}
