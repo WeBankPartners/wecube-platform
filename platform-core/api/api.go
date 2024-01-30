@@ -163,7 +163,7 @@ func init() {
 		&handlerFuncObj{Url: "/batch-execution/templates/permission/update", Method: "POST", HandlerFunc: batch_execution.UpdateTemplatePermission, ApiCode: "update-batch-execution-template-permission"},
 		&handlerFuncObj{Url: "/batch-execution/list", Method: "POST", HandlerFunc: batch_execution.RetrieveBatchExec, ApiCode: "retrieve-batch-execution"},
 		&handlerFuncObj{Url: "/batch-execution/:batchExecId", Method: "GET", HandlerFunc: batch_execution.GetBatchExec, ApiCode: "get-batch-execution"},
-		// &handlerFuncObj{Url: "/batch-execution/job/run", Method: "POST", HandlerFunc: batch_execution.RunJob, ApiCode: "run-batch-execution-job"},
+		&handlerFuncObj{Url: "/batch-execution/job/run", Method: "POST", HandlerFunc: batch_execution.RunJob, ApiCode: "run-batch-execution-job"},
 	)
 }
 
