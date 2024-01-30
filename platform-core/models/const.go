@@ -12,6 +12,7 @@ const (
 	RequestIdHeader        = "requestId"
 	DefaultHttpErrorCode   = "ERROR"
 	DefaultHttpSuccessCode = "OK"
+	ContinueTokenHeader    = "continueToken"
 	// context key
 	ContextRequestBody  = "requestBody"
 	ContextResponseBody = "responseBody"
