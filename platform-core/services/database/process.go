@@ -319,8 +319,8 @@ func GetProcessDefinitionByCondition(ctx context.Context, condition models.ProcD
 
 func UpdateProcDef(ctx context.Context, procDef *models.ProcDef) (err error) {
 	var actions []*db.ExecAction
-	actions = append(actions, &db.ExecAction{Sql: "update proc_def set name=?,`version`=?,root_entity=?,tags=?,for_plugin=?,scene=?," +
-		"conflict_check=?,updated_by=?,updated_time=? where id=?", Param: []interface{}{procDef.Name, procDef.Version, procDef.RootEntity,
+	actions = append(actions, &db.ExecAction{Sql: "update proc_def set name=?,root_entity=?,tags=?,for_plugin=?,scene=?," +
+		"conflict_check=?,updated_by=?,updated_time=? where id=?", Param: []interface{}{procDef.Name, procDef.RootEntity,
 		procDef.Tags, procDef.ForPlugin, procDef.Scene, procDef.ConflictCheck, procDef.UpdatedBy, procDef.UpdatedTime, procDef.Id}})
 	err = db.Transaction(actions, ctx)
 	if err != nil {
@@ -333,8 +333,8 @@ func UpdateProcDef(ctx context.Context, procDef *models.ProcDef) (err error) {
 func UpdateProcDefAndNode(ctx context.Context, procDef *models.ProcDef, nodeList []*models.ProcDefNode) (err error) {
 	var actions []*db.ExecAction
 	// 更新编排表
-	actions = append(actions, &db.ExecAction{Sql: "update proc_def set name=?,`version`=?,root_entity=?,tags=?,for_plugin=?,scene=?," +
-		"conflict_check=?,updated_by=?,updated_time=? where id=?", Param: []interface{}{procDef.Name, procDef.Version, procDef.RootEntity,
+	actions = append(actions, &db.ExecAction{Sql: "update proc_def set name=?,root_entity=?,tags=?,for_plugin=?,scene=?," +
+		"conflict_check=?,updated_by=?,updated_time=? where id=?", Param: []interface{}{procDef.Name, procDef.RootEntity,
 		procDef.Tags, procDef.ForPlugin, procDef.Scene, procDef.ConflictCheck, procDef.UpdatedBy, procDef.UpdatedTime, procDef.Id}})
 	// 更新节点表
 	actions = append(actions, &db.ExecAction{Sql: "update proc_def_node  set service_name = null,routine_expression = null where" +
