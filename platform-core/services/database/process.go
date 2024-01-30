@@ -633,6 +633,18 @@ func UpdateProcDefNodeStatusByProcDefId(ctx context.Context, procDefId, status, 
 	return
 }
 
+func UpdateProcDefNodeOrder(ctx context.Context, nodeIndexMap map[string]int) (err error) {
+	var actions []*db.ExecAction
+	for k, v := range nodeIndexMap {
+		actions = append(actions, &db.ExecAction{Sql: "update proc_def_node set ordered_no=? where id=?", Param: []interface{}{v, k}})
+	}
+	err = db.Transaction(actions, ctx)
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseExecuteError, err)
+	}
+	return
+}
+
 // GetProcDefPermissionByCondition 根据条件 获取编排权限
 func GetProcDefPermissionByCondition(ctx context.Context, permission models.ProcDefPermission) (list []*models.ProcDefPermission, err error) {
 	var params []interface{}

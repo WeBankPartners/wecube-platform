@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/WeBankPartners/wecube-platform/platform-core/common/tools"
 	"io/ioutil"
 	"net/http"
 	"sort"
@@ -420,7 +421,6 @@ func DeployProcessDefinition(c *gin.Context) {
 		middleware.ReturnError(c, err)
 		return
 	}
-	// @todo 计算编排节点顺序
 	procDef.Status = string(models.Deployed)
 	procDef.UpdatedBy = middleware.GetRequestUser(c)
 	procDef.UpdatedTime = time.Now()
@@ -1129,7 +1129,8 @@ func checkDeployedProcDef(ctx context.Context, procDefId string) error {
 	var linkList []*models.ProcDefNodeLink
 	var err error
 	var nodeMap = make(map[string]*models.ProcDefNode)
-	var startNodeNameList, endNodeNameList []string
+	var startNodeNameList, endNodeNameList, sortNodeIds []string
+	var sortLinks [][]string
 	list, err = database.GetProcDefNodeById(ctx, procDefId)
 	if len(list) == 0 {
 		return exterror.Catch(exterror.New().ProcDefNode20000009Error, nil)
@@ -1149,6 +1150,7 @@ func checkDeployedProcDef(ctx context.Context, procDefId string) error {
 		inCount = 0
 		outCount = 0
 		nodeMap[node.Id] = node
+		sortNodeIds = append(sortNodeIds, node.Id)
 		for _, link := range linkList {
 			if link.Source == node.Id {
 				outCount++
@@ -1201,6 +1203,7 @@ func checkDeployedProcDef(ctx context.Context, procDefId string) error {
 	}
 	// 线的两边不能都是分流或汇聚
 	for _, link := range linkList {
+		sortLinks = append(sortLinks, []string{link.Source, link.Target})
 		if v, ok := nodeMap[link.Source]; ok && nodeMap[link.Target] != nil {
 			if v.NodeType == string(models.ProcDefNodeTypeMerge) || v.NodeType == string(models.ProcDefNodeTypeFork) {
 				if v.NodeType == string(models.ProcDefNodeTypeMerge) && (nodeMap[link.Target] == v || nodeMap[link.Target].NodeType == string(models.ProcDefNodeTypeFork)) {
@@ -1212,6 +1215,12 @@ func checkDeployedProcDef(ctx context.Context, procDefId string) error {
 			}
 		}
 	}
+	// 是否有环路和节点排序
+	sortNodeIdMap, isLoop := tools.ProcNodeSort(sortNodeIds, sortLinks)
+	if isLoop {
+		return exterror.New().ProcDefLoopCheckError
+	}
+	err = database.UpdateProcDefNodeOrder(ctx, sortNodeIdMap)
 	return nil
 }
 
