@@ -37,6 +37,9 @@ const (
 
 	// batch execution
 	BatchExecTemplateStatusAvailable = "available"
+	BatchExecErrorCodeSucceed        = "0"
+	BatchExecErrorCodeFailed         = "1"
+	BatchExecErrorCodePending        = "2"
 
 	// permission type
 	PermissionTypeMGMT = "MGMT"
