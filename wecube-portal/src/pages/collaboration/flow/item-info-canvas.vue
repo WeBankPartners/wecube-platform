@@ -4,44 +4,58 @@
       <Icon type="ios-arrow-dropright" size="28" />
     </div>
     <div class="panal-name">编排属性：</div>
-    <Form
-      :label-width="120"
-      ref="formValidate"
-      :model="itemCustomInfo"
-      :rules="ruleValidate"
-      style="padding-right: 12px"
-    >
+    <Form :label-width="120" style="padding-right: 12px">
       <FormItem label="编排ID">
         <Input disabled v-model="itemCustomInfo.id"></Input>
       </FormItem>
-      <FormItem label="编排名称">
+      <FormItem>
+        <label slot="label">
+          <span style="color: red">*</span>
+          编排名称
+        </label>
         <Input
           v-model="itemCustomInfo.label"
           @on-change="paramsChanged"
           :disable="!itemCustomInfo.enableModifyName"
         ></Input>
         <span style="position: absolute; left: 320px; top: 2px">{{ itemCustomInfo.label.length }}/30</span>
-        <span v-if="itemCustomInfo.label.length > 30" style="color: red">编排名称不能大于30字符</span>
+        <span
+          class="custom-error-tag"
+          v-if="itemCustomInfo.label.length > 30 || itemCustomInfo.label.length === 0"
+          style="color: red"
+          >编排名称不能大于30字符</span
+        >
       </FormItem>
       <FormItem label="版本" prop="version">
         <InputNumber :min="1" disabled v-model="itemCustomInfo.version" style="width: 100%"></InputNumber>
       </FormItem>
-      <FormItem label="对象类型" prop="rootEntity">
+      <FormItem>
+        <label slot="label">
+          <span style="color: red">*</span>
+          对象类型
+        </label>
         <FilterRules
           @change="onEntitySelect"
           v-model="itemCustomInfo.rootEntity"
           :allDataModelsWithAttrs="allEntityType"
           style="width: 100%"
         ></FilterRules>
+        <span class="custom-error-tag" v-if="itemCustomInfo.rootEntity === ''" style="color: red"
+          >对象类型不能为空</span
+        >
       </FormItem>
       <!-- @on-change="paramsChanged" -->
-      <FormItem label="授权插件" style="margin-top: 22px">
+      <FormItem label="授权插件">
         <Select v-model="itemCustomInfo.authPlugins" filterable multiple>
           <Option v-for="item in authPluginList" :value="item" :key="item">{{ item }} </Option>
         </Select>
       </FormItem>
       <FormItem label="分组" prop="scene">
         <Input v-model="itemCustomInfo.scene" @on-change="paramsChanged"></Input>
+        <span style="position: absolute; left: 320px; top: 2px">{{ itemCustomInfo.scene.length }}/30</span>
+        <span class="custom-error-tag" v-if="itemCustomInfo.scene.length > 30" style="color: red"
+          >分组不能大于30字符</span
+        >
       </FormItem>
       <FormItem label="冲突检测">
         <i-switch v-model="itemCustomInfo.conflictCheck" @on-change="paramsChanged" />
@@ -52,7 +66,9 @@
         <span v-if="itemCustomInfo.tags.length > 200" style="color: red">描述不能大于200字符</span>
       </FormItem>
       <div style="position: absolute; bottom: 20px; right: 280px; width: 200px">
-        <Button @click="saveItem" type="primary">{{ $t('save') }}</Button>
+        <Button v-if="editFlow !== 'false'" :disabled="isSaveBtnActive()" @click="saveItem" type="primary">{{
+          $t('save')
+        }}</Button>
         <Button @click="hideItem">{{ $t('cancel') }}</Button>
       </div>
     </Form>
@@ -67,6 +83,7 @@ export default {
   },
   data () {
     return {
+      editFlow: true, // 在查看时隐藏按钮
       isParmasChanged: false, // 参数变化标志位，控制右侧panel显示逻辑
       itemCustomInfo: {
         id: '',
@@ -82,16 +99,14 @@ export default {
           USE: [] // 使用角色
         }
       },
-      ruleValidate: {
-        rootEntity: [{ required: true, message: 'rootEntity at least one hobby', trigger: 'change' }]
-      },
       allEntityType: [], // 系统中所有根CI
       authPluginList: [] // 待授权插件列表
     }
   },
   mounted () {},
   methods: {
-    async showItemInfo (data) {
+    async showItemInfo (data, editFlow) {
+      this.editFlow = editFlow
       this.isParmasChanged = false
       // 获取所有根CI类型
       this.getAllDataModels()
@@ -119,14 +134,23 @@ export default {
       this.itemCustomInfo.version = Number(this.itemCustomInfo.version) || 1
     },
     saveItem () {
-      this.$refs['formValidate'].validate(valid => {
-        if (valid) {
-          let finalData = JSON.parse(JSON.stringify(this.itemCustomInfo))
-          finalData.version += ''
-          finalData.name = finalData.label
-          this.$emit('sendItemInfo', finalData)
-        }
-      })
+      let finalData = JSON.parse(JSON.stringify(this.itemCustomInfo))
+      finalData.version += ''
+      finalData.name = finalData.label
+      this.$emit('sendItemInfo', finalData)
+    },
+    isSaveBtnActive () {
+      let res = false
+      if (this.itemCustomInfo.label.length > 30 || this.itemCustomInfo.label.length === 0) {
+        res = true
+      }
+      if (this.itemCustomInfo.scene.length > 30) {
+        res = true
+      }
+      if (this.itemCustomInfo.rootEntity === '') {
+        res = true
+      }
+      return res
     },
     panalStatus () {
       return this.isParmasChanged
@@ -134,14 +158,17 @@ export default {
     hideItem () {
       if (this.isParmasChanged) {
         this.$Modal.confirm({
-          title: this.$t('confirm_discarding_changes') + 'canvas',
-          content: this.$t('params_edit_confirm'),
+          title: `${this.$t('confirm_discarding_changes')}`,
+          content: `${this.itemCustomInfo.label}:${this.$t('params_edit_confirm')}`,
           'z-index': 1000000,
+          okText: this.$t('save'),
+          cancelText: this.$t('abandon'),
           onOk: async () => {
-            this.$refs['formValidate'].resetFields()
-            this.$emit('hideItemInfo')
+            this.saveItem()
           },
-          onCancel: () => {}
+          onCancel: () => {
+            this.$emit('hideItemInfo')
+          }
         })
       } else {
         this.$emit('hideItemInfo')
