@@ -1,7 +1,9 @@
 package batch_execution
 
 import (
+	"encoding/json"
 	"fmt"
+	"time"
 
 	"github.com/WeBankPartners/wecube-platform/platform-core/api/middleware"
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/exterror"
@@ -358,20 +360,68 @@ func doRunJob(c *gin.Context, reqParam *models.BatchExecRun) (result *models.Bat
 		inputParamConstants = append(inputParamConstants, pluginDefInputParams)
 	}
 
-	// todo record run history
-	batchExecId, err := database.InsertBatchExec(c, reqParam)
-	if err != nil {
+	// record batch execution
+	batchExecId, tmpErr := database.InsertBatchExec(c, reqParam)
+	if tmpErr != nil {
+		err = tmpErr
+		log.Logger.Error("insert batch execution record failed", log.Error(err))
 		return
 	}
-	fmt.Sprintf("%s", batchExecId)
+	result.BatchExecId = batchExecId
 
+	execTime := time.Now()
+	errCode := models.BatchExecErrorCodeSucceed
+	errMsg := ""
 	batchExecRunResult, dangerousCheckResult, pluginCallParam, err := execution.BatchExecutionCallPluginService(c, operator, authToken,
 		pluginInterfaceId, entityType, entityInstances, inputParamConstants, continueToken)
 	if err != nil {
-		// todo update run record
-		pluginCallParam = pluginCallParam
+		errCode = models.BatchExecErrorCodeFailed
+		errMsg = fmt.Sprintf("plugin call error: %s", err.Error())
+		// update batch exec record
+		updateData := make(map[string]interface{})
+		updateData["error_code"] = errCode
+		updateData["error_message"] = errMsg
+		updateData["updated_by"] = middleware.GetRequestUser(c)
+		updateData["updated_time"] = time.Now()
+		err = database.UpdateBatchExec(c, batchExecId, updateData)
+		if err != nil {
+			log.Logger.Error("update batch execution record failed", log.Error(err), log.String("batchExecErrMsg", errMsg))
+			return
+		}
 		return
 	}
+
+	if dangerousCheckResult != nil {
+		result.DangerousCheckResult = dangerousCheckResult
+		log.Logger.Warn("dangerous check result existed", log.JsonObj("dangerousCheckResult", dangerousCheckResult))
+		return
+	}
+
+	err = database.InsertBatchExecJobs(c, batchExecId, &execTime, reqParam, pluginCallParam, batchExecRunResult)
+	if err != nil {
+		// update batch exec record
+		errCode = models.BatchExecErrorCodeFailed
+		errMsg = fmt.Sprintf("plugin call succeed, but insert batch execution jobs record failed: %s", err.Error())
+		batchExecRunResultByte, tmpErr := json.Marshal(batchExecRunResult)
+		if tmpErr != nil {
+			errMsg += fmt.Sprintf(" marshal batchExecRunResult failed: %s", tmpErr.Error())
+		} else {
+			errMsg += fmt.Sprintf(" batchExecRunResult: %s", string(batchExecRunResultByte))
+		}
+		updateData := make(map[string]interface{})
+		updateData["error_code"] = errCode
+		updateData["error_message"] = errMsg
+		updateData["updated_by"] = middleware.GetRequestUser(c)
+		updateData["updated_time"] = time.Now()
+		err = database.UpdateBatchExec(c, batchExecId, updateData)
+		if err != nil {
+			log.Logger.Error("update batch execution record failed", log.Error(err), log.String("batchExecErrMsg", errMsg))
+			return
+		}
+		log.Logger.Error(fmt.Sprintf("batchExecErrMsg: %s", errMsg))
+		return
+	}
+
 	result.BatchExecRunResult = batchExecRunResult
 	result.DangerousCheckResult = dangerousCheckResult
 	return
