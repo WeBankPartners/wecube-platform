@@ -45,6 +45,14 @@
                   <Option :key="idx" :value="j.value">{{ j.label }}</Option>
                 </template>
               </Select>
+              <!--switch开关类型-->
+              <i-Switch
+                v-else-if="i.component === 'switch'"
+                v-model="value[i.key]"
+                @on-change="$emit('search')"
+                style="margin-right: 32px"
+              >
+              </i-Switch>
               <!--标签组-->
               <RadioGroup
                 v-else-if="i.component === 'radio-group'"
