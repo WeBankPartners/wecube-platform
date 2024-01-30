@@ -13,7 +13,7 @@
 
 <script>
 import BaseForm from './base-form.vue'
-import AuthDialog from '../../components/flow-auth.vue'
+import AuthDialog from '../../components/auth.vue'
 import { saveBatchExecuteTemplate, getBatchExecuteTemplateDetail } from '@/api/server.js'
 export default {
   components: {

@@ -126,7 +126,6 @@ import HeaderTitle from './components/header-title.vue'
 import FilterRules from '../../components/filter-rules.vue'
 import ConditionTree from './components/condition-tree.vue'
 import EntityTable from './components/entity-table.vue'
-import AuthDialog from '../../components/flow-auth.vue'
 import {
   getAllDataModels,
   dmeAllEntities,
@@ -139,8 +138,7 @@ export default {
     HeaderTitle,
     FilterRules,
     ConditionTree,
-    EntityTable,
-    AuthDialog
+    EntityTable
   },
   props: {
     id: {
