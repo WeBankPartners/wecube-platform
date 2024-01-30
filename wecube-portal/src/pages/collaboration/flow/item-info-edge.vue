@@ -19,7 +19,9 @@
           >
         </FormItem>
         <div style="position: absolute; bottom: 20px; right: 280px; width: 200px">
-          <Button v-if="editFlow !== 'false'" @click="saveItem" type="primary">{{ $t('save') }}</Button>
+          <Button v-if="editFlow !== 'false'" :disabled="isSaveBtnActive()" @click="saveItem" type="primary">{{
+            $t('save')
+          }}</Button>
           <Button @click="hideItem">{{ $t('cancel') }}</Button>
         </div>
       </template>
@@ -65,6 +67,13 @@ export default {
       }
       this.$emit('sendItemInfo', finalData, this.needAddFirst)
       this.needAddFirst = false
+    },
+    isSaveBtnActive () {
+      let res = false
+      if (this.itemCustomInfo.name && this.itemCustomInfo.name.length > 30) {
+        res = true
+      }
+      return res
     },
     panalStatus () {
       return this.isParmasChanged
