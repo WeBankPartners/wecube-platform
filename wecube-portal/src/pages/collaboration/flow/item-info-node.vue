@@ -464,13 +464,17 @@ export default {
     hideItem () {
       if (this.isParmasChanged) {
         this.$Modal.confirm({
-          title: this.$t('confirm_discarding_changes') + 'node',
-          content: this.$t('params_edit_confirm'),
+          title: `${this.$t('confirm_discarding_changes')}`,
+          content: `${this.itemCustomInfo.customAttrs.name}:${this.$t('params_edit_confirm')}`,
           'z-index': 1000000,
+          okText: this.$t('save'),
+          cancelText: this.$t('abandon'),
           onOk: async () => {
-            this.$emit('hideItemInfo')
+            this.saveItem()
           },
-          onCancel: () => {}
+          onCancel: () => {
+            this.$emit('hideItemInfo')
+          }
         })
       } else {
         this.$emit('hideItemInfo')
