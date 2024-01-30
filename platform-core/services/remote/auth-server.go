@@ -3,7 +3,6 @@ package remote
 import (
 	"encoding/json"
 	"fmt"
-
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/network"
 	"github.com/WeBankPartners/wecube-platform/platform-core/models"
 )
@@ -43,10 +42,22 @@ const (
 	pathConfigureRoleAuthorities = "/auth/v1/roles/%s/authorities"
 	// pathRegisterLocalRole 注册角色
 	pathRegisterLocalRole = "/auth/v1/roles"
+	// pathLogin 登录
+	pathLogin = "/auth/v1/api/login"
+	// pathRegisterSubSystem 注册插件subsys
+	pathRegisterSubSystem = "/auth/v1/sub-systems"
 )
 
 // TODO
 func RegisterSubSystem(pluginPackageObj *models.PluginPackages) (subSystemCode, subSystemKey string, err error) {
+	//subSysCode := fmt.Sprintf("SYS_%s", strings.ToUpper(pluginPackageObj.Name))
+	//param := models.SimpleSubSystemDto{
+	//	Name:        pluginPackageObj.Name,
+	//	SystemCode:  subSystemCode,
+	//	Active:      true,
+	//	Blocked:     false,
+	//	Description: fmt.Sprintf("Plugin %s registered from platform.", pluginPackageObj.Name),
+	//}
 
 	return
 }

@@ -148,11 +148,10 @@ router.beforeEach((to, from, next) => {
       let isHasPermission = []
         .concat(...window.myMenus.map(_ => _.submenus), window.childRouters)
         .find(_ => _.link === to.path && _.active)
+      console.log(isHasPermission, to.path)
       if (
         (isHasPermission && isHasPermission.active) ||
-        to.path === '/404' ||
-        to.path === '/login' ||
-        to.path === '/homepage'
+        ['/404', '/login', '/homepage', '/collaboration/workflow-mgmt'].includes(to.path)
       ) {
         /* has permission */
         window.sessionStorage.setItem('currentPath', to.path === '/404' || to.path === '/login' ? '/homepage' : to.path)

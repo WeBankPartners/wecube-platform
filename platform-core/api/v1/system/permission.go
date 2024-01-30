@@ -281,6 +281,10 @@ func DeleteUserByUserId(c *gin.Context) {
 		middleware.ReturnError(c, err)
 		return
 	}
+	if strings.TrimSpace(response.Data.RoleAdministrator) != "" {
+		middleware.ReturnError(c, exterror.Catch(exterror.New().DeleteUserError.WithParam(response.Data.RoleAdministrator), err))
+		return
+	}
 	// 删除用户
 	err = remote.UnregisterLocalUser(userId, c.GetHeader("Authorization"), c.GetHeader("Accept-Language"))
 	if err != nil {
@@ -298,8 +302,8 @@ func UpdateRole(c *gin.Context) {
 		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, err))
 		return
 	}
-	if roleId == "" {
-		err := fmt.Errorf("param roleId is empty")
+	if roleId == "" || param.Administrator == "" {
+		err := fmt.Errorf("param roleId or administrator is empty")
 		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, err))
 		return
 	}

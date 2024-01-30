@@ -5,7 +5,7 @@
   "error_detail_return": true,
   "log": {
     "level": "[#LOG_LEVEL]",
-    "log_dir": "[#WECUBE_GATEWAY_LOG_PATH]",
+    "log_dir": "logs",
     "access_log_enable": true,
     "db_log_enable": true,
     "archive_max_size": 64,
@@ -19,11 +19,11 @@
   "redirect_routes": [
     {
       "context": "platform",
-      "target_path": "http://[#WECUBE_CORE_HOST]:19100"
+      "target_path": "http://[#WECUBE_CORE_ADDRESS]"
     },
     {
       "context": "auth",
-      "target_path": "http://[#AUTH_SERVER_HOST]:19120"
+      "target_path": "http://[#AUTH_SERVER_ADDRESS]"
     }
   ]
 }

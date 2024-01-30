@@ -110,26 +110,46 @@
         </FormItem>
       </Form>
     </Modal>
-    <Modal
-      v-model="addedRole.isShow"
-      :title="addedRole.isAdd ? $t('add_role') : $t('edit_role_')"
-      @on-ok="addRole"
-      @on-cancel="cancel"
-    >
-      <Form class="validation-form" :model="addedRole" label-position="left" :label-width="100">
-        <FormItem :label="$t('role')" v-if="addedRole.isAdd">
+    <Modal v-model="addedRole.isShow" :title="addedRole.isAdd ? $t('add_role') : $t('edit_role_')">
+      <Form :model="addedRole" label-position="right" :label-width="100">
+        <FormItem v-if="addedRole.isAdd">
+          <label slot="label">
+            <span style="color: red">*</span>
+            {{ $t('role') }}
+          </label>
           <Input v-model="addedRole.params.name" :placeholder="$t('please_input')" />
         </FormItem>
-        <FormItem :label="$t('display_name')">
+        <FormItem>
+          <label slot="label">
+            <span style="color: red">*</span>
+            {{ $t('display_name') }}
+          </label>
           <Input v-model="addedRole.params.displayName" :placeholder="$t('please_input')" />
         </FormItem>
-        <FormItem :label="$t('email')">
+        <FormItem>
+          <label slot="label">
+            <span style="color: red">*</span>
+            {{ $t('email') }}
+          </label>
           <Input v-model="addedRole.params.email" :placeholder="$t('please_input')" />
+        </FormItem>
+        <FormItem>
+          <label slot="label">
+            <span style="color: red">*</span>
+            {{ $t('role_admin') }}
+          </label>
+          <Select v-model="addedRole.params.administrator" filterable>
+            <Option v-for="item in users" :value="item.id" :key="item.id">{{ item.username }}</Option>
+          </Select>
         </FormItem>
         <FormItem :label="$t('status')" v-if="!addedRole.isAdd">
           <Checkbox v-model="addedRole.params.status">{{ $t('disable_role') }}</Checkbox>
         </FormItem>
       </Form>
+      <div slot="footer">
+        <Button ghost @click="cancel">{{ $t('cancel') }}</Button>
+        <Button type="primary" @click="addRole">{{ $t('save') }}</Button>
+      </div>
     </Modal>
     <Modal v-model="userManageModal" width="700" :title="$t('edit_user')">
       <Transfer
@@ -148,7 +168,7 @@
     <Modal v-model="showNewPassword" :title="$t('new_password')">
       <Form class="validation-form" label-position="left" :label-width="100">
         <FormItem :label="$t('new_password')">
-          <Input v-model="newPassword" :placeholder="$t('please_input')" style="width:300px" />
+          <Input v-model="newPassword" :placeholder="$t('please_input')" style="width: 300px" />
           <Icon @click="copyPassword" class="icon-copy" type="md-copy" />
         </FormItem>
       </Form>
@@ -221,6 +241,7 @@ export default {
           name: '',
           displayName: '',
           email: '',
+          administrator: '',
           status: false
         }
       },
@@ -550,11 +571,24 @@ export default {
       }
     },
     async addRole () {
-      if (!this.addedRole.params.name) {
-        this.$Notice.warning({
-          title: 'Warning',
-          desc: this.$t('role_cannot_empty')
-        })
+      if (this.addedRole.isAdd && !this.addedRole.params.name) {
+        this.$Message.warning(`${this.$t('role')}${this.$t('cannotBeEmpty')}`)
+        return
+      }
+      if (!this.addedRole.params.displayName) {
+        this.$Message.warning(`${this.$t('display_name')}${this.$t('cannotBeEmpty')}`)
+        return
+      }
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+      if (!this.addedRole.params.email) {
+        this.$Message.warning(`${this.$t('email')}${this.$t('cannotBeEmpty')}`)
+        return
+      } else if (!emailRegex.test(this.addedRole.params.email)) {
+        this.$Message.warning(`${this.$t('email')}${this.$t('invalidFormat')}`)
+        return
+      }
+      if (!this.addedRole.params.administrator) {
+        this.$Message.warning(`${this.$t('role_admin')}${this.$t('cannotBeEmpty')}`)
         return
       }
       this.addedRole.params.status = this.addedRole.params.status ? 'Deleted' : 'NotDeleted'
@@ -567,6 +601,7 @@ export default {
           title: 'success',
           desc: message
         })
+        this.cancel()
         this.getAllRoles()
       }
     },
@@ -575,6 +610,7 @@ export default {
       this.addedRole.params.name = ''
       this.addedRole.params.displayName = ''
       this.addedRole.params.email = ''
+      this.addedRole.params.administrator = ''
       this.addedRole.isShow = true
     },
     editRole (item) {
@@ -593,7 +629,9 @@ export default {
       this.addedUser.password = ''
       this.addUserModalVisible = true
     },
-    cancel () {}
+    cancel () {
+      this.addedRole.isShow = false
+    }
   },
   created () {
     this.getAllUsers()
