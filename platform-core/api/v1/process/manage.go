@@ -81,7 +81,6 @@ func AddOrUpdateProcessDefinition(c *gin.Context) {
 		entity = &models.ProcDef{
 			Id:            param.Id,
 			Name:          param.Name,
-			Version:       param.Version,
 			RootEntity:    param.RootEntity,
 			Tags:          param.Tags,
 			ForPlugin:     strings.Join(param.AuthPlugins, ","),
@@ -332,7 +331,7 @@ func ExportProcessDefinition(c *gin.Context) {
 	}
 	for index, procDef := range procDefList {
 		if index == 0 {
-			fileName = procDef.Name
+			fileName = procDef.Id
 		}
 		if procDef.Status == string(models.Draft) {
 			log.Logger.Info("procDef is draft", log.String("procDefId", procDef.Id))
@@ -345,15 +344,10 @@ func ExportProcessDefinition(c *gin.Context) {
 		}
 		resultList = append(resultList, procDefDto)
 	}
-	if len(procDefList) == 1 {
-		fileName = "prof_" + fileName
-	} else {
-		if strings.Contains(c.GetHeader(middleware.AcceptLanguageHeader), "zh-CN") {
-			fileName = fmt.Sprintf("prof_%s等%d个文件", fileName, len(procDefList))
-		} else {
-			fileName = fmt.Sprintf("prof_%set al. %d", fileName, len(procDefList))
-		}
+	if len(procDefList) > 1 {
+		fileName = fmt.Sprintf("%s et al.%d", fileName, len(procDefList))
 	}
+	fileName = fileName + "-" + time.Now().Format("20060102150405")
 	b, jsonErr := json.Marshal(resultList)
 	if jsonErr != nil {
 		middleware.ReturnError(c, fmt.Errorf("Export requestTemplate config fail, json marshal object error:%s ", jsonErr.Error()))
@@ -535,6 +529,11 @@ func AddOrUpdateProcDefTaskNodes(c *gin.Context) {
 		node.CreatedTime = procDefNode.CreatedTime
 		err = database.UpdateProcDefNode(c, node)
 	}
+	if err != nil {
+		middleware.ReturnError(c, err)
+		return
+	}
+	err = database.UpdateProcDefNode(c, &models.ProcDefNode{Id: procDef.Id, UpdatedBy: user, UpdatedTime: time.Now()})
 	if err != nil {
 		middleware.ReturnError(c, err)
 		return
@@ -1108,6 +1107,7 @@ func processDefinitionImport(ctx context.Context, inputList []*models.ProcessDef
 			resultItem.Message = importFailMessageMap[resultItem.Code]
 		}
 	}
+	sort.Sort(models.ImportResultItemDtoSort(importResult.ResultList))
 	return
 }
 
