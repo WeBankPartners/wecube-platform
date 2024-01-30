@@ -6,6 +6,7 @@ import (
 	"reflect"
 	"strconv"
 
+	"github.com/WeBankPartners/go-common-lib/guid"
 	"github.com/WeBankPartners/wecube-platform/platform-core/models"
 	"github.com/WeBankPartners/wecube-platform/platform-core/services/database"
 	"github.com/WeBankPartners/wecube-platform/platform-core/services/remote"
@@ -129,6 +130,9 @@ func BatchExecutionCallPluginService(ctx context.Context, operator, authToken, p
 		ServicePath:     pluginInterface.ServiceDisplayName,
 		EntityInstances: entityInstances,
 		Inputs:          inputParamDatas,
+	}
+	if pluginInterface.IsAsyncProcessing == "Y" {
+		pluginCallParam.RequestId = "batchexec_" + guid.CreateGuid()
 	}
 	result, err = remote.PluginInterfaceApi(ctx, authToken, pluginInterface, pluginCallParam)
 	// TODO: 处理output param(比如类型转换，assign)
