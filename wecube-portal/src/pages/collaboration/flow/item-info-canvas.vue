@@ -52,6 +52,10 @@
       </FormItem>
       <FormItem label="分组" prop="scene">
         <Input v-model="itemCustomInfo.scene" @on-change="paramsChanged"></Input>
+        <span style="position: absolute; left: 320px; top: 2px">{{ itemCustomInfo.scene.length }}/30</span>
+        <span class="custom-error-tag" v-if="itemCustomInfo.scene.length > 30" style="color: red"
+          >分组不能大于30字符</span
+        >
       </FormItem>
       <FormItem label="冲突检测">
         <i-switch v-model="itemCustomInfo.conflictCheck" @on-change="paramsChanged" />
@@ -140,6 +144,9 @@ export default {
       if (this.itemCustomInfo.label.length > 30 || this.itemCustomInfo.label.length === 0) {
         res = true
       }
+      if (this.itemCustomInfo.scene.length > 30) {
+        res = true
+      }
       if (this.itemCustomInfo.rootEntity === '') {
         res = true
       }
@@ -151,13 +158,17 @@ export default {
     hideItem () {
       if (this.isParmasChanged) {
         this.$Modal.confirm({
-          title: this.$t('confirm_discarding_changes') + 'canvas',
-          content: this.$t('params_edit_confirm'),
+          title: `${this.$t('confirm_discarding_changes')}`,
+          content: `${this.itemCustomInfo.label}:${this.$t('params_edit_confirm')}`,
           'z-index': 1000000,
+          okText: this.$t('save'),
+          cancelText: this.$t('abandon'),
           onOk: async () => {
-            this.$emit('hideItemInfo')
+            this.saveItem()
           },
-          onCancel: () => {}
+          onCancel: () => {
+            this.$emit('hideItemInfo')
+          }
         })
       } else {
         this.$emit('hideItemInfo')
