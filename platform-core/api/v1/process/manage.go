@@ -534,6 +534,11 @@ func AddOrUpdateProcDefTaskNodes(c *gin.Context) {
 		middleware.ReturnError(c, err)
 		return
 	}
+	err = database.UpdateProcDefNode(c, &models.ProcDefNode{Id: procDef.Id, UpdatedBy: user, UpdatedTime: time.Now()})
+	if err != nil {
+		middleware.ReturnError(c, err)
+		return
+	}
 	// 处理节点参数,先删除然后插入
 	if param.ProcDefNodeCustomAttrs.ParamInfos != nil {
 		err = database.DeleteProcDefNodeParam(c, node.Id)
