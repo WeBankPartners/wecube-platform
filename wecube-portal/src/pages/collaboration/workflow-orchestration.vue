@@ -369,7 +369,11 @@ export default {
           this.setNodeInfo(finalData, true)
         }, 100)
       })
-
+      this.graph.on('node:dragstart', e => {
+        if (e && e.item) {
+          this.hideItemInfo()
+        }
+      })
       this.graph.on('after-node-selected', e => {
         if (e && e.item) {
           const model = e.item.get('model')

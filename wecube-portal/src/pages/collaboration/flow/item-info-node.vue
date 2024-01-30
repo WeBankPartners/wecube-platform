@@ -117,16 +117,21 @@
                 </Select>
               </FormItem>
               <FormItem :label="$t('locate_rules')">
-                <ItemFilterRulesGroup
-                  :isBatch="itemCustomInfo.customAttrs.nodeType === 'data'"
-                  ref="filterRulesGroupRef"
-                  @filterRuleChanged="singleFilterRuleChanged"
-                  :disabled="itemCustomInfo.customAttrs.dynamicBind && itemCustomInfo.customAttrs.bindNodeId"
-                  :routineExpression="itemCustomInfo.customAttrs.routineExpression || routineExpression"
-                  :allEntityType="allEntityType"
-                  :currentSelectedEntity="currentSelectedEntity"
-                >
-                </ItemFilterRulesGroup>
+                <template v-if="itemCustomInfo.customAttrs.routineExpression === ''">
+                  请点击画布设置编排的对象类型
+                </template>
+                <template v-else>
+                  <ItemFilterRulesGroup
+                    :isBatch="itemCustomInfo.customAttrs.nodeType === 'data'"
+                    ref="filterRulesGroupRef"
+                    @filterRuleChanged="singleFilterRuleChanged"
+                    :disabled="itemCustomInfo.customAttrs.dynamicBind && itemCustomInfo.customAttrs.bindNodeId"
+                    :routineExpression="itemCustomInfo.customAttrs.routineExpression || routineExpression"
+                    :allEntityType="allEntityType"
+                    :currentSelectedEntity="currentSelectedEntity"
+                  >
+                  </ItemFilterRulesGroup>
+                </template>
               </FormItem>
             </Form>
           </template>
