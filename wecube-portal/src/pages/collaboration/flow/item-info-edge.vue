@@ -53,8 +53,7 @@ export default {
     },
     saveItem () {
       let tmpData = JSON.parse(JSON.stringify(this.itemCustomInfo))
-      tmpData.name = tmpData.label
-
+      tmpData.label = tmpData.name
       let finalData = {
         customAttrs: {
           id: tmpData.id,
