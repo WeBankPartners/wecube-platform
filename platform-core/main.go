@@ -23,8 +23,6 @@ func main() {
 	}
 	// 初始化token
 	remote.InitToken()
-
-	fmt.Printf("token:%s\n\n", remote.GetToken())
 	//start http
 	api.InitHttpServer()
 }
