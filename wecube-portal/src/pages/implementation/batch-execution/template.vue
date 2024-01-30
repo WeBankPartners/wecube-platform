@@ -42,7 +42,7 @@
 
 <script>
 import BaseSearch from '@/pages/components/base-search.vue'
-import AuthDialog from '../../components/flow-auth.vue'
+import AuthDialog from '../../components/auth.vue'
 import {
   getBatchExecuteTemplateList,
   updateExecuteTemplateRole,
