@@ -6,7 +6,8 @@ type BatchExecution struct {
 	Id                       string                `json:"id" xorm:"id"`                                                // 唯一标识
 	Name                     string                `json:"name"`                                                        // 名称
 	BatchExecutionTemplateId string                `json:"batchExecutionTemplateId" xorm:"batch_execution_template_id"` // 模板id
-	ErrorCode                string                `json:"errorCode" xorm:"error_code"`                                 // 错误码, 0:成功, 1:失败
+	ErrorCode                string                `json:"errorCode" xorm:"error_code"`                                 // 错误码, 0:成功, 1:失败, 2:执行中
+	ErrorMessage             string                `json:"errorMessage" xorm:"error_message"`                           // 错误信息
 	ConfigDataStr            string                `json:"-" xorm:"config_data"`                                        // 配置数据
 	ConfigData               *BatchExecRun         `json:"configData" xorm:"-"`                                         // 配置数据
 	SourceData               string                `json:"sourceData" xorm:"source_data"`                               // 回显数据
@@ -30,7 +31,7 @@ type BatchExecutionJobs struct {
 	RootEntityId            string     `json:"rootEntityId" xorm:"root_entity_id"`                        // 根实体id
 	ExecuteTime             *time.Time `json:"executeTime" xorm:"execute_time"`                           // 执行时间
 	CompleteTime            *time.Time `json:"completeTime" xorm:"complete_time"`                         // 完成时间
-	ErrorCode               string     `json:"errorCode" xorm:"error_code"`                               // 错误码, 0:成功, 1:失败
+	ErrorCode               string     `json:"errorCode" xorm:"error_code"`                               // 错误码, 0:成功, 1:失败, 2:执行中
 	ErrorMessage            string     `json:"errorMessage" xorm:"error_message"`                         // 错误信息
 	InputJson               string     `json:"inputJson" xorm:"input_json"`                               // 输入json
 	ReturnJson              string     `json:"returnJson" xorm:"return_json"`                             // 输出json
@@ -119,6 +120,7 @@ type BatchExecJobsPageData struct {
 }
 
 type BatchExecRun struct {
+	Id                         string                             `json:"id"`
 	Name                       string                             `json:"name"`
 	BatchExecutionTemplateId   string                             `json:"batchExecutionTemplateId"`
 	PackageName                string                             `json:"packageName"`
@@ -144,6 +146,7 @@ type ResourceData struct {
 }
 
 type BatchExecRunResp struct {
+	BatchExecId          string                        `json:"batchExecId"`
 	BatchExecRunResult   *PluginInterfaceApiResultData `json:"batchExecRunResult"`
 	DangerousCheckResult *ItsdangerousCheckResultData  `json:"dangerousCheckResult"`
 }
