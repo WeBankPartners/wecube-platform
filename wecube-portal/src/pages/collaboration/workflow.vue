@@ -344,7 +344,7 @@ export default {
         {
           title: '操作',
           key: 'action',
-          width: 100,
+          width: 110,
           align: 'left',
           render: (h, params) => {
             const status = params.row.status
@@ -365,7 +365,7 @@ export default {
                   <Tooltip content={this.$t('copy')} placement="top">
                     <Button
                       size="small"
-                      type="success"
+                      type="info"
                       onClick={() => this.copyAction(params.row)}
                       style="margin-right:5px;"
                     >
@@ -393,7 +393,7 @@ export default {
                       onClick={() => this.copyToEditAction(params.row)}
                       style="margin-right:5px;"
                     >
-                      <Icon type="md-copy" size="16"></Icon>
+                      <Icon type="ios-create-outline" size="16"></Icon>
                     </Button>
                   </Tooltip>
                 )}
@@ -675,42 +675,21 @@ export default {
     },
     async uploadSucess (res) {
       if (res.status === 'OK') {
-        let finalResult = {
-          0: [],
-          1: [],
-          2: []
-        }
+        let finalResult = []
         res.data.resultList.forEach(r => {
-          finalResult[r.code].push(`${r.procDefName}${r.ProcDefVersion}`)
+          finalResult.push(`${r.procDefName}${r.ProcDefVersion}: (${r.message})`)
         })
         this.$Notice.success({
           duration: 0,
           title: this.$t('import_flow'),
           desc: 'Successful',
           render: h => {
-            const code0 = finalResult[0]
-            const code1 = finalResult[1]
-            const code2 = finalResult[2]
             return (
               <div>
-                {code0.length > 0 && (
-                  <div>
-                    <span>0:</span>
-                    <span>{JSON.stringify(code0)}</span>
-                  </div>
-                )}
-                {code1.length > 0 && (
-                  <div>
-                    <span>1:</span>
-                    <span>{JSON.stringify(code1)}</span>
-                  </div>
-                )}
-                {code2.length > 0 && (
-                  <div>
-                    <span>2:</span>
-                    <span>{JSON.stringify(code2)}</span>
-                  </div>
-                )}
+                {finalResult.length > 0 &&
+                  finalResult.map(i => {
+                    return <div>{i}</div>
+                  })}
               </div>
             )
           }
