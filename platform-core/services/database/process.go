@@ -337,7 +337,7 @@ func UpdateProcDefAndNode(ctx context.Context, procDef *models.ProcDef, nodeList
 		"conflict_check=?,updated_by=?,updated_time=? where id=?", Param: []interface{}{procDef.Name, procDef.Version, procDef.RootEntity,
 		procDef.Tags, procDef.ForPlugin, procDef.Scene, procDef.ConflictCheck, procDef.UpdatedBy, procDef.UpdatedTime, procDef.Id}})
 	// 更新节点表
-	actions = append(actions, &db.ExecAction{Sql: "update proc_def_node  set serveric_name = null,routine_expression = null where" +
+	actions = append(actions, &db.ExecAction{Sql: "update proc_def_node  set service_name = null,routine_expression = null where" +
 		" proc_def_id =?", Param: []interface{}{procDef.Id}})
 	for _, node := range nodeList {
 		// 删除节点参数表

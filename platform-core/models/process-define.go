@@ -273,6 +273,7 @@ type ImportResultDto struct {
 }
 
 type ImportResultItemDto struct {
+	ProcDefId      string `json:"procDefId"`      // 编排Id
 	ProcDefName    string `json:"procDefName"`    // 编排名称
 	ProcDefVersion string `json:"ProcDefVersion"` // 编排版本
 	Code           int    `json:"code"`           // 0表示成功,1表示编排已有草稿,不允许导入  2表示版本冲突  3表示服务报错

@@ -46,7 +46,7 @@
   },
   "proc_def_node_name_repeat_error": {
     "code": 20000003,
-    "message": "保存失败:同名节点已存在"
+    "message": "保存失败:同名节点: %s 已存在"
   },
   "proc_def_node_20000004_error": {
     "code": 20000004,
@@ -74,6 +74,18 @@
   },
   "proc_def_node_20000010_error": {
     "code": 20000010,
-    "message": "发布失败:任务节点、时间节点仅支持单进单出"
+    "message": "发布失败:任务节点、时间节点: %s仅支持单进单出"
+  },
+  "proc_def_import_low_version_error": {
+    "code": 20000015,
+    "message": "导入失败:导入版本低于当前环境已有编排,仅支持导入高版本"
+  },
+  "proc_def_import_draft_conflict_error": {
+    "code": 20000016,
+    "message": "导入失败:[未发布]中已有一条同名编排正在修改,请删除该条草稿后重新导入"
+  },
+  "proc_def_import_server_error": {
+    "code": 20000017,
+    "message": "导入失败:请刷新页面,稍后重试"
   }
 }
