@@ -267,24 +267,3 @@ func RegisterLocalRole(roleDto *models.SimpleLocalRoleDto, userToken, language s
 	}
 	return
 }
-
-// Login 登录
-func Login(loginDto models.CredentialDto) (authenticationDto []models.JwtTokenDto, err error) {
-	var byteArr []byte
-	var response models.LoginResponse
-	postBytes, _ := json.Marshal(loginDto)
-	byteArr, err = network.HttpPost(models.Config.Auth.Url+pathLogin, "", "", postBytes)
-	if err != nil {
-		return
-	}
-	err = json.Unmarshal(byteArr, &response)
-	if err != nil {
-		err = fmt.Errorf("Try to json unmarshal response body fail,%s ", err.Error())
-		return
-	}
-	if response.Status != "OK" {
-		err = fmt.Errorf(response.Message)
-	}
-	authenticationDto = response.Data
-	return
-}
