@@ -58,6 +58,7 @@ type ErrorTemplate struct {
 	ProcDefNode20000015Error   CustomError `json:"proc_def_import_low_version_error"`
 	ProcDefNode20000016Error   CustomError `json:"proc_def_import_draft_conflict_error"`
 	ProcDefNode20000017Error   CustomError `json:"proc_def_import_server_error"`
+	DeleteUserError            CustomError `json:"delete_user_error"`
 }
 
 var (
