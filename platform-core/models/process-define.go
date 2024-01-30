@@ -354,6 +354,20 @@ func (q ProcDefDtoSort) Swap(i, j int) {
 	q[i], q[j] = q[j], q[i]
 }
 
+type ImportResultItemDtoSort []*ImportResultItemDto
+
+func (q ImportResultItemDtoSort) Len() int {
+	return len(q)
+}
+
+func (q ImportResultItemDtoSort) Less(i, j int) bool {
+	return q[i].Code < q[j].Code
+}
+
+func (q ImportResultItemDtoSort) Swap(i, j int) {
+	q[i], q[j] = q[j], q[i]
+}
+
 func ConvertProcDef2Dto(procDef *ProcDef) *ProcDefDto {
 	var authPlugins = make([]string, 0)
 	if procDef == nil {
