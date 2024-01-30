@@ -281,6 +281,10 @@ func DeleteUserByUserId(c *gin.Context) {
 		middleware.ReturnError(c, err)
 		return
 	}
+	if strings.TrimSpace(response.Data.RoleAdministrator) != "" {
+		middleware.ReturnError(c, exterror.Catch(exterror.New().DeleteUserError.WithParam(response.Data.RoleAdministrator), err))
+		return
+	}
 	// 删除用户
 	err = remote.UnregisterLocalUser(userId, c.GetHeader("Authorization"), c.GetHeader("Accept-Language"))
 	if err != nil {
