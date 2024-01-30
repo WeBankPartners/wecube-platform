@@ -757,7 +757,7 @@ func InsertBatchExec(c *gin.Context, reqParam *models.BatchExecRun) (batchExecId
 		Id:                       batchExecId,
 		Name:                     reqParam.Name,
 		BatchExecutionTemplateId: reqParam.BatchExecutionTemplateId,
-		ErrorCode:                "2", // excuting
+		ErrorCode:                models.BatchExecErrorCodePending,
 		ConfigDataStr:            configDataStr,
 		CreatedBy:                middleware.GetRequestUser(c),
 		UpdatedBy:                "",
@@ -770,6 +770,99 @@ func InsertBatchExec(c *gin.Context, reqParam *models.BatchExecRun) (batchExecId
 		return
 	}
 	actions = append(actions, action)
+
+	err = db.Transaction(actions, c)
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseExecuteError, err)
+		return
+	}
+	return
+}
+
+func UpdateBatchExec(c *gin.Context, batchExecId string, updateData map[string]interface{}) (err error) {
+	if len(updateData) == 0 {
+		return
+	}
+	var actions []*db.ExecAction
+	updateColumnStr := ""
+	params := []interface{}{}
+	isFirst := true
+	for col, val := range updateData {
+		if !isFirst {
+			updateColumnStr += ", "
+		}
+		updateColumnStr += fmt.Sprintf("`%s` = ?", col)
+		params = append(params, val)
+		isFirst = false
+	}
+
+	params = append(params, batchExecId)
+	action := &db.ExecAction{
+		Sql:   db.CombineDBSql("UPDATE ", models.TableNameBatchExec, " SET ", updateColumnStr, " WHERE id=?"),
+		Param: params,
+	}
+	actions = append(actions, action)
+
+	err = db.Transaction(actions, c)
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseExecuteError, err)
+		return
+	}
+	return
+}
+
+func InsertBatchExecJobs(c *gin.Context, batchExecId string, execTime *time.Time,
+	batchExecRunParam *models.BatchExecRun,
+	pluginCallParam *models.BatchExecutionPluginExecParam,
+	batchExecRunResult *models.PluginInterfaceApiResultData) (err error) {
+	var actions []*db.ExecAction
+	now := time.Now()
+
+	for i := range pluginCallParam.Inputs {
+		inputJson := ""
+		inputJsonByte, tmpErr := json.Marshal(pluginCallParam.Inputs[i])
+		if tmpErr == nil {
+			inputJson = string(inputJsonByte)
+		}
+		returnJson := ""
+		errCode := ""
+		errMsg := ""
+		if len(batchExecRunResult.Outputs) > i {
+			returnJsonByte, tmpErr := json.Marshal(batchExecRunResult.Outputs[i])
+			if tmpErr == nil {
+				returnJson = string(returnJsonByte)
+			}
+			if batchExecRunResult.Outputs[i] != nil {
+				if tmpVal, isOk := batchExecRunResult.Outputs[i]["errorCode"].(string); isOk {
+					errCode = tmpVal
+				}
+				if tmpVal, isOk := batchExecRunResult.Outputs[i]["errorMessage"].(string); isOk {
+					errMsg = tmpVal
+				}
+			}
+		}
+		batchExecJobData := &models.BatchExecutionJobs{
+			Id:                      guid.CreateGuid(),
+			BatchExecutionId:        batchExecId,
+			PackageName:             batchExecRunParam.PackageName,
+			EntityName:              batchExecRunParam.EntityName,
+			BusinessKey:             pluginCallParam.EntityInstances[i].BusinessKeyValue,
+			RootEntityId:            pluginCallParam.EntityInstances[i].Id,
+			ExecuteTime:             execTime,
+			CompleteTime:            &now,
+			ErrorCode:               errCode,
+			ErrorMessage:            errMsg,
+			InputJson:               inputJson,
+			ReturnJson:              returnJson,
+			PluginConfigInterfaceId: batchExecRunParam.PluginConfigInterface.Id,
+		}
+		action, tmpErr := db.GetInsertTableExecAction(models.TableNameBatchExecJobs, *batchExecJobData, nil)
+		if tmpErr != nil {
+			err = fmt.Errorf("get insert sql failed: %s", tmpErr.Error())
+			return
+		}
+		actions = append(actions, action)
+	}
 
 	err = db.Transaction(actions, c)
 	if err != nil {
