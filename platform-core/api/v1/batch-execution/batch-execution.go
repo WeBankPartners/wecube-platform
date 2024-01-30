@@ -365,10 +365,11 @@ func doRunJob(c *gin.Context, reqParam *models.BatchExecRun) (result *models.Bat
 	}
 	fmt.Sprintf("%s", batchExecId)
 
-	batchExecRunResult, dangerousCheckResult, err := execution.BatchExecutionCallPluginService(c, operator, authToken,
+	batchExecRunResult, dangerousCheckResult, pluginCallParam, err := execution.BatchExecutionCallPluginService(c, operator, authToken,
 		pluginInterfaceId, entityType, entityInstances, inputParamConstants, continueToken)
 	if err != nil {
 		// todo update run record
+		pluginCallParam = pluginCallParam
 		return
 	}
 	result.BatchExecRunResult = batchExecRunResult
