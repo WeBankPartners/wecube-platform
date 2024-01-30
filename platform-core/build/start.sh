@@ -27,6 +27,7 @@ sed -i "s~{{plugin_password_pub_key_path}}~$plugin_password_pub_key_path~g" /app
 sed -i "s~{{resource_server_password_seed}}~$resource_server_password_seed~g" /app/platform-core/config/default.json
 sed -i "s~{{gateway_url}}~$gateway_url~g" /app/platform-core/config/default.json
 sed -i "s~{{gateway_host_ports}}~$gateway_host_ports~g" /app/platform-core/config/default.json
+sed -i "s~{{sub_system_private_key}}~$sub_system_private_key~g" /app/platform-core/config/default.json
 
 exec ./platform-core
 
