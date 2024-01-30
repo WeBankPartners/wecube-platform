@@ -9,11 +9,15 @@
         <Panel name="1">
           基础信息
           <template slot="content">
-            <Form :label-width="120" ref="formValidate" :model="itemCustomInfo" :rules="baseRuleValidate">
+            <Form :label-width="120">
               <FormItem label="ID">
                 <Input disabled v-model="itemCustomInfo.customAttrs.id"></Input>
               </FormItem>
-              <FormItem :label="$t('name')" prop="name">
+              <FormItem>
+                <label slot="label">
+                  <span style="color: red">*</span>
+                  {{ $t('name') }}
+                </label>
                 <Input v-model="itemCustomInfo.customAttrs.name" @on-change="paramsChanged"></Input>
                 <span style="position: absolute; left: 310px; top: 2px"
                   >{{ itemCustomInfo.customAttrs.name && itemCustomInfo.customAttrs.name.length }}/30</span
@@ -28,7 +32,11 @@
                 <Input v-model="itemCustomInfo.customAttrs.nodeType" disabled></Input>
               </FormItem>
               <template v-if="itemCustomInfo.customAttrs && itemCustomInfo.customAttrs.nodeType === 'date'">
-                <FormItem :label="$t('date')">
+                <FormItem>
+                  <label slot="label">
+                    <span style="color: red">*</span>
+                    {{ $t('date') }}
+                  </label>
                   <DatePicker
                     type="datetime"
                     placeholder="Select date and time"
@@ -37,13 +45,20 @@
                     @on-change="dateChange"
                     style="width: 100%"
                   ></DatePicker>
+                  <span v-if="itemCustomInfo.customAttrs.timeConfig.date === ''" style="color: red"
+                    >{{ $t('date') }}不能为空</span
+                  >
                 </FormItem>
               </template>
               <template v-if="itemCustomInfo.customAttrs && itemCustomInfo.customAttrs.nodeType === 'timeInterval'">
                 <FormItem :label="$t('duration')">
+                  <label slot="label">
+                    <span style="color: red">*</span>
+                    {{ $t('duration') }}
+                  </label>
                   <InputNumber
                     :max="100"
-                    :min="0"
+                    :min="1"
                     style="width: 49%"
                     v-model="itemCustomInfo.customAttrs.timeConfig.duration"
                     @on-change="paramsChanged"
@@ -101,10 +116,11 @@
               >
                 <i-switch v-model="itemCustomInfo.customAttrs.dynamicBind" @on-change="changDynamicBind" />
               </FormItem>
-              <FormItem
-                :label="$t('bind_node')"
-                v-if="['human', 'automatic'].includes(itemCustomInfo.customAttrs.nodeType)"
-              >
+              <FormItem v-if="['human', 'automatic'].includes(itemCustomInfo.customAttrs.nodeType)">
+                <label slot="label">
+                  <span style="color: red" v-if="itemCustomInfo.customAttrs.dynamicBind">*</span>
+                  {{ $t('bind_node') }}
+                </label>
                 <Select
                   v-model="itemCustomInfo.customAttrs.bindNodeId"
                   @on-change="paramsChanged"
@@ -115,8 +131,17 @@
                 >
                   <Option v-for="(i, index) in associatedNodes" :value="i.nodeId" :key="index">{{ i.nodeName }}</Option>
                 </Select>
+                <span
+                  v-if="itemCustomInfo.customAttrs.dynamicBind && itemCustomInfo.customAttrs.bindNodeId === ''"
+                  style="color: red"
+                  >{{ $t('bind_node') }}不能为空</span
+                >
               </FormItem>
               <FormItem :label="$t('locate_rules')">
+                <label slot="label">
+                  <span style="color: red" v-if="!itemCustomInfo.customAttrs.dynamicBind">*</span>
+                  {{ $t('bind_node') }}
+                </label>
                 <template v-if="itemCustomInfo.customAttrs.routineExpression === ''">
                   请点击画布设置编排的对象类型
                 </template>
@@ -125,7 +150,7 @@
                     :isBatch="itemCustomInfo.customAttrs.nodeType === 'data'"
                     ref="filterRulesGroupRef"
                     @filterRuleChanged="singleFilterRuleChanged"
-                    :disabled="itemCustomInfo.customAttrs.dynamicBind && itemCustomInfo.customAttrs.bindNodeId"
+                    :disabled="itemCustomInfo.customAttrs.dynamicBind"
                     :routineExpression="itemCustomInfo.customAttrs.routineExpression || routineExpression"
                     :allEntityType="allEntityType"
                     :currentSelectedEntity="currentSelectedEntity"
@@ -145,9 +170,12 @@
             <Form :label-width="120">
               <FormItem
                 v-if="['human', 'automatic'].includes(itemCustomInfo.customAttrs.nodeType)"
-                label="插件服务"
                 style="margin-top: 8px"
               >
+                <label slot="label">
+                  <span style="color: red" v-if="!itemCustomInfo.customAttrs.dynamicBind">*</span>
+                  插件服务
+                </label>
                 <Select
                   v-model="itemCustomInfo.customAttrs.serviceName"
                   @on-change="changePluginInterfaceList"
@@ -157,6 +185,7 @@
                     item.serviceDisplayName
                   }}</Option>
                 </Select>
+                <span v-if="itemCustomInfo.customAttrs.serviceName === ''" style="color: red">插件服务不能为空</span>
               </FormItem>
             </Form>
             <div v-if="itemCustomInfo.customAttrs.serviceName">
@@ -192,7 +221,10 @@
                     style="margin: 4px"
                   >
                     <template v-if="item.bindType === 'context'">
-                      <div style="width: 24%; display: inline-block">{{ item.paramName }}</div>
+                      <div style="width: 24%; display: inline-block">
+                        <span style="color: red" v-if="item.required === 'Y'">*</span>
+                        {{ item.paramName }}
+                      </div>
                       <div style="width: 25%; display: inline-block">
                         <Select v-model="item.bindNodeId" filterable @on-change="onParamsNodeChange(itemIndex)">
                           <Option v-for="(item, index) in canSelectNode" :value="item.nodeId" :key="index">{{
@@ -226,7 +258,10 @@
                     style="margin: 4px"
                   >
                     <template v-if="item.bindType === 'constant'">
-                      <div style="width: 30%; display: inline-block; text-align: right">{{ item.paramName }}：</div>
+                      <div style="width: 30%; display: inline-block; text-align: right">
+                        <span style="color: red" v-if="item.required === 'Y'">*</span>
+                        {{ item.paramName }}
+                      </div>
                       <div style="width: 68%; display: inline-block">
                         <Input v-model="item.bindValue" />
                       </div>
@@ -240,7 +275,9 @@
       </Collapse>
     </div>
     <div style="position: absolute; bottom: 20px; right: 280px; width: 200px">
-      <Button v-if="editFlow !== 'false'" @click="saveItem" type="primary">{{ $t('save') }}</Button>
+      <Button v-if="editFlow !== 'false'" :disabled="isSaveBtnActive()" @click="saveItem" type="primary">{{
+        $t('save')
+      }}</Button>
       <Button @click="hideItem">{{ $t('cancel') }}</Button>
     </div>
   </div>
@@ -308,12 +345,6 @@ export default {
       associatedNodes: [], // 可选择的前序节点
       allEntityType: [], // 所有模型
       filteredPlugins: [], // 可选择的插件函数，根据定位规则获取
-      baseRuleValidate: {
-        // name: [
-        //   { required: true, message: 'name cannot be empty', trigger: 'blur' },
-        //   { type: 'string', max: 16, message: 'name cannot exceed 16 words.', trigger: 'blur' }
-        // ]
-      },
       unitOptions: ['sec', 'min', 'hour', 'day'],
       date: '',
       nodeList: [], // 编排中的所有节点，供上下文中绑定使用
@@ -377,7 +408,7 @@ export default {
           }, '')
         }
       }
-
+      if (['human', 'automatic'].includes(this.itemCustomInfo.customAttrs.nodeType) && this.checkParamsInfo()) return
       const tmpData = JSON.parse(JSON.stringify(this.itemCustomInfo))
       let selfAttrs = tmpData.selfAttrs
       selfAttrs.label = tmpData.customAttrs.name
@@ -387,6 +418,45 @@ export default {
       }
       this.$emit('sendItemInfo', finalData, this.needAddFirst)
       this.needAddFirst = false
+    },
+    checkParamsInfo () {
+      let res = false
+      this.itemCustomInfo.customAttrs.paramInfos.forEach(item => {
+        if (item.bindType === 'constant' && item.required === 'Y' && item.bindValue === '') {
+          res = true
+        }
+        if (item.bindType === 'context' && item.required === 'Y' && item.bindNodeId === '') {
+          res = true
+        }
+      })
+      if (res) {
+        this.$Message.warning('请检查上下文参数设置中的必填项！')
+      }
+      return res
+    },
+    isSaveBtnActive () {
+      let res = false
+      if (this.itemCustomInfo.customAttrs.name && this.itemCustomInfo.customAttrs.name.length > 30) {
+        res = true
+      }
+      if (this.itemCustomInfo.customAttrs.nodeType === 'date') {
+        if (this.itemCustomInfo.customAttrs.timeConfig.date === '') {
+          res = true
+        }
+      }
+      if (['human', 'automatic'].includes(this.itemCustomInfo.customAttrs.nodeType)) {
+        if (this.itemCustomInfo.customAttrs.dynamicBind) {
+          if (this.itemCustomInfo.customAttrs.bindNodeId === '') {
+            res = true
+          }
+        } else if (this.itemCustomInfo.customAttrs.routineExpression === '') {
+          res = true
+        }
+        if (this.itemCustomInfo.customAttrs.serviceName === '') {
+          res = true
+        }
+      }
+      return res
     },
     panalStatus () {
       return this.isParmasChanged
@@ -398,7 +468,6 @@ export default {
           content: this.$t('params_edit_confirm'),
           'z-index': 1000000,
           onOk: async () => {
-            // this.$refs['formValidate'].resetFields()
             this.$emit('hideItemInfo')
           },
           onCancel: () => {}
