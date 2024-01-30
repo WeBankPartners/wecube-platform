@@ -2,12 +2,11 @@ package service
 
 import (
 	"bytes"
-	"crypto/rsa"
-	"crypto/x509"
 	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/WeBankPartners/go-common-lib/cipher"
 	"github.com/WeBankPartners/wecube-platform/platform-auth-server/common/constant"
 	"github.com/WeBankPartners/wecube-platform/platform-auth-server/common/exterror"
 	"github.com/WeBankPartners/wecube-platform/platform-auth-server/common/log"
@@ -17,7 +16,6 @@ import (
 	"github.com/golang-jwt/jwt"
 	"golang.org/x/crypto/bcrypt"
 	"io/ioutil"
-	"math/big"
 	"strconv"
 	"strings"
 	"time"
@@ -154,8 +152,8 @@ func retrieveSubSystemInfo(systemCode string) (*model.SysSubSystemInfo, error) {
 }
 func authenticateSubSystem(credential *model.CredentialDto) (*model.AuthenticationResponse, error) {
 	systemCode := credential.Username
-	***REMOVED***
-	//nonce := credential.Nonce
+	password := credential.Password
+	nonce := credential.Nonce
 
 	subSystemInfo, err := retrieveSubSystemInfo(systemCode)
 	if err != nil {
@@ -169,7 +167,7 @@ func authenticateSubSystem(credential *model.CredentialDto) (*model.Authenticati
 		return nil, exterror.NewBadCredentialsError("Bad credential and failed to decrypt password.")
 	}
 
-	/*decryptedPassword, err := RSADecryptByPublic(password, subSystemPublicKey)
+	decryptedPassword, err := cipher.RSADecryptByPublic([]byte(password), []byte(subSystemPublicKey))
 	if err != nil {
 		log.Logger.Warn("failed to decrypt by public", log.Error(err))
 		return nil, err
@@ -178,46 +176,11 @@ func authenticateSubSystem(credential *model.CredentialDto) (*model.Authenticati
 	decryptedPasswordParts := strings.Split(string(decryptedPassword), DelimiterSystemCodeAndNonce)
 	if len(decryptedPasswordParts) < 2 || (systemCode != decryptedPasswordParts[0]) || nonce != decryptedPasswordParts[1] {
 		return nil, exterror.NewBadCredentialsError("Bad credential")
-	}*/
+	}
 
 	authResp, err := createAuthenticationResponse(credential, subSystemInfo.Authorities)
 
 	return authResp, err
-}
-
-func RSADecryptByPublic(encryptString, publicKeyContent string) ([]byte, error) {
-	encryptBytes, err := base64.StdEncoding.DecodeString(encryptString)
-	if err != nil {
-		err = fmt.Errorf("EncryptData decode from base64 fail,%s ", err.Error())
-		return nil, err
-	}
-
-	block, _ := base64.StdEncoding.DecodeString(publicKeyContent)
-	if block == nil {
-		return nil, fmt.Errorf("public key illegal, base64 decode fail")
-	}
-	publicKeyInterface, parsePubErr := x509.ParsePKIXPublicKey(block)
-	if parsePubErr != nil {
-		return nil, fmt.Errorf("x509 parse public key error:%s ", parsePubErr.Error())
-	}
-	publicKey := publicKeyInterface.(*rsa.PublicKey)
-	c := new(big.Int)
-	m := new(big.Int)
-	m.SetBytes(encryptBytes)
-	e := big.NewInt(int64(publicKey.E))
-	c.Exp(m, e, publicKey.N)
-	out := c.Bytes()
-	skip := 0
-	for i := 2; i < len(out); i++ {
-		if i+1 >= len(out) {
-			break
-		}
-		if out[i] == 0xff && out[i+1] == 0 {
-			skip = i + 2
-			break
-		}
-	}
-	return out[skip:], nil
 }
 
 func authenticateUser(credential *model.CredentialDto) (*model.AuthenticationResponse, error) {
