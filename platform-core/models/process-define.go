@@ -150,6 +150,7 @@ type QueryProcessDefinitionParam struct {
 	Status           string   `json:"status"`           // disabled 禁用 draft草稿 deployed 发布状态
 	CreatedBy        string   `json:"createdBy"`        // 创建人
 	UpdatedBy        string   `json:"updatedBy"`        // 更新人
+	Scene            string   `json:"scene"`            // 使用场景
 	UserRoles        []string // 用户角色
 }
 
@@ -272,9 +273,11 @@ type ImportResultDto struct {
 }
 
 type ImportResultItemDto struct {
+	ProcDefId      string `json:"procDefId"`      // 编排Id
 	ProcDefName    string `json:"procDefName"`    // 编排名称
 	ProcDefVersion string `json:"ProcDefVersion"` // 编排版本
 	Code           int    `json:"code"`           // 0表示成功,1表示编排已有草稿,不允许导入  2表示版本冲突  3表示服务报错
+	Message        string `json:"message"`        // 国际化词条
 }
 
 type ProcDefNodeLinkCustomAttrs struct {
@@ -344,10 +347,24 @@ func (q ProcDefDtoSort) Less(i, j int) bool {
 	if t1.Sub(t2).Seconds() >= 0 {
 		return true
 	}
-	return true
+	return false
 }
 
 func (q ProcDefDtoSort) Swap(i, j int) {
+	q[i], q[j] = q[j], q[i]
+}
+
+type ImportResultItemDtoSort []*ImportResultItemDto
+
+func (q ImportResultItemDtoSort) Len() int {
+	return len(q)
+}
+
+func (q ImportResultItemDtoSort) Less(i, j int) bool {
+	return q[i].Code < q[j].Code
+}
+
+func (q ImportResultItemDtoSort) Swap(i, j int) {
 	q[i], q[j] = q[j], q[i]
 }
 
