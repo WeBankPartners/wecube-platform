@@ -1,45 +1,70 @@
 <!--批量执行-模板管理-->
 <template>
-  <div class="batch-execution-template">
+  <div class="batch-execution-template-list">
     <div class="search">
       <!--搜索条件-->
       <BaseSearch :options="searchOptions" v-model="form" @search="handleSearch" :showExpand="false"></BaseSearch>
     </div>
-    <div class="switch">
-      <span>仅展示收藏模板</span>
-      <i-Switch v-model="form.isShowCollectTemplate" @on-change="getTemplateList()"></i-Switch>
-    </div>
-    <div class="table">
-      <template v-if="cardList.length">
-        <Card v-for="(i, index) in cardList" :key="index" style="width: 100%; margin-bottom: 20px">
-          <div class="table-header" slot="title">
-            <Icon size="28" type="ios-people" />
-            <div class="title">
-              {{ i.mgmtRole }}
-              <span class="underline"></span>
+    <div class="template-card">
+      <Card :bordered="false" dis-hover :padding="0">
+        <template v-if="cardList.length">
+          <Card v-for="(i, index) in cardList" :key="index" style="width: 100%; margin-bottom: 20px">
+            <div class="custom-header" slot="title">
+              <Icon size="28" type="ios-people" />
+              <div class="title">
+                {{ i.mgmtRole }}
+                <span class="underline"></span>
+              </div>
+              <Icon
+                v-if="i.expand"
+                size="28"
+                type="md-arrow-dropdown"
+                style="cursor: pointer"
+                @click="handleExpand(i)"
+              />
+              <Icon v-else size="28" type="md-arrow-dropright" style="cursor: pointer" @click="handleExpand(i)" />
             </div>
-            <Icon v-if="i.expand" size="28" type="md-arrow-dropdown" style="cursor: pointer" @click="handleExpand(i)" />
-            <Icon v-else size="28" type="md-arrow-dropright" style="cursor: pointer" @click="handleExpand(i)" />
-          </div>
-          <div v-show="i.expand">
-            <Table size="small" :columns="tableColumns" :data="i.data" style="margin: 10px 0 20px 0"> </Table>
-          </div>
-        </Card>
-      </template>
+            <div v-show="i.expand">
+              <Table size="small" :columns="tableColumns" :data="i.data" />
+            </div>
+          </Card>
+        </template>
+        <div v-else class="no-data">暂无数据</div>
+        <Spin fix v-if="spinShow">
+          <Icon type="ios-loading" size="44" class="spin-icon-load"></Icon>
+        </Spin>
+      </Card>
     </div>
+    <!--权限弹窗-->
+    <AuthDialog ref="authDialog" @sendAuth="handleUpdateRole" />
   </div>
 </template>
 
 <script>
 import BaseSearch from '@/pages/components/base-search.vue'
-import { getBatchExecuteTemplateList } from '@/api/server'
+import AuthDialog from '../../components/auth.vue'
+import {
+  getBatchExecuteTemplateList,
+  updateExecuteTemplateRole,
+  deleteExecuteTemplate,
+  collectBatchTemplate,
+  uncollectBatchTemplate
+} from '@/api/server'
+import { debounce } from '@/const/util'
 export default {
   components: {
-    BaseSearch
+    BaseSearch,
+    AuthDialog
   },
   data () {
     return {
       searchOptions: [
+        {
+          key: 'isShowCollectTemplate',
+          label: '仅展示收藏模板',
+          component: 'switch',
+          initValue: false
+        },
         {
           key: 'name',
           placeholder: '模板名/ID',
@@ -60,20 +85,54 @@ export default {
         name: '',
         pluginService: '',
         operateObject: '',
-        isShowCollectTemplate: true // 仅展示收藏模板
+        isShowCollectTemplate: false // 仅展示收藏模板
         // permissionType: '' // 权限类型
       },
       // 模板数据
       cardList: [],
       tableColumns: [
         {
-          title: '模板ID',
-          key: 'id',
-          minWidth: 150
-        },
-        {
           title: '模板名称',
           key: 'name',
+          minWidth: 250,
+          render: (h, params) => {
+            return (
+              <div>
+                {params.row.isCollected === false && (
+                  <Tooltip content={'收藏'} placement="top-start">
+                    <Icon
+                      style="cursor:pointer;margin-right:5px;"
+                      size="18"
+                      type="ios-star-outline"
+                      onClick={e => {
+                        e.stopPropagation()
+                        this.handleStar(params.row)
+                      }}
+                    />
+                  </Tooltip>
+                )}
+                {params.row.isCollected === true && (
+                  <Tooltip content={'取消收藏'} placement="top-start">
+                    <Icon
+                      style="cursor:pointer;margin-right:5px;"
+                      size="18"
+                      type="ios-star"
+                      color="#ebac42"
+                      onClick={e => {
+                        e.stopPropagation()
+                        this.handleStar(params.row)
+                      }}
+                    />
+                  </Tooltip>
+                )}
+                <span style="margin-right:2px">{params.row.name}</span>
+              </div>
+            )
+          }
+        },
+        {
+          title: '模板ID',
+          key: 'id',
           minWidth: 150
         },
         {
@@ -109,58 +168,66 @@ export default {
         {
           title: '操作',
           key: 'action',
-          width: 180,
+          width: 190,
           render: (h, params) => {
             return (
               <div style="display:flex;">
                 <Tooltip content={'查看'} placement="top">
-                  <Icon
-                    type="md-eye"
-                    size="20"
-                    class="icon-btn"
+                  <Button
+                    size="small"
+                    type="info"
                     onClick={() => {
-                      this.handleView()
+                      this.handleView(params.row)
                     }}
-                  ></Icon>
+                    style="margin-right:5px;"
+                  >
+                    <Icon type="md-eye" size="16"></Icon>
+                  </Button>
                 </Tooltip>
                 <Tooltip content={'复制'} placement="top">
-                  <Icon
-                    type="md-copy"
-                    color="#19be6b"
-                    size="20"
-                    class="icon-btn"
+                  <Button
+                    size="small"
+                    type="success"
                     onClick={() => {
-                      this.handleCopy()
+                      this.handleCopy(params.row)
                     }}
-                  ></Icon>
+                    style="margin-right:5px;"
+                  >
+                    <Icon type="md-copy" size="16"></Icon>
+                  </Button>
                 </Tooltip>
                 <Tooltip content={'权限'} placement="top">
-                  <Icon
-                    type="md-person"
-                    color="#bfbf3d"
-                    size="20"
-                    class="icon-btn"
+                  <Button
+                    size="small"
+                    type="warning"
                     onClick={() => {
-                      this.handleRole()
+                      this.editRow = params.row
+                      this.$refs.authDialog.startAuth([], [])
                     }}
-                  ></Icon>
+                    style="margin-right:5px;"
+                  >
+                    <Icon type="md-person" size="16"></Icon>
+                  </Button>
                 </Tooltip>
                 <Tooltip content={'删除'} placement="top">
-                  <Icon
-                    type="md-trash"
-                    color="#ed4014"
-                    size="20"
-                    class="icon-btn"
+                  <Button
+                    size="small"
+                    type="error"
                     onClick={() => {
-                      this.handleDelete()
+                      this.handleDelete(params.row)
                     }}
-                  ></Icon>
+                    style="margin-right:5px;"
+                  >
+                    <Icon type="md-trash" size="16"></Icon>
+                  </Button>
                 </Tooltip>
               </div>
             )
           }
         }
-      ]
+      ],
+      editRow: {},
+      spinShow: false
     }
   },
   mounted () {
@@ -192,6 +259,7 @@ export default {
           value: this.form[key]
         })
       })
+      this.spinShow = true
       const { status, data } = await getBatchExecuteTemplateList(params)
       if (status === 'OK') {
         let mgmtGroup = []
@@ -218,31 +286,95 @@ export default {
           return group
         })
       }
+      this.spinShow = false
     },
     // 展开收缩卡片
     handleExpand (item) {
       item.expand = !item.expand
     },
+    // 收藏or取消收藏
+    handleStar: debounce(async function ({ id, isCollected }) {
+      const method = isCollected ? uncollectBatchTemplate : collectBatchTemplate
+      const params = {
+        batchExecutionTemplateId: id
+      }
+      const { status } = await method(params)
+      if (status === 'OK') {
+        this.$Notice.success({
+          title: this.$t('successful'),
+          desc: this.$t('successful')
+        })
+        this.getTemplateList()
+      }
+    }, 300),
     // 查看
-    handleView () {
+    handleView (row) {
       this.$eventBusP.$emit('change-menu', 'templateCreate')
+      this.$router.replace({
+        name: this.$route.name,
+        query: {
+          ...this.$route.params,
+          // 更新的参数
+          id: row.id,
+          type: 'template',
+          action: 'view'
+        }
+      })
     },
     // 复制
-    handleCopy () {},
-    // 权限
-    handleRole () {},
+    handleCopy (row) {
+      this.$eventBusP.$emit('change-menu', 'templateCreate')
+      this.$router.replace({
+        name: this.$route.name,
+        query: {
+          ...this.$route.params,
+          // 更新的参数
+          id: row.id,
+          type: 'template',
+          action: 'copy'
+        }
+      })
+    },
+    // 更新权限
+    async handleUpdateRole (mgmtRole, useRole) {
+      const params = {
+        id: this.editRow.id,
+        permissionToRole: {
+          MGMT: mgmtRole,
+          USE: useRole
+        }
+      }
+      const { status } = await updateExecuteTemplateRole(params)
+      if (status === 'OK') {
+        this.$Notice.success({
+          title: this.$t('successful'),
+          desc: this.$t('successful')
+        })
+        this.getTemplateList()
+      }
+    },
     // 删除
-    handleDelete () {}
+    async handleDelete (row) {
+      const { status } = await deleteExecuteTemplate(row.id)
+      if (status === 'OK') {
+        this.$Notice.success({
+          title: this.$t('successful'),
+          desc: this.$t('successful')
+        })
+        this.getTemplateList()
+      }
+    }
   }
 }
 </script>
 
 <style lang="scss" scoped>
-.batch-execution-template {
+.batch-execution-template-list {
   width: 100%;
   .search {
     display: flex;
     justify-content: space-between;
+    margin-top: 15px;
   }
   .switch {
     display: flex;
@@ -252,9 +384,9 @@ export default {
       margin-right: 10px;
     }
   }
-  .table {
-    margin-top: 20px;
-    .table-header {
+  .template-card {
+    margin-top: 10px;
+    .custom-header {
       display: flex;
       align-items: center;
       .title {
@@ -274,11 +406,22 @@ export default {
         }
       }
     }
+    .no-data {
+      width: 100%;
+      height: 400px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      color: #515a6e;
+    }
   }
 }
 </style>
 <style lang="scss">
-.batch-execution-template {
+.batch-execution-template-list {
+  .ivu-tooltip {
+    width: auto !important;
+  }
   .ivu-card-head {
     border-bottom: 1px solid #e8eaec;
     padding: 5px 10px;
