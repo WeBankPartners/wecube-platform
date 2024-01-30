@@ -554,5 +554,8 @@
   "tw_auto": "Custom",
   "view": "View",
   "role_admin": "Role Admin",
-  "chooseOne": "You can only choose one primary role."
+  "chooseOne": "You can only choose one primary role.",
+  "cannotBeEmpty": " cannot be empty",
+  "invalidFormat": " invalid format",
+  "noData": "No Data"
 }

@@ -162,44 +162,51 @@
         <TabPane label="已禁用" name="disabled"></TabPane>
       </Tabs>
       <div class="table-zone">
-        <div v-for="(roleData, roleDataIndex) in data" :key="roleDataIndex">
-          <Card>
-            <div class="w-header" slot="title">
-              <Icon size="28" type="ios-people" />
-              <div class="title">
-                {{ roleData.manageRole }}
-                <span class="underline"></span>
+        <template v-if="data.length > 0">
+          <div v-for="(roleData, roleDataIndex) in data" :key="roleDataIndex">
+            <Card>
+              <div class="w-header" slot="title">
+                <Icon size="28" type="ios-people" />
+                <div class="title">
+                  {{ roleData.manageRole }}
+                  <span class="underline"></span>
+                </div>
+                <Icon
+                  v-if="!hideRoles.includes(roleDataIndex)"
+                  size="26"
+                  @click="changeRoleTableStatus(roleDataIndex, 'in')"
+                  type="md-arrow-dropdown"
+                  style="cursor: pointer"
+                />
+                <Icon
+                  v-else
+                  size="26"
+                  @click="changeRoleTableStatus(roleDataIndex, 'out')"
+                  type="md-arrow-dropright"
+                  style="cursor: pointer"
+                />
               </div>
-              <Icon
-                v-if="!hideRoles.includes(roleDataIndex)"
-                size="26"
-                @click="changeRoleTableStatus(roleDataIndex, 'in')"
-                type="md-arrow-dropdown"
-                style="cursor: pointer"
-              />
-              <Icon
-                v-else
-                size="26"
-                @click="changeRoleTableStatus(roleDataIndex, 'out')"
-                type="md-arrow-dropright"
-                style="cursor: pointer"
-              />
-            </div>
-            <div v-show="!hideRoles.includes(roleDataIndex)">
-              <Table
-                class="hide-select-all"
-                size="small"
-                :columns="tableColumn"
-                :data="roleData.dataList"
-                @on-select-all="onSelectAll"
-                @on-select="onSelect"
-                @on-select-cancel="cancelSelect"
-                @on-selection-change="onSelectionChange"
-                width="100%"
-              ></Table>
-            </div>
-          </Card>
-        </div>
+              <div v-show="!hideRoles.includes(roleDataIndex)">
+                <Table
+                  class="hide-select-all"
+                  size="small"
+                  :columns="tableColumn"
+                  :data="roleData.dataList"
+                  @on-select-all="onSelectAll"
+                  @on-select="onSelect"
+                  @on-select-cancel="cancelSelect"
+                  @on-selection-change="onSelectionChange"
+                  width="100%"
+                ></Table>
+              </div>
+            </Card>
+          </div>
+        </template>
+        <template v-else>
+          <div style="text-align: center; margin-top: 16px">
+            {{ $t('noData') }}
+          </div>
+        </template>
       </div>
     </div>
     <FlowAuth ref="flowAuthRef" @sendAuth="updateAuth"></FlowAuth>
@@ -346,6 +353,7 @@ export default {
           key: 'action',
           width: 110,
           align: 'left',
+          fixed: 'right',
           render: (h, params) => {
             const status = params.row.status
             return (
@@ -385,11 +393,20 @@ export default {
                     </Button>
                   </Tooltip>
                 )}
-                {['deployed'].includes(status) && params.row.enableCreated && (
-                  <Tooltip content={this.$t('edit')} placement="top">
+                {['deployed'].includes(status) && (
+                  <Tooltip
+                    content={
+                      params.row.enableCreated
+                        ? this.$t('edit')
+                        : '当前编排已有一条[未发布]草稿数据,请直接在[未发布]中编排'
+                    }
+                    placement="left"
+                    max-width="200"
+                  >
                     <Button
                       size="small"
                       type="success"
+                      disabled={!params.row.enableCreated}
                       onClick={() => this.copyToEditAction(params.row)}
                       style="margin-right:5px;"
                     >
@@ -539,7 +556,7 @@ export default {
             title: 'Success',
             desc: message
           })
-          this.$router.push({ path: '/collaboration/workflow-orchestration', query: { flowId: data.id } })
+          this.$router.push({ path: '/collaboration/workflow-mgmt', query: { flowId: data.id } })
         }
       }
     },
@@ -594,7 +611,7 @@ export default {
       const status = row.status
       if (status === 'draft') {
         console.log('转至详情')
-        this.$router.push({ path: '/collaboration/workflow-orchestration', query: { flowId: row.id } })
+        this.$router.push({ path: '/collaboration/workflow-mgmt', query: { flowId: row.id } })
       }
       if (status === 'deployed') {
       }
@@ -603,7 +620,7 @@ export default {
     async copyToEditAction (row) {
       let { status, data } = await flowCopy(row.id, 'y')
       if (status === 'OK') {
-        this.$router.push({ path: '/collaboration/workflow-orchestration', query: { flowId: data } })
+        this.$router.push({ path: '/collaboration/workflow-mgmt', query: { flowId: data } })
       }
     },
     async copyAction (row) {
@@ -613,11 +630,11 @@ export default {
           title: 'Success',
           desc: message + data
         })
-        this.$router.push({ path: '/collaboration/workflow-orchestration', query: { flowId: data } })
+        this.$router.push({ path: '/collaboration/workflow-mgmt', query: { flowId: data } })
       }
     },
     viewAction (row) {
-      this.$router.push({ path: '/collaboration/workflow-orchestration', query: { flowId: row.id, editFlow: 'false' } })
+      this.$router.push({ path: '/collaboration/workflow-mgmt', query: { flowId: row.id, editFlow: 'false' } })
     },
 
     // #endregion
@@ -677,7 +694,7 @@ export default {
       if (res.status === 'OK') {
         let finalResult = []
         res.data.resultList.forEach(r => {
-          finalResult.push(`${r.procDefName}${r.ProcDefVersion}: (${r.message})`)
+          finalResult.push(`${r.procDefName}(${r.ProcDefVersion}): ${r.message}`)
         })
         this.$Notice.success({
           duration: 0,
@@ -694,6 +711,12 @@ export default {
             )
           }
         })
+        if (res.data.resultList.length === 1 && res.data.resultList[0].code === 0) {
+          this.$router.push({
+            path: '/collaboration/workflow-mgmt',
+            query: { flowId: res.data.resultList[0].procDefId }
+          })
+        }
         this.getFlowList()
       }
     },
