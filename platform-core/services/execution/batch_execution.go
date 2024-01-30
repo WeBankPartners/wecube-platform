@@ -14,7 +14,7 @@ import (
 
 func BatchExecutionCallPluginService(ctx context.Context, operator, authToken, pluginInterfaceId string, entityType string,
 	entityInstances []*models.BatchExecutionPluginExecEntityInstances,
-	inputParamConstants []*models.BatchExecutionPluginDefInputParams, continueToken string) (result *models.PluginInterfaceApiResultData, dangerousCheckResult *models.ItsdangerousCheckResultData, err error) {
+	inputParamConstants []*models.BatchExecutionPluginDefInputParams, continueToken string) (result *models.PluginInterfaceApiResultData, dangerousCheckResult *models.ItsdangerousCheckResultData, pluginCallParam *models.BatchExecutionPluginExecParam, err error) {
 	pluginInterface, errGet := database.GetPluginConfigInterfaceById(pluginInterfaceId)
 	if errGet != nil {
 		err = errGet
@@ -123,7 +123,7 @@ func BatchExecutionCallPluginService(ctx context.Context, operator, authToken, p
 		return
 	}
 	// 调用插件接口
-	pluginCallParam := &models.BatchExecutionPluginExecParam{
+	pluginCallParam = &models.BatchExecutionPluginExecParam{
 		RequestId:       "",
 		Operator:        operator,
 		ServiceName:     pluginInterface.ServiceName,
