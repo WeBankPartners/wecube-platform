@@ -119,6 +119,8 @@ type BatchExecJobsPageData struct {
 }
 
 type BatchExecRun struct {
+	Name                       string                             `json:"name"`
+	BatchExecutionTemplateId   string                             `json:"batchExecutionTemplateId"`
 	PackageName                string                             `json:"packageName"`
 	EntityName                 string                             `json:"entityName"`
 	DataModelExpression        string                             `json:"dataModelExpression"`
@@ -139,4 +141,39 @@ type BatchExecInputParamDef struct {
 type ResourceData struct {
 	Id               string `json:"id"`
 	BusinessKeyValue string `json:"businessKeyValue"`
+}
+
+type BatchExecRunResp struct {
+	BatchExecRunResult   *PluginInterfaceApiResultData `json:"batchExecRunResult"`
+	DangerousCheckResult *ItsdangerousCheckResultData  `json:"dangerousCheckResult"`
+}
+
+type BatchExecutionItsdangerousExecParam struct {
+	Operator        string                                     `json:"operator"`
+	ServiceName     string                                     `json:"serviceName"`
+	ServicePath     string                                     `json:"servicePath"`
+	EntityType      string                                     `json:"entityType"`
+	EntityInstances []*BatchExecutionPluginExecEntityInstances `json:"entityInstances"`
+	InputParams     []BatchExecutionPluginExecInputParams      `json:"inputParams"`
+}
+
+type BatchExecutionPluginExecParam struct {
+	RequestId       string                                     `json:"requestId"`
+	Operator        string                                     `json:"operator"`
+	ServiceName     string                                     `json:"serviceName"`
+	ServicePath     string                                     `json:"servicePath"`
+	EntityInstances []*BatchExecutionPluginExecEntityInstances `json:"entityInstances"`
+	Inputs          []BatchExecutionPluginExecInputParams      `json:"inputs"`
+}
+
+type BatchExecutionPluginExecEntityInstances struct {
+	Id               string `json:"id"`
+	BusinessKeyValue string `json:"businessKeyValue"`
+}
+
+type BatchExecutionPluginExecInputParams map[string]interface{}
+
+type BatchExecutionPluginDefInputParams struct {
+	ParamId     string `json:"inputParamId"`
+	ParameValue string `json:"inputParamValue"`
 }
