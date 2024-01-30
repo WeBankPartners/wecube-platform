@@ -68,8 +68,8 @@ export default {
           placeholder: '执行状态',
           component: 'select',
           list: [
-            { label: '成功', value: 1 },
-            { label: '失败', value: 0 }
+            { label: '成功', value: '1' },
+            { label: '失败', value: '0' }
           ]
         },
         {
@@ -96,32 +96,50 @@ export default {
         },
         {
           title: '状态',
-          minWidth: 100,
+          minWidth: 80,
           key: 'errorCode',
           render: (h, params) => {
-            return <Tag>{params.row.errorCode === '0' ? '成功' : '失败'}</Tag>
+            return (
+              <Tag color={params.row.errorCode === '0' ? 'success' : 'error'}>
+                {params.row.errorCode === '0' ? '成功' : '失败'}
+              </Tag>
+            )
           }
         },
         {
           title: '操作',
           key: 'action',
-          width: 80,
+          width: 100,
           fixed: 'right',
           align: 'center',
           render: (h, params) => {
             return (
-              <Tooltip content={'查看完整输入输出'} placement="top">
-                <Button
-                  size="small"
-                  type="info"
-                  onClick={() => {
-                    this.handleExecuteDetail(params.row)
-                  }}
-                  style="margin-right:5px;"
-                >
-                  <Icon type="md-eye" size="16"></Icon>
-                </Button>
-              </Tooltip>
+              <div style="display:flex;">
+                <Tooltip content={'执行详情'} placement="top">
+                  <Button
+                    size="small"
+                    type="info"
+                    onClick={() => {
+                      this.handleExecuteDetail(params.row)
+                    }}
+                    style="margin-right:5px;"
+                  >
+                    <Icon type="md-eye" size="16"></Icon>
+                  </Button>
+                </Tooltip>
+                <Tooltip content={'重新发起'} placement="top">
+                  <Button
+                    size="small"
+                    type="warning"
+                    onClick={() => {
+                      this.handleExecuteDetail(params.row)
+                    }}
+                    style="margin-right:5px;"
+                  >
+                    <Icon type="md-add-circle" size="16"></Icon>
+                  </Button>
+                </Tooltip>
+              </div>
             )
           }
         }
