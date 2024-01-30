@@ -26,12 +26,9 @@
         ></Transfer>
       </div>
       <div slot="footer">
-        <Button
-          type="primary"
-          :disabled="mgmtRolesKeyToFlow.length === 0 || useRolesKeyToFlow.length === 0"
-          @click="confirmRole"
-          >{{ $t('bc_confirm') }}</Button
-        >
+        <Button type="primary" :disabled="mgmtRolesKeyToFlow.length === 0" @click="confirmRole">{{
+          $t('bc_confirm')
+        }}</Button>
       </div>
     </Modal>
   </div>
@@ -61,7 +58,11 @@ export default {
       return item.label
     },
     handleMgmtRoleTransferChange (newTargetKeys, direction, moveKeys) {
-      this.mgmtRolesKeyToFlow = newTargetKeys
+      if (newTargetKeys.length > 1) {
+        this.$Message.warning(this.$t('chooseOne'))
+      } else {
+        this.mgmtRolesKeyToFlow = newTargetKeys
+      }
     },
     handleUseRoleTransferChange (newTargetKeys, direction, moveKeys) {
       this.useRolesKeyToFlow = newTargetKeys
