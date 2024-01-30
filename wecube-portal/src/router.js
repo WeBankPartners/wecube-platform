@@ -25,15 +25,15 @@ let router = new Router({
           props: true
         },
         {
-          path: '/collaboration/workflow',
+          path: '/collaboration/workflow-mgmt',
           name: 'flow',
-          component: () => import('@/pages/collaboration/workflow'),
+          component: () => import('@/pages/collaboration/workflow-mgmt'),
           props: true
         },
         {
-          path: '/collaboration/workflow-orchestration',
+          path: '/collaboration/workflow',
           name: 'flowManage',
-          component: () => import('@/pages/collaboration/workflow-orchestration'),
+          component: () => import('@/pages/collaboration/workflow'),
           props: true
         },
         {
