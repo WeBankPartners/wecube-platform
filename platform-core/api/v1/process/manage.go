@@ -520,7 +520,11 @@ func AddOrUpdateProcDefTaskNodes(c *gin.Context) {
 	}
 	node := models.ConvertParam2ProcDefNode(user, param)
 	if procDefNode == nil {
-		node.Id = guid.CreateGuid()
+		nodeTypeShort := node.NodeType
+		if len(nodeTypeShort) > 4 {
+			nodeTypeShort = nodeTypeShort[:4]
+		}
+		node.Id = fmt.Sprintf("pdn_%s_%s", nodeTypeShort, guid.CreateGuid())
 		err = database.InsertProcDefNode(c, node)
 	} else {
 		node.Id = procDefNode.Id
@@ -775,7 +779,7 @@ func AddOrUpdateProcDefNodeLink(c *gin.Context) {
 	param.ProcDefNodeLinkCustomAttrs.Target = targetNode.Id
 	newProcDefNodeLink := models.ConvertParam2ProcDefNodeLink(&param)
 	if procDefNodeLink == nil {
-		newProcDefNodeLink.Id = guid.CreateGuid()
+		newProcDefNodeLink.Id = "pdl_" + guid.CreateGuid()
 		newProcDefNodeLink.ProcDefId = param.ProcDefId
 		err = database.InsertProcDefNodeLink(c, newProcDefNodeLink)
 	} else {

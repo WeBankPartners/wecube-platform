@@ -11,6 +11,12 @@ func ProcDefList(c *gin.Context) {
 	includeDraft := c.Query("includeDraft") // 0 | 1
 	permission := c.Query("permission")     // USE | MGMT
 	tag := c.Query("tag")
+	if includeDraft == "" {
+		includeDraft = "0"
+	}
+	if permission == "" {
+		permission = "USE"
+	}
 	log.Logger.Debug("procDefList", log.String("includeDraft", includeDraft), log.String(permission, "permission"), log.String("tag", tag))
 	result, err := database.ProcDefList(c, includeDraft, permission, tag, middleware.GetRequestRoles(c))
 	if err != nil {
@@ -23,6 +29,12 @@ func ProcDefList(c *gin.Context) {
 func ProcDefOutline(c *gin.Context) {
 	procDefId := c.Param("proc-def-id")
 	log.Logger.Debug("ProcDefOutline", log.String("procDefId", procDefId))
+	result, err := database.ProcDefOutline(c, procDefId)
+	if err != nil {
+		middleware.ReturnError(c, err)
+	} else {
+		middleware.ReturnData(c, result)
+	}
 }
 
 func ProcDefRootEntities(c *gin.Context) {
