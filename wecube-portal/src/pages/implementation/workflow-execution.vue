@@ -1618,8 +1618,8 @@ export default {
         this.flowData.flowNodes
           .filter(i => i.status !== 'predeploy')
           .map((_, index) => {
-            if (_.nodeType === 'startEvent' || _.nodeType === 'endEvent') {
-              const defaultLabel = _.nodeType === 'startEvent' ? 'start' : 'end'
+            if (['start', 'end', 'abnormal'].includes(_.nodeType)) {
+              const defaultLabel = _.nodeType
               return `${_.nodeId} [label="${_.nodeName || defaultLabel}", fontsize="10", class="flow",style="${
                 excution ? 'filled' : 'none'
               }" color="${excution ? statusColor[_.status] : '#7F8A96'}" shape="circle", id="${_.nodeId}"]`
