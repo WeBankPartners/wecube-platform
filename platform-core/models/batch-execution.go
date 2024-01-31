@@ -126,7 +126,7 @@ type BatchExecJobsPageData struct {
 }
 
 type BatchExecRun struct {
-	Id                         string                             `json:"id"`
+	BatchExecId                string                             `json:"batchExecId"`
 	Name                       string                             `json:"name"`
 	BatchExecutionTemplateId   string                             `json:"batchExecutionTemplateId"`
 	PackageName                string                             `json:"packageName"`
