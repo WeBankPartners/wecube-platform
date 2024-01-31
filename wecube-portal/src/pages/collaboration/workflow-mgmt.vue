@@ -54,11 +54,8 @@ import ItemPanel from '@/pages/collaboration/flow/item-panel.vue'
 import ItemInfoCanvas from '@/pages/collaboration/flow/item-info-canvas.vue'
 import ItemInfoEdge from '@/pages/collaboration/flow/item-info-edge.vue'
 import ItemInfoNode from '@/pages/collaboration/flow/item-info-node.vue'
-// import data from './flow/data.js'
 import { nodeDefaultAttr } from './flow/node-default-attr.js'
 import { getFlowById, flowMgmt, flowNodeMgmt, flowEdgeMgmt, flowNodeDelete, flowEdgeDelete } from '@/api/server.js'
-// import { relativeTimeThreshold } from 'moment'
-// const registerFactory = require('../../../library/welabx-g6').default
 
 export default {
   components: {
@@ -70,6 +67,7 @@ export default {
   },
   data () {
     return {
+      flowListTab: '', // 记录跳转过来时列表的tab位置
       editFlow: true, // 在查看时隐藏按钮
       canRemovedId: '',
       demoFlowId: '',
@@ -101,24 +99,6 @@ export default {
         height: 60,
         shape: 'rect-node'
       },
-      nodeShapes: [
-        {
-          name: '矩形',
-          shape: 'rect-node'
-        },
-        {
-          name: '圆形',
-          shape: 'circle-node'
-        },
-        {
-          name: '椭圆',
-          shape: 'ellipise-node'
-        },
-        {
-          name: '菱形',
-          shape: 'diamond-node'
-        }
-      ],
       headVisible: false,
       isMouseDown: false,
       config: '',
@@ -140,6 +120,7 @@ export default {
   },
   async mounted () {
     if (this.$route.query.flowId) {
+      this.flowListTab = this.$route.query.flowListTab
       this.demoFlowId = this.$route.query.flowId
       this.editFlow = this.$route.query.editFlow || true
       await this.getFlowInfo(this.demoFlowId)
@@ -150,11 +131,8 @@ export default {
         this.openCanvasPanel()
       })
     } else {
-      this.$router.push({ path: '/collaboration/workflow' })
+      this.$router.push({ path: '/collaboration/workflow', query: { flowListTab: this.flowListTab } })
     }
-  },
-  beforeDestroy () {
-    this.graph.destroy()
   },
   methods: {
     // 更新编排信息
@@ -175,7 +153,7 @@ export default {
         this.procDef.permissionToRole = data.permissionToRole
 
         this.mgmtNodesAndEdges(data.taskNodeInfos)
-        this.$refs.headerInfoRef.showItemInfo(this.procDef, this.editFlow)
+        this.$refs.headerInfoRef.showItemInfo(this.procDef, this.editFlow, this.flowListTab)
       }
     },
     // 整理编排节点与边数据结构
@@ -293,8 +271,8 @@ export default {
     },
     removeItem () {
       this.$Modal.confirm({
-        title: '删除',
-        content: '确认删除该元素吗？',
+        title: this.$t('delete'),
+        content: this.$t('confirm_to_delete'),
         onOk: async () => {
           const method = this.canRemovedId.startsWith('pdef_node_') ? flowNodeDelete : flowEdgeDelete
           const { status } = await method(this.procDef.id, this.canRemovedId)
@@ -334,7 +312,6 @@ export default {
         const { originalEvent } = e
         if (originalEvent.dataTransfer) {
           let transferData = originalEvent.dataTransfer.getData('dragComponent')
-          console.log('准备新增节点：', transferData)
           const { nodeType } = JSON.parse(transferData)
           if (nodeType === 'start' && this.alreadyHasStart(nodeType)) {
             return
@@ -690,6 +667,11 @@ export default {
       this.itemInfoType = 'node'
       this.$nextTick(() => {
         this.$refs.itemInfoNodeRef.showItemInfo(model, true, this.procDef.rootEntity, this.editFlow)
+        // 获取节点
+        const node = this.graph.findById(id)
+
+        // 模拟点击节点
+        this.graph.emit('node:click', { target: node })
       })
     },
     // 移除删除入口
@@ -704,19 +686,20 @@ export default {
         id,
         label: '',
         // 形状
-        type: 'circle-node',
+        type: 'rect-node',
         style: {
           fill: 'white',
           stroke: 'red',
           lineWidth: 1,
-          r: 16
+          width: 20,
+          height: 24
         },
         logoIcon: {
           show: true,
-          x: -10,
-          y: -10,
-          width: 18,
-          height: 18,
+          x: -6,
+          y: -6,
+          width: 12,
+          height: 12,
           offset: 0
         },
         customAttrs: {
