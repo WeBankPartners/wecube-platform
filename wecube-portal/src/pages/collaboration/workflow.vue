@@ -71,14 +71,14 @@
     <div>
       <Input
         v-model="searchParams.procDefId"
-        placeholder="编排ID"
+        placeholder="ID"
         class="search-item"
         clearable
         @on-change="getFlowList"
       ></Input>
       <Input
         v-model="searchParams.procDefName"
-        placeholder="编排名称"
+        :placeholder="$t('flow_name')"
         class="search-item"
         clearable
         @on-change="getFlowList"
@@ -157,9 +157,9 @@
     </div>
     <div>
       <Tabs :value="searchParams.status" @on-click="changeTab">
-        <TabPane label="已发布" name="deployed"></TabPane>
-        <TabPane label="未发布" name="draft"></TabPane>
-        <TabPane label="已禁用" name="disabled"></TabPane>
+        <TabPane :label="$t('deployed')" name="deployed"></TabPane>
+        <TabPane :label="$t('draft')" name="draft"></TabPane>
+        <TabPane :label="$t('disabled')" name="disabled"></TabPane>
       </Tabs>
       <div class="table-zone">
         <template v-if="data.length > 0">
@@ -254,12 +254,12 @@ export default {
           align: 'center'
         },
         {
-          title: '编排ID',
+          title: 'ID',
           width: 180,
           key: 'id'
         },
         {
-          title: '编排名称',
+          title: this.$t('flow_name'),
           key: 'name',
           render: (h, params) => {
             return (
@@ -286,7 +286,7 @@ export default {
           }
         },
         {
-          title: '操作对象类型',
+          title: this.$t('instance_type'),
           key: 'rootEntity',
           render: (h, params) => {
             if (params.row.rootEntity !== '') {
@@ -297,10 +297,10 @@ export default {
           }
         },
         {
-          title: '使用角色',
-          key: 'rootEntity',
+          title: this.$t('use_role'),
+          key: 'userRoles',
           render: (h, params) => {
-            if (params.row.authPlugins.length > 0) {
+            if (params.row.userRoles.length > 0) {
               return (
                 params.row.userRoles &&
                 params.row.userRoles.map(i => {
@@ -313,7 +313,7 @@ export default {
           }
         },
         {
-          title: '冲突检测',
+          title: this.$t('conflict_test'),
           key: 'conflictCheck',
           width: 90,
           render: (h, params) => {
@@ -334,22 +334,22 @@ export default {
           }
         },
         {
-          title: '创建人',
+          title: this.$t('createdBy'),
           key: 'createdBy',
           width: 90
         },
         {
-          title: '更新人',
+          title: this.$t('updatedBy'),
           key: 'updatedBy',
           width: 90
         },
         {
-          title: '更新时间',
+          title: this.$t('table_updated_date'),
           key: 'updatedTime',
           width: 130
         },
         {
-          title: '操作',
+          title: this.$t('table_action'),
           key: 'action',
           width: 110,
           align: 'left',
@@ -428,15 +428,20 @@ export default {
     }
   },
   mounted () {
-    const accessToken = getCookie('accessToken')
-    this.headers = {
-      Authorization: 'Bearer ' + accessToken
-    }
+    this.setHeaders()
     this.handleDateTypeChange(1)
     this.getFlowList()
     this.pluginList()
   },
   methods: {
+    setHeaders () {
+      const lang = localStorage.getItem('lang') || 'zh-CN'
+      const accessToken = getCookie('accessToken')
+      this.headers = {
+        Authorization: 'Bearer ' + accessToken,
+        'Accept-Language': lang === 'zh-CN' ? 'zh-CN,zh;q=0.9,en;q=0.8' : 'en-US,en;q=0.9,zh;q=0.8'
+      }
+    },
     onSelectionChange (selection, b) {
       // console.log('onSelectionChange', selection, b)
     },
@@ -538,7 +543,7 @@ export default {
       } else if (this.authTo === 'createFlow') {
         const params = {
           id: '',
-          name: `编排_${dayjs().format('YYMMDDHHmmss')}`,
+          name: `${this.$t('workflow_report_aspect')}_${dayjs().format('YYMMDDHHmmss')}`,
           version: '1',
           scene: '',
           authPlugins: [],
@@ -610,7 +615,6 @@ export default {
     editAction (row) {
       const status = row.status
       if (status === 'draft') {
-        console.log('转至详情')
         this.$router.push({ path: '/collaboration/workflow-mgmt', query: { flowId: row.id } })
       }
       if (status === 'deployed') {
@@ -721,10 +725,7 @@ export default {
       }
     },
     async exportFlow () {
-      const accessToken = getCookie('accessToken')
-      this.headers = {
-        Authorization: 'Bearer ' + accessToken
-      }
+      this.setHeaders()
       axios({
         method: 'post',
         url: `platform/v1/process/definitions/export`,
