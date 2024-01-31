@@ -3,7 +3,7 @@
     <div class="hide-panal" @click="hideItem">
       <Icon type="ios-arrow-dropright" size="28" />
     </div>
-    <div class="panal-name">连接属性：</div>
+    <div class="panal-name">{{ $t('edgeProperties') }}：</div>
     <Form :label-width="120" style="padding-right: 12px">
       <template>
         <FormItem label="ID">
@@ -15,7 +15,7 @@
             >{{ itemCustomInfo.name && itemCustomInfo.name.length }}/30</span
           >
           <span v-if="itemCustomInfo.name && itemCustomInfo.name.length > 30" style="color: red"
-            >名称不能大于30字符</span
+            >{{ $t('name') }}{{ $t('cannotExceed') }} 30 {{ $t('characters') }}</span
           >
         </FormItem>
         <div style="position: absolute; bottom: 20px; right: 280px; width: 200px">
