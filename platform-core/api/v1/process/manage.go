@@ -520,11 +520,7 @@ func AddOrUpdateProcDefTaskNodes(c *gin.Context) {
 	}
 	node := models.ConvertParam2ProcDefNode(user, param)
 	if procDefNode == nil {
-		nodeTypeShort := node.NodeType
-		if len(nodeTypeShort) > 4 {
-			nodeTypeShort = nodeTypeShort[:4]
-		}
-		node.Id = fmt.Sprintf("pdn_%s_%s", nodeTypeShort, guid.CreateGuid())
+		node.Id = models.GenNodeId(node.NodeType)
 		err = database.InsertProcDefNode(c, node)
 	} else {
 		node.Id = procDefNode.Id
@@ -1167,6 +1163,7 @@ func checkDeployedProcDef(ctx context.Context, procDefId string) error {
 			startNodeNameList = append(startNodeNameList, node.Name)
 		case models.ProcDefNodeTypeEnd:
 			endNodeNameList = append(endNodeNameList, node.Name)
+		case models.ProcDefNodeTypeAbnormal:
 		case models.ProcDefNodeTypeFork:
 			// 分流必须单进多出
 			if !(inCount == 1 && outCount > 1) {
