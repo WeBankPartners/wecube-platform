@@ -13,9 +13,9 @@ type BatchExecution struct {
 	SourceData               string                `json:"sourceData" xorm:"source_data"`                               // 回显数据
 	CreatedBy                string                `json:"createdBy" xorm:"created_by"`                                 // 创建者
 	UpdatedBy                string                `json:"updatedBy" xorm:"updated_by"`                                 // 更新者
-	CreatedTime              *time.Time            `json:"-" xorm:"created_time"`                                       // 创建时间
+	CreatedTime              *time.Time            `json:"createdTimeT" xorm:"created_time"`                            // 创建时间
 	CreatedTimeStr           string                `json:"createdTime" xorm:"-"`                                        // 创建时间
-	UpdatedTime              *time.Time            `json:"-" xorm:"updated_time"`                                       // 更新时间
+	UpdatedTime              *time.Time            `json:"updatedTimeT" xorm:"updated_time"`                            // 更新时间
 	UpdatedTimeStr           string                `json:"updatedTime" xorm:"-"`                                        // 更新时间
 	BatchExecutionJobs       []*BatchExecutionJobs `json:"batchExecutionJobs" xorm:"-"`
 }
@@ -56,10 +56,10 @@ type BatchExecutionTemplate struct {
 	ConfigData       *BatchExecRun     `json:"configData" xorm:"-"`                 // 配置数据
 	SourceData       string            `json:"sourceData" xorm:"source_data"`       // 回显数据
 	CreatedBy        string            `json:"createdBy" xorm:"created_by"`         // 创建者
-	CreatedTime      *time.Time        `json:"-" xorm:"created_time"`               // 创建时间
+	CreatedTime      *time.Time        `json:"createdTimeT" xorm:"created_time"`    // 创建时间
 	CreatedTimeStr   string            `json:"createdTime" xorm:"-"`                // 创建时间
 	UpdatedBy        string            `json:"updatedBy" xorm:"updated_by"`         // 更新者
-	UpdatedTime      *time.Time        `json:"-" xorm:"updated_time"`               // 更新时间
+	UpdatedTime      *time.Time        `json:"updatedTimeT" xorm:"updated_time"`    // 更新时间
 	UpdatedTimeStr   string            `json:"updatedTime" xorm:"-"`                // 更新时间
 	PermissionToRole *PermissionToRole `json:"permissionToRole" xorm:"-"`           // 权限角色
 	IsCollected      bool              `json:"isCollected" xorm:"-"`                // 是否收藏

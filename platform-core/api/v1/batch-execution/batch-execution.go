@@ -145,7 +145,7 @@ func RetrieveTemplate(c *gin.Context) {
 	}
 
 	if len(param.Sorting) == 0 {
-		param.Sorting = append(param.Sorting, &models.QueryRequestSorting{Field: "updatedTime", Asc: false})
+		param.Sorting = append(param.Sorting, &models.QueryRequestSorting{Field: "updatedTimeT", Asc: false})
 	}
 	retData, err := database.RetrieveTemplate(c, &param)
 	if err != nil {
@@ -253,7 +253,7 @@ func RetrieveBatchExec(c *gin.Context) {
 	})
 
 	if len(param.Sorting) == 0 {
-		param.Sorting = append(param.Sorting, &models.QueryRequestSorting{Field: "updatedTime", Asc: false})
+		param.Sorting = append(param.Sorting, &models.QueryRequestSorting{Field: "updatedTimeT", Asc: false})
 		param.Sorting = append(param.Sorting, &models.QueryRequestSorting{Field: "id", Asc: true})
 	}
 
