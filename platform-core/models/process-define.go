@@ -2,6 +2,8 @@ package models
 
 import (
 	"encoding/json"
+	"fmt"
+	"github.com/WeBankPartners/go-common-lib/guid"
 	"reflect"
 	"strings"
 	"time"
@@ -627,4 +629,12 @@ func ConvertParam2ProcDefNode(user string, param ProcDefNodeRequestParam) *ProcD
 		UpdatedTime:       now,
 	}
 	return node
+}
+
+func GenNodeId(nodeType string) string {
+	nodeTypeShort := nodeType
+	if len(nodeTypeShort) > 4 {
+		nodeTypeShort = nodeTypeShort[:4]
+	}
+	return fmt.Sprintf("pdn_%s_%s", nodeTypeShort, guid.CreateGuid())
 }
