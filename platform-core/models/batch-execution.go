@@ -3,21 +3,22 @@ package models
 import "time"
 
 type BatchExecution struct {
-	Id                       string                `json:"id" xorm:"id"`                                                // 唯一标识
-	Name                     string                `json:"name" xorm:"name"`                                            // 名称
-	BatchExecutionTemplateId string                `json:"batchExecutionTemplateId" xorm:"batch_execution_template_id"` // 模板id
-	ErrorCode                string                `json:"errorCode" xorm:"error_code"`                                 // 错误码, 0:成功, 1:失败, 2:执行中
-	ErrorMessage             string                `json:"errorMessage" xorm:"error_message"`                           // 错误信息
-	ConfigDataStr            string                `json:"-" xorm:"config_data"`                                        // 配置数据
-	ConfigData               *BatchExecRun         `json:"configData" xorm:"-"`                                         // 配置数据
-	SourceData               string                `json:"sourceData" xorm:"source_data"`                               // 回显数据
-	CreatedBy                string                `json:"createdBy" xorm:"created_by"`                                 // 创建者
-	UpdatedBy                string                `json:"updatedBy" xorm:"updated_by"`                                 // 更新者
-	CreatedTime              *time.Time            `json:"createdTimeT" xorm:"created_time"`                            // 创建时间
-	CreatedTimeStr           string                `json:"createdTime" xorm:"-"`                                        // 创建时间
-	UpdatedTime              *time.Time            `json:"updatedTimeT" xorm:"updated_time"`                            // 更新时间
-	UpdatedTimeStr           string                `json:"updatedTime" xorm:"-"`                                        // 更新时间
-	BatchExecutionJobs       []*BatchExecutionJobs `json:"batchExecutionJobs" xorm:"-"`
+	Id                         string                `json:"id" xorm:"id"`                                                    // 唯一标识
+	Name                       string                `json:"name" xorm:"name"`                                                // 名称
+	BatchExecutionTemplateId   string                `json:"batchExecutionTemplateId" xorm:"batch_execution_template_id"`     // 模板id
+	BatchExecutionTemplateName string                `json:"batchExecutionTemplateName" xorm:"batch_execution_template_name"` // 模板名称
+	ErrorCode                  string                `json:"errorCode" xorm:"error_code"`                                     // 错误码, 0:成功, 1:失败, 2:执行中
+	ErrorMessage               string                `json:"errorMessage" xorm:"error_message"`                               // 错误信息
+	ConfigDataStr              string                `json:"-" xorm:"config_data"`                                            // 配置数据
+	ConfigData                 *BatchExecRun         `json:"configData" xorm:"-"`                                             // 配置数据
+	SourceData                 string                `json:"sourceData" xorm:"source_data"`                                   // 回显数据
+	CreatedBy                  string                `json:"createdBy" xorm:"created_by"`                                     // 创建者
+	UpdatedBy                  string                `json:"updatedBy" xorm:"updated_by"`                                     // 更新者
+	CreatedTime                *time.Time            `json:"createdTimeT" xorm:"created_time"`                                // 创建时间
+	CreatedTimeStr             string                `json:"createdTime" xorm:"-"`                                            // 创建时间
+	UpdatedTime                *time.Time            `json:"updatedTimeT" xorm:"updated_time"`                                // 更新时间
+	UpdatedTimeStr             string                `json:"updatedTime" xorm:"-"`                                            // 更新时间
+	BatchExecutionJobs         []*BatchExecutionJobs `json:"batchExecutionJobs" xorm:"-"`
 }
 
 func (BatchExecution) TableName() string {
@@ -47,22 +48,23 @@ func (BatchExecutionJobs) TableName() string {
 }
 
 type BatchExecutionTemplate struct {
-	Id               string            `json:"id" xorm:"id"`                        // 唯一标识
-	Name             string            `json:"name" xorm:"name"`                    // 名称
-	Status           string            `json:"status" xorm:"status"`                // 使用状态
-	OperateObject    string            `json:"operateObject" xorm:"operate_object"` // 操作对象
-	PluginService    string            `json:"pluginService" xorm:"plugin_service"` // 插件服务
-	ConfigDataStr    string            `json:"-" xorm:"config_data"`                // 配置数据
-	ConfigData       *BatchExecRun     `json:"configData" xorm:"-"`                 // 配置数据
-	SourceData       string            `json:"sourceData" xorm:"source_data"`       // 回显数据
-	CreatedBy        string            `json:"createdBy" xorm:"created_by"`         // 创建者
-	CreatedTime      *time.Time        `json:"createdTimeT" xorm:"created_time"`    // 创建时间
-	CreatedTimeStr   string            `json:"createdTime" xorm:"-"`                // 创建时间
-	UpdatedBy        string            `json:"updatedBy" xorm:"updated_by"`         // 更新者
-	UpdatedTime      *time.Time        `json:"updatedTimeT" xorm:"updated_time"`    // 更新时间
-	UpdatedTimeStr   string            `json:"updatedTime" xorm:"-"`                // 更新时间
-	PermissionToRole *PermissionToRole `json:"permissionToRole" xorm:"-"`           // 权限角色
-	IsCollected      bool              `json:"isCollected" xorm:"-"`                // 是否收藏
+	Id               string            `json:"id" xorm:"id"`                               // 唯一标识
+	Name             string            `json:"name" xorm:"name"`                           // 名称
+	Status           string            `json:"status" xorm:"status"`                       // 使用状态
+	OperateObject    string            `json:"operateObject" xorm:"operate_object"`        // 操作对象
+	PluginService    string            `json:"pluginService" xorm:"plugin_service"`        // 插件服务
+	IsDangerousBlock bool              `json:"isDangerousBlock" xorm:"is_dangerous_block"` // 是否高危拦截
+	ConfigDataStr    string            `json:"-" xorm:"config_data"`                       // 配置数据
+	ConfigData       *BatchExecRun     `json:"configData" xorm:"-"`                        // 配置数据
+	SourceData       string            `json:"sourceData" xorm:"source_data"`              // 回显数据
+	CreatedBy        string            `json:"createdBy" xorm:"created_by"`                // 创建者
+	CreatedTime      *time.Time        `json:"createdTimeT" xorm:"created_time"`           // 创建时间
+	CreatedTimeStr   string            `json:"createdTime" xorm:"-"`                       // 创建时间
+	UpdatedBy        string            `json:"updatedBy" xorm:"updated_by"`                // 更新者
+	UpdatedTime      *time.Time        `json:"updatedTimeT" xorm:"updated_time"`           // 更新时间
+	UpdatedTimeStr   string            `json:"updatedTime" xorm:"-"`                       // 更新时间
+	PermissionToRole *PermissionToRole `json:"permissionToRole" xorm:"-"`                  // 权限角色
+	IsCollected      bool              `json:"isCollected" xorm:"-"`                       // 是否收藏
 }
 
 func (BatchExecutionTemplate) TableName() string {
@@ -129,6 +131,8 @@ type BatchExecRun struct {
 	BatchExecId                string                             `json:"batchExecId"`
 	Name                       string                             `json:"name"`
 	BatchExecutionTemplateId   string                             `json:"batchExecutionTemplateId"`
+	BatchExecutionTemplateName string                             `json:"batchExecutionTemplateName"`
+	IsDangerousBlock           bool                               `json:"isDangerousBlock"` // 是否高危拦截
 	PackageName                string                             `json:"packageName"`
 	EntityName                 string                             `json:"entityName"`
 	DataModelExpression        string                             `json:"dataModelExpression"`
