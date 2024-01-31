@@ -3,15 +3,15 @@
     <div class="hide-panal" @click="hideItem">
       <Icon type="ios-arrow-dropright" size="28" />
     </div>
-    <div class="panal-name">编排属性：</div>
+    <div class="panal-name">{{ $t('workFlowProperties') }}：</div>
     <Form :label-width="120" style="padding-right: 12px">
-      <FormItem label="编排ID">
+      <FormItem label="ID">
         <Input disabled v-model="itemCustomInfo.id"></Input>
       </FormItem>
       <FormItem>
         <label slot="label">
           <span style="color: red">*</span>
-          编排名称
+          {{ $t('name') }}
         </label>
         <Input
           v-model="itemCustomInfo.label"
@@ -23,16 +23,16 @@
           class="custom-error-tag"
           v-if="itemCustomInfo.label.length > 30 || itemCustomInfo.label.length === 0"
           style="color: red"
-          >编排名称不能大于30字符</span
+          >{{ $t('name') }}{{ $t('cannotExceed') }} 30 {{ $t('characters') }}</span
         >
       </FormItem>
-      <FormItem label="版本" prop="version">
+      <FormItem :label="$t('version')" prop="version">
         <InputNumber :min="1" disabled v-model="itemCustomInfo.version" style="width: 100%"></InputNumber>
       </FormItem>
       <FormItem>
         <label slot="label">
           <span style="color: red">*</span>
-          对象类型
+          {{ $t('instance_type') }}
         </label>
         <FilterRules
           @change="onEntitySelect"
@@ -41,7 +41,7 @@
           style="width: 100%"
         ></FilterRules>
         <span class="custom-error-tag" v-if="itemCustomInfo.rootEntity === ''" style="color: red"
-          >对象类型不能为空</span
+          >{{ $t('instance_type') }}{{ $t('cannotBeEmpty') }}</span
         >
       </FormItem>
       <!-- @on-change="paramsChanged" -->
@@ -54,16 +54,18 @@
         <Input v-model="itemCustomInfo.scene" @on-change="paramsChanged"></Input>
         <span style="position: absolute; left: 320px; top: 2px">{{ itemCustomInfo.scene.length }}/30</span>
         <span class="custom-error-tag" v-if="itemCustomInfo.scene.length > 30" style="color: red"
-          >分组不能大于30字符</span
+          >分组{{ $t('cannotExceed') }} 30 {{ $t('characters') }}</span
         >
       </FormItem>
       <FormItem label="冲突检测">
         <i-switch v-model="itemCustomInfo.conflictCheck" @on-change="paramsChanged" />
       </FormItem>
-      <FormItem label="描述">
+      <FormItem :label="$t('description')">
         <Input v-model="itemCustomInfo.tags" @on-change="paramsChanged" type="textarea" :rows="4"></Input>
         <span style="position: relative; left: 320px; top: -28px">{{ itemCustomInfo.tags.length }}/200</span>
-        <span v-if="itemCustomInfo.tags.length > 200" style="color: red">描述不能大于200字符</span>
+        <span v-if="itemCustomInfo.tags.length > 200" style="color: red"
+          >{{ $t('description') }}{{ $t('cannotExceed') }} 30 {{ $t('characters') }}</span
+        >
       </FormItem>
       <div style="position: absolute; bottom: 20px; right: 280px; width: 200px">
         <Button v-if="editFlow !== 'false'" :disabled="isSaveBtnActive()" @click="saveItem" type="primary">{{
@@ -100,7 +102,8 @@ export default {
         }
       },
       allEntityType: [], // 系统中所有根CI
-      authPluginList: [] // 待授权插件列表
+      authPluginList: [], // 待授权插件列表
+      oriRootEntity: '' // 缓存编排最初对象类型，在修改时提示
     }
   },
   mounted () {},
@@ -126,6 +129,7 @@ export default {
         }
       }
       const tmpData = JSON.parse(JSON.stringify(data))
+      this.oriRootEntity = tmpData.rootEntity
       this.itemCustomInfo = JSON.parse(JSON.stringify(Object.assign(defaultNode, tmpData)))
       const keys = Object.keys(defaultNode)
       keys.forEach(k => {
@@ -183,7 +187,21 @@ export default {
     },
     onEntitySelect (v) {
       this.itemCustomInfo.rootEntity = v || ''
-      this.paramsChanged()
+      if (this.oriRootEntity !== '' && this.oriRootEntity !== this.itemCustomInfo.rootEntity) {
+        this.$Modal.confirm({
+          title: this.$t('instance_type'),
+          content: this.$t('changeInstanceTypeTip'),
+          'z-index': 1000000,
+          onOk: async () => {
+            this.oriRootEntity = this.itemCustomInfo.rootEntity
+          },
+          onCancel: () => {
+            this.itemCustomInfo.rootEntity = this.oriRootEntity
+          }
+        })
+      } else {
+        this.paramsChanged()
+      }
     },
 
     // 获取插件列表
