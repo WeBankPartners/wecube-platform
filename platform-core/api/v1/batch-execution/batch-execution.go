@@ -377,6 +377,7 @@ func doRunJob(c *gin.Context, reqParam *models.BatchExecRun) (result *models.Bat
 	if err != nil {
 		errCode = models.BatchExecErrorCodeFailed
 		errMsg = fmt.Sprintf("plugin call error: %s", err.Error())
+		log.Logger.Error(errMsg)
 		// update batch exec record
 		updateData := make(map[string]interface{})
 		updateData["error_code"] = errCode
@@ -414,13 +415,28 @@ func doRunJob(c *gin.Context, reqParam *models.BatchExecRun) (result *models.Bat
 		updateData["error_message"] = errMsg
 		updateData["updated_by"] = middleware.GetRequestUser(c)
 		updateData["updated_time"] = time.Now()
-		err = database.UpdateBatchExec(c, batchExecId, updateData)
-		if err != nil {
+		tmpErr = database.UpdateBatchExec(c, batchExecId, updateData)
+		if tmpErr != nil {
+			err = tmpErr
 			log.Logger.Error("update batch execution record failed", log.Error(err), log.String("batchExecErrMsg", errMsg))
 			return
 		}
 		log.Logger.Error(fmt.Sprintf("batchExecErrMsg: %s", errMsg))
 		return
+	} else {
+		errCode = models.BatchExecErrorCodeSucceed
+		errMsg = ""
+		updateData := make(map[string]interface{})
+		updateData["error_code"] = errCode
+		updateData["error_message"] = errMsg
+		updateData["updated_by"] = middleware.GetRequestUser(c)
+		updateData["updated_time"] = time.Now()
+		tmpErr = database.UpdateBatchExec(c, batchExecId, updateData)
+		if tmpErr != nil {
+			err = tmpErr
+			log.Logger.Error("plugin call succeed, but update batch execution record failed", log.Error(err))
+			return
+		}
 	}
 
 	result.BatchExecRunResult = batchExecRunResult
