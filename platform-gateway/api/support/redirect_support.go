@@ -36,8 +36,8 @@ func (invoke RedirectInvoke) Do(c *gin.Context) error {
 	*/
 	newRequest, _ := http.NewRequest(cloneRequest.Method, invoke.TargetUrl, cloneRequest.Body)
 	newRequest.Header = cloneRequest.Header
-	// remove Transfer-Encoding
-	delete(newRequest.Header, "Transfer-Encoding")
+	// pass through content length
+	newRequest.ContentLength = c.Request.ContentLength
 	if clientIp := c.ClientIP(); clientIp != "" {
 		newRequest.Header.Set("X-Forwarded-For", clientIp)
 	}
