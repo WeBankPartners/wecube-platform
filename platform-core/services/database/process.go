@@ -212,7 +212,7 @@ func execCopyProcessDefinition(ctx context.Context, procDef *models.ProcDef, nod
 	// 插入节点 & 节点参数 & 更新线集合中节点ID数据
 	if len(nodeList) > 0 {
 		for _, node := range nodeList {
-			newNodeId := guid.CreateGuid()
+			newNodeId := models.GenNodeId(node.NodeType)
 			actions = append(actions, &db.ExecAction{Sql: "insert into  proc_def_node(id,node_id,proc_def_id,name,description,status,node_type,service_name," +
 				"dynamic_bind,bind_node_id,risk_check,routine_expression,context_param_nodes,timeout,time_config,ordered_no,ui_style,created_by,created_time," +
 				"updated_by,updated_time) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)", Param: []interface{}{newNodeId, node.NodeId, newProcDefId, node.Name, node.Description,
@@ -247,7 +247,7 @@ func execCopyProcessDefinition(ctx context.Context, procDef *models.ProcDef, nod
 	if len(linkList) > 0 {
 		for _, nodeLink := range linkList {
 			actions = append(actions, &db.ExecAction{Sql: "insert into  proc_def_node_link(id,source,target,name,ui_style,link_id,proc_def_id) values(?,?,?,?,?,?,?)",
-				Param: []interface{}{guid.CreateGuid(), nodeLink.Source, nodeLink.Target, nodeLink.Name, nodeLink.UiStyle, nodeLink.LinkId, newProcDefId}})
+				Param: []interface{}{"pdl_" + guid.CreateGuid(), nodeLink.Source, nodeLink.Target, nodeLink.Name, nodeLink.UiStyle, nodeLink.LinkId, newProcDefId}})
 		}
 	}
 
