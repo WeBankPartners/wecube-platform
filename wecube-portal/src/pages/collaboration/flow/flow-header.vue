@@ -2,15 +2,12 @@
   <div>
     <div style="display: flex; justify-content: space-between">
       <div class="flow-name" @click="openCanvasPanel">
-        <span style="vertical-align: middle">{{ itemCustomInfo.name }}</span>
+        <Icon size="22" type="md-arrow-back" class="back-icon" @click="backToFlowList"></Icon>
+        <span class="flow-name">{{ itemCustomInfo.name }}</span>
         <Tag>v{{ itemCustomInfo.version }}</Tag>
         <img src="../../../assets/icon/edit-black.png" style="width: 16px; vertical-align: middle" alt="" />
       </div>
       <div>
-        <Button type="primary" ghost @click="backToFlowList">
-          <Icon type="ios-undo-outline" size="16"></Icon>
-          {{ $t('return') }}
-        </Button>
         <template v-if="editFlow !== 'false'">
           <Button type="primary" v-if="['draft'].includes(itemCustomInfo.status)" @click="releaseFlow">
             <Icon type="ios-paper-plane-outline" size="16"></Icon>
@@ -60,13 +57,15 @@ export default {
   },
   data () {
     return {
+      flowListTab: '',
       editFlow: true, // 在查看时隐藏按钮
       itemCustomInfo: {}
     }
   },
   methods: {
-    showItemInfo (data, editFlow) {
+    showItemInfo (data, editFlow, flowListTab) {
       this.editFlow = editFlow
+      this.flowListTab = flowListTab
       const defaultNode = {
         id: '',
         label: '', // 编排名称
@@ -193,7 +192,7 @@ export default {
         })
     },
     backToFlowList () {
-      this.$router.push({ path: '/collaboration/workflow' })
+      this.$router.push({ path: '/collaboration/workflow', query: { flowListTab: this.flowListTab } })
     }
   }
 }
@@ -208,5 +207,19 @@ export default {
 .btn-img {
   width: 16px;
   vertical-align: middle;
+}
+.back-icon {
+  cursor: pointer;
+  width: 28px;
+  height: 24px;
+  color: #fff;
+  border-radius: 2px;
+  background: #2d8cf0;
+}
+.flow-name {
+  font-size: 14px;
+  margin-left: 16px;
+  display: flex;
+  align-items: center;
 }
 </style>
