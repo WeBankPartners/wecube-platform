@@ -87,5 +87,13 @@
   "proc_def_import_server_error": {
     "code": 20000017,
     "message": "导入失败:请刷新页面,稍后重试"
+  },
+  "delete_user_error": {
+    "code": 20000018,
+    "message": "删除失败:当前用户已经被绑定为[%s角色]的管理员,请先配置其他用户为管理员再重试"
+  },
+  "proc_def_loop_check_error": {
+    "code": 20000019,
+    "message": "发布失败:编排存在环路"
   }
 }
