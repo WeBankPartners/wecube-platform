@@ -111,8 +111,8 @@ func BatchExecutionCallPluginService(ctx context.Context, operator, authToken, p
 		InputParams:     inputParamDatas,
 	}
 	// 需要有运行时的高危插件
-	// FIXME: 调用高危命令需要获取subsystem token
-	checkToken := authToken
+	// 获取subsystem token
+	checkToken := remote.GetToken()
 	dangerousResult, errDangerous := performDangerousCheck(ctx, itsdangerousCallParam, continueToken, checkToken)
 	if errDangerous != nil {
 		err = errDangerous
