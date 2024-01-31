@@ -1,14 +1,13 @@
 <template>
   <div id="itemPanel" ref="itemPanel">
-    <div class="tool-component">组件库</div>
+    <div class="tool-component">{{ $t('components') }}</div>
     <div class="icon-tool">
       <Tooltip :maxWidth="400" placement="right" :delay="1000">
         <div
           class="item-tool"
           draggable="true"
           node-type="start"
-          data-label="开始"
-          task-category=""
+          :data-label="$t('start')"
           data-shape="circle-node"
           fill="white"
           line-width="1"
@@ -20,7 +19,7 @@
             class="item-tool-icon"
             draggable="false"
           />
-          <div class="item-tool-name">开始</div>
+          <div class="item-tool-name">{{ $t('start') }}</div>
         </div>
         <div slot="content">
           <p>功能:事件节点1,标志编排开始</p>
@@ -34,8 +33,7 @@
           class="item-tool"
           draggable="true"
           node-type="end"
-          data-label="结束"
-          task-category=""
+          :data-label="$t('end')"
           data-shape="circle-node"
           fill="white"
           line-width="1"
@@ -47,7 +45,7 @@
             class="item-tool-icon"
             draggable="false"
           />
-          <div class="item-tool-name">结束</div>
+          <div class="item-tool-name">{{ $t('end') }}</div>
         </div>
         <div slot="content">
           <p>功能:事件节点2,标志编排结束</p>
@@ -61,8 +59,7 @@
           class="item-tool"
           draggable="true"
           node-type="abnormal"
-          data-label="异常"
-          task-category=""
+          :data-label="$t('abnormal')"
           data-shape="circle-node"
           fill="white"
           line-width="1"
@@ -74,7 +71,7 @@
             class="item-tool-icon"
             draggable="false"
           />
-          <div class="item-tool-name">异常</div>
+          <div class="item-tool-name">{{ $t('abnormal') }}</div>
         </div>
         <div slot="content">
           <p>功能:事件节点3,标志编排退出</p>
@@ -88,8 +85,7 @@
           class="item-tool"
           draggable="true"
           node-type="decision"
-          data-label="判断"
-          task-category=""
+          :data-label="$t('decision')"
           data-shape="diamond-node"
           fill="white"
           line-width="1"
@@ -98,7 +94,7 @@
           <div class="diamond-border">
             <img src="./icon/descision-panel.svg" class="item-tool-icon" draggable="false" />
           </div>
-          <div class="diamond-item-tool-name">判断</div>
+          <div class="diamond-item-tool-name">{{ $t('decision') }}</div>
         </div>
         <div slot="content">
           <p>功能:判断人工节点的填表结果,根据结果走到不同路线</p>
@@ -112,8 +108,7 @@
           class="item-tool"
           draggable="true"
           node-type="fork"
-          data-label="分流节点"
-          task-category=""
+          :data-label="$t('forkNode')"
           data-shape="diamond-node"
           fill="white"
           line-width="1"
@@ -122,7 +117,7 @@
           <div class="diamond-border">
             <img src="./icon/fork-panel.svg" class="item-tool-icon" draggable="false" />
           </div>
-          <div class="diamond-item-tool-name">分流节点</div>
+          <div class="diamond-item-tool-name">{{ $t('forkNode') }}</div>
         </div>
         <div slot="content">
           <p>功能:并行线路的起点,并行线路都完成才能走到汇聚节点</p>
@@ -136,8 +131,7 @@
           class="item-tool"
           draggable="true"
           node-type="merge"
-          data-label="汇聚节点"
-          task-category=""
+          :data-label="$t('merge')"
           data-shape="diamond-node"
           fill="white"
           line-width="1"
@@ -146,7 +140,7 @@
           <div class="diamond-border">
             <img src="./icon/merge-panel.svg" class="item-tool-icon" draggable="false" />
           </div>
-          <div class="diamond-item-tool-name">汇聚节点</div>
+          <div class="diamond-item-tool-name">{{ $t('merge') }}</div>
         </div>
         <div slot="content">
           <p>功能:并行线路的终点,并行线路都完成才能走到汇聚节点</p>
@@ -160,8 +154,7 @@
           class="item-tool"
           draggable="true"
           node-type="human"
-          data-label="人工节点"
-          task-category="SUTN"
+          :data-label="$t('artificial')"
           data-shape="rect-node"
           fill="white"
           line-width="1"
@@ -173,7 +166,7 @@
             class="item-tool-icon"
             draggable="false"
           />
-          <div class="item-tool-name">人工节点</div>
+          <div class="item-tool-name">{{ $t('artificial') }}</div>
         </div>
         <div slot="content">
           <p>功能:任务节点1,在[任务-工作台]自动创建一个人工任务</p>
@@ -187,8 +180,7 @@
           class="item-tool"
           draggable="true"
           node-type="automatic"
-          data-label="自动节点"
-          task-category="SSTN"
+          :data-label="$t('automatic')"
           data-shape="rect-node"
           fill="white"
           line-width="1"
@@ -200,7 +192,7 @@
             class="item-tool-icon"
             draggable="false"
           />
-          <div class="item-tool-name">自动节点</div>
+          <div class="item-tool-name">{{ $t('automatic') }}</div>
         </div>
         <div slot="content">
           <p>功能:任务节点2,将自动执行插件服务API</p>
@@ -214,8 +206,7 @@
           class="item-tool"
           draggable="true"
           node-type="data"
-          data-label="数据节点"
-          task-category="SDTN"
+          :data-label="$t('data')"
           data-shape="rect-node"
           fill="white"
           line-width="1"
@@ -227,7 +218,7 @@
             class="item-tool-icon"
             draggable="false"
           />
-          <div class="item-tool-name">数据节点</div>
+          <div class="item-tool-name">{{ $t('data') }}</div>
         </div>
         <div slot="content">
           <p>功能:任务节点3,执行WECMDB的数据写入</p>
@@ -240,8 +231,7 @@
           class="item-tool"
           draggable="true"
           node-type="date"
-          data-label="固定时间"
-          task-category=""
+          :data-label="$t('fixedTime')"
           data-shape="circle-node"
           fill="white"
           line-width="1"
@@ -253,7 +243,7 @@
             class="item-tool-icon"
             draggable="false"
           />
-          <div class="item-tool-name">固定时间</div>
+          <div class="item-tool-name">{{ $t('fixedTime') }}</div>
         </div>
         <div slot="content">
           <p>功能:时间节点1,控制流程进行下一步的具体时间</p>
@@ -266,8 +256,7 @@
           class="item-tool"
           draggable="true"
           node-type="timeInterval"
-          data-label="时间间隔"
-          task-category=""
+          :data-label="$t('timeInterval')"
           data-shape="circle-node"
           fill="white"
           line-width="1"
@@ -279,7 +268,7 @@
             class="item-tool-icon"
             draggable="false"
           />
-          <div class="item-tool-name">时间间隔</div>
+          <div class="item-tool-name">{{ $t('timeInterval') }}</div>
         </div>
         <div slot="content">
           <p>功能:时间节点2,控制流程进行下一步的间隔</p>
@@ -310,6 +299,7 @@ export default {
         const lineWidth = Number(icon.getAttribute('line-width'))
         const nodeType = icon.getAttribute('node-type')
         const stroke = icon.getAttribute('stroke')
+        console.log(11, label)
 
         /* 设置拖拽传输数据 */
         event.dataTransfer.setData(
