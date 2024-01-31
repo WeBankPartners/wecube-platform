@@ -31,9 +31,9 @@ type BatchExecutionJobs struct {
 	EntityName              string     `json:"entityName" xorm:"entity_name"`                             // 实体名
 	BusinessKey             string     `json:"businessKey" xorm:"business_key"`                           // 业务key
 	RootEntityId            string     `json:"rootEntityId" xorm:"root_entity_id"`                        // 根实体id
-	ExecuteTime             *time.Time `json:"-" xorm:"execute_time"`                                     // 执行时间
+	ExecuteTime             *time.Time `json:"executeTimeT" xorm:"execute_time"`                          // 执行时间
 	ExecuteTimeStr          string     `json:"executeTime" xorm:"-"`                                      // 执行时间
-	CompleteTime            *time.Time `json:"-" xorm:"complete_time"`                                    // 完成时间
+	CompleteTime            *time.Time `json:"completeTimeT" xorm:"complete_time"`                        // 完成时间
 	CompleteTimeStr         string     `json:"completeTime" xorm:"-"`                                     // 完成时间
 	ErrorCode               string     `json:"errorCode" xorm:"error_code"`                               // 错误码, 0:成功, 1:失败, 2:执行中
 	ErrorMessage            string     `json:"errorMessage" xorm:"error_message"`                         // 错误信息
