@@ -414,6 +414,22 @@ func doRunJob(c *gin.Context, reqParam *models.BatchExecRun) (result *models.Bat
 	if dangerousCheckResult != nil {
 		result.DangerousCheckResult = dangerousCheckResult
 		log.Logger.Warn("dangerous check result existed", log.JsonObj("dangerousCheckResult", dangerousCheckResult))
+		if reqParam.IsDangerousBlock {
+			// update batch exec errorCode record
+			errCode = models.BatchExecErrorCodeDangerousBlock
+			errMsg = "dangerous block"
+			updateData := make(map[string]interface{})
+			updateData["error_code"] = errCode
+			updateData["error_message"] = errMsg
+			updateData["updated_by"] = middleware.GetRequestUser(c)
+			updateData["updated_time"] = time.Now()
+			tmpErr = database.UpdateBatchExec(c, batchExecId, updateData)
+			if tmpErr != nil {
+				err = tmpErr
+				log.Logger.Error("plugin call succeed and dangerous block, but update batch execution record failed", log.Error(err))
+				return
+			}
+		}
 		return
 	}
 
