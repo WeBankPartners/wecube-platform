@@ -360,12 +360,18 @@ func doRunJob(c *gin.Context, reqParam *models.BatchExecRun) (result *models.Bat
 		inputParamConstants = append(inputParamConstants, pluginDefInputParams)
 	}
 
-	// record batch execution
-	batchExecId, tmpErr := database.InsertBatchExec(c, reqParam)
-	if tmpErr != nil {
-		err = tmpErr
-		log.Logger.Error("insert batch execution record failed", log.Error(err))
-		return
+	var batchExecId string
+	var tmpErr error
+	if continueToken == "" {
+		// record batch execution
+		batchExecId, tmpErr = database.InsertBatchExec(c, reqParam)
+		if tmpErr != nil {
+			err = tmpErr
+			log.Logger.Error("insert batch execution record failed", log.Error(err))
+			return
+		}
+	} else {
+		batchExecId = reqParam.BatchExecId
 	}
 	result.BatchExecId = batchExecId
 
