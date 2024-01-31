@@ -284,7 +284,7 @@ func getInterfaceStringList(input interface{}) (guidList []string) {
 	return
 }
 
-func DangerousBatchCheck(ctx context.Context, token string) (result *models.ItsdangerousCheckResultData, err error) {
+func DangerousBatchCheck(ctx context.Context, token string, reqParam interface{}) (result *models.ItsdangerousCheckResultData, err error) {
 	uri := fmt.Sprintf("%s/%s/v1/batch_execution_detection", models.Config.Gateway.Url, models.PluginNameItsdangerous)
 	if models.Config.HttpsEnable == "true" {
 		uri = "https://" + uri
@@ -292,7 +292,12 @@ func DangerousBatchCheck(ctx context.Context, token string) (result *models.Itsd
 		uri = "http://" + uri
 	}
 	urlObj, _ := url.Parse(uri)
-	req, reqErr := http.NewRequest(http.MethodPost, urlObj.String(), nil)
+	var reqBodyReader io.Reader
+	if reqParam != nil {
+		reqBody, _ := json.Marshal(reqParam)
+		reqBodyReader = bytes.NewReader(reqBody)
+	}
+	req, reqErr := http.NewRequest(http.MethodPost, urlObj.String(), reqBodyReader)
 	if reqErr != nil {
 		err = fmt.Errorf("new request fail,%s ", reqErr.Error())
 		return
@@ -302,6 +307,7 @@ func DangerousBatchCheck(ctx context.Context, token string) (result *models.Itsd
 	req.Header.Set(models.RequestIdHeader, reqId)
 	req.Header.Set(models.TransactionIdHeader, transId)
 	req.Header.Set(models.AuthorizationHeader, token)
+	req.Header.Set("Content-type", "application/json")
 	resp, respErr := http.DefaultClient.Do(req)
 	if respErr != nil {
 		err = fmt.Errorf("do request fail,%s ", respErr.Error())
@@ -350,6 +356,7 @@ func PluginInterfaceApi(ctx context.Context, token string, pluginInterface *mode
 	req.Header.Set(models.RequestIdHeader, reqId)
 	req.Header.Set(models.TransactionIdHeader, transId)
 	req.Header.Set(models.AuthorizationHeader, token)
+	req.Header.Set("Content-type", "application/json")
 	resp, respErr := http.DefaultClient.Do(req)
 	if respErr != nil {
 		err = fmt.Errorf("do request fail,%s ", respErr.Error())
