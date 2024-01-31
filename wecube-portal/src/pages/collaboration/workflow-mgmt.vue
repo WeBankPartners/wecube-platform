@@ -67,6 +67,7 @@ export default {
   },
   data () {
     return {
+      flowListTab: '', // 记录跳转过来时列表的tab位置
       editFlow: true, // 在查看时隐藏按钮
       canRemovedId: '',
       demoFlowId: '',
@@ -119,6 +120,7 @@ export default {
   },
   async mounted () {
     if (this.$route.query.flowId) {
+      this.flowListTab = this.$route.query.flowListTab
       this.demoFlowId = this.$route.query.flowId
       this.editFlow = this.$route.query.editFlow || true
       await this.getFlowInfo(this.demoFlowId)
@@ -129,7 +131,7 @@ export default {
         this.openCanvasPanel()
       })
     } else {
-      this.$router.push({ path: '/collaboration/workflow' })
+      this.$router.push({ path: '/collaboration/workflow', query: { flowListTab: this.flowListTab } })
     }
   },
   methods: {
@@ -151,7 +153,7 @@ export default {
         this.procDef.permissionToRole = data.permissionToRole
 
         this.mgmtNodesAndEdges(data.taskNodeInfos)
-        this.$refs.headerInfoRef.showItemInfo(this.procDef, this.editFlow)
+        this.$refs.headerInfoRef.showItemInfo(this.procDef, this.editFlow, this.flowListTab)
       }
     },
     // 整理编排节点与边数据结构
@@ -665,6 +667,11 @@ export default {
       this.itemInfoType = 'node'
       this.$nextTick(() => {
         this.$refs.itemInfoNodeRef.showItemInfo(model, true, this.procDef.rootEntity, this.editFlow)
+        // 获取节点
+        const node = this.graph.findById(id)
+
+        // 模拟点击节点
+        this.graph.emit('node:click', { target: node })
       })
     },
     // 移除删除入口
