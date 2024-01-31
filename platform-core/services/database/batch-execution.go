@@ -695,14 +695,14 @@ func GetBatchExec(c *gin.Context, batchExecId string) (result *models.BatchExecu
 	batchExecJobsQueryParam := &models.QueryRequestParam{
 		Filters: []*models.QueryRequestFilterObj{
 			&models.QueryRequestFilterObj{
-				Name:     "batch_execution_id",
+				Name:     "batchExecutionId",
 				Operator: "eq",
 				Value:    result.Id,
 			},
 		},
 		Sorting: []*models.QueryRequestSorting{
 			&models.QueryRequestSorting{
-				Field: "execute_time",
+				Field: "executeTimeT",
 				Asc:   false,
 			},
 			&models.QueryRequestSorting{
