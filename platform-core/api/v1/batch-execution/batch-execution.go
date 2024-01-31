@@ -145,7 +145,7 @@ func RetrieveTemplate(c *gin.Context) {
 	}
 
 	if len(param.Sorting) == 0 {
-		param.Sorting = append(param.Sorting, &models.QueryRequestSorting{Field: "updatedTime", Asc: false})
+		param.Sorting = append(param.Sorting, &models.QueryRequestSorting{Field: "updatedTimeT", Asc: false})
 	}
 	retData, err := database.RetrieveTemplate(c, &param)
 	if err != nil {
@@ -253,7 +253,7 @@ func RetrieveBatchExec(c *gin.Context) {
 	})
 
 	if len(param.Sorting) == 0 {
-		param.Sorting = append(param.Sorting, &models.QueryRequestSorting{Field: "updatedTime", Asc: false})
+		param.Sorting = append(param.Sorting, &models.QueryRequestSorting{Field: "updatedTimeT", Asc: false})
 		param.Sorting = append(param.Sorting, &models.QueryRequestSorting{Field: "id", Asc: true})
 	}
 
@@ -360,12 +360,30 @@ func doRunJob(c *gin.Context, reqParam *models.BatchExecRun) (result *models.Bat
 		inputParamConstants = append(inputParamConstants, pluginDefInputParams)
 	}
 
-	// record batch execution
-	batchExecId, tmpErr := database.InsertBatchExec(c, reqParam)
-	if tmpErr != nil {
-		err = tmpErr
-		log.Logger.Error("insert batch execution record failed", log.Error(err))
-		return
+	var batchExecId string
+	var tmpErr error
+	if continueToken == "" {
+		// record batch execution
+		batchExecId, tmpErr = database.InsertBatchExec(c, reqParam)
+		if tmpErr != nil {
+			err = tmpErr
+			log.Logger.Error("insert batch execution record failed", log.Error(err))
+			return
+		}
+	} else {
+		batchExecId = reqParam.BatchExecId
+		queryBatchExecData, tmpErr := database.GetBatchExec(c, batchExecId)
+		if tmpErr != nil {
+			err = tmpErr
+			log.Logger.Error(fmt.Sprintf("validate batchExecId: %s failed", batchExecId), log.Error(err))
+			return
+		}
+		if queryBatchExecData.ErrorCode != models.BatchExecErrorCodePending {
+			errMsg := fmt.Sprintf("batchExecId: %s has been finished", batchExecId)
+			err = fmt.Errorf(errMsg)
+			log.Logger.Error(errMsg)
+			return
+		}
 	}
 	result.BatchExecId = batchExecId
 
@@ -377,14 +395,16 @@ func doRunJob(c *gin.Context, reqParam *models.BatchExecRun) (result *models.Bat
 	if err != nil {
 		errCode = models.BatchExecErrorCodeFailed
 		errMsg = fmt.Sprintf("plugin call error: %s", err.Error())
+		log.Logger.Error(errMsg)
 		// update batch exec record
 		updateData := make(map[string]interface{})
 		updateData["error_code"] = errCode
 		updateData["error_message"] = errMsg
 		updateData["updated_by"] = middleware.GetRequestUser(c)
 		updateData["updated_time"] = time.Now()
-		err = database.UpdateBatchExec(c, batchExecId, updateData)
-		if err != nil {
+		tmpErr = database.UpdateBatchExec(c, batchExecId, updateData)
+		if tmpErr != nil {
+			err = tmpErr
 			log.Logger.Error("update batch execution record failed", log.Error(err), log.String("batchExecErrMsg", errMsg))
 			return
 		}
@@ -413,13 +433,28 @@ func doRunJob(c *gin.Context, reqParam *models.BatchExecRun) (result *models.Bat
 		updateData["error_message"] = errMsg
 		updateData["updated_by"] = middleware.GetRequestUser(c)
 		updateData["updated_time"] = time.Now()
-		err = database.UpdateBatchExec(c, batchExecId, updateData)
-		if err != nil {
+		tmpErr = database.UpdateBatchExec(c, batchExecId, updateData)
+		if tmpErr != nil {
+			err = tmpErr
 			log.Logger.Error("update batch execution record failed", log.Error(err), log.String("batchExecErrMsg", errMsg))
 			return
 		}
 		log.Logger.Error(fmt.Sprintf("batchExecErrMsg: %s", errMsg))
 		return
+	} else {
+		errCode = models.BatchExecErrorCodeSucceed
+		errMsg = ""
+		updateData := make(map[string]interface{})
+		updateData["error_code"] = errCode
+		updateData["error_message"] = errMsg
+		updateData["updated_by"] = middleware.GetRequestUser(c)
+		updateData["updated_time"] = time.Now()
+		tmpErr = database.UpdateBatchExec(c, batchExecId, updateData)
+		if tmpErr != nil {
+			err = tmpErr
+			log.Logger.Error("plugin call succeed, but update batch execution record failed", log.Error(err))
+			return
+		}
 	}
 
 	result.BatchExecRunResult = batchExecRunResult

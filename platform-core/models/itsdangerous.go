@@ -8,7 +8,7 @@ type ItsdangerousCheckResult struct {
 }
 
 type ItsdangerousCheckResultData struct {
-	Text int                                `json:"text"` // 高危结果描述
+	Text string                             `json:"text"` // 高危结果描述
 	Data []*ItsdangerousCheckResultDataItem `json:"data"` // 正常时返回OK
 }
 
