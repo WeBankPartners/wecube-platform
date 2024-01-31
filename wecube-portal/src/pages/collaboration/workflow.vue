@@ -150,7 +150,7 @@
           />
         </template>
       </div>
-      <span style="margin-top: 8px; margin-left: 36px">
+      <span style="margin-top: 8px; float: right">
         <Button @click="getFlowList" type="primary">{{ $t('search') }}</Button>
         <Button @click="handleReset" style="margin-left: 5px">{{ $t('reset') }}</Button>
       </span>
@@ -162,50 +162,55 @@
         <TabPane :label="$t('disabled')" name="disabled"></TabPane>
       </Tabs>
       <div class="table-zone">
-        <template v-if="data.length > 0">
-          <div v-for="(roleData, roleDataIndex) in data" :key="roleDataIndex">
-            <Card>
-              <div class="w-header" slot="title">
-                <Icon size="28" type="ios-people" />
-                <div class="title">
-                  {{ roleData.manageRole }}
-                  <span class="underline"></span>
-                </div>
-                <Icon
-                  v-if="!hideRoles.includes(roleDataIndex)"
-                  size="26"
-                  @click="changeRoleTableStatus(roleDataIndex, 'in')"
-                  type="md-arrow-dropdown"
-                  style="cursor: pointer"
-                />
-                <Icon
-                  v-else
-                  size="26"
-                  @click="changeRoleTableStatus(roleDataIndex, 'out')"
-                  type="md-arrow-dropright"
-                  style="cursor: pointer"
-                />
-              </div>
-              <div v-show="!hideRoles.includes(roleDataIndex)">
-                <Table
-                  class="hide-select-all"
-                  size="small"
-                  :columns="tableColumn"
-                  :data="roleData.dataList"
-                  @on-select-all="onSelectAll"
-                  @on-select="onSelect"
-                  @on-select-cancel="cancelSelect"
-                  @on-selection-change="onSelectionChange"
-                  width="100%"
-                ></Table>
-              </div>
-            </Card>
-          </div>
-        </template>
+        <Spin v-if="spinShow" size="large">
+          <Icon type="ios-loading" size="36"></Icon>
+        </Spin>
         <template v-else>
-          <div style="text-align: center; margin-top: 16px">
-            {{ $t('noData') }}
-          </div>
+          <template v-if="data.length > 0">
+            <div v-for="(roleData, roleDataIndex) in data" :key="roleDataIndex">
+              <Card>
+                <div class="w-header" slot="title">
+                  <Icon size="28" type="ios-people" />
+                  <div class="title">
+                    {{ roleData.manageRole }}
+                    <span class="underline"></span>
+                  </div>
+                  <Icon
+                    v-if="!hideRoles.includes(roleDataIndex)"
+                    size="26"
+                    @click="changeRoleTableStatus(roleDataIndex, 'in')"
+                    type="md-arrow-dropdown"
+                    style="cursor: pointer"
+                  />
+                  <Icon
+                    v-else
+                    size="26"
+                    @click="changeRoleTableStatus(roleDataIndex, 'out')"
+                    type="md-arrow-dropright"
+                    style="cursor: pointer"
+                  />
+                </div>
+                <div v-show="!hideRoles.includes(roleDataIndex)">
+                  <Table
+                    class="hide-select-all"
+                    size="small"
+                    :columns="tableColumn"
+                    :data="roleData.dataList"
+                    @on-select-all="onSelectAll"
+                    @on-select="onSelect"
+                    @on-select-cancel="cancelSelect"
+                    @on-selection-change="onSelectionChange"
+                    width="100%"
+                  ></Table>
+                </div>
+              </Card>
+            </div>
+          </template>
+          <template v-else>
+            <div style="text-align: center; margin-top: 16px">
+              {{ $t('noData') }}
+            </div>
+          </template>
         </template>
       </div>
     </div>
@@ -225,6 +230,7 @@ export default {
   },
   data () {
     return {
+      spinShow: true,
       expand: true,
       searchParams: {
         procDefId: '',
@@ -255,7 +261,8 @@ export default {
         },
         {
           title: 'ID',
-          width: 180,
+          width: 80,
+          ellipsis: true,
           key: 'id'
         },
         {
@@ -264,7 +271,8 @@ export default {
           render: (h, params) => {
             return (
               <span>
-                {params.row.name}({params.row.version})
+                {params.row.name}
+                <Tag style="margin-left:2px">{params.row.version}</Tag>
               </span>
             )
           }
@@ -351,7 +359,7 @@ export default {
         {
           title: this.$t('table_action'),
           key: 'action',
-          width: 110,
+          width: 120,
           align: 'left',
           fixed: 'right',
           render: (h, params) => {
@@ -428,6 +436,10 @@ export default {
     }
   },
   mounted () {
+    if (this.$route.query.flowListTab) {
+      this.searchParams.status = this.$route.query.flowListTab
+    }
+
     this.setHeaders()
     this.handleDateTypeChange(1)
     this.getFlowList()
@@ -503,7 +515,9 @@ export default {
     },
     // 获取编排列表
     async getFlowList () {
+      this.spinShow = true
       let { data, status } = await flowList(this.searchParams)
+      this.spinShow = false
       if (status === 'OK') {
         this.data = data
       }
@@ -561,7 +575,7 @@ export default {
             title: 'Success',
             desc: message
           })
-          this.$router.push({ path: '/collaboration/workflow-mgmt', query: { flowId: data.id } })
+          this.$router.push({ path: '/collaboration/workflow-mgmt', query: { flowId: data.id, flowListTab: 'draft' } })
         }
       }
     },
@@ -615,7 +629,7 @@ export default {
     editAction (row) {
       const status = row.status
       if (status === 'draft') {
-        this.$router.push({ path: '/collaboration/workflow-mgmt', query: { flowId: row.id } })
+        this.$router.push({ path: '/collaboration/workflow-mgmt', query: { flowId: row.id, flowListTab: 'draft' } })
       }
       if (status === 'deployed') {
       }
@@ -624,7 +638,7 @@ export default {
     async copyToEditAction (row) {
       let { status, data } = await flowCopy(row.id, 'y')
       if (status === 'OK') {
-        this.$router.push({ path: '/collaboration/workflow-mgmt', query: { flowId: data } })
+        this.$router.push({ path: '/collaboration/workflow-mgmt', query: { flowId: data, flowListTab: 'draft' } })
       }
     },
     async copyAction (row) {
@@ -634,11 +648,14 @@ export default {
           title: 'Success',
           desc: message + data
         })
-        this.$router.push({ path: '/collaboration/workflow-mgmt', query: { flowId: data } })
+        this.$router.push({ path: '/collaboration/workflow-mgmt', query: { flowId: data, flowListTab: 'draft' } })
       }
     },
     viewAction (row) {
-      this.$router.push({ path: '/collaboration/workflow-mgmt', query: { flowId: row.id, editFlow: 'false' } })
+      this.$router.push({
+        path: '/collaboration/workflow-mgmt',
+        query: { flowId: row.id, editFlow: 'false', flowListTab: this.searchParams.status }
+      })
     },
 
     // #endregion
@@ -700,10 +717,9 @@ export default {
         res.data.resultList.forEach(r => {
           finalResult.push(`${r.procDefName}(${r.ProcDefVersion}): ${r.message}`)
         })
-        this.$Notice.success({
+        this.$Notice.info({
           duration: 0,
           title: this.$t('import_flow'),
-          desc: 'Successful',
           render: h => {
             return (
               <div>
@@ -718,7 +734,7 @@ export default {
         if (res.data.resultList.length === 1 && res.data.resultList[0].code === 0) {
           this.$router.push({
             path: '/collaboration/workflow-mgmt',
-            query: { flowId: res.data.resultList[0].procDefId }
+            query: { flowId: res.data.resultList[0].procDefId, flowListTab: 'draft' }
           })
         }
         this.getFlowList()
