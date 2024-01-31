@@ -29,17 +29,18 @@ func CreateOrUpdateBatchExecTemplate(c *gin.Context, reqParam *models.BatchExecu
 		// create
 		reqParam.Id = guid.CreateGuid()
 		templateData := &models.BatchExecutionTemplate{
-			Id:            reqParam.Id,
-			Name:          reqParam.Name,
-			Status:        models.BatchExecTemplateStatusAvailable,
-			OperateObject: reqParam.OperateObject,
-			PluginService: reqParam.PluginService,
-			ConfigDataStr: configDataStr,
-			SourceData:    reqParam.SourceData,
-			CreatedBy:     middleware.GetRequestUser(c),
-			UpdatedBy:     "",
-			CreatedTime:   &now,
-			UpdatedTime:   &now,
+			Id:               reqParam.Id,
+			Name:             reqParam.Name,
+			Status:           models.BatchExecTemplateStatusAvailable,
+			OperateObject:    reqParam.OperateObject,
+			PluginService:    reqParam.PluginService,
+			IsDangerousBlock: reqParam.IsDangerousBlock,
+			ConfigDataStr:    configDataStr,
+			SourceData:       reqParam.SourceData,
+			CreatedBy:        middleware.GetRequestUser(c),
+			UpdatedBy:        "",
+			CreatedTime:      &now,
+			UpdatedTime:      &now,
 		}
 		action, tmpErr := db.GetInsertTableExecAction(models.TableNameBatchExecTemplate, *templateData, nil)
 		if tmpErr != nil {
@@ -64,10 +65,10 @@ func CreateOrUpdateBatchExecTemplate(c *gin.Context, reqParam *models.BatchExecu
 		}
 
 		// update
-		updateColumnStr := "`name`=?,`operate_object`=?,`plugin_service`=?,`config_data`=?,`source_data`=?,`updated_by`=?,`updated_time`=?"
+		updateColumnStr := "`name`=?,`operate_object`=?,`plugin_service`=?,`is_dangerous_block`=?,`config_data`=?,`source_data`=?,`updated_by`=?,`updated_time`=?"
 		action := &db.ExecAction{
 			Sql:   db.CombineDBSql("UPDATE ", models.TableNameBatchExecTemplate, " SET ", updateColumnStr, " WHERE id=?"),
-			Param: []interface{}{reqParam.Name, reqParam.OperateObject, reqParam.PluginService, configDataStr, reqParam.SourceData, middleware.GetRequestUser(c), now, reqParam.Id},
+			Param: []interface{}{reqParam.Name, reqParam.OperateObject, reqParam.PluginService, reqParam.IsDangerousBlock, configDataStr, reqParam.SourceData, middleware.GetRequestUser(c), now, reqParam.Id},
 		}
 		actions = append(actions, action)
 	}
@@ -767,15 +768,16 @@ func InsertBatchExec(c *gin.Context, reqParam *models.BatchExecRun) (batchExecId
 	// create
 	batchExecId = guid.CreateGuid()
 	batchExecData := &models.BatchExecution{
-		Id:                       batchExecId,
-		Name:                     reqParam.Name,
-		BatchExecutionTemplateId: reqParam.BatchExecutionTemplateId,
-		ErrorCode:                models.BatchExecErrorCodePending,
-		ConfigDataStr:            configDataStr,
-		CreatedBy:                middleware.GetRequestUser(c),
-		UpdatedBy:                "",
-		CreatedTime:              &now,
-		UpdatedTime:              &now,
+		Id:                         batchExecId,
+		Name:                       reqParam.Name,
+		BatchExecutionTemplateId:   reqParam.BatchExecutionTemplateId,
+		BatchExecutionTemplateName: reqParam.BatchExecutionTemplateName,
+		ErrorCode:                  models.BatchExecErrorCodePending,
+		ConfigDataStr:              configDataStr,
+		CreatedBy:                  middleware.GetRequestUser(c),
+		UpdatedBy:                  "",
+		CreatedTime:                &now,
+		UpdatedTime:                &now,
 	}
 	action, tmpErr := db.GetInsertTableExecAction(models.TableNameBatchExec, *batchExecData, nil)
 	if tmpErr != nil {
