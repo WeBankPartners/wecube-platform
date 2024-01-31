@@ -383,8 +383,9 @@ func doRunJob(c *gin.Context, reqParam *models.BatchExecRun) (result *models.Bat
 		updateData["error_message"] = errMsg
 		updateData["updated_by"] = middleware.GetRequestUser(c)
 		updateData["updated_time"] = time.Now()
-		err = database.UpdateBatchExec(c, batchExecId, updateData)
-		if err != nil {
+		tmpErr = database.UpdateBatchExec(c, batchExecId, updateData)
+		if tmpErr != nil {
+			err = tmpErr
 			log.Logger.Error("update batch execution record failed", log.Error(err), log.String("batchExecErrMsg", errMsg))
 			return
 		}
