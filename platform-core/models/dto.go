@@ -81,7 +81,7 @@ type SimpleLocalUserDto struct {
 	AuthSource        string                `json:"authSource"`
 	AuthContext       string                `json:"authContext"`
 	Roles             []*SimpleLocalRoleDto `json:"roles"`
-	RoleAdministrator bool                  `json:"roleAdministrator"`
+	RoleAdministrator string                `json:"roleAdministrator"`
 }
 
 func (s *SimpleLocalUserDto) AddRoles(roles []*SimpleLocalRoleDto) {
@@ -118,7 +118,7 @@ type UserDto struct {
 	UserName          string `json:"username"`
 	Password          string `json:"password"`
 	AuthType          string `json:"authType"` // LOCAL,UM
-	RoleAdministrator bool   `json:"roleAdministrator"`
+	RoleAdministrator string `json:"roleAdministrator"`
 }
 
 type MenuItemDto struct {
