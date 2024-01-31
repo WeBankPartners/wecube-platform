@@ -71,8 +71,16 @@ func ProcDefOutline(ctx context.Context, procDefId string) (result *models.ProcD
 		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
 		return
 	}
+	tmpIdMap := make(map[string]string)
+	for _, node := range procDefNodes {
+		oldId := node.Id
+		node.Id = fmt.Sprintf("pdn_%s_%s", node.NodeType, oldId)
+		tmpIdMap[oldId] = node.Id
+	}
 	parentMap, childrenMap := make(map[string][]string), make(map[string][]string)
 	for _, link := range procDefLinks {
+		link.Source = tmpIdMap[link.Source]
+		link.Target = tmpIdMap[link.Target]
 		if v, b := childrenMap[link.Source]; b {
 			childrenMap[link.Source] = append(v, link.Target)
 		} else {
@@ -116,5 +124,20 @@ func ProcDefOutline(ctx context.Context, procDefId string) (result *models.ProcD
 		}
 		result.FlowNodes = append(result.FlowNodes, &nodeObj)
 	}
+	return
+}
+
+func GetSimpleProcDefRow(ctx context.Context, procDefId string) (result *models.ProcDef, err error) {
+	var procDefRows []*models.ProcDef
+	err = db.MysqlEngine.Context(ctx).SQL("select * from proc_def where id=?", procDefId).Find(&procDefRows)
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
+		return
+	}
+	if len(procDefRows) == 0 {
+		err = exterror.New().DatabaseQueryEmptyError
+		return
+	}
+	result = procDefRows[0]
 	return
 }
