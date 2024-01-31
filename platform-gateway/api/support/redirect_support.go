@@ -2,13 +2,14 @@ package support
 
 import (
 	"fmt"
-	"github.com/WeBankPartners/wecube-platform/platform-gateway/common/log"
-	"github.com/WeBankPartners/wecube-platform/platform-gateway/model"
-	"github.com/gin-gonic/gin"
 	"io/ioutil"
 	"net/http"
 	"net/http/httputil"
 	"strings"
+
+	"github.com/WeBankPartners/wecube-platform/platform-gateway/common/log"
+	"github.com/WeBankPartners/wecube-platform/platform-gateway/model"
+	"github.com/gin-gonic/gin"
 )
 
 type RedirectInvoke struct {
@@ -35,6 +36,11 @@ func (invoke RedirectInvoke) Do(c *gin.Context) error {
 	*/
 	newRequest, _ := http.NewRequest(cloneRequest.Method, invoke.TargetUrl, cloneRequest.Body)
 	newRequest.Header = cloneRequest.Header
+	// remove Transfer-Encoding
+	delete(newRequest.Header, "Transfer-Encoding")
+	if clientIp := c.ClientIP(); clientIp != "" {
+		newRequest.Header.Set("X-Forwarded-For", clientIp)
+	}
 	newRequest.URL.RawQuery = cloneRequest.URL.RawQuery
 	//auth.SetRequestSourceAuth(newRequest, config.Config.Auth.Source.AppId, config.Config.Auth.Source.PrivateKeyBytes)
 
