@@ -154,8 +154,8 @@ func retrieveSubSystemInfo(systemCode string) (*model.SysSubSystemInfo, error) {
 }
 func authenticateSubSystem(credential *model.CredentialDto) (*model.AuthenticationResponse, error) {
 	systemCode := credential.Username
-	***REMOVED***
-	//nonce := credential.Nonce
+	password := credential.Password
+	nonce := credential.Nonce
 
 	subSystemInfo, err := retrieveSubSystemInfo(systemCode)
 	if err != nil {
@@ -169,7 +169,13 @@ func authenticateSubSystem(credential *model.CredentialDto) (*model.Authenticati
 		return nil, exterror.NewBadCredentialsError("Bad credential and failed to decrypt password.")
 	}
 
-	/*decryptedPassword, err := RSADecryptByPublic(password, subSystemPublicKey)
+	/*	var encryptedPwd []byte
+		if encryptedPwd, err = base64.StdEncoding.DecodeString(password); err != nil {
+			log.Logger.Warn("base64 decode password error", log.Error(err))
+			return nil, err
+		}*/
+
+	decryptedPassword, err := RSADecryptByPublic(password, subSystemPublicKey)
 	if err != nil {
 		log.Logger.Warn("failed to decrypt by public", log.Error(err))
 		return nil, err
@@ -178,7 +184,7 @@ func authenticateSubSystem(credential *model.CredentialDto) (*model.Authenticati
 	decryptedPasswordParts := strings.Split(string(decryptedPassword), DelimiterSystemCodeAndNonce)
 	if len(decryptedPasswordParts) < 2 || (systemCode != decryptedPasswordParts[0]) || nonce != decryptedPasswordParts[1] {
 		return nil, exterror.NewBadCredentialsError("Bad credential")
-	}*/
+	}
 
 	authResp, err := createAuthenticationResponse(credential, subSystemInfo.Authorities)
 

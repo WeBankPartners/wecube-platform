@@ -87,5 +87,13 @@
   "proc_def_import_server_error": {
     "code": 20000017,
     "message": "Import Failed: Please refresh the page and try again later."
+  },
+  "delete_user_error": {
+    "code": 20000018,
+    "message": "Delete failed: The current user has already been bound as an admin in the [%s role]. Please configure other users as admin before trying again"
+  },
+  "proc_def_loop_check_error": {
+    "code": 20000019,
+    "message": "Publish Failed: Loop in process"
   }
 }

@@ -4,7 +4,7 @@ import "time"
 
 type BatchExecution struct {
 	Id                       string                `json:"id" xorm:"id"`                                                // 唯一标识
-	Name                     string                `json:"name"`                                                        // 名称
+	Name                     string                `json:"name" xorm:"name"`                                            // 名称
 	BatchExecutionTemplateId string                `json:"batchExecutionTemplateId" xorm:"batch_execution_template_id"` // 模板id
 	ErrorCode                string                `json:"errorCode" xorm:"error_code"`                                 // 错误码, 0:成功, 1:失败, 2:执行中
 	ErrorMessage             string                `json:"errorMessage" xorm:"error_message"`                           // 错误信息
@@ -13,8 +13,10 @@ type BatchExecution struct {
 	SourceData               string                `json:"sourceData" xorm:"source_data"`                               // 回显数据
 	CreatedBy                string                `json:"createdBy" xorm:"created_by"`                                 // 创建者
 	UpdatedBy                string                `json:"updatedBy" xorm:"updated_by"`                                 // 更新者
-	CreatedTime              *time.Time            `json:"createdTime" xorm:"created_time"`                             // 创建时间
-	UpdatedTime              *time.Time            `json:"updatedTime" xorm:"updated_time"`                             // 更新时间
+	CreatedTime              *time.Time            `json:"createdTimeT" xorm:"created_time"`                            // 创建时间
+	CreatedTimeStr           string                `json:"createdTime" xorm:"-"`                                        // 创建时间
+	UpdatedTime              *time.Time            `json:"updatedTimeT" xorm:"updated_time"`                            // 更新时间
+	UpdatedTimeStr           string                `json:"updatedTime" xorm:"-"`                                        // 更新时间
 	BatchExecutionJobs       []*BatchExecutionJobs `json:"batchExecutionJobs" xorm:"-"`
 }
 
@@ -29,8 +31,10 @@ type BatchExecutionJobs struct {
 	EntityName              string     `json:"entityName" xorm:"entity_name"`                             // 实体名
 	BusinessKey             string     `json:"businessKey" xorm:"business_key"`                           // 业务key
 	RootEntityId            string     `json:"rootEntityId" xorm:"root_entity_id"`                        // 根实体id
-	ExecuteTime             *time.Time `json:"executeTime" xorm:"execute_time"`                           // 执行时间
-	CompleteTime            *time.Time `json:"completeTime" xorm:"complete_time"`                         // 完成时间
+	ExecuteTime             *time.Time `json:"executeTimeT" xorm:"execute_time"`                          // 执行时间
+	ExecuteTimeStr          string     `json:"executeTime" xorm:"-"`                                      // 执行时间
+	CompleteTime            *time.Time `json:"completeTimeT" xorm:"complete_time"`                        // 完成时间
+	CompleteTimeStr         string     `json:"completeTime" xorm:"-"`                                     // 完成时间
 	ErrorCode               string     `json:"errorCode" xorm:"error_code"`                               // 错误码, 0:成功, 1:失败, 2:执行中
 	ErrorMessage            string     `json:"errorMessage" xorm:"error_message"`                         // 错误信息
 	InputJson               string     `json:"inputJson" xorm:"input_json"`                               // 输入json
@@ -52,9 +56,11 @@ type BatchExecutionTemplate struct {
 	ConfigData       *BatchExecRun     `json:"configData" xorm:"-"`                 // 配置数据
 	SourceData       string            `json:"sourceData" xorm:"source_data"`       // 回显数据
 	CreatedBy        string            `json:"createdBy" xorm:"created_by"`         // 创建者
-	CreatedTime      *time.Time        `json:"createdTime" xorm:"created_time"`     // 创建时间
+	CreatedTime      *time.Time        `json:"createdTimeT" xorm:"created_time"`    // 创建时间
+	CreatedTimeStr   string            `json:"createdTime" xorm:"-"`                // 创建时间
 	UpdatedBy        string            `json:"updatedBy" xorm:"updated_by"`         // 更新者
-	UpdatedTime      *time.Time        `json:"updatedTime" xorm:"updated_time"`     // 更新时间
+	UpdatedTime      *time.Time        `json:"updatedTimeT" xorm:"updated_time"`    // 更新时间
+	UpdatedTimeStr   string            `json:"updatedTime" xorm:"-"`                // 更新时间
 	PermissionToRole *PermissionToRole `json:"permissionToRole" xorm:"-"`           // 权限角色
 	IsCollected      bool              `json:"isCollected" xorm:"-"`                // 是否收藏
 }
@@ -120,7 +126,7 @@ type BatchExecJobsPageData struct {
 }
 
 type BatchExecRun struct {
-	Id                         string                             `json:"id"`
+	BatchExecId                string                             `json:"batchExecId"`
 	Name                       string                             `json:"name"`
 	BatchExecutionTemplateId   string                             `json:"batchExecutionTemplateId"`
 	PackageName                string                             `json:"packageName"`

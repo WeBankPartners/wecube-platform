@@ -1,407 +1,130 @@
 <!--批量执行-模板新增-->
 <template>
   <div class="batch-execution-template-create">
-    <Form :model="form" label-position="right" :label-width="120">
-      <HeaderTitle title="执行模板信息">
-        <!--请求名-->
-        <FormItem label="模板名称">
-          <Input v-model="form.name" :maxlength="50" show-word-limit placeholder="请输入模板名称" class="form-item" />
-        </FormItem>
-      </HeaderTitle>
-      <HeaderTitle title="第1步 设置操作对象及查询条件">
-        <!--操作对象查询路径-->
-        <FormItem label="查询路径">
-          <FilterRules
-            :allDataModelsWithAttrs="allEntityType"
-            :needNativeAttr="false"
-            :needAttr="true"
-            v-model="dataModelExpression"
-            class="form-item"
-          ></FilterRules>
-        </FormItem>
-        <!--操作对象类型-->
-        <FormItem label="操作对象类型">
-          <Input disabled :value="currentPackageName + ':' + currentEntityName" class="form-item"></Input>
-        </FormItem>
-        <!--查询结果主键-->
-        <FormItem label="查询结果主键">
-          <Select filterable v-model="primatKeyAttr" class="form-item">
-            <Option v-for="entityAttr in primatKeyAttrList" :value="entityAttr.name" :key="entityAttr.id">{{
-              entityAttr.name
-            }}</Option>
-          </Select>
-        </FormItem>
-        <!--查询结果展示列-->
-        <FormItem :show-message="false">
-          <span slot="label">
-            <Tooltip :content="$t('bc_set_columns_tip')">
-              <Icon type="ios-help-circle-outline" />
-            </Tooltip>
-            {{ '查询结果展示列' }}
-          </span>
-          <Select filterable multiple v-model="userTableColumns" class="form-item">
-            <Option v-for="entityAttr in primatKeyAttrList" :value="entityAttr.name" :key="entityAttr.id">{{
-              entityAttr.name
-            }}</Option>
-          </Select>
-        </FormItem>
-        <!--设置过滤条件-->
-        <FormItem label="设置过滤条件">
-          <Row class="dynamic-condition">
-            <Button @click="editSearchParameters" type="primary" icon="md-create" class="create" />
-            <template v-if="searchParameters && searchParameters.length > 0">
-              <Col v-for="(item, index) in searchParameters" :key="index" :span="24" class="item">
-                <span color="success">{{ item.packageName }}-{{ item.entityName }}:{{ item.name }}</span>
-                <span color="primary" style="margin-left: 10px">{{ item.value }}</span>
-              </Col>
-            </template>
-            <div v-else style="color: #515a6e; text-align: center">请先设置过滤条件</div>
-          </Row>
-        </FormItem>
-        <ConditionTree
-          v-if="editSearchParamsVisible"
-          :visible.sync="editSearchParamsVisible"
-          :select="searchParameters"
-          :data="searchParamsTree"
-          @submit="handleSearchParamsChange"
-        ></ConditionTree>
-      </HeaderTitle>
-      <HeaderTitle title="第2步 勾选执行实例">
-        <div slot="header">
-          <Button v-if="currentPackageName" type="success" size="small" icon="ios-refresh" @click="handleRefreshSearch"
-            >刷新过滤条件查询结果</Button
-          >
-        </div>
-        <!--勾选操作实例-->
-        <FormItem label="勾选操作实例" required>
-          <EntityTable
-            :data="tableData"
-            :columns="tableColumns"
-            :loading="loading"
-            @select="
-              val => {
-                seletedRows = val
-              }
-            "
-          ></EntityTable>
-        </FormItem>
-      </HeaderTitle>
-      <HeaderTitle title="第3步 设置插件服务及参数">
-        <FormItem label="插件服务" required>
-          <Select filterable clearable v-model="pluginId" @on-clear="clearPlugin" class="form-item">
-            <Option v-for="(item, index) in pluginOptions" :value="item.serviceName" :key="index">{{
-              item.serviceDisplayName
-            }}</Option>
-          </Select>
-        </FormItem>
-        <FormItem label="设置入参">
-          <Row v-if="pluginInputParams && pluginInputParams.length > 0" class="border-box">
-            <Col v-for="(item, index) in pluginInputParams" :key="index" :span="12" style="margin-bottom: 12px">
-              <span style="display: inline-block; width: 100px">{{ item.name }}</span>
-              <Input v-if="item.mappingType === 'constant'" v-model="item.bindValue" style="width: 400px" />
-              <span v-else>{{ item.mappingType === 'entity' ? $t('bc_from_CI') : $t('bc_from_system') }}</span>
-            </Col>
-          </Row>
-          <div v-else class="no-data">请先选择插件服务</div>
-        </FormItem>
-        <FormItem label="执行结果展示列(插件出参)">
-          <Select filterable clearable multiple v-model="resultTableParams" class="form-item">
-            <Option v-for="(item, index) in pluginOutputParams" :value="item.name" :key="index">{{ item.name }}</Option>
-          </Select>
-        </FormItem>
-      </HeaderTitle>
-    </Form>
-    <div class="footer-button">
-      <Button type="primary" :disabled="false" @click="handleSaveExcute">执行</Button>
-      <Button type="primary" :disabled="false" @click="handleSaveTemplate" style="margin-left: 10px">保存模板</Button>
+    <BaseForm ref="form" :id="id" :action="action" :data="detailData" />
+    <div v-if="action !== 'view'" class="footer-button">
+      <Button type="primary" :disabled="false" @click="saveExcute">执行</Button>
+      <Button type="primary" :disabled="false" @click="getAuth" style="margin-left: 10px">保存模板</Button>
     </div>
     <!--权限弹窗-->
-    <AuthDialog ref="auth-dialog" />
+    <AuthDialog ref="authDialog" @sendAuth="saveTemplate" />
   </div>
 </template>
 
 <script>
-import HeaderTitle from './components/header-title.vue'
-import FilterRules from '../../components/filter-rules.vue'
-import ConditionTree from './components/condition-tree.vue'
-import EntityTable from './components/entity-table.vue'
-import AuthDialog from '@/pages/components/auth.vue'
-import {
-  getAllDataModels,
-  dmeAllEntities,
-  getPluginsByTargetEntityFilterRule,
-  entityView,
-  dmeIntegratedQuery,
-  saveBatchExecuteTemplate
-} from '@/api/server.js'
+import BaseForm from './base-form.vue'
+import AuthDialog from '../../components/auth.vue'
+import { saveBatchExecuteTemplate, getBatchExecuteTemplateDetail } from '@/api/server.js'
 export default {
   components: {
-    HeaderTitle,
-    FilterRules,
-    ConditionTree,
-    EntityTable,
+    BaseForm,
     AuthDialog
   },
   data () {
     return {
-      form: {
-        name: ''
-      },
-      dataModelExpression: ':', // 表单-查询路径
-      allEntityType: [], // 查询路径数据源
-      currentPackageName: '',
-      currentEntityName: '',
-      primatKeyAttrList: [],
-      primatKeyAttr: '', // 表单-查询结果主键
-      userTableColumns: [], // 表单-查询结果展示列
-      searchParamsTree: [],
-      searchParameters: [], // 表单-设置过滤条件
-      editSearchParamsVisible: false,
-
-      tableColumns: [], // 执行实例表格列
-      tableData: [], // 执行实例表格数据
-      seletedRows: [], // 勾选的执行实例
-      loading: false,
-
-      pluginId: '', // 表单-插件服务ID
-      pluginOptions: [], // 插件下拉列表
-      pluginInputParams: [], // 插件入参
-      pluginOutputParams: [], // 插件出参
-      resultTableParams: [] // 选择结果表出参
-    }
-  },
-  watch: {
-    dataModelExpression: async function (val) {
-      // 清空查询路径操作
-      if (val === ':' || !val) {
-        this.currentEntityName = ''
-        this.currentPackageName = ''
-        this.primatKeyAttrList = []
-        this.primatKeyAttr = ''
-        this.userTableColumns = []
-        return
-      }
-      // 获取插件服务列表
-      this.getFilteredPluginList()
-      const params = {
-        dataModelExpression: val
-      }
-      const { data, status } = await dmeAllEntities(params)
-      if (status === 'OK') {
-        this.currentEntityName = data.slice(-1)[0].entityName
-        this.currentPackageName = data.slice(-1)[0].packageName
-        this.primatKeyAttrList = data.slice(-1)[0].attributes
-
-        this.searchParamsTree = []
-        data.forEach((single, index) => {
-          const childNode = single.attributes.map(attr => {
-            attr.key = single.packageName + single.entityName + index
-            attr.index = index
-            attr.title = attr.name
-            attr.entityName = single.entityName
-            attr.packageName = single.packageName
-            return attr
-          })
-          this.searchParamsTree.push({
-            title: `${single.packageName}-${single.entityName}`,
-            children: childNode
-          })
-        })
-        // 初始化执行实例表格数据
-        this.excuteSearch()
-      }
-    },
-    pluginId (val) {
-      this.pluginOptions.forEach(plugin => {
-        if (plugin.serviceDisplayName === val) {
-          this.pluginInputParams = plugin.inputParameters
-          this.pluginOutputParams = plugin.outputParameters
-        }
-      })
-      this.pluginInputParams = this.pluginInputParams.map(_ => {
-        _.bindValue = ''
-        return _
-      })
+      type: this.$route.query.type || 'template', // 模板，执行
+      id: this.$route.query.id || '',
+      action: this.$route.query.action || '', // 新增，编辑，查看
+      detailData: {}
     }
   },
   mounted () {
-    this.getAllDataModels()
+    if (this.type === 'template' && this.id) {
+      this.getTemplateDetail()
+    }
   },
   methods: {
-    async getAllDataModels () {
-      this.selectedEntityType = null
-      const { data, status } = await getAllDataModels()
+    // 获取批量执行模板详情
+    async getTemplateDetail () {
+      const { status, data } = await getBatchExecuteTemplateDetail(this.id)
       if (status === 'OK') {
-        this.allEntityType = []
-        this.allEntityType = data.map(_ => {
-          return {
-            ..._,
-            entities: _.entities.sort(function (a, b) {
-              var s = a.name.toLowerCase()
-              var t = b.name.toLowerCase()
-              if (s < t) return -1
-              if (s > t) return 1
-            })
-          }
-        })
-      }
-    },
-    editSearchParameters () {
-      this.editSearchParamsVisible = true
-    },
-    // 设置过滤条件
-    handleSearchParamsChange (val) {
-      if (this.dataModelExpression === ':') return
-      this.searchParameters = val
-      this.excuteSearch()
-    },
-    // 更新执行实例表格
-    handleRefreshSearch () {
-      this.excuteSearch()
-    },
-    clearPlugin () {
-      this.pluginId = null
-      this.pluginInputParams = []
-      this.resultTableParams = []
-      this.pluginOutputParams = []
-    },
-    // 获取插件选择列表
-    async getFilteredPluginList () {
-      let pkg = ''
-      let entity = ''
-      let payload = {}
-      // eslint-disable-next-line no-useless-escape
-      const pathList = this.dataModelExpression.split(/[.~]+(?=[^\}]*(\{|$))/).filter(p => p.length > 1)
-      const last = pathList[pathList.length - 1]
-      const index = pathList[pathList.length - 1].indexOf('{')
-      const isBy = last.indexOf(')')
-      const current = last.split(':')
-      const ruleIndex = current[1].indexOf('{')
-      if (isBy > 0) {
-        entity = ruleIndex > 0 ? current[1].slice(0, ruleIndex) : current[1]
-        pkg = current[0].split(')')[1]
-      } else {
-        entity = ruleIndex > 0 ? current[1].slice(0, ruleIndex) : current[1]
-        pkg = last.match(/[^>]+(?=:)/)[0]
-      }
-      payload = {
-        pkgName: pkg,
-        entityName: entity,
-        targetEntityFilterRule: index > 0 ? pathList[pathList.length - 1].slice(index) : ''
-      }
-      const { status, data } = await getPluginsByTargetEntityFilterRule(payload)
-      if (status === 'OK') {
-        this.pluginOptions = data
-      }
-    },
-    // 根据过滤条件获取执行实例表格列
-    async excuteSearch () {
-      let { status, data } = await entityView(this.currentPackageName, this.currentEntityName)
-      if (status === 'OK') {
-        if (this.userTableColumns.length) {
-          this.tableColumns = this.userTableColumns.map((_, i) => {
-            return {
-              title: _,
-              key: _,
-              width: 200,
-              displaySeqNo: i + 1,
-              render: (h, params) => {
-                return (
-                  <Tooltip max-width="300" content={params.row[_].toString()}>
-                    <span class="word-ellipsis">{params.row[_]}</span>
-                  </Tooltip>
-                )
-              }
-            }
-          })
-        } else {
-          this.tableColumns = data.map((_, i) => {
-            return {
-              title: _.name,
-              key: _.name,
-              width: 200,
-              displaySeqNo: i + 1,
-              render: (h, params) => {
-                return (
-                  <Tooltip max-width="300" content={params.row[_.name].toString()}>
-                    <span class="word-ellipsis">{params.row[_.name]}</span>
-                  </Tooltip>
-                )
-              }
-            }
-          })
-        }
-        this.tableColumns.unshift({
-          type: 'selection',
-          width: 60,
-          fixed: 'left',
-          align: 'center'
-        })
-        this.entityData()
-      }
-    },
-    async entityData () {
-      const requestParameter = {
-        dataModelExpression: this.dataModelExpression,
-        filters: []
-      }
-      let keySet = []
-      this.searchParameters.forEach(sParameter => {
-        const index = keySet.indexOf(sParameter.key)
-        if (index > -1) {
-          const { name, value } = sParameter
-          if (value) {
-            requestParameter.filters[index].attributeFilters.push({
-              name,
-              value,
-              operator: 'eq'
-            })
-          }
-        } else {
-          keySet.push(sParameter.key)
-          const { index, packageName, entityName, name, value } = sParameter
-          if (value) {
-            requestParameter.filters.push({
-              index,
-              packageName,
-              entityName,
-              attributeFilters: [
-                {
-                  name,
-                  value,
-                  operator: 'eq'
-                }
-              ]
-            })
-          }
-        }
-      })
-      this.loading = true
-      const { status, data } = await dmeIntegratedQuery(requestParameter)
-      if (status === 'OK') {
-        if (data.length) {
-          const selectTag = this.seletedRows.map(item => item.id)
-          this.tableData = data
-          this.tableData.forEach(item => {
-            if (selectTag.includes(item.id)) {
-              item._checked = true
-            }
-          })
-          // this.originTableData = this.tableData
-        }
-        this.loading = false
+        this.detailData = data
       }
     },
     // 执行操作
-    handleSaveExcute () {},
+    saveExcute () {},
+    // 获取属主&使用角色
+    getAuth () {
+      const flag = this.validRequired()
+      if (flag) {
+        this.$refs.authDialog.startAuth([], [])
+      }
+    },
+    validRequired () {
+      const { name, dataModelExpression, pluginId, pluginInputParams, primatKeyAttr, userTableColumns, seletedRows } =
+        this.$refs.form
+      if (!name) {
+        this.$Message.warning('模板名称必填')
+        return false
+      }
+      if (!dataModelExpression) {
+        this.$Message.warning('查询路径必填')
+        return false
+      }
+      if (!primatKeyAttr) {
+        this.$Message.warning('查询结果主键必填')
+        return false
+      }
+      if (userTableColumns && userTableColumns.length === 0) {
+        this.$Message.warning('查询结果展示列必填')
+        return false
+      }
+      if (seletedRows && seletedRows.length === 0) {
+        this.$Message.warning('操作实例必填')
+        return false
+      }
+      if (!pluginId) {
+        this.$Message.warning('插件服务必填')
+        return false
+      }
+      if (pluginInputParams && pluginInputParams.length === 0) {
+        this.$Message.warning('插件服务入参必填')
+        return false
+      }
+      return true
+    },
     // 保存模板
-    async handleSaveTemplate () {
+    async saveTemplate (mgmtRole, useRole) {
+      const {
+        name,
+        currentPackageName,
+        currentEntityName,
+        dataModelExpression,
+        pluginId,
+        pluginOptions,
+        pluginInputParams,
+        resultTableParams,
+        primatKeyAttrList,
+        primatKeyAttr,
+        seletedRows,
+        searchParameters,
+        userTableColumns,
+        pluginOutputParams
+      } = this.$refs.form
+      // 缓存前端数据，页面回显使用
+      const frontData = {
+        userTableColumns,
+        seletedRows,
+        pluginInputParams,
+        pluginOutputParams,
+        resultTableParams
+      }
+      // 查询结果主键
+      let currentEntity = primatKeyAttrList.find(item => {
+        return item.name === primatKeyAttr
+      })
+      const resourceDatas = seletedRows.map(item => {
+        return {
+          id: item.id,
+          businessKeyValue: item[primatKeyAttr]
+        }
+      })
       // 当前插件
-      const plugin = this.pluginOptions.find(item => {
-        return item.serviceName === this.pluginId
+      const plugin = pluginOptions.find(item => {
+        return item.serviceName === pluginId
       })
       // 插件入参
-      const inputParameterDefinitions = this.pluginInputParams.map(p => {
+      const inputParameterDefinitions = pluginInputParams.map(p => {
         const inputParameterValue =
           p.mappingType === 'constant' ? (p.dataType === 'number' ? Number(p.bindValue) : p.bindValue) : null
         return {
@@ -409,34 +132,38 @@ export default {
           inputParameterValue: inputParameterValue
         }
       })
-      // 查询结果主键
-      let currentEntity = this.primatKeyAttrList.find(item => {
-        return item.name === this.primatKeyAttr
-      })
-      const resourceDatas = this.seletedRows.map(item => {
-        return {
-          id: item.id,
-          businessKeyValue: item[this.primatKeyAttr]
-        }
+      const outputParameterDefinitions = pluginOutputParams.filter(i => {
+        let flag = false
+        resultTableParams.forEach(j => {
+          if (i.name === j) {
+            flag = true
+          }
+        })
+        return flag
       })
       const configData = {
-        packageName: this.currentPackageName,
-        entityName: this.currentEntityName,
-        dataModelExpression: this.dataModelExpression,
-        primatKeyAttr: this.primatKeyAttr,
-        searchParameters: this.searchParameters,
+        packageName: currentPackageName,
+        entityName: currentEntityName,
+        dataModelExpression: dataModelExpression,
+        primatKeyAttr: primatKeyAttr,
+        searchParameters: searchParameters,
         pluginConfigInterface: plugin,
         inputParameterDefinitions,
+        outputParameterDefinitions,
         businessKeyAttribute: currentEntity,
         resourceDatas
       }
       const params = {
         id: '',
-        name: this.form.name,
-        operateObject: '',
-        pluginService: '',
+        name: name,
+        operateObject: dataModelExpression,
+        pluginService: plugin.serviceDisplayName || '',
         configData: configData,
-        permissionToRole: {}
+        permissionToRole: {
+          MGMT: mgmtRole,
+          USE: useRole
+        },
+        sourceData: JSON.stringify(frontData)
       }
       const { status } = await saveBatchExecuteTemplate(params)
       if (status === 'OK') {
@@ -444,6 +171,7 @@ export default {
           title: this.$t('successful'),
           desc: this.$t('successful')
         })
+        this.$eventBusP.$emit('change-menu', 'templateList')
       }
     }
   }
@@ -453,55 +181,11 @@ export default {
 <style lang="scss" scoped>
 .batch-execution-template-create {
   width: 100%;
-  .dynamic-condition {
-    width: 800px;
-    min-height: 100px;
-    border: 1px dashed #d7dadc;
-    padding: 10px 20px 0px 20px;
-    .item {
-      margin-bottom: 10px;
-    }
-    .create {
-      width: 24px;
-      height: 24px;
-    }
-  }
-  .border-box {
-    border: 1px dashed #d7dadc;
-    padding: 10px 20px 0px 20px;
-  }
-  .form-item {
-    width: 800px;
-  }
-  .no-data {
-    width: 800px;
-    min-height: 100px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    color: #515a6e;
-    border: 1px dashed #d7dadc;
-    padding: 10px 20px 0px 20px;
-  }
   .footer-button {
     width: 920px;
     display: flex;
     justify-content: center;
-    margin-bottom: 20px;
-  }
-}
-</style>
-<style lang="scss">
-.batch-execution-template-create {
-  .ivu-form-item {
-    margin-bottom: 12px;
-  }
-  .word-ellipsis {
-    overflow: hidden;
-    text-overflow: ellipsis;
-    display: -webkit-box;
-    -webkit-line-clamp: 1;
-    -webkit-box-orient: vertical;
+    padding-bottom: 30px;
   }
 }
 </style>

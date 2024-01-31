@@ -56,14 +56,21 @@ export default {
         {
           title: '操作对象类型',
           width: 200,
-          key: 'operateObject'
+          key: 'entityName',
+          render: (h, params) => {
+            return <span>{params.row.packageName + ':' + params.row.entityName}</span>
+          }
         },
         {
           title: '状态',
           minWidth: 100,
           key: 'errorCode',
           render: (h, params) => {
-            return <Tag>{params.row.errorCode === '0' ? '成功' : '失败'}</Tag>
+            return (
+              <Tag color={params.row.errorCode === '0' ? 'success' : 'error'}>
+                {params.row.errorCode === '0' ? '成功' : '失败'}
+              </Tag>
+            )
           }
         },
         {
@@ -115,6 +122,8 @@ export default {
       const { status, data } = await batchExecuteHistory(this.id)
       if (status === 'OK') {
         this.tableData = data.batchExecutionJobs || []
+        const dynamicColumns = data.configData.outputParameterDefinitions || []
+        dynamicColumns.forEach(item => {})
       }
     },
     handleJsonDetail (row) {

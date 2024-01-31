@@ -273,9 +273,18 @@ export const getNodeDetailById = (flowId, nodeId) =>
 export const saveBatchExecuteTemplate = data => req.post(`platform/v1/batch-execution/templates`, data)
 // 模板列表
 export const getBatchExecuteTemplateList = data => req.post(`/platform/v1/batch-execution/templates/list`, data)
+// 更新批量执行模板权限
+export const updateExecuteTemplateRole = data =>
+  req.post(`/platform/v1/batch-execution/templates/permission/update`, data)
+// 删除模板
+export const deleteExecuteTemplate = id => req.delete(`/platform/v1/batch-execution/templates/${id}`)
 // 模板详情
 export const getBatchExecuteTemplateDetail = templateId =>
-  req.post(`/platform/v1/batch-execution/templates/${templateId}`)
+  req.get(`/platform/v1/batch-execution/templates/${templateId}`)
+// 收藏模板
+export const collectBatchTemplate = data => req.post(`/platform/v1/batch-execution/templates/collect`, data)
+// 取消收藏模板
+export const uncollectBatchTemplate = data => req.post(`/platform/v1/batch-execution/templates/uncollect`, data)
 // 批量执行列表
 export const getBatchExecuteList = data => req.post(`/platform/v1/batch-execution/list`, data)
 // 批量执行历史
