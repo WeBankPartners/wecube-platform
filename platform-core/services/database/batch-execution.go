@@ -349,6 +349,8 @@ func RetrieveTemplate(c *gin.Context, reqParam *models.QueryRequestParam) (resul
 			}
 			template.ConfigData = &configData
 		}
+		template.CreatedTimeStr = template.CreatedTime.Format(models.DateTimeFormat)
+		template.UpdatedTimeStr = template.UpdatedTime.Format(models.DateTimeFormat)
 	}
 
 	var templateRoleData []*models.BatchExecutionTemplateRole
@@ -458,6 +460,8 @@ func GetTemplate(c *gin.Context, templateId string) (result *models.BatchExecuti
 		}
 		result.ConfigData = &configData
 	}
+	result.CreatedTimeStr = result.CreatedTime.Format(models.DateTimeFormat)
+	result.UpdatedTimeStr = result.UpdatedTime.Format(models.DateTimeFormat)
 	// filter permission roles
 	var templateRoleData []*models.BatchExecutionTemplateRole
 	err = db.MysqlEngine.Context(c).Table(models.TableNameBatchExecTemplateRole).
@@ -649,6 +653,8 @@ func RetrieveBatchExec(c *gin.Context, reqParam *models.QueryRequestParam) (resu
 			}
 			execData.ConfigData = &configData
 		}
+		execData.CreatedTimeStr = execData.CreatedTime.Format(models.DateTimeFormat)
+		execData.UpdatedTimeStr = execData.UpdatedTime.Format(models.DateTimeFormat)
 	}
 
 	result.Contents = batchExecData
@@ -682,19 +688,21 @@ func GetBatchExec(c *gin.Context, batchExecId string) (result *models.BatchExecu
 		}
 		result.ConfigData = &configData
 	}
+	result.CreatedTimeStr = result.CreatedTime.Format(models.DateTimeFormat)
+	result.UpdatedTimeStr = result.UpdatedTime.Format(models.DateTimeFormat)
 
 	// get batchExecutionJobs
 	batchExecJobsQueryParam := &models.QueryRequestParam{
 		Filters: []*models.QueryRequestFilterObj{
 			&models.QueryRequestFilterObj{
-				Name:     "batch_execution_id",
+				Name:     "batchExecutionId",
 				Operator: "eq",
 				Value:    result.Id,
 			},
 		},
 		Sorting: []*models.QueryRequestSorting{
 			&models.QueryRequestSorting{
-				Field: "execute_time",
+				Field: "executeTimeT",
 				Asc:   false,
 			},
 			&models.QueryRequestSorting{
@@ -734,6 +742,11 @@ func RetrieveBatchExecJobs(c *gin.Context, reqParam *models.QueryRequestParam) (
 	if err != nil {
 		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
 		return
+	}
+
+	for _, jobData := range batchExecJobsData {
+		jobData.ExecuteTimeStr = jobData.ExecuteTime.Format(models.DateTimeFormat)
+		jobData.CompleteTimeStr = jobData.CompleteTime.Format(models.DateTimeFormat)
 	}
 
 	result.Contents = batchExecJobsData
