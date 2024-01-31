@@ -3,11 +3,11 @@
     <div class="hide-panal" @click="hideItem">
       <Icon type="ios-arrow-dropright" size="28" />
     </div>
-    <div class="panal-name">节点属性：</div>
+    <div class="panal-name">{{ $t('nodeProperties') }}：</div>
     <div class="panel-content">
       <Collapse v-model="opendPanel">
         <Panel name="1">
-          基础信息
+          {{ $t('basicInfo') }}
           <template slot="content">
             <Form :label-width="120">
               <FormItem label="ID">
@@ -25,7 +25,7 @@
                 <span
                   v-if="itemCustomInfo.customAttrs.name && itemCustomInfo.customAttrs.name.length > 30"
                   style="color: red"
-                  >名称不能大于30字符</span
+                  >{{ $t('name') }}{{ $t('cannotExceed') }} 30 {{ $t('characters') }}</span
                 >
               </FormItem>
               <FormItem :label="$t('node_type')">
@@ -46,7 +46,7 @@
                     style="width: 100%"
                   ></DatePicker>
                   <span v-if="itemCustomInfo.customAttrs.timeConfig.date === ''" style="color: red"
-                    >{{ $t('date') }}不能为空</span
+                    >{{ $t('date') }}{{ $t('cannotBeEmpty') }}</span
                   >
                 </FormItem>
               </template>
@@ -134,16 +134,16 @@
                 <span
                   v-if="itemCustomInfo.customAttrs.dynamicBind && itemCustomInfo.customAttrs.bindNodeId === ''"
                   style="color: red"
-                  >{{ $t('bind_node') }}不能为空</span
+                  >{{ $t('bind_node') }}{{ $('cannotBeEmpty') }}</span
                 >
               </FormItem>
-              <FormItem :label="$t('locate_rules')">
+              <FormItem>
                 <label slot="label">
                   <span style="color: red" v-if="!itemCustomInfo.customAttrs.dynamicBind">*</span>
-                  {{ $t('bind_node') }}
+                  {{ $t('locate_rules') }}
                 </label>
                 <template v-if="itemCustomInfo.customAttrs.routineExpression === ''">
-                  请点击画布设置编排的对象类型
+                  {{ $t('setRootEntity') }}
                 </template>
                 <template v-else>
                   <ItemFilterRulesGroup
@@ -185,13 +185,15 @@
                     item.serviceDisplayName
                   }}</Option>
                 </Select>
-                <span v-if="itemCustomInfo.customAttrs.serviceName === ''" style="color: red">插件服务不能为空</span>
+                <span v-if="itemCustomInfo.customAttrs.serviceName === ''" style="color: red"
+                  >插件服务{{ $t('cannotBeEmpty') }}</span
+                >
               </FormItem>
             </Form>
             <div v-if="itemCustomInfo.customAttrs.serviceName">
-              <span style="margin-right: 20px"> 参数设置 </span>
+              <span style="margin-right: 20px"> {{ $t('parameterSettings') }} </span>
               <Tabs type="card">
-                <TabPane label="上下文参数">
+                <TabPane :label="$t('context_parameters')">
                   <div>
                     <span>设置[填充值来源-节点]列表：</span>
                     <Select
@@ -210,10 +212,10 @@
                     <div style="width: 72%">填充值来源(value)</div>
                   </div>
                   <div style="background: #e5e9ee">
-                    <div style="width: 24%; display: inline-block">参数名</div>
-                    <div style="width: 25%; display: inline-block">节点</div>
-                    <div style="width: 22%; display: inline-block">参数类型</div>
-                    <div style="width: 25%; display: inline-block">参数名</div>
+                    <div style="width: 24%; display: inline-block">{{ $t('params_name') }}</div>
+                    <div style="width: 25%; display: inline-block">{{ $t('node') }}</div>
+                    <div style="width: 22%; display: inline-block">{{ $t('params_type') }}</div>
+                    <div style="width: 25%; display: inline-block">{{ $t('params_value') }}</div>
                   </div>
                   <div
                     v-for="(item, itemIndex) in itemCustomInfo.customAttrs.paramInfos"
@@ -247,7 +249,7 @@
                     </template>
                   </div>
                 </TabPane>
-                <TabPane label="静态参数">
+                <TabPane :label="$t('constant_parameters')">
                   <div style="background: #e5e9ee">
                     <div style="width: 30%; display: inline-block">填入参数(key)</div>
                     <div style="width: 68%; display: inline-block">填充值(value)</div>
@@ -430,7 +432,7 @@ export default {
         }
       })
       if (res) {
-        this.$Message.warning('请检查上下文参数设置中的必填项！')
+        this.$Message.warning(this.$t('constant_parameters'))
       }
       return res
     },

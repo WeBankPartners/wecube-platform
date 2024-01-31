@@ -71,14 +71,14 @@
     <div>
       <Input
         v-model="searchParams.procDefId"
-        placeholder="编排ID"
+        placeholder="ID"
         class="search-item"
         clearable
         @on-change="getFlowList"
       ></Input>
       <Input
         v-model="searchParams.procDefName"
-        placeholder="编排名称"
+        :placeholder="$t('flow_name')"
         class="search-item"
         clearable
         @on-change="getFlowList"
@@ -150,62 +150,67 @@
           />
         </template>
       </div>
-      <span style="margin-top: 8px; margin-left: 36px">
+      <span style="margin-top: 8px; float: right">
         <Button @click="getFlowList" type="primary">{{ $t('search') }}</Button>
         <Button @click="handleReset" style="margin-left: 5px">{{ $t('reset') }}</Button>
       </span>
     </div>
     <div>
       <Tabs :value="searchParams.status" @on-click="changeTab">
-        <TabPane label="已发布" name="deployed"></TabPane>
-        <TabPane label="未发布" name="draft"></TabPane>
-        <TabPane label="已禁用" name="disabled"></TabPane>
+        <TabPane :label="$t('deployed')" name="deployed"></TabPane>
+        <TabPane :label="$t('draft')" name="draft"></TabPane>
+        <TabPane :label="$t('disabled')" name="disabled"></TabPane>
       </Tabs>
       <div class="table-zone">
-        <template v-if="data.length > 0">
-          <div v-for="(roleData, roleDataIndex) in data" :key="roleDataIndex">
-            <Card>
-              <div class="w-header" slot="title">
-                <Icon size="28" type="ios-people" />
-                <div class="title">
-                  {{ roleData.manageRole }}
-                  <span class="underline"></span>
-                </div>
-                <Icon
-                  v-if="!hideRoles.includes(roleDataIndex)"
-                  size="26"
-                  @click="changeRoleTableStatus(roleDataIndex, 'in')"
-                  type="md-arrow-dropdown"
-                  style="cursor: pointer"
-                />
-                <Icon
-                  v-else
-                  size="26"
-                  @click="changeRoleTableStatus(roleDataIndex, 'out')"
-                  type="md-arrow-dropright"
-                  style="cursor: pointer"
-                />
-              </div>
-              <div v-show="!hideRoles.includes(roleDataIndex)">
-                <Table
-                  class="hide-select-all"
-                  size="small"
-                  :columns="tableColumn"
-                  :data="roleData.dataList"
-                  @on-select-all="onSelectAll"
-                  @on-select="onSelect"
-                  @on-select-cancel="cancelSelect"
-                  @on-selection-change="onSelectionChange"
-                  width="100%"
-                ></Table>
-              </div>
-            </Card>
-          </div>
-        </template>
+        <Spin v-if="spinShow" size="large">
+          <Icon type="ios-loading" size="36"></Icon>
+        </Spin>
         <template v-else>
-          <div style="text-align: center; margin-top: 16px">
-            {{ $t('noData') }}
-          </div>
+          <template v-if="data.length > 0">
+            <div v-for="(roleData, roleDataIndex) in data" :key="roleDataIndex">
+              <Card>
+                <div class="w-header" slot="title">
+                  <Icon size="28" type="ios-people" />
+                  <div class="title">
+                    {{ roleData.manageRole }}
+                    <span class="underline"></span>
+                  </div>
+                  <Icon
+                    v-if="!hideRoles.includes(roleDataIndex)"
+                    size="26"
+                    @click="changeRoleTableStatus(roleDataIndex, 'in')"
+                    type="md-arrow-dropdown"
+                    style="cursor: pointer"
+                  />
+                  <Icon
+                    v-else
+                    size="26"
+                    @click="changeRoleTableStatus(roleDataIndex, 'out')"
+                    type="md-arrow-dropright"
+                    style="cursor: pointer"
+                  />
+                </div>
+                <div v-show="!hideRoles.includes(roleDataIndex)">
+                  <Table
+                    class="hide-select-all"
+                    size="small"
+                    :columns="tableColumn"
+                    :data="roleData.dataList"
+                    @on-select-all="onSelectAll"
+                    @on-select="onSelect"
+                    @on-select-cancel="cancelSelect"
+                    @on-selection-change="onSelectionChange"
+                    width="100%"
+                  ></Table>
+                </div>
+              </Card>
+            </div>
+          </template>
+          <template v-else>
+            <div style="text-align: center; margin-top: 16px">
+              {{ $t('noData') }}
+            </div>
+          </template>
         </template>
       </div>
     </div>
@@ -225,6 +230,7 @@ export default {
   },
   data () {
     return {
+      spinShow: true,
       expand: true,
       searchParams: {
         procDefId: '',
@@ -254,17 +260,19 @@ export default {
           align: 'center'
         },
         {
-          title: '编排ID',
-          width: 180,
+          title: 'ID',
+          width: 80,
+          ellipsis: true,
           key: 'id'
         },
         {
-          title: '编排名称',
+          title: this.$t('flow_name'),
           key: 'name',
           render: (h, params) => {
             return (
               <span>
-                {params.row.name}({params.row.version})
+                {params.row.name}
+                <Tag style="margin-left:2px">{params.row.version}</Tag>
               </span>
             )
           }
@@ -286,7 +294,7 @@ export default {
           }
         },
         {
-          title: '操作对象类型',
+          title: this.$t('instance_type'),
           key: 'rootEntity',
           render: (h, params) => {
             if (params.row.rootEntity !== '') {
@@ -297,10 +305,10 @@ export default {
           }
         },
         {
-          title: '使用角色',
-          key: 'rootEntity',
+          title: this.$t('use_role'),
+          key: 'userRoles',
           render: (h, params) => {
-            if (params.row.authPlugins.length > 0) {
+            if (params.row.userRoles.length > 0) {
               return (
                 params.row.userRoles &&
                 params.row.userRoles.map(i => {
@@ -313,7 +321,7 @@ export default {
           }
         },
         {
-          title: '冲突检测',
+          title: this.$t('conflict_test'),
           key: 'conflictCheck',
           width: 90,
           render: (h, params) => {
@@ -334,24 +342,24 @@ export default {
           }
         },
         {
-          title: '创建人',
+          title: this.$t('createdBy'),
           key: 'createdBy',
           width: 90
         },
         {
-          title: '更新人',
+          title: this.$t('updatedBy'),
           key: 'updatedBy',
           width: 90
         },
         {
-          title: '更新时间',
+          title: this.$t('table_updated_date'),
           key: 'updatedTime',
           width: 130
         },
         {
-          title: '操作',
+          title: this.$t('table_action'),
           key: 'action',
-          width: 110,
+          width: 120,
           align: 'left',
           fixed: 'right',
           render: (h, params) => {
@@ -428,15 +436,24 @@ export default {
     }
   },
   mounted () {
-    const accessToken = getCookie('accessToken')
-    this.headers = {
-      Authorization: 'Bearer ' + accessToken
+    if (this.$route.query.flowListTab) {
+      this.searchParams.status = this.$route.query.flowListTab
     }
+
+    this.setHeaders()
     this.handleDateTypeChange(1)
     this.getFlowList()
     this.pluginList()
   },
   methods: {
+    setHeaders () {
+      const lang = localStorage.getItem('lang') || 'zh-CN'
+      const accessToken = getCookie('accessToken')
+      this.headers = {
+        Authorization: 'Bearer ' + accessToken,
+        'Accept-Language': lang === 'zh-CN' ? 'zh-CN,zh;q=0.9,en;q=0.8' : 'en-US,en;q=0.9,zh;q=0.8'
+      }
+    },
     onSelectionChange (selection, b) {
       // console.log('onSelectionChange', selection, b)
     },
@@ -498,7 +515,9 @@ export default {
     },
     // 获取编排列表
     async getFlowList () {
+      this.spinShow = true
       let { data, status } = await flowList(this.searchParams)
+      this.spinShow = false
       if (status === 'OK') {
         this.data = data
       }
@@ -538,7 +557,7 @@ export default {
       } else if (this.authTo === 'createFlow') {
         const params = {
           id: '',
-          name: `编排_${dayjs().format('YYMMDDHHmmss')}`,
+          name: `${this.$t('workflow_report_aspect')}_${dayjs().format('YYMMDDHHmmss')}`,
           version: '1',
           scene: '',
           authPlugins: [],
@@ -556,7 +575,7 @@ export default {
             title: 'Success',
             desc: message
           })
-          this.$router.push({ path: '/collaboration/workflow-mgmt', query: { flowId: data.id } })
+          this.$router.push({ path: '/collaboration/workflow-mgmt', query: { flowId: data.id, flowListTab: 'draft' } })
         }
       }
     },
@@ -610,8 +629,7 @@ export default {
     editAction (row) {
       const status = row.status
       if (status === 'draft') {
-        console.log('转至详情')
-        this.$router.push({ path: '/collaboration/workflow-mgmt', query: { flowId: row.id } })
+        this.$router.push({ path: '/collaboration/workflow-mgmt', query: { flowId: row.id, flowListTab: 'draft' } })
       }
       if (status === 'deployed') {
       }
@@ -620,7 +638,7 @@ export default {
     async copyToEditAction (row) {
       let { status, data } = await flowCopy(row.id, 'y')
       if (status === 'OK') {
-        this.$router.push({ path: '/collaboration/workflow-mgmt', query: { flowId: data } })
+        this.$router.push({ path: '/collaboration/workflow-mgmt', query: { flowId: data, flowListTab: 'draft' } })
       }
     },
     async copyAction (row) {
@@ -630,11 +648,14 @@ export default {
           title: 'Success',
           desc: message + data
         })
-        this.$router.push({ path: '/collaboration/workflow-mgmt', query: { flowId: data } })
+        this.$router.push({ path: '/collaboration/workflow-mgmt', query: { flowId: data, flowListTab: 'draft' } })
       }
     },
     viewAction (row) {
-      this.$router.push({ path: '/collaboration/workflow-mgmt', query: { flowId: row.id, editFlow: 'false' } })
+      this.$router.push({
+        path: '/collaboration/workflow-mgmt',
+        query: { flowId: row.id, editFlow: 'false', flowListTab: this.searchParams.status }
+      })
     },
 
     // #endregion
@@ -696,10 +717,9 @@ export default {
         res.data.resultList.forEach(r => {
           finalResult.push(`${r.procDefName}(${r.ProcDefVersion}): ${r.message}`)
         })
-        this.$Notice.success({
+        this.$Notice.info({
           duration: 0,
           title: this.$t('import_flow'),
-          desc: 'Successful',
           render: h => {
             return (
               <div>
@@ -714,17 +734,14 @@ export default {
         if (res.data.resultList.length === 1 && res.data.resultList[0].code === 0) {
           this.$router.push({
             path: '/collaboration/workflow-mgmt',
-            query: { flowId: res.data.resultList[0].procDefId }
+            query: { flowId: res.data.resultList[0].procDefId, flowListTab: 'draft' }
           })
         }
         this.getFlowList()
       }
     },
     async exportFlow () {
-      const accessToken = getCookie('accessToken')
-      this.headers = {
-        Authorization: 'Bearer ' + accessToken
-      }
+      this.setHeaders()
       axios({
         method: 'post',
         url: `platform/v1/process/definitions/export`,
