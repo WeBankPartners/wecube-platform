@@ -4,7 +4,7 @@ import "time"
 
 type BatchExecution struct {
 	Id                       string                `json:"id" xorm:"id"`                                                // 唯一标识
-	Name                     string                `json:"name"`                                                        // 名称
+	Name                     string                `json:"name" xorm:"name"`                                            // 名称
 	BatchExecutionTemplateId string                `json:"batchExecutionTemplateId" xorm:"batch_execution_template_id"` // 模板id
 	ErrorCode                string                `json:"errorCode" xorm:"error_code"`                                 // 错误码, 0:成功, 1:失败, 2:执行中
 	ErrorMessage             string                `json:"errorMessage" xorm:"error_message"`                           // 错误信息
