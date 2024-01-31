@@ -372,6 +372,18 @@ func doRunJob(c *gin.Context, reqParam *models.BatchExecRun) (result *models.Bat
 		}
 	} else {
 		batchExecId = reqParam.BatchExecId
+		queryBatchExecData, tmpErr := database.GetBatchExec(c, batchExecId)
+		if tmpErr != nil {
+			err = tmpErr
+			log.Logger.Error(fmt.Sprintf("validate batchExecId: %s failed", batchExecId), log.Error(err))
+			return
+		}
+		if queryBatchExecData.ErrorCode != models.BatchExecErrorCodePending {
+			errMsg := fmt.Sprintf("batchExecId: %s has been finished", batchExecId)
+			err = fmt.Errorf(errMsg)
+			log.Logger.Error(errMsg)
+			return
+		}
 	}
 	result.BatchExecId = batchExecId
 
