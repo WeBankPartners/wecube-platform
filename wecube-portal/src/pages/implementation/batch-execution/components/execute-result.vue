@@ -1,16 +1,35 @@
 <template>
   <div class="batch-execute-result">
-    <Card :style="{ minHeight: maxHeight + 'px' }">
-      <div class="title" slot="title">
-        <span>执行结果</span>
+    <Card v-if="from === 'list'" :style="{ minHeight: maxHeight + 'px' }">
+      <div class="custom-header" slot="title">
+        <span class="title">执行结果</span>
         <!--搜索条件-->
-        <Input v-model="form.operateObject" placeholder="操作对象主键" style="width: 300px" />
-        <Select v-model="form.status" placeholder="操作对象主键" style="width: 300px; margin-left: 20px">
+        <Input v-model="form.operateObject" placeholder="操作对象类型" style="width: 300px" />
+        <Select v-model="form.status" placeholder="单条执行状态" clearable style="width: 300px; margin-left: 20px">
           <Option v-for="(i, index) in statusList" :key="index" :value="i.value">{{ i.label }}</Option>
         </Select>
+        <Button type="primary" @click="handleSearch" style="margin-left: 20px">搜索</Button>
       </div>
-      <Table size="small" :columns="tableColumns" :data="tableData" width="100%"></Table>
+      <Table size="small" :columns="tableColumns" :data="tableData" :loading="loading" width="100%"></Table>
     </Card>
+    <div v-else>
+      <div style="margin-bottom: 10px">
+        <Input v-model="form.operateObject" placeholder="操作对象类型" style="width: 300px" />
+        <Select v-model="form.status" placeholder="单条执行状态" clearable style="width: 300px; margin-left: 20px">
+          <Option v-for="(i, index) in statusList" :key="index" :value="i.value">{{ i.label }}</Option>
+        </Select>
+        <Button type="primary" @click="handleSearch" style="margin-left: 20px">搜索</Button>
+      </div>
+      <Table
+        v-if="tableColumns.length > 0"
+        size="small"
+        :columns="tableColumns"
+        :data="tableData"
+        :loading="loading"
+        width="100%"
+      ></Table>
+      <div v-else class="no-data">暂无数据</div>
+    </div>
     <Drawer
       title="输入输出"
       v-model="visible"
@@ -40,6 +59,11 @@ export default {
     id: {
       type: String,
       default: ''
+    },
+    // list列表页，create创建页
+    from: {
+      type: String,
+      default: 'list'
     }
   },
   data () {
@@ -49,31 +73,69 @@ export default {
         status: ''
       },
       statusList: [
+        { label: '全部', value: '' },
         { label: '成功', value: '0' },
         { label: '失败', value: '1' }
       ],
-      tableColumns: [
-        {
-          title: '操作对象类型',
-          width: 200,
-          key: 'entityName',
-          render: (h, params) => {
-            return <span>{params.row.packageName + ':' + params.row.entityName}</span>
-          }
-        },
-        {
-          title: '状态',
-          minWidth: 100,
-          key: 'errorCode',
-          render: (h, params) => {
-            return (
-              <Tag color={params.row.errorCode === '0' ? 'success' : 'error'}>
-                {params.row.errorCode === '0' ? '成功' : '失败'}
-              </Tag>
-            )
-          }
-        },
-        {
+      tableColumns: [],
+      tableData: [],
+      loading: false,
+      maxHeight: 500,
+      visible: false,
+      jsonData: {
+        input: {},
+        output: {}
+      }
+    }
+  },
+  mounted () {
+    this.maxHeight = document.body.clientHeight - 170
+  },
+  methods: {
+    handleSearch () {},
+    async getList (id) {
+      this.loading = true
+      const { status, data } = await batchExecuteHistory(id)
+      this.loading = false
+      if (status === 'OK') {
+        this.tableColumns = []
+        this.tableData = data.batchExecutionJobs || []
+        const dynamicColumns = data.configData.outputParameterDefinitions || []
+        this.tableColumns.push(
+          ...[
+            {
+              title: '操作对象类型',
+              width: 200,
+              key: 'entityName',
+              render: (h, params) => {
+                return <span>{params.row.packageName + ':' + params.row.entityName}</span>
+              }
+            },
+            {
+              title: '状态',
+              minWidth: 100,
+              key: 'errorCode',
+              render: (h, params) => {
+                return (
+                  <Tag color={params.row.errorCode === '0' ? 'success' : 'error'}>
+                    {params.row.errorCode === '0' ? '成功' : '失败'}
+                  </Tag>
+                )
+              }
+            }
+          ]
+        )
+        dynamicColumns.forEach(item => {
+          this.tableColumns.push({
+            title: item.name,
+            minWidth: 150,
+            key: item.name,
+            render: (h, params) => {
+              return <span>{params.row[item.name] || '--'}</span>
+            }
+          })
+        })
+        this.tableColumns.push({
           title: '操作',
           key: 'action',
           width: 80,
@@ -85,6 +147,7 @@ export default {
                 <Button
                   size="small"
                   type="info"
+                  disabled={false}
                   onClick={() => {
                     this.handleJsonDetail(params.row)
                   }}
@@ -95,35 +158,7 @@ export default {
               </Tooltip>
             )
           }
-        }
-      ],
-      tableData: [],
-      maxHeight: 500,
-      visible: false,
-      jsonData: {
-        input: {},
-        output: {}
-      }
-    }
-  },
-  watch: {
-    id (val) {
-      if (val) {
-        this.getList()
-      }
-    }
-  },
-  mounted () {
-    this.maxHeight = document.body.clientHeight - 170
-  },
-  methods: {
-    handleQuery () {},
-    async getList () {
-      const { status, data } = await batchExecuteHistory(this.id)
-      if (status === 'OK') {
-        this.tableData = data.batchExecutionJobs || []
-        const dynamicColumns = data.configData.outputParameterDefinitions || []
-        dynamicColumns.forEach(item => {})
+        })
       }
     },
     handleJsonDetail (row) {
@@ -138,19 +173,32 @@ export default {
 }
 </script>
 
-<style lang="scss">
+<style lang="scss" scoped>
 .batch-execute-result {
-  .title {
+  .custom-header {
     display: flex;
     justify-content: flex-start;
     align-items: center;
     height: 50px;
-    span {
+    .title {
       margin-right: 20px;
       font-size: 14px;
       font-weight: bold;
     }
   }
+  .no-data {
+    width: 800px;
+    min-height: 100px;
+    border: 1px dashed #d7dadc;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #515a6e;
+  }
+}
+</style>
+<style lang="scss">
+.batch-execute-result {
   .ivu-card-head {
     padding: 0 16px !important;
     border: none;

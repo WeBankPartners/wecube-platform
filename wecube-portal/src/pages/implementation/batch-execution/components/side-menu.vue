@@ -40,12 +40,18 @@
 
 <script>
 export default {
+  props: {
+    active: {
+      type: String,
+      default: ''
+    }
+  },
   data () {
     return {
       scrollTop: 0,
       expand: true,
       activeName: '',
-      openNames: [],
+      openNames: ['template'],
       menuList: [
         {
           title: '模板',
@@ -59,24 +65,22 @@ export default {
         {
           title: '执行',
           icon: 'md-folder-open',
-          name: 'excute',
+          name: 'execute',
           children: [
-            { title: '新建执行', path: '', name: 'excuteCreate' },
-            { title: '执行历史', path: '', name: 'excuteList' }
+            { title: '新建执行', path: '', name: 'executeCreate' },
+            { title: '执行历史', path: '', name: 'executeList' }
           ]
         }
       ]
     }
   },
-  created () {
-    this.menuList.forEach(i => {
-      for (let j of i.children) {
-        if (j.path === this.$route.fullPath) {
-          this.activeName = j.name
-          this.openNames = [i.name]
-        }
-      }
-    })
+  watch: {
+    active: {
+      handler (val) {
+        this.activeName = val
+      },
+      immediate: true
+    }
   },
   mounted () {
     this.$eventBusP.$emit('expand-menu', this.expand)
@@ -95,6 +99,12 @@ export default {
       this.$eventBusP.$emit('expand-menu', this.expand)
     },
     handleSelectMenu (name) {
+      if (['templateCreate', 'executeCreate'].includes(name)) {
+        this.$router.replace({
+          name: this.$route.name,
+          query: {}
+        })
+      }
       this.activeName = name
       this.$emit('select', name)
     }
