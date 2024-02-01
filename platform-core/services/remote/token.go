@@ -9,17 +9,18 @@ const (
 	DefaultSystemCode = "SYS_PLATFORM"
 )
 
-var coreToken token.CoreToken
+var coreToken *token.CoreToken
 
 // InitToken 初始化token
 func InitToken() {
+	coreToken = &token.CoreToken{}
+	coreToken.BaseUrl = models.Config.Auth.Url
+	coreToken.SubSystemCode = DefaultSystemCode
+	coreToken.SubSystemKey = models.Config.Auth.SubSystemPrivateKey
 	coreToken.InitCoreToken()
 }
 
 // GetToken 获取鉴权token
 func GetToken() string {
-	coreToken.BaseUrl = models.Config.Auth.Url
-	coreToken.SubSystemCode = DefaultSystemCode
-	coreToken.SubSystemKey = models.Config.Auth.SubSystemPrivateKey
 	return coreToken.GetCoreToken()
 }
