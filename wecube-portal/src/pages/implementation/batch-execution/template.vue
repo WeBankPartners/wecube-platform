@@ -4,6 +4,9 @@
     <div class="search">
       <!--搜索条件-->
       <BaseSearch :options="searchOptions" v-model="form" @search="handleSearch" :showExpand="false"></BaseSearch>
+      <Button v-if="from === 'template'" type="success" class="create-template" @click="handleCreateTemplate"
+        >新建模板</Button
+      >
     </div>
     <div class="template-card">
       <Card :bordered="false" dis-hover :padding="0">
@@ -12,7 +15,7 @@
             <div class="custom-header" slot="title">
               <Icon size="28" type="ios-people" />
               <div class="title">
-                {{ i.mgmtRole }}
+                {{ i.role }}
                 <span class="underline"></span>
               </div>
               <Icon
@@ -25,7 +28,7 @@
               <Icon v-else size="28" type="md-arrow-dropright" style="cursor: pointer" @click="handleExpand(i)" />
             </div>
             <div v-show="i.expand">
-              <Table size="small" :columns="tableColumns" :data="i.data" />
+              <Table size="small" :columns="tableColumns" :data="i.data" @on-row-click="handleChooseTemplate" />
             </div>
           </Card>
         </template>
@@ -55,6 +58,12 @@ export default {
   components: {
     BaseSearch,
     AuthDialog
+  },
+  props: {
+    from: {
+      type: String,
+      default: 'template'
+    }
   },
   data () {
     return {
@@ -90,11 +99,11 @@ export default {
       },
       // 模板数据
       cardList: [],
-      tableColumns: [
-        {
+      baseColumns: {
+        name: {
           title: '模板名称',
           key: 'name',
-          minWidth: 250,
+          minWidth: 220,
           render: (h, params) => {
             return (
               <div>
@@ -130,42 +139,27 @@ export default {
             )
           }
         },
-        {
+        id: {
           title: '模板ID',
           key: 'id',
-          minWidth: 150
+          minWidth: 100
         },
-        {
+        pluginService: {
           title: '插件服务',
           key: 'pluginService',
           minWidth: 150
         },
-        {
+        operateObject: {
           title: '操作对象类型',
           key: 'operateObject',
-          minWidth: 120
+          minWidth: 100
         },
-        {
-          title: '使用角色',
-          key: 'useRole',
-          minWidth: 80,
-          render: (h, params) => {
-            return (
-              <div>
-                {params.row.permissionToRole.USE &&
-                  params.row.permissionToRole.USE.map(item => {
-                    return <span>{item}</span>
-                  })}
-              </div>
-            )
-          }
-        },
-        {
+        createdTime: {
           title: '创建时间',
           key: 'createdTime',
           minWidth: 120
         },
-        {
+        action: {
           title: '操作',
           key: 'action',
           width: 190,
@@ -225,15 +219,69 @@ export default {
             )
           }
         }
-      ],
+      },
+      tableColumns: [],
       editRow: {},
       spinShow: false
     }
   },
   mounted () {
+    if (this.from === 'template') {
+      this.tableColumns = [
+        this.baseColumns.name,
+        this.baseColumns.id,
+        this.baseColumns.pluginService,
+        this.baseColumns.operateObject,
+        {
+          title: '使用角色',
+          key: 'useRole',
+          minWidth: 80,
+          render: (h, params) => {
+            return (
+              <div>
+                {params.row.permissionToRole.USE &&
+                  params.row.permissionToRole.USE.map(item => {
+                    return <Tag color="primary">{item}</Tag>
+                  })}
+              </div>
+            )
+          }
+        },
+        this.baseColumns.createdTime,
+        this.baseColumns.action
+      ]
+    } else if (this.from === 'execute') {
+      this.tableColumns = [
+        this.baseColumns.name,
+        this.baseColumns.id,
+        this.baseColumns.pluginService,
+        this.baseColumns.operateObject,
+        {
+          title: '创建人/角色',
+          key: 'createdBy',
+          minWidth: 80,
+          render: (h, params) => {
+            return (
+              <div style="display:flex;flex-direction:column">
+                <span>{params.row.createdBy}</span>
+                <span>{params.row.permissionToRole.MGMT && params.row.permissionToRole.MGMT[0]}</span>
+              </div>
+            )
+          }
+        },
+        this.baseColumns.createdTime
+      ]
+    }
     this.getTemplateList()
   },
   methods: {
+    handleCreateTemplate () {
+      this.$eventBusP.$emit('change-menu', 'templateCreate')
+    },
+    // 选择模板新建执行
+    handleChooseTemplate (row) {
+      this.$emit('select', row)
+    },
     handleSearch () {
       this.getTemplateList()
     },
@@ -248,7 +296,7 @@ export default {
         sorting: [
           {
             asc: false,
-            field: 'updatedTime'
+            field: 'updatedTimeT'
           }
         ]
       }
@@ -262,29 +310,55 @@ export default {
       this.spinShow = true
       const { status, data } = await getBatchExecuteTemplateList(params)
       if (status === 'OK') {
-        let mgmtGroup = []
-        data.contents.forEach(item => {
-          // 属主角色
-          if (item.permissionToRole.MGMT && item.permissionToRole.MGMT.length > 0) {
-            item.permissionToRole.MGMT.forEach(role => {
-              mgmtGroup.push(role)
-            })
-          }
-        })
-        mgmtGroup = Array.from(new Set(mgmtGroup))
-        this.cardList = mgmtGroup.map(role => {
-          const group = {
-            expand: true,
-            data: [],
-            mgmtRole: role
-          }
+        // 模板列表页按属主角色分组展示
+        if (this.from === 'template') {
+          let mgmtGroup = []
           data.contents.forEach(item => {
-            if (item.permissionToRole.MGMT && item.permissionToRole.MGMT.includes(role)) {
-              group.data.push(item)
+            if (item.permissionToRole.MGMT && item.permissionToRole.MGMT.length > 0) {
+              item.permissionToRole.MGMT.forEach(role => {
+                mgmtGroup.push(role)
+              })
             }
           })
-          return group
-        })
+          mgmtGroup = Array.from(new Set(mgmtGroup))
+          this.cardList = mgmtGroup.map(role => {
+            const group = {
+              expand: true,
+              data: [],
+              role: role
+            }
+            data.contents.forEach(item => {
+              if (item.permissionToRole.MGMT && item.permissionToRole.MGMT.includes(role)) {
+                group.data.push(item)
+              }
+            })
+            return group
+          })
+          // 执行选择模板页按使用角色分组展示
+        } else if (this.from === 'execute') {
+          let useGroup = []
+          data.contents.forEach(item => {
+            if (item.permissionToRole.USE && item.permissionToRole.USE.length > 0) {
+              item.permissionToRole.USE.forEach(role => {
+                useGroup.push(role)
+              })
+            }
+          })
+          useGroup = Array.from(new Set(useGroup))
+          this.cardList = useGroup.map(role => {
+            const group = {
+              expand: true,
+              data: [],
+              role: role
+            }
+            data.contents.forEach(item => {
+              if (item.permissionToRole.USE && item.permissionToRole.USE.includes(role)) {
+                group.data.push(item)
+              }
+            })
+            return group
+          })
+        }
       }
       this.spinShow = false
     },
@@ -316,8 +390,8 @@ export default {
           ...this.$route.params,
           // 更新的参数
           id: row.id,
-          type: 'template',
-          action: 'view'
+          from: 'template',
+          type: 'view'
         }
       })
     },
@@ -330,8 +404,8 @@ export default {
           ...this.$route.params,
           // 更新的参数
           id: row.id,
-          type: 'template',
-          action: 'copy'
+          from: 'template',
+          type: 'add'
         }
       })
     },
@@ -427,7 +501,7 @@ export default {
     padding: 5px 10px;
     line-height: 1;
   }
-  .content .ivu-table-row {
+  .template-card .ivu-table-row {
     cursor: pointer;
   }
   .ivu-form-item {

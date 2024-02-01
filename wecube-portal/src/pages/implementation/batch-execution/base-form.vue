@@ -1,20 +1,65 @@
 <template>
   <div class="batch-execute-base-form">
-    <Form :disabled="action === 'view'" label-position="right" :label-width="125">
+    <Row class="back-header">
+      <Icon size="22" type="md-arrow-back" class="icon" @click="handleBack" />
+      <span class="name">
+        {{ `${data.name || ''}` }}
+      </span>
+    </Row>
+    <Form :disabled="type === 'view'" label-position="right" :label-width="125">
       <HeaderTitle title="执行模板信息">
         <!--请求名-->
-        <FormItem label="模板名称" required>
+        <FormItem v-if="from === 'template' && type === 'add'" label="模板名称" required>
           <Input v-model="name" :maxlength="50" show-word-limit placeholder="请输入模板名称" class="form-item" />
         </FormItem>
+        <div v-else class="template-info">
+          <div class="item">
+            <span>模板ID：</span>
+            <span>{{ data.id }}</span>
+          </div>
+          <div class="item">
+            <span>模板名：</span>
+            <span>{{ data.name }}</span>
+          </div>
+          <div class="item">
+            <span>创建人：</span>
+            <span>{{ data.createdBy }}</span>
+          </div>
+          <div class="item">
+            <span>创建时间</span>
+            <span>{{ data.createdTime }}</span>
+          </div>
+          <div class="item">
+            <span>属主角色：</span>
+            <span>{{
+              data.permissionToRole && data.permissionToRole.MGMT && data.permissionToRole.MGMT.join('，')
+            }}</span>
+          </div>
+          <div class="item">
+            <span>使用角色：</span>
+            <span>{{
+              data.permissionToRole && data.permissionToRole.USE && data.permissionToRole.USE.join('，')
+            }}</span>
+          </div>
+        </div>
+      </HeaderTitle>
+      <HeaderTitle v-if="showResult || (from === 'execute' && type === 'view')" title="执行结果">
+        <div style="padding: 0 20px">
+          <ExecuteResult ref="executeResult" from="create"></ExecuteResult>
+        </div>
       </HeaderTitle>
       <HeaderTitle title="第1步 设置操作对象及查询条件">
+        <!--批量名称-->
+        <FormItem v-if="from === 'execute'" label="批量名称" required>
+          <Input v-model="name" :maxlength="50" show-word-limit placeholder="请输入批量名称" class="form-item" />
+        </FormItem>
         <!--操作对象查询路径-->
         <FormItem label="查询路径" required>
           <FilterRules
             :allDataModelsWithAttrs="allEntityType"
             :needNativeAttr="false"
             :needAttr="true"
-            :disabled="action === 'view'"
+            :disabled="type === 'view' || from === 'execute'"
             v-model="dataModelExpression"
             class="form-item"
           ></FilterRules>
@@ -25,7 +70,7 @@
         </FormItem>
         <!--查询结果主键-->
         <FormItem label="查询结果主键" required>
-          <Select filterable v-model="primatKeyAttr" class="form-item">
+          <Select filterable v-model="primatKeyAttr" class="form-item" :disabled="from === 'execute'">
             <Option v-for="entityAttr in primatKeyAttrList" :value="entityAttr.name" :key="entityAttr.id">{{
               entityAttr.name
             }}</Option>
@@ -39,7 +84,7 @@
               <Icon type="ios-help-circle-outline" />
             </Tooltip>
           </span>
-          <Select filterable multiple v-model="userTableColumns" class="form-item">
+          <Select filterable multiple v-model="userTableColumns" class="form-item" :disabled="from === 'execute'">
             <Option v-for="entityAttr in primatKeyAttrList" :value="entityAttr.name" :key="entityAttr.id">{{
               entityAttr.name
             }}</Option>
@@ -48,7 +93,13 @@
         <!--设置过滤条件-->
         <FormItem label="设置过滤条件">
           <Row class="dynamic-condition">
-            <Button @click="editSearchParameters" type="primary" icon="md-create" class="create" />
+            <Button
+              @click="editSearchParameters"
+              :disabled="from === 'execute'"
+              type="primary"
+              icon="md-create"
+              class="create"
+            />
             <template v-if="searchParameters && searchParameters.length > 0">
               <Col v-for="(item, index) in searchParameters" :key="index" :span="24" class="item">
                 <span color="success">{{ item.packageName }}-{{ item.entityName }}:{{ item.name }}</span>
@@ -68,9 +119,9 @@
       </HeaderTitle>
       <HeaderTitle title="第2步 勾选执行实例">
         <div slot="header">
-          <Button v-if="currentPackageName" type="success" size="small" icon="ios-refresh" @click="handleRefreshSearch"
-            >刷新查询结果</Button
-          >
+          <Button v-if="currentPackageName" type="success" size="small" icon="ios-refresh" @click="handleRefreshSearch">
+            刷新查询结果
+          </Button>
         </div>
         <!--勾选操作实例-->
         <FormItem label="勾选操作实例" required>
@@ -91,6 +142,7 @@
           <Select
             filterable
             clearable
+            :disabled="from === 'execute'"
             v-model="pluginId"
             @on-change="choosePlugin"
             @on-clear="clearPlugin"
@@ -124,8 +176,9 @@
 <script>
 import HeaderTitle from './components/header-title.vue'
 import FilterRules from '../../components/filter-rules.vue'
-import ConditionTree from './components/condition-tree.vue'
-import EntityTable from './components/entity-table.vue'
+import ConditionTree from './components/condition-tree.vue' // 过滤条件
+import EntityTable from './components/entity-table.vue' // 选择实例表格
+import ExecuteResult from './components/execute-result.vue' // 执行结果
 import {
   getAllDataModels,
   dmeAllEntities,
@@ -138,16 +191,19 @@ export default {
     HeaderTitle,
     FilterRules,
     ConditionTree,
-    EntityTable
+    EntityTable,
+    ExecuteResult
   },
   props: {
-    id: {
+    // 入口是模板还是执行
+    from: {
       type: String,
-      default: ''
+      default: 'template'
     },
-    action: {
+    // add创建，view查看
+    type: {
       type: String,
-      default: ''
+      default: 'add'
     },
     data: {
       type: Object,
@@ -156,6 +212,8 @@ export default {
   },
   data () {
     return {
+      showResult: false, // 预执行后显示执行历史
+      // 步骤一字段
       name: '', // 表单-名称
       dataModelExpression: ':', // 表单-查询路径
       allEntityType: [], // 查询路径数据源
@@ -167,12 +225,12 @@ export default {
       searchParamsTree: [],
       searchParameters: [], // 表单-设置过滤条件
       editSearchParamsVisible: false,
-
+      // 步骤二字段
       tableColumns: [], // 执行实例表格列
       tableData: [], // 执行实例表格数据
       seletedRows: [], // 勾选的执行实例
       loading: false,
-
+      // 步骤三字段
       pluginId: '', // 表单-插件服务ID
       pluginOptions: [], // 插件下拉列表
       pluginInputParams: [], // 插件入参
@@ -261,6 +319,14 @@ export default {
     this.getAllDataModels()
   },
   methods: {
+    handleBack () {
+      const name = this.from === 'template' ? 'templateList' : 'executeList'
+      this.$eventBusP.$emit('change-menu', name)
+    },
+    // 获取批量执行结果
+    getExecuteResult (id) {
+      this.$refs.executeResult.getList(id)
+    },
     async getAllDataModels () {
       this.selectedEntityType = null
       const { data, status } = await getAllDataModels()
@@ -370,9 +436,11 @@ export default {
               displaySeqNo: i + 1,
               render: (h, params) => {
                 return (
-                  <Tooltip max-width="300" content={params.row[_.name].toString()}>
-                    <span class="word-ellipsis">{params.row[_.name] || '--'}</span>
-                  </Tooltip>
+                  <div style="height:32px;">
+                    <Tooltip max-width="300" content={params.row[_.name].toString()}>
+                      <span class="word-ellipsis">{params.row[_.name] || '--'}</span>
+                    </Tooltip>
+                  </div>
                 )
               }
             }
@@ -446,6 +514,46 @@ export default {
 <style lang="scss" scoped>
 .batch-execute-base-form {
   width: 100%;
+  .template-info {
+    width: 920px;
+    display: flex;
+    padding: 0 20px;
+    flex-wrap: wrap;
+    .item {
+      width: 50%;
+      margin-bottom: 10px;
+      &:last-child {
+        margin-bottom: 0px;
+      }
+      span {
+        display: inline-block;
+        text-align: left;
+        &:first-child {
+          width: 160px;
+          padding-right: 40px;
+        }
+      }
+    }
+  }
+  .back-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 8px;
+    .icon {
+      cursor: pointer;
+      width: 28px;
+      height: 24px;
+      color: #fff;
+      border-radius: 2px;
+      background: #2d8cf0;
+    }
+    .name {
+      font-size: 16px;
+      margin-left: 16px;
+      display: flex;
+      align-items: center;
+    }
+  }
   .dynamic-condition {
     width: 800px;
     min-height: 100px;
@@ -479,7 +587,7 @@ export default {
 }
 </style>
 <style lang="scss">
-.batch-execution-template-create {
+.batch-execute-base-form {
   .ivu-form-item {
     margin-bottom: 12px;
   }

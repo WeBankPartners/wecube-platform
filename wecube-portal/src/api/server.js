@@ -289,3 +289,5 @@ export const uncollectBatchTemplate = data => req.post(`/platform/v1/batch-execu
 export const getBatchExecuteList = data => req.post(`/platform/v1/batch-execution/list`, data)
 // 批量执行历史
 export const batchExecuteHistory = id => req.get(`/platform/v1/batch-execution/${id}`)
+// 保存批量执行
+export const saveBatchExecute = data => req.post(`/platform/v1/batch-execution/job/run`, data)
