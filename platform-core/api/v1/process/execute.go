@@ -87,6 +87,12 @@ func ProcDefPreview(c *gin.Context) {
 			Value:    entityDataId,
 		}},
 	}
+	rootData, getRootDataErr := remote.QueryPluginData(c, rootExprList, []*models.QueryExpressionDataFilter{&rootFilter}, remote.GetToken())
+	if getRootDataErr != nil {
+		middleware.ReturnError(c, getRootDataErr)
+		return
+	}
+	log.Logger.Debug("rootData", log.String("entityDataId", entityDataId), log.JsonObj("data", rootData))
 	for _, node := range procOutlineData.FlowNodes {
 		if node.OrderedNo != "" && node.RoutineExpression != "" {
 			tmpQueryDataParam := models.QueryExpressionDataParam{DataModelExpression: node.RoutineExpression, Filters: []*models.QueryExpressionDataFilter{&rootFilter}}
@@ -96,6 +102,7 @@ func ProcDefPreview(c *gin.Context) {
 				break
 			}
 			log.Logger.Debug("nodeData", log.String("node", node.NodeId), log.JsonObj("data", nodeDataList))
+
 		}
 	}
 	if err != nil {

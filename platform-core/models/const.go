@@ -40,6 +40,7 @@ const (
 	BatchExecErrorCodeSucceed        = "0"
 	BatchExecErrorCodeFailed         = "1"
 	BatchExecErrorCodePending        = "2"
+	BatchExecErrorCodeDangerousBlock = "3"
 
 	// permission type
 	PermissionTypeMGMT = "MGMT"
