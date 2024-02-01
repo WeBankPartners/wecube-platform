@@ -1,7 +1,6 @@
 <template>
   <div id="itemPanel" ref="itemPanel">
     <div class="tool-component">{{ $t('components') }}</div>
-    {{ editFlow }}
     <div class="icon-tool">
       <Tooltip :maxWidth="400" placement="right" :delay="1000">
         <div
@@ -341,12 +340,13 @@ export default {
 <style lang="scss" scoped>
 #itemPanel {
   position: absolute;
-  top: 137px;
-  left: 16px;
+  top: 133px;
+  left: 22px;
   bottom: 0;
   z-index: 10;
-  width: 72px;
-  height: 80%;
+  width: 90px;
+  overflow: auto;
+  height: calc(100vh - 240px);
   background: #fff;
   text-align: center;
   // padding-top: 65px;
