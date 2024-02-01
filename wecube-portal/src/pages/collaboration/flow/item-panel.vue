@@ -1,11 +1,12 @@
 <template>
   <div id="itemPanel" ref="itemPanel">
     <div class="tool-component">{{ $t('components') }}</div>
+    {{ editFlow }}
     <div class="icon-tool">
       <Tooltip :maxWidth="400" placement="right" :delay="1000">
         <div
           class="item-tool"
-          draggable="true"
+          :draggable="editFlow"
           node-type="start"
           :data-label="$t('start')"
           data-shape="circle-node"
@@ -31,7 +32,7 @@
       <Tooltip :maxWidth="400" placement="right" :delay="1000">
         <div
           class="item-tool"
-          draggable="true"
+          :draggable="editFlow"
           node-type="end"
           :data-label="$t('end')"
           data-shape="circle-node"
@@ -57,7 +58,7 @@
       <Tooltip :maxWidth="400" placement="right" :delay="1000">
         <div
           class="item-tool"
-          draggable="true"
+          :draggable="editFlow"
           node-type="abnormal"
           :data-label="$t('abnormal')"
           data-shape="circle-node"
@@ -83,7 +84,7 @@
       <Tooltip :maxWidth="400" placement="right" :delay="1000">
         <div
           class="item-tool"
-          draggable="true"
+          :draggable="editFlow"
           node-type="decision"
           :data-label="$t('decision')"
           data-shape="diamond-node"
@@ -106,7 +107,7 @@
       <Tooltip :maxWidth="400" placement="right" :delay="1000">
         <div
           class="item-tool"
-          draggable="true"
+          :draggable="editFlow"
           node-type="fork"
           :data-label="$t('forkNode')"
           data-shape="diamond-node"
@@ -129,7 +130,7 @@
       <Tooltip :maxWidth="400" placement="right" :delay="1000">
         <div
           class="item-tool"
-          draggable="true"
+          :draggable="editFlow"
           node-type="merge"
           :data-label="$t('merge')"
           data-shape="diamond-node"
@@ -152,7 +153,7 @@
       <Tooltip :maxWidth="400" placement="right" :delay="1000">
         <div
           class="item-tool"
-          draggable="true"
+          :draggable="editFlow"
           node-type="human"
           :data-label="$t('artificial')"
           data-shape="rect-node"
@@ -178,7 +179,7 @@
       <Tooltip :maxWidth="400" placement="right" :delay="1000">
         <div
           class="item-tool"
-          draggable="true"
+          :draggable="editFlow"
           node-type="automatic"
           :data-label="$t('automatic')"
           data-shape="rect-node"
@@ -204,7 +205,7 @@
       <Tooltip :maxWidth="400" placement="right" :delay="1000">
         <div
           class="item-tool"
-          draggable="true"
+          :draggable="editFlow"
           node-type="data"
           :data-label="$t('data')"
           data-shape="rect-node"
@@ -229,7 +230,7 @@
       <Tooltip :maxWidth="400" placement="right" :delay="1000">
         <div
           class="item-tool"
-          draggable="true"
+          :draggable="editFlow"
           node-type="date"
           :data-label="$t('fixedTime')"
           data-shape="circle-node"
@@ -254,7 +255,7 @@
       <Tooltip :maxWidth="400" placement="right" :delay="1000">
         <div
           class="item-tool"
-          draggable="true"
+          :draggable="editFlow"
           node-type="timeInterval"
           :data-label="$t('timeInterval')"
           data-shape="circle-node"
@@ -285,7 +286,8 @@ export default {
   name: 'ItemPanel',
   data () {
     return {
-      itemVisible: false
+      itemVisible: false,
+      editFlow: true
     }
   },
   mounted () {
@@ -299,7 +301,6 @@ export default {
         const lineWidth = Number(icon.getAttribute('line-width'))
         const nodeType = icon.getAttribute('node-type')
         const stroke = icon.getAttribute('stroke')
-        console.log(11, label)
 
         /* 设置拖拽传输数据 */
         event.dataTransfer.setData(
@@ -324,6 +325,11 @@ export default {
       },
       false
     )
+  },
+  methods: {
+    setEditFlowStatus (editFlow) {
+      this.editFlow = editFlow
+    }
   }
 }
 </script>

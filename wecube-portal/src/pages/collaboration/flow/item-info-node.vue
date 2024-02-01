@@ -19,8 +19,8 @@
                   {{ $t('name') }}
                 </label>
                 <Input v-model="itemCustomInfo.customAttrs.name" @on-change="paramsChanged"></Input>
-                <span style="position: absolute; left: 310px; top: 2px"
-                  >{{ itemCustomInfo.customAttrs.name && itemCustomInfo.customAttrs.name.length }}/30</span
+                <span style="position: absolute; left: 310px; top: 2px; line-height: 30px; background: #ffffff"
+                  >{{ (itemCustomInfo.customAttrs.name && itemCustomInfo.customAttrs.name.length) || 0 }}/30</span
                 >
                 <span
                   v-if="itemCustomInfo.customAttrs.name && itemCustomInfo.customAttrs.name.length > 30"
@@ -134,7 +134,7 @@
                 <span
                   v-if="itemCustomInfo.customAttrs.dynamicBind && itemCustomInfo.customAttrs.bindNodeId === ''"
                   style="color: red"
-                  >{{ $t('bind_node') }}{{ $('cannotBeEmpty') }}</span
+                  >{{ $t('bind_node') }}{{ $t('cannotBeEmpty') }}</span
                 >
               </FormItem>
               <FormItem>
@@ -173,7 +173,7 @@
                 style="margin-top: 8px"
               >
                 <label slot="label">
-                  <span style="color: red" v-if="!itemCustomInfo.customAttrs.dynamicBind">*</span>
+                  <span style="color: red">*</span>
                   插件服务
                 </label>
                 <Select
@@ -630,7 +630,6 @@ export default {
     },
     // #endregion
     changDynamicBind () {
-      this.itemCustomInfo.customAttrs.bindNodeId = ''
       this.paramsChanged()
     }
   }

@@ -11,8 +11,8 @@
         </FormItem>
         <FormItem :label="$t('name')">
           <Input v-model="itemCustomInfo.name" @on-change="paramsChanged"></Input>
-          <span style="position: absolute; left: 320px; top: 2px"
-            >{{ itemCustomInfo.name && itemCustomInfo.name.length }}/30</span
+          <span style="position: absolute; left: 320px; top: 2px; line-height: 30px; background: white"
+            >{{ (itemCustomInfo.name && itemCustomInfo.name.length) || 0 }}/30</span
           >
           <span v-if="itemCustomInfo.name && itemCustomInfo.name.length > 30" style="color: red"
             >{{ $t('name') }}{{ $t('cannotExceed') }} 30 {{ $t('characters') }}</span
