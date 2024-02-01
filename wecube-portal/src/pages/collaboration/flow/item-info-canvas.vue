@@ -1,79 +1,88 @@
 <template>
-  <div id="itemInfo">
-    <div class="hide-panal" @click="hideItem">
-      <Icon type="ios-arrow-dropright" size="28" />
-    </div>
-    <div class="panal-name">{{ $t('workFlowProperties') }}：</div>
-    <Form :label-width="120" style="padding-right: 12px">
-      <FormItem label="ID">
-        <Input disabled v-model="itemCustomInfo.id"></Input>
-      </FormItem>
-      <FormItem>
-        <label slot="label">
-          <span style="color: red">*</span>
-          {{ $t('name') }}
-        </label>
-        <Input
-          v-model="itemCustomInfo.label"
-          @on-change="paramsChanged"
-          :disable="!itemCustomInfo.enableModifyName"
-        ></Input>
-        <span style="position: absolute; left: 320px; top: 2px">{{ itemCustomInfo.label.length }}/30</span>
-        <span
-          class="custom-error-tag"
-          v-if="itemCustomInfo.label.length > 30 || itemCustomInfo.label.length === 0"
-          style="color: red"
-          >{{ $t('name') }}{{ $t('cannotExceed') }} 30 {{ $t('characters') }}</span
-        >
-      </FormItem>
-      <FormItem :label="$t('version')" prop="version">
-        <InputNumber :min="1" disabled v-model="itemCustomInfo.version" style="width: 100%"></InputNumber>
-      </FormItem>
-      <FormItem>
-        <label slot="label">
-          <span style="color: red">*</span>
-          {{ $t('instance_type') }}
-        </label>
-        <FilterRules
-          @change="onEntitySelect"
-          v-model="itemCustomInfo.rootEntity"
-          :allDataModelsWithAttrs="allEntityType"
-          style="width: 100%"
-        ></FilterRules>
-        <span class="custom-error-tag" v-if="itemCustomInfo.rootEntity === ''" style="color: red"
-          >{{ $t('instance_type') }}{{ $t('cannotBeEmpty') }}</span
-        >
-      </FormItem>
-      <!-- @on-change="paramsChanged" -->
-      <FormItem label="授权插件">
-        <Select v-model="itemCustomInfo.authPlugins" filterable multiple>
-          <Option v-for="item in authPluginList" :value="item" :key="item">{{ item }} </Option>
-        </Select>
-      </FormItem>
-      <FormItem label="分组" prop="scene">
-        <Input v-model="itemCustomInfo.scene" @on-change="paramsChanged"></Input>
-        <span style="position: absolute; left: 320px; top: 2px">{{ itemCustomInfo.scene.length }}/30</span>
-        <span class="custom-error-tag" v-if="itemCustomInfo.scene.length > 30" style="color: red"
-          >分组{{ $t('cannotExceed') }} 30 {{ $t('characters') }}</span
-        >
-      </FormItem>
-      <FormItem label="冲突检测">
-        <i-switch v-model="itemCustomInfo.conflictCheck" @on-change="paramsChanged" />
-      </FormItem>
-      <FormItem :label="$t('description')">
-        <Input v-model="itemCustomInfo.tags" @on-change="paramsChanged" type="textarea" :rows="4"></Input>
-        <span style="position: relative; left: 320px; top: -28px">{{ itemCustomInfo.tags.length }}/200</span>
-        <span v-if="itemCustomInfo.tags.length > 200" style="color: red"
-          >{{ $t('description') }}{{ $t('cannotExceed') }} 30 {{ $t('characters') }}</span
-        >
-      </FormItem>
-      <div style="position: absolute; bottom: 20px; right: 280px; width: 200px">
-        <Button v-if="editFlow !== 'false'" :disabled="isSaveBtnActive()" @click="saveItem" type="primary">{{
-          $t('save')
-        }}</Button>
-        <Button @click="hideItem">{{ $t('cancel') }}</Button>
+  <div>
+    <div id="itemInfo">
+      <div class="hide-panal" @click="hideItem">
+        <Icon type="ios-arrow-dropright" size="28" />
       </div>
-    </Form>
+      <div class="panal-name">{{ $t('workFlowProperties') }}：</div>
+      <Form :label-width="120" style="padding-right: 12px">
+        <FormItem label="ID">
+          <Input disabled v-model="itemCustomInfo.id"></Input>
+        </FormItem>
+        <FormItem>
+          <label slot="label">
+            <span style="color: red">*</span>
+            {{ $t('name') }}
+          </label>
+
+          <Input
+            v-model="itemCustomInfo.label"
+            @on-change="paramsChanged"
+            :disabled="!itemCustomInfo.enableModifyName"
+          ></Input>
+          <span style="position: absolute; left: 314px; top: 2px; line-height: 30px; background: #ffffff"
+            >{{ itemCustomInfo.label.length || 0 }}/30</span
+          >
+          <span
+            class="custom-error-tag"
+            v-if="itemCustomInfo.label.length > 30 || itemCustomInfo.label.length === 0"
+            style="color: red"
+            >{{ $t('name') }}{{ $t('cannotExceed') }} 30 {{ $t('characters') }}</span
+          >
+        </FormItem>
+        <FormItem :label="$t('version')" prop="version">
+          <InputNumber :min="1" disabled v-model="itemCustomInfo.version" style="width: 100%"></InputNumber>
+        </FormItem>
+        <FormItem>
+          <label slot="label">
+            <span style="color: red">*</span>
+            {{ $t('instance_type') }}
+          </label>
+          <FilterRules
+            @change="onEntitySelect"
+            v-model="itemCustomInfo.rootEntity"
+            :allDataModelsWithAttrs="allEntityType"
+            style="width: 100%"
+          ></FilterRules>
+          <span class="custom-error-tag" v-if="itemCustomInfo.rootEntity === ''" style="color: red"
+            >{{ $t('instance_type') }}{{ $t('cannotBeEmpty') }}</span
+          >
+        </FormItem>
+        <!-- @on-change="paramsChanged" -->
+        <FormItem label="授权插件">
+          <Select v-model="itemCustomInfo.authPlugins" filterable multiple>
+            <Option v-for="item in authPluginList" :value="item" :key="item">{{ item }} </Option>
+          </Select>
+        </FormItem>
+        <FormItem label="分组" prop="scene">
+          <Input v-model="itemCustomInfo.scene" @on-change="paramsChanged"></Input>
+          <span style="position: absolute; left: 320px; top: 2px; line-height: 30px; background: #ffffff"
+            >{{ itemCustomInfo.scene.length || 0 }}/30</span
+          >
+          <span class="custom-error-tag" v-if="itemCustomInfo.scene.length > 30" style="color: red"
+            >分组{{ $t('cannotExceed') }} 30 {{ $t('characters') }}</span
+          >
+        </FormItem>
+        <FormItem label="冲突检测">
+          <i-switch v-model="itemCustomInfo.conflictCheck" @on-change="paramsChanged" />
+        </FormItem>
+        <FormItem :label="$t('description')">
+          <Input v-model="itemCustomInfo.tags" @on-change="paramsChanged" type="textarea" :rows="4"></Input>
+          <span style="position: relative; left: 310px; top: -28px; background: #ffffff"
+            >{{ itemCustomInfo.tags.length || 0 }}/200</span
+          >
+          <span v-if="itemCustomInfo.tags.length > 200" style="color: red"
+            >{{ $t('description') }}{{ $t('cannotExceed') }} 200 {{ $t('characters') }}</span
+          >
+        </FormItem>
+      </Form>
+    </div>
+    <div class="item-footer">
+      <Button v-if="editFlow !== 'false'" :disabled="isSaveBtnActive()" @click="saveItem" type="primary">{{
+        $t('save')
+      }}</Button>
+      <Button @click="hideItem">{{ $t('cancel') }}</Button>
+    </div>
   </div>
 </template>
 <script>
@@ -135,7 +144,7 @@ export default {
       keys.forEach(k => {
         this.itemCustomInfo[k] = tmpData[k]
       })
-      this.itemCustomInfo.version = Number(this.itemCustomInfo.version) || 1
+      this.itemCustomInfo.version = Number(this.itemCustomInfo.version[1])
     },
     saveItem () {
       let finalData = JSON.parse(JSON.stringify(this.itemCustomInfo))
@@ -232,7 +241,7 @@ export default {
   transition: transform 0.3s ease-in-out;
   box-shadow: 0 0 2px 0 rgba(0, 0, 0, 0.1);
   overflow: auto;
-  height: calc(100vh - 160px);
+  height: calc(100vh - 186px);
 }
 .ivu-form-item {
   margin-bottom: 12px;
@@ -251,5 +260,14 @@ export default {
   right: 500px;
   color: #2db7f5;
   cursor: pointer;
+}
+.item-footer {
+  position: absolute;
+  z-index: 10;
+  bottom: 19px;
+  right: 12px;
+  width: 500px;
+  padding: 8px 24px;
+  background: #ffffff;
 }
 </style>
