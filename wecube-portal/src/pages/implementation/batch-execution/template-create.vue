@@ -1,10 +1,10 @@
 <!--批量执行-模板新增-->
 <template>
   <div class="batch-execution-template-create">
-    <BaseForm ref="form" :id="id" :action="action" :data="detailData" />
-    <div v-if="action !== 'view'" class="footer-button">
-      <Button type="primary" :disabled="false" @click="saveExcute">执行</Button>
-      <Button type="primary" :disabled="false" @click="getAuth" style="margin-left: 10px">保存模板</Button>
+    <BaseForm ref="form" :from="from" :type="type" :data="detailData" />
+    <div v-if="type !== 'view'" class="footer-button">
+      <Button type="primary" @click="saveExcute">预执行</Button>
+      <Button type="primary" :disabled="templateDisabled" @click="getAuth" style="margin-left: 10px">保存模板</Button>
     </div>
     <!--权限弹窗-->
     <AuthDialog ref="authDialog" @sendAuth="saveTemplate" />
@@ -14,7 +14,7 @@
 <script>
 import BaseForm from './base-form.vue'
 import AuthDialog from '../../components/auth.vue'
-import { saveBatchExecuteTemplate, getBatchExecuteTemplateDetail } from '@/api/server.js'
+import { saveBatchExecute, saveBatchExecuteTemplate, getBatchExecuteTemplateDetail } from '@/api/server.js'
 export default {
   components: {
     BaseForm,
@@ -22,14 +22,15 @@ export default {
   },
   data () {
     return {
-      type: this.$route.query.type || 'template', // 模板，执行
+      from: this.$route.query.from || 'template', // 模板，执行
       id: this.$route.query.id || '',
-      action: this.$route.query.action || '', // 新增，编辑，查看
-      detailData: {}
+      type: this.$route.query.type || 'add', // 新增，编辑，查看
+      detailData: {},
+      templateDisabled: true
     }
   },
   mounted () {
-    if (this.type === 'template' && this.id) {
+    if (this.from === 'template' && this.id) {
       this.getTemplateDetail()
     }
   },
@@ -42,46 +43,95 @@ export default {
       }
     },
     // 执行操作
-    saveExcute () {},
-    // 获取属主&使用角色
-    getAuth () {
-      const flag = this.validRequired()
-      if (flag) {
-        this.$refs.authDialog.startAuth([], [])
+    async saveExcute () {
+      if (!this.validRequired()) return
+      const {
+        name,
+        currentPackageName,
+        currentEntityName,
+        dataModelExpression,
+        pluginId,
+        pluginOptions,
+        pluginInputParams,
+        resultTableParams,
+        primatKeyAttrList,
+        primatKeyAttr,
+        seletedRows,
+        searchParameters,
+        userTableColumns,
+        pluginOutputParams
+      } = this.$refs.form
+      // 缓存前端数据，页面回显使用
+      const frontData = {
+        userTableColumns,
+        seletedRows,
+        pluginInputParams,
+        pluginOutputParams,
+        resultTableParams
+      }
+      // 查询结果主键
+      let currentEntity = primatKeyAttrList.find(item => {
+        return item.name === primatKeyAttr
+      })
+      const resourceDatas = seletedRows.map(item => {
+        return {
+          id: item.id,
+          businessKeyValue: item[primatKeyAttr]
+        }
+      })
+      // 当前插件
+      const plugin = pluginOptions.find(item => {
+        return item.serviceName === pluginId
+      })
+      // 插件入参
+      const inputParameterDefinitions = pluginInputParams.map(p => {
+        const inputParameterValue =
+          p.mappingType === 'constant' ? (p.dataType === 'number' ? Number(p.bindValue) : p.bindValue) : null
+        return {
+          inputParameter: p,
+          inputParameterValue: inputParameterValue
+        }
+      })
+      const outputParameterDefinitions = pluginOutputParams.filter(i => {
+        let flag = false
+        resultTableParams.forEach(j => {
+          if (i.name === j) {
+            flag = true
+          }
+        })
+        return flag
+      })
+      const params = {
+        name: name,
+        packageName: currentPackageName,
+        entityName: currentEntityName,
+        dataModelExpression: dataModelExpression,
+        primatKeyAttr: primatKeyAttr,
+        searchParameters: searchParameters,
+        pluginConfigInterface: plugin,
+        inputParameterDefinitions,
+        outputParameterDefinitions,
+        businessKeyAttribute: currentEntity,
+        resourceDatas,
+        sourceData: JSON.stringify(frontData)
+      }
+      const { status, data } = await saveBatchExecute(params)
+      if (status === 'OK') {
+        this.$Notice.success({
+          title: this.$t('successful'),
+          desc: this.$t('successful')
+        })
+        if (data.batchExecId) {
+          this.showResult = true
+          this.$refs.form.getExecuteResult(data.batchExecId)
+        }
       }
     },
-    validRequired () {
-      const { name, dataModelExpression, pluginId, pluginInputParams, primatKeyAttr, userTableColumns, seletedRows } =
-        this.$refs.form
-      if (!name) {
-        this.$Message.warning('模板名称必填')
-        return false
+    // 获取属主&使用角色
+    getAuth () {
+      if (this.validRequired()) {
+        this.$refs.authDialog.startAuth([], [])
       }
-      if (!dataModelExpression) {
-        this.$Message.warning('查询路径必填')
-        return false
-      }
-      if (!primatKeyAttr) {
-        this.$Message.warning('查询结果主键必填')
-        return false
-      }
-      if (userTableColumns && userTableColumns.length === 0) {
-        this.$Message.warning('查询结果展示列必填')
-        return false
-      }
-      if (seletedRows && seletedRows.length === 0) {
-        this.$Message.warning('操作实例必填')
-        return false
-      }
-      if (!pluginId) {
-        this.$Message.warning('插件服务必填')
-        return false
-      }
-      if (pluginInputParams && pluginInputParams.length === 0) {
-        this.$Message.warning('插件服务入参必填')
-        return false
-      }
-      return true
     },
     // 保存模板
     async saveTemplate (mgmtRole, useRole) {
@@ -173,6 +223,39 @@ export default {
         })
         this.$eventBusP.$emit('change-menu', 'templateList')
       }
+    },
+    validRequired () {
+      const { name, dataModelExpression, pluginId, pluginInputParams, primatKeyAttr, userTableColumns, seletedRows } =
+        this.$refs.form
+      if (!name) {
+        this.$Message.warning('模板名称必填')
+        return false
+      }
+      if (!dataModelExpression) {
+        this.$Message.warning('查询路径必填')
+        return false
+      }
+      if (!primatKeyAttr) {
+        this.$Message.warning('查询结果主键必填')
+        return false
+      }
+      if (userTableColumns && userTableColumns.length === 0) {
+        this.$Message.warning('查询结果展示列必填')
+        return false
+      }
+      if (seletedRows && seletedRows.length === 0) {
+        this.$Message.warning('操作实例必填')
+        return false
+      }
+      if (!pluginId) {
+        this.$Message.warning('插件服务必填')
+        return false
+      }
+      if (pluginInputParams && pluginInputParams.length === 0) {
+        this.$Message.warning('插件服务入参必填')
+        return false
+      }
+      return true
     }
   }
 }
