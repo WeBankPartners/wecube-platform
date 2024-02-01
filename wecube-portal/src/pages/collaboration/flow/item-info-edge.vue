@@ -1,31 +1,33 @@
 <template>
-  <div id="itemInfo">
-    <div class="hide-panal" @click="hideItem">
-      <Icon type="ios-arrow-dropright" size="28" />
+  <div>
+    <div id="itemInfo">
+      <div class="hide-panal" @click="hideItem">
+        <Icon type="ios-arrow-dropright" size="28" />
+      </div>
+      <div class="panal-name">{{ $t('edgeProperties') }}：</div>
+      <Form :label-width="120" style="padding-right: 12px">
+        <template>
+          <FormItem label="ID">
+            <Input disabled v-model="itemCustomInfo.id"></Input>
+          </FormItem>
+          <FormItem :label="$t('name')">
+            <Input v-model="itemCustomInfo.name" @on-change="paramsChanged"></Input>
+            <span style="position: absolute; left: 320px; top: 2px; line-height: 30px; background: white"
+              >{{ (itemCustomInfo.name && itemCustomInfo.name.length) || 0 }}/30</span
+            >
+            <span v-if="itemCustomInfo.name && itemCustomInfo.name.length > 30" style="color: red"
+              >{{ $t('name') }}{{ $t('cannotExceed') }} 30 {{ $t('characters') }}</span
+            >
+          </FormItem>
+        </template>
+      </Form>
     </div>
-    <div class="panal-name">{{ $t('edgeProperties') }}：</div>
-    <Form :label-width="120" style="padding-right: 12px">
-      <template>
-        <FormItem label="ID">
-          <Input disabled v-model="itemCustomInfo.id"></Input>
-        </FormItem>
-        <FormItem :label="$t('name')">
-          <Input v-model="itemCustomInfo.name" @on-change="paramsChanged"></Input>
-          <span style="position: absolute; left: 320px; top: 2px; line-height: 30px; background: white"
-            >{{ (itemCustomInfo.name && itemCustomInfo.name.length) || 0 }}/30</span
-          >
-          <span v-if="itemCustomInfo.name && itemCustomInfo.name.length > 30" style="color: red"
-            >{{ $t('name') }}{{ $t('cannotExceed') }} 30 {{ $t('characters') }}</span
-          >
-        </FormItem>
-        <div style="position: absolute; bottom: 20px; right: 280px; width: 200px">
-          <Button v-if="editFlow !== 'false'" :disabled="isSaveBtnActive()" @click="saveItem" type="primary">{{
-            $t('save')
-          }}</Button>
-          <Button @click="hideItem">{{ $t('cancel') }}</Button>
-        </div>
-      </template>
-    </Form>
+    <div class="item-footer">
+      <Button v-if="editFlow !== 'false'" :disabled="isSaveBtnActive()" @click="saveItem" type="primary">{{
+        $t('save')
+      }}</Button>
+      <Button @click="hideItem">{{ $t('cancel') }}</Button>
+    </div>
   </div>
 </template>
 <script>
@@ -137,5 +139,14 @@ export default {
   right: 500px;
   color: #2db7f5;
   cursor: pointer;
+}
+.item-footer {
+  position: absolute;
+  z-index: 10;
+  bottom: 19px;
+  right: 12px;
+  width: 500px;
+  padding: 8px 24px;
+  background: #ffffff;
 }
 </style>

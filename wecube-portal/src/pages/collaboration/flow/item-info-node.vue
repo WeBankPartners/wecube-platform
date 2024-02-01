@@ -1,282 +1,288 @@
 <template>
-  <div id="itemInfo">
-    <div class="hide-panal" @click="hideItem">
-      <Icon type="ios-arrow-dropright" size="28" />
-    </div>
-    <div class="panal-name">{{ $t('nodeProperties') }}：</div>
-    <div class="panel-content">
-      <Collapse v-model="opendPanel">
-        <Panel name="1">
-          {{ $t('basicInfo') }}
-          <template slot="content">
-            <Form :label-width="120">
-              <FormItem label="ID">
-                <Input disabled v-model="itemCustomInfo.customAttrs.id"></Input>
-              </FormItem>
-              <FormItem>
-                <label slot="label">
-                  <span style="color: red">*</span>
-                  {{ $t('name') }}
-                </label>
-                <Input v-model="itemCustomInfo.customAttrs.name" @on-change="paramsChanged"></Input>
-                <span style="position: absolute; left: 310px; top: 2px; line-height: 30px; background: #ffffff"
-                  >{{ (itemCustomInfo.customAttrs.name && itemCustomInfo.customAttrs.name.length) || 0 }}/30</span
-                >
-                <span
-                  v-if="itemCustomInfo.customAttrs.name && itemCustomInfo.customAttrs.name.length > 30"
-                  style="color: red"
-                  >{{ $t('name') }}{{ $t('cannotExceed') }} 30 {{ $t('characters') }}</span
-                >
-              </FormItem>
-              <FormItem :label="$t('node_type')">
-                <Input v-model="itemCustomInfo.customAttrs.nodeType" disabled></Input>
-              </FormItem>
-              <template v-if="itemCustomInfo.customAttrs && itemCustomInfo.customAttrs.nodeType === 'date'">
+  <div>
+    <div id="itemInfo">
+      <div class="hide-panal" @click="hideItem">
+        <Icon type="ios-arrow-dropright" size="28" />
+      </div>
+      <div class="panal-name">{{ $t('nodeProperties') }}：</div>
+      <div class="panel-content">
+        <Collapse v-model="opendPanel">
+          <Panel name="1">
+            {{ $t('basicInfo') }}
+            <template slot="content">
+              <Form :label-width="120">
+                <FormItem label="ID">
+                  <Input disabled v-model="itemCustomInfo.customAttrs.id"></Input>
+                </FormItem>
                 <FormItem>
                   <label slot="label">
                     <span style="color: red">*</span>
-                    {{ $t('date') }}
+                    {{ $t('name') }}
                   </label>
-                  <DatePicker
-                    type="datetime"
-                    placeholder="Select date and time"
-                    v-model="itemCustomInfo.customAttrs.timeConfig.date"
-                    format="yyyy-MM-dd HH:mm:ss"
-                    @on-change="dateChange"
-                    style="width: 100%"
-                  ></DatePicker>
-                  <span v-if="itemCustomInfo.customAttrs.timeConfig.date === ''" style="color: red"
-                    >{{ $t('date') }}{{ $t('cannotBeEmpty') }}</span
+                  <Input v-model="itemCustomInfo.customAttrs.name" @on-change="paramsChanged"></Input>
+                  <span style="position: absolute; left: 310px; top: 2px; line-height: 30px; background: #ffffff"
+                    >{{ (itemCustomInfo.customAttrs.name && itemCustomInfo.customAttrs.name.length) || 0 }}/30</span
+                  >
+                  <span
+                    v-if="itemCustomInfo.customAttrs.name && itemCustomInfo.customAttrs.name.length > 30"
+                    style="color: red"
+                    >{{ $t('name') }}{{ $t('cannotExceed') }} 30 {{ $t('characters') }}</span
                   >
                 </FormItem>
-              </template>
-              <template v-if="itemCustomInfo.customAttrs && itemCustomInfo.customAttrs.nodeType === 'timeInterval'">
-                <FormItem :label="$t('duration')">
-                  <label slot="label">
-                    <span style="color: red">*</span>
-                    {{ $t('duration') }}
-                  </label>
-                  <InputNumber
-                    :max="100"
-                    :min="1"
-                    style="width: 49%"
-                    v-model="itemCustomInfo.customAttrs.timeConfig.duration"
-                    @on-change="paramsChanged"
-                  ></InputNumber>
-                  <Select
-                    v-model="itemCustomInfo.customAttrs.timeConfig.unit"
-                    style="width: 49%"
-                    filterable
-                    @on-change="paramsChanged"
-                  >
-                    <Option v-for="item in unitOptions" :value="item" :key="item">{{ item }}</Option>
+                <FormItem :label="$t('node_type')">
+                  <Input v-model="itemCustomInfo.customAttrs.nodeType" disabled></Input>
+                </FormItem>
+                <template v-if="itemCustomInfo.customAttrs && itemCustomInfo.customAttrs.nodeType === 'date'">
+                  <FormItem>
+                    <label slot="label">
+                      <span style="color: red">*</span>
+                      {{ $t('date') }}
+                    </label>
+                    <DatePicker
+                      type="datetime"
+                      placeholder="Select date and time"
+                      v-model="itemCustomInfo.customAttrs.timeConfig.date"
+                      format="yyyy-MM-dd HH:mm:ss"
+                      @on-change="dateChange"
+                      style="width: 100%"
+                    ></DatePicker>
+                    <span v-if="itemCustomInfo.customAttrs.timeConfig.date === ''" style="color: red"
+                      >{{ $t('date') }}{{ $t('cannotBeEmpty') }}</span
+                    >
+                  </FormItem>
+                </template>
+                <template v-if="itemCustomInfo.customAttrs && itemCustomInfo.customAttrs.nodeType === 'timeInterval'">
+                  <FormItem :label="$t('duration')">
+                    <label slot="label">
+                      <span style="color: red">*</span>
+                      {{ $t('duration') }}
+                    </label>
+                    <InputNumber
+                      :max="100"
+                      :min="1"
+                      style="width: 49%"
+                      v-model="itemCustomInfo.customAttrs.timeConfig.duration"
+                      @on-change="paramsChanged"
+                    ></InputNumber>
+                    <Select
+                      v-model="itemCustomInfo.customAttrs.timeConfig.unit"
+                      style="width: 49%"
+                      filterable
+                      @on-change="paramsChanged"
+                    >
+                      <Option v-for="item in unitOptions" :value="item" :key="item">{{ item }}</Option>
+                    </Select>
+                  </FormItem>
+                </template>
+              </Form>
+            </template>
+          </Panel>
+          <Panel
+            name="2"
+            v-if="
+              itemCustomInfo.customAttrs && ['human', 'automatic', 'data'].includes(itemCustomInfo.customAttrs.nodeType)
+            "
+          >
+            执行控制
+            <template slot="content">
+              <Form :label-width="120">
+                <FormItem :label="$t('timeout')">
+                  <Select v-model="itemCustomInfo.customAttrs.timeout" filterable @on-change="paramsChanged">
+                    <Option v-for="(item, index) in timeSelection" :value="item.mins" :key="index"
+                      >{{ item.label }}
+                    </Option>
                   </Select>
                 </FormItem>
-              </template>
-            </Form>
-          </template>
-        </Panel>
-        <Panel
-          name="2"
-          v-if="
-            itemCustomInfo.customAttrs && ['human', 'automatic', 'data'].includes(itemCustomInfo.customAttrs.nodeType)
-          "
-        >
-          执行控制
-          <template slot="content">
-            <Form :label-width="120">
-              <FormItem :label="$t('timeout')">
-                <Select v-model="itemCustomInfo.customAttrs.timeout" filterable @on-change="paramsChanged">
-                  <Option v-for="(item, index) in timeSelection" :value="item.mins" :key="index"
-                    >{{ item.label }}
-                  </Option>
-                </Select>
-              </FormItem>
-              <FormItem
-                :label="$t('pre_check')"
-                v-if="itemCustomInfo.customAttrs && !['data'].includes(itemCustomInfo.customAttrs.nodeType)"
-              >
-                <i-switch v-model="itemCustomInfo.customAttrs.riskCheck" @on-change="paramsChanged" />
-              </FormItem>
-            </Form>
-          </template>
-        </Panel>
-        <Panel
-          name="3"
-          v-if="
-            itemCustomInfo.customAttrs && ['human', 'automatic', 'data'].includes(itemCustomInfo.customAttrs.nodeType)
-          "
-        >
-          数据绑定
-          <template slot="content">
-            <Form :label-width="120">
-              <FormItem
-                :label="$t('dynamic_bind')"
-                v-if="['human', 'automatic'].includes(itemCustomInfo.customAttrs.nodeType)"
-              >
-                <i-switch v-model="itemCustomInfo.customAttrs.dynamicBind" @on-change="changDynamicBind" />
-              </FormItem>
-              <FormItem v-if="['human', 'automatic'].includes(itemCustomInfo.customAttrs.nodeType)">
-                <label slot="label">
-                  <span style="color: red" v-if="itemCustomInfo.customAttrs.dynamicBind">*</span>
-                  {{ $t('bind_node') }}
-                </label>
-                <Select
-                  v-model="itemCustomInfo.customAttrs.bindNodeId"
-                  @on-change="paramsChanged"
-                  @on-open-change="getAssociatedNodes"
-                  clearable
-                  filterable
-                  :disabled="!itemCustomInfo.customAttrs.dynamicBind"
+                <FormItem
+                  :label="$t('pre_check')"
+                  v-if="itemCustomInfo.customAttrs && !['data'].includes(itemCustomInfo.customAttrs.nodeType)"
                 >
-                  <Option v-for="(i, index) in associatedNodes" :value="i.nodeId" :key="index">{{ i.nodeName }}</Option>
-                </Select>
-                <span
-                  v-if="itemCustomInfo.customAttrs.dynamicBind && itemCustomInfo.customAttrs.bindNodeId === ''"
-                  style="color: red"
-                  >{{ $t('bind_node') }}{{ $t('cannotBeEmpty') }}</span
+                  <i-switch v-model="itemCustomInfo.customAttrs.riskCheck" @on-change="paramsChanged" />
+                </FormItem>
+              </Form>
+            </template>
+          </Panel>
+          <Panel
+            name="3"
+            v-if="
+              itemCustomInfo.customAttrs && ['human', 'automatic', 'data'].includes(itemCustomInfo.customAttrs.nodeType)
+            "
+          >
+            数据绑定
+            <template slot="content">
+              <Form :label-width="120">
+                <FormItem
+                  :label="$t('dynamic_bind')"
+                  v-if="['human', 'automatic'].includes(itemCustomInfo.customAttrs.nodeType)"
                 >
-              </FormItem>
-              <FormItem>
-                <label slot="label">
-                  <span style="color: red" v-if="!itemCustomInfo.customAttrs.dynamicBind">*</span>
-                  {{ $t('locate_rules') }}
-                </label>
-                <template v-if="itemCustomInfo.customAttrs.routineExpression === ''">
-                  {{ $t('setRootEntity') }}
-                </template>
-                <template v-else>
-                  <ItemFilterRulesGroup
-                    :isBatch="itemCustomInfo.customAttrs.nodeType === 'data'"
-                    ref="filterRulesGroupRef"
-                    @filterRuleChanged="singleFilterRuleChanged"
-                    :disabled="itemCustomInfo.customAttrs.dynamicBind"
-                    :routineExpression="itemCustomInfo.customAttrs.routineExpression || routineExpression"
-                    :allEntityType="allEntityType"
-                    :currentSelectedEntity="currentSelectedEntity"
+                  <i-switch v-model="itemCustomInfo.customAttrs.dynamicBind" @on-change="changDynamicBind" />
+                </FormItem>
+                <FormItem v-if="['human', 'automatic'].includes(itemCustomInfo.customAttrs.nodeType)">
+                  <label slot="label">
+                    <span style="color: red" v-if="itemCustomInfo.customAttrs.dynamicBind">*</span>
+                    {{ $t('bind_node') }}
+                  </label>
+                  <Select
+                    v-model="itemCustomInfo.customAttrs.bindNodeId"
+                    @on-change="paramsChanged"
+                    @on-open-change="getAssociatedNodes"
+                    clearable
+                    filterable
+                    :disabled="!itemCustomInfo.customAttrs.dynamicBind"
                   >
-                  </ItemFilterRulesGroup>
-                </template>
-              </FormItem>
-            </Form>
-          </template>
-        </Panel>
-        <Panel
-          name="4"
-          v-if="itemCustomInfo.customAttrs && ['human', 'automatic'].includes(itemCustomInfo.customAttrs.nodeType)"
-        >
-          调用插件服务
-          <template slot="content">
-            <Form :label-width="120">
-              <FormItem
-                v-if="['human', 'automatic'].includes(itemCustomInfo.customAttrs.nodeType)"
-                style="margin-top: 8px"
-              >
-                <label slot="label">
-                  <span style="color: red">*</span>
-                  插件服务
-                </label>
-                <Select
-                  v-model="itemCustomInfo.customAttrs.serviceName"
-                  @on-change="changePluginInterfaceList"
-                  filterable
-                >
-                  <Option v-for="(item, index) in filteredPlugins" :value="item.serviceName" :key="index">{{
-                    item.serviceDisplayName
-                  }}</Option>
-                </Select>
-                <span v-if="itemCustomInfo.customAttrs.serviceName === ''" style="color: red"
-                  >插件服务{{ $t('cannotBeEmpty') }}</span
-                >
-              </FormItem>
-            </Form>
-            <div v-if="itemCustomInfo.customAttrs.serviceName">
-              <span style="margin-right: 20px"> {{ $t('parameterSettings') }} </span>
-              <Tabs type="card">
-                <TabPane :label="$t('context_parameters')">
-                  <div>
-                    <span>设置[填充值来源-节点]列表：</span>
-                    <Select
-                      v-model="itemCustomInfo.customAttrs.contextParamNodes"
-                      multiple
-                      filterable
-                      style="width: 50%"
-                      @on-change="prevCtxNodeChange"
-                      @on-open-change="getRootNode"
+                    <Option v-for="(i, index) in associatedNodes" :value="i.nodeId" :key="index">{{
+                      i.nodeName
+                    }}</Option>
+                  </Select>
+                  <span
+                    v-if="itemCustomInfo.customAttrs.dynamicBind && itemCustomInfo.customAttrs.bindNodeId === ''"
+                    style="color: red"
+                    >{{ $t('bind_node') }}{{ $t('cannotBeEmpty') }}</span
+                  >
+                </FormItem>
+                <FormItem>
+                  <label slot="label">
+                    <span style="color: red" v-if="!itemCustomInfo.customAttrs.dynamicBind">*</span>
+                    {{ $t('locate_rules') }}
+                  </label>
+                  <template v-if="itemCustomInfo.customAttrs.routineExpression === ''">
+                    {{ $t('setRootEntity') }}
+                  </template>
+                  <template v-else>
+                    <ItemFilterRulesGroup
+                      :isBatch="itemCustomInfo.customAttrs.nodeType === 'data'"
+                      ref="filterRulesGroupRef"
+                      @filterRuleChanged="singleFilterRuleChanged"
+                      :disabled="itemCustomInfo.customAttrs.dynamicBind"
+                      :routineExpression="itemCustomInfo.customAttrs.routineExpression || routineExpression"
+                      :allEntityType="allEntityType"
+                      :currentSelectedEntity="currentSelectedEntity"
                     >
-                      <Option v-for="item in nodeList" :value="item.nodeId" :key="item.nodeId">{{ item.name }}</Option>
-                    </Select>
-                  </div>
-                  <div style="display: flex; background: #dee3e8">
-                    <div style="width: 25%">填入参数(key)</div>
-                    <div style="width: 72%">填充值来源(value)</div>
-                  </div>
-                  <div style="background: #e5e9ee">
-                    <div style="width: 24%; display: inline-block">{{ $t('params_name') }}</div>
-                    <div style="width: 25%; display: inline-block">{{ $t('node') }}</div>
-                    <div style="width: 22%; display: inline-block">{{ $t('params_type') }}</div>
-                    <div style="width: 25%; display: inline-block">{{ $t('params_value') }}</div>
-                  </div>
-                  <div
-                    v-for="(item, itemIndex) in itemCustomInfo.customAttrs.paramInfos"
-                    :key="itemIndex"
-                    style="margin: 4px"
+                    </ItemFilterRulesGroup>
+                  </template>
+                </FormItem>
+              </Form>
+            </template>
+          </Panel>
+          <Panel
+            name="4"
+            v-if="itemCustomInfo.customAttrs && ['human', 'automatic'].includes(itemCustomInfo.customAttrs.nodeType)"
+          >
+            调用插件服务
+            <template slot="content">
+              <Form :label-width="120">
+                <FormItem
+                  v-if="['human', 'automatic'].includes(itemCustomInfo.customAttrs.nodeType)"
+                  style="margin-top: 8px"
+                >
+                  <label slot="label">
+                    <span style="color: red">*</span>
+                    插件服务
+                  </label>
+                  <Select
+                    v-model="itemCustomInfo.customAttrs.serviceName"
+                    @on-change="changePluginInterfaceList"
+                    filterable
                   >
-                    <template v-if="item.bindType === 'context'">
-                      <div style="width: 24%; display: inline-block">
-                        <span style="color: red" v-if="item.required === 'Y'">*</span>
-                        {{ item.paramName }}
-                      </div>
-                      <div style="width: 25%; display: inline-block">
-                        <Select v-model="item.bindNodeId" filterable @on-change="onParamsNodeChange(itemIndex)">
-                          <Option v-for="(item, index) in canSelectNode" :value="item.nodeId" :key="index">{{
-                            item.name
-                          }}</Option>
-                        </Select>
-                      </div>
-                      <div style="width: 22%; display: inline-block">
-                        <Select v-model="item.bindParamType" @on-change="onParamsNodeChange(itemIndex)" filterable>
-                          <Option v-for="i in paramsTypes" :value="i.value" :key="i.value">{{ i.label }}</Option>
-                        </Select>
-                      </div>
-                      <div style="width: 25%; display: inline-block">
-                        <Select filterable v-model="item.bindParamName">
-                          <Option v-for="i in item.currentParamNames" :value="i.name" :key="i.name">{{
-                            i.name
-                          }}</Option>
-                        </Select>
-                      </div>
-                    </template>
-                  </div>
-                </TabPane>
-                <TabPane :label="$t('constant_parameters')">
-                  <div style="background: #e5e9ee">
-                    <div style="width: 30%; display: inline-block">填入参数(key)</div>
-                    <div style="width: 68%; display: inline-block">填充值(value)</div>
-                  </div>
-                  <div
-                    v-for="(item, itemIndex) in itemCustomInfo.customAttrs.paramInfos"
-                    :key="itemIndex"
-                    style="margin: 4px"
+                    <Option v-for="(item, index) in filteredPlugins" :value="item.serviceName" :key="index">{{
+                      item.serviceDisplayName
+                    }}</Option>
+                  </Select>
+                  <span v-if="itemCustomInfo.customAttrs.serviceName === ''" style="color: red"
+                    >插件服务{{ $t('cannotBeEmpty') }}</span
                   >
-                    <template v-if="item.bindType === 'constant'">
-                      <div style="width: 30%; display: inline-block; text-align: right">
-                        <span style="color: red" v-if="item.required === 'Y'">*</span>
-                        {{ item.paramName }}
-                      </div>
-                      <div style="width: 68%; display: inline-block">
-                        <Input v-model="item.bindValue" />
-                      </div>
-                    </template>
-                  </div>
-                </TabPane>
-              </Tabs>
-            </div>
-          </template>
-        </Panel>
-      </Collapse>
+                </FormItem>
+              </Form>
+              <div v-if="itemCustomInfo.customAttrs.serviceName">
+                <span style="margin-right: 20px"> {{ $t('parameterSettings') }} </span>
+                <Tabs type="card">
+                  <TabPane :label="$t('context_parameters')">
+                    <div>
+                      <span>设置[填充值来源-节点]列表：</span>
+                      <Select
+                        v-model="itemCustomInfo.customAttrs.contextParamNodes"
+                        multiple
+                        filterable
+                        style="width: 50%"
+                        @on-change="prevCtxNodeChange"
+                        @on-open-change="getRootNode"
+                      >
+                        <Option v-for="item in nodeList" :value="item.nodeId" :key="item.nodeId">{{
+                          item.name
+                        }}</Option>
+                      </Select>
+                    </div>
+                    <div style="display: flex; background: #dee3e8">
+                      <div style="width: 25%">填入参数(key)</div>
+                      <div style="width: 72%">填充值来源(value)</div>
+                    </div>
+                    <div style="background: #e5e9ee">
+                      <div style="width: 24%; display: inline-block">{{ $t('params_name') }}</div>
+                      <div style="width: 25%; display: inline-block">{{ $t('node') }}</div>
+                      <div style="width: 22%; display: inline-block">{{ $t('params_type') }}</div>
+                      <div style="width: 25%; display: inline-block">{{ $t('params_value') }}</div>
+                    </div>
+                    <div
+                      v-for="(item, itemIndex) in itemCustomInfo.customAttrs.paramInfos"
+                      :key="itemIndex"
+                      style="margin: 4px"
+                    >
+                      <template v-if="item.bindType === 'context'">
+                        <div style="width: 24%; display: inline-block">
+                          <span style="color: red" v-if="item.required === 'Y'">*</span>
+                          {{ item.paramName }}
+                        </div>
+                        <div style="width: 25%; display: inline-block">
+                          <Select v-model="item.bindNodeId" filterable @on-change="onParamsNodeChange(itemIndex)">
+                            <Option v-for="(item, index) in canSelectNode" :value="item.nodeId" :key="index">{{
+                              item.name
+                            }}</Option>
+                          </Select>
+                        </div>
+                        <div style="width: 22%; display: inline-block">
+                          <Select v-model="item.bindParamType" @on-change="onParamsNodeChange(itemIndex)" filterable>
+                            <Option v-for="i in paramsTypes" :value="i.value" :key="i.value">{{ i.label }}</Option>
+                          </Select>
+                        </div>
+                        <div style="width: 25%; display: inline-block">
+                          <Select filterable v-model="item.bindParamName">
+                            <Option v-for="i in item.currentParamNames" :value="i.name" :key="i.name">{{
+                              i.name
+                            }}</Option>
+                          </Select>
+                        </div>
+                      </template>
+                    </div>
+                  </TabPane>
+                  <TabPane :label="$t('constant_parameters')">
+                    <div style="background: #e5e9ee">
+                      <div style="width: 30%; display: inline-block">填入参数(key)</div>
+                      <div style="width: 68%; display: inline-block">填充值(value)</div>
+                    </div>
+                    <div
+                      v-for="(item, itemIndex) in itemCustomInfo.customAttrs.paramInfos"
+                      :key="itemIndex"
+                      style="margin: 4px"
+                    >
+                      <template v-if="item.bindType === 'constant'">
+                        <div style="width: 30%; display: inline-block; text-align: right">
+                          <span style="color: red" v-if="item.required === 'Y'">*</span>
+                          {{ item.paramName }}
+                        </div>
+                        <div style="width: 68%; display: inline-block">
+                          <Input v-model="item.bindValue" />
+                        </div>
+                      </template>
+                    </div>
+                  </TabPane>
+                </Tabs>
+              </div>
+            </template>
+          </Panel>
+        </Collapse>
+      </div>
     </div>
-    <div style="position: absolute; bottom: 20px; right: 280px; width: 200px">
+    <div class="item-footer">
       <Button v-if="editFlow !== 'false'" :disabled="isSaveBtnActive()" @click="saveItem" type="primary">{{
         $t('save')
       }}</Button>
@@ -680,5 +686,14 @@ export default {
   right: 500px;
   color: #2db7f5;
   cursor: pointer;
+}
+.item-footer {
+  position: absolute;
+  z-index: 10;
+  bottom: 19px;
+  right: 12px;
+  width: 500px;
+  padding: 8px 24px;
+  background: #ffffff;
 }
 </style>
