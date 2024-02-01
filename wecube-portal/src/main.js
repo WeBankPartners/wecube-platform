@@ -92,7 +92,18 @@ window.addRoutersWithoutPermission = routes => {
     })
   )
 }
-window.implicitRoutes = {}
+window.implicitRoutes = {
+  'collaboration/workflow-mgmt': {
+    childBreadcrumb: {
+      'en-US': 'Workflow Mgmt',
+      'zh-CN': '编排设计'
+    },
+    parentBreadcrumb: {
+      'en-US': 'Workflow',
+      'zh-CN': '任务编排'
+    }
+  }
+}
 window.addImplicitRoute = routes => {
   window.implicitRoutes = Object.assign(window.implicitRoutes, routes)
 }
