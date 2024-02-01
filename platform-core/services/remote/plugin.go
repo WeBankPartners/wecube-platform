@@ -261,6 +261,118 @@ func requestPluginModelData(ctx context.Context, packageName, entity, token stri
 	return
 }
 
+func createPluginModelData(ctx context.Context, packageName, entity, token string, datas []interface{}) (result []map[string]interface{}, err error) {
+	postBytes, _ := json.Marshal(datas)
+	uri := fmt.Sprintf("%s/%s/entities/%s/create", models.Config.Gateway.Url, packageName, entity)
+	if models.Config.HttpsEnable == "true" {
+		uri = "https://" + uri
+	} else {
+		uri = "http://" + uri
+	}
+	urlObj, _ := url.Parse(uri)
+	req, reqErr := http.NewRequest(http.MethodPost, urlObj.String(), bytes.NewReader(postBytes))
+	if reqErr != nil {
+		err = fmt.Errorf("new request fail,%s ", reqErr.Error())
+		return
+	}
+	reqId := "req_" + guid.CreateGuid()
+	transId := ctx.Value(models.TransactionIdHeader).(string)
+	req.Header.Set(models.RequestIdHeader, reqId)
+	req.Header.Set(models.TransactionIdHeader, transId)
+	req.Header.Set(models.AuthorizationHeader, token)
+	startTime := time.Now()
+	log.Logger.Info("Start remote modelData create --->>> ", log.String("requestId", reqId), log.String("transactionId", transId), log.String("method", http.MethodPost), log.String("url", urlObj.String()), log.JsonObj("Authorization", token), log.String("requestBody", string(postBytes)))
+	resp, respErr := http.DefaultClient.Do(req)
+	if respErr != nil {
+		err = fmt.Errorf("do request fail,%s ", respErr.Error())
+		return
+	}
+	var responseBodyBytes []byte
+	defer func() {
+		if resp.Body != nil {
+			resp.Body.Close()
+		}
+		useTime := fmt.Sprintf("%.3fms", time.Now().Sub(startTime).Seconds()*1000)
+		if err != nil {
+			log.Logger.Error("End remote modelData create <<<--- ", log.String("requestId", reqId), log.String("transactionId", transId), log.String("url", urlObj.String()), log.Int("httpCode", resp.StatusCode), log.String("costTime", useTime), log.Error(err))
+		} else {
+			log.Logger.Info("End remote modelData create <<<--- ", log.String("requestId", reqId), log.String("transactionId", transId), log.String("url", urlObj.String()), log.Int("httpCode", resp.StatusCode), log.String("costTime", useTime), log.String("response", string(responseBodyBytes)))
+		}
+	}()
+	var response models.EntityResponse
+	responseBodyBytes, err = io.ReadAll(resp.Body)
+	if err != nil {
+		err = fmt.Errorf("read response body fail,%s ", err.Error())
+		return
+	}
+	if err = json.Unmarshal(responseBodyBytes, &response); err != nil {
+		err = fmt.Errorf("json unmarshal response body fail,%s ", err.Error())
+		return
+	}
+	if response.Status != models.DefaultHttpSuccessCode {
+		err = fmt.Errorf(response.Message)
+	} else {
+		result = response.Data
+	}
+	return
+}
+
+func updatePluginModelData(ctx context.Context, packageName, entity, token string, datas []interface{}) (result []map[string]interface{}, err error) {
+	postBytes, _ := json.Marshal(datas)
+	uri := fmt.Sprintf("%s/%s/entities/%s/update", models.Config.Gateway.Url, packageName, entity)
+	if models.Config.HttpsEnable == "true" {
+		uri = "https://" + uri
+	} else {
+		uri = "http://" + uri
+	}
+	urlObj, _ := url.Parse(uri)
+	req, reqErr := http.NewRequest(http.MethodPost, urlObj.String(), bytes.NewReader(postBytes))
+	if reqErr != nil {
+		err = fmt.Errorf("new request fail,%s ", reqErr.Error())
+		return
+	}
+	reqId := "req_" + guid.CreateGuid()
+	transId := ctx.Value(models.TransactionIdHeader).(string)
+	req.Header.Set(models.RequestIdHeader, reqId)
+	req.Header.Set(models.TransactionIdHeader, transId)
+	req.Header.Set(models.AuthorizationHeader, token)
+	startTime := time.Now()
+	log.Logger.Info("Start remote modelData update --->>> ", log.String("requestId", reqId), log.String("transactionId", transId), log.String("method", http.MethodPost), log.String("url", urlObj.String()), log.JsonObj("Authorization", token), log.String("requestBody", string(postBytes)))
+	resp, respErr := http.DefaultClient.Do(req)
+	if respErr != nil {
+		err = fmt.Errorf("do request fail,%s ", respErr.Error())
+		return
+	}
+	var responseBodyBytes []byte
+	defer func() {
+		if resp.Body != nil {
+			resp.Body.Close()
+		}
+		useTime := fmt.Sprintf("%.3fms", time.Now().Sub(startTime).Seconds()*1000)
+		if err != nil {
+			log.Logger.Error("End remote modelData update <<<--- ", log.String("requestId", reqId), log.String("transactionId", transId), log.String("url", urlObj.String()), log.Int("httpCode", resp.StatusCode), log.String("costTime", useTime), log.Error(err))
+		} else {
+			log.Logger.Info("End remote modelData update <<<--- ", log.String("requestId", reqId), log.String("transactionId", transId), log.String("url", urlObj.String()), log.Int("httpCode", resp.StatusCode), log.String("costTime", useTime), log.String("response", string(responseBodyBytes)))
+		}
+	}()
+	var response models.EntityResponse
+	responseBodyBytes, err = io.ReadAll(resp.Body)
+	if err != nil {
+		err = fmt.Errorf("read response body fail,%s ", err.Error())
+		return
+	}
+	if err = json.Unmarshal(responseBodyBytes, &response); err != nil {
+		err = fmt.Errorf("json unmarshal response body fail,%s ", err.Error())
+		return
+	}
+	if response.Status != models.DefaultHttpSuccessCode {
+		err = fmt.Errorf(response.Message)
+	} else {
+		result = response.Data
+	}
+	return
+}
+
 func getInterfaceStringList(input interface{}) (guidList []string) {
 	if input == nil {
 		return
@@ -379,4 +491,53 @@ func PluginInterfaceApi(ctx context.Context, token string, pluginInterface *mode
 	}
 	result = response.Results
 	return
+}
+
+func CreateEntityData(ctx context.Context, authToken, packageName, entityName string, data map[string]interface{}) (map[string]interface{}, error) {
+	results, err := createPluginModelData(ctx, packageName, entityName, authToken, []interface{}{data})
+	if err != nil {
+		return nil, err
+	}
+	if len(results) == 0 {
+		return nil, fmt.Errorf("empty result data")
+	}
+	return results[0], nil
+}
+
+func UpdateEntityData(ctx context.Context, authToken, packageName, entityName string, data map[string]interface{}) (map[string]interface{}, error) {
+	results, err := updatePluginModelData(ctx, packageName, entityName, authToken, []interface{}{data})
+	if err != nil {
+		return nil, err
+	}
+	if len(results) == 0 {
+		return nil, fmt.Errorf("empty result data")
+	}
+	return results[0], nil
+}
+
+func UpdatentityDataWithExpr(ctx context.Context, authToken, packageName, entityName string, rootId string, exprs []*models.ExpressionObj, data map[string]interface{}) error {
+	execExprFilterList := make([]*models.QueryExpressionDataFilter, 0)
+	execExprFilter := &models.QueryExpressionDataFilter{
+		PackageName:      exprs[0].Package,
+		EntityName:       exprs[0].Entity,
+		AttributeFilters: make([]*models.QueryExpressionDataAttrFilter, 0),
+	}
+	execExprFilter.AttributeFilters = append(execExprFilter.AttributeFilters, &models.QueryExpressionDataAttrFilter{
+		Name:     "id",
+		Operator: "eq",
+		Value:    rootId,
+	})
+	execExprFilterList = append(execExprFilterList, execExprFilter)
+	leafDatas, err := QueryPluginData(ctx, exprs, execExprFilterList, authToken)
+	if err != nil {
+		return err
+	}
+	for _, leafData := range leafDatas {
+		data["id"] = leafData["id"]
+		_, err := updatePluginModelData(ctx, packageName, entityName, authToken, []interface{}{data})
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }

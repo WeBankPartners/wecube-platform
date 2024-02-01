@@ -9,23 +9,32 @@ import (
 )
 
 const (
-	PluginStatusUnRegistered    = "unregistered"
-	PluginStatusRegistered      = "registered"
-	PluginStatusDecommissioned  = "decommissioned"
-	PluginEditionCommunity      = "community"
-	PluginEditionEnterprise     = "enterprise"
-	PluginParamTypeInput        = "INPUT"
-	PluginParamTypeOutput       = "OUTPUT"
+	PluginStatusUnRegistered   = "unregistered"
+	PluginStatusRegistered     = "registered"
+	PluginStatusDecommissioned = "decommissioned"
+	PluginEditionCommunity     = "community"
+	PluginEditionEnterprise    = "enterprise"
+	PluginParamTypeInput       = "INPUT"
+	PluginParamTypeOutput      = "OUTPUT"
+
 	PluginParamMapTypeConstant  = "constant"
 	PluginParamMapTypeSystemVar = "system_variable"
 	PluginParamMapTypeContext   = "context"
 	PluginParamMapTypeEntity    = "entity"
 	PluginParamMapTypeObject    = "object"
-	PluginParamMapTypeAssign    = "assign" // 仅OUTPUT使用
-	PluginParamDataTypeObject   = "object"
-	PluginParamDataTypeList     = "list"
-	PluginParamDataTypeInt      = "int"
-	PluginParamDataTypeString   = "string"
+	PluginParamMapTypeAssign    = "assign" // 仅OUTPUT使用相当于常量值
+
+	PluginParamDataTypeObject = "object"
+	PluginParamDataTypeList   = "list"
+	PluginParamDataTypeInt    = "int"
+	PluginParamDataTypeString = "string"
+
+	PluginCallParamPresetCallback = "callbackParameter"
+	PluginCallParamPresetConfirm  = "confirmToken"
+
+	PluginCallResultPresetCallback  = "callbackParameter" //
+	PluginCallResultPresetErrorCode = "errorCode"         // 0 成功， 1失败
+	PluginCallResultPresetErrorMsg  = "errorMessage"
 
 	PluginNameItsdangerous = "itsdangerous"
 )
