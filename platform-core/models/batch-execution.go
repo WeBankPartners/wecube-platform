@@ -143,6 +143,7 @@ type BatchExecRun struct {
 	OutputParameterDefinitions []*PluginConfigInterfaceParameters `json:"outputParameterDefinitions"`
 	BusinessKeyAttribute       *PluginPackageAttributes           `json:"businessKeyAttribute"`
 	ResourceDatas              []*ResourceData                    `json:"resourceDatas"`
+	SourceData                 string                             `json:"sourceData"` // 回显数据
 }
 
 type BatchExecInputParamDef struct {
