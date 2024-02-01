@@ -4,7 +4,7 @@
       <div class="flow-name" @click="openCanvasPanel">
         <Icon size="22" type="md-arrow-back" class="back-icon" @click="backToFlowList"></Icon>
         <span class="flow-name">{{ itemCustomInfo.name }}</span>
-        <Tag>v{{ itemCustomInfo.version }}</Tag>
+        <Tag>{{ itemCustomInfo.version }}</Tag>
         <img src="../../../assets/icon/edit-black.png" style="width: 16px; vertical-align: middle" alt="" />
       </div>
       <div>
@@ -69,7 +69,7 @@ export default {
       const defaultNode = {
         id: '',
         label: '', // 编排名称
-        version: 1, // 版本
+        version: '', // 版本
         rootEntity: '', // 操作对象
         scene: '', // 使用场景，请求、发布、其他
         authPlugins: [], // 授权插件列表，taskman/monitor
@@ -86,7 +86,6 @@ export default {
       keys.forEach(k => {
         this.itemCustomInfo[k] = tmpData[k]
       })
-      this.itemCustomInfo.version = Number(this.itemCustomInfo.version) || 1
     },
     // #region
     // 修改权限
@@ -108,8 +107,7 @@ export default {
       const { status } = await flowRelease(this.itemCustomInfo.id)
       if (status === 'OK') {
         this.$Message.success(this.$t('release_flow') + this.$t('action_successful'))
-        // this.$emit('updateFlowData', '')
-        this.backToFlowList()
+        this.$router.push({ path: '/collaboration/workflow', query: { flowListTab: 'deployed' } })
       }
     },
     async changeStatus (statusCode, actionTip) {
@@ -117,10 +115,6 @@ export default {
         disabled: {
           title: this.$t('disable'),
           content: `确认禁用编排: [${this.itemCustomInfo.name}] 吗?`
-        },
-        deleted: {
-          title: this.$t('delete'),
-          content: `确认删除编排: [${this.itemCustomInfo.name}] 吗?`
         },
         enabled: {
           title: this.$t('enable'),

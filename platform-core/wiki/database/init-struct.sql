@@ -398,9 +398,9 @@ CREATE TABLE `proc_def_collect` (
 
 CREATE TABLE `batch_execution` (
     `id` varchar(64) NOT NULL COMMENT '唯一标识',
-    `name` varchar(255) NOT NULL COMMENT '名称',
+    `name` varchar(128) NOT NULL COMMENT '名称',
     `batch_execution_template_id` varchar(64) DEFAULT NULL COMMENT '模板id',
-    `batch_execution_template_name` varchar(255) DEFAULT NULL COMMENT '模板名称',
+    `batch_execution_template_name` varchar(128) DEFAULT NULL COMMENT '模板名称',
     `error_code` varchar(1) NULL COMMENT '错误码, 0:成功, 1:失败, 2:执行中',
     `error_message` text NULL COMMENT '错误信息',
     `config_data` mediumtext NULL COMMENT '配置数据',
@@ -411,6 +411,10 @@ CREATE TABLE `batch_execution` (
     `updated_time` datetime NULL COMMENT '更新时间',
     PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
+CREATE INDEX batch_exec_name_IDX USING BTREE ON batch_execution (`name`);
+CREATE INDEX batch_exec_tmpl_name_IDX USING BTREE ON batch_execution (batch_execution_template_name);
+CREATE INDEX batch_exec_error_code_IDX USING BTREE ON batch_execution (error_code);
+CREATE INDEX batch_exec_created_time_IDX USING BTREE ON batch_execution (created_time);
 
 CREATE TABLE `batch_exec_jobs` (
     `id` varchar(64) NOT NULL COMMENT '唯一标识',
@@ -432,10 +436,10 @@ CREATE TABLE `batch_exec_jobs` (
 
 CREATE TABLE `batch_execution_template` (
     `id` varchar(64) NOT NULL COMMENT '唯一标识',
-    `name` varchar(255) NOT NULL COMMENT '名称',
-    `status` varchar(255)  NOT NULL COMMENT '使用状态: 可使用、权限被移出',
-    `operate_object` varchar(512) NULL COMMENT '操作对象',
-    `plugin_service` varchar(512) NULL COMMENT '插件服务',
+    `name` varchar(128) NOT NULL COMMENT '名称',
+    `status` varchar(64)  NOT NULL COMMENT '使用状态: 可使用、权限被移出',
+    `operate_object` varchar(190) NULL COMMENT '操作对象',
+    `plugin_service` varchar(190) NULL COMMENT '插件服务',
     `is_dangerous_block` tinyint(1) DEFAULT NULL COMMENT '是否高危拦截',
     `config_data` mediumtext NULL COMMENT '配置数据',
     `source_data` mediumtext NULL COMMENT '回显数据',
@@ -445,6 +449,10 @@ CREATE TABLE `batch_execution_template` (
     `updated_time` datetime NULL COMMENT '更新时间',
     PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
+CREATE INDEX batch_exec_tmpl_name_IDX USING BTREE ON batch_execution_template (`name`);
+CREATE INDEX batch_exec_tmpl_operate_object_IDX USING BTREE ON batch_execution_template (operate_object);
+CREATE INDEX batch_exec_tmpl_plugin_service_IDX USING BTREE ON batch_execution_template (plugin_service);
+CREATE INDEX batch_exec_tmpl_updated_time_IDX USING BTREE ON batch_execution_template (updated_time);
 
 CREATE TABLE `batch_execution_template_role` (
   `id` varchar(64) NOT NULL COMMENT '唯一标识',
@@ -454,6 +462,9 @@ CREATE TABLE `batch_execution_template_role` (
   `role_name` varchar(64) NOT NULL COMMENT '角色名',
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
+CREATE INDEX batch_exec_tmpl_role_tmplId_IDX USING BTREE ON batch_execution_template_role (batch_execution_template_id);
+CREATE INDEX batch_exec_tmpl_role_name_IDX USING BTREE ON batch_execution_template_role (role_name);
+CREATE INDEX batch_exec_tmpl_role_permission_IDX USING BTREE ON batch_execution_template_role (permission);
 
 CREATE TABLE `batch_execution_template_collect` (
   `id` varchar(64) NOT NULL COMMENT '唯一标识',
@@ -463,3 +474,5 @@ CREATE TABLE `batch_execution_template_collect` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `user_id_batch_execution_template_id` (`user_id`, `batch_execution_template_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
+CREATE INDEX batch_exec_tmpl_collect_userId_IDX USING BTREE ON batch_execution_template_collect (user_id);
+CREATE INDEX batch_exec_tmpl_id_IDX USING BTREE ON batch_execution_template_collect (batch_execution_template_id);

@@ -554,7 +554,7 @@ export default {
   }
 }
 .filter_rules_path_options {
-  width: 100%;
+  width: 400px !important;
   padding: 8px;
   z-index: 3000;
   background: white;

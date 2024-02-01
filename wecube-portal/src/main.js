@@ -92,7 +92,18 @@ window.addRoutersWithoutPermission = routes => {
     })
   )
 }
-window.implicitRoutes = {}
+window.implicitRoutes = {
+  'collaboration/workflow-mgmt': {
+    childBreadcrumb: {
+      'en-US': 'Workflow Mgmt',
+      'zh-CN': '编排设计'
+    },
+    parentBreadcrumb: {
+      'en-US': 'Workflow',
+      'zh-CN': '任务编排'
+    }
+  }
+}
 window.addImplicitRoute = routes => {
   window.implicitRoutes = Object.assign(window.implicitRoutes, routes)
 }
@@ -148,7 +159,6 @@ router.beforeEach((to, from, next) => {
       let isHasPermission = []
         .concat(...window.myMenus.map(_ => _.submenus), window.childRouters)
         .find(_ => _.link === to.path && _.active)
-      console.log(isHasPermission, to.path)
       if (
         (isHasPermission && isHasPermission.active) ||
         ['/404', '/login', '/homepage', '/collaboration/workflow-mgmt'].includes(to.path)

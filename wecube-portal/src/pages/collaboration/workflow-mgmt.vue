@@ -9,7 +9,7 @@
     <!-- v-show="isShowGraph" -->
     <div class="canvas-zone">
       <!-- 左侧按钮 -->
-      <item-panel />
+      <item-panel ref="itemPanelRef" />
       <div class="floating-button">
         <Button size="small" type="primary" @click="resetCanvas" sytle="position: fixed">Reset Zoom</Button>
       </div>
@@ -126,6 +126,7 @@ export default {
       await this.getFlowInfo(this.demoFlowId)
       // 创建画布
       this.$nextTick(() => {
+        this.$refs.itemPanelRef.setEditFlowStatus(this.editFlow)
         this.createGraphic()
         this.initGraphEvent()
         this.openCanvasPanel()
