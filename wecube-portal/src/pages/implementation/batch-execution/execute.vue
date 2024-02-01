@@ -10,6 +10,7 @@
         <Card :style="{ minHeight: maxHeight + 'px' }">
           <div class="title" slot="title">执行记录列表</div>
           <Table
+            class="hover"
             size="small"
             :loading="loading"
             :columns="tableColumns"
@@ -34,7 +35,7 @@
       </Col>
       <Col :span="16">
         <!--批量执行结果-->
-        <ExecuteResult :id="rowId"></ExecuteResult>
+        <ExecuteResult ref="executeResult"></ExecuteResult>
       </Col>
     </Row>
   </div>
@@ -146,13 +147,13 @@ export default {
       ],
       loading: false,
       historyList: [],
-      rowId: '',
       pagination: {
         total: 0,
         currentPage: 1,
         pageSize: 10
       },
-      maxHeight: 500
+      maxHeight: 500,
+      rowId: ''
     }
   },
   mounted () {
@@ -223,20 +224,29 @@ export default {
       this.loading = false
       if (status === 'OK') {
         this.tableData = data.contents || []
-        this.rowId = data.contents[0].id
+        this.$nextTick(() => {
+          this.$refs.executeResult.getList(data.contents[0].id)
+        })
         this.pagination.total = data.pageInfo.totalRows
       }
     },
     // 执行详情
-    // async handleExecuteDetail (row) {
-    //   const { status, data } = await batchExecuteHistory(row.id)
-    //   if (status === 'OK') {
-    //     this.historyList = data
-    //   }
-    // },
+    async handleExecuteDetail (row) {
+      this.$eventBusP.$emit('change-menu', 'executeCreate')
+      this.$router.replace({
+        name: this.$route.name,
+        query: {
+          ...this.$route.params,
+          // 更新的参数
+          id: row.id,
+          from: 'execute',
+          type: 'view'
+        }
+      })
+    },
     // 执行历史
     async handleExecuteHistory (row) {
-      this.rowId = row.id
+      this.$refs.executeResult.getList(row.id)
     }
   }
 }
@@ -259,6 +269,9 @@ export default {
   }
   .ivu-card-body {
     padding: 0 16px 16px 16px !important;
+  }
+  .hover .ivu-table-row {
+    cursor: pointer;
   }
   .search {
     display: flex;
