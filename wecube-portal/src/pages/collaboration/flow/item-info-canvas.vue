@@ -13,12 +13,15 @@
           <span style="color: red">*</span>
           {{ $t('name') }}
         </label>
+
         <Input
           v-model="itemCustomInfo.label"
           @on-change="paramsChanged"
-          :disable="!itemCustomInfo.enableModifyName"
+          :disabled="!itemCustomInfo.enableModifyName"
         ></Input>
-        <span style="position: absolute; left: 320px; top: 2px">{{ itemCustomInfo.label.length }}/30</span>
+        <span style="position: absolute; left: 314px; top: 2px; line-height: 30px; background: #ffffff"
+          >{{ itemCustomInfo.label.length || 0 }}/30</span
+        >
         <span
           class="custom-error-tag"
           v-if="itemCustomInfo.label.length > 30 || itemCustomInfo.label.length === 0"
@@ -52,7 +55,9 @@
       </FormItem>
       <FormItem label="分组" prop="scene">
         <Input v-model="itemCustomInfo.scene" @on-change="paramsChanged"></Input>
-        <span style="position: absolute; left: 320px; top: 2px">{{ itemCustomInfo.scene.length }}/30</span>
+        <span style="position: absolute; left: 320px; top: 2px; line-height: 30px; background: #ffffff"
+          >{{ itemCustomInfo.scene.length || 0 }}/30</span
+        >
         <span class="custom-error-tag" v-if="itemCustomInfo.scene.length > 30" style="color: red"
           >分组{{ $t('cannotExceed') }} 30 {{ $t('characters') }}</span
         >
@@ -62,9 +67,11 @@
       </FormItem>
       <FormItem :label="$t('description')">
         <Input v-model="itemCustomInfo.tags" @on-change="paramsChanged" type="textarea" :rows="4"></Input>
-        <span style="position: relative; left: 320px; top: -28px">{{ itemCustomInfo.tags.length }}/200</span>
+        <span style="position: relative; left: 310px; top: -28px; background: #ffffff"
+          >{{ itemCustomInfo.tags.length || 0 }}/200</span
+        >
         <span v-if="itemCustomInfo.tags.length > 200" style="color: red"
-          >{{ $t('description') }}{{ $t('cannotExceed') }} 30 {{ $t('characters') }}</span
+          >{{ $t('description') }}{{ $t('cannotExceed') }} 200 {{ $t('characters') }}</span
         >
       </FormItem>
       <div style="position: absolute; bottom: 20px; right: 280px; width: 200px">
@@ -135,7 +142,7 @@ export default {
       keys.forEach(k => {
         this.itemCustomInfo[k] = tmpData[k]
       })
-      this.itemCustomInfo.version = Number(this.itemCustomInfo.version) || 1
+      this.itemCustomInfo.version = Number(this.itemCustomInfo.version[1])
     },
     saveItem () {
       let finalData = JSON.parse(JSON.stringify(this.itemCustomInfo))
