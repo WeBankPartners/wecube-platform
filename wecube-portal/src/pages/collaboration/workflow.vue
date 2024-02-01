@@ -558,7 +558,7 @@ export default {
         const params = {
           id: '',
           name: `${this.$t('workflow_report_aspect')}_${dayjs().format('YYMMDDHHmmss')}`,
-          version: '1',
+          version: 'v1',
           scene: '',
           authPlugins: [],
           tags: '',
