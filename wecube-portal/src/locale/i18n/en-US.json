@@ -573,7 +573,7 @@
   "setRootEntity": "Prioritize setting the flow root entity",
   "node": "Node",
   "checkContextParameter": "Please check the mandatory fields in the context parameter settings!",
-  "workFlowProperties": "Work flow properties",
+  "workFlowProperties": "Workflow properties",
   "edgeProperties": "Edge properties",
   "nodeProperties": "Node properties",
   "version": "Version",
