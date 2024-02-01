@@ -7,10 +7,33 @@ import (
 	"strconv"
 
 	"github.com/WeBankPartners/go-common-lib/guid"
+	"github.com/WeBankPartners/wecube-platform/platform-core/common/log"
 	"github.com/WeBankPartners/wecube-platform/platform-core/models"
 	"github.com/WeBankPartners/wecube-platform/platform-core/services/database"
 	"github.com/WeBankPartners/wecube-platform/platform-core/services/remote"
 )
+
+type OutputEntityData struct {
+	// 根CI(创建或更新)
+	Package string
+	Entity  string
+	Data    []*OutputEntityRootData
+}
+
+type OutputEntityRootData struct {
+	// 根CI(创建或更新)
+	Id   string
+	Data map[string]interface{}
+	// 以根CI的ID作为查询过滤计算到最后一级数据的ID，再配上要更新的data
+	SubBranchs []*OutputEntityBranchData
+}
+
+type OutputEntityBranchData struct {
+	// 根CI(创建或更新)
+	OriginExpr string
+	Exprs      []*models.ExpressionObj
+	Data       map[string]interface{}
+}
 
 func BatchExecutionCallPluginService(ctx context.Context, operator, authToken, pluginInterfaceId string, entityType string,
 	entityInstances []*models.BatchExecutionPluginExecEntityInstances,
@@ -42,31 +65,31 @@ func BatchExecutionCallPluginService(ctx context.Context, operator, authToken, p
 	inputParamDatas := make([]models.BatchExecutionPluginExecInputParams, 0)
 	for _, entityInstance := range entityInstances {
 		inputParamData := models.BatchExecutionPluginExecInputParams{}
-		for _, input := range pluginInterface.InputParameters {
+		for _, inputDef := range pluginInterface.InputParameters {
 			var inputCalResult interface{}
-			switch input.MappingType {
+			switch inputDef.MappingType {
 			case models.PluginParamMapTypeConstant:
-				inputCalResult = inputDefinitionMap[input.Id]
+				inputCalResult = inputDefinitionMap[inputDef.Id]
 			case models.PluginParamMapTypeSystemVar:
-				if input.MappingSystemVariableName == "" {
-					err = fmt.Errorf("input param %s is map to %s, but variable name is empty", input.Name, input.MappingType)
+				if inputDef.MappingSystemVariableName == "" {
+					err = fmt.Errorf("input param %s is map to %s, but variable name is empty", inputDef.Name, inputDef.MappingType)
 					return
 				}
-				inputCalResult, err = database.GetSystemVariable(context.Background(), input.MappingSystemVariableName)
+				inputCalResult, err = database.GetSystemVariable(context.Background(), inputDef.MappingSystemVariableName)
 				if err != nil {
 					return
 				}
 			case models.PluginParamMapTypeContext:
-				// TODO: 从上下文参数获取是否支持???
-				err = fmt.Errorf("input param %s is map to %s, which batch execution is not supported", input.Name, input.MappingType)
+				// 上下文参数获取不支持
+				err = fmt.Errorf("input param %s is map to %s, which batch execution is not supported", inputDef.Name, inputDef.MappingType)
 				return
 			case models.PluginParamMapTypeEntity:
 				// 从数据模型获取
-				if input.MappingEntityExpression == "" {
-					err = fmt.Errorf("input param %s is map to %s, but entity expression is empty", input.Name, input.MappingType)
+				if inputDef.MappingEntityExpression == "" {
+					err = fmt.Errorf("input param %s is map to %s, but entity expression is empty", inputDef.Name, inputDef.MappingType)
 					return
 				}
-				execExprList, errAnalyze2 := remote.AnalyzeExpression(input.MappingEntityExpression)
+				execExprList, errAnalyze2 := remote.AnalyzeExpression(inputDef.MappingEntityExpression)
 				if err != nil {
 					err = errAnalyze2
 					return
@@ -90,15 +113,18 @@ func BatchExecutionCallPluginService(ctx context.Context, operator, authToken, p
 				}
 				inputCalResult = remote.ExtractExpressionResultColumn(execExprList, execExprResult)
 			case models.PluginParamMapTypeObject:
-				// TODO: 从指定对象获取是否支持???
-				err = fmt.Errorf("input param %s is map to %s, which batch execution is not supported", input.Name, input.MappingType)
+				// TODO: 从指定对象获取暂不支持(k8s)
+				err = fmt.Errorf("input param %s is map to %s, which batch execution is not supported", inputDef.Name, inputDef.MappingType)
 				return
 			}
-			inputParamData[input.Name], err = normalizePluginInterfaceParamData(input, inputCalResult)
+			inputParamData[inputDef.Name], err = normalizePluginInterfaceParamData(inputDef, inputCalResult)
 			if err != nil {
 				return
 			}
 		}
+		// NOTE: 仅批量执行的PluginCallParamPresetCallback是行ID，插件调用时是随机ID与行数据没有关联
+		inputParamData[models.PluginCallParamPresetCallback] = entityInstance.Id
+		inputParamData[models.PluginCallParamPresetConfirm] = continueToken
 		inputParamDatas = append(inputParamDatas, inputParamData)
 	}
 	// 调用高危插件
@@ -112,8 +138,8 @@ func BatchExecutionCallPluginService(ctx context.Context, operator, authToken, p
 	}
 	// 需要有运行时的高危插件
 	// 获取subsystem token
-	checkToken := remote.GetToken()
-	dangerousResult, errDangerous := performDangerousCheck(ctx, itsdangerousCallParam, continueToken, checkToken)
+	subsysToken := remote.GetToken()
+	dangerousResult, errDangerous := performDangerousCheck(ctx, itsdangerousCallParam, continueToken, subsysToken)
 	if errDangerous != nil {
 		err = errDangerous
 		return
@@ -134,8 +160,18 @@ func BatchExecutionCallPluginService(ctx context.Context, operator, authToken, p
 	if pluginInterface.IsAsyncProcessing == "Y" {
 		pluginCallParam.RequestId = "batchexec_" + guid.CreateGuid()
 	}
-	result, err = remote.PluginInterfaceApi(ctx, authToken, pluginInterface, pluginCallParam)
-	// TODO: 处理output param(比如类型转换，assign)
+	pluginCallResult, errCall := remote.PluginInterfaceApi(ctx, authToken, pluginInterface, pluginCallParam)
+	if errCall != nil {
+		err = errCall
+		return
+	}
+	// 处理output param(比如类型转换，数据模型写入)
+	tmpResult, errHandle := handleOutputData(ctx, subsysToken, pluginCallResult.Outputs, pluginInterface.OutputParameters)
+	if errHandle != nil {
+		err = errHandle
+		return
+	}
+	result = tmpResult
 	return
 }
 
@@ -295,5 +331,145 @@ func performDangerousCheck(ctx context.Context, pluginCallParam interface{}, con
 	}
 	// 调用检查
 	result, err = remote.DangerousBatchCheck(ctx, authToken, pluginCallParam)
+	return
+}
+
+func handleOutputData(ctx context.Context, authToken string, outputs []map[string]interface{}, outputParamDefs []*models.PluginConfigInterfaceParameters) (result *models.PluginInterfaceApiResultData, err error) {
+	tmpResult := &models.PluginInterfaceApiResultData{Outputs: make([]map[string]interface{}, 0)}
+	tmpResultForEntity := &OutputEntityData{Data: make([]*OutputEntityRootData, 0)}
+	for _, output := range outputs {
+		tmpResultOutput := make(map[string]interface{})
+		var tmpResultOutputForEntity *OutputEntityRootData
+		tmpResultForPackageName := ""
+		tmpResultForEntityName := ""
+		for _, outputDef := range outputParamDefs {
+			var tmpResultOutputForEntityBranch *OutputEntityBranchData
+			var entityKeyName string
+			var outputCalResult interface{}
+			switch outputDef.MappingType {
+			case models.PluginParamMapTypeContext:
+				outputCalResult = output[outputDef.Name]
+			case models.PluginParamMapTypeEntity:
+				outputCalResult = output[outputDef.Name]
+				// 分析表达式
+				if outputDef.MappingEntityExpression == "" {
+					err = fmt.Errorf("input param %s is map to %s, but entity expression is empty", outputDef.Name, outputDef.MappingType)
+					return
+				}
+				execExprList, errAnalyze := remote.AnalyzeExpression(outputDef.MappingEntityExpression)
+				if err != nil {
+					err = errAnalyze
+					return
+				}
+				if len(execExprList) == 1 {
+					entityKeyName = execExprList[0].ResultColumn
+				}
+				tmpResultForPackageName = execExprList[0].Package
+				tmpResultForEntityName = execExprList[0].Entity
+				if len(execExprList) > 1 {
+					branchResultOutput := make(map[string]interface{})
+					// FIXME: outputCalResult未进行类型转换
+					branchResultOutput[execExprList[len(execExprList)-1].ResultColumn] = outputCalResult
+					tmpResultOutputForEntityBranch = &OutputEntityBranchData{
+						OriginExpr: outputDef.MappingEntityExpression,
+						Exprs:      execExprList,
+						Data:       branchResultOutput,
+					}
+				}
+			case models.PluginParamMapTypeAssign:
+				// 分析表达式
+				if outputDef.MappingEntityExpression == "" {
+					err = fmt.Errorf("input param %s is map to %s, but entity expression is empty", outputDef.Name, outputDef.MappingType)
+					return
+				}
+				execExprList, errAnalyze := remote.AnalyzeExpression(outputDef.MappingEntityExpression)
+				if err != nil {
+					err = errAnalyze
+					return
+				}
+				outputCalResult = outputDef.MappingVal
+				if len(execExprList) == 1 {
+					entityKeyName = execExprList[0].ResultColumn
+				}
+				tmpResultForPackageName = execExprList[0].Package
+				tmpResultForEntityName = execExprList[0].Entity
+				if len(execExprList) > 1 {
+					branchResultOutput := make(map[string]interface{})
+					// FIXME: outputCalResult未进行类型转换
+					branchResultOutput[execExprList[len(execExprList)-1].ResultColumn] = outputCalResult
+					tmpResultOutputForEntityBranch = &OutputEntityBranchData{
+						OriginExpr: outputDef.MappingEntityExpression,
+						Exprs:      execExprList,
+						Data:       branchResultOutput,
+					}
+				}
+			default:
+				err = fmt.Errorf("input param %s is map to %s, which batch execution is not supported", outputDef.Name, outputDef.MappingType)
+				return
+			}
+			tmpResultOutput[outputDef.Name], err = normalizePluginInterfaceParamData(outputDef, outputCalResult)
+			if err != nil {
+				return
+			}
+			if entityKeyName != "" {
+				if tmpResultOutputForEntity == nil {
+					tmpResultOutputForEntity = &OutputEntityRootData{Data: make(map[string]interface{}), SubBranchs: make([]*OutputEntityBranchData, 0)}
+				}
+				tmpResultOutputForEntity.Data[entityKeyName] = tmpResultOutput[outputDef.Name]
+				if tmpResultOutputForEntityBranch != nil {
+					tmpResultOutputForEntity.SubBranchs = append(tmpResultOutputForEntity.SubBranchs, tmpResultOutputForEntityBranch)
+				}
+			}
+			// 补充预设参数
+			if v, ok := output[models.PluginCallResultPresetCallback]; ok {
+				tmpResultOutput[models.PluginCallResultPresetCallback] = v
+			}
+			if v, ok := output[models.PluginCallResultPresetErrorCode]; ok {
+				tmpResultOutput[models.PluginCallResultPresetErrorCode] = v
+			}
+			if v, ok := output[models.PluginCallResultPresetErrorMsg]; ok {
+				tmpResultOutput[models.PluginCallResultPresetErrorMsg] = v
+			}
+		}
+		tmpResult.Outputs = append(tmpResult.Outputs, tmpResultOutput)
+		if tmpResultForPackageName != "" && tmpResultForEntityName != "" {
+			tmpResultForEntity.Package = tmpResultForPackageName
+			tmpResultForEntity.Entity = tmpResultForEntityName
+			if tmpResultOutputForEntity != nil {
+				if v, ok := tmpResultOutputForEntity.Data["id"]; ok {
+					tmpResultOutputForEntity.Id = v.(string)
+				}
+				tmpResultForEntity.Data = append(tmpResultForEntity.Data, tmpResultOutputForEntity)
+			}
+		}
+	}
+	// 处理entity写入
+	for _, rootData := range tmpResultForEntity.Data {
+		if rootData.Id == "" {
+			ret, errCreate := remote.CreateEntityData(ctx, authToken, tmpResultForEntity.Package, tmpResultForEntity.Entity, rootData.Data)
+			if errCreate != nil {
+				log.Logger.Error(fmt.Sprintf("failed to create %s entity %s %v", tmpResultForEntity.Package, tmpResultForEntity.Entity, rootData.Data))
+			} else {
+				// 成功需要回写ID，以便后续Branch数据更新使用
+				rootData.Id = ret["id"].(string)
+			}
+		} else {
+			// 除了ID以外有其他值才需要写入？？？
+			if len(rootData.Data) > 1 {
+				_, errUpdate := remote.UpdateEntityData(ctx, authToken, tmpResultForEntity.Package, tmpResultForEntity.Entity, rootData.Data)
+				if errUpdate != nil {
+					log.Logger.Error(fmt.Sprintf("failed to update %s entity %s[%s] %v", tmpResultForEntity.Package, tmpResultForEntity.Entity, rootData.Id, rootData.Data))
+				}
+			}
+		}
+		// 处理多级表达式数据更新
+		for _, branchData := range rootData.SubBranchs {
+			errUpdate := remote.UpdatentityDataWithExpr(ctx, authToken, tmpResultForEntity.Package, tmpResultForEntity.Entity, rootData.Id, branchData.Exprs, branchData.Data)
+			if errUpdate != nil {
+				log.Logger.Error(fmt.Sprintf("failed to update %s entity %s[%s] with expression %s %v", tmpResultForEntity.Package, tmpResultForEntity.Entity, rootData.Id, branchData.OriginExpr, branchData.Data))
+			}
+		}
+	}
+	result = tmpResult
 	return
 }
