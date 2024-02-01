@@ -774,6 +774,7 @@ func InsertBatchExec(c *gin.Context, reqParam *models.BatchExecRun) (batchExecId
 		BatchExecutionTemplateName: reqParam.BatchExecutionTemplateName,
 		ErrorCode:                  models.BatchExecErrorCodePending,
 		ConfigDataStr:              configDataStr,
+		SourceData:                 reqParam.SourceData,
 		CreatedBy:                  middleware.GetRequestUser(c),
 		UpdatedBy:                  "",
 		CreatedTime:                &now,
