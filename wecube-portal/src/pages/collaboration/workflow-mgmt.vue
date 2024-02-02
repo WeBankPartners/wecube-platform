@@ -16,32 +16,26 @@
       <!-- 挂载节点 -->
       <div id="canvasPanel" ref="canvasPanel" @dragover.prevent />
       <!-- 信息配置 -->
-      <Transition appear>
-        <ItemInfoCanvas
-          v-show="itemInfoType === 'canvas'"
-          ref="itemInfoCanvasRef"
-          @sendItemInfo="setCanvasInfo"
-          @hideItemInfo="hideItemInfo"
-        ></ItemInfoCanvas>
-      </Transition>
-      <Transition appear>
-        <ItemInfoNode
-          v-if="itemInfoType === 'node'"
-          ref="itemInfoNodeRef"
-          @sendItemInfo="setNodeInfo"
-          @hideItemInfo="hideItemInfo"
-        >
-        </ItemInfoNode>
-      </Transition>
-      <Transition appear>
-        <ItemInfoEdge
-          v-show="itemInfoType === 'edge'"
-          ref="itemInfoEdgeRef"
-          @sendItemInfo="setEdgeInfo"
-          @hideItemInfo="hideItemInfo"
-        >
-        </ItemInfoEdge>
-      </Transition>
+      <ItemInfoCanvas
+        v-show="itemInfoType === 'canvas'"
+        ref="itemInfoCanvasRef"
+        @sendItemInfo="setCanvasInfo"
+        @hideItemInfo="hideItemInfo"
+      ></ItemInfoCanvas>
+      <ItemInfoNode
+        v-if="itemInfoType === 'node'"
+        ref="itemInfoNodeRef"
+        @sendItemInfo="setNodeInfo"
+        @hideItemInfo="hideItemInfo"
+      >
+      </ItemInfoNode>
+      <ItemInfoEdge
+        v-show="itemInfoType === 'edge'"
+        ref="itemInfoEdgeRef"
+        @sendItemInfo="setEdgeInfo"
+        @hideItemInfo="hideItemInfo"
+      >
+      </ItemInfoEdge>
     </div>
   </div>
 </template>
@@ -360,7 +354,7 @@ export default {
             this.removeItem()
             return
           }
-          if (this.isExecutionAllowed()) return
+          if (!this.editFlow && this.isExecutionAllowed()) return
           this.itemInfoType = ''
           this.$nextTick(() => {
             if (e && e.item) {
@@ -376,7 +370,9 @@ export default {
                 x: model.x + 40,
                 y: model.y - 20
               }
-              this.addRemoveNode(point)
+              if (!this.editFlow) {
+                this.addRemoveNode(point)
+              }
             }
           })
         }
@@ -570,7 +566,7 @@ export default {
       // 注册边点击事件
       this.graph.on('edge:click', e => {
         this.deleteRemoveNode()
-        if (this.isExecutionAllowed()) return
+        if (!this.editFlow && this.isExecutionAllowed()) return
         const edge = e.item
         if (e && edge) {
           const model = edge.get('model')
@@ -579,7 +575,9 @@ export default {
             x: e.x,
             y: e.y - 20
           }
-          this.addRemoveNode(point)
+          if (!this.editFlow) {
+            this.addRemoveNode(point)
+          }
 
           // const selected = edge.hasState('selected')
           // if (selected) {
@@ -596,7 +594,7 @@ export default {
       this.graph.on('canvas:click', e => {
         this.deleteRemoveNode()
         this.$nextTick(() => {
-          if (this.isExecutionAllowed()) return
+          if (!this.editFlow && this.isExecutionAllowed()) return
           this.itemInfoType = 'canvas'
           this.$refs.itemInfoCanvasRef.showItemInfo(this.procDef, this.editFlow)
         })
@@ -616,7 +614,7 @@ export default {
     },
     // 添加节点
     addNode (transferData, { x, y }) {
-      if (this.isExecutionAllowed()) return
+      if (!this.editFlow && this.isExecutionAllowed()) return
       let { label, shape, fill, lineWidth, nodeType, stroke } = JSON.parse(transferData)
       const findStartNodeIndex = this.graph.save().nodes.findIndex(n => n.id.startsWith('id_start'))
       if (nodeType === 'start' && findStartNodeIndex > -1) {
@@ -668,11 +666,6 @@ export default {
       this.itemInfoType = 'node'
       this.$nextTick(() => {
         this.$refs.itemInfoNodeRef.showItemInfo(model, true, this.procDef.rootEntity, this.editFlow)
-        // 获取节点
-        const node = this.graph.findById(id)
-
-        // 模拟点击节点
-        this.graph.emit('node:click', { target: node })
       })
     },
     // 移除删除入口

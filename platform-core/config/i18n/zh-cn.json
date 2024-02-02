@@ -94,7 +94,7 @@
   },
   "proc_def_loop_check_error": {
     "code": 20000019,
-    "message": "发布失败:编排存在环路"
+    "message": "发布失败:编排格式错误,编排中不能出现环路"
   },
   "proc_def_name_repeat_error": {
     "code": 20000020,
