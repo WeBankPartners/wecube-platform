@@ -834,6 +834,15 @@ func InsertBatchExecJobs(c *gin.Context, batchExecId string, execTime *time.Time
 	var actions []*db.ExecAction
 	now := time.Now()
 
+	retJsonCallbackParameterMap := make(map[string]map[string]interface{})
+	for i, output := range batchExecRunResult.Outputs {
+		if v, isExisted := output[models.PluginCallResultPresetCallback]; isExisted {
+			if callbackParam, ok := v.(string); ok {
+				retJsonCallbackParameterMap[callbackParam] = batchExecRunResult.Outputs[i]
+			}
+		}
+	}
+
 	for i := range pluginCallParam.Inputs {
 		inputJson := ""
 		inputJsonByte, tmpErr := json.Marshal(pluginCallParam.Inputs[i])
@@ -843,20 +852,37 @@ func InsertBatchExecJobs(c *gin.Context, batchExecId string, execTime *time.Time
 		returnJson := ""
 		errCode := ""
 		errMsg := ""
-		if len(batchExecRunResult.Outputs) > i {
-			returnJsonByte, tmpErr := json.Marshal(batchExecRunResult.Outputs[i])
-			if tmpErr == nil {
-				returnJson = string(returnJsonByte)
+		/*
+			if len(batchExecRunResult.Outputs) > i {
+				returnJsonByte, tmpErr := json.Marshal(batchExecRunResult.Outputs[i])
+				if tmpErr == nil {
+					returnJson = string(returnJsonByte)
+				}
+				if batchExecRunResult.Outputs[i] != nil {
+					if tmpVal, isOk := batchExecRunResult.Outputs[i]["errorCode"].(string); isOk {
+						errCode = tmpVal
+					}
+					if tmpVal, isOk := batchExecRunResult.Outputs[i]["errorMessage"].(string); isOk {
+						errMsg = tmpVal
+					}
+				}
 			}
-			if batchExecRunResult.Outputs[i] != nil {
-				if tmpVal, isOk := batchExecRunResult.Outputs[i]["errorCode"].(string); isOk {
+		*/
+		if outputData, isExisted := retJsonCallbackParameterMap[pluginCallParam.EntityInstances[i].Id]; isExisted {
+			if outputData != nil {
+				returnJsonByte, tmpErr := json.Marshal(outputData)
+				if tmpErr == nil {
+					returnJson = string(returnJsonByte)
+				}
+				if tmpVal, isOk := outputData[models.PluginCallResultPresetErrorCode].(string); isOk {
 					errCode = tmpVal
 				}
-				if tmpVal, isOk := batchExecRunResult.Outputs[i]["errorMessage"].(string); isOk {
+				if tmpVal, isOk := outputData[models.PluginCallResultPresetErrorMsg].(string); isOk {
 					errMsg = tmpVal
 				}
 			}
 		}
+
 		batchExecJobData := &models.BatchExecutionJobs{
 			Id:                      guid.CreateGuid(),
 			BatchExecutionId:        batchExecId,
