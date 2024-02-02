@@ -44,24 +44,28 @@ type ErrorTemplate struct {
 	DatabaseQueryEmptyError CustomError `json:"database_query_empty_error"`
 	DatabaseExecuteError    CustomError `json:"database_execute_error"`
 	// sever handle error
-	ServerHandleError           CustomError `json:"server_handle_error"`
-	PluginDependencyIllegal     CustomError `json:"plugin_dependency_illegal"`
-	ProcDefNodeNameEmptyError   CustomError `json:"proc_def_node_name_empty_error"`
-	ProcDefNodeNameRepeatError  CustomError `json:"proc_def_node_name_repeat_error"`
-	ProcDefNode20000004Error    CustomError `json:"proc_def_node_20000004_error"`
-	ProcDefNode20000005Error    CustomError `json:"proc_def_node_20000005_error"`
-	ProcDefNode20000006Error    CustomError `json:"proc_def_node_20000006_error"`
-	ProcDefNode20000007Error    CustomError `json:"proc_def_node_20000007_error"`
-	ProcDefNode20000008Error    CustomError `json:"proc_def_node_20000008_error"`
-	ProcDefNode20000009Error    CustomError `json:"proc_def_node_20000009_error"`
-	ProcDefNode20000010Error    CustomError `json:"proc_def_node_20000010_error"`
-	ProcDefNode20000015Error    CustomError `json:"proc_def_import_low_version_error"`
-	ProcDefNode20000016Error    CustomError `json:"proc_def_import_draft_conflict_error"`
-	ProcDefNode20000017Error    CustomError `json:"proc_def_import_server_error"`
-	ProcDefLoopCheckError       CustomError `json:"proc_def_loop_check_error"`
-	ProcDefNameRepeatError      CustomError `json:"proc_def_name_repeat_error"`
-	ProcDefRootEntityEmptyError CustomError `json:"proc_def_root_entity_empty_error"`
-	DeleteUserError             CustomError `json:"delete_user_error"`
+	ServerHandleError                       CustomError `json:"server_handle_error"`
+	PluginDependencyIllegal                 CustomError `json:"plugin_dependency_illegal"`
+	ProcDefNodeNameEmptyError               CustomError `json:"proc_def_node_name_empty_error"`
+	ProcDefNodeNameRepeatError              CustomError `json:"proc_def_node_name_repeat_error"`
+	ProcDefNodeServiceNameEmptyError        CustomError `json:"proc_def_node_service_name_empty_error"`
+	ProcDefNodeBindNodeDeleteError          CustomError `json:"proc_def_node_bind_node_delete_error"`
+	ProcDefNodeContextParamNodesDeleteError CustomError `json:"proc_def_node_context_param_nodes_delete_error"`
+	ProcDefNodeDateEmptyError               CustomError `json:"proc_def_node_date_empty_error"`
+	ProcDefNode20000004Error                CustomError `json:"proc_def_node_20000004_error"`
+	ProcDefNode20000005Error                CustomError `json:"proc_def_node_20000005_error"`
+	ProcDefNode20000006Error                CustomError `json:"proc_def_node_20000006_error"`
+	ProcDefNode20000007Error                CustomError `json:"proc_def_node_20000007_error"`
+	ProcDefNode20000008Error                CustomError `json:"proc_def_node_20000008_error"`
+	ProcDefNode20000009Error                CustomError `json:"proc_def_node_20000009_error"`
+	ProcDefNode20000010Error                CustomError `json:"proc_def_node_20000010_error"`
+	ProcDefNode20000015Error                CustomError `json:"proc_def_import_low_version_error"`
+	ProcDefNode20000016Error                CustomError `json:"proc_def_import_draft_conflict_error"`
+	ProcDefNode20000017Error                CustomError `json:"proc_def_import_server_error"`
+	ProcDefLoopCheckError                   CustomError `json:"proc_def_loop_check_error"`
+	ProcDefNameRepeatError                  CustomError `json:"proc_def_name_repeat_error"`
+	ProcDefRootEntityEmptyError             CustomError `json:"proc_def_root_entity_empty_error"`
+	DeleteUserError                         CustomError `json:"delete_user_error"`
 }
 
 var (
