@@ -78,11 +78,11 @@ func BatchExecutionCallPluginService(ctx context.Context, operator, authToken, p
 		err = errAnalyze1
 		return
 	}
-	if len(rootExprList) != 1 {
+	if len(rootExprList) >= 1 {
 		err = fmt.Errorf("invalid input entity type %s", entityType)
 		return
 	}
-	rootExpr := rootExprList[0]
+	rootExpr := rootExprList[len(rootExprList)-1]
 	// 构造输入参数
 	inputParamDatas, errHandle := handleInputData(ctx, authToken, continueToken, entityInstances, pluginInterface.InputParameters, rootExpr, inputConstantMap, nil)
 	if errHandle != nil {
@@ -324,6 +324,10 @@ func handleInputData(
 				}
 			case models.PluginParamMapTypeContext:
 				// 上下文参数获取不支持
+				if inputContextMap == nil {
+					err = fmt.Errorf("input param %s is map to %s, which batch execution is not supported", inputDef.Name, inputDef.MappingType)
+					return
+				}
 				inputCalResult = inputContextMap[inputDef.Id]
 			case models.PluginParamMapTypeEntity:
 				// 从数据模型获取
