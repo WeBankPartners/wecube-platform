@@ -36,6 +36,10 @@ const (
 	PluginCallResultPresetErrorCode = "errorCode"         // 0 成功， 1失败
 	PluginCallResultPresetErrorMsg  = "errorMessage"
 
+	PluginInterfaceTypeApproval    = "APPROVAL"
+	PluginInterfaceTypeDynamicform = "DYNAMICFORM"
+	PluginInterfaceTypeExecution   = "EXECUTION"
+
 	PluginNameItsdangerous = "itsdangerous"
 )
 
