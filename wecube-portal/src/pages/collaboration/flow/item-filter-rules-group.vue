@@ -63,6 +63,9 @@ export default {
     this.changeRoutineExpressionItem(this.routineExpression)
   },
   methods: {
+    setRoutineExpressionItem (routineExpression) {
+      this.changeRoutineExpressionItem(routineExpression)
+    },
     filterRuleChanged (val) {
       if (!this.isBatch) {
         this.$emit('filterRuleChanged', val)

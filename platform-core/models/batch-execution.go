@@ -157,9 +157,9 @@ type ResourceData struct {
 }
 
 type BatchExecRunResp struct {
-	BatchExecId          string                        `json:"batchExecId"`
-	BatchExecRunResult   *PluginInterfaceApiResultData `json:"batchExecRunResult"`
-	DangerousCheckResult *ItsdangerousCheckResultData  `json:"dangerousCheckResult"`
+	BatchExecId          string                            `json:"batchExecId"`
+	BatchExecRunResult   *PluginInterfaceApiResultData     `json:"batchExecRunResult"`
+	DangerousCheckResult *ItsdangerousBatchCheckResultData `json:"dangerousCheckResult"`
 }
 
 type BatchExecutionItsdangerousExecParam struct {
@@ -178,6 +178,10 @@ type BatchExecutionPluginExecParam struct {
 	ServicePath     string                                     `json:"servicePath"`
 	EntityInstances []*BatchExecutionPluginExecEntityInstances `json:"entityInstances"`
 	Inputs          []BatchExecutionPluginExecInputParams      `json:"inputs"`
+
+	// DYNAMICFORM
+	DueDate        string   `json:"dueDate"`        // 数字代表任务超时时间
+	AllowedOptions []string `json:"allowedOptions"` // 列表表示任务的选项
 }
 
 type BatchExecutionPluginExecEntityInstances struct {
