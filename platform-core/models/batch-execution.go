@@ -157,9 +157,9 @@ type ResourceData struct {
 }
 
 type BatchExecRunResp struct {
-	BatchExecId          string                        `json:"batchExecId"`
-	BatchExecRunResult   *PluginInterfaceApiResultData `json:"batchExecRunResult"`
-	DangerousCheckResult *ItsdangerousCheckResultData  `json:"dangerousCheckResult"`
+	BatchExecId          string                            `json:"batchExecId"`
+	BatchExecRunResult   *PluginInterfaceApiResultData     `json:"batchExecRunResult"`
+	DangerousCheckResult *ItsdangerousBatchCheckResultData `json:"dangerousCheckResult"`
 }
 
 type BatchExecutionItsdangerousExecParam struct {

@@ -54,7 +54,8 @@ type OutputEntityBranchData struct {
 
 func BatchExecutionCallPluginService(ctx context.Context, operator, authToken, pluginInterfaceId string, entityType string,
 	entityInstances []*models.BatchExecutionPluginExecEntityInstances,
-	inputParamConstants []*models.BatchExecutionPluginDefInputParams, continueToken string) (result *models.PluginInterfaceApiResultData, dangerousCheckResult *models.ItsdangerousCheckResultData, pluginCallParam *models.BatchExecutionPluginExecParam, err error) {
+	inputParamConstants []*models.BatchExecutionPluginDefInputParams,
+	continueToken string) (result *models.PluginInterfaceApiResultData, dangerousCheckResult *models.ItsdangerousBatchCheckResultData, pluginCallParam *models.BatchExecutionPluginExecParam, err error) {
 	pluginInterface, errGet := database.GetPluginConfigInterfaceById(pluginInterfaceId, true)
 	if errGet != nil {
 		err = errGet
@@ -275,7 +276,7 @@ func convertToDatatypeString(name string, value interface{}, valueType reflect.T
 	return
 }
 
-func performDangerousCheck(ctx context.Context, pluginCallParam interface{}, continueToken string, authToken string) (result *models.ItsdangerousCheckResultData, err error) {
+func performDangerousCheck(ctx context.Context, pluginCallParam interface{}, continueToken string, authToken string) (result *models.ItsdangerousBatchCheckResultData, err error) {
 	// 是否有continueToken，有则跳过
 	if continueToken != "" {
 		return
