@@ -166,7 +166,7 @@ func normalizePluginInterfaceParamData(inputParamDef *models.PluginConfigInterfa
 			// 列表转单值
 			valueToSingle := tv.Index(0).Interface()
 			if valueToSingle == nil {
-				result = value
+				result = valueToSingle
 			} else {
 				tToSingle := reflect.TypeOf(valueToSingle)
 				if inputParamDef.DataType == models.PluginParamDataTypeInt {
