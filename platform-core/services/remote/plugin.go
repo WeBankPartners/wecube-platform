@@ -533,8 +533,12 @@ func UpdatentityDataWithExpr(ctx context.Context, authToken, packageName, entity
 		return err
 	}
 	for _, leafData := range leafDatas {
-		data["id"] = leafData["id"]
-		_, err := updatePluginModelData(ctx, packageName, entityName, authToken, []interface{}{data})
+		newData := make(map[string]interface{})
+		for k, v := range data {
+			newData[k] = v
+		}
+		newData["id"] = leafData["id"]
+		_, err := updatePluginModelData(ctx, exprs[len(exprs)-1].Package, exprs[len(exprs)-1].Entity, authToken, []interface{}{newData})
 		if err != nil {
 			return err
 		}
