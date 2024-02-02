@@ -70,15 +70,15 @@
     </div>
     <div>
       <Input
-        v-model="searchParams.procDefId"
-        placeholder="ID"
+        v-model="searchParams.procDefName"
+        :placeholder="$t('flow_name')"
         class="search-item"
         clearable
         @on-change="getFlowList"
       ></Input>
       <Input
-        v-model="searchParams.procDefName"
-        :placeholder="$t('flow_name')"
+        v-model="searchParams.procDefId"
+        placeholder="ID"
         class="search-item"
         clearable
         @on-change="getFlowList"
@@ -260,12 +260,6 @@ export default {
           align: 'center'
         },
         {
-          title: 'ID',
-          width: 80,
-          ellipsis: true,
-          key: 'id'
-        },
-        {
           title: this.$t('flow_name'),
           key: 'name',
           render: (h, params) => {
@@ -274,6 +268,21 @@ export default {
                 {params.row.name}
                 <Tag style="margin-left:2px">{params.row.version}</Tag>
               </span>
+            )
+          }
+        },
+        {
+          title: 'ID',
+          width: 80,
+          ellipsis: true,
+          key: 'id',
+          render: (h, params) => {
+            return (
+              <div>
+                <Tooltip content={params.row.id} placement="top">
+                  <span>{params.row.id.slice(0, 7)}...</span>
+                </Tooltip>
+              </div>
             )
           }
         },
