@@ -124,7 +124,7 @@
                   </label>
                   <Select
                     v-model="itemCustomInfo.customAttrs.bindNodeId"
-                    @on-change="paramsChanged"
+                    @on-change="changeBindNode"
                     @on-open-change="getAssociatedNodes"
                     clearable
                     filterable
@@ -154,7 +154,7 @@
                       ref="filterRulesGroupRef"
                       @filterRuleChanged="singleFilterRuleChanged"
                       :disabled="itemCustomInfo.customAttrs.dynamicBind"
-                      :routineExpression="itemCustomInfo.customAttrs.routineExpression || routineExpression"
+                      :routineExpression="itemCustomInfo.customAttrs.routineExpression || currentSelectedEntity"
                       :allEntityType="allEntityType"
                       :currentSelectedEntity="currentSelectedEntity"
                     >
@@ -282,10 +282,8 @@
         </Collapse>
       </div>
     </div>
-    <div class="item-footer">
-      <Button v-if="editFlow !== 'false'" :disabled="isSaveBtnActive()" @click="saveItem" type="primary">{{
-        $t('save')
-      }}</Button>
+    <div class="item-footer" v-if="editFlow !== 'false'">
+      <Button :disabled="isSaveBtnActive()" @click="saveItem" type="primary">{{ $t('save') }}</Button>
       <Button @click="hideItem">{{ $t('cancel') }}</Button>
     </div>
   </div>
@@ -498,6 +496,16 @@ export default {
         this.associatedNodes = data
       }
     },
+    // 更新动态绑定节点逻辑
+    changeBindNode () {
+      const find = this.associatedNodes.find(node => node.nodeId === this.itemCustomInfo.customAttrs.bindNodeId)
+      if (find) {
+        this.$nextTick(() => {
+          this.itemCustomInfo.customAttrs.routineExpression = find.routineExpression
+          this.$refs.filterRulesGroupRef.setRoutineExpressionItem(this.itemCustomInfo.customAttrs.routineExpression)
+        })
+      }
+    },
     // 更新关联节点的响应
     changeAssociatedNode () {},
 
@@ -513,9 +521,13 @@ export default {
 
     // 定位规则回传
     singleFilterRuleChanged (val) {
-      this.itemCustomInfo.customAttrs.routineExpression = val
-      this.getPlugin()
-      this.paramsChanged()
+      if (val === '') {
+        this.changDynamicBind()
+      } else {
+        this.itemCustomInfo.customAttrs.routineExpression = val
+        this.getPlugin()
+        this.paramsChanged()
+      }
     },
     // 获取可选插件
     getPlugin () {
@@ -537,7 +549,7 @@ export default {
       if (plugin) {
         const findPluginDetail = this.filteredPlugins.find(p => p.serviceName === plugin)
         this.itemCustomInfo.customAttrs.paramInfos = []
-        if (findPluginDetail) {
+        if (findPluginDetail && findPluginDetail.configurableInputParameters) {
           let needParams = findPluginDetail.configurableInputParameters.filter(
             _ => _.mappingType === 'context' || _.mappingType === 'constant'
           )
@@ -636,6 +648,13 @@ export default {
     },
     // #endregion
     changDynamicBind () {
+      this.itemCustomInfo.customAttrs.bindNodeId = ''
+      this.itemCustomInfo.customAttrs.routineExpression = this.currentSelectedEntity
+      this.itemCustomInfo.customAttrs.serviceName = ''
+      this.itemCustomInfo.customAttrs.paramInfos = []
+      this.$nextTick(() => {
+        this.$refs.filterRulesGroupRef.setRoutineExpressionItem(this.itemCustomInfo.customAttrs.routineExpression)
+      })
       this.paramsChanged()
     }
   }
