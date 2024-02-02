@@ -465,9 +465,13 @@ func getAuthEnableInterfacesCommonQuerySQL() string {
 		"plugin_configs t2, plugin_packages t3,plugin_config_roles t4  WHERE  t1.plugin_config_id = t2.id "
 }
 
-func GetPluginConfigInterfaceById(id string) (result *models.PluginConfigInterfaces, err error) {
+func GetPluginConfigInterfaceById(id string, available bool) (result *models.PluginConfigInterfaces, err error) {
 	result = &models.PluginConfigInterfaces{}
-	found, errPCI := db.MysqlEngine.Table(new(models.PluginConfigInterfaces)).Where("id=?", id).Get(result)
+	session := db.MysqlEngine.Table("plugin_config_interfaces").Select("plugin_config_interfaces.*").Join("LEFT", "plugin_configs", "plugin_configs.id = plugin_config_interfaces.plugin_config_id").Where("plugin_config_interfaces.id=?", id)
+	if available {
+		session = session.And("plugin_configs.status=?", "ENABLED")
+	}
+	found, errPCI := session.Get(result)
 	if errPCI != nil {
 		result = nil
 		err = errPCI
