@@ -94,6 +94,14 @@
   },
   "proc_def_loop_check_error": {
     "code": 20000019,
-    "message": "Publish Failed: Loop in process"
+    "message": "Publish Failed: Loop in process."
+  },
+  "proc_def_name_repeat_error": {
+    "code": 20000020,
+    "message": "Save failed: The process name cannot conflict with an existing one."
+  },
+  "proc_def_root_entity_empty_error": {
+    "code": 20000021,
+    "message": "Entity Type cannot be empty"
   }
 }
