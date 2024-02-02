@@ -15,12 +15,13 @@
       v-if="columns.length > 0"
       size="small"
       type="selection"
+      :width="200 * columns.length - 122"
       :columns="columns"
       :data="tableData"
       :loading="loading"
       @on-selection-change="handleChooseData"
       :max-height="400"
-      style="margin-left: -100px"
+      style="margin-left: -100px; max-width: 100%"
     ></Table>
     <div v-else class="no-data">暂无数据</div>
   </div>
