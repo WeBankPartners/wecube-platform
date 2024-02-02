@@ -11,7 +11,7 @@
       <!-- 左侧按钮 -->
       <item-panel ref="itemPanelRef" />
       <div class="floating-button">
-        <Button size="small" type="primary" @click="resetCanvas" sytle="position: fixed">Reset Zoom</Button>
+        <Button size="small" @click="resetCanvas">Reset</Button>
       </div>
       <!-- 挂载节点 -->
       <div id="canvasPanel" ref="canvasPanel" @dragover.prevent />
@@ -370,7 +370,7 @@ export default {
                 x: model.x + 40,
                 y: model.y - 20
               }
-              if (!this.editFlow) {
+              if (this.editFlow !== 'false') {
                 this.addRemoveNode(point)
               }
             }
@@ -445,7 +445,7 @@ export default {
             // shape: 'line-edge',
             style: {
               radius: 10,
-              lineWidth: 2
+              lineWidth: 1
             }
           })
           this.canRemovedId = model.id
@@ -525,8 +525,8 @@ export default {
         }
         // 异常节点只能连入
         if (targertNodeType === 'decision') {
-          if (!['data', 'human', 'automatic'].includes(sourceNodeType)) {
-            this.$Message.warning('判断节点只能被[数据节点，人工节点，自动化节点]连入！')
+          if (!['human'].includes(sourceNodeType)) {
+            this.$Message.warning('判断节点只能被[人工节点]连入！')
             return
           }
         }
@@ -559,7 +559,12 @@ export default {
           this.graph.addItem('edge', model)
 
           this.itemInfoType = 'edge'
-          this.$refs.itemInfoEdgeRef.showItemInfo(model, true, this.editFlow)
+          const find = this.graph.save().nodes.find(node => node.id === sourceId)
+          let isNameRequired = false
+          if (find && find.customAttrs.nodeType === 'decision') {
+            isNameRequired = true
+          }
+          this.$refs.itemInfoEdgeRef.showItemInfo(model, true, this.editFlow, isNameRequired)
         }, 100)
       })
 
@@ -575,7 +580,7 @@ export default {
             x: e.x,
             y: e.y - 20
           }
-          if (!this.editFlow) {
+          if (this.editFlow !== 'false') {
             this.addRemoveNode(point)
           }
 
@@ -586,7 +591,12 @@ export default {
           //   this.graph.setItemState(edge, 'selected', true)
           // }
           this.itemInfoType = 'edge'
-          this.$refs.itemInfoEdgeRef.showItemInfo(model, false, this.editFlow)
+          const find = this.graph.save().nodes.find(node => node.id === model.source)
+          let isNameRequired = false
+          if (find && find.customAttrs.nodeType === 'decision') {
+            isNameRequired = true
+          }
+          this.$refs.itemInfoEdgeRef.showItemInfo(model, false, this.editFlow, isNameRequired)
         }
       })
 
@@ -843,8 +853,7 @@ export default {
 .floating-button {
   z-index: 10;
   position: fixed;
-  bottom: 30px;
-  left: 28px;
+  left: 120px;
 }
 
 .v-enter-active,
