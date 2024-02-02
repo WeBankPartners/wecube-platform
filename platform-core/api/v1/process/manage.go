@@ -45,23 +45,43 @@ var importFailMessageMap = map[int]string{
 func AddOrUpdateProcessDefinition(c *gin.Context) {
 	var param models.ProcessDefinitionParam
 	var entity *models.ProcDef
-
 	var nodeList []*models.ProcDefNode
 	var err error
 	var result *models.ProcDef
+	var repeatNameList []*models.ProcDef
 	if err := c.ShouldBindJSON(&param); err != nil {
 		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, err))
 		return
 	}
 	if param.Name == "" {
-		err = fmt.Errorf("name & version not empty")
-		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, err))
+		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, fmt.Errorf("name & version not empty")))
 		return
 	}
 	// 1.权限参数校验
 	if len(param.PermissionToRole.MGMT) == 0 {
-		err = exterror.Catch(exterror.New().RequestParamValidateError, fmt.Errorf("request param err,permissionToRole MGMT is empty"))
+		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, fmt.Errorf("request param err,permissionToRole MGMT is empty")))
 		return
+	}
+	// 判断名称和版本是否重复
+	repeatNameList, err = database.GetProcessDefinitionByCondition(c, models.ProcDefCondition{Name: param.Name})
+	if err != nil {
+		middleware.ReturnError(c, err)
+		return
+	}
+	if len(repeatNameList) > 0 {
+		if param.Id == "" {
+			middleware.ReturnError(c, exterror.Catch(exterror.New().ProcDefNameRepeatError, nil))
+			return
+		}
+		for _, procDef := range repeatNameList {
+			if procDef.Id == param.Id {
+				continue
+			}
+			if procDef.Key != param.Key {
+				middleware.ReturnError(c, exterror.Catch(exterror.New().ProcDefNameRepeatError, nil))
+				return
+			}
+		}
 	}
 	if param.Id == "" {
 		entity, err = database.AddProcessDefinition(c, middleware.GetRequestUser(c), param)
@@ -274,6 +294,8 @@ func BatchUpdateProcessDefinitionStatus(c *gin.Context) {
 func BatchUpdateProcessDefinitionPermission(c *gin.Context) {
 	var param models.BatchUpdateProcDefPermission
 	var err error
+	var user = middleware.GetRequestUser(c)
+	now := time.Now()
 	if err = c.ShouldBindJSON(&param); err != nil {
 		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, err))
 		return
@@ -298,6 +320,14 @@ func BatchUpdateProcessDefinitionPermission(c *gin.Context) {
 			continue
 		}
 		err = database.BatchAddProcDefPermission(c, procDefId, param.PermissionToRole)
+		if err != nil {
+			middleware.ReturnError(c, err)
+			return
+		}
+		// 更新编排更新人和更新时间
+		procDef.UpdatedBy = user
+		procDef.UpdatedTime = now
+		err = database.UpdateProcDef(c, procDef)
 		if err != nil {
 			middleware.ReturnError(c, err)
 			return
@@ -409,6 +439,10 @@ func DeployProcessDefinition(c *gin.Context) {
 			err = exterror.Catch(exterror.New().ServerHandleError, fmt.Errorf("proc-def-id is invalid"))
 		}
 		middleware.ReturnError(c, err)
+		return
+	}
+	if strings.TrimSpace(procDef.RootEntity) == "" {
+		middleware.ReturnError(c, exterror.Catch(exterror.New().ProcDefRootEntityEmptyError, nil))
 		return
 	}
 	// 草稿态才能发布
@@ -555,6 +589,14 @@ func AddOrUpdateProcDefTaskNodes(c *gin.Context) {
 			}
 		}
 	}
+	// 更新编排更新人和更新时间
+	procDef.UpdatedBy = user
+	procDef.UpdatedTime = time.Now()
+	err = database.UpdateProcDef(c, procDef)
+	if err != nil {
+		middleware.ReturnError(c, err)
+		return
+	}
 	middleware.ReturnSuccess(c)
 }
 
@@ -633,8 +675,7 @@ func GetProcDefNodePreorder(c *gin.Context) {
 			}
 			if procDefNode != nil {
 				// 只需要统计 人工/自动/数据节点
-				if procDefNode.NodeType == string(models.ProcDefNodeTypeHuman) || procDefNode.NodeType == string(models.ProcDefNodeTypeAutomatic) ||
-					procDefNode.NodeType == string(models.ProcDefNodeTypeData) {
+				if procDefNode.NodeType == string(models.ProcDefNodeTypeAutomatic) {
 					nodeSimpleDtoMap[procDefNode.Id] = models.ConvertProcDefNode2SimpleDto(procDefNode)
 				}
 				// 将节点数据 放入到targetNodeRecordMap,后续继续递归

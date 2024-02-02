@@ -396,7 +396,7 @@ func getInterfaceStringList(input interface{}) (guidList []string) {
 	return
 }
 
-func DangerousBatchCheck(ctx context.Context, token string, reqParam interface{}) (result *models.ItsdangerousCheckResultData, err error) {
+func DangerousBatchCheck(ctx context.Context, token string, reqParam interface{}) (result *models.ItsdangerousBatchCheckResultData, err error) {
 	uri := fmt.Sprintf("%s/%s/v1/batch_execution_detection", models.Config.Gateway.Url, models.PluginNameItsdangerous)
 	if models.Config.HttpsEnable == "true" {
 		uri = "https://" + uri
@@ -425,7 +425,7 @@ func DangerousBatchCheck(ctx context.Context, token string, reqParam interface{}
 		err = fmt.Errorf("do request fail,%s ", respErr.Error())
 		return
 	}
-	var response models.ItsdangerousCheckResult
+	var response models.ItsdangerousBatchCheckResult
 	respBody, readBodyErr := io.ReadAll(resp.Body)
 	if readBodyErr != nil {
 		err = fmt.Errorf("read response body fail,%s ", readBodyErr.Error())
@@ -441,6 +441,54 @@ func DangerousBatchCheck(ctx context.Context, token string, reqParam interface{}
 		return
 	}
 	result = response.Data
+	return
+}
+
+func DangerousWorkflowCheck(ctx context.Context, token string, reqParam interface{}) (result *models.ItsdangerousWorkflowCheckResultData, err error) {
+	uri := fmt.Sprintf("%s/%s/v1/detection", models.Config.Gateway.Url, models.PluginNameItsdangerous)
+	if models.Config.HttpsEnable == "true" {
+		uri = "https://" + uri
+	} else {
+		uri = "http://" + uri
+	}
+	urlObj, _ := url.Parse(uri)
+	var reqBodyReader io.Reader
+	if reqParam != nil {
+		reqBody, _ := json.Marshal(reqParam)
+		reqBodyReader = bytes.NewReader(reqBody)
+	}
+	req, reqErr := http.NewRequest(http.MethodPost, urlObj.String(), reqBodyReader)
+	if reqErr != nil {
+		err = fmt.Errorf("new request fail,%s ", reqErr.Error())
+		return
+	}
+	reqId := "req_" + guid.CreateGuid()
+	transId := ctx.Value(models.TransactionIdHeader).(string)
+	req.Header.Set(models.RequestIdHeader, reqId)
+	req.Header.Set(models.TransactionIdHeader, transId)
+	req.Header.Set(models.AuthorizationHeader, token)
+	req.Header.Set("Content-type", "application/json")
+	resp, respErr := http.DefaultClient.Do(req)
+	if respErr != nil {
+		err = fmt.Errorf("do request fail,%s ", respErr.Error())
+		return
+	}
+	var response models.ItsdangerousWorkflowCheckResult
+	respBody, readBodyErr := io.ReadAll(resp.Body)
+	if readBodyErr != nil {
+		err = fmt.Errorf("read response body fail,%s ", readBodyErr.Error())
+		return
+	}
+	resp.Body.Close()
+	if err = json.Unmarshal(respBody, &response); err != nil {
+		err = fmt.Errorf("json unmarshal response body fail,%s ", err.Error())
+		return
+	}
+	if response.ResultCode != "0" {
+		err = fmt.Errorf(response.ResultMessage)
+		return
+	}
+	result = response.Results
 	return
 }
 
@@ -533,8 +581,12 @@ func UpdatentityDataWithExpr(ctx context.Context, authToken, packageName, entity
 		return err
 	}
 	for _, leafData := range leafDatas {
-		data["id"] = leafData["id"]
-		_, err := updatePluginModelData(ctx, packageName, entityName, authToken, []interface{}{data})
+		newData := make(map[string]interface{})
+		for k, v := range data {
+			newData[k] = v
+		}
+		newData["id"] = leafData["id"]
+		_, err := updatePluginModelData(ctx, exprs[len(exprs)-1].Package, exprs[len(exprs)-1].Entity, authToken, []interface{}{newData})
 		if err != nil {
 			return err
 		}

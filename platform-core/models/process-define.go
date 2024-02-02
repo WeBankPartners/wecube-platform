@@ -180,9 +180,10 @@ type ProcDefNodeResultDto struct {
 }
 
 type ProcDefNodeSimpleDto struct {
-	NodeId   string `json:"nodeId"`   // 节点id
-	Name     string `json:"nodeName"` // 节点名称
-	NodeType string
+	NodeId            string `json:"nodeId"`            // 节点id
+	Name              string `json:"nodeName"`          // 节点名称
+	NodeType          string `json:"nodeType"`          // 节点类型
+	RoutineExpression string `json:"routineExpression"` // 定位规则
 }
 
 // ProcDefNodeRequestParam 编排节点dto
@@ -559,8 +560,10 @@ func ConvertProcDefNodeLink2Dto(nodeLink *ProcDefNodeLink) *ProcDefNodeLinkDto {
 
 func ConvertProcDefNode2SimpleDto(procDefNode *ProcDefNode) *ProcDefNodeSimpleDto {
 	return &ProcDefNodeSimpleDto{
-		NodeId: procDefNode.NodeId,
-		Name:   procDefNode.Name,
+		NodeId:            procDefNode.NodeId,
+		Name:              procDefNode.Name,
+		NodeType:          procDefNode.NodeType,
+		RoutineExpression: procDefNode.RoutineExpression,
 	}
 }
 
