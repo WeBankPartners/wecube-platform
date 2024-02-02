@@ -65,6 +65,10 @@ func BatchExecutionCallPluginService(ctx context.Context, operator, authToken, p
 		err = fmt.Errorf("invalid plugin interface %s", pluginInterfaceId)
 		return
 	}
+	if pluginInterface.Type != models.PluginInterfaceTypeExecution {
+		err = fmt.Errorf("unsupported plugin interface type %s", pluginInterface.Type)
+		return
+	}
 	inputConstantMap := make(map[string]string)
 	for _, inputConst := range inputParamConstants {
 		inputConstantMap[inputConst.ParamId] = inputConst.ParameValue
