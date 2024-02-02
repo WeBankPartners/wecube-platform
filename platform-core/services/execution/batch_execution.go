@@ -78,7 +78,7 @@ func BatchExecutionCallPluginService(ctx context.Context, operator, authToken, p
 		err = errAnalyze1
 		return
 	}
-	if len(rootExprList) >= 1 {
+	if len(rootExprList) == 0 {
 		err = fmt.Errorf("invalid input entity type %s", entityType)
 		return
 	}
