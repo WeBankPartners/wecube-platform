@@ -84,6 +84,15 @@ export default {
       },
       deep: true,
       immediate: true
+    },
+    select: {
+      handler (val) {
+        if (val && val.length) {
+          this.selectData = val
+        }
+      },
+      deep: true,
+      immediate: true
     }
   },
   mounted () {
