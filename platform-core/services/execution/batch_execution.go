@@ -165,13 +165,14 @@ func BatchExecutionCallPluginService(ctx context.Context, operator, authToken, p
 		err = errCall
 		return
 	}
-	// 处理output param(比如类型转换，数据模型写入)
-	tmpResult, errHandle := handleOutputData(ctx, subsysToken, pluginCallResult.Outputs, pluginInterface.OutputParameters)
+	// 处理output param(比如类型转换，数据模型写入), handleOutputData主要是用于格式化为output param定义的字段
+	_, errHandle := handleOutputData(ctx, subsysToken, pluginCallResult.Outputs, pluginInterface.OutputParameters)
 	if errHandle != nil {
 		err = errHandle
 		return
 	}
-	result = tmpResult
+	// 批量执行需要返回原始插件结果，而不是格式化output字段的值
+	result = pluginCallResult
 	return
 }
 
@@ -454,7 +455,7 @@ func handleOutputData(ctx context.Context, authToken string, outputs []map[strin
 				rootData.Id = ret["id"].(string)
 			}
 		} else {
-			// 除了ID以外有其他值才需要写入？？？
+			// 除了ID以外有其他值才需要写入
 			if len(rootData.Data) > 1 {
 				_, errUpdate := remote.UpdateEntityData(ctx, authToken, tmpResultForEntity.Package, tmpResultForEntity.Entity, rootData.Data)
 				if errUpdate != nil {
