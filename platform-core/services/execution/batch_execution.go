@@ -54,7 +54,8 @@ type OutputEntityBranchData struct {
 
 func BatchExecutionCallPluginService(ctx context.Context, operator, authToken, pluginInterfaceId string, entityType string,
 	entityInstances []*models.BatchExecutionPluginExecEntityInstances,
-	inputParamConstants []*models.BatchExecutionPluginDefInputParams, continueToken string) (result *models.PluginInterfaceApiResultData, dangerousCheckResult *models.ItsdangerousCheckResultData, pluginCallParam *models.BatchExecutionPluginExecParam, err error) {
+	inputParamConstants []*models.BatchExecutionPluginDefInputParams,
+	continueToken string) (result *models.PluginInterfaceApiResultData, dangerousCheckResult *models.ItsdangerousBatchCheckResultData, pluginCallParam *models.BatchExecutionPluginExecParam, err error) {
 	pluginInterface, errGet := database.GetPluginConfigInterfaceById(pluginInterfaceId, true)
 	if errGet != nil {
 		err = errGet
@@ -62,6 +63,10 @@ func BatchExecutionCallPluginService(ctx context.Context, operator, authToken, p
 	}
 	if pluginInterface == nil {
 		err = fmt.Errorf("invalid plugin interface %s", pluginInterfaceId)
+		return
+	}
+	if pluginInterface.Type != models.PluginInterfaceTypeExecution {
+		err = fmt.Errorf("unsupported plugin interface type %s", pluginInterface.Type)
 		return
 	}
 	inputConstantMap := make(map[string]string)
@@ -73,13 +78,13 @@ func BatchExecutionCallPluginService(ctx context.Context, operator, authToken, p
 		err = errAnalyze1
 		return
 	}
-	if len(rootExprList) != 1 {
+	if len(rootExprList) == 0 {
 		err = fmt.Errorf("invalid input entity type %s", entityType)
 		return
 	}
-	rootExpr := rootExprList[0]
+	rootExpr := rootExprList[len(rootExprList)-1]
 	// 构造输入参数
-	inputParamDatas, errHandle := handleInputData(ctx, authToken, continueToken, entityInstances, pluginInterface.InputParameters, rootExpr, inputConstantMap)
+	inputParamDatas, errHandle := handleInputData(ctx, authToken, continueToken, entityInstances, pluginInterface.InputParameters, rootExpr, inputConstantMap, nil)
 	if errHandle != nil {
 		err = errHandle
 		return
@@ -96,7 +101,7 @@ func BatchExecutionCallPluginService(ctx context.Context, operator, authToken, p
 	// 需要有运行时的高危插件
 	// 获取subsystem token
 	subsysToken := remote.GetToken()
-	dangerousResult, errDangerous := performDangerousCheck(ctx, itsdangerousCallParam, continueToken, subsysToken)
+	dangerousResult, errDangerous := performBatchDangerousCheck(ctx, itsdangerousCallParam, continueToken, subsysToken)
 	if errDangerous != nil {
 		err = errDangerous
 		return
@@ -114,9 +119,7 @@ func BatchExecutionCallPluginService(ctx context.Context, operator, authToken, p
 		EntityInstances: entityInstances,
 		Inputs:          inputParamDatas,
 	}
-	if pluginInterface.IsAsyncProcessing == "Y" {
-		pluginCallParam.RequestId = "batchexec_" + guid.CreateGuid()
-	}
+	pluginCallParam.RequestId = "batchexec_" + guid.CreateGuid()
 	pluginCallResult, errCall := remote.PluginInterfaceApi(ctx, authToken, pluginInterface, pluginCallParam)
 	if errCall != nil {
 		err = errCall
@@ -162,31 +165,35 @@ func normalizePluginInterfaceParamData(inputParamDef *models.PluginConfigInterfa
 			}
 			// 列表转单值
 			valueToSingle := tv.Index(0).Interface()
-			tToSingle := reflect.TypeOf(valueToSingle)
-			if inputParamDef.DataType == models.PluginParamDataTypeInt {
-				convValue, err := convertToDatatypeInt(inputParamDef.Name, valueToSingle, tToSingle)
-				if err != nil {
-					return nil, err
+			if valueToSingle == nil {
+				result = valueToSingle
+			} else {
+				tToSingle := reflect.TypeOf(valueToSingle)
+				if inputParamDef.DataType == models.PluginParamDataTypeInt {
+					convValue, err := convertToDatatypeInt(inputParamDef.Name, valueToSingle, tToSingle)
+					if err != nil {
+						return nil, err
+					}
+					result = convValue
+					// 转换为列表
+					if inputParamDef.Multiple == "Y" {
+						result = []interface{}{convValue}
+					}
+				} else if inputParamDef.DataType == models.PluginParamDataTypeString {
+					convValue, err := convertToDatatypeString(inputParamDef.Name, valueToSingle, tToSingle)
+					if err != nil {
+						return nil, err
+					}
+					result = convValue
+					// 转换为列表
+					if inputParamDef.Multiple == "Y" {
+						result = []interface{}{convValue}
+					}
+				} else if inputParamDef.DataType == models.PluginParamDataTypeObject {
+					return nil, fmt.Errorf("field:%s can not convert %v to object", inputParamDef.Name, tToSingle)
+				} else if inputParamDef.DataType == models.PluginParamDataTypeList {
+					return nil, fmt.Errorf("field:%s can not convert %v to list", inputParamDef.Name, tToSingle)
 				}
-				result = convValue
-				// 转换为列表
-				if inputParamDef.Multiple == "Y" {
-					result = []interface{}{convValue}
-				}
-			} else if inputParamDef.DataType == models.PluginParamDataTypeString {
-				convValue, err := convertToDatatypeString(inputParamDef.Name, valueToSingle, tToSingle)
-				if err != nil {
-					return nil, err
-				}
-				result = convValue
-				// 转换为列表
-				if inputParamDef.Multiple == "Y" {
-					result = []interface{}{convValue}
-				}
-			} else if inputParamDef.DataType == models.PluginParamDataTypeObject {
-				return nil, fmt.Errorf("field:%s can not convert %v to object", inputParamDef.Name, tToSingle)
-			} else if inputParamDef.DataType == models.PluginParamDataTypeList {
-				return nil, fmt.Errorf("field:%s can not convert %v to list", inputParamDef.Name, tToSingle)
 			}
 		}
 	} else if t.Kind() == reflect.Map {
@@ -275,7 +282,7 @@ func convertToDatatypeString(name string, value interface{}, valueType reflect.T
 	return
 }
 
-func performDangerousCheck(ctx context.Context, pluginCallParam interface{}, continueToken string, authToken string) (result *models.ItsdangerousCheckResultData, err error) {
+func performBatchDangerousCheck(ctx context.Context, pluginCallParam interface{}, continueToken string, authToken string) (result *models.ItsdangerousBatchCheckResultData, err error) {
 	// 是否有continueToken，有则跳过
 	if continueToken != "" {
 		return
@@ -298,9 +305,12 @@ func handleInputData(
 	continueToken string,
 	entityInstances []*models.BatchExecutionPluginExecEntityInstances,
 	inputParamDefs []*models.PluginConfigInterfaceParameters,
-	rootExpr *models.ExpressionObj, inputConstantMap map[string]string) (inputParamDatas []models.BatchExecutionPluginExecInputParams, err error) {
+	rootExpr *models.ExpressionObj,
+	inputConstantMap map[string]string,
+	inputContextMap map[string]interface{}) (inputParamDatas []models.BatchExecutionPluginExecInputParams, err error) {
 	inputParamDatas = make([]models.BatchExecutionPluginExecInputParams, 0)
 	for _, entityInstance := range entityInstances {
+		// batch inputParamData = {"callbackParameter":"entity instance id", "confirmToken":"Y", xml props}
 		inputParamData := models.BatchExecutionPluginExecInputParams{}
 		for _, inputDef := range inputParamDefs {
 			var inputCalResult interface{}
@@ -318,8 +328,11 @@ func handleInputData(
 				}
 			case models.PluginParamMapTypeContext:
 				// 上下文参数获取不支持
-				err = fmt.Errorf("input param %s is map to %s, which batch execution is not supported", inputDef.Name, inputDef.MappingType)
-				return
+				if inputContextMap == nil {
+					err = fmt.Errorf("input param %s is map to %s, which batch execution is not supported", inputDef.Name, inputDef.MappingType)
+					return
+				}
+				inputCalResult = inputContextMap[inputDef.Id]
 			case models.PluginParamMapTypeEntity:
 				// 从数据模型获取
 				if inputDef.MappingEntityExpression == "" {
@@ -359,7 +372,7 @@ func handleInputData(
 				return
 			}
 		}
-		// NOTE: 仅批量执行的PluginCallParamPresetCallback是行ID，插件调用时是随机ID与行数据没有关联
+		// NOTE: 仅批量执行的PluginCallParamPresetCallback是行ID，编排插件调用时是随机ID与行数据没有关联
 		inputParamData[models.PluginCallParamPresetCallback] = entityInstance.Id
 		inputParamData[models.PluginCallParamPresetConfirm] = continueToken
 		inputParamDatas = append(inputParamDatas, inputParamData)
@@ -499,6 +512,7 @@ func handleOutputData(
 			} else {
 				// 成功需要回写ID，以便后续Branch数据更新使用
 				rootData.Id = ret["id"].(string)
+				log.Logger.Debug(fmt.Sprintf("create %s entity %s[%s] %v", tmpResultForEntity.Package, tmpResultForEntity.Entity, rootData.Id, rootData.Data))
 			}
 		} else {
 			// 除了ID以外有其他值才需要写入
@@ -506,6 +520,8 @@ func handleOutputData(
 				_, errUpdate := remote.UpdateEntityData(ctx, authToken, tmpResultForEntity.Package, tmpResultForEntity.Entity, rootData.Data)
 				if errUpdate != nil {
 					log.Logger.Error(fmt.Sprintf("failed to update %s entity %s[%s] %v", tmpResultForEntity.Package, tmpResultForEntity.Entity, rootData.Id, rootData.Data))
+				} else {
+					log.Logger.Debug(fmt.Sprintf("update %s entity %s[%s] %v", tmpResultForEntity.Package, tmpResultForEntity.Entity, rootData.Id, rootData.Data))
 				}
 			}
 		}
@@ -514,6 +530,8 @@ func handleOutputData(
 			errUpdate := remote.UpdatentityDataWithExpr(ctx, authToken, tmpResultForEntity.Package, tmpResultForEntity.Entity, rootData.Id, branchData.Exprs, branchData.Data)
 			if errUpdate != nil {
 				log.Logger.Error(fmt.Sprintf("failed to update %s entity %s[%s] with expression %s %v", tmpResultForEntity.Package, tmpResultForEntity.Entity, rootData.Id, branchData.OriginExpr, branchData.Data))
+			} else {
+				log.Logger.Debug(fmt.Sprintf("update %s entity %s[%s] with expression %s %v", tmpResultForEntity.Package, tmpResultForEntity.Entity, rootData.Id, branchData.OriginExpr, branchData.Data))
 			}
 		}
 	}
