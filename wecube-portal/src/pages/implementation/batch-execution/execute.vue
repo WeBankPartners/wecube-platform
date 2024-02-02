@@ -6,8 +6,8 @@
     </div>
     <!--表格分页-->
     <Row :gutter="20">
-      <Col :span="8">
-        <Card :style="{ minHeight: maxHeight + 'px' }">
+      <Col :span="7">
+        <Card :style="{ minHeight: maxHeight + 'px', maxHeight: maxHeight + 'px' }">
           <div class="title" slot="title">执行记录列表</div>
           <Table
             class="hover"
@@ -16,6 +16,7 @@
             :columns="tableColumns"
             :data="tableData"
             width="100%"
+            :max-height="maxHeight - 100"
             @on-row-click="handleExecuteHistory"
           ></Table>
           <div class="pagination">
@@ -33,7 +34,7 @@
           </div>
         </Card>
       </Col>
-      <Col :span="16">
+      <Col :span="17">
         <!--批量执行结果-->
         <ExecuteResult ref="executeResult"></ExecuteResult>
       </Col>
@@ -74,7 +75,7 @@ export default {
           ]
         },
         {
-          key: 'createdTime',
+          key: 'createdTimeT',
           label: '执行时间',
           dateType: 1,
           initValue: [dayjs().subtract(3, 'month').format('YYYY-MM-DD'), dayjs().format('YYYY-MM-DD')],
@@ -86,13 +87,13 @@ export default {
         name: '',
         id: '',
         status: '',
-        createdTime: [dayjs().subtract(3, 'month').format('YYYY-MM-DD'), dayjs().format('YYYY-MM-DD')]
+        createdTimeT: [dayjs().subtract(3, 'month').format('YYYY-MM-DD'), dayjs().format('YYYY-MM-DD')]
       },
       tableData: [],
       tableColumns: [
         {
           title: '名称',
-          width: 200,
+          minWidth: 100,
           key: 'name'
         },
         {
@@ -150,14 +151,14 @@ export default {
       pagination: {
         total: 0,
         currentPage: 1,
-        pageSize: 10
+        pageSize: 20
       },
       maxHeight: 500,
       rowId: ''
     }
   },
   mounted () {
-    this.maxHeight = document.body.clientHeight - 170
+    this.maxHeight = document.body.clientHeight - 150
     this.getList()
   },
   methods: {
@@ -185,7 +186,7 @@ export default {
         sorting: [
           {
             asc: false,
-            field: 'updatedTime'
+            field: 'updatedTimeT'
           }
         ]
       }
@@ -202,7 +203,7 @@ export default {
             operator: 'eq',
             value: this.form[key]
           })
-        } else if (key === 'createdTime') {
+        } else if (key === 'createdTimeT') {
           params.filters.push(
             ...[
               {
