@@ -193,10 +193,10 @@ export default {
 </script>
 
 <style scoped lang="scss">
-.flow-name {
-  line-height: 32px;
-  cursor: pointer;
-}
+// .flow-name {
+//   line-height: 32px;
+//   cursor: pointer;
+// }
 
 .btn-img {
   width: 16px;
@@ -209,10 +209,10 @@ export default {
   color: #fff;
   border-radius: 2px;
   background: #2d8cf0;
+  margin-right: 8px;
 }
 .flow-name {
   font-size: 14px;
-  margin-left: 16px;
   display: flex;
   align-items: center;
 }

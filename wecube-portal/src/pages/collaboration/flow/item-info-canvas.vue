@@ -81,7 +81,7 @@
       <Button v-if="editFlow !== 'false'" :disabled="isSaveBtnActive()" @click="saveItem" type="primary">{{
         $t('save')
       }}</Button>
-      <Button @click="hideItem">{{ $t('cancel') }}</Button>
+      <Button v-if="editFlow !== 'false'" @click="hideItem">{{ $t('cancel') }}</Button>
     </div>
   </div>
 </template>
@@ -230,7 +230,7 @@ export default {
 <style lang="scss" scoped>
 #itemInfo {
   position: absolute;
-  top: 134px;
+  top: 127px;
   right: 13px;
   bottom: 0;
   z-index: 10;
@@ -241,7 +241,7 @@ export default {
   transition: transform 0.3s ease-in-out;
   box-shadow: 0 0 2px 0 rgba(0, 0, 0, 0.1);
   overflow: auto;
-  height: calc(100vh - 186px);
+  height: calc(100vh - 154px);
 }
 .ivu-form-item {
   margin-bottom: 12px;
@@ -264,10 +264,11 @@ export default {
 .item-footer {
   position: absolute;
   z-index: 10;
-  bottom: 19px;
+  bottom: 26px;
   right: 12px;
   width: 500px;
   padding: 8px 24px;
   background: #ffffff;
+  height: 32px;
 }
 </style>
