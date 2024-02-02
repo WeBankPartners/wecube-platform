@@ -12,36 +12,43 @@
         <FormItem v-if="from === 'template' && type === 'add'" label="模板名称" required>
           <Input v-model="name" :maxlength="50" show-word-limit placeholder="请输入模板名称" class="form-item" />
         </FormItem>
-        <div v-else class="template-info">
-          <div class="item">
-            <span>模板ID：</span>
-            <span>{{ data.id }}</span>
+        <template v-else>
+          <div v-if="from === 'execute' && !data.batchExecutionTemplateId" style="padding: 0 20px">不是从模板发起</div>
+          <div v-else class="template-info">
+            <div class="item">
+              <span>模板ID：</span>
+              <span>{{ data.templateData.id }}</span>
+            </div>
+            <div class="item">
+              <span>模板名：</span>
+              <span>{{ data.templateData.name }}</span>
+            </div>
+            <div class="item">
+              <span>创建人：</span>
+              <span>{{ data.templateData.createdBy }}</span>
+            </div>
+            <div class="item">
+              <span>创建时间</span>
+              <span>{{ data.templateData.createdTime }}</span>
+            </div>
+            <div class="item">
+              <span>属主角色：</span>
+              <span>{{
+                data.templateData.permissionToRole &&
+                data.templateData.permissionToRole.MGMT &&
+                data.templateData.permissionToRole.MGMT.join('，')
+              }}</span>
+            </div>
+            <div class="item">
+              <span>使用角色：</span>
+              <span>{{
+                data.templateData.permissionToRole &&
+                data.templateData.permissionToRole.USE &&
+                data.templateData.permissionToRole.USE.join('，')
+              }}</span>
+            </div>
           </div>
-          <div class="item">
-            <span>模板名：</span>
-            <span>{{ data.name }}</span>
-          </div>
-          <div class="item">
-            <span>创建人：</span>
-            <span>{{ data.createdBy }}</span>
-          </div>
-          <div class="item">
-            <span>创建时间</span>
-            <span>{{ data.createdTime }}</span>
-          </div>
-          <div class="item">
-            <span>属主角色：</span>
-            <span>{{
-              data.permissionToRole && data.permissionToRole.MGMT && data.permissionToRole.MGMT.join('，')
-            }}</span>
-          </div>
-          <div class="item">
-            <span>使用角色：</span>
-            <span>{{
-              data.permissionToRole && data.permissionToRole.USE && data.permissionToRole.USE.join('，')
-            }}</span>
-          </div>
-        </div>
+        </template>
       </HeaderTitle>
       <HeaderTitle v-if="showResult || (from === 'execute' && type === 'view')" title="执行结果">
         <div style="padding: 0 20px">
@@ -84,7 +91,14 @@
               <Icon type="ios-help-circle-outline" />
             </Tooltip>
           </span>
-          <Select filterable multiple v-model="userTableColumns" class="form-item" :disabled="from === 'execute'">
+          <Select
+            filterable
+            multiple
+            v-model="userTableColumns"
+            class="form-item"
+            :disabled="from === 'execute'"
+            @on-change="chooseUserTableColumns"
+          >
             <Option v-for="entityAttr in primatKeyAttrList" :value="entityAttr.name" :key="entityAttr.id">{{
               entityAttr.name
             }}</Option>
@@ -119,9 +133,9 @@
       </HeaderTitle>
       <HeaderTitle title="第2步 勾选执行实例">
         <div slot="header">
-          <Button v-if="currentPackageName" type="success" size="small" icon="ios-refresh" @click="handleRefreshSearch">
+          <!-- <Button v-if="currentPackageName" type="success" size="small" icon="ios-refresh" @click="handleRefreshSearch">
             刷新查询结果
-          </Button>
+          </Button> -->
         </div>
         <!--勾选操作实例-->
         <FormItem label="勾选操作实例" required>
@@ -154,10 +168,10 @@
           </Select>
         </FormItem>
         <FormItem label="设置入参" required>
-          <Row v-if="pluginInputParams && pluginInputParams.length > 0" class="border-box">
-            <Col v-for="(item, index) in pluginInputParams" :key="index" :span="12" style="margin-bottom: 12px">
+          <Row v-if="pluginInputParams && pluginInputParams.length > 0" class="border-box form-item">
+            <Col v-for="(item, index) in pluginInputParams" :key="index" :span="24" style="margin-bottom: 12px">
               <span style="display: inline-block; width: 100px">{{ item.name }}</span>
-              <Input v-if="item.mappingType === 'constant'" v-model="item.bindValue" style="width: 400px" />
+              <Input v-if="item.mappingType === 'constant'" v-model="item.bindValue" style="width: 600px" />
               <span v-else>{{ item.mappingType === 'entity' ? $t('bc_from_CI') : $t('bc_from_system') }}</span>
             </Col>
           </Row>
@@ -275,22 +289,8 @@ export default {
             children: childNode
           })
         })
-        // 初始化执行实例表格数据
-        this.excuteSearch()
       }
     },
-    // pluginId (val) {
-    //   this.pluginOptions.forEach(plugin => {
-    //     if (plugin.serviceDisplayName === val) {
-    //       this.pluginInputParams = plugin.inputParameters
-    //       this.pluginOutputParams = plugin.outputParameters
-    //     }
-    //   })
-    //   this.pluginInputParams = this.pluginInputParams.map(_ => {
-    //     _.bindValue = ''
-    //     return _
-    //   })
-    // },
     data: {
       handler (val) {
         if (val && val.id) {
@@ -304,12 +304,13 @@ export default {
           this.pluginId = configData.pluginConfigInterface.serviceName
           if (sourceData) {
             const frontData = JSON.parse(sourceData)
-            this.selectRows = frontData.selectRows
+            this.seletedRows = frontData.seletedRows
             this.pluginInputParams.push(...frontData.pluginInputParams)
             this.pluginOutputParams = frontData.pluginOutputParams
             this.resultTableParams = frontData.resultTableParams
             this.userTableColumns = frontData.userTableColumns
           }
+          this.excuteSearch()
         }
       },
       deep: true
@@ -322,6 +323,24 @@ export default {
     handleBack () {
       const name = this.from === 'template' ? 'templateList' : 'executeList'
       this.$eventBusP.$emit('change-menu', name)
+    },
+    // 选择查询结果展示列
+    chooseUserTableColumns () {
+      this.excuteSearch()
+    },
+    // 选择插件
+    choosePlugin (val) {
+      this.pluginOptions.forEach(plugin => {
+        if (plugin.serviceDisplayName === val) {
+          this.pluginInputParams = plugin.inputParameters
+          this.pluginOutputParams = plugin.outputParameters
+        }
+      })
+      this.pluginInputParams = this.pluginInputParams.map(_ => {
+        _.bindValue = ''
+        return _
+      })
+      this.resultTableParams = []
     },
     // 获取批量执行结果
     getExecuteResult (id) {
@@ -357,20 +376,6 @@ export default {
     // 更新执行实例表格
     handleRefreshSearch () {
       this.excuteSearch()
-    },
-    // 选择插件
-    choosePlugin (val) {
-      this.pluginOptions.forEach(plugin => {
-        if (plugin.serviceDisplayName === val) {
-          this.pluginInputParams = plugin.inputParameters
-          this.pluginOutputParams = plugin.outputParameters
-        }
-      })
-      this.pluginInputParams = this.pluginInputParams.map(_ => {
-        _.bindValue = ''
-        return _
-      })
-      this.resultTableParams = []
     },
     clearPlugin () {
       this.pluginId = null
