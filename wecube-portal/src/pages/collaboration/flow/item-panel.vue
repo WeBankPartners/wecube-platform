@@ -340,18 +340,18 @@ export default {
 <style lang="scss" scoped>
 #itemPanel {
   position: absolute;
-  top: 133px;
+  top: 127px;
   left: 22px;
   bottom: 0;
   z-index: 10;
   width: 90px;
   overflow: auto;
-  height: calc(100vh - 240px);
-  background: #fff;
+  height: calc(100vh - 154px);
   text-align: center;
   // padding-top: 65px;
   transition: transform 0.3s ease-in-out;
   box-shadow: 0 0 2px 0 rgba(0, 0, 0, 0.1);
+  background: white;
 
   &.hidden {
     transform: translate(-100%, 0);
