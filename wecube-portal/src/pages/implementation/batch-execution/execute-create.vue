@@ -21,38 +21,46 @@ export default {
   },
   data () {
     return {
-      step: 1,
-      from: this.$route.query.from || 'execute', // 模板，执行
-      id: this.$route.query.id || '',
-      type: this.$route.query.type || 'add', // 新增，编辑，查看
+      step: '',
+      from: 'execute', // 模板，执行
+      id: this.$route.query.id || '', // 批量执行id
+      type: this.$route.query.type || 'add', // 新增，复制，查看
       detailData: {}
     }
   },
   mounted () {
     if (this.type !== 'add') {
-      this.step++
+      this.step = 2
       this.getExecuteDetail()
+    } else {
+      this.step = 1
     }
   },
   methods: {
     handleChooseTemplate (row) {
-      this.step++
+      this.step = 2
       // 选择模板创建的时候，使用模板ID调用模板详情接口，获取详情信息
-      this.id = row.id
-      this.getTemplateDetail()
+      this.getTemplateDetail(row.id)
     },
     // 获取模板详情
-    async getTemplateDetail () {
-      const { status, data } = await getBatchExecuteTemplateDetail(this.id)
+    async getTemplateDetail (id) {
+      const { status, data } = await getBatchExecuteTemplateDetail(id)
       if (status === 'OK') {
-        this.detailData = data
+        this.detailData = { ...data, templateData: data }
       }
     },
     // 获取执行详情
     async getExecuteDetail () {
       const { status, data } = await batchExecuteHistory(this.id)
       if (status === 'OK') {
-        this.detailData = data
+        // 模板创建的执行
+        if (data.batchExecutionTemplateId) {
+          const { data: templateData } = await getBatchExecuteTemplateDetail(data.batchExecutionTemplateId)
+          this.detailData = { ...data, templateData }
+          // 预执行数据(无模板ID)
+        } else {
+          this.detailData = data
+        }
         this.$refs.form.getExecuteResult(this.id)
       }
     },
@@ -115,6 +123,9 @@ export default {
         return flag
       })
       const params = {
+        isDangerousBlock: this.detailData.templateData.isDangerousBlock || '', // 是否开启高危检测
+        batchExecutionTemplateId: this.detailData.templateData.id || '',
+        batchExecutionTemplateName: this.detailData.templateData.name || '',
         name: name,
         packageName: currentPackageName,
         entityName: currentEntityName,
