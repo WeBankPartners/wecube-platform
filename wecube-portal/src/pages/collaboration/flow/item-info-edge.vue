@@ -22,10 +22,8 @@
         </template>
       </Form>
     </div>
-    <div class="item-footer">
-      <Button v-if="editFlow !== 'false'" :disabled="isSaveBtnActive()" @click="saveItem" type="primary">{{
-        $t('save')
-      }}</Button>
+    <div class="item-footer" v-if="editFlow !== 'false'">
+      <Button :disabled="isSaveBtnActive()" @click="saveItem" type="primary">{{ $t('save') }}</Button>
       <Button @click="hideItem">{{ $t('cancel') }}</Button>
     </div>
   </div>
