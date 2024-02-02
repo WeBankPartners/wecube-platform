@@ -76,7 +76,12 @@ export default {
         },
         {
           key: 'name',
-          placeholder: '模板名/ID',
+          placeholder: '模板名',
+          component: 'input'
+        },
+        {
+          key: 'id',
+          placeholder: '模板ID',
           component: 'input'
         },
         {

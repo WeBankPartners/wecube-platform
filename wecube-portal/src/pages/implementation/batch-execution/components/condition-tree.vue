@@ -5,6 +5,7 @@
       v-model="drawerVisible"
       width="600"
       :mask-closable="false"
+      :lock-scroll="true"
       @on-close="handleCancel"
       class="condition-tree-drawer"
     >
