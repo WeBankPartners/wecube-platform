@@ -283,7 +283,7 @@ export default {
     },
     // #region 流程数据校验
     alreadyHasStart (nodeType) {
-      const findNode = this.nodesAndDeges.nodes.findIndex(node => node.customAttrs.nodeType === 'start')
+      const findNode = this.graph.save().nodes.findIndex(node => node.customAttrs.nodeType === 'start')
       if (findNode === -1) {
         return false
       } else {
@@ -292,7 +292,7 @@ export default {
       }
     },
     alreadyHasEnd (nodeType) {
-      const findNode = this.nodesAndDeges.nodes.findIndex(node => node.customAttrs.nodeType === 'end')
+      const findNode = this.graph.save().nodes.findIndex(node => node.customAttrs.nodeType === 'end')
       if (findNode === -1) {
         return false
       } else {
@@ -354,7 +354,7 @@ export default {
             this.removeItem()
             return
           }
-          if (!this.editFlow && this.isExecutionAllowed()) return
+          if (this.editFlow !== 'false' && this.isExecutionAllowed()) return
           this.itemInfoType = ''
           this.$nextTick(() => {
             if (e && e.item) {
@@ -483,6 +483,20 @@ export default {
           return
         }
 
+        // 分流节点不能连出
+        if (sourceNodeType === 'fork') {
+          // 分流节点不能直连异常节点
+          if (targertNodeType === 'abnormal') {
+            this.$Message.warning('分流节点不能直连异常节点！')
+            return
+          }
+          // 分流节点不能直连结束节点
+          if (targertNodeType === 'end') {
+            this.$Message.warning('分流节点不能直连结束节点！')
+            return
+          }
+        }
+
         if (sourceNodeType === 'start') {
           const outEdges = source.getOutEdges()
           // 开始节点只能连出一条
@@ -498,6 +512,16 @@ export default {
           // 开始节点不能直连分流节点
           if (targertNodeType === 'fork') {
             this.$Message.warning('开始节点不能直连分流节点！')
+            return
+          }
+          // 开始节点不能直连异常节点
+          if (targertNodeType === 'abnormal') {
+            this.$Message.warning('开始节点不能直连异常节点！')
+            return
+          }
+          // 开始节点不能直连结束节点
+          if (targertNodeType === 'end') {
+            this.$Message.warning('开始节点不能直连结束节点！')
             return
           }
         }
@@ -571,7 +595,7 @@ export default {
       // 注册边点击事件
       this.graph.on('edge:click', e => {
         this.deleteRemoveNode()
-        if (!this.editFlow && this.isExecutionAllowed()) return
+        if (this.editFlow !== 'false' && this.isExecutionAllowed()) return
         const edge = e.item
         if (e && edge) {
           const model = edge.get('model')
@@ -604,7 +628,7 @@ export default {
       this.graph.on('canvas:click', e => {
         this.deleteRemoveNode()
         this.$nextTick(() => {
-          if (!this.editFlow && this.isExecutionAllowed()) return
+          if (this.editFlow !== 'false' && this.isExecutionAllowed()) return
           this.itemInfoType = 'canvas'
           this.$refs.itemInfoCanvasRef.showItemInfo(this.procDef, this.editFlow)
         })
@@ -624,13 +648,21 @@ export default {
     },
     // 添加节点
     addNode (transferData, { x, y }) {
-      if (!this.editFlow && this.isExecutionAllowed()) return
+      if (this.editFlow !== 'false' && this.isExecutionAllowed()) return
       let { label, shape, fill, lineWidth, nodeType, stroke } = JSON.parse(transferData)
       const findStartNodeIndex = this.graph.save().nodes.findIndex(n => n.id.startsWith('id_start'))
       if (nodeType === 'start' && findStartNodeIndex > -1) {
         this.$Message.warning(this.$t('start_node_warning'))
         return
       }
+
+      if (nodeType === 'start' && this.alreadyHasStart(nodeType)) {
+        return
+      }
+      if (nodeType === 'end' && this.alreadyHasEnd(nodeType)) {
+        return
+      }
+
       label = this.nameCheck(label)
       const id = `pdef_node_${this.uuid(16, 16)}`
       const model = {
@@ -814,6 +846,11 @@ export default {
           customAttrs: info.customAttrs
         }
         this.graph.updateItem(item, params)
+        this.deleteRemoveNode()
+        if (this.canRemovedId) {
+          const item = this.graph.findById(this.canRemovedId)
+          this.graph.clearItemStates(item)
+        }
       }
     },
     hideItemInfo () {
