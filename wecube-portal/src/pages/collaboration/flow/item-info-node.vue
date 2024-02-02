@@ -124,7 +124,7 @@
                   </label>
                   <Select
                     v-model="itemCustomInfo.customAttrs.bindNodeId"
-                    @on-change="paramsChanged"
+                    @on-change="changeBindNode"
                     @on-open-change="getAssociatedNodes"
                     clearable
                     filterable
@@ -154,7 +154,7 @@
                       ref="filterRulesGroupRef"
                       @filterRuleChanged="singleFilterRuleChanged"
                       :disabled="itemCustomInfo.customAttrs.dynamicBind"
-                      :routineExpression="itemCustomInfo.customAttrs.routineExpression || routineExpression"
+                      :routineExpression="itemCustomInfo.customAttrs.routineExpression || currentSelectedEntity"
                       :allEntityType="allEntityType"
                       :currentSelectedEntity="currentSelectedEntity"
                     >
@@ -286,7 +286,7 @@
       <Button v-if="editFlow !== 'false'" :disabled="isSaveBtnActive()" @click="saveItem" type="primary">{{
         $t('save')
       }}</Button>
-      <Button @click="hideItem">{{ $t('cancel') }}</Button>
+      <Button v-if="editFlow !== 'false'" @click="hideItem">{{ $t('cancel') }}</Button>
     </div>
   </div>
 </template>
@@ -416,6 +416,16 @@ export default {
           }, '')
         }
       }
+      if (
+        this.itemCustomInfo.customAttrs.routineExpression !== '' &&
+        this.itemCustomInfo.customAttrs.routineExpression.endsWith('#DMEOP#')
+      ) {
+        this.itemCustomInfo.customAttrs.routineExpression = this.itemCustomInfo.customAttrs.routineExpression.replace(
+          /#DMEOP#$/,
+          ''
+        )
+      }
+
       if (['human', 'automatic'].includes(this.itemCustomInfo.customAttrs.nodeType) && this.checkParamsInfo()) return
       const tmpData = JSON.parse(JSON.stringify(this.itemCustomInfo))
       let selfAttrs = tmpData.selfAttrs
@@ -498,6 +508,17 @@ export default {
         this.associatedNodes = data
       }
     },
+    // 更新动态绑定节点逻辑
+    changeBindNode () {
+      const find = this.associatedNodes.find(node => node.nodeId === this.itemCustomInfo.customAttrs.bindNodeId)
+      if (find) {
+        this.$nextTick(() => {
+          this.itemCustomInfo.customAttrs.routineExpression = find.routineExpression
+          this.$refs.filterRulesGroupRef.setRoutineExpressionItem(this.itemCustomInfo.customAttrs.routineExpression)
+          this.getPlugin()
+        })
+      }
+    },
     // 更新关联节点的响应
     changeAssociatedNode () {},
 
@@ -513,9 +534,13 @@ export default {
 
     // 定位规则回传
     singleFilterRuleChanged (val) {
-      this.itemCustomInfo.customAttrs.routineExpression = val
-      this.getPlugin()
-      this.paramsChanged()
+      if (val === '') {
+        this.changDynamicBind()
+      } else {
+        this.itemCustomInfo.customAttrs.routineExpression = val
+        this.getPlugin()
+        this.paramsChanged()
+      }
     },
     // 获取可选插件
     getPlugin () {
@@ -537,7 +562,7 @@ export default {
       if (plugin) {
         const findPluginDetail = this.filteredPlugins.find(p => p.serviceName === plugin)
         this.itemCustomInfo.customAttrs.paramInfos = []
-        if (findPluginDetail) {
+        if (findPluginDetail && findPluginDetail.configurableInputParameters) {
           let needParams = findPluginDetail.configurableInputParameters.filter(
             _ => _.mappingType === 'context' || _.mappingType === 'constant'
           )
@@ -636,6 +661,14 @@ export default {
     },
     // #endregion
     changDynamicBind () {
+      this.itemCustomInfo.customAttrs.bindNodeId = ''
+      this.itemCustomInfo.customAttrs.routineExpression = this.currentSelectedEntity
+      this.itemCustomInfo.customAttrs.serviceName = ''
+      this.itemCustomInfo.customAttrs.paramInfos = []
+      this.$nextTick(() => {
+        this.$refs.filterRulesGroupRef.setRoutineExpressionItem(this.itemCustomInfo.customAttrs.routineExpression)
+        this.getPlugin()
+      })
       this.paramsChanged()
     }
   }
@@ -644,7 +677,7 @@ export default {
 <style lang="scss" scoped>
 #itemInfo {
   position: absolute;
-  top: 134px;
+  top: 127px;
   right: 13px;
   bottom: 0;
   z-index: 10;
@@ -655,7 +688,7 @@ export default {
   transition: transform 0.3s ease-in-out;
   box-shadow: 0 0 2px 0 rgba(0, 0, 0, 0.1);
   // overflow: auto;
-  // height: calc(100vh - 160px);
+  height: calc(100vh - 154px);
 }
 .panel-content {
   overflow: auto;
@@ -690,10 +723,11 @@ export default {
 .item-footer {
   position: absolute;
   z-index: 10;
-  bottom: 19px;
+  bottom: 26px;
   right: 12px;
   width: 500px;
   padding: 8px 24px;
   background: #ffffff;
+  height: 32px;
 }
 </style>
