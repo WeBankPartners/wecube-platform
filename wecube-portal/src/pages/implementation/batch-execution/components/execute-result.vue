@@ -35,6 +35,7 @@
       v-model="visible"
       width="800"
       :mask-closable="true"
+      :lock-scroll="true"
       @on-close="handleCancel"
       class="json-drawer"
     >
@@ -89,7 +90,7 @@ export default {
     }
   },
   mounted () {
-    this.maxHeight = document.body.clientHeight - 170
+    this.maxHeight = document.body.clientHeight - 150
   },
   methods: {
     handleSearch () {},
