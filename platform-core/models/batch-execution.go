@@ -178,6 +178,10 @@ type BatchExecutionPluginExecParam struct {
 	ServicePath     string                                     `json:"servicePath"`
 	EntityInstances []*BatchExecutionPluginExecEntityInstances `json:"entityInstances"`
 	Inputs          []BatchExecutionPluginExecInputParams      `json:"inputs"`
+
+	// DYNAMICFORM
+	DueDate        string   `json:"dueDate"`        // 数字代表任务超时时间
+	AllowedOptions []string `json:"allowedOptions"` // 列表表示任务的选项
 }
 
 type BatchExecutionPluginExecEntityInstances struct {
