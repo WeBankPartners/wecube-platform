@@ -94,7 +94,7 @@
   },
   "proc_def_loop_check_error": {
     "code": 20000019,
-    "message": "Publish Failed: Loop in process."
+    "message": "Publish Failed: Format error in process, loops are not allowed in the process."
   },
   "proc_def_name_repeat_error": {
     "code": 20000020,
