@@ -11,37 +11,31 @@
       <!-- 左侧按钮 -->
       <item-panel ref="itemPanelRef" />
       <div class="floating-button">
-        <Button size="small" type="primary" @click="resetCanvas" sytle="position: fixed">Reset Zoom</Button>
+        <Button size="small" @click="resetCanvas">Reset</Button>
       </div>
       <!-- 挂载节点 -->
       <div id="canvasPanel" ref="canvasPanel" @dragover.prevent />
       <!-- 信息配置 -->
-      <Transition appear>
-        <ItemInfoCanvas
-          v-show="itemInfoType === 'canvas'"
-          ref="itemInfoCanvasRef"
-          @sendItemInfo="setCanvasInfo"
-          @hideItemInfo="hideItemInfo"
-        ></ItemInfoCanvas>
-      </Transition>
-      <Transition appear>
-        <ItemInfoNode
-          v-if="itemInfoType === 'node'"
-          ref="itemInfoNodeRef"
-          @sendItemInfo="setNodeInfo"
-          @hideItemInfo="hideItemInfo"
-        >
-        </ItemInfoNode>
-      </Transition>
-      <Transition appear>
-        <ItemInfoEdge
-          v-show="itemInfoType === 'edge'"
-          ref="itemInfoEdgeRef"
-          @sendItemInfo="setEdgeInfo"
-          @hideItemInfo="hideItemInfo"
-        >
-        </ItemInfoEdge>
-      </Transition>
+      <ItemInfoCanvas
+        v-show="itemInfoType === 'canvas'"
+        ref="itemInfoCanvasRef"
+        @sendItemInfo="setCanvasInfo"
+        @hideItemInfo="hideItemInfo"
+      ></ItemInfoCanvas>
+      <ItemInfoNode
+        v-if="itemInfoType === 'node'"
+        ref="itemInfoNodeRef"
+        @sendItemInfo="setNodeInfo"
+        @hideItemInfo="hideItemInfo"
+      >
+      </ItemInfoNode>
+      <ItemInfoEdge
+        v-show="itemInfoType === 'edge'"
+        ref="itemInfoEdgeRef"
+        @sendItemInfo="setEdgeInfo"
+        @hideItemInfo="hideItemInfo"
+      >
+      </ItemInfoEdge>
     </div>
   </div>
 </template>
@@ -360,7 +354,7 @@ export default {
             this.removeItem()
             return
           }
-          if (this.isExecutionAllowed()) return
+          if (!this.editFlow && this.isExecutionAllowed()) return
           this.itemInfoType = ''
           this.$nextTick(() => {
             if (e && e.item) {
@@ -376,7 +370,9 @@ export default {
                 x: model.x + 40,
                 y: model.y - 20
               }
-              this.addRemoveNode(point)
+              if (this.editFlow !== 'false') {
+                this.addRemoveNode(point)
+              }
             }
           })
         }
@@ -449,7 +445,7 @@ export default {
             // shape: 'line-edge',
             style: {
               radius: 10,
-              lineWidth: 2
+              lineWidth: 1
             }
           })
           this.canRemovedId = model.id
@@ -529,8 +525,8 @@ export default {
         }
         // 异常节点只能连入
         if (targertNodeType === 'decision') {
-          if (!['data', 'human', 'automatic'].includes(sourceNodeType)) {
-            this.$Message.warning('判断节点只能被[数据节点，人工节点，自动化节点]连入！')
+          if (!['human'].includes(sourceNodeType)) {
+            this.$Message.warning('判断节点只能被[人工节点]连入！')
             return
           }
         }
@@ -563,14 +559,19 @@ export default {
           this.graph.addItem('edge', model)
 
           this.itemInfoType = 'edge'
-          this.$refs.itemInfoEdgeRef.showItemInfo(model, true, this.editFlow)
+          const find = this.graph.save().nodes.find(node => node.id === sourceId)
+          let isNameRequired = false
+          if (find && find.customAttrs.nodeType === 'decision') {
+            isNameRequired = true
+          }
+          this.$refs.itemInfoEdgeRef.showItemInfo(model, true, this.editFlow, isNameRequired)
         }, 100)
       })
 
       // 注册边点击事件
       this.graph.on('edge:click', e => {
         this.deleteRemoveNode()
-        if (this.isExecutionAllowed()) return
+        if (!this.editFlow && this.isExecutionAllowed()) return
         const edge = e.item
         if (e && edge) {
           const model = edge.get('model')
@@ -579,7 +580,9 @@ export default {
             x: e.x,
             y: e.y - 20
           }
-          this.addRemoveNode(point)
+          if (this.editFlow !== 'false') {
+            this.addRemoveNode(point)
+          }
 
           // const selected = edge.hasState('selected')
           // if (selected) {
@@ -588,7 +591,12 @@ export default {
           //   this.graph.setItemState(edge, 'selected', true)
           // }
           this.itemInfoType = 'edge'
-          this.$refs.itemInfoEdgeRef.showItemInfo(model, false, this.editFlow)
+          const find = this.graph.save().nodes.find(node => node.id === model.source)
+          let isNameRequired = false
+          if (find && find.customAttrs.nodeType === 'decision') {
+            isNameRequired = true
+          }
+          this.$refs.itemInfoEdgeRef.showItemInfo(model, false, this.editFlow, isNameRequired)
         }
       })
 
@@ -596,7 +604,7 @@ export default {
       this.graph.on('canvas:click', e => {
         this.deleteRemoveNode()
         this.$nextTick(() => {
-          if (this.isExecutionAllowed()) return
+          if (!this.editFlow && this.isExecutionAllowed()) return
           this.itemInfoType = 'canvas'
           this.$refs.itemInfoCanvasRef.showItemInfo(this.procDef, this.editFlow)
         })
@@ -616,7 +624,7 @@ export default {
     },
     // 添加节点
     addNode (transferData, { x, y }) {
-      if (this.isExecutionAllowed()) return
+      if (!this.editFlow && this.isExecutionAllowed()) return
       let { label, shape, fill, lineWidth, nodeType, stroke } = JSON.parse(transferData)
       const findStartNodeIndex = this.graph.save().nodes.findIndex(n => n.id.startsWith('id_start'))
       if (nodeType === 'start' && findStartNodeIndex > -1) {
@@ -668,11 +676,6 @@ export default {
       this.itemInfoType = 'node'
       this.$nextTick(() => {
         this.$refs.itemInfoNodeRef.showItemInfo(model, true, this.procDef.rootEntity, this.editFlow)
-        // 获取节点
-        const node = this.graph.findById(id)
-
-        // 模拟点击节点
-        this.graph.emit('node:click', { target: node })
       })
     },
     // 移除删除入口
@@ -850,8 +853,7 @@ export default {
 .floating-button {
   z-index: 10;
   position: fixed;
-  bottom: 30px;
-  left: 28px;
+  left: 120px;
 }
 
 .v-enter-active,
