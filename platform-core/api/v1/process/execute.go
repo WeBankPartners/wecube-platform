@@ -2,6 +2,8 @@ package process
 
 import (
 	"context"
+	"fmt"
+	"github.com/WeBankPartners/go-common-lib/guid"
 	"github.com/WeBankPartners/wecube-platform/platform-core/api/middleware"
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/exterror"
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/log"
@@ -87,12 +89,23 @@ func ProcDefPreview(c *gin.Context) {
 			Value:    entityDataId,
 		}},
 	}
-	rootData, getRootDataErr := remote.QueryPluginData(c, rootExprList, []*models.QueryExpressionDataFilter{&rootFilter}, remote.GetToken())
+	rootDataList, getRootDataErr := remote.QueryPluginData(c, rootExprList, []*models.QueryExpressionDataFilter{&rootFilter}, remote.GetToken())
 	if getRootDataErr != nil {
 		middleware.ReturnError(c, getRootDataErr)
 		return
 	}
+	if len(rootDataList) != 1 {
+		middleware.ReturnError(c, fmt.Errorf("root data match %d rows,illegal ", len(rootDataList)))
+		return
+	}
+	entityNodeMap := make(map[string]*models.ProcPreviewEntityNode)
+	rootData := rootDataList[0]
+	result := models.ProcPreviewData{ProcessSessionId: fmt.Sprintf("proc_session_" + guid.CreateGuid()), EntityTreeNodes: []*models.ProcPreviewEntityNode{}}
 	log.Logger.Debug("rootData", log.String("entityDataId", entityDataId), log.JsonObj("data", rootData))
+	rootEntityNode := models.ProcPreviewEntityNode{}
+	rootEntityNode.Parse(rootFilter.PackageName, rootFilter.EntityName, rootData)
+	entityNodeMap[rootEntityNode.Id] = &rootEntityNode
+	result.EntityTreeNodes = append(result.EntityTreeNodes, &rootEntityNode)
 	for _, node := range procOutlineData.FlowNodes {
 		if node.OrderedNo != "" && node.RoutineExpression != "" {
 			tmpQueryDataParam := models.QueryExpressionDataParam{DataModelExpression: node.RoutineExpression, Filters: []*models.QueryExpressionDataFilter{&rootFilter}}
@@ -109,6 +122,7 @@ func ProcDefPreview(c *gin.Context) {
 		middleware.ReturnError(c, err)
 		return
 	}
+	middleware.ReturnData(c, result)
 }
 
 func queryProcPreviewNodeData(ctx context.Context, param *models.QueryExpressionDataParam) (dataList []map[string]interface{}, err error) {
