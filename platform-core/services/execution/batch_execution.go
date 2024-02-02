@@ -78,11 +78,11 @@ func BatchExecutionCallPluginService(ctx context.Context, operator, authToken, p
 		err = errAnalyze1
 		return
 	}
-	if len(rootExprList) != 1 {
+	if len(rootExprList) == 0 {
 		err = fmt.Errorf("invalid input entity type %s", entityType)
 		return
 	}
-	rootExpr := rootExprList[0]
+	rootExpr := rootExprList[len(rootExprList)-1]
 	// 构造输入参数
 	inputParamDatas, errHandle := handleInputData(ctx, authToken, continueToken, entityInstances, pluginInterface.InputParameters, rootExpr, inputConstantMap, nil)
 	if errHandle != nil {
@@ -165,31 +165,35 @@ func normalizePluginInterfaceParamData(inputParamDef *models.PluginConfigInterfa
 			}
 			// 列表转单值
 			valueToSingle := tv.Index(0).Interface()
-			tToSingle := reflect.TypeOf(valueToSingle)
-			if inputParamDef.DataType == models.PluginParamDataTypeInt {
-				convValue, err := convertToDatatypeInt(inputParamDef.Name, valueToSingle, tToSingle)
-				if err != nil {
-					return nil, err
+			if valueToSingle == nil {
+				result = value
+			} else {
+				tToSingle := reflect.TypeOf(valueToSingle)
+				if inputParamDef.DataType == models.PluginParamDataTypeInt {
+					convValue, err := convertToDatatypeInt(inputParamDef.Name, valueToSingle, tToSingle)
+					if err != nil {
+						return nil, err
+					}
+					result = convValue
+					// 转换为列表
+					if inputParamDef.Multiple == "Y" {
+						result = []interface{}{convValue}
+					}
+				} else if inputParamDef.DataType == models.PluginParamDataTypeString {
+					convValue, err := convertToDatatypeString(inputParamDef.Name, valueToSingle, tToSingle)
+					if err != nil {
+						return nil, err
+					}
+					result = convValue
+					// 转换为列表
+					if inputParamDef.Multiple == "Y" {
+						result = []interface{}{convValue}
+					}
+				} else if inputParamDef.DataType == models.PluginParamDataTypeObject {
+					return nil, fmt.Errorf("field:%s can not convert %v to object", inputParamDef.Name, tToSingle)
+				} else if inputParamDef.DataType == models.PluginParamDataTypeList {
+					return nil, fmt.Errorf("field:%s can not convert %v to list", inputParamDef.Name, tToSingle)
 				}
-				result = convValue
-				// 转换为列表
-				if inputParamDef.Multiple == "Y" {
-					result = []interface{}{convValue}
-				}
-			} else if inputParamDef.DataType == models.PluginParamDataTypeString {
-				convValue, err := convertToDatatypeString(inputParamDef.Name, valueToSingle, tToSingle)
-				if err != nil {
-					return nil, err
-				}
-				result = convValue
-				// 转换为列表
-				if inputParamDef.Multiple == "Y" {
-					result = []interface{}{convValue}
-				}
-			} else if inputParamDef.DataType == models.PluginParamDataTypeObject {
-				return nil, fmt.Errorf("field:%s can not convert %v to object", inputParamDef.Name, tToSingle)
-			} else if inputParamDef.DataType == models.PluginParamDataTypeList {
-				return nil, fmt.Errorf("field:%s can not convert %v to list", inputParamDef.Name, tToSingle)
 			}
 		}
 	} else if t.Kind() == reflect.Map {
@@ -324,6 +328,10 @@ func handleInputData(
 				}
 			case models.PluginParamMapTypeContext:
 				// 上下文参数获取不支持
+				if inputContextMap == nil {
+					err = fmt.Errorf("input param %s is map to %s, which batch execution is not supported", inputDef.Name, inputDef.MappingType)
+					return
+				}
 				inputCalResult = inputContextMap[inputDef.Id]
 			case models.PluginParamMapTypeEntity:
 				// 从数据模型获取
