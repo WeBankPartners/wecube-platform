@@ -165,31 +165,35 @@ func normalizePluginInterfaceParamData(inputParamDef *models.PluginConfigInterfa
 			}
 			// 列表转单值
 			valueToSingle := tv.Index(0).Interface()
-			tToSingle := reflect.TypeOf(valueToSingle)
-			if inputParamDef.DataType == models.PluginParamDataTypeInt {
-				convValue, err := convertToDatatypeInt(inputParamDef.Name, valueToSingle, tToSingle)
-				if err != nil {
-					return nil, err
+			if valueToSingle == nil {
+				result = value
+			} else {
+				tToSingle := reflect.TypeOf(valueToSingle)
+				if inputParamDef.DataType == models.PluginParamDataTypeInt {
+					convValue, err := convertToDatatypeInt(inputParamDef.Name, valueToSingle, tToSingle)
+					if err != nil {
+						return nil, err
+					}
+					result = convValue
+					// 转换为列表
+					if inputParamDef.Multiple == "Y" {
+						result = []interface{}{convValue}
+					}
+				} else if inputParamDef.DataType == models.PluginParamDataTypeString {
+					convValue, err := convertToDatatypeString(inputParamDef.Name, valueToSingle, tToSingle)
+					if err != nil {
+						return nil, err
+					}
+					result = convValue
+					// 转换为列表
+					if inputParamDef.Multiple == "Y" {
+						result = []interface{}{convValue}
+					}
+				} else if inputParamDef.DataType == models.PluginParamDataTypeObject {
+					return nil, fmt.Errorf("field:%s can not convert %v to object", inputParamDef.Name, tToSingle)
+				} else if inputParamDef.DataType == models.PluginParamDataTypeList {
+					return nil, fmt.Errorf("field:%s can not convert %v to list", inputParamDef.Name, tToSingle)
 				}
-				result = convValue
-				// 转换为列表
-				if inputParamDef.Multiple == "Y" {
-					result = []interface{}{convValue}
-				}
-			} else if inputParamDef.DataType == models.PluginParamDataTypeString {
-				convValue, err := convertToDatatypeString(inputParamDef.Name, valueToSingle, tToSingle)
-				if err != nil {
-					return nil, err
-				}
-				result = convValue
-				// 转换为列表
-				if inputParamDef.Multiple == "Y" {
-					result = []interface{}{convValue}
-				}
-			} else if inputParamDef.DataType == models.PluginParamDataTypeObject {
-				return nil, fmt.Errorf("field:%s can not convert %v to object", inputParamDef.Name, tToSingle)
-			} else if inputParamDef.DataType == models.PluginParamDataTypeList {
-				return nil, fmt.Errorf("field:%s can not convert %v to list", inputParamDef.Name, tToSingle)
 			}
 		}
 	} else if t.Kind() == reflect.Map {
