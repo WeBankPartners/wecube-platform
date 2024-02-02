@@ -84,7 +84,7 @@ func BatchExecutionCallPluginService(ctx context.Context, operator, authToken, p
 	}
 	rootExpr := rootExprList[0]
 	// 构造输入参数
-	inputParamDatas, errHandle := handleInputData(ctx, authToken, continueToken, entityInstances, pluginInterface.InputParameters, rootExpr, inputConstantMap)
+	inputParamDatas, errHandle := handleInputData(ctx, authToken, continueToken, entityInstances, pluginInterface.InputParameters, rootExpr, inputConstantMap, nil)
 	if errHandle != nil {
 		err = errHandle
 		return
@@ -101,7 +101,7 @@ func BatchExecutionCallPluginService(ctx context.Context, operator, authToken, p
 	// 需要有运行时的高危插件
 	// 获取subsystem token
 	subsysToken := remote.GetToken()
-	dangerousResult, errDangerous := performDangerousCheck(ctx, itsdangerousCallParam, continueToken, subsysToken)
+	dangerousResult, errDangerous := performBatchDangerousCheck(ctx, itsdangerousCallParam, continueToken, subsysToken)
 	if errDangerous != nil {
 		err = errDangerous
 		return
@@ -119,9 +119,7 @@ func BatchExecutionCallPluginService(ctx context.Context, operator, authToken, p
 		EntityInstances: entityInstances,
 		Inputs:          inputParamDatas,
 	}
-	if pluginInterface.IsAsyncProcessing == "Y" {
-		pluginCallParam.RequestId = "batchexec_" + guid.CreateGuid()
-	}
+	pluginCallParam.RequestId = "batchexec_" + guid.CreateGuid()
 	pluginCallResult, errCall := remote.PluginInterfaceApi(ctx, authToken, pluginInterface, pluginCallParam)
 	if errCall != nil {
 		err = errCall
@@ -280,7 +278,7 @@ func convertToDatatypeString(name string, value interface{}, valueType reflect.T
 	return
 }
 
-func performDangerousCheck(ctx context.Context, pluginCallParam interface{}, continueToken string, authToken string) (result *models.ItsdangerousBatchCheckResultData, err error) {
+func performBatchDangerousCheck(ctx context.Context, pluginCallParam interface{}, continueToken string, authToken string) (result *models.ItsdangerousBatchCheckResultData, err error) {
 	// 是否有continueToken，有则跳过
 	if continueToken != "" {
 		return
@@ -303,9 +301,12 @@ func handleInputData(
 	continueToken string,
 	entityInstances []*models.BatchExecutionPluginExecEntityInstances,
 	inputParamDefs []*models.PluginConfigInterfaceParameters,
-	rootExpr *models.ExpressionObj, inputConstantMap map[string]string) (inputParamDatas []models.BatchExecutionPluginExecInputParams, err error) {
+	rootExpr *models.ExpressionObj,
+	inputConstantMap map[string]string,
+	inputContextMap map[string]interface{}) (inputParamDatas []models.BatchExecutionPluginExecInputParams, err error) {
 	inputParamDatas = make([]models.BatchExecutionPluginExecInputParams, 0)
 	for _, entityInstance := range entityInstances {
+		// batch inputParamData = {"callbackParameter":"entity instance id", "confirmToken":"Y", xml props}
 		inputParamData := models.BatchExecutionPluginExecInputParams{}
 		for _, inputDef := range inputParamDefs {
 			var inputCalResult interface{}
@@ -323,8 +324,7 @@ func handleInputData(
 				}
 			case models.PluginParamMapTypeContext:
 				// 上下文参数获取不支持
-				err = fmt.Errorf("input param %s is map to %s, which batch execution is not supported", inputDef.Name, inputDef.MappingType)
-				return
+				inputCalResult = inputContextMap[inputDef.Id]
 			case models.PluginParamMapTypeEntity:
 				// 从数据模型获取
 				if inputDef.MappingEntityExpression == "" {
@@ -364,7 +364,7 @@ func handleInputData(
 				return
 			}
 		}
-		// NOTE: 仅批量执行的PluginCallParamPresetCallback是行ID，插件调用时是随机ID与行数据没有关联
+		// NOTE: 仅批量执行的PluginCallParamPresetCallback是行ID，编排插件调用时是随机ID与行数据没有关联
 		inputParamData[models.PluginCallParamPresetCallback] = entityInstance.Id
 		inputParamData[models.PluginCallParamPresetConfirm] = continueToken
 		inputParamDatas = append(inputParamDatas, inputParamData)
