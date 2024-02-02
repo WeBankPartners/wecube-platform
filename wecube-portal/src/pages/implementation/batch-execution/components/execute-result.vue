@@ -5,7 +5,7 @@
         <span class="title">执行结果</span>
         <!--搜索条件-->
         <Input v-model="form.operateObject" placeholder="操作对象类型" style="width: 300px" />
-        <Select v-model="form.status" placeholder="单条执行状态" clearable style="width: 300px; margin-left: 20px">
+        <Select v-model="form.errorCode" placeholder="单条执行状态" clearable style="width: 300px; margin-left: 20px">
           <Option v-for="(i, index) in statusList" :key="index" :value="i.value">{{ i.label }}</Option>
         </Select>
         <Button type="primary" @click="handleSearch" style="margin-left: 20px">搜索</Button>
@@ -14,6 +14,12 @@
     </Card>
     <div v-else>
       <div style="margin-bottom: 10px">
+        <span>执行状态：</span>
+        <Tag :color="errorCode === '0' ? 'success' : 'error'">
+          {{ errorCode === '0' ? '成功' : '失败' }}
+        </Tag>
+      </div>
+      <div v-if="tableColumns.length > 0" style="margin-bottom: 10px">
         <Input v-model="form.operateObject" placeholder="操作对象类型" style="width: 300px" />
         <Select v-model="form.status" placeholder="单条执行状态" clearable style="width: 300px; margin-left: 20px">
           <Option v-for="(i, index) in statusList" :key="index" :value="i.value">{{ i.label }}</Option>
@@ -71,15 +77,16 @@ export default {
     return {
       form: {
         operateObject: '',
-        status: ''
+        errorCode: ''
       },
       statusList: [
-        { label: '全部', value: '' },
         { label: '成功', value: '0' },
         { label: '失败', value: '1' }
       ],
       tableColumns: [],
       tableData: [],
+      sourceData: [],
+      errorCode: '', // 执行状态'0'成功，'1'失败
       loading: false,
       maxHeight: 500,
       visible: false,
@@ -93,7 +100,15 @@ export default {
     this.maxHeight = document.body.clientHeight - 150
   },
   methods: {
-    handleSearch () {},
+    handleSearch () {
+      if (!this.form.errorCode) {
+        this.tableData = this.sourceData
+        return
+      }
+      this.tableData = this.sourceData.filter(item => {
+        return item.errorCode === this.form.errorCode
+      })
+    },
     async getList (id) {
       this.loading = true
       const { status, data } = await batchExecuteHistory(id)
@@ -101,6 +116,8 @@ export default {
       if (status === 'OK') {
         this.tableColumns = []
         this.tableData = data.batchExecutionJobs || []
+        this.sourceData = data.batchExecutionJobs || []
+        this.errorCode = data.errorCode
         const dynamicColumns = data.configData.outputParameterDefinitions || []
         this.tableColumns.push(
           ...[

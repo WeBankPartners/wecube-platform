@@ -344,7 +344,7 @@ export default {
     },
     // 获取批量执行结果
     getExecuteResult (id) {
-      this.$refs.executeResult.getList(id)
+      this.$refs.executeResult && this.$refs.executeResult.getList(id)
     },
     async getAllDataModels () {
       this.selectedEntityType = null
@@ -499,16 +499,13 @@ export default {
       this.loading = true
       const { status, data } = await dmeIntegratedQuery(requestParameter)
       if (status === 'OK') {
-        if (data.length) {
-          const selectTag = this.seletedRows.map(item => item.id)
-          this.tableData = data
-          this.tableData.forEach(item => {
-            if (selectTag.includes(item.id)) {
-              item._checked = true
-            }
-          })
-          // this.originTableData = this.tableData
-        }
+        this.tableData = data
+        const selectTag = this.seletedRows.map(item => item.id)
+        this.tableData.forEach(item => {
+          if (selectTag.includes(item.id)) {
+            item._checked = true
+          }
+        })
         this.loading = false
       }
     }

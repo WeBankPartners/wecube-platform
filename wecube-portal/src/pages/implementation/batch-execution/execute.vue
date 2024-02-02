@@ -6,7 +6,7 @@
     </div>
     <!--表格分页-->
     <Row :gutter="20">
-      <Col :span="7">
+      <Col :span="8">
         <Card :style="{ minHeight: maxHeight + 'px', maxHeight: maxHeight + 'px' }">
           <div class="title" slot="title">执行记录列表</div>
           <Table
@@ -34,7 +34,7 @@
           </div>
         </Card>
       </Col>
-      <Col :span="17">
+      <Col :span="16">
         <!--批量执行结果-->
         <ExecuteResult ref="executeResult"></ExecuteResult>
       </Col>
@@ -66,12 +66,12 @@ export default {
           component: 'input'
         },
         {
-          key: 'status',
+          key: 'errorCode',
           placeholder: '执行状态',
           component: 'select',
           list: [
-            { label: '成功', value: '1' },
-            { label: '失败', value: '0' }
+            { label: '成功', value: '0' },
+            { label: '失败', value: '1' }
           ]
         },
         {
@@ -86,7 +86,7 @@ export default {
       form: {
         name: '',
         id: '',
-        status: '',
+        errorCode: '',
         createdTimeT: [dayjs().subtract(3, 'month').format('YYYY-MM-DD'), dayjs().format('YYYY-MM-DD')]
       },
       tableData: [],
@@ -105,6 +105,18 @@ export default {
               <Tag color={params.row.errorCode === '0' ? 'success' : 'error'}>
                 {params.row.errorCode === '0' ? '成功' : '失败'}
               </Tag>
+            )
+          }
+        },
+        {
+          title: '错误信息',
+          minWidth: 120,
+          key: 'errorMessage',
+          render: (h, params) => {
+            return (
+              <Tooltip max-width="300" content={params.row.errorMessage}>
+                <span class="word-ellipsis">{params.row.errorMessage || '--'}</span>
+              </Tooltip>
             )
           }
         },
@@ -134,7 +146,7 @@ export default {
                     size="small"
                     type="warning"
                     onClick={() => {
-                      this.handleExecuteDetail(params.row)
+                      this.handleRelaunch(params.row)
                     }}
                     style="margin-right:5px;"
                   >
@@ -191,19 +203,19 @@ export default {
         ]
       }
       Object.keys(this.form).forEach(key => {
-        if (['name', 'id'].includes(key)) {
+        if (['name', 'id'].includes(key) && this.form[key]) {
           params.filters.push({
             name: key,
             operator: 'contains',
             value: this.form[key]
           })
-        } else if (key === 'status') {
+        } else if (key === 'errorCode' && this.form[key]) {
           params.filters.push({
             name: key,
             operator: 'eq',
             value: this.form[key]
           })
-        } else if (key === 'createdTimeT') {
+        } else if (key === 'createdTimeT' && this.form[key] && this.form[key].length > 0) {
           params.filters.push(
             ...[
               {
@@ -232,7 +244,7 @@ export default {
       }
     },
     // 执行详情
-    async handleExecuteDetail (row) {
+    handleExecuteDetail (row) {
       this.$eventBusP.$emit('change-menu', 'executeCreate')
       this.$router.replace({
         name: this.$route.name,
@@ -240,14 +252,26 @@ export default {
           ...this.$route.params,
           // 更新的参数
           id: row.id,
-          from: 'execute',
           type: 'view'
+        }
+      })
+    },
+    // 重新发起
+    handleRelaunch (row) {
+      this.$eventBusP.$emit('change-menu', 'executeCreate')
+      this.$router.replace({
+        name: this.$route.name,
+        query: {
+          ...this.$route.params,
+          // 更新的参数
+          id: row.id,
+          type: 'add'
         }
       })
     },
     // 执行历史
     async handleExecuteHistory (row) {
-      this.$refs.executeResult.getList(row.id)
+      this.$refs.executeResult && this.$refs.executeResult.getList(row.id)
     }
   }
 }
@@ -281,6 +305,13 @@ export default {
   .pagination {
     display: flex;
     justify-content: flex-end;
+  }
+  .word-ellipsis {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical;
   }
 }
 </style>

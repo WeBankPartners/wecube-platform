@@ -55,9 +55,7 @@ export default {
   watch: {
     data: {
       handler (val) {
-        if (val && val.length > 0) {
-          this.tableData = deepClone(val)
-        }
+        this.tableData = deepClone(val)
       },
       immediate: true,
       deep: true
