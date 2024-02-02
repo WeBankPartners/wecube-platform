@@ -285,30 +285,32 @@ func RetrieveTemplate(c *gin.Context, reqParam *models.QueryRequestParam) (resul
 	}
 
 	// query templateId by roleName (and permissionType)
-	var roleFilterTemplateIds []string
-	session := db.MysqlEngine.Context(c).Table(models.TableNameBatchExecTemplateRole).
-		In("role_name", userRoles).
-		Distinct("batch_execution_template_id")
-	if len(permissionTypes) > 0 {
-		session = session.In("permission", permissionTypes)
-	}
-	if len(collectTemplateIds) > 0 {
-		session = session.In("batch_execution_template_id", collectTemplateIds)
-	}
-	err = session.Find(&roleFilterTemplateIds)
-	if err != nil {
-		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
-		return
-	}
-	if len(roleFilterTemplateIds) == 0 {
-		return
-	}
+	if len(permissionTypes) > 0 || len(collectTemplateIds) > 0 {
+		var roleFilterTemplateIds []string
+		session := db.MysqlEngine.Context(c).Table(models.TableNameBatchExecTemplateRole).
+			// In("role_name", userRoles).
+			Distinct("batch_execution_template_id")
+		if len(permissionTypes) > 0 {
+			session = session.In("permission", permissionTypes)
+		}
+		if len(collectTemplateIds) > 0 {
+			session = session.In("batch_execution_template_id", collectTemplateIds)
+		}
+		err = session.Find(&roleFilterTemplateIds)
+		if err != nil {
+			err = exterror.Catch(exterror.New().DatabaseQueryError, err)
+			return
+		}
+		if len(roleFilterTemplateIds) == 0 {
+			return
+		}
 
-	reqParam.Filters = append(reqParam.Filters, &models.QueryRequestFilterObj{
-		Name:     "id",
-		Operator: "in",
-		Value:    roleFilterTemplateIds,
-	})
+		reqParam.Filters = append(reqParam.Filters, &models.QueryRequestFilterObj{
+			Name:     "id",
+			Operator: "in",
+			Value:    roleFilterTemplateIds,
+		})
+	}
 
 	// query template info
 	var templateData []*models.BatchExecutionTemplate
@@ -387,7 +389,60 @@ func RetrieveTemplate(c *gin.Context, reqParam *models.QueryRequestParam) (resul
 		return
 	}
 
+	permissionTypesToCheck := permissionTypes
+	if len(permissionTypesToCheck) == 0 {
+		permissionTypesToCheck = []string{models.PermissionTypeMGMT, models.PermissionTypeUSE}
+	}
+	UpdateTemplateStatus(templateData, userRoles, permissionTypesToCheck)
 	result.Contents = templateData
+	return
+}
+
+func UpdateTemplateStatus(templateData []*models.BatchExecutionTemplate, userRoles []string, permissionTypesToCheck []string) {
+	if len(templateData) == 0 {
+		return
+	}
+	if len(userRoles) == 0 {
+		return
+	}
+
+	userRolesMap := make(map[string]struct{})
+	for _, role := range userRoles {
+		userRolesMap[role] = struct{}{}
+	}
+
+	permissionTypeToCheckMap := make(map[string]struct{})
+	for _, permissionType := range permissionTypesToCheck {
+		permissionTypeToCheckMap[permissionType] = struct{}{}
+	}
+
+	for _, template := range templateData {
+		isMGMTAuthorized := false
+		isUSEAuthorized := false
+		for _, role := range template.PermissionToRole.MGMT {
+			if _, isExisted := userRolesMap[role]; isExisted {
+				isMGMTAuthorized = true
+				break
+			}
+		}
+
+		for _, role := range template.PermissionToRole.USE {
+			if _, isExisted := userRolesMap[role]; isExisted {
+				isUSEAuthorized = true
+				break
+			}
+		}
+
+		status := models.BatchExecTemplateStatusUnauthorized
+		for permiType := range permissionTypeToCheckMap {
+			if permiType == models.PermissionTypeMGMT && isMGMTAuthorized {
+				status = models.BatchExecTemplateStatusAvailable
+			} else if permiType == models.PermissionTypeUSE && isUSEAuthorized {
+				status = models.BatchExecTemplateStatusAvailable
+			}
+		}
+		template.Status = status
+	}
 	return
 }
 
@@ -487,6 +542,9 @@ func GetTemplate(c *gin.Context, templateId string) (result *models.BatchExecuti
 	if err != nil {
 		return
 	}
+
+	permissionTypesToCheck := []string{models.PermissionTypeMGMT, models.PermissionTypeUSE}
+	UpdateTemplateStatus([]*models.BatchExecutionTemplate{result}, middleware.GetRequestRoles(c), permissionTypesToCheck)
 	return
 }
 
@@ -834,6 +892,15 @@ func InsertBatchExecJobs(c *gin.Context, batchExecId string, execTime *time.Time
 	var actions []*db.ExecAction
 	now := time.Now()
 
+	retJsonCallbackParameterMap := make(map[string]map[string]interface{})
+	for i, output := range batchExecRunResult.Outputs {
+		if v, isExisted := output[models.PluginCallResultPresetCallback]; isExisted {
+			if callbackParam, ok := v.(string); ok {
+				retJsonCallbackParameterMap[callbackParam] = batchExecRunResult.Outputs[i]
+			}
+		}
+	}
+
 	for i := range pluginCallParam.Inputs {
 		inputJson := ""
 		inputJsonByte, tmpErr := json.Marshal(pluginCallParam.Inputs[i])
@@ -843,20 +910,37 @@ func InsertBatchExecJobs(c *gin.Context, batchExecId string, execTime *time.Time
 		returnJson := ""
 		errCode := ""
 		errMsg := ""
-		if len(batchExecRunResult.Outputs) > i {
-			returnJsonByte, tmpErr := json.Marshal(batchExecRunResult.Outputs[i])
-			if tmpErr == nil {
-				returnJson = string(returnJsonByte)
+		/*
+			if len(batchExecRunResult.Outputs) > i {
+				returnJsonByte, tmpErr := json.Marshal(batchExecRunResult.Outputs[i])
+				if tmpErr == nil {
+					returnJson = string(returnJsonByte)
+				}
+				if batchExecRunResult.Outputs[i] != nil {
+					if tmpVal, isOk := batchExecRunResult.Outputs[i]["errorCode"].(string); isOk {
+						errCode = tmpVal
+					}
+					if tmpVal, isOk := batchExecRunResult.Outputs[i]["errorMessage"].(string); isOk {
+						errMsg = tmpVal
+					}
+				}
 			}
-			if batchExecRunResult.Outputs[i] != nil {
-				if tmpVal, isOk := batchExecRunResult.Outputs[i]["errorCode"].(string); isOk {
+		*/
+		if outputData, isExisted := retJsonCallbackParameterMap[pluginCallParam.EntityInstances[i].Id]; isExisted {
+			if outputData != nil {
+				returnJsonByte, tmpErr := json.Marshal(outputData)
+				if tmpErr == nil {
+					returnJson = string(returnJsonByte)
+				}
+				if tmpVal, isOk := outputData[models.PluginCallResultPresetErrorCode].(string); isOk {
 					errCode = tmpVal
 				}
-				if tmpVal, isOk := batchExecRunResult.Outputs[i]["errorMessage"].(string); isOk {
+				if tmpVal, isOk := outputData[models.PluginCallResultPresetErrorMsg].(string); isOk {
 					errMsg = tmpVal
 				}
 			}
 		}
+
 		batchExecJobData := &models.BatchExecutionJobs{
 			Id:                      guid.CreateGuid(),
 			BatchExecutionId:        batchExecId,
