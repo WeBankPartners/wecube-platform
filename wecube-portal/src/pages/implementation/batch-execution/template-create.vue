@@ -22,15 +22,15 @@ export default {
   },
   data () {
     return {
-      from: this.$route.query.from || 'template', // 模板，执行
-      id: this.$route.query.id || '',
+      from: 'template', // 模板，执行
+      id: this.$route.query.id || '', // 模板id
       type: this.$route.query.type || 'add', // 新增，编辑，查看
       detailData: {},
       templateDisabled: true
     }
   },
   mounted () {
-    if (this.from === 'template' && this.id) {
+    if (this.id) {
       this.getTemplateDetail()
     }
   },
@@ -39,7 +39,7 @@ export default {
     async getTemplateDetail () {
       const { status, data } = await getBatchExecuteTemplateDetail(this.id)
       if (status === 'OK') {
-        this.detailData = data
+        this.detailData = { ...data, templateData: data }
       }
     },
     // 执行操作
@@ -102,7 +102,10 @@ export default {
         return flag
       })
       const params = {
-        name: name,
+        isDangerousBlock: true, // 是否开启高危检测
+        batchExecutionTemplateId: '',
+        batchExecutionTemplateName: name,
+        name: name + 'test', // 批量名用模板名拼上test
         packageName: currentPackageName,
         entityName: currentEntityName,
         dataModelExpression: dataModelExpression,
@@ -123,6 +126,7 @@ export default {
         })
         if (data.batchExecId) {
           this.showResult = true
+          this.templateDisabled = false
           this.$refs.form.getExecuteResult(data.batchExecId)
         }
       }
@@ -208,6 +212,7 @@ export default {
         name: name,
         operateObject: dataModelExpression,
         pluginService: plugin.serviceDisplayName || '',
+        isDangerousBlock: true, // 是否开启高危检测
         configData: configData,
         permissionToRole: {
           MGMT: mgmtRole,
