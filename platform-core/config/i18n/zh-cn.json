@@ -95,5 +95,13 @@
   "proc_def_loop_check_error": {
     "code": 20000019,
     "message": "发布失败:编排存在环路"
+  },
+  "proc_def_name_repeat_error": {
+    "code": 20000020,
+    "message": "保存失败:编排名称不能和已有编排冲突"
+  },
+  "proc_def_root_entity_empty_error": {
+    "code": 20000021,
+    "message": "对象类型不能为空"
   }
 }
