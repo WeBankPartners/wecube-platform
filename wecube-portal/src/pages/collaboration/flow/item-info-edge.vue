@@ -10,21 +10,32 @@
           <FormItem label="ID">
             <Input disabled v-model="itemCustomInfo.id"></Input>
           </FormItem>
-          <FormItem :label="$t('name')">
+          <FormItem>
+            <label slot="label">
+              <span style="color: red" v-if="isNameRequired">*</span>
+              {{ $t('name') }}
+            </label>
             <Input v-model="itemCustomInfo.name" @on-change="paramsChanged"></Input>
             <span style="position: absolute; left: 320px; top: 2px; line-height: 30px; background: white"
               >{{ (itemCustomInfo.name && itemCustomInfo.name.length) || 0 }}/30</span
             >
-            <span v-if="itemCustomInfo.name && itemCustomInfo.name.length > 30" style="color: red"
+            <span
+              v-if="
+                (itemCustomInfo.name && itemCustomInfo.name.length > 30) ||
+                (itemCustomInfo.name && itemCustomInfo.name.length === 0)
+              "
+              style="color: red"
               >{{ $t('name') }}{{ $t('cannotExceed') }} 30 {{ $t('characters') }}</span
             >
           </FormItem>
         </template>
       </Form>
     </div>
-    <div class="item-footer" v-if="editFlow !== 'false'">
-      <Button :disabled="isSaveBtnActive()" @click="saveItem" type="primary">{{ $t('save') }}</Button>
-      <Button @click="hideItem">{{ $t('cancel') }}</Button>
+    <div class="item-footer">
+      <Button v-if="editFlow !== 'false'" :disabled="isSaveBtnActive()" @click="saveItem" type="primary">{{
+        $t('save')
+      }}</Button>
+      <Button v-if="editFlow !== 'false'" @click="hideItem">{{ $t('cancel') }}</Button>
     </div>
   </div>
 </template>
@@ -35,6 +46,7 @@ export default {
       editFlow: true, // 在查看时隐藏按钮
       isParmasChanged: false, // 参数变化标志位，控制右侧panel显示逻辑
       needAddFirst: true,
+      isNameRequired: false, // 判断节点后的线要校验名称必填
       itemCustomInfo: {
         // id: '',
         // label: ''
@@ -42,9 +54,10 @@ export default {
     }
   },
   methods: {
-    showItemInfo (data, needAddFirst = false, editFlow) {
+    showItemInfo (data, needAddFirst = false, editFlow, isNameRequired) {
       this.editFlow = editFlow
       this.needAddFirst = needAddFirst
+      this.isNameRequired = isNameRequired
       delete data.sourceNode
       delete data.targetNode
       this.isParmasChanged = false
@@ -70,6 +83,9 @@ export default {
     },
     isSaveBtnActive () {
       let res = false
+      if (this.isNameRequired && !this.itemCustomInfo.name) {
+        res = true
+      }
       if (this.itemCustomInfo.name && this.itemCustomInfo.name.length > 30) {
         res = true
       }
@@ -107,7 +123,7 @@ export default {
 <style lang="scss" scoped>
 #itemInfo {
   position: absolute;
-  top: 134px;
+  top: 127px;
   right: 13px;
   bottom: 0;
   z-index: 10;
@@ -118,7 +134,7 @@ export default {
   transition: transform 0.3s ease-in-out;
   box-shadow: 0 0 2px 0 rgba(0, 0, 0, 0.1);
   overflow: auto;
-  height: calc(100vh - 160px);
+  height: calc(100vh - 154px);
 }
 .ivu-form-item {
   margin-bottom: 12px;
@@ -141,10 +157,11 @@ export default {
 .item-footer {
   position: absolute;
   z-index: 10;
-  bottom: 19px;
+  bottom: 26px;
   right: 12px;
   width: 500px;
   padding: 8px 24px;
   background: #ffffff;
+  height: 32px;
 }
 </style>
