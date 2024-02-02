@@ -499,6 +499,7 @@ func handleOutputData(
 			} else {
 				// 成功需要回写ID，以便后续Branch数据更新使用
 				rootData.Id = ret["id"].(string)
+				log.Logger.Debug(fmt.Sprintf("create %s entity %s[%s] %v", tmpResultForEntity.Package, tmpResultForEntity.Entity, rootData.Id, rootData.Data))
 			}
 		} else {
 			// 除了ID以外有其他值才需要写入
@@ -506,6 +507,8 @@ func handleOutputData(
 				_, errUpdate := remote.UpdateEntityData(ctx, authToken, tmpResultForEntity.Package, tmpResultForEntity.Entity, rootData.Data)
 				if errUpdate != nil {
 					log.Logger.Error(fmt.Sprintf("failed to update %s entity %s[%s] %v", tmpResultForEntity.Package, tmpResultForEntity.Entity, rootData.Id, rootData.Data))
+				} else {
+					log.Logger.Debug(fmt.Sprintf("update %s entity %s[%s] %v", tmpResultForEntity.Package, tmpResultForEntity.Entity, rootData.Id, rootData.Data))
 				}
 			}
 		}
@@ -514,6 +517,8 @@ func handleOutputData(
 			errUpdate := remote.UpdatentityDataWithExpr(ctx, authToken, tmpResultForEntity.Package, tmpResultForEntity.Entity, rootData.Id, branchData.Exprs, branchData.Data)
 			if errUpdate != nil {
 				log.Logger.Error(fmt.Sprintf("failed to update %s entity %s[%s] with expression %s %v", tmpResultForEntity.Package, tmpResultForEntity.Entity, rootData.Id, branchData.OriginExpr, branchData.Data))
+			} else {
+				log.Logger.Debug(fmt.Sprintf("update %s entity %s[%s] with expression %s %v", tmpResultForEntity.Package, tmpResultForEntity.Entity, rootData.Id, branchData.OriginExpr, branchData.Data))
 			}
 		}
 	}
