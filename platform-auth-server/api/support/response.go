@@ -24,7 +24,8 @@ func ReturnError(c *gin.Context, err error) {
 }
 
 func ReturnErrorWithHttpCode(c *gin.Context, err error, httpCode int) {
-	errorResponse := exterror.GetErrorResult(c.GetHeader("Accept-Language"), err)
+	// c.GetHeader("Accept-Language") 由于 auth-server没有做中文国际化,当成英文处理
+	errorResponse := exterror.GetErrorResult("", err)
 	if !exterror.IsBusinessErrorCode(errorResponse.ErrorCode) {
 		log.AccessLogger.Error("systemError", log.Int("errorCode", errorResponse.ErrorCode), log.String("message", errorResponse.Message), log.Error(err))
 		log.Logger.Error("Return error", log.Int("errorCode", errorResponse.ErrorCode), log.String("message", errorResponse.Message), log.Error(err))
