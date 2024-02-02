@@ -36,11 +36,12 @@ const (
 	TableNameBatchExecTemplateCollect = "batch_execution_template_collect"
 
 	// batch execution
-	BatchExecTemplateStatusAvailable = "available"
-	BatchExecErrorCodeSucceed        = "0"
-	BatchExecErrorCodeFailed         = "1"
-	BatchExecErrorCodePending        = "2"
-	BatchExecErrorCodeDangerousBlock = "3"
+	BatchExecTemplateStatusAvailable    = "available"
+	BatchExecTemplateStatusUnauthorized = "unauthorized"
+	BatchExecErrorCodeSucceed           = "0"
+	BatchExecErrorCodeFailed            = "1"
+	BatchExecErrorCodePending           = "2"
+	BatchExecErrorCodeDangerousBlock    = "3"
 
 	// permission type
 	PermissionTypeMGMT = "MGMT"
