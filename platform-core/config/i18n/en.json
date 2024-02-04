@@ -103,5 +103,17 @@
   "proc_def_root_entity_empty_error": {
     "code": 20000021,
     "message": "Entity Type cannot be empty"
+  },
+  "proc_def_node_service_name_empty_error": {
+    "code": 20000022,
+    "message": "Publish Failed: [task nodes]:%s plugin service param cannot be empty.%s "
+  },
+  "proc_def_node_date_empty_error": {
+    "code": 20000023,
+    "message": "Publish Failed: [time nodes]: %s date param cannot be empty."
+  },
+  "proc_def__node_delete_error": {
+    "code": 20000024,
+    "message": "Delete failed: The current node has been bound by [%s node], please remove the binding relationship first and then delete it."
   }
 }

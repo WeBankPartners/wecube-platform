@@ -35,6 +35,7 @@ const (
 	ProcDefNodeTypeHuman        ProcDefNodeType = "human"        //人工节点
 	ProcDefNodeTypeAutomatic    ProcDefNodeType = "automatic"    //自动节点
 	ProcDefNodeTypeData         ProcDefNodeType = "data"         //数据节点
+	ProcDefNodeTypeDate         ProcDefNodeType = "date"         //时间节点
 	ProcDefNodeTypeTimeInterval ProcDefNodeType = "timeInterval" //时间间隔
 )
 
@@ -308,6 +309,12 @@ type ProcDefDto struct {
 	EnableCreated    bool     `json:"enableCreated"`    // 能否创建新版本
 	EnableModifyName bool     `json:"enableModifyName"` // 能否修改名称
 	UseRoles         []string `json:"userRoles"`        // 使用角色
+}
+
+type TimeConfigDto struct {
+	Date     string `json:"date"`
+	Duration string `json:"duration"`
+	Unit     string `json:"unit"`
 }
 
 type ProcDefQueryDto struct {
