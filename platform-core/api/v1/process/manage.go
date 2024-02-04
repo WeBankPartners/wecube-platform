@@ -742,21 +742,52 @@ func GetProcDefNodeParameters(c *gin.Context) {
 func DeleteProcDefNode(c *gin.Context) {
 	var err error
 	var procDefNode *models.ProcDefNode
+	var list []*models.ProcDefNode
 	nodeId := c.Param("node-id")
 	procDefId := c.Param("proc-def-id")
 	if nodeId == "" || procDefId == "" {
 		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, fmt.Errorf("node-id or proc-def-id is empty")))
 		return
 	}
-	procDefNode, err = database.GetProcDefNode(c, procDefId, nodeId)
-	if err != nil {
-		middleware.ReturnError(c, err)
-		return
+	list, err = database.GetProcDefNodeById(c, procDefId)
+	if len(list) == 0 {
+		list = make([]*models.ProcDefNode, 0)
+	}
+	for _, node := range list {
+		if node.NodeId == nodeId {
+			procDefNode = node
+			break
+		}
 	}
 	if procDefNode == nil {
 		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, fmt.Errorf("not found procDefNode")))
 		return
 	}
+	for _, node := range list {
+		if node.NodeId == nodeId {
+			continue
+		}
+		// 任务三种节点
+		if node.NodeType == string(models.ProcDefNodeTypeHuman) || node.NodeType == string(models.ProcDefNodeTypeAutomatic) || node.NodeType == string(models.ProcDefNodeTypeData) {
+			//有绑定的数据节点不允许删除
+			// 任务节点绑定 的数据节点 被删除需要给提示
+			if node.BindNodeId == procDefNode.Id {
+				middleware.ReturnError(c, exterror.New().ProcDefNodeDeleteError.WithParam(node.Name))
+				return
+			}
+			// 任务节点 上下文参数,节点列表的节点有删除需要给提示
+			if node.ContextParamNodes != "" {
+				arr := strings.Split(node.ContextParamNodes, ",")
+				for _, str := range arr {
+					if str == procDefNode.NodeId {
+						middleware.ReturnError(c, exterror.New().ProcDefNodeDeleteError.WithParam(node.Name))
+						return
+					}
+				}
+			}
+		}
+	}
+
 	err = database.DeleteProcDefNode(c, procDefId, nodeId)
 	if err != nil {
 		middleware.ReturnError(c, err)
@@ -1237,19 +1268,6 @@ func checkDeployedProcDef(ctx context.Context, procDefId string) error {
 			if node.NodeType == string(models.ProcDefNodeTypeHuman) || node.NodeType == string(models.ProcDefNodeTypeAutomatic) || node.NodeType == string(models.ProcDefNodeTypeData) {
 				if strings.TrimSpace(node.ServiceName) == "" {
 					return exterror.New().ProcDefNodeServiceNameEmptyError.WithParam(node.Name)
-				}
-				// 任务节点绑定 的数据节点 被删除需要给提示
-				if node.BindNodeId != "" && nodeMap[node.BindNodeId] == nil {
-					return exterror.New().ProcDefNodeBindNodeDeleteError.WithParam(node.Name)
-				}
-				// 任务节点 上下文参数,节点列表的节点有删除需要给提示
-				if node.ContextParamNodes != "" {
-					arr := strings.Split(node.ContextParamNodes, ",")
-					for _, str := range arr {
-						if _, ok := nodeIdKeymap[str]; !ok {
-							return exterror.New().ProcDefNodeContextParamNodesDeleteError.WithParam(node.Name)
-						}
-					}
 				}
 			}
 			// 时间节点,日期不能为空
