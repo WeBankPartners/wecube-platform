@@ -99,8 +99,8 @@ export default {
         name: '',
         pluginService: '',
         operateObject: '',
-        isShowCollectTemplate: false // 仅展示收藏模板
-        // permissionType: '' // 权限类型
+        isShowCollectTemplate: false, // 仅展示收藏模板
+        permissionType: this.from === 'template' ? 'MGMT' : 'USE' // 权限类型
       },
       // 模板数据
       cardList: [],
@@ -158,6 +158,20 @@ export default {
           title: '操作对象类型',
           key: 'operateObject',
           minWidth: 100
+        },
+        status: {
+          title: '使用状态',
+          key: 'status',
+          minWidth: 80,
+          render: (h, params) => {
+            const list = [
+              { label: '可使用', value: 'available', color: '#19be6b' },
+              { label: '草稿', value: 'draft', color: '#c5c8ce' },
+              { label: '权限已移除', value: 'unauthorized', color: '#ed4014' }
+            ]
+            const item = list.find(i => i.value === params.row.status)
+            return item && <Tag color={item.color}>{item.label}</Tag>
+          }
         },
         createdTime: {
           title: '创建时间',
@@ -252,6 +266,7 @@ export default {
             )
           }
         },
+        this.baseColumns.status,
         this.baseColumns.createdTime,
         this.baseColumns.action
       ]
@@ -274,6 +289,7 @@ export default {
             )
           }
         },
+        this.baseColumns.status,
         this.baseColumns.createdTime
       ]
     }
@@ -285,6 +301,12 @@ export default {
     },
     // 选择模板新建执行
     handleChooseTemplate (row) {
+      if (row.status === 'unauthorized') {
+        return this.$Notice.warning({
+          title: this.$t('warning'),
+          desc: this.$t('该模板使用权限被移除')
+        })
+      }
       this.$emit('select', row)
     },
     handleSearch () {
@@ -306,11 +328,13 @@ export default {
         ]
       }
       Object.keys(this.form).forEach(key => {
-        params.filters.push({
-          name: key,
-          operator: key === 'isShowCollectTemplate' ? 'eq' : 'contains',
-          value: this.form[key]
-        })
+        if (this.form[key] || typeof this.form[key] === 'boolean') {
+          params.filters.push({
+            name: key,
+            operator: ['isShowCollectTemplate', 'permissionType'].includes(key) ? 'eq' : 'contains',
+            value: this.form[key]
+          })
+        }
       })
       this.spinShow = true
       const { status, data } = await getBatchExecuteTemplateList(params)
