@@ -1265,7 +1265,7 @@ func checkDeployedProcDef(ctx context.Context, procDefId string) error {
 			}
 		default:
 			// 任务三种节点,插件服务不能为空
-			if node.NodeType == string(models.ProcDefNodeTypeHuman) || node.NodeType == string(models.ProcDefNodeTypeAutomatic) || node.NodeType == string(models.ProcDefNodeTypeData) {
+			if node.NodeType == string(models.ProcDefNodeTypeHuman) || node.NodeType == string(models.ProcDefNodeTypeAutomatic) {
 				if strings.TrimSpace(node.ServiceName) == "" {
 					return exterror.New().ProcDefNodeServiceNameEmptyError.WithParam(node.Name)
 				}
