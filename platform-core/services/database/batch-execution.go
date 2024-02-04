@@ -26,14 +26,11 @@ func CreateOrUpdateBatchExecTemplate(c *gin.Context, reqParam *models.BatchExecu
 		configDataStr = string(configDataByte)
 	}
 
-	templateStatus := models.BatchExecTemplateStatusAvailable
-	if reqParam.Status != "" {
-		templateStatus = reqParam.Status
-		if templateStatus != models.BatchExecTemplateStatusAvailable && templateStatus != models.BatchExecTemplateStatusDraft {
-			err = exterror.Catch(exterror.New().RequestParamValidateError, fmt.Errorf("request param err, status should be [%s, %s]",
-				models.BatchExecTemplateStatusAvailable, models.BatchExecTemplateStatusDraft))
-			return
-		}
+	if reqParam.PublishStatus != models.BatchExecTmplPublishStatusPublished &&
+		reqParam.PublishStatus != models.BatchExecTmplPublishStatusDraft {
+		err = exterror.Catch(exterror.New().RequestParamValidateError, fmt.Errorf("request param err, publishStatus should be [%s, %s]",
+			models.BatchExecTmplPublishStatusDraft, models.BatchExecTmplPublishStatusPublished))
+		return
 	}
 
 	if reqParam.Id == "" {
@@ -42,7 +39,8 @@ func CreateOrUpdateBatchExecTemplate(c *gin.Context, reqParam *models.BatchExecu
 		templateData := &models.BatchExecutionTemplate{
 			Id:               reqParam.Id,
 			Name:             reqParam.Name,
-			Status:           templateStatus,
+			Status:           models.BatchExecTemplateStatusAvailable,
+			PublishStatus:    reqParam.PublishStatus,
 			OperateObject:    reqParam.OperateObject,
 			PluginService:    reqParam.PluginService,
 			IsDangerousBlock: reqParam.IsDangerousBlock,
@@ -76,10 +74,10 @@ func CreateOrUpdateBatchExecTemplate(c *gin.Context, reqParam *models.BatchExecu
 		}
 
 		// update
-		updateColumnStr := "`name`=?,`status`=?,`operate_object`=?,`plugin_service`=?,`is_dangerous_block`=?,`config_data`=?,`source_data`=?,`updated_by`=?,`updated_time`=?"
+		updateColumnStr := "`name`=?,`publish_status`=?,`operate_object`=?,`plugin_service`=?,`is_dangerous_block`=?,`config_data`=?,`source_data`=?,`updated_by`=?,`updated_time`=?"
 		action := &db.ExecAction{
 			Sql: db.CombineDBSql("UPDATE ", models.TableNameBatchExecTemplate, " SET ", updateColumnStr, " WHERE id=?"),
-			Param: []interface{}{reqParam.Name, templateStatus, reqParam.OperateObject, reqParam.PluginService, reqParam.IsDangerousBlock,
+			Param: []interface{}{reqParam.Name, reqParam.PublishStatus, reqParam.OperateObject, reqParam.PluginService, reqParam.IsDangerousBlock,
 				configDataStr, reqParam.SourceData, middleware.GetRequestUser(c), now, reqParam.Id},
 		}
 		actions = append(actions, action)
