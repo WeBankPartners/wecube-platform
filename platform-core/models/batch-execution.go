@@ -50,7 +50,7 @@ func (BatchExecutionJobs) TableName() string {
 type BatchExecutionTemplate struct {
 	Id               string            `json:"id" xorm:"id"`                               // 唯一标识
 	Name             string            `json:"name" xorm:"name"`                           // 名称
-	Status           string            `json:"status" xorm:"status"`                       // 使用状态
+	Status           string            `json:"status" xorm:"status"`                       // 使用状态: 当查询列表时，通过使用角色去计算状态
 	PublishStatus    string            `json:"publishStatus" xorm:"publish_status"`        // 发布状态
 	OperateObject    string            `json:"operateObject" xorm:"operate_object"`        // 操作对象
 	PluginService    string            `json:"pluginService" xorm:"plugin_service"`        // 插件服务
