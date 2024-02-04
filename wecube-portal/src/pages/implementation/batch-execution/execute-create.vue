@@ -29,7 +29,7 @@ export default {
     }
   },
   mounted () {
-    if (this.type !== 'add') {
+    if (this.id) {
       this.step = 2
       this.getExecuteDetail()
     } else {
@@ -57,8 +57,8 @@ export default {
         if (data.batchExecutionTemplateId) {
           const { data: templateData } = await getBatchExecuteTemplateDetail(data.batchExecutionTemplateId)
           this.detailData = { ...data, templateData }
-          // 预执行数据(无模板ID)
         } else {
+          // 预执行数据(无模板ID)
           this.detailData = data
         }
         this.$refs.form.getExecuteResult(this.id)
@@ -123,9 +123,11 @@ export default {
         return flag
       })
       const params = {
-        isDangerousBlock: this.detailData.templateData.isDangerousBlock || '', // 是否开启高危检测
-        batchExecutionTemplateId: this.detailData.templateData.id || '',
-        batchExecutionTemplateName: this.detailData.templateData.name || '',
+        isDangerousBlock: this.detailData.batchExecutionTemplateId
+          ? this.detailData.templateData.isDangerousBlock
+          : true, // 是否开启高危检测
+        batchExecutionTemplateId: this.detailData.batchExecutionTemplateId ? this.detailData.templateData.id : '',
+        batchExecutionTemplateName: this.detailData.batchExecutionTemplateId ? this.detailData.templateData.name : '',
         name: name,
         packageName: currentPackageName,
         entityName: currentEntityName,

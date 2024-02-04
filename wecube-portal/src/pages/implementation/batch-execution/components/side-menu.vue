@@ -21,8 +21,8 @@
         <Submenu v-for="(i, index) in menuList" :key="index" :name="i.name">
           <template #title>
             <div class="menu-item">
-              <Icon :type="i.icon" />
-              {{ i.title }}
+              <Icon size="20" :type="i.icon" />
+              <span>{{ i.title }}</span>
             </div>
           </template>
           <MenuItem v-for="(j, idx) in i.children" :key="idx" :name="j.name" :to="j.path">
@@ -55,7 +55,7 @@ export default {
       menuList: [
         {
           title: '模板',
-          icon: 'ios-hammer',
+          icon: 'md-document',
           name: 'template',
           children: [
             { title: '新建模板', path: '', name: 'templateCreate' },
@@ -64,7 +64,7 @@ export default {
         },
         {
           title: '执行',
-          icon: 'md-folder-open',
+          icon: 'md-hammer',
           name: 'execute',
           children: [
             { title: '新建执行', path: '', name: 'executeCreate' },
@@ -145,10 +145,9 @@ export default {
   .menu-item {
     display: flex;
     align-items: center;
-    img {
-      width: 23px;
-      height: 23px;
-      margin-right: 10px;
+    span {
+      margin-left: 5px;
+      margin-bottom: -1px;
     }
   }
   .small-menu {

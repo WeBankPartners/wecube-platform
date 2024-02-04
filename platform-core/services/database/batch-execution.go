@@ -25,13 +25,24 @@ func CreateOrUpdateBatchExecTemplate(c *gin.Context, reqParam *models.BatchExecu
 		}
 		configDataStr = string(configDataByte)
 	}
+
+	templateStatus := models.BatchExecTemplateStatusAvailable
+	if reqParam.Status != "" {
+		templateStatus = reqParam.Status
+		if templateStatus != models.BatchExecTemplateStatusAvailable && templateStatus != models.BatchExecTemplateStatusDraft {
+			err = exterror.Catch(exterror.New().RequestParamValidateError, fmt.Errorf("request param err, status should be [%s, %s]",
+				models.BatchExecTemplateStatusAvailable, models.BatchExecTemplateStatusDraft))
+			return
+		}
+	}
+
 	if reqParam.Id == "" {
 		// create
 		reqParam.Id = guid.CreateGuid()
 		templateData := &models.BatchExecutionTemplate{
 			Id:               reqParam.Id,
 			Name:             reqParam.Name,
-			Status:           models.BatchExecTemplateStatusAvailable,
+			Status:           templateStatus,
 			OperateObject:    reqParam.OperateObject,
 			PluginService:    reqParam.PluginService,
 			IsDangerousBlock: reqParam.IsDangerousBlock,
@@ -65,10 +76,11 @@ func CreateOrUpdateBatchExecTemplate(c *gin.Context, reqParam *models.BatchExecu
 		}
 
 		// update
-		updateColumnStr := "`name`=?,`operate_object`=?,`plugin_service`=?,`is_dangerous_block`=?,`config_data`=?,`source_data`=?,`updated_by`=?,`updated_time`=?"
+		updateColumnStr := "`name`=?,`status`=?,`operate_object`=?,`plugin_service`=?,`is_dangerous_block`=?,`config_data`=?,`source_data`=?,`updated_by`=?,`updated_time`=?"
 		action := &db.ExecAction{
-			Sql:   db.CombineDBSql("UPDATE ", models.TableNameBatchExecTemplate, " SET ", updateColumnStr, " WHERE id=?"),
-			Param: []interface{}{reqParam.Name, reqParam.OperateObject, reqParam.PluginService, reqParam.IsDangerousBlock, configDataStr, reqParam.SourceData, middleware.GetRequestUser(c), now, reqParam.Id},
+			Sql: db.CombineDBSql("UPDATE ", models.TableNameBatchExecTemplate, " SET ", updateColumnStr, " WHERE id=?"),
+			Param: []interface{}{reqParam.Name, templateStatus, reqParam.OperateObject, reqParam.PluginService, reqParam.IsDangerousBlock,
+				configDataStr, reqParam.SourceData, middleware.GetRequestUser(c), now, reqParam.Id},
 		}
 		actions = append(actions, action)
 	}
@@ -543,8 +555,8 @@ func GetTemplate(c *gin.Context, templateId string) (result *models.BatchExecuti
 		return
 	}
 
-	permissionTypesToCheck := []string{models.PermissionTypeMGMT, models.PermissionTypeUSE}
-	UpdateTemplateStatus([]*models.BatchExecutionTemplate{result}, middleware.GetRequestRoles(c), permissionTypesToCheck)
+	// permissionTypesToCheck := []string{models.PermissionTypeMGMT, models.PermissionTypeUSE}
+	// UpdateTemplateStatus([]*models.BatchExecutionTemplate{result}, middleware.GetRequestRoles(c), permissionTypesToCheck)
 	return
 }
 

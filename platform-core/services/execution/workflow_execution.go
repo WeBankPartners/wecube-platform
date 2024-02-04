@@ -27,7 +27,7 @@ import (
  * @return 调用结果, 高危结果, 错误
  */
 
-func WorkflowExecutionCallPluginService(ctx context.Context, operator, authToken string, pluginInterface *models.PluginConfigInterfaces, entityType string,
+func WorkflowExecutionCallPluginService(ctx context.Context, operator string, pluginInterface *models.PluginConfigInterfaces, entityType string,
 	entityInstances []*models.BatchExecutionPluginExecEntityInstances,
 	inputParamConstants []*models.BatchExecutionPluginDefInputParams,
 	inputParamContext map[string]interface{},
@@ -41,13 +41,15 @@ func WorkflowExecutionCallPluginService(ctx context.Context, operator, authToken
 		err = errAnalyze1
 		return
 	}
-	if len(rootExprList) != 1 {
+	if len(rootExprList) == 0 {
 		err = fmt.Errorf("invalid input entity type %s", entityType)
 		return
 	}
-	rootExpr := rootExprList[0]
+	rootExpr := rootExprList[len(rootExprList)-1]
+	// 获取subsystem token
+	subsysToken := remote.GetToken()
 	// 构造输入参数
-	inputParamDatas, errHandle := handleInputData(ctx, authToken, continueToken, entityInstances, pluginInterface.InputParameters, rootExpr, inputConstantMap, inputParamContext)
+	inputParamDatas, errHandle := handleInputData(ctx, subsysToken, continueToken, entityInstances, pluginInterface.InputParameters, rootExpr, inputConstantMap, inputParamContext)
 	if errHandle != nil {
 		err = errHandle
 		return
@@ -62,8 +64,6 @@ func WorkflowExecutionCallPluginService(ctx context.Context, operator, authToken
 		InputParams:     inputParamDatas,
 	}
 	// 需要有运行时的高危插件
-	// 获取subsystem token
-	subsysToken := remote.GetToken()
 	dangerousResult, errDangerous := performWorkflowDangerousCheck(ctx, itsdangerousCallParam, continueToken, subsysToken)
 	if errDangerous != nil {
 		err = errDangerous
@@ -85,7 +85,7 @@ func WorkflowExecutionCallPluginService(ctx context.Context, operator, authToken
 		AllowedOptions:  allowedOptions,
 	}
 	pluginCallParam.RequestId = "flowexec_" + guid.CreateGuid()
-	pluginCallResult, errCall := remote.PluginInterfaceApi(ctx, authToken, pluginInterface, pluginCallParam)
+	pluginCallResult, errCall := remote.PluginInterfaceApi(ctx, subsysToken, pluginInterface, pluginCallParam)
 	if errCall != nil {
 		err = errCall
 		return
