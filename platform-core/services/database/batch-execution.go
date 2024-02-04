@@ -404,11 +404,13 @@ func RetrieveTemplate(c *gin.Context, reqParam *models.QueryRequestParam) (resul
 	if err != nil {
 		return
 	}
-
-	permissionTypesToCheck := permissionTypes
-	if len(permissionTypesToCheck) == 0 {
-		permissionTypesToCheck = []string{models.PermissionTypeMGMT, models.PermissionTypeUSE}
-	}
+	/*
+		permissionTypesToCheck := permissionTypes
+		if len(permissionTypesToCheck) == 0 {
+			permissionTypesToCheck = []string{models.PermissionTypeMGMT, models.PermissionTypeUSE}
+		}
+	*/
+	permissionTypesToCheck := []string{models.PermissionTypeUSE}
 	UpdateTemplateStatus(templateData, userRoles, permissionTypesToCheck)
 	result.Contents = templateData
 	return
