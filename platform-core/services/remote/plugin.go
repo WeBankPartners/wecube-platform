@@ -450,10 +450,8 @@ func DangerousBatchCheck(ctx context.Context, token string, reqParam interface{}
 	}
 	urlObj, _ := url.Parse(uri)
 	var reqBodyReader io.Reader
-	if reqParam != nil {
-		reqBody, _ := json.Marshal(reqParam)
-		reqBodyReader = bytes.NewReader(reqBody)
-	}
+	reqBody, _ := json.Marshal(reqParam)
+	reqBodyReader = bytes.NewReader(reqBody)
 	req, reqErr := http.NewRequest(http.MethodPost, urlObj.String(), reqBodyReader)
 	if reqErr != nil {
 		err = fmt.Errorf("new request fail,%s ", reqErr.Error())
@@ -465,6 +463,8 @@ func DangerousBatchCheck(ctx context.Context, token string, reqParam interface{}
 	req.Header.Set(models.TransactionIdHeader, transId)
 	req.Header.Set(models.AuthorizationHeader, token)
 	req.Header.Set("Content-type", "application/json")
+	startTime := time.Now()
+	log.Logger.Info("Start remote dangerousBatchCheck request --->>> ", log.String("requestId", reqId), log.String("transactionId", transId), log.String("method", http.MethodPost), log.String("url", urlObj.String()), log.JsonObj("Authorization", token), log.String("requestBody", string(reqBody)))
 	resp, respErr := http.DefaultClient.Do(req)
 	if respErr != nil {
 		err = fmt.Errorf("do request fail,%s ", respErr.Error())
@@ -472,11 +472,21 @@ func DangerousBatchCheck(ctx context.Context, token string, reqParam interface{}
 	}
 	var response models.ItsdangerousBatchCheckResult
 	respBody, readBodyErr := io.ReadAll(resp.Body)
+	defer func() {
+		if resp.Body != nil {
+			resp.Body.Close()
+		}
+		useTime := fmt.Sprintf("%.3fms", time.Now().Sub(startTime).Seconds()*1000)
+		if err != nil {
+			log.Logger.Error("End remote dangerousBatchCheck update <<<--- ", log.String("requestId", reqId), log.String("transactionId", transId), log.String("url", urlObj.String()), log.Int("httpCode", resp.StatusCode), log.String("costTime", useTime), log.Error(err))
+		} else {
+			log.Logger.Info("End remote dangerousBatchCheck update <<<--- ", log.String("requestId", reqId), log.String("transactionId", transId), log.String("url", urlObj.String()), log.Int("httpCode", resp.StatusCode), log.String("costTime", useTime), log.String("response", string(respBody)))
+		}
+	}()
 	if readBodyErr != nil {
 		err = fmt.Errorf("read response body fail,%s ", readBodyErr.Error())
 		return
 	}
-	resp.Body.Close()
 	if err = json.Unmarshal(respBody, &response); err != nil {
 		err = fmt.Errorf("json unmarshal response body fail,%s ", err.Error())
 		return
@@ -498,10 +508,8 @@ func DangerousWorkflowCheck(ctx context.Context, token string, reqParam interfac
 	}
 	urlObj, _ := url.Parse(uri)
 	var reqBodyReader io.Reader
-	if reqParam != nil {
-		reqBody, _ := json.Marshal(reqParam)
-		reqBodyReader = bytes.NewReader(reqBody)
-	}
+	reqBody, _ := json.Marshal(reqParam)
+	reqBodyReader = bytes.NewReader(reqBody)
 	req, reqErr := http.NewRequest(http.MethodPost, urlObj.String(), reqBodyReader)
 	if reqErr != nil {
 		err = fmt.Errorf("new request fail,%s ", reqErr.Error())
@@ -513,6 +521,8 @@ func DangerousWorkflowCheck(ctx context.Context, token string, reqParam interfac
 	req.Header.Set(models.TransactionIdHeader, transId)
 	req.Header.Set(models.AuthorizationHeader, token)
 	req.Header.Set("Content-type", "application/json")
+	startTime := time.Now()
+	log.Logger.Info("Start remote dangerousWorkflowCheck request --->>> ", log.String("requestId", reqId), log.String("transactionId", transId), log.String("method", http.MethodPost), log.String("url", urlObj.String()), log.JsonObj("Authorization", token), log.String("requestBody", string(reqBody)))
 	resp, respErr := http.DefaultClient.Do(req)
 	if respErr != nil {
 		err = fmt.Errorf("do request fail,%s ", respErr.Error())
@@ -520,11 +530,21 @@ func DangerousWorkflowCheck(ctx context.Context, token string, reqParam interfac
 	}
 	var response models.ItsdangerousWorkflowCheckResult
 	respBody, readBodyErr := io.ReadAll(resp.Body)
+	defer func() {
+		if resp.Body != nil {
+			resp.Body.Close()
+		}
+		useTime := fmt.Sprintf("%.3fms", time.Now().Sub(startTime).Seconds()*1000)
+		if err != nil {
+			log.Logger.Error("End remote dangerousWorkflowCheck update <<<--- ", log.String("requestId", reqId), log.String("transactionId", transId), log.String("url", urlObj.String()), log.Int("httpCode", resp.StatusCode), log.String("costTime", useTime), log.Error(err))
+		} else {
+			log.Logger.Info("End remote dangerousWorkflowCheck update <<<--- ", log.String("requestId", reqId), log.String("transactionId", transId), log.String("url", urlObj.String()), log.Int("httpCode", resp.StatusCode), log.String("costTime", useTime), log.String("response", string(respBody)))
+		}
+	}()
 	if readBodyErr != nil {
 		err = fmt.Errorf("read response body fail,%s ", readBodyErr.Error())
 		return
 	}
-	resp.Body.Close()
 	if err = json.Unmarshal(respBody, &response); err != nil {
 		err = fmt.Errorf("json unmarshal response body fail,%s ", err.Error())
 		return
@@ -545,10 +565,11 @@ func PluginInterfaceApi(ctx context.Context, token string, pluginInterface *mode
 		uri = "http://" + uri
 	}
 	urlObj, _ := url.Parse(uri)
-
+	var reqBodyPtr []byte
 	var reqBodyReader io.Reader
 	if reqParam != nil {
 		reqBody, _ := json.Marshal(reqParam)
+		reqBodyPtr = reqBody
 		reqBodyReader = bytes.NewReader(reqBody)
 	}
 	req, reqErr := http.NewRequest(pluginInterface.HttpMethod, urlObj.String(), reqBodyReader)
@@ -562,6 +583,8 @@ func PluginInterfaceApi(ctx context.Context, token string, pluginInterface *mode
 	req.Header.Set(models.TransactionIdHeader, transId)
 	req.Header.Set(models.AuthorizationHeader, token)
 	req.Header.Set("Content-type", "application/json")
+	startTime := time.Now()
+	log.Logger.Info("Start remote pluginInterfaceApi request --->>> ", log.String("requestId", reqId), log.String("transactionId", transId), log.String("method", http.MethodPost), log.String("url", urlObj.String()), log.JsonObj("Authorization", token), log.String("requestBody", string(reqBodyPtr)))
 	resp, respErr := http.DefaultClient.Do(req)
 	if respErr != nil {
 		err = fmt.Errorf("do request fail,%s ", respErr.Error())
@@ -569,11 +592,21 @@ func PluginInterfaceApi(ctx context.Context, token string, pluginInterface *mode
 	}
 	var response models.PluginInterfaceApiResult
 	respBody, readBodyErr := io.ReadAll(resp.Body)
+	defer func() {
+		if resp.Body != nil {
+			resp.Body.Close()
+		}
+		useTime := fmt.Sprintf("%.3fms", time.Now().Sub(startTime).Seconds()*1000)
+		if err != nil {
+			log.Logger.Error("End remote pluginInterfaceApi update <<<--- ", log.String("requestId", reqId), log.String("transactionId", transId), log.String("url", urlObj.String()), log.Int("httpCode", resp.StatusCode), log.String("costTime", useTime), log.Error(err))
+		} else {
+			log.Logger.Info("End remote pluginInterfaceApi update <<<--- ", log.String("requestId", reqId), log.String("transactionId", transId), log.String("url", urlObj.String()), log.Int("httpCode", resp.StatusCode), log.String("costTime", useTime), log.String("response", string(respBody)))
+		}
+	}()
 	if readBodyErr != nil {
 		err = fmt.Errorf("read response body fail,%s ", readBodyErr.Error())
 		return
 	}
-	resp.Body.Close()
 	if err = json.Unmarshal(respBody, &response); err != nil {
 		err = fmt.Errorf("json unmarshal response body fail,%s ", err.Error())
 		return
