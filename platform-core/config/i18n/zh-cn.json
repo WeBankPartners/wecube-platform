@@ -112,12 +112,8 @@
     "code": 20000023,
     "message": "发布失败:时间节点: %s 日期参数不能为空"
   },
-  "proc_def_node_bind_node_delete_error": {
+  "proc_def__node_delete_error": {
     "code": 20000024,
-    "message": "发布失败:任务节点: %s 绑定节点有删除,请重新配置"
-  },
-  "proc_def_node_context_param_nodes_delete_error": {
-    "code": 20000025,
-    "message": "发布失败:任务节点: %s 上下午参数节点列表有删除,请重新配置"
+    "message": "删除失败:当前节点已被[%s节点]绑定,请先移除绑定关系再删除"
   }
 }
