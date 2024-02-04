@@ -38,7 +38,8 @@ const (
 	// batch execution
 	BatchExecTemplateStatusAvailable    = "available"
 	BatchExecTemplateStatusUnauthorized = "unauthorized"
-	BatchExecTemplateStatusDraft        = "draft"
+	BatchExecTmplPublishStatusDraft     = "draft"
+	BatchExecTmplPublishStatusPublished = "published"
 	BatchExecErrorCodeSucceed           = "0"
 	BatchExecErrorCodeFailed            = "1"
 	BatchExecErrorCodePending           = "2"

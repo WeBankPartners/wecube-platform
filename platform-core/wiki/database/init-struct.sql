@@ -453,6 +453,7 @@ CREATE INDEX batch_exec_tmpl_name_IDX USING BTREE ON batch_execution_template (`
 CREATE INDEX batch_exec_tmpl_operate_object_IDX USING BTREE ON batch_execution_template (operate_object);
 CREATE INDEX batch_exec_tmpl_plugin_service_IDX USING BTREE ON batch_execution_template (plugin_service);
 CREATE INDEX batch_exec_tmpl_updated_time_IDX USING BTREE ON batch_execution_template (updated_time);
+alter table batch_execution_template add publish_status varchar(64) default 'published' not null comment '发布状态：published, draft' after status;
 
 CREATE TABLE `batch_execution_template_role` (
   `id` varchar(64) NOT NULL COMMENT '唯一标识',
