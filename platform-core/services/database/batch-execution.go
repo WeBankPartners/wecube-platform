@@ -3,6 +3,7 @@ package database
 import (
 	"encoding/json"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/WeBankPartners/go-common-lib/guid"
@@ -127,6 +128,11 @@ func CreateOrUpdateBatchExecTemplate(c *gin.Context, reqParam *models.BatchExecu
 
 	err = db.Transaction(actions, c)
 	if err != nil {
+		if strings.Contains(err.Error(), "Duplicate entry") {
+			if strings.Contains(err.Error(), "for key 'name_unique'") {
+				err = fmt.Errorf("template name: %s has been existed", reqParam.Name)
+			}
+		}
 		err = exterror.Catch(exterror.New().DatabaseExecuteError, err)
 		return
 	}
