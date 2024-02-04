@@ -478,9 +478,9 @@ func DangerousBatchCheck(ctx context.Context, token string, reqParam interface{}
 		}
 		useTime := fmt.Sprintf("%.3fms", time.Now().Sub(startTime).Seconds()*1000)
 		if err != nil {
-			log.Logger.Error("End remote dangerousBatchCheck update <<<--- ", log.String("requestId", reqId), log.String("transactionId", transId), log.String("url", urlObj.String()), log.Int("httpCode", resp.StatusCode), log.String("costTime", useTime), log.Error(err))
+			log.Logger.Error("End remote dangerousBatchCheck request <<<--- ", log.String("requestId", reqId), log.String("transactionId", transId), log.String("url", urlObj.String()), log.Int("httpCode", resp.StatusCode), log.String("costTime", useTime), log.Error(err))
 		} else {
-			log.Logger.Info("End remote dangerousBatchCheck update <<<--- ", log.String("requestId", reqId), log.String("transactionId", transId), log.String("url", urlObj.String()), log.Int("httpCode", resp.StatusCode), log.String("costTime", useTime), log.String("response", string(respBody)))
+			log.Logger.Info("End remote dangerousBatchCheck request <<<--- ", log.String("requestId", reqId), log.String("transactionId", transId), log.String("url", urlObj.String()), log.Int("httpCode", resp.StatusCode), log.String("costTime", useTime), log.String("response", string(respBody)))
 		}
 	}()
 	if readBodyErr != nil {
@@ -536,9 +536,9 @@ func DangerousWorkflowCheck(ctx context.Context, token string, reqParam interfac
 		}
 		useTime := fmt.Sprintf("%.3fms", time.Now().Sub(startTime).Seconds()*1000)
 		if err != nil {
-			log.Logger.Error("End remote dangerousWorkflowCheck update <<<--- ", log.String("requestId", reqId), log.String("transactionId", transId), log.String("url", urlObj.String()), log.Int("httpCode", resp.StatusCode), log.String("costTime", useTime), log.Error(err))
+			log.Logger.Error("End remote dangerousWorkflowCheck request <<<--- ", log.String("requestId", reqId), log.String("transactionId", transId), log.String("url", urlObj.String()), log.Int("httpCode", resp.StatusCode), log.String("costTime", useTime), log.Error(err))
 		} else {
-			log.Logger.Info("End remote dangerousWorkflowCheck update <<<--- ", log.String("requestId", reqId), log.String("transactionId", transId), log.String("url", urlObj.String()), log.Int("httpCode", resp.StatusCode), log.String("costTime", useTime), log.String("response", string(respBody)))
+			log.Logger.Info("End remote dangerousWorkflowCheck request <<<--- ", log.String("requestId", reqId), log.String("transactionId", transId), log.String("url", urlObj.String()), log.Int("httpCode", resp.StatusCode), log.String("costTime", useTime), log.String("response", string(respBody)))
 		}
 	}()
 	if readBodyErr != nil {
@@ -598,9 +598,9 @@ func PluginInterfaceApi(ctx context.Context, token string, pluginInterface *mode
 		}
 		useTime := fmt.Sprintf("%.3fms", time.Now().Sub(startTime).Seconds()*1000)
 		if err != nil {
-			log.Logger.Error("End remote pluginInterfaceApi update <<<--- ", log.String("requestId", reqId), log.String("transactionId", transId), log.String("url", urlObj.String()), log.Int("httpCode", resp.StatusCode), log.String("costTime", useTime), log.Error(err))
+			log.Logger.Error("End remote pluginInterfaceApi request <<<--- ", log.String("requestId", reqId), log.String("transactionId", transId), log.String("url", urlObj.String()), log.Int("httpCode", resp.StatusCode), log.String("costTime", useTime), log.Error(err))
 		} else {
-			log.Logger.Info("End remote pluginInterfaceApi update <<<--- ", log.String("requestId", reqId), log.String("transactionId", transId), log.String("url", urlObj.String()), log.Int("httpCode", resp.StatusCode), log.String("costTime", useTime), log.String("response", string(respBody)))
+			log.Logger.Info("End remote pluginInterfaceApi request <<<--- ", log.String("requestId", reqId), log.String("transactionId", transId), log.String("url", urlObj.String()), log.Int("httpCode", resp.StatusCode), log.String("costTime", useTime), log.String("response", string(respBody)))
 		}
 	}()
 	if readBodyErr != nil {
