@@ -2,7 +2,7 @@
   <div class="batch-execute-create">
     <ChooseTemplate v-if="step === 1" from="execute" @select="handleChooseTemplate"></ChooseTemplate>
     <template v-else>
-      <BaseForm ref="form" :type="type" :from="from" :data="detailData" />
+      <BaseForm ref="form" :type="type" :from="from" :data="detailData" @back="handleBack" />
       <div v-if="type !== 'view'" class="footer-button">
         <Button type="primary" :disabled="false" @click="saveExcute">执行</Button>
       </div>
@@ -24,7 +24,7 @@ export default {
       step: '',
       from: 'execute', // 模板，执行
       id: this.$route.query.id || '', // 批量执行id
-      type: this.$route.query.type || 'add', // 新增，复制，查看
+      type: this.$route.query.type || 'add', // 新增，查看
       detailData: {}
     }
   },
@@ -37,6 +37,13 @@ export default {
     }
   },
   methods: {
+    handleBack () {
+      if (this.id) {
+        this.$eventBusP.$emit('change-menu', 'executeList')
+      } else {
+        this.step = 1
+      }
+    },
     handleChooseTemplate (row) {
       this.step = 2
       // 选择模板创建的时候，使用模板ID调用模板详情接口，获取详情信息
@@ -59,9 +66,8 @@ export default {
           this.detailData = { ...data, templateData }
         } else {
           // 预执行数据(无模板ID)
-          this.detailData = data
+          this.detailData = { ...data, templateData: { id: '', name: '' } }
         }
-        this.$refs.form.getExecuteResult(this.id)
       }
     },
     async saveExcute () {
@@ -122,12 +128,11 @@ export default {
         })
         return flag
       })
+      const { templateData } = this.detailData
       const params = {
-        isDangerousBlock: this.detailData.batchExecutionTemplateId
-          ? this.detailData.templateData.isDangerousBlock
-          : true, // 是否开启高危检测
-        batchExecutionTemplateId: this.detailData.batchExecutionTemplateId ? this.detailData.templateData.id : '',
-        batchExecutionTemplateName: this.detailData.batchExecutionTemplateId ? this.detailData.templateData.name : '',
+        isDangerousBlock: templateData.id ? templateData.isDangerousBlock : true, // 是否开启高危检测
+        batchExecutionTemplateId: templateData.id || '',
+        batchExecutionTemplateName: templateData.name || '',
         name: name,
         packageName: currentPackageName,
         entityName: currentEntityName,
