@@ -474,7 +474,7 @@ func GetPluginConfigInterfaceById(id string, available bool) (result *models.Plu
 	found, errPCI := session.Get(result)
 	if errPCI != nil {
 		result = nil
-		err = errPCI
+		err = exterror.Catch(exterror.New().DatabaseQueryError, errPCI)
 		return
 	}
 	if !found {
@@ -485,12 +485,14 @@ func GetPluginConfigInterfaceById(id string, available bool) (result *models.Plu
 	err = db.MysqlEngine.Table(new(models.PluginConfigInterfaceParameters)).Where("plugin_config_interface_id=?", id).And("type=?", models.PluginParamTypeInput).Find(&inputParams)
 	if err != nil {
 		result = nil
+		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
 		return
 	}
 	outputParams := make([]*models.PluginConfigInterfaceParameters, 0)
 	err = db.MysqlEngine.Table(new(models.PluginConfigInterfaceParameters)).Where("plugin_config_interface_id=?", id).And("type=?", models.PluginParamTypeOutput).Find(&outputParams)
 	if err != nil {
 		result = nil
+		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
 		return
 	}
 	result.InputParameters = inputParams
