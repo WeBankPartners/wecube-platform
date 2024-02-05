@@ -572,7 +572,11 @@ func PluginInterfaceApi(ctx context.Context, token string, pluginInterface *mode
 		reqBodyPtr = reqBody
 		reqBodyReader = bytes.NewReader(reqBody)
 	}
-	req, reqErr := http.NewRequest(pluginInterface.HttpMethod, urlObj.String(), reqBodyReader)
+	httpMethod := pluginInterface.HttpMethod
+	if httpMethod == "" {
+		httpMethod = "POST"
+	}
+	req, reqErr := http.NewRequest(httpMethod, urlObj.String(), reqBodyReader)
 	if reqErr != nil {
 		err = fmt.Errorf("new request fail,%s ", reqErr.Error())
 		return
