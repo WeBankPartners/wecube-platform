@@ -108,7 +108,7 @@ export default {
         isShowCollectTemplate: false, // 仅展示收藏模板
         permissionType: this.from === 'template' ? 'MGMT' : 'USE' // 权限类型
       },
-      publishStatus: 'published', // published已发布，draft草稿
+      publishStatus: this.$route.query.status || 'published', // published已发布，draft草稿
       cardList: [], // 模板数据
       baseColumns: {
         name: {
@@ -188,46 +188,67 @@ export default {
           title: '操作',
           key: 'action',
           width: 180,
+          align: 'center',
           render: (h, params) => {
             return (
-              <div style="display:flex;">
-                <Tooltip content={'查看'} placement="top">
-                  <Button
-                    size="small"
-                    type="info"
-                    onClick={() => {
-                      this.handleView(params.row)
-                    }}
-                    style="margin-right:5px;"
-                  >
-                    <Icon type="md-eye" size="16"></Icon>
-                  </Button>
-                </Tooltip>
-                <Tooltip content={'复制'} placement="top">
-                  <Button
-                    size="small"
-                    type="success"
-                    onClick={() => {
-                      this.handleCopy(params.row)
-                    }}
-                    style="margin-right:5px;"
-                  >
-                    <Icon type="md-copy" size="16"></Icon>
-                  </Button>
-                </Tooltip>
-                <Tooltip content={'权限'} placement="top">
-                  <Button
-                    size="small"
-                    type="warning"
-                    onClick={() => {
-                      this.editRow = params.row
-                      this.$refs.authDialog.startAuth([], [])
-                    }}
-                    style="margin-right:5px;"
-                  >
-                    <Icon type="md-person" size="16"></Icon>
-                  </Button>
-                </Tooltip>
+              <div style="display:flex;justify-content:center;">
+                {this.publishStatus === 'published' && (
+                  <Tooltip content={'查看'} placement="top">
+                    <Button
+                      size="small"
+                      type="info"
+                      onClick={() => {
+                        this.handleView(params.row)
+                      }}
+                      style="margin-right:5px;"
+                    >
+                      <Icon type="md-eye" size="16"></Icon>
+                    </Button>
+                  </Tooltip>
+                )}
+                {this.publishStatus === 'published' && (
+                  <Tooltip content={'复制'} placement="top">
+                    <Button
+                      size="small"
+                      type="success"
+                      onClick={() => {
+                        this.handleCopy(params.row)
+                      }}
+                      style="margin-right:5px;"
+                    >
+                      <Icon type="md-copy" size="16"></Icon>
+                    </Button>
+                  </Tooltip>
+                )}
+                {this.publishStatus === 'draft' && (
+                  <Tooltip content={'编辑'} placement="top">
+                    <Button
+                      size="small"
+                      type="primary"
+                      onClick={() => {
+                        this.handleEdit(params.row)
+                      }}
+                      style="margin-right:5px;"
+                    >
+                      <Icon type="md-create" size="16"></Icon>
+                    </Button>
+                  </Tooltip>
+                )}
+                {this.publishStatus === 'published' && (
+                  <Tooltip content={'权限'} placement="top">
+                    <Button
+                      size="small"
+                      type="warning"
+                      onClick={() => {
+                        this.editRow = params.row
+                        this.$refs.authDialog.startAuth([], [])
+                      }}
+                      style="margin-right:5px;"
+                    >
+                      <Icon type="md-person" size="16"></Icon>
+                    </Button>
+                  </Tooltip>
+                )}
                 <Tooltip content={'删除'} placement="top">
                   <Button
                     size="small"
@@ -307,6 +328,7 @@ export default {
     },
     // 选择模板新建执行
     handleChooseTemplate (row) {
+      if (this.from === 'template') return
       if (row.status === 'unauthorized') {
         return this.$Notice.warning({
           title: this.$t('warning'),
@@ -349,6 +371,7 @@ export default {
       })
       this.spinShow = true
       const { status, data } = await getBatchExecuteTemplateList(params)
+      this.spinShow = false
       if (status === 'OK') {
         // 模板列表页按属主角色分组展示
         if (this.from === 'template') {
@@ -400,7 +423,6 @@ export default {
           })
         }
       }
-      this.spinShow = false
     },
     // 展开收缩卡片
     handleExpand (item) {
@@ -427,10 +449,8 @@ export default {
       this.$router.replace({
         name: this.$route.name,
         query: {
-          ...this.$route.params,
           // 更新的参数
           id: row.id,
-          from: 'template',
           type: 'view'
         }
       })
@@ -441,11 +461,21 @@ export default {
       this.$router.replace({
         name: this.$route.name,
         query: {
-          ...this.$route.params,
           // 更新的参数
           id: row.id,
-          from: 'template',
           type: 'add'
+        }
+      })
+    },
+    // 编辑草稿
+    handleEdit (row) {
+      this.$eventBusP.$emit('change-menu', 'templateCreate')
+      this.$router.replace({
+        name: this.$route.name,
+        query: {
+          // 更新的参数
+          id: row.id,
+          type: 'edit'
         }
       })
     },
