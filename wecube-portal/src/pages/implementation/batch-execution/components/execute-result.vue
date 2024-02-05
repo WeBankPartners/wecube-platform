@@ -4,11 +4,22 @@
       <div class="custom-header" slot="title">
         <span class="title">执行结果</span>
         <!--搜索条件-->
-        <Input v-model="form.operateObject" placeholder="操作对象类型" style="width: 300px" />
-        <Select v-model="form.errorCode" placeholder="单条执行状态" clearable style="width: 300px; margin-left: 20px">
+        <Input
+          v-model="form.operateObject"
+          placeholder="操作对象"
+          clearable
+          style="width: 300px"
+          @on-change="handleSearch"
+        />
+        <Select
+          v-model="form.errorCode"
+          placeholder="单条执行状态"
+          clearable
+          style="width: 300px; margin-left: 20px"
+          @on-change="handleSearch"
+        >
           <Option v-for="(i, index) in statusList" :key="index" :value="i.value">{{ i.label }}</Option>
         </Select>
-        <Button type="primary" @click="handleSearch" style="margin-left: 20px">搜索</Button>
       </div>
       <Table size="small" :columns="tableColumns" :data="tableData" :loading="loading" width="100%"></Table>
     </Card>
@@ -20,11 +31,10 @@
         </Tag>
       </div>
       <div v-if="tableColumns.length > 0" style="margin-bottom: 10px">
-        <Input v-model="form.operateObject" placeholder="操作对象类型" style="width: 300px" />
+        <Input v-model="form.operateObject" placeholder="操作对象" clearable style="width: 300px" />
         <Select v-model="form.status" placeholder="单条执行状态" clearable style="width: 300px; margin-left: 20px">
           <Option v-for="(i, index) in statusList" :key="index" :value="i.value">{{ i.label }}</Option>
         </Select>
-        <Button type="primary" @click="handleSearch" style="margin-left: 20px">搜索</Button>
       </div>
       <Table
         v-if="tableColumns.length > 0"
@@ -32,7 +42,7 @@
         :columns="tableColumns"
         :data="tableData"
         :loading="loading"
-        width="100%"
+        :width="150 * tableColumns.length"
       ></Table>
       <div v-else class="no-data">暂无数据</div>
     </div>
@@ -101,12 +111,9 @@ export default {
   },
   methods: {
     handleSearch () {
-      if (!this.form.errorCode) {
-        this.tableData = this.sourceData
-        return
-      }
+      const { errorCode, operateObject } = this.form
       this.tableData = this.sourceData.filter(item => {
-        return item.errorCode === this.form.errorCode
+        return (!errorCode || errorCode === item.errorCode) && item.businessKey.indexOf(operateObject) > -1
       })
     },
     async getList (id) {
@@ -122,11 +129,10 @@ export default {
         this.tableColumns.push(
           ...[
             {
-              title: '操作对象类型',
+              title: '操作对象',
               width: 200,
-              key: 'entityName',
               render: (h, params) => {
-                return <span>{params.row.packageName + ':' + params.row.entityName}</span>
+                return <span>{params.row.businessKey || '--'}</span>
               }
             },
             {
@@ -149,7 +155,8 @@ export default {
             minWidth: 150,
             key: item.name,
             render: (h, params) => {
-              return <span>{params.row[item.name] || '--'}</span>
+              const returnJson = JSON.parse(params.row.returnJson)
+              return <span>{returnJson[item.name] || '--'}</span>
             }
           })
         })
