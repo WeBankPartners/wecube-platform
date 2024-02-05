@@ -106,6 +106,16 @@ export default {
       }
     }
   },
+  watch: {
+    id: {
+      handler (val) {
+        if (val) {
+          this.getList(val)
+        }
+      },
+      immediate: true
+    }
+  },
   mounted () {
     this.maxHeight = document.body.clientHeight - 150
   },

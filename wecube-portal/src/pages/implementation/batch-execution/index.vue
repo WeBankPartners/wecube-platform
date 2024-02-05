@@ -27,11 +27,11 @@ export default {
   data () {
     return {
       expand: true,
-      active: 'templateList',
+      active: 'executeList',
       showMenu: {
-        templateList: true,
+        templateList: false,
         templateCreate: false,
-        executeList: false,
+        executeList: true,
         executeCreate: false
       }
     }

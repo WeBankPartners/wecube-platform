@@ -1,7 +1,7 @@
 <!--批量执行-模板新增-->
 <template>
   <div class="batch-execution-template-create">
-    <BaseForm ref="form" :from="from" :type="type" :data="detailData" />
+    <BaseForm ref="form" :from="from" :type="type" :data="detailData" @back="handleBack" />
     <div v-if="type !== 'view'" class="footer-button">
       <Button type="primary" @click="saveExcute">预执行</Button>
       <Button type="primary" @click="getAuth('draft')" style="margin-left: 10px">保存草稿</Button>
@@ -40,11 +40,17 @@ export default {
     }
   },
   methods: {
-    // 获取批量执行模板详情
+    handleBack () {
+      this.$eventBusP.$emit('change-menu', 'templateList')
+    },
+    // 获取模板详情
     async getTemplateDetail () {
       const { status, data } = await getBatchExecuteTemplateDetail(this.id)
       if (status === 'OK') {
         this.detailData = { ...data, templateData: data }
+        if (this.type === 'edit') {
+          this.saveTemplateId = data.id
+        }
       }
     },
     // 执行操作
@@ -237,6 +243,12 @@ export default {
         })
         this.saveTemplateId = data.id
         this.$eventBusP.$emit('change-menu', 'templateList')
+        this.$router.replace({
+          name: this.$route.name,
+          query: {
+            status: this.templateStatus
+          }
+        })
       }
     },
     validRequired () {

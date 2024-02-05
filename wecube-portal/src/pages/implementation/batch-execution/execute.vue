@@ -247,7 +247,6 @@ export default {
       this.$router.replace({
         name: this.$route.name,
         query: {
-          ...this.$route.params,
           // 更新的参数
           id: row.id,
           type: 'view'
@@ -260,7 +259,6 @@ export default {
       this.$router.replace({
         name: this.$route.name,
         query: {
-          ...this.$route.params,
           // 更新的参数
           id: row.id,
           type: 'add'

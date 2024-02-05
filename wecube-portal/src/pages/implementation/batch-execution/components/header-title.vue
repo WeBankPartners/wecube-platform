@@ -11,6 +11,7 @@
     <div v-show="expand" class="content">
       <slot></slot>
     </div>
+    <div v-show="!expand" style="padding-bottom: 20px"></div>
   </div>
 </template>
 

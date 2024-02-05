@@ -1,7 +1,7 @@
 <template>
   <div class="batch-execute-base-form">
     <Row class="back-header">
-      <Icon size="22" type="md-arrow-back" class="icon" @click="handleBack" />
+      <Icon size="22" type="md-arrow-back" class="icon" @click="$emit('back')" />
       <span class="name">
         {{ `${data.name || '新建模板'}` }}
       </span>
@@ -9,11 +9,11 @@
     <Form :disabled="type === 'view'" label-position="right" :label-width="125">
       <HeaderTitle title="执行模板信息">
         <!--请求名-->
-        <FormItem v-if="from === 'template' && type === 'add'" label="模板名称" required>
+        <FormItem v-if="from === 'template' && type !== 'view'" label="模板名称" required>
           <Input v-model="name" :maxlength="50" show-word-limit placeholder="请输入模板名称" class="form-item" />
         </FormItem>
         <template v-else>
-          <div v-if="from === 'execute' && !data.batchExecutionTemplateId" style="padding: 0 20px">预执行记录</div>
+          <div v-if="!data.templateData.id" style="padding: 0 20px">预执行记录</div>
           <div v-else class="template-info">
             <div class="item">
               <span>模板ID：</span>
@@ -165,8 +165,12 @@
         <FormItem label="设置入参" required>
           <Row v-if="pluginInputParams && pluginInputParams.length > 0" class="border-box form-item">
             <Col v-for="(item, index) in pluginInputParams" :key="index" :span="24" style="margin-bottom: 12px">
-              <span style="display: inline-block; width: 100px">{{ item.name }}</span>
-              <Input v-if="item.mappingType === 'constant'" v-model="item.bindValue" style="width: 600px" />
+              <span
+                :class="{ required: item.required === 'Y' && item.mappingType === 'constant' }"
+                style="display: inline-block; width: 100px"
+                >{{ item.name }}</span
+              >
+              <Input v-if="item.mappingType === 'constant'" style="width: 600px" v-model="item.bindValue" />
               <span v-else>{{ item.mappingType === 'entity' ? $t('bc_from_CI') : $t('bc_from_system') }}</span>
             </Col>
           </Row>
@@ -181,7 +185,7 @@
     </Form>
     <HeaderTitle v-if="showResult || (from === 'execute' && type === 'view')" title="执行结果">
       <div style="padding: 0 20px">
-        <ExecuteResult ref="executeResult" from="create"></ExecuteResult>
+        <ExecuteResult ref="executeResult" from="create" :id="data.id"></ExecuteResult>
       </div>
     </HeaderTitle>
   </div>
@@ -320,10 +324,6 @@ export default {
     this.getAllDataModels()
   },
   methods: {
-    handleBack () {
-      const name = this.from === 'template' ? 'templateList' : 'executeList'
-      this.$eventBusP.$emit('change-menu', name)
-    },
     // 选择查询结果展示列
     chooseUserTableColumns () {
       this.excuteSearch()
@@ -344,7 +344,7 @@ export default {
     },
     // 获取批量执行结果
     getExecuteResult (id) {
-      this.$refs.executeResult && this.$refs.executeResult.getList(id)
+      this.$refs.executeResult.getList(id)
     },
     async getAllDataModels () {
       this.selectedEntityType = null
@@ -410,6 +410,10 @@ export default {
       const { status, data } = await getPluginsByTargetEntityFilterRule(payload)
       if (status === 'OK') {
         this.pluginOptions = data
+        this.pluginOptions = this.pluginOptions.filter(item => {
+          const flag = item.inputParameters && item.inputParameters.every(param => param.mappingType !== 'context')
+          return item.isAsyncProcessing === 'N' && flag
+        })
       }
     },
     // 根据过滤条件获取执行实例表格列
@@ -474,7 +478,7 @@ export default {
             requestParameter.filters[index].attributeFilters.push({
               name,
               value,
-              operator: 'eq'
+              operator: 'contains'
             })
           }
         } else {
@@ -489,7 +493,7 @@ export default {
                 {
                   name,
                   value,
-                  operator: 'eq'
+                  operator: 'contains'
                 }
               ]
             })
@@ -498,6 +502,7 @@ export default {
       })
       this.loading = true
       const { status, data } = await dmeIntegratedQuery(requestParameter)
+      this.loading = false
       if (status === 'OK') {
         this.tableData = data
         const selectTag = this.seletedRows.map(item => item.id)
@@ -506,7 +511,6 @@ export default {
             item._checked = true
           }
         })
-        this.loading = false
       }
     }
   }
@@ -585,6 +589,17 @@ export default {
     color: #515a6e;
     border: 1px dashed #d7dadc;
     padding: 10px 20px 0px 20px;
+  }
+  .required {
+    &::before {
+      content: '*';
+      display: inline-block;
+      margin-right: 4px;
+      line-height: 1;
+      font-family: SimSun;
+      font-size: 14px;
+      color: #ed4014;
+    }
   }
 }
 </style>
