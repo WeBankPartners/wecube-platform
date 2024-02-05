@@ -10,7 +10,7 @@
       class="condition-tree-drawer"
     >
       <div class="content" :style="{ maxHeight: maxHeight + 'px' }">
-        <Tree :data="treeData" @on-check-change="checkChange" show-checkbox multiple></Tree>
+        <Tree :data="treeData" show-checkbox multiple></Tree>
       </div>
       <div class="drawer-footer">
         <Button style="margin-right: 8px" @click="handleCancel">{{ $t('cancel') }}</Button>
@@ -84,15 +84,6 @@ export default {
       },
       deep: true,
       immediate: true
-    },
-    select: {
-      handler (val) {
-        if (val && val.length) {
-          this.selectData = val
-        }
-      },
-      deep: true,
-      immediate: true
     }
   },
   mounted () {
@@ -105,15 +96,23 @@ export default {
     )
   },
   methods: {
-    checkChange (totalChecked) {
-      // 去除全选时最外层数据
-      this.selectData = totalChecked.filter(i => i.nodeKey !== 0)
-    },
+    // checkChange (totalChecked) {
+    //   // 去除全选时最外层数据
+    //   this.selectData = totalChecked.filter(i => i.nodeKey !== 0)
+    // },
     handleSubmit () {
-      const flag = this.selectData.every(i => i.value)
+      const selectData = []
+      this.treeData.forEach(i => {
+        i.children.forEach(j => {
+          if (j.checked) {
+            selectData.push(j)
+          }
+        })
+      })
+      const flag = selectData.every(i => i.value)
       if (flag) {
         this.$emit('update:visible', false)
-        this.$emit('submit', this.selectData)
+        this.$emit('submit', selectData)
       } else {
         return this.$Notice.warning({
           title: this.$t('warning'),

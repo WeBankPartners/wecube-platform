@@ -51,17 +51,8 @@ export default {
       scrollTop: 0,
       expand: true,
       activeName: '',
-      openNames: ['template'],
+      openNames: ['execute'],
       menuList: [
-        {
-          title: '模板',
-          icon: 'md-document',
-          name: 'template',
-          children: [
-            { title: '新建模板', path: '', name: 'templateCreate' },
-            { title: '管理模板', path: '', name: 'templateList' }
-          ]
-        },
         {
           title: '执行',
           icon: 'md-hammer',
@@ -69,6 +60,15 @@ export default {
           children: [
             { title: '新建执行', path: '', name: 'executeCreate' },
             { title: '执行历史', path: '', name: 'executeList' }
+          ]
+        },
+        {
+          title: '模板',
+          icon: 'md-document',
+          name: 'template',
+          children: [
+            { title: '新建模板', path: '', name: 'templateCreate' },
+            { title: '管理模板', path: '', name: 'templateList' }
           ]
         }
       ]
