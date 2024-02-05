@@ -4,7 +4,10 @@
     <BaseForm ref="form" :from="from" :type="type" :data="detailData" />
     <div v-if="type !== 'view'" class="footer-button">
       <Button type="primary" @click="saveExcute">预执行</Button>
-      <Button type="primary" :disabled="templateDisabled" @click="getAuth" style="margin-left: 10px">保存模板</Button>
+      <Button type="primary" @click="getAuth('draft')" style="margin-left: 10px">保存草稿</Button>
+      <Button type="primary" :disabled="templateDisabled" @click="getAuth('published')" style="margin-left: 10px"
+        >发布模板</Button
+      >
     </div>
     <!--权限弹窗-->
     <AuthDialog ref="authDialog" @sendAuth="saveTemplate" />
@@ -26,7 +29,9 @@ export default {
       id: this.$route.query.id || '', // 模板id
       type: this.$route.query.type || 'add', // 新增，编辑，查看
       detailData: {},
-      templateDisabled: true
+      templateDisabled: true,
+      templateStatus: '', // draft草稿，published正常发布
+      saveTemplateId: '' // 用于提交保存的模板ID
     }
   },
   mounted () {
@@ -125,14 +130,17 @@ export default {
           desc: this.$t('successful')
         })
         if (data.batchExecId) {
-          this.showResult = true
+          this.$refs.form.showResult = true
           this.templateDisabled = false
-          this.$refs.form.getExecuteResult(data.batchExecId)
+          this.$nextTick(() => {
+            this.$refs.form.getExecuteResult(data.batchExecId)
+          })
         }
       }
     },
     // 获取属主&使用角色
-    getAuth () {
+    getAuth (status) {
+      this.templateStatus = status
       if (this.validRequired()) {
         this.$refs.authDialog.startAuth([], [])
       }
@@ -208,7 +216,8 @@ export default {
         resourceDatas
       }
       const params = {
-        id: '',
+        id: this.saveTemplateId || '',
+        publishStatus: this.templateStatus,
         name: name,
         operateObject: dataModelExpression,
         pluginService: plugin.serviceDisplayName || '',
@@ -220,12 +229,13 @@ export default {
         },
         sourceData: JSON.stringify(frontData)
       }
-      const { status } = await saveBatchExecuteTemplate(params)
+      const { status, data } = await saveBatchExecuteTemplate(params)
       if (status === 'OK') {
         this.$Notice.success({
           title: this.$t('successful'),
           desc: this.$t('successful')
         })
+        this.saveTemplateId = data.id
         this.$eventBusP.$emit('change-menu', 'templateList')
       }
     },

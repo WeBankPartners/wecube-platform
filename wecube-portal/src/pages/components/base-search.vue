@@ -155,9 +155,9 @@ export default {
     return {
       expand: false,
       dateTypeList: [
-        { label: this.$t('tw_recent_three_month'), value: 1 },
-        { label: this.$t('tw_recent_half_year'), value: 2 },
-        { label: this.$t('tw_recent_one_year'), value: 3 },
+        { label: '近3日', value: 1 },
+        { label: '近1周', value: 2 },
+        { label: '近1月', value: 3 },
         { label: this.$t('tw_auto'), value: 4 }
       ]
     }
@@ -199,13 +199,13 @@ export default {
       this.formData[key] = []
       const cur = dayjs().format('YYYY-MM-DD')
       if (dateType === 1) {
-        const pre = dayjs().subtract(3, 'month').format('YYYY-MM-DD')
+        const pre = dayjs().subtract(3, 'day').format('YYYY-MM-DD')
         this.formData[key] = [pre, cur]
       } else if (dateType === 2) {
-        const pre = dayjs().subtract(6, 'month').format('YYYY-MM-DD')
+        const pre = dayjs().subtract(7, 'day').format('YYYY-MM-DD')
         this.formData[key] = [pre, cur]
       } else if (dateType === 3) {
-        const pre = dayjs().subtract(1, 'year').format('YYYY-MM-DD')
+        const pre = dayjs().subtract(1, 'month').format('YYYY-MM-DD')
         this.formData[key] = [pre, cur]
       } else if (dateType === 4) {
         this.formData[key] = []

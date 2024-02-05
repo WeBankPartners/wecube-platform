@@ -3,7 +3,7 @@
     <Row class="back-header">
       <Icon size="22" type="md-arrow-back" class="icon" @click="handleBack" />
       <span class="name">
-        {{ `${data.name || ''}` }}
+        {{ `${data.name || '新建模板'}` }}
       </span>
     </Row>
     <Form :disabled="type === 'view'" label-position="right" :label-width="125">
@@ -13,7 +13,7 @@
           <Input v-model="name" :maxlength="50" show-word-limit placeholder="请输入模板名称" class="form-item" />
         </FormItem>
         <template v-else>
-          <div v-if="from === 'execute' && !data.batchExecutionTemplateId" style="padding: 0 20px">不是从模板发起</div>
+          <div v-if="from === 'execute' && !data.batchExecutionTemplateId" style="padding: 0 20px">预执行记录</div>
           <div v-else class="template-info">
             <div class="item">
               <span>模板ID：</span>
@@ -49,11 +49,6 @@
             </div>
           </div>
         </template>
-      </HeaderTitle>
-      <HeaderTitle v-if="showResult || (from === 'execute' && type === 'view')" title="执行结果">
-        <div style="padding: 0 20px">
-          <ExecuteResult ref="executeResult" from="create"></ExecuteResult>
-        </div>
       </HeaderTitle>
       <HeaderTitle title="第1步 设置操作对象及查询条件">
         <!--批量名称-->
@@ -184,6 +179,11 @@
         </FormItem>
       </HeaderTitle>
     </Form>
+    <HeaderTitle v-if="showResult || (from === 'execute' && type === 'view')" title="执行结果">
+      <div style="padding: 0 20px">
+        <ExecuteResult ref="executeResult" from="create"></ExecuteResult>
+      </div>
+    </HeaderTitle>
   </div>
 </template>
 

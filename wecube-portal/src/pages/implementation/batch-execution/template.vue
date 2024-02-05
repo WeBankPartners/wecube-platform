@@ -9,6 +9,12 @@
       >
     </div>
     <div class="template-card">
+      <Tabs v-if="from === 'template'" v-model="publishStatus" @on-click="handleSearch">
+        <!--已发布-->
+        <TabPane label="已发布" name="published"></TabPane>
+        <!--我的草稿-->
+        <TabPane label="未发布" name="draft"></TabPane>
+      </Tabs>
       <Card :bordered="false" dis-hover :padding="0">
         <template v-if="cardList.length">
           <Card v-for="(i, index) in cardList" :key="index" style="width: 100%; margin-bottom: 20px">
@@ -102,8 +108,8 @@ export default {
         isShowCollectTemplate: false, // 仅展示收藏模板
         permissionType: this.from === 'template' ? 'MGMT' : 'USE' // 权限类型
       },
-      // 模板数据
-      cardList: [],
+      publishStatus: 'published', // published已发布，draft草稿
+      cardList: [], // 模板数据
       baseColumns: {
         name: {
           title: '模板名称',
@@ -181,7 +187,7 @@ export default {
         action: {
           title: '操作',
           key: 'action',
-          width: 190,
+          width: 180,
           render: (h, params) => {
             return (
               <div style="display:flex;">
@@ -336,6 +342,11 @@ export default {
           })
         }
       })
+      params.filters.push({
+        name: 'publishStatus',
+        operator: 'eq',
+        value: this.publishStatus
+      })
       this.spinShow = true
       const { status, data } = await getBatchExecuteTemplateList(params)
       if (status === 'OK') {
@@ -458,14 +469,23 @@ export default {
     },
     // 删除
     async handleDelete (row) {
-      const { status } = await deleteExecuteTemplate(row.id)
-      if (status === 'OK') {
-        this.$Notice.success({
-          title: this.$t('successful'),
-          desc: this.$t('successful')
-        })
-        this.getTemplateList()
-      }
+      this.$Modal.confirm({
+        title: '确认删除',
+        'z-index': 1000000,
+        loading: true,
+        onOk: async () => {
+          this.$Modal.remove()
+          const { status } = await deleteExecuteTemplate(row.id)
+          if (status === 'OK') {
+            this.$Notice.success({
+              title: this.$t('successful'),
+              desc: this.$t('successful')
+            })
+            this.getTemplateList()
+          }
+        },
+        onCancel: () => {}
+      })
     }
   }
 }
@@ -488,7 +508,6 @@ export default {
     }
   }
   .template-card {
-    margin-top: 10px;
     .custom-header {
       display: flex;
       align-items: center;

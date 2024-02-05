@@ -78,7 +78,7 @@ export default {
           key: 'createdTimeT',
           label: '执行时间',
           dateType: 1,
-          initValue: [dayjs().subtract(3, 'month').format('YYYY-MM-DD'), dayjs().format('YYYY-MM-DD')],
+          initValue: [dayjs().subtract(3, 'day').format('YYYY-MM-DD'), dayjs().format('YYYY-MM-DD')],
           labelWidth: 110,
           component: 'custom-time'
         }
@@ -87,7 +87,7 @@ export default {
         name: '',
         id: '',
         errorCode: '',
-        createdTimeT: [dayjs().subtract(3, 'month').format('YYYY-MM-DD'), dayjs().format('YYYY-MM-DD')]
+        createdTimeT: [dayjs().subtract(3, 'day').format('YYYY-MM-DD'), dayjs().format('YYYY-MM-DD')]
       },
       tableData: [],
       tableColumns: [
@@ -102,22 +102,20 @@ export default {
           key: 'errorCode',
           render: (h, params) => {
             return (
-              <Tag color={params.row.errorCode === '0' ? 'success' : 'error'}>
-                {params.row.errorCode === '0' ? '成功' : '失败'}
-              </Tag>
+              <Tooltip max-width="300" content={params.row.errorMessage || '--'}>
+                <Tag color={params.row.errorCode === '0' ? 'success' : 'error'}>
+                  {params.row.errorCode === '0' ? '成功' : '失败'}
+                </Tag>
+              </Tooltip>
             )
           }
         },
         {
-          title: '错误信息',
-          minWidth: 120,
-          key: 'errorMessage',
+          title: '执行时间',
+          minWidth: 110,
+          key: 'createdTime',
           render: (h, params) => {
-            return (
-              <Tooltip max-width="300" content={params.row.errorMessage}>
-                <span class="word-ellipsis">{params.row.errorMessage || '--'}</span>
-              </Tooltip>
-            )
+            return <span>{params.row.createdTime || '--'}</span>
           }
         },
         {
