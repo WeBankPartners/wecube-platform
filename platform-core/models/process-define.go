@@ -551,18 +551,34 @@ func CovertNodeLinkDto2Model(param *ProcDefNodeLinkDto) *ProcDefNodeLink {
 	}
 }
 
-func ConvertProcDefNodeLink2Dto(nodeLink *ProcDefNodeLink) *ProcDefNodeLinkDto {
+func ConvertProcDefNodeLink2Dto(nodeLink *ProcDefNodeLink, nodeList []*ProcDefNode) *ProcDefNodeLinkDto {
+	var source, target string
+	nodeMap := ConvertProcDefNode2Map(nodeList)
+	if nodeMap[nodeLink.Source] != nil {
+		source = nodeMap[nodeLink.Source].NodeId
+	}
+	if nodeMap[nodeLink.Target] != nil {
+		target = nodeMap[nodeLink.Target].NodeId
+	}
 	dto := &ProcDefNodeLinkDto{
 		ProcDefId: nodeLink.ProcDefId,
 		ProcDefNodeLinkCustomAttrs: &ProcDefNodeLinkCustomAttrs{
 			Id:     nodeLink.LinkId,
 			Name:   nodeLink.Name,
-			Source: nodeLink.Source,
-			Target: nodeLink.Target,
+			Source: source,
+			Target: target,
 		},
 		SelfAttrs: nodeLink.UiStyle,
 	}
 	return dto
+}
+
+func ConvertProcDefNode2Map(nodeList []*ProcDefNode) map[string]*ProcDefNode {
+	hashmap := make(map[string]*ProcDefNode)
+	for _, node := range nodeList {
+		hashmap[node.Id] = node
+	}
+	return hashmap
 }
 
 func ConvertProcDefNode2SimpleDto(procDefNode *ProcDefNode) *ProcDefNodeSimpleDto {

@@ -441,8 +441,8 @@ func GetProcDefNodeLinkByProcDefIdAndSource(ctx context.Context, procDefId strin
 	return
 }
 
-func GetProcDefNodeByProcDefId(ctx context.Context, procDefId string) (result []*models.ProcDefNodeResultDto, err error) {
-	var list []*models.ProcDefNode
+func GetProcDefNodeByProcDefId(ctx context.Context, procDefId string) (list []*models.ProcDefNode, result []*models.ProcDefNodeResultDto, err error) {
+	list = make([]*models.ProcDefNode, 0)
 	if procDefId == "" {
 		return
 	}
