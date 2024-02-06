@@ -879,19 +879,27 @@ func DeleteProcDefNodeLink(c *gin.Context) {
 
 func GetProcDefNodeLink(c *gin.Context) {
 	var dto *models.ProcDefNodeLinkDto
+	var nodeList []*models.ProcDefNode
+	var nodeLink *models.ProcDefNodeLink
+	var err error
 	procDefId := c.Param("proc-def-id")
 	linkId := c.Param("node-link-id")
 	if procDefId == "" || linkId == "" {
 		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, fmt.Errorf("procDefId or node-link-id is empty")))
 		return
 	}
-	nodeLink, err := database.GetProcDefNodeLink(c, procDefId, linkId)
+	nodeLink, err = database.GetProcDefNodeLink(c, procDefId, linkId)
 	if err != nil {
 		middleware.ReturnError(c, err)
 		return
 	}
-	if nodeLink != nil {
-		dto = models.ConvertProcDefNodeLink2Dto(nodeLink)
+	nodeList, err = database.GetProcDefNodeModelByProcDefId(c, procDefId)
+	if err != nil {
+		middleware.ReturnError(c, err)
+		return
+	}
+	if len(nodeList) > 0 && nodeLink != nil {
+		dto = models.ConvertProcDefNodeLink2Dto(nodeLink, nodeList)
 	}
 	middleware.ReturnData(c, dto)
 }
@@ -1031,6 +1039,8 @@ func getProcDefDetailByProcDefId(ctx context.Context, procDefId string) (procDef
 	procDefDto = &models.ProcessDefinitionDto{}
 	// 节点
 	var nodes []*models.ProcDefNodeResultDto
+
+	var nodeList []*models.ProcDefNode
 	// 线
 	var edges []*models.ProcDefNodeLinkDto
 
@@ -1063,7 +1073,7 @@ func getProcDefDetailByProcDefId(ctx context.Context, procDefId string) (procDef
 			}
 		}
 	}
-	nodes, err = database.GetProcDefNodeByProcDefId(ctx, procDefId)
+	nodeList, nodes, err = database.GetProcDefNodeByProcDefId(ctx, procDefId)
 	if err != nil {
 		return
 	}
@@ -1073,7 +1083,7 @@ func getProcDefDetailByProcDefId(ctx context.Context, procDefId string) (procDef
 	}
 	if len(linkList) > 0 {
 		for _, link := range linkList {
-			edges = append(edges, models.ConvertProcDefNodeLink2Dto(link))
+			edges = append(edges, models.ConvertProcDefNodeLink2Dto(link, nodeList))
 		}
 	}
 	procDefDto.ProcDefNodeExtend = &models.ProcDefNodeExtendDto{
