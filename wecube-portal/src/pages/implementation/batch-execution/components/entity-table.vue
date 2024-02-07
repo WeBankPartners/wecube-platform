@@ -8,8 +8,8 @@
           >
         </Radio>
       </RadioGroup>
-      <Input v-model="keyword" clearable placeholder="所有字段模糊查询" class="input" />
-      <Button type="primary" @click="handleSearch" style="margin-left: 20px">搜索</Button>
+      <Input v-model="keyword" @on-change="handleSearch" clearable placeholder="所有字段模糊查询" class="input" />
+      <!-- <Button type="primary" @click="handleSearch" style="margin-left: 20px">搜索</Button> -->
     </div>
     <Table
       v-if="columns.length > 0"
@@ -20,7 +20,11 @@
       :data="tableData"
       :loading="loading"
       @on-selection-change="handleChooseData"
-      :max-height="400"
+      :row-class-name="
+        row => {
+          return filterIdList.includes(row.id) ? 'ivu-table-row-hover' : ''
+        }
+      "
       style="margin-left: -100px; max-width: 100%"
     ></Table>
     <div v-else class="no-data">暂无数据</div>
@@ -28,7 +32,7 @@
 </template>
 
 <script>
-import { deepClone } from '@/const/util'
+import { deepClone, debounce } from '@/const/util'
 export default {
   props: {
     data: {
@@ -49,13 +53,15 @@ export default {
       activeTab: 'entity',
       keyword: '',
       selectData: [],
-      tableData: []
+      tableData: [],
+      filterIdList: []
     }
   },
   watch: {
     data: {
       handler (val) {
         this.tableData = deepClone(val)
+        this.selectData = this.tableData.filter(item => item._checked)
       },
       immediate: true,
       deep: true
@@ -67,9 +73,9 @@ export default {
       this.selectData = selection
       this.$emit('select', selection)
     },
-    handleSearch () {
+    handleSearch: debounce(function () {
       const filtersKeys = this.columns.map(item => item.key)
-      this.tableData = []
+      this.filterIdList = []
       if (this.keyword) {
         this.data.forEach(item => {
           let tmp = []
@@ -77,19 +83,11 @@ export default {
             tmp += item[key] + '@#$'
           })
           if (tmp.includes(this.keyword)) {
-            this.tableData.push(item)
+            this.filterIdList.push(item.id)
           }
         })
-      } else {
-        this.tableData = this.data
       }
-      const selectTag = this.selectData.map(item => item.id)
-      this.tableData.forEach(item => {
-        if (selectTag.includes(item.id)) {
-          item._checked = true
-        }
-      })
-    }
+    }, 300)
   }
 }
 </script>

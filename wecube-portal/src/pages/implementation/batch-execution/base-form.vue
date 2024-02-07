@@ -68,7 +68,11 @@
         </FormItem>
         <!--操作对象类型-->
         <FormItem label="操作对象类型">
-          <Input disabled :value="currentPackageName + ':' + currentEntityName" class="form-item"></Input>
+          <Input
+            disabled
+            :value="currentPackageName ? currentPackageName + ':' + currentEntityName : ''"
+            class="form-item"
+          ></Input>
         </FormItem>
         <!--查询结果主键-->
         <FormItem label="查询结果主键" required>
@@ -181,11 +185,17 @@
             <Option v-for="(item, index) in pluginOutputParams" :value="item.name" :key="index">{{ item.name }}</Option>
           </Select>
         </FormItem>
+        <FormItem label="高危检测">
+          <i-switch v-model="isDangerousBlock" disabled size="large">
+            <span slot="open">开启</span>
+            <span slot="close">关闭</span>
+          </i-switch>
+        </FormItem>
       </HeaderTitle>
     </Form>
     <HeaderTitle v-if="showResult || (from === 'execute' && type === 'view')" title="执行结果">
       <div style="padding: 0 20px">
-        <ExecuteResult ref="executeResult" from="create" :id="data.id"></ExecuteResult>
+        <ExecuteResult ref="executeResult" from="create" :id="showResult ? '' : data.id"></ExecuteResult>
       </div>
     </HeaderTitle>
   </div>
@@ -213,12 +223,12 @@ export default {
     ExecuteResult
   },
   props: {
-    // 入口是模板还是执行
+    // template模板，execute执行
     from: {
       type: String,
       default: 'template'
     },
-    // add创建，view查看
+    // add创建，edit编辑，copy复制，view查看
     type: {
       type: String,
       default: 'add'
@@ -253,7 +263,8 @@ export default {
       pluginOptions: [], // 插件下拉列表
       pluginInputParams: [], // 插件入参
       pluginOutputParams: [], // 插件出参
-      resultTableParams: [] // 选择结果表出参
+      resultTableParams: [], // 选择结果表出参
+      isDangerousBlock: true // 是否开启高危检测
     }
   },
   watch: {
@@ -265,6 +276,16 @@ export default {
         this.primatKeyAttrList = []
         this.primatKeyAttr = ''
         this.userTableColumns = []
+        this.searchParamsTree = []
+        this.searchParameters = []
+        this.tableColumns = [] // 执行实例表格列
+        this.tableData = [] // 执行实例表格数据
+        this.seletedRows = [] // 勾选的执行实例
+        this.pluginId = '' // 表单-插件服务ID
+        this.pluginOptions = [] // 插件下拉列表
+        this.pluginInputParams = [] // 插件入参
+        this.pluginOutputParams = [] // 插件出参
+        this.resultTableParams = [] // 选择结果表出参
         return
       }
       // 获取插件服务列表
@@ -306,6 +327,7 @@ export default {
           this.primatKeyAttr = configData.primatKeyAttr
           this.searchParameters = configData.searchParameters
           this.pluginId = configData.pluginConfigInterface.serviceName
+          this.isDangerousBlock = configData.isDangerousBlock
           if (sourceData) {
             const frontData = JSON.parse(sourceData)
             this.seletedRows = frontData.seletedRows
