@@ -76,7 +76,13 @@
         </FormItem>
         <!--查询结果主键-->
         <FormItem label="查询结果主键" required>
-          <Select filterable v-model="primatKeyAttr" class="form-item" :disabled="from === 'execute'">
+          <Select
+            filterable
+            v-model="primatKeyAttr"
+            class="form-item"
+            :disabled="from === 'execute'"
+            @on-change="handleRefreshSearch"
+          >
             <Option v-for="entityAttr in primatKeyAttrList" :value="entityAttr.name" :key="entityAttr.id">{{
               entityAttr.name
             }}</Option>
@@ -96,7 +102,7 @@
             v-model="userTableColumns"
             class="form-item"
             :disabled="from === 'execute'"
-            @on-change="chooseUserTableColumns"
+            @on-change="handleRefreshSearch"
           >
             <Option v-for="entityAttr in primatKeyAttrList" :value="entityAttr.name" :key="entityAttr.id">{{
               entityAttr.name
@@ -106,13 +112,23 @@
         <!--设置过滤条件-->
         <FormItem label="设置过滤条件">
           <Row class="dynamic-condition">
-            <Button
-              @click="editSearchParameters"
-              :disabled="from === 'execute'"
-              type="primary"
-              icon="md-create"
-              class="create"
-            />
+            <div style="display: flex; justify-content: space-between">
+              <Button
+                @click="editSearchParameters"
+                :disabled="from === 'execute'"
+                type="primary"
+                icon="md-create"
+                class="create"
+              />
+              <Button
+                v-if="searchParameters && searchParameters.length > 0"
+                @click="clearSearchParameters"
+                :disabled="from === 'execute'"
+                type="error"
+                icon="md-close"
+                class="create"
+              />
+            </div>
             <template v-if="searchParameters && searchParameters.length > 0">
               <Col v-for="(item, index) in searchParameters" :key="index" :span="24" class="item">
                 <span color="success">{{ item.packageName }}-{{ item.entityName }}:{{ item.name }}</span>
@@ -131,11 +147,6 @@
         ></ConditionTree>
       </HeaderTitle>
       <HeaderTitle title="第2步 勾选执行实例">
-        <div slot="header">
-          <!-- <Button v-if="currentPackageName" type="success" size="small" icon="ios-refresh" @click="handleRefreshSearch">
-            刷新查询结果
-          </Button> -->
-        </div>
         <!--勾选操作实例-->
         <FormItem label="勾选操作实例" required>
           <EntityTable
@@ -346,10 +357,6 @@ export default {
     this.getAllDataModels()
   },
   methods: {
-    // 选择查询结果展示列
-    chooseUserTableColumns () {
-      this.excuteSearch()
-    },
     // 选择插件
     choosePlugin (val) {
       this.pluginOptions.forEach(plugin => {
@@ -389,14 +396,19 @@ export default {
     editSearchParameters () {
       this.editSearchParamsVisible = true
     },
+    clearSearchParameters () {
+      this.searchParameters = []
+      this.excuteSearch()
+    },
     // 设置过滤条件
     handleSearchParamsChange (val) {
-      if (this.dataModelExpression === ':') return
+      if (this.dataModelExpression === ':' || !this.dataModelExpression) return
       this.searchParameters = val
       this.excuteSearch()
     },
     // 更新执行实例表格
-    handleRefreshSearch () {
+    handleRefreshSearch (val) {
+      if (!val || (val && val.length === 0)) return
       this.excuteSearch()
     },
     clearPlugin () {
@@ -442,13 +454,21 @@ export default {
     async excuteSearch () {
       let { status, data } = await entityView(this.currentPackageName, this.currentEntityName)
       if (status === 'OK') {
-        if (this.userTableColumns.length) {
-          this.tableColumns = this.userTableColumns.map((_, i) => {
+        if (this.userTableColumns.length || this.primatKeyAttr) {
+          let combineColumns = [...this.userTableColumns]
+          if (this.userTableColumns.includes(this.primatKeyAttr)) {
+            const index = this.userTableColumns.findIndex(i => i === this.primatKeyAttr)
+            combineColumns.splice(index, 1)
+            combineColumns.unshift(this.primatKeyAttr)
+          }
+          if (!this.userTableColumns.includes(this.primatKeyAttr) && this.primatKeyAttr) {
+            combineColumns.unshift(this.primatKeyAttr)
+          }
+          this.tableColumns = combineColumns.map(_ => {
             return {
               title: _,
               key: _,
               width: 200,
-              displaySeqNo: i + 1,
               render: (h, params) => {
                 return (
                   <Tooltip max-width="300" content={params.row[_].toString()}>
@@ -459,12 +479,11 @@ export default {
             }
           })
         } else {
-          this.tableColumns = data.map((_, i) => {
+          this.tableColumns = data.map(_ => {
             return {
               title: _.name,
               key: _.name,
               width: 200,
-              displaySeqNo: i + 1,
               render: (h, params) => {
                 return (
                   <div style="height:32px;">
