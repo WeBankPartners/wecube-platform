@@ -5,68 +5,74 @@
         <span class="title">执行结果</span>
       </div>
       <!--搜索条件-->
-      <div class="search">
-        <Row :gutter="10" style="width: 100%">
-          <Col :span="5">
-            <Input v-model="form.operateObject" placeholder="操作对象" clearable @on-change="handleSearch" />
-          </Col>
-          <Col :span="4">
-            <Select v-model="form.errorCode" placeholder="单条执行状态" clearable @on-change="handleSearch">
-              <Option v-for="(i, index) in statusList" :key="index" :value="i.value">{{ i.label }}</Option>
-            </Select>
-          </Col>
-          <Col :span="15" style="display: flex">
-            <Select v-model="form.filterType" @on-change="filterTypeChange" style="width: 140px">
-              <Option v-for="item in filterTypeList" :value="item.value" :key="item.value">{{ item.label }}</Option>
-            </Select>
-            <Input
-              v-model="form.filterParams"
-              placeholder="Filter result, e.g :error or /[0-9]+/"
-              clearable
-              @on-change="handleSearch"
-            >
-            </Input>
-          </Col>
-        </Row>
-      </div>
+      <Row :gutter="10" style="width: 100%; margin-bottom: 10px">
+        <Col :span="5">
+          <Input v-model="form.operateObject" placeholder="操作对象" clearable @on-change="handleSearch" />
+        </Col>
+        <Col :span="4">
+          <Select v-model="form.errorCode" placeholder="单条执行状态" clearable @on-change="handleSearch">
+            <Option v-for="(i, index) in statusList" :key="index" :value="i.value">{{ i.label }}</Option>
+          </Select>
+        </Col>
+        <Col :span="15" style="display: flex">
+          <Select v-model="form.filterType" @on-change="filterTypeChange" style="width: 140px">
+            <Option v-for="item in filterTypeList" :value="item.value" :key="item.value">{{ item.label }}</Option>
+          </Select>
+          <Input
+            v-model="form.filterParams"
+            placeholder="Filter result, e.g :error or /[0-9]+/"
+            clearable
+            @on-change="handleSearch"
+          >
+          </Input>
+        </Col>
+      </Row>
       <Table size="small" :columns="tableColumns" :data="tableData" :loading="loading" width="100%"></Table>
     </Card>
     <div v-else>
-      <div v-if="tableColumns.length > 0" class="search">
-        <div style="margin-right: 20px">
-          <span>执行状态：</span>
-          <Tag :color="errorCode === '0' ? 'success' : 'error'">
-            {{ errorCode === '0' ? '成功' : '失败' }}
-          </Tag>
+      <template v-if="tableColumns.length > 0">
+        <div style="display: flex; align-items: center">
+          <div style="margin-right: 20px">
+            <span>执行状态：</span>
+            <Tag :color="detailData.errorCode === '0' ? 'success' : 'error'">
+              {{ detailData.errorCode === '0' ? '成功' : '失败' }}
+            </Tag>
+          </div>
+          <div v-if="detailData.errorCode === '1'">
+            <span>失败原因：</span>
+            <span>{{ detailData.errorMessage }}</span>
+          </div>
         </div>
-        <Input
-          v-model="form.operateObject"
-          placeholder="操作对象"
-          clearable
-          style="width: 200px"
-          @on-change="handleSearch"
-        />
-        <Select
-          v-model="form.errorCode"
-          placeholder="单条执行状态"
-          clearable
-          style="width: 200px; margin-left: 10px"
-          @on-change="handleSearch"
-        >
-          <Option v-for="(i, index) in statusList" :key="index" :value="i.value">{{ i.label }}</Option>
-        </Select>
-        <Select v-model="form.filterType" @on-change="filterTypeChange" style="width: 120px; margin-left: 10px">
-          <Option v-for="item in filterTypeList" :value="item.value" :key="item.value">{{ item.label }}</Option>
-        </Select>
-        <Input
-          v-model="form.filterParams"
-          placeholder="Filter result, e.g :error or /[0-9]+/"
-          clearable
-          style="width: 300px"
-          @on-change="handleSearch"
-        >
-        </Input>
-      </div>
+        <div style="margin: 10px 0">
+          <Input
+            v-model="form.operateObject"
+            placeholder="操作对象"
+            clearable
+            style="width: 200px"
+            @on-change="handleSearch"
+          />
+          <Select
+            v-model="form.errorCode"
+            placeholder="单条执行状态"
+            clearable
+            style="width: 200px; margin-left: 10px"
+            @on-change="handleSearch"
+          >
+            <Option v-for="(i, index) in statusList" :key="index" :value="i.value">{{ i.label }}</Option>
+          </Select>
+          <Select v-model="form.filterType" @on-change="filterTypeChange" style="width: 120px; margin-left: 10px">
+            <Option v-for="item in filterTypeList" :value="item.value" :key="item.value">{{ item.label }}</Option>
+          </Select>
+          <Input
+            v-model="form.filterParams"
+            placeholder="Filter result, e.g :error or /[0-9]+/"
+            clearable
+            style="width: 300px"
+            @on-change="handleSearch"
+          >
+          </Input>
+        </div>
+      </template>
       <Table
         v-if="tableColumns.length > 0"
         size="small"
@@ -149,7 +155,7 @@ export default {
       tableColumns: [],
       tableData: [],
       sourceData: [],
-      errorCode: '', // 执行状态'0'成功，'1'失败
+      detailData: {},
       loading: false,
       maxHeight: 500,
       visible: false,
@@ -230,7 +236,7 @@ export default {
         this.tableColumns = []
         this.tableData = data.batchExecutionJobs || []
         this.sourceData = data.batchExecutionJobs || []
-        this.errorCode = data.errorCode
+        this.detailData = data || {}
         const dynamicColumns = data.configData.outputParameterDefinitions || []
         this.tableColumns.push(
           ...[

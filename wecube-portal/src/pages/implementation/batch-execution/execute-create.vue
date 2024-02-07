@@ -55,6 +55,7 @@ export default {
       const { status, data } = await getBatchExecuteTemplateDetail(row.id)
       if (status === 'OK') {
         this.detailData = { ...data, templateData: data }
+        this.detailData.name = `${this.detailData.name}${new Date().getTime()}`
       }
     },
     // 获取执行详情

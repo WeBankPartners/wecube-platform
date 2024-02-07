@@ -3,7 +3,7 @@
   <div class="batch-execution-template-list">
     <div class="search">
       <!--搜索条件-->
-      <BaseSearch :options="searchOptions" v-model="form" @search="handleSearch" :showExpand="false"></BaseSearch>
+      <BaseSearch :options="searchOptions" v-model="form" @search="handleSearch" :showExpand="true"></BaseSearch>
       <Button v-if="from === 'template'" type="success" class="create-template" @click="handleCreateTemplate"
         >新建模板</Button
       >
