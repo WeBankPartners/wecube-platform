@@ -66,11 +66,6 @@ export default {
           component: 'input'
         },
         {
-          key: 'id',
-          placeholder: 'ID',
-          component: 'input'
-        },
-        {
           key: 'errorCode',
           placeholder: '执行状态',
           component: 'select',
