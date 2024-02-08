@@ -338,7 +338,7 @@ type ProcNodeObj struct {
 	ServiceName   string        `json:"serviceName"`
 	OrderedNo     string        `json:"orderedNo"`
 	OrderedNum    int           `json:"-"`
-	DynamicBind   string        `json:"dynamicBind"`
+	DynamicBind   bool          `json:"dynamicBind"`
 	BoundEntities []*ProcEntity `json:"boundEntities"`
 }
 
