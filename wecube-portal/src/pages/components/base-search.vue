@@ -1,6 +1,6 @@
 <template>
   <div class="platform-base-search">
-    <div class="form" :style="{ maxHeight: expand ? '200px' : '45px' }">
+    <div class="form" :style="{ maxHeight: expand ? '200px' : '40px' }">
       <Form :inline="true" :model="value" label-position="right">
         <template v-for="(i, index) in options">
           <FormItem v-if="!i.hidden" :prop="i.key" :key="index">

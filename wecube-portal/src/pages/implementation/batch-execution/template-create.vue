@@ -3,8 +3,8 @@
   <div class="batch-execution-template-create">
     <BaseForm ref="form" :from="from" :type="type" :data="detailData" @back="handleBack" />
     <div v-if="type !== 'view'" class="footer-button">
-      <Button type="primary" @click="saveExcute">预执行</Button>
-      <Button type="primary" @click="getAuth('draft')" style="margin-left: 10px">保存草稿</Button>
+      <Button type="success" @click="saveExcute">预执行</Button>
+      <Button type="default" @click="getAuth('draft')" style="margin-left: 10px">保存草稿</Button>
       <Button type="primary" :disabled="templateDisabled" @click="getAuth('published')" style="margin-left: 10px"
         >发布模板</Button
       >
@@ -17,6 +17,7 @@
 <script>
 import BaseForm from './base-form.vue'
 import AuthDialog from '../../components/auth.vue'
+import { debounce } from '@/const/util'
 import { saveBatchExecute, saveBatchExecuteTemplate, getBatchExecuteTemplateDetail } from '@/api/server.js'
 export default {
   components: {
@@ -51,10 +52,13 @@ export default {
         if (this.type === 'edit') {
           this.saveTemplateId = data.id
         }
+        if (this.type === 'copy') {
+          this.detailData.name = `${this.detailData.name} (1)`
+        }
       }
     },
-    // 执行操作
-    async saveExcute () {
+    // 预执行操作
+    saveExcute: debounce(async function () {
       if (!this.validRequired()) return
       const {
         name,
@@ -70,7 +74,8 @@ export default {
         seletedRows,
         searchParameters,
         userTableColumns,
-        pluginOutputParams
+        pluginOutputParams,
+        isDangerousBlock
       } = this.$refs.form
       // 缓存前端数据，页面回显使用
       const frontData = {
@@ -113,7 +118,7 @@ export default {
         return flag
       })
       const params = {
-        isDangerousBlock: true, // 是否开启高危检测
+        isDangerousBlock: isDangerousBlock, // 是否开启高危检测
         batchExecutionTemplateId: '',
         batchExecutionTemplateName: name,
         name: name + 'test', // 批量名用模板名拼上test
@@ -129,7 +134,9 @@ export default {
         resourceDatas,
         sourceData: JSON.stringify(frontData)
       }
+      this.$Spin.show()
       const { status, data } = await saveBatchExecute(params)
+      this.$Spin.hide()
       if (status === 'OK') {
         this.$Notice.success({
           title: this.$t('successful'),
@@ -141,9 +148,37 @@ export default {
           this.$nextTick(() => {
             this.$refs.form.getExecuteResult(data.batchExecId)
           })
+          // 开启高危检测并且命中，给出提示
+          if (data.dangerousCheckResult && isDangerousBlock) {
+            this.$Modal.error({
+              title: '当前指令里包含高危指令，指令将被直接拦截导致执行失败，请修改指令重试。'
+            })
+          }
+          // 没有开启高危检测命中，则弹窗让用户手动确认是否继续执行，若继续，则带id和continueToken再执行一次
+          if (data.dangerousCheckResult && !isDangerousBlock) {
+            this.$Modal.confirm({
+              title: '前指令里包含高危指令，确认是否继续执行',
+              'z-index': 1000000,
+              loading: true,
+              onOk: async () => {
+                this.$Modal.remove()
+                params.id = data.batchExecId
+                this.$Spin.show()
+                const { status: statusCode } = await saveBatchExecute(params)
+                this.$Spin.hide()
+                if (statusCode === 'OK') {
+                  this.$Notice.success({
+                    title: this.$t('successful'),
+                    desc: this.$t('successful')
+                  })
+                }
+              },
+              onCancel: () => {}
+            })
+          }
         }
       }
-    },
+    }, 100),
     // 获取属主&使用角色
     getAuth (status) {
       this.templateStatus = status
@@ -167,7 +202,8 @@ export default {
         seletedRows,
         searchParameters,
         userTableColumns,
-        pluginOutputParams
+        pluginOutputParams,
+        isDangerousBlock
       } = this.$refs.form
       // 缓存前端数据，页面回显使用
       const frontData = {
@@ -227,7 +263,7 @@ export default {
         name: name,
         operateObject: dataModelExpression,
         pluginService: plugin.serviceDisplayName || '',
-        isDangerousBlock: true, // 是否开启高危检测
+        isDangerousBlock: isDangerousBlock, // 是否开启高危检测
         configData: configData,
         permissionToRole: {
           MGMT: mgmtRole,
@@ -235,7 +271,9 @@ export default {
         },
         sourceData: JSON.stringify(frontData)
       }
+      this.$Spin.show()
       const { status, data } = await saveBatchExecuteTemplate(params)
+      this.$Spin.hide()
       if (status === 'OK') {
         this.$Notice.success({
           title: this.$t('successful'),

@@ -3,7 +3,7 @@
   <div class="batch-execution-template-list">
     <div class="search">
       <!--搜索条件-->
-      <BaseSearch :options="searchOptions" v-model="form" @search="handleSearch" :showExpand="false"></BaseSearch>
+      <BaseSearch :options="searchOptions" v-model="form" @search="handleSearch" :showExpand="true"></BaseSearch>
       <Button v-if="from === 'template'" type="success" class="create-template" @click="handleCreateTemplate"
         >新建模板</Button
       >
@@ -73,6 +73,18 @@ export default {
   },
   data () {
     return {
+      form: {
+        name: '',
+        pluginService: '',
+        operateObject: '',
+        isShowCollectTemplate: false, // 仅展示收藏模板
+        permissionType: this.from === 'template' ? 'MGMT' : 'USE' // 权限类型
+      },
+      publishStatus: this.$route.query.status || 'published', // published已发布，draft草稿
+      cardList: [], // 模板数据
+      tableColumns: [],
+      editRow: {},
+      spinShow: false,
       searchOptions: [
         {
           key: 'isShowCollectTemplate',
@@ -101,15 +113,6 @@ export default {
           component: 'input'
         }
       ],
-      form: {
-        name: '',
-        pluginService: '',
-        operateObject: '',
-        isShowCollectTemplate: false, // 仅展示收藏模板
-        permissionType: this.from === 'template' ? 'MGMT' : 'USE' // 权限类型
-      },
-      publishStatus: this.$route.query.status || 'published', // published已发布，draft草稿
-      cardList: [], // 模板数据
       baseColumns: {
         name: {
           title: '模板名称',
@@ -163,7 +166,10 @@ export default {
         operateObject: {
           title: '操作对象类型',
           key: 'operateObject',
-          minWidth: 100
+          minWidth: 100,
+          render: (h, params) => {
+            return params.row.operateObject && <Tag color="default">{params.row.operateObject}</Tag>
+          }
         },
         status: {
           title: '使用状态',
@@ -265,10 +271,7 @@ export default {
             )
           }
         }
-      },
-      tableColumns: [],
-      editRow: {},
-      spinShow: false
+      }
     }
   },
   mounted () {
@@ -287,7 +290,7 @@ export default {
               <div>
                 {params.row.permissionToRole.USE &&
                   params.row.permissionToRole.USE.map(item => {
-                    return <Tag color="primary">{item}</Tag>
+                    return <Tag color="default">{item}</Tag>
                   })}
               </div>
             )
@@ -463,7 +466,7 @@ export default {
         query: {
           // 更新的参数
           id: row.id,
-          type: 'add'
+          type: 'copy'
         }
       })
     },
