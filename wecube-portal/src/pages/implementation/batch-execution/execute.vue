@@ -17,6 +17,11 @@
             :data="tableData"
             width="100%"
             :max-height="maxHeight - 100"
+            :row-class-name="
+              row => {
+                return rowId === row.id ? 'ivu-table-row-hover' : ''
+              }
+            "
             @on-row-click="handleExecuteHistory"
           ></Table>
           <div class="pagination">
@@ -58,11 +63,6 @@ export default {
         {
           key: 'name',
           placeholder: '执行记录名称',
-          component: 'input'
-        },
-        {
-          key: 'id',
-          placeholder: 'ID',
           component: 'input'
         },
         {
@@ -236,6 +236,7 @@ export default {
       if (status === 'OK') {
         this.tableData = data.contents || []
         this.$nextTick(() => {
+          this.rowId = data.contents[0].id
           this.$refs.executeResult.getList(data.contents[0].id)
         })
         this.pagination.total = data.pageInfo.totalRows
@@ -261,13 +262,15 @@ export default {
         query: {
           // 更新的参数
           id: row.id,
-          type: 'add'
+          type: 'copy'
         }
       })
     },
     // 执行历史
     async handleExecuteHistory (row) {
-      this.$refs.executeResult && this.$refs.executeResult.getList(row.id)
+      this.rowId = row.id
+      this.$refs.executeResult.getList(row.id)
+      this.$refs.executeResult.reset()
     }
   }
 }
@@ -308,6 +311,9 @@ export default {
     display: -webkit-box;
     -webkit-line-clamp: 1;
     -webkit-box-orient: vertical;
+  }
+  .highlight {
+    background: red;
   }
 }
 </style>
