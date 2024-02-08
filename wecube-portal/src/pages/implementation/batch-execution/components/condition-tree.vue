@@ -116,7 +116,7 @@ export default {
       } else {
         return this.$Notice.warning({
           title: this.$t('warning'),
-          desc: this.$t('required_tip')
+          desc: '请设置必填项'
         })
       }
     },
