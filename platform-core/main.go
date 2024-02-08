@@ -7,6 +7,7 @@ import (
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/db"
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/log"
 	"github.com/WeBankPartners/wecube-platform/platform-core/models"
+	"github.com/WeBankPartners/wecube-platform/platform-core/services/cron"
 	"github.com/WeBankPartners/wecube-platform/platform-core/services/remote"
 )
 
@@ -23,6 +24,8 @@ func main() {
 	}
 	// 初始化token
 	remote.InitToken()
+	// start cron job
+	cron.SetupCleanUpBatchExecTicker()
 	//start http
 	api.InitHttpServer()
 }
