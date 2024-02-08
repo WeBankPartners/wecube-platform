@@ -1,10 +1,13 @@
 <template>
   <div class="batch-execute-create">
     <ChooseTemplate v-if="step === 1" from="execute" @select="handleChooseTemplate"></ChooseTemplate>
-    <template v-else>
+    <template v-if="step === 2">
       <BaseForm ref="form" :type="type" :from="from" :data="detailData" @back="handleBack" />
       <div v-if="type !== 'view'" class="footer-button">
-        <Button type="primary" :disabled="false" @click="saveExcute">执行</Button>
+        <Button type="primary" @click="saveExcute">执行</Button>
+      </div>
+      <div v-else class="footer-button">
+        <Button type="primary" @click="relaunch">重新执行</Button>
       </div>
     </template>
   </div>
@@ -13,6 +16,7 @@
 <script>
 import ChooseTemplate from './template.vue'
 import BaseForm from './base-form.vue'
+import { debounce } from '@/const/util'
 import { getBatchExecuteTemplateDetail, batchExecuteHistory, saveBatchExecute } from '@/api/server.js'
 export default {
   components: {
@@ -44,23 +48,20 @@ export default {
         this.step = 1
       }
     },
-    handleChooseTemplate (row) {
+    // 选择模板创建
+    async handleChooseTemplate (row) {
       this.step = 2
       // 选择模板创建的时候，使用模板ID调用模板详情接口，获取详情信息
-      this.getTemplateDetail(row.id)
-    },
-    // 获取模板详情
-    async getTemplateDetail (id) {
-      const { status, data } = await getBatchExecuteTemplateDetail(id)
+      const { status, data } = await getBatchExecuteTemplateDetail(row.id)
       if (status === 'OK') {
         this.detailData = { ...data, templateData: data }
+        this.detailData.name = `${this.detailData.name}${new Date().getTime()}`
       }
     },
     // 获取执行详情
     async getExecuteDetail () {
       const { status, data } = await batchExecuteHistory(this.id)
       if (status === 'OK') {
-        // 模板创建的执行
         if (data.batchExecutionTemplateId) {
           const { data: templateData } = await getBatchExecuteTemplateDetail(data.batchExecutionTemplateId)
           this.detailData = { ...data, templateData }
@@ -68,9 +69,18 @@ export default {
           // 预执行数据(无模板ID)
           this.detailData = { ...data, templateData: { id: '', name: '' } }
         }
+        if (this.type === 'copy') {
+          this.detailData.name = `${this.detailData.name} (1)`
+        }
       }
     },
-    async saveExcute () {
+    // 重新执行
+    relaunch () {
+      this.type = 'copy'
+      this.getExecuteDetail()
+    },
+    // 执行
+    saveExcute: debounce(async function () {
       if (!this.validRequired()) return
       const {
         name,
@@ -146,7 +156,9 @@ export default {
         resourceDatas,
         sourceData: JSON.stringify(frontData)
       }
+      this.$Spin.show()
       const { status } = await saveBatchExecute(params)
+      this.$Spin.hide()
       if (status === 'OK') {
         this.$Notice.success({
           title: this.$t('successful'),
@@ -154,7 +166,7 @@ export default {
         })
         this.$eventBusP.$emit('change-menu', 'executeList')
       }
-    },
+    }, 100),
     validRequired () {
       const { name, dataModelExpression, pluginId, pluginInputParams, primatKeyAttr, userTableColumns, seletedRows } =
         this.$refs.form
