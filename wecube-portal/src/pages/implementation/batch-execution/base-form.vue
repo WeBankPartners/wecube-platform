@@ -68,11 +68,21 @@
         </FormItem>
         <!--操作对象类型-->
         <FormItem label="操作对象类型">
-          <Input disabled :value="currentPackageName + ':' + currentEntityName" class="form-item"></Input>
+          <Input
+            disabled
+            :value="currentPackageName ? currentPackageName + ':' + currentEntityName : ''"
+            class="form-item"
+          ></Input>
         </FormItem>
         <!--查询结果主键-->
         <FormItem label="查询结果主键" required>
-          <Select filterable v-model="primatKeyAttr" class="form-item" :disabled="from === 'execute'">
+          <Select
+            filterable
+            v-model="primatKeyAttr"
+            class="form-item"
+            :disabled="from === 'execute'"
+            @on-change="handleRefreshSearch"
+          >
             <Option v-for="entityAttr in primatKeyAttrList" :value="entityAttr.name" :key="entityAttr.id">{{
               entityAttr.name
             }}</Option>
@@ -92,7 +102,7 @@
             v-model="userTableColumns"
             class="form-item"
             :disabled="from === 'execute'"
-            @on-change="chooseUserTableColumns"
+            @on-change="handleRefreshSearch"
           >
             <Option v-for="entityAttr in primatKeyAttrList" :value="entityAttr.name" :key="entityAttr.id">{{
               entityAttr.name
@@ -102,13 +112,23 @@
         <!--设置过滤条件-->
         <FormItem label="设置过滤条件">
           <Row class="dynamic-condition">
-            <Button
-              @click="editSearchParameters"
-              :disabled="from === 'execute'"
-              type="primary"
-              icon="md-create"
-              class="create"
-            />
+            <div style="display: flex; justify-content: space-between">
+              <Button
+                @click="editSearchParameters"
+                :disabled="from === 'execute'"
+                type="primary"
+                icon="md-create"
+                class="create"
+              />
+              <Button
+                v-if="searchParameters && searchParameters.length > 0"
+                @click="clearSearchParameters"
+                :disabled="from === 'execute'"
+                type="error"
+                icon="md-close"
+                class="create"
+              />
+            </div>
             <template v-if="searchParameters && searchParameters.length > 0">
               <Col v-for="(item, index) in searchParameters" :key="index" :span="24" class="item">
                 <span color="success">{{ item.packageName }}-{{ item.entityName }}:{{ item.name }}</span>
@@ -127,11 +147,6 @@
         ></ConditionTree>
       </HeaderTitle>
       <HeaderTitle title="第2步 勾选执行实例">
-        <div slot="header">
-          <!-- <Button v-if="currentPackageName" type="success" size="small" icon="ios-refresh" @click="handleRefreshSearch">
-            刷新查询结果
-          </Button> -->
-        </div>
         <!--勾选操作实例-->
         <FormItem label="勾选操作实例" required>
           <EntityTable
@@ -181,11 +196,17 @@
             <Option v-for="(item, index) in pluginOutputParams" :value="item.name" :key="index">{{ item.name }}</Option>
           </Select>
         </FormItem>
+        <FormItem label="高危检测">
+          <i-switch v-model="isDangerousBlock" disabled size="large">
+            <span slot="open">开启</span>
+            <span slot="close">关闭</span>
+          </i-switch>
+        </FormItem>
       </HeaderTitle>
     </Form>
     <HeaderTitle v-if="showResult || (from === 'execute' && type === 'view')" title="执行结果">
       <div style="padding: 0 20px">
-        <ExecuteResult ref="executeResult" from="create" :id="data.id"></ExecuteResult>
+        <ExecuteResult ref="executeResult" from="create" :id="showResult ? '' : data.id"></ExecuteResult>
       </div>
     </HeaderTitle>
   </div>
@@ -213,12 +234,12 @@ export default {
     ExecuteResult
   },
   props: {
-    // 入口是模板还是执行
+    // template模板，execute执行
     from: {
       type: String,
       default: 'template'
     },
-    // add创建，view查看
+    // add创建，edit编辑，copy复制，view查看
     type: {
       type: String,
       default: 'add'
@@ -253,7 +274,8 @@ export default {
       pluginOptions: [], // 插件下拉列表
       pluginInputParams: [], // 插件入参
       pluginOutputParams: [], // 插件出参
-      resultTableParams: [] // 选择结果表出参
+      resultTableParams: [], // 选择结果表出参
+      isDangerousBlock: true // 是否开启高危检测
     }
   },
   watch: {
@@ -265,6 +287,16 @@ export default {
         this.primatKeyAttrList = []
         this.primatKeyAttr = ''
         this.userTableColumns = []
+        this.searchParamsTree = []
+        this.searchParameters = []
+        this.tableColumns = [] // 执行实例表格列
+        this.tableData = [] // 执行实例表格数据
+        this.seletedRows = [] // 勾选的执行实例
+        this.pluginId = '' // 表单-插件服务ID
+        this.pluginOptions = [] // 插件下拉列表
+        this.pluginInputParams = [] // 插件入参
+        this.pluginOutputParams = [] // 插件出参
+        this.resultTableParams = [] // 选择结果表出参
         return
       }
       // 获取插件服务列表
@@ -306,6 +338,7 @@ export default {
           this.primatKeyAttr = configData.primatKeyAttr
           this.searchParameters = configData.searchParameters
           this.pluginId = configData.pluginConfigInterface.serviceName
+          this.isDangerousBlock = configData.isDangerousBlock
           if (sourceData) {
             const frontData = JSON.parse(sourceData)
             this.seletedRows = frontData.seletedRows
@@ -324,10 +357,6 @@ export default {
     this.getAllDataModels()
   },
   methods: {
-    // 选择查询结果展示列
-    chooseUserTableColumns () {
-      this.excuteSearch()
-    },
     // 选择插件
     choosePlugin (val) {
       this.pluginOptions.forEach(plugin => {
@@ -367,14 +396,19 @@ export default {
     editSearchParameters () {
       this.editSearchParamsVisible = true
     },
+    clearSearchParameters () {
+      this.searchParameters = []
+      this.excuteSearch()
+    },
     // 设置过滤条件
     handleSearchParamsChange (val) {
-      if (this.dataModelExpression === ':') return
+      if (this.dataModelExpression === ':' || !this.dataModelExpression) return
       this.searchParameters = val
       this.excuteSearch()
     },
     // 更新执行实例表格
-    handleRefreshSearch () {
+    handleRefreshSearch (val) {
+      if (!val || (val && val.length === 0)) return
       this.excuteSearch()
     },
     clearPlugin () {
@@ -420,13 +454,21 @@ export default {
     async excuteSearch () {
       let { status, data } = await entityView(this.currentPackageName, this.currentEntityName)
       if (status === 'OK') {
-        if (this.userTableColumns.length) {
-          this.tableColumns = this.userTableColumns.map((_, i) => {
+        if (this.userTableColumns.length || this.primatKeyAttr) {
+          let combineColumns = [...this.userTableColumns]
+          if (this.userTableColumns.includes(this.primatKeyAttr)) {
+            const index = this.userTableColumns.findIndex(i => i === this.primatKeyAttr)
+            combineColumns.splice(index, 1)
+            combineColumns.unshift(this.primatKeyAttr)
+          }
+          if (!this.userTableColumns.includes(this.primatKeyAttr) && this.primatKeyAttr) {
+            combineColumns.unshift(this.primatKeyAttr)
+          }
+          this.tableColumns = combineColumns.map(_ => {
             return {
               title: _,
               key: _,
               width: 200,
-              displaySeqNo: i + 1,
               render: (h, params) => {
                 return (
                   <Tooltip max-width="300" content={params.row[_].toString()}>
@@ -437,12 +479,11 @@ export default {
             }
           })
         } else {
-          this.tableColumns = data.map((_, i) => {
+          this.tableColumns = data.map(_ => {
             return {
               title: _.name,
               key: _.name,
               width: 200,
-              displaySeqNo: i + 1,
               render: (h, params) => {
                 return (
                   <div style="height:32px;">
