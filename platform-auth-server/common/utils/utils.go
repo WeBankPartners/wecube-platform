@@ -1,10 +1,11 @@
 package utils
 
 import (
-	"github.com/google/uuid"
 	"math"
 	"regexp"
 	"strings"
+
+	"github.com/google/uuid"
 )
 
 func Contains(s []string, e string) bool {
@@ -95,4 +96,13 @@ func IsBlank(s string) bool {
 
 func BuildArrayString(vals []string) string {
 	return "[" + strings.Join(vals, ",") + "]"
+}
+
+func ParseArrayString(arrStr string) []string {
+	if strings.Index(arrStr, "[") == 0 && strings.Index(arrStr, "]") == (len(arrStr)-1) {
+		tmp := arrStr[1 : len(arrStr)-1]
+		tmp = tmp[:len(arrStr)-2]
+		return strings.Split(tmp, ",")
+	}
+	return make([]string, 0)
 }
