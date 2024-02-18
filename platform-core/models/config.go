@@ -76,6 +76,10 @@ type GatewayConfig struct {
 	HostPorts string `json:"host_ports"`
 }
 
+type CronConfig struct {
+	KeepBatchExecDays int64 `json:"keep_batch_exec_days"`
+}
+
 type GlobalConfig struct {
 	Version                string                  `json:"version"`
 	DefaultLanguage        string                  `json:"default_language"`
@@ -89,6 +93,7 @@ type GlobalConfig struct {
 	StaticResources        []*StaticResourceConfig `json:"static_resources"`
 	Plugin                 *PluginJsonConfig       `json:"plugin"`
 	Gateway                *GatewayConfig          `json:"gateway"`
+	Cron                   *CronConfig             `json:"cron"`
 }
 
 var (

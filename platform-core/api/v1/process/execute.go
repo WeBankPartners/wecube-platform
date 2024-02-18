@@ -10,7 +10,10 @@ import (
 	"github.com/WeBankPartners/wecube-platform/platform-core/models"
 	"github.com/WeBankPartners/wecube-platform/platform-core/services/database"
 	"github.com/WeBankPartners/wecube-platform/platform-core/services/remote"
+	"github.com/WeBankPartners/wecube-platform/platform-core/services/workflow"
 	"github.com/gin-gonic/gin"
+	"strings"
+	"time"
 )
 
 func ProcDefList(c *gin.Context) {
@@ -104,13 +107,44 @@ func ProcDefPreview(c *gin.Context) {
 	log.Logger.Debug("rootData", log.String("entityDataId", entityDataId), log.JsonObj("data", rootData))
 	rootEntityNode := models.ProcPreviewEntityNode{}
 	rootEntityNode.Parse(rootFilter.PackageName, rootFilter.EntityName, rootData)
+	rootEntityNode.FullDataId = rootEntityNode.DataId
 	entityNodeMap[rootEntityNode.Id] = &rootEntityNode
 	result.EntityTreeNodes = append(result.EntityTreeNodes, &rootEntityNode)
-
+	operator := middleware.GetRequestUser(c)
+	nowTime := time.Now()
+	var previewRows []*models.ProcDataPreview
+	rootPreviewRow := models.ProcDataPreview{
+		EntityDataId:   rootEntityNode.DataId,
+		EntityTypeId:   procOutlineData.RootEntity,
+		ProcDefId:      procDefId,
+		BindType:       "process",
+		IsBound:        true,
+		ProcSessionId:  result.ProcessSessionId,
+		EntityDataName: rootEntityNode.DisplayName,
+		FullDataId:     rootEntityNode.FullDataId,
+		CreatedBy:      operator,
+		CreatedTime:    nowTime,
+	}
+	previewRows = append(previewRows, &rootPreviewRow)
 	for _, node := range procOutlineData.FlowNodes {
 		if node.OrderedNo != "" && node.RoutineExpression != "" {
 			if node.RoutineExpression == procOutlineData.RootEntity {
 				// 表达式和根一样，不用解析，但同样要处理绑定数据
+				tmpPreviewRow := models.ProcDataPreview{
+					EntityDataId:   rootPreviewRow.EntityDataId,
+					EntityTypeId:   fmt.Sprintf("%s:%s", rootLastExprObj.Package, rootLastExprObj.Entity),
+					ProcDefId:      rootPreviewRow.ProcDefId,
+					BindType:       "taskNode",
+					IsBound:        true,
+					ProcSessionId:  result.ProcessSessionId,
+					EntityDataName: rootEntityNode.DisplayName,
+					FullDataId:     rootEntityNode.FullDataId,
+					ProcDefNodeId:  node.NodeId,
+					OrderedNo:      node.OrderedNo,
+					CreatedBy:      operator,
+					CreatedTime:    nowTime,
+				}
+				previewRows = append(previewRows, &tmpPreviewRow)
 				continue
 			}
 			tmpQueryDataParam := models.QueryExpressionDataParam{DataModelExpression: node.RoutineExpression, Filters: []*models.QueryExpressionDataFilter{&rootFilter}}
@@ -121,6 +155,21 @@ func ProcDefPreview(c *gin.Context) {
 			}
 			log.Logger.Debug("nodeData", log.String("node", node.NodeId), log.JsonObj("data", nodeDataList))
 			for _, nodeDataObj := range nodeDataList {
+				tmpPreviewRow := models.ProcDataPreview{
+					EntityDataId:   nodeDataObj.DataId,
+					EntityTypeId:   fmt.Sprintf("%s:%s", nodeDataObj.PackageName, nodeDataObj.EntityName),
+					ProcDefId:      rootPreviewRow.ProcDefId,
+					BindType:       "taskNode",
+					IsBound:        true,
+					ProcSessionId:  result.ProcessSessionId,
+					EntityDataName: nodeDataObj.DisplayName,
+					FullDataId:     nodeDataObj.FullDataId,
+					ProcDefNodeId:  node.NodeId,
+					OrderedNo:      node.OrderedNo,
+					CreatedBy:      operator,
+					CreatedTime:    nowTime,
+				}
+				previewRows = append(previewRows, &tmpPreviewRow)
 				if _, ok := entityNodeMap[nodeDataObj.Id]; !ok {
 					entityNodeMap[nodeDataObj.Id] = nodeDataObj
 					result.EntityTreeNodes = append(result.EntityTreeNodes, nodeDataObj)
@@ -133,7 +182,25 @@ func ProcDefPreview(c *gin.Context) {
 		return
 	}
 	result.AnalyzeRefIds()
-	middleware.ReturnData(c, result)
+	var graphRows []*models.ProcInsGraphNode
+	for _, v := range result.EntityTreeNodes {
+		graphRows = append(graphRows, &models.ProcInsGraphNode{
+			DataId:        v.DataId,
+			DisplayName:   v.DisplayName,
+			EntityName:    v.EntityName,
+			GraphNodeId:   v.Id,
+			PkgName:       v.PackageName,
+			ProcSessionId: result.ProcessSessionId,
+			PrevIds:       strings.Join(v.PreviousIds, ","),
+			SuccIds:       strings.Join(v.SucceedingIds, ","),
+			FullDataId:    v.FullDataId,
+		})
+	}
+	if err = database.CreateProcPreview(c, previewRows, graphRows); err != nil {
+		middleware.ReturnError(c, err)
+	} else {
+		middleware.ReturnData(c, result)
+	}
 }
 
 func queryProcPreviewNodeData(ctx context.Context, param *models.QueryExpressionDataParam, rootEntityNode *models.ProcPreviewEntityNode) (dataList []*models.ProcPreviewEntityNode, err error) {
@@ -148,11 +215,64 @@ func queryProcPreviewNodeData(ctx context.Context, param *models.QueryExpression
 
 func ProcInsTaskNodeBindings(c *gin.Context) {
 	sessionId := c.Param("sessionId")
-	log.Logger.Debug("ProcInsTaskNodeBindings", log.String("sessionId", sessionId))
+	if sessionId == "" {
+		middleware.ReturnError(c, exterror.New().RequestParamValidateError)
+		return
+	}
+	taskNodeId := c.Param("taskNodeId")
+	result, err := database.ProcInsTaskNodeBindings(c, sessionId, taskNodeId)
+	if err != nil {
+		middleware.ReturnError(c, err)
+	} else {
+		middleware.ReturnData(c, result)
+	}
+}
+
+func UpdateProcNodeBindingData(c *gin.Context) {
+	var param []*models.TaskNodeBindingObj
+	if err := c.ShouldBindJSON(&param); err != nil {
+		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, err))
+		return
+	}
+	sessionId := c.Param("sessionId")
+	if sessionId == "" {
+		middleware.ReturnError(c, exterror.New().RequestParamValidateError)
+		return
+	}
+	taskNodeId := c.Param("taskNodeId")
+	err := database.UpdateProcNodeBindingData(c, param, sessionId, taskNodeId, middleware.GetRequestUser(c))
+	if err != nil {
+		middleware.ReturnError(c, err)
+	} else {
+		middleware.ReturnSuccess(c)
+	}
 }
 
 func ProcInsStart(c *gin.Context) {
-
+	var param models.ProcInsStartParam
+	if err := c.ShouldBindJSON(&param); err != nil {
+		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, err))
+		return
+	}
+	operator := middleware.GetRequestUser(c)
+	// 新增 proc_ins,proc_ins_node,proc_data_binding 纪录
+	procInsId, workflowRow, workNodes, workLinks, err := database.CreateProcInstance(c, &param, operator)
+	if err != nil {
+		middleware.ReturnError(c, err)
+		return
+	}
+	// 初始化workflow并开始
+	workObj := workflow.Workflow{ProcRunWorkflow: *workflowRow}
+	workObj.Init(context.Background(), workNodes, workLinks)
+	workflow.GlobalWorkflowMap.Store(workObj.Id, &workObj)
+	go workObj.Start(&models.ProcOperation{CreatedBy: operator})
+	// 查询 detail 返回
+	detail, queryErr := database.GetProcInstance(c, procInsId)
+	if queryErr != nil {
+		middleware.ReturnError(c, queryErr)
+	} else {
+		middleware.ReturnData(c, detail)
+	}
 }
 
 func ProcInsList(c *gin.Context) {

@@ -97,7 +97,7 @@ func (p *ProcPreviewData) AnalyzeRefIds() {
 	}
 	for _, v := range p.EntityTreeNodes {
 		for _, subFullDataId := range strings.Split(v.FullDataId, "::") {
-			if subFullDataId == "" {
+			if subFullDataId == "" || subFullDataId == v.DataId {
 				continue
 			}
 			if existList, ok := nodeSucceedingMap[subFullDataId]; ok {
@@ -114,4 +114,51 @@ func (p *ProcPreviewData) AnalyzeRefIds() {
 			v.PreviousIds = append(v.PreviousIds, nodeIdMap[preId])
 		}
 	}
+}
+
+type TaskNodeBindingObj struct {
+	Bound        string `json:"bound"`
+	EntityDataId string `json:"entityDataId"`
+	EntityTypeId string `json:"entityTypeId"`
+	NodeDefId    string `json:"nodeDefId"`
+	OrderedNo    string `json:"orderedNo"`
+}
+
+type ProcInsStartParam struct {
+	EntityDataId      string                `json:"entityDataId"`
+	EntityDisplayName string                `json:"entityDisplayName"`
+	EntityTypeId      string                `json:"entityTypeId"`
+	ProcDefId         string                `json:"procDefId"`
+	ProcessSessionId  string                `json:"processSessionId"`
+	TaskNodeBinds     []*TaskNodeBindingObj `json:"taskNodeBinds"`
+}
+
+type ProcInsDetail struct {
+	Id                string               `json:"id"`
+	ProcDefId         string               `json:"procDefId"`
+	ProcInstKey       string               `json:"procInstKey"`
+	ProcInstName      string               `json:"procInstName"`
+	EntityDataId      string               `json:"entityDataId"`
+	EntityTypeId      string               `json:"entityTypeId"`
+	Status            string               `json:"status"`
+	Operator          string               `json:"operator"`
+	CreatedTime       string               `json:"createdTime"`
+	TaskNodeInstances []*ProcInsNodeDetail `json:"taskNodeInstances"`
+}
+
+type ProcInsNodeDetail struct {
+	Id                int      `json:"id"`
+	NodeId            string   `json:"nodeId"`
+	NodeName          string   `json:"nodeName"`
+	NodeDefId         string   `json:"nodeDefId"`
+	NodeType          string   `json:"nodeType"`
+	Description       string   `json:"description"`
+	OrderedNo         string   `json:"orderedNo"`
+	ProcDefId         string   `json:"procDefId"`
+	ProcDefKey        string   `json:"procDefKey"`
+	ProcInstId        string   `json:"procInstId"`
+	ProcInstKey       string   `json:"procInstKey"`
+	RoutineExpression string   `json:"routineExpression"`
+	Status            string   `json:"status"`
+	SucceedingNodeIds []string `json:"succeedingNodeIds"`
 }
