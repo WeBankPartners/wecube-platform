@@ -192,7 +192,7 @@ func QueryPluginData(ctx context.Context, exprList []*models.ExpressionObj, filt
 
 func QueryPluginFullData(ctx context.Context, exprList []*models.ExpressionObj, rootFilter *models.QueryExpressionDataFilter, rootEntityNode *models.ProcPreviewEntityNode, token string) (resultNodeList []*models.ProcPreviewEntityNode, err error) {
 	dataFullIdMap := make(map[string]string)
-	dataFullIdMap[rootEntityNode.Id] = rootEntityNode.FullDataId
+	dataFullIdMap[rootEntityNode.DataId] = rootEntityNode.FullDataId
 	var tmpQueryResult []map[string]interface{}
 	for i, exprObj := range exprList {
 		tmpFilters := []*models.EntityQueryObj{}
@@ -242,15 +242,19 @@ func QueryPluginFullData(ctx context.Context, exprList []*models.ExpressionObj, 
 			err = lastErr
 			break
 		}
+		log.Logger.Debug("QueryPluginFullData expr", log.Int("index", i), log.Int("rootIndex", rootFilter.Index), log.JsonObj("tmpLeftDataMap", tmpLeftDataMap))
 		if i > rootFilter.Index && len(lastQueryResult) > 0 {
 			for _, rowData := range lastQueryResult {
 				rowDataId := rowData["id"].(string)
-				if _, existFlag := dataFullIdMap[rowDataId]; existFlag {
+				if _, existFlag := dataFullIdMap[rowDataId]; !existFlag {
 					rowDataNode := models.ProcPreviewEntityNode{}
 					rowDataNode.Parse(exprObj.Package, exprObj.Entity, rowData)
 					resultNodeList = append(resultNodeList, &rowDataNode)
+				} else {
+					continue
 				}
 				if exprObj.LeftJoinColumn != "" {
+					log.Logger.Debug("QueryPluginFullData handle row,LeftJoinColumn", log.String("id", rowDataId), log.String("LeftJoinColumn", exprObj.LeftJoinColumn))
 					if leftMapDataId, ok := tmpLeftDataMap[rowDataId]; ok {
 						dataFullIdMap[rowDataId] = dataFullIdMap[leftMapDataId] + "::" + rowDataId
 					} else {
@@ -258,6 +262,7 @@ func QueryPluginFullData(ctx context.Context, exprList []*models.ExpressionObj, 
 					}
 				}
 				if exprObj.RightJoinColumn != "" {
+					log.Logger.Debug("QueryPluginFullData handle row,RightJoinColumn1", log.String("id", rowDataId), log.String("RightJoinColumn", exprObj.LeftJoinColumn))
 					if matchAttrData, ok := rowData[exprObj.RightJoinColumn]; ok {
 						attrIdList := getInterfaceStringList(matchAttrData)
 						tmpMatchRightFullDataId := ""
@@ -267,6 +272,7 @@ func QueryPluginFullData(ctx context.Context, exprList []*models.ExpressionObj, 
 								break
 							}
 						}
+						log.Logger.Debug("QueryPluginFullData handle row,RightJoinColumn2", log.StringList("attrIdList", attrIdList), log.String("tmpMatchRightFullDataId", tmpMatchRightFullDataId))
 						if tmpMatchRightFullDataId != "" {
 							dataFullIdMap[rowDataId] = tmpMatchRightFullDataId + "::" + rowDataId
 						} else {
@@ -277,6 +283,9 @@ func QueryPluginFullData(ctx context.Context, exprList []*models.ExpressionObj, 
 			}
 		}
 		tmpQueryResult = lastQueryResult
+	}
+	for k, v := range dataFullIdMap {
+		log.Logger.Debug("dataFullIdMap", log.String("k", k), log.String("v", v))
 	}
 	for _, v := range resultNodeList {
 		v.FullDataId = dataFullIdMap[v.DataId]
