@@ -62,7 +62,7 @@
                       :min="1"
                       style="width: 49%"
                       v-model="itemCustomInfo.customAttrs.timeConfig.duration"
-                      @on-change="paramsChanged"
+                      @on-change="durationChange"
                     ></InputNumber>
                     <Select
                       v-model="itemCustomInfo.customAttrs.timeConfig.unit"
@@ -470,7 +470,7 @@ export default {
         } else if (this.itemCustomInfo.customAttrs.routineExpression === '') {
           res = true
         }
-        if (this.itemCustomInfo.customAttrs.serviceName === '') {
+        if (!this.itemCustomInfo.customAttrs.serviceName) {
           res = true
         }
       }
@@ -670,6 +670,12 @@ export default {
         this.getPlugin()
       })
       this.paramsChanged()
+    },
+    durationChange (val) {
+      if (!this.itemCustomInfo.customAttrs.timeConfig.duration) {
+        this.itemCustomInfo.customAttrs.timeConfig.duration = 0
+      }
+      this.paramsChanged()
     }
   }
 }
@@ -677,7 +683,7 @@ export default {
 <style lang="scss" scoped>
 #itemInfo {
   position: absolute;
-  top: 127px;
+  top: 134px;
   right: 13px;
   bottom: 0;
   z-index: 10;

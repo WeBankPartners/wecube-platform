@@ -691,8 +691,8 @@ export default {
       this.getFlowList()
     },
     handleDateRange (dateArr) {
-      this.searchParams.updatedTimeStart = dateArr[0]
-      this.searchParams.updatedTimeEnd = dateArr[1]
+      this.searchParams.updatedTimeStart = dateArr[0] + ' 00:00:00'
+      this.searchParams.updatedTimeEnd = dateArr[1] + ' 23:59:59'
       this.getFlowList()
     },
     // 控制角色下table的显示
