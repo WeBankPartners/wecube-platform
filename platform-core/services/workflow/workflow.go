@@ -13,7 +13,7 @@ import (
 )
 
 var (
-	globalWorkflowMap = new(sync.Map)
+	GlobalWorkflowMap = new(sync.Map)
 	instanceHost      = "127.0.0.1"
 )
 
