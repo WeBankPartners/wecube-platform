@@ -210,3 +210,13 @@ func UpdateProcNodeBindingData(ctx context.Context, param []*models.TaskNodeBind
 	}
 	return
 }
+
+func CreateProcInstance(ctx context.Context, procStartParam *models.ProcInsStartParam, operator string) (procInsId string, workflow *models.ProcRunWorkflow, workNodes []*models.ProcRunNode, workLinks []*models.ProcRunLink, err error) {
+
+	return
+}
+
+func GetProcInstance(ctx context.Context, procInsId string) (result *models.ProcInsDetail, err error) {
+
+	return
+}
