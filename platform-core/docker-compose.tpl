@@ -39,3 +39,4 @@ services:
       - gateway_url=[#gateway_url]
       - gateway_host_ports=[#gateway_host_ports]
       - sub_system_private_key=[#sub_system_private_key]
+      - cron_keep_batch_exec_days=[#cron_keep_batch_exec_days]
