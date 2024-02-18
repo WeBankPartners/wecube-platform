@@ -104,7 +104,7 @@ export default {
         },
         {
           key: 'pluginService',
-          placeholder: '插件服务',
+          placeholder: this.$t('pluginService'),
           component: 'input'
         },
         {
@@ -159,7 +159,7 @@ export default {
           minWidth: 100
         },
         pluginService: {
-          title: '插件服务',
+          title: this.$t('pluginService'),
           key: 'pluginService',
           minWidth: 150
         },
