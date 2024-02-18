@@ -15,6 +15,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// CreateOrUpdateTemplate 创建/更新批量执行模板
 func CreateOrUpdateTemplate(c *gin.Context) {
 	defer try.ExceptionStack(func(e interface{}, err interface{}) {
 		retErr := fmt.Errorf("%v", err)
@@ -43,6 +44,7 @@ func CreateOrUpdateTemplate(c *gin.Context) {
 	return
 }
 
+// CollectTemplate 收藏批量执行模板
 func CollectTemplate(c *gin.Context) {
 	defer try.ExceptionStack(func(e interface{}, err interface{}) {
 		retErr := fmt.Errorf("%v", err)
@@ -72,6 +74,7 @@ func CollectTemplate(c *gin.Context) {
 	return
 }
 
+// UncollectTemplate 取消收藏批量执行模板
 func UncollectTemplate(c *gin.Context) {
 	defer try.ExceptionStack(func(e interface{}, err interface{}) {
 		retErr := fmt.Errorf("%v", err)
@@ -101,6 +104,7 @@ func UncollectTemplate(c *gin.Context) {
 	return
 }
 
+// CheckCollectTemplate 检查是否收藏了批量执行模板
 func CheckCollectTemplate(c *gin.Context) {
 	defer try.ExceptionStack(func(e interface{}, err interface{}) {
 		retErr := fmt.Errorf("%v", err)
@@ -130,6 +134,7 @@ func CheckCollectTemplate(c *gin.Context) {
 	return
 }
 
+// RetrieveTemplate 查询批量执行模板列表
 func RetrieveTemplate(c *gin.Context) {
 	defer try.ExceptionStack(func(e interface{}, err interface{}) {
 		retErr := fmt.Errorf("%v", err)
@@ -156,6 +161,7 @@ func RetrieveTemplate(c *gin.Context) {
 	return
 }
 
+// GetTemplate 查询批量执行模板详情
 func GetTemplate(c *gin.Context) {
 	defer try.ExceptionStack(func(e interface{}, err interface{}) {
 		retErr := fmt.Errorf("%v", err)
@@ -177,6 +183,7 @@ func GetTemplate(c *gin.Context) {
 	return
 }
 
+// DeleteTemplate 删除批量执行模板
 func DeleteTemplate(c *gin.Context) {
 	defer try.ExceptionStack(func(e interface{}, err interface{}) {
 		retErr := fmt.Errorf("%v", err)
@@ -198,6 +205,7 @@ func DeleteTemplate(c *gin.Context) {
 	return
 }
 
+// UpdateTemplatePermission 更新批量执行模板的权限
 func UpdateTemplatePermission(c *gin.Context) {
 	defer try.ExceptionStack(func(e interface{}, err interface{}) {
 		retErr := fmt.Errorf("%v", err)
@@ -231,6 +239,7 @@ func UpdateTemplatePermission(c *gin.Context) {
 	return
 }
 
+// RetrieveBatchExec 查询批量执行结果列表
 func RetrieveBatchExec(c *gin.Context) {
 	defer try.ExceptionStack(func(e interface{}, err interface{}) {
 		retErr := fmt.Errorf("%v", err)
@@ -266,6 +275,7 @@ func RetrieveBatchExec(c *gin.Context) {
 	return
 }
 
+// GetBatchExec 查询批量执行结果详情
 func GetBatchExec(c *gin.Context) {
 	defer try.ExceptionStack(func(e interface{}, err interface{}) {
 		retErr := fmt.Errorf("%v", err)
@@ -305,6 +315,12 @@ func ValidateRunJobParams(reqParam *models.BatchExecRun) (err error) {
 	return
 }
 
+func ValidateRunJobPermission() (err error) {
+
+	return
+}
+
+// RunJob 批量执行
 func RunJob(c *gin.Context) {
 	defer try.ExceptionStack(func(e interface{}, err interface{}) {
 		retErr := fmt.Errorf("%v", err)
@@ -341,7 +357,7 @@ func doRunJob(c *gin.Context, reqParam *models.BatchExecRun) (result *models.Bat
 	continueToken := c.GetHeader(models.ContinueTokenHeader)
 	pluginInterfaceId := reqParam.PluginConfigInterface.Id
 	entityType := reqParam.DataModelExpression
-
+	// 组装插件服务参数
 	var entityInstances []*models.BatchExecutionPluginExecEntityInstances
 	for _, resourceData := range reqParam.ResourceDatas {
 		entityIns := &models.BatchExecutionPluginExecEntityInstances{
@@ -363,7 +379,7 @@ func doRunJob(c *gin.Context, reqParam *models.BatchExecRun) (result *models.Bat
 	var batchExecId string
 	var tmpErr error
 	if continueToken == "" {
-		// record batch execution
+		// record batch execution，continueToken 为空，写入批量执行记录
 		batchExecId, tmpErr = database.InsertBatchExec(c, reqParam)
 		if tmpErr != nil {
 			err = tmpErr
@@ -371,6 +387,7 @@ func doRunJob(c *gin.Context, reqParam *models.BatchExecRun) (result *models.Bat
 			return
 		}
 	} else {
+		// continueToken 不为空，获取批量执行记录详情
 		batchExecId = reqParam.BatchExecId
 		queryBatchExecData, tmpErr := database.GetBatchExec(c, batchExecId)
 		if tmpErr != nil {
@@ -396,7 +413,7 @@ func doRunJob(c *gin.Context, reqParam *models.BatchExecRun) (result *models.Bat
 		errCode = models.BatchExecErrorCodeFailed
 		errMsg = fmt.Sprintf("plugin call error: %s", err.Error())
 		log.Logger.Error(errMsg)
-		// update batch exec record
+		// update batch exec record，更新批量执行记录
 		updateData := make(map[string]interface{})
 		updateData["error_code"] = errCode
 		updateData["error_message"] = errMsg
@@ -415,7 +432,7 @@ func doRunJob(c *gin.Context, reqParam *models.BatchExecRun) (result *models.Bat
 		result.DangerousCheckResult = dangerousCheckResult
 		log.Logger.Warn("dangerous check result existed", log.JsonObj("dangerousCheckResult", dangerousCheckResult))
 		// if reqParam.IsDangerousBlock {
-		// update batch exec errorCode record
+		// update batch exec errorCode record，更新批量执行记录
 		errCode = models.BatchExecErrorCodeDangerousBlock
 		errMsg = "dangerous block"
 		updateData := make(map[string]interface{})
@@ -435,7 +452,7 @@ func doRunJob(c *gin.Context, reqParam *models.BatchExecRun) (result *models.Bat
 
 	err = database.InsertBatchExecJobs(c, batchExecId, &execTime, reqParam, pluginCallParam, batchExecRunResult)
 	if err != nil {
-		// update batch exec record
+		// update batch exec record，更新批量执行记录
 		errCode = models.BatchExecErrorCodeFailed
 		errMsg = fmt.Sprintf("plugin call succeed, but insert batch execution jobs record failed: %s", err.Error())
 		batchExecRunResultByte, tmpErr := json.Marshal(batchExecRunResult)
