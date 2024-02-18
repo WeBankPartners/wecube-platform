@@ -7,6 +7,7 @@ import (
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/exterror"
 	"github.com/WeBankPartners/wecube-platform/platform-core/models"
 	"strings"
+	"time"
 )
 
 func ProcDefList(ctx context.Context, includeDraft, permission, tag string, userRoles []string) (result []*models.ProcDefListObj, err error) {
@@ -131,5 +132,81 @@ func GetSimpleProcDefRow(ctx context.Context, procDefId string) (result *models.
 		return
 	}
 	result = procDefRows[0]
+	return
+}
+
+func CreateProcPreview(ctx context.Context, previewRows []*models.ProcDataPreview, graphRows []*models.ProcInsGraphNode) (err error) {
+	var actions []*db.ExecAction
+	for _, v := range previewRows {
+		actions = append(actions, &db.ExecAction{Sql: "insert into proc_data_preview(proc_def_id,proc_session_id,proc_def_node_id,entity_data_id,entity_data_name,entity_type_id,ordered_no,bind_type,full_data_id,is_bound,created_by,created_time) values (?,?,?,?,?,?,?,?,?,?,?,?)", Param: []interface{}{
+			v.ProcDefId, v.ProcSessionId, v.ProcDefNodeId, v.EntityDataId, v.EntityDataName, v.EntityTypeId, v.OrderedNo, v.BindType, v.FullDataId, v.IsBound, v.CreatedBy, v.CreatedTime,
+		}})
+	}
+	for _, v := range graphRows {
+		actions = append(actions, &db.ExecAction{Sql: "insert into proc_ins_graph_node(proc_session_id,proc_ins_id,data_id,display_name,entity_name,graph_node_id,pkg_name,prev_ids,succ_ids,full_data_id,created_by,created_time) values (?,?,?,?,?,?,?,?,?,?,?,?)", Param: []interface{}{
+			v.ProcSessionId, v.ProcInsId, v.DataId, v.DisplayName, v.EntityName, v.GraphNodeId, v.PkgName, v.PrevIds, v.SuccIds, v.FullDataId, v.CreatedBy, v.CreatedTime,
+		}})
+	}
+	if err = db.Transaction(actions, ctx); err != nil {
+		err = exterror.Catch(exterror.New().DatabaseExecuteError, err)
+	}
+	return
+}
+
+func ProcInsTaskNodeBindings(ctx context.Context, sessionId, taskNodeId string) (result []*models.TaskNodeBindingObj, err error) {
+	var previewRows []*models.ProcDataPreview
+	if taskNodeId == "" {
+		err = db.MysqlEngine.Context(ctx).SQL("select proc_def_node_id,entity_data_id,entity_data_name,entity_type_id,ordered_no,bind_type,is_bound from proc_data_preview where proc_session_id=?", sessionId).Find(&previewRows)
+	} else {
+		err = db.MysqlEngine.Context(ctx).SQL("select proc_def_node_id,entity_data_id,entity_data_name,entity_type_id,ordered_no,bind_type,is_bound from proc_data_preview where proc_session_id=? and proc_def_node_id=?", sessionId, taskNodeId).Find(&previewRows)
+	}
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
+		return
+	}
+	result = []*models.TaskNodeBindingObj{}
+	for _, row := range previewRows {
+		if row.ProcDefNodeId == "" {
+			continue
+		}
+		tmpBindingObj := models.TaskNodeBindingObj{
+			Bound:        "Y",
+			EntityDataId: row.EntityDataId,
+			EntityTypeId: row.EntityTypeId,
+			NodeDefId:    row.ProcDefNodeId,
+			OrderedNo:    row.OrderedNo,
+		}
+		if !row.IsBound {
+			tmpBindingObj.Bound = "N"
+		}
+		result = append(result, &tmpBindingObj)
+	}
+	return
+}
+
+func UpdateProcNodeBindingData(ctx context.Context, param []*models.TaskNodeBindingObj, sessionId, taskNodeId, operator string) (err error) {
+	var previewRows []*models.ProcDataPreview
+	err = db.MysqlEngine.Context(ctx).SQL("select id,proc_def_node_id,entity_data_id,entity_data_name,entity_type_id,ordered_no,bind_type,is_bound from proc_data_preview where proc_session_id=? and proc_def_node_id=?", sessionId, taskNodeId).Find(&previewRows)
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
+		return
+	}
+	var actions []*db.ExecAction
+	nowTime := time.Now()
+	for _, v := range previewRows {
+		boundFlag := false
+		for _, input := range param {
+			if input.EntityTypeId == v.EntityTypeId && input.EntityDataId == v.EntityDataId {
+				if input.Bound == "Y" {
+					boundFlag = true
+					break
+				}
+			}
+		}
+		actions = append(actions, &db.ExecAction{Sql: "update proc_data_preview set is_bound=?,updated_by=?,updated_time=? where id=?", Param: []interface{}{boundFlag, operator, nowTime, v.Id}})
+	}
+	if err = db.Transaction(actions, ctx); err != nil {
+		err = exterror.Catch(exterror.New().DatabaseExecuteError, err)
+	}
 	return
 }
