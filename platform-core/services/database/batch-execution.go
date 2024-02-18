@@ -381,17 +381,25 @@ func RetrieveTemplate(c *gin.Context, reqParam *models.QueryRequestParam) (resul
 		return
 	}
 
+	userRolesMap := make(map[string]struct{})
+	for _, role := range userRoles {
+		userRolesMap[role] = struct{}{}
+	}
 	templateIdMapRoleInfo := make(map[string]*models.PermissionToRole)
 	for _, roleData := range templateRoleData {
 		if _, isExisted := templateIdMapRoleInfo[roleData.BatchExecutionTemplateId]; !isExisted {
 			templateIdMapRoleInfo[roleData.BatchExecutionTemplateId] = &models.PermissionToRole{}
 		}
 		if roleData.Permission == models.PermissionTypeMGMT {
-			templateIdMapRoleInfo[roleData.BatchExecutionTemplateId].MGMT = append(
-				templateIdMapRoleInfo[roleData.BatchExecutionTemplateId].MGMT, roleData.RoleName)
+			if _, isExisted := userRolesMap[roleData.RoleName]; isExisted {
+				templateIdMapRoleInfo[roleData.BatchExecutionTemplateId].MGMT = append(
+					templateIdMapRoleInfo[roleData.BatchExecutionTemplateId].MGMT, roleData.RoleName)
+			}
 		} else if roleData.Permission == models.PermissionTypeUSE {
-			templateIdMapRoleInfo[roleData.BatchExecutionTemplateId].USE = append(
-				templateIdMapRoleInfo[roleData.BatchExecutionTemplateId].USE, roleData.RoleName)
+			if _, isExisted := userRolesMap[roleData.RoleName]; isExisted {
+				templateIdMapRoleInfo[roleData.BatchExecutionTemplateId].USE = append(
+					templateIdMapRoleInfo[roleData.BatchExecutionTemplateId].USE, roleData.RoleName)
+			}
 		}
 	}
 
