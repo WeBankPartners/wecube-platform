@@ -97,7 +97,7 @@ func (p *ProcPreviewData) AnalyzeRefIds() {
 	}
 	for _, v := range p.EntityTreeNodes {
 		for _, subFullDataId := range strings.Split(v.FullDataId, "::") {
-			if subFullDataId == "" {
+			if subFullDataId == "" || subFullDataId == v.DataId {
 				continue
 			}
 			if existList, ok := nodeSucceedingMap[subFullDataId]; ok {
@@ -114,4 +114,12 @@ func (p *ProcPreviewData) AnalyzeRefIds() {
 			v.PreviousIds = append(v.PreviousIds, nodeIdMap[preId])
 		}
 	}
+}
+
+type TaskNodeBindingObj struct {
+	Bound        string `json:"bound"`
+	EntityDataId string `json:"entityDataId"`
+	EntityTypeId string `json:"entityTypeId"`
+	NodeDefId    string `json:"nodeDefId"`
+	OrderedNo    string `json:"orderedNo"`
 }
