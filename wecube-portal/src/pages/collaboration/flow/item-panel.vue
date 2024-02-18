@@ -340,7 +340,7 @@ export default {
 <style lang="scss" scoped>
 #itemPanel {
   position: absolute;
-  top: 127px;
+  top: 134px;
   left: 22px;
   bottom: 0;
   z-index: 10;
