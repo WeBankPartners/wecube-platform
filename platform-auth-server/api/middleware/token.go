@@ -4,14 +4,16 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"net/http"
+	"strings"
+
 	"github.com/WeBankPartners/wecube-platform/platform-auth-server/api/support"
 	"github.com/WeBankPartners/wecube-platform/platform-auth-server/common/constant"
 	"github.com/WeBankPartners/wecube-platform/platform-auth-server/common/log"
+	"github.com/WeBankPartners/wecube-platform/platform-auth-server/common/utils"
 	"github.com/WeBankPartners/wecube-platform/platform-auth-server/model"
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt"
-	"net/http"
-	"strings"
 )
 
 const (
@@ -19,30 +21,61 @@ const (
 	AuthClaim      = "authClaim"
 )
 
-func AuthApi(c *gin.Context) {
-	if !strings.HasPrefix(c.Request.URL.Path, constant.UrlPrefix) {
-		c.String(http.StatusNotFound, "404 page not found")
-		c.Abort()
-		return
-	}
+type GetAuthorities func(path string, method string) []string
 
-	if c.Request.RequestURI == constant.UrlPrefix+constant.UriLogin {
-		c.Next()
-	} else {
-		//apiUri := c.Request.URL.Path[len(constant.UrlPrefix):]
-		authClaim, err := getTokenData(c.GetHeader(constant.AuthorizationHeader))
-		if err != nil {
-			log.Logger.Warn("failed to validate jwt token", log.Error(err))
-			//support.ReturnErrorWithHttpCode(c, exterror.Catch(exterror.New().AuthManagerTokenError, err), http.StatusUnauthorized)
-			support.ReturnErrorWithHttpCode(c, errors.New("failed to validate jwt token"), http.StatusUnauthorized)
-
+func AuthApi(authoritiesFetcher GetAuthorities) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		if !strings.HasPrefix(c.Request.URL.Path, constant.UrlPrefix) {
+			c.String(http.StatusNotFound, "404 page not found")
 			c.Abort()
 			return
 		}
-		//c.Set("needAuth", true)
-		c.Set(constant.Operator, fmt.Sprintf("%s", authClaim.Subject))
-		c.Set(AuthClaim, authClaim)
-		c.Next()
+
+		if c.Request.RequestURI == constant.UrlPrefix+constant.UriLogin {
+			c.Next()
+		} else {
+			//apiUri := c.Request.URL.Path[len(constant.UrlPrefix):]
+			authClaim, err := getTokenData(c.GetHeader(constant.AuthorizationHeader))
+			if err != nil {
+				log.Logger.Warn("failed to validate jwt token", log.Error(err))
+				//support.ReturnErrorWithHttpCode(c, exterror.Catch(exterror.New().AuthManagerTokenError, err), http.StatusUnauthorized)
+				support.ReturnErrorWithHttpCode(c, errors.New("failed to validate jwt token"), http.StatusUnauthorized)
+
+				c.Abort()
+				return
+			}
+			//c.Set("needAuth", true)
+			c.Set(constant.Operator, fmt.Sprintf("%s", authClaim.Subject))
+			c.Set(AuthClaim, authClaim)
+
+			authorities := make([]string, 0)
+			if len(authClaim.Authority) > 0 {
+				authorities = utils.ParseArrayString(authClaim.Authority)
+				c.Set("auth", authorities)
+			}
+
+			qualifiedAuthorities := authoritiesFetcher(c.Request.URL.Path, c.Request.Method)
+			if len(qualifiedAuthorities) == 0 {
+				c.Next()
+				return
+			}
+
+			authorized := false
+			for _, authority := range qualifiedAuthorities {
+				if utils.Contains(authorities, authority) {
+					authorized = true
+					break
+				}
+			}
+			if authorized {
+				c.Next()
+			} else {
+				errStr := "user don't have authority to access"
+				log.Logger.Warn(errStr)
+				support.ReturnErrorWithHttpCode(c, fmt.Errorf(errStr), http.StatusForbidden)
+				c.Abort()
+			}
+		}
 	}
 }
 
@@ -89,4 +122,8 @@ func GetAuthenticatedUser(c *gin.Context) *model.AuthenticatedUser {
 		}
 	}
 	return nil
+}
+
+func BuildRequestKey(path string, method string) string {
+	return fmt.Sprintf("%s_%s", path, method)
 }
