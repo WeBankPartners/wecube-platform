@@ -2,10 +2,11 @@ package api
 
 import (
 	"fmt"
+	"net/http"
+
 	"github.com/WeBankPartners/wecube-platform/platform-auth-server/api/middleware"
 	"github.com/WeBankPartners/wecube-platform/platform-auth-server/common/constant"
 	"github.com/WeBankPartners/wecube-platform/platform-auth-server/model"
-	"net/http"
 
 	"github.com/gin-gonic/gin"
 )
@@ -17,8 +18,8 @@ type handlerFuncObj struct {
 	LogOperation bool
 	PreHandle    func(c *gin.Context)
 	ApiCode      string
-	//Authority  []string
-	LogAction bool
+	Authorities  []string
+	LogAction    bool
 	//FeatureCode  string
 }
 
@@ -37,9 +38,15 @@ func NewRouter() *gin.Engine {
 		router.Use(middleware.HttpLogHandle())
 	}
 	router.Use(gin.CustomRecovery(middleware.RecoverHandle))
+
+	authMap := buildAuthMap()
+	authoritiesFetcher := func(path string, method string) []string {
+		return authMap[middleware.BuildRequestKey(path[len(constant.UrlPrefix):], method)]
+	}
+
 	//router.Use(middleware.AuthApi)
 	group := router.Group(constant.UrlPrefix)
-	group.Use(middleware.AuthApi)
+	group.Use(middleware.AuthApi(authoritiesFetcher))
 
 	for _, funcObj := range httpHandlerFuncList {
 		switch funcObj.Method {
@@ -58,6 +65,15 @@ func NewRouter() *gin.Engine {
 	}
 
 	return router
+}
+
+func buildAuthMap() map[string][]string {
+	authMap := make(map[string][]string)
+	for _, handlerFunc := range httpHandlerFuncList {
+		requestKey := middleware.BuildRequestKey(handlerFunc.Url, handlerFunc.Method)
+		authMap[requestKey] = handlerFunc.Authorities
+	}
+	return authMap
 }
 
 func init() {
@@ -97,9 +113,9 @@ func init() {
 		&handlerFuncObj{Url: "/v1/sub-systems", Method: http.MethodPost, HandlerFunc: RegisterSubSystem,
 			ApiCode: "RegisterSubSystem"},
 		&handlerFuncObj{Url: "/v1/sub-systems/tokens", Method: http.MethodPost, HandlerFunc: RegisterSubSystemAccessToken,
-			ApiCode: "RegisterSubSystem"},
+			ApiCode: "RegisterSubSystem", Authorities: []string{"SUPER_ADMIN"}},
 		&handlerFuncObj{Url: "/v1/sub-systems", Method: http.MethodGet, HandlerFunc: RetrieveAllSubSystems,
-			ApiCode: "RetrieveAllSubSystems"},
+			ApiCode: "RetrieveAllSubSystems", Authorities: []string{"SUPER_ADMIN"}},
 		&handlerFuncObj{Url: "/v1/sub-systems/names/:name", Method: http.MethodGet, HandlerFunc: RetrieveAllSubSystemByName,
 			ApiCode: "RetrieveAllSubSystemByName"},
 		&handlerFuncObj{Url: "/v1/sub-systems/:system-code/apikey", Method: http.MethodGet, HandlerFunc: RetrieveAllSubSystemsBySystemCode,
@@ -108,7 +124,7 @@ func init() {
 		&handlerFuncObj{Url: "/v1/users", Method: http.MethodPost, HandlerFunc: RegisterLocalUser,
 			ApiCode: "RegisterLocalUser"},
 		&handlerFuncObj{Url: "/v1/users/reset-password", Method: http.MethodPost, HandlerFunc: ResetLocalUserPassword,
-			ApiCode: "ResetLocalUserPassword"},
+			ApiCode: "ResetLocalUserPassword", Authorities: []string{"SUPER_ADMIN"}},
 		&handlerFuncObj{Url: "/v1/users/change-password", Method: http.MethodPost, HandlerFunc: ModifyLocalUserPassword,
 			ApiCode: "ModifyLocalUserPassword"},
 		&handlerFuncObj{Url: "/v1/users/usernames/:username", Method: http.MethodPost, HandlerFunc: ModifyLocalUserInfomation,
