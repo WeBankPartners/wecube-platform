@@ -1,6 +1,9 @@
 package models
 
-import "fmt"
+import (
+	"fmt"
+	"strings"
+)
 
 type ProcDefListObj struct {
 	ProcDefId      string             `json:"procDefId"`
@@ -78,4 +81,37 @@ func (p *ProcPreviewEntityNode) Parse(packageName, entityName string, input map[
 	}
 	p.Id = fmt.Sprintf("%s:%s:%s", p.PackageName, p.EntityName, p.DataId)
 	p.PreviousIds, p.SucceedingIds = []string{}, []string{}
+}
+
+func (p *ProcPreviewData) AnalyzeRefIds() {
+	if len(p.EntityTreeNodes) <= 1 {
+		return
+	}
+	nodePreviousMap := make(map[string][]string)
+	nodeSucceedingMap := make(map[string][]string)
+	nodeIdMap := make(map[string]string)
+	for _, v := range p.EntityTreeNodes {
+		nodePreviousMap[v.DataId] = []string{}
+		nodeSucceedingMap[v.DataId] = []string{}
+		nodeIdMap[v.DataId] = v.Id
+	}
+	for _, v := range p.EntityTreeNodes {
+		for _, subFullDataId := range strings.Split(v.FullDataId, "::") {
+			if subFullDataId == "" {
+				continue
+			}
+			if existList, ok := nodeSucceedingMap[subFullDataId]; ok {
+				nodeSucceedingMap[subFullDataId] = append(existList, v.DataId)
+				nodePreviousMap[v.DataId] = append(nodePreviousMap[v.DataId], subFullDataId)
+			}
+		}
+	}
+	for _, v := range p.EntityTreeNodes {
+		for _, sucId := range nodeSucceedingMap[v.DataId] {
+			v.SucceedingIds = append(v.SucceedingIds, nodeIdMap[sucId])
+		}
+		for _, preId := range nodePreviousMap[v.DataId] {
+			v.PreviousIds = append(v.PreviousIds, nodeIdMap[preId])
+		}
+	}
 }
