@@ -214,6 +214,23 @@ func QueryProcessDefinitionList(c *gin.Context) {
 	middleware.ReturnData(c, list)
 }
 
+// QueryPluginProcessDefinitionList 查询插件全量编排列表
+func QueryPluginProcessDefinitionList(c *gin.Context) {
+	var list []*models.ProcDef
+	var err error
+	plugin := c.Param("plugin")
+	if plugin == "" {
+		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, fmt.Errorf("plugin param is empty")))
+		return
+	}
+	list, err = database.QueryPluginProcessDefinitionList(c, plugin)
+	if err != nil {
+		middleware.ReturnError(c, err)
+		return
+	}
+	middleware.ReturnData(c, list)
+}
+
 // BatchUpdateProcessDefinitionStatus 批量更新编排状态
 func BatchUpdateProcessDefinitionStatus(c *gin.Context) {
 	var param models.BatchUpdateProcDefStatusParam
@@ -493,6 +510,16 @@ func GetProcDefRootTaskNode(c *gin.Context) {
 		}
 	}
 	middleware.ReturnData(c, result)
+}
+
+func GetProcDefTaskNodes(c *gin.Context) {
+	var list []*models.ProcNodeObj
+	procDefId := c.Param("proc-def-id")
+	if procDefId == "" {
+		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, fmt.Errorf("proc-def-id is empty")))
+		return
+	}
+	middleware.ReturnData(c, list)
 }
 
 // AddOrUpdateProcDefTaskNodes 添加更新编排节点

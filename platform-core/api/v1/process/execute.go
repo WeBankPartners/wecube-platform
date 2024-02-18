@@ -106,32 +106,43 @@ func ProcDefPreview(c *gin.Context) {
 	rootEntityNode.Parse(rootFilter.PackageName, rootFilter.EntityName, rootData)
 	entityNodeMap[rootEntityNode.Id] = &rootEntityNode
 	result.EntityTreeNodes = append(result.EntityTreeNodes, &rootEntityNode)
+
 	for _, node := range procOutlineData.FlowNodes {
 		if node.OrderedNo != "" && node.RoutineExpression != "" {
+			if node.RoutineExpression == procOutlineData.RootEntity {
+				// 表达式和根一样，不用解析，但同样要处理绑定数据
+				continue
+			}
 			tmpQueryDataParam := models.QueryExpressionDataParam{DataModelExpression: node.RoutineExpression, Filters: []*models.QueryExpressionDataFilter{&rootFilter}}
-			nodeDataList, nodeDataErr := queryProcPreviewNodeData(c, &tmpQueryDataParam)
+			nodeDataList, nodeDataErr := queryProcPreviewNodeData(c, &tmpQueryDataParam, &rootEntityNode)
 			if nodeDataErr != nil {
 				err = nodeDataErr
 				break
 			}
 			log.Logger.Debug("nodeData", log.String("node", node.NodeId), log.JsonObj("data", nodeDataList))
-
+			for _, nodeDataObj := range nodeDataList {
+				if _, ok := entityNodeMap[nodeDataObj.Id]; !ok {
+					entityNodeMap[nodeDataObj.Id] = nodeDataObj
+					result.EntityTreeNodes = append(result.EntityTreeNodes, nodeDataObj)
+				}
+			}
 		}
 	}
 	if err != nil {
 		middleware.ReturnError(c, err)
 		return
 	}
+	result.AnalyzeRefIds()
 	middleware.ReturnData(c, result)
 }
 
-func queryProcPreviewNodeData(ctx context.Context, param *models.QueryExpressionDataParam) (dataList []map[string]interface{}, err error) {
+func queryProcPreviewNodeData(ctx context.Context, param *models.QueryExpressionDataParam, rootEntityNode *models.ProcPreviewEntityNode) (dataList []*models.ProcPreviewEntityNode, err error) {
 	exprList, analyzeErr := remote.AnalyzeExpression(param.DataModelExpression)
 	if analyzeErr != nil {
 		err = analyzeErr
 		return
 	}
-	dataList, err = remote.QueryPluginData(ctx, exprList, param.Filters, remote.GetToken())
+	dataList, err = remote.QueryPluginFullData(ctx, exprList, param.Filters[0], rootEntityNode, remote.GetToken())
 	return
 }
 
