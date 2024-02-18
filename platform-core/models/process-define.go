@@ -327,6 +327,48 @@ type PermissionToRole struct {
 	USE  []string `json:"USE"`  // 使用角色
 }
 
+type ProcNodeObj struct {
+	NodeId        string        `json:"nodeId"`
+	NodeName      string        `json:"nodeName"`
+	NodeType      string        `json:"nodeType"`
+	NodeDefId     string        `json:"nodeDefId"`
+	TaskCategory  string        `json:"taskCategory"`
+	RoutineExp    string        `json:"routineExp"`
+	ServiceId     string        `json:"serviceId"`
+	ServiceName   string        `json:"serviceName"`
+	OrderedNo     string        `json:"orderedNo"`
+	OrderedNum    int           `json:"-"`
+	DynamicBind   bool          `json:"dynamicBind"`
+	BoundEntities []*ProcEntity `json:"boundEntities"`
+}
+
+type ProcEntity struct {
+	Id          string                    `json:"id"`
+	PackageName string                    `json:"packageName"`
+	Name        string                    `json:"name"`
+	Description string                    `json:"description"`
+	DisplayName string                    `json:"displayName"`
+	Attributes  []*ProcEntityAttributeObj `json:"attributes"`
+}
+
+type ProcEntityAttributeObj struct {
+	Id                string `json:"id"`
+	Name              string `json:"name"`
+	Description       string `json:"description"`
+	DataType          string `json:"dataType"`
+	Mandatory         bool   `json:"mandatory"`
+	RefPackageName    string `json:"refPackageName"`
+	RefEntityName     string `json:"refEntityName"`
+	RefAttrName       string `json:"refAttrName"`
+	ReferenceId       string `json:"referenceId"`
+	Active            bool   `json:"active"`
+	EntityId          string `json:"entityId"`
+	EntityName        string `json:"entityName"`
+	EntityDisplayName string `json:"entityDisplayName"`
+	EntityPackage     string `json:"entityPackage"`
+	Multiple          string `json:"multiple"`
+}
+
 type ProcDefSort []*ProcDef
 
 func (q ProcDefSort) Len() int {
