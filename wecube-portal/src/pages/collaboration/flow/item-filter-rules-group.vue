@@ -69,6 +69,12 @@ export default {
     filterRuleChanged (val) {
       if (!this.isBatch) {
         this.$emit('filterRuleChanged', val)
+      } else {
+        this.routineExpressionItem.forEach(item => {
+          if (!item.routineExpression) {
+            item.routineExpression = this.currentSelectedEntity
+          }
+        })
       }
     },
     changeRoutineExpressionItem (routineExpression) {
