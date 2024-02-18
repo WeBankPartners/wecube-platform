@@ -204,7 +204,6 @@
                         multiple
                         filterable
                         style="width: 50%"
-                        @on-change="prevCtxNodeChange"
                         @on-open-change="getRootNode"
                       >
                         <Option v-for="item in nodeList" :value="item.nodeId" :key="item.nodeId">{{
@@ -233,19 +232,23 @@
                           {{ item.paramName }}
                         </div>
                         <div style="width: 25%; display: inline-block">
-                          <Select v-model="item.bindNodeId" filterable @on-change="onParamsNodeChange(itemIndex)">
-                            <Option v-for="(item, index) in canSelectNode" :value="item.nodeId" :key="index">{{
+                          <Select v-model="item.bindNodeId" filterable @on-change="onParamsNodeChange(itemIndex, true)">
+                            <Option v-for="(item, index) in prevCtxNodeChange()" :value="item.nodeId" :key="index">{{
                               item.name
                             }}</Option>
                           </Select>
                         </div>
                         <div style="width: 22%; display: inline-block">
-                          <Select v-model="item.bindParamType" @on-change="onParamsNodeChange(itemIndex)" filterable>
+                          <Select
+                            v-model="item.bindParamType"
+                            @on-change="onParamsNodeChange(itemIndex, true)"
+                            filterable
+                          >
                             <Option v-for="i in paramsTypes" :value="i.value" :key="i.value">{{ i.label }}</Option>
                           </Select>
                         </div>
                         <div style="width: 25%; display: inline-block">
-                          <Select filterable v-model="item.bindParamName">
+                          <Select filterable v-model="item.bindParamName" @on-change="paramsChanged">
                             <Option v-for="i in item.currentParamNames" :value="i.name" :key="i.name">{{
                               i.name
                             }}</Option>
@@ -270,7 +273,7 @@
                           {{ item.paramName }}
                         </div>
                         <div style="width: 68%; display: inline-block">
-                          <Input v-model="item.bindValue" />
+                          <Input v-model="item.bindValue" @on-change="paramsChanged" />
                         </div>
                       </template>
                     </div>
@@ -622,12 +625,14 @@ export default {
     },
     // 设置被预选中的节点
     prevCtxNodeChange (val) {
-      this.canSelectNode = this.nodeList.filter(n => val.includes(n.nodeId))
+      return this.nodeList.filter(n => this.itemCustomInfo.customAttrs.contextParamNodes.includes(n.nodeId)) || []
     },
     // 改变节点及参数类型获取参数名
-    onParamsNodeChange (index) {
-      // this.editFormdata()
+    onParamsNodeChange (index, paramsChanged) {
       this.getParamsOptionsByNode(index)
+      if (paramsChanged) {
+        this.paramsChanged()
+      }
     },
     async getParamsOptionsByNode (index) {
       this.$set(this.itemCustomInfo.customAttrs.paramInfos[index], 'currentParamNames', [])
@@ -648,7 +653,7 @@ export default {
       paramInfos &&
         paramInfos.forEach((p, pIndex) => {
           if (p.bindType === 'context') {
-            this.onParamsNodeChange(pIndex)
+            this.onParamsNodeChange(pIndex, false)
           }
         })
     },
