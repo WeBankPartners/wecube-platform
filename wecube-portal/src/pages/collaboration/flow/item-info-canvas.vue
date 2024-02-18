@@ -49,21 +49,21 @@
           >
         </FormItem>
         <!-- @on-change="paramsChanged" -->
-        <FormItem label="授权插件">
+        <FormItem :label="$t('authPlugin')">
           <Select v-model="itemCustomInfo.authPlugins" filterable multiple>
             <Option v-for="item in authPluginList" :value="item" :key="item">{{ item }} </Option>
           </Select>
         </FormItem>
-        <FormItem label="分组" prop="scene">
+        <FormItem :label="$t('group')" prop="scene">
           <Input v-model="itemCustomInfo.scene" @on-change="paramsChanged"></Input>
           <span style="position: absolute; left: 320px; top: 2px; line-height: 30px; background: #ffffff"
             >{{ itemCustomInfo.scene.length || 0 }}/30</span
           >
           <span class="custom-error-tag" v-if="itemCustomInfo.scene.length > 30" style="color: red"
-            >分组{{ $t('cannotExceed') }} 30 {{ $t('characters') }}</span
+            >{{ $t('group') }} {{ $t('cannotExceed') }} 30 {{ $t('characters') }}</span
           >
         </FormItem>
-        <FormItem label="冲突检测">
+        <FormItem :label="$t('conflict_test')">
           <i-switch v-model="itemCustomInfo.conflictCheck" @on-change="paramsChanged" />
         </FormItem>
         <FormItem :label="$t('description')">

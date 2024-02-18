@@ -83,7 +83,7 @@
               itemCustomInfo.customAttrs && ['human', 'automatic', 'data'].includes(itemCustomInfo.customAttrs.nodeType)
             "
           >
-            执行控制
+            {{ $t('controlOfExecution') }}
             <template slot="content">
               <Form :label-width="120">
                 <FormItem :label="$t('timeout')">
@@ -108,7 +108,7 @@
               itemCustomInfo.customAttrs && ['human', 'automatic', 'data'].includes(itemCustomInfo.customAttrs.nodeType)
             "
           >
-            数据绑定
+            {{ $t('dataBinding') }}
             <template slot="content">
               <Form :label-width="120">
                 <FormItem
@@ -168,7 +168,7 @@
             name="4"
             v-if="itemCustomInfo.customAttrs && ['human', 'automatic'].includes(itemCustomInfo.customAttrs.nodeType)"
           >
-            调用插件服务
+            {{ $t('calledPluginService') }}
             <template slot="content">
               <Form :label-width="120">
                 <FormItem
@@ -177,7 +177,7 @@
                 >
                   <label slot="label">
                     <span style="color: red">*</span>
-                    插件服务
+                    {{ $t('pluginService') }}
                   </label>
                   <Select
                     v-model="itemCustomInfo.customAttrs.serviceName"
@@ -189,7 +189,7 @@
                     }}</Option>
                   </Select>
                   <span v-if="itemCustomInfo.customAttrs.serviceName === ''" style="color: red"
-                    >插件服务{{ $t('cannotBeEmpty') }}</span
+                    >{{ $t('pluginService') }} {{ $t('cannotBeEmpty') }}</span
                   >
                 </FormItem>
               </Form>
@@ -198,7 +198,7 @@
                 <Tabs type="card">
                   <TabPane :label="$t('context_parameters')">
                     <div>
-                      <span>设置[填充值来源-节点]列表：</span>
+                      <span>{{ $t('sourceNodeList') }}：</span>
                       <Select
                         v-model="itemCustomInfo.customAttrs.contextParamNodes"
                         multiple
@@ -212,8 +212,8 @@
                       </Select>
                     </div>
                     <div style="display: flex; background: #dee3e8">
-                      <div style="width: 25%">填入参数(key)</div>
-                      <div style="width: 72%">填充值来源(value)</div>
+                      <div style="width: 25%">{{ $t('parameterskey') }}</div>
+                      <div style="width: 72%">{{ $t('sourceVale') }}</div>
                     </div>
                     <div style="background: #e5e9ee">
                       <div style="width: 24%; display: inline-block">{{ $t('params_name') }}</div>
@@ -259,8 +259,8 @@
                   </TabPane>
                   <TabPane :label="$t('constant_parameters')">
                     <div style="background: #e5e9ee">
-                      <div style="width: 30%; display: inline-block">填入参数(key)</div>
-                      <div style="width: 68%; display: inline-block">填充值(value)</div>
+                      <div style="width: 30%; display: inline-block">{{ $t('parameterskey') }}</div>
+                      <div style="width: 68%; display: inline-block">{{ $t('sourceVale') }}</div>
                     </div>
                     <div
                       v-for="(item, itemIndex) in itemCustomInfo.customAttrs.paramInfos"
