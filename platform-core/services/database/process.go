@@ -89,6 +89,24 @@ func QueryProcessDefinitionList(ctx context.Context, param models.QueryProcessDe
 	return
 }
 
+func QueryPluginProcessDefinitionList(ctx context.Context, plugin string) (list []*models.ProcDef, err error) {
+	var allProcDefList []*models.ProcDef
+	list = make([]*models.ProcDef, 0)
+	allProcDefList, err = GetDeployedProcessDefinitionList(ctx)
+	if err != nil {
+		return
+	}
+	if len(allProcDefList) == 0 {
+		return
+	}
+	for _, procDef := range allProcDefList {
+		if strings.Contains(procDef.ForPlugin, plugin) {
+			list = append(list, procDef)
+		}
+	}
+	return
+}
+
 // AddProcessDefinition 添加编排
 func AddProcessDefinition(ctx context.Context, user string, param models.ProcessDefinitionParam) (draftEntity *models.ProcDef, err error) {
 	draftEntity = &models.ProcDef{}
@@ -277,6 +295,15 @@ func GetProcessDefinition(ctx context.Context, id string) (result *models.ProcDe
 
 func getProcessDefinitionByWhere(ctx context.Context, where string, queryParam []interface{}) (list []*models.ProcDef, err error) {
 	err = db.MysqlEngine.Context(ctx).SQL("select * from proc_def "+where, queryParam...).Find(&list)
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
+		return
+	}
+	return
+}
+
+func GetDeployedProcessDefinitionList(ctx context.Context) (list []*models.ProcDef, err error) {
+	err = db.MysqlEngine.Context(ctx).SQL("select * from proc_def where status = ?", string(models.Deployed)).Find(&list)
 	if err != nil {
 		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
 		return
