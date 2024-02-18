@@ -230,7 +230,7 @@ export default {
 <style lang="scss" scoped>
 #itemInfo {
   position: absolute;
-  top: 127px;
+  top: 134px;
   right: 13px;
   bottom: 0;
   z-index: 10;
