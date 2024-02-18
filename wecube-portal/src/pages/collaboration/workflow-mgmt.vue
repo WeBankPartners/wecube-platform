@@ -287,7 +287,8 @@ export default {
       if (findNode === -1) {
         return false
       } else {
-        this.$Message.warning('只能存在一个开始节点！')
+        // this.$Message.warning('只能存在一个开始节点！')
+        this.$Message.warning(`${this.$t('saveFailed')}${this.$t('canOnlyOneStartNode')}`)
         return true
       }
     },
@@ -296,7 +297,8 @@ export default {
       if (findNode === -1) {
         return false
       } else {
-        this.$Message.warning('只能存在一个结束节点！')
+        // this.$Message.warning('只能存在一个结束节点！')
+        this.$Message.warning(`${this.$t('saveFailed')}${this.$t('canOnlyOneEndNode')}`)
         return true
       }
     },
@@ -472,14 +474,20 @@ export default {
 
         const sourceNodeType = source.get('model').customAttrs.nodeType
         const targertNodeType = target.get('model').customAttrs.nodeType
+        const sourceNodeName = source.get('model').customAttrs.name
+        const targertNodeName = target.get('model').customAttrs.name
+        console.log(source.get('model').customAttrs)
+        console.log(target.get('model').customAttrs)
         // 结束节点不能连出
         if (sourceNodeType === 'end') {
-          this.$Message.warning('结束节点不能连出！')
+          // this.$Message.warning('结束节点不能连出！')
+          this.$Message.warning(`${this.$t('saveFailed')}[${sourceNodeName}]${this.$t('noExit')}`)
           return
         }
         // 异常节点不能连出
         if (sourceNodeType === 'abnormal') {
-          this.$Message.warning('异常节点不能连出！')
+          // this.$Message.warning('异常节点不能连出！')
+          this.$Message.warning(`${this.$t('saveFailed')}[${sourceNodeName}]${this.$t('noExit')}`)
           return
         }
 
@@ -487,12 +495,18 @@ export default {
         if (sourceNodeType === 'fork') {
           // 分流节点不能直连异常节点
           if (targertNodeType === 'abnormal') {
-            this.$Message.warning('分流节点不能直连异常节点！')
+            // this.$Message.warning('分流节点不能直连异常节点！')
+            this.$Message.warning(
+              `${this.$t('saveFailed')}[${sourceNodeName}]${this.$t('cannotBeDirectlyConnectedTo')}[${targertNodeName}]`
+            )
             return
           }
           // 分流节点不能直连结束节点
           if (targertNodeType === 'end') {
-            this.$Message.warning('分流节点不能直连结束节点！')
+            // this.$Message.warning('分流节点不能直连结束节点！')
+            this.$Message.warning(
+              `${this.$t('saveFailed')}[${sourceNodeName}]${this.$t('cannotBeDirectlyConnectedTo')}[${targertNodeName}]`
+            )
             return
           }
         }
@@ -501,27 +515,40 @@ export default {
           const outEdges = source.getOutEdges()
           // 开始节点只能连出一条
           if (outEdges.length > 0) {
-            this.$Message.warning('开始节点只能有一个出口！')
+            // this.$Message.warning('开始节点只能有一个出口！')
+            this.$Message.warning(`${this.$t('saveFailed')}[${sourceNodeName}]${this.$t('oneExit')}`)
             return
           }
           // 开始节点不能直连汇聚节点
           if (targertNodeType === 'merge') {
-            this.$Message.warning('开始节点不能直连汇聚节点！')
+            // this.$Message.warning('开始节点不能直连汇聚节点！')
+            this.$Message.warning(
+              `${this.$t('saveFailed')}[${sourceNodeName}]${this.$t('cannotBeDirectlyConnectedTo')}[${targertNodeName}]`
+            )
             return
           }
           // 开始节点不能直连分流节点
           if (targertNodeType === 'fork') {
-            this.$Message.warning('开始节点不能直连分流节点！')
+            // this.$Message.warning('开始节点不能直连分流节点！')
+            this.$Message.warning(
+              `${this.$t('saveFailed')}[${sourceNodeName}]${this.$t('cannotBeDirectlyConnectedTo')}[${targertNodeName}]`
+            )
             return
           }
           // 开始节点不能直连异常节点
           if (targertNodeType === 'abnormal') {
-            this.$Message.warning('开始节点不能直连异常节点！')
+            // this.$Message.warning('开始节点不能直连异常节点！')
+            this.$Message.warning(
+              `${this.$t('saveFailed')}[${sourceNodeName}]${this.$t('cannotBeDirectlyConnectedTo')}[${targertNodeName}]`
+            )
             return
           }
           // 开始节点不能直连结束节点
           if (targertNodeType === 'end') {
-            this.$Message.warning('开始节点不能直连结束节点！')
+            // this.$Message.warning('开始节点不能直连结束节点！')
+            this.$Message.warning(
+              `${this.$t('saveFailed')}[${sourceNodeName}]${this.$t('cannotBeDirectlyConnectedTo')}[${targertNodeName}]`
+            )
             return
           }
         }
@@ -529,13 +556,15 @@ export default {
         if (targertNodeType === 'end') {
           const inEdges = target.getInEdges()
           if (inEdges.length > 0) {
-            this.$Message.warning('结束节点只能有一个入口！')
+            // this.$Message.warning('结束节点只能有一个入口！')
+            this.$Message.warning(`${this.$t('saveFailed')}[${targertNodeName}]${this.$t('oneEntrance')}`)
             return
           }
         }
         // 开始节点不能连入
         if (targertNodeType === 'start') {
-          this.$Message.warning('开始节点不能连入！')
+          // this.$Message.warning('开始节点不能连入！')
+          this.$Message.warning(`${this.$t('saveFailed')}[${targertNodeName}]${this.$t('noEntry')}`)
           return
         }
 
@@ -543,7 +572,8 @@ export default {
         if (targertNodeType === 'abnormal') {
           const inEdges = target.getInEdges()
           if (inEdges.length > 0) {
-            this.$Message.warning('异常节点只能有一个入口！')
+            // this.$Message.warning('异常节点只能有一个入口！')
+            this.$Message.warning(`${this.$t('saveFailed')}[${targertNodeName}]${this.$t('oneEntrance')}`)
             return
           }
         }
@@ -558,7 +588,8 @@ export default {
         if (['data', 'human', 'automatic', 'date', 'timeInterval'].includes(sourceNodeType)) {
           const outEdges = source.getOutEdges()
           if (outEdges.length === 1) {
-            this.$Message.warning('该节点只能有一个出口！')
+            // this.$Message.warning('该节点只能有一个出口！')
+            this.$Message.warning(`${this.$t('saveFailed')}[${sourceNodeName}]${this.$t('oneExit')}`)
             return
           }
         }
@@ -566,7 +597,7 @@ export default {
         if (['data', 'human', 'automatic', 'date', 'timeInterval'].includes(targertNodeType)) {
           const inEdges = target.getInEdges()
           if (inEdges.length === 1) {
-            this.$Message.warning('该节点只能有一个入口！')
+            this.$Message.warning(`${this.$t('saveFailed')}[${targertNodeName}]${this.$t('oneEntrance')}`)
             return
           }
         }
