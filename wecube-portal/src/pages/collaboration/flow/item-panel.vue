@@ -21,11 +21,11 @@
           />
           <div class="item-tool-name">{{ $t('start') }}</div>
         </div>
-        <div slot="content">
-          <p style="word-break: keep-all">{{ $t('startNodeFunc') }}</p>
-          <p style="word-break: keep-all">{{ $t('usage') }}</p>
-          <p style="word-break: keep-all">{{ $t('startNodetip1') }}</p>
-          <p style="word-break: keep-all">{{ $t('startNodetip2') }}</p>
+        <div style="word-break: keep-all" slot="content">
+          <p>{{ $t('startNodeFunc') }}</p>
+          <p>{{ $t('usage') }}</p>
+          <p>{{ $t('startNodetip1') }}</p>
+          <p>{{ $t('startNodetip2') }}</p>
         </div>
       </Tooltip>
       <Tooltip :maxWidth="400" placement="right" :delay="1000">
@@ -47,11 +47,11 @@
           />
           <div class="item-tool-name">{{ $t('end') }}</div>
         </div>
-        <div slot="content">
-          <p style="word-break: keep-all">{{ $t('endNodeFunc') }}</p>
-          <p style="word-break: keep-all">{{ $t('usage') }}</p>
-          <p style="word-break: keep-all">{{ $t('endNodetip1') }}</p>
-          <p style="word-break: keep-all">{{ $t('endNodetip2') }}</p>
+        <div style="word-break: keep-all" slot="content">
+          <p>{{ $t('endNodeFunc') }}</p>
+          <p>{{ $t('usage') }}</p>
+          <p>{{ $t('endNodetip1') }}</p>
+          <p>{{ $t('endNodetip2') }}</p>
         </div>
       </Tooltip>
       <Tooltip :maxWidth="400" placement="right" :delay="1000">
@@ -73,11 +73,11 @@
           />
           <div class="item-tool-name">{{ $t('abnormal') }}</div>
         </div>
-        <div slot="content">
-          <p style="word-break: keep-all">{{ $t('abnormalNodeFunc') }}</p>
-          <p style="word-break: keep-all">{{ $t('usage') }}</p>
-          <p style="word-break: keep-all">{{ $t('abnormalNodetip1') }}</p>
-          <p style="word-break: keep-all">{{ $t('abnormalNodetip2') }}</p>
+        <div style="word-break: keep-all" slot="content">
+          <p>{{ $t('abnormalNodeFunc') }}</p>
+          <p>{{ $t('usage') }}</p>
+          <p>{{ $t('abnormalNodetip1') }}</p>
+          <p>{{ $t('abnormalNodetip2') }}</p>
         </div>
       </Tooltip>
       <Tooltip :maxWidth="400" placement="right" :delay="1000">
@@ -96,11 +96,11 @@
           </div>
           <div class="diamond-item-tool-name">{{ $t('decision') }}</div>
         </div>
-        <div slot="content">
-          <p style="word-break: keep-all">{{ $t('decisionNodeFunc') }}</p>
-          <p style="word-break: keep-all">{{ $t('usage') }}</p>
-          <p style="word-break: keep-all">{{ $t('decisionNodetip1') }}</p>
-          <p style="word-break: keep-all">{{ $t('decisionNodetip2') }}</p>
+        <div style="word-break: keep-all" slot="content">
+          <p>{{ $t('decisionNodeFunc') }}</p>
+          <p>{{ $t('usage') }}</p>
+          <p>{{ $t('decisionNodetip1') }}</p>
+          <p>{{ $t('decisionNodetip2') }}</p>
         </div>
       </Tooltip>
       <Tooltip :maxWidth="400" placement="right" :delay="1000">
@@ -119,11 +119,11 @@
           </div>
           <div class="diamond-item-tool-name">{{ $t('forkNode') }}</div>
         </div>
-        <div slot="content">
-          <p style="word-break: keep-all">{{ $t('forkNodeFunc') }}</p>
-          <p style="word-break: keep-all">{{ $t('usage') }}</p>
-          <p style="word-break: keep-all">{{ $t('forkNodetip1') }}</p>
-          <p style="word-break: keep-all">{{ $t('forkNodetip2') }}</p>
+        <div style="word-break: keep-all" slot="content">
+          <p>{{ $t('forkNodeFunc') }}</p>
+          <p>{{ $t('usage') }}</p>
+          <p>{{ $t('forkNodetip1') }}</p>
+          <p>{{ $t('forkNodetip2') }}</p>
         </div>
       </Tooltip>
       <Tooltip :maxWidth="400" placement="right" :delay="1000">
@@ -142,11 +142,11 @@
           </div>
           <div class="diamond-item-tool-name">{{ $t('merge') }}</div>
         </div>
-        <div slot="content">
-          <p style="word-break: keep-all">{{ $t('forkNodeFunc') }}</p>
-          <p style="word-break: keep-all">{{ $t('usage') }}</p>
-          <p style="word-break: keep-all">{{ $t('forkNodetip1') }}</p>
-          <p style="word-break: keep-all">{{ $t('forkNodetip2') }}</p>
+        <div style="word-break: keep-all" slot="content">
+          <p>{{ $t('forkNodeFunc') }}</p>
+          <p>{{ $t('usage') }}</p>
+          <p>{{ $t('forkNodetip1') }}</p>
+          <p>{{ $t('forkNodetip2') }}</p>
         </div>
       </Tooltip>
       <Tooltip :maxWidth="400" placement="right" :delay="1000">
@@ -168,11 +168,11 @@
           />
           <div class="item-tool-name">{{ $t('artificial') }}</div>
         </div>
-        <div slot="content">
-          <p style="word-break: keep-all">{{ $t('humanNodeFunc') }}</p>
-          <p style="word-break: keep-all">{{ $t('usage') }}</p>
-          <p style="word-break: keep-all">{{ $t('humanNodetip1') }}</p>
-          <p style="word-break: keep-all">{{ $t('humanNodetip2') }}</p>
+        <div style="word-break: keep-all" slot="content">
+          <p>{{ $t('humanNodeFunc') }}</p>
+          <p>{{ $t('usage') }}</p>
+          <p>{{ $t('humanNodetip1') }}</p>
+          <p>{{ $t('humanNodetip2') }}</p>
         </div>
       </Tooltip>
       <Tooltip :maxWidth="400" placement="right" :delay="1000">
@@ -194,11 +194,11 @@
           />
           <div class="item-tool-name">{{ $t('automatic') }}</div>
         </div>
-        <div slot="content">
-          <p style="word-break: keep-all">{{ $t('automaticNodeFunc') }}</p>
-          <p style="word-break: keep-all">{{ $t('usage') }}</p>
-          <p style="word-break: keep-all">{{ $t('automaticNodetip1') }}</p>
-          <p style="word-break: keep-all">{{ $t('automaticNodetip2') }}</p>
+        <div style="word-break: keep-all" slot="content">
+          <p>{{ $t('automaticNodeFunc') }}</p>
+          <p>{{ $t('usage') }}</p>
+          <p>{{ $t('automaticNodetip1') }}</p>
+          <p>{{ $t('automaticNodetip2') }}</p>
         </div>
       </Tooltip>
       <Tooltip :maxWidth="400" placement="right" :delay="1000">
@@ -220,10 +220,10 @@
           />
           <div class="item-tool-name">{{ $t('data') }}</div>
         </div>
-        <div slot="content">
-          <p style="word-break: keep-all">{{ $t('dataNodeFunc') }}</p>
-          <p style="word-break: keep-all">{{ $t('usage') }}</p>
-          <p style="word-break: keep-all">{{ $t('dataNodetip1') }}</p>
+        <div style="word-break: keep-all" slot="content">
+          <p>{{ $t('dataNodeFunc') }}</p>
+          <p>{{ $t('usage') }}</p>
+          <p>{{ $t('dataNodetip1') }}</p>
         </div>
       </Tooltip>
       <Tooltip :maxWidth="400" placement="right" :delay="1000">
@@ -245,10 +245,10 @@
           />
           <div class="item-tool-name">{{ $t('fixedTime') }}</div>
         </div>
-        <div slot="content">
-          <p style="word-break: keep-all">{{ $t('fixedTimeFunc') }}</p>
-          <p style="word-break: keep-all">{{ $t('usage') }}</p>
-          <p style="word-break: keep-all">{{ $t('fixedTimeNodetip1') }}</p>
+        <div style="word-break: keep-all" slot="content">
+          <p>{{ $t('fixedTimeFunc') }}</p>
+          <p>{{ $t('usage') }}</p>
+          <p>{{ $t('fixedTimeNodetip1') }}</p>
         </div>
       </Tooltip>
       <Tooltip :maxWidth="400" placement="right" :delay="1000">
@@ -268,12 +268,12 @@
             class="item-tool-icon"
             draggable="false"
           />
-          <div class="item-tool-name">{{ $t('timeInterval') }}</div>
+          <div class="item-tool-name">{{ $t('timeGap') }}</div>
         </div>
-        <div slot="content">
-          <p style="word-break: keep-all">{{ $t('timeIntervalFunc') }}</p>
-          <p style="word-break: keep-all">{{ $t('usage') }}</p>
-          <p style="word-break: keep-all">{{ $t('timeIntervaltip1') }}</p>
+        <div style="word-break: keep-all" slot="content">
+          <p>{{ $t('timeIntervalFunc') }}</p>
+          <p>{{ $t('usage') }}</p>
+          <p>{{ $t('timeIntervaltip1') }}</p>
         </div>
       </Tooltip>
     </div>

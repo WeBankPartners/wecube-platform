@@ -103,14 +103,14 @@
       ></Input>
       <Input
         v-model="searchParams.createdBy"
-        placeholder="创建人"
+        :placeholder="$t('createdBy')"
         class="search-item"
         clearable
         @on-change="getFlowList"
       ></Input>
       <Input
         v-model="searchParams.updatedBy"
-        placeholder="更新人"
+        :placeholder="$t('updatedBy')"
         class="search-item"
         clearable
         @on-change="getFlowList"

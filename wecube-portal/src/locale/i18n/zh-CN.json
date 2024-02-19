@@ -567,6 +567,7 @@
   "automatic": "自动",
   "fixedTime": "固定时间",
   "timeInterval": "时间间隔",
+  "timeGap": "时间间隔",
   "cannotExceed": "不能超过",
   "characters": "字符",
   "setRootEntity": "请先设置编排的对象类型",
