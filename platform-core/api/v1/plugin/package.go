@@ -1,6 +1,7 @@
 package plugin
 
 import (
+	"encoding/json"
 	"encoding/xml"
 	"fmt"
 	"github.com/WeBankPartners/go-common-lib/cipher"
@@ -19,6 +20,7 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"time"
 )
 
 // GetPackages 插件列表查询
@@ -357,7 +359,6 @@ func LaunchPlugin(c *gin.Context) {
 	pluginInstance := models.PluginInstances{
 		Id:              "p_docker_" + guid.CreateGuid(),
 		Host:            hostIp,
-		ContainerName:   fmt.Sprintf("%s-%s", pluginPackageObj.Name, pluginPackageObj.Version),
 		Port:            port,
 		ContainerStatus: "RUNNING",
 		PackageId:       pluginPackageId,
@@ -438,7 +439,7 @@ func LaunchPlugin(c *gin.Context) {
 		}
 	}
 	dockerResource := resources.Docker[0]
-	pluginInstance.DockerInstanceResourceId = dockerResource.Id
+	pluginInstance.ContainerName = dockerResource.ContainerName
 	dockerServer, getDockerServerErr := database.GetResourceServer(c, "docker", hostIp)
 	if getDockerServerErr != nil {
 		middleware.ReturnError(c, getDockerServerErr)
@@ -509,7 +510,7 @@ func LaunchPlugin(c *gin.Context) {
 		return
 	}
 	// 去目标机器上docker run起来，或使用docker-compose
-	dockerCmd := fmt.Sprintf("docker run -d --name %s ", pluginInstance.ContainerName)
+	dockerCmd := fmt.Sprintf("docker run -d --name %s ", dockerResource.ContainerName)
 	for _, v := range volumeBindList {
 		dockerCmd += fmt.Sprintf("--volume %s ", v)
 	}
@@ -519,7 +520,7 @@ func LaunchPlugin(c *gin.Context) {
 	for _, v := range envBindList {
 		dockerCmd += fmt.Sprintf("-e %s ", v)
 	}
-	dockerCmd += fmt.Sprintf(" %s:%s ", pluginPackageObj.Name, pluginPackageObj.Version)
+	dockerCmd += dockerResource.ImageName
 	if err = bash.RemoteSSHCommand(dockerServer.Host, dockerServer.LoginUsername, dockerServer.LoginPassword, dockerServer.Port, dockerCmd); err != nil {
 		middleware.ReturnError(c, err)
 		return
@@ -528,7 +529,23 @@ func LaunchPlugin(c *gin.Context) {
 	if len(resources.S3) > 0 {
 		pluginInstance.S3bucketResourceId = resources.S3[0].Id
 	}
-	err = database.LaunchPlugin(c, &pluginInstance)
+	resourceItemProperties := models.ResourceItemProperties{
+		ImageName:      dockerResource.ImageName,
+		PortBindings:   strings.Join(portBindList, ","),
+		VolumeBindings: strings.Join(volumeBindList, ","),
+		EnvVariables:   strings.Join(envBindList, ","),
+	}
+	resourceItemPropertiesBytes, _ := json.Marshal(&resourceItemProperties)
+	resourceItem := models.ResourceItem{
+		Id:                   "rs_item_" + guid.CreateGuid(),
+		ResourceServerId:     dockerServer.Id,
+		AdditionalProperties: string(resourceItemPropertiesBytes),
+		CreatedBy:            operator,
+		CreatedDate:          time.Now(),
+		Name:                 dockerResource.ContainerName,
+	}
+	pluginInstance.DockerInstanceResourceId = resourceItem.Id
+	err = database.LaunchPlugin(c, &pluginInstance, &resourceItem)
 	if err != nil {
 		middleware.ReturnError(c, err)
 		return
@@ -561,11 +578,17 @@ func RemovePlugin(c *gin.Context) {
 		middleware.ReturnError(c, getServerErr)
 		return
 	}
+	// 查询容器运行信息
+	imageName, containerName, getErr := database.GetPluginDockerRuntimeMessage(pluginInstanceObj.PackageId)
+	if getErr != nil {
+		middleware.ReturnError(c, getErr)
+		return
+	}
 	// 销毁容器
 	if strings.HasPrefix(resourceServer.LoginPassword, models.AESPrefix) {
-		resourceServer.LoginPassword = encrypt.DecryptWithAesECB(resourceServer.LoginPassword, models.Config.Plugin.ResourcePasswordSeed, resourceServer.Name)
+		resourceServer.LoginPassword = encrypt.DecryptWithAesECB(resourceServer.LoginPassword[5:], models.Config.Plugin.ResourcePasswordSeed, resourceServer.Name)
 	}
-	removeCmd := fmt.Sprintf("docker rm -f %s && docker rmi %s:%s", pluginInstanceObj.ContainerName, pluginPackageObj.Name, pluginPackageObj.Version)
+	removeCmd := fmt.Sprintf("docker rm -f %s && docker rmi %s", containerName, imageName)
 	if err = bash.RemoteSSHCommand(resourceServer.Host, resourceServer.LoginUsername, resourceServer.LoginPassword, resourceServer.Port, removeCmd); err != nil {
 		middleware.ReturnError(c, err)
 		return
