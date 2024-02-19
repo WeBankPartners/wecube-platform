@@ -106,9 +106,9 @@
           </span>
         </div>
         <div>
-          <pre class="display-result" v-if="jsonData.output">
-            <span v-html="formatResult(jsonData.output)"></span>
-          </pre>
+          <span v-if="jsonData.output">
+            <pre class="display-result" v-html="formatResult(jsonData.output)"></pre>
+          </span>
           <pre v-else>
             <span></span>
           </pre>
@@ -188,42 +188,50 @@ export default {
         let businessKeyFlag = item.businessKey.indexOf(operateObject) > -1
         let returnJsonFlag = true
         // 字符串匹配
-        if (filterType === 'str' && filterParams) {
-          returnJsonFlag = item.returnJson.indexOf(filterParams) > -1
-          const reg = new RegExp(filterParams, 'g')
-          item.returnJsonFormat = item.returnJson.replace(reg, "<span style='color:red'>" + filterParams + '</span>')
+        if (filterType === 'str') {
+          if (filterParams) {
+            returnJsonFlag = item.returnJson.indexOf(filterParams) > -1
+            const reg = new RegExp(filterParams, 'g')
+            item.returnJsonFormat = item.returnJson.replace(reg, "<span style='color:red'>" + filterParams + '</span>')
+          } else {
+            item.returnJsonFormat = item.returnJson
+          }
         }
         // 正则匹配
-        if (filterType === 'regex' && filterParams) {
-          let execRes = []
-          let patt = null
-          try {
-            patt = new RegExp(filterParams, 'gmi')
-            execRes = item.returnJson.match(patt)
-            execRes = Array.from(new Set(execRes))
-            execRes.sort(function (a, b) {
-              return b.length - a.length
+        if (filterType === 'regex') {
+          if (filterParams) {
+            let execRes = []
+            let patt = null
+            try {
+              patt = new RegExp(filterParams, 'gmi')
+              execRes = item.returnJson.match(patt)
+              execRes = Array.from(new Set(execRes))
+              execRes.sort(function (a, b) {
+                return b.length - a.length
+              })
+              execRes = execRes.filter(s => {
+                return s && s.trim()
+              })
+            } catch (err) {
+              console.log(err)
+              this.$Message.error(this.$t('bc_filter_type_warn'))
+              this.form.filterParams = null
+              return
+            }
+            let str = item.returnJson
+            let len = str.length
+            execRes.forEach(keyword => {
+              let reg = new RegExp(keyword, 'g')
+              str = str.replace(reg, "<span style='color:red'>" + keyword + '</span>')
             })
-            execRes = execRes.filter(s => {
-              return s && s.trim()
-            })
-          } catch (err) {
-            console.log(err)
-            this.$Message.error(this.$t('bc_filter_type_warn'))
-            this.form.filterParams = null
-            return
-          }
-          let str = item.returnJson
-          let len = str.length
-          execRes.forEach(keyword => {
-            let reg = new RegExp(keyword, 'g')
-            str = str.replace(reg, "<span style='color:red'>" + keyword + '</span>')
-          })
-          if (str.length !== len) {
-            returnJsonFlag = true
-            item.returnJsonFormat = str
+            if (str.length !== len) {
+              returnJsonFlag = true
+              item.returnJsonFormat = str
+            } else {
+              returnJsonFlag = false
+            }
           } else {
-            returnJsonFlag = false
+            item.returnJsonFormat = item.returnJson
           }
         }
         return errorCodeFlag && businessKeyFlag && returnJsonFlag
