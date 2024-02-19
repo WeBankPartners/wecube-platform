@@ -72,5 +72,9 @@ func decrypt(ciphertext string, key []byte) []byte {
 func pkcs5UnPadding(src []byte) []byte {
 	length := len(src)
 	unPaddedData := int(src[length-1])
-	return src[:(length - unPaddedData)]
+	if unPaddedData < length {
+		return src[:(length - unPaddedData)]
+	} else {
+		return src
+	}
 }
