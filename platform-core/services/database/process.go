@@ -186,9 +186,7 @@ func CopyProcessDefinitionByDto(ctx context.Context, procDef *models.ProcessDefi
 				if nodeModel != nil {
 					nodeList = append(nodeList, nodeModel)
 				}
-				if len(nodeParamList) > 0 {
-					nodeParamList = append(nodeParamList, nodeParams...)
-				}
+				nodeParamList = append(nodeParamList, nodeParams...)
 			}
 		}
 	}
@@ -238,6 +236,7 @@ func CopyProcessDefinition(ctx context.Context, procDef *models.ProcDef, operato
 
 func execCopyProcessDefinition(ctx context.Context, procDef *models.ProcDef, nodeList []*models.ProcDefNode,
 	linkList []*models.ProcDefNodeLink, nodeParamList []*models.ProcDefNodeParam, permissionList []*models.ProcDefPermission, operator string) (newProcDefId string, err error) {
+	var curNodeParamList []*models.ProcDefNodeParam
 	newProcDefId = "pdef_" + guid.CreateGuid()
 	currTime := time.Now().Format(models.DateTimeFormat)
 	var actions []*db.ExecAction
@@ -258,7 +257,7 @@ func execCopyProcessDefinition(ctx context.Context, procDef *models.ProcDef, nod
 	// 插入节点 & 节点参数 & 更新线集合中节点ID数据
 	if len(nodeList) > 0 {
 		for _, node := range nodeList {
-			var curNodeParamList []*models.ProcDefNodeParam
+			curNodeParamList = []*models.ProcDefNodeParam{}
 			newNodeId := models.GenNodeId(node.NodeType)
 			actions = append(actions, &db.ExecAction{Sql: "insert into  proc_def_node(id,node_id,proc_def_id,name,description,status,node_type,service_name," +
 				"dynamic_bind,bind_node_id,risk_check,routine_expression,context_param_nodes,timeout,time_config,ordered_no,ui_style,created_by,created_time," +
@@ -266,7 +265,7 @@ func execCopyProcessDefinition(ctx context.Context, procDef *models.ProcDef, nod
 				models.Draft, node.NodeType, node.ServiceName, node.DynamicBind, node.BindNodeId, node.RiskCheck, node.RoutineExpression, node.ContextParamNodes,
 				node.Timeout, node.TimeConfig, node.OrderedNo, node.UiStyle, operator, currTime, node.UpdatedBy, currTime}})
 			for _, nodeParam := range nodeParamList {
-				if nodeParam.Id == node.Id {
+				if nodeParam.ProcDefNodeId == node.NodeId {
 					curNodeParamList = append(curNodeParamList, nodeParam)
 				}
 			}
