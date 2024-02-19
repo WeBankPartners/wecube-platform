@@ -568,6 +568,7 @@
   "automatic": "Automatic",
   "fixedTime": "Date",
   "timeInterval": "Time Interval",
+  "timeGap": "Time Gap",
   "cannotExceed": " cannot exceed",
   "characters": " characters ",
   "setRootEntity": "Prioritize setting the flow root entity",
