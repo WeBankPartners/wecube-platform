@@ -75,7 +75,7 @@ func QueryProcessDefinitionList(ctx context.Context, param models.QueryProcessDe
 				roleProcDefMap[manageRole] = make([]*models.ProcDefDto, 0)
 				allManageRoles = append(allManageRoles, manageRole)
 			}
-			roleProcDefMap[manageRole] = append(roleProcDefMap[manageRole], models.BuildProcDefDto(procDef, userRoles, enabledCreated))
+			roleProcDefMap[manageRole] = append(roleProcDefMap[manageRole], models.BuildProcDefDto(procDef, userRoles, manageRoles, enabledCreated))
 		}
 	}
 	// 角色排序
