@@ -24,7 +24,7 @@
       <Button
         type="info"
         class="btn-right"
-        :disabled="!(['deployed'].includes(searchParams.status) && selectedParams.ids.length > 0)"
+        :disabled="!(['deployed'].includes(searchParams.status) && selectedParams.length > 0)"
         @click="exportFlow"
       >
         <img src="../../assets/icon/export.png" class="btn-img" alt="" />
@@ -34,7 +34,7 @@
         type="warning"
         class="btn-right"
         @click="batchAuth"
-        :disabled="!(['deployed', 'draft'].includes(searchParams.status) && selectedParams.ids.length > 0)"
+        :disabled="!(['deployed', 'draft'].includes(searchParams.status) && selectedParams.length > 0)"
       >
         <Icon type="ios-person-outline" size="16"></Icon>
         {{ $t('config_permission') }}
@@ -44,7 +44,7 @@
         class="btn-right"
         @click="batchChangeStatus('deleted')"
         v-if="['draft'].includes(searchParams.status)"
-        :disabled="!(['draft'].includes(searchParams.status) && selectedParams.ids.length > 0)"
+        :disabled="!(['draft'].includes(searchParams.status) && selectedParams.length > 0)"
       >
         <Icon type="ios-trash-outline" size="16"></Icon>
         {{ $t('delete') }}
@@ -52,7 +52,7 @@
       <Button
         type="error"
         v-if="['deployed'].includes(searchParams.status)"
-        :disabled="!(['deployed'].includes(searchParams.status) && selectedParams.ids.length > 0)"
+        :disabled="!(['deployed'].includes(searchParams.status) && selectedParams.length > 0)"
         @click="batchChangeStatus('disabled')"
       >
         <img src="../../assets/icon/disable.png" class="btn-img" />
@@ -62,7 +62,7 @@
         type="success"
         @click="batchChangeStatus('enabled')"
         v-if="['disabled'].includes(searchParams.status)"
-        :disabled="!(['disabled'].includes(searchParams.status) && selectedParams.ids.length > 0)"
+        :disabled="!(['disabled'].includes(searchParams.status) && selectedParams.length > 0)"
       >
         <img src="../../assets/icon/enable.png" class="btn-img" alt="" />
         {{ $t('enable') }}
@@ -192,14 +192,13 @@
                 </div>
                 <div v-show="!hideRoles.includes(roleDataIndex)">
                   <Table
-                    class="hide-select-all"
                     size="small"
                     :columns="tableColumn"
                     :data="roleData.dataList"
-                    @on-select-all="onSelectAll"
-                    @on-select="onSelect"
-                    @on-select-cancel="cancelSelect"
-                    @on-selection-change="onSelectionChange"
+                    @on-select-all="selection => onSelectAll(selection, roleDataIndex)"
+                    @on-select-all-cancel="selection => onSelectAllCancel(selection, roleDataIndex)"
+                    @on-select="(selection, row) => onSelect(selection, row, roleDataIndex)"
+                    @on-select-cancel="(selection, row) => cancelSelect(selection, row, roleDataIndex)"
                     width="100%"
                   ></Table>
                 </div>
@@ -256,7 +255,7 @@ export default {
       tableColumn: [
         {
           type: 'selection',
-          width: 30,
+          width: 40,
           align: 'center'
         },
         {
@@ -432,11 +431,7 @@ export default {
           }
         }
       ],
-      selectedParams: {
-        ids: [],
-        // status: [],
-        names: []
-      },
+      selectedParams: [], // id,name,rowDataIndex
       headers: {}
     }
   },
@@ -459,28 +454,36 @@ export default {
         'Accept-Language': lang === 'zh-CN' ? 'zh-CN,zh;q=0.9,en;q=0.8' : 'en-US,en;q=0.9,zh;q=0.8'
       }
     },
-    onSelectionChange (selection, b) {
-      // console.log('onSelectionChange', selection, b)
-    },
-    onSelectAll (selection, b) {
-      // console.log('onSelectAll', selection, b)
+    onSelectAll (selection, roleDataIndex) {
       selection.forEach(se => {
-        if (!this.selectedParams.ids.includes(se.id)) {
-          this.selectedParams.ids.push(se.id)
-          this.selectedParams.names.push(se.name)
+        const findIndex = this.selectedParams.findIndex(
+          param => param.id === se.id && param.roleDataIndex === roleDataIndex
+        )
+        if (findIndex === -1) {
+          this.selectedParams.push({
+            id: se.id,
+            name: se.name,
+            roleDataIndex: roleDataIndex
+          })
         }
       })
     },
-    onSelect (selection, b) {
-      // console.log('onSelect', selection, b)
-      this.selectedParams.ids.push(b.id)
-      this.selectedParams.names.push(b.name)
+    onSelectAllCancel (selection, roleDataIndex) {
+      this.selectedParams = this.selectedParams.filter(param => param.roleDataIndex !== roleDataIndex)
     },
-    cancelSelect (selection, b) {
+    onSelect (selection, row, roleDataIndex) {
+      this.selectedParams.push({
+        id: row.id,
+        name: row.name,
+        roleDataIndex: roleDataIndex
+      })
+    },
+    cancelSelect (selection, row, roleDataIndex) {
       // console.log('cancelSelect', selection, b)
-      const findIndex = this.selectedParams.ids.findIndex(id => id === b.id)
-      this.selectedParams.ids.splice(findIndex, 1)
-      this.selectedParams.names.splice(findIndex, 1)
+      const findIndex = this.selectedParams.findIndex(
+        param => param.id === row.id && param.roleDataIndex === roleDataIndex
+      )
+      this.selectedParams.splice(findIndex, 1)
     },
     async create () {
       this.authTo = 'createFlow'
@@ -496,8 +499,7 @@ export default {
     // 切换tab修改数据
     changeTab (name) {
       this.searchParams.status = name
-      this.selectedParams.ids = []
-      this.selectedParams.names = []
+      this.selectedParams = []
       this.hideRoles = []
       this.getFlowList()
     },
@@ -537,10 +539,10 @@ export default {
       if (this.authTo === 'batchAuth') {
         this.$Modal.confirm({
           title: this.$t('config_permission'),
-          content: `保存权限,将批量覆盖编排 [${this.selectedParams.names}] 的权限.`,
+          content: `${this.$t('authSaveTip1')}[${this.selectedParams.map(p => p.name)}] ${this.$t('authSaveTip2')}`,
           onOk: async () => {
             const data = {
-              procDefIds: this.selectedParams.ids,
+              procDefIds: this.selectedParams.map(p => p.id),
               permissionToRole: {
                 MGMT: mgmt,
                 USE: use
@@ -553,8 +555,7 @@ export default {
                 desc: message
               })
               this.getFlowList()
-              this.selectedParams.ids = []
-              this.selectedParams.names = []
+              this.selectedParams = []
             }
           },
           onCancel: () => {}
@@ -589,17 +590,19 @@ export default {
       const statusToTip = {
         disabled: {
           title: this.$t('disable'),
-          content: `${this.$t('confirmBatchDisable')}[${this.selectedParams.names}]?${this.$t(
+          content: `${this.$t('confirmBatchDisable')}[${this.selectedParams.map(p => p.name)}]?${this.$t(
             'confirmBatchDisableWarn'
           )}`
         },
         deleted: {
           title: this.$t('delete'),
-          content: `${this.$t('confirmBatchDelete')}[${this.selectedParams.names}]?${this.$t('irreversible')}`
+          content: `${this.$t('confirmBatchDelete')}[${this.selectedParams.map(p => p.name)}]?${this.$t(
+            'irreversible'
+          )}`
         },
         enabled: {
           title: this.$t('enable'),
-          content: `${this.$t('confirmBatchEnable')}[${this.selectedParams.names}]?`
+          content: `${this.$t('confirmBatchEnable')}[${this.selectedParams.map(p => p.name)}]?`
         }
       }
 
@@ -608,7 +611,7 @@ export default {
         content: statusToTip[state].content,
         onOk: async () => {
           const data = {
-            procDefIds: this.selectedParams.ids,
+            procDefIds: this.selectedParams.map(p => p.id),
             status: state
           }
           let { status, message } = await flowBatchChangeStatus(data)
@@ -624,8 +627,7 @@ export default {
                 this.searchParams.status = 'deployed'
               }
               this.getFlowList()
-              this.selectedParams.ids = []
-              this.selectedParams.names = []
+              this.selectedParams = []
             })
           }
         },
@@ -754,7 +756,7 @@ export default {
         url: `platform/v1/process/definitions/export`,
         headers: this.headers,
         data: {
-          procDefIds: this.selectedParams.ids
+          procDefIds: this.selectedParams.map(p => p.id)
         },
         responseType: 'blob'
       })
@@ -793,11 +795,10 @@ export default {
   }
 }
 </script>
-
 <style lang="scss">
 // 屏蔽列表权限功能
-th.ivu-table-column-center div.ivu-table-cell {
-  display: none;
+th.ivu-table-column-center div.ivu-table-cell-with-selection {
+  padding: 0 4px !important;
 }
 .ivu-table-cell {
   padding: 0 4px !important;
