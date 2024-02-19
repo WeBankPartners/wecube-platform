@@ -34,6 +34,7 @@ func RemoteSCP(targetIp, user, pwd, port, localFile, targetPath string) (err err
 
 func GetRemoteHostAvailablePort(resourceServer *models.ResourceServer) (port int, err error) {
 	commandString := fmt.Sprintf("sshpass -p '%s' ssh %s@%s -p %s 'netstat -ltnp|awk \"{print $4}\"|grep \":2\"'", resourceServer.LoginPassword, resourceServer.LoginUsername, resourceServer.Host, resourceServer.Port)
+	log.Logger.Debug("GetRemoteHostAvailablePort", log.String("command", commandString))
 	output, execErr := exec.Command("/bin/bash", "-c", commandString).Output()
 	if execErr != nil {
 		err = fmt.Errorf("run remote ssh command to get available port target %s fail,%s ", resourceServer.Host, execErr.Error())
