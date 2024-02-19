@@ -162,7 +162,7 @@
         </FormItem>
       </HeaderTitle>
       <HeaderTitle title="第3步 设置插件服务及参数">
-        <FormItem label="插件服务" required>
+        <FormItem :label="$t('pluginService')" required>
           <Select
             filterable
             clearable
