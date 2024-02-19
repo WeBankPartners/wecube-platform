@@ -11,18 +11,22 @@
     </div>
     <!--权限弹窗-->
     <AuthDialog ref="authDialog" :useRolesRequired="true" @sendAuth="saveTemplate" />
+    <!--高危检测弹框-->
+    <DangerousModal :visible.sync="confirmModal.isShowConfirmModal" :data="confirmModal"></DangerousModal>
   </div>
 </template>
 
 <script>
 import BaseForm from './base-form.vue'
 import AuthDialog from '../../components/auth.vue'
+import DangerousModal from './components/dangerous-modal.vue'
 import { debounce } from '@/const/util'
 import { saveBatchExecute, saveBatchExecuteTemplate, getBatchExecuteTemplateDetail } from '@/api/server.js'
 export default {
   components: {
     BaseForm,
-    AuthDialog
+    AuthDialog,
+    DangerousModal
   },
   data () {
     return {
@@ -32,7 +36,13 @@ export default {
       detailData: {},
       templateDisabled: true,
       templateStatus: '', // draft草稿，published正常发布
-      saveTemplateId: '' // 用于提交保存的模板ID
+      saveTemplateId: '', // 用于提交保存的模板ID
+      confirmModal: {
+        continueToken: '',
+        message: '',
+        params: {},
+        isShowConfirmModal: false
+      }
     }
   },
   mounted () {
@@ -135,7 +145,7 @@ export default {
         sourceData: JSON.stringify(frontData)
       }
       this.$Spin.show()
-      const { status, data } = await saveBatchExecute(params)
+      const { status, data } = await saveBatchExecute(`/platform/v1/batch-execution/job/run`, params)
       this.$Spin.hide()
       if (status === 'OK') {
         this.$Notice.success({
@@ -148,34 +158,15 @@ export default {
           this.$nextTick(() => {
             this.$refs.form.getExecuteResult(data.batchExecId)
           })
-          // 开启高危检测并且命中，给出提示
-          if (data.dangerousCheckResult && isDangerousBlock) {
-            this.$Modal.error({
-              title: '当前指令里包含高危指令，指令将被直接拦截导致执行失败，请修改指令重试。'
-            })
-          }
-          // 没有开启高危检测命中，则弹窗让用户手动确认是否继续执行，若继续，则带id和continueToken再执行一次
-          if (data.dangerousCheckResult && !isDangerousBlock) {
-            this.$Modal.confirm({
-              title: '前指令里包含高危指令，确认是否继续执行',
-              'z-index': 1000000,
-              loading: true,
-              onOk: async () => {
-                this.$Modal.remove()
-                params.id = data.batchExecId
-                this.$Spin.show()
-                const { status: statusCode } = await saveBatchExecute(params)
-                this.$Spin.hide()
-                if (statusCode === 'OK') {
-                  this.$Notice.success({
-                    title: this.$t('successful'),
-                    desc: this.$t('successful')
-                  })
-                }
-              },
-              onCancel: () => {}
-            })
-          }
+        }
+      } else if (status === 'CONFIRM') {
+        // 高危检测命中，则弹窗让用户手动确认是否继续执行，若继续，则带id和continueToken再执行一次
+        if (data.dangerousCheckResult) {
+          params.batchExecId = data.batchExecId
+          this.confirmModal.continueToken = data.batchExecId
+          this.confirmModal.message = data.dangerousCheckResult.text
+          this.confirmModal.params = params
+          this.confirmModal.isShowConfirmModal = true
         }
       }
     }, 100),
