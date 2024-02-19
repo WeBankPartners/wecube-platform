@@ -537,6 +537,12 @@ func ConvertProcDefNode2Dto(procDefNode *ProcDefNode, list []*ProcDefNodeParam) 
 	if len(procDefNode.ContextParamNodes) > 0 {
 		contextParamNodes = strings.Split(procDefNode.ContextParamNodes, ",")
 	}
+	if len(list) > 0 {
+		// 节点参数中,节点id设置为前端展示nodeId
+		for _, nodeParam := range list {
+			nodeParam.ProcDefNodeId = procDefNode.NodeId
+		}
+	}
 	dto := &ProcDefNodeResultDto{
 		ProcDefNodeCustomAttrs: &ProcDefNodeCustomAttrsDto{
 			Id:                procDefNode.NodeId,
