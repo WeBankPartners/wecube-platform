@@ -309,6 +309,7 @@ type ProcDefDto struct {
 	EnableCreated    bool     `json:"enableCreated"`    // 能否创建新版本
 	EnableModifyName bool     `json:"enableModifyName"` // 能否修改名称
 	UseRoles         []string `json:"userRoles"`        // 使用角色
+	MgmtRoles        []string `json:"mgmtRoles"`        // 管理角色
 }
 
 type TimeConfigDto struct {
@@ -640,7 +641,7 @@ func BuildInterfaceParameterDto(p *PluginConfigInterfaceParameters) *InterfacePa
 	}
 }
 
-func BuildProcDefDto(procDef *ProcDef, userRoles []string, enableCreated bool) *ProcDefDto {
+func BuildProcDefDto(procDef *ProcDef, userRoles, manageRoles []string, enableCreated bool) *ProcDefDto {
 	var authPlugins = make([]string, 0)
 	if len(procDef.ForPlugin) > 0 {
 		authPlugins = strings.Split(procDef.ForPlugin, ",")
@@ -662,6 +663,7 @@ func BuildProcDefDto(procDef *ProcDef, userRoles []string, enableCreated bool) *
 		UpdatedTime:   procDef.UpdatedTime.Format(DateTimeFormat),
 		EnableCreated: enableCreated,
 		UseRoles:      userRoles,
+		MgmtRoles:     manageRoles,
 	}
 }
 
