@@ -162,7 +162,7 @@
         </FormItem>
       </HeaderTitle>
       <HeaderTitle title="第3步 设置插件服务及参数">
-        <FormItem label="插件服务" required>
+        <FormItem :label="$t('pluginService')" required>
           <Select
             filterable
             clearable
@@ -330,7 +330,7 @@ export default {
     data: {
       handler (val) {
         if (val && val.id) {
-          const { name, configData, sourceData } = val
+          const { name, isDangerousBlock, configData, sourceData } = val
           this.name = name
           this.dataModelExpression = configData.dataModelExpression
           this.currentPackageName = configData.packageName
@@ -338,7 +338,7 @@ export default {
           this.primatKeyAttr = configData.primatKeyAttr
           this.searchParameters = configData.searchParameters
           this.pluginId = configData.pluginConfigInterface.serviceName
-          this.isDangerousBlock = configData.isDangerousBlock
+          this.isDangerousBlock = isDangerousBlock
           if (sourceData) {
             const frontData = JSON.parse(sourceData)
             this.seletedRows = frontData.seletedRows
@@ -369,7 +369,7 @@ export default {
         _.bindValue = ''
         return _
       })
-      this.resultTableParams = []
+      this.resultTableParams = this.pluginOutputParams.map(item => item.name) || []
     },
     // 获取批量执行结果
     getExecuteResult (id) {
