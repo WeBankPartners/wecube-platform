@@ -301,32 +301,32 @@ func RetrieveTemplate(c *gin.Context, reqParam *models.QueryRequestParam) (resul
 	}
 
 	// query templateId by roleName (and permissionType)
-	if len(permissionTypes) > 0 || len(collectTemplateIds) > 0 {
-		var roleFilterTemplateIds []string
-		session := db.MysqlEngine.Context(c).Table(models.TableNameBatchExecTemplateRole).
-			// In("role_name", userRoles).
-			Distinct("batch_execution_template_id")
-		if len(permissionTypes) > 0 {
-			session = session.In("permission", permissionTypes)
-		}
-		if len(collectTemplateIds) > 0 {
-			session = session.In("batch_execution_template_id", collectTemplateIds)
-		}
-		err = session.Find(&roleFilterTemplateIds)
-		if err != nil {
-			err = exterror.Catch(exterror.New().DatabaseQueryError, err)
-			return
-		}
-		if len(roleFilterTemplateIds) == 0 {
-			return
-		}
-
-		reqParam.Filters = append(reqParam.Filters, &models.QueryRequestFilterObj{
-			Name:     "id",
-			Operator: "in",
-			Value:    roleFilterTemplateIds,
-		})
+	// if len(permissionTypes) > 0 || len(collectTemplateIds) > 0 {
+	var roleFilterTemplateIds []string
+	session := db.MysqlEngine.Context(c).Table(models.TableNameBatchExecTemplateRole).
+		In("role_name", userRoles).
+		Distinct("batch_execution_template_id")
+	if len(permissionTypes) > 0 {
+		session = session.In("permission", permissionTypes)
 	}
+	if len(collectTemplateIds) > 0 {
+		session = session.In("batch_execution_template_id", collectTemplateIds)
+	}
+	err = session.Find(&roleFilterTemplateIds)
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
+		return
+	}
+	if len(roleFilterTemplateIds) == 0 {
+		return
+	}
+
+	reqParam.Filters = append(reqParam.Filters, &models.QueryRequestFilterObj{
+		Name:     "id",
+		Operator: "in",
+		Value:    roleFilterTemplateIds,
+	})
+	// }
 
 	// query template info
 	var templateData []*models.BatchExecutionTemplate
@@ -381,17 +381,25 @@ func RetrieveTemplate(c *gin.Context, reqParam *models.QueryRequestParam) (resul
 		return
 	}
 
+	userRolesMap := make(map[string]struct{})
+	for _, role := range userRoles {
+		userRolesMap[role] = struct{}{}
+	}
 	templateIdMapRoleInfo := make(map[string]*models.PermissionToRole)
 	for _, roleData := range templateRoleData {
 		if _, isExisted := templateIdMapRoleInfo[roleData.BatchExecutionTemplateId]; !isExisted {
 			templateIdMapRoleInfo[roleData.BatchExecutionTemplateId] = &models.PermissionToRole{}
 		}
 		if roleData.Permission == models.PermissionTypeMGMT {
-			templateIdMapRoleInfo[roleData.BatchExecutionTemplateId].MGMT = append(
-				templateIdMapRoleInfo[roleData.BatchExecutionTemplateId].MGMT, roleData.RoleName)
+			if _, isExisted := userRolesMap[roleData.RoleName]; isExisted {
+				templateIdMapRoleInfo[roleData.BatchExecutionTemplateId].MGMT = append(
+					templateIdMapRoleInfo[roleData.BatchExecutionTemplateId].MGMT, roleData.RoleName)
+			}
 		} else if roleData.Permission == models.PermissionTypeUSE {
-			templateIdMapRoleInfo[roleData.BatchExecutionTemplateId].USE = append(
-				templateIdMapRoleInfo[roleData.BatchExecutionTemplateId].USE, roleData.RoleName)
+			if _, isExisted := userRolesMap[roleData.RoleName]; isExisted {
+				templateIdMapRoleInfo[roleData.BatchExecutionTemplateId].USE = append(
+					templateIdMapRoleInfo[roleData.BatchExecutionTemplateId].USE, roleData.RoleName)
+			}
 		}
 	}
 
