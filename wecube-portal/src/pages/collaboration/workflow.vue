@@ -88,7 +88,7 @@
         filterable
         multiple
         class="search-item"
-        placeholder="授权插件"
+        :placeholder="$t('authPlugin')"
         :max-tag-count="1"
         @on-change="getFlowList"
       >
@@ -96,21 +96,21 @@
       </Select>
       <Input
         v-model="searchParams.scene"
-        placeholder="分组"
+        :placeholder="$t('group')"
         class="search-item"
         clearable
         @on-change="getFlowList"
       ></Input>
       <Input
         v-model="searchParams.createdBy"
-        placeholder="创建人"
+        :placeholder="$t('createdBy')"
         class="search-item"
         clearable
         @on-change="getFlowList"
       ></Input>
       <Input
         v-model="searchParams.updatedBy"
-        placeholder="更新人"
+        :placeholder="$t('updatedBy')"
         class="search-item"
         clearable
         @on-change="getFlowList"
@@ -287,7 +287,7 @@ export default {
           }
         },
         {
-          title: '授权插件',
+          title: this.$t('authPlugin'),
           key: 'authPlugins',
           render: (h, params) => {
             if (params.row.authPlugins.length > 0) {
@@ -339,7 +339,7 @@ export default {
           }
         },
         {
-          title: '分组',
+          title: this.$t('group'),
           key: 'scene',
           width: 90,
           render: (h, params) => {
@@ -412,11 +412,7 @@ export default {
                 )}
                 {['deployed'].includes(status) && (
                   <Tooltip
-                    content={
-                      params.row.enableCreated
-                        ? this.$t('edit')
-                        : '当前编排已有一条[未发布]草稿数据,请直接在[未发布]中编排'
-                    }
+                    content={params.row.enableCreated ? this.$t('edit') : this.$t('hasDraftData')}
                     placement="left"
                     max-width="200"
                   >
@@ -593,15 +589,17 @@ export default {
       const statusToTip = {
         disabled: {
           title: this.$t('disable'),
-          content: `确认批量禁用编排: [${this.selectedParams.names}] 吗?禁用的模版会放入[编排列表-已禁用]中,可以重新启用`
+          content: `${this.$t('confirmBatchDisable')}[${this.selectedParams.names}]?${this.$t(
+            'confirmBatchDisableWarn'
+          )}`
         },
         deleted: {
           title: this.$t('delete'),
-          content: `确认批量删除编排: [${this.selectedParams.names}] 吗?删除操作不可撤销.`
+          content: `${this.$t('confirmBatchDelete')}[${this.selectedParams.names}]?${this.$t('irreversible')}`
         },
         enabled: {
           title: this.$t('enable'),
-          content: `确认批量启用编排: [${this.selectedParams.names}] 吗?`
+          content: `${this.$t('confirmBatchEnable')}[${this.selectedParams.names}]?`
         }
       }
 
@@ -691,8 +689,8 @@ export default {
       this.getFlowList()
     },
     handleDateRange (dateArr) {
-      this.searchParams.updatedTimeStart = dateArr[0]
-      this.searchParams.updatedTimeEnd = dateArr[1]
+      this.searchParams.updatedTimeStart = dateArr[0] + ' 00:00:00'
+      this.searchParams.updatedTimeEnd = dateArr[1] + ' 23:59:59'
       this.getFlowList()
     },
     // 控制角色下table的显示
