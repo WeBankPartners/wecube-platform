@@ -388,7 +388,7 @@ func GetResourceServer(ctx context.Context, serverType, serverIp string) (resour
 			}
 			resourceServerObj = resourceServerRows[0]
 			if strings.HasPrefix(resourceServerObj.LoginPassword, models.AESPrefix) {
-				resourceServerObj.LoginPassword = encrypt.DecryptWithAesECB(resourceServerObj.LoginPassword, models.Config.Plugin.ResourcePasswordSeed, resourceServerObj.Name)
+				resourceServerObj.LoginPassword = encrypt.DecryptWithAesECB(resourceServerObj.LoginPassword[5:], models.Config.Plugin.ResourcePasswordSeed, resourceServerObj.Name)
 			}
 		}
 	}
@@ -487,8 +487,11 @@ func BuildDockerEnvMap(ctx context.Context, envMap map[string]string) (replaceMa
 	return
 }
 
-func LaunchPlugin(ctx context.Context, pluginInstance *models.PluginInstances) (err error) {
+func LaunchPlugin(ctx context.Context, pluginInstance *models.PluginInstances, resourceItem *models.ResourceItem) (err error) {
 	var actions []*db.ExecAction
+	actions = append(actions, &db.ExecAction{Sql: "INSERT INTO resource_item (id,additional_properties,created_by,created_date,is_allocated,name,purpose,resource_server_id,status,`type`,updated_by,updated_date) values (?,?,?,?,?,?,?,?,?,?,?,?)", Param: []interface{}{
+		resourceItem.Id, resourceItem.AdditionalProperties, resourceItem.CreatedBy, resourceItem.CreatedDate, 1, resourceItem.Name, resourceItem.Purpose, resourceItem.ResourceServerId, "created", "docker_container", resourceItem.CreatedBy, resourceItem.CreatedDate,
+	}})
 	insertInsAction := &db.ExecAction{Sql: "INSERT INTO plugin_instances (id,host,container_name,port,container_status,package_id,docker_instance_resource_id,instance_name,plugin_mysql_instance_resource_id,s3bucket_resource_id) values (?,?,?,?,?,?,?,?,?,?)", Param: []interface{}{
 		pluginInstance.Id, pluginInstance.Host, pluginInstance.ContainerName, pluginInstance.Port, pluginInstance.ContainerStatus, pluginInstance.PackageId, pluginInstance.DockerInstanceResourceId, pluginInstance.InstanceName,
 	}}
@@ -528,7 +531,7 @@ func GetPluginInstance(pluginInstanceId string) (pluginInstance *models.PluginIn
 	return
 }
 
-func GetPluginDockerRunningResource(dockerInstanceResourceId string) (pluginInstance *models.ResourceServer, err error) {
+func GetPluginDockerRunningResource(dockerInstanceResourceId string) (pluginResourceServer *models.ResourceServer, err error) {
 	var resourceServerRows []*models.ResourceServer
 	err = db.MysqlEngine.SQL("select id,name,host,login_username,login_password,port,login_mode,is_allocated from resource_server where id in (select resource_server_id from resource_item where id=?)", dockerInstanceResourceId).Find(&resourceServerRows)
 	if err != nil {
@@ -539,7 +542,26 @@ func GetPluginDockerRunningResource(dockerInstanceResourceId string) (pluginInst
 		err = exterror.Catch(exterror.New().DatabaseQueryEmptyError, fmt.Errorf("resource_server"))
 		return
 	}
-	pluginInstance = resourceServerRows[0]
+	pluginResourceServer = resourceServerRows[0]
+	if strings.HasPrefix(pluginResourceServer.LoginPassword, models.AESPrefix) {
+		pluginResourceServer.LoginPassword = encrypt.DecryptWithAesECB(pluginResourceServer.LoginPassword[5:], models.Config.Plugin.ResourcePasswordSeed, pluginResourceServer.Name)
+	}
+	return
+}
+
+func GetPluginDockerRuntimeMessage(pluginPackageId string) (imageName, containerName string, err error) {
+	var dockerRows []*models.PluginPackageRuntimeResourcesDocker
+	err = db.MysqlEngine.SQL("select id,plugin_package_id,image_name,container_name from plugin_package_runtime_resources_docker where plugin_package_id=?", pluginPackageId).Find(&dockerRows)
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
+		return
+	}
+	if len(dockerRows) == 0 {
+		err = exterror.Catch(exterror.New().DatabaseQueryEmptyError, fmt.Errorf("plugin_package_runtime_resources_docker"))
+		return
+	}
+	imageName = dockerRows[0].ImageName
+	containerName = dockerRows[0].ContainerName
 	return
 }
 
