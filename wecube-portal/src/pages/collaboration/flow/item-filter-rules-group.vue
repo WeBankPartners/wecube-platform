@@ -68,12 +68,21 @@ export default {
     },
     filterRuleChanged (val) {
       if (!this.isBatch) {
-        this.$emit('filterRuleChanged', val)
+        if (val === '' || !val.startsWith(this.currentSelectedEntity)) {
+          this.$nextTick(() => {
+            this.routineExpressionItem[0].routineExpression = this.currentSelectedEntity
+            this.$emit('filterRuleChanged', this.currentSelectedEntity)
+          })
+        } else {
+          this.$emit('filterRuleChanged', val)
+        }
       } else {
-        this.routineExpressionItem.forEach(item => {
-          if (!item.routineExpression) {
-            item.routineExpression = this.currentSelectedEntity
-          }
+        this.$nextTick(() => {
+          this.routineExpressionItem.forEach(item => {
+            if (!item.routineExpression || !val.startsWith(this.currentSelectedEntity)) {
+              item.routineExpression = this.currentSelectedEntity
+            }
+          })
         })
       }
     },
