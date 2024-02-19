@@ -625,7 +625,9 @@ export default {
     },
     // 设置被预选中的节点
     prevCtxNodeChange (val) {
-      return this.nodeList.filter(n => this.itemCustomInfo.customAttrs.contextParamNodes.includes(n.nodeId)) || []
+      return (
+        this.nodeList.filter(n => (this.itemCustomInfo.customAttrs.contextParamNodes || []).includes(n.nodeId)) || []
+      )
     },
     // 改变节点及参数类型获取参数名
     onParamsNodeChange (index, paramsChanged) {

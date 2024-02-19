@@ -41,7 +41,7 @@
       </div>
     </div>
 
-    <FlowAuth ref="flowAuthRef" @sendAuth="updateAuth"></FlowAuth>
+    <FlowAuth ref="flowAuthRef" :useRolesRequired="true" @sendAuth="updateAuth"></FlowAuth>
   </div>
 </template>
 

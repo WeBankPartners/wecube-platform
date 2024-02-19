@@ -213,7 +213,7 @@
         </template>
       </div>
     </div>
-    <FlowAuth ref="flowAuthRef" @sendAuth="updateAuth"></FlowAuth>
+    <FlowAuth ref="flowAuthRef" :useRolesRequired="true" @sendAuth="updateAuth"></FlowAuth>
   </div>
 </template>
 
@@ -263,10 +263,20 @@ export default {
           key: 'name',
           render: (h, params) => {
             return (
-              <span>
-                {params.row.name}
-                <Tag style="margin-left:2px">{params.row.version}</Tag>
-              </span>
+              <div>
+                <span>
+                  <Icon
+                    type="ios-funnel-outline"
+                    size="12"
+                    style="cursor: pointer;margin-right:4px"
+                    onClick={() => this.copyNameToSearch(params.row.name)}
+                  />
+                </span>
+                <span>
+                  {params.row.name}
+                  <Tag style="margin-left:2px">{params.row.version}</Tag>
+                </span>
+              </div>
             )
           }
         },
@@ -642,6 +652,11 @@ export default {
       }
       if (status === 'deployed') {
       }
+    },
+    // 选择编排名称后过滤
+    copyNameToSearch (procDefName) {
+      this.searchParams.procDefName = procDefName
+      this.getFlowList()
     },
     // deployed且 enableCreated为true，先调用接口成功后再跳转
     async copyToEditAction (row) {

@@ -6,7 +6,7 @@
         <Transfer
           :titles="transferTitles"
           :list-style="transferStyle"
-          :data="allRoles"
+          :data="currentUserRoles"
           :target-keys="mgmtRolesKeyToFlow"
           :render-format="renderRoleNameForTransfer"
           @on-change="handleMgmtRoleTransferChange"
@@ -18,7 +18,7 @@
         <Transfer
           :titles="transferTitles"
           :list-style="transferStyle"
-          :data="allRolesBackUp"
+          :data="allRoles"
           :target-keys="useRolesKeyToFlow"
           :render-format="renderRoleNameForTransfer"
           @on-change="handleUseRoleTransferChange"
@@ -32,7 +32,7 @@
   </div>
 </template>
 <script>
-import { getRoleList } from '@/api/server.js'
+import { getRoleList, getCurrentUserRoles } from '@/api/server.js'
 export default {
   props: {
     useRolesRequired: {
@@ -46,16 +46,13 @@ export default {
       flowRoleManageModal: false, // 权限弹窗控制
       transferTitles: [this.$t('unselected_role'), this.$t('selected_role')],
       transferStyle: { width: '300px' },
-      allRolesBackUp: [],
+      allRoles: [],
       currentUserRoles: [],
       mgmtRolesKeyToFlow: [], // 管理角色
       useRolesKeyToFlow: [] // 使用角色
     }
   },
   computed: {
-    allRoles () {
-      return this.isAdd ? this.currentUserRoles : this.allRolesBackUp
-    },
     disabled () {
       if (this.useRolesRequired) {
         return this.mgmtRolesKeyToFlow.length === 0 || this.useRolesKeyToFlow.length === 0
@@ -85,7 +82,19 @@ export default {
     async getRoleList () {
       const { status, data } = await getRoleList()
       if (status === 'OK') {
-        this.allRolesBackUp = data.map(_ => {
+        this.allRoles = data.map(_ => {
+          return {
+            ..._,
+            key: _.name,
+            label: _.displayName
+          }
+        })
+      }
+    },
+    async getCurrentUserRoles () {
+      const { status, data } = await getCurrentUserRoles()
+      if (status === 'OK') {
+        this.currentUserRoles = data.map(_ => {
           return {
             ..._,
             key: _.name,
@@ -99,6 +108,7 @@ export default {
       this.mgmtRolesKeyToFlow = mgmtRolesKeyToFlow
       this.useRolesKeyToFlow = useRolesKeyToFlow
       await this.getRoleList()
+      await this.getCurrentUserRoles()
       this.flowRoleManageModal = true
     }
   }
