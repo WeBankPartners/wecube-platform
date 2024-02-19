@@ -26,9 +26,7 @@
         ></Transfer>
       </div>
       <div slot="footer">
-        <Button type="primary" :disabled="mgmtRolesKeyToFlow.length === 0" @click="confirmRole">{{
-          $t('bc_confirm')
-        }}</Button>
+        <Button type="primary" :disabled="disabled" @click="confirmRole">{{ $t('bc_confirm') }}</Button>
       </div>
     </Modal>
   </div>
@@ -36,6 +34,12 @@
 <script>
 import { getRoleList } from '@/api/server.js'
 export default {
+  props: {
+    useRolesRequired: {
+      type: Boolean,
+      default: false
+    }
+  },
   data () {
     return {
       isAdd: false, // 标记编排状态
@@ -51,6 +55,13 @@ export default {
   computed: {
     allRoles () {
       return this.isAdd ? this.currentUserRoles : this.allRolesBackUp
+    },
+    disabled () {
+      if (this.useRolesRequired) {
+        return this.mgmtRolesKeyToFlow.length === 0 || this.useRolesKeyToFlow.length === 0
+      } else {
+        return this.mgmtRolesKeyToFlow.length === 0
+      }
     }
   },
   methods: {
