@@ -384,7 +384,11 @@ func RunJob(c *gin.Context) {
 	if err != nil {
 		middleware.ReturnError(c, err)
 	} else {
-		middleware.ReturnData(c, retData)
+		if retData.DangerousCheckResult != nil {
+			middleware.ReturnDataWithStatus(c, retData, models.DefaultHttpConfirmCode)
+		} else {
+			middleware.ReturnData(c, retData)
+		}
 	}
 	return
 }
@@ -393,7 +397,7 @@ func doRunJob(c *gin.Context, reqParam *models.BatchExecRun) (result *models.Bat
 	result = &models.BatchExecRunResp{}
 	operator := middleware.GetRequestUser(c)
 	authToken := c.GetHeader(models.AuthorizationHeader)
-	continueToken := c.GetHeader(models.ContinueTokenHeader)
+	continueToken := c.DefaultQuery(models.ContinueToken, "")
 	pluginInterfaceId := reqParam.PluginConfigInterface.Id
 	entityType := reqParam.DataModelExpression
 	// 组装插件服务参数
