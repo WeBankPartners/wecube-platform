@@ -340,7 +340,9 @@ export default {
             selfAttrs: selfAttrs,
             customAttrs: customAttrs
           }
-          this.setNodeInfo(finalData, true)
+          if (this.editFlow !== 'false') {
+            this.setNodeInfo(finalData, true)
+          }
         }, 100)
       })
       this.graph.on('node:dragstart', e => {
