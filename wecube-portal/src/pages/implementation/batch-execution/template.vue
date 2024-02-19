@@ -117,7 +117,7 @@ export default {
         name: {
           title: '模板名称',
           key: 'name',
-          minWidth: 220,
+          minWidth: 160,
           render: (h, params) => {
             return (
               <div>
@@ -166,7 +166,7 @@ export default {
         operateObject: {
           title: '操作对象类型',
           key: 'operateObject',
-          minWidth: 100,
+          minWidth: 120,
           render: (h, params) => {
             return params.row.operateObject && <Tag color="default">{params.row.operateObject}</Tag>
           }
@@ -188,7 +188,7 @@ export default {
         createdTime: {
           title: '更新时间',
           key: 'updatedTime',
-          minWidth: 120
+          minWidth: 140
         },
         action: {
           title: '操作',
@@ -286,7 +286,7 @@ export default {
         {
           title: '使用角色',
           key: 'useRole',
-          minWidth: 80,
+          minWidth: 120,
           render: (h, params) => {
             return (
               <div>
@@ -590,6 +590,12 @@ export default {
   .ivu-form-item {
     margin-bottom: 10px !important;
     display: inline-block !important;
+  }
+  .ivu-tag {
+    display: inline-block;
+    line-height: 16px;
+    height: auto;
+    padding: 4px;
   }
   .icon-btn {
     cursor: pointer;

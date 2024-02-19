@@ -2,39 +2,39 @@
   "success": "成功",
   "request_param_validate_error": {
     "code": 10000001,
-    "message": "请求参数校验失败"
+    "message": "系统报错 [请求参数校验失败]"
   },
   "request_read_body_error": {
     "code": 10000002,
-    "message": "读取请求体body数据错误"
+    "message": "系统报错 [读取请求体body数据错误]"
   },
   "request_json_unmarshal_error": {
     "code": 10000003,
-    "message": "json反格式化请求体内容错误"
+    "message": "系统报错 [json反格式化请求体内容错误]"
   },
   "request_token_validate_error": {
     "code": 10000004,
-    "message": "请求认证校验失败"
+    "message": "系统报错 [请求认证校验失败]"
   },
   "request_token_expire_error": {
     "code": 10000005,
-    "message": "请求token已过期"
+    "message": "系统报错 [请求token已过期]"
   },
   "database_query_error": {
     "code": 10000021,
-    "message": "查询数据库失败"
+    "message": "系统报错 [查询数据库失败]"
   },
   "database_query_empty_error": {
     "code": 10000022,
-    "message": "获取数据库数据失败,返回数据为空"
+    "message": "系统报错 [获取数据库数据失败,返回数据为空]"
   },
   "database_execute_error": {
     "code": 10000023,
-    "message": "执行数据库语句报错"
+    "message": "系统报错 [执行数据库语句报错]"
   },
   "server_handle_error": {
     "code": 10000031,
-    "message": "服务请求处理失败"
+    "message": "系统报错 [服务请求处理失败]"
   },
   "plugin_dependency_illegal": {
     "code": 20000001,
@@ -118,6 +118,10 @@
   },
   "batch_exec_plugin_auth_error": {
     "code": 20000025,
-    "message": "执行失败:您暂时没有插件服务: %s 的使用权限,请联系平台管理员"
+    "message": "执行失败:您暂时没有插件服务 [%s] 的使用权限,请联系平台管理员"
+  },
+  "batch_exec_plugin_api_error": {
+    "code": 20000026,
+    "message": "执行失败: API报错 [%s]"
   }
 }

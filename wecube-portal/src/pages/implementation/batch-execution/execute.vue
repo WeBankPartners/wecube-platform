@@ -19,7 +19,7 @@
             :max-height="maxHeight - 100"
             :row-class-name="
               row => {
-                return rowId === row.id ? 'ivu-table-row-hover' : ''
+                return rowId === row.id ? 'ivu-table-row-highlight' : ''
               }
             "
             @on-row-click="handleExecuteHistory"
@@ -112,7 +112,7 @@ export default {
         },
         {
           title: '执行时间',
-          minWidth: 110,
+          minWidth: 150,
           key: 'createdTime',
           render: (h, params) => {
             return <span>{params.row.createdTime || '--'}</span>
@@ -188,7 +188,13 @@ export default {
     },
     async getList () {
       const params = {
-        filters: [],
+        filters: [
+          {
+            name: 'errorCode',
+            operator: 'neq',
+            value: '3'
+          }
+        ],
         paging: true,
         pageable: {
           startIndex: (this.pagination.currentPage - 1) * this.pagination.pageSize,
