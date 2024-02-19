@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/WeBankPartners/wecube-platform/platform-core/common/db"
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/tools"
 	"io/ioutil"
 	"net/http"
@@ -770,9 +771,9 @@ func DeleteProcDefNode(c *gin.Context) {
 	var err error
 	var procDefNode *models.ProcDefNode
 	var list []*models.ProcDefNode
-	nodeId := c.Param("node-id")
+	uiNodeId := c.Param("node-id")
 	procDefId := c.Param("proc-def-id")
-	if nodeId == "" || procDefId == "" {
+	if uiNodeId == "" || procDefId == "" {
 		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, fmt.Errorf("node-id or proc-def-id is empty")))
 		return
 	}
@@ -781,7 +782,7 @@ func DeleteProcDefNode(c *gin.Context) {
 		list = make([]*models.ProcDefNode, 0)
 	}
 	for _, node := range list {
-		if node.NodeId == nodeId {
+		if node.NodeId == uiNodeId {
 			procDefNode = node
 			break
 		}
@@ -791,7 +792,7 @@ func DeleteProcDefNode(c *gin.Context) {
 		return
 	}
 	for _, node := range list {
-		if node.NodeId == nodeId {
+		if node.NodeId == uiNodeId {
 			continue
 		}
 		// 任务三种节点
@@ -814,18 +815,12 @@ func DeleteProcDefNode(c *gin.Context) {
 			}
 		}
 	}
-
-	err = database.DeleteProcDefNode(c, procDefId, nodeId)
-	if err != nil {
-		middleware.ReturnError(c, err)
-		return
-	}
-	err = database.DeleteProcDefNodeLinkByNode(c, procDefNode.Id)
-	if err != nil {
-		middleware.ReturnError(c, err)
-		return
-	}
-	err = database.DeleteProcDefNodeParamByNodeId(c, procDefNode.Id)
+	// 事务删除
+	var actions []*db.ExecAction
+	actions = append(actions, &db.ExecAction{Sql: "delete  from proc_def_node_param where proc_def_node_id=?", Param: []interface{}{procDefNode.Id}})
+	actions = append(actions, &db.ExecAction{Sql: "delete  from proc_def_node_link where source=? or target=?", Param: []interface{}{procDefNode.Id, procDefNode.Id}})
+	actions = append(actions, &db.ExecAction{Sql: "delete  from proc_def_node where proc_def_id=? and node_id=?", Param: []interface{}{procDefId, uiNodeId}})
+	err = db.Transaction(actions, c)
 	if err != nil {
 		middleware.ReturnError(c, err)
 		return
