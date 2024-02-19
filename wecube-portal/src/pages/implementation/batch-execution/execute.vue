@@ -6,7 +6,7 @@
     </div>
     <!--表格分页-->
     <Row :gutter="20">
-      <Col :span="8">
+      <Col v-show="!expand" :span="8">
         <Card :style="{ minHeight: maxHeight + 'px', maxHeight: maxHeight + 'px' }">
           <div class="title" slot="title">执行记录列表</div>
           <Table
@@ -39,9 +39,9 @@
           </div>
         </Card>
       </Col>
-      <Col :span="16">
+      <Col :span="expand ? 24 : 16" style="position: relative">
         <!--批量执行结果-->
-        <ExecuteResult ref="executeResult"></ExecuteResult>
+        <ExecuteResult ref="executeResult" @expand="expand = !expand"></ExecuteResult>
       </Col>
     </Row>
   </div>
@@ -164,7 +164,8 @@ export default {
         pageSize: 20
       },
       maxHeight: 500,
-      rowId: ''
+      rowId: '',
+      expand: false
     }
   },
   mounted () {
@@ -236,8 +237,10 @@ export default {
       if (status === 'OK') {
         this.tableData = data.contents || []
         this.$nextTick(() => {
-          this.rowId = data.contents[0].id
-          this.$refs.executeResult.getList(data.contents[0].id)
+          if (this.tableData.length > 0) {
+            this.rowId = data.contents[0].id
+            this.$refs.executeResult.getList(data.contents[0].id)
+          }
         })
         this.pagination.total = data.pageInfo.totalRows
       }
@@ -281,7 +284,7 @@ export default {
   width: 100%;
   .title {
     display: flex;
-    justify-content: flex-start;
+    justify-content: space-between;
     align-items: center;
     height: 50px;
     font-size: 14px;
