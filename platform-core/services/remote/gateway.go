@@ -17,7 +17,7 @@ func RegisterPluginRoute(pluginPackageName, host, port string) (err error) {
 	postParam := models.RegisterGatewayRouteParam{Context: pluginPackageName}
 	postParam.Items = []*models.RegisterGatewayRouteItem{{Context: pluginPackageName, HttpScheme: "http", Host: host, Port: port}}
 	postBytes, _ := json.Marshal(postParam)
-	for _, gatewayUrl := range strings.Split(models.Config.Gateway.HostPorts, ",") {
+	for _, gatewayUrl := range strings.Split(models.Config.Gateway.Url, ",") {
 		if err = doGatewayHttpRequest(fmt.Sprintf("http://%s/gateway/v1/route-items", gatewayUrl), postBytes); err != nil {
 			err = fmt.Errorf("do http reqeust to gateway register route items %s,%s,%s fail,%s ", pluginPackageName, host, port, err.Error())
 			break
@@ -34,7 +34,7 @@ func doGatewayHttpRequest(httpUrl string, postBytes []byte) (err error) {
 	}
 	resp, respErr := http.DefaultClient.Do(req)
 	if respErr != nil {
-		err = fmt.Errorf("do http reqeust fail,%s ", reqErr.Error())
+		err = fmt.Errorf("do http reqeust fail,%s ", respErr.Error())
 		return
 	}
 	respBytes, _ := io.ReadAll(resp.Body)
