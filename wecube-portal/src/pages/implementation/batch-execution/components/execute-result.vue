@@ -2,6 +2,7 @@
   <div class="batch-execute-result">
     <Card v-if="from === 'list'" :style="{ minHeight: maxHeight + 'px' }">
       <div class="custom-header" slot="title">
+        <Icon :size="28" type="md-reorder" class="expand" @click="$emit('expand')" />
         <span class="title">执行结果</span>
       </div>
       <!--搜索条件-->
@@ -343,6 +344,10 @@ export default {
       margin-right: 20px;
       font-size: 14px;
       font-weight: bold;
+    }
+    .expand {
+      margin-right: 5px;
+      cursor: pointer;
     }
   }
   .search {
