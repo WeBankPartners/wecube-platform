@@ -329,3 +329,7 @@ func GetDeleteTableExecAction(tableName string, primeKey string, primeKeyVal str
 	action = &ExecAction{Sql: execSqlCmd, Param: execParams}
 	return
 }
+
+func DBCtx(transactionId string) context.Context {
+	return context.WithValue(context.Background(), models.TransactionIdHeader, transactionId)
+}
