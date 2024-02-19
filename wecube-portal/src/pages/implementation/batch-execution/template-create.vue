@@ -10,7 +10,7 @@
       >
     </div>
     <!--权限弹窗-->
-    <AuthDialog ref="authDialog" @sendAuth="saveTemplate" />
+    <AuthDialog ref="authDialog" :useRolesRequired="true" @sendAuth="saveTemplate" />
   </div>
 </template>
 
@@ -183,7 +183,13 @@ export default {
     getAuth (status) {
       this.templateStatus = status
       if (this.validRequired()) {
-        this.$refs.authDialog.startAuth([], [])
+        let mgmtRole = []
+        let useRole = []
+        if (this.type === 'edit') {
+          mgmtRole = this.detailData.permissionToRole.MGMT || []
+          useRole = this.detailData.permissionToRole.USE || []
+        }
+        this.$refs.authDialog.startAuth(mgmtRole, useRole)
       }
     },
     // 保存模板
@@ -316,8 +322,15 @@ export default {
         this.$Message.warning('插件服务必填')
         return false
       }
-      if (pluginInputParams && pluginInputParams.length === 0) {
-        this.$Message.warning('插件服务入参必填')
+      const pluginInputParamsFlag = pluginInputParams.every(item => {
+        if (item.required === 'Y' && item.mappingType === 'constant' && !item.bindValue) {
+          return false
+        } else {
+          return true
+        }
+      })
+      if ((pluginInputParams && pluginInputParams.length === 0) || !pluginInputParamsFlag) {
+        this.$Message.warning('设置入参必填')
         return false
       }
       return true
