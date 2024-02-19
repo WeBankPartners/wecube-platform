@@ -45,7 +45,7 @@
       </Card>
     </div>
     <!--权限弹窗-->
-    <AuthDialog ref="authDialog" @sendAuth="handleUpdateRole" />
+    <AuthDialog ref="authDialog" :useRolesRequired="true" @sendAuth="handleUpdateRole" />
   </div>
 </template>
 
@@ -186,8 +186,8 @@ export default {
           }
         },
         createdTime: {
-          title: '创建时间',
-          key: 'createdTime',
+          title: '更新时间',
+          key: 'updatedTime',
           minWidth: 120
         },
         action: {
@@ -247,7 +247,9 @@ export default {
                       type="warning"
                       onClick={() => {
                         this.editRow = params.row
-                        this.$refs.authDialog.startAuth([], [])
+                        const mgmtRole = params.row.permissionToRole.MGMT || []
+                        const useRole = params.row.permissionToRole.USE || []
+                        this.$refs.authDialog.startAuth(mgmtRole, useRole)
                       }}
                       style="margin-right:5px;"
                     >
