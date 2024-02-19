@@ -688,3 +688,10 @@ type PluginInterfaceApiResult struct {
 type PluginInterfaceApiResultData struct {
 	Outputs []map[string]interface{} `json:"outputs"`
 }
+
+type ResourceItemProperties struct {
+	VolumeBindings string `json:"volumeBindings"`
+	ImageName      string `json:"imageName"`
+	PortBindings   string `json:"portBindings"`
+	EnvVariables   string `json:"envVariables"`
+}
