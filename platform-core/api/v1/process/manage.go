@@ -207,7 +207,7 @@ func QueryProcessDefinitionList(c *gin.Context) {
 		return
 	}
 	param.UserRoles = middleware.GetRequestRoles(c)
-	list, err = database.QueryProcessDefinitionList(c, param)
+	list, err = database.QueryProcessDefinitionList(c, param, c.GetHeader("Authorization"), c.GetHeader("Accept-Language"))
 	if err != nil {
 		middleware.ReturnError(c, err)
 		return
@@ -799,7 +799,7 @@ func DeleteProcDefNode(c *gin.Context) {
 		if node.NodeType == string(models.ProcDefNodeTypeHuman) || node.NodeType == string(models.ProcDefNodeTypeAutomatic) || node.NodeType == string(models.ProcDefNodeTypeData) {
 			//有绑定的数据节点不允许删除
 			// 任务节点绑定 的数据节点 被删除需要给提示
-			if node.BindNodeId == procDefNode.Id {
+			if node.BindNodeId == procDefNode.NodeId {
 				middleware.ReturnError(c, exterror.New().ProcDefNodeDeleteError.WithParam(node.Name))
 				return
 			}
