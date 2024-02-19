@@ -194,7 +194,7 @@ func InitPluginDockerHostSSH() {
 		if strings.HasPrefix(row.LoginPassword, models.AESPrefix) {
 			row.LoginPassword = encrypt.DecryptWithAesECB(row.LoginPassword[5:], models.Config.Plugin.ResourcePasswordSeed, row.Name)
 		}
-		exec.Command("/bin/bash", "-c", fmt.Sprintf("sshpass -p '%s' ssh %s@%s -p %s", row.LoginPassword, row.LoginUsername, row.Host, row.Port)).Output()
+		exec.Command("/bin/bash", "-c", fmt.Sprintf("sshpass -p '%s' ssh -o StrictHostKeyChecking=no %s@%s -p %s", row.LoginPassword, row.LoginUsername, row.Host, row.Port)).Output()
 		log.Logger.Info("init plugin docker ssh", log.String("server", row.Host))
 	}
 }
