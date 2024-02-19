@@ -190,7 +190,10 @@ func QueryPluginData(ctx context.Context, exprList []*models.ExpressionObj, filt
 	return
 }
 
-func QueryPluginFullData(ctx context.Context, rootNode *models.ProcPreviewEntityNode, exprList []*models.ExpressionObj, filters []*models.QueryExpressionDataFilter, token string) (result []map[string]interface{}, resultNodeList []*models.ProcPreviewEntityNode, err error) {
+func QueryPluginFullData(ctx context.Context, exprList []*models.ExpressionObj, rootFilter *models.QueryExpressionDataFilter, rootEntityNode *models.ProcPreviewEntityNode, token string) (resultNodeList []*models.ProcPreviewEntityNode, err error) {
+	dataFullIdMap := make(map[string]string)
+	dataFullIdMap[rootEntityNode.DataId] = rootEntityNode.FullDataId
+	var tmpQueryResult []map[string]interface{}
 	for i, exprObj := range exprList {
 		tmpFilters := []*models.EntityQueryObj{}
 		if exprObj.Filters != nil {
@@ -198,18 +201,26 @@ func QueryPluginFullData(ctx context.Context, rootNode *models.ProcPreviewEntity
 				tmpFilters = append(tmpFilters, &models.EntityQueryObj{AttrName: exprFilter.Name, Op: exprFilter.Operator, Condition: exprFilter.Value})
 			}
 		}
-		if len(filters) > i {
-			for _, extFilter := range filters[i].AttributeFilters {
-				tmpFilters = append(tmpFilters, &models.EntityQueryObj{AttrName: extFilter.Name, Op: extFilter.Operator, Condition: extFilter.Value})
+		if rootFilter.Index == i {
+			for _, rootAttrFilter := range rootFilter.AttributeFilters {
+				tmpFilters = append(tmpFilters, &models.EntityQueryObj{AttrName: rootAttrFilter.Name, Op: rootAttrFilter.Operator, Condition: rootAttrFilter.Value})
 			}
+		} else if rootFilter.Index > i {
+			continue
 		}
+		tmpLeftDataMap := make(map[string]string)
 		if i > 0 {
 			if exprObj.LeftJoinColumn != "" {
 				// 左关联，上一个entity的attr关联到自己的id，增加id filter
 				var idFilterList []string
-				for _, lastResultObj := range result {
+				for _, lastResultObj := range tmpQueryResult {
 					if matchAttrData, ok := lastResultObj[exprObj.LeftJoinColumn]; ok {
-						idFilterList = append(idFilterList, getInterfaceStringList(matchAttrData)...)
+						rowIdFilterList := getInterfaceStringList(matchAttrData)
+						idFilterList = append(idFilterList, rowIdFilterList...)
+						lastResultObjId := lastResultObj["id"].(string)
+						for _, tmpDataFilterId := range rowIdFilterList {
+							tmpLeftDataMap[tmpDataFilterId] = lastResultObjId
+						}
 					}
 				}
 				tmpFilters = append(tmpFilters, &models.EntityQueryObj{AttrName: "id", Op: "in", Condition: idFilterList})
@@ -217,18 +228,67 @@ func QueryPluginFullData(ctx context.Context, rootNode *models.ProcPreviewEntity
 			if exprObj.RightJoinColumn != "" {
 				// 右关联，自己的attr关联到上一个entity的id，增加attr filter
 				var idFilterList []string
-				for _, lastResultObj := range result {
+				for _, lastResultObj := range tmpQueryResult {
 					if matchAttrData, ok := lastResultObj["id"]; ok {
-						idFilterList = append(idFilterList, getInterfaceStringList(matchAttrData)...)
+						rowIdFilterList := getInterfaceStringList(matchAttrData)
+						idFilterList = append(idFilterList, rowIdFilterList...)
 					}
 				}
 				tmpFilters = append(tmpFilters, &models.EntityQueryObj{AttrName: exprObj.RightJoinColumn, Op: "in", Condition: idFilterList})
 			}
 		}
-		result, err = requestPluginModelData(ctx, exprObj.Package, exprObj.Entity, token, tmpFilters)
-		if err != nil {
+		lastQueryResult, lastErr := requestPluginModelData(ctx, exprObj.Package, exprObj.Entity, token, tmpFilters)
+		if lastErr != nil {
+			err = lastErr
 			break
 		}
+		log.Logger.Debug("QueryPluginFullData expr", log.Int("index", i), log.Int("rootIndex", rootFilter.Index), log.JsonObj("tmpLeftDataMap", tmpLeftDataMap))
+		if i > rootFilter.Index && len(lastQueryResult) > 0 {
+			for _, rowData := range lastQueryResult {
+				rowDataId := rowData["id"].(string)
+				if _, existFlag := dataFullIdMap[rowDataId]; !existFlag {
+					rowDataNode := models.ProcPreviewEntityNode{}
+					rowDataNode.Parse(exprObj.Package, exprObj.Entity, rowData)
+					resultNodeList = append(resultNodeList, &rowDataNode)
+				} else {
+					continue
+				}
+				if exprObj.LeftJoinColumn != "" {
+					log.Logger.Debug("QueryPluginFullData handle row,LeftJoinColumn", log.String("id", rowDataId), log.String("LeftJoinColumn", exprObj.LeftJoinColumn))
+					if leftMapDataId, ok := tmpLeftDataMap[rowDataId]; ok {
+						dataFullIdMap[rowDataId] = dataFullIdMap[leftMapDataId] + "::" + rowDataId
+					} else {
+						dataFullIdMap[rowDataId] = rowDataId
+					}
+				}
+				if exprObj.RightJoinColumn != "" {
+					log.Logger.Debug("QueryPluginFullData handle row,RightJoinColumn1", log.String("id", rowDataId), log.String("RightJoinColumn", exprObj.LeftJoinColumn))
+					if matchAttrData, ok := rowData[exprObj.RightJoinColumn]; ok {
+						attrIdList := getInterfaceStringList(matchAttrData)
+						tmpMatchRightFullDataId := ""
+						for _, tmpAttrId := range attrIdList {
+							if matchInAttr, existFlag := dataFullIdMap[tmpAttrId]; existFlag {
+								tmpMatchRightFullDataId = matchInAttr
+								break
+							}
+						}
+						log.Logger.Debug("QueryPluginFullData handle row,RightJoinColumn2", log.StringList("attrIdList", attrIdList), log.String("tmpMatchRightFullDataId", tmpMatchRightFullDataId))
+						if tmpMatchRightFullDataId != "" {
+							dataFullIdMap[rowDataId] = tmpMatchRightFullDataId + "::" + rowDataId
+						} else {
+							dataFullIdMap[rowDataId] = rowDataId
+						}
+					}
+				}
+			}
+		}
+		tmpQueryResult = lastQueryResult
+	}
+	for k, v := range dataFullIdMap {
+		log.Logger.Debug("dataFullIdMap", log.String("k", k), log.String("v", v))
+	}
+	for _, v := range resultNodeList {
+		v.FullDataId = dataFullIdMap[v.DataId]
 	}
 	return
 }
