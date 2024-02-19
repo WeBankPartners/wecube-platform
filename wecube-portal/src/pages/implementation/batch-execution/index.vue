@@ -27,12 +27,12 @@ export default {
   data () {
     return {
       expand: true,
-      active: 'executeList',
+      active: 'executeCreate',
       showMenu: {
         templateList: false,
         templateCreate: false,
-        executeList: true,
-        executeCreate: false
+        executeList: false,
+        executeCreate: true
       }
     }
   },
