@@ -242,11 +242,13 @@ func RegisterPackage(c *gin.Context) {
 			return
 		}
 		// 把s3上的ui.zip下下来放到本地
+		log.Logger.Debug("register plugin,start download ui.zip")
 		var uiFileLocalPath, uiDir string
 		if uiFileLocalPath, err = bash.DownloadPackageFile(models.Config.S3.PluginPackageBucket, fmt.Sprintf("%s/%s/ui.zip", pluginPackageObj.Name, pluginPackageObj.Version)); err != nil {
 			middleware.ReturnError(c, err)
 			return
 		}
+		log.Logger.Debug("register plugin,start decompress ui.zip", log.String("uiFileLocalPath", uiFileLocalPath))
 		// 本地解压ui.zip
 		if uiDir, err = bash.DecompressFile(uiFileLocalPath, ""); err != nil {
 			middleware.ReturnError(c, err)
@@ -256,16 +258,18 @@ func RegisterPackage(c *gin.Context) {
 		for _, staticResourceObj := range models.Config.StaticResources {
 			targetPath := fmt.Sprintf("%s/%s/%s/ui.zip", staticResourceObj.Path, pluginPackageObj.Name, pluginPackageObj.Version)
 			unzipCmd := fmt.Sprintf("cd %s/%s/%s && unzip -o ui.zip", staticResourceObj.Path, pluginPackageObj.Name, pluginPackageObj.Version)
+			log.Logger.Debug("register plugin,start scp ui.zip to remote host", log.String("server", staticResourceObj.Server), log.String("targetPath", targetPath))
 			if err = bash.RemoteSCP(staticResourceObj.Server, staticResourceObj.User, staticResourceObj.Password, staticResourceObj.Port, uiFileLocalPath, targetPath); err != nil {
 				break
 			}
+			log.Logger.Debug("register plugin,start unzip ui.zip in remote host", log.String("server", staticResourceObj.Server), log.String("unzipCmd", unzipCmd))
 			if err = bash.RemoteSSHCommand(staticResourceObj.Server, staticResourceObj.User, staticResourceObj.Password, staticResourceObj.Port, unzipCmd); err != nil {
 				break
 			}
-			if err != nil {
-				middleware.ReturnError(c, err)
-				return
-			}
+		}
+		if err != nil {
+			middleware.ReturnError(c, err)
+			return
 		}
 		// 把ui.zip里的静态文件读出来
 		var fileNameList []string
@@ -286,6 +290,7 @@ func RegisterPackage(c *gin.Context) {
 			resourceFileList = append(resourceFileList, &tmpResourceObj)
 		}
 		if len(resourceFileList) > 0 {
+			log.Logger.Debug("register plugin,start update plugin static resource file data", log.JsonObj("resourceFileList", resourceFileList))
 			if err = database.UpdatePluginStaticResourceFiles(c, pluginPackageId, resourceFileList); err != nil {
 				middleware.ReturnError(c, err)
 				return
