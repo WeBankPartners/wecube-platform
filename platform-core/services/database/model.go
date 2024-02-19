@@ -203,7 +203,7 @@ func GetEntityModel(ctx context.Context, packageName, entityName string, onlyAtt
 			return
 		}
 		for _, row := range pluginConfigRows {
-			result.LeafEntityList.ReferenceToEntityList = append(result.LeafEntityList.ReferenceToEntityList, &models.DataModelLeafEntity{PackageName: row.TargetPackage, EntityName: row.TargetEntity, FilterRule: row.TargetEntityFilterRule})
+			result.LeafEntityList.ReferenceToEntityList = append(result.LeafEntityList.ReferenceToEntityList, &models.DataModelLeafEntity{PackageName: row.TargetPackage, EntityName: row.TargetEntity, FilterRule: fmt.Sprintf("%s:%s%s", row.TargetPackage, row.TargetEntity, row.TargetEntityFilterRule)})
 		}
 	}
 	if len(refByFilters) > 0 {
@@ -214,7 +214,7 @@ func GetEntityModel(ctx context.Context, packageName, entityName string, onlyAtt
 			return
 		}
 		for _, row := range pluginConfigRows {
-			result.LeafEntityList.ReferenceByEntityList = append(result.LeafEntityList.ReferenceByEntityList, &models.DataModelLeafEntity{PackageName: row.TargetPackage, EntityName: row.TargetEntity, FilterRule: row.TargetEntityFilterRule})
+			result.LeafEntityList.ReferenceByEntityList = append(result.LeafEntityList.ReferenceByEntityList, &models.DataModelLeafEntity{PackageName: row.TargetPackage, EntityName: row.TargetEntity, FilterRule: fmt.Sprintf("%s:%s%s", row.TargetPackage, row.TargetEntity, row.TargetEntityFilterRule)})
 		}
 	}
 	return

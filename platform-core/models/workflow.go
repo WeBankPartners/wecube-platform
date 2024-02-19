@@ -7,6 +7,7 @@ import (
 
 type ProcRunWorkflow struct {
 	Id            string    `json:"id" xorm:"id"`                         // 唯一标识
+	ProcInsId     string    `json:"procInsId" xorm:"proc_ins_id"`         // 编排实例id
 	Name          string    `json:"name" xorm:"name"`                     // 名称
 	Status        string    `json:"status" xorm:"status"`                 // 状态->ready(初始化) | running(运行中) | fail(失败) | success(成功) | problem(节点失败) | kill(终止)
 	ErrorMessage  string    `json:"errorMessage" xorm:"error_message"`    // 错误信息
@@ -19,28 +20,30 @@ type ProcRunWorkflow struct {
 }
 
 type ProcRunNode struct {
-	Id           string    `json:"id" xorm:"id"`                      // 唯一标识
-	WorkflowId   string    `json:"workflowId" xorm:"workflow_id"`     // 工作流id
-	Name         string    `json:"name" xorm:"name"`                  // 名称
-	JobType      string    `json:"jobType" xorm:"job_type"`           // 任务类型->start(开始) | auto(自动) | data(数据写入) | human(人工) | | fork(分流) | merge(聚合) | time(定时) | date(定期) | decision(判断) | end(结束) | break(异常结束)
-	Status       string    `json:"status" xorm:"status"`              // 状态->ready(初始化) | running(运行中) | wait(等待or聚合) | fail(失败) | success(成功) | timeout(超时)
-	Input        string    `json:"input" xorm:"input"`                // 输入
-	Output       string    `json:"output" xorm:"output"`              // 输出
-	TmpData      string    `json:"tmpData" xorm:"tmp_data"`           // 临时数据
-	ErrorMessage string    `json:"errorMessage" xorm:"error_message"` // 错误信息
-	Timeout      int       `json:"timeout" xorm:"timeout"`            // 超时时间
-	CreatedTime  time.Time `json:"createdTime" xorm:"created_time"`   // 创建时间
-	UpdatedTime  time.Time `json:"updatedTime" xorm:"updated_time"`   // 更新时间
-	StartTime    time.Time `json:"startTime" xorm:"start_time"`       // 开始时间
-	EndTime      time.Time `json:"endTime" xorm:"end_time"`           // 结束时间
+	Id            string    `json:"id" xorm:"id"`                          // 唯一标识
+	WorkflowId    string    `json:"workflowId" xorm:"workflow_id"`         // 工作流id
+	ProcInsNodeId string    `json:"procInsNodeId" xorm:"proc_ins_node_id"` // 编排节点id
+	Name          string    `json:"name" xorm:"name"`                      // 名称
+	JobType       string    `json:"jobType" xorm:"job_type"`               // 任务类型->start(开始) | auto(自动) | data(数据写入) | human(人工) | | fork(分流) | merge(聚合) | time(定时) | date(定期) | decision(判断) | end(结束) | break(异常结束)
+	Status        string    `json:"status" xorm:"status"`                  // 状态->ready(初始化) | running(运行中) | wait(等待or聚合) | fail(失败) | success(成功) | timeout(超时)
+	Input         string    `json:"input" xorm:"input"`                    // 输入
+	Output        string    `json:"output" xorm:"output"`                  // 输出
+	TmpData       string    `json:"tmpData" xorm:"tmp_data"`               // 临时数据
+	ErrorMessage  string    `json:"errorMessage" xorm:"error_message"`     // 错误信息
+	Timeout       int       `json:"timeout" xorm:"timeout"`                // 超时时间
+	CreatedTime   time.Time `json:"createdTime" xorm:"created_time"`       // 创建时间
+	UpdatedTime   time.Time `json:"updatedTime" xorm:"updated_time"`       // 更新时间
+	StartTime     time.Time `json:"startTime" xorm:"start_time"`           // 开始时间
+	EndTime       time.Time `json:"endTime" xorm:"end_time"`               // 结束时间
 }
 
 type ProcRunLink struct {
-	Id         string `json:"id" xorm:"id"`                  // 唯一标识
-	WorkflowId string `json:"workflowId" xorm:"workflow_id"` // 工作流id
-	Name       string `json:"name" xorm:"name"`              // 名称
-	Source     string `json:"source" xorm:"source"`          // 源
-	Target     string `json:"target" xorm:"target"`          // 目标
+	Id            string `json:"id" xorm:"id"`                          // 唯一标识
+	WorkflowId    string `json:"workflowId" xorm:"workflow_id"`         // 工作流id
+	ProcDefLinkId string `json:"procDefLinkId" xorm:"proc_def_link_id"` // 关联定义id
+	Name          string `json:"name" xorm:"name"`                      // 名称
+	Source        string `json:"source" xorm:"source"`                  // 源
+	Target        string `json:"target" xorm:"target"`                  // 目标
 }
 
 type ProcRunWorkRecord struct {

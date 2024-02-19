@@ -65,6 +65,7 @@ type ErrorTemplate struct {
 	ProcDefNameRepeatError           CustomError `json:"proc_def_name_repeat_error"`
 	ProcDefRootEntityEmptyError      CustomError `json:"proc_def_root_entity_empty_error"`
 	DeleteUserError                  CustomError `json:"delete_user_error"`
+	BatchExecPluginAuthError         CustomError `json:"batch_exec_plugin_auth_error"`
 }
 
 var (

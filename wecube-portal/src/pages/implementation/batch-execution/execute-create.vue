@@ -194,8 +194,15 @@ export default {
         this.$Message.warning('插件服务必填')
         return false
       }
-      if (pluginInputParams && pluginInputParams.length === 0) {
-        this.$Message.warning('插件服务入参必填')
+      const pluginInputParamsFlag = pluginInputParams.every(item => {
+        if (item.required === 'Y' && item.mappingType === 'constant' && !item.bindValue) {
+          return false
+        } else {
+          return true
+        }
+      })
+      if ((pluginInputParams && pluginInputParams.length === 0) || !pluginInputParamsFlag) {
+        this.$Message.warning('设置入参必填')
         return false
       }
       return true
