@@ -2,6 +2,7 @@ package database
 
 import (
 	"context"
+	"github.com/WeBankPartners/wecube-platform/platform-core/services/remote"
 	"sort"
 	"strings"
 	"time"
@@ -13,12 +14,14 @@ import (
 )
 
 // QueryProcessDefinitionList 查询编排列表
-func QueryProcessDefinitionList(ctx context.Context, param models.QueryProcessDefinitionParam) (list []*models.ProcDefQueryDto, err error) {
+func QueryProcessDefinitionList(ctx context.Context, param models.QueryProcessDefinitionParam, userToken, language string) (list []*models.ProcDefQueryDto, err error) {
 	var procDefList, pList, filterProcDefList []*models.ProcDef
 	var permissionList []*models.ProcDefPermission
 	var roleProcDefMap = make(map[string][]*models.ProcDefDto)
 	var userRolesMap = convertArray2Map(param.UserRoles)
-	var manageRoles, userRoles, allManageRoles []string
+	var manageRoles, userRoles, allManageRoles, manageRolesDisplay, userRolesDisplay []string
+	var response models.QueryRolesResponse
+	var roleDisplayNameMap = make(map[string]string)
 	var enabledCreated bool
 	var queryParam []interface{}
 	var where string
@@ -44,7 +47,15 @@ func QueryProcessDefinitionList(ctx context.Context, param models.QueryProcessDe
 	} else {
 		filterProcDefList = procDefList
 	}
-
+	response, err = remote.RetrieveAllLocalRoles("Y", userToken, language)
+	if err != nil {
+		return
+	}
+	if len(response.Data) > 0 {
+		for _, roleDto := range response.Data {
+			roleDisplayNameMap[roleDto.Name] = roleDto.DisplayName
+		}
+	}
 	for _, procDef := range filterProcDefList {
 		enabledCreated = false
 		manageRoles = []string{}
@@ -66,8 +77,10 @@ func QueryProcessDefinitionList(ctx context.Context, param models.QueryProcessDe
 		for _, permission := range permissionList {
 			if permission.Permission == "MGMT" && userRolesMap[permission.RoleName] {
 				manageRoles = append(manageRoles, permission.RoleName)
+				manageRolesDisplay = append(manageRolesDisplay, roleDisplayNameMap[permission.RoleName])
 			} else if permission.Permission == "USE" {
 				userRoles = append(userRoles, permission.RoleName)
+				userRolesDisplay = append(userRolesDisplay, roleDisplayNameMap[permission.RoleName])
 			}
 		}
 		for _, manageRole := range manageRoles {
@@ -75,7 +88,7 @@ func QueryProcessDefinitionList(ctx context.Context, param models.QueryProcessDe
 				roleProcDefMap[manageRole] = make([]*models.ProcDefDto, 0)
 				allManageRoles = append(allManageRoles, manageRole)
 			}
-			roleProcDefMap[manageRole] = append(roleProcDefMap[manageRole], models.BuildProcDefDto(procDef, userRoles, manageRoles, enabledCreated))
+			roleProcDefMap[manageRole] = append(roleProcDefMap[manageRole], models.BuildProcDefDto(procDef, userRoles, manageRoles, userRolesDisplay, manageRolesDisplay, enabledCreated))
 		}
 	}
 	// 角色排序
@@ -84,7 +97,11 @@ func QueryProcessDefinitionList(ctx context.Context, param models.QueryProcessDe
 		dataList := roleProcDefMap[manageRole]
 		// 排序
 		sort.Sort(models.ProcDefDtoSort(dataList))
-		list = append(list, &models.ProcDefQueryDto{ManageRole: manageRole, ProcDefList: dataList})
+		list = append(list, &models.ProcDefQueryDto{
+			ManageRole:        manageRole,
+			ManageRoleDisplay: roleDisplayNameMap[manageRole],
+			ProcDefList:       dataList,
+		})
 	}
 	return
 }
