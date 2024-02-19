@@ -475,7 +475,7 @@ func LaunchPlugin(c *gin.Context) {
 		}
 	}
 	// 向auth server注册插件并返回插件认证的code和pubKey,插件会拿着这两个东西去获取插件专属的token来访问platform
-	subSystemCode, subSystemKey, registerAuthErr := remote.RegisterSubSystem(&pluginPackageObj)
+	subSystemCode, subSystemKey, subSystemPubKey, registerAuthErr := remote.RegisterSubSystem(&pluginPackageObj)
 	if registerAuthErr != nil {
 		middleware.ReturnError(c, registerAuthErr)
 		return
@@ -483,9 +483,16 @@ func LaunchPlugin(c *gin.Context) {
 	envMap["SUB_SYSTEM_CODE"] = subSystemCode
 	envMap["SUB_SYSTEM_KEY"] = subSystemKey
 	// 企业版的认证信息环境变量
-	if err := buildPluginProCertification(envMap, &pluginPackageObj, subSystemKey); err != nil {
-		middleware.ReturnError(c, err)
-		return
+	if pluginPackageObj.Edition == "enterprise" {
+		licCode, licPk, licData, licSign, getLicenceErr := database.GeneratePluginEnv(subSystemPubKey, subSystemKey, pluginPackageObj.Name)
+		if getLicenceErr != nil {
+			middleware.ReturnError(c, getLicenceErr)
+			return
+		}
+		envBindList = append(envBindList, "LICENSE_CODE="+licCode)
+		envBindList = append(envBindList, "LICENSE_PK="+licPk)
+		envBindList = append(envBindList, "LICENSE_DATA="+licData)
+		envBindList = append(envBindList, "LICENSE_SIGNATURE="+licSign)
 	}
 	// 替换容器参数差异化变量
 	replaceMap, err := database.BuildDockerEnvMap(c, envMap)

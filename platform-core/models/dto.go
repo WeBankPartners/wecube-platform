@@ -160,3 +160,8 @@ func (q MenuItemDtoSort) Less(i, j int) bool {
 func (q MenuItemDtoSort) Swap(i, j int) {
 	q[i], q[j] = q[j], q[i]
 }
+
+type RegisterSubSysResponse struct {
+	HttpResponseMeta
+	Data *SimpleSubSystemDto `json:"data"`
+}
