@@ -8,6 +8,7 @@ import (
 	"github.com/WeBankPartners/wecube-platform/platform-core/models"
 	_ "github.com/go-sql-driver/mysql"
 	"os/exec"
+	"regexp"
 	"strconv"
 	"strings"
 	"xorm.io/xorm"
@@ -24,16 +25,23 @@ func RemoteSSHCommand(targetIp, user, pwd, port, command string) (err error) {
 }
 
 func RemoteSCP(targetIp, user, pwd, port, localFile, targetPath string) (err error) {
+	targetDir := targetPath
+	if lastIndex := strings.LastIndex(targetPath, "/"); lastIndex > 0 {
+		targetDir = targetPath[:lastIndex]
+	}
+	mkDirCommandString := fmt.Sprintf("sshpass -p '%s' ssh %s@%s -p %s 'mkdir -p %s'", pwd, user, targetIp, port, targetDir)
+	_, err = exec.Command("/bin/bash", "-c", mkDirCommandString).Output()
 	commandString := fmt.Sprintf("sshpass -p '%s' scp -P %s %s %s@%s:%s", pwd, port, localFile, user, targetIp, targetPath)
 	_, err = exec.Command("/bin/bash", "-c", commandString).Output()
 	if err != nil {
 		err = fmt.Errorf("scp file %s to target %s fail,%s ", localFile, targetIp, err.Error())
+		log.Logger.Debug("remoteScp error", log.String("commandString", commandString))
 	}
 	return
 }
 
 func GetRemoteHostAvailablePort(resourceServer *models.ResourceServer) (port int, err error) {
-	commandString := fmt.Sprintf("sshpass -p '%s' ssh %s@%s -p %s 'netstat -ltnp|awk \"{print $4}\"|grep \":2\"'", resourceServer.LoginPassword, resourceServer.LoginUsername, resourceServer.Host, resourceServer.Port)
+	commandString := fmt.Sprintf("sshpass -p '%s' ssh %s@%s -p %s 'netstat -ltnp|grep \":2\"'", resourceServer.LoginPassword, resourceServer.LoginUsername, resourceServer.Host, resourceServer.Port)
 	log.Logger.Debug("GetRemoteHostAvailablePort", log.String("command", commandString))
 	output, execErr := exec.Command("/bin/bash", "-c", commandString).Output()
 	if execErr != nil {
@@ -42,12 +50,18 @@ func GetRemoteHostAvailablePort(resourceServer *models.ResourceServer) (port int
 	}
 	existPortLines := strings.Split(string(output), "\n")
 	existPortMap := make(map[int]int)
+	re, _ := regexp.Compile(".*:(\\d+).*")
 	for _, v := range existPortLines {
-		if splitIndex := strings.LastIndex(v, ":"); splitIndex >= 0 {
-			if tmpPort, _ := strconv.Atoi(v[splitIndex+1:]); tmpPort > 0 {
-				existPortMap[tmpPort] = 1
+		for i, matchV := range re.FindStringSubmatch(v) {
+			if i > 0 {
+				if tmpPort, _ := strconv.Atoi(matchV); tmpPort > 0 {
+					existPortMap[tmpPort] = 1
+				}
 			}
 		}
+	}
+	for k, _ := range existPortMap {
+		log.Logger.Debug("GetRemoteHostAvailablePort existPortMap", log.Int("port", k))
 	}
 	for i := 20000; i <= 21000; i++ {
 		if _, b := existPortMap[i]; !b {
