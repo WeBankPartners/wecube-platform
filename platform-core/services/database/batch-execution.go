@@ -997,3 +997,36 @@ func InsertBatchExecJobs(c *gin.Context, batchExecId string, execTime *time.Time
 	}
 	return
 }
+
+func GetPluginConfigRoles(c *gin.Context, pluginConfigId string) (result []*models.PluginConfigRoles, err error) {
+	var pluginConfigRolesData []*models.PluginConfigRoles
+	err = db.MysqlEngine.Context(c).Table(models.TableNamePluginConfigRoles).
+		Where("plugin_cfg_id = ?", pluginConfigId).
+		Find(&pluginConfigRolesData)
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
+		return
+	}
+	result = pluginConfigRolesData
+	return
+}
+
+func GetPluginConfigsById(c *gin.Context, pluginConfigId string) (result *models.PluginConfigs, err error) {
+	var pluginConfigsData []*models.PluginConfigs
+	err = db.MysqlEngine.Context(c).Table(models.TableNamePluginConfigs).
+		Where("id = ?", pluginConfigId).
+		Find(&pluginConfigsData)
+
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
+		return
+	}
+
+	if len(pluginConfigsData) == 0 {
+		err = fmt.Errorf("pluginConfigId: %s is invalid", pluginConfigId)
+		return
+	}
+
+	result = pluginConfigsData[0]
+	return
+}
