@@ -4,7 +4,11 @@ import (
 	"bytes"
 	"fmt"
 	"github.com/WeBankPartners/go-common-lib/guid"
+	"github.com/WeBankPartners/wecube-platform/platform-core/common/db"
+	"github.com/WeBankPartners/wecube-platform/platform-core/common/encrypt"
+	"github.com/WeBankPartners/wecube-platform/platform-core/common/log"
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/tools"
+	"github.com/WeBankPartners/wecube-platform/platform-core/models"
 	"os"
 	"os/exec"
 	"regexp"
@@ -177,4 +181,20 @@ func ListDirAllFiles(targetDir string) (resultPaths []string, err error) {
 		}
 	}
 	return
+}
+
+func InitPluginDockerHostSSH() {
+	var resourceServers []*models.ResourceServer
+	err := db.MysqlEngine.SQL("select name,host,login_password,login_username,port,login_mode from resource_server where `type`='docker'").Find(&resourceServers)
+	if err != nil {
+		log.Logger.Error("init plugin docker ssh fail", log.Error(err))
+		return
+	}
+	for _, row := range resourceServers {
+		if strings.HasPrefix(row.LoginPassword, models.AESPrefix) {
+			row.LoginPassword = encrypt.DecryptWithAesECB(row.LoginPassword[5:], models.Config.Plugin.ResourcePasswordSeed, row.Name)
+		}
+		exec.Command("/bin/bash", "-c", fmt.Sprintf("sshpass -p '%s' ssh %s@%s -p %s", row.LoginPassword, row.LoginUsername, row.Host, row.Port)).Output()
+		log.Logger.Info("init plugin docker ssh", log.String("server", row.Host))
+	}
 }
