@@ -380,7 +380,7 @@ func LaunchPlugin(c *gin.Context) {
 			return
 		}
 		// 如果连纪录都没有，第一次要创建数据库
-		mysqlServer, resourceDbErr = database.GetResourceServer(c, "mysql", hostIp)
+		mysqlServer, resourceDbErr = database.GetResourceServer(c, "mysql", "")
 		if resourceDbErr != nil {
 			middleware.ReturnError(c, resourceDbErr)
 			return
