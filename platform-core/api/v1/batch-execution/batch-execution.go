@@ -468,6 +468,7 @@ func doRunJob(c *gin.Context, reqParam *models.BatchExecRun) (result *models.Bat
 			log.Logger.Error("update batch execution record failed", log.Error(err), log.String("batchExecErrMsg", errMsg))
 			return
 		}
+		err = exterror.New().BatchExecPluginApiError.WithParam(err.Error())
 		return
 	}
 
