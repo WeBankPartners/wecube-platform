@@ -375,7 +375,11 @@ func CheckPluginPackageDependence(ctx context.Context, pluginPackageId string) (
 
 func GetResourceServer(ctx context.Context, serverType, serverIp string) (resourceServerObj *models.ResourceServer, err error) {
 	var resourceServerRows []*models.ResourceServer
-	err = db.MysqlEngine.Context(ctx).SQL("select id,host,is_allocated,login_password,login_username,name,port,login_mode from resource_server where `type`=? and host=? and status='active'", serverType, serverIp).Find(&resourceServerRows)
+	if serverIp == "" {
+		err = db.MysqlEngine.Context(ctx).SQL("select id,host,is_allocated,login_password,login_username,name,port,login_mode from resource_server where `type`=? and status='active'", serverType).Find(&resourceServerRows)
+	} else {
+		err = db.MysqlEngine.Context(ctx).SQL("select id,host,is_allocated,login_password,login_username,name,port,login_mode from resource_server where `type`=? and host=? and status='active'", serverType, serverIp).Find(&resourceServerRows)
+	}
 	if err != nil {
 		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
 	} else {
