@@ -155,9 +155,11 @@ func QueryPluginData(ctx context.Context, exprList []*models.ExpressionObj, filt
 				tmpFilters = append(tmpFilters, &models.EntityQueryObj{AttrName: exprFilter.Name, Op: exprFilter.Operator, Condition: exprFilter.Value})
 			}
 		}
-		if len(filters) > i {
-			for _, extFilter := range filters[i].AttributeFilters {
-				tmpFilters = append(tmpFilters, &models.EntityQueryObj{AttrName: extFilter.Name, Op: extFilter.Operator, Condition: extFilter.Value})
+		for _, filterObj := range filters {
+			if filterObj.Index == i && exprObj.Package == filterObj.PackageName && exprObj.Entity == filterObj.EntityName {
+				for _, extAttrFilter := range filterObj.AttributeFilters {
+					tmpFilters = append(tmpFilters, &models.EntityQueryObj{AttrName: extAttrFilter.Name, Op: extAttrFilter.Operator, Condition: extAttrFilter.Value})
+				}
 			}
 		}
 		if i > 0 {

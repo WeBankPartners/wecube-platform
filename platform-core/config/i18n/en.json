@@ -115,5 +115,9 @@
   "proc_def__node_delete_error": {
     "code": 20000024,
     "message": "Delete failed: The current node has been bound by [%s node], please remove the binding relationship first and then delete it."
+  },
+  "batch_exec_plugin_auth_error": {
+    "code": 20000025,
+    "message": "Run failed: You currently do not have permission to use the plugin service: %s. Please contact the platform administrator."
   }
 }
