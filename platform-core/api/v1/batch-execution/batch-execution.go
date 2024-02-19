@@ -308,6 +308,10 @@ func ValidateRunJobParams(reqParam *models.BatchExecRun) (err error) {
 		err = fmt.Errorf("reqParam.PluginConfigInterface.Id can not be empty")
 		return
 	}
+	if reqParam.PluginConfigInterface.PluginConfigId == "" {
+		err = fmt.Errorf("reqParam.PluginConfigInterface.PluginConfigId can not be empty")
+		return
+	}
 	if reqParam.DataModelExpression == "" {
 		err = fmt.Errorf("reqParam.DataModelExpression can not be empty")
 		return
@@ -315,8 +319,37 @@ func ValidateRunJobParams(reqParam *models.BatchExecRun) (err error) {
 	return
 }
 
-func ValidateRunJobPermission() (err error) {
+func ValidateRunJobPermission(c *gin.Context, userRoles []string, pluginConfigId string) (err error) {
+	userRolesMap := make(map[string]struct{})
+	for _, role := range userRoles {
+		userRolesMap[role] = struct{}{}
+	}
 
+	pluginConfigData, tmpErr := database.GetPluginConfigsById(c, pluginConfigId)
+	if tmpErr != nil {
+		err = tmpErr
+		return
+	}
+
+	pluginConfigRolesData, tmpErr := database.GetPluginConfigRoles(c, pluginConfigId)
+	if tmpErr != nil {
+		err = tmpErr
+		return
+	}
+
+	isAuthorized := false
+	for _, pluginCfgRole := range pluginConfigRolesData {
+		if pluginCfgRole.PermType == models.PermissionTypeUSE {
+			if _, isExisted := userRolesMap[pluginCfgRole.RoleName]; isExisted {
+				isAuthorized = true
+				break
+			}
+		}
+	}
+	if !isAuthorized {
+		err = exterror.New().BatchExecPluginAuthError.WithParam(pluginConfigData.Name)
+		return
+	}
 	return
 }
 
@@ -338,6 +371,12 @@ func RunJob(c *gin.Context) {
 	err = ValidateRunJobParams(&reqParam)
 	if err != nil {
 		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, err))
+		return
+	}
+
+	err = ValidateRunJobPermission(c, middleware.GetRequestRoles(c), reqParam.PluginConfigInterface.PluginConfigId)
+	if err != nil {
+		middleware.ReturnError(c, err)
 		return
 	}
 

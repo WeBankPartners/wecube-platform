@@ -115,5 +115,9 @@
   "proc_def__node_delete_error": {
     "code": 20000024,
     "message": "删除失败:当前节点已被[%s节点]绑定,请先移除绑定关系再删除"
+  },
+  "batch_exec_plugin_auth_error": {
+    "code": 20000025,
+    "message": "执行失败:您暂时没有插件服务: %s 的使用权限,请联系平台管理员"
   }
 }
