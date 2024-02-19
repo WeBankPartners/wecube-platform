@@ -1,6 +1,9 @@
 package models
 
-import "fmt"
+import (
+	"fmt"
+	"strings"
+)
 
 type ProcDefListObj struct {
 	ProcDefId      string             `json:"procDefId"`
@@ -78,4 +81,84 @@ func (p *ProcPreviewEntityNode) Parse(packageName, entityName string, input map[
 	}
 	p.Id = fmt.Sprintf("%s:%s:%s", p.PackageName, p.EntityName, p.DataId)
 	p.PreviousIds, p.SucceedingIds = []string{}, []string{}
+}
+
+func (p *ProcPreviewData) AnalyzeRefIds() {
+	if len(p.EntityTreeNodes) <= 1 {
+		return
+	}
+	nodePreviousMap := make(map[string][]string)
+	nodeSucceedingMap := make(map[string][]string)
+	nodeIdMap := make(map[string]string)
+	for _, v := range p.EntityTreeNodes {
+		nodePreviousMap[v.DataId] = []string{}
+		nodeSucceedingMap[v.DataId] = []string{}
+		nodeIdMap[v.DataId] = v.Id
+	}
+	for _, v := range p.EntityTreeNodes {
+		for _, subFullDataId := range strings.Split(v.FullDataId, "::") {
+			if subFullDataId == "" || subFullDataId == v.DataId {
+				continue
+			}
+			if existList, ok := nodeSucceedingMap[subFullDataId]; ok {
+				nodeSucceedingMap[subFullDataId] = append(existList, v.DataId)
+				nodePreviousMap[v.DataId] = append(nodePreviousMap[v.DataId], subFullDataId)
+			}
+		}
+	}
+	for _, v := range p.EntityTreeNodes {
+		for _, sucId := range nodeSucceedingMap[v.DataId] {
+			v.SucceedingIds = append(v.SucceedingIds, nodeIdMap[sucId])
+		}
+		for _, preId := range nodePreviousMap[v.DataId] {
+			v.PreviousIds = append(v.PreviousIds, nodeIdMap[preId])
+		}
+	}
+}
+
+type TaskNodeBindingObj struct {
+	Bound        string `json:"bound"`
+	EntityDataId string `json:"entityDataId"`
+	EntityTypeId string `json:"entityTypeId"`
+	NodeDefId    string `json:"nodeDefId"`
+	OrderedNo    string `json:"orderedNo"`
+}
+
+type ProcInsStartParam struct {
+	EntityDataId      string                `json:"entityDataId"`
+	EntityDisplayName string                `json:"entityDisplayName"`
+	EntityTypeId      string                `json:"entityTypeId"`
+	ProcDefId         string                `json:"procDefId"`
+	ProcessSessionId  string                `json:"processSessionId"`
+	TaskNodeBinds     []*TaskNodeBindingObj `json:"taskNodeBinds"`
+}
+
+type ProcInsDetail struct {
+	Id                string               `json:"id"`
+	ProcDefId         string               `json:"procDefId"`
+	ProcInstKey       string               `json:"procInstKey"`
+	ProcInstName      string               `json:"procInstName"`
+	EntityDataId      string               `json:"entityDataId"`
+	EntityTypeId      string               `json:"entityTypeId"`
+	Status            string               `json:"status"`
+	Operator          string               `json:"operator"`
+	CreatedTime       string               `json:"createdTime"`
+	TaskNodeInstances []*ProcInsNodeDetail `json:"taskNodeInstances"`
+}
+
+type ProcInsNodeDetail struct {
+	Id                int      `json:"id"`
+	NodeId            string   `json:"nodeId"`
+	NodeName          string   `json:"nodeName"`
+	NodeDefId         string   `json:"nodeDefId"`
+	NodeType          string   `json:"nodeType"`
+	Description       string   `json:"description"`
+	OrderedNo         string   `json:"orderedNo"`
+	ProcDefId         string   `json:"procDefId"`
+	ProcDefKey        string   `json:"procDefKey"`
+	ProcInstId        string   `json:"procInstId"`
+	ProcInstKey       string   `json:"procInstKey"`
+	RoutineExpression string   `json:"routineExpression"`
+	Status            string   `json:"status"`
+	SucceedingNodeIds []string `json:"succeedingNodeIds"`
 }
