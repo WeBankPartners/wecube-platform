@@ -24,7 +24,7 @@ func startScanOperationJob() {
 
 func doScanOperationJob() {
 	var curWorkflowIds []string
-	globalWorkflowMap.Range(func(key, value any) bool {
+	GlobalWorkflowMap.Range(func(key, value any) bool {
 		curWorkflowIds = append(curWorkflowIds, key.(string))
 		return true
 	})
@@ -57,7 +57,7 @@ func handleProOperation(operation *models.ProcRunOperation) {
 		log.Logger.Warn("try to handle operation,but too late", log.String("host", instanceHost), log.Int64("operation", operation.Id))
 		return
 	}
-	if workIf, ok := globalWorkflowMap.Load(operation.WorkflowId); ok {
+	if workIf, ok := GlobalWorkflowMap.Load(operation.WorkflowId); ok {
 		workObj := workIf.(*Workflow)
 		opObj := models.ProcOperation{Ctx: context.Background(), WorkflowId: operation.WorkflowId, Message: operation.Message, CreatedBy: operation.CreatedBy}
 		switch operation.Operation {

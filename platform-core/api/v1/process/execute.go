@@ -10,6 +10,7 @@ import (
 	"github.com/WeBankPartners/wecube-platform/platform-core/models"
 	"github.com/WeBankPartners/wecube-platform/platform-core/services/database"
 	"github.com/WeBankPartners/wecube-platform/platform-core/services/remote"
+	"github.com/WeBankPartners/wecube-platform/platform-core/services/workflow"
 	"github.com/gin-gonic/gin"
 	"strings"
 	"time"
@@ -248,7 +249,30 @@ func UpdateProcNodeBindingData(c *gin.Context) {
 }
 
 func ProcInsStart(c *gin.Context) {
-
+	var param models.ProcInsStartParam
+	if err := c.ShouldBindJSON(&param); err != nil {
+		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, err))
+		return
+	}
+	operator := middleware.GetRequestUser(c)
+	// 新增 proc_ins,proc_ins_node,proc_data_binding 纪录
+	procInsId, workflowRow, workNodes, workLinks, err := database.CreateProcInstance(c, &param, operator)
+	if err != nil {
+		middleware.ReturnError(c, err)
+		return
+	}
+	// 初始化workflow并开始
+	workObj := workflow.Workflow{ProcRunWorkflow: *workflowRow}
+	workObj.Init(context.Background(), workNodes, workLinks)
+	workflow.GlobalWorkflowMap.Store(workObj.Id, &workObj)
+	go workObj.Start(&models.ProcOperation{CreatedBy: operator})
+	// 查询 detail 返回
+	detail, queryErr := database.GetProcInstance(c, procInsId)
+	if queryErr != nil {
+		middleware.ReturnError(c, queryErr)
+	} else {
+		middleware.ReturnData(c, detail)
+	}
 }
 
 func ProcInsList(c *gin.Context) {
