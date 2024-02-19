@@ -78,7 +78,7 @@ export default {
     },
     homePageClickHandler () {
       window.needReLoad = false
-      this.$router.push('/taskman/workbench')
+      this.$router.push('/homepage')
     }
   },
   created () {
