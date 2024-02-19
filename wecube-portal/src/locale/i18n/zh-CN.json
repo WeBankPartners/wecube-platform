@@ -572,7 +572,7 @@
   "characters": "字符",
   "setRootEntity": "请先设置编排的对象类型",
   "node": "节点",
-  "checkContextParameter": "请检查上下文参数中的必填项!",
+  "checkContextParameter": "请检查上下文参数及静态参数中的必填项!",
   "workFlowProperties": "编排属性",
   "edgeProperties": "连接属性",
   "nodeProperties": "节点属性",
