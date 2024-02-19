@@ -478,3 +478,196 @@ CREATE TABLE `batch_execution_template_collect` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
 CREATE INDEX batch_exec_tmpl_collect_userId_IDX USING BTREE ON batch_execution_template_collect (user_id);
 CREATE INDEX batch_exec_tmpl_id_IDX USING BTREE ON batch_execution_template_collect (batch_execution_template_id);
+
+CREATE TABLE `proc_data_preview` (
+    `id` int(11) NOT NULL AUTO_INCREMENT COMMENT '自增id',
+    `proc_def_id` varchar(64) NOT NULL COMMENT '编排定义id',
+    `proc_session_id` varchar(64) NOT NULL COMMENT '试算任务id',
+    `proc_def_node_id` varchar(64) DEFAULT NULL COMMENT '编排节点id',
+    `entity_data_id` varchar(64) DEFAULT NULL COMMENT '数据id',
+    `entity_data_name` varchar(255) DEFAULT NULL COMMENT '数据名称',
+    `entity_type_id` varchar(64) DEFAULT NULL COMMENT '数据entity',
+    `ordered_no` varchar(32) DEFAULT NULL COMMENT '节点排序',
+    `bind_type` varchar(32) DEFAULT NULL COMMENT '编排(taskNode)还是节点(process)',
+    `full_data_id` varchar(1024) DEFAULT NULL COMMENT '数据全路径',
+    `is_bound` bit(1) DEFAULT 1 COMMENT '是否绑定',
+    `created_by` varchar(64) DEFAULT NULL COMMENT '创建人',
+    `created_time` datetime DEFAULT NULL COMMENT '创建时间',
+    `updated_by` varchar(64) DEFAULT NULL COMMENT '更新人',
+    `updated_time` datetime DEFAULT NULL COMMENT '更新时间',
+    PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
+
+CREATE TABLE `proc_ins_graph_node` (
+     `id` int(11) NOT NULL AUTO_INCREMENT COMMENT '自增id',
+     `proc_session_id` varchar(64) NOT NULL COMMENT '试算任务id',
+     `proc_ins_id` varchar(64) DEFAULT NULL COMMENT '编排实例id',
+     `data_id` varchar(64) DEFAULT NULL COMMENT '数据id',
+     `display_name` varchar(255) DEFAULT NULL COMMENT '数据显示名',
+     `entity_name` varchar(255) DEFAULT NULL COMMENT 'entity显示名',
+     `graph_node_id` varchar(255) DEFAULT NULL COMMENT '图形节点id',
+     `pkg_name` varchar(64) DEFAULT NULL COMMENT '数据所属包',
+     `prev_ids` text DEFAULT NULL COMMENT '上游图形节点id列表',
+     `succ_ids` text DEFAULT NULL COMMENT '下游图形节点id列表',
+     `full_data_id` varchar(1024) DEFAULT NULL COMMENT '数据全路径',
+     `created_by` varchar(64) DEFAULT NULL COMMENT '创建人',
+     `created_time` datetime DEFAULT NULL COMMENT '创建时间',
+     `updated_by` varchar(64) DEFAULT NULL COMMENT '更新人',
+     `updated_time` datetime DEFAULT NULL COMMENT '更新时间',
+     PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
+
+CREATE TABLE `proc_data_binding` (
+     `id` varchar(64) NOT NULL COMMENT '唯一标识',
+     `proc_def_id` varchar(64) NOT NULL COMMENT '编排定义id',
+     `proc_ins_id` varchar(64) NOT NULL COMMENT '编排实例id',
+     `proc_def_node_id` varchar(64) DEFAULT NULL COMMENT '编排节点id',
+     `proc_ins_node_id` varchar(64) DEFAULT NULL COMMENT '编排实例节点id',
+     `entity_id` varchar(64) DEFAULT NULL COMMENT '编排数据id',
+     `entity_data_id` varchar(64) DEFAULT NULL COMMENT '数据id',
+     `entity_data_name` varchar(255) DEFAULT NULL COMMENT '数据名称',
+     `entity_type_id` varchar(64) DEFAULT NULL COMMENT '数据entity',
+     `bind_flag` bit(1) DEFAULT 1 COMMENT '是否绑定',
+     `bind_type` varchar(32) DEFAULT NULL COMMENT '编排(taskNode)还是节点(process)',
+     `full_data_id` varchar(1024) DEFAULT NULL COMMENT '数据全路径',
+     `created_by` varchar(64) DEFAULT NULL COMMENT '创建人',
+     `created_time` datetime DEFAULT NULL COMMENT '创建时间',
+     `updated_by` varchar(64) DEFAULT NULL COMMENT '更新人',
+     `updated_time` datetime DEFAULT NULL COMMENT '更新时间',
+     PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
+
+CREATE TABLE `proc_ins` (
+     `id` varchar(64) NOT NULL COMMENT '唯一标识',
+     `proc_def_id` varchar(64) NOT NULL COMMENT '编排定义id',
+     `proc_def_key` varchar(64) NOT NULL COMMENT '编排定义key',
+     `proc_def_name` varchar(255) NOT NULL COMMENT '编排定义名称',
+     `status` varchar(32) NOT NULL COMMENT '状态->ready(初始化) | running(运行中) | fail(失败) | success(成功) | problem(节点失败) | kill(终止)',
+     `created_by` varchar(64) DEFAULT NULL COMMENT '创建人',
+     `created_time` datetime DEFAULT NULL COMMENT '创建时间',
+     `updated_by` varchar(64) DEFAULT NULL COMMENT '更新人',
+     `updated_time` datetime DEFAULT NULL COMMENT '更新时间',
+     PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
+
+CREATE TABLE `proc_ins_node` (
+    `id` varchar(64) NOT NULL COMMENT '唯一标识',
+    `proc_ins_id` varchar(64) NOT NULL COMMENT '编排实例id',
+    `proc_def_node_id` varchar(64) NOT NULL COMMENT '编排节点定义id',
+    `name` varchar(64) DEFAULT NULL COMMENT '编排定义名称',
+    `node_type` varchar(64) NOT NULL COMMENT '任务类型->start(开始) | auto(自动) | data(数据写入) | human(人工) | agg(聚合) | time(定时) | date(定期) | decision(判断) | end(结束) | break(异常结束)',
+    `status` varchar(32) NOT NULL COMMENT '状态->ready(初始化) | running(运行中) | wait(等待or聚合) | fail(失败) | success(成功) | timeout(超时)',
+    `risk_check_result` text DEFAULT NULL COMMENT '高危检测结果',
+    `error_msg` text DEFAULT NULL COMMENT '报错信息',
+    `ordered_no` int(11) DEFAULT 0 COMMENT '节点排序',
+    `created_by` varchar(64) DEFAULT NULL COMMENT '创建人',
+    `created_time` datetime DEFAULT NULL COMMENT '创建时间',
+    `updated_by` varchar(64) DEFAULT NULL COMMENT '更新人',
+    `updated_time` datetime DEFAULT NULL COMMENT '更新时间',
+    PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
+
+CREATE TABLE `proc_ins_node_req` (
+     `id` varchar(64) NOT NULL COMMENT '唯一标识',
+     `proc_ins_node_id` varchar(64) NOT NULL COMMENT '编排实例节点id',
+     `req_url` varchar(255) NOT NULL COMMENT '请求url',
+     `is_completed` bit(1) DEFAULT 0 COMMENT '是否完成',
+     `error_code` varchar(64) DEFAULT NULL COMMENT '错误码',
+     `error_msg` text DEFAULT NULL COMMENT '错误信息',
+     `with_context_data` bit(1) DEFAULT 0 COMMENT '是否有上下文数据',
+     `req_data_amount` int(11) DEFAULT NULL COMMENT '有多少组数据',
+     `created_time` datetime DEFAULT NULL COMMENT '创建时间',
+     `updated_time` datetime DEFAULT NULL COMMENT '更新时间',
+     PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
+
+CREATE TABLE `proc_ins_node_req_param` (
+     `id` int(11) NOT NULL AUTO_INCREMENT COMMENT '自增id',
+     `req_id` varchar(64) NOT NULL COMMENT '请求id',
+     `data_index` int(11) DEFAULT 0 COMMENT '第几组数据',
+     `from_type` varchar(16) DEFAULT 'input' COMMENT 'input | output',
+     `name` varchar(255) DEFAULT NULL COMMENT '参数名',
+     `data_type` varchar(64) DEFAULT NULL COMMENT '参数数据类型',
+     `data_value` text DEFAULT NULL COMMENT '参数数据值',
+     `entity_data_id` varchar(64) DEFAULT NULL COMMENT '数据id',
+     `entity_type_id` varchar(255) DEFAULT NULL COMMENT '数据entity',
+     `is_sensitive` bit(1) DEFAULT 0 COMMENT '是否敏感',
+     `full_data_id` varchar(1024) DEFAULT NULL COMMENT '数据全路径',
+     `multiple` bit(1) DEFAULT 0 COMMENT '是否数组',
+     `param_def_id` varchar(64) DEFAULT NULL COMMENT '插件服务参数id',
+     `mapping_type` varchar(64) DEFAULT NULL COMMENT '数据来源',
+     `callback_id` varchar(64) DEFAULT NULL COMMENT '回调id',
+     `created_time` datetime DEFAULT NULL COMMENT '创建时间',
+     PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
+
+-- 工作流表
+CREATE TABLE `proc_run_workflow` (
+     `id` varchar(64) NOT NULL COMMENT '唯一标识',
+     `name` varchar(64) NOT NULL COMMENT '名称',
+     `status` varchar(32) NOT NULL COMMENT '状态->ready(初始化) | running(运行中) | fail(失败) | success(成功) | problem(节点失败) | kill(终止)',
+     `error_message` text DEFAULT NULL COMMENT '错误信息',
+     `sleep` bit(1) DEFAULT 0 COMMENT '休眠->problem超10min或running中当前节点wait超10min,防止不是终态的工作流一直占用资源',
+     `stop` bit(1) DEFAULT 0 COMMENT '暂停->人为停止',
+     `created_time` datetime DEFAULT NULL COMMENT '创建时间',
+     `updated_time` datetime DEFAULT NULL COMMENT '更新时间',
+     `host` varchar(64) DEFAULT NULL COMMENT '当前运行主机',
+     `last_alive_time` datetime DEFAULT NULL COMMENT '定期打卡时间->每隔10s更新',
+     PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
+
+-- 任务节点表
+CREATE TABLE `proc_run_node` (
+     `id` varchar(64) NOT NULL COMMENT '唯一标识',
+     `workflow_id` varchar(64) NOT NULL COMMENT '工作流id',
+     `name` varchar(64) DEFAULT NULL COMMENT '名称',
+     `job_type` varchar(64) NOT NULL COMMENT '任务类型->start(开始) | auto(自动) | data(数据写入) | human(人工) | agg(聚合) | time(定时) | date(定期) | decision(判断) | end(结束) | break(异常结束)',
+     `status` varchar(32) NOT NULL COMMENT '状态->ready(初始化) | running(运行中) | wait(等待or聚合) | fail(失败) | success(成功) | timeout(超时)',
+     `input` text DEFAULT NULL COMMENT '输入',
+     `output` text DEFAULT NULL COMMENT '输出',
+     `tmp_data` text DEFAULT NULL COMMENT '临时数据',
+     `error_message` text DEFAULT NULL COMMENT '错误信息',
+     `timeout` int(11) DEFAULT 0 COMMENT '超时时间',
+     `created_time` datetime DEFAULT NULL COMMENT '创建时间',
+     `updated_time` datetime DEFAULT NULL COMMENT '更新时间',
+     `start_time` datetime DEFAULT NULL COMMENT '开始时间',
+     `end_time` datetime DEFAULT NULL COMMENT '结束时间',
+     PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
+
+-- 节点关联表
+CREATE TABLE `proc_run_link` (
+     `id` varchar(64) NOT NULL COMMENT '唯一标识',
+     `workflow_id` varchar(64) NOT NULL COMMENT '工作流id',
+     `name` varchar(64) DEFAULT NULL COMMENT '名称',
+     `source` varchar(64) NOT NULL COMMENT '源',
+     `target` varchar(64) NOT NULL COMMENT '目标',
+     PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
+
+-- 工作流生命周期纪录表,纪录工作流所有变化，比工作流状态多了两个状态 休眠和接管 状态
+CREATE TABLE `proc_run_work_record` (
+    `id` int(11) NOT NULL AUTO_INCREMENT COMMENT '自增id',
+    `workflow_id` varchar(64) NOT NULL COMMENT '工作流id',
+    `host` varchar(64) DEFAULT NULL COMMENT '主机',
+    `status` varchar(32) DEFAULT NULL COMMENT '状态->ready(初始化) | running(运行中) | fail(失败) | success(成功) | problem(节点失败) | kill(终止) | sleep(休眠) | takeOver(接管) | stop(暂停) | recover(恢复)',
+    `message` text DEFAULT NULL COMMENT '详细信息,终止原因等',
+    `created_by` varchar(64) DEFAULT NULL COMMENT '创建人',
+    `created_time` datetime DEFAULT NULL COMMENT '创建时间',
+    PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
+
+-- 工作流操作表,纪录所有工作流的外部事件
+CREATE TABLE `proc_run_operation` (
+      `id` int(11) NOT NULL AUTO_INCREMENT COMMENT '自增id',
+      `workflow_id` varchar(64) NOT NULL COMMENT '工作流id',
+      `node_id` varchar(64) DEFAULT NULL COMMENT '节点id',
+      `operation` varchar(64) NOT NULL COMMENT '操作->kill(终止工作流) | retry(重试节点) | continue(跳过节点) | approve(人工审批) | date(定期触发)',
+      `status` varchar(32) DEFAULT NULL COMMENT '状态->wait(待处理) | done(已处理)',
+      `message` text DEFAULT NULL COMMENT '详细信息->审批结果,终止原因等',
+      `created_by` varchar(64) DEFAULT NULL COMMENT '创建人',
+      `created_time` datetime DEFAULT NULL COMMENT '创建时间',
+      `handle_by` varchar(64) DEFAULT NULL COMMENT '处理的主机',
+      `handle_time` datetime DEFAULT NULL COMMENT '处理时间',
+      PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;

@@ -21,11 +21,11 @@
           />
           <div class="item-tool-name">{{ $t('start') }}</div>
         </div>
-        <div slot="content">
-          <p>功能:事件节点1,标志编排开始</p>
-          <p>使用规范:</p>
-          <p>1.一个编排有且只有一个开始节点</p>
-          <p>2.只有一条出线.</p>
+        <div style="word-break: keep-all" slot="content">
+          <p>{{ $t('startNodeFunc') }}</p>
+          <p>{{ $t('usage') }}</p>
+          <p>{{ $t('startNodetip1') }}</p>
+          <p>{{ $t('startNodetip2') }}</p>
         </div>
       </Tooltip>
       <Tooltip :maxWidth="400" placement="right" :delay="1000">
@@ -47,11 +47,11 @@
           />
           <div class="item-tool-name">{{ $t('end') }}</div>
         </div>
-        <div slot="content">
-          <p>功能:事件节点2,标志编排结束</p>
-          <p>使用规范:</p>
-          <p>1.一个编排有且只有一个结束节点</p>
-          <p>2.只有一条入线</p>
+        <div style="word-break: keep-all" slot="content">
+          <p>{{ $t('endNodeFunc') }}</p>
+          <p>{{ $t('usage') }}</p>
+          <p>{{ $t('endNodetip1') }}</p>
+          <p>{{ $t('endNodetip2') }}</p>
         </div>
       </Tooltip>
       <Tooltip :maxWidth="400" placement="right" :delay="1000">
@@ -73,11 +73,11 @@
           />
           <div class="item-tool-name">{{ $t('abnormal') }}</div>
         </div>
-        <div slot="content">
-          <p>功能:事件节点3,标志编排退出</p>
-          <p>使用规范:</p>
-          <p>1.一个编排可以有多个退出节点</p>
-          <p>2.只有一条入线</p>
+        <div style="word-break: keep-all" slot="content">
+          <p>{{ $t('abnormalNodeFunc') }}</p>
+          <p>{{ $t('usage') }}</p>
+          <p>{{ $t('abnormalNodetip1') }}</p>
+          <p>{{ $t('abnormalNodetip2') }}</p>
         </div>
       </Tooltip>
       <Tooltip :maxWidth="400" placement="right" :delay="1000">
@@ -96,11 +96,11 @@
           </div>
           <div class="diamond-item-tool-name">{{ $t('decision') }}</div>
         </div>
-        <div slot="content">
-          <p>功能:判断人工节点的填表结果,根据结果走到不同路线</p>
-          <p>使用规范:</p>
-          <p>1.判断节点只能接在人工任务节点后面</p>
-          <p>2.支持一条入线两条出线</p>
+        <div style="word-break: keep-all" slot="content">
+          <p>{{ $t('decisionNodeFunc') }}</p>
+          <p>{{ $t('usage') }}</p>
+          <p>{{ $t('decisionNodetip1') }}</p>
+          <p>{{ $t('decisionNodetip2') }}</p>
         </div>
       </Tooltip>
       <Tooltip :maxWidth="400" placement="right" :delay="1000">
@@ -119,11 +119,11 @@
           </div>
           <div class="diamond-item-tool-name">{{ $t('forkNode') }}</div>
         </div>
-        <div slot="content">
-          <p>功能:并行线路的起点,并行线路都完成才能走到汇聚节点</p>
-          <p>使用规范:</p>
-          <p>1.分支节点和汇聚节点配套使用</p>
-          <p>2.单进多出</p>
+        <div style="word-break: keep-all" slot="content">
+          <p>{{ $t('forkNodeFunc') }}</p>
+          <p>{{ $t('usage') }}</p>
+          <p>{{ $t('forkNodetip1') }}</p>
+          <p>{{ $t('forkNodetip2') }}</p>
         </div>
       </Tooltip>
       <Tooltip :maxWidth="400" placement="right" :delay="1000">
@@ -142,11 +142,11 @@
           </div>
           <div class="diamond-item-tool-name">{{ $t('merge') }}</div>
         </div>
-        <div slot="content">
-          <p>功能:并行线路的终点,并行线路都完成才能走到汇聚节点</p>
-          <p>使用规范:</p>
-          <p>1.分支节点和汇聚节点配套使用</p>
-          <p>2.多进单出</p>
+        <div style="word-break: keep-all" slot="content">
+          <p>{{ $t('forkNodeFunc') }}</p>
+          <p>{{ $t('usage') }}</p>
+          <p>{{ $t('forkNodetip1') }}</p>
+          <p>{{ $t('forkNodetip2') }}</p>
         </div>
       </Tooltip>
       <Tooltip :maxWidth="400" placement="right" :delay="1000">
@@ -168,11 +168,11 @@
           />
           <div class="item-tool-name">{{ $t('artificial') }}</div>
         </div>
-        <div slot="content">
-          <p>功能:任务节点1,在[任务-工作台]自动创建一个人工任务</p>
-          <p>使用规范:</p>
-          <p>1.发布编排之后,可以在[任务-模版管理-筛选本编排-编辑-任务表单设置]中,配置同名的任务表单</p>
-          <p>2.如需要支持审批,请在后面接一个判断节点,任务表单会根据判断条件自动生成一个判断表单</p>
+        <div style="word-break: keep-all" slot="content">
+          <p>{{ $t('humanNodeFunc') }}</p>
+          <p>{{ $t('usage') }}</p>
+          <p>{{ $t('humanNodetip1') }}</p>
+          <p>{{ $t('humanNodetip2') }}</p>
         </div>
       </Tooltip>
       <Tooltip :maxWidth="400" placement="right" :delay="1000">
@@ -194,11 +194,11 @@
           />
           <div class="item-tool-name">{{ $t('automatic') }}</div>
         </div>
-        <div slot="content">
-          <p>功能:任务节点2,将自动执行插件服务API</p>
-          <p>使用规范:</p>
-          <p>1.操作目标对象: 设置[3.数据绑定-对象定位规则]</p>
-          <p>2.操作使用API:选择[操作[协同-插件注册-某插件-服务注册-插件服务API],设置对应的入参,才能执行程序</p>
+        <div style="word-break: keep-all" slot="content">
+          <p>{{ $t('automaticNodeFunc') }}</p>
+          <p>{{ $t('usage') }}</p>
+          <p>{{ $t('automaticNodetip1') }}</p>
+          <p>{{ $t('automaticNodetip2') }}</p>
         </div>
       </Tooltip>
       <Tooltip :maxWidth="400" placement="right" :delay="1000">
@@ -220,10 +220,10 @@
           />
           <div class="item-tool-name">{{ $t('data') }}</div>
         </div>
-        <div slot="content">
-          <p>功能:任务节点3,执行WECMDB的数据写入</p>
-          <p>使用规范:</p>
-          <p>1.配置数据写入的目标对象和操作类型,WECMDB将自动写入数据,支持设置多个目标对象</p>
+        <div style="word-break: keep-all" slot="content">
+          <p>{{ $t('dataNodeFunc') }}</p>
+          <p>{{ $t('usage') }}</p>
+          <p>{{ $t('dataNodetip1') }}</p>
         </div>
       </Tooltip>
       <Tooltip :maxWidth="400" placement="right" :delay="1000">
@@ -245,10 +245,10 @@
           />
           <div class="item-tool-name">{{ $t('fixedTime') }}</div>
         </div>
-        <div slot="content">
-          <p>功能:时间节点1,控制流程进行下一步的具体时间</p>
-          <p>使用规范:</p>
-          <p>1.支持设置未来的一个时刻,格式为年月日时分秒</p>
+        <div style="word-break: keep-all" slot="content">
+          <p>{{ $t('fixedTimeFunc') }}</p>
+          <p>{{ $t('usage') }}</p>
+          <p>{{ $t('fixedTimeNodetip1') }}</p>
         </div>
       </Tooltip>
       <Tooltip :maxWidth="400" placement="right" :delay="1000">
@@ -268,12 +268,12 @@
             class="item-tool-icon"
             draggable="false"
           />
-          <div class="item-tool-name">{{ $t('timeInterval') }}</div>
+          <div class="item-tool-name">{{ $t('timeGap') }}</div>
         </div>
-        <div slot="content">
-          <p>功能:时间节点2,控制流程进行下一步的间隔</p>
-          <p>使用规范:</p>
-          <p>1.支持选择一个时间段</p>
+        <div style="word-break: keep-all" slot="content">
+          <p>{{ $t('timeIntervalFunc') }}</p>
+          <p>{{ $t('usage') }}</p>
+          <p>{{ $t('timeIntervaltip1') }}</p>
         </div>
       </Tooltip>
     </div>
@@ -340,7 +340,7 @@ export default {
 <style lang="scss" scoped>
 #itemPanel {
   position: absolute;
-  top: 127px;
+  top: 134px;
   left: 22px;
   bottom: 0;
   z-index: 10;
