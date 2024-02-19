@@ -604,6 +604,7 @@ CREATE TABLE `proc_ins_node_req_param` (
 -- 工作流表
 CREATE TABLE `proc_run_workflow` (
      `id` varchar(64) NOT NULL COMMENT '唯一标识',
+     `proc_ins_id` varchar(64) NOT NULL COMMENT '编排实例id',
      `name` varchar(64) NOT NULL COMMENT '名称',
      `status` varchar(32) NOT NULL COMMENT '状态->ready(初始化) | running(运行中) | fail(失败) | success(成功) | problem(节点失败) | kill(终止)',
      `error_message` text DEFAULT NULL COMMENT '错误信息',
@@ -620,6 +621,7 @@ CREATE TABLE `proc_run_workflow` (
 CREATE TABLE `proc_run_node` (
      `id` varchar(64) NOT NULL COMMENT '唯一标识',
      `workflow_id` varchar(64) NOT NULL COMMENT '工作流id',
+     `proc_ins_node_id` varchar(64) NOT NULL COMMENT '编排节点id',
      `name` varchar(64) DEFAULT NULL COMMENT '名称',
      `job_type` varchar(64) NOT NULL COMMENT '任务类型->start(开始) | auto(自动) | data(数据写入) | human(人工) | agg(聚合) | time(定时) | date(定期) | decision(判断) | end(结束) | break(异常结束)',
      `status` varchar(32) NOT NULL COMMENT '状态->ready(初始化) | running(运行中) | wait(等待or聚合) | fail(失败) | success(成功) | timeout(超时)',
@@ -639,6 +641,7 @@ CREATE TABLE `proc_run_node` (
 CREATE TABLE `proc_run_link` (
      `id` varchar(64) NOT NULL COMMENT '唯一标识',
      `workflow_id` varchar(64) NOT NULL COMMENT '工作流id',
+     `proc_def_link_id` varchar(64) NOT NULL COMMENT '关联定义id',
      `name` varchar(64) DEFAULT NULL COMMENT '名称',
      `source` varchar(64) NOT NULL COMMENT '源',
      `target` varchar(64) NOT NULL COMMENT '目标',
