@@ -13,6 +13,7 @@
                 :placeholder="i.placeholder"
                 clearable
                 :style="{ width: i.width || 200 + 'px' }"
+                @on-change="handleInputChange"
               ></Input>
               <!--下拉选择-->
               <Select
@@ -24,6 +25,7 @@
                 :filterable="i.filterable || true"
                 :max-tag-count="1"
                 :style="{ width: i.width || 200 + 'px' }"
+                @on-change="$emit('search')"
               >
                 <template v-for="(j, idx) in i.list">
                   <Option :key="idx" :value="j.value">{{ j.label }}</Option>
@@ -40,6 +42,7 @@
                 :filterable="i.filterable || true"
                 :max-tag-count="1"
                 :style="{ width: i.width || 200 + 'px' }"
+                @on-change="$emit('search')"
               >
                 <template v-for="(j, idx) in i.list">
                   <Option :key="idx" :value="j.value">{{ j.label }}</Option>
@@ -131,6 +134,7 @@
 
 <script>
 import dayjs from 'dayjs'
+import { debounce } from '@/const/util'
 export default {
   props: {
     value: {
@@ -169,6 +173,9 @@ export default {
     handleSearch () {
       this.$emit('search')
     },
+    handleInputChange: debounce(function () {
+      this.$emit('search')
+    }, 300),
     // 重置表单
     handleReset () {
       Object.keys(this.formData).forEach(key => {
@@ -212,10 +219,16 @@ export default {
       }
       // 同步更新父组件form数据
       this.$emit('input', this.formData)
+      this.$emit('search')
     },
     handleDateRange (dateArr, key) {
-      this.formData[key] = [...dateArr]
+      if (dateArr && dateArr[0] && dateArr[1]) {
+        this.formData[key] = [...dateArr]
+      } else {
+        this.formData[key] = []
+      }
       this.$emit('input', this.formData)
+      this.$emit('search')
     },
     // 获取远程下拉框数据
     async getRemoteData (i) {
