@@ -112,5 +112,8 @@ func GetResourceServerByIp(hostIp string) (resourceServer *models.ResourceServer
 		return
 	}
 	resourceServer = resourceServerRows[0]
+	if strings.HasPrefix(resourceServer.LoginPassword, models.AESPrefix) {
+		resourceServer.LoginPassword = encrypt.DecryptWithAesECB(resourceServer.LoginPassword[5:], models.Config.Plugin.ResourcePasswordSeed, resourceServer.Name)
+	}
 	return
 }
