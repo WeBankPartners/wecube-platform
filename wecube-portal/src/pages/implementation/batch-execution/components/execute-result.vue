@@ -1,17 +1,25 @@
 <template>
+  <!--执行结果-->
   <div class="batch-execute-result">
     <Card v-if="from === 'list'" :style="{ minHeight: maxHeight + 'px' }">
       <div class="custom-header" slot="title">
         <Icon :size="28" type="md-reorder" class="expand" @click="$emit('expand')" />
-        <span class="title">执行结果</span>
+        <span class="title">{{ $t('bc_execution_result') }}</span>
       </div>
       <!--搜索条件-->
       <Row :gutter="10" style="width: 100%; margin-bottom: 10px">
         <Col :span="5">
-          <Input v-model="form.operateObject" placeholder="操作对象" clearable @on-change="handleSearch" />
+          <!--操作对象-->
+          <Input
+            v-model="form.operateObject"
+            :placeholder="$t('bc_execution_instance')"
+            clearable
+            @on-change="handleSearch"
+          />
         </Col>
         <Col :span="4">
-          <Select v-model="form.errorCode" placeholder="单条执行状态" clearable @on-change="handleSearch">
+          <!--单条执行状态-->
+          <Select v-model="form.errorCode" :placeholder="$t('be_single_status')" clearable @on-change="handleSearch">
             <Option v-for="(i, index) in statusList" :key="index" :value="i.value">{{ i.label }}</Option>
           </Select>
         </Col>
@@ -34,27 +42,29 @@
       <template v-if="tableColumns.length > 0">
         <div style="display: flex; align-items: center">
           <div style="margin-right: 20px">
-            <span>执行状态：</span>
+            <span>{{ $t('be_execute_status') }}：</span>
             <Tag :color="detailData.errorCode === '0' ? 'success' : 'error'">
-              {{ detailData.errorCode === '0' ? '成功' : '失败' }}
+              {{ detailData.errorCode === '0' ? $t('be_success') : $t('be_error') }}
             </Tag>
           </div>
           <div v-if="detailData.errorCode === '1'">
-            <span>失败原因：</span>
+            <span>{{ $t('be_error_reason') }}：</span>
             <span>{{ detailData.errorMessage }}</span>
           </div>
         </div>
         <div style="margin: 10px 0">
+          <!--操作对象-->
           <Input
             v-model="form.operateObject"
-            placeholder="操作对象"
+            :placeholder="$t('bc_execution_instance')"
             clearable
             style="width: 200px"
             @on-change="handleSearch"
           />
+          <!--单条执行状态-->
           <Select
             v-model="form.errorCode"
-            placeholder="单条执行状态"
+            :placeholder="$t('be_single_status')"
             clearable
             style="width: 200px; margin-left: 10px"
             @on-change="handleSearch"
@@ -82,10 +92,11 @@
         :loading="loading"
         :width="150 * tableColumns.length"
       ></Table>
-      <div v-else class="no-data">暂无数据</div>
+      <div v-else class="no-data">{{ $t('noData') }}</div>
     </div>
+    <!--输入输出弹框-->
     <Drawer
-      title="输入输出"
+      :title="$t('be_input_output')"
       v-model="visible"
       width="800"
       :mask-closable="true"
@@ -94,10 +105,6 @@
       class="json-drawer"
     >
       <div class="content" :style="{ maxHeight: maxHeight + 'px' }">
-        <!-- <div style="margin: 10px 0">输入</div>
-        <JsonViewer :value="jsonData.input" :expand-depth="5" boxed copyable></JsonViewer>
-        <div style="margin: 10px 0">输出</div>
-        <JsonViewer :value="jsonData.output" :expand-depth="5" boxed copyable></JsonViewer> -->
         <div>
           <a @click="isShow = !isShow">show requestData</a>
           <span v-if="isShow">
@@ -150,8 +157,8 @@ export default {
         { label: this.$t('bc_filter_type_regex'), value: 'regex' }
       ],
       statusList: [
-        { label: '成功', value: '0' },
-        { label: '失败', value: '1' }
+        { label: this.$t('be_success'), value: '0' },
+        { label: this.$t('be_error'), value: '1' }
       ],
       tableColumns: [],
       tableData: [],
@@ -250,20 +257,22 @@ export default {
         this.tableColumns.push(
           ...[
             {
-              title: '操作对象',
+              // 操作对象
+              title: this.$t('bc_execution_instance'),
               width: 200,
               render: (h, params) => {
                 return <span>{params.row.businessKey || '--'}</span>
               }
             },
             {
-              title: '状态',
+              // 执行状态
+              title: this.$t('be_execute_status'),
               minWidth: 100,
               key: 'errorCode',
               render: (h, params) => {
                 return (
                   <Tag color={params.row.errorCode === '0' ? 'success' : 'error'}>
-                    {params.row.errorCode === '0' ? '成功' : '失败'}
+                    {params.row.errorCode === '0' ? this.$t('be_success') : this.$t('be_error')}
                   </Tag>
                 )
               }
@@ -282,14 +291,15 @@ export default {
           })
         })
         this.tableColumns.push({
-          title: '操作',
+          title: this.$t('actions'),
           key: 'action',
           width: 80,
           fixed: 'right',
           align: 'center',
           render: (h, params) => {
             return (
-              <Tooltip content={'查看完整输入输出'} placement="top">
+              // 查看完整输入输出
+              <Tooltip content={this.$t('be_view_allinput')} placement="top">
                 <Button
                   size="small"
                   type="info"
