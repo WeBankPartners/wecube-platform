@@ -54,21 +54,21 @@ export default {
       openNames: ['execute'],
       menuList: [
         {
-          title: '执行',
+          title: this.$t('execute'),
           icon: 'md-hammer',
           name: 'execute',
           children: [
-            { title: '新建执行', path: '', name: 'executeCreate' },
-            { title: '执行历史', path: '', name: 'executeList' }
+            { title: this.$t('be_new_execute'), path: '', name: 'executeCreate' },
+            { title: this.$t('be_execute_history'), path: '', name: 'executeList' }
           ]
         },
         {
-          title: '模板',
+          title: this.$t('template'),
           icon: 'md-document',
           name: 'template',
           children: [
-            { title: '新建模板', path: '', name: 'templateCreate' },
-            { title: '管理模板', path: '', name: 'templateList' }
+            { title: this.$t('be_new_template'), path: '', name: 'templateCreate' },
+            { title: this.$t('be_template_manage'), path: '', name: 'templateList' }
           ]
         }
       ]
