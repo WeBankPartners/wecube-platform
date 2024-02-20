@@ -8,6 +8,7 @@ import (
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/db"
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/log"
 	"github.com/WeBankPartners/wecube-platform/platform-core/models"
+	"github.com/WeBankPartners/wecube-platform/platform-core/services/execution"
 
 	"sync"
 	"time"
@@ -379,9 +380,7 @@ func (n *WorkNode) start() {
 
 func (n *WorkNode) doAutoJob() (output string, err error) {
 	log.Logger.Info("do auto job", log.String("nodeId", n.Id), log.String("input", n.Input))
-	if n.Input == "node2" {
-		err = fmt.Errorf("node2 test error")
-	}
+	err = execution.DoWorkflowAutoJob(n.Ctx, n.Id, "")
 	return
 }
 
