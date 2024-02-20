@@ -188,7 +188,7 @@ func GetPluginConfigInterfaceParameters(ctx context.Context, pluginConfigInterfa
 	return
 }
 
-func UpdatePluginConfigRoles(c *gin.Context, pluginConfigId string, reqParam *models.PermissionToRole) (err error) {
+func UpdatePluginConfigRoles(c *gin.Context, pluginConfigId string, reqParam *models.UpdatePluginCfgRolesReqParam) (err error) {
 	var actions []*db.ExecAction
 	now := time.Now()
 	reqUser := middleware.GetRequestUser(c)
@@ -216,7 +216,7 @@ func UpdatePluginConfigRoles(c *gin.Context, pluginConfigId string, reqParam *mo
 
 	pluginConfigRolesList := []*models.PluginConfigRoles{}
 	mgmtRoleNameMap := make(map[string]struct{})
-	for _, roleName := range reqParam.MGMT {
+	for _, roleName := range reqParam.PermissionToRole.MGMT {
 		if _, isExisted := mgmtRoleNameMap[roleName]; !isExisted {
 			mgmtRoleNameMap[roleName] = struct{}{}
 			pluginConfigRolesList = append(pluginConfigRolesList, &models.PluginConfigRoles{
@@ -233,7 +233,7 @@ func UpdatePluginConfigRoles(c *gin.Context, pluginConfigId string, reqParam *mo
 	}
 
 	useRoleNameMap := make(map[string]struct{})
-	for _, roleName := range reqParam.USE {
+	for _, roleName := range reqParam.PermissionToRole.USE {
 		if _, isExisted := useRoleNameMap[roleName]; !isExisted {
 			useRoleNameMap[roleName] = struct{}{}
 			pluginConfigRolesList = append(pluginConfigRolesList, &models.PluginConfigRoles{
