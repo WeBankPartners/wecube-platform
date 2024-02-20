@@ -695,3 +695,7 @@ type ResourceItemProperties struct {
 	PortBindings   string `json:"portBindings"`
 	EnvVariables   string `json:"envVariables"`
 }
+
+type UpdatePluginCfgRolesReqParam struct {
+	PermissionToRole *PermissionToRole `json:"permissionToRole"`
+}
