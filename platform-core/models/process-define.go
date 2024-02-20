@@ -309,6 +309,9 @@ type ProcDefDto struct {
 	EnableCreated    bool     `json:"enableCreated"`    // 能否创建新版本
 	EnableModifyName bool     `json:"enableModifyName"` // 能否修改名称
 	UseRoles         []string `json:"userRoles"`        // 使用角色
+	UseRolesDisplay  []string `json:"userRolesDisplay"` // 使用角色-显示名
+	MgmtRoles        []string `json:"mgmtRoles"`        // 管理角色
+	MgmtRolesDisplay []string `json:"mgmtRolesDisplay"` // 管理角色-显示名
 }
 
 type TimeConfigDto struct {
@@ -318,8 +321,9 @@ type TimeConfigDto struct {
 }
 
 type ProcDefQueryDto struct {
-	ManageRole  string        `json:"manageRole"` //管理角色
-	ProcDefList []*ProcDefDto `json:"dataList"`   // 编排列表
+	ManageRole        string        `json:"manageRole"`        //管理角色
+	ManageRoleDisplay string        `json:"manageRoleDisplay"` //管理角色-显示名
+	ProcDefList       []*ProcDefDto `json:"dataList"`          // 编排列表
 }
 
 type PermissionToRole struct {
@@ -536,6 +540,12 @@ func ConvertProcDefNode2Dto(procDefNode *ProcDefNode, list []*ProcDefNodeParam) 
 	if len(procDefNode.ContextParamNodes) > 0 {
 		contextParamNodes = strings.Split(procDefNode.ContextParamNodes, ",")
 	}
+	if len(list) > 0 {
+		// 节点参数中,节点id设置为前端展示nodeId
+		for _, nodeParam := range list {
+			nodeParam.ProcDefNodeId = procDefNode.NodeId
+		}
+	}
 	dto := &ProcDefNodeResultDto{
 		ProcDefNodeCustomAttrs: &ProcDefNodeCustomAttrsDto{
 			Id:                procDefNode.NodeId,
@@ -640,28 +650,31 @@ func BuildInterfaceParameterDto(p *PluginConfigInterfaceParameters) *InterfacePa
 	}
 }
 
-func BuildProcDefDto(procDef *ProcDef, userRoles []string, enableCreated bool) *ProcDefDto {
+func BuildProcDefDto(procDef *ProcDef, userRoles, manageRoles, userRolesDisplay, manageRolesDisplay []string, enableCreated bool) *ProcDefDto {
 	var authPlugins = make([]string, 0)
 	if len(procDef.ForPlugin) > 0 {
 		authPlugins = strings.Split(procDef.ForPlugin, ",")
 	}
 	return &ProcDefDto{
-		Id:            procDef.Id,
-		Key:           procDef.Key,
-		Name:          procDef.Name,
-		Version:       procDef.Version,
-		RootEntity:    procDef.RootEntity,
-		Status:        procDef.Status,
-		Tags:          procDef.Tags,
-		AuthPlugins:   authPlugins,
-		Scene:         procDef.Scene,
-		ConflictCheck: procDef.ConflictCheck,
-		CreatedBy:     procDef.CreatedBy,
-		CreatedTime:   procDef.CreatedTime.Format(DateTimeFormat),
-		UpdatedBy:     procDef.UpdatedBy,
-		UpdatedTime:   procDef.UpdatedTime.Format(DateTimeFormat),
-		EnableCreated: enableCreated,
-		UseRoles:      userRoles,
+		Id:               procDef.Id,
+		Key:              procDef.Key,
+		Name:             procDef.Name,
+		Version:          procDef.Version,
+		RootEntity:       procDef.RootEntity,
+		Status:           procDef.Status,
+		Tags:             procDef.Tags,
+		AuthPlugins:      authPlugins,
+		Scene:            procDef.Scene,
+		ConflictCheck:    procDef.ConflictCheck,
+		CreatedBy:        procDef.CreatedBy,
+		CreatedTime:      procDef.CreatedTime.Format(DateTimeFormat),
+		UpdatedBy:        procDef.UpdatedBy,
+		UpdatedTime:      procDef.UpdatedTime.Format(DateTimeFormat),
+		EnableCreated:    enableCreated,
+		UseRoles:         userRoles,
+		UseRolesDisplay:  userRolesDisplay,
+		MgmtRoles:        manageRoles,
+		MgmtRolesDisplay: manageRolesDisplay,
 	}
 }
 
