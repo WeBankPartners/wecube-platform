@@ -2,18 +2,18 @@
 <template>
   <div class="batch-execution-template-list">
     <div class="search">
-      <!--搜索条件-->
       <BaseSearch :options="searchOptions" v-model="form" @search="handleSearch" :showExpand="true"></BaseSearch>
-      <Button v-if="from === 'template'" type="success" class="create-template" @click="handleCreateTemplate"
-        >新建模板</Button
-      >
+      <!--新建模板-->
+      <Button v-if="from === 'template'" type="success" class="create-template" @click="handleCreateTemplate">{{
+        $t('be_new_template')
+      }}</Button>
     </div>
     <div class="template-card">
       <Tabs v-if="from === 'template'" v-model="publishStatus" @on-click="handleSearch">
         <!--已发布-->
-        <TabPane label="已发布" name="published"></TabPane>
+        <TabPane :label="$t('deployed')" name="published"></TabPane>
         <!--我的草稿-->
-        <TabPane label="未发布" name="draft"></TabPane>
+        <TabPane :label="$t('draft')" name="draft"></TabPane>
       </Tabs>
       <Card :bordered="false" dis-hover :padding="0">
         <template v-if="cardList.length">
@@ -38,7 +38,7 @@
             </div>
           </Card>
         </template>
-        <div v-else class="no-data">暂无数据</div>
+        <div v-else class="no-data">{{ $t('noData') }}</div>
         <Spin fix v-if="spinShow">
           <Icon type="ios-loading" size="44" class="spin-icon-load"></Icon>
         </Spin>
@@ -88,18 +88,18 @@ export default {
       searchOptions: [
         {
           key: 'isShowCollectTemplate',
-          label: '仅展示收藏模板',
+          label: this.$t('be_only_show_collect'),
           component: 'switch',
           initValue: false
         },
         {
           key: 'name',
-          placeholder: '模板名',
+          placeholder: this.$t('be_template_name'),
           component: 'input'
         },
         {
           key: 'id',
-          placeholder: '模板ID',
+          placeholder: this.$t('be_template_id'),
           component: 'input'
         },
         {
@@ -109,52 +109,58 @@ export default {
         },
         {
           key: 'operateObject',
-          placeholder: '操作对象类型',
+          placeholder: this.$t('be_instance_type'),
           component: 'input'
         }
       ],
       baseColumns: {
         name: {
-          title: '模板名称',
+          title: this.$t('be_template_name'),
           key: 'name',
           minWidth: 160,
           render: (h, params) => {
             return (
               <div>
-                {params.row.isCollected === false && (
-                  <Tooltip content={'收藏'} placement="top-start">
-                    <Icon
-                      style="cursor:pointer;margin-right:5px;"
-                      size="18"
-                      type="ios-star-outline"
-                      onClick={e => {
-                        e.stopPropagation()
-                        this.handleStar(params.row)
-                      }}
-                    />
-                  </Tooltip>
-                )}
-                {params.row.isCollected === true && (
-                  <Tooltip content={'取消收藏'} placement="top-start">
-                    <Icon
-                      style="cursor:pointer;margin-right:5px;"
-                      size="18"
-                      type="ios-star"
-                      color="#ebac42"
-                      onClick={e => {
-                        e.stopPropagation()
-                        this.handleStar(params.row)
-                      }}
-                    />
-                  </Tooltip>
-                )}
+                {
+                  /* 收藏 */
+                  params.row.isCollected === false && (
+                    <Tooltip content={this.$t('bc_save')} placement="top-start">
+                      <Icon
+                        style="cursor:pointer;margin-right:5px;"
+                        size="18"
+                        type="ios-star-outline"
+                        onClick={e => {
+                          e.stopPropagation()
+                          this.handleStar(params.row)
+                        }}
+                      />
+                    </Tooltip>
+                  )
+                }
+                {
+                  /* 取消收藏 */
+                  params.row.isCollected === true && (
+                    <Tooltip content={this.$t('be_cancel_save')} placement="top-start">
+                      <Icon
+                        style="cursor:pointer;margin-right:5px;"
+                        size="18"
+                        type="ios-star"
+                        color="#ebac42"
+                        onClick={e => {
+                          e.stopPropagation()
+                          this.handleStar(params.row)
+                        }}
+                      />
+                    </Tooltip>
+                  )
+                }
                 <span style="margin-right:2px">{params.row.name}</span>
               </div>
             )
           }
         },
         id: {
-          title: '模板ID',
+          title: this.$t('be_template_id'),
           key: 'id',
           minWidth: 100
         },
@@ -164,7 +170,7 @@ export default {
           minWidth: 150
         },
         operateObject: {
-          title: '操作对象类型',
+          title: this.$t('be_instance_type'),
           key: 'operateObject',
           minWidth: 120,
           render: (h, params) => {
@@ -172,103 +178,118 @@ export default {
           }
         },
         status: {
-          title: '使用状态',
+          title: this.$t('be_use_status'),
           key: 'status',
           minWidth: 80,
           render: (h, params) => {
             const list = [
-              { label: '可使用', value: 'available', color: '#19be6b' },
-              { label: '草稿', value: 'draft', color: '#c5c8ce' },
-              { label: '权限已移除', value: 'unauthorized', color: '#ed4014' }
+              { label: this.$t('be_status_use'), value: 'available', color: '#19be6b' },
+              { label: this.$t('be_status_draft'), value: 'draft', color: '#c5c8ce' },
+              { label: this.$t('be_status_role'), value: 'unauthorized', color: '#ed4014' }
             ]
             const item = list.find(i => i.value === params.row.status)
             return item && <Tag color={item.color}>{item.label}</Tag>
           }
         },
         createdTime: {
-          title: '更新时间',
+          title: this.$t('table_updated_date'),
           key: 'updatedTime',
           minWidth: 140
         },
         action: {
-          title: '操作',
+          title: this.$t('table_action'),
           key: 'action',
           width: 180,
           align: 'center',
           render: (h, params) => {
             return (
               <div style="display:flex;justify-content:center;">
-                {this.publishStatus === 'published' && (
-                  <Tooltip content={'查看'} placement="top">
+                {
+                  /* 查看 */
+                  this.publishStatus === 'published' && (
+                    <Tooltip content={this.$t('view')} placement="top">
+                      <Button
+                        size="small"
+                        type="info"
+                        onClick={() => {
+                          this.handleView(params.row)
+                        }}
+                        style="margin-right:5px;"
+                      >
+                        <Icon type="md-eye" size="16"></Icon>
+                      </Button>
+                    </Tooltip>
+                  )
+                }
+                {
+                  /* 复制 */
+                  this.publishStatus === 'published' && (
+                    <Tooltip content={this.$t('copy')} placement="top">
+                      <Button
+                        size="small"
+                        type="success"
+                        onClick={() => {
+                          this.handleCopy(params.row)
+                        }}
+                        style="margin-right:5px;"
+                      >
+                        <Icon type="md-copy" size="16"></Icon>
+                      </Button>
+                    </Tooltip>
+                  )
+                }
+                {
+                  /* 编辑 */
+                  this.publishStatus === 'draft' && (
+                    <Tooltip content={this.$t('edit')} placement="top">
+                      <Button
+                        size="small"
+                        type="primary"
+                        onClick={() => {
+                          this.handleEdit(params.row)
+                        }}
+                        style="margin-right:5px;"
+                      >
+                        <Icon type="md-create" size="16"></Icon>
+                      </Button>
+                    </Tooltip>
+                  )
+                }
+                {
+                  /* 权限 */
+                  this.publishStatus === 'published' && (
+                    <Tooltip content={this.$t('config_permission')} placement="top">
+                      <Button
+                        size="small"
+                        type="warning"
+                        onClick={() => {
+                          this.editRow = params.row
+                          const mgmtRole = params.row.permissionToRole.MGMT || []
+                          const useRole = params.row.permissionToRole.USE || []
+                          this.$refs.authDialog.startAuth(mgmtRole, useRole)
+                        }}
+                        style="margin-right:5px;"
+                      >
+                        <Icon type="md-person" size="16"></Icon>
+                      </Button>
+                    </Tooltip>
+                  )
+                }
+                {
+                  /* 删除 */
+                  <Tooltip content={this.$t('delete')} placement="top">
                     <Button
                       size="small"
-                      type="info"
+                      type="error"
                       onClick={() => {
-                        this.handleView(params.row)
+                        this.handleDelete(params.row)
                       }}
                       style="margin-right:5px;"
                     >
-                      <Icon type="md-eye" size="16"></Icon>
+                      <Icon type="md-trash" size="16"></Icon>
                     </Button>
                   </Tooltip>
-                )}
-                {this.publishStatus === 'published' && (
-                  <Tooltip content={'复制'} placement="top">
-                    <Button
-                      size="small"
-                      type="success"
-                      onClick={() => {
-                        this.handleCopy(params.row)
-                      }}
-                      style="margin-right:5px;"
-                    >
-                      <Icon type="md-copy" size="16"></Icon>
-                    </Button>
-                  </Tooltip>
-                )}
-                {this.publishStatus === 'draft' && (
-                  <Tooltip content={'编辑'} placement="top">
-                    <Button
-                      size="small"
-                      type="primary"
-                      onClick={() => {
-                        this.handleEdit(params.row)
-                      }}
-                      style="margin-right:5px;"
-                    >
-                      <Icon type="md-create" size="16"></Icon>
-                    </Button>
-                  </Tooltip>
-                )}
-                {this.publishStatus === 'published' && (
-                  <Tooltip content={'权限'} placement="top">
-                    <Button
-                      size="small"
-                      type="warning"
-                      onClick={() => {
-                        this.editRow = params.row
-                        const mgmtRole = params.row.permissionToRole.MGMT || []
-                        const useRole = params.row.permissionToRole.USE || []
-                        this.$refs.authDialog.startAuth(mgmtRole, useRole)
-                      }}
-                      style="margin-right:5px;"
-                    >
-                      <Icon type="md-person" size="16"></Icon>
-                    </Button>
-                  </Tooltip>
-                )}
-                <Tooltip content={'删除'} placement="top">
-                  <Button
-                    size="small"
-                    type="error"
-                    onClick={() => {
-                      this.handleDelete(params.row)
-                    }}
-                    style="margin-right:5px;"
-                  >
-                    <Icon type="md-trash" size="16"></Icon>
-                  </Button>
-                </Tooltip>
+                }
               </div>
             )
           }
@@ -284,7 +305,7 @@ export default {
         this.baseColumns.pluginService,
         this.baseColumns.operateObject,
         {
-          title: '使用角色',
+          title: this.$t('use_role'),
           key: 'useRole',
           minWidth: 120,
           render: (h, params) => {
@@ -309,7 +330,7 @@ export default {
         this.baseColumns.pluginService,
         this.baseColumns.operateObject,
         {
-          title: '创建人/角色',
+          title: this.$t('be_createby_role'),
           key: 'createdBy',
           minWidth: 80,
           render: (h, params) => {
@@ -337,7 +358,7 @@ export default {
       if (row.status === 'unauthorized') {
         return this.$Notice.warning({
           title: this.$t('warning'),
-          desc: this.$t('该模板使用权限被移除')
+          desc: this.$t('be_template_role_tips')
         })
       }
       this.$emit('select', row)
@@ -505,7 +526,7 @@ export default {
     // 删除
     async handleDelete (row) {
       this.$Modal.confirm({
-        title: '确认删除',
+        title: this.$t('confirm_to_delete'),
         'z-index': 1000000,
         loading: true,
         onOk: async () => {

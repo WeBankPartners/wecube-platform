@@ -204,6 +204,7 @@
                         multiple
                         filterable
                         style="width: 50%"
+                        @on-change="changeContextParamNodes"
                         @on-open-change="getRootNode"
                       >
                         <Option v-for="item in nodeList" :value="item.nodeId" :key="item.nodeId">{{
@@ -451,7 +452,7 @@ export default {
         }
       })
       if (res) {
-        this.$Message.warning(this.$t('constant_parameters'))
+        this.$Message.warning(this.$t('checkContextParameter'))
       }
       return res
     },
@@ -562,6 +563,7 @@ export default {
     // 改变插件时的响应
     changePluginInterfaceList (plugin) {
       this.paramsChanged()
+      this.itemCustomInfo.customAttrs.contextParamNodes = []
       if (plugin) {
         const findPluginDetail = this.filteredPlugins.find(p => p.serviceName === plugin)
         this.itemCustomInfo.customAttrs.paramInfos = []
@@ -582,6 +584,15 @@ export default {
           })
         }
       }
+    },
+    // 改变上下文中的源节点列表清除对应数据的响应
+    changeContextParamNodes (selection) {
+      this.itemCustomInfo.customAttrs.paramInfos.forEach(pInfo => {
+        if (pInfo.bindNodeId !== '' && !selection.includes(pInfo.bindNodeId)) {
+          pInfo.bindNodeId = ''
+          pInfo.bindParamName = ''
+        }
+      })
     },
     // 获取插件函数列表
     async getFilteredPluginInterfaceList (path) {

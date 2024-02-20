@@ -172,7 +172,7 @@
                 <div class="w-header" slot="title">
                   <Icon size="28" type="ios-people" />
                   <div class="title">
-                    {{ roleData.manageRole }}
+                    {{ roleData.manageRoleDisplay }}
                     <span class="underline"></span>
                   </div>
                   <Icon
@@ -326,10 +326,10 @@ export default {
           title: this.$t('use_role'),
           key: 'userRoles',
           render: (h, params) => {
-            if (params.row.userRoles.length > 0) {
+            if (params.row.userRolesDisplay.length > 0) {
               return (
-                params.row.userRoles &&
-                params.row.userRoles.map(i => {
+                params.row.userRolesDisplay &&
+                params.row.userRolesDisplay.map(i => {
                   return <Tag>{i}</Tag>
                 })
               )
@@ -473,7 +473,9 @@ export default {
           this.selectedParams.push({
             id: se.id,
             name: se.name,
-            roleDataIndex: roleDataIndex
+            roleDataIndex: roleDataIndex,
+            mgmtRole: se.mgmtRoles || [],
+            useRole: se.userRoles || []
           })
         }
       })
@@ -485,11 +487,12 @@ export default {
       this.selectedParams.push({
         id: row.id,
         name: row.name,
-        roleDataIndex: roleDataIndex
+        roleDataIndex: roleDataIndex,
+        mgmtRole: row.mgmtRoles || [],
+        useRole: row.userRoles || []
       })
     },
     cancelSelect (selection, row, roleDataIndex) {
-      // console.log('cancelSelect', selection, b)
       const findIndex = this.selectedParams.findIndex(
         param => param.id === row.id && param.roleDataIndex === roleDataIndex
       )
@@ -543,7 +546,11 @@ export default {
     // 授权
     batchAuth () {
       this.authTo = 'batchAuth'
-      this.$refs.flowAuthRef.startAuth([], [])
+      if (this.selectedParams.length === 1) {
+        this.$refs.flowAuthRef.startAuth(this.selectedParams[0].mgmtRole, this.selectedParams[0].useRole)
+      } else {
+        this.$refs.flowAuthRef.startAuth([], [])
+      }
     },
     async updateAuth (mgmt, use) {
       if (this.authTo === 'batchAuth') {
