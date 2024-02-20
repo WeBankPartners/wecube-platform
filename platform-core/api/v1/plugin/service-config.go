@@ -52,12 +52,12 @@ func UpdatePluginConfigRoles(c *gin.Context) {
 		return
 	}
 
-	reqParam := models.PermissionToRole{}
+	reqParam := models.UpdatePluginCfgRolesReqParam{}
 	if err = c.ShouldBindJSON(&reqParam); err != nil {
 		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, err))
 		return
 	}
-	if len(reqParam.MGMT) == 0 {
+	if len(reqParam.PermissionToRole.MGMT) == 0 {
 		err = exterror.Catch(exterror.New().RequestParamValidateError, fmt.Errorf("request param err, MGMT permission role can not be empty"))
 		middleware.ReturnError(c, err)
 		return
