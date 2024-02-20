@@ -1,14 +1,13 @@
 <template>
   <div class="batch-execute-history">
     <div class="search">
-      <!--搜索条件-->
       <BaseSearch :options="searchOptions" v-model="form" @search="handleQuery" :showExpand="false"></BaseSearch>
     </div>
-    <!--表格分页-->
     <Row :gutter="20">
       <Col v-show="!expand" :span="8">
         <Card :style="{ minHeight: maxHeight + 'px', maxHeight: maxHeight + 'px' }">
-          <div class="title" slot="title">执行记录列表</div>
+          <!--执行记录列表-->
+          <div class="title" slot="title">{{ $t('be_execute_record') }}</div>
           <Table
             class="hover"
             size="small"
@@ -62,21 +61,21 @@ export default {
       searchOptions: [
         {
           key: 'name',
-          placeholder: '执行记录名称',
+          placeholder: this.$t('be_execute_record_name'),
           component: 'input'
         },
         {
           key: 'errorCode',
-          placeholder: '执行状态',
+          placeholder: this.$t('be_execute_status'),
           component: 'select',
           list: [
-            { label: '成功', value: '0' },
-            { label: '失败', value: '1' }
+            { label: this.$t('be_success'), value: '0' },
+            { label: this.$t('be_error'), value: '1' }
           ]
         },
         {
           key: 'createdTimeT',
-          label: '执行时间',
+          label: this.$t('execute_date'),
           dateType: 1,
           initValue: [dayjs().subtract(3, 'day').format('YYYY-MM-DD'), dayjs().format('YYYY-MM-DD')],
           labelWidth: 110,
@@ -92,26 +91,26 @@ export default {
       tableData: [],
       tableColumns: [
         {
-          title: '名称',
+          title: this.$t('name'),
           minWidth: 100,
           key: 'name'
         },
         {
-          title: '状态',
+          title: this.$t('status'),
           minWidth: 80,
           key: 'errorCode',
           render: (h, params) => {
             return (
               <Tooltip max-width="300" content={params.row.errorMessage || '--'}>
                 <Tag color={params.row.errorCode === '0' ? 'success' : 'error'}>
-                  {params.row.errorCode === '0' ? '成功' : '失败'}
+                  {params.row.errorCode === '0' ? this.$t('be_success') : this.$t('be_error')}
                 </Tag>
               </Tooltip>
             )
           }
         },
         {
-          title: '执行时间',
+          title: this.$t('execute_date'),
           minWidth: 150,
           key: 'createdTime',
           render: (h, params) => {
@@ -119,7 +118,7 @@ export default {
           }
         },
         {
-          title: '操作',
+          title: this.$t('table_action'),
           key: 'action',
           width: 100,
           fixed: 'right',
@@ -127,7 +126,8 @@ export default {
           render: (h, params) => {
             return (
               <div style="display:flex;">
-                <Tooltip content={'执行详情'} placement="top">
+                {/* 执行详情 */}
+                <Tooltip content={this.$t('be_execute_detail')} placement="top">
                   <Button
                     size="small"
                     type="info"
@@ -139,7 +139,8 @@ export default {
                     <Icon type="md-eye" size="16"></Icon>
                   </Button>
                 </Tooltip>
-                <Tooltip content={'重新发起'} placement="top">
+                {/* 重新发起 */}
+                <Tooltip content={this.$t('be_republish')} placement="top">
                   <Button
                     size="small"
                     type="warning"
