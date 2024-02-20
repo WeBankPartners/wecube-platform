@@ -42,7 +42,7 @@ export default {
     // 提交高危检测
     async confirmDangerous () {
       this.$Spin.show()
-      const { status } = await saveBatchExecute(
+      const { status, data } = await saveBatchExecute(
         `/platform/v1/batch-execution/job/run?continueToken=${this.data.continueToken}`,
         this.data.params
       )
@@ -52,6 +52,10 @@ export default {
           title: this.$t('successful'),
           desc: this.$t('successful')
         })
+        this.$emit('update:visible', false)
+        if (data.batchExecId) {
+          this.$emit('success', data)
+        }
       }
     }
   }
