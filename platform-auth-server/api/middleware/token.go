@@ -1,7 +1,6 @@
 package middleware
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
@@ -113,9 +112,10 @@ func GetRequestUser(c *gin.Context) string {
 func GetAuthenticatedUser(c *gin.Context) *model.AuthenticatedUser {
 	if authClaim, existed := c.Get(AuthClaim); existed {
 		claim := authClaim.(*model.AuthClaims)
-		authorities := make([]string, 0)
-		json.Unmarshal([]byte(claim.Authority), &authorities)
-
+		authorities := []string{}
+		if len(claim.Authority) > 0 {
+			authorities = utils.ParseArrayString(claim.Authority)
+		}
 		return &model.AuthenticatedUser{
 			Username:           claim.Subject,
 			GrantedAuthorities: authorities,
