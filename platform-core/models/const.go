@@ -37,6 +37,7 @@ const (
 	TableNameBatchExecTemplateCollect = "batch_execution_template_collect"
 	TableNamePluginConfigRoles        = "plugin_config_roles"
 	TableNamePluginConfigs            = "plugin_configs"
+	TableNamePluginPackages           = "plugin_packages"
 
 	// batch execution
 	BatchExecTemplateStatusAvailable    = "available"
