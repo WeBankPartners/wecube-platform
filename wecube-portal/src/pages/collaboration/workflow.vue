@@ -172,7 +172,7 @@
                 <div class="w-header" slot="title">
                   <Icon size="28" type="ios-people" />
                   <div class="title">
-                    {{ roleData.manageRole }}
+                    {{ roleData.manageRoleDisplay }}
                     <span class="underline"></span>
                   </div>
                   <Icon
@@ -326,10 +326,10 @@ export default {
           title: this.$t('use_role'),
           key: 'userRoles',
           render: (h, params) => {
-            if (params.row.userRoles.length > 0) {
+            if (params.row.userRolesDisplay.length > 0) {
               return (
-                params.row.userRoles &&
-                params.row.userRoles.map(i => {
+                params.row.userRolesDisplay &&
+                params.row.userRolesDisplay.map(i => {
                   return <Tag>{i}</Tag>
                 })
               )
