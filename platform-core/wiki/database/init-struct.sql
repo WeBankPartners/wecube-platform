@@ -653,7 +653,7 @@ CREATE TABLE `proc_run_work_record` (
     `id` int(11) NOT NULL AUTO_INCREMENT COMMENT '自增id',
     `workflow_id` varchar(64) NOT NULL COMMENT '工作流id',
     `host` varchar(64) DEFAULT NULL COMMENT '主机',
-    `status` varchar(32) DEFAULT NULL COMMENT '状态->ready(初始化) | running(运行中) | fail(失败) | success(成功) | problem(节点失败) | kill(终止) | sleep(休眠) | takeOver(接管) | stop(暂停) | recover(恢复)',
+    `action` varchar(32) DEFAULT NULL COMMENT '状态->ready(初始化) | running(运行中) | fail(失败) | success(成功) | problem(节点失败) | kill(终止) | sleep(休眠) | takeOver(接管) | stop(暂停) | recover(恢复)',
     `message` text DEFAULT NULL COMMENT '详细信息,终止原因等',
     `created_by` varchar(64) DEFAULT NULL COMMENT '创建人',
     `created_time` datetime DEFAULT NULL COMMENT '创建时间',
