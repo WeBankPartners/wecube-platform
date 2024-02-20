@@ -478,8 +478,6 @@ export default {
         const targertNodeType = target.get('model').customAttrs.nodeType
         const sourceNodeName = source.get('model').customAttrs.name
         const targertNodeName = target.get('model').customAttrs.name
-        console.log(source.get('model').customAttrs)
-        console.log(target.get('model').customAttrs)
         // 结束节点不能连出
         if (sourceNodeType === 'end') {
           // this.$Message.warning('结束节点不能连出！')
@@ -582,7 +580,8 @@ export default {
         // 异常节点只能连入
         if (targertNodeType === 'decision') {
           if (!['human'].includes(sourceNodeType)) {
-            this.$Message.warning('判断节点只能被[人工节点]连入！')
+            // this.$Message.warning('判断节点只能被[人工节点]连入！')
+            this.$Message.warning(`${this.$t('decisionNodetip1')}`)
             return
           }
         }
