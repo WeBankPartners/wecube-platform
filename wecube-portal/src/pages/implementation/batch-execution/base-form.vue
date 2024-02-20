@@ -3,36 +3,43 @@
     <Row class="back-header">
       <Icon size="22" type="md-arrow-back" class="icon" @click="$emit('back')" />
       <span class="name">
-        {{ `${data.name || '新建模板'}` }}
+        {{ `${data.name || $t('be_new_template')}` }}
       </span>
     </Row>
     <Form :disabled="type === 'view'" label-position="right" :label-width="125">
-      <HeaderTitle title="执行模板信息">
+      <!--执行模板信息-->
+      <HeaderTitle :title="$t('be_execute_templateinfo')">
         <!--请求名-->
-        <FormItem v-if="from === 'template' && type !== 'view'" label="模板名称" required>
-          <Input v-model="name" :maxlength="50" show-word-limit placeholder="请输入模板名称" class="form-item" />
+        <FormItem v-if="from === 'template' && type !== 'view'" :label="$t('be_template_name')" required>
+          <Input
+            v-model="name"
+            :maxlength="50"
+            show-word-limit
+            :placeholder="$t('be_template_name_placeholder')"
+            class="form-item"
+          />
         </FormItem>
         <template v-else>
-          <div v-if="!data.templateData.id" style="padding: 0 20px">预执行记录</div>
+          <div v-if="!data.templateData.id" style="padding: 0 20px">{{ $t('be_pre_execute_record') }}</div>
           <div v-else class="template-info">
             <div class="item">
-              <span>模板ID：</span>
+              <span>{{ $t('be_template_id') }}：</span>
               <span>{{ data.templateData.id }}</span>
             </div>
             <div class="item">
-              <span>模板名：</span>
+              <span>{{ $t('be_template_name') }}：</span>
               <span>{{ data.templateData.name }}</span>
             </div>
             <div class="item">
-              <span>创建人：</span>
+              <span>{{ $t('createdBy') }}：</span>
               <span>{{ data.templateData.createdBy }}</span>
             </div>
             <div class="item">
-              <span>创建时间</span>
+              <span>{{ $t('table_created_date') }}：</span>
               <span>{{ data.templateData.createdTime }}</span>
             </div>
             <div class="item">
-              <span>属主角色：</span>
+              <span>{{ $t('mgmt_role') }}：</span>
               <span>{{
                 data.templateData.permissionToRole &&
                 data.templateData.permissionToRole.MGMT &&
@@ -40,7 +47,7 @@
               }}</span>
             </div>
             <div class="item">
-              <span>使用角色：</span>
+              <span>{{ $t('use_role') }}：</span>
               <span>{{
                 data.templateData.permissionToRole &&
                 data.templateData.permissionToRole.USE &&
@@ -50,13 +57,20 @@
           </div>
         </template>
       </HeaderTitle>
-      <HeaderTitle title="第1步 设置操作对象及查询条件">
+      <!--第1步 设置操作对象及查询条件-->
+      <HeaderTitle :title="$t('be_step1_title')">
         <!--批量名称-->
-        <FormItem v-if="from === 'execute'" label="批量名称" required>
-          <Input v-model="name" :maxlength="50" show-word-limit placeholder="请输入批量名称" class="form-item" />
+        <FormItem v-if="from === 'execute'" :label="$t('be_batch_name')" required>
+          <Input
+            v-model="name"
+            :maxlength="50"
+            show-word-limit
+            :placeholder="$t('be_batch_name_placeholder')"
+            class="form-item"
+          />
         </FormItem>
         <!--操作对象查询路径-->
-        <FormItem label="查询路径" required>
+        <FormItem :label="$t('bc_query_path')" required>
           <FilterRules
             :allDataModelsWithAttrs="allEntityType"
             :needNativeAttr="false"
@@ -67,7 +81,7 @@
           ></FilterRules>
         </FormItem>
         <!--操作对象类型-->
-        <FormItem label="操作对象类型">
+        <FormItem :label="$t('be_instance_type')">
           <Input
             disabled
             :value="currentPackageName ? currentPackageName + ':' + currentEntityName : ''"
@@ -75,7 +89,7 @@
           ></Input>
         </FormItem>
         <!--查询结果主键-->
-        <FormItem label="查询结果主键" required>
+        <FormItem :label="$t('be_query_result_key')" required>
           <Select
             filterable
             v-model="primatKeyAttr"
@@ -91,7 +105,7 @@
         <!--查询结果展示列-->
         <FormItem required>
           <span slot="label">
-            {{ '查询结果展示列' }}
+            {{ $t('be_query_result_column') }}
             <Tooltip :content="$t('bc_set_columns_tip')">
               <Icon type="ios-help-circle-outline" />
             </Tooltip>
@@ -110,7 +124,7 @@
           </Select>
         </FormItem>
         <!--设置过滤条件-->
-        <FormItem label="设置过滤条件">
+        <FormItem :label="$t('be_setting_filter')">
           <Row class="dynamic-condition">
             <div style="display: flex; justify-content: space-between">
               <Button
@@ -135,7 +149,7 @@
                 <span color="primary" style="margin-left: 10px">{{ item.value }}</span>
               </Col>
             </template>
-            <div v-else style="color: #515a6e; text-align: center">请先设置过滤条件</div>
+            <div v-else style="color: #515a6e; text-align: center">{{ $t('be_setting_filter_tips') }}</div>
           </Row>
         </FormItem>
         <ConditionTree
@@ -146,9 +160,10 @@
           @submit="handleSearchParamsChange"
         ></ConditionTree>
       </HeaderTitle>
-      <HeaderTitle title="第2步 勾选执行实例">
+      <!--第2步 勾选执行实例-->
+      <HeaderTitle :title="$t('be_step2_title')">
         <!--勾选操作实例-->
-        <FormItem label="勾选操作实例" required>
+        <FormItem :label="$t('be_choose_instance')" required>
           <EntityTable
             :data="tableData"
             :columns="tableColumns"
@@ -161,7 +176,9 @@
           ></EntityTable>
         </FormItem>
       </HeaderTitle>
-      <HeaderTitle title="第3步 设置插件服务及参数">
+      <!--第3步 设置插件服务及参数-->
+      <HeaderTitle :title="$t('be_step3_title')">
+        <!--插件服务-->
         <FormItem :label="$t('pluginService')" required>
           <Select
             filterable
@@ -177,7 +194,8 @@
             }}</Option>
           </Select>
         </FormItem>
-        <FormItem label="设置入参" required>
+        <!--设置入参-->
+        <FormItem :label="$t('be_setting_inputparam')" required>
           <Row v-if="pluginInputParams && pluginInputParams.length > 0" class="border-box form-item">
             <Col v-for="(item, index) in pluginInputParams" :key="index" :span="24" style="margin-bottom: 12px">
               <span
@@ -189,22 +207,25 @@
               <span v-else>{{ item.mappingType === 'entity' ? $t('bc_from_CI') : $t('bc_from_system') }}</span>
             </Col>
           </Row>
-          <div v-else class="no-data">请先选择插件服务</div>
+          <div v-else class="no-data">{{ $t('be_choose_pluginserver_tips') }}</div>
         </FormItem>
-        <FormItem label="执行结果展示列(插件出参)">
+        <!--执行结果展示列(插件出参)-->
+        <FormItem :label="$t('be_execute_result_column')">
           <Select filterable clearable multiple v-model="resultTableParams" class="form-item">
             <Option v-for="(item, index) in pluginOutputParams" :value="item.name" :key="index">{{ item.name }}</Option>
           </Select>
         </FormItem>
-        <FormItem label="高危检测">
+        <!--高危检测-->
+        <FormItem :label="$t('high_risk_detection')">
           <i-switch v-model="isDangerousBlock" disabled size="large">
-            <span slot="open">开启</span>
-            <span slot="close">关闭</span>
+            <span slot="open">{{ $t('be_turn_on') }}</span>
+            <span slot="close">{{ $t('be_turn_off') }}</span>
           </i-switch>
         </FormItem>
       </HeaderTitle>
     </Form>
-    <HeaderTitle v-if="showResult || (from === 'execute' && type === 'view')" title="执行结果">
+    <!--执行结果-->
+    <HeaderTitle v-if="showResult || (from === 'execute' && type === 'view')" :title="$t('bc_execution_result')">
       <div style="padding: 0 20px">
         <ExecuteResult ref="executeResult" from="create" :id="showResult ? '' : data.id"></ExecuteResult>
       </div>

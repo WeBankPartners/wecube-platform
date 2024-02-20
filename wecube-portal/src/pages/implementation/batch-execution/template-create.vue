@@ -3,16 +3,23 @@
   <div class="batch-execution-template-create">
     <BaseForm ref="form" :from="from" :type="type" :data="detailData" @back="handleBack" />
     <div v-if="type !== 'view'" class="footer-button">
-      <Button type="success" @click="saveExcute">预执行</Button>
-      <Button type="default" @click="getAuth('draft')" style="margin-left: 10px">保存草稿</Button>
-      <Button type="primary" :disabled="templateDisabled" @click="getAuth('published')" style="margin-left: 10px"
-        >发布模板</Button
-      >
+      <!--预执行-->
+      <Button type="success" @click="saveExcute">{{ $t('be_pre_execute') }}</Button>
+      <!--保存草稿-->
+      <Button type="default" @click="getAuth('draft')" style="margin-left: 10px">{{ $t('be_save_draft') }}</Button>
+      <!--发布模板-->
+      <Button type="primary" :disabled="templateDisabled" @click="getAuth('published')" style="margin-left: 10px">{{
+        $t('be_publish_template')
+      }}</Button>
     </div>
     <!--权限弹窗-->
     <AuthDialog ref="authDialog" :useRolesRequired="true" @sendAuth="saveTemplate" />
     <!--高危检测弹框-->
-    <DangerousModal :visible.sync="confirmModal.isShowConfirmModal" :data="confirmModal"></DangerousModal>
+    <DangerousModal
+      :visible.sync="confirmModal.isShowConfirmModal"
+      :data="confirmModal"
+      @success="showExecuteResult"
+    ></DangerousModal>
   </div>
 </template>
 
@@ -53,6 +60,26 @@ export default {
   methods: {
     handleBack () {
       this.$eventBusP.$emit('change-menu', 'templateList')
+    },
+    showExecuteResult (data) {
+      this.$refs.form.showResult = true
+      this.templateDisabled = false
+      this.$nextTick(() => {
+        this.$refs.form.getExecuteResult(data.batchExecId)
+      })
+    },
+    // 获取属主&使用角色
+    getAuth (status) {
+      this.templateStatus = status
+      if (this.validRequired()) {
+        let mgmtRole = []
+        let useRole = []
+        if (this.type === 'edit') {
+          mgmtRole = this.detailData.permissionToRole.MGMT || []
+          useRole = this.detailData.permissionToRole.USE || []
+        }
+        this.$refs.authDialog.startAuth(mgmtRole, useRole)
+      }
     },
     // 获取模板详情
     async getTemplateDetail () {
@@ -170,19 +197,6 @@ export default {
         }
       }
     }, 100),
-    // 获取属主&使用角色
-    getAuth (status) {
-      this.templateStatus = status
-      if (this.validRequired()) {
-        let mgmtRole = []
-        let useRole = []
-        if (this.type === 'edit') {
-          mgmtRole = this.detailData.permissionToRole.MGMT || []
-          useRole = this.detailData.permissionToRole.USE || []
-        }
-        this.$refs.authDialog.startAuth(mgmtRole, useRole)
-      }
-    },
     // 保存模板
     async saveTemplate (mgmtRole, useRole) {
       const {
@@ -290,27 +304,27 @@ export default {
       const { name, dataModelExpression, pluginId, pluginInputParams, primatKeyAttr, userTableColumns, seletedRows } =
         this.$refs.form
       if (!name) {
-        this.$Message.warning('模板名称必填')
+        this.$Message.warning(this.$t('be_template_name_required'))
         return false
       }
       if (!dataModelExpression) {
-        this.$Message.warning('查询路径必填')
+        this.$Message.warning(this.$t('be_query_path_required'))
         return false
       }
       if (!primatKeyAttr) {
-        this.$Message.warning('查询结果主键必填')
+        this.$Message.warning(this.$t('be_result_key_required'))
         return false
       }
       if (userTableColumns && userTableColumns.length === 0) {
-        this.$Message.warning('查询结果展示列必填')
+        this.$Message.warning(this.$t('be_result_column_required'))
         return false
       }
       if (seletedRows && seletedRows.length === 0) {
-        this.$Message.warning('操作实例必填')
+        this.$Message.warning(this.$t('be_instance_required'))
         return false
       }
       if (!pluginId) {
-        this.$Message.warning('插件服务必填')
+        this.$Message.warning(this.$t('be_plugin_server_required'))
         return false
       }
       const pluginInputParamsFlag = pluginInputParams.every(item => {
@@ -321,7 +335,7 @@ export default {
         }
       })
       if ((pluginInputParams && pluginInputParams.length === 0) || !pluginInputParamsFlag) {
-        this.$Message.warning('设置入参必填')
+        this.$Message.warning(this.$t('be_setting_input_required'))
         return false
       }
       return true
