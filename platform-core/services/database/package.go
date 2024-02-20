@@ -375,7 +375,11 @@ func CheckPluginPackageDependence(ctx context.Context, pluginPackageId string) (
 
 func GetResourceServer(ctx context.Context, serverType, serverIp string) (resourceServerObj *models.ResourceServer, err error) {
 	var resourceServerRows []*models.ResourceServer
-	err = db.MysqlEngine.Context(ctx).SQL("select id,host,is_allocated,login_password,login_username,name,port,login_mode from resource_server where `type`=? and host=? and status='active'", serverType, serverIp).Find(&resourceServerRows)
+	if serverIp == "" {
+		err = db.MysqlEngine.Context(ctx).SQL("select id,host,is_allocated,login_password,login_username,name,port,login_mode from resource_server where `type`=? and status='active'", serverType).Find(&resourceServerRows)
+	} else {
+		err = db.MysqlEngine.Context(ctx).SQL("select id,host,is_allocated,login_password,login_username,name,port,login_mode from resource_server where `type`=? and host=? and status='active'", serverType, serverIp).Find(&resourceServerRows)
+	}
 	if err != nil {
 		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
 	} else {
@@ -409,12 +413,15 @@ func CheckServerPortRunning(ctx context.Context, serverIp string, port int) (run
 
 func GetPluginMysqlInstance(ctx context.Context, name string) (result *models.PluginMysqlInstances, err error) {
 	var mysqlInstanceRows []*models.PluginMysqlInstances
-	err = db.MysqlEngine.SQL("select id,`password`,plugun_package_id,resource_item_id,schema_name,username,pre_version from plugin_mysql_instances where status='active' and plugun_package_id in (select id from plugin_packages where name=?)", name).Find(&mysqlInstanceRows)
+	err = db.MysqlEngine.Context(ctx).SQL("select id,`password`,plugun_package_id,resource_item_id,schema_name,username,pre_version from plugin_mysql_instances where status='active' and plugun_package_id in (select id from plugin_packages where name=?)", name).Find(&mysqlInstanceRows)
 	if err != nil {
 		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
 	} else {
 		if len(mysqlInstanceRows) > 0 {
 			result = mysqlInstanceRows[0]
+			if strings.HasPrefix(result.Password, models.AESPrefix) {
+				result.Password = encrypt.DecryptWithAesECB(result.Password[5:], models.Config.Plugin.ResourcePasswordSeed, result.SchemaName)
+			}
 		}
 	}
 	return

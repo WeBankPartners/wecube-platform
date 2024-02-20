@@ -10,18 +10,22 @@
         <Button type="primary" @click="relaunch">重新执行</Button>
       </div>
     </template>
+    <!--高危检测弹框-->
+    <DangerousModal :visible.sync="confirmModal.isShowConfirmModal" :data="confirmModal"></DangerousModal>
   </div>
 </template>
 
 <script>
 import ChooseTemplate from './template.vue'
 import BaseForm from './base-form.vue'
+import DangerousModal from './components/dangerous-modal.vue'
 import { debounce } from '@/const/util'
 import { getBatchExecuteTemplateDetail, batchExecuteHistory, saveBatchExecute } from '@/api/server.js'
 export default {
   components: {
     ChooseTemplate,
-    BaseForm
+    BaseForm,
+    DangerousModal
   },
   data () {
     return {
@@ -29,7 +33,13 @@ export default {
       from: 'execute', // 模板，执行
       id: this.$route.query.id || '', // 批量执行id
       type: this.$route.query.type || 'add', // 新增，查看
-      detailData: {}
+      detailData: {},
+      confirmModal: {
+        continueToken: '',
+        message: '',
+        params: {},
+        isShowConfirmModal: false
+      }
     }
   },
   mounted () {
@@ -157,7 +167,7 @@ export default {
         sourceData: JSON.stringify(frontData)
       }
       this.$Spin.show()
-      const { status } = await saveBatchExecute(params)
+      const { status, data } = await saveBatchExecute(`/platform/v1/batch-execution/job/run`, params)
       this.$Spin.hide()
       if (status === 'OK') {
         this.$Notice.success({
@@ -165,6 +175,15 @@ export default {
           desc: this.$t('successful')
         })
         this.$eventBusP.$emit('change-menu', 'executeList')
+      } else if (status === 'CONFIRM') {
+        // 高危检测命中，则弹窗让用户手动确认是否继续执行，若继续，则带id和continueToken再执行一次
+        if (data.dangerousCheckResult) {
+          params.batchExecId = data.batchExecId
+          this.confirmModal.continueToken = data.batchExecId
+          this.confirmModal.message = data.dangerousCheckResult.text
+          this.confirmModal.params = params
+          this.confirmModal.isShowConfirmModal = true
+        }
       }
     }, 100),
     validRequired () {
