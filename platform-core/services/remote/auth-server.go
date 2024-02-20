@@ -3,8 +3,10 @@ package remote
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/WeBankPartners/wecube-platform/platform-core/common/log"
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/network"
 	"github.com/WeBankPartners/wecube-platform/platform-core/models"
+	"strings"
 )
 
 const (
@@ -48,17 +50,33 @@ const (
 	pathRegisterSubSystem = "/auth/v1/sub-systems"
 )
 
-// TODO
-func RegisterSubSystem(pluginPackageObj *models.PluginPackages) (subSystemCode, subSystemKey string, err error) {
-	//subSysCode := fmt.Sprintf("SYS_%s", strings.ToUpper(pluginPackageObj.Name))
-	//param := models.SimpleSubSystemDto{
-	//	Name:        pluginPackageObj.Name,
-	//	SystemCode:  subSystemCode,
-	//	Active:      true,
-	//	Blocked:     false,
-	//	Description: fmt.Sprintf("Plugin %s registered from platform.", pluginPackageObj.Name),
-	//}
-
+func RegisterSubSystem(pluginPackageObj *models.PluginPackages) (subSystemCode, subSystemKey, subSystemPubKey string, err error) {
+	var byteArr []byte
+	subSystemCode = fmt.Sprintf("SYS_%s", strings.ToUpper(pluginPackageObj.Name))
+	param := models.SimpleSubSystemDto{
+		Name:        pluginPackageObj.Name,
+		SystemCode:  subSystemCode,
+		Active:      true,
+		Blocked:     false,
+		Description: fmt.Sprintf("Plugin %s registered from platform.", pluginPackageObj.Name),
+	}
+	postBytes, _ := json.Marshal(param)
+	byteArr, err = network.HttpPost(models.Config.Auth.Url+pathRegisterSubSystem, GetToken(), "en", postBytes)
+	if err != nil {
+		return
+	}
+	log.Logger.Debug("RegisterSubSystem", log.String("response", string(byteArr)))
+	var response models.RegisterSubSysResponse
+	if err = json.Unmarshal(byteArr, &response); err != nil {
+		err = fmt.Errorf("json unmarhsal response body fail,%s ", err.Error())
+		return
+	}
+	if response.Status != "OK" {
+		err = fmt.Errorf(response.Message)
+		return
+	}
+	subSystemKey = response.Data.APIKey
+	subSystemPubKey = response.Data.PubKey
 	return
 }
 
