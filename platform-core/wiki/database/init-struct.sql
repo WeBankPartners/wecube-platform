@@ -674,3 +674,20 @@ CREATE TABLE `proc_run_operation` (
       `handle_time` datetime DEFAULT NULL COMMENT '处理时间',
       PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
+
+-- 插件服务权限表
+CREATE TABLE `plugin_config_roles`
+(
+    `id`            varchar(255) NOT NULL COMMENT '唯一标识',
+    `created_by`    varchar(255) NULL COMMENT '创建人',
+    `created_time`  datetime     NULL COMMENT '创建时间',
+    `updated_by`    varchar(255) NULL COMMENT '更新人',
+    `updated_time`  datetime     NULL COMMENT '更新时间',
+    `is_active`     bit          NULL COMMENT '是否启用',
+    `perm_type`     varchar(255) NULL COMMENT '权限类型',
+    `plugin_cfg_id` varchar(255) NULL COMMENT '插件服务',
+    `role_id`       varchar(255) NULL COMMENT '角色id',
+    `role_name`     varchar(255) NULL COMMENT '角色名',
+    PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
+

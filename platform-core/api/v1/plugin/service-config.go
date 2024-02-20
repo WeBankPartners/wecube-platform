@@ -1,14 +1,17 @@
 package plugin
 
 import (
+	"fmt"
+	"sort"
+	"strings"
+
 	"github.com/WeBankPartners/wecube-platform/platform-core/api/middleware"
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/exterror"
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/log"
+	"github.com/WeBankPartners/wecube-platform/platform-core/common/try"
 	"github.com/WeBankPartners/wecube-platform/platform-core/models"
 	"github.com/WeBankPartners/wecube-platform/platform-core/services/database"
 	"github.com/gin-gonic/gin"
-	"sort"
-	"strings"
 )
 
 // GetPluginConfigs 服务注册 - 当前插件服务配置查询
@@ -24,8 +27,8 @@ func GetPluginConfigs(c *gin.Context) {
 
 // GetConfigInterfaces 服务注册 - 查询指定服务的接口详情
 func GetConfigInterfaces(c *gin.Context) {
-	pluginPackageId := c.Param("pluginPackageId")
-	result, err := database.GetConfigInterfaces(c, pluginPackageId)
+	pluginConfigId := c.Param("pluginConfigId")
+	result, err := database.GetConfigInterfaces(c, pluginConfigId)
 	if err != nil {
 		middleware.ReturnError(c, err)
 	} else {
@@ -35,7 +38,38 @@ func GetConfigInterfaces(c *gin.Context) {
 
 // UpdatePluginConfigRoles 服务注册 - 配置服务管理使用权限
 func UpdatePluginConfigRoles(c *gin.Context) {
+	defer try.ExceptionStack(func(e interface{}, err interface{}) {
+		retErr := fmt.Errorf("%v", err)
+		middleware.ReturnError(c, exterror.Catch(exterror.New().ServerHandleError, retErr))
+		log.Logger.Error(e.(string))
+	})
 
+	pluginConfigId := c.Param("pluginConfigId")
+	var err error
+	if pluginConfigId == "" {
+		err = exterror.Catch(exterror.New().RequestParamValidateError, fmt.Errorf("request param err, pluginConfigId can not be empty"))
+		middleware.ReturnError(c, err)
+		return
+	}
+
+	reqParam := models.PermissionToRole{}
+	if err = c.ShouldBindJSON(&reqParam); err != nil {
+		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, err))
+		return
+	}
+	if len(reqParam.MGMT) == 0 {
+		err = exterror.Catch(exterror.New().RequestParamValidateError, fmt.Errorf("request param err, MGMT permission role can not be empty"))
+		middleware.ReturnError(c, err)
+		return
+	}
+
+	err = database.UpdatePluginConfigRoles(c, pluginConfigId, &reqParam)
+	if err != nil {
+		middleware.ReturnError(c, err)
+	} else {
+		middleware.ReturnSuccess(c)
+	}
+	return
 }
 
 // DisablePluginConfig 服务注册 - 服务注销
