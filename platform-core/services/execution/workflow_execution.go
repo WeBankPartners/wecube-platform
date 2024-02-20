@@ -2,9 +2,10 @@ package execution
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
-
 	"github.com/WeBankPartners/go-common-lib/guid"
+	"github.com/WeBankPartners/wecube-platform/platform-core/common/log"
 	"github.com/WeBankPartners/wecube-platform/platform-core/models"
 	"github.com/WeBankPartners/wecube-platform/platform-core/services/database"
 	"github.com/WeBankPartners/wecube-platform/platform-core/services/remote"
@@ -29,13 +30,13 @@ import (
 
 func WorkflowExecutionCallPluginService(ctx context.Context, operator string, pluginInterface *models.PluginConfigInterfaces, entityType string,
 	entityInstances []*models.BatchExecutionPluginExecEntityInstances,
-	inputParamConstants []*models.BatchExecutionPluginDefInputParams,
+	inputConstantMap map[string]string,
 	inputParamContext map[string]interface{},
 	continueToken string, dueDate string, allowedOptions []string) (result *models.PluginInterfaceApiResultData, dangerousCheckResult *models.ItsdangerousWorkflowCheckResultData, pluginCallParam *models.BatchExecutionPluginExecParam, err error) {
-	inputConstantMap := make(map[string]string)
-	for _, inputConst := range inputParamConstants {
-		inputConstantMap[inputConst.ParamId] = inputConst.ParameValue
-	}
+	//inputConstantMap := make(map[string]string)
+	//for _, inputConst := range inputParamConstants {
+	//	inputConstantMap[inputConst.ParamId] = inputConst.ParameValue
+	//}
 	rootExprList, errAnalyze1 := remote.AnalyzeExpression(entityType)
 	if err != nil {
 		err = errAnalyze1
@@ -75,7 +76,7 @@ func WorkflowExecutionCallPluginService(ctx context.Context, operator string, pl
 	}
 	// 调用插件接口
 	pluginCallParam = &models.BatchExecutionPluginExecParam{
-		RequestId:       "",
+		RequestId:       "p_req_" + guid.CreateGuid(),
 		Operator:        operator,
 		ServiceName:     pluginInterface.ServiceName,
 		ServicePath:     pluginInterface.ServiceDisplayName,
@@ -114,5 +115,58 @@ func performWorkflowDangerousCheck(ctx context.Context, pluginCallParam interfac
 	}
 	// 调用检查
 	result, err = remote.DangerousWorkflowCheck(ctx, authToken, pluginCallParam)
+	return
+}
+
+func DoWorkflowAutoJob(ctx context.Context, procRunNodeId, continueToken string) (err error) {
+	// 查proc def node定义和proc ins绑定数据
+	procInsNode, procDefNode, procDefNodeParams, dataBindings, getNodeDataErr := database.GetProcExecNodeData(ctx, procRunNodeId)
+	if getNodeDataErr != nil {
+		err = getNodeDataErr
+		return
+	}
+	if procDefNode.DynamicBind {
+		dataBindings, err = database.GetDynamicBindNodeData(ctx, procInsNode.Id, procDefNode.ProcDefId, procDefNode.BindNodeId)
+	}
+	if len(dataBindings) == 0 {
+		// 无数据，空跑
+		return
+	}
+	pluginInterface, getIntErr := database.GetLastEnablePluginInterface(ctx, procDefNode.ServiceName)
+	if getIntErr != nil {
+		err = getIntErr
+		return
+	}
+	var entityInstances []*models.BatchExecutionPluginExecEntityInstances
+	for _, bindingObj := range dataBindings {
+		entityInstances = append(entityInstances, &models.BatchExecutionPluginExecEntityInstances{
+			Id:               bindingObj.EntityId,
+			BusinessKeyValue: "",
+		})
+	}
+	inputConstantMap := make(map[string]string)
+	inputContextMap := make(map[string]interface{})
+	for _, v := range procDefNodeParams {
+		if v.BindType == "constant" {
+			inputConstantMap[v.Name] = v.Value
+		} else if v.BindType == "context" {
+
+		}
+	}
+	callOutput, dangerousCheckResult, pluginCallParam, callErr := WorkflowExecutionCallPluginService(ctx, "SYSTEM", pluginInterface, procDefNode.RoutineExpression, entityInstances, inputConstantMap, inputContextMap, continueToken, "", []string{})
+	if callErr != nil {
+		err = callErr
+		return
+	}
+	if dangerousCheckResult != nil {
+		dangerousCheckResultBytes, _ := json.Marshal(dangerousCheckResult)
+		database.UpdateProcInsNodeData(ctx, procInsNode.Id, "", "", string(dangerousCheckResultBytes))
+	}
+	log.Logger.Debug("WorkflowExecutionCallPluginService", log.JsonObj("output", callOutput), log.JsonObj("pluginCallParam", pluginCallParam))
+	return
+}
+
+func DoWorkflowDataJob(procRunNodeId string) (err error) {
+
 	return
 }

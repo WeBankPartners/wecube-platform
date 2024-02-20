@@ -714,3 +714,18 @@ type PluginConfigsOutlines struct {
 	HasMgmtPermission          bool                     `json:"hasMgmtPermission" xorm:"-"`
 	PluginConfigsOutlines      []*PluginConfigsOutlines `json:"pluginConfigs" xorm:"-"`
 }
+
+type PluginInterfaceWithVer struct {
+	Id                 string `json:"id" xorm:"id"`                                   // 唯一标识
+	PluginConfigId     string `json:"pluginConfigId" xorm:"plugin_config_id"`         // 插件服务
+	Action             string `json:"action" xorm:"action"`                           // 接口
+	ServiceName        string `json:"serviceName" xorm:"service_name"`                // 服务名
+	ServiceDisplayName string `json:"serviceDisplayName" xorm:"service_display_name"` // 服务显示名
+	Path               string `json:"path" xorm:"path"`                               // 插件接口uri
+	HttpMethod         string `json:"httpMethod" xorm:"http_method"`                  // http请求方法
+	IsAsyncProcessing  string `json:"isAsyncProcessing" xorm:"is_async_processing"`   // 是否同步->Y(是) | N(否)
+	Type               string `json:"type" xorm:"type"`                               // 服务类型->approval(审批),execution(执行),dynamicform(动态表单)
+	FilterRule         string `json:"filterRule" xorm:"filter_rule"`                  // 服务过滤规则
+	Description        string `json:"description" xorm:"description"`                 // 描述
+	Version            string `json:"version" xorm:"version"`
+}

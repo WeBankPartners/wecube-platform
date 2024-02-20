@@ -197,4 +197,8 @@ func InitPluginDockerHostSSH() {
 		exec.Command("/bin/bash", "-c", fmt.Sprintf("sshpass -p '%s' ssh -o StrictHostKeyChecking=no %s@%s -p %s", row.LoginPassword, row.LoginUsername, row.Host, row.Port)).Output()
 		log.Logger.Info("init plugin docker ssh", log.String("server", row.Host))
 	}
+	for _, staticResource := range models.Config.StaticResources {
+		exec.Command("/bin/bash", "-c", fmt.Sprintf("sshpass -p '%s' ssh -o StrictHostKeyChecking=no %s@%s -p %s", staticResource.Password, staticResource.User, staticResource.Server, staticResource.Port)).Output()
+		log.Logger.Info("init platform docker ssh", log.String("server", staticResource.Server))
+	}
 }
