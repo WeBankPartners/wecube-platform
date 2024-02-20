@@ -4,10 +4,12 @@
     <template v-if="step === 2">
       <BaseForm ref="form" :type="type" :from="from" :data="detailData" @back="handleBack" />
       <div v-if="type !== 'view'" class="footer-button">
-        <Button type="primary" @click="saveExcute">执行</Button>
+        <!--执行-->
+        <Button type="primary" @click="saveExcute">{{ $t('execute') }}</Button>
       </div>
       <div v-else class="footer-button">
-        <Button type="primary" @click="relaunch">重新执行</Button>
+        <!--重新执行-->
+        <Button type="primary" @click="relaunch">{{ $t('be_re_execute') }}</Button>
       </div>
     </template>
     <!--高危检测弹框-->
@@ -190,27 +192,27 @@ export default {
       const { name, dataModelExpression, pluginId, pluginInputParams, primatKeyAttr, userTableColumns, seletedRows } =
         this.$refs.form
       if (!name) {
-        this.$Message.warning('模板名称必填')
+        this.$Message.warning(this.$t('be_template_name_required'))
         return false
       }
       if (!dataModelExpression) {
-        this.$Message.warning('查询路径必填')
+        this.$Message.warning(this.$t('be_query_path_required'))
         return false
       }
       if (!primatKeyAttr) {
-        this.$Message.warning('查询结果主键必填')
+        this.$Message.warning(this.$t('be_result_key_required'))
         return false
       }
       if (userTableColumns && userTableColumns.length === 0) {
-        this.$Message.warning('查询结果展示列必填')
+        this.$Message.warning(this.$t('be_result_column_required'))
         return false
       }
       if (seletedRows && seletedRows.length === 0) {
-        this.$Message.warning('操作实例必填')
+        this.$Message.warning(this.$t('be_instance_required'))
         return false
       }
       if (!pluginId) {
-        this.$Message.warning('插件服务必填')
+        this.$Message.warning(this.$t('be_plugin_server_required'))
         return false
       }
       const pluginInputParamsFlag = pluginInputParams.every(item => {
@@ -221,7 +223,7 @@ export default {
         }
       })
       if ((pluginInputParams && pluginInputParams.length === 0) || !pluginInputParamsFlag) {
-        this.$Message.warning('设置入参必填')
+        this.$Message.warning(this.$t('be_setting_input_required'))
         return false
       }
       return true
