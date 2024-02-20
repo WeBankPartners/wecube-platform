@@ -2,6 +2,7 @@ package database
 
 import (
 	"context"
+	"github.com/WeBankPartners/wecube-platform/platform-core/services/remote"
 	"sort"
 	"strings"
 	"time"
@@ -13,12 +14,14 @@ import (
 )
 
 // QueryProcessDefinitionList 查询编排列表
-func QueryProcessDefinitionList(ctx context.Context, param models.QueryProcessDefinitionParam) (list []*models.ProcDefQueryDto, err error) {
+func QueryProcessDefinitionList(ctx context.Context, param models.QueryProcessDefinitionParam, userToken, language string) (list []*models.ProcDefQueryDto, err error) {
 	var procDefList, pList, filterProcDefList []*models.ProcDef
 	var permissionList []*models.ProcDefPermission
 	var roleProcDefMap = make(map[string][]*models.ProcDefDto)
 	var userRolesMap = convertArray2Map(param.UserRoles)
-	var manageRoles, userRoles, allManageRoles []string
+	var manageRoles, userRoles, allManageRoles, manageRolesDisplay, userRolesDisplay []string
+	var response models.QueryRolesResponse
+	var roleDisplayNameMap = make(map[string]string)
 	var enabledCreated bool
 	var queryParam []interface{}
 	var where string
@@ -44,11 +47,21 @@ func QueryProcessDefinitionList(ctx context.Context, param models.QueryProcessDe
 	} else {
 		filterProcDefList = procDefList
 	}
-
+	response, err = remote.RetrieveAllLocalRoles("Y", userToken, language)
+	if err != nil {
+		return
+	}
+	if len(response.Data) > 0 {
+		for _, roleDto := range response.Data {
+			roleDisplayNameMap[roleDto.Name] = roleDto.DisplayName
+		}
+	}
 	for _, procDef := range filterProcDefList {
 		enabledCreated = false
 		manageRoles = []string{}
 		userRoles = []string{}
+		manageRolesDisplay = []string{}
+		userRolesDisplay = []string{}
 		permissionList, err = GetProcDefPermissionByCondition(ctx, models.ProcDefPermission{ProcDefId: procDef.Id})
 		if err != nil {
 			return
@@ -66,8 +79,10 @@ func QueryProcessDefinitionList(ctx context.Context, param models.QueryProcessDe
 		for _, permission := range permissionList {
 			if permission.Permission == "MGMT" && userRolesMap[permission.RoleName] {
 				manageRoles = append(manageRoles, permission.RoleName)
+				manageRolesDisplay = append(manageRolesDisplay, roleDisplayNameMap[permission.RoleName])
 			} else if permission.Permission == "USE" {
 				userRoles = append(userRoles, permission.RoleName)
+				userRolesDisplay = append(userRolesDisplay, roleDisplayNameMap[permission.RoleName])
 			}
 		}
 		for _, manageRole := range manageRoles {
@@ -75,7 +90,7 @@ func QueryProcessDefinitionList(ctx context.Context, param models.QueryProcessDe
 				roleProcDefMap[manageRole] = make([]*models.ProcDefDto, 0)
 				allManageRoles = append(allManageRoles, manageRole)
 			}
-			roleProcDefMap[manageRole] = append(roleProcDefMap[manageRole], models.BuildProcDefDto(procDef, userRoles, enabledCreated))
+			roleProcDefMap[manageRole] = append(roleProcDefMap[manageRole], models.BuildProcDefDto(procDef, userRoles, manageRoles, userRolesDisplay, manageRolesDisplay, enabledCreated))
 		}
 	}
 	// 角色排序
@@ -84,7 +99,11 @@ func QueryProcessDefinitionList(ctx context.Context, param models.QueryProcessDe
 		dataList := roleProcDefMap[manageRole]
 		// 排序
 		sort.Sort(models.ProcDefDtoSort(dataList))
-		list = append(list, &models.ProcDefQueryDto{ManageRole: manageRole, ProcDefList: dataList})
+		list = append(list, &models.ProcDefQueryDto{
+			ManageRole:        manageRole,
+			ManageRoleDisplay: roleDisplayNameMap[manageRole],
+			ProcDefList:       dataList,
+		})
 	}
 	return
 }
@@ -167,9 +186,7 @@ func CopyProcessDefinitionByDto(ctx context.Context, procDef *models.ProcessDefi
 				if nodeModel != nil {
 					nodeList = append(nodeList, nodeModel)
 				}
-				if len(nodeParamList) > 0 {
-					nodeParamList = append(nodeParamList, nodeParams...)
-				}
+				nodeParamList = append(nodeParamList, nodeParams...)
 			}
 		}
 	}
@@ -189,7 +206,7 @@ func CopyProcessDefinition(ctx context.Context, procDef *models.ProcDef, operato
 	var permissionList []*models.ProcDefPermission
 	var nodeList []*models.ProcDefNode
 	var linkList []*models.ProcDefNodeLink
-	var nodeParamList []*models.ProcDefNodeParam
+	var allNodeParamList []*models.ProcDefNodeParam
 	// 查询权限
 	permissionList, err = GetProcDefPermissionByCondition(ctx, models.ProcDefPermission{ProcDefId: procDef.Id})
 	if err != nil {
@@ -205,11 +222,21 @@ func CopyProcessDefinition(ctx context.Context, procDef *models.ProcDef, operato
 	if err != nil {
 		return
 	}
-	return execCopyProcessDefinition(ctx, procDef, nodeList, linkList, nodeParamList, permissionList, operator)
+	if len(nodeList) > 0 {
+		for _, node := range nodeList {
+			nodeParamList, _ := GetProcDefNodeParamByNodeId(ctx, node.Id)
+			if len(nodeParamList) > 0 {
+				allNodeParamList = append(allNodeParamList, nodeParamList...)
+			}
+		}
+	}
+
+	return execCopyProcessDefinition(ctx, procDef, nodeList, linkList, allNodeParamList, permissionList, operator)
 }
 
 func execCopyProcessDefinition(ctx context.Context, procDef *models.ProcDef, nodeList []*models.ProcDefNode,
 	linkList []*models.ProcDefNodeLink, nodeParamList []*models.ProcDefNodeParam, permissionList []*models.ProcDefPermission, operator string) (newProcDefId string, err error) {
+	var curNodeParamList []*models.ProcDefNodeParam
 	newProcDefId = "pdef_" + guid.CreateGuid()
 	currTime := time.Now().Format(models.DateTimeFormat)
 	var actions []*db.ExecAction
@@ -230,22 +257,22 @@ func execCopyProcessDefinition(ctx context.Context, procDef *models.ProcDef, nod
 	// 插入节点 & 节点参数 & 更新线集合中节点ID数据
 	if len(nodeList) > 0 {
 		for _, node := range nodeList {
+			curNodeParamList = []*models.ProcDefNodeParam{}
 			newNodeId := models.GenNodeId(node.NodeType)
 			actions = append(actions, &db.ExecAction{Sql: "insert into  proc_def_node(id,node_id,proc_def_id,name,description,status,node_type,service_name," +
 				"dynamic_bind,bind_node_id,risk_check,routine_expression,context_param_nodes,timeout,time_config,ordered_no,ui_style,created_by,created_time," +
 				"updated_by,updated_time) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)", Param: []interface{}{newNodeId, node.NodeId, newProcDefId, node.Name, node.Description,
 				models.Draft, node.NodeType, node.ServiceName, node.DynamicBind, node.BindNodeId, node.RiskCheck, node.RoutineExpression, node.ContextParamNodes,
 				node.Timeout, node.TimeConfig, node.OrderedNo, node.UiStyle, operator, currTime, node.UpdatedBy, currTime}})
-			nodeParamList, err = GetProcDefNodeParamByNodeId(ctx, node.Id)
-			if err != nil {
-				return
-			}
-			if len(nodeParamList) > 0 {
-				for _, nodeParam := range nodeParamList {
-					actions = append(actions, &db.ExecAction{Sql: "insert into  proc_def_node_param(id,proc_def_node_id,param_id,name,bind_type," +
-						"value,ctx_bind_node,ctx_bind_type,ctx_bind_name) values (?,?,?,?,?,?,?,?,?)", Param: []interface{}{guid.CreateGuid(), newNodeId, nodeParam.ParamId,
-						nodeParam.Name, nodeParam.BindType, nodeParam.Value, nodeParam.CtxBindNode, nodeParam.CtxBindType, nodeParam.CtxBindName}})
+			for _, nodeParam := range nodeParamList {
+				if nodeParam.ProcDefNodeId == node.NodeId {
+					curNodeParamList = append(curNodeParamList, nodeParam)
 				}
+			}
+			for _, nodeParam := range curNodeParamList {
+				actions = append(actions, &db.ExecAction{Sql: "insert into  proc_def_node_param(id,proc_def_node_id,param_id,name,bind_type," +
+					"value,ctx_bind_node,ctx_bind_type,ctx_bind_name) values (?,?,?,?,?,?,?,?,?)", Param: []interface{}{guid.CreateGuid(), newNodeId, nodeParam.ParamId,
+					nodeParam.Name, nodeParam.BindType, nodeParam.Value, nodeParam.CtxBindNode, nodeParam.CtxBindType, nodeParam.CtxBindName}})
 			}
 			// 遍历 线集合,找到以前老节点(包含source,target的老节点),更新成新的节点id
 			if len(linkList) > 0 {
