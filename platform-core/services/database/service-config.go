@@ -265,3 +265,60 @@ func UpdatePluginConfigRoles(c *gin.Context, pluginConfigId string, reqParam *mo
 	}
 	return
 }
+
+func GetBatchPluginConfigs(c *gin.Context, pluginPackageId string) (result []*models.PluginConfigsOutlines, err error) {
+	result = []*models.PluginConfigsOutlines{}
+	pluginPackageData := &models.PluginPackages{}
+	var exists bool
+	exists, err = db.MysqlEngine.Context(c).Table(models.TableNamePluginPackages).
+		Where("id = ?", pluginPackageId).
+		Get(pluginPackageData)
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
+		return
+	}
+	if !exists {
+		err = fmt.Errorf("pluginPackageId: %s is invalid", pluginPackageId)
+		return
+	}
+
+	var pluginConfigsList []*models.PluginConfigsOutlines
+	db.MysqlEngine.Context(c).Table(models.TableNamePluginConfigs).
+		Where("plugin_package_id = ?", pluginPackageId).
+		Asc("id").
+		Find(&pluginConfigsList)
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
+		return
+	}
+
+	if len(pluginConfigsList) == 0 {
+		return
+	}
+
+	pluginCfgIdMap := make(map[string]struct{})
+	pluginConfigsOutlinesMap := make(map[string]*models.PluginConfigsOutlines)
+	for _, pluginCfgData := range pluginConfigsList {
+		pluginCfgData.TargetEntityWithFilterRule = fmt.Sprintf("%s:%s%s", pluginCfgData.TargetPackage, pluginCfgData.TargetEntity, pluginCfgData.TargetEntityFilterRule)
+		pluginCfgData.HasMgmtPermission = true
+
+		if pluginCfgData.TargetPackage == "" && pluginCfgData.TargetEntity == "" &&
+			pluginCfgData.TargetEntityFilterRule == "" && pluginCfgData.RegisterName == "" {
+			// root node
+			pluginCfgData.PluginConfigsOutlines = []*models.PluginConfigsOutlines{}
+			pluginConfigsOutlinesMap[pluginCfgData.Name] = pluginCfgData
+			pluginCfgIdMap[pluginCfgData.Id] = struct{}{}
+			result = append(result, pluginCfgData)
+		}
+	}
+
+	for _, pluginCfgData := range pluginConfigsList {
+		if _, isExisted := pluginCfgIdMap[pluginCfgData.Id]; !isExisted {
+			if pluginCfgOutlines, isOk := pluginConfigsOutlinesMap[pluginCfgData.Name]; isOk {
+				pluginCfgOutlines.PluginConfigsOutlines = append(pluginCfgOutlines.PluginConfigsOutlines, pluginCfgData)
+			}
+		}
+	}
+
+	return
+}
