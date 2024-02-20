@@ -94,7 +94,27 @@ func DeletePluginConfig(c *gin.Context) {
 
 // GetBatchPluginConfigs 服务注册 - 批量注册查询
 func GetBatchPluginConfigs(c *gin.Context) {
+	defer try.ExceptionStack(func(e interface{}, err interface{}) {
+		retErr := fmt.Errorf("%v", err)
+		middleware.ReturnError(c, exterror.Catch(exterror.New().ServerHandleError, retErr))
+		log.Logger.Error(e.(string))
+	})
 
+	pluginPackageId := c.Param("pluginPackageId")
+	var err error
+	if pluginPackageId == "" {
+		err = exterror.Catch(exterror.New().RequestParamValidateError, fmt.Errorf("request param err, pluginPackageId can not be empty"))
+		middleware.ReturnError(c, err)
+		return
+	}
+
+	retData, err := database.GetBatchPluginConfigs(c, pluginPackageId)
+	if err != nil {
+		middleware.ReturnError(c, err)
+	} else {
+		middleware.ReturnData(c, retData)
+	}
+	return
 }
 
 // BatchEnablePluginConfig 服务注册 - 批量注册
