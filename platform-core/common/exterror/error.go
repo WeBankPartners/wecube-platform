@@ -67,6 +67,7 @@ type ErrorTemplate struct {
 	DeleteUserError                  CustomError `json:"delete_user_error"`
 	BatchExecPluginAuthError         CustomError `json:"batch_exec_plugin_auth_error"`
 	BatchExecPluginApiError          CustomError `json:"batch_exec_plugin_api_error"`
+	BatchExecTmplDuplicateNameError  CustomError `json:"batch_exec_tmpl_duplicate_name_error"`
 }
 
 var (
