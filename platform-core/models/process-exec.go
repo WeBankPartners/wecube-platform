@@ -3,6 +3,7 @@ package models
 import (
 	"fmt"
 	"strings"
+	"time"
 )
 
 var ProcStatusTransMap = map[string]string{"running": "InProgress", "success": "Completed", "fail": "Faulted", "kill": "InternallyTerminated", "ready": "NotStarted", "timeout": "Timeouted"}
@@ -179,4 +180,38 @@ type ProcCallPluginServiceFuncParam struct {
 	RiskCheck         bool
 	Operator          string
 	ProcInsNode       *ProcInsNode
+}
+
+type ProcNodeContextReq struct {
+	BeginTime      string                     `json:"beginTime"`
+	EndTime        string                     `json:"endTime"`
+	NodeDefId      string                     `json:"nodeDefId"`
+	NodeExpression string                     `json:"nodeExpression"`
+	NodeId         string                     `json:"nodeId"`
+	NodeInstId     string                     `json:"nodeInstId"`
+	NodeName       string                     `json:"nodeName"`
+	NodeType       string                     `json:"nodeType"`
+	PluginInfo     string                     `json:"pluginInfo"`
+	RequestId      string                     `json:"requestId"`
+	ErrorMessage   string                     `json:"errorMessage,omitempty"`
+	RequestObjects []ProcNodeContextReqObject `json:"requestObjects"`
+}
+
+type ProcNodeContextReqObject struct {
+	CallbackParameter string                   `json:"callbackParameter"`
+	Inputs            []map[string]interface{} `json:"inputs"`
+	Outputs           []map[string]interface{} `json:"outputs"`
+}
+
+type ProcNodeContextQueryObj struct {
+	Id                string    `json:"id" xorm:"id"`
+	Name              string    `json:"name" xorm:"name"`
+	ProcDefNodeId     string    `json:"procDefNodeId" xorm:"proc_def_node_id"`
+	ErrorMsg          string    `json:"errorMsg" xorm:"error_msg"`
+	RoutineExpression string    `json:"routineExpression" xorm:"routine_expression"`
+	ServiceName       string    `json:"serviceName" xorm:"service_name"`
+	StartTime         time.Time `json:"startTime" xorm:"start_time"`
+	EndTime           time.Time `json:"endTime" xorm:"end_time"`
+	ReqId             string    `json:"reqId" xorm:"req_id"`
+	NodeType          string    `json:"nodeType" xorm:"node_type"`
 }

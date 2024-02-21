@@ -152,6 +152,7 @@ func init() {
 		&handlerFuncObj{Url: "/process/instances", Method: "POST", HandlerFunc: process.ProcInsStart, ApiCode: "process-ins-start"},
 		&handlerFuncObj{Url: "/process/instances", Method: "GET", HandlerFunc: process.ProcInsList, ApiCode: "process-ins-list"},
 		&handlerFuncObj{Url: "/process/instances/:procInsId", Method: "GET", HandlerFunc: process.ProcInsDetail, ApiCode: "process-ins-detail"},
+		&handlerFuncObj{Url: "/process/instances/:procInsId/tasknodes/:procInsNodeId/context", Method: "GET", HandlerFunc: process.GetProcInsNodeContext, ApiCode: "process-ins-node-context"},
 
 		// certification manager
 		&handlerFuncObj{Url: "/plugin-certifications", Method: "GET", HandlerFunc: certification.GetCertifications, ApiCode: "get-certifications"},

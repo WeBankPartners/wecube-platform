@@ -2,10 +2,12 @@ package database
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"github.com/WeBankPartners/go-common-lib/guid"
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/db"
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/exterror"
+	"github.com/WeBankPartners/wecube-platform/platform-core/common/log"
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/tools"
 	"github.com/WeBankPartners/wecube-platform/platform-core/models"
 	"strings"
@@ -595,6 +597,88 @@ func RecordProcCallReq(ctx context.Context, param *models.ProcInsNodeReq, inputF
 	err = db.Transaction(actions, ctx)
 	if err != nil {
 		err = exterror.Catch(exterror.New().DatabaseExecuteError, err)
+	}
+	return
+}
+
+func GetProcInsNodeContext(ctx context.Context, procInsId, procInsNodeId string) (result *models.ProcNodeContextReq, err error) {
+	var queryRows []*models.ProcNodeContextQueryObj
+	err = db.MysqlEngine.Context(ctx).SQL("select t1.id,t1.name,t1.proc_def_node_id,t1.error_msg,t2.routine_expression,t2.service_name,t2.node_type,t3.start_time,t3.end_time,t4.id as req_id from proc_ins_node t1 left join proc_def_node t2 on t1.proc_def_node_id=t2.id left join proc_run_node t3 on t3.proc_ins_node_id=t1.id left join proc_ins_node_req t4 on t4.proc_ins_node_id=t1.id where t1.proc_ins_id=? and t1.id=?", procInsId, procInsNodeId).Find(&queryRows)
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
+		return
+	}
+	result = &models.ProcNodeContextReq{}
+	if len(queryRows) == 0 {
+		return
+	}
+	queryObj := queryRows[0]
+	result.NodeId = queryObj.ProcDefNodeId
+	result.NodeInstId = queryObj.Id
+	result.NodeName = queryObj.Name
+	result.NodeType = queryObj.NodeType
+	result.NodeDefId = queryObj.ProcDefNodeId
+	result.NodeExpression = queryObj.RoutineExpression
+	result.PluginInfo = queryObj.ServiceName
+	result.RequestId = queryObj.ReqId
+	result.BeginTime = queryObj.StartTime.Format(models.DateTimeFormat)
+	result.EndTime = queryObj.EndTime.Format(models.DateTimeFormat)
+	result.RequestObjects = []models.ProcNodeContextReqObject{}
+	if queryObj.ReqId == "" {
+		return
+	}
+	var procReqParams []*models.ProcInsNodeReqParam
+	err = db.MysqlEngine.Context(ctx).SQL("select * from proc_ins_node_req_param where req_id=? order by data_index,id", queryObj.ReqId).Find(&procReqParams)
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
+		return
+	}
+	if len(procReqParams) == 0 {
+		return
+	}
+	curDataIndex := 0
+	curReqObj := models.ProcNodeContextReqObject{CallbackParameter: procReqParams[0].CallbackId}
+	tmpInputMap := make(map[string]interface{})
+	tmpOutputMap := make(map[string]interface{})
+	for _, row := range procReqParams {
+		if row.DataIndex != curDataIndex {
+			curDataIndex = row.DataIndex
+			curReqObj.Inputs = []map[string]interface{}{tmpInputMap}
+			curReqObj.Outputs = []map[string]interface{}{tmpOutputMap}
+			result.RequestObjects = append(result.RequestObjects, curReqObj)
+			curReqObj = models.ProcNodeContextReqObject{CallbackParameter: row.CallbackId}
+			tmpInputMap = make(map[string]interface{})
+			tmpOutputMap = make(map[string]interface{})
+		}
+		if row.FromType == "input" {
+			tmpInputMap[row.Name] = getInterfaceDataByDataType(row.DataValue, row.DataType, row.Name, row.Multiple)
+		} else {
+			tmpOutputMap[row.Name] = getInterfaceDataByDataType(row.DataValue, row.DataType, row.Name, row.Multiple)
+		}
+	}
+	curReqObj.Inputs = []map[string]interface{}{tmpInputMap}
+	curReqObj.Outputs = []map[string]interface{}{tmpOutputMap}
+	result.RequestObjects = append(result.RequestObjects, curReqObj)
+	return
+}
+
+func getInterfaceDataByDataType(valueString, dataType, name string, multiple bool) (output interface{}) {
+	var err error
+	if dataType == "string" {
+		if multiple {
+			stringList := []string{}
+			err = json.Unmarshal([]byte(valueString), &stringList)
+			output = stringList
+		} else {
+			output = valueString
+		}
+	} else if dataType == "list" {
+		listMap := []map[string]interface{}{}
+		err = json.Unmarshal([]byte(valueString), &listMap)
+		output = listMap
+	}
+	if err != nil {
+		log.Logger.Error("getInterfaceDataByDataType error", log.String("value", valueString), log.String("dataType", dataType), log.Error(err))
 	}
 	return
 }
