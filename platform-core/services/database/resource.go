@@ -2,6 +2,7 @@ package database
 
 import (
 	"context"
+	"fmt"
 	"github.com/WeBankPartners/go-common-lib/guid"
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/db"
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/encrypt"
@@ -13,6 +14,13 @@ import (
 
 func QueryResourceServer(ctx context.Context, param *models.QueryRequestParam) (result *models.ResourceServerListPageData, err error) {
 	result = &models.ResourceServerListPageData{PageInfo: &models.PageInfo{}, Contents: []*models.ResourceServer{}}
+	for _, v := range param.Filters {
+		if v.Name == "isAllocated" {
+			if fmt.Sprintf("%s", v.Value) == "true" {
+				v.Value = true
+			}
+		}
+	}
 	filterSql, _, queryParam := transFiltersToSQL(param, &models.TransFiltersParam{IsStruct: true, StructObj: models.ResourceServer{}})
 	baseSql := db.CombineDBSql("SELECT * FROM resource_server WHERE 1=1 ", filterSql)
 	if param.Paging {
