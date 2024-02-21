@@ -10,7 +10,9 @@ import (
 	"github.com/WeBankPartners/wecube-platform/platform-core/api/middleware"
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/db"
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/exterror"
+	"github.com/WeBankPartners/wecube-platform/platform-core/common/log"
 	"github.com/WeBankPartners/wecube-platform/platform-core/models"
+	"github.com/WeBankPartners/wecube-platform/platform-core/services/remote"
 	"github.com/gin-gonic/gin"
 )
 
@@ -130,7 +132,9 @@ func CreateOrUpdateBatchExecTemplate(c *gin.Context, reqParam *models.BatchExecu
 	if err != nil {
 		if strings.Contains(err.Error(), "Duplicate entry") {
 			if strings.Contains(err.Error(), "for key 'name_unique'") {
-				err = fmt.Errorf("template name: %s has been existed", reqParam.Name)
+				// err = fmt.Errorf("template name: %s has been existed", reqParam.Name)
+				err = exterror.New().BatchExecTmplDuplicateNameError
+				return
 			}
 		}
 		err = exterror.Catch(exterror.New().DatabaseExecuteError, err)
@@ -385,26 +389,47 @@ func RetrieveTemplate(c *gin.Context, reqParam *models.QueryRequestParam) (resul
 	for _, role := range userRoles {
 		userRolesMap[role] = struct{}{}
 	}
-	templateIdMapRoleInfo := make(map[string]*models.PermissionToRole)
+	templateIdMapRoleInfo := make(map[string]*models.BatchExecPermissionToRole)
 	for _, roleData := range templateRoleData {
 		if _, isExisted := templateIdMapRoleInfo[roleData.BatchExecutionTemplateId]; !isExisted {
-			templateIdMapRoleInfo[roleData.BatchExecutionTemplateId] = &models.PermissionToRole{}
+			templateIdMapRoleInfo[roleData.BatchExecutionTemplateId] = &models.BatchExecPermissionToRole{}
 		}
 		if roleData.Permission == models.PermissionTypeMGMT {
-			if _, isExisted := userRolesMap[roleData.RoleName]; isExisted {
+			if (len(permissionTypes) == 0) || (len(permissionTypes) > 0 && permissionTypes[0] != models.PermissionTypeMGMT) {
 				templateIdMapRoleInfo[roleData.BatchExecutionTemplateId].MGMT = append(
 					templateIdMapRoleInfo[roleData.BatchExecutionTemplateId].MGMT, roleData.RoleName)
+			} else {
+				if _, isExisted := userRolesMap[roleData.RoleName]; isExisted {
+					templateIdMapRoleInfo[roleData.BatchExecutionTemplateId].MGMT = append(
+						templateIdMapRoleInfo[roleData.BatchExecutionTemplateId].MGMT, roleData.RoleName)
+				}
 			}
 		} else if roleData.Permission == models.PermissionTypeUSE {
-			if _, isExisted := userRolesMap[roleData.RoleName]; isExisted {
+			if (len(permissionTypes) == 0) || (len(permissionTypes) > 0 && permissionTypes[0] != models.PermissionTypeUSE) {
 				templateIdMapRoleInfo[roleData.BatchExecutionTemplateId].USE = append(
 					templateIdMapRoleInfo[roleData.BatchExecutionTemplateId].USE, roleData.RoleName)
+			} else {
+				if _, isExisted := userRolesMap[roleData.RoleName]; isExisted {
+					templateIdMapRoleInfo[roleData.BatchExecutionTemplateId].USE = append(
+						templateIdMapRoleInfo[roleData.BatchExecutionTemplateId].USE, roleData.RoleName)
+				}
 			}
 		}
 	}
 
 	for _, template := range templateData {
 		template.PermissionToRole = templateIdMapRoleInfo[template.Id]
+		MGMTDisplayName := []string{}
+		for _, name := range template.PermissionToRole.MGMT {
+			MGMTDisplayName = append(MGMTDisplayName, name)
+		}
+		template.PermissionToRole.MGMTDisplayName = MGMTDisplayName
+
+		USEDisplayName := []string{}
+		for _, name := range template.PermissionToRole.USE {
+			USEDisplayName = append(USEDisplayName, name)
+		}
+		template.PermissionToRole.USEDisplayName = USEDisplayName
 	}
 
 	// check is collect by userId
@@ -421,6 +446,46 @@ func RetrieveTemplate(c *gin.Context, reqParam *models.QueryRequestParam) (resul
 	permissionTypesToCheck := []string{models.PermissionTypeUSE}
 	UpdateTemplateStatus(templateData, userRoles, permissionTypesToCheck)
 	result.Contents = templateData
+
+	err = UpdateTemplateRolesDisplayName(c, templateData)
+	if err != nil {
+		err = exterror.Catch(exterror.New().ServerHandleError, fmt.Errorf("UpdateTemplateRolesDisplayName failed: %s", err.Error()))
+		return
+	}
+	return
+}
+
+func UpdateTemplateRolesDisplayName(c *gin.Context, templateDataList []*models.BatchExecutionTemplate) (err error) {
+	userToken := c.GetHeader(models.AuthorizationHeader)
+	language := c.GetHeader(middleware.AcceptLanguageHeader)
+	respData, err := remote.RetrieveAllLocalRoles("Y", userToken, language)
+	if err != nil {
+		return
+	}
+
+	if len(respData.Data) > 0 {
+		roleNameMapDisplayName := make(map[string]string)
+		for _, roleDto := range respData.Data {
+			roleNameMapDisplayName[roleDto.Name] = roleDto.DisplayName
+		}
+		for _, templateInfo := range templateDataList {
+			// update MGMTDisplayName
+			for i, val := range templateInfo.PermissionToRole.MGMTDisplayName {
+				if displayName, isExisted := roleNameMapDisplayName[val]; isExisted {
+					templateInfo.PermissionToRole.MGMTDisplayName[i] = displayName
+				}
+			}
+
+			// update USEDisplayName
+			for i, val := range templateInfo.PermissionToRole.USEDisplayName {
+				if displayName, isExisted := roleNameMapDisplayName[val]; isExisted {
+					templateInfo.PermissionToRole.USEDisplayName[i] = displayName
+				}
+			}
+		}
+	} else {
+		log.Logger.Error("retrieve all local roles empty")
+	}
 	return
 }
 
@@ -554,7 +619,7 @@ func GetTemplate(c *gin.Context, templateId string) (result *models.BatchExecuti
 		return
 	}
 
-	result.PermissionToRole = &models.PermissionToRole{}
+	result.PermissionToRole = &models.BatchExecPermissionToRole{}
 	for _, roleData := range templateRoleData {
 		if roleData.Permission == models.PermissionTypeMGMT {
 			result.PermissionToRole.MGMT = append(result.PermissionToRole.MGMT, roleData.RoleName)
@@ -562,6 +627,17 @@ func GetTemplate(c *gin.Context, templateId string) (result *models.BatchExecuti
 			result.PermissionToRole.USE = append(result.PermissionToRole.USE, roleData.RoleName)
 		}
 	}
+	MGMTDisplayName := []string{}
+	for _, name := range result.PermissionToRole.MGMT {
+		MGMTDisplayName = append(MGMTDisplayName, name)
+	}
+	result.PermissionToRole.MGMTDisplayName = MGMTDisplayName
+
+	USEDisplayName := []string{}
+	for _, name := range result.PermissionToRole.USE {
+		USEDisplayName = append(USEDisplayName, name)
+	}
+	result.PermissionToRole.USEDisplayName = USEDisplayName
 
 	// check is collect by userId
 	err = CheckIsCollected(c, []*models.BatchExecutionTemplate{result}, middleware.GetRequestUser(c))
@@ -571,6 +647,11 @@ func GetTemplate(c *gin.Context, templateId string) (result *models.BatchExecuti
 
 	// permissionTypesToCheck := []string{models.PermissionTypeMGMT, models.PermissionTypeUSE}
 	// UpdateTemplateStatus([]*models.BatchExecutionTemplate{result}, middleware.GetRequestRoles(c), permissionTypesToCheck)
+	err = UpdateTemplateRolesDisplayName(c, []*models.BatchExecutionTemplate{result})
+	if err != nil {
+		err = exterror.Catch(exterror.New().ServerHandleError, fmt.Errorf("UpdateTemplateRolesDisplayName failed: %s", err.Error()))
+		return
+	}
 	return
 }
 

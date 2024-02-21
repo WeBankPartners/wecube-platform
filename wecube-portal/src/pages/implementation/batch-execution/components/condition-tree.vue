@@ -1,7 +1,7 @@
 <template>
   <div>
     <Drawer
-      title="编辑过滤条件"
+      :title="$t('be_edit_filter')"
       v-model="drawerVisible"
       width="600"
       :mask-closable="false"
@@ -116,7 +116,7 @@ export default {
       } else {
         return this.$Notice.warning({
           title: this.$t('warning'),
-          desc: '请设置必填项'
+          desc: this.$t('be_required_tips')
         })
       }
     },

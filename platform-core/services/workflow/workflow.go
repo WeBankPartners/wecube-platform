@@ -8,6 +8,7 @@ import (
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/db"
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/log"
 	"github.com/WeBankPartners/wecube-platform/platform-core/models"
+	"github.com/WeBankPartners/wecube-platform/platform-core/services/execution"
 
 	"sync"
 	"time"
@@ -16,6 +17,20 @@ import (
 var (
 	GlobalWorkflowMap = new(sync.Map)
 	instanceHost      = "127.0.0.1"
+)
+
+const (
+	JobStartType    = "start"
+	JobEndType      = "end"
+	JobBreakType    = "abnormal"
+	JobAutoType     = "automatic"
+	JobDataType     = "data"
+	JobHumanType    = "human"
+	JobForkType     = "fork"
+	JobMergeType    = "merge"
+	JobTimeType     = "timeInterval"
+	JobDateType     = "date"
+	JobDecisionType = "decision"
 )
 
 type Workflow struct {
@@ -53,7 +68,7 @@ func (w *Workflow) Start(input *models.ProcOperation) {
 	var startIndexList []int
 	for i, node := range w.Nodes {
 		go node.Ready()
-		if node.JobType == "start" {
+		if node.JobType == JobStartType {
 			startIndexList = append(startIndexList, i)
 		}
 	}
@@ -78,18 +93,18 @@ func (w *Workflow) Start(input *models.ProcOperation) {
 }
 
 func (w *Workflow) nodeDoneCallback(node *WorkNode) {
-	if node.JobType == "end" {
+	if node.JobType == JobEndType {
 		w.Status = "success"
 		w.doneChan <- 1
 		return
 	}
-	if node.JobType == "break" {
+	if node.JobType == JobBreakType {
 		w.Status = "fail"
 		w.doneChan <- 1
 		return
 	}
 	decisionChose := ""
-	if node.JobType == "decision" {
+	if node.JobType == JobDecisionType {
 		decisionChose = fmt.Sprintf("%s", node.Input)
 		if decisionChose == "" {
 			node.Err = fmt.Errorf("decision node recive empty choose")
@@ -120,7 +135,7 @@ func (w *Workflow) nodeDoneCallback(node *WorkNode) {
 		}
 		if ref.Source == node.Id {
 			for _, targetNode := range w.Nodes {
-				if targetNode.JobType == "decision" {
+				if targetNode.JobType == JobDecisionType {
 					targetNode.Input = node.Output
 				}
 				if targetNode.Id == ref.Target {
@@ -328,21 +343,21 @@ func (n *WorkNode) start() {
 	n.Status = "running"
 	updateNodeDB(&n.ProcRunNode)
 	switch n.JobType {
-	case "start":
+	case JobStartType:
 		break
-	case "end":
+	case JobEndType:
 		break
-	case "break":
+	case JobBreakType:
 		break
-	case "auto":
+	case JobAutoType:
 		n.Output, n.Err = n.doAutoJob()
-	case "data":
+	case JobDataType:
 		n.Output, n.Err = n.doDataJob()
-	case "human":
+	case JobHumanType:
 		n.Output, n.Err = n.doHumanJob()
-	case "fork":
+	case JobForkType:
 		break
-	case "merge":
+	case JobMergeType:
 		needStartCount := 0
 		for _, ref := range n.workflow.Links {
 			if ref.Target == n.Id {
@@ -359,11 +374,11 @@ func (n *WorkNode) start() {
 				log.Logger.Info("merge get another signal", log.Int("wait signal num", needStartCount-1))
 			}
 		}
-	case "time":
+	case JobTimeType:
 		n.Output, n.Err = n.doTimeJob()
-	case "date":
+	case JobDateType:
 		n.Output, n.Err = n.doDateJob()
-	case "decision":
+	case JobDecisionType:
 		break
 	}
 	if n.Err == nil {
@@ -379,8 +394,9 @@ func (n *WorkNode) start() {
 
 func (n *WorkNode) doAutoJob() (output string, err error) {
 	log.Logger.Info("do auto job", log.String("nodeId", n.Id), log.String("input", n.Input))
-	if n.Input == "node2" {
-		err = fmt.Errorf("node2 test error")
+	err = execution.DoWorkflowAutoJob(n.Ctx, n.Id, "")
+	if err != nil {
+		log.Logger.Error("do auto job error", log.Error(err))
 	}
 	return
 }
