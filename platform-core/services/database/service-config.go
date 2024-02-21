@@ -60,9 +60,9 @@ func GetPluginConfigs(ctx context.Context, pluginPackageId string, roles []strin
 		for _, legalRole := range append(v.MGMT, v.USE...) {
 			for _, userRole := range roles {
 				if userRole == legalRole {
+					matchFlag = true
+					break
 				}
-				matchFlag = true
-				break
 			}
 			if matchFlag {
 				break
@@ -82,6 +82,13 @@ func GetPluginConfigs(ctx context.Context, pluginPackageId string, roles []strin
 				pluginConfigNameMapIndex[row.Name] = len(result)
 				result = append(result, &models.PluginConfigQueryObj{PluginConfigName: row.Name, PluginConfigDtoList: []*models.PluginConfigDto{&tmpObj}})
 			}
+		}
+	}
+	// 添加空的节点
+	for _, row := range pluginConfigRows {
+		if _, isExisted := pluginConfigNameMapIndex[row.Name]; !isExisted {
+			tmpObj := models.PluginConfigDto{PluginConfigs: *row, PermissionToRole: nil}
+			result = append(result, &models.PluginConfigQueryObj{PluginConfigName: row.Name, PluginConfigDtoList: []*models.PluginConfigDto{&tmpObj}})
 		}
 	}
 	return
