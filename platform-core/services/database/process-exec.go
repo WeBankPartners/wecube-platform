@@ -49,6 +49,40 @@ func ProcDefList(ctx context.Context, includeDraft, permission, tag string, user
 	return
 }
 
+func ProcDefNodeList(ctx context.Context, procDefId string) (nodes []*models.ProcNodeObj, err error) {
+	var nodeDefRows []*models.ProcDefNode
+	err = db.MysqlEngine.Context(ctx).SQL("select id,node_id,proc_def_id,name,description,status,node_type,service_name,dynamic_bind,bind_node_id,risk_check,routine_expression,context_param_nodes,timeout,ordered_no from proc_def_node where proc_def_id=? order by ordered_no", procDefId).Find(&nodeDefRows)
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
+		return
+	}
+	for _, row := range nodeDefRows {
+		nodeObj := models.ProcNodeObj{
+			NodeId:      row.Id,
+			NodeName:    row.Name,
+			NodeType:    row.NodeType,
+			NodeDefId:   row.Id,
+			RoutineExp:  row.RoutineExpression,
+			ServiceId:   row.ServiceName,
+			ServiceName: row.ServiceName,
+			OrderedNo:   fmt.Sprintf("%d", row.OrderedNo),
+			DynamicBind: "N",
+		}
+		if row.DynamicBind {
+			nodeObj.DynamicBind = "Y"
+		}
+		if row.NodeType == "automatic" {
+			nodeObj.TaskCategory = "SSTN"
+		} else if row.NodeType == "human" {
+			nodeObj.TaskCategory = "SUTN"
+		} else if row.NodeType == "data" {
+			nodeObj.TaskCategory = "SDTN"
+		}
+		nodes = append(nodes, &nodeObj)
+	}
+	return
+}
+
 func ProcDefOutline(ctx context.Context, procDefId string) (result *models.ProcDefListObj, err error) {
 	var procDefRows []*models.ProcDef
 	err = db.MysqlEngine.Context(ctx).SQL("select * from proc_def where id=?", procDefId).Find(&procDefRows)
@@ -406,6 +440,37 @@ func GetLastEnablePluginInterface(ctx context.Context, serviceName string) (plug
 	}
 	if len(pluginConfigRows) > 0 {
 		pluginInterface.PluginConfig = pluginConfigRows[0]
+	}
+	return
+}
+
+func RecordProcCallReq(ctx context.Context, param *models.ProcInsNodeReq, inputFlag bool) (err error) {
+	nowTime := time.Now()
+	var actions []*db.ExecAction
+	if inputFlag {
+		actions = append(actions, &db.ExecAction{Sql: "insert into proc_ins_node_req(id,proc_ins_node_id,req_url,req_data_amount,created_time) values (?,?,?,?,?)", Param: []interface{}{
+			param.Id, param.ProcInsNodeId, param.ReqUrl, param.ReqDataAmount, nowTime,
+		}})
+		for _, v := range param.Params {
+			if v.FromType == "input" {
+				actions = append(actions, &db.ExecAction{Sql: "insert into proc_ins_node_req_param(req_id,data_index,from_type,name,data_type,data_value,entity_data_id,entity_type_id,is_sensitive,full_data_id,multiple,param_def_id,mapping_type,callback_id,created_time) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)", Param: []interface{}{
+					v.ReqId, v.DataIndex, v.FromType, v.Name, v.DataType, v.DataValue, v.EntityDataId, v.EntityTypeId, v.IsSensitive, v.FullDataId, v.Multiple, v.ParamDefId, v.MappingType, v.CallbackId, nowTime,
+				}})
+			}
+		}
+	} else {
+		actions = append(actions, &db.ExecAction{Sql: "update proc_ins_node_req set is_completed=1,error_msg=?,updated_time=? where id=?", Param: []interface{}{param.ErrorMsg, nowTime, param.Id}})
+		for _, v := range param.Params {
+			if v.FromType == "output" {
+				actions = append(actions, &db.ExecAction{Sql: "insert into proc_ins_node_req_param(req_id,data_index,from_type,name,data_type,data_value,entity_data_id,entity_type_id,is_sensitive,full_data_id,multiple,param_def_id,mapping_type,callback_id,created_time) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)", Param: []interface{}{
+					v.ReqId, v.DataIndex, v.FromType, v.Name, v.DataType, v.DataValue, v.EntityDataId, v.EntityTypeId, v.IsSensitive, v.FullDataId, v.Multiple, v.ParamDefId, v.MappingType, v.CallbackId, nowTime,
+				}})
+			}
+		}
+	}
+	err = db.Transaction(actions, ctx)
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseExecuteError, err)
 	}
 	return
 }
