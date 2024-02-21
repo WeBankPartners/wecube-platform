@@ -581,7 +581,12 @@ func DangerousWorkflowCheck(ctx context.Context, token string, reqParam interfac
 		return
 	}
 	reqId := "req_" + guid.CreateGuid()
-	transId := ctx.Value(models.TransactionIdHeader).(string)
+	var transId string
+	if ctx.Value(models.TransactionIdHeader) != nil {
+		transId = ctx.Value(models.TransactionIdHeader).(string)
+	} else {
+		transId = "trans_" + guid.CreateGuid()
+	}
 	req.Header.Set(models.RequestIdHeader, reqId)
 	req.Header.Set(models.TransactionIdHeader, transId)
 	req.Header.Set(models.AuthorizationHeader, token)

@@ -48,24 +48,24 @@ func (BatchExecutionJobs) TableName() string {
 }
 
 type BatchExecutionTemplate struct {
-	Id               string            `json:"id" xorm:"id"`                               // 唯一标识
-	Name             string            `json:"name" xorm:"name"`                           // 名称
-	Status           string            `json:"status" xorm:"status"`                       // 使用状态: 当查询列表时，通过使用角色去计算状态
-	PublishStatus    string            `json:"publishStatus" xorm:"publish_status"`        // 发布状态
-	OperateObject    string            `json:"operateObject" xorm:"operate_object"`        // 操作对象
-	PluginService    string            `json:"pluginService" xorm:"plugin_service"`        // 插件服务
-	IsDangerousBlock bool              `json:"isDangerousBlock" xorm:"is_dangerous_block"` // 是否高危拦截
-	ConfigDataStr    string            `json:"-" xorm:"config_data"`                       // 配置数据
-	ConfigData       *BatchExecRun     `json:"configData" xorm:"-"`                        // 配置数据
-	SourceData       string            `json:"sourceData" xorm:"source_data"`              // 回显数据
-	CreatedBy        string            `json:"createdBy" xorm:"created_by"`                // 创建者
-	CreatedTime      *time.Time        `json:"createdTimeT" xorm:"created_time"`           // 创建时间
-	CreatedTimeStr   string            `json:"createdTime" xorm:"-"`                       // 创建时间
-	UpdatedBy        string            `json:"updatedBy" xorm:"updated_by"`                // 更新者
-	UpdatedTime      *time.Time        `json:"updatedTimeT" xorm:"updated_time"`           // 更新时间
-	UpdatedTimeStr   string            `json:"updatedTime" xorm:"-"`                       // 更新时间
-	PermissionToRole *PermissionToRole `json:"permissionToRole" xorm:"-"`                  // 权限角色
-	IsCollected      bool              `json:"isCollected" xorm:"-"`                       // 是否收藏
+	Id               string                     `json:"id" xorm:"id"`                               // 唯一标识
+	Name             string                     `json:"name" xorm:"name"`                           // 名称
+	Status           string                     `json:"status" xorm:"status"`                       // 使用状态: 当查询列表时，通过使用角色去计算状态
+	PublishStatus    string                     `json:"publishStatus" xorm:"publish_status"`        // 发布状态
+	OperateObject    string                     `json:"operateObject" xorm:"operate_object"`        // 操作对象
+	PluginService    string                     `json:"pluginService" xorm:"plugin_service"`        // 插件服务
+	IsDangerousBlock bool                       `json:"isDangerousBlock" xorm:"is_dangerous_block"` // 是否高危拦截
+	ConfigDataStr    string                     `json:"-" xorm:"config_data"`                       // 配置数据
+	ConfigData       *BatchExecRun              `json:"configData" xorm:"-"`                        // 配置数据
+	SourceData       string                     `json:"sourceData" xorm:"source_data"`              // 回显数据
+	CreatedBy        string                     `json:"createdBy" xorm:"created_by"`                // 创建者
+	CreatedTime      *time.Time                 `json:"createdTimeT" xorm:"created_time"`           // 创建时间
+	CreatedTimeStr   string                     `json:"createdTime" xorm:"-"`                       // 创建时间
+	UpdatedBy        string                     `json:"updatedBy" xorm:"updated_by"`                // 更新者
+	UpdatedTime      *time.Time                 `json:"updatedTimeT" xorm:"updated_time"`           // 更新时间
+	UpdatedTimeStr   string                     `json:"updatedTime" xorm:"-"`                       // 更新时间
+	PermissionToRole *BatchExecPermissionToRole `json:"permissionToRole" xorm:"-"`                  // 权限角色
+	IsCollected      bool                       `json:"isCollected" xorm:"-"`                       // 是否收藏
 }
 
 func (BatchExecutionTemplate) TableName() string {
@@ -97,6 +97,13 @@ func (BatchExecutionTemplateCollect) TableName() string {
 
 type CheckBatchExecTemplateResp struct {
 	IsCollectTemplate bool `json:"isCollectTemplate"`
+}
+
+type BatchExecPermissionToRole struct {
+	MGMT            []string `json:"MGMT"`            // 属主角色
+	USE             []string `json:"USE"`             // 使用角色
+	MGMTDisplayName []string `json:"MGMTDisplayName"` // 属主角色显示名
+	USEDisplayName  []string `json:"USEDisplayName"`  // 使用角色显示名
 }
 
 /*
