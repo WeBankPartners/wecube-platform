@@ -32,7 +32,7 @@ func WorkflowExecutionCallPluginService(ctx context.Context, operator string, pl
 	entityInstances []*models.BatchExecutionPluginExecEntityInstances,
 	inputConstantMap map[string]string,
 	inputParamContext map[string]interface{},
-	continueToken string, dueDate string, allowedOptions []string) (result *models.PluginInterfaceApiResultData, dangerousCheckResult *models.ItsdangerousWorkflowCheckResultData, pluginCallParam *models.BatchExecutionPluginExecParam, err error) {
+	continueToken string, dueDate string, allowedOptions []string, riskCheck bool) (result *models.PluginInterfaceApiResultData, dangerousCheckResult *models.ItsdangerousWorkflowCheckResultData, pluginCallParam *models.BatchExecutionPluginExecParam, err error) {
 	//inputConstantMap := make(map[string]string)
 	//for _, inputConst := range inputParamConstants {
 	//	inputConstantMap[inputConst.ParamId] = inputConst.ParameValue
@@ -56,23 +56,25 @@ func WorkflowExecutionCallPluginService(ctx context.Context, operator string, pl
 		return
 	}
 	// 调用高危插件
-	itsdangerousCallParam := &models.BatchExecutionItsdangerousExecParam{
-		Operator:        operator,
-		ServiceName:     pluginInterface.ServiceName,
-		ServicePath:     pluginInterface.ServiceDisplayName,
-		EntityType:      entityType,
-		EntityInstances: entityInstances,
-		InputParams:     inputParamDatas,
-	}
-	// 需要有运行时的高危插件
-	dangerousResult, errDangerous := performWorkflowDangerousCheck(ctx, itsdangerousCallParam, continueToken, subsysToken)
-	if errDangerous != nil {
-		err = errDangerous
-		return
-	}
-	if dangerousResult != nil {
-		dangerousCheckResult = dangerousResult
-		return
+	if riskCheck {
+		itsdangerousCallParam := &models.BatchExecutionItsdangerousExecParam{
+			Operator:        operator,
+			ServiceName:     pluginInterface.ServiceName,
+			ServicePath:     pluginInterface.ServiceDisplayName,
+			EntityType:      entityType,
+			EntityInstances: entityInstances,
+			InputParams:     inputParamDatas,
+		}
+		// 需要有运行时的高危插件
+		dangerousResult, errDangerous := performWorkflowDangerousCheck(ctx, itsdangerousCallParam, continueToken, subsysToken)
+		if errDangerous != nil {
+			err = errDangerous
+			return
+		}
+		if dangerousResult != nil {
+			dangerousCheckResult = dangerousResult
+			return
+		}
 	}
 	// 调用插件接口
 	pluginCallParam = &models.BatchExecutionPluginExecParam{
@@ -119,6 +121,7 @@ func performWorkflowDangerousCheck(ctx context.Context, pluginCallParam interfac
 }
 
 func DoWorkflowAutoJob(ctx context.Context, procRunNodeId, continueToken string) (err error) {
+	ctx = context.WithValue(ctx, models.TransactionIdHeader, procRunNodeId)
 	// 查proc def node定义和proc ins绑定数据
 	procInsNode, procDefNode, procDefNodeParams, dataBindings, getNodeDataErr := database.GetProcExecNodeData(ctx, procRunNodeId)
 	if getNodeDataErr != nil {
@@ -129,6 +132,7 @@ func DoWorkflowAutoJob(ctx context.Context, procRunNodeId, continueToken string)
 		dataBindings, err = database.GetDynamicBindNodeData(ctx, procInsNode.Id, procDefNode.ProcDefId, procDefNode.BindNodeId)
 	}
 	if len(dataBindings) == 0 {
+		log.Logger.Warn("auto job return with empty binding data", log.String("procIns", procInsNode.ProcInsId), log.String("procInsNode", procInsNode.Id))
 		// 无数据，空跑
 		return
 	}
@@ -148,12 +152,13 @@ func DoWorkflowAutoJob(ctx context.Context, procRunNodeId, continueToken string)
 	inputContextMap := make(map[string]interface{})
 	for _, v := range procDefNodeParams {
 		if v.BindType == "constant" {
-			inputConstantMap[v.Name] = v.Value
+			inputConstantMap[v.ParamId] = v.Value
 		} else if v.BindType == "context" {
 
 		}
 	}
-	callOutput, dangerousCheckResult, pluginCallParam, callErr := WorkflowExecutionCallPluginService(ctx, "SYSTEM", pluginInterface, procDefNode.RoutineExpression, entityInstances, inputConstantMap, inputContextMap, continueToken, "", []string{})
+	log.Logger.Debug("DoWorkflowAutoJob data", log.String("procInsNode", procInsNode.Id), log.String("procDefNode", procDefNode.Id), log.String("interfaceId", pluginInterface.Id), log.JsonObj("inputConstantMap", inputConstantMap), log.JsonObj("inputContextMap", inputContextMap))
+	callOutput, dangerousCheckResult, pluginCallParam, callErr := WorkflowExecutionCallPluginService(ctx, "SYSTEM", pluginInterface, procDefNode.RoutineExpression, entityInstances, inputConstantMap, inputContextMap, continueToken, "", []string{}, procDefNode.RiskCheck)
 	if callErr != nil {
 		err = callErr
 		return

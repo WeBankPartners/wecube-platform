@@ -93,11 +93,18 @@ func (AuthService) RefreshToken(refreshToken string) ([]model.Jwt, error) {
 		log.Logger.Warn("token type is not refresh token")
 		return nil, ErrRefreshToken
 	}
-	//	loginId := claim.Subject
-
 	authorities := make([]string, 0)
-	json.Unmarshal([]byte(claim.Authority), &authorities)
-
+	user, err := LocalUserServiceInstance.loadUserByUsername(claim.Subject)
+	if err != nil {
+		return nil, err
+	}
+	if user != nil && len(user.CompositeAuthorities) > 0 {
+		for _, authority := range user.CompositeAuthorities {
+			authorities = append(authorities, authority.Authority)
+		}
+	} else {
+		json.Unmarshal([]byte(claim.Authority), &authorities)
+	}
 	jwts := packJwtTokens(claim.Subject, []string{}, authorities, "")
 	return jwts, nil
 }

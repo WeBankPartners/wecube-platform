@@ -50,11 +50,11 @@
   },
   "proc_def_node_20000004_error": {
     "code": 20000004,
-    "message": "Publish Failed: Format error in process, [branch node: %s] must have multiple outgoing connections."
+    "message": "Publish Failed: Format error in process, [fork node: %s] must have multiple outgoing connections."
   },
   "proc_def_node_20000005_error": {
     "code": 20000005,
-    "message": "Publish Failed: Format error in process, [converge node: %s] must have multiple incoming and single outgoing connection."
+    "message": "Publish Failed: Format error in process, [merge node: %s] must have multiple incoming and single outgoing connection."
   },
   "proc_def_node_20000006_error": {
     "code": 20000006,
@@ -66,7 +66,7 @@
   },
   "proc_def_node_20000008_error": {
     "code": 20000008,
-    "message": "Publish Failed: Format error in process, [branch node: %s] or [converge node: %s] cannot directly connect branch node."
+    "message": "Publish Failed: Format error in process, [fork node: %s] or [merge node: %s] cannot directly connect branch node."
   },
   "proc_def_node_20000009_error": {
     "code": 20000009,
