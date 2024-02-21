@@ -225,9 +225,7 @@ func CopyProcessDefinition(ctx context.Context, procDef *models.ProcDef, operato
 	if len(nodeList) > 0 {
 		for _, node := range nodeList {
 			nodeParamList, _ := GetProcDefNodeParamByNodeId(ctx, node.Id)
-			if len(nodeParamList) > 0 {
-				allNodeParamList = append(allNodeParamList, nodeParamList...)
-			}
+			allNodeParamList = append(allNodeParamList, nodeParamList...)
 		}
 	}
 
@@ -271,8 +269,8 @@ func execCopyProcessDefinition(ctx context.Context, procDef *models.ProcDef, nod
 			}
 			for _, nodeParam := range curNodeParamList {
 				actions = append(actions, &db.ExecAction{Sql: "insert into  proc_def_node_param(id,proc_def_node_id,param_id,name,bind_type," +
-					"value,ctx_bind_node,ctx_bind_type,ctx_bind_name) values (?,?,?,?,?,?,?,?,?)", Param: []interface{}{guid.CreateGuid(), newNodeId, nodeParam.ParamId,
-					nodeParam.Name, nodeParam.BindType, nodeParam.Value, nodeParam.CtxBindNode, nodeParam.CtxBindType, nodeParam.CtxBindName}})
+					"value,ctx_bind_node,ctx_bind_type,ctx_bind_name,required) values (?,?,?,?,?,?,?,?,?,?)", Param: []interface{}{guid.CreateGuid(), newNodeId, nodeParam.ParamId,
+					nodeParam.Name, nodeParam.BindType, nodeParam.Value, nodeParam.CtxBindNode, nodeParam.CtxBindType, nodeParam.CtxBindName, nodeParam.Required}})
 			}
 			// 遍历 线集合,找到以前老节点(包含source,target的老节点),更新成新的节点id
 			if len(linkList) > 0 {

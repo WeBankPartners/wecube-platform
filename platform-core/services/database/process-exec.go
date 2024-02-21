@@ -263,7 +263,7 @@ func CreateProcInstance(ctx context.Context, procStartParam *models.ProcInsStart
 		workNodes = append(workNodes, &workNodeObj)
 		// data bind
 		for _, row := range previewRows {
-			if row.ProcDefNodeId == node.NodeId {
+			if row.ProcDefNodeId == node.Id {
 				actions = append(actions, &db.ExecAction{Sql: "insert into proc_data_binding(id,proc_def_id,proc_ins_id,proc_def_node_id,proc_ins_node_id,entity_id,entity_data_id,entity_data_name,entity_type_id,bind_flag,bind_type,full_data_id,created_by,created_time) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?)", Param: []interface{}{
 					fmt.Sprintf("p_bind_%d", row.Id), procDefObj.Id, procInsId, node.Id, tmpProcInsNodeId, row.EntityDataId, row.EntityDataId, row.EntityDataName, row.EntityTypeId, row.IsBound, row.BindType, row.FullDataId, operator, nowTime,
 				}})
@@ -384,6 +384,28 @@ func GetLastEnablePluginInterface(ctx context.Context, serviceName string) (plug
 		Type:               interfaceObj.Type,
 		FilterRule:         interfaceObj.FilterRule,
 		Description:        interfaceObj.Description,
+	}
+	var interfaceParamRows []*models.PluginConfigInterfaceParameters
+	err = db.MysqlEngine.Context(ctx).SQL("select * from plugin_config_interface_parameters where plugin_config_interface_id=?", interfaceObj.Id).Find(&interfaceParamRows)
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
+		return
+	}
+	for _, row := range interfaceParamRows {
+		if row.Type == "INPUT" {
+			pluginInterface.InputParameters = append(pluginInterface.InputParameters, row)
+		} else {
+			pluginInterface.OutputParameters = append(pluginInterface.OutputParameters, row)
+		}
+	}
+	var pluginConfigRows []*models.PluginConfigs
+	err = db.MysqlEngine.Context(ctx).SQL("select * from plugin_configs where id=?", pluginInterface.PluginConfigId).Find(&pluginConfigRows)
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
+		return
+	}
+	if len(pluginConfigRows) > 0 {
+		pluginInterface.PluginConfig = pluginConfigRows[0]
 	}
 	return
 }
