@@ -533,7 +533,7 @@ func GetProcDefTaskNodes(c *gin.Context) {
 					tmpExprList = append(tmpExprList, strings.Split(subExpr, "#DMEOP#")[0])
 				}
 			} else {
-				tmpExprList = append(tmpExprList, v.RoutineExp)
+				tmpExprList = append(tmpExprList, strings.ReplaceAll(v.RoutineExp, "#DMEOP#", ""))
 			}
 			for _, expr := range tmpExprList {
 				exprAnalyzeResultList, _ := remote.AnalyzeExpression(expr)
