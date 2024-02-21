@@ -4,11 +4,17 @@
       <RadioGroup v-model="activeTab">
         <Radio label="entity" border>
           <span
-            >已选择<span class="count">{{ selectData.length }}</span></span
+            >{{ $t('be_choose_pre') }}<span class="count">{{ selectData.length }}</span></span
           >
         </Radio>
       </RadioGroup>
-      <Input v-model="keyword" @on-change="handleSearch" clearable placeholder="所有字段模糊查询" class="input" />
+      <Input
+        v-model="keyword"
+        @on-change="handleSearch"
+        clearable
+        :placeholder="$t('be_all_placeholder')"
+        class="input"
+      />
       <!-- <Button type="primary" @click="handleSearch" style="margin-left: 20px">搜索</Button> -->
     </div>
     <Table
@@ -27,7 +33,7 @@
       "
       style="margin-left: -100px; max-width: 100%"
     ></Table>
-    <div v-else class="no-data">暂无数据</div>
+    <div v-else class="no-data">{{ $t('noData') }}</div>
   </div>
 </template>
 
