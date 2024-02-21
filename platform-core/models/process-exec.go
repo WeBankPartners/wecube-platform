@@ -162,3 +162,17 @@ type ProcInsNodeDetail struct {
 	Status            string   `json:"status"`
 	SucceedingNodeIds []string `json:"succeedingNodeIds"`
 }
+
+type ProcCallPluginServiceFuncParam struct {
+	PluginInterface   *PluginConfigInterfaces
+	EntityType        string
+	EntityInstances   []*BatchExecutionPluginExecEntityInstances
+	InputConstantMap  map[string]string
+	InputParamContext map[string]interface{}
+	ContinueToken     string
+	DueDate           string
+	AllowedOptions    []string
+	RiskCheck         bool
+	Operator          string
+	ProcInsNode       *ProcInsNode
+}
