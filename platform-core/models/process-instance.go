@@ -86,16 +86,17 @@ type ProcInsNode struct {
 }
 
 type ProcInsNodeReq struct {
-	Id              string    `json:"id" xorm:"id"`                             // 唯一标识
-	ProcInsNodeId   string    `json:"procInsNodeId" xorm:"proc_ins_node_id"`    // 编排实例节点id
-	ReqUrl          string    `json:"reqUrl" xorm:"req_url"`                    // 请求url
-	IsCompleted     bool      `json:"isCompleted" xorm:"is_completed"`          // 是否完成
-	ErrorCode       string    `json:"errorCode" xorm:"error_code"`              // 错误码
-	ErrorMsg        string    `json:"errorMsg" xorm:"error_msg"`                // 错误信息
-	WithContextData bool      `json:"withContextData" xorm:"with_context_data"` // 是否有上下文数据
-	ReqDataAmount   int       `json:"reqDataAmount" xorm:"req_data_amount"`     // 有多少组数据
-	CreatedTime     time.Time `json:"createdTime" xorm:"created_time"`          // 创建时间
-	UpdatedTime     time.Time `json:"updatedTime" xorm:"updated_time"`          // 更新时间
+	Id              string                 `json:"id" xorm:"id"`                             // 唯一标识
+	ProcInsNodeId   string                 `json:"procInsNodeId" xorm:"proc_ins_node_id"`    // 编排实例节点id
+	ReqUrl          string                 `json:"reqUrl" xorm:"req_url"`                    // 请求url
+	IsCompleted     bool                   `json:"isCompleted" xorm:"is_completed"`          // 是否完成
+	ErrorCode       string                 `json:"errorCode" xorm:"error_code"`              // 错误码
+	ErrorMsg        string                 `json:"errorMsg" xorm:"error_msg"`                // 错误信息
+	WithContextData bool                   `json:"withContextData" xorm:"with_context_data"` // 是否有上下文数据
+	ReqDataAmount   int                    `json:"reqDataAmount" xorm:"req_data_amount"`     // 有多少组数据
+	CreatedTime     time.Time              `json:"createdTime" xorm:"created_time"`          // 创建时间
+	UpdatedTime     time.Time              `json:"updatedTime" xorm:"updated_time"`          // 更新时间
+	Params          []*ProcInsNodeReqParam `json:"params" xorm:"-"`
 }
 
 type ProcInsNodeReqParam struct {
