@@ -715,7 +715,7 @@ export default {
           routineExpression: this.procDef.rootEntity, // 对应节点中的定位规则
           routineRaw: null, // 还未知作用
           serviceName: null, // 选择的插件名称
-          riskCheck: true, // 高危检测
+          riskCheck: false, // 高危检测
           paramInfos: [], // 存在插件注册处需要填写的字段
           timeConfig: {
             duration: 0, // 时间间隔
