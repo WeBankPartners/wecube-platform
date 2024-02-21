@@ -28,45 +28,43 @@ import (
  * @return 调用结果, 高危结果, 错误
  */
 
-func WorkflowExecutionCallPluginService(ctx context.Context, operator string, pluginInterface *models.PluginConfigInterfaces, entityType string,
-	entityInstances []*models.BatchExecutionPluginExecEntityInstances,
-	inputConstantMap map[string]string,
-	inputParamContext map[string]interface{},
-	continueToken string, dueDate string, allowedOptions []string, riskCheck bool) (result *models.PluginInterfaceApiResultData, dangerousCheckResult *models.ItsdangerousWorkflowCheckResultData, pluginCallParam *models.BatchExecutionPluginExecParam, err error) {
-	//inputConstantMap := make(map[string]string)
-	//for _, inputConst := range inputParamConstants {
-	//	inputConstantMap[inputConst.ParamId] = inputConst.ParameValue
-	//}
-	rootExprList, errAnalyze1 := remote.AnalyzeExpression(entityType)
+func WorkflowExecutionCallPluginService(ctx context.Context, param *models.ProcCallPluginServiceFuncParam) (result *models.PluginInterfaceApiResultData, dangerousCheckResult *models.ItsdangerousWorkflowCheckResultData, pluginCallParam *models.BatchExecutionPluginExecParam, err error) {
+	procInsNodeReq := models.ProcInsNodeReq{
+		Id:            "proc_req_" + guid.CreateGuid(),
+		ProcInsNodeId: param.ProcInsNode.Id,
+		ReqUrl:        fmt.Sprintf("%s%s", models.Config.Gateway.Url, param.PluginInterface.Path),
+	}
+	rootExprList, errAnalyze1 := remote.AnalyzeExpression(param.EntityType)
 	if err != nil {
 		err = errAnalyze1
 		return
 	}
 	if len(rootExprList) == 0 {
-		err = fmt.Errorf("invalid input entity type %s", entityType)
+		err = fmt.Errorf("invalid input entity type %s", param.EntityType)
 		return
 	}
 	rootExpr := rootExprList[len(rootExprList)-1]
 	// 获取subsystem token
 	subsysToken := remote.GetToken()
 	// 构造输入参数
-	inputParamDatas, errHandle := handleInputData(ctx, subsysToken, continueToken, entityInstances, pluginInterface.InputParameters, rootExpr, inputConstantMap, inputParamContext)
+	inputParamDatas, errHandle := handleInputData(ctx, subsysToken, param.ContinueToken, param.EntityInstances, param.PluginInterface.InputParameters, rootExpr, param.InputConstantMap, param.InputParamContext, &procInsNodeReq)
 	if errHandle != nil {
 		err = errHandle
 		return
 	}
+	procInsNodeReq.ReqDataAmount = len(inputParamDatas)
 	// 调用高危插件
-	if riskCheck {
+	if param.RiskCheck {
 		itsdangerousCallParam := &models.BatchExecutionItsdangerousExecParam{
-			Operator:        operator,
-			ServiceName:     pluginInterface.ServiceName,
-			ServicePath:     pluginInterface.ServiceDisplayName,
-			EntityType:      entityType,
-			EntityInstances: entityInstances,
+			Operator:        param.Operator,
+			ServiceName:     param.PluginInterface.ServiceName,
+			ServicePath:     param.PluginInterface.ServiceDisplayName,
+			EntityType:      param.EntityType,
+			EntityInstances: param.EntityInstances,
 			InputParams:     inputParamDatas,
 		}
 		// 需要有运行时的高危插件
-		dangerousResult, errDangerous := performWorkflowDangerousCheck(ctx, itsdangerousCallParam, continueToken, subsysToken)
+		dangerousResult, errDangerous := performWorkflowDangerousCheck(ctx, itsdangerousCallParam, param.ContinueToken, subsysToken)
 		if errDangerous != nil {
 			err = errDangerous
 			return
@@ -79,24 +77,33 @@ func WorkflowExecutionCallPluginService(ctx context.Context, operator string, pl
 	// 调用插件接口
 	pluginCallParam = &models.BatchExecutionPluginExecParam{
 		RequestId:       "p_req_" + guid.CreateGuid(),
-		Operator:        operator,
-		ServiceName:     pluginInterface.ServiceName,
-		ServicePath:     pluginInterface.ServiceDisplayName,
-		EntityInstances: entityInstances,
+		Operator:        param.Operator,
+		ServiceName:     param.PluginInterface.ServiceName,
+		ServicePath:     param.PluginInterface.ServiceDisplayName,
+		EntityInstances: param.EntityInstances,
 		Inputs:          inputParamDatas,
-		DueDate:         dueDate,
-		AllowedOptions:  allowedOptions,
+		DueDate:         param.DueDate,
+		AllowedOptions:  param.AllowedOptions,
 	}
 	pluginCallParam.RequestId = "flowexec_" + guid.CreateGuid()
-	pluginCallResult, errCall := remote.PluginInterfaceApi(ctx, subsysToken, pluginInterface, pluginCallParam)
+	// 纪录参数
+	if err = database.RecordProcCallReq(ctx, &procInsNodeReq, true); err != nil {
+		return
+	}
+	pluginCallResult, errCall := remote.PluginInterfaceApi(ctx, subsysToken, param.PluginInterface, pluginCallParam)
 	if errCall != nil {
 		err = errCall
+		procInsNodeReq.ErrorMsg = err.Error()
+		database.RecordProcCallReq(ctx, &procInsNodeReq, false)
 		return
 	}
 	// 处理output param(比如类型转换，数据模型写入), handleOutputData主要是用于格式化为output param定义的字段
-	_, errHandle = handleOutputData(ctx, subsysToken, pluginCallResult.Outputs, pluginInterface.OutputParameters)
+	_, errHandle = handleOutputData(ctx, subsysToken, pluginCallResult.Outputs, param.PluginInterface.OutputParameters, &procInsNodeReq)
 	if errHandle != nil {
 		err = errHandle
+		return
+	}
+	if err = database.RecordProcCallReq(ctx, &procInsNodeReq, false); err != nil {
 		return
 	}
 	// 批量执行需要返回原始插件结果，而不是格式化output字段的值
@@ -150,15 +157,33 @@ func DoWorkflowAutoJob(ctx context.Context, procRunNodeId, continueToken string)
 	}
 	inputConstantMap := make(map[string]string)
 	inputContextMap := make(map[string]interface{})
+	interfaceParamIdMap := make(map[string]string)
+	for _, v := range pluginInterface.InputParameters {
+		interfaceParamIdMap[v.Name] = v.Id
+	}
+	for _, v := range pluginInterface.OutputParameters {
+		interfaceParamIdMap[v.Name] = v.Id
+	}
 	for _, v := range procDefNodeParams {
 		if v.BindType == "constant" {
-			inputConstantMap[v.ParamId] = v.Value
+			inputConstantMap[interfaceParamIdMap[v.Name]] = v.Value
 		} else if v.BindType == "context" {
 
 		}
 	}
 	log.Logger.Debug("DoWorkflowAutoJob data", log.String("procInsNode", procInsNode.Id), log.String("procDefNode", procDefNode.Id), log.String("interfaceId", pluginInterface.Id), log.JsonObj("inputConstantMap", inputConstantMap), log.JsonObj("inputContextMap", inputContextMap))
-	callOutput, dangerousCheckResult, pluginCallParam, callErr := WorkflowExecutionCallPluginService(ctx, "SYSTEM", pluginInterface, procDefNode.RoutineExpression, entityInstances, inputConstantMap, inputContextMap, continueToken, "", []string{}, procDefNode.RiskCheck)
+	callPluginServiceParam := models.ProcCallPluginServiceFuncParam{
+		PluginInterface:   pluginInterface,
+		EntityType:        procDefNode.RoutineExpression,
+		EntityInstances:   entityInstances,
+		InputConstantMap:  inputConstantMap,
+		InputParamContext: inputContextMap,
+		ContinueToken:     continueToken,
+		RiskCheck:         procDefNode.RiskCheck,
+		Operator:          "SYSTEM",
+		ProcInsNode:       procInsNode,
+	}
+	callOutput, dangerousCheckResult, pluginCallParam, callErr := WorkflowExecutionCallPluginService(ctx, &callPluginServiceParam)
 	if callErr != nil {
 		err = callErr
 		return
