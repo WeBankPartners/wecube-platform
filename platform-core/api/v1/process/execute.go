@@ -293,3 +293,18 @@ func ProcInsDetail(c *gin.Context) {
 		middleware.ReturnData(c, detail)
 	}
 }
+
+func GetProcInsNodeContext(c *gin.Context) {
+	procInsId := c.Param("procInsId")
+	procInsNodeId := c.Param("procInsNodeId")
+	if procInsId == "" || procInsNodeId == "" {
+		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, fmt.Errorf("path param can not empty")))
+		return
+	}
+	result, err := database.GetProcInsNodeContext(c, procInsId, procInsNodeId)
+	if err != nil {
+		middleware.ReturnError(c, err)
+	} else {
+		middleware.ReturnData(c, result)
+	}
+}
