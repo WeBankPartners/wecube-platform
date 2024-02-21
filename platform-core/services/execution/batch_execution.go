@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"reflect"
 	"strconv"
+	"strings"
 
 	"github.com/WeBankPartners/go-common-lib/guid"
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/log"
@@ -84,7 +85,7 @@ func BatchExecutionCallPluginService(ctx context.Context, operator, authToken, p
 	}
 	rootExpr := rootExprList[len(rootExprList)-1]
 	// 构造输入参数
-	inputParamDatas, errHandle := handleInputData(ctx, authToken, continueToken, entityInstances, pluginInterface.InputParameters, rootExpr, inputConstantMap, nil)
+	inputParamDatas, errHandle := handleInputData(ctx, authToken, continueToken, entityInstances, pluginInterface.InputParameters, rootExpr, inputConstantMap, nil, &models.ProcInsNodeReq{})
 	if errHandle != nil {
 		err = errHandle
 		return
@@ -126,7 +127,7 @@ func BatchExecutionCallPluginService(ctx context.Context, operator, authToken, p
 		return
 	}
 	// 处理output param(比如类型转换，数据模型写入), handleOutputData主要是用于格式化为output param定义的字段
-	_, errHandle = handleOutputData(ctx, subsysToken, pluginCallResult.Outputs, pluginInterface.OutputParameters)
+	_, errHandle = handleOutputData(ctx, subsysToken, pluginCallResult.Outputs, pluginInterface.OutputParameters, &models.ProcInsNodeReq{})
 	if errHandle != nil {
 		err = errHandle
 		return
@@ -307,12 +308,19 @@ func handleInputData(
 	inputParamDefs []*models.PluginConfigInterfaceParameters,
 	rootExpr *models.ExpressionObj,
 	inputConstantMap map[string]string,
-	inputContextMap map[string]interface{}) (inputParamDatas []models.BatchExecutionPluginExecInputParams, err error) {
+	inputContextMap map[string]interface{}, procInsNodeReq *models.ProcInsNodeReq) (inputParamDatas []models.BatchExecutionPluginExecInputParams, err error) {
 	inputParamDatas = make([]models.BatchExecutionPluginExecInputParams, 0)
-	for _, entityInstance := range entityInstances {
+	for dataIndex, entityInstance := range entityInstances {
 		// batch inputParamData = {"callbackParameter":"entity instance id", "confirmToken":"Y", xml props}
 		inputParamData := models.BatchExecutionPluginExecInputParams{}
 		for _, inputDef := range inputParamDefs {
+			procReqParamObj := models.ProcInsNodeReqParam{ParamDefId: inputDef.Id, ReqId: procInsNodeReq.Id, DataIndex: dataIndex, FromType: "input", Name: inputDef.Name, DataType: inputDef.DataType, MappingType: inputDef.MappingType}
+			if inputDef.SensitiveData == "Y" {
+				procReqParamObj.IsSensitive = true
+			}
+			if inputDef.Multiple == "Y" {
+				procReqParamObj.Multiple = true
+			}
 			var inputCalResult interface{}
 			switch inputDef.MappingType {
 			case models.PluginParamMapTypeConstant:
@@ -361,6 +369,9 @@ func handleInputData(
 					err = errExec
 					return
 				}
+				lastExprObj := execExprList[len(execExprList)-1]
+				procReqParamObj.EntityTypeId = fmt.Sprintf("%s:%s", lastExprObj.Package, lastExprObj.Entity)
+				procReqParamObj.EntityDataId, procReqParamObj.FullDataId = getExprDataIdString(execExprResult, entityInstance.Id)
 				inputCalResult = remote.ExtractExpressionResultColumn(execExprList, execExprResult)
 			case models.PluginParamMapTypeObject:
 				// TODO: 从指定对象获取暂不支持(k8s)
@@ -371,6 +382,9 @@ func handleInputData(
 			if err != nil {
 				return
 			}
+			procReqParamObj.DataValue = fmt.Sprintf("%v", inputParamData[inputDef.Name])
+			procReqParamObj.CallbackId = entityInstance.Id
+			procInsNodeReq.Params = append(procInsNodeReq.Params, &procReqParamObj)
 		}
 		// NOTE: 仅批量执行的PluginCallParamPresetCallback是行ID，编排插件调用时是随机ID与行数据没有关联
 		inputParamData[models.PluginCallParamPresetCallback] = entityInstance.Id
@@ -384,15 +398,22 @@ func handleOutputData(
 	ctx context.Context,
 	authToken string,
 	outputs []map[string]interface{},
-	outputParamDefs []*models.PluginConfigInterfaceParameters) (result *models.PluginInterfaceApiResultData, err error) {
+	outputParamDefs []*models.PluginConfigInterfaceParameters, procInsNodeReq *models.ProcInsNodeReq) (result *models.PluginInterfaceApiResultData, err error) {
 	tmpResult := &models.PluginInterfaceApiResultData{Outputs: make([]map[string]interface{}, 0)}
 	tmpResultForEntity := &OutputEntityData{Data: make([]*OutputEntityRootData, 0)}
-	for _, output := range outputs {
+	for dataIndex, output := range outputs {
 		tmpResultOutput := make(map[string]interface{})
 		var tmpResultOutputForEntity *OutputEntityRootData
 		tmpResultForPackageName := ""
 		tmpResultForEntityName := ""
 		for _, outputDef := range outputParamDefs {
+			procReqParamObj := models.ProcInsNodeReqParam{ParamDefId: outputDef.Id, ReqId: procInsNodeReq.Id, DataIndex: dataIndex, FromType: "output", Name: outputDef.Name, DataType: outputDef.DataType, MappingType: outputDef.MappingType}
+			if outputDef.SensitiveData == "Y" {
+				procReqParamObj.IsSensitive = true
+			}
+			if outputDef.Multiple == "Y" {
+				procReqParamObj.Multiple = true
+			}
 			var tmpResultOutputForEntityBranch *OutputEntityBranchData
 			var entityKeyName string
 			var outputCalResult interface{}
@@ -431,6 +452,8 @@ func handleOutputData(
 						Data:       branchResultOutput,
 					}
 				}
+				lastExprObj := execExprList[len(execExprList)-1]
+				procReqParamObj.EntityTypeId = fmt.Sprintf("%s:%s", lastExprObj.Package, lastExprObj.Entity)
 			case models.PluginParamMapTypeAssign:
 				// 分析表达式
 				if outputDef.MappingEntityExpression == "" {
@@ -483,6 +506,7 @@ func handleOutputData(
 			// 补充预设参数
 			if v, ok := output[models.PluginCallResultPresetCallback]; ok {
 				tmpResultOutput[models.PluginCallResultPresetCallback] = v
+				procReqParamObj.CallbackId = fmt.Sprintf("%s", v)
 			}
 			if v, ok := output[models.PluginCallResultPresetErrorCode]; ok {
 				tmpResultOutput[models.PluginCallResultPresetErrorCode] = v
@@ -490,6 +514,8 @@ func handleOutputData(
 			if v, ok := output[models.PluginCallResultPresetErrorMsg]; ok {
 				tmpResultOutput[models.PluginCallResultPresetErrorMsg] = v
 			}
+			procReqParamObj.DataValue = fmt.Sprintf("%v", tmpResultOutput[outputDef.Name])
+			procInsNodeReq.Params = append(procInsNodeReq.Params, &procReqParamObj)
 		}
 		tmpResult.Outputs = append(tmpResult.Outputs, tmpResultOutput)
 		if tmpResultForPackageName != "" && tmpResultForEntityName != "" {
@@ -536,5 +562,24 @@ func handleOutputData(
 		}
 	}
 	result = tmpResult
+	return
+}
+
+func getExprDataIdString(queryResult []map[string]interface{}, parentId string) (entityDataId, fullDataId string) {
+	idList := []string{}
+	fullIdList := []string{}
+	for _, row := range queryResult {
+		if v, b := row["id"]; b {
+			tmpId := v.(string)
+			idList = append(idList, tmpId)
+			if tmpId != parentId {
+				fullIdList = append(fullIdList, fmt.Sprintf("%s::%s", parentId, tmpId))
+			} else {
+				fullIdList = append(fullIdList, tmpId)
+			}
+		}
+	}
+	entityDataId = strings.Join(idList, ",")
+	fullDataId = strings.Join(fullIdList, ",")
 	return
 }
