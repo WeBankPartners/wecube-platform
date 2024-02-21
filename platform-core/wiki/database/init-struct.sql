@@ -543,6 +543,8 @@ CREATE TABLE `proc_ins` (
      `proc_def_key` varchar(64) NOT NULL COMMENT '编排定义key',
      `proc_def_name` varchar(255) NOT NULL COMMENT '编排定义名称',
      `status` varchar(32) NOT NULL COMMENT '状态->ready(初始化) | running(运行中) | fail(失败) | success(成功) | problem(节点失败) | kill(终止)',
+     `entity_data_id` varchar(64) DEFAULT NULL COMMENT '根数据id',
+     `entity_type_id` varchar(64) DEFAULT NULL COMMENT '根数据类型',
      `created_by` varchar(64) DEFAULT NULL COMMENT '创建人',
      `created_time` datetime DEFAULT NULL COMMENT '创建时间',
      `updated_by` varchar(64) DEFAULT NULL COMMENT '更新人',
