@@ -5,6 +5,8 @@ import (
 	"strings"
 )
 
+var ProcStatusTransMap = map[string]string{"running": "InProgress", "success": "Completed", "fail": "Faulted", "kill": "InternallyTerminated", "ready": "NotStarted", "timeout": "Timeouted"}
+
 type ProcDefListObj struct {
 	ProcDefId      string             `json:"procDefId"`
 	ProcDefKey     string             `json:"procDefKey"`
@@ -136,6 +138,7 @@ type ProcInsStartParam struct {
 type ProcInsDetail struct {
 	Id                string               `json:"id"`
 	ProcDefId         string               `json:"procDefId"`
+	ProcDefKey        string               `json:"procDefKey"`
 	ProcInstKey       string               `json:"procInstKey"`
 	ProcInstName      string               `json:"procInstName"`
 	EntityDataId      string               `json:"entityDataId"`
@@ -147,7 +150,7 @@ type ProcInsDetail struct {
 }
 
 type ProcInsNodeDetail struct {
-	Id                int      `json:"id"`
+	Id                string   `json:"id"`
 	NodeId            string   `json:"nodeId"`
 	NodeName          string   `json:"nodeName"`
 	NodeDefId         string   `json:"nodeDefId"`
@@ -160,6 +163,7 @@ type ProcInsNodeDetail struct {
 	ProcInstKey       string   `json:"procInstKey"`
 	RoutineExpression string   `json:"routineExpression"`
 	Status            string   `json:"status"`
+	PreviousNodeIds   []string `json:"previousNodeIds"`
 	SucceedingNodeIds []string `json:"succeedingNodeIds"`
 }
 
