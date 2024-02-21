@@ -729,3 +729,20 @@ type PluginInterfaceWithVer struct {
 	Description        string `json:"description" xorm:"description"`                 // 描述
 	Version            string `json:"version" xorm:"version"`
 }
+
+type PluginConfigsBatchEnable struct {
+	Checked                    bool                        `json:"checked"`
+	Children                   []*PluginConfigsBatchEnable `json:"children"`
+	Disabled                   bool                        `json:"disabled"`
+	Expand                     bool                        `json:"expand"`
+	Id                         string                      `json:"id"`
+	Indeterminate              bool                        `json:"indeterminate"`
+	Name                       string                      `json:"name"`
+	NodeKey                    int                         `json:"nodeKey"`
+	PluginConfigs              []*PluginConfigsBatchEnable `json:"pluginConfigs"`
+	PluginPackageId            string                      `json:"pluginPackageId"`
+	RegisterName               string                      `json:"registerName"`
+	Status                     string                      `json:"status"`
+	TargetEntityWithFilterRule string                      `json:"targetEntityWithFilterRule"`
+	Title                      string                      `json:"title"`
+}

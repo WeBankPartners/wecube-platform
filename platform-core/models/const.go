@@ -54,6 +54,10 @@ const (
 	// permission type
 	PermissionTypeMGMT = "MGMT"
 	PermissionTypeUSE  = "USE"
+
+	// plugin status
+	PluginStatusDisabled = "DISABLED"
+	PluginStatusEnabled  = "ENABLED"
 )
 
 var (

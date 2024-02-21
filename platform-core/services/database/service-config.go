@@ -9,7 +9,9 @@ import (
 	"github.com/WeBankPartners/wecube-platform/platform-core/api/middleware"
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/db"
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/exterror"
+	"github.com/WeBankPartners/wecube-platform/platform-core/common/log"
 	"github.com/WeBankPartners/wecube-platform/platform-core/models"
+	"github.com/WeBankPartners/wecube-platform/platform-core/services/remote"
 	"github.com/gin-gonic/gin"
 )
 
@@ -207,6 +209,23 @@ func UpdatePluginConfigRoles(c *gin.Context, pluginConfigId string, reqParam *mo
 		return
 	}
 
+	userToken := c.GetHeader(models.AuthorizationHeader)
+	language := c.GetHeader(middleware.AcceptLanguageHeader)
+	respData, err := remote.RetrieveAllLocalRoles("Y", userToken, language)
+	if err != nil {
+		err = fmt.Errorf("retrieve all local roles failed: %s", err.Error())
+		return
+	}
+
+	roleNameMapId := make(map[string]string)
+	if len(respData.Data) > 0 {
+		for _, roleDto := range respData.Data {
+			roleNameMapId[roleDto.Name] = roleDto.ID
+		}
+	} else {
+		log.Logger.Error("retrieve all local roles empty")
+	}
+
 	// firstly delete original pluginConfigRole and then create new pluginConfigRole
 	action := &db.ExecAction{
 		Sql:   db.CombineDBSql("DELETE FROM ", models.TableNamePluginConfigRoles, " WHERE plugin_cfg_id=?"),
@@ -224,6 +243,7 @@ func UpdatePluginConfigRoles(c *gin.Context, pluginConfigId string, reqParam *mo
 				IsActive:    true,
 				PermType:    models.PermissionTypeMGMT,
 				PluginCfgId: pluginConfigId,
+				RoleId:      roleNameMapId[roleName],
 				RoleName:    roleName,
 				CreatedBy:   reqUser,
 				CreatedTime: now,
@@ -241,6 +261,7 @@ func UpdatePluginConfigRoles(c *gin.Context, pluginConfigId string, reqParam *mo
 				IsActive:    true,
 				PermType:    models.PermissionTypeUSE,
 				PluginCfgId: pluginConfigId,
+				RoleId:      roleNameMapId[roleName],
 				RoleName:    roleName,
 				CreatedBy:   reqUser,
 				CreatedTime: now,
@@ -320,5 +341,85 @@ func GetBatchPluginConfigs(c *gin.Context, pluginPackageId string) (result []*mo
 		}
 	}
 
+	return
+}
+
+func BatchEnablePluginConfig(c *gin.Context, reqParam []*models.PluginConfigsBatchEnable, pluginPackageId string) (err error) {
+	var actions []*db.ExecAction
+	pluginPackageData := &models.PluginPackages{}
+	var exists bool
+	exists, err = db.MysqlEngine.Context(c).Table(models.TableNamePluginPackages).
+		Where("id = ?", pluginPackageId).
+		Get(pluginPackageData)
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
+		return
+	}
+	if !exists {
+		err = fmt.Errorf("pluginPackageId: %s is invalid", pluginPackageId)
+		return
+	}
+
+	for _, param := range reqParam {
+		for _, pluginCfg := range param.PluginConfigs {
+			status := models.PluginStatusDisabled
+			if pluginCfg.Checked {
+				status = models.PluginStatusEnabled
+			}
+			action := &db.ExecAction{
+				Sql:   db.CombineDBSql("UPDATE ", models.TableNamePluginConfigs, " SET status=? WHERE id=? AND plugin_package_id=?"),
+				Param: []interface{}{status, pluginCfg.Id, pluginPackageId},
+			}
+			actions = append(actions, action)
+		}
+	}
+
+	err = db.Transaction(actions, c)
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseExecuteError, err)
+		return
+	}
+	return
+}
+
+func UpdatePluginConfigStatus(c *gin.Context, pluginConfigId string, status string) (result *models.PluginConfigDto, err error) {
+	result = &models.PluginConfigDto{}
+
+	// check whether pluginConfigId is valid
+	pluginConfigsData := &models.PluginConfigs{}
+	var exists bool
+	exists, err = db.MysqlEngine.Context(c).Table(models.TableNamePluginConfigs).
+		Where("id = ?", pluginConfigId).
+		Get(pluginConfigsData)
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
+		return
+	}
+	if !exists {
+		err = fmt.Errorf("pluginConfigId: %s is invalid", pluginConfigId)
+		return
+	}
+
+	var actions []*db.ExecAction
+	action := &db.ExecAction{
+		Sql:   db.CombineDBSql("UPDATE ", models.TableNamePluginConfigs, " SET status=? WHERE id=?"),
+		Param: []interface{}{status, pluginConfigId},
+	}
+	actions = append(actions, action)
+	err = db.Transaction(actions, c)
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseExecuteError, err)
+		return
+	}
+
+	// query plugin configs by id
+	exists, err = db.MysqlEngine.Context(c).Table(models.TableNamePluginConfigs).
+		Where("id = ?", pluginConfigId).
+		Get(pluginConfigsData)
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
+		return
+	}
+	result.PluginConfigs = *pluginConfigsData
 	return
 }
