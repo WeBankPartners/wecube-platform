@@ -123,5 +123,9 @@
   "batch_exec_plugin_api_error": {
     "code": 20000026,
     "message": "Execution Failed: API error [%s]"
+  },
+  "batch_exec_tmpl_duplicate_name_error": {
+    "code": 20000027,
+    "message": "Save Failed: A template with the same name already exists. Please modify the name and try again."
   }
 }

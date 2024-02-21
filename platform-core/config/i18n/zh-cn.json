@@ -123,5 +123,9 @@
   "batch_exec_plugin_api_error": {
     "code": 20000026,
     "message": "执行失败: API报错 [%s]"
+  },
+  "batch_exec_tmpl_duplicate_name_error": {
+    "code": 20000027,
+    "message": "保存失败：同名模板已存在,请修改名称后重试"
   }
 }
