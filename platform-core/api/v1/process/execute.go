@@ -276,10 +276,20 @@ func ProcInsStart(c *gin.Context) {
 }
 
 func ProcInsList(c *gin.Context) {
-
+	result, err := database.ListProcInstance(c)
+	if err != nil {
+		middleware.ReturnError(c, err)
+	} else {
+		middleware.ReturnData(c, result)
+	}
 }
 
 func ProcInsDetail(c *gin.Context) {
 	procInsId := c.Param("procInsId")
-	log.Logger.Debug("ProcInsDetail", log.String("procInsId", procInsId))
+	detail, queryErr := database.GetProcInstance(c, procInsId)
+	if queryErr != nil {
+		middleware.ReturnError(c, queryErr)
+	} else {
+		middleware.ReturnData(c, detail)
+	}
 }
