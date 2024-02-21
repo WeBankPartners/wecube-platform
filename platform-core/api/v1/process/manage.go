@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/db"
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/tools"
+	"github.com/WeBankPartners/wecube-platform/platform-core/services/remote"
 	"io/ioutil"
 	"net/http"
 	"sort"
@@ -514,13 +515,64 @@ func GetProcDefRootTaskNode(c *gin.Context) {
 }
 
 func GetProcDefTaskNodes(c *gin.Context) {
-	var list []*models.ProcNodeObj
 	procDefId := c.Param("proc-def-id")
 	if procDefId == "" {
 		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, fmt.Errorf("proc-def-id is empty")))
 		return
 	}
-	middleware.ReturnData(c, list)
+	list, err := database.ProcDefNodeList(c, procDefId)
+	if err != nil {
+		middleware.ReturnError(c, err)
+		return
+	}
+	for _, v := range list {
+		if v.RoutineExp != "" {
+			tmpExprList := []string{}
+			if v.NodeType == "data" {
+				for _, subExpr := range strings.Split(v.RoutineExp, "#DME#") {
+					tmpExprList = append(tmpExprList, strings.Split(subExpr, "#DMEOP#")[0])
+				}
+			} else {
+				tmpExprList = append(tmpExprList, v.RoutineExp)
+			}
+			for _, expr := range tmpExprList {
+				exprAnalyzeResultList, _ := remote.AnalyzeExpression(expr)
+				if len(exprAnalyzeResultList) > 0 {
+					lastExprObj := exprAnalyzeResultList[len(exprAnalyzeResultList)-1]
+					entityObj, getEntityErr := database.GetEntityModel(c, lastExprObj.Package, lastExprObj.Entity, true)
+					if getEntityErr != nil {
+						err = getEntityErr
+						break
+					}
+					boundEntityObj := models.ProcEntity{Id: entityObj.Id, PackageName: entityObj.PackageName, Name: entityObj.Name, DisplayName: entityObj.DisplayName, Description: entityObj.Description, Attributes: []*models.ProcEntityAttributeObj{}}
+					for _, attrObj := range entityObj.Attributes {
+						boundEntityObj.Attributes = append(boundEntityObj.Attributes, &models.ProcEntityAttributeObj{
+							Id:             attrObj.Id,
+							Name:           attrObj.Name,
+							Description:    attrObj.Description,
+							DataType:       attrObj.DataType,
+							Mandatory:      attrObj.Mandatory,
+							RefPackageName: attrObj.RefPackage,
+							RefEntityName:  attrObj.RefEntity,
+							RefAttrName:    attrObj.RefAttr,
+							ReferenceId:    attrObj.ReferenceId,
+							Multiple:       attrObj.Multiple,
+							OrderNo:        fmt.Sprintf("%d", attrObj.OrderNo),
+						})
+					}
+					v.BoundEntities = append(v.BoundEntities, &boundEntityObj)
+				}
+			}
+			if err != nil {
+				break
+			}
+		}
+	}
+	if err != nil {
+		middleware.ReturnError(c, err)
+	} else {
+		middleware.ReturnData(c, list)
+	}
 }
 
 // AddOrUpdateProcDefTaskNodes 添加更新编排节点
