@@ -324,7 +324,11 @@ func handleInputData(
 			var inputCalResult interface{}
 			switch inputDef.MappingType {
 			case models.PluginParamMapTypeConstant:
-				inputCalResult = inputConstantMap[inputDef.Id]
+				if inputDef.MappingVal != "" {
+					inputCalResult = inputDef.MappingVal
+				} else {
+					inputCalResult = inputConstantMap[inputDef.Id]
+				}
 			case models.PluginParamMapTypeSystemVar:
 				if inputDef.MappingSystemVariableName == "" {
 					err = fmt.Errorf("input param %s is map to %s, but variable name is empty", inputDef.Name, inputDef.MappingType)
