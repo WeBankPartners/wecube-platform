@@ -25,6 +25,23 @@ func GetPluginConfigs(c *gin.Context) {
 	}
 }
 
+// GetPluginConfigsWithInterfaces 服务注册 - 当前插件服务配置查询带interfaces
+func GetPluginConfigsWithInterfaces(c *gin.Context) {
+	defer try.ExceptionStack(func(e interface{}, err interface{}) {
+		retErr := fmt.Errorf("%v", err)
+		middleware.ReturnError(c, exterror.Catch(exterror.New().ServerHandleError, retErr))
+		log.Logger.Error(e.(string))
+	})
+
+	pluginPackageId := c.Param("pluginPackageId")
+	result, err := database.GetPluginConfigsWithInterfaces(c, pluginPackageId, middleware.GetRequestRoles(c))
+	if err != nil {
+		middleware.ReturnError(c, err)
+	} else {
+		middleware.ReturnData(c, result)
+	}
+}
+
 // GetConfigInterfaces 服务注册 - 查询指定服务的接口详情
 func GetConfigInterfaces(c *gin.Context) {
 	pluginConfigId := c.Param("pluginConfigId")
@@ -157,7 +174,27 @@ func SavePluginConfig(c *gin.Context) {
 
 // DeletePluginConfig 服务注册 - 服务配置删除
 func DeletePluginConfig(c *gin.Context) {
+	defer try.ExceptionStack(func(e interface{}, err interface{}) {
+		retErr := fmt.Errorf("%v", err)
+		middleware.ReturnError(c, exterror.Catch(exterror.New().ServerHandleError, retErr))
+		log.Logger.Error(e.(string))
+	})
 
+	pluginConfigId := c.Param("pluginConfigId")
+	var err error
+	if pluginConfigId == "" {
+		err = exterror.Catch(exterror.New().RequestParamValidateError, fmt.Errorf("request param err, pluginConfigId can not be empty"))
+		middleware.ReturnError(c, err)
+		return
+	}
+
+	err = database.DeletePluginConfig(c, pluginConfigId)
+	if err != nil {
+		middleware.ReturnError(c, err)
+	} else {
+		middleware.ReturnSuccess(c)
+	}
+	return
 }
 
 // GetBatchPluginConfigs 服务注册 - 批量注册查询
