@@ -342,7 +342,7 @@ type ProcNodeObj struct {
 	ServiceName   string        `json:"serviceName"`
 	OrderedNo     string        `json:"orderedNo"`
 	OrderedNum    int           `json:"-"`
-	DynamicBind   bool          `json:"dynamicBind"`
+	DynamicBind   string        `json:"dynamicBind"`
 	BoundEntities []*ProcEntity `json:"boundEntities"`
 }
 
@@ -371,6 +371,7 @@ type ProcEntityAttributeObj struct {
 	EntityDisplayName string `json:"entityDisplayName"`
 	EntityPackage     string `json:"entityPackage"`
 	Multiple          string `json:"multiple"`
+	OrderNo           string `json:"orderNo"`
 }
 
 type ProcDefSort []*ProcDef
