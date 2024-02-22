@@ -761,7 +761,6 @@ func GetProcInsNodeContext(ctx context.Context, procInsId, procInsNodeId string)
 	result.NodeDefId = queryObj.ProcDefNodeId
 	result.NodeExpression = queryObj.RoutineExpression
 	result.PluginInfo = queryObj.ServiceName
-	result.RequestId = queryObj.ReqId
 	result.BeginTime = queryObj.StartTime.Format(models.DateTimeFormat)
 	result.EndTime = queryObj.EndTime.Format(models.DateTimeFormat)
 	result.RequestObjects = []models.ProcNodeContextReqObject{}
@@ -775,8 +774,9 @@ func GetProcInsNodeContext(ctx context.Context, procInsId, procInsNodeId string)
 		return
 	}
 	for _, v := range reqRows {
-		result.RequestId = v.Id
+		queryObj.ReqId = v.Id
 	}
+	result.RequestId = queryObj.ReqId
 	var procReqParams []*models.ProcInsNodeReqParam
 	err = db.MysqlEngine.Context(ctx).SQL("select * from proc_ins_node_req_param where req_id=? order by data_index,id", queryObj.ReqId).Find(&procReqParams)
 	if err != nil {
