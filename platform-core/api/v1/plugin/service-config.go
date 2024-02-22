@@ -17,7 +17,7 @@ import (
 // GetPluginConfigs 服务注册 - 当前插件服务配置查询
 func GetPluginConfigs(c *gin.Context) {
 	pluginPackageId := c.Param("pluginPackageId")
-	result, err := database.GetPluginConfigs(c, pluginPackageId, middleware.GetRequestRoles(c))
+	result, err := database.GetPluginConfigs(c, pluginPackageId, middleware.GetRequestRoles(c), "")
 	if err != nil {
 		middleware.ReturnError(c, err)
 	} else {
@@ -34,7 +34,7 @@ func GetPluginConfigsWithInterfaces(c *gin.Context) {
 	})
 
 	pluginPackageId := c.Param("pluginPackageId")
-	result, err := database.GetPluginConfigsWithInterfaces(c, pluginPackageId, middleware.GetRequestRoles(c))
+	result, err := database.GetPluginConfigsWithInterfaces(c, pluginPackageId, middleware.GetRequestRoles(c), "")
 	if err != nil {
 		middleware.ReturnError(c, err)
 	} else {

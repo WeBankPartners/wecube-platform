@@ -16,9 +16,13 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func GetPluginConfigs(ctx context.Context, pluginPackageId string, roles []string) (result []*models.PluginConfigQueryObj, err error) {
+func GetPluginConfigs(ctx context.Context, pluginPackageId string, roles []string, pluginConfigId string) (result []*models.PluginConfigQueryObj, err error) {
 	var pluginConfigRows []*models.PluginConfigs
-	err = db.MysqlEngine.Context(ctx).SQL("select * from plugin_configs where plugin_package_id = ? order by name ASC, id ASC", pluginPackageId).Find(&pluginConfigRows)
+	if pluginConfigId != "" {
+		err = db.MysqlEngine.Context(ctx).SQL("select * from plugin_configs where id = ?", pluginConfigId).Find(&pluginConfigRows)
+	} else {
+		err = db.MysqlEngine.Context(ctx).SQL("select * from plugin_configs where plugin_package_id = ? order by name ASC, id ASC", pluginPackageId).Find(&pluginConfigRows)
+	}
 	if err != nil {
 		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
 		return
@@ -77,7 +81,7 @@ func GetPluginConfigs(ctx context.Context, pluginPackageId string, roles []strin
 	for _, row := range pluginConfigRows {
 		row.TargetEntityWithFilterRule = fmt.Sprintf("%s:%s%s", row.TargetPackage, row.TargetEntity, row.TargetEntityFilterRule)
 		if permObj, ok := permissionMap[row.Id]; ok {
-			tmpObj := models.PluginConfigDto{PluginConfigs: *row, PermissionToRole: permObj}
+			tmpObj := models.PluginConfigDto{PluginConfigs: *row, PermissionToRole: permObj, FilterRule: row.TargetEntityFilterRule}
 			if nameIndex, existFlag := pluginConfigNameMapIndex[row.Name]; existFlag {
 				result[nameIndex].PluginConfigDtoList = append(result[nameIndex].PluginConfigDtoList, &tmpObj)
 			} else {
@@ -88,7 +92,7 @@ func GetPluginConfigs(ctx context.Context, pluginPackageId string, roles []strin
 			// 添加根节点
 			if row.TargetPackage == "" && row.TargetEntity == "" &&
 				row.TargetEntityFilterRule == "" && row.RegisterName == "" {
-				tmpObj := models.PluginConfigDto{PluginConfigs: *row, PermissionToRole: permObj}
+				tmpObj := models.PluginConfigDto{PluginConfigs: *row, PermissionToRole: permObj, FilterRule: row.TargetEntityFilterRule}
 				if nameIndex, existFlag := pluginConfigNameMapIndex[row.Name]; existFlag {
 					result[nameIndex].PluginConfigDtoList = append(result[nameIndex].PluginConfigDtoList, &tmpObj)
 				} else {
@@ -495,6 +499,19 @@ func SavePluginConfig(c *gin.Context, reqParam *models.PluginConfigDto) (result 
 		err = exterror.Catch(exterror.New().DatabaseExecuteError, err)
 		return
 	}
+
+	// query pluginConfig
+	// result, err = GetPluginConfigQueryObjById(c, pluginConfigId)
+	var pluginConfigQueryObjList []*models.PluginConfigQueryObj
+	pluginConfigQueryObjList, err = GetPluginConfigsWithInterfaces(c, "", middleware.GetRequestRoles(c), pluginConfigId)
+	if err != nil {
+		return
+	}
+	if len(pluginConfigQueryObjList) > 0 {
+		if len(pluginConfigQueryObjList[0].PluginConfigDtoList) > 0 {
+			result = pluginConfigQueryObjList[0].PluginConfigDtoList[0]
+		}
+	}
 	return
 }
 
@@ -552,11 +569,21 @@ func GetCreatePluginConfigActions(c *gin.Context, pluginConfigId string, pluginC
 	resultActions = []*db.ExecAction{}
 
 	pluginConfigDto.Id = pluginConfigId
-	pluginConfigDto.TargetEntityFilterRule = strings.TrimPrefix(pluginConfigDto.TargetEntityWithFilterRule,
-		fmt.Sprintf("%s:%s", pluginConfigDto.TargetPackage, pluginConfigDto.TargetEntity))
+	tmpPackageEntityStr := strings.TrimSuffix(pluginConfigDto.TargetEntityWithFilterRule, pluginConfigDto.FilterRule)
+	if tmpPackageEntityStr != "" {
+		tmpPackageEntitySlice := strings.Split(tmpPackageEntityStr, ":")
+		if len(tmpPackageEntitySlice) > 0 {
+			pluginConfigDto.TargetPackage = tmpPackageEntitySlice[0]
+		}
+		if len(tmpPackageEntitySlice) > 1 {
+			pluginConfigDto.TargetEntity = tmpPackageEntitySlice[1]
+		}
+	}
+	pluginConfigDto.TargetEntityFilterRule = pluginConfigDto.FilterRule
 
 	// handle pluginConfig
-	action, tmpErr := db.GetInsertTableExecAction(models.TableNamePluginConfigs, *pluginConfigDto, nil)
+	pluginConfigData := pluginConfigDto.PluginConfigs
+	action, tmpErr := db.GetInsertTableExecAction(models.TableNamePluginConfigs, pluginConfigData, nil)
 	if tmpErr != nil {
 		err = fmt.Errorf("get insert sql for pluginConfig failed: %s", tmpErr.Error())
 		log.Logger.Error(err.Error())
@@ -718,16 +745,54 @@ func DeletePluginConfig(c *gin.Context, pluginConfigId string) (err error) {
 	return
 }
 
-func GetPluginConfigsWithInterfaces(c *gin.Context, pluginPackageId string, roles []string) (result []*models.PluginConfigQueryObj, err error) {
-	result, err = GetPluginConfigs(c, pluginPackageId, roles)
+func GetPluginConfigsWithInterfaces(c *gin.Context, pluginPackageId string, roles []string, pluginConfigId string) (result []*models.PluginConfigQueryObj, err error) {
+	result, err = GetPluginConfigs(c, pluginPackageId, roles, pluginConfigId)
 	if err != nil {
 		return
 	}
 
 	// handle interfaces
-	for _, pluginConfigQueryObj := range result {
+	err = enrichPluginConfigInterfaces(c, result)
+	if err != nil {
+		return
+	}
+	return
+}
+
+func GetPluginConfigQueryObjById(c *gin.Context, pluginConfigId string) (result *models.PluginConfigDto, err error) {
+	pluginConfigData := &models.PluginConfigs{}
+	var exists bool
+	exists, err = db.MysqlEngine.Context(c).Table(models.TableNamePluginConfigs).
+		Where("id = ?", pluginConfigId).
+		Get(pluginConfigData)
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
+		return
+	}
+	if !exists {
+		err = fmt.Errorf("pluginConfigId: %s is invalid", pluginConfigId)
+		return
+	}
+
+	result = &models.PluginConfigDto{
+		PluginConfigs: *pluginConfigData,
+		FilterRule:    pluginConfigData.TargetEntityFilterRule,
+	}
+
+	tmpPluginConfigQueryObj := &models.PluginConfigQueryObj{
+		PluginConfigDtoList: []*models.PluginConfigDto{result},
+	}
+	// handle interfaces
+	err = enrichPluginConfigInterfaces(c, []*models.PluginConfigQueryObj{tmpPluginConfigQueryObj})
+	if err != nil {
+		return
+	}
+	return
+}
+
+func enrichPluginConfigInterfaces(c *gin.Context, pluginConfigQueryObjList []*models.PluginConfigQueryObj) (err error) {
+	for _, pluginConfigQueryObj := range pluginConfigQueryObjList {
 		for _, pluginConfigDto := range pluginConfigQueryObj.PluginConfigDtoList {
-			// pluginConfigDto.Interfaces, err = GetConfigInterfaces(c, pluginConfigDto.Id)
 			pluginInterfaceQueryObjList, tmpErr := GetConfigInterfaces(c, pluginConfigDto.Id)
 			if tmpErr != nil {
 				err = tmpErr
