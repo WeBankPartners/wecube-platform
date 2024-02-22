@@ -90,8 +90,14 @@ func WorkflowExecutionCallPluginService(ctx context.Context, param *models.ProcC
 	if err = database.RecordProcCallReq(ctx, &procInsNodeReq, true); err != nil {
 		return
 	}
-	pluginCallResult, errCall := remote.PluginInterfaceApi(ctx, subsysToken, param.PluginInterface, pluginCallParam)
+	pluginCallResult, errCode, errCall := remote.PluginInterfaceApi(ctx, subsysToken, param.PluginInterface, pluginCallParam)
 	if errCall != nil {
+		if errCode != "" && errCode != "0" {
+			_, errHandle = handleOutputData(ctx, subsysToken, pluginCallResult.Outputs, param.PluginInterface.OutputParameters, &procInsNodeReq)
+			if errHandle != nil {
+				log.Logger.Error("handle error output data fail", log.Error(errHandle))
+			}
+		}
 		err = errCall
 		procInsNodeReq.ErrorMsg = err.Error()
 		database.RecordProcCallReq(ctx, &procInsNodeReq, false)
@@ -321,7 +327,7 @@ func CallDynamicFormReq(ctx context.Context, param *models.ProcCallPluginService
 	if err = database.RecordProcCallReq(ctx, &procInsNodeReq, true); err != nil {
 		return
 	}
-	pluginCallResult, errCall := remote.PluginInterfaceApi(ctx, subsysToken, param.PluginInterface, pluginCallParam)
+	pluginCallResult, _, errCall := remote.PluginInterfaceApi(ctx, subsysToken, param.PluginInterface, pluginCallParam)
 	if errCall != nil {
 		err = errCall
 		procInsNodeReq.ErrorMsg = err.Error()
