@@ -144,6 +144,7 @@ type ProcInsDetail struct {
 	ProcInstName      string               `json:"procInstName"`
 	EntityDataId      string               `json:"entityDataId"`
 	EntityTypeId      string               `json:"entityTypeId"`
+	EntityDisplayName string               `json:"entityDisplayName"`
 	Status            string               `json:"status"`
 	Operator          string               `json:"operator"`
 	CreatedTime       string               `json:"createdTime"`
