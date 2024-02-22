@@ -396,7 +396,7 @@ func CreateProcInstance(ctx context.Context, procStartParam *models.ProcInsStart
 		}})
 		workNodeObj := models.ProcRunNode{Id: "wn_" + guid.CreateGuid(), WorkflowId: workflowRow.Id, ProcInsNodeId: tmpProcInsNodeId, Name: node.Name, JobType: node.NodeType, Status: "ready", Timeout: node.Timeout, CreatedTime: nowTime}
 		if node.NodeType == "merge" || node.NodeType == "timeInterval" || node.NodeType == "date" {
-			node.Timeout = 0
+			workNodeObj.Timeout = 0
 		}
 		if node.NodeType == "timeInterval" {
 			workNodeObj.Input = node.TimeConfig
@@ -447,16 +447,17 @@ func ListProcInstance(ctx context.Context) (result []*models.ProcInsDetail, err 
 	result = []*models.ProcInsDetail{}
 	for _, procInsObj := range procInsRows {
 		tmpInsObj := &models.ProcInsDetail{
-			Id:           procInsObj.Id,
-			ProcDefId:    procInsObj.ProcDefId,
-			ProcDefKey:   procInsObj.ProcDefKey,
-			ProcInstKey:  procInsObj.Id,
-			ProcInstName: procInsObj.ProcDefName,
-			Operator:     procInsObj.CreatedBy,
-			Status:       procInsObj.Status,
-			EntityDataId: procInsObj.EntityDataId,
-			EntityTypeId: procInsObj.EntityTypeId,
-			CreatedTime:  procInsObj.CreatedTime.Format(models.DateTimeFormat),
+			Id:                procInsObj.Id,
+			ProcDefId:         procInsObj.ProcDefId,
+			ProcDefKey:        procInsObj.ProcDefKey,
+			ProcInstKey:       procInsObj.Id,
+			ProcInstName:      procInsObj.ProcDefName,
+			Operator:          procInsObj.CreatedBy,
+			Status:            procInsObj.Status,
+			EntityDataId:      procInsObj.EntityDataId,
+			EntityTypeId:      procInsObj.EntityTypeId,
+			EntityDisplayName: procInsObj.EntityDataName,
+			CreatedTime:       procInsObj.CreatedTime.Format(models.DateTimeFormat),
 		}
 		if transStatus, ok := models.ProcStatusTransMap[tmpInsObj.Status]; ok {
 			tmpInsObj.Status = transStatus
