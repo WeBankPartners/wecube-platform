@@ -124,7 +124,35 @@ func EnablePluginConfig(c *gin.Context) {
 
 // SavePluginConfig 服务注册 - 服务配置保存
 func SavePluginConfig(c *gin.Context) {
+	defer try.ExceptionStack(func(e interface{}, err interface{}) {
+		retErr := fmt.Errorf("%v", err)
+		middleware.ReturnError(c, exterror.Catch(exterror.New().ServerHandleError, retErr))
+		log.Logger.Error(e.(string))
+	})
 
+	var err error
+	reqParam := models.PluginConfigDto{}
+	if err = c.ShouldBindJSON(&reqParam); err != nil {
+		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, err))
+		return
+	}
+	if len(reqParam.PermissionToRole.MGMT) == 0 {
+		err = exterror.Catch(exterror.New().RequestParamValidateError, fmt.Errorf("request param err, MGMT permission role can not be empty"))
+		middleware.ReturnError(c, err)
+		return
+	}
+	if len(reqParam.PluginPackageId) == 0 {
+		err = exterror.Catch(exterror.New().RequestParamValidateError, fmt.Errorf("request param err, pluginPackageId can not be empty"))
+		middleware.ReturnError(c, err)
+		return
+	}
+
+	retData, err := database.SavePluginConfig(c, &reqParam)
+	if err != nil {
+		middleware.ReturnError(c, err)
+	} else {
+		middleware.ReturnData(c, retData)
+	}
 }
 
 // DeletePluginConfig 服务注册 - 服务配置删除
