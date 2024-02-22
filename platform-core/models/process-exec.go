@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-var ProcStatusTransMap = map[string]string{"running": "InProgress", "success": "Completed", "fail": "Faulted", "kill": "InternallyTerminated", "ready": "NotStarted", "timeout": "Timeouted"}
+var ProcStatusTransMap = map[string]string{"running": "InProgress", "success": "Completed", "fail": "Faulted", "problem": "Faulted", "kill": "InternallyTerminated", "ready": "NotStarted", "timeout": "Timeouted"}
 
 type ProcDefListObj struct {
 	ProcDefId      string             `json:"procDefId"`
