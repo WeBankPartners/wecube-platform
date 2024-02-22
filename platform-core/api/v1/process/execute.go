@@ -203,6 +203,16 @@ func ProcDefPreview(c *gin.Context) {
 	}
 }
 
+func GetProcInsPreview(c *gin.Context) {
+	procInsId := c.Param("procInsId")
+	result, err := database.GetProcPreviewEntityNode(c, procInsId)
+	if err != nil {
+		middleware.ReturnError(c, err)
+	} else {
+		middleware.ReturnData(c, result)
+	}
+}
+
 func queryProcPreviewNodeData(ctx context.Context, param *models.QueryExpressionDataParam, rootEntityNode *models.ProcPreviewEntityNode) (dataList []*models.ProcPreviewEntityNode, err error) {
 	exprList, analyzeErr := remote.AnalyzeExpression(param.DataModelExpression)
 	if analyzeErr != nil {
@@ -221,6 +231,16 @@ func ProcInsTaskNodeBindings(c *gin.Context) {
 	}
 	taskNodeId := c.Param("taskNodeId")
 	result, err := database.ProcInsTaskNodeBindings(c, sessionId, taskNodeId)
+	if err != nil {
+		middleware.ReturnError(c, err)
+	} else {
+		middleware.ReturnData(c, result)
+	}
+}
+
+func GetInstanceTaskNodeBindings(c *gin.Context) {
+	procInsId := c.Param("procInsId")
+	result, err := database.GetInstanceTaskNodeBindings(c, procInsId)
 	if err != nil {
 		middleware.ReturnError(c, err)
 	} else {
@@ -335,4 +355,60 @@ func PublicProcInsStart(c *gin.Context) {
 	} else {
 		middleware.ReturnData(c, detail)
 	}
+}
+
+func ProcInsOperation(c *gin.Context) {
+	var param models.ProcInsOperationParam
+	if err := c.ShouldBindJSON(&param); err != nil {
+		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, err))
+		return
+	}
+	workflowId, nodeId, err := database.GetProcWorkByInsId(c, param.ProcInstId, param.NodeInstId)
+	if err != nil {
+		middleware.ReturnError(c, err)
+		return
+	}
+	if param.Act == "skip" {
+		operationObj := models.ProcRunOperation{WorkflowId: workflowId, NodeId: nodeId, Operation: "ignore", Status: "wait", CreatedBy: middleware.GetRequestUser(c)}
+		operationObj.Id, err = database.AddWorkflowOperation(c, &operationObj)
+		if err != nil {
+			middleware.ReturnError(c, err)
+			return
+		}
+		go workflow.HandleProOperation(&operationObj)
+	}
+	middleware.ReturnSuccess(c)
+}
+
+func ProcInsNodeRetry(c *gin.Context) {
+	var param []*models.TaskNodeBindingObj
+	if err := c.ShouldBindJSON(&param); err != nil {
+		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, err))
+		return
+	}
+	procInsId := c.Param("procInsId")
+	if procInsId == "" {
+		middleware.ReturnError(c, exterror.New().RequestParamValidateError)
+		return
+	}
+	procInsNodeId := c.Param("procInsNodeId")
+	operator := middleware.GetRequestUser(c)
+	err := database.UpdateProcInsNodeBindingData(c, param, procInsId, procInsNodeId, operator)
+	if err != nil {
+		middleware.ReturnError(c, err)
+		return
+	}
+	workflowId, nodeId, err := database.GetProcWorkByInsId(c, procInsId, procInsNodeId)
+	if err != nil {
+		middleware.ReturnError(c, err)
+		return
+	}
+	operationObj := models.ProcRunOperation{WorkflowId: workflowId, NodeId: nodeId, Operation: "retry", Status: "wait", CreatedBy: operator}
+	operationObj.Id, err = database.AddWorkflowOperation(c, &operationObj)
+	if err != nil {
+		middleware.ReturnError(c, err)
+		return
+	}
+	go workflow.HandleProOperation(&operationObj)
+	middleware.ReturnSuccess(c)
 }

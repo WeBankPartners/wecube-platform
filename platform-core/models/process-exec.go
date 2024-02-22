@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-var ProcStatusTransMap = map[string]string{"running": "InProgress", "success": "Completed", "fail": "Faulted", "kill": "InternallyTerminated", "ready": "NotStarted", "timeout": "Timeouted"}
+var ProcStatusTransMap = map[string]string{"running": "InProgress", "success": "Completed", "fail": "Faulted", "problem": "Faulted", "kill": "InternallyTerminated", "ready": "NotStarted", "timeout": "Timeouted"}
 
 type ProcDefListObj struct {
 	ProcDefId      string             `json:"procDefId"`
@@ -144,6 +144,7 @@ type ProcInsDetail struct {
 	ProcInstName      string               `json:"procInstName"`
 	EntityDataId      string               `json:"entityDataId"`
 	EntityTypeId      string               `json:"entityTypeId"`
+	EntityDisplayName string               `json:"entityDisplayName"`
 	Status            string               `json:"status"`
 	Operator          string               `json:"operator"`
 	CreatedTime       string               `json:"createdTime"`
@@ -263,4 +264,10 @@ type StartInstanceResultData struct {
 	ProcDefId   string `json:"procDefId"`
 	ProcDefKey  string `json:"procDefKey"`
 	Status      string `json:"status"`
+}
+
+type ProcInsOperationParam struct {
+	Act        string `json:"act"`
+	ProcInstId string `json:"procInstId"`
+	NodeInstId string `json:"nodeInstId"`
 }

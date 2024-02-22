@@ -627,7 +627,7 @@ func DangerousWorkflowCheck(ctx context.Context, token string, reqParam interfac
 	return
 }
 
-func PluginInterfaceApi(ctx context.Context, token string, pluginInterface *models.PluginConfigInterfaces, reqParam *models.BatchExecutionPluginExecParam) (result *models.PluginInterfaceApiResultData, err error) {
+func PluginInterfaceApi(ctx context.Context, token string, pluginInterface *models.PluginConfigInterfaces, reqParam *models.BatchExecutionPluginExecParam) (result *models.PluginInterfaceApiResultData, errCode string, err error) {
 	uri := fmt.Sprintf("%s%s", models.Config.Gateway.Url, pluginInterface.Path)
 	if models.Config.HttpsEnable == "true" {
 		uri = "https://" + uri
@@ -672,7 +672,7 @@ func PluginInterfaceApi(ctx context.Context, token string, pluginInterface *mode
 		}
 		useTime := fmt.Sprintf("%.3fms", time.Now().Sub(startTime).Seconds()*1000)
 		if err != nil {
-			log.Logger.Error("End remote pluginInterfaceApi request <<<--- ", log.String("requestId", reqId), log.String("transactionId", transId), log.String("url", urlObj.String()), log.Int("httpCode", resp.StatusCode), log.String("costTime", useTime), log.Error(err))
+			log.Logger.Error("End remote pluginInterfaceApi request <<<--- ", log.String("requestId", reqId), log.String("transactionId", transId), log.String("url", urlObj.String()), log.Int("httpCode", resp.StatusCode), log.String("costTime", useTime), log.String("response", string(respBody)), log.Error(err))
 		} else {
 			log.Logger.Info("End remote pluginInterfaceApi request <<<--- ", log.String("requestId", reqId), log.String("transactionId", transId), log.String("url", urlObj.String()), log.Int("httpCode", resp.StatusCode), log.String("costTime", useTime), log.String("response", string(respBody)))
 		}
@@ -685,11 +685,12 @@ func PluginInterfaceApi(ctx context.Context, token string, pluginInterface *mode
 		err = fmt.Errorf("json unmarshal response body fail,%s ", err.Error())
 		return
 	}
+	result = response.Results
+	errCode = response.ResultCode
 	if response.ResultCode != "0" {
 		err = fmt.Errorf(response.ResultMessage)
 		return
 	}
-	result = response.Results
 	return
 }
 
