@@ -120,11 +120,17 @@ func (p *ProcPreviewData) AnalyzeRefIds() {
 }
 
 type TaskNodeBindingObj struct {
-	Bound        string `json:"bound"`
-	EntityDataId string `json:"entityDataId"`
-	EntityTypeId string `json:"entityTypeId"`
-	NodeDefId    string `json:"nodeDefId"`
-	OrderedNo    string `json:"orderedNo"`
+	Bound             string `json:"bound"`
+	EntityDataId      string `json:"entityDataId"`
+	EntityTypeId      string `json:"entityTypeId"`
+	NodeDefId         string `json:"nodeDefId"`
+	OrderedNo         string `json:"orderedNo"`
+	Id                string `json:"id"`
+	PackageName       string `json:"packageName"`
+	EntityName        string `json:"entityName"`
+	EntityDisplayName string `json:"entityDisplayName"`
+	NodeInstId        string `json:"nodeInstId"`
+	ProcInstId        string `json:"procInstId"`
 }
 
 type ProcInsStartParam struct {
