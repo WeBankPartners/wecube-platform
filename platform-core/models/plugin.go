@@ -9,9 +9,9 @@ import (
 )
 
 const (
-	PluginStatusUnRegistered   = "unregistered"
-	PluginStatusRegistered     = "registered"
-	PluginStatusDecommissioned = "decommissioned"
+	PluginStatusUnRegistered   = "UNREGISTERED"
+	PluginStatusRegistered     = "REGISTERED"
+	PluginStatusDecommissioned = "DECOMMISSIONED"
 	PluginEditionCommunity     = "community"
 	PluginEditionEnterprise    = "enterprise"
 	PluginParamTypeInput       = "INPUT"
@@ -311,16 +311,17 @@ type RegisterXML struct {
 }
 
 type PluginConfigs struct {
-	Id                     string                    `json:"id" xorm:"id"`                                            // 唯一标识
-	PluginPackageId        string                    `json:"pluginPackageId" xorm:"plugin_package_id"`                // 插件
-	Name                   string                    `json:"name" xorm:"name"`                                        // 服务类型名称
-	TargetPackage          string                    `json:"targetPackage" xorm:"target_package"`                     // 目标类型包
-	TargetEntity           string                    `json:"targetEntity" xorm:"target_entity"`                       // 目标类型项
-	TargetEntityFilterRule string                    `json:"targetEntityFilterRule" xorm:"target_entity_filter_rule"` // 目标类型过滤规则
-	RegisterName           string                    `json:"registerName" xorm:"register_name"`                       // 服务注册名
-	Status                 string                    `json:"status" xorm:"status"`                                    // 状态
-	PluginPackages         *PluginPackages           `json:"pluginPackages" xorm:"-"`
-	Interfaces             []*PluginConfigInterfaces `json:"interfaces" xorm:"-"`
+	Id                         string                    `json:"id" xorm:"id"`                                            // 唯一标识
+	PluginPackageId            string                    `json:"pluginPackageId" xorm:"plugin_package_id"`                // 插件
+	Name                       string                    `json:"name" xorm:"name"`                                        // 服务类型名称
+	TargetPackage              string                    `json:"targetPackage" xorm:"target_package"`                     // 目标类型包
+	TargetEntity               string                    `json:"targetEntity" xorm:"target_entity"`                       // 目标类型项
+	TargetEntityFilterRule     string                    `json:"targetEntityFilterRule" xorm:"target_entity_filter_rule"` // 目标类型过滤规则
+	RegisterName               string                    `json:"registerName" xorm:"register_name"`                       // 服务注册名
+	Status                     string                    `json:"status" xorm:"status"`                                    // 状态
+	PluginPackages             *PluginPackages           `json:"pluginPackages" xorm:"-"`
+	Interfaces                 []*PluginConfigInterfaces `json:"interfaces" xorm:"-"`
+	TargetEntityWithFilterRule string                    `json:"targetEntityWithFilterRule" xorm:"-"` // fmt.Sprintf("%s:%s%s", targetPackage, targetEntity, targetEntityFilterRule)
 }
 
 type PluginConfigInterfaces struct {
@@ -728,4 +729,21 @@ type PluginInterfaceWithVer struct {
 	FilterRule         string `json:"filterRule" xorm:"filter_rule"`                  // 服务过滤规则
 	Description        string `json:"description" xorm:"description"`                 // 描述
 	Version            string `json:"version" xorm:"version"`
+}
+
+type PluginConfigsBatchEnable struct {
+	Checked                    bool                        `json:"checked"`
+	Children                   []*PluginConfigsBatchEnable `json:"children"`
+	Disabled                   bool                        `json:"disabled"`
+	Expand                     bool                        `json:"expand"`
+	Id                         string                      `json:"id"`
+	Indeterminate              bool                        `json:"indeterminate"`
+	Name                       string                      `json:"name"`
+	NodeKey                    int                         `json:"nodeKey"`
+	PluginConfigs              []*PluginConfigsBatchEnable `json:"pluginConfigs"`
+	PluginPackageId            string                      `json:"pluginPackageId"`
+	RegisterName               string                      `json:"registerName"`
+	Status                     string                      `json:"status"`
+	TargetEntityWithFilterRule string                      `json:"targetEntityWithFilterRule"`
+	Title                      string                      `json:"title"`
 }
