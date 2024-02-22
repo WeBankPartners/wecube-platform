@@ -17,7 +17,7 @@ import (
 
 func GetPluginConfigs(ctx context.Context, pluginPackageId string, roles []string) (result []*models.PluginConfigQueryObj, err error) {
 	var pluginConfigRows []*models.PluginConfigs
-	err = db.MysqlEngine.Context(ctx).SQL("select * from plugin_configs where plugin_package_id = ? order by name", pluginPackageId).Find(&pluginConfigRows)
+	err = db.MysqlEngine.Context(ctx).SQL("select * from plugin_configs where plugin_package_id = ? order by name ASC, id ASC", pluginPackageId).Find(&pluginConfigRows)
 	if err != nil {
 		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
 		return
@@ -82,13 +82,18 @@ func GetPluginConfigs(ctx context.Context, pluginPackageId string, roles []strin
 				pluginConfigNameMapIndex[row.Name] = len(result)
 				result = append(result, &models.PluginConfigQueryObj{PluginConfigName: row.Name, PluginConfigDtoList: []*models.PluginConfigDto{&tmpObj}})
 			}
-		}
-	}
-	// 添加空的节点
-	for _, row := range pluginConfigRows {
-		if _, isExisted := pluginConfigNameMapIndex[row.Name]; !isExisted {
-			tmpObj := models.PluginConfigDto{PluginConfigs: *row, PermissionToRole: nil}
-			result = append(result, &models.PluginConfigQueryObj{PluginConfigName: row.Name, PluginConfigDtoList: []*models.PluginConfigDto{&tmpObj}})
+		} else {
+			// 添加根节点
+			if row.TargetPackage == "" && row.TargetEntity == "" &&
+				row.TargetEntityFilterRule == "" && row.RegisterName == "" {
+				tmpObj := models.PluginConfigDto{PluginConfigs: *row, PermissionToRole: permObj}
+				if nameIndex, existFlag := pluginConfigNameMapIndex[row.Name]; existFlag {
+					result[nameIndex].PluginConfigDtoList = append(result[nameIndex].PluginConfigDtoList, &tmpObj)
+				} else {
+					pluginConfigNameMapIndex[row.Name] = len(result)
+					result = append(result, &models.PluginConfigQueryObj{PluginConfigName: row.Name, PluginConfigDtoList: []*models.PluginConfigDto{&tmpObj}})
+				}
+			}
 		}
 	}
 	return
