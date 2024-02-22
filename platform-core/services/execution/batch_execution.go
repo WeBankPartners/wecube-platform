@@ -121,7 +121,7 @@ func BatchExecutionCallPluginService(ctx context.Context, operator, authToken, p
 		Inputs:          inputParamDatas,
 	}
 	pluginCallParam.RequestId = "batchexec_" + guid.CreateGuid()
-	pluginCallResult, errCall := remote.PluginInterfaceApi(ctx, subsysToken, pluginInterface, pluginCallParam)
+	pluginCallResult, _, errCall := remote.PluginInterfaceApi(ctx, subsysToken, pluginInterface, pluginCallParam)
 	if errCall != nil {
 		err = errCall
 		return
