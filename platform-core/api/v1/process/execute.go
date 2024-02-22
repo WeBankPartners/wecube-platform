@@ -240,7 +240,7 @@ func ProcInsTaskNodeBindings(c *gin.Context) {
 
 func GetInstanceTaskNodeBindings(c *gin.Context) {
 	procInsId := c.Param("procInsId")
-	result, err := database.GetInstanceTaskNodeBindings(c, procInsId)
+	result, err := database.GetInstanceTaskNodeBindings(c, procInsId, "")
 	if err != nil {
 		middleware.ReturnError(c, err)
 	} else {
@@ -378,6 +378,17 @@ func ProcInsOperation(c *gin.Context) {
 		go workflow.HandleProOperation(&operationObj)
 	}
 	middleware.ReturnSuccess(c)
+}
+
+func GetProcInsTaskNodeBindings(c *gin.Context) {
+	procInsId := c.Param("procInsId")
+	procInsNodeId := c.Param("procInsNodeId")
+	result, err := database.GetInstanceTaskNodeBindings(c, procInsId, procInsNodeId)
+	if err != nil {
+		middleware.ReturnError(c, err)
+	} else {
+		middleware.ReturnData(c, result)
+	}
 }
 
 func ProcInsNodeRetry(c *gin.Context) {

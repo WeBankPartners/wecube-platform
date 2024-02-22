@@ -222,9 +222,13 @@ func ProcInsTaskNodeBindings(ctx context.Context, sessionId, taskNodeId string) 
 	return
 }
 
-func GetInstanceTaskNodeBindings(ctx context.Context, procInsId string) (result []*models.TaskNodeBindingObj, err error) {
+func GetInstanceTaskNodeBindings(ctx context.Context, procInsId, procInsNodeId string) (result []*models.TaskNodeBindingObj, err error) {
 	var dataBindingRows []*models.ProcDataBinding
-	err = db.MysqlEngine.Context(ctx).SQL("select proc_def_node_id,entity_data_id,entity_data_name,entity_type_id,bind_type,bind_flag from proc_data_binding where proc_ins_id=?", procInsId).Find(&dataBindingRows)
+	if procInsNodeId != "" {
+		err = db.MysqlEngine.Context(ctx).SQL("select proc_def_node_id,entity_data_id,entity_data_name,entity_type_id,bind_type,bind_flag from proc_data_binding where proc_ins_id=? and proc_ins_node_id=?", procInsId, procInsNodeId).Find(&dataBindingRows)
+	} else {
+		err = db.MysqlEngine.Context(ctx).SQL("select proc_def_node_id,entity_data_id,entity_data_name,entity_type_id,bind_type,bind_flag from proc_data_binding where proc_ins_id=?", procInsId).Find(&dataBindingRows)
+	}
 	if err != nil {
 		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
 		return
