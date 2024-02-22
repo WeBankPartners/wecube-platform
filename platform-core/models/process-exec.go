@@ -264,3 +264,9 @@ type StartInstanceResultData struct {
 	ProcDefKey  string `json:"procDefKey"`
 	Status      string `json:"status"`
 }
+
+type ProcInsOperationParam struct {
+	Act        string `json:"act"`
+	ProcInstId string `json:"procInstId"`
+	NodeInstId string `json:"nodeInstId"`
+}
