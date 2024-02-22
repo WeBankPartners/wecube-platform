@@ -480,19 +480,21 @@ func updateWorkflowDB(w *models.ProcRunWorkflow, op *models.ProcOperation) {
 	if op.Ctx == nil {
 		op.Ctx = context.Background()
 	}
+	nowTime := time.Now()
 	var actions []*db.ExecAction
 	if w.Status == "stop" {
-		actions = append(actions, &db.ExecAction{Sql: "update proc_run_workflow set stop=1,updated_time=? where id=?", Param: []interface{}{time.Now(), w.Id}})
+		actions = append(actions, &db.ExecAction{Sql: "update proc_run_workflow set stop=1,updated_time=? where id=?", Param: []interface{}{nowTime, w.Id}})
 	} else if w.Status == "sleep" {
-		actions = append(actions, &db.ExecAction{Sql: "update proc_run_workflow set sleep=1,updated_time=? where id=?", Param: []interface{}{time.Now(), w.Id}})
+		actions = append(actions, &db.ExecAction{Sql: "update proc_run_workflow set sleep=1,updated_time=? where id=?", Param: []interface{}{nowTime, w.Id}})
 	} else if w.Status == "running" {
-		actions = append(actions, &db.ExecAction{Sql: "update proc_run_workflow set stop=0,sleep=0,status=?,updated_time=? where id=?", Param: []interface{}{w.Status, time.Now(), w.Id}})
+		actions = append(actions, &db.ExecAction{Sql: "update proc_run_workflow set stop=0,sleep=0,status=?,updated_time=? where id=?", Param: []interface{}{w.Status, nowTime, w.Id}})
 	} else if w.Status == "problem" {
-		actions = append(actions, &db.ExecAction{Sql: "update proc_run_workflow set status=?,error_message=?,updated_time=? where id=?", Param: []interface{}{w.Status, w.ErrorMessage, time.Now(), w.Id}})
+		actions = append(actions, &db.ExecAction{Sql: "update proc_run_workflow set status=?,error_message=?,updated_time=? where id=?", Param: []interface{}{w.Status, w.ErrorMessage, nowTime, w.Id}})
 	} else {
-		actions = append(actions, &db.ExecAction{Sql: "update proc_run_workflow set status=?,updated_time=? where id=?", Param: []interface{}{w.Status, time.Now(), w.Id}})
+		actions = append(actions, &db.ExecAction{Sql: "update proc_run_workflow set status=?,updated_time=? where id=?", Param: []interface{}{w.Status, nowTime, w.Id}})
 	}
-	actions = append(actions, &db.ExecAction{Sql: "insert into proc_run_work_record(workflow_id,host,`action`,message,created_by,created_time) values (?,?,?,?,?,?)", Param: []interface{}{w.Id, w.Host, w.Status, op.Message, op.CreatedBy, time.Now()}})
+	actions = append(actions, &db.ExecAction{Sql: "update proc_ins set status=?,updated_time=? where id=?", Param: []interface{}{w.Status, nowTime, w.ProcInsId}})
+	actions = append(actions, &db.ExecAction{Sql: "insert into proc_run_work_record(workflow_id,host,`action`,message,created_by,created_time) values (?,?,?,?,?,?)", Param: []interface{}{w.Id, w.Host, w.Status, op.Message, op.CreatedBy, nowTime}})
 	if err := db.Transaction(actions, op.Ctx); err != nil {
 		log.Logger.Error("record workflow state fail", log.String("workflowId", w.Id), log.Error(err))
 	}
@@ -500,18 +502,25 @@ func updateWorkflowDB(w *models.ProcRunWorkflow, op *models.ProcOperation) {
 
 func updateNodeDB(n *models.ProcRunNode) {
 	var err error
+	var actions []*db.ExecAction
 	nowTime := time.Now()
 	if n.Status == "running" {
-		_, err = db.MysqlEngine.Exec("update proc_run_node set status=?,start_time=?,updated_time=? where id=?", n.Status, nowTime, nowTime, n.Id)
+		actions = append(actions, &db.ExecAction{Sql: "update proc_run_node set status=?,start_time=?,updated_time=? where id=?", Param: []interface{}{n.Status, nowTime, nowTime, n.Id}})
+		actions = append(actions, &db.ExecAction{Sql: "update proc_ins_node set status=?,updated_time=? where id=?", Param: []interface{}{n.Status, nowTime, n.ProcInsNodeId}})
 	} else if n.Status == "fail" {
-		_, err = db.MysqlEngine.Exec("update proc_run_node set status=?,error_message=?,end_time=?,updated_time=? where id=?", n.Status, n.ErrorMessage, nowTime, nowTime, n.Id)
+		actions = append(actions, &db.ExecAction{Sql: "update proc_run_node set status=?,error_message=?,end_time=?,updated_time=? where id=?", Param: []interface{}{n.Status, n.ErrorMessage, nowTime, nowTime, n.Id}})
+		actions = append(actions, &db.ExecAction{Sql: "update proc_ins_node set status=?,error_msg=?,updated_time=? where id=?", Param: []interface{}{n.Status, n.ErrorMessage, nowTime, n.ProcInsNodeId}})
 	} else if n.Status == "success" {
-		_, err = db.MysqlEngine.Exec("update proc_run_node set status=?,`output`=?,end_time=?,updated_time=? where id=?", n.Status, n.Output, nowTime, nowTime, n.Id)
+		actions = append(actions, &db.ExecAction{Sql: "update proc_run_node set status=?,`output`=?,end_time=?,updated_time=? where id=?", Param: []interface{}{n.Status, n.Output, nowTime, nowTime, n.Id}})
+		actions = append(actions, &db.ExecAction{Sql: "update proc_ins_node set status=?,updated_time=? where id=?", Param: []interface{}{n.Status, nowTime, n.ProcInsNodeId}})
 	} else if n.Status == "timeout" {
-		_, err = db.MysqlEngine.Exec("update proc_run_node set status=?,error_message=?,end_time=?,updated_time=? where id=?", n.Status, n.ErrorMessage, nowTime, nowTime, n.Id)
+		actions = append(actions, &db.ExecAction{Sql: "update proc_run_node set status=?,error_message=?,end_time=?,updated_time=? where id=?", Param: []interface{}{n.Status, n.ErrorMessage, nowTime, nowTime, n.Id}})
+		actions = append(actions, &db.ExecAction{Sql: "update proc_ins_node set status=?,error_msg=?,updated_time=? where id=?", Param: []interface{}{n.Status, n.ErrorMessage, nowTime, n.ProcInsNodeId}})
 	} else {
-		_, err = db.MysqlEngine.Exec("update proc_run_node set status=?,updated_time=? where id=?", n.Status, nowTime, n.Id)
+		actions = append(actions, &db.ExecAction{Sql: "update proc_run_node set status=?,updated_time=? where id=?", Param: []interface{}{n.Status, nowTime, n.Id}})
+		actions = append(actions, &db.ExecAction{Sql: "update proc_ins_node set status=?,updated_time=? where id=?", Param: []interface{}{n.Status, nowTime, n.ProcInsNodeId}})
 	}
+	err = db.Transaction(actions, context.Background())
 	if err != nil {
 		log.Logger.Error("record node state fail", log.String("nodeId", n.Id), log.Error(err))
 	}

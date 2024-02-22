@@ -3,19 +3,22 @@ package database
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/WeBankPartners/go-common-lib/guid"
 	"github.com/WeBankPartners/wecube-platform/platform-core/api/middleware"
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/db"
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/exterror"
+	"github.com/WeBankPartners/wecube-platform/platform-core/common/log"
 	"github.com/WeBankPartners/wecube-platform/platform-core/models"
+	"github.com/WeBankPartners/wecube-platform/platform-core/services/remote"
 	"github.com/gin-gonic/gin"
 )
 
 func GetPluginConfigs(ctx context.Context, pluginPackageId string, roles []string) (result []*models.PluginConfigQueryObj, err error) {
 	var pluginConfigRows []*models.PluginConfigs
-	err = db.MysqlEngine.Context(ctx).SQL("select * from plugin_configs where plugin_package_id = ? order by name", pluginPackageId).Find(&pluginConfigRows)
+	err = db.MysqlEngine.Context(ctx).SQL("select * from plugin_configs where plugin_package_id = ? order by name ASC, id ASC", pluginPackageId).Find(&pluginConfigRows)
 	if err != nil {
 		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
 		return
@@ -58,9 +61,9 @@ func GetPluginConfigs(ctx context.Context, pluginPackageId string, roles []strin
 		for _, legalRole := range append(v.MGMT, v.USE...) {
 			for _, userRole := range roles {
 				if userRole == legalRole {
+					matchFlag = true
+					break
 				}
-				matchFlag = true
-				break
 			}
 			if matchFlag {
 				break
@@ -72,6 +75,7 @@ func GetPluginConfigs(ctx context.Context, pluginPackageId string, roles []strin
 	}
 	pluginConfigNameMapIndex := make(map[string]int)
 	for _, row := range pluginConfigRows {
+		row.TargetEntityWithFilterRule = fmt.Sprintf("%s:%s%s", row.TargetPackage, row.TargetEntity, row.TargetEntityFilterRule)
 		if permObj, ok := permissionMap[row.Id]; ok {
 			tmpObj := models.PluginConfigDto{PluginConfigs: *row, PermissionToRole: permObj}
 			if nameIndex, existFlag := pluginConfigNameMapIndex[row.Name]; existFlag {
@@ -79,6 +83,18 @@ func GetPluginConfigs(ctx context.Context, pluginPackageId string, roles []strin
 			} else {
 				pluginConfigNameMapIndex[row.Name] = len(result)
 				result = append(result, &models.PluginConfigQueryObj{PluginConfigName: row.Name, PluginConfigDtoList: []*models.PluginConfigDto{&tmpObj}})
+			}
+		} else {
+			// 添加根节点
+			if row.TargetPackage == "" && row.TargetEntity == "" &&
+				row.TargetEntityFilterRule == "" && row.RegisterName == "" {
+				tmpObj := models.PluginConfigDto{PluginConfigs: *row, PermissionToRole: permObj}
+				if nameIndex, existFlag := pluginConfigNameMapIndex[row.Name]; existFlag {
+					result[nameIndex].PluginConfigDtoList = append(result[nameIndex].PluginConfigDtoList, &tmpObj)
+				} else {
+					pluginConfigNameMapIndex[row.Name] = len(result)
+					result = append(result, &models.PluginConfigQueryObj{PluginConfigName: row.Name, PluginConfigDtoList: []*models.PluginConfigDto{&tmpObj}})
+				}
 			}
 		}
 	}
@@ -207,6 +223,23 @@ func UpdatePluginConfigRoles(c *gin.Context, pluginConfigId string, reqParam *mo
 		return
 	}
 
+	userToken := c.GetHeader(models.AuthorizationHeader)
+	language := c.GetHeader(middleware.AcceptLanguageHeader)
+	respData, err := remote.RetrieveAllLocalRoles("Y", userToken, language)
+	if err != nil {
+		err = fmt.Errorf("retrieve all local roles failed: %s", err.Error())
+		return
+	}
+
+	roleNameMapId := make(map[string]string)
+	if len(respData.Data) > 0 {
+		for _, roleDto := range respData.Data {
+			roleNameMapId[roleDto.Name] = roleDto.ID
+		}
+	} else {
+		log.Logger.Error("retrieve all local roles empty")
+	}
+
 	// firstly delete original pluginConfigRole and then create new pluginConfigRole
 	action := &db.ExecAction{
 		Sql:   db.CombineDBSql("DELETE FROM ", models.TableNamePluginConfigRoles, " WHERE plugin_cfg_id=?"),
@@ -224,6 +257,7 @@ func UpdatePluginConfigRoles(c *gin.Context, pluginConfigId string, reqParam *mo
 				IsActive:    true,
 				PermType:    models.PermissionTypeMGMT,
 				PluginCfgId: pluginConfigId,
+				RoleId:      roleNameMapId[roleName],
 				RoleName:    roleName,
 				CreatedBy:   reqUser,
 				CreatedTime: now,
@@ -241,6 +275,7 @@ func UpdatePluginConfigRoles(c *gin.Context, pluginConfigId string, reqParam *mo
 				IsActive:    true,
 				PermType:    models.PermissionTypeUSE,
 				PluginCfgId: pluginConfigId,
+				RoleId:      roleNameMapId[roleName],
 				RoleName:    roleName,
 				CreatedBy:   reqUser,
 				CreatedTime: now,
@@ -320,5 +355,336 @@ func GetBatchPluginConfigs(c *gin.Context, pluginPackageId string) (result []*mo
 		}
 	}
 
+	return
+}
+
+func BatchEnablePluginConfig(c *gin.Context, reqParam []*models.PluginConfigsBatchEnable, pluginPackageId string) (err error) {
+	var actions []*db.ExecAction
+	// check whether pluginPackageId is valid
+	pluginPackageData := &models.PluginPackages{}
+	var exists bool
+	exists, err = db.MysqlEngine.Context(c).Table(models.TableNamePluginPackages).
+		Where("id = ?", pluginPackageId).
+		Get(pluginPackageData)
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
+		return
+	}
+	if !exists {
+		err = fmt.Errorf("pluginPackageId: %s is invalid", pluginPackageId)
+		return
+	}
+
+	for _, param := range reqParam {
+		for _, pluginCfg := range param.PluginConfigs {
+			status := models.PluginStatusDisabled
+			if pluginCfg.Checked {
+				status = models.PluginStatusEnabled
+			}
+			action := &db.ExecAction{
+				Sql:   db.CombineDBSql("UPDATE ", models.TableNamePluginConfigs, " SET status=? WHERE id=? AND plugin_package_id=?"),
+				Param: []interface{}{status, pluginCfg.Id, pluginPackageId},
+			}
+			actions = append(actions, action)
+		}
+	}
+
+	err = db.Transaction(actions, c)
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseExecuteError, err)
+		return
+	}
+	return
+}
+
+func UpdatePluginConfigStatus(c *gin.Context, pluginConfigId string, status string) (result *models.PluginConfigDto, err error) {
+	result = &models.PluginConfigDto{}
+
+	// check whether pluginConfigId is valid
+	pluginConfigsData := &models.PluginConfigs{}
+	var exists bool
+	exists, err = db.MysqlEngine.Context(c).Table(models.TableNamePluginConfigs).
+		Where("id = ?", pluginConfigId).
+		Get(pluginConfigsData)
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
+		return
+	}
+	if !exists {
+		err = fmt.Errorf("pluginConfigId: %s is invalid", pluginConfigId)
+		return
+	}
+
+	var actions []*db.ExecAction
+	action := &db.ExecAction{
+		Sql:   db.CombineDBSql("UPDATE ", models.TableNamePluginConfigs, " SET status=? WHERE id=?"),
+		Param: []interface{}{status, pluginConfigId},
+	}
+	actions = append(actions, action)
+	err = db.Transaction(actions, c)
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseExecuteError, err)
+		return
+	}
+
+	// query plugin configs by id
+	exists, err = db.MysqlEngine.Context(c).Table(models.TableNamePluginConfigs).
+		Where("id = ?", pluginConfigId).
+		Get(pluginConfigsData)
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
+		return
+	}
+	result.PluginConfigs = *pluginConfigsData
+	return
+}
+
+func SavePluginConfig(c *gin.Context, reqParam *models.PluginConfigDto) (result *models.PluginConfigDto, err error) {
+	var actions []*db.ExecAction
+	// check whether pluginPackageId is valid
+	pluginPackageId := reqParam.PluginPackageId
+	pluginPackageData := &models.PluginPackages{}
+	var exists bool
+	exists, err = db.MysqlEngine.Context(c).Table(models.TableNamePluginPackages).
+		Where("id = ?", pluginPackageId).
+		Get(pluginPackageData)
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
+		return
+	}
+	if !exists {
+		err = fmt.Errorf("pluginPackageId: %s is invalid", pluginPackageId)
+		return
+	}
+
+	pluginConfigId := reqParam.Id
+	if pluginConfigId != "" {
+		// check whether pluginConfigId is belonged to pluginPackageId
+		pluginConfigData := &models.PluginConfigs{}
+		exists, err = db.MysqlEngine.Context(c).Table(models.TableNamePluginConfigs).
+			Where("id = ? AND plugin_package_id = ?", pluginConfigId, pluginPackageId).
+			Get(pluginConfigData)
+		if err != nil {
+			err = exterror.Catch(exterror.New().DatabaseQueryError, err)
+			return
+		}
+		if !exists {
+			err = fmt.Errorf("pluginConfigId: %s is not belonged to pluginPackageId: %s", pluginConfigId, pluginPackageId)
+			return
+		}
+
+		delActions, tmpErr := GetDelPluginConfigActions(c, pluginConfigId)
+		if tmpErr != nil {
+			err = fmt.Errorf("get delete pluginConfig actions failed: %s", tmpErr.Error())
+			return
+		}
+		actions = append(actions, delActions...)
+	} else {
+		pluginConfigId = guid.CreateGuid()
+	}
+
+	createActions, tmpErr := GetCreatePluginConfigActions(c, pluginConfigId, reqParam)
+	if tmpErr != nil {
+		err = fmt.Errorf("get create pluginConfig actions failed: %s", tmpErr.Error())
+		return
+	}
+	actions = append(actions, createActions...)
+
+	err = db.Transaction(actions, c)
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseExecuteError, err)
+		return
+	}
+	return
+}
+
+func GetDelPluginConfigActions(c *gin.Context, pluginConfigId string) (resultActions []*db.ExecAction, err error) {
+	resultActions = []*db.ExecAction{}
+
+	if pluginConfigId == "" {
+		return
+	}
+	var pluginCfgInterfaceIds []string
+	err = db.MysqlEngine.Context(c).Table(models.TableNamePluginConfigInterfaces).
+		Where("plugin_config_id = ?", pluginConfigId).
+		Cols("id").
+		Find(&pluginCfgInterfaceIds)
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
+		return
+	}
+
+	// delete pluginConfigInterfaceParameters
+	interfaceParamsActions := []*db.ExecAction{}
+	for _, interfaceId := range pluginCfgInterfaceIds {
+		action := &db.ExecAction{
+			Sql:   db.CombineDBSql("DELETE FROM ", models.TableNamePluginConfigInterfaceParameters, " WHERE plugin_config_interface_id=?"),
+			Param: []interface{}{interfaceId},
+		}
+		interfaceParamsActions = append(interfaceParamsActions, action)
+	}
+	resultActions = append(interfaceParamsActions, resultActions...)
+
+	// delete pluginConfigInterfaces
+	action := &db.ExecAction{
+		Sql:   db.CombineDBSql("DELETE FROM ", models.TableNamePluginConfigInterfaces, " WHERE plugin_config_id=?"),
+		Param: []interface{}{pluginConfigId},
+	}
+	resultActions = append(resultActions, action)
+
+	// delete pluginConfig
+	action = &db.ExecAction{
+		Sql:   db.CombineDBSql("DELETE FROM ", models.TableNamePluginConfigs, " WHERE id=?"),
+		Param: []interface{}{pluginConfigId},
+	}
+	resultActions = append(resultActions, action)
+
+	// delete pluginConfigRoles
+	action = &db.ExecAction{
+		Sql:   db.CombineDBSql("DELETE FROM ", models.TableNamePluginConfigRoles, " WHERE plugin_cfg_id=?"),
+		Param: []interface{}{pluginConfigId},
+	}
+	resultActions = append(resultActions, action)
+	return
+}
+
+func GetCreatePluginConfigActions(c *gin.Context, pluginConfigId string, pluginConfigDto *models.PluginConfigDto) (resultActions []*db.ExecAction, err error) {
+	resultActions = []*db.ExecAction{}
+
+	pluginConfigDto.Id = pluginConfigId
+	pluginConfigDto.TargetEntityFilterRule = strings.TrimPrefix(pluginConfigDto.TargetEntityWithFilterRule,
+		fmt.Sprintf("%s:%s", pluginConfigDto.TargetPackage, pluginConfigDto.TargetEntity))
+
+	// handle pluginConfig
+	action, tmpErr := db.GetInsertTableExecAction(models.TableNamePluginConfigs, *pluginConfigDto, nil)
+	if tmpErr != nil {
+		err = fmt.Errorf("get insert sql for pluginConfig failed: %s", tmpErr.Error())
+		log.Logger.Error(err.Error())
+		return
+	}
+	resultActions = append(resultActions, action)
+
+	// handle pluginConfigInterfaces and pluginConfigInterfaceParameters
+	for _, interfaceInfo := range pluginConfigDto.Interfaces {
+		interfaceInfo.Id = guid.CreateGuid()
+		interfaceInfo.PluginConfigId = pluginConfigId
+
+		action, tmpErr = db.GetInsertTableExecAction(models.TableNamePluginConfigInterfaces, *interfaceInfo, nil)
+		if tmpErr != nil {
+			err = fmt.Errorf("get insert sql for pluginConfigInterfaces failed: %s", tmpErr.Error())
+			log.Logger.Error(err.Error())
+			return
+		}
+		resultActions = append(resultActions, action)
+
+		// handle inputParam
+		for _, inputParam := range interfaceInfo.InputParameters {
+			inputParam.Id = guid.CreateGuid()
+			inputParam.PluginConfigInterfaceId = interfaceInfo.Id
+
+			action, tmpErr = db.GetInsertTableExecAction(models.TableNamePluginConfigInterfaceParameters, *inputParam, nil)
+			if tmpErr != nil {
+				err = fmt.Errorf("get insert sql for pluginConfigInterfaceParameters failed: %s", tmpErr.Error())
+				log.Logger.Error(err.Error())
+				return
+			}
+			resultActions = append(resultActions, action)
+		}
+
+		// handle outputParam
+		for _, outputParam := range interfaceInfo.OutputParameters {
+			outputParam.Id = guid.CreateGuid()
+			outputParam.PluginConfigInterfaceId = interfaceInfo.Id
+
+			action, tmpErr = db.GetInsertTableExecAction(models.TableNamePluginConfigInterfaceParameters, *outputParam, nil)
+			if tmpErr != nil {
+				err = fmt.Errorf("get insert sql for pluginConfigInterfaceParameters failed: %s", tmpErr.Error())
+				log.Logger.Error(err.Error())
+				return
+			}
+			resultActions = append(resultActions, action)
+		}
+	}
+
+	// handle pluginConfigRoles
+	pluginConfigRolesActions, tmpErr := getCreatePluginCfgRolesActions(c, pluginConfigId, pluginConfigDto.PermissionToRole)
+	if tmpErr != nil {
+		err = fmt.Errorf("get insert sql for pluginConfigRoles failed: %s", tmpErr.Error())
+		log.Logger.Error(err.Error())
+		return
+	}
+	resultActions = append(resultActions, pluginConfigRolesActions...)
+	return
+}
+
+func getCreatePluginCfgRolesActions(c *gin.Context,
+	pluginConfigId string,
+	permissionToRole *models.PermissionRoleData) (resultActions []*db.ExecAction, err error) {
+	var actions []*db.ExecAction
+	now := time.Now()
+	reqUser := middleware.GetRequestUser(c)
+	userToken := c.GetHeader(models.AuthorizationHeader)
+	language := c.GetHeader(middleware.AcceptLanguageHeader)
+	respData, err := remote.RetrieveAllLocalRoles("Y", userToken, language)
+	if err != nil {
+		err = fmt.Errorf("retrieve all local roles failed: %s", err.Error())
+		return
+	}
+
+	roleNameMapId := make(map[string]string)
+	if len(respData.Data) > 0 {
+		for _, roleDto := range respData.Data {
+			roleNameMapId[roleDto.Name] = roleDto.ID
+		}
+	} else {
+		log.Logger.Error("retrieve all local roles empty")
+	}
+
+	pluginConfigRolesList := []*models.PluginConfigRoles{}
+	mgmtRoleNameMap := make(map[string]struct{})
+	for _, roleName := range permissionToRole.MGMT {
+		if _, isExisted := mgmtRoleNameMap[roleName]; !isExisted {
+			mgmtRoleNameMap[roleName] = struct{}{}
+			pluginConfigRolesList = append(pluginConfigRolesList, &models.PluginConfigRoles{
+				Id:          guid.CreateGuid(),
+				IsActive:    true,
+				PermType:    models.PermissionTypeMGMT,
+				PluginCfgId: pluginConfigId,
+				RoleId:      roleNameMapId[roleName],
+				RoleName:    roleName,
+				CreatedBy:   reqUser,
+				CreatedTime: now,
+				UpdatedTime: now,
+			})
+		}
+	}
+
+	useRoleNameMap := make(map[string]struct{})
+	for _, roleName := range permissionToRole.USE {
+		if _, isExisted := useRoleNameMap[roleName]; !isExisted {
+			useRoleNameMap[roleName] = struct{}{}
+			pluginConfigRolesList = append(pluginConfigRolesList, &models.PluginConfigRoles{
+				Id:          guid.CreateGuid(),
+				IsActive:    true,
+				PermType:    models.PermissionTypeUSE,
+				PluginCfgId: pluginConfigId,
+				RoleId:      roleNameMapId[roleName],
+				RoleName:    roleName,
+				CreatedBy:   reqUser,
+				CreatedTime: now,
+				UpdatedTime: now,
+			})
+		}
+	}
+
+	for i := range pluginConfigRolesList {
+		action, tmpErr := db.GetInsertTableExecAction(models.TableNamePluginConfigRoles, *pluginConfigRolesList[i], nil)
+		if tmpErr != nil {
+			err = fmt.Errorf("get insert sql failed: %s", tmpErr.Error())
+			return
+		}
+		actions = append(actions, action)
+	}
+	resultActions = actions
 	return
 }
