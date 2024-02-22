@@ -537,6 +537,20 @@ CREATE TABLE `proc_data_binding` (
      PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
 
+CREATE TABLE `proc_data_cache` (
+     `id` varchar(64) NOT NULL COMMENT '唯一标识',
+     `proc_ins_id` varchar(64) NOT NULL COMMENT '编排实例id',
+     `entity_id` varchar(64) DEFAULT NULL COMMENT '编排数据id',
+     `entity_data_id` varchar(64) DEFAULT NULL COMMENT '数据id',
+     `entity_data_name` varchar(255) DEFAULT NULL COMMENT '数据名称',
+     `entity_type_id` varchar(64) DEFAULT NULL COMMENT '数据entity',
+     `full_data_id` varchar(1024) DEFAULT NULL COMMENT '数据全路径',
+     `data_value` text DEFAULT NULL COMMENT '数据值',
+     `created_time` datetime DEFAULT NULL COMMENT '创建时间',
+     `updated_time` datetime DEFAULT NULL COMMENT '更新时间',
+     PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
+
 CREATE TABLE `proc_ins` (
      `id` varchar(64) NOT NULL COMMENT '唯一标识',
      `proc_def_id` varchar(64) NOT NULL COMMENT '编排定义id',
