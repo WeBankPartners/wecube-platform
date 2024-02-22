@@ -74,17 +74,85 @@ func UpdatePluginConfigRoles(c *gin.Context) {
 
 // DisablePluginConfig 服务注册 - 服务注销
 func DisablePluginConfig(c *gin.Context) {
+	defer try.ExceptionStack(func(e interface{}, err interface{}) {
+		retErr := fmt.Errorf("%v", err)
+		middleware.ReturnError(c, exterror.Catch(exterror.New().ServerHandleError, retErr))
+		log.Logger.Error(e.(string))
+	})
 
+	pluginConfigId := c.Param("pluginConfigId")
+	var err error
+	if pluginConfigId == "" {
+		err = exterror.Catch(exterror.New().RequestParamValidateError, fmt.Errorf("request param err, pluginConfigId can not be empty"))
+		middleware.ReturnError(c, err)
+		return
+	}
+
+	retData, err := database.UpdatePluginConfigStatus(c, pluginConfigId, models.PluginStatusDisabled)
+	if err != nil {
+		middleware.ReturnError(c, err)
+	} else {
+		middleware.ReturnData(c, retData)
+	}
+	return
 }
 
 // EnablePluginConfig 服务注册 - 服务注册
 func EnablePluginConfig(c *gin.Context) {
+	defer try.ExceptionStack(func(e interface{}, err interface{}) {
+		retErr := fmt.Errorf("%v", err)
+		middleware.ReturnError(c, exterror.Catch(exterror.New().ServerHandleError, retErr))
+		log.Logger.Error(e.(string))
+	})
 
+	pluginConfigId := c.Param("pluginConfigId")
+	var err error
+	if pluginConfigId == "" {
+		err = exterror.Catch(exterror.New().RequestParamValidateError, fmt.Errorf("request param err, pluginConfigId can not be empty"))
+		middleware.ReturnError(c, err)
+		return
+	}
+
+	retData, err := database.UpdatePluginConfigStatus(c, pluginConfigId, models.PluginStatusEnabled)
+	if err != nil {
+		middleware.ReturnError(c, err)
+	} else {
+		middleware.ReturnData(c, retData)
+	}
+	return
 }
 
 // SavePluginConfig 服务注册 - 服务配置保存
 func SavePluginConfig(c *gin.Context) {
+	defer try.ExceptionStack(func(e interface{}, err interface{}) {
+		retErr := fmt.Errorf("%v", err)
+		middleware.ReturnError(c, exterror.Catch(exterror.New().ServerHandleError, retErr))
+		log.Logger.Error(e.(string))
+	})
 
+	var err error
+	reqParam := models.PluginConfigDto{}
+	if err = c.ShouldBindJSON(&reqParam); err != nil {
+		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, err))
+		return
+	}
+	if len(reqParam.PermissionToRole.MGMT) == 0 {
+		err = exterror.Catch(exterror.New().RequestParamValidateError, fmt.Errorf("request param err, MGMT permission role can not be empty"))
+		middleware.ReturnError(c, err)
+		return
+	}
+	if len(reqParam.PluginPackageId) == 0 {
+		err = exterror.Catch(exterror.New().RequestParamValidateError, fmt.Errorf("request param err, pluginPackageId can not be empty"))
+		middleware.ReturnError(c, err)
+		return
+	}
+
+	retData, err := database.SavePluginConfig(c, &reqParam)
+	if err != nil {
+		middleware.ReturnError(c, err)
+	} else {
+		middleware.ReturnData(c, retData)
+	}
 }
 
 // DeletePluginConfig 服务注册 - 服务配置删除
@@ -119,7 +187,32 @@ func GetBatchPluginConfigs(c *gin.Context) {
 
 // BatchEnablePluginConfig 服务注册 - 批量注册
 func BatchEnablePluginConfig(c *gin.Context) {
+	defer try.ExceptionStack(func(e interface{}, err interface{}) {
+		retErr := fmt.Errorf("%v", err)
+		middleware.ReturnError(c, exterror.Catch(exterror.New().ServerHandleError, retErr))
+		log.Logger.Error(e.(string))
+	})
 
+	pluginPackageId := c.Param("pluginPackageId")
+	var err error
+	if pluginPackageId == "" {
+		err = exterror.Catch(exterror.New().RequestParamValidateError, fmt.Errorf("request param err, pluginPackageId can not be empty"))
+		middleware.ReturnError(c, err)
+		return
+	}
+
+	var reqParam []*models.PluginConfigsBatchEnable
+	if err = c.ShouldBindJSON(&reqParam); err != nil {
+		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, err))
+		return
+	}
+	err = database.BatchEnablePluginConfig(c, reqParam, pluginPackageId)
+	if err != nil {
+		middleware.ReturnError(c, err)
+	} else {
+		middleware.ReturnSuccess(c)
+	}
+	return
 }
 
 // ExportPluginConfigs 插件配置导出
