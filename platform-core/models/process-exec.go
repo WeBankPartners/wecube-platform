@@ -3,7 +3,10 @@ package models
 import (
 	"fmt"
 	"strings"
+	"time"
 )
+
+var ProcStatusTransMap = map[string]string{"running": "InProgress", "success": "Completed", "fail": "Faulted", "kill": "InternallyTerminated", "ready": "NotStarted", "timeout": "Timeouted"}
 
 type ProcDefListObj struct {
 	ProcDefId      string             `json:"procDefId"`
@@ -136,6 +139,7 @@ type ProcInsStartParam struct {
 type ProcInsDetail struct {
 	Id                string               `json:"id"`
 	ProcDefId         string               `json:"procDefId"`
+	ProcDefKey        string               `json:"procDefKey"`
 	ProcInstKey       string               `json:"procInstKey"`
 	ProcInstName      string               `json:"procInstName"`
 	EntityDataId      string               `json:"entityDataId"`
@@ -147,7 +151,7 @@ type ProcInsDetail struct {
 }
 
 type ProcInsNodeDetail struct {
-	Id                int      `json:"id"`
+	Id                string   `json:"id"`
 	NodeId            string   `json:"nodeId"`
 	NodeName          string   `json:"nodeName"`
 	NodeDefId         string   `json:"nodeDefId"`
@@ -160,5 +164,103 @@ type ProcInsNodeDetail struct {
 	ProcInstKey       string   `json:"procInstKey"`
 	RoutineExpression string   `json:"routineExpression"`
 	Status            string   `json:"status"`
+	PreviousNodeIds   []string `json:"previousNodeIds"`
 	SucceedingNodeIds []string `json:"succeedingNodeIds"`
+}
+
+type ProcCallPluginServiceFuncParam struct {
+	PluginInterface   *PluginConfigInterfaces
+	EntityType        string
+	EntityInstances   []*BatchExecutionPluginExecEntityInstances
+	InputConstantMap  map[string]string
+	InputParamContext map[string]interface{}
+	ContinueToken     string
+	DueDate           string
+	AllowedOptions    []string
+	RiskCheck         bool
+	Operator          string
+	ProcInsNode       *ProcInsNode
+}
+
+type ProcNodeContextReq struct {
+	BeginTime      string                     `json:"beginTime"`
+	EndTime        string                     `json:"endTime"`
+	NodeDefId      string                     `json:"nodeDefId"`
+	NodeExpression string                     `json:"nodeExpression"`
+	NodeId         string                     `json:"nodeId"`
+	NodeInstId     string                     `json:"nodeInstId"`
+	NodeName       string                     `json:"nodeName"`
+	NodeType       string                     `json:"nodeType"`
+	PluginInfo     string                     `json:"pluginInfo"`
+	RequestId      string                     `json:"requestId"`
+	ErrorMessage   string                     `json:"errorMessage,omitempty"`
+	RequestObjects []ProcNodeContextReqObject `json:"requestObjects"`
+}
+
+type ProcNodeContextReqObject struct {
+	CallbackParameter string                   `json:"callbackParameter"`
+	Inputs            []map[string]interface{} `json:"inputs"`
+	Outputs           []map[string]interface{} `json:"outputs"`
+}
+
+type ProcNodeContextQueryObj struct {
+	Id                string    `json:"id" xorm:"id"`
+	Name              string    `json:"name" xorm:"name"`
+	ProcDefNodeId     string    `json:"procDefNodeId" xorm:"proc_def_node_id"`
+	ErrorMsg          string    `json:"errorMsg" xorm:"error_msg"`
+	RoutineExpression string    `json:"routineExpression" xorm:"routine_expression"`
+	ServiceName       string    `json:"serviceName" xorm:"service_name"`
+	StartTime         time.Time `json:"startTime" xorm:"start_time"`
+	EndTime           time.Time `json:"endTime" xorm:"end_time"`
+	ReqId             string    `json:"reqId" xorm:"req_id"`
+	NodeType          string    `json:"nodeType" xorm:"node_type"`
+}
+
+type RequestProcessData struct {
+	ProcDefId     string                           `json:"procDefId"`
+	ProcDefKey    string                           `json:"procDefKey"`
+	RootEntityOid string                           `json:"rootEntityOid"`
+	Entities      []*RequestCacheEntityValue       `json:"entities"`
+	Bindings      []*RequestProcessTaskNodeBindObj `json:"bindings"`
+}
+
+type RequestProcessTaskNodeBindObj struct {
+	NodeId       string `json:"nodeId"`
+	NodeDefId    string `json:"nodeDefId"`
+	Oid          string `json:"oid"`
+	EntityDataId string `json:"entityDataId"`
+	BindFlag     string `json:"bindFlag"`
+}
+
+type RequestCacheEntityValue struct {
+	AttrValues        []*RequestCacheEntityAttrValue `json:"attrValues"`
+	BindFlag          string                         `json:"bindFlag"`
+	EntityDataId      string                         `json:"entityDataId"`
+	EntityDataOp      string                         `json:"entityDataOp"`
+	EntityDataState   string                         `json:"entityDataState"`
+	EntityDefId       string                         `json:"entityDefId"`
+	EntityName        string                         `json:"entityName"`
+	EntityDisplayName string                         `json:"entityDisplayName"`
+	FullEntityDataId  interface{}                    `json:"fullEntityDataId"`
+	Oid               string                         `json:"oid"`
+	PackageName       string                         `json:"packageName"`
+	PreviousOids      []string                       `json:"previousOids"`
+	Processed         bool                           `json:"processed"`
+	SucceedingOids    []string                       `json:"succeedingOids"`
+}
+
+type RequestCacheEntityAttrValue struct {
+	DataOid   string      `json:"-"`
+	AttrDefId string      `json:"attrDefId"`
+	AttrName  string      `json:"attrName"`
+	DataType  string      `json:"dataType"`
+	DataValue interface{} `json:"dataValue"`
+}
+
+type StartInstanceResultData struct {
+	Id          int    `json:"id"`
+	ProcInstKey string `json:"procInstKey"`
+	ProcDefId   string `json:"procDefId"`
+	ProcDefKey  string `json:"procDefKey"`
+	Status      string `json:"status"`
 }
