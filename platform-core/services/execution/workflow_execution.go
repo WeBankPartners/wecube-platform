@@ -148,6 +148,9 @@ func DoWorkflowAutoJob(ctx context.Context, procRunNodeId, continueToken string)
 		err = getIntErr
 		return
 	}
+	if err = database.AddProcCacheData(ctx, procInsNode.ProcInsId, dataBindings); err != nil {
+		return
+	}
 	var entityInstances []*models.BatchExecutionPluginExecEntityInstances
 	for _, bindingObj := range dataBindings {
 		entityInstances = append(entityInstances, &models.BatchExecutionPluginExecEntityInstances{
@@ -196,7 +199,143 @@ func DoWorkflowAutoJob(ctx context.Context, procRunNodeId, continueToken string)
 	return
 }
 
-func DoWorkflowDataJob(procRunNodeId string) (err error) {
+func DoWorkflowDataJob(ctx context.Context, procRunNodeId string) (err error) {
+	//ctx = context.WithValue(ctx, models.TransactionIdHeader, procRunNodeId)
+	//// 查proc def node定义和proc ins绑定数据
+	//procInsNode, procDefNode, procDefNodeParams, dataBindings, getNodeDataErr := database.GetProcExecNodeData(ctx, procRunNodeId)
+	//if getNodeDataErr != nil {
+	//	err = getNodeDataErr
+	//	return
+	//}
 
+	return
+}
+
+func DoWorkflowHumanJob(ctx context.Context, procRunNodeId string) (err error) {
+	ctx = context.WithValue(ctx, models.TransactionIdHeader, procRunNodeId)
+	// 查proc def node定义和proc ins绑定数据
+	procInsNode, procDefNode, procDefNodeParams, dataBindings, getNodeDataErr := database.GetProcExecNodeData(ctx, procRunNodeId)
+	if getNodeDataErr != nil {
+		err = getNodeDataErr
+		return
+	}
+	if procDefNode.DynamicBind {
+		dataBindings, err = database.GetDynamicBindNodeData(ctx, procInsNode.Id, procDefNode.ProcDefId, procDefNode.BindNodeId)
+	}
+	pluginInterface, getIntErr := database.GetLastEnablePluginInterface(ctx, procDefNode.ServiceName)
+	if getIntErr != nil {
+		err = getIntErr
+		return
+	}
+	if err = database.AddProcCacheData(ctx, procInsNode.ProcInsId, dataBindings); err != nil {
+		return
+	}
+	if pluginInterface.IsAsyncProcessing == "N" {
+		err = fmt.Errorf("can not support human job with interface sync defind")
+		return
+	}
+	var entityInstances []*models.BatchExecutionPluginExecEntityInstances
+	for _, bindingObj := range dataBindings {
+		entityInstances = append(entityInstances, &models.BatchExecutionPluginExecEntityInstances{
+			Id:               bindingObj.EntityId,
+			BusinessKeyValue: "",
+		})
+	}
+	inputConstantMap := make(map[string]string)
+	inputContextMap := make(map[string]interface{})
+	interfaceParamIdMap := make(map[string]string)
+	for _, v := range pluginInterface.InputParameters {
+		interfaceParamIdMap[v.Name] = v.Id
+	}
+	for _, v := range pluginInterface.OutputParameters {
+		interfaceParamIdMap[v.Name] = v.Id
+	}
+	for _, v := range procDefNodeParams {
+		if v.BindType == "constant" {
+			inputConstantMap[interfaceParamIdMap[v.Name]] = v.Value
+		} else if v.BindType == "context" {
+
+		}
+	}
+	callPluginServiceParam := models.ProcCallPluginServiceFuncParam{
+		PluginInterface:   pluginInterface,
+		EntityType:        procDefNode.RoutineExpression,
+		EntityInstances:   entityInstances,
+		InputConstantMap:  inputConstantMap,
+		InputParamContext: inputContextMap,
+		RiskCheck:         procDefNode.RiskCheck,
+		Operator:          "SYSTEM",
+		ProcInsNode:       procInsNode,
+	}
+	if pluginInterface.Type == "DYNAMICFORM" {
+		err = CallDynamicFormReq(ctx, &callPluginServiceParam)
+	} else if pluginInterface.Type == "APPROVAL" {
+
+	}
+	return
+}
+
+func CallDynamicFormReq(ctx context.Context, param *models.ProcCallPluginServiceFuncParam) (err error) {
+	procInsNodeReq := models.ProcInsNodeReq{
+		Id:            "proc_req_" + guid.CreateGuid(),
+		ProcInsNodeId: param.ProcInsNode.Id,
+		ReqUrl:        fmt.Sprintf("%s%s", models.Config.Gateway.Url, param.PluginInterface.Path),
+	}
+	rootExprList, errAnalyze1 := remote.AnalyzeExpression(param.EntityType)
+	if err != nil {
+		err = errAnalyze1
+		return
+	}
+	if len(rootExprList) == 0 {
+		err = fmt.Errorf("invalid input entity type %s", param.EntityType)
+		return
+	}
+	rootExpr := rootExprList[len(rootExprList)-1]
+	// 获取subsystem token
+	subsysToken := remote.GetToken()
+	// 构造输入参数
+	for _, paramObj := range param.PluginInterface.InputParameters {
+		if paramObj.Name == "taskFormInput" {
+
+		}
+	}
+	inputParamDatas, errHandle := handleInputData(ctx, subsysToken, param.ContinueToken, param.EntityInstances, param.PluginInterface.InputParameters, rootExpr, param.InputConstantMap, param.InputParamContext, &procInsNodeReq)
+	if errHandle != nil {
+		err = errHandle
+		return
+	}
+	procInsNodeReq.ReqDataAmount = len(inputParamDatas)
+	// 调用插件接口
+	pluginCallParam := &models.BatchExecutionPluginExecParam{
+		RequestId:       "p_req_" + guid.CreateGuid(),
+		Operator:        param.Operator,
+		ServiceName:     param.PluginInterface.ServiceName,
+		ServicePath:     param.PluginInterface.ServiceDisplayName,
+		EntityInstances: param.EntityInstances,
+		Inputs:          inputParamDatas,
+		DueDate:         param.DueDate,
+		AllowedOptions:  param.AllowedOptions,
+	}
+	pluginCallParam.RequestId = "flowexec_" + guid.CreateGuid()
+	// 纪录参数
+	if err = database.RecordProcCallReq(ctx, &procInsNodeReq, true); err != nil {
+		return
+	}
+	pluginCallResult, errCall := remote.PluginInterfaceApi(ctx, subsysToken, param.PluginInterface, pluginCallParam)
+	if errCall != nil {
+		err = errCall
+		procInsNodeReq.ErrorMsg = err.Error()
+		database.RecordProcCallReq(ctx, &procInsNodeReq, false)
+		return
+	}
+	// 处理output param(比如类型转换，数据模型写入), handleOutputData主要是用于格式化为output param定义的字段
+	_, errHandle = handleOutputData(ctx, subsysToken, pluginCallResult.Outputs, param.PluginInterface.OutputParameters, &procInsNodeReq)
+	if errHandle != nil {
+		err = errHandle
+		return
+	}
+	if err = database.RecordProcCallReq(ctx, &procInsNodeReq, false); err != nil {
+		return
+	}
 	return
 }
