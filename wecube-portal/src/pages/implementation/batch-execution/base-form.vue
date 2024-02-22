@@ -42,16 +42,16 @@
               <span>{{ $t('mgmt_role') }}：</span>
               <span>{{
                 data.templateData.permissionToRole &&
-                data.templateData.permissionToRole.MGMT &&
-                data.templateData.permissionToRole.MGMT.join('，')
+                data.templateData.permissionToRole.MGMTDisplayName &&
+                data.templateData.permissionToRole.MGMTDisplayName.join('，')
               }}</span>
             </div>
             <div class="item">
               <span>{{ $t('use_role') }}：</span>
               <span>{{
                 data.templateData.permissionToRole &&
-                data.templateData.permissionToRole.USE &&
-                data.templateData.permissionToRole.USE.join('，')
+                data.templateData.permissionToRole.USEDisplayName &&
+                data.templateData.permissionToRole.USEDisplayName.join('，')
               }}</span>
             </div>
           </div>
