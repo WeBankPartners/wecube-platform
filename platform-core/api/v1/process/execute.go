@@ -308,3 +308,31 @@ func GetProcInsNodeContext(c *gin.Context) {
 		middleware.ReturnData(c, result)
 	}
 }
+
+func PublicProcInsStart(c *gin.Context) {
+	var param models.RequestProcessData
+	if err := c.ShouldBindJSON(&param); err != nil {
+		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, err))
+		return
+	}
+	// result -> StartInstanceResultData
+	operator := middleware.GetRequestUser(c)
+	// 新增 proc_ins,proc_ins_node,proc_data_binding 纪录
+	procInsId, workflowRow, workNodes, workLinks, err := database.CreatePublicProcInstance(c, &param, operator)
+	if err != nil {
+		middleware.ReturnError(c, err)
+		return
+	}
+	// 初始化workflow并开始
+	workObj := workflow.Workflow{ProcRunWorkflow: *workflowRow}
+	workObj.Init(context.Background(), workNodes, workLinks)
+	workflow.GlobalWorkflowMap.Store(workObj.Id, &workObj)
+	go workObj.Start(&models.ProcOperation{CreatedBy: operator})
+	// 查询 detail 返回
+	detail, queryErr := database.GetProcInstance(c, procInsId)
+	if queryErr != nil {
+		middleware.ReturnError(c, queryErr)
+	} else {
+		middleware.ReturnData(c, detail)
+	}
+}

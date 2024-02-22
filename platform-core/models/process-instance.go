@@ -119,3 +119,16 @@ type ProcInsNodeReqParam struct {
 	CallbackId   string    `json:"callbackId" xorm:"callback_id"`      // 回调id
 	CreatedTime  time.Time `json:"createdTime" xorm:"created_time"`    // 创建时间
 }
+
+type ProcDataCache struct {
+	Id             string    `json:"id" xorm:"id"`                           // 唯一标识
+	ProcInsId      string    `json:"procInsId" xorm:"proc_ins_id"`           // 编排实例id
+	EntityId       string    `json:"entityId" xorm:"entity_id"`              // 编排数据id
+	EntityDataId   string    `json:"entityDataId" xorm:"entity_data_id"`     // 数据id
+	EntityDataName string    `json:"entityDataName" xorm:"entity_data_name"` // 数据名称
+	EntityTypeId   string    `json:"entityTypeId" xorm:"entity_type_id"`     // 数据entity
+	FullDataId     string    `json:"fullDataId" xorm:"full_data_id"`         // 数据全路径
+	DataValue      string    `json:"dataValue" xorm:"data_value"`            // 数据值
+	CreatedTime    time.Time `json:"createdTime" xorm:"created_time"`        // 创建时间
+	UpdatedTime    time.Time `json:"updatedTime" xorm:"updated_time"`        // 更新时间
+}

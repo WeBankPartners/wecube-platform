@@ -215,3 +215,52 @@ type ProcNodeContextQueryObj struct {
 	ReqId             string    `json:"reqId" xorm:"req_id"`
 	NodeType          string    `json:"nodeType" xorm:"node_type"`
 }
+
+type RequestProcessData struct {
+	ProcDefId     string                           `json:"procDefId"`
+	ProcDefKey    string                           `json:"procDefKey"`
+	RootEntityOid string                           `json:"rootEntityOid"`
+	Entities      []*RequestCacheEntityValue       `json:"entities"`
+	Bindings      []*RequestProcessTaskNodeBindObj `json:"bindings"`
+}
+
+type RequestProcessTaskNodeBindObj struct {
+	NodeId       string `json:"nodeId"`
+	NodeDefId    string `json:"nodeDefId"`
+	Oid          string `json:"oid"`
+	EntityDataId string `json:"entityDataId"`
+	BindFlag     string `json:"bindFlag"`
+}
+
+type RequestCacheEntityValue struct {
+	AttrValues        []*RequestCacheEntityAttrValue `json:"attrValues"`
+	BindFlag          string                         `json:"bindFlag"`
+	EntityDataId      string                         `json:"entityDataId"`
+	EntityDataOp      string                         `json:"entityDataOp"`
+	EntityDataState   string                         `json:"entityDataState"`
+	EntityDefId       string                         `json:"entityDefId"`
+	EntityName        string                         `json:"entityName"`
+	EntityDisplayName string                         `json:"entityDisplayName"`
+	FullEntityDataId  interface{}                    `json:"fullEntityDataId"`
+	Oid               string                         `json:"oid"`
+	PackageName       string                         `json:"packageName"`
+	PreviousOids      []string                       `json:"previousOids"`
+	Processed         bool                           `json:"processed"`
+	SucceedingOids    []string                       `json:"succeedingOids"`
+}
+
+type RequestCacheEntityAttrValue struct {
+	DataOid   string      `json:"-"`
+	AttrDefId string      `json:"attrDefId"`
+	AttrName  string      `json:"attrName"`
+	DataType  string      `json:"dataType"`
+	DataValue interface{} `json:"dataValue"`
+}
+
+type StartInstanceResultData struct {
+	Id          int    `json:"id"`
+	ProcInstKey string `json:"procInstKey"`
+	ProcDefId   string `json:"procDefId"`
+	ProcDefKey  string `json:"procDefKey"`
+	Status      string `json:"status"`
+}

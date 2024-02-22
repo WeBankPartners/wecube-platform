@@ -538,9 +538,6 @@ func LaunchPlugin(c *gin.Context) {
 		return
 	}
 	// 更新插件注册的菜单状态和更新插件实例数据
-	if len(resources.S3) > 0 {
-		pluginInstance.S3bucketResourceId = resources.S3[0].Id
-	}
 	resourceItemProperties := models.ResourceItemProperties{
 		ImageName:      dockerResource.ImageName,
 		PortBindings:   strings.Join(portBindList, ","),
