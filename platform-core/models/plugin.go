@@ -9,9 +9,9 @@ import (
 )
 
 const (
-	PluginStatusUnRegistered   = "unregistered"
-	PluginStatusRegistered     = "registered"
-	PluginStatusDecommissioned = "decommissioned"
+	PluginStatusUnRegistered   = "UNREGISTERED"
+	PluginStatusRegistered     = "REGISTERED"
+	PluginStatusDecommissioned = "DECOMMISSIONED"
 	PluginEditionCommunity     = "community"
 	PluginEditionEnterprise    = "enterprise"
 	PluginParamTypeInput       = "INPUT"
