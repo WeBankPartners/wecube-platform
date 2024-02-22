@@ -7,8 +7,8 @@ type PluginConfigQueryObj struct {
 
 type PluginConfigDto struct {
 	PluginConfigs
-	FilterRule       string              `json:"filterRule"`
-	PermissionToRole *PermissionRoleData `json:"permissionToRole"`
+	FilterRule       string              `json:"filterRule" xorm:"-"`
+	PermissionToRole *PermissionRoleData `json:"permissionToRole" xorm:"-"`
 }
 
 type PermissionRoleData struct {
