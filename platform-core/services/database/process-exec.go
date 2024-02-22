@@ -225,9 +225,9 @@ func ProcInsTaskNodeBindings(ctx context.Context, sessionId, taskNodeId string) 
 func GetInstanceTaskNodeBindings(ctx context.Context, procInsId, procInsNodeId string) (result []*models.TaskNodeBindingObj, err error) {
 	var dataBindingRows []*models.ProcDataBinding
 	if procInsNodeId != "" {
-		err = db.MysqlEngine.Context(ctx).SQL("select proc_def_node_id,entity_data_id,entity_data_name,entity_type_id,bind_type,bind_flag from proc_data_binding where proc_ins_id=? and proc_ins_node_id=?", procInsId, procInsNodeId).Find(&dataBindingRows)
+		err = db.MysqlEngine.Context(ctx).SQL("select * from proc_data_binding where proc_ins_id=? and proc_ins_node_id=?", procInsId, procInsNodeId).Find(&dataBindingRows)
 	} else {
-		err = db.MysqlEngine.Context(ctx).SQL("select proc_def_node_id,entity_data_id,entity_data_name,entity_type_id,bind_type,bind_flag from proc_data_binding where proc_ins_id=?", procInsId).Find(&dataBindingRows)
+		err = db.MysqlEngine.Context(ctx).SQL("select * from proc_data_binding where proc_ins_id=?", procInsId).Find(&dataBindingRows)
 	}
 	if err != nil {
 		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
@@ -239,10 +239,19 @@ func GetInstanceTaskNodeBindings(ctx context.Context, procInsId, procInsNodeId s
 			continue
 		}
 		tmpBindingObj := models.TaskNodeBindingObj{
-			Bound:        "Y",
-			EntityDataId: row.EntityDataId,
-			EntityTypeId: row.EntityTypeId,
-			NodeDefId:    row.ProcDefNodeId,
+			Bound:             "Y",
+			EntityDataId:      row.EntityDataId,
+			EntityTypeId:      row.EntityTypeId,
+			NodeDefId:         row.ProcDefNodeId,
+			Id:                row.Id,
+			EntityDisplayName: row.EntityDataName,
+			NodeInstId:        procInsNodeId,
+			ProcInstId:        procInsId,
+		}
+		entityMsg := strings.Split(row.EntityTypeId, ":")
+		if len(entityMsg) == 2 {
+			tmpBindingObj.PackageName = entityMsg[0]
+			tmpBindingObj.EntityName = entityMsg[1]
 		}
 		if !row.BindFlag {
 			tmpBindingObj.Bound = "N"
