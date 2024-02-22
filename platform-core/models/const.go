@@ -30,14 +30,16 @@ const (
 	AESPrefix  = "{AES}"
 
 	// table name
-	TableNameBatchExec                = "batch_execution"
-	TableNameBatchExecJobs            = "batch_exec_jobs"
-	TableNameBatchExecTemplate        = "batch_execution_template"
-	TableNameBatchExecTemplateRole    = "batch_execution_template_role"
-	TableNameBatchExecTemplateCollect = "batch_execution_template_collect"
-	TableNamePluginConfigRoles        = "plugin_config_roles"
-	TableNamePluginConfigs            = "plugin_configs"
-	TableNamePluginPackages           = "plugin_packages"
+	TableNameBatchExec                       = "batch_execution"
+	TableNameBatchExecJobs                   = "batch_exec_jobs"
+	TableNameBatchExecTemplate               = "batch_execution_template"
+	TableNameBatchExecTemplateRole           = "batch_execution_template_role"
+	TableNameBatchExecTemplateCollect        = "batch_execution_template_collect"
+	TableNamePluginConfigRoles               = "plugin_config_roles"
+	TableNamePluginConfigs                   = "plugin_configs"
+	TableNamePluginPackages                  = "plugin_packages"
+	TableNamePluginConfigInterfaces          = "plugin_config_interfaces"
+	TableNamePluginConfigInterfaceParameters = "plugin_config_interface_parameters"
 
 	// batch execution
 	BatchExecTemplateStatusAvailable    = "available"
@@ -54,6 +56,10 @@ const (
 	// permission type
 	PermissionTypeMGMT = "MGMT"
 	PermissionTypeUSE  = "USE"
+
+	// plugin status
+	PluginStatusDisabled = "DISABLED"
+	PluginStatusEnabled  = "ENABLED"
 )
 
 var (

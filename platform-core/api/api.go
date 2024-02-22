@@ -150,8 +150,10 @@ func init() {
 		&handlerFuncObj{Url: "/process/instances/tasknodes/:taskNodeId/session/:sessionId/tasknode-bindings", Method: "GET", HandlerFunc: process.ProcInsTaskNodeBindings, ApiCode: "process-ins-node-binding"},
 		&handlerFuncObj{Url: "/process/instances/tasknodes/:taskNodeId/session/:sessionId/tasknode-bindings", Method: "POST", HandlerFunc: process.UpdateProcNodeBindingData, ApiCode: "update-process-ins-node-binding"},
 		&handlerFuncObj{Url: "/process/instances", Method: "POST", HandlerFunc: process.ProcInsStart, ApiCode: "process-ins-start"},
+		&handlerFuncObj{Url: "/public/process/instances", Method: "POST", HandlerFunc: process.PublicProcInsStart, ApiCode: "public-process-ins-start"},
 		&handlerFuncObj{Url: "/process/instances", Method: "GET", HandlerFunc: process.ProcInsList, ApiCode: "process-ins-list"},
-		&handlerFuncObj{Url: "/process/instances/:procInstId", Method: "GET", HandlerFunc: process.ProcInsDetail, ApiCode: "process-ins-detail"},
+		&handlerFuncObj{Url: "/process/instances/:procInsId", Method: "GET", HandlerFunc: process.ProcInsDetail, ApiCode: "process-ins-detail"},
+		&handlerFuncObj{Url: "/process/instances/:procInsId/tasknodes/:procInsNodeId/context", Method: "GET", HandlerFunc: process.GetProcInsNodeContext, ApiCode: "process-ins-node-context"},
 
 		// certification manager
 		&handlerFuncObj{Url: "/plugin-certifications", Method: "GET", HandlerFunc: certification.GetCertifications, ApiCode: "get-certifications"},
