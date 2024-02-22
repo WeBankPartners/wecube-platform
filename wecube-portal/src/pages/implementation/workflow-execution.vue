@@ -75,9 +75,11 @@
                     clearable
                     @on-clear="clearFlow"
                   >
-                    <Option v-for="item in allFlows" :value="item.procDefId" :key="item.procDefId">{{
-                      item.procDefName + ' ' + item.createdTime
-                    }}</Option>
+                    <Option v-for="item in allFlows" :value="item.procDefId" :key="item.procDefId">
+                      {{ item.procDefName }}
+                      <Tag>{{ item.procDefVersion }}</Tag>
+                      {{ item.createdTime }}
+                    </Option>
                   </Select>
                 </FormItem>
               </Col>
