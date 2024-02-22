@@ -688,3 +688,60 @@ func getCreatePluginCfgRolesActions(c *gin.Context,
 	resultActions = actions
 	return
 }
+
+func DeletePluginConfig(c *gin.Context, pluginConfigId string) (err error) {
+	// check whether pluginConfigId is valid
+	pluginConfigsData := &models.PluginConfigs{}
+	var exists bool
+	exists, err = db.MysqlEngine.Context(c).Table(models.TableNamePluginConfigs).
+		Where("id = ?", pluginConfigId).
+		Get(pluginConfigsData)
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
+		return
+	}
+	if !exists {
+		err = fmt.Errorf("pluginConfigId: %s is invalid", pluginConfigId)
+		return
+	}
+
+	actions, tmpErr := GetDelPluginConfigActions(c, pluginConfigId)
+	if tmpErr != nil {
+		err = fmt.Errorf("get delete pluginConfig actions failed: %s", tmpErr.Error())
+		return
+	}
+	err = db.Transaction(actions, c)
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseExecuteError, err)
+		return
+	}
+	return
+}
+
+func GetPluginConfigsWithInterfaces(c *gin.Context, pluginPackageId string, roles []string) (result []*models.PluginConfigQueryObj, err error) {
+	result, err = GetPluginConfigs(c, pluginPackageId, roles)
+	if err != nil {
+		return
+	}
+
+	// handle interfaces
+	for _, pluginConfigQueryObj := range result {
+		for _, pluginConfigDto := range pluginConfigQueryObj.PluginConfigDtoList {
+			// pluginConfigDto.Interfaces, err = GetConfigInterfaces(c, pluginConfigDto.Id)
+			pluginInterfaceQueryObjList, tmpErr := GetConfigInterfaces(c, pluginConfigDto.Id)
+			if tmpErr != nil {
+				err = tmpErr
+				return
+			}
+			pluginCfgInterfaces := make([]*models.PluginConfigInterfaces, 0, len(pluginInterfaceQueryObjList))
+			for _, interfaceQueryObj := range pluginInterfaceQueryObjList {
+				curInterfaces := interfaceQueryObj.PluginConfigInterfaces
+				curInterfaces.InputParameters = interfaceQueryObj.InputParameters
+				curInterfaces.OutputParameters = interfaceQueryObj.OutputParameters
+				pluginCfgInterfaces = append(pluginCfgInterfaces, &curInterfaces)
+			}
+			pluginConfigDto.Interfaces = pluginCfgInterfaces
+		}
+	}
+	return
+}
