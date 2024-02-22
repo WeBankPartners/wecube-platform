@@ -337,7 +337,9 @@ export default {
             return (
               <div style="display:flex;flex-direction:column">
                 <span>{params.row.createdBy}</span>
-                <span>{params.row.permissionToRole.MGMT && params.row.permissionToRole.MGMT[0]}</span>
+                <span>
+                  {params.row.permissionToRole.MGMTDisplayName && params.row.permissionToRole.MGMTDisplayName[0]}
+                </span>
               </div>
             )
           }
@@ -403,8 +405,8 @@ export default {
         if (this.from === 'template') {
           let mgmtGroup = []
           data.contents.forEach(item => {
-            if (item.permissionToRole.MGMT && item.permissionToRole.MGMT.length > 0) {
-              item.permissionToRole.MGMT.forEach(role => {
+            if (item.permissionToRole.MGMTDisplayName && item.permissionToRole.MGMTDisplayName.length > 0) {
+              item.permissionToRole.MGMTDisplayName.forEach(role => {
                 mgmtGroup.push(role)
               })
             }
@@ -417,7 +419,7 @@ export default {
               role: role
             }
             data.contents.forEach(item => {
-              if (item.permissionToRole.MGMT && item.permissionToRole.MGMT.includes(role)) {
+              if (item.permissionToRole.MGMTDisplayName && item.permissionToRole.MGMTDisplayName.includes(role)) {
                 group.data.push(item)
               }
             })
@@ -427,8 +429,8 @@ export default {
         } else if (this.from === 'execute') {
           let useGroup = []
           data.contents.forEach(item => {
-            if (item.permissionToRole.USE && item.permissionToRole.USE.length > 0) {
-              item.permissionToRole.USE.forEach(role => {
+            if (item.permissionToRole.USEDisplayName && item.permissionToRole.USEDisplayName.length > 0) {
+              item.permissionToRole.USEDisplayName.forEach(role => {
                 useGroup.push(role)
               })
             }
@@ -441,7 +443,7 @@ export default {
               role: role
             }
             data.contents.forEach(item => {
-              if (item.permissionToRole.USE && item.permissionToRole.USE.includes(role)) {
+              if (item.permissionToRole.USEDisplayName && item.permissionToRole.USEDisplayName.includes(role)) {
                 group.data.push(item)
               }
             })
