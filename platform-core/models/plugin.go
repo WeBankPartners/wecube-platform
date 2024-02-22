@@ -311,16 +311,17 @@ type RegisterXML struct {
 }
 
 type PluginConfigs struct {
-	Id                     string                    `json:"id" xorm:"id"`                                            // 唯一标识
-	PluginPackageId        string                    `json:"pluginPackageId" xorm:"plugin_package_id"`                // 插件
-	Name                   string                    `json:"name" xorm:"name"`                                        // 服务类型名称
-	TargetPackage          string                    `json:"targetPackage" xorm:"target_package"`                     // 目标类型包
-	TargetEntity           string                    `json:"targetEntity" xorm:"target_entity"`                       // 目标类型项
-	TargetEntityFilterRule string                    `json:"targetEntityFilterRule" xorm:"target_entity_filter_rule"` // 目标类型过滤规则
-	RegisterName           string                    `json:"registerName" xorm:"register_name"`                       // 服务注册名
-	Status                 string                    `json:"status" xorm:"status"`                                    // 状态
-	PluginPackages         *PluginPackages           `json:"pluginPackages" xorm:"-"`
-	Interfaces             []*PluginConfigInterfaces `json:"interfaces" xorm:"-"`
+	Id                         string                    `json:"id" xorm:"id"`                                            // 唯一标识
+	PluginPackageId            string                    `json:"pluginPackageId" xorm:"plugin_package_id"`                // 插件
+	Name                       string                    `json:"name" xorm:"name"`                                        // 服务类型名称
+	TargetPackage              string                    `json:"targetPackage" xorm:"target_package"`                     // 目标类型包
+	TargetEntity               string                    `json:"targetEntity" xorm:"target_entity"`                       // 目标类型项
+	TargetEntityFilterRule     string                    `json:"targetEntityFilterRule" xorm:"target_entity_filter_rule"` // 目标类型过滤规则
+	RegisterName               string                    `json:"registerName" xorm:"register_name"`                       // 服务注册名
+	Status                     string                    `json:"status" xorm:"status"`                                    // 状态
+	PluginPackages             *PluginPackages           `json:"pluginPackages" xorm:"-"`
+	Interfaces                 []*PluginConfigInterfaces `json:"interfaces" xorm:"-"`
+	TargetEntityWithFilterRule string                    `json:"targetEntityWithFilterRule" xorm:"-"` // fmt.Sprintf("%s:%s%s", targetPackage, targetEntity, targetEntityFilterRule)
 }
 
 type PluginConfigInterfaces struct {
