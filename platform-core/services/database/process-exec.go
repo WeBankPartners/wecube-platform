@@ -333,6 +333,11 @@ func CreateProcInstance(ctx context.Context, procStartParam *models.ProcInsStart
 	return
 }
 
+func CreatePublicProcInstance(ctx context.Context, startParam *models.RequestProcessData, operator string) (procInsId string, workflowRow *models.ProcRunWorkflow, workNodes []*models.ProcRunNode, workLinks []*models.ProcRunLink, err error) {
+
+	return
+}
+
 func ListProcInstance(ctx context.Context) (result []*models.ProcInsDetail, err error) {
 	var procInsRows []*models.ProcIns
 	err = db.MysqlEngine.Context(ctx).SQL("select * from proc_ins order by created_time desc limit 500").Find(&procInsRows)
@@ -488,6 +493,41 @@ func GetDynamicBindNodeData(ctx context.Context, procInsNodeId, procDefId, bindN
 	err = db.MysqlEngine.Context(ctx).SQL("select * from proc_data_binding where proc_ins_node_id=? and proc_def_node_id in (select id from proc_def_node where proc_def_id=? and node_id=?)", procInsNodeId, procDefId, bindNodeId).Find(&dataBinding)
 	if err != nil {
 		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
+	}
+	return
+}
+
+func AddProcCacheData(ctx context.Context, procInsId string, dataBinding []*models.ProcDataBinding) (err error) {
+	if len(dataBinding) == 0 {
+		return
+	}
+	var cacheDataRows []*models.ProcDataCache
+	err = db.MysqlEngine.Context(ctx).SQL("select id,entity_id,entity_data_id,entity_type_id from proc_data_cache where proc_ins_id=?", procInsId).Find(&cacheDataRows)
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
+		return
+	}
+	var actions []*db.ExecAction
+	nowTime := time.Now()
+	for _, v := range dataBinding {
+		existFlag := false
+		for _, row := range cacheDataRows {
+			if row.EntityTypeId == v.EntityTypeId && row.EntityDataId == v.EntityDataId {
+				existFlag = true
+				break
+			}
+		}
+		if !existFlag {
+			actions = append(actions, &db.ExecAction{Sql: "insert into proc_data_cache(id,proc_ins_id,entity_id,entity_data_id,entity_data_name,entity_type_id,full_data_id,created_time) values (?,?,?,?,?,?,?,?)", Param: []interface{}{
+				"p_cache_" + guid.CreateGuid(), procInsId, v.EntityId, v.EntityDataId, v.EntityDataName, v.EntityTypeId, v.FullDataId, nowTime,
+			}})
+		}
+	}
+	if len(actions) > 0 {
+		err = db.Transaction(actions, ctx)
+		if err != nil {
+			err = exterror.Catch(exterror.New().DatabaseExecuteError, err)
+		}
 	}
 	return
 }
