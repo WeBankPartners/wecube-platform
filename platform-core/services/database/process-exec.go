@@ -326,27 +326,36 @@ func GetProcPreviewEntityNode(ctx context.Context, procInsId string) (result *mo
 		err = exterror.Catch(exterror.New().DatabaseQueryEmptyError, fmt.Errorf("proc_ins id=%s", procInsId))
 		return
 	}
-	result = &models.ProcPreviewData{ProcessSessionId: insRows[0].ProcSessionId, EntityTreeNodes: []*models.ProcPreviewEntityNode{}}
-	var dataBindingRows []*models.ProcDataBinding
-	err = db.MysqlEngine.Context(ctx).SQL("select proc_def_node_id,entity_data_id,entity_data_name,entity_type_id,bind_type,bind_flag from proc_data_binding where proc_ins_id=?", procInsId).Find(&dataBindingRows)
+	sessionId := insRows[0].ProcSessionId
+	if sessionId == "" {
+		err = fmt.Errorf("can not find session in proc ins:%s", procInsId)
+		return
+	}
+	result = &models.ProcPreviewData{ProcessSessionId: sessionId, EntityTreeNodes: []*models.ProcPreviewEntityNode{}}
+	var graphNodeRows []*models.ProcInsGraphNode
+	err = db.MysqlEngine.Context(ctx).SQL("select data_id,display_name,entity_name,graph_node_id,pkg_name,prev_ids,succ_ids,full_data_id from proc_ins_graph_node where proc_session_id=?", sessionId).Find(&graphNodeRows)
 	if err != nil {
 		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
 		return
 	}
-	for _, row := range dataBindingRows {
+	for _, row := range graphNodeRows {
 		tmpNodeObj := models.ProcPreviewEntityNode{
-			Id:          fmt.Sprintf("%s:%s", row.EntityTypeId, row.EntityDataId),
-			DataId:      row.EntityDataId,
-			DisplayName: row.EntityDataName,
+			Id:            row.GraphNodeId,
+			DataId:        row.DataId,
+			DisplayName:   row.DisplayName,
+			PackageName:   row.PkgName,
+			FullDataId:    row.FullDataId,
+			PreviousIds:   []string{},
+			SucceedingIds: []string{},
 		}
-		tmpEntityMsg := strings.Split(row.EntityTypeId, ":")
-		if len(tmpEntityMsg) == 2 {
-			tmpNodeObj.PackageName = tmpEntityMsg[0]
-			tmpNodeObj.EntityName = tmpEntityMsg[1]
+		if row.PrevIds != "" {
+			tmpNodeObj.PreviousIds = strings.Split(row.PrevIds, ",")
+		}
+		if row.SuccIds != "" {
+			tmpNodeObj.SucceedingIds = strings.Split(row.SuccIds, ",")
 		}
 		result.EntityTreeNodes = append(result.EntityTreeNodes, &tmpNodeObj)
 	}
-	result.AnalyzeRefIds()
 	return
 }
 
@@ -686,8 +695,8 @@ func GetProcExecNodeData(ctx context.Context, procRunNodeId string) (procInsNode
 	return
 }
 
-func GetDynamicBindNodeData(ctx context.Context, procInsNodeId, procDefId, bindNodeId string) (dataBinding []*models.ProcDataBinding, err error) {
-	err = db.MysqlEngine.Context(ctx).SQL("select * from proc_data_binding where proc_ins_node_id=? and proc_def_node_id in (select id from proc_def_node where proc_def_id=? and node_id=?)", procInsNodeId, procDefId, bindNodeId).Find(&dataBinding)
+func GetDynamicBindNodeData(ctx context.Context, procInsId, procDefId, bindNodeId string) (dataBinding []*models.ProcDataBinding, err error) {
+	err = db.MysqlEngine.Context(ctx).SQL("select * from proc_data_binding where proc_ins_id=? and proc_def_node_id in (select id from proc_def_node where proc_def_id=? and node_id=?)", procInsId, procDefId, bindNodeId).Find(&dataBinding)
 	if err != nil {
 		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
 	}
