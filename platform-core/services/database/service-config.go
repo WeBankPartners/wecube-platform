@@ -487,7 +487,7 @@ func SavePluginConfig(c *gin.Context, reqParam *models.PluginConfigDto) (result 
 		pluginConfigId = guid.CreateGuid()
 	}
 
-	createActions, tmpErr := GetCreatePluginConfigActions(c, pluginConfigId, reqParam)
+	createActions, tmpErr := GetCreatePluginConfigActions(c, pluginConfigId, reqParam, false)
 	if tmpErr != nil {
 		err = fmt.Errorf("get create pluginConfig actions failed: %s", tmpErr.Error())
 		return
@@ -565,21 +565,23 @@ func GetDelPluginConfigActions(c *gin.Context, pluginConfigId string) (resultAct
 	return
 }
 
-func GetCreatePluginConfigActions(c *gin.Context, pluginConfigId string, pluginConfigDto *models.PluginConfigDto) (resultActions []*db.ExecAction, err error) {
+func GetCreatePluginConfigActions(c *gin.Context, pluginConfigId string, pluginConfigDto *models.PluginConfigDto, isImportRequest bool) (resultActions []*db.ExecAction, err error) {
 	resultActions = []*db.ExecAction{}
 
 	pluginConfigDto.Id = pluginConfigId
-	tmpPackageEntityStr := strings.TrimSuffix(pluginConfigDto.TargetEntityWithFilterRule, pluginConfigDto.FilterRule)
-	if tmpPackageEntityStr != "" {
-		tmpPackageEntitySlice := strings.Split(tmpPackageEntityStr, ":")
-		if len(tmpPackageEntitySlice) > 0 {
-			pluginConfigDto.TargetPackage = tmpPackageEntitySlice[0]
+	if !isImportRequest {
+		tmpPackageEntityStr := strings.TrimSuffix(pluginConfigDto.TargetEntityWithFilterRule, pluginConfigDto.FilterRule)
+		if tmpPackageEntityStr != "" {
+			tmpPackageEntitySlice := strings.Split(tmpPackageEntityStr, ":")
+			if len(tmpPackageEntitySlice) > 0 {
+				pluginConfigDto.TargetPackage = tmpPackageEntitySlice[0]
+			}
+			if len(tmpPackageEntitySlice) > 1 {
+				pluginConfigDto.TargetEntity = tmpPackageEntitySlice[1]
+			}
 		}
-		if len(tmpPackageEntitySlice) > 1 {
-			pluginConfigDto.TargetEntity = tmpPackageEntitySlice[1]
-		}
+		pluginConfigDto.TargetEntityFilterRule = pluginConfigDto.FilterRule
 	}
-	pluginConfigDto.TargetEntityFilterRule = pluginConfigDto.FilterRule
 
 	// handle pluginConfig
 	pluginConfigData := pluginConfigDto.PluginConfigs
@@ -808,5 +810,137 @@ func enrichPluginConfigInterfaces(c *gin.Context, pluginConfigQueryObjList []*mo
 			pluginConfigDto.Interfaces = pluginCfgInterfaces
 		}
 	}
+	return
+}
+
+func ImportPluginConfigs(c *gin.Context, pluginPackageId string, packagePluginsXmlData *models.PackagePluginsXML) (result *models.PluginConfigDto, err error) {
+	// validate pluginPackageId
+	pluginPackageData := &models.PluginPackages{}
+	var exists bool
+	exists, err = db.MysqlEngine.Context(c).Table(models.TableNamePluginPackages).
+		Where("id = ?", pluginPackageId).
+		Get(pluginPackageData)
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
+		return
+	}
+	if !exists {
+		err = fmt.Errorf("pluginPackageId: %s is invalid", pluginPackageId)
+		return
+	}
+
+	// get save plugin config list
+	savePluginConfigList := getImportPluginConfigData(pluginPackageId, packagePluginsXmlData)
+	var actions []*db.ExecAction
+	for i := range savePluginConfigList {
+		curPluginConfigId := guid.CreateGuid()
+		curCreationActions, tmpErr := GetCreatePluginConfigActions(c, curPluginConfigId, savePluginConfigList[i], true)
+		if tmpErr != nil {
+			err = fmt.Errorf("get create pluginConfig actions failed: %s", tmpErr.Error())
+			return
+		}
+		actions = append(actions, curCreationActions...)
+	}
+
+	// handle system parameters
+	// todo
+
+	err = db.Transaction(actions, c)
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseExecuteError, err)
+		return
+	}
+	return
+}
+
+func getImportPluginConfigData(pluginPackageId string, packagePluginsXmlData *models.PackagePluginsXML) (result []*models.PluginConfigDto) {
+	savePluginConfigList := []*models.PluginConfigDto{}
+	for i := range packagePluginsXmlData.Plugins.Plugin {
+		pluginInfo := packagePluginsXmlData.Plugins.Plugin[i]
+		pluginCfg := &models.PluginConfigs{
+			PluginPackageId:        pluginPackageId,
+			Name:                   pluginInfo.Name,
+			TargetPackage:          pluginInfo.TargetPackage,
+			TargetEntity:           pluginInfo.TargetEntity,
+			TargetEntityFilterRule: pluginInfo.TargetEntityFilterRule,
+			RegisterName:           pluginInfo.RegisterName,
+			Status:                 pluginInfo.Status,
+		}
+
+		// handle interfaces
+		pluginCfgInterfaceList := []*models.PluginConfigInterfaces{}
+		for ii := range pluginInfo.Interface {
+			interfaceInfo := pluginInfo.Interface[ii]
+			pluginCfgInterface := &models.PluginConfigInterfaces{
+				Action:            interfaceInfo.Action,
+				Path:              interfaceInfo.Path,
+				HttpMethod:        interfaceInfo.HttpMethod,
+				IsAsyncProcessing: interfaceInfo.IsAsyncProcessing,
+				Type:              interfaceInfo.Type,
+				FilterRule:        interfaceInfo.FilterRule,
+			}
+
+			// handle interfaces parameters
+			// handle input params
+			inputParamList := []*models.PluginConfigInterfaceParameters{}
+			for iii := range interfaceInfo.InputParameters.Parameter {
+				inputParamInfo := &interfaceInfo.InputParameters.Parameter[iii]
+				inputParam := &models.PluginConfigInterfaceParameters{
+					DataType:                  inputParamInfo.Datatype,
+					MappingType:               inputParamInfo.MappingType,
+					MappingEntityExpression:   inputParamInfo.MappingEntityExpression,
+					Required:                  inputParamInfo.Required,
+					SensitiveData:             inputParamInfo.SensitiveData,
+					MappingSystemVariableName: inputParamInfo.MappingSystemVariableName,
+				}
+				inputParamList = append(inputParamList, inputParam)
+			}
+			pluginCfgInterface.InputParameters = inputParamList
+
+			// handle output params
+			outputParamList := []*models.PluginConfigInterfaceParameters{}
+			for iii := range interfaceInfo.OutputParameters.Parameter {
+				outputParamInfo := &interfaceInfo.OutputParameters.Parameter[iii]
+				outputParam := &models.PluginConfigInterfaceParameters{
+					DataType:                outputParamInfo.Datatype,
+					MappingType:             outputParamInfo.MappingType,
+					MappingEntityExpression: outputParamInfo.MappingEntityExpression,
+					SensitiveData:           outputParamInfo.SensitiveData,
+				}
+				outputParamList = append(outputParamList, outputParam)
+			}
+			pluginCfgInterface.OutputParameters = outputParamList
+
+			pluginCfgInterfaceList = append(pluginCfgInterfaceList, pluginCfgInterface)
+		}
+		pluginCfg.Interfaces = pluginCfgInterfaceList
+
+		// handle permission roles
+		pluginCfgPermissionRoleData := &models.PermissionRoleData{MGMT: []string{}, USE: []string{}}
+		roleBindsList := pluginInfo.RoleBinds.RoleBind
+		MGMTRoleNameMap := make(map[string]struct{})
+		USERoleNameMap := make(map[string]struct{})
+		for j := range roleBindsList {
+			roleInfo := &roleBindsList[j]
+			if roleInfo.Permission == models.PermissionTypeMGMT {
+				if _, isExisted := MGMTRoleNameMap[roleInfo.RoleName]; !isExisted {
+					MGMTRoleNameMap[roleInfo.RoleName] = struct{}{}
+					pluginCfgPermissionRoleData.MGMT = append(pluginCfgPermissionRoleData.MGMT, roleInfo.RoleName)
+				}
+			} else if roleInfo.Permission == models.PermissionTypeUSE {
+				if _, isExisted := USERoleNameMap[roleInfo.RoleName]; !isExisted {
+					USERoleNameMap[roleInfo.RoleName] = struct{}{}
+					pluginCfgPermissionRoleData.USE = append(pluginCfgPermissionRoleData.USE, roleInfo.RoleName)
+				}
+			}
+		}
+
+		savePluginCfgData := &models.PluginConfigDto{
+			PluginConfigs:    *pluginCfg,
+			PermissionToRole: pluginCfgPermissionRoleData,
+		}
+		savePluginConfigList = append(savePluginConfigList, savePluginCfgData)
+	}
+	result = savePluginConfigList
 	return
 }
