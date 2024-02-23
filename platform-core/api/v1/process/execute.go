@@ -155,24 +155,29 @@ func ProcDefPreview(c *gin.Context) {
 			}
 			log.Logger.Debug("nodeData", log.String("node", node.NodeId), log.JsonObj("data", nodeDataList))
 			for _, nodeDataObj := range nodeDataList {
-				tmpPreviewRow := models.ProcDataPreview{
-					EntityDataId:   nodeDataObj.DataId,
-					EntityTypeId:   fmt.Sprintf("%s:%s", nodeDataObj.PackageName, nodeDataObj.EntityName),
-					ProcDefId:      rootPreviewRow.ProcDefId,
-					BindType:       "taskNode",
-					IsBound:        true,
-					ProcSessionId:  result.ProcessSessionId,
-					EntityDataName: nodeDataObj.DisplayName,
-					FullDataId:     nodeDataObj.FullDataId,
-					ProcDefNodeId:  node.NodeId,
-					OrderedNo:      node.OrderedNo,
-					CreatedBy:      operator,
-					CreatedTime:    nowTime,
+				if nodeDataObj.LastFlag {
+					tmpPreviewRow := models.ProcDataPreview{
+						EntityDataId:   nodeDataObj.DataId,
+						EntityTypeId:   fmt.Sprintf("%s:%s", nodeDataObj.PackageName, nodeDataObj.EntityName),
+						ProcDefId:      rootPreviewRow.ProcDefId,
+						BindType:       "taskNode",
+						IsBound:        true,
+						ProcSessionId:  result.ProcessSessionId,
+						EntityDataName: nodeDataObj.DisplayName,
+						FullDataId:     nodeDataObj.FullDataId,
+						ProcDefNodeId:  node.NodeId,
+						OrderedNo:      node.OrderedNo,
+						CreatedBy:      operator,
+						CreatedTime:    nowTime,
+					}
+					previewRows = append(previewRows, &tmpPreviewRow)
 				}
-				previewRows = append(previewRows, &tmpPreviewRow)
-				if _, ok := entityNodeMap[nodeDataObj.Id]; !ok {
+				if existEntityNodeObj, ok := entityNodeMap[nodeDataObj.Id]; !ok {
 					entityNodeMap[nodeDataObj.Id] = nodeDataObj
 					result.EntityTreeNodes = append(result.EntityTreeNodes, nodeDataObj)
+				} else {
+					existEntityNodeObj.PreviousIds = append(existEntityNodeObj.PreviousIds, nodeDataObj.PreviousIds...)
+					existEntityNodeObj.SucceedingIds = append(existEntityNodeObj.SucceedingIds, nodeDataObj.SucceedingIds...)
 				}
 			}
 		}
@@ -422,4 +427,20 @@ func ProcInsNodeRetry(c *gin.Context) {
 	}
 	go workflow.HandleProOperation(&operationObj)
 	middleware.ReturnSuccess(c)
+}
+
+func ProcEntityDataQuery(c *gin.Context) {
+	packageName := c.Param("pluginPackageId")
+	entityName := c.Param("entityName")
+	var param models.ProcEntityDataQueryParam
+	if err := c.ShouldBindJSON(&param); err != nil {
+		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, err))
+		return
+	}
+	result, err := remote.RequestPluginModelData(c, packageName, entityName, remote.GetToken(), param.AdditionalFilters)
+	if err != nil {
+		middleware.ReturnError(c, err)
+	} else {
+		middleware.ReturnData(c, result)
+	}
 }
