@@ -322,3 +322,8 @@ func DistinctStringList(input, excludeList []string) (output []string) {
 	}
 	return
 }
+
+type ProcEntityDataQueryParam struct {
+	AdditionalFilters []*EntityQueryObj `json:"additionalFilters"`
+	ProcInstId        string            `json:"procInstId"`
+}
