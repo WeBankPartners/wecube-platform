@@ -2,7 +2,6 @@ package models
 
 import (
 	"fmt"
-	"strings"
 	"time"
 )
 
@@ -66,6 +65,7 @@ type ProcPreviewEntityNode struct {
 	FullDataId    string   `json:"fullDataId"`
 	PreviousIds   []string `json:"previousIds"`
 	SucceedingIds []string `json:"succeedingIds"`
+	LastFlag      bool     `json:"-"`
 }
 
 type ProcPreviewData struct {
@@ -94,21 +94,49 @@ func (p *ProcPreviewData) AnalyzeRefIds() {
 	nodeSucceedingMap := make(map[string][]string)
 	nodeIdMap := make(map[string]string)
 	for _, v := range p.EntityTreeNodes {
-		nodePreviousMap[v.DataId] = []string{}
-		nodeSucceedingMap[v.DataId] = []string{}
-		nodeIdMap[v.DataId] = v.Id
-	}
-	for _, v := range p.EntityTreeNodes {
-		for _, subFullDataId := range strings.Split(v.FullDataId, "::") {
-			if subFullDataId == "" || subFullDataId == v.DataId {
-				continue
+		for _, preId := range v.PreviousIds {
+			if existPre, ok := nodePreviousMap[v.DataId]; ok {
+				nodePreviousMap[v.DataId] = append(existPre, preId)
+			} else {
+				nodePreviousMap[v.DataId] = []string{preId}
 			}
-			if existList, ok := nodeSucceedingMap[subFullDataId]; ok {
-				nodeSucceedingMap[subFullDataId] = append(existList, v.DataId)
-				nodePreviousMap[v.DataId] = append(nodePreviousMap[v.DataId], subFullDataId)
+			if existSuc, ok := nodeSucceedingMap[preId]; ok {
+				nodeSucceedingMap[preId] = append(existSuc, v.DataId)
+			} else {
+				nodeSucceedingMap[preId] = []string{v.DataId}
+			}
+		}
+		for _, sucId := range v.SucceedingIds {
+			if existSuc, ok := nodeSucceedingMap[v.DataId]; ok {
+				nodeSucceedingMap[v.DataId] = append(existSuc, sucId)
+			} else {
+				nodeSucceedingMap[v.DataId] = []string{sucId}
+			}
+			if existPre, ok := nodePreviousMap[sucId]; ok {
+				nodePreviousMap[sucId] = append(existPre, v.DataId)
+			} else {
+				nodePreviousMap[sucId] = []string{v.DataId}
 			}
 		}
 	}
+	for _, v := range p.EntityTreeNodes {
+		nodePreviousMap[v.DataId] = DistinctStringList(nodePreviousMap[v.DataId], []string{v.DataId})
+		nodeSucceedingMap[v.DataId] = DistinctStringList(nodeSucceedingMap[v.DataId], []string{v.DataId})
+		nodeIdMap[v.DataId] = v.Id
+		v.PreviousIds = []string{}
+		v.SucceedingIds = []string{}
+	}
+	//for _, v := range p.EntityTreeNodes {
+	//	for _, subFullDataId := range strings.Split(v.FullDataId, "::") {
+	//		if subFullDataId == "" || subFullDataId == v.DataId {
+	//			continue
+	//		}
+	//		if existList, ok := nodeSucceedingMap[subFullDataId]; ok {
+	//			nodeSucceedingMap[subFullDataId] = append(existList, v.DataId)
+	//			nodePreviousMap[v.DataId] = append(nodePreviousMap[v.DataId], subFullDataId)
+	//		}
+	//	}
+	//}
 	for _, v := range p.EntityTreeNodes {
 		for _, sucId := range nodeSucceedingMap[v.DataId] {
 			v.SucceedingIds = append(v.SucceedingIds, nodeIdMap[sucId])
@@ -276,4 +304,21 @@ type ProcInsOperationParam struct {
 	Act        string `json:"act"`
 	ProcInstId string `json:"procInstId"`
 	NodeInstId string `json:"nodeInstId"`
+}
+
+func DistinctStringList(input, excludeList []string) (output []string) {
+	if len(input) == 0 {
+		return
+	}
+	existMap := make(map[string]int)
+	for _, v := range excludeList {
+		existMap[v] = 1
+	}
+	for _, v := range input {
+		if _, ok := existMap[v]; !ok {
+			output = append(output, v)
+			existMap[v] = 1
+		}
+	}
+	return
 }
