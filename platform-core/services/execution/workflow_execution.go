@@ -142,7 +142,7 @@ func DoWorkflowAutoJob(ctx context.Context, procRunNodeId, continueToken string)
 		return
 	}
 	if procDefNode.DynamicBind {
-		dataBindings, err = database.GetDynamicBindNodeData(ctx, procInsNode.Id, procDefNode.ProcDefId, procDefNode.BindNodeId)
+		dataBindings, err = database.GetDynamicBindNodeData(ctx, procInsNode.ProcInsId, procDefNode.ProcDefId, procDefNode.BindNodeId)
 	}
 	if len(dataBindings) == 0 {
 		log.Logger.Warn("auto job return with empty binding data", log.String("procIns", procInsNode.ProcInsId), log.String("procInsNode", procInsNode.Id))
@@ -226,7 +226,7 @@ func DoWorkflowHumanJob(ctx context.Context, procRunNodeId string) (err error) {
 		return
 	}
 	if procDefNode.DynamicBind {
-		dataBindings, err = database.GetDynamicBindNodeData(ctx, procInsNode.Id, procDefNode.ProcDefId, procDefNode.BindNodeId)
+		dataBindings, err = database.GetDynamicBindNodeData(ctx, procInsNode.ProcInsId, procDefNode.ProcDefId, procDefNode.BindNodeId)
 	}
 	pluginInterface, getIntErr := database.GetLastEnablePluginInterface(ctx, procDefNode.ServiceName)
 	if getIntErr != nil {
