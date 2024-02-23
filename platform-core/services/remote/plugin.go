@@ -188,7 +188,7 @@ func QueryPluginData(ctx context.Context, exprList []*models.ExpressionObj, filt
 				tmpFilters = append(tmpFilters, &models.EntityQueryObj{AttrName: exprObj.RightJoinColumn, Op: "in", Condition: idFilterList})
 			}
 		}
-		result, err = requestPluginModelData(ctx, exprObj.Package, exprObj.Entity, token, tmpFilters)
+		result, err = RequestPluginModelData(ctx, exprObj.Package, exprObj.Entity, token, tmpFilters)
 		if err != nil {
 			break
 		}
@@ -246,7 +246,7 @@ func QueryPluginFullData(ctx context.Context, exprList []*models.ExpressionObj, 
 				tmpFilters = append(tmpFilters, &models.EntityQueryObj{AttrName: exprObj.RightJoinColumn, Op: "in", Condition: idFilterList})
 			}
 		}
-		lastQueryResult, lastErr := requestPluginModelData(ctx, exprObj.Package, exprObj.Entity, token, tmpFilters)
+		lastQueryResult, lastErr := RequestPluginModelData(ctx, exprObj.Package, exprObj.Entity, token, tmpFilters)
 		if lastErr != nil {
 			err = lastErr
 			break
@@ -343,7 +343,7 @@ func ExtractExpressionResultColumn(exprList []*models.ExpressionObj, exprResult 
 	return
 }
 
-func requestPluginModelData(ctx context.Context, packageName, entity, token string, filters []*models.EntityQueryObj) (result []map[string]interface{}, err error) {
+func RequestPluginModelData(ctx context.Context, packageName, entity, token string, filters []*models.EntityQueryObj) (result []map[string]interface{}, err error) {
 	queryParam := models.EntityQueryParam{AdditionalFilters: filters}
 	postBytes, _ := json.Marshal(queryParam)
 	uri := fmt.Sprintf("%s/%s/entities/%s/query", models.Config.Gateway.Url, packageName, entity)

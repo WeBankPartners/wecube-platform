@@ -428,3 +428,19 @@ func ProcInsNodeRetry(c *gin.Context) {
 	go workflow.HandleProOperation(&operationObj)
 	middleware.ReturnSuccess(c)
 }
+
+func ProcEntityDataQuery(c *gin.Context) {
+	packageName := c.Param("pluginPackageId")
+	entityName := c.Param("entityName")
+	var param models.ProcEntityDataQueryParam
+	if err := c.ShouldBindJSON(&param); err != nil {
+		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, err))
+		return
+	}
+	result, err := remote.RequestPluginModelData(c, packageName, entityName, remote.GetToken(), param.AdditionalFilters)
+	if err != nil {
+		middleware.ReturnError(c, err)
+	} else {
+		middleware.ReturnData(c, result)
+	}
+}
