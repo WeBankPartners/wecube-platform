@@ -688,7 +688,7 @@ func GetProcExecNodeData(ctx context.Context, procRunNodeId string) (procInsNode
 		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
 		return
 	}
-	err = db.MysqlEngine.Context(ctx).SQL("select * from proc_data_binding where proc_ins_node_id=?", procInsNode.Id).Find(&dataBinding)
+	err = db.MysqlEngine.Context(ctx).SQL("select * from proc_data_binding where proc_ins_node_id=? and bind_flag=1", procInsNode.Id).Find(&dataBinding)
 	if err != nil {
 		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
 		return
@@ -697,7 +697,7 @@ func GetProcExecNodeData(ctx context.Context, procRunNodeId string) (procInsNode
 }
 
 func GetDynamicBindNodeData(ctx context.Context, procInsId, procDefId, bindNodeId string) (dataBinding []*models.ProcDataBinding, err error) {
-	err = db.MysqlEngine.Context(ctx).SQL("select * from proc_data_binding where proc_ins_id=? and proc_def_node_id in (select id from proc_def_node where proc_def_id=? and node_id=?)", procInsId, procDefId, bindNodeId).Find(&dataBinding)
+	err = db.MysqlEngine.Context(ctx).SQL("select * from proc_data_binding where proc_ins_id=? and bind_flag=1 and proc_def_node_id in (select id from proc_def_node where proc_def_id=? and node_id=?)", procInsId, procDefId, bindNodeId).Find(&dataBinding)
 	if err != nil {
 		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
 	}
