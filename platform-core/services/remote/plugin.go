@@ -200,6 +200,9 @@ func QueryPluginFullData(ctx context.Context, exprList []*models.ExpressionObj, 
 	dataFullIdMap := make(map[string]string)
 	dataFullIdMap[rootEntityNode.DataId] = rootEntityNode.FullDataId
 	var tmpQueryResult []map[string]interface{}
+	nodePreviousMap := make(map[string][]string)
+	nodeSucceedingMap := make(map[string][]string)
+	exprLastIndex := len(exprList) - 1
 	for i, exprObj := range exprList {
 		tmpFilters := []*models.EntityQueryObj{}
 		if exprObj.Filters != nil {
@@ -252,17 +255,26 @@ func QueryPluginFullData(ctx context.Context, exprList []*models.ExpressionObj, 
 		if i > rootFilter.Index && len(lastQueryResult) > 0 {
 			for _, rowData := range lastQueryResult {
 				rowDataId := rowData["id"].(string)
+				rowDataNode := &models.ProcPreviewEntityNode{}
 				if _, existFlag := dataFullIdMap[rowDataId]; !existFlag {
-					rowDataNode := models.ProcPreviewEntityNode{}
 					rowDataNode.Parse(exprObj.Package, exprObj.Entity, rowData)
-					resultNodeList = append(resultNodeList, &rowDataNode)
-				} else {
-					continue
+					if i == exprLastIndex {
+						rowDataNode.LastFlag = true
+					}
+					resultNodeList = append(resultNodeList, rowDataNode)
 				}
 				if exprObj.LeftJoinColumn != "" {
 					log.Logger.Debug("QueryPluginFullData handle row,LeftJoinColumn", log.String("id", rowDataId), log.String("LeftJoinColumn", exprObj.LeftJoinColumn))
 					if leftMapDataId, ok := tmpLeftDataMap[rowDataId]; ok {
 						dataFullIdMap[rowDataId] = dataFullIdMap[leftMapDataId] + "::" + rowDataId
+						if existPreList, existPreKey := nodePreviousMap[rowDataId]; existPreKey {
+							nodePreviousMap[rowDataId] = append(existPreList, leftMapDataId)
+						} else {
+							nodePreviousMap[rowDataId] = []string{leftMapDataId}
+						}
+						if existSucList, existSucKey := nodeSucceedingMap[leftMapDataId]; existSucKey {
+							nodeSucceedingMap[leftMapDataId] = append(existSucList, rowDataId)
+						}
 					} else {
 						dataFullIdMap[rowDataId] = rowDataId
 					}
@@ -272,15 +284,25 @@ func QueryPluginFullData(ctx context.Context, exprList []*models.ExpressionObj, 
 					if matchAttrData, ok := rowData[exprObj.RightJoinColumn]; ok {
 						attrIdList := getInterfaceStringList(matchAttrData)
 						tmpMatchRightFullDataId := ""
+						tmpMatchAttrId := ""
 						for _, tmpAttrId := range attrIdList {
 							if matchInAttr, existFlag := dataFullIdMap[tmpAttrId]; existFlag {
 								tmpMatchRightFullDataId = matchInAttr
+								tmpMatchAttrId = tmpAttrId
 								break
 							}
 						}
 						log.Logger.Debug("QueryPluginFullData handle row,RightJoinColumn2", log.StringList("attrIdList", attrIdList), log.String("tmpMatchRightFullDataId", tmpMatchRightFullDataId))
 						if tmpMatchRightFullDataId != "" {
 							dataFullIdMap[rowDataId] = tmpMatchRightFullDataId + "::" + rowDataId
+							if existPreList, existPreKey := nodePreviousMap[rowDataId]; existPreKey {
+								nodePreviousMap[rowDataId] = append(existPreList, tmpMatchAttrId)
+							} else {
+								nodePreviousMap[rowDataId] = []string{tmpMatchAttrId}
+							}
+							if existSucList, existSucKey := nodeSucceedingMap[tmpMatchAttrId]; existSucKey {
+								nodeSucceedingMap[tmpMatchAttrId] = append(existSucList, rowDataId)
+							}
 						} else {
 							dataFullIdMap[rowDataId] = rowDataId
 						}
@@ -295,6 +317,12 @@ func QueryPluginFullData(ctx context.Context, exprList []*models.ExpressionObj, 
 	}
 	for _, v := range resultNodeList {
 		v.FullDataId = dataFullIdMap[v.DataId]
+		if preList, ok := nodePreviousMap[v.DataId]; ok {
+			v.PreviousIds = preList
+		}
+		if sucList, ok := nodeSucceedingMap[v.DataId]; ok {
+			v.SucceedingIds = sucList
+		}
 	}
 	return
 }
