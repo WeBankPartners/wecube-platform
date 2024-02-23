@@ -115,7 +115,11 @@ func AnalyzeExpression(express string) (result []*models.ExpressionObj, err erro
 		for len(ci) > 0 && ci[0] == 123 {
 			if rIdx := strings.Index(ci, "}"); rIdx > 0 {
 				tmpFilterList := strings.Split(ci[1:rIdx], " ")
-				tmpFilter := models.Filter{Name: tmpFilterList[0], Operator: tmpFilterList[1], Value: tmpFilterList[2]}
+				tmpFilterVal := tmpFilterList[2]
+				if strings.HasPrefix(tmpFilterVal, "'") {
+					tmpFilterVal = tmpFilterVal[1 : len(tmpFilterVal)-1]
+				}
+				tmpFilter := models.Filter{Name: tmpFilterList[0], Operator: tmpFilterList[1], Value: tmpFilterVal}
 				for fpIndex, fpValue := range filterParams {
 					tmpFilter.Value = strings.ReplaceAll(tmpFilter.Value, fmt.Sprintf("$%d", fpIndex), fpValue)
 				}
