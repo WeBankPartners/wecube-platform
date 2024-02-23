@@ -747,3 +747,74 @@ type PluginConfigsBatchEnable struct {
 	TargetEntityWithFilterRule string                      `json:"targetEntityWithFilterRule"`
 	Title                      string                      `json:"title"`
 }
+
+type PackagePluginsXML struct {
+	XMLName xml.Name `xml:"package"`
+	Text    string   `xml:",chardata"`
+	Name    string   `xml:"name,attr"`
+	Version string   `xml:"version,attr"`
+	Plugins struct {
+		Text   string `xml:",chardata"`
+		Plugin []struct {
+			Text                   string `xml:",chardata"`
+			Name                   string `xml:"name,attr"`
+			TargetPackage          string `xml:"targetPackage,attr"`
+			TargetEntity           string `xml:"targetEntity,attr"`
+			TargetEntityFilterRule string `xml:"targetEntityFilterRule,attr"`
+			RegisterName           string `xml:"registerName,attr"`
+			Status                 string `xml:"status,attr"`
+			Interface              []struct {
+				Text              string `xml:",chardata"`
+				Action            string `xml:"action,attr"`
+				Path              string `xml:"path,attr"`
+				HttpMethod        string `xml:"httpMethod,attr"`
+				IsAsyncProcessing string `xml:"isAsyncProcessing,attr"`
+				Type              string `xml:"type,attr"`
+				FilterRule        string `xml:"filterRule,attr"`
+				InputParameters   struct {
+					Text      string `xml:",chardata"`
+					Parameter []struct {
+						Text                      string `xml:",chardata"`
+						Datatype                  string `xml:"datatype,attr"`
+						MappingType               string `xml:"mappingType,attr"`
+						MappingEntityExpression   string `xml:"mappingEntityExpression,attr"`
+						Required                  string `xml:"required,attr"`
+						SensitiveData             string `xml:"sensitiveData,attr"`
+						MappingSystemVariableName string `xml:"mappingSystemVariableName,attr"`
+					} `xml:"parameter"`
+				} `xml:"inputParameters"`
+				OutputParameters struct {
+					Text      string `xml:",chardata"`
+					Parameter []struct {
+						Text                    string `xml:",chardata"`
+						Datatype                string `xml:"datatype,attr"`
+						MappingType             string `xml:"mappingType,attr"`
+						SensitiveData           string `xml:"sensitiveData,attr"`
+						MappingEntityExpression string `xml:"mappingEntityExpression,attr"`
+					} `xml:"parameter"`
+				} `xml:"outputParameters"`
+			} `xml:"interface"`
+			RoleBinds struct {
+				Text     string `xml:",chardata"`
+				RoleBind []struct {
+					Text       string `xml:",chardata"`
+					Permission string `xml:"permission,attr"`
+					RoleName   string `xml:"roleName,attr"`
+				} `xml:"roleBind"`
+			} `xml:"roleBinds"`
+		} `xml:"plugin"`
+	} `xml:"plugins"`
+	SystemParameters struct {
+		Text            string `xml:",chardata"`
+		SystemParameter []struct {
+			Text         string `xml:",chardata"`
+			Name         string `xml:"name,attr"`
+			ScopeType    string `xml:"scopeType,attr"`
+			DefaultValue string `xml:"defaultValue,attr"`
+			Value        string `xml:"value,attr"`
+			Status       string `xml:"status,attr"`
+			Source       string `xml:"source,attr"`
+			PackageName  string `xml:"packageName,attr"`
+		} `xml:"systemParameter"`
+	} `xml:"systemParameters"`
+}
