@@ -112,7 +112,7 @@ func AnalyzeExpression(express string) (result []*models.ExpressionObj, err erro
 		if eso.Entity == "" {
 			eso.Entity = ci
 		}
-		for ci[0] == 123 {
+		for len(ci) > 0 && ci[0] == 123 {
 			if rIdx := strings.Index(ci, "}"); rIdx > 0 {
 				tmpFilterList := strings.Split(ci[1:rIdx], " ")
 				tmpFilter := models.Filter{Name: tmpFilterList[0], Operator: tmpFilterList[1], Value: tmpFilterList[2]}
@@ -129,7 +129,7 @@ func AnalyzeExpression(express string) (result []*models.ExpressionObj, err erro
 		if err != nil {
 			return
 		}
-		if ci[0] == 46 {
+		if len(ci) > 0 && ci[0] == 46 {
 			if i == ciListLen-1 {
 				eso.ResultColumn = ci[1:]
 			}
