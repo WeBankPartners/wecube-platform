@@ -333,7 +333,7 @@ func GetProcPreviewEntityNode(ctx context.Context, procInsId string) (result *mo
 	}
 	result = &models.ProcPreviewData{ProcessSessionId: sessionId, EntityTreeNodes: []*models.ProcPreviewEntityNode{}}
 	var graphNodeRows []*models.ProcInsGraphNode
-	err = db.MysqlEngine.Context(ctx).SQL("select data_id,display_name,entity_name,graph_node_id,pkg_name,prev_ids,succ_ids,full_data_id from proc_ins_graph_node where proc_session_id=?", sessionId).Find(&graphNodeRows)
+	err = db.MysqlEngine.Context(ctx).SQL("select data_id,display_name,entity_name,graph_node_id,pkg_name,entity_name,prev_ids,succ_ids,full_data_id from proc_ins_graph_node where proc_session_id=?", sessionId).Find(&graphNodeRows)
 	if err != nil {
 		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
 		return
@@ -344,6 +344,7 @@ func GetProcPreviewEntityNode(ctx context.Context, procInsId string) (result *mo
 			DataId:        row.DataId,
 			DisplayName:   row.DisplayName,
 			PackageName:   row.PkgName,
+			EntityName:    row.EntityName,
 			FullDataId:    row.FullDataId,
 			PreviousIds:   []string{},
 			SucceedingIds: []string{},
