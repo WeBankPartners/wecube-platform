@@ -302,7 +302,9 @@ func CallDynamicFormReq(ctx context.Context, param *models.ProcCallPluginService
 	// 构造输入参数
 	for _, paramObj := range param.PluginInterface.InputParameters {
 		if paramObj.Name == "taskFormInput" {
+			// 请求taskman拿表单结构
 
+			// 拿到结构后组表单数据赋值给taskFormInput
 		}
 	}
 	inputParamDatas, errHandle := handleInputData(ctx, subsysToken, param.ContinueToken, param.EntityInstances, param.PluginInterface.InputParameters, rootExpr, param.InputConstantMap, param.InputParamContext, &procInsNodeReq)
