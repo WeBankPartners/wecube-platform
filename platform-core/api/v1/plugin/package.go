@@ -197,11 +197,6 @@ func PullOnliePackage(c *gin.Context) {
 		middleware.ReturnData(c, models.PullOnliePackageResponse{KeyName: reqParam.KeyName, RequestId: pullId, State: "InProgress"})
 	}
 	go doPullPackageBackground(c, tmpFile.Name(), pullId)
-	// 清理
-	if tmpFile != nil {
-		tmpFile.Close()
-		os.Remove(tmpFile.Name())
-	}
 }
 
 func doPullPackageBackground(c context.Context, archiveFilePath string, pullId string) {
@@ -213,6 +208,8 @@ func doPullPackageBackground(c context.Context, archiveFilePath string, pullId s
 		// update ok
 		database.UpdatePluginPackagePullReq(c, pullId, pkgId, "Completed", "", "")
 	}
+	// 清理
+	os.Remove(archiveFilePath)
 }
 
 func doUploadPackage(c context.Context, archiveFilePath string) (pluginPkgId string, err error) {
