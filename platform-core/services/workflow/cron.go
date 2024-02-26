@@ -42,11 +42,11 @@ func doScanOperationJob() {
 		return
 	}
 	for _, operation := range operationRows {
-		go handleProOperation(operation)
+		go HandleProOperation(operation)
 	}
 }
 
-func handleProOperation(operation *models.ProcRunOperation) {
+func HandleProOperation(operation *models.ProcRunOperation) {
 	// 尝试抢占
 	execResult, err := db.MysqlEngine.Exec("update proc_run_operation set status='doing',handle_by=?,start_time=? where id=? and status='wait'", instanceHost, time.Now(), operation.Id)
 	if err != nil {
