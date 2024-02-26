@@ -1,6 +1,7 @@
 package models
 
 import (
+	"encoding/json"
 	"fmt"
 	"time"
 )
@@ -285,6 +286,15 @@ type RequestCacheEntityValue struct {
 	SucceedingOids    []string                       `json:"succeedingOids"`
 }
 
+func (r *RequestCacheEntityValue) GetAttrDataValueString() string {
+	dataValue := make(map[string]interface{})
+	for _, v := range r.AttrValues {
+		dataValue[v.AttrName] = v.DataValue
+	}
+	b, _ := json.Marshal(dataValue)
+	return string(b)
+}
+
 type RequestCacheEntityAttrValue struct {
 	DataOid   string      `json:"-"`
 	AttrDefId string      `json:"attrDefId"`
@@ -327,4 +337,57 @@ func DistinctStringList(input, excludeList []string) (output []string) {
 type ProcEntityDataQueryParam struct {
 	AdditionalFilters []*EntityQueryObj `json:"additionalFilters"`
 	ProcInstId        string            `json:"procInstId"`
+}
+
+type TaskMetaResult struct {
+	Status  string             `json:"status"`
+	Message string             `json:"message"`
+	Data    TaskMetaResultData `json:"data"`
+}
+
+type TaskMetaResultData struct {
+	FormMetaId    string                `json:"formMetaId"`
+	FormItemMetas []*TaskMetaResultItem `json:"formItemMetas"`
+}
+
+type TaskMetaResultItem struct {
+	FormItemMetaId string `json:"formItemMetaId"`
+	PackageName    string `json:"packageName"`
+	EntityName     string `json:"entityName"`
+	AttrName       string `json:"attrName"`
+}
+
+type PluginTaskFormDto struct {
+	FormMetaId       string                  `json:"formMetaId"`
+	ProcDefId        string                  `json:"procDefId"`
+	ProcDefKey       string                  `json:"procDefKey"`
+	ProcInstId       int                     `json:"procInstId"`
+	ProcInstKey      string                  `json:"procInstKey"`
+	TaskNodeDefId    string                  `json:"taskNodeDefId"`
+	TaskNodeInstId   int                     `json:"taskNodeInstId"`
+	FormDataEntities []*PluginTaskFormEntity `json:"formDataEntities"`
+}
+
+type PluginTaskFormEntity struct {
+	FormMetaId       string                 `json:"formMetaId"`
+	PackageName      string                 `json:"packageName"`
+	EntityName       string                 `json:"entityName"`
+	Oid              string                 `json:"oid"`
+	EntityDataId     string                 `json:"entityDataId"`
+	FullEntityDataId string                 `json:"fullEntityDataId"`
+	EntityDataState  string                 `json:"entityDataState"`
+	EntityDataOp     string                 `json:"entityDataOp"`
+	BindFlag         string                 `json:"bindFlag"`
+	FormItemValues   []*PluginTaskFormValue `json:"formItemValues"`
+}
+
+type PluginTaskFormValue struct {
+	FormItemMetaId   string      `json:"formItemMetaId"`
+	PackageName      string      `json:"packageName"`
+	EntityName       string      `json:"entityName"`
+	AttrName         string      `json:"attrName"`
+	Oid              string      `json:"oid"`
+	EntityDataId     string      `json:"entityDataId"`
+	FullEntityDataId string      `json:"fullEntityDataId"`
+	AttrValue        interface{} `json:"attrValue"`
 }
