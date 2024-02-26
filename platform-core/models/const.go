@@ -40,6 +40,7 @@ const (
 	TableNamePluginPackages                  = "plugin_packages"
 	TableNamePluginConfigInterfaces          = "plugin_config_interfaces"
 	TableNamePluginConfigInterfaceParameters = "plugin_config_interface_parameters"
+	TableNameSystemVariables                 = "system_variables"
 
 	// batch execution
 	BatchExecTemplateStatusAvailable    = "available"
@@ -50,8 +51,7 @@ const (
 	BatchExecErrorCodeFailed            = "1"
 	BatchExecErrorCodePending           = "2"
 	BatchExecErrorCodeDangerousBlock    = "3"
-
-	DefaultKeepBatchExecDays = 365
+	DefaultKeepBatchExecDays            = 365
 
 	// permission type
 	PermissionTypeMGMT = "MGMT"
@@ -60,6 +60,13 @@ const (
 	// plugin status
 	PluginStatusDisabled = "DISABLED"
 	PluginStatusEnabled  = "ENABLED"
+
+	// id prefix
+	IdPrefixSysVar       = "sys_var_"
+	IdPrefixPluCfgRol    = "plu_cfg_rol_"
+	IdPrefixPluCfg       = "plu_cfg_"
+	IdPrefixPluCfgItf    = "plu_cfg_itf_"
+	IdPrefixPluCfgItfPar = "plu_cfg_itf_par_"
 )
 
 var (

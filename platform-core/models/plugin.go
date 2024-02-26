@@ -748,73 +748,77 @@ type PluginConfigsBatchEnable struct {
 	Title                      string                      `json:"title"`
 }
 
+type ParameterXML struct {
+	Text                      string `xml:",chardata" json:"text,omitempty"`
+	Datatype                  string `xml:"datatype,attr" json:"datatype,omitempty"`
+	MappingType               string `xml:"mappingType,attr" json:"mappingType,omitempty"`
+	MappingEntityExpression   string `xml:"mappingEntityExpression,attr" json:"mappingEntityExpression,omitempty"`
+	Required                  string `xml:"required,attr" json:"required,omitempty"`
+	SensitiveData             string `xml:"sensitiveData,attr" json:"sensitiveData,omitempty"`
+	MappingSystemVariableName string `xml:"mappingSystemVariableName,attr" json:"mappingSystemVariableName,omitempty"`
+}
+
+type InterfaceXML struct {
+	Text              string `xml:",chardata" json:"text,omitempty"`
+	Action            string `xml:"action,attr" json:"action,omitempty"`
+	Path              string `xml:"path,attr" json:"path,omitempty"`
+	HttpMethod        string `xml:"httpMethod,attr" json:"httpMethod,omitempty"`
+	IsAsyncProcessing string `xml:"isAsyncProcessing,attr" json:"isAsyncProcessing,omitempty"`
+	Type              string `xml:"type,attr" json:"type,omitempty"`
+	FilterRule        string `xml:"filterRule,attr" json:"filterRule,omitempty"`
+	InputParameters   struct {
+		Text      string         `xml:",chardata" json:"text,omitempty"`
+		Parameter []ParameterXML `xml:"parameter" json:"parameter,omitempty"`
+	} `xml:"inputParameters" json:"inputParameters,omitempty"`
+	OutputParameters struct {
+		Text      string         `xml:",chardata" json:"text,omitempty"`
+		Parameter []ParameterXML `xml:"parameter" json:"parameter,omitempty"`
+	} `xml:"outputParameters" json:"outputParameters,omitempty"`
+}
+
+type RoleBindXML struct {
+	Text       string `xml:",chardata" json:"text,omitempty"`
+	Permission string `xml:"permission,attr" json:"permission,omitempty"`
+	RoleName   string `xml:"roleName,attr" json:"roleName,omitempty"`
+}
+
+type PluginXML struct {
+	Text                   string         `xml:",chardata" json:"text,omitempty"`
+	Name                   string         `xml:"name,attr" json:"name,omitempty"`
+	TargetPackage          string         `xml:"targetPackage,attr" json:"targetPackage,omitempty"`
+	TargetEntity           string         `xml:"targetEntity,attr" json:"targetEntity,omitempty"`
+	TargetEntityFilterRule string         `xml:"targetEntityFilterRule,attr" json:"targetEntityFilterRule,omitempty"`
+	RegisterName           string         `xml:"registerName,attr" json:"registerName,omitempty"`
+	Status                 string         `xml:"status,attr" json:"status,omitempty"`
+	Interface              []InterfaceXML `xml:"interface" json:"interface,omitempty"`
+	RoleBinds              struct {
+		Text     string        `xml:",chardata" json:"text,omitempty"`
+		RoleBind []RoleBindXML `xml:"roleBind" json:"roleBind,omitempty"`
+	} `xml:"roleBinds" json:"roleBinds,omitempty"`
+}
+
+type SystemParameterXML struct {
+	Text         string `xml:",chardata" json:"text,omitempty"`
+	Name         string `xml:"name,attr" json:"name,omitempty"`
+	ScopeType    string `xml:"scopeType,attr" json:"scopeType,omitempty"`
+	DefaultValue string `xml:"defaultValue,attr" json:"defaultValue,omitempty"`
+	Value        string `xml:"value,attr" json:"value,omitempty"`
+	Status       string `xml:"status,attr" json:"status,omitempty"`
+	Source       string `xml:"source,attr" json:"source,omitempty"`
+	PackageName  string `xml:"packageName,attr" json:"packageName,omitempty"`
+}
+
 type PackagePluginsXML struct {
-	XMLName xml.Name `xml:"package"`
-	Text    string   `xml:",chardata"`
-	Name    string   `xml:"name,attr"`
-	Version string   `xml:"version,attr"`
+	XMLName xml.Name `xml:"package" json:"package,omitempty"`
+	Text    string   `xml:",chardata" json:"text,omitempty"`
+	Name    string   `xml:"name,attr" json:"name,omitempty"`
+	Version string   `xml:"version,attr" json:"version,omitempty"`
 	Plugins struct {
-		Text   string `xml:",chardata"`
-		Plugin []struct {
-			Text                   string `xml:",chardata"`
-			Name                   string `xml:"name,attr"`
-			TargetPackage          string `xml:"targetPackage,attr"`
-			TargetEntity           string `xml:"targetEntity,attr"`
-			TargetEntityFilterRule string `xml:"targetEntityFilterRule,attr"`
-			RegisterName           string `xml:"registerName,attr"`
-			Status                 string `xml:"status,attr"`
-			Interface              []struct {
-				Text              string `xml:",chardata"`
-				Action            string `xml:"action,attr"`
-				Path              string `xml:"path,attr"`
-				HttpMethod        string `xml:"httpMethod,attr"`
-				IsAsyncProcessing string `xml:"isAsyncProcessing,attr"`
-				Type              string `xml:"type,attr"`
-				FilterRule        string `xml:"filterRule,attr"`
-				InputParameters   struct {
-					Text      string `xml:",chardata"`
-					Parameter []struct {
-						Text                      string `xml:",chardata"`
-						Datatype                  string `xml:"datatype,attr"`
-						MappingType               string `xml:"mappingType,attr"`
-						MappingEntityExpression   string `xml:"mappingEntityExpression,attr"`
-						Required                  string `xml:"required,attr"`
-						SensitiveData             string `xml:"sensitiveData,attr"`
-						MappingSystemVariableName string `xml:"mappingSystemVariableName,attr"`
-					} `xml:"parameter"`
-				} `xml:"inputParameters"`
-				OutputParameters struct {
-					Text      string `xml:",chardata"`
-					Parameter []struct {
-						Text                    string `xml:",chardata"`
-						Datatype                string `xml:"datatype,attr"`
-						MappingType             string `xml:"mappingType,attr"`
-						SensitiveData           string `xml:"sensitiveData,attr"`
-						MappingEntityExpression string `xml:"mappingEntityExpression,attr"`
-					} `xml:"parameter"`
-				} `xml:"outputParameters"`
-			} `xml:"interface"`
-			RoleBinds struct {
-				Text     string `xml:",chardata"`
-				RoleBind []struct {
-					Text       string `xml:",chardata"`
-					Permission string `xml:"permission,attr"`
-					RoleName   string `xml:"roleName,attr"`
-				} `xml:"roleBind"`
-			} `xml:"roleBinds"`
-		} `xml:"plugin"`
-	} `xml:"plugins"`
+		Text   string      `xml:",chardata" json:"text,omitempty"`
+		Plugin []PluginXML `xml:"plugin" json:"plugin,omitempty"`
+	} `xml:"plugins" json:"plugins,omitempty"`
 	SystemParameters struct {
-		Text            string `xml:",chardata"`
-		SystemParameter []struct {
-			Text         string `xml:",chardata"`
-			Name         string `xml:"name,attr"`
-			ScopeType    string `xml:"scopeType,attr"`
-			DefaultValue string `xml:"defaultValue,attr"`
-			Value        string `xml:"value,attr"`
-			Status       string `xml:"status,attr"`
-			Source       string `xml:"source,attr"`
-			PackageName  string `xml:"packageName,attr"`
-		} `xml:"systemParameter"`
-	} `xml:"systemParameters"`
+		Text            string               `xml:",chardata" json:"text,omitempty"`
+		SystemParameter []SystemParameterXML `xml:"systemParameter" json:"systemParameter,omitempty"`
+	} `xml:"systemParameters" json:"systemParameters,omitempty"`
 }
