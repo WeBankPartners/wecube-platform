@@ -422,7 +422,7 @@ func (n *WorkNode) doTimeJob() (output string, err error) {
 		err = fmt.Errorf("time node param:%s json unmarshal fail,%s ", n.Input, err.Error())
 		return
 	}
-	if timeConfig.Type != "duration" || timeConfig.Duration <= 0 {
+	if timeConfig.Unit == "" || timeConfig.Duration <= 0 {
 		err = fmt.Errorf("time node param:%s config illegal ", n.Input)
 		return
 	}
