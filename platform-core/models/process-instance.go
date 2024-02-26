@@ -58,17 +58,19 @@ type ProcDataBinding struct {
 }
 
 type ProcIns struct {
-	Id           string    `json:"id" xorm:"id"`                       // 唯一标识
-	ProcDefId    string    `json:"procDefId" xorm:"proc_def_id"`       // 编排定义id
-	ProcDefKey   string    `json:"procDefKey" xorm:"proc_def_key"`     // 编排定义key
-	ProcDefName  string    `json:"procDefName" xorm:"proc_def_name"`   // 编排定义名称
-	Status       string    `json:"status" xorm:"status"`               // 状态->ready(初始化
-	EntityDataId string    `json:"entityDataId" xorm:"entity_data_id"` // 根数据id
-	EntityTypeId string    `json:"entityTypeId" xorm:"entity_type_id"` // 根数据类型
-	CreatedBy    string    `json:"createdBy" xorm:"created_by"`        // 创建人
-	CreatedTime  time.Time `json:"createdTime" xorm:"created_time"`    // 创建时间
-	UpdatedBy    string    `json:"updatedBy" xorm:"updated_by"`        // 更新人
-	UpdatedTime  time.Time `json:"updatedTime" xorm:"updated_time"`    // 更新时间
+	Id             string    `json:"id" xorm:"id"`                           // 唯一标识
+	ProcDefId      string    `json:"procDefId" xorm:"proc_def_id"`           // 编排定义id
+	ProcDefKey     string    `json:"procDefKey" xorm:"proc_def_key"`         // 编排定义key
+	ProcDefName    string    `json:"procDefName" xorm:"proc_def_name"`       // 编排定义名称
+	Status         string    `json:"status" xorm:"status"`                   // 状态->ready(初始化
+	EntityDataId   string    `json:"entityDataId" xorm:"entity_data_id"`     // 根数据id
+	EntityTypeId   string    `json:"entityTypeId" xorm:"entity_type_id"`     // 根数据类型
+	EntityDataName string    `json:"entityDataName" xorm:"entity_data_name"` // 根数据名称
+	ProcSessionId  string    `json:"procSessionId" xorm:"proc_session_id"`   // 试算session
+	CreatedBy      string    `json:"createdBy" xorm:"created_by"`            // 创建人
+	CreatedTime    time.Time `json:"createdTime" xorm:"created_time"`        // 创建时间
+	UpdatedBy      string    `json:"updatedBy" xorm:"updated_by"`            // 更新人
+	UpdatedTime    time.Time `json:"updatedTime" xorm:"updated_time"`        // 更新时间
 }
 
 type ProcInsNode struct {
@@ -118,4 +120,17 @@ type ProcInsNodeReqParam struct {
 	MappingType  string    `json:"mappingType" xorm:"mapping_type"`    // 数据来源
 	CallbackId   string    `json:"callbackId" xorm:"callback_id"`      // 回调id
 	CreatedTime  time.Time `json:"createdTime" xorm:"created_time"`    // 创建时间
+}
+
+type ProcDataCache struct {
+	Id             string    `json:"id" xorm:"id"`                           // 唯一标识
+	ProcInsId      string    `json:"procInsId" xorm:"proc_ins_id"`           // 编排实例id
+	EntityId       string    `json:"entityId" xorm:"entity_id"`              // 编排数据id
+	EntityDataId   string    `json:"entityDataId" xorm:"entity_data_id"`     // 数据id
+	EntityDataName string    `json:"entityDataName" xorm:"entity_data_name"` // 数据名称
+	EntityTypeId   string    `json:"entityTypeId" xorm:"entity_type_id"`     // 数据entity
+	FullDataId     string    `json:"fullDataId" xorm:"full_data_id"`         // 数据全路径
+	DataValue      string    `json:"dataValue" xorm:"data_value"`            // 数据值
+	CreatedTime    time.Time `json:"createdTime" xorm:"created_time"`        // 创建时间
+	UpdatedTime    time.Time `json:"updatedTime" xorm:"updated_time"`        // 更新时间
 }

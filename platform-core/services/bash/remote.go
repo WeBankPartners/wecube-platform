@@ -31,6 +31,10 @@ func RemoteSCP(targetIp, user, pwd, port, localFile, targetPath string) (err err
 	}
 	mkDirCommandString := fmt.Sprintf("sshpass -p '%s' ssh %s@%s -p %s 'mkdir -p %s'", pwd, user, targetIp, port, targetDir)
 	_, err = exec.Command("/bin/bash", "-c", mkDirCommandString).Output()
+	if err != nil {
+		err = fmt.Errorf("scp file,try to mkdir target dir path %s in %s fail,%s ", targetDir, targetIp, err.Error())
+		return
+	}
 	commandString := fmt.Sprintf("sshpass -p '%s' scp -P %s %s %s@%s:%s", pwd, port, localFile, user, targetIp, targetPath)
 	_, err = exec.Command("/bin/bash", "-c", commandString).Output()
 	if err != nil {

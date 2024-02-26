@@ -10,6 +10,7 @@ import (
 	"github.com/WeBankPartners/wecube-platform/platform-core/services/bash"
 	"github.com/WeBankPartners/wecube-platform/platform-core/services/cron"
 	"github.com/WeBankPartners/wecube-platform/platform-core/services/remote"
+	"github.com/WeBankPartners/wecube-platform/platform-core/services/workflow"
 )
 
 func main() {
@@ -28,6 +29,7 @@ func main() {
 	// start cron job
 	cron.SetupCleanUpBatchExecTicker()
 	go bash.InitPluginDockerHostSSH()
+	workflow.StartCronJob()
 	//start http
 	api.InitHttpServer()
 }
