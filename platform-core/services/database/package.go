@@ -145,9 +145,11 @@ func GetPluginRuntimeResources(ctx context.Context, pluginPackageId string) (res
 	return
 }
 
-func UploadPackage(ctx context.Context, registerConfig *models.RegisterXML, withUi, enterprise bool) (err error) {
+func UploadPackage(ctx context.Context, registerConfig *models.RegisterXML, withUi, enterprise bool, pluginPackageId string) (err error) {
 	var actions []*db.ExecAction
-	pluginPackageId := "plugin_" + guid.CreateGuid()
+	if pluginPackageId == "" {
+		pluginPackageId = "plugin_" + guid.CreateGuid()
+	}
 	nowTime := time.Now()
 	edition := models.PluginEditionCommunity
 	if enterprise {
@@ -684,6 +686,97 @@ order by
 	err = db.MysqlEngine.Context(ctx).SQL(sql, pluginPackageName).Find(&result)
 	if err != nil {
 		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
+	}
+	return
+}
+
+func CreatePluginPackagePullReq(ctx context.Context, data *models.PluginArtifactPullReq, userId string) (result *models.PluginArtifactPullReq, err error) {
+	session := db.MysqlEngine.NewSession().Context(ctx)
+	defer session.Close()
+	err = session.Begin()
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseExecuteError, err)
+		return
+	}
+	newId := data.Id
+	if newId == "" {
+		newId = "pluginPull_" + guid.CreateGuid()
+	}
+	newData := &models.PluginArtifactPullReq{
+		Id:          newId,
+		BucketName:  data.BucketName,
+		ErrMsg:      data.ErrMsg,
+		KeyName:     data.KeyName,
+		PkgId:       data.PkgId,
+		State:       data.State,
+		Rev:         data.Rev,
+		TotalSize:   data.TotalSize,
+		CreatedTime: time.Now().Format("2006-01-02 15:04:05"),
+		CreatedBy:   userId,
+		UpdatedTime: time.Now().Format("2006-01-02 15:04:05"),
+		UpdatedBy:   userId,
+	}
+
+	_, err = session.Insert(newData)
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseExecuteError, err)
+		return
+	}
+	err = session.Commit()
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseExecuteError, err)
+		return
+	}
+	return
+}
+
+func UpdatePluginPackagePullReq(ctx context.Context, pullId, pkgId, state, stateMsg, userId string) (err error) {
+	session := db.MysqlEngine.NewSession().Context(ctx)
+	defer session.Close()
+	err = session.Begin()
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseExecuteError, err)
+		return
+	}
+	updateData := make(map[string]interface{})
+	updatedTime := time.Now().Format("2006-01-02 15:04:05")
+	if pkgId != "" {
+		updateData["pkg_id"] = pkgId
+	}
+	if state != "" {
+		updateData["state"] = state
+	}
+	if stateMsg != "" {
+		updateData["err_msg"] = stateMsg
+	}
+	updateData["updated_time"] = updatedTime
+	if userId != "" {
+		updateData["updated_by"] = userId
+	}
+	_, err = session.Table(new(models.PluginArtifactPullReq)).Where("id = ?", pullId).Update(updateData)
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseExecuteError, err)
+		return
+	}
+	err = session.Commit()
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseExecuteError, err)
+		return
+	}
+	return
+}
+
+func GetPluginPackagePullReq(ctx context.Context, pullId string) (result *models.PluginArtifactPullReq, err error) {
+	result = &models.PluginArtifactPullReq{}
+	var exists bool
+	exists, err = db.MysqlEngine.Context(ctx).Table(new(models.PluginArtifactPullReq)).Where("id = ?", pullId).Get(result)
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
+		return
+	}
+	if !exists {
+		result = nil
+		return
 	}
 	return
 }
