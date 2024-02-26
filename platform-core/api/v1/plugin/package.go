@@ -1,9 +1,16 @@
 package plugin
 
 import (
+	"context"
 	"encoding/json"
 	"encoding/xml"
 	"fmt"
+	"os"
+	"regexp"
+	"strconv"
+	"strings"
+	"time"
+
 	"github.com/WeBankPartners/go-common-lib/cipher"
 	"github.com/WeBankPartners/go-common-lib/guid"
 	"github.com/WeBankPartners/wecube-platform/platform-core/api/middleware"
@@ -16,11 +23,6 @@ import (
 	"github.com/WeBankPartners/wecube-platform/platform-core/services/database"
 	"github.com/WeBankPartners/wecube-platform/platform-core/services/remote"
 	"github.com/gin-gonic/gin"
-	"os"
-	"regexp"
-	"strconv"
-	"strings"
-	"time"
 )
 
 // GetPackages 插件列表查询
@@ -145,11 +147,192 @@ func UploadPackage(c *gin.Context) {
 		}
 	}
 	// 写数据库
-	err = database.UploadPackage(c, &registerConfig, withUi, false)
+	err = database.UploadPackage(c, &registerConfig, withUi, false, "")
 	if err != nil {
 		middleware.ReturnError(c, err)
 	} else {
 		middleware.ReturnSuccess(c)
+	}
+}
+
+// ListOnliePackage 获取在线插件列表
+func ListOnliePackage(c *gin.Context) {
+	results, err := remote.GetOnliePluginPackageList(c)
+	if err != nil {
+		middleware.ReturnError(c, err)
+	} else {
+		middleware.ReturnData(c, results)
+	}
+}
+
+// PullOnliePackage 注册在线插件
+func PullOnliePackage(c *gin.Context) {
+	reqParam := models.PullOnliePackageRequest{}
+	if err := c.ShouldBindJSON(&reqParam); err != nil {
+		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, err))
+		return
+	}
+	pullId := "pluginPull_" + guid.CreateGuid()
+	tmpFile, err := remote.GetOnliePluginPackageFile(c, reqParam.KeyName)
+	if err != nil {
+		middleware.ReturnError(c, err)
+		return
+	} else {
+		tmpFileSize := 0
+		if tmpFile != nil {
+			// tmpFile.Seek(2, 0)
+			fileInfo, _ := tmpFile.Stat()
+			if fileInfo != nil {
+				tmpFileSize = int(fileInfo.Size())
+			}
+			// tmpFile.Seek(0, 0)
+		}
+
+		database.CreatePluginPackagePullReq(c, &models.PluginArtifactPullReq{
+			Id:        pullId,
+			KeyName:   reqParam.KeyName,
+			State:     "InProgress",
+			TotalSize: tmpFileSize,
+		}, c.GetString(models.ContextUserId))
+		middleware.ReturnData(c, models.PullOnliePackageResponse{KeyName: reqParam.KeyName, RequestId: pullId, State: "InProgress"})
+	}
+	go doPullPackageBackground(c, tmpFile.Name(), pullId)
+	// 清理
+	if tmpFile != nil {
+		tmpFile.Close()
+		os.Remove(tmpFile.Name())
+	}
+}
+
+func doPullPackageBackground(c context.Context, archiveFilePath string, pullId string) {
+	pkgId, err := doUploadPackage(c, archiveFilePath)
+	if err != nil {
+		// update failed
+		database.UpdatePluginPackagePullReq(c, pullId, "", "Faulted", err.Error(), "")
+	} else {
+		// update ok
+		database.UpdatePluginPackagePullReq(c, pullId, pkgId, "Completed", "", "")
+	}
+}
+
+func doUploadPackage(c context.Context, archiveFilePath string) (pluginPkgId string, err error) {
+	tmpFileDir := fmt.Sprintf("/tmp/%d", time.Now().UnixNano())
+	if err = os.MkdirAll(tmpFileDir, 0777); err != nil {
+		err = fmt.Errorf("make tmp dir fail,%s ", err.Error())
+		return
+	}
+	// 上传包
+	log.Logger.Debug("tmpFile", log.String("tmpFileDir", tmpFileDir))
+	defer func() {
+		if removeTmpDirErr := os.RemoveAll(tmpFileDir); removeTmpDirErr != nil {
+			log.Logger.Error("Try to remove package upload tmp dir fail", log.String("tmpDir", tmpFileDir), log.Error(removeTmpDirErr))
+		}
+	}()
+	if _, err = bash.DecompressFile(archiveFilePath, tmpFileDir); err != nil {
+		return
+	}
+	packageFiles, readErr := bash.ListDirFiles(tmpFileDir)
+	if readErr != nil {
+		err = readErr
+		return
+	}
+	// 解析xml文件
+	var registerFile, imageFile, uiFile, initSql, upgradeSql string
+	withUi := false
+	for _, v := range packageFiles {
+		if v == "register.xml" {
+			registerFile = v
+			continue
+		}
+		if v == "image.tar" {
+			imageFile = v
+			continue
+		}
+		if v == "ui.zip" {
+			uiFile = v
+			withUi = true
+			continue
+		}
+	}
+	if registerFile == "" || imageFile == "" {
+		err = fmt.Errorf("register xml and image tar can not empty")
+		return
+	}
+	var registerConfig models.RegisterXML
+	registerConfigBytes, readRegisterConfigErr := os.ReadFile(fmt.Sprintf("%s/%s", tmpFileDir, registerFile))
+	if readRegisterConfigErr != nil {
+		err = fmt.Errorf("read register xml file fail,%s ", readRegisterConfigErr.Error())
+		return
+	}
+	if err = xml.Unmarshal(registerConfigBytes, &registerConfig); err != nil {
+		err = fmt.Errorf("xml unmarshal regisger xml fail,%s ", err.Error())
+		return
+	}
+	pluginPackageObj := models.PluginPackages{Name: registerConfig.Name, Version: registerConfig.Version}
+	if err = database.GetSimplePluginPackage(c, &pluginPackageObj, false); err != nil {
+		return
+	}
+	if pluginPackageObj.Id != "" {
+		err = fmt.Errorf("plugin %s:%s already existed", registerConfig.Name, registerConfig.Version)
+		return
+	}
+	if registerConfig.ResourceDependencies.Mysql.InitFileName != "" {
+		initSql = registerConfig.ResourceDependencies.Mysql.InitFileName
+		upgradeSql = registerConfig.ResourceDependencies.Mysql.UpgradeFileName
+		if !bash.ListContains(packageFiles, initSql) {
+			err = fmt.Errorf("init sql file:%s can not find in package", initSql)
+			return
+		}
+		if !bash.ListContains(packageFiles, upgradeSql) {
+			upgradeSql = ""
+		}
+	}
+	// 上传解压后的文件到s3
+	s3Prefix := fmt.Sprintf("%s/%s/", registerConfig.Name, registerConfig.Version)
+	s3FileMap := make(map[string]string)
+	s3FileMap[fmt.Sprintf("%s/%s", tmpFileDir, registerFile)] = s3Prefix + registerFile
+	s3FileMap[fmt.Sprintf("%s/%s", tmpFileDir, imageFile)] = s3Prefix + imageFile
+	if uiFile != "" {
+		s3FileMap[fmt.Sprintf("%s/%s", tmpFileDir, uiFile)] = s3Prefix + uiFile
+	}
+	if initSql != "" {
+		s3FileMap[fmt.Sprintf("%s/%s", tmpFileDir, initSql)] = s3Prefix + initSql
+	}
+	if upgradeSql != "" {
+		s3FileMap[fmt.Sprintf("%s/%s", tmpFileDir, upgradeSql)] = s3Prefix + upgradeSql
+	}
+	if err = bash.UploadPluginPackage(models.Config.S3.PluginPackageBucket, s3FileMap); err != nil {
+		return
+	}
+	if registerConfig.ResourceDependencies.S3.BucketName != "" {
+		if err = bash.MakeBucket(registerConfig.ResourceDependencies.S3.BucketName); err != nil {
+			return
+		}
+	}
+	// 写数据库
+	pkgId := "plugin_" + guid.CreateGuid()
+	err = database.UploadPackage(c, &registerConfig, withUi, false, pkgId)
+	if err != nil {
+		return
+	}
+	return pkgId, nil
+}
+
+// PullOnliePackageStatus 注册在线插件状态
+func PullOnliePackageStatus(c *gin.Context) {
+	pullId := c.Param("pullId")
+	result, err := database.GetPluginPackagePullReq(c, pullId)
+	if err != nil {
+		middleware.ReturnError(c, err)
+	} else {
+		data := make(map[string]interface{})
+		if result != nil {
+			data["keyName"] = result.KeyName
+			data["state"] = result.State
+			data["requestId"] = pullId
+			data["errorMessage"] = result.ErrMsg
+		}
+		middleware.ReturnData(c, data)
 	}
 }
 
