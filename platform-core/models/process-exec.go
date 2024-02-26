@@ -65,6 +65,7 @@ type ProcPreviewEntityNode struct {
 	FullDataId    string                 `json:"fullDataId"`
 	PreviousIds   []string               `json:"previousIds"`
 	SucceedingIds []string               `json:"succeedingIds"`
+	EntityDataOp  string                 `json:"entityDataOp"`
 	LastFlag      bool                   `json:"-"`
 }
 
