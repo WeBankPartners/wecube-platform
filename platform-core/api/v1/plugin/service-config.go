@@ -294,7 +294,7 @@ func ImportPluginConfigs(c *gin.Context) {
 		return
 	}
 
-	_, xmlFileBytes, err := middleware.ReadFormFile(c, "uploadFile")
+	_, xmlFileBytes, err := middleware.ReadFormFile(c, "xml-file")
 	if err != nil {
 		middleware.ReturnError(c, err)
 		return
