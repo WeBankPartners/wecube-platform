@@ -9,9 +9,9 @@ import (
 )
 
 const (
-	PluginStatusUnRegistered   = "unregistered"
-	PluginStatusRegistered     = "registered"
-	PluginStatusDecommissioned = "decommissioned"
+	PluginStatusUnRegistered   = "UNREGISTERED"
+	PluginStatusRegistered     = "REGISTERED"
+	PluginStatusDecommissioned = "DECOMMISSIONED"
 	PluginEditionCommunity     = "community"
 	PluginEditionEnterprise    = "enterprise"
 	PluginParamTypeInput       = "INPUT"
@@ -311,16 +311,17 @@ type RegisterXML struct {
 }
 
 type PluginConfigs struct {
-	Id                     string                    `json:"id" xorm:"id"`                                            // 唯一标识
-	PluginPackageId        string                    `json:"pluginPackageId" xorm:"plugin_package_id"`                // 插件
-	Name                   string                    `json:"name" xorm:"name"`                                        // 服务类型名称
-	TargetPackage          string                    `json:"targetPackage" xorm:"target_package"`                     // 目标类型包
-	TargetEntity           string                    `json:"targetEntity" xorm:"target_entity"`                       // 目标类型项
-	TargetEntityFilterRule string                    `json:"targetEntityFilterRule" xorm:"target_entity_filter_rule"` // 目标类型过滤规则
-	RegisterName           string                    `json:"registerName" xorm:"register_name"`                       // 服务注册名
-	Status                 string                    `json:"status" xorm:"status"`                                    // 状态
-	PluginPackages         *PluginPackages           `json:"pluginPackages" xorm:"-"`
-	Interfaces             []*PluginConfigInterfaces `json:"interfaces" xorm:"-"`
+	Id                         string                    `json:"id" xorm:"id"`                                            // 唯一标识
+	PluginPackageId            string                    `json:"pluginPackageId" xorm:"plugin_package_id"`                // 插件
+	Name                       string                    `json:"name" xorm:"name"`                                        // 服务类型名称
+	TargetPackage              string                    `json:"targetPackage" xorm:"target_package"`                     // 目标类型包
+	TargetEntity               string                    `json:"targetEntity" xorm:"target_entity"`                       // 目标类型项
+	TargetEntityFilterRule     string                    `json:"targetEntityFilterRule" xorm:"target_entity_filter_rule"` // 目标类型过滤规则
+	RegisterName               string                    `json:"registerName" xorm:"register_name"`                       // 服务注册名
+	Status                     string                    `json:"status" xorm:"status"`                                    // 状态
+	PluginPackages             *PluginPackages           `json:"pluginPackages" xorm:"-"`
+	Interfaces                 []*PluginConfigInterfaces `json:"interfaces" xorm:"-"`
+	TargetEntityWithFilterRule string                    `json:"targetEntityWithFilterRule" xorm:"-"` // fmt.Sprintf("%s:%s%s", targetPackage, targetEntity, targetEntityFilterRule)
 }
 
 type PluginConfigInterfaces struct {
@@ -745,4 +746,79 @@ type PluginConfigsBatchEnable struct {
 	Status                     string                      `json:"status"`
 	TargetEntityWithFilterRule string                      `json:"targetEntityWithFilterRule"`
 	Title                      string                      `json:"title"`
+}
+
+type ParameterXML struct {
+	Text                      string `xml:",chardata" json:"text,omitempty"`
+	Datatype                  string `xml:"datatype,attr" json:"datatype,omitempty"`
+	MappingType               string `xml:"mappingType,attr" json:"mappingType,omitempty"`
+	MappingEntityExpression   string `xml:"mappingEntityExpression,attr" json:"mappingEntityExpression,omitempty"`
+	Required                  string `xml:"required,attr" json:"required,omitempty"`
+	SensitiveData             string `xml:"sensitiveData,attr" json:"sensitiveData,omitempty"`
+	MappingSystemVariableName string `xml:"mappingSystemVariableName,attr" json:"mappingSystemVariableName,omitempty"`
+}
+
+type InterfaceXML struct {
+	Text              string `xml:",chardata" json:"text,omitempty"`
+	Action            string `xml:"action,attr" json:"action,omitempty"`
+	Path              string `xml:"path,attr" json:"path,omitempty"`
+	HttpMethod        string `xml:"httpMethod,attr" json:"httpMethod,omitempty"`
+	IsAsyncProcessing string `xml:"isAsyncProcessing,attr" json:"isAsyncProcessing,omitempty"`
+	Type              string `xml:"type,attr" json:"type,omitempty"`
+	FilterRule        string `xml:"filterRule,attr" json:"filterRule,omitempty"`
+	InputParameters   struct {
+		Text      string         `xml:",chardata" json:"text,omitempty"`
+		Parameter []ParameterXML `xml:"parameter" json:"parameter,omitempty"`
+	} `xml:"inputParameters" json:"inputParameters,omitempty"`
+	OutputParameters struct {
+		Text      string         `xml:",chardata" json:"text,omitempty"`
+		Parameter []ParameterXML `xml:"parameter" json:"parameter,omitempty"`
+	} `xml:"outputParameters" json:"outputParameters,omitempty"`
+}
+
+type RoleBindXML struct {
+	Text       string `xml:",chardata" json:"text,omitempty"`
+	Permission string `xml:"permission,attr" json:"permission,omitempty"`
+	RoleName   string `xml:"roleName,attr" json:"roleName,omitempty"`
+}
+
+type PluginXML struct {
+	Text                   string         `xml:",chardata" json:"text,omitempty"`
+	Name                   string         `xml:"name,attr" json:"name,omitempty"`
+	TargetPackage          string         `xml:"targetPackage,attr" json:"targetPackage,omitempty"`
+	TargetEntity           string         `xml:"targetEntity,attr" json:"targetEntity,omitempty"`
+	TargetEntityFilterRule string         `xml:"targetEntityFilterRule,attr" json:"targetEntityFilterRule,omitempty"`
+	RegisterName           string         `xml:"registerName,attr" json:"registerName,omitempty"`
+	Status                 string         `xml:"status,attr" json:"status,omitempty"`
+	Interface              []InterfaceXML `xml:"interface" json:"interface,omitempty"`
+	RoleBinds              struct {
+		Text     string        `xml:",chardata" json:"text,omitempty"`
+		RoleBind []RoleBindXML `xml:"roleBind" json:"roleBind,omitempty"`
+	} `xml:"roleBinds" json:"roleBinds,omitempty"`
+}
+
+type SystemParameterXML struct {
+	Text         string `xml:",chardata" json:"text,omitempty"`
+	Name         string `xml:"name,attr" json:"name,omitempty"`
+	ScopeType    string `xml:"scopeType,attr" json:"scopeType,omitempty"`
+	DefaultValue string `xml:"defaultValue,attr" json:"defaultValue,omitempty"`
+	Value        string `xml:"value,attr" json:"value,omitempty"`
+	Status       string `xml:"status,attr" json:"status,omitempty"`
+	Source       string `xml:"source,attr" json:"source,omitempty"`
+	PackageName  string `xml:"packageName,attr" json:"packageName,omitempty"`
+}
+
+type PackagePluginsXML struct {
+	XMLName xml.Name `xml:"package" json:"package,omitempty"`
+	Text    string   `xml:",chardata" json:"text,omitempty"`
+	Name    string   `xml:"name,attr" json:"name,omitempty"`
+	Version string   `xml:"version,attr" json:"version,omitempty"`
+	Plugins struct {
+		Text   string      `xml:",chardata" json:"text,omitempty"`
+		Plugin []PluginXML `xml:"plugin" json:"plugin,omitempty"`
+	} `xml:"plugins" json:"plugins,omitempty"`
+	SystemParameters struct {
+		Text            string               `xml:",chardata" json:"text,omitempty"`
+		SystemParameter []SystemParameterXML `xml:"systemParameter" json:"systemParameter,omitempty"`
+	} `xml:"systemParameters" json:"systemParameters,omitempty"`
 }
