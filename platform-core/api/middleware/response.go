@@ -33,6 +33,17 @@ func ReturnDataWithStatus(c *gin.Context, data interface{}, status string) {
 	c.JSON(http.StatusOK, returnObj)
 }
 
+func ReturnXMLData(c *gin.Context, data interface{}) {
+	returnObj := models.ResponseJson{HttpResponseMeta: models.HttpResponseMeta{Code: 0, Status: models.DefaultHttpSuccessCode}, Data: data}
+	if log.DebugEnable {
+		bodyBytes, _ := json.Marshal(returnObj)
+		c.Set(models.ContextResponseBody, string(bodyBytes))
+	}
+	c.Set(models.ContextErrorCode, 0)
+	c.Set(models.ContextErrorKey, models.DefaultHttpSuccessCode)
+	c.XML(http.StatusOK, returnObj)
+}
+
 func Return(c *gin.Context, response interface{}) {
 	if log.DebugEnable {
 		bodyBytes, _ := json.Marshal(response)
