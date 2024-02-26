@@ -169,6 +169,11 @@ func normalizePluginInterfaceParamData(inputParamDef *models.PluginConfigInterfa
 			if valueToSingle == nil {
 				result = valueToSingle
 			} else {
+				if valueToSingleStr, ok := valueToSingle.(string); ok {
+					if inputParamDef.Required == "Y" && strings.TrimSpace(valueToSingleStr) == "" {
+						return nil, fmt.Errorf("field:%s can not be empty value", inputParamDef.Name)
+					}
+				}
 				tToSingle := reflect.TypeOf(valueToSingle)
 				if inputParamDef.DataType == models.PluginParamDataTypeInt {
 					convValue, err := convertToDatatypeInt(inputParamDef.Name, valueToSingle, tToSingle)
@@ -208,6 +213,11 @@ func normalizePluginInterfaceParamData(inputParamDef *models.PluginConfigInterfa
 			result = []interface{}{result}
 		}
 	} else {
+		if valueToSingleStr, ok := value.(string); ok {
+			if inputParamDef.Required == "Y" && strings.TrimSpace(valueToSingleStr) == "" {
+				return nil, fmt.Errorf("field:%s can not be empty value", inputParamDef.Name)
+			}
+		}
 		if inputParamDef.DataType == models.PluginParamDataTypeInt {
 			convValue, err := convertToDatatypeInt(inputParamDef.Name, value, t)
 			if err != nil {
