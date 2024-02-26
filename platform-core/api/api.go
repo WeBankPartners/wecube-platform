@@ -10,7 +10,7 @@ import (
 
 	"github.com/WeBankPartners/go-common-lib/guid"
 	"github.com/WeBankPartners/wecube-platform/platform-core/api/middleware"
-	"github.com/WeBankPartners/wecube-platform/platform-core/api/v1/batch-execution"
+	batch_execution "github.com/WeBankPartners/wecube-platform/platform-core/api/v1/batch-execution"
 	"github.com/WeBankPartners/wecube-platform/platform-core/api/v1/certification"
 	"github.com/WeBankPartners/wecube-platform/platform-core/api/v1/plugin"
 	"github.com/WeBankPartners/wecube-platform/platform-core/api/v1/process"
@@ -90,6 +90,9 @@ func init() {
 		&handlerFuncObj{Url: "/plugins/packages/import/:pluginPackageId", Method: "POST", HandlerFunc: plugin.ImportPluginConfigs, ApiCode: "import-plugin-configs"},
 		&handlerFuncObj{Url: "/packages/decommission/:pluginPackageId", Method: "POST", HandlerFunc: plugin.DeletePlugin, ApiCode: "delete-plugin"},
 		&handlerFuncObj{Url: "/plugins/query-by-target-entity", Method: "POST", HandlerFunc: plugin.QueryPluginByTargetEntity, ApiCode: "query-plugin-by-target-entity"},
+		&handlerFuncObj{Url: "/plugin-artifacts", Method: "GET", HandlerFunc: plugin.ListOnliePackage, ApiCode: "list-online-packages"},
+		&handlerFuncObj{Url: "/plugin-artifacts/pull-requests", Method: "POST", HandlerFunc: plugin.PullOnliePackage, ApiCode: "pull-online-package"},
+		&handlerFuncObj{Url: "/plugin-artifacts/pull-requests/:pullId", Method: "GET", HandlerFunc: plugin.PullOnliePackageStatus, ApiCode: "pull-online-package-status"},
 
 		// model
 		&handlerFuncObj{Url: "/models", Method: "GET", HandlerFunc: plugin.GetAllModels, ApiCode: "get-all-models"},
