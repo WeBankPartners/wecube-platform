@@ -1058,6 +1058,9 @@ export default {
         // return
       }
       if (this.hasNewSource) {
+        if (this.currentPluginObj.permissionToRole === null) {
+          this.currentPluginObj.permissionToRole = {}
+        }
         this.currentPluginObj.permissionToRole.MGMT = this.mgmtRolesKey
         this.currentPluginObj.permissionToRole.USE = this.useRolesKey
       }

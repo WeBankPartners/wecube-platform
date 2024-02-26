@@ -56,16 +56,17 @@ type ProcDefFlowNode struct {
 }
 
 type ProcPreviewEntityNode struct {
-	Id            string   `json:"id"`
-	PackageName   string   `json:"packageName"`
-	EntityName    string   `json:"entityName"`
-	EntityData    string   `json:"entityData"`
-	DataId        string   `json:"dataId"`
-	DisplayName   string   `json:"displayName"`
-	FullDataId    string   `json:"fullDataId"`
-	PreviousIds   []string `json:"previousIds"`
-	SucceedingIds []string `json:"succeedingIds"`
-	LastFlag      bool     `json:"-"`
+	Id            string                 `json:"id"`
+	PackageName   string                 `json:"packageName"`
+	EntityName    string                 `json:"entityName"`
+	EntityData    map[string]interface{} `json:"entityData"`
+	DataId        string                 `json:"dataId"`
+	DisplayName   string                 `json:"displayName"`
+	FullDataId    string                 `json:"fullDataId"`
+	PreviousIds   []string               `json:"previousIds"`
+	SucceedingIds []string               `json:"succeedingIds"`
+	EntityDataOp  string                 `json:"entityDataOp"`
+	LastFlag      bool                   `json:"-"`
 }
 
 type ProcPreviewData struct {

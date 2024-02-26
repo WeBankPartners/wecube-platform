@@ -598,7 +598,7 @@ func AddOrUpdateProcDefTaskNodes(c *gin.Context) {
 		middleware.ReturnError(c, exterror.Catch(exterror.New().ProcDefNodeNameEmptyError, nil))
 		return
 	}
-	if param.ProcDefNodeCustomAttrs.RoutineExpression != "" && strings.HasSuffix(param.ProcDefNodeCustomAttrs.RoutineExpression, "#DMEOP#") {
+	if param.ProcDefNodeCustomAttrs.RoutineExpression != "" && param.ProcDefNodeCustomAttrs.NodeType != string(models.ProcDefNodeTypeData) {
 		param.ProcDefNodeCustomAttrs.RoutineExpression = strings.ReplaceAll(param.ProcDefNodeCustomAttrs.RoutineExpression, "#DMEOP#", "")
 	}
 	procDef, err = database.GetProcessDefinition(c, param.ProcDefNodeCustomAttrs.ProcDefId)
