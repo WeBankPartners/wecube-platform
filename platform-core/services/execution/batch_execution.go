@@ -121,7 +121,7 @@ func BatchExecutionCallPluginService(ctx context.Context, operator, authToken, p
 		Inputs:          inputParamDatas,
 	}
 	pluginCallParam.RequestId = "batchexec_" + guid.CreateGuid()
-	pluginCallResult, errCall := remote.PluginInterfaceApi(ctx, subsysToken, pluginInterface, pluginCallParam)
+	pluginCallResult, _, errCall := remote.PluginInterfaceApi(ctx, subsysToken, pluginInterface, pluginCallParam)
 	if errCall != nil {
 		err = errCall
 		return
@@ -324,7 +324,11 @@ func handleInputData(
 			var inputCalResult interface{}
 			switch inputDef.MappingType {
 			case models.PluginParamMapTypeConstant:
-				inputCalResult = inputConstantMap[inputDef.Id]
+				if inputDef.MappingVal != "" {
+					inputCalResult = inputDef.MappingVal
+				} else {
+					inputCalResult = inputConstantMap[inputDef.Id]
+				}
 			case models.PluginParamMapTypeSystemVar:
 				if inputDef.MappingSystemVariableName == "" {
 					err = fmt.Errorf("input param %s is map to %s, but variable name is empty", inputDef.Name, inputDef.MappingType)

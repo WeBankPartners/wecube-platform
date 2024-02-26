@@ -559,6 +559,8 @@ CREATE TABLE `proc_ins` (
      `status` varchar(32) NOT NULL COMMENT '状态->ready(初始化) | running(运行中) | fail(失败) | success(成功) | problem(节点失败) | kill(终止)',
      `entity_data_id` varchar(64) DEFAULT NULL COMMENT '根数据id',
      `entity_type_id` varchar(64) DEFAULT NULL COMMENT '根数据类型',
+     `entity_data_name` varchar(64) DEFAULT NULL COMMENT '根数据名称',
+     `proc_session_id` varchar(64) DEFAULT NULL COMMENT '试算session',
      `created_by` varchar(64) DEFAULT NULL COMMENT '创建人',
      `created_time` datetime DEFAULT NULL COMMENT '创建时间',
      `updated_by` varchar(64) DEFAULT NULL COMMENT '更新人',
@@ -687,23 +689,9 @@ CREATE TABLE `proc_run_operation` (
       `created_by` varchar(64) DEFAULT NULL COMMENT '创建人',
       `created_time` datetime DEFAULT NULL COMMENT '创建时间',
       `handle_by` varchar(64) DEFAULT NULL COMMENT '处理的主机',
-      `handle_time` datetime DEFAULT NULL COMMENT '处理时间',
+      `start_time` datetime DEFAULT NULL COMMENT '处理开始时间',
+      `end_time` datetime DEFAULT NULL COMMENT '处理结束时间',
       PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
 
--- 插件服务权限表
-CREATE TABLE `plugin_config_roles`
-(
-    `id`            varchar(255) NOT NULL COMMENT '唯一标识',
-    `created_by`    varchar(255) NULL COMMENT '创建人',
-    `created_time`  datetime     NULL COMMENT '创建时间',
-    `updated_by`    varchar(255) NULL COMMENT '更新人',
-    `updated_time`  datetime     NULL COMMENT '更新时间',
-    `is_active`     bit          NULL COMMENT '是否启用',
-    `perm_type`     varchar(255) NULL COMMENT '权限类型',
-    `plugin_cfg_id` varchar(255) NULL COMMENT '插件服务',
-    `role_id`       varchar(255) NULL COMMENT '角色id',
-    `role_name`     varchar(255) NULL COMMENT '角色名',
-    PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
 

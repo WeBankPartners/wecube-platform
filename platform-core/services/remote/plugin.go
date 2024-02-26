@@ -112,10 +112,14 @@ func AnalyzeExpression(express string) (result []*models.ExpressionObj, err erro
 		if eso.Entity == "" {
 			eso.Entity = ci
 		}
-		for ci[0] == 123 {
+		for len(ci) > 0 && ci[0] == 123 {
 			if rIdx := strings.Index(ci, "}"); rIdx > 0 {
 				tmpFilterList := strings.Split(ci[1:rIdx], " ")
-				tmpFilter := models.Filter{Name: tmpFilterList[0], Operator: tmpFilterList[1], Value: tmpFilterList[2]}
+				tmpFilterVal := tmpFilterList[2]
+				if strings.HasPrefix(tmpFilterVal, "'") {
+					tmpFilterVal = tmpFilterVal[1 : len(tmpFilterVal)-1]
+				}
+				tmpFilter := models.Filter{Name: tmpFilterList[0], Operator: tmpFilterList[1], Value: tmpFilterVal}
 				for fpIndex, fpValue := range filterParams {
 					tmpFilter.Value = strings.ReplaceAll(tmpFilter.Value, fmt.Sprintf("$%d", fpIndex), fpValue)
 				}
@@ -129,7 +133,7 @@ func AnalyzeExpression(express string) (result []*models.ExpressionObj, err erro
 		if err != nil {
 			return
 		}
-		if ci[0] == 46 {
+		if len(ci) > 0 && ci[0] == 46 {
 			if i == ciListLen-1 {
 				eso.ResultColumn = ci[1:]
 			}
@@ -184,7 +188,7 @@ func QueryPluginData(ctx context.Context, exprList []*models.ExpressionObj, filt
 				tmpFilters = append(tmpFilters, &models.EntityQueryObj{AttrName: exprObj.RightJoinColumn, Op: "in", Condition: idFilterList})
 			}
 		}
-		result, err = requestPluginModelData(ctx, exprObj.Package, exprObj.Entity, token, tmpFilters)
+		result, err = RequestPluginModelData(ctx, exprObj.Package, exprObj.Entity, token, tmpFilters)
 		if err != nil {
 			break
 		}
@@ -196,6 +200,9 @@ func QueryPluginFullData(ctx context.Context, exprList []*models.ExpressionObj, 
 	dataFullIdMap := make(map[string]string)
 	dataFullIdMap[rootEntityNode.DataId] = rootEntityNode.FullDataId
 	var tmpQueryResult []map[string]interface{}
+	nodePreviousMap := make(map[string][]string)
+	nodeSucceedingMap := make(map[string][]string)
+	exprLastIndex := len(exprList) - 1
 	for i, exprObj := range exprList {
 		tmpFilters := []*models.EntityQueryObj{}
 		if exprObj.Filters != nil {
@@ -239,7 +246,7 @@ func QueryPluginFullData(ctx context.Context, exprList []*models.ExpressionObj, 
 				tmpFilters = append(tmpFilters, &models.EntityQueryObj{AttrName: exprObj.RightJoinColumn, Op: "in", Condition: idFilterList})
 			}
 		}
-		lastQueryResult, lastErr := requestPluginModelData(ctx, exprObj.Package, exprObj.Entity, token, tmpFilters)
+		lastQueryResult, lastErr := RequestPluginModelData(ctx, exprObj.Package, exprObj.Entity, token, tmpFilters)
 		if lastErr != nil {
 			err = lastErr
 			break
@@ -248,17 +255,26 @@ func QueryPluginFullData(ctx context.Context, exprList []*models.ExpressionObj, 
 		if i > rootFilter.Index && len(lastQueryResult) > 0 {
 			for _, rowData := range lastQueryResult {
 				rowDataId := rowData["id"].(string)
+				rowDataNode := &models.ProcPreviewEntityNode{}
 				if _, existFlag := dataFullIdMap[rowDataId]; !existFlag {
-					rowDataNode := models.ProcPreviewEntityNode{}
 					rowDataNode.Parse(exprObj.Package, exprObj.Entity, rowData)
-					resultNodeList = append(resultNodeList, &rowDataNode)
-				} else {
-					continue
+					if i == exprLastIndex {
+						rowDataNode.LastFlag = true
+					}
+					resultNodeList = append(resultNodeList, rowDataNode)
 				}
 				if exprObj.LeftJoinColumn != "" {
 					log.Logger.Debug("QueryPluginFullData handle row,LeftJoinColumn", log.String("id", rowDataId), log.String("LeftJoinColumn", exprObj.LeftJoinColumn))
 					if leftMapDataId, ok := tmpLeftDataMap[rowDataId]; ok {
 						dataFullIdMap[rowDataId] = dataFullIdMap[leftMapDataId] + "::" + rowDataId
+						if existPreList, existPreKey := nodePreviousMap[rowDataId]; existPreKey {
+							nodePreviousMap[rowDataId] = append(existPreList, leftMapDataId)
+						} else {
+							nodePreviousMap[rowDataId] = []string{leftMapDataId}
+						}
+						if existSucList, existSucKey := nodeSucceedingMap[leftMapDataId]; existSucKey {
+							nodeSucceedingMap[leftMapDataId] = append(existSucList, rowDataId)
+						}
 					} else {
 						dataFullIdMap[rowDataId] = rowDataId
 					}
@@ -268,15 +284,25 @@ func QueryPluginFullData(ctx context.Context, exprList []*models.ExpressionObj, 
 					if matchAttrData, ok := rowData[exprObj.RightJoinColumn]; ok {
 						attrIdList := getInterfaceStringList(matchAttrData)
 						tmpMatchRightFullDataId := ""
+						tmpMatchAttrId := ""
 						for _, tmpAttrId := range attrIdList {
 							if matchInAttr, existFlag := dataFullIdMap[tmpAttrId]; existFlag {
 								tmpMatchRightFullDataId = matchInAttr
+								tmpMatchAttrId = tmpAttrId
 								break
 							}
 						}
 						log.Logger.Debug("QueryPluginFullData handle row,RightJoinColumn2", log.StringList("attrIdList", attrIdList), log.String("tmpMatchRightFullDataId", tmpMatchRightFullDataId))
 						if tmpMatchRightFullDataId != "" {
 							dataFullIdMap[rowDataId] = tmpMatchRightFullDataId + "::" + rowDataId
+							if existPreList, existPreKey := nodePreviousMap[rowDataId]; existPreKey {
+								nodePreviousMap[rowDataId] = append(existPreList, tmpMatchAttrId)
+							} else {
+								nodePreviousMap[rowDataId] = []string{tmpMatchAttrId}
+							}
+							if existSucList, existSucKey := nodeSucceedingMap[tmpMatchAttrId]; existSucKey {
+								nodeSucceedingMap[tmpMatchAttrId] = append(existSucList, rowDataId)
+							}
 						} else {
 							dataFullIdMap[rowDataId] = rowDataId
 						}
@@ -291,6 +317,12 @@ func QueryPluginFullData(ctx context.Context, exprList []*models.ExpressionObj, 
 	}
 	for _, v := range resultNodeList {
 		v.FullDataId = dataFullIdMap[v.DataId]
+		if preList, ok := nodePreviousMap[v.DataId]; ok {
+			v.PreviousIds = preList
+		}
+		if sucList, ok := nodeSucceedingMap[v.DataId]; ok {
+			v.SucceedingIds = sucList
+		}
 	}
 	return
 }
@@ -311,7 +343,7 @@ func ExtractExpressionResultColumn(exprList []*models.ExpressionObj, exprResult 
 	return
 }
 
-func requestPluginModelData(ctx context.Context, packageName, entity, token string, filters []*models.EntityQueryObj) (result []map[string]interface{}, err error) {
+func RequestPluginModelData(ctx context.Context, packageName, entity, token string, filters []*models.EntityQueryObj) (result []map[string]interface{}, err error) {
 	queryParam := models.EntityQueryParam{AdditionalFilters: filters}
 	postBytes, _ := json.Marshal(queryParam)
 	uri := fmt.Sprintf("%s/%s/entities/%s/query", models.Config.Gateway.Url, packageName, entity)
@@ -627,7 +659,7 @@ func DangerousWorkflowCheck(ctx context.Context, token string, reqParam interfac
 	return
 }
 
-func PluginInterfaceApi(ctx context.Context, token string, pluginInterface *models.PluginConfigInterfaces, reqParam *models.BatchExecutionPluginExecParam) (result *models.PluginInterfaceApiResultData, err error) {
+func PluginInterfaceApi(ctx context.Context, token string, pluginInterface *models.PluginConfigInterfaces, reqParam *models.BatchExecutionPluginExecParam) (result *models.PluginInterfaceApiResultData, errCode string, err error) {
 	uri := fmt.Sprintf("%s%s", models.Config.Gateway.Url, pluginInterface.Path)
 	if models.Config.HttpsEnable == "true" {
 		uri = "https://" + uri
@@ -672,7 +704,7 @@ func PluginInterfaceApi(ctx context.Context, token string, pluginInterface *mode
 		}
 		useTime := fmt.Sprintf("%.3fms", time.Now().Sub(startTime).Seconds()*1000)
 		if err != nil {
-			log.Logger.Error("End remote pluginInterfaceApi request <<<--- ", log.String("requestId", reqId), log.String("transactionId", transId), log.String("url", urlObj.String()), log.Int("httpCode", resp.StatusCode), log.String("costTime", useTime), log.Error(err))
+			log.Logger.Error("End remote pluginInterfaceApi request <<<--- ", log.String("requestId", reqId), log.String("transactionId", transId), log.String("url", urlObj.String()), log.Int("httpCode", resp.StatusCode), log.String("costTime", useTime), log.String("response", string(respBody)), log.Error(err))
 		} else {
 			log.Logger.Info("End remote pluginInterfaceApi request <<<--- ", log.String("requestId", reqId), log.String("transactionId", transId), log.String("url", urlObj.String()), log.Int("httpCode", resp.StatusCode), log.String("costTime", useTime), log.String("response", string(respBody)))
 		}
@@ -685,11 +717,12 @@ func PluginInterfaceApi(ctx context.Context, token string, pluginInterface *mode
 		err = fmt.Errorf("json unmarshal response body fail,%s ", err.Error())
 		return
 	}
+	result = response.Results
+	errCode = response.ResultCode
 	if response.ResultCode != "0" {
 		err = fmt.Errorf(response.ResultMessage)
 		return
 	}
-	result = response.Results
 	return
 }
 

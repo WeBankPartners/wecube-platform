@@ -90,8 +90,14 @@ func WorkflowExecutionCallPluginService(ctx context.Context, param *models.ProcC
 	if err = database.RecordProcCallReq(ctx, &procInsNodeReq, true); err != nil {
 		return
 	}
-	pluginCallResult, errCall := remote.PluginInterfaceApi(ctx, subsysToken, param.PluginInterface, pluginCallParam)
+	pluginCallResult, errCode, errCall := remote.PluginInterfaceApi(ctx, subsysToken, param.PluginInterface, pluginCallParam)
 	if errCall != nil {
+		if errCode != "" && errCode != "0" {
+			_, errHandle = handleOutputData(ctx, subsysToken, pluginCallResult.Outputs, param.PluginInterface.OutputParameters, &procInsNodeReq)
+			if errHandle != nil {
+				log.Logger.Error("handle error output data fail", log.Error(errHandle))
+			}
+		}
 		err = errCall
 		procInsNodeReq.ErrorMsg = err.Error()
 		database.RecordProcCallReq(ctx, &procInsNodeReq, false)
@@ -136,7 +142,7 @@ func DoWorkflowAutoJob(ctx context.Context, procRunNodeId, continueToken string)
 		return
 	}
 	if procDefNode.DynamicBind {
-		dataBindings, err = database.GetDynamicBindNodeData(ctx, procInsNode.Id, procDefNode.ProcDefId, procDefNode.BindNodeId)
+		dataBindings, err = database.GetDynamicBindNodeData(ctx, procInsNode.ProcInsId, procDefNode.ProcDefId, procDefNode.BindNodeId)
 	}
 	if len(dataBindings) == 0 {
 		log.Logger.Warn("auto job return with empty binding data", log.String("procIns", procInsNode.ProcInsId), log.String("procInsNode", procInsNode.Id))
@@ -220,7 +226,7 @@ func DoWorkflowHumanJob(ctx context.Context, procRunNodeId string) (err error) {
 		return
 	}
 	if procDefNode.DynamicBind {
-		dataBindings, err = database.GetDynamicBindNodeData(ctx, procInsNode.Id, procDefNode.ProcDefId, procDefNode.BindNodeId)
+		dataBindings, err = database.GetDynamicBindNodeData(ctx, procInsNode.ProcInsId, procDefNode.ProcDefId, procDefNode.BindNodeId)
 	}
 	pluginInterface, getIntErr := database.GetLastEnablePluginInterface(ctx, procDefNode.ServiceName)
 	if getIntErr != nil {
@@ -296,7 +302,9 @@ func CallDynamicFormReq(ctx context.Context, param *models.ProcCallPluginService
 	// 构造输入参数
 	for _, paramObj := range param.PluginInterface.InputParameters {
 		if paramObj.Name == "taskFormInput" {
+			// 请求taskman拿表单结构
 
+			// 拿到结构后组表单数据赋值给taskFormInput
 		}
 	}
 	inputParamDatas, errHandle := handleInputData(ctx, subsysToken, param.ContinueToken, param.EntityInstances, param.PluginInterface.InputParameters, rootExpr, param.InputConstantMap, param.InputParamContext, &procInsNodeReq)
@@ -321,7 +329,7 @@ func CallDynamicFormReq(ctx context.Context, param *models.ProcCallPluginService
 	if err = database.RecordProcCallReq(ctx, &procInsNodeReq, true); err != nil {
 		return
 	}
-	pluginCallResult, errCall := remote.PluginInterfaceApi(ctx, subsysToken, param.PluginInterface, pluginCallParam)
+	pluginCallResult, _, errCall := remote.PluginInterfaceApi(ctx, subsysToken, param.PluginInterface, pluginCallParam)
 	if errCall != nil {
 		err = errCall
 		procInsNodeReq.ErrorMsg = err.Error()
