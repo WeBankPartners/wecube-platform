@@ -1066,19 +1066,21 @@ func ExportPluginConfigs(c *gin.Context, pluginPackageId string) (result *models
 
 			// handle permission roles
 			roleBindXMLList := []models.RoleBindXML{}
-			for _, roleName := range pluginCfgDto.PermissionToRole.MGMT {
-				roleBindXMLData := models.RoleBindXML{
-					Permission: models.PermissionTypeMGMT,
-					RoleName:   roleName,
+			if pluginCfgDto.PermissionToRole != nil {
+				for _, roleName := range pluginCfgDto.PermissionToRole.MGMT {
+					roleBindXMLData := models.RoleBindXML{
+						Permission: models.PermissionTypeMGMT,
+						RoleName:   roleName,
+					}
+					roleBindXMLList = append(roleBindXMLList, roleBindXMLData)
 				}
-				roleBindXMLList = append(roleBindXMLList, roleBindXMLData)
-			}
-			for _, roleName := range pluginCfgDto.PermissionToRole.USE {
-				roleBindXMLData := models.RoleBindXML{
-					Permission: models.PermissionTypeUSE,
-					RoleName:   roleName,
+				for _, roleName := range pluginCfgDto.PermissionToRole.USE {
+					roleBindXMLData := models.RoleBindXML{
+						Permission: models.PermissionTypeUSE,
+						RoleName:   roleName,
+					}
+					roleBindXMLList = append(roleBindXMLList, roleBindXMLData)
 				}
-				roleBindXMLList = append(roleBindXMLList, roleBindXMLData)
 			}
 			pluginXMLData.RoleBinds.RoleBind = roleBindXMLList
 

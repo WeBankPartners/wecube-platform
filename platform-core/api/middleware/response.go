@@ -41,7 +41,7 @@ func ReturnXMLData(c *gin.Context, data interface{}) {
 	}
 	c.Set(models.ContextErrorCode, 0)
 	c.Set(models.ContextErrorKey, models.DefaultHttpSuccessCode)
-	c.XML(http.StatusOK, returnObj)
+	c.XML(http.StatusOK, data)
 }
 
 func Return(c *gin.Context, response interface{}) {
