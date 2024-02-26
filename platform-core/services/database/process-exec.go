@@ -464,13 +464,13 @@ func CreatePublicProcInstance(ctx context.Context, startParam *models.RequestPro
 	}
 	var actions []*db.ExecAction
 	nowTime := time.Now()
-	previewRows := []*models.ProcDataPreview{}
 	var entityDataId, entityTypeId, entityDataName string
-	for _, row := range previewRows {
-		if row.BindType == "process" {
+	for _, row := range startParam.Entities {
+		if row.Oid == startParam.RootEntityOid {
 			entityDataId = row.EntityDataId
-			entityTypeId = row.EntityTypeId
-			entityDataName = row.EntityDataName
+			entityTypeId = fmt.Sprintf("%s:%s", row.PackageName, row.EntityName)
+			entityDataName = row.EntityDisplayName
+			break
 		}
 	}
 	actions = append(actions, &db.ExecAction{Sql: "insert into proc_ins(id,proc_def_id,proc_def_key,proc_def_name,status,entity_data_id,entity_type_id,entity_data_name,created_by,created_time,updated_by,updated_time) values (?,?,?,?,?,?,?,?,?,?,?,?)", Param: []interface{}{
@@ -492,12 +492,14 @@ func CreatePublicProcInstance(ctx context.Context, startParam *models.RequestPro
 		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
 		return
 	}
-	for _, row := range previewRows {
-		if row.BindType == "process" {
+	inputEntityMap := make(map[string]*models.RequestCacheEntityValue)
+	for _, row := range startParam.Entities {
+		if row.Oid == startParam.RootEntityOid {
 			actions = append(actions, &db.ExecAction{Sql: "insert into proc_data_binding(id,proc_def_id,proc_ins_id,entity_id,entity_data_id,entity_data_name,entity_type_id,bind_flag,bind_type,full_data_id,created_by,created_time) values (?,?,?,?,?,?,?,?,?,?,?,?)", Param: []interface{}{
-				fmt.Sprintf("p_bind_%d", row.Id), procDefObj.Id, procInsId, row.EntityDataId, row.EntityDataId, row.EntityDataName, row.EntityTypeId, row.IsBound, row.BindType, row.FullDataId, operator, nowTime,
+				fmt.Sprintf("p_bind_%s", guid.CreateGuid()), procDefObj.Id, procInsId, row.EntityDataId, row.EntityDataId, row.EntityDisplayName, fmt.Sprintf("%s:%s", row.PackageName, row.EntityName), 0, "process", row.FullEntityDataId, operator, nowTime,
 			}})
 		}
+		inputEntityMap[row.Oid] = row
 	}
 	workNodeIdMap := make(map[string]string)
 	for _, node := range procDefNodes {
@@ -522,11 +524,17 @@ func CreatePublicProcInstance(ctx context.Context, startParam *models.RequestPro
 		workNodeIdMap[node.Id] = workNodeObj.Id
 		workNodes = append(workNodes, &workNodeObj)
 		// data bind
-		for _, row := range previewRows {
-			if row.ProcDefNodeId == node.Id {
-				actions = append(actions, &db.ExecAction{Sql: "insert into proc_data_binding(id,proc_def_id,proc_ins_id,proc_def_node_id,proc_ins_node_id,entity_id,entity_data_id,entity_data_name,entity_type_id,bind_flag,bind_type,full_data_id,created_by,created_time) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?)", Param: []interface{}{
-					fmt.Sprintf("p_bind_%d", row.Id), procDefObj.Id, procInsId, node.Id, tmpProcInsNodeId, row.EntityDataId, row.EntityDataId, row.EntityDataName, row.EntityTypeId, row.IsBound, row.BindType, row.FullDataId, operator, nowTime,
-				}})
+		for _, row := range startParam.Bindings {
+			if row.NodeDefId == node.Id {
+				if inputEntityObj, ok := inputEntityMap[row.Oid]; ok {
+					tmpBoundFlag := false
+					if row.BindFlag == "Y" {
+						tmpBoundFlag = true
+					}
+					actions = append(actions, &db.ExecAction{Sql: "insert into proc_data_binding(id,proc_def_id,proc_ins_id,proc_def_node_id,proc_ins_node_id,entity_id,entity_data_id,entity_data_name,entity_type_id,bind_flag,bind_type,full_data_id,created_by,created_time) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?)", Param: []interface{}{
+						fmt.Sprintf("p_bind_%s", guid.CreateGuid()), procDefObj.Id, procInsId, node.Id, tmpProcInsNodeId, row.EntityDataId, row.EntityDataId, inputEntityObj.EntityDisplayName, fmt.Sprintf("%s:%s", inputEntityObj.PackageName, inputEntityObj.EntityName), tmpBoundFlag, "taskNode", inputEntityObj.FullEntityDataId, operator, nowTime,
+					}})
+				}
 			}
 		}
 	}
