@@ -149,6 +149,7 @@ func init() {
 		&handlerFuncObj{Url: "/process/definitions/:proc-def-id/outline", Method: "GET", HandlerFunc: process.ProcDefOutline, ApiCode: "process-def-outline"},
 		&handlerFuncObj{Url: "/process/definitions/:proc-def-id/root-entities", Method: "GET", HandlerFunc: process.ProcDefRootEntities, ApiCode: "process-def-root-entity"},
 		&handlerFuncObj{Url: "/process/definitions/:proc-def-id/preview/entities/:entityDataId", Method: "GET", HandlerFunc: process.ProcDefPreview, ApiCode: "process-def-preview"},
+		&handlerFuncObj{Url: "/public/process/definitions/:proc-def-id/preview/entities/:entityDataId", Method: "GET", HandlerFunc: process.PublicProcDefPreview, ApiCode: "process-def-preview"},
 		&handlerFuncObj{Url: "/public/process/definitions/:proc-def-id/tasknodes", Method: "GET", HandlerFunc: process.GetProcDefTaskNodes, ApiCode: "get-process-definition-tasknodes"},
 		&handlerFuncObj{Url: "/process/instances/tasknodes/session/:sessionId/tasknode-bindings", Method: "GET", HandlerFunc: process.ProcInsTaskNodeBindings, ApiCode: "process-ins-binding"},
 		&handlerFuncObj{Url: "/process/instances/tasknodes/:taskNodeId/session/:sessionId/tasknode-bindings", Method: "GET", HandlerFunc: process.ProcInsTaskNodeBindings, ApiCode: "process-ins-node-binding"},
