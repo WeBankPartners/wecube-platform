@@ -217,6 +217,8 @@ type ProcCallPluginServiceFuncParam struct {
 	RiskCheck         bool
 	Operator          string
 	ProcInsNode       *ProcInsNode
+	ProcDefNode       *ProcDefNode
+	DataBinding       []*ProcDataBinding
 }
 
 type ProcNodeContextReq struct {
@@ -361,10 +363,10 @@ type PluginTaskFormDto struct {
 	FormMetaId       string                  `json:"formMetaId"`
 	ProcDefId        string                  `json:"procDefId"`
 	ProcDefKey       string                  `json:"procDefKey"`
-	ProcInstId       int                     `json:"procInstId"`
+	ProcInstId       string                  `json:"procInstId"`
 	ProcInstKey      string                  `json:"procInstKey"`
 	TaskNodeDefId    string                  `json:"taskNodeDefId"`
-	TaskNodeInstId   int                     `json:"taskNodeInstId"`
+	TaskNodeInstId   string                  `json:"taskNodeInstId"`
 	FormDataEntities []*PluginTaskFormEntity `json:"formDataEntities"`
 }
 

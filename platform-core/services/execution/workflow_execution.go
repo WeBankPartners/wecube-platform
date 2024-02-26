@@ -9,6 +9,7 @@ import (
 	"github.com/WeBankPartners/wecube-platform/platform-core/models"
 	"github.com/WeBankPartners/wecube-platform/platform-core/services/database"
 	"github.com/WeBankPartners/wecube-platform/platform-core/services/remote"
+	"strings"
 )
 
 /**
@@ -233,9 +234,6 @@ func DoWorkflowHumanJob(ctx context.Context, procRunNodeId string) (err error) {
 		err = getIntErr
 		return
 	}
-	if err = database.AddProcCacheData(ctx, procInsNode.ProcInsId, dataBindings); err != nil {
-		return
-	}
 	if pluginInterface.IsAsyncProcessing == "N" {
 		err = fmt.Errorf("can not support human job with interface sync defind")
 		return
@@ -272,6 +270,8 @@ func DoWorkflowHumanJob(ctx context.Context, procRunNodeId string) (err error) {
 		RiskCheck:         procDefNode.RiskCheck,
 		Operator:          "SYSTEM",
 		ProcInsNode:       procInsNode,
+		ProcDefNode:       procDefNode,
+		DataBinding:       dataBindings,
 	}
 	if pluginInterface.Type == "DYNAMICFORM" {
 		err = CallDynamicFormReq(ctx, &callPluginServiceParam)
@@ -309,7 +309,13 @@ func CallDynamicFormReq(ctx context.Context, param *models.ProcCallPluginService
 				break
 			}
 			// 拿到结构后组表单数据赋值给taskFormInput
-			buildTaskFormInput(ctx, taskFormMeta, param.ProcInsNode.ProcInsId, param.ProcInsNode.Id)
+			tmpFormData, buildFormErr := buildTaskFormInput(ctx, taskFormMeta, param)
+			if buildFormErr != nil {
+				err = buildFormErr
+				break
+			}
+			tmpFormBytes, _ := json.Marshal(tmpFormData)
+			param.InputConstantMap["taskFormInput"] = string(tmpFormBytes)
 		}
 	}
 	if err != nil {
@@ -356,12 +362,88 @@ func CallDynamicFormReq(ctx context.Context, param *models.ProcCallPluginService
 	return
 }
 
-func buildTaskFormInput(ctx context.Context, taskFormMeta *models.TaskMetaResultData, procInsId, procInsNodeId string) (formData *models.PluginTaskFormDto, err error) {
-	//cacheDataRows, getCacheErr := database.GetProcCacheData(ctx, procInsId)
-	//if getCacheErr != nil {
-	//	err = getCacheErr
-	//	return
-	//}
+func buildTaskFormInput(ctx context.Context, taskFormMeta *models.TaskMetaResultData, param *models.ProcCallPluginServiceFuncParam) (formData *models.PluginTaskFormDto, err error) {
+	cacheDataRows, getCacheErr := database.GetProcCacheData(ctx, param.ProcInsNode.ProcInsId)
+	if getCacheErr != nil {
+		err = getCacheErr
+		return
+	}
+	procDefObj, getProcDefErr := database.GetSimpleProcDefRow(ctx, param.ProcDefNode.ProcDefId)
+	if getProcDefErr != nil {
+		err = getProcDefErr
+		return
+	}
+	formData = &models.PluginTaskFormDto{
+		FormMetaId:     taskFormMeta.FormMetaId,
+		ProcDefId:      procDefObj.Id,
+		ProcDefKey:     procDefObj.Key,
+		ProcInstId:     param.ProcInsNode.ProcInsId,
+		ProcInstKey:    param.ProcInsNode.ProcInsId,
+		TaskNodeDefId:  param.ProcDefNode.Id,
+		TaskNodeInstId: param.ProcInsNode.Id,
+	}
+	for _, dataBind := range param.DataBinding {
+		entityMsg := strings.Split(dataBind.EntityTypeId, ":")
+		if len(entityMsg) != 2 {
+			log.Logger.Warn("bind data entity type illegal", log.String("entityTypeId", dataBind.EntityTypeId), log.String("procInsId", param.ProcInsNode.ProcInsId))
+			continue
+		}
+		entityDataObj := models.PluginTaskFormEntity{
+			FormMetaId:       formData.FormMetaId,
+			PackageName:      entityMsg[0],
+			EntityName:       entityMsg[1],
+			Oid:              dataBind.EntityId,
+			EntityDataId:     dataBind.EntityDataId,
+			FullEntityDataId: dataBind.FullDataId,
+			BindFlag:         "Y",
+		}
+		entityDataObj.FormItemValues = getTaskFormItemValues(ctx, taskFormMeta, cacheDataRows, &entityDataObj, dataBind.EntityTypeId)
+		formData.FormDataEntities = append(formData.FormDataEntities, &entityDataObj)
+	}
+	return
+}
 
+func getTaskFormItemValues(ctx context.Context, taskFormMeta *models.TaskMetaResultData, cacheRows []*models.ProcDataCache, entityDataObj *models.PluginTaskFormEntity, entityTypeId string) (itemValues []*models.PluginTaskFormValue) {
+	cacheObj := &models.ProcDataCache{}
+	for _, row := range cacheRows {
+		if row.EntityTypeId == entityTypeId && row.EntityDataId == entityDataObj.EntityDataId {
+			cacheObj = row
+			break
+		}
+	}
+	if cacheObj.EntityDataId == "" {
+		return
+	}
+	dataValueMap := make(map[string]interface{})
+	if cacheObj.DataValue != "" {
+		if err := json.Unmarshal([]byte(cacheObj.DataValue), &dataValueMap); err != nil {
+			log.Logger.Error("getTaskFormItemValues,json unmarshal cache data value fail", log.String("entityTypeId", entityTypeId), log.String("entityDataId", entityDataObj.EntityDataId), log.String("dataValue", cacheObj.DataValue), log.Error(err))
+			return
+		}
+	} else {
+		queryFilter := []*models.EntityQueryObj{{AttrName: "id", Op: "eq", Condition: entityDataObj.EntityDataId}}
+		queryResult, queryErr := remote.RequestPluginModelData(ctx, entityDataObj.PackageName, entityDataObj.EntityName, remote.GetToken(), queryFilter)
+		if queryErr != nil {
+			log.Logger.Error("getTaskFormItemValues,query entity data fail", log.String("entityTypeId", entityTypeId), log.String("entityDataId", entityDataObj.EntityDataId), log.Error(queryErr))
+			return
+		}
+		if len(queryResult) != 1 {
+			log.Logger.Warn("getTaskFormItemValues,query entity data num illegal", log.Int("dataNum", len(queryResult)), log.String("entityTypeId", entityTypeId), log.String("entityDataId", entityDataObj.EntityDataId), log.JsonObj("filter", queryFilter), log.JsonObj("result", queryResult))
+			return
+		}
+		dataValueMap = queryResult[0]
+	}
+	for _, item := range taskFormMeta.FormItemMetas {
+		itemValueObj := models.PluginTaskFormValue{
+			FormItemMetaId: item.FormItemMetaId,
+			AttrName:       item.AttrName,
+			AttrValue:      dataValueMap[item.AttrName],
+			PackageName:    entityDataObj.PackageName,
+			EntityName:     entityDataObj.EntityName,
+			Oid:            entityDataObj.Oid,
+			EntityDataId:   entityDataObj.EntityDataId,
+		}
+		itemValues = append(itemValues, &itemValueObj)
+	}
 	return
 }

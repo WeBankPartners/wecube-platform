@@ -501,7 +501,7 @@ func CreatePublicProcInstance(ctx context.Context, startParam *models.RequestPro
 			}})
 		}
 		actions = append(actions, &db.ExecAction{Sql: "insert into proc_data_cache(id,proc_ins_id,entity_id,entity_data_id,entity_data_name,entity_type_id,full_data_id,data_value,created_time) values (?,?,?,?,?,?,?,?,?)", Param: []interface{}{
-			"p_cache_" + guid.CreateGuid(), procInsId, row.EntityDataId, row.EntityDataId, row.EntityDisplayName, tmpEntityTypeId, row.FullEntityDataId, row.GetAttrDataValueString(), nowTime,
+			"p_cache_" + guid.CreateGuid(), procInsId, row.Oid, row.EntityDataId, row.EntityDisplayName, tmpEntityTypeId, row.FullEntityDataId, row.GetAttrDataValueString(), nowTime,
 		}})
 		inputEntityMap[row.Oid] = row
 	}
