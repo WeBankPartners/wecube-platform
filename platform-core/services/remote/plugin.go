@@ -196,7 +196,7 @@ func QueryPluginData(ctx context.Context, exprList []*models.ExpressionObj, filt
 	return
 }
 
-func QueryPluginFullData(ctx context.Context, exprList []*models.ExpressionObj, rootFilter *models.QueryExpressionDataFilter, rootEntityNode *models.ProcPreviewEntityNode, token string) (resultNodeList []*models.ProcPreviewEntityNode, err error) {
+func QueryPluginFullData(ctx context.Context, exprList []*models.ExpressionObj, rootFilter *models.QueryExpressionDataFilter, rootEntityNode *models.ProcPreviewEntityNode, token string, withEntityData bool) (resultNodeList []*models.ProcPreviewEntityNode, err error) {
 	dataFullIdMap := make(map[string]string)
 	dataFullIdMap[rootEntityNode.DataId] = rootEntityNode.FullDataId
 	var tmpQueryResult []map[string]interface{}
@@ -258,6 +258,9 @@ func QueryPluginFullData(ctx context.Context, exprList []*models.ExpressionObj, 
 				rowDataNode := &models.ProcPreviewEntityNode{}
 				if _, existFlag := dataFullIdMap[rowDataId]; !existFlag {
 					rowDataNode.Parse(exprObj.Package, exprObj.Entity, rowData)
+					if withEntityData {
+						rowDataNode.EntityData = rowData
+					}
 					if i == exprLastIndex {
 						rowDataNode.LastFlag = true
 					}
