@@ -303,9 +303,17 @@ func CallDynamicFormReq(ctx context.Context, param *models.ProcCallPluginService
 	for _, paramObj := range param.PluginInterface.InputParameters {
 		if paramObj.Name == "taskFormInput" {
 			// 请求taskman拿表单结构
-
+			taskFormMeta, getFormMetaErr := remote.GetInputFormMeta(ctx, param.ProcInsNode.ProcInsId, param.ProcInsNode.ProcDefNodeId, param.PluginInterface)
+			if getFormMetaErr != nil {
+				err = getFormMetaErr
+				break
+			}
 			// 拿到结构后组表单数据赋值给taskFormInput
+			buildTaskFormInput(ctx, taskFormMeta, param.ProcInsNode.ProcInsId, param.ProcInsNode.Id)
 		}
+	}
+	if err != nil {
+		return
 	}
 	inputParamDatas, errHandle := handleInputData(ctx, subsysToken, param.ContinueToken, param.EntityInstances, param.PluginInterface.InputParameters, rootExpr, param.InputConstantMap, param.InputParamContext, &procInsNodeReq)
 	if errHandle != nil {
@@ -345,5 +353,15 @@ func CallDynamicFormReq(ctx context.Context, param *models.ProcCallPluginService
 	if err = database.RecordProcCallReq(ctx, &procInsNodeReq, false); err != nil {
 		return
 	}
+	return
+}
+
+func buildTaskFormInput(ctx context.Context, taskFormMeta *models.TaskMetaResultData, procInsId, procInsNodeId string) (formData *models.PluginTaskFormDto, err error) {
+	//cacheDataRows, getCacheErr := database.GetProcCacheData(ctx, procInsId)
+	//if getCacheErr != nil {
+	//	err = getCacheErr
+	//	return
+	//}
+
 	return
 }
