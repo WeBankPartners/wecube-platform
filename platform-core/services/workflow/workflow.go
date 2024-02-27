@@ -409,6 +409,11 @@ func (n *WorkNode) doDataJob() (output string, err error) {
 func (n *WorkNode) doHumanJob() (output string, err error) {
 	log.Logger.Info("do human job", log.String("nodeId", n.Id), log.String("input", n.Input))
 	// call task
+	err = execution.DoWorkflowHumanJob(n.Ctx, n.Id)
+	if err != nil {
+		log.Logger.Error("do human job error", log.Error(err))
+		return
+	}
 	// wait callback
 	callbackMessage := <-n.callbackChan
 	output = callbackMessage
