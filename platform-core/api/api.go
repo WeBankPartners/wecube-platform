@@ -165,6 +165,7 @@ func init() {
 		&handlerFuncObj{Url: "/process/instances/:procInsId/preview/entities", Method: "GET", HandlerFunc: process.GetProcInsPreview, ApiCode: "get-ins-preview"},
 		&handlerFuncObj{Url: "/process/instances/proceed", Method: "POST", HandlerFunc: process.ProcInsOperation, ApiCode: "proc-ins-operation"},
 		&handlerFuncObj{Url: "/packages/:pluginPackageId/entities/:entityName/query", Method: "POST", HandlerFunc: process.ProcEntityDataQuery, ApiCode: "proc-ins-operation"},
+		&handlerFuncObj{Url: "/process/instances/callback", Method: "POST", HandlerFunc: process.ProcInstanceCallback, ApiCode: "proc-ins-callback"},
 
 		// certification manager
 		&handlerFuncObj{Url: "/plugin-certifications", Method: "GET", HandlerFunc: certification.GetCertifications, ApiCode: "get-certifications"},

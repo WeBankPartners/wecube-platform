@@ -2,6 +2,7 @@ package process
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"github.com/WeBankPartners/go-common-lib/guid"
 	"github.com/WeBankPartners/wecube-platform/platform-core/api/middleware"
@@ -572,4 +573,31 @@ func ProcEntityDataQuery(c *gin.Context) {
 	} else {
 		middleware.ReturnData(c, result)
 	}
+}
+
+func ProcInstanceCallback(c *gin.Context) {
+	var param models.PluginTaskCreateResp
+	if err := c.ShouldBindJSON(&param); err != nil {
+		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, err))
+		return
+	}
+	runNodeRow, err := database.GetWorkflowNodeByReq(c, param.Results.RequestId)
+	if err != nil {
+		middleware.ReturnError(c, err)
+		return
+	}
+	if runNodeRow.IsCompleted {
+		middleware.ReturnError(c, fmt.Errorf("req:%s already completed", param.Results.RequestId))
+		return
+	}
+	operationObj := models.ProcRunOperation{WorkflowId: runNodeRow.WorkflowId, NodeId: runNodeRow.WorkNodeId, Operation: "approve", Status: "wait", CreatedBy: middleware.GetRequestUser(c)}
+	resultBytes, _ := json.Marshal(param.Results)
+	operationObj.Message = string(resultBytes)
+	operationObj.Id, err = database.AddWorkflowOperation(c, &operationObj)
+	if err != nil {
+		middleware.ReturnError(c, err)
+		return
+	}
+	go workflow.HandleProOperation(&operationObj)
+	middleware.ReturnSuccess(c)
 }

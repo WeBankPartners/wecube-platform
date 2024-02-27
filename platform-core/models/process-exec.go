@@ -219,6 +219,7 @@ type ProcCallPluginServiceFuncParam struct {
 	ProcInsNode       *ProcInsNode
 	ProcDefNode       *ProcDefNode
 	DataBinding       []*ProcDataBinding
+	ProcIns           *ProcIns
 }
 
 type ProcNodeContextReq struct {
@@ -383,6 +384,15 @@ type PluginTaskFormEntity struct {
 	FormItemValues   []*PluginTaskFormValue `json:"formItemValues"`
 }
 
+func (p *PluginTaskFormEntity) GetAttrDataValueString() string {
+	dataValue := make(map[string]interface{})
+	for _, v := range p.FormItemValues {
+		dataValue[v.AttrName] = v.AttrValue
+	}
+	b, _ := json.Marshal(dataValue)
+	return string(b)
+}
+
 type PluginTaskFormValue struct {
 	FormItemMetaId   string      `json:"formItemMetaId"`
 	PackageName      string      `json:"packageName"`
@@ -392,4 +402,36 @@ type PluginTaskFormValue struct {
 	EntityDataId     string      `json:"entityDataId"`
 	FullEntityDataId string      `json:"fullEntityDataId"`
 	AttrValue        interface{} `json:"attrValue"`
+}
+
+type PluginTaskCreateResp struct {
+	ResultCode    string                 `json:"resultCode"`
+	ResultMessage string                 `json:"resultMessage"`
+	Results       PluginTaskCreateOutput `json:"results"`
+}
+
+type PluginTaskCreateOutput struct {
+	RequestId      string                       `json:"requestId"`
+	AllowedOptions []string                     `json:"allowedOptions,omitempty"`
+	Outputs        []*PluginTaskCreateOutputObj `json:"outputs"`
+}
+
+type PluginTaskCreateOutputObj struct {
+	CallbackParameter string `json:"callbackParameter"`
+	Comment           string `json:"comment"`
+	TaskFormOutput    string `json:"taskFormOutput"`
+	ErrorCode         string `json:"errorCode"`
+	ErrorMessage      string `json:"errorMessage"`
+	ErrorDetail       string `json:"errorDetail,omitempty"`
+}
+
+type TaskCallbackReqQuery struct {
+	WorkflowId  string `xorm:"workflow_id"`
+	WorkNodeId  string `xorm:"work_node_id"`
+	IsCompleted bool   `xorm:"is_completed"`
+}
+
+type ProcDataNodeExprObj struct {
+	Expression string `json:"expression"`
+	Operation  string `json:"operation"`
 }
