@@ -487,6 +487,19 @@ func SavePluginConfig(c *gin.Context, reqParam *models.PluginConfigDto) (result 
 		pluginConfigId = models.IdPrefixPluCfg + guid.CreateGuid()
 	}
 
+	// 校验 pluginPackage 的 pluginConfig name 是否已存在 registerName
+	var isRegisterNameValid bool
+	isRegisterNameValid, err = validateRegisterName(c, pluginPackageId, reqParam.Name, reqParam.RegisterName, pluginConfigId)
+	if err != nil {
+		err = fmt.Errorf("validate registerName: %s failed: %s", reqParam.RegisterName, err.Error())
+		return
+	}
+	if !isRegisterNameValid {
+		err = fmt.Errorf(fmt.Sprintf("PluginPackage[:%s] already have this PluginConfig[:%s] with RegisterName[:%s]",
+			pluginPackageId, reqParam.Name, reqParam.RegisterName))
+		return
+	}
+
 	createActions, tmpErr := GetCreatePluginConfigActions(c, pluginConfigId, reqParam, false)
 	if tmpErr != nil {
 		err = fmt.Errorf("get create pluginConfig actions failed: %s", tmpErr.Error())
@@ -512,6 +525,30 @@ func SavePluginConfig(c *gin.Context, reqParam *models.PluginConfigDto) (result 
 			result = pluginConfigQueryObjList[0].PluginConfigDtoList[0]
 		}
 	}
+	return
+}
+
+func validateRegisterName(c *gin.Context, pluginPackageId, pluginConfigName, pluginConfigRegisterName, pluginConfigId string) (isValid bool, err error) {
+	var exists bool
+	pluginConfigData := &models.PluginConfigs{}
+	exists, err = db.MysqlEngine.Context(c).Table(models.TableNamePluginConfigs).
+		Where("plugin_package_id = ? AND name = ? AND register_name = ?", pluginPackageId, pluginConfigName, pluginConfigRegisterName).
+		Get(pluginConfigData)
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
+		return
+	}
+	if !exists {
+		isValid = true
+		return
+	}
+
+	// record existed
+	if pluginConfigData.Id == pluginConfigId {
+		isValid = true
+		return
+	}
+	isValid = false
 	return
 }
 
