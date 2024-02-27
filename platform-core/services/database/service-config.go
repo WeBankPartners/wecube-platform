@@ -915,6 +915,7 @@ func getImportPluginConfigData(pluginPackageId string, packagePluginsXmlData *mo
 				IsAsyncProcessing: interfaceInfo.IsAsyncProcessing,
 				Type:              interfaceInfo.Type,
 				FilterRule:        interfaceInfo.FilterRule,
+				Description:       interfaceInfo.Description,
 			}
 
 			// handle interfaces parameters
@@ -923,12 +924,18 @@ func getImportPluginConfigData(pluginPackageId string, packagePluginsXmlData *mo
 			for iii := range interfaceInfo.InputParameters.Parameter {
 				inputParamInfo := &interfaceInfo.InputParameters.Parameter[iii]
 				inputParam := &models.PluginConfigInterfaceParameters{
+					Type:                      "INPUT",
+					Name:                      inputParamInfo.Text,
 					DataType:                  inputParamInfo.Datatype,
 					MappingType:               inputParamInfo.MappingType,
 					MappingEntityExpression:   inputParamInfo.MappingEntityExpression,
 					Required:                  inputParamInfo.Required,
 					SensitiveData:             inputParamInfo.SensitiveData,
 					MappingSystemVariableName: inputParamInfo.MappingSystemVariableName,
+					Description:               inputParamInfo.Description,
+					MappingVal:                inputParamInfo.MappingValue,
+					Multiple:                  inputParamInfo.Multiple,
+					RefObjectName:             inputParamInfo.RefObjectName,
 				}
 				inputParamList = append(inputParamList, inputParam)
 			}
@@ -939,10 +946,18 @@ func getImportPluginConfigData(pluginPackageId string, packagePluginsXmlData *mo
 			for iii := range interfaceInfo.OutputParameters.Parameter {
 				outputParamInfo := &interfaceInfo.OutputParameters.Parameter[iii]
 				outputParam := &models.PluginConfigInterfaceParameters{
-					DataType:                outputParamInfo.Datatype,
-					MappingType:             outputParamInfo.MappingType,
-					MappingEntityExpression: outputParamInfo.MappingEntityExpression,
-					SensitiveData:           outputParamInfo.SensitiveData,
+					Type:                      "OUTPUT",
+					Name:                      outputParamInfo.Text,
+					DataType:                  outputParamInfo.Datatype,
+					MappingType:               outputParamInfo.MappingType,
+					MappingEntityExpression:   outputParamInfo.MappingEntityExpression,
+					Required:                  outputParamInfo.Required,
+					SensitiveData:             outputParamInfo.SensitiveData,
+					MappingSystemVariableName: outputParamInfo.MappingSystemVariableName,
+					Description:               outputParamInfo.Description,
+					MappingVal:                outputParamInfo.MappingValue,
+					Multiple:                  outputParamInfo.Multiple,
+					RefObjectName:             outputParamInfo.RefObjectName,
 				}
 				outputParamList = append(outputParamList, outputParam)
 			}
