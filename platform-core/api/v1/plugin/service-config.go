@@ -3,8 +3,10 @@ package plugin
 import (
 	"encoding/xml"
 	"fmt"
+	"net/http"
 	"sort"
 	"strings"
+	"time"
 
 	"github.com/WeBankPartners/wecube-platform/platform-core/api/middleware"
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/exterror"
@@ -272,8 +274,18 @@ func ExportPluginConfigs(c *gin.Context) {
 	retData, err := database.ExportPluginConfigs(c, pluginPackageId)
 	if err != nil {
 		middleware.ReturnError(c, err)
+		return
 	} else {
-		middleware.ReturnXMLData(c, retData)
+		// middleware.ReturnXMLData(c, retData)
+		fileName := fmt.Sprintf("%s-%s-%s.xml", retData.Name, retData.Version, time.Now().Format("20060102150405"))
+		// retDataBytes, tmpErr := json.Marshal(retData)
+		retDataBytes, tmpErr := xml.MarshalIndent(retData, "", "    ")
+		if tmpErr != nil {
+			err = fmt.Errorf("marshal exportPluginConfigs failed: %s", tmpErr.Error())
+			return
+		}
+		c.Header("Content-Disposition", fmt.Sprintf("attachment;filename=%s", fileName))
+		c.Data(http.StatusOK, "application/octet-stream", retDataBytes)
 	}
 	return
 }

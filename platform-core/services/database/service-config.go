@@ -1012,6 +1012,11 @@ func ExportPluginConfigs(c *gin.Context, pluginPackageId string) (result *models
 	pluginXMLList := []models.PluginXML{}
 	for _, pluginCfgObj := range pluginConfigQueryObjList {
 		for _, pluginCfgDto := range pluginCfgObj.PluginConfigDtoList {
+			// 忽略根节点
+			if pluginCfgDto.TargetPackage == "" && pluginCfgDto.TargetEntity == "" &&
+				pluginCfgDto.TargetEntityFilterRule == "" && pluginCfgDto.RegisterName == "" {
+				continue
+			}
 			// handle pluginConfig
 			pluginXMLData := models.PluginXML{
 				Name:                   pluginCfgDto.Name,
@@ -1032,16 +1037,24 @@ func ExportPluginConfigs(c *gin.Context, pluginPackageId string) (result *models
 					IsAsyncProcessing: interfaceInfo.IsAsyncProcessing,
 					Type:              interfaceInfo.Type,
 					FilterRule:        interfaceInfo.FilterRule,
+					Description:       interfaceInfo.Description,
 				}
 
 				// handle input parameters
 				inputParamsXMLList := []models.ParameterXML{}
 				for _, parameter := range interfaceInfo.InputParameters {
 					parameterXMLData := models.ParameterXML{
-						Datatype:                parameter.DataType,
-						MappingType:             parameter.MappingType,
-						SensitiveData:           parameter.SensitiveData,
-						MappingEntityExpression: parameter.MappingEntityExpression,
+						Text:                      parameter.Name,
+						Datatype:                  parameter.DataType,
+						MappingType:               parameter.MappingType,
+						MappingEntityExpression:   parameter.MappingEntityExpression,
+						MappingSystemVariableName: parameter.MappingSystemVariableName,
+						Required:                  parameter.Required,
+						SensitiveData:             parameter.SensitiveData,
+						Description:               parameter.Description,
+						MappingValue:              parameter.MappingVal,
+						Multiple:                  parameter.Multiple,
+						RefObjectName:             parameter.RefObjectName,
 					}
 					inputParamsXMLList = append(inputParamsXMLList, parameterXMLData)
 				}
@@ -1051,10 +1064,17 @@ func ExportPluginConfigs(c *gin.Context, pluginPackageId string) (result *models
 				outputParamsXMLList := []models.ParameterXML{}
 				for _, parameter := range interfaceInfo.OutputParameters {
 					parameterXMLData := models.ParameterXML{
-						Datatype:                parameter.DataType,
-						MappingType:             parameter.MappingType,
-						SensitiveData:           parameter.SensitiveData,
-						MappingEntityExpression: parameter.MappingEntityExpression,
+						Text:                      parameter.Name,
+						Datatype:                  parameter.DataType,
+						MappingType:               parameter.MappingType,
+						MappingEntityExpression:   parameter.MappingEntityExpression,
+						MappingSystemVariableName: parameter.MappingSystemVariableName,
+						Required:                  parameter.Required,
+						SensitiveData:             parameter.SensitiveData,
+						Description:               parameter.Description,
+						MappingValue:              parameter.MappingVal,
+						Multiple:                  parameter.Multiple,
+						RefObjectName:             parameter.RefObjectName,
 					}
 					outputParamsXMLList = append(outputParamsXMLList, parameterXMLData)
 				}
