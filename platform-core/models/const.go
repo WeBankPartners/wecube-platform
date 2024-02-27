@@ -63,10 +63,10 @@ const (
 
 	// id prefix
 	IdPrefixSysVar       = "sys_var_"
-	IdPrefixPluCfgRol    = "plu_cfg_rol_"
-	IdPrefixPluCfg       = "plu_cfg_"
-	IdPrefixPluCfgItf    = "plu_cfg_itf_"
-	IdPrefixPluCfgItfPar = "plu_cfg_itf_par_"
+	IdPrefixPluCfgRol    = "p_conf_rol_"
+	IdPrefixPluCfg       = "p_config_"
+	IdPrefixPluCfgItf    = "p_conf_inf_"
+	IdPrefixPluCfgItfPar = "p_conf_inf_param_"
 )
 
 var (
