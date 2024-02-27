@@ -494,11 +494,15 @@ func CreatePublicProcInstance(ctx context.Context, startParam *models.RequestPro
 	}
 	inputEntityMap := make(map[string]*models.RequestCacheEntityValue)
 	for _, row := range startParam.Entities {
+		tmpEntityTypeId := fmt.Sprintf("%s:%s", row.PackageName, row.EntityName)
 		if row.Oid == startParam.RootEntityOid {
 			actions = append(actions, &db.ExecAction{Sql: "insert into proc_data_binding(id,proc_def_id,proc_ins_id,entity_id,entity_data_id,entity_data_name,entity_type_id,bind_flag,bind_type,full_data_id,created_by,created_time) values (?,?,?,?,?,?,?,?,?,?,?,?)", Param: []interface{}{
-				fmt.Sprintf("p_bind_%s", guid.CreateGuid()), procDefObj.Id, procInsId, row.EntityDataId, row.EntityDataId, row.EntityDisplayName, fmt.Sprintf("%s:%s", row.PackageName, row.EntityName), 0, "process", row.FullEntityDataId, operator, nowTime,
+				fmt.Sprintf("p_bind_%s", guid.CreateGuid()), procDefObj.Id, procInsId, row.EntityDataId, row.EntityDataId, row.EntityDisplayName, tmpEntityTypeId, 0, "process", row.FullEntityDataId, operator, nowTime,
 			}})
 		}
+		actions = append(actions, &db.ExecAction{Sql: "insert into proc_data_cache(id,proc_ins_id,entity_id,entity_data_id,entity_data_name,entity_type_id,full_data_id,data_value,created_time) values (?,?,?,?,?,?,?,?,?)", Param: []interface{}{
+			"p_cache_" + guid.CreateGuid(), procInsId, row.Oid, row.EntityDataId, row.EntityDisplayName, tmpEntityTypeId, row.FullEntityDataId, row.GetAttrDataValueString(), nowTime,
+		}})
 		inputEntityMap[row.Oid] = row
 	}
 	workNodeIdMap := make(map[string]string)
@@ -979,5 +983,14 @@ func AddWorkflowOperation(ctx context.Context, operation *models.ProcRunOperatio
 		return
 	}
 	lastInsertId, _ = execResult.LastInsertId()
+	return
+}
+
+func GetProcCacheData(ctx context.Context, procInsId string) (procCacheDataRows []*models.ProcDataCache, err error) {
+	err = db.MysqlEngine.SQL("select * from proc_data_cache where proc_ins_id=?", procInsId).Find(&procCacheDataRows)
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
+		return
+	}
 	return
 }
