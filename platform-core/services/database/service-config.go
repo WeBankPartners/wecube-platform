@@ -515,6 +515,54 @@ func SavePluginConfig(c *gin.Context, reqParam *models.PluginConfigDto) (result 
 	return
 }
 
+func GetDelPluginConfigActionsForImportData(c *gin.Context, pluginPackageId string, pluginConfigDtoForImportList []*models.PluginConfigDto) (resultActions []*db.ExecAction, err error) {
+	resultActions = []*db.ExecAction{}
+
+	if pluginPackageId == "" {
+		return
+	}
+
+	if len(pluginConfigDtoForImportList) == 0 {
+		return
+	}
+
+	var pluginConfigsExistedList []*models.PluginConfigs
+	err = db.MysqlEngine.Context(c).Table(models.TableNamePluginConfigs).
+		Where("plugin_package_id = ?", pluginPackageId).
+		Find(&pluginConfigsExistedList)
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
+		return
+	}
+
+	pluginCfgIdToDelMap := make(map[string]map[string]string)
+	for _, pluginCfgData := range pluginConfigsExistedList {
+		if _, isExisted := pluginCfgIdToDelMap[pluginCfgData.Name]; !isExisted {
+			pluginCfgIdToDelMap[pluginCfgData.Name] = make(map[string]string)
+		}
+		pluginCfgIdToDelMap[pluginCfgData.Name][pluginCfgData.RegisterName] = pluginCfgData.Id
+	}
+
+	pluginCfgIdToDelList := []string{}
+	for _, pluginCfgToImport := range pluginConfigDtoForImportList {
+		if _, isOk1 := pluginCfgIdToDelMap[pluginCfgToImport.Name]; isOk1 {
+			if pluginCfgId, isOk2 := pluginCfgIdToDelMap[pluginCfgToImport.Name][pluginCfgToImport.RegisterName]; isOk2 {
+				pluginCfgIdToDelList = append(pluginCfgIdToDelList, pluginCfgId)
+			}
+		}
+	}
+
+	for _, pluginCfgId := range pluginCfgIdToDelList {
+		curDelActions, tmpErr := GetDelPluginConfigActions(c, pluginCfgId)
+		if tmpErr != nil {
+			err = fmt.Errorf("get del pluginConfig actions for pluginCfgId: %s failed: %s", pluginCfgId, tmpErr.Error())
+			return
+		}
+		resultActions = append(resultActions, curDelActions...)
+	}
+	return
+}
+
 func GetDelPluginConfigActions(c *gin.Context, pluginConfigId string) (resultActions []*db.ExecAction, err error) {
 	resultActions = []*db.ExecAction{}
 
@@ -832,6 +880,16 @@ func ImportPluginConfigs(c *gin.Context, pluginPackageId string, packagePluginsX
 	// get save plugin config list
 	savePluginConfigList := getImportPluginConfigData(pluginPackageId, packagePluginsXmlData)
 	var actions []*db.ExecAction
+
+	// handle del actions for import data
+	delActions, tmpErr := GetDelPluginConfigActionsForImportData(c, pluginPackageId, savePluginConfigList)
+	if tmpErr != nil {
+		err = fmt.Errorf("get del pluginConfig actions for import data failed: %s", tmpErr.Error())
+		return
+	}
+	actions = append(actions, delActions...)
+
+	// handle creation actions for import data
 	for i := range savePluginConfigList {
 		curPluginConfigId := models.IdPrefixPluCfg + guid.CreateGuid()
 		curCreationActions, tmpErr := GetCreatePluginConfigActions(c, curPluginConfigId, savePluginConfigList[i], true)
