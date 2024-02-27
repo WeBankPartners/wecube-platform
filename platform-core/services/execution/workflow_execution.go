@@ -77,7 +77,7 @@ func WorkflowExecutionCallPluginService(ctx context.Context, param *models.ProcC
 	}
 	// 调用插件接口
 	pluginCallParam = &models.BatchExecutionPluginExecParam{
-		RequestId:       "p_req_" + guid.CreateGuid(),
+		RequestId:       procInsNodeReq.Id,
 		Operator:        param.Operator,
 		ServiceName:     param.PluginInterface.ServiceName,
 		ServicePath:     param.PluginInterface.ServiceDisplayName,
@@ -86,7 +86,6 @@ func WorkflowExecutionCallPluginService(ctx context.Context, param *models.ProcC
 		DueDate:         param.DueDate,
 		AllowedOptions:  param.AllowedOptions,
 	}
-	pluginCallParam.RequestId = "flowexec_" + guid.CreateGuid()
 	// 纪录参数
 	if err = database.RecordProcCallReq(ctx, &procInsNodeReq, true); err != nil {
 		return
@@ -207,14 +206,66 @@ func DoWorkflowAutoJob(ctx context.Context, procRunNodeId, continueToken string)
 }
 
 func DoWorkflowDataJob(ctx context.Context, procRunNodeId string) (err error) {
-	//ctx = context.WithValue(ctx, models.TransactionIdHeader, procRunNodeId)
-	//// 查proc def node定义和proc ins绑定数据
-	//procInsNode, procDefNode, procDefNodeParams, dataBindings, getNodeDataErr := database.GetProcExecNodeData(ctx, procRunNodeId)
-	//if getNodeDataErr != nil {
-	//	err = getNodeDataErr
+	ctx = context.WithValue(ctx, models.TransactionIdHeader, procRunNodeId)
+	// 查proc def node定义和proc ins绑定数据
+	procInsNode, getInsNodeErr := database.GetSimpleProcInsNode(ctx, "", procRunNodeId)
+	if getInsNodeErr != nil {
+		err = getInsNodeErr
+		return
+	}
+	procDefNode, getDefNodeErr := database.GetSimpleProcDefNode(ctx, procInsNode.ProcDefNodeId)
+	if getDefNodeErr != nil {
+		err = getDefNodeErr
+		return
+	}
+	var dataConfigList []*models.ProcDataNodeExprObj
+	for _, subExpr := range strings.Split(procDefNode.RoutineExpression, "#DME#") {
+		subSplit := strings.Split(subExpr, "#DMEOP#")
+		if len(subSplit) != 2 {
+			err = fmt.Errorf("data nodeType expression:%s illegal", subExpr)
+			return
+		}
+		dataConfigList = append(dataConfigList, &models.ProcDataNodeExprObj{Expression: subSplit[0], Operation: subSplit[1]})
+	}
+	if len(dataConfigList) == 0 {
+		return
+	}
+	//procDef, getProcDefErr := database.GetSimpleProcDefRow(ctx, procDefNode.ProcDefId)
+	//if getProcDefErr != nil {
+	//	err = getProcDefErr
 	//	return
 	//}
-
+	//procIns,getProcInsErr := database.GetSimpleProcInsRow(ctx, procInsNode.ProcInsId)
+	//if getProcInsErr != nil {
+	//	err = getProcInsErr
+	//	return
+	//}
+	//rootExprList, analyzeErr := remote.AnalyzeExpression(procDef.RootEntity)
+	//if analyzeErr != nil {
+	//	return
+	//}
+	//rootLastExprObj := rootExprList[len(rootExprList)-1]
+	//rootFilter := models.QueryExpressionDataFilter{
+	//	Index:       len(rootExprList) - 1,
+	//	PackageName: rootLastExprObj.Package,
+	//	EntityName:  rootLastExprObj.Entity,
+	//	AttributeFilters: []*models.QueryExpressionDataAttrFilter{{
+	//		Name:     "id",
+	//		Operator: "eq",
+	//		Value:    procIns.EntityDataId,
+	//	}},
+	//}
+	//for _,dataConfigObj := range dataConfigList {
+	//	tmpExprAnalyzeResult,tmpErr := remote.AnalyzeExpression(dataConfigObj.Expression)
+	//	if tmpErr != nil {
+	//		err = fmt.Errorf("analyze expression:%s error:%s ", dataConfigObj.Expression, tmpErr.Error())
+	//		return
+	//	}
+	//	tmpQueryPluginResult, tmpQueryErr := remote.QueryPluginData(ctx, tmpExprAnalyzeResult, []*models.QueryExpressionDataFilter{&rootFilter}, remote.GetToken())
+	//	if tmpQueryErr != nil {
+	//
+	//	}
+	//}
 	return
 }
 
@@ -238,6 +289,11 @@ func DoWorkflowHumanJob(ctx context.Context, procRunNodeId string) (err error) {
 		err = fmt.Errorf("can not support human job with interface sync defind")
 		return
 	}
+	procIns, getProcInsErr := database.GetSimpleProcInsRow(ctx, procInsNode.ProcInsId)
+	if getProcInsErr != nil {
+		err = getProcInsErr
+		return
+	}
 	var entityInstances []*models.BatchExecutionPluginExecEntityInstances
 	for _, bindingObj := range dataBindings {
 		entityInstances = append(entityInstances, &models.BatchExecutionPluginExecEntityInstances{
@@ -258,7 +314,20 @@ func DoWorkflowHumanJob(ctx context.Context, procRunNodeId string) (err error) {
 		if v.BindType == "constant" {
 			inputConstantMap[interfaceParamIdMap[v.Name]] = v.Value
 		} else if v.BindType == "context" {
-
+			bindNodeType, getTypeErr := database.GetProcContextBindNodeType(ctx, procDefNode.ProcDefId, v.CtxBindNode)
+			if getTypeErr != nil {
+				err = getTypeErr
+				return
+			}
+			if bindNodeType == "start" {
+				inputContextMap["procInstId"] = procIns.Id
+				inputContextMap["procDefName"] = procIns.ProcDefName
+				inputContextMap["procDefKey"] = procIns.ProcDefKey
+				inputContextMap["procInstKey"] = procIns.ProcDefName
+				inputContextMap["procInstName"] = procIns.ProcDefName
+				inputContextMap["rootEntityId"] = procIns.EntityDataId
+				inputContextMap["rootEntityName"] = procIns.EntityDataName
+			}
 		}
 	}
 	callPluginServiceParam := models.ProcCallPluginServiceFuncParam{
@@ -272,6 +341,7 @@ func DoWorkflowHumanJob(ctx context.Context, procRunNodeId string) (err error) {
 		ProcInsNode:       procInsNode,
 		ProcDefNode:       procDefNode,
 		DataBinding:       dataBindings,
+		ProcIns:           procIns,
 	}
 	if pluginInterface.Type == "DYNAMICFORM" {
 		err = CallDynamicFormReq(ctx, &callPluginServiceParam)
@@ -329,7 +399,7 @@ func CallDynamicFormReq(ctx context.Context, param *models.ProcCallPluginService
 	procInsNodeReq.ReqDataAmount = len(inputParamDatas)
 	// 调用插件接口
 	pluginCallParam := &models.BatchExecutionPluginExecParam{
-		RequestId:       "p_req_" + guid.CreateGuid(),
+		RequestId:       procInsNodeReq.Id,
 		Operator:        param.Operator,
 		ServiceName:     param.PluginInterface.ServiceName,
 		ServicePath:     param.PluginInterface.ServiceDisplayName,
@@ -338,27 +408,29 @@ func CallDynamicFormReq(ctx context.Context, param *models.ProcCallPluginService
 		DueDate:         param.DueDate,
 		AllowedOptions:  param.AllowedOptions,
 	}
-	pluginCallParam.RequestId = "flowexec_" + guid.CreateGuid()
 	// 纪录参数
 	if err = database.RecordProcCallReq(ctx, &procInsNodeReq, true); err != nil {
 		return
 	}
 	pluginCallResult, _, errCall := remote.PluginInterfaceApi(ctx, subsysToken, param.PluginInterface, pluginCallParam)
+	log.Logger.Info("human job call plugin api response", log.JsonObj("result", pluginCallResult), log.String("error", fmt.Sprintf("%v", errCall)))
 	if errCall != nil {
 		err = errCall
 		procInsNodeReq.ErrorMsg = err.Error()
-		database.RecordProcCallReq(ctx, &procInsNodeReq, false)
+		if recordErr := database.RecordProcCallReq(ctx, &procInsNodeReq, false); recordErr != nil {
+			log.Logger.Error("try to record proc call req to database fail", log.Error(recordErr), log.JsonObj("req", procInsNodeReq))
+		}
 		return
 	}
 	// 处理output param(比如类型转换，数据模型写入), handleOutputData主要是用于格式化为output param定义的字段
-	_, errHandle = handleOutputData(ctx, subsysToken, pluginCallResult.Outputs, param.PluginInterface.OutputParameters, &procInsNodeReq)
-	if errHandle != nil {
-		err = errHandle
-		return
-	}
-	if err = database.RecordProcCallReq(ctx, &procInsNodeReq, false); err != nil {
-		return
-	}
+	//_, errHandle = handleOutputData(ctx, subsysToken, pluginCallResult.Outputs, param.PluginInterface.OutputParameters, &procInsNodeReq)
+	//if errHandle != nil {
+	//	err = errHandle
+	//	return
+	//}
+	//if err = database.RecordProcCallReq(ctx, &procInsNodeReq, false); err != nil {
+	//	return
+	//}
 	return
 }
 
@@ -368,15 +440,10 @@ func buildTaskFormInput(ctx context.Context, taskFormMeta *models.TaskMetaResult
 		err = getCacheErr
 		return
 	}
-	procDefObj, getProcDefErr := database.GetSimpleProcDefRow(ctx, param.ProcDefNode.ProcDefId)
-	if getProcDefErr != nil {
-		err = getProcDefErr
-		return
-	}
 	formData = &models.PluginTaskFormDto{
 		FormMetaId:     taskFormMeta.FormMetaId,
-		ProcDefId:      procDefObj.Id,
-		ProcDefKey:     procDefObj.Key,
+		ProcDefId:      param.ProcIns.ProcDefId,
+		ProcDefKey:     param.ProcIns.ProcDefKey,
 		ProcInstId:     param.ProcInsNode.ProcInsId,
 		ProcInstKey:    param.ProcInsNode.ProcInsId,
 		TaskNodeDefId:  param.ProcDefNode.Id,
@@ -444,6 +511,64 @@ func getTaskFormItemValues(ctx context.Context, taskFormMeta *models.TaskMetaRes
 			EntityDataId:   entityDataObj.EntityDataId,
 		}
 		itemValues = append(itemValues, &itemValueObj)
+	}
+	return
+}
+
+func HandleCallbackHumanJob(ctx context.Context, procRunNodeId string, callbackData *models.PluginTaskCreateOutput) (choseOption string, err error) {
+	if len(callbackData.AllowedOptions) != 1 {
+		err = fmt.Errorf("callback allowe options length illegal,%s ", callbackData.AllowedOptions)
+		return
+	}
+	choseOption = callbackData.AllowedOptions[0]
+	// 纪录req output
+	procInsNode, getInsNodeErr := database.GetSimpleProcInsNode(ctx, "", procRunNodeId)
+	if getInsNodeErr != nil {
+		err = getInsNodeErr
+		return
+	}
+	procDefNode, getDefNodeErr := database.GetSimpleProcDefNode(ctx, procInsNode.ProcDefNodeId)
+	if getDefNodeErr != nil {
+		err = getDefNodeErr
+		return
+	}
+	pluginInterface, getIntErr := database.GetLastEnablePluginInterface(ctx, procDefNode.ServiceName)
+	if getIntErr != nil {
+		err = getIntErr
+		return
+	}
+	pluginCallOutput := []map[string]interface{}{}
+	outputBytes, _ := json.Marshal(callbackData.Outputs)
+	if err = json.Unmarshal(outputBytes, &pluginCallOutput); err != nil {
+		err = fmt.Errorf("json unmarshal call output data to []map[string]interface{} fail,%s", err.Error())
+		return
+	}
+	procInsNodeReq := models.ProcInsNodeReq{Id: callbackData.RequestId}
+	// 处理output param(比如类型转换，数据模型写入), handleOutputData主要是用于格式化为output param定义的字段
+	_, errHandle := handleOutputData(ctx, remote.GetToken(), pluginCallOutput, pluginInterface.OutputParameters, &procInsNodeReq)
+	if errHandle != nil {
+		err = errHandle
+		return
+	}
+	if err = database.RecordProcCallReq(ctx, &procInsNodeReq, false); err != nil {
+		return
+	}
+	// 更新cache data
+	var taskFormList []*models.PluginTaskFormDto
+	for _, output := range callbackData.Outputs {
+		if output.ErrorCode == "0" {
+			tmpTaskFormObj := models.PluginTaskFormDto{}
+			if tmpUnmarshalErr := json.Unmarshal([]byte(output.TaskFormOutput), &tmpTaskFormObj); tmpUnmarshalErr != nil {
+				log.Logger.Error("human job callback output json unmarshal taskFormOutput fail", log.Error(tmpUnmarshalErr), log.String("reqId", callbackData.RequestId), log.JsonObj("outputData", output))
+			} else {
+				taskFormList = append(taskFormList, &tmpTaskFormObj)
+			}
+		} else {
+			log.Logger.Warn("human job callback output fail", log.String("reqId", callbackData.RequestId), log.JsonObj("outputData", output))
+		}
+	}
+	if len(taskFormList) > 0 {
+		err = database.UpdateProcCacheData(ctx, procInsNode.ProcInsId, taskFormList)
 	}
 	return
 }

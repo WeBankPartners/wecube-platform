@@ -416,7 +416,12 @@ func (n *WorkNode) doHumanJob() (output string, err error) {
 	}
 	// wait callback
 	callbackMessage := <-n.callbackChan
-	output = callbackMessage
+	var callbackData models.PluginTaskCreateOutput
+	if err = json.Unmarshal([]byte(callbackMessage), &callbackData); err != nil {
+		err = fmt.Errorf("json unmarshal human job callback data fail,%s ", err.Error())
+		return
+	}
+	output, err = execution.HandleCallbackHumanJob(n.Ctx, n.Id, &callbackData)
 	return
 }
 
