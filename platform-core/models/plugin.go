@@ -388,7 +388,7 @@ type PluginConfigInterfaceParameters struct {
 	Required                  string                  `json:"required" xorm:"required"`                                      // 是否必填->Y(是) | N(否)
 	SensitiveData             string                  `json:"sensitiveData" xorm:"sensitive_data"`                           // 是否敏感->Y(是) | N(否)
 	Description               string                  `json:"description" xorm:"description"`                                // 描述
-	MappingVal                string                  `json:"mappingVal" xorm:"mapping_val"`                                 // 静态值
+	MappingVal                string                  `json:"mappingValue" xorm:"mapping_val"`                               // 静态值, json tag: mappingValue 是为了兼容老版本
 	Multiple                  string                  `json:"multiple" xorm:"multiple"`                                      // 是否数组->Y(是) | N(否)
 	RefObjectName             string                  `json:"refObjectName" xorm:"ref_object_name"`                          // 关联对象名
 	PluginConfigInterface     *PluginConfigInterfaces `json:"pluginConfigInterface" xorm:"-"`
@@ -756,6 +756,10 @@ type ParameterXML struct {
 	Required                  string `xml:"required,attr" json:"required,omitempty"`
 	SensitiveData             string `xml:"sensitiveData,attr" json:"sensitiveData,omitempty"`
 	MappingSystemVariableName string `xml:"mappingSystemVariableName,attr" json:"mappingSystemVariableName,omitempty"`
+	Description               string `xml:"description,attr" json:"description,omitempty"`
+	MappingValue              string `xml:"mappingValue,attr" json:"mappingValue,omitempty"`
+	Multiple                  string `xml:"multiple,attr" json:"multiple,omitempty"`
+	RefObjectName             string `xml:"refObjectName,attr" json:"refObjectName,omitempty"`
 }
 
 type InterfaceXML struct {
@@ -766,6 +770,7 @@ type InterfaceXML struct {
 	IsAsyncProcessing string `xml:"isAsyncProcessing,attr" json:"isAsyncProcessing,omitempty"`
 	Type              string `xml:"type,attr" json:"type,omitempty"`
 	FilterRule        string `xml:"filterRule,attr" json:"filterRule,omitempty"`
+	Description       string `xml:"description,attr" json:"description,omitempty"`
 	InputParameters   struct {
 		Text      string         `xml:",chardata" json:"text,omitempty"`
 		Parameter []ParameterXML `xml:"parameter" json:"parameter,omitempty"`
