@@ -13,7 +13,7 @@ import (
 )
 
 func GetOnliePluginPackageList(ctx context.Context) (result []*models.OnlinePackage, err error) {
-	uri := "https://wecube-1259801214.cos.ap-guangzhou.myqcloud.com/plugins-v2/" + "public-plugin-artifacts.release"
+	uri := models.Config.Plugin.PublicReleaseUrl + "public-plugin-artifacts.release"
 	req, reqErr := http.NewRequest(http.MethodGet, uri, nil)
 	if reqErr != nil {
 		err = fmt.Errorf("new request fail,%s ", reqErr.Error())
@@ -44,7 +44,7 @@ func GetOnliePluginPackageList(ctx context.Context) (result []*models.OnlinePack
 }
 
 func GetOnliePluginPackageFile(ctx context.Context, fileName string) (result *os.File, err error) {
-	uri := "https://wecube-1259801214.cos.ap-guangzhou.myqcloud.com/plugins-v2/" + fileName
+	uri := models.Config.Plugin.PublicReleaseUrl + fileName
 	req, reqErr := http.NewRequest(http.MethodGet, uri, nil)
 	if reqErr != nil {
 		err = fmt.Errorf("new request fail,%s ", reqErr.Error())
