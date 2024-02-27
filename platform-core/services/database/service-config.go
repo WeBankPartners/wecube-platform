@@ -966,14 +966,22 @@ func getImportPluginConfigData(pluginPackageId string, packagePluginsXmlData *mo
 		pluginCfgInterfaceList := []*models.PluginConfigInterfaces{}
 		for ii := range pluginInfo.Interface {
 			interfaceInfo := pluginInfo.Interface[ii]
+
+			serviceName := fmt.Sprintf("%s/%s/%s", packagePluginsXmlData.Name, pluginInfo.Name, interfaceInfo.Action)
+			if pluginInfo.RegisterName != "" {
+				serviceName = fmt.Sprintf("%s/%s(%s)/%s", packagePluginsXmlData.Name, pluginInfo.Name, pluginInfo.RegisterName, interfaceInfo.Action)
+			}
+
 			pluginCfgInterface := &models.PluginConfigInterfaces{
-				Action:            interfaceInfo.Action,
-				Path:              interfaceInfo.Path,
-				HttpMethod:        interfaceInfo.HttpMethod,
-				IsAsyncProcessing: interfaceInfo.IsAsyncProcessing,
-				Type:              interfaceInfo.Type,
-				FilterRule:        interfaceInfo.FilterRule,
-				Description:       interfaceInfo.Description,
+				Action:             interfaceInfo.Action,
+				ServiceName:        serviceName,
+				ServiceDisplayName: serviceName,
+				Path:               interfaceInfo.Path,
+				HttpMethod:         interfaceInfo.HttpMethod,
+				IsAsyncProcessing:  interfaceInfo.IsAsyncProcessing,
+				Type:               interfaceInfo.Type,
+				FilterRule:         interfaceInfo.FilterRule,
+				Description:        interfaceInfo.Description,
 			}
 
 			// handle interfaces parameters
