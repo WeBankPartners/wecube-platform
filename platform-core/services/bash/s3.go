@@ -3,10 +3,11 @@ package bash
 import (
 	"context"
 	"fmt"
+	"strings"
+
 	"github.com/WeBankPartners/wecube-platform/platform-core/models"
 	"github.com/minio/minio-go/v7"
 	"github.com/minio/minio-go/v7/pkg/credentials"
-	"strings"
 )
 
 func UploadPluginPackage(bucket string, fileMap map[string]string) (err error) {
@@ -49,8 +50,15 @@ func MakeBucket(bucket string) (err error) {
 	if newErr != nil {
 		return fmt.Errorf("minio new client fail,%s ", newErr.Error())
 	}
-	if err = minioClient.MakeBucket(context.Background(), bucket, minio.MakeBucketOptions{}); err != nil {
-		err = fmt.Errorf("new s3 bucket %s fail,%s ", bucket, err.Error())
+	exists, errExists := minioClient.BucketExists(context.Background(), bucket)
+	if errExists != nil {
+		err = fmt.Errorf("check s3 bucket %s fail,%s ", bucket, errExists.Error())
+		return
+	}
+	if !exists {
+		if err = minioClient.MakeBucket(context.Background(), bucket, minio.MakeBucketOptions{}); err != nil {
+			err = fmt.Errorf("new s3 bucket %s fail,%s ", bucket, err.Error())
+		}
 	}
 	return
 }
