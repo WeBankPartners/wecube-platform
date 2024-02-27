@@ -730,7 +730,7 @@ func CreatePluginPackagePullReq(ctx context.Context, data *models.PluginArtifact
 	return
 }
 
-func UpdatePluginPackagePullReq(ctx context.Context, pullId, pkgId, state, stateMsg, userId string) (err error) {
+func UpdatePluginPackagePullReq(ctx context.Context, pullId, pkgId, state, stateMsg, userId string, fileSize int) (err error) {
 	session := db.MysqlEngine.NewSession().Context(ctx)
 	defer session.Close()
 	err = session.Begin()
@@ -752,6 +752,9 @@ func UpdatePluginPackagePullReq(ctx context.Context, pullId, pkgId, state, state
 	updateData["updated_time"] = updatedTime
 	if userId != "" {
 		updateData["updated_by"] = userId
+	}
+	if fileSize > 0 {
+		updateData["total_size"] = fileSize
 	}
 	_, err = session.Table(new(models.PluginArtifactPullReq)).Where("id = ?", pullId).Update(updateData)
 	if err != nil {

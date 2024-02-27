@@ -18,6 +18,7 @@ import (
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/exterror"
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/log"
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/tools"
+	"github.com/WeBankPartners/wecube-platform/platform-core/common/try"
 	"github.com/WeBankPartners/wecube-platform/platform-core/models"
 	"github.com/WeBankPartners/wecube-platform/platform-core/services/bash"
 	"github.com/WeBankPartners/wecube-platform/platform-core/services/database"
@@ -173,40 +174,50 @@ func PullOnliePackage(c *gin.Context) {
 		return
 	}
 	pullId := "pluginPull_" + guid.CreateGuid()
-	tmpFile, err := remote.GetOnliePluginPackageFile(c, reqParam.KeyName)
+	_, err := database.CreatePluginPackagePullReq(c, &models.PluginArtifactPullReq{
+		Id:      pullId,
+		KeyName: reqParam.KeyName,
+		State:   "InProgress",
+	}, c.GetString(models.ContextUserId))
 	if err != nil {
 		middleware.ReturnError(c, err)
 		return
-	} else {
-		tmpFileSize := 0
-		if tmpFile != nil {
-			// tmpFile.Seek(2, 0)
-			fileInfo, _ := tmpFile.Stat()
-			if fileInfo != nil {
-				tmpFileSize = int(fileInfo.Size())
-			}
-			// tmpFile.Seek(0, 0)
-		}
-
-		database.CreatePluginPackagePullReq(c, &models.PluginArtifactPullReq{
-			Id:        pullId,
-			KeyName:   reqParam.KeyName,
-			State:     "InProgress",
-			TotalSize: tmpFileSize,
-		}, c.GetString(models.ContextUserId))
-		middleware.ReturnData(c, models.PullOnliePackageResponse{KeyName: reqParam.KeyName, RequestId: pullId, State: "InProgress"})
 	}
-	go doPullPackageBackground(c, tmpFile.Name(), pullId)
+	go doPullPackageBackground(c, pullId, reqParam.KeyName)
+	middleware.ReturnData(c, models.PullOnliePackageResponse{KeyName: reqParam.KeyName, RequestId: pullId, State: "InProgress"})
 }
 
-func doPullPackageBackground(c context.Context, archiveFilePath string, pullId string) {
+func doPullPackageBackground(c *gin.Context, pullId, fileName string) {
+	defer try.ExceptionStack(func(e interface{}, err interface{}) {
+		retErr := fmt.Errorf("%v", err)
+		database.UpdatePluginPackagePullReq(c, pullId, "", "Faulted", retErr.Error(), "", 0)
+		log.Logger.Error(e.(string))
+	})
+	tmpFile, err := remote.GetOnliePluginPackageFile(c, fileName)
+	if err != nil {
+		// update failed
+		database.UpdatePluginPackagePullReq(c, pullId, "", "Faulted", err.Error(), "", 0)
+		return
+	}
+	tmpFileSize := 0
+	if tmpFile != nil {
+		fileInfo, _ := tmpFile.Stat()
+		if fileInfo != nil {
+			tmpFileSize = int(fileInfo.Size())
+		}
+	} else {
+		// update failed
+		database.UpdatePluginPackagePullReq(c, pullId, "", "Faulted", "failed to download file", "", 0)
+		return
+	}
+	archiveFilePath := tmpFile.Name()
 	pkgId, err := doUploadPackage(c, archiveFilePath)
 	if err != nil {
 		// update failed
-		database.UpdatePluginPackagePullReq(c, pullId, "", "Faulted", err.Error(), "")
+		database.UpdatePluginPackagePullReq(c, pullId, "", "Faulted", err.Error(), "", tmpFileSize)
 	} else {
 		// update ok
-		database.UpdatePluginPackagePullReq(c, pullId, pkgId, "Completed", "", "")
+		database.UpdatePluginPackagePullReq(c, pullId, pkgId, "Completed", "", "", tmpFileSize)
 	}
 	// 清理
 	os.Remove(archiveFilePath)
