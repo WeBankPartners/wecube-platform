@@ -160,6 +160,37 @@ func BuildPluginUpgradeSqlFile(initSqlFile, upgradeSqlFile, currentVersion strin
 	return
 }
 
+func GetDirIndexPath(targetDir string) (subPath string, matchFlag bool, err error) {
+	dirEntries, readDirErr := os.ReadDir(targetDir)
+	if readDirErr != nil {
+		err = fmt.Errorf("read path %s fail,%s ", targetDir, readDirErr.Error())
+		return
+	}
+	for _, v := range dirEntries {
+		if !v.IsDir() && v.Name() == "index.html" {
+			matchFlag = true
+		}
+	}
+	if matchFlag {
+		return
+	}
+	for _, v := range dirEntries {
+		if v.IsDir() {
+			tmpSubPath, tmpMatch, subErr := GetDirIndexPath(targetDir + "/" + v.Name())
+			if subErr != nil {
+				err = subErr
+				break
+			}
+			if tmpMatch {
+				subPath = v.Name() + "/" + tmpSubPath
+				matchFlag = true
+				break
+			}
+		}
+	}
+	return
+}
+
 func ListDirAllFiles(targetDir string) (resultPaths []string, err error) {
 	dirEntries, readDirErr := os.ReadDir(targetDir)
 	if readDirErr != nil {
