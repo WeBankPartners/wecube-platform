@@ -338,6 +338,10 @@ func DoWorkflowHumanJob(ctx context.Context, procRunNodeId string) (err error) {
 		DataBinding:       dataBindings,
 		ProcIns:           procIns,
 	}
+	callPluginServiceParam.AllowedOptions, err = database.GetProcNodeAllowOptions(ctx, procDefNode.ProcDefId, procDefNode.Id)
+	if err != nil {
+		return
+	}
 	if pluginInterface.Type == "DYNAMICFORM" {
 		err = CallDynamicFormReq(ctx, &callPluginServiceParam)
 	} else if pluginInterface.Type == "APPROVAL" {
@@ -511,11 +515,9 @@ func getTaskFormItemValues(ctx context.Context, taskFormMeta *models.TaskMetaRes
 }
 
 func HandleCallbackHumanJob(ctx context.Context, procRunNodeId string, callbackData *models.PluginTaskCreateOutput) (choseOption string, err error) {
-	if len(callbackData.AllowedOptions) != 1 {
-		err = fmt.Errorf("callback allowe options length illegal,%s ", callbackData.AllowedOptions)
-		return
+	if len(callbackData.AllowedOptions) == 1 {
+		choseOption = callbackData.AllowedOptions[0]
 	}
-	choseOption = callbackData.AllowedOptions[0]
 	// 纪录req output
 	procInsNode, getInsNodeErr := database.GetSimpleProcInsNode(ctx, "", procRunNodeId)
 	if getInsNodeErr != nil {
