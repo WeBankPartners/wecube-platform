@@ -322,7 +322,7 @@ func (n *WorkNode) Ready() {
 	go n.start()
 	if n.Timeout > 0 {
 		select {
-		case <-time.After(time.Duration(n.Timeout) * time.Second):
+		case <-time.After(time.Duration(n.Timeout) * time.Minute):
 			n.ErrorMessage = fmt.Sprintf("timeout in %ds", n.Timeout)
 			n.Err = errors.New(n.ErrorMessage)
 		case <-n.DoneChan:
