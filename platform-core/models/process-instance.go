@@ -131,6 +131,8 @@ type ProcDataCache struct {
 	EntityTypeId   string    `json:"entityTypeId" xorm:"entity_type_id"`     // 数据entity
 	FullDataId     string    `json:"fullDataId" xorm:"full_data_id"`         // 数据全路径
 	DataValue      string    `json:"dataValue" xorm:"data_value"`            // 数据值
+	PrevIds        string    `json:"prevIds" xorm:"prev_ids"`                // 上游节点id列表
+	SuccIds        string    `json:"succIds" xorm:"succ_ids"`                // 下游节点id列表
 	CreatedTime    time.Time `json:"createdTime" xorm:"created_time"`        // 创建时间
 	UpdatedTime    time.Time `json:"updatedTime" xorm:"updated_time"`        // 更新时间
 }

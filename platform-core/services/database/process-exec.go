@@ -347,7 +347,7 @@ func GetProcPreviewEntityNode(ctx context.Context, procInsId string) (result *mo
 	}
 	sessionId := insRows[0].ProcSessionId
 	if sessionId == "" {
-		err = fmt.Errorf("can not find session in proc ins:%s", procInsId)
+		result, err = getProcCacheEntityNode(ctx, procInsId)
 		return
 	}
 	result = &models.ProcPreviewData{ProcessSessionId: sessionId, EntityTreeNodes: []*models.ProcPreviewEntityNode{}}
@@ -375,6 +375,66 @@ func GetProcPreviewEntityNode(ctx context.Context, procInsId string) (result *mo
 			tmpNodeObj.SucceedingIds = strings.Split(row.SuccIds, ",")
 		}
 		result.EntityTreeNodes = append(result.EntityTreeNodes, &tmpNodeObj)
+	}
+	return
+}
+
+func getProcCacheEntityNode(ctx context.Context, procInsId string) (result *models.ProcPreviewData, err error) {
+	result = &models.ProcPreviewData{EntityTreeNodes: []*models.ProcPreviewEntityNode{}}
+	var cacheRows []*models.ProcDataCache
+	err = db.MysqlEngine.Context(ctx).SQL("select * from proc_data_cache where proc_ins_id=?", procInsId).Find(&cacheRows)
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
+		return
+	}
+	succMap := make(map[string][]string)
+	for _, row := range cacheRows {
+		entityMsg := strings.Split(row.EntityTypeId, ":")
+		if len(entityMsg) != 2 {
+			continue
+		}
+		tmpNodeObj := models.ProcPreviewEntityNode{
+			Id:            row.EntityId,
+			DataId:        row.EntityDataId,
+			DisplayName:   row.EntityDataName,
+			PackageName:   entityMsg[0],
+			EntityName:    entityMsg[1],
+			FullDataId:    row.FullDataId,
+			PreviousIds:   []string{},
+			SucceedingIds: []string{},
+		}
+		if row.PrevIds != "" {
+			tmpNodeObj.PreviousIds = strings.Split(row.PrevIds, ",")
+			for _, v := range tmpNodeObj.PreviousIds {
+				if sucExist, ok := succMap[v]; ok {
+					succMap[v] = append(sucExist, tmpNodeObj.Id)
+				} else {
+					succMap[v] = []string{tmpNodeObj.Id}
+				}
+			}
+		}
+		if row.SuccIds != "" {
+			tmpNodeObj.SucceedingIds = strings.Split(row.SuccIds, ",")
+		}
+		result.EntityTreeNodes = append(result.EntityTreeNodes, &tmpNodeObj)
+	}
+	for _, v := range result.EntityTreeNodes {
+		if sucExist, ok := succMap[v.Id]; ok {
+			v.SucceedingIds = joinStringList(v.SucceedingIds, sucExist)
+		}
+	}
+	return
+}
+
+func joinStringList(aList, bList []string) (output []string) {
+	existMap := make(map[string]int)
+	aList = append(aList, bList...)
+	for _, v := range aList {
+		if _, ok := existMap[v]; ok {
+			continue
+		}
+		output = append(output, v)
+		existMap[v] = 1
 	}
 	return
 }
@@ -519,8 +579,8 @@ func CreatePublicProcInstance(ctx context.Context, startParam *models.RequestPro
 				fmt.Sprintf("p_bind_%s", guid.CreateGuid()), procDefObj.Id, procInsId, row.EntityDataId, row.EntityDataId, row.EntityDisplayName, tmpEntityTypeId, 0, "process", row.FullEntityDataId, operator, nowTime,
 			}})
 		}
-		actions = append(actions, &db.ExecAction{Sql: "insert into proc_data_cache(id,proc_ins_id,entity_id,entity_data_id,entity_data_name,entity_type_id,full_data_id,data_value,created_time) values (?,?,?,?,?,?,?,?,?)", Param: []interface{}{
-			"p_cache_" + guid.CreateGuid(), procInsId, row.Oid, row.EntityDataId, row.EntityDisplayName, tmpEntityTypeId, row.FullEntityDataId, row.GetAttrDataValueString(), nowTime,
+		actions = append(actions, &db.ExecAction{Sql: "insert into proc_data_cache(id,proc_ins_id,entity_id,entity_data_id,entity_data_name,entity_type_id,full_data_id,data_value,prev_ids,succ_ids,created_time) values (?,?,?,?,?,?,?,?,?,?,?)", Param: []interface{}{
+			"p_cache_" + guid.CreateGuid(), procInsId, row.Oid, row.EntityDataId, row.EntityDisplayName, tmpEntityTypeId, row.FullEntityDataId, row.GetAttrDataValueString(), strings.Join(row.PreviousOids, ","), strings.Join(row.SucceedingOids, ","), nowTime,
 		}})
 		inputEntityMap[row.Oid] = row
 	}
