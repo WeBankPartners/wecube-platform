@@ -36,6 +36,82 @@ func ProcDefList(c *gin.Context) {
 	}
 }
 
+func PublicProcDefList(c *gin.Context) {
+	permission := c.Query("permission") // USE | MGMT
+	tag := c.Query("tag")
+	withAll := c.Query("all")
+	if permission == "" {
+		permission = "USE"
+	}
+	if withAll == "" {
+		withAll = "N"
+	}
+	log.Logger.Debug("public procDefList", log.String(permission, "permission"), log.String("tag", tag))
+	procList, err := database.ProcDefList(c, "0", permission, tag, middleware.GetRequestRoles(c))
+	if err != nil {
+		middleware.ReturnError(c, err)
+		return
+	}
+	if withAll == "N" {
+		newProcList := []*models.ProcDefListObj{}
+		procKeyMap := make(map[string]int)
+		for _, row := range procList {
+			if _, ok := procKeyMap[row.ProcDefKey]; ok {
+				continue
+			}
+			newProcList = append(newProcList, row)
+			procKeyMap[row.ProcDefKey] = 1
+		}
+		procList = newProcList
+	}
+	result := []*models.PublicProcDefObj{}
+	entityMap := make(map[string]*models.ProcEntity)
+	for _, row := range procList {
+		resultObj := models.PublicProcDefObj{
+			ProcDefId:   row.ProcDefId,
+			ProcDefKey:  row.ProcDefKey,
+			ProcDefName: row.ProcDefName,
+			Status:      row.Status,
+			CreatedTime: row.CreatedTime,
+			RootEntity:  &models.ProcEntity{},
+		}
+		rootExpression := row.RootEntity
+		if tmpIndex := strings.Index(rootExpression, "{"); tmpIndex > 0 {
+			rootExpression = rootExpression[:tmpIndex]
+		}
+		entityMsg := strings.Split(rootExpression, ":")
+		if len(entityMsg) != 2 {
+			result = append(result, &resultObj)
+			continue
+		}
+		if entityDef, ok := entityMap[rootExpression]; ok {
+			resultObj.RootEntity = entityDef
+		} else {
+			tmpEntityDef, tmpErr := database.GetEntityModel(c, entityMsg[0], entityMsg[1], true)
+			if tmpErr != nil {
+				err = tmpErr
+				break
+			}
+			tmpRootEntity := models.ProcEntity{
+				Id:          tmpEntityDef.Id,
+				PackageName: tmpEntityDef.PackageName,
+				Name:        tmpEntityDef.Name,
+				Description: tmpEntityDef.Description,
+				DisplayName: tmpEntityDef.DisplayName,
+			}
+			tmpRootEntity.ParseAttr(tmpEntityDef.Attributes)
+			resultObj.RootEntity = &tmpRootEntity
+			entityMap[rootExpression] = &tmpRootEntity
+		}
+		result = append(result, &resultObj)
+	}
+	if err != nil {
+		middleware.ReturnError(c, err)
+	} else {
+		middleware.ReturnData(c, result)
+	}
+}
+
 func ProcDefOutline(c *gin.Context) {
 	procDefId := c.Param("proc-def-id")
 	log.Logger.Debug("ProcDefOutline", log.String("procDefId", procDefId))
