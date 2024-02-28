@@ -1097,3 +1097,16 @@ func UpdateProcCacheData(ctx context.Context, procInsId string, taskFormList []*
 	}
 	return
 }
+
+func GetProcNodeAllowOptions(ctx context.Context, procDefId, ProcNodeDefId string) (options []string, err error) {
+	var linkRows []*models.ProcDefNodeLink
+	err = db.MysqlEngine.Context(ctx).SQL("select id,name from proc_def_node_link where proc_def_id=? and source in (select target from proc_def_node_link where source=?)", procDefId, ProcNodeDefId).Find(&linkRows)
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
+		return
+	}
+	for _, row := range linkRows {
+		options = append(options, row.Name)
+	}
+	return
+}
