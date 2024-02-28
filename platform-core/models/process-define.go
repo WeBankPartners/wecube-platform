@@ -336,6 +336,7 @@ type ProcNodeObj struct {
 	NodeName      string        `json:"nodeName"`
 	NodeType      string        `json:"nodeType"`
 	NodeDefId     string        `json:"nodeDefId"`
+	NodeDefType   string        `json:"nodeDefType"`
 	TaskCategory  string        `json:"taskCategory"`
 	RoutineExp    string        `json:"routineExp"`
 	ServiceId     string        `json:"serviceId"`
@@ -353,6 +354,29 @@ type ProcEntity struct {
 	Description string                    `json:"description"`
 	DisplayName string                    `json:"displayName"`
 	Attributes  []*ProcEntityAttributeObj `json:"attributes"`
+}
+
+func (p *ProcEntity) ParseAttr(attrs []*PluginPackageAttributes) {
+	for _, v := range attrs {
+		p.Attributes = append(p.Attributes, &ProcEntityAttributeObj{
+			Id:                v.Id,
+			Name:              v.Name,
+			Description:       v.Description,
+			DataType:          v.DataType,
+			Mandatory:         v.Mandatory,
+			RefPackageName:    v.RefPackage,
+			RefEntityName:     v.RefEntity,
+			RefAttrName:       v.RefAttr,
+			ReferenceId:       v.ReferenceId,
+			EntityId:          v.EntityId,
+			EntityName:        v.Name,
+			EntityDisplayName: v.Description,
+			EntityPackage:     v.Package,
+			Multiple:          v.Multiple,
+			OrderNo:           fmt.Sprintf("%d", v.OrderNo),
+			Active:            true,
+		})
+	}
 }
 
 type ProcEntityAttributeObj struct {
