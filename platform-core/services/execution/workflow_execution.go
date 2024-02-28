@@ -295,12 +295,7 @@ func DoWorkflowHumanJob(ctx context.Context, procRunNodeId string) (err error) {
 		return
 	}
 	var entityInstances []*models.BatchExecutionPluginExecEntityInstances
-	for _, bindingObj := range dataBindings {
-		entityInstances = append(entityInstances, &models.BatchExecutionPluginExecEntityInstances{
-			Id:               bindingObj.EntityId,
-			BusinessKeyValue: "",
-		})
-	}
+	entityInstances = []*models.BatchExecutionPluginExecEntityInstances{{Id: procIns.EntityDataId}}
 	inputConstantMap := make(map[string]string)
 	inputContextMap := make(map[string]interface{})
 	interfaceParamIdMap := make(map[string]string)
