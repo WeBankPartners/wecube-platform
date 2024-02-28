@@ -355,6 +355,28 @@ type ProcEntity struct {
 	Attributes  []*ProcEntityAttributeObj `json:"attributes"`
 }
 
+func (p *ProcEntity) ParseAttr(attrs []*PluginPackageAttributes) {
+	for _, v := range attrs {
+		p.Attributes = append(p.Attributes, &ProcEntityAttributeObj{
+			Id:                v.Id,
+			Name:              v.Name,
+			Description:       v.Description,
+			DataType:          v.DataType,
+			Mandatory:         v.Mandatory,
+			RefPackageName:    v.RefPackage,
+			RefEntityName:     v.RefEntity,
+			RefAttrName:       v.RefAttr,
+			ReferenceId:       v.ReferenceId,
+			EntityId:          v.EntityId,
+			EntityName:        v.Name,
+			EntityDisplayName: v.Description,
+			EntityPackage:     v.Package,
+			Multiple:          v.Multiple,
+			OrderNo:           fmt.Sprintf("%d", v.OrderNo),
+		})
+	}
+}
+
 type ProcEntityAttributeObj struct {
 	Id                string `json:"id"`
 	Name              string `json:"name"`
