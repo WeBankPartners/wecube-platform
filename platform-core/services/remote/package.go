@@ -43,7 +43,7 @@ func GetOnliePluginPackageList(ctx context.Context) (result []*models.OnlinePack
 	return
 }
 
-func GetOnliePluginPackageFile(ctx context.Context, fileName string) (result *os.File, err error) {
+func GetOnlinePluginPackageFile(ctx context.Context, fileName string) (result *os.File, err error) {
 	uri := models.Config.Plugin.PublicReleaseUrl + fileName
 	req, reqErr := http.NewRequest(http.MethodGet, uri, nil)
 	if reqErr != nil {
