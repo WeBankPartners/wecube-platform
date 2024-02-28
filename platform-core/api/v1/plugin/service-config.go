@@ -378,6 +378,7 @@ func DeletePlugin(c *gin.Context) {
 		middleware.ReturnError(c, err)
 		return
 	}
+	middleware.ReturnSuccess(c)
 }
 
 // QueryPluginByTargetEntity 根据目标对象过滤插件
