@@ -785,17 +785,8 @@ func GetPluginPackagePullReq(ctx context.Context, pullId string) (result *models
 }
 
 func IsPluginInstanceRunning(ctx context.Context, pluginPackageId string) (running bool, err error) {
-	sql := `select
-	pi2.*
-from
-	plugin_instances pi2
-where
-	pi2.container_status = 'RUNNING'
-	and pi2.package_id = ?
-order by
-	pi2.id desc`
 	var count int64
-	count, err = db.MysqlEngine.Context(ctx).SQL(sql, pluginPackageId).Count()
+	count, err = db.MysqlEngine.Context(ctx).Table(new(models.PluginInstances)).Where("container_status = ?", "RUNNING").And("package_id = ?", pluginPackageId).Count()
 	if err != nil {
 		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
 	}
