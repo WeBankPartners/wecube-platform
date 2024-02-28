@@ -385,7 +385,7 @@ func CallDynamicFormReq(ctx context.Context, param *models.ProcCallPluginService
 				break
 			}
 			tmpFormBytes, _ := json.Marshal(tmpFormData)
-			param.InputConstantMap["taskFormInput"] = string(tmpFormBytes)
+			param.InputConstantMap[paramObj.Id] = string(tmpFormBytes)
 		}
 	}
 	if err != nil {
