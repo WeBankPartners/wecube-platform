@@ -105,13 +105,14 @@ func (w *Workflow) nodeDoneCallback(node *WorkNode) {
 	}
 	decisionChose := ""
 	if node.JobType == JobDecisionType {
-		decisionChose = fmt.Sprintf("%s", node.Input)
-		if decisionChose == "" {
-			node.Err = fmt.Errorf("decision node recive empty choose")
-			w.ErrList = append(w.ErrList, &models.WorkProblemErrObj{NodeId: node.Id, NodeName: node.Name, ErrMessage: node.Err.Error()})
-			w.doneChan <- 1
-			return
-		}
+		decisionChose = node.Input
+		log.Logger.Info("decision node receive choose", log.String(decisionChose, "decisionChose"))
+		//if decisionChose == "" {
+		//	node.Err = fmt.Errorf("decision node receive empty choose")
+		//	w.ErrList = append(w.ErrList, &models.WorkProblemErrObj{NodeId: node.Id, NodeName: node.Name, ErrMessage: node.Err.Error()})
+		//	w.doneChan <- 1
+		//	return
+		//}
 	}
 	if node.Err != nil {
 		w.setStatus("problem", &models.ProcOperation{NodeErr: &models.WorkProblemErrObj{NodeId: node.Id, NodeName: node.Name, ErrMessage: node.Err.Error()}})
@@ -135,10 +136,10 @@ func (w *Workflow) nodeDoneCallback(node *WorkNode) {
 		}
 		if ref.Source == node.Id {
 			for _, targetNode := range w.Nodes {
-				if targetNode.JobType == JobDecisionType {
-					targetNode.Input = node.Output
-				}
 				if targetNode.Id == ref.Target {
+					if targetNode.JobType == JobDecisionType {
+						targetNode.Input = node.Output
+					}
 					targetNode.StartChan <- 1
 					break
 				}
@@ -339,7 +340,7 @@ func (n *WorkNode) Ready() {
 }
 
 func (n *WorkNode) start() {
-	log.Logger.Info("---> start node", log.String("id", n.Id), log.String("type", n.JobType))
+	log.Logger.Info("---> start node", log.String("id", n.Id), log.String("type", n.JobType), log.String("input", n.Input))
 	n.Status = "running"
 	updateNodeDB(&n.ProcRunNode)
 	switch n.JobType {
@@ -379,6 +380,17 @@ func (n *WorkNode) start() {
 	case JobDateType:
 		n.Output, n.Err = n.doDateJob()
 	case JobDecisionType:
+		if n.Input == "" {
+			for _, tmpLink := range n.workflow.Links {
+				if tmpLink.Target == n.Id {
+					n.Input = getNodeOutputData(tmpLink.Source)
+					break
+				}
+			}
+			if n.Input == "" {
+				n.Err = fmt.Errorf("dicision type receive empty choose")
+			}
+		}
 		break
 	}
 	if n.Err == nil {
@@ -416,7 +428,7 @@ func (n *WorkNode) doHumanJob() (output string, err error) {
 	}
 	// wait callback
 	callbackMessage := <-n.callbackChan
-	var callbackData models.PluginTaskCreateOutput
+	var callbackData models.PluginTaskCreateResp
 	if err = json.Unmarshal([]byte(callbackMessage), &callbackData); err != nil {
 		err = fmt.Errorf("json unmarshal human job callback data fail,%s ", err.Error())
 		return
@@ -517,6 +529,9 @@ func updateNodeDB(n *models.ProcRunNode) {
 	if n.Status == "running" {
 		actions = append(actions, &db.ExecAction{Sql: "update proc_run_node set status=?,start_time=?,updated_time=? where id=?", Param: []interface{}{n.Status, nowTime, nowTime, n.Id}})
 		actions = append(actions, &db.ExecAction{Sql: "update proc_ins_node set status=?,updated_time=? where id=?", Param: []interface{}{n.Status, nowTime, n.ProcInsNodeId}})
+		if n.JobType == JobDecisionType {
+			actions = append(actions, &db.ExecAction{Sql: "update proc_run_node set input=? where id=?", Param: []interface{}{n.Input, n.Id}})
+		}
 	} else if n.Status == "fail" {
 		actions = append(actions, &db.ExecAction{Sql: "update proc_run_node set status=?,error_message=?,end_time=?,updated_time=? where id=?", Param: []interface{}{n.Status, n.ErrorMessage, nowTime, nowTime, n.Id}})
 		actions = append(actions, &db.ExecAction{Sql: "update proc_ins_node set status=?,error_msg=?,updated_time=? where id=?", Param: []interface{}{n.Status, n.ErrorMessage, nowTime, n.ProcInsNodeId}})
@@ -547,6 +562,14 @@ func getWorkflowRow(workflowId string) (result *models.ProcRunWorkflow, err erro
 		} else {
 			result = workflowRows[0]
 		}
+	}
+	return
+}
+
+func getNodeOutputData(procRunNodeId string) (output string) {
+	queryRows, _ := db.MysqlEngine.QueryString("select `output` from proc_run_node where id=?", procRunNodeId)
+	if len(queryRows) > 0 {
+		output = queryRows[0]["output"]
 	}
 	return
 }
