@@ -75,12 +75,16 @@ func PublicProcDefList(c *gin.Context) {
 			CreatedTime: row.CreatedTime,
 			RootEntity:  &models.ProcEntity{},
 		}
-		entityMsg := strings.Split(row.RootEntity, ":")
+		rootExpression := row.RootEntity
+		if tmpIndex := strings.Index(rootExpression, "{"); tmpIndex > 0 {
+			rootExpression = rootExpression[:tmpIndex]
+		}
+		entityMsg := strings.Split(rootExpression, ":")
 		if len(entityMsg) != 2 {
 			result = append(result, &resultObj)
 			continue
 		}
-		if entityDef, ok := entityMap[row.RootEntity]; ok {
+		if entityDef, ok := entityMap[rootExpression]; ok {
 			resultObj.RootEntity = entityDef
 		} else {
 			tmpEntityDef, tmpErr := database.GetEntityModel(c, entityMsg[0], entityMsg[1], true)
@@ -97,7 +101,7 @@ func PublicProcDefList(c *gin.Context) {
 			}
 			tmpRootEntity.ParseAttr(tmpEntityDef.Attributes)
 			resultObj.RootEntity = &tmpRootEntity
-			entityMap[row.RootEntity] = &tmpRootEntity
+			entityMap[rootExpression] = &tmpRootEntity
 		}
 		result = append(result, &resultObj)
 	}
