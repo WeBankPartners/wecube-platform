@@ -51,7 +51,7 @@ func ProcDefList(ctx context.Context, includeDraft, permission, tag string, user
 	return
 }
 
-func ProcDefNodeList(ctx context.Context, procDefId string) (nodes []*models.ProcNodeObj, err error) {
+func PublicProcDefNodeList(ctx context.Context, procDefId string) (nodes []*models.ProcNodeObj, err error) {
 	var nodeDefRows []*models.ProcDefNode
 	err = db.MysqlEngine.Context(ctx).SQL("select id,node_id,proc_def_id,name,description,status,node_type,service_name,dynamic_bind,bind_node_id,risk_check,routine_expression,context_param_nodes,timeout,ordered_no from proc_def_node where proc_def_id=? order by ordered_no", procDefId).Find(&nodeDefRows)
 	if err != nil {
@@ -63,6 +63,7 @@ func ProcDefNodeList(ctx context.Context, procDefId string) (nodes []*models.Pro
 			NodeId:      row.Id,
 			NodeName:    row.Name,
 			NodeType:    row.NodeType,
+			NodeDefType: row.NodeType,
 			NodeDefId:   row.Id,
 			RoutineExp:  row.RoutineExpression,
 			ServiceId:   row.ServiceName,
@@ -75,10 +76,13 @@ func ProcDefNodeList(ctx context.Context, procDefId string) (nodes []*models.Pro
 		}
 		if row.NodeType == "automatic" {
 			nodeObj.TaskCategory = "SSTN"
+			nodeObj.NodeType = "subProcess"
 		} else if row.NodeType == "human" {
 			nodeObj.TaskCategory = "SUTN"
+			nodeObj.NodeType = "subProcess"
 		} else if row.NodeType == "data" {
 			nodeObj.TaskCategory = "SDTN"
+			nodeObj.NodeType = "subProcess"
 		}
 		nodes = append(nodes, &nodeObj)
 	}

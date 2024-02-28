@@ -435,3 +435,12 @@ type ProcDataNodeExprObj struct {
 	Expression string `json:"expression"`
 	Operation  string `json:"operation"`
 }
+
+type PublicProcDefObj struct {
+	ProcDefId   string      `json:"procDefId"`
+	ProcDefKey  string      `json:"procDefKey"`
+	ProcDefName string      `json:"procDefName"`
+	Status      string      `json:"status"`
+	RootEntity  *ProcEntity `json:"rootEntity"`
+	CreatedTime string      `json:"createdTime"`
+}
