@@ -667,7 +667,7 @@ func ProcInstanceCallback(c *gin.Context) {
 		return
 	}
 	operationObj := models.ProcRunOperation{WorkflowId: runNodeRow.WorkflowId, NodeId: runNodeRow.WorkNodeId, Operation: "approve", Status: "wait", CreatedBy: middleware.GetRequestUser(c)}
-	resultBytes, _ := json.Marshal(param.Results)
+	resultBytes, _ := json.Marshal(param)
 	operationObj.Message = string(resultBytes)
 	operationObj.Id, err = database.AddWorkflowOperation(c, &operationObj)
 	if err != nil {
