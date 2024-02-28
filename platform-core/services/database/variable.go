@@ -126,3 +126,27 @@ func GetSystemVariableScope() (result []string, err error) {
 	}
 	return
 }
+
+func DeactivateSystemVariablesByPackage(ctx context.Context, name, version string) (err error) {
+	session := db.MysqlEngine.NewSession().Context(ctx)
+	defer session.Close()
+	err = session.Begin()
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseExecuteError, err)
+		return
+	}
+	updateData := make(map[string]interface{})
+	updateData["status"] = models.SystemVariableInactive
+	sourceValue := fmt.Sprintf("%s__%s", name, version)
+	_, err = session.Table(new(models.SystemVariables)).Where("package_name = ?", name).And("source = ?", sourceValue).Update(updateData)
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseExecuteError, err)
+		return
+	}
+	err = session.Commit()
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseExecuteError, err)
+		return
+	}
+	return
+}

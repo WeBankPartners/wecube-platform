@@ -783,3 +783,71 @@ func GetPluginPackagePullReq(ctx context.Context, pullId string) (result *models
 	}
 	return
 }
+
+func IsPluginInstanceRunning(ctx context.Context, pluginPackageId string) (running bool, err error) {
+	sql := `select
+	pi2.*
+from
+	plugin_instances pi2
+where
+	pi2.container_status = 'RUNNING'
+	and pi2.package_id = ?
+order by
+	pi2.id desc`
+	var count int64
+	count, err = db.MysqlEngine.Context(ctx).SQL(sql, pluginPackageId).Count()
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
+	}
+	if count > 0 {
+		running = true
+		return
+	}
+	return
+}
+
+func DisableAllPluginConfigsByPackageId(ctx context.Context, pluginPackageId string) (err error) {
+	session := db.MysqlEngine.NewSession().Context(ctx)
+	defer session.Close()
+	err = session.Begin()
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseExecuteError, err)
+		return
+	}
+	updateData := make(map[string]interface{})
+	updateData["status"] = "DISABLED"
+	_, err = session.Table(new(models.PluginConfigs)).Where("plugin_package_id = ?", pluginPackageId).Update(updateData)
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseExecuteError, err)
+		return
+	}
+	err = session.Commit()
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseExecuteError, err)
+		return
+	}
+	return
+}
+
+func DecommissionPluginPackage(ctx context.Context, pluginPackageId string) (err error) {
+	session := db.MysqlEngine.NewSession().Context(ctx)
+	defer session.Close()
+	err = session.Begin()
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseExecuteError, err)
+		return
+	}
+	updateData := make(map[string]interface{})
+	updateData["status"] = models.PluginStatusDecommissioned
+	_, err = session.Table(new(models.PluginPackages)).Where("id = ?", pluginPackageId).Update(updateData)
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseExecuteError, err)
+		return
+	}
+	err = session.Commit()
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseExecuteError, err)
+		return
+	}
+	return
+}
