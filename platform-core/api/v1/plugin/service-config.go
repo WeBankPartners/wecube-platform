@@ -13,6 +13,7 @@ import (
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/log"
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/try"
 	"github.com/WeBankPartners/wecube-platform/platform-core/models"
+	"github.com/WeBankPartners/wecube-platform/platform-core/services/bash"
 	"github.com/WeBankPartners/wecube-platform/platform-core/services/database"
 	"github.com/gin-gonic/gin"
 )
@@ -329,7 +330,54 @@ func ImportPluginConfigs(c *gin.Context) {
 
 // DeletePlugin 插件删除
 func DeletePlugin(c *gin.Context) {
-
+	pluginPackageId := c.Param("pluginPackageId")
+	pluginPackage, err := database.GetPluginPackageById(c, pluginPackageId)
+	if err != nil {
+		middleware.ReturnError(c, err)
+		return
+	}
+	if pluginPackage == nil {
+		middleware.ReturnError(c, fmt.Errorf("plugin package %s not found", pluginPackageId))
+		return
+	}
+	if pluginPackage.Status == models.PluginStatusDecommissioned {
+		middleware.ReturnSuccess(c)
+		return
+	}
+	running, err := database.IsPluginInstanceRunning(c, pluginPackageId)
+	if err != nil {
+		middleware.ReturnError(c, err)
+		return
+	}
+	if running {
+		middleware.ReturnError(c, fmt.Errorf("plugin package %s instance is running", pluginPackageId))
+		return
+	}
+	err = database.DisableAllPluginConfigsByPackageId(c, pluginPackageId)
+	if err != nil {
+		middleware.ReturnError(c, err)
+		return
+	}
+	err = database.DeactivateSystemVariablesByPackage(c, pluginPackage.Name, pluginPackage.Version)
+	if err != nil {
+		middleware.ReturnError(c, err)
+		return
+	}
+	if pluginPackage.UiPackageIncluded {
+		for _, staticResourceObj := range models.Config.StaticResources {
+			targetCmd := fmt.Sprintf("rm -rf %s/%s/%s/", staticResourceObj.Path, pluginPackage.Name, pluginPackage.Version)
+			log.Logger.Debug("unregister plugin,remove ui in remote host", log.String("server", staticResourceObj.Server), log.String("cmd", targetCmd))
+			if err = bash.RemoteSSHCommand(staticResourceObj.Server, staticResourceObj.User, staticResourceObj.Password, staticResourceObj.Port, targetCmd); err != nil {
+				middleware.ReturnError(c, err)
+				return
+			}
+		}
+	}
+	err = database.DecommissionPluginPackage(c, pluginPackageId)
+	if err != nil {
+		middleware.ReturnError(c, err)
+		return
+	}
 }
 
 // QueryPluginByTargetEntity 根据目标对象过滤插件
