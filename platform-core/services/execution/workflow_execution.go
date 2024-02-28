@@ -514,10 +514,8 @@ func getTaskFormItemValues(ctx context.Context, taskFormMeta *models.TaskMetaRes
 	return
 }
 
-func HandleCallbackHumanJob(ctx context.Context, procRunNodeId string, callbackData *models.PluginTaskCreateOutput) (choseOption string, err error) {
-	if len(callbackData.AllowedOptions) == 1 {
-		choseOption = callbackData.AllowedOptions[0]
-	}
+func HandleCallbackHumanJob(ctx context.Context, procRunNodeId string, callbackData *models.PluginTaskCreateResp) (choseOption string, err error) {
+	choseOption = callbackData.ResultCode
 	// 纪录req output
 	procInsNode, getInsNodeErr := database.GetSimpleProcInsNode(ctx, "", procRunNodeId)
 	if getInsNodeErr != nil {
@@ -535,12 +533,12 @@ func HandleCallbackHumanJob(ctx context.Context, procRunNodeId string, callbackD
 		return
 	}
 	pluginCallOutput := []map[string]interface{}{}
-	outputBytes, _ := json.Marshal(callbackData.Outputs)
+	outputBytes, _ := json.Marshal(callbackData.Results.Outputs)
 	if err = json.Unmarshal(outputBytes, &pluginCallOutput); err != nil {
 		err = fmt.Errorf("json unmarshal call output data to []map[string]interface{} fail,%s", err.Error())
 		return
 	}
-	procInsNodeReq := models.ProcInsNodeReq{Id: callbackData.RequestId}
+	procInsNodeReq := models.ProcInsNodeReq{Id: callbackData.Results.RequestId}
 	// 处理output param(比如类型转换，数据模型写入), handleOutputData主要是用于格式化为output param定义的字段
 	_, errHandle := handleOutputData(ctx, remote.GetToken(), pluginCallOutput, pluginInterface.OutputParameters, &procInsNodeReq)
 	if errHandle != nil {
@@ -552,16 +550,16 @@ func HandleCallbackHumanJob(ctx context.Context, procRunNodeId string, callbackD
 	}
 	// 更新cache data
 	var taskFormList []*models.PluginTaskFormDto
-	for _, output := range callbackData.Outputs {
+	for _, output := range callbackData.Results.Outputs {
 		if output.ErrorCode == "0" {
 			tmpTaskFormObj := models.PluginTaskFormDto{}
 			if tmpUnmarshalErr := json.Unmarshal([]byte(output.TaskFormOutput), &tmpTaskFormObj); tmpUnmarshalErr != nil {
-				log.Logger.Error("human job callback output json unmarshal taskFormOutput fail", log.Error(tmpUnmarshalErr), log.String("reqId", callbackData.RequestId), log.JsonObj("outputData", output))
+				log.Logger.Error("human job callback output json unmarshal taskFormOutput fail", log.Error(tmpUnmarshalErr), log.String("reqId", callbackData.Results.RequestId), log.JsonObj("outputData", output))
 			} else {
 				taskFormList = append(taskFormList, &tmpTaskFormObj)
 			}
 		} else {
-			log.Logger.Warn("human job callback output fail", log.String("reqId", callbackData.RequestId), log.JsonObj("outputData", output))
+			log.Logger.Warn("human job callback output fail", log.String("reqId", callbackData.Results.RequestId), log.JsonObj("outputData", output))
 		}
 	}
 	if len(taskFormList) > 0 {
