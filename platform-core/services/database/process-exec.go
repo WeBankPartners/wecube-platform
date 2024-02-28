@@ -437,7 +437,7 @@ func CreateProcInstance(ctx context.Context, procStartParam *models.ProcInsStart
 			tmpProcInsNodeId, procInsId, node.Id, node.Name, node.NodeType, "ready", node.OrderedNo, operator, nowTime,
 		}})
 		workNodeObj := models.ProcRunNode{Id: "wn_" + guid.CreateGuid(), WorkflowId: workflowRow.Id, ProcInsNodeId: tmpProcInsNodeId, Name: node.Name, JobType: node.NodeType, Status: "ready", Timeout: node.Timeout, CreatedTime: nowTime}
-		if node.NodeType == "merge" || node.NodeType == "timeInterval" || node.NodeType == "date" {
+		if node.NodeType != "automatic" && node.NodeType != "data" {
 			workNodeObj.Timeout = 0
 		}
 		if node.NodeType == "timeInterval" {
