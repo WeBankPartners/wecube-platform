@@ -514,13 +514,13 @@ func GetProcDefRootTaskNode(c *gin.Context) {
 	middleware.ReturnData(c, result)
 }
 
-func GetProcDefTaskNodes(c *gin.Context) {
+func PublicProcDefTaskNodes(c *gin.Context) {
 	procDefId := c.Param("proc-def-id")
 	if procDefId == "" {
 		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, fmt.Errorf("proc-def-id is empty")))
 		return
 	}
-	list, err := database.ProcDefNodeList(c, procDefId)
+	list, err := database.PublicProcDefNodeList(c, procDefId)
 	if err != nil {
 		middleware.ReturnError(c, err)
 		return
@@ -528,7 +528,7 @@ func GetProcDefTaskNodes(c *gin.Context) {
 	for _, v := range list {
 		if v.RoutineExp != "" {
 			tmpExprList := []string{}
-			if v.NodeType == "data" {
+			if v.NodeDefType == "data" {
 				for _, subExpr := range strings.Split(v.RoutineExp, "#DME#") {
 					tmpExprList = append(tmpExprList, strings.Split(subExpr, "#DMEOP#")[0])
 				}
