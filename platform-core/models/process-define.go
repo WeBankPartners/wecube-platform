@@ -336,6 +336,7 @@ type ProcNodeObj struct {
 	NodeName      string        `json:"nodeName"`
 	NodeType      string        `json:"nodeType"`
 	NodeDefId     string        `json:"nodeDefId"`
+	NodeDefType   string        `json:"nodeDefType"`
 	TaskCategory  string        `json:"taskCategory"`
 	RoutineExp    string        `json:"routineExp"`
 	ServiceId     string        `json:"serviceId"`
@@ -373,6 +374,7 @@ func (p *ProcEntity) ParseAttr(attrs []*PluginPackageAttributes) {
 			EntityPackage:     v.Package,
 			Multiple:          v.Multiple,
 			OrderNo:           fmt.Sprintf("%d", v.OrderNo),
+			Active:            true,
 		})
 	}
 }
