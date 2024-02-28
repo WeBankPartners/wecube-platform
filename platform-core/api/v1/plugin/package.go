@@ -179,6 +179,7 @@ func PullOnliePackage(c *gin.Context) {
 		KeyName: reqParam.KeyName,
 		State:   "InProgress",
 	}, c.GetString(models.ContextUserId))
+	log.Logger.Debug("pull plugin package,create plugin package pull req", log.JsonObj("pullId", pullId))
 	if err != nil {
 		middleware.ReturnError(c, err)
 		return
@@ -193,10 +194,12 @@ func doPullPackageBackground(c *gin.Context, pullId, fileName string) {
 		database.UpdatePluginPackagePullReq(c, pullId, "", "Faulted", retErr.Error(), "", 0)
 		log.Logger.Error(e.(string))
 	})
-	tmpFile, err := remote.GetOnliePluginPackageFile(c, fileName)
+	tmpFile, err := remote.GetOnlinePluginPackageFile(c, fileName)
+	log.Logger.Debug("pull plugin package,get online plugin package archive file", log.JsonObj("fileName", fileName))
 	if err != nil {
 		// update failed
 		database.UpdatePluginPackagePullReq(c, pullId, "", "Faulted", err.Error(), "", 0)
+		log.Logger.Error("pull plugin package,get online plugin package archive file failed", log.JsonObj("fileName", fileName), log.JsonObj("errMsg", err.Error()))
 		return
 	}
 	tmpFileSize := 0
@@ -205,9 +208,11 @@ func doPullPackageBackground(c *gin.Context, pullId, fileName string) {
 		if fileInfo != nil {
 			tmpFileSize = int(fileInfo.Size())
 		}
+		log.Logger.Debug("pull plugin package,get online plugin package file size", log.JsonObj("fileName", fileName), log.JsonObj("fileSize", tmpFileSize))
 	} else {
 		// update failed
 		database.UpdatePluginPackagePullReq(c, pullId, "", "Faulted", "failed to download file", "", 0)
+		log.Logger.Error("pull plugin package,get online plugin package archive file failed", log.JsonObj("fileName", fileName), log.JsonObj("errMsg", "failed to download file"))
 		return
 	}
 	archiveFilePath := tmpFile.Name()
@@ -215,12 +220,16 @@ func doPullPackageBackground(c *gin.Context, pullId, fileName string) {
 	if err != nil {
 		// update failed
 		database.UpdatePluginPackagePullReq(c, pullId, "", "Faulted", err.Error(), "", tmpFileSize)
+		log.Logger.Error("pull plugin package,upload plugin package archive file failed", log.JsonObj("fileName", fileName), log.JsonObj("errMsg", err.Error()))
 	} else {
 		// update ok
 		database.UpdatePluginPackagePullReq(c, pullId, pkgId, "Completed", "", "", tmpFileSize)
+		log.Logger.Debug("pull plugin package,upload online plugin package archive file ok", log.JsonObj("fileName", fileName))
+
 	}
 	// 清理
 	os.Remove(archiveFilePath)
+	log.Logger.Debug("pull plugin package,clean up plugin package tmp file", log.JsonObj("fileName", fileName), log.JsonObj("archiveFilePath", archiveFilePath))
 }
 
 func doUploadPackage(c context.Context, archiveFilePath string) (pluginPkgId string, err error) {
