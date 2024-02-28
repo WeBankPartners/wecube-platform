@@ -87,8 +87,10 @@ func DeleteSystemVariables(ctx context.Context, params []*models.SystemVariables
 	return
 }
 
-func ActivePluginSystemVariable(ctx context.Context, name, version string) (err error) {
+func RegisterPlugin(ctx context.Context, name, version string) (err error) {
 	var actions []*db.ExecAction
+	actions = append(actions, &db.ExecAction{Sql: "update plugin_packages set status=? where name=? and status=?", Param: []interface{}{models.PluginStatusUnRegistered, name, models.PluginStatusRegistered}})
+	actions = append(actions, &db.ExecAction{Sql: "update plugin_packages set status=? where name=? and `version`=?", Param: []interface{}{models.PluginStatusRegistered, name, version}})
 	actions = append(actions, &db.ExecAction{Sql: "update system_variables set status='inactive' where package_name=? and status='active'", Param: []interface{}{name}})
 	actions = append(actions, &db.ExecAction{Sql: "update system_variables set status='active' where source=?", Param: []interface{}{fmt.Sprintf("%s__%s", name, version)}})
 	err = db.Transaction(actions, ctx)

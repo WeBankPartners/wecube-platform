@@ -464,7 +464,23 @@ func RegisterPackage(c *gin.Context) {
 		}
 		// 把ui.zip里的静态文件读出来
 		var fileNameList []string
-		dirPrefix := uiDir + "/plugin"
+		indexPath, matchIndexFlag, findErr := bash.GetDirIndexPath(uiDir)
+		if findErr != nil {
+			middleware.ReturnError(c, findErr)
+			return
+		}
+		if !matchIndexFlag {
+			middleware.ReturnError(c, fmt.Errorf("can not find index.html in ui package"))
+			return
+		}
+		log.Logger.Debug("match index path", log.String("indexPath", indexPath))
+		if strings.HasSuffix(indexPath, "/") {
+			indexPath = indexPath[:len(indexPath)-1]
+		}
+		dirPrefix := uiDir
+		if indexPath != "" {
+			dirPrefix = uiDir + "/" + indexPath
+		}
 		fileNameList, err = bash.ListDirAllFiles(dirPrefix)
 		if err != nil {
 			middleware.ReturnError(c, err)
@@ -474,7 +490,10 @@ func RegisterPackage(c *gin.Context) {
 		if pathIndex := strings.LastIndex(uiStaticPath, "/"); pathIndex >= 0 {
 			uiStaticPath = uiStaticPath[pathIndex:]
 		}
-		uiStaticPath = fmt.Sprintf("%s/%s/%s/plugin", uiStaticPath, pluginPackageObj.Name, pluginPackageObj.Version)
+		uiStaticPath = fmt.Sprintf("%s/%s/%s", uiStaticPath, pluginPackageObj.Name, pluginPackageObj.Version)
+		if indexPath != "" {
+			uiStaticPath = uiStaticPath + "/" + indexPath
+		}
 		resourceFileList := []*models.PluginPackageResourceFiles{}
 		for _, v := range fileNameList {
 			tmpResourceObj := models.PluginPackageResourceFiles{PluginPackageId: pluginPackageId, PackageName: pluginPackageObj.Name, PackageVersion: pluginPackageObj.Version, Source: "ui.zip", RelatedPath: strings.ReplaceAll(v, dirPrefix, uiStaticPath)}
@@ -489,7 +508,7 @@ func RegisterPackage(c *gin.Context) {
 		}
 	}
 	// 把对应插件版本的系统变量置为active
-	if err = database.ActivePluginSystemVariable(c, pluginPackageObj.Name, pluginPackageObj.Version); err != nil {
+	if err = database.RegisterPlugin(c, pluginPackageObj.Name, pluginPackageObj.Version); err != nil {
 		middleware.ReturnError(c, err)
 	} else {
 		middleware.ReturnSuccess(c)
