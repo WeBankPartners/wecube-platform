@@ -84,7 +84,7 @@ func ListBucketFiles(bucket string) (datas []PlatformObjectInfo, err error) {
 		}
 		data = append(data, fileName)
 		data = append(data, filePath)
-		data = append(data, fmt.Sprintf("crc:%s#crcc:%s#sha1:%s#sha256:%s#etag:%s", obj.ChecksumCRC32, obj.ChecksumCRC32C, obj.ChecksumSHA1, obj.ChecksumSHA256, obj.ETag))
+		data = append(data, obj.ETag)
 		data = append(data, obj.LastModified.UTC().Format("2006-01-02T15:04:05Z"))
 		datas = append(datas, data)
 	}
