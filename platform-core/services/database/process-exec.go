@@ -64,7 +64,7 @@ func PublicProcDefNodeList(ctx context.Context, procDefId string) (nodes []*mode
 			NodeName:    row.Name,
 			NodeType:    row.NodeType,
 			NodeDefType: row.NodeType,
-			NodeDefId:   row.Id,
+			NodeDefId:   row.NodeId,
 			RoutineExp:  row.RoutineExpression,
 			ServiceId:   row.ServiceName,
 			ServiceName: row.ServiceName,
