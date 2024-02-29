@@ -674,6 +674,7 @@ func LaunchPlugin(c *gin.Context) {
 	volumeBindList := getEnvMap(dockerResource.VolumeBindings, envMap)
 	envBindList := getEnvMap(dockerResource.EnvVariables, envMap)
 	envMap["ALLOCATE_PORT"] = portValue
+	envMap["ALLOCATE_HOST"] = hostIp
 	envMap["BASE_MOUNT_PATH"] = models.Config.Plugin.BaseMountPath
 	if mysqlInstance != nil {
 		envMap["DB_SCHEMA"] = mysqlInstance.SchemaName
