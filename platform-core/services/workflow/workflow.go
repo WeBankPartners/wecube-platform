@@ -88,7 +88,7 @@ func (w *Workflow) Start(input *models.ProcOperation) {
 		<-w.doneChan
 	} else {
 		log.Logger.Info("<--workflow done-->")
-		w.setStatus("success", nil)
+		w.setStatus(w.Status, nil)
 	}
 }
 
