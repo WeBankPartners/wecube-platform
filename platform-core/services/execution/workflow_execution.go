@@ -208,64 +208,85 @@ func DoWorkflowAutoJob(ctx context.Context, procRunNodeId, continueToken string)
 func DoWorkflowDataJob(ctx context.Context, procRunNodeId string) (err error) {
 	ctx = context.WithValue(ctx, models.TransactionIdHeader, procRunNodeId)
 	// 查proc def node定义和proc ins绑定数据
-	procInsNode, getInsNodeErr := database.GetSimpleProcInsNode(ctx, "", procRunNodeId)
-	if getInsNodeErr != nil {
-		err = getInsNodeErr
+	procInsNode, procDefNode, _, dataBindings, getNodeDataErr := database.GetProcExecNodeData(ctx, procRunNodeId)
+	if getNodeDataErr != nil {
+		err = getNodeDataErr
 		return
 	}
-	procDefNode, getDefNodeErr := database.GetSimpleProcDefNode(ctx, procInsNode.ProcDefNodeId)
-	if getDefNodeErr != nil {
-		err = getDefNodeErr
+	if len(dataBindings) == 0 {
 		return
 	}
-	var dataConfigList []*models.ProcDataNodeExprObj
-	for _, subExpr := range strings.Split(procDefNode.RoutineExpression, "#DME#") {
-		subSplit := strings.Split(subExpr, "#DMEOP#")
-		if len(subSplit) != 2 {
-			err = fmt.Errorf("data nodeType expression:%s illegal", subExpr)
+	exprObjList, parseErr := database.GetProcDataNodeExpression(procDefNode.RoutineExpression)
+	if parseErr != nil {
+		err = parseErr
+		return
+	}
+	if len(exprObjList) == 0 {
+		return
+	}
+	cacheDataList, getCacheErr := database.GetProcCacheData(ctx, procInsNode.ProcInsId)
+	if getCacheErr != nil {
+		err = getCacheErr
+		return
+	}
+	var createEntityIdList, updateEntityIdList []string
+	for _, exprObj := range exprObjList {
+		exprAnalyzeList, analyzeErr := remote.AnalyzeExpression(exprObj.Expression)
+		if analyzeErr != nil {
+			err = analyzeErr
 			return
 		}
-		dataConfigList = append(dataConfigList, &models.ProcDataNodeExprObj{Expression: subSplit[0], Operation: subSplit[1]})
+		lastExprEntity := exprAnalyzeList[len(exprAnalyzeList)-1]
+		lastEntityType := fmt.Sprintf("%s:%s", lastExprEntity.Package, lastExprEntity.Entity)
+		createEntityIdList, updateEntityIdList = []string{}, []string{}
+		for _, dataBindObj := range dataBindings {
+			if dataBindObj.EntityTypeId == lastEntityType {
+				if strings.HasPrefix(dataBindObj.EntityId, models.NewOidDataPrefix) {
+					createEntityIdList = append(createEntityIdList, dataBindObj.EntityId)
+				} else {
+					updateEntityIdList = append(updateEntityIdList, dataBindObj.EntityId)
+				}
+			}
+		}
+		if len(createEntityIdList) > 0 {
+			_, err = remote.CreatePluginModelData(ctx, lastExprEntity.Package, lastExprEntity.Entity, remote.GetToken(), exprObj.Operation, buildDataWriteObj(cacheDataList, createEntityIdList))
+			if err != nil {
+				err = fmt.Errorf("try to create plugin model data %s:%s fail,%s", lastExprEntity.Package, lastExprEntity.Entity, err.Error())
+				return
+			}
+		}
+		if len(updateEntityIdList) > 0 {
+			_, err = remote.UpdatePluginModelData(ctx, lastExprEntity.Package, lastExprEntity.Entity, remote.GetToken(), exprObj.Operation, buildDataWriteObj(cacheDataList, updateEntityIdList))
+			if err != nil {
+				err = fmt.Errorf("try to update plugin model data %s:%s fail,%s", lastExprEntity.Package, lastExprEntity.Entity, err.Error())
+				return
+			}
+		}
 	}
-	if len(dataConfigList) == 0 {
-		return
+	return
+}
+
+func buildDataWriteObj(cacheDataList []*models.ProcDataCache, ids []string) (dataList []map[string]interface{}) {
+	for _, id := range ids {
+		matchDataValue := ""
+		for _, cacheData := range cacheDataList {
+			if cacheData.EntityDataId == id {
+				matchDataValue = cacheData.DataValue
+				break
+			}
+		}
+		if matchDataValue == "" {
+			matchDataValue = "{}"
+		}
+		tmpDataObj := make(map[string]interface{})
+		if tmpErr := json.Unmarshal([]byte(matchDataValue), &tmpDataObj); tmpErr != nil {
+			log.Logger.Error("buildDataWriteObj json unmarshal data fail", log.String("matchDataValue", matchDataValue), log.Error(tmpErr))
+		}
+		if !strings.HasPrefix(id, models.NewOidDataPrefix) {
+			tmpDataObj["id"] = id
+		}
+		dataList = append(dataList, tmpDataObj)
 	}
-	//procDef, getProcDefErr := database.GetSimpleProcDefRow(ctx, procDefNode.ProcDefId)
-	//if getProcDefErr != nil {
-	//	err = getProcDefErr
-	//	return
-	//}
-	//procIns,getProcInsErr := database.GetSimpleProcInsRow(ctx, procInsNode.ProcInsId)
-	//if getProcInsErr != nil {
-	//	err = getProcInsErr
-	//	return
-	//}
-	//rootExprList, analyzeErr := remote.AnalyzeExpression(procDef.RootEntity)
-	//if analyzeErr != nil {
-	//	return
-	//}
-	//rootLastExprObj := rootExprList[len(rootExprList)-1]
-	//rootFilter := models.QueryExpressionDataFilter{
-	//	Index:       len(rootExprList) - 1,
-	//	PackageName: rootLastExprObj.Package,
-	//	EntityName:  rootLastExprObj.Entity,
-	//	AttributeFilters: []*models.QueryExpressionDataAttrFilter{{
-	//		Name:     "id",
-	//		Operator: "eq",
-	//		Value:    procIns.EntityDataId,
-	//	}},
-	//}
-	//for _,dataConfigObj := range dataConfigList {
-	//	tmpExprAnalyzeResult,tmpErr := remote.AnalyzeExpression(dataConfigObj.Expression)
-	//	if tmpErr != nil {
-	//		err = fmt.Errorf("analyze expression:%s error:%s ", dataConfigObj.Expression, tmpErr.Error())
-	//		return
-	//	}
-	//	tmpQueryPluginResult, tmpQueryErr := remote.QueryPluginData(ctx, tmpExprAnalyzeResult, []*models.QueryExpressionDataFilter{&rootFilter}, remote.GetToken())
-	//	if tmpQueryErr != nil {
-	//
-	//	}
-	//}
 	return
 }
 
