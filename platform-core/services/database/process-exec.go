@@ -547,8 +547,8 @@ func CreatePublicProcInstance(ctx context.Context, startParam *models.RequestPro
 	var entityDataId, entityTypeId, entityDataName string
 	for _, row := range startParam.Entities {
 		if row.EntityDataOp == "create" {
-			newOidMap[row.Oid] = "OID-" + row.Oid
-			row.Oid = "OID-" + row.Oid
+			newOidMap[row.Oid] = models.NewOidDataPrefix + row.Oid
+			row.Oid = models.NewOidDataPrefix + row.Oid
 		}
 		if row.EntityDataId == "" {
 			row.EntityDataId = row.Oid
@@ -1002,6 +1002,7 @@ func GetProcInsNodeContext(ctx context.Context, procInsId, procInsNodeId string)
 	result.NodeDefId = queryObj.ProcDefNodeId
 	result.NodeExpression = queryObj.RoutineExpression
 	result.PluginInfo = queryObj.ServiceName
+	result.ErrorMessage = queryObj.ErrorMsg
 	result.BeginTime = queryObj.StartTime.Format(models.DateTimeFormat)
 	result.EndTime = queryObj.EndTime.Format(models.DateTimeFormat)
 	result.RequestObjects = []models.ProcNodeContextReqObject{}
@@ -1110,9 +1111,9 @@ func AddWorkflowOperation(ctx context.Context, operation *models.ProcRunOperatio
 }
 
 func GetProcCacheData(ctx context.Context, procInsId string) (procCacheDataRows []*models.ProcDataCache, err error) {
-	err = db.MysqlEngine.SQL("select * from proc_data_cache where proc_ins_id=?", procInsId).Find(&procCacheDataRows)
+	err = db.MysqlEngine.Context(ctx).SQL("select * from proc_data_cache where proc_ins_id=?", procInsId).Find(&procCacheDataRows)
 	if err != nil {
-		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
+		err = exterror.Catch(exterror.New().DatabaseQueryError, fmt.Errorf("query proc_data_cache with proc_ins_id=%s,%s", procInsId, err.Error()))
 		return
 	}
 	return
@@ -1193,6 +1194,21 @@ func GetProcNodeAllowOptions(ctx context.Context, procDefId, ProcNodeDefId strin
 	}
 	for _, row := range linkRows {
 		options = append(options, row.Name)
+	}
+	return
+}
+
+func GetProcDataNodeExpression(expression string) (result []*models.ProcDataNodeExprObj, err error) {
+	for _, subExpr := range strings.Split(expression, "#DME#") {
+		if subExpr == "" {
+			continue
+		}
+		subSplit := strings.Split(subExpr, "#DMEOP#")
+		if len(subSplit) != 2 {
+			err = fmt.Errorf("data nodeType expression:%s illegal", subExpr)
+			break
+		}
+		result = append(result, &models.ProcDataNodeExprObj{Expression: subSplit[0], Operation: subSplit[1]})
 	}
 	return
 }

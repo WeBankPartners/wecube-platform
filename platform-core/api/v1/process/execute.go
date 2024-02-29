@@ -182,7 +182,7 @@ func ProcDefPreview(c *gin.Context) {
 	rootData := rootDataList[0]
 	result := models.ProcPreviewData{ProcessSessionId: fmt.Sprintf("proc_session_" + guid.CreateGuid()), EntityTreeNodes: []*models.ProcPreviewEntityNode{}}
 	log.Logger.Debug("rootData", log.String("entityDataId", entityDataId), log.JsonObj("data", rootData))
-	rootEntityNode := models.ProcPreviewEntityNode{}
+	rootEntityNode := models.ProcPreviewEntityNode{LastFlag: true}
 	rootEntityNode.Parse(rootFilter.PackageName, rootFilter.EntityName, rootData)
 	rootEntityNode.FullDataId = rootEntityNode.DataId
 	entityNodeMap[rootEntityNode.Id] = &rootEntityNode
@@ -204,58 +204,67 @@ func ProcDefPreview(c *gin.Context) {
 	}
 	previewRows = append(previewRows, &rootPreviewRow)
 	for _, node := range procOutlineData.FlowNodes {
-		if node.OrderedNo != "" && node.RoutineExpression != "" {
-			if node.RoutineExpression == procOutlineData.RootEntity {
-				// 表达式和根一样，不用解析，但同样要处理绑定数据
+		if node.OrderedNo == "" || node.RoutineExpression == "" {
+			continue
+		}
+		nodeExpressionList := []string{}
+		if node.NodeType == "data" {
+			tmpExprObjList, tmpErr := database.GetProcDataNodeExpression(node.RoutineExpression)
+			if tmpErr != nil {
+				err = tmpErr
+				break
+			}
+			for _, tmpExprObj := range tmpExprObjList {
+				nodeExpressionList = append(nodeExpressionList, tmpExprObj.Expression)
+			}
+		} else {
+			nodeExpressionList = append(nodeExpressionList, node.RoutineExpression)
+		}
+		if err != nil {
+			break
+		}
+		nodeDataList := []*models.ProcPreviewEntityNode{}
+		for _, nodeExpression := range nodeExpressionList {
+			if nodeExpression == procOutlineData.RootEntity {
+				nodeDataList = append(nodeDataList, &rootEntityNode)
+			} else {
+				tmpQueryDataParam := models.QueryExpressionDataParam{DataModelExpression: nodeExpression, Filters: []*models.QueryExpressionDataFilter{&rootFilter}}
+				tmpNodeDataList, tmpErr := queryProcPreviewNodeData(c, &tmpQueryDataParam, &rootEntityNode, false)
+				if tmpErr != nil {
+					err = tmpErr
+					break
+				}
+				nodeDataList = append(nodeDataList, tmpNodeDataList...)
+			}
+		}
+		if err != nil {
+			break
+		}
+		log.Logger.Debug("nodeData", log.String("node", node.NodeId), log.JsonObj("data", nodeDataList))
+		for _, nodeDataObj := range nodeDataList {
+			if nodeDataObj.LastFlag {
 				tmpPreviewRow := models.ProcDataPreview{
-					EntityDataId:   rootPreviewRow.EntityDataId,
-					EntityTypeId:   fmt.Sprintf("%s:%s", rootLastExprObj.Package, rootLastExprObj.Entity),
+					EntityDataId:   nodeDataObj.DataId,
+					EntityTypeId:   fmt.Sprintf("%s:%s", nodeDataObj.PackageName, nodeDataObj.EntityName),
 					ProcDefId:      rootPreviewRow.ProcDefId,
 					BindType:       "taskNode",
 					IsBound:        true,
 					ProcSessionId:  result.ProcessSessionId,
-					EntityDataName: rootEntityNode.DisplayName,
-					FullDataId:     rootEntityNode.FullDataId,
+					EntityDataName: nodeDataObj.DisplayName,
+					FullDataId:     nodeDataObj.FullDataId,
 					ProcDefNodeId:  node.NodeId,
 					OrderedNo:      node.OrderedNo,
 					CreatedBy:      operator,
 					CreatedTime:    nowTime,
 				}
 				previewRows = append(previewRows, &tmpPreviewRow)
-				continue
 			}
-			tmpQueryDataParam := models.QueryExpressionDataParam{DataModelExpression: node.RoutineExpression, Filters: []*models.QueryExpressionDataFilter{&rootFilter}}
-			nodeDataList, nodeDataErr := queryProcPreviewNodeData(c, &tmpQueryDataParam, &rootEntityNode, false)
-			if nodeDataErr != nil {
-				err = nodeDataErr
-				break
-			}
-			log.Logger.Debug("nodeData", log.String("node", node.NodeId), log.JsonObj("data", nodeDataList))
-			for _, nodeDataObj := range nodeDataList {
-				if nodeDataObj.LastFlag {
-					tmpPreviewRow := models.ProcDataPreview{
-						EntityDataId:   nodeDataObj.DataId,
-						EntityTypeId:   fmt.Sprintf("%s:%s", nodeDataObj.PackageName, nodeDataObj.EntityName),
-						ProcDefId:      rootPreviewRow.ProcDefId,
-						BindType:       "taskNode",
-						IsBound:        true,
-						ProcSessionId:  result.ProcessSessionId,
-						EntityDataName: nodeDataObj.DisplayName,
-						FullDataId:     nodeDataObj.FullDataId,
-						ProcDefNodeId:  node.NodeId,
-						OrderedNo:      node.OrderedNo,
-						CreatedBy:      operator,
-						CreatedTime:    nowTime,
-					}
-					previewRows = append(previewRows, &tmpPreviewRow)
-				}
-				if existEntityNodeObj, ok := entityNodeMap[nodeDataObj.Id]; !ok {
-					entityNodeMap[nodeDataObj.Id] = nodeDataObj
-					result.EntityTreeNodes = append(result.EntityTreeNodes, nodeDataObj)
-				} else {
-					existEntityNodeObj.PreviousIds = append(existEntityNodeObj.PreviousIds, nodeDataObj.PreviousIds...)
-					existEntityNodeObj.SucceedingIds = append(existEntityNodeObj.SucceedingIds, nodeDataObj.SucceedingIds...)
-				}
+			if existEntityNodeObj, ok := entityNodeMap[nodeDataObj.Id]; !ok {
+				entityNodeMap[nodeDataObj.Id] = nodeDataObj
+				result.EntityTreeNodes = append(result.EntityTreeNodes, nodeDataObj)
+			} else {
+				existEntityNodeObj.PreviousIds = append(existEntityNodeObj.PreviousIds, nodeDataObj.PreviousIds...)
+				existEntityNodeObj.SucceedingIds = append(existEntityNodeObj.SucceedingIds, nodeDataObj.SucceedingIds...)
 			}
 		}
 	}

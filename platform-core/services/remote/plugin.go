@@ -404,7 +404,7 @@ func RequestPluginModelData(ctx context.Context, packageName, entity, token stri
 	return
 }
 
-func createPluginModelData(ctx context.Context, packageName, entity, token string, datas []interface{}) (result []map[string]interface{}, err error) {
+func CreatePluginModelData(ctx context.Context, packageName, entity, token, operation string, datas []map[string]interface{}) (result []map[string]interface{}, err error) {
 	postBytes, _ := json.Marshal(datas)
 	uri := fmt.Sprintf("%s/%s/entities/%s/create", models.Config.Gateway.Url, packageName, entity)
 	if models.Config.HttpsEnable == "true" {
@@ -424,8 +424,11 @@ func createPluginModelData(ctx context.Context, packageName, entity, token strin
 	req.Header.Set(models.TransactionIdHeader, transId)
 	req.Header.Set(models.AuthorizationHeader, token)
 	req.Header.Set("Content-type", "application/json")
+	if operation != "" {
+		req.Header.Set(models.OperationHeader, operation)
+	}
 	startTime := time.Now()
-	log.Logger.Info("Start remote modelData create --->>> ", log.String("requestId", reqId), log.String("transactionId", transId), log.String("method", http.MethodPost), log.String("url", urlObj.String()), log.JsonObj("Authorization", token), log.String("requestBody", string(postBytes)))
+	log.Logger.Info("Start remote modelData create --->>> ", log.String("requestId", reqId), log.String("transactionId", transId), log.String("method", http.MethodPost), log.String("url", urlObj.String()), log.String("operation", operation), log.JsonObj("Authorization", token), log.String("requestBody", string(postBytes)))
 	resp, respErr := http.DefaultClient.Do(req)
 	if respErr != nil {
 		err = fmt.Errorf("do request fail,%s ", respErr.Error())
@@ -461,7 +464,7 @@ func createPluginModelData(ctx context.Context, packageName, entity, token strin
 	return
 }
 
-func updatePluginModelData(ctx context.Context, packageName, entity, token string, datas []interface{}) (result []map[string]interface{}, err error) {
+func UpdatePluginModelData(ctx context.Context, packageName, entity, token, operation string, datas []map[string]interface{}) (result []map[string]interface{}, err error) {
 	postBytes, _ := json.Marshal(datas)
 	uri := fmt.Sprintf("%s/%s/entities/%s/update", models.Config.Gateway.Url, packageName, entity)
 	if models.Config.HttpsEnable == "true" {
@@ -481,6 +484,9 @@ func updatePluginModelData(ctx context.Context, packageName, entity, token strin
 	req.Header.Set(models.TransactionIdHeader, transId)
 	req.Header.Set(models.AuthorizationHeader, token)
 	req.Header.Set("Content-type", "application/json")
+	if operation != "" {
+		req.Header.Set(models.OperationHeader, operation)
+	}
 	startTime := time.Now()
 	log.Logger.Info("Start remote modelData update --->>> ", log.String("requestId", reqId), log.String("transactionId", transId), log.String("method", http.MethodPost), log.String("url", urlObj.String()), log.JsonObj("Authorization", token), log.String("requestBody", string(postBytes)))
 	resp, respErr := http.DefaultClient.Do(req)
@@ -730,7 +736,7 @@ func PluginInterfaceApi(ctx context.Context, token string, pluginInterface *mode
 }
 
 func CreateEntityData(ctx context.Context, authToken, packageName, entityName string, data map[string]interface{}) (map[string]interface{}, error) {
-	results, err := createPluginModelData(ctx, packageName, entityName, authToken, []interface{}{data})
+	results, err := CreatePluginModelData(ctx, packageName, entityName, authToken, "", []map[string]interface{}{data})
 	if err != nil {
 		return nil, err
 	}
@@ -741,7 +747,7 @@ func CreateEntityData(ctx context.Context, authToken, packageName, entityName st
 }
 
 func UpdateEntityData(ctx context.Context, authToken, packageName, entityName string, data map[string]interface{}) (map[string]interface{}, error) {
-	results, err := updatePluginModelData(ctx, packageName, entityName, authToken, []interface{}{data})
+	results, err := UpdatePluginModelData(ctx, packageName, entityName, authToken, "", []map[string]interface{}{data})
 	if err != nil {
 		return nil, err
 	}
@@ -774,7 +780,7 @@ func UpdatentityDataWithExpr(ctx context.Context, authToken, packageName, entity
 			newData[k] = v
 		}
 		newData["id"] = leafData["id"]
-		_, err := updatePluginModelData(ctx, exprs[len(exprs)-1].Package, exprs[len(exprs)-1].Entity, authToken, []interface{}{newData})
+		_, err := UpdatePluginModelData(ctx, exprs[len(exprs)-1].Package, exprs[len(exprs)-1].Entity, authToken, "", []map[string]interface{}{newData})
 		if err != nil {
 			return err
 		}
