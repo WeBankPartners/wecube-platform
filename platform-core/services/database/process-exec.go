@@ -545,6 +545,12 @@ func CreatePublicProcInstance(ctx context.Context, startParam *models.RequestPro
 	nowTime := time.Now()
 	var entityDataId, entityTypeId, entityDataName string
 	for _, row := range startParam.Entities {
+		if row.EntityDataOp == "create" {
+			row.Oid = "OID-" + row.Oid
+		}
+		if row.EntityDataId == "" {
+			row.EntityDataId = row.Oid
+		}
 		if row.Oid == startParam.RootEntityOid {
 			entityDataId = row.EntityDataId
 			entityTypeId = fmt.Sprintf("%s:%s", row.PackageName, row.EntityName)
