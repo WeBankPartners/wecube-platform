@@ -364,7 +364,7 @@ func PublicProcDefPreview(c *gin.Context) {
 				nodeDataList = append(nodeDataList, &rootEntityNode)
 			} else {
 				tmpQueryDataParam := models.QueryExpressionDataParam{DataModelExpression: nodeExpression, Filters: []*models.QueryExpressionDataFilter{&rootFilter}}
-				tmpNodeDataList, tmpErr := queryProcPreviewNodeData(c, &tmpQueryDataParam, &rootEntityNode, false)
+				tmpNodeDataList, tmpErr := queryProcPreviewNodeData(c, &tmpQueryDataParam, &rootEntityNode, true)
 				if tmpErr != nil {
 					err = tmpErr
 					break
