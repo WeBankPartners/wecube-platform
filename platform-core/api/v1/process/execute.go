@@ -564,6 +564,9 @@ func PublicProcInsStart(c *gin.Context) {
 	if queryErr != nil {
 		middleware.ReturnError(c, queryErr)
 	} else {
+		if detail.Id != "" && detail.Status == "NotStarted" {
+			detail.Status = "InProgress"
+		}
 		middleware.ReturnData(c, detail)
 	}
 }
