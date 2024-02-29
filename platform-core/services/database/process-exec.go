@@ -543,9 +543,11 @@ func CreatePublicProcInstance(ctx context.Context, startParam *models.RequestPro
 	}
 	var actions []*db.ExecAction
 	nowTime := time.Now()
+	newOidMap := make(map[string]string)
 	var entityDataId, entityTypeId, entityDataName string
 	for _, row := range startParam.Entities {
 		if row.EntityDataOp == "create" {
+			newOidMap[row.Oid] = "OID-" + row.Oid
 			row.Oid = "OID-" + row.Oid
 		}
 		if row.EntityDataId == "" {
@@ -586,7 +588,7 @@ func CreatePublicProcInstance(ctx context.Context, startParam *models.RequestPro
 			}})
 		}
 		actions = append(actions, &db.ExecAction{Sql: "insert into proc_data_cache(id,proc_ins_id,entity_id,entity_data_id,entity_data_name,entity_type_id,full_data_id,data_value,prev_ids,succ_ids,created_time) values (?,?,?,?,?,?,?,?,?,?,?)", Param: []interface{}{
-			"p_cache_" + guid.CreateGuid(), procInsId, row.Oid, row.EntityDataId, row.EntityDisplayName, tmpEntityTypeId, row.FullEntityDataId, row.GetAttrDataValueString(), strings.Join(row.PreviousOids, ","), strings.Join(row.SucceedingOids, ","), nowTime,
+			"p_cache_" + guid.CreateGuid(), procInsId, row.Oid, row.EntityDataId, row.EntityDisplayName, tmpEntityTypeId, row.FullEntityDataId, row.GetAttrDataValueString(), strings.Join(getReplaceOidMap(row.PreviousOids, newOidMap), ","), strings.Join(getReplaceOidMap(row.SucceedingOids, newOidMap), ","), nowTime,
 		}})
 		inputEntityMap[row.Oid] = row
 	}
@@ -615,7 +617,11 @@ func CreatePublicProcInstance(ctx context.Context, startParam *models.RequestPro
 		// data bind
 		for _, row := range startParam.Bindings {
 			if row.NodeDefId == node.Id {
-				if inputEntityObj, ok := inputEntityMap[row.Oid]; ok {
+				tmpOid := row.Oid
+				if newOid, matchNew := newOidMap[tmpOid]; matchNew {
+					tmpOid = newOid
+				}
+				if inputEntityObj, ok := inputEntityMap[tmpOid]; ok {
 					tmpBoundFlag := false
 					if row.BindFlag == "Y" {
 						tmpBoundFlag = true
@@ -636,6 +642,17 @@ func CreatePublicProcInstance(ctx context.Context, startParam *models.RequestPro
 	}
 	if err = db.Transaction(actions, ctx); err != nil {
 		err = exterror.Catch(exterror.New().DatabaseExecuteError, err)
+	}
+	return
+}
+
+func getReplaceOidMap(inputList []string, oidMap map[string]string) (outputList []string) {
+	for _, v := range inputList {
+		if newOid, ok := oidMap[v]; ok {
+			outputList = append(outputList, newOid)
+		} else {
+			outputList = append(outputList, v)
+		}
 	}
 	return
 }
