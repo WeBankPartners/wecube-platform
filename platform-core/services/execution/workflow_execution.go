@@ -154,6 +154,11 @@ func DoWorkflowAutoJob(ctx context.Context, procRunNodeId, continueToken string)
 		err = getIntErr
 		return
 	}
+	procIns, getProcInsErr := database.GetSimpleProcInsRow(ctx, procInsNode.ProcInsId)
+	if getProcInsErr != nil {
+		err = getProcInsErr
+		return
+	}
 	if err = database.AddProcCacheData(ctx, procInsNode.ProcInsId, dataBindings); err != nil {
 		return
 	}
@@ -177,7 +182,20 @@ func DoWorkflowAutoJob(ctx context.Context, procRunNodeId, continueToken string)
 		if v.BindType == "constant" {
 			inputConstantMap[interfaceParamIdMap[v.Name]] = v.Value
 		} else if v.BindType == "context" {
-
+			bindNodeType, getTypeErr := database.GetProcContextBindNodeType(ctx, procDefNode.ProcDefId, v.CtxBindNode)
+			if getTypeErr != nil {
+				err = getTypeErr
+				return
+			}
+			if bindNodeType == "start" {
+				inputContextMap["procInstId"] = procIns.Id
+				inputContextMap["procDefName"] = procIns.ProcDefName
+				inputContextMap["procDefKey"] = procIns.ProcDefKey
+				inputContextMap["procInstKey"] = procIns.ProcDefName
+				inputContextMap["procInstName"] = procIns.ProcDefName
+				inputContextMap["rootEntityId"] = procIns.EntityDataId
+				inputContextMap["rootEntityName"] = procIns.EntityDataName
+			}
 		}
 	}
 	log.Logger.Debug("DoWorkflowAutoJob data", log.String("procInsNode", procInsNode.Id), log.String("procDefNode", procDefNode.Id), log.String("interfaceId", pluginInterface.Id), log.JsonObj("inputConstantMap", inputConstantMap), log.JsonObj("inputContextMap", inputContextMap))
