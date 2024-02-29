@@ -80,7 +80,7 @@ func ListBucketFiles(bucket string) (datas []PlatformObjectInfo, err error) {
 			fileName = parts[0]
 		} else {
 			fileName = parts[len(parts)-1]
-			filePath = strings.Join(parts[:len(parts)-2], "/") + "/"
+			filePath = strings.Join(parts[:len(parts)-1], "/") + "/"
 		}
 		data = append(data, fileName)
 		data = append(data, filePath)
