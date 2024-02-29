@@ -891,3 +891,23 @@ func GetPluginResourceFiles(c *gin.Context) {
 		middleware.ReturnData(c, result)
 	}
 }
+
+func GetPluginS3Files(c *gin.Context) {
+	pluginPackageId := c.Param("pluginPackageId")
+	resource, err := database.GetPluginRuntimeResources(c, pluginPackageId)
+	if err != nil {
+		middleware.ReturnError(c, err)
+		return
+	} else {
+		var result interface{}
+		result = make([]string, 0)
+		if len(resource.S3) > 0 {
+			result, err = bash.ListBucketFiles(resource.S3[0].BucketName)
+			if err != nil {
+				middleware.ReturnError(c, err)
+				return
+			}
+		}
+		middleware.ReturnData(c, result)
+	}
+}

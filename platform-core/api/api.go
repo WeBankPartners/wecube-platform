@@ -75,6 +75,7 @@ func init() {
 		&handlerFuncObj{Url: "/packages/instances/:pluginInstanceId/remove", Method: "DELETE", HandlerFunc: plugin.RemovePlugin, ApiCode: "remove-plugin"},
 		&handlerFuncObj{Url: "/packages/:pluginPackageId/instances", Method: "GET", HandlerFunc: plugin.GetPluginRunningInstances, ApiCode: "get-plugin-running-instance"},
 		&handlerFuncObj{Url: "/packages/name/list", Method: "GET", HandlerFunc: plugin.GetPackageNames, ApiCode: "get-package-names"},
+		&handlerFuncObj{Url: "/packages/:pluginPackageId/resources/s3/files", Method: "GET", HandlerFunc: plugin.GetPluginS3Files, ApiCode: "get-plugin-s3-files"},
 		// plugin-config
 		&handlerFuncObj{Url: "/packages/:pluginPackageId/plugin-configs", Method: "GET", HandlerFunc: plugin.GetPluginConfigs, ApiCode: "get-plugin-configs"},
 		&handlerFuncObj{Url: "/packages/:pluginPackageId/plugins", Method: "GET", HandlerFunc: plugin.GetPluginConfigsWithInterfaces, ApiCode: "get-plugin-configs-with-interfaces"},
