@@ -415,6 +415,10 @@ func (n *WorkNode) doAutoJob() (output string, err error) {
 
 func (n *WorkNode) doDataJob() (output string, err error) {
 	log.Logger.Info("do data job", log.String("nodeId", n.Id), log.String("input", n.Input))
+	err = execution.DoWorkflowDataJob(n.Ctx, n.Id)
+	if err != nil {
+		log.Logger.Error("do data job error", log.Error(err))
+	}
 	return
 }
 
