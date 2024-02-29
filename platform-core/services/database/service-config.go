@@ -1027,7 +1027,7 @@ func getImportPluginConfigData(pluginPackageId string, packagePluginsXmlData *mo
 			for iii := range interfaceInfo.InputParameters.Parameter {
 				inputParamInfo := &interfaceInfo.InputParameters.Parameter[iii]
 				inputParam := &models.PluginConfigInterfaceParameters{
-					Type:                      "INPUT",
+					Type:                      models.PluginParamTypeInput,
 					Name:                      inputParamInfo.Text,
 					DataType:                  inputParamInfo.Datatype,
 					MappingType:               inputParamInfo.MappingType,
@@ -1049,7 +1049,7 @@ func getImportPluginConfigData(pluginPackageId string, packagePluginsXmlData *mo
 			for iii := range interfaceInfo.OutputParameters.Parameter {
 				outputParamInfo := &interfaceInfo.OutputParameters.Parameter[iii]
 				outputParam := &models.PluginConfigInterfaceParameters{
-					Type:                      "OUTPUT",
+					Type:                      models.PluginParamTypeOutput,
 					Name:                      outputParamInfo.Text,
 					DataType:                  outputParamInfo.Datatype,
 					MappingType:               outputParamInfo.MappingType,
