@@ -620,6 +620,9 @@ func CreatePublicProcInstance(ctx context.Context, startParam *models.RequestPro
 				tmpOid := row.Oid
 				if newOid, matchNew := newOidMap[tmpOid]; matchNew {
 					tmpOid = newOid
+					if row.EntityDataId == "" {
+						row.EntityDataId = tmpOid
+					}
 				}
 				if inputEntityObj, ok := inputEntityMap[tmpOid]; ok {
 					tmpBoundFlag := false
