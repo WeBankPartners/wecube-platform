@@ -411,7 +411,7 @@ func CallDynamicFormReq(ctx context.Context, param *models.ProcCallPluginService
 	for _, paramObj := range param.PluginInterface.InputParameters {
 		if paramObj.Name == "taskFormInput" {
 			// 请求taskman拿表单结构
-			taskFormMeta, getFormMetaErr := remote.GetInputFormMeta(ctx, param.ProcInsNode.ProcInsId, param.ProcInsNode.ProcDefNodeId, param.PluginInterface)
+			taskFormMeta, getFormMetaErr := remote.GetInputFormMeta(ctx, param.ProcInsNode.ProcInsId, param.ProcDefNode.NodeId, param.PluginInterface)
 			if getFormMetaErr != nil {
 				err = getFormMetaErr
 				break
