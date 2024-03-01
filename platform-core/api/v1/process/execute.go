@@ -660,3 +660,38 @@ func ProcInstanceCallback(c *gin.Context) {
 	go workflow.HandleProOperation(&operationObj)
 	middleware.ReturnSuccess(c)
 }
+
+func QueryProcInsPageData(c *gin.Context) {
+	var param models.QueryProcPageParam
+	if err := c.ShouldBindJSON(&param); err != nil {
+		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, err))
+		return
+	}
+	result, err := database.QueryProcInsPage(c, &param)
+	if err != nil {
+		middleware.ReturnError(c, err)
+	} else {
+		middleware.ReturnData(c, result)
+	}
+}
+
+func ProcTermination(c *gin.Context) {
+	procInsId := c.Param("procInsId")
+	if procInsId == "" {
+		middleware.ReturnError(c, exterror.New().RequestParamValidateError)
+		return
+	}
+	workflowId, _, err := database.GetProcWorkByInsId(c, procInsId, "")
+	if err != nil {
+		middleware.ReturnError(c, err)
+		return
+	}
+	operationObj := models.ProcRunOperation{WorkflowId: workflowId, Operation: "kill", Status: "wait", CreatedBy: middleware.GetRequestUser(c)}
+	operationObj.Id, err = database.AddWorkflowOperation(c, &operationObj)
+	if err != nil {
+		middleware.ReturnError(c, err)
+		return
+	}
+	go workflow.HandleProOperation(&operationObj)
+	middleware.ReturnSuccess(c)
+}

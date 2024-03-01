@@ -19,20 +19,6 @@ var (
 	instanceHost      = "127.0.0.1"
 )
 
-const (
-	JobStartType    = "start"
-	JobEndType      = "end"
-	JobBreakType    = "abnormal"
-	JobAutoType     = "automatic"
-	JobDataType     = "data"
-	JobHumanType    = "human"
-	JobForkType     = "fork"
-	JobMergeType    = "merge"
-	JobTimeType     = "timeInterval"
-	JobDateType     = "date"
-	JobDecisionType = "decision"
-)
-
 type Workflow struct {
 	models.ProcRunWorkflow
 	Ctx              context.Context
@@ -64,11 +50,11 @@ func (w *Workflow) Init(ctx context.Context, nodes []*models.ProcRunNode, links 
 }
 
 func (w *Workflow) Start(input *models.ProcOperation) {
-	w.setStatus("running", input)
+	w.setStatus(models.JobStatusRunning, input)
 	var startIndexList []int
 	for i, node := range w.Nodes {
 		go node.Ready()
-		if node.JobType == JobStartType {
+		if node.JobType == models.JobStartType {
 			startIndexList = append(startIndexList, i)
 		}
 	}
@@ -80,7 +66,7 @@ func (w *Workflow) Start(input *models.ProcOperation) {
 	select {
 	case killInput := <-w.killChan:
 		killFlag = true
-		w.setStatus("kill", &killInput)
+		w.setStatus(models.JobStatusKill, &killInput)
 	case <-w.doneChan:
 	}
 	if killFlag {
@@ -93,18 +79,18 @@ func (w *Workflow) Start(input *models.ProcOperation) {
 }
 
 func (w *Workflow) nodeDoneCallback(node *WorkNode) {
-	if node.JobType == JobEndType {
-		w.Status = "success"
+	if node.JobType == models.JobEndType {
+		w.Status = models.JobStatusSuccess
 		w.doneChan <- 1
 		return
 	}
-	if node.JobType == JobBreakType {
-		w.Status = "fail"
+	if node.JobType == models.JobBreakType {
+		w.Status = models.JobStatusFail
 		w.doneChan <- 1
 		return
 	}
 	decisionChose := ""
-	if node.JobType == JobDecisionType {
+	if node.JobType == models.JobDecisionType {
 		decisionChose = node.Input
 		log.Logger.Info("decision node receive choose", log.String(decisionChose, "decisionChose"))
 		//if decisionChose == "" {
@@ -115,12 +101,12 @@ func (w *Workflow) nodeDoneCallback(node *WorkNode) {
 		//}
 	}
 	if node.Err != nil {
-		w.setStatus("problem", &models.ProcOperation{NodeErr: &models.WorkProblemErrObj{NodeId: node.Id, NodeName: node.Name, ErrMessage: node.Err.Error()}})
+		w.setStatus(models.JobStatusFail, &models.ProcOperation{NodeErr: &models.WorkProblemErrObj{NodeId: node.Id, NodeName: node.Name, ErrMessage: node.Err.Error()}})
 		return
 	}
 	// stop 的时候要处理普通节点等待
 	curStatus := w.getStatus()
-	if curStatus == "kill" {
+	if curStatus == models.JobStatusKill {
 		return
 	}
 	if curStatus == "stop" {
@@ -137,7 +123,7 @@ func (w *Workflow) nodeDoneCallback(node *WorkNode) {
 		if ref.Source == node.Id {
 			for _, targetNode := range w.Nodes {
 				if targetNode.Id == ref.Target {
-					if targetNode.JobType == JobDecisionType {
+					if targetNode.JobType == models.JobDecisionType {
 						targetNode.Input = node.Output
 					}
 					targetNode.StartChan <- 1
@@ -153,7 +139,7 @@ func (w *Workflow) Stop(input *models.ProcOperation) {
 }
 
 func (w *Workflow) Continue(input *models.ProcOperation) {
-	w.setStatus("running", input)
+	w.setStatus(models.JobStatusRunning, input)
 	for _, v := range w.stopNodeChanList {
 		v <- 1
 	}
@@ -172,7 +158,7 @@ func (w *Workflow) setStatus(status string, op *models.ProcOperation) {
 	w.statusLock.Lock()
 	w.Status = status
 	w.statusLock.Unlock()
-	if status == "problem" {
+	if status == models.JobStatusFail {
 		if op != nil && op.NodeErr != nil {
 			w.updateErrorList(true, "", op.NodeErr)
 		}
@@ -232,7 +218,7 @@ func (w *Workflow) RetryNode(nodeId string) {
 	time.Sleep(100 * time.Millisecond)
 	w.updateErrorList(false, nodeId, nil)
 	if len(w.ErrList) == 0 {
-		w.setStatus("running", nil)
+		w.setStatus(models.JobStatusRunning, nil)
 	}
 	nodeObj.StartChan <- 1
 	return
@@ -251,7 +237,7 @@ func (w *Workflow) IgnoreNode(nodeId string) {
 		log.Logger.Error("can not find node in workflow", log.String("node", nodeId), log.String("workflowId", w.Id))
 		return
 	}
-	nodeObj.Status = "success"
+	nodeObj.Status = models.JobStatusSuccess
 	updateNodeDB(&nodeObj.ProcRunNode)
 	w.updateErrorList(false, nodeId, nil)
 	for _, ref := range w.Links {
@@ -341,24 +327,24 @@ func (n *WorkNode) Ready() {
 
 func (n *WorkNode) start() {
 	log.Logger.Info("---> start node", log.String("id", n.Id), log.String("type", n.JobType), log.String("input", n.Input))
-	n.Status = "running"
+	n.Status = models.JobStatusRunning
 	updateNodeDB(&n.ProcRunNode)
 	switch n.JobType {
-	case JobStartType:
+	case models.JobStartType:
 		break
-	case JobEndType:
+	case models.JobEndType:
 		break
-	case JobBreakType:
+	case models.JobBreakType:
 		break
-	case JobAutoType:
+	case models.JobAutoType:
 		n.Output, n.Err = n.doAutoJob()
-	case JobDataType:
+	case models.JobDataType:
 		n.Output, n.Err = n.doDataJob()
-	case JobHumanType:
+	case models.JobHumanType:
 		n.Output, n.Err = n.doHumanJob()
-	case JobForkType:
+	case models.JobForkType:
 		break
-	case JobMergeType:
+	case models.JobMergeType:
 		needStartCount := 0
 		for _, ref := range n.workflow.Links {
 			if ref.Target == n.Id {
@@ -375,11 +361,11 @@ func (n *WorkNode) start() {
 				log.Logger.Info("merge get another signal", log.Int("wait signal num", needStartCount-1))
 			}
 		}
-	case JobTimeType:
+	case models.JobTimeType:
 		n.Output, n.Err = n.doTimeJob()
-	case JobDateType:
+	case models.JobDateType:
 		n.Output, n.Err = n.doDateJob()
-	case JobDecisionType:
+	case models.JobDecisionType:
 		if n.Input == "" {
 			for _, tmpLink := range n.workflow.Links {
 				if tmpLink.Target == n.Id {
@@ -394,10 +380,10 @@ func (n *WorkNode) start() {
 		break
 	}
 	if n.Err == nil {
-		n.Status = "success"
+		n.Status = models.JobStatusSuccess
 		updateNodeDB(&n.ProcRunNode)
 	} else {
-		n.Status = "fail"
+		n.Status = models.JobStatusFail
 		n.ErrorMessage = n.Err.Error()
 		updateNodeDB(&n.ProcRunNode)
 	}
@@ -512,9 +498,9 @@ func updateWorkflowDB(w *models.ProcRunWorkflow, op *models.ProcOperation) {
 		actions = append(actions, &db.ExecAction{Sql: "update proc_run_workflow set stop=1,updated_time=? where id=?", Param: []interface{}{nowTime, w.Id}})
 	} else if w.Status == "sleep" {
 		actions = append(actions, &db.ExecAction{Sql: "update proc_run_workflow set sleep=1,updated_time=? where id=?", Param: []interface{}{nowTime, w.Id}})
-	} else if w.Status == "running" {
+	} else if w.Status == models.JobStatusRunning {
 		actions = append(actions, &db.ExecAction{Sql: "update proc_run_workflow set stop=0,sleep=0,status=?,updated_time=? where id=?", Param: []interface{}{w.Status, nowTime, w.Id}})
-	} else if w.Status == "problem" {
+	} else if w.Status == models.JobStatusFail {
 		actions = append(actions, &db.ExecAction{Sql: "update proc_run_workflow set status=?,error_message=?,updated_time=? where id=?", Param: []interface{}{w.Status, w.ErrorMessage, nowTime, w.Id}})
 	} else {
 		actions = append(actions, &db.ExecAction{Sql: "update proc_run_workflow set status=?,updated_time=? where id=?", Param: []interface{}{w.Status, nowTime, w.Id}})
@@ -530,19 +516,19 @@ func updateNodeDB(n *models.ProcRunNode) {
 	var err error
 	var actions []*db.ExecAction
 	nowTime := time.Now()
-	if n.Status == "running" {
+	if n.Status == models.JobStatusRunning {
 		actions = append(actions, &db.ExecAction{Sql: "update proc_run_node set status=?,start_time=?,updated_time=? where id=?", Param: []interface{}{n.Status, nowTime, nowTime, n.Id}})
 		actions = append(actions, &db.ExecAction{Sql: "update proc_ins_node set status=?,updated_time=? where id=?", Param: []interface{}{n.Status, nowTime, n.ProcInsNodeId}})
-		if n.JobType == JobDecisionType {
+		if n.JobType == models.JobDecisionType {
 			actions = append(actions, &db.ExecAction{Sql: "update proc_run_node set input=? where id=?", Param: []interface{}{n.Input, n.Id}})
 		}
-	} else if n.Status == "fail" {
+	} else if n.Status == models.JobStatusFail {
 		actions = append(actions, &db.ExecAction{Sql: "update proc_run_node set status=?,error_message=?,end_time=?,updated_time=? where id=?", Param: []interface{}{n.Status, n.ErrorMessage, nowTime, nowTime, n.Id}})
 		actions = append(actions, &db.ExecAction{Sql: "update proc_ins_node set status=?,error_msg=?,updated_time=? where id=?", Param: []interface{}{n.Status, n.ErrorMessage, nowTime, n.ProcInsNodeId}})
-	} else if n.Status == "success" {
+	} else if n.Status == models.JobStatusSuccess {
 		actions = append(actions, &db.ExecAction{Sql: "update proc_run_node set status=?,`output`=?,end_time=?,updated_time=? where id=?", Param: []interface{}{n.Status, n.Output, nowTime, nowTime, n.Id}})
 		actions = append(actions, &db.ExecAction{Sql: "update proc_ins_node set status=?,updated_time=? where id=?", Param: []interface{}{n.Status, nowTime, n.ProcInsNodeId}})
-	} else if n.Status == "timeout" {
+	} else if n.Status == models.JobStatusTimeout {
 		actions = append(actions, &db.ExecAction{Sql: "update proc_run_node set status=?,error_message=?,end_time=?,updated_time=? where id=?", Param: []interface{}{n.Status, n.ErrorMessage, nowTime, nowTime, n.Id}})
 		actions = append(actions, &db.ExecAction{Sql: "update proc_ins_node set status=?,error_msg=?,updated_time=? where id=?", Param: []interface{}{n.Status, n.ErrorMessage, nowTime, n.ProcInsNodeId}})
 	} else {
