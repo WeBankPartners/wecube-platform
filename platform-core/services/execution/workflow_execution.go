@@ -484,7 +484,7 @@ func buildTaskFormInput(ctx context.Context, taskFormMeta *models.TaskMetaResult
 		ProcDefKey:     param.ProcIns.ProcDefKey,
 		ProcInstId:     param.ProcInsNode.ProcInsId,
 		ProcInstKey:    param.ProcInsNode.ProcInsId,
-		TaskNodeDefId:  param.ProcDefNode.Id,
+		TaskNodeDefId:  param.ProcDefNode.NodeId,
 		TaskNodeInstId: param.ProcInsNode.Id,
 	}
 	for _, dataBind := range param.DataBinding {
