@@ -5,6 +5,27 @@ import (
 	"time"
 )
 
+const (
+	JobStartType    = "start"
+	JobEndType      = "end"
+	JobBreakType    = "abnormal"
+	JobAutoType     = "automatic"
+	JobDataType     = "data"
+	JobHumanType    = "human"
+	JobForkType     = "fork"
+	JobMergeType    = "merge"
+	JobTimeType     = "timeInterval"
+	JobDateType     = "date"
+	JobDecisionType = "decision"
+
+	JobStatusReady   = "NotStarted"
+	JobStatusRunning = "InProgress"
+	JobStatusFail    = "Faulted"
+	JobStatusSuccess = "Completed"
+	JobStatusKill    = "InternallyTerminated"
+	JobStatusTimeout = "Timeouted"
+)
+
 type ProcRunWorkflow struct {
 	Id            string    `json:"id" xorm:"id"`                         // 唯一标识
 	ProcInsId     string    `json:"procInsId" xorm:"proc_ins_id"`         // 编排实例id
