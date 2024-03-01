@@ -88,45 +88,6 @@ func (p *ProcPreviewEntityNode) Parse(packageName, entityName string, input map[
 	p.PreviousIds, p.SucceedingIds = []string{}, []string{}
 }
 
-func (p *ProcPreviewData) FillRefIds() (nodePreviousMap, nodeSucceedingMap map[string][]string) {
-	if len(p.EntityTreeNodes) <= 1 {
-		return
-	}
-	nodePreviousMap = make(map[string][]string)
-	nodeSucceedingMap = make(map[string][]string)
-	for _, v := range p.EntityTreeNodes {
-		for _, preId := range v.PreviousIds {
-			if existPre, ok := nodePreviousMap[v.Id]; ok {
-				nodePreviousMap[v.Id] = append(existPre, preId)
-			} else {
-				nodePreviousMap[v.Id] = []string{preId}
-			}
-			if existSuc, ok := nodeSucceedingMap[preId]; ok {
-				nodeSucceedingMap[preId] = append(existSuc, v.Id)
-			} else {
-				nodeSucceedingMap[preId] = []string{v.Id}
-			}
-		}
-		for _, sucId := range v.SucceedingIds {
-			if existSuc, ok := nodeSucceedingMap[v.Id]; ok {
-				nodeSucceedingMap[v.Id] = append(existSuc, sucId)
-			} else {
-				nodeSucceedingMap[v.Id] = []string{sucId}
-			}
-			if existPre, ok := nodePreviousMap[sucId]; ok {
-				nodePreviousMap[sucId] = append(existPre, v.Id)
-			} else {
-				nodePreviousMap[sucId] = []string{v.Id}
-			}
-		}
-	}
-	for _, v := range p.EntityTreeNodes {
-		v.PreviousIds = DistinctStringList(nodePreviousMap[v.Id], []string{v.Id})
-		v.SucceedingIds = DistinctStringList(nodeSucceedingMap[v.Id], []string{v.Id})
-	}
-	return
-}
-
 func (p *ProcPreviewData) AnalyzeRefIds() {
 	if len(p.EntityTreeNodes) <= 1 {
 		return
