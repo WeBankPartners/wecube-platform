@@ -376,7 +376,6 @@ func GetProcPreviewEntityNode(ctx context.Context, procInsId string) (result *mo
 		}
 		result.EntityTreeNodes = append(result.EntityTreeNodes, &tmpNodeObj)
 	}
-	result.FillRefIds()
 	return
 }
 
@@ -389,6 +388,7 @@ func getProcCacheEntityNode(ctx context.Context, procInsId string) (result *mode
 		return
 	}
 	succMap := make(map[string][]string)
+	prevMap := make(map[string][]string)
 	for _, row := range cacheRows {
 		entityMsg := strings.Split(row.EntityTypeId, ":")
 		if len(entityMsg) != 2 {
@@ -406,6 +406,7 @@ func getProcCacheEntityNode(ctx context.Context, procInsId string) (result *mode
 		}
 		if row.PrevIds != "" {
 			tmpNodeObj.PreviousIds = strings.Split(row.PrevIds, ",")
+			prevMap[tmpNodeObj.Id] = tmpNodeObj.PreviousIds
 			for _, v := range tmpNodeObj.PreviousIds {
 				if sucExist, ok := succMap[v]; ok {
 					succMap[v] = append(sucExist, tmpNodeObj.Id)
@@ -416,12 +417,23 @@ func getProcCacheEntityNode(ctx context.Context, procInsId string) (result *mode
 		}
 		if row.SuccIds != "" {
 			tmpNodeObj.SucceedingIds = strings.Split(row.SuccIds, ",")
+			succMap[tmpNodeObj.Id] = tmpNodeObj.SucceedingIds
+			for _, v := range tmpNodeObj.SucceedingIds {
+				if preExist, ok := prevMap[v]; ok {
+					prevMap[v] = append(preExist, tmpNodeObj.Id)
+				} else {
+					prevMap[v] = []string{tmpNodeObj.Id}
+				}
+			}
 		}
 		result.EntityTreeNodes = append(result.EntityTreeNodes, &tmpNodeObj)
 	}
 	for _, v := range result.EntityTreeNodes {
 		if sucExist, ok := succMap[v.Id]; ok {
 			v.SucceedingIds = joinStringList(v.SucceedingIds, sucExist)
+		}
+		if preExist, ok := prevMap[v.Id]; ok {
+			v.PreviousIds = joinStringList(v.PreviousIds, preExist)
 		}
 	}
 	return
