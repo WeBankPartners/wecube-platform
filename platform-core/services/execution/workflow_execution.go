@@ -165,7 +165,7 @@ func DoWorkflowAutoJob(ctx context.Context, procRunNodeId, continueToken string)
 	var entityInstances []*models.BatchExecutionPluginExecEntityInstances
 	for _, bindingObj := range dataBindings {
 		entityInstances = append(entityInstances, &models.BatchExecutionPluginExecEntityInstances{
-			Id:               bindingObj.EntityId,
+			Id:               bindingObj.EntityDataId,
 			BusinessKeyValue: "",
 		})
 	}
