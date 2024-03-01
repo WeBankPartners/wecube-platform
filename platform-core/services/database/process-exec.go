@@ -376,7 +376,8 @@ func GetProcPreviewEntityNode(ctx context.Context, procInsId string) (result *mo
 		}
 		result.EntityTreeNodes = append(result.EntityTreeNodes, &tmpNodeObj)
 	}
-	result.FillRefIds()
+	nodePreviousMap, nodeSucceedingMap := result.FillRefIds()
+	log.Logger.Debug("FillRefIds", log.JsonObj("nodePreviousMap", nodePreviousMap), log.JsonObj("nodeSucceedingMap", nodeSucceedingMap))
 	return
 }
 
