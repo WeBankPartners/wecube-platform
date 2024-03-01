@@ -1150,7 +1150,7 @@ func GetWorkflowNodeByReq(ctx context.Context, reqId string) (runNode *models.Ta
 
 func UpdateProcCacheData(ctx context.Context, procInsId string, taskFormList []*models.PluginTaskFormDto) (err error) {
 	var cacheDataRows []*models.ProcDataCache
-	err = db.MysqlEngine.Context(ctx).SQL("select id,entity_id,entity_data_id,entity_type_id from proc_data_cache where proc_ins_id=?", procInsId).Find(&cacheDataRows)
+	err = db.MysqlEngine.Context(ctx).SQL("select id,entity_id,entity_data_id,entity_type_id,data_value from proc_data_cache where proc_ins_id=?", procInsId).Find(&cacheDataRows)
 	if err != nil {
 		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
 		return
@@ -1160,18 +1160,20 @@ func UpdateProcCacheData(ctx context.Context, procInsId string, taskFormList []*
 	for _, taskForm := range taskFormList {
 		for _, entityObj := range taskForm.FormDataEntities {
 			existId := ""
+			existDataValue := ""
 			tmpEntityTypeId := fmt.Sprintf("%s:%s", entityObj.PackageName, entityObj.EntityName)
 			for _, row := range cacheDataRows {
 				if row.EntityTypeId == tmpEntityTypeId && row.EntityDataId == entityObj.EntityDataId {
 					existId = row.Id
+					existDataValue = row.DataValue
 					break
 				}
 			}
 			if existId != "" {
-				actions = append(actions, &db.ExecAction{Sql: "update proc_data_cache set data_value=?,updated_time=? where id=?", Param: []interface{}{entityObj.GetAttrDataValueString(), nowTime, existId}})
+				actions = append(actions, &db.ExecAction{Sql: "update proc_data_cache set data_value=?,updated_time=? where id=?", Param: []interface{}{entityObj.GetAttrDataValueString(existDataValue), nowTime, existId}})
 			} else {
 				actions = append(actions, &db.ExecAction{Sql: "insert into proc_data_cache(id,proc_ins_id,entity_id,entity_data_id,entity_data_name,entity_type_id,full_data_id,data_value,created_time) values (?,?,?,?,?,?,?,?,?)", Param: []interface{}{
-					"p_cache_" + guid.CreateGuid(), procInsId, entityObj.Oid, entityObj.EntityDataId, entityObj.EntityDataId, tmpEntityTypeId, entityObj.FullEntityDataId, entityObj.GetAttrDataValueString(), nowTime,
+					"p_cache_" + guid.CreateGuid(), procInsId, entityObj.Oid, entityObj.EntityDataId, entityObj.EntityDataId, tmpEntityTypeId, entityObj.FullEntityDataId, entityObj.GetAttrDataValueString(""), nowTime,
 				}})
 			}
 		}
@@ -1209,6 +1211,21 @@ func GetProcDataNodeExpression(expression string) (result []*models.ProcDataNode
 			break
 		}
 		result = append(result, &models.ProcDataNodeExprObj{Expression: subSplit[0], Operation: subSplit[1]})
+	}
+	return
+}
+
+func RewriteProcInsEntityData(ctx context.Context, procInsId string, rewriteList []*models.RewriteEntityDataObj) (err error) {
+	var actions []*db.ExecAction
+	for _, v := range rewriteList {
+		actions = append(actions, &db.ExecAction{Sql: "update proc_data_binding set entity_data_id=?,entity_data_name=? where proc_ins_id=? and entity_id=?", Param: []interface{}{v.Nid, v.DisplayName, procInsId, v.Oid}})
+		actions = append(actions, &db.ExecAction{Sql: "update proc_data_cache set entity_data_id=?,entity_data_name=? where proc_ins_id=? and entity_id=?", Param: []interface{}{v.Nid, v.DisplayName, procInsId, v.Oid}})
+	}
+	if len(actions) > 0 {
+		err = db.Transaction(actions, ctx)
+		if err != nil {
+			err = exterror.Catch(exterror.New().DatabaseExecuteError, err)
+		}
 	}
 	return
 }
