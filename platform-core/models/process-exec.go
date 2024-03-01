@@ -384,8 +384,11 @@ type PluginTaskFormEntity struct {
 	FormItemValues   []*PluginTaskFormValue `json:"formItemValues"`
 }
 
-func (p *PluginTaskFormEntity) GetAttrDataValueString() string {
+func (p *PluginTaskFormEntity) GetAttrDataValueString(existDataValue string) string {
 	dataValue := make(map[string]interface{})
+	if existDataValue != "" {
+		json.Unmarshal([]byte(existDataValue), &dataValue)
+	}
 	for _, v := range p.FormItemValues {
 		dataValue[v.AttrName] = v.AttrValue
 	}
@@ -443,4 +446,10 @@ type PublicProcDefObj struct {
 	Status      string      `json:"status"`
 	RootEntity  *ProcEntity `json:"rootEntity"`
 	CreatedTime string      `json:"createdTime"`
+}
+
+type RewriteEntityDataObj struct {
+	Oid         string
+	Nid         string
+	DisplayName string
 }
