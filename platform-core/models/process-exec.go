@@ -88,12 +88,12 @@ func (p *ProcPreviewEntityNode) Parse(packageName, entityName string, input map[
 	p.PreviousIds, p.SucceedingIds = []string{}, []string{}
 }
 
-func (p *ProcPreviewData) FillRefIds() {
+func (p *ProcPreviewData) FillRefIds() (nodePreviousMap, nodeSucceedingMap map[string][]string) {
 	if len(p.EntityTreeNodes) <= 1 {
 		return
 	}
-	nodePreviousMap := make(map[string][]string)
-	nodeSucceedingMap := make(map[string][]string)
+	nodePreviousMap = make(map[string][]string)
+	nodeSucceedingMap = make(map[string][]string)
 	for _, v := range p.EntityTreeNodes {
 		for _, preId := range v.PreviousIds {
 			if existPre, ok := nodePreviousMap[v.Id]; ok {
@@ -124,6 +124,7 @@ func (p *ProcPreviewData) FillRefIds() {
 		v.PreviousIds = DistinctStringList(nodePreviousMap[v.Id], []string{v.Id})
 		v.SucceedingIds = DistinctStringList(nodeSucceedingMap[v.Id], []string{v.Id})
 	}
+	return
 }
 
 func (p *ProcPreviewData) AnalyzeRefIds() {
