@@ -616,7 +616,7 @@ func CreatePublicProcInstance(ctx context.Context, startParam *models.RequestPro
 		workNodes = append(workNodes, &workNodeObj)
 		// data bind
 		for _, row := range startParam.Bindings {
-			if row.NodeDefId == node.Id {
+			if row.NodeId == node.Id {
 				tmpOid := row.Oid
 				if newOid, matchNew := newOidMap[tmpOid]; matchNew {
 					tmpOid = newOid
