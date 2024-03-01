@@ -267,10 +267,24 @@ func DoWorkflowDataJob(ctx context.Context, procRunNodeId string) (err error) {
 			}
 		}
 		if len(createEntityIdList) > 0 {
-			_, err = remote.CreatePluginModelData(ctx, lastExprEntity.Package, lastExprEntity.Entity, remote.GetToken(), exprObj.Operation, buildDataWriteObj(cacheDataList, createEntityIdList))
-			if err != nil {
-				err = fmt.Errorf("try to create plugin model data %s:%s fail,%s", lastExprEntity.Package, lastExprEntity.Entity, err.Error())
-				return
+			rewriteList := []*models.RewriteEntityDataObj{}
+			createDataList := buildDataWriteObj(cacheDataList, createEntityIdList)
+			for _, createDataObj := range createDataList {
+				tmpDataOid := fmt.Sprintf("%s", createDataObj["id"])
+				createDataResult, createDataErr := remote.CreatePluginModelData(ctx, lastExprEntity.Package, lastExprEntity.Entity, remote.GetToken(), exprObj.Operation, []map[string]interface{}{createDataObj})
+				if createDataErr != nil {
+					err = fmt.Errorf("try to create plugin model data %s:%s %s fail,%s", lastExprEntity.Package, lastExprEntity.Entity, tmpDataOid, createDataErr.Error())
+					return
+				}
+				if len(createDataResult) > 0 {
+					rewriteList = append(rewriteList, &models.RewriteEntityDataObj{Oid: tmpDataOid, Nid: fmt.Sprintf("%s", createDataResult[0]["id"]), DisplayName: fmt.Sprintf("%s", createDataResult[0]["displayName"])})
+				}
+			}
+			if len(rewriteList) > 0 {
+				if err = database.RewriteProcInsEntityData(ctx, procInsNode.ProcInsId, rewriteList); err != nil {
+					err = fmt.Errorf("try to rewrite new entity data to procIns:%s fail,%s ", procInsNode.ProcInsId, err.Error())
+					return
+				}
 			}
 		}
 		if len(updateEntityIdList) > 0 {
@@ -300,9 +314,7 @@ func buildDataWriteObj(cacheDataList []*models.ProcDataCache, ids []string) (dat
 		if tmpErr := json.Unmarshal([]byte(matchDataValue), &tmpDataObj); tmpErr != nil {
 			log.Logger.Error("buildDataWriteObj json unmarshal data fail", log.String("matchDataValue", matchDataValue), log.Error(tmpErr))
 		}
-		if !strings.HasPrefix(id, models.NewOidDataPrefix) {
-			tmpDataObj["id"] = id
-		}
+		tmpDataObj["id"] = id
 		dataList = append(dataList, tmpDataObj)
 	}
 	return
