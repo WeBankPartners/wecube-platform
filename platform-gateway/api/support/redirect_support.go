@@ -54,18 +54,18 @@ func (invoke RedirectInvoke) Do(c *gin.Context) error {
 	if response, err := client.Do(newRequest); err != nil {
 		return err
 	} else {
+		respBody, _ := ioutil.ReadAll(response.Body)
+		defer response.Body.Close()
+
 		if strings.EqualFold(model.Config.Log.Level, "debug") {
 			responseDump, _ := httputil.DumpResponse(response, true)
-			log.Logger.Debug("Response from downstream system: " + string(responseDump))
+			log.Logger.Debug(fmt.Sprintf("Response from downstream system: %s  [body size]: %d", string(responseDump), len(respBody)))
 		}
 
 		/*		if response.StatusCode >= 400 {
 				ReturnError(c, fmt.Errorf("error from downstream system: %s", response.Status))
 				return
 			}*/
-
-		respBody, _ := ioutil.ReadAll(response.Body)
-		defer response.Body.Close()
 
 		respHeader := c.Writer.Header()
 		for k, v := range response.Header {
