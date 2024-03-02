@@ -23,7 +23,7 @@ type RequestHandlerFunc func(request *http.Request, c *gin.Context) error
 type ResponseHandlerFunc func(body *[]byte, c *gin.Context) error
 
 func (invoke RedirectInvoke) Do(c *gin.Context) error {
-	log.Logger.Info(fmt.Sprintf("Redirecting request to downstream system: [Method: %s] [URL: %s]", c.Request.Method, invoke.TargetUrl))
+	log.Logger.Info(fmt.Sprintf("Redirecting request to downstream system: [Method: %s] [URL: %s] [ContentLength: %d]", c.Request.Method, invoke.TargetUrl, c.Request.ContentLength))
 	cloneRequest := c.Request.Clone(c.Request.Context()) // deep copy original request
 
 	/*	if invoke.RequestHandler != nil {
