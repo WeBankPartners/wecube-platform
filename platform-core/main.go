@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"github.com/WeBankPartners/wecube-platform/platform-core/api"
+	"github.com/WeBankPartners/wecube-platform/platform-core/api/v1/process"
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/db"
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/log"
 	"github.com/WeBankPartners/wecube-platform/platform-core/models"
@@ -30,6 +31,7 @@ func main() {
 	cron.SetupCleanUpBatchExecTicker()
 	go bash.InitPluginDockerHostSSH()
 	workflow.StartCronJob()
+	process.InitProcScheduleTimer()
 	//start http
 	api.InitHttpServer()
 }
