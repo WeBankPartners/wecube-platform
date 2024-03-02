@@ -189,6 +189,14 @@ func init() {
 		&handlerFuncObj{Url: "/batch-execution/list", Method: "POST", HandlerFunc: batch_execution.RetrieveBatchExec, ApiCode: "retrieve-batch-execution"},
 		&handlerFuncObj{Url: "/batch-execution/:batchExecId", Method: "GET", HandlerFunc: batch_execution.GetBatchExec, ApiCode: "get-batch-execution"},
 		&handlerFuncObj{Url: "/batch-execution/job/run", Method: "POST", HandlerFunc: batch_execution.RunJob, ApiCode: "run-batch-execution-job"},
+
+		// process schedule
+		&handlerFuncObj{Url: "/user-scheduled-tasks/query", Method: "POST", HandlerFunc: process.QueryProcScheduleList, ApiCode: "query_proc_schedule"},
+		&handlerFuncObj{Url: "/user-scheduled-tasks/create", Method: "POST", HandlerFunc: process.CreateProcSchedule, ApiCode: "create_proc_schedule"},
+		&handlerFuncObj{Url: "/user-scheduled-tasks/stop", Method: "POST", HandlerFunc: process.StopProcSchedule, ApiCode: "stop_proc_schedule"},
+		&handlerFuncObj{Url: "/user-scheduled-tasks/resume", Method: "POST", HandlerFunc: process.StartProcSchedule, ApiCode: "resume_proc_schedule"},
+		&handlerFuncObj{Url: "/user-scheduled-tasks/delete", Method: "POST", HandlerFunc: process.DeleteProcSchedule, ApiCode: "delete_proc_schedule"},
+		&handlerFuncObj{Url: "/user-scheduled-tasks/process-instances/query", Method: "POST", HandlerFunc: process.QueryProcScheduleInstance, ApiCode: "query_proc_schedule_inst"},
 	)
 }
 
