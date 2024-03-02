@@ -9,6 +9,7 @@ import (
 )
 
 func StartCronJob() {
+	instanceHost = models.Config.HostIp
 	go startScanOperationJob()
 }
 
