@@ -708,7 +708,7 @@ CREATE TABLE `proc_schedule_config` (
       `schedule_mode` varchar(64) DEFAULT NULL COMMENT '定时模式->Monthly(每月) | Weekly(每周) | Daily(每天) | Hourly(每小时)',
       `schedule_expr` varchar(64) DEFAULT NULL COMMENT '时间表达式',
       `cron_expr` varchar(64) DEFAULT NULL COMMENT 'cron表达式',
-      `exec_times` int(11) DEFAULT NULL COMMENT '执行次数',
+      `exec_times` int(11) DEFAULT 0 COMMENT '执行次数',
       `created_by` varchar(64) DEFAULT NULL COMMENT '创建人',
       `created_time` datetime DEFAULT NULL COMMENT '创建时间',
       `updated_by` varchar(64) DEFAULT NULL COMMENT '更新人',
