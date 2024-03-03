@@ -16,7 +16,8 @@ import (
 
 var (
 	GlobalWorkflowMap = new(sync.Map)
-	instanceHost      = "127.0.0.1"
+	instanceHost      = "-"
+	timeoutErrorTpl   = "timeout in %ds"
 )
 
 type Workflow struct {
@@ -50,7 +51,9 @@ func (w *Workflow) Init(ctx context.Context, nodes []*models.ProcRunNode, links 
 }
 
 func (w *Workflow) Start(input *models.ProcOperation) {
-	w.setStatus(models.JobStatusRunning, input)
+	if w.Status != models.JobStatusRunning {
+		w.setStatus(models.JobStatusRunning, input)
+	}
 	var startIndexList []int
 	for i, node := range w.Nodes {
 		go node.Ready()
@@ -93,12 +96,6 @@ func (w *Workflow) nodeDoneCallback(node *WorkNode) {
 	if node.JobType == models.JobDecisionType {
 		decisionChose = node.Input
 		log.Logger.Info("decision node receive choose", log.String(decisionChose, "decisionChose"))
-		//if decisionChose == "" {
-		//	node.Err = fmt.Errorf("decision node receive empty choose")
-		//	w.ErrList = append(w.ErrList, &models.WorkProblemErrObj{NodeId: node.Id, NodeName: node.Name, ErrMessage: node.Err.Error()})
-		//	w.doneChan <- 1
-		//	return
-		//}
 	}
 	if node.Err != nil {
 		w.setStatus(models.JobStatusFail, &models.ProcOperation{NodeErr: &models.WorkProblemErrObj{NodeId: node.Id, NodeName: node.Name, ErrMessage: node.Err.Error()}})
@@ -114,6 +111,7 @@ func (w *Workflow) nodeDoneCallback(node *WorkNode) {
 		w.stopNodeChanList = append(w.stopNodeChanList, waitStopChan)
 		<-waitStopChan
 	}
+	// 找到节点下一跳发出start信号
 	for _, ref := range w.Links {
 		if decisionChose != "" {
 			if ref.Name != decisionChose {
@@ -214,8 +212,10 @@ func (w *Workflow) RetryNode(nodeId string) {
 		return
 	}
 	nodeObj.Input = ""
+	nodeObj.Status = models.JobStatusRunning
 	go nodeObj.Ready()
-	time.Sleep(100 * time.Millisecond)
+	time.Sleep(500 * time.Millisecond)
+	updateNodeDB(&nodeObj.ProcRunNode)
 	w.updateErrorList(false, nodeId, nil)
 	if len(w.ErrList) == 0 {
 		w.setStatus(models.JobStatusRunning, nil)
@@ -310,8 +310,10 @@ func (n *WorkNode) Ready() {
 	if n.Timeout > 0 {
 		select {
 		case <-time.After(time.Duration(n.Timeout) * time.Minute):
-			n.ErrorMessage = fmt.Sprintf("timeout in %ds", n.Timeout)
+			n.ErrorMessage = fmt.Sprintf(timeoutErrorTpl, n.Timeout)
 			n.Err = errors.New(n.ErrorMessage)
+			n.Status = models.JobStatusTimeout
+			updateNodeDB(&n.ProcRunNode)
 		case <-n.DoneChan:
 			log.Logger.Info("<--- done node", log.String("id", n.Id), log.String("type", n.JobType))
 		}
@@ -326,9 +328,37 @@ func (n *WorkNode) Ready() {
 }
 
 func (n *WorkNode) start() {
+	if n.Status == models.JobStatusSuccess {
+		n.DoneChan <- 1
+		return
+	}
+	if n.Status == models.JobStatusFail {
+		n.Err = fmt.Errorf(n.ErrorMessage)
+		n.DoneChan <- 1
+		return
+	}
+	retryFlag := false
+	if n.Status == models.JobStatusRunning {
+		retryFlag = true
+		if n.Timeout > 0 {
+			// 如果是恢复态，自动化和数据写入任务时间太久的情况下就置为超时，不然可能时间太长一些数据都不一样了，让用户自行重试
+			if n.JobType == models.JobAutoType || n.JobType == models.JobDataType {
+				if time.Now().Sub(n.StartTime).Minutes() > float64(n.Timeout) {
+					n.ErrorMessage = fmt.Sprintf(timeoutErrorTpl, n.Timeout)
+					n.Err = errors.New(n.ErrorMessage)
+					n.Status = models.JobStatusTimeout
+					updateNodeDB(&n.ProcRunNode)
+					n.DoneChan <- 1
+					return
+				}
+			}
+		}
+	}
 	log.Logger.Info("---> start node", log.String("id", n.Id), log.String("type", n.JobType), log.String("input", n.Input))
-	n.Status = models.JobStatusRunning
-	updateNodeDB(&n.ProcRunNode)
+	if !retryFlag {
+		n.Status = models.JobStatusRunning
+		updateNodeDB(&n.ProcRunNode)
+	}
 	switch n.JobType {
 	case models.JobStartType:
 		break
@@ -337,11 +367,11 @@ func (n *WorkNode) start() {
 	case models.JobBreakType:
 		break
 	case models.JobAutoType:
-		n.Output, n.Err = n.doAutoJob()
+		n.Output, n.Err = n.doAutoJob(retryFlag)
 	case models.JobDataType:
-		n.Output, n.Err = n.doDataJob()
+		n.Output, n.Err = n.doDataJob(retryFlag)
 	case models.JobHumanType:
-		n.Output, n.Err = n.doHumanJob()
+		n.Output, n.Err = n.doHumanJob(retryFlag)
 	case models.JobForkType:
 		break
 	case models.JobMergeType:
@@ -362,9 +392,9 @@ func (n *WorkNode) start() {
 			}
 		}
 	case models.JobTimeType:
-		n.Output, n.Err = n.doTimeJob()
+		n.Output, n.Err = n.doTimeJob(retryFlag)
 	case models.JobDateType:
-		n.Output, n.Err = n.doDateJob()
+		n.Output, n.Err = n.doDateJob(retryFlag)
 	case models.JobDecisionType:
 		if n.Input == "" {
 			for _, tmpLink := range n.workflow.Links {
@@ -390,28 +420,34 @@ func (n *WorkNode) start() {
 	n.DoneChan <- 1
 }
 
-func (n *WorkNode) doAutoJob() (output string, err error) {
+func (n *WorkNode) doAutoJob(retry bool) (output string, err error) {
 	log.Logger.Info("do auto job", log.String("nodeId", n.Id), log.String("input", n.Input))
-	err = execution.DoWorkflowAutoJob(n.Ctx, n.Id, "")
+	err = execution.DoWorkflowAutoJob(n.Ctx, n.Id, "", retry)
 	if err != nil {
 		log.Logger.Error("do auto job error", log.Error(err))
 	}
 	return
 }
 
-func (n *WorkNode) doDataJob() (output string, err error) {
+func (n *WorkNode) doDataJob(retry bool) (output string, err error) {
 	log.Logger.Info("do data job", log.String("nodeId", n.Id), log.String("input", n.Input))
-	err = execution.DoWorkflowDataJob(n.Ctx, n.Id)
+	err = execution.DoWorkflowDataJob(n.Ctx, n.Id, retry)
 	if err != nil {
 		log.Logger.Error("do data job error", log.Error(err))
 	}
 	return
 }
 
-func (n *WorkNode) doHumanJob() (output string, err error) {
+func (n *WorkNode) doHumanJob(recoverFlag bool) (output string, err error) {
 	log.Logger.Info("do human job", log.String("nodeId", n.Id), log.String("input", n.Input))
 	// call task
-	err = execution.DoWorkflowHumanJob(n.Ctx, n.Id)
+	if recoverFlag {
+		if n.ErrorMessage != "" {
+			// 区分是重试还是编排重新加载，重试(有报错的情况下)的话要发过请求，加载的话不需要
+			recoverFlag = false
+		}
+	}
+	err = execution.DoWorkflowHumanJob(n.Ctx, n.Id, recoverFlag)
 	if err != nil {
 		log.Logger.Error("do human job error", log.Error(err))
 		return
@@ -427,7 +463,7 @@ func (n *WorkNode) doHumanJob() (output string, err error) {
 	return
 }
 
-func (n *WorkNode) doTimeJob() (output string, err error) {
+func (n *WorkNode) doTimeJob(recoverFlag bool) (output string, err error) {
 	log.Logger.Info("do time job", log.String("nodeId", n.Id), log.String("input", n.Input))
 	var timeConfig models.TimeNodeParam
 	if err = json.Unmarshal([]byte(n.Input), &timeConfig); err != nil {
@@ -454,11 +490,20 @@ func (n *WorkNode) doTimeJob() (output string, err error) {
 	if err != nil {
 		return
 	}
-	time.Sleep(timeDuration)
+	if recoverFlag {
+		nowSubSec := time.Now().Sub(n.StartTime).Seconds()
+		if nowSubSec > timeDuration.Seconds() {
+			log.Logger.Info("time job already start,now time match done", log.String("startTime", n.StartTime.Format(models.DateTimeFormat)), log.Float64("waitSec", timeDuration.Seconds()))
+		} else {
+			time.Sleep(time.Duration(timeDuration.Seconds()-nowSubSec) * time.Second)
+		}
+	} else {
+		time.Sleep(timeDuration)
+	}
 	return
 }
 
-func (n *WorkNode) doDateJob() (output string, err error) {
+func (n *WorkNode) doDateJob(recoverFlag bool) (output string, err error) {
 	log.Logger.Info("do date job", log.String("nodeId", n.Id), log.String("input", n.Input))
 	var timeConfig models.TimeNodeParam
 	if err = json.Unmarshal([]byte(n.Input), &timeConfig); err != nil {
@@ -499,14 +544,14 @@ func updateWorkflowDB(w *models.ProcRunWorkflow, op *models.ProcOperation) {
 	} else if w.Status == "sleep" {
 		actions = append(actions, &db.ExecAction{Sql: "update proc_run_workflow set sleep=1,updated_time=? where id=?", Param: []interface{}{nowTime, w.Id}})
 	} else if w.Status == models.JobStatusRunning {
-		actions = append(actions, &db.ExecAction{Sql: "update proc_run_workflow set stop=0,sleep=0,status=?,updated_time=? where id=?", Param: []interface{}{w.Status, nowTime, w.Id}})
+		actions = append(actions, &db.ExecAction{Sql: "update proc_run_workflow set stop=0,sleep=0,status=?,updated_time=?,host=? where id=?", Param: []interface{}{w.Status, nowTime, instanceHost, w.Id}})
 	} else if w.Status == models.JobStatusFail {
 		actions = append(actions, &db.ExecAction{Sql: "update proc_run_workflow set status=?,error_message=?,updated_time=? where id=?", Param: []interface{}{w.Status, w.ErrorMessage, nowTime, w.Id}})
 	} else {
 		actions = append(actions, &db.ExecAction{Sql: "update proc_run_workflow set status=?,updated_time=? where id=?", Param: []interface{}{w.Status, nowTime, w.Id}})
 	}
 	actions = append(actions, &db.ExecAction{Sql: "update proc_ins set status=?,updated_time=? where id=?", Param: []interface{}{w.Status, nowTime, w.ProcInsId}})
-	actions = append(actions, &db.ExecAction{Sql: "insert into proc_run_work_record(workflow_id,host,`action`,message,created_by,created_time) values (?,?,?,?,?,?)", Param: []interface{}{w.Id, w.Host, w.Status, op.Message, op.CreatedBy, nowTime}})
+	actions = append(actions, &db.ExecAction{Sql: "insert into proc_run_work_record(workflow_id,host,`action`,message,created_by,created_time) values (?,?,?,?,?,?)", Param: []interface{}{w.Id, instanceHost, w.Status, op.Message, op.CreatedBy, nowTime}})
 	if err := db.Transaction(actions, op.Ctx); err != nil {
 		log.Logger.Error("record workflow state fail", log.String("workflowId", w.Id), log.Error(err))
 	}
