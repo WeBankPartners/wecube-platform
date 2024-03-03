@@ -1164,6 +1164,25 @@ func GetWorkflowNodeByReq(ctx context.Context, reqId string) (runNode *models.Ta
 	return
 }
 
+func GetSimpleProcNodeReq(ctx context.Context, procInsNodeId, reqId, procRunNodeId string) (procReq *models.ProcInsNodeReq, err error) {
+	var reqRows []*models.ProcInsNodeReq
+	if procRunNodeId != "" {
+		err = db.MysqlEngine.Context(ctx).SQL("select * from proc_ins_node_req where proc_ins_node_id in (select proc_ins_node_id from proc_run_node where id=?) order by created_time desc", procRunNodeId).Find(&reqRows)
+	} else if procInsNodeId != "" {
+		err = db.MysqlEngine.Context(ctx).SQL("select * from proc_ins_node_req where proc_ins_node_id=? order by created_time desc", procInsNodeId).Find(&reqRows)
+	} else if reqId != "" {
+		err = db.MysqlEngine.Context(ctx).SQL("select * from proc_ins_node_req where id=?", reqId).Find(&reqRows)
+	}
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
+		return
+	}
+	if len(reqRows) > 0 {
+		procReq = reqRows[0]
+	}
+	return
+}
+
 func UpdateProcCacheData(ctx context.Context, procInsId string, taskFormList []*models.PluginTaskFormDto) (err error) {
 	var cacheDataRows []*models.ProcDataCache
 	err = db.MysqlEngine.Context(ctx).SQL("select id,entity_id,entity_data_id,entity_type_id,data_value from proc_data_cache where proc_ins_id=?", procInsId).Find(&cacheDataRows)
