@@ -45,6 +45,12 @@ type ProcScheduleQueryParam struct {
 	EndTime      string `json:"endTime"`
 }
 
+type ProcScheduleQueryRow struct {
+	Id     string `xorm:"id"`
+	Status string `xorm:"status"`
+	Num    int    `xorm:"num"`
+}
+
 type CreateProcScheduleParam struct {
 	ScheduleMode   string `json:"scheduleMode"`
 	ScheduleExpr   string `json:"scheduleExpr"`

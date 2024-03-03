@@ -21,8 +21,12 @@ func QueryProcScheduleList(c *gin.Context) {
 		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, err))
 		return
 	}
-	result := []*models.ProcScheduleConfigObj{}
-	middleware.ReturnData(c, result)
+	result, err := database.QueryProcScheduleList(c, &param)
+	if err != nil {
+		middleware.ReturnError(c, err)
+	} else {
+		middleware.ReturnData(c, result)
+	}
 }
 
 func CreateProcSchedule(c *gin.Context) {
@@ -64,7 +68,7 @@ func StartProcSchedule(c *gin.Context) {
 	}
 	var err error
 	for _, v := range param {
-		if err = database.UpdateProcScheduleStatus(c, v.Id, models.ScheduleStatusReady); err != nil {
+		if err = database.UpdateProcScheduleStatus(c, v.Id, models.ScheduleStatusReady, middleware.GetRequestUser(c)); err != nil {
 			break
 		}
 	}
@@ -83,7 +87,7 @@ func StopProcSchedule(c *gin.Context) {
 	}
 	var err error
 	for _, v := range param {
-		if err = database.UpdateProcScheduleStatus(c, v.Id, models.ScheduleStatusStop); err != nil {
+		if err = database.UpdateProcScheduleStatus(c, v.Id, models.ScheduleStatusStop, middleware.GetRequestUser(c)); err != nil {
 			break
 		}
 	}
@@ -102,7 +106,7 @@ func DeleteProcSchedule(c *gin.Context) {
 	}
 	var err error
 	for _, v := range param {
-		if err = database.UpdateProcScheduleStatus(c, v.Id, models.ScheduleStatusDelete); err != nil {
+		if err = database.UpdateProcScheduleStatus(c, v.Id, models.ScheduleStatusDelete, middleware.GetRequestUser(c)); err != nil {
 			break
 		}
 		procScheduleTimer.Remove(v.Id)
@@ -121,8 +125,22 @@ func QueryProcScheduleInstance(c *gin.Context) {
 		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, err))
 		return
 	}
-	result := []*models.ProcScheduleInstQueryObj{}
-	middleware.ReturnData(c, result)
+	if param.ProcInstanceStatus == "S" {
+		param.ProcInstanceStatus = models.JobStatusSuccess
+	} else if param.ProcInstanceStatus == "F" {
+		param.ProcInstanceStatus = models.JobStatusFail
+	} else if param.ProcInstanceStatus == "R" {
+		param.ProcInstanceStatus = models.JobStatusRunning
+	} else if param.ProcInstanceStatus != "" {
+		middleware.ReturnError(c, fmt.Errorf("param procInstanceStatus:%s illegal", param.ProcInstanceStatus))
+		return
+	}
+	result, err := database.QueryProcScheduleInstance(c, param.UserTaskId, param.ProcInstanceStatus)
+	if err != nil {
+		middleware.ReturnError(c, err)
+	} else {
+		middleware.ReturnData(c, result)
+	}
 }
 
 var (
@@ -136,6 +154,19 @@ func InitProcScheduleTimer() {
 	// 加载数据库定时配置
 	procScheduleConfigMap = new(sync.Map)
 	go checkNewProcScheduleJob()
+	psConfigList, getErr := database.GetProcScheduleLoadList()
+	if getErr != nil {
+		log.Logger.Error("InitProcScheduleTimer load config list fail", log.Error(getErr))
+		return
+	}
+	for _, row := range psConfigList {
+		if tmpErr := procScheduleTimer.AddCron(row.Id, row.CronExpr, handleProcScheduleJob, *row); tmpErr != nil {
+			log.Logger.Error("InitProcScheduleTimer load config add cron job fail", log.String("psConfigId", row.Id), log.Error(tmpErr))
+		} else {
+			log.Logger.Info("InitProcScheduleTimer load config done", log.String("psConfigId", row.Id))
+			procScheduleConfigMap.Store(row.Id, row)
+		}
+	}
 }
 
 // 定时检测在其它实例受理的编排定时配置
@@ -192,6 +223,7 @@ func handleProcScheduleJob(unixTimestamp int64, param interface{}) {
 		log.Logger.Warn("NewProcScheduleJob insert with duplicate id,break", log.String("psConfigId", psConfig.Id))
 		return
 	}
+	database.AddProcScheduleExecTimes(ctx, psConfig.Id)
 	var err error
 	defer func() {
 		if err != nil {
