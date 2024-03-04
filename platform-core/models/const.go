@@ -68,7 +68,7 @@ const (
 	IdPrefixPluCfg       = "p_config_"
 	IdPrefixPluCfgItf    = "p_conf_inf_"
 	IdPrefixPluCfgItfPar = "p_conf_inf_param_"
-	NewOidDataPrefix     = "OID-"
+	NewOidDataPrefix     = "OID_"
 )
 
 var (
