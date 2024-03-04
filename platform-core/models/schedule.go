@@ -21,6 +21,8 @@ type ProcScheduleConfig struct {
 	ScheduleExpr   string    `json:"scheduleExpr" xorm:"schedule_expr"`      // 时间表达式
 	CronExpr       string    `json:"cronExpr" xorm:"cron_expr"`              // cron表达式
 	ExecTimes      int       `json:"execTimes" xorm:"exec_times"`            // 执行次数
+	Role           string    `json:"role" xorm:"role"`                       // 管理角色
+	MailMode       string    `json:"mailMode" xorm:"mail_mode"`              // 邮件发送模式->role(角色邮箱) | user(用户邮箱) | none(不发送)
 	CreatedBy      string    `json:"createdBy" xorm:"created_by"`            // 创建人
 	CreatedTime    time.Time `json:"createdTime" xorm:"created_time"`        // 创建时间
 	UpdatedBy      string    `json:"updatedBy" xorm:"updated_by"`            // 更新人
@@ -52,12 +54,14 @@ type ProcScheduleQueryRow struct {
 }
 
 type CreateProcScheduleParam struct {
-	ScheduleMode   string `json:"scheduleMode"`
-	ScheduleExpr   string `json:"scheduleExpr"`
-	ProcDefId      string `json:"procDefId"`
+	ScheduleMode   string `json:"scheduleMode" binding:"required"`
+	ScheduleExpr   string `json:"scheduleExpr" binding:"required"`
+	ProcDefId      string `json:"procDefId" binding:"required"`
 	ProcDefName    string `json:"procDefName"`
 	EntityDataId   string `json:"entityDataId"`
 	EntityDataName string `json:"entityDataName"`
+	Role           string `json:"role" binding:"required"`
+	MailMode       string `json:"mailMode" binding:"required"` // 邮件发送模式->role(角色邮箱) | user(用户邮箱) | none(不发送)
 	CronExpr       string `json:"-"`
 	Operator       string `json:"-"`
 }
@@ -76,6 +80,8 @@ type ProcScheduleConfigObj struct {
 	TotalCompletedInstances  int    `json:"totalCompletedInstances"`
 	TotalFaultedInstances    int    `json:"totalFaultedInstances"`
 	TotalInProgressInstances int    `json:"totalInProgressInstances"`
+	TotalTimeoutInstances    int    `json:"totalTimeoutInstances"`
+	TotalTerminateInstances  int    `json:"totalTerminateInstances"`
 }
 
 type ProcScheduleOperationParam struct {
@@ -93,4 +99,17 @@ type ProcScheduleInstQueryObj struct {
 	ExecTime    string `json:"execTime"`
 	ProcDefId   string `json:"procDefId"`
 	ProcDefName string `json:"procDefName"`
+}
+
+type SendMailTarget struct {
+	Accept  []string `json:"accept"`
+	Subject string   `json:"subject"`
+	Content string   `json:"content"`
+}
+
+type SendMailSource struct {
+	Sender   string `json:"sender"`
+	Server   string `json:"server"`
+	Password string `json:"password"`
+	SSL      bool   `json:"SSL"`
 }

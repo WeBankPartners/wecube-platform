@@ -21,7 +21,7 @@ func QueryProcScheduleList(c *gin.Context) {
 		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, err))
 		return
 	}
-	result, err := database.QueryProcScheduleList(c, &param)
+	result, err := database.QueryProcScheduleList(c, &param, middleware.GetRequestUser(c), middleware.GetRequestRoles(c))
 	if err != nil {
 		middleware.ReturnError(c, err)
 	} else {
@@ -68,7 +68,7 @@ func StartProcSchedule(c *gin.Context) {
 	}
 	var err error
 	for _, v := range param {
-		if err = database.UpdateProcScheduleStatus(c, v.Id, models.ScheduleStatusReady, middleware.GetRequestUser(c)); err != nil {
+		if err = database.UpdateProcScheduleStatus(c, v.Id, models.ScheduleStatusReady, middleware.GetRequestUser(c), middleware.GetRequestRoles(c)); err != nil {
 			break
 		}
 	}
@@ -87,7 +87,7 @@ func StopProcSchedule(c *gin.Context) {
 	}
 	var err error
 	for _, v := range param {
-		if err = database.UpdateProcScheduleStatus(c, v.Id, models.ScheduleStatusStop, middleware.GetRequestUser(c)); err != nil {
+		if err = database.UpdateProcScheduleStatus(c, v.Id, models.ScheduleStatusStop, middleware.GetRequestUser(c), middleware.GetRequestRoles(c)); err != nil {
 			break
 		}
 	}
@@ -106,7 +106,7 @@ func DeleteProcSchedule(c *gin.Context) {
 	}
 	var err error
 	for _, v := range param {
-		if err = database.UpdateProcScheduleStatus(c, v.Id, models.ScheduleStatusDelete, middleware.GetRequestUser(c)); err != nil {
+		if err = database.UpdateProcScheduleStatus(c, v.Id, models.ScheduleStatusDelete, middleware.GetRequestUser(c), middleware.GetRequestRoles(c)); err != nil {
 			break
 		}
 		procScheduleTimer.Remove(v.Id)
