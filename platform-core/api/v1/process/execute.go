@@ -147,15 +147,24 @@ func ProcDefRootEntities(c *gin.Context) {
 func ProcDefPreview(c *gin.Context) {
 	procDefId := c.Param("proc-def-id")
 	entityDataId := c.Param("entityDataId")
-	log.Logger.Debug("ProcDefPreview", log.String("procDefId", procDefId), log.String("entityDataId", entityDataId))
-	procOutlineData, err := database.ProcDefOutline(c, procDefId)
+	result, err := buildProcPreviewData(c, procDefId, entityDataId, middleware.GetRequestUser(c))
 	if err != nil {
 		middleware.ReturnError(c, err)
+	} else {
+		middleware.ReturnData(c, result)
+	}
+}
+
+func buildProcPreviewData(c context.Context, procDefId, entityDataId, operator string) (result *models.ProcPreviewData, err error) {
+	log.Logger.Debug("build procDefPreview data", log.String("procDefId", procDefId), log.String("entityDataId", entityDataId), log.String("operator", operator))
+	procOutlineData, getOutlineDataErr := database.ProcDefOutline(c, procDefId)
+	if getOutlineDataErr != nil {
+		err = getOutlineDataErr
 		return
 	}
 	rootExprList, analyzeErr := remote.AnalyzeExpression(procOutlineData.RootEntity)
 	if analyzeErr != nil {
-		middleware.ReturnError(c, analyzeErr)
+		err = analyzeErr
 		return
 	}
 	rootLastExprObj := rootExprList[len(rootExprList)-1]
@@ -171,23 +180,22 @@ func ProcDefPreview(c *gin.Context) {
 	}
 	rootDataList, getRootDataErr := remote.QueryPluginData(c, rootExprList, []*models.QueryExpressionDataFilter{&rootFilter}, remote.GetToken())
 	if getRootDataErr != nil {
-		middleware.ReturnError(c, getRootDataErr)
+		err = getRootDataErr
 		return
 	}
 	if len(rootDataList) != 1 {
-		middleware.ReturnError(c, fmt.Errorf("root data match %d rows,illegal ", len(rootDataList)))
+		err = fmt.Errorf("root data match %d rows,illegal ", len(rootDataList))
 		return
 	}
 	entityNodeMap := make(map[string]*models.ProcPreviewEntityNode)
 	rootData := rootDataList[0]
-	result := models.ProcPreviewData{ProcessSessionId: fmt.Sprintf("proc_session_" + guid.CreateGuid()), EntityTreeNodes: []*models.ProcPreviewEntityNode{}}
+	result = &models.ProcPreviewData{ProcessSessionId: fmt.Sprintf("proc_session_" + guid.CreateGuid()), EntityTreeNodes: []*models.ProcPreviewEntityNode{}}
 	log.Logger.Debug("rootData", log.String("entityDataId", entityDataId), log.JsonObj("data", rootData))
 	rootEntityNode := models.ProcPreviewEntityNode{LastFlag: true}
 	rootEntityNode.Parse(rootFilter.PackageName, rootFilter.EntityName, rootData)
 	rootEntityNode.FullDataId = rootEntityNode.DataId
 	entityNodeMap[rootEntityNode.Id] = &rootEntityNode
 	result.EntityTreeNodes = append(result.EntityTreeNodes, &rootEntityNode)
-	operator := middleware.GetRequestUser(c)
 	nowTime := time.Now()
 	var previewRows []*models.ProcDataPreview
 	rootPreviewRow := models.ProcDataPreview{
@@ -269,7 +277,6 @@ func ProcDefPreview(c *gin.Context) {
 		}
 	}
 	if err != nil {
-		middleware.ReturnError(c, err)
 		return
 	}
 	result.AnalyzeRefIds()
@@ -287,11 +294,8 @@ func ProcDefPreview(c *gin.Context) {
 			FullDataId:    v.FullDataId,
 		})
 	}
-	if err = database.CreateProcPreview(c, previewRows, graphRows); err != nil {
-		middleware.ReturnError(c, err)
-	} else {
-		middleware.ReturnData(c, result)
-	}
+	err = database.CreateProcPreview(c, previewRows, graphRows)
+	return
 }
 
 func PublicProcDefPreview(c *gin.Context) {
@@ -652,6 +656,41 @@ func ProcInstanceCallback(c *gin.Context) {
 	operationObj := models.ProcRunOperation{WorkflowId: runNodeRow.WorkflowId, NodeId: runNodeRow.WorkNodeId, Operation: "approve", Status: "wait", CreatedBy: middleware.GetRequestUser(c)}
 	resultBytes, _ := json.Marshal(param)
 	operationObj.Message = string(resultBytes)
+	operationObj.Id, err = database.AddWorkflowOperation(c, &operationObj)
+	if err != nil {
+		middleware.ReturnError(c, err)
+		return
+	}
+	go workflow.HandleProOperation(&operationObj)
+	middleware.ReturnSuccess(c)
+}
+
+func QueryProcInsPageData(c *gin.Context) {
+	var param models.QueryProcPageParam
+	if err := c.ShouldBindJSON(&param); err != nil {
+		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, err))
+		return
+	}
+	result, err := database.QueryProcInsPage(c, &param)
+	if err != nil {
+		middleware.ReturnError(c, err)
+	} else {
+		middleware.ReturnData(c, result)
+	}
+}
+
+func ProcTermination(c *gin.Context) {
+	procInsId := c.Param("procInsId")
+	if procInsId == "" {
+		middleware.ReturnError(c, exterror.New().RequestParamValidateError)
+		return
+	}
+	workflowId, _, err := database.GetProcWorkByInsId(c, procInsId, "")
+	if err != nil {
+		middleware.ReturnError(c, err)
+		return
+	}
+	operationObj := models.ProcRunOperation{WorkflowId: workflowId, Operation: "kill", Status: "wait", CreatedBy: middleware.GetRequestUser(c)}
 	operationObj.Id, err = database.AddWorkflowOperation(c, &operationObj)
 	if err != nil {
 		middleware.ReturnError(c, err)
