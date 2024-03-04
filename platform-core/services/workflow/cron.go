@@ -116,7 +116,8 @@ func startTakeOverJob() {
 
 func doTakeOver() {
 	var workflowRows []*models.ProcRunWorkflow
-	err := db.MysqlEngine.SQL("select id,status,host,updated_time,last_alive_time from proc_run_workflow where `sleep`=0 and status=? and last_alive_time<=now()-30", models.JobStatusRunning).Find(&workflowRows)
+	lastTime := time.Unix(time.Now().Unix()-30, 0).Format(models.DateTimeFormat)
+	err := db.MysqlEngine.SQL("select id,status,host,updated_time,last_alive_time from proc_run_workflow where `sleep`=0 and status=? and last_alive_time<=?", models.JobStatusRunning, lastTime).Find(&workflowRows)
 	if err != nil {
 		log.Logger.Error("do takeover workflow fail with query workflow table error", log.Error(err))
 		return
@@ -135,7 +136,9 @@ func doTakeOver() {
 
 func tryTakeoverWorkflowRow(workflowId string) bool {
 	ok := false
-	execResult, execErr := db.MysqlEngine.Exec("update proc_run_workflow set host=?,last_alive_time=now() where id=? and last_alive_time<now()-30", instanceHost, workflowId)
+	nowTime := time.Now().Format(models.DateTimeFormat)
+	lastTime := time.Unix(time.Now().Unix()-30, 0).Format(models.DateTimeFormat)
+	execResult, execErr := db.MysqlEngine.Exec("update proc_run_workflow set host=?,last_alive_time=? where id=? and last_alive_time<?", instanceHost, nowTime, workflowId, lastTime)
 	if execErr != nil {
 		log.Logger.Error("tryTakeoverWorkflowRow fail with exec update workflow sql", log.Error(execErr))
 		return ok
