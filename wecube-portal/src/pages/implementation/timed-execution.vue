@@ -232,6 +232,28 @@ export default {
           key: 'status'
         },
         {
+          title: this.$t('in_progress_count'),
+          key: 'totalInProgressInstances',
+          width: 100,
+          render: (h, params) => {
+            return (
+              <div>
+                <span style="color:red">{params.row.totalInProgressInstances}</span>
+                {params.row.totalInProgressInstances > 0 && (
+                  <Button
+                    style="margin-left:8px"
+                    size="small"
+                    type="primary"
+                    ghost
+                    onClick={() => this.getDetails(params.row, 'R')}
+                    icon="ios-search"
+                  ></Button>
+                )}
+              </div>
+            )
+          }
+        },
+        {
           title: this.$t('failure_count'),
           key: 'totalFaultedInstances',
           width: 100,
