@@ -98,7 +98,8 @@ func (w *Workflow) nodeDoneCallback(node *WorkNode) {
 		log.Logger.Info("decision node receive choose", log.String(decisionChose, "decisionChose"))
 	}
 	if node.Err != nil {
-		w.setStatus(models.JobStatusFail, &models.ProcOperation{NodeErr: &models.WorkProblemErrObj{NodeId: node.Id, NodeName: node.Name, ErrMessage: node.Err.Error()}})
+		w.updateErrorList(true, "", &models.WorkProblemErrObj{NodeId: node.Id, NodeName: node.Name, ErrMessage: node.Err.Error()})
+		//w.setStatus(models.JobStatusFail, &models.ProcOperation{NodeErr: &models.WorkProblemErrObj{NodeId: node.Id, NodeName: node.Name, ErrMessage: node.Err.Error()}})
 		return
 	}
 	// stop 的时候要处理普通节点等待
@@ -172,6 +173,7 @@ func (w *Workflow) getStatus() (status string) {
 }
 
 func (w *Workflow) updateErrorList(addFlag bool, nodeId string, errorObj *models.WorkProblemErrObj) {
+	var errorMesg string
 	w.errorLock.Lock()
 	if addFlag {
 		if errorObj != nil {
@@ -179,6 +181,7 @@ func (w *Workflow) updateErrorList(addFlag bool, nodeId string, errorObj *models
 		}
 		errBytes, _ := json.Marshal(w.ErrList)
 		w.ErrorMessage = string(errBytes)
+		errorMesg = w.ErrorMessage
 	} else {
 		newErrorList := []*models.WorkProblemErrObj{}
 		for _, v := range w.ErrList {
@@ -194,8 +197,10 @@ func (w *Workflow) updateErrorList(addFlag bool, nodeId string, errorObj *models
 			errBytes, _ := json.Marshal(w.ErrList)
 			w.ErrorMessage = string(errBytes)
 		}
+		errorMesg = w.ErrorMessage
 	}
 	w.errorLock.Unlock()
+	db.MysqlEngine.Exec("update proc_run_workflow set error_message=?,updated_time=? where id=?", errorMesg, time.Now(), w.Id)
 }
 
 func (w *Workflow) RetryNode(nodeId string) {
