@@ -26,9 +26,11 @@ func CreateProcSchedule(ctx context.Context, param *models.CreateProcSchedulePar
 		CronExpr:       param.CronExpr,
 		CreatedBy:      param.Operator,
 		CreatedTime:    time.Now(),
+		Role:           param.Role,
+		MailMode:       param.MailMode,
 	}
-	_, err = db.MysqlEngine.Context(ctx).Exec("insert into proc_schedule_config(id,proc_def_id,proc_def_key,proc_def_name,status,entity_data_id,entity_type_id,entity_data_name,schedule_mode,schedule_expr,cron_expr,exec_times,created_by,created_time) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
-		result.Id, result.ProcDefId, result.ProcDefKey, result.ProcDefName, result.Status, result.EntityDataId, result.EntityTypeId, result.EntityDataName, result.ScheduleMode, result.ScheduleExpr, result.CronExpr, 0, result.CreatedBy, result.CreatedTime)
+	_, err = db.MysqlEngine.Context(ctx).Exec("insert into proc_schedule_config(id,proc_def_id,proc_def_key,proc_def_name,status,entity_data_id,entity_type_id,entity_data_name,schedule_mode,schedule_expr,cron_expr,exec_times,created_by,created_time,`role`,mail_mode) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+		result.Id, result.ProcDefId, result.ProcDefKey, result.ProcDefName, result.Status, result.EntityDataId, result.EntityTypeId, result.EntityDataName, result.ScheduleMode, result.ScheduleExpr, result.CronExpr, 0, result.CreatedBy, result.CreatedTime, param.Role, param.MailMode)
 	if err != nil {
 		err = exterror.Catch(exterror.New().DatabaseExecuteError, err)
 	}
@@ -53,7 +55,31 @@ func GetNewProcScheduleList() (result []*models.ProcScheduleConfig, err error) {
 	return
 }
 
-func UpdateProcScheduleStatus(ctx context.Context, id, status, operator string) (err error) {
+func UpdateProcScheduleStatus(ctx context.Context, id, status, operator string, roleList []string) (err error) {
+	var procConfigRows []*models.ProcScheduleConfig
+	err = db.MysqlEngine.Context(ctx).SQL("select created_by,`role` from proc_schedule_config where id=?", id).Find(&procConfigRows)
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
+		return
+	}
+	if len(procConfigRows) == 0 {
+		err = fmt.Errorf("can not find proc schedule config with id:%s ", id)
+		return
+	}
+	procConfigObj := procConfigRows[0]
+	if operator != procConfigObj.CreatedBy {
+		matchRoleFlag := false
+		for _, v := range roleList {
+			if v == procConfigObj.Role {
+				matchRoleFlag = true
+				break
+			}
+		}
+		if !matchRoleFlag {
+			err = fmt.Errorf("Permission deny ")
+			return
+		}
+	}
 	_, err = db.MysqlEngine.Context(ctx).Exec("update proc_schedule_config set status=?,updated_by=?,updated_time=? where id=?", status, operator, time.Now(), id)
 	if err != nil {
 		err = exterror.Catch(exterror.New().DatabaseExecuteError, err)
@@ -196,7 +222,7 @@ func getHourMinSec(input string) (hour, min, sec int, err error) {
 	return
 }
 
-func QueryProcScheduleList(ctx context.Context, param *models.ProcScheduleQueryParam) (result []*models.ProcScheduleConfigObj, err error) {
+func QueryProcScheduleList(ctx context.Context, param *models.ProcScheduleQueryParam, operator string, roleList []string) (result []*models.ProcScheduleConfigObj, err error) {
 	var psConfigRows []*models.ProcScheduleConfig
 	baseSql := "select * from proc_schedule_config"
 	var filterSqlList []string
@@ -209,17 +235,17 @@ func QueryProcScheduleList(ctx context.Context, param *models.ProcScheduleQueryP
 		filterSqlList = append(filterSqlList, "created_by=?")
 		filterParams = append(filterParams, param.Owner)
 	}
-	if param.StartTime != "" {
-		filterSqlList = append(filterSqlList, "created_time>=?")
-		filterParams = append(filterParams, param.StartTime)
-	}
-	if param.EndTime != "" {
-		filterSqlList = append(filterSqlList, "created_time<=?")
-		filterParams = append(filterParams, param.EndTime)
-	}
-	baseSql += " where status<>'Deleted' "
+	//if param.StartTime != "" {
+	//	filterSqlList = append(filterSqlList, "created_time>=?")
+	//	filterParams = append(filterParams, param.StartTime)
+	//}
+	//if param.EndTime != "" {
+	//	filterSqlList = append(filterSqlList, "created_time<=?")
+	//	filterParams = append(filterParams, param.EndTime)
+	//}
+	baseSql += " where status<>'Deleted' and (`role` in ('" + strings.Join(roleList, "','") + "') or created_by='" + operator + "') "
 	if len(filterSqlList) > 0 {
-		baseSql += strings.Join(filterSqlList, " and ")
+		baseSql += " and " + strings.Join(filterSqlList, " and ")
 	}
 	baseSql += " order by created_time desc"
 	err = db.MysqlEngine.Context(ctx).SQL(baseSql, filterParams...).Find(&psConfigRows)
@@ -237,9 +263,11 @@ func QueryProcScheduleList(ctx context.Context, param *models.ProcScheduleQueryP
 		for _, row := range psConfigRows {
 			idList = append(idList, row.Id)
 		}
-		err = db.MysqlEngine.Context(ctx).SQL("select t4.id,t4.status,count(1) as num from (select t1.id,t3.status from proc_schedule_config t1 left join proc_schedule_job t2 on t1.id=t2.schedule_config_id left join proc_ins t3 on t2.proc_ins_id=t3.id where t1.id in ('" + strings.Join(idList, "','") + "')) t4 group by t4.id,t4.status").Find(&statusCountQueryRows)
-	} else {
-		err = db.MysqlEngine.Context(ctx).SQL("select t4.id,t4.status,count(1) as num from (select t1.id,t3.status from proc_schedule_config t1 left join proc_schedule_job t2 on t1.id=t2.schedule_config_id left join proc_ins t3 on t2.proc_ins_id=t3.id) t4 group by t4.id,t4.status").Find(&statusCountQueryRows)
+		if param.StartTime != "" && param.EndTime != "" {
+			err = db.MysqlEngine.Context(ctx).SQL("select t4.id,t4.status,count(1) as num from (select t1.id,t3.status from proc_schedule_config t1 left join proc_schedule_job t2 on t1.id=t2.schedule_config_id left join proc_ins t3 on t2.proc_ins_id=t3.id where t1.id in ('"+strings.Join(idList, "','")+"') and t2.status='done' and t2.created_time>=? and t2.created_time<=?) t4 group by t4.id,t4.status", param.StartTime, param.EndTime).Find(&statusCountQueryRows)
+		} else {
+			err = db.MysqlEngine.Context(ctx).SQL("select t4.id,t4.status,count(1) as num from (select t1.id,t3.status from proc_schedule_config t1 left join proc_schedule_job t2 on t1.id=t2.schedule_config_id left join proc_ins t3 on t2.proc_ins_id=t3.id where t1.id in ('" + strings.Join(idList, "','") + "') and t2.status='done') t4 group by t4.id,t4.status").Find(&statusCountQueryRows)
+		}
 	}
 	if err != nil {
 		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
@@ -247,6 +275,8 @@ func QueryProcScheduleList(ctx context.Context, param *models.ProcScheduleQueryP
 	}
 	completedMap := make(map[string]int)
 	faultMap := make(map[string]int)
+	timeoutMap := make(map[string]int)
+	terminateMap := make(map[string]int)
 	inProgressMap := make(map[string]int)
 	for _, v := range statusCountQueryRows {
 		if v.Status == models.JobStatusSuccess {
@@ -255,6 +285,10 @@ func QueryProcScheduleList(ctx context.Context, param *models.ProcScheduleQueryP
 			faultMap[v.Id] = v.Num
 		} else if v.Status == models.JobStatusRunning {
 			inProgressMap[v.Id] = v.Num
+		} else if v.Status == models.JobStatusTimeout {
+			timeoutMap[v.Id] = v.Num
+		} else if v.Status == models.JobStatusKill {
+			terminateMap[v.Id] = v.Num
 		}
 	}
 	for _, row := range psConfigRows {
