@@ -558,7 +558,7 @@ CREATE TABLE `proc_ins` (
      `proc_def_id` varchar(64) NOT NULL COMMENT '编排定义id',
      `proc_def_key` varchar(64) NOT NULL COMMENT '编排定义key',
      `proc_def_name` varchar(255) NOT NULL COMMENT '编排定义名称',
-     `status` varchar(32) NOT NULL COMMENT '状态->ready(初始化) | running(运行中) | fail(失败) | success(成功) | problem(节点失败) | kill(终止)',
+     `status` varchar(32) NOT NULL COMMENT '状态->NotStarted(初始化) | InProgress(运行中) | Faulted(失败) | Completed(成功) | InternallyTerminated(终止)',
      `entity_data_id` varchar(64) DEFAULT NULL COMMENT '根数据id',
      `entity_type_id` varchar(64) DEFAULT NULL COMMENT '根数据类型',
      `entity_data_name` varchar(64) DEFAULT NULL COMMENT '根数据名称',
@@ -576,7 +576,7 @@ CREATE TABLE `proc_ins_node` (
     `proc_def_node_id` varchar(64) NOT NULL COMMENT '编排节点定义id',
     `name` varchar(64) DEFAULT NULL COMMENT '编排定义名称',
     `node_type` varchar(64) NOT NULL COMMENT '任务类型->start(开始) | auto(自动) | data(数据写入) | human(人工) | agg(聚合) | time(定时) | date(定期) | decision(判断) | end(结束) | break(异常结束)',
-    `status` varchar(32) NOT NULL COMMENT '状态->ready(初始化) | running(运行中) | wait(等待or聚合) | fail(失败) | success(成功) | timeout(超时)',
+    `status` varchar(32) NOT NULL COMMENT '状态->NotStarted(初始化) | InProgress(运行中) | wait(等待or聚合) | Faulted(失败) | Completed(成功) | Timeout(超时)',
     `risk_check_result` text DEFAULT NULL COMMENT '高危检测结果',
     `error_msg` text DEFAULT NULL COMMENT '报错信息',
     `ordered_no` int(11) DEFAULT 0 COMMENT '节点排序',
@@ -626,7 +626,7 @@ CREATE TABLE `proc_run_workflow` (
      `id` varchar(64) NOT NULL COMMENT '唯一标识',
      `proc_ins_id` varchar(64) NOT NULL COMMENT '编排实例id',
      `name` varchar(64) NOT NULL COMMENT '名称',
-     `status` varchar(32) NOT NULL COMMENT '状态->ready(初始化) | running(运行中) | fail(失败) | success(成功) | problem(节点失败) | kill(终止)',
+     `status` varchar(32) NOT NULL COMMENT '状态->NotStarted(初始化) | InProgress(运行中) | Faulted(失败) | Completed(成功) | InternallyTerminated(终止)',
      `error_message` text DEFAULT NULL COMMENT '错误信息',
      `sleep` bit(1) DEFAULT 0 COMMENT '休眠->problem超10min或running中当前节点wait超10min,防止不是终态的工作流一直占用资源',
      `stop` bit(1) DEFAULT 0 COMMENT '暂停->人为停止',
@@ -644,7 +644,7 @@ CREATE TABLE `proc_run_node` (
      `proc_ins_node_id` varchar(64) NOT NULL COMMENT '编排节点id',
      `name` varchar(64) DEFAULT NULL COMMENT '名称',
      `job_type` varchar(64) NOT NULL COMMENT '任务类型->start(开始) | auto(自动) | data(数据写入) | human(人工) | agg(聚合) | time(定时) | date(定期) | decision(判断) | end(结束) | break(异常结束)',
-     `status` varchar(32) NOT NULL COMMENT '状态->ready(初始化) | running(运行中) | wait(等待or聚合) | fail(失败) | success(成功) | timeout(超时)',
+     `status` varchar(32) NOT NULL COMMENT '状态->NotStarted(初始化) | InProgress(运行中) | wait(等待or聚合) | Faulted(失败) | Completed(成功) | Timeout(超时)',
      `input` text DEFAULT NULL COMMENT '输入',
      `output` text DEFAULT NULL COMMENT '输出',
      `tmp_data` text DEFAULT NULL COMMENT '临时数据',
@@ -673,7 +673,7 @@ CREATE TABLE `proc_run_work_record` (
     `id` int(11) NOT NULL AUTO_INCREMENT COMMENT '自增id',
     `workflow_id` varchar(64) NOT NULL COMMENT '工作流id',
     `host` varchar(64) DEFAULT NULL COMMENT '主机',
-    `action` varchar(32) DEFAULT NULL COMMENT '状态->ready(初始化) | running(运行中) | fail(失败) | success(成功) | problem(节点失败) | kill(终止) | sleep(休眠) | takeOver(接管) | stop(暂停) | recover(恢复)',
+    `action` varchar(32) DEFAULT NULL COMMENT '状态->NotStarted(初始化) | InProgress(运行中) | Faulted(失败) | Completed(成功) | kill(终止) | sleep(休眠) | takeOver(接管) | stop(暂停) | recover(恢复)',
     `message` text DEFAULT NULL COMMENT '详细信息,终止原因等',
     `created_by` varchar(64) DEFAULT NULL COMMENT '创建人',
     `created_time` datetime DEFAULT NULL COMMENT '创建时间',
@@ -696,4 +696,34 @@ CREATE TABLE `proc_run_operation` (
       PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
 
+CREATE TABLE `proc_schedule_config` (
+      `id` varchar(64) NOT NULL COMMENT '唯一标识',
+      `proc_def_id` varchar(64) NOT NULL COMMENT '编排定义id',
+      `proc_def_key` varchar(64) DEFAULT NULL COMMENT '编排定义key',
+      `proc_def_name` varchar(255) NOT NULL COMMENT '编排定义名称',
+      `status` varchar(32) DEFAULT NULL COMMENT '状态->Ready(正在运行) | Stopped(暂停) | Deleted(删除)',
+      `entity_data_id` varchar(64) DEFAULT NULL COMMENT '根数据id',
+      `entity_type_id` varchar(64) DEFAULT NULL COMMENT '根数据类型',
+      `entity_data_name` varchar(255) DEFAULT NULL COMMENT '根数据名称',
+      `schedule_mode` varchar(64) DEFAULT NULL COMMENT '定时模式->Monthly(每月) | Weekly(每周) | Daily(每天) | Hourly(每小时)',
+      `schedule_expr` varchar(64) DEFAULT NULL COMMENT '时间表达式',
+      `cron_expr` varchar(64) DEFAULT NULL COMMENT 'cron表达式',
+      `exec_times` int(11) DEFAULT 0 COMMENT '执行次数',
+      `created_by` varchar(64) DEFAULT NULL COMMENT '创建人',
+      `created_time` datetime DEFAULT NULL COMMENT '创建时间',
+      `updated_by` varchar(64) DEFAULT NULL COMMENT '更新人',
+      `updated_time` datetime DEFAULT NULL COMMENT '更新时间',
+      PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
 
+CREATE TABLE `proc_schedule_job` (
+      `id` varchar(96) NOT NULL COMMENT '定时配置id加时间戳',
+      `schedule_config_id` varchar(64) NOT NULL COMMENT '定时配置id',
+      `proc_ins_id` varchar(64) DEFAULT NULL COMMENT '编排实例id',
+      `status` varchar(32) DEFAULT NULL COMMENT '状态->ready(准备启动) | fail(报错) | done(已完成)',
+      `handle_by` varchar(64) DEFAULT NULL COMMENT '处理的主机',
+      `error_msg` text DEFAULT NULL COMMENT '错误信息',
+      `created_time` datetime DEFAULT NULL COMMENT '创建时间',
+      `updated_time` datetime DEFAULT NULL COMMENT '更新时间',
+      PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
