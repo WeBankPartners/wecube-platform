@@ -36,6 +36,8 @@ type ProcScheduleJob struct {
 	Status           string    `json:"status" xorm:"status"`                       // 状态->ready(准备启动) | fail(报错) | done(已完成)
 	HandleBy         string    `json:"handleBy" xorm:"handle_by"`                  // 处理的主机
 	ErrorMsg         string    `json:"errorMsg" xorm:"error_msg"`                  // 错误信息
+	MailStatus       string    `json:"mailStatus" xorm:"mail_status"`              // 邮件状态->none(不发邮件) | wait(等待发) | sending(正在发) | done(已发送)
+	MailMsg          string    `json:"mailMsg" xorm:"mail_msg"`                    // 邮件通知信息
 	CreatedTime      time.Time `json:"createdTime" xorm:"created_time"`            // 创建时间
 	UpdatedTime      time.Time `json:"updatedTime" xorm:"updated_time"`            // 更新时间
 }
@@ -112,4 +114,15 @@ type SendMailSource struct {
 	Server   string `json:"server"`
 	Password string `json:"password"`
 	SSL      bool   `json:"SSL"`
+}
+
+type ScheduleJobMailQueryObj struct {
+	Id             string `xorm:"id"`
+	ProcInsId      string `xorm:"proc_ins_id"`
+	ProcDefName    string `xorm:"proc_def_name"`
+	EntityDataName string `xorm:"entity_data_name"`
+	Status         string `xorm:"status"`
+	CreatedTime    string `xorm:"created_time"`
+	NodeStatus     string `xorm:"node_status"`
+	NodeName       string `xorm:"node_name"`
 }

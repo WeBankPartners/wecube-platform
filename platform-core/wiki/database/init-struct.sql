@@ -728,6 +728,8 @@ CREATE TABLE `proc_schedule_job` (
       `status` varchar(32) DEFAULT NULL COMMENT '状态->ready(准备启动) | fail(报错) | done(已完成)',
       `handle_by` varchar(64) DEFAULT NULL COMMENT '处理的主机',
       `error_msg` text DEFAULT NULL COMMENT '错误信息',
+      `mail_status` varchar(32) DEFAULT NULL COMMENT '邮件状态->none(不发邮件) | wait(等待发) | sending(正在发) | done(已发送)',
+      `mail_msg` text DEFAULT NULL COMMENT '邮件通知信息',
       `created_time` datetime DEFAULT NULL COMMENT '创建时间',
       `updated_time` datetime DEFAULT NULL COMMENT '更新时间',
       PRIMARY KEY (`id`)
