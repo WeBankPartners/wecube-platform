@@ -3,6 +3,7 @@
   "default_language": "en",
   "password_private_key_path": "{{password_private_key_path}}",
   "https_enable": "{{https_enable}}",
+  "host_ip": "{{host_ip}}",
   "http_server": {
     "port": "{{http_port}}",
     "cross": false,
