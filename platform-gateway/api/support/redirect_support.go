@@ -23,7 +23,7 @@ type RequestHandlerFunc func(request *http.Request, c *gin.Context) error
 type ResponseHandlerFunc func(body *[]byte, c *gin.Context) error
 
 func (invoke RedirectInvoke) Do(c *gin.Context) error {
-	log.Logger.Info(fmt.Sprintf("Redirecting request to downstream system: [Method: %s] [URL: %s]", c.Request.Method, invoke.TargetUrl))
+	log.Logger.Info(fmt.Sprintf("Redirecting request to downstream system: [Method: %s] [URL: %s] [ContentLength: %d]", c.Request.Method, invoke.TargetUrl, c.Request.ContentLength))
 	cloneRequest := c.Request.Clone(c.Request.Context()) // deep copy original request
 
 	/*	if invoke.RequestHandler != nil {
@@ -54,18 +54,18 @@ func (invoke RedirectInvoke) Do(c *gin.Context) error {
 	if response, err := client.Do(newRequest); err != nil {
 		return err
 	} else {
+		respBody, _ := ioutil.ReadAll(response.Body)
+		defer response.Body.Close()
+
 		if strings.EqualFold(model.Config.Log.Level, "debug") {
 			responseDump, _ := httputil.DumpResponse(response, true)
-			log.Logger.Debug("Response from downstream system: " + string(responseDump))
+			log.Logger.Debug(fmt.Sprintf("Response from downstream system: %s  [body size]: %d", string(responseDump), len(respBody)))
 		}
 
 		/*		if response.StatusCode >= 400 {
 				ReturnError(c, fmt.Errorf("error from downstream system: %s", response.Status))
 				return
 			}*/
-
-		respBody, _ := ioutil.ReadAll(response.Body)
-		defer response.Body.Close()
 
 		respHeader := c.Writer.Header()
 		for k, v := range response.Header {
