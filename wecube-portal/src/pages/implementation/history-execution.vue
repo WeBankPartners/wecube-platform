@@ -102,12 +102,12 @@ export default {
       tableColumns: [
         {
           type: 'index',
-          width: 60,
+          width: 50,
           align: 'center'
         },
         {
           title: 'ID',
-          width: 60,
+          width: 210,
           key: 'id'
         },
         {
@@ -262,8 +262,8 @@ export default {
       const params = {
         id: row.id,
         pageable: {
-          startIndex: 1,
-          pageSize: 500
+          startIndex: 0,
+          pageSize: 5000
         }
       }
       let { status, data } = await instancesWithPaging(params)
