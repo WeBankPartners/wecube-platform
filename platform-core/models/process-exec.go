@@ -453,3 +453,19 @@ type RewriteEntityDataObj struct {
 	Nid         string
 	DisplayName string
 }
+
+type QueryProcPageParam struct {
+	Pageable          *PageInfo `json:"pageable"`
+	Id                string    `json:"id"`
+	StartTime         string    `json:"startTime"`
+	EndTime           string    `json:"endTime"`
+	Status            string    `json:"status"`
+	ProcInstName      string    `json:"procInstName"`
+	Operator          string    `json:"operator"`
+	EntityDisplayName string    `json:"entityDisplayName"`
+}
+
+type QueryProcPageResponse struct {
+	PageInfo *PageInfo        `json:"pageInfo"`
+	Contents []*ProcInsDetail `json:"contents"`
+}

@@ -133,7 +133,7 @@ func performWorkflowDangerousCheck(ctx context.Context, pluginCallParam interfac
 	return
 }
 
-func DoWorkflowAutoJob(ctx context.Context, procRunNodeId, continueToken string) (err error) {
+func DoWorkflowAutoJob(ctx context.Context, procRunNodeId, continueToken string, retryFlag bool) (err error) {
 	ctx = context.WithValue(ctx, models.TransactionIdHeader, procRunNodeId)
 	// 查proc def node定义和proc ins绑定数据
 	procInsNode, procDefNode, procDefNodeParams, dataBindings, getNodeDataErr := database.GetProcExecNodeData(ctx, procRunNodeId)
@@ -223,7 +223,7 @@ func DoWorkflowAutoJob(ctx context.Context, procRunNodeId, continueToken string)
 	return
 }
 
-func DoWorkflowDataJob(ctx context.Context, procRunNodeId string) (err error) {
+func DoWorkflowDataJob(ctx context.Context, procRunNodeId string, retryFlag bool) (err error) {
 	ctx = context.WithValue(ctx, models.TransactionIdHeader, procRunNodeId)
 	// 查proc def node定义和proc ins绑定数据
 	procInsNode, procDefNode, _, dataBindings, getNodeDataErr := database.GetProcExecNodeData(ctx, procRunNodeId)
@@ -320,8 +320,19 @@ func buildDataWriteObj(cacheDataList []*models.ProcDataCache, ids []string) (dat
 	return
 }
 
-func DoWorkflowHumanJob(ctx context.Context, procRunNodeId string) (err error) {
+func DoWorkflowHumanJob(ctx context.Context, procRunNodeId string, recoverFlag bool) (err error) {
 	ctx = context.WithValue(ctx, models.TransactionIdHeader, procRunNodeId)
+	if recoverFlag {
+		existReq, getReqErr := database.GetSimpleProcNodeReq(ctx, "", "", procRunNodeId)
+		if getReqErr != nil {
+			err = getReqErr
+			return
+		}
+		if existReq != nil && existReq.IsCompleted == false && existReq.ErrorMsg == "" {
+			// 人工任务请求已经发出，不用再发
+			return
+		}
+	}
 	// 查proc def node定义和proc ins绑定数据
 	procInsNode, procDefNode, procDefNodeParams, dataBindings, getNodeDataErr := database.GetProcExecNodeData(ctx, procRunNodeId)
 	if getNodeDataErr != nil {

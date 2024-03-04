@@ -165,9 +165,11 @@ func init() {
 		&handlerFuncObj{Url: "/process/instances/:procInsId/tasknodes/:procInsNodeId/tasknode-bindings", Method: "GET", HandlerFunc: process.GetProcInsTaskNodeBindings, ApiCode: "get-process-ins-node-retry"},
 		&handlerFuncObj{Url: "/process/instances/:procInsId/tasknode-bindings", Method: "GET", HandlerFunc: process.GetInstanceTaskNodeBindings, ApiCode: "get-process-ins-binding"},
 		&handlerFuncObj{Url: "/process/instances/:procInsId/preview/entities", Method: "GET", HandlerFunc: process.GetProcInsPreview, ApiCode: "get-ins-preview"},
+		&handlerFuncObj{Url: "/public/process/instances/:procInsId/terminations", Method: "POST", HandlerFunc: process.ProcTermination, ApiCode: "process-ins-terminations"},
 		&handlerFuncObj{Url: "/process/instances/proceed", Method: "POST", HandlerFunc: process.ProcInsOperation, ApiCode: "proc-ins-operation"},
 		&handlerFuncObj{Url: "/packages/:pluginPackageId/entities/:entityName/query", Method: "POST", HandlerFunc: process.ProcEntityDataQuery, ApiCode: "proc-ins-operation"},
 		&handlerFuncObj{Url: "/process/instances/callback", Method: "POST", HandlerFunc: process.ProcInstanceCallback, ApiCode: "proc-ins-callback"},
+		&handlerFuncObj{Url: "/process/instancesWithPaging", Method: "POST", HandlerFunc: process.QueryProcInsPageData, ApiCode: "proc-ins-page-data"},
 
 		// certification manager
 		&handlerFuncObj{Url: "/plugin-certifications", Method: "GET", HandlerFunc: certification.GetCertifications, ApiCode: "get-certifications"},
@@ -187,6 +189,14 @@ func init() {
 		&handlerFuncObj{Url: "/batch-execution/list", Method: "POST", HandlerFunc: batch_execution.RetrieveBatchExec, ApiCode: "retrieve-batch-execution"},
 		&handlerFuncObj{Url: "/batch-execution/:batchExecId", Method: "GET", HandlerFunc: batch_execution.GetBatchExec, ApiCode: "get-batch-execution"},
 		&handlerFuncObj{Url: "/batch-execution/job/run", Method: "POST", HandlerFunc: batch_execution.RunJob, ApiCode: "run-batch-execution-job"},
+
+		// process schedule
+		&handlerFuncObj{Url: "/user-scheduled-tasks/query", Method: "POST", HandlerFunc: process.QueryProcScheduleList, ApiCode: "query_proc_schedule"},
+		&handlerFuncObj{Url: "/user-scheduled-tasks/create", Method: "POST", HandlerFunc: process.CreateProcSchedule, ApiCode: "create_proc_schedule"},
+		&handlerFuncObj{Url: "/user-scheduled-tasks/stop", Method: "POST", HandlerFunc: process.StopProcSchedule, ApiCode: "stop_proc_schedule"},
+		&handlerFuncObj{Url: "/user-scheduled-tasks/resume", Method: "POST", HandlerFunc: process.StartProcSchedule, ApiCode: "resume_proc_schedule"},
+		&handlerFuncObj{Url: "/user-scheduled-tasks/delete", Method: "POST", HandlerFunc: process.DeleteProcSchedule, ApiCode: "delete_proc_schedule"},
+		&handlerFuncObj{Url: "/user-scheduled-tasks/process-instances/query", Method: "POST", HandlerFunc: process.QueryProcScheduleInstance, ApiCode: "query_proc_schedule_inst"},
 	)
 }
 
