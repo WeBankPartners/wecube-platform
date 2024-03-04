@@ -28,7 +28,7 @@ func main() {
 	// 初始化token
 	remote.InitToken()
 	// start cron job
-	cron.SetupCleanUpBatchExecTicker()
+	cron.StartCronJob()
 	go bash.InitPluginDockerHostSSH()
 	workflow.StartCronJob()
 	process.InitProcScheduleTimer()
