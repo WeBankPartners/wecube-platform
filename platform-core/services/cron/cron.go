@@ -1,7 +1,9 @@
 package cron
 
 import (
+	"encoding/json"
 	"fmt"
+	"github.com/WeBankPartners/wecube-platform/platform-core/services/remote"
 	"time"
 
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/db"
@@ -69,11 +71,11 @@ func StartSendProcScheduleMail() {
 	t := time.NewTicker(time.Minute).C
 	for {
 		<-t
-		sendProcScheduleMail()
+		doSendProcScheduleMail()
 	}
 }
 
-func sendProcScheduleMail() {
+func doSendProcScheduleMail() {
 	log.Logger.Info("start check proc schedule job mail")
 	// 更新 mail status是sending状态但更新时间小于当前1分钟的，可能是之前实例占用了但没发送成功
 	lastMinuteTime := time.Unix(time.Now().Unix()-60, 0)
@@ -81,34 +83,62 @@ func sendProcScheduleMail() {
 		log.Logger.Error("sendProcScheduleMail try to reset sending status job fail", log.Error(resetErr))
 	}
 	var jobList []*models.ScheduleJobMailQueryObj
-	err := db.MysqlEngine.SQL("select t1.id,t1.proc_ins_id,t2.proc_def_name,t2.entity_data_name,t2.status,t2.created_time,t3.status as node_status,t4.name as node_name from proc_schedule_job t1 left join proc_ins t2 on t1.proc_ins_id=t2.id left join proc_ins_node t3 on t2.id=t3.proc_ins_id left join proc_def_node t4 on t3.proc_def_node_id=t4.id where t1.mail_status='wait' and (t2.status='" + models.JobStatusSuccess + "' or t3.status in ('" + models.JobStatusFail + "','" + models.JobStatusTimeout + "'))").Find(&jobList)
+	err := db.MysqlEngine.SQL("select t1.id,t1.proc_ins_id,t1.schedule_config_id,t2.proc_def_name,t2.entity_data_name,t2.status,t2.created_time,t3.status as node_status,t4.name as node_name from proc_schedule_job t1 left join proc_ins t2 on t1.proc_ins_id=t2.id left join proc_ins_node t3 on t2.id=t3.proc_ins_id left join proc_def_node t4 on t3.proc_def_node_id=t4.id where t1.mail_status='wait' and (t2.status='" + models.JobStatusSuccess + "' or t3.status in ('" + models.JobStatusFail + "','" + models.JobStatusTimeout + "'))").Find(&jobList)
 	if err != nil {
 		log.Logger.Error("sendProcScheduleMail fail with query schedule job table", log.Error(err))
 		return
 	}
-	successMap := make(map[string]*models.ScheduleJobMailQueryObj)
-	failMap := make(map[string]*models.ScheduleJobMailQueryObj)
+	var configList []*models.ProcScheduleConfig
+	err = db.MysqlEngine.SQL("select id,mail_mode,created_by,`role` from proc_schedule_config where mail_mode in ('user','role')").Find(&configList)
+	if err != nil {
+		log.Logger.Error("sendProcScheduleMail fail with query schedule config table", log.Error(err))
+		return
+	}
+	configMap := make(map[string]*models.ProcScheduleConfig)
+	for _, row := range configList {
+		configMap[row.Id] = row
+	}
+	uniqueMap := make(map[string]int)
+	var sendJobList []*models.ScheduleJobMailQueryObj
 	for _, row := range jobList {
 		if row.ProcInsId == "" {
 			continue
 		}
 		if row.Status == models.JobStatusSuccess {
-			if _, ok := successMap[row.ProcInsId]; !ok {
-				successMap[row.ProcInsId] = row
+			if _, ok := uniqueMap[row.ProcInsId]; !ok {
+				uniqueMap[row.ProcInsId] = 1
+				sendJobList = append(sendJobList, row)
 			}
 			continue
 		}
 		if row.NodeStatus == models.JobStatusFail || row.NodeStatus == models.JobStatusTimeout {
-			if _, ok := failMap[row.ProcInsId]; !ok {
-				failMap[row.ProcInsId] = row
+			if _, ok := uniqueMap[row.ProcInsId]; !ok {
+				uniqueMap[row.ProcInsId] = 1
+				sendJobList = append(sendJobList, row)
 			}
 		}
 	}
-	for _, v := range successMap {
-		if tryUpdateScheduleJobMail(v) {
-
+	for _, v := range sendJobList {
+		if configObj, ok := configMap[v.ScheduleConfigId]; ok {
+			if tryUpdateScheduleJobMail(v) {
+				tmpMail, tmpErr := buildScheduleJobMail(configObj.MailMode, configObj.CreatedBy, configObj.Role, v)
+				if tmpErr != nil {
+					log.Logger.Error("buildScheduleJobMail fail", log.String("jobId", v.Id), log.Error(tmpErr))
+				} else {
+					if tmpErr = remote.SendSmtpMail(tmpMail); tmpErr != nil {
+						log.Logger.Error("proc schedule job send smtp mail fail", log.String("jobId", v.Id), log.Error(tmpErr))
+					}
+				}
+				if tmpErr != nil {
+					updateProcScheduleJobMail(v.Id, "fail", tmpErr.Error())
+				} else {
+					tmpMailBytes, _ := json.Marshal(&tmpMail)
+					updateProcScheduleJobMail(v.Id, "done", string(tmpMailBytes))
+				}
+			}
 		}
 	}
+	log.Logger.Info("done check proc schedule job mail")
 }
 
 func tryUpdateScheduleJobMail(input *models.ScheduleJobMailQueryObj) bool {
@@ -122,4 +152,57 @@ func tryUpdateScheduleJobMail(input *models.ScheduleJobMailQueryObj) bool {
 		ok = true
 	}
 	return ok
+}
+
+func buildScheduleJobMail(mailMode, user, role string, jobObj *models.ScheduleJobMailQueryObj) (mailObj models.SendMailTarget, err error) {
+	mailObj = models.SendMailTarget{}
+	if mailMode == "role" {
+		if role == "" {
+			err = fmt.Errorf("mail target role empty")
+		} else {
+			if roleObj, roleErr := remote.RetrieveRoleByRoleName(role, remote.GetToken(), "en"); roleErr != nil {
+				err = roleErr
+			} else {
+				if roleObj.Email != "" {
+					mailObj.Accept = []string{roleObj.Email}
+				}
+			}
+		}
+	} else if mailMode == "user" {
+		if user == "" {
+			err = fmt.Errorf("mail target user empty")
+		} else {
+			if userObj, userErr := remote.RetrieveUserByUsername(user, remote.GetToken(), "en"); userErr != nil {
+				err = userErr
+			} else {
+				if userObj.EmailAddr != "" {
+					mailObj.Accept = []string{userObj.EmailAddr}
+				}
+			}
+		}
+	} else {
+		err = fmt.Errorf("illegal mailMode:%s ", mailMode)
+	}
+	if err != nil {
+		return
+	}
+	if len(mailObj.Accept) == 0 {
+		err = fmt.Errorf("accept mail empty")
+		return
+	}
+	if jobObj.Status == models.JobStatusSuccess {
+		mailObj.Subject = fmt.Sprintf("Wecube Process Schedule Run %s,[%s][%s]", jobObj.Status, jobObj.ProcDefName, jobObj.EntityDataName)
+		mailObj.Content = mailObj.Subject + fmt.Sprintf("\nProcess Instance Id:%s \nStatus:%s \nTime:%s \n", jobObj.ProcInsId, jobObj.Status, jobObj.CreatedTime)
+	} else if jobObj.NodeStatus == models.JobStatusFail {
+		mailObj.Subject = fmt.Sprintf("Wecube Process Schedule Run Fail,[%s][%s]", jobObj.ProcDefName, jobObj.EntityDataName)
+		mailObj.Content = mailObj.Subject + fmt.Sprintf("\nProcess Instance Id:%s \nStatus:%s \nTime:%s \n", jobObj.ProcInsId, jobObj.Status, jobObj.CreatedTime) + fmt.Sprintf("\nNode [%s] %s", jobObj.NodeName, jobObj.NodeStatus)
+	}
+	return
+}
+
+func updateProcScheduleJobMail(jobId, mailStatus, mailMessage string) {
+	_, err := db.MysqlEngine.Exec("update proc_schedule_job set mail_status=?,mail_msg=? where id=?", mailStatus, mailMessage, jobId)
+	if err != nil {
+		log.Logger.Error("updateProcScheduleJobMail fail", log.String("jobId", jobId), log.String("mailStatus", mailStatus), log.String("mailMsg", mailMessage), log.Error(err))
+	}
 }
