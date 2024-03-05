@@ -120,24 +120,27 @@ export default {
         },
         {
           title: this.$t('executor'),
-          key: 'operator'
+          key: 'operator',
+          width: 150
         },
         {
           title: this.$t('table_created_date'),
-          key: 'createdTime'
+          key: 'createdTime',
+          width: 150
         },
         {
           title: this.$t('flow_status'),
-          key: 'status'
+          key: 'status',
+          width: 160
         },
         {
           title: this.$t('table_action'),
           key: 'action',
-          width: 250,
+          width: 180,
           align: 'center',
           render: (h, params) => {
             return (
-              <div>
+              <div style="text-align:left">
                 <Button
                   onClick={() => this.jumpToHistory(params.row)}
                   type="info"
