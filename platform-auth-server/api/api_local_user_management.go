@@ -96,6 +96,16 @@ func RetrieveUserByUserId(c *gin.Context) {
 	}
 }
 
+func RetrieveUserByUsername(c *gin.Context) {
+	username := c.Param("username")
+	result, err := service.UserManagementServiceInstance.RetireveLocalUserByUsername(username)
+	if err != nil {
+		support.ReturnError(c, err)
+	} else {
+		support.ReturnData(c, result)
+	}
+}
+
 func UnregisterLocalUser(c *gin.Context) {
 	userId := c.Param("user-id")
 	curUser := middleware.GetRequestUser(c)

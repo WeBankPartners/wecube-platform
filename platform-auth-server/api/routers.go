@@ -133,6 +133,8 @@ func init() {
 			ApiCode: "RetrieveAllUsers"},
 		&handlerFuncObj{Url: "/v1/users/:user-id", Method: http.MethodGet, HandlerFunc: RetrieveUserByUserId,
 			ApiCode: "RetrieveUserByUserId"},
+		&handlerFuncObj{Url: "/v1/user-message/:username", Method: http.MethodGet, HandlerFunc: RetrieveUserByUsername,
+			ApiCode: "RetrieveUserByUsername"},
 		&handlerFuncObj{Url: "/v1/users/:user-id", Method: http.MethodDelete, HandlerFunc: UnregisterLocalUser,
 			ApiCode: "UnregisterLocalUser"},
 		&handlerFuncObj{Url: "/v1/roles/:role-id/users", Method: http.MethodGet, HandlerFunc: GetUsersByRoleId,
