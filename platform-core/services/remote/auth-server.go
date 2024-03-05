@@ -48,6 +48,12 @@ const (
 	pathLogin = "/auth/v1/api/login"
 	// pathRegisterSubSystem 注册插件subsys
 	pathRegisterSubSystem = "/auth/v1/sub-systems"
+	// pathModifyUserInfo 修改用户信息
+	pathModifyUserInfo = "/auth/v1/users/usernames/%s"
+	// pathGetUserByUsername 通过用户名获取用户信息
+	pathGetUserByUsername = "/auth/v1/user-message/%s"
+	// pathGetRoleInfoByRoleName 通过角色名获取角色信息
+	pathGetRoleInfoByRoleName = "/auth/v1/roles/name/%s"
 )
 
 func RegisterSubSystem(pluginPackageObj *models.PluginPackages) (subSystemCode, subSystemKey, subSystemPubKey string, err error) {
@@ -287,15 +293,66 @@ func RegisterLocalRole(roleDto *models.SimpleLocalRoleDto, userToken, language s
 }
 
 // ModifyUserInfo 修改用户信息
-func ModifyUserInfo(userId, userToken, language string) (response models.QuerySingleUserResponse, err error) {
-	byteArr, err := network.HttpGet(fmt.Sprintf(models.Config.Auth.Url+pathGetUserByUserId, userId), userToken, language)
+func ModifyUserInfo(username, userToken, language string, param *models.UserDto) (err error) {
+	userDto := models.SimpleLocalUserDto{
+		Username:  param.UserName,
+		EmailAddr: param.Email,
+	}
+	postBytes, _ := json.Marshal(&userDto)
+	byteArr, err := network.HttpPost(fmt.Sprintf(models.Config.Auth.Url+pathModifyUserInfo, username), userToken, language, postBytes)
 	if err != nil {
 		return
 	}
+	var response models.QuerySingleUserResponse
 	err = json.Unmarshal(byteArr, &response)
 	if err != nil {
 		err = fmt.Errorf("Try to json unmarshal response body fail,%s ", err.Error())
 		return
+	}
+	if response.Status != models.DefaultHttpSuccessCode {
+		err = fmt.Errorf(response.Message)
+	}
+	return
+}
+
+// RetrieveUserByUsername 通过用户名获取用户信息
+func RetrieveUserByUsername(username, userToken, language string) (responseData *models.SimpleLocalUserDto, err error) {
+	byteArr, getErr := network.HttpGet(fmt.Sprintf(models.Config.Auth.Url+pathGetUserByUsername, username), userToken, language)
+	if getErr != nil {
+		err = getErr
+		return
+	}
+	var response models.QuerySingleUserResponse
+	err = json.Unmarshal(byteArr, &response)
+	if err != nil {
+		err = fmt.Errorf("Try to json unmarshal response body fail,%s ", err.Error())
+		return
+	}
+	if response.Status != models.DefaultHttpSuccessCode {
+		err = fmt.Errorf(response.Message)
+	} else {
+		responseData = response.Data
+	}
+	return
+}
+
+// RetrieveRoleByRoleName 通过角色名获取角色信息
+func RetrieveRoleByRoleName(roleName, userToken, language string) (responseData *models.SimpleLocalRoleDto, err error) {
+	byteArr, getErr := network.HttpGet(fmt.Sprintf(models.Config.Auth.Url+pathGetRoleInfoByRoleName, roleName), userToken, language)
+	if getErr != nil {
+		err = getErr
+		return
+	}
+	var response models.QuerySingleRolesResponse
+	err = json.Unmarshal(byteArr, &response)
+	if err != nil {
+		err = fmt.Errorf("Try to json unmarshal response body fail,%s ", err.Error())
+		return
+	}
+	if response.Status != models.DefaultHttpSuccessCode {
+		err = fmt.Errorf(response.Message)
+	} else {
+		responseData = response.Data
 	}
 	return
 }
