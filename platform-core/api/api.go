@@ -254,10 +254,12 @@ func httpLogHandle() gin.HandlerFunc {
 		}
 		c.Set(models.RequestIdHeader, requestId)
 		c.Set(models.TransactionIdHeader, transactionId)
-		bodyBytes, _ := io.ReadAll(c.Request.Body)
-		c.Request.Body.Close()
-		c.Request.Body = io.NopCloser(bytes.NewReader(bodyBytes))
-		c.Set(models.ContextRequestBody, string(bodyBytes))
+		if !strings.HasSuffix(c.Request.RequestURI, "/v1/packages") {
+			bodyBytes, _ := io.ReadAll(c.Request.Body)
+			c.Request.Body.Close()
+			c.Request.Body = io.NopCloser(bytes.NewReader(bodyBytes))
+			c.Set(models.ContextRequestBody, string(bodyBytes))
+		}
 		log.AccessLogger.Info(fmt.Sprintf("[%s] [%s] ->", requestId, transactionId), log.String("uri", c.Request.RequestURI), log.String("method", c.Request.Method), log.String("sourceIp", getRemoteIp(c)), log.String(models.ContextOperator, c.GetString(models.ContextOperator)), log.String(models.ContextRequestBody, c.GetString(models.ContextRequestBody)))
 		c.Next()
 		costTime := time.Now().Sub(start).Seconds() * 1000
