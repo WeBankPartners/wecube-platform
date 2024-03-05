@@ -113,6 +113,13 @@ func sendProcScheduleMail() {
 
 func tryUpdateScheduleJobMail(input *models.ScheduleJobMailQueryObj) bool {
 	ok := false
-
+	execResult, err := db.MysqlEngine.Exec("update proc_schedule_job set mail_status='sending' where id=? and mail_status='wait'", input.Id)
+	if err != nil {
+		log.Logger.Error("tryUpdateScheduleJobMail fail with exec sql", log.String("jobId", input.Id), log.Error(err))
+		return ok
+	}
+	if affectNum, _ := execResult.RowsAffected(); affectNum > 0 {
+		ok = true
+	}
 	return ok
 }

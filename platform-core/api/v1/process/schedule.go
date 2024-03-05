@@ -125,16 +125,16 @@ func QueryProcScheduleInstance(c *gin.Context) {
 		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, err))
 		return
 	}
-	if param.ProcInstanceStatus == "S" {
-		param.ProcInstanceStatus = models.JobStatusSuccess
-	} else if param.ProcInstanceStatus == "F" {
-		param.ProcInstanceStatus = models.JobStatusFail
-	} else if param.ProcInstanceStatus == "R" {
-		param.ProcInstanceStatus = models.JobStatusRunning
-	} else if param.ProcInstanceStatus != "" {
-		middleware.ReturnError(c, fmt.Errorf("param procInstanceStatus:%s illegal", param.ProcInstanceStatus))
-		return
-	}
+	//if param.ProcInstanceStatus == "S" {
+	//	param.ProcInstanceStatus = models.JobStatusSuccess
+	//} else if param.ProcInstanceStatus == "F" {
+	//	param.ProcInstanceStatus = models.JobStatusFail
+	//} else if param.ProcInstanceStatus == "R" {
+	//	param.ProcInstanceStatus = models.JobStatusRunning
+	//} else if param.ProcInstanceStatus != "" {
+	//	middleware.ReturnError(c, fmt.Errorf("param procInstanceStatus:%s illegal", param.ProcInstanceStatus))
+	//	return
+	//}
 	result, err := database.QueryProcScheduleInstance(c, param.UserTaskId, param.ProcInstanceStatus)
 	if err != nil {
 		middleware.ReturnError(c, err)

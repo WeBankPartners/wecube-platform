@@ -106,6 +106,8 @@ func init() {
 		// permission
 		&handlerFuncObj{Url: "/my-menus", Method: "GET", HandlerFunc: system.GetMyMenuItems, ApiCode: "get-my-menu"},
 		&handlerFuncObj{Url: "/users/create", Method: "POST", HandlerFunc: system.CreateUser, ApiCode: "create-user"},
+		&handlerFuncObj{Url: "/users/:user-id", Method: "GET", HandlerFunc: system.GetUserByUserId, ApiCode: "get-user"},
+		&handlerFuncObj{Url: "/users/:user-id", Method: "POST", HandlerFunc: system.UpdateUser, ApiCode: "update-user"},
 		&handlerFuncObj{Url: "/users/retrieve", Method: "GET", HandlerFunc: system.GetAllUser, ApiCode: "get-all-user"},
 		&handlerFuncObj{Url: "/roles/create", Method: "POST", HandlerFunc: system.CreateRole, ApiCode: "create-roles"},
 		&handlerFuncObj{Url: "/roles/retrieve", Method: "GET", HandlerFunc: system.QueryRoles, ApiCode: "query-roles"},

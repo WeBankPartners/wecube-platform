@@ -35,6 +35,7 @@ func CreateUser(c *gin.Context) {
 		Username:   param.UserName,
 		Password:   param.Password,
 		AuthSource: param.AuthType,
+		EmailAddr:  param.EmailAddr,
 	}
 	if strings.TrimSpace(userDto.AuthSource) == "" {
 		userDto.AuthSource = models.AuthTypeLocal
@@ -504,4 +505,30 @@ func tryCalculateUmAuthContext(ctx context.Context) (authContext string, err err
 		}
 	}
 	return
+}
+
+// GetUserByUserId 查询用户信息
+func GetUserByUserId(c *gin.Context) {
+	userId := c.Param("user-id")
+	token := c.GetHeader("Authorization")
+	response, err := remote.RetrieveUserByUserId(userId, token, c.GetHeader("Accept-Language"))
+	if err != nil {
+		middleware.ReturnError(c, err)
+		return
+	}
+	response.Data.Password = ""
+	middleware.ReturnData(c, response.Data)
+}
+
+// UpdateUser 查询用户信息
+func UpdateUser(c *gin.Context) {
+	userId := c.Param("user-id")
+	token := c.GetHeader("Authorization")
+	response, err := remote.RetrieveUserByUserId(userId, token, c.GetHeader("Accept-Language"))
+	if err != nil {
+		middleware.ReturnError(c, err)
+		return
+	}
+	response.Data.Password = ""
+	middleware.ReturnData(c, response.Data)
 }

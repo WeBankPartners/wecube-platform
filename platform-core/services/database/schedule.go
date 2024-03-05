@@ -306,6 +306,8 @@ func QueryProcScheduleList(ctx context.Context, param *models.ProcScheduleQueryP
 			TotalCompletedInstances:  completedMap[row.Id],
 			TotalFaultedInstances:    faultMap[row.Id],
 			TotalInProgressInstances: inProgressMap[row.Id],
+			TotalTimeoutInstances:    timeoutMap[row.Id],
+			TotalTerminateInstances:  terminateMap[row.Id],
 		}
 		result = append(result, &resultObj)
 	}
