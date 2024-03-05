@@ -582,6 +582,20 @@ func (UserManagementService) RetireveLocalUserByUserid(userId string) (*model.Si
 	return convertToSimpleLocalUserDto(user, roleAdministrator), nil
 }
 
+func (UserManagementService) RetireveLocalUserByUsername(username string) (*model.SimpleLocalUserDto, error) {
+	user, err := db.UserRepositoryInstance.FindNotDeletedUserByUsername(username)
+	if err != nil {
+		log.Logger.Error("failed to find not deleted user by username", log.String("username", username),
+			log.Error(err))
+		return nil, err
+	}
+	if user == nil {
+		log.Logger.Debug(fmt.Sprintf("Such user does not exist with username %v", username))
+		return nil, exterror.Catch(exterror.New().AuthServer3021Error.WithParam(username), nil)
+	}
+	return convertToSimpleLocalUserDto(user, ""), nil
+}
+
 func (UserManagementService) ModifyLocalUserInfomation(username string, userDto *model.SimpleLocalUserDto, curUser string) (*model.SimpleLocalUserDto, error) {
 	user, err := db.UserRepositoryInstance.FindNotDeletedUserByUsername(username)
 	if err != nil {

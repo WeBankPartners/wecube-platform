@@ -106,8 +106,8 @@ func init() {
 		// permission
 		&handlerFuncObj{Url: "/my-menus", Method: "GET", HandlerFunc: system.GetMyMenuItems, ApiCode: "get-my-menu"},
 		&handlerFuncObj{Url: "/users/create", Method: "POST", HandlerFunc: system.CreateUser, ApiCode: "create-user"},
-		&handlerFuncObj{Url: "/users/message/:user-id", Method: "GET", HandlerFunc: system.GetUserByUserId, ApiCode: "get-user"},
-		&handlerFuncObj{Url: "/users/message/:user-id", Method: "POST", HandlerFunc: system.UpdateUser, ApiCode: "update-user"},
+		&handlerFuncObj{Url: "/user/:username/get", Method: "GET", HandlerFunc: system.GetUserByUsername, ApiCode: "get-user"},
+		&handlerFuncObj{Url: "/user/:username/update", Method: "POST", HandlerFunc: system.UpdateUser, ApiCode: "update-user"},
 		&handlerFuncObj{Url: "/users/retrieve", Method: "GET", HandlerFunc: system.GetAllUser, ApiCode: "get-all-user"},
 		&handlerFuncObj{Url: "/roles/create", Method: "POST", HandlerFunc: system.CreateRole, ApiCode: "create-roles"},
 		&handlerFuncObj{Url: "/roles/retrieve", Method: "GET", HandlerFunc: system.QueryRoles, ApiCode: "query-roles"},
@@ -146,6 +146,7 @@ func init() {
 		&handlerFuncObj{Url: "/process/definitions/link", Method: "POST", HandlerFunc: process.AddOrUpdateProcDefNodeLink, ApiCode: "add-update-process-definition-node-link"},
 		&handlerFuncObj{Url: "/process/definitions/:proc-def-id/link/:node-link-id", Method: "DELETE", HandlerFunc: process.DeleteProcDefNodeLink, ApiCode: "delete-process-definition-node-link"},
 		&handlerFuncObj{Url: "/process/definitions/:proc-def-id/link/:node-link-id", Method: "GET", HandlerFunc: process.GetProcDefNodeLink, ApiCode: "get-process-definition-node-link"},
+		&handlerFuncObj{Url: "/public/process/definitions/syncUseRole", Method: "POST", HandlerFunc: process.SyncUseRole, ApiCode: "public-sync-user-role"},
 
 		// process runtime
 		&handlerFuncObj{Url: "/process/definitions", Method: "GET", HandlerFunc: process.ProcDefList, ApiCode: "list-process-def"},

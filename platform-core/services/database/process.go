@@ -759,6 +759,31 @@ func GetProcDefNodeParamByNodeId(ctx context.Context, nodeId string) (list []*mo
 	return
 }
 
+func AddUseRoles(ctx context.Context, procDefId string, useRoles []string) (err error) {
+	var list []*models.ProcDefPermission
+	var permissionMap = make(map[string]bool)
+	err = db.MysqlEngine.Context(ctx).SQL("select * from proc_def_permission where proc_def_id = ? and permission = ?", procDefId, string(models.MGMT)).Find(&list)
+	if err != nil {
+		return
+	}
+	if len(list) > 0 {
+		for _, permission := range list {
+			permissionMap[permission.RoleName] = true
+		}
+	}
+
+	for _, role := range useRoles {
+		if !permissionMap[role] {
+			_, err = db.MysqlEngine.Context(ctx).Exec("insert into proc_def_permission(id,proc_def_id,role_id,role_name,permission)values(?,?,?,?,?)", guid.CreateGuid(),
+				procDefId, role, role, string(models.USE))
+			if err != nil {
+				return
+			}
+		}
+	}
+	return
+}
+
 func BatchAddProcDefPermission(ctx context.Context, procDefId string, permission models.PermissionToRole) (err error) {
 	var actions []*db.ExecAction
 	actions = append(actions, &db.ExecAction{Sql: "delete from proc_def_permission where proc_def_id= ? ",
