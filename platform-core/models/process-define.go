@@ -120,6 +120,11 @@ type ProcDefCollect struct {
 	UpdatedTime time.Time `json:"updatedTime" xorm:"updated_time"` // 更新时间
 }
 
+type SyncUseRoleParam struct {
+	ProcDefId string   `json:"procDefId"` // 编排ID
+	UseRoles  []string `json:"useRoles"`  // 使用角色
+}
+
 // ProcessDefinitionParam 添加编排参数
 type ProcessDefinitionParam struct {
 	Id               string           `json:"id"`               // 唯一标识
