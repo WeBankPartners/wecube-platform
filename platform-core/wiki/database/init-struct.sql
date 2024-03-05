@@ -709,12 +709,17 @@ CREATE TABLE `proc_schedule_config` (
       `schedule_expr` varchar(64) DEFAULT NULL COMMENT '时间表达式',
       `cron_expr` varchar(64) DEFAULT NULL COMMENT 'cron表达式',
       `exec_times` int(11) DEFAULT 0 COMMENT '执行次数',
+      `role` varchar(64) DEFAULT NULL COMMENT '管理角色',
+      `mail_mode` varchar(64) DEFAULT NULL COMMENT '邮件发送模式->role(角色邮箱) | user(用户邮箱) | none(不发送)',
       `created_by` varchar(64) DEFAULT NULL COMMENT '创建人',
       `created_time` datetime DEFAULT NULL COMMENT '创建时间',
       `updated_by` varchar(64) DEFAULT NULL COMMENT '更新人',
       `updated_time` datetime DEFAULT NULL COMMENT '更新时间',
       PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
+CREATE INDEX idx_proc_schedule_config_mode USING BTREE ON proc_schedule_config (schedule_mode);
+CREATE INDEX idx_proc_schedule_config_status USING BTREE ON proc_schedule_config (status);
+CREATE INDEX idx_proc_schedule_config_owner USING BTREE ON proc_schedule_config (created_by);
 
 CREATE TABLE `proc_schedule_job` (
       `id` varchar(96) NOT NULL COMMENT '定时配置id加时间戳',
@@ -723,7 +728,17 @@ CREATE TABLE `proc_schedule_job` (
       `status` varchar(32) DEFAULT NULL COMMENT '状态->ready(准备启动) | fail(报错) | done(已完成)',
       `handle_by` varchar(64) DEFAULT NULL COMMENT '处理的主机',
       `error_msg` text DEFAULT NULL COMMENT '错误信息',
+      `mail_status` varchar(32) DEFAULT NULL COMMENT '邮件状态->none(不发邮件) | wait(等待发) | sending(正在发) | done(已发送)',
+      `mail_msg` text DEFAULT NULL COMMENT '邮件通知信息',
       `created_time` datetime DEFAULT NULL COMMENT '创建时间',
       `updated_time` datetime DEFAULT NULL COMMENT '更新时间',
       PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
+CREATE INDEX idx_proc_schedule_job_config USING BTREE ON proc_schedule_job (schedule_config_id);
+CREATE INDEX idx_proc_schedule_job_status USING BTREE ON proc_schedule_job (status);
+CREATE INDEX idx_proc_schedule_job_time USING BTREE ON proc_schedule_job (created_time);
+
+CREATE INDEX idx_sys_var_name USING BTREE ON system_variables (`name`);
+CREATE INDEX idx_sys_var_scope USING BTREE ON system_variables (`scope`);
+CREATE INDEX idx_sys_var_source USING BTREE ON system_variables (`source`(128));
+CREATE INDEX idx_sys_var_status USING BTREE ON system_variables (`status`);
