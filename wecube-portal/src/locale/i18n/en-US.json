@@ -500,9 +500,11 @@
   "task_node": "Task Nodes",
   "task_node_bindings ": "Tasknode Bindings",
   "display_number": "Search Number",
-  "failure_count": "Failure Count",
-  "success_count": "Success Count",
-  "in_progress_count": "InProgress Count",
+  "failure_count": "Failure",
+  "success_count": "Success",
+  "terminate_count": "Terminate",
+  "timeout_count": "Timeout",
+  "in_progress_count": "InProgress",
   "count": "Count",
   "hide_same_parameters": "Hide Same Parameters",
   "highlight_different_parameters": "Highlight Different Parameters",
@@ -639,5 +641,8 @@
   "fixedTimeFunc": "Function: Time node 1, controls the specific time for the next step of the process",
   "fixedTimeNodetip1": "1. Support setting a future time in the format of year, month, day, hour, minute, and second",
   "timeIntervalFunc": "Function: Time node 2, controls the interval between the next step of the process",
-  "timeIntervaltip1": "1. Support selecting a time period"
+  "timeIntervaltip1": "1. Support selecting a time period",
+  "be_role_email": "Role Email",
+  "be_user_email": "user Email",
+  "be_not_send": "Not Send"
 }
