@@ -4,15 +4,16 @@ import (
 	"bytes"
 	"crypto/tls"
 	"fmt"
+	"github.com/WeBankPartners/wecube-platform/platform-core/common/db"
+	"github.com/WeBankPartners/wecube-platform/platform-core/common/exterror"
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/log"
 	"github.com/WeBankPartners/wecube-platform/platform-core/models"
-	"github.com/WeBankPartners/wecube-platform/platform-core/services/database"
 	"net/smtp"
 	"strings"
 )
 
 func getMailSource() (authObj smtp.Auth, senderObj *models.SendMailSource, err error) {
-	senderObj, err = database.GetPlatformMailVar()
+	senderObj, err = GetPlatformMailVar()
 	if err != nil {
 		return
 	}
@@ -110,4 +111,34 @@ func mailQQMessage(to []string, subject, content, sender string) []byte {
 	buff.WriteString("\r\nContent-Type:text/plain;charset=UTF-8\r\n\r\n")
 	buff.WriteString(content)
 	return buff.Bytes()
+}
+
+func GetPlatformMailVar() (senderObj *models.SendMailSource, err error) {
+	var sysRows []*models.SystemVariables
+	err = db.MysqlEngine.SQL("select name,`value`,default_value from system_variables where name in (?,?,?,?) and status='active' and source=?", models.SysVarMailSender, models.SysVarMailServer, models.SysVarMailPassword, models.SysVarMailSSL, models.SysVarSystemSource).Find(&sysRows)
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
+		return
+	}
+	senderObj = &models.SendMailSource{}
+	for _, row := range sysRows {
+		tmpV := row.DefaultValue
+		if row.Value != "" {
+			tmpV = row.Value
+		}
+		switch row.Name {
+		case models.SysVarMailSender:
+			senderObj.Sender = tmpV
+		case models.SysVarMailServer:
+			senderObj.Server = tmpV
+		case models.SysVarMailPassword:
+			senderObj.Password = tmpV
+		case models.SysVarMailSSL:
+			tmpV = strings.ToLower(tmpV)
+			if tmpV == "y" || tmpV == "yes" || tmpV == "true" {
+				senderObj.SSL = true
+			}
+		}
+	}
+	return
 }
