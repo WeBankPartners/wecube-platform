@@ -295,7 +295,7 @@ func RegisterLocalRole(roleDto *models.SimpleLocalRoleDto, userToken, language s
 // ModifyUserInfo 修改用户信息
 func ModifyUserInfo(username, userToken, language string, param *models.UserDto) (err error) {
 	userDto := models.SimpleLocalUserDto{
-		Username:  param.UserName,
+		Username:  username,
 		EmailAddr: param.Email,
 	}
 	postBytes, _ := json.Marshal(&userDto)

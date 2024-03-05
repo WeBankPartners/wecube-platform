@@ -104,8 +104,14 @@ func GetProcScheduleConfigStatus(ctx context.Context, id string) (status string)
 }
 
 func NewProcScheduleJob(ctx context.Context, psConfig *models.ProcScheduleConfig, newId string) (duplicateRow bool, err error) {
-	_, insertErr := db.MysqlEngine.Context(ctx).Exec("insert into proc_schedule_job(id,schedule_config_id,status,handle_by,created_time) values (?,?,?,?,?)",
-		newId, psConfig.Id, "ready", models.Config.HostIp, time.Now())
+	var insertErr error
+	if psConfig.MailMode == "none" || psConfig.MailMode == "" {
+		_, insertErr = db.MysqlEngine.Context(ctx).Exec("insert into proc_schedule_job(id,schedule_config_id,status,handle_by,created_time) values (?,?,?,?,?)",
+			newId, psConfig.Id, "ready", models.Config.HostIp, time.Now())
+	} else {
+		_, insertErr = db.MysqlEngine.Context(ctx).Exec("insert into proc_schedule_job(id,schedule_config_id,status,handle_by,mail_status,created_time) values (?,?,?,?,?,?)",
+			newId, psConfig.Id, "ready", models.Config.HostIp, "wait", time.Now())
+	}
 	if insertErr != nil {
 		if strings.Contains(strings.ToLower(insertErr.Error()), "duplicate") {
 			duplicateRow = true

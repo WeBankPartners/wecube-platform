@@ -87,7 +87,7 @@ func GetAllUser(c *gin.Context) {
 	}
 	if len(response.Data) > 0 {
 		for _, item := range response.Data {
-			list = append(list, models.UserDto{ID: item.ID, UserName: item.Username, Password: item.Password})
+			list = append(list, models.UserDto{ID: item.ID, UserName: item.Username, Password: item.Password, Email: item.EmailAddr})
 		}
 	}
 	middleware.ReturnData(c, list)
@@ -516,7 +516,12 @@ func GetUserByUsername(c *gin.Context) {
 		middleware.ReturnError(c, err)
 		return
 	}
-	middleware.ReturnData(c, responseData)
+	result := models.UserDto{
+		ID:       responseData.ID,
+		UserName: responseData.Username,
+		Email:    responseData.EmailAddr,
+	}
+	middleware.ReturnData(c, result)
 }
 
 // UpdateUser 查询用户信息
