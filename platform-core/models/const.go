@@ -69,6 +69,13 @@ const (
 	IdPrefixPluCfgItf    = "p_conf_inf_"
 	IdPrefixPluCfgItfPar = "p_conf_inf_param_"
 	NewOidDataPrefix     = "OID_"
+
+	// system variable
+	SysVarMailSender   = "PLATFORM_MAIL_SENDER"
+	SysVarMailServer   = "PLATFORM_MAIL_SERVER"
+	SysVarMailPassword = "PLATFORM_MAIL_PWD"
+	SysVarMailSSL      = "PLATFORM_MAIL_SSL"
+	SysVarSystemSource = "system"
 )
 
 var (
