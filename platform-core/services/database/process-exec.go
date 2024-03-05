@@ -534,6 +534,32 @@ func CreateProcInstance(ctx context.Context, procStartParam *models.ProcInsStart
 			}
 		}
 	}
+	// 数据冲突检测
+	if procDefObj.ConflictCheck {
+		var existBindingRows []*models.ProcDataBinding
+		err = db.MysqlEngine.Context(ctx).SQL("select t2.proc_ins_id,t2.entity_data_id,t2.entity_type_id from proc_ins t1 left join proc_data_binding t2 on t1.id=t2.proc_ins_id where t1.status='InProgress' and t2.bind_flag=1").Find(&existBindingRows)
+		if err != nil {
+			err = exterror.Catch(exterror.New().DatabaseQueryError, err)
+			return
+		}
+		for _, previewRow := range previewRows {
+			if !previewRow.IsBound {
+				continue
+			}
+			for _, v := range existBindingRows {
+				if previewRow.EntityTypeId == v.EntityTypeId && previewRow.EntityDataId == v.EntityDataId {
+					err = fmt.Errorf("rowData conflict check fail,data->%s:%s is using by procInsId:%s", v.EntityTypeId, v.EntityDataId, v.ProcInsId)
+					break
+				}
+			}
+			if err != nil {
+				break
+			}
+		}
+		if err != nil {
+			return
+		}
+	}
 	for _, link := range procDefLinks {
 		workLinkObj := models.ProcRunLink{Id: "wl_" + guid.CreateGuid(), WorkflowId: workflowRow.Id, ProcDefLinkId: link.Id, Name: link.Name, Source: workNodeIdMap[link.Source], Target: workNodeIdMap[link.Target]}
 		actions = append(actions, &db.ExecAction{Sql: "insert into proc_run_link(id,workflow_id,proc_def_link_id,name,source,target) values (?,?,?,?,?,?)", Param: []interface{}{

@@ -285,3 +285,17 @@ func RegisterLocalRole(roleDto *models.SimpleLocalRoleDto, userToken, language s
 	}
 	return
 }
+
+// ModifyUserInfo 修改用户信息
+func ModifyUserInfo(userId, userToken, language string) (response models.QuerySingleUserResponse, err error) {
+	byteArr, err := network.HttpGet(fmt.Sprintf(models.Config.Auth.Url+pathGetUserByUserId, userId), userToken, language)
+	if err != nil {
+		return
+	}
+	err = json.Unmarshal(byteArr, &response)
+	if err != nil {
+		err = fmt.Errorf("Try to json unmarshal response body fail,%s ", err.Error())
+		return
+	}
+	return
+}
