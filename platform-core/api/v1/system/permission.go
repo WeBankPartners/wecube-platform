@@ -35,7 +35,7 @@ func CreateUser(c *gin.Context) {
 		Username:   param.UserName,
 		Password:   param.Password,
 		AuthSource: param.AuthType,
-		EmailAddr:  param.EmailAddr,
+		EmailAddr:  param.Email,
 	}
 	if strings.TrimSpace(userDto.AuthSource) == "" {
 		userDto.AuthSource = models.AuthTypeLocal
@@ -508,27 +508,30 @@ func tryCalculateUmAuthContext(ctx context.Context) (authContext string, err err
 }
 
 // GetUserByUserId 查询用户信息
-func GetUserByUserId(c *gin.Context) {
-	userId := c.Param("user-id")
+func GetUserByUsername(c *gin.Context) {
+	username := c.Param("username")
 	token := c.GetHeader("Authorization")
-	response, err := remote.RetrieveUserByUserId(userId, token, c.GetHeader("Accept-Language"))
+	responseData, err := remote.RetrieveUserByUsername(username, token, c.GetHeader("Accept-Language"))
 	if err != nil {
 		middleware.ReturnError(c, err)
 		return
 	}
-	response.Data.Password = ""
-	middleware.ReturnData(c, response.Data)
+	middleware.ReturnData(c, responseData)
 }
 
 // UpdateUser 查询用户信息
 func UpdateUser(c *gin.Context) {
-	userId := c.Param("user-id")
+	username := c.Param("username")
 	token := c.GetHeader("Authorization")
-	response, err := remote.RetrieveUserByUserId(userId, token, c.GetHeader("Accept-Language"))
-	if err != nil {
-		middleware.ReturnError(c, err)
+	var param models.UserDto
+	if err := c.ShouldBindJSON(&param); err != nil {
+		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, err))
 		return
 	}
-	response.Data.Password = ""
-	middleware.ReturnData(c, response.Data)
+	err := remote.ModifyUserInfo(username, token, c.GetHeader("Accept-Language"), &param)
+	if err != nil {
+		middleware.ReturnError(c, err)
+	} else {
+		middleware.ReturnSuccess(c)
+	}
 }
