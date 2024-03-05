@@ -36,7 +36,7 @@ type ProcScheduleJob struct {
 	Status           string    `json:"status" xorm:"status"`                       // 状态->ready(准备启动) | fail(报错) | done(已完成)
 	HandleBy         string    `json:"handleBy" xorm:"handle_by"`                  // 处理的主机
 	ErrorMsg         string    `json:"errorMsg" xorm:"error_msg"`                  // 错误信息
-	MailStatus       string    `json:"mailStatus" xorm:"mail_status"`              // 邮件状态->none(不发邮件) | wait(等待发) | sending(正在发) | done(已发送)
+	MailStatus       string    `json:"mailStatus" xorm:"mail_status"`              // 邮件状态->none(不发邮件) | wait(等待发) | sending(正在发) | fail(发送失败) | done(已发送)
 	MailMsg          string    `json:"mailMsg" xorm:"mail_msg"`                    // 邮件通知信息
 	CreatedTime      time.Time `json:"createdTime" xorm:"created_time"`            // 创建时间
 	UpdatedTime      time.Time `json:"updatedTime" xorm:"updated_time"`            // 更新时间
@@ -84,6 +84,8 @@ type ProcScheduleConfigObj struct {
 	TotalInProgressInstances int    `json:"totalInProgressInstances"`
 	TotalTimeoutInstances    int    `json:"totalTimeoutInstances"`
 	TotalTerminateInstances  int    `json:"totalTerminateInstances"`
+	Role                     string `json:"role" xorm:"role"`          // 管理角色
+	MailMode                 string `json:"mailMode" xorm:"mail_mode"` // 邮件发送模式->role(角色邮箱) | user(用户邮箱) | none(不发送)
 }
 
 type ProcScheduleOperationParam struct {
@@ -117,12 +119,13 @@ type SendMailSource struct {
 }
 
 type ScheduleJobMailQueryObj struct {
-	Id             string `xorm:"id"`
-	ProcInsId      string `xorm:"proc_ins_id"`
-	ProcDefName    string `xorm:"proc_def_name"`
-	EntityDataName string `xorm:"entity_data_name"`
-	Status         string `xorm:"status"`
-	CreatedTime    string `xorm:"created_time"`
-	NodeStatus     string `xorm:"node_status"`
-	NodeName       string `xorm:"node_name"`
+	Id               string `xorm:"id"`
+	ProcInsId        string `xorm:"proc_ins_id"`
+	ProcDefName      string `xorm:"proc_def_name"`
+	EntityDataName   string `xorm:"entity_data_name"`
+	Status           string `xorm:"status"`
+	CreatedTime      string `xorm:"created_time"`
+	NodeStatus       string `xorm:"node_status"`
+	NodeName         string `xorm:"node_name"`
+	ScheduleConfigId string `xorm:"schedule_config_id"`
 }

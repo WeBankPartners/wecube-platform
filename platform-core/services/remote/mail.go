@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/db"
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/exterror"
-	"github.com/WeBankPartners/wecube-platform/platform-core/common/log"
 	"github.com/WeBankPartners/wecube-platform/platform-core/models"
 	"net/smtp"
 	"strings"
@@ -25,14 +24,14 @@ func getMailSource() (authObj smtp.Auth, senderObj *models.SendMailSource, err e
 	return
 }
 
-func SendSmtpMail(smo models.SendMailTarget) {
-	authObj, senderObj, err := getMailSource()
-	if err != nil {
-		log.Logger.Error("send smtp mail fail with get config", log.Error(err))
+func SendSmtpMail(smo models.SendMailTarget) (err error) {
+	authObj, senderObj, getSourceErr := getMailSource()
+	if getSourceErr != nil {
+		err = fmt.Errorf("send smtp mail fail with get config,%s ", getSourceErr.Error())
 		return
 	}
 	if senderObj.SSL {
-		sendSMTPMailTLS(smo, authObj, senderObj)
+		err = sendSMTPMailTLS(smo, authObj, senderObj)
 		return
 	}
 	if !strings.Contains(senderObj.Server, ":") {
@@ -40,11 +39,12 @@ func SendSmtpMail(smo models.SendMailTarget) {
 	}
 	err = smtp.SendMail(senderObj.Server, authObj, senderObj.Sender, smo.Accept, mailQQMessage(smo.Accept, smo.Subject, smo.Content, senderObj.Sender))
 	if err != nil {
-		log.Logger.Error("Send mail error", log.Error(err))
+		err = fmt.Errorf("Send mail error,%s ", err.Error())
 	}
+	return
 }
 
-func sendSMTPMailTLS(smo models.SendMailTarget, authObj smtp.Auth, senderObj *models.SendMailSource) {
+func sendSMTPMailTLS(smo models.SendMailTarget, authObj smtp.Auth, senderObj *models.SendMailSource) (err error) {
 	tlsConfig := &tls.Config{
 		InsecureSkipVerify: true,
 		ServerName:         senderObj.Server,
@@ -53,51 +53,52 @@ func sendSMTPMailTLS(smo models.SendMailTarget, authObj smtp.Auth, senderObj *mo
 	if !strings.Contains(senderObj.Server, ":") {
 		address = fmt.Sprintf("%s:465", senderObj.Server)
 	}
-	conn, err := tls.Dial("tcp", address, tlsConfig)
-	if err != nil {
-		log.Logger.Error("Tls dial error", log.Error(err))
+	conn, dialErr := tls.Dial("tcp", address, tlsConfig)
+	if dialErr != nil {
+		err = fmt.Errorf("tls dial address:%s fail,%s", address, dialErr.Error())
 		return
 	}
-	client, err := smtp.NewClient(conn, senderObj.Server)
-	if err != nil {
-		log.Logger.Error("Smtp new client error", log.Error(err))
+	client, newClientErr := smtp.NewClient(conn, senderObj.Server)
+	if newClientErr != nil {
+		err = fmt.Errorf("new smtp client fail,%s ", newClientErr.Error())
 		return
 	}
 	defer client.Close()
 	if b, _ := client.Extension("AUTH"); b {
 		err = client.Auth(authObj)
 		if err != nil {
-			log.Logger.Error("Client auth error", log.Error(err))
+			err = fmt.Errorf("Client auth fail,%s ", err.Error())
 			return
 		}
 	}
 	err = client.Mail(senderObj.Sender)
 	if err != nil {
-		log.Logger.Error("Client mail set from error", log.Error(err))
+		err = fmt.Errorf("Client mail set from fail:%s ", err.Error())
 		return
 	}
 	for _, to := range smo.Accept {
 		if err = client.Rcpt(to); err != nil {
-			log.Logger.Error(fmt.Sprintf("Client rcpt %s error", to), log.Error(err))
+			err = fmt.Errorf("Client rcpt %s error,%s ", to, err.Error())
 			return
 		}
 	}
-	w, err := client.Data()
-	if err != nil {
-		log.Logger.Error("Client data init error", log.Error(err))
+	w, dataInitErr := client.Data()
+	if dataInitErr != nil {
+		err = fmt.Errorf("Client data init error,%s ", dataInitErr.Error())
 		return
 	}
 	_, err = w.Write(mailQQMessage(smo.Accept, smo.Subject, smo.Content, senderObj.Sender))
 	if err != nil {
-		log.Logger.Error("Write message error", log.Error(err))
+		err = fmt.Errorf("Write message error,%s ", err.Error())
 		return
 	}
 	w.Close()
 	err = client.Quit()
 	if err != nil {
-		log.Logger.Error("Client quit error", log.Error(err))
+		err = fmt.Errorf("Client quit error,%s ", err.Error())
 		return
 	}
+	return
 }
 
 func mailQQMessage(to []string, subject, content, sender string) []byte {
