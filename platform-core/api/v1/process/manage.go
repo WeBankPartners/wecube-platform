@@ -137,6 +137,21 @@ func AddOrUpdateProcessDefinition(c *gin.Context) {
 	middleware.ReturnData(c, models.ConvertProcDef2Dto(entity))
 }
 
+// SyncUseRole  taskman同步使用角色给编排
+func SyncUseRole(c *gin.Context) {
+	var param models.SyncUseRoleParam
+	if err := c.ShouldBindJSON(&param); err != nil {
+		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, err))
+		return
+	}
+	err := database.AddUseRoles(c, param.ProcDefId, param.UseRoles)
+	if err != nil {
+		middleware.ReturnError(c, err)
+		return
+	}
+	middleware.ReturnSuccess(c)
+}
+
 // GetProcessDefinition 获取编排
 func GetProcessDefinition(c *gin.Context) {
 	procDefId := c.Param("proc-def-id")
