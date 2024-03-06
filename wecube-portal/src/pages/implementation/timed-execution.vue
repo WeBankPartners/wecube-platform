@@ -13,7 +13,7 @@
       </div>
       <div class="item">
         {{ $t('set_up_person') }}:
-        <Input v-model="searchConfig.params.owner" style="width: 80%" clearable></Input>
+        <Input v-model="searchConfig.params.owner" style="width: 70%" clearable></Input>
       </div>
       <div class="item">
         {{ $t('timing_type') }}:
@@ -114,14 +114,14 @@
             format="HH:mm:ss"
           ></TimePicker>
         </FormItem>
-        <FormItem :label="$t('role')">
+        <FormItem :label="$t('be_mgmt_role')">
           <Select v-model="timeConfig.params.role" style="width: 370px">
             <Option v-for="item in timeConfig.currentUserRoles" :key="item.name" :value="item.name">{{
               item.displayName
             }}</Option>
           </Select>
         </FormItem>
-        <FormItem :label="$t('email')">
+        <FormItem :label="$t('be_email_push')">
           <Select v-model="timeConfig.params.mailMode" style="width: 370px">
             <Option v-for="item in timeConfig.mailModeOptions" :key="item.value" :value="item.value">{{
               item.label
@@ -220,15 +220,18 @@ export default {
         },
         {
           title: this.$t('flow_name'),
-          key: 'procDefName'
+          key: 'procDefName',
+          width: 200
         },
         {
           title: this.$t('target_object'),
-          key: 'entityDataName'
+          key: 'entityDataName',
+          width: 200
         },
         {
           title: this.$t('table_created_date'),
-          key: 'createdTime'
+          key: 'createdTime',
+          width: 200
         },
         {
           title: this.$t('set_up_person'),
@@ -242,7 +245,8 @@ export default {
         },
         {
           title: this.$t('schedule_expr'),
-          key: 'scheduleExpr'
+          key: 'scheduleExpr',
+          width: 200
         },
         {
           title: this.$t('status'),
@@ -392,6 +396,7 @@ export default {
           key: 'action',
           width: 230,
           align: 'center',
+          fixed: 'right',
           render: (h, params) => {
             return (
               <div>
