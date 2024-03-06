@@ -180,6 +180,7 @@ type RegisterXML struct {
 	Text                string   `xml:",chardata"`
 	Name                string   `xml:"name,attr"`
 	Version             string   `xml:"version,attr"`
+	Edition             string   `xml:"edition,attr"`
 	PackageDependencies struct {
 		Text              string `xml:",chardata"`
 		PackageDependency []struct {

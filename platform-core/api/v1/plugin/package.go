@@ -149,7 +149,11 @@ func UploadPackage(c *gin.Context) {
 		}
 	}
 	// 写数据库
-	err = database.UploadPackage(c, &registerConfig, withUi, false, "")
+	enterprise := false
+	if registerConfig.Edition == "enterprise" {
+		enterprise = true
+	}
+	err = database.UploadPackage(c, &registerConfig, withUi, enterprise, "")
 	if err != nil {
 		middleware.ReturnError(c, err)
 	} else {
