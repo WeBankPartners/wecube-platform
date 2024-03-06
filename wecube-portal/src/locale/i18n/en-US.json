@@ -509,7 +509,7 @@
   "hide_same_parameters": "Hide Same Parameters",
   "highlight_different_parameters": "Highlight Different Parameters",
   "timed_execution": "Timed Execution",
-  "set_up_person": "Set Up Person",
+  "set_up_person": "Set Person",
   "timing_type": "Timing Type",
   "schedule_expr": "Schedule Express",
   "pause": "Pause",
@@ -644,5 +644,7 @@
   "timeIntervaltip1": "1. Support selecting a time period",
   "be_role_email": "Role Email",
   "be_user_email": "user Email",
-  "be_not_send": "Not Send"
+  "be_not_send": "Not Send",
+  "be_mgmt_role": "MGMT Role",
+  "be_email_push": "Email Push"
 }
