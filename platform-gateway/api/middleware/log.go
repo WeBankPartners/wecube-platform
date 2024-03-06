@@ -16,12 +16,14 @@ import (
 func HttpLogHandle() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		start := time.Now()
-		bodyBytes, _ := ioutil.ReadAll(c.Request.Body)
-		c.Request.Body.Close()
-		c.Request.Body = ioutil.NopCloser(bytes.NewReader(bodyBytes))
-		c.Set("requestBody", string(bodyBytes))
+		if c.Request.RequestURI != "/platform/v1/packages" {
+			bodyBytes, _ := ioutil.ReadAll(c.Request.Body)
+			c.Request.Body.Close()
+			c.Request.Body = ioutil.NopCloser(bytes.NewReader(bodyBytes))
+			c.Set("requestBody", string(bodyBytes))
+		}
 		log.Logger.Info(fmt.Sprintf("Received request "), log.String("url", c.Request.RequestURI), log.String("method", c.Request.Method), log.String("body", c.GetString("requestBody")))
-		if strings.EqualFold(model.Config.Log.Level, "debug") {
+		if strings.EqualFold(model.Config.Log.Level, "debug") && c.Request.RequestURI != "/platform/v1/packages" {
 			requestDump, _ := httputil.DumpRequest(c.Request, true)
 			log.Logger.Debug("Received request: " + string(requestDump))
 		}
