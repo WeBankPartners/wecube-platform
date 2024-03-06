@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/WeBankPartners/go-common-lib/guid"
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/log"
+	"github.com/WeBankPartners/wecube-platform/platform-core/common/tools"
 	"github.com/WeBankPartners/wecube-platform/platform-core/models"
 	"github.com/WeBankPartners/wecube-platform/platform-core/services/database"
 	"github.com/WeBankPartners/wecube-platform/platform-core/services/remote"
@@ -167,6 +168,7 @@ func DoWorkflowAutoJob(ctx context.Context, procRunNodeId, continueToken string,
 		entityInstances = append(entityInstances, &models.BatchExecutionPluginExecEntityInstances{
 			Id:               bindingObj.EntityDataId,
 			BusinessKeyValue: "",
+			ContextMap:       make(map[string]interface{}),
 		})
 	}
 	inputConstantMap := make(map[string]string)
@@ -182,19 +184,18 @@ func DoWorkflowAutoJob(ctx context.Context, procRunNodeId, continueToken string,
 		if v.BindType == "constant" {
 			inputConstantMap[interfaceParamIdMap[v.Name]] = v.Value
 		} else if v.BindType == "context" {
-			bindNodeType, getTypeErr := database.GetProcContextBindNodeType(ctx, procDefNode.ProcDefId, v.CtxBindNode)
+			bindNodeDef, getTypeErr := database.GetProcContextBindNodeType(ctx, procDefNode.ProcDefId, v.CtxBindNode)
 			if getTypeErr != nil {
 				err = getTypeErr
 				return
 			}
-			if bindNodeType == "start" {
-				inputContextMap["procInstId"] = procIns.Id
-				inputContextMap["procDefName"] = procIns.ProcDefName
-				inputContextMap["procDefKey"] = procIns.ProcDefKey
-				inputContextMap["procInstKey"] = procIns.ProcDefName
-				inputContextMap["procInstName"] = procIns.ProcDefName
-				inputContextMap["rootEntityId"] = procIns.EntityDataId
-				inputContextMap["rootEntityName"] = procIns.EntityDataName
+			if bindNodeDef.NodeType == models.JobStartType {
+				buildStartNodeContextMap(inputContextMap, procIns)
+			} else if bindNodeDef.NodeType == models.JobAutoType {
+				if err = buildAutoNodeContextMap(ctx, entityInstances, procIns, bindNodeDef, dataBindings, v.CtxBindType, v.CtxBindName, v.Name); err != nil {
+					err = fmt.Errorf("buildAutoNodeContextMap fail with param:%s,error:%s", v.Name, err.Error())
+					return
+				}
 			}
 		}
 	}
@@ -371,19 +372,13 @@ func DoWorkflowHumanJob(ctx context.Context, procRunNodeId string, recoverFlag b
 		if v.BindType == "constant" {
 			inputConstantMap[interfaceParamIdMap[v.Name]] = v.Value
 		} else if v.BindType == "context" {
-			bindNodeType, getTypeErr := database.GetProcContextBindNodeType(ctx, procDefNode.ProcDefId, v.CtxBindNode)
+			bindNodeDef, getTypeErr := database.GetProcContextBindNodeType(ctx, procDefNode.ProcDefId, v.CtxBindNode)
 			if getTypeErr != nil {
 				err = getTypeErr
 				return
 			}
-			if bindNodeType == "start" {
-				inputContextMap["procInstId"] = procIns.Id
-				inputContextMap["procDefName"] = procIns.ProcDefName
-				inputContextMap["procDefKey"] = procIns.ProcDefKey
-				inputContextMap["procInstKey"] = procIns.ProcDefName
-				inputContextMap["procInstName"] = procIns.ProcDefName
-				inputContextMap["rootEntityId"] = procIns.EntityDataId
-				inputContextMap["rootEntityName"] = procIns.EntityDataName
+			if bindNodeDef.NodeType == models.JobStartType {
+				buildStartNodeContextMap(inputContextMap, procIns)
 			}
 		}
 	}
@@ -627,5 +622,85 @@ func HandleCallbackHumanJob(ctx context.Context, procRunNodeId string, callbackD
 	if len(taskFormList) > 0 {
 		err = database.UpdateProcCacheData(ctx, procInsNode.ProcInsId, taskFormList)
 	}
+	return
+}
+
+func buildStartNodeContextMap(inputContextMap map[string]interface{}, procIns *models.ProcIns) {
+	inputContextMap["procInstId"] = procIns.Id
+	inputContextMap["procDefName"] = procIns.ProcDefName
+	inputContextMap["procDefKey"] = procIns.ProcDefKey
+	inputContextMap["procInstKey"] = procIns.ProcDefName
+	inputContextMap["procInstName"] = procIns.ProcDefName
+	inputContextMap["rootEntityId"] = procIns.EntityDataId
+	inputContextMap["rootEntityName"] = procIns.EntityDataName
+}
+
+func buildAutoNodeContextMap(ctx context.Context,
+	entityInstances []*models.BatchExecutionPluginExecEntityInstances,
+	procIns *models.ProcIns,
+	bindNodeDef *models.ProcDefNode,
+	targetNodeDataBindings []*models.ProcDataBinding,
+	bindParamType, bindParamName, paramName string) (err error) {
+	log.Logger.Debug("buildAutoNodeContextMap start", log.JsonObj("entityInstances", entityInstances), log.JsonObj("bindNodeDef", bindNodeDef), log.JsonObj("targetNodeDataBindings", targetNodeDataBindings), log.String("bindParamType", bindParamType), log.String("bindParamName", bindParamName), log.String("paramName", paramName))
+	var sourceNodeDataBindings []*models.ProcDataBinding
+	if bindNodeDef.DynamicBind {
+		sourceNodeDataBindings, err = database.GetDynamicBindNodeData(ctx, procIns.Id, procIns.ProcDefId, bindNodeDef.BindNodeId)
+	} else {
+		sourceNodeDataBindings, err = database.GetDynamicBindNodeData(ctx, procIns.Id, procIns.ProcDefId, bindNodeDef.NodeId)
+	}
+	if err != nil {
+		return
+	}
+	if len(sourceNodeDataBindings) == 0 {
+		return
+	}
+	// 找两份dataBinding的关系，通过判断目标的full_data_id里有没有源的entity_data_id来确定目标是不是源关联出来的数据
+	entityDataMap := make(map[string][]*models.ProcDataBinding) // key -> 目标的entityDataId  value -> 源的绑定数据
+	for _, targetData := range targetNodeDataBindings {
+		fullDataList := strings.Split(targetData.FullDataId, "::")
+		for _, sourceData := range sourceNodeDataBindings {
+			if tools.StringListContains(fullDataList, sourceData.EntityDataId) {
+				if existSourceData, ok := entityDataMap[targetData.EntityDataId]; ok {
+					entityDataMap[targetData.EntityDataId] = append(existSourceData, sourceData)
+				} else {
+					entityDataMap[targetData.EntityDataId] = []*models.ProcDataBinding{sourceData}
+				}
+			}
+		}
+	}
+	if len(entityDataMap) == 0 {
+		return
+	}
+	sourceReq, getSourceReqErr := database.GetProcInsNodeContext(ctx, procIns.Id, "", bindNodeDef.Id)
+	if getSourceReqErr != nil {
+		err = getSourceReqErr
+		return
+	}
+	for _, entityInstance := range entityInstances {
+		if sourceBindList, ok := entityDataMap[entityInstance.Id]; ok {
+			var sourceBindValues []interface{}
+			for _, sourceBindObj := range sourceBindList {
+				for _, sourceReqData := range sourceReq.RequestObjects {
+					if sourceReqData.CallbackParameter == sourceBindObj.EntityDataId {
+						if bindParamType == "INPUT" {
+							if len(sourceReqData.Inputs) > 0 {
+								sourceBindValues = append(sourceBindValues, sourceReqData.Inputs[0][bindParamName])
+							}
+						} else if bindParamType == "OUTPUT" {
+							if len(sourceReqData.Outputs) > 0 {
+								sourceBindValues = append(sourceBindValues, sourceReqData.Outputs[0][bindParamName])
+							}
+						}
+					}
+				}
+			}
+			if len(sourceBindValues) == 1 {
+				entityInstance.ContextMap[paramName] = sourceBindValues[0]
+			} else if len(sourceBindValues) > 1 {
+				entityInstance.ContextMap[paramName] = sourceBindValues
+			}
+		}
+	}
+	log.Logger.Debug("buildAutoNodeContextMap done", log.JsonObj("entityInstances", entityInstances))
 	return
 }
