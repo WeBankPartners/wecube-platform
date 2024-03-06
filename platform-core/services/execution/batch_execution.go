@@ -350,11 +350,20 @@ func handleInputData(
 				}
 			case models.PluginParamMapTypeContext:
 				// 上下文参数获取不支持
-				if inputContextMap == nil {
-					err = fmt.Errorf("input param %s is map to %s, which batch execution is not supported", inputDef.Name, inputDef.MappingType)
-					return
+				tmpCtxDataMatchFlag := false
+				if entityInstance.ContextMap != nil {
+					if tmpCtxValue, ctxOk := entityInstance.ContextMap[inputDef.Name]; ctxOk {
+						tmpCtxDataMatchFlag = true
+						inputCalResult = tmpCtxValue
+					}
 				}
-				inputCalResult = inputContextMap[inputDef.Name]
+				if !tmpCtxDataMatchFlag {
+					if inputContextMap == nil {
+						err = fmt.Errorf("input param %s is map to %s, which batch execution is not supported", inputDef.Name, inputDef.MappingType)
+						return
+					}
+					inputCalResult = inputContextMap[inputDef.Name]
+				}
 			case models.PluginParamMapTypeEntity:
 				// 从数据模型获取
 				if inputDef.MappingEntityExpression == "" {

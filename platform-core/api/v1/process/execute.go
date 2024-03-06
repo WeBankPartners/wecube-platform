@@ -516,7 +516,7 @@ func GetProcInsNodeContext(c *gin.Context) {
 		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, fmt.Errorf("path param can not empty")))
 		return
 	}
-	result, err := database.GetProcInsNodeContext(c, procInsId, procInsNodeId)
+	result, err := database.GetProcInsNodeContext(c, procInsId, procInsNodeId, "")
 	if err != nil {
 		middleware.ReturnError(c, err)
 	} else {
