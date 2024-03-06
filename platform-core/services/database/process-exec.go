@@ -1022,9 +1022,13 @@ func RecordProcCallReq(ctx context.Context, param *models.ProcInsNodeReq, inputF
 	return
 }
 
-func GetProcInsNodeContext(ctx context.Context, procInsId, procInsNodeId string) (result *models.ProcNodeContextReq, err error) {
+func GetProcInsNodeContext(ctx context.Context, procInsId, procInsNodeId, procDefNodeId string) (result *models.ProcNodeContextReq, err error) {
 	var queryRows []*models.ProcNodeContextQueryObj
-	err = db.MysqlEngine.Context(ctx).SQL("select t1.id,t1.name,t1.proc_def_node_id,t1.error_msg,t2.routine_expression,t2.service_name,t2.node_type,t3.start_time,t3.end_time from proc_ins_node t1 left join proc_def_node t2 on t1.proc_def_node_id=t2.id left join proc_run_node t3 on t3.proc_ins_node_id=t1.id where t1.proc_ins_id=? and t1.id=?", procInsId, procInsNodeId).Find(&queryRows)
+	if procInsNodeId != "" {
+		err = db.MysqlEngine.Context(ctx).SQL("select t1.id,t1.name,t1.proc_def_node_id,t1.error_msg,t2.routine_expression,t2.service_name,t2.node_type,t3.start_time,t3.end_time from proc_ins_node t1 left join proc_def_node t2 on t1.proc_def_node_id=t2.id left join proc_run_node t3 on t3.proc_ins_node_id=t1.id where t1.proc_ins_id=? and t1.id=?", procInsId, procInsNodeId).Find(&queryRows)
+	} else if procDefNodeId != "" {
+		err = db.MysqlEngine.Context(ctx).SQL("select t1.id,t1.name,t1.proc_def_node_id,t1.error_msg,t2.routine_expression,t2.service_name,t2.node_type,t3.start_time,t3.end_time from proc_ins_node t1 left join proc_def_node t2 on t1.proc_def_node_id=t2.id left join proc_run_node t3 on t3.proc_ins_node_id=t1.id where t1.proc_ins_id=? and t1.proc_def_node_id=?", procInsId, procDefNodeId).Find(&queryRows)
+	}
 	if err != nil {
 		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
 		return
@@ -1046,7 +1050,7 @@ func GetProcInsNodeContext(ctx context.Context, procInsId, procInsNodeId string)
 	result.EndTime = queryObj.EndTime.Format(models.DateTimeFormat)
 	result.RequestObjects = []models.ProcNodeContextReqObject{}
 	var reqRows []*models.ProcInsNodeReq
-	err = db.MysqlEngine.Context(ctx).SQL("select id from proc_ins_node_req where proc_ins_node_id=? order by created_time", procInsNodeId).Find(&reqRows)
+	err = db.MysqlEngine.Context(ctx).SQL("select id from proc_ins_node_req where proc_ins_node_id=? order by created_time", queryObj.Id).Find(&reqRows)
 	if err != nil {
 		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
 		return
@@ -1161,17 +1165,18 @@ func GetProcCacheData(ctx context.Context, procInsId string) (procCacheDataRows 
 	return
 }
 
-func GetProcContextBindNodeType(ctx context.Context, procDefId, bindNodeId string) (nodeType string, err error) {
-	queryRows, queryErr := db.MysqlEngine.Context(ctx).QueryString("select node_type from proc_def_node where proc_def_id=? and node_id=?", procDefId, bindNodeId)
-	if queryErr != nil {
-		err = exterror.Catch(exterror.New().DatabaseQueryError, queryErr)
+func GetProcContextBindNodeType(ctx context.Context, procDefId, bindNodeId string) (sourceNodeDef *models.ProcDefNode, err error) {
+	var nodeDefRows []*models.ProcDefNode
+	err = db.MysqlEngine.Context(ctx).SQL("select id,node_id,proc_def_id,name,status,node_type,service_name,dynamic_bind,bind_node_id,risk_check,routine_expression,ordered_no from proc_def_node where proc_def_id=? and node_id=?", procDefId, bindNodeId).Find(&nodeDefRows)
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
 		return
 	}
-	if len(queryRows) == 0 {
+	if len(nodeDefRows) == 0 {
 		err = fmt.Errorf("can not find context bind node:%s in procDef:%s ", bindNodeId, procDefId)
 		return
 	}
-	nodeType = queryRows[0]["node_type"]
+	sourceNodeDef = nodeDefRows[0]
 	return
 }
 
