@@ -75,9 +75,9 @@
                     clearable
                     @on-clear="clearFlow"
                   >
-                    <Option v-for="item in allFlows" :value="item.procDefId" :key="item.procDefId">{{
-                      item.procDefName + ' ' + item.createdTime
-                    }}</Option>
+                    <Option v-for="item in allFlows" :value="item.procDefId" :key="item.procDefId"
+                      >{{ item.procDefName }} {{ item.createdTime }}</Option
+                    >
                   </Select>
                 </FormItem>
               </Col>
@@ -908,9 +908,9 @@ export default {
     },
     async jumpToHistory (id) {
       // await this.queryHistory()
-      this.querySelectedFlowInstanceId = Number(id)
+      this.querySelectedFlowInstanceId = id
       await this.getProcessInstances()
-      this.selectedFlowInstance = Number(id)
+      this.selectedFlowInstance = id
       this.$nextTick(() => {
         this.currentTab = 'enquery_new_workflow_job'
         this.queryHandler()

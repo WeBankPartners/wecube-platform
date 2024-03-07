@@ -1,15 +1,19 @@
 package plugin
 
 import (
+	"encoding/xml"
 	"fmt"
+	"net/http"
 	"sort"
 	"strings"
+	"time"
 
 	"github.com/WeBankPartners/wecube-platform/platform-core/api/middleware"
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/exterror"
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/log"
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/try"
 	"github.com/WeBankPartners/wecube-platform/platform-core/models"
+	"github.com/WeBankPartners/wecube-platform/platform-core/services/bash"
 	"github.com/WeBankPartners/wecube-platform/platform-core/services/database"
 	"github.com/gin-gonic/gin"
 )
@@ -17,7 +21,24 @@ import (
 // GetPluginConfigs 服务注册 - 当前插件服务配置查询
 func GetPluginConfigs(c *gin.Context) {
 	pluginPackageId := c.Param("pluginPackageId")
-	result, err := database.GetPluginConfigs(c, pluginPackageId, middleware.GetRequestRoles(c))
+	result, err := database.GetPluginConfigs(c, pluginPackageId, middleware.GetRequestRoles(c), "")
+	if err != nil {
+		middleware.ReturnError(c, err)
+	} else {
+		middleware.ReturnData(c, result)
+	}
+}
+
+// GetPluginConfigsWithInterfaces 服务注册 - 当前插件服务配置查询带interfaces
+func GetPluginConfigsWithInterfaces(c *gin.Context) {
+	defer try.ExceptionStack(func(e interface{}, err interface{}) {
+		retErr := fmt.Errorf("%v", err)
+		middleware.ReturnError(c, exterror.Catch(exterror.New().ServerHandleError, retErr))
+		log.Logger.Error(e.(string))
+	})
+
+	pluginPackageId := c.Param("pluginPackageId")
+	result, err := database.GetPluginConfigsWithInterfaces(c, pluginPackageId, middleware.GetRequestRoles(c), "")
 	if err != nil {
 		middleware.ReturnError(c, err)
 	} else {
@@ -74,22 +95,110 @@ func UpdatePluginConfigRoles(c *gin.Context) {
 
 // DisablePluginConfig 服务注册 - 服务注销
 func DisablePluginConfig(c *gin.Context) {
+	defer try.ExceptionStack(func(e interface{}, err interface{}) {
+		retErr := fmt.Errorf("%v", err)
+		middleware.ReturnError(c, exterror.Catch(exterror.New().ServerHandleError, retErr))
+		log.Logger.Error(e.(string))
+	})
 
+	pluginConfigId := c.Param("pluginConfigId")
+	var err error
+	if pluginConfigId == "" {
+		err = exterror.Catch(exterror.New().RequestParamValidateError, fmt.Errorf("request param err, pluginConfigId can not be empty"))
+		middleware.ReturnError(c, err)
+		return
+	}
+
+	retData, err := database.UpdatePluginConfigStatus(c, pluginConfigId, models.PluginStatusDisabled)
+	if err != nil {
+		middleware.ReturnError(c, err)
+	} else {
+		middleware.ReturnData(c, retData)
+	}
+	return
 }
 
 // EnablePluginConfig 服务注册 - 服务注册
 func EnablePluginConfig(c *gin.Context) {
+	defer try.ExceptionStack(func(e interface{}, err interface{}) {
+		retErr := fmt.Errorf("%v", err)
+		middleware.ReturnError(c, exterror.Catch(exterror.New().ServerHandleError, retErr))
+		log.Logger.Error(e.(string))
+	})
 
+	pluginConfigId := c.Param("pluginConfigId")
+	var err error
+	if pluginConfigId == "" {
+		err = exterror.Catch(exterror.New().RequestParamValidateError, fmt.Errorf("request param err, pluginConfigId can not be empty"))
+		middleware.ReturnError(c, err)
+		return
+	}
+
+	retData, err := database.UpdatePluginConfigStatus(c, pluginConfigId, models.PluginStatusEnabled)
+	if err != nil {
+		middleware.ReturnError(c, err)
+	} else {
+		middleware.ReturnData(c, retData)
+	}
+	return
 }
 
 // SavePluginConfig 服务注册 - 服务配置保存
 func SavePluginConfig(c *gin.Context) {
+	defer try.ExceptionStack(func(e interface{}, err interface{}) {
+		retErr := fmt.Errorf("%v", err)
+		middleware.ReturnError(c, exterror.Catch(exterror.New().ServerHandleError, retErr))
+		log.Logger.Error(e.(string))
+	})
 
+	var err error
+	reqParam := models.PluginConfigDto{}
+	if err = c.ShouldBindJSON(&reqParam); err != nil {
+		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, err))
+		return
+	}
+	if len(reqParam.PermissionToRole.MGMT) == 0 {
+		err = exterror.Catch(exterror.New().RequestParamValidateError, fmt.Errorf("request param err, MGMT permission role can not be empty"))
+		middleware.ReturnError(c, err)
+		return
+	}
+	if len(reqParam.PluginPackageId) == 0 {
+		err = exterror.Catch(exterror.New().RequestParamValidateError, fmt.Errorf("request param err, pluginPackageId can not be empty"))
+		middleware.ReturnError(c, err)
+		return
+	}
+
+	retData, err := database.SavePluginConfig(c, &reqParam)
+	if err != nil {
+		middleware.ReturnError(c, err)
+	} else {
+		middleware.ReturnData(c, retData)
+	}
 }
 
 // DeletePluginConfig 服务注册 - 服务配置删除
 func DeletePluginConfig(c *gin.Context) {
+	defer try.ExceptionStack(func(e interface{}, err interface{}) {
+		retErr := fmt.Errorf("%v", err)
+		middleware.ReturnError(c, exterror.Catch(exterror.New().ServerHandleError, retErr))
+		log.Logger.Error(e.(string))
+	})
 
+	pluginConfigId := c.Param("pluginConfigId")
+	var err error
+	if pluginConfigId == "" {
+		err = exterror.Catch(exterror.New().RequestParamValidateError, fmt.Errorf("request param err, pluginConfigId can not be empty"))
+		middleware.ReturnError(c, err)
+		return
+	}
+
+	err = database.DeletePluginConfig(c, pluginConfigId)
+	if err != nil {
+		middleware.ReturnError(c, err)
+	} else {
+		middleware.ReturnSuccess(c)
+	}
+	return
 }
 
 // GetBatchPluginConfigs 服务注册 - 批量注册查询
@@ -119,22 +228,157 @@ func GetBatchPluginConfigs(c *gin.Context) {
 
 // BatchEnablePluginConfig 服务注册 - 批量注册
 func BatchEnablePluginConfig(c *gin.Context) {
+	defer try.ExceptionStack(func(e interface{}, err interface{}) {
+		retErr := fmt.Errorf("%v", err)
+		middleware.ReturnError(c, exterror.Catch(exterror.New().ServerHandleError, retErr))
+		log.Logger.Error(e.(string))
+	})
 
+	pluginPackageId := c.Param("pluginPackageId")
+	var err error
+	if pluginPackageId == "" {
+		err = exterror.Catch(exterror.New().RequestParamValidateError, fmt.Errorf("request param err, pluginPackageId can not be empty"))
+		middleware.ReturnError(c, err)
+		return
+	}
+
+	var reqParam []*models.PluginConfigsBatchEnable
+	if err = c.ShouldBindJSON(&reqParam); err != nil {
+		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, err))
+		return
+	}
+	err = database.BatchEnablePluginConfig(c, reqParam, pluginPackageId)
+	if err != nil {
+		middleware.ReturnError(c, err)
+	} else {
+		middleware.ReturnSuccess(c)
+	}
+	return
 }
 
 // ExportPluginConfigs 插件配置导出
 func ExportPluginConfigs(c *gin.Context) {
+	defer try.ExceptionStack(func(e interface{}, err interface{}) {
+		retErr := fmt.Errorf("%v", err)
+		middleware.ReturnError(c, exterror.Catch(exterror.New().ServerHandleError, retErr))
+		log.Logger.Error(e.(string))
+	})
 
+	pluginPackageId := c.Param("pluginPackageId")
+	var err error
+	if pluginPackageId == "" {
+		err = exterror.Catch(exterror.New().RequestParamValidateError, fmt.Errorf("request param err, pluginPackageId can not be empty"))
+		middleware.ReturnError(c, err)
+		return
+	}
+
+	retData, err := database.ExportPluginConfigs(c, pluginPackageId)
+	if err != nil {
+		middleware.ReturnError(c, err)
+		return
+	} else {
+		// middleware.ReturnXMLData(c, retData)
+		fileName := fmt.Sprintf("%s-%s-%s.xml", retData.Name, retData.Version, time.Now().Format("20060102150405"))
+		// retDataBytes, tmpErr := json.Marshal(retData)
+		retDataBytes, tmpErr := xml.MarshalIndent(retData, "", "    ")
+		if tmpErr != nil {
+			err = fmt.Errorf("marshal exportPluginConfigs failed: %s", tmpErr.Error())
+			return
+		}
+		c.Header("Content-Disposition", fmt.Sprintf("attachment;filename=%s", fileName))
+		c.Data(http.StatusOK, "application/octet-stream", retDataBytes)
+	}
+	return
 }
 
 // ImportPluginConfigs 插件配置导入
 func ImportPluginConfigs(c *gin.Context) {
+	defer try.ExceptionStack(func(e interface{}, err interface{}) {
+		retErr := fmt.Errorf("%v", err)
+		middleware.ReturnError(c, exterror.Catch(exterror.New().ServerHandleError, retErr))
+		log.Logger.Error(e.(string))
+	})
 
+	pluginPackageId := c.Param("pluginPackageId")
+	var err error
+	if pluginPackageId == "" {
+		err = exterror.Catch(exterror.New().RequestParamValidateError, fmt.Errorf("request param err, pluginPackageId can not be empty"))
+		middleware.ReturnError(c, err)
+		return
+	}
+
+	_, xmlFileBytes, err := middleware.ReadFormFile(c, "xml-file")
+	if err != nil {
+		middleware.ReturnError(c, err)
+		return
+	}
+
+	var packagePluginsData models.PackagePluginsXML
+	if err = xml.Unmarshal(xmlFileBytes, &packagePluginsData); err != nil {
+		middleware.ReturnError(c, fmt.Errorf("xml unmarshal failed: %s", err.Error()))
+		return
+	}
+
+	retData, err := database.ImportPluginConfigs(c, pluginPackageId, &packagePluginsData)
+	if err != nil {
+		middleware.ReturnError(c, err)
+	} else {
+		middleware.ReturnData(c, retData)
+	}
+	return
 }
 
 // DeletePlugin 插件删除
 func DeletePlugin(c *gin.Context) {
-
+	pluginPackageId := c.Param("pluginPackageId")
+	pluginPackage, err := database.GetPluginPackageById(c, pluginPackageId)
+	if err != nil {
+		middleware.ReturnError(c, err)
+		return
+	}
+	if pluginPackage == nil {
+		middleware.ReturnError(c, fmt.Errorf("plugin package %s not found", pluginPackageId))
+		return
+	}
+	if pluginPackage.Status == models.PluginStatusDecommissioned {
+		middleware.ReturnSuccess(c)
+		return
+	}
+	running, err := database.IsPluginInstanceRunning(c, pluginPackageId)
+	if err != nil {
+		middleware.ReturnError(c, err)
+		return
+	}
+	if running {
+		middleware.ReturnError(c, fmt.Errorf("plugin package %s instance is running", pluginPackageId))
+		return
+	}
+	err = database.DisableAllPluginConfigsByPackageId(c, pluginPackageId)
+	if err != nil {
+		middleware.ReturnError(c, err)
+		return
+	}
+	err = database.DeactivateSystemVariablesByPackage(c, pluginPackage.Name, pluginPackage.Version)
+	if err != nil {
+		middleware.ReturnError(c, err)
+		return
+	}
+	if pluginPackage.UiPackageIncluded {
+		for _, staticResourceObj := range models.Config.StaticResources {
+			targetCmd := fmt.Sprintf("rm -rf %s/%s/%s/", staticResourceObj.Path, pluginPackage.Name, pluginPackage.Version)
+			log.Logger.Debug("unregister plugin,remove ui in remote host", log.String("server", staticResourceObj.Server), log.String("cmd", targetCmd))
+			if err = bash.RemoteSSHCommand(staticResourceObj.Server, staticResourceObj.User, staticResourceObj.Password, staticResourceObj.Port, targetCmd); err != nil {
+				middleware.ReturnError(c, err)
+				return
+			}
+		}
+	}
+	err = database.DecommissionPluginPackage(c, pluginPackageId)
+	if err != nil {
+		middleware.ReturnError(c, err)
+		return
+	}
+	middleware.ReturnSuccess(c)
 }
 
 // QueryPluginByTargetEntity 根据目标对象过滤插件
