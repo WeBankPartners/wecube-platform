@@ -160,7 +160,7 @@ type QueryProcessDefinitionParam struct {
 	UpdatedBy        string   `json:"updatedBy"`        // 更新人
 	Scene            string   `json:"scene"`            // 使用场景
 	UserRoles        []string // 用户角色
-	AllVersion       bool     `json:"allVersion"`
+	LastVersion      bool     `json:"lastVersion"`
 }
 
 type BatchUpdateProcDefPermission struct {
