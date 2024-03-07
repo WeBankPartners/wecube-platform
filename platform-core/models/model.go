@@ -26,6 +26,7 @@ type DataModelLeafEntityList struct {
 }
 
 type DataModelLeafEntity struct {
+	Name        string `json:"name"`
 	EntityName  string `json:"entityName"`
 	PackageName string `json:"packageName"`
 	FilterRule  string `json:"filterRule"`
