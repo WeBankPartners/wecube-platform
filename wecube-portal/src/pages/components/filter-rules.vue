@@ -563,6 +563,7 @@ export default {
   overflow: auto;
 }
 .filter_rules_contain {
+  width: 100%;
   display: inline-block;
   background: white;
 }
