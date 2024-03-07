@@ -120,6 +120,11 @@ type ProcDefCollect struct {
 	UpdatedTime time.Time `json:"updatedTime" xorm:"updated_time"` // 更新时间
 }
 
+type SyncUseRoleParam struct {
+	ProcDefId string   `json:"procDefId"` // 编排ID
+	UseRoles  []string `json:"useRoles"`  // 使用角色
+}
+
 // ProcessDefinitionParam 添加编排参数
 type ProcessDefinitionParam struct {
 	Id               string           `json:"id"`               // 唯一标识
@@ -336,13 +341,14 @@ type ProcNodeObj struct {
 	NodeName      string        `json:"nodeName"`
 	NodeType      string        `json:"nodeType"`
 	NodeDefId     string        `json:"nodeDefId"`
+	NodeDefType   string        `json:"nodeDefType"`
 	TaskCategory  string        `json:"taskCategory"`
 	RoutineExp    string        `json:"routineExp"`
 	ServiceId     string        `json:"serviceId"`
 	ServiceName   string        `json:"serviceName"`
 	OrderedNo     string        `json:"orderedNo"`
 	OrderedNum    int           `json:"-"`
-	DynamicBind   bool          `json:"dynamicBind"`
+	DynamicBind   string        `json:"dynamicBind"`
 	BoundEntities []*ProcEntity `json:"boundEntities"`
 }
 
@@ -353,6 +359,29 @@ type ProcEntity struct {
 	Description string                    `json:"description"`
 	DisplayName string                    `json:"displayName"`
 	Attributes  []*ProcEntityAttributeObj `json:"attributes"`
+}
+
+func (p *ProcEntity) ParseAttr(attrs []*PluginPackageAttributes) {
+	for _, v := range attrs {
+		p.Attributes = append(p.Attributes, &ProcEntityAttributeObj{
+			Id:                v.Id,
+			Name:              v.Name,
+			Description:       v.Description,
+			DataType:          v.DataType,
+			Mandatory:         v.Mandatory,
+			RefPackageName:    v.RefPackage,
+			RefEntityName:     v.RefEntity,
+			RefAttrName:       v.RefAttr,
+			ReferenceId:       v.ReferenceId,
+			EntityId:          v.EntityId,
+			EntityName:        v.Name,
+			EntityDisplayName: v.Description,
+			EntityPackage:     v.Package,
+			Multiple:          v.Multiple,
+			OrderNo:           fmt.Sprintf("%d", v.OrderNo),
+			Active:            true,
+		})
+	}
 }
 
 type ProcEntityAttributeObj struct {
@@ -371,6 +400,7 @@ type ProcEntityAttributeObj struct {
 	EntityDisplayName string `json:"entityDisplayName"`
 	EntityPackage     string `json:"entityPackage"`
 	Multiple          string `json:"multiple"`
+	OrderNo           string `json:"orderNo"`
 }
 
 type ProcDefSort []*ProcDef

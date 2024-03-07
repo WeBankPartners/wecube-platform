@@ -10,7 +10,7 @@ import (
 
 	"github.com/WeBankPartners/go-common-lib/guid"
 	"github.com/WeBankPartners/wecube-platform/platform-core/api/middleware"
-	"github.com/WeBankPartners/wecube-platform/platform-core/api/v1/batch-execution"
+	batch_execution "github.com/WeBankPartners/wecube-platform/platform-core/api/v1/batch-execution"
 	"github.com/WeBankPartners/wecube-platform/platform-core/api/v1/certification"
 	"github.com/WeBankPartners/wecube-platform/platform-core/api/v1/plugin"
 	"github.com/WeBankPartners/wecube-platform/platform-core/api/v1/process"
@@ -75,8 +75,10 @@ func init() {
 		&handlerFuncObj{Url: "/packages/instances/:pluginInstanceId/remove", Method: "DELETE", HandlerFunc: plugin.RemovePlugin, ApiCode: "remove-plugin"},
 		&handlerFuncObj{Url: "/packages/:pluginPackageId/instances", Method: "GET", HandlerFunc: plugin.GetPluginRunningInstances, ApiCode: "get-plugin-running-instance"},
 		&handlerFuncObj{Url: "/packages/name/list", Method: "GET", HandlerFunc: plugin.GetPackageNames, ApiCode: "get-package-names"},
+		&handlerFuncObj{Url: "/packages/:pluginPackageId/resources/s3/files", Method: "GET", HandlerFunc: plugin.GetPluginS3Files, ApiCode: "get-plugin-s3-files"},
 		// plugin-config
 		&handlerFuncObj{Url: "/packages/:pluginPackageId/plugin-configs", Method: "GET", HandlerFunc: plugin.GetPluginConfigs, ApiCode: "get-plugin-configs"},
+		&handlerFuncObj{Url: "/packages/:pluginPackageId/plugins", Method: "GET", HandlerFunc: plugin.GetPluginConfigsWithInterfaces, ApiCode: "get-plugin-configs-with-interfaces"},
 		&handlerFuncObj{Url: "/plugins/interfaces/:pluginConfigId", Method: "GET", HandlerFunc: plugin.GetConfigInterfaces, ApiCode: "get-config-interface"},
 		&handlerFuncObj{Url: "/plugins/roles/configs/:pluginConfigId", Method: "POST", HandlerFunc: plugin.UpdatePluginConfigRoles, ApiCode: "update-config-roles"},
 		&handlerFuncObj{Url: "/plugins/disable/:pluginConfigId", Method: "POST", HandlerFunc: plugin.DisablePluginConfig, ApiCode: "disable-plugin-config"},
@@ -89,6 +91,9 @@ func init() {
 		&handlerFuncObj{Url: "/plugins/packages/import/:pluginPackageId", Method: "POST", HandlerFunc: plugin.ImportPluginConfigs, ApiCode: "import-plugin-configs"},
 		&handlerFuncObj{Url: "/packages/decommission/:pluginPackageId", Method: "POST", HandlerFunc: plugin.DeletePlugin, ApiCode: "delete-plugin"},
 		&handlerFuncObj{Url: "/plugins/query-by-target-entity", Method: "POST", HandlerFunc: plugin.QueryPluginByTargetEntity, ApiCode: "query-plugin-by-target-entity"},
+		&handlerFuncObj{Url: "/plugin-artifacts", Method: "GET", HandlerFunc: plugin.ListOnliePackage, ApiCode: "list-online-packages"},
+		&handlerFuncObj{Url: "/plugin-artifacts/pull-requests", Method: "POST", HandlerFunc: plugin.PullOnliePackage, ApiCode: "pull-online-package"},
+		&handlerFuncObj{Url: "/plugin-artifacts/pull-requests/:pullId", Method: "GET", HandlerFunc: plugin.PullOnliePackageStatus, ApiCode: "pull-online-package-status"},
 
 		// model
 		&handlerFuncObj{Url: "/models", Method: "GET", HandlerFunc: plugin.GetAllModels, ApiCode: "get-all-models"},
@@ -101,6 +106,8 @@ func init() {
 		// permission
 		&handlerFuncObj{Url: "/my-menus", Method: "GET", HandlerFunc: system.GetMyMenuItems, ApiCode: "get-my-menu"},
 		&handlerFuncObj{Url: "/users/create", Method: "POST", HandlerFunc: system.CreateUser, ApiCode: "create-user"},
+		&handlerFuncObj{Url: "/user/:username/get", Method: "GET", HandlerFunc: system.GetUserByUsername, ApiCode: "get-user"},
+		&handlerFuncObj{Url: "/user/:username/update", Method: "POST", HandlerFunc: system.UpdateUser, ApiCode: "update-user"},
 		&handlerFuncObj{Url: "/users/retrieve", Method: "GET", HandlerFunc: system.GetAllUser, ApiCode: "get-all-user"},
 		&handlerFuncObj{Url: "/roles/create", Method: "POST", HandlerFunc: system.CreateRole, ApiCode: "create-roles"},
 		&handlerFuncObj{Url: "/roles/retrieve", Method: "GET", HandlerFunc: system.QueryRoles, ApiCode: "query-roles"},
@@ -139,19 +146,33 @@ func init() {
 		&handlerFuncObj{Url: "/process/definitions/link", Method: "POST", HandlerFunc: process.AddOrUpdateProcDefNodeLink, ApiCode: "add-update-process-definition-node-link"},
 		&handlerFuncObj{Url: "/process/definitions/:proc-def-id/link/:node-link-id", Method: "DELETE", HandlerFunc: process.DeleteProcDefNodeLink, ApiCode: "delete-process-definition-node-link"},
 		&handlerFuncObj{Url: "/process/definitions/:proc-def-id/link/:node-link-id", Method: "GET", HandlerFunc: process.GetProcDefNodeLink, ApiCode: "get-process-definition-node-link"},
+		&handlerFuncObj{Url: "/public/process/definitions/syncUseRole", Method: "POST", HandlerFunc: process.SyncUseRole, ApiCode: "public-sync-user-role"},
 
 		// process runtime
 		&handlerFuncObj{Url: "/process/definitions", Method: "GET", HandlerFunc: process.ProcDefList, ApiCode: "list-process-def"},
 		&handlerFuncObj{Url: "/process/definitions/:proc-def-id/outline", Method: "GET", HandlerFunc: process.ProcDefOutline, ApiCode: "process-def-outline"},
 		&handlerFuncObj{Url: "/process/definitions/:proc-def-id/root-entities", Method: "GET", HandlerFunc: process.ProcDefRootEntities, ApiCode: "process-def-root-entity"},
 		&handlerFuncObj{Url: "/process/definitions/:proc-def-id/preview/entities/:entityDataId", Method: "GET", HandlerFunc: process.ProcDefPreview, ApiCode: "process-def-preview"},
-		&handlerFuncObj{Url: "/public/process/definitions/:proc-def-id/tasknodes", Method: "GET", HandlerFunc: process.GetProcDefTaskNodes, ApiCode: "get-process-definition-tasknodes"},
+		&handlerFuncObj{Url: "/public/process/definitions", Method: "GET", HandlerFunc: process.PublicProcDefList, ApiCode: "public-list-process-def"},
+		&handlerFuncObj{Url: "/public/process/definitions/:proc-def-id/preview/entities/:entityDataId", Method: "GET", HandlerFunc: process.PublicProcDefPreview, ApiCode: "process-def-preview"},
+		&handlerFuncObj{Url: "/public/process/definitions/:proc-def-id/tasknodes", Method: "GET", HandlerFunc: process.PublicProcDefTaskNodes, ApiCode: "get-process-definition-tasknodes"},
 		&handlerFuncObj{Url: "/process/instances/tasknodes/session/:sessionId/tasknode-bindings", Method: "GET", HandlerFunc: process.ProcInsTaskNodeBindings, ApiCode: "process-ins-binding"},
 		&handlerFuncObj{Url: "/process/instances/tasknodes/:taskNodeId/session/:sessionId/tasknode-bindings", Method: "GET", HandlerFunc: process.ProcInsTaskNodeBindings, ApiCode: "process-ins-node-binding"},
 		&handlerFuncObj{Url: "/process/instances/tasknodes/:taskNodeId/session/:sessionId/tasknode-bindings", Method: "POST", HandlerFunc: process.UpdateProcNodeBindingData, ApiCode: "update-process-ins-node-binding"},
 		&handlerFuncObj{Url: "/process/instances", Method: "POST", HandlerFunc: process.ProcInsStart, ApiCode: "process-ins-start"},
+		&handlerFuncObj{Url: "/public/process/instances", Method: "POST", HandlerFunc: process.PublicProcInsStart, ApiCode: "public-process-ins-start"},
 		&handlerFuncObj{Url: "/process/instances", Method: "GET", HandlerFunc: process.ProcInsList, ApiCode: "process-ins-list"},
-		&handlerFuncObj{Url: "/process/instances/:procInstId", Method: "GET", HandlerFunc: process.ProcInsDetail, ApiCode: "process-ins-detail"},
+		&handlerFuncObj{Url: "/process/instances/:procInsId", Method: "GET", HandlerFunc: process.ProcInsDetail, ApiCode: "process-ins-detail"},
+		&handlerFuncObj{Url: "/process/instances/:procInsId/tasknodes/:procInsNodeId/context", Method: "GET", HandlerFunc: process.GetProcInsNodeContext, ApiCode: "process-ins-node-context"},
+		&handlerFuncObj{Url: "/process/instances/:procInsId/tasknodes/:procInsNodeId/tasknode-bindings", Method: "POST", HandlerFunc: process.ProcInsNodeRetry, ApiCode: "process-ins-node-retry"},
+		&handlerFuncObj{Url: "/process/instances/:procInsId/tasknodes/:procInsNodeId/tasknode-bindings", Method: "GET", HandlerFunc: process.GetProcInsTaskNodeBindings, ApiCode: "get-process-ins-node-retry"},
+		&handlerFuncObj{Url: "/process/instances/:procInsId/tasknode-bindings", Method: "GET", HandlerFunc: process.GetInstanceTaskNodeBindings, ApiCode: "get-process-ins-binding"},
+		&handlerFuncObj{Url: "/process/instances/:procInsId/preview/entities", Method: "GET", HandlerFunc: process.GetProcInsPreview, ApiCode: "get-ins-preview"},
+		&handlerFuncObj{Url: "/public/process/instances/:procInsId/terminations", Method: "POST", HandlerFunc: process.ProcTermination, ApiCode: "process-ins-terminations"},
+		&handlerFuncObj{Url: "/process/instances/proceed", Method: "POST", HandlerFunc: process.ProcInsOperation, ApiCode: "proc-ins-operation"},
+		&handlerFuncObj{Url: "/packages/:pluginPackageId/entities/:entityName/query", Method: "POST", HandlerFunc: process.ProcEntityDataQuery, ApiCode: "proc-ins-operation"},
+		&handlerFuncObj{Url: "/process/instances/callback", Method: "POST", HandlerFunc: process.ProcInstanceCallback, ApiCode: "proc-ins-callback"},
+		&handlerFuncObj{Url: "/process/instancesWithPaging", Method: "POST", HandlerFunc: process.QueryProcInsPageData, ApiCode: "proc-ins-page-data"},
 
 		// certification manager
 		&handlerFuncObj{Url: "/plugin-certifications", Method: "GET", HandlerFunc: certification.GetCertifications, ApiCode: "get-certifications"},
@@ -171,6 +192,14 @@ func init() {
 		&handlerFuncObj{Url: "/batch-execution/list", Method: "POST", HandlerFunc: batch_execution.RetrieveBatchExec, ApiCode: "retrieve-batch-execution"},
 		&handlerFuncObj{Url: "/batch-execution/:batchExecId", Method: "GET", HandlerFunc: batch_execution.GetBatchExec, ApiCode: "get-batch-execution"},
 		&handlerFuncObj{Url: "/batch-execution/job/run", Method: "POST", HandlerFunc: batch_execution.RunJob, ApiCode: "run-batch-execution-job"},
+
+		// process schedule
+		&handlerFuncObj{Url: "/user-scheduled-tasks/query", Method: "POST", HandlerFunc: process.QueryProcScheduleList, ApiCode: "query_proc_schedule"},
+		&handlerFuncObj{Url: "/user-scheduled-tasks/create", Method: "POST", HandlerFunc: process.CreateProcSchedule, ApiCode: "create_proc_schedule"},
+		&handlerFuncObj{Url: "/user-scheduled-tasks/stop", Method: "POST", HandlerFunc: process.StopProcSchedule, ApiCode: "stop_proc_schedule"},
+		&handlerFuncObj{Url: "/user-scheduled-tasks/resume", Method: "POST", HandlerFunc: process.StartProcSchedule, ApiCode: "resume_proc_schedule"},
+		&handlerFuncObj{Url: "/user-scheduled-tasks/delete", Method: "POST", HandlerFunc: process.DeleteProcSchedule, ApiCode: "delete_proc_schedule"},
+		&handlerFuncObj{Url: "/user-scheduled-tasks/process-instances/query", Method: "POST", HandlerFunc: process.QueryProcScheduleInstance, ApiCode: "query_proc_schedule_inst"},
 	)
 }
 
@@ -225,10 +254,12 @@ func httpLogHandle() gin.HandlerFunc {
 		}
 		c.Set(models.RequestIdHeader, requestId)
 		c.Set(models.TransactionIdHeader, transactionId)
-		bodyBytes, _ := io.ReadAll(c.Request.Body)
-		c.Request.Body.Close()
-		c.Request.Body = io.NopCloser(bytes.NewReader(bodyBytes))
-		c.Set(models.ContextRequestBody, string(bodyBytes))
+		if !strings.HasSuffix(c.Request.RequestURI, "/v1/packages") {
+			bodyBytes, _ := io.ReadAll(c.Request.Body)
+			c.Request.Body.Close()
+			c.Request.Body = io.NopCloser(bytes.NewReader(bodyBytes))
+			c.Set(models.ContextRequestBody, string(bodyBytes))
+		}
 		log.AccessLogger.Info(fmt.Sprintf("[%s] [%s] ->", requestId, transactionId), log.String("uri", c.Request.RequestURI), log.String("method", c.Request.Method), log.String("sourceIp", getRemoteIp(c)), log.String(models.ContextOperator, c.GetString(models.ContextOperator)), log.String(models.ContextRequestBody, c.GetString(models.ContextRequestBody)))
 		c.Next()
 		costTime := time.Now().Sub(start).Seconds() * 1000

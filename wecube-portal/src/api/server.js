@@ -134,6 +134,7 @@ export const getNodeContext = (procId, nodeId) =>
   req.get(`/platform/v1/process/instances/${procId}/tasknodes/${nodeId}/context`)
 export const userCreate = data => req.post(`/platform/v1/users/create`, data)
 export const removeUser = roleId => req.delete(`/platform/v1/users/${roleId}/delete`)
+export const editUser = data => req.post(`/platform/v1/user/${data.username}/update`, data)
 export const changePassword = data => req.post(`/platform/v1/users/change-password`, data)
 export const getUserList = () => req.get(`/platform/v1/users/retrieve`)
 export const deleteUser = id => req.delete(`/platform/v1/users/${id}/delete`)

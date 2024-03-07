@@ -498,9 +498,11 @@
   "task_node": "任务节点",
   "task_node_bindings": "数据对象",
   "display_number": "展示条数",
-  "failure_count": "失败数量",
-  "success_count": "成功数量",
-  "in_progress_count": "执行中数量",
+  "failure_count": "失败",
+  "success_count": "成功",
+  "terminate_count": "终止",
+  "timeout_count": "超时",
+  "in_progress_count": "执行中",
   "count": "总数",
   "hide_same_parameters": "隐藏相同参数",
   "highlight_different_parameters": "高亮不同参数",
@@ -697,5 +699,10 @@
   "be_template_role_tips": "该模板使用权限被移除",
   "be_status_use": "可使用",
   "be_status_draft": "草稿",
-  "be_status_role": "权限已移除"
+  "be_status_role": "权限已移除",
+  "be_role_email": "角色邮箱",
+  "be_user_email": "用户邮箱",
+  "be_not_send": "不发送",
+  "be_mgmt_role": "管理角色",
+  "be_email_push": "邮箱推送"
 }

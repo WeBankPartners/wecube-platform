@@ -3,7 +3,6 @@ package database
 import (
 	"context"
 	"fmt"
-
 	"github.com/WeBankPartners/go-common-lib/guid"
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/db"
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/exterror"
@@ -87,8 +86,10 @@ func DeleteSystemVariables(ctx context.Context, params []*models.SystemVariables
 	return
 }
 
-func ActivePluginSystemVariable(ctx context.Context, name, version string) (err error) {
+func RegisterPlugin(ctx context.Context, name, version string) (err error) {
 	var actions []*db.ExecAction
+	actions = append(actions, &db.ExecAction{Sql: "update plugin_packages set status=? where name=? and status=?", Param: []interface{}{models.PluginStatusUnRegistered, name, models.PluginStatusRegistered}})
+	actions = append(actions, &db.ExecAction{Sql: "update plugin_packages set status=? where name=? and `version`=?", Param: []interface{}{models.PluginStatusRegistered, name, version}})
 	actions = append(actions, &db.ExecAction{Sql: "update system_variables set status='inactive' where package_name=? and status='active'", Param: []interface{}{name}})
 	actions = append(actions, &db.ExecAction{Sql: "update system_variables set status='active' where source=?", Param: []interface{}{fmt.Sprintf("%s__%s", name, version)}})
 	err = db.Transaction(actions, ctx)
@@ -123,6 +124,30 @@ func GetSystemVariableScope() (result []string, err error) {
 		for _, v := range queryResult {
 			result = append(result, v["scope"])
 		}
+	}
+	return
+}
+
+func DeactivateSystemVariablesByPackage(ctx context.Context, name, version string) (err error) {
+	session := db.MysqlEngine.NewSession().Context(ctx)
+	defer session.Close()
+	err = session.Begin()
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseExecuteError, err)
+		return
+	}
+	updateData := make(map[string]interface{})
+	updateData["status"] = models.SystemVariableInactive
+	sourceValue := fmt.Sprintf("%s__%s", name, version)
+	_, err = session.Table(new(models.SystemVariables)).Where("package_name = ?", name).And("source = ?", sourceValue).Update(updateData)
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseExecuteError, err)
+		return
+	}
+	err = session.Commit()
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseExecuteError, err)
+		return
 	}
 	return
 }

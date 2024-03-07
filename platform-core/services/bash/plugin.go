@@ -30,6 +30,7 @@ func SaveTmpFile(fileName string, fileContent []byte) (filePath, fileDir string,
 	filePath = fmt.Sprintf("%s/%s", fileDir, fileName)
 	if err = os.WriteFile(filePath, fileContent, 0644); err != nil {
 		err = fmt.Errorf("write tmp file fail,%s ", err.Error())
+		log.Logger.Error("save tmp file fail", log.String("fileName", fileName))
 	}
 	return
 }
@@ -156,6 +157,37 @@ func BuildPluginUpgradeSqlFile(initSqlFile, upgradeSqlFile, currentVersion strin
 
 	if buff.Len() > 0 {
 		outputFile, _, err = SaveTmpFile(fmt.Sprintf("tmp_%s.sql", guid.CreateGuid()), buff.Bytes())
+	}
+	return
+}
+
+func GetDirIndexPath(targetDir string) (subPath string, matchFlag bool, err error) {
+	dirEntries, readDirErr := os.ReadDir(targetDir)
+	if readDirErr != nil {
+		err = fmt.Errorf("read path %s fail,%s ", targetDir, readDirErr.Error())
+		return
+	}
+	for _, v := range dirEntries {
+		if !v.IsDir() && v.Name() == "index.html" {
+			matchFlag = true
+		}
+	}
+	if matchFlag {
+		return
+	}
+	for _, v := range dirEntries {
+		if v.IsDir() {
+			tmpSubPath, tmpMatch, subErr := GetDirIndexPath(targetDir + "/" + v.Name())
+			if subErr != nil {
+				err = subErr
+				break
+			}
+			if tmpMatch {
+				subPath = v.Name() + "/" + tmpSubPath
+				matchFlag = true
+				break
+			}
+		}
 	}
 	return
 }

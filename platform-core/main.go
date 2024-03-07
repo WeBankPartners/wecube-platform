@@ -4,12 +4,14 @@ import (
 	"flag"
 	"fmt"
 	"github.com/WeBankPartners/wecube-platform/platform-core/api"
+	"github.com/WeBankPartners/wecube-platform/platform-core/api/v1/process"
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/db"
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/log"
 	"github.com/WeBankPartners/wecube-platform/platform-core/models"
 	"github.com/WeBankPartners/wecube-platform/platform-core/services/bash"
 	"github.com/WeBankPartners/wecube-platform/platform-core/services/cron"
 	"github.com/WeBankPartners/wecube-platform/platform-core/services/remote"
+	"github.com/WeBankPartners/wecube-platform/platform-core/services/workflow"
 )
 
 func main() {
@@ -26,8 +28,10 @@ func main() {
 	// 初始化token
 	remote.InitToken()
 	// start cron job
-	cron.SetupCleanUpBatchExecTicker()
+	cron.StartCronJob()
 	go bash.InitPluginDockerHostSSH()
+	workflow.StartCronJob()
+	process.InitProcScheduleTimer()
 	//start http
 	api.InitHttpServer()
 }

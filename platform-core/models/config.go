@@ -3,9 +3,10 @@ package models
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/WeBankPartners/go-common-lib/cipher"
 	"os"
 	"strings"
+
+	"github.com/WeBankPartners/go-common-lib/cipher"
 )
 
 type HttpServerConfig struct {
@@ -69,6 +70,7 @@ type PluginJsonConfig struct {
 	PasswordPubKeyPath    string `json:"password_pub_key_path"`
 	PasswordPubKeyContent string `json:"-"`
 	ResourcePasswordSeed  string `json:"resource_password_seed"`
+	PublicReleaseUrl      string `json:"public_release_url"`
 }
 
 type GatewayConfig struct {
@@ -84,6 +86,7 @@ type GlobalConfig struct {
 	Version                string                  `json:"version"`
 	DefaultLanguage        string                  `json:"default_language"`
 	PasswordPrivateKeyPath string                  `json:"password_private_key_path"`
+	HostIp                 string                  `json:"host_ip"`
 	HttpsEnable            string                  `json:"https_enable"`
 	HttpServer             *HttpServerConfig       `json:"http_server"`
 	Log                    *LogConfig              `json:"log"`
