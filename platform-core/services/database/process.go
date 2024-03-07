@@ -56,7 +56,14 @@ func QueryProcessDefinitionList(ctx context.Context, param models.QueryProcessDe
 			roleDisplayNameMap[roleDto.Name] = roleDto.DisplayName
 		}
 	}
+	lastVersionMap := make(map[string]int) // map k -> procDefKey
 	for _, procDef := range filterProcDefList {
+		if !param.AllVersion {
+			if _, ok := lastVersionMap[procDef.Key]; ok {
+				continue
+			}
+			lastVersionMap[procDef.Key] = 1
+		}
 		enabledCreated = false
 		manageRoles = []string{}
 		userRoles = []string{}
