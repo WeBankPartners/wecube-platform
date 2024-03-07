@@ -26,6 +26,15 @@
               <Tooltip :content="$t('delete')">
                 <Button icon="md-trash" type="error" ghost size="small" @click="removeUser(item)"></Button>
               </Tooltip>
+              <Tooltip :content="$t('edit')">
+                <Button
+                  icon="ios-create-outline"
+                  type="primary"
+                  ghost
+                  size="small"
+                  @click="editUserEmail(item)"
+                ></Button>
+              </Tooltip>
               <Tooltip :content="$t('role')">
                 <Button icon="ios-contacts" type="info" ghost size="small" @click="addRoleToUsers(item)"></Button>
               </Tooltip>
@@ -108,6 +117,9 @@
         <FormItem v-if="addedUser.authType === 'LOCAL'" :label="$t('password')" prop="password">
           <Input type="password" v-model="addedUser.password" />
         </FormItem>
+        <FormItem :label="$t('email')">
+          <Input v-model="addedUser.email" />
+        </FormItem>
       </Form>
     </Modal>
     <Modal v-model="addedRole.isShow" :title="addedRole.isAdd ? $t('add_role') : $t('edit_role_')">
@@ -149,6 +161,23 @@
       <div slot="footer">
         <Button ghost @click="cancel">{{ $t('cancel') }}</Button>
         <Button type="primary" @click="addRole">{{ $t('save') }}</Button>
+      </div>
+    </Modal>
+    <Modal v-model="editUser.isShow" :title="$t('edit') + $t('user')">
+      <Form label-position="right" :label-width="100">
+        <FormItem>
+          <label slot="label">
+            <span style="color: red">*</span>
+            {{ $t('email') }}
+          </label>
+          <Input v-model="editUser.params.email" :placeholder="$t('please_input')" />
+        </FormItem>
+      </Form>
+      <div slot="footer">
+        <Button @click="editUser.isShow = false">{{ $t('cancel') }}</Button>
+        <Button type="primary" :disabled="editUser.params.email === ''" @click="confirmEditUserEmail">{{
+          $t('save')
+        }}</Button>
       </div>
     </Modal>
     <Modal v-model="userManageModal" width="700" :title="$t('edit_user')">
@@ -208,7 +237,8 @@ import {
   getMenusByUserName,
   getMenusByRoleId,
   updateRoleToMenusByRoleId,
-  resetPassword
+  resetPassword,
+  editUser
 } from '@/api/server'
 import { MENUS } from '@/const/menus.js'
 
@@ -231,7 +261,8 @@ export default {
       selectedUser: '',
       roles: [],
       addedUser: {
-        authType: 'LOCAL'
+        authType: 'LOCAL',
+        email: ''
       },
       addedRole: {
         isShow: false,
@@ -243,6 +274,12 @@ export default {
           email: '',
           administrator: '',
           status: false
+        }
+      },
+      editUser: {
+        isShow: false,
+        params: {
+          email: ''
         }
       },
       addedRoleValue: '',
@@ -557,6 +594,21 @@ export default {
       })
       this.userManageModal = true
     },
+    editUserEmail (item) {
+      this.editUser.params = JSON.parse(JSON.stringify(item))
+      this.editUser.isShow = true
+    },
+    async confirmEditUserEmail (item) {
+      let { status, message } = await editUser(this.editUser.params)
+      if (status === 'OK') {
+        this.$Notice.success({
+          title: 'success',
+          desc: message
+        })
+        this.editUser.isShow = false
+        this.getAllUsers()
+      }
+    },
     async addUser () {
       let { status, message } = await userCreate(this.addedUser)
       if (status === 'OK') {
@@ -627,6 +679,7 @@ export default {
       this.addedUser.username = ''
       this.addedUser.authType = 'LOCAL'
       this.addedUser.password = ''
+      this.addedUser.email = ''
       this.addUserModalVisible = true
     },
     cancel () {

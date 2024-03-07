@@ -460,6 +460,7 @@ func UpdateTemplateRolesDisplayName(c *gin.Context, templateDataList []*models.B
 	language := c.GetHeader(middleware.AcceptLanguageHeader)
 	respData, err := remote.RetrieveAllLocalRoles("Y", userToken, language)
 	if err != nil {
+		err = fmt.Errorf("retrieve all local roles failed: %s", err.Error())
 		return
 	}
 
