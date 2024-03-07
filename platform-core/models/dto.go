@@ -119,6 +119,7 @@ type UserDto struct {
 	Password          string `json:"password"`
 	AuthType          string `json:"authType"` // LOCAL,UM
 	RoleAdministrator string `json:"roleAdministrator"`
+	Email             string `json:"email"`
 }
 
 type MenuItemDto struct {
