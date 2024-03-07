@@ -2,15 +2,16 @@ package service
 
 import (
 	"fmt"
+	"strconv"
+	"sync"
+	"time"
+
 	"github.com/WeBankPartners/wecube-platform/platform-gateway/api/middleware"
 	"github.com/WeBankPartners/wecube-platform/platform-gateway/common/constant"
 	"github.com/WeBankPartners/wecube-platform/platform-gateway/common/log"
 	"github.com/WeBankPartners/wecube-platform/platform-gateway/common/utils"
 	"github.com/WeBankPartners/wecube-platform/platform-gateway/model"
 	"github.com/WeBankPartners/wecube-platform/platform-gateway/service/remote_route_config"
-	"strconv"
-	"sync"
-	"time"
 )
 
 //const ROUTE_ID_SUFFIX = "#1"
@@ -433,12 +434,12 @@ func (d *DynamicRouteConfigurationService) initContextRouteConfigs() {
 	contextRouteConfigs := DynamicRouteItemInfoHolderInstance.RouteConfigs()
 
 	for _, contextRouteConfig := range contextRouteConfigs {
-		_, ok := DynamicRouteConfigurationServiceInstance.loadedContexts.Load(contextRouteConfig.Context) // + ROUTE_ID_SUFFIX
-		if ok {
-			log.Logger.Debug("context route is already loaded ", log.String("context", contextRouteConfig.Context))
-			continue
-		}
-
+		/*		_, ok := DynamicRouteConfigurationServiceInstance.loadedContexts.Load(contextRouteConfig.Context) // + ROUTE_ID_SUFFIX
+				if ok {
+					log.Logger.Debug("context route is already loaded ", log.String("context", contextRouteConfig.Context))
+					continue
+				}
+		*/
 		if initContextRouteConfig(contextRouteConfig) {
 			count++
 		}
