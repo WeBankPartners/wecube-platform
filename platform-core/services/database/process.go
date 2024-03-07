@@ -2,6 +2,7 @@ package database
 
 import (
 	"context"
+	"github.com/WeBankPartners/wecube-platform/platform-core/common/tools"
 	"github.com/WeBankPartners/wecube-platform/platform-core/services/remote"
 	"sort"
 	"strings"
@@ -56,13 +57,25 @@ func QueryProcessDefinitionList(ctx context.Context, param models.QueryProcessDe
 			roleDisplayNameMap[roleDto.Name] = roleDto.DisplayName
 		}
 	}
-	lastVersionMap := make(map[string]int) // map k -> procDefKey
-	for _, procDef := range filterProcDefList {
-		if !param.AllVersion {
-			if _, ok := lastVersionMap[procDef.Key]; ok {
-				continue
+	lastVersionMap := make(map[string]string) // map k -> procDefKey v -> version
+	if param.LastVersion {
+		for _, procDef := range filterProcDefList {
+			if ver, ok := lastVersionMap[procDef.Key]; ok {
+				if tools.CompareVersion(procDef.Version, ver) {
+					lastVersionMap[procDef.Key] = procDef.Version
+				}
+			} else {
+				lastVersionMap[procDef.Key] = procDef.Version
 			}
-			lastVersionMap[procDef.Key] = 1
+		}
+	}
+	for _, procDef := range filterProcDefList {
+		if param.LastVersion {
+			if ver, ok := lastVersionMap[procDef.Key]; ok {
+				if procDef.Version != ver {
+					continue
+				}
+			}
 		}
 		enabledCreated = false
 		manageRoles = []string{}
