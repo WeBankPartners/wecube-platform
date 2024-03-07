@@ -404,7 +404,9 @@ export default {
     }
   }
   .header-right_container {
-    float: right;
+    position: absolute;
+    right: 20px;
+    top: 0;
     .language,
     .help,
     .version,
