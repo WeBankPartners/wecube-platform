@@ -333,3 +333,17 @@ func GetDeleteTableExecAction(tableName string, primeKey string, primeKeyVal str
 func DBCtx(transactionId string) context.Context {
 	return context.WithValue(context.Background(), models.TransactionIdHeader, transactionId)
 }
+
+func QueryCount(sql string, params ...interface{}) int {
+	resultMap := make(map[string]interface{})
+	_, err := MysqlEngine.SQL(CombineDBSql("SELECT COUNT(1) FROM ( ", sql, " ) sub_query"), params...).Get(&resultMap)
+	if err != nil {
+		log.Logger.Error("Query sql count message fail", log.Error(err))
+		return 0
+	}
+	if countV, b := resultMap["COUNT(1)"]; b {
+		countIntV, _ := strconv.Atoi(fmt.Sprintf("%d", countV))
+		return countIntV
+	}
+	return 0
+}
