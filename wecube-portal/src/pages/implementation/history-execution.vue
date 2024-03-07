@@ -102,12 +102,12 @@ export default {
       tableColumns: [
         {
           type: 'index',
-          width: 60,
+          width: 50,
           align: 'center'
         },
         {
           title: 'ID',
-          width: 60,
+          width: 210,
           key: 'id'
         },
         {
@@ -120,24 +120,27 @@ export default {
         },
         {
           title: this.$t('executor'),
-          key: 'operator'
+          key: 'operator',
+          width: 150
         },
         {
           title: this.$t('table_created_date'),
-          key: 'createdTime'
+          key: 'createdTime',
+          width: 150
         },
         {
           title: this.$t('flow_status'),
-          key: 'status'
+          key: 'status',
+          width: 160
         },
         {
           title: this.$t('table_action'),
           key: 'action',
-          width: 250,
+          width: 180,
           align: 'center',
           render: (h, params) => {
             return (
-              <div>
+              <div style="text-align:left">
                 <Button
                   onClick={() => this.jumpToHistory(params.row)}
                   type="info"
@@ -262,8 +265,8 @@ export default {
       const params = {
         id: row.id,
         pageable: {
-          startIndex: 1,
-          pageSize: 500
+          startIndex: 0,
+          pageSize: 5000
         }
       }
       let { status, data } = await instancesWithPaging(params)
