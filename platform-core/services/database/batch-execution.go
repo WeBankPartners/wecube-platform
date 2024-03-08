@@ -1125,3 +1125,29 @@ func GetPluginConfigsById(c *gin.Context, pluginConfigId string) (result *models
 	result = pluginConfigsData[0]
 	return
 }
+
+func ValidateBatchExecName(c *gin.Context, batchExecReqParam *models.BatchExecRun, continueToken string) (isValid bool, err error) {
+	var exists bool
+	batchExecData := models.BatchExecution{}
+	exists, err = db.MysqlEngine.Context(c).Table(models.TableNameBatchExec).
+		Where("name = ?", batchExecReqParam.Name).
+		Get(&batchExecData)
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
+		return
+	}
+	if !exists {
+		isValid = true
+		return
+	}
+
+	// continueToken 不为空，批量执行记录详情已存在
+	if continueToken != "" {
+		if batchExecReqParam.BatchExecId == batchExecData.Id {
+			isValid = true
+			return
+		}
+	}
+	isValid = false
+	return
+}

@@ -69,6 +69,7 @@ type ErrorTemplate struct {
 	BatchExecPluginApiError           CustomError `json:"batch_exec_plugin_api_error"`
 	BatchExecTmplDuplicateNameError   CustomError `json:"batch_exec_tmpl_duplicate_name_error"`
 	BatchExecTmplHasBeenModifiedError CustomError `json:"batch_exec_tmpl_has_been_modified_error"`
+	BatchExecDuplicateNameError       CustomError `json:"batch_exec_duplicate_name_error"`
 }
 
 var (
