@@ -699,3 +699,19 @@ func ProcTermination(c *gin.Context) {
 	go workflow.HandleProOperation(&operationObj)
 	middleware.ReturnSuccess(c)
 }
+
+func ProcStartEvents(c *gin.Context) {
+	var param models.ProcStartEventParam
+	if err := c.ShouldBindJSON(&param); err != nil {
+		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, err))
+		return
+	}
+	procDef, err := database.GetLatestProcDefByKey(c, param.OperationKey)
+	if err != nil {
+		middleware.ReturnError(c, err)
+		return
+	}
+	// preview
+	buildProcPreviewData(c, procDef.Id, param.OperationData, middleware.GetRequestUser(c))
+	// start
+}
