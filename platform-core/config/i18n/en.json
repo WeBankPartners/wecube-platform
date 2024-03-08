@@ -131,5 +131,9 @@
   "batch_exec_tmpl_has_been_modified_error": {
     "code": 20000028,
     "message": "Save Failed/Publish Failed: The current template has been modified by someone else. Please return to the template list and initiate editing again."
+  },
+  "batch_exec_duplicate_name_error": {
+    "code": 20000029,
+    "message": "Execution Failed: An execution with the same name already exists. Please modify the name and try again."
   }
 }
