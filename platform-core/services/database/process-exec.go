@@ -1361,3 +1361,29 @@ func QueryProcInsPage(ctx context.Context, param *models.QueryProcPageParam) (re
 	}
 	return
 }
+
+func GetLatestProcDefByKey(ctx context.Context, procDefKey string) (procDefObj *models.ProcDef, err error) {
+	var procDefRows []*models.ProcDef
+	err = db.MysqlEngine.Context(ctx).SQL("select * from proc_def where `key`=? and status='deployed'", procDefKey).Find(&procDefRows)
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
+		return
+	}
+	if len(procDefRows) == 0 {
+		err = fmt.Errorf("can not find proc def with key:%s ", procDefKey)
+		return
+	}
+	latestVer := procDefRows[0].Version
+	for _, v := range procDefRows {
+		if tools.CompareVersion(v.Version, latestVer) {
+			latestVer = v.Version
+		}
+	}
+	for _, v := range procDefRows {
+		if v.Version == latestVer {
+			procDefObj = v
+			break
+		}
+	}
+	return
+}
