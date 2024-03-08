@@ -500,7 +500,7 @@ func SavePluginConfig(c *gin.Context, reqParam *models.PluginConfigDto) (result 
 		return
 	}
 
-	createActions, tmpErr := GetCreatePluginConfigActions(c, pluginConfigId, reqParam, false)
+	createActions, tmpErr := GetCreatePluginConfigActions(c, pluginConfigId, reqParam, false, pluginPackageData)
 	if tmpErr != nil {
 		err = fmt.Errorf("get create pluginConfig actions failed: %s", tmpErr.Error())
 		return
@@ -650,7 +650,7 @@ func GetDelPluginConfigActions(c *gin.Context, pluginConfigId string) (resultAct
 	return
 }
 
-func GetCreatePluginConfigActions(c *gin.Context, pluginConfigId string, pluginConfigDto *models.PluginConfigDto, isImportRequest bool) (resultActions []*db.ExecAction, err error) {
+func GetCreatePluginConfigActions(c *gin.Context, pluginConfigId string, pluginConfigDto *models.PluginConfigDto, isImportRequest bool, pluginPackageData *models.PluginPackages) (resultActions []*db.ExecAction, err error) {
 	resultActions = []*db.ExecAction{}
 
 	pluginConfigDto.Id = pluginConfigId
@@ -682,6 +682,15 @@ func GetCreatePluginConfigActions(c *gin.Context, pluginConfigId string, pluginC
 	for _, interfaceInfo := range pluginConfigDto.Interfaces {
 		interfaceInfo.Id = models.IdPrefixPluCfgItf + guid.CreateGuid()
 		interfaceInfo.PluginConfigId = pluginConfigId
+
+		if !isImportRequest {
+			serviceName := fmt.Sprintf("%s/%s/%s", pluginPackageData.Name, pluginConfigDto.Name, interfaceInfo.Action)
+			if pluginConfigDto.RegisterName != "" {
+				serviceName = fmt.Sprintf("%s/%s(%s)/%s", pluginPackageData.Name, pluginConfigDto.Name, pluginConfigDto.RegisterName, interfaceInfo.Action)
+			}
+			interfaceInfo.ServiceName = serviceName
+			interfaceInfo.ServiceDisplayName = serviceName
+		}
 
 		action, tmpErr = db.GetInsertTableExecAction(models.TableNamePluginConfigInterfaces, *interfaceInfo, nil)
 		if tmpErr != nil {
@@ -929,7 +938,7 @@ func ImportPluginConfigs(c *gin.Context, pluginPackageId string, packagePluginsX
 	// handle creation actions for import data
 	for i := range savePluginConfigList {
 		curPluginConfigId := models.IdPrefixPluCfg + guid.CreateGuid()
-		curCreationActions, tmpErr := GetCreatePluginConfigActions(c, curPluginConfigId, savePluginConfigList[i], true)
+		curCreationActions, tmpErr := GetCreatePluginConfigActions(c, curPluginConfigId, savePluginConfigList[i], true, pluginPackageData)
 		if tmpErr != nil {
 			err = fmt.Errorf("get create pluginConfig actions failed: %s", tmpErr.Error())
 			return
