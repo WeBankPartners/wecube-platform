@@ -193,8 +193,9 @@ type BatchExecutionPluginExecParam struct {
 }
 
 type BatchExecutionPluginExecEntityInstances struct {
-	Id               string `json:"id"`
-	BusinessKeyValue string `json:"businessKeyValue"`
+	Id               string                 `json:"id"`
+	BusinessKeyValue string                 `json:"businessKeyValue"`
+	ContextMap       map[string]interface{} `json:"contextMap"`
 }
 
 type BatchExecutionPluginExecInputParams map[string]interface{}
