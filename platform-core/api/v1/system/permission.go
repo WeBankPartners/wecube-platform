@@ -298,6 +298,7 @@ func DeleteUserByUserId(c *gin.Context) {
 // UpdateRole 更新角色
 func UpdateRole(c *gin.Context) {
 	var param models.SimpleLocalRoleDto
+	var exist bool
 	roleId := c.Param("role-id")
 	if err := c.ShouldBindJSON(&param); err != nil {
 		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, err))
@@ -308,11 +309,32 @@ func UpdateRole(c *gin.Context) {
 		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, err))
 		return
 	}
+	// 查看当前角色是否包含 角色管理员,不包含需要将角色管理员加入到当前角色
+	queryUserResponse, err := remote.GetUsersByRoleId(roleId, c.GetHeader("Authorization"), c.GetHeader("Accept-Language"))
+	if err != nil {
+		middleware.ReturnError(c, err)
+		return
+	}
+	if len(queryUserResponse.Data) > 0 {
+		for _, userDto := range queryUserResponse.Data {
+			if userDto.ID == param.Administrator {
+				exist = true
+				break
+			}
+		}
+	}
 	param.ID = roleId
 	response, err := remote.UpdateLocalRole(c.GetHeader("Authorization"), c.GetHeader("Accept-Language"), param)
 	if err != nil {
 		middleware.ReturnError(c, err)
 		return
+	}
+	if !exist {
+		err = remote.ConfigureRoleForUsers(roleId, c.GetHeader("Authorization"), c.GetHeader("Accept-Language"), []string{param.Administrator})
+		if err != nil {
+			middleware.ReturnError(c, err)
+			return
+		}
 	}
 	middleware.Return(c, response)
 }
