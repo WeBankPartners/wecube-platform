@@ -17,7 +17,7 @@ import (
 var (
 	GlobalWorkflowMap = new(sync.Map)
 	instanceHost      = "-"
-	timeoutErrorTpl   = "timeout in %ds"
+	timeoutErrorTpl   = "timeout in %d minute"
 )
 
 type Workflow struct {
@@ -220,6 +220,7 @@ func (w *Workflow) RetryNode(nodeId string) {
 	nodeObj.Status = models.JobStatusRunning
 	go nodeObj.Ready()
 	time.Sleep(500 * time.Millisecond)
+	nodeObj.StartTime = time.Now()
 	updateNodeDB(&nodeObj.ProcRunNode)
 	w.updateErrorList(false, nodeId, nil)
 	if len(w.ErrList) == 0 {
@@ -310,6 +311,9 @@ func (n *WorkNode) Ready() {
 		return
 	case <-n.StartChan:
 		log.Logger.Info("ready job ", log.String("nodeId", n.Id))
+	}
+	if n.StartTime.IsZero() {
+		n.StartTime = time.Now()
 	}
 	go n.start()
 	if n.Timeout > 0 {
@@ -567,7 +571,7 @@ func updateNodeDB(n *models.ProcRunNode) {
 	var actions []*db.ExecAction
 	nowTime := time.Now()
 	if n.Status == models.JobStatusRunning {
-		actions = append(actions, &db.ExecAction{Sql: "update proc_run_node set status=?,start_time=?,updated_time=? where id=?", Param: []interface{}{n.Status, nowTime, nowTime, n.Id}})
+		actions = append(actions, &db.ExecAction{Sql: "update proc_run_node set status=?,start_time=?,updated_time=? where id=?", Param: []interface{}{n.Status, n.StartTime, nowTime, n.Id}})
 		actions = append(actions, &db.ExecAction{Sql: "update proc_ins_node set status=?,updated_time=? where id=?", Param: []interface{}{n.Status, nowTime, n.ProcInsNodeId}})
 		if n.JobType == models.JobDecisionType {
 			actions = append(actions, &db.ExecAction{Sql: "update proc_run_node set input=? where id=?", Param: []interface{}{n.Input, n.Id}})
