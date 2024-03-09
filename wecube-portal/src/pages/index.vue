@@ -35,9 +35,8 @@ export default {
   computed: {
     setBreadcrumbStyle () {
       // 给侧边菜单栏适配样式
-      const showMargin = this.expandSideMenu
       return {
-        margin: showMargin ? '10px 0 10px 140px' : '10px 0'
+        margin: this.expandSideMenu ? '10px 0 10px 140px' : '10px 0'
       }
     }
   },
@@ -78,7 +77,7 @@ export default {
     },
     homePageClickHandler () {
       window.needReLoad = false
-      this.$router.push('/homepage')
+      this.$router.push('/taskman/workbench')
     }
   },
   created () {

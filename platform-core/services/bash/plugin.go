@@ -30,6 +30,7 @@ func SaveTmpFile(fileName string, fileContent []byte) (filePath, fileDir string,
 	filePath = fmt.Sprintf("%s/%s", fileDir, fileName)
 	if err = os.WriteFile(filePath, fileContent, 0644); err != nil {
 		err = fmt.Errorf("write tmp file fail,%s ", err.Error())
+		log.Logger.Error("save tmp file fail", log.String("fileName", fileName))
 	}
 	return
 }
