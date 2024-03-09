@@ -49,13 +49,14 @@ func UploadPackage(c *gin.Context) {
 		middleware.ReturnError(c, err)
 		return
 	}
-	log.Logger.Debug("zip-file", log.String("name", fileName), log.Int("len", len(fileBytes)))
+	log.Logger.Debug("zip-file", log.String("name", fileName))
 	// 解压插件zip包
 	var tmpFilePath, tmpFileDir string
 	if tmpFilePath, tmpFileDir, err = bash.SaveTmpFile(fileName, fileBytes); err != nil {
 		middleware.ReturnError(c, err)
 		return
 	}
+	fileBytes = []byte{}
 	log.Logger.Debug("tmpFile", log.String("tmpFilePath", tmpFilePath))
 	defer func() {
 		if removeTmpDirErr := os.RemoveAll(tmpFileDir); removeTmpDirErr != nil {
@@ -148,7 +149,11 @@ func UploadPackage(c *gin.Context) {
 		}
 	}
 	// 写数据库
-	err = database.UploadPackage(c, &registerConfig, withUi, false, "")
+	enterprise := false
+	if registerConfig.Edition == "enterprise" {
+		enterprise = true
+	}
+	err = database.UploadPackage(c, &registerConfig, withUi, enterprise, "")
 	if err != nil {
 		middleware.ReturnError(c, err)
 	} else {
