@@ -173,6 +173,7 @@ func init() {
 		&handlerFuncObj{Url: "/packages/:pluginPackageId/entities/:entityName/query", Method: "POST", HandlerFunc: process.ProcEntityDataQuery, ApiCode: "proc-ins-operation"},
 		&handlerFuncObj{Url: "/process/instances/callback", Method: "POST", HandlerFunc: process.ProcInstanceCallback, ApiCode: "proc-ins-callback"},
 		&handlerFuncObj{Url: "/process/instancesWithPaging", Method: "POST", HandlerFunc: process.QueryProcInsPageData, ApiCode: "proc-ins-page-data"},
+		&handlerFuncObj{Url: "/operation-events", Method: "POST", HandlerFunc: process.ProcStartEvents, ApiCode: "proc-start-events"},
 
 		// certification manager
 		&handlerFuncObj{Url: "/plugin-certifications", Method: "GET", HandlerFunc: certification.GetCertifications, ApiCode: "get-certifications"},
@@ -254,10 +255,12 @@ func httpLogHandle() gin.HandlerFunc {
 		}
 		c.Set(models.RequestIdHeader, requestId)
 		c.Set(models.TransactionIdHeader, transactionId)
-		bodyBytes, _ := io.ReadAll(c.Request.Body)
-		c.Request.Body.Close()
-		c.Request.Body = io.NopCloser(bytes.NewReader(bodyBytes))
-		c.Set(models.ContextRequestBody, string(bodyBytes))
+		if !strings.HasSuffix(c.Request.RequestURI, "/v1/packages") {
+			bodyBytes, _ := io.ReadAll(c.Request.Body)
+			c.Request.Body.Close()
+			c.Request.Body = io.NopCloser(bytes.NewReader(bodyBytes))
+			c.Set(models.ContextRequestBody, string(bodyBytes))
+		}
 		log.AccessLogger.Info(fmt.Sprintf("[%s] [%s] ->", requestId, transactionId), log.String("uri", c.Request.RequestURI), log.String("method", c.Request.Method), log.String("sourceIp", getRemoteIp(c)), log.String(models.ContextOperator, c.GetString(models.ContextOperator)), log.String(models.ContextRequestBody, c.GetString(models.ContextRequestBody)))
 		c.Next()
 		costTime := time.Now().Sub(start).Seconds() * 1000

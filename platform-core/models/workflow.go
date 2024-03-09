@@ -23,7 +23,7 @@ const (
 	JobStatusFail    = "Faulted"
 	JobStatusSuccess = "Completed"
 	JobStatusKill    = "InternallyTerminated"
-	JobStatusTimeout = "Timeout"
+	JobStatusTimeout = "Timeouted"
 )
 
 type ProcRunWorkflow struct {

@@ -83,6 +83,15 @@ func CreateOrUpdateBatchExecTemplate(c *gin.Context, reqParam *models.BatchExecu
 			Param: []interface{}{reqParam.Name, reqParam.PublishStatus, reqParam.OperateObject, reqParam.PluginService, reqParam.IsDangerousBlock,
 				configDataStr, reqParam.SourceData, middleware.GetRequestUser(c), now, reqParam.Id},
 		}
+
+		originalUpdatedTime := reqParam.UpdatedTime
+		if originalUpdatedTime != nil {
+			// 需要校验修改前的 updatedTime 是否与数据库中的一致
+			action.Sql = db.CombineDBSql(action.Sql, " AND updated_time=?")
+			action.Param = append(action.Param, originalUpdatedTime)
+			action.CheckAffectRow = true
+		}
+
 		actions = append(actions, action)
 	}
 	batchExecTemplateId := reqParam.Id
@@ -136,6 +145,10 @@ func CreateOrUpdateBatchExecTemplate(c *gin.Context, reqParam *models.BatchExecu
 				err = exterror.New().BatchExecTmplDuplicateNameError
 				return
 			}
+		}
+		if strings.Contains(err.Error(), "row affect 0 with exec sql") {
+			err = exterror.New().BatchExecTmplHasBeenModifiedError
+			return
 		}
 		err = exterror.Catch(exterror.New().DatabaseExecuteError, err)
 		return
@@ -1110,5 +1123,31 @@ func GetPluginConfigsById(c *gin.Context, pluginConfigId string) (result *models
 	}
 
 	result = pluginConfigsData[0]
+	return
+}
+
+func ValidateBatchExecName(c *gin.Context, batchExecReqParam *models.BatchExecRun, continueToken string) (isValid bool, err error) {
+	var exists bool
+	batchExecData := models.BatchExecution{}
+	exists, err = db.MysqlEngine.Context(c).Table(models.TableNameBatchExec).
+		Where("name = ?", batchExecReqParam.Name).
+		Get(&batchExecData)
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
+		return
+	}
+	if !exists {
+		isValid = true
+		return
+	}
+
+	// continueToken 不为空，批量执行记录详情已存在
+	if continueToken != "" {
+		if batchExecReqParam.BatchExecId == batchExecData.Id {
+			isValid = true
+			return
+		}
+	}
+	isValid = false
 	return
 }

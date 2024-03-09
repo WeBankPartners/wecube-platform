@@ -25,3 +25,14 @@ func parseVersionToNum(input string) float64 {
 	}
 	return num
 }
+
+func StringListContains(inputList []string, target string) bool {
+	ok := false
+	for _, v := range inputList {
+		if v == target {
+			ok = true
+			break
+		}
+	}
+	return ok
+}

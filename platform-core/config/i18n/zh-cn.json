@@ -127,5 +127,13 @@
   "batch_exec_tmpl_duplicate_name_error": {
     "code": 20000027,
     "message": "保存失败：同名模板已存在,请修改名称后重试"
+  },
+  "batch_exec_tmpl_has_been_modified_error": {
+    "code": 20000028,
+    "message": "保存失败/发布失败: 当前模版已被他人修改,请返回模版列表再重新发起编辑"
+  },
+  "batch_exec_duplicate_name_error": {
+    "code": 20000029,
+    "message": "执行失败: 执行名称已存在,请修改后再重新执行"
   }
 }

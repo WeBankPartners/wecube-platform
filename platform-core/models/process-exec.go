@@ -469,3 +469,14 @@ type QueryProcPageResponse struct {
 	PageInfo *PageInfo        `json:"pageInfo"`
 	Contents []*ProcInsDetail `json:"contents"`
 }
+
+type ProcStartEventParam struct {
+	EventSeqNo      string `json:"eventSeqNo"`
+	EventType       string `json:"eventType"`
+	SourceSubSystem string `json:"sourceSubSystem"`
+	OperationKey    string `json:"operationKey"`
+	OperationData   string `json:"operationData"`
+	NotifyRequired  string `json:"notifyRequired"`
+	NotifyEndpoint  string `json:"notifyEndpoint"`
+	OperationUser   string `json:"operationUser"`
+}

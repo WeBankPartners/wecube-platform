@@ -464,6 +464,9 @@ func BuildDockerEnvMap(ctx context.Context, envMap map[string]string) (replaceMa
 	var sysVarList []string
 	for k, v := range envMap {
 		if v == "" {
+			if k == "GATEWAY_URL" {
+				sysVarList = append(sysVarList, "GATEWAY_URL_NEW")
+			}
 			sysVarList = append(sysVarList, k)
 		}
 	}
@@ -488,6 +491,10 @@ func BuildDockerEnvMap(ctx context.Context, envMap map[string]string) (replaceMa
 			if tmpV != "" {
 				envMap[row.Name] = tmpV
 			}
+		}
+		if v, ok := envMap["GATEWAY_URL_NEW"]; ok {
+			envMap["GATEWAY_URL"] = v
+			delete(envMap, "GATEWAY_URL_NEW")
 		}
 	}
 	for k, v := range envMap {

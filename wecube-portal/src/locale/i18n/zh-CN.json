@@ -702,5 +702,7 @@
   "be_status_role": "权限已移除",
   "be_role_email": "角色邮箱",
   "be_user_email": "用户邮箱",
-  "be_not_send": "不发送"
+  "be_not_send": "不发送",
+  "be_mgmt_role": "管理角色",
+  "be_email_push": "邮箱推送"
 }
