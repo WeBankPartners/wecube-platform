@@ -40,7 +40,7 @@
         </template>
         <div v-else class="no-data">{{ $t('noData') }}</div>
         <Spin fix v-if="spinShow">
-          <Icon type="ios-loading" size="44" class="spin-icon-load"></Icon>
+          <Icon type="ios-loading" size="44"></Icon>
         </Spin>
       </Card>
     </div>
