@@ -2,6 +2,7 @@ package timer
 
 import (
 	"fmt"
+
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/log"
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/try"
 
@@ -33,6 +34,10 @@ func (c *cronSecondData) secondNext(intervalMilli int64, nowMilli int64) int64 {
 func (c *cronSecondData) cronNext(expr *cronexpr.Expression, nowMilli int64) int64 {
 	fromTime := time.Unix(nowMilli/1000, 0)
 	nextTime := expr.Next(fromTime)
+	if nextTime.IsZero() {
+		// never(always schedule after 9999-99-99 23:59:59)
+		return nowMilli + 253636876799000
+	}
 	return nextTime.UnixMilli()
 }
 
