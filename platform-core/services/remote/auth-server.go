@@ -244,13 +244,13 @@ func UpdateLocalRole(userToken, language string, param models.SimpleLocalRoleDto
 }
 
 // ConfigureRoleForUsers 角色添加用户列表
-func ConfigureRoleForUsers(userId, userToken, language string, userIdList []string) (err error) {
+func ConfigureRoleForUsers(roleId, userToken, language string, userIdList []string) (err error) {
 	var postParams []*models.SimpleLocalUserDto
 	for _, userId := range userIdList {
 		postParams = append(postParams, &models.SimpleLocalUserDto{ID: userId})
 	}
 	postBytes, _ := json.Marshal(postParams)
-	err = network.HttpPostCommon(fmt.Sprintf(models.Config.Auth.Url+pathConfigureRoleForUsers, userId), userToken, language, postBytes)
+	err = network.HttpPostCommon(fmt.Sprintf(models.Config.Auth.Url+pathConfigureRoleForUsers, roleId), userToken, language, postBytes)
 	return
 }
 
