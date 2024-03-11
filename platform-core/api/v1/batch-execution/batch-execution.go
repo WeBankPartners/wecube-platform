@@ -421,18 +421,20 @@ func doRunJob(c *gin.Context, reqParam *models.BatchExecRun) (result *models.Bat
 
 	var batchExecId string
 	var tmpErr error
-	//检查执行名称是否已存在
-	var isBatchExecNameValid bool
-	isBatchExecNameValid, tmpErr = database.ValidateBatchExecName(c, reqParam, continueToken)
-	if tmpErr != nil {
-		err = tmpErr
-		log.Logger.Error("validate batch exec name failed", log.Error(err))
-		return
-	}
-	if !isBatchExecNameValid {
-		err = exterror.New().BatchExecDuplicateNameError
-		return
-	}
+	/*
+		//检查执行名称是否已存在
+		var isBatchExecNameValid bool
+		isBatchExecNameValid, tmpErr = database.ValidateBatchExecName(c, reqParam, continueToken)
+		if tmpErr != nil {
+			err = tmpErr
+			log.Logger.Error("validate batch exec name failed", log.Error(err))
+			return
+		}
+		if !isBatchExecNameValid {
+			err = exterror.New().BatchExecDuplicateNameError
+			return
+		}
+	*/
 
 	if continueToken == "" {
 		// record batch execution，continueToken 为空，写入批量执行记录
