@@ -113,3 +113,9 @@ type ExpressionEntitiesRespObj struct {
 	EntityName  string                     `json:"entityName"`
 	Attributes  []*PluginPackageAttributes `json:"attributes"`
 }
+
+type PluginQueryExpressionDataParam struct {
+	DataModelExpression string `json:"dataModelExpression" binding:"required"`
+	RootDataId          string `json:"rootDataId" binding:"required"`
+	Token               string `json:"token"`
+}
