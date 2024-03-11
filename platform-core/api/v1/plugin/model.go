@@ -152,3 +152,35 @@ func QueryExpressionData(c *gin.Context) {
 		middleware.ReturnData(c, result)
 	}
 }
+
+// QueryExpressionDataForPlugin 给插件提供的表达式数据查询
+func QueryExpressionDataForPlugin(c *gin.Context) {
+	var param models.PluginQueryExpressionDataParam
+	if err := c.ShouldBindJSON(&param); err != nil {
+		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, err))
+		return
+	}
+	exprList, err := remote.AnalyzeExpression(param.DataModelExpression)
+	if err != nil {
+		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, err))
+		return
+	}
+	if len(exprList) == 0 {
+		middleware.ReturnError(c, fmt.Errorf("expression analyze result list empty"))
+		return
+	}
+	filters := []*models.QueryExpressionDataFilter{{Index: 0, PackageName: exprList[0].Package, EntityName: exprList[0].Entity, AttributeFilters: []*models.QueryExpressionDataAttrFilter{{
+		Name:     "id",
+		Operator: "eq",
+		Value:    param.RootDataId,
+	}}}}
+	if param.Token == "" {
+		param.Token = remote.GetToken()
+	}
+	result, queryErr := remote.QueryPluginData(c, exprList, filters, param.Token)
+	if queryErr != nil {
+		middleware.ReturnError(c, queryErr)
+	} else {
+		middleware.ReturnData(c, result)
+	}
+}
