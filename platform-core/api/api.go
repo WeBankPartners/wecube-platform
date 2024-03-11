@@ -102,6 +102,7 @@ func init() {
 		&handlerFuncObj{Url: "/models/package/:packageName", Method: "GET", HandlerFunc: plugin.SyncDynamicModels, ApiCode: "sync-entity-model"},
 		&handlerFuncObj{Url: "/data-model/dme/all-entities", Method: "POST", HandlerFunc: plugin.QueryExpressionEntities, ApiCode: "query-expr-entities"},
 		&handlerFuncObj{Url: "/data-model/dme/integrated-query", Method: "POST", HandlerFunc: plugin.QueryExpressionData, ApiCode: "query-expr-data"},
+		&handlerFuncObj{Url: "/public/data-model/dme/integrated-query", Method: "POST", HandlerFunc: plugin.QueryExpressionDataForPlugin, ApiCode: "public-query-expr-data"},
 
 		// permission
 		&handlerFuncObj{Url: "/my-menus", Method: "GET", HandlerFunc: system.GetMyMenuItems, ApiCode: "get-my-menu"},
