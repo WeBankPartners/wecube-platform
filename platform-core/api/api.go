@@ -175,6 +175,7 @@ func init() {
 		&handlerFuncObj{Url: "/process/instances/callback", Method: "POST", HandlerFunc: process.ProcInstanceCallback, ApiCode: "proc-ins-callback"},
 		&handlerFuncObj{Url: "/process/instancesWithPaging", Method: "POST", HandlerFunc: process.QueryProcInsPageData, ApiCode: "proc-ins-page-data"},
 		&handlerFuncObj{Url: "/operation-events", Method: "POST", HandlerFunc: process.ProcStartEvents, ApiCode: "proc-start-events"},
+		&handlerFuncObj{Url: "/public/process/definitions/:proc-def-id/options/:proc-node-def-id", Method: "GET", HandlerFunc: process.GetProcNodeAllowOptions, ApiCode: "get-proc-node-options"},
 
 		// certification manager
 		&handlerFuncObj{Url: "/plugin-certifications", Method: "GET", HandlerFunc: certification.GetCertifications, ApiCode: "get-certifications"},
