@@ -715,3 +715,14 @@ func ProcStartEvents(c *gin.Context) {
 	buildProcPreviewData(c, procDef.Id, param.OperationData, middleware.GetRequestUser(c))
 	// start
 }
+
+func GetProcNodeAllowOptions(c *gin.Context) {
+	procDefId := c.Param("proc-def-id")
+	procNodeDefId := c.Param("proc-node-def-id")
+	options, err := database.GetProcNodeAllowOptions(c, procDefId, procNodeDefId)
+	if err != nil {
+		middleware.ReturnError(c, err)
+	} else {
+		middleware.ReturnData(c, options)
+	}
+}
