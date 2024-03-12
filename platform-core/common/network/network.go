@@ -40,7 +40,7 @@ func HttpPost(url, userToken, language string, postBytes []byte) (byteArr []byte
 	req.Header.Set("Accept-Language", language)
 	resp, respErr := http.DefaultClient.Do(req)
 	if respErr != nil {
-		err = fmt.Errorf("do http reqeust fail,%s ", reqErr.Error())
+		err = fmt.Errorf("do http reqeust fail,%s ", respErr.Error())
 		return
 	}
 	byteArr, _ = io.ReadAll(resp.Body)
@@ -59,7 +59,7 @@ func HttpPostCommon(url, userToken, language string, postBytes []byte) (err erro
 	req.Header.Set("Accept-Language", language)
 	resp, respErr := http.DefaultClient.Do(req)
 	if respErr != nil {
-		err = fmt.Errorf("do http reqeust fail,%s ", reqErr.Error())
+		err = fmt.Errorf("do http reqeust fail,%s ", respErr.Error())
 		return
 	}
 	respBytes, _ := io.ReadAll(resp.Body)
