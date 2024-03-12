@@ -572,7 +572,7 @@ func PublicProcDefTaskNodes(c *gin.Context) {
 							RefAttrName:    attrObj.RefAttr,
 							ReferenceId:    attrObj.ReferenceId,
 							Multiple:       attrObj.Multiple,
-							OrderNo:        fmt.Sprintf("%d", attrObj.OrderNo),
+							OrderNo:        attrObj.OrderNo,
 						})
 					}
 					v.BoundEntities = append(v.BoundEntities, &boundEntityObj)
