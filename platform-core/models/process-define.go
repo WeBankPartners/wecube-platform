@@ -379,7 +379,7 @@ func (p *ProcEntity) ParseAttr(attrs []*PluginPackageAttributes) {
 			EntityDisplayName: v.Description,
 			EntityPackage:     v.Package,
 			Multiple:          v.Multiple,
-			OrderNo:           fmt.Sprintf("%d", v.OrderNo),
+			OrderNo:           v.OrderNo,
 			Active:            true,
 		})
 	}
@@ -401,7 +401,7 @@ type ProcEntityAttributeObj struct {
 	EntityDisplayName string `json:"entityDisplayName"`
 	EntityPackage     string `json:"entityPackage"`
 	Multiple          string `json:"multiple"`
-	OrderNo           string `json:"orderNo"`
+	OrderNo           int    `json:"orderNo"`
 }
 
 type ProcDefSort []*ProcDef
