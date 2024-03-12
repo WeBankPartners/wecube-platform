@@ -72,7 +72,7 @@ func AnalyzeExpression(express string) (result []*models.ExpressionObj, err erro
 				if i == len(tmpSplitList)-1 {
 					express += v
 				} else {
-					express += fmt.Sprintf("%s'$%d'", v, i/2)
+					express += fmt.Sprintf("%s'$%d$'", v, i/2)
 				}
 			} else {
 				filterParams = append(filterParams, strings.ReplaceAll(v, "'", ""))
@@ -121,7 +121,7 @@ func AnalyzeExpression(express string) (result []*models.ExpressionObj, err erro
 				}
 				tmpFilter := models.Filter{Name: tmpFilterList[0], Operator: tmpFilterList[1], Value: tmpFilterVal}
 				for fpIndex, fpValue := range filterParams {
-					tmpFilter.Value = strings.ReplaceAll(tmpFilter.Value, fmt.Sprintf("$%d", fpIndex), fpValue)
+					tmpFilter.Value = strings.ReplaceAll(tmpFilter.Value, fmt.Sprintf("$%d$", fpIndex), fpValue)
 				}
 				eso.Filters = append(eso.Filters, &tmpFilter)
 				ci = ci[rIdx+1:]
