@@ -3,13 +3,14 @@ package database
 import (
 	"context"
 	"fmt"
+	"strings"
+	"time"
+
 	"github.com/WeBankPartners/go-common-lib/guid"
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/db"
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/encrypt"
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/exterror"
 	"github.com/WeBankPartners/wecube-platform/platform-core/models"
-	"strings"
-	"time"
 )
 
 func QueryResourceServer(ctx context.Context, param *models.QueryRequestParam) (result *models.ResourceServerListPageData, err error) {
@@ -111,6 +112,24 @@ func GetAvailableContainerHost() (availableHost []string, err error) {
 func GetResourceServerByIp(hostIp string) (resourceServer *models.ResourceServer, err error) {
 	var resourceServerRows []*models.ResourceServer
 	err = db.MysqlEngine.SQL("select id,is_allocated,login_password,login_username,login_mode,name,port,`type`,host from resource_server where host=?", hostIp).Find(&resourceServerRows)
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
+		return
+	}
+	if len(resourceServerRows) == 0 {
+		err = exterror.Catch(exterror.New().DatabaseQueryEmptyError, err)
+		return
+	}
+	resourceServer = resourceServerRows[0]
+	if strings.HasPrefix(resourceServer.LoginPassword, models.AESPrefix) {
+		resourceServer.LoginPassword = encrypt.DecryptWithAesECB(resourceServer.LoginPassword[5:], models.Config.Plugin.ResourcePasswordSeed, resourceServer.Name)
+	}
+	return
+}
+
+func GetResourceServerById(resId string) (resourceServer *models.ResourceServer, err error) {
+	var resourceServerRows []*models.ResourceServer
+	err = db.MysqlEngine.SQL("select id,is_allocated,login_password,login_username,login_mode,name,port,`type`,host from resource_server where `id`=?", resId).Find(&resourceServerRows)
 	if err != nil {
 		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
 		return

@@ -4,19 +4,30 @@ import (
 	"context"
 	"crypto/rand"
 	"fmt"
-	"github.com/WeBankPartners/wecube-platform/platform-core/common/log"
-	"github.com/WeBankPartners/wecube-platform/platform-core/models"
-	_ "github.com/go-sql-driver/mysql"
 	"os/exec"
 	"regexp"
 	"strconv"
 	"strings"
+
+	"github.com/WeBankPartners/wecube-platform/platform-core/common/log"
+	"github.com/WeBankPartners/wecube-platform/platform-core/models"
+	_ "github.com/go-sql-driver/mysql"
 	"xorm.io/xorm"
 )
 
 func RemoteSSHCommand(targetIp, user, pwd, port, command string) (err error) {
 	commandString := fmt.Sprintf("sshpass -p '%s' ssh %s@%s -p %s '%s'", pwd, user, targetIp, port, command)
 	_, err = exec.Command("/bin/bash", "-c", commandString).Output()
+	if err != nil {
+		err = fmt.Errorf("run remote ssh command to target %s fail,%s ", targetIp, err.Error())
+		log.Logger.Debug("run remote ssh command fail", log.String("cmd", commandString), log.String("targetIp", targetIp))
+	}
+	return
+}
+
+func RemoteSSHCommandWithOutput(targetIp, user, pwd, port, command string) (stdout []byte, err error) {
+	commandString := fmt.Sprintf("sshpass -p '%s' ssh %s@%s -p %s '%s'", pwd, user, targetIp, port, command)
+	stdout, err = exec.Command("/bin/bash", "-c", commandString).Output()
 	if err != nil {
 		err = fmt.Errorf("run remote ssh command to target %s fail,%s ", targetIp, err.Error())
 		log.Logger.Debug("run remote ssh command fail", log.String("cmd", commandString), log.String("targetIp", targetIp))
