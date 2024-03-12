@@ -4,6 +4,7 @@ import (
 	"github.com/WeBankPartners/wecube-platform/platform-core/api/middleware"
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/exterror"
 	"github.com/WeBankPartners/wecube-platform/platform-core/models"
+	"github.com/WeBankPartners/wecube-platform/platform-core/services/bash"
 	"github.com/WeBankPartners/wecube-platform/platform-core/services/database"
 	"github.com/gin-gonic/gin"
 )
@@ -99,6 +100,20 @@ func DeleteResourceServer(c *gin.Context) {
 }
 
 func GetResourceServerSerialNum(c *gin.Context) {
-	//resourceServerId := c.Param("resourceServerId")
-
+	resourceServerId := c.Param("resourceServerId")
+	dockerServer, getDockerServerErr := database.GetResourceServerById(resourceServerId)
+	if getDockerServerErr != nil {
+		middleware.ReturnError(c, getDockerServerErr)
+		return
+	}
+	cmd := "cat /sys/class/dmi/id/product_serial"
+	stdoutData, cmdErr := bash.RemoteSSHCommandWithOutput(dockerServer.Host, dockerServer.LoginUsername, dockerServer.LoginPassword, dockerServer.Port, cmd)
+	if cmdErr != nil {
+		middleware.ReturnError(c, cmdErr)
+		return
+	}
+	data := make(map[string]interface{})
+	data["id"] = resourceServerId
+	data["productSerial"] = string(stdoutData)
+	middleware.ReturnData(c, data)
 }
