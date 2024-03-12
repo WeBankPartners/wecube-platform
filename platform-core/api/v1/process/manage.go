@@ -566,7 +566,7 @@ func PublicProcDefTaskNodes(c *gin.Context) {
 							Name:           attrObj.Name,
 							Description:    attrObj.Description,
 							DataType:       attrObj.DataType,
-							Mandatory:      attrObj.Mandatory,
+							Mandatory:      attrObj.MandatoryString,
 							RefPackageName: attrObj.RefPackage,
 							RefEntityName:  attrObj.RefEntity,
 							RefAttrName:    attrObj.RefAttr,
