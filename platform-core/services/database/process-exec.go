@@ -638,8 +638,8 @@ func CreatePublicProcInstance(ctx context.Context, startParam *models.RequestPro
 			tmpProcInsNodeId, procInsId, node.Id, node.Name, node.NodeType, models.JobStatusReady, node.OrderedNo, operator, nowTime,
 		}})
 		workNodeObj := models.ProcRunNode{Id: "wn_" + guid.CreateGuid(), WorkflowId: workflowRow.Id, ProcInsNodeId: tmpProcInsNodeId, Name: node.Name, JobType: node.NodeType, Status: models.JobStatusReady, Timeout: node.Timeout, CreatedTime: nowTime}
-		if node.NodeType == "merge" || node.NodeType == "timeInterval" || node.NodeType == "date" {
-			workNodeObj.Timeout = 0
+		if node.NodeType != "automatic" && node.NodeType != "data" {
+			node.Timeout = 0
 		}
 		if node.NodeType == "timeInterval" {
 			workNodeObj.Input = node.TimeConfig
