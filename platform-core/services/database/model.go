@@ -325,6 +325,13 @@ func QueryExpressionEntityAttr(ctx context.Context, exprObj *models.ExpressionOb
 		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
 		return
 	}
+	for _, v := range attrRows {
+		if v.Mandatory {
+			v.MandatoryString = "Y"
+		} else {
+			v.MandatoryString = "N"
+		}
+	}
 	result = &models.ExpressionEntitiesRespObj{PackageName: exprObj.Package, EntityName: exprObj.Entity, Attributes: attrRows}
 	return
 }
