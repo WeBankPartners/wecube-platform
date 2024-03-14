@@ -249,14 +249,18 @@ func SyncPluginDataModels(ctx context.Context, packageName string, allModels []*
 			} else {
 				attr.Multiple = "N"
 			}
+			tmpMandatory := false
+			if attr.Required == "Y" {
+				tmpMandatory = true
+			}
 			if attr.DataType == "ref" {
 				actions = append(actions, &db.ExecAction{Sql: "INSERT INTO plugin_package_attributes (id,entity_id,name,description,data_type,ref_package,ref_entity,ref_attr,mandatory,multiple,is_array,created_time,order_no) values  (?,?,?,?,?,?,?,?,?,?,?,?,?)", Param: []interface{}{
-					attrId, entityId, attr.Name, attr.Description, attr.DataType, attr.RefPackageName, attr.RefEntityName, attr.RefAttributeName, 0, attr.Multiple, tmpMultiple, nowTime, attrIndex,
+					attrId, entityId, attr.Name, attr.Description, attr.DataType, attr.RefPackageName, attr.RefEntityName, attr.RefAttributeName, tmpMandatory, attr.Multiple, tmpMultiple, nowTime, attrIndex,
 				}})
 				refAttrMap[attrId] = fmt.Sprintf("%s^%s^%s", attr.RefPackageName, attr.RefEntityName, attr.RefAttributeName)
 			} else {
 				actions = append(actions, &db.ExecAction{Sql: "INSERT INTO plugin_package_attributes (id,entity_id,name,description,data_type,mandatory,multiple,is_array,created_time,order_no) values  (?,?,?,?,?,?,?,?,?,?)", Param: []interface{}{
-					attrId, entityId, attr.Name, attr.Description, attr.DataType, 0, attr.Multiple, tmpMultiple, nowTime, attrIndex,
+					attrId, entityId, attr.Name, attr.Description, attr.DataType, tmpMandatory, attr.Multiple, tmpMultiple, nowTime, attrIndex,
 				}})
 			}
 		}
