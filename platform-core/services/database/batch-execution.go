@@ -471,7 +471,7 @@ func RetrieveTemplate(c *gin.Context, reqParam *models.QueryRequestParam) (resul
 func UpdateTemplateRolesDisplayName(c *gin.Context, templateDataList []*models.BatchExecutionTemplate) (err error) {
 	userToken := c.GetHeader(models.AuthorizationHeader)
 	language := c.GetHeader(middleware.AcceptLanguageHeader)
-	respData, err := remote.RetrieveAllLocalRoles("Y", userToken, language)
+	respData, err := remote.RetrieveAllLocalRoles("Y", userToken, language, false)
 	if err != nil {
 		err = fmt.Errorf("retrieve all local roles failed: %s", err.Error())
 		return
