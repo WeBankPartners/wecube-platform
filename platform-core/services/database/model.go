@@ -106,7 +106,7 @@ func GetEntityModel(ctx context.Context, packageName, entityName string, onlyAtt
 	}
 	result = &models.DataModelEntity{PluginPackageEntities: *entityRows[0], Attributes: []*models.PluginPackageAttributes{}, ReferenceByEntityList: []*models.DataModelRefEntity{}, ReferenceToEntityList: []*models.DataModelRefEntity{}}
 	var entityAttrRows []*models.PluginPackageAttributes
-	err = db.MysqlEngine.Context(ctx).SQL("select t1.*,t2.package_name from plugin_package_attributes t1 left join plugin_package_entities t2 on t1.entity_id=t2.id where t1.entity_id=?", result.Id).Find(&entityAttrRows)
+	err = db.MysqlEngine.Context(ctx).SQL("select t1.*,t2.package_name from plugin_package_attributes t1 left join plugin_package_entities t2 on t1.entity_id=t2.id where t1.entity_id=?  order by t1.order_no", result.Id).Find(&entityAttrRows)
 	if err != nil {
 		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
 		return
@@ -320,7 +320,7 @@ func QueryExpressionEntityAttr(ctx context.Context, exprObj *models.ExpressionOb
 		return
 	}
 	var attrRows []*models.PluginPackageAttributes
-	err = db.MysqlEngine.Context(ctx).SQL("select * from plugin_package_attributes where entity_id in (select id from plugin_package_entities where name =? and data_model_id=?)", exprObj.Entity, pluginDataModel.Id).Find(&attrRows)
+	err = db.MysqlEngine.Context(ctx).SQL("select * from plugin_package_attributes where entity_id in (select id from plugin_package_entities where name =? and data_model_id=?) order by order_no", exprObj.Entity, pluginDataModel.Id).Find(&attrRows)
 	if err != nil {
 		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
 		return
