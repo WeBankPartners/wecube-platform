@@ -1,13 +1,15 @@
 package db
 
 import (
+	"context"
 	"fmt"
-	"github.com/WeBankPartners/wecube-platform/platform-auth-server/common/log"
-	"github.com/WeBankPartners/wecube-platform/platform-auth-server/model"
 	"reflect"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/WeBankPartners/wecube-platform/platform-auth-server/common/log"
+	"github.com/WeBankPartners/wecube-platform/platform-auth-server/model"
 
 	_ "github.com/go-sql-driver/mysql"
 	"go.uber.org/zap"
@@ -194,8 +196,31 @@ func CheckDbConnection() (err error) {
 	return err
 }
 
-/*func TransFiltersToSQL(queryParam *model.QueryRequestParam, transParam *model.TransFiltersParam) (filterSql string, orderSql string, param []interface{}) {
-	filterSql = "1=1"
+func createListParams(inputList []string, prefix string) (filterSql string, filterParam []interface{}) {
+	if len(inputList) > 0 {
+		var specList []string
+		for _, v := range inputList {
+			specList = append(specList, "?")
+			filterParam = append(filterParam, prefix+v)
+		}
+		filterSql = strings.Join(specList, ",")
+	}
+	return
+}
+
+func combineDBSql(input ...interface{}) string {
+	var buf strings.Builder
+	fmt.Fprint(&buf, input...)
+	return buf.String()
+}
+
+func transFiltersToSQL(queryParam *model.QueryRequestParam, transParam *model.TransFiltersParam) (filterSql, queryColumn string, param []interface{}) {
+	if transParam.Prefix != "" && !strings.HasSuffix(transParam.Prefix, ".") {
+		transParam.Prefix = transParam.Prefix + "."
+	}
+	if transParam.IsStruct {
+		transParam.KeyMap, transParam.PrimaryKey = getJsonToXormMap(transParam.StructObj)
+	}
 	for _, filter := range queryParam.Filters {
 		if transParam.KeyMap[filter.Name] == "" || transParam.KeyMap[filter.Name] == "-" {
 			continue
@@ -203,19 +228,11 @@ func CheckDbConnection() (err error) {
 		if filter.Operator == "eq" {
 			filterSql += fmt.Sprintf(" AND %s%s=? ", transParam.Prefix, transParam.KeyMap[filter.Name])
 			param = append(param, filter.Value)
-		} else if filter.Operator == "like" {
+		} else if filter.Operator == "contains" {
 			filterSql += fmt.Sprintf(" AND %s%s LIKE ? ", transParam.Prefix, transParam.KeyMap[filter.Name])
 			param = append(param, fmt.Sprintf("%%%s%%", filter.Value))
 		} else if filter.Operator == "in" || filter.Operator == "notIn" {
-			inValueList := filter.Value.([]interface{})
-			inValueStringList := []string{}
-			for _, inValueInterfaceObj := range inValueList {
-				if inValueInterfaceObj == nil {
-					inValueStringList = append(inValueStringList, "")
-				} else {
-					inValueStringList = append(inValueStringList, inValueInterfaceObj.(string))
-				}
-			}
+			inValueStringList := ParseFilterInValue(filter)
 			tmpSpecSql, tmpListParams := createListParams(inValueStringList, "")
 			if tmpSpecSql == "" {
 				tmpSpecSql = "''"
@@ -226,11 +243,17 @@ func CheckDbConnection() (err error) {
 				filterSql += fmt.Sprintf(" AND %s%s not in (%s) ", transParam.Prefix, transParam.KeyMap[filter.Name], tmpSpecSql)
 			}
 			param = append(param, tmpListParams...)
-		} else if filter.Operator == "lt" {
+		} else if filter.Operator == "lte" {
 			filterSql += fmt.Sprintf(" AND %s%s<=? ", transParam.Prefix, transParam.KeyMap[filter.Name])
 			param = append(param, filter.Value)
-		} else if filter.Operator == "gt" {
+		} else if filter.Operator == "lt" {
+			filterSql += fmt.Sprintf(" AND %s%s<? ", transParam.Prefix, transParam.KeyMap[filter.Name])
+			param = append(param, filter.Value)
+		} else if filter.Operator == "gte" {
 			filterSql += fmt.Sprintf(" AND %s%s>=? ", transParam.Prefix, transParam.KeyMap[filter.Name])
+			param = append(param, filter.Value)
+		} else if filter.Operator == "gt" {
+			filterSql += fmt.Sprintf(" AND %s%s>? ", transParam.Prefix, transParam.KeyMap[filter.Name])
 			param = append(param, filter.Value)
 		} else if filter.Operator == "neq" {
 			filterSql += fmt.Sprintf(" AND %s%s!=? ", transParam.Prefix, transParam.KeyMap[filter.Name])
@@ -242,6 +265,7 @@ func CheckDbConnection() (err error) {
 		}
 	}
 	if len(queryParam.Sorting) > 0 {
+		filterSql += " ORDER BY "
 		var sortFilterList []string
 		for _, sortObj := range queryParam.Sorting {
 			if transParam.KeyMap[sortObj.Field] == "" || transParam.KeyMap[sortObj.Field] == "-" {
@@ -256,42 +280,74 @@ func CheckDbConnection() (err error) {
 			}
 		}
 		if len(sortFilterList) > 0 {
-			orderSql += fmt.Sprintf(" %s ", strings.Join(sortFilterList, ","))
+			filterSql += fmt.Sprintf(" %s ", strings.Join(sortFilterList, ","))
 		}
+	}
+	if len(queryParam.ResultColumns) > 0 {
+		for _, resultColumn := range queryParam.ResultColumns {
+			if transParam.KeyMap[resultColumn] == "" || transParam.KeyMap[resultColumn] == "-" {
+				continue
+			}
+			queryColumn += fmt.Sprintf("%s%s,", transParam.Prefix, transParam.KeyMap[resultColumn])
+		}
+	}
+	if queryColumn == "" {
+		queryColumn = " * "
+	} else {
+		queryColumn = queryColumn[:len(queryColumn)-1]
 	}
 	return
 }
 
-func InitFilterParam(filterParam *model.TransFiltersParam) *model.TransFiltersParam {
-	if filterParam.Prefix != "" && !strings.HasSuffix(filterParam.Prefix, ".") {
-		filterParam.Prefix = filterParam.Prefix + "."
-	}
-	if filterParam.IsStruct {
-		filterParam.KeyMap, filterParam.PrimaryKey = getJsonToDbMap(filterParam.StructObj)
-	}
-	return filterParam
-}*/
-
-func createListParams(inputList []string, prefix string) (specSql string, paramList []interface{}) {
-	if len(inputList) > 0 {
-		var specList []string
-		for _, v := range inputList {
-			specList = append(specList, "?")
-			paramList = append(paramList, prefix+v)
-		}
-		specSql = strings.Join(specList, ",")
-	}
-	return
-}
-
-func getJsonToDbMap(input interface{}) (resultMap map[string]string, idKeyName string) {
+func getJsonToXormMap(input interface{}) (resultMap map[string]string, idKeyName string) {
 	resultMap = make(map[string]string)
 	t := reflect.TypeOf(input)
 	for i := 0; i < t.NumField(); i++ {
-		resultMap[t.Field(i).Tag.Get("json")] = t.Field(i).Tag.Get("db")
+		resultMap[t.Field(i).Tag.Get("json")] = t.Field(i).Tag.Get("xorm")
 		if i == 0 {
-			idKeyName = t.Field(i).Tag.Get("db")
+			idKeyName = t.Field(i).Tag.Get("xorm")
 		}
 	}
 	return resultMap, idKeyName
+}
+
+func queryCount(ctx context.Context, sql string, params ...interface{}) int {
+	resultMap := make(map[string]interface{})
+	_, err := Engine.Context(ctx).SQL(combineDBSql("SELECT COUNT(1) FROM ( ", sql, " ) sub_query"), params...).Get(&resultMap)
+	if err != nil {
+		log.Logger.Error("Query sql count message fail", log.Error(err))
+		return 0
+	}
+	if countV, b := resultMap["COUNT(1)"]; b {
+		countIntV, _ := strconv.Atoi(fmt.Sprintf("%d", countV))
+		return countIntV
+	}
+	return 0
+}
+
+func transPageInfoToSQL(pageInfo model.PageInfo) (pageSql string, param []interface{}) {
+	pageSql = " LIMIT ?,? "
+	param = append(param, pageInfo.StartIndex)
+	param = append(param, pageInfo.PageSize)
+	return
+}
+
+func ParseFilterInValue(filter *model.QueryRequestFilterObj) []string {
+	inValueStringList := []string{}
+	if filter.Operator == "in" || filter.Operator == "notIn" {
+		fValueType := reflect.TypeOf(filter.Value).String()
+		if fValueType == "[]string" {
+			inValueStringList = filter.Value.([]string)
+		} else if strings.HasPrefix(fValueType, "[]interface") {
+			inValueList := filter.Value.([]interface{})
+			for _, inValueInterfaceObj := range inValueList {
+				if inValueInterfaceObj == nil {
+					inValueStringList = append(inValueStringList, "")
+				} else {
+					inValueStringList = append(inValueStringList, inValueInterfaceObj.(string))
+				}
+			}
+		}
+	}
+	return inValueStringList
 }
