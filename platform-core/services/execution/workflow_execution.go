@@ -402,7 +402,7 @@ func DoWorkflowHumanJob(ctx context.Context, procRunNodeId string, recoverFlag b
 	if pluginInterface.Type == "DYNAMICFORM" {
 		err = CallDynamicFormReq(ctx, &callPluginServiceParam)
 	} else if pluginInterface.Type == "APPROVAL" {
-
+		err = CallDynamicFormReq(ctx, &callPluginServiceParam)
 	}
 	return
 }
