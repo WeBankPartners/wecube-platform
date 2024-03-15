@@ -48,7 +48,7 @@ func QueryProcessDefinitionList(ctx context.Context, param models.QueryProcessDe
 	} else {
 		filterProcDefList = procDefList
 	}
-	response, err = remote.RetrieveAllLocalRoles("Y", userToken, language)
+	response, err = remote.RetrieveAllLocalRoles("Y", userToken, language, false)
 	if err != nil {
 		return
 	}
