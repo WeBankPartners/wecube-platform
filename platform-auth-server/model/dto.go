@@ -1,5 +1,7 @@
 package model
 
+import "time"
+
 const (
 	ResponseStatusOk    = "OK"
 	ResponseStatusError = "ERROR"
@@ -113,4 +115,15 @@ type SubSystemTokenDto struct {
 	ExpireDate  string `json:"expireDate"`
 	CreateDate  string `json:"createDate"` // 20200515
 	Nonce       string `json:"nonce"`
+}
+
+type RoleApplyDto struct {
+	ID          string    `json:"id"`
+	CreatedBy   string    `json:"createdBy"`
+	UpdatedBy   string    `json:"updatedBy"`
+	CreatedTime time.Time `json:"createdTime"`
+	UpdatedTime time.Time `json:"updatedTime"`
+	EmailAddr   string    `json:"emailAddr"`
+	RoleId      string    `json:"roleId"`
+	Status      string    `json:"status"`
 }

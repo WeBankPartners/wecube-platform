@@ -1,7 +1,10 @@
 package db
 
 import (
+	"context"
+
 	"github.com/WeBankPartners/wecube-platform/platform-auth-server/model"
+	"xorm.io/builder"
 	"xorm.io/xorm"
 )
 
@@ -254,4 +257,45 @@ func (UserRoleRsRepository) FindOneByUserIdAndRoleId(userId string, roleId strin
 	} else {
 		return nil, nil
 	}
+}
+
+var RoleApplyRepositoryInstance RoleApplyRepository
+
+type RoleApplyRepository struct {
+}
+
+func (RoleApplyRepository) FindByIDs(ids []string) ([]*model.RoleApplyEntity, error) {
+	var list []*model.RoleApplyEntity
+	err := Engine.In("id", ids).Asc("created_time").Find(&list)
+	if err != nil {
+		return nil, err
+	}
+	return list, nil
+}
+
+func (RoleApplyRepository) FindByApplier(applier string, roleIds []string, statuses []string) ([]*model.RoleApplyEntity, error) {
+	var list []*model.RoleApplyEntity
+	session := Engine.Where("created_by = ?", applier).And(builder.In("role_id", roleIds))
+	if len(statuses) > 0 {
+		session = session.And(builder.In("status", statuses))
+	}
+	err := session.Find(&list)
+	if err != nil {
+		return nil, err
+	}
+	return list, nil
+}
+
+func (RoleApplyRepository) Query(ctx context.Context, param *model.QueryRequestParam) (*model.ListRoleApplyResponse, error) {
+	result := &model.ListRoleApplyResponse{PageInfo: &model.PageInfo{}, Contents: []*model.RoleApplyDto{}}
+	filterSql, _, queryParam := transFiltersToSQL(param, &model.TransFiltersParam{IsStruct: true, StructObj: model.RoleApplyEntity{}})
+	baseSql := combineDBSql("SELECT * FROM auth_sys_role_apply WHERE 1=1 ", filterSql)
+	if param.Paging {
+		result.PageInfo = &model.PageInfo{StartIndex: param.Pageable.StartIndex, PageSize: param.Pageable.PageSize, TotalRows: queryCount(ctx, baseSql, queryParam...)}
+		pageSql, pageParam := transPageInfoToSQL(*param.Pageable)
+		baseSql = combineDBSql(baseSql, pageSql)
+		queryParam = append(queryParam, pageParam...)
+	}
+	err := Engine.Context(ctx).SQL(baseSql, queryParam...).Find(&result.Contents)
+	return result, err
 }

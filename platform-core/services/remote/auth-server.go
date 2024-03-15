@@ -3,10 +3,12 @@ package remote
 import (
 	"encoding/json"
 	"fmt"
+	"strconv"
+	"strings"
+
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/log"
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/network"
 	"github.com/WeBankPartners/wecube-platform/platform-core/models"
-	"strings"
 )
 
 const (
@@ -15,7 +17,7 @@ const (
 	// pathRetrieveAllUserAccounts 查询所有用户
 	pathRetrieveAllUserAccounts = "/auth/v1/users"
 	// pathRetrieveAllRoles  查询所有角色
-	pathRetrieveAllRoles = "/auth/v1/roles?all=%s"
+	pathRetrieveAllRoles = "/auth/v1/roles?all=%s&roleAdmin=%s"
 	// pathRetrieveGrantedRolesByUsername 根据用户名查询角色
 	pathRetrieveGrantedRolesByUsername = "/auth/v1/users/roles-by-name/%s"
 	// pathRetrieveRoleById 根据roleId查询role
@@ -115,8 +117,8 @@ func RetrieveAllUsers(userToken, language string) (response models.QueryUserResp
 }
 
 // RetrieveAllLocalRoles 查询所有角色
-func RetrieveAllLocalRoles(requiredAll, userToken, language string) (response models.QueryRolesResponse, err error) {
-	byteArr, err := network.HttpGet(fmt.Sprintf(models.Config.Auth.Url+pathRetrieveAllRoles, requiredAll), userToken, language)
+func RetrieveAllLocalRoles(requiredAll, userToken, language string, roleAdmin bool) (response models.QueryRolesResponse, err error) {
+	byteArr, err := network.HttpGet(fmt.Sprintf(models.Config.Auth.Url+pathRetrieveAllRoles, requiredAll, strconv.FormatBool(roleAdmin)), userToken, language)
 	if err != nil {
 		return
 	}

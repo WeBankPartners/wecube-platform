@@ -229,7 +229,7 @@ func UpdatePluginConfigRoles(c *gin.Context, pluginConfigId string, reqParam *mo
 
 	userToken := c.GetHeader(models.AuthorizationHeader)
 	language := c.GetHeader(middleware.AcceptLanguageHeader)
-	respData, err := remote.RetrieveAllLocalRoles("Y", userToken, language)
+	respData, err := remote.RetrieveAllLocalRoles("Y", userToken, language, false)
 	if err != nil {
 		err = fmt.Errorf("retrieve all local roles failed: %s", err.Error())
 		return
@@ -748,7 +748,7 @@ func getCreatePluginCfgRolesActions(c *gin.Context,
 	reqUser := middleware.GetRequestUser(c)
 	userToken := c.GetHeader(models.AuthorizationHeader)
 	language := c.GetHeader(middleware.AcceptLanguageHeader)
-	respData, err := remote.RetrieveAllLocalRoles("Y", userToken, language)
+	respData, err := remote.RetrieveAllLocalRoles("Y", userToken, language, false)
 	if err != nil {
 		err = fmt.Errorf("retrieve all local roles failed: %s", err.Error())
 		return

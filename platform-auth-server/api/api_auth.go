@@ -24,7 +24,7 @@ func Login(c *gin.Context) {
 	}
 }
 
-func setupTokenHeaders(jwtTokens []model.Jwt, c *gin.Context) {
+func setupTokenHeaders(jwtTokens []*model.Jwt, c *gin.Context) {
 	for _, jwtToken := range jwtTokens {
 		if jwtToken.TokenType == constant.TypeAccessToken {
 			c.Header(constant.AuthorizationHeader, constant.BearerTokenPrefix+jwtToken.Token)

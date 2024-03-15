@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"sort"
+	"strconv"
 	"strings"
 
 	"github.com/WeBankPartners/go-common-lib/guid"
@@ -99,7 +100,18 @@ func QueryRoles(c *gin.Context) {
 	if requiredAll == "" {
 		requiredAll = "N"
 	}
-	response, err := remote.RetrieveAllLocalRoles(requiredAll, c.GetHeader("Authorization"), c.GetHeader("Accept-Language"))
+
+	roleAdmin := false
+	var err error
+	if roleAdminStr := c.Query("roleAdmin"); roleAdminStr != "" {
+		roleAdmin, err = strconv.ParseBool(roleAdminStr)
+		if err != nil {
+			middleware.ReturnError(c, err)
+			return
+		}
+	}
+
+	response, err := remote.RetrieveAllLocalRoles(requiredAll, c.GetHeader("Authorization"), c.GetHeader("Accept-Language"), roleAdmin)
 	if err != nil {
 		middleware.ReturnError(c, err)
 		return
