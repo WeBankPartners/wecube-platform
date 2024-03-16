@@ -782,6 +782,12 @@ func GetProcInstance(ctx context.Context, procInsId string) (result *models.Proc
 			parentMap[link.Target] = []string{link.Source}
 		}
 	}
+	var procNodeDefRows []*models.ProcDefNode
+	err = db.MysqlEngine.Context(ctx).SQL("select id,node_id from proc_def_node where proc_def_id=?", result.ProcDefId).Find(&procNodeDefRows)
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
+		return
+	}
 	orderIndex := 1
 	for _, row := range procInsNodeRows {
 		nodeObj := models.ProcInsNodeDetail{
@@ -797,6 +803,12 @@ func GetProcInstance(ctx context.Context, procInsId string) (result *models.Proc
 			Status:            row.Status,
 			PreviousNodeIds:   []string{},
 			SucceedingNodeIds: []string{},
+		}
+		for _, defRow := range procNodeDefRows {
+			if defRow.Id == row.ProcDefNodeId {
+				nodeObj.NodeDefId = defRow.NodeId
+				break
+			}
 		}
 		//if transStatus, ok := models.ProcStatusTransMap[nodeObj.Status]; ok {
 		//	nodeObj.Status = transStatus
