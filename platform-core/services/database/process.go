@@ -245,7 +245,13 @@ func CopyProcessDefinition(ctx context.Context, procDef *models.ProcDef, operato
 	if len(nodeList) > 0 {
 		for _, node := range nodeList {
 			nodeParamList, _ := GetProcDefNodeParamByNodeId(ctx, node.Id)
-			allNodeParamList = append(allNodeParamList, nodeParamList...)
+			// nodeParamList 中 存储nodeId,为node.NodeId,而非 node.id
+			if len(nodeParamList) > 0 {
+				for _, param := range nodeParamList {
+					param.ProcDefNodeId = node.NodeId
+				}
+				allNodeParamList = append(allNodeParamList, nodeParamList...)
+			}
 		}
 	}
 
