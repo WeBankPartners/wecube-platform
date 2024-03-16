@@ -701,7 +701,7 @@ func checkPasswordStrength(password string) bool {
 		uppercaseRegex = regexp.MustCompile(`[A-Z]`)
 		lowercaseRegex = regexp.MustCompile(`[a-z]`)
 		numberRegex    = regexp.MustCompile(`[0-9]`)
-		specialRegex   = regexp.MustCompile(`[!@#$%^&*()_+-=\[\]{}\:;'",.<>/?\|~]`)
+		specialRegex   = regexp.MustCompile(`[!@#$%^&*()_+\-=\[\]{}\\:;'",.<>/?|~]`)
 	)
 
 	typeCnt := 0
@@ -717,6 +717,13 @@ func checkPasswordStrength(password string) bool {
 	if specialRegex.MatchString(password) {
 		typeCnt += 1
 	}
+	// test code:
+	// s := `!@#$%^&*()_+-=[]{}\:;'",.<>/?|~`
+	// for i := 0; i < len(s); i++ {
+	// 	if !specialRegex.MatchString(string(s[i])) {
+	// 		fmt.Println(s[i])
+	// 	}
+	// }
 
 	return typeCnt >= 3
 }
