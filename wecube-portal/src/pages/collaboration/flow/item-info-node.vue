@@ -443,14 +443,15 @@ export default {
     },
     checkParamsInfo () {
       let res = false
-      this.itemCustomInfo.customAttrs.paramInfos.forEach(item => {
-        if (item.bindType === 'constant' && item.required === 'Y' && item.bindValue === '') {
-          res = true
-        }
-        if (item.bindType === 'context' && item.required === 'Y' && item.bindNodeId === '') {
-          res = true
-        }
-      })
+      this.itemCustomInfo.customAttrs.paramInfos &&
+        this.itemCustomInfo.customAttrs.paramInfos.forEach(item => {
+          if (item.bindType === 'constant' && item.required === 'Y' && item.bindValue === '') {
+            res = true
+          }
+          if (item.bindType === 'context' && item.required === 'Y' && item.bindNodeId === '') {
+            res = true
+          }
+        })
       if (res) {
         this.$Message.warning(this.$t('checkContextParameter'))
       }
@@ -587,12 +588,13 @@ export default {
     },
     // 改变上下文中的源节点列表清除对应数据的响应
     changeContextParamNodes (selection) {
-      this.itemCustomInfo.customAttrs.paramInfos.forEach(pInfo => {
-        if (pInfo.bindNodeId !== '' && !selection.includes(pInfo.bindNodeId)) {
-          pInfo.bindNodeId = ''
-          pInfo.bindParamName = ''
-        }
-      })
+      this.itemCustomInfo.customAttrs.paramInfos &&
+        this.itemCustomInfo.customAttrs.paramInfos.forEach(pInfo => {
+          if (pInfo.bindNodeId !== '' && !selection.includes(pInfo.bindNodeId)) {
+            pInfo.bindNodeId = ''
+            pInfo.bindParamName = ''
+          }
+        })
     },
     // 获取插件函数列表
     async getFilteredPluginInterfaceList (path) {
@@ -649,7 +651,7 @@ export default {
     },
     async getParamsOptionsByNode (index) {
       this.$set(this.itemCustomInfo.customAttrs.paramInfos[index], 'currentParamNames', [])
-      const paramInfos = this.itemCustomInfo.customAttrs.paramInfos
+      const paramInfos = this.itemCustomInfo.customAttrs.paramInfos || []
       if (paramInfos[index].bindNodeId !== '') {
         let { status, data } = await getNodeParams(
           this.itemCustomInfo.customAttrs.procDefId,
