@@ -13,4 +13,5 @@ WORKDIR $BASE_HOME
 RUN addgroup -S apps -g 6000 && adduser -S app -u 6001 -G apps
 RUN chown -R app:apps $BASE_HOME && chmod -R 755 $BASE_HOME
 USER app
+RUN mkdir -p /home/app/.ssh
 ENTRYPOINT ["/bin/bash", "start.sh"]
