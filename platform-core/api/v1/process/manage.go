@@ -187,6 +187,10 @@ func CopyProcessDefinition(c *gin.Context) {
 		middleware.ReturnError(c, fmt.Errorf("proc-def-id is invalid"))
 		return
 	}
+	if err = CheckPermission(procDef, user); err != nil {
+		middleware.ReturnError(c, err)
+		return
+	}
 	// 编排没有相关性,则重新生成key
 	if association != "y" && association != "Y" {
 		procDef.Key = "pdef_key_" + guid.CreateGuid()
@@ -276,6 +280,10 @@ func BatchUpdateProcessDefinitionStatus(c *gin.Context) {
 		if procDef == nil {
 			continue
 		}
+		if err = CheckPermission(procDef, user); err != nil {
+			middleware.ReturnError(c, err)
+			return
+		}
 		switch procDef.Status {
 		case string(models.Draft):
 			// 记录草稿态编排
@@ -352,6 +360,10 @@ func BatchUpdateProcessDefinitionPermission(c *gin.Context) {
 		}
 		if procDef.Id == "" {
 			continue
+		}
+		if err = CheckPermission(procDef, user); err != nil {
+			middleware.ReturnError(c, err)
+			return
 		}
 		err = database.BatchAddProcDefPermission(c, procDefId, param.PermissionToRole)
 		if err != nil {
@@ -451,7 +463,7 @@ func ImportProcessDefinition(c *gin.Context) {
 		middleware.ReturnError(c, fmt.Errorf("import data is empty"))
 		return
 	}
-	importResult, err = processDefinitionImport(c, paramList, middleware.GetRequestUser(c), c.GetHeader(middleware.AcceptLanguageHeader))
+	importResult, err = processDefinitionImport(c, paramList, middleware.GetRequestUser(c), c.GetHeader(models.AuthorizationHeader), c.GetHeader(middleware.AcceptLanguageHeader))
 	if err != nil {
 		middleware.ReturnError(c, err)
 	}
@@ -472,6 +484,10 @@ func DeployProcessDefinition(c *gin.Context) {
 		if procDef == nil {
 			err = exterror.Catch(exterror.New().ServerHandleError, fmt.Errorf("proc-def-id is invalid"))
 		}
+		middleware.ReturnError(c, err)
+		return
+	}
+	if err = CheckPermission(procDef, middleware.GetRequestUser(c)); err != nil {
 		middleware.ReturnError(c, err)
 		return
 	}
@@ -623,6 +639,10 @@ func AddOrUpdateProcDefTaskNodes(c *gin.Context) {
 	}
 	if procDef == nil {
 		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, fmt.Errorf("procDefId is invalid")))
+		return
+	}
+	if err = CheckPermission(procDef, user); err != nil {
+		middleware.ReturnError(c, err)
 		return
 	}
 	if procDef.Status != string(models.Draft) {
@@ -839,11 +859,25 @@ func GetProcDefNodeParameters(c *gin.Context) {
 func DeleteProcDefNode(c *gin.Context) {
 	var err error
 	var procDefNode *models.ProcDefNode
+	var procDef *models.ProcDef
 	var list []*models.ProcDefNode
 	uiNodeId := c.Param("node-id")
 	procDefId := c.Param("proc-def-id")
 	if uiNodeId == "" || procDefId == "" {
 		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, fmt.Errorf("node-id or proc-def-id is empty")))
+		return
+	}
+	procDef, err = database.GetProcessDefinition(c, procDefId)
+	if err != nil {
+		middleware.ReturnError(c, err)
+		return
+	}
+	if procDef == nil {
+		middleware.ReturnError(c, fmt.Errorf("invalid proc-def-id"))
+		return
+	}
+	if err = CheckPermission(procDef, middleware.GetRequestUser(c)); err != nil {
+		middleware.ReturnError(c, err)
 		return
 	}
 	list, err = database.GetProcDefNodeById(c, procDefId)
@@ -899,6 +933,7 @@ func DeleteProcDefNode(c *gin.Context) {
 
 func AddOrUpdateProcDefNodeLink(c *gin.Context) {
 	var param models.ProcDefNodeLinkDto
+	var procDef *models.ProcDef
 	var procDefNodeLink *models.ProcDefNodeLink
 	var sourceNode, targetNode *models.ProcDefNode
 	var err error
@@ -909,6 +944,15 @@ func AddOrUpdateProcDefNodeLink(c *gin.Context) {
 	}
 	if param.ProcDefId == "" || param.ProcDefNodeLinkCustomAttrs == nil || param.ProcDefNodeLinkCustomAttrs.Id == "" {
 		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, fmt.Errorf("param id is empty")))
+		return
+	}
+	procDef, err = database.GetProcessDefinition(c, param.ProcDefId)
+	if err != nil {
+		middleware.ReturnError(c, err)
+		return
+	}
+	if procDef == nil {
+		middleware.ReturnError(c, fmt.Errorf("procDefId invalid"))
 		return
 	}
 	sourceNode, err = database.GetProcDefNode(c, param.ProcDefId, param.ProcDefNodeLinkCustomAttrs.Source)
@@ -953,6 +997,7 @@ func AddOrUpdateProcDefNodeLink(c *gin.Context) {
 }
 
 func DeleteProcDefNodeLink(c *gin.Context) {
+	var procDef *models.ProcDef
 	var err error
 	procDefId := c.Param("proc-def-id")
 	linkId := c.Param("node-link-id")
@@ -960,7 +1005,52 @@ func DeleteProcDefNodeLink(c *gin.Context) {
 		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, fmt.Errorf("procDefId or node-link-id is empty")))
 		return
 	}
+	procDef, err = database.GetProcessDefinition(c, procDefId)
+	if err != nil {
+		middleware.ReturnError(c, err)
+		return
+	}
+	if procDef == nil {
+		middleware.ReturnError(c, fmt.Errorf("proc-def-id invalid"))
+		return
+	}
 	err = database.DeleteProcDefNodeLink(c, procDefId, linkId)
+	if err != nil {
+		middleware.ReturnError(c, err)
+		return
+	}
+	middleware.ReturnSuccess(c)
+}
+
+func UpdateProcDefHandler(c *gin.Context) {
+	var param *models.UpdateProcDefHandlerParam
+	var procDef *models.ProcDef
+	var err error
+	if err = c.ShouldBindJSON(&param); err != nil {
+		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, err))
+		return
+	}
+	if param.ProcDefId == "" {
+		middleware.ReturnError(c, fmt.Errorf("procDefId is empty"))
+		return
+	}
+	procDef, err = database.GetProcessDefinition(c, param.ProcDefId)
+	if err != nil {
+		middleware.ReturnError(c, err)
+		return
+	}
+	if procDef == nil {
+		middleware.ReturnError(c, fmt.Errorf("procDefId invalid"))
+		return
+	}
+	// 处理时间校验
+	if GetLowVersionUnixMillis(procDef.UpdatedTime) != param.LatestUpdateTime {
+		err = exterror.New().DealWithAtTheSameTimeError
+		middleware.ReturnError(c, err)
+		return
+	}
+	// 更新处理人
+	err = database.UpdateProcDefHandler(c, procDef.Id, middleware.GetRequestUser(c))
 	if err != nil {
 		middleware.ReturnError(c, err)
 		return
@@ -1204,7 +1294,7 @@ func getMapRandomKey(hashMap map[string]bool) string {
 	return ""
 }
 
-func processDefinitionImport(ctx context.Context, inputList []*models.ProcessDefinitionDto, operator, language string) (importResult *models.ImportResultDto, err error) {
+func processDefinitionImport(ctx context.Context, inputList []*models.ProcessDefinitionDto, operator, userToken, language string) (importResult *models.ImportResultDto, err error) {
 	var draftList, repeatNameList []*models.ProcDef
 	var newProcDefId string
 	var versionExist bool
@@ -1254,7 +1344,7 @@ func processDefinitionImport(ctx context.Context, inputList []*models.ProcessDef
 		if versionExist {
 			continue
 		}
-		newProcDefId, err = database.CopyProcessDefinitionByDto(ctx, procDefDto, operator)
+		newProcDefId, err = database.CopyProcessDefinitionByDto(ctx, procDefDto, userToken, language, operator)
 		if err != nil {
 			importResult.ResultList = append(importResult.ResultList, &models.ImportResultItemDto{
 				ProcDefId:      newProcDefId,
@@ -1441,4 +1531,17 @@ func calcProcDefVersion(ctx context.Context, key string) string {
 	sort.Sort(models.ProcDefSort(list))
 	version, _ = strconv.Atoi(list[len(list)-1].Version[1:])
 	return fmt.Sprintf("v%d", version+1)
+}
+
+func CheckPermission(procDef *models.ProcDef, user string) (err error) {
+	// 请求模板的更新人不是当前用户,不允许操作
+	if procDef.UpdatedBy != user {
+		err = exterror.New().DataPermissionDeny
+	}
+	return
+}
+
+func GetLowVersionUnixMillis(t time.Time) string {
+	millisecondsSinceEpoch := t.Sub(time.Date(1970, 1, 1, 0, 0, 0, 0, time.UTC)).Nanoseconds() / 1e6 // 计算从1970年1月1日起经过的微秒数，再除以1000得到毫秒数
+	return fmt.Sprintf("%d", millisecondsSinceEpoch)
 }
