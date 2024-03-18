@@ -37,7 +37,7 @@ func WorkflowExecutionCallPluginService(ctx context.Context, param *models.ProcC
 		ReqUrl:        fmt.Sprintf("%s%s", models.Config.Gateway.Url, param.PluginInterface.Path),
 	}
 	rootExprList, errAnalyze1 := remote.AnalyzeExpression(param.EntityType)
-	if err != nil {
+	if errAnalyze1 != nil {
 		err = errAnalyze1
 		return
 	}
@@ -329,7 +329,7 @@ func DoWorkflowHumanJob(ctx context.Context, procRunNodeId string, recoverFlag b
 			err = getReqErr
 			return
 		}
-		if existReq != nil && existReq.IsCompleted == false && existReq.ErrorMsg == "" {
+		if existReq != nil && !existReq.IsCompleted && existReq.ErrorMsg == "" {
 			// 人工任务请求已经发出，不用再发
 			return
 		}
@@ -342,6 +342,9 @@ func DoWorkflowHumanJob(ctx context.Context, procRunNodeId string, recoverFlag b
 	}
 	if procDefNode.DynamicBind {
 		dataBindings, err = database.GetDynamicBindNodeData(ctx, procInsNode.ProcInsId, procDefNode.ProcDefId, procDefNode.BindNodeId)
+		if err != nil {
+			return
+		}
 	}
 	pluginInterface, getIntErr := database.GetLastEnablePluginInterface(ctx, procDefNode.ServiceName)
 	if getIntErr != nil {
@@ -357,8 +360,7 @@ func DoWorkflowHumanJob(ctx context.Context, procRunNodeId string, recoverFlag b
 		err = getProcInsErr
 		return
 	}
-	var entityInstances []*models.BatchExecutionPluginExecEntityInstances
-	entityInstances = []*models.BatchExecutionPluginExecEntityInstances{{Id: procIns.EntityDataId}}
+	entityInstances := []*models.BatchExecutionPluginExecEntityInstances{{Id: procIns.EntityDataId}}
 	inputConstantMap := make(map[string]string)
 	inputContextMap := make(map[string]interface{})
 	interfaceParamIdMap := make(map[string]string)
@@ -414,7 +416,7 @@ func CallDynamicFormReq(ctx context.Context, param *models.ProcCallPluginService
 		ReqUrl:        fmt.Sprintf("%s%s", models.Config.Gateway.Url, param.PluginInterface.Path),
 	}
 	rootExprList, errAnalyze1 := remote.AnalyzeExpression(param.EntityType)
-	if err != nil {
+	if errAnalyze1 != nil {
 		err = errAnalyze1
 		return
 	}

@@ -152,10 +152,7 @@ func (q MenuItemDtoSort) Len() int {
 }
 
 func (q MenuItemDtoSort) Less(i, j int) bool {
-	if q[i].MenuOrder-q[j].MenuOrder < 0 {
-		return true
-	}
-	return false
+	return q[i].MenuOrder-q[j].MenuOrder < 0
 }
 
 func (q MenuItemDtoSort) Swap(i, j int) {
