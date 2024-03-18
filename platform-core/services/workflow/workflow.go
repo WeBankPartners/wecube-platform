@@ -227,7 +227,6 @@ func (w *Workflow) RetryNode(nodeId string) {
 		w.setStatus(models.JobStatusRunning, nil)
 	}
 	nodeObj.StartChan <- 1
-	return
 }
 
 func (w *Workflow) IgnoreNode(nodeId string) {
@@ -256,7 +255,6 @@ func (w *Workflow) IgnoreNode(nodeId string) {
 			}
 		}
 	}
-	return
 }
 
 func (w *Workflow) ApproveNode(nodeId, message string) {
@@ -273,7 +271,6 @@ func (w *Workflow) ApproveNode(nodeId, message string) {
 		return
 	}
 	nodeObj.Callback(message)
-	return
 }
 
 func (w *Workflow) heartbeat() {
@@ -352,7 +349,7 @@ func (n *WorkNode) start() {
 		if n.Timeout > 0 {
 			// 如果是恢复态，自动化和数据写入任务时间太久的情况下就置为超时，不然可能时间太长一些数据都不一样了，让用户自行重试
 			if n.JobType == models.JobAutoType || n.JobType == models.JobDataType {
-				if time.Now().Sub(n.StartTime).Minutes() > float64(n.Timeout) {
+				if time.Since(n.StartTime).Minutes() > float64(n.Timeout) {
 					n.ErrorMessage = fmt.Sprintf(timeoutErrorTpl, n.Timeout)
 					n.Err = errors.New(n.ErrorMessage)
 					n.Status = models.JobStatusTimeout
@@ -416,7 +413,6 @@ func (n *WorkNode) start() {
 				n.Err = fmt.Errorf("dicision type receive empty choose")
 			}
 		}
-		break
 	}
 	if n.Err == nil {
 		n.Status = models.JobStatusSuccess
@@ -500,7 +496,7 @@ func (n *WorkNode) doTimeJob(recoverFlag bool) (output string, err error) {
 		return
 	}
 	if recoverFlag {
-		nowSubSec := time.Now().Sub(n.StartTime).Seconds()
+		nowSubSec := time.Since(n.StartTime).Seconds()
 		if nowSubSec > timeDuration.Seconds() {
 			log.Logger.Info("time job already start,now time match done", log.String("startTime", n.StartTime.Format(models.DateTimeFormat)), log.Float64("waitSec", timeDuration.Seconds()))
 		} else {
@@ -513,7 +509,7 @@ func (n *WorkNode) doTimeJob(recoverFlag bool) (output string, err error) {
 }
 
 func (n *WorkNode) doDateJob(recoverFlag bool) (output string, err error) {
-	log.Logger.Info("do date job", log.String("nodeId", n.Id), log.String("input", n.Input))
+	log.Logger.Info("do date job", log.String("nodeId", n.Id), log.String("input", n.Input), log.Bool("recover", recoverFlag))
 	var timeConfig models.TimeNodeParam
 	if err = json.Unmarshal([]byte(n.Input), &timeConfig); err != nil {
 		err = fmt.Errorf("time node param:%s json unmarshal fail,%s ", n.Input, err.Error())
