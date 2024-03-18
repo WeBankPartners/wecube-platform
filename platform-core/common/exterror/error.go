@@ -70,6 +70,9 @@ type ErrorTemplate struct {
 	BatchExecTmplDuplicateNameError   CustomError `json:"batch_exec_tmpl_duplicate_name_error"`
 	BatchExecTmplHasBeenModifiedError CustomError `json:"batch_exec_tmpl_has_been_modified_error"`
 	BatchExecDuplicateNameError       CustomError `json:"batch_exec_duplicate_name_error"`
+	// 同时处理报错
+	DealWithAtTheSameTimeError CustomError `json:"deal_with_at_the_same_time_error"`
+	DataPermissionDeny         CustomError `json:"data_permission_deny"`
 }
 
 var (
