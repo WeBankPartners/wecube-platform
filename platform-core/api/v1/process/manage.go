@@ -187,10 +187,6 @@ func CopyProcessDefinition(c *gin.Context) {
 		middleware.ReturnError(c, fmt.Errorf("proc-def-id is invalid"))
 		return
 	}
-	if err = CheckPermission(procDef, user); err != nil {
-		middleware.ReturnError(c, err)
-		return
-	}
 	// 编排没有相关性,则重新生成key
 	if association != "y" && association != "Y" {
 		procDef.Key = "pdef_key_" + guid.CreateGuid()
