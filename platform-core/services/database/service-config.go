@@ -322,7 +322,7 @@ func GetBatchPluginConfigs(c *gin.Context, pluginPackageId string) (result []*mo
 	}
 
 	var pluginConfigsList []*models.PluginConfigsOutlines
-	db.MysqlEngine.Context(c).Table(models.TableNamePluginConfigs).
+	err = db.MysqlEngine.Context(c).Table(models.TableNamePluginConfigs).
 		Where("plugin_package_id = ?", pluginPackageId).
 		Asc("id").
 		Find(&pluginConfigsList)
@@ -437,6 +437,10 @@ func UpdatePluginConfigStatus(c *gin.Context, pluginConfigId string, status stri
 		Get(pluginConfigsData)
 	if err != nil {
 		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
+		return
+	}
+	if !exists {
+		err = fmt.Errorf("pluginConfigId: %s is invalid", pluginConfigId)
 		return
 	}
 	result.PluginConfigs = *pluginConfigsData

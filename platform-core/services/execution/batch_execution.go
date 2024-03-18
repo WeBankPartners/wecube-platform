@@ -75,7 +75,7 @@ func BatchExecutionCallPluginService(ctx context.Context, operator, authToken, p
 		inputConstantMap[inputConst.ParamId] = inputConst.ParameValue
 	}
 	rootExprList, errAnalyze1 := remote.AnalyzeExpression(entityType)
-	if err != nil {
+	if errAnalyze1 != nil {
 		err = errAnalyze1
 		return
 	}
@@ -464,7 +464,7 @@ func handleOutputData(
 					branchResultOutput := make(map[string]interface{})
 					// outputCalResult规格化后保存进branchResultOutput
 					outputCalResultConv, errConv := normalizePluginInterfaceParamData(outputDef, outputCalResult)
-					if err != nil {
+					if errConv != nil {
 						err = errConv
 						return
 					}
@@ -498,7 +498,7 @@ func handleOutputData(
 					branchResultOutput := make(map[string]interface{})
 					// outputCalResult规格化后保存进branchResultOutput
 					outputCalResultConv, errConv := normalizePluginInterfaceParamData(outputDef, outputCalResult)
-					if err != nil {
+					if errConv != nil {
 						err = errConv
 						return
 					}
