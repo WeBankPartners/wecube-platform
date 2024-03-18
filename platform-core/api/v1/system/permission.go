@@ -504,7 +504,7 @@ func updateRoleToMenusByRoleId(ctx context.Context, roleId, userToken, language 
 			return
 		}
 	}
-	for code, _ := range menuCodeMap {
+	for code := range menuCodeMap {
 		if _, ok := currentMenuCodeMap[code]; !ok {
 			log.Logger.Info(fmt.Sprintf("create menus:[%s]", code))
 			roleMenu := models.RoleMenu{
