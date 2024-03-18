@@ -887,20 +887,29 @@ func (UserManagementService) RegisterUmUser(param *model.RoleApplyParam, curUser
 	if err != nil {
 		return err
 	}
-	existRoleIdMap := make(map[string]any)
+	existRoleApplyMap := make(map[string]*model.RoleApplyEntity)
 	for _, roleApply := range roleApplys {
-		existRoleIdMap[roleApply.RoleId] = nil
+		existRoleApplyMap[roleApply.RoleId] = roleApply
 	}
+	// 已申请的更新下时间
+	updateRoleApplys := make([]*model.RoleApplyEntity, 0, len(param.RoleIds))
 	insertRoleIds := make([]string, 0, len(param.RoleIds))
+	now := time.Now()
 	for _, roleId := range param.RoleIds {
-		if _, ok := existRoleIdMap[roleId]; !ok {
+		if roleApply, ok := existRoleApplyMap[roleId]; !ok {
 			insertRoleIds = append(insertRoleIds, roleId)
+		} else {
+			if roleApply.Status == model.RoleApplyStatusInit {
+				updateRoleApplys = append(updateRoleApplys, &model.RoleApplyEntity{
+					Id:          roleApply.Id,
+					CreatedTime: now,
+				})
+			}
 		}
 	}
 
 	// 插入申请
 	insertRoleApplys := make([]*model.RoleApplyEntity, len(insertRoleIds))
-	now := time.Now()
 	for i, roleId := range insertRoleIds {
 		insertRoleApplys[i] = &model.RoleApplyEntity{
 			Id:          utils.Uuid(),
@@ -911,7 +920,19 @@ func (UserManagementService) RegisterUmUser(param *model.RoleApplyParam, curUser
 			Status:      model.RoleApplyStatusInit,
 		}
 	}
-	_, err = db.Engine.Insert(insertRoleApplys)
+
+	// 执行db操作
+	_, err = db.Engine.Transaction(func(session *xorm.Session) (interface{}, error) {
+		for _, roleApply := range updateRoleApplys {
+			if _, err := session.Update(roleApply, &model.RoleApplyEntity{Id: roleApply.Id}); err != nil {
+				return nil, err
+			}
+		}
+		if _, err = db.Engine.Insert(insertRoleApplys); err != nil {
+			return nil, err
+		}
+		return nil, nil
+	})
 	return err
 }
 
@@ -941,9 +962,9 @@ func (UserManagementService) CreateRoleApply(param *model.RoleApplyParam, curUse
 	if err != nil {
 		return err
 	}
-	existRoleIdMap := make(map[string]any)
+	existRoleIdMap := make(map[string]*model.RoleApplyEntity)
 	for _, roleApply := range roleApplys {
-		existRoleIdMap[roleApply.RoleId] = nil
+		existRoleIdMap[roleApply.RoleId] = roleApply
 	}
 
 	// 过滤已有角色
@@ -956,16 +977,25 @@ func (UserManagementService) CreateRoleApply(param *model.RoleApplyParam, curUse
 		existRoleIdMap[userRole.RoleId] = nil
 	}
 
+	// 已申请的更新下时间
+	updateRoleApplys := make([]*model.RoleApplyEntity, 0, len(param.RoleIds))
 	insertRoleIds := make([]string, 0, len(param.RoleIds))
+	now := time.Now()
 	for _, roleId := range param.RoleIds {
-		if _, ok := existRoleIdMap[roleId]; !ok {
+		if roleApply, ok := existRoleIdMap[roleId]; !ok {
 			insertRoleIds = append(insertRoleIds, roleId)
+		} else if roleApply != nil {
+			if roleApply.Status == model.RoleApplyStatusInit {
+				updateRoleApplys = append(updateRoleApplys, &model.RoleApplyEntity{
+					Id:          roleApply.Id,
+					CreatedTime: now,
+				})
+			}
 		}
 	}
 
 	// 插入申请
 	insertRoleApplys := make([]*model.RoleApplyEntity, len(insertRoleIds))
-	now := time.Now()
 	for i, roleId := range insertRoleIds {
 		insertRoleApplys[i] = &model.RoleApplyEntity{
 			Id:          utils.Uuid(),
@@ -976,7 +1006,19 @@ func (UserManagementService) CreateRoleApply(param *model.RoleApplyParam, curUse
 			Status:      model.RoleApplyStatusInit,
 		}
 	}
-	_, err = db.Engine.Insert(insertRoleApplys)
+
+	// 执行db操作
+	_, err = db.Engine.Transaction(func(session *xorm.Session) (interface{}, error) {
+		for _, roleApply := range updateRoleApplys {
+			if _, err := session.Update(roleApply, &model.RoleApplyEntity{Id: roleApply.Id}); err != nil {
+				return nil, err
+			}
+		}
+		if _, err = db.Engine.Insert(insertRoleApplys); err != nil {
+			return nil, err
+		}
+		return nil, nil
+	})
 	return err
 }
 
@@ -1177,8 +1219,10 @@ func (UserManagementService) UpdateRoleApply(param []*model.RoleApplyDto, curUse
 
 	// 执行db操作
 	_, err = db.Engine.Transaction(func(session *xorm.Session) (interface{}, error) {
-		if _, err := session.Update(updateRoleApplys); err != nil {
-			return nil, err
+		for _, roleApply := range updateRoleApplys {
+			if _, err := session.Update(roleApply, &model.RoleApplyEntity{Id: roleApply.Id}); err != nil {
+				return nil, err
+			}
 		}
 		if _, err := session.Insert(insertUsers); err != nil {
 			return nil, err
