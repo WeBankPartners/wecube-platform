@@ -2,6 +2,7 @@ package database
 
 import (
 	"context"
+	"fmt"
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/tools"
 	"github.com/WeBankPartners/wecube-platform/platform-core/services/remote"
 	"sort"
@@ -172,31 +173,43 @@ func AddProcessDefinition(ctx context.Context, user string, param models.Process
 	return
 }
 
-func CopyProcessDefinitionByDto(ctx context.Context, procDef *models.ProcessDefinitionDto, operator string) (newProcDefId string, err error) {
+func CopyProcessDefinitionByDto(ctx context.Context, procDef *models.ProcessDefinitionDto, userToken, language, operator string) (newProcDefId string, err error) {
 	var permissionList []*models.ProcDefPermission
 	var nodeList []*models.ProcDefNode
 	var linkList []*models.ProcDefNodeLink
 	var nodeParamList []*models.ProcDefNodeParam
+	var response models.QueryRolesResponse
+	var now = time.Now()
 	procDefModel := models.ConvertProcDefDto2Model(procDef.ProcDef)
-	if len(procDef.PermissionToRole.USE) > 0 {
-		for _, roleName := range procDef.PermissionToRole.USE {
-			permissionList = append(permissionList, &models.ProcDefPermission{
-				ProcDefId:  procDef.ProcDef.Id,
-				RoleId:     roleName,
-				RoleName:   roleName,
-				Permission: "USE",
-			})
-		}
+	if procDefModel == nil {
+		err = fmt.Errorf("procDef is emtpy")
+		return
 	}
-	if len(procDef.PermissionToRole.MGMT) > 0 {
-		for _, roleName := range procDef.PermissionToRole.MGMT {
-			permissionList = append(permissionList, &models.ProcDefPermission{
-				ProcDefId:  procDef.ProcDef.Id,
-				RoleId:     roleName,
-				RoleName:   roleName,
-				Permission: "MGMT",
-			})
-		}
+	// 编排的创建更新人设置为当前人
+	procDefModel.CreatedBy = operator
+	procDefModel.UpdatedBy = operator
+	procDefModel.CreatedTime = now
+	procDefModel.UpdatedTime = now
+	// 获取操作用户的角色
+	response, err = remote.GetRolesByUsername(operator, userToken, language)
+	if err != nil {
+		return
+	}
+	if len(response.Data) > 0 {
+		// 设置当前用户的默认角色为属主和使用角色
+		roleName := response.Data[0].Name
+		permissionList = append(permissionList, &models.ProcDefPermission{
+			ProcDefId:  procDef.ProcDef.Id,
+			RoleId:     roleName,
+			RoleName:   roleName,
+			Permission: "USE",
+		})
+		permissionList = append(permissionList, &models.ProcDefPermission{
+			ProcDefId:  procDef.ProcDef.Id,
+			RoleId:     roleName,
+			RoleName:   roleName,
+			Permission: "MGMT",
+		})
 	}
 
 	if len(procDef.ProcDefNodeExtend.Nodes) > 0 {
@@ -204,6 +217,10 @@ func CopyProcessDefinitionByDto(ctx context.Context, procDef *models.ProcessDefi
 			if node != nil {
 				nodeModel, nodeParams := models.ConvertProcDefNodeResultDto2Model(node)
 				if nodeModel != nil {
+					nodeModel.CreatedBy = operator
+					nodeModel.UpdatedBy = operator
+					nodeModel.CreatedTime = now
+					nodeModel.UpdatedTime = now
 					nodeList = append(nodeList, nodeModel)
 				}
 				nodeParamList = append(nodeParamList, nodeParams...)
@@ -400,6 +417,16 @@ func UpdateProcDef(ctx context.Context, procDef *models.ProcDef) (err error) {
 	actions = append(actions, &db.ExecAction{Sql: "update proc_def set name=?,root_entity=?,tags=?,for_plugin=?,scene=?," +
 		"conflict_check=?,updated_by=?,updated_time=? where id=?", Param: []interface{}{procDef.Name, procDef.RootEntity,
 		procDef.Tags, procDef.ForPlugin, procDef.Scene, procDef.ConflictCheck, procDef.UpdatedBy, procDef.UpdatedTime, procDef.Id}})
+	err = db.Transaction(actions, ctx)
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseExecuteError, err)
+	}
+	return
+}
+
+func UpdateProcDefHandler(ctx context.Context, procDefId, handler string) (err error) {
+	var actions []*db.ExecAction
+	actions = append(actions, &db.ExecAction{Sql: "update proc_def set updated_by=?,updated_time=? where id=?", Param: []interface{}{handler, time.Now(), procDefId}})
 	err = db.Transaction(actions, ctx)
 	if err != nil {
 		err = exterror.Catch(exterror.New().DatabaseExecuteError, err)
@@ -788,7 +815,7 @@ func GetProcDefNodeParamByNodeId(ctx context.Context, nodeId string) (list []*mo
 func AddUseRoles(ctx context.Context, procDefId string, useRoles []string) (err error) {
 	var list []*models.ProcDefPermission
 	var permissionMap = make(map[string]bool)
-	err = db.MysqlEngine.Context(ctx).SQL("select * from proc_def_permission where proc_def_id = ? and permission = ?", procDefId, string(models.MGMT)).Find(&list)
+	err = db.MysqlEngine.Context(ctx).SQL("select * from proc_def_permission where proc_def_id = ? and permission = ?", procDefId, string(models.USE)).Find(&list)
 	if err != nil {
 		return
 	}
