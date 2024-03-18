@@ -3,6 +3,8 @@ package service
 import (
 	"errors"
 	"fmt"
+	"time"
+
 	"github.com/WeBankPartners/wecube-platform/platform-auth-server/common/constant"
 	"github.com/WeBankPartners/wecube-platform/platform-auth-server/common/exterror"
 	"github.com/WeBankPartners/wecube-platform/platform-auth-server/common/log"
@@ -10,10 +12,9 @@ import (
 	"github.com/WeBankPartners/wecube-platform/platform-auth-server/model"
 	"github.com/WeBankPartners/wecube-platform/platform-auth-server/service/db"
 	"golang.org/x/crypto/bcrypt"
-	"time"
 )
 
-const DefPasswordLength = 6
+const DefPasswordLength = 8
 
 var UserManagementServiceInstance UserManagementService
 
@@ -47,7 +48,7 @@ func doResetLocalUserPassword(username string) (string, error) {
 		return "", exterror.NewAuthServerError("Cannot modify password of UM user account.")
 	}
 
-	ranPassword := PasswordGeneratorInstance.RandomPassword(DefPasswordLength)
+	ranPassword := PasswordGeneratorInstance.GenerateStrongPassword(DefPasswordLength)
 
 	encodedNewPassword, err := encodePassword(ranPassword)
 	if err != nil {
@@ -114,6 +115,10 @@ func doModifyLocalUserPassword(username, originalPassword, toChangePassword stri
 
 	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(originalPassword)); err != nil {
 		return nil, exterror.NewAuthServerError("The password of user to modify is invalid.")
+	}
+
+	if !PasswordGeneratorInstance.CheckPasswordStrength(toChangePassword) {
+		return nil, exterror.Catch(exterror.New().AuthServer3030Error, nil)
 	}
 
 	encodedNewPassword, err := encodePassword(toChangePassword)
@@ -674,15 +679,21 @@ func validateSimpleLocalUserDto(userDto *model.SimpleLocalUserDto) error {
 		authSource = userDto.AuthSource
 	}
 
-	if utils.EqualsIgnoreCase(constant.AuthSourceLocal, authSource) && len(userDto.Password) == 0 {
-		return exterror.Catch(exterror.New().AuthServer3026Error, nil)
+	if utils.EqualsIgnoreCase(constant.AuthSourceLocal, authSource) {
+		if len(userDto.Password) == 0 {
+			return exterror.Catch(exterror.New().AuthServer3026Error, nil)
+		}
+		if !PasswordGeneratorInstance.CheckPasswordStrength(userDto.Password) {
+			return exterror.Catch(exterror.New().AuthServer3030Error, nil)
+		}
 	}
 	return nil
 }
 
+// 检查密码是否符合要求
+
 func buildSysUserEntity(dto *model.SimpleLocalUserDto, curUser string) (*model.SysUserEntity, error) {
 	now := time.Now()
-	encodePassword(dto.Password)
 	encodedNewPassword, err := encodePassword(dto.Password)
 	if err != nil {
 		return nil, err
