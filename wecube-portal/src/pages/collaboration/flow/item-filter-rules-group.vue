@@ -100,7 +100,7 @@ export default {
     },
     addFilterRule () {
       this.routineExpressionItem.push({
-        routineExpression: this.currentSelectedEntity.split('{')[0],
+        routineExpression: this.currentSelectedEntity,
         operate: ''
       })
     },
