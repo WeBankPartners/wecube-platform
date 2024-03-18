@@ -557,6 +557,9 @@ func getTaskFormItemValues(ctx context.Context, taskFormMeta *models.TaskMetaRes
 		dataValueMap = queryResult[0]
 	}
 	for _, item := range taskFormMeta.FormItemMetas {
+		if item.EntityName != entityDataObj.EntityName {
+			continue
+		}
 		itemValueObj := models.PluginTaskFormValue{
 			FormItemMetaId: item.FormItemMetaId,
 			AttrName:       item.AttrName,
