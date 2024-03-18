@@ -3,7 +3,6 @@ package service
 import (
 	"errors"
 	"fmt"
-	"regexp"
 	"time"
 
 	"github.com/WeBankPartners/wecube-platform/platform-auth-server/common/constant"
@@ -118,7 +117,7 @@ func doModifyLocalUserPassword(username, originalPassword, toChangePassword stri
 		return nil, exterror.NewAuthServerError("The password of user to modify is invalid.")
 	}
 
-	if !checkPasswordStrength(toChangePassword) {
+	if !PasswordGeneratorInstance.CheckPasswordStrength(toChangePassword) {
 		return nil, exterror.Catch(exterror.New().AuthServer3030Error, nil)
 	}
 
@@ -684,7 +683,7 @@ func validateSimpleLocalUserDto(userDto *model.SimpleLocalUserDto) error {
 		if len(userDto.Password) == 0 {
 			return exterror.Catch(exterror.New().AuthServer3026Error, nil)
 		}
-		if !checkPasswordStrength(userDto.Password) {
+		if !PasswordGeneratorInstance.CheckPasswordStrength(userDto.Password) {
 			return exterror.Catch(exterror.New().AuthServer3030Error, nil)
 		}
 	}
@@ -692,41 +691,6 @@ func validateSimpleLocalUserDto(userDto *model.SimpleLocalUserDto) error {
 }
 
 // 检查密码是否符合要求
-func checkPasswordStrength(password string) bool {
-	if len(password) < 8 {
-		return false
-	}
-
-	var (
-		uppercaseRegex = regexp.MustCompile(`[A-Z]`)
-		lowercaseRegex = regexp.MustCompile(`[a-z]`)
-		numberRegex    = regexp.MustCompile(`[0-9]`)
-		specialRegex   = regexp.MustCompile(`[!@#$%^&*()_+\-=\[\]{}\\:;'",.<>/?|~]`)
-	)
-
-	typeCnt := 0
-	if uppercaseRegex.MatchString(password) {
-		typeCnt += 1
-	}
-	if lowercaseRegex.MatchString(password) {
-		typeCnt += 1
-	}
-	if numberRegex.MatchString(password) {
-		typeCnt += 1
-	}
-	if specialRegex.MatchString(password) {
-		typeCnt += 1
-	}
-	// test code:
-	// s := `!@#$%^&*()_+-=[]{}\:;'",.<>/?|~`
-	// for i := 0; i < len(s); i++ {
-	// 	if !specialRegex.MatchString(string(s[i])) {
-	// 		fmt.Println(s[i])
-	// 	}
-	// }
-
-	return typeCnt >= 3
-}
 
 func buildSysUserEntity(dto *model.SimpleLocalUserDto, curUser string) (*model.SysUserEntity, error) {
 	now := time.Now()
