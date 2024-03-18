@@ -157,6 +157,43 @@ func InitConfig(configFile string) (errMessage string) {
 			fmt.Printf("raed public public key:%s fail:%s ", c.Plugin.PasswordPubKeyPath, readPubErr.Error())
 		}
 	}
+	if len(c.StaticResources) > 0 {
+		firstStaticResourceObj := c.StaticResources[0]
+		if strings.Contains(firstStaticResourceObj.Server, ",") {
+			srServerList := strings.Split(firstStaticResourceObj.Server, ",")
+			srUserList := strings.Split(firstStaticResourceObj.User, ",")
+			if len(srUserList) != len(srServerList) {
+				errMessage = "static resource config validate fail,multiple user required"
+				return
+			}
+			srPwdList := strings.Split(firstStaticResourceObj.Password, ",")
+			if len(srPwdList) != len(srServerList) {
+				errMessage = "static resource config validate fail,multiple password required"
+				return
+			}
+			srPortList := strings.Split(firstStaticResourceObj.Port, ",")
+			if len(srPortList) != len(srServerList) {
+				errMessage = "static resource config validate fail,multiple port required"
+				return
+			}
+			srPathList := strings.Split(firstStaticResourceObj.Path, ",")
+			if len(srPathList) != len(srServerList) {
+				errMessage = "static resource config validate fail,multiple path required"
+				return
+			}
+			newStaticResourceList := []*StaticResourceConfig{}
+			for i, tmpServer := range srServerList {
+				newStaticResourceList = append(newStaticResourceList, &StaticResourceConfig{
+					Server:   tmpServer,
+					User:     srUserList[i],
+					Password: srPwdList[i],
+					Port:     srPortList[i],
+					Path:     srPathList[i],
+				})
+			}
+			c.StaticResources = newStaticResourceList
+		}
+	}
 	Config = &c
 	return
 }

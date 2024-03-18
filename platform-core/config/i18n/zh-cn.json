@@ -135,5 +135,13 @@
   "batch_exec_duplicate_name_error": {
     "code": 20000029,
     "message": "执行失败: 执行名称已存在,请修改后再重新执行"
+  },
+  "deal_with_at_the_same_time_error": {
+    "code": 20000030,
+    "message": "操作失败：当前请求正在被其他用户处理，暂不支持多用户同时操作同一请求"
+  },
+  "data_permission_deny": {
+    "code": 20100031,
+    "message": "无数据权限"
   }
 }

@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/WeBankPartners/go-common-lib/guid"
+	"github.com/WeBankPartners/wecube-platform/platform-core/common/log"
 	"github.com/WeBankPartners/wecube-platform/platform-core/models"
 	"io"
 	"net/http"
@@ -49,6 +50,7 @@ func GetInputFormMeta(ctx context.Context, procInstId, nodeDefId string, pluginI
 		err = fmt.Errorf("json unmarshal response body fail,%s ", err.Error())
 		return
 	}
+	log.Logger.Debug("get input form meta data", log.String("procInstId", procInstId), log.String("nodeDefId", nodeDefId), log.String("response", string(respBody)))
 	if response.Status != models.DefaultHttpSuccessCode {
 		err = fmt.Errorf(response.Message)
 		return

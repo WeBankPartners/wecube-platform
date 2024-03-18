@@ -505,14 +505,14 @@ func CreateProcInstance(ctx context.Context, procStartParam *models.ProcInsStart
 	}
 	workNodeIdMap := make(map[string]string)
 	for _, node := range procDefNodes {
+		if node.NodeType != "automatic" && node.NodeType != "data" {
+			node.Timeout = 0
+		}
 		tmpProcInsNodeId := "pins_node_" + guid.CreateGuid()
 		actions = append(actions, &db.ExecAction{Sql: "insert into proc_ins_node(id,proc_ins_id,proc_def_node_id,name,node_type,status,ordered_no,created_by,created_time) values (?,?,?,?,?,?,?,?,?)", Param: []interface{}{
 			tmpProcInsNodeId, procInsId, node.Id, node.Name, node.NodeType, models.JobStatusReady, node.OrderedNo, operator, nowTime,
 		}})
 		workNodeObj := models.ProcRunNode{Id: "wn_" + guid.CreateGuid(), WorkflowId: workflowRow.Id, ProcInsNodeId: tmpProcInsNodeId, Name: node.Name, JobType: node.NodeType, Status: models.JobStatusReady, Timeout: node.Timeout, CreatedTime: nowTime}
-		if node.NodeType != "automatic" && node.NodeType != "data" {
-			workNodeObj.Timeout = 0
-		}
 		if node.NodeType == "timeInterval" {
 			workNodeObj.Input = node.TimeConfig
 			actions = append(actions, &db.ExecAction{Sql: "insert into proc_run_node(id,workflow_id,proc_ins_node_id,name,job_type,status,timeout,input,created_time) values (?,?,?,?,?,?,?,?,?)", Param: []interface{}{
@@ -633,14 +633,14 @@ func CreatePublicProcInstance(ctx context.Context, startParam *models.RequestPro
 	}
 	workNodeIdMap := make(map[string]string)
 	for _, node := range procDefNodes {
+		if node.NodeType != "automatic" && node.NodeType != "data" {
+			node.Timeout = 0
+		}
 		tmpProcInsNodeId := "pins_node_" + guid.CreateGuid()
 		actions = append(actions, &db.ExecAction{Sql: "insert into proc_ins_node(id,proc_ins_id,proc_def_node_id,name,node_type,status,ordered_no,created_by,created_time) values (?,?,?,?,?,?,?,?,?)", Param: []interface{}{
 			tmpProcInsNodeId, procInsId, node.Id, node.Name, node.NodeType, models.JobStatusReady, node.OrderedNo, operator, nowTime,
 		}})
 		workNodeObj := models.ProcRunNode{Id: "wn_" + guid.CreateGuid(), WorkflowId: workflowRow.Id, ProcInsNodeId: tmpProcInsNodeId, Name: node.Name, JobType: node.NodeType, Status: models.JobStatusReady, Timeout: node.Timeout, CreatedTime: nowTime}
-		if node.NodeType != "automatic" && node.NodeType != "data" {
-			node.Timeout = 0
-		}
 		if node.NodeType == "timeInterval" {
 			workNodeObj.Input = node.TimeConfig
 			actions = append(actions, &db.ExecAction{Sql: "insert into proc_run_node(id,workflow_id,proc_ins_node_id,name,job_type,status,timeout,input,created_time) values (?,?,?,?,?,?,?,?,?)", Param: []interface{}{
@@ -782,6 +782,12 @@ func GetProcInstance(ctx context.Context, procInsId string) (result *models.Proc
 			parentMap[link.Target] = []string{link.Source}
 		}
 	}
+	var procNodeDefRows []*models.ProcDefNode
+	err = db.MysqlEngine.Context(ctx).SQL("select id,node_id from proc_def_node where proc_def_id=?", result.ProcDefId).Find(&procNodeDefRows)
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
+		return
+	}
 	orderIndex := 1
 	for _, row := range procInsNodeRows {
 		nodeObj := models.ProcInsNodeDetail{
@@ -797,6 +803,12 @@ func GetProcInstance(ctx context.Context, procInsId string) (result *models.Proc
 			Status:            row.Status,
 			PreviousNodeIds:   []string{},
 			SucceedingNodeIds: []string{},
+		}
+		for _, defRow := range procNodeDefRows {
+			if defRow.Id == row.ProcDefNodeId {
+				nodeObj.NodeDefId = defRow.NodeId
+				break
+			}
 		}
 		//if transStatus, ok := models.ProcStatusTransMap[nodeObj.Status]; ok {
 		//	nodeObj.Status = transStatus
