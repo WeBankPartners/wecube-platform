@@ -56,7 +56,7 @@ func UploadPackage(c *gin.Context) {
 		middleware.ReturnError(c, err)
 		return
 	}
-	fileBytes = []byte{}
+	// fileBytes = []byte{}
 	log.Logger.Debug("tmpFile", log.String("tmpFilePath", tmpFilePath))
 	defer func() {
 		if removeTmpDirErr := os.RemoveAll(tmpFileDir); removeTmpDirErr != nil {
@@ -488,9 +488,7 @@ func RegisterPackage(c *gin.Context) {
 			return
 		}
 		log.Logger.Debug("match index path", log.String("indexPath", indexPath))
-		if strings.HasSuffix(indexPath, "/") {
-			indexPath = indexPath[:len(indexPath)-1]
-		}
+		indexPath = strings.TrimSuffix(indexPath, "/")
 		dirPrefix := uiDir
 		if indexPath != "" {
 			dirPrefix = uiDir + "/" + indexPath
@@ -874,10 +872,10 @@ func GetPluginRunningInstances(c *gin.Context) {
 }
 
 // TODO
-func buildPluginProCertification(envMap map[string]string, pluginPackageObj *models.PluginPackages, subSystemKey string) (err error) {
+// func buildPluginProCertification(envMap map[string]string, pluginPackageObj *models.PluginPackages, subSystemKey string) (err error) {
 
-	return
-}
+// 	return
+// }
 
 func GetPackageNames(c *gin.Context) {
 	result, err := database.GetPackageNames(c)
