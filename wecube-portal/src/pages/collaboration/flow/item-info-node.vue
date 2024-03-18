@@ -155,7 +155,7 @@
                       @filterRuleChanged="singleFilterRuleChanged"
                       :disabled="itemCustomInfo.customAttrs.dynamicBind"
                       :routineExpression="itemCustomInfo.customAttrs.routineExpression || currentSelectedEntity"
-                      :allEntityType="allEntityType"
+                      :allEntityType="[]"
                       :currentSelectedEntity="currentSelectedEntity"
                     >
                     </ItemFilterRulesGroup>
