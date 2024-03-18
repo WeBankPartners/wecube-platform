@@ -82,11 +82,11 @@ func tryAuthenticateSubSystem(subSystem *model.SubSystemTokenDto) (*model.JwtTok
 		return nil, exterror.NewBadCredentialsError(msg)
 	}
 
-	if subSystemInfo.Blocked == true {
+	if subSystemInfo.Blocked {
 		return nil, exterror.NewBadCredentialsError(fmt.Sprintf("Sub system %s is blocked.", systemCode))
 	}
 
-	if subSystemInfo.Active == false {
+	if !subSystemInfo.Active {
 		return nil, exterror.NewBadCredentialsError(fmt.Sprintf("Sub system %s is inactive.", systemCode))
 	}
 
@@ -222,11 +222,11 @@ func (SubSystemManagementService) RegisterSubSystem(subSystemDto *model.SimpleSu
 	}
 
 	if subSystem != nil {
-		log.Logger.Debug(fmt.Sprintf("such sub-system already exists,system code {}", subSystemDto.SystemCode))
+		log.Logger.Debug(fmt.Sprintf("such sub-system already exists,system code %s", subSystemDto.SystemCode))
 		return convertToSimpleSubSystemDto(subSystem), nil
 	}
 
-	log.Logger.Info("About to create a new sub system:{}", log.JsonObj("subSystemDto", subSystemDto))
+	log.Logger.Info("About to create a new sub system:", log.JsonObj("subSystemDto", subSystemDto))
 
 	keyPair, err := utils.InitAsymmetricKeyPair()
 	if err != nil {

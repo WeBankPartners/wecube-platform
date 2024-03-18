@@ -107,31 +107,31 @@ func (AuthService) RefreshToken(refreshToken string) ([]*model.Jwt, error) {
 	} else {
 		json.Unmarshal([]byte(claim.Authority), &authorities)
 	}
-	jwts := packJwtTokens(claim.Subject, []string{}, authorities, "", claim.NeedRegister)
+	jwts := packJwtTokens(claim.Subject, []string{}, authorities, claim.NeedRegister)
 	return jwts, nil
 }
 
-func validateSubsystemClaimForRefresh(claim *model.AuthClaims) ([]*model.Jwt, error) {
-	systemCode := claim.Subject
-	if isBlank(systemCode) {
-		log.Logger.Warn("system code is blank")
-		return nil, exterror.NewBadCredentialsError("system code is blank")
-	}
+// func validateSubsystemClaimForRefresh(claim *model.AuthClaims) ([]*model.Jwt, error) {
+// 	systemCode := claim.Subject
+// 	if isBlank(systemCode) {
+// 		log.Logger.Warn("system code is blank")
+// 		return nil, exterror.NewBadCredentialsError("system code is blank")
+// 	}
 
-	systemInfo, err := SubSystemInfoDataServiceImplInstance.retrieveSysSubSystemInfoWithSystemCode(systemCode)
-	if err != nil {
-		log.Logger.Error("failed to retrieve sub system info", log.String("systemCode", systemCode), log.Error(err))
-		return nil, err
-	}
+// 	systemInfo, err := SubSystemInfoDataServiceImplInstance.retrieveSysSubSystemInfoWithSystemCode(systemCode)
+// 	if err != nil {
+// 		log.Logger.Error("failed to retrieve sub system info", log.String("systemCode", systemCode), log.Error(err))
+// 		return nil, err
+// 	}
 
-	if systemInfo == nil {
-		log.Logger.Error(fmt.Sprintf("such sub system {} is not available.", systemCode))
-		return nil, errors.New("such sub system is not available.")
-	}
+// 	if systemInfo == nil {
+// 		log.Logger.Error(fmt.Sprintf("such sub system %s is not available.", systemCode))
+// 		return nil, errors.New("such sub system is not available")
+// 	}
 
-	jwts := packJwtTokens(systemCode, []string{}, systemInfo.Authorities, systemCode, claim.NeedRegister)
-	return jwts, nil
-}
+// 	jwts := packJwtTokens(systemCode, []string{}, systemInfo.Authorities, claim.NeedRegister)
+// 	return jwts, nil
+// }
 
 func validateCredential(c *model.CredentialDto) error {
 	if c == nil {
@@ -277,19 +277,19 @@ func authenticateUser(credential *model.CredentialDto) (*model.AuthenticationRes
 	return authResp, err
 }
 
-func packJwtTokens(loginId string, roles []string, authorities []string, userName string, needRegister bool) []*model.Jwt {
+func packJwtTokens(loginId string, roles []string, authorities []string, needRegister bool) []*model.Jwt {
 	jwts := make([]*model.Jwt, 2)
-	if accessToken, exp, err := buildAccessToken(loginId, roles, authorities, userName, needRegister); err == nil {
+	if accessToken, exp, err := buildAccessToken(loginId, roles, authorities, needRegister); err == nil {
 		jwts[0] = &model.Jwt{Expiration: strconv.Itoa(int(exp)), Token: accessToken, TokenType: constant.TypeAccessToken}
 	}
-	if refreshToken, exp, err := buildRefreshToken(loginId, userName, needRegister); err == nil {
+	if refreshToken, exp, err := buildRefreshToken(loginId, needRegister); err == nil {
 		jwts[1] = &model.Jwt{Expiration: strconv.Itoa(int(exp)), Token: refreshToken, TokenType: constant.TypeRefreshToken}
 	}
 
 	return jwts
 }
 
-func buildAccessToken(loginId string, roles []string, authorities []string, userName string, needRegister bool) (string, int64, error) {
+func buildAccessToken(loginId string, roles []string, authorities []string, needRegister bool) (string, int64, error) {
 	if model.Config.Auth.SigningKeyBytes == nil {
 		log.Logger.Error("jwt key is invalid")
 		return "", 0, errors.New("failed to build refresh token")
@@ -317,7 +317,7 @@ func buildAccessToken(loginId string, roles []string, authorities []string, user
 	}
 }
 
-func buildRefreshToken(loginId, userName string, needRegister bool) (string, int64, error) {
+func buildRefreshToken(loginId string, needRegister bool) (string, int64, error) {
 	if model.Config.Auth.SigningKeyBytes == nil {
 		log.Logger.Error("jwt key is invalid")
 		return "", 0, errors.New("failed to build refresh token")
@@ -342,9 +342,9 @@ func buildRefreshToken(loginId, userName string, needRegister bool) (string, int
 		return "", 0, errors.New("failed to build access token")
 	}
 }
-func createAuthenticationResponse(credential *model.CredentialDto, authorities []string, needRegister bool) (*model.AuthenticationResponse, error) {
 
-	jwts := packJwtTokens(credential.Username, []string{}, authorities, credential.Username, needRegister)
+func createAuthenticationResponse(credential *model.CredentialDto, authorities []string, needRegister bool) (*model.AuthenticationResponse, error) {
+	jwts := packJwtTokens(credential.Username, []string{}, authorities, needRegister)
 	return &model.AuthenticationResponse{
 		UserId:       credential.Username,
 		NeedRegister: needRegister,
@@ -406,7 +406,7 @@ func checkAuthentication(user *model.SysUser, credential *model.CredentialDto) e
 
 func GetUmAuthContext(username string) (string, error) {
 	// 生成token
-	accessToken, _, err := buildAccessToken(username, []string{}, []string{}, username, false)
+	accessToken, _, err := buildAccessToken(username, []string{}, []string{}, false)
 	if err != nil {
 		return "", err
 	}

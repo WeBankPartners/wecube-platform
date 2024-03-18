@@ -202,7 +202,7 @@ func (UserManagementService) RevokeRoleFromUsers(roleId string, userDtos []*mode
 				log.Logger.Error(fmt.Sprintf("failed to update userRoleRs:%v", userRole.Id), log.Error(err))
 			}
 			session.Rollback()
-			return errors.New(fmt.Sprintf("failed to update userRoleRs:%v", userRole.Id))
+			return fmt.Errorf("failed to update userRoleRs:%v", userRole.Id)
 		}
 	}
 	session.Commit()
@@ -242,7 +242,7 @@ func (UserManagementService) ConfigureUserWithRoles(userId string, roleDtos []*m
 	}
 
 	remainUserRoleMap := make(map[string]string)
-	remainUserRoles := make([]*model.UserRoleRsEntity, 0)
+	// remainUserRoles := make([]*model.UserRoleRsEntity, 0)
 
 	for _, roleDto := range roleDtos {
 		role := &model.SysRoleEntity{}
@@ -261,7 +261,7 @@ func (UserManagementService) ConfigureUserWithRoles(userId string, roleDtos []*m
 			continue
 		}
 		foundUserRoles := findFromUserRoles(existUserRoles, role.Id)
-		remainUserRoles = append(remainUserRoles, foundUserRoles...)
+		// remainUserRoles = append(remainUserRoles, foundUserRoles...)
 		for _, userRole := range foundUserRoles {
 			remainUserRoleMap[userRole.Id] = "1"
 		}
@@ -274,7 +274,7 @@ func (UserManagementService) ConfigureUserWithRoles(userId string, roleDtos []*m
 			return err
 		}
 		if userRole != nil {
-			log.Logger.Info(fmt.Sprintf("such user userRole configuration already exist,userId=%s,roleId=%a", userId, role.Id))
+			log.Logger.Info(fmt.Sprintf("such user userRole configuration already exist,userId=%s,roleId=%s", userId, role.Id))
 			continue
 		} else {
 			userRole := &model.UserRoleRsEntity{
@@ -383,7 +383,7 @@ func (UserManagementService) RevokeRolesFromUser(userId string, roleDtos []*mode
 				log.Logger.Error("failed to update userRole", log.Error(err))
 			}
 			session.Rollback()
-			return errors.New(fmt.Sprintf("failed to update userRole:%s", userRole.Id))
+			return fmt.Errorf("failed to update userRole:%s", userRole.Id)
 		}
 	}
 	session.Commit()
@@ -595,7 +595,7 @@ func (UserManagementService) RetireveLocalUserByUserid(userId string) (*model.Si
 	}
 
 	if user.IsDeleted {
-		log.Logger.Debug(fmt.Sprintf("Such user with ID {} has already been deleted.", userId))
+		log.Logger.Debug(fmt.Sprintf("Such user with ID %s has already been deleted.", userId))
 		return nil, exterror.Catch(exterror.New().AuthServer3024Error.WithParam(userId), nil)
 	}
 
@@ -674,7 +674,7 @@ func (UserManagementService) RegisterLocalUser(userDto *model.SimpleLocalUserDto
 	}
 	if user != nil {
 
-		log.Logger.Info(fmt.Sprintf("such username {} to create has already existed.", userDto.Username))
+		log.Logger.Info(fmt.Sprintf("such username %s to create has already existed.", userDto.Username))
 		return nil, exterror.Catch(exterror.New().AuthServer3023Error.WithParam(userDto.Username), nil)
 	}
 
@@ -837,20 +837,18 @@ func (UserManagementService) UnregisterLocalUser(userId string, curUser string) 
 		return err
 	}
 
-	if userRoles != nil {
-		for _, userRole := range userRoles {
-			userRole.Active = false
-			userRole.Deleted = true
-			userRole.UpdatedBy = curUser
-			userRole.UpdatedTime = time.Now()
+	for _, userRole := range userRoles {
+		userRole.Active = false
+		userRole.Deleted = true
+		userRole.UpdatedBy = curUser
+		userRole.UpdatedTime = time.Now()
 
-			if affected, err := session.ID(userRole.Id).UseBool().Update(userRole); affected == 0 || err != nil {
-				if err != nil {
-					log.Logger.Error(fmt.Sprintf("failed to update userRoleRs:%v", userRole.Id), log.Error(err))
-				}
-				session.Rollback()
-				return errors.New(fmt.Sprintf("failed to update userRoleRs:%v", userRole.Id))
+		if affected, err := session.ID(userRole.Id).UseBool().Update(userRole); affected == 0 || err != nil {
+			if err != nil {
+				log.Logger.Error(fmt.Sprintf("failed to update userRoleRs:%v", userRole.Id), log.Error(err))
 			}
+			session.Rollback()
+			return fmt.Errorf("failed to update userRoleRs:%v", userRole.Id)
 		}
 	}
 	session.Commit()
