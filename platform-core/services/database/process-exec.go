@@ -1125,7 +1125,7 @@ func getInterfaceDataByDataType(valueString, dataType, name string, multiple boo
 		output = listMap
 	}
 	if err != nil {
-		log.Logger.Error("getInterfaceDataByDataType error", log.String("value", valueString), log.String("dataType", dataType), log.Error(err))
+		log.Logger.Error("getInterfaceDataByDataType error", log.String("value", valueString), log.String("dataType", dataType), log.String("name", name), log.Error(err))
 	}
 	return
 }

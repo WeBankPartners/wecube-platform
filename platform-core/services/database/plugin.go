@@ -134,24 +134,20 @@ func convertToPluginConfigInterfaces(ctx context.Context, interfaces *models.Aut
 	if err != nil {
 		log.Logger.Error("getAllByConfigInterfaceAddParamType err", log.Error(err))
 	}
-	if inputParameters != nil {
-		for _, paramEntity := range inputParameters {
-			paramEntity.PluginConfigInterface = configInterfaces
-			if paramEntity.DataType == "object" {
-				paramEntity.ObjectMeta = TryFetchEnrichCoreObjectMeta(ctx, paramEntity)
-			}
+	for _, paramEntity := range inputParameters {
+		paramEntity.PluginConfigInterface = configInterfaces
+		if paramEntity.DataType == "object" {
+			paramEntity.ObjectMeta = TryFetchEnrichCoreObjectMeta(ctx, paramEntity)
 		}
 	}
 	outputParameters, err := getAllByConfigInterfaceAddParamType(ctx, interfaces.Id, "OUTPUT")
 	if err != nil {
 		log.Logger.Error("getAllByConfigInterfaceAddParamType err", log.Error(err))
 	}
-	if outputParameters != nil {
-		for _, paramEntity := range outputParameters {
-			paramEntity.PluginConfigInterface = configInterfaces
-			if paramEntity.DataType == "object" {
-				paramEntity.ObjectMeta = TryFetchEnrichCoreObjectMeta(ctx, paramEntity)
-			}
+	for _, paramEntity := range outputParameters {
+		paramEntity.PluginConfigInterface = configInterfaces
+		if paramEntity.DataType == "object" {
+			paramEntity.ObjectMeta = TryFetchEnrichCoreObjectMeta(ctx, paramEntity)
 		}
 	}
 	configInterfaces.InputParameters = inputParameters
