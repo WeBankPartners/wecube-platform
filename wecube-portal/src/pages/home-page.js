@@ -20,13 +20,13 @@ export default {
       <div class="platform-homepage">
         {len === 0 && <defaultComp />}
         {len > 0 && (
-          <Tabs>
+          <Tabs name="home">
             {this.comps.map(c => {
               return (
-                <TabPane label={c.name()}>
-                  {/* <span>{c.name()}</span> */}
+                <TabPane label={c.name()} tab="home">
                   <c.component />
-                  {/* <div style={{ 'padding-bottom': '40px' }} slot="content">
+                  {/* <div style={{ 'padding-top': '40px' }} >
+                    <c.component />
                   </div> */}
                 </TabPane>
               )
