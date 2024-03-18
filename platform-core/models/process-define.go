@@ -404,6 +404,11 @@ type ProcEntityAttributeObj struct {
 	OrderNo           int    `json:"orderNo"`
 }
 
+type UpdateProcDefHandlerParam struct {
+	ProcDefId        string `json:"procDefId"`        //模板id
+	LatestUpdateTime string `json:"latestUpdateTime"` //最后更新时间
+}
+
 type ProcDefSort []*ProcDef
 
 func (q ProcDefSort) Len() int {
