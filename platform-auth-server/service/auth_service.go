@@ -432,7 +432,7 @@ func GetUmAuthContext(username string) (string, error) {
 	if queryResult == nil || len(queryResult.Contents) == 0 {
 		return "", fmt.Errorf("UM_AUTH_CONTEXT not found")
 	}
-	return queryResult.Contents[0].Value, nil
+	return queryResult.Contents[0].DefaultValue, nil
 }
 
 func checkUmUserExists(credential *model.CredentialDto) (bool, error) {
