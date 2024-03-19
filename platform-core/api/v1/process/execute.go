@@ -479,7 +479,7 @@ func ProcInsStart(c *gin.Context) {
 	// 初始化workflow并开始
 	workObj := workflow.Workflow{ProcRunWorkflow: *workflowRow}
 	workObj.Init(context.Background(), workNodes, workLinks)
-	workflow.GlobalWorkflowMap.Store(workObj.Id, &workObj)
+	//workflow.GlobalWorkflowMap.Store(workObj.Id, &workObj)
 	go workObj.Start(&models.ProcOperation{CreatedBy: operator})
 	// 查询 detail 返回
 	detail, queryErr := database.GetProcInstance(c, procInsId)
@@ -541,7 +541,7 @@ func PublicProcInsStart(c *gin.Context) {
 	// 初始化workflow并开始
 	workObj := workflow.Workflow{ProcRunWorkflow: *workflowRow}
 	workObj.Init(context.Background(), workNodes, workLinks)
-	workflow.GlobalWorkflowMap.Store(workObj.Id, &workObj)
+	//workflow.GlobalWorkflowMap.Store(workObj.Id, &workObj)
 	go workObj.Start(&models.ProcOperation{CreatedBy: operator})
 	// 查询 detail 返回
 	detail, queryErr := database.GetProcInstance(c, procInsId)
