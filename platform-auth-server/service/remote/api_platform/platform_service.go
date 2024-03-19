@@ -32,5 +32,14 @@ func QuerySystemVariables(userToken, language string, param *model.QueryRequestP
 		err = fmt.Errorf(response.Message)
 		return
 	}
+	dataBytes, err := json.Marshal(response.Data)
+	if err != nil {
+		return
+	}
+	result = &model.PlatSystemVariablesListPageData{}
+	err = json.Unmarshal(dataBytes, result)
+	if err != nil {
+		return
+	}
 	return
 }
