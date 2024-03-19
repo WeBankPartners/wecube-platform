@@ -920,14 +920,19 @@ func (UserManagementService) RegisterUmUser(param *model.RoleApplyParam, curUser
 	}
 
 	// 执行db操作
+	if len(updateRoleApplys) == 0 && len(insertRoleApplys) == 0 {
+		return nil
+	}
 	_, err = db.Engine.Transaction(func(session *xorm.Session) (interface{}, error) {
 		for _, roleApply := range updateRoleApplys {
 			if _, err := session.Update(roleApply, &model.RoleApplyEntity{Id: roleApply.Id}); err != nil {
 				return nil, err
 			}
 		}
-		if _, err = db.Engine.Insert(insertRoleApplys); err != nil {
-			return nil, err
+		if len(insertRoleApplys) > 0 {
+			if _, err = db.Engine.Insert(insertRoleApplys); err != nil {
+				return nil, err
+			}
 		}
 		return nil, nil
 	})
@@ -1006,14 +1011,19 @@ func (UserManagementService) CreateRoleApply(param *model.RoleApplyParam, curUse
 	}
 
 	// 执行db操作
+	if len(updateRoleApplys) == 0 && len(insertRoleApplys) == 0 {
+		return nil
+	}
 	_, err = db.Engine.Transaction(func(session *xorm.Session) (interface{}, error) {
 		for _, roleApply := range updateRoleApplys {
 			if _, err := session.Update(roleApply, &model.RoleApplyEntity{Id: roleApply.Id}); err != nil {
 				return nil, err
 			}
 		}
-		if _, err = db.Engine.Insert(insertRoleApplys); err != nil {
-			return nil, err
+		if len(insertRoleApplys) > 0 {
+			if _, err = db.Engine.Insert(insertRoleApplys); err != nil {
+				return nil, err
+			}
 		}
 		return nil, nil
 	})
@@ -1216,17 +1226,24 @@ func (UserManagementService) UpdateRoleApply(param []*model.RoleApplyDto, curUse
 	}
 
 	// 执行db操作
+	if len(updateRoleApplys) == 0 && len(insertUsers) == 0 && len(insertUserRoles) == 0 {
+		return nil
+	}
 	_, err = db.Engine.Transaction(func(session *xorm.Session) (interface{}, error) {
 		for _, roleApply := range updateRoleApplys {
 			if _, err := session.Update(roleApply, &model.RoleApplyEntity{Id: roleApply.Id}); err != nil {
 				return nil, err
 			}
 		}
-		if _, err := session.Insert(insertUsers); err != nil {
-			return nil, err
+		if len(insertUsers) > 0 {
+			if _, err := session.Insert(insertUsers); err != nil {
+				return nil, err
+			}
 		}
-		if _, err := session.Insert(insertUserRoles); err != nil {
-			return nil, err
+		if len(insertUserRoles) > 0 {
+			if _, err := session.Insert(insertUserRoles); err != nil {
+				return nil, err
+			}
 		}
 		return nil, nil
 	})
