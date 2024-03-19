@@ -51,6 +51,7 @@ func (w *Workflow) Init(ctx context.Context, nodes []*models.ProcRunNode, links 
 }
 
 func (w *Workflow) Start(input *models.ProcOperation) {
+	GlobalWorkflowMap.Store(w.Id, w)
 	if w.Status != models.JobStatusRunning {
 		w.setStatus(models.JobStatusRunning, input)
 	}
@@ -79,6 +80,7 @@ func (w *Workflow) Start(input *models.ProcOperation) {
 		log.Logger.Info("<--workflow done-->")
 		w.setStatus(w.Status, nil)
 	}
+	GlobalWorkflowMap.Delete(w.Id)
 }
 
 func (w *Workflow) nodeDoneCallback(node *WorkNode) {
@@ -276,11 +278,16 @@ func (w *Workflow) ApproveNode(nodeId, message string) {
 func (w *Workflow) heartbeat() {
 	t := time.NewTicker(10 * time.Second).C
 	for {
+		wStatus := w.getStatus()
+		if wStatus == models.JobStatusSuccess || wStatus == models.JobStatusKill || wStatus == models.JobStatusFail {
+			break
+		}
 		if _, err := db.MysqlEngine.Exec("update proc_run_workflow set host=?,last_alive_time=? where id=?", w.Host, time.Now(), w.Id); err != nil {
 			log.Logger.Error("workflow heartbeat update alive time fail", log.String("workflowId", w.Id), log.Error(err))
 		}
 		<-t
 	}
+	log.Logger.Info("workflow heartbeat quit", log.String("workflowId", w.Id))
 }
 
 type WorkNode struct {
