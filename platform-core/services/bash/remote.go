@@ -17,6 +17,10 @@ import (
 
 func RemoteSSHCommand(targetIp, user, pwd, port, command string) (err error) {
 	commandString := fmt.Sprintf("sshpass -p '%s' ssh %s@%s -p %s '%s'", pwd, user, targetIp, port, command)
+	if strings.Contains(command, "'") {
+		command = strings.ReplaceAll(command, "'", "\\'")
+		commandString = fmt.Sprintf("sshpass -p '%s' ssh %s@%s -p %s $'%s'", pwd, user, targetIp, port, command)
+	}
 	_, err = exec.Command("/bin/bash", "-c", commandString).Output()
 	if err != nil {
 		err = fmt.Errorf("run remote ssh command to target %s fail,%s ", targetIp, err.Error())
@@ -26,7 +30,11 @@ func RemoteSSHCommand(targetIp, user, pwd, port, command string) (err error) {
 }
 
 func RemoteSSHCommandWithOutput(targetIp, user, pwd, port, command string) (stdout []byte, err error) {
-	commandString := fmt.Sprintf("sshpass -p '%s' ssh %s@%s -p %s '%s'", pwd, user, targetIp, port, command)
+	commandString := fmt.Sprintf("sshpass -p '%s' ssh %s@%s -p %s $'%s'", pwd, user, targetIp, port, command)
+	if strings.Contains(command, "'") {
+		command = strings.ReplaceAll(command, "'", "\\'")
+		commandString = fmt.Sprintf("sshpass -p '%s' ssh %s@%s -p %s $'%s'", pwd, user, targetIp, port, command)
+	}
 	stdout, err = exec.Command("/bin/bash", "-c", commandString).Output()
 	if err != nil {
 		err = fmt.Errorf("run remote ssh command to target %s fail,%s ", targetIp, err.Error())
