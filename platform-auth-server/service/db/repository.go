@@ -53,7 +53,7 @@ func (RoleAuthorityRsRepository) FindAllConfiguredAuthoritiesByRoleId(roleId str
 func (RoleAuthorityRsRepository) FindOneByRoleIdAndAuthorityId(roleId, authorityId string, session *xorm.Session) (*model.RoleAuthorityRsEntity, error) {
 	authority := &model.RoleAuthorityRsEntity{}
 	if session == nil {
-		session := Engine.NewSession()
+		session = Engine.NewSession()
 		defer session.Close()
 	}
 	found, err := session.Where("role_id = ?", roleId).And("authority_id = ?", authorityId).And("is_deleted = ?", false).Get(authority)
@@ -70,7 +70,7 @@ func (RoleAuthorityRsRepository) FindOneByRoleIdAndAuthorityId(roleId, authority
 func (RoleAuthorityRsRepository) FindOneByRoleIdAndAuthorityCode(roleId, authorityCode string, session *xorm.Session) (*model.RoleAuthorityRsEntity, error) {
 	authority := &model.RoleAuthorityRsEntity{}
 	if session == nil {
-		session := Engine.NewSession()
+		session = Engine.NewSession()
 		defer session.Close()
 	}
 	found, err := session.Where("role_id = ?", roleId).And("authority_code = ?", authorityCode).And("is_deleted = ?", false).Get(authority)
@@ -243,7 +243,7 @@ func (UserRoleRsRepository) FindAllByUserId(userId string) ([]*model.UserRoleRsE
 
 func (UserRoleRsRepository) FindOneByUserIdAndRoleId(userId string, roleId string, session *xorm.Session) (*model.UserRoleRsEntity, error) {
 	if session == nil {
-		session := Engine.NewSession()
+		session = Engine.NewSession()
 		defer session.Close()
 	}
 
