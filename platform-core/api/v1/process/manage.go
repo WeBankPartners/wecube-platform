@@ -101,6 +101,10 @@ func AddOrUpdateProcessDefinition(c *gin.Context) {
 			middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, fmt.Errorf("this procDef has deployed")))
 			return
 		}
+		if err = CheckPermission(result, middleware.GetRequestUser(c)); err != nil {
+			middleware.ReturnError(c, err)
+			return
+		}
 		entity = &models.ProcDef{
 			Id:            param.Id,
 			Name:          param.Name,
