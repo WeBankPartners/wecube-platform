@@ -1078,6 +1078,21 @@ func (UserManagementService) ListRoleApply(ctx context.Context, param *model.Que
 	param.Filters = filters
 
 	result, err := db.RoleApplyRepositoryInstance.Query(ctx, param)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, content := range result.Contents {
+		if content.Role.ID != "" {
+			role, err := db.RoleRepositoryInstance.FindNotDeletedRolesById(content.Role.ID)
+			if err != nil {
+				return nil, err
+			}
+			if role != nil {
+				content.Role = convertToSimpleLocalRoleDto(role)
+			}
+		}
+	}
 	return result, err
 }
 
@@ -1098,6 +1113,21 @@ func (UserManagementService) ListRoleApplyByApplier(ctx context.Context, param *
 	param.Filters = filters
 
 	result, err := db.RoleApplyRepositoryInstance.Query(ctx, param)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, content := range result.Contents {
+		if content.Role.ID != "" {
+			role, err := db.RoleRepositoryInstance.FindNotDeletedRolesById(content.Role.ID)
+			if err != nil {
+				return nil, err
+			}
+			if role != nil {
+				content.Role = convertToSimpleLocalRoleDto(role)
+			}
+		}
+	}
 	return result, err
 }
 
