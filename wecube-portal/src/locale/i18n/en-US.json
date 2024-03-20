@@ -21,6 +21,7 @@
   "edit": "Edit",
   "save": "Save",
   "export": "Export",
+  "take_over": "Take Over",
   "filter_columns": "Filter Columns",
   "please_input": "Input ",
   "filter_desc_label": "Filter Input (fuzzy query)",

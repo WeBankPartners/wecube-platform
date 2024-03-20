@@ -184,7 +184,7 @@ func recoverWorkflow(workflowId string) (err error) {
 	// 初始化workflow并开始
 	workObj := Workflow{ProcRunWorkflow: *workflowRow}
 	workObj.Init(context.Background(), workNodes, workLinks)
-	GlobalWorkflowMap.Store(workObj.Id, &workObj)
+	//GlobalWorkflowMap.Store(workObj.Id, &workObj)
 	go workObj.Start(&models.ProcOperation{CreatedBy: "systemRecover"})
 	return
 }
