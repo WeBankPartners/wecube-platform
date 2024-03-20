@@ -14,6 +14,7 @@ func StartCronJob() {
 	go startScanOperationJob()
 	go loadAllWorkflow()
 	go startTakeOverJob()
+	go startSleepWorkflowJob()
 }
 
 // 当前自身内存中有运行工作流的情况下，没有就跳过
@@ -61,29 +62,21 @@ func HandleProOperation(operation *models.ProcRunOperation) {
 		log.Logger.Warn("try to handle operation,but too late", log.String("host", instanceHost), log.Int64("operation", operation.Id))
 		return
 	}
+	doneFlag := false
+	defer func() {
+		if doneFlag {
+			_, err = db.MysqlEngine.Exec("update proc_run_operation set status='done',end_time=? where id=?", time.Now(), operation.Id)
+		} else {
+			_, err = db.MysqlEngine.Exec("update proc_run_operation set status='wait' where id=?", operation.Id)
+		}
+		if err != nil {
+			log.Logger.Error("handle operation update operation status fail", log.Bool("done", doneFlag), log.String("host", instanceHost), log.Int64("operation", operation.Id), log.Error(err))
+		}
+	}()
 	if workIf, ok := GlobalWorkflowMap.Load(operation.WorkflowId); ok {
 		workObj := workIf.(*Workflow)
-		opObj := models.ProcOperation{Ctx: context.Background(), WorkflowId: operation.WorkflowId, Message: operation.Message, CreatedBy: operation.CreatedBy}
-		switch operation.Operation {
-		case "kill":
-			workObj.Kill(&opObj)
-		case "retry":
-			workObj.RetryNode(operation.NodeId)
-		case "ignore":
-			workObj.IgnoreNode(operation.NodeId)
-		case "approve":
-			workObj.ApproveNode(operation.NodeId, operation.Message)
-		case "stop":
-			workObj.Stop(&opObj)
-		case "continue":
-			workObj.Continue(&opObj)
-		default:
-			log.Logger.Error("handle operation error with illegal operation", log.String("operation", operation.Operation))
-		}
-		_, err = db.MysqlEngine.Exec("update proc_run_operation set status='done',end_time=? where id=?", time.Now(), operation.Id)
-		if err != nil {
-			log.Logger.Error("handle operation done but update database fail", log.String("host", instanceHost), log.Int64("operation", operation.Id), log.Error(err))
-		}
+		doWorkflowOperation(operation, workObj)
+		doneFlag = true
 	} else {
 		// check need to wakeup
 		log.Logger.Warn("handle operation message warning,can not find workflow", log.String("workflowId", operation.WorkflowId))
@@ -98,6 +91,43 @@ func HandleProOperation(operation *models.ProcRunOperation) {
 			return
 		}
 		// 尝试恢复workflow
+		if err = setWorkflowSleepDB(operation.WorkflowId, false); err != nil {
+			log.Logger.Error("handle operation fail with set workflow sleep false", log.String("workflowId", operation.WorkflowId), log.Error(err))
+			return
+		}
+		if err = recoverWorkflow(operation.WorkflowId); err != nil {
+			setWorkflowSleepDB(operation.WorkflowId, true)
+			log.Logger.Error("handle operation fail with recover workflow from sleep", log.String("workflowId", operation.WorkflowId), log.Error(err))
+		} else {
+			time.Sleep(2 * time.Second)
+			if workLoaded, loadOk := GlobalWorkflowMap.Load(operation.WorkflowId); loadOk {
+				workObj := workLoaded.(*Workflow)
+				doWorkflowOperation(operation, workObj)
+				doneFlag = true
+			} else {
+				log.Logger.Warn("handle operation,recover workflow done but get GlobalWorkflowMap item fail", log.String("workflowId", operation.WorkflowId))
+			}
+		}
+	}
+}
+
+func doWorkflowOperation(operation *models.ProcRunOperation, workObj *Workflow) {
+	opObj := models.ProcOperation{Ctx: context.Background(), WorkflowId: operation.WorkflowId, Message: operation.Message, CreatedBy: operation.CreatedBy}
+	switch operation.Operation {
+	case "kill":
+		workObj.Kill(&opObj)
+	case "retry":
+		workObj.RetryNode(operation.NodeId)
+	case "ignore":
+		workObj.IgnoreNode(operation.NodeId)
+	case "approve":
+		workObj.ApproveNode(operation.NodeId, operation.Message)
+	case "stop":
+		workObj.Stop(&opObj)
+	case "continue":
+		workObj.Continue(&opObj)
+	default:
+		log.Logger.Error("handle operation error with illegal operation", log.String("operation", operation.Operation))
 	}
 }
 
@@ -150,6 +180,7 @@ func tryTakeoverWorkflowRow(workflowId string) bool {
 }
 
 func loadAllWorkflow() {
+	log.Logger.Info("<<--Start load all workflow-->>")
 	var workflowRows []*models.ProcRunWorkflow
 	err := db.MysqlEngine.SQL("select id,name from proc_run_workflow where status=? and `sleep`=0 and stop=0 and host=?", models.JobStatusRunning, instanceHost).Find(&workflowRows)
 	if err != nil {
@@ -159,6 +190,7 @@ func loadAllWorkflow() {
 	for _, row := range workflowRows {
 		recoverWorkflow(row.Id)
 	}
+	log.Logger.Info("<<--Done load all workflow-->>")
 }
 
 func recoverWorkflow(workflowId string) (err error) {
@@ -209,6 +241,81 @@ func getWorkflowData(ctx context.Context, workflowId string) (workflowRow *model
 	err = db.MysqlEngine.Context(ctx).SQL("select * from proc_run_link where workflow_id=?", workflowId).Find(&linkList)
 	if err != nil {
 		err = fmt.Errorf("query workflow link table fail,%s ", err.Error())
+		return
+	}
+	return
+}
+
+// 每1小时检测有没有workflow要sleep，防止一直在内存中而且一直刷live time
+func startSleepWorkflowJob() {
+	t := time.NewTicker(1 * time.Hour).C
+	for {
+		<-t
+		doSleepWorkflowJob()
+	}
+}
+
+func doSleepWorkflowJob() {
+	log.Logger.Info("<<--Start do sleep workflow job-->>")
+	ctx := context.WithValue(context.Background(), models.TransactionIdHeader, fmt.Sprintf("sleep_workflow_%d", time.Now().Unix()))
+	var workflowRows []*models.ProcRunWorkflow
+	err := db.MysqlEngine.Context(ctx).SQL("select id,proc_ins_id,name,status,stop,created_time,last_alive_time from proc_run_workflow where status=? and (last_alive_time-created_time)>7200 and `sleep`=0", models.JobStatusRunning).Find(&workflowRows)
+	if err != nil {
+		err = fmt.Errorf("query workflow table fail,%s ", err.Error())
+		return
+	}
+	if len(workflowRows) == 0 {
+		log.Logger.Info("<<--Quit do sleep workflow job-->>", log.String("detail", "no workflow row match with sleep"))
+		return
+	}
+	for _, row := range workflowRows {
+		if isWorkflowNeedSleep(ctx, row) {
+			if workIf, ok := GlobalWorkflowMap.Load(row.Id); ok {
+				workObj := workIf.(*Workflow)
+				if tmpErr := workObj.Sleep(); tmpErr != nil {
+					log.Logger.Error("<<--Fail do sleep workflow job-->>", log.String("workflowId", row.Id), log.Error(tmpErr))
+				} else {
+					log.Logger.Info("<<--Done do sleep workflow job-->>", log.String("workflowId", row.Id))
+				}
+			}
+		} else {
+			log.Logger.Info("<<--Ignore do sleep workflow job-->>", log.String("workflowId", row.Id), log.String("detail", "workflow node still running "))
+		}
+	}
+	log.Logger.Info("<<--End do sleep workflow job-->>")
+}
+
+func isWorkflowNeedSleep(ctx context.Context, workflowRow *models.ProcRunWorkflow) (ok bool) {
+	var procRunNodeRows []*models.ProcRunNode
+	err := db.MysqlEngine.Context(ctx).SQL("select * from proc_run_node where workflow_id=?", workflowRow.Id).Find(&procRunNodeRows)
+	if err != nil {
+		log.Logger.Error("check isWorkflowNeedSleep fail with query proc node table", log.String("workflowId", workflowRow.Id))
+		return
+	}
+	if len(procRunNodeRows) == 0 {
+		return
+	}
+	currentNodes := []*models.ProcRunNode{}
+	for _, row := range procRunNodeRows {
+		if row.Status == models.JobStatusRunning {
+			currentNodes = append(currentNodes, row)
+		}
+	}
+	// 没有正在运行的节点
+	if len(currentNodes) == 0 {
+		ok = true
+		return
+	}
+	// 正在运行的节点是人工节点
+	allHumanTypeFlag := true
+	for _, v := range currentNodes {
+		if v.JobType != models.JobHumanType {
+			allHumanTypeFlag = false
+			break
+		}
+	}
+	if allHumanTypeFlag {
+		ok = true
 		return
 	}
 	return
