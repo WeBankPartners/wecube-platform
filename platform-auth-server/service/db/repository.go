@@ -3,6 +3,7 @@ package db
 import (
 	"context"
 
+	"github.com/WeBankPartners/wecube-platform/platform-auth-server/common/constant"
 	"github.com/WeBankPartners/wecube-platform/platform-auth-server/model"
 	"xorm.io/builder"
 	"xorm.io/xorm"
@@ -287,7 +288,7 @@ func (RoleApplyRepository) FindByApplier(applier string, roleIds []string, statu
 }
 
 func (RoleApplyRepository) Query(ctx context.Context, param *model.QueryRequestParam) (*model.ListRoleApplyResponse, error) {
-	result := &model.ListRoleApplyResponse{PageInfo: &model.PageInfo{}, Contents: []*model.RoleApplyDto{}}
+	result := &model.ListRoleApplyResponse{PageInfo: &model.PageInfo{}, Entities: []*model.RoleApplyEntity{}}
 	filterSql, _, queryParam := transFiltersToSQL(param, &model.TransFiltersParam{IsStruct: true, StructObj: model.RoleApplyEntity{}})
 	baseSql := combineDBSql("SELECT * FROM auth_sys_role_apply WHERE 1=1 ", filterSql)
 	if param.Paging {
@@ -296,6 +297,28 @@ func (RoleApplyRepository) Query(ctx context.Context, param *model.QueryRequestP
 		baseSql = combineDBSql(baseSql, pageSql)
 		queryParam = append(queryParam, pageParam...)
 	}
-	err := Engine.Context(ctx).SQL(baseSql, queryParam...).Find(&result.Contents)
+	err := Engine.Context(ctx).SQL(baseSql, queryParam...).Find(&result.Entities)
+	if err != nil {
+		return nil, err
+	}
+	result.Contents = make([]*model.RoleApplyDto, len(result.Entities))
+	for i, entity := range result.Entities {
+		result.Contents[i] = &model.RoleApplyDto{
+			ID:        entity.Id,
+			CreatedBy: entity.CreatedBy,
+			UpdatedBy: entity.UpdatedBy,
+			EmailAddr: entity.EmailAddr,
+			Role: &model.SimpleLocalRoleDto{
+				ID: entity.RoleId,
+			},
+			Status: entity.Status,
+		}
+		if entity.CreatedTime.Unix() >= 0 {
+			result.Contents[i].CreatedTime = entity.CreatedTime.Format(constant.DateTimeFormat)
+		}
+		if entity.UpdatedTime.Unix() >= 0 {
+			result.Contents[i].UpdatedTime = entity.UpdatedTime.Format(constant.DateTimeFormat)
+		}
+	}
 	return result, err
 }

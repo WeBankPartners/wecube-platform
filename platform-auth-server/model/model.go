@@ -85,8 +85,9 @@ type RoleApplyParam struct {
 }
 
 type ListRoleApplyResponse struct {
-	PageInfo *PageInfo       `json:"pageInfo"` // 分页信息
-	Contents []*RoleApplyDto `json:"contents"` // 列表内容
+	PageInfo *PageInfo          `json:"pageInfo"` // 分页信息
+	Contents []*RoleApplyDto    `json:"contents"` // 列表内容
+	Entities []*RoleApplyEntity // 列表内容
 }
 
 type PlatSystemVariables struct {

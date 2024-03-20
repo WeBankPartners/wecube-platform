@@ -168,7 +168,7 @@ func UmAuthenticate(authCtxMap map[string]string, credential *model.CredentialDt
 			"sign":      sign,
 			"appid":     umAuthCtx.Appid,
 			"timeStamp": timeStamp,
-			"style":     "5",
+			"style":     "6",
 			"auth":      umToken.Auth,
 			"token":     umToken.Token,
 		}).
