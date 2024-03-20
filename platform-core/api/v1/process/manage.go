@@ -101,6 +101,10 @@ func AddOrUpdateProcessDefinition(c *gin.Context) {
 			middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, fmt.Errorf("this procDef has deployed")))
 			return
 		}
+		if err = CheckPermission(result, middleware.GetRequestUser(c)); err != nil {
+			middleware.ReturnError(c, err)
+			return
+		}
 		entity = &models.ProcDef{
 			Id:            param.Id,
 			Name:          param.Name,
@@ -276,10 +280,6 @@ func BatchUpdateProcessDefinitionStatus(c *gin.Context) {
 		if procDef == nil {
 			continue
 		}
-		if err = CheckPermission(procDef, user); err != nil {
-			middleware.ReturnError(c, err)
-			return
-		}
 		switch procDef.Status {
 		case string(models.Draft):
 			// 记录草稿态编排
@@ -356,10 +356,6 @@ func BatchUpdateProcessDefinitionPermission(c *gin.Context) {
 		}
 		if procDef.Id == "" {
 			continue
-		}
-		if err = CheckPermission(procDef, user); err != nil {
-			middleware.ReturnError(c, err)
-			return
 		}
 		err = database.BatchAddProcDefPermission(c, procDefId, param.PermissionToRole)
 		if err != nil {
