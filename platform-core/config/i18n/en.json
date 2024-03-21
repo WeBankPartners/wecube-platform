@@ -137,11 +137,11 @@
     "message": "Execution Failed: An execution with the same name already exists. Please modify the name and try again."
   },
   "deal_with_at_the_same_time_error": {
-    "code": 20100030,
+    "code": 20000030,
     "message": "Operation Failed: The current request is being processed by another user. Multi-user simultaneous operation is not supported currently."
   },
   "data_permission_deny": {
-    "code": 20100031,
+    "code": 20000031,
     "message": "Data Permission Deny"
   }
 }
