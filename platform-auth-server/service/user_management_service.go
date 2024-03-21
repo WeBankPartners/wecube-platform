@@ -881,7 +881,7 @@ func (UserManagementService) RegisterUmUser(param *model.RoleApplyParam, curUser
 	}
 
 	// 过滤已申请的角色
-	roleApplys, err := db.RoleApplyRepositoryInstance.FindByApplier(param.UserName, param.RoleIds, nil)
+	roleApplys, err := db.RoleApplyRepositoryInstance.FindByApplier(param.UserName, param.RoleIds, []string{model.RoleApplyStatusInit})
 	if err != nil {
 		return err
 	}
@@ -897,12 +897,10 @@ func (UserManagementService) RegisterUmUser(param *model.RoleApplyParam, curUser
 		if roleApply, ok := existRoleApplyMap[roleId]; !ok {
 			insertRoleIds = append(insertRoleIds, roleId)
 		} else {
-			if roleApply.Status == model.RoleApplyStatusInit {
-				updateRoleApplys = append(updateRoleApplys, &model.RoleApplyEntity{
-					Id:          roleApply.Id,
-					CreatedTime: now,
-				})
-			}
+			updateRoleApplys = append(updateRoleApplys, &model.RoleApplyEntity{
+				Id:          roleApply.Id,
+				CreatedTime: now,
+			})
 		}
 	}
 
@@ -961,13 +959,13 @@ func (UserManagementService) CreateRoleApply(param *model.RoleApplyParam, curUse
 	}
 
 	// 过滤已申请的角色
-	roleApplys, err := db.RoleApplyRepositoryInstance.FindByApplier(param.UserName, param.RoleIds, nil)
+	roleApplys, err := db.RoleApplyRepositoryInstance.FindByApplier(param.UserName, param.RoleIds, []string{model.RoleApplyStatusInit})
 	if err != nil {
 		return err
 	}
-	existRoleIdMap := make(map[string]*model.RoleApplyEntity)
+	existRoleApplyMap := make(map[string]*model.RoleApplyEntity)
 	for _, roleApply := range roleApplys {
-		existRoleIdMap[roleApply.RoleId] = roleApply
+		existRoleApplyMap[roleApply.RoleId] = roleApply
 	}
 
 	// 过滤已有角色
@@ -976,8 +974,9 @@ func (UserManagementService) CreateRoleApply(param *model.RoleApplyParam, curUse
 		log.Logger.Warn("failed to FindAllByUserId for userRoleRs", log.String("userId", user.Id), log.Error(err))
 		return err
 	}
+	existUserRoleMap := make(map[string]*model.UserRoleRsEntity)
 	for _, userRole := range userRoles {
-		existRoleIdMap[userRole.RoleId] = nil
+		existUserRoleMap[userRole.RoleId] = userRole
 	}
 
 	// 已申请的更新下时间
@@ -985,15 +984,16 @@ func (UserManagementService) CreateRoleApply(param *model.RoleApplyParam, curUse
 	insertRoleIds := make([]string, 0, len(param.RoleIds))
 	now := time.Now()
 	for _, roleId := range param.RoleIds {
-		if roleApply, ok := existRoleIdMap[roleId]; !ok {
+		if _, ok := existUserRoleMap[roleId]; ok {
+			return fmt.Errorf("you already have roleId: %s", roleId)
+		}
+		if roleApply, ok := existRoleApplyMap[roleId]; !ok {
 			insertRoleIds = append(insertRoleIds, roleId)
-		} else if roleApply != nil {
-			if roleApply.Status == model.RoleApplyStatusInit {
-				updateRoleApplys = append(updateRoleApplys, &model.RoleApplyEntity{
-					Id:          roleApply.Id,
-					CreatedTime: now,
-				})
-			}
+		} else {
+			updateRoleApplys = append(updateRoleApplys, &model.RoleApplyEntity{
+				Id:          roleApply.Id,
+				CreatedTime: now,
+			})
 		}
 	}
 
