@@ -53,7 +53,7 @@ func (AuthService) InitKey() error {
 	return nil
 }
 
-func (AuthService) Login(credential *model.CredentialDto) (*model.AuthenticationResponse, error) {
+func (AuthService) Login(credential *model.CredentialDto, taskLogin bool) (*model.AuthenticationResponse, error) {
 
 	if err := validateCredential(credential); err != nil {
 		return nil, err
@@ -67,7 +67,7 @@ func (AuthService) Login(credential *model.CredentialDto) (*model.Authentication
 		}
 
 	} else {
-		if authResp, err := authenticateUser(credential); err != nil {
+		if authResp, err := authenticateUser(credential, taskLogin); err != nil {
 			return nil, err
 		} else {
 			return authResp, nil
@@ -235,7 +235,7 @@ func RSADecryptByPublic(encryptString, publicKeyContent string) ([]byte, error) 
 	return out[skip:], nil
 }
 
-func authenticateUser(credential *model.CredentialDto) (*model.AuthenticationResponse, error) {
+func authenticateUser(credential *model.CredentialDto, taskLogin bool) (*model.AuthenticationResponse, error) {
 	username := credential.Username
 	if isBlank(username) {
 		log.Logger.Debug("blank user name")
@@ -249,15 +249,17 @@ func authenticateUser(credential *model.CredentialDto) (*model.AuthenticationRes
 
 	if user == nil {
 		log.Logger.Debug("User does not exist", log.String("username", username))
-		// 检查UM用户是否存在
-		umExists, err := checkUmUserExists(credential)
-		if err != nil {
-			return nil, err
-		}
-		if umExists {
-			// UM用户存在，返回需注册的token
-			authResp, err := createAuthenticationResponse(credential, []string{}, true)
-			return authResp, err
+		if taskLogin {
+			// 检查UM用户是否存在
+			umExists, err := checkUmUserExists(credential)
+			if err != nil {
+				return nil, err
+			}
+			if umExists {
+				// UM用户存在，返回需注册的token
+				authResp, err := createAuthenticationResponse(credential, []string{}, true)
+				return authResp, err
+			}
 		}
 		return nil, exterror.NewBadCredentialsError("Bad credential.")
 	}
