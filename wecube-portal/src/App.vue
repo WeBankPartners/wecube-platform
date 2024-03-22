@@ -1,7 +1,7 @@
 <template>
   <div id="wecube_app">
     <transition name="fade" mode="out-in">
-      <router-view class="pages" :key="$route.name"></router-view>
+      <router-view class="pages"></router-view>
     </transition>
   </div>
 </template>
