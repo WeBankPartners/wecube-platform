@@ -755,7 +755,11 @@ func LaunchPlugin(c *gin.Context) {
 		dockerCmd += fmt.Sprintf("-p %s ", v)
 	}
 	for _, v := range envBindList {
-		dockerCmd += fmt.Sprintf("-e %s ", v)
+		tmpV := v
+		if eqIndex := strings.Index(v, "="); eqIndex > 0 {
+			tmpV = v[:eqIndex+1] + "'" + v[eqIndex+1:] + "'"
+		}
+		dockerCmd += fmt.Sprintf("-e %s ", tmpV)
 	}
 	dockerCmd += dockerResource.ImageName
 	if err = bash.RemoteSSHCommand(dockerServer.Host, dockerServer.LoginUsername, dockerServer.LoginPassword, dockerServer.Port, dockerCmd); err != nil {
