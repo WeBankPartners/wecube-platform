@@ -164,7 +164,10 @@ router.beforeEach((to, from, next) => {
         ['/404', '/login', '/homepage', '/collaboration/workflow-mgmt'].includes(to.path)
       ) {
         /* has permission */
-        window.sessionStorage.setItem('currentPath', to.path === '/404' || to.path === '/login' ? '/homepage' : to.path)
+        window.sessionStorage.setItem(
+          'currentPath',
+          to.path === '/404' || to.path === '/login' ? '/homepage' : to.fullPath
+        )
         next()
       } else {
         /* has no permission */
