@@ -43,7 +43,12 @@
               </span>
             </Col>
             <Col style="float: right">
-              <Checkbox style="width: max-content" class="clear-default-css" v-model="isShowDecomissionedPackage">
+              <Checkbox
+                style="width: max-content"
+                class="clear-default-css"
+                v-model="isShowDecomissionedPackage"
+                @on-change="getAllPluginPkgs"
+              >
                 {{ $t('is_show_decomissioned_pkg') }}
               </Checkbox>
             </Col>
@@ -56,12 +61,8 @@
             <span v-if="plugins.length < 1">{{ $t('no_plugin_packages') }}</span>
             <div style="height: calc(100vh - 316px); overflow: auto" v-else>
               <Collapse accordion @on-change="pluginPackageChangeHandler">
-                <Panel
-                  :name="plugin.id + ''"
-                  v-for="plugin in plugins"
-                  v-if="plugin.status !== 'DECOMMISSIONED' || isShowDecomissionedPackage"
-                  :key="plugin.id"
-                >
+                <!-- v-if="plugin.status !== 'DECOMMISSIONED' || isShowDecomissionedPackage" -->
+                <Panel :name="plugin.id + ''" v-for="plugin in plugins" :key="plugin.id">
                   <div style="float: right; width: calc(100% - 30px)">
                     <span
                       :class="plugin.status !== 'DECOMMISSIONED' ? 'plugin-title' : 'decomissionedPkgName plugin-title'"
@@ -902,8 +903,10 @@ export default {
       this.currentTab = name
     },
     async getAllPluginPkgs () {
+      // isRetrieveAllPluginPackages yes获取所有插件包，no获取可用插件包
+      const isRetrieveAllPluginPackages = this.isShowDecomissionedPackage ? 'yes' : 'no'
       this.isLoadingPluginList = true
-      let { status, data } = await getAllPluginPkgs()
+      let { status, data } = await getAllPluginPkgs(isRetrieveAllPluginPackages)
       this.isLoadingPluginList = false
       if (status === 'OK') {
         this.plugins = data.map(_ => {

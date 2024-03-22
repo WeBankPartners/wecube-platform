@@ -28,6 +28,7 @@ type Workflow struct {
 	stopChan         chan models.ProcOperation
 	killChan         chan models.ProcOperation
 	doneChan         chan int
+	sleepChan        chan int
 	ErrList          []*models.WorkProblemErrObj
 	statusLock       *sync.RWMutex
 	errorLock        *sync.RWMutex
@@ -45,6 +46,7 @@ func (w *Workflow) Init(ctx context.Context, nodes []*models.ProcRunNode, links 
 	w.stopChan = make(chan models.ProcOperation, 1)
 	w.killChan = make(chan models.ProcOperation, 1)
 	w.doneChan = make(chan int, 1)
+	w.sleepChan = make(chan int, 1)
 	w.statusLock = new(sync.RWMutex)
 	w.errorLock = new(sync.RWMutex)
 	go w.heartbeat()
@@ -66,16 +68,20 @@ func (w *Workflow) Start(input *models.ProcOperation) {
 	for _, index := range startIndexList {
 		w.Nodes[index].StartChan <- 1
 	}
-	var killFlag bool
+	var killFlag, sleepFlag bool
 	select {
 	case killInput := <-w.killChan:
 		killFlag = true
 		w.setStatus(models.JobStatusKill, &killInput)
 	case <-w.doneChan:
+	case <-w.sleepChan:
+		sleepFlag = true
 	}
 	if killFlag {
 		log.Logger.Info("<--workflow kill-->")
 		<-w.doneChan
+	} else if sleepFlag {
+		log.Logger.Info("<--workflow sleep-->")
 	} else {
 		log.Logger.Info("<--workflow done-->")
 		w.setStatus(w.Status, nil)
@@ -151,8 +157,13 @@ func (w *Workflow) Kill(input *models.ProcOperation) {
 	<-w.doneChan
 }
 
-func (w *Workflow) Sleep() {
-
+func (w *Workflow) Sleep() (err error) {
+	if err = setWorkflowSleepDB(w.Id, true); err != nil {
+		return
+	}
+	w.ProcRunWorkflow.Sleep = true
+	w.sleepChan <- 1
+	return
 }
 
 func (w *Workflow) setStatus(status string, op *models.ProcOperation) {
@@ -278,8 +289,13 @@ func (w *Workflow) ApproveNode(nodeId, message string) {
 func (w *Workflow) heartbeat() {
 	t := time.NewTicker(10 * time.Second).C
 	for {
+		if w.ProcRunWorkflow.Sleep {
+			log.Logger.Info("workflow heartbeat get quit with sleep flag", log.String("workflowId", w.Id))
+			break
+		}
 		wStatus := w.getStatus()
 		if wStatus == models.JobStatusSuccess || wStatus == models.JobStatusKill || wStatus == models.JobStatusFail {
+			log.Logger.Info("workflow heartbeat get quit status", log.String("workflowId", w.Id), log.String("status", wStatus))
 			break
 		}
 		if _, err := db.MysqlEngine.Exec("update proc_run_workflow set host=?,last_alive_time=? where id=?", w.Host, time.Now(), w.Id); err != nil {
@@ -617,6 +633,18 @@ func getNodeOutputData(procRunNodeId string) (output string) {
 	queryRows, _ := db.MysqlEngine.QueryString("select `output` from proc_run_node where id=?", procRunNodeId)
 	if len(queryRows) > 0 {
 		output = queryRows[0]["output"]
+	}
+	return
+}
+
+func setWorkflowSleepDB(workflowId string, sleepFlag bool) (err error) {
+	if sleepFlag {
+		_, err = db.MysqlEngine.Exec("update proc_run_workflow set `sleep`=1 where id=?", workflowId)
+	} else {
+		_, err = db.MysqlEngine.Exec("update proc_run_workflow set `sleep`=0 where id=?", workflowId)
+	}
+	if err != nil {
+		err = fmt.Errorf("update proc workflow:%s sleep true fail,%s ", workflowId, err.Error())
 	}
 	return
 }
