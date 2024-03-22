@@ -257,7 +257,7 @@ func handleProcScheduleJob(unixTimestamp int64, param interface{}) {
 	// 初始化workflow并开始
 	workObj := workflow.Workflow{ProcRunWorkflow: *workflowRow}
 	workObj.Init(context.Background(), workNodes, workLinks)
-	workflow.GlobalWorkflowMap.Store(workObj.Id, &workObj)
+	//workflow.GlobalWorkflowMap.Store(workObj.Id, &workObj)
 	go workObj.Start(&models.ProcOperation{CreatedBy: operator})
 	if updateJobInsIdErr := database.UpdateProcScheduleJob(ctx, jobId, "done", "", procInsId); updateJobInsIdErr != nil {
 		log.Logger.Error("handleProcScheduleJob done but update job proc instance id fail", log.String("jobId", jobId), log.String("procInsId", procInsId), log.Error(updateJobInsIdErr))
