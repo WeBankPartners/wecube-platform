@@ -13,7 +13,21 @@ import (
 func Login(c *gin.Context) {
 	var credential model.CredentialDto
 	if c.ShouldBindJSON(&credential) == nil {
-		if authResp, err := service.AuthServiceInstance.Login(&credential); err == nil {
+		if authResp, err := service.AuthServiceInstance.Login(&credential, false); err == nil {
+			setupTokenHeaders(authResp.Tokens, c)
+			support.ReturnData(c, authResp.Tokens)
+		} else {
+			support.ReturnError(c, err)
+		}
+	} else {
+		support.ReturnError(c, errors.New("invalid request"))
+	}
+}
+
+func TaskLogin(c *gin.Context) {
+	var credential model.CredentialDto
+	if c.ShouldBindJSON(&credential) == nil {
+		if authResp, err := service.AuthServiceInstance.Login(&credential, true); err == nil {
 			setupTokenHeaders(authResp.Tokens, c)
 			support.ReturnData(c, authResp)
 		} else {
