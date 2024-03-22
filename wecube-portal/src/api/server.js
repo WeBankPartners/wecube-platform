@@ -271,6 +271,8 @@ export const flowExport = data => req.post(`platform/v1/process/definitions/expo
 export const flowImport = data => req.post(`platform/v1/process/definitions/import`, data)
 export const getNodeDetailById = (flowId, nodeId) =>
   req.get(`platform/v1/process/definitions/${flowId}/tasknodes/${nodeId}`)
+// 编排列表转给我
+export const transferToMe = data => req.post(`platform/v1/process/definitions/handler/update`, data)
 // 批量执行重构
 // 保存模板
 export const saveBatchExecuteTemplate = data => req.post(`platform/v1/batch-execution/templates`, data)
