@@ -24,14 +24,15 @@ type GetAuthorities func(path string, method string) []string
 
 func AuthApi(authoritiesFetcher GetAuthorities) gin.HandlerFunc {
 	return func(c *gin.Context) {
+		urlPath := c.Request.URL.Path
 		if !strings.HasPrefix(c.Request.URL.Path, constant.UrlPrefix) {
 			c.String(http.StatusNotFound, "404 page not found")
 			c.Abort()
 			return
 		}
 
-		if c.Request.RequestURI == constant.UrlPrefix+constant.UriLogin ||
-			c.Request.RequestURI == constant.UrlPrefix+constant.UriTaskLogin {
+		if urlPath == constant.UrlPrefix+constant.UriLogin ||
+			urlPath == constant.UrlPrefix+constant.UriTaskLogin {
 			c.Next()
 		} else {
 			//apiUri := c.Request.URL.Path[len(constant.UrlPrefix):]
@@ -46,9 +47,9 @@ func AuthApi(authoritiesFetcher GetAuthorities) gin.HandlerFunc {
 			}
 			//c.Set("needAuth", true)
 			if authClaim.NeedRegister {
-				if c.Request.RequestURI != constant.UrlPrefix+constant.UriUsersRegister &&
-					c.Request.RequestURI != constant.UrlPrefix+constant.UriListApplyByApplier &&
-					!(c.Request.URL.Path == constant.UrlPrefix+constant.UriRoles && c.Request.Method == http.MethodGet) {
+				if urlPath != constant.UrlPrefix+constant.UriUsersRegister &&
+					urlPath != constant.UrlPrefix+constant.UriListApplyByApplier &&
+					!(urlPath == constant.UrlPrefix+constant.UriRoles && c.Request.Method == http.MethodGet) {
 					log.Logger.Warn("jwt token need register", log.String("path", c.Request.URL.Path))
 					support.ReturnErrorWithHttpCode(c, errors.New("jwt token need register"), http.StatusUnauthorized)
 					c.Abort()
