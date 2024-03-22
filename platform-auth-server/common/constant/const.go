@@ -14,6 +14,7 @@ const (
 	AuthorizationHeader   = "Authorization"
 	RefreshTokenHeader    = "Authorization-Info"
 	UriLogin              = "/v1/api/login"
+	UriTaskLogin          = "/v1/api/taskLogin"
 	UriUsersRegister      = "/v1/users/register"
 	UriListApplyByApplier = "/v1/roles/apply/byapplier"
 	UriRoles              = "/v1/roles"
