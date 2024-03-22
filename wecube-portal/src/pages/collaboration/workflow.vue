@@ -220,7 +220,15 @@
 <script>
 import axios from 'axios'
 import { getCookie } from '@/pages/util/cookie'
-import { flowMgmt, getPluginList, flowList, flowBatchAuth, flowBatchChangeStatus, flowCopy } from '@/api/server.js'
+import {
+  flowMgmt,
+  getPluginList,
+  flowList,
+  flowBatchAuth,
+  flowBatchChangeStatus,
+  flowCopy,
+  transferToMe
+} from '@/api/server.js'
 import FlowAuth from '@/pages/components/auth.vue'
 import dayjs from 'dayjs'
 export default {
@@ -407,18 +415,6 @@ export default {
                     </Button>
                   </Tooltip>
                 )}
-                {['draft'].includes(status) && (
-                  <Tooltip content={this.$t('edit')} placement="top">
-                    <Button
-                      size="small"
-                      type="success"
-                      onClick={() => this.editAction(params.row)}
-                      style="margin-right:5px;"
-                    >
-                      <Icon type="ios-create-outline" size="16"></Icon>
-                    </Button>
-                  </Tooltip>
-                )}
                 {['deployed'].includes(status) && (
                   <Tooltip
                     content={params.row.enableCreated ? this.$t('edit') : this.$t('hasDraftData')}
@@ -436,13 +432,42 @@ export default {
                     </Button>
                   </Tooltip>
                 )}
+                {['draft'].includes(status) && this.username === params.row.updatedBy && (
+                  <Tooltip content={this.$t('edit')} placement="top">
+                    <Button
+                      size="small"
+                      type="success"
+                      onClick={() => this.editAction(params.row)}
+                      style="margin-right:5px;"
+                    >
+                      <Icon type="ios-create-outline" size="16"></Icon>
+                    </Button>
+                  </Tooltip>
+                )}
+                {
+                  /* 转给我 */ ['draft'].includes(status) && this.username !== params.row.updatedBy && (
+                    <Tooltip content={this.$t('take_over')} placement="left" max-width="200">
+                      <Button
+                        type="success"
+                        size="small"
+                        onClick={() => {
+                          this.handleTransfer(params.row)
+                        }}
+                        style="margin-right:5px;"
+                      >
+                        <Icon type="ios-hand" size="16"></Icon>
+                      </Button>
+                    </Tooltip>
+                  )
+                }
               </div>
             )
           }
         }
       ],
       selectedParams: [], // id,name,rowDataIndex
-      headers: {}
+      headers: {},
+      username: window.localStorage.getItem('username')
     }
   },
   mounted () {
@@ -671,6 +696,36 @@ export default {
       if (status === 'OK') {
         this.$router.push({ path: '/collaboration/workflow-mgmt', query: { flowId: data, flowListTab: 'draft' } })
       }
+    },
+    // 转给我
+    async handleTransfer (row) {
+      this.$Modal.confirm({
+        title: this.$t('confirm') + this.$t('take_over'),
+        'z-index': 1000000,
+        loading: true,
+        onOk: async () => {
+          this.$Modal.remove()
+          const params = {
+            procDefId: row.id,
+            latestUpdateTime: String(new Date(row.updatedTime).getTime()) || ''
+          }
+          const { status } = await transferToMe(params)
+          if (status === 'OK') {
+            this.$Notice.success({
+              title: this.$t('successful'),
+              desc: this.$t('successful')
+            })
+            this.getFlowList()
+            if (row.status === 'draft') {
+              this.$router.push({
+                path: '/collaboration/workflow-mgmt',
+                query: { flowId: row.id, flowListTab: 'draft' }
+              })
+            }
+          }
+        },
+        onCancel: () => {}
+      })
     },
     async copyAction (row) {
       let { status, message, data } = await flowCopy(row.id, 'n')
