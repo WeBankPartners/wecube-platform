@@ -15,7 +15,7 @@ func Login(c *gin.Context) {
 	if c.ShouldBindJSON(&credential) == nil {
 		if authResp, err := service.AuthServiceInstance.Login(&credential); err == nil {
 			setupTokenHeaders(authResp.Tokens, c)
-			support.ReturnData(c, authResp.Tokens)
+			support.ReturnData(c, authResp)
 		} else {
 			support.ReturnError(c, err)
 		}
