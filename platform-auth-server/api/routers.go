@@ -80,7 +80,7 @@ func init() {
 	httpHandlerFuncList = append(httpHandlerFuncList, // contract instance
 		&handlerFuncObj{Url: constant.UriLogin, Method: http.MethodPost, HandlerFunc: Login,
 			ApiCode: "Login"},
-		&handlerFuncObj{Url: "/v1/api/taskLogin", Method: http.MethodPost, HandlerFunc: TaskLogin,
+		&handlerFuncObj{Url: constant.UriTaskLogin, Method: http.MethodPost, HandlerFunc: TaskLogin,
 			ApiCode: "TaskLogin"},
 		&handlerFuncObj{Url: "/v1/api/token", Method: http.MethodGet, HandlerFunc: RefreshToken,
 			ApiCode: "RefreshToken"},
@@ -94,7 +94,7 @@ func init() {
 			ApiCode: "RegisterLocalRole"},
 		&handlerFuncObj{Url: "/v1/roles/update", Method: http.MethodPost, HandlerFunc: UpdateLocalRole,
 			ApiCode: "UpdateLocalRole"},
-		&handlerFuncObj{Url: "/v1/roles", Method: http.MethodGet, HandlerFunc: RetrieveAllLocalRoles,
+		&handlerFuncObj{Url: constant.UriRoles, Method: http.MethodGet, HandlerFunc: RetrieveAllLocalRoles,
 			ApiCode: "RetrieveAllLocalRoles"},
 		&handlerFuncObj{Url: "/v1/roles/:role-id", Method: http.MethodGet, HandlerFunc: RetrieveRoleInfo,
 			ApiCode: "RetrieveRoleInfo"},
