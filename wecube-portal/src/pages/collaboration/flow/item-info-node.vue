@@ -6,7 +6,8 @@
       </div>
       <div class="panal-name">{{ $t('nodeProperties') }}：</div>
       <div class="panel-content">
-        <Alert v-if="isShowAlert" show-icon type="error">
+        <!-- v-if="isShowAlert" -->
+        <Alert show-icon type="error">
           编排属主角色【{{ mgmtRole }}】暂无插件服务: 【{{
             itemCustomInfo.customAttrs.serviceName
           }}】权限，请在「协同-插件注册-对应插件-服务-权限配置-属主角色」中添加【CMDB管理员】后,刷新页面重试
@@ -91,7 +92,12 @@
             {{ $t('controlOfExecution') }}
             <template slot="content">
               <Form :label-width="120">
-                <FormItem :label="$t('timeout')">
+                <FormItem
+                  :label="$t('timeout')"
+                  v-if="
+                    itemCustomInfo.customAttrs && ['automatic', 'data'].includes(itemCustomInfo.customAttrs.nodeType)
+                  "
+                >
                   <Select v-model="itemCustomInfo.customAttrs.timeout" filterable @on-change="paramsChanged">
                     <Option v-for="(item, index) in timeSelection" :value="item.mins" :key="index"
                       >{{ item.label }}
