@@ -11,7 +11,7 @@
         action="platform/v1/plugin-certifications/import"
         :headers="headers"
       >
-        <Button style="float: right;margin-right:4px" type="primary" @click="getHeaders">{{
+        <Button style="float: right; margin-right: 4px" type="primary" @click="getHeaders">{{
           $t('import_flow')
         }}</Button>
       </Upload>
@@ -22,7 +22,7 @@
 
 <script>
 import axios from 'axios'
-import { setCookie, getCookie } from '@/pages//util/cookie'
+import { setLocalstorage } from '@/pages/util/localStorage.js'
 import { getCertification, deleteCertification } from '@/api/server'
 export default {
   name: '',
@@ -110,7 +110,7 @@ export default {
       }
     },
     export (row) {
-      const accessToken = getCookie('accessToken')
+      const accessToken = localStorage.getItem('wecube-accessToken')
       axios({
         method: 'GET',
         url: `platform/v1/plugin-certifications/${row.id}/export`,
@@ -181,18 +181,18 @@ export default {
       this.isShowUploadList = true
       let refreshRequest = null
       const currentTime = new Date().getTime()
-      const accessToken = getCookie('accessToken')
+      const accessToken = localStorage.getItem('wecube-accessToken')
       if (accessToken) {
-        const expiration = getCookie('accessTokenExpirationTime') * 1 - currentTime
+        const expiration = localStorage.getItem('wecube-accessTokenExpirationTime') * 1 - currentTime
         if (expiration < 1 * 60 * 1000 && !refreshRequest) {
           refreshRequest = axios.get('/auth/v1/api/token', {
             headers: {
-              Authorization: 'Bearer ' + getCookie('refreshToken')
+              Authorization: 'Bearer ' + localStorage.getItem('wecube-refreshToken')
             }
           })
           refreshRequest.then(
             res => {
-              setCookie(res.data.data)
+              setLocalstorage(res.data.data)
               this.setUploadActionHeader()
               this.$refs.uploadButton.handleClick()
             },
@@ -212,7 +212,7 @@ export default {
     },
     setUploadActionHeader () {
       this.headers = {
-        Authorization: 'Bearer ' + getCookie('accessToken')
+        Authorization: 'Bearer ' + localStorage.getItem('wecube-accessToken')
       }
     },
     onImportSuccess (response) {
