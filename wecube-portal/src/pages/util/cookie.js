@@ -1,4 +1,5 @@
 function setCookie (tokens) {
+  console.log(11, tokens)
   tokens.forEach(_ => {
     document.cookie = `${_.tokenType}=${_.token};path=/`
     document.cookie = `${_.tokenType}ExpirationTime=${_.expiration};path=/`
@@ -11,8 +12,15 @@ function getCookie (name) {
   return document.cookie.replace(reg, '$1')
 }
 
-function clearCookie (name) {
-  document.cookie = 'name=;path=/'
+function clearCookie () {
+  var cookies = document.cookie.split(';')
+  // 遍历所有的cookies，并将它们设置为过期
+  for (var i = 0; i < cookies.length; i++) {
+    var cookie = cookies[i]
+    var eqPos = cookie.indexOf('=')
+    var name = eqPos > -1 ? cookie.substr(0, eqPos) : cookie
+    document.cookie = name + '=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/'
+  }
 }
 
 export { setCookie, getCookie, clearCookie }
