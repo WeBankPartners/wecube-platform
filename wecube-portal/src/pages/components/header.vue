@@ -119,6 +119,7 @@
   </div>
 </template>
 <script>
+import { clearCookie } from '@/pages/util/cookie'
 import Vue from 'vue'
 import { getMyMenus, getAllPluginPackageResourceFiles, getApplicationVersion, changePassword } from '@/api/server.js'
 import { getChildRouters } from '../util/router.js'
@@ -175,6 +176,7 @@ export default {
       window.open(this.$t(url))
     },
     logout () {
+      clearCookie()
       window.location.href = window.location.origin + window.location.pathname + '#/login'
     },
     showChangePassword () {

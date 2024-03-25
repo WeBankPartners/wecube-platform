@@ -9,7 +9,7 @@
       </div>
       <div>
         <template v-if="editFlow !== 'false'">
-          <Button type="primary" v-if="['draft'].includes(itemCustomInfo.status)" @click="releaseFlow">
+          <Button type="primary" v-if="['draft'].includes(itemCustomInfo.status) && !nodeHasAlert" @click="releaseFlow">
             <Icon type="ios-paper-plane-outline" size="16"></Icon>
             {{ $t('release_flow') }}
           </Button>
@@ -57,6 +57,7 @@ export default {
   },
   data () {
     return {
+      nodeHasAlert: false,
       flowListTab: '',
       editFlow: true, // 在查看时隐藏按钮
       itemCustomInfo: {}
@@ -64,6 +65,7 @@ export default {
   },
   methods: {
     showItemInfo (data, editFlow, flowListTab) {
+      this.nodeHasAlert = false
       this.editFlow = editFlow
       this.flowListTab = flowListTab
       const defaultNode = {
@@ -187,6 +189,9 @@ export default {
     },
     backToFlowList () {
       this.$router.push({ path: '/collaboration/workflow', query: { flowListTab: this.flowListTab } })
+    },
+    hideReleaseBtn () {
+      this.nodeHasAlert = true
     }
   }
 }

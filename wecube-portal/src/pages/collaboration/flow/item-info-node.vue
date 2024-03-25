@@ -6,6 +6,11 @@
       </div>
       <div class="panal-name">{{ $t('nodeProperties') }}：</div>
       <div class="panel-content">
+        <Alert v-if="isShowAlert" show-icon type="error">
+          编排属主角色【{{ mgmtRole }}】暂无插件服务: 【{{
+            itemCustomInfo.customAttrs.serviceName
+          }}】权限，请在「协同-插件注册-对应插件-服务-权限配置-属主角色」中添加【CMDB管理员】后,刷新页面重试
+        </Alert>
         <Collapse v-model="opendPanel">
           <Panel name="1">
             {{ $t('basicInfo') }}
@@ -301,7 +306,8 @@ import {
   getPluginFunByRule,
   getNodeParams,
   getSourceNode,
-  getNodeDetailById
+  getNodeDetailById,
+  getRoleList
 } from '@/api/server.js'
 import ItemFilterRulesGroup from './item-filter-rules-group.vue'
 export default {
@@ -364,7 +370,9 @@ export default {
       paramsTypes: [
         { value: 'INPUT', label: this.$t('input') },
         { value: 'OUTPUT', label: this.$t('output') }
-      ]
+      ],
+      mgmtRole: '', // 编排属主角色，供错误提示用
+      isShowAlert: false // 在服务插件有值，但无可选项是提示
     }
   },
   components: {
@@ -374,7 +382,8 @@ export default {
     this.getAllDataModels()
   },
   methods: {
-    async showItemInfo (nodeData, needAddFirst = false, rootEntity, editFlow) {
+    async showItemInfo (nodeData, needAddFirst = false, rootEntity, editFlow, permissionToRole) {
+      this.isShowAlert = false
       this.editFlow = editFlow
       this.currentSelectedEntity = rootEntity
       this.needAddFirst = needAddFirst
@@ -403,6 +412,7 @@ export default {
           this.mgmtParamInfos()
         }
       }
+      this.getRoleDisplayName(permissionToRole)
     },
     saveItem () {
       if (['human', 'automatic', 'data'].includes(this.itemCustomInfo.customAttrs.nodeType)) {
@@ -601,7 +611,7 @@ export default {
       let pkg = ''
       let entity = ''
       let payload = {}
-      this.filteredPlugins = []
+      // this.filteredPlugins = []
       if (path) {
         // eslint-disable-next-line no-useless-escape
         const pathList = path.split(/[.~]+(?=[^\}]*(\{|$))/).filter(p => p.length > 1)
@@ -633,7 +643,11 @@ export default {
       payload.nodeType = this.itemCustomInfo.customAttrs.nodeType
       const { status, data } = await getPluginFunByRule(payload)
       if (status === 'OK') {
-        this.filteredPlugins = data
+        this.filteredPlugins = data || []
+        if (this.itemCustomInfo.customAttrs.serviceName !== '' && this.filteredPlugins.length === 0) {
+          this.isShowAlert = true
+          this.$emit('hideReleaseBtn')
+        }
       }
     },
     // 设置被预选中的节点
@@ -696,6 +710,18 @@ export default {
         this.itemCustomInfo.customAttrs.timeConfig.duration = 0
       }
       this.paramsChanged()
+    },
+    async getRoleDisplayName (permissionToRole) {
+      if (permissionToRole.MGMT && permissionToRole.MGMT.length > 0) {
+        let params = { all: 'Y' }
+        let { status, data } = await getRoleList(params)
+        if (status === 'OK') {
+          const find = data.find(d => d.name === permissionToRole.MGMT[0])
+          if (find) {
+            this.mgmtRole = find.displayName
+          }
+        }
+      }
     }
   }
 }
