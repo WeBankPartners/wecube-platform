@@ -47,7 +47,6 @@
 
 <script>
 import axios from 'axios'
-import { getCookie } from '@/pages/util/cookie'
 import dayjs from 'dayjs'
 import FlowAuth from '@/pages/components/auth.vue'
 import { flowBatchChangeStatus, flowRelease } from '@/api/server.js'
@@ -146,7 +145,7 @@ export default {
       })
     },
     async exportFlow () {
-      const accessToken = getCookie('accessToken')
+      const accessToken = localStorage.getItem('wecube-accessToken')
       const headers = {
         Authorization: 'Bearer ' + accessToken
       }
