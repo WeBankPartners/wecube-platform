@@ -138,7 +138,7 @@
   },
   "deal_with_at_the_same_time_error": {
     "code": 20000030,
-    "message": "操作失败：当前请求正在被其他用户处理，暂不支持多用户同时操作同一请求"
+    "message": "编辑失败:当前编排已被其他用户编辑,请刷新列表重试"
   },
   "data_permission_deny": {
     "code": 20000031,
