@@ -165,7 +165,7 @@
                       @filterRuleChanged="singleFilterRuleChanged"
                       :disabled="itemCustomInfo.customAttrs.dynamicBind"
                       :routineExpression="itemCustomInfo.customAttrs.routineExpression || currentSelectedEntity"
-                      :allEntityType="[]"
+                      :allEntityType="allEntityType"
                       :currentSelectedEntity="currentSelectedEntity"
                     >
                     </ItemFilterRulesGroup>
@@ -548,7 +548,7 @@ export default {
     async getAllDataModels () {
       let { data, status } = await getAllDataModels()
       if (status === 'OK') {
-        this.allEntityType = data
+        this.allEntityType = data.filter(d => d.packageName === this.currentSelectedEntity.split(':')[0])
       }
     },
 
