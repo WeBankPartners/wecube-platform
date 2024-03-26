@@ -89,10 +89,10 @@ func (AuthService) RefreshToken(refreshToken string) ([]model.Jwt, error) {
 		return nil, ErrRefreshToken
 	}
 
-	if constant.TypeRefreshToken != claim.Type {
+	/*	if constant.TypeRefreshToken != claim.Type {
 		log.Logger.Warn("token type is not refresh token")
 		return nil, ErrRefreshToken
-	}
+	}*/
 	authorities := make([]string, 0)
 	user, err := LocalUserServiceInstance.loadUserByUsername(claim.Subject)
 	if err != nil {
