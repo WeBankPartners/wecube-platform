@@ -138,7 +138,7 @@
   },
   "deal_with_at_the_same_time_error": {
     "code": 20000030,
-    "message": "Operation Failed: The current request is being processed by another user. Multi-user simultaneous operation is not supported currently."
+    "message": "Editing failed: The current arrangement has been edited by another user. Please refresh the list and try again."
   },
   "data_permission_deny": {
     "code": 20000031,
