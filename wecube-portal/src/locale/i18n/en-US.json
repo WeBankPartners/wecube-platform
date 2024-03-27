@@ -363,7 +363,7 @@
   "import_flow": "Import",
   "selected_role": "Selected Role",
   "unselected_role": "Unselected Role",
-  "edit_role": "Select Orchestrations Host Roles",
+  "role_drawer_title": "Select Roles",
   "edit_config_role": "Select Configs Owner Roles And Use Roles",
   "no_permission_to_mgmt": "You Don't Have Permission",
   "mgmt_role": "Owner Role",
@@ -708,5 +708,8 @@
   "be_user_email": "user Email",
   "be_not_send": "Not Send",
   "be_mgmt_role": "MGMT Role",
-  "be_email_push": "Email Push"
+  "be_email_push": "Email Push",
+  "be_threeDays_recent": "Last 3 Days",
+  "be_oneWeek_recent": "Last Week",
+  "be_oneMonth_recent": "Last Month"
 }
