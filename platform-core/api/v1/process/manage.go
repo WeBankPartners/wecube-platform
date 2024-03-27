@@ -194,8 +194,16 @@ func CopyProcessDefinition(c *gin.Context) {
 	// 编排没有相关性,则重新生成key
 	if association != "y" && association != "Y" {
 		procDef.Key = "pdef_key_" + guid.CreateGuid()
-		procDef.Name = procDef.Name + "(1)"
+		name := procDef.Name + "(1)"
 		procDef.Version = "v1"
+		if pList, err = database.GetProcessDefinitionByCondition(c, models.ProcDefCondition{Name: name}); err != nil {
+			return
+		}
+		if len(pList) > 0 {
+			// 说明已经有重名编排,使用当前时间生成
+			name = fmt.Sprintf("%s-%s", procDef.Name, time.Now().Format(models.NewDateTimeFormat))
+		}
+		procDef.Name = name
 	} else {
 		// 校验是否 已有 草稿态数据
 		pList, err = database.GetProcessDefinitionByCondition(c, models.ProcDefCondition{Key: procDef.Key, Status: string(models.Draft)})
