@@ -3,7 +3,13 @@
   <div class="batch-execute-result">
     <Card v-if="from === 'list'" :style="{ minHeight: maxHeight + 'px' }">
       <div class="custom-header" slot="title">
-        <Icon :size="28" type="md-reorder" class="expand" @click="$emit('expand')" />
+        <Icon
+          size="28"
+          type="md-reorder"
+          class="expand"
+          :style="{ transform: `rotate(${expand ? 90 : 0}deg)` }"
+          @click="handleExpand"
+        />
         <span class="title">{{ $t('bc_execution_result') }}</span>
       </div>
       <!--搜索条件-->
@@ -17,13 +23,13 @@
             @on-change="handleSearch"
           />
         </Col>
-        <Col :span="4">
+        <Col :span="5">
           <!--单条执行状态-->
           <Select v-model="form.errorCode" :placeholder="$t('be_single_status')" clearable @on-change="handleSearch">
             <Option v-for="(i, index) in statusList" :key="index" :value="i.value">{{ i.label }}</Option>
           </Select>
         </Col>
-        <Col :span="15" style="display: flex">
+        <Col :span="14" style="display: flex">
           <Select v-model="form.filterType" @on-change="filterTypeChange" style="width: 140px">
             <Option v-for="item in filterTypeList" :value="item.value" :key="item.value">{{ item.label }}</Option>
           </Select>
@@ -171,7 +177,8 @@ export default {
         input: {},
         output: {}
       },
-      isShow: false
+      isShow: false,
+      expand: false
     }
   },
   watch: {
@@ -188,6 +195,23 @@ export default {
     this.maxHeight = document.body.clientHeight - 150
   },
   methods: {
+    handleExpand () {
+      this.$emit('expand')
+      this.expand = !this.expand
+    },
+    // 提供给父组件调用
+    handleReset () {
+      this.tableColumns = []
+      this.tableData = []
+      this.sourceData = []
+      this.detailData = {}
+      this.form = {
+        operateObject: '',
+        errorCode: '',
+        filterParams: null,
+        filterType: 'str'
+      }
+    },
     handleSearch: debounce(function () {
       const { errorCode, operateObject, filterType, filterParams } = this.form
       this.tableData = this.sourceData.filter(item => {
@@ -339,6 +363,7 @@ export default {
       }
       return JSON.stringify(result, null, 2)
     },
+    // 提供给父组件使用
     reset () {
       this.form = {
         operateObject: '',
