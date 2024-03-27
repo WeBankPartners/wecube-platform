@@ -43,7 +43,12 @@
               </span>
             </Col>
             <Col style="float: right">
-              <Checkbox style="width: max-content" class="clear-default-css" v-model="isShowDecomissionedPackage">
+              <Checkbox
+                style="width: max-content"
+                class="clear-default-css"
+                v-model="isShowDecomissionedPackage"
+                @on-change="getAllPluginPkgs"
+              >
                 {{ $t('is_show_decomissioned_pkg') }}
               </Checkbox>
             </Col>
@@ -56,12 +61,8 @@
             <span v-if="plugins.length < 1">{{ $t('no_plugin_packages') }}</span>
             <div style="height: calc(100vh - 316px); overflow: auto" v-else>
               <Collapse accordion @on-change="pluginPackageChangeHandler">
-                <Panel
-                  :name="plugin.id + ''"
-                  v-for="plugin in plugins"
-                  v-if="plugin.status !== 'DECOMMISSIONED' || isShowDecomissionedPackage"
-                  :key="plugin.id"
-                >
+                <!-- v-if="plugin.status !== 'DECOMMISSIONED' || isShowDecomissionedPackage" -->
+                <Panel :name="plugin.id + ''" v-for="plugin in plugins" :key="plugin.id">
                   <div style="float: right; width: calc(100% - 30px)">
                     <span
                       :class="plugin.status !== 'DECOMMISSIONED' ? 'plugin-title' : 'decomissionedPkgName plugin-title'"
@@ -334,7 +335,7 @@ import MenuInjection from './components/menu-injection.vue'
 import SysParmas from './components/system-params.vue'
 import RuntimesResources from './components/runtime-resource.vue'
 import AuthSettings from './components/auth-setting.vue'
-import { setCookie, getCookie } from '@/pages/util/cookie'
+import { setLocalstorage } from '@/pages/util/localStorage.js'
 import axios from 'axios'
 const logTablePagination = {
   pageSize: 10,
@@ -640,18 +641,18 @@ export default {
       let refreshRequest = null
       this.currentPluginId = packageId
       const currentTime = new Date().getTime()
-      const accessToken = getCookie('accessToken')
+      const accessToken = localStorage.getItem('wecube-accessToken')
       if (accessToken) {
-        const expiration = getCookie('accessTokenExpirationTime') * 1 - currentTime
+        const expiration = localStorage.getItem('wecube-accessTokenExpirationTime') * 1 - currentTime
         if (expiration < 1 * 60 * 1000 && !refreshRequest) {
           refreshRequest = axios.get('/auth/v1/api/token', {
             headers: {
-              Authorization: 'Bearer ' + getCookie('refreshToken')
+              Authorization: 'Bearer ' + localStorage.getItem('wecube-refreshToken')
             }
           })
           refreshRequest.then(
             res => {
-              setCookie(res.data.data)
+              setLocalstorage(res.data.data)
               this.setUploadActionHeader()
               // this.$refs.importXML.handleClick()
             },
@@ -902,8 +903,10 @@ export default {
       this.currentTab = name
     },
     async getAllPluginPkgs () {
+      // isRetrieveAllPluginPackages yes获取所有插件包，no获取可用插件包
+      const isRetrieveAllPluginPackages = this.isShowDecomissionedPackage ? 'yes' : 'no'
       this.isLoadingPluginList = true
-      let { status, data } = await getAllPluginPkgs()
+      let { status, data } = await getAllPluginPkgs(isRetrieveAllPluginPackages)
       this.isLoadingPluginList = false
       if (status === 'OK') {
         this.plugins = data.map(_ => {
@@ -930,18 +933,18 @@ export default {
       this.showUpload = true
       let refreshRequest = null
       const currentTime = new Date().getTime()
-      const accessToken = getCookie('accessToken')
+      const accessToken = localStorage.getItem('wecube-accessToken')
       if (accessToken) {
-        const expiration = getCookie('accessTokenExpirationTime') * 1 - currentTime
+        const expiration = localStorage.getItem('wecube-accessTokenExpirationTime') * 1 - currentTime
         if (expiration < 1 * 60 * 1000 && !refreshRequest) {
           refreshRequest = axios.get('/auth/v1/api/token', {
             headers: {
-              Authorization: 'Bearer ' + getCookie('refreshToken')
+              Authorization: 'Bearer ' + localStorage.getItem('wecube-refreshToken')
             }
           })
           refreshRequest.then(
             res => {
-              setCookie(res.data.data)
+              setLocalstorage(res.data.data)
               this.setUploadActionHeader()
               this.$refs.uploadButton.handleClick()
             },
@@ -961,7 +964,7 @@ export default {
     },
     setUploadActionHeader () {
       this.headers = {
-        Authorization: 'Bearer ' + getCookie('accessToken')
+        Authorization: 'Bearer ' + localStorage.getItem('wecube-accessToken')
       }
     }
   },
