@@ -219,7 +219,6 @@
 
 <script>
 import axios from 'axios'
-import { getCookie } from '@/pages/util/cookie'
 import {
   flowMgmt,
   getPluginList,
@@ -483,7 +482,7 @@ export default {
   methods: {
     setHeaders () {
       const lang = localStorage.getItem('lang') || 'zh-CN'
-      const accessToken = getCookie('accessToken')
+      const accessToken = localStorage.getItem('wecube-accessToken')
       this.headers = {
         Authorization: 'Bearer ' + accessToken,
         'Accept-Language': lang === 'zh-CN' ? 'zh-CN,zh;q=0.9,en;q=0.8' : 'en-US,en;q=0.9,zh;q=0.8'

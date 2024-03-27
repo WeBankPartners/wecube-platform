@@ -1,7 +1,7 @@
 import Vue from 'vue'
 import axios from 'axios'
 import exportFile from '@/const/export-file'
-import { setCookie, getCookie, clearCookie } from '../pages/util/cookie'
+import { setLocalstorage, clearLocalstorage } from '@/pages/util/localStorage.js'
 
 const baseURL = ''
 const req = axios.create({
@@ -27,7 +27,7 @@ req.interceptors.request.use(
       } else {
         config.headers['Accept-Language'] = 'en-US,en;q=0.9,zh;q=0.8'
       }
-      const accessToken = getCookie('accessToken')
+      const accessToken = localStorage.getItem('wecube-accessToken')
       if (accessToken && config.url !== '/auth/v1/api/login') {
         config.headers.Authorization = 'Bearer ' + accessToken
         resolve(config)
@@ -76,7 +76,7 @@ req.interceptors.response.use(
   err => {
     const { response } = err
     if (response.status === 401 && err.config.url !== '/auth/v1/api/login') {
-      let refreshToken = getCookie('refreshToken')
+      let refreshToken = localStorage.getItem('wecube-refreshToken')
       if (refreshToken.length > 0) {
         let refreshRequest = axios.get('/auth/v1/api/token', {
           headers: {
@@ -85,9 +85,9 @@ req.interceptors.response.use(
         })
         return refreshRequest.then(
           resRefresh => {
-            setCookie(resRefresh.data.data)
+            setLocalstorage(resRefresh.data.data)
             // replace token with new one and replay request
-            err.config.headers.Authorization = 'Bearer ' + getCookie('accessToken')
+            err.config.headers.Authorization = 'Bearer ' + localStorage.getItem('wecube-accessToken')
             let retryRequest = axios(err.config)
             return retryRequest.then(
               res => {
@@ -134,7 +134,7 @@ req.interceptors.response.use(
           },
           // eslint-disable-next-line handle-callback-err
           errRefresh => {
-            clearCookie('refreshToken')
+            clearLocalstorage()
             window.location.href = window.location.origin + window.location.pathname + '#/login'
             return {
               data: {} // throwError(errRefresh.response)

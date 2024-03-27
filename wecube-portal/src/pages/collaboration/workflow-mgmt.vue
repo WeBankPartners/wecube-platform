@@ -27,6 +27,7 @@
         ref="itemInfoNodeRef"
         @sendItemInfo="setNodeInfo"
         @hideItemInfo="hideItemInfo"
+        @hideReleaseBtn="hideReleaseBtn"
       >
       </ItemInfoNode>
       <ItemInfoEdge
@@ -150,6 +151,9 @@ export default {
         this.mgmtNodesAndEdges(data.taskNodeInfos)
         this.$refs.headerInfoRef.showItemInfo(this.procDef, this.editFlow, this.flowListTab)
       }
+    },
+    hideReleaseBtn () {
+      this.$refs.headerInfoRef.hideReleaseBtn()
     },
     // 整理编排节点与边数据结构
     mgmtNodesAndEdges (info) {
@@ -366,7 +370,13 @@ export default {
               this.itemInfoType = 'node'
               this.$nextTick(() => {
                 this.$refs.itemInfoNodeRef &&
-                  this.$refs.itemInfoNodeRef.showItemInfo(model, false, this.procDef.rootEntity, this.editFlow)
+                  this.$refs.itemInfoNodeRef.showItemInfo(
+                    model,
+                    false,
+                    this.procDef.rootEntity,
+                    this.editFlow,
+                    this.permissionToRole
+                  )
               })
               this.canRemovedId = model.id
 
@@ -739,7 +749,13 @@ export default {
       this.graph.addItem('node', model)
       this.itemInfoType = 'node'
       this.$nextTick(() => {
-        this.$refs.itemInfoNodeRef.showItemInfo(model, true, this.procDef.rootEntity, this.editFlow)
+        this.$refs.itemInfoNodeRef.showItemInfo(
+          model,
+          true,
+          this.procDef.rootEntity,
+          this.editFlow,
+          this.permissionToRole
+        )
       })
     },
     // 移除删除入口
