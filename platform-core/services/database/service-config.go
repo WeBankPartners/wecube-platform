@@ -953,8 +953,8 @@ func ImportPluginConfigs(c *gin.Context, pluginPackageId string, packagePluginsX
 	for i, sysVar := range systemVariablesList {
 		sysVar.Source = fmt.Sprintf("%s__%s", pluginPackageData.Name, pluginPackageData.Version)
 		curDelAction := &db.ExecAction{
-			Sql:   db.CombineDBSql("DELETE FROM ", models.TableNameSystemVariables, " WHERE package_name=? AND name=? AND source=?"),
-			Param: []interface{}{sysVar.PackageName, sysVar.Name, sysVar.Source},
+			Sql:   db.CombineDBSql("DELETE FROM ", models.TableNameSystemVariables, " WHERE name=? AND source=?"),
+			Param: []interface{}{sysVar.Name, sysVar.Source},
 		}
 		systemVarDelActions = append(systemVarDelActions, curDelAction)
 
