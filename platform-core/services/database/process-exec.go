@@ -596,7 +596,7 @@ func CreatePublicProcInstance(ctx context.Context, startParam *models.RequestPro
 			entityDataId = row.EntityDataId
 			entityTypeId = fmt.Sprintf("%s:%s", row.PackageName, row.EntityName)
 			entityDataName = row.EntityDisplayName
-			break
+			continue
 		}
 	}
 	actions = append(actions, &db.ExecAction{Sql: "insert into proc_ins(id,proc_def_id,proc_def_key,proc_def_name,status,entity_data_id,entity_type_id,entity_data_name,created_by,created_time,updated_by,updated_time) values (?,?,?,?,?,?,?,?,?,?,?,?)", Param: []interface{}{
