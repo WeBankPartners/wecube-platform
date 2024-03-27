@@ -369,7 +369,7 @@
   "import_flow": "导入",
   "selected_role": "选中角色",
   "unselected_role": "未选中角色",
-  "edit_role": "选择该编排的属主角色",
+  "role_drawer_title": "选择角色",
   "edit_config_role": "选择属主角色和使用角色",
   "mgmt_role": "属主角色",
   "mgmt_role_warning": "属主角色不能为空",
@@ -696,7 +696,7 @@
   "be_only_show_collect": "仅展示收藏模板",
   "be_cancel_save": "取消收藏",
   "be_use_status": "使用状态",
-  "be_createby_role": "创建人/角色",
+  "be_createby_role": "创建人/属主角色",
   "be_template_role_tips": "该模板使用权限被移除",
   "be_status_use": "可使用",
   "be_status_draft": "草稿",
@@ -705,5 +705,8 @@
   "be_user_email": "用户邮箱",
   "be_not_send": "不发送",
   "be_mgmt_role": "管理角色",
-  "be_email_push": "邮箱推送"
+  "be_email_push": "邮箱推送",
+  "be_threeDays_recent": "近3日",
+  "be_oneWeek_recent": "近1周",
+  "be_oneMonth_recent": "近1月"
 }

@@ -76,10 +76,18 @@ export default {
       if (status === 'OK') {
         if (data.batchExecutionTemplateId) {
           const { data: templateData } = await getBatchExecuteTemplateDetail(data.batchExecutionTemplateId)
-          this.detailData = { ...data, templateData }
+          this.detailData = {
+            ...data,
+            isDangerousBlock: data.configData.isDangerousBlock,
+            templateData: templateData
+          }
         } else {
           // 预执行数据(无模板ID)
-          this.detailData = { ...data, templateData: { id: '', name: '' } }
+          this.detailData = {
+            ...data,
+            isDangerousBlock: data.configData.isDangerousBlock,
+            templateData: { id: '', name: '' }
+          }
         }
         if (this.type === 'copy') {
           this.detailData.name = `${this.detailData.name} (1)`
