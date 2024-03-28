@@ -10,6 +10,7 @@
           {{ $t('be_plugin_service_no_permission_tip1') }}【{{ mgmtRole }}】{{
             $t('be_plugin_service_no_permission_tip2')
           }}【{{ itemCustomInfo.customAttrs.serviceName }}】{{ $t('be_plugin_service_no_permission_tip3') }}
+          {{ mgmtRole }}】
           {{ $t('be_plugin_service_no_permission_tip4') }}
         </Alert>
         <Collapse v-model="opendPanel">
@@ -50,6 +51,7 @@
                       v-model="itemCustomInfo.customAttrs.timeConfig.date"
                       format="yyyy-MM-dd HH:mm:ss"
                       @on-change="dateChange"
+                      :editable="false"
                       style="width: 100%"
                     ></DatePicker>
                     <span v-if="itemCustomInfo.customAttrs.timeConfig.date === ''" style="color: red"
@@ -591,6 +593,7 @@ export default {
       this.isParmasChanged = true
     },
     dateChange (dateStr) {
+      console.log(777, dateStr)
       this.itemCustomInfo.customAttrs.timeConfig.date = dateStr
       this.paramsChanged()
     },
