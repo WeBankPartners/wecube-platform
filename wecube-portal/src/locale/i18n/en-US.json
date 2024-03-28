@@ -708,5 +708,9 @@
   "be_user_email": "user Email",
   "be_not_send": "Not Send",
   "be_mgmt_role": "MGMT Role",
-  "be_email_push": "Email Push"
+  "be_email_push": "Email Push",
+  "be_plugin_service_no_permission_tip1": "The process owner role ",
+  "be_plugin_service_no_permission_tip2": "currently lacks plugin service permissions: Please add ",
+  "be_plugin_service_no_permission_tip3": " to the 'Conjoin - Plugin Management - Plugin Packages List - Register - Permission  - Owner Role' and ",
+  "be_plugin_service_no_permission_tip4": "then refresh the page to retry."
 }
