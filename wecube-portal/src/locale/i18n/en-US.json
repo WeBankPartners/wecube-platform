@@ -573,6 +573,7 @@
   "timeInterval": "Time Interval",
   "timeGap": "Time Gap",
   "cannotExceed": " cannot exceed",
+  "atLeast": " at least ",
   "characters": " characters ",
   "setRootEntity": "Prioritize setting the flow root entity",
   "node": "Node",
@@ -715,5 +716,7 @@
   "be_plugin_service_no_permission_tip4": "to the 'Conjoin - Plugin management - Plugin Packages List - Register - Permission - Executor Role', and then refresh the page to retry. ",
   "be_threeDays_recent": "Last 3 Days",
   "be_oneWeek_recent": "Last Week",
-  "be_oneMonth_recent": "Last Month"
+  "be_oneMonth_recent": "Last Month",
+  "be_warning": "Warning",
+  "be_warning_for_password": "Password must contain at least one lowercase letter, one uppercase letter, one digit, one special character."
 }
