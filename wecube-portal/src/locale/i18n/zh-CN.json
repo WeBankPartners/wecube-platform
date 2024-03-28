@@ -572,6 +572,7 @@
   "timeInterval": "时间间隔",
   "timeGap": "时间间隔",
   "cannotExceed": "不能超过",
+  "atLeast": "至少",
   "characters": "字符",
   "setRootEntity": "请先设置编排的对象类型",
   "node": "节点",
@@ -712,5 +713,7 @@
   "be_plugin_service_no_permission_tip4": "后,刷新页面重试",
   "be_threeDays_recent": "近3日",
   "be_oneWeek_recent": "近1周",
-  "be_oneMonth_recent": "近1月"
+  "be_oneMonth_recent": "近1月",
+  "be_warning": "警告",
+  "be_warning_for_password": "密码需至少包含大写、小写、数字、特殊字符中的三类"
 }
