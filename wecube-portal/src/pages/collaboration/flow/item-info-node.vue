@@ -7,9 +7,10 @@
       <div class="panal-name">{{ $t('nodeProperties') }}：</div>
       <div class="panel-content">
         <Alert v-if="isShowAlert" show-icon type="error">
-          编排属主角色【{{ mgmtRole }}】暂无插件服务: 【{{
-            itemCustomInfo.customAttrs.serviceName
-          }}】权限，请在「协同-插件注册-对应插件-服务-权限配置-属主角色」中添加【CMDB管理员】后,刷新页面重试
+          {{ $t('be_plugin_service_no_permission_tip1') }}【{{ mgmtRole }}】{{
+            $t('be_plugin_service_no_permission_tip2')
+          }}【{{ itemCustomInfo.customAttrs.serviceName }}】{{ $t('be_plugin_service_no_permission_tip3') }}
+          {{ $t('be_plugin_service_no_permission_tip4') }}
         </Alert>
         <Collapse v-model="opendPanel">
           <Panel name="1">
@@ -207,87 +208,105 @@
                 <span style="margin-right: 20px"> {{ $t('parameterSettings') }} </span>
                 <Tabs type="card">
                   <TabPane :label="$t('context_parameters')">
-                    <div>
-                      <span>{{ $t('sourceNodeList') }}：</span>
-                      <Select
-                        v-model="itemCustomInfo.customAttrs.contextParamNodes"
-                        multiple
-                        filterable
-                        style="width: 50%"
-                        @on-change="changeContextParamNodes"
-                        @on-open-change="getRootNode"
-                      >
-                        <Option v-for="item in nodeList" :value="item.nodeId" :key="item.nodeId">{{
-                          item.name
-                        }}</Option>
-                      </Select>
-                    </div>
-                    <div style="display: flex; background: #dee3e8">
-                      <div style="width: 25%">{{ $t('parameterskey') }}</div>
-                      <div style="width: 72%">{{ $t('sourceVale') }}</div>
-                    </div>
-                    <div style="background: #e5e9ee">
-                      <div style="width: 24%; display: inline-block">{{ $t('params_name') }}</div>
-                      <div style="width: 25%; display: inline-block">{{ $t('node') }}</div>
-                      <div style="width: 22%; display: inline-block">{{ $t('params_type') }}</div>
-                      <div style="width: 25%; display: inline-block">{{ $t('params_value') }}</div>
-                    </div>
-                    <div
-                      v-for="(item, itemIndex) in itemCustomInfo.customAttrs.paramInfos"
-                      :key="itemIndex"
-                      style="margin: 4px"
+                    <template
+                      v-if="
+                        itemCustomInfo.customAttrs.paramInfos &&
+                        itemCustomInfo.customAttrs.paramInfos.filter(p => p.bindType === 'context').length > 0
+                      "
                     >
-                      <template v-if="item.bindType === 'context'">
-                        <div style="width: 24%; display: inline-block">
-                          <span style="color: red" v-if="item.required === 'Y'">*</span>
-                          {{ item.paramName }}
-                        </div>
-                        <div style="width: 25%; display: inline-block">
-                          <Select v-model="item.bindNodeId" filterable @on-change="onParamsNodeChange(itemIndex, true)">
-                            <Option v-for="(item, index) in prevCtxNodeChange()" :value="item.nodeId" :key="index">{{
-                              item.name
-                            }}</Option>
-                          </Select>
-                        </div>
-                        <div style="width: 22%; display: inline-block">
-                          <Select
-                            v-model="item.bindParamType"
-                            @on-change="onParamsNodeChange(itemIndex, true)"
-                            filterable
-                          >
-                            <Option v-for="i in paramsTypes" :value="i.value" :key="i.value">{{ i.label }}</Option>
-                          </Select>
-                        </div>
-                        <div style="width: 25%; display: inline-block">
-                          <Select filterable v-model="item.bindParamName" @on-change="paramsChanged">
-                            <Option v-for="i in item.currentParamNames" :value="i.name" :key="i.name">{{
-                              i.name
-                            }}</Option>
-                          </Select>
-                        </div>
-                      </template>
-                    </div>
+                      <div>
+                        <span>{{ $t('sourceNodeList') }}：</span>
+                        <Select
+                          v-model="itemCustomInfo.customAttrs.contextParamNodes"
+                          multiple
+                          filterable
+                          style="width: 50%"
+                          @on-change="changeContextParamNodes"
+                          @on-open-change="getRootNode"
+                        >
+                          <Option v-for="item in nodeList" :value="item.nodeId" :key="item.nodeId">{{
+                            item.name
+                          }}</Option>
+                        </Select>
+                      </div>
+                      <div style="display: flex; background: #dee3e8">
+                        <div style="width: 25%">{{ $t('parameterskey') }}</div>
+                        <div style="width: 72%">{{ $t('sourceVale') }}</div>
+                      </div>
+                      <div style="background: #e5e9ee">
+                        <div style="width: 24%; display: inline-block">{{ $t('params_name') }}</div>
+                        <div style="width: 25%; display: inline-block">{{ $t('node') }}</div>
+                        <div style="width: 22%; display: inline-block">{{ $t('params_type') }}</div>
+                        <div style="width: 25%; display: inline-block">{{ $t('params_value') }}</div>
+                      </div>
+                      <div
+                        v-for="(item, itemIndex) in itemCustomInfo.customAttrs.paramInfos"
+                        :key="itemIndex"
+                        style="margin: 4px"
+                      >
+                        <template v-if="item.bindType === 'context'">
+                          <div style="width: 24%; display: inline-block">
+                            <span style="color: red" v-if="item.required === 'Y'">*</span>
+                            {{ item.paramName }}
+                          </div>
+                          <div style="width: 25%; display: inline-block">
+                            <Select
+                              v-model="item.bindNodeId"
+                              filterable
+                              @on-change="onParamsNodeChange(itemIndex, true)"
+                            >
+                              <Option v-for="(item, index) in prevCtxNodeChange()" :value="item.nodeId" :key="index">{{
+                                item.name
+                              }}</Option>
+                            </Select>
+                          </div>
+                          <div style="width: 22%; display: inline-block">
+                            <Select
+                              v-model="item.bindParamType"
+                              @on-change="onParamsNodeChange(itemIndex, true)"
+                              filterable
+                            >
+                              <Option v-for="i in paramsTypes" :value="i.value" :key="i.value">{{ i.label }}</Option>
+                            </Select>
+                          </div>
+                          <div style="width: 25%; display: inline-block">
+                            <Select filterable v-model="item.bindParamName" @on-change="paramsChanged">
+                              <Option v-for="i in item.currentParamNames" :value="i.name" :key="i.name">{{
+                                i.name
+                              }}</Option>
+                            </Select>
+                          </div>
+                        </template>
+                      </div>
+                    </template>
                   </TabPane>
                   <TabPane :label="$t('constant_parameters')">
-                    <div style="background: #e5e9ee">
-                      <div style="width: 30%; display: inline-block">{{ $t('parameterskey') }}</div>
-                      <div style="width: 68%; display: inline-block">{{ $t('sourceVale') }}</div>
-                    </div>
-                    <div
-                      v-for="(item, itemIndex) in itemCustomInfo.customAttrs.paramInfos"
-                      :key="itemIndex"
-                      style="margin: 4px"
+                    <template
+                      v-if="
+                        itemCustomInfo.customAttrs.paramInfos &&
+                        itemCustomInfo.customAttrs.paramInfos.filter(p => p.bindType === 'constant').length > 0
+                      "
                     >
-                      <template v-if="item.bindType === 'constant'">
-                        <div style="width: 30%; display: inline-block; text-align: right">
-                          <span style="color: red" v-if="item.required === 'Y'">*</span>
-                          {{ item.paramName }}
-                        </div>
-                        <div style="width: 68%; display: inline-block">
-                          <Input v-model="item.bindValue" @on-change="paramsChanged" />
-                        </div>
-                      </template>
-                    </div>
+                      <div style="background: #e5e9ee">
+                        <div style="width: 30%; display: inline-block">{{ $t('parameterskey') }}</div>
+                        <div style="width: 68%; display: inline-block">{{ $t('sourceVale') }}</div>
+                      </div>
+                      <div
+                        v-for="(item, itemIndex) in itemCustomInfo.customAttrs.paramInfos"
+                        :key="itemIndex"
+                        style="margin: 4px"
+                      >
+                        <template v-if="item.bindType === 'constant'">
+                          <div style="width: 30%; display: inline-block; text-align: right">
+                            <span style="color: red" v-if="item.required === 'Y'">*</span>
+                            {{ item.paramName }}
+                          </div>
+                          <div style="width: 68%; display: inline-block">
+                            <Input v-model="item.bindValue" @on-change="paramsChanged" />
+                          </div>
+                        </template>
+                      </div>
+                    </template>
                   </TabPane>
                 </Tabs>
               </div>
