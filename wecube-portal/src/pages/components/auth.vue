@@ -1,6 +1,6 @@
 <template>
   <div>
-    <Modal v-model="flowRoleManageModal" width="700" :title="$t('edit_role')" :mask-closable="false">
+    <Modal v-model="flowRoleManageModal" width="700" :title="$t('role_drawer_title')" :mask-closable="false">
       <div>
         <div class="role-transfer-title">{{ $t('mgmt_role') }}</div>
         <Transfer
