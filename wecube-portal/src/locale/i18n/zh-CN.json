@@ -708,7 +708,7 @@
   "be_email_push": "邮箱推送",
   "be_plugin_service_no_permission_tip1": "编排属主角色",
   "be_plugin_service_no_permission_tip2": "暂无插件服务: ",
-  "be_plugin_service_no_permission_tip3": "权限，请在「协同-插件注册-对应插件-服务-权限配置-属主角色」中添加",
+  "be_plugin_service_no_permission_tip3": "权限，请联系管理员,在「协同-插件注册-对应插件-服务-权限配置-使用角色」中添加",
   "be_plugin_service_no_permission_tip4": "后,刷新页面重试",
   "be_threeDays_recent": "近3日",
   "be_oneWeek_recent": "近1周",
