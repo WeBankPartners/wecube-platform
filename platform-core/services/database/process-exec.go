@@ -567,6 +567,11 @@ func CreateProcInstance(ctx context.Context, procStartParam *models.ProcInsStart
 		}})
 		workLinks = append(workLinks, &workLinkObj)
 	}
+	if procStartParam.Event != nil {
+		actions = append(actions, &db.ExecAction{Sql: "insert into proc_ins_event(event_seq_no,event_type,operation_data,operation_key,operation_user,proc_def_id,proc_ins_id,source_plugin,status,created_time) values (?,?,?,?,?,?,?,?,?,?)", Param: []interface{}{
+			procStartParam.Event.EventSeqNo, procStartParam.Event.EventType, procStartParam.Event.OperationData, procStartParam.Event.OperationKey, procStartParam.Event.OperationUser, procDefObj.Id, procInsId, procStartParam.Event.SourceSubSystem, models.JobStatusRunning, nowTime,
+		}})
+	}
 	if err = db.Transaction(actions, ctx); err != nil {
 		err = exterror.Catch(exterror.New().DatabaseExecuteError, err)
 	}

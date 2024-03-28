@@ -103,7 +103,13 @@ func (AuthService) RefreshToken(refreshToken string) ([]model.Jwt, error) {
 			authorities = append(authorities, authority.Authority)
 		}
 	} else {
-		json.Unmarshal([]byte(claim.Authority), &authorities)
+		if unmarshalErr := json.Unmarshal([]byte(claim.Authority), &authorities); unmarshalErr != nil {
+			sourceAuthority := claim.Authority
+			if strings.HasPrefix(sourceAuthority, "[") && strings.HasSuffix(sourceAuthority, "]") {
+				sourceAuthority = sourceAuthority[1 : len(sourceAuthority)-1]
+			}
+			authorities = strings.Split(sourceAuthority, ",")
+		}
 	}
 	jwts := packJwtTokens(claim.Subject, []string{}, authorities, "")
 	return jwts, nil
