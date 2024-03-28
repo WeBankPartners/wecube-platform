@@ -363,7 +363,7 @@
   "import_flow": "Import",
   "selected_role": "Selected Role",
   "unselected_role": "Unselected Role",
-  "edit_role": "Select Orchestrations Host Roles",
+  "role_drawer_title": "Select Roles",
   "edit_config_role": "Select Configs Owner Roles And Use Roles",
   "no_permission_to_mgmt": "You Don't Have Permission",
   "mgmt_role": "Owner Role",
@@ -712,5 +712,8 @@
   "be_plugin_service_no_permission_tip1": "The process owner role ",
   "be_plugin_service_no_permission_tip2": "currently lacks plugin service permissions: Please add ",
   "be_plugin_service_no_permission_tip3": " to the 'Conjoin - Plugin Management - Plugin Packages List - Register - Permission  - Owner Role' and ",
-  "be_plugin_service_no_permission_tip4": "then refresh the page to retry."
+  "be_plugin_service_no_permission_tip4": "then refresh the page to retry.",
+  "be_threeDays_recent": "Last 3 Days",
+  "be_oneWeek_recent": "Last Week",
+  "be_oneMonth_recent": "Last Month"
 }
