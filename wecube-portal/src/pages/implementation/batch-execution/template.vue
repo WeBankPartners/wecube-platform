@@ -117,7 +117,7 @@ export default {
         name: {
           title: this.$t('be_template_name'),
           key: 'name',
-          minWidth: 160,
+          minWidth: 140,
           render: (h, params) => {
             return (
               <div>
@@ -167,7 +167,7 @@ export default {
         pluginService: {
           title: this.$t('pluginService'),
           key: 'pluginService',
-          minWidth: 150
+          minWidth: 140
         },
         operateObject: {
           title: this.$t('be_instance_type'),
@@ -180,7 +180,7 @@ export default {
         status: {
           title: this.$t('be_use_status'),
           key: 'status',
-          minWidth: 80,
+          minWidth: 90,
           render: (h, params) => {
             const list = [
               { label: this.$t('be_status_use'), value: 'available', color: '#19be6b' },
@@ -194,13 +194,14 @@ export default {
         createdTime: {
           title: this.$t('table_updated_date'),
           key: 'updatedTime',
-          minWidth: 140
+          minWidth: 120
         },
         action: {
           title: this.$t('table_action'),
           key: 'action',
-          width: 180,
+          width: 165,
           align: 'center',
+          fixed: 'right',
           render: (h, params) => {
             return (
               <div style="display:flex;justify-content:center;">
@@ -299,6 +300,7 @@ export default {
   },
   mounted () {
     if (this.from === 'template') {
+      // 模板管理页面
       this.tableColumns = [
         this.baseColumns.name,
         this.baseColumns.id,
@@ -311,8 +313,8 @@ export default {
           render: (h, params) => {
             return (
               <div>
-                {params.row.permissionToRole.USE &&
-                  params.row.permissionToRole.USE.map(item => {
+                {params.row.permissionToRole.USEDisplayName &&
+                  params.row.permissionToRole.USEDisplayName.map(item => {
                     return <Tag color="default">{item}</Tag>
                   })}
               </div>
@@ -324,6 +326,7 @@ export default {
         this.baseColumns.action
       ]
     } else if (this.from === 'execute') {
+      // 新建执行页面
       this.tableColumns = [
         this.baseColumns.name,
         this.baseColumns.id,
@@ -332,7 +335,7 @@ export default {
         {
           title: this.$t('be_createby_role'),
           key: 'createdBy',
-          minWidth: 80,
+          minWidth: 90,
           render: (h, params) => {
             return (
               <div style="display:flex;flex-direction:column">

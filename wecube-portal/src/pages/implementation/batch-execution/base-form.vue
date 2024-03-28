@@ -9,18 +9,20 @@
     <Form :disabled="type === 'view'" label-position="right" :label-width="125">
       <!--执行模板信息-->
       <HeaderTitle :title="$t('be_execute_templateinfo')">
-        <!--请求名-->
+        <!--模板名称-->
         <FormItem v-if="from === 'template' && type !== 'view'" :label="$t('be_template_name')" required>
           <Input
             v-model="name"
-            :maxlength="50"
+            :maxlength="100"
             show-word-limit
             :placeholder="$t('be_template_name_placeholder')"
             class="form-item"
           />
         </FormItem>
         <template v-else>
+          <!--预执行记录-->
           <div v-if="!data.templateData.id" style="padding: 0 20px">{{ $t('be_pre_execute_record') }}</div>
+          <!--执行记录-->
           <div v-else class="template-info">
             <div class="item">
               <span>{{ $t('be_template_id') }}：</span>
@@ -63,7 +65,7 @@
         <FormItem v-if="from === 'execute'" :label="$t('be_batch_name')" required>
           <Input
             v-model="name"
-            :maxlength="50"
+            :maxlength="100"
             show-word-limit
             :placeholder="$t('be_batch_name_placeholder')"
             class="form-item"
@@ -146,6 +148,7 @@
             <template v-if="searchParameters && searchParameters.length > 0">
               <Col v-for="(item, index) in searchParameters" :key="index" :span="24" class="item">
                 <span color="success">{{ item.packageName }}-{{ item.entityName }}:{{ item.name }}</span>
+                <span color="primary" style="margin-left: 10px; color: #2db7f5">{{ item.operator }}</span>
                 <span color="primary" style="margin-left: 10px">{{ item.value }}</span>
               </Col>
             </template>
@@ -535,17 +538,17 @@ export default {
       this.searchParameters.forEach(sParameter => {
         const index = keySet.indexOf(sParameter.key)
         if (index > -1) {
-          const { name, value } = sParameter
+          const { name, value, operator } = sParameter
           if (value) {
             requestParameter.filters[index].attributeFilters.push({
               name,
               value,
-              operator: 'contains'
+              operator: operator || 'contains'
             })
           }
         } else {
           keySet.push(sParameter.key)
-          const { index, packageName, entityName, name, value } = sParameter
+          const { index, packageName, entityName, name, value, operator } = sParameter
           if (value) {
             requestParameter.filters.push({
               index,
@@ -555,7 +558,7 @@ export default {
                 {
                   name,
                   value,
-                  operator: 'contains'
+                  operator: operator || 'contains'
                 }
               ]
             })

@@ -159,9 +159,9 @@ export default {
     return {
       expand: false,
       dateTypeList: [
-        { label: '近3日', value: 1 },
-        { label: '近1周', value: 2 },
-        { label: '近1月', value: 3 },
+        { label: this.$t('be_threeDays_recent'), value: 1 },
+        { label: this.$t('be_oneWeek_recent'), value: 2 },
+        { label: this.$t('be_oneMonth_recent'), value: 3 },
         { label: this.$t('tw_auto'), value: 4 }
       ]
     }

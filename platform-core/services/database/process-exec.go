@@ -513,7 +513,7 @@ func CreateProcInstance(ctx context.Context, procStartParam *models.ProcInsStart
 			tmpProcInsNodeId, procInsId, node.Id, node.Name, node.NodeType, models.JobStatusReady, node.OrderedNo, operator, nowTime,
 		}})
 		workNodeObj := models.ProcRunNode{Id: "wn_" + guid.CreateGuid(), WorkflowId: workflowRow.Id, ProcInsNodeId: tmpProcInsNodeId, Name: node.Name, JobType: node.NodeType, Status: models.JobStatusReady, Timeout: node.Timeout, CreatedTime: nowTime}
-		if node.NodeType == "timeInterval" {
+		if node.NodeType == models.JobTimeType || node.NodeType == models.JobDateType {
 			workNodeObj.Input = node.TimeConfig
 			actions = append(actions, &db.ExecAction{Sql: "insert into proc_run_node(id,workflow_id,proc_ins_node_id,name,job_type,status,timeout,input,created_time) values (?,?,?,?,?,?,?,?,?)", Param: []interface{}{
 				workNodeObj.Id, workNodeObj.WorkflowId, workNodeObj.ProcInsNodeId, workNodeObj.Name, workNodeObj.JobType, workNodeObj.Status, workNodeObj.Timeout, workNodeObj.Input, workNodeObj.CreatedTime,
@@ -596,7 +596,7 @@ func CreatePublicProcInstance(ctx context.Context, startParam *models.RequestPro
 			entityDataId = row.EntityDataId
 			entityTypeId = fmt.Sprintf("%s:%s", row.PackageName, row.EntityName)
 			entityDataName = row.EntityDisplayName
-			break
+			continue
 		}
 	}
 	actions = append(actions, &db.ExecAction{Sql: "insert into proc_ins(id,proc_def_id,proc_def_key,proc_def_name,status,entity_data_id,entity_type_id,entity_data_name,created_by,created_time,updated_by,updated_time) values (?,?,?,?,?,?,?,?,?,?,?,?)", Param: []interface{}{
@@ -641,7 +641,7 @@ func CreatePublicProcInstance(ctx context.Context, startParam *models.RequestPro
 			tmpProcInsNodeId, procInsId, node.Id, node.Name, node.NodeType, models.JobStatusReady, node.OrderedNo, operator, nowTime,
 		}})
 		workNodeObj := models.ProcRunNode{Id: "wn_" + guid.CreateGuid(), WorkflowId: workflowRow.Id, ProcInsNodeId: tmpProcInsNodeId, Name: node.Name, JobType: node.NodeType, Status: models.JobStatusReady, Timeout: node.Timeout, CreatedTime: nowTime}
-		if node.NodeType == "timeInterval" {
+		if node.NodeType == models.JobTimeType || node.NodeType == models.JobDateType {
 			workNodeObj.Input = node.TimeConfig
 			actions = append(actions, &db.ExecAction{Sql: "insert into proc_run_node(id,workflow_id,proc_ins_node_id,name,job_type,status,timeout,input,created_time) values (?,?,?,?,?,?,?,?,?)", Param: []interface{}{
 				workNodeObj.Id, workNodeObj.WorkflowId, workNodeObj.ProcInsNodeId, workNodeObj.Name, workNodeObj.JobType, workNodeObj.Status, workNodeObj.Timeout, workNodeObj.Input, workNodeObj.CreatedTime,

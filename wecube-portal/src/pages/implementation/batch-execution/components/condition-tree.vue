@@ -3,7 +3,7 @@
     <Drawer
       :title="$t('be_edit_filter')"
       v-model="drawerVisible"
-      width="600"
+      width="620"
       :mask-closable="false"
       :lock-scroll="true"
       @on-close="handleCancel"
@@ -51,7 +51,7 @@ export default {
     return {
       maxHeight: 500,
       treeData: [],
-      selectData: []
+      operatorList: ['eq', 'contains', 'like', 'in', 'lt', 'gt', 'ne', 'neq', 'notNull', 'isnot']
     }
   },
   watch: {
@@ -63,18 +63,41 @@ export default {
           if (i.children && i.children.length) {
             i.children.forEach(j => {
               this.$set(j, 'value', '')
+              this.$set(j, 'operator', 'contains')
               // 勾选数据回显
               this.select.forEach(select => {
                 if (select.id === j.id) {
                   this.$set(j, 'checked', true)
                   j.value = select.value
+                  j.operator = select.operator
                 }
               })
               j.render = (h, { data }) => {
                 return (
-                  <div class={{ 'tree-item': true, 'ivu-form-item-error': !data.value }}>
+                  <div class="tree-item">
                     <span>{data.title}</span>
-                    {data.checked && <Input v-model={data.value} style="width:280px;" />}
+                    {data.checked && (
+                      <div style="display:flex;">
+                        <Select
+                          v-model={data.operator}
+                          style="width:90px;"
+                          class={{ 'ivu-form-item-error': !data.operator }}
+                        >
+                          {this.operatorList.map((item, index) => {
+                            return (
+                              <Option value={item} key={index}>
+                                {item}
+                              </Option>
+                            )
+                          })}
+                        </Select>
+                        <Input
+                          v-model={data.value}
+                          style="width:180px;margin-left:5px;"
+                          class={{ 'ivu-form-item-error': !data.value }}
+                        />
+                      </div>
+                    )}
                   </div>
                 )
               }
