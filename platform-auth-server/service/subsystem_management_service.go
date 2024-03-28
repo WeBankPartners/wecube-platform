@@ -180,9 +180,9 @@ func validateStrictPermission(currUser *model.AuthenticatedUser) error {
 		return exterror.NewAuthServerError("Lack of permission due to empty roles.")
 	}
 
-	/*if !utils.Contains(userRoles, constant.AuthoritySubsystem) {
+	if !utils.Contains(userRoles, constant.AuthoritySubsystem) {
 		return exterror.NewAuthServerError("Lack of permission due to no sub-system authority.")
-	}*/
+	}
 
 	if utils.EqualsIgnoreCase(constant.SubSystemNameSysPlatform, currUser.Username) {
 		return nil
