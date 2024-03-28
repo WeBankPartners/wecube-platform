@@ -87,9 +87,9 @@ type QueryExpressionDataFilter struct {
 }
 
 type QueryExpressionDataAttrFilter struct {
-	Name     string `json:"name"`
-	Operator string `json:"operator"`
-	Value    string `json:"value"`
+	Name     string      `json:"name"`
+	Operator string      `json:"operator"`
+	Value    interface{} `json:"value"`
 }
 
 type ExpressionObj struct {
