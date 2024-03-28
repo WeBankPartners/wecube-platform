@@ -17,7 +17,7 @@ type SubSystemInfoDataServiceImpl struct {
 func (SubSystemInfoDataServiceImpl) retrieveSysSubSystemInfoWithSystemCode(systemCode string) (*model.SysSubSystemInfo, error) {
 	if len(systemCode) == 0 {
 		log.Logger.Debug("system code is blank.")
-		return nil, errors.New("system code cannot be blank.")
+		return nil, errors.New("system code cannot be blank")
 	}
 
 	subSystem, err := db.SubSystemRepositoryInstance.FindOneBySystemCode(systemCode)
@@ -31,8 +31,6 @@ func (SubSystemInfoDataServiceImpl) retrieveSysSubSystemInfoWithSystemCode(syste
 		return nil, nil
 	}
 
-	//List<GrantedAuthority> grantedAuthorities = new ArrayList<GrantedAuthority>();
-	//grantedAuthorities.add(new SimpleGrantedAuthority(ApplicationConstants.Authority.SUBSYSTEM));
 	grantedAuthorities := []string{constant.AuthoritySubsystem}
 
 	subSystemAuthorities, err := db.SubSystemAuthorityRsRepositoryInstance.FindAllBySubSystemId(subSystem.Id)
