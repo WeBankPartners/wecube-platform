@@ -100,7 +100,13 @@ func (AuthService) RefreshToken(refreshToken string) ([]model.Jwt, error) {
 			authorities = append(authorities, authority.Authority)
 		}
 	} else {
-		json.Unmarshal([]byte(claim.Authority), &authorities)
+		if unmarshalErr := json.Unmarshal([]byte(claim.Authority), &authorities); unmarshalErr != nil {
+			sourceAuthority := claim.Authority
+			if strings.HasPrefix(sourceAuthority, "[") && strings.HasSuffix(sourceAuthority, "]") {
+				sourceAuthority = sourceAuthority[1 : len(sourceAuthority)-1]
+			}
+			authorities = strings.Split(sourceAuthority, ",")
+		}
 	}
 	// 查询下是否为子系统调用,子系统需要手动添加 访问子系统权限
 	subSystem, _ := db.SubSystemRepositoryInstance.FindOneBySystemCode(claim.Subject)
