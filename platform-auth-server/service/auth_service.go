@@ -13,6 +13,7 @@ import (
 	"github.com/WeBankPartners/wecube-platform/platform-auth-server/common/log"
 	"github.com/WeBankPartners/wecube-platform/platform-auth-server/common/utils"
 	"github.com/WeBankPartners/wecube-platform/platform-auth-server/model"
+	"github.com/WeBankPartners/wecube-platform/platform-auth-server/service/db"
 	"github.com/WeBankPartners/wecube-platform/platform-auth-server/service/remote/api_um"
 	"github.com/golang-jwt/jwt"
 	"golang.org/x/crypto/bcrypt"
@@ -89,10 +90,6 @@ func (AuthService) RefreshToken(refreshToken string) ([]model.Jwt, error) {
 		return nil, ErrRefreshToken
 	}
 
-	/*	if constant.TypeRefreshToken != claim.Type {
-		log.Logger.Warn("token type is not refresh token")
-		return nil, ErrRefreshToken
-	}*/
 	authorities := make([]string, 0)
 	user, err := LocalUserServiceInstance.loadUserByUsername(claim.Subject)
 	if err != nil {
@@ -105,29 +102,12 @@ func (AuthService) RefreshToken(refreshToken string) ([]model.Jwt, error) {
 	} else {
 		json.Unmarshal([]byte(claim.Authority), &authorities)
 	}
+	// 查询下是否为子系统调用,子系统需要手动添加 访问子系统权限
+	subSystem, _ := db.SubSystemRepositoryInstance.FindOneBySystemCode(claim.Subject)
+	if subSystem != nil {
+		authorities = append(authorities, constant.AuthoritySubsystem)
+	}
 	jwts := packJwtTokens(claim.Subject, []string{}, authorities, "")
-	return jwts, nil
-}
-
-func validateSubsystemClaimForRefresh(claim *model.AuthClaims) ([]model.Jwt, error) {
-	systemCode := claim.Subject
-	if isBlank(systemCode) {
-		log.Logger.Warn("system code is blank")
-		return nil, exterror.NewBadCredentialsError("system code is blank")
-	}
-
-	systemInfo, err := SubSystemInfoDataServiceImplInstance.retrieveSysSubSystemInfoWithSystemCode(systemCode)
-	if err != nil {
-		log.Logger.Error("failed to retrieve sub system info", log.String("systemCode", systemCode), log.Error(err))
-		return nil, err
-	}
-
-	if systemInfo == nil {
-		log.Logger.Error(fmt.Sprintf("such sub system {} is not available.", systemCode))
-		return nil, errors.New("such sub system is not available.")
-	}
-
-	jwts := packJwtTokens(systemCode, []string{}, systemInfo.Authorities, systemCode)
 	return jwts, nil
 }
 
@@ -175,13 +155,6 @@ func authenticateSubSystem(credential *model.CredentialDto) (*model.Authenticati
 		log.Logger.Warn(fmt.Sprintf("sub system public key is blank for system code:%v", systemCode))
 		return nil, exterror.NewBadCredentialsError("Bad credential and failed to decrypt password.")
 	}
-
-	/*	var encryptedPwd []byte
-		if encryptedPwd, err = base64.StdEncoding.DecodeString(password); err != nil {
-			log.Logger.Warn("base64 decode password error", log.Error(err))
-			return nil, err
-		}*/
-
 	decryptedPassword, err := RSADecryptByPublic(password, subSystemPublicKey)
 	if err != nil {
 		log.Logger.Warn("failed to decrypt by public", log.Error(err))
