@@ -103,7 +103,7 @@
         </Card>
       </Col>
     </Row>
-    <Modal v-model="addUserModalVisible" :title="$t('add_user')" @on-ok="addUser" @on-cancel="cancel">
+    <Modal v-model="addUserModalVisible" :title="$t('add_user')">
       <Form class="validation-form" ref="addedUserForm" :model="addedUser" label-position="left" :label-width="100">
         <FormItem :label="$t('username')" prop="username">
           <Input v-model="addedUser.username" />
@@ -121,6 +121,10 @@
           <Input v-model="addedUser.email" />
         </FormItem>
       </Form>
+      <div slot="footer">
+        <Button ghost @click="addUserModalVisible = false">{{ $t('cancel') }}</Button>
+        <Button type="primary" @click="addUser">{{ $t('save') }}</Button>
+      </div>
     </Modal>
     <Modal v-model="addedRole.isShow" :title="addedRole.isAdd ? $t('add_role') : $t('edit_role_')">
       <Form :model="addedRole" label-position="right" :label-width="100">
@@ -471,6 +475,7 @@ export default {
           }
         })
       }
+      this.getAllRoles()
     },
     async getAllRoles () {
       let params = { all: 'Y' }
@@ -498,7 +503,7 @@ export default {
       if (checked) {
         let permissions = await getMenusByUserName(name)
         if (permissions.status === 'OK') {
-          const userMenus = [].concat(...permissions.data.map(_ => _.menuList))
+          const userMenus = [].concat(...(permissions.data || []).map(_ => _.menuList))
           this.menusPermissionSelected(this.menus, userMenus, true)
         }
         let { status, data } = await getRolesByUserName(name)
@@ -610,6 +615,36 @@ export default {
       }
     },
     async addUser () {
+      if (!this.addedUser.username) {
+        this.$Message.warning(`${this.$t('username_cannot_empty')}`)
+        return
+      }
+      // eslint-disable-next-line no-useless-escape
+      if (this.addedUser.authType === 'LOCAL') {
+        let res = []
+        res.push(/[A-Z]/.test(this.addedUser.password))
+        res.push(/.*[a-z].*/.test(this.addedUser.password))
+        res.push(/\d/.test(this.addedUser.password))
+        res.push(/[^\w\s]/.test(this.addedUser.password))
+        if (res.filter(item => item === false).length > 1) {
+          this.$Message.warning(`${this.$t('be_warning_for_password')}`)
+          return
+        }
+        if (this.addedUser.password.length < 8) {
+          this.$Message.warning(`${this.$t('password')}${this.$t('atLeast')}8${this.$t('characters')}`)
+          return
+        }
+      }
+
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+      if (!this.addedUser.email) {
+        this.$Message.warning(`${this.$t('email')}${this.$t('cannotBeEmpty')}`)
+        return
+      } else if (!emailRegex.test(this.addedUser.email)) {
+        this.$Message.warning(`${this.$t('email')}${this.$t('invalidFormat')}`)
+        return
+      }
+
       let { status, message } = await userCreate(this.addedUser)
       if (status === 'OK') {
         this.$Notice.success({
@@ -619,6 +654,7 @@ export default {
         this.addedUser = {
           authType: 'LOCAL'
         }
+        this.addUserModalVisible = false
         this.getAllUsers()
       }
     },
