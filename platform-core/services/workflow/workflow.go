@@ -538,11 +538,11 @@ func (n *WorkNode) doDateJob(recoverFlag bool) (output string, err error) {
 		err = fmt.Errorf("time node param:%s json unmarshal fail,%s ", n.Input, err.Error())
 		return
 	}
-	if timeConfig.Type != "date" || timeConfig.Date == "" {
-		err = fmt.Errorf("date node param:%s config illegal ", n.Input)
+	t, parseErr := time.ParseInLocation("2006-01-02 15:04:05", timeConfig.Date, time.Local)
+	if parseErr != nil {
+		err = fmt.Errorf("date node parse time:%s fail", timeConfig.Date)
 		return
 	}
-	t, _ := time.ParseInLocation("2006-01-02 15:04:05", timeConfig.Date, time.Local)
 	timeSub := t.Unix() - time.Now().Unix()
 	if timeSub < 0 {
 		return
