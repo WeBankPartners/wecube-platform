@@ -135,7 +135,7 @@ func (d *dbContextLogger) AfterSQL(ctx xorm_log.LogContext) {
 			transactionId = tmpTransactionId
 		}
 	*/var costMs float64 = 0
-	costTime := fmt.Sprintf("%s", ctx.ExecuteTime)
+	costTime := ctx.ExecuteTime.String()
 	if strings.Contains(costTime, "µs") {
 		costMs, _ = strconv.ParseFloat(strings.ReplaceAll(costTime, "µs", ""), 64)
 		costMs = costMs / 1000
