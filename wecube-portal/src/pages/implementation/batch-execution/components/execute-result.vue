@@ -1,9 +1,16 @@
 <template>
   <!--执行结果-->
   <div class="batch-execute-result">
+    <!--执行历史列表-->
     <Card v-if="from === 'list'" :style="{ minHeight: maxHeight + 'px' }">
       <div class="custom-header" slot="title">
-        <Icon :size="28" type="md-reorder" class="expand" @click="$emit('expand')" />
+        <Icon
+          size="28"
+          type="md-reorder"
+          class="expand"
+          :style="{ transform: `rotate(${expand ? 90 : 0}deg)` }"
+          @click="handleExpand"
+        />
         <span class="title">{{ $t('bc_execution_result') }}</span>
       </div>
       <!--搜索条件-->
@@ -17,13 +24,13 @@
             @on-change="handleSearch"
           />
         </Col>
-        <Col :span="4">
+        <Col :span="5">
           <!--单条执行状态-->
           <Select v-model="form.errorCode" :placeholder="$t('be_single_status')" clearable @on-change="handleSearch">
             <Option v-for="(i, index) in statusList" :key="index" :value="i.value">{{ i.label }}</Option>
           </Select>
         </Col>
-        <Col :span="15" style="display: flex">
+        <Col :span="14" style="display: flex">
           <Select v-model="form.filterType" @on-change="filterTypeChange" style="width: 140px">
             <Option v-for="item in filterTypeList" :value="item.value" :key="item.value">{{ item.label }}</Option>
           </Select>
@@ -38,16 +45,17 @@
       </Row>
       <Table size="small" :columns="tableColumns" :data="tableData" :loading="loading" width="100%"></Table>
     </Card>
+    <!--执行详情-->
     <div v-else>
       <template v-if="tableColumns.length > 0">
-        <div style="display: flex; align-items: center">
-          <div style="margin-right: 20px">
+        <div class="error-info">
+          <div class="error-info-left">
             <span>{{ $t('be_execute_status') }}：</span>
             <Tag :color="detailData.errorCode === '0' ? 'success' : 'error'">
               {{ detailData.errorCode === '0' ? $t('be_success') : $t('be_error') }}
             </Tag>
           </div>
-          <div v-if="detailData.errorCode === '1'">
+          <div v-if="detailData.errorCode === '1'" class="error-info-right">
             <span>{{ $t('be_error_reason') }}：</span>
             <span>{{ detailData.errorMessage }}</span>
           </div>
@@ -171,7 +179,8 @@ export default {
         input: {},
         output: {}
       },
-      isShow: false
+      isShow: false,
+      expand: false
     }
   },
   watch: {
@@ -188,6 +197,23 @@ export default {
     this.maxHeight = document.body.clientHeight - 150
   },
   methods: {
+    handleExpand () {
+      this.$emit('expand')
+      this.expand = !this.expand
+    },
+    // 提供给父组件调用
+    handleReset () {
+      this.tableColumns = []
+      this.tableData = []
+      this.sourceData = []
+      this.detailData = {}
+      this.form = {
+        operateObject: '',
+        errorCode: '',
+        filterParams: null,
+        filterType: 'str'
+      }
+    },
     handleSearch: debounce(function () {
       const { errorCode, operateObject, filterType, filterParams } = this.form
       this.tableData = this.sourceData.filter(item => {
@@ -339,6 +365,7 @@ export default {
       }
       return JSON.stringify(result, null, 2)
     },
+    // 提供给父组件使用
     reset () {
       this.form = {
         operateObject: '',
@@ -366,6 +393,21 @@ export default {
     .expand {
       margin-right: 5px;
       cursor: pointer;
+    }
+  }
+  .error-info {
+    display: flex;
+    align-items: flex-start;
+    &-left {
+      display: flex;
+      align-items: center;
+      width: 160px;
+      margin-right: 15px;
+      width: fit-content;
+    }
+    &-right {
+      flex: 1;
+      margin-top: 3px;
     }
   }
   .search {
