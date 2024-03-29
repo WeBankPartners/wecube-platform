@@ -261,7 +261,7 @@ func doSleepWorkflowJob() {
 	var workflowRows []*models.ProcRunWorkflow
 	err := db.MysqlEngine.Context(ctx).SQL("select id,proc_ins_id,name,status,stop,created_time,last_alive_time from proc_run_workflow where status=? and (last_alive_time-created_time)>7200 and `sleep`=0", models.JobStatusRunning).Find(&workflowRows)
 	if err != nil {
-		err = fmt.Errorf("query workflow table fail,%s ", err.Error())
+		log.Logger.Error("query workflow table fail,", log.Error(err))
 		return
 	}
 	if len(workflowRows) == 0 {
