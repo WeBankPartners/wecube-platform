@@ -379,7 +379,7 @@ func RequestPluginModelData(ctx context.Context, packageName, entity, token stri
 		if resp.Body != nil {
 			resp.Body.Close()
 		}
-		useTime := fmt.Sprintf("%.3fms", time.Now().Sub(startTime).Seconds()*1000)
+		useTime := fmt.Sprintf("%.3fms", time.Since(startTime).Seconds()*1000)
 		if err != nil {
 			log.Logger.Error("End remote modelData request <<<--- ", log.String("requestId", reqId), log.String("transactionId", transId), log.String("url", urlObj.String()), log.Int("httpCode", resp.StatusCode), log.String("costTime", useTime), log.Error(err))
 		} else {
@@ -439,7 +439,7 @@ func CreatePluginModelData(ctx context.Context, packageName, entity, token, oper
 		if resp.Body != nil {
 			resp.Body.Close()
 		}
-		useTime := fmt.Sprintf("%.3fms", time.Now().Sub(startTime).Seconds()*1000)
+		useTime := fmt.Sprintf("%.3fms", time.Since(startTime).Seconds()*1000)
 		if err != nil {
 			log.Logger.Error("End remote modelData create <<<--- ", log.String("requestId", reqId), log.String("transactionId", transId), log.String("url", urlObj.String()), log.Int("httpCode", resp.StatusCode), log.String("costTime", useTime), log.Error(err))
 		} else {
@@ -499,7 +499,7 @@ func UpdatePluginModelData(ctx context.Context, packageName, entity, token, oper
 		if resp.Body != nil {
 			resp.Body.Close()
 		}
-		useTime := fmt.Sprintf("%.3fms", time.Now().Sub(startTime).Seconds()*1000)
+		useTime := fmt.Sprintf("%.3fms", time.Since(startTime).Seconds()*1000)
 		if err != nil {
 			log.Logger.Error("End remote modelData update <<<--- ", log.String("requestId", reqId), log.String("transactionId", transId), log.String("url", urlObj.String()), log.Int("httpCode", resp.StatusCode), log.String("costTime", useTime), log.Error(err))
 		} else {
@@ -582,7 +582,7 @@ func DangerousBatchCheck(ctx context.Context, token string, reqParam interface{}
 		if resp.Body != nil {
 			resp.Body.Close()
 		}
-		useTime := fmt.Sprintf("%.3fms", time.Now().Sub(startTime).Seconds()*1000)
+		useTime := fmt.Sprintf("%.3fms", time.Since(startTime).Seconds()*1000)
 		if err != nil {
 			log.Logger.Error("End remote dangerousBatchCheck request <<<--- ", log.String("requestId", reqId), log.String("transactionId", transId), log.String("url", urlObj.String()), log.Int("httpCode", resp.StatusCode), log.String("costTime", useTime), log.Error(err))
 		} else {
@@ -645,7 +645,7 @@ func DangerousWorkflowCheck(ctx context.Context, token string, reqParam interfac
 		if resp.Body != nil {
 			resp.Body.Close()
 		}
-		useTime := fmt.Sprintf("%.3fms", time.Now().Sub(startTime).Seconds()*1000)
+		useTime := fmt.Sprintf("%.3fms", time.Since(startTime).Seconds()*1000)
 		if err != nil {
 			log.Logger.Error("End remote dangerousWorkflowCheck request <<<--- ", log.String("requestId", reqId), log.String("transactionId", transId), log.String("url", urlObj.String()), log.Int("httpCode", resp.StatusCode), log.String("costTime", useTime), log.Error(err))
 		} else {
@@ -711,7 +711,7 @@ func PluginInterfaceApi(ctx context.Context, token string, pluginInterface *mode
 		if resp.Body != nil {
 			resp.Body.Close()
 		}
-		useTime := fmt.Sprintf("%.3fms", time.Now().Sub(startTime).Seconds()*1000)
+		useTime := fmt.Sprintf("%.3fms", time.Since(startTime).Seconds()*1000)
 		if err != nil {
 			log.Logger.Error("End remote pluginInterfaceApi request <<<--- ", log.String("requestId", reqId), log.String("transactionId", transId), log.String("url", urlObj.String()), log.Int("httpCode", resp.StatusCode), log.String("costTime", useTime), log.String("response", string(respBody)), log.Error(err))
 		} else {
