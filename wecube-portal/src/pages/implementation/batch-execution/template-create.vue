@@ -60,6 +60,14 @@ export default {
   methods: {
     handleBack () {
       this.$eventBusP.$emit('change-menu', 'templateList')
+      if (this.type === 'edit') {
+        this.$router.replace({
+          name: this.$route.name,
+          query: {
+            status: 'draft'
+          }
+        })
+      }
     },
     showExecuteResult (data) {
       this.$refs.form.showResult = true
@@ -74,7 +82,7 @@ export default {
       if (this.validRequired()) {
         let mgmtRole = []
         let useRole = []
-        if (this.type === 'edit') {
+        if (this.detailData && this.detailData.permissionToRole) {
           mgmtRole = this.detailData.permissionToRole.MGMT || []
           useRole = this.detailData.permissionToRole.USE || []
         }
@@ -158,7 +166,7 @@ export default {
         isDangerousBlock: isDangerousBlock, // 是否开启高危检测
         batchExecutionTemplateId: '',
         batchExecutionTemplateName: name,
-        name: name + 'test', // 批量名用模板名拼上test
+        name: name + 'test', // 预执行名称用模板名拼上test
         packageName: currentPackageName,
         entityName: currentEntityName,
         dataModelExpression: dataModelExpression,
@@ -197,7 +205,8 @@ export default {
         }
       }
     }, 100),
-    // 保存模板
+
+    // publishStatus为published发布模板，为draft保存模板
     async saveTemplate (mgmtRole, useRole) {
       const {
         name,
