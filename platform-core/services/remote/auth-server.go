@@ -69,6 +69,7 @@ func RegisterSubSystem(pluginPackageObj *models.PluginPackages) (subSystemCode, 
 		Description: fmt.Sprintf("Plugin %s registered from platform.", pluginPackageObj.Name),
 	}
 	postBytes, _ := json.Marshal(param)
+	log.Logger.Debug("RegisterSubSystem", log.String("token", GetToken()))
 	byteArr, err = network.HttpPost(models.Config.Auth.Url+pathRegisterSubSystem, GetToken(), "en", postBytes)
 	if err != nil {
 		return

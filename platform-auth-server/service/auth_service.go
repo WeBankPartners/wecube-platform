@@ -19,6 +19,7 @@ import (
 	"github.com/WeBankPartners/wecube-platform/platform-auth-server/common/log"
 	"github.com/WeBankPartners/wecube-platform/platform-auth-server/common/utils"
 	"github.com/WeBankPartners/wecube-platform/platform-auth-server/model"
+	"github.com/WeBankPartners/wecube-platform/platform-auth-server/service/db"
 	"github.com/WeBankPartners/wecube-platform/platform-auth-server/service/remote/api_platform"
 	"github.com/WeBankPartners/wecube-platform/platform-auth-server/service/remote/api_um"
 	"github.com/golang-jwt/jwt"
@@ -91,10 +92,6 @@ func (AuthService) RefreshToken(refreshToken string) ([]*model.Jwt, error) {
 		return nil, ErrRefreshToken
 	}
 
-	if constant.TypeRefreshToken != claim.Type {
-		log.Logger.Warn("token type is not refresh token")
-		return nil, ErrRefreshToken
-	}
 	authorities := make([]string, 0)
 	user, err := LocalUserServiceInstance.loadUserByUsername(claim.Subject)
 	if err != nil {
@@ -105,7 +102,18 @@ func (AuthService) RefreshToken(refreshToken string) ([]*model.Jwt, error) {
 			authorities = append(authorities, authority.Authority)
 		}
 	} else {
-		json.Unmarshal([]byte(claim.Authority), &authorities)
+		if unmarshalErr := json.Unmarshal([]byte(claim.Authority), &authorities); unmarshalErr != nil {
+			sourceAuthority := claim.Authority
+			if strings.HasPrefix(sourceAuthority, "[") && strings.HasSuffix(sourceAuthority, "]") {
+				sourceAuthority = sourceAuthority[1 : len(sourceAuthority)-1]
+			}
+			authorities = strings.Split(sourceAuthority, ",")
+		}
+	}
+	// 查询下是否为子系统调用,子系统需要手动添加 访问子系统权限
+	subSystem, _ := db.SubSystemRepositoryInstance.FindOneBySystemCode(claim.Subject)
+	if subSystem != nil {
+		authorities = append(authorities, constant.AuthoritySubsystem)
 	}
 	jwts := packJwtTokens(claim.Subject, []string{}, authorities, claim.NeedRegister)
 	return jwts, nil
@@ -177,13 +185,6 @@ func authenticateSubSystem(credential *model.CredentialDto) (*model.Authenticati
 		log.Logger.Warn(fmt.Sprintf("sub system public key is blank for system code:%v", systemCode))
 		return nil, exterror.NewBadCredentialsError("Bad credential and failed to decrypt password.")
 	}
-
-	/*	var encryptedPwd []byte
-		if encryptedPwd, err = base64.StdEncoding.DecodeString(password); err != nil {
-			log.Logger.Warn("base64 decode password error", log.Error(err))
-			return nil, err
-		}*/
-
 	decryptedPassword, err := RSADecryptByPublic(password, subSystemPublicKey)
 	if err != nil {
 		log.Logger.Warn("failed to decrypt by public", log.Error(err))

@@ -54,6 +54,7 @@ type ProcDef struct {
 	CreatedTime   time.Time `json:"createdTime" xorm:"created_time"`     // 创建时间
 	UpdatedBy     string    `json:"updatedBy" xorm:"updated_by"`         // 更新人
 	UpdatedTime   time.Time `json:"updatedTime" xorm:"updated_time"`     // 更新时间
+	ManageRole    string    `json:"manageRole" xorm:"-"`                 // 属主
 }
 
 type ProcDefNode struct {
