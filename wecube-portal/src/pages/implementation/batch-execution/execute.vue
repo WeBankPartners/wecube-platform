@@ -247,6 +247,9 @@ export default {
           if (this.tableData.length > 0) {
             this.rowId = data.contents[0].id
             this.$refs.executeResult.getList(data.contents[0].id)
+            this.$refs.executeResult.reset()
+          } else {
+            this.$refs.executeResult.handleReset()
           }
         })
         this.pagination.total = data.pageInfo.totalRows

@@ -21,6 +21,7 @@ func CreateOrUpdateBatchExecTemplate(c *gin.Context, reqParam *models.BatchExecu
 	now := time.Now()
 	configDataStr := ""
 	if reqParam.ConfigData != nil {
+		reqParam.ConfigData.IsDangerousBlock = reqParam.IsDangerousBlock
 		configDataByte, tmpErr := json.Marshal(*reqParam.ConfigData)
 		if tmpErr != nil {
 			err = fmt.Errorf("marshal reqParam.ConfigData error: %s", tmpErr.Error())

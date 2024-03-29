@@ -31,8 +31,6 @@ func (SubSystemInfoDataServiceImpl) retrieveSysSubSystemInfoWithSystemCode(syste
 		return nil, nil
 	}
 
-	//List<GrantedAuthority> grantedAuthorities = new ArrayList<GrantedAuthority>();
-	//grantedAuthorities.add(new SimpleGrantedAuthority(ApplicationConstants.Authority.SUBSYSTEM));
 	grantedAuthorities := []string{constant.AuthoritySubsystem}
 
 	subSystemAuthorities, err := db.SubSystemAuthorityRsRepositoryInstance.FindAllBySubSystemId(subSystem.Id)

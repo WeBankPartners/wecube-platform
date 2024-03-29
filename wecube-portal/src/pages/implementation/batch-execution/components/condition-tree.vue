@@ -3,7 +3,7 @@
     <Drawer
       :title="$t('be_edit_filter')"
       v-model="drawerVisible"
-      width="600"
+      width="620"
       :mask-closable="false"
       :lock-scroll="true"
       @on-close="handleCancel"
@@ -51,7 +51,7 @@ export default {
     return {
       maxHeight: 500,
       treeData: [],
-      selectData: []
+      operatorList: ['eq', 'contains', 'like', 'in', 'lt', 'gt', 'neq', 'notNull', 'null']
     }
   },
   watch: {
@@ -63,18 +63,47 @@ export default {
           if (i.children && i.children.length) {
             i.children.forEach(j => {
               this.$set(j, 'value', '')
+              this.$set(j, 'operator', 'contains')
               // 勾选数据回显
               this.select.forEach(select => {
                 if (select.id === j.id) {
                   this.$set(j, 'checked', true)
                   j.value = select.value
+                  j.operator = select.operator
                 }
               })
               j.render = (h, { data }) => {
                 return (
-                  <div class={{ 'tree-item': true, 'ivu-form-item-error': !data.value }}>
+                  <div class="tree-item">
                     <span>{data.title}</span>
-                    {data.checked && <Input v-model={data.value} style="width:280px;" />}
+                    {data.checked && (
+                      <div style="display:flex;justify-content:flex-start;width:280px;">
+                        <Select
+                          v-model={data.operator}
+                          style="width:90px;"
+                          class={{ 'ivu-form-item-error': !data.operator }}
+                          on-on-change={() => {
+                            data.value = ''
+                          }}
+                        >
+                          {this.operatorList.map((item, index) => {
+                            return (
+                              <Option value={item} key={index}>
+                                {item}
+                              </Option>
+                            )
+                          })}
+                        </Select>
+                        {!['notNull', 'null'].includes(data.operator) && (
+                          <Input
+                            v-model={data.value}
+                            style="width:180px;margin-left:5px;"
+                            class={{ 'ivu-form-item-error': !data.value }}
+                            placeholder={`${data.operator === 'in' ? 'eg：a,b,c' : ''}`}
+                          />
+                        )}
+                      </div>
+                    )}
                   </div>
                 )
               }
@@ -109,7 +138,9 @@ export default {
           }
         })
       })
-      const flag = selectData.every(i => i.value)
+      const flag = selectData.every(i => {
+        return ['notNull', 'null'].includes(i.operator) || i.value
+      })
       if (flag) {
         this.$emit('update:visible', false)
         this.$emit('submit', selectData)

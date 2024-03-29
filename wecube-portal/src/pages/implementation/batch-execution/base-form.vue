@@ -9,18 +9,20 @@
     <Form :disabled="type === 'view'" label-position="right" :label-width="125">
       <!--执行模板信息-->
       <HeaderTitle :title="$t('be_execute_templateinfo')">
-        <!--请求名-->
+        <!--模板名称-->
         <FormItem v-if="from === 'template' && type !== 'view'" :label="$t('be_template_name')" required>
           <Input
             v-model="name"
-            :maxlength="50"
+            :maxlength="100"
             show-word-limit
             :placeholder="$t('be_template_name_placeholder')"
             class="form-item"
           />
         </FormItem>
         <template v-else>
+          <!--预执行记录-->
           <div v-if="!data.templateData.id" style="padding: 0 20px">{{ $t('be_pre_execute_record') }}</div>
+          <!--执行记录-->
           <div v-else class="template-info">
             <div class="item">
               <span>{{ $t('be_template_id') }}：</span>
@@ -63,7 +65,7 @@
         <FormItem v-if="from === 'execute'" :label="$t('be_batch_name')" required>
           <Input
             v-model="name"
-            :maxlength="50"
+            :maxlength="100"
             show-word-limit
             :placeholder="$t('be_batch_name_placeholder')"
             class="form-item"
@@ -146,6 +148,7 @@
             <template v-if="searchParameters && searchParameters.length > 0">
               <Col v-for="(item, index) in searchParameters" :key="index" :span="24" class="item">
                 <span color="success">{{ item.packageName }}-{{ item.entityName }}:{{ item.name }}</span>
+                <span color="primary" style="margin-left: 10px; color: #2db7f5">{{ item.operator }}</span>
                 <span color="primary" style="margin-left: 10px">{{ item.value }}</span>
               </Col>
             </template>
@@ -438,7 +441,7 @@ export default {
       this.resultTableParams = []
       this.pluginOutputParams = []
     },
-    // 获取插件选择列表
+    // 获取插件下拉列表
     async getFilteredPluginList () {
       let pkg = ''
       let entity = ''
@@ -465,10 +468,19 @@ export default {
       const { status, data } = await getPluginsByTargetEntityFilterRule(payload)
       if (status === 'OK') {
         this.pluginOptions = data
+        // 过滤不需要的数据
         this.pluginOptions = this.pluginOptions.filter(item => {
           const flag = item.inputParameters && item.inputParameters.every(param => param.mappingType !== 'context')
           return item.isAsyncProcessing === 'N' && flag
         })
+        // 若详情接口返回的插件在接口中查不出来，手动拼接
+        if (this.data && this.data.configData) {
+          const { pluginConfigInterface } = this.data.configData
+          const hasFlag = this.pluginOptions.some(item => item.serviceName === pluginConfigInterface.serviceName)
+          if (!hasFlag) {
+            this.pluginOptions.push(pluginConfigInterface)
+          }
+        }
       }
     },
     // 根据过滤条件获取执行实例表格列
@@ -535,17 +547,17 @@ export default {
       this.searchParameters.forEach(sParameter => {
         const index = keySet.indexOf(sParameter.key)
         if (index > -1) {
-          const { name, value } = sParameter
+          const { name, value, operator } = sParameter
           if (value) {
             requestParameter.filters[index].attributeFilters.push({
               name,
-              value,
-              operator: 'contains'
+              value: operator === 'in' ? value.split(',') : value,
+              operator: operator || 'contains'
             })
           }
         } else {
           keySet.push(sParameter.key)
-          const { index, packageName, entityName, name, value } = sParameter
+          const { index, packageName, entityName, name, value, operator } = sParameter
           if (value) {
             requestParameter.filters.push({
               index,
@@ -554,8 +566,8 @@ export default {
               attributeFilters: [
                 {
                   name,
-                  value,
-                  operator: 'contains'
+                  value: operator === 'in' ? value.split(',') : value,
+                  operator: operator || 'contains'
                 }
               ]
             })

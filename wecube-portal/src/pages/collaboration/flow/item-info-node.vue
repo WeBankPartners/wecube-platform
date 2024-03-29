@@ -6,6 +6,13 @@
       </div>
       <div class="panal-name">{{ $t('nodeProperties') }}：</div>
       <div class="panel-content">
+        <Alert v-if="isShowAlert" show-icon type="error">
+          {{ $t('be_plugin_service_no_permission_tip1') }}【{{ mgmtRole }}】{{
+            $t('be_plugin_service_no_permission_tip2')
+          }}【{{ itemCustomInfo.customAttrs.serviceName }}】{{ $t('be_plugin_service_no_permission_tip3') }}
+          {{ mgmtRole }}】
+          {{ $t('be_plugin_service_no_permission_tip4') }}
+        </Alert>
         <Collapse v-model="opendPanel">
           <Panel name="1">
             {{ $t('basicInfo') }}
@@ -44,6 +51,7 @@
                       v-model="itemCustomInfo.customAttrs.timeConfig.date"
                       format="yyyy-MM-dd HH:mm:ss"
                       @on-change="dateChange"
+                      :editable="false"
                       style="width: 100%"
                     ></DatePicker>
                     <span v-if="itemCustomInfo.customAttrs.timeConfig.date === ''" style="color: red"
@@ -86,7 +94,12 @@
             {{ $t('controlOfExecution') }}
             <template slot="content">
               <Form :label-width="120">
-                <FormItem :label="$t('timeout')">
+                <FormItem
+                  :label="$t('timeout')"
+                  v-if="
+                    itemCustomInfo.customAttrs && ['automatic', 'data'].includes(itemCustomInfo.customAttrs.nodeType)
+                  "
+                >
                   <Select v-model="itemCustomInfo.customAttrs.timeout" filterable @on-change="paramsChanged">
                     <Option v-for="(item, index) in timeSelection" :value="item.mins" :key="index"
                       >{{ item.label }}
@@ -155,7 +168,7 @@
                       @filterRuleChanged="singleFilterRuleChanged"
                       :disabled="itemCustomInfo.customAttrs.dynamicBind"
                       :routineExpression="itemCustomInfo.customAttrs.routineExpression || currentSelectedEntity"
-                      :allEntityType="[]"
+                      :allEntityType="allEntityType"
                       :currentSelectedEntity="currentSelectedEntity"
                     >
                     </ItemFilterRulesGroup>
@@ -197,87 +210,105 @@
                 <span style="margin-right: 20px"> {{ $t('parameterSettings') }} </span>
                 <Tabs type="card">
                   <TabPane :label="$t('context_parameters')">
-                    <div>
-                      <span>{{ $t('sourceNodeList') }}：</span>
-                      <Select
-                        v-model="itemCustomInfo.customAttrs.contextParamNodes"
-                        multiple
-                        filterable
-                        style="width: 50%"
-                        @on-change="changeContextParamNodes"
-                        @on-open-change="getRootNode"
-                      >
-                        <Option v-for="item in nodeList" :value="item.nodeId" :key="item.nodeId">{{
-                          item.name
-                        }}</Option>
-                      </Select>
-                    </div>
-                    <div style="display: flex; background: #dee3e8">
-                      <div style="width: 25%">{{ $t('parameterskey') }}</div>
-                      <div style="width: 72%">{{ $t('sourceVale') }}</div>
-                    </div>
-                    <div style="background: #e5e9ee">
-                      <div style="width: 24%; display: inline-block">{{ $t('params_name') }}</div>
-                      <div style="width: 25%; display: inline-block">{{ $t('node') }}</div>
-                      <div style="width: 22%; display: inline-block">{{ $t('params_type') }}</div>
-                      <div style="width: 25%; display: inline-block">{{ $t('params_value') }}</div>
-                    </div>
-                    <div
-                      v-for="(item, itemIndex) in itemCustomInfo.customAttrs.paramInfos"
-                      :key="itemIndex"
-                      style="margin: 4px"
+                    <template
+                      v-if="
+                        itemCustomInfo.customAttrs.paramInfos &&
+                        itemCustomInfo.customAttrs.paramInfos.filter(p => p.bindType === 'context').length > 0
+                      "
                     >
-                      <template v-if="item.bindType === 'context'">
-                        <div style="width: 24%; display: inline-block">
-                          <span style="color: red" v-if="item.required === 'Y'">*</span>
-                          {{ item.paramName }}
-                        </div>
-                        <div style="width: 25%; display: inline-block">
-                          <Select v-model="item.bindNodeId" filterable @on-change="onParamsNodeChange(itemIndex, true)">
-                            <Option v-for="(item, index) in prevCtxNodeChange()" :value="item.nodeId" :key="index">{{
-                              item.name
-                            }}</Option>
-                          </Select>
-                        </div>
-                        <div style="width: 22%; display: inline-block">
-                          <Select
-                            v-model="item.bindParamType"
-                            @on-change="onParamsNodeChange(itemIndex, true)"
-                            filterable
-                          >
-                            <Option v-for="i in paramsTypes" :value="i.value" :key="i.value">{{ i.label }}</Option>
-                          </Select>
-                        </div>
-                        <div style="width: 25%; display: inline-block">
-                          <Select filterable v-model="item.bindParamName" @on-change="paramsChanged">
-                            <Option v-for="i in item.currentParamNames" :value="i.name" :key="i.name">{{
-                              i.name
-                            }}</Option>
-                          </Select>
-                        </div>
-                      </template>
-                    </div>
+                      <div>
+                        <span>{{ $t('sourceNodeList') }}：</span>
+                        <Select
+                          v-model="itemCustomInfo.customAttrs.contextParamNodes"
+                          multiple
+                          filterable
+                          style="width: 50%"
+                          @on-change="changeContextParamNodes"
+                          @on-open-change="getRootNode"
+                        >
+                          <Option v-for="item in nodeList" :value="item.nodeId" :key="item.nodeId">{{
+                            item.name
+                          }}</Option>
+                        </Select>
+                      </div>
+                      <div style="display: flex; background: #dee3e8">
+                        <div style="width: 25%">{{ $t('parameterskey') }}</div>
+                        <div style="width: 72%">{{ $t('sourceVale') }}</div>
+                      </div>
+                      <div style="background: #e5e9ee">
+                        <div style="width: 24%; display: inline-block">{{ $t('params_name') }}</div>
+                        <div style="width: 25%; display: inline-block">{{ $t('node') }}</div>
+                        <div style="width: 22%; display: inline-block">{{ $t('params_type') }}</div>
+                        <div style="width: 25%; display: inline-block">{{ $t('params_value') }}</div>
+                      </div>
+                      <div
+                        v-for="(item, itemIndex) in itemCustomInfo.customAttrs.paramInfos"
+                        :key="itemIndex"
+                        style="margin: 4px"
+                      >
+                        <template v-if="item.bindType === 'context'">
+                          <div style="width: 24%; display: inline-block">
+                            <span style="color: red" v-if="item.required === 'Y'">*</span>
+                            {{ item.paramName }}
+                          </div>
+                          <div style="width: 25%; display: inline-block">
+                            <Select
+                              v-model="item.bindNodeId"
+                              filterable
+                              @on-change="onParamsNodeChange(itemIndex, true)"
+                            >
+                              <Option v-for="(item, index) in prevCtxNodeChange()" :value="item.nodeId" :key="index">{{
+                                item.name
+                              }}</Option>
+                            </Select>
+                          </div>
+                          <div style="width: 22%; display: inline-block">
+                            <Select
+                              v-model="item.bindParamType"
+                              @on-change="onParamsNodeChange(itemIndex, true)"
+                              filterable
+                            >
+                              <Option v-for="i in paramsTypes" :value="i.value" :key="i.value">{{ i.label }}</Option>
+                            </Select>
+                          </div>
+                          <div style="width: 25%; display: inline-block">
+                            <Select filterable v-model="item.bindParamName" @on-change="paramsChanged">
+                              <Option v-for="i in item.currentParamNames" :value="i.name" :key="i.name">{{
+                                i.name
+                              }}</Option>
+                            </Select>
+                          </div>
+                        </template>
+                      </div>
+                    </template>
                   </TabPane>
                   <TabPane :label="$t('constant_parameters')">
-                    <div style="background: #e5e9ee">
-                      <div style="width: 30%; display: inline-block">{{ $t('parameterskey') }}</div>
-                      <div style="width: 68%; display: inline-block">{{ $t('sourceVale') }}</div>
-                    </div>
-                    <div
-                      v-for="(item, itemIndex) in itemCustomInfo.customAttrs.paramInfos"
-                      :key="itemIndex"
-                      style="margin: 4px"
+                    <template
+                      v-if="
+                        itemCustomInfo.customAttrs.paramInfos &&
+                        itemCustomInfo.customAttrs.paramInfos.filter(p => p.bindType === 'constant').length > 0
+                      "
                     >
-                      <template v-if="item.bindType === 'constant'">
-                        <div style="width: 30%; display: inline-block; text-align: right">
-                          <span style="color: red" v-if="item.required === 'Y'">*</span>
-                          {{ item.paramName }}
-                        </div>
-                        <div style="width: 68%; display: inline-block">
-                          <Input v-model="item.bindValue" @on-change="paramsChanged" />
-                        </div>
-                      </template>
-                    </div>
+                      <div style="background: #e5e9ee">
+                        <div style="width: 30%; display: inline-block">{{ $t('parameterskey') }}</div>
+                        <div style="width: 68%; display: inline-block">{{ $t('sourceVale') }}</div>
+                      </div>
+                      <div
+                        v-for="(item, itemIndex) in itemCustomInfo.customAttrs.paramInfos"
+                        :key="itemIndex"
+                        style="margin: 4px"
+                      >
+                        <template v-if="item.bindType === 'constant'">
+                          <div style="width: 30%; display: inline-block; text-align: right">
+                            <span style="color: red" v-if="item.required === 'Y'">*</span>
+                            {{ item.paramName }}
+                          </div>
+                          <div style="width: 68%; display: inline-block">
+                            <Input v-model="item.bindValue" @on-change="paramsChanged" />
+                          </div>
+                        </template>
+                      </div>
+                    </template>
                   </TabPane>
                 </Tabs>
               </div>
@@ -301,7 +332,8 @@ import {
   getPluginFunByRule,
   getNodeParams,
   getSourceNode,
-  getNodeDetailById
+  getNodeDetailById,
+  getRoleList
 } from '@/api/server.js'
 import ItemFilterRulesGroup from './item-filter-rules-group.vue'
 export default {
@@ -364,7 +396,9 @@ export default {
       paramsTypes: [
         { value: 'INPUT', label: this.$t('input') },
         { value: 'OUTPUT', label: this.$t('output') }
-      ]
+      ],
+      mgmtRole: '', // 编排属主角色，供错误提示用
+      isShowAlert: false // 在服务插件有值，但无可选项是提示
     }
   },
   components: {
@@ -374,7 +408,8 @@ export default {
     this.getAllDataModels()
   },
   methods: {
-    async showItemInfo (nodeData, needAddFirst = false, rootEntity, editFlow) {
+    async showItemInfo (nodeData, needAddFirst = false, rootEntity, editFlow, permissionToRole) {
+      this.isShowAlert = false
       this.editFlow = editFlow
       this.currentSelectedEntity = rootEntity
       this.needAddFirst = needAddFirst
@@ -403,6 +438,7 @@ export default {
           this.mgmtParamInfos()
         }
       }
+      this.getRoleDisplayName(permissionToRole)
     },
     saveItem () {
       if (['human', 'automatic', 'data'].includes(this.itemCustomInfo.customAttrs.nodeType)) {
@@ -533,7 +569,7 @@ export default {
     async getAllDataModels () {
       let { data, status } = await getAllDataModels()
       if (status === 'OK') {
-        this.allEntityType = data
+        this.allEntityType = data.filter(d => d.packageName === this.currentSelectedEntity.split(':')[0])
       }
     },
 
@@ -557,6 +593,7 @@ export default {
       this.isParmasChanged = true
     },
     dateChange (dateStr) {
+      console.log(777, dateStr)
       this.itemCustomInfo.customAttrs.timeConfig.date = dateStr
       this.paramsChanged()
     },
@@ -601,7 +638,7 @@ export default {
       let pkg = ''
       let entity = ''
       let payload = {}
-      this.filteredPlugins = []
+      // this.filteredPlugins = []
       if (path) {
         // eslint-disable-next-line no-useless-escape
         const pathList = path.split(/[.~]+(?=[^\}]*(\{|$))/).filter(p => p.length > 1)
@@ -633,7 +670,11 @@ export default {
       payload.nodeType = this.itemCustomInfo.customAttrs.nodeType
       const { status, data } = await getPluginFunByRule(payload)
       if (status === 'OK') {
-        this.filteredPlugins = data
+        this.filteredPlugins = data || []
+        if (this.itemCustomInfo.customAttrs.serviceName !== '' && this.filteredPlugins.length === 0) {
+          this.isShowAlert = true
+          this.$emit('hideReleaseBtn')
+        }
       }
     },
     // 设置被预选中的节点
@@ -696,6 +737,18 @@ export default {
         this.itemCustomInfo.customAttrs.timeConfig.duration = 0
       }
       this.paramsChanged()
+    },
+    async getRoleDisplayName (permissionToRole) {
+      if (permissionToRole.MGMT && permissionToRole.MGMT.length > 0) {
+        let params = { all: 'Y' }
+        let { status, data } = await getRoleList(params)
+        if (status === 'OK') {
+          const find = data.find(d => d.name === permissionToRole.MGMT[0])
+          if (find) {
+            this.mgmtRole = find.displayName
+          }
+        }
+      }
     }
   }
 }
