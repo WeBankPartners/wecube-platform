@@ -20,19 +20,15 @@ func SetupCleanUpBatchExecTicker() {
 	ticker := time.NewTicker(24 * time.Hour)
 	// ticker := time.NewTicker(90 * time.Second)
 	go func() {
-		for {
-			select {
-			case t := <-ticker.C:
-				startTime := time.Now()
-				log.Logger.Info("start clean up batch exec", log.String("ticker", fmt.Sprintf("%v", t)))
-				CleanUpBatchExecRecord()
-				log.Logger.Info("finish clean up batch exec", log.String("ticker", fmt.Sprintf("%v", t)),
-					log.Int64("cost_ms", time.Now().Sub(startTime).Milliseconds()))
-			}
+		for t := range ticker.C {
+			startTime := time.Now()
+			log.Logger.Info("start clean up batch exec", log.String("ticker", fmt.Sprintf("%v", t)))
+			CleanUpBatchExecRecord()
+			log.Logger.Info("finish clean up batch exec", log.String("ticker", fmt.Sprintf("%v", t)),
+				log.Int64("cost_ms", time.Since(startTime).Milliseconds()))
 		}
 	}()
 	log.Logger.Info("setup clean up batch exec ticker")
-	return
 }
 
 func CleanUpBatchExecRecord() {
@@ -64,7 +60,6 @@ func CleanUpBatchExecRecord() {
 	if err != nil {
 		log.Logger.Error("clean up batch exec sql failed", log.Error(err))
 	}
-	return
 }
 
 func StartSendProcScheduleMail() {
