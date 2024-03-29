@@ -9,7 +9,7 @@
       </div>
       <div>
         <template v-if="editFlow !== 'false'">
-          <Button type="primary" v-if="['draft'].includes(itemCustomInfo.status)" @click="releaseFlow">
+          <Button type="primary" v-if="['draft'].includes(itemCustomInfo.status) && !nodeHasAlert" @click="releaseFlow">
             <Icon type="ios-paper-plane-outline" size="16"></Icon>
             {{ $t('release_flow') }}
           </Button>
@@ -47,7 +47,6 @@
 
 <script>
 import axios from 'axios'
-import { getCookie } from '@/pages/util/cookie'
 import dayjs from 'dayjs'
 import FlowAuth from '@/pages/components/auth.vue'
 import { flowBatchChangeStatus, flowRelease } from '@/api/server.js'
@@ -57,6 +56,7 @@ export default {
   },
   data () {
     return {
+      nodeHasAlert: false,
       flowListTab: '',
       editFlow: true, // 在查看时隐藏按钮
       itemCustomInfo: {}
@@ -64,6 +64,7 @@ export default {
   },
   methods: {
     showItemInfo (data, editFlow, flowListTab) {
+      this.nodeHasAlert = false
       this.editFlow = editFlow
       this.flowListTab = flowListTab
       const defaultNode = {
@@ -144,7 +145,7 @@ export default {
       })
     },
     async exportFlow () {
-      const accessToken = getCookie('accessToken')
+      const accessToken = localStorage.getItem('wecube-accessToken')
       const headers = {
         Authorization: 'Bearer ' + accessToken
       }
@@ -187,6 +188,9 @@ export default {
     },
     backToFlowList () {
       this.$router.push({ path: '/collaboration/workflow', query: { flowListTab: this.flowListTab } })
+    },
+    hideReleaseBtn () {
+      this.nodeHasAlert = true
     }
   }
 }
