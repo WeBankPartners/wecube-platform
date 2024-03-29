@@ -141,6 +141,10 @@ func QueryPluginProcessDefinitionList(ctx context.Context, plugin string) (list 
 	}
 	for _, procDef := range allProcDefList {
 		if strings.Contains(procDef.ForPlugin, plugin) {
+			permissionList, _ := GetProcDefPermissionByCondition(ctx, models.ProcDefPermission{ProcDefId: procDef.Id, Permission: "MGMT"})
+			if len(permissionList) > 0 {
+				procDef.ManageRole = permissionList[0].RoleName
+			}
 			list = append(list, procDef)
 		}
 	}
