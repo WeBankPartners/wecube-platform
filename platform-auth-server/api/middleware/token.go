@@ -56,7 +56,7 @@ func AuthApi(authoritiesFetcher GetAuthorities) gin.HandlerFunc {
 					return
 				}
 			}
-			c.Set(constant.Operator, fmt.Sprintf("%s", authClaim.Subject))
+			c.Set(constant.Operator, authClaim.Subject)
 			c.Set(AuthClaim, authClaim)
 
 			authorities := make([]string, 0)
