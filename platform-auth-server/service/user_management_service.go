@@ -1177,10 +1177,10 @@ func (UserManagementService) UpdateRoleApply(param []*model.RoleApplyDto, curUse
 	now := time.Now()
 	for _, roleApply := range roleApplys {
 		if roleApply.Status != model.RoleApplyStatusInit {
-			continue
+			return fmt.Errorf("apply %s already handled", roleApply.Id)
 		}
 		if _, ok := adminRoleIdMap[roleApply.RoleId]; !ok {
-			continue
+			return fmt.Errorf("apply %s role administrator not you", roleApply.Id)
 		}
 
 		// 进行处理
