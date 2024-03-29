@@ -27,7 +27,7 @@ func ProcDefList(c *gin.Context) {
 	if permission == "" {
 		permission = "USE"
 	}
-	log.Logger.Debug("procDefList", log.String("includeDraft", includeDraft), log.String(permission, "permission"), log.String("tag", tag))
+	log.Logger.Debug("procDefList", log.String("includeDraft", includeDraft), log.String(permission, "permission"), log.String("tag", tag), log.StringList("roleList", middleware.GetRequestRoles(c)))
 	result, err := database.ProcDefList(c, includeDraft, permission, tag, middleware.GetRequestRoles(c))
 	if err != nil {
 		middleware.ReturnError(c, err)
@@ -706,14 +706,40 @@ func ProcStartEvents(c *gin.Context) {
 		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, err))
 		return
 	}
+	operator := param.OperationUser
 	procDef, err := database.GetLatestProcDefByKey(c, param.OperationKey)
 	if err != nil {
 		middleware.ReturnError(c, err)
 		return
 	}
 	// preview
-	buildProcPreviewData(c, procDef.Id, param.OperationData, middleware.GetRequestUser(c))
-	// start
+	previewData, buildErr := buildProcPreviewData(c, procDef.Id, param.OperationData, operator)
+	if buildErr != nil {
+		middleware.ReturnError(c, buildErr)
+		return
+	}
+	ctx := context.WithValue(context.Background(), models.TransactionIdHeader, "proc_event_"+guid.CreateGuid())
+	// proc instance start
+	procStartParam := models.ProcInsStartParam{
+		EntityDataId:      param.OperationData,
+		EntityDisplayName: param.OperationData,
+		ProcDefId:         procDef.Id,
+		ProcessSessionId:  previewData.ProcessSessionId,
+		Event:             &param,
+	}
+	// 新增 proc_ins,proc_ins_node,proc_data_binding 纪录
+	procInsId, workflowRow, workNodes, workLinks, createInsErr := database.CreateProcInstance(ctx, &procStartParam, operator)
+	if createInsErr != nil {
+		err = createInsErr
+		log.Logger.Error("handleProcScheduleJob fail with create proc instance data", log.String("psConfigId", procDef.Id), log.String("sessionId", previewData.ProcessSessionId), log.Error(createInsErr))
+		return
+	}
+	// 初始化workflow并开始
+	workObj := workflow.Workflow{ProcRunWorkflow: *workflowRow}
+	workObj.Init(context.Background(), workNodes, workLinks)
+	//workflow.GlobalWorkflowMap.Store(workObj.Id, &workObj)
+	go workObj.Start(&models.ProcOperation{CreatedBy: operator})
+	middleware.ReturnData(c, procInsId)
 }
 
 func GetProcNodeAllowOptions(c *gin.Context) {
