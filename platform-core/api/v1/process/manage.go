@@ -4,15 +4,16 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/WeBankPartners/wecube-platform/platform-core/common/db"
-	"github.com/WeBankPartners/wecube-platform/platform-core/common/tools"
-	"github.com/WeBankPartners/wecube-platform/platform-core/services/remote"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"sort"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/WeBankPartners/wecube-platform/platform-core/common/db"
+	"github.com/WeBankPartners/wecube-platform/platform-core/common/tools"
+	"github.com/WeBankPartners/wecube-platform/platform-core/services/remote"
 
 	"github.com/WeBankPartners/go-common-lib/guid"
 	"github.com/WeBankPartners/wecube-platform/platform-core/api/middleware"
@@ -448,7 +449,7 @@ func ImportProcessDefinition(c *gin.Context) {
 		return
 	}
 	var paramList []*models.ProcessDefinitionDto
-	b, err := ioutil.ReadAll(f)
+	b, err := io.ReadAll(f)
 	defer f.Close()
 	if err != nil {
 		middleware.ReturnError(c, fmt.Errorf("Read content fail error:"+err.Error()))
