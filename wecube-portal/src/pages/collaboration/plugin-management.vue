@@ -1,5 +1,5 @@
 <template>
-  <Row style="padding:20px">
+  <Row style="padding: 20px">
     <Spin size="large" fix v-if="isLoading">
       <Icon type="ios-loading" size="44" class="spin-icon-load"></Icon>
       <div>{{ $t('loading') }}</div>
@@ -12,7 +12,7 @@
             <Button type="info" icon="md-list-box" ghost :loading="loadingPlugin" @click="showUploadModalHandler">{{
               $t('origin_plugins')
             }}</Button>
-            <Button type="info" style="margin-left:20px" ghost icon="ios-cloud-upload-outline" @click="getHeaders">{{
+            <Button type="info" style="margin-left: 20px" ghost icon="ios-cloud-upload-outline" @click="getHeaders">{{
               $t('upload_plugin_btn')
             }}</Button>
             <div v-show="showUpload">
@@ -27,10 +27,10 @@
                 action="platform/v1/packages"
                 :headers="headers"
               >
-                <Button style="display:none" icon="ios-cloud-upload-outline">{{ $t('upload_plugin_btn') }}</Button>
+                <Button style="display: none" icon="ios-cloud-upload-outline">{{ $t('upload_plugin_btn') }}</Button>
               </Upload>
             </div>
-            <span v-if="showSuccess" style="color:#2b85e4">{{ $t('plugin_analysis') }}</span>
+            <span v-if="showSuccess" style="color: #2b85e4">{{ $t('plugin_analysis') }}</span>
           </div>
         </Card>
       </Row>
@@ -38,12 +38,17 @@
         <Card dis-hover>
           <Row slot="title">
             <Col span="12">
-              <span style="line-height:19px">
+              <span style="line-height: 19px">
                 {{ $t('plugins_list') }}
               </span>
             </Col>
             <Col style="float: right">
-              <Checkbox style="width: max-content;" class="clear-default-css" v-model="isShowDecomissionedPackage">
+              <Checkbox
+                style="width: max-content"
+                class="clear-default-css"
+                v-model="isShowDecomissionedPackage"
+                @on-change="getAllPluginPkgs"
+              >
                 {{ $t('is_show_decomissioned_pkg') }}
               </Checkbox>
             </Col>
@@ -54,15 +59,11 @@
           </Spin>
           <div v-if="!isLoadingPluginList" style="height: 70%; overflow: auto">
             <span v-if="plugins.length < 1">{{ $t('no_plugin_packages') }}</span>
-            <div style="height: calc(100vh - 316px);overflow:auto" v-else>
+            <div style="height: calc(100vh - 316px); overflow: auto" v-else>
               <Collapse accordion @on-change="pluginPackageChangeHandler">
-                <Panel
-                  :name="plugin.id + ''"
-                  v-for="plugin in plugins"
-                  v-if="plugin.status !== 'DECOMMISSIONED' || isShowDecomissionedPackage"
-                  :key="plugin.id"
-                >
-                  <div style="float: right;width: calc(100% - 30px);">
+                <!-- v-if="plugin.status !== 'DECOMMISSIONED' || isShowDecomissionedPackage" -->
+                <Panel :name="plugin.id + ''" v-for="plugin in plugins" :key="plugin.id">
+                  <div style="float: right; width: calc(100% - 30px)">
                     <span
                       :class="plugin.status !== 'DECOMMISSIONED' ? 'plugin-title' : 'decomissionedPkgName plugin-title'"
                     >
@@ -142,7 +143,7 @@
           <RuntimesResources v-if="currentTab === 'runtimeResources'" :pkgId="currentPlugin.id"></RuntimesResources>
         </TabPane>
         <TabPane name="confirm" :label="$t('confirm')">
-          <Alert style="margin:16px 0">
+          <Alert style="margin: 16px 0">
             <p>{{ $t('regist_plugin_tip1') }}</p>
             <br />
             <p>{{ $t('regist_plugin_tip2') }}</p>
@@ -239,7 +240,7 @@
                   </Row>
                   <Row style="margin-top: 20px">
                     {{ $t('search_result') + ':' }}
-                    <div style="width: 100%;overflow: auto">
+                    <div style="width: 100%; overflow: auto">
                       <Table :columns="dbQueryColumns" :data="dbQueryData"></Table>
                     </div>
                     <Page
@@ -251,7 +252,7 @@
                       show-elevator
                       show-sizer
                       show-total
-                      style="float: right; margin: 10px 0;"
+                      style="float: right; margin: 10px 0"
                     />
                   </Row>
                 </Row>
@@ -290,19 +291,21 @@
       <div>
         <Input :placeholder="$t('search')" v-model="filterForPkg"></Input>
       </div>
-      <div style="width:100%;height:350px;overflow: auto;margin-top: 10px">
+      <div style="width: 100%; height: 350px; overflow: auto; margin-top: 10px">
         <RadioGroup v-model="selectedOriginPlugin" vertical>
           <template v-for="(item, index) in Object.keys(originPluginsGroupFilter)">
-            <span :key="index" style="color: #999;line-height:30px">{{ item }}</span>
+            <span :key="index" style="color: #999; line-height: 30px">{{ item }}</span>
             <Radio v-for="plugin in originPluginsGroupFilter[item]" :key="plugin.keyName" :label="plugin.keyName">
               <span>{{ plugin.keyName }}</span>
             </Radio>
           </template>
         </RadioGroup>
       </div>
-      <div style="height:30px;text-align: right">
-        <Button style="margin-left:10px;float:right" type="info" @click="uploadHandler">{{ $t('bc_confirm') }}</Button>
-        <Button style="margin-left:10px;float:right" @click="cancelHandler">{{ $t('cancel') }}</Button>
+      <div style="height: 30px; text-align: right">
+        <Button style="margin-left: 10px; float: right" type="info" @click="uploadHandler">{{
+          $t('bc_confirm')
+        }}</Button>
+        <Button style="margin-left: 10px; float: right" @click="cancelHandler">{{ $t('cancel') }}</Button>
       </div>
     </Modal>
   </Row>
@@ -332,7 +335,7 @@ import MenuInjection from './components/menu-injection.vue'
 import SysParmas from './components/system-params.vue'
 import RuntimesResources from './components/runtime-resource.vue'
 import AuthSettings from './components/auth-setting.vue'
-import { setCookie, getCookie } from '../util/cookie'
+import { setLocalstorage } from '@/pages/util/localStorage.js'
 import axios from 'axios'
 const logTablePagination = {
   pageSize: 10,
@@ -638,18 +641,18 @@ export default {
       let refreshRequest = null
       this.currentPluginId = packageId
       const currentTime = new Date().getTime()
-      const accessToken = getCookie('accessToken')
+      const accessToken = localStorage.getItem('wecube-accessToken')
       if (accessToken) {
-        const expiration = getCookie('accessTokenExpirationTime') * 1 - currentTime
+        const expiration = localStorage.getItem('wecube-accessTokenExpirationTime') * 1 - currentTime
         if (expiration < 1 * 60 * 1000 && !refreshRequest) {
           refreshRequest = axios.get('/auth/v1/api/token', {
             headers: {
-              Authorization: 'Bearer ' + getCookie('refreshToken')
+              Authorization: 'Bearer ' + localStorage.getItem('wecube-refreshToken')
             }
           })
           refreshRequest.then(
             res => {
-              setCookie(res.data.data)
+              setLocalstorage(res.data.data)
               this.setUploadActionHeader()
               // this.$refs.importXML.handleClick()
             },
@@ -900,8 +903,10 @@ export default {
       this.currentTab = name
     },
     async getAllPluginPkgs () {
+      // isRetrieveAllPluginPackages yes获取所有插件包，no获取可用插件包
+      const isRetrieveAllPluginPackages = this.isShowDecomissionedPackage ? 'yes' : 'no'
       this.isLoadingPluginList = true
-      let { status, data } = await getAllPluginPkgs()
+      let { status, data } = await getAllPluginPkgs(isRetrieveAllPluginPackages)
       this.isLoadingPluginList = false
       if (status === 'OK') {
         this.plugins = data.map(_ => {
@@ -928,18 +933,18 @@ export default {
       this.showUpload = true
       let refreshRequest = null
       const currentTime = new Date().getTime()
-      const accessToken = getCookie('accessToken')
+      const accessToken = localStorage.getItem('wecube-accessToken')
       if (accessToken) {
-        const expiration = getCookie('accessTokenExpirationTime') * 1 - currentTime
+        const expiration = localStorage.getItem('wecube-accessTokenExpirationTime') * 1 - currentTime
         if (expiration < 1 * 60 * 1000 && !refreshRequest) {
           refreshRequest = axios.get('/auth/v1/api/token', {
             headers: {
-              Authorization: 'Bearer ' + getCookie('refreshToken')
+              Authorization: 'Bearer ' + localStorage.getItem('wecube-refreshToken')
             }
           })
           refreshRequest.then(
             res => {
-              setCookie(res.data.data)
+              setLocalstorage(res.data.data)
               this.setUploadActionHeader()
               this.$refs.uploadButton.handleClick()
             },
@@ -959,7 +964,7 @@ export default {
     },
     setUploadActionHeader () {
       this.headers = {
-        Authorization: 'Bearer ' + getCookie('accessToken')
+        Authorization: 'Bearer ' + localStorage.getItem('wecube-accessToken')
       }
     }
   },

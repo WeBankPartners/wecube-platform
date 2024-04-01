@@ -1,0 +1,70 @@
+{
+  "version": "{{version}}",
+  "default_language": "en",
+  "password_private_key_path": "{{password_private_key_path}}",
+  "https_enable": "{{https_enable}}",
+  "host_ip": "{{host_ip}}",
+  "http_server": {
+    "port": "{{http_port}}",
+    "cross": false,
+    "error_template_dir": "./config/i18n",
+    "error_detail_return": true
+  },
+  "log": {
+    "level": "{{log_level}}",
+    "log_dir": "logs",
+    "access_log_enable": true,
+    "db_log_enable": true,
+    "metric_log_enable": true,
+    "archive_max_size": 200,
+    "archive_max_backup": 20,
+    "archive_max_day": 30,
+    "compress": true,
+    "format_json": false
+  },
+  "database": {
+    "server": "{{db_server}}",
+    "port": "{{db_port}}",
+    "user": "{{db_user}}",
+    "password": "{{db_pass}}",
+    "database": "{{db_database}}",
+    "maxOpen": 200,
+    "maxIdle": 50,
+    "timeout": 60
+  },
+  "auth": {
+    "enable": true,
+    "url": "{{auth_server_url}}",
+    "access_token_expired_sec": "{{access_token_expired_sec}}",
+    "refresh_token_expired_sec": "{{refresh_token_expired_sec}}",
+    "jwt_signing_key": "{{jwt_signing_key}}",
+    "sub_system_private_key": "{{sub_system_private_key}}"
+  },
+  "s3": {
+    "server_address": "{{s3_address}}",
+    "access_key": "{{s3_access_key}}",
+    "secret_key": "{{s3_secret_key}}",
+    "plugin_package_bucket": "wecube-plugin-package-bucket"
+  },
+  "static_resources": [{
+    "server": "{{static_resource_server_ips}}",
+    "user": "{{static_resource_server_user}}",
+    "password": "{{static_resource_server_password}}",
+    "port": "{{static_resource_server_port}}",
+    "path": "{{static_resource_server_path}}"
+  }],
+  "plugin": {
+    "base_mount_path": "{{plugin_base_mount_path}}",
+    "deploy_path": "{{plugin_deploy_path}}",
+    "password_pub_key_path": "{{plugin_password_pub_key_path}}",
+    "resource_password_seed": "{{resource_server_password_seed}}",
+    "public_release_url": "https://wecube-1259801214.cos.ap-guangzhou.myqcloud.com/plugins-v2/"
+  },
+  "gateway": {
+    "url": "{{gateway_url}}",
+    "host_ports": "{{gateway_host_ports}}"
+  },
+  "cron": {
+    "keep_batch_exec_days": {{cron_keep_batch_exec_days}}
+  }
+}

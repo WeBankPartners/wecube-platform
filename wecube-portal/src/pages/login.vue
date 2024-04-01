@@ -17,16 +17,14 @@
         @on-enter="login"
         style="margin-top: 20px"
       />
-      <Button type="primary" long @click="login" :loading="loading" style="margin-top: 20px">
-        Login
-      </Button>
+      <Button type="primary" long @click="login" :loading="loading" style="margin-top: 20px"> Login </Button>
       <!-- <Button type="success" long>SUBMIT</Button> -->
     </div>
   </div>
 </template>
 <script>
 import { login } from '../api/server'
-import { setCookie } from './util/cookie'
+import { setLocalstorage } from '@/pages/util/localStorage.js'
 export default {
   data () {
     return {
@@ -46,7 +44,7 @@ export default {
       const { status, data } = await login(payload)
       if (status === 'OK') {
         let localStorage = window.localStorage
-        setCookie(data)
+        setLocalstorage(data)
         localStorage.setItem('username', this.username)
         this.$router.push('/homepage')
       }
