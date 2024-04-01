@@ -1,0 +1,42 @@
+{
+  "server_address": "127.0.0.1",
+  "server_port": "8080",
+  "error_template_dir":"config/i18n",
+  "error_detail_return": true,
+  "log": {
+    "level": "debug",
+    "log_dir": "logs",
+    "access_log_enable": true,
+    "db_log_enable": true,
+    "archive_max_size": 64,
+    "archive_max_backup": 10,
+    "archive_max_day": 15,
+    "compress": true
+  },
+  "database": {
+    "server": "106.52.160.142",
+    "port": "13306",
+    "user": "root",
+    "password": "mF8PnUQ6dK3ppmrKPmGa",
+    "database": "smoke2_auth_server",
+    "maxOpen": 200,
+    "maxIdle": 50,
+    "timeout": 60
+  },
+  "auth":{
+    "jwt_private_key_path":"config/keys/auth_jwt_private.pem",
+    "jwt_public_key_path":"config/keys/auth_jwt_public.pem",
+    "access_token_mins":20,
+    "refresh_token_mins":20
+  },
+  "umAuth": {
+    "address": "[#um_address]",
+    "appId": "[#um_app_id]",
+    "appToken": "[#um_app_token]"
+  },
+  "um_permission_upload": {
+    "systemId": "[#um_permission_system_id]",
+    "address": "[#um_permission_address]",
+    "cron_express": "[#um_permission_cron_express]"
+  }
+}
