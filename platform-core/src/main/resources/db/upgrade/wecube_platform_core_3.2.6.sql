@@ -1,0 +1,1 @@
+alter table plugin_package_runtime_resources_docker modify column env_variables varchar(5000) default null;
