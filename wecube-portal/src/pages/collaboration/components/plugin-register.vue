@@ -1,21 +1,21 @@
 <template>
   <div class="plugin-register-page">
     <Row>
-      <Col span="7" style="border-right: 1px solid #e8eaec;">
-        <div style="height: calc(100vh - 180px);overflow-y:auto;">
+      <Col span="7" style="border-right: 1px solid #e8eaec">
+        <div style="height: calc(100vh - 180px); overflow-y: auto">
           <div v-if="plugins.length < 1">{{ $t('no_plugin') }}</div>
           <div style="">
-            <Menu theme="light" :active-name="currentPlugin" @on-select="selectPlugin" style="width: 100%;z-index:10">
+            <Menu theme="light" :active-name="currentPlugin" @on-select="selectPlugin" style="width: 100%; z-index: 10">
               <Submenu
                 v-for="(plugin, index) in plugins"
                 :name="plugin.pluginConfigName"
-                style="padding: 0;"
+                style="padding: 0"
                 :key="index"
               >
                 <template slot="title">
                   <Icon type="md-grid" />
-                  <span style="font-size: 15px;">{{ plugin.pluginConfigName }}</span>
-                  <div style="float:right;color: #2d8cf0;margin-right:30px">
+                  <span style="font-size: 15px">{{ plugin.pluginConfigName }}</span>
+                  <div style="float: right; color: #2d8cf0; margin-right: 30px">
                     <Tooltip :content="$t('add')" :delay="1000">
                       <Icon @click.stop.prevent="addPluginConfigDto(plugin)" style="" type="md-add" />
                     </Tooltip>
@@ -25,23 +25,30 @@
                   v-for="(dto, index) in plugin.pluginConfigDtoList.filter(dto => dto.registerName)"
                   :name="dto.id"
                   :key="index"
-                  style="padding: 5px 10px 5px 16px;"
+                  style="padding: 5px 10px 5px 16px"
                 >
                   <span
-                    style="display: inline-block;white-space: nowrap; overflow: hidden; text-overflow: ellipsis;font-size: 15px; font-weight:400"
+                    style="
+                      display: inline-block;
+                      white-space: nowrap;
+                      overflow: hidden;
+                      text-overflow: ellipsis;
+                      font-size: 15px;
+                      font-weight: 400;
+                    "
                     >{{ dto.registerName }}</span
                   >
-                  <div style="vertical-align: top;display: inline-block;float: right;">
+                  <div style="vertical-align: top; display: inline-block; float: right">
                     <Tooltip :content="$t('copy')" :delay="500">
                       <Icon
                         size="16"
-                        style="color: #19be6b;"
+                        style="color: #19be6b"
                         @click.stop.prevent="copyPluginConfigDto(dto.id)"
                         type="md-copy"
                       />
                     </Tooltip>
                     <Tooltip :content="$t('config_permission')" :delay="500">
-                      <Icon size="16" style="color: #2db7f5;" @click="permissionsHandler(dto)" type="md-contacts" />
+                      <Icon size="16" style="color: #2db7f5" @click="permissionsHandler(dto)" type="md-contacts" />
                     </Tooltip>
                   </div>
                 </MenuItem>
@@ -49,12 +56,12 @@
             </Menu>
           </div>
         </div>
-        <div style="padding-right: 20px;margin-top: 10px;">
+        <div style="padding-right: 20px; margin-top: 10px">
           <Button type="info" long ghost @click="batchRegist">{{ $t('batch_regist') }}</Button>
         </div>
       </Col>
       <Col span="17" offset="0" style="padding-left: 10px">
-        <Spin size="large" fix style="margin-top: 200px;" v-show="isLoading">
+        <Spin size="large" fix style="margin-top: 200px" v-show="isLoading">
           <Icon type="ios-loading" size="44" class="spin-icon-load"></Icon>
           <div>{{ $t('loading') }}</div>
         </Spin>
@@ -68,22 +75,24 @@
             <Col span="15" v-if="hidePanal" offset="1">
               <FormItem :label="$t('target_type')">
                 <span @click="getAllDataModels">
-                  <FilterRules
-                    v-model="selectedEntityType"
-                    :rootEntity="clearedEntityType"
-                    :disabled="currentPluginObj.status === 'ENABLED'"
-                    :allDataModelsWithAttrs="allEntityType"
-                    @change="selectedEntityTypeChangeHandler"
-                  ></FilterRules>
+                  <div style="width: 200px; display: inline-block">
+                    <FilterRules
+                      v-model="selectedEntityType"
+                      :rootEntity="clearedEntityType"
+                      :disabled="currentPluginObj.status === 'ENABLED'"
+                      :allDataModelsWithAttrs="allEntityType"
+                      @change="selectedEntityTypeChangeHandler"
+                    ></FilterRules>
+                  </div>
                 </span>
               </FormItem>
             </Col>
           </Row>
-          <div style="height: calc(100vh - 300px);overflow:auto;" id="paramsContainer">
-            <div style="background:#f7f7f7">
+          <div style="height: calc(100vh - 300px); overflow: auto" id="paramsContainer">
+            <div style="background: #f7f7f7">
               <div
                 v-for="(inter, index) in currentPluginObj.interfaces"
-                style="margin:4px;padding: 4px; border-bottom:1px solid #dcdee2;"
+                style="margin: 4px; padding: 4px; border-bottom: 1px solid #dcdee2"
                 :key="index + inter.action"
               >
                 <Tooltip :content="inter.description">
@@ -92,7 +101,7 @@
                     :disabled="currentPluginObj.status === 'ENABLED'"
                     @on-blur="actionBlurHandler($event, inter)"
                     @click.stop.native="actionFocus($event)"
-                    style="width:200px"
+                    style="width: 200px"
                     size="small"
                   />
                 </Tooltip>
@@ -122,7 +131,7 @@
                     @click.stop.prevent="deleteInterface(index)"
                   ></Button>
                 </Tooltip>
-                <span style="float:right">
+                <span style="float: right">
                   <Tooltip :content="$t('parameter_configuration')" placement="top-end">
                     <Button
                       size="small"
@@ -136,7 +145,7 @@
               </div>
             </div>
           </div>
-          <Row v-if="currentPluginObjKeysLength > 1" style="margin:45px auto;margin-bottom:0;">
+          <Row v-if="currentPluginObjKeysLength > 1" style="margin: 45px auto; margin-bottom: 0">
             <Col span="9" offset="8">
               <Button type="primary" ghost v-if="currentPluginObj.status === 'DISABLED'" @click="pluginSave">{{
                 $t('save')
@@ -164,29 +173,29 @@
       @on-cancel="closeParamsModal"
     >
       <div v-if="paramsModalVisible" class="modal-paramsContainer">
-        <Row style="border-bottom: 1px solid #e5dfdf;margin-bottom:5px">
+        <Row style="border-bottom: 1px solid #e5dfdf; margin-bottom: 5px">
           <Col span="2" offset="0">
-            <strong style="font-size:15px;">{{ $t('params_type') }}</strong>
+            <strong style="font-size: 15px">{{ $t('params_type') }}</strong>
           </Col>
           <Col span="2" offset="0">
-            <strong style="font-size:15px;">{{ $t('params_name') }}</strong>
+            <strong style="font-size: 15px">{{ $t('params_name') }}</strong>
           </Col>
-          <Col span="2" offset="0" style="text-align: center;">
-            <strong style="font-size:15px;">{{ $t('data_type') }}</strong>
+          <Col span="2" offset="0" style="text-align: center">
+            <strong style="font-size: 15px">{{ $t('data_type') }}</strong>
           </Col>
-          <Col span="1" style="margin-left:60px" offset="0">
-            <strong style="font-size:15px;">{{ $t('core_multiple') }}</strong>
+          <Col span="1" style="margin-left: 60px" offset="0">
+            <strong style="font-size: 15px">{{ $t('core_multiple') }}</strong>
           </Col>
-          <Col span="1" style="margin-left:45px" offset="0">
-            <strong style="font-size:15px;">{{ $t('sensitive') }}</strong>
+          <Col span="1" style="margin-left: 45px" offset="0">
+            <strong style="font-size: 15px">{{ $t('sensitive') }}</strong>
           </Col>
           <Col span="2" offset="1">
-            <strong style="font-size:15px;">
+            <strong style="font-size: 15px">
               {{ $t('attribute_type') }}
             </strong>
           </Col>
-          <Col span="10" style="margin-left:100px" offset="1">
-            <strong style="font-size:15px;">{{ $t('attribute') }}</strong>
+          <Col span="10" style="margin-left: 100px" offset="1">
+            <strong style="font-size: 15px">{{ $t('attribute') }}</strong>
           </Col>
         </Row>
         <div class="modal-interfaceContainers">
@@ -201,13 +210,13 @@
                 <Row v-for="(param, index) in currentInter['inputParameters']" :key="index">
                   <Col span="3">
                     <FormItem :label-width="0">
-                      <span v-if="param.required === 'Y'" style="color:red;vertical-align: text-bottom;">*</span>
+                      <span v-if="param.required === 'Y'" style="color: red; vertical-align: text-bottom">*</span>
                       <Tooltip content="">
                         <span
-                          style="display: inline-block;white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"
+                          style="display: inline-block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis"
                           >{{ param.name }}</span
                         >
-                        <div slot="content" style="white-space: normal;">
+                        <div slot="content" style="white-space: normal">
                           <span>{{ param.description }}</span>
                         </div>
                       </Tooltip>
@@ -223,7 +232,7 @@
                       <Select
                         v-model="param.multiple"
                         filterable
-                        style="width:50px"
+                        style="width: 50px"
                         :disabled="currentPluginObj.status === 'ENABLED'"
                       >
                         <Option v-for="item in sensitiveData" :value="item.value" :key="item.value">{{
@@ -237,7 +246,7 @@
                       <Select
                         v-model="param.sensitiveData"
                         filterable
-                        style="width:50px"
+                        style="width: 50px"
                         :disabled="currentPluginObj.status === 'ENABLED'"
                       >
                         <Option v-for="item in sensitiveData" :value="item.value" :key="item.value">{{
@@ -306,7 +315,7 @@
                         />
                       </span>
                       <span v-if="param.mappingType === 'entity'">
-                        <div style="width: 50%;display:inline-block;vertical-align: top;">
+                        <div style="width: 50%; display: inline-block; vertical-align: top">
                           <FilterRulesRef
                             v-model="param.mappingEntityExpression"
                             :disabled="currentPluginObj.status === 'ENABLED'"
@@ -343,13 +352,18 @@
                   <template v-if="outPut.mappingType !== 'assign'">
                     <Col span="3">
                       <FormItem :label-width="0">
-                        <span v-if="outPut.required === 'Y'" style="color:red;vertical-align: text-bottom;">*</span>
+                        <span v-if="outPut.required === 'Y'" style="color: red; vertical-align: text-bottom">*</span>
                         <Tooltip content="">
                           <span
-                            style="display: inline-block;white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"
+                            style="
+                              display: inline-block;
+                              white-space: nowrap;
+                              overflow: hidden;
+                              text-overflow: ellipsis;
+                            "
                             >{{ outPut.name }}</span
                           >
-                          <div slot="content" style="white-space: normal;">
+                          <div slot="content" style="white-space: normal">
                             <span>{{ outPut.description }}</span>
                           </div>
                         </Tooltip>
@@ -365,7 +379,7 @@
                         <Select
                           v-model="outPut.multiple"
                           filterable
-                          style="width:50px"
+                          style="width: 50px"
                           :disabled="currentPluginObj.status === 'ENABLED'"
                         >
                           <Option v-for="item in sensitiveData" :value="item.value" :key="item.value">{{
@@ -379,7 +393,7 @@
                         <Select
                           filterable
                           v-model="outPut.sensitiveData"
-                          style="width:50px"
+                          style="width: 50px"
                           :disabled="currentPluginObj.status === 'ENABLED'"
                         >
                           <Option v-for="item in sensitiveData" :value="item.value" :key="item.value">{{
@@ -415,14 +429,14 @@
                   <template v-else>
                     <Col span="5">
                       <FormItem :label-width="0">
-                        <span v-if="outPut.required === 'Y'" style="color:red;vertical-align: text-bottom;">*</span>
+                        <span v-if="outPut.required === 'Y'" style="color: red; vertical-align: text-bottom">*</span>
                         <!-- <Button @click="removeOutputParams(index)" size="small" icon="ios-trash"></Button> -->
                         <Input v-model="outPut.name" placeholder="key" :disabled="outPut.id !== ''" />
                       </FormItem>
                     </Col>
                     <Col span="6" offset="1">
                       <FormItem :label-width="0">
-                        <span v-if="outPut.required === 'Y'" style="color:red;vertical-align: text-bottom;">*</span>
+                        <span v-if="outPut.required === 'Y'" style="color: red; vertical-align: text-bottom">*</span>
                         <Input
                           v-model="outPut.mappingValue"
                           :disabled="currentPluginObj.status === 'ENABLED'"
@@ -461,7 +475,7 @@
       @on-cancel="closeTreeModal"
     >
       <Checkbox @on-change="selectOrCancelAll" border>{{ $t('select_cancel_all') }}</Checkbox>
-      <div style="height:500px;overflow:auto">
+      <div style="height: 500px; overflow: auto">
         <Tree ref="configTree" :data="configTree" show-checkbox multiple></Tree>
       </div>
     </Modal>
@@ -498,7 +512,7 @@
           filterable
         ></Transfer>
       </div>
-      <div style="margin-top:20px;text-align:right">
+      <div style="margin-top: 20px; text-align: right">
         <Button type="primary" @click="confirmRole">{{ $t('bc_confirm') }}</Button>
       </div>
     </Modal>
@@ -729,11 +743,7 @@ export default {
         this.objectRootEntity = expression.split('>').pop()
       } else {
         // 以 '~' 分割
-        this.objectRootEntity = expression
-          .split('~')
-          .pop()
-          .split(')')
-          .pop()
+        this.objectRootEntity = expression.split('~').pop().split(')').pop()
       }
     },
     managementExpression (mappingEntityExpression, rootEntity) {
@@ -1004,6 +1014,10 @@ export default {
         return
       }
       if (this.hasNewSource) {
+        if (this.currentPluginObj.permissionToRole === null) {
+          this.currentPluginObj.permissionToRole = {}
+        }
+
         this.currentPluginObj.permissionToRole.MGMT = this.mgmtRolesKey
         this.currentPluginObj.permissionToRole.USE = this.useRolesKey
       }
@@ -1044,6 +1058,9 @@ export default {
         // return
       }
       if (this.hasNewSource) {
+        if (this.currentPluginObj.permissionToRole === null) {
+          this.currentPluginObj.permissionToRole = {}
+        }
         this.currentPluginObj.permissionToRole.MGMT = this.mgmtRolesKey
         this.currentPluginObj.permissionToRole.USE = this.useRolesKey
       }
