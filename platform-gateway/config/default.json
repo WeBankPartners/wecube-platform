@@ -1,0 +1,19 @@
+{
+  "server_address": "127.0.0.1",
+  "server_port": "8080",
+  "error_template_dir":"config/i18n",
+  "error_detail_return": true,
+  "log": {
+    "level": "debug",
+    "log_dir": "logs",
+    "access_log_enable": true,
+    "db_log_enable": true,
+    "archive_max_size": 64,
+    "archive_max_backup": 10,
+    "archive_max_day": 15,
+    "compress": true
+  },
+  "remote_service": {
+    "route_config_address": "http://127.0.0.1:3000/api"
+  }
+}

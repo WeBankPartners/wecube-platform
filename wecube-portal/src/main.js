@@ -92,7 +92,18 @@ window.addRoutersWithoutPermission = routes => {
     })
   )
 }
-window.implicitRoutes = {}
+window.implicitRoutes = {
+  'collaboration/workflow-mgmt': {
+    childBreadcrumb: {
+      'en-US': 'Workflow Mgmt',
+      'zh-CN': '编排设计'
+    },
+    parentBreadcrumb: {
+      'en-US': 'Workflow',
+      'zh-CN': '任务编排'
+    }
+  }
+}
 window.addImplicitRoute = routes => {
   window.implicitRoutes = Object.assign(window.implicitRoutes, routes)
 }
@@ -150,12 +161,13 @@ router.beforeEach((to, from, next) => {
         .find(_ => _.link === to.path && _.active)
       if (
         (isHasPermission && isHasPermission.active) ||
-        to.path === '/404' ||
-        to.path === '/login' ||
-        to.path === '/homepage'
+        ['/404', '/login', '/homepage', '/collaboration/workflow-mgmt'].includes(to.path)
       ) {
         /* has permission */
-        window.sessionStorage.setItem('currentPath', to.path === '/404' || to.path === '/login' ? '/homepage' : to.path)
+        window.sessionStorage.setItem(
+          'currentPath',
+          to.path === '/404' || to.path === '/login' ? '/homepage' : to.fullPath
+        )
         next()
       } else {
         /* has no permission */

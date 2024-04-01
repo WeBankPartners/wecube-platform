@@ -1,7 +1,19 @@
-from platten/alpine-oracle-jre8-docker:latest
+FROM ccr.ccs.tencentyun.com/webankpartners/alpine-base:v1.0
 LABEL maintainer = "Webank CTB Team"
-ADD platform-gateway/target/platform-gateway.jar  /application/platform-gateway.jar
-ADD build/platform-gateway/start_gateway.sh /scripts/start.sh
-RUN chmod +x /scripts/start.sh
-CMD ["/bin/sh","-c","/scripts/start.sh"]
+
+ENV BASE_HOME=/app/tradesys
+
+RUN mkdir -p $BASE_HOME $BASE_HOME/config $BASE_HOME/config/i18n $BASE_HOME/config/private_key $BASE_HOME/config/public_key
+
+ADD ../../platform-gateway/build/start.sh $BASE_HOME/
+ADD ../../platform-gateway/build/stop.sh $BASE_HOME/
+ADD ../../platform-gateway/build/config $BASE_HOME/config/
+ADD ../../platform-gateway/platform-gateway $BASE_HOME/
+
+RUN addgroup -S apps -g 6000 && adduser -S app -u 6001 -G apps
+RUN chown -R app:apps $BASE_HOME && chmod -R 755 $BASE_HOME
+USER app
+
+WORKDIR $BASE_HOME
+ENTRYPOINT ["/bin/sh", "start.sh"]
 

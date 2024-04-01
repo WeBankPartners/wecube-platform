@@ -29,15 +29,14 @@ export default {
       allMenusAry: [],
       parentBreadcrumb: '',
       childBreadcrumb: '',
-      expandTaskmanMenu: true
+      expandSideMenu: false
     }
   },
   computed: {
     setBreadcrumbStyle () {
-      // 给taskman工作台侧边菜单栏适配样式
-      const showMargin = this.expandTaskmanMenu && this.$route.path.indexOf('taskman/workbench') > -1
+      // 给侧边菜单栏适配样式
       return {
-        margin: showMargin ? '10px 0 10px 180px' : '10px 0'
+        margin: this.expandSideMenu ? '10px 0 10px 140px' : '10px 0'
       }
     }
   },
@@ -84,7 +83,7 @@ export default {
   created () {
     // 获取taskman侧边菜单栏展开收缩状态
     this.$eventBusP.$on('expand-menu', val => {
-      this.expandTaskmanMenu = val
+      this.expandSideMenu = val
     })
     this.setBreadcrumb()
   },
@@ -121,7 +120,7 @@ export default {
   display: block;
 }
 .content-container {
-  padding: 5px 30px;
+  padding: 0px 20px;
 }
 .ivu-breadcrumb {
   color: #515a6e;

@@ -1,0 +1,147 @@
+{
+  "success": "成功",
+  "request_param_validate_error": {
+    "code": 10000001,
+    "message": "系统报错 [请求参数校验失败]"
+  },
+  "request_read_body_error": {
+    "code": 10000002,
+    "message": "系统报错 [读取请求体body数据错误]"
+  },
+  "request_json_unmarshal_error": {
+    "code": 10000003,
+    "message": "系统报错 [json反格式化请求体内容错误]"
+  },
+  "request_token_validate_error": {
+    "code": 10000004,
+    "message": "系统报错 [请求认证校验失败]"
+  },
+  "request_token_expire_error": {
+    "code": 10000005,
+    "message": "系统报错 [请求token已过期]"
+  },
+  "database_query_error": {
+    "code": 10000021,
+    "message": "系统报错 [查询数据库失败]"
+  },
+  "database_query_empty_error": {
+    "code": 10000022,
+    "message": "系统报错 [获取数据库数据失败,返回数据为空]"
+  },
+  "database_execute_error": {
+    "code": 10000023,
+    "message": "系统报错 [执行数据库语句报错]"
+  },
+  "server_handle_error": {
+    "code": 10000031,
+    "message": "系统报错 [服务请求处理失败]"
+  },
+  "plugin_dependency_illegal": {
+    "code": 20000001,
+    "message": "插件版本依赖校验失败"
+  },
+  "proc_def_node_name_empty_error": {
+    "code": 20000002,
+    "message": "保存失败:节点名字不能为空"
+  },
+  "proc_def_node_name_repeat_error": {
+    "code": 20000003,
+    "message": "保存失败:同名节点: %s 已存在"
+  },
+  "proc_def_node_20000004_error": {
+    "code": 20000004,
+    "message": "发布失败:编排格式错误,[分流节点: %s]均须单进多出"
+  },
+  "proc_def_node_20000005_error": {
+    "code": 20000005,
+    "message": "发布失败:编排格式错误,[汇聚节点: %s]均须多进单出"
+  },
+  "proc_def_node_20000006_error": {
+    "code": 20000006,
+    "message": "发布失败:编排格式错误,[判断节点: %s]必须有分支,且名字不同"
+  },
+  "proc_def_node_20000007_error": {
+    "code": 20000007,
+    "message": "发布失败:编排格式错误,[开始节点: %s]、[结束节点: %s]均只能有1个"
+  },
+  "proc_def_node_20000008_error": {
+    "code": 20000008,
+    "message": "发布失败:编排格式错误,[分流节点: %s]和[汇聚节点: %s]不能直连"
+  },
+  "proc_def_node_20000009_error": {
+    "code": 20000009,
+    "message": "发布失败:编排节点不能为空"
+  },
+  "proc_def_node_20000010_error": {
+    "code": 20000010,
+    "message": "发布失败:任务节点、时间节点: %s仅支持单进单出"
+  },
+  "proc_def_import_low_version_error": {
+    "code": 20000015,
+    "message": "导入失败:导入版本低于当前环境已有编排,仅支持导入高版本"
+  },
+  "proc_def_import_draft_conflict_error": {
+    "code": 20000016,
+    "message": "导入失败:[未发布]中已有一条同名编排正在修改,请删除该条草稿后重新导入"
+  },
+  "proc_def_import_server_error": {
+    "code": 20000017,
+    "message": "导入失败:请刷新页面,稍后重试"
+  },
+  "delete_user_error": {
+    "code": 20000018,
+    "message": "删除失败:当前用户已经被绑定为[%s角色]的管理员,请先配置其他用户为管理员再重试"
+  },
+  "proc_def_loop_check_error": {
+    "code": 20000019,
+    "message": "发布失败:编排格式错误,编排中不能出现环路"
+  },
+  "proc_def_name_repeat_error": {
+    "code": 20000020,
+    "message": "保存失败:编排名称不能和已有编排冲突"
+  },
+  "proc_def_root_entity_empty_error": {
+    "code": 20000021,
+    "message": "对象类型不能为空"
+  },
+  "proc_def_node_service_name_empty_error": {
+    "code": 20000022,
+    "message": "发布失败:任务节点: %s 插件服务参数不能为空"
+  },
+  "proc_def_node_date_empty_error": {
+    "code": 20000023,
+    "message": "发布失败:时间节点: %s 日期参数不能为空"
+  },
+  "proc_def__node_delete_error": {
+    "code": 20000024,
+    "message": "删除失败:当前节点已被[%s节点]绑定,请先移除绑定关系再删除"
+  },
+  "batch_exec_plugin_auth_error": {
+    "code": 20000025,
+    "message": "执行失败:您暂时没有插件服务 [%s] 的使用权限,请联系平台管理员"
+  },
+  "batch_exec_plugin_api_error": {
+    "code": 20000026,
+    "message": "执行失败: API报错 [%s]"
+  },
+  "batch_exec_tmpl_duplicate_name_error": {
+    "code": 20000027,
+    "message": "保存失败：同名模板已存在,请修改名称后重试"
+  },
+  "batch_exec_tmpl_has_been_modified_error": {
+    "code": 20000028,
+    "message": "保存失败/发布失败: 当前模版已被他人修改,请返回模版列表再重新发起编辑"
+  },
+  "batch_exec_duplicate_name_error": {
+    "code": 20000029,
+    "message": "执行失败: 执行名称已存在,请修改后再重新执行"
+  },
+  "deal_with_at_the_same_time_error": {
+    "code": 20000030,
+    "message": "编辑失败:当前编排已被其他用户编辑,请刷新列表重试"
+  },
+  "data_permission_deny": {
+    "code": 20000031,
+    "message": "无数据权限"
+  }
+}

@@ -1,0 +1,147 @@
+{
+  "success": "Success",
+  "request_param_validate_error": {
+    "code": 10000001,
+    "message": "System error [Parameter validate fail]"
+  },
+  "request_read_body_error": {
+    "code": 10000002,
+    "message": "System error [Failed to read request body data]"
+  },
+  "request_json_unmarshal_error": {
+    "code": 10000003,
+    "message": "System error [Failed unmarshal request body in json]"
+  },
+  "request_token_validate_error": {
+    "code": 10000004,
+    "message": "System error [Failed validate request token]"
+  },
+  "request_token_expire_error": {
+    "code": 10000005,
+    "message": "System error [token expired]"
+  },
+  "database_query_error": {
+    "code": 10000021,
+    "message": "System error [Failed to Query database fail]"
+  },
+  "database_query_empty_error": {
+    "code": 10000022,
+    "message": "System error [Failed to get any rows with database query]"
+  },
+  "database_execute_error": {
+    "code": 10000023,
+    "message": "System error [Failed to execute database sql]"
+  },
+  "server_handle_error": {
+    "code": 10000031,
+    "message": "System error [Failed to handle request]"
+  },
+  "plugin_dependency_illegal": {
+    "code": 20000001,
+    "message": "Plugin dependency validate fail"
+  },
+  "proc_def_node_name_empty_error": {
+    "code": 20000002,
+    "message": "Save Failed: Node name cannot be empty."
+  },
+  "proc_def_node_name_repeat_error": {
+    "code": 20000003,
+    "message": "Save Failed: Node with the same name: %s  already exists."
+  },
+  "proc_def_node_20000004_error": {
+    "code": 20000004,
+    "message": "Publish Failed: Format error in process, [fork node: %s] must have multiple outgoing connections."
+  },
+  "proc_def_node_20000005_error": {
+    "code": 20000005,
+    "message": "Publish Failed: Format error in process, [merge node: %s] must have multiple incoming and single outgoing connection."
+  },
+  "proc_def_node_20000006_error": {
+    "code": 20000006,
+    "message": "Publish Failed: Format error in process, [decision node: %s] must have branches, and the names must be different."
+  },
+  "proc_def_node_20000007_error": {
+    "code": 20000007,
+    "message": "Publish Failed: Format error in process, [start node: %s] and [end node: %s] can only have 1 each."
+  },
+  "proc_def_node_20000008_error": {
+    "code": 20000008,
+    "message": "Publish Failed: Format error in process, [fork node: %s] or [merge node: %s] cannot directly connect branch node."
+  },
+  "proc_def_node_20000009_error": {
+    "code": 20000009,
+    "message": "Publish Failed: Format error in process,no nodes in the process"
+  },
+  "proc_def_node_20000010_error": {
+    "code": 20000010,
+    "message": "Publish Failed: Format error in process, [task nodes] and [time nodes]: %s only support single in and single out"
+  },
+  "proc_def_import_low_version_error": {
+    "code": 20000015,
+    "message": "Import Failed: The imported process version is lower than the current environment, only supports importing higher versions."
+  },
+  "proc_def_import_draft_conflict_error": {
+    "code": 20000016,
+    "message": "Import Failed: already a draft with the same name in [Unpublished], please delete that draft and try importing again."
+  },
+  "proc_def_import_server_error": {
+    "code": 20000017,
+    "message": "Import Failed: Please refresh the page and try again later."
+  },
+  "delete_user_error": {
+    "code": 20000018,
+    "message": "Delete failed: The current user has already been bound as an admin in the [%s role]. Please configure other users as admin before trying again"
+  },
+  "proc_def_loop_check_error": {
+    "code": 20000019,
+    "message": "Publish Failed: Format error in process, loops are not allowed in the process."
+  },
+  "proc_def_name_repeat_error": {
+    "code": 20000020,
+    "message": "Save failed: The process name cannot conflict with an existing one."
+  },
+  "proc_def_root_entity_empty_error": {
+    "code": 20000021,
+    "message": "Entity Type cannot be empty"
+  },
+  "proc_def_node_service_name_empty_error": {
+    "code": 20000022,
+    "message": "Publish Failed: [task nodes]:%s plugin service param cannot be empty.%s "
+  },
+  "proc_def_node_date_empty_error": {
+    "code": 20000023,
+    "message": "Publish Failed: [time nodes]: %s date param cannot be empty."
+  },
+  "proc_def__node_delete_error": {
+    "code": 20000024,
+    "message": "Delete failed: The current node has been bound by [%s node], please remove the binding relationship first and then delete it."
+  },
+  "batch_exec_plugin_auth_error": {
+    "code": 20000025,
+    "message": "Execution Failed: You currently do not have permission to use the plugin service [%s]. Please contact the platform administrator."
+  },
+  "batch_exec_plugin_api_error": {
+    "code": 20000026,
+    "message": "Execution Failed: API error [%s]"
+  },
+  "batch_exec_tmpl_duplicate_name_error": {
+    "code": 20000027,
+    "message": "Save Failed: A template with the same name already exists. Please modify the name and try again."
+  },
+  "batch_exec_tmpl_has_been_modified_error": {
+    "code": 20000028,
+    "message": "Save Failed/Publish Failed: The current template has been modified by someone else. Please return to the template list and initiate editing again."
+  },
+  "batch_exec_duplicate_name_error": {
+    "code": 20000029,
+    "message": "Execution Failed: An execution with the same name already exists. Please modify the name and try again."
+  },
+  "deal_with_at_the_same_time_error": {
+    "code": 20000030,
+    "message": "Editing failed: The current arrangement has been edited by another user. Please refresh the list and try again."
+  },
+  "data_permission_deny": {
+    "code": 20000031,
+    "message": "Data Permission Deny"
+  }
+}

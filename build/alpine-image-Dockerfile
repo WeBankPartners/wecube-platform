@@ -1,0 +1,9 @@
+FROM alpine:3.19.0
+
+RUN echo "https://mirror.tuna.tsinghua.edu.cn/alpine/v3.19/main/" > /etc/apk/repositories
+
+RUN apk update \
+    && apk upgrade \
+    && apk add --no-cache bash openssh sshpass\
+    && rm -rf /var/cache/apk/* \
+    && /bin/bash

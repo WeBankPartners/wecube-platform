@@ -13,7 +13,7 @@
       </div>
       <div class="item">
         {{ $t('set_up_person') }}:
-        <Input v-model="searchConfig.params.owner" style="width: 80%" clearable></Input>
+        <Input v-model="searchConfig.params.owner" style="width: 70%" clearable></Input>
       </div>
       <div class="item">
         {{ $t('timing_type') }}:
@@ -114,6 +114,20 @@
             format="HH:mm:ss"
           ></TimePicker>
         </FormItem>
+        <FormItem :label="$t('be_mgmt_role')">
+          <Select v-model="timeConfig.params.role" style="width: 370px">
+            <Option v-for="item in timeConfig.currentUserRoles" :key="item.name" :value="item.name">{{
+              item.displayName
+            }}</Option>
+          </Select>
+        </FormItem>
+        <FormItem :label="$t('be_email_push')">
+          <Select v-model="timeConfig.params.mailMode" style="width: 370px">
+            <Option v-for="item in timeConfig.mailModeOptions" :key="item.value" :value="item.value">{{
+              item.label
+            }}</Option>
+          </Select>
+        </FormItem>
       </Form>
       <div slot="footer">
         <Button type="text" @click="timeConfig.isShow = false">{{ $t('bc_cancel') }}</Button>
@@ -131,7 +145,8 @@ import {
   getScheduledTasksByStatus,
   getProcessInstances,
   setUserScheduledTasks,
-  stopUserScheduledTasks
+  stopUserScheduledTasks,
+  getCurrentUserRoles
 } from '@/api/server'
 export default {
   name: '',
@@ -205,58 +220,71 @@ export default {
         },
         {
           title: this.$t('flow_name'),
-          key: 'procDefName'
+          key: 'procDefName',
+          width: 200
         },
         {
           title: this.$t('target_object'),
-          key: 'entityDataName'
+          key: 'entityDataName',
+          width: 200
         },
         {
           title: this.$t('table_created_date'),
-          key: 'createdTime'
+          key: 'createdTime',
+          width: 200
         },
         {
           title: this.$t('set_up_person'),
-          key: 'owner'
+          key: 'owner',
+          width: 120
         },
         {
           title: this.$t('timing_type'),
-          key: 'scheduleMode'
+          key: 'scheduleMode',
+          width: 120
         },
         {
           title: this.$t('schedule_expr'),
-          key: 'scheduleExpr'
+          key: 'scheduleExpr',
+          width: 200
         },
         {
           title: this.$t('status'),
-          key: 'status'
+          key: 'status',
+          width: 110
         },
         {
-          title: this.$t('failure_count'),
-          key: 'totalFaultedInstances',
+          title: this.$t('role'),
+          key: 'role',
           width: 100,
           render: (h, params) => {
-            return (
-              <div>
-                <span style="color:red">{params.row.totalFaultedInstances}</span>
-                {params.row.totalFaultedInstances > 0 && (
-                  <Button
-                    style="margin-left:8px"
-                    size="small"
-                    type="primary"
-                    ghost
-                    onClick={() => this.getDetails(params.row, 'F')}
-                    icon="ios-search"
-                  ></Button>
-                )}
-              </div>
-            )
+            const role = params.row.role || ''
+            const find = this.timeConfig.currentUserRoles.find(item => item.name === role)
+            let res = ''
+            if (find) {
+              res = find.displayName
+            }
+            return <div>{res}</div>
+          }
+        },
+        {
+          title: this.$t('email'),
+          key: 'mailMode',
+          width: 120,
+          render: (h, params) => {
+            const mailMode = params.row.mailMode || ''
+            const find = this.timeConfig.mailModeOptions.find(item => item.value === mailMode)
+            let res = ''
+            if (find) {
+              res = find.label
+            }
+            return <div>{res}</div>
           }
         },
         {
           title: this.$t('success_count'),
           key: 'totalCompletedInstances',
-          width: 100,
+          width: 90,
           render: (h, params) => {
             return (
               <div>
@@ -267,7 +295,95 @@ export default {
                     size="small"
                     type="primary"
                     ghost
-                    onClick={() => this.getDetails(params.row, 'S')}
+                    onClick={() => this.getDetails(params.row, 'Completed')}
+                    icon="ios-search"
+                  ></Button>
+                )}
+              </div>
+            )
+          }
+        },
+        {
+          title: this.$t('in_progress_count'),
+          key: 'totalInProgressInstances',
+          width: 100,
+          render: (h, params) => {
+            return (
+              <div>
+                <span style="color:red">{params.row.totalInProgressInstances}</span>
+                {params.row.totalInProgressInstances > 0 && (
+                  <Button
+                    style="margin-left:8px"
+                    size="small"
+                    type="primary"
+                    ghost
+                    onClick={() => this.getDetails(params.row, 'InProgress')}
+                    icon="ios-search"
+                  ></Button>
+                )}
+              </div>
+            )
+          }
+        },
+        {
+          title: this.$t('terminate_count'),
+          key: 'totalTerminateInstances',
+          width: 100,
+          render: (h, params) => {
+            return (
+              <div>
+                <span style="color:red">{params.row.totalTerminateInstances}</span>
+                {params.row.totalTerminateInstances > 0 && (
+                  <Button
+                    style="margin-left:8px"
+                    size="small"
+                    type="primary"
+                    ghost
+                    onClick={() => this.getDetails(params.row, 'InternallyTerminated')}
+                    icon="ios-search"
+                  ></Button>
+                )}
+              </div>
+            )
+          }
+        },
+        {
+          title: this.$t('timeout_count'),
+          key: 'totalTimeoutInstances',
+          width: 90,
+          render: (h, params) => {
+            return (
+              <div>
+                <span style="color:red">{params.row.totalTimeoutInstances}</span>
+                {params.row.totalTimeoutInstances > 0 && (
+                  <Button
+                    style="margin-left:8px"
+                    size="small"
+                    type="primary"
+                    ghost
+                    onClick={() => this.getDetails(params.row, 'Timeout')}
+                    icon="ios-search"
+                  ></Button>
+                )}
+              </div>
+            )
+          }
+        },
+        {
+          title: this.$t('failure_count'),
+          key: 'totalFaultedInstances',
+          width: 90,
+          render: (h, params) => {
+            return (
+              <div>
+                <span style="color:red">{params.row.totalFaultedInstances}</span>
+                {params.row.totalFaultedInstances > 0 && (
+                  <Button
+                    style="margin-left:8px"
+                    size="small"
+                    type="primary"
+                    ghost
+                    onClick={() => this.getDetails(params.row, 'Faulted')}
                     icon="ios-search"
                   ></Button>
                 )}
@@ -278,8 +394,9 @@ export default {
         {
           title: this.$t('table_action'),
           key: 'action',
-          width: 250,
+          width: 230,
           align: 'center',
+          fixed: 'right',
           render: (h, params) => {
             return (
               <div>
@@ -315,8 +432,16 @@ export default {
           selectedFlowInstance: '',
           scheduleMode: 'Monthly',
           time: '00:00:00',
-          cycle: ''
+          cycle: '',
+          role: '',
+          mailMode: 'node'
         },
+        currentUserRoles: [],
+        mailModeOptions: [
+          { label: this.$t('be_role_email'), value: 'role' },
+          { label: this.$t('be_user_email'), value: 'user' },
+          { label: this.$t('be_not_send'), value: 'none' }
+        ],
         scheduleModeOptions: [
           { label: this.$t('Hourly'), value: 'Hourly' },
           { label: this.$t('Daily'), value: 'Daily' },
@@ -417,7 +542,9 @@ export default {
         procDefName: found.procInstName,
         procDefId: found.procDefId,
         entityDataName: found.entityDisplayName,
-        entityDataId: found.entityDataId
+        entityDataId: found.entityDataId,
+        mailMode: this.timeConfig.params.mailMode,
+        role: this.timeConfig.params.role
       }
       const { status } = await setUserScheduledTasks(params)
       if (status === 'OK') {
@@ -435,7 +562,15 @@ export default {
       this.timeConfig.params.scheduleMode = 'Monthly'
       this.timeConfig.params.time = '00:00:00'
       this.timeConfig.params.cycle = ''
+      this.timeConfig.params.role = ''
+      this.timeConfig.params.mailMode = 'none'
       this.timeConfig.isShow = true
+    },
+    async getCurrentUserRoles () {
+      const { status, data } = await getCurrentUserRoles()
+      if (status === 'OK') {
+        this.timeConfig.currentUserRoles = data
+      }
     },
     exportData () {
       this.$refs.table.exportCsv({
@@ -509,6 +644,7 @@ export default {
       })
     },
     async getUserScheduledTasks () {
+      await this.getCurrentUserRoles()
       let params = JSON.parse(JSON.stringify(this.searchConfig.params))
       const keys = Object.keys(params)
       keys.forEach(key => {
@@ -529,7 +665,11 @@ export default {
   components: {}
 }
 </script>
-
+<style lang="scss">
+.ivu-table-cell {
+  padding: 0 4px !important;
+}
+</style>
 <style scoped lang="scss">
 .report-container {
   display: flex;

@@ -53,10 +53,10 @@ export const getParamsInfosByFlowIdAndNodeId = (flowId, nodeId) =>
   req.get(`platform/v1/process/definitions/${flowId}/tasknodes/${nodeId}`)
 
 export const getFlowNodes = flowId => req.get(`platform/v1/process/definitions/${flowId}/tasknodes/briefs`)
-export const getContextParametersNodes = (flowId, taskNodeId, prevCtxNodeIds) => {
+export const getContextParametersNodes = (flowId, taskNodeId, contextParamNodes) => {
   let params = {
     taskNodeId: taskNodeId,
-    prevCtxNodeIds: prevCtxNodeIds.join(',')
+    contextParamNodes: contextParamNodes.join(',')
   }
   return req.get(`/platform/v1/process/definitions/${flowId}/root-context-nodes/briefs`, { params })
 }
@@ -87,7 +87,8 @@ export const getResourceItemType = () => req.get('/platform/resource/constants/r
 // enum
 export const getEnumCodesByCategoryId = (catTypeId, catId) =>
   req.get(`/platform/v1/cmdb/enum/category-types/${catTypeId}/categories/${catId}/codes`)
-export const getAllPluginPkgs = () => req.get('/platform/v1/packages')
+export const getAllPluginPkgs = isRetrieveAllPluginPackages =>
+  req.get(`/platform/v1/packages?all=${isRetrieveAllPluginPackages}`)
 export const getRefCiTypeFrom = id => req.get(`/platform/v1/cmdb/ci-types/${id}/references/by`)
 export const getRefCiTypeTo = id => req.get(`/platform/v1/cmdb/ci-types/${id}/references/to`)
 export const getCiTypeAttr = id => req.get(`/platform/v1/cmdb/ci-types/${id}/attributes`)
@@ -134,11 +135,13 @@ export const getNodeContext = (procId, nodeId) =>
   req.get(`/platform/v1/process/instances/${procId}/tasknodes/${nodeId}/context`)
 export const userCreate = data => req.post(`/platform/v1/users/create`, data)
 export const removeUser = roleId => req.delete(`/platform/v1/users/${roleId}/delete`)
-export const changePassword = data => req.post(`/platform//v1/users/change-password`, data)
+export const editUser = data => req.post(`/platform/v1/user/${data.username}/update`, data)
+export const changePassword = data => req.post(`/platform/v1/users/change-password`, data)
 export const getUserList = () => req.get(`/platform/v1/users/retrieve`)
 export const deleteUser = id => req.delete(`/platform/v1/users/${id}/delete`)
 export const roleCreate = data => req.post(`/platform/v1/roles/create`, data)
 export const getRoleList = params => req.get(`/platform/v1/roles/retrieve`, { params })
+export const getCurrentUserRoles = () => req.get(`/platform/v1/users/roles`)
 export const deleteRole = id => req.delete(`/platform/v1/roles/${id}/delete`)
 export const addRoleToUser = (id, data) => req.post(`/platform/v1/users/${id}/roles/grant`, data)
 export const updateRole = (id, data) => req.post(`/platform/v1/roles/${id}/update`, data)
@@ -172,8 +175,7 @@ export const getPluginConfigsByPackageId = packageId => req.get(`/platform/v1/pa
 export const getInterfacesByPluginConfigId = configId => req.get(`/platform/v1/plugins/interfaces/${configId}`)
 export const getEntityRefsByPkgNameAndEntityName = (pkgName, entityName) =>
   req.get(`/platform/v1/models/package/${pkgName}/entity/${entityName}`)
-export const getPluginsByTargetEntityFilterRule = data =>
-  req.post(`/platform/v1/plugins/interfaces/enabled/query-by-target-entity-filter-rule`, data)
+export const getPluginsByTargetEntityFilterRule = data => req.post(`/platform/v1/plugins/query-by-target-entity`, data)
 export const getDataByNodeDefIdAndProcessSessionId = (nodeDefId, ProcessSessionId) =>
   req.get(`/platform/v1/process/instances/tasknodes/${nodeDefId}/session/${ProcessSessionId}/tasknode-bindings`)
 export const setDataByNodeDefIdAndProcessSessionId = (nodeDefId, ProcessSessionId, data) =>
@@ -241,7 +243,56 @@ export const stopUserScheduledTasks = data => req.post(`platform/v1/user-schedul
 export const getScheduledTasksByStatus = data =>
   req.post(`platform/v1/user-scheduled-tasks/process-instances/query`, data)
 
-export const getAssociatedNodes = (procDefId, params) =>
-  req.post(`platform/v1/process/definitions/${procDefId}/previous-nodes/briefs`, params)
-
 export const getMetaData = params => req.post(`platform/v1/plugins/configs/interfaces/param/metadata/query`, params)
+
+export const flowList = data => req.post(`platform/v1/process/definitions/list`, data)
+export const flowMgmt = data => req.post(`platform/v1/process/definitions`, data)
+export const getFlowById = id => req.get(`platform/v1/process/definitions/${id}`)
+export const flowNodeMgmt = data => req.post(`platform/v1/process/definitions/tasknodes`, data)
+export const flowNodeDelete = (flowId, nodeId) =>
+  req.delete(`platform/v1/process/definitions/${flowId}/tasknodes/${nodeId}`)
+export const flowEdgeMgmt = data => req.post(`platform/v1/process/definitions/link`, data)
+export const flowEdgeDelete = (flowId, edgeId) => req.delete(`platform/v1/process/definitions/${flowId}/link/${edgeId}`)
+export const getPluginList = () => req.get(`platform/v1/packages/name/list`)
+export const getPluginFunByRule = data => req.post(`platform/v1/plugins/query-by-target-entity`, data)
+export const flowStatusChange = data => req.post(`platform/v1/process/definitions/status`, data)
+export const flowRelease = flowId => req.post(`platform/v1/process/definitions/deploy/${flowId}`, {})
+export const getAssociatedNodes = (flowId, nodeId) =>
+  req.get(`platform/v1/process/definitions/${flowId}/tasknodes/${nodeId}/preorder`)
+export const getNodeParams = (flowId, nodeId) =>
+  req.get(`platform/v1/process/definitions/${flowId}/tasknodes/${nodeId}/parameters`)
+
+export const flowBatchAuth = data => req.post(`platform/v1/process/definitions/permission`, data)
+export const flowBatchChangeStatus = data => req.post(`platform/v1/process/definitions/status`, data)
+export const flowCopy = (flowId, association) =>
+  req.post(`platform/v1/process/definitions/${flowId}/copy/${association}`, {})
+export const getSourceNode = flowId => req.get(`platform/v1/process/definitions/${flowId}/tasknodes/briefs`)
+export const flowExport = data => req.post(`platform/v1/process/definitions/export`, data)
+export const flowImport = data => req.post(`platform/v1/process/definitions/import`, data)
+export const getNodeDetailById = (flowId, nodeId) =>
+  req.get(`platform/v1/process/definitions/${flowId}/tasknodes/${nodeId}`)
+// 编排列表转给我
+export const transferToMe = data => req.post(`platform/v1/process/definitions/handler/update`, data)
+// 批量执行重构
+// 保存模板
+export const saveBatchExecuteTemplate = data => req.post(`platform/v1/batch-execution/templates`, data)
+// 模板列表
+export const getBatchExecuteTemplateList = data => req.post(`/platform/v1/batch-execution/templates/list`, data)
+// 更新批量执行模板权限
+export const updateExecuteTemplateRole = data =>
+  req.post(`/platform/v1/batch-execution/templates/permission/update`, data)
+// 删除模板
+export const deleteExecuteTemplate = id => req.delete(`/platform/v1/batch-execution/templates/${id}`)
+// 模板详情
+export const getBatchExecuteTemplateDetail = templateId =>
+  req.get(`/platform/v1/batch-execution/templates/${templateId}`)
+// 收藏模板
+export const collectBatchTemplate = data => req.post(`/platform/v1/batch-execution/templates/collect`, data)
+// 取消收藏模板
+export const uncollectBatchTemplate = data => req.post(`/platform/v1/batch-execution/templates/uncollect`, data)
+// 批量执行列表
+export const getBatchExecuteList = data => req.post(`/platform/v1/batch-execution/list`, data)
+// 批量执行历史
+export const batchExecuteHistory = id => req.get(`/platform/v1/batch-execution/${id}`)
+// 保存批量执行
+export const saveBatchExecute = (url, data) => req.post(url, data)

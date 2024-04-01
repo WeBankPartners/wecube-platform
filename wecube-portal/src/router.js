@@ -25,9 +25,15 @@ let router = new Router({
           props: true
         },
         {
-          path: '/collaboration/workflow-orchestration',
+          path: '/collaboration/workflow-mgmt',
+          name: 'flow',
+          component: () => import('@/pages/collaboration/workflow-mgmt'),
+          props: true
+        },
+        {
+          path: '/collaboration/workflow',
           name: 'flowManage',
-          component: () => import('@/pages/collaboration/workflow-orchestration'),
+          component: () => import('@/pages/collaboration/workflow'),
           props: true
         },
         {
@@ -68,7 +74,7 @@ let router = new Router({
         {
           path: '/implementation/batch-execution',
           name: 'batchExecution',
-          component: () => import('@/pages/implementation/batch-execution')
+          component: () => import('@/pages/implementation/batch-execution/index')
         },
         {
           path: '/admin/system-data-model',
@@ -92,6 +98,15 @@ let router = new Router({
       props: true
     }
   ]
+})
+
+const keys = ['push', 'replace']
+keys.forEach(key => {
+  const original = Router.prototype[key]
+  Router.prototype[key] = function push (localtion, onResolve, onReject) {
+    if (onResolve || onReject) return original.call(this, localtion, onResolve, onReject)
+    return original.call(this, localtion).catch(err => err)
+  }
 })
 
 export default router
