@@ -21,6 +21,7 @@ func ProcDefList(c *gin.Context) {
 	includeDraft := c.Query("includeDraft") // 0 | 1
 	permission := c.Query("permission")     // USE | MGMT
 	tag := c.Query("tag")
+	plugin := c.Query("plugin")
 	if includeDraft == "" {
 		includeDraft = "0"
 	}
@@ -28,7 +29,7 @@ func ProcDefList(c *gin.Context) {
 		permission = "USE"
 	}
 	log.Logger.Debug("procDefList", log.String("includeDraft", includeDraft), log.String(permission, "permission"), log.String("tag", tag), log.StringList("roleList", middleware.GetRequestRoles(c)))
-	result, err := database.ProcDefList(c, includeDraft, permission, tag, middleware.GetRequestRoles(c))
+	result, err := database.ProcDefList(c, includeDraft, permission, tag, plugin, middleware.GetRequestRoles(c))
 	if err != nil {
 		middleware.ReturnError(c, err)
 	} else {
@@ -39,6 +40,7 @@ func ProcDefList(c *gin.Context) {
 func PublicProcDefList(c *gin.Context) {
 	permission := c.Query("permission") // USE | MGMT
 	tag := c.Query("tag")
+	plugin := c.Query("plugin")
 	withAll := c.Query("all")
 	if permission == "" {
 		permission = "USE"
@@ -47,7 +49,7 @@ func PublicProcDefList(c *gin.Context) {
 		withAll = "N"
 	}
 	log.Logger.Debug("public procDefList", log.String(permission, "permission"), log.String("tag", tag))
-	procList, err := database.ProcDefList(c, "0", permission, tag, middleware.GetRequestRoles(c))
+	procList, err := database.ProcDefList(c, "0", permission, tag, plugin, middleware.GetRequestRoles(c))
 	if err != nil {
 		middleware.ReturnError(c, err)
 		return
@@ -68,13 +70,14 @@ func PublicProcDefList(c *gin.Context) {
 	entityMap := make(map[string]*models.ProcEntity)
 	for _, row := range procList {
 		resultObj := models.PublicProcDefObj{
-			ProcDefId:      row.ProcDefId,
-			ProcDefKey:     row.ProcDefKey,
-			ProcDefName:    row.ProcDefName,
-			Status:         row.Status,
-			CreatedTime:    row.CreatedTime,
-			RootEntity:     &models.ProcEntity{},
-			ProcDefVersion: row.ProcDefVersion,
+			ProcDefId:            row.ProcDefId,
+			ProcDefKey:           row.ProcDefKey,
+			ProcDefName:          row.ProcDefName,
+			Status:               row.Status,
+			CreatedTime:          row.CreatedTime,
+			RootEntity:           &models.ProcEntity{},
+			ProcDefVersion:       row.ProcDefVersion,
+			RootEntityExpression: row.RootEntity,
 		}
 		rootExpression := row.RootEntity
 		if tmpIndex := strings.Index(rootExpression, "{"); tmpIndex > 0 {

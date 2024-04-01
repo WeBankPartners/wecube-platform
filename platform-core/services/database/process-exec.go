@@ -14,7 +14,7 @@ import (
 	"time"
 )
 
-func ProcDefList(ctx context.Context, includeDraft, permission, tag string, userRoles []string) (result []*models.ProcDefListObj, err error) {
+func ProcDefList(ctx context.Context, includeDraft, permission, tag, plugin string, userRoles []string) (result []*models.ProcDefListObj, err error) {
 	var procDefRows []*models.ProcDef
 	baseSql := "select * from proc_def"
 	var filterSqlList []string
@@ -33,6 +33,10 @@ func ProcDefList(ctx context.Context, includeDraft, permission, tag string, user
 	if tag != "" {
 		filterSqlList = append(filterSqlList, "tags=?")
 		filterParams = append(filterParams, tag)
+	}
+	if plugin != "" {
+		filterSqlList = append(filterSqlList, "for_plugin like ?")
+		filterParams = append(filterParams, fmt.Sprintf("%%%s%%", plugin))
 	}
 	if len(filterSqlList) > 0 {
 		baseSql += " where " + strings.Join(filterSqlList, " and ")

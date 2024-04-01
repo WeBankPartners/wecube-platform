@@ -441,13 +441,14 @@ type ProcDataNodeExprObj struct {
 }
 
 type PublicProcDefObj struct {
-	ProcDefId      string      `json:"procDefId"`
-	ProcDefKey     string      `json:"procDefKey"`
-	ProcDefName    string      `json:"procDefName"`
-	Status         string      `json:"status"`
-	RootEntity     *ProcEntity `json:"rootEntity"`
-	CreatedTime    string      `json:"createdTime"`
-	ProcDefVersion string      `json:"procDefVersion"`
+	ProcDefId            string      `json:"procDefId"`
+	ProcDefKey           string      `json:"procDefKey"`
+	ProcDefName          string      `json:"procDefName"`
+	Status               string      `json:"status"`
+	RootEntity           *ProcEntity `json:"rootEntity"`
+	CreatedTime          string      `json:"createdTime"`
+	ProcDefVersion       string      `json:"procDefVersion"`
+	RootEntityExpression string      `json:"rootEntityExpression"`
 }
 
 type RewriteEntityDataObj struct {
