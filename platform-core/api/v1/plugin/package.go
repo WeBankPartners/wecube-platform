@@ -705,6 +705,17 @@ func LaunchPlugin(c *gin.Context) {
 	}
 	envMap["SUB_SYSTEM_CODE"] = subSystemCode
 	envMap["SUB_SYSTEM_KEY"] = subSystemKey
+	if models.Config.Auth.JwtSigningKey != "" {
+		if models.Config.Plugin.PasswordPubKeyContent != "" {
+			if encryptJwtKey, enErr := cipher.EncryptRsa(models.Config.Auth.JwtSigningKey, models.Config.Plugin.PasswordPubKeyContent); enErr != nil {
+				envMap["JWT_SIGNING_KEY"] = models.Config.Auth.JwtSigningKey
+			} else {
+				envMap["JWT_SIGNING_KEY"] = encryptJwtKey
+			}
+		} else {
+			envMap["JWT_SIGNING_KEY"] = models.Config.Auth.JwtSigningKey
+		}
+	}
 	// 企业版的认证信息环境变量
 	if pluginPackageObj.Edition == "enterprise" {
 		licCode, licPk, licData, licSign, getLicenceErr := database.GeneratePluginEnv(subSystemPubKey, subSystemKey, pluginPackageObj.Name)
