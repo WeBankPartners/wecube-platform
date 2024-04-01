@@ -246,7 +246,7 @@ func doHandleProcEventJob() {
 }
 
 func handleProcEvent(ctx context.Context, procEvent *models.ProcInsEvent) (takeoverFlag bool, procInsId string, err error) {
-	execResult, execErr := db.MysqlEngine.Context(ctx).Exec("update proc_ins_event set status=?,host=? where id=? and status=?", models.ProcEventStatusCreated)
+	execResult, execErr := db.MysqlEngine.Context(ctx).Exec("update proc_ins_event set status=?,host=? where id=? and status=?", models.ProcEventStatusPending, models.Config.HostIp, procEvent.Id, models.ProcEventStatusCreated)
 	if execErr != nil {
 		err = fmt.Errorf("takeover proc ins event fail,%s ", execErr.Error())
 		return
