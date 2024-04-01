@@ -77,6 +77,12 @@ const (
 	SysVarMailPassword = "PLATFORM_MAIL_PWD"
 	SysVarMailSSL      = "PLATFORM_MAIL_SSL"
 	SysVarSystemSource = "system"
+
+	// proc event status
+	ProcEventStatusCreated = "created"
+	ProcEventStatusPending = "pending"
+	ProcEventStatusDone    = "done"
+	ProcEventStatusFail    = "fail"
 )
 
 var (

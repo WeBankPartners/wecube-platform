@@ -571,11 +571,6 @@ func CreateProcInstance(ctx context.Context, procStartParam *models.ProcInsStart
 		}})
 		workLinks = append(workLinks, &workLinkObj)
 	}
-	if procStartParam.Event != nil {
-		actions = append(actions, &db.ExecAction{Sql: "insert into proc_ins_event(event_seq_no,event_type,operation_data,operation_key,operation_user,proc_def_id,proc_ins_id,source_plugin,status,created_time) values (?,?,?,?,?,?,?,?,?,?)", Param: []interface{}{
-			procStartParam.Event.EventSeqNo, procStartParam.Event.EventType, procStartParam.Event.OperationData, procStartParam.Event.OperationKey, procStartParam.Event.OperationUser, procDefObj.Id, procInsId, procStartParam.Event.SourceSubSystem, models.JobStatusRunning, nowTime,
-		}})
-	}
 	if err = db.Transaction(actions, ctx); err != nil {
 		err = exterror.Catch(exterror.New().DatabaseExecuteError, err)
 	}
@@ -1405,6 +1400,17 @@ func GetLatestProcDefByKey(ctx context.Context, procDefKey string) (procDefObj *
 			procDefObj = v
 			break
 		}
+	}
+	return
+}
+
+func CreateProcInsEvent(ctx context.Context, param *models.ProcStartEventParam, procDefObj *models.ProcDef) (eventId int64, err error) {
+	execResult, execErr := db.MysqlEngine.Context(ctx).Exec("insert into proc_ins_event(event_seq_no,event_type,operation_data,operation_key,operation_user,proc_def_id,source_plugin,status,created_time) values (?,?,?,?,?,?,?,?,?)",
+		param.EventSeqNo, param.EventType, param.OperationData, param.OperationKey, param.OperationUser, procDefObj.Id, param.SourceSubSystem, models.ProcEventStatusCreated, time.Now())
+	if execErr != nil {
+		err = fmt.Errorf("insert proc ins event data fail,%s ", execErr.Error())
+	} else {
+		eventId, _ = execResult.LastInsertId()
 	}
 	return
 }
