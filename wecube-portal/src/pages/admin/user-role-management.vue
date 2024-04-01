@@ -26,6 +26,15 @@
               <Tooltip :content="$t('delete')">
                 <Button icon="md-trash" type="error" ghost size="small" @click="removeUser(item)"></Button>
               </Tooltip>
+              <Tooltip :content="$t('edit')">
+                <Button
+                  icon="ios-create-outline"
+                  type="primary"
+                  ghost
+                  size="small"
+                  @click="editUserEmail(item)"
+                ></Button>
+              </Tooltip>
               <Tooltip :content="$t('role')">
                 <Button icon="ios-contacts" type="info" ghost size="small" @click="addRoleToUsers(item)"></Button>
               </Tooltip>
@@ -94,7 +103,7 @@
         </Card>
       </Col>
     </Row>
-    <Modal v-model="addUserModalVisible" :title="$t('add_user')" @on-ok="addUser" @on-cancel="cancel">
+    <Modal v-model="addUserModalVisible" :title="$t('add_user')">
       <Form class="validation-form" ref="addedUserForm" :model="addedUser" label-position="left" :label-width="100">
         <FormItem :label="$t('username')" prop="username">
           <Input v-model="addedUser.username" />
@@ -108,28 +117,72 @@
         <FormItem v-if="addedUser.authType === 'LOCAL'" :label="$t('password')" prop="password">
           <Input type="password" v-model="addedUser.password" />
         </FormItem>
+        <FormItem :label="$t('email')">
+          <Input v-model="addedUser.email" />
+        </FormItem>
       </Form>
+      <div slot="footer">
+        <Button ghost @click="addUserModalVisible = false">{{ $t('cancel') }}</Button>
+        <Button type="primary" @click="addUser">{{ $t('save') }}</Button>
+      </div>
     </Modal>
-    <Modal
-      v-model="addedRole.isShow"
-      :title="addedRole.isAdd ? $t('add_role') : $t('edit_role_')"
-      @on-ok="addRole"
-      @on-cancel="cancel"
-    >
-      <Form class="validation-form" :model="addedRole" label-position="left" :label-width="100">
-        <FormItem :label="$t('role')" v-if="addedRole.isAdd">
+    <Modal v-model="addedRole.isShow" :title="addedRole.isAdd ? $t('add_role') : $t('edit_role_')">
+      <Form :model="addedRole" label-position="right" :label-width="100">
+        <FormItem v-if="addedRole.isAdd">
+          <label slot="label">
+            <span style="color: red">*</span>
+            {{ $t('role') }}
+          </label>
           <Input v-model="addedRole.params.name" :placeholder="$t('please_input')" />
         </FormItem>
-        <FormItem :label="$t('display_name')">
+        <FormItem>
+          <label slot="label">
+            <span style="color: red">*</span>
+            {{ $t('display_name') }}
+          </label>
           <Input v-model="addedRole.params.displayName" :placeholder="$t('please_input')" />
         </FormItem>
-        <FormItem :label="$t('email')">
+        <FormItem>
+          <label slot="label">
+            <span style="color: red">*</span>
+            {{ $t('email') }}
+          </label>
           <Input v-model="addedRole.params.email" :placeholder="$t('please_input')" />
+        </FormItem>
+        <FormItem>
+          <label slot="label">
+            <span style="color: red">*</span>
+            {{ $t('role_admin') }}
+          </label>
+          <Select v-model="addedRole.params.administrator" filterable>
+            <Option v-for="item in users" :value="item.id" :key="item.id">{{ item.username }}</Option>
+          </Select>
         </FormItem>
         <FormItem :label="$t('status')" v-if="!addedRole.isAdd">
           <Checkbox v-model="addedRole.params.status">{{ $t('disable_role') }}</Checkbox>
         </FormItem>
       </Form>
+      <div slot="footer">
+        <Button ghost @click="cancel">{{ $t('cancel') }}</Button>
+        <Button type="primary" @click="addRole">{{ $t('save') }}</Button>
+      </div>
+    </Modal>
+    <Modal v-model="editUser.isShow" :title="$t('edit') + $t('user')">
+      <Form label-position="right" :label-width="100">
+        <FormItem>
+          <label slot="label">
+            <span style="color: red">*</span>
+            {{ $t('email') }}
+          </label>
+          <Input v-model="editUser.params.email" :placeholder="$t('please_input')" />
+        </FormItem>
+      </Form>
+      <div slot="footer">
+        <Button @click="editUser.isShow = false">{{ $t('cancel') }}</Button>
+        <Button type="primary" :disabled="editUser.params.email === ''" @click="confirmEditUserEmail">{{
+          $t('save')
+        }}</Button>
+      </div>
     </Modal>
     <Modal v-model="userManageModal" width="700" :title="$t('edit_user')">
       <Transfer
@@ -148,7 +201,7 @@
     <Modal v-model="showNewPassword" :title="$t('new_password')">
       <Form class="validation-form" label-position="left" :label-width="100">
         <FormItem :label="$t('new_password')">
-          <Input v-model="newPassword" :placeholder="$t('please_input')" style="width:300px" />
+          <Input v-model="newPassword" :placeholder="$t('please_input')" style="width: 300px" />
           <Icon @click="copyPassword" class="icon-copy" type="md-copy" />
         </FormItem>
       </Form>
@@ -188,7 +241,8 @@ import {
   getMenusByUserName,
   getMenusByRoleId,
   updateRoleToMenusByRoleId,
-  resetPassword
+  resetPassword,
+  editUser
 } from '@/api/server'
 import { MENUS } from '@/const/menus.js'
 
@@ -211,7 +265,8 @@ export default {
       selectedUser: '',
       roles: [],
       addedUser: {
-        authType: 'LOCAL'
+        authType: 'LOCAL',
+        email: ''
       },
       addedRole: {
         isShow: false,
@@ -221,7 +276,14 @@ export default {
           name: '',
           displayName: '',
           email: '',
+          administrator: '',
           status: false
+        }
+      },
+      editUser: {
+        isShow: false,
+        params: {
+          email: ''
         }
       },
       addedRoleValue: '',
@@ -413,6 +475,7 @@ export default {
           }
         })
       }
+      this.getAllRoles()
     },
     async getAllRoles () {
       let params = { all: 'Y' }
@@ -440,7 +503,7 @@ export default {
       if (checked) {
         let permissions = await getMenusByUserName(name)
         if (permissions.status === 'OK') {
-          const userMenus = [].concat(...permissions.data.map(_ => _.menuList))
+          const userMenus = [].concat(...(permissions.data || []).map(_ => _.menuList))
           this.menusPermissionSelected(this.menus, userMenus, true)
         }
         let { status, data } = await getRolesByUserName(name)
@@ -536,7 +599,52 @@ export default {
       })
       this.userManageModal = true
     },
+    editUserEmail (item) {
+      this.editUser.params = JSON.parse(JSON.stringify(item))
+      this.editUser.isShow = true
+    },
+    async confirmEditUserEmail (item) {
+      let { status, message } = await editUser(this.editUser.params)
+      if (status === 'OK') {
+        this.$Notice.success({
+          title: 'success',
+          desc: message
+        })
+        this.editUser.isShow = false
+        this.getAllUsers()
+      }
+    },
     async addUser () {
+      if (!this.addedUser.username) {
+        this.$Message.warning(`${this.$t('username_cannot_empty')}`)
+        return
+      }
+      // eslint-disable-next-line no-useless-escape
+      if (this.addedUser.authType === 'LOCAL') {
+        let res = []
+        res.push(/[A-Z]/.test(this.addedUser.password))
+        res.push(/.*[a-z].*/.test(this.addedUser.password))
+        res.push(/\d/.test(this.addedUser.password))
+        res.push(/[^\w\s]/.test(this.addedUser.password))
+        if (res.filter(item => item === false).length > 1) {
+          this.$Message.warning(`${this.$t('be_warning_for_password')}`)
+          return
+        }
+        if (this.addedUser.password.length < 8) {
+          this.$Message.warning(`${this.$t('password')}${this.$t('atLeast')}8${this.$t('characters')}`)
+          return
+        }
+      }
+
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+      if (!this.addedUser.email) {
+        this.$Message.warning(`${this.$t('email')}${this.$t('cannotBeEmpty')}`)
+        return
+      } else if (!emailRegex.test(this.addedUser.email)) {
+        this.$Message.warning(`${this.$t('email')}${this.$t('invalidFormat')}`)
+        return
+      }
+
       let { status, message } = await userCreate(this.addedUser)
       if (status === 'OK') {
         this.$Notice.success({
@@ -546,15 +654,29 @@ export default {
         this.addedUser = {
           authType: 'LOCAL'
         }
+        this.addUserModalVisible = false
         this.getAllUsers()
       }
     },
     async addRole () {
-      if (!this.addedRole.params.name) {
-        this.$Notice.warning({
-          title: 'Warning',
-          desc: this.$t('role_cannot_empty')
-        })
+      if (this.addedRole.isAdd && !this.addedRole.params.name) {
+        this.$Message.warning(`${this.$t('role')}${this.$t('cannotBeEmpty')}`)
+        return
+      }
+      if (!this.addedRole.params.displayName) {
+        this.$Message.warning(`${this.$t('display_name')}${this.$t('cannotBeEmpty')}`)
+        return
+      }
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+      if (!this.addedRole.params.email) {
+        this.$Message.warning(`${this.$t('email')}${this.$t('cannotBeEmpty')}`)
+        return
+      } else if (!emailRegex.test(this.addedRole.params.email)) {
+        this.$Message.warning(`${this.$t('email')}${this.$t('invalidFormat')}`)
+        return
+      }
+      if (!this.addedRole.params.administrator) {
+        this.$Message.warning(`${this.$t('role_admin')}${this.$t('cannotBeEmpty')}`)
         return
       }
       this.addedRole.params.status = this.addedRole.params.status ? 'Deleted' : 'NotDeleted'
@@ -567,6 +689,7 @@ export default {
           title: 'success',
           desc: message
         })
+        this.cancel()
         this.getAllRoles()
       }
     },
@@ -575,6 +698,7 @@ export default {
       this.addedRole.params.name = ''
       this.addedRole.params.displayName = ''
       this.addedRole.params.email = ''
+      this.addedRole.params.administrator = ''
       this.addedRole.isShow = true
     },
     editRole (item) {
@@ -591,9 +715,12 @@ export default {
       this.addedUser.username = ''
       this.addedUser.authType = 'LOCAL'
       this.addedUser.password = ''
+      this.addedUser.email = ''
       this.addUserModalVisible = true
     },
-    cancel () {}
+    cancel () {
+      this.addedRole.isShow = false
+    }
   },
   created () {
     this.getAllUsers()
