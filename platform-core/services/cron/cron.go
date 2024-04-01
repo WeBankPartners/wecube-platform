@@ -14,6 +14,7 @@ import (
 func StartCronJob() {
 	SetupCleanUpBatchExecTicker()
 	go StartSendProcScheduleMail()
+	go StartHandleProcEvent()
 }
 
 func SetupCleanUpBatchExecTicker() {
@@ -200,4 +201,17 @@ func updateProcScheduleJobMail(jobId, mailStatus, mailMessage string) {
 	if err != nil {
 		log.Logger.Error("updateProcScheduleJobMail fail", log.String("jobId", jobId), log.String("mailStatus", mailStatus), log.String("mailMsg", mailMessage), log.Error(err))
 	}
+}
+
+func StartHandleProcEvent() {
+	t := time.NewTicker(10 * time.Second).C
+	for {
+		<-t
+		doHandleProcEventJob()
+	}
+}
+
+func doHandleProcEventJob() {
+	log.Logger.Debug("Start handle proc event job")
+
 }
