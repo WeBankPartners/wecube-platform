@@ -68,12 +68,13 @@ func PublicProcDefList(c *gin.Context) {
 	entityMap := make(map[string]*models.ProcEntity)
 	for _, row := range procList {
 		resultObj := models.PublicProcDefObj{
-			ProcDefId:   row.ProcDefId,
-			ProcDefKey:  row.ProcDefKey,
-			ProcDefName: row.ProcDefName,
-			Status:      row.Status,
-			CreatedTime: row.CreatedTime,
-			RootEntity:  &models.ProcEntity{},
+			ProcDefId:      row.ProcDefId,
+			ProcDefKey:     row.ProcDefKey,
+			ProcDefName:    row.ProcDefName,
+			Status:         row.Status,
+			CreatedTime:    row.CreatedTime,
+			RootEntity:     &models.ProcEntity{},
+			ProcDefVersion: row.ProcDefVersion,
 		}
 		rootExpression := row.RootEntity
 		if tmpIndex := strings.Index(rootExpression, "{"); tmpIndex > 0 {
