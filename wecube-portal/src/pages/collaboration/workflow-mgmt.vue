@@ -211,10 +211,10 @@ export default {
             stroke: '#303030',
             fill: 'white'
           },
-          'nodeState:hover': {
-            opacity: 0.8,
-            stroke: '#303030'
-          },
+          // 'nodeState:hover': {
+          //   opacity: 0.8,
+          //   stroke: '#303030'
+          // },
           'nodeState:selected': {
             opacity: 0.9,
             stroke: '#303030',
@@ -350,8 +350,9 @@ export default {
         }, 100)
       })
       this.graph.on('node:dragstart', e => {
+        this.hideItemInfo()
         if (e && e.item) {
-          this.hideItemInfo()
+          // this.hideItemInfo()
         }
       })
       this.graph.on('after-node-selected', e => {
@@ -691,7 +692,7 @@ export default {
     // 添加节点
     addNode (transferData, { x, y }) {
       if (this.editFlow !== 'false' && this.isExecutionAllowed()) return
-      let { label, shape, fill, lineWidth, nodeType, stroke } = JSON.parse(transferData)
+      let { label, shape, lineWidth, nodeType, stroke } = JSON.parse(transferData)
       const findStartNodeIndex = this.graph.save().nodes.findIndex(n => n.id.startsWith('id_start'))
       if (nodeType === 'start' && findStartNodeIndex > -1) {
         this.$Message.warning(this.$t('start_node_warning'))
@@ -734,7 +735,8 @@ export default {
           }
         },
         style: {
-          fill: fill || '',
+          // fill: fill || '',
+          fill: '#1890FF',
           stroke: stroke,
           lineWidth: lineWidth || 1,
           top: '100px'
@@ -756,6 +758,15 @@ export default {
           this.editFlow,
           this.permissionToRole
         )
+        this.canRemovedId = id
+
+        const point = {
+          x: model.x + 40,
+          y: model.y - 20
+        }
+        if (this.editFlow !== 'false') {
+          this.addRemoveNode(point)
+        }
       })
     },
     // 移除删除入口
@@ -872,10 +883,12 @@ export default {
           customAttrs: info.customAttrs
         }
         this.graph.updateItem(item, params)
-        this.deleteRemoveNode()
-        if (this.canRemovedId) {
-          const item = this.graph.findById(this.canRemovedId)
-          this.graph.clearItemStates(item)
+        if (!needAddFirst) {
+          this.deleteRemoveNode()
+          // if (this.canRemovedId) {
+          // const item = this.graph.findById(this.canRemovedId)
+          // this.graph.clearItemStates(item)
+          // }
         }
       }
     },
@@ -896,8 +909,8 @@ export default {
         this.graph.updateItem(item, params)
         this.deleteRemoveNode()
         if (this.canRemovedId) {
-          const item = this.graph.findById(this.canRemovedId)
-          this.graph.clearItemStates(item)
+          // const item = this.graph.findById(this.canRemovedId)
+          // this.graph.clearItemStates(item)
         }
       }
     },
@@ -905,9 +918,13 @@ export default {
       this.deleteRemoveNode()
       this.itemInfoType = ''
       if (this.canRemovedId) {
-        const item = this.graph.findById(this.canRemovedId)
-        this.graph.clearItemStates(item)
+        this.graph.updateItem(this.canRemovedId, {
+          style: {
+            fill: 'white' // 更新后的节点背景色
+          }
+        })
       }
+      this.graph.refresh()
     }
     // #endregion
   }
