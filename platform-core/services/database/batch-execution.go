@@ -283,7 +283,7 @@ func RetrieveTemplate(c *gin.Context, reqParam *models.QueryRequestParam) (resul
 	userRoles := middleware.GetRequestRoles(c)
 	userId := middleware.GetRequestUser(c)
 
-	var queryFilters []*models.QueryRequestFilterObj
+	// var queryFilters []*models.QueryRequestFilterObj
 	var permissionTypes []string
 	isShowCollectTemplate := false
 	for _, filter := range reqParam.Filters {
@@ -295,11 +295,11 @@ func RetrieveTemplate(c *gin.Context, reqParam *models.QueryRequestParam) (resul
 			isShowCollectTemplate = filter.Value.(bool)
 			continue
 		}
-		queryFilters = append(queryFilters, &models.QueryRequestFilterObj{
-			Name:     filter.Name,
-			Operator: filter.Operator,
-			Value:    filter.Value,
-		})
+		// queryFilters = append(queryFilters, &models.QueryRequestFilterObj{
+		// 	Name:     filter.Name,
+		// 	Operator: filter.Operator,
+		// 	Value:    filter.Value,
+		// })
 	}
 
 	// query collect templateId
@@ -433,16 +433,10 @@ func RetrieveTemplate(c *gin.Context, reqParam *models.QueryRequestParam) (resul
 
 	for _, template := range templateData {
 		template.PermissionToRole = templateIdMapRoleInfo[template.Id]
-		MGMTDisplayName := []string{}
-		for _, name := range template.PermissionToRole.MGMT {
-			MGMTDisplayName = append(MGMTDisplayName, name)
-		}
+		MGMTDisplayName := append([]string{}, template.PermissionToRole.MGMT...)
 		template.PermissionToRole.MGMTDisplayName = MGMTDisplayName
 
-		USEDisplayName := []string{}
-		for _, name := range template.PermissionToRole.USE {
-			USEDisplayName = append(USEDisplayName, name)
-		}
+		USEDisplayName := append([]string{}, template.PermissionToRole.USE...)
 		template.PermissionToRole.USEDisplayName = USEDisplayName
 	}
 
@@ -472,7 +466,7 @@ func RetrieveTemplate(c *gin.Context, reqParam *models.QueryRequestParam) (resul
 func UpdateTemplateRolesDisplayName(c *gin.Context, templateDataList []*models.BatchExecutionTemplate) (err error) {
 	userToken := c.GetHeader(models.AuthorizationHeader)
 	language := c.GetHeader(middleware.AcceptLanguageHeader)
-	respData, err := remote.RetrieveAllLocalRoles("Y", userToken, language)
+	respData, err := remote.RetrieveAllLocalRoles("Y", userToken, language, false)
 	if err != nil {
 		err = fmt.Errorf("retrieve all local roles failed: %s", err.Error())
 		return
@@ -549,7 +543,6 @@ func UpdateTemplateStatus(templateData []*models.BatchExecutionTemplate, userRol
 		}
 		template.Status = status
 	}
-	return
 }
 
 func CheckIsCollected(c *gin.Context, templateData []*models.BatchExecutionTemplate, userId string) (err error) {
@@ -642,16 +635,10 @@ func GetTemplate(c *gin.Context, templateId string) (result *models.BatchExecuti
 			result.PermissionToRole.USE = append(result.PermissionToRole.USE, roleData.RoleName)
 		}
 	}
-	MGMTDisplayName := []string{}
-	for _, name := range result.PermissionToRole.MGMT {
-		MGMTDisplayName = append(MGMTDisplayName, name)
-	}
+	MGMTDisplayName := append([]string{}, result.PermissionToRole.MGMT...)
 	result.PermissionToRole.MGMTDisplayName = MGMTDisplayName
 
-	USEDisplayName := []string{}
-	for _, name := range result.PermissionToRole.USE {
-		USEDisplayName = append(USEDisplayName, name)
-	}
+	USEDisplayName := append([]string{}, result.PermissionToRole.USE...)
 	result.PermissionToRole.USEDisplayName = USEDisplayName
 
 	// check is collect by userId
@@ -875,18 +862,18 @@ func GetBatchExec(c *gin.Context, batchExecId string) (result *models.BatchExecu
 	// get batchExecutionJobs
 	batchExecJobsQueryParam := &models.QueryRequestParam{
 		Filters: []*models.QueryRequestFilterObj{
-			&models.QueryRequestFilterObj{
+			{
 				Name:     "batchExecutionId",
 				Operator: "eq",
 				Value:    result.Id,
 			},
 		},
 		Sorting: []*models.QueryRequestSorting{
-			&models.QueryRequestSorting{
+			{
 				Field: "executeTimeT",
 				Asc:   false,
 			},
-			&models.QueryRequestSorting{
+			{
 				Field: "id",
 				Asc:   true,
 			},

@@ -80,29 +80,29 @@ func BuildAccessToken(loginId string, authorities []string, clientType string, e
 	}
 }
 
-func buildRefreshToken(loginId, clientType string) (*model.JwtTokenDto, error) {
-	if model.Config.Auth.SigningKeyBytes == nil {
-		log.Logger.Error("jwt key is invalid")
-		return nil, errors.New("failed to build refresh token")
-	}
-	issueAt := time.Now().UTC().Unix()
-	exp := time.Now().Add(time.Minute * time.Duration(model.Config.Auth.RefreshTokenMins)).UTC().Unix()
+// func buildRefreshToken(loginId, clientType string) (*model.JwtTokenDto, error) {
+// 	if model.Config.Auth.SigningKeyBytes == nil {
+// 		log.Logger.Error("jwt key is invalid")
+// 		return nil, errors.New("failed to build refresh token")
+// 	}
+// 	issueAt := time.Now().UTC().Unix()
+// 	exp := time.Now().Add(time.Minute * time.Duration(model.Config.Auth.RefreshTokenMins)).UTC().Unix()
 
-	token := jwt.NewWithClaims(jwt.SigningMethodHS512, model.AuthClaims{
-		Subject:    loginId,
-		IssuedAt:   issueAt,
-		ExpiresAt:  exp,
-		Type:       constant.TypeAccessToken,
-		ClientType: clientType,
-	})
-	if tokenString, err := token.SignedString(model.Config.Auth.SigningKeyBytes); err == nil {
-		return &model.JwtTokenDto{
-			Expiration: strconv.Itoa(int(exp)),
-			Token:      tokenString,
-			TokenType:  constant.TypeAccessToken,
-		}, nil
-	} else {
-		log.Logger.Error("Failed to build refresh token", log.Error(err))
-		return nil, errors.New("failed to build refresh token")
-	}
-}
+// 	token := jwt.NewWithClaims(jwt.SigningMethodHS512, model.AuthClaims{
+// 		Subject:    loginId,
+// 		IssuedAt:   issueAt,
+// 		ExpiresAt:  exp,
+// 		Type:       constant.TypeAccessToken,
+// 		ClientType: clientType,
+// 	})
+// 	if tokenString, err := token.SignedString(model.Config.Auth.SigningKeyBytes); err == nil {
+// 		return &model.JwtTokenDto{
+// 			Expiration: strconv.Itoa(int(exp)),
+// 			Token:      tokenString,
+// 			TokenType:  constant.TypeAccessToken,
+// 		}, nil
+// 	} else {
+// 		log.Logger.Error("Failed to build refresh token", log.Error(err))
+// 		return nil, errors.New("failed to build refresh token")
+// 	}
+// }
