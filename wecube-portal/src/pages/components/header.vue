@@ -137,11 +137,11 @@ export default {
         {
           name: 'online',
           url: 'wecube_doc_url_online'
-        },
-        {
-          name: 'offline',
-          url: 'wecube_doc_url_offline'
         }
+        // {
+        //   name: 'offline',
+        //   url: 'wecube_doc_url_offline'
+        // }
       ],
       menus: [],
       needLoad: true,
