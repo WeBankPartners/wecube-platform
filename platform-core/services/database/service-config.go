@@ -407,9 +407,12 @@ func UpdatePluginConfigStatus(c *gin.Context, pluginConfigId string, status stri
 	// check whether pluginConfigId is valid
 	pluginConfigsData := &models.PluginConfigs{}
 	var exists bool
-	exists, err = db.MysqlEngine.Context(c).Table(models.TableNamePluginConfigs).
-		Where("id = ?", pluginConfigId).
-		Get(pluginConfigsData)
+	/*
+		exists, err = db.MysqlEngine.Context(c).Table(models.TableNamePluginConfigs).
+			Where("id = ?", pluginConfigId).
+			Get(pluginConfigsData)
+	*/
+	exists, err = db.MysqlEngine.SQL(fmt.Sprintf("select * from %s where id=?", models.TableNamePluginConfigs), pluginConfigId).Get(pluginConfigsData)
 	if err != nil {
 		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
 		return
@@ -432,9 +435,12 @@ func UpdatePluginConfigStatus(c *gin.Context, pluginConfigId string, status stri
 	}
 
 	// query plugin configs by id
-	exists, err = db.MysqlEngine.Context(c).Table(models.TableNamePluginConfigs).
-		Where("id = ?", pluginConfigId).
-		Get(pluginConfigsData)
+	/*
+		exists, err = db.MysqlEngine.Context(c).Table(models.TableNamePluginConfigs).
+			Where("id = ?", pluginConfigId).
+			Get(pluginConfigsData)
+	*/
+	exists, err = db.MysqlEngine.SQL(fmt.Sprintf("select * from %s where id=?", models.TableNamePluginConfigs), pluginConfigId).Get(pluginConfigsData)
 	if err != nil {
 		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
 		return
