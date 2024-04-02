@@ -417,11 +417,7 @@ func (q ProcDefSort) Len() int {
 }
 
 func (q ProcDefSort) Less(i, j int) bool {
-	t := strings.Compare(q[i].Version, q[j].Version)
-	if t < 0 {
-		return true
-	}
-	return false
+	return strings.Compare(q[i].Version, q[j].Version) < 0
 }
 
 func (q ProcDefSort) Swap(i, j int) {
@@ -437,10 +433,7 @@ func (q ProcDefDtoSort) Len() int {
 func (q ProcDefDtoSort) Less(i, j int) bool {
 	t1, _ := time.Parse(DateTimeFormat, q[i].UpdatedTime)
 	t2, _ := time.Parse(DateTimeFormat, q[j].UpdatedTime)
-	if t1.Sub(t2).Seconds() >= 0 {
-		return true
-	}
-	return false
+	return t1.Sub(t2).Seconds() >= 0
 }
 
 func (q ProcDefDtoSort) Swap(i, j int) {
