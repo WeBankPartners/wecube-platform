@@ -304,6 +304,7 @@ export default {
   },
   watch: {
     dataModelExpression: async function (val) {
+      this.showResult = false
       // 清空查询路径操作
       if (val === ':' || !val) {
         this.currentEntityName = ''
@@ -366,7 +367,7 @@ export default {
           if (sourceData) {
             const frontData = JSON.parse(sourceData)
             this.seletedRows = frontData.seletedRows
-            this.pluginInputParams.push(...frontData.pluginInputParams)
+            this.pluginInputParams = frontData.pluginInputParams
             this.pluginOutputParams = frontData.pluginOutputParams
             this.resultTableParams = frontData.resultTableParams
             this.userTableColumns = frontData.userTableColumns
@@ -383,6 +384,7 @@ export default {
   methods: {
     // 选择插件
     choosePlugin (val) {
+      this.showResult = false
       this.pluginOptions.forEach(plugin => {
         if (plugin.serviceDisplayName === val) {
           this.pluginInputParams = plugin.inputParameters
@@ -436,6 +438,7 @@ export default {
       this.excuteSearch()
     },
     clearPlugin () {
+      this.showResult = false
       this.pluginId = null
       this.pluginInputParams = []
       this.resultTableParams = []
