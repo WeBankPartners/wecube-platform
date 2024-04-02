@@ -82,7 +82,7 @@ export default {
       if (this.validRequired()) {
         let mgmtRole = []
         let useRole = []
-        if (this.type === 'edit') {
+        if (this.detailData && this.detailData.permissionToRole) {
           mgmtRole = this.detailData.permissionToRole.MGMT || []
           useRole = this.detailData.permissionToRole.USE || []
         }
