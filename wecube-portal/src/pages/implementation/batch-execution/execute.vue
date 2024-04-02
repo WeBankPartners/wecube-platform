@@ -1,7 +1,7 @@
 <template>
   <div class="batch-execute-history">
     <div class="search">
-      <BaseSearch :options="searchOptions" v-model="form" @search="handleQuery" :showExpand="false"></BaseSearch>
+      <Search :options="searchOptions" v-model="form" @search="handleQuery"></Search>
     </div>
     <Row :gutter="20">
       <Col v-show="!expand" :span="8">
@@ -47,13 +47,13 @@
 </template>
 
 <script>
-import BaseSearch from '@/pages/components/base-search.vue'
+import Search from '@/pages/components/base-search.vue'
 import ExecuteResult from './components/execute-result.vue'
 import { getBatchExecuteList } from '@/api/server'
 import dayjs from 'dayjs'
 export default {
   components: {
-    BaseSearch,
+    Search,
     ExecuteResult
   },
   data () {
