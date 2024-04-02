@@ -500,4 +500,27 @@ type ProcInsEvent struct {
 }
 
 type CoreOperationEvent struct {
+	Id               int       `json:"id" xorm:"id"`
+	CreatedBy        string    `json:"createdBy" xorm:"created_by"`
+	CreatedTime      time.Time `json:"createdTime" xorm:"created_time"`
+	UpdatedBy        string    `json:"updatedBy" xorm:"updated_by"`
+	UpdatedTime      time.Time `json:"updatedTime" xorm:"updated_time"`
+	EventSeqNo       string    `json:"eventSeqNo" xorm:"event_seq_no"`
+	EventType        string    `json:"eventType" xorm:"event_type"`
+	IsNotified       bool      `json:"isNotified" xorm:"is_notified"`
+	NotifyEndpoint   string    `json:"notifyEndpoint" xorm:"notify_endpoint"`
+	IsNotifyRequired bool      `json:"isNotifyRequired" xorm:"is_notify_required"`
+	OperData         string    `json:"operData" xorm:"oper_data"`
+	OperKey          string    `json:"operKey" xorm:"oper_key"`
+	OperUser         string    `json:"operUser" xorm:"oper_user"`
+	ProcDefId        string    `json:"procDefId" xorm:"proc_def_id"`
+	ProcInstId       string    `json:"procInstId" xorm:"proc_inst_id"`
+	SrcSubSystem     string    `json:"srcSubSystem" xorm:"src_sub_system"`
+	Status           string    `json:"status" xorm:"status"`
+	EndTime          time.Time `json:"endTime" xorm:"end_time"`
+	Priority         int       `json:"priority" xorm:"priority"`
+	ProcInstKey      string    `json:"procInstKey" xorm:"proc_inst_key"`
+	StartTime        time.Time `json:"startTime" xorm:"start_time"`
+	Rev              int       `json:"rev" xorm:"rev"`
+	OperMode         string    `json:"operMode" xorm:"oper_mode"`
 }
