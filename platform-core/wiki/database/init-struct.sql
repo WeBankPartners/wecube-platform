@@ -753,7 +753,9 @@ CREATE TABLE `proc_ins_event` (
       `proc_def_id` varchar(64) DEFAULT NULL COMMENT '编排定义id',
       `proc_ins_id` varchar(64) DEFAULT NULL COMMENT '编排实例id',
       `source_plugin` varchar(64) DEFAULT NULL COMMENT '来源',
-      `status` varchar(64) DEFAULT NULL COMMENT '状态(编排状态)',
+      `status` varchar(64) DEFAULT NULL COMMENT '状态->created(初始化) | pending(处理中) | done(处理完成功运行编排) | fail(处理失败)',
       `created_time` datetime DEFAULT NULL COMMENT '创建时间',
+      `host` varchar(64) DEFAULT NULL COMMENT '处理主机',
+      `error_message` text DEFAULT NULL COMMENT '错误信息',
       PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;

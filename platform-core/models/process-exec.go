@@ -170,7 +170,6 @@ type ProcInsStartParam struct {
 	ProcDefId         string                `json:"procDefId"`
 	ProcessSessionId  string                `json:"processSessionId"`
 	TaskNodeBinds     []*TaskNodeBindingObj `json:"taskNodeBinds"`
-	Event             *ProcStartEventParam  `json:"event"`
 }
 
 type ProcInsDetail struct {
@@ -494,6 +493,11 @@ type ProcInsEvent struct {
 	ProcDefId     string    `json:"procDefId" xorm:"proc_def_id"`        // 编排定义id
 	ProcInsId     string    `json:"procInsId" xorm:"proc_ins_id"`        // 编排实例id
 	SourcePlugin  string    `json:"sourcePlugin" xorm:"source_plugin"`   // 来源
-	Status        string    `json:"status" xorm:"status"`                // 状态(编排状态)
+	Status        string    `json:"status" xorm:"status"`                // 状态->created(初始化) | pending(处理中) | done(处理完成功运行编排) | fail(处理失败)
 	CreatedTime   time.Time `json:"createdTime" xorm:"created_time"`     // 创建时间
+	Host          string    `json:"host" xorm:"host"`                    // 处理主机
+	ErrorMessage  string    `json:"errorMessage" xorm:"error_message"`   // 错误信息
+}
+
+type CoreOperationEvent struct {
 }
