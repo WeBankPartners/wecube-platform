@@ -76,7 +76,7 @@ func UpdateProcScheduleStatus(ctx context.Context, id, status, operator string, 
 			}
 		}
 		if !matchRoleFlag {
-			err = fmt.Errorf("Permission deny ")
+			err = fmt.Errorf("permission deny ")
 			return
 		}
 	}
@@ -175,7 +175,7 @@ func TransScheduleToCronExpr(scheduleMode, scheduleExpr string) (cronExpr string
 		}
 		cronExpr = fmt.Sprintf("%d %d %d * * ? *", sec, min, hour)
 	} else if scheduleMode == "Hourly" {
-		if hour, min, sec, err = getHourMinSec(scheduleExpr); err != nil {
+		if _, min, sec, err = getHourMinSec(scheduleExpr); err != nil {
 			return
 		}
 		cronExpr = fmt.Sprintf("%d %d * * * ? *", sec, min)
