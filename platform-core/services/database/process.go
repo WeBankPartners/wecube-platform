@@ -49,7 +49,7 @@ func QueryProcessDefinitionList(ctx context.Context, param models.QueryProcessDe
 	} else {
 		filterProcDefList = procDefList
 	}
-	response, err = remote.RetrieveAllLocalRoles("Y", userToken, language)
+	response, err = remote.RetrieveAllLocalRoles("Y", userToken, language, false)
 	if err != nil {
 		return
 	}
@@ -647,6 +647,9 @@ func DeleteProcDef(ctx context.Context, procDefId string) (err error) {
 func DeleteProcDefChain(ctx context.Context, procDefId string) (err error) {
 	var nodeIds []string
 	nodeIds, err = getProcDefNodeIdsByProcDefId(ctx, procDefId)
+	if err != nil {
+		return
+	}
 	var actions []*db.ExecAction
 	// 删除编排线
 	actions = append(actions, &db.ExecAction{Sql: "delete  from proc_def_node_link where proc_def_id=?", Param: []interface{}{procDefId}})

@@ -44,7 +44,8 @@ type UmPermissionUpload struct {
 type AuthenticationResponse struct {
 	UserId string `json:"userId"`
 	//Auth         []AggAuth `json:"auth"`
-	Tokens []Jwt `json:"tokens"`
+	NeedRegister bool   `json:"needRegister"`
+	Tokens       []*Jwt `json:"tokens"`
 	//ProductCodes []string `json:"productCodes"`
 }
 
@@ -75,4 +76,32 @@ type UmAuthContext struct {
 	Port     int
 	Appid    string
 	Appname  string
+}
+
+type RoleApplyParam struct {
+	UserName  string   `json:"userName"`
+	EmailAddr string   `json:"emailAddr"`
+	RoleIds   []string `json:"roleIds"`
+}
+
+type ListRoleApplyResponse struct {
+	PageInfo *PageInfo          `json:"pageInfo"` // 分页信息
+	Contents []*RoleApplyDto    `json:"contents"` // 列表内容
+	Entities []*RoleApplyEntity `json:"-"`        // 列表内容
+}
+
+type PlatSystemVariables struct {
+	Id           string `json:"id"`           // 唯一标识
+	PackageName  string `json:"packageName"`  // 包名
+	Name         string `json:"name"`         // 变量名
+	Value        string `json:"value"`        // 变量值
+	DefaultValue string `json:"defaultValue"` // 默认值
+	Scope        string `json:"scope"`        // 作用范围
+	Source       string `json:"source"`       // 来源
+	Status       string `json:"status"`       // 状态 -> active | inactive
+}
+
+type PlatSystemVariablesListPageData struct {
+	PageInfo *PageInfo              `json:"pageInfo"` // 分页信息
+	Contents []*PlatSystemVariables `json:"contents"` // 列表内容
 }

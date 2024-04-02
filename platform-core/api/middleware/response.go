@@ -61,9 +61,9 @@ func ReturnSuccess(c *gin.Context) {
 func ReturnError(c *gin.Context, err error) {
 	errorCode, errorKey, errorMessage := exterror.GetErrorResult(c.GetHeader("Accept-Language"), err, -1)
 	if !exterror.IsBusinessErrorCode(errorCode) {
-		log.Logger.Error("systemError", log.Int("errorCode", errorCode), log.String("message", errorMessage), log.Error(err))
+		log.Logger.Error("systemError", log.Int("errorCode", errorCode), log.String("errorKey", errorKey), log.String("message", errorMessage), log.Error(err))
 	} else {
-		log.Logger.Error("businessError", log.Int("errorCode", errorCode), log.String("message", errorMessage), log.Error(err))
+		log.Logger.Error("businessError", log.Int("errorCode", errorCode), log.String("errorKey", errorKey), log.String("message", errorMessage), log.Error(err))
 	}
 	errorKey = models.DefaultHttpErrorCode
 	returnObj := models.HttpResponseMeta{Code: errorCode, Status: errorKey, Message: errorMessage}
@@ -79,7 +79,7 @@ func ReturnError(c *gin.Context, err error) {
 
 func ReturnAuthError(c *gin.Context, err exterror.CustomError, token string) {
 	errorCode, errorKey, errorMessage := exterror.GetErrorResult(c.GetHeader("Accept-Language"), err, -1)
-	log.Logger.Error("tokenValidateError", log.Int("errorCode", errorCode), log.String("message", errorMessage), log.Error(err), log.String("token", token))
+	log.Logger.Error("tokenValidateError", log.Int("errorCode", errorCode), log.String("errorKey", errorKey), log.String("message", errorMessage), log.Error(err), log.String("token", token))
 	errorKey = models.DefaultHttpErrorCode
 	returnObj := models.HttpResponseMeta{Code: errorCode, Status: errorKey, Message: errorMessage}
 	if log.DebugEnable {

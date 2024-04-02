@@ -228,16 +228,12 @@ func InitHttpServer() {
 		switch funcObj.Method {
 		case "GET":
 			authRouter.GET(funcObj.Url, handleFuncList...)
-			break
 		case "POST":
 			authRouter.POST(funcObj.Url, handleFuncList...)
-			break
 		case "PUT":
 			authRouter.PUT(funcObj.Url, handleFuncList...)
-			break
 		case "DELETE":
 			authRouter.DELETE(funcObj.Url, handleFuncList...)
-			break
 		}
 	}
 	r.GET(models.UrlPrefix+"/v1/route-items", system.GetRouteItems)
@@ -266,7 +262,7 @@ func httpLogHandle() gin.HandlerFunc {
 		}
 		log.AccessLogger.Info(fmt.Sprintf("[%s] [%s] ->", requestId, transactionId), log.String("uri", c.Request.RequestURI), log.String("method", c.Request.Method), log.String("sourceIp", getRemoteIp(c)), log.String(models.ContextOperator, c.GetString(models.ContextOperator)), log.String(models.ContextRequestBody, c.GetString(models.ContextRequestBody)))
 		c.Next()
-		costTime := time.Now().Sub(start).Seconds() * 1000
+		costTime := time.Since(start).Seconds() * 1000
 		userId := c.GetString(models.ContextUserId)
 		if log.DebugEnable {
 			log.AccessLogger.Info(fmt.Sprintf("[%s] [%s] [%s] <-", requestId, transactionId, userId), log.String("uri", c.Request.RequestURI), log.String("method", c.Request.Method), log.Int("httpCode", c.Writer.Status()), log.Int(models.ContextErrorCode, c.GetInt(models.ContextErrorCode)), log.String(models.ContextErrorMessage, c.GetString(models.ContextErrorMessage)), log.Float64("costTime", costTime), log.String(models.ContextResponseBody, c.GetString(models.ContextResponseBody)))

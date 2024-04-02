@@ -65,7 +65,7 @@ func (d *dbContextLogger) AfterSQL(ctx xorm_log.LogContext) {
 		transactionId = tmpTransactionId
 	}
 	var costMs float64 = 0
-	costTime := fmt.Sprintf("%s", ctx.ExecuteTime)
+	costTime := ctx.ExecuteTime.String()
 	if strings.Contains(costTime, "µs") {
 		costMs, _ = strconv.ParseFloat(strings.ReplaceAll(costTime, "µs", ""), 64)
 		costMs = costMs / 1000
@@ -137,9 +137,7 @@ func Transaction(actions []*ExecAction, ctx context.Context) error {
 	for _, action := range actions {
 		params := make([]interface{}, 0)
 		params = append(params, action.Sql)
-		for _, v := range action.Param {
-			params = append(params, v)
-		}
+		params = append(params, action.Param...)
 
 		execResult, execErr := session.Exec(params...)
 		if execErr == nil && action.CheckAffectRow {

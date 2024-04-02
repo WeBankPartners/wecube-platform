@@ -24,6 +24,7 @@ services:
       - auth_server_url=[#auth_server_url]
       - access_token_expired_sec=[#access_token_expired_sec]
       - refresh_token_expired_sec=[#refresh_token_expired_sec]
+      - jwt_signing_key=[#jwt_signing_key]
       - s3_address=[#s3_address]
       - s3_access_key=[#s3_access_key]
       - s3_secret_key=[#s3_secret_key]

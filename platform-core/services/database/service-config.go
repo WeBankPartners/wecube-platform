@@ -229,7 +229,7 @@ func UpdatePluginConfigRoles(c *gin.Context, pluginConfigId string, reqParam *mo
 
 	userToken := c.GetHeader(models.AuthorizationHeader)
 	language := c.GetHeader(middleware.AcceptLanguageHeader)
-	respData, err := remote.RetrieveAllLocalRoles("Y", userToken, language)
+	respData, err := remote.RetrieveAllLocalRoles("Y", userToken, language, false)
 	if err != nil {
 		err = fmt.Errorf("retrieve all local roles failed: %s", err.Error())
 		return
@@ -322,7 +322,7 @@ func GetBatchPluginConfigs(c *gin.Context, pluginPackageId string) (result []*mo
 	}
 
 	var pluginConfigsList []*models.PluginConfigsOutlines
-	db.MysqlEngine.Context(c).Table(models.TableNamePluginConfigs).
+	err = db.MysqlEngine.Context(c).Table(models.TableNamePluginConfigs).
 		Where("plugin_package_id = ?", pluginPackageId).
 		Asc("id").
 		Find(&pluginConfigsList)
@@ -407,9 +407,12 @@ func UpdatePluginConfigStatus(c *gin.Context, pluginConfigId string, status stri
 	// check whether pluginConfigId is valid
 	pluginConfigsData := &models.PluginConfigs{}
 	var exists bool
-	exists, err = db.MysqlEngine.Context(c).Table(models.TableNamePluginConfigs).
-		Where("id = ?", pluginConfigId).
-		Get(pluginConfigsData)
+	/*
+		exists, err = db.MysqlEngine.Context(c).Table(models.TableNamePluginConfigs).
+			Where("id = ?", pluginConfigId).
+			Get(pluginConfigsData)
+	*/
+	exists, err = db.MysqlEngine.SQL(fmt.Sprintf("select * from %s where id=?", models.TableNamePluginConfigs), pluginConfigId).Get(pluginConfigsData)
 	if err != nil {
 		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
 		return
@@ -432,11 +435,18 @@ func UpdatePluginConfigStatus(c *gin.Context, pluginConfigId string, status stri
 	}
 
 	// query plugin configs by id
-	exists, err = db.MysqlEngine.Context(c).Table(models.TableNamePluginConfigs).
-		Where("id = ?", pluginConfigId).
-		Get(pluginConfigsData)
+	/*
+		exists, err = db.MysqlEngine.Context(c).Table(models.TableNamePluginConfigs).
+			Where("id = ?", pluginConfigId).
+			Get(pluginConfigsData)
+	*/
+	exists, err = db.MysqlEngine.SQL(fmt.Sprintf("select * from %s where id=?", models.TableNamePluginConfigs), pluginConfigId).Get(pluginConfigsData)
 	if err != nil {
 		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
+		return
+	}
+	if !exists {
+		err = fmt.Errorf("pluginConfigId: %s is invalid", pluginConfigId)
 		return
 	}
 	result.PluginConfigs = *pluginConfigsData
@@ -748,7 +758,7 @@ func getCreatePluginCfgRolesActions(c *gin.Context,
 	reqUser := middleware.GetRequestUser(c)
 	userToken := c.GetHeader(models.AuthorizationHeader)
 	language := c.GetHeader(middleware.AcceptLanguageHeader)
-	respData, err := remote.RetrieveAllLocalRoles("Y", userToken, language)
+	respData, err := remote.RetrieveAllLocalRoles("Y", userToken, language, false)
 	if err != nil {
 		err = fmt.Errorf("retrieve all local roles failed: %s", err.Error())
 		return

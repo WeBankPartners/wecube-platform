@@ -1,6 +1,7 @@
 <template>
   <!--执行结果-->
   <div class="batch-execute-result">
+    <!--执行历史列表-->
     <Card v-if="from === 'list'" :style="{ minHeight: maxHeight + 'px' }">
       <div class="custom-header" slot="title">
         <Icon
@@ -44,16 +45,17 @@
       </Row>
       <Table size="small" :columns="tableColumns" :data="tableData" :loading="loading" width="100%"></Table>
     </Card>
+    <!--执行详情-->
     <div v-else>
       <template v-if="tableColumns.length > 0">
-        <div style="display: flex; align-items: center">
-          <div style="margin-right: 20px">
+        <div class="error-info">
+          <div class="error-info-left">
             <span>{{ $t('be_execute_status') }}：</span>
             <Tag :color="detailData.errorCode === '0' ? 'success' : 'error'">
               {{ detailData.errorCode === '0' ? $t('be_success') : $t('be_error') }}
             </Tag>
           </div>
-          <div v-if="detailData.errorCode === '1'">
+          <div v-if="detailData.errorCode === '1'" class="error-info-right">
             <span>{{ $t('be_error_reason') }}：</span>
             <span>{{ detailData.errorMessage }}</span>
           </div>
@@ -391,6 +393,21 @@ export default {
     .expand {
       margin-right: 5px;
       cursor: pointer;
+    }
+  }
+  .error-info {
+    display: flex;
+    align-items: flex-start;
+    &-left {
+      display: flex;
+      align-items: center;
+      width: 160px;
+      margin-right: 15px;
+      width: fit-content;
+    }
+    &-right {
+      flex: 1;
+      margin-top: 3px;
     }
   }
   .search {

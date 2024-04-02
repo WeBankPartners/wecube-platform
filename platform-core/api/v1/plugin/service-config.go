@@ -90,7 +90,6 @@ func UpdatePluginConfigRoles(c *gin.Context) {
 	} else {
 		middleware.ReturnSuccess(c)
 	}
-	return
 }
 
 // DisablePluginConfig 服务注册 - 服务注销
@@ -115,7 +114,6 @@ func DisablePluginConfig(c *gin.Context) {
 	} else {
 		middleware.ReturnData(c, retData)
 	}
-	return
 }
 
 // EnablePluginConfig 服务注册 - 服务注册
@@ -140,7 +138,6 @@ func EnablePluginConfig(c *gin.Context) {
 	} else {
 		middleware.ReturnData(c, retData)
 	}
-	return
 }
 
 // SavePluginConfig 服务注册 - 服务配置保存
@@ -198,7 +195,6 @@ func DeletePluginConfig(c *gin.Context) {
 	} else {
 		middleware.ReturnSuccess(c)
 	}
-	return
 }
 
 // GetBatchPluginConfigs 服务注册 - 批量注册查询
@@ -223,7 +219,6 @@ func GetBatchPluginConfigs(c *gin.Context) {
 	} else {
 		middleware.ReturnData(c, retData)
 	}
-	return
 }
 
 // BatchEnablePluginConfig 服务注册 - 批量注册
@@ -253,7 +248,6 @@ func BatchEnablePluginConfig(c *gin.Context) {
 	} else {
 		middleware.ReturnSuccess(c)
 	}
-	return
 }
 
 // ExportPluginConfigs 插件配置导出
@@ -283,12 +277,12 @@ func ExportPluginConfigs(c *gin.Context) {
 		retDataBytes, tmpErr := xml.MarshalIndent(retData, "", "    ")
 		if tmpErr != nil {
 			err = fmt.Errorf("marshal exportPluginConfigs failed: %s", tmpErr.Error())
+			middleware.ReturnError(c, err)
 			return
 		}
 		c.Header("Content-Disposition", fmt.Sprintf("attachment;filename=%s", fileName))
 		c.Data(http.StatusOK, "application/octet-stream", retDataBytes)
 	}
-	return
 }
 
 // ImportPluginConfigs 插件配置导入
@@ -325,7 +319,6 @@ func ImportPluginConfigs(c *gin.Context) {
 	} else {
 		middleware.ReturnData(c, retData)
 	}
-	return
 }
 
 // DeletePlugin 插件删除

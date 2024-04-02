@@ -68,7 +68,8 @@ func ExportCertification(c *gin.Context) {
 		middleware.ReturnError(c, err)
 	} else {
 		if result == nil {
-			middleware.ReturnError(c, fmt.Errorf("certification %d not found", certId))
+			middleware.ReturnError(c, fmt.Errorf("certification %s not found", certId))
+			return
 		}
 		exportData, err := database.MarshalWeLicense(&models.WeLicense{
 			Plugin:      result.Plugin,

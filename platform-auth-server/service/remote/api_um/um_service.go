@@ -10,7 +10,6 @@ import (
 	"github.com/WeBankPartners/wecube-platform/platform-auth-server/model"
 	resty "github.com/go-resty/resty/v2"
 	"math/rand"
-	"net"
 	"strconv"
 	"strings"
 	"time"
@@ -61,8 +60,8 @@ type UmUserRoleItem struct {
 }
 
 var (
-	umToken          UmToken
-	umPermissionResp UmPermissionResp
+	umToken UmToken
+	// umPermissionResp UmPermissionResp
 )
 
 func UmAppAuth(umAuthContext model.UmAuthContext) error {
@@ -168,7 +167,7 @@ func UmAuthenticate(authCtxMap map[string]string, credential *model.CredentialDt
 			"sign":      sign,
 			"appid":     umAuthCtx.Appid,
 			"timeStamp": timeStamp,
-			"style":     "5",
+			"style":     "6",
 			"auth":      umToken.Auth,
 			"token":     umToken.Token,
 		}).
@@ -201,33 +200,33 @@ func UmAuthenticate(authCtxMap map[string]string, credential *model.CredentialDt
 	}
 }
 
-func getLocalIpAddress() string {
-	// Get all network interfaces on the machine
-	ifaces, err := net.Interfaces()
-	if err != nil {
-		log.Logger.Error("failed to get local ip address", log.Error(err))
-		return ""
-	}
+// func getLocalIpAddress() string {
+// 	// Get all network interfaces on the machine
+// 	ifaces, err := net.Interfaces()
+// 	if err != nil {
+// 		log.Logger.Error("failed to get local ip address", log.Error(err))
+// 		return ""
+// 	}
 
-	// Iterate over each network interface
-	for _, iface := range ifaces {
-		// Get the addresses for the current interface
-		addrs, err := iface.Addrs()
-		if err != nil {
-			log.Logger.Error("failed to get local ip address", log.Error(err))
-			continue
-		}
-		// Iterate over each address for the current interface
-		for _, addr := range addrs {
-			// Check if the address is an IP address and not a loopback address
-			ipnet, ok := addr.(*net.IPNet)
-			if ok && !ipnet.IP.IsLoopback() {
-				if ipnet.IP.To4() != nil {
-					// We've found a valid IPv4 address
-					return ipnet.IP.String()
-				}
-			}
-		}
-	}
-	return ""
-}
+// 	// Iterate over each network interface
+// 	for _, iface := range ifaces {
+// 		// Get the addresses for the current interface
+// 		addrs, err := iface.Addrs()
+// 		if err != nil {
+// 			log.Logger.Error("failed to get local ip address", log.Error(err))
+// 			continue
+// 		}
+// 		// Iterate over each address for the current interface
+// 		for _, addr := range addrs {
+// 			// Check if the address is an IP address and not a loopback address
+// 			ipnet, ok := addr.(*net.IPNet)
+// 			if ok && !ipnet.IP.IsLoopback() {
+// 				if ipnet.IP.To4() != nil {
+// 					// We've found a valid IPv4 address
+// 					return ipnet.IP.String()
+// 				}
+// 			}
+// 		}
+// 	}
+// 	return ""
+// }

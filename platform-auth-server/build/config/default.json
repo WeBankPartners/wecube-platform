@@ -28,5 +28,8 @@
     "signing_key":"[#SIGNING_KEY]",
     "access_token_mins":[#USER_ACCESS_TOKEN],
     "refresh_token_mins":[#USER_REFRESH_TOKEN]
+  },
+  "remote": {
+    "platform_url": "http://[#WECUBE_CORE_ADDRESS]"
   }
 }

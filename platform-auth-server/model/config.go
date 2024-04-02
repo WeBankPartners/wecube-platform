@@ -54,6 +54,10 @@ type UmAuth struct {
 	AppToken string `json:"appToken"`
 }
 
+type RemoteConfig struct {
+	PlatformUrl string `json:"platform_url"`
+}
+
 type GlobalConfig struct {
 	ServerAddress          string             `json:"server_address"`
 	ServerPort             string             `json:"server_port"`
@@ -62,6 +66,7 @@ type GlobalConfig struct {
 	Database               DatabaseConfig     `json:"database"`
 	UmPermissionUpload     UmPermissionUpload `json:"um_permission_upload"`
 	Auth                   Auth               `json:"auth"`
+	RemoteConfig           *RemoteConfig      `json:"remote"`
 	ErrorTemplateDir       string             `json:"error_template_dir"`
 	ErrorDetailReturn      bool               `json:"error_detail_return"`
 }

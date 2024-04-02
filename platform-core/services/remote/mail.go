@@ -39,7 +39,7 @@ func SendSmtpMail(smo models.SendMailTarget) (err error) {
 	}
 	err = smtp.SendMail(senderObj.Server, authObj, senderObj.Sender, smo.Accept, mailQQMessage(smo.Accept, smo.Subject, smo.Content, senderObj.Sender))
 	if err != nil {
-		err = fmt.Errorf("Send mail error,%s ", err.Error())
+		err = fmt.Errorf("send mail error,%s ", err.Error())
 	}
 	return
 }
@@ -67,35 +67,35 @@ func sendSMTPMailTLS(smo models.SendMailTarget, authObj smtp.Auth, senderObj *mo
 	if b, _ := client.Extension("AUTH"); b {
 		err = client.Auth(authObj)
 		if err != nil {
-			err = fmt.Errorf("Client auth fail,%s ", err.Error())
+			err = fmt.Errorf("client auth fail,%s ", err.Error())
 			return
 		}
 	}
 	err = client.Mail(senderObj.Sender)
 	if err != nil {
-		err = fmt.Errorf("Client mail set from fail:%s ", err.Error())
+		err = fmt.Errorf("client mail set from fail:%s ", err.Error())
 		return
 	}
 	for _, to := range smo.Accept {
 		if err = client.Rcpt(to); err != nil {
-			err = fmt.Errorf("Client rcpt %s error,%s ", to, err.Error())
+			err = fmt.Errorf("client rcpt %s error,%s ", to, err.Error())
 			return
 		}
 	}
 	w, dataInitErr := client.Data()
 	if dataInitErr != nil {
-		err = fmt.Errorf("Client data init error,%s ", dataInitErr.Error())
+		err = fmt.Errorf("client data init error,%s ", dataInitErr.Error())
 		return
 	}
 	_, err = w.Write(mailQQMessage(smo.Accept, smo.Subject, smo.Content, senderObj.Sender))
 	if err != nil {
-		err = fmt.Errorf("Write message error,%s ", err.Error())
+		err = fmt.Errorf("write message error,%s ", err.Error())
 		return
 	}
 	w.Close()
 	err = client.Quit()
 	if err != nil {
-		err = fmt.Errorf("Client quit error,%s ", err.Error())
+		err = fmt.Errorf("client quit error,%s ", err.Error())
 		return
 	}
 	return

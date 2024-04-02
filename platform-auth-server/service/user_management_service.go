@@ -1,6 +1,7 @@
 package service
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"time"
@@ -12,6 +13,7 @@ import (
 	"github.com/WeBankPartners/wecube-platform/platform-auth-server/model"
 	"github.com/WeBankPartners/wecube-platform/platform-auth-server/service/db"
 	"golang.org/x/crypto/bcrypt"
+	"xorm.io/xorm"
 )
 
 const DefPasswordLength = 8
@@ -200,7 +202,7 @@ func (UserManagementService) RevokeRoleFromUsers(roleId string, userDtos []*mode
 				log.Logger.Error(fmt.Sprintf("failed to update userRoleRs:%v", userRole.Id), log.Error(err))
 			}
 			session.Rollback()
-			return errors.New(fmt.Sprintf("failed to update userRoleRs:%v", userRole.Id))
+			return fmt.Errorf("failed to update userRoleRs:%v", userRole.Id)
 		}
 	}
 	session.Commit()
@@ -240,7 +242,7 @@ func (UserManagementService) ConfigureUserWithRoles(userId string, roleDtos []*m
 	}
 
 	remainUserRoleMap := make(map[string]string)
-	remainUserRoles := make([]*model.UserRoleRsEntity, 0)
+	// remainUserRoles := make([]*model.UserRoleRsEntity, 0)
 
 	for _, roleDto := range roleDtos {
 		role := &model.SysRoleEntity{}
@@ -259,7 +261,7 @@ func (UserManagementService) ConfigureUserWithRoles(userId string, roleDtos []*m
 			continue
 		}
 		foundUserRoles := findFromUserRoles(existUserRoles, role.Id)
-		remainUserRoles = append(remainUserRoles, foundUserRoles...)
+		// remainUserRoles = append(remainUserRoles, foundUserRoles...)
 		for _, userRole := range foundUserRoles {
 			remainUserRoleMap[userRole.Id] = "1"
 		}
@@ -272,7 +274,7 @@ func (UserManagementService) ConfigureUserWithRoles(userId string, roleDtos []*m
 			return err
 		}
 		if userRole != nil {
-			log.Logger.Info(fmt.Sprintf("such user userRole configuration already exist,userId=%s,roleId=%a", userId, role.Id))
+			log.Logger.Info(fmt.Sprintf("such user userRole configuration already exist,userId=%s,roleId=%s", userId, role.Id))
 			continue
 		} else {
 			userRole := &model.UserRoleRsEntity{
@@ -381,7 +383,7 @@ func (UserManagementService) RevokeRolesFromUser(userId string, roleDtos []*mode
 				log.Logger.Error("failed to update userRole", log.Error(err))
 			}
 			session.Rollback()
-			return errors.New(fmt.Sprintf("failed to update userRole:%s", userRole.Id))
+			return fmt.Errorf("failed to update userRole:%s", userRole.Id)
 		}
 	}
 	session.Commit()
@@ -463,30 +465,30 @@ func (UserManagementService) ConfigureRoleForUsers(roleId string, userDtos []*mo
 	return nil
 }
 
-func (UserManagementService) GetLocalRolesByUsername(username string) ([]*model.SimpleLocalRoleDto, error) {
+func (UserManagementService) getLocalRolesByUsername(username string) (*model.SysUserEntity, []*model.SimpleLocalRoleDto, error) {
 	roleDtos := make([]*model.SimpleLocalRoleDto, 0)
 	if len(username) == 0 {
-		return nil, exterror.Catch(exterror.New().AuthServer3020Error, nil)
+		return nil, nil, exterror.Catch(exterror.New().AuthServer3020Error, nil)
 	}
 	user, err := db.UserRepositoryInstance.FindNotDeletedUserByUsername(username)
 	if err != nil {
 		log.Logger.Error("failed to find not deleted user by username", log.String("username", username),
 			log.Error(err))
-		return nil, err
+		return nil, nil, err
 	}
 
 	if user == nil {
-		return roleDtos, nil
+		return user, roleDtos, nil
 	}
 
 	userRoles, err := db.UserRoleRsRepositoryInstance.FindAllByUserId(user.Id)
 	if err != nil {
 		log.Logger.Error("failed to find UserRoleRs", log.String("userId", user.Id), log.Error(err))
-		return nil, err
+		return nil, nil, err
 	}
 
 	if len(userRoles) == 0 {
-		return roleDtos, nil
+		return user, roleDtos, nil
 	}
 
 	for _, userRole := range userRoles {
@@ -495,7 +497,7 @@ func (UserManagementService) GetLocalRolesByUsername(username string) ([]*model.
 		if err != nil {
 			log.Logger.Error("failed to get role", log.String("roleId", userRole.RoleId),
 				log.Error(err))
-			return nil, err
+			return nil, nil, err
 		}
 
 		if !found {
@@ -520,7 +522,28 @@ func (UserManagementService) GetLocalRolesByUsername(username string) ([]*model.
 		roleDtos = append(roleDtos, roleDto)
 	}
 
-	return roleDtos, nil
+	return user, roleDtos, nil
+}
+
+func (UserManagementService) GetLocalRolesByUsername(username string) ([]*model.SimpleLocalRoleDto, error) {
+	_, roleDtos, err := UserManagementServiceInstance.getLocalRolesByUsername(username)
+	return roleDtos, err
+}
+
+func (UserManagementService) GetAdminRolesByUsername(username string) ([]*model.SimpleLocalRoleDto, error) {
+	user, roleDtos, err := UserManagementServiceInstance.getLocalRolesByUsername(username)
+	if err != nil {
+		return nil, err
+	}
+	result := make([]*model.SimpleLocalRoleDto, 0, len(roleDtos))
+	if user != nil && len(roleDtos) > 0 {
+		for _, roleDto := range roleDtos {
+			if roleDto.Administrator == user.Id {
+				result = append(result, roleDto)
+			}
+		}
+	}
+	return result, nil
 }
 
 func (UserManagementService) GetLocalUsersByRoleId(roleId string) ([]*model.SimpleLocalUserDto, error) {
@@ -572,7 +595,7 @@ func (UserManagementService) RetireveLocalUserByUserid(userId string) (*model.Si
 	}
 
 	if user.IsDeleted {
-		log.Logger.Debug(fmt.Sprintf("Such user with ID {} has already been deleted.", userId))
+		log.Logger.Debug(fmt.Sprintf("Such user with ID %s has already been deleted.", userId))
 		return nil, exterror.Catch(exterror.New().AuthServer3024Error.WithParam(userId), nil)
 	}
 
@@ -651,7 +674,7 @@ func (UserManagementService) RegisterLocalUser(userDto *model.SimpleLocalUserDto
 	}
 	if user != nil {
 
-		log.Logger.Info(fmt.Sprintf("such username {} to create has already existed.", userDto.Username))
+		log.Logger.Info(fmt.Sprintf("such username %s to create has already existed.", userDto.Username))
 		return nil, exterror.Catch(exterror.New().AuthServer3023Error.WithParam(userDto.Username), nil)
 	}
 
@@ -814,22 +837,445 @@ func (UserManagementService) UnregisterLocalUser(userId string, curUser string) 
 		return err
 	}
 
-	if userRoles != nil {
-		for _, userRole := range userRoles {
-			userRole.Active = false
-			userRole.Deleted = true
-			userRole.UpdatedBy = curUser
-			userRole.UpdatedTime = time.Now()
+	for _, userRole := range userRoles {
+		userRole.Active = false
+		userRole.Deleted = true
+		userRole.UpdatedBy = curUser
+		userRole.UpdatedTime = time.Now()
 
-			if affected, err := session.ID(userRole.Id).UseBool().Update(userRole); affected == 0 || err != nil {
-				if err != nil {
-					log.Logger.Error(fmt.Sprintf("failed to update userRoleRs:%v", userRole.Id), log.Error(err))
-				}
-				session.Rollback()
-				return errors.New(fmt.Sprintf("failed to update userRoleRs:%v", userRole.Id))
+		if affected, err := session.ID(userRole.Id).UseBool().Update(userRole); affected == 0 || err != nil {
+			if err != nil {
+				log.Logger.Error(fmt.Sprintf("failed to update userRoleRs:%v", userRole.Id), log.Error(err))
 			}
+			session.Rollback()
+			return fmt.Errorf("failed to update userRoleRs:%v", userRole.Id)
 		}
 	}
 	session.Commit()
 	return nil
+}
+
+func (UserManagementService) RegisterUmUser(param *model.RoleApplyParam, curUser string) error {
+	if len(param.RoleIds) == 0 {
+		return nil
+	}
+	if len(param.UserName) == 0 {
+		return exterror.Catch(exterror.New().AuthServer3025Error, nil)
+	}
+	if param.UserName != curUser {
+		return exterror.Catch(exterror.New().AuthServer3022Error, nil)
+	}
+	if !utils.IsEmailValid(param.EmailAddr) {
+		return exterror.Catch(exterror.New().AuthServer3008Error, nil)
+	}
+
+	user, err := db.UserRepositoryInstance.FindNotDeletedUserByUsername(param.UserName)
+	if err != nil {
+		log.Logger.Error("failed to find not deleted user by username", log.String("username", param.UserName),
+			log.Error(err))
+		return err
+	}
+	if user != nil {
+		// 走申请角色
+		return UserManagementServiceInstance.CreateRoleApply(param, curUser)
+	}
+
+	// 过滤已申请的角色
+	roleApplys, err := db.RoleApplyRepositoryInstance.FindByApplier(param.UserName, param.RoleIds, []string{model.RoleApplyStatusInit})
+	if err != nil {
+		return err
+	}
+	existRoleApplyMap := make(map[string]*model.RoleApplyEntity)
+	for _, roleApply := range roleApplys {
+		existRoleApplyMap[roleApply.RoleId] = roleApply
+	}
+	// 已申请的更新下时间
+	updateRoleApplys := make([]*model.RoleApplyEntity, 0, len(param.RoleIds))
+	insertRoleIds := make([]string, 0, len(param.RoleIds))
+	now := time.Now()
+	for _, roleId := range param.RoleIds {
+		if roleApply, ok := existRoleApplyMap[roleId]; !ok {
+			insertRoleIds = append(insertRoleIds, roleId)
+		} else {
+			updateRoleApplys = append(updateRoleApplys, &model.RoleApplyEntity{
+				Id:          roleApply.Id,
+				CreatedTime: now,
+			})
+		}
+	}
+
+	// 插入申请
+	insertRoleApplys := make([]*model.RoleApplyEntity, len(insertRoleIds))
+	for i, roleId := range insertRoleIds {
+		insertRoleApplys[i] = &model.RoleApplyEntity{
+			Id:          utils.Uuid(),
+			CreatedBy:   param.UserName,
+			CreatedTime: now,
+			EmailAddr:   param.EmailAddr,
+			RoleId:      roleId,
+			Status:      model.RoleApplyStatusInit,
+		}
+	}
+
+	// 执行db操作
+	if len(updateRoleApplys) == 0 && len(insertRoleApplys) == 0 {
+		return nil
+	}
+	_, err = db.Engine.Transaction(func(session *xorm.Session) (interface{}, error) {
+		for _, roleApply := range updateRoleApplys {
+			if _, err := session.Update(roleApply, &model.RoleApplyEntity{Id: roleApply.Id}); err != nil {
+				return nil, err
+			}
+		}
+		if len(insertRoleApplys) > 0 {
+			if _, err = db.Engine.Insert(insertRoleApplys); err != nil {
+				return nil, err
+			}
+		}
+		return nil, nil
+	})
+	return err
+}
+
+func (UserManagementService) CreateRoleApply(param *model.RoleApplyParam, curUser string) error {
+	if len(param.RoleIds) == 0 {
+		return nil
+	}
+	if len(param.UserName) == 0 {
+		return exterror.Catch(exterror.New().AuthServer3025Error, nil)
+	}
+	if param.UserName != curUser {
+		return exterror.Catch(exterror.New().AuthServer3022Error, nil)
+	}
+
+	user, err := db.UserRepositoryInstance.FindNotDeletedUserByUsername(param.UserName)
+	if err != nil {
+		log.Logger.Error("failed to find not deleted user by username", log.String("username", param.UserName),
+			log.Error(err))
+		return err
+	}
+	if user == nil {
+		return exterror.Catch(exterror.New().AuthServer3021Error.WithParam(param.UserName), nil)
+	}
+
+	// 过滤已申请的角色
+	roleApplys, err := db.RoleApplyRepositoryInstance.FindByApplier(param.UserName, param.RoleIds, []string{model.RoleApplyStatusInit})
+	if err != nil {
+		return err
+	}
+	existRoleApplyMap := make(map[string]*model.RoleApplyEntity)
+	for _, roleApply := range roleApplys {
+		existRoleApplyMap[roleApply.RoleId] = roleApply
+	}
+
+	// 过滤已有角色
+	userRoles, err := db.UserRoleRsRepositoryInstance.FindAllByUserId(user.Id)
+	if err != nil {
+		log.Logger.Warn("failed to FindAllByUserId for userRoleRs", log.String("userId", user.Id), log.Error(err))
+		return err
+	}
+	existUserRoleMap := make(map[string]*model.UserRoleRsEntity)
+	for _, userRole := range userRoles {
+		existUserRoleMap[userRole.RoleId] = userRole
+	}
+
+	// 已申请的更新下时间
+	updateRoleApplys := make([]*model.RoleApplyEntity, 0, len(param.RoleIds))
+	insertRoleIds := make([]string, 0, len(param.RoleIds))
+	now := time.Now()
+	for _, roleId := range param.RoleIds {
+		if _, ok := existUserRoleMap[roleId]; ok {
+			return fmt.Errorf("you already have roleId: %s", roleId)
+		}
+		if roleApply, ok := existRoleApplyMap[roleId]; !ok {
+			insertRoleIds = append(insertRoleIds, roleId)
+		} else {
+			updateRoleApplys = append(updateRoleApplys, &model.RoleApplyEntity{
+				Id:          roleApply.Id,
+				CreatedTime: now,
+			})
+		}
+	}
+
+	// 插入申请
+	insertRoleApplys := make([]*model.RoleApplyEntity, len(insertRoleIds))
+	for i, roleId := range insertRoleIds {
+		insertRoleApplys[i] = &model.RoleApplyEntity{
+			Id:          utils.Uuid(),
+			CreatedBy:   param.UserName,
+			CreatedTime: now,
+			EmailAddr:   param.EmailAddr,
+			RoleId:      roleId,
+			Status:      model.RoleApplyStatusInit,
+		}
+	}
+
+	// 执行db操作
+	if len(updateRoleApplys) == 0 && len(insertRoleApplys) == 0 {
+		return nil
+	}
+	_, err = db.Engine.Transaction(func(session *xorm.Session) (interface{}, error) {
+		for _, roleApply := range updateRoleApplys {
+			if _, err := session.Update(roleApply, &model.RoleApplyEntity{Id: roleApply.Id}); err != nil {
+				return nil, err
+			}
+		}
+		if len(insertRoleApplys) > 0 {
+			if _, err = db.Engine.Insert(insertRoleApplys); err != nil {
+				return nil, err
+			}
+		}
+		return nil, nil
+	})
+	return err
+}
+
+func (UserManagementService) ListRoleApply(ctx context.Context, param *model.QueryRequestParam, curUser string) (*model.ListRoleApplyResponse, error) {
+	// 获取自己是角色管理员的已有角色
+	adminRoles, err := UserManagementServiceInstance.GetAdminRolesByUsername(curUser)
+	if err != nil {
+		return nil, err
+	}
+	adminRoleIds := make([]string, len(adminRoles))
+	adminRoleIdMap := make(map[string]any)
+	for i, adminRole := range adminRoles {
+		adminRoleIds[i] = adminRole.ID
+		adminRoleIdMap[adminRole.ID] = nil
+	}
+
+	// 如果没有角色条件，自动加上；如果有，去掉自己不是角色管理员的
+	var queryRoleIds []string
+	var roleIds []string
+	filters := make([]*model.QueryRequestFilterObj, 0, len(param.Filters))
+	for _, filter := range param.Filters {
+		if filter.Name == "roleId" && (filter.Operator == "eq" || filter.Operator == "in") {
+			if filter.Operator == "eq" {
+				if s, ok := filter.Value.(string); ok {
+					queryRoleIds = append(queryRoleIds, s)
+				}
+			} else if filter.Operator == "in" {
+				queryRoleIds = append(queryRoleIds, db.ParseFilterInValue(filter)...)
+			}
+		} else {
+			filters = append(filters, filter)
+		}
+	}
+	if len(queryRoleIds) == 0 {
+		roleIds = adminRoleIds
+	} else {
+		roleIds = make([]string, 0, len(queryRoleIds))
+		for _, roleId := range queryRoleIds {
+			if _, ok := adminRoleIdMap[roleId]; ok {
+				roleIds = append(roleIds, roleId)
+			}
+		}
+	}
+	filters = append(filters, &model.QueryRequestFilterObj{
+		Name:     "roleId",
+		Operator: "in",
+		Value:    roleIds,
+	})
+	param.Filters = filters
+
+	result, err := db.RoleApplyRepositoryInstance.Query(ctx, param)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, content := range result.Contents {
+		if content.Role.ID != "" {
+			role, err := db.RoleRepositoryInstance.FindNotDeletedRolesById(content.Role.ID)
+			if err != nil {
+				return nil, err
+			}
+			if role != nil {
+				content.Role = convertToSimpleLocalRoleDto(role)
+			}
+		}
+	}
+	return result, err
+}
+
+func (UserManagementService) ListRoleApplyByApplier(ctx context.Context, param *model.QueryRequestParam, curUser string) (*model.ListRoleApplyResponse, error) {
+	// 如果没有申请人条件，自动加上；如果有，只允许是自己
+	filters := make([]*model.QueryRequestFilterObj, 0, len(param.Filters))
+	for _, filter := range param.Filters {
+		if filter.Name == "createdBy" && (filter.Operator == "eq" || filter.Operator == "in") {
+		} else {
+			filters = append(filters, filter)
+		}
+	}
+	filters = append(filters, &model.QueryRequestFilterObj{
+		Name:     "createdBy",
+		Operator: "eq",
+		Value:    curUser,
+	})
+	param.Filters = filters
+
+	result, err := db.RoleApplyRepositoryInstance.Query(ctx, param)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, content := range result.Contents {
+		if content.Role.ID != "" {
+			role, err := db.RoleRepositoryInstance.FindNotDeletedRolesById(content.Role.ID)
+			if err != nil {
+				return nil, err
+			}
+			if role != nil {
+				content.Role = convertToSimpleLocalRoleDto(role)
+			}
+		}
+	}
+	return result, err
+}
+
+func (UserManagementService) UpdateRoleApply(param []*model.RoleApplyDto, curUser string) error {
+	if len(param) == 0 {
+		return nil
+	}
+	applyIds := make([]string, len(param))
+	statusMap := make(map[string]string)
+	for i, apply := range param {
+		applyIds[i] = apply.ID
+		if apply.Status != model.RoleApplyStatusApprove && apply.Status != model.RoleApplyStatusDeny {
+			return fmt.Errorf("invalid status: %s", apply.Status)
+		}
+		statusMap[apply.ID] = apply.Status
+	}
+
+	roleApplys, err := db.RoleApplyRepositoryInstance.FindByIDs(applyIds)
+	if err != nil {
+		return err
+	}
+	if len(roleApplys) == 0 {
+		return nil
+	}
+
+	// 获取自己是角色管理员的已有角色
+	adminRoles, err := UserManagementServiceInstance.GetAdminRolesByUsername(curUser)
+	if err != nil {
+		return err
+	}
+	adminRoleIdMap := make(map[string]any)
+	for _, adminRole := range adminRoles {
+		adminRoleIdMap[adminRole.ID] = nil
+	}
+
+	umAuthCtx, err := GetUmAuthContext(curUser)
+	if err != nil {
+		return err
+	}
+
+	updateRoleApplys := make([]*model.RoleApplyEntity, 0, len(roleApplys))
+	insertUsers := make([]*model.SysUserEntity, 0, len(roleApplys))
+	insertUsersMap := make(map[string]string)
+	insertUserRoles := make([]*model.UserRoleRsEntity, 0, len(roleApplys))
+	insertUserRolesMap := make(map[string]any)
+	cachedRolesMap := make(map[string]*model.SysRoleEntity)
+	now := time.Now()
+	for _, roleApply := range roleApplys {
+		if roleApply.Status != model.RoleApplyStatusInit {
+			return fmt.Errorf("apply %s already handled", roleApply.Id)
+		}
+		if _, ok := adminRoleIdMap[roleApply.RoleId]; !ok {
+			return fmt.Errorf("apply %s role administrator not you", roleApply.Id)
+		}
+
+		// 进行处理
+		if status, ok := statusMap[roleApply.Id]; ok {
+			// 审批
+			updateRoleApplys = append(updateRoleApplys, &model.RoleApplyEntity{
+				Id:          roleApply.Id,
+				UpdatedBy:   curUser,
+				UpdatedTime: now,
+				Status:      status,
+			})
+			if status != model.RoleApplyStatusApprove {
+				continue
+			}
+			// 插用户
+			if _, ok := insertUsersMap[roleApply.CreatedBy]; !ok {
+				user, err := db.UserRepositoryInstance.FindNotDeletedUserByUsername(roleApply.CreatedBy)
+				if err != nil {
+					return err
+				}
+				if user == nil {
+					user = &model.SysUserEntity{
+						Id:          utils.Uuid(),
+						CreatedBy:   curUser,
+						UpdatedBy:   curUser,
+						CreatedTime: now,
+						UpdatedTime: now,
+						Username:    roleApply.CreatedBy,
+						EmailAddr:   roleApply.EmailAddr,
+						IsActive:    true,
+						AuthSource:  constant.AuthSourceUm,
+						AuthContext: umAuthCtx,
+					}
+					insertUsers = append(insertUsers, user)
+				}
+				insertUsersMap[roleApply.CreatedBy] = user.Id
+			}
+			// 插用户角色关系
+			userRolesId := fmt.Sprintf("%s_%s", roleApply.CreatedBy, roleApply.RoleId)
+			if _, ok := insertUserRolesMap[userRolesId]; !ok {
+				insertUserRolesMap[userRolesId] = nil
+				if userId, ok := insertUsersMap[roleApply.CreatedBy]; ok {
+					userRole, err := db.UserRoleRsRepositoryInstance.FindOneByUserIdAndRoleId(userId, roleApply.RoleId, nil)
+					if err != nil {
+						return err
+					}
+					if userRole == nil {
+						role, ok := cachedRolesMap[roleApply.RoleId]
+						if !ok {
+							role, err = db.RoleRepositoryInstance.FindNotDeletedRolesById(roleApply.RoleId)
+							if err != nil {
+								return err
+							}
+							cachedRolesMap[roleApply.RoleId] = role
+						}
+						userRole = &model.UserRoleRsEntity{
+							Id:          utils.Uuid(),
+							CreatedBy:   curUser,
+							UpdatedBy:   curUser,
+							CreatedTime: now,
+							UpdatedTime: now,
+							UserId:      userId,
+							Username:    roleApply.CreatedBy,
+							RoleId:      roleApply.RoleId,
+							RoleName:    role.Name,
+							Active:      true,
+						}
+						insertUserRoles = append(insertUserRoles, userRole)
+					}
+				}
+			}
+		}
+	}
+
+	// 执行db操作
+	if len(updateRoleApplys) == 0 && len(insertUsers) == 0 && len(insertUserRoles) == 0 {
+		return nil
+	}
+	_, err = db.Engine.Transaction(func(session *xorm.Session) (interface{}, error) {
+		for _, roleApply := range updateRoleApplys {
+			if _, err := session.Update(roleApply, &model.RoleApplyEntity{Id: roleApply.Id}); err != nil {
+				return nil, err
+			}
+		}
+		if len(insertUsers) > 0 {
+			if _, err := session.Insert(insertUsers); err != nil {
+				return nil, err
+			}
+		}
+		if len(insertUserRoles) > 0 {
+			if _, err := session.Insert(insertUserRoles); err != nil {
+				return nil, err
+			}
+		}
+		return nil, nil
+	})
+	return err
 }

@@ -5,6 +5,10 @@ import "time"
 const (
 	StatusDeleted    = "Deleted"
 	StatusNotDeleted = "NotDeleted"
+
+	RoleApplyStatusInit    = "init"
+	RoleApplyStatusApprove = "approve"
+	RoleApplyStatusDeny    = "deny"
 )
 
 type BaseTraceableEntity struct {
@@ -186,4 +190,20 @@ type UserRoleRsEntity struct {
 
 func (UserRoleRsEntity) TableName() string {
 	return "auth_sys_user_role"
+}
+
+type RoleApplyEntity struct {
+	Id          string    `json:"id" xorm:"id"`
+	CreatedBy   string    `json:"createdBy" xorm:"created_by"`
+	UpdatedBy   string    `json:"updatedBy" xorm:"updated_by"`
+	CreatedTime time.Time `json:"createdTime" xorm:"created_time"`
+	UpdatedTime time.Time `json:"updatedTime" xorm:"updated_time"`
+
+	EmailAddr string `json:"emailAddr" xorm:"email_addr"`
+	RoleId    string `json:"roleId" xorm:"role_id"`
+	Status    string `json:"status" xorm:"status"`
+}
+
+func (RoleApplyEntity) TableName() string {
+	return "auth_sys_role_apply"
 }

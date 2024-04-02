@@ -74,10 +74,7 @@ func CheckDecimalPlaces(val float64, decimal int) bool {
 }
 
 func EqualsIgnoreCase(s1, s2 string) bool {
-	if strings.ToLower(s1) == strings.ToLower(s2) {
-		return true
-	}
-	return false
+	return strings.EqualFold(s1, s2)
 }
 
 func IsEmailValid(email string) bool {

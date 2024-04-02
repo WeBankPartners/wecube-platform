@@ -441,7 +441,7 @@ export default {
       this.resultTableParams = []
       this.pluginOutputParams = []
     },
-    // 获取插件选择列表
+    // 获取插件下拉列表
     async getFilteredPluginList () {
       let pkg = ''
       let entity = ''
@@ -468,10 +468,19 @@ export default {
       const { status, data } = await getPluginsByTargetEntityFilterRule(payload)
       if (status === 'OK') {
         this.pluginOptions = data
+        // 过滤不需要的数据
         this.pluginOptions = this.pluginOptions.filter(item => {
           const flag = item.inputParameters && item.inputParameters.every(param => param.mappingType !== 'context')
           return item.isAsyncProcessing === 'N' && flag
         })
+        // 若详情接口返回的插件在接口中查不出来，手动拼接
+        if (this.data && this.data.configData) {
+          const { pluginConfigInterface } = this.data.configData
+          const hasFlag = this.pluginOptions.some(item => item.serviceName === pluginConfigInterface.serviceName)
+          if (!hasFlag) {
+            this.pluginOptions.push(pluginConfigInterface)
+          }
+        }
       }
     },
     // 根据过滤条件获取执行实例表格列
@@ -542,7 +551,7 @@ export default {
           if (value) {
             requestParameter.filters[index].attributeFilters.push({
               name,
-              value,
+              value: operator === 'in' ? value.split(',') : value,
               operator: operator || 'contains'
             })
           }
@@ -557,7 +566,7 @@ export default {
               attributeFilters: [
                 {
                   name,
-                  value,
+                  value: operator === 'in' ? value.split(',') : value,
                   operator: operator || 'contains'
                 }
               ]

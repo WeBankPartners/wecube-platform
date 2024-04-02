@@ -1,7 +1,11 @@
 package db
 
 import (
+	"context"
+
+	"github.com/WeBankPartners/wecube-platform/platform-auth-server/common/constant"
 	"github.com/WeBankPartners/wecube-platform/platform-auth-server/model"
+	"xorm.io/builder"
 	"xorm.io/xorm"
 )
 
@@ -49,7 +53,7 @@ func (RoleAuthorityRsRepository) FindAllConfiguredAuthoritiesByRoleId(roleId str
 func (RoleAuthorityRsRepository) FindOneByRoleIdAndAuthorityId(roleId, authorityId string, session *xorm.Session) (*model.RoleAuthorityRsEntity, error) {
 	authority := &model.RoleAuthorityRsEntity{}
 	if session == nil {
-		session := Engine.NewSession()
+		session = Engine.NewSession()
 		defer session.Close()
 	}
 	found, err := session.Where("role_id = ?", roleId).And("authority_id = ?", authorityId).And("is_deleted = ?", false).Get(authority)
@@ -66,7 +70,7 @@ func (RoleAuthorityRsRepository) FindOneByRoleIdAndAuthorityId(roleId, authority
 func (RoleAuthorityRsRepository) FindOneByRoleIdAndAuthorityCode(roleId, authorityCode string, session *xorm.Session) (*model.RoleAuthorityRsEntity, error) {
 	authority := &model.RoleAuthorityRsEntity{}
 	if session == nil {
-		session := Engine.NewSession()
+		session = Engine.NewSession()
 		defer session.Close()
 	}
 	found, err := session.Where("role_id = ?", roleId).And("authority_code = ?", authorityCode).And("is_deleted = ?", false).Get(authority)
@@ -239,7 +243,7 @@ func (UserRoleRsRepository) FindAllByUserId(userId string) ([]*model.UserRoleRsE
 
 func (UserRoleRsRepository) FindOneByUserIdAndRoleId(userId string, roleId string, session *xorm.Session) (*model.UserRoleRsEntity, error) {
 	if session == nil {
-		session := Engine.NewSession()
+		session = Engine.NewSession()
 		defer session.Close()
 	}
 
@@ -254,4 +258,67 @@ func (UserRoleRsRepository) FindOneByUserIdAndRoleId(userId string, roleId strin
 	} else {
 		return nil, nil
 	}
+}
+
+var RoleApplyRepositoryInstance RoleApplyRepository
+
+type RoleApplyRepository struct {
+}
+
+func (RoleApplyRepository) FindByIDs(ids []string) ([]*model.RoleApplyEntity, error) {
+	var list []*model.RoleApplyEntity
+	err := Engine.In("id", ids).Asc("created_time").Find(&list)
+	if err != nil {
+		return nil, err
+	}
+	return list, nil
+}
+
+func (RoleApplyRepository) FindByApplier(applier string, roleIds []string, statuses []string) ([]*model.RoleApplyEntity, error) {
+	var list []*model.RoleApplyEntity
+	session := Engine.Where("created_by = ?", applier).And(builder.In("role_id", roleIds))
+	if len(statuses) > 0 {
+		session = session.And(builder.In("status", statuses))
+	}
+	err := session.Find(&list)
+	if err != nil {
+		return nil, err
+	}
+	return list, nil
+}
+
+func (RoleApplyRepository) Query(ctx context.Context, param *model.QueryRequestParam) (*model.ListRoleApplyResponse, error) {
+	result := &model.ListRoleApplyResponse{PageInfo: &model.PageInfo{}, Entities: []*model.RoleApplyEntity{}}
+	filterSql, _, queryParam := transFiltersToSQL(param, &model.TransFiltersParam{IsStruct: true, StructObj: model.RoleApplyEntity{}})
+	baseSql := combineDBSql("SELECT * FROM auth_sys_role_apply WHERE 1=1 ", filterSql)
+	if param.Paging {
+		result.PageInfo = &model.PageInfo{StartIndex: param.Pageable.StartIndex, PageSize: param.Pageable.PageSize, TotalRows: queryCount(ctx, baseSql, queryParam...)}
+		pageSql, pageParam := transPageInfoToSQL(*param.Pageable)
+		baseSql = combineDBSql(baseSql, pageSql)
+		queryParam = append(queryParam, pageParam...)
+	}
+	err := Engine.Context(ctx).SQL(baseSql, queryParam...).Find(&result.Entities)
+	if err != nil {
+		return nil, err
+	}
+	result.Contents = make([]*model.RoleApplyDto, len(result.Entities))
+	for i, entity := range result.Entities {
+		result.Contents[i] = &model.RoleApplyDto{
+			ID:        entity.Id,
+			CreatedBy: entity.CreatedBy,
+			UpdatedBy: entity.UpdatedBy,
+			EmailAddr: entity.EmailAddr,
+			Role: &model.SimpleLocalRoleDto{
+				ID: entity.RoleId,
+			},
+			Status: entity.Status,
+		}
+		if entity.CreatedTime.Unix() >= 0 {
+			result.Contents[i].CreatedTime = entity.CreatedTime.Format(constant.DateTimeFormat)
+		}
+		if entity.UpdatedTime.Unix() >= 0 {
+			result.Contents[i].UpdatedTime = entity.UpdatedTime.Format(constant.DateTimeFormat)
+		}
+	}
+	return result, err
 }

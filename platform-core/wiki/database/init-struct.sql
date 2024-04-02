@@ -742,3 +742,20 @@ CREATE INDEX idx_sys_var_name USING BTREE ON system_variables (`name`);
 CREATE INDEX idx_sys_var_scope USING BTREE ON system_variables (`scope`);
 CREATE INDEX idx_sys_var_source USING BTREE ON system_variables (`source`(128));
 CREATE INDEX idx_sys_var_status USING BTREE ON system_variables (`status`);
+
+CREATE TABLE `proc_ins_event` (
+      `id` int(11) NOT NULL AUTO_INCREMENT COMMENT '自增id',
+      `event_seq_no` varchar(64) NOT NULL COMMENT '事件序列号',
+      `event_type` varchar(64) DEFAULT NULL COMMENT '事件类型',
+      `operation_data` varchar(255) DEFAULT NULL COMMENT '根数据',
+      `operation_key` varchar(255) DEFAULT NULL COMMENT '编排key',
+      `operation_user` varchar(255) DEFAULT NULL COMMENT '发起者',
+      `proc_def_id` varchar(64) DEFAULT NULL COMMENT '编排定义id',
+      `proc_ins_id` varchar(64) DEFAULT NULL COMMENT '编排实例id',
+      `source_plugin` varchar(64) DEFAULT NULL COMMENT '来源',
+      `status` varchar(64) DEFAULT NULL COMMENT '状态->created(初始化) | pending(处理中) | done(处理完成功运行编排) | fail(处理失败)',
+      `created_time` datetime DEFAULT NULL COMMENT '创建时间',
+      `host` varchar(64) DEFAULT NULL COMMENT '处理主机',
+      `error_message` text DEFAULT NULL COMMENT '错误信息',
+      PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;

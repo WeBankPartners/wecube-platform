@@ -440,12 +440,14 @@ type ProcDataNodeExprObj struct {
 }
 
 type PublicProcDefObj struct {
-	ProcDefId   string      `json:"procDefId"`
-	ProcDefKey  string      `json:"procDefKey"`
-	ProcDefName string      `json:"procDefName"`
-	Status      string      `json:"status"`
-	RootEntity  *ProcEntity `json:"rootEntity"`
-	CreatedTime string      `json:"createdTime"`
+	ProcDefId            string      `json:"procDefId"`
+	ProcDefKey           string      `json:"procDefKey"`
+	ProcDefName          string      `json:"procDefName"`
+	Status               string      `json:"status"`
+	RootEntity           *ProcEntity `json:"rootEntity"`
+	CreatedTime          string      `json:"createdTime"`
+	ProcDefVersion       string      `json:"procDefVersion"`
+	RootEntityExpression string      `json:"rootEntityExpression"`
 }
 
 type RewriteEntityDataObj struct {
@@ -479,4 +481,23 @@ type ProcStartEventParam struct {
 	NotifyRequired  string `json:"notifyRequired"`
 	NotifyEndpoint  string `json:"notifyEndpoint"`
 	OperationUser   string `json:"operationUser"`
+}
+
+type ProcInsEvent struct {
+	Id            int       `json:"id" xorm:"id"`                        // 自增id
+	EventSeqNo    string    `json:"eventSeqNo" xorm:"event_seq_no"`      // 事件序列号
+	EventType     string    `json:"eventType" xorm:"event_type"`         // 事件类型
+	OperationData string    `json:"operationData" xorm:"operation_data"` // 根数据
+	OperationKey  string    `json:"operationKey" xorm:"operation_key"`   // 编排key
+	OperationUser string    `json:"operationUser" xorm:"operation_user"` // 发起者
+	ProcDefId     string    `json:"procDefId" xorm:"proc_def_id"`        // 编排定义id
+	ProcInsId     string    `json:"procInsId" xorm:"proc_ins_id"`        // 编排实例id
+	SourcePlugin  string    `json:"sourcePlugin" xorm:"source_plugin"`   // 来源
+	Status        string    `json:"status" xorm:"status"`                // 状态->created(初始化) | pending(处理中) | done(处理完成功运行编排) | fail(处理失败)
+	CreatedTime   time.Time `json:"createdTime" xorm:"created_time"`     // 创建时间
+	Host          string    `json:"host" xorm:"host"`                    // 处理主机
+	ErrorMessage  string    `json:"errorMessage" xorm:"error_message"`   // 错误信息
+}
+
+type CoreOperationEvent struct {
 }
