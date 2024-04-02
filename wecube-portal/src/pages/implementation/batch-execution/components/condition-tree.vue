@@ -51,7 +51,7 @@ export default {
     return {
       maxHeight: 500,
       treeData: [],
-      operatorList: ['eq', 'contains', 'like', 'in', 'lt', 'gt', 'ne', 'neq', 'notNull', 'isnot']
+      operatorList: ['eq', 'contains', 'like', 'in', 'lt', 'gt', 'neq', 'notNull', 'null']
     }
   },
   watch: {
@@ -77,11 +77,14 @@ export default {
                   <div class="tree-item">
                     <span>{data.title}</span>
                     {data.checked && (
-                      <div style="display:flex;">
+                      <div style="display:flex;justify-content:flex-start;width:280px;">
                         <Select
                           v-model={data.operator}
                           style="width:90px;"
                           class={{ 'ivu-form-item-error': !data.operator }}
+                          on-on-change={() => {
+                            data.value = ''
+                          }}
                         >
                           {this.operatorList.map((item, index) => {
                             return (
@@ -91,11 +94,14 @@ export default {
                             )
                           })}
                         </Select>
-                        <Input
-                          v-model={data.value}
-                          style="width:180px;margin-left:5px;"
-                          class={{ 'ivu-form-item-error': !data.value }}
-                        />
+                        {!['notNull', 'null'].includes(data.operator) && (
+                          <Input
+                            v-model={data.value}
+                            style="width:180px;margin-left:5px;"
+                            class={{ 'ivu-form-item-error': !data.value }}
+                            placeholder={`${data.operator === 'in' ? 'eg：a,b,c' : ''}`}
+                          />
+                        )}
                       </div>
                     )}
                   </div>
@@ -132,7 +138,9 @@ export default {
           }
         })
       })
-      const flag = selectData.every(i => i.value)
+      const flag = selectData.every(i => {
+        return ['notNull', 'null'].includes(i.operator) || i.value
+      })
       if (flag) {
         this.$emit('update:visible', false)
         this.$emit('submit', selectData)
