@@ -291,7 +291,7 @@ func handleProcEvent(ctx context.Context, procEvent *models.ProcInsEvent) (takeo
 }
 
 func StartTransProcEvent() {
-	t := time.NewTicker(10 * time.Second).C
+	t := time.NewTicker(30 * time.Second).C
 	for {
 		<-t
 		doTransOldEventToNew()
@@ -301,5 +301,32 @@ func StartTransProcEvent() {
 // 把老event表数据转到新event表
 func doTransOldEventToNew() {
 	log.Logger.Debug("Start trans proc event job")
-
+	ctx := context.WithValue(context.Background(), models.TransactionIdHeader, fmt.Sprintf("trans_event_%d", time.Now().Unix()))
+	var oldEventRows []*models.CoreOperationEvent
+	err := db.MysqlEngine.Context(ctx).SQL("select * from core_operation_event where oper_key like 'pdef_key_%'").Find(&oldEventRows)
+	if err != nil {
+		log.Logger.Error("doTransOldEventToNew fail with query core_operation_event table", log.Error(err))
+		return
+	}
+	if len(oldEventRows) == 0 {
+		log.Logger.Debug("Done trans proc event job with empty rows")
+		return
+	}
+	var actions []*db.ExecAction
+	nowTime := time.Now()
+	for _, row := range oldEventRows {
+		tmpNewRowAction := db.ExecAction{Sql: "insert into proc_ins_event(event_seq_no,event_type,operation_data,operation_key,operation_user,proc_def_id,source_plugin,status,created_time) values (?,?,?,?,?,?,?,?,?)", Param: []interface{}{
+			row.EventSeqNo, row.EventType, row.OperData, row.OperKey, row.OperUser, row.ProcDefId, row.SrcSubSystem, models.ProcEventStatusCreated, nowTime,
+		}}
+		tmpDelAction := db.ExecAction{Sql: "delete from core_operation_event where id=?", Param: []interface{}{row.Id}}
+		actions = append(actions, &tmpNewRowAction)
+		actions = append(actions, &tmpDelAction)
+	}
+	if len(actions) > 0 {
+		if err = db.Transaction(actions, ctx); err != nil {
+			log.Logger.Error("doTransOldEventToNew fail with do db transaction", log.Error(err))
+			return
+		}
+	}
+	log.Logger.Debug("Done trans proc event job")
 }
