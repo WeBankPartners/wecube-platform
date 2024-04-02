@@ -6,7 +6,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"math/rand"
 	"time"
 
@@ -25,7 +25,7 @@ func UnmarshalWeLicense(data []byte) (result *models.WeLicense, err error) {
 	}
 	defer zipReader.Close()
 	// 读取解压缩后的数据
-	decompressedData, errRead := ioutil.ReadAll(zipReader)
+	decompressedData, errRead := io.ReadAll(zipReader)
 	if errRead != nil {
 		err = errRead
 		return
