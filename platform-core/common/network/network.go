@@ -14,14 +14,14 @@ import (
 func HttpGet(url, userToken, language string) (byteArr []byte, err error) {
 	req, newReqErr := http.NewRequest(http.MethodGet, url, strings.NewReader(""))
 	if newReqErr != nil {
-		err = fmt.Errorf("Try to new http request fail,%s ", newReqErr.Error())
+		err = fmt.Errorf("try to new http request fail,%s ", newReqErr.Error())
 		return
 	}
 	req.Header.Set("Authorization", userToken)
 	req.Header.Set("Accept-Language", language)
 	resp, respErr := http.DefaultClient.Do(req)
 	if respErr != nil {
-		err = fmt.Errorf("Try to do http request fail,%s ", respErr.Error())
+		err = fmt.Errorf("try to do http request fail,%s ", respErr.Error())
 		return
 	}
 	byteArr, _ = io.ReadAll(resp.Body)
@@ -78,14 +78,14 @@ func HttpPostCommon(url, userToken, language string, postBytes []byte) (err erro
 func HttpDeleteCommon(url, userToken, language string) (err error) {
 	req, newReqErr := http.NewRequest(http.MethodDelete, url, strings.NewReader(""))
 	if newReqErr != nil {
-		err = fmt.Errorf("Try to new http request fail,%s ", newReqErr.Error())
+		err = fmt.Errorf("try to new http request fail,%s ", newReqErr.Error())
 		return
 	}
 	req.Header.Set("Authorization", userToken)
 	req.Header.Set("Accept-Language", language)
 	resp, respErr := http.DefaultClient.Do(req)
 	if respErr != nil {
-		err = fmt.Errorf("Try to do http request fail,%s ", respErr.Error())
+		err = fmt.Errorf("try to do http request fail,%s ", respErr.Error())
 		return
 	}
 	respBytes, _ := io.ReadAll(resp.Body)
