@@ -114,3 +114,14 @@ type SubSystemTokenDto struct {
 	CreateDate  string `json:"createDate"` // 20200515
 	Nonce       string `json:"nonce"`
 }
+
+type RoleApplyDto struct {
+	ID          string              `json:"id"`
+	CreatedBy   string              `json:"createdBy"`
+	UpdatedBy   string              `json:"updatedBy"`
+	CreatedTime string              `json:"createdTime"`
+	UpdatedTime string              `json:"updatedTime"`
+	EmailAddr   string              `json:"emailAddr"`
+	Role        *SimpleLocalRoleDto `json:"role"`
+	Status      string              `json:"status"`
+}
