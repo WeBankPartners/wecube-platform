@@ -166,13 +166,13 @@ type AuthLatestEnabledInterfaces struct {
 	FilterRule               string    `json:"filterRule" xorm:"filter_rule"`                  // 服务过滤规则
 	PluginConfigName         string    `json:"PluginConfigName" xorm:"plugin_config_name"`
 	PluginConfigRegisterName string    `json:"PluginConfigRegisterName" xorm:"plugin_config_register_name"`
-	PluginConfigTargetEntity string    `json:"pluginConfigTargetEntity" xorm:"plugin_config_target_entity""`
-	PluginConfigStatus       string    `json:"pluginConfigStatus" xorm:"plugin_config_status""`
-	PluginPackageId          string    `json:"pluginPackageId" xorm:"plugin_package_id""`
-	PluginPackageName        string    `json:"pluginPackageName" xorm:"plugin_package_name""`
-	PluginPackageStatus      string    `json:"pluginPackageStatus" xorm:"plugin_package_status""`
-	PluginPackageVersion     string    `json:"pluginPackageVersion" xorm:"plugin_package_version""`
-	UploadTimestamp          time.Time `json:"uploadTimestamp" xorm:"upload_timestamp""`
+	PluginConfigTargetEntity string    `json:"pluginConfigTargetEntity" xorm:"plugin_config_target_entity"`
+	PluginConfigStatus       string    `json:"pluginConfigStatus" xorm:"plugin_config_status"`
+	PluginPackageId          string    `json:"pluginPackageId" xorm:"plugin_package_id"`
+	PluginPackageName        string    `json:"pluginPackageName" xorm:"plugin_package_name"`
+	PluginPackageStatus      string    `json:"pluginPackageStatus" xorm:"plugin_package_status"`
+	PluginPackageVersion     string    `json:"pluginPackageVersion" xorm:"plugin_package_version"`
+	UploadTimestamp          time.Time `json:"uploadTimestamp" xorm:"upload_timestamp"`
 }
 
 type RegisterXML struct {
@@ -368,10 +368,10 @@ type RichPluginConfigInterfaces struct {
 	Type                 string                             `json:"type" xorm:"type"`                               // 服务类型->approval(审批),execution(执行),dynamicform(动态表单)
 	FilterRule           string                             `json:"filterRule" xorm:"filter_rule"`                  // 服务过滤规则
 	Description          string                             `json:"description" xorm:"description"`                 // 描述
-	PluginConfigStatus   string                             `json:"pluginConfigStatus" xorm:"plugin_config_status""`
-	PluginPackageId      string                             `json:"pluginPackageId" xorm:"plugin_package_id""`
-	PluginPackageStatus  string                             `json:"pluginPackageStatus" xorm:"plugin_package_status""`
-	PluginPackageVersion string                             `json:"pluginPackageVersion" xorm:"plugin_package_version""`
+	PluginConfigStatus   string                             `json:"pluginConfigStatus" xorm:"plugin_config_status"`
+	PluginPackageId      string                             `json:"pluginPackageId" xorm:"plugin_package_id"`
+	PluginPackageStatus  string                             `json:"pluginPackageStatus" xorm:"plugin_package_status"`
+	PluginPackageVersion string                             `json:"pluginPackageVersion" xorm:"plugin_package_version"`
 	InputParameters      []*PluginConfigInterfaceParameters `json:"inputParameters" xorm:"-"`
 	OutputParameters     []*PluginConfigInterfaceParameters `json:"outputParameters" xorm:"-"`
 	PluginConfig         *PluginConfigs                     `json:"pluginConfig" xorm:"-"`
@@ -591,11 +591,7 @@ func (q PluginConfigInterfaceDtoSort) Len() int {
 }
 
 func (q PluginConfigInterfaceDtoSort) Less(i, j int) bool {
-	t := strings.Compare(q[i].ServiceName, q[j].ServiceName)
-	if t < 0 {
-		return true
-	}
-	return false
+	return strings.Compare(q[i].ServiceName, q[j].ServiceName) < 0
 }
 
 func (q PluginConfigInterfaceDtoSort) Swap(i, j int) {
