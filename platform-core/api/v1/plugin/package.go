@@ -56,7 +56,7 @@ func UploadPackage(c *gin.Context) {
 		middleware.ReturnError(c, err)
 		return
 	}
-	fileBytes = []byte{}
+	// fileBytes = []byte{}
 	log.Logger.Debug("tmpFile", log.String("tmpFilePath", tmpFilePath))
 	defer func() {
 		if removeTmpDirErr := os.RemoveAll(tmpFileDir); removeTmpDirErr != nil {
@@ -488,9 +488,7 @@ func RegisterPackage(c *gin.Context) {
 			return
 		}
 		log.Logger.Debug("match index path", log.String("indexPath", indexPath))
-		if strings.HasSuffix(indexPath, "/") {
-			indexPath = indexPath[:len(indexPath)-1]
-		}
+		indexPath = strings.TrimSuffix(indexPath, "/")
 		dirPrefix := uiDir
 		if indexPath != "" {
 			dirPrefix = uiDir + "/" + indexPath
@@ -707,6 +705,17 @@ func LaunchPlugin(c *gin.Context) {
 	}
 	envMap["SUB_SYSTEM_CODE"] = subSystemCode
 	envMap["SUB_SYSTEM_KEY"] = subSystemKey
+	if models.Config.Auth.JwtSigningKey != "" {
+		if models.Config.Plugin.PasswordPubKeyContent != "" {
+			if encryptJwtKey, enErr := cipher.EncryptRsa(models.Config.Auth.JwtSigningKey, models.Config.Plugin.PasswordPubKeyContent); enErr != nil {
+				envMap["JWT_SIGNING_KEY"] = models.Config.Auth.JwtSigningKey
+			} else {
+				envMap["JWT_SIGNING_KEY"] = encryptJwtKey
+			}
+		} else {
+			envMap["JWT_SIGNING_KEY"] = models.Config.Auth.JwtSigningKey
+		}
+	}
 	// 企业版的认证信息环境变量
 	if pluginPackageObj.Edition == "enterprise" {
 		licCode, licPk, licData, licSign, getLicenceErr := database.GeneratePluginEnv(subSystemPubKey, subSystemKey, pluginPackageObj.Name)
@@ -878,10 +887,10 @@ func GetPluginRunningInstances(c *gin.Context) {
 }
 
 // TODO
-func buildPluginProCertification(envMap map[string]string, pluginPackageObj *models.PluginPackages, subSystemKey string) (err error) {
+// func buildPluginProCertification(envMap map[string]string, pluginPackageObj *models.PluginPackages, subSystemKey string) (err error) {
 
-	return
-}
+// 	return
+// }
 
 func GetPackageNames(c *gin.Context) {
 	result, err := database.GetPackageNames(c)

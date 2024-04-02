@@ -2,6 +2,8 @@ package api
 
 import (
 	"fmt"
+	"strconv"
+
 	"github.com/WeBankPartners/wecube-platform/platform-auth-server/api/middleware"
 	"github.com/WeBankPartners/wecube-platform/platform-auth-server/api/support"
 	"github.com/WeBankPartners/wecube-platform/platform-auth-server/common/exterror"
@@ -54,7 +56,23 @@ func RetrieveAllLocalRoles(c *gin.Context) {
 		requiredAll = true
 	}
 
-	result, err := service.RoleManagementServiceInstance.RetrieveAllLocalRoles(requiredAll)
+	roleAdmin := false
+	var err error
+	if roleAdminStr := c.Query("roleAdmin"); roleAdminStr != "" {
+		roleAdmin, err = strconv.ParseBool(roleAdminStr)
+		if err != nil {
+			support.ReturnError(c, err)
+			return
+		}
+	}
+
+	var result []*model.SimpleLocalRoleDto
+	if roleAdmin {
+		operator := middleware.GetRequestUser(c)
+		result, err = service.UserManagementServiceInstance.GetAdminRolesByUsername(operator)
+	} else {
+		result, err = service.RoleManagementServiceInstance.RetrieveAllLocalRoles(requiredAll)
+	}
 	if err != nil {
 		support.ReturnError(c, err)
 	} else {
