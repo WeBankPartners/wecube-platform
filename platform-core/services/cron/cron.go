@@ -1,9 +1,13 @@
 package cron
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/WeBankPartners/wecube-platform/platform-core/services/database"
+	"github.com/WeBankPartners/wecube-platform/platform-core/services/execution"
 	"github.com/WeBankPartners/wecube-platform/platform-core/services/remote"
+	"github.com/WeBankPartners/wecube-platform/platform-core/services/workflow"
 	"time"
 
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/db"
@@ -14,25 +18,23 @@ import (
 func StartCronJob() {
 	SetupCleanUpBatchExecTicker()
 	go StartSendProcScheduleMail()
+	go StartHandleProcEvent()
+	go StartTransProcEvent()
 }
 
 func SetupCleanUpBatchExecTicker() {
 	ticker := time.NewTicker(24 * time.Hour)
 	// ticker := time.NewTicker(90 * time.Second)
 	go func() {
-		for {
-			select {
-			case t := <-ticker.C:
-				startTime := time.Now()
-				log.Logger.Info("start clean up batch exec", log.String("ticker", fmt.Sprintf("%v", t)))
-				CleanUpBatchExecRecord()
-				log.Logger.Info("finish clean up batch exec", log.String("ticker", fmt.Sprintf("%v", t)),
-					log.Int64("cost_ms", time.Now().Sub(startTime).Milliseconds()))
-			}
+		for t := range ticker.C {
+			startTime := time.Now()
+			log.Logger.Info("start clean up batch exec", log.String("ticker", fmt.Sprintf("%v", t)))
+			CleanUpBatchExecRecord()
+			log.Logger.Info("finish clean up batch exec", log.String("ticker", fmt.Sprintf("%v", t)),
+				log.Int64("cost_ms", time.Since(startTime).Milliseconds()))
 		}
 	}()
 	log.Logger.Info("setup clean up batch exec ticker")
-	return
 }
 
 func CleanUpBatchExecRecord() {
@@ -64,7 +66,6 @@ func CleanUpBatchExecRecord() {
 	if err != nil {
 		log.Logger.Error("clean up batch exec sql failed", log.Error(err))
 	}
-	return
 }
 
 func StartSendProcScheduleMail() {
@@ -205,4 +206,127 @@ func updateProcScheduleJobMail(jobId, mailStatus, mailMessage string) {
 	if err != nil {
 		log.Logger.Error("updateProcScheduleJobMail fail", log.String("jobId", jobId), log.String("mailStatus", mailStatus), log.String("mailMsg", mailMessage), log.Error(err))
 	}
+}
+
+func StartHandleProcEvent() {
+	t := time.NewTicker(10 * time.Second).C
+	for {
+		<-t
+		doHandleProcEventJob()
+	}
+}
+
+// 扫事件表定时处理
+func doHandleProcEventJob() {
+	log.Logger.Debug("Start handle proc event job")
+	var procEventRows []*models.ProcInsEvent
+	err := db.MysqlEngine.SQL("select * from proc_ins_event where status=?", models.ProcEventStatusCreated).Find(&procEventRows)
+	if err != nil {
+		log.Logger.Error("doHandleProcEventJob fail with query proc_ins_event table", log.Error(err))
+		return
+	}
+	if len(procEventRows) == 0 {
+		log.Logger.Debug("Done handle proc event job,match empty rows")
+		return
+	}
+	for _, row := range procEventRows {
+		ctx := context.WithValue(context.Background(), models.TransactionIdHeader, fmt.Sprintf("proc_event_%d", row.Id))
+		takeoverFlag, procInsId, tmpErr := handleProcEvent(ctx, row)
+		if tmpErr != nil {
+			log.Logger.Error("handleProcEvent fail", log.Int("procInsEvent", row.Id), log.Error(tmpErr))
+			db.MysqlEngine.Context(ctx).Exec("update proc_ins_event set status=?,error_message=? where id=?", models.ProcEventStatusFail, tmpErr.Error(), row.Id)
+		} else {
+			if !takeoverFlag {
+				continue
+			}
+			db.MysqlEngine.Context(ctx).Exec("update proc_ins_event set status=?,proc_ins_id=? where id=?", models.ProcEventStatusDone, procInsId, row.Id)
+		}
+	}
+	log.Logger.Debug("Done handle proc event job")
+}
+
+func handleProcEvent(ctx context.Context, procEvent *models.ProcInsEvent) (takeoverFlag bool, procInsId string, err error) {
+	execResult, execErr := db.MysqlEngine.Context(ctx).Exec("update proc_ins_event set status=?,host=? where id=? and status=?", models.ProcEventStatusPending, models.Config.HostIp, procEvent.Id, models.ProcEventStatusCreated)
+	if execErr != nil {
+		err = fmt.Errorf("takeover proc ins event fail,%s ", execErr.Error())
+		return
+	}
+	if rowAffect, _ := execResult.RowsAffected(); rowAffect > 0 {
+		takeoverFlag = true
+	}
+	if !takeoverFlag {
+		return
+	}
+	operator := procEvent.OperationUser
+	if operator == "" {
+		operator = "platform"
+	}
+	// preview
+	previewData, buildErr := execution.BuildProcPreviewData(ctx, procEvent.ProcDefId, procEvent.OperationData, operator)
+	if buildErr != nil {
+		err = buildErr
+		return
+	}
+	// proc instance start
+	procStartParam := models.ProcInsStartParam{
+		EntityDataId:      procEvent.OperationData,
+		EntityDisplayName: procEvent.OperationData,
+		ProcDefId:         procEvent.ProcDefId,
+		ProcessSessionId:  previewData.ProcessSessionId,
+	}
+	// 新增 proc_ins,proc_ins_node,proc_data_binding 纪录
+	newProcInsId, workflowRow, workNodes, workLinks, createInsErr := database.CreateProcInstance(ctx, &procStartParam, operator)
+	if createInsErr != nil {
+		err = createInsErr
+		log.Logger.Error("handleProcScheduleJob fail with create proc instance data", log.String("psConfigId", procEvent.ProcDefId), log.String("sessionId", previewData.ProcessSessionId), log.Error(createInsErr))
+		return
+	}
+	procInsId = newProcInsId
+	// 初始化workflow并开始
+	workObj := workflow.Workflow{ProcRunWorkflow: *workflowRow}
+	workObj.Init(context.Background(), workNodes, workLinks)
+	//workflow.GlobalWorkflowMap.Store(workObj.Id, &workObj)
+	go workObj.Start(&models.ProcOperation{CreatedBy: operator})
+	return
+}
+
+func StartTransProcEvent() {
+	t := time.NewTicker(30 * time.Second).C
+	for {
+		<-t
+		doTransOldEventToNew()
+	}
+}
+
+// 把老event表数据转到新event表
+func doTransOldEventToNew() {
+	log.Logger.Debug("Start trans proc event job")
+	ctx := context.WithValue(context.Background(), models.TransactionIdHeader, fmt.Sprintf("trans_event_%d", time.Now().Unix()))
+	var oldEventRows []*models.CoreOperationEvent
+	err := db.MysqlEngine.Context(ctx).SQL("select * from core_operation_event where oper_key like 'pdef_key_%'").Find(&oldEventRows)
+	if err != nil {
+		log.Logger.Error("doTransOldEventToNew fail with query core_operation_event table", log.Error(err))
+		return
+	}
+	if len(oldEventRows) == 0 {
+		log.Logger.Debug("Done trans proc event job with empty rows")
+		return
+	}
+	var actions []*db.ExecAction
+	nowTime := time.Now()
+	for _, row := range oldEventRows {
+		tmpNewRowAction := db.ExecAction{Sql: "insert into proc_ins_event(event_seq_no,event_type,operation_data,operation_key,operation_user,proc_def_id,source_plugin,status,created_time) values (?,?,?,?,?,?,?,?,?)", Param: []interface{}{
+			row.EventSeqNo, row.EventType, row.OperData, row.OperKey, row.OperUser, row.ProcDefId, row.SrcSubSystem, models.ProcEventStatusCreated, nowTime,
+		}}
+		tmpDelAction := db.ExecAction{Sql: "delete from core_operation_event where id=?", Param: []interface{}{row.Id}}
+		actions = append(actions, &tmpNewRowAction)
+		actions = append(actions, &tmpDelAction)
+	}
+	if len(actions) > 0 {
+		if err = db.Transaction(actions, ctx); err != nil {
+			log.Logger.Error("doTransOldEventToNew fail with do db transaction", log.Error(err))
+			return
+		}
+	}
+	log.Logger.Debug("Done trans proc event job")
 }

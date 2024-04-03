@@ -4,15 +4,16 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/WeBankPartners/wecube-platform/platform-core/common/db"
-	"github.com/WeBankPartners/wecube-platform/platform-core/common/tools"
-	"github.com/WeBankPartners/wecube-platform/platform-core/services/remote"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"sort"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/WeBankPartners/wecube-platform/platform-core/common/db"
+	"github.com/WeBankPartners/wecube-platform/platform-core/common/tools"
+	"github.com/WeBankPartners/wecube-platform/platform-core/services/remote"
 
 	"github.com/WeBankPartners/go-common-lib/guid"
 	"github.com/WeBankPartners/wecube-platform/platform-core/api/middleware"
@@ -427,7 +428,7 @@ func ExportProcessDefinition(c *gin.Context) {
 	fileName = fileName + "-" + time.Now().Format("20060102150405")
 	b, jsonErr := json.Marshal(resultList)
 	if jsonErr != nil {
-		middleware.ReturnError(c, fmt.Errorf("Export requestTemplate config fail, json marshal object error:%s ", jsonErr.Error()))
+		middleware.ReturnError(c, fmt.Errorf("export requestTemplate config fail, json marshal object error:%s ", jsonErr.Error()))
 		return
 	}
 	c.Writer.Header().Add("Content-Disposition", fmt.Sprintf("attachment; filename=%s.json", fileName))
@@ -448,7 +449,7 @@ func ImportProcessDefinition(c *gin.Context) {
 		return
 	}
 	var paramList []*models.ProcessDefinitionDto
-	b, err := ioutil.ReadAll(f)
+	b, err := io.ReadAll(f)
 	defer f.Close()
 	if err != nil {
 		middleware.ReturnError(c, fmt.Errorf("Read content fail error:"+err.Error()))
@@ -468,7 +469,6 @@ func ImportProcessDefinition(c *gin.Context) {
 		middleware.ReturnError(c, err)
 	}
 	middleware.ReturnData(c, importResult)
-	return
 }
 
 // DeployProcessDefinition 编排定义发布
@@ -739,6 +739,10 @@ func GetProcDefNode(c *gin.Context) {
 		return
 	}
 	list, err = database.GetProcDefNodeParamByNodeId(c, procDefNode.Id)
+	if err != nil {
+		middleware.ReturnError(c, err)
+		return
+	}
 	nodeDto = models.ConvertProcDefNode2Dto(procDefNode, list)
 	middleware.ReturnData(c, nodeDto)
 }
@@ -881,6 +885,10 @@ func DeleteProcDefNode(c *gin.Context) {
 		return
 	}
 	list, err = database.GetProcDefNodeById(c, procDefId)
+	if err != nil {
+		middleware.ReturnError(c, err)
+		return
+	}
 	if len(list) == 0 {
 		list = make([]*models.ProcDefNode, 0)
 	}
@@ -1285,10 +1293,7 @@ func convertProcDefNodeSimpleMap2Dto(hashMap map[string]*models.ProcDefNodeSimpl
 }
 
 func getMapRandomKey(hashMap map[string]bool) string {
-	if len(hashMap) == 0 {
-		return ""
-	}
-	for key, _ := range hashMap {
+	for key := range hashMap {
 		return key
 	}
 	return ""
@@ -1396,6 +1401,9 @@ func checkDeployedProcDef(ctx context.Context, procDefId string) error {
 	var startNodeNameList, endNodeNameList, sortNodeIds []string
 	var sortLinks [][]string
 	list, err = database.GetProcDefNodeById(ctx, procDefId)
+	if err != nil {
+		return err
+	}
 	if len(list) == 0 {
 		return exterror.New().ProcDefNode20000009Error
 	}
@@ -1465,7 +1473,7 @@ func checkDeployedProcDef(ctx context.Context, procDefId string) error {
 			if node.NodeType == string(models.ProcDefNodeTypeDate) && node.TimeConfig != "" {
 				timeConfigDto := &models.TimeConfigDto{}
 				json.Unmarshal([]byte(node.TimeConfig), timeConfigDto)
-				if timeConfigDto != nil && strings.TrimSpace(timeConfigDto.Date) == "" {
+				if strings.TrimSpace(timeConfigDto.Date) == "" {
 					return exterror.New().ProcDefNodeDateEmptyError.WithParam(node.Name)
 				}
 			}
