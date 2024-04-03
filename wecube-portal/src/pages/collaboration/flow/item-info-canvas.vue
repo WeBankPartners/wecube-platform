@@ -144,7 +144,7 @@ export default {
       keys.forEach(k => {
         this.itemCustomInfo[k] = tmpData[k]
       })
-      this.itemCustomInfo.version = Number(this.itemCustomInfo.version[1])
+      this.itemCustomInfo.version = Number(this.itemCustomInfo.version.split('v')[1])
     },
     saveItem () {
       let finalData = JSON.parse(JSON.stringify(this.itemCustomInfo))
