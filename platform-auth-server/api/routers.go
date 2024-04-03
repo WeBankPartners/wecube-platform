@@ -80,6 +80,8 @@ func init() {
 	httpHandlerFuncList = append(httpHandlerFuncList, // contract instance
 		&handlerFuncObj{Url: constant.UriLogin, Method: http.MethodPost, HandlerFunc: Login,
 			ApiCode: "Login"},
+		&handlerFuncObj{Url: constant.UriTaskLogin, Method: http.MethodPost, HandlerFunc: TaskLogin,
+			ApiCode: "TaskLogin"},
 		&handlerFuncObj{Url: "/v1/api/token", Method: http.MethodGet, HandlerFunc: RefreshToken,
 			ApiCode: "RefreshToken"},
 
@@ -92,7 +94,7 @@ func init() {
 			ApiCode: "RegisterLocalRole"},
 		&handlerFuncObj{Url: "/v1/roles/update", Method: http.MethodPost, HandlerFunc: UpdateLocalRole,
 			ApiCode: "UpdateLocalRole"},
-		&handlerFuncObj{Url: "/v1/roles", Method: http.MethodGet, HandlerFunc: RetrieveAllLocalRoles,
+		&handlerFuncObj{Url: constant.UriRoles, Method: http.MethodGet, HandlerFunc: RetrieveAllLocalRoles,
 			ApiCode: "RetrieveAllLocalRoles"},
 		&handlerFuncObj{Url: "/v1/roles/:role-id", Method: http.MethodGet, HandlerFunc: RetrieveRoleInfo,
 			ApiCode: "RetrieveRoleInfo"},
@@ -150,5 +152,16 @@ func init() {
 			ApiCode: "RevokeRoleFromUsers"},
 		&handlerFuncObj{Url: "/v1/users/:user-id/roles/revoke", Method: http.MethodPost, HandlerFunc: RevokeRolesFromUser,
 			ApiCode: "RevokeRolesFromUser"},
+
+		&handlerFuncObj{Url: constant.UriUsersRegister, Method: http.MethodPost, HandlerFunc: RegisterUmUser,
+			ApiCode: "RegisterUmUser"},
+		&handlerFuncObj{Url: "/v1/roles/apply", Method: http.MethodPost, HandlerFunc: CreateRoleApply,
+			ApiCode: "CreateRoleApply"},
+		&handlerFuncObj{Url: "/v1/roles/apply/byhandler", Method: http.MethodPost, HandlerFunc: ListRoleApply,
+			ApiCode: "ListRoleApply"},
+		&handlerFuncObj{Url: constant.UriListApplyByApplier, Method: http.MethodPost, HandlerFunc: ListRoleApplyByApplier,
+			ApiCode: "ListRoleApplyByApplier"},
+		&handlerFuncObj{Url: "/v1/roles/apply", Method: http.MethodPut, HandlerFunc: UpdateRoleApply,
+			ApiCode: "UpdateRoleApply"},
 	)
 }

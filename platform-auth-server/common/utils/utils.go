@@ -74,10 +74,7 @@ func CheckDecimalPlaces(val float64, decimal int) bool {
 }
 
 func EqualsIgnoreCase(s1, s2 string) bool {
-	if strings.ToLower(s1) == strings.ToLower(s2) {
-		return true
-	}
-	return false
+	return strings.EqualFold(s1, s2)
 }
 
 func IsEmailValid(email string) bool {
@@ -105,4 +102,15 @@ func ParseArrayString(arrStr string) []string {
 		return strings.Split(tmp, ",")
 	}
 	return make([]string, 0)
+}
+
+func DistinctArrayString(inputList []string) (output []string) {
+	tmpMap := make(map[string]int)
+	for _, v := range inputList {
+		if _, b := tmpMap[v]; !b {
+			output = append(output, v)
+			tmpMap[v] = 1
+		}
+	}
+	return
 }

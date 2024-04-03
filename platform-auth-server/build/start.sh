@@ -13,4 +13,6 @@ sed -i "s~\[#SIGNING_KEY\]~$SIGNING_KEY~g" /app/platform-auth-server/config/defa
 sed -i "s~\[#USER_ACCESS_TOKEN\]~$USER_ACCESS_TOKEN~g" /app/platform-auth-server/config/default.json
 sed -i "s~\[#USER_REFRESH_TOKEN\]~$USER_REFRESH_TOKEN~g" /app/platform-auth-server/config/default.json
 
+sed -i "s~\[#WECUBE_CORE_ADDRESS\]~$WECUBE_CORE_ADDRESS~g" /app/platform-auth-server/config/default.json
+
 exec ./platform-auth-server
