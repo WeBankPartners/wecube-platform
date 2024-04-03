@@ -524,3 +524,9 @@ type CoreOperationEvent struct {
 	Rev              int       `json:"rev" xorm:"rev"`
 	OperMode         string    `json:"operMode" xorm:"oper_mode"`
 }
+
+type ProcStartEventResultData struct {
+	ProcInstId        string                      `json:"procInstId"`
+	Status            string                      `json:"status"`
+	TaskNodeInstances []*ProcStartEventResultData `json:"taskNodeInstances"`
+}
