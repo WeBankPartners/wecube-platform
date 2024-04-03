@@ -11,6 +11,7 @@ import (
 	"github.com/WeBankPartners/wecube-platform/platform-core/services/database"
 	"github.com/WeBankPartners/wecube-platform/platform-core/services/remote"
 	"strings"
+	"time"
 )
 
 /**
@@ -707,5 +708,158 @@ func buildAutoNodeContextMap(ctx context.Context,
 		}
 	}
 	log.Logger.Debug("buildAutoNodeContextMap done", log.JsonObj("entityInstances", entityInstances))
+	return
+}
+
+func BuildProcPreviewData(c context.Context, procDefId, entityDataId, operator string) (result *models.ProcPreviewData, err error) {
+	log.Logger.Debug("build procDefPreview data", log.String("procDefId", procDefId), log.String("entityDataId", entityDataId), log.String("operator", operator))
+	procOutlineData, getOutlineDataErr := database.ProcDefOutline(c, procDefId)
+	if getOutlineDataErr != nil {
+		err = getOutlineDataErr
+		return
+	}
+	rootExprList, analyzeErr := remote.AnalyzeExpression(procOutlineData.RootEntity)
+	if analyzeErr != nil {
+		err = analyzeErr
+		return
+	}
+	rootLastExprObj := rootExprList[len(rootExprList)-1]
+	rootFilter := models.QueryExpressionDataFilter{
+		Index:       len(rootExprList) - 1,
+		PackageName: rootLastExprObj.Package,
+		EntityName:  rootLastExprObj.Entity,
+		AttributeFilters: []*models.QueryExpressionDataAttrFilter{{
+			Name:     "id",
+			Operator: "eq",
+			Value:    entityDataId,
+		}},
+	}
+	rootDataList, getRootDataErr := remote.QueryPluginData(c, rootExprList, []*models.QueryExpressionDataFilter{&rootFilter}, remote.GetToken())
+	if getRootDataErr != nil {
+		err = getRootDataErr
+		return
+	}
+	if len(rootDataList) != 1 {
+		err = fmt.Errorf("root data match %d rows,illegal ", len(rootDataList))
+		return
+	}
+	entityNodeMap := make(map[string]*models.ProcPreviewEntityNode)
+	rootData := rootDataList[0]
+	result = &models.ProcPreviewData{ProcessSessionId: fmt.Sprintf("proc_session_" + guid.CreateGuid()), EntityTreeNodes: []*models.ProcPreviewEntityNode{}}
+	log.Logger.Debug("rootData", log.String("entityDataId", entityDataId), log.JsonObj("data", rootData))
+	rootEntityNode := models.ProcPreviewEntityNode{LastFlag: true}
+	rootEntityNode.Parse(rootFilter.PackageName, rootFilter.EntityName, rootData)
+	rootEntityNode.FullDataId = rootEntityNode.DataId
+	entityNodeMap[rootEntityNode.Id] = &rootEntityNode
+	result.EntityTreeNodes = append(result.EntityTreeNodes, &rootEntityNode)
+	nowTime := time.Now()
+	var previewRows []*models.ProcDataPreview
+	rootPreviewRow := models.ProcDataPreview{
+		EntityDataId:   rootEntityNode.DataId,
+		EntityTypeId:   procOutlineData.RootEntity,
+		ProcDefId:      procDefId,
+		BindType:       "process",
+		IsBound:        true,
+		ProcSessionId:  result.ProcessSessionId,
+		EntityDataName: rootEntityNode.DisplayName,
+		FullDataId:     rootEntityNode.FullDataId,
+		CreatedBy:      operator,
+		CreatedTime:    nowTime,
+	}
+	previewRows = append(previewRows, &rootPreviewRow)
+	for _, node := range procOutlineData.FlowNodes {
+		if node.OrderedNo == "" || node.RoutineExpression == "" {
+			continue
+		}
+		nodeExpressionList := []string{}
+		if node.NodeType == "data" {
+			tmpExprObjList, tmpErr := database.GetProcDataNodeExpression(node.RoutineExpression)
+			if tmpErr != nil {
+				err = tmpErr
+				break
+			}
+			for _, tmpExprObj := range tmpExprObjList {
+				nodeExpressionList = append(nodeExpressionList, tmpExprObj.Expression)
+			}
+		} else {
+			nodeExpressionList = append(nodeExpressionList, node.RoutineExpression)
+		}
+		if err != nil {
+			break
+		}
+		nodeDataList := []*models.ProcPreviewEntityNode{}
+		for _, nodeExpression := range nodeExpressionList {
+			if nodeExpression == procOutlineData.RootEntity {
+				nodeDataList = append(nodeDataList, &rootEntityNode)
+			} else {
+				tmpQueryDataParam := models.QueryExpressionDataParam{DataModelExpression: nodeExpression, Filters: []*models.QueryExpressionDataFilter{&rootFilter}}
+				tmpNodeDataList, tmpErr := QueryProcPreviewNodeData(c, &tmpQueryDataParam, &rootEntityNode, false)
+				if tmpErr != nil {
+					err = tmpErr
+					break
+				}
+				nodeDataList = append(nodeDataList, tmpNodeDataList...)
+			}
+		}
+		if err != nil {
+			break
+		}
+		log.Logger.Debug("nodeData", log.String("node", node.NodeId), log.JsonObj("data", nodeDataList))
+		for _, nodeDataObj := range nodeDataList {
+			if nodeDataObj.LastFlag {
+				tmpPreviewRow := models.ProcDataPreview{
+					EntityDataId:   nodeDataObj.DataId,
+					EntityTypeId:   fmt.Sprintf("%s:%s", nodeDataObj.PackageName, nodeDataObj.EntityName),
+					ProcDefId:      rootPreviewRow.ProcDefId,
+					BindType:       "taskNode",
+					IsBound:        true,
+					ProcSessionId:  result.ProcessSessionId,
+					EntityDataName: nodeDataObj.DisplayName,
+					FullDataId:     nodeDataObj.FullDataId,
+					ProcDefNodeId:  node.NodeId,
+					OrderedNo:      node.OrderedNo,
+					CreatedBy:      operator,
+					CreatedTime:    nowTime,
+				}
+				previewRows = append(previewRows, &tmpPreviewRow)
+			}
+			if existEntityNodeObj, ok := entityNodeMap[nodeDataObj.Id]; !ok {
+				entityNodeMap[nodeDataObj.Id] = nodeDataObj
+				result.EntityTreeNodes = append(result.EntityTreeNodes, nodeDataObj)
+			} else {
+				existEntityNodeObj.PreviousIds = append(existEntityNodeObj.PreviousIds, nodeDataObj.PreviousIds...)
+				existEntityNodeObj.SucceedingIds = append(existEntityNodeObj.SucceedingIds, nodeDataObj.SucceedingIds...)
+			}
+		}
+	}
+	if err != nil {
+		return
+	}
+	result.AnalyzeRefIds()
+	var graphRows []*models.ProcInsGraphNode
+	for _, v := range result.EntityTreeNodes {
+		graphRows = append(graphRows, &models.ProcInsGraphNode{
+			DataId:        v.DataId,
+			DisplayName:   v.DisplayName,
+			EntityName:    v.EntityName,
+			GraphNodeId:   v.Id,
+			PkgName:       v.PackageName,
+			ProcSessionId: result.ProcessSessionId,
+			PrevIds:       strings.Join(v.PreviousIds, ","),
+			SuccIds:       strings.Join(v.SucceedingIds, ","),
+			FullDataId:    v.FullDataId,
+		})
+	}
+	err = database.CreateProcPreview(c, previewRows, graphRows)
+	return
+}
+
+func QueryProcPreviewNodeData(ctx context.Context, param *models.QueryExpressionDataParam, rootEntityNode *models.ProcPreviewEntityNode, withEntityData bool) (dataList []*models.ProcPreviewEntityNode, err error) {
+	exprList, analyzeErr := remote.AnalyzeExpression(param.DataModelExpression)
+	if analyzeErr != nil {
+		err = analyzeErr
+		return
+	}
+	dataList, err = remote.QueryPluginFullData(ctx, exprList, param.Filters[0], rootEntityNode, remote.GetToken(), withEntityData)
 	return
 }
