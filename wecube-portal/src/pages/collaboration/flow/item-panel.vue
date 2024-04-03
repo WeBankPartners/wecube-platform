@@ -123,7 +123,7 @@
           <p>{{ $t('forkNodeFunc') }}</p>
           <p>{{ $t('usage') }}</p>
           <p>{{ $t('forkNodetip1') }}</p>
-          <p>{{ $t('forkNodetip2') }}</p>
+          <p>{{ $t('forkNodetip3') }}</p>
         </div>
       </Tooltip>
       <Tooltip :maxWidth="400" placement="right" :delay="1000">
