@@ -76,7 +76,7 @@ func GetRemoteHostAvailablePort(resourceServer *models.ResourceServer) (port int
 	}
 	existPortLines := strings.Split(string(output), "\n")
 	existPortMap := make(map[int]int)
-	re, _ := regexp.Compile(".*:(\\d+).*")
+	re, _ := regexp.Compile(`.*:(\d+).*`)
 	for _, v := range existPortLines {
 		for i, matchV := range re.FindStringSubmatch(v) {
 			if i > 0 {

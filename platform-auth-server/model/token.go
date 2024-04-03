@@ -10,13 +10,14 @@ var (
 )
 
 type AuthClaims struct {
-	Subject    string   `json:"sub"`
-	IssuedAt   int64    `json:"iat"`
-	ExpiresAt  int64    `json:"exp"`
-	Type       string   `json:"type"`
-	ClientType string   `json:"clientType"`
-	Roles      []string `json:"roles"`
-	Authority  string   `json:"authority"`
+	Subject      string   `json:"sub"`
+	IssuedAt     int64    `json:"iat"`
+	ExpiresAt    int64    `json:"exp"`
+	Type         string   `json:"type"`
+	ClientType   string   `json:"clientType"`
+	Roles        []string `json:"roles"`
+	Authority    string   `json:"authority"`
+	NeedRegister bool     `json:"needRegister"`
 	//Authority   string   `json:"authority"`
 	//Auth        []model.AggAuth `json:"auth"`
 	//LoginType string `json:"loginType"`

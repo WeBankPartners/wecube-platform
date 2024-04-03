@@ -20,10 +20,8 @@ func GetMyMenuItems(c *gin.Context) {
 	// 1. 统计系统根菜单
 	rootSysMenuItemDtoList, err := database.GetAllRootMenus(c)
 	if err != nil {
-		if err != nil {
-			middleware.ReturnError(c, err)
-			return
-		}
+		middleware.ReturnError(c, err)
+		return
 	}
 	if len(rootSysMenuItemDtoList) > 0 {
 		resultMenuItemDtoList = append(resultMenuItemDtoList, rootSysMenuItemDtoList...)
@@ -51,7 +49,7 @@ func GetMyMenuItems(c *gin.Context) {
 	}
 
 	//  3.根据menuCode 查询
-	for menuCode, _ := range menuCodeMap {
+	for menuCode := range menuCodeMap {
 		menuItems, err = database.GetMenuItemsByCode(c, menuCode)
 		if err != nil {
 			middleware.ReturnError(c, err)

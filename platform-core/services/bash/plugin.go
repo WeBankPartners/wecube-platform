@@ -110,7 +110,7 @@ func BuildPluginUpgradeSqlFile(initSqlFile, upgradeSqlFile, currentVersion strin
 	if initSqlFile != "" {
 		fileBytes, readErr := os.ReadFile(initSqlFile)
 		if readErr != nil {
-			err = fmt.Errorf("read file error,%s ", err.Error())
+			err = fmt.Errorf("read file error,%s ", readErr.Error())
 			return
 		}
 		if currentVersion == "" {
@@ -136,7 +136,7 @@ func BuildPluginUpgradeSqlFile(initSqlFile, upgradeSqlFile, currentVersion strin
 	if upgradeSqlFile != "" {
 		fileBytes, readErr := os.ReadFile(upgradeSqlFile)
 		if readErr != nil {
-			err = fmt.Errorf("read file error,%s ", err.Error())
+			err = fmt.Errorf("read file error,%s ", readErr.Error())
 			return
 		}
 		startFlag := false
@@ -205,9 +205,7 @@ func ListDirAllFiles(targetDir string) (resultPaths []string, err error) {
 				err = subErr
 				break
 			}
-			for _, subPath := range subResults {
-				resultPaths = append(resultPaths, subPath)
-			}
+			resultPaths = append(resultPaths, subResults...)
 		} else {
 			resultPaths = append(resultPaths, targetDir+"/"+v.Name())
 		}

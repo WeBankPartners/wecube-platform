@@ -14,7 +14,7 @@ import (
 	"time"
 )
 
-func ProcDefList(ctx context.Context, includeDraft, permission, tag string, userRoles []string) (result []*models.ProcDefListObj, err error) {
+func ProcDefList(ctx context.Context, includeDraft, permission, tag, plugin string, userRoles []string) (result []*models.ProcDefListObj, err error) {
 	var procDefRows []*models.ProcDef
 	baseSql := "select * from proc_def"
 	var filterSqlList []string
@@ -33,6 +33,10 @@ func ProcDefList(ctx context.Context, includeDraft, permission, tag string, user
 	if tag != "" {
 		filterSqlList = append(filterSqlList, "tags=?")
 		filterParams = append(filterParams, tag)
+	}
+	if plugin != "" {
+		filterSqlList = append(filterSqlList, "for_plugin like ?")
+		filterParams = append(filterParams, fmt.Sprintf("%%%s%%", plugin))
 	}
 	if len(filterSqlList) > 0 {
 		baseSql += " where " + strings.Join(filterSqlList, " and ")
@@ -566,11 +570,6 @@ func CreateProcInstance(ctx context.Context, procStartParam *models.ProcInsStart
 			workLinkObj.Id, workLinkObj.WorkflowId, workLinkObj.ProcDefLinkId, workLinkObj.Name, workLinkObj.Source, workLinkObj.Target,
 		}})
 		workLinks = append(workLinks, &workLinkObj)
-	}
-	if procStartParam.Event != nil {
-		actions = append(actions, &db.ExecAction{Sql: "insert into proc_ins_event(event_seq_no,event_type,operation_data,operation_key,operation_user,proc_def_id,proc_ins_id,source_plugin,status,created_time) values (?,?,?,?,?,?,?,?,?,?)", Param: []interface{}{
-			procStartParam.Event.EventSeqNo, procStartParam.Event.EventType, procStartParam.Event.OperationData, procStartParam.Event.OperationKey, procStartParam.Event.OperationUser, procDefObj.Id, procInsId, procStartParam.Event.SourceSubSystem, models.JobStatusRunning, nowTime,
-		}})
 	}
 	if err = db.Transaction(actions, ctx); err != nil {
 		err = exterror.Catch(exterror.New().DatabaseExecuteError, err)
@@ -1130,7 +1129,7 @@ func getInterfaceDataByDataType(valueString, dataType, name string, multiple boo
 		output = listMap
 	}
 	if err != nil {
-		log.Logger.Error("getInterfaceDataByDataType error", log.String("value", valueString), log.String("dataType", dataType), log.Error(err))
+		log.Logger.Error("getInterfaceDataByDataType error", log.String("value", valueString), log.String("dataType", dataType), log.String("name", name), log.Error(err))
 	}
 	return
 }
@@ -1401,6 +1400,17 @@ func GetLatestProcDefByKey(ctx context.Context, procDefKey string) (procDefObj *
 			procDefObj = v
 			break
 		}
+	}
+	return
+}
+
+func CreateProcInsEvent(ctx context.Context, param *models.ProcStartEventParam, procDefObj *models.ProcDef) (eventId int64, err error) {
+	execResult, execErr := db.MysqlEngine.Context(ctx).Exec("insert into proc_ins_event(event_seq_no,event_type,operation_data,operation_key,operation_user,proc_def_id,source_plugin,status,created_time) values (?,?,?,?,?,?,?,?,?)",
+		param.EventSeqNo, param.EventType, param.OperationData, param.OperationKey, param.OperationUser, procDefObj.Id, param.SourceSubSystem, models.ProcEventStatusCreated, time.Now())
+	if execErr != nil {
+		err = fmt.Errorf("insert proc ins event data fail,%s ", execErr.Error())
+	} else {
+		eventId, _ = execResult.LastInsertId()
 	}
 	return
 }

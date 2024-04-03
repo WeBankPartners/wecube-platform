@@ -2,6 +2,7 @@ package api
 
 import (
 	"fmt"
+
 	"github.com/WeBankPartners/wecube-platform/platform-auth-server/api/middleware"
 	"github.com/WeBankPartners/wecube-platform/platform-auth-server/api/support"
 	"github.com/WeBankPartners/wecube-platform/platform-auth-server/common/exterror"
@@ -198,6 +199,70 @@ func RevokeRolesFromUser(c *gin.Context) {
 
 	curUser := middleware.GetRequestUser(c)
 	err := service.UserManagementServiceInstance.RevokeRolesFromUser(userId, roleDtos, curUser)
+	if err != nil {
+		support.ReturnError(c, err)
+	} else {
+		support.ReturnSuccess(c)
+	}
+}
+
+func CreateRoleApply(c *gin.Context) {
+	var param model.RoleApplyParam
+	if err := c.ShouldBindJSON(&param); err != nil {
+		support.ReturnError(c, exterror.Catch(exterror.New().ServerHandleError, fmt.Errorf("invalid request: %s", err.Error())))
+		return
+	}
+
+	curUser := middleware.GetRequestUser(c)
+	err := service.UserManagementServiceInstance.CreateRoleApply(&param, curUser)
+	if err != nil {
+		support.ReturnError(c, err)
+	} else {
+		support.ReturnSuccess(c)
+	}
+}
+
+func ListRoleApply(c *gin.Context) {
+	var param model.QueryRequestParam
+	if err := c.ShouldBindJSON(&param); err != nil {
+		support.ReturnError(c, exterror.Catch(exterror.New().ServerHandleError, fmt.Errorf("invalid request: %s", err.Error())))
+		return
+	}
+
+	curUser := middleware.GetRequestUser(c)
+	result, err := service.UserManagementServiceInstance.ListRoleApply(c, &param, curUser)
+	if err != nil {
+		support.ReturnError(c, err)
+	} else {
+		support.ReturnData(c, result)
+	}
+}
+
+func ListRoleApplyByApplier(c *gin.Context) {
+	var param model.QueryRequestParam
+	if err := c.ShouldBindJSON(&param); err != nil {
+		support.ReturnError(c, exterror.Catch(exterror.New().ServerHandleError, fmt.Errorf("invalid request: %s", err.Error())))
+		return
+	}
+
+	curUser := middleware.GetRequestUser(c)
+	result, err := service.UserManagementServiceInstance.ListRoleApplyByApplier(c, &param, curUser)
+	if err != nil {
+		support.ReturnError(c, err)
+	} else {
+		support.ReturnData(c, result)
+	}
+}
+
+func UpdateRoleApply(c *gin.Context) {
+	var param []*model.RoleApplyDto
+	if err := c.ShouldBindJSON(&param); err != nil {
+		support.ReturnError(c, exterror.Catch(exterror.New().ServerHandleError, fmt.Errorf("invalid request: %s", err.Error())))
+		return
+	}
+
+	curUser := middleware.GetRequestUser(c)
+	err := service.UserManagementServiceInstance.UpdateRoleApply(param, curUser)
 	if err != nil {
 		support.ReturnError(c, err)
 	} else {

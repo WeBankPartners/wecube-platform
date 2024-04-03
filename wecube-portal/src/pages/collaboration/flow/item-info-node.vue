@@ -593,7 +593,6 @@ export default {
       this.isParmasChanged = true
     },
     dateChange (dateStr) {
-      console.log(777, dateStr)
       this.itemCustomInfo.customAttrs.timeConfig.date = dateStr
       this.paramsChanged()
     },

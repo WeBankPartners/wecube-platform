@@ -41,7 +41,6 @@ func CreateOrUpdateTemplate(c *gin.Context) {
 	} else {
 		middleware.ReturnData(c, retData)
 	}
-	return
 }
 
 // CollectTemplate 收藏批量执行模板
@@ -71,7 +70,6 @@ func CollectTemplate(c *gin.Context) {
 		return
 	}
 	middleware.ReturnSuccess(c)
-	return
 }
 
 // UncollectTemplate 取消收藏批量执行模板
@@ -101,7 +99,6 @@ func UncollectTemplate(c *gin.Context) {
 		return
 	}
 	middleware.ReturnSuccess(c)
-	return
 }
 
 // CheckCollectTemplate 检查是否收藏了批量执行模板
@@ -131,7 +128,6 @@ func CheckCollectTemplate(c *gin.Context) {
 	} else {
 		middleware.ReturnData(c, retData)
 	}
-	return
 }
 
 // RetrieveTemplate 查询批量执行模板列表
@@ -158,7 +154,6 @@ func RetrieveTemplate(c *gin.Context) {
 	} else {
 		middleware.ReturnData(c, retData)
 	}
-	return
 }
 
 // GetTemplate 查询批量执行模板详情
@@ -180,7 +175,6 @@ func GetTemplate(c *gin.Context) {
 	} else {
 		middleware.ReturnData(c, retData)
 	}
-	return
 }
 
 // DeleteTemplate 删除批量执行模板
@@ -202,7 +196,6 @@ func DeleteTemplate(c *gin.Context) {
 	} else {
 		middleware.ReturnSuccess(c)
 	}
-	return
 }
 
 // UpdateTemplatePermission 更新批量执行模板的权限
@@ -236,7 +229,6 @@ func UpdateTemplatePermission(c *gin.Context) {
 	} else {
 		middleware.ReturnData(c, retData)
 	}
-	return
 }
 
 // RetrieveBatchExec 查询批量执行结果列表
@@ -272,7 +264,6 @@ func RetrieveBatchExec(c *gin.Context) {
 	} else {
 		middleware.ReturnData(c, retData)
 	}
-	return
 }
 
 // GetBatchExec 查询批量执行结果详情
@@ -296,7 +287,6 @@ func GetBatchExec(c *gin.Context) {
 	} else {
 		middleware.ReturnData(c, retData)
 	}
-	return
 }
 
 func ValidateRunJobParams(reqParam *models.BatchExecRun) (err error) {
@@ -390,7 +380,6 @@ func RunJob(c *gin.Context) {
 			middleware.ReturnData(c, retData)
 		}
 	}
-	return
 }
 
 func doRunJob(c *gin.Context, reqParam *models.BatchExecRun) (result *models.BatchExecRunResp, err error) {

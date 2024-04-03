@@ -215,9 +215,13 @@ func UpdatePluginConfigRoles(c *gin.Context, pluginConfigId string, reqParam *mo
 	// check whether pluginConfigId is valid
 	pluginConfigData := &models.PluginConfigs{}
 	var exists bool
-	exists, err = db.MysqlEngine.Context(c).Table(models.TableNamePluginConfigs).
-		Where("id = ?", pluginConfigId).
-		Get(pluginConfigData)
+	// todo!!
+	/*
+		exists, err = db.MysqlEngine.Context(c).Table(models.TableNamePluginConfigs).
+			Where("id = ?", pluginConfigId).
+			Get(pluginConfigData)
+	*/
+	exists, err = db.MysqlEngine.Context(c).SQL(fmt.Sprintf("select * from %s where id=?", models.TableNamePluginConfigs), pluginConfigId).Get(pluginConfigData)
 	if err != nil {
 		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
 		return
@@ -229,7 +233,7 @@ func UpdatePluginConfigRoles(c *gin.Context, pluginConfigId string, reqParam *mo
 
 	userToken := c.GetHeader(models.AuthorizationHeader)
 	language := c.GetHeader(middleware.AcceptLanguageHeader)
-	respData, err := remote.RetrieveAllLocalRoles("Y", userToken, language)
+	respData, err := remote.RetrieveAllLocalRoles("Y", userToken, language, false)
 	if err != nil {
 		err = fmt.Errorf("retrieve all local roles failed: %s", err.Error())
 		return
@@ -309,9 +313,13 @@ func GetBatchPluginConfigs(c *gin.Context, pluginPackageId string) (result []*mo
 	result = []*models.PluginConfigsOutlines{}
 	pluginPackageData := &models.PluginPackages{}
 	var exists bool
-	exists, err = db.MysqlEngine.Context(c).Table(models.TableNamePluginPackages).
-		Where("id = ?", pluginPackageId).
-		Get(pluginPackageData)
+	// todo!!
+	/*
+		exists, err = db.MysqlEngine.Context(c).Table(models.TableNamePluginPackages).
+			Where("id = ?", pluginPackageId).
+			Get(pluginPackageData)
+	*/
+	exists, err = db.MysqlEngine.Context(c).SQL(fmt.Sprintf("select * from %s where id=?", models.TableNamePluginPackages), pluginPackageId).Get(pluginPackageData)
 	if err != nil {
 		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
 		return
@@ -322,10 +330,14 @@ func GetBatchPluginConfigs(c *gin.Context, pluginPackageId string) (result []*mo
 	}
 
 	var pluginConfigsList []*models.PluginConfigsOutlines
-	db.MysqlEngine.Context(c).Table(models.TableNamePluginConfigs).
-		Where("plugin_package_id = ?", pluginPackageId).
-		Asc("id").
-		Find(&pluginConfigsList)
+	// todo!!
+	/*
+		err = db.MysqlEngine.Context(c).Table(models.TableNamePluginConfigs).
+			Where("plugin_package_id = ?", pluginPackageId).
+			Asc("id").
+			Find(&pluginConfigsList)
+	*/
+	err = db.MysqlEngine.Context(c).SQL(fmt.Sprintf("select * from %s where plugin_package_id=? order by id asc", models.TableNamePluginConfigs), pluginPackageId).Find(&pluginConfigsList)
 	if err != nil {
 		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
 		return
@@ -367,9 +379,13 @@ func BatchEnablePluginConfig(c *gin.Context, reqParam []*models.PluginConfigsBat
 	// check whether pluginPackageId is valid
 	pluginPackageData := &models.PluginPackages{}
 	var exists bool
-	exists, err = db.MysqlEngine.Context(c).Table(models.TableNamePluginPackages).
-		Where("id = ?", pluginPackageId).
-		Get(pluginPackageData)
+	// todo!!
+	/*
+		exists, err = db.MysqlEngine.Context(c).Table(models.TableNamePluginPackages).
+			Where("id = ?", pluginPackageId).
+			Get(pluginPackageData)
+	*/
+	exists, err = db.MysqlEngine.Context(c).SQL(fmt.Sprintf("select * from %s where id=?", models.TableNamePluginPackages), pluginPackageId).Get(pluginPackageData)
 	if err != nil {
 		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
 		return
@@ -407,9 +423,12 @@ func UpdatePluginConfigStatus(c *gin.Context, pluginConfigId string, status stri
 	// check whether pluginConfigId is valid
 	pluginConfigsData := &models.PluginConfigs{}
 	var exists bool
-	exists, err = db.MysqlEngine.Context(c).Table(models.TableNamePluginConfigs).
-		Where("id = ?", pluginConfigId).
-		Get(pluginConfigsData)
+	/*
+		exists, err = db.MysqlEngine.Context(c).Table(models.TableNamePluginConfigs).
+			Where("id = ?", pluginConfigId).
+			Get(pluginConfigsData)
+	*/
+	exists, err = db.MysqlEngine.Context(c).SQL(fmt.Sprintf("select * from %s where id=?", models.TableNamePluginConfigs), pluginConfigId).Get(pluginConfigsData)
 	if err != nil {
 		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
 		return
@@ -432,11 +451,18 @@ func UpdatePluginConfigStatus(c *gin.Context, pluginConfigId string, status stri
 	}
 
 	// query plugin configs by id
-	exists, err = db.MysqlEngine.Context(c).Table(models.TableNamePluginConfigs).
-		Where("id = ?", pluginConfigId).
-		Get(pluginConfigsData)
+	/*
+		exists, err = db.MysqlEngine.Context(c).Table(models.TableNamePluginConfigs).
+			Where("id = ?", pluginConfigId).
+			Get(pluginConfigsData)
+	*/
+	exists, err = db.MysqlEngine.Context(c).SQL(fmt.Sprintf("select * from %s where id=?", models.TableNamePluginConfigs), pluginConfigId).Get(pluginConfigsData)
 	if err != nil {
 		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
+		return
+	}
+	if !exists {
+		err = fmt.Errorf("pluginConfigId: %s is invalid", pluginConfigId)
 		return
 	}
 	result.PluginConfigs = *pluginConfigsData
@@ -449,9 +475,13 @@ func SavePluginConfig(c *gin.Context, reqParam *models.PluginConfigDto) (result 
 	pluginPackageId := reqParam.PluginPackageId
 	pluginPackageData := &models.PluginPackages{}
 	var exists bool
-	exists, err = db.MysqlEngine.Context(c).Table(models.TableNamePluginPackages).
-		Where("id = ?", pluginPackageId).
-		Get(pluginPackageData)
+	// todo!!
+	/*
+		exists, err = db.MysqlEngine.Context(c).Table(models.TableNamePluginPackages).
+			Where("id = ?", pluginPackageId).
+			Get(pluginPackageData)
+	*/
+	exists, err = db.MysqlEngine.Context(c).SQL(fmt.Sprintf("select * from %s where id=?", models.TableNamePluginPackages), pluginPackageId).Get(pluginPackageData)
 	if err != nil {
 		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
 		return
@@ -465,9 +495,13 @@ func SavePluginConfig(c *gin.Context, reqParam *models.PluginConfigDto) (result 
 	if pluginConfigId != "" {
 		// check whether pluginConfigId is belonged to pluginPackageId
 		pluginConfigData := &models.PluginConfigs{}
-		exists, err = db.MysqlEngine.Context(c).Table(models.TableNamePluginConfigs).
-			Where("id = ? AND plugin_package_id = ?", pluginConfigId, pluginPackageId).
-			Get(pluginConfigData)
+		// todo!!
+		/*
+			exists, err = db.MysqlEngine.Context(c).Table(models.TableNamePluginConfigs).
+				Where("id = ? AND plugin_package_id = ?", pluginConfigId, pluginPackageId).
+				Get(pluginConfigData)
+		*/
+		exists, err = db.MysqlEngine.Context(c).SQL(fmt.Sprintf("select * from %s where id=? AND plugin_package_id = ?", models.TableNamePluginConfigs), pluginConfigId, pluginPackageId).Get(pluginConfigData)
 		if err != nil {
 			err = exterror.Catch(exterror.New().DatabaseQueryError, err)
 			return
@@ -531,9 +565,13 @@ func SavePluginConfig(c *gin.Context, reqParam *models.PluginConfigDto) (result 
 func validateRegisterName(c *gin.Context, pluginPackageId, pluginConfigName, pluginConfigRegisterName, pluginConfigId string) (isValid bool, err error) {
 	var exists bool
 	pluginConfigData := &models.PluginConfigs{}
-	exists, err = db.MysqlEngine.Context(c).Table(models.TableNamePluginConfigs).
-		Where("plugin_package_id = ? AND name = ? AND register_name = ?", pluginPackageId, pluginConfigName, pluginConfigRegisterName).
-		Get(pluginConfigData)
+	// todo!!
+	/*
+		exists, err = db.MysqlEngine.Context(c).Table(models.TableNamePluginConfigs).
+			Where("plugin_package_id = ? AND name = ? AND register_name = ?", pluginPackageId, pluginConfigName, pluginConfigRegisterName).
+			Get(pluginConfigData)
+	*/
+	exists, err = db.MysqlEngine.Context(c).SQL(fmt.Sprintf("select * from %s where plugin_package_id = ? AND name = ? AND register_name = ?", models.TableNamePluginConfigs), pluginPackageId, pluginConfigName, pluginConfigRegisterName).Get(pluginConfigData)
 	if err != nil {
 		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
 		return
@@ -564,9 +602,13 @@ func GetDelPluginConfigActionsForImportData(c *gin.Context, pluginPackageId stri
 	}
 
 	var pluginConfigsExistedList []*models.PluginConfigs
-	err = db.MysqlEngine.Context(c).Table(models.TableNamePluginConfigs).
-		Where("plugin_package_id = ?", pluginPackageId).
-		Find(&pluginConfigsExistedList)
+	// todo!!
+	/*
+		err = db.MysqlEngine.Context(c).Table(models.TableNamePluginConfigs).
+			Where("plugin_package_id = ?", pluginPackageId).
+			Find(&pluginConfigsExistedList)
+	*/
+	err = db.MysqlEngine.Context(c).SQL(fmt.Sprintf("select * from %s where plugin_package_id = ?", models.TableNamePluginConfigs), pluginPackageId).Find(&pluginConfigsExistedList)
 	if err != nil {
 		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
 		return
@@ -607,10 +649,14 @@ func GetDelPluginConfigActions(c *gin.Context, pluginConfigId string) (resultAct
 		return
 	}
 	var pluginCfgInterfaceIds []string
-	err = db.MysqlEngine.Context(c).Table(models.TableNamePluginConfigInterfaces).
-		Where("plugin_config_id = ?", pluginConfigId).
-		Cols("id").
-		Find(&pluginCfgInterfaceIds)
+	// todo!!
+	/*
+		err = db.MysqlEngine.Context(c).Table(models.TableNamePluginConfigInterfaces).
+			Where("plugin_config_id = ?", pluginConfigId).
+			Cols("id").
+			Find(&pluginCfgInterfaceIds)
+	*/
+	err = db.MysqlEngine.Context(c).SQL(fmt.Sprintf("select id from %s where plugin_config_id = ?", models.TableNamePluginConfigInterfaces), pluginConfigId).Find(&pluginCfgInterfaceIds)
 	if err != nil {
 		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
 		return
@@ -748,7 +794,7 @@ func getCreatePluginCfgRolesActions(c *gin.Context,
 	reqUser := middleware.GetRequestUser(c)
 	userToken := c.GetHeader(models.AuthorizationHeader)
 	language := c.GetHeader(middleware.AcceptLanguageHeader)
-	respData, err := remote.RetrieveAllLocalRoles("Y", userToken, language)
+	respData, err := remote.RetrieveAllLocalRoles("Y", userToken, language, false)
 	if err != nil {
 		err = fmt.Errorf("retrieve all local roles failed: %s", err.Error())
 		return
@@ -816,9 +862,13 @@ func DeletePluginConfig(c *gin.Context, pluginConfigId string) (err error) {
 	// check whether pluginConfigId is valid
 	pluginConfigsData := &models.PluginConfigs{}
 	var exists bool
-	exists, err = db.MysqlEngine.Context(c).Table(models.TableNamePluginConfigs).
-		Where("id = ?", pluginConfigId).
-		Get(pluginConfigsData)
+	// todo!!
+	/*
+		exists, err = db.MysqlEngine.Context(c).Table(models.TableNamePluginConfigs).
+			Where("id = ?", pluginConfigId).
+			Get(pluginConfigsData)
+	*/
+	exists, err = db.MysqlEngine.Context(c).SQL(fmt.Sprintf("select * from %s where id=?", models.TableNamePluginConfigs), pluginConfigId).Get(pluginConfigsData)
 	if err != nil {
 		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
 		return
@@ -858,9 +908,13 @@ func GetPluginConfigsWithInterfaces(c *gin.Context, pluginPackageId string, role
 func GetPluginConfigQueryObjById(c *gin.Context, pluginConfigId string) (result *models.PluginConfigDto, err error) {
 	pluginConfigData := &models.PluginConfigs{}
 	var exists bool
-	exists, err = db.MysqlEngine.Context(c).Table(models.TableNamePluginConfigs).
-		Where("id = ?", pluginConfigId).
-		Get(pluginConfigData)
+	// todo!!
+	/*
+		exists, err = db.MysqlEngine.Context(c).Table(models.TableNamePluginConfigs).
+			Where("id = ?", pluginConfigId).
+			Get(pluginConfigData)
+	*/
+	exists, err = db.MysqlEngine.Context(c).SQL(fmt.Sprintf("select * from %s where id=?", models.TableNamePluginConfigs), pluginConfigId).Get(pluginConfigData)
 	if err != nil {
 		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
 		return
@@ -911,9 +965,13 @@ func ImportPluginConfigs(c *gin.Context, pluginPackageId string, packagePluginsX
 	// validate pluginPackageId
 	pluginPackageData := &models.PluginPackages{}
 	var exists bool
-	exists, err = db.MysqlEngine.Context(c).Table(models.TableNamePluginPackages).
-		Where("id = ?", pluginPackageId).
-		Get(pluginPackageData)
+	// todo!!
+	/*
+		exists, err = db.MysqlEngine.Context(c).Table(models.TableNamePluginPackages).
+			Where("id = ?", pluginPackageId).
+			Get(pluginPackageData)
+	*/
+	exists, err = db.MysqlEngine.Context(c).SQL(fmt.Sprintf("select * from %s where id=?", models.TableNamePluginPackages), pluginPackageId).Get(pluginPackageData)
 	if err != nil {
 		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
 		return
@@ -1114,9 +1172,13 @@ func ExportPluginConfigs(c *gin.Context, pluginPackageId string) (result *models
 	// validate pluginPackageId
 	pluginPackageData := &models.PluginPackages{}
 	var exists bool
-	exists, err = db.MysqlEngine.Context(c).Table(models.TableNamePluginPackages).
-		Where("id = ?", pluginPackageId).
-		Get(pluginPackageData)
+	// todo!!
+	/*
+		exists, err = db.MysqlEngine.Context(c).Table(models.TableNamePluginPackages).
+			Where("id = ?", pluginPackageId).
+			Get(pluginPackageData)
+	*/
+	exists, err = db.MysqlEngine.Context(c).SQL(fmt.Sprintf("select * from %s where id=?", models.TableNamePluginPackages), pluginPackageId).Get(pluginPackageData)
 	if err != nil {
 		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
 		return
