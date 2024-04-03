@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/WeBankPartners/go-common-lib/guid"
 	"reflect"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -417,11 +418,14 @@ func (q ProcDefSort) Len() int {
 }
 
 func (q ProcDefSort) Less(i, j int) bool {
-	t := strings.Compare(q[i].Version, q[j].Version)
-	if t < 0 {
-		return true
+	var versionA, versionB int
+	if len(q[i].Version) > 1 {
+		versionA, _ = strconv.Atoi(q[i].Version[1:])
 	}
-	return false
+	if len(q[j].Version) >= 1 {
+		versionB, _ = strconv.Atoi(q[j].Version[1:])
+	}
+	return versionA < versionB
 }
 
 func (q ProcDefSort) Swap(i, j int) {
