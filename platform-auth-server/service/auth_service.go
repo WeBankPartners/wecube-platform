@@ -8,20 +8,22 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io/ioutil"
+	"math/big"
+	"strconv"
+	"strings"
+	"time"
+
 	"github.com/WeBankPartners/wecube-platform/platform-auth-server/common/constant"
 	"github.com/WeBankPartners/wecube-platform/platform-auth-server/common/exterror"
 	"github.com/WeBankPartners/wecube-platform/platform-auth-server/common/log"
 	"github.com/WeBankPartners/wecube-platform/platform-auth-server/common/utils"
 	"github.com/WeBankPartners/wecube-platform/platform-auth-server/model"
 	"github.com/WeBankPartners/wecube-platform/platform-auth-server/service/db"
+	"github.com/WeBankPartners/wecube-platform/platform-auth-server/service/remote/api_platform"
 	"github.com/WeBankPartners/wecube-platform/platform-auth-server/service/remote/api_um"
 	"github.com/golang-jwt/jwt"
 	"golang.org/x/crypto/bcrypt"
-	"io/ioutil"
-	"math/big"
-	"strconv"
-	"strings"
-	"time"
 )
 
 var (
@@ -52,7 +54,7 @@ func (AuthService) InitKey() error {
 	return nil
 }
 
-func (AuthService) Login(credential *model.CredentialDto) (*model.AuthenticationResponse, error) {
+func (AuthService) Login(credential *model.CredentialDto, taskLogin bool) (*model.AuthenticationResponse, error) {
 
 	if err := validateCredential(credential); err != nil {
 		return nil, err
@@ -66,7 +68,7 @@ func (AuthService) Login(credential *model.CredentialDto) (*model.Authentication
 		}
 
 	} else {
-		if authResp, err := authenticateUser(credential); err != nil {
+		if authResp, err := authenticateUser(credential, taskLogin); err != nil {
 			return nil, err
 		} else {
 			return authResp, nil
@@ -74,7 +76,7 @@ func (AuthService) Login(credential *model.CredentialDto) (*model.Authentication
 	}
 }
 
-func (AuthService) RefreshToken(refreshToken string) ([]model.Jwt, error) {
+func (AuthService) RefreshToken(refreshToken string) ([]*model.Jwt, error) {
 	jwtToken, err := jwt.ParseWithClaims(refreshToken, &model.AuthClaims{}, func(token *jwt.Token) (interface{}, error) {
 		return model.Config.Auth.SigningKeyBytes, nil
 	})
@@ -113,9 +115,32 @@ func (AuthService) RefreshToken(refreshToken string) ([]model.Jwt, error) {
 	if subSystem != nil {
 		authorities = append(authorities, constant.AuthoritySubsystem)
 	}
-	jwts := packJwtTokens(claim.Subject, []string{}, authorities, "")
+	authorities = utils.DistinctArrayString(authorities)
+	jwts := packJwtTokens(claim.Subject, []string{}, authorities, claim.NeedRegister)
 	return jwts, nil
 }
+
+// func validateSubsystemClaimForRefresh(claim *model.AuthClaims) ([]*model.Jwt, error) {
+// 	systemCode := claim.Subject
+// 	if isBlank(systemCode) {
+// 		log.Logger.Warn("system code is blank")
+// 		return nil, exterror.NewBadCredentialsError("system code is blank")
+// 	}
+
+// 	systemInfo, err := SubSystemInfoDataServiceImplInstance.retrieveSysSubSystemInfoWithSystemCode(systemCode)
+// 	if err != nil {
+// 		log.Logger.Error("failed to retrieve sub system info", log.String("systemCode", systemCode), log.Error(err))
+// 		return nil, err
+// 	}
+
+// 	if systemInfo == nil {
+// 		log.Logger.Error(fmt.Sprintf("such sub system %s is not available.", systemCode))
+// 		return nil, errors.New("such sub system is not available")
+// 	}
+
+// 	jwts := packJwtTokens(systemCode, []string{}, systemInfo.Authorities, claim.NeedRegister)
+// 	return jwts, nil
+// }
 
 func validateCredential(c *model.CredentialDto) error {
 	if c == nil {
@@ -172,7 +197,7 @@ func authenticateSubSystem(credential *model.CredentialDto) (*model.Authenticati
 		return nil, exterror.NewBadCredentialsError("Bad credential")
 	}
 
-	authResp, err := createAuthenticationResponse(credential, subSystemInfo.Authorities)
+	authResp, err := createAuthenticationResponse(credential, subSystemInfo.Authorities, false)
 
 	return authResp, err
 }
@@ -212,7 +237,7 @@ func RSADecryptByPublic(encryptString, publicKeyContent string) ([]byte, error) 
 	return out[skip:], nil
 }
 
-func authenticateUser(credential *model.CredentialDto) (*model.AuthenticationResponse, error) {
+func authenticateUser(credential *model.CredentialDto, taskLogin bool) (*model.AuthenticationResponse, error) {
 	username := credential.Username
 	if isBlank(username) {
 		log.Logger.Debug("blank user name")
@@ -226,6 +251,18 @@ func authenticateUser(credential *model.CredentialDto) (*model.AuthenticationRes
 
 	if user == nil {
 		log.Logger.Debug("User does not exist", log.String("username", username))
+		if taskLogin {
+			// 检查UM用户是否存在
+			umExists, err := checkUmUserExists(credential)
+			if err != nil {
+				return nil, err
+			}
+			if umExists {
+				// UM用户存在，返回需注册的token
+				authResp, err := createAuthenticationResponse(credential, []string{}, true)
+				return authResp, err
+			}
+		}
 		return nil, exterror.NewBadCredentialsError("Bad credential.")
 	}
 
@@ -240,23 +277,23 @@ func authenticateUser(credential *model.CredentialDto) (*model.AuthenticationRes
 		authorities = append(authorities, authority.Authority)
 	}
 
-	authResp, err := createAuthenticationResponse(credential, authorities)
+	authResp, err := createAuthenticationResponse(credential, authorities, false)
 	return authResp, err
 }
 
-func packJwtTokens(loginId string, roles []string, authorities []string, userName string) []model.Jwt {
-	jwts := make([]model.Jwt, 2)
-	if accessToken, exp, err := buildAccessToken(loginId, roles, authorities, userName); err == nil {
-		jwts[0] = model.Jwt{Expiration: strconv.Itoa(int(exp)), Token: accessToken, TokenType: constant.TypeAccessToken}
+func packJwtTokens(loginId string, roles []string, authorities []string, needRegister bool) []*model.Jwt {
+	jwts := make([]*model.Jwt, 2)
+	if accessToken, exp, err := buildAccessToken(loginId, roles, authorities, needRegister); err == nil {
+		jwts[0] = &model.Jwt{Expiration: strconv.Itoa(int(exp)), Token: accessToken, TokenType: constant.TypeAccessToken}
 	}
-	if refreshToken, exp, err := buildRefreshToken(loginId, userName); err == nil {
-		jwts[1] = model.Jwt{Expiration: strconv.Itoa(int(exp)), Token: refreshToken, TokenType: constant.TypeRefreshToken}
+	if refreshToken, exp, err := buildRefreshToken(loginId, needRegister); err == nil {
+		jwts[1] = &model.Jwt{Expiration: strconv.Itoa(int(exp)), Token: refreshToken, TokenType: constant.TypeRefreshToken}
 	}
 
 	return jwts
 }
 
-func buildAccessToken(loginId string, roles []string, authorities []string, userName string) (string, int64, error) {
+func buildAccessToken(loginId string, roles []string, authorities []string, needRegister bool) (string, int64, error) {
 	if model.Config.Auth.SigningKeyBytes == nil {
 		log.Logger.Error("jwt key is invalid")
 		return "", 0, errors.New("failed to build refresh token")
@@ -264,12 +301,13 @@ func buildAccessToken(loginId string, roles []string, authorities []string, user
 	issueAt := time.Now().UTC().Unix()
 	exp := time.Now().Add(time.Minute * time.Duration(model.Config.Auth.AccessTokenMins)).UTC().Unix()
 	token := jwt.NewWithClaims(jwt.SigningMethodHS512, model.AuthClaims{
-		Subject:   loginId,
-		IssuedAt:  issueAt,
-		ExpiresAt: exp,
-		Type:      constant.TypeAccessToken,
-		Roles:     roles,
-		Authority: utils.BuildArrayString(authorities),
+		Subject:      loginId,
+		IssuedAt:     issueAt,
+		ExpiresAt:    exp,
+		Type:         constant.TypeAccessToken,
+		Roles:        roles,
+		Authority:    utils.BuildArrayString(authorities),
+		NeedRegister: needRegister,
 		/*		LoginType:   loginType,
 				Auth:        aggAuths,
 				AdminType:   adminType,
@@ -281,10 +319,9 @@ func buildAccessToken(loginId string, roles []string, authorities []string, user
 		log.Logger.Error("Failed to build access token", log.Error(err))
 		return "", 0, errors.New("failed to build access token")
 	}
-
 }
 
-func buildRefreshToken(loginId, userName string) (string, int64, error) {
+func buildRefreshToken(loginId string, needRegister bool) (string, int64, error) {
 	if model.Config.Auth.SigningKeyBytes == nil {
 		log.Logger.Error("jwt key is invalid")
 		return "", 0, errors.New("failed to build refresh token")
@@ -293,10 +330,11 @@ func buildRefreshToken(loginId, userName string) (string, int64, error) {
 	issueAt := time.Now().UTC().Unix()
 	exp := time.Now().Add(time.Minute * time.Duration(model.Config.Auth.RefreshTokenMins)).UTC().Unix()
 	token := jwt.NewWithClaims(jwt.SigningMethodHS512, model.AuthClaims{
-		Subject:   loginId,
-		IssuedAt:  issueAt,
-		ExpiresAt: exp,
-		Type:      constant.TypeRefreshToken,
+		Subject:      loginId,
+		IssuedAt:     issueAt,
+		ExpiresAt:    exp,
+		Type:         constant.TypeRefreshToken,
+		NeedRegister: needRegister,
 		/*		LoginType: loginType,
 				AdminType: adminType,
 				UserName:  userName,
@@ -308,12 +346,14 @@ func buildRefreshToken(loginId, userName string) (string, int64, error) {
 		return "", 0, errors.New("failed to build access token")
 	}
 }
-func createAuthenticationResponse(credential *model.CredentialDto, authorities []string) (*model.AuthenticationResponse, error) {
 
-	jwts := packJwtTokens(credential.Username, []string{}, authorities, credential.Username)
+func createAuthenticationResponse(credential *model.CredentialDto, authorities []string, needRegister bool) (*model.AuthenticationResponse, error) {
+	authorities = utils.DistinctArrayString(authorities)
+	jwts := packJwtTokens(credential.Username, []string{}, authorities, needRegister)
 	return &model.AuthenticationResponse{
-		UserId: credential.Username,
-		Tokens: jwts,
+		UserId:       credential.Username,
+		NeedRegister: needRegister,
+		Tokens:       jwts,
 	}, nil
 }
 
@@ -367,4 +407,48 @@ func checkAuthentication(user *model.SysUser, credential *model.CredentialDto) e
 	}
 
 	return nil
+}
+
+func GetUmAuthContext(username string) (string, error) {
+	// 生成token
+	accessToken, _, err := buildAccessToken(username, []string{}, []string{}, false)
+	if err != nil {
+		return "", err
+	}
+	// 获取 UM_AUTH_CONTEXT 系统参数
+	queryParam := &model.QueryRequestParam{
+		Filters: []*model.QueryRequestFilterObj{
+			{
+				Name:     "name",
+				Operator: "contains",
+				Value:    "UM_AUTH_CONTEXT",
+			},
+		},
+		Paging: true,
+		Pageable: &model.PageInfo{
+			StartIndex: 0,
+			PageSize:   10,
+		},
+	}
+	queryResult, err := api_platform.QuerySystemVariables(accessToken, "", queryParam)
+	if err != nil {
+		return "", err
+	}
+	if queryResult == nil || len(queryResult.Contents) == 0 {
+		return "", fmt.Errorf("UM_AUTH_CONTEXT not found")
+	}
+	return queryResult.Contents[0].DefaultValue, nil
+}
+
+func checkUmUserExists(credential *model.CredentialDto) (bool, error) {
+	umAuthCtx, err := GetUmAuthContext(credential.Username)
+	if err != nil {
+		return false, err
+	}
+	authCtxMap := parseUserAuthContext(umAuthCtx)
+	umExist, _, err := api_um.UmAuthenticate(authCtxMap, credential)
+	if err != nil {
+		return false, err
+	}
+	return umExist, nil
 }
