@@ -13,7 +13,11 @@
       </div>
     </template>
     <!--高危检测弹框-->
-    <DangerousModal :visible.sync="confirmModal.isShowConfirmModal" :data="confirmModal"></DangerousModal>
+    <DangerousModal
+      :visible.sync="confirmModal.isShowConfirmModal"
+      :data="confirmModal"
+      @success="$eventBusP.$emit('change-menu', 'executeList')"
+    ></DangerousModal>
   </div>
 </template>
 
