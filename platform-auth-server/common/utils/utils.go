@@ -103,3 +103,14 @@ func ParseArrayString(arrStr string) []string {
 	}
 	return make([]string, 0)
 }
+
+func DistinctArrayString(inputList []string) (output []string) {
+	tmpMap := make(map[string]int)
+	for _, v := range inputList {
+		if _, b := tmpMap[v]; !b {
+			output = append(output, v)
+			tmpMap[v] = 1
+		}
+	}
+	return
+}
