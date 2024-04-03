@@ -41,12 +41,10 @@ type DatabaseConfig struct {
 }
 
 type AuthConfig struct {
-	Enable                 bool   `json:"enable"`
-	Url                    string `json:"url"`
-	AccessTokenExpiredSec  string `json:"access_token_expired_sec"`
-	RefreshTokenExpiredSec string `json:"refresh_token_expired_sec"`
-	JwtSigningKey          string `json:"jwt_signing_key"`
-	SubSystemPrivateKey    string `json:"sub_system_private_key"`
+	Enable              bool   `json:"enable"`
+	Url                 string `json:"url"`
+	JwtSigningKey       string `json:"jwt_signing_key"`
+	SubSystemPrivateKey string `json:"sub_system_private_key"`
 }
 
 type S3Config struct {
@@ -193,6 +191,9 @@ func InitConfig(configFile string) (errMessage string) {
 			}
 			c.StaticResources = newStaticResourceList
 		}
+	}
+	if c.Auth.SubSystemPrivateKey == "" {
+		c.Auth.SubSystemPrivateKey = "MIIBVQIBADANBgkqhkiG9w0BAQEFAASCAT8wggE7AgEAAkEAwnTN7JDXFcSoikXuNOQDtAjic1Wu6oAtCQJquCJmXrBTqB7hwS2mK6TuT8P7Jx60BQcaRL12hPLi6cOiCawuVwIDAQABAkB9NORazDARjhzPW5OzbpWL2KSmiqcjywA0at/4S/4KPPM8vwRjzEMs7pV9nSJ2M+/YOqPMBDl8iBUSLpfKf/uxAiEA52UroIvo2URlmAycaJm7+e4QqqfhEnM9wlGCJwL2jTsCIQDXIh2zwN7KQEIypmOL+uXvlZUjmx0Tj29mWOwP/fBBlQIhAI9+VLSlror1eE73GxNeqoxNznYVz2RCpLzZEO4iT0S7AiARg0Z1tpKsVjTNWLwrzf3f1gZxApSIXhnMdBqrZpmjTQIhAJhgYctlaydmggTPCqWLGub9WqEyH2HrrcabRvpWdEcV"
 	}
 	Config = &c
 	return
