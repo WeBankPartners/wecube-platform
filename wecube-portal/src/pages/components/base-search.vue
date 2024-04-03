@@ -1,6 +1,6 @@
 <template>
   <div class="platform-base-search">
-    <div class="form" :style="{ maxHeight: expand ? '200px' : '40px' }">
+    <div class="platform-base-search-form" :style="{ maxHeight: expand ? '200px' : '40px' }">
       <Form :inline="true" :model="value" label-position="right">
         <template v-for="(i, index) in options">
           <FormItem v-if="!i.hidden" :prop="i.key" :key="index">
@@ -107,7 +107,7 @@
         </template>
       </Form>
     </div>
-    <template v-if="showExpand">
+    <div class="platform-base-search-button">
       <Icon
         v-show="!expand"
         @click="handleExpand"
@@ -124,8 +124,6 @@
         type="ios-arrow-up"
         style="cursor: pointer; margin-right: 10px"
       />
-    </template>
-    <div class="button-group">
       <Button @click="handleSearch" size="small" type="primary">{{ $t('search') }}</Button>
       <Button @click="handleReset" size="small" style="margin-left: 5px">{{ $t('reset') }}</Button>
     </div>
@@ -241,7 +239,28 @@ export default {
 
 <style lang="scss">
 .platform-base-search {
+  width: 100%;
   display: flex;
+  &-form {
+    max-width: calc(100% - 146px);
+    transition: all 0.2s;
+    overflow: hidden;
+    padding-right: 10px;
+  }
+  &-button {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    width: 146px;
+    height: 30px;
+    box-sizing: content-box;
+    button {
+      width: auto;
+      height: 28px;
+      line-height: 28px;
+      font-size: 13px;
+    }
+  }
   .ivu-form-item {
     margin-bottom: 15px !important;
     display: inline-block !important;
@@ -250,41 +269,17 @@ export default {
     display: none;
   }
   .ivu-radio-wrapper {
-    // border-radius: 5px;
     height: 30px !important;
     line-height: 30px !important;
-    // padding: 0 10px;
     font-size: 12px !important;
     color: #000;
-    // background: #f5f8fa;
-    // border: none;
   }
   .ivu-radio-wrapper-checked.ivu-radio-border {
     border-color: #2d8cf0;
-    // background: #2d8cf0;
     color: #2d8cf0;
   }
   .ivu-select-multiple .ivu-tag {
     max-width: 90px;
-  }
-  .form {
-    flex: 1;
-    transition: all 0.2s;
-    overflow: hidden;
-  }
-  .button-group {
-    height: 30px;
-    display: inline-block;
-    border-left: 1px solid #0000000f;
-    padding-left: 12px;
-    box-sizing: content-box;
-    button {
-      width: auto;
-      padding: 0 12px;
-      height: 30px;
-      line-height: 30px;
-      font-size: 13px;
-    }
   }
 }
 </style>
