@@ -40,30 +40,28 @@ func (SubSystemInfoDataServiceImpl) retrieveSysSubSystemInfoWithSystemCode(syste
 		return nil, err
 	}
 
-	if subSystemAuthorities != nil {
-		for _, subSystemAuthority := range subSystemAuthorities {
-			if !subSystemAuthority.Active || subSystemAuthority.Deleted {
-				continue
-			}
-
-			authority := &model.SysAuthorityEntity{}
-			existed, err := db.Engine.ID(subSystemAuthority.AuthorityID).Get(authority)
-			if err != nil {
-				log.Logger.Error("failed to get authority", log.String("authorityId", subSystemAuthority.AuthorityID),
-					log.Error(err))
-				return nil, err
-			}
-
-			if !existed {
-				continue
-			}
-			if !authority.Active || authority.Deleted {
-				continue
-			}
-
-			//grantedAuthorities.add(new SimpleGrantedAuthority(authority.getCode()));
-			grantedAuthorities = append(grantedAuthorities, authority.Code)
+	for _, subSystemAuthority := range subSystemAuthorities {
+		if !subSystemAuthority.Active || subSystemAuthority.Deleted {
+			continue
 		}
+
+		authority := &model.SysAuthorityEntity{}
+		existed, err := db.Engine.ID(subSystemAuthority.AuthorityID).Get(authority)
+		if err != nil {
+			log.Logger.Error("failed to get authority", log.String("authorityId", subSystemAuthority.AuthorityID),
+				log.Error(err))
+			return nil, err
+		}
+
+		if !existed {
+			continue
+		}
+		if !authority.Active || authority.Deleted {
+			continue
+		}
+
+		//grantedAuthorities.add(new SimpleGrantedAuthority(authority.getCode()));
+		grantedAuthorities = append(grantedAuthorities, authority.Code)
 	}
 
 	returnSystemInfo := buildSysSubSystemInfo(subSystem)
