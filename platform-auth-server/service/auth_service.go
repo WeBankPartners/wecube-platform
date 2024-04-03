@@ -115,6 +115,7 @@ func (AuthService) RefreshToken(refreshToken string) ([]*model.Jwt, error) {
 	if subSystem != nil {
 		authorities = append(authorities, constant.AuthoritySubsystem)
 	}
+	authorities = utils.DistinctArrayString(authorities)
 	jwts := packJwtTokens(claim.Subject, []string{}, authorities, claim.NeedRegister)
 	return jwts, nil
 }
@@ -347,6 +348,7 @@ func buildRefreshToken(loginId string, needRegister bool) (string, int64, error)
 }
 
 func createAuthenticationResponse(credential *model.CredentialDto, authorities []string, needRegister bool) (*model.AuthenticationResponse, error) {
+	authorities = utils.DistinctArrayString(authorities)
 	jwts := packJwtTokens(credential.Username, []string{}, authorities, needRegister)
 	return &model.AuthenticationResponse{
 		UserId:       credential.Username,
