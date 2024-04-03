@@ -24,7 +24,7 @@
 </template>
 <script>
 import { login } from '../api/server'
-import { setLocalstorage } from '@/pages/util/localStorage.js'
+import { setCookie } from './util/cookie'
 export default {
   data () {
     return {
@@ -44,7 +44,7 @@ export default {
       const { status, data } = await login(payload)
       if (status === 'OK') {
         let localStorage = window.localStorage
-        setLocalstorage(data)
+        setCookie(data)
         localStorage.setItem('username', this.username)
         this.$router.push('/homepage')
       }
