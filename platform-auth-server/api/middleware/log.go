@@ -2,7 +2,6 @@ package middleware
 
 import (
 	"bytes"
-	"fmt"
 	"github.com/WeBankPartners/wecube-platform/platform-auth-server/common/log"
 	"github.com/WeBankPartners/wecube-platform/platform-auth-server/model"
 	"io/ioutil"
@@ -20,14 +19,14 @@ func HttpLogHandle() gin.HandlerFunc {
 		c.Request.Body.Close()
 		c.Request.Body = ioutil.NopCloser(bytes.NewReader(bodyBytes))
 		c.Set("requestBody", string(bodyBytes))
-		log.Logger.Info(fmt.Sprintf("Received request "), log.String("url", c.Request.RequestURI), log.String("method", c.Request.Method), log.String("body", c.GetString("requestBody")))
+		log.Logger.Info("Received request ", log.String("url", c.Request.RequestURI), log.String("method", c.Request.Method), log.String("body", c.GetString("requestBody")))
 		if strings.EqualFold(model.Config.Log.Level, "debug") {
 			requestDump, _ := httputil.DumpRequest(c.Request, true)
 			log.Logger.Debug("Received request: " + string(requestDump))
 		}
 		c.Next()
-		costTime := time.Now().Sub(start).Seconds() * 1000
-		log.AccessLogger.Info(fmt.Sprintf("Got request -"), log.String("url", c.Request.RequestURI), log.String("method", c.Request.Method), log.Int("code", c.Writer.Status()), log.String("operator", c.GetString("user")), log.String("ip", getRemoteIp(c)), log.Float64("cost_ms", costTime), log.String("body", c.GetString("responseBody")))
+		costTime := time.Since(start).Seconds() * 1000
+		log.AccessLogger.Info("Got request -", log.String("url", c.Request.RequestURI), log.String("method", c.Request.Method), log.Int("code", c.Writer.Status()), log.String("operator", c.GetString("user")), log.String("ip", getRemoteIp(c)), log.Float64("cost_ms", costTime), log.String("body", c.GetString("responseBody")))
 
 	}
 }

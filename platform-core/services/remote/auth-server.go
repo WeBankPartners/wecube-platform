@@ -3,10 +3,12 @@ package remote
 import (
 	"encoding/json"
 	"fmt"
+	"strconv"
+	"strings"
+
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/log"
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/network"
 	"github.com/WeBankPartners/wecube-platform/platform-core/models"
-	"strings"
 )
 
 const (
@@ -15,7 +17,7 @@ const (
 	// pathRetrieveAllUserAccounts 查询所有用户
 	pathRetrieveAllUserAccounts = "/auth/v1/users"
 	// pathRetrieveAllRoles  查询所有角色
-	pathRetrieveAllRoles = "/auth/v1/roles?all=%s"
+	pathRetrieveAllRoles = "/auth/v1/roles?all=%s&roleAdmin=%s"
 	// pathRetrieveGrantedRolesByUsername 根据用户名查询角色
 	pathRetrieveGrantedRolesByUsername = "/auth/v1/users/roles-by-name/%s"
 	// pathRetrieveRoleById 根据roleId查询role
@@ -45,7 +47,7 @@ const (
 	// pathRegisterLocalRole 注册角色
 	pathRegisterLocalRole = "/auth/v1/roles"
 	// pathLogin 登录
-	pathLogin = "/auth/v1/api/login"
+	// pathLogin = "/auth/v1/api/login"
 	// pathRegisterSubSystem 注册插件subsys
 	pathRegisterSubSystem = "/auth/v1/sub-systems"
 	// pathModifyUserInfo 修改用户信息
@@ -109,21 +111,21 @@ func RetrieveAllUsers(userToken, language string) (response models.QueryUserResp
 	}
 	err = json.Unmarshal(byteArr, &response)
 	if err != nil {
-		err = fmt.Errorf("Try to json unmarshal response body fail,%s ", err.Error())
+		err = fmt.Errorf("try to json unmarshal response body fail,%s ", err.Error())
 		return
 	}
 	return
 }
 
 // RetrieveAllLocalRoles 查询所有角色
-func RetrieveAllLocalRoles(requiredAll, userToken, language string) (response models.QueryRolesResponse, err error) {
-	byteArr, err := network.HttpGet(fmt.Sprintf(models.Config.Auth.Url+pathRetrieveAllRoles, requiredAll), userToken, language)
+func RetrieveAllLocalRoles(requiredAll, userToken, language string, roleAdmin bool) (response models.QueryRolesResponse, err error) {
+	byteArr, err := network.HttpGet(fmt.Sprintf(models.Config.Auth.Url+pathRetrieveAllRoles, requiredAll, strconv.FormatBool(roleAdmin)), userToken, language)
 	if err != nil {
 		return
 	}
 	err = json.Unmarshal(byteArr, &response)
 	if err != nil {
-		err = fmt.Errorf("Try to json unmarshal response body fail,%s ", err.Error())
+		err = fmt.Errorf("try to json unmarshal response body fail,%s ", err.Error())
 		return
 	}
 	return
@@ -137,7 +139,7 @@ func GetRolesByUsername(username, userToken, language string) (response models.Q
 	}
 	err = json.Unmarshal(byteArr, &response)
 	if err != nil {
-		err = fmt.Errorf("Try to json unmarshal response body fail,%s ", err.Error())
+		err = fmt.Errorf("try to json unmarshal response body fail,%s ", err.Error())
 		return
 	}
 	return
@@ -152,7 +154,7 @@ func RetrieveRoleInfo(roleId, userToken, language string) (response models.Query
 	}
 	err = json.Unmarshal(byteArr, &response)
 	if err != nil {
-		err = fmt.Errorf("Try to json unmarshal response body fail,%s ", err.Error())
+		err = fmt.Errorf("try to json unmarshal response body fail,%s ", err.Error())
 		return
 	}
 	return
@@ -166,7 +168,7 @@ func GetUsersByRoleId(roleId, userToken, language string) (response models.Query
 	}
 	err = json.Unmarshal(byteArr, &response)
 	if err != nil {
-		err = fmt.Errorf("Try to json unmarshal response body fail,%s ", err.Error())
+		err = fmt.Errorf("try to json unmarshal response body fail,%s ", err.Error())
 		return
 	}
 	return
@@ -193,6 +195,9 @@ func ModifyLocalUserPassword(param models.UserPasswordChangeParam, username, use
 	}
 	postBytes, _ := json.Marshal(userPassDto)
 	byteArr, err = network.HttpPost(models.Config.Auth.Url+pathUserChangePassword, userToken, language, postBytes)
+	if err != nil {
+		return
+	}
 	if err = json.Unmarshal(byteArr, &response); err != nil {
 		err = fmt.Errorf("json unmarhsal response body fail,%s ", err.Error())
 		return
@@ -206,6 +211,9 @@ func ResetLocalUserPassword(param models.UserPasswordResetParam, userToken, lang
 	userPassDto := &models.SimpleLocalUserPassDto{Username: param.Username}
 	postBytes, _ := json.Marshal(userPassDto)
 	byteArr, err = network.HttpPost(models.Config.Auth.Url+pathUserResetPassword, userToken, language, postBytes)
+	if err != nil {
+		return
+	}
 	if err = json.Unmarshal(byteArr, &response); err != nil {
 		err = fmt.Errorf("json unmarhsal response body fail,%s ", err.Error())
 		return
@@ -221,7 +229,7 @@ func RetrieveUserByUserId(userId, userToken, language string) (response models.Q
 	}
 	err = json.Unmarshal(byteArr, &response)
 	if err != nil {
-		err = fmt.Errorf("Try to json unmarshal response body fail,%s ", err.Error())
+		err = fmt.Errorf("try to json unmarshal response body fail,%s ", err.Error())
 		return
 	}
 	return
@@ -237,6 +245,9 @@ func UpdateLocalRole(userToken, language string, param models.SimpleLocalRoleDto
 	var byteArr []byte
 	postBytes, _ := json.Marshal(param)
 	byteArr, err = network.HttpPost(models.Config.Auth.Url+pathUpdateLocalRole, userToken, language, postBytes)
+	if err != nil {
+		return
+	}
 	if err = json.Unmarshal(byteArr, &response); err != nil {
 		err = fmt.Errorf("json unmarhsal response body fail,%s ", err.Error())
 		return
@@ -307,7 +318,7 @@ func ModifyUserInfo(username, userToken, language string, param *models.UserDto)
 	var response models.QuerySingleUserResponse
 	err = json.Unmarshal(byteArr, &response)
 	if err != nil {
-		err = fmt.Errorf("Try to json unmarshal response body fail,%s ", err.Error())
+		err = fmt.Errorf("try to json unmarshal response body fail,%s ", err.Error())
 		return
 	}
 	if response.Status != models.DefaultHttpSuccessCode {
@@ -326,7 +337,7 @@ func RetrieveUserByUsername(username, userToken, language string) (responseData 
 	var response models.QuerySingleUserResponse
 	err = json.Unmarshal(byteArr, &response)
 	if err != nil {
-		err = fmt.Errorf("Try to json unmarshal response body fail,%s ", err.Error())
+		err = fmt.Errorf("try to json unmarshal response body fail,%s ", err.Error())
 		return
 	}
 	if response.Status != models.DefaultHttpSuccessCode {
@@ -347,7 +358,7 @@ func RetrieveRoleByRoleName(roleName, userToken, language string) (responseData 
 	var response models.QuerySingleRolesResponse
 	err = json.Unmarshal(byteArr, &response)
 	if err != nil {
-		err = fmt.Errorf("Try to json unmarshal response body fail,%s ", err.Error())
+		err = fmt.Errorf("try to json unmarshal response body fail,%s ", err.Error())
 		return
 	}
 	if response.Status != models.DefaultHttpSuccessCode {

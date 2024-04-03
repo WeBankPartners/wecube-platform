@@ -9,6 +9,7 @@ import (
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/timer"
 	"github.com/WeBankPartners/wecube-platform/platform-core/models"
 	"github.com/WeBankPartners/wecube-platform/platform-core/services/database"
+	"github.com/WeBankPartners/wecube-platform/platform-core/services/execution"
 	"github.com/WeBankPartners/wecube-platform/platform-core/services/workflow"
 	"github.com/gin-gonic/gin"
 	"sync"
@@ -234,7 +235,7 @@ func handleProcScheduleJob(unixTimestamp int64, param interface{}) {
 	}()
 	operator := "systemCron"
 	// preview
-	previewData, previewErr := buildProcPreviewData(ctx, psConfig.ProcDefId, psConfig.EntityDataId, operator)
+	previewData, previewErr := execution.BuildProcPreviewData(ctx, psConfig.ProcDefId, psConfig.EntityDataId, operator)
 	if previewErr != nil {
 		err = previewErr
 		log.Logger.Error("handleProcScheduleJob fail with build proc preview data", log.String("psConfigId", psConfig.Id), log.Error(previewErr))
