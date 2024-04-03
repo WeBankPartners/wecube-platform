@@ -298,7 +298,7 @@ func (w *Workflow) heartbeat() {
 			log.Logger.Info("workflow heartbeat get quit status", log.String("workflowId", w.Id), log.String("status", wStatus))
 			break
 		}
-		if _, err := db.MysqlEngine.Exec("update proc_run_workflow set host=?,last_alive_time=? where id=?", w.Host, time.Now(), w.Id); err != nil {
+		if _, err := db.MysqlEngine.Exec("update proc_run_workflow set host=?,last_alive_time=? where id=?", instanceHost, time.Now(), w.Id); err != nil {
 			log.Logger.Error("workflow heartbeat update alive time fail", log.String("workflowId", w.Id), log.Error(err))
 		}
 		<-t
