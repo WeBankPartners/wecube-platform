@@ -192,7 +192,7 @@ func DoWorkflowAutoJob(ctx context.Context, procRunNodeId, continueToken string,
 			}
 			if bindNodeDef.NodeType == models.JobStartType {
 				buildStartNodeContextMap(inputContextMap, procIns)
-			} else if bindNodeDef.NodeType == models.JobAutoType {
+			} else if bindNodeDef.NodeType == models.JobAutoType || bindNodeDef.NodeType == models.JobHumanType {
 				if err = buildAutoNodeContextMap(ctx, entityInstances, procIns, bindNodeDef, dataBindings, v.CtxBindType, v.CtxBindName, v.Name); err != nil {
 					err = fmt.Errorf("buildAutoNodeContextMap fail with param:%s,error:%s", v.Name, err.Error())
 					return
@@ -382,6 +382,11 @@ func DoWorkflowHumanJob(ctx context.Context, procRunNodeId string, recoverFlag b
 			}
 			if bindNodeDef.NodeType == models.JobStartType {
 				buildStartNodeContextMap(inputContextMap, procIns)
+			} else if bindNodeDef.NodeType == models.JobAutoType || bindNodeDef.NodeType == models.JobHumanType {
+				if err = buildAutoNodeContextMap(ctx, entityInstances, procIns, bindNodeDef, dataBindings, v.CtxBindType, v.CtxBindName, v.Name); err != nil {
+					err = fmt.Errorf("buildAutoNodeContextMap fail with param:%s,error:%s", v.Name, err.Error())
+					return
+				}
 			}
 		}
 	}
