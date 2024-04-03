@@ -122,7 +122,7 @@
         </FormItem>
       </Form>
       <div slot="footer">
-        <Button ghost @click="addUserModalVisible = false">{{ $t('cancel') }}</Button>
+        <Button @click="addUserModalVisible = false">{{ $t('cancel') }}</Button>
         <Button type="primary" @click="addUser">{{ $t('save') }}</Button>
       </div>
     </Modal>
@@ -265,8 +265,10 @@ export default {
       selectedUser: '',
       roles: [],
       addedUser: {
+        username: '',
         authType: 'LOCAL',
-        email: ''
+        email: '',
+        password: ''
       },
       addedRole: {
         isShow: false,
