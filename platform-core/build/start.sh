@@ -11,8 +11,7 @@ sed -i "s~{{db_user}}~$db_user~g" /app/platform-core/config/default.json
 sed -i "s~{{db_pass}}~$db_pass~g" /app/platform-core/config/default.json
 sed -i "s~{{db_database}}~$db_database~g" /app/platform-core/config/default.json
 sed -i "s~{{auth_server_url}}~$auth_server_url~g" /app/platform-core/config/default.json
-sed -i "s~{{access_token_expired_sec}}~$access_token_expired_sec~g" /app/platform-core/config/default.json
-sed -i "s~{{refresh_token_expired_sec}}~$refresh_token_expired_sec~g" /app/platform-core/config/default.json
+sed -i "s~{{jwt_signing_key}}~$jwt_signing_key~g" /app/platform-core/config/default.json
 sed -i "s~{{s3_address}}~$s3_address~g" /app/platform-core/config/default.json
 sed -i "s~{{s3_access_key}}~$s3_access_key~g" /app/platform-core/config/default.json
 sed -i "s~{{s3_secret_key}}~$s3_secret_key~g" /app/platform-core/config/default.json
