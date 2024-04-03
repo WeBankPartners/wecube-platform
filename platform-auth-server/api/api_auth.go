@@ -13,7 +13,7 @@ import (
 func Login(c *gin.Context) {
 	var credential model.CredentialDto
 	if c.ShouldBindJSON(&credential) == nil {
-		if authResp, err := service.AuthServiceInstance.Login(&credential); err == nil {
+		if authResp, err := service.AuthServiceInstance.Login(&credential, false); err == nil {
 			setupTokenHeaders(authResp.Tokens, c)
 			support.ReturnData(c, authResp.Tokens)
 		} else {
@@ -24,7 +24,21 @@ func Login(c *gin.Context) {
 	}
 }
 
-func setupTokenHeaders(jwtTokens []model.Jwt, c *gin.Context) {
+func TaskLogin(c *gin.Context) {
+	var credential model.CredentialDto
+	if c.ShouldBindJSON(&credential) == nil {
+		if authResp, err := service.AuthServiceInstance.Login(&credential, true); err == nil {
+			setupTokenHeaders(authResp.Tokens, c)
+			support.ReturnData(c, authResp)
+		} else {
+			support.ReturnError(c, err)
+		}
+	} else {
+		support.ReturnError(c, errors.New("invalid request"))
+	}
+}
+
+func setupTokenHeaders(jwtTokens []*model.Jwt, c *gin.Context) {
 	for _, jwtToken := range jwtTokens {
 		if jwtToken.TokenType == constant.TypeAccessToken {
 			c.Header(constant.AuthorizationHeader, constant.BearerTokenPrefix+jwtToken.Token)
