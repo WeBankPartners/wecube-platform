@@ -15,9 +15,7 @@ func parseVersionToNum(input string) float64 {
 		return 0
 	}
 	input = strings.ToLower(input)
-	if strings.HasPrefix(input, "v") {
-		input = input[1:]
-	}
+	input = strings.TrimPrefix(input, "v")
 	var num float64
 	for i, v := range strings.Split(input, ".") {
 		intV, _ := strconv.Atoi(v)
