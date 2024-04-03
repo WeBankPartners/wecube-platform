@@ -22,7 +22,7 @@
 
 <script>
 import axios from 'axios'
-import { setLocalstorage } from '@/pages/util/localStorage.js'
+import { setCookie, getCookie } from '@/pages//util/cookie'
 import { getCertification, deleteCertification } from '@/api/server'
 export default {
   name: '',
@@ -110,7 +110,7 @@ export default {
       }
     },
     export (row) {
-      const accessToken = localStorage.getItem('wecube-accessToken')
+      const accessToken = getCookie('accessToken')
       axios({
         method: 'GET',
         url: `platform/v1/plugin-certifications/${row.id}/export`,
@@ -181,18 +181,18 @@ export default {
       this.isShowUploadList = true
       let refreshRequest = null
       const currentTime = new Date().getTime()
-      const accessToken = localStorage.getItem('wecube-accessToken')
+      const accessToken = getCookie('accessToken')
       if (accessToken) {
-        const expiration = localStorage.getItem('wecube-accessTokenExpirationTime') * 1 - currentTime
+        const expiration = getCookie('accessTokenExpirationTime') * 1 - currentTime
         if (expiration < 1 * 60 * 1000 && !refreshRequest) {
           refreshRequest = axios.get('/auth/v1/api/token', {
             headers: {
-              Authorization: 'Bearer ' + localStorage.getItem('wecube-refreshToken')
+              Authorization: 'Bearer ' + getCookie('refreshToken')
             }
           })
           refreshRequest.then(
             res => {
-              setLocalstorage(res.data.data)
+              setCookie(res.data.data)
               this.setUploadActionHeader()
               this.$refs.uploadButton.handleClick()
             },
@@ -212,7 +212,7 @@ export default {
     },
     setUploadActionHeader () {
       this.headers = {
-        Authorization: 'Bearer ' + localStorage.getItem('wecube-accessToken')
+        Authorization: 'Bearer ' + getCookie('accessToken')
       }
     },
     onImportSuccess (response) {
