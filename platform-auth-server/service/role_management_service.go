@@ -93,7 +93,7 @@ func (RoleManagementService) UpdateLocalRole(roleDto *model.SimpleLocalRoleDto, 
 		existRoleDeletedStatus := role.Deleted
 		if inputRoleDeletedStatus != existRoleDeletedStatus {
 
-			if existRoleDeletedStatus == false {
+			if !existRoleDeletedStatus {
 				// NotDeleted -> Deleted
 				role.Deleted = true
 				role.Active = false
@@ -136,9 +136,7 @@ func (RoleManagementService) UpdateLocalRole(roleDto *model.SimpleLocalRoleDto, 
 	_, err = session.ID(role.Id).UseBool().Update(role)
 	if err != nil {
 		session.Rollback()
-		if err != nil {
-			log.Logger.Error("failed to update role", log.JsonObj("role", role), log.Error(err))
-		}
+		log.Logger.Error("failed to update role", log.JsonObj("role", role), log.Error(err))
 		return nil, fmt.Errorf("failed to UpdateLocalRole: %v(%v)", roleDto.ID, roleDto.Name)
 	}
 
@@ -150,7 +148,7 @@ func validateRoleStatus(status string) bool {
 	if len(status) == 0 {
 		return false
 	}
-	if strings.ToLower(StatusDeleted) == strings.ToLower(status) || strings.ToLower(StatusNoDeleted) == strings.ToLower(status) {
+	if strings.EqualFold(StatusDeleted, status) || strings.EqualFold(StatusNoDeleted, status) {
 		return true
 	}
 
@@ -436,7 +434,7 @@ func (RoleManagementService) ConfigureRoleWithAuthorities(grantDto *model.RoleAu
 				session.Rollback()
 				return err
 			}
-			if existed == false {
+			if !existed {
 				log.Logger.Debug(fmt.Sprintf("such authority entity does not exist,authority id %v", authorityDto.ID))
 				//msg := fmt.Sprintf("Authority with {%s} does not exist.", authorityDto.ID)
 				//throw new AuthServerException("3011", msg, authorityDto.getId());
