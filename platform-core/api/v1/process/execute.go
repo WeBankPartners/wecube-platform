@@ -566,7 +566,8 @@ func ProcStartEvents(c *gin.Context) {
 	if createErr != nil {
 		middleware.ReturnError(c, createErr)
 	} else {
-		middleware.ReturnData(c, newProcEventId)
+		result := models.ProcStartEventResultData{ProcInstId: fmt.Sprintf("%d", newProcEventId), Status: models.JobStatusReady}
+		middleware.ReturnData(c, result)
 	}
 }
 
