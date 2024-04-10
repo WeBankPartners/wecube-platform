@@ -151,6 +151,25 @@ func AnalyzeExpression(express string) (result []*models.ExpressionObj, err erro
 	return
 }
 
+func AnalyzeExprFilters(input string) (filters []*models.Filter, err error) {
+	for len(input) > 0 && input[0] == 123 {
+		if rIdx := strings.Index(input, "}"); rIdx > 0 {
+			tmpFilterList := strings.Split(input[1:rIdx], " ")
+			tmpFilterVal := tmpFilterList[2]
+			if strings.HasPrefix(tmpFilterVal, "'") {
+				tmpFilterVal = tmpFilterVal[1 : len(tmpFilterVal)-1]
+			}
+			tmpFilter := models.Filter{Name: tmpFilterList[0], Operator: tmpFilterList[1], Value: tmpFilterVal}
+			filters = append(filters, &tmpFilter)
+			input = input[rIdx+1:]
+		} else {
+			err = fmt.Errorf("expression illegal")
+			break
+		}
+	}
+	return
+}
+
 func QueryPluginData(ctx context.Context, exprList []*models.ExpressionObj, filters []*models.QueryExpressionDataFilter, token string) (result []map[string]interface{}, err error) {
 	for i, exprObj := range exprList {
 		tmpFilters := []*models.EntityQueryObj{}
