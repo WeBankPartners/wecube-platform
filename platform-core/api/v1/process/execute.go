@@ -223,13 +223,27 @@ func PublicProcDefPreview(c *gin.Context) {
 		if err != nil {
 			break
 		}
+		interfaceFilters := []*models.Filter{}
+		if node.ServiceId != "" {
+			interfaceObj, getInterfaceErr := database.GetSimpleLastPluginInterface(c, node.ServiceId)
+			if getInterfaceErr != nil {
+				err = fmt.Errorf("get node plugin interface:%s fail,%s ", node.ServiceId, getInterfaceErr.Error())
+				break
+			}
+			if interfaceObj.FilterRule != "" {
+				if interfaceFilters, err = remote.AnalyzeExprFilters(interfaceObj.FilterRule); err != nil {
+					err = fmt.Errorf("analyze expr filters:%s fail,%s ", interfaceObj.FilterRule, err.Error())
+					break
+				}
+			}
+		}
 		nodeDataList := []*models.ProcPreviewEntityNode{}
 		for _, nodeExpression := range nodeExpressionList {
 			if nodeExpression == procOutlineData.RootEntity {
 				nodeDataList = append(nodeDataList, &rootEntityNode)
 			} else {
 				tmpQueryDataParam := models.QueryExpressionDataParam{DataModelExpression: nodeExpression, Filters: []*models.QueryExpressionDataFilter{&rootFilter}}
-				tmpNodeDataList, tmpErr := execution.QueryProcPreviewNodeData(c, &tmpQueryDataParam, &rootEntityNode, true)
+				tmpNodeDataList, tmpErr := execution.QueryProcPreviewNodeData(c, &tmpQueryDataParam, &rootEntityNode, true, interfaceFilters)
 				if tmpErr != nil {
 					err = tmpErr
 					break
