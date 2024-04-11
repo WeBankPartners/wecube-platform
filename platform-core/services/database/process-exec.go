@@ -942,7 +942,7 @@ func UpdateProcInsNodeData(ctx context.Context, procInsId, status, errorMsg, ris
 	return
 }
 
-func GetLastEnablePluginInterface(ctx context.Context, serviceName string) (pluginInterface *models.PluginConfigInterfaces, err error) {
+func GetSimpleLastPluginInterface(ctx context.Context, serviceName string) (interfaceObj *models.PluginInterfaceWithVer, err error) {
 	var interfaceRows []*models.PluginInterfaceWithVer
 	err = db.MysqlEngine.Context(ctx).SQL("select t1.*,t3.`version` from plugin_config_interfaces t1 left join plugin_configs t2 on t1.plugin_config_id=t2.id left join plugin_packages t3 on t2.plugin_package_id=t3.id where t1.service_name=? and t2.status='ENABLED'", serviceName).Find(&interfaceRows)
 	if err != nil {
@@ -953,7 +953,7 @@ func GetLastEnablePluginInterface(ctx context.Context, serviceName string) (plug
 		err = fmt.Errorf("can not find enable plugin config interface with name:%s ", serviceName)
 		return
 	}
-	interfaceObj := &models.PluginInterfaceWithVer{}
+	interfaceObj = &models.PluginInterfaceWithVer{}
 	if len(interfaceRows) == 1 {
 		interfaceObj = interfaceRows[0]
 	} else {
@@ -968,6 +968,14 @@ func GetLastEnablePluginInterface(ctx context.Context, serviceName string) (plug
 				interfaceObj = row
 			}
 		}
+	}
+	return
+}
+
+func GetLastEnablePluginInterface(ctx context.Context, serviceName string) (pluginInterface *models.PluginConfigInterfaces, err error) {
+	interfaceObj := &models.PluginInterfaceWithVer{}
+	if interfaceObj, err = GetSimpleLastPluginInterface(ctx, serviceName); err != nil {
+		return
 	}
 	pluginInterface = &models.PluginConfigInterfaces{
 		Id:                 interfaceObj.Id,
