@@ -547,6 +547,10 @@ func handleOutputData(
 			if tmpResultOutputForEntity != nil {
 				if v, ok := tmpResultOutputForEntity.Data["id"]; ok {
 					tmpResultOutputForEntity.Id = v.(string)
+				} else {
+					if guidV, guidOk := tmpResultOutputForEntity.Data["guid"]; guidOk {
+						tmpResultOutputForEntity.Id = guidV.(string)
+					}
 				}
 				tmpResultForEntity.Data = append(tmpResultForEntity.Data, tmpResultOutputForEntity)
 			}
@@ -558,6 +562,8 @@ func handleOutputData(
 			ret, errCreate := remote.CreateEntityData(ctx, authToken, tmpResultForEntity.Package, tmpResultForEntity.Entity, rootData.Data)
 			if errCreate != nil {
 				log.Logger.Error(fmt.Sprintf("failed to create %s entity %s %v", tmpResultForEntity.Package, tmpResultForEntity.Entity, rootData.Data))
+				err = errCreate
+				return
 			} else {
 				// 成功需要回写ID，以便后续Branch数据更新使用
 				rootData.Id = ret["id"].(string)
@@ -569,6 +575,8 @@ func handleOutputData(
 				_, errUpdate := remote.UpdateEntityData(ctx, authToken, tmpResultForEntity.Package, tmpResultForEntity.Entity, rootData.Data)
 				if errUpdate != nil {
 					log.Logger.Error(fmt.Sprintf("failed to update %s entity %s[%s] %v", tmpResultForEntity.Package, tmpResultForEntity.Entity, rootData.Id, rootData.Data))
+					err = errUpdate
+					return
 				} else {
 					log.Logger.Debug(fmt.Sprintf("update %s entity %s[%s] %v", tmpResultForEntity.Package, tmpResultForEntity.Entity, rootData.Id, rootData.Data))
 				}
@@ -579,6 +587,8 @@ func handleOutputData(
 			errUpdate := remote.UpdatentityDataWithExpr(ctx, authToken, tmpResultForEntity.Package, tmpResultForEntity.Entity, rootData.Id, branchData.Exprs, branchData.Data)
 			if errUpdate != nil {
 				log.Logger.Error(fmt.Sprintf("failed to update %s entity %s[%s] with expression %s %v", tmpResultForEntity.Package, tmpResultForEntity.Entity, rootData.Id, branchData.OriginExpr, branchData.Data))
+				err = errUpdate
+				return
 			} else {
 				log.Logger.Debug(fmt.Sprintf("update %s entity %s[%s] with expression %s %v", tmpResultForEntity.Package, tmpResultForEntity.Entity, rootData.Id, branchData.OriginExpr, branchData.Data))
 			}

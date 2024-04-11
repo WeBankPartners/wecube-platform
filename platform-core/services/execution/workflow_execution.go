@@ -792,13 +792,27 @@ func BuildProcPreviewData(c context.Context, procDefId, entityDataId, operator s
 		if err != nil {
 			break
 		}
+		interfaceFilters := []*models.Filter{}
+		if node.ServiceId != "" {
+			interfaceObj, getInterfaceErr := database.GetSimpleLastPluginInterface(c, node.ServiceId)
+			if getInterfaceErr != nil {
+				err = fmt.Errorf("get node plugin interface:%s fail,%s ", node.ServiceId, getInterfaceErr.Error())
+				break
+			}
+			if interfaceObj.FilterRule != "" {
+				if interfaceFilters, err = remote.AnalyzeExprFilters(interfaceObj.FilterRule); err != nil {
+					err = fmt.Errorf("analyze expr filters:%s fail,%s ", interfaceObj.FilterRule, err.Error())
+					break
+				}
+			}
+		}
 		nodeDataList := []*models.ProcPreviewEntityNode{}
 		for _, nodeExpression := range nodeExpressionList {
-			if nodeExpression == procOutlineData.RootEntity {
+			if nodeExpression == procOutlineData.RootEntity && len(interfaceFilters) == 0 {
 				nodeDataList = append(nodeDataList, &rootEntityNode)
 			} else {
 				tmpQueryDataParam := models.QueryExpressionDataParam{DataModelExpression: nodeExpression, Filters: []*models.QueryExpressionDataFilter{&rootFilter}}
-				tmpNodeDataList, tmpErr := QueryProcPreviewNodeData(c, &tmpQueryDataParam, &rootEntityNode, false)
+				tmpNodeDataList, tmpErr := QueryProcPreviewNodeData(c, &tmpQueryDataParam, &rootEntityNode, false, interfaceFilters)
 				if tmpErr != nil {
 					err = tmpErr
 					break
@@ -859,11 +873,15 @@ func BuildProcPreviewData(c context.Context, procDefId, entityDataId, operator s
 	return
 }
 
-func QueryProcPreviewNodeData(ctx context.Context, param *models.QueryExpressionDataParam, rootEntityNode *models.ProcPreviewEntityNode, withEntityData bool) (dataList []*models.ProcPreviewEntityNode, err error) {
+func QueryProcPreviewNodeData(ctx context.Context, param *models.QueryExpressionDataParam, rootEntityNode *models.ProcPreviewEntityNode, withEntityData bool, lastEntityFilters []*models.Filter) (dataList []*models.ProcPreviewEntityNode, err error) {
 	exprList, analyzeErr := remote.AnalyzeExpression(param.DataModelExpression)
 	if analyzeErr != nil {
 		err = analyzeErr
 		return
+	}
+	exprLen := len(exprList)
+	if exprLen > 0 && len(lastEntityFilters) > 0 {
+		exprList[exprLen-1].Filters = append(exprList[exprLen-1].Filters, lastEntityFilters...)
 	}
 	dataList, err = remote.QueryPluginFullData(ctx, exprList, param.Filters[0], rootEntityNode, remote.GetToken(), withEntityData)
 	return
