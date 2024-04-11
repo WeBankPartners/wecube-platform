@@ -24,7 +24,7 @@
 </template>
 <script>
 import { login } from '../api/server'
-import { setCookie } from './util/cookie'
+import { setCookie, clearCookie } from './util/cookie'
 export default {
   data () {
     return {
@@ -33,6 +33,7 @@ export default {
       loading: false
     }
   },
+
   methods: {
     async login () {
       if (!this.username || !this.password) return
@@ -50,14 +51,15 @@ export default {
       }
       this.loading = false
     },
-    clearSession () {
+    clearData () {
       let localStorage = window.localStorage
       localStorage.removeItem('username')
+      clearCookie()
       window.needReLoad = true
     }
   },
-  created () {
-    this.clearSession()
+  mounted () {
+    this.clearData()
   }
 }
 </script>
