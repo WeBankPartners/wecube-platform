@@ -39,6 +39,7 @@ func QuerySystemVariablesByCondition(ctx context.Context, condition models.Syste
 	}
 	if condition.Scope != "" {
 		sql = sql + " and scope = ?"
+		param = append(param, condition.Scope)
 	}
 	err = db.MysqlEngine.Context(ctx).SQL(sql, param...).Find(&list)
 	if err != nil {
