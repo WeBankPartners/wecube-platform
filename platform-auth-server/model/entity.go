@@ -180,12 +180,14 @@ type UserRoleRsEntity struct {
 	CreatedTime time.Time `xorm:"'CREATED_TIME'"`
 	UpdatedTime time.Time `xorm:"'UPDATED_TIME'"`
 
-	Active   bool   `xorm:"'IS_ACTIVE'"`
-	Deleted  bool   `xorm:"'IS_DELETED'"`
-	UserId   string `xorm:"'USER_ID'"`
-	Username string `xorm:"'USERNAME'"`
-	RoleId   string `xorm:"'ROLE_ID'"`
-	RoleName string `xorm:"'ROLE_NAME'"`
+	Active      bool      `xorm:"'IS_ACTIVE'"`
+	Deleted     bool      `xorm:"'IS_DELETED'"`
+	UserId      string    `xorm:"'USER_ID'"`
+	Username    string    `xorm:"'USERNAME'"`
+	RoleId      string    `xorm:"'ROLE_ID'"`
+	RoleName    string    `xorm:"'ROLE_NAME'"`
+	ExpireTime  time.Time `xorm:"expire_time"`  // 角色过期时间,""表示永久生效
+	NotifyCount int       `xorm:"notify_count"` // 快要过期通知
 }
 
 func (UserRoleRsEntity) TableName() string {
@@ -199,9 +201,10 @@ type RoleApplyEntity struct {
 	CreatedTime time.Time `json:"createdTime" xorm:"created_time"`
 	UpdatedTime time.Time `json:"updatedTime" xorm:"updated_time"`
 
-	EmailAddr string `json:"emailAddr" xorm:"email_addr"`
-	RoleId    string `json:"roleId" xorm:"role_id"`
-	Status    string `json:"status" xorm:"status"`
+	EmailAddr  string    `json:"emailAddr" xorm:"email_addr"`
+	RoleId     string    `json:"roleId" xorm:"role_id"`
+	Status     string    `json:"status" xorm:"status"`
+	ExpireTime time.Time `json:"expireTime" xorm:"expire_time"` //角色过期时间,""表示永久生效
 }
 
 func (RoleApplyEntity) TableName() string {
