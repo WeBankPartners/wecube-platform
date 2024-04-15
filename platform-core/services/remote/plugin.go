@@ -175,7 +175,7 @@ func QueryPluginData(ctx context.Context, exprList []*models.ExpressionObj, filt
 		tmpFilters := []*models.EntityQueryObj{}
 		if exprObj.Filters != nil {
 			for _, exprFilter := range exprObj.Filters {
-				tmpFilters = append(tmpFilters, &models.EntityQueryObj{AttrName: exprFilter.Name, Op: exprFilter.Operator, Condition: exprFilter.Value})
+				tmpFilters = append(tmpFilters, &models.EntityQueryObj{AttrName: exprFilter.Name, Op: exprFilter.Operator, Condition: exprFilter.GetValue()})
 			}
 		}
 		for _, filterObj := range filters {
@@ -226,7 +226,7 @@ func QueryPluginFullData(ctx context.Context, exprList []*models.ExpressionObj, 
 		tmpFilters := []*models.EntityQueryObj{}
 		if exprObj.Filters != nil {
 			for _, exprFilter := range exprObj.Filters {
-				tmpFilters = append(tmpFilters, &models.EntityQueryObj{AttrName: exprFilter.Name, Op: exprFilter.Operator, Condition: exprFilter.Value})
+				tmpFilters = append(tmpFilters, &models.EntityQueryObj{AttrName: exprFilter.Name, Op: exprFilter.Operator, Condition: exprFilter.GetValue()})
 			}
 		}
 		if rootFilter.Index == i {

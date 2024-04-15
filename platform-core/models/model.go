@@ -1,5 +1,7 @@
 package models
 
+import "strings"
+
 type DataModel struct {
 	PluginPackageDataModel
 	Entities []*DataModelEntity `json:"entities"`
@@ -106,6 +108,19 @@ type Filter struct {
 	Name     string `json:"name"`
 	Operator string `json:"operator"`
 	Value    string `json:"value"`
+}
+
+func (f *Filter) GetValue() interface{} {
+	if f.Operator == "in" {
+		valueList := []string{}
+		for _, v := range strings.Split(f.Value, ",") {
+			if v != "" {
+				valueList = append(valueList, v)
+			}
+		}
+		return valueList
+	}
+	return f.Value
 }
 
 type ExpressionEntitiesRespObj struct {
