@@ -989,6 +989,8 @@ func GetLastEnablePluginInterface(ctx context.Context, serviceName string) (plug
 		Type:               interfaceObj.Type,
 		FilterRule:         interfaceObj.FilterRule,
 		Description:        interfaceObj.Description,
+		InputParameters:    []*models.PluginConfigInterfaceParameters{},
+		OutputParameters:   []*models.PluginConfigInterfaceParameters{},
 	}
 	var interfaceParamRows []*models.PluginConfigInterfaceParameters
 	err = db.MysqlEngine.Context(ctx).SQL("select * from plugin_config_interface_parameters where plugin_config_interface_id=?", interfaceObj.Id).Find(&interfaceParamRows)
