@@ -915,6 +915,9 @@ func (UserManagementService) RegisterUmUser(param *model.RoleApplyParam, curUser
 			RoleId:      roleId,
 			Status:      model.RoleApplyStatusInit,
 		}
+		if param.ExpireTime != "" {
+			insertRoleApplys[i].ExpireTime, _ = time.Parse(model.DateTimeFormat, param.ExpireTime)
+		}
 	}
 
 	// 执行db操作
@@ -1007,6 +1010,9 @@ func (UserManagementService) CreateRoleApply(param *model.RoleApplyParam, curUse
 			EmailAddr:   param.EmailAddr,
 			RoleId:      roleId,
 			Status:      model.RoleApplyStatusInit,
+		}
+		if param.ExpireTime != "" {
+			insertRoleApplys[i].ExpireTime, _ = time.Parse(model.DateTimeFormat, param.ExpireTime)
 		}
 	}
 
@@ -1242,11 +1248,12 @@ func (UserManagementService) UpdateRoleApply(param []*model.RoleApplyDto, curUse
 							UpdatedBy:   curUser,
 							CreatedTime: now,
 							UpdatedTime: now,
+							Active:      true,
 							UserId:      userId,
 							Username:    roleApply.CreatedBy,
 							RoleId:      roleApply.RoleId,
 							RoleName:    role.Name,
-							Active:      true,
+							ExpireTime:  roleApply.ExpireTime,
 						}
 						insertUserRoles = append(insertUserRoles, userRole)
 					}
