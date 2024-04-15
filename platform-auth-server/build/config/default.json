@@ -31,5 +31,13 @@
   },
   "remote": {
     "platform_url": "http://[#WECUBE_CORE_ADDRESS]"
-  }
+  },
+  "mail": {
+    "sender_name": "[#SENDER_NAME]",
+    "sender_mail": "[#SENDER_MAIL]",
+    "auth_server": "[#AUTH_SERVER]",
+    "auth_password": "[#AUTH_PASSWORD]",
+    "ssl": "[#SSL]"
+  },
+  "notify_percent": [#NOTIFY_PERCENT]
 }
