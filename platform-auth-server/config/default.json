@@ -38,5 +38,13 @@
     "systemId": "[#um_permission_system_id]",
     "address": "[#um_permission_address]",
     "cron_express": "[#um_permission_cron_express]"
-  }
+  },
+  "mail": {
+    "sender_name": "",
+    "sender_mail": "",
+    "auth_server": "",
+    "auth_password": "",
+    "ssl": ""
+  },
+  "notify_percent": [#NOTIFY_PERCENT]
 }
