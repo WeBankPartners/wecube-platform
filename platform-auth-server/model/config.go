@@ -4,7 +4,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/WeBankPartners/go-common-lib/cipher"
+	"github.com/WeBankPartners/go-common-lib/smtp"
 	"io/ioutil"
+	"log"
 	"os"
 )
 
@@ -69,6 +71,16 @@ type GlobalConfig struct {
 	RemoteConfig           *RemoteConfig      `json:"remote"`
 	ErrorTemplateDir       string             `json:"error_template_dir"`
 	ErrorDetailReturn      bool               `json:"error_detail_return"`
+	Mail                   MailConfig         `json:"mail"`
+	NotifyPercent          float64            `json:"notify_percent"`
+}
+
+type MailConfig struct {
+	SenderName   string `json:"sender_name"`
+	SenderMail   string `json:"sender_mail"`
+	AuthServer   string `json:"auth_server"`
+	AuthPassword string `json:"auth_password"`
+	Ssl          string `json:"ssl"`
 }
 
 type AuthConfig struct {
@@ -85,7 +97,8 @@ type JwtTokenConfig struct {
 }
 
 var (
-	Config *GlobalConfig
+	Config     *GlobalConfig
+	MailSender smtp.MailSender
 )
 
 func InitConfig(configFile string) (errMessage string) {
@@ -120,6 +133,21 @@ func InitConfig(configFile string) (errMessage string) {
 		} else {
 			fmt.Printf("raed private key:%s fail:%s ", c.PasswordPrivateKeyPath, readPriErr.Error())
 		}
+	}
+	if c.Mail.AuthServer != "" && c.Mail.SenderMail != "" {
+		MailSender = smtp.MailSender{SenderName: c.Mail.SenderName, SenderMail: c.Mail.SenderMail, AuthServer: c.Mail.AuthServer, AuthPassword: c.Mail.AuthPassword, SSL: false}
+		if c.Mail.Ssl == "Y" {
+			MailSender.SSL = true
+		}
+		mailInitErr := MailSender.Init()
+		if mailInitErr != nil {
+			errMessage = mailInitErr.Error()
+			log.Printf("Init mail sender fail,%s \n", mailInitErr.Error())
+			return
+		}
+		log.Println("Mail sender init success ")
+	} else {
+		log.Println("Mail sender disable")
 	}
 
 	Config = &c
