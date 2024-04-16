@@ -319,6 +319,9 @@ func (RoleApplyRepository) Query(ctx context.Context, param *model.QueryRequestP
 		if entity.UpdatedTime.Unix() >= 0 {
 			result.Contents[i].UpdatedTime = entity.UpdatedTime.Format(constant.DateTimeFormat)
 		}
+		if entity.ExpireTime.Unix() >= 0 {
+			result.Contents[i].ExpireTime = entity.ExpireTime.Format(constant.DateTimeFormat)
+		}
 	}
 	return result, err
 }
