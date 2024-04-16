@@ -124,4 +124,5 @@ type RoleApplyDto struct {
 	EmailAddr   string              `json:"emailAddr"`
 	Role        *SimpleLocalRoleDto `json:"role"`
 	Status      string              `json:"status"`
+	ExpireTime  string              `json:"expireTime"` //角色过期时间,""表示永久生效
 }
