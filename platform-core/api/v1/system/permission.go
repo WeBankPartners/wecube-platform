@@ -75,6 +75,16 @@ func CreateRole(c *gin.Context) {
 		middleware.ReturnError(c, err)
 		return
 	}
+	if response.Data != nil && response.Data.ID != "" {
+		err = remote.ConfigureRoleForUsers(response.Data.ID, c.GetHeader("Authorization"), c.GetHeader("Accept-Language"), []string{param.Administrator})
+		if err != nil {
+			middleware.ReturnError(c, err)
+			return
+		}
+	} else {
+		middleware.ReturnError(c, fmt.Errorf("register user fail"))
+		return
+	}
 	middleware.Return(c, response)
 }
 
