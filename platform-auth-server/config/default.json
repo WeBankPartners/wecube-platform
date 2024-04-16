@@ -45,6 +45,5 @@
     "auth_server": "",
     "auth_password": "",
     "ssl": ""
-  },
-  "notify_percent": [#NOTIFY_PERCENT]
+  }
 }
