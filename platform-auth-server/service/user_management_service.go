@@ -916,7 +916,7 @@ func (UserManagementService) RegisterUmUser(param *model.RoleApplyParam, curUser
 			Status:      model.RoleApplyStatusInit,
 		}
 		if param.ExpireTime != "" {
-			insertRoleApplys[i].ExpireTime, _ = time.Parse(model.DateTimeFormat, param.ExpireTime)
+			insertRoleApplys[i].ExpireTime, _ = time.Parse(constant.DateTimeFormat, param.ExpireTime)
 		}
 	}
 
@@ -1012,7 +1012,7 @@ func (UserManagementService) CreateRoleApply(param *model.RoleApplyParam, curUse
 			Status:      model.RoleApplyStatusInit,
 		}
 		if param.ExpireTime != "" {
-			insertRoleApplys[i].ExpireTime, _ = time.Parse(model.DateTimeFormat, param.ExpireTime)
+			insertRoleApplys[i].ExpireTime, _ = time.Parse(constant.DateTimeFormat, param.ExpireTime)
 		}
 	}
 
