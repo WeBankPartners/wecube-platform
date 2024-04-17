@@ -679,6 +679,7 @@ func LaunchPlugin(c *gin.Context) {
 	envMap["ALLOCATE_PORT"] = portValue
 	envMap["ALLOCATE_HOST"] = hostIp
 	envMap["BASE_MOUNT_PATH"] = models.Config.Plugin.BaseMountPath
+	envMap["MONITOR_PORT"] = fmt.Sprintf("%d", port+10000)
 	if mysqlInstance != nil {
 		envMap["DB_SCHEMA"] = mysqlInstance.SchemaName
 		envMap["DB_USER"] = mysqlInstance.Username
@@ -841,7 +842,7 @@ func RemovePlugin(c *gin.Context) {
 		return
 	}
 	// 更新插件注册的菜单状态和更新插件实例数据
-	err = database.RemovePlugin(c, pluginPackageObj.Id, pluginInstanceId)
+	err = database.RemovePlugin(c, pluginPackageObj.Id, pluginInstanceId, pluginInstanceObj.DockerInstanceResourceId)
 	if err != nil {
 		middleware.ReturnError(c, err)
 	} else {

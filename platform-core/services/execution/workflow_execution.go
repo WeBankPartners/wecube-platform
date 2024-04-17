@@ -95,9 +95,11 @@ func WorkflowExecutionCallPluginService(ctx context.Context, param *models.ProcC
 	pluginCallResult, errCode, errCall := remote.PluginInterfaceApi(ctx, subsysToken, param.PluginInterface, pluginCallParam)
 	if errCall != nil {
 		if errCode != "" && errCode != "0" {
-			_, errHandle = handleOutputData(ctx, subsysToken, pluginCallResult.Outputs, param.PluginInterface.OutputParameters, &procInsNodeReq)
-			if errHandle != nil {
-				log.Logger.Error("handle error output data fail", log.Error(errHandle))
+			if pluginCallResult != nil && len(pluginCallResult.Outputs) > 0 {
+				_, errHandle = handleOutputData(ctx, subsysToken, pluginCallResult.Outputs, param.PluginInterface.OutputParameters, &procInsNodeReq)
+				if errHandle != nil {
+					log.Logger.Error("handle error output data fail", log.Error(errHandle))
+				}
 			}
 		}
 		err = errCall
