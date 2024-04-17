@@ -33,3 +33,13 @@ const (
 
 	DateTimeFormat = "2006-01-02 15:04:05"
 )
+
+// UserRolePermissionStatus 用户角色权限状态
+type UserRolePermissionStatus string
+
+const (
+	UserRolePermissionStatusExpire    UserRolePermissionStatus = "expire"    // 已过期
+	UserRolePermissionStatusForever   UserRolePermissionStatus = "forever"   // 永久
+	UserRolePermissionStatusPreExpire UserRolePermissionStatus = "preExpire" // 将要过期
+	UserRolePermissionStatusInEffect  UserRolePermissionStatus = "inEffect"  // 生效中
+)

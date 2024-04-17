@@ -1,6 +1,9 @@
 package model
 
-import "time"
+import (
+	"github.com/WeBankPartners/wecube-platform/platform-auth-server/common/constant"
+	"time"
+)
 
 const (
 	StatusDeleted    = "Deleted"
@@ -209,4 +212,17 @@ type RoleApplyEntity struct {
 
 func (RoleApplyEntity) TableName() string {
 	return "auth_sys_role_apply"
+}
+
+func CalcUserRolePermissionStatus(userRole *UserRoleRsEntity) string {
+	if userRole.ExpireTime.Unix() > 0 {
+		max := userRole.ExpireTime.Sub(userRole.CreatedTime).Seconds()
+		use := time.Now().Sub(userRole.CreatedTime).Seconds()
+		if (use/max)*100 >= 100 {
+			return string(constant.UserRolePermissionStatusExpire)
+		} else if (use/max)*100 >= Config.NotifyPercent {
+			return string(constant.UserRolePermissionStatusPreExpire)
+		}
+	}
+	return string(constant.UserRolePermissionStatusForever)
 }
