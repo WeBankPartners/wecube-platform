@@ -84,6 +84,8 @@ type SimpleLocalUserDto struct {
 	AuthContext       string                `json:"authContext"`
 	Roles             []*SimpleLocalRoleDto `json:"roles"`
 	RoleAdministrator string                `json:"roleAdministrator"`
+	ExpireTime        string                `json:"expireTime"` // 权限过期时间
+	Status            string                `json:"status"`     // 权限状态,expire,preExpire,forever 永久
 }
 
 func (s *SimpleLocalUserDto) AddRoles(roles []*SimpleLocalRoleDto) {
@@ -123,6 +125,6 @@ type RoleApplyDto struct {
 	UpdatedTime string              `json:"updatedTime"`
 	EmailAddr   string              `json:"emailAddr"`
 	Role        *SimpleLocalRoleDto `json:"role"`
-	Status      string              `json:"status"`
+	Status      string              `json:"status"`     // init,approve,deny,expire,preExpried
 	ExpireTime  string              `json:"expireTime"` //角色过期时间,""表示永久生效
 }
