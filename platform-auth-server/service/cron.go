@@ -2,6 +2,7 @@ package service
 
 import (
 	"fmt"
+	"github.com/WeBankPartners/wecube-platform/platform-auth-server/common/constant"
 	"github.com/WeBankPartners/wecube-platform/platform-auth-server/common/log"
 	"github.com/WeBankPartners/wecube-platform/platform-auth-server/model"
 	"github.com/WeBankPartners/wecube-platform/platform-auth-server/service/db"
@@ -58,8 +59,9 @@ func notifyAction() {
 		entityPercent := calcExpireObj(entity)
 		if entityPercent >= model.Config.NotifyPercent && entity.NotifyCount == 0 {
 			// 发送邮件
-			go NotifyRoleExpireMail(allRoleDisplayNameMap[entity.RoleName], allUserEmailMap[entity.Username])
+			go NotifyRolePreExpireMail(allRoleDisplayNameMap[entity.RoleName], allUserEmailMap[entity.Username], entity.ExpireTime.Format(constant.DateTimeFormat))
 		} else if entityPercent >= 100 {
+			go NotifyRoleExpireMail(allRoleDisplayNameMap[entity.RoleName], allUserEmailMap[entity.Username], entity.ExpireTime.Format(constant.DateTimeFormat))
 			// 删除授权角色
 			if _, err = db.Engine.Exec("update auth_sys_user_role set is_deleted = 1 where id = ?", entity.Id); err != nil {
 				log.Logger.Error("update auth_sys_user_role error", log.Error(err))
@@ -75,12 +77,26 @@ func calcExpireObj(entity *model.UserRoleRsEntity) float64 {
 	return (use / max) * 100
 }
 
-func NotifyRoleExpireMail(role, email string) (err error) {
+func NotifyRoleExpireMail(role, email, expireTime string) (err error) {
 	var subject, content string
 	if model.Config.Mail.AuthServer != "" && model.Config.Mail.SenderMail != "" {
-		subject = "[wecube] [Request return reminder]  【请求被退回提醒】"
-		content = fmt.Sprintf("The [request: %s] you initiated was returned to. Please make the necessary modifications and resubmit. Click the link to view details", role)
-		content = content + fmt.Sprintf("\n\n\n您发起的[请求:%s],在%s节点被%s退回到草稿,请修改之后重新提交,点击链接查看详情", role)
+		subject = "[wecube] [Permission expiration reminder]  【权限过期提醒】"
+		content = fmt.Sprintf("Your role [%s] permission will expire on %s. Please go to the page - Account in the upper right corner - Role application - Effective - Expired role, click the button", role, expireTime)
+		content = content + fmt.Sprintf("\n\n\n您的角色[%s]权限将在%s过期,请进入页面-右上角账户-角色申请-已过期-将过期角色,点击按钮申请续期,否则将影响您的正常使用", role, expireTime)
+		err = model.MailSender.Send(subject, content, []string{email})
+		if err != nil {
+			log.Logger.Error("send mail err", log.Error(err))
+		}
+	}
+	return
+}
+
+func NotifyRolePreExpireMail(role, email, expireTime string) (err error) {
+	var subject, content string
+	if model.Config.Mail.AuthServer != "" && model.Config.Mail.SenderMail != "" {
+		subject = "[wecube] [Permission expiration reminder]  【权限过期提醒】"
+		content = fmt.Sprintf("Your role [%s] permission will expire on %s. Please go to the page - Account in the upper right corner - Role application - Expired - Expired role, click the button to apply for renewal, otherwise it will affect your normal use", role, expireTime)
+		content = content + fmt.Sprintf("\n\n\n您的角色[%s]权限将在%s过期,请进入页面-右上角账户-角色申请-已过期-将过期角色,点击按钮申请续期,否则将影响您的正常使用", role, expireTime)
 		err = model.MailSender.Send(subject, content, []string{email})
 		if err != nil {
 			log.Logger.Error("send mail err", log.Error(err))
