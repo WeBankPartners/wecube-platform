@@ -226,3 +226,24 @@ func CalcUserRolePermissionStatus(userRole *UserRoleRsEntity) string {
 	}
 	return string(constant.UserRolePermissionStatusForever)
 }
+
+func CalcUserRolePermissionStatusByApplyInfo(roleApply *RoleApplyDto) string {
+	if roleApply.ExpireTime != "" {
+		expireTime, err := time.Parse(constant.DateTimeFormat, roleApply.ExpireTime)
+		if err != nil {
+			return RoleApplyStatusApprove
+		}
+		updateTime, _ := time.Parse(constant.DateTimeFormat, roleApply.UpdatedTime)
+		if err != nil {
+			return RoleApplyStatusApprove
+		}
+		max := expireTime.Sub(updateTime).Seconds()
+		use := time.Now().Sub(updateTime).Seconds()
+		if (use/max)*100 >= 100 {
+			return string(constant.UserRolePermissionStatusExpire)
+		} else if (use/max)*100 >= Config.NotifyPercent {
+			return string(constant.UserRolePermissionStatusPreExpire)
+		}
+	}
+	return string(constant.UserRolePermissionStatusForever)
+}
