@@ -581,7 +581,7 @@ func GetPluginDockerRuntimeMessage(pluginPackageId string) (imageName, container
 	return
 }
 
-func RemovePlugin(ctx context.Context, pluginPackageId, pluginInstanceId string) (err error) {
+func RemovePlugin(ctx context.Context, pluginPackageId, pluginInstanceId, resourceItemId string) (err error) {
 	queryResult, queryErr := db.MysqlEngine.QueryString("select id from plugin_instances where package_id=?", pluginPackageId)
 	if queryErr != nil {
 		err = exterror.Catch(exterror.New().DatabaseQueryError, queryErr)
@@ -589,6 +589,7 @@ func RemovePlugin(ctx context.Context, pluginPackageId, pluginInstanceId string)
 	}
 	var actions []*db.ExecAction
 	actions = append(actions, &db.ExecAction{Sql: "delete from plugin_instances where id=?", Param: []interface{}{pluginInstanceId}})
+	actions = append(actions, &db.ExecAction{Sql: "delete from resource_item where id=?", Param: []interface{}{resourceItemId}})
 	if len(queryResult) == 1 {
 		actions = append(actions, &db.ExecAction{Sql: "update plugin_package_menus set active=0 where plugin_package_id=?", Param: []interface{}{pluginPackageId}})
 	}
