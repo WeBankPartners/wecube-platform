@@ -572,6 +572,10 @@ func (UserManagementService) GetLocalUsersByRoleId(roleId string) ([]*model.Simp
 		}
 
 		userDto := convertToSimpleLocalUserDto(user, "")
+		userDto.Status = model.CalcUserRolePermissionStatus(userRole)
+		if userRole.ExpireTime.Unix() > 0 {
+			userDto.ExpireTime = userRole.ExpireTime.Format(constant.DateTimeFormat)
+		}
 		result = append(result, userDto)
 	}
 
