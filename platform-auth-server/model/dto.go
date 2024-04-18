@@ -118,13 +118,14 @@ type SubSystemTokenDto struct {
 }
 
 type RoleApplyDto struct {
-	ID          string              `json:"id"`
-	CreatedBy   string              `json:"createdBy"`
-	UpdatedBy   string              `json:"updatedBy"`
-	CreatedTime string              `json:"createdTime"`
-	UpdatedTime string              `json:"updatedTime"`
-	EmailAddr   string              `json:"emailAddr"`
-	Role        *SimpleLocalRoleDto `json:"role"`
-	Status      string              `json:"status"`     // init,approve,deny,expire,preExpried
-	ExpireTime  string              `json:"expireTime"` //角色过期时间,""表示永久生效
+	ID           string              `json:"id"`
+	CreatedBy    string              `json:"createdBy"`
+	UpdatedBy    string              `json:"updatedBy"`
+	CreatedTime  string              `json:"createdTime"`
+	UpdatedTime  string              `json:"updatedTime"`
+	EmailAddr    string              `json:"emailAddr"`
+	Role         *SimpleLocalRoleDto `json:"role"`
+	Status       string              `json:"status"`       // init,approve,deny,expire,preExpried
+	HandleStatus string              `json:"handleStatus"` //处理状态
+	ExpireTime   string              `json:"expireTime"`   //角色过期时间,""表示永久生效
 }
