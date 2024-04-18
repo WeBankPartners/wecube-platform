@@ -981,9 +981,16 @@ func (UserManagementService) CreateRoleApply(param *model.RoleApplyParam, curUse
 		log.Logger.Warn("failed to FindAllByUserId for userRoleRs", log.String("userId", user.Id), log.Error(err))
 		return err
 	}
+	// 已有角色已过期,需要删除已有角色
 	existUserRoleMap := make(map[string]*model.UserRoleRsEntity)
 	for _, userRole := range userRoles {
-		existUserRoleMap[userRole.RoleId] = userRole
+		if userRole.ExpireTime.Unix() > 0 && userRole.ExpireTime.Before(time.Now()) {
+			if _, err = db.Engine.Exec("update auth_sys_user_role set is_deleted = 1,updated_time = ? where id = ?", time.Now().Format(constant.DateTimeFormat), userRole.Id); err != nil {
+				log.Logger.Error("update auth_sys_user_role error", log.Error(err))
+			}
+		} else {
+			existUserRoleMap[userRole.RoleId] = userRole
+		}
 	}
 
 	// 已申请的更新下时间
@@ -997,10 +1004,14 @@ func (UserManagementService) CreateRoleApply(param *model.RoleApplyParam, curUse
 		if roleApply, ok := existRoleApplyMap[roleId]; !ok {
 			insertRoleIds = append(insertRoleIds, roleId)
 		} else {
-			updateRoleApplys = append(updateRoleApplys, &model.RoleApplyEntity{
+			roleApplyEntity := &model.RoleApplyEntity{
 				Id:          roleApply.Id,
 				CreatedTime: now,
-			})
+			}
+			if param.ExpireTime != "" {
+				roleApplyEntity.ExpireTime, _ = time.Parse(constant.DateTimeFormat, param.ExpireTime)
+			}
+			updateRoleApplys = append(updateRoleApplys, roleApplyEntity)
 		}
 	}
 
