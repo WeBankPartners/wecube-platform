@@ -11,7 +11,7 @@ RUN chmod +x /etc/nginx/start_platform_portal.sh
 RUN cat /etc/nginx/conf.d/nginx.tpl > /etc/nginx/nginx.conf
 RUN chmod 755 /usr/sbin/nginx
 RUN addgroup --system --gid 6000 apps && adduser --uid 6001 --gid 6000 app
-RUN chown -R app:apps /root/app && chown -R app:apps /root/wecube-docs && \
+RUN chown -R app:apps /root/app && \
         chown -R app:apps /var/cache/nginx && \
         chown -R app:apps /var/log/nginx && \
         chown -R app:apps /etc/nginx
