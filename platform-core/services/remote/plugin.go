@@ -270,6 +270,12 @@ func QueryPluginFullData(ctx context.Context, exprList []*models.ExpressionObj, 
 			err = lastErr
 			break
 		}
+		if i == exprLastIndex && rootFilter.Index == i && len(lastQueryResult) > 0 {
+			// 表达式与根表达式一样
+			log.Logger.Debug("QueryPluginFullData expr same with root", log.Int("index", i), log.Int("rootIndex", rootFilter.Index), log.JsonObj("lastQueryResult", lastQueryResult))
+			resultNodeList = append(resultNodeList, rootEntityNode)
+			continue
+		}
 		log.Logger.Debug("QueryPluginFullData expr", log.Int("index", i), log.Int("rootIndex", rootFilter.Index), log.JsonObj("tmpLeftDataMap", tmpLeftDataMap))
 		if i > rootFilter.Index && len(lastQueryResult) > 0 {
 			for _, rowData := range lastQueryResult {
