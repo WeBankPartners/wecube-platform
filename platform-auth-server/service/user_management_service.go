@@ -1140,6 +1140,9 @@ func (UserManagementService) ListRoleApplyByApplier(ctx context.Context, param *
 				content.Role = convertToSimpleLocalRoleDto(role)
 			}
 		}
+		if content.Status == model.RoleApplyStatusApprove {
+			content.Status = model.CalcUserRolePermissionStatusByApplyInfo(content)
+		}
 	}
 	return result, err
 }
