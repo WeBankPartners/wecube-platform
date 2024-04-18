@@ -638,6 +638,8 @@
   "automaticNodeFunc": "功能:任务节点2,将自动执行插件服务API",
   "automaticNodetip1": "1.操作目标对象: 设置[数据绑定-对象定位规则]",
   "automaticNodetip2": "2.操作使用API:选择[操作[协同-插件注册-某插件-服务注册-插件服务API],设置对应的入参,才能执行程序.",
+  "dataNodeFunc": "功能:任务节点3,执行WECMDB的数据写入",
+  "dataNodetip1": "1.配置数据写入的目标对象和操作类型,WECMDB将自动写入数据,支持设置多个目标对象",
   "fixedTimeFunc": "功能:时间节点1,控制流程进行下一步的具体时间",
   "fixedTimeNodetip1": "1.支持设置未来的一个时刻,格式为年月日时分秒",
   "timeIntervalFunc": "功能:时间节点2,控制流程进行下一步的间隔",
