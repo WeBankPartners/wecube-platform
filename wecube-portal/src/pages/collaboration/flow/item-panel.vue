@@ -201,7 +201,7 @@
           <p>{{ $t('automaticNodetip2') }}</p>
         </div>
       </Tooltip>
-      <Tooltip :maxWidth="400" placement="right" :delay="1000">
+      <Tooltip :maxWidth="430" placement="right" :delay="1000">
         <div
           class="item-tool"
           :draggable="editFlow"
