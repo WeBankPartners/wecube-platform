@@ -121,7 +121,7 @@ func parseDate(dateString string) (*time.Time, error) {
 	layout := "20060102" //yyyyMMdd
 
 	// Parse the input date string into a time object
-	parsedTime, err := time.Parse(layout, dateString)
+	parsedTime, err := time.ParseInLocation(layout, dateString, time.Local)
 	if err != nil {
 		return nil, err
 	}
