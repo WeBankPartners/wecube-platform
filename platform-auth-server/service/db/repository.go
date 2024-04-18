@@ -311,7 +311,8 @@ func (RoleApplyRepository) Query(ctx context.Context, param *model.QueryRequestP
 			Role: &model.SimpleLocalRoleDto{
 				ID: entity.RoleId,
 			},
-			Status: entity.Status,
+			Status:       entity.Status,
+			HandleStatus: entity.Status,
 		}
 		if entity.CreatedTime.Unix() >= 0 {
 			result.Contents[i].CreatedTime = entity.CreatedTime.Format(constant.DateTimeFormat)
