@@ -239,7 +239,7 @@ func doPullPackageBackground(c *gin.Context, pullId, fileName string) {
 
 func doUploadPackage(c context.Context, archiveFilePath string) (pluginPkgId string, err error) {
 	tmpFileDir := fmt.Sprintf("/tmp/%d", time.Now().UnixNano())
-	if err = os.MkdirAll(tmpFileDir, 0777); err != nil {
+	if err = os.MkdirAll(tmpFileDir, 0700); err != nil {
 		err = fmt.Errorf("make tmp dir fail,%s ", err.Error())
 		return
 	}
