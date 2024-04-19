@@ -2,6 +2,7 @@ package api
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/WeBankPartners/wecube-platform/platform-auth-server/api/middleware"
 	"github.com/WeBankPartners/wecube-platform/platform-auth-server/api/support"
@@ -215,6 +216,20 @@ func CreateRoleApply(c *gin.Context) {
 
 	curUser := middleware.GetRequestUser(c)
 	err := service.UserManagementServiceInstance.CreateRoleApply(&param, curUser)
+	if err != nil {
+		support.ReturnError(c, err)
+	} else {
+		support.ReturnSuccess(c)
+	}
+}
+
+func DeleteRoleApply(c *gin.Context) {
+	applyId := c.Query("applyId")
+	if strings.TrimSpace(applyId) == "" {
+		support.ReturnError(c, fmt.Errorf("applyId is empty"))
+		return
+	}
+	err := service.UserManagementServiceInstance.DeleteRoleApply(applyId)
 	if err != nil {
 		support.ReturnError(c, err)
 	} else {
