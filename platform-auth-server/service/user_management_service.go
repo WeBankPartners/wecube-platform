@@ -1037,12 +1037,18 @@ func (UserManagementService) CreateRoleApply(param *model.RoleApplyParam, curUse
 	}
 	_, err = db.Engine.Transaction(func(session *xorm.Session) (interface{}, error) {
 		for _, roleApply := range updateRoleApplys {
-			if _, err := session.MustCols("expire_time").Update(roleApply, &model.RoleApplyEntity{Id: roleApply.Id}); err != nil {
+			if param.ExpireTime != "" {
+				_, err = session.Update(roleApply, &model.RoleApplyEntity{Id: roleApply.Id})
+			} else {
+				// 过期时间传递为空,需要更新 db expire_time设置为空
+				_, err = session.Exec("update auth_sys_role_apply set created_time = ?,expire_time = null where id=?", roleApply.CreatedTime, roleApply.Id)
+			}
+			if err != nil {
 				return nil, err
 			}
 		}
 		if len(insertRoleApplys) > 0 {
-			if _, err = db.Engine.Insert(insertRoleApplys); err != nil {
+			if _, err = session.Insert(insertRoleApplys); err != nil {
 				return nil, err
 			}
 		}
