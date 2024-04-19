@@ -42,4 +42,5 @@ const (
 	UserRolePermissionStatusForever   UserRolePermissionStatus = "forever"   // 永久
 	UserRolePermissionStatusPreExpire UserRolePermissionStatus = "preExpire" // 将要过期
 	UserRolePermissionStatusInEffect  UserRolePermissionStatus = "inEffect"  // 生效中
+	UserRolePermissionStatusDeleted   UserRolePermissionStatus = "deleted"   // 已删除
 )
