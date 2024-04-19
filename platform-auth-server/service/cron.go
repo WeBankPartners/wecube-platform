@@ -58,16 +58,16 @@ func notifyAction() {
 	for _, entity := range userRoleEntityList {
 		// 计算过期百分比
 		entityPercent := calcExpireObj(entity)
-		if entityPercent >= model.Config.NotifyPercent && entity.NotifyCount == 0 {
-			// 发送邮件
-			go NotifyRolePreExpireMail(allRoleDisplayNameMap[entity.RoleName], allUserEmailMap[entity.Username], entity.ExpireTime.Format(constant.DateTimeFormat))
-		} else if entityPercent >= 100 {
+		if entityPercent >= 100 {
 			go NotifyRoleExpireMail(allRoleDisplayNameMap[entity.RoleName], allUserEmailMap[entity.Username], entity.ExpireTime.Format(constant.DateTimeFormat))
 			// 删除授权角色
 			if _, err = db.Engine.Exec("update auth_sys_user_role set is_deleted = 1,updated_time = ? where id = ?", time.Now().Format(constant.DateTimeFormat), entity.Id); err != nil {
 				log.Logger.Error("update auth_sys_user_role error", log.Error(err))
 				return
 			}
+		} else if entityPercent >= model.Config.NotifyPercent && entity.NotifyCount == 0 {
+			// 发送邮件
+			go NotifyRolePreExpireMail(allRoleDisplayNameMap[entity.RoleName], allUserEmailMap[entity.Username], entity.ExpireTime.Format(constant.DateTimeFormat))
 		}
 	}
 }

@@ -1037,7 +1037,7 @@ func (UserManagementService) CreateRoleApply(param *model.RoleApplyParam, curUse
 	}
 	_, err = db.Engine.Transaction(func(session *xorm.Session) (interface{}, error) {
 		for _, roleApply := range updateRoleApplys {
-			if _, err := session.Update(roleApply, &model.RoleApplyEntity{Id: roleApply.Id}); err != nil {
+			if _, err := session.MustCols("expire_time").Update(roleApply, &model.RoleApplyEntity{Id: roleApply.Id}); err != nil {
 				return nil, err
 			}
 		}
