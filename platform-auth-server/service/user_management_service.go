@@ -1153,6 +1153,10 @@ func (UserManagementService) ListRoleApplyByApplier(ctx context.Context, param *
 		}
 		if content.Status == model.RoleApplyStatusApprove {
 			content.Status = model.CalcUserRolePermissionStatusByApplyInfo(content)
+			// 删除状态
+			if param.Ext == string(constant.UserRolePermissionStatusDeleted) {
+				content.Status = string(constant.UserRolePermissionStatusDeleted)
+			}
 		}
 	}
 	return result, err
