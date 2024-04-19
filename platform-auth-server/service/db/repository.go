@@ -290,7 +290,7 @@ func (RoleApplyRepository) FindByApplier(applier string, roleIds []string, statu
 func (RoleApplyRepository) Query(ctx context.Context, param *model.QueryRequestParam) (*model.ListRoleApplyResponse, error) {
 	result := &model.ListRoleApplyResponse{PageInfo: &model.PageInfo{}, Entities: []*model.RoleApplyEntity{}}
 	filterSql, _, queryParam := transFiltersToSQL(param, &model.TransFiltersParam{IsStruct: true, StructObj: model.RoleApplyEntity{}})
-	baseSql := combineDBSql("SELECT * FROM auth_sys_role_apply WHERE 1=1 ", filterSql)
+	baseSql := combineDBSql("SELECT * FROM auth_sys_role_apply  ap WHERE 1=1 ", filterSql)
 	if param.Paging {
 		result.PageInfo = &model.PageInfo{StartIndex: param.Pageable.StartIndex, PageSize: param.Pageable.PageSize, TotalRows: queryCount(ctx, baseSql, queryParam...)}
 		pageSql, pageParam := transPageInfoToSQL(*param.Pageable)
