@@ -56,6 +56,7 @@ type QueryRequestParam struct {
 	Pageable      *PageInfo                `json:"pageable"`      // 分页信息,默认为空
 	Sorting       []*QueryRequestSorting   `json:"sorting"`       // 排序,默认为空
 	ResultColumns []string                 `json:"resultColumns"` // 返回列,默认为空全返回
+	Ext           string                   `json:"ext"`           // 扩展字段
 }
 
 type TransFiltersParam struct {
