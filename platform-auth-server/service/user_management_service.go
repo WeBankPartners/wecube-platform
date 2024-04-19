@@ -1311,3 +1311,8 @@ func (UserManagementService) UpdateRoleApply(param []*model.RoleApplyDto, curUse
 	})
 	return err
 }
+
+func (UserManagementService) DeleteRoleApply(applyId string) error {
+	_, err := db.Engine.Exec("delete from auth_sys_role_apply where id = ?", applyId)
+	return err
+}

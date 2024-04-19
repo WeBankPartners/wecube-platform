@@ -157,6 +157,8 @@ func init() {
 			ApiCode: "RegisterUmUser"},
 		&handlerFuncObj{Url: "/v1/roles/apply", Method: http.MethodPost, HandlerFunc: CreateRoleApply,
 			ApiCode: "CreateRoleApply"},
+		&handlerFuncObj{Url: "/v1/roles/apply", Method: http.MethodDelete, HandlerFunc: DeleteRoleApply,
+			ApiCode: "DeleteRoleApply"},
 		&handlerFuncObj{Url: "/v1/roles/apply/byhandler", Method: http.MethodPost, HandlerFunc: ListRoleApply,
 			ApiCode: "ListRoleApply"},
 		&handlerFuncObj{Url: constant.UriListApplyByApplier, Method: http.MethodPost, HandlerFunc: ListRoleApplyByApplier,
