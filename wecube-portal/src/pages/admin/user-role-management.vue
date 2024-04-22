@@ -163,7 +163,7 @@
         </FormItem>
       </Form>
       <div slot="footer">
-        <Button ghost @click="cancel">{{ $t('cancel') }}</Button>
+        <Button @click="cancel">{{ $t('cancel') }}</Button>
         <Button type="primary" @click="addRole">{{ $t('save') }}</Button>
       </div>
     </Modal>
