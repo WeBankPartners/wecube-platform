@@ -68,6 +68,11 @@ func notifyAction() {
 		} else if entityPercent >= model.Config.NotifyPercent && entity.NotifyCount == 0 {
 			// 发送邮件
 			go NotifyRolePreExpireMail(allRoleDisplayNameMap[entity.RoleName], allUserEmailMap[entity.Username], entity.ExpireTime.Format(constant.DateTimeFormat))
+			// 更新通知次数
+			if _, err = db.Engine.Exec("update auth_sys_user_role set notify_count = 1,updated_time = ? where id = ?", time.Now().Format(constant.DateTimeFormat), entity.Id); err != nil {
+				log.Logger.Error("update auth_sys_user_role error", log.Error(err))
+				return
+			}
 		}
 	}
 }
