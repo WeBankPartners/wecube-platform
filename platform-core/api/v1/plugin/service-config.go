@@ -413,9 +413,7 @@ func QueryPluginByTargetEntity(c *gin.Context) {
 			}
 		} else if param.NodeType == string(models.ProcDefNodeTypeAutomatic) {
 			for _, interfaceDto := range resultPluginConfigInterfaceDtoList {
-				if strings.EqualFold(interfaceDto.Type, "EXECUTION") {
-					finalResultPluginConfigInterfaceDtoList = append(finalResultPluginConfigInterfaceDtoList, interfaceDto)
-				}
+				finalResultPluginConfigInterfaceDtoList = append(finalResultPluginConfigInterfaceDtoList, interfaceDto)
 			}
 		} else {
 			finalResultPluginConfigInterfaceDtoList = append(finalResultPluginConfigInterfaceDtoList, resultPluginConfigInterfaceDtoList...)
