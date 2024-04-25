@@ -1,6 +1,9 @@
 package models
 
-import "strings"
+import (
+	"encoding/json"
+	"strings"
+)
 
 type DataModel struct {
 	PluginPackageDataModel
@@ -113,9 +116,22 @@ type Filter struct {
 func (f *Filter) GetValue() interface{} {
 	if f.Operator == "in" {
 		valueList := []string{}
-		for _, v := range strings.Split(f.Value, ",") {
-			if v != "" {
-				valueList = append(valueList, v)
+		if strings.HasPrefix(f.Value, "[") && strings.HasSuffix(f.Value, "]") {
+			tmpValue := strings.ReplaceAll(f.Value, "'", "\"")
+			if err := json.Unmarshal([]byte(tmpValue), &valueList); err == nil {
+				newValueList := []string{}
+				for _, v := range valueList {
+					if strings.HasPrefix(v, "@@") {
+						newValueList = append(newValueList, strings.Split(v[2:], "@@")[0])
+					}
+				}
+				valueList = newValueList
+			}
+		} else {
+			for _, v := range strings.Split(f.Value, ",") {
+				if v != "" {
+					valueList = append(valueList, v)
+				}
 			}
 		}
 		return valueList
