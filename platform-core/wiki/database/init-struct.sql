@@ -302,7 +302,7 @@ CREATE TABLE `plugin_config_roles` (
    `updated_by` varchar(64) DEFAULT NULL COMMENT '更新人',
    `updated_time` datetime DEFAULT NULL COMMENT '更新时间',
    PRIMARY KEY (`id`),
-   INDEX `idx_plugin_config_roles_cfg` (`plugin_cfg_id`),
+   INDEX `idx_plugin_config_roles_cfg` (`plugin_cfg_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
 
 CREATE TABLE `proc_def` (
@@ -740,7 +740,7 @@ CREATE INDEX idx_proc_schedule_job_time USING BTREE ON proc_schedule_job (create
 
 CREATE INDEX idx_sys_var_name USING BTREE ON system_variables (`name`);
 CREATE INDEX idx_sys_var_scope USING BTREE ON system_variables (`scope`);
-CREATE INDEX idx_sys_var_source USING BTREE ON system_variables (`source`(128));
+CREATE INDEX idx_sys_var_source USING BTREE ON system_variables (`source`);
 CREATE INDEX idx_sys_var_status USING BTREE ON system_variables (`status`);
 
 CREATE TABLE `proc_ins_event` (
