@@ -148,7 +148,7 @@ func InitConfig(configFile string) (errMessage string) {
 		}
 	}
 	if c.Plugin.PasswordPubKeyPath != "" {
-		publicBytes, readPubErr := os.ReadFile(c.PasswordPrivateKeyPath)
+		publicBytes, readPubErr := os.ReadFile(c.Plugin.PasswordPubKeyPath)
 		if readPubErr == nil {
 			c.Plugin.PasswordPubKeyContent = string(publicBytes)
 		} else {
