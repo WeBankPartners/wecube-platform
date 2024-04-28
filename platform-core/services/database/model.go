@@ -23,6 +23,10 @@ func GetDataModels(ctx context.Context, pluginPackage string, withAttr bool) (re
 		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
 		return
 	}
+	result = []*models.DataModel{}
+	if len(dataModelRows) == 0 {
+		return
+	}
 	var dmIds []string
 	for _, row := range dataModelRows {
 		dmIds = append(dmIds, row.Id)
