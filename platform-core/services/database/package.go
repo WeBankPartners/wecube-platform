@@ -271,6 +271,17 @@ func UploadPackage(ctx context.Context, registerConfig *models.RegisterXML, with
 				}})
 			}
 		}
+	} else if registerConfig.DataModel.IsDynamic == "true" {
+		maxVersion, getVersionErr := getMaxDataModelVersion(registerConfig.Name)
+		if getVersionErr != nil {
+			err = getVersionErr
+			return
+		}
+		maxVersion = maxVersion + 1
+		dmId := "p_model_" + guid.CreateGuid()
+		actions = append(actions, &db.ExecAction{Sql: "INSERT INTO plugin_package_data_model (id,`version`,package_name,is_dynamic,update_path,update_method,update_source,updated_time,update_time) VALUES (?,?,?,?,?,?,?,?,?)", Param: []interface{}{
+			dmId, maxVersion, registerConfig.Name, 1, "/data-model", "GET", "PLUGIN_PACKAGE", nowTime, nowTime.UnixMilli(),
+		}})
 	}
 	err = db.Transaction(actions, ctx)
 	if err != nil {
@@ -283,6 +294,9 @@ func getMaxDataModelVersion(packageName string) (maxV int, err error) {
 	queryResult, queryErr := db.MysqlEngine.QueryString("SELECT max(`version`) as ver FROM plugin_package_data_model WHERE package_name =? GROUP BY package_name", packageName)
 	if queryErr != nil {
 		err = exterror.Catch(exterror.New().DatabaseQueryError, fmt.Errorf("query data model max version fail,%s ", queryErr.Error()))
+		return
+	}
+	if len(queryResult) == 0 {
 		return
 	}
 	maxV, _ = strconv.Atoi(queryResult[0]["ver"])
