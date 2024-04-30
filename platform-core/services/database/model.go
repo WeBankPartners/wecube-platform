@@ -181,7 +181,7 @@ func GetEntityModel(ctx context.Context, packageName, entityName string, onlyAtt
 							attrObj.MandatoryString = "N"
 						}
 						tmpByEntity.RelatedAttribute = attrObj
-						break
+						continue
 					}
 				}
 				result.ReferenceByEntityList = append(result.ReferenceByEntityList, &tmpByEntity)
