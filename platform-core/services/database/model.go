@@ -172,7 +172,6 @@ func GetEntityModel(ctx context.Context, packageName, entityName string, onlyAtt
 				return
 			}
 			for _, entityObj := range refByEntityRows {
-				tmpByEntity := models.DataModelRefEntity{PluginPackageEntities: *entityObj}
 				for _, attrObj := range refByEntityAttrRows {
 					if attrObj.EntityId == entityObj.Id {
 						if attrObj.Mandatory {
@@ -180,11 +179,12 @@ func GetEntityModel(ctx context.Context, packageName, entityName string, onlyAtt
 						} else {
 							attrObj.MandatoryString = "N"
 						}
+						tmpByEntity := models.DataModelRefEntity{PluginPackageEntities: *entityObj}
 						tmpByEntity.RelatedAttribute = attrObj
-						continue
+						result.ReferenceByEntityList = append(result.ReferenceByEntityList, &tmpByEntity)
+						//continue
 					}
 				}
-				result.ReferenceByEntityList = append(result.ReferenceByEntityList, &tmpByEntity)
 			}
 		}
 	}
