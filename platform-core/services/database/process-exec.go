@@ -1128,15 +1128,21 @@ func getInterfaceDataByDataType(valueString, dataType, name string, multiple boo
 	if dataType == "string" {
 		if multiple {
 			stringList := []string{}
-			err = json.Unmarshal([]byte(valueString), &stringList)
-			output = stringList
+			if err = json.Unmarshal([]byte(valueString), &stringList); err == nil {
+				output = stringList
+			} else {
+				output = valueString
+			}
 		} else {
 			output = valueString
 		}
 	} else if dataType == "list" {
 		listMap := []map[string]interface{}{}
-		err = json.Unmarshal([]byte(valueString), &listMap)
-		output = listMap
+		if err = json.Unmarshal([]byte(valueString), &listMap); err == nil {
+			output = listMap
+		} else {
+			output = valueString
+		}
 	}
 	if err != nil {
 		log.Logger.Error("getInterfaceDataByDataType error", log.String("value", valueString), log.String("dataType", dataType), log.String("name", name), log.Error(err))

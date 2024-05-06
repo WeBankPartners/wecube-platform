@@ -364,9 +364,10 @@ func ExtractExpressionResultColumn(exprList []*models.ExpressionObj, exprResult 
 	for _, r := range exprResult {
 		if v, ok := r[expr.ResultColumn]; ok {
 			result = append(result, v)
-		} else {
-			result = append(result, nil)
 		}
+		//} else {
+		//	result = append(result, nil)
+		//}
 	}
 	return
 }
