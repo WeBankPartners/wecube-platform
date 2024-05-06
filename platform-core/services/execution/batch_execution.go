@@ -151,6 +151,7 @@ func normalizePluginInterfaceParamData(inputParamDef *models.PluginConfigInterfa
 	// 此时value可能是nil以外的任意值
 	var result interface{}
 	t := reflect.TypeOf(value)
+	log.Logger.Debug("normalizePluginInterfaceParamData", log.String("key", inputParamDef.Name), log.String("valueType", t.Kind().String()), log.String("value", fmt.Sprintf("%v", value)))
 	// value的kind可能是[]{int, string, float, object}, int, string, float, object
 	if t.Kind() == reflect.Slice {
 		if inputParamDef.Multiple == "Y" || inputParamDef.DataType == models.PluginParamDataTypeList {
@@ -200,9 +201,11 @@ func normalizePluginInterfaceParamData(inputParamDef *models.PluginConfigInterfa
 						result = []interface{}{convValue}
 					}
 				} else if inputParamDef.DataType == models.PluginParamDataTypeObject {
-					return nil, fmt.Errorf("field:%s can not convert %v to object", inputParamDef.Name, tToSingle)
+					result = value
+					//return nil, fmt.Errorf("field:%s can not convert %v to object", inputParamDef.Name, tToSingle)
 				} else if inputParamDef.DataType == models.PluginParamDataTypeList {
-					return nil, fmt.Errorf("field:%s can not convert %v to list", inputParamDef.Name, tToSingle)
+					result = value
+					//return nil, fmt.Errorf("field:%s can not convert %v to list", inputParamDef.Name, tToSingle)
 				}
 			}
 		}
@@ -243,9 +246,11 @@ func normalizePluginInterfaceParamData(inputParamDef *models.PluginConfigInterfa
 				result = []interface{}{convValue}
 			}
 		} else if inputParamDef.DataType == models.PluginParamDataTypeObject {
+			result = value
 			//return nil, fmt.Errorf("field:%s can not convert %v to object", inputParamDef.Name, t)
 		} else if inputParamDef.DataType == models.PluginParamDataTypeList {
-			return nil, fmt.Errorf("field:%s can not convert %v to list", inputParamDef.Name, t)
+			result = value
+			//return nil, fmt.Errorf("field:%s can not convert %v to list", inputParamDef.Name, t)
 		}
 	}
 	return result, nil
