@@ -161,6 +161,10 @@ func normalizePluginInterfaceParamData(inputParamDef *models.PluginConfigInterfa
 			if tv.Len() == 0 && inputParamDef.Required == "Y" {
 				return nil, fmt.Errorf("field:%s input data is empty list but required", inputParamDef.Name)
 			}
+			if tv.Len() == 0 {
+				result = nil
+				return result, nil
+			}
 			if tv.Len() != 1 {
 				return nil, fmt.Errorf("field:%s input data len=%d but trying to convert to single value,inputValue:%v ", inputParamDef.Name, tv.Len(), value)
 			}
