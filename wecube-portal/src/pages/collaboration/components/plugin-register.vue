@@ -95,13 +95,17 @@
                 style="margin: 4px; padding: 4px; border-bottom: 1px solid #dcdee2"
                 :key="index + inter.action"
               >
-                <Tooltip :content="inter.description">
+                <Tooltip max-width="300">
+                  <div slot="content">
+                    <div>{{ $t('bc_name') }}: {{ inter.action }}</div>
+                    <div>{{ $t('description') }}: {{ inter.description }}</div>
+                  </div>
                   <Input
                     :value="inter.action"
                     :disabled="currentPluginObj.status === 'ENABLED'"
                     @on-blur="actionBlurHandler($event, inter)"
                     @click.stop.native="actionFocus($event)"
-                    style="width: 200px"
+                    style="width: 300px"
                     size="small"
                   />
                 </Tooltip>
