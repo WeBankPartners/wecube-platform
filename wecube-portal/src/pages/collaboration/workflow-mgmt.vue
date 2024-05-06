@@ -871,6 +871,7 @@ export default {
     },
     // 保存节点信息
     async setNodeInfo (info, needAddFirst) {
+      info.selfAttrs.style.fill = 'white'
       const { status } = await flowNodeMgmt(info)
       if (status === 'OK') {
         if (!needAddFirst) {
@@ -924,7 +925,7 @@ export default {
           }
         })
       }
-      this.graph.refresh()
+      // this.graph.refresh()
     }
     // #endregion
   }
