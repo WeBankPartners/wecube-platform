@@ -335,6 +335,8 @@ func buildRefreshToken(loginId string, needRegister bool) (string, int64, error)
 		ExpiresAt:    exp,
 		Type:         constant.TypeRefreshToken,
 		NeedRegister: needRegister,
+		Authority:    utils.BuildArrayString([]string{}),
+		Roles:        []string{},
 		/*		LoginType: loginType,
 				AdminType: adminType,
 				UserName:  userName,
