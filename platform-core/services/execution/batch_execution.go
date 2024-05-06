@@ -239,7 +239,7 @@ func normalizePluginInterfaceParamData(inputParamDef *models.PluginConfigInterfa
 				result = []interface{}{convValue}
 			}
 		} else if inputParamDef.DataType == models.PluginParamDataTypeObject {
-			return nil, fmt.Errorf("field:%s can not convert %v to object", inputParamDef.Name, t)
+			//return nil, fmt.Errorf("field:%s can not convert %v to object", inputParamDef.Name, t)
 		} else if inputParamDef.DataType == models.PluginParamDataTypeList {
 			return nil, fmt.Errorf("field:%s can not convert %v to list", inputParamDef.Name, t)
 		}
