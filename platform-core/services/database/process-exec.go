@@ -1287,7 +1287,7 @@ func UpdateProcCacheData(ctx context.Context, procInsId string, taskFormList []*
 
 func GetProcNodeAllowOptions(ctx context.Context, procDefId, ProcNodeDefId string) (options []string, err error) {
 	var nextNodes []*models.ProcDefNode
-	err = db.MysqlEngine.Context(ctx).SQL("select id,node_id,name,node_type from proc_def_node where id in (select target from proc_def_node_link where source=?)", procDefId, ProcNodeDefId).Find(&nextNodes)
+	err = db.MysqlEngine.Context(ctx).SQL("select id,node_id,name,node_type from proc_def_node where id in (select target from proc_def_node_link where source=?)", ProcNodeDefId).Find(&nextNodes)
 	if err != nil {
 		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
 		return
