@@ -275,30 +275,46 @@ func getRecurDynamicBindData(ctx context.Context, procInsId, procDefId, procDefN
 }
 
 func GetInstanceTaskNodeBindings(ctx context.Context, procInsId, procInsNodeId string) (result []*models.TaskNodeBindingObj, err error) {
-	procInsNodeObj, getInsNodeErr := GetSimpleProcInsNode(ctx, procInsNodeId, "")
-	if getInsNodeErr != nil {
-		err = getInsNodeErr
-		return
-	}
-	procDefNodeObj, getDefNodeErr := GetSimpleProcDefNode(ctx, procInsNodeObj.ProcDefNodeId)
-	if getDefNodeErr != nil {
-		err = getDefNodeErr
-		return
-	}
 	var dataBindingRows []*models.ProcDataBinding
-	if procDefNodeObj.DynamicBind && procInsNodeObj.Status != models.JobStatusRunning {
-		dataBindingRows, err = getRecurDynamicBindData(ctx, procInsId, procDefNodeObj.ProcDefId, procDefNodeObj.BindNodeId)
-	} else {
-		if procInsNodeId != "" {
-			err = db.MysqlEngine.Context(ctx).SQL("select * from proc_data_binding where proc_ins_id=? and proc_ins_node_id=?", procInsId, procInsNodeId).Find(&dataBindingRows)
-		} else {
-			err = db.MysqlEngine.Context(ctx).SQL("select * from proc_data_binding where proc_ins_id=?", procInsId).Find(&dataBindingRows)
-		}
-		if err != nil {
-			err = exterror.Catch(exterror.New().DatabaseQueryError, err)
+	if procInsNodeId != "" {
+		procInsNodeObj, getInsNodeErr := GetSimpleProcInsNode(ctx, procInsNodeId, "")
+		if getInsNodeErr != nil {
+			err = getInsNodeErr
 			return
 		}
+		procDefNodeObj, getDefNodeErr := GetSimpleProcDefNode(ctx, procInsNodeObj.ProcDefNodeId)
+		if getDefNodeErr != nil {
+			err = getDefNodeErr
+			return
+		}
+		if procDefNodeObj.DynamicBind && procInsNodeObj.Status != models.JobStatusRunning {
+			dataBindingRows, err = getRecurDynamicBindData(ctx, procInsId, procDefNodeObj.ProcDefId, procDefNodeObj.BindNodeId)
+			if err != nil {
+				return
+			}
+		} else {
+			err = db.MysqlEngine.Context(ctx).SQL("select * from proc_data_binding where proc_ins_id=? and proc_ins_node_id=?", procInsId, procInsNodeId).Find(&dataBindingRows)
+		}
+	} else {
+		err = db.MysqlEngine.Context(ctx).SQL("select * from proc_data_binding where proc_ins_id=?", procInsId).Find(&dataBindingRows)
 	}
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
+		return
+	}
+	//if procDefNodeObj.DynamicBind && procInsNodeObj.Status != models.JobStatusRunning {
+	//	dataBindingRows, err = getRecurDynamicBindData(ctx, procInsId, procDefNodeObj.ProcDefId, procDefNodeObj.BindNodeId)
+	//} else {
+	//	if procInsNodeId != "" {
+	//		err = db.MysqlEngine.Context(ctx).SQL("select * from proc_data_binding where proc_ins_id=? and proc_ins_node_id=?", procInsId, procInsNodeId).Find(&dataBindingRows)
+	//	} else {
+	//		err = db.MysqlEngine.Context(ctx).SQL("select * from proc_data_binding where proc_ins_id=?", procInsId).Find(&dataBindingRows)
+	//	}
+	//	if err != nil {
+	//		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
+	//		return
+	//	}
+	//}
 	result = []*models.TaskNodeBindingObj{}
 	for _, row := range dataBindingRows {
 		if row.ProcDefNodeId == "" {
