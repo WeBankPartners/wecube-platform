@@ -719,5 +719,6 @@
   "be_oneWeek_recent": "Last Week",
   "be_oneMonth_recent": "Last Month",
   "be_warning": "Warning",
-  "be_warning_for_password": "Password must contain at least one lowercase letter, one uppercase letter, one digit, one special character."
+  "be_warning_for_password": "Password must contain at least one lowercase letter, one uppercase letter, one digit, one special character.",
+  "be_dynamic_binding_warning": "Dynamic binding nodes do not support modifying bound data"
 }
