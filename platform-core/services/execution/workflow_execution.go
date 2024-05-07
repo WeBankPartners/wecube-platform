@@ -147,6 +147,17 @@ func DoWorkflowAutoJob(ctx context.Context, procRunNodeId, continueToken string,
 	}
 	if procDefNode.DynamicBind {
 		dataBindings, err = database.GetDynamicBindNodeData(ctx, procInsNode.ProcInsId, procDefNode.ProcDefId, procDefNode.BindNodeId)
+		if err != nil {
+			err = fmt.Errorf("get dynamic bind data fail,%s ", err.Error())
+			return
+		}
+		if len(dataBindings) > 0 {
+			err = database.UpdateDynamicNodeBindData(ctx, procInsNode.ProcInsId, procInsNode.Id, procDefNode.ProcDefId, procDefNode.Id, dataBindings)
+			if err != nil {
+				err = fmt.Errorf("try to update dynamic node binding data fail,%s ", err.Error())
+				return
+			}
+		}
 	}
 	if len(dataBindings) == 0 {
 		log.Logger.Warn("auto job return with empty binding data", log.String("procIns", procInsNode.ProcInsId), log.String("procInsNode", procInsNode.Id))
@@ -346,7 +357,15 @@ func DoWorkflowHumanJob(ctx context.Context, procRunNodeId string, recoverFlag b
 	if procDefNode.DynamicBind {
 		dataBindings, err = database.GetDynamicBindNodeData(ctx, procInsNode.ProcInsId, procDefNode.ProcDefId, procDefNode.BindNodeId)
 		if err != nil {
+			err = fmt.Errorf("get dynamic bind data fail,%s ", err.Error())
 			return
+		}
+		if len(dataBindings) > 0 {
+			err = database.UpdateDynamicNodeBindData(ctx, procInsNode.ProcInsId, procInsNode.Id, procDefNode.ProcDefId, procDefNode.Id, dataBindings)
+			if err != nil {
+				err = fmt.Errorf("try to update dynamic node binding data fail,%s ", err.Error())
+				return
+			}
 		}
 	}
 	pluginInterface, getIntErr := database.GetLastEnablePluginInterface(ctx, procDefNode.ServiceName)
@@ -656,11 +675,13 @@ func buildAutoNodeContextMap(ctx context.Context,
 	bindParamType, bindParamName, paramName string) (err error) {
 	log.Logger.Debug("buildAutoNodeContextMap start", log.JsonObj("entityInstances", entityInstances), log.JsonObj("bindNodeDef", bindNodeDef), log.JsonObj("targetNodeDataBindings", targetNodeDataBindings), log.String("bindParamType", bindParamType), log.String("bindParamName", bindParamName), log.String("paramName", paramName))
 	var sourceNodeDataBindings []*models.ProcDataBinding
-	if bindNodeDef.DynamicBind {
-		sourceNodeDataBindings, err = database.GetDynamicBindNodeData(ctx, procIns.Id, procIns.ProcDefId, bindNodeDef.BindNodeId)
-	} else {
-		sourceNodeDataBindings, err = database.GetDynamicBindNodeData(ctx, procIns.Id, procIns.ProcDefId, bindNodeDef.NodeId)
-	}
+	//if bindNodeDef.DynamicBind {
+	//	sourceNodeDataBindings, err = database.GetDynamicBindNodeData(ctx, procIns.Id, procIns.ProcDefId, bindNodeDef.BindNodeId)
+	//} else {
+	//	sourceNodeDataBindings, err = database.GetDynamicBindNodeData(ctx, procIns.Id, procIns.ProcDefId, bindNodeDef.NodeId)
+	//}
+	// 所有已跑过的节点都会有绑定数据，包括动态绑定节点
+	sourceNodeDataBindings, err = database.GetDynamicBindNodeData(ctx, procIns.Id, procIns.ProcDefId, bindNodeDef.NodeId)
 	if err != nil {
 		return
 	}
