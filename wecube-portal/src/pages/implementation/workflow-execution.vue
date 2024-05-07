@@ -321,7 +321,9 @@
         </template>
       </Table>
       <div slot="footer">
-        <span v-if="isNodeCanBindData">{{ $t('be_dynamic_binding_warning') }}</span>
+        <span v-if="isNodeCanBindData" style="font-size: 12px; color: red; margin-right: 8px">{{
+          $t('be_dynamic_binding_warning')
+        }}</span>
         <Button @click="targetModalVisible = false">{{ $t('cancel') }}</Button>
         <Button type="primary" :disabled="isNodeCanBindData" @click="targetModelConfirm">{{ $t('submit') }}</Button>
       </div>
