@@ -1041,6 +1041,7 @@ export default {
             desc: 'Success'
           })
           this.workflowActionModalVisible = false
+          this.retryTargetModalVisible = false
           return
         }
         const retry = await retryProcessInstance({
@@ -1054,6 +1055,7 @@ export default {
             desc: 'Retry' + ' action is proceed successfully'
           })
           this.workflowActionModalVisible = false
+          this.retryTargetModalVisible = false
           this.processInstance()
         }
       }
