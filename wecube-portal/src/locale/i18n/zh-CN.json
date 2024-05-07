@@ -718,5 +718,6 @@
   "be_oneWeek_recent": "近1周",
   "be_oneMonth_recent": "近1月",
   "be_warning": "警告",
-  "be_warning_for_password": "密码需至少包含大写、小写、数字、特殊字符中的三类"
+  "be_warning_for_password": "密码需至少包含大写、小写、数字、特殊字符中的三类",
+  "be_dynamic_binding_warning": "动态绑定节点不支持修改绑定数据"
 }
