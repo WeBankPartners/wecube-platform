@@ -555,10 +555,18 @@ func handleOutputData(
 			tmpResultForEntity.Entity = tmpResultForEntityName
 			if tmpResultOutputForEntity != nil {
 				if v, ok := tmpResultOutputForEntity.Data["id"]; ok {
-					tmpResultOutputForEntity.Id = v.(string)
+					if v != nil {
+						if reflect.TypeOf(v).String() == "string" {
+							tmpResultOutputForEntity.Id = v.(string)
+						}
+					}
 				} else {
 					if guidV, guidOk := tmpResultOutputForEntity.Data["guid"]; guidOk {
-						tmpResultOutputForEntity.Id = guidV.(string)
+						if v != nil {
+							if reflect.TypeOf(v).String() == "string" {
+								tmpResultOutputForEntity.Id = guidV.(string)
+							}
+						}
 					}
 				}
 				tmpResultForEntity.Data = append(tmpResultForEntity.Data, tmpResultOutputForEntity)
