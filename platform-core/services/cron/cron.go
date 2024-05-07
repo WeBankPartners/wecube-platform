@@ -305,7 +305,7 @@ func doTransOldEventToNew() {
 	var oldEventRows []*models.CoreOperationEvent
 	err := db.MysqlEngine.Context(ctx).SQL("select * from core_operation_event where oper_key like 'pdef_key_%'").Find(&oldEventRows)
 	if err != nil {
-		log.Logger.Error("doTransOldEventToNew fail with query core_operation_event table", log.Error(err))
+		log.Logger.Info("doTransOldEventToNew fail with query core_operation_event table", log.Error(err))
 		return
 	}
 	if len(oldEventRows) == 0 {
