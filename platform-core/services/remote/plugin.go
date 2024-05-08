@@ -375,7 +375,8 @@ func ExtractExpressionResultColumn(exprList []*models.ExpressionObj, exprResult 
 func RequestPluginModelData(ctx context.Context, packageName, entity, token string, filters []*models.EntityQueryObj) (result []map[string]interface{}, err error) {
 	for _, v := range filters {
 		if v.Op == "in" && v.Condition == nil {
-			v.Condition = []string{}
+			v.Condition = []interface{}{}
+			log.Logger.Info("RequestPluginModelData trans filter value to []interface{} ", log.String("name", v.AttrName), log.String("op", v.Op))
 		}
 	}
 	queryParam := models.EntityQueryParam{AdditionalFilters: filters}
