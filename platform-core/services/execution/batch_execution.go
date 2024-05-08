@@ -571,8 +571,8 @@ func handleOutputData(
 					}
 				} else {
 					if guidV, guidOk := tmpResultOutputForEntity.Data["guid"]; guidOk {
-						if v != nil {
-							if reflect.TypeOf(v).String() == "string" {
+						if guidV != nil {
+							if reflect.TypeOf(guidV).String() == "string" {
 								tmpResultOutputForEntity.Id = guidV.(string)
 							}
 						}
