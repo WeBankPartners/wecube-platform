@@ -136,6 +136,7 @@
             type="daterange"
             placement="bottom-end"
             format="yyyy-MM-dd"
+            split-panels
             placeholder=""
             style="width: 200px"
           />
