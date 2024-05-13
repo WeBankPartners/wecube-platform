@@ -373,6 +373,12 @@ func ExtractExpressionResultColumn(exprList []*models.ExpressionObj, exprResult 
 }
 
 func RequestPluginModelData(ctx context.Context, packageName, entity, token string, filters []*models.EntityQueryObj) (result []map[string]interface{}, err error) {
+	for _, v := range filters {
+		if v.Op == "in" && v.Condition == nil {
+			v.Condition = []interface{}{}
+			log.Logger.Info("RequestPluginModelData trans filter value to []interface{} ", log.String("name", v.AttrName), log.String("op", v.Op))
+		}
+	}
 	queryParam := models.EntityQueryParam{AdditionalFilters: filters}
 	postBytes, _ := json.Marshal(queryParam)
 	uri := fmt.Sprintf("%s/%s/entities/%s/query", models.Config.Gateway.Url, packageName, entity)
@@ -412,6 +418,10 @@ func RequestPluginModelData(ctx context.Context, packageName, entity, token stri
 			log.Logger.Info("End remote modelData request <<<--- ", log.String("requestId", reqId), log.String("transactionId", transId), log.String("url", urlObj.String()), log.Int("httpCode", resp.StatusCode), log.String("costTime", useTime), log.String("response", string(responseBodyBytes)))
 		}
 	}()
+	if resp.StatusCode != http.StatusOK {
+		err = fmt.Errorf("request plugin:%s model:%s data fail,statusCode:%d ", packageName, entity, resp.StatusCode)
+		return
+	}
 	var response models.EntityResponse
 	responseBodyBytes, err = io.ReadAll(resp.Body)
 	if err != nil {
