@@ -86,6 +86,7 @@
                       }
                     "
                     type="daterange"
+                    split-panels
                     placement="bottom-end"
                     format="yyyy-MM-dd"
                     :placeholder="i.label"
