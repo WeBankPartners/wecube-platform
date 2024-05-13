@@ -433,6 +433,12 @@ func handleOutputData(
 	outputParamDefs []*models.PluginConfigInterfaceParameters, procInsNodeReq *models.ProcInsNodeReq) (result *models.PluginInterfaceApiResultData, err error) {
 	tmpResult := &models.PluginInterfaceApiResultData{Outputs: make([]map[string]interface{}, 0)}
 	tmpResultForEntity := &OutputEntityData{Data: make([]*OutputEntityRootData, 0)}
+	reqInputParamIndexMap := make(map[string]int)
+	for _, v := range procInsNodeReq.Params {
+		if v.FromType == "input" {
+			reqInputParamIndexMap[v.CallbackId] = v.DataIndex
+		}
+	}
 	for dataIndex, output := range outputs {
 		tmpResultOutput := make(map[string]interface{})
 		var tmpResultOutputForEntity *OutputEntityRootData
@@ -539,6 +545,9 @@ func handleOutputData(
 			if v, ok := output[models.PluginCallResultPresetCallback]; ok {
 				tmpResultOutput[models.PluginCallResultPresetCallback] = v
 				procReqParamObj.CallbackId = fmt.Sprintf("%s", v)
+				if outputIndex, matchOutputIndex := reqInputParamIndexMap[procReqParamObj.CallbackId]; matchOutputIndex {
+					procReqParamObj.DataIndex = outputIndex
+				}
 			}
 			if v, ok := output[models.PluginCallResultPresetErrorCode]; ok {
 				tmpResultOutput[models.PluginCallResultPresetErrorCode] = v
@@ -555,10 +564,18 @@ func handleOutputData(
 			tmpResultForEntity.Entity = tmpResultForEntityName
 			if tmpResultOutputForEntity != nil {
 				if v, ok := tmpResultOutputForEntity.Data["id"]; ok {
-					tmpResultOutputForEntity.Id = v.(string)
+					if v != nil {
+						if reflect.TypeOf(v).String() == "string" {
+							tmpResultOutputForEntity.Id = v.(string)
+						}
+					}
 				} else {
 					if guidV, guidOk := tmpResultOutputForEntity.Data["guid"]; guidOk {
-						tmpResultOutputForEntity.Id = guidV.(string)
+						if guidV != nil {
+							if reflect.TypeOf(guidV).String() == "string" {
+								tmpResultOutputForEntity.Id = guidV.(string)
+							}
+						}
 					}
 				}
 				tmpResultForEntity.Data = append(tmpResultForEntity.Data, tmpResultOutputForEntity)
