@@ -466,10 +466,19 @@ func ProcInsNodeRetry(c *gin.Context) {
 		return
 	}
 	procInsNodeId := c.Param("procInsNodeId")
+	procInsNodeObj, getProcInsNodeErr := database.GetSimpleProcInsNode(c, procInsNodeId, "")
+	if getProcInsNodeErr != nil {
+		middleware.ReturnError(c, getProcInsNodeErr)
+		return
+	}
 	operator := middleware.GetRequestUser(c)
 	err := database.UpdateProcInsNodeBindingData(c, param, procInsId, procInsNodeId, operator)
 	if err != nil {
 		middleware.ReturnError(c, err)
+		return
+	}
+	if procInsNodeObj.Status == models.JobStatusReady {
+		middleware.ReturnSuccess(c)
 		return
 	}
 	workflowId, nodeId, err := database.GetProcWorkByInsId(c, procInsId, procInsNodeId)

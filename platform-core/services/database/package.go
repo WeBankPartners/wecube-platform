@@ -169,12 +169,15 @@ func UploadPackage(ctx context.Context, registerConfig *models.RegisterXML, with
 			if httpMethod == "" {
 				httpMethod = "POST"
 			}
-			isAsyncProcessing := false
-			if pluginConfigInterface.IsAsyncProcessing == "Y" {
-				isAsyncProcessing = true
+			//isAsyncProcessing := false
+			if pluginConfigInterface.IsAsyncProcessing != "Y" {
+				pluginConfigInterface.IsAsyncProcessing = "N"
+			}
+			if pluginConfigInterface.Type == "" {
+				pluginConfigInterface.Type = "EXECUTION"
 			}
 			actions = append(actions, &db.ExecAction{Sql: "insert into plugin_config_interfaces (id,plugin_config_id,action,service_name,service_display_name,path,http_method,is_async_processing,type,filter_rule,description) values (?,?,?,?,?,?,?,?,?,?,?)", Param: []interface{}{
-				pluginConfigInterfaceId, pluginConfigId, pluginConfigInterface.Action, serviceName, serviceName, pluginConfigInterface.Path, httpMethod, isAsyncProcessing, pluginConfigInterface.Type, pluginConfigInterface.FilterRule, pluginConfigInterface.Description,
+				pluginConfigInterfaceId, pluginConfigId, pluginConfigInterface.Action, serviceName, serviceName, pluginConfigInterface.Path, httpMethod, pluginConfigInterface.IsAsyncProcessing, pluginConfigInterface.Type, pluginConfigInterface.FilterRule, pluginConfigInterface.Description,
 			}})
 			for _, interfaceParam := range pluginConfigInterface.InputParameters.Parameter {
 				interfaceParamId := "p_conf_inf_param_" + guid.CreateGuid()
