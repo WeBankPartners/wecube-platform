@@ -213,11 +213,16 @@ func RSADecryptByPublic(encryptString, publicKeyContent string) ([]byte, error) 
 	if block == nil {
 		return nil, fmt.Errorf("public key illegal, base64 decode fail")
 	}
+	var publicKey *rsa.PublicKey
 	publicKeyInterface, parsePubErr := x509.ParsePKIXPublicKey(block)
 	if parsePubErr != nil {
-		return nil, fmt.Errorf("x509 parse public key error:%s ", parsePubErr.Error())
+		publicKey, err = x509.ParsePKCS1PublicKey(block)
+		if err != nil {
+			return nil, fmt.Errorf("x509 parse public key error:%s ", err.Error())
+		}
+	} else {
+		publicKey = publicKeyInterface.(*rsa.PublicKey)
 	}
-	publicKey := publicKeyInterface.(*rsa.PublicKey)
 	c := new(big.Int)
 	m := new(big.Int)
 	m.SetBytes(encryptBytes)
