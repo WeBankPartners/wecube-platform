@@ -7,6 +7,7 @@
           type="datetimerange"
           v-model="time"
           format="yyyy-MM-dd HH:mm:ss"
+          split-panels
           @on-change="getDate"
           style="width: 320px"
         ></DatePicker>
