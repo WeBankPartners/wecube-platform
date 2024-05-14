@@ -105,7 +105,7 @@ export default {
         let localStorage = window.localStorage
         setCookie(data)
         localStorage.setItem('username', this.username)
-        const needRegister = data.needRegister || true
+        const needRegister = data.needRegister || false
         if (needRegister) {
           this.showRoleApply = true
           this.formValidate.userName = this.username
