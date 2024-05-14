@@ -253,10 +253,10 @@ export default {
       },
       dateType: 1, // 控制时间显示
       dateTypeList: [
-        { label: this.$t('tw_recent_three_month'), value: 1 },
-        { label: this.$t('tw_recent_half_year'), value: 2 },
-        { label: this.$t('tw_recent_one_year'), value: 3 },
-        { label: this.$t('tw_auto'), value: 4 }
+        { label: this.$t('be_recent_three_month'), value: 1 },
+        { label: this.$t('be_recent_half_year'), value: 2 },
+        { label: this.$t('be_recent_one_year'), value: 3 },
+        { label: this.$t('be_auto'), value: 4 }
       ],
       hideRoles: [], // 在此出现的角色index将被隐藏
       authPluginList: [], // 待授权插件列表
