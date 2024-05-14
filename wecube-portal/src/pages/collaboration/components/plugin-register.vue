@@ -233,12 +233,7 @@
                   </Col>
                   <Col span="1" offset="0">
                     <FormItem :label-width="0">
-                      <Select
-                        v-model="param.multiple"
-                        filterable
-                        style="width: 50px"
-                        :disabled="currentPluginObj.status === 'ENABLED'"
-                      >
+                      <Select v-model="param.multiple" filterable style="width: 50px" disabled>
                         <Option v-for="item in sensitiveData" :value="item.value" :key="item.value">{{
                           item.label
                         }}</Option>
@@ -348,7 +343,12 @@
               <Col span="2">
                 <FormItem :label-width="0">
                   <span>{{ $t('output_params') }}</span>
-                  <Button @click="addOutputParams" size="small" icon="ios-add"></Button>
+                  <Button
+                    @click="addOutputParams"
+                    :disabled="currentPluginObj.status === 'ENABLED'"
+                    size="small"
+                    icon="ios-add"
+                  ></Button>
                 </FormItem>
               </Col>
               <Col span="22" offset="0">
@@ -380,12 +380,7 @@
                     </Col>
                     <Col span="1" offset="0">
                       <FormItem :label-width="0">
-                        <Select
-                          v-model="outPut.multiple"
-                          filterable
-                          style="width: 50px"
-                          :disabled="currentPluginObj.status === 'ENABLED'"
-                        >
+                        <Select v-model="outPut.multiple" filterable style="width: 50px" disabled>
                           <Option v-for="item in sensitiveData" :value="item.value" :key="item.value">{{
                             item.label
                           }}</Option>
@@ -434,8 +429,19 @@
                     <Col span="5">
                       <FormItem :label-width="0">
                         <span v-if="outPut.required === 'Y'" style="color: red; vertical-align: text-bottom">*</span>
-                        <!-- <Button @click="removeOutputParams(index)" size="small" icon="ios-trash"></Button> -->
-                        <Input v-model="outPut.name" placeholder="key" :disabled="outPut.id !== ''" />
+                        <Button
+                          @click="removeOutputParams(index)"
+                          type="error"
+                          :disabled="currentPluginObj.status === 'ENABLED'"
+                          size="small"
+                          icon="ios-trash"
+                        ></Button>
+                        <Input
+                          v-model="outPut.name"
+                          placeholder="key"
+                          style="width: 80%"
+                          :disabled="currentPluginObj.status === 'ENABLED'"
+                        />
                       </FormItem>
                     </Col>
                     <Col span="6" offset="1">
@@ -782,7 +788,14 @@ export default {
       })
     },
     removeOutputParams (index) {
-      this.currentInter.outputParameters.splice(index, 1)
+      this.$Modal.confirm({
+        title: this.$t('confirm_to_delete'),
+        content: name,
+        onOk: async () => {
+          this.currentInter.outputParameters.splice(index, 1)
+        },
+        onCancel: () => {}
+      })
     },
     addOutputParams () {
       const assginOutput = this.currentInter.outputParameters.filter(item => item.mappingType === 'assign')
