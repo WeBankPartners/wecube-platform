@@ -5,7 +5,8 @@
         <DatePicker
           type="datetimerange"
           format="yyyy-MM-dd HH:mm:ss"
-          style="width:300px"
+          style="width: 300px"
+          split-panels
           :placeholder="$t('datetime_range')"
           @on-change="getDate"
         ></DatePicker>
@@ -19,7 +20,7 @@
           :placeholder="$t('plugin_regist')"
           @on-open-change="getPlugin"
           @on-change="changePlugin"
-          style="width:200px"
+          style="width: 200px"
         >
           <Option v-for="item in searchConfig.pluginOptions" :value="item" :key="item">{{ item }}</Option>
         </Select>
@@ -34,7 +35,7 @@
           @on-open-change="getTasknodesBindings"
           @on-change="changeTasknodesBindings"
           :disabled="searchConfig.params.serviceIds.length === 0"
-          style="width:200px"
+          style="width: 200px"
         >
           <Option
             v-for="(item, itemIndex) in searchConfig.tasknodeBindingOptions"
@@ -49,7 +50,7 @@
           v-model="searchConfig.params.pageable.pageSize"
           :placeholder="$t('display_number')"
           filterable
-          style="width:200px"
+          style="width: 200px"
         >
           <Option v-for="item in searchConfig.displayNumberOptions" :value="item" :key="item">{{ item }}</Option>
         </Select>
