@@ -6,7 +6,8 @@
           type="datetimerange"
           format="yyyy-MM-dd HH:mm:ss"
           :placeholder="$t('datetime_range')"
-          style="width:300px"
+          style="width: 300px"
+          split-panels
           @on-change="getDate"
         ></DatePicker>
       </div>
@@ -17,7 +18,7 @@
           :placeholder="$t('flow_name')"
           @on-open-change="getProcess"
           @on-change="changeProcess"
-          style="width:200px"
+          style="width: 200px"
         >
           <Option v-for="item in searchConfig.processOptions" :value="item.procDefId" :key="item.procDefId">{{
             item.procDefName
@@ -34,7 +35,7 @@
           @on-open-change="getTasknodes"
           @on-change="changeTasknodes"
           :disabled="searchConfig.params.procDefIds === ''"
-          style="width:200px"
+          style="width: 200px"
         >
           <Option
             v-for="(item, itenIndex) in searchConfig.tasknodeOptions"
@@ -54,7 +55,7 @@
           @on-open-change="getTasknodesBindings"
           @on-change="changeTasknodesBindings"
           :disabled="searchConfig.params.taskNodeIds.length === 0"
-          style="width:200px"
+          style="width: 200px"
         >
           <Option
             v-for="(item, itemIndex) in searchConfig.tasknodeBindingOptions"
@@ -70,7 +71,7 @@
           v-model="searchConfig.params.pageable.pageSize"
           filterable
           :placeholder="$t('task_node_bindings')"
-          style="width:200px"
+          style="width: 200px"
         >
           <Option v-for="item in searchConfig.displayNumberOptions" :value="item" :key="item">{{ item }}</Option>
         </Select>

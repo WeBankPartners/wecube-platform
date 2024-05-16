@@ -269,10 +269,19 @@
         @on-select-cancel="retrySingleCancel"
         @on-select-all-cancel="retrySelectAllCancel"
         @on-select-all="retrySelectAll"
-        :columns="retryTargetModelColums"
+        :columns="retryTargetModelColums.filter(col => !col.disabled)"
         :data="retryTartetModels"
       >
       </Table>
+      <div slot="footer">
+        <span v-if="isNodeCanBindData" style="font-size: 12px; color: red; margin-right: 8px">{{
+          $t('be_dynamic_binding_warning')
+        }}</span>
+        <Button @click="retryTargetModalVisible = false">{{ $t('cancel') }}</Button>
+        <Button type="primary" :disabled="isNodeCanBindData" @click="retryTargetModelConfirm">{{
+          $t('submit')
+        }}</Button>
+      </div>
     </Modal>
     <Modal
       :title="currentNodeTitle"
@@ -295,7 +304,7 @@
         @on-select-cancel="singleCancel"
         @on-select-all-cancel="selectAllCancel"
         @on-select-all="selectAll"
-        :columns="targetModelColums"
+        :columns="targetModelColums.filter(col => !col.disabled)"
         :data="tartetModels"
       >
         <template slot-scope="{ row, index }" slot="action">
@@ -314,6 +323,13 @@
           </Tooltip>
         </template>
       </Table>
+      <div slot="footer">
+        <span v-if="isNodeCanBindData" style="font-size: 12px; color: red; margin-right: 8px">{{
+          $t('be_dynamic_binding_warning')
+        }}</span>
+        <Button @click="targetModalVisible = false">{{ $t('cancel') }}</Button>
+        <Button type="primary" :disabled="isNodeCanBindData" @click="targetModelConfirm">{{ $t('submit') }}</Button>
+      </div>
     </Modal>
     <Modal v-model="showNodeDetail" :fullscreen="nodeDetailFullscreen" width="1000" :styles="{ top: '50px' }">
       <p slot="header">
@@ -637,7 +653,8 @@ export default {
         {
           type: 'selection',
           width: 60,
-          align: 'center'
+          align: 'center',
+          disabled: true
         },
         {
           title: 'PackageName',
@@ -787,7 +804,9 @@ export default {
           ]
         }
       },
-      pluginInfo: ''
+      pluginInfo: '',
+      nodesCannotBindData: [], // 初始化不能绑定数据的节点
+      isNodeCanBindData: false
     }
   },
   components: { TimedExecution, JsonViewer, HistoryExecution },
@@ -1022,6 +1041,7 @@ export default {
             desc: 'Success'
           })
           this.workflowActionModalVisible = false
+          this.retryTargetModalVisible = false
           return
         }
         const retry = await retryProcessInstance({
@@ -1035,6 +1055,7 @@ export default {
             desc: 'Retry' + ' action is proceed successfully'
           })
           this.workflowActionModalVisible = false
+          this.retryTargetModalVisible = false
           this.processInstance()
         }
       }
@@ -1374,6 +1395,9 @@ export default {
           removeEvent('.normal', 'click', this.normalHandler)
           this.initFlowGraph(true)
           this.showExcution = false
+          this.nodesCannotBindData = data.taskNodeInstances
+            .filter(d => d.dynamicBind && d.status === 'NotStarted')
+            .map(d => d.nodeId)
         }
         this.getModelData()
       })
@@ -1457,6 +1481,7 @@ export default {
         this.flowData = data
         this.initFlowGraph()
         this.getTargetOptions()
+        this.nodesCannotBindData = data.flowNodes.filter(d => d.dynamicBind === 'Y').map(d => d.nodeId)
       }
     },
     formatRefNodeIds () {
@@ -1797,6 +1822,8 @@ export default {
     },
     retryHandler (e) {
       this.currentFailedNodeID = e.target.parentNode.getAttribute('id')
+      this.isNodeCanBindData = this.nodesCannotBindData.includes(this.currentFailedNodeID)
+      this.retryTargetModelColums[0].disabled = this.isNodeCanBindData
       this.workflowActionModalVisible = true
       this.targetModalVisible = false
       this.showNodeDetail = false
@@ -2027,6 +2054,8 @@ export default {
       this.catchTartetModels = []
       this.catchNodeTableList = []
       this.catchTartetModels = JSON.parse(JSON.stringify(this.tartetModels))
+      this.isNodeCanBindData = this.nodesCannotBindData.includes(nodeId)
+      this.targetModelColums[0].disabled = this.isNodeCanBindData
       this.targetModalVisible = true
       this.showNodeDetail = false
       this.$nextTick(() => {

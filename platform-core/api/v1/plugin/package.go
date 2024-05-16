@@ -762,6 +762,9 @@ func LaunchPlugin(c *gin.Context) {
 		dockerCmd += fmt.Sprintf("--volume %s ", v)
 	}
 	for _, v := range portBindList {
+		if !strings.Contains(v, ":") {
+			continue
+		}
 		dockerCmd += fmt.Sprintf("-p %s ", v)
 	}
 	for _, v := range envBindList {

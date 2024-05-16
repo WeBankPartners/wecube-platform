@@ -20,17 +20,67 @@
       <Button type="primary" long @click="login" :loading="loading" style="margin-top: 20px"> Login </Button>
       <!-- <Button type="success" long>SUBMIT</Button> -->
     </div>
+
+    <Modal v-model="showRoleApply" :mask-closable="false" :closable="false" :title="$t('be_apply_roles')">
+      <Form ref="formValidate" :model="formValidate" :rules="ruleValidate" :label-width="80">
+        <FormItem :label="$t('be_um_account')" prop="userName">
+          <Input v-model="formValidate.userName" disabled></Input>
+        </FormItem>
+        <FormItem :label="$t('be_email')" prop="emailAddr">
+          <Input v-model="formValidate.emailAddr" :placeholder="$t('be_email')"></Input>
+        </FormItem>
+        <FormItem :label="$t('role')" prop="roleIds">
+          <Select
+            v-model="formValidate.roleIds"
+            @on-open-change="getApplyRoles"
+            multiple
+            filterable
+            :placeholder="$t('be_apply_roles')"
+          >
+            <Option v-for="role in roleList" :value="role.id" :key="role.id">{{ role.displayName }}</Option>
+          </Select>
+        </FormItem>
+      </Form>
+      <div slot="footer">
+        <Button @click="handleReset('formValidate')">{{ $t('cancel') }}</Button>
+        <Button @click="handleSubmit('formValidate')" type="primary">{{ $t('be_apply') }}</Button>
+      </div>
+    </Modal>
   </div>
 </template>
 <script>
-import { login } from '../api/server'
+// import CryptoJS from 'crypto-js'
+import { login, getApplyRoles, registerUser, getEncryptKey } from '../api/server'
 import { setCookie, clearCookie } from './util/cookie'
 export default {
   data () {
     return {
       username: '',
       ***REMOVED***
-      loading: false
+      encryptKey: '',
+      loading: false,
+      showRoleApply: false,
+      formValidate: {
+        userName: '',
+        emailAddr: '',
+        roleIds: []
+      },
+      ruleValidate: {
+        emailAddr: [
+          { required: true, message: `${this.$t('be_email')} ${this.$t('cannotBeEmpty')}`, trigger: 'blur' },
+          { type: 'email', message: this.$t('be_email_incorrect_format'), trigger: 'blur' }
+        ],
+        roleIds: [
+          {
+            required: true,
+            type: 'array',
+            min: 1,
+            message: `${this.$t('role')} ${this.$t('cannotBeEmpty')}`,
+            trigger: 'change'
+          }
+        ]
+      },
+      roleList: []
     }
   },
 
@@ -38,6 +88,14 @@ export default {
     async login () {
       if (!this.username || !this.password) return
       this.loading = true
+      // await this.getEncryptKey()
+      // const key = CryptoJS.enc.Utf8.parse(this.encryptKey)
+      // const config = {
+      //   iv: key,
+      //   mode: CryptoJS.mode.CBC
+      //   // padding: CryptoJS.pad.PKcs7
+      // }
+      // let encryptedPassword = CryptoJS.AES.encrypt(this.password, key, config).toString()
       const payload = {
         username: this.username,
         password: this.password
@@ -47,9 +105,49 @@ export default {
         let localStorage = window.localStorage
         setCookie(data)
         localStorage.setItem('username', this.username)
-        this.$router.push('/homepage')
+        const needRegister = data.needRegister || false
+        if (needRegister) {
+          this.showRoleApply = true
+          this.formValidate.userName = this.username
+        } else {
+          this.$router.push('/homepage')
+        }
       }
       this.loading = false
+    },
+    async getEncryptKey () {
+      const { statusCode, data } = await getEncryptKey()
+      if (statusCode === 'OK') {
+        this.encryptKey = data
+      }
+    },
+    async getApplyRoles () {
+      const params = {
+        all: 'N', // Y:所有(包括未激活和已删除的) N:激活的
+        roleAdmin: false
+      }
+      const { status, data } = await getApplyRoles(params)
+      if (status === 'OK') {
+        this.roleList = data || []
+      }
+    },
+    handleSubmit (name) {
+      this.$refs[name].validate(async valid => {
+        if (valid) {
+          const { status } = await registerUser(this.formValidate)
+          if (status === 'OK') {
+            this.$Notice.success({
+              title: this.$t('successful'),
+              desc: this.$t('be_apply_success')
+            })
+            this.showRoleApply = false
+          }
+        }
+      })
+    },
+    handleReset (name) {
+      this.$refs[name].resetFields()
+      this.showRoleApply = false
     },
     clearData () {
       let localStorage = window.localStorage
