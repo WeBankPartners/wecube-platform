@@ -200,8 +200,9 @@ type RegisterXML struct {
 		} `xml:"menu"`
 	} `xml:"menus"`
 	DataModel struct {
-		Text   string `xml:",chardata"`
-		Entity []struct {
+		Text      string `xml:",chardata"`
+		IsDynamic string `xml:"isDynamic,attr"`
+		Entity    []struct {
 			Text        string `xml:",chardata"`
 			Name        string `xml:"name,attr"`
 			DisplayName string `xml:"displayName,attr"`
