@@ -188,21 +188,23 @@ type ProcInsDetail struct {
 }
 
 type ProcInsNodeDetail struct {
-	Id                string   `json:"id"`
-	NodeId            string   `json:"nodeId"`
-	NodeName          string   `json:"nodeName"`
-	NodeDefId         string   `json:"nodeDefId"`
-	NodeType          string   `json:"nodeType"`
-	Description       string   `json:"description"`
-	OrderedNo         string   `json:"orderedNo"`
-	ProcDefId         string   `json:"procDefId"`
-	ProcDefKey        string   `json:"procDefKey"`
-	ProcInstId        string   `json:"procInstId"`
-	ProcInstKey       string   `json:"procInstKey"`
-	RoutineExpression string   `json:"routineExpression"`
-	Status            string   `json:"status"`
-	PreviousNodeIds   []string `json:"previousNodeIds"`
-	SucceedingNodeIds []string `json:"succeedingNodeIds"`
+	Id                  string   `json:"id"`
+	NodeId              string   `json:"nodeId"`
+	NodeName            string   `json:"nodeName"`
+	NodeDefId           string   `json:"nodeDefId"`
+	NodeType            string   `json:"nodeType"`
+	Description         string   `json:"description"`
+	OrderedNo           string   `json:"orderedNo"`
+	ProcDefId           string   `json:"procDefId"`
+	ProcDefKey          string   `json:"procDefKey"`
+	ProcInstId          string   `json:"procInstId"`
+	ProcInstKey         string   `json:"procInstKey"`
+	RoutineExpression   string   `json:"routineExpression"`
+	Status              string   `json:"status"`
+	PreviousNodeIds     []string `json:"previousNodeIds"`
+	SucceedingNodeIds   []string `json:"succeedingNodeIds"`
+	DynamicBind         bool     `json:"dynamicBind"`
+	DynamicBindNodeName string   `json:"dynamicBindNodeName"`
 }
 
 type ProcCallPluginServiceFuncParam struct {
