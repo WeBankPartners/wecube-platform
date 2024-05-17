@@ -740,5 +740,6 @@
   "be_processing_time": "Processing Time",
   "be_reject": "Reject",
   "be_application_record": "Application Record",
-  "be_approve": "Approve"
+  "be_approve": "Approve",
+  "be_add_custom_parameters": "Add Custom Parameters"
 }
