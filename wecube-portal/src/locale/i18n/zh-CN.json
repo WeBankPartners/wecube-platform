@@ -739,5 +739,6 @@
   "be_processing_time": "处理时间",
   "be_reject": "拒绝",
   "be_application_record": "申请记录",
-  "be_approve": "同意"
+  "be_approve": "同意",
+  "be_add_custom_parameters": "新增自定义参数"
 }
