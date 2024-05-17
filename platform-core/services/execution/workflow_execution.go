@@ -145,7 +145,7 @@ func DoWorkflowAutoJob(ctx context.Context, procRunNodeId, continueToken string,
 		err = getNodeDataErr
 		return
 	}
-	if procDefNode.DynamicBind {
+	if procDefNode.DynamicBind == 1 {
 		dataBindings, err = database.GetDynamicBindNodeData(ctx, procInsNode.ProcInsId, procDefNode.ProcDefId, procDefNode.BindNodeId)
 		if err != nil {
 			err = fmt.Errorf("get dynamic bind data fail,%s ", err.Error())
@@ -354,7 +354,7 @@ func DoWorkflowHumanJob(ctx context.Context, procRunNodeId string, recoverFlag b
 		err = getNodeDataErr
 		return
 	}
-	if procDefNode.DynamicBind {
+	if procDefNode.DynamicBind == 1 {
 		dataBindings, err = database.GetDynamicBindNodeData(ctx, procInsNode.ProcInsId, procDefNode.ProcDefId, procDefNode.BindNodeId)
 		if err != nil {
 			err = fmt.Errorf("get dynamic bind data fail,%s ", err.Error())
