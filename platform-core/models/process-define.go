@@ -67,7 +67,7 @@ type ProcDefNode struct {
 	Status            string    `json:"status" xorm:"status"`                         // 状态
 	NodeType          string    `json:"nodeType" xorm:"node_type"`                    // 节点类型
 	ServiceName       string    `json:"serviceName" xorm:"service_name"`              // 插件服务名
-	DynamicBind       bool      `json:"dynamicBind" xorm:"dynamic_bind"`              // 是否动态绑定
+	DynamicBind       int       `json:"dynamicBind" xorm:"dynamic_bind"`              // 是否动态绑定
 	BindNodeId        string    `json:"bindNodeId" xorm:"bind_node_id"`               // 动态绑定节点
 	RiskCheck         bool      `json:"riskCheck" xorm:"risk_check"`                  // 是否高危检测
 	RoutineExpression string    `json:"routineExpression" xorm:"routine_expression"`  // 定位规则
@@ -76,6 +76,7 @@ type ProcDefNode struct {
 	TimeConfig        string    `json:"timeConfig" xorm:"time_config"`                // 节点配置
 	OrderedNo         int       `json:"orderedNo" xorm:"ordered_no"`                  // 节点顺序
 	UiStyle           string    `json:"uiStyle" xorm:"ui_style"`                      // 前端样式
+	AllowContinue     bool      `json:"allowContinue" xorm:"allow_continue"`          // 允许跳过
 	CreatedBy         string    `json:"createdBy" xorm:"created_by"`                  // 创建人
 	CreatedTime       time.Time `json:"createdTime" xorm:"created_time"`              // 创建时间
 	UpdatedBy         string    `json:"updatedBy" xorm:"updated_by"`                  // 更新人
@@ -215,7 +216,7 @@ type ProcDefNodeCustomAttrs struct {
 	ProcDefId         string              `json:"procDefId"`         // 编排定义id
 	Timeout           int                 `json:"timeout"`           // 超时时间
 	Description       string              `json:"description"`       // 描述
-	DynamicBind       bool                `json:"dynamicBind"`       // 是否动态绑定
+	DynamicBind       int                 `json:"dynamicBind"`       // 动态绑定 -> 0(启动时绑定)|1->(绑定节点)|2->(运行时)
 	BindNodeId        string              `json:"bindNodeId"`        // 动态绑定节点
 	RoutineExpression string              `json:"routineExpression"` // 定位规则
 	ServiceId         string              `json:"serviceId"`         // 插件服务ID
@@ -229,6 +230,7 @@ type ProcDefNodeCustomAttrs struct {
 	CreatedTime       string              `json:"createdTime" `      // 创建时间
 	UpdatedBy         string              `json:"updatedBy" `        // 更新人
 	UpdatedTime       string              `json:"updatedTime" `      // 更新时间
+	AllowContinue     bool                `json:"allowContinue"`     // 允许跳过
 }
 
 type ProcDefNodeCustomAttrsDto struct {
@@ -239,7 +241,7 @@ type ProcDefNodeCustomAttrsDto struct {
 	ProcDefId         string              `json:"procDefId"`         // 编排定义id
 	Timeout           int                 `json:"timeout"`           // 超时时间
 	Description       string              `json:"description"`       // 描述
-	DynamicBind       bool                `json:"dynamicBind"`       // 是否动态绑定
+	DynamicBind       int                 `json:"dynamicBind"`       // 动态绑定 -> 0(启动时绑定)|1->(绑定节点)|2->(运行时)
 	BindNodeId        string              `json:"bindNodeId"`        // 动态绑定节点
 	RoutineExpression string              `json:"routineExpression"` // 定位规则
 	ServiceName       string              `json:"serviceName"`       // 插件服务名
@@ -252,6 +254,7 @@ type ProcDefNodeCustomAttrsDto struct {
 	CreatedTime       string              `json:"createdTime" `      // 创建时间
 	UpdatedBy         string              `json:"updatedBy" `        // 更新人
 	UpdatedTime       string              `json:"updatedTime" `      // 更新时间
+	AllowContinue     bool                `json:"allowContinue"`     // 允许跳过
 }
 
 type InterfaceParameterDto struct {
@@ -562,6 +565,7 @@ func ConvertProcDefNodeResultDto2Model(dto *ProcDefNodeResultDto) (node *ProcDef
 			CreatedTime:       createTime,
 			UpdatedBy:         attr.UpdatedBy,
 			UpdatedTime:       updateTime,
+			AllowContinue:     attr.AllowContinue,
 		}
 		if dto.ProcDefNodeCustomAttrs != nil {
 			list = dto.ProcDefNodeCustomAttrs.ParamInfos
@@ -606,6 +610,7 @@ func ConvertProcDefNode2Dto(procDefNode *ProcDefNode, list []*ProcDefNodeParam) 
 			CreatedTime:       procDefNode.CreatedTime.Format(DateTimeFormat),
 			UpdatedBy:         procDefNode.UpdatedBy,
 			UpdatedTime:       procDefNode.UpdatedTime.Format(DateTimeFormat),
+			AllowContinue:     procDefNode.AllowContinue,
 		},
 		NodeAttrs: procDefNode.UiStyle,
 	}
@@ -746,6 +751,7 @@ func ConvertParam2ProcDefNode(user string, param ProcDefNodeRequestParam) *ProcD
 		CreatedTime:       now,
 		UpdatedBy:         user,
 		UpdatedTime:       now,
+		AllowContinue:     procDefNodeAttr.AllowContinue,
 	}
 	return node
 }
