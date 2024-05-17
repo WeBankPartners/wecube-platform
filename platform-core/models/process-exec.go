@@ -203,7 +203,7 @@ type ProcInsNodeDetail struct {
 	Status              string   `json:"status"`
 	PreviousNodeIds     []string `json:"previousNodeIds"`
 	SucceedingNodeIds   []string `json:"succeedingNodeIds"`
-	DynamicBind         bool     `json:"dynamicBind"`
+	DynamicBind         int      `json:"dynamicBind"`
 	DynamicBindNodeName string   `json:"dynamicBindNodeName"`
 }
 
@@ -320,6 +320,7 @@ type ProcInsOperationParam struct {
 	Act        string `json:"act"`
 	ProcInstId string `json:"procInstId"`
 	NodeInstId string `json:"nodeInstId"`
+	Message    string `json:"message"`
 }
 
 func DistinctStringList(input, excludeList []string) (output []string) {

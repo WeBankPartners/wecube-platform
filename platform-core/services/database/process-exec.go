@@ -75,7 +75,7 @@ func PublicProcDefNodeList(ctx context.Context, procDefId string) (nodes []*mode
 			OrderedNo:   fmt.Sprintf("%d", row.OrderedNo),
 			DynamicBind: "N",
 		}
-		if row.DynamicBind {
+		if row.DynamicBind > 0 {
 			nodeObj.DynamicBind = "Y"
 		}
 		if row.NodeType == "automatic" {
@@ -152,7 +152,7 @@ func ProcDefOutline(ctx context.Context, procDefId string) (result *models.ProcD
 			nodeObj.OrderedNo = fmt.Sprintf("%d", orderIndex)
 			orderIndex += 1
 		}
-		if node.DynamicBind {
+		if node.DynamicBind > 0 {
 			nodeObj.DynamicBind = "Y"
 		}
 		if parentList, ok := parentMap[node.Id]; ok {
@@ -266,7 +266,7 @@ func getRecurDynamicBindData(ctx context.Context, procInsId, procDefId, procDefN
 		err = getDefNodeErr
 		return
 	}
-	if procDefNodeObj.DynamicBind {
+	if procDefNodeObj.DynamicBind == 1 {
 		dataBinds, err = getRecurDynamicBindData(ctx, procInsId, procDefId, procDefNodeObj.BindNodeId)
 	} else {
 		dataBinds, err = GetDynamicBindNodeData(ctx, procInsId, procDefId, procDefNodeId)
@@ -287,7 +287,7 @@ func GetInstanceTaskNodeBindings(ctx context.Context, procInsId, procInsNodeId s
 			err = getDefNodeErr
 			return
 		}
-		if procDefNodeObj.DynamicBind && procInsNodeObj.Status != models.JobStatusRunning {
+		if procDefNodeObj.DynamicBind == 1 && procInsNodeObj.Status != models.JobStatusRunning {
 			dataBindingRows, err = getRecurDynamicBindData(ctx, procInsId, procDefNodeObj.ProcDefId, procDefNodeObj.BindNodeId)
 			if err != nil {
 				return
@@ -875,7 +875,7 @@ func GetProcInstance(ctx context.Context, procInsId string) (result *models.Proc
 			if defRow.Id == row.ProcDefNodeId {
 				nodeObj.NodeDefId = defRow.NodeId
 				nodeObj.DynamicBind = defRow.DynamicBind
-				if defRow.DynamicBind {
+				if defRow.DynamicBind == 1 {
 					nodeObj.DynamicBindNodeName = defNodeIdNameMap[defRow.BindNodeId]
 				}
 				break
@@ -1524,6 +1524,34 @@ func CreateProcInsEvent(ctx context.Context, param *models.ProcStartEventParam, 
 		err = fmt.Errorf("insert proc ins event data fail,%s ", execErr.Error())
 	} else {
 		eventId, _ = execResult.LastInsertId()
+	}
+	return
+}
+
+func GetProcNodeEndTime(ctx context.Context, procInsNodeId string) (endTime string, err error) {
+	var procRunNodeRows []*models.ProcRunNode
+	err = db.MysqlEngine.Context(ctx).SQL("select `output` from proc_run_node where proc_ins_node_id=?", procInsNodeId).Find(&procRunNodeRows)
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
+		return
+	}
+	if len(procRunNodeRows) == 0 {
+		err = fmt.Errorf("can not find proc run node with procInsNode=%s ", procInsNodeId)
+		return
+	}
+	endTime = procRunNodeRows[0].Output
+	return
+}
+
+func GetProcNodeNextChoose(ctx context.Context, procInsNodeId string) (nextChooseList []string, err error) {
+	var linkRows []*models.ProcDefNodeLink
+	err = db.MysqlEngine.Context(ctx).SQL("select id,name from proc_def_node_link where source in (select proc_def_id from proc_ins_node where id=?)", procInsNodeId).Find(&linkRows)
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
+		return
+	}
+	for _, row := range linkRows {
+		nextChooseList = append(nextChooseList, row.Name)
 	}
 	return
 }

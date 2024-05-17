@@ -177,6 +177,8 @@ func init() {
 		&handlerFuncObj{Url: "/process/instancesWithPaging", Method: "POST", HandlerFunc: process.QueryProcInsPageData, ApiCode: "proc-ins-page-data"},
 		&handlerFuncObj{Url: "/operation-events", Method: "POST", HandlerFunc: process.ProcStartEvents, ApiCode: "proc-start-events"},
 		&handlerFuncObj{Url: "/public/process/definitions/:proc-def-id/options/:proc-node-def-id", Method: "GET", HandlerFunc: process.GetProcNodeAllowOptions, ApiCode: "get-proc-node-options"},
+		&handlerFuncObj{Url: "/process/instances/node-message/:procInsNodeId/time", Method: "GET", HandlerFunc: process.GetProcNodeEndTime, ApiCode: "get-process-ins-node-time"},
+		&handlerFuncObj{Url: "/process/instances/node-message/:procInsNodeId/choose", Method: "GET", HandlerFunc: process.GetProcNodeNextChoose, ApiCode: "get-process-ins-node-choose"},
 
 		// certification manager
 		&handlerFuncObj{Url: "/plugin-certifications", Method: "GET", HandlerFunc: certification.GetCertifications, ApiCode: "get-certifications"},

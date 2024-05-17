@@ -439,6 +439,18 @@ func ProcInsOperation(c *gin.Context) {
 			return
 		}
 		go workflow.HandleProOperation(&operationObj)
+	} else if param.Act == "choose" {
+		if param.Message == "" {
+			middleware.ReturnError(c, fmt.Errorf("param message can not empty with choose action"))
+			return
+		}
+		operationObj := models.ProcRunOperation{WorkflowId: workflowId, NodeId: nodeId, Operation: "approve", Status: "wait", CreatedBy: middleware.GetRequestUser(c), Message: param.Message}
+		operationObj.Id, err = database.AddWorkflowOperation(c, &operationObj)
+		if err != nil {
+			middleware.ReturnError(c, err)
+			return
+		}
+		go workflow.HandleProOperation(&operationObj)
 	}
 	middleware.ReturnSuccess(c)
 }
@@ -602,5 +614,25 @@ func GetProcNodeAllowOptions(c *gin.Context) {
 		middleware.ReturnError(c, err)
 	} else {
 		middleware.ReturnData(c, options)
+	}
+}
+
+func GetProcNodeEndTime(c *gin.Context) {
+	procInsNodeId := c.Param("procInsNodeId")
+	result, err := database.GetProcNodeEndTime(c, procInsNodeId)
+	if err != nil {
+		middleware.ReturnError(c, err)
+	} else {
+		middleware.ReturnData(c, result)
+	}
+}
+
+func GetProcNodeNextChoose(c *gin.Context) {
+	procInsNodeId := c.Param("procInsNodeId")
+	result, err := database.GetProcNodeNextChoose(c, procInsNodeId)
+	if err != nil {
+		middleware.ReturnError(c, err)
+	} else {
+		middleware.ReturnData(c, result)
 	}
 }
