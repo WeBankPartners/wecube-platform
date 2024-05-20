@@ -4,6 +4,7 @@
   "password_private_key_path": "{{password_private_key_path}}",
   "https_enable": "{{https_enable}}",
   "host_ip": "{{host_ip}}",
+  "encrypt_seed": "{{encrypt_seed}}",
   "http_server": {
     "port": "{{http_port}}",
     "cross": false,
