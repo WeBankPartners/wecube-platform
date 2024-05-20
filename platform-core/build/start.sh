@@ -29,6 +29,7 @@ sed -i "s~{{gateway_host_ports}}~$gateway_host_ports~g" /app/platform-core/confi
 sed -i "s~{{sub_system_private_key}}~$sub_system_private_key~g" /app/platform-core/config/default.json
 sed -i "s~{{cron_keep_batch_exec_days}}~$cron_keep_batch_exec_days~g" /app/platform-core/config/default.json
 sed -i "s~{{host_ip}}~$host_ip~g" /app/platform-core/config/default.json
+sed -i "s~{{encrypt_seed}}~$encrypt_seed~g" /app/platform-core/config/default.json
 
 exec ./platform-core
 
