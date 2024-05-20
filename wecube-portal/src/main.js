@@ -100,7 +100,7 @@ window.implicitRoutes = {
     },
     parentBreadcrumb: {
       'en-US': 'Workflow',
-      'zh-CN': '任务编排'
+      'zh-CN': '编排设计'
     }
   }
 }
@@ -129,56 +129,54 @@ window.use = (lib, options) => {
   Vue.use(lib, options)
 }
 
-// const findPath = (routes, path) => {
-//   let found
-//   window.routers.concat(routes).forEach(route => {
-//     if (route.children) {
-//       route.children.forEach(child => {
-//         if (child.path === path || child.redirect === path) {
-//           found = true
-//         }
-//       })
-//     }
-//     if (route.path === path || route.redirect === path) {
-//       found = true
-//     }
-//     if (path.includes(route.path) && route.path !== '/') {
-//       found = true
-//     }
-//   })
-//   return found
-// }
+const findPath = (routes, path) => {
+  let found
+  window.routers.concat(routes).forEach(route => {
+    if (route.children) {
+      route.children.forEach(child => {
+        if (child.path === path || child.redirect === path) {
+          found = true
+        }
+      })
+    }
+    if (route.path === path || route.redirect === path) {
+      found = true
+    }
+    if (path.includes(route.path) && route.path !== '/') {
+      found = true
+    }
+  })
+  return found
+}
 
 router.beforeEach((to, from, next) => {
-  console.log(to, from, next)
-  // const found = findPath(router.options.routes, to.path)
-  next()
-  // if (!found) {
-  //   window.location.href = window.location.origin + '#/homepage'
-  //   next('/homepage')
-  // } else {
-  //   if (window.myMenus) {
-  //     let isHasPermission = []
-  //       .concat(...window.myMenus.map(_ => _.submenus), window.childRouters)
-  //       .find(_ => _.link === to.path && _.active)
-  //     if (
-  //       (isHasPermission && isHasPermission.active) ||
-  //       ['/404', '/login', '/homepage', '/collaboration/workflow-mgmt'].includes(to.path)
-  //     ) {
-  //       /* has permission */
-  //       window.sessionStorage.setItem(
-  //         'currentPath',
-  //         to.path === '/404' || to.path === '/login' ? '/homepage' : to.fullPath
-  //       )
-  //       next()
-  //     } else {
-  //       /* has no permission */
-  //       next('/404')
-  //     }
-  //   } else {
-  //     next()
-  //   }
-  // }
+  const found = findPath(router.options.routes, to.path)
+  if (!found) {
+    window.location.href = window.location.origin + '#/homepage'
+    next('/homepage')
+  } else {
+    if (window.myMenus) {
+      let isHasPermission = []
+        .concat(...window.myMenus.map(_ => _.submenus), window.childRouters)
+        .find(_ => _.link === to.path && _.active)
+      if (
+        (isHasPermission && isHasPermission.active) ||
+        ['/404', '/login', '/homepage', '/collaboration/workflow-mgmt'].includes(to.path)
+      ) {
+        /* has permission */
+        window.sessionStorage.setItem(
+          'currentPath',
+          to.path === '/404' || to.path === '/login' ? '/homepage' : to.fullPath
+        )
+        next()
+      } else {
+        /* has no permission */
+        next('/404')
+      }
+    } else {
+      next()
+    }
+  }
 })
 const vm = new Vue({
   router,
