@@ -545,6 +545,7 @@ func (n *WorkNode) doTimeJob(recoverFlag bool) (output string, err error) {
 		}
 	} else {
 		endDate := time.Unix(time.Now().Unix()+int64(waitSec), 0).Format(models.DateTimeFormat)
+		n.Output = endDate
 		if _, updateTimeOutputErr := db.MysqlEngine.Exec("update proc_run_node set `output`=?,updated_time=? where id=?", endDate, time.Now(), n.Id); updateTimeOutputErr != nil {
 			log.Logger.Error("update time job output fail", log.String("nodeId", n.Id), log.String("endDate", endDate), log.Error(updateTimeOutputErr))
 		}
@@ -570,6 +571,7 @@ func (n *WorkNode) doDateJob(recoverFlag bool) (output string, err error) {
 		err = fmt.Errorf("date node parse time:%s fail", timeConfig.Date)
 		return
 	}
+	n.Output = timeConfig.Date
 	if _, updateTimeOutputErr := db.MysqlEngine.Exec("update proc_run_node set `output`=?,updated_time=? where id=?", timeConfig.Date, time.Now(), n.Id); updateTimeOutputErr != nil {
 		log.Logger.Error("update date job output fail", log.String("nodeId", n.Id), log.String("endDate", timeConfig.Date), log.Error(updateTimeOutputErr))
 	}
