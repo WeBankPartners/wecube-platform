@@ -232,6 +232,7 @@
   "config_plugin": "配置插件",
   "node_type": "节点类型",
   "locate_rules": "定位规则",
+  "locate_approach": "定位方式",
   "plugin": "插件",
   "timeout": "超时时间",
   "mins": "分钟",
@@ -468,6 +469,8 @@
   "overview": "总览",
   "parameter_configuration": "参数配置",
   "stop_orch": "终止",
+  "during_startup": "启动时",
+  "during_runtime": "运行时",
   "dynamic_bind": "动态绑定",
   "bind_node": "绑定节点",
   "pre_check": "高危检测",
@@ -740,5 +743,6 @@
   "be_reject": "拒绝",
   "be_application_record": "申请记录",
   "be_approve": "同意",
-  "be_add_custom_parameters": "新增自定义参数"
+  "be_add_custom_parameters": "新增自定义参数",
+  "be_allow_skip": "允许跳过"
 }

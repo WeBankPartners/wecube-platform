@@ -720,9 +720,10 @@ export default {
           procDefKey: this.procDef.key, // 对应编排信息
           timeout: 30, // 超时时间
           description: null, // 描述说明
-          dynamicBind: false, // 动态绑定
+          dynamicBind: 0, // 动态绑定 0(启动时绑定)|1->(绑定节点)|2->(运行时)
           bindNodeId: null, // 动态绑定关联节点id
           nodeType, // 节点类型，对应节点原始类型（start、end……
+          allowContinue: true, // 时间节点，是否允许继续
           routineExpression: this.procDef.rootEntity, // 对应节点中的定位规则
           routineRaw: null, // 还未知作用
           serviceName: null, // 选择的插件名称
