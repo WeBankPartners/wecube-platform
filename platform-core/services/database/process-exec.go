@@ -763,8 +763,8 @@ func getReplaceOidMap(inputList []string, oidMap map[string]string) (outputList 
 }
 
 func ListProcInstance(ctx context.Context) (result []*models.ProcInsDetail, err error) {
-	var procInsRows []*models.ProcIns
-	err = db.MysqlEngine.Context(ctx).SQL("select * from proc_ins order by created_time desc limit 500").Find(&procInsRows)
+	var procInsRows []*models.ProcInsWithVersion
+	err = db.MysqlEngine.Context(ctx).SQL("select t1.*,t2.`version` from proc_ins t1 left join proc_def t2 on t1.proc_def_id=t2.id order by t1.created_time desc limit 500").Find(&procInsRows)
 	if err != nil {
 		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
 		return
@@ -783,6 +783,7 @@ func ListProcInstance(ctx context.Context) (result []*models.ProcInsDetail, err 
 			EntityTypeId:      procInsObj.EntityTypeId,
 			EntityDisplayName: procInsObj.EntityDataName,
 			CreatedTime:       procInsObj.CreatedTime.Format(models.DateTimeFormat),
+			Version:           procInsObj.Version,
 		}
 		//if transStatus, ok := models.ProcStatusTransMap[tmpInsObj.Status]; ok {
 		//	tmpInsObj.Status = transStatus
@@ -1474,6 +1475,15 @@ func QueryProcInsPage(ctx context.Context, param *models.QueryProcPageParam) (re
 		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
 		return
 	}
+	var procDefList []string
+	for _, row := range procInsRows {
+		procDefList = append(procDefList, row.ProcDefId)
+	}
+	procDefVersionMap, getVersionErr := getProcInsVersionMap(ctx, procDefList)
+	if getVersionErr != nil {
+		err = getVersionErr
+		return
+	}
 	for _, row := range procInsRows {
 		result.Contents = append(result.Contents, &models.ProcInsDetail{
 			Id:                row.Id,
@@ -1486,6 +1496,7 @@ func QueryProcInsPage(ctx context.Context, param *models.QueryProcPageParam) (re
 			ProcInstName:      row.ProcDefName,
 			Status:            row.Status,
 			CreatedTime:       row.CreatedTime.Format(models.DateTimeFormat),
+			Version:           procDefVersionMap[row.ProcDefId],
 		})
 	}
 	return
@@ -1552,6 +1563,24 @@ func GetProcNodeNextChoose(ctx context.Context, procInsNodeId string) (nextChoos
 	}
 	for _, row := range linkRows {
 		nextChooseList = append(nextChooseList, row.Name)
+	}
+	return
+}
+
+func getProcInsVersionMap(ctx context.Context, procDefList []string) (procDefMap map[string]string, err error) {
+	procDefMap = make(map[string]string)
+	if len(procDefList) == 0 {
+		return
+	}
+	filterSql, filterParam := db.CreateListParams(procDefList, "")
+	var procDefRows []*models.ProcDef
+	err = db.MysqlEngine.Context(ctx).SQL("select id,`version` from proc_def where id in ("+filterSql+")", filterParam...).Find(&procDefRows)
+	if err != nil {
+		err = fmt.Errorf("query proc def version fail,%s ", err.Error())
+		return
+	}
+	for _, row := range procDefRows {
+		procDefMap[row.Id] = row.Version
 	}
 	return
 }

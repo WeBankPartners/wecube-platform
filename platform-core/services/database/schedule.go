@@ -264,9 +264,10 @@ func QueryProcScheduleList(ctx context.Context, param *models.ProcScheduleQueryP
 		return
 	}
 	var statusCountQueryRows []*models.ProcScheduleQueryRow
-	var idList []string
+	var idList, procDefList []string
 	for _, row := range psConfigRows {
 		idList = append(idList, row.Id)
+		procDefList = append(procDefList, row.ProcDefId)
 	}
 	if param.StartTime != "" && param.EndTime != "" {
 		err = db.MysqlEngine.Context(ctx).SQL("select t4.id,t4.status,count(1) as num from (select t1.id,t3.status from proc_schedule_config t1 left join proc_schedule_job t2 on t1.id=t2.schedule_config_id left join proc_ins t3 on t2.proc_ins_id=t3.id where t1.id in ('"+strings.Join(idList, "','")+"') and t2.status='done' and t2.created_time>=? and t2.created_time<=?) t4 group by t4.id,t4.status", param.StartTime, param.EndTime).Find(&statusCountQueryRows)
@@ -275,6 +276,11 @@ func QueryProcScheduleList(ctx context.Context, param *models.ProcScheduleQueryP
 	}
 	if err != nil {
 		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
+		return
+	}
+	procDefVersionMap, getVersionErr := getProcInsVersionMap(ctx, procDefList)
+	if getVersionErr != nil {
+		err = getVersionErr
 		return
 	}
 	completedMap := make(map[string]int)
@@ -314,6 +320,7 @@ func QueryProcScheduleList(ctx context.Context, param *models.ProcScheduleQueryP
 			TotalTerminateInstances:  terminateMap[row.Id],
 			Role:                     row.Role,
 			MailMode:                 row.MailMode,
+			Version:                  procDefVersionMap[row.ProcDefId],
 		}
 		result = append(result, &resultObj)
 	}

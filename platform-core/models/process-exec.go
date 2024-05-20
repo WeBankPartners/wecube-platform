@@ -185,6 +185,7 @@ type ProcInsDetail struct {
 	Operator          string               `json:"operator"`
 	CreatedTime       string               `json:"createdTime"`
 	TaskNodeInstances []*ProcInsNodeDetail `json:"taskNodeInstances"`
+	Version           string               `json:"version"`
 }
 
 type ProcInsNodeDetail struct {
