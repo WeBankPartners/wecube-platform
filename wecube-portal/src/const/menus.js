@@ -48,7 +48,7 @@ export const MENUS = [
   },
   {
     code: 'COLLABORATION_WORKFLOW_ORCHESTRATION',
-    cnName: '任务编排',
+    cnName: '编排设计',
     enName: 'Workflow Management',
     link: '/collaboration/workflow'
   },
