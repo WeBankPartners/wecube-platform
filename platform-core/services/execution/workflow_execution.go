@@ -204,7 +204,7 @@ func DoWorkflowAutoJob(ctx context.Context, procRunNodeId, continueToken string,
 				return
 			}
 			if bindNodeDef.NodeType == models.JobStartType {
-				buildStartNodeContextMap(inputContextMap, procIns)
+				buildStartNodeContextMap(inputContextMap, procIns, v)
 			} else if bindNodeDef.NodeType == models.JobAutoType || bindNodeDef.NodeType == models.JobHumanType {
 				if err = buildAutoNodeContextMap(ctx, entityInstances, procIns, bindNodeDef, dataBindings, v.CtxBindType, v.CtxBindName, v.Name); err != nil {
 					err = fmt.Errorf("buildAutoNodeContextMap fail with param:%s,error:%s", v.Name, err.Error())
@@ -402,7 +402,7 @@ func DoWorkflowHumanJob(ctx context.Context, procRunNodeId string, recoverFlag b
 				return
 			}
 			if bindNodeDef.NodeType == models.JobStartType {
-				buildStartNodeContextMap(inputContextMap, procIns)
+				buildStartNodeContextMap(inputContextMap, procIns, v)
 			} else if bindNodeDef.NodeType == models.JobAutoType || bindNodeDef.NodeType == models.JobHumanType {
 				if err = buildAutoNodeContextMap(ctx, entityInstances, procIns, bindNodeDef, dataBindings, v.CtxBindType, v.CtxBindName, v.Name); err != nil {
 					err = fmt.Errorf("buildAutoNodeContextMap fail with param:%s,error:%s", v.Name, err.Error())
@@ -657,7 +657,7 @@ func HandleCallbackHumanJob(ctx context.Context, procRunNodeId string, callbackD
 	return
 }
 
-func buildStartNodeContextMap(inputContextMap map[string]interface{}, procIns *models.ProcIns) {
+func buildStartNodeContextMap(inputContextMap map[string]interface{}, procIns *models.ProcIns, procDefNodeParam *models.ProcDefNodeParam) {
 	inputContextMap["procInstId"] = procIns.Id
 	inputContextMap["procDefName"] = procIns.ProcDefName
 	inputContextMap["procDefKey"] = procIns.ProcDefKey
@@ -665,6 +665,11 @@ func buildStartNodeContextMap(inputContextMap map[string]interface{}, procIns *m
 	inputContextMap["procInstName"] = procIns.ProcDefName
 	inputContextMap["rootEntityId"] = procIns.EntityDataId
 	inputContextMap["rootEntityName"] = procIns.EntityDataName
+	if procDefNodeParam.CtxBindName != procDefNodeParam.Name {
+		if v, ok := inputContextMap[procDefNodeParam.CtxBindName]; ok {
+			inputContextMap[procDefNodeParam.Name] = v
+		}
+	}
 }
 
 func buildAutoNodeContextMap(ctx context.Context,
