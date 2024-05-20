@@ -113,7 +113,17 @@ export default {
         },
         {
           title: this.$t('flow_name'),
-          key: 'procInstName'
+          key: 'procInstName',
+          render: (h, params) => {
+            return (
+              <div>
+                <span>
+                  {params.row.procInstName}
+                  <Tag style="margin-left:2px">{params.row.version}</Tag>
+                </span>
+              </div>
+            )
+          }
         },
         {
           title: this.$t('target_object'),

@@ -198,7 +198,7 @@
               {{ $t('attribute_type') }}
             </strong>
           </Col>
-          <Col span="10" style="margin-left: 100px" offset="1">
+          <Col span="10" style="margin-left: 122px" offset="1">
             <strong style="font-size: 15px">{{ $t('attribute') }}</strong>
           </Col>
         </Row>
@@ -314,7 +314,7 @@
                         />
                       </span>
                       <span v-if="param.mappingType === 'entity'">
-                        <div style="width: 50%; display: inline-block; vertical-align: top">
+                        <div style="width: 100%; display: inline-block; vertical-align: top">
                           <FilterRulesRef
                             v-model="param.mappingEntityExpression"
                             :disabled="currentPluginObj.status === 'ENABLED'"
@@ -343,12 +343,6 @@
               <Col span="2">
                 <FormItem :label-width="0">
                   <span>{{ $t('output_params') }}</span>
-                  <Button
-                    @click="addOutputParams"
-                    :disabled="currentPluginObj.status === 'ENABLED'"
-                    size="small"
-                    icon="ios-add"
-                  ></Button>
                 </FormItem>
               </Col>
               <Col span="22" offset="0">
@@ -426,16 +420,17 @@
                     </Col>
                   </template>
                   <template v-else>
-                    <Col span="5">
+                    <Col span="3">
                       <FormItem :label-width="0">
                         <span v-if="outPut.required === 'Y'" style="color: red; vertical-align: text-bottom">*</span>
-                        <Button
+                        <Icon
+                          type="ios-remove-circle-outline"
+                          style="position: absolute; left: -30px; top: 8px; cursor: pointer"
+                          size="18"
+                          color="red"
                           @click="removeOutputParams(index)"
-                          type="error"
-                          :disabled="currentPluginObj.status === 'ENABLED'"
-                          size="small"
-                          icon="ios-trash"
-                        ></Button>
+                          v-if="currentPluginObj.status !== 'ENABLED'"
+                        />
                         <Input
                           v-model="outPut.name"
                           placeholder="key"
@@ -444,7 +439,30 @@
                         />
                       </FormItem>
                     </Col>
-                    <Col span="6" offset="1">
+                    <Col span="2" offset="0">
+                      <FormItem :label-width="0">
+                        <span>{{ outPut.dataType }}</span>
+                      </FormItem>
+                    </Col>
+                    <Col span="1" offset="0">
+                      <FormItem :label-width="0">
+                        <Select v-model="outPut.multiple" filterable style="width: 50px" disabled>
+                          <Option v-for="item in sensitiveData" :value="item.value" :key="item.value">{{
+                            item.label
+                          }}</Option>
+                        </Select>
+                      </FormItem>
+                    </Col>
+                    <Col span="1" offset="1">
+                      <FormItem :label-width="0">
+                        <Select filterable v-model="outPut.sensitiveData" style="width: 50px" disabled>
+                          <Option v-for="item in sensitiveData" :value="item.value" :key="item.value">{{
+                            item.label
+                          }}</Option>
+                        </Select>
+                      </FormItem>
+                    </Col>
+                    <Col span="3" offset="1">
                       <FormItem :label-width="0">
                         <span v-if="outPut.required === 'Y'" style="color: red; vertical-align: text-bottom">*</span>
                         <Input
@@ -470,6 +488,16 @@
                     </Col>
                   </template>
                 </Row>
+                <Tooltip :content="$t('be_add_custom_parameters')" placement="bottom-end">
+                  <Icon
+                    type="ios-add-circle-outline"
+                    style="position: relative; right: 30px; cursor: pointer"
+                    size="18"
+                    color="green"
+                    @click="addOutputParams"
+                    v-if="currentPluginObj.status !== 'ENABLED'"
+                  />
+                </Tooltip>
               </Col>
             </Row>
           </Form>
@@ -1314,5 +1342,10 @@ export default {
     background-color: rgb(226, 222, 222);
     margin-bottom: 5px;
   }
+}
+
+/* 隐藏 Tooltip 的箭头 */
+.ivu-tooltip-rel .ivu-tooltip-popper .ivu-tooltip-arrow {
+  display: none !important;
 }
 </style>
