@@ -226,6 +226,7 @@
   "config_plugin": "Config Plugin",
   "node_type": "Node Type",
   "locate_rules": "Locate Rules",
+  "locate_approach": "Locate Approach",
   "plugin": "Plugin",
   "timeout": "Timeout",
   "mins": "Min(s)",
@@ -468,6 +469,8 @@
   "data_selection": "Data selection",
   "dangerous_confirm": "Risky Confirmation",
   "dangerous_confirm_tip": "I HEREBY ACKNOWLEDGE THAT I AM AWARE OF THESE HIGH-RISK OPERATIONS DISCOVERED DURING SCANNING AND HAVE EVALUATED ALL THE RISKS, I CONFIRM TO CONTINUE THE EXECUTION AND BEAR THE CONSEQUENCES IT MAY CAUSE.",
+  "during_startup": "During Startup",
+  "during_runtime": "During Runtime",
   "dynamic_bind": "Dynamic Bind",
   "bind_node": "Binded Node",
   "pre_check": "Its Dangerous",
@@ -741,5 +744,6 @@
   "be_reject": "Reject",
   "be_application_record": "Application Record",
   "be_approve": "Approve",
-  "be_add_custom_parameters": "Add Custom Parameters"
+  "be_add_custom_parameters": "Add Custom Parameters",
+  "be_allow_skip": "Allow Skip"
 }
