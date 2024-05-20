@@ -316,3 +316,8 @@ export const addUserForRole = (roleId, data) => req.post(`/auth/v1/roles/${roleI
 export const handleApplication = data => req.put(`/auth/v1/roles/apply`, data)
 // 申请列表-用户视角
 export const getApplyList = data => req.post(`/auth/v1/roles/apply/byapplier`, data)
+
+// 编排执行-获取时间节点预计执行时间
+export const getExecutionTimeByNodeId = nodeId => req.get(`/platform/v1/process/instances/node-message/${nodeId}/time`)
+// 编排执行-跳过时间节点
+export const skipNode = data => req.post(`/platform/v1/process/instances/proceed`, data)

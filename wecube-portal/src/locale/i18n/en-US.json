@@ -745,5 +745,7 @@
   "be_application_record": "Application Record",
   "be_approve": "Approve",
   "be_add_custom_parameters": "Add Custom Parameters",
-  "be_allow_skip": "Allow Skip"
+  "be_allow_skip": "Allow Skip",
+  "be_manual_skip": "Manual Skip",
+  "be_expected_completion_time": "Expected Completion Time"
 }
