@@ -1556,7 +1556,7 @@ func GetProcNodeEndTime(ctx context.Context, procInsNodeId string) (endTime stri
 
 func GetProcNodeNextChoose(ctx context.Context, procInsNodeId string) (nextChooseList []string, err error) {
 	var linkRows []*models.ProcDefNodeLink
-	err = db.MysqlEngine.Context(ctx).SQL("select id,name from proc_def_node_link where source in (select proc_def_id from proc_ins_node where id=?)", procInsNodeId).Find(&linkRows)
+	err = db.MysqlEngine.Context(ctx).SQL("select id,name from proc_def_node_link where source in (select proc_def_node_id from proc_ins_node where id=?)", procInsNodeId).Find(&linkRows)
 	if err != nil {
 		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
 		return
