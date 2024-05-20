@@ -589,13 +589,12 @@ export default {
           }
         }
         // 异常节点只能连入
-        if (targertNodeType === 'decision') {
-          if (!['human'].includes(sourceNodeType)) {
-            // this.$Message.warning('判断节点只能被[人工节点]连入！')
-            this.$Message.warning(`${this.$t('decisionNodetip1')}`)
-            return
-          }
-        }
+        // if (targertNodeType === 'decision') {
+        //   if (!['human'].includes(sourceNodeType)) {
+        //     this.$Message.warning(`${this.$t('decisionNodetip1')}`)
+        //     return
+        //   }
+        // }
 
         if (['data', 'human', 'automatic', 'date', 'timeInterval'].includes(sourceNodeType)) {
           const outEdges = source.getOutEdges()

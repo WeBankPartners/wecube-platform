@@ -1396,7 +1396,7 @@ export default {
           this.initFlowGraph(true)
           this.showExcution = false
           this.nodesCannotBindData = data.taskNodeInstances
-            .filter(d => d.dynamicBind && d.status === 'NotStarted')
+            .filter(d => [1, 2].includes(d.dynamicBind) && d.status === 'NotStarted')
             .map(d => d.nodeId)
         }
         this.getModelData()
