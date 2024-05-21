@@ -185,24 +185,27 @@ type ProcInsDetail struct {
 	Operator          string               `json:"operator"`
 	CreatedTime       string               `json:"createdTime"`
 	TaskNodeInstances []*ProcInsNodeDetail `json:"taskNodeInstances"`
+	Version           string               `json:"version"`
 }
 
 type ProcInsNodeDetail struct {
-	Id                string   `json:"id"`
-	NodeId            string   `json:"nodeId"`
-	NodeName          string   `json:"nodeName"`
-	NodeDefId         string   `json:"nodeDefId"`
-	NodeType          string   `json:"nodeType"`
-	Description       string   `json:"description"`
-	OrderedNo         string   `json:"orderedNo"`
-	ProcDefId         string   `json:"procDefId"`
-	ProcDefKey        string   `json:"procDefKey"`
-	ProcInstId        string   `json:"procInstId"`
-	ProcInstKey       string   `json:"procInstKey"`
-	RoutineExpression string   `json:"routineExpression"`
-	Status            string   `json:"status"`
-	PreviousNodeIds   []string `json:"previousNodeIds"`
-	SucceedingNodeIds []string `json:"succeedingNodeIds"`
+	Id                  string   `json:"id"`
+	NodeId              string   `json:"nodeId"`
+	NodeName            string   `json:"nodeName"`
+	NodeDefId           string   `json:"nodeDefId"`
+	NodeType            string   `json:"nodeType"`
+	Description         string   `json:"description"`
+	OrderedNo           string   `json:"orderedNo"`
+	ProcDefId           string   `json:"procDefId"`
+	ProcDefKey          string   `json:"procDefKey"`
+	ProcInstId          string   `json:"procInstId"`
+	ProcInstKey         string   `json:"procInstKey"`
+	RoutineExpression   string   `json:"routineExpression"`
+	Status              string   `json:"status"`
+	PreviousNodeIds     []string `json:"previousNodeIds"`
+	SucceedingNodeIds   []string `json:"succeedingNodeIds"`
+	DynamicBind         int      `json:"dynamicBind"`
+	DynamicBindNodeName string   `json:"dynamicBindNodeName"`
 }
 
 type ProcCallPluginServiceFuncParam struct {
@@ -318,6 +321,7 @@ type ProcInsOperationParam struct {
 	Act        string `json:"act"`
 	ProcInstId string `json:"procInstId"`
 	NodeInstId string `json:"nodeInstId"`
+	Message    string `json:"message"`
 }
 
 func DistinctStringList(input, excludeList []string) (output []string) {
