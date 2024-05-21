@@ -233,7 +233,7 @@
                   </Col>
                   <Col span="1" offset="0">
                     <FormItem :label-width="0">
-                      <Select v-model="param.multiple" filterable style="width: 50px" disabled>
+                      <Select v-model="param.multiple" filterable style="width: 70px" disabled>
                         <Option v-for="item in sensitiveData" :value="item.value" :key="item.value">{{
                           item.label
                         }}</Option>
@@ -245,7 +245,7 @@
                       <Select
                         v-model="param.sensitiveData"
                         filterable
-                        style="width: 50px"
+                        style="width: 70px"
                         :disabled="currentPluginObj.status === 'ENABLED'"
                       >
                         <Option v-for="item in sensitiveData" :value="item.value" :key="item.value">{{
@@ -374,7 +374,7 @@
                     </Col>
                     <Col span="1" offset="0">
                       <FormItem :label-width="0">
-                        <Select v-model="outPut.multiple" filterable style="width: 50px" disabled>
+                        <Select v-model="outPut.multiple" filterable style="width: 70px" disabled>
                           <Option v-for="item in sensitiveData" :value="item.value" :key="item.value">{{
                             item.label
                           }}</Option>
@@ -386,7 +386,7 @@
                         <Select
                           filterable
                           v-model="outPut.sensitiveData"
-                          style="width: 50px"
+                          style="width: 70px"
                           :disabled="currentPluginObj.status === 'ENABLED'"
                         >
                           <Option v-for="item in sensitiveData" :value="item.value" :key="item.value">{{
@@ -446,7 +446,7 @@
                     </Col>
                     <Col span="1" offset="0">
                       <FormItem :label-width="0">
-                        <Select v-model="outPut.multiple" filterable style="width: 50px" disabled>
+                        <Select v-model="outPut.multiple" filterable style="width: 70px" disabled>
                           <Option v-for="item in sensitiveData" :value="item.value" :key="item.value">{{
                             item.label
                           }}</Option>
@@ -455,7 +455,7 @@
                     </Col>
                     <Col span="1" offset="1">
                       <FormItem :label-width="0">
-                        <Select filterable v-model="outPut.sensitiveData" style="width: 50px" disabled>
+                        <Select filterable v-model="outPut.sensitiveData" style="width: 70px" disabled>
                           <Option v-for="item in sensitiveData" :value="item.value" :key="item.value">{{
                             item.label
                           }}</Option>
