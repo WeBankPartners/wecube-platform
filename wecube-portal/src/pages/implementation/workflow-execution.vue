@@ -33,6 +33,9 @@
                     :label="
                       item.procInstName +
                       '  ' +
+                      '[' +
+                      item.version +
+                      ']  ' +
                       item.entityDisplayName +
                       '  ' +
                       (item.operator || 'operator') +
@@ -44,6 +47,7 @@
                   >
                     <span>
                       <span style="color: #2b85e4">{{ item.procInstName + ' ' }}</span>
+                      <span style="color: #515a6e">{{ '[' + item.version + '] ' }}</span>
                       <span style="color: #515a6e">{{ item.entityDisplayName + ' ' }}</span>
                       <span style="color: #ccc; padding-left: 8px; float: right">{{ item.status }}</span>
                       <span style="color: #ccc; float: right">{{
@@ -76,7 +80,7 @@
                     @on-clear="clearFlow"
                   >
                     <Option v-for="item in allFlows" :value="item.procDefId" :key="item.procDefId"
-                      >{{ item.procDefName }} {{ item.createdTime }}</Option
+                      >{{ item.procDefName }} [{{ item.procDefVersion }}] {{ item.createdTime }}</Option
                     >
                   </Select>
                 </FormItem>
@@ -269,10 +273,19 @@
         @on-select-cancel="retrySingleCancel"
         @on-select-all-cancel="retrySelectAllCancel"
         @on-select-all="retrySelectAll"
-        :columns="retryTargetModelColums"
+        :columns="retryTargetModelColums.filter(col => !col.disabled)"
         :data="retryTartetModels"
       >
       </Table>
+      <div slot="footer">
+        <span v-if="isNodeCanBindData" style="font-size: 12px; color: red; margin-right: 8px">{{
+          $t('be_dynamic_binding_warning')
+        }}</span>
+        <Button @click="retryTargetModalVisible = false">{{ $t('cancel') }}</Button>
+        <Button type="primary" :disabled="isNodeCanBindData" @click="retryTargetModelConfirm">{{
+          $t('submit')
+        }}</Button>
+      </div>
     </Modal>
     <Modal
       :title="currentNodeTitle"
@@ -295,7 +308,7 @@
         @on-select-cancel="singleCancel"
         @on-select-all-cancel="selectAllCancel"
         @on-select-all="selectAll"
-        :columns="targetModelColums"
+        :columns="targetModelColums.filter(col => !col.disabled)"
         :data="tartetModels"
       >
         <template slot-scope="{ row, index }" slot="action">
@@ -314,6 +327,13 @@
           </Tooltip>
         </template>
       </Table>
+      <div slot="footer">
+        <span v-if="isNodeCanBindData" style="font-size: 12px; color: red; margin-right: 8px">{{
+          $t('be_dynamic_binding_warning')
+        }}</span>
+        <Button @click="targetModalVisible = false">{{ $t('cancel') }}</Button>
+        <Button type="primary" :disabled="isNodeCanBindData" @click="targetModelConfirm">{{ $t('submit') }}</Button>
+      </div>
     </Modal>
     <Modal v-model="showNodeDetail" :fullscreen="nodeDetailFullscreen" width="1000" :styles="{ top: '50px' }">
       <p slot="header">
@@ -410,6 +430,54 @@
         <Button type="primary" @click="attrValue.isShow = false">{{ $t('bc_cancel') }}</Button>
       </div>
     </Modal>
+    <!-- 手动跳过 -->
+    <Modal
+      :title="$t('select_an_operation')"
+      v-model="manualSkipVisible"
+      :footer-hide="true"
+      :mask-closable="false"
+      :scrollable="true"
+    >
+      <span>{{ $t('be_expected_completion_time') }}：【{{ manualSkipParams.dateToDisplay }}】</span>
+      <div class="workflowActionModal-container" style="text-align: center; margin-top: 20px">
+        <Poptip
+          confirm
+          :title="$t('bc_confirm') + ' ' + $t('be_manual_skip')"
+          @on-ok="confirmSkip"
+          @on-cancel="manualSkipVisible = false"
+          :ok-text="$t('bc_confirm')"
+          :cancel-text="$t('bc_cancel')"
+        >
+          <Button type="warning">{{ $t('be_manual_skip') }}</Button>
+        </Poptip>
+      </div>
+    </Modal>
+
+    <!-- 手动跳过 -->
+    <Modal
+      :title="$t('select_an_operation')"
+      v-model="executeBranchVisible"
+      :footer-hide="true"
+      :mask-closable="false"
+      :scrollable="true"
+    >
+      <span>{{ $t('be_decision_branch') }}：</span>
+      <Select v-model="manualSkipParams.message" style="width: 300px">
+        <Option v-for="item in manualSkipParams.branchOption" :value="item" :key="item">{{ item }}</Option>
+      </Select>
+      <div class="workflowActionModal-container" style="text-align: center; margin-top: 20px">
+        <Poptip
+          confirm
+          :title="$t('bc_confirm') + ' ' + $t('be_execute_branch')"
+          @on-ok="confirmExecuteBranch"
+          @on-cancel="executeBranchVisible = false"
+          :ok-text="$t('bc_confirm')"
+          :cancel-text="$t('bc_cancel')"
+        >
+          <Button type="warning" :disabled="!manualSkipParams.message">{{ $t('be_execute_branch') }}</Button>
+        </Poptip>
+      </div>
+    </Modal>
   </div>
 </template>
 <script>
@@ -435,7 +503,11 @@ import {
   updateTaskNodeInstanceExecBindings,
   setUserScheduledTasks,
   getMetaData,
-  instancesWithPaging
+  instancesWithPaging,
+  getExecutionTimeByNodeId,
+  skipNode,
+  getBranchByNodeId,
+  executeBranch
 } from '@/api/server'
 import JsonViewer from 'vue-json-viewer'
 import * as d3 from 'd3-selection'
@@ -637,7 +709,8 @@ export default {
         {
           type: 'selection',
           width: 60,
-          align: 'center'
+          align: 'center',
+          disabled: true
         },
         {
           title: 'PackageName',
@@ -787,7 +860,18 @@ export default {
           ]
         }
       },
-      pluginInfo: ''
+      pluginInfo: '',
+      nodesCannotBindData: [], // 初始化不能绑定数据的节点
+      isNodeCanBindData: false,
+      manualSkipVisible: false, // 手动跳过
+      executeBranchVisible: false, // 执行分支
+      manualSkipParams: {
+        act: '', // 执行动作
+        procInstId: '',
+        nodeInstId: '',
+        message: '', // 选择执行的分支
+        branchOption: [] // 可执行分支
+      }
     }
   },
   components: { TimedExecution, JsonViewer, HistoryExecution },
@@ -1022,6 +1106,7 @@ export default {
             desc: 'Success'
           })
           this.workflowActionModalVisible = false
+          this.retryTargetModalVisible = false
           return
         }
         const retry = await retryProcessInstance({
@@ -1035,6 +1120,7 @@ export default {
             desc: 'Retry' + ' action is proceed successfully'
           })
           this.workflowActionModalVisible = false
+          this.retryTargetModalVisible = false
           this.processInstance()
         }
       }
@@ -1353,6 +1439,7 @@ export default {
       this.currentInstanceStatusForNodeOperation = ''
       this.stop()
       if (!this.selectedFlowInstance) return
+      this.getStatus()
       this.getCurrentInstanceStatus()
       this.isEnqueryPage = true
       this.$nextTick(async () => {
@@ -1372,8 +1459,13 @@ export default {
           // this.getTargetOptions()
           removeEvent('.retry', 'click', this.retryHandler)
           removeEvent('.normal', 'click', this.normalHandler)
+          removeEvent('.time-node', 'click', this.timeNodeHandler)
+          removeEvent('.decision-node', 'click', this.executeBranchHandler)
           this.initFlowGraph(true)
           this.showExcution = false
+          this.nodesCannotBindData = data.taskNodeInstances
+            .filter(d => [1, 2].includes(d.dynamicBind) && d.status === 'NotStarted')
+            .map(d => d.nodeId)
         }
         this.getModelData()
       })
@@ -1457,6 +1549,7 @@ export default {
         this.flowData = data
         this.initFlowGraph()
         this.getTargetOptions()
+        this.nodesCannotBindData = data.flowNodes.filter(d => d.dynamicBind === 'Y').map(d => d.nodeId)
       }
     },
     formatRefNodeIds () {
@@ -1509,7 +1602,7 @@ export default {
         const firstLabel = str.length > 30 ? `${str.slice(0, 1)}...${str.slice(-29)}` : str
         // const fontSize = Math.min((58 / len) * 3, 16)
         const label = firstLabel + '\n' + refStr
-        return `${nodeTitle} [label="${label}" class="model" id="${nodeId}" color="${color}" fontsize="6" style="filled" fillcolor="${fillcolor}" shape="box"]`
+        return `${nodeTitle} [label="${label}" class="model" id="${nodeId}" flowInstanceId="" color="${color}" fontsize="6" style="filled" fillcolor="${fillcolor}" shape="box"]`
       })
       let genEdge = () => {
         let pathAry = []
@@ -1625,7 +1718,13 @@ export default {
               }" color="${excution ? statusColor[_.status] : '#7F8A96'}" shape="circle", id="${_.nodeId}"]`
             } else {
               // const className = _.status === 'Faulted' || _.status === 'Timeouted' ? 'retry' : 'normal'
-              const className = 'retry'
+              let className = 'retry'
+              if (['timeInterval', 'date'].includes(_.nodeType) && _.status === 'InProgress') {
+                className = 'time-node'
+              }
+              if (['decision'].includes(_.nodeType) && _.status === 'InProgress') {
+                className = 'decision-node'
+              }
               const isModelClick = this.currentModelNodeRefs.indexOf(_.orderedNo) > -1
               return `${_.nodeId} [fixedsize=false label="${
                 (_.orderedNo ? _.orderedNo + ' ' : '') + _.nodeName
@@ -1678,12 +1777,20 @@ export default {
           if (this.isEnqueryPage) {
             removeEvent('.retry', 'click', this.retryHandler)
             removeEvent('.normal', 'click', this.normalHandler)
+            removeEvent('.time-node', 'click', this.timeNodeHandler)
+            removeEvent('.decision-node', 'click', this.executeBranchHandler)
             addEvent('.retry', 'click', this.retryHandler)
             addEvent('.normal', 'click', this.normalHandler)
+            addEvent('.time-node', 'click', this.timeNodeHandler)
+            addEvent('.decision-node', 'click', this.executeBranchHandler)
             d3.selectAll('.retry').attr('cursor', 'pointer')
+            d3.selectAll('.time-node').attr('cursor', 'pointer')
+            d3.selectAll('.decision-node').attr('cursor', 'pointer')
           } else {
             removeEvent('.retry', 'click', this.retryHandler)
             removeEvent('.normal', 'click', this.normalHandler)
+            removeEvent('.time-node', 'click', this.timeNodeHandler)
+            removeEvent('.decision-node', 'click', this.executeBranchHandler)
           }
         })
       this.bindFlowEvent()
@@ -1763,6 +1870,13 @@ export default {
       if (!(found && found.id)) return
       let { status, data } = await getProcessInstance(found.id)
       if (status === 'OK') {
+        const inProcessNode = data.taskNodeInstances.find(
+          node => node.nodeType === 'decision' && node.status === 'InProgress'
+        )
+        // 正在执行分支为判断分支时，拉起分支选择
+        if (inProcessNode) {
+          this.executeBranchHandler(null, inProcessNode.nodeId)
+        }
         if (
           !this.flowData.flowNodes ||
           (this.flowData.flowNodes && this.comparativeData(this.flowData.flowNodes, data.taskNodeInstances))
@@ -1773,6 +1887,8 @@ export default {
           }
           removeEvent('.retry', 'click', this.retryHandler)
           removeEvent('.normal', 'click', this.normalHandler)
+          removeEvent('.time-node', 'click', this.timeNodeHandler)
+          removeEvent('.decision-node', 'click', this.executeBranchHandler)
           this.initFlowGraph(true)
           this.renderModelGraph()
         }
@@ -1797,9 +1913,68 @@ export default {
     },
     retryHandler (e) {
       this.currentFailedNodeID = e.target.parentNode.getAttribute('id')
+      this.isNodeCanBindData = this.nodesCannotBindData.includes(this.currentFailedNodeID)
+      this.retryTargetModelColums[0].disabled = this.isNodeCanBindData
       this.workflowActionModalVisible = true
       this.targetModalVisible = false
       this.showNodeDetail = false
+    },
+    // 显示时间节点手动跳过
+    async timeNodeHandler (e) {
+      const flowInstanceNode = this.flowData.flowNodes.find(
+        node => node.nodeId === e.target.parentNode.getAttribute('id')
+      )
+      if (flowInstanceNode) {
+        this.manualSkipParams.act = 'skip'
+        this.manualSkipParams.message = ''
+        this.manualSkipParams.procInstId = flowInstanceNode.procInstId
+        this.manualSkipParams.nodeInstId = flowInstanceNode.id
+        const { status, data } = await getExecutionTimeByNodeId(this.manualSkipParams.nodeInstId)
+        if (status === 'OK') {
+          this.manualSkipParams.dateToDisplay = data
+          this.manualSkipVisible = true
+        }
+      }
+    },
+    // 确定手动跳过
+    async confirmSkip () {
+      const { status } = await skipNode(this.manualSkipParams)
+      if (status === 'OK') {
+        this.manualSkipVisible = false
+        this.$Notice.success({
+          title: 'Success',
+          desc: 'Skip action is proceed successfully'
+        })
+      }
+    },
+    // 判断节点-显示可执行分支
+    async executeBranchHandler (e, nodeId) {
+      if (this.executeBranchVisible) return
+      const flowInstanceNode =
+        this.flowData.flowNodes &&
+        this.flowData.flowNodes.find(node => node.nodeId === (nodeId || e.target.parentNode.getAttribute('id')))
+      if (flowInstanceNode) {
+        this.manualSkipParams.act = 'choose'
+        this.manualSkipParams.message = ''
+        this.manualSkipParams.procInstId = flowInstanceNode.procInstId
+        this.manualSkipParams.nodeInstId = flowInstanceNode.id
+        const { status, data } = await getBranchByNodeId(this.manualSkipParams.nodeInstId)
+        if (status === 'OK') {
+          this.manualSkipParams.branchOption = data
+          this.executeBranchVisible = true
+        }
+      }
+    },
+    // 判断分支-执行分支
+    async confirmExecuteBranch () {
+      const { status } = await executeBranch(this.manualSkipParams)
+      if (status === 'OK') {
+        this.executeBranchVisible = false
+        this.$Notice.success({
+          title: 'Success',
+          desc: 'Execute branch action is proceed successfully'
+        })
+      }
     },
     normalHandler (e) {
       this.flowGraphMouseenterHandler(e.target.parentNode.getAttribute('id'))
@@ -2027,6 +2202,8 @@ export default {
       this.catchTartetModels = []
       this.catchNodeTableList = []
       this.catchTartetModels = JSON.parse(JSON.stringify(this.tartetModels))
+      this.isNodeCanBindData = this.nodesCannotBindData.includes(nodeId)
+      this.targetModelColums[0].disabled = this.isNodeCanBindData
       this.targetModalVisible = true
       this.showNodeDetail = false
       this.$nextTick(() => {
