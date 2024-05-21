@@ -23,6 +23,10 @@ func GetDataModels(ctx context.Context, pluginPackage string, withAttr bool) (re
 		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
 		return
 	}
+	result = []*models.DataModel{}
+	if len(dataModelRows) == 0 {
+		return
+	}
 	var dmIds []string
 	for _, row := range dataModelRows {
 		dmIds = append(dmIds, row.Id)
@@ -168,7 +172,6 @@ func GetEntityModel(ctx context.Context, packageName, entityName string, onlyAtt
 				return
 			}
 			for _, entityObj := range refByEntityRows {
-				tmpByEntity := models.DataModelRefEntity{PluginPackageEntities: *entityObj}
 				for _, attrObj := range refByEntityAttrRows {
 					if attrObj.EntityId == entityObj.Id {
 						if attrObj.Mandatory {
@@ -176,11 +179,12 @@ func GetEntityModel(ctx context.Context, packageName, entityName string, onlyAtt
 						} else {
 							attrObj.MandatoryString = "N"
 						}
+						tmpByEntity := models.DataModelRefEntity{PluginPackageEntities: *entityObj}
 						tmpByEntity.RelatedAttribute = attrObj
-						break
+						result.ReferenceByEntityList = append(result.ReferenceByEntityList, &tmpByEntity)
+						//continue
 					}
 				}
-				result.ReferenceByEntityList = append(result.ReferenceByEntityList, &tmpByEntity)
 			}
 		}
 	}
