@@ -452,6 +452,32 @@
         </Poptip>
       </div>
     </Modal>
+
+    <!-- 手动跳过 -->
+    <Modal
+      :title="$t('select_an_operation')"
+      v-model="executeBranchVisible"
+      :footer-hide="true"
+      :mask-closable="false"
+      :scrollable="true"
+    >
+      <span>{{ $t('be_decision_branch') }}：</span>
+      <Select v-model="manualSkipParams.message" style="width: 300px">
+        <Option v-for="item in manualSkipParams.branchOption" :value="item" :key="item">{{ item }}</Option>
+      </Select>
+      <div class="workflowActionModal-container" style="text-align: center; margin-top: 20px">
+        <Poptip
+          confirm
+          :title="$t('bc_confirm') + ' ' + $t('be_execute_branch')"
+          @on-ok="confirmExecuteBranch"
+          @on-cancel="executeBranchVisible = false"
+          :ok-text="$t('bc_confirm')"
+          :cancel-text="$t('bc_cancel')"
+        >
+          <Button type="warning" :disabled="!manualSkipParams.message">{{ $t('be_execute_branch') }}</Button>
+        </Poptip>
+      </div>
+    </Modal>
   </div>
 </template>
 <script>
@@ -479,7 +505,9 @@ import {
   getMetaData,
   instancesWithPaging,
   getExecutionTimeByNodeId,
-  skipNode
+  skipNode,
+  getBranchByNodeId,
+  executeBranch
 } from '@/api/server'
 import JsonViewer from 'vue-json-viewer'
 import * as d3 from 'd3-selection'
@@ -836,10 +864,13 @@ export default {
       nodesCannotBindData: [], // 初始化不能绑定数据的节点
       isNodeCanBindData: false,
       manualSkipVisible: false, // 手动跳过
+      executeBranchVisible: false, // 执行分支
       manualSkipParams: {
-        act: 'skip',
+        act: '', // 执行动作
         procInstId: '',
-        nodeInstId: ''
+        nodeInstId: '',
+        message: '', // 选择执行的分支
+        branchOption: [] // 可执行分支
       }
     }
   },
@@ -1408,6 +1439,7 @@ export default {
       this.currentInstanceStatusForNodeOperation = ''
       this.stop()
       if (!this.selectedFlowInstance) return
+      this.getStatus()
       this.getCurrentInstanceStatus()
       this.isEnqueryPage = true
       this.$nextTick(async () => {
@@ -1428,6 +1460,7 @@ export default {
           removeEvent('.retry', 'click', this.retryHandler)
           removeEvent('.normal', 'click', this.normalHandler)
           removeEvent('.time-node', 'click', this.timeNodeHandler)
+          removeEvent('.decision-node', 'click', this.executeBranchHandler)
           this.initFlowGraph(true)
           this.showExcution = false
           this.nodesCannotBindData = data.taskNodeInstances
@@ -1689,6 +1722,9 @@ export default {
               if (['timeInterval', 'date'].includes(_.nodeType) && _.status === 'InProgress') {
                 className = 'time-node'
               }
+              if (['decision'].includes(_.nodeType) && _.status === 'InProgress') {
+                className = 'decision-node'
+              }
               const isModelClick = this.currentModelNodeRefs.indexOf(_.orderedNo) > -1
               return `${_.nodeId} [fixedsize=false label="${
                 (_.orderedNo ? _.orderedNo + ' ' : '') + _.nodeName
@@ -1742,15 +1778,19 @@ export default {
             removeEvent('.retry', 'click', this.retryHandler)
             removeEvent('.normal', 'click', this.normalHandler)
             removeEvent('.time-node', 'click', this.timeNodeHandler)
+            removeEvent('.decision-node', 'click', this.executeBranchHandler)
             addEvent('.retry', 'click', this.retryHandler)
             addEvent('.normal', 'click', this.normalHandler)
             addEvent('.time-node', 'click', this.timeNodeHandler)
+            addEvent('.decision-node', 'click', this.executeBranchHandler)
             d3.selectAll('.retry').attr('cursor', 'pointer')
             d3.selectAll('.time-node').attr('cursor', 'pointer')
+            d3.selectAll('.decision-node').attr('cursor', 'pointer')
           } else {
             removeEvent('.retry', 'click', this.retryHandler)
             removeEvent('.normal', 'click', this.normalHandler)
             removeEvent('.time-node', 'click', this.timeNodeHandler)
+            removeEvent('.decision-node', 'click', this.executeBranchHandler)
           }
         })
       this.bindFlowEvent()
@@ -1830,6 +1870,13 @@ export default {
       if (!(found && found.id)) return
       let { status, data } = await getProcessInstance(found.id)
       if (status === 'OK') {
+        const inProcessNode = data.taskNodeInstances.find(
+          node => node.nodeType === 'decision' && node.status === 'InProgress'
+        )
+        // 正在执行分支为判断分支时，拉起分支选择
+        if (inProcessNode) {
+          this.executeBranchHandler(null, inProcessNode.nodeId)
+        }
         if (
           !this.flowData.flowNodes ||
           (this.flowData.flowNodes && this.comparativeData(this.flowData.flowNodes, data.taskNodeInstances))
@@ -1841,6 +1888,7 @@ export default {
           removeEvent('.retry', 'click', this.retryHandler)
           removeEvent('.normal', 'click', this.normalHandler)
           removeEvent('.time-node', 'click', this.timeNodeHandler)
+          removeEvent('.decision-node', 'click', this.executeBranchHandler)
           this.initFlowGraph(true)
           this.renderModelGraph()
         }
@@ -1877,6 +1925,8 @@ export default {
         node => node.nodeId === e.target.parentNode.getAttribute('id')
       )
       if (flowInstanceNode) {
+        this.manualSkipParams.act = 'skip'
+        this.manualSkipParams.message = ''
         this.manualSkipParams.procInstId = flowInstanceNode.procInstId
         this.manualSkipParams.nodeInstId = flowInstanceNode.id
         const { status, data } = await getExecutionTimeByNodeId(this.manualSkipParams.nodeInstId)
@@ -1886,6 +1936,7 @@ export default {
         }
       }
     },
+    // 确定手动跳过
     async confirmSkip () {
       const { status } = await skipNode(this.manualSkipParams)
       if (status === 'OK') {
@@ -1893,6 +1944,35 @@ export default {
         this.$Notice.success({
           title: 'Success',
           desc: 'Skip action is proceed successfully'
+        })
+      }
+    },
+    // 判断节点-显示可执行分支
+    async executeBranchHandler (e, nodeId) {
+      if (this.executeBranchVisible) return
+      const flowInstanceNode =
+        this.flowData.flowNodes &&
+        this.flowData.flowNodes.find(node => node.nodeId === (nodeId || e.target.parentNode.getAttribute('id')))
+      if (flowInstanceNode) {
+        this.manualSkipParams.act = 'choose'
+        this.manualSkipParams.message = ''
+        this.manualSkipParams.procInstId = flowInstanceNode.procInstId
+        this.manualSkipParams.nodeInstId = flowInstanceNode.id
+        const { status, data } = await getBranchByNodeId(this.manualSkipParams.nodeInstId)
+        if (status === 'OK') {
+          this.manualSkipParams.branchOption = data
+          this.executeBranchVisible = true
+        }
+      }
+    },
+    // 判断分支-执行分支
+    async confirmExecuteBranch () {
+      const { status } = await executeBranch(this.manualSkipParams)
+      if (status === 'OK') {
+        this.executeBranchVisible = false
+        this.$Notice.success({
+          title: 'Success',
+          desc: 'Execute branch action is proceed successfully'
         })
       }
     },
