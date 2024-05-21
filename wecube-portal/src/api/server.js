@@ -105,6 +105,12 @@ export const createEnumCategory = data =>
 export const updateEnumCategory = data =>
   req.put(`/platform/v1/cmdb/enum/category-types/${data.catTypeId}/categories/${data.catId}`, data)
 export const login = data => req.post('/auth/v1/api/login', data)
+export const getEncryptKey = () => req.get(`/auth/v1/login/seed`)
+// 获取可申请角色列表
+export const getApplyRoles = data => req.get(`/auth/v1/roles?all=${data.all}&roleAdmin=${data.roleAdmin}`)
+export const startApply = data => req.post('/auth/v1/roles/apply', data)
+export const registerUser = data => req.post('/auth/v1/users/register', data)
+
 export const deletePluginPkg = id => req.post(`/platform/v1/packages/decommission/${id}`)
 export const getPluginPkgDataModel = id => req.get(`/platform/v1/packages/${id}/models`)
 export const getPluginPkgDependcy = id => req.get(`/platform/v1/packages/${id}/dependencies`)
@@ -296,3 +302,26 @@ export const getBatchExecuteList = data => req.post(`/platform/v1/batch-executio
 export const batchExecuteHistory = id => req.get(`/platform/v1/batch-execution/${id}`)
 // 保存批量执行
 export const saveBatchExecute = (url, data) => req.post(url, data)
+
+// 申请列表-管理员视角
+export const getProcessableList = data => req.post(`/auth/v1/roles/apply/byhandler`, data)
+// 获取所有用户
+export const getAllUser = roleId => req.get(`/auth/v1/users`)
+// 获取角色下用户
+export const getUserByRole = roleId => req.get(`/auth/v1/roles/${roleId}/users`)
+// 从角色中删除用户
+export const removeUserFromRole = (roleId, data) => req.post(`/auth/v1/roles/${roleId}/users/revoke`, data)
+// 为角色添加用户
+export const addUserForRole = (roleId, data) => req.post(`/auth/v1/roles/${roleId}/users`, data)
+export const handleApplication = data => req.put(`/auth/v1/roles/apply`, data)
+// 申请列表-用户视角
+export const getApplyList = data => req.post(`/auth/v1/roles/apply/byapplier`, data)
+
+// 编排执行-获取时间节点预计执行时间
+export const getExecutionTimeByNodeId = nodeId => req.get(`/platform/v1/process/instances/node-message/${nodeId}/time`)
+// 编排执行-获取判断节点可执行分支
+export const getBranchByNodeId = nodeId => req.get(`/platform/v1/process/instances/node-message/${nodeId}/choose`)
+// 编排执行-跳过时间节点
+export const skipNode = data => req.post(`/platform/v1/process/instances/proceed`, data)
+// 编排执行-执行判断分支
+export const executeBranch = data => req.post(`/platform/v1/process/instances/proceed`, data)

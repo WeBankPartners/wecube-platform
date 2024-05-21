@@ -177,6 +177,8 @@ func init() {
 		&handlerFuncObj{Url: "/process/instancesWithPaging", Method: "POST", HandlerFunc: process.QueryProcInsPageData, ApiCode: "proc-ins-page-data"},
 		&handlerFuncObj{Url: "/operation-events", Method: "POST", HandlerFunc: process.ProcStartEvents, ApiCode: "proc-start-events"},
 		&handlerFuncObj{Url: "/public/process/definitions/:proc-def-id/options/:proc-node-def-id", Method: "GET", HandlerFunc: process.GetProcNodeAllowOptions, ApiCode: "get-proc-node-options"},
+		&handlerFuncObj{Url: "/process/instances/node-message/:procInsNodeId/time", Method: "GET", HandlerFunc: process.GetProcNodeEndTime, ApiCode: "get-process-ins-node-time"},
+		&handlerFuncObj{Url: "/process/instances/node-message/:procInsNodeId/choose", Method: "GET", HandlerFunc: process.GetProcNodeNextChoose, ApiCode: "get-process-ins-node-choose"},
 
 		// certification manager
 		&handlerFuncObj{Url: "/plugin-certifications", Method: "GET", HandlerFunc: certification.GetCertifications, ApiCode: "get-certifications"},
@@ -196,6 +198,7 @@ func init() {
 		&handlerFuncObj{Url: "/batch-execution/list", Method: "POST", HandlerFunc: batch_execution.RetrieveBatchExec, ApiCode: "retrieve-batch-execution"},
 		&handlerFuncObj{Url: "/batch-execution/:batchExecId", Method: "GET", HandlerFunc: batch_execution.GetBatchExec, ApiCode: "get-batch-execution"},
 		&handlerFuncObj{Url: "/batch-execution/job/run", Method: "POST", HandlerFunc: batch_execution.RunJob, ApiCode: "run-batch-execution-job"},
+		&handlerFuncObj{Url: "/batch-execution/seed", Method: "GET", HandlerFunc: batch_execution.GetSeed, ApiCode: "get-batch-execution-seed"},
 
 		// process schedule
 		&handlerFuncObj{Url: "/user-scheduled-tasks/query", Method: "POST", HandlerFunc: process.QueryProcScheduleList, ApiCode: "query_proc_schedule"},

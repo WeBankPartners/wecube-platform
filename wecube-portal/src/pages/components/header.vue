@@ -31,6 +31,17 @@
             <img class="p-icon" src="../../assets/icon/icon_usr.png" width="12" height="12" />{{ username }}
             <Icon type="ios-arrow-down"></Icon>
             <DropdownMenu slot="list">
+              <DropdownItem name="userApply">
+                <a @click="roleApply" style="width: 100%; display: block">
+                  {{ $t('be_apply_roles') }}
+                </a>
+              </DropdownItem>
+              <DropdownItem name="userMgmt">
+                <a @click="userMgmt" style="width: 100%; display: block">
+                  {{ $t('be_user_mgmt') }}
+                  <Badge :count="pendingCount" @click="userMgmt" style="top: -2px"></Badge>
+                </a>
+              </DropdownItem>
               <DropdownItem name="logout" to="/login">
                 <a @click="showChangePassword" style="width: 100%; display: block">
                   {{ $t('change_password') }}
@@ -116,12 +127,22 @@
         <Button type="primary" @click="okChangePassword">{{ $t('bc_confirm') }}</Button>
       </div>
     </Modal>
+    <UserMgmt ref="userMgmtRef"></UserMgmt>
+    <RoleApply ref="roleApplyRef"></RoleApply>
   </div>
 </template>
 <script>
+import UserMgmt from './user-mgmt.vue'
+import RoleApply from './role-apply.vue'
 import { clearCookie } from '@/pages/util/cookie'
 import Vue from 'vue'
-import { getMyMenus, getAllPluginPackageResourceFiles, getApplicationVersion, changePassword } from '@/api/server.js'
+import {
+  getMyMenus,
+  getAllPluginPackageResourceFiles,
+  getApplicationVersion,
+  changePassword,
+  getProcessableList
+} from '@/api/server.js'
 import { getChildRouters } from '../util/router.js'
 import { MENUS } from '../../const/menus.js'
 export default {
@@ -156,7 +177,9 @@ export default {
         originalPassword: [{ required: true, message: 'The Original Password cannot be empty', trigger: 'blur' }],
         newPassword: [{ required: true, message: 'New Password cannot be empty', trigger: 'blur' }],
         confirmPassword: [{ required: true, message: 'Confirm Password cannot be empty', trigger: 'blur' }]
-      }
+      },
+      pendingCount: 0, // 待审批数量
+      timer: null
     }
   },
   methods: {
@@ -322,7 +345,41 @@ export default {
           }
         })
       }
+    },
+    // #region 角色管理，角色申请
+    userMgmt () {
+      this.$refs.userMgmtRef.openModal()
+    },
+    roleApply () {
+      this.$refs.roleApplyRef.openModal()
+    },
+    async getPendingCount () {
+      const params = {
+        filters: [
+          {
+            name: 'status',
+            operator: 'in',
+            value: ['init']
+          }
+        ],
+        paging: true,
+        pageable: {
+          startIndex: 0,
+          pageSize: 10000
+        },
+        sorting: [
+          {
+            asc: false,
+            field: 'createdTime'
+          }
+        ]
+      }
+      const { status, data } = await getProcessableList(params)
+      if (status === 'OK') {
+        this.pendingCount = data.pageInfo.totalRows
+      }
     }
+    // #endregion
   },
   async created () {
     this.getLocalLang()
@@ -344,6 +401,15 @@ export default {
     this.$eventBusP.$on('updateMenus', () => {
       this.getMyMenus()
     })
+
+    this.getPendingCount()
+    this.timer = setInterval(() => {
+      this.getPendingCount()
+    }, 5 * 60 * 1000)
+  },
+  components: {
+    UserMgmt,
+    RoleApply
   }
 }
 </script>

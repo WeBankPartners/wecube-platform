@@ -7,6 +7,7 @@
           type="datetimerange"
           v-model="time"
           format="yyyy-MM-dd HH:mm:ss"
+          split-panels
           @on-change="getDate"
           style="width: 320px"
         ></DatePicker>
@@ -221,7 +222,17 @@ export default {
         {
           title: this.$t('flow_name'),
           key: 'procDefName',
-          width: 200
+          width: 200,
+          render: (h, params) => {
+            return (
+              <div>
+                <span>
+                  {params.row.procDefName}
+                  <Tag style="margin-left:2px">{params.row.version}</Tag>
+                </span>
+              </div>
+            )
+          }
         },
         {
           title: this.$t('target_object'),

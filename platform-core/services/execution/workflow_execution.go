@@ -145,8 +145,19 @@ func DoWorkflowAutoJob(ctx context.Context, procRunNodeId, continueToken string,
 		err = getNodeDataErr
 		return
 	}
-	if procDefNode.DynamicBind {
+	if procDefNode.DynamicBind == 1 {
 		dataBindings, err = database.GetDynamicBindNodeData(ctx, procInsNode.ProcInsId, procDefNode.ProcDefId, procDefNode.BindNodeId)
+		if err != nil {
+			err = fmt.Errorf("get dynamic bind data fail,%s ", err.Error())
+			return
+		}
+		if len(dataBindings) > 0 {
+			err = database.UpdateDynamicNodeBindData(ctx, procInsNode.ProcInsId, procInsNode.Id, procDefNode.ProcDefId, procDefNode.Id, dataBindings)
+			if err != nil {
+				err = fmt.Errorf("try to update dynamic node binding data fail,%s ", err.Error())
+				return
+			}
+		}
 	}
 	if len(dataBindings) == 0 {
 		log.Logger.Warn("auto job return with empty binding data", log.String("procIns", procInsNode.ProcInsId), log.String("procInsNode", procInsNode.Id))
@@ -193,7 +204,7 @@ func DoWorkflowAutoJob(ctx context.Context, procRunNodeId, continueToken string,
 				return
 			}
 			if bindNodeDef.NodeType == models.JobStartType {
-				buildStartNodeContextMap(inputContextMap, procIns)
+				buildStartNodeContextMap(inputContextMap, procIns, v)
 			} else if bindNodeDef.NodeType == models.JobAutoType || bindNodeDef.NodeType == models.JobHumanType {
 				if err = buildAutoNodeContextMap(ctx, entityInstances, procIns, bindNodeDef, dataBindings, v.CtxBindType, v.CtxBindName, v.Name); err != nil {
 					err = fmt.Errorf("buildAutoNodeContextMap fail with param:%s,error:%s", v.Name, err.Error())
@@ -343,10 +354,18 @@ func DoWorkflowHumanJob(ctx context.Context, procRunNodeId string, recoverFlag b
 		err = getNodeDataErr
 		return
 	}
-	if procDefNode.DynamicBind {
+	if procDefNode.DynamicBind == 1 {
 		dataBindings, err = database.GetDynamicBindNodeData(ctx, procInsNode.ProcInsId, procDefNode.ProcDefId, procDefNode.BindNodeId)
 		if err != nil {
+			err = fmt.Errorf("get dynamic bind data fail,%s ", err.Error())
 			return
+		}
+		if len(dataBindings) > 0 {
+			err = database.UpdateDynamicNodeBindData(ctx, procInsNode.ProcInsId, procInsNode.Id, procDefNode.ProcDefId, procDefNode.Id, dataBindings)
+			if err != nil {
+				err = fmt.Errorf("try to update dynamic node binding data fail,%s ", err.Error())
+				return
+			}
 		}
 	}
 	pluginInterface, getIntErr := database.GetLastEnablePluginInterface(ctx, procDefNode.ServiceName)
@@ -383,7 +402,7 @@ func DoWorkflowHumanJob(ctx context.Context, procRunNodeId string, recoverFlag b
 				return
 			}
 			if bindNodeDef.NodeType == models.JobStartType {
-				buildStartNodeContextMap(inputContextMap, procIns)
+				buildStartNodeContextMap(inputContextMap, procIns, v)
 			} else if bindNodeDef.NodeType == models.JobAutoType || bindNodeDef.NodeType == models.JobHumanType {
 				if err = buildAutoNodeContextMap(ctx, entityInstances, procIns, bindNodeDef, dataBindings, v.CtxBindType, v.CtxBindName, v.Name); err != nil {
 					err = fmt.Errorf("buildAutoNodeContextMap fail with param:%s,error:%s", v.Name, err.Error())
@@ -638,7 +657,7 @@ func HandleCallbackHumanJob(ctx context.Context, procRunNodeId string, callbackD
 	return
 }
 
-func buildStartNodeContextMap(inputContextMap map[string]interface{}, procIns *models.ProcIns) {
+func buildStartNodeContextMap(inputContextMap map[string]interface{}, procIns *models.ProcIns, procDefNodeParam *models.ProcDefNodeParam) {
 	inputContextMap["procInstId"] = procIns.Id
 	inputContextMap["procDefName"] = procIns.ProcDefName
 	inputContextMap["procDefKey"] = procIns.ProcDefKey
@@ -646,6 +665,11 @@ func buildStartNodeContextMap(inputContextMap map[string]interface{}, procIns *m
 	inputContextMap["procInstName"] = procIns.ProcDefName
 	inputContextMap["rootEntityId"] = procIns.EntityDataId
 	inputContextMap["rootEntityName"] = procIns.EntityDataName
+	if procDefNodeParam.CtxBindName != procDefNodeParam.Name {
+		if v, ok := inputContextMap[procDefNodeParam.CtxBindName]; ok {
+			inputContextMap[procDefNodeParam.Name] = v
+		}
+	}
 }
 
 func buildAutoNodeContextMap(ctx context.Context,
@@ -656,11 +680,13 @@ func buildAutoNodeContextMap(ctx context.Context,
 	bindParamType, bindParamName, paramName string) (err error) {
 	log.Logger.Debug("buildAutoNodeContextMap start", log.JsonObj("entityInstances", entityInstances), log.JsonObj("bindNodeDef", bindNodeDef), log.JsonObj("targetNodeDataBindings", targetNodeDataBindings), log.String("bindParamType", bindParamType), log.String("bindParamName", bindParamName), log.String("paramName", paramName))
 	var sourceNodeDataBindings []*models.ProcDataBinding
-	if bindNodeDef.DynamicBind {
-		sourceNodeDataBindings, err = database.GetDynamicBindNodeData(ctx, procIns.Id, procIns.ProcDefId, bindNodeDef.BindNodeId)
-	} else {
-		sourceNodeDataBindings, err = database.GetDynamicBindNodeData(ctx, procIns.Id, procIns.ProcDefId, bindNodeDef.NodeId)
-	}
+	//if bindNodeDef.DynamicBind {
+	//	sourceNodeDataBindings, err = database.GetDynamicBindNodeData(ctx, procIns.Id, procIns.ProcDefId, bindNodeDef.BindNodeId)
+	//} else {
+	//	sourceNodeDataBindings, err = database.GetDynamicBindNodeData(ctx, procIns.Id, procIns.ProcDefId, bindNodeDef.NodeId)
+	//}
+	// 所有已跑过的节点都会有绑定数据，包括动态绑定节点
+	sourceNodeDataBindings, err = database.GetDynamicBindNodeData(ctx, procIns.Id, procIns.ProcDefId, bindNodeDef.NodeId)
 	if err != nil {
 		return
 	}
