@@ -100,7 +100,7 @@ window.implicitRoutes = {
     },
     parentBreadcrumb: {
       'en-US': 'Workflow',
-      'zh-CN': '任务编排'
+      'zh-CN': '编排设计'
     }
   }
 }
