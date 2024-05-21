@@ -61,8 +61,8 @@ func AddOrUpdateProcessDefinition(c *gin.Context) {
 		return
 	}
 	// 1.权限参数校验
-	if len(param.PermissionToRole.MGMT) == 0 {
-		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, fmt.Errorf("request param err,permissionToRole MGMT is empty")))
+	if len(param.PermissionToRole.MGMT) != 1 {
+		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, fmt.Errorf("request param err,permissionToRole MGMT only one length")))
 		return
 	}
 	// 判断名称和版本是否重复
@@ -122,7 +122,7 @@ func AddOrUpdateProcessDefinition(c *gin.Context) {
 			middleware.ReturnError(c, err)
 			return
 		}
-		if result.RootEntity == param.RootEntity || len(nodeList) == 0 {
+		if checkRootEntityEquals(result.RootEntity, param.RootEntity) || len(nodeList) == 0 {
 			err = database.UpdateProcDef(c, entity)
 		} else {
 			// 编排根节点改变,需要同时清除编排所有节点的 RoutineExpression、ServiceName、ParamInfos
@@ -1552,4 +1552,30 @@ func CheckPermission(procDef *models.ProcDef, user string) (err error) {
 func GetLowVersionUnixMillis(t time.Time) string {
 	millisecondsSinceEpoch := t.Sub(time.Date(1970, 1, 1, 0, 0, 0, 0, time.UTC)).Nanoseconds() / 1e6 // 计算从1970年1月1日起经过的微秒数，再除以1000得到毫秒数
 	return fmt.Sprintf("%d", millisecondsSinceEpoch)
+}
+
+func checkRootEntityEquals(originEntity, targetEntity string) bool {
+	var origin, target string
+	if len(originEntity) == 0 && len(targetEntity) == 0 {
+		return true
+	}
+	if len(originEntity) == 0 {
+		return false
+	}
+	if len(targetEntity) == 0 {
+		return false
+	}
+	originStart := strings.Index(originEntity, "{")
+	if originStart == -1 {
+		origin = originEntity
+	} else {
+		origin = originEntity[:originStart]
+	}
+	targetStart := strings.Index(targetEntity, "{")
+	if targetStart == -1 {
+		target = targetEntity
+	} else {
+		target = targetEntity[:targetStart]
+	}
+	return origin == target
 }
