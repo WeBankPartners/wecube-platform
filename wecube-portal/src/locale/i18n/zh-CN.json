@@ -744,5 +744,9 @@
   "be_application_record": "申请记录",
   "be_approve": "同意",
   "be_add_custom_parameters": "新增自定义参数",
-  "be_allow_skip": "允许跳过"
+  "be_allow_skip": "允许跳过",
+  "be_manual_skip": "手动跳过",
+  "be_expected_completion_time": "预计完成时间",
+  "be_execute_branch": "执行分支",
+  "be_decision_branch": "判断分支"
 }
