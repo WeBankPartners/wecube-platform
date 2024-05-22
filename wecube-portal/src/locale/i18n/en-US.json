@@ -749,5 +749,7 @@
   "be_manual_skip": "Manual Skip",
   "be_expected_completion_time": "Expected Completion Time",
   "be_execute_branch": "Execute Branch",
-  "be_decision_branch": "Decision Branch"
+  "be_decision_branch": "Decision Branch",
+  "be_pause": "Pause",
+  "be_continue": "Continue"
 }
