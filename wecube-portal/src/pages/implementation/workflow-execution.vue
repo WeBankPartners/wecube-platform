@@ -60,6 +60,20 @@
                   </Option>
                 </Select>
                 <Button type="info" @click="queryHandler">{{ $t('query_orch') }}</Button>
+                <Button
+                  type="warning"
+                  @click="flowControlHandler('stop')"
+                  :disabled="currentInstanceStatusForNodeOperation !== 'InProgress'"
+                  icon="md-pause"
+                  >{{ $t('be_pause') }}</Button
+                >
+                <Button
+                  type="primary"
+                  @click="flowControlHandler('recover')"
+                  :disabled="currentInstanceStatusForNodeOperation !== 'Stop'"
+                  icon="md-play"
+                  >{{ $t('be_continue') }}</Button
+                >
                 <Button :disabled="currentInstanceStatus || stopSuccess" type="warning" @click="stopHandler">{{
                   $t('stop_orch')
                 }}</Button>
@@ -507,7 +521,8 @@ import {
   getExecutionTimeByNodeId,
   skipNode,
   getBranchByNodeId,
-  executeBranch
+  executeBranch,
+  pauseAndContinueFlow
 } from '@/api/server'
 import JsonViewer from 'vue-json-viewer'
 import * as d3 from 'd3-selection'
@@ -865,6 +880,7 @@ export default {
       isNodeCanBindData: false,
       manualSkipVisible: false, // 手动跳过
       executeBranchVisible: false, // 执行分支
+      hasExecuteBranchVisible: false, // 同一编排在进入只进行一次展示
       manualSkipParams: {
         act: '', // 执行动作
         procInstId: '',
@@ -1064,6 +1080,7 @@ export default {
     },
     tabChanged (v) {
       this.selectedFlowInstance = ''
+      this.currentInstanceStatusForNodeOperation = ''
       // create_new_workflow_job   enquery_new_workflow_job
       this.currentTab = v
       if (v === 'create_new_workflow_job') {
@@ -1352,6 +1369,7 @@ export default {
       this.allBindingsList = filter.concat(payload)
     },
     async getProcessInstances (isAfterCreate = false, createResponse = undefined) {
+      this.currentInstanceStatusForNodeOperation = ''
       if (this.querySelectedFlowInstanceId) {
         const params = {
           id: this.querySelectedFlowInstanceId,
@@ -1424,6 +1442,7 @@ export default {
       this.stop()
       this.selectedFlow = ''
       this.selectedTarget = ''
+      this.currentInstanceStatusForNodeOperation = ''
       d3.select('#flow').selectAll('*').remove()
       d3.select('#graph').selectAll('*').remove()
     },
@@ -1436,6 +1455,7 @@ export default {
       }
     },
     queryHandler () {
+      this.hasExecuteBranchVisible = false
       this.currentInstanceStatusForNodeOperation = ''
       this.stop()
       if (!this.selectedFlowInstance) return
@@ -1870,11 +1890,12 @@ export default {
       if (!(found && found.id)) return
       let { status, data } = await getProcessInstance(found.id)
       if (status === 'OK') {
+        this.currentInstanceStatusForNodeOperation = data.status
         const inProcessNode = data.taskNodeInstances.find(
           node => node.nodeType === 'decision' && node.status === 'InProgress'
         )
         // 正在执行分支为判断分支时，拉起分支选择
-        if (inProcessNode) {
+        if (this.currentInstanceStatusForNodeOperation !== 'Stop' && !this.hasExecuteBranchVisible && inProcessNode) {
           this.executeBranchHandler(null, inProcessNode.nodeId)
         }
         if (
@@ -1962,6 +1983,7 @@ export default {
         if (status === 'OK') {
           this.manualSkipParams.branchOption = data
           this.executeBranchVisible = true
+          this.hasExecuteBranchVisible = true
         }
       }
     },
@@ -2268,7 +2290,24 @@ export default {
     zoomModal () {
       this.tableMaxHeight = document.body.scrollHeight - 410
       this.nodeDetailFullscreen = true
+    },
+    // #region 暂停、继续编排
+    async flowControlHandler (operateType) {
+      let payload = {
+        procInstId: this.selectedFlowInstance,
+        act: operateType
+      }
+      const { status } = await pauseAndContinueFlow(payload)
+      if (status === 'OK') {
+        this.$Notice.success({
+          title: 'Success',
+          desc: 'Success'
+        })
+        this.currentInstanceStatusForNodeOperation = operateType === 'stop' ? 'Stop' : 'InProgress'
+        this.getProcessInstances()
+      }
     }
+    // #endregion
   }
 }
 </script>
