@@ -78,12 +78,12 @@ func (w *Workflow) Start(input *models.ProcOperation) {
 		sleepFlag = true
 	}
 	if killFlag {
-		log.Logger.Info("<--workflow kill-->")
+		log.Logger.Info("<--workflow kill-->", log.String("wid", w.Id))
 		<-w.doneChan
 	} else if sleepFlag {
-		log.Logger.Info("<--workflow sleep-->")
+		log.Logger.Info("<--workflow sleep-->", log.String("wid", w.Id))
 	} else {
-		log.Logger.Info("<--workflow done-->")
+		log.Logger.Info("<--workflow done-->", log.String("wid", w.Id))
 		w.setStatus(w.Status, nil)
 	}
 	GlobalWorkflowMap.Delete(w.Id)
@@ -103,7 +103,7 @@ func (w *Workflow) nodeDoneCallback(node *WorkNode) {
 	decisionChose := ""
 	if node.JobType == models.JobDecisionType {
 		decisionChose = node.Input
-		log.Logger.Info("decision node receive choose", log.String(decisionChose, "decisionChose"))
+		log.Logger.Info("decision node receive choose", log.String("wid", w.Id), log.String("decisionChose", decisionChose))
 	}
 	if node.Err != nil {
 		w.updateErrorList(true, "", &models.WorkProblemErrObj{NodeId: node.Id, NodeName: node.Name, ErrMessage: node.Err.Error()})
@@ -122,19 +122,22 @@ func (w *Workflow) nodeDoneCallback(node *WorkNode) {
 	}
 	// 找到节点下一跳发出start信号
 	for _, ref := range w.Links {
-		if decisionChose != "" {
-			if ref.Name != decisionChose {
-				continue
+		if node.JobType == models.JobDecisionType {
+			if decisionChose != "" {
+				if ref.Name != decisionChose {
+					continue
+				}
 			}
-		}
-		if ref.Source == node.Id {
-			for _, targetNode := range w.Nodes {
-				if targetNode.Id == ref.Target {
-					if targetNode.JobType == models.JobDecisionType {
-						targetNode.Input = node.Output
+		} else {
+			if ref.Source == node.Id {
+				for _, targetNode := range w.Nodes {
+					if targetNode.Id == ref.Target {
+						if targetNode.JobType == models.JobDecisionType {
+							targetNode.Input = node.Output
+						}
+						targetNode.StartChan <- 1
+						break
 					}
-					targetNode.StartChan <- 1
-					break
 				}
 			}
 		}
@@ -442,6 +445,9 @@ func (n *WorkNode) start() {
 				n.Input = <-n.callbackChan
 				//n.Err = fmt.Errorf("dicision type receive empty choose")
 			}
+			if tmpErr := updateNodeInputData(n.Id, n.Input); tmpErr != nil {
+				log.Logger.Error("updateNodeInputData for decision job fail", log.Error(tmpErr))
+			}
 		}
 	}
 	if n.Err == nil {
@@ -670,6 +676,14 @@ func getNodeOutputData(procRunNodeId string) (output string) {
 	queryRows, _ := db.MysqlEngine.QueryString("select `output` from proc_run_node where id=?", procRunNodeId)
 	if len(queryRows) > 0 {
 		output = queryRows[0]["output"]
+	}
+	return
+}
+
+func updateNodeInputData(procRunNodeId, input string) (err error) {
+	_, err = db.MysqlEngine.Exec("update proc_run_node set `input`=?,updated_time=? where id=?", input, time.Now(), procRunNodeId)
+	if err != nil {
+		err = fmt.Errorf("update proc run node %s input data %s fail,%s ", procRunNodeId, input, err.Error())
 	}
 	return
 }
