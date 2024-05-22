@@ -118,7 +118,7 @@ func (w *Workflow) nodeDoneCallback(node *WorkNode) {
 	if curStatus == models.JobStatusKill {
 		return
 	}
-	if curStatus == "stop" {
+	if curStatus == models.WorkflowStatusStop {
 		waitStopChan := make(chan int, 1)
 		w.stopNodeChanList = append(w.stopNodeChanList, waitStopChan)
 		<-waitStopChan
@@ -265,16 +265,17 @@ func (w *Workflow) IgnoreNode(nodeId string) {
 	nodeObj.Status = models.JobStatusSuccess
 	updateNodeDB(&nodeObj.ProcRunNode)
 	w.updateErrorList(false, nodeId, nil)
-	for _, ref := range w.Links {
-		if ref.Source == nodeId {
-			for _, targetNode := range w.Nodes {
-				if targetNode.Id == ref.Target {
-					targetNode.StartChan <- 1
-					break
-				}
-			}
-		}
-	}
+	nodeObj.DoneChan <- 1
+	//for _, ref := range w.Links {
+	//	if ref.Source == nodeId {
+	//		for _, targetNode := range w.Nodes {
+	//			if targetNode.Id == ref.Target {
+	//				targetNode.StartChan <- 1
+	//				break
+	//			}
+	//		}
+	//	}
+	//}
 }
 
 func (w *Workflow) ApproveNode(nodeId, message string) {
@@ -611,7 +612,7 @@ func updateWorkflowDB(w *models.ProcRunWorkflow, op *models.ProcOperation) {
 	}
 	nowTime := time.Now()
 	var actions []*db.ExecAction
-	if w.Status == "stop" {
+	if w.Status == models.WorkflowStatusStop {
 		actions = append(actions, &db.ExecAction{Sql: "update proc_run_workflow set stop=1,updated_time=? where id=?", Param: []interface{}{nowTime, w.Id}})
 	} else if w.Status == "sleep" {
 		actions = append(actions, &db.ExecAction{Sql: "update proc_run_workflow set sleep=1,updated_time=? where id=?", Param: []interface{}{nowTime, w.Id}})
