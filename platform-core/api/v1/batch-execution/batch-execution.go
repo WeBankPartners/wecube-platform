@@ -5,6 +5,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/WeBankPartners/go-common-lib/cipher"
@@ -412,7 +413,8 @@ func doRunJob(c *gin.Context, reqParam *models.BatchExecRun) (result *models.Bat
 		// 解密敏感字段的输入值
 		if inputParam.InputParameter.SensitiveData == "Y" {
 			if pluginDefInputParams.ParameValue != "" {
-				decryptData, tmpErr := decryptWithEncryptSeed(pluginDefInputParams.ParameValue)
+				encryptText, _ := strings.CutPrefix(pluginDefInputParams.ParameValue, models.BatchExecEncryptPrefix)
+				decryptData, tmpErr := decryptWithEncryptSeed(encryptText)
 				if tmpErr != nil {
 					err = fmt.Errorf("decrypt sensitive data of inputParameter id: %s failed: %s", pluginDefInputParams.ParamId, tmpErr.Error())
 					log.Logger.Error(err.Error())
