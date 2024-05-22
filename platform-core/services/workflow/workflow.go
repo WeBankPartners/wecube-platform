@@ -431,6 +431,7 @@ func (n *WorkNode) start() {
 	case models.JobDateType:
 		n.Output, n.Err = n.doDateJob(retryFlag)
 	case models.JobDecisionType:
+		n.Input = getNodeInputData(n.Id)
 		if n.Input == "" {
 			for _, tmpLink := range n.workflow.Links {
 				if tmpLink.Target == n.Id {
@@ -673,6 +674,14 @@ func getNodeOutputData(procRunNodeId string) (output string) {
 	queryRows, _ := db.MysqlEngine.QueryString("select `output` from proc_run_node where id=?", procRunNodeId)
 	if len(queryRows) > 0 {
 		output = queryRows[0]["output"]
+	}
+	return
+}
+
+func getNodeInputData(procRunNodeId string) (input string) {
+	queryRows, _ := db.MysqlEngine.QueryString("select `input` from proc_run_node where id=?", procRunNodeId)
+	if len(queryRows) > 0 {
+		input = queryRows[0]["input"]
 	}
 	return
 }
