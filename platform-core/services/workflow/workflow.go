@@ -142,7 +142,7 @@ func (w *Workflow) nodeDoneCallback(node *WorkNode) {
 }
 
 func (w *Workflow) Stop(input *models.ProcOperation) {
-	w.setStatus("stop", input)
+	w.setStatus(models.WorkflowStatusStop, input)
 }
 
 func (w *Workflow) Continue(input *models.ProcOperation) {
