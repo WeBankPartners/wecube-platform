@@ -325,3 +325,6 @@ export const getBranchByNodeId = nodeId => req.get(`/platform/v1/process/instanc
 export const skipNode = data => req.post(`/platform/v1/process/instances/proceed`, data)
 // 编排执行-执行判断分支
 export const executeBranch = data => req.post(`/platform/v1/process/instances/proceed`, data)
+
+// 编排执行-暂停、继续
+export const pauseAndContinueFlow = data => req.post(`/platform/v1/process/instances/proceed`, data)
