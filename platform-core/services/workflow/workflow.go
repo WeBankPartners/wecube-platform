@@ -122,22 +122,19 @@ func (w *Workflow) nodeDoneCallback(node *WorkNode) {
 	}
 	// 找到节点下一跳发出start信号
 	for _, ref := range w.Links {
-		if node.JobType == models.JobDecisionType {
-			if decisionChose != "" {
-				if ref.Name != decisionChose {
-					continue
-				}
+		if decisionChose != "" {
+			if ref.Name != decisionChose {
+				continue
 			}
-		} else {
-			if ref.Source == node.Id {
-				for _, targetNode := range w.Nodes {
-					if targetNode.Id == ref.Target {
-						if targetNode.JobType == models.JobDecisionType {
-							targetNode.Input = node.Output
-						}
-						targetNode.StartChan <- 1
-						break
+		}
+		if ref.Source == node.Id {
+			for _, targetNode := range w.Nodes {
+				if targetNode.Id == ref.Target {
+					if targetNode.JobType == models.JobDecisionType {
+						targetNode.Input = node.Output
 					}
+					targetNode.StartChan <- 1
+					break
 				}
 			}
 		}
