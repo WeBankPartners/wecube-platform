@@ -18,12 +18,13 @@ const (
 	JobDateType     = "date"
 	JobDecisionType = "decision"
 
-	JobStatusReady   = "NotStarted"
-	JobStatusRunning = "InProgress"
-	JobStatusFail    = "Faulted"
-	JobStatusSuccess = "Completed"
-	JobStatusKill    = "InternallyTerminated"
-	JobStatusTimeout = "Timeouted"
+	JobStatusReady     = "NotStarted"
+	JobStatusRunning   = "InProgress"
+	JobStatusFail      = "Faulted"
+	JobStatusSuccess   = "Completed"
+	JobStatusKill      = "InternallyTerminated"
+	JobStatusTimeout   = "Timeouted"
+	WorkflowStatusStop = "Stop"
 )
 
 type ProcRunWorkflow struct {
