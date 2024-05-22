@@ -167,7 +167,7 @@ export default {
                     size="small"
                     style="margin-right: 5px"
                   >
-                    {this.$t('终止')}
+                    {this.$t('stop_orch')}
                   </Button>
                 )}
               </div>
