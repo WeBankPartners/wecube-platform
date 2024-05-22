@@ -102,6 +102,9 @@ func (w *Workflow) nodeDoneCallback(node *WorkNode) {
 	}
 	decisionChose := ""
 	if node.JobType == models.JobDecisionType {
+		if node.Input == "" {
+			node.Input = getNodeInputData(node.Id)
+		}
 		decisionChose = node.Input
 		log.Logger.Info("decision node receive choose", log.String("wid", w.Id), log.String("decisionChose", decisionChose))
 	}
