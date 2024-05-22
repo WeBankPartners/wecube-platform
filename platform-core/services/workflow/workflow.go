@@ -78,12 +78,12 @@ func (w *Workflow) Start(input *models.ProcOperation) {
 		sleepFlag = true
 	}
 	if killFlag {
-		log.Logger.Info("<--workflow kill-->")
+		log.Logger.Info("<--workflow kill-->", log.String("wid", w.Id))
 		<-w.doneChan
 	} else if sleepFlag {
-		log.Logger.Info("<--workflow sleep-->")
+		log.Logger.Info("<--workflow sleep-->", log.String("wid", w.Id))
 	} else {
-		log.Logger.Info("<--workflow done-->")
+		log.Logger.Info("<--workflow done-->", log.String("wid", w.Id))
 		w.setStatus(w.Status, nil)
 	}
 	GlobalWorkflowMap.Delete(w.Id)
@@ -102,8 +102,11 @@ func (w *Workflow) nodeDoneCallback(node *WorkNode) {
 	}
 	decisionChose := ""
 	if node.JobType == models.JobDecisionType {
+		if node.Input == "" {
+			node.Input = getNodeInputData(node.Id)
+		}
 		decisionChose = node.Input
-		log.Logger.Info("decision node receive choose", log.String(decisionChose, "decisionChose"))
+		log.Logger.Info("decision node receive choose", log.String("wid", w.Id), log.String("decisionChose", decisionChose))
 	}
 	if node.Err != nil {
 		w.updateErrorList(true, "", &models.WorkProblemErrObj{NodeId: node.Id, NodeName: node.Name, ErrMessage: node.Err.Error()})
@@ -115,7 +118,7 @@ func (w *Workflow) nodeDoneCallback(node *WorkNode) {
 	if curStatus == models.JobStatusKill {
 		return
 	}
-	if curStatus == "stop" {
+	if curStatus == models.WorkflowStatusStop {
 		waitStopChan := make(chan int, 1)
 		w.stopNodeChanList = append(w.stopNodeChanList, waitStopChan)
 		<-waitStopChan
@@ -142,7 +145,7 @@ func (w *Workflow) nodeDoneCallback(node *WorkNode) {
 }
 
 func (w *Workflow) Stop(input *models.ProcOperation) {
-	w.setStatus("stop", input)
+	w.setStatus(models.WorkflowStatusStop, input)
 }
 
 func (w *Workflow) Continue(input *models.ProcOperation) {
@@ -259,19 +262,21 @@ func (w *Workflow) IgnoreNode(nodeId string) {
 		nodeObj.ContinueChan <- 1
 		return
 	}
+	nodeObj.Err = nil
 	nodeObj.Status = models.JobStatusSuccess
 	updateNodeDB(&nodeObj.ProcRunNode)
 	w.updateErrorList(false, nodeId, nil)
-	for _, ref := range w.Links {
-		if ref.Source == nodeId {
-			for _, targetNode := range w.Nodes {
-				if targetNode.Id == ref.Target {
-					targetNode.StartChan <- 1
-					break
-				}
-			}
-		}
-	}
+	w.nodeDoneCallback(nodeObj)
+	//for _, ref := range w.Links {
+	//	if ref.Source == nodeId {
+	//		for _, targetNode := range w.Nodes {
+	//			if targetNode.Id == ref.Target {
+	//				targetNode.StartChan <- 1
+	//				break
+	//			}
+	//		}
+	//	}
+	//}
 }
 
 func (w *Workflow) ApproveNode(nodeId, message string) {
@@ -431,6 +436,7 @@ func (n *WorkNode) start() {
 	case models.JobDateType:
 		n.Output, n.Err = n.doDateJob(retryFlag)
 	case models.JobDecisionType:
+		n.Input = getNodeInputData(n.Id)
 		if n.Input == "" {
 			for _, tmpLink := range n.workflow.Links {
 				if tmpLink.Target == n.Id {
@@ -441,6 +447,9 @@ func (n *WorkNode) start() {
 			if n.Input == "" {
 				n.Input = <-n.callbackChan
 				//n.Err = fmt.Errorf("dicision type receive empty choose")
+			}
+			if tmpErr := updateNodeInputData(n.Id, n.Input); tmpErr != nil {
+				log.Logger.Error("updateNodeInputData for decision job fail", log.Error(tmpErr))
 			}
 		}
 	}
@@ -604,7 +613,7 @@ func updateWorkflowDB(w *models.ProcRunWorkflow, op *models.ProcOperation) {
 	}
 	nowTime := time.Now()
 	var actions []*db.ExecAction
-	if w.Status == "stop" {
+	if w.Status == models.WorkflowStatusStop {
 		actions = append(actions, &db.ExecAction{Sql: "update proc_run_workflow set stop=1,updated_time=? where id=?", Param: []interface{}{nowTime, w.Id}})
 	} else if w.Status == "sleep" {
 		actions = append(actions, &db.ExecAction{Sql: "update proc_run_workflow set sleep=1,updated_time=? where id=?", Param: []interface{}{nowTime, w.Id}})
@@ -670,6 +679,22 @@ func getNodeOutputData(procRunNodeId string) (output string) {
 	queryRows, _ := db.MysqlEngine.QueryString("select `output` from proc_run_node where id=?", procRunNodeId)
 	if len(queryRows) > 0 {
 		output = queryRows[0]["output"]
+	}
+	return
+}
+
+func getNodeInputData(procRunNodeId string) (input string) {
+	queryRows, _ := db.MysqlEngine.QueryString("select `input` from proc_run_node where id=?", procRunNodeId)
+	if len(queryRows) > 0 {
+		input = queryRows[0]["input"]
+	}
+	return
+}
+
+func updateNodeInputData(procRunNodeId, input string) (err error) {
+	_, err = db.MysqlEngine.Exec("update proc_run_node set `input`=?,updated_time=? where id=?", input, time.Now(), procRunNodeId)
+	if err != nil {
+		err = fmt.Errorf("update proc run node %s input data %s fail,%s ", procRunNodeId, input, err.Error())
 	}
 	return
 }
