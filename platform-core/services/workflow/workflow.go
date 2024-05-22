@@ -262,10 +262,11 @@ func (w *Workflow) IgnoreNode(nodeId string) {
 		nodeObj.ContinueChan <- 1
 		return
 	}
+	nodeObj.Err = nil
 	nodeObj.Status = models.JobStatusSuccess
 	updateNodeDB(&nodeObj.ProcRunNode)
 	w.updateErrorList(false, nodeId, nil)
-	nodeObj.DoneChan <- 1
+	w.nodeDoneCallback(nodeObj)
 	//for _, ref := range w.Links {
 	//	if ref.Source == nodeId {
 	//		for _, targetNode := range w.Nodes {
