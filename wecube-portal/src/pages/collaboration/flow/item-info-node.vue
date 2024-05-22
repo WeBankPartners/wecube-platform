@@ -174,7 +174,7 @@
                 </FormItem>
                 <FormItem>
                   <label slot="label">
-                    <span style="color: red" v-if="!itemCustomInfo.customAttrs.dynamicBind">*</span>
+                    <span style="color: red">*</span>
                     {{ $t('locate_rules') }}
                   </label>
                   <template v-if="itemCustomInfo.customAttrs.routineExpression === ''">

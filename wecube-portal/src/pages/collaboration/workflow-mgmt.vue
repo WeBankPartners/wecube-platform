@@ -374,7 +374,7 @@ export default {
                   this.$refs.itemInfoNodeRef.showItemInfo(
                     model,
                     false,
-                    this.procDef.rootEntity,
+                    this.procDef.rootEntity.split('{')[0], // 禁止向节点传递过滤条件
                     this.editFlow,
                     this.permissionToRole
                   )
@@ -754,7 +754,7 @@ export default {
         this.$refs.itemInfoNodeRef.showItemInfo(
           model,
           true,
-          this.procDef.rootEntity,
+          this.procDef.rootEntity.split('{')[0], // 禁止向节点传递过滤条件
           this.editFlow,
           this.permissionToRole
         )
