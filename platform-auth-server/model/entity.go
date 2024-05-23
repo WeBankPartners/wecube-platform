@@ -191,6 +191,7 @@ type UserRoleRsEntity struct {
 	RoleName    string    `xorm:"'ROLE_NAME'"`
 	ExpireTime  time.Time `xorm:"expire_time"`  // 角色过期时间,""表示永久生效
 	NotifyCount int       `xorm:"notify_count"` // 快要过期通知
+	RoleApply   string    `xorm:"role_apply"`   // 角色申请ID
 }
 
 func (UserRoleRsEntity) TableName() string {
